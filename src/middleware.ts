@@ -8,11 +8,20 @@ const isPublicRoute = createRouteMatcher([
   "/api/onboarding(.*)",
 ]);
 
-export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
-    await auth.protect();
-  }
-});
+const authorizedParties = [
+  "https://app.digitalgate.com.au",
+  "https://dg-platform-web.vercel.app",
+  process.env.NEXT_PUBLIC_APP_URL,
+].filter((url): url is string => Boolean(url));
+
+export default clerkMiddleware(
+  async (auth, req) => {
+    if (!isPublicRoute(req)) {
+      await auth.protect();
+    }
+  },
+  { authorizedParties },
+);
 
 export const config = {
   matcher: [
