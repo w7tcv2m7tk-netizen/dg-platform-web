@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+:root {
+  --dg-blue: #3b82f6;
+  --dg-navy: #0a0e17;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+.dg-input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(51 65 85);
+  background: rgb(15 23 42);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: white;
+  outline: none;
+}
+
+.dg-input:focus {
+  border-color: var(--dg-blue);
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.25);
+}
+
+.dg-input::placeholder {
+  color: rgb(100 116 139);
+}
+
+.dg-card {
+  border-radius: 1rem;
+  border: 1px solid rgb(51 65 85);
+  background: rgb(30 41 59 / 0.5);
+  padding: 1.5rem;
+}

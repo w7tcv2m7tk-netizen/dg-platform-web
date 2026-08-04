@@ -1,0 +1,144 @@
+"use client";
+
+import { useState } from "react";
+import { PlanPicker } from "@/components/PlanPicker";
+import type { SignupSelection } from "@/lib/plans";
+
+export function SignupForm() {
+  const [step, setStep] = useState<"plan" | "details" | "done">("plan");
+  const [selection, setSelection] = useState<SignupSelection | null>(null);
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [error, setError] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+
+  async function submitDetails() {
+    if (!selection?.platformTier) return;
+    setStatus("loading");
+    setError("");
+
+    try {
+      const res = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          business_name: businessName,
+          contact_name: contactName,
+          contact_email: contactEmail,
+          contact_phone: contactPhone,
+          industry_vertical: selection.industryApps[0] ?? "",
+          platform_tier: selection.platformTier,
+          purchased_apps: selection.industryApps,
+          purchased_premium: selection.premiumApps,
+          purchased_addons: selection.addons,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error ?? "Submission failed");
+      }
+      setStep("done");
+      setStatus("idle");
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    }
+  }
+
+  if (step === "done") {
+    return (
+      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-6 text-center">
+        <h2 className="text-xl font-semibold text-white">Details received</h2>
+        <p className="mt-2 text-slate-300">
+          We received your plan selection. Create an account or log in to track
+          setup in your dashboard.
+        </p>
+        <div className="mt-4 flex flex-wrap justify-center gap-3">
+          <a
+            href="/signup/account"
+            className="inline-block rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-500"
+          >
+            Create account →
+          </a>
+          <a
+            href={process.env.NEXT_PUBLIC_DG_ONBOARDING_URL ?? "https://digitalgate.com.au/onboarding/"}
+            className="inline-block rounded-full border border-slate-600 px-6 py-2 text-sm font-semibold text-slate-200 hover:border-slate-500"
+          >
+            Complete onboarding form
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "details" && selection) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-white">Your details</h2>
+        <input
+          className="dg-input"
+          placeholder="Business name *"
+          value={businessName}
+          onChange={(e) => setBusinessName(e.target.value)}
+        />
+        <input
+          className="dg-input"
+          placeholder="Contact name *"
+          value={contactName}
+          onChange={(e) => setContactName(e.target.value)}
+        />
+        <input
+          className="dg-input"
+          type="email"
+          placeholder="Email *"
+          value={contactEmail}
+          onChange={(e) => setContactEmail(e.target.value)}
+        />
+        <input
+          className="dg-input"
+          placeholder="Phone"
+          value={contactPhone}
+          onChange={(e) => setContactPhone(e.target.value)}
+        />
+        {error && <p className="text-sm text-red-400">{error}</p>}
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setStep("plan")}
+            className="rounded-full border border-slate-600 px-5 py-2 text-sm text-slate-300"
+          >
+            Back
+          </button>
+          <button
+            type="button"
+            disabled={
+              status === "loading" ||
+              !businessName ||
+              !contactName ||
+              !contactEmail
+            }
+            onClick={submitDetails}
+            className="flex-1 rounded-full bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-40"
+          >
+            {status === "loading" ? "Submitting…" : "Submit plan selection"}
+          </button>
+        </div>
+        <p className="text-xs text-slate-500">
+          Posts to WordPress via <code className="text-slate-400">/api/onboarding</code>.
+          Create an account after submitting to access your dashboard.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <PlanPicker
+      onContinue={(sel) => {
+        setSelection(sel);
+        setStep("details");
+      }}
+    />
+  );
+}
