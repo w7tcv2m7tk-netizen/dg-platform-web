@@ -1,5 +1,19 @@
 const DEFAULT_API_BASE = "https://digitalgate.com.au/wp-json/digitalgate/v1";
 
+function wpSiteConfigHint(baseUrl: string, envVar = "DG_WP_ACCOMMODATION_SITES"): string {
+  if (/YOUR-CVH-SITE|example\.com|localhost/i.test(baseUrl)) {
+    return `Replace the placeholder in ${envVar} with the live WordPress URL (CVH: https://currumbinvalleyhideaway.com.au/wp-json/digitalgate/v1).`;
+  }
+  return `Check ${envVar} baseUrl and that the DG Platform plugin is active on that site.`;
+}
+
+function wpNetworkErrorMessage(baseUrl: string, path: string, envVar?: string): string {
+  const varName =
+    envVar ??
+    (path.includes("/accommodation/") ? "DG_WP_ACCOMMODATION_SITES" : "DG_WP_HEALTH_SITES");
+  return `Could not reach ${baseUrl}${path} — ${wpSiteConfigHint(baseUrl, varName)}`;
+}
+
 export function getApiBase(): string {
   return process.env.DG_API_BASE_URL?.replace(/\/$/, "") ?? DEFAULT_API_BASE;
 }
@@ -377,7 +391,7 @@ async function wpConnectorFetch<T>(
     return {
       ok: false,
       code: "network_error",
-      message: `Could not reach ${baseUrl}${path}`,
+      message: wpNetworkErrorMessage(baseUrl, path),
     };
   }
 }
@@ -506,7 +520,7 @@ export async function fetchWpAccommodationSummary(siteId?: string | null, days =
   const site = getWpAccommodationSite(siteId);
   return wpConnectorFetch<WpAccommodationSummary>(
     `/accommodation/summary?days=${days}`,
-    { baseUrl: site.baseUrl, apiKey: site.apiKey },
+    { baseUrl: site.baseUrl, apiKey: wpConnectorApiKey(site) },
   );
 }
 
@@ -514,7 +528,7 @@ export async function fetchWpAccommodationUnits(siteId?: string | null) {
   const site = getWpAccommodationSite(siteId);
   const result = await wpConnectorFetch<{ properties?: WpAccUnitRow[] }>(
     "/accommodation/properties",
-    { baseUrl: site.baseUrl, apiKey: site.apiKey },
+    { baseUrl: site.baseUrl, apiKey: wpConnectorApiKey(site) },
   );
   if (!result.ok) return result;
   return { ok: true as const, units: result.data.properties ?? [], site: site.label };
@@ -527,7 +541,7 @@ export async function fetchWpAccommodationBookings(
   const site = getWpAccommodationSite(siteId);
   const result = await wpConnectorFetch<{ bookings?: WpAccBookingRow[]; total?: number }>(
     `/accommodation/bookings?limit=${limit}`,
-    { baseUrl: site.baseUrl, apiKey: site.apiKey },
+    { baseUrl: site.baseUrl, apiKey: wpConnectorApiKey(site) },
   );
   if (!result.ok) return result;
   return {
@@ -655,7 +669,7 @@ export async function fetchWpSiteHealth(
     return {
       ok: false,
       code: "network_error",
-      message: `Could not reach ${site.baseUrl} — check site URL in DG_WP_HEALTH_SITES.`,
+      message: wpNetworkErrorMessage(site.baseUrl, "/site/health", "DG_WP_HEALTH_SITES"),
     };
   }
 }

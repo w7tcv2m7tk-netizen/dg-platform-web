@@ -278,7 +278,7 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
         title: "Configure accommodation sites",
         description:
           "Point Gen 2 at your CVH WordPress REST API. Falls back to DG_WP_HEALTH_SITES when unset.",
-        code: 'DG_WP_ACCOMMODATION_SITES=[{"id":"cvh","label":"Currumbin Valley Hideaway","baseUrl":"https://YOUR-CVH-SITE/wp-json/digitalgate/v1","apiKey":"dgdev_..."}]',
+        code: 'DG_WP_ACCOMMODATION_SITES=[{"id":"cvh","label":"Currumbin Valley Hideaway","baseUrl":"https://currumbinvalleyhideaway.com.au/wp-json/digitalgate/v1","apiKey":"dgdev_..."}]',
       },
       {
         id: "acc-2",
