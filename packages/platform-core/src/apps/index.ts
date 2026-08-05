@@ -1,7 +1,8 @@
 export * from "./manifest";
 export * from "./registry";
 export * from "./org-apps";
-export * from "./navigation";export * from "./builtins/crm";
+export * from "./navigation";
+export * from "./platform-tools";export * from "./builtins/crm";
 export * from "./builtins/real-estate";
 export * from "./builtins/seo";
 export * from "./builtins/ai-communications";

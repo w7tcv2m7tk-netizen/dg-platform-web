@@ -1,0 +1,113 @@
+import Link from "next/link";
+import { currentUser } from "@clerk/nextjs/server";
+import { resolvePlatformSession } from "@dg/platform-core";
+
+import { fetchPortalMe } from "@/lib/dg-api";
+import { getOrgEnabledAppIds } from "@/lib/org-apps";
+
+export default async function PlatformSettingsPage() {
+  const user = await currentUser();
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
+  const name =
+    user?.fullName ??
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
+    email;
+
+  const portal = email ? await fetchPortalMe(email, user?.id) : null;
+  const session = user?.id
+    ? await resolvePlatformSession({
+        clerkUserId: user.id,
+        email,
+        name,
+        orgName: portal?.org_name,
+      })
+    : null;
+
+  const enabledIds = await getOrgEnabledAppIds();
+
+  return (
+    <>
+      <header className="border-b border-slate-800 px-8 py-5">
+        <h1 className="text-2xl font-bold text-white">Platform settings</h1>
+        <p className="text-sm text-slate-400">
+          Organisation, connectors, and platform configuration
+        </p>
+      </header>
+      <main className="flex-1 space-y-6 p-8">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="dg-card">
+            <h2 className="font-semibold text-white">Organisation</h2>
+            {session ? (
+              <dl className="mt-4 space-y-3 text-sm">
+                <div>
+                  <dt className="text-slate-500">Name</dt>
+                  <dd className="text-slate-200">{session.organisationName}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Slug</dt>
+                  <dd className="font-mono text-slate-300">{session.organisationSlug}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Signed in as</dt>
+                  <dd className="text-slate-200">{email}</dd>
+                </div>
+              </dl>
+            ) : (
+              <p className="mt-3 text-sm text-slate-400">
+                Sign in with DATABASE_URL configured to view organisation details.
+              </p>
+            )}
+          </div>
+
+          <div className="dg-card">
+            <h2 className="font-semibold text-white">Apps</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              {enabledIds.length} app{enabledIds.length === 1 ? "" : "s"} enabled for your
+              organisation sidebar.
+            </p>
+            <Link
+              href="/dashboard/apps"
+              className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
+            >
+              Manage apps & plan →
+            </Link>
+          </div>
+
+          <div className="dg-card">
+            <h2 className="font-semibold text-white">Setup</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Self-serve checklist for CRM, connectors, and first workflows.
+            </p>
+            <Link
+              href="/dashboard/apps#onboarding"
+              className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
+            >
+              Open setup checklist →
+            </Link>
+          </div>
+
+          <div className="dg-card">
+            <h2 className="font-semibold text-white">Quick links</h2>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li>
+                <Link href="/dashboard/settings/connectors" className="text-blue-400 hover:underline">
+                  Connectors →
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard/settings/team" className="text-blue-400 hover:underline">
+                  Team & access →
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard/settings/roadmap" className="text-blue-400 hover:underline">
+                  Platform roadmap →
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </main>
+    </>
+  );
+}

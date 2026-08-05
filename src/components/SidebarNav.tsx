@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
+import type { AppRoute } from "@dg/platform-core";
 
 function linkClass(active: boolean) {
   return `flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
@@ -20,6 +21,72 @@ function childLinkClass(active: boolean) {
   }`;
 }
 
+type CollapsibleItem = {
+  id: string;
+  name: string;
+  icon: string;
+  routes: AppRoute[];
+  primaryHref: string;
+};
+
+function CollapsibleNavSection({
+  items,
+  expanded,
+  onToggle,
+  pathname,
+}: {
+  items: CollapsibleItem[];
+  expanded: Record<string, boolean>;
+  onToggle: (id: string) => void;
+  pathname: string;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      {items.map((item) => {
+        const isOpen = expanded[item.id] ?? false;
+        const itemActive = item.routes.some(
+          (r) => pathname === r.path || pathname.startsWith(`${r.path}/`),
+        );
+
+        return (
+          <div key={item.id}>
+            <button
+              type="button"
+              onClick={() => onToggle(item.id)}
+              className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition ${
+                itemActive
+                  ? "bg-slate-900/80 text-white"
+                  : "text-slate-300 hover:bg-slate-900 hover:text-white"
+              }`}
+            >
+              <span className="text-blue-500">{item.icon}</span>
+              <span className="flex-1 truncate">{item.name}</span>
+              <span className="text-xs text-slate-500" aria-hidden>
+                {isOpen ? "▾" : "▸"}
+              </span>
+            </button>
+            {isOpen ? (
+              <ul className="mb-1 mt-0.5 space-y-0.5">
+                {item.routes.map((route) => {
+                  const active =
+                    pathname === route.path || pathname.startsWith(`${route.path}/`);
+                  return (
+                    <li key={route.path}>
+                      <Link href={route.path} className={childLinkClass(active)}>
+                        {route.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function SidebarNav() {
   const pathname = usePathname();
   const { nav } = useEnabledApps();
@@ -29,17 +96,23 @@ export function SidebarNav() {
     const next: Record<string, boolean> = {};
     for (const group of nav.tiers) {
       for (const app of group.apps) {
-        const isActive =
-          pathname === app.primaryHref ||
-          app.routes.some((r) => pathname === r.path || pathname.startsWith(`${r.path}/`));
+        const isActive = app.routes.some(
+          (r) => pathname === r.path || pathname.startsWith(`${r.path}/`),
+        );
         if (isActive) next[app.id] = true;
       }
     }
+    for (const tool of nav.tools.tools) {
+      const isActive = tool.routes.some(
+        (r) => pathname === r.path || pathname.startsWith(`${r.path}/`),
+      );
+      if (isActive) next[tool.id] = true;
+    }
     setExpanded((prev) => ({ ...prev, ...next }));
-  }, [pathname, nav.tiers]);
+  }, [pathname, nav.tiers, nav.tools.tools]);
 
-  function toggleApp(appId: string) {
-    setExpanded((prev) => ({ ...prev, [appId]: !prev[appId] }));
+  function toggleItem(id: string) {
+    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
   return (
@@ -61,51 +134,26 @@ export function SidebarNav() {
           <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
             {group.label}
           </p>
-          <div className="flex flex-col gap-0.5">
-            {group.apps.map((app) => {
-              const isOpen = expanded[app.id] ?? false;
-              const appActive = app.routes.some(
-                (r) => pathname === r.path || pathname.startsWith(`${r.path}/`),
-              );
-
-              return (
-                <div key={app.id}>
-                  <button
-                    type="button"
-                    onClick={() => toggleApp(app.id)}
-                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition ${
-                      appActive
-                        ? "bg-slate-900/80 text-white"
-                        : "text-slate-300 hover:bg-slate-900 hover:text-white"
-                    }`}
-                  >
-                    <span className="text-blue-500">{app.icon}</span>
-                    <span className="flex-1 truncate">{app.name}</span>
-                    <span className="text-xs text-slate-500" aria-hidden>
-                      {isOpen ? "▾" : "▸"}
-                    </span>
-                  </button>
-                  {isOpen ? (
-                    <ul className="mb-1 mt-0.5 space-y-0.5">
-                      {app.routes.map((route) => {
-                        const active =
-                          pathname === route.path || pathname.startsWith(`${route.path}/`);
-                        return (
-                          <li key={route.path}>
-                            <Link href={route.path} className={childLinkClass(active)}>
-                              {route.label}
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
+          <CollapsibleNavSection
+            items={group.apps}
+            expanded={expanded}
+            onToggle={toggleItem}
+            pathname={pathname}
+          />
         </div>
       ))}
+
+      <div className="mt-4">
+        <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+          {nav.tools.label}
+        </p>
+        <CollapsibleNavSection
+          items={nav.tools.tools}
+          expanded={expanded}
+          onToggle={toggleItem}
+          pathname={pathname}
+        />
+      </div>
     </nav>
   );
 }

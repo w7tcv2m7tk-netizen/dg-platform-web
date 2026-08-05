@@ -1,7 +1,7 @@
 import type { AppNavItem, AppRoute, AppTier, RegisteredApp } from "./manifest";
+import { PLATFORM_TOOL_GROUPS, PLATFORM_TOOLS_SECTION_LABEL } from "./platform-tools";
 import { APP_TIER_LABELS, APP_TIER_ORDER, isAppEnabled } from "./org-apps";
 import { platformApps } from "./registry";
-
 export interface PlatformShellNavItem extends AppNavItem {
   kind: "shell";
 }
@@ -21,6 +21,20 @@ export interface AppNavTierGroup {
   tier: AppTier;
   label: string;
   apps: AppNavTreeItem[];
+}
+
+export interface PlatformToolsNavGroup {
+  label: string;
+  tools: PlatformToolNavItem[];
+}
+
+export interface PlatformToolNavItem {
+  kind: "tool";
+  id: string;
+  name: string;
+  icon: string;
+  routes: AppRoute[];
+  primaryHref: string;
 }
 
 const SHELL_NAV: PlatformShellNavItem[] = [
@@ -60,6 +74,7 @@ function toTreeItem(app: RegisteredApp, enabledIds: string[]): AppNavTreeItem {
 export function getCategorizedPlatformNavigation(enabledIds: string[]): {
   shell: PlatformShellNavItem[];
   tiers: AppNavTierGroup[];
+  tools: PlatformToolsNavGroup;
 } {
   const customerApps = platformApps
     .list()
@@ -73,7 +88,19 @@ export function getCategorizedPlatformNavigation(enabledIds: string[]): {
       .map((a) => toTreeItem(a, enabledIds)),
   })).filter((g) => g.apps.length > 0);
 
-  return { shell: SHELL_NAV, tiers };
+  const tools: PlatformToolsNavGroup = {
+    label: PLATFORM_TOOLS_SECTION_LABEL,
+    tools: PLATFORM_TOOL_GROUPS.map((group) => ({
+      kind: "tool" as const,
+      id: group.id,
+      name: group.label,
+      icon: group.icon,
+      routes: group.routes,
+      primaryHref: group.primaryHref,
+    })),
+  };
+
+  return { shell: SHELL_NAV, tiers, tools };
 }
 
 /** All customer apps grouped by tier — for Apps & plan page (includes disabled). */

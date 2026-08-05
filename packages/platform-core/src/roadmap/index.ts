@@ -57,7 +57,15 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     label: "Roadmap & progress UI",
     description: "Overview progress bar and coming-soon placeholders",
     status: "done",
-    href: "/dashboard",
+    href: "/dashboard/settings/roadmap",
+  },
+  {
+    id: "platform.settings",
+    area: "Platform",
+    label: "Settings & tools",
+    description: "Platform settings, connectors, team, and support",
+    status: "done",
+    href: "/dashboard/settings",
   },
 
   // —— CRM ——
