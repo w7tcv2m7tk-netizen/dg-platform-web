@@ -8,12 +8,10 @@ export const realEstateApp: AppManifest = {
   version: "1.0.0",
   icon: "🏠",
   routes: [
-    { path: "/apps/real-estate/leads", label: "Vendor leads" },
-    { path: "/apps/real-estate/pipeline", label: "Pipeline" },
-    { path: "/apps/real-estate/listings", label: "Listings" },
+    { path: "/apps/re/vendor-leads", label: "Vendor leads" },
   ],
   navigation: [
-    { href: "/apps/real-estate/leads", label: "Vendor leads", icon: "◈" },
+    { href: "/apps/re/vendor-leads", label: "Vendor leads", icon: "◈" },
   ],
   permissions: [
     { id: "re.view_leads", label: "View vendor leads" },

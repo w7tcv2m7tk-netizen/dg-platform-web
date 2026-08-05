@@ -27,7 +27,7 @@ export async function resolvePlatformSession(
   }
 
   const { provisionOrganisation } = await import("../org/provision");
-  const result = await provisionOrganisation({
+  await provisionOrganisation({
     clerkUserId: input.clerkUserId,
     email: input.email,
     name: input.name,

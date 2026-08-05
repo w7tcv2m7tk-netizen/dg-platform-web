@@ -84,19 +84,25 @@ export default async function CrmContactsPage() {
               <ul className="mt-4 divide-y divide-slate-800">
                 {items.map((contact) => (
                   <li key={contact.id} className="py-3">
-                    <p className="font-medium text-white">
-                      {[contact.firstName, contact.lastName]
-                        .filter(Boolean)
-                        .join(" ")}
-                    </p>
-                    <p className="text-sm text-slate-400">
-                      {[contact.email, contact.phone, contact.source]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      Updated {new Date(contact.updatedAt).toLocaleDateString("en-AU")}
-                    </p>
+                    <Link
+                      href={`/apps/crm/contacts/${contact.id}`}
+                      className="block hover:opacity-90"
+                    >
+                      <p className="font-medium text-white">
+                        {[contact.firstName, contact.lastName]
+                          .filter(Boolean)
+                          .join(" ")}
+                      </p>
+                      <p className="text-sm text-slate-400">
+                        {[contact.email, contact.phone, contact.source]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        Updated{" "}
+                        {new Date(contact.updatedAt).toLocaleDateString("en-AU")}
+                      </p>
+                    </Link>
                   </li>
                 ))}
               </ul>

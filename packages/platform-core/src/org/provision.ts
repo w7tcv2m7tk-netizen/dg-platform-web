@@ -26,13 +26,28 @@ function slugify(name: string): string {
     .slice(0, 48);
 }
 
+function deriveOrgName(input: ProvisionOrganisationInput): string {
+  if (input.orgName?.trim()) {
+    return input.orgName.trim();
+  }
+  const name = input.name?.trim();
+  if (name && name !== input.email && !name.includes("@")) {
+    return `${name}'s Organisation`;
+  }
+  const local = input.email.split("@")[0]?.replace(/[^a-z0-9]+/gi, " ").trim();
+  if (local) {
+    return `${local.charAt(0).toUpperCase()}${local.slice(1)} Organisation`;
+  }
+  return "My Organisation";
+}
+
 /**
  * Provision tenant on first sign-in. Returns stub when DB not configured.
  */
 export async function provisionOrganisation(
   input: ProvisionOrganisationInput,
 ): Promise<ProvisionOrganisationResult> {
-  const orgName = input.orgName ?? `${input.name}'s Organisation`;
+  const orgName = deriveOrgName(input);
   const slug = slugify(orgName) || slugify(input.email.split("@")[0]);
 
   if (!process.env.DATABASE_URL) {
@@ -52,6 +67,16 @@ export async function provisionOrganisation(
   });
 
   if (existing) {
+    if (
+      input.orgName?.trim() &&
+      existing.organisation.name !== input.orgName.trim() &&
+      existing.organisation.name.endsWith("'s Organisation")
+    ) {
+      await prisma.organisation.update({
+        where: { id: existing.organisationId },
+        data: { name: input.orgName.trim() },
+      });
+    }
     return {
       organisationId: existing.organisationId,
       membershipId: existing.id,

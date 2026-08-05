@@ -137,3 +137,44 @@ export async function pingApi(): Promise<{ ok: boolean; base: string }> {
     return { ok: false, base: getApiBase() };
   }
 }
+
+/** WordPress connector — vendor leads from Gen 1 RE module */
+export function getWpConnectorBase(): string {
+  return (
+    process.env.DG_WP_CONNECTOR_BASE_URL?.replace(/\/$/, "") ??
+    "https://roerealty.com.au/wp-json/digitalgate/v1"
+  );
+}
+
+export type WpVendorLeadRow = {
+  id: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  property_address?: string;
+  source?: string;
+  stage?: string;
+  status?: string;
+  created_at?: string;
+};
+
+export async function fetchWpVendorLeads(limit = 100): Promise<WpVendorLeadRow[]> {
+  const headers = apiHeaders();
+  if (!headers) {
+    return [];
+  }
+
+  try {
+    const url = `${getWpConnectorBase()}/leads/vendor?limit=${limit}`;
+    const res = await fetch(url, { headers, cache: "no-store" });
+    const data = (await res.json().catch(() => null)) as {
+      leads?: WpVendorLeadRow[];
+    } | null;
+    if (!res.ok || !data?.leads) {
+      return [];
+    }
+    return data.leads;
+  } catch {
+    return [];
+  }
+}

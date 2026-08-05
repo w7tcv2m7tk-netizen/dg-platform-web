@@ -14,12 +14,17 @@ export default async function DashboardPage() {
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
     email;
 
-  const [portal, platformSession] = await Promise.all([
-    email ? fetchPortalMe(email, clerkUserId) : null,
+  const portal = email ? await fetchPortalMe(email, clerkUserId) : null;
+
+  const platformSession =
     clerkUserId && email
-      ? resolvePlatformSession({ clerkUserId, email, name })
-      : null,
-  ]);
+      ? await resolvePlatformSession({
+          clerkUserId,
+          email,
+          name,
+          orgName: portal?.org_name,
+        })
+      : null;
   const onboardingUrl = getOnboardingUrl();
 
   const displayName =
@@ -63,13 +68,28 @@ export default async function DashboardPage() {
             <div className="dg-card">
               <h2 className="font-semibold text-white">CRM</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Contacts live in Platform Postgres for {platformSession.organisationName}.
+                Contacts live in Platform Postgres for{" "}
+                {platformSession.organisationName}.
               </p>
               <Link
                 href="/apps/crm/contacts"
                 className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
               >
                 Open contacts →
+              </Link>
+            </div>
+          ) : null}
+          {platformSession ? (
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">Real Estate</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Vendor pipeline — sync from WordPress Roe CRM.
+              </p>
+              <Link
+                href="/apps/re/vendor-leads"
+                className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
+              >
+                Open vendor leads →
               </Link>
             </div>
           ) : null}
