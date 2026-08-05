@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
-import { resolvePlatformSession } from "@dg/platform-core";
+import {
+  getOrganisationBusinessProfile,
+  resolvePlatformSession,
+} from "@dg/platform-core";
 
+import { BusinessProfileCard } from "@/components/platform/BusinessProfileCard";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { getOrgEnabledAppIds } from "@/lib/org-apps";
-
+import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 export default async function PlatformSettingsPage() {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
@@ -14,8 +18,8 @@ export default async function PlatformSettingsPage() {
     email;
 
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  const session = user?.id
-    ? await resolvePlatformSession({
+  await ensureOrganisationOnboardingSync();
+  const session = user?.id    ? await resolvePlatformSession({
         clerkUserId: user.id,
         email,
         name,
@@ -24,18 +28,25 @@ export default async function PlatformSettingsPage() {
     : null;
 
   const enabledIds = await getOrgEnabledAppIds();
+  const profile = session
+    ? await getOrganisationBusinessProfile(session.organisationId)
+    : null;
 
-  return (
-    <>
+  return (    <>
       <header className="border-b border-slate-800 px-8 py-5">
-        <h1 className="text-2xl font-bold text-white">Platform settings</h1>
+        <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="text-sm text-slate-400">
           Organisation, connectors, and platform configuration
         </p>
       </header>
       <main className="flex-1 space-y-6 p-8">
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="dg-card">
+        <BusinessProfileCard
+          profile={profile}
+          linked={portal?.linked ?? false}
+          purchaseLabel={portal?.purchase_label}
+        />
+
+        <div className="grid gap-4 lg:grid-cols-2">          <div className="dg-card">
             <h2 className="font-semibold text-white">Organisation</h2>
             {session ? (
               <dl className="mt-4 space-y-3 text-sm">

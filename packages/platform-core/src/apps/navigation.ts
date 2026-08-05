@@ -2,7 +2,7 @@ import type { AppNavItem, AppRoute, AppTier, RegisteredApp } from "./manifest";
 import { PLATFORM_TOOL_GROUPS, PLATFORM_TOOLS_SECTION_LABEL } from "./platform-tools";
 import { APP_TIER_LABELS, APP_TIER_ORDER, isAppEnabled } from "./org-apps";
 import { platformApps } from "./registry";
-export interface PlatformShellNavItem extends AppNavItem {
+import { getSidebarIcon } from "./sidebar-icons";export interface PlatformShellNavItem extends AppNavItem {
   kind: "shell";
 }
 
@@ -62,7 +62,7 @@ function toTreeItem(app: RegisteredApp, enabledIds: string[]): AppNavTreeItem {
     kind: "app",
     id: manifest.id,
     name: manifest.name,
-    icon: manifest.icon,
+    icon: getSidebarIcon(manifest.id, manifest.navigation[0]?.icon),
     tier: manifest.tier,
     enabled: isAppEnabled(manifest.id, enabledIds),
     routes: manifest.routes,

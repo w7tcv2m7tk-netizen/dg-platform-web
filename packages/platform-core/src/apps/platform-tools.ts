@@ -1,4 +1,5 @@
 import type { AppRoute } from "./manifest";
+import { getSidebarIcon } from "./sidebar-icons";
 
 /** Platform-wide settings and utilities — not licensed Apps. */
 export interface PlatformToolGroup {
@@ -12,8 +13,8 @@ export interface PlatformToolGroup {
 export const PLATFORM_TOOL_GROUPS: PlatformToolGroup[] = [
   {
     id: "platform-settings",
-    label: "Platform settings",
-    icon: "⚙",
+    label: "Settings",
+    icon: getSidebarIcon("platform-settings"),
     primaryHref: "/dashboard/settings",
     routes: [
       { path: "/dashboard/settings", label: "General" },
@@ -24,7 +25,7 @@ export const PLATFORM_TOOL_GROUPS: PlatformToolGroup[] = [
   {
     id: "platform-tools",
     label: "Tools",
-    icon: "⛭",
+    icon: getSidebarIcon("platform-tools"),
     primaryHref: "/dashboard/settings/roadmap",
     routes: [
       { path: "/dashboard/settings/roadmap", label: "Platform roadmap" },

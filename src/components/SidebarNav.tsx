@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
+import { SidebarIcon } from "@/components/SidebarIcon";
 import type { AppRoute } from "@dg/platform-core";
 
 function linkClass(active: boolean) {
@@ -59,7 +60,7 @@ function CollapsibleNavSection({
                   : "text-slate-300 hover:bg-slate-900 hover:text-white"
               }`}
             >
-              <span className="text-blue-500">{item.icon}</span>
+              <SidebarIcon glyph={item.icon} />
               <span className="flex-1 truncate">{item.name}</span>
               <span className="text-xs text-slate-500" aria-hidden>
                 {isOpen ? "▾" : "▸"}
@@ -123,7 +124,7 @@ export function SidebarNav() {
           (link.href !== "/dashboard" && pathname.startsWith(link.href));
         return (
           <Link key={link.href} href={link.href} className={linkClass(active)}>
-            <span className="text-blue-500">{link.icon ?? "•"}</span>
+            <SidebarIcon glyph={link.icon ?? "◈"} />
             {link.label}
           </Link>
         );

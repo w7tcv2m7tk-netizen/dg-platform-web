@@ -62,7 +62,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
   {
     id: "platform.settings",
     area: "Platform",
-    label: "Settings & tools",
+    label: "Settings",
     description: "Platform settings, connectors, team, and support",
     status: "done",
     href: "/dashboard/settings",

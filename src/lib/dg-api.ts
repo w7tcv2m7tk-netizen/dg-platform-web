@@ -32,6 +32,32 @@ export type PortalSetup = {
   platform_live: boolean;
 };
 
+export type PortalOnboardingProfile = {
+  business_name?: string;
+  contact_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  phone?: string;
+  business_email?: string;
+  abn?: string;
+  gst_number?: string;
+  industry_license_number?: string;
+  position?: string;
+  street_address?: string;
+  city?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  website_url?: string;
+  industry_vertical?: string;
+  platform_tier?: string;
+  purchased_apps?: string[];
+  purchased_premium?: string[];
+  purchased_addons?: string[];
+  logo_url?: string;
+  brand_colours?: string;
+};
+
 export type PortalProfile = {
   linked: boolean;
   email: string;
@@ -42,6 +68,7 @@ export type PortalProfile = {
   purchase_label?: string;
   clerk_user_id?: string;
   setup: PortalSetup;
+  onboarding?: PortalOnboardingProfile | null;
 };
 
 const DEFAULT_UNLINKED_PROFILE = (email: string): PortalProfile => ({
@@ -105,6 +132,9 @@ export type OnboardingPayload = {
   contact_name: string;
   contact_email: string;
   contact_phone?: string;
+  abn?: string;
+  gst_number?: string;
+  industry_license_number?: string;
   industry_vertical?: string;
   platform_tier?: string;
   purchased_apps?: string[];

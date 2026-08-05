@@ -49,7 +49,7 @@ export default async function ConnectorsSettingsPage() {
     <>
       <header className="border-b border-slate-800 px-8 py-5">
         <Link href="/dashboard/settings" className="text-sm text-blue-400 hover:underline">
-          ← Platform settings
+          ← Settings
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Connectors</h1>
         <p className="text-sm text-slate-400">

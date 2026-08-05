@@ -14,6 +14,9 @@ export function SignupForm() {
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
+  const [abn, setAbn] = useState("");
+  const [gstNumber, setGstNumber] = useState("");
+  const [industryLicenseNumber, setIndustryLicenseNumber] = useState("");
 
   async function submitDetails() {
     if (!selection?.platformTier) return;
@@ -29,6 +32,9 @@ export function SignupForm() {
           contact_name: contactName,
           contact_email: contactEmail,
           contact_phone: contactPhone,
+          abn: abn || undefined,
+          gst_number: gstNumber || undefined,
+          industry_license_number: industryLicenseNumber || undefined,
           industry_vertical: selection.industryApps[0] ?? "",
           platform_tier: selection.platformTier,
           purchased_apps: selection.industryApps,
@@ -102,6 +108,24 @@ export function SignupForm() {
           placeholder="Phone"
           value={contactPhone}
           onChange={(e) => setContactPhone(e.target.value)}
+        />
+        <input
+          className="dg-input"
+          placeholder="ABN (optional)"
+          value={abn}
+          onChange={(e) => setAbn(e.target.value)}
+        />
+        <input
+          className="dg-input"
+          placeholder="GST number (optional)"
+          value={gstNumber}
+          onChange={(e) => setGstNumber(e.target.value)}
+        />
+        <input
+          className="dg-input"
+          placeholder="Industry licence number (optional)"
+          value={industryLicenseNumber}
+          onChange={(e) => setIndustryLicenseNumber(e.target.value)}
         />
         {error && <p className="text-sm text-red-400">{error}</p>}
         <div className="flex gap-3">
