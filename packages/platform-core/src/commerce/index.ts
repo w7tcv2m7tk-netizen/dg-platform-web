@@ -4,6 +4,7 @@ export {
   recordPaymentFromWebhook,
   listPaymentRequestsForEntity,
   processPaymentWebhookEvent,
+  confirmCheckoutSession,
   getCommerceFinancialSnapshot,
 } from "./payment-engine";
 export {

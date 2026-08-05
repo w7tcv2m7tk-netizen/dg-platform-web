@@ -107,6 +107,11 @@ export interface PaymentConnector {
     headers: Record<string, string | undefined>,
   ): Promise<PaymentWebhookEvent>;
 
+  /** Fetch a paid checkout session from the provider (success-page fallback) */
+  retrievePaidCheckoutSession?(
+    providerSessionId: string,
+  ): Promise<PaymentWebhookEvent | null>;
+
   healthCheck(organisationId: string): Promise<ConnectorHealthResult>;
 }
 

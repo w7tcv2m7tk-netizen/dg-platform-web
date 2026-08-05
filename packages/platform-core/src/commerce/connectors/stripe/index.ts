@@ -186,6 +186,19 @@ export class StripePaymentConnector implements PaymentConnector {
     throw new Error(`Unhandled Stripe event type: ${event.type}`);
   }
 
+  async retrievePaidCheckoutSession(
+    providerSessionId: string,
+  ): Promise<PaymentWebhookEvent | null> {
+    const stripe = getStripeClient();
+    const session = await stripe.checkout.sessions.retrieve(providerSessionId);
+
+    if (session.payment_status !== "paid") {
+      return null;
+    }
+
+    return mapCheckoutCompleted(session);
+  }
+
   async healthCheck(_organisationId: string): Promise<ConnectorHealthResult> {
     const configured = Boolean(process.env.STRIPE_SECRET_KEY?.trim());
     return {

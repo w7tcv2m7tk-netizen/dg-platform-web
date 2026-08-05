@@ -60,3 +60,25 @@ Test payment flow:
 | `app.digitalgate.com.au/api/webhooks/stripe` | **Commerce** (Roe vendor fees, etc.) — Gen 2 platform |
 
 Use the same Stripe account; create a **separate** webhook endpoint for the app URL.
+
+## Test vs live mode
+
+Stripe **test** and **live** modes use different API keys (`sk_test_` vs `sk_live_`) and **different webhook signing secrets** (`whsec_…`).
+
+Vercel production can only hold one `STRIPE_WEBHOOK_SECRET` at a time. Pick one mode per environment:
+
+| Environment | `STRIPE_SECRET_KEY` | Webhook endpoint mode |
+|-------------|---------------------|------------------------|
+| Production (pre-launch) | `sk_test_…` | Test mode webhook → same `whsec_…` |
+| Production (go-live) | `sk_live_…` | Live mode webhook → live `whsec_…` |
+
+**Do not mix:** checkout sessions created with `sk_live_` will not reconcile if Vercel has `sk_test_` + test webhook secret. Check session IDs: `cs_test_…` vs `cs_live_…`.
+
+If a payment succeeded but status stayed `checkout_open`, open the Stripe success URL again (includes `session_id`) or re-send the webhook from Stripe Dashboard.
+
+Run diagnostics:
+
+```bash
+node scripts/commerce-diagnose.mjs [leadId]
+node scripts/roe-flow-diagnose.mjs [leadId]
+```

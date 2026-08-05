@@ -25,7 +25,7 @@ function defaultCheckoutUrls(paymentRequestId: string) {
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??
     "https://app.digitalgate.com.au";
   return {
-    successUrl: `${base}/commerce/checkout/${paymentRequestId}/success`,
+    successUrl: `${base}/commerce/checkout/${paymentRequestId}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancelUrl: `${base}/commerce/checkout/${paymentRequestId}/cancel`,
   };
 }
@@ -295,6 +295,42 @@ export async function processPaymentWebhookEvent(
   }
 
   return { ok: false as const, reason: "unhandled_event" };
+}
+
+/** Confirm payment on success redirect when webhook is delayed or misconfigured */
+export async function confirmCheckoutSession(input: {
+  paymentRequestId: string;
+  providerSessionId: string;
+}) {
+  const { prisma } = await import("@dg/database");
+
+  const paymentRequest = await prisma.commercePaymentRequest.findUnique({
+    where: { id: input.paymentRequestId },
+  });
+
+  if (!paymentRequest) {
+    return { ok: false as const, reason: "not_found" };
+  }
+
+  if (paymentRequest.status === "paid") {
+    return { ok: true as const, alreadyPaid: true };
+  }
+
+  if (paymentRequest.providerSessionId !== input.providerSessionId) {
+    return { ok: false as const, reason: "session_mismatch" };
+  }
+
+  const connector = requirePaymentConnector(paymentRequest.providerId ?? defaultPaymentProviderId());
+  if (!connector.retrievePaidCheckoutSession) {
+    return { ok: false as const, reason: "connector_unsupported" };
+  }
+
+  const event = await connector.retrievePaidCheckoutSession(input.providerSessionId);
+  if (!event) {
+    return { ok: false as const, reason: "not_paid" };
+  }
+
+  return processPaymentWebhookEvent(event);
 }
 
 export async function getCommerceFinancialSnapshot(organisationId: string) {

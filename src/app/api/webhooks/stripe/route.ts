@@ -13,6 +13,10 @@ export async function POST(req: Request) {
     const result = await processPaymentWebhookEvent(event);
 
     if (!result.ok) {
+      console.info("[stripe webhook] skipped:", result.reason, {
+        type: event.type,
+        paymentRequestId: event.paymentRequestId,
+      });
       return NextResponse.json({ received: true, skipped: result.reason }, { status: 200 });
     }
 
