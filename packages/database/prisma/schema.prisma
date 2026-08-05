@@ -31,6 +31,7 @@ model Organisation {
   activities       Activity[]
   tasks            Task[]
   leads            Lead[]
+  properties       Property[]
   appInstallations AppInstallation[]
   auditLogs        AuditLog[]
 
@@ -165,6 +166,36 @@ model Lead {
 
   @@index([organisationId, status])
   @@map("leads")
+}
+
+model Property {
+  id                String    @id @default(cuid())
+  organisationId    String    @map("organisation_id")
+  addressLine1        String    @map("address_line1")
+  addressLine2        String?   @map("address_line2")
+  suburb              String
+  state               String
+  postcode            String
+  country             String    @default("AU")
+  status              String    @default("prospect")
+  propertyType        String?   @map("property_type")
+  bedrooms            Int?
+  bathrooms           Int?
+  ownerContactId      String?   @map("owner_contact_id")
+  leadId              String?   @map("lead_id")
+  listingPriceCents   Int?      @map("listing_price_cents")
+  currency            String    @default("AUD")
+  metadata            Json?
+  externalRefs        Json?     @map("external_refs")
+  deletedAt           DateTime? @map("deleted_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, status])
+  @@index([organisationId, leadId])
+  @@map("properties")
 }
 
 model AppInstallation {

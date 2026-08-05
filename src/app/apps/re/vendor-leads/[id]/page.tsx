@@ -4,11 +4,13 @@ import { currentUser } from "@clerk/nextjs/server";
 import {
   getContact,
   getLead,
+  getPropertyForLead,
   listLeadActivities,
   resolvePlatformSession,
 } from "@dg/platform-core";
 
 import { LeadStageSelect } from "@/components/re/LeadStageSelect";
+import { StartAppraisalButton } from "@/components/re/StartAppraisalButton";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 const STAGE_LABELS: Record<string, string> = {
@@ -48,11 +50,12 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
   const lead = await getLead(session.organisationId, id);
   if (!lead) notFound();
 
-  const [activities, contact] = await Promise.all([
+  const [activities, contact, property] = await Promise.all([
     listLeadActivities(session.organisationId, id),
     lead.contactId
       ? getContact(session.organisationId, lead.contactId)
       : Promise.resolve(null),
+    getPropertyForLead(session.organisationId, id),
   ]);
 
   const wpName = lead.metadata?.wp_name as string | undefined;
@@ -82,6 +85,33 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
               <div className="mt-4">
                 <LeadStageSelect leadId={lead.id} currentStage={lead.stage} />
               </div>
+            </div>
+
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">Appraisal & property</h2>
+              {property ? (
+                <div className="mt-4">
+                  <p className="text-white">{property.addressLine1}</p>
+                  <p className="text-sm text-slate-400">
+                    {property.suburb} {property.state} · {property.status}
+                  </p>
+                  <Link
+                    href={`/apps/re/properties/${property.id}`}
+                    className="mt-3 inline-block text-sm text-blue-400 hover:underline"
+                  >
+                    Open property →
+                  </Link>
+                </div>
+              ) : (
+                <div className="mt-4">
+                  <p className="text-sm text-slate-400">
+                    Create a property record to start the appraisal workflow.
+                  </p>
+                  <div className="mt-3">
+                    <StartAppraisalButton leadId={lead.id} />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="dg-card">

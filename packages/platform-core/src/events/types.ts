@@ -5,6 +5,7 @@ export type PlatformEventType =
   | "contact.updated"
   | "company.created"
   | "lead.created"
+  | "property.created"
   | "property.listed"
   | "booking.confirmed"
   | "invoice.paid"

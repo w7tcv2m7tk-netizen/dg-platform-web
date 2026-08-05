@@ -70,14 +70,16 @@ export default async function DashboardPage() {
             <div className="dg-card">
               <h2 className="font-semibold text-white">Real Estate</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Vendor pipeline — sync from WordPress Roe CRM.
+                Vendor pipeline, appraisals, and listings on Platform.
               </p>
-              <Link
-                href="/apps/re/vendor-leads"
-                className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
-              >
-                Open vendor leads →
-              </Link>
+              <div className="mt-4 flex flex-wrap gap-4 text-sm">
+                <Link href="/apps/re/vendor-leads" className="text-blue-400 hover:underline">
+                  Vendor leads →
+                </Link>
+                <Link href="/apps/re/properties" className="text-blue-400 hover:underline">
+                  Properties →
+                </Link>
+              </div>
             </div>
           ) : null}
           <div className="dg-card">

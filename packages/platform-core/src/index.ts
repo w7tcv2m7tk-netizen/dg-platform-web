@@ -17,4 +17,5 @@ export * from "./command-centre";
 export * from "./connectors/wordpress";
 export * from "./contacts";
 export * from "./leads";
+export * from "./properties";
 export * from "./session";

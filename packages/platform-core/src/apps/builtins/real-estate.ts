@@ -9,9 +9,11 @@ export const realEstateApp: AppManifest = {
   icon: "🏠",
   routes: [
     { path: "/apps/re/vendor-leads", label: "Vendor leads" },
+    { path: "/apps/re/properties", label: "Properties" },
   ],
   navigation: [
     { href: "/apps/re/vendor-leads", label: "Vendor leads", icon: "◈" },
+    { href: "/apps/re/properties", label: "Properties", icon: "⌂" },
   ],
   permissions: [
     { id: "re.view_leads", label: "View vendor leads" },
