@@ -1,9 +1,54 @@
-# DigitalGate Platform Web
+# DigitalGate Platform (Generation 2)
 
-Next.js client portal for the DigitalGate Business Platform — signup, login, dashboard, and API bridge to the WordPress plugin.
+Cloud platform for the DigitalGate Business Operating System — multi-tenant SaaS built with Next.js.
 
-**Production URL:** [app.digitalgate.com.au](https://app.digitalgate.com.au)  
-**Deploy guide:** [DEPLOY.md](./DEPLOY.md)
+**Production:** [app.digitalgate.com.au](https://app.digitalgate.com.au)  
+**Deploy:** [DEPLOY.md](./DEPLOY.md)
+
+---
+
+## Platform generations
+
+| Gen | Repo | Role |
+|-----|------|------|
+| **Gen 1** | `dg-platform` (WordPress) | Version 1 — production on Roe, CVH, digitalgate.com.au |
+| **Gen 2** | `dg-platform-web` (this repo) | Version 2 — cloud platform, app.digitalgate.com.au |
+
+We are **migrating** the platform, not replacing it from scratch.
+
+---
+
+## Documentation
+
+Start at **[docs/README.md](./docs/README.md)** — full architecture IP index.
+
+| Document | Purpose |
+|----------|---------|
+| [docs/PRODUCT-VISION.md](./docs/PRODUCT-VISION.md) | Gateway brand, five pillars |
+| [docs/PLATFORM-PRINCIPLES.md](./docs/PLATFORM-PRINCIPLES.md) | Engineering constitution |
+| [docs/PLATFORM-ARCHITECTURE.md](./docs/PLATFORM-ARCHITECTURE.md) | Twin, Graph, BI, Core |
+| [docs/ROADMAP.md](./docs/ROADMAP.md) | Milestones |
+| [docs/adr/](./docs/adr/) | Architecture Decision Records |
+
+---
+
+## Repository layout
+
+```
+dg-platform-web/
+├── docs/                      # Vision, architecture, roadmap
+├── packages/
+│   ├── platform-core/         # Twin, Graph, BI, Features, Apps, Events
+│   ├── database/              # Prisma schema + client
+│   └── ui/                    # Design System (@dg/ui)
+├── src/                       # Next.js app (apps/web)
+│   ├── app/
+│   ├── components/
+│   └── lib/
+└── DEPLOY.md
+```
+
+---
 
 ## Quick start
 
@@ -11,67 +56,82 @@ Next.js client portal for the DigitalGate Business Platform — signup, login, d
 cd dg-platform-web
 npm install
 cp .env.example .env.local
-# Add Clerk keys from https://dashboard.clerk.com
+# Clerk keys + optional DG_API_KEY + DATABASE_URL
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
 
+### Platform 1.0 — Postgres + CRM
+
+1. Create a [Neon](https://neon.tech) project (Sydney region)
+2. Add `DATABASE_URL` to `.env.local`
+3. Push schema:
+
+```bash
+npm run db:push
+```
+
+4. Sign in locally — org auto-provisions on first visit to `/dashboard` or `/apps/crm/contacts`
+5. Dev provision endpoint (signed in): `GET http://localhost:3000/api/webhooks/clerk`
+
+**Production:** Add `DATABASE_URL` and `CLERK_WEBHOOK_SIGNING_SECRET` to Vercel. Configure Clerk webhook → `POST https://app.digitalgate.com.au/api/webhooks/clerk` (event: `user.created`).
+
+---
+
 ## Routes
 
-| Path | Auth | Description |
-|------|------|-------------|
-| `/` | Public | Landing |
-| `/login` | Public | Clerk sign-in |
-| `/signup/account` | Public | Clerk sign-up (create portal login) |
-| `/signup` | Public | Plan + industry app + add-on picker |
-| `/dashboard` | **Required** | Client portal dashboard |
-| `/onboarding` | **Required** | Onboarding hub |
-| `/api/onboarding` | Public | Proxy → `digitalgate/v1/onboarding` |
-| `/api/health` | Public | Health check |
+| Path | Description |
+|------|-------------|
+| `/` | Landing |
+| `/login`, `/signup/account` | Clerk auth |
+| `/dashboard` | Overview + setup checklist |
+| `/dashboard/apps` | App catalogue (Core / Business / Growth) |
+| `/apps/crm/contacts` | CRM — list + create contacts (Postgres) |
+| `/api/v1/contacts` | Platform API — contacts CRUD |
+| `/api/webhooks/clerk` | Org provisioning webhook |
+
+---
+
+## Platform Core packages
+
+Import in app code:
+
+```typescript
+import { platformApps, getPlatformNavigation, provisionOrganisation } from "@dg/platform-core";
+import { prisma } from "@dg/database";
+```
+
+**App manifest example:** `packages/platform-core/src/apps/builtins/crm.ts`
+
+---
 
 ## Environment
 
-Copy `.env.example` to `.env.local`. Required for auth:
+See `.env.example`. Key variables:
 
-```env
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_CLERK_SIGN_IN_URL=/login
-NEXT_PUBLIC_CLERK_SIGN_UP_URL=/signup/account
-NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
-NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
-```
+- **Clerk** — auth (required)
+- **DG_API_KEY** — Gen 1 WordPress bridge (`/portal/me`)
+- **DATABASE_URL** — Neon Postgres (Platform 1.0)
+- **CLERK_WEBHOOK_SIGNING_SECRET** — Clerk webhook verification (production)
 
-WordPress bridge (optional for plan submission):
-
-```env
-DG_API_BASE_URL=https://digitalgate.com.au/wp-json/digitalgate/v1
-DG_ONBOARDING_URL=https://digitalgate.com.au/onboarding/
-NEXT_PUBLIC_DG_ONBOARDING_URL=https://digitalgate.com.au/onboarding/
-```
-
-## Auth
-
-Uses [Clerk](https://clerk.com) for sign-up, sign-in, password reset, and session management. Dashboard and onboarding routes are protected by `src/middleware.ts`.
+---
 
 ## Deploy
 
-See **[DEPLOY.md](./DEPLOY.md)** for Vercel + DNS + Clerk setup.
+See [DEPLOY.md](./DEPLOY.md) for Vercel + Clerk + DNS.
 
-## Relation to WP plugin
+---
 
-```
-dg-platform-web (this repo)     dg-platform (WordPress plugin)
-─────────────────────────────   ─────────────────────────────
-Signup / login / dashboard  →   REST API + CRM + modules
-Plan picker (UI)            →   DG_Plan_Registry rules
-/api/onboarding proxy       →   POST /digitalgate/v1/onboarding
-```
+## Platform 1.0 status
 
-## Next steps
+Implemented locally — deploy after Neon + Vercel env:
 
-1. **Stripe** — Checkout session after plan picker on `/signup`
-2. **CRM link** — map Clerk user ID → WP contact (`dg_contact_id`)
-3. **Dashboard** — live setup progress from CRM tags
-4. **Onboarding** — port WP onboarding form into React stepper
+- ✅ Prisma schema (Organisation, Contact, Lead, Task, Activity, AuditLog)
+- ✅ Org auto-provision on session
+- ✅ `POST/GET /api/v1/contacts` with audit + events
+- ✅ CRM contacts UI
+
+Next: WordPress Connector sync, Roe RE pipeline.
+
+---

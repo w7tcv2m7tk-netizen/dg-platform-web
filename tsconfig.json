@@ -19,7 +19,12 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@dg/platform-core": ["./packages/platform-core/src/index.ts"],
+      "@dg/platform-core/*": ["./packages/platform-core/src/*"],
+      "@dg/database": ["./packages/database/src/index.ts"],
+      "@dg/ui": ["./packages/ui/src/index.ts"],
+      "@dg/ui/*": ["./packages/ui/src/*"]
     }
   },
   "include": [

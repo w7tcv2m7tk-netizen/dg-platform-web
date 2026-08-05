@@ -2,6 +2,8 @@
 
 **Canonical object types for the DigitalGate Platform**
 
+> **Authoritative specification:** [foundations/CORE-OBJECT-SPECIFICATION.md](../foundations/CORE-OBJECT-SPECIFICATION.md) — mandatory fields, relationships, ownership, events for each object.
+
 See also: [DOMAIN-MODEL.md](../domain/DOMAIN-MODEL.md) for business language.
 
 ---
@@ -17,49 +19,59 @@ See also: [DOMAIN-MODEL.md](../domain/DOMAIN-MODEL.md) for business language.
 
 ## Identity
 
-| Type | Description | Gen 2 table |
-|------|-------------|-------------|
-| `Organisation` | Tenant | `organisations` |
-| `User` | Platform user (via Clerk membership) | `memberships` |
-| `Contact` | Person | `contacts` |
-| `Company` | Business account | `companies` |
+| Type | Description | Platform 1.0 |
+|------|-------------|--------------|
+| `Organisation` | Tenant | ✅ |
+| `User` | Platform user (via Membership) | ✅ |
+| `Contact` | Person | ✅ |
+| `Company` | Business account | ✅ |
 
 ---
 
 ## Commercial
 
-| Type | Description | Status |
-|------|-------------|--------|
-| `Lead` | Pre-qualified interest | Phase 1 |
-| `Opportunity` | Pipeline item | Phase 3 (RE) |
-| `Deal` | Closed outcome | Phase 3 |
-| `Quote` | Proposed pricing | Phase 2 |
-| `Invoice` | Billing document | Phase 2 (Stripe) |
-| `Subscription` | Recurring plan | Phase 2 |
+| Type | Description | Platform 1.0 |
+|------|-------------|--------------|
+| `Lead` | Pre-qualified interest | ✅ |
+| `Opportunity` | Pipeline item | 1.5 (RE) |
+| `Deal` | Closed outcome | 1.5 |
+| `Quote` | Proposed pricing | 1.5 |
+| `Invoice` | Billing document | 1.5 |
+| `Subscription` | Recurring plan | 1.5 |
 
 ---
 
 ## Operational
 
-| Type | Description | Gen 2 table |
-|------|-------------|-------------|
-| `Activity` | Timeline entry (polymorphic) | `activities` |
-| `Task` | Action item | Phase 1 |
-| `Note` | Annotation | Phase 1 |
-| `Document` | File reference | Phase 2 |
-| `Event` | Calendar event | Phase 1 |
+| Type | Description | Platform 1.0 |
+|------|-------------|--------------|
+| `Activity` | Timeline entry (polymorphic) | ✅ |
+| `Task` | Action item | ✅ |
+| `Note` | Annotation | 1.0 (via Activity) |
+| `Document` | File reference | 1.5 |
+| `Event` | Calendar event | 1.5 |
 
 ---
 
-## Assets
+## Marketing & assets
 
-| Type | Description | Primary App |
-|------|-------------|-------------|
-| `Property` | Real estate asset | Real Estate |
-| `Accommodation` | Hospitality unit | Accommodation |
-| `Vehicle` | Automotive | Automotive |
-| `Product` | Catalogue item | Commerce |
-| `Service` | Service offering | Services |
+| Type | Description | Platform 1.0 |
+|------|-------------|--------------|
+| `Campaign` | Marketing initiative | 1.5 |
+| `Asset` | Brand/media asset | 1.5 |
+
+---
+
+## Industry assets
+
+| Type | Description | Primary App | Platform 1.0 |
+|------|-------------|-------------|--------------|
+| `Property` | Real estate asset | Real Estate | 1.5 |
+| `Booking` | Accommodation reservation | Accommodation | 2.0 |
+| `Accommodation` | Hospitality unit | Accommodation | 2.0 |
+| `Vehicle` | Automotive | Automotive | 2.0+ |
+| `Product` | Catalogue item | Commerce | 2.0+ |
+| `Service` | Service offering | Services | 2.0+ |
 
 ---
 
@@ -67,3 +79,4 @@ See also: [DOMAIN-MODEL.md](../domain/DOMAIN-MODEL.md) for business language.
 
 - Types: `packages/platform-core/src/objects/types.ts`  
 - Schema: `packages/database/prisma/schema.prisma`  
+- Full spec: [CORE-OBJECT-SPECIFICATION.md](../foundations/CORE-OBJECT-SPECIFICATION.md)

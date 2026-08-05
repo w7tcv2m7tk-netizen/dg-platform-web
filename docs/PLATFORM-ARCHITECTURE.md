@@ -245,11 +245,16 @@ Every App **registers via manifest**. The platform reads manifests to build navi
 
 ### App tiers
 
-| Tier | Examples |
-|------|----------|
-| `core` | CRM, Tasks, Calendar, Contacts, Documents |
-| `business` | Real Estate, Accommodation, Finance, Services, Creator |
-| `growth` | SEO, AI Visibility, Marketing, Automation, Analytics, Reviews, Websites |
+| Tier | Visibility | Examples |
+|------|------------|----------|
+| `core` | customer | CRM, Tasks, Calendar, Contacts, Documents |
+| `business` | customer | Real Estate, Accommodation, Finance, Services, Creator |
+| `growth` | customer | SEO, AI Visibility, Marketing, Automation, Analytics, Reviews, Websites |
+| `internal` | **internal** | **Command Centre** — DG staff only |
+
+Customer dashboards use `AppRegistry.customerApps()`. DigitalGate staff use `commandCentreNavigation()` at `/command/*`.
+
+See [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) for the internal intelligence layer.
 
 ### Manifest schema (TypeScript)
 
@@ -258,7 +263,8 @@ interface AppManifest {
   id: string;                    // e.g. "real-estate"
   name: string;
   description: string;
-  tier: "core" | "business" | "growth";
+  tier: "core" | "business" | "growth" | "internal";
+  visibility?: "customer" | "internal";  // default: customer
   version: string;
   icon: string;
   routes: AppRoute[];

@@ -50,6 +50,13 @@ Open [http://localhost:3000](http://localhost:3000):
    | `DG_API_BASE_URL` | `https://digitalgate.com.au/wp-json/digitalgate/v1` |
    | `DG_ONBOARDING_URL` | `https://digitalgate.com.au/onboarding/` |
    | `NEXT_PUBLIC_DG_ONBOARDING_URL` | `https://digitalgate.com.au/onboarding/` |
+   | `DG_API_KEY` | WordPress dev API key (optional — CRM bridge) |
+   | **`DATABASE_URL`** | **Neon pooled connection string (Platform 1.0)** |
+   | **`CLERK_WEBHOOK_SIGNING_SECRET`** | **From Clerk webhook endpoint (`whsec_…`)** |
+
+   Use **Production** Clerk keys (`pk_live_` / `sk_live_`) in Vercel — not test keys.
+
+   For Neon, prefer the **Pooled** connection string (serverless-friendly).
 
 5. Deploy. Note the `*.vercel.app` URL for DNS step.
 
@@ -69,12 +76,26 @@ In Vercel → Project → **Settings → Domains** → add `app.digitalgate.com.
 
 After DNS works, in Clerk → **Domains** → add `app.digitalgate.com.au` and switch to production keys if you created separate prod/test apps.
 
+## 5. Clerk production webhook (Platform 1.0)
+
+Provision Postgres org when users sign up in production:
+
+1. [Clerk Dashboard](https://dashboard.clerk.com) → **Webhooks** → **Add endpoint**
+2. **Endpoint URL:** `https://app.digitalgate.com.au/api/webhooks/clerk`
+3. **Subscribe to events:** `user.created`
+4. Copy **Signing secret** (`whsec_…`) → Vercel env `CLERK_WEBHOOK_SIGNING_SECRET`
+5. **Redeploy** Vercel after adding the secret
+
+> Existing users who signed up before the webhook: org is created on first visit to `/dashboard` or `/apps/crm/contacts` (session provisioning).
+
 ## 6. Smoke test
 
 - [ ] `https://app.digitalgate.com.au` loads
 - [ ] `/login` shows Clerk sign-in
 - [ ] `/signup/account` creates account
 - [ ] `/dashboard` requires login and shows welcome name
+- [ ] Dashboard shows **Platform org: … (Postgres)** when `DATABASE_URL` is set
+- [ ] `/apps/crm/contacts` — add a contact (stored in Neon)
 - [ ] Sign out via sidebar user menu → returns to home
 - [ ] `/onboarding` requires login
 
@@ -96,7 +117,10 @@ After DNS works, in Clerk → **Domains** → add `app.digitalgate.com.au` and s
 | Clerk "Invalid publishable key" | Check env vars in Vercel; redeploy after adding keys |
 | Redirect loop | Ensure `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/login` matches actual path |
 | Dashboard 404 after login | Check `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard` |
-| Build fails on Vercel | Both Clerk keys must be set before first deploy |
+| Build fails on Vercel | Both Clerk keys must be set; run `npm run db:generate` works via `postinstall` |
+| CRM shows “DATABASE_URL not configured” | Add `DATABASE_URL` to Vercel Production env; redeploy |
+| Webhook 400 | Check `CLERK_WEBHOOK_SIGNING_SECRET` matches Clerk endpoint |
+| Contacts API 503 | `DATABASE_URL` missing or wrong on Vercel |
 | Domain not verified | Wait for DNS propagation (up to 48h; often minutes) |
 
 ## Next steps (not in this deploy)

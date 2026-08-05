@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
+import { resolvePlatformSession } from "@dg/platform-core";
 import { SetupChecklist } from "@/components/SetupChecklist";
 import { SupportActions } from "@/components/SupportActions";
 import { fetchPortalMe, getOnboardingUrl } from "@/lib/dg-api";
@@ -8,7 +9,17 @@ export default async function DashboardPage() {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const clerkUserId = user?.id;
-  const portal = email ? await fetchPortalMe(email, clerkUserId) : null;
+  const name =
+    user?.fullName ??
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
+    email;
+
+  const [portal, platformSession] = await Promise.all([
+    email ? fetchPortalMe(email, clerkUserId) : null,
+    clerkUserId && email
+      ? resolvePlatformSession({ clerkUserId, email, name })
+      : null,
+  ]);
   const onboardingUrl = getOnboardingUrl();
 
   const displayName =
@@ -18,7 +29,11 @@ export default async function DashboardPage() {
     email.split("@")[0] ||
     "there";
 
-  const orgLine = portal?.org_name ? ` · ${portal.org_name}` : "";
+  const orgLine = platformSession
+    ? ` · ${platformSession.organisationName}`
+    : portal?.org_name
+      ? ` · ${portal.org_name}`
+      : "";
   const planLine = portal?.purchase_label ? ` · ${portal.purchase_label}` : "";
 
   return (
@@ -31,14 +46,33 @@ export default async function DashboardPage() {
           {orgLine}
           {planLine}
         </p>
+        {platformSession ? (
+          <p className="mt-1 text-xs text-emerald-400/90">
+            Platform org: {platformSession.organisationSlug} (Postgres)
+          </p>
+        ) : null}
         {portal?.linked ? (
           <p className="mt-1 text-xs text-emerald-400/90">
-            Linked to CRM contact #{portal.contact_id}
+            Linked to CRM contact #{portal.contact_id} (WordPress bridge)
           </p>
         ) : null}
       </header>
       <main className="flex-1 p-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {platformSession ? (
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">CRM</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Contacts live in Platform Postgres for {platformSession.organisationName}.
+              </p>
+              <Link
+                href="/apps/crm/contacts"
+                className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
+              >
+                Open contacts →
+              </Link>
+            </div>
+          ) : null}
           <div className="dg-card">
             <h2 className="font-semibold text-white">Onboarding</h2>
             <p className="mt-1 text-sm text-slate-400">

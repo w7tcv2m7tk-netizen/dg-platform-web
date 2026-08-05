@@ -22,6 +22,8 @@ Each ADR follows [Michael Nygard's template](https://cognitect.com/blog/2011/11/
 | [0005](./0005-clerk-authentication.md) | Clerk for authentication (Gen 2) | Accepted |
 | [0006](./0006-digital-twin-concept.md) | Digital Twin™ as org digital state | Accepted |
 | [0007](./0007-feature-registry-permissions.md) | Feature-based permissions and licensing | Accepted |
+| [0008](./0008-command-centre-internal-app.md) | Command Centre as internal App | Accepted |
+| [0009](./0009-core-object-specification-gate.md) | Core Object Spec as implementation gate | Accepted |
 
 ## Creating a new ADR
 

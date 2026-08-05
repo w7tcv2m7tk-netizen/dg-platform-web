@@ -1,163 +1,198 @@
-# DigitalGate — Product Roadmap
+# DigitalGate — Execution Roadmap
 
-**Version:** 1.2  
+**Version:** 2.1 — Foundations before implementation  
 **Last updated:** August 2026  
-**Status:** Living document — review quarterly
+
+> **Feature filter:** Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer.
+
+> **Implementation gate:** Complete [foundations/CORE-OBJECT-SPECIFICATION.md](./foundations/CORE-OBJECT-SPECIFICATION.md) review and lock Platform 1.0 scope before expanding code. See [foundations/README.md](./foundations/README.md).
 
 ---
 
-## North star
+## North star (wow moment)
 
-Every Q3–Q2 milestone serves one question for the dashboard:
+A new agency signs up, connects website + Google + Meta + Analytics + Stripe + email.
 
-> **"What should I focus on today to grow my business?"**
+Within minutes the dashboard shows:
 
-Pillars: **Connect → Centralise → Understand → Automate → Grow**
+- **Business Health: 78/100**
+- **AI Visibility Score™: 62/100**
+- **17 opportunities** to improve visibility and vendor lead generation
 
----
-
-## Current state (August 2026)
-
-| Area | Status |
-|------|--------|
-| Gen 1 WP plugin | v10.46+ — production on Roe, CVH, digitalgate.com.au |
-| Gen 2 web app | Live at app.digitalgate.com.au — Clerk auth, dashboard shell |
-| CRM bridge | Clerk → WP contact via `/portal/me` (transition) |
-| Platform Core scaffold | Done — docs, registry, events, twin/graph types |
-| Platform Principles (v1.2) | Done — PLATFORM-PRINCIPLES.md |
-| Design System (`@dg/ui`) | Scaffold — tokens, Button, Card |
-| Postgres / multi-tenant | Not yet in production |
+That's the moment people remember. Every sprint should move toward this.
 
 ---
 
-## Q3 2026 — Platform Core (Phase 1)
+## What DigitalGate wins on
 
-**Goal:** Generation 2 has its own system of record. New signups get an Organisation in Postgres.
+Not feature parity with HubSpot.
 
-| # | Deliverable | Outcome |
-|---|-------------|---------|
-| 1.1 | **Postgres + Prisma** | Neon/Supabase provisioned; schema deployed |
-| 1.2 | **Organisation on signup** | Clerk webhook → create org + membership |
-| 1.3 | **Universal Objects v1** | Contact, Company, Activity in platform DB |
-| 1.4 | **App registry** | Manifest system; CRM registered as first Core App |
-| 1.5 | **Event bus (in-process)** | ContactCreated, etc.; automation stub listens |
-| 1.6 | **CRM App (thin)** | Contacts list + detail + timeline in Next.js |
-| 1.7 | **Dashboard v2** | Org name, installed apps, live checklist from Postgres |
-| 1.8 | **Intelligence dashboard (v0)** | BI insights + "Focus today" from Digital Twin stub |
-| 1.9 | **Feature Registry enforced** | Permissions check `crm.contacts.read` etc. |
-| 1.10 | **Gen 1 bridge** | WP `/portal/me` + Contact sync |
-
-**Exit criteria:** Sign up at app.digitalgate.com.au → org in DB → add contact in CRM App → see timeline — **without wp-admin**.
+> **Helping businesses understand, improve, and grow their entire digital presence through one AI-powered platform.**
 
 ---
 
-## Q4 2026 — Connectors + Growth Apps foundation (Phase 2)
+## Four workstreams (parallel, prioritised)
 
-**Goal:** WordPress feeds the platform; first Growth Apps scaffolded.
+| # | Workstream | Priority | Status |
+|---|------------|----------|--------|
+| **1** | Platform Core | **Highest** | 🔄 In progress |
+| **2** | Real Estate App (Roe) | High | ⏳ After Core stable |
+| **3** | Competitive advantage (AI Visibility, Twin, BI) | Medium | 📐 Designed |
+| **4** | Connectors ecosystem | Later | ⏳ After Core + RE |
 
-| # | Deliverable | Outcome |
-|---|-------------|---------|
-| 2.1 | **WordPress Connector v1** | Forms + leads sync to Platform API |
-| 2.2 | **Stripe Connector** | Subscriptions tied to org (move off WP webhooks) |
-| 2.3 | **Billing in Core** | Plan tiers, app licensing, billing portal link |
-| 2.4 | **SEO App (MVP)** | On-page audit, basic score — port from SEO Pro concepts |
-| 2.5 | **Scoring Engine v1** | SEO Score™ + Website Health Score™ |
-| 2.6 | **AI Service v1** | Context builder + summarise contact |
-| 2.7 | **Digital Twin v1** | Snapshot scores + metrics per org |
-| 2.8 | **Knowledge Graph v1** | Contact ↔ Lead ↔ Property relationships |
-| 2.9 | **Business Memory v1** | Structured memory for AI context |
-| 2.10 | **BI Engine v1** | Recommended actions on dashboard |
-
-**Exit criteria:** Roe website lead form → appears in Platform CRM within minutes.
+**Stop inventing new customer Apps.** One exception: **Command Centre** (internal) — see below.
 
 ---
 
-## Q1 2027 — Real Estate App + AI Visibility (Phase 3)
+## Workstream 5 — Command Centre (internal, parallel)
 
-**Goal:** Roe agents use the Platform daily for RE workflow.
+**Not a customer App.** The OS DigitalGate uses to run DigitalGate.
 
-| # | Deliverable | Outcome |
-|---|-------------|---------|
-| 3.1 | **Real Estate App** | Vendor leads, pipeline, appraisals — port from Gen 1 |
-| 3.2 | **Property object** | Universal Property + RE extensions |
-| 3.3 | **AI Visibility App MVP** | Citation tracking, AI Visibility Score™ |
-| 3.4 | **Roe pilot** | 2–3 agents on Platform for daily pipeline work |
-| 3.5 | **Marketing App (lite)** | Campaign list, contact segments |
-| 3.6 | **Notifications** | Email alerts on lead assignment, task due |
+| Phase | Scope |
+|-------|-------|
+| **Now** | Manifest, types, ADR, architecture doc ✅ |
+| **After Core + Twin v1** | `/command` shell, Platform Overview, Client Intelligence |
+| **After Scoring v1** | Success Score™, Agency Health Ranking |
+| **Validation phase** | Growth Reports, AI Advisor, Opportunity Engine, Benchmarking |
 
-**Exit criteria:** Roe vendor lead submitted on website → pipeline in RE App → agent notified — WP admin optional.
+Does **not** block Platform Core or Real Estate. Built on the same Twin + Scoring pipeline as the customer wow moment.
 
----
-
-## Q2 2027 — Commercial pilot (Phase 4)
-
-**Goal:** First paying external agency on Generation 2.
-
-| # | Deliverable | Outcome |
-|---|-------------|---------|
-| 4.1 | **Self-serve signup + billing** | Plan picker → Stripe → org provisioned |
-| 4.2 | **Onboarding in Platform** | Replace WP onboarding form for new SaaS clients |
-| 4.3 | **Accommodation App (CVH)** | Bookings, housekeeping — port from Gen 1 |
-| 4.4 | **Commercial RE App** | Extend RE for commercial property |
-| 4.5 | **Partner agency pilot** | 1 non-Roe agency live on Platform |
-| 4.6 | **SDK preview** | App manifest docs for third-party developers |
-
-**Exit criteria:** External agency pays, onboarded, using CRM + RE App without DigitalGate hand-holding.
+Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 
 ---
 
-## 2027 H2+ — Scale (Phase 5)
+## Workstream 1 — Platform Core (honest status)
 
-| Area | Direction |
-|------|-----------|
-| **Industry Apps** | Finance, Services, Creator, Automotive |
-| **Connectors** | Shopify, Webflow, Xero, Google Ads |
-| **Scoring Engine** | Full Business Growth Score™, Reputation Score™ |
-| **AI** | Multi-model, app-specific tools, report generation |
-| **Event bus** | Move to durable queue (Inngest / SQS) |
-| **Gen 1 sunset plan** | WP plugin → connector-only; no new module development |
+| Component | Scaffold | Production-ready |
+|-----------|----------|------------------|
+| Multi-tenancy (`organisation_id`) | ✅ Prisma schema | ❌ Not deployed |
+| Organisations | ✅ Provision stub | ❌ Needs Neon + webhook |
+| Users / Memberships | ✅ Schema | ❌ Clerk → DB not live |
+| Roles & Permissions | ✅ Feature Registry types | ❌ Not enforced in API |
+| App Registry | ✅ Manifests + registry | ✅ |
+| Universal Objects | ✅ Types + schema | ❌ No CRUD API |
+| Event Bus | ✅ In-process | ❌ No producers on writes |
+| Platform API | ⚠️ Partial (`/portal/me` bridge) | ❌ No `/v1` CRUD |
+| Billing | ❌ | ❌ |
+| Feature Flags | ❌ | ❌ |
+| Audit Logs | ❌ | ❌ |
+
+**Next:** Postgres live → org on signup → Contact CRUD API → audit on write.
+
+**Exit criteria:** Sign up → org in DB → create contact → timeline event — no wp-admin.
 
 ---
 
-## What we are NOT doing (explicit)
+## Workstream 2 — Real Estate App (Roe flagship)
 
-- ❌ Major new Gen 1 WP modules (bug fixes + connector endpoints only)
-- ❌ Marketing the product as "a WordPress plugin"
-- ❌ Per-app duplicate auth, billing, or contact tables
-- ❌ Direct database access from App UI
-- ❌ Feature parity with HubSpot before RE App ships
+**One excellent App.** Full vendor workflow on Gen 2:
+
+```
+Vendor Lead → Appraisal → Listing → Marketing → Offers
+    → Contract → Settlement → Past Client → Review → Referral
+```
+
+| Phase | Scope |
+|-------|-------|
+| **RE v0** | Vendor leads + pipeline (port from Gen 1) |
+| **RE v1** | Listings + appraisals |
+| **RE v2** | Full workflow above on Roe daily use |
+
+Roe Realty = production tenant and case study. WP admin optional for agents.
 
 ---
 
-## Priority stack (when in doubt)
+## Workstream 3 — Competitive advantage
 
-1. **Platform Core** — org, objects, API, events  
-2. **CRM Core App** — proves the app model  
-3. **WordPress Connector** — feeds Gen 2 from Gen 1 production  
-4. **Real Estate App** — Roe revenue and proof  
-5. **AI Visibility + Scoring** — differentiation  
-6. Everything else  
+Build **after** Core is stable and RE v0 is flowing data.
+
+| Priority | Capability |
+|----------|------------|
+| 1 | AI Visibility Engine™ + score |
+| 2 | Digital Twin™ snapshot |
+| 3 | BI Engine + recommended actions |
+| 4 | Business Growth Score™ |
+| 5 | AI Assistants (via AI Service) |
+
+These are the moat — powered by **connected data**, not isolated features.
+
+---
+
+## Workstream 4 — Connectors (ecosystem)
+
+After Core + RE v0:
+
+1. WordPress (Gen 1 → Platform sync)
+2. Stripe
+3. Google (GBP, Analytics)
+4. Meta
+5. Xero, Microsoft, Shopify — later
+
+Each connector improves Twin, BI, and AI recommendations.
+
+---
+
+## 24-month phases
+
+| Phase | When | Focus |
+|-------|------|-------|
+| **1 — Foundation** | Now | Platform Core + RE App + Roe as tenant |
+| **2 — Validation** | +6 mo | 5–10 pilot agencies, weekly feedback |
+| **3 — Commercial launch** | +12 mo | Public SaaS, billing, onboarding, support |
+| **4 — Expansion** | +18 mo | Accommodation, Finance, more Connectors |
+| **5 — Scale** | +24 mo | SDK, marketplace, enterprise, international |
+
+---
+
+## Tomorrow morning (ordered)
+
+1. **Provision Neon Postgres** — `DATABASE_URL` on Vercel + local  
+2. **`npm run db:push`** — deploy schema  
+3. **Clerk webhook live** — org + membership on signup  
+4. **Platform API v0** — `POST/GET /api/contacts` (org-scoped, audited, emits `contact.created`)  
+5. **CRM contacts UI** — list + create against Platform API (not WP)  
+
+Do not start RE App port or AI Visibility until steps 1–4 are done.
+
+---
+
+## What we are NOT doing
+
+- ❌ New Apps (Finance, Creator, etc.) until RE workflow proven  
+- ❌ HubSpot feature checklist  
+- ❌ Major Gen 1 WP modules  
+- ❌ Features that fail the Core / RE filter  
 
 ---
 
 ## Milestone tracker
 
-| Milestone | Target | Status |
-|-----------|--------|--------|
-| app.digitalgate.com.au live | Aug 2026 | ✅ Done |
-| Clerk production auth | Aug 2026 | ✅ Done |
-| Platform docs (vision, architecture, roadmap) | Aug 2026 | ✅ Done |
-| Platform Principles (v1.2) | Aug 2026 | ✅ Done |
-| Platform Core + UI scaffold | Aug 2026 | ✅ Done |
-| Postgres + org on signup | Q3 2026 | ⏳ Planned |
-| CRM App in Next.js | Q3 2026 | ⏳ Planned |
-| WordPress Connector v1 | Q4 2026 | ⏳ Planned |
-| Roe on RE App | Q1 2027 | ⏳ Planned |
-| Commercial pilot | Q2 2027 | ⏳ Planned |
+| Milestone | Status |
+|-----------|--------|
+| app.digitalgate.com.au + Clerk | ✅ Done |
+| Architecture IP (`docs/`) | ✅ Done |
+| Platform Core scaffold | ✅ Done |
+| Command Centre architecture | ✅ Done |
+| **Platform foundations (12 docs)** | ✅ Done |
+| **Core Object Spec review** | ⏳ **Next — Ben** |
+| **Postgres + org live** | ⏳ After spec lock |
+| Contact API + CRM UI | ⏳ |
+| Roe vendor leads on Gen 2 | ⏳ |
+| Wow moment dashboard | ⏳ |
+| 5–10 pilot agencies | ⏳ |
+
+---
+
+## Company (not just product)
+
+As you grow, hats to plan for: Product · Engineering · Design · Customer Success · Sales · Marketing · Partnerships.
+
+You wear several today — that's fine. Document so roles can split later.
 
 ---
 
 ## Related documents
 
-- [PRODUCT-VISION.md](./PRODUCT-VISION.md)
-- [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md)
+- [docs/README.md](./README.md) — architecture IP index  
+- [PRODUCT-VISION.md](./PRODUCT-VISION.md)  
+- [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md)  

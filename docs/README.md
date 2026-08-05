@@ -14,7 +14,9 @@ These documents capture **why** the platform is built the way it is. They are as
 | Document | Purpose |
 |----------|---------|
 | [PRODUCT-VISION.md](./PRODUCT-VISION.md) | Gateway brand, mission, five pillars, positioning |
-| [ROADMAP.md](./ROADMAP.md) | Quarterly milestones and release plan |
+| [ROADMAP.md](./ROADMAP.md) | Execution phases and priorities |
+| [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) | Internal intelligence App — how DG runs DG |
+| **[foundations/](./foundations/README.md)** | **Governance, domain model, commercialisation — read before implementing** |
 
 ---
 
@@ -87,5 +89,6 @@ Example: Architect decides **Event Bus exists**; developer chooses Inngest vs Bu
 | Events | `packages/platform-core/src/events/` |
 | Universal Objects | `packages/platform-core/src/objects/` + `packages/database/prisma/` |
 | Digital Twin | `packages/platform-core/src/twin/` |
+| Command Centre types | `packages/platform-core/src/command-centre/` |
 | Knowledge Graph | `packages/platform-core/src/graph/` |
 | Design System | `packages/ui/` |
