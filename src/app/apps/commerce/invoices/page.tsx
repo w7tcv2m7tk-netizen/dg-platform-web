@@ -3,6 +3,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { listInvoices, resolvePlatformSession } from "@dg/platform-core";
 
 import { CreateDocumentForm } from "@/components/commerce/CreateDocumentForm";
+import { SendInvoiceButton } from "@/components/commerce/CommerceDocumentActions";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 function formatMoney(cents: number) {
@@ -69,6 +70,7 @@ export default async function CommerceInvoicesPage() {
                 <th className="py-2 pr-4 font-medium">Status</th>
                 <th className="py-2 pr-4 font-medium">Total</th>
                 <th className="py-2 font-medium">Due</th>
+                <th className="py-2 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -83,6 +85,9 @@ export default async function CommerceInvoicesPage() {
                     {invoice.dueAt
                       ? new Date(invoice.dueAt).toLocaleDateString("en-AU")
                       : "—"}
+                  </td>
+                  <td className="py-3">
+                    <SendInvoiceButton invoiceId={invoice.id} status={invoice.status} />
                   </td>
                 </tr>
               ))}

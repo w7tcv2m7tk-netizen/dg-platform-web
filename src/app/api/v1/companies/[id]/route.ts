@@ -1,4 +1,8 @@
-import { getContact, listContactActivities, updateContact } from "@dg/platform-core";
+import {
+  getCompany,
+  listCompanyContacts,
+  updateCompany,
+} from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requireFeature, requirePlatformSession } from "@/lib/platform-api";
@@ -11,29 +15,28 @@ export async function GET(_req: Request, { params }: RouteParams) {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
 
-  const denied = requireFeature(session, "crm.contacts.read");
+  const denied = requireFeature(session, "crm.companies.read");
   if (denied) return denied;
 
   const { id } = await params;
-  const contact = await getContact(session.organisationId, id);
-
-  if (!contact) {
+  const company = await getCompany(session.organisationId, id);
+  if (!company) {
     return NextResponse.json(
-      { error: { code: "contact_not_found", message: "Contact not found" } },
+      { error: { code: "company_not_found", message: "Company not found" } },
       { status: 404 },
     );
   }
 
-  const activities = await listContactActivities(session.organisationId, id);
+  const contacts = await listCompanyContacts(session.organisationId, id);
 
-  return NextResponse.json({ data: { contact, activities } });
+  return NextResponse.json({ data: { company, contacts } });
 }
 
 export async function PATCH(req: Request, { params }: RouteParams) {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
 
-  const denied = requireFeature(session, "crm.contacts.write");
+  const denied = requireFeature(session, "crm.companies.write");
   if (denied) return denied;
 
   const { id } = await params;
@@ -46,30 +49,27 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     );
   }
 
-  if (body.firstName !== undefined && !String(body.firstName).trim()) {
+  if (body.name !== undefined && !String(body.name).trim()) {
     return NextResponse.json(
-      { error: { code: "validation_error", message: "firstName cannot be empty" } },
+      { error: { code: "validation_error", message: "name cannot be empty" } },
       { status: 422 },
     );
   }
 
-  const updated = await updateContact({
+  const updated = await updateCompany({
     organisationId: session.organisationId,
-    contactId: id,
+    companyId: id,
     actorId: session.clerkUserId,
-    firstName: body.firstName,
-    lastName: body.lastName,
-    email: body.email,
+    name: body.name,
+    website: body.website,
     phone: body.phone,
-    source: body.source,
-    tags: body.tags,
-    status: body.status,
-    companyId: body.companyId,
+    email: body.email,
+    industry: body.industry,
   });
 
   if (!updated) {
     return NextResponse.json(
-      { error: { code: "contact_not_found", message: "Contact not found" } },
+      { error: { code: "company_not_found", message: "Company not found" } },
       { status: 404 },
     );
   }

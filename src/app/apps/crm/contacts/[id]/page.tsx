@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
-import { getContact, listContactActivities, resolvePlatformSession } from "@dg/platform-core";
+import { getContact, listCompanies, listContactActivities, resolvePlatformSession } from "@dg/platform-core";
 
 import { AddContactNoteForm } from "@/components/crm/AddContactNoteForm";
 import { EditContactForm } from "@/components/crm/EditContactForm";
@@ -33,6 +33,13 @@ export default async function ContactDetailPage({ params }: PageProps) {
   }
 
   const activities = await listContactActivities(session.organisationId, id);
+  const { items: companies } = await listCompanies({
+    organisationId: session.organisationId,
+    limit: 100,
+  });
+  const company = contact.companyId
+    ? companies.find((c) => c.id === contact.companyId)
+    : null;
 
   const displayName = [contact.firstName, contact.lastName].filter(Boolean).join(" ");
 
@@ -48,6 +55,17 @@ export default async function ContactDetailPage({ params }: PageProps) {
         <h1 className="mt-2 text-2xl font-bold text-white">{displayName}</h1>
         <p className="text-sm text-slate-400">
           {[contact.email, contact.phone, contact.source].filter(Boolean).join(" · ")}
+          {company ? (
+            <>
+              {" · "}
+              <Link
+                href={`/apps/crm/companies/${company.id}`}
+                className="text-blue-400 hover:underline"
+              >
+                {company.name}
+              </Link>
+            </>
+          ) : null}
         </p>
       </header>
       <main className="flex-1 p-8">
@@ -55,7 +73,7 @@ export default async function ContactDetailPage({ params }: PageProps) {
           <div className="dg-card">
             <h2 className="font-semibold text-white">Edit contact</h2>
             <div className="mt-4">
-              <EditContactForm contact={contact} />
+              <EditContactForm contact={contact} companies={companies} />
             </div>
             <dl className="mt-6 space-y-3 border-t border-slate-800 pt-4 text-sm">
               <div>

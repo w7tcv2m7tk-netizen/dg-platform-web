@@ -42,3 +42,50 @@ export async function createActivity(input: CreateActivityInput) {
     createdAt: activity.createdAt.toISOString(),
   };
 }
+
+export interface ListActivitiesOptions {
+  organisationId: string;
+  entityType?: string;
+  entityId?: string;
+  sourceApp?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export async function listOrganisationActivities(options: ListActivitiesOptions) {
+  const { prisma } = await import("@dg/database");
+  const limit = Math.min(options.limit ?? 50, 100);
+  const offset = options.offset ?? 0;
+
+  const where = {
+    organisationId: options.organisationId,
+    ...(options.entityType ? { entityType: options.entityType } : {}),
+    ...(options.entityId ? { entityId: options.entityId } : {}),
+    ...(options.sourceApp ? { sourceApp: options.sourceApp } : {}),
+  };
+
+  const [items, total] = await Promise.all([
+    prisma.activity.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      skip: offset,
+    }),
+    prisma.activity.count({ where }),
+  ]);
+
+  return {
+    items: items.map((a) => ({
+      id: a.id,
+      entityType: a.entityType,
+      entityId: a.entityId,
+      activityType: a.activityType,
+      title: a.title,
+      body: a.body,
+      sourceApp: a.sourceApp,
+      createdBy: a.createdBy,
+      createdAt: a.createdAt.toISOString(),
+    })),
+    meta: { total, limit, offset },
+  };
+}

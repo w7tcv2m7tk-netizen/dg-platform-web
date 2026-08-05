@@ -16,6 +16,7 @@ export * from "./activities";
 export * from "./command-centre";
 export * from "./connectors/wordpress";
 export * from "./contacts";
+export * from "./companies";
 export * from "./leads";
 export * from "./properties";
 export * from "./addresses";

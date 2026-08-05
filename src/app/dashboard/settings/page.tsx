@@ -111,6 +111,11 @@ export default async function PlatformSettingsPage() {
                 </Link>
               </li>
               <li>
+                <Link href="/dashboard/settings/audit" className="text-blue-400 hover:underline">
+                  Audit log →
+                </Link>
+              </li>
+              <li>
                 <Link href="/dashboard/settings/roadmap" className="text-blue-400 hover:underline">
                   Platform roadmap →
                 </Link>

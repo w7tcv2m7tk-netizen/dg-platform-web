@@ -3,6 +3,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { listQuotes, resolvePlatformSession } from "@dg/platform-core";
 
 import { CreateDocumentForm } from "@/components/commerce/CreateDocumentForm";
+import { AcceptQuoteButton } from "@/components/commerce/CommerceDocumentActions";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 function formatMoney(cents: number) {
@@ -69,6 +70,7 @@ export default async function CommerceQuotesPage() {
                 <th className="py-2 pr-4 font-medium">Status</th>
                 <th className="py-2 pr-4 font-medium">Total</th>
                 <th className="py-2 font-medium">Created</th>
+                <th className="py-2 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -81,6 +83,12 @@ export default async function CommerceQuotesPage() {
                   </td>
                   <td className="py-3 text-slate-400">
                     {new Date(quote.createdAt).toLocaleDateString("en-AU")}
+                  </td>
+                  <td className="py-3">
+                    <AcceptQuoteButton
+                      quoteId={quote.id}
+                      disabled={quote.status !== "draft"}
+                    />
                   </td>
                 </tr>
               ))}

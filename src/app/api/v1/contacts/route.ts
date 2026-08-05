@@ -1,11 +1,14 @@
 import { createContact, listContacts } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformSession } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
+
+  const denied = requireFeature(session, "crm.contacts.read");
+  if (denied) return denied;
 
   const { searchParams } = new URL(req.url);
   const search = searchParams.get("search") ?? undefined;
@@ -29,6 +32,9 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
+
+  const denied = requireFeature(session, "crm.contacts.write");
+  if (denied) return denied;
 
   const body = await req.json().catch(() => null);
   if (!body || typeof body.firstName !== "string" || !body.firstName.trim()) {

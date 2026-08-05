@@ -1,5 +1,5 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { resolvePlatformSession, type PlatformSession } from "@dg/platform-core";
+import { sessionHasFeature, resolvePlatformSession, type PlatformSession } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 export async function requirePlatformSession(): Promise<
@@ -44,6 +44,25 @@ export async function requirePlatformSession(): Promise<
 
 export function isNextResponse(value: unknown): value is NextResponse {
   return value instanceof NextResponse;
+}
+
+/** Enforce feature access for the current session (Platform 1.0 role gate). */
+export function requireFeature(
+  session: PlatformSession,
+  featureId: string,
+): NextResponse | null {
+  if (!sessionHasFeature(session, featureId)) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "forbidden",
+          message: `Insufficient permissions for ${featureId}`,
+        },
+      },
+      { status: 403 },
+    );
+  }
+  return null;
 }
 
 function extractConnectorApiKey(req: Request) {

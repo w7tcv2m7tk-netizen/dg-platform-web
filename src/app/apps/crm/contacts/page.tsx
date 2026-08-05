@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
-import { listContacts, resolvePlatformSession } from "@dg/platform-core";
+import { listContacts, listCompanies, resolvePlatformSession } from "@dg/platform-core";
 
 import { CreateContactForm } from "@/components/crm/CreateContactForm";
+import { ContactImportExport } from "@/components/crm/ContactImportExport";
 
 export default async function CrmContactsPage() {
   const user = await currentUser();
@@ -52,6 +53,10 @@ export default async function CrmContactsPage() {
   const { items, meta } = await listContacts({
     organisationId: session.organisationId,
   });
+  const { items: companies } = await listCompanies({
+    organisationId: session.organisationId,
+    limit: 100,
+  });
 
   return (
     <>
@@ -63,6 +68,9 @@ export default async function CrmContactsPage() {
         </p>
       </header>
       <main className="flex-1 p-8">
+        <div className="mb-6">
+          <ContactImportExport />
+        </div>
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="dg-card">
             <h2 className="font-semibold text-white">Add contact</h2>
@@ -70,7 +78,7 @@ export default async function CrmContactsPage() {
               Stored in Postgres — audit logged, timeline event emitted.
             </p>
             <div className="mt-4">
-              <CreateContactForm />
+              <CreateContactForm companies={companies} />
             </div>
           </div>
 

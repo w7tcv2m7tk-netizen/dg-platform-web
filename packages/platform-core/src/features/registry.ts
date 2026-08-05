@@ -27,6 +27,8 @@ export const CRM_FEATURES: FeatureGroup = {
     { id: "crm.contacts.export", appId: "crm", label: "Export contacts", tier: "standard" },
     { id: "crm.contacts.import", appId: "crm", label: "Import contacts", tier: "standard" },
     { id: "crm.contacts.merge", appId: "crm", label: "Merge contacts", tier: "premium" },
+    { id: "crm.companies.read", appId: "crm", label: "View companies" },
+    { id: "crm.companies.write", appId: "crm", label: "Create and edit companies" },
     { id: "crm.timeline.read", appId: "crm", label: "View timeline" },
     { id: "crm.tags.write", appId: "crm", label: "Manage tags" },
   ],

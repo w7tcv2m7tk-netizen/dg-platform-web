@@ -10,9 +10,12 @@ export const crmApp: AppManifest = {
   routes: [
     { path: "/apps/crm/contacts", label: "Contacts" },
     { path: "/apps/crm/companies", label: "Companies" },
+    { path: "/apps/crm/timeline", label: "Timeline" },
   ],
   navigation: [
     { href: "/apps/crm/contacts", label: "Contacts", icon: "☷" },
+    { href: "/apps/crm/companies", label: "Companies", icon: "▣" },
+    { href: "/apps/crm/timeline", label: "Timeline", icon: "▤" },
   ],
   permissions: [
     { id: "crm.view_contacts", label: "View contacts" },

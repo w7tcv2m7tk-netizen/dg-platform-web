@@ -26,6 +26,7 @@ export interface UpdateContactInput {
   source?: string;
   tags?: string;
   status?: string;
+  companyId?: string | null;
 }
 
 export interface ListContactsOptions {
@@ -210,6 +211,12 @@ export async function updateContact(input: UpdateContactInput) {
     changes.status = { before: existing.status, after: input.status };
     data.status = input.status;
   }
+  if (input.companyId !== undefined && input.companyId !== existing.companyId) {
+    changes.companyId = { before: existing.companyId, after: input.companyId };
+    data.company = input.companyId
+      ? { connect: { id: input.companyId } }
+      : { disconnect: true };
+  }
 
   if (Object.keys(data).length === 0) {
     return serializeContact(existing);
@@ -285,4 +292,140 @@ export async function listContactActivities(organisationId: string, contactId: s
     createdBy: a.createdBy,
     createdAt: a.createdAt.toISOString(),
   }));
+}
+
+export interface ImportContactRow {
+  firstName: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  source?: string;
+  tags?: string;
+}
+
+export async function exportContactsCsv(organisationId: string) {
+  const { prisma } = await import("@dg/database");
+
+  const contacts = await prisma.contact.findMany({
+    where: { organisationId, deletedAt: null },
+    orderBy: { updatedAt: "desc" },
+    take: 5000,
+  });
+
+  const header = "firstName,lastName,email,phone,source,tags,status,createdAt";
+  const rows = contacts.map((c) =>
+    [
+      csvEscape(c.firstName),
+      csvEscape(c.lastName ?? ""),
+      csvEscape(c.email ?? ""),
+      csvEscape(c.phone ?? ""),
+      csvEscape(c.source ?? ""),
+      csvEscape(c.tags ?? ""),
+      csvEscape(c.status),
+      csvEscape(c.createdAt.toISOString()),
+    ].join(","),
+  );
+
+  return [header, ...rows].join("\n");
+}
+
+function csvEscape(value: string) {
+  if (/[",\n]/.test(value)) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
+function parseCsvLine(line: string): string[] {
+  const out: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"' && line[i + 1] === '"') {
+        current += '"';
+        i += 1;
+      } else if (ch === '"') {
+        inQuotes = false;
+      } else {
+        current += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ",") {
+      out.push(current);
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  out.push(current);
+  return out;
+}
+
+export async function importContactsFromCsv(
+  organisationId: string,
+  csv: string,
+  actorId?: string,
+) {
+  const lines = csv
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  if (lines.length < 2) {
+    return { imported: 0, skipped: 0, errors: ["CSV must include a header row and at least one contact"] };
+  }
+
+  const header = parseCsvLine(lines[0]).map((h) => h.trim().toLowerCase());
+  const firstNameIdx = header.indexOf("firstname");
+  if (firstNameIdx < 0) {
+    return { imported: 0, skipped: 0, errors: ["CSV must include a firstName column"] };
+  }
+
+  const col = (name: string) => header.indexOf(name.toLowerCase());
+  let imported = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+
+  for (let i = 1; i < lines.length; i += 1) {
+    const cells = parseCsvLine(lines[i]);
+    const firstName = cells[firstNameIdx]?.trim();
+    if (!firstName) {
+      skipped += 1;
+      continue;
+    }
+
+    try {
+      await createContact({
+        organisationId,
+        actorId,
+        firstName,
+        lastName: cells[col("lastname")]?.trim() || undefined,
+        email: cells[col("email")]?.trim() || undefined,
+        phone: cells[col("phone")]?.trim() || undefined,
+        source: cells[col("source")]?.trim() || "import",
+        tags: cells[col("tags")]?.trim() || undefined,
+      });
+      imported += 1;
+    } catch {
+      errors.push(`Row ${i + 1}: failed to import ${firstName}`);
+      skipped += 1;
+    }
+  }
+
+  if (imported > 0) {
+    await writeAuditLog({
+      organisationId,
+      actorId,
+      action: "create",
+      entityType: "Contact",
+      entityId: "bulk-import",
+      changes: { imported, skipped } as unknown as Prisma.InputJsonValue,
+    });
+  }
+
+  return { imported, skipped, errors };
 }

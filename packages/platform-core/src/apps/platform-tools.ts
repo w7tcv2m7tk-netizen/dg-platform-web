@@ -29,6 +29,7 @@ export const PLATFORM_TOOL_GROUPS: PlatformToolGroup[] = [
     primaryHref: "/dashboard/settings/roadmap",
     routes: [
       { path: "/dashboard/settings/roadmap", label: "Platform roadmap" },
+      { path: "/dashboard/settings/audit", label: "Audit log" },
       { path: "/support", label: "Support" },
     ],
   },

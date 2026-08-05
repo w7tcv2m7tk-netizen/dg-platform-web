@@ -3,24 +3,16 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { CompanySelect } from "@/components/crm/CompanySelect";
+type Company = {
+  id: string;
+  name: string;
+  website?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  industry?: string | null;
+};
 
-export function EditContactForm({
-  contact,
-  companies = [],
-}: {
-  contact: {
-    id: string;
-    firstName: string;
-    lastName?: string | null;
-    email?: string | null;
-    phone?: string | null;
-    source?: string | null;
-    tags?: string | null;
-    companyId?: string | null;
-  };
-  companies?: { id: string; name: string }[];
-}) {
+export function EditCompanyForm({ company }: { company: Company }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,17 +27,15 @@ export function EditContactForm({
     const form = e.currentTarget;
     const data = new FormData(form);
 
-    const res = await fetch(`/api/v1/contacts/${contact.id}`, {
+    const res = await fetch(`/api/v1/companies/${company.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        firstName: data.get("firstName"),
-        lastName: data.get("lastName") || undefined,
+        name: data.get("name"),
+        website: data.get("website") || undefined,
         email: data.get("email") || undefined,
         phone: data.get("phone") || undefined,
-        source: data.get("source") || undefined,
-        tags: data.get("tags") || undefined,
-        companyId: data.get("companyId") || null,
+        industry: data.get("industry") || undefined,
       }),
     });
 
@@ -53,7 +43,7 @@ export function EditContactForm({
 
     if (!res.ok) {
       const json = await res.json().catch(() => null);
-      setError(json?.error?.message ?? "Failed to update contact");
+      setError(json?.error?.message ?? "Failed to update company");
       return;
     }
 
@@ -63,21 +53,29 @@ export function EditContactForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      <label className="block">
+        <span className="text-sm text-slate-400">Company name *</span>
+        <input
+          name="name"
+          required
+          defaultValue={company.name}
+          className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
+        />
+      </label>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="text-sm text-slate-400">First name *</span>
+          <span className="text-sm text-slate-400">Industry</span>
           <input
-            name="firstName"
-            required
-            defaultValue={contact.firstName}
+            name="industry"
+            defaultValue={company.industry ?? ""}
             className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
           />
         </label>
         <label className="block">
-          <span className="text-sm text-slate-400">Last name</span>
+          <span className="text-sm text-slate-400">Website</span>
           <input
-            name="lastName"
-            defaultValue={contact.lastName ?? ""}
+            name="website"
+            defaultValue={company.website ?? ""}
             className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
           />
         </label>
@@ -86,7 +84,7 @@ export function EditContactForm({
           <input
             name="email"
             type="email"
-            defaultValue={contact.email ?? ""}
+            defaultValue={company.email ?? ""}
             className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
           />
         </label>
@@ -94,33 +92,13 @@ export function EditContactForm({
           <span className="text-sm text-slate-400">Phone</span>
           <input
             name="phone"
-            defaultValue={contact.phone ?? ""}
+            defaultValue={company.phone ?? ""}
             className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
           />
         </label>
-        <label className="block">
-          <span className="text-sm text-slate-400">Source</span>
-          <input
-            name="source"
-            defaultValue={contact.source ?? "manual"}
-            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
-          />
-        </label>
-        <label className="block">
-          <span className="text-sm text-slate-400">Tags</span>
-          <input
-            name="tags"
-            defaultValue={contact.tags ?? ""}
-            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
-            placeholder="vendor, referral"
-          />
-        </label>
-        <CompanySelect companies={companies} defaultValue={contact.companyId} />
       </div>
       {error ? <p className="text-sm text-red-400">{error}</p> : null}
-      {saved ? (
-        <p className="text-sm text-emerald-400/90">Saved — check timeline for update event.</p>
-      ) : null}
+      {saved ? <p className="text-sm text-emerald-400">Saved</p> : null}
       <button
         type="submit"
         disabled={pending}
