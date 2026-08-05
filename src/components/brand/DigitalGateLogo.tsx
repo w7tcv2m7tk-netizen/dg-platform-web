@@ -19,6 +19,31 @@ type DigitalGateLogoProps = {
   showTagline?: boolean;
 };
 
+function BrandIcon({
+  src,
+  size,
+  alt = "",
+  ariaHidden,
+}: {
+  src: string;
+  size: number;
+  alt?: string;
+  ariaHidden?: boolean;
+}) {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      width={512}
+      height={512}
+      className="shrink-0 object-contain"
+      style={{ width: size, height: size }}
+      aria-hidden={ariaHidden}
+      priority
+    />
+  );
+}
+
 export function DigitalGateLogo({
   variant = "lockup",
   theme = "on-dark",
@@ -30,19 +55,8 @@ export function DigitalGateLogo({
 }: DigitalGateLogoProps) {
   const brand = brandAssetsForTheme(theme);
 
-  const iconClassName = theme === "on-dark" ? "mix-blend-multiply" : "";
-
   const icon = (
-    <Image
-      src={brand.icon}
-      alt=""
-      width={512}
-      height={512}
-      className={`shrink-0 object-contain ${iconClassName}`}
-      style={{ width: iconSize, height: iconSize }}
-      aria-hidden={variant === "lockup"}
-      priority
-    />
+    <BrandIcon src={brand.icon} size={iconSize} ariaHidden={variant === "lockup"} />
   );
 
   const wordmark = (
@@ -72,15 +86,7 @@ export function DigitalGateLogo({
 
   const content =
     variant === "icon" ? (
-      <Image
-        src={brand.icon}
-        alt="DigitalGate"
-        width={512}
-        height={512}
-        className={`shrink-0 object-contain ${iconClassName}`}
-        style={{ width: iconSize, height: iconSize }}
-        priority
-      />
+      <BrandIcon src={brand.icon} size={iconSize} alt="DigitalGate" />
     ) : variant === "logo" ? (
       textBlock
     ) : (

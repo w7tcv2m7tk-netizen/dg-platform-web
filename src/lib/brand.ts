@@ -11,8 +11,8 @@ export const BRAND_EMAIL_ICON = "/brand/icon-light.png";
 
 export const BRAND_ASSETS = {
   "on-dark": {
-    /** Icon Light Door — black mark; multiply drops the white PNG canvas */
-    icon: "/brand/icon-light.png",
+    /** Icon Light Door — transparent UI variant (visible on slate shell) */
+    icon: "/brand/icon-light-ui.png",
     /** White wordmark — transparent canvas */
     logo: "/brand/logo-on-dark.png",
   },
