@@ -328,6 +328,33 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     appId: "ai-communications",
     href: "/apps/ai-communications/agents",
   },
+  {
+    id: "comms.call_centre",
+    area: "AI Communications",
+    label: "Call centre",
+    description: "Live call queue and agent handoff",
+    status: "planned",
+    appId: "ai-communications",
+    href: "/apps/ai-communications/call-centre",
+  },
+  {
+    id: "comms.knowledge",
+    area: "AI Communications",
+    label: "Knowledge base",
+    description: "Training content for AI agents",
+    status: "planned",
+    appId: "ai-communications",
+    href: "/apps/ai-communications/knowledge",
+  },
+  {
+    id: "comms.settings",
+    area: "AI Communications",
+    label: "Communications settings",
+    description: "Provider keys, channels, and defaults",
+    status: "planned",
+    appId: "ai-communications",
+    href: "/apps/ai-communications/settings",
+  },
 
   // —— Growth ——
   {
@@ -369,6 +396,24 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     href: "/apps/infrastructure/dns",
   },
   {
+    id: "infra.hosting",
+    area: "Infrastructure",
+    label: "Hosting",
+    description: "Hosting plans and provisioning",
+    status: "planned",
+    appId: "infrastructure",
+    href: "/apps/infrastructure/hosting",
+  },
+  {
+    id: "infra.deployments",
+    area: "Infrastructure",
+    label: "Deployments",
+    description: "Staging and production deploy pipeline",
+    status: "planned",
+    appId: "infrastructure",
+    href: "/apps/infrastructure/deployments",
+  },
+  {
     id: "infra.monitoring",
     area: "Infrastructure",
     label: "Monitoring",
@@ -377,10 +422,122 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     appId: "infrastructure",
     href: "/apps/infrastructure/monitoring",
   },
+
+  // —— Command Centre (internal) ——
+  {
+    id: "command.overview",
+    area: "Command Centre",
+    label: "Platform overview",
+    description: "DigitalGate internal ops dashboard",
+    status: "planned",
+    appId: "command-centre",
+    href: "/command",
+  },
+  {
+    id: "command.clients",
+    area: "Command Centre",
+    label: "Client intelligence",
+    description: "Organisation health and usage across clients",
+    status: "planned",
+    appId: "command-centre",
+    href: "/command/clients",
+  },
+  {
+    id: "command.platform_health",
+    area: "Command Centre",
+    label: "Platform health",
+    description: "System metrics and incident overview",
+    status: "planned",
+    appId: "command-centre",
+    href: "/command/platform-health",
+  },
+  {
+    id: "command.revenue",
+    area: "Command Centre",
+    label: "Revenue intelligence",
+    description: "MRR, ARR, and commercial performance",
+    status: "planned",
+    appId: "command-centre",
+    href: "/command/revenue",
+  },
+  {
+    id: "command.opportunities",
+    area: "Command Centre",
+    label: "Opportunity engine",
+    description: "Upsell and expansion signals",
+    status: "planned",
+    appId: "command-centre",
+    href: "/command/opportunities",
+  },
+  {
+    id: "command.benchmarks",
+    area: "Command Centre",
+    label: "Benchmarking",
+    description: "Cross-client performance benchmarks",
+    status: "planned",
+    appId: "command-centre",
+    href: "/command/benchmarks",
+  },
+  {
+    id: "command.reports",
+    area: "Command Centre",
+    label: "Executive reporting",
+    description: "Growth reports and agency rankings",
+    status: "planned",
+    appId: "command-centre",
+    href: "/command/reports",
+  },
+  {
+    id: "command.support",
+    area: "Command Centre",
+    label: "Support centre",
+    description: "Client support queue and SLAs",
+    status: "planned",
+    appId: "command-centre",
+    href: "/command/support",
+  },
+  {
+    id: "command.flags",
+    area: "Command Centre",
+    label: "Feature flags",
+    description: "Beta features and rollout controls",
+    status: "planned",
+    appId: "command-centre",
+    href: "/command/flags",
+  },
+  {
+    id: "command.audit",
+    area: "Command Centre",
+    label: "Audit & compliance",
+    description: "Audit logs and compliance exports",
+    status: "planned",
+    appId: "command-centre",
+    href: "/command/audit",
+  },
 ];
 
 export function getRoadmapItem(id: string): RoadmapItem | undefined {
   return PLATFORM_ROADMAP.find((item) => item.id === id);
+}
+
+/** Match a route path to the best roadmap entry (exact href, then prefix). */
+export function getRoadmapItemByHref(href: string): RoadmapItem | undefined {
+  const normalised = href.replace(/\/$/, "") || "/";
+  const exact = PLATFORM_ROADMAP.find(
+    (item) => item.href?.replace(/\/$/, "") === normalised,
+  );
+  if (exact) return exact;
+
+  const prefixMatches = PLATFORM_ROADMAP.filter(
+    (item) => item.href && normalised.startsWith(item.href.replace(/\/$/, "")),
+  );
+  prefixMatches.sort((a, b) => (b.href?.length ?? 0) - (a.href?.length ?? 0));
+  return prefixMatches[0];
+}
+
+export function getRoadmapStatusForPath(path: string): RoadmapStatus {
+  const item = getRoadmapItemByHref(path);
+  return item?.status ?? "planned";
 }
 
 export function getRoadmapByArea() {

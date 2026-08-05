@@ -7,7 +7,7 @@ export const commerceApp: AppManifest = {
     "Payments, quotes, invoices, subscriptions, and checkout — the customer-facing commercial layer",
   tier: "core",
   version: "0.1.0",
-  icon: "💳",
+  icon: "▤",
   routes: [
     { path: "/apps/commerce", label: "Overview" },
     { path: "/apps/commerce/invoices", label: "Invoices" },
@@ -17,7 +17,7 @@ export const commerceApp: AppManifest = {
     { path: "/apps/commerce/subscriptions", label: "Subscriptions" },
   ],
   navigation: [
-    { href: "/apps/commerce", label: "Commerce", icon: "💳" },
+    { href: "/apps/commerce", label: "Commerce", icon: "▤" },
   ],
   permissions: [
     { id: "commerce.read", label: "View commerce" },

@@ -4,16 +4,51 @@ import {
   getRoadmapByArea,
   getRoadmapForApp,
   getRoadmapItem,
+  getRoadmapItemByHref,
   getRoadmapSummary,
+  type RoadmapItem,
 } from "@dg/platform-core";
 
 import { RoadmapStatusBadge } from "@/components/platform/RoadmapStatusBadge";
 import { PlatformRoadmapBar } from "@/components/platform/PlatformRoadmapBar";
 
-export function AppFeaturePlaceholder({ itemId }: { itemId: string }) {
-  const item = getRoadmapItem(itemId);
-  if (!item) notFound();
+type AppFeaturePlaceholderProps =
+  | { itemId: string; href?: never }
+  | { href: string; itemId?: never };
 
+function resolveItem(props: AppFeaturePlaceholderProps): RoadmapItem {
+  if ("itemId" in props && props.itemId) {
+    const item = getRoadmapItem(props.itemId);
+    if (!item) notFound();
+    return item;
+  }
+
+  if (!("href" in props) || !props.href) notFound();
+
+  const href = props.href.replace(/\/$/, "") || "/";
+  const item = getRoadmapItemByHref(href);
+  if (item) return item;
+
+  const label =
+    href
+      .split("/")
+      .filter(Boolean)
+      .pop()
+      ?.replace(/-/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase()) ?? "Feature";
+
+  return {
+    id: href,
+    area: "Platform",
+    label,
+    description: "Planned capability — route registered, build pending",
+    status: "planned",
+    href,
+  };
+}
+
+export function AppFeaturePlaceholder(props: AppFeaturePlaceholderProps) {
+  const item = resolveItem(props);
   const summary = getRoadmapSummary();
   const related = item.appId ? getRoadmapForApp(item.appId) : [];
   const areaItems = getRoadmapByArea().find((a) => a.area === item.area)?.items ?? [];
@@ -52,14 +87,12 @@ export function AppFeaturePlaceholder({ itemId }: { itemId: string }) {
             >
               Back to overview
             </Link>
-            {item.appId ? (
-              <Link
-                href="/dashboard/apps"
-                className="rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-slate-600"
-              >
-                Browse apps
-              </Link>
-            ) : null}
+            <Link
+              href="/dashboard/apps"
+              className="rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-slate-600"
+            >
+              Browse apps
+            </Link>
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import { AppFeaturePlaceholder } from "@/components/platform/AppFeaturePlaceholder";
 
 export default function Page() {
-  return <AppFeaturePlaceholder itemId="infra.domains" />;
+  return <AppFeaturePlaceholder itemId="infra.deployments" />;
 }
