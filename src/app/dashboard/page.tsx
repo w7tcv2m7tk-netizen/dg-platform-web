@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
-import { resolvePlatformSession } from "@dg/platform-core";
-import { SetupChecklist } from "@/components/SetupChecklist";
+import { getPlatformSetupStatus, resolvePlatformSession } from "@dg/platform-core";
+
+import { PlatformSetupChecklist } from "@/components/PlatformSetupChecklist";
 import { SupportActions } from "@/components/SupportActions";
-import { fetchPortalMe, getOnboardingUrl } from "@/lib/dg-api";
 
 export default async function DashboardPage() {
   const user = await currentUser();
@@ -14,32 +14,21 @@ export default async function DashboardPage() {
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
     email;
 
-  const portal = email ? await fetchPortalMe(email, clerkUserId) : null;
-
   const platformSession =
     clerkUserId && email
       ? await resolvePlatformSession({
           clerkUserId,
           email,
           name,
-          orgName: portal?.org_name,
         })
       : null;
-  const onboardingUrl = getOnboardingUrl();
+
+  const setupStatus = platformSession
+    ? await getPlatformSetupStatus(platformSession.organisationId)
+    : null;
 
   const displayName =
-    portal?.name ||
-    user?.firstName ||
-    user?.fullName ||
-    email.split("@")[0] ||
-    "there";
-
-  const orgLine = platformSession
-    ? ` · ${platformSession.organisationName}`
-    : portal?.org_name
-      ? ` · ${portal.org_name}`
-      : "";
-  const planLine = portal?.purchase_label ? ` · ${portal.purchase_label}` : "";
+    user?.firstName || user?.fullName || email.split("@")[0] || "there";
 
   return (
     <>
@@ -48,19 +37,17 @@ export default async function DashboardPage() {
         <p className="text-sm text-slate-400">
           Welcome back, {displayName}
           {email ? ` · ${email}` : ""}
-          {orgLine}
-          {planLine}
+          {platformSession ? ` · ${platformSession.organisationName}` : ""}
         </p>
         {platformSession ? (
           <p className="mt-1 text-xs text-emerald-400/90">
             Platform org: {platformSession.organisationSlug} (Postgres)
           </p>
-        ) : null}
-        {portal?.linked ? (
-          <p className="mt-1 text-xs text-emerald-400/90">
-            Linked to CRM contact #{portal.contact_id} (WordPress bridge)
+        ) : (
+          <p className="mt-1 text-xs text-amber-300/90">
+            Database not configured — set DATABASE_URL to enable CRM.
           </p>
-        ) : null}
+        )}
       </header>
       <main className="flex-1 p-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -94,29 +81,15 @@ export default async function DashboardPage() {
             </div>
           ) : null}
           <div className="dg-card">
-            <h2 className="font-semibold text-white">Onboarding</h2>
+            <h2 className="font-semibold text-white">Apps</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Complete your setup form so we can configure your platform.
+              Core, business, and growth apps for your organisation.
             </p>
             <Link
-              href="/onboarding"
+              href="/dashboard/apps"
               className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
             >
-              Continue onboarding →
-            </Link>
-          </div>
-          <div className="dg-card">
-            <h2 className="font-semibold text-white">Plan & apps</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              {portal?.purchase_label
-                ? `Current plan: ${portal.purchase_label}`
-                : "Review or change your platform tier and add-ons."}
-            </p>
-            <Link
-              href="/signup"
-              className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
-            >
-              Manage selection →
+              Browse apps →
             </Link>
           </div>
           <div className="dg-card">
@@ -129,20 +102,28 @@ export default async function DashboardPage() {
         </div>
 
         <div className="dg-card mt-8">
-          <h2 className="font-semibold text-white">Setup checklist</h2>
-          {portal ? (
-            <SetupChecklist setup={portal.setup} linked={portal.linked} />
+          <h2 className="font-semibold text-white">Platform 1.0 setup</h2>
+          <p className="mt-1 text-sm text-slate-400">
+            Progress tracked in Postgres — no WordPress required for CRM.
+          </p>
+          {platformSession && setupStatus ? (
+            <PlatformSetupChecklist
+              status={setupStatus}
+              organisationName={platformSession.organisationName}
+            />
           ) : (
-            <p className="mt-3 text-sm text-slate-400">Sign in to view progress.</p>
+            <p className="mt-3 text-sm text-slate-400">
+              Sign in with a configured database to view setup progress.
+            </p>
           )}
-          <a
-            href={onboardingUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-block rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500"
-          >
-            Open full onboarding (WordPress)
-          </a>
+          {!setupStatus?.hasContacts ? (
+            <Link
+              href="/apps/crm/contacts"
+              className="mt-4 inline-block rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500"
+            >
+              Add your first contact
+            </Link>
+          ) : null}
         </div>
       </main>
     </>

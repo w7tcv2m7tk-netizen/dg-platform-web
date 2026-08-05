@@ -12,6 +12,7 @@ export * from "./identity";
 export * from "./workspace";
 export * from "./assets";
 export * from "./audit";
+export * from "./activities";
 export * from "./command-centre";
 export * from "./connectors/wordpress";
 export * from "./contacts";

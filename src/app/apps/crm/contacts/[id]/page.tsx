@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { getContact, listContactActivities, resolvePlatformSession } from "@dg/platform-core";
 
+import { AddContactNoteForm } from "@/components/crm/AddContactNoteForm";
+import { EditContactForm } from "@/components/crm/EditContactForm";
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -50,28 +53,19 @@ export default async function ContactDetailPage({ params }: PageProps) {
       <main className="flex-1 p-8">
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="dg-card">
-            <h2 className="font-semibold text-white">Details</h2>
-            <dl className="mt-4 space-y-3 text-sm">
+            <h2 className="font-semibold text-white">Edit contact</h2>
+            <div className="mt-4">
+              <EditContactForm contact={contact} />
+            </div>
+            <dl className="mt-6 space-y-3 border-t border-slate-800 pt-4 text-sm">
               <div>
                 <dt className="text-slate-500">Status</dt>
                 <dd className="text-white capitalize">{contact.status}</dd>
               </div>
-              {contact.tags ? (
-                <div>
-                  <dt className="text-slate-500">Tags</dt>
-                  <dd className="text-white">{contact.tags}</dd>
-                </div>
-              ) : null}
               <div>
                 <dt className="text-slate-500">Created</dt>
                 <dd className="text-white">
                   {new Date(contact.createdAt).toLocaleString("en-AU")}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Updated</dt>
-                <dd className="text-white">
-                  {new Date(contact.updatedAt).toLocaleString("en-AU")}
                 </dd>
               </div>
             </dl>
@@ -93,13 +87,14 @@ export default async function ContactDetailPage({ params }: PageProps) {
                       <p className="text-sm text-slate-400">{activity.body}</p>
                     ) : null}
                     <p className="mt-1 text-xs text-slate-500">
-                      {activity.sourceApp ?? "platform"} ·{" "}
+                      {activity.activityType} · {activity.sourceApp ?? "platform"} ·{" "}
                       {new Date(activity.createdAt).toLocaleString("en-AU")}
                     </p>
                   </li>
                 ))}
               </ul>
             )}
+            <AddContactNoteForm contactId={contact.id} />
           </div>
         </div>
       </main>
