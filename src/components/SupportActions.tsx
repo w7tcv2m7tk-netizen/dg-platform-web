@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import {
-  CONTACT_URL,
-  SUPPORT_EMAIL,
-  SUPPORT_MAILTO,
-} from "@/lib/support";
+import Link from "next/link";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/support";
 
 export function SupportActions() {
   const [copied, setCopied] = useState(false);
@@ -38,14 +35,12 @@ export function SupportActions() {
           {copied ? "Copied" : "Copy email"}
         </button>
       </div>
-      <a
-        href={CONTACT_URL}
-        target="_blank"
-        rel="noopener noreferrer"
+      <Link
+        href="/support"
         className="inline-block text-sm font-medium text-blue-400 hover:underline"
       >
-        Contact form on digitalgate.com.au →
-      </a>
+        More support options →
+      </Link>
     </div>
   );
 }

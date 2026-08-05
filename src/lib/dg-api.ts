@@ -244,3 +244,118 @@ export async function fetchWpVendorLeads(
     };
   }
 }
+
+export type WpSiteHealthPayload = {
+  site?: string;
+  generated_at?: string;
+  score?: number;
+  pass?: number;
+  warn?: number;
+  fail?: number;
+  checks?: Array<{
+    id?: string;
+    label?: string;
+    status?: string;
+    detail?: string;
+  }>;
+  pagespeed?: {
+    mobile?: number | null;
+    desktop?: number | null;
+    checked_at?: string | null;
+  };
+  ssl?: {
+    enabled?: boolean;
+  };
+};
+
+export type FetchWpSiteHealthResult =
+  | { ok: true; payload: WpSiteHealthPayload }
+  | {
+      ok: false;
+      code:
+        | "missing_api_key"
+        | "auth_failed"
+        | "not_found"
+        | "upstream_error"
+        | "network_error";
+      message: string;
+      status?: number;
+    };
+
+export async function fetchWpSiteHealth(): Promise<FetchWpSiteHealthResult> {
+  const connectorKey = process.env.DG_WP_CONNECTOR_API_KEY?.trim();
+  const fallbackKey = process.env.DG_API_KEY?.trim();
+  const apiKey = connectorKey || fallbackKey;
+
+  if (!apiKey) {
+    return {
+      ok: false,
+      code: "missing_api_key",
+      message:
+        "Set DG_WP_CONNECTOR_API_KEY (Roe roerealty.com.au → DG Platform → API Settings) on Vercel or .env.local.",
+    };
+  }
+
+  const headers: HeadersInit = {
+    Accept: "application/json",
+    "X-API-Key": apiKey,
+  };
+
+  try {
+    const url = `${getWpConnectorBase()}/site/health`;
+    const res = await fetch(url, { headers, cache: "no-store" });
+    const data = (await res.json().catch(() => null)) as WpSiteHealthPayload & {
+      message?: string;
+      code?: string;
+    } | null;
+
+    if (res.status === 401 || res.status === 403) {
+      return {
+        ok: false,
+        code: "auth_failed",
+        status: res.status,
+        message: connectorKey
+          ? "Roe API rejected DG_WP_CONNECTOR_API_KEY — copy the Dev API key from roerealty.com.au → DG Platform → API Settings."
+          : "Roe API rejected the API key. Use DG_WP_CONNECTOR_API_KEY from roerealty.com.au (not the digitalgate.com.au key).",
+      };
+    }
+
+    if (res.status === 404) {
+      return {
+        ok: false,
+        code: "not_found",
+        status: res.status,
+        message:
+          "Site health endpoint not found on WordPress — deploy the latest DG Platform plugin with /site/health.",
+      };
+    }
+
+    if (!res.ok) {
+      return {
+        ok: false,
+        code: "upstream_error",
+        status: res.status,
+        message:
+          data?.message ??
+          `WordPress returned HTTP ${res.status} from ${getWpConnectorBase()}/site/health`,
+      };
+    }
+
+    if (!data || typeof data.score !== "number") {
+      return {
+        ok: false,
+        code: "upstream_error",
+        status: res.status,
+        message: "WordPress returned an invalid site health payload.",
+      };
+    }
+
+    return { ok: true, payload: data };
+  } catch {
+    return {
+      ok: false,
+      code: "network_error",
+      message: `Could not reach ${getWpConnectorBase()} — check DG_WP_CONNECTOR_BASE_URL.`,
+    };
+  }
+}

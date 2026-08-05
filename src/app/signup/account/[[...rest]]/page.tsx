@@ -12,6 +12,8 @@ export default function SignUpAccountPage() {
         path="/signup/account"
         signInUrl="/login"
         forceRedirectUrl="/dashboard"
+        fallbackRedirectUrl="/dashboard"
+        oauthFlow="redirect"
       />
     </AuthShell>
   );

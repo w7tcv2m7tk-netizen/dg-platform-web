@@ -23,7 +23,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider appearance={clerkAppearance}>
+    <ClerkProvider
+      appearance={clerkAppearance}
+      signInUrl="/login"
+      signUpUrl="/signup/account"
+      signInFallbackRedirectUrl="/dashboard"
+      signUpFallbackRedirectUrl="/dashboard"
+    >
       <html lang="en" className={`${inter.variable} h-full`}>
         <body className="min-h-full bg-slate-950 font-sans text-slate-100 antialiased">
           {children}

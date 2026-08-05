@@ -12,6 +12,7 @@ const isPublicRoute = createRouteMatcher([
 const authorizedParties = [
   "https://app.digitalgate.com.au",
   "https://dg-platform-web.vercel.app",
+  "http://localhost:3000",
   process.env.NEXT_PUBLIC_APP_URL,
 ].filter((url): url is string => Boolean(url));
 

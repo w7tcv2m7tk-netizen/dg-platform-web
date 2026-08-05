@@ -82,6 +82,20 @@ export default async function DashboardPage() {
               </div>
             </div>
           ) : null}
+          {platformSession ? (
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">Websites</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Website Health Score™ for Roe Realty — performance and platform checks.
+              </p>
+              <Link
+                href="/apps/websites/health"
+                className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
+              >
+                Health Centre →
+              </Link>
+            </div>
+          ) : null}
           <div className="dg-card">
             <h2 className="font-semibold text-white">Apps</h2>
             <p className="mt-1 text-sm text-slate-400">

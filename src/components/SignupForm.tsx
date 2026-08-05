@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { PlanPicker } from "@/components/PlanPicker";
 import type { SignupSelection } from "@/lib/plans";
@@ -56,18 +57,18 @@ export function SignupForm() {
           setup in your dashboard.
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-3">
-          <a
+          <Link
             href="/signup/account"
             className="inline-block rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-500"
           >
             Create account →
-          </a>
-          <a
-            href={process.env.NEXT_PUBLIC_DG_ONBOARDING_URL ?? "https://digitalgate.com.au/onboarding/"}
+          </Link>
+          <Link
+            href="/onboarding"
             className="inline-block rounded-full border border-slate-600 px-6 py-2 text-sm font-semibold text-slate-200 hover:border-slate-500"
           >
-            Complete onboarding form
-          </a>
+            Continue setup in platform
+          </Link>
         </div>
       </div>
     );
