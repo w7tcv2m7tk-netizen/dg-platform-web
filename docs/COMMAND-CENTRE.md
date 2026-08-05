@@ -46,12 +46,12 @@ DigitalGate staff only:
 |--------|---------|
 | **Platform Overview** | Orgs, users, leads, AI actions, automations, platform health |
 | **Client Intelligence** | Per-tenant scores, growth, conversion, ROI, usage, satisfaction |
+| **Growth Engine™** | **Acquisition OS** — discover → audit → report → pipeline → proposal → client ([spec](./GROWTH-ENGINE.md)) |
 | **Platform Health** | Infra, API/AI usage, email/SMS volume |
 | **Revenue Intelligence** | Stripe MRR, ARR, churn, trial conversion |
-| **Agency Health Ranking** | Top performers vs needs attention |
-| **Opportunity Engine** | Upsell apps/services with estimated additional MRR |
-| **Benchmarking** | Anonymous cohort comparison (e.g. Gold Coast agencies) |
-| **Executive Reporting** | Auto-generated monthly DigitalGate Growth Reports |
+| **Client Expansion** | Upsell apps/services on **live tenants** (estimated additional MRR) |
+| **Benchmarking** | Anonymous cohort comparison (customer + prospect reports) |
+| **Executive Dashboard** | Auto-generated monthly DigitalGate Growth Reports |
 | **AI Business Advisor** | Natural-language client performance analysis |
 | **Support Centre** | Cross-tenant support context |
 | **Feature Flags & Beta** | Rollout control |
@@ -103,6 +103,16 @@ The customer wow moment ("78 Business Health, 17 opportunities") and the interna
 
 ---
 
+## Growth Engine™ (acquisition)
+
+The **Growth Engine** is Command Centre’s internal sales system — not a prospecting tool. It runs the full loop from business discovery through AI audit, interactive opportunity reports, automated prospect pipeline, smart follow-up, proposal generation, and zero-touch client transition into the platform.
+
+See **[GROWTH-ENGINE.md](./GROWTH-ENGINE.md)** for the full module spec (10 modules, build sequence, types).
+
+**Route prefix:** `/command/growth-engine/*`
+
+---
+
 ## AI Business Advisor
 
 Staff ask natural-language questions against a client's Twin + historical scores + events:
@@ -145,7 +155,7 @@ Surfaces in Command Centre morning view so the team knows where to focus.
 
 ## Opportunity Engine
 
-Per client, based on Twin gaps and installed Apps:
+Per **live client**, based on Twin gaps and installed Apps:
 
 ```
 Roe Realty — Opportunities
@@ -232,7 +242,9 @@ The Command Centre does **not** duplicate CRM or RE UIs. Click a client → see 
 | **After Twin + Scoring v1** | Client Intelligence + Success Score |
 | **After 3+ tenants with data** | Benchmarking + Agency Health Ranking |
 | **After AI Service v1** | Business Advisor + Growth Reports |
-| **Validation phase** | Opportunity Engine + auto-report delivery |
+| **Growth Engine GE-1–4** | Discovery, AI Audit, Opportunity Reports, Prospect Pipeline |
+| **Growth Engine GE-5–8** | Smart Follow-Up, Sales Assistant, Proposals, Client Transition |
+| **Validation phase** | Client Expansion + auto-report delivery |
 
 **Does not block** Platform Core or Real Estate App. Built on the same foundation they create.
 
@@ -254,6 +266,7 @@ Over time, the **data network effect** (more tenants → better benchmarks → b
 ## Related documents
 
 - [ADR 0008 — Command Centre as internal App](./adr/0008-command-centre-internal-app.md)
+- [GROWTH-ENGINE.md](./GROWTH-ENGINE.md) — acquisition pipeline spec
 - [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md)
 - [ROADMAP.md](./ROADMAP.md)
 - Manifest: `packages/platform-core/src/apps/builtins/command-centre.ts`

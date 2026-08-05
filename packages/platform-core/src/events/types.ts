@@ -20,7 +20,11 @@ export type PlatformEventType =
   | "commerce.refund.created"
   | "review.received"
   | "organisation.created"
-  | "app.installed";
+  | "app.installed"
+  | "prospect.created"
+  | "prospect.report_sent"
+  | "prospect.report_viewed"
+  | "prospect.proposal_accepted";
 
 export interface PlatformEvent<TPayload = Record<string, unknown>> {
   type: PlatformEventType;

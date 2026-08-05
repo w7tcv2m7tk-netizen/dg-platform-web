@@ -43,6 +43,7 @@ model Organisation {
   commerceSubscriptions      CommerceSubscription[]
   commerceRefunds            CommerceRefund[]
   paymentConnectorInstallations PaymentConnectorInstallation[]
+  convertedGrowthProspects      GrowthProspect[] @relation("ConvertedProspect")
 
   @@map("organisations")
 }
@@ -240,6 +241,82 @@ model AuditLog {
   @@index([organisationId, occurredAt])
   @@index([organisationId, entityType, entityId])
   @@map("audit_logs")
+}
+
+// ─── Growth Engine (Command Centre — internal acquisition) ─────────────────
+
+model GrowthProspect {
+  id                      String    @id @default(cuid())
+  businessName            String    @map("business_name")
+  contactName             String?   @map("contact_name")
+  contactEmail            String?   @map("contact_email")
+  contactPhone            String?   @map("contact_phone")
+  industry                String?
+  location                String?
+  websiteUrl              String?   @map("website_url")
+  stage                   String    @default("prospect")
+  ownerClerkUserId        String?   @map("owner_clerk_user_id")
+  convertedOrganisationId String?   @map("converted_organisation_id")
+  metadata                Json?
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  convertedOrganisation Organisation?            @relation("ConvertedProspect", fields: [convertedOrganisationId], references: [id], onDelete: SetNull)
+  audits                GrowthProspectAudit[]
+  reports               GrowthProspectReport[]
+  engagements           GrowthProspectEngagement[]
+
+  @@index([stage])
+  @@index([ownerClerkUserId])
+  @@map("growth_prospects")
+}
+
+model GrowthProspectAudit {
+  id              String   @id @default(cuid())
+  prospectId      String   @map("prospect_id")
+  businessHealth  Int?     @map("business_health")
+  aiVisibility    Int?     @map("ai_visibility")
+  seoScore        Int?     @map("seo_score")
+  websiteHealth   Int?     @map("website_health")
+  findings        Json?
+  auditVersion    String   @default("1.0") @map("audit_version")
+  auditedAt       DateTime @default(now()) @map("audited_at")
+
+  prospect GrowthProspect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  @@index([prospectId])
+  @@map("growth_prospect_audits")
+}
+
+model GrowthProspectReport {
+  id              String    @id @default(cuid())
+  prospectId      String    @map("prospect_id")
+  auditId         String?   @map("audit_id")
+  shareToken      String    @unique @map("share_token")
+  executiveSummary String?  @map("executive_summary")
+  viewCount       Int       @default(0) @map("view_count")
+  sentAt          DateTime? @map("sent_at")
+  firstViewedAt   DateTime? @map("first_viewed_at")
+  generatedAt     DateTime  @default(now()) @map("generated_at")
+
+  prospect GrowthProspect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  @@index([prospectId])
+  @@map("growth_prospect_reports")
+}
+
+model GrowthProspectEngagement {
+  id         String   @id @default(cuid())
+  prospectId String   @map("prospect_id")
+  reportId   String?  @map("report_id")
+  type       String
+  metadata   Json?
+  occurredAt DateTime @default(now()) @map("occurred_at")
+
+  prospect GrowthProspect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  @@index([prospectId, type])
+  @@map("growth_prospect_engagements")
 }
 
 // ─── Commerce (customer-facing commercial layer) ───────────────────────────

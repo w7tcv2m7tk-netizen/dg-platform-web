@@ -1,0 +1,205 @@
+/**
+ * DigitalGate Growth Engine™ — internal acquisition system types.
+ * Prospect lifecycle: discover → audit → report → pipeline → proposal → client.
+ * @see docs/GROWTH-ENGINE.md
+ */
+
+import type { ScoreId } from "../../scoring/types";
+
+/** Pipeline stages — auto-advanced on events */
+export type ProspectPipelineStage =
+  | "prospect"
+  | "audit_created"
+  | "report_sent"
+  | "email_opened"
+  | "report_viewed"
+  | "follow_up_due"
+  | "meeting_booked"
+  | "proposal_sent"
+  | "won"
+  | "lost"
+  | "onboarding";
+
+export interface BusinessDiscoveryQuery {
+  industry?: string;
+  location?: string;
+  keywords?: string[];
+  minEmployees?: number;
+  maxEmployees?: number;
+  hasGoogleBusinessProfile?: boolean;
+  hasWebsite?: boolean;
+}
+
+export interface DiscoveredBusiness {
+  id: string;
+  name: string;
+  industry?: string;
+  location?: string;
+  websiteUrl?: string;
+  googleBusinessProfileUrl?: string;
+  discoverySource: string;
+  confidence: number;
+  discoveredAt: Date;
+}
+
+/** Prospect record — becomes Organisation on conversion */
+export interface Prospect {
+  id: string;
+  businessName: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  industry?: string;
+  location?: string;
+  websiteUrl?: string;
+  stage: ProspectPipelineStage;
+  ownerUserId?: string;
+  organisationId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProspectAuditScores {
+  businessHealth: number;
+  aiVisibility?: number;
+  seo?: number;
+  websiteHealth?: number;
+  googleBusinessProfile?: number;
+  socialPresence?: number;
+  digitalIdentity?: number;
+}
+
+/** AI Audit Engine output for a prospect business */
+export interface ProspectAudit {
+  id: string;
+  prospectId: string;
+  scores: ProspectAuditScores;
+  findings: ProspectAuditFinding[];
+  auditedAt: Date;
+  auditVersion: string;
+}
+
+export interface ProspectAuditFinding {
+  domain: "website" | "seo" | "ai_visibility" | "gbp" | "social" | "identity";
+  severity: "critical" | "warning" | "opportunity";
+  title: string;
+  detail: string;
+  recommendedAction?: string;
+}
+
+/** Interactive branded report shared with prospect */
+export interface ProspectOpportunityReport {
+  id: string;
+  prospectId: string;
+  auditId: string;
+  shareToken: string;
+  shareUrl: string;
+  executiveSummary: string;
+  sections: ProspectReportSection[];
+  competitorComparison?: ProspectBenchmarkRow[];
+  estimatedGrowthPotential?: string;
+  digitalGateHelpSection?: string;
+  sentAt?: Date;
+  firstViewedAt?: Date;
+  viewCount: number;
+  generatedAt: Date;
+}
+
+export interface ProspectReportSection {
+  id: string;
+  title: string;
+  scoreId?: ScoreId | "business_health";
+  score?: number;
+  body: string;
+  highlights?: string[];
+}
+
+export interface ProspectBenchmarkRow {
+  metricLabel: string;
+  prospectValue: number;
+  industryAverage: number;
+  topDecile: number;
+  unit?: string;
+}
+
+export interface ProspectEngagementEvent {
+  id: string;
+  prospectId: string;
+  reportId?: string;
+  type:
+    | "report_sent"
+    | "email_opened"
+    | "report_viewed"
+    | "pricing_clicked"
+    | "meeting_booked"
+    | "proposal_sent"
+    | "proposal_accepted";
+  metadata?: Record<string, unknown>;
+  occurredAt: Date;
+}
+
+export interface FollowUpRule {
+  id: string;
+  label: string;
+  trigger: ProspectEngagementEvent["type"] | "stage_idle";
+  idleDays?: number;
+  action: "send_reminder" | "notify_owner" | "create_task" | "advance_stage";
+  enabled: boolean;
+}
+
+/** AI Sales Assistant ranked recommendation */
+export interface SalesCallRecommendation {
+  prospectId: string;
+  businessName: string;
+  reason: string;
+  businessHealthScore: number;
+  reportViewCount: number;
+  stage: ProspectPipelineStage;
+  priority: number;
+}
+
+export interface GrowthProposalDraft {
+  id: string;
+  prospectId: string;
+  coverLetter: string;
+  executiveSummary: string;
+  recommendedServices: GrowthProposalServiceLine[];
+  totalCents: number;
+  roiEstimate?: string;
+  timeline?: string;
+  generatedAt: Date;
+}
+
+export interface GrowthProposalServiceLine {
+  label: string;
+  description: string;
+  appId?: string;
+  amountCents: number;
+}
+
+/** Module 9 — funnel metrics */
+export interface GrowthConversionDashboard {
+  periodLabel: string;
+  auditsGenerated: number;
+  reportsSent: number;
+  emailOpenRatePercent: number;
+  reportViewRatePercent: number;
+  meetingsBooked: number;
+  conversionRatePercent: number;
+  mrrWonCents: number;
+  averageSalesCycleDays: number;
+  revenueForecastCents: number;
+  generatedAt: Date;
+}
+
+/** Module 10 — prospect → live tenant handoff */
+export interface ClientTransitionResult {
+  prospectId: string;
+  organisationId: string;
+  clerkOrgId?: string;
+  subscriptionId?: string;
+  installedAppIds: string[];
+  onboardingStarted: boolean;
+  twinSnapshotCreated: boolean;
+  transitionedAt: Date;
+}

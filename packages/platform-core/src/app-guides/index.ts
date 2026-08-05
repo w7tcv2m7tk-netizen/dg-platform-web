@@ -589,7 +589,7 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
     appId: "command-centre",
     headline: "DigitalGate Command Centre",
     summary:
-      "Internal-only intelligence — client health, platform metrics, revenue, and opportunity engine for DG staff.",
+      "Internal-only OS for DigitalGate — client success, platform ops, and the Growth Engine™ acquisition pipeline.",
     estimatedMinutes: 10,
     prerequisites: ["DigitalGate staff Clerk account", "Command Centre enabled in App registry"],
     steps: [
@@ -608,10 +608,21 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
       },
       {
         id: "cmd-3",
+        title: "Growth Engine™",
+        description:
+          "Acquisition pipeline: discover businesses → AI audit → interactive report → prospect pipeline → proposal → client transition. See docs/GROWTH-ENGINE.md.",
+        href: "/command/growth-engine",
+        hrefLabel: "Growth Engine",
+      },
+      {
+        id: "cmd-4",
         title: "Twin & scoring dependency",
         description:
-          "Full intelligence requires Digital Twin snapshots and Scoring Engine v1 — shipping after Platform 1.0 stabilises.",
+          "Full audits and client intelligence require Digital Twin snapshots and Scoring Engine v1 — shipping after Platform 1.0 stabilises.",
       },
+    ],
+    resources: [
+      { label: "Growth Engine spec", href: "/dashboard/settings/roadmap", external: false },
     ],
   },
 ];
