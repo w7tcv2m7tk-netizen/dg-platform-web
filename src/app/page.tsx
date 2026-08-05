@@ -10,7 +10,7 @@ export default async function HomePage() {
     <div className="flex min-h-full flex-col">
       <header className="border-b border-slate-800 px-6 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <DigitalGateLogo variant="logo" href="/" logoHeight={28} />
+          <DigitalGateLogo variant="logo" href="/" logoWidth={120} showTagline={false} />
           <div className="flex gap-3 text-sm">
             {userId ? (
               <Link

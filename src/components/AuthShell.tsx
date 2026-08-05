@@ -12,7 +12,7 @@ export function AuthShell({
   return (
     <div className="flex min-h-full flex-col items-center justify-center bg-slate-950 px-4 py-10">
       <div className="mb-8 flex flex-col items-center text-center">
-        <DigitalGateLogo variant="logo" href="/" logoHeight={36} className="mb-6" />
+        <DigitalGateLogo variant="logo" href="/" logoWidth={148} className="mb-5" />
         {title ? (
           <h1 className="text-2xl font-bold tracking-tight text-white">{title}</h1>
         ) : null}

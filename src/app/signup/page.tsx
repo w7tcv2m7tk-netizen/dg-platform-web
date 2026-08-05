@@ -6,7 +6,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-full px-4 py-10">
       <div className="mx-auto max-w-3xl">
-        <DigitalGateLogo variant="logo" href="/" logoHeight={32} className="mb-6" />
+        <DigitalGateLogo variant="logo" href="/" logoWidth={140} className="mb-6" />
         <h1 className="text-3xl font-bold text-white">
           Build your platform
         </h1>
