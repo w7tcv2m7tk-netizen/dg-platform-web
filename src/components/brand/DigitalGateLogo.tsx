@@ -24,13 +24,16 @@ function BrandIcon({
   size,
   alt = "",
   ariaHidden,
+  framed = false,
 }: {
   src: string;
   size: number;
   alt?: string;
   ariaHidden?: boolean;
+  /** White tile behind Icon Light Door on dark shells */
+  framed?: boolean;
 }) {
-  return (
+  const image = (
     <Image
       src={src}
       alt={alt}
@@ -41,6 +44,17 @@ function BrandIcon({
       aria-hidden={ariaHidden}
       priority
     />
+  );
+
+  if (!framed) return image;
+
+  return (
+    <span
+      className="inline-flex shrink-0 items-center justify-center rounded-md bg-white"
+      style={{ width: size + 4, height: size + 4 }}
+    >
+      {image}
+    </span>
   );
 }
 
@@ -54,9 +68,15 @@ export function DigitalGateLogo({
   showTagline = true,
 }: DigitalGateLogoProps) {
   const brand = brandAssetsForTheme(theme);
+  const frameIcon = theme === "on-dark";
 
   const icon = (
-    <BrandIcon src={brand.icon} size={iconSize} ariaHidden={variant === "lockup"} />
+    <BrandIcon
+      src={brand.icon}
+      size={iconSize}
+      ariaHidden={variant === "lockup"}
+      framed={frameIcon}
+    />
   );
 
   const wordmark = (
@@ -86,7 +106,7 @@ export function DigitalGateLogo({
 
   const content =
     variant === "icon" ? (
-      <BrandIcon src={brand.icon} size={iconSize} alt="DigitalGate" />
+      <BrandIcon src={brand.icon} size={iconSize} alt="DigitalGate" framed={frameIcon} />
     ) : variant === "logo" ? (
       textBlock
     ) : (

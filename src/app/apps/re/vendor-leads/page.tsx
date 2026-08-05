@@ -48,7 +48,17 @@ export default async function VendorLeadsPage() {
 
   let autoSyncNote: string | undefined;
   if (autoSync.ran && autoSync.result) {
-    autoSyncNote = `Auto-synced ${autoSync.result.created} new lead(s) from WordPress`;
+    const parts: string[] = [];
+    if (autoSync.result.created) {
+      parts.push(`${autoSync.result.created} new`);
+    }
+    if (autoSync.result.updated) {
+      parts.push(`${autoSync.result.updated} updated`);
+    }
+    autoSyncNote =
+      parts.length > 0
+        ? `Auto-synced ${parts.join(", ")} lead(s) from WordPress`
+        : "Auto-sync checked WordPress — no changes";
   }
 
   return (
@@ -66,7 +76,11 @@ export default async function VendorLeadsPage() {
             Last sync:{" "}
             {new Date(lastSync.lastVendorLeadSyncAt).toLocaleString("en-AU")}
             {lastSync.lastVendorLeadSync
-              ? ` · ${lastSync.lastVendorLeadSync.created} imported`
+              ? ` · ${lastSync.lastVendorLeadSync.created} imported${
+                  lastSync.lastVendorLeadSync.updated
+                    ? `, ${lastSync.lastVendorLeadSync.updated} updated`
+                    : ""
+                }`
               : ""}
           </p>
         ) : null}

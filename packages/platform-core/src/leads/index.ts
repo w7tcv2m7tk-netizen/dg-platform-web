@@ -138,11 +138,17 @@ export async function createLead(input: CreateLeadInput) {
   return serializeLead(lead);
 }
 
+export interface LeadStageSyncOptions {
+  /** Skip property create/status sync (used when property drives the change). */
+  skipPropertySync?: boolean;
+}
+
 export async function updateLeadStage(
   organisationId: string,
   leadId: string,
   stage: VendorStage,
   actorId?: string,
+  options?: LeadStageSyncOptions,
 ) {
   const { prisma } = await import("@dg/database");
   const lead = await prisma.lead.findFirst({
@@ -173,6 +179,28 @@ export async function updateLeadStage(
       metadata: { stage },
     },
   });
+
+  if (!options?.skipPropertySync) {
+    const { propertyStatusForLeadStage } = await import("../real-estate/pipeline");
+
+    if (stage === "appraisal" || propertyStatusForLeadStage(stage)) {
+      const { createPropertyFromLead } = await import("../properties");
+      await createPropertyFromLead({ organisationId, leadId, actorId });
+    }
+
+    const propStatus = propertyStatusForLeadStage(stage);
+    if (propStatus) {
+      const property = await prisma.property.findFirst({
+        where: { organisationId, leadId, deletedAt: null },
+      });
+      if (property && property.status !== propStatus) {
+        const { updatePropertyStatus } = await import("../properties");
+        await updatePropertyStatus(organisationId, property.id, propStatus, actorId, {
+          skipLeadSync: true,
+        });
+      }
+    }
+  }
 
   return serializeLead(updated);
 }

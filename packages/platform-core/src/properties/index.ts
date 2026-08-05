@@ -2,7 +2,8 @@ import type { Property, Prisma } from "@dg/database";
 
 import { writeAuditLog } from "../audit";
 import { platformEvents } from "../events";
-import { updateLeadStage } from "../leads";
+import { updateLeadStage, type VendorStage } from "../leads";
+import { leadStageForPropertyStatus } from "../real-estate/pipeline";
 import {
   addressMetadataFromParsed,
   resolveAddress,
@@ -422,11 +423,17 @@ export async function geocodePropertyAddress(
   );
 }
 
+export interface PropertyStatusSyncOptions {
+  /** Skip lead stage sync (used when lead drives the change). */
+  skipLeadSync?: boolean;
+}
+
 export async function updatePropertyStatus(
   organisationId: string,
   propertyId: string,
   status: PropertyStatus,
   actorId?: string,
+  options?: PropertyStatusSyncOptions,
 ) {
   const { prisma } = await import("@dg/database");
 
@@ -466,6 +473,19 @@ export async function updatePropertyStatus(
       payload: { address: formatPropertyAddress(property) },
       occurredAt: new Date(),
     });
+  }
+
+  if (!options?.skipLeadSync && existing.leadId) {
+    const leadStage = leadStageForPropertyStatus(status);
+    if (leadStage) {
+      await updateLeadStage(
+        organisationId,
+        existing.leadId,
+        leadStage as VendorStage,
+        actorId,
+        { skipPropertySync: true },
+      );
+    }
   }
 
   return serializeProperty(property);

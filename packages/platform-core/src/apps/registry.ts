@@ -15,7 +15,7 @@ function appVisibility(manifest: RegisteredApp["manifest"]): AppVisibility {
 /** Built-in app manifests shipped with the platform */
 const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: crmApp, enabled: true },
-  { manifest: commerceApp, enabled: false },
+  { manifest: commerceApp, enabled: true },
   { manifest: realEstateApp, enabled: true },
   { manifest: seoApp, enabled: false },
   { manifest: aiVisibilityApp, enabled: false },

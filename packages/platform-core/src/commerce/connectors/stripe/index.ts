@@ -36,16 +36,17 @@ function stripeLineItems(input: CreateCheckoutSessionInput | CreatePaymentLinkIn
 
 function mapCheckoutCompleted(session: Stripe.Checkout.Session): PaymentWebhookEvent {
   const metadata = session.metadata ?? {};
+  const paymentIntent =
+    typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : session.payment_intent?.id;
   return {
     type: "checkout.completed",
     providerId: "stripe",
     providerEventId: session.id,
     organisationId: metadata.organisationId,
     paymentRequestId: metadata.paymentRequestId,
-    providerPaymentId:
-      typeof session.payment_intent === "string"
-        ? session.payment_intent
-        : session.payment_intent?.id,
+    providerPaymentId: paymentIntent ?? session.id,
     amountCents: session.amount_total ?? undefined,
     currency: session.currency?.toUpperCase() as PaymentWebhookEvent["currency"],
     paymentMethod: "card",

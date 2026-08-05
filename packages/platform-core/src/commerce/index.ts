@@ -8,6 +8,14 @@ export {
   getCommerceFinancialSnapshot,
 } from "./payment-engine";
 export {
+  createQuote,
+  createInvoice,
+  acceptQuote,
+  listQuotes,
+  listInvoices,
+  sendInvoice,
+} from "./document-engine";
+export {
   registerPaymentConnector,
   getPaymentConnector,
   listPaymentConnectors,
@@ -15,3 +23,7 @@ export {
   defaultPaymentProviderId,
   bootPaymentConnectors,
 } from "./connectors";
+
+import { bootDefaultAutomations } from "../automation";
+
+bootDefaultAutomations();

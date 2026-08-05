@@ -146,6 +146,68 @@ export function getWpConnectorBase(): string {
   );
 }
 
+export type WpHealthSite = {
+  id: string;
+  label: string;
+  baseUrl: string;
+  /** Optional per-site API key; falls back to DG_WP_CONNECTOR_API_KEY / DG_API_KEY */
+  apiKey?: string;
+};
+
+function siteLabelFromBaseUrl(baseUrl: string) {
+  try {
+    return new URL(baseUrl.replace(/\/wp-json.*/, "")).hostname;
+  } catch {
+    return baseUrl.replace(/\/wp-json.*/, "") || "WordPress site";
+  }
+}
+
+/** Configured WordPress sites for Health Centre (JSON in DG_WP_HEALTH_SITES). */
+export function listWpHealthSites(): WpHealthSite[] {
+  const raw = process.env.DG_WP_HEALTH_SITES?.trim();
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw) as WpHealthSite[];
+      if (Array.isArray(parsed) && parsed.length) {
+        return parsed.map((site) => ({
+          id: site.id,
+          label: site.label || siteLabelFromBaseUrl(site.baseUrl),
+          baseUrl: site.baseUrl.replace(/\/$/, ""),
+          apiKey: site.apiKey,
+        }));
+      }
+    } catch {
+      /* fall through to default */
+    }
+  }
+
+  const base = getWpConnectorBase();
+  return [
+    {
+      id: "default",
+      label: siteLabelFromBaseUrl(base),
+      baseUrl: base,
+    },
+  ];
+}
+
+export function getWpHealthSite(siteId?: string | null): WpHealthSite {
+  const sites = listWpHealthSites();
+  if (siteId) {
+    return sites.find((s) => s.id === siteId) ?? sites[0];
+  }
+  return sites[0];
+}
+
+function wpConnectorApiKey(site?: WpHealthSite): string | undefined {
+  return (
+    site?.apiKey?.trim() ||
+    process.env.DG_WP_CONNECTOR_API_KEY?.trim() ||
+    process.env.DG_API_KEY?.trim() ||
+    undefined
+  );
+}
+
 export type WpVendorLeadRow = {
   id: number;
   name: string;
@@ -282,10 +344,11 @@ export type FetchWpSiteHealthResult =
       status?: number;
     };
 
-export async function fetchWpSiteHealth(): Promise<FetchWpSiteHealthResult> {
-  const connectorKey = process.env.DG_WP_CONNECTOR_API_KEY?.trim();
-  const fallbackKey = process.env.DG_API_KEY?.trim();
-  const apiKey = connectorKey || fallbackKey;
+export async function fetchWpSiteHealth(
+  siteId?: string | null,
+): Promise<FetchWpSiteHealthResult> {
+  const site = getWpHealthSite(siteId);
+  const apiKey = wpConnectorApiKey(site);
 
   if (!apiKey) {
     return {
@@ -302,7 +365,7 @@ export async function fetchWpSiteHealth(): Promise<FetchWpSiteHealthResult> {
   };
 
   try {
-    const url = `${getWpConnectorBase()}/site/health`;
+    const url = `${site.baseUrl}/site/health`;
     const res = await fetch(url, { headers, cache: "no-store" });
     const data = (await res.json().catch(() => null)) as WpSiteHealthPayload & {
       message?: string;
@@ -314,8 +377,8 @@ export async function fetchWpSiteHealth(): Promise<FetchWpSiteHealthResult> {
         ok: false,
         code: "auth_failed",
         status: res.status,
-        message: connectorKey
-          ? "Roe API rejected DG_WP_CONNECTOR_API_KEY — copy the Dev API key from roerealty.com.au → DG Platform → API Settings."
+        message: site.apiKey
+          ? `${site.label} rejected its API key — check DG_WP_HEALTH_SITES config.`
           : "Roe API rejected the API key. Use DG_WP_CONNECTOR_API_KEY from roerealty.com.au (not the digitalgate.com.au key).",
       };
     }
@@ -337,7 +400,7 @@ export async function fetchWpSiteHealth(): Promise<FetchWpSiteHealthResult> {
         status: res.status,
         message:
           data?.message ??
-          `WordPress returned HTTP ${res.status} from ${getWpConnectorBase()}/site/health`,
+          `WordPress returned HTTP ${res.status} from ${site.baseUrl}/site/health`,
       };
     }
 
@@ -350,12 +413,18 @@ export async function fetchWpSiteHealth(): Promise<FetchWpSiteHealthResult> {
       };
     }
 
-    return { ok: true, payload: data };
+    return {
+      ok: true,
+      payload: {
+        ...data,
+        site: data.site ?? site.label,
+      },
+    };
   } catch {
     return {
       ok: false,
       code: "network_error",
-      message: `Could not reach ${getWpConnectorBase()} — check DG_WP_CONNECTOR_BASE_URL.`,
+      message: `Could not reach ${site.baseUrl} — check site URL in DG_WP_HEALTH_SITES.`,
     };
   }
 }

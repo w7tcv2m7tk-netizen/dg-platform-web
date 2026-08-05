@@ -69,7 +69,7 @@ export function HealthCentreDashboard({
             <div>
               <h2 className="font-semibold text-white">Health checks</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Platform checks from Roe Site Tools · {generated}
+                Platform checks from connected WordPress site · {generated}
               </p>
             </div>
             <p className={`text-3xl font-bold ${scoreColor(snapshot.score)}`}>

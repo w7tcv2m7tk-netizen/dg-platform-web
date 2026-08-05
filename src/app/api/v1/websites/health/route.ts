@@ -1,15 +1,18 @@
-import { fetchWpSiteHealth, getWpConnectorBase } from "@/lib/dg-api";
+import { fetchWpSiteHealth, getWpHealthSite } from "@/lib/dg-api";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
 import { normalizeSiteHealthSnapshot } from "@dg/platform-core";
 
-/** Live site health from Roe WordPress connector */
-export async function GET() {
+/** Live site health from WordPress connector(s) */
+export async function GET(req: Request) {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
 
-  const result = await fetchWpSiteHealth();
+  const { searchParams } = new URL(req.url);
+  const siteId = searchParams.get("site");
+  const site = getWpHealthSite(siteId);
+  const result = await fetchWpSiteHealth(site.id);
 
   if (!result.ok) {
     return NextResponse.json(
@@ -19,7 +22,8 @@ export async function GET() {
           message: result.message,
         },
         meta: {
-          connectorBaseUrl: getWpConnectorBase(),
+          siteId: site.id,
+          connectorBaseUrl: site.baseUrl,
           organisationId: session.organisationId,
         },
       },
@@ -30,7 +34,9 @@ export async function GET() {
   return NextResponse.json({
     data: normalizeSiteHealthSnapshot(result.payload),
     meta: {
-      connectorBaseUrl: getWpConnectorBase(),
+      siteId: site.id,
+      siteLabel: site.label,
+      connectorBaseUrl: site.baseUrl,
       organisationId: session.organisationId,
     },
   });

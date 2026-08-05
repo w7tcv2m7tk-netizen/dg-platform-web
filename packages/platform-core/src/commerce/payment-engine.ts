@@ -213,6 +213,20 @@ export async function recordPaymentFromWebhook(input: {
     occurredAt: payment.paidAt ?? new Date(),
   });
 
+  const { runAutomationForEvent } = await import("../automation");
+  await runAutomationForEvent({
+    type: "commerce.payment.completed",
+    organisationId: input.organisationId,
+    entityType: "CommercePayment",
+    entityId: payment.id,
+    payload: {
+      paymentRequestId: input.paymentRequestId,
+      amountCents: input.amountCents,
+      sourceApp: paymentRequest.sourceApp,
+    },
+    occurredAt: payment.paidAt ?? new Date(),
+  });
+
   return payment;
 }
 

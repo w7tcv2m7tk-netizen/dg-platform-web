@@ -10,6 +10,7 @@ export const WP_VENDOR_SYNC_INTERVAL_MS = 4 * 60 * 60 * 1000; // 4 hours
 
 export interface WordPressSyncResult {
   created: number;
+  updated: number;
   skipped: number;
   errors: string[];
   ranAt: string;
