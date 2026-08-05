@@ -17,13 +17,7 @@ zip -r "$OUT" . \
   -x "*.DS_Store" \
   -x "*/.git/*" \
   -x "*/node_modules/*" \
-  -x "*/marketing/pages/*.py" \
   > /dev/null
 
-echo "Built $OUT ($(du -h "$OUT" | cut -f1))"
-echo ""
-echo "Deploy:"
-echo "  1. WordPress → Plugins → Add New → Upload Plugin"
-echo "  2. Choose $OUT"
-echo "  3. Activate DG Platform on roerealty.com.au"
-echo "  4. Verify GET {site}/wp-json/digitalgate/v1/site/health"
+echo "Built $OUT"
+echo "Deploy: WordPress → Plugins → Upload → Activate on roerealty.com.au"
