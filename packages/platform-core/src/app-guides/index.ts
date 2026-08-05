@@ -284,9 +284,9 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
   },
   {
     appId: "automation",
-    headline: "Automation rules & triggers",
+    headline: "Automation — standalone Growth App",
     summary:
-      "The automation engine listens to App manifest triggers and runs in-process rules — payment completed, lead created, and more.",
+      "Automation is its own App (builder UI). The engine lives in Platform Core and listens to triggers declared by every other App manifest.",
     estimatedMinutes: 10,
     steps: [
       {
@@ -458,6 +458,100 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
         description: "Commercial properties, leases, and tenant management routes are scaffolded.",
         href: "/apps/commercial",
         hrefLabel: "Preview Commercial App",
+      },
+    ],
+  },
+  {
+    appId: "automotive",
+    headline: "Dealership pipeline on Gen 2",
+    summary:
+      "Automotive covers inventory, buyer leads, and test drive bookings — ported from the WordPress dealer module.",
+    estimatedMinutes: 5,
+    steps: [
+      {
+        id: "auto-1",
+        title: "Preview App routes",
+        description:
+          "Inventory, leads, and test drives are scaffolded. WordPress Gen 1 dealer dashboard remains live until migration.",
+        href: "/apps/automotive",
+        hrefLabel: "Preview Automotive App",
+      },
+    ],
+  },
+  {
+    appId: "analytics",
+    headline: "Analytics Pro on Gen 2",
+    summary:
+      "Cross-channel KPIs and trend reports — separate from per-site analytics in Websites Health Centre.",
+    estimatedMinutes: 5,
+    prerequisites: ["Websites or Google connectors (when live)"],
+    steps: [
+      {
+        id: "an-1",
+        title: "Understand the split",
+        description:
+          "Websites App = site health and PageSpeed. Analytics App = business KPIs across Google, Meta, CRM, and Commerce.",
+      },
+      {
+        id: "an-2",
+        title: "Preview routes",
+        description: "Dashboard, reports, and connector setup are on the Gen 2 roadmap.",
+        href: "/apps/analytics",
+        hrefLabel: "Preview Analytics App",
+      },
+    ],
+  },
+  {
+    appId: "social",
+    headline: "Social Management (Social Pro)",
+    summary:
+      "Compose, schedule, and publish to five platforms from one place — matches Social Pro on WordPress Gen 1.",
+    estimatedMinutes: 10,
+    steps: [
+      {
+        id: "soc-1",
+        title: "Connect accounts (Gen 1 today)",
+        description:
+          "Social Pro OAuth for LinkedIn, Facebook, Instagram, X, and Pinterest runs on digitalgate.com.au until Gen 2 connectors ship.",
+      },
+      {
+        id: "soc-2",
+        title: "Preview Gen 2 routes",
+        description: "Compose, calendar, and connected accounts placeholders show the target workflow.",
+        href: "/apps/social/compose",
+        hrefLabel: "Preview compose",
+      },
+    ],
+  },
+  {
+    appId: "marketing",
+    headline: "Marketing campaigns & audits",
+    summary:
+      "Campaign management plus DigitalGate agency audit workflow — the internal marketing CRM on Gen 1.",
+    estimatedMinutes: 5,
+    steps: [
+      {
+        id: "mkt-1",
+        title: "Preview routes",
+        description: "Campaigns, channels, and agency audits are scaffolded for the product map.",
+        href: "/apps/marketing",
+        hrefLabel: "Preview Marketing App",
+      },
+    ],
+  },
+  {
+    appId: "reviews",
+    headline: "Reviews & reputation",
+    summary:
+      "Review inbox, automated requests, and Reputation Score™ — feeds the Digital Twin and Command Centre.",
+    estimatedMinutes: 5,
+    steps: [
+      {
+        id: "rev-1",
+        title: "Preview routes",
+        description: "Inbox, review requests, and reputation score routes are wired as placeholders.",
+        href: "/apps/reviews",
+        hrefLabel: "Preview Reviews App",
       },
     ],
   },
