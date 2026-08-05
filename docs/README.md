@@ -1,0 +1,91 @@
+# DigitalGate — Architecture Documentation Index
+
+**Intellectual property for the DigitalGate Platform (Generation 2)**
+
+These documents capture **why** the platform is built the way it is. They are as valuable as source code for onboarding, investors, partners, and future team members.
+
+**Owner:** Founder & Platform Architect  
+**Last updated:** August 2026
+
+---
+
+## Strategy & vision
+
+| Document | Purpose |
+|----------|---------|
+| [PRODUCT-VISION.md](./PRODUCT-VISION.md) | Gateway brand, mission, five pillars, positioning |
+| [ROADMAP.md](./ROADMAP.md) | Quarterly milestones and release plan |
+
+---
+
+## Architecture
+
+| Document | Purpose |
+|----------|---------|
+| [PLATFORM-PRINCIPLES.md](./PLATFORM-PRINCIPLES.md) | Engineering constitution — non-negotiable defaults |
+| [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md) | Core, Apps, Connectors, Twin, Graph, BI |
+| [adr/](./adr/) | Architecture Decision Records — why we chose X over Y |
+
+---
+
+## Domain & data
+
+| Document | Purpose |
+|----------|---------|
+| [catalogues/OBJECT-MODEL.md](./catalogues/OBJECT-MODEL.md) | Universal Objects — identity, commercial, operational, assets |
+| [catalogues/EVENT-CATALOGUE.md](./catalogues/EVENT-CATALOGUE.md) | Domain events — names, payloads, producers, consumers |
+| [domain/DOMAIN-MODEL.md](./domain/DOMAIN-MODEL.md) | Business domain language — entities, relationships, bounded contexts |
+
+---
+
+## Standards
+
+| Document | Purpose |
+|----------|---------|
+| [standards/API-STANDARDS.md](./standards/API-STANDARDS.md) | Platform API conventions, versioning, auth |
+| [standards/SECURITY-STANDARDS.md](./standards/SECURITY-STANDARDS.md) | Tenant isolation, audit, secrets, least privilege |
+| [standards/CODING-STANDARDS.md](./standards/CODING-STANDARDS.md) | Repo layout, naming, PR expectations |
+
+---
+
+## Services & integration
+
+| Document | Purpose |
+|----------|---------|
+| [ai/AI-ARCHITECTURE.md](./ai/AI-ARCHITECTURE.md) | AI Service, Business Memory, tool registry |
+| [connectors/CONNECTOR-SPECIFICATION.md](./connectors/CONNECTOR-SPECIFICATION.md) | Connector contract — sync, auth, mapping |
+| [design/DESIGN-SYSTEM.md](./design/DESIGN-SYSTEM.md) | UI package (`@dg/ui`), tokens, components |
+
+---
+
+## Role separation
+
+| Role | Owns |
+|------|------|
+| **Founder & Platform Architect** (Ben) | What & why — vision, domain model, principles, roadmap |
+| **Developers / AI agents** | How — implementation, schema detail, library choices |
+
+Example: Architect decides **Event Bus exists**; developer chooses Inngest vs BullMQ.
+
+---
+
+## Document lifecycle
+
+1. Propose change in PR or ADR draft  
+2. Review against [PLATFORM-PRINCIPLES.md](./PLATFORM-PRINCIPLES.md)  
+3. Update affected catalogues and standards  
+4. Merge — docs and code ship together  
+
+---
+
+## Code cross-reference
+
+| Doc area | Code location |
+|----------|---------------|
+| App manifests | `packages/platform-core/src/apps/` |
+| Feature Registry | `packages/platform-core/src/features/` |
+| Events | `packages/platform-core/src/events/` |
+| Universal Objects | `packages/platform-core/src/objects/` + `packages/database/prisma/` |
+| Digital Twin | `packages/platform-core/src/twin/` |
+| Knowledge Graph | `packages/platform-core/src/graph/` |
+| Design System | `packages/ui/` |
