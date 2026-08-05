@@ -3,6 +3,10 @@ import type { Property, Prisma } from "@dg/database";
 import { writeAuditLog } from "../audit";
 import { platformEvents } from "../events";
 import { updateLeadStage } from "../leads";
+import { parsePropertyAddress } from "./address";
+
+export { parsePropertyAddress, needsAddressRefinement } from "./address";
+export type { ParsedPropertyAddress } from "./address";
 
 export const PROPERTY_STATUSES = [
   "prospect",
@@ -86,28 +90,6 @@ export function formatPropertyAddress(property: {
 }) {
   const line1 = [property.addressLine1, property.addressLine2].filter(Boolean).join(", ");
   return `${line1}, ${property.suburb} ${property.state} ${property.postcode}`;
-}
-
-/** Loose AU address parse — falls back to line1-only when pattern doesn't match */
-export function parsePropertyAddress(raw: string) {
-  const trimmed = raw.trim();
-  const match = trimmed.match(
-    /^(.+?),\s*(.+?)\s+(QLD|NSW|VIC|SA|WA|TAS|NT|ACT)\s+(\d{4})$/i,
-  );
-  if (match) {
-    return {
-      addressLine1: match[1].trim(),
-      suburb: match[2].trim(),
-      state: match[3].toUpperCase(),
-      postcode: match[4],
-    };
-  }
-  return {
-    addressLine1: trimmed,
-    suburb: "Unknown",
-    state: "QLD",
-    postcode: "0000",
-  };
 }
 
 export async function listProperties(options: ListPropertiesOptions) {
@@ -236,13 +218,28 @@ export async function createPropertyFromLead(input: CreatePropertyFromLeadInput)
     organisationId: input.organisationId,
     actorId: input.actorId,
     addressLine1: parsed.addressLine1,
-    suburb: input.suburb ?? parsed.suburb,
-    state: input.state ?? parsed.state,
-    postcode: input.postcode ?? parsed.postcode,
+    suburb:
+      input.suburb ??
+      (metadata.suburb as string | undefined) ??
+      (metadata.property_suburb as string | undefined) ??
+      parsed.suburb,
+    state:
+      input.state ??
+      (metadata.state as string | undefined) ??
+      (metadata.property_state as string | undefined) ??
+      parsed.state,
+    postcode:
+      input.postcode ??
+      (metadata.postcode as string | undefined) ??
+      (metadata.property_postcode as string | undefined) ??
+      parsed.postcode,
     status: "appraisal",
     ownerContactId: lead.contactId ?? undefined,
     leadId: lead.id,
-    metadata: { source_lead_id: lead.id },
+    metadata: {
+      source_lead_id: lead.id,
+      address_confidence: parsed.confidence,
+    },
   });
 
   const leadMetadata = (lead.metadata as Record<string, unknown> | null) ?? {};
@@ -271,6 +268,69 @@ export async function createPropertyFromLead(input: CreatePropertyFromLeadInput)
   });
 
   return property;
+}
+
+/** Re-parse property location from linked lead — fixes street-only Roe imports */
+export async function refreshPropertyAddressFromLead(
+  organisationId: string,
+  propertyId: string,
+  actorId?: string,
+) {
+  const { prisma } = await import("@dg/database");
+
+  const property = await prisma.property.findFirst({
+    where: { id: propertyId, organisationId, deletedAt: null },
+  });
+  if (!property?.leadId) return null;
+
+  const lead = await prisma.lead.findFirst({
+    where: { id: property.leadId, organisationId },
+  });
+  if (!lead) return null;
+
+  const metadata = (lead.metadata as Record<string, unknown> | null) ?? {};
+  const rawAddress =
+    (metadata.property_address as string | undefined) ?? lead.title ?? property.addressLine1;
+  const parsed = parsePropertyAddress(rawAddress);
+
+  const updated = await prisma.property.update({
+    where: { id: propertyId },
+    data: {
+      addressLine1: parsed.addressLine1,
+      suburb:
+        (metadata.suburb as string | undefined) ??
+        (metadata.property_suburb as string | undefined) ??
+        parsed.suburb,
+      state:
+        (metadata.state as string | undefined) ??
+        (metadata.property_state as string | undefined) ??
+        parsed.state,
+      postcode:
+        (metadata.postcode as string | undefined) ??
+        (metadata.property_postcode as string | undefined) ??
+        parsed.postcode,
+      metadata: {
+        ...((property.metadata as Record<string, unknown> | null) ?? {}),
+        address_confidence: parsed.confidence,
+        address_refreshed_at: new Date().toISOString(),
+      } as Prisma.InputJsonValue,
+    },
+  });
+
+  await prisma.activity.create({
+    data: {
+      organisationId,
+      entityType: "Property",
+      entityId: propertyId,
+      activityType: "address_updated",
+      title: "Property address refined",
+      body: formatPropertyAddress(updated),
+      sourceApp: "real-estate",
+      createdBy: actorId,
+    },
+  });
+
+  return serializeProperty(updated);
 }
 
 export async function updatePropertyStatus(
