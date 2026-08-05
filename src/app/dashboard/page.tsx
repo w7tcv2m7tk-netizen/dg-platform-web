@@ -1,15 +1,25 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
-import { getOnboardingUrl } from "@/lib/dg-api";
+import { SetupChecklist } from "@/components/SetupChecklist";
+import { SupportActions } from "@/components/SupportActions";
+import { fetchPortalMe, getOnboardingUrl } from "@/lib/dg-api";
 
 export default async function DashboardPage() {
   const user = await currentUser();
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
+  const clerkUserId = user?.id;
+  const portal = email ? await fetchPortalMe(email, clerkUserId) : null;
   const onboardingUrl = getOnboardingUrl();
+
   const displayName =
+    portal?.name ||
     user?.firstName ||
     user?.fullName ||
-    user?.primaryEmailAddress?.emailAddress?.split("@")[0] ||
+    email.split("@")[0] ||
     "there";
+
+  const orgLine = portal?.org_name ? ` · ${portal.org_name}` : "";
+  const planLine = portal?.purchase_label ? ` · ${portal.purchase_label}` : "";
 
   return (
     <>
@@ -17,10 +27,15 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-bold text-white">Overview</h1>
         <p className="text-sm text-slate-400">
           Welcome back, {displayName}
-          {user?.primaryEmailAddress?.emailAddress
-            ? ` · ${user.primaryEmailAddress.emailAddress}`
-            : ""}
+          {email ? ` · ${email}` : ""}
+          {orgLine}
+          {planLine}
         </p>
+        {portal?.linked ? (
+          <p className="mt-1 text-xs text-emerald-400/90">
+            Linked to CRM contact #{portal.contact_id}
+          </p>
+        ) : null}
       </header>
       <main className="flex-1 p-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -39,7 +54,9 @@ export default async function DashboardPage() {
           <div className="dg-card">
             <h2 className="font-semibold text-white">Plan & apps</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Review or change your platform tier and add-ons.
+              {portal?.purchase_label
+                ? `Current plan: ${portal.purchase_label}`
+                : "Review or change your platform tier and add-ons."}
             </p>
             <Link
               href="/signup"
@@ -53,32 +70,17 @@ export default async function DashboardPage() {
             <p className="mt-1 text-sm text-slate-400">
               Questions during setup? Reach the DigitalGate team.
             </p>
-            <a
-              href="mailto:support@digitalgate.com.au"
-              className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
-            >
-              Email support →
-            </a>
+            <SupportActions />
           </div>
         </div>
 
         <div className="dg-card mt-8">
           <h2 className="font-semibold text-white">Setup checklist</h2>
-          <ul className="mt-3 space-y-2 text-sm text-slate-300">
-            <li className="flex items-center gap-2">
-              <span className="text-emerald-400">✓</span> Account created
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-slate-500">○</span> Complete onboarding form
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-slate-500">○</span> Platform provisioned on
-              your site
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-slate-500">○</span> Industry app configured
-            </li>
-          </ul>
+          {portal ? (
+            <SetupChecklist setup={portal.setup} linked={portal.linked} />
+          ) : (
+            <p className="mt-3 text-sm text-slate-400">Sign in to view progress.</p>
+          )}
           <a
             href={onboardingUrl}
             target="_blank"

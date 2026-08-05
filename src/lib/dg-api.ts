@@ -11,6 +11,81 @@ export function getOnboardingUrl(): string {
   );
 }
 
+export type PortalSetup = {
+  account_created: boolean;
+  payment_done: boolean;
+  onboarding_done: boolean;
+  platform_live: boolean;
+};
+
+export type PortalProfile = {
+  linked: boolean;
+  email: string;
+  name?: string;
+  contact_id?: number;
+  organisation_id?: number;
+  org_name?: string;
+  purchase_label?: string;
+  clerk_user_id?: string;
+  setup: PortalSetup;
+};
+
+const DEFAULT_UNLINKED_PROFILE = (email: string): PortalProfile => ({
+  linked: false,
+  email,
+  setup: {
+    account_created: true,
+    payment_done: false,
+    onboarding_done: false,
+    platform_live: false,
+  },
+});
+
+function apiHeaders(clerkUserId?: string, email?: string): HeadersInit | null {
+  const apiKey = process.env.DG_API_KEY;
+  if (!apiKey) {
+    return null;
+  }
+
+  const headers: HeadersInit = {
+    Accept: "application/json",
+    "X-API-Key": apiKey,
+  };
+  if (email) {
+    headers["X-Portal-Email"] = email;
+  }
+  if (clerkUserId) {
+    headers["X-Clerk-User-Id"] = clerkUserId;
+  }
+  return headers;
+}
+
+export async function fetchPortalMe(
+  email: string,
+  clerkUserId?: string,
+): Promise<PortalProfile> {
+  const fallback = DEFAULT_UNLINKED_PROFILE(email);
+  const headers = apiHeaders(clerkUserId, email);
+  if (!headers) {
+    return fallback;
+  }
+
+  try {
+    const url = `${getApiBase()}/portal/me?email=${encodeURIComponent(email)}`;
+    const res = await fetch(url, {
+      headers,
+      cache: "no-store",
+    });
+    const data = (await res.json().catch(() => null)) as PortalProfile | null;
+    if (!res.ok || !data || typeof data.linked !== "boolean") {
+      return fallback;
+    }
+    return data;
+  } catch {
+    return fallback;
+  }
+}
+
 export type OnboardingPayload = {
   business_name: string;
   contact_name: string;
