@@ -44,7 +44,10 @@ export default async function VendorLeadsPage() {
 
   const autoSync = await autoSyncWordPressVendorLeadsIfNeeded(session);
   const lastSync = await getLastWordPressSync(session.organisationId);
-  const { items } = await listLeads({ organisationId: session.organisationId });
+  const { items } = await listLeads({
+    organisationId: session.organisationId,
+    leadType: "vendor",
+  });
 
   let autoSyncNote: string | undefined;
   if (autoSync.ran && autoSync.result) {

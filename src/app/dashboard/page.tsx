@@ -126,15 +126,15 @@ export default async function DashboardPage() {
               </Link>
             </div>
           <div className="dg-card">
-            <h2 className="font-semibold text-white">Apps</h2>
+            <h2 className="font-semibold text-white">Apps & plan</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Core, business, and growth apps for your organisation.
+              Browse apps, setup guides, and configure your platform tier.
             </p>
             <Link
               href="/dashboard/apps"
               className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
             >
-              Browse apps →
+              Open apps & plan →
             </Link>
           </div>
           <div className="dg-card">

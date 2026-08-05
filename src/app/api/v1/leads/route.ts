@@ -7,7 +7,7 @@ import {
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
-import { syncWordPressVendorLeads } from "@/lib/wordpress-sync";
+import { syncWordPressBuyerLeads, syncWordPressVendorLeads } from "@/lib/wordpress-sync";
 
 export async function GET(req: Request) {
   const session = await requirePlatformSession();
@@ -15,10 +15,12 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status") ?? undefined;
+  const leadType = searchParams.get("leadType") as "vendor" | "buyer" | null;
 
   const result = await listLeads({
     organisationId: session.organisationId,
     status,
+    leadType: leadType ?? undefined,
   });
 
   return NextResponse.json({ data: result.items, meta: result.meta });
@@ -29,22 +31,33 @@ export async function POST(req: Request) {
   if (isNextResponse(session)) return session;
 
   const body = await req.json().catch(() => ({}));
-  if (body.action !== "sync_wordpress") {
-    return NextResponse.json(
-      { error: { code: "unknown_action", message: "Unsupported action" } },
-      { status: 400 },
-    );
+
+  if (body.action === "sync_wordpress") {
+    const outcome = await syncWordPressVendorLeads(session);
+    if (!outcome.ok) {
+      return NextResponse.json(
+        { error: { code: "sync_failed", message: outcome.message } },
+        { status: 422 },
+      );
+    }
+    return NextResponse.json({ data: outcome.result });
   }
 
-  const outcome = await syncWordPressVendorLeads(session);
-  if (!outcome.ok) {
-    return NextResponse.json(
-      { error: { code: "sync_failed", message: outcome.message } },
-      { status: 422 },
-    );
+  if (body.action === "sync_wordpress_buyers") {
+    const outcome = await syncWordPressBuyerLeads(session);
+    if (!outcome.ok) {
+      return NextResponse.json(
+        { error: { code: "sync_failed", message: outcome.message } },
+        { status: 422 },
+      );
+    }
+    return NextResponse.json({ data: outcome.result });
   }
 
-  return NextResponse.json({ data: outcome.result });
+  return NextResponse.json(
+    { error: { code: "unknown_action", message: "Unsupported action" } },
+    { status: 400 },
+  );
 }
 
 export async function PATCH(req: Request) {

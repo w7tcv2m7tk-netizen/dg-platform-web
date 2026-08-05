@@ -28,7 +28,7 @@ const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: crmApp, enabled: true },
   { manifest: commerceApp, enabled: true },
   { manifest: realEstateApp, enabled: true },
-  { manifest: accommodationApp, enabled: false },
+  { manifest: accommodationApp, enabled: true },
   { manifest: financeApp, enabled: false },
   { manifest: servicesApp, enabled: false },
   { manifest: creatorApp, enabled: false },
@@ -97,19 +97,6 @@ export class AppRegistry {
 
 /** Singleton registry for the running platform */
 export const platformApps = new AppRegistry();
-
-/** Platform shell links + enabled app navigation */
-export function getPlatformNavigation(): AppNavItem[] {
-  const shell: AppNavItem[] = [
-    { href: "/dashboard", label: "Overview", icon: "◉" },
-    { href: "/dashboard/apps", label: "Apps", icon: "▦" },
-    { href: "/onboarding", label: "Onboarding", icon: "◎" },
-    { href: "/signup", label: "Plan & apps", icon: "▣" },
-  ];
-
-  const appNav = platformApps.navigation();
-  return [...shell, ...appNav];
-}
 
 export function getAppsByTier() {
   return {

@@ -1,68 +1,38 @@
 import type { Prisma } from "@dg/database";
 
-import { enrichLeadAddressMetadata, resolveAddress } from "../../addresses";
 import { createContact } from "../../contacts";
 import { createLead } from "../../leads";
 
-export interface WpVendorLead {
+export interface WpBuyerLead {
   id: number;
   name: string;
   email?: string;
   phone?: string;
   property_address?: string;
-  source?: string;
+  property_url?: string;
+  requirements?: string;
   stage?: string;
   status?: string;
   created_at?: string;
 }
 
-export interface SyncVendorLeadsInput {
+export interface SyncBuyerLeadsInput {
   organisationId: string;
   actorId?: string;
-  leads: WpVendorLead[];
+  leads: WpBuyerLead[];
 }
 
-export interface SyncVendorLeadsResult {
+export interface SyncBuyerLeadsResult {
   created: number;
   updated: number;
   skipped: number;
   errors: string[];
 }
 
-function buildLeadMetadata(wpLead: WpVendorLead, rawAddress: string) {
-  let leadMetadata: Record<string, unknown> = {
-    lead_type: "vendor",
-    stage: wpLead.stage ?? "vendor_lead",
-    property_address: rawAddress || undefined,
-    wp_name: wpLead.name,
-  };
-
-  return { leadMetadata, rawAddress };
-}
-
-async function resolveLeadMetadata(
-  wpLead: WpVendorLead,
-): Promise<{ leadMetadata: Record<string, unknown>; title: string }> {
-  const rawAddress = wpLead.property_address?.trim() ?? "";
-  const { leadMetadata } = buildLeadMetadata(wpLead, rawAddress);
-
-  let metadata = leadMetadata;
-  if (rawAddress) {
-    const resolved = await resolveAddress(rawAddress, { geocode: true });
-    metadata = enrichLeadAddressMetadata(metadata, resolved);
-  }
-
-  const title =
-    (metadata.property_formatted as string | undefined) ??
-    (rawAddress || wpLead.name?.trim() || `Vendor lead #${wpLead.id}`);
-
-  return { leadMetadata: metadata, title };
-}
-
 async function resolveContactId(
   organisationId: string,
   actorId: string | undefined,
-  wpLead: WpVendorLead,
+  wpLead: WpBuyerLead,
 ): Promise<string | undefined> {
   const email = wpLead.email?.trim().toLowerCase();
   if (!email) return undefined;
@@ -81,17 +51,17 @@ async function resolveContactId(
     lastName: parts.slice(1).join(" ") || undefined,
     email,
     phone: wpLead.phone,
-    source: wpLead.source ?? "wordpress",
+    source: "buyer_enquiry",
   });
   return created.id;
 }
 
-/** Idempotent sync — creates new leads or updates existing WP imports. */
-export async function syncVendorLeadsFromWordPress(
-  input: SyncVendorLeadsInput,
-): Promise<SyncVendorLeadsResult> {
+/** Idempotent sync — buyer enquiries from WordPress RE module. */
+export async function syncBuyerLeadsFromWordPress(
+  input: SyncBuyerLeadsInput,
+): Promise<SyncBuyerLeadsResult> {
   const { prisma } = await import("@dg/database");
-  const result: SyncVendorLeadsResult = {
+  const result: SyncBuyerLeadsResult = {
     created: 0,
     updated: 0,
     skipped: 0,
@@ -105,7 +75,7 @@ export async function syncVendorLeadsFromWordPress(
         where: {
           organisationId: input.organisationId,
           externalRefs: {
-            path: ["wp_vendor_lead_id"],
+            path: ["wp_buyer_lead_id"],
             equals: wpId,
           },
         },
@@ -116,17 +86,31 @@ export async function syncVendorLeadsFromWordPress(
         input.actorId,
         wpLead,
       );
-      const { leadMetadata, title } = await resolveLeadMetadata(wpLead);
+
+      const rawAddress = wpLead.property_address?.trim() ?? "";
+      const title =
+        rawAddress ||
+        wpLead.requirements?.trim().slice(0, 80) ||
+        wpLead.name?.trim() ||
+        `Buyer lead #${wpLead.id}`;
+
+      const leadMetadata: Record<string, unknown> = {
+        lead_type: "buyer",
+        stage: wpLead.stage ?? "inquiry",
+        property_address: rawAddress || undefined,
+        property_url: wpLead.property_url || undefined,
+        wp_name: wpLead.name,
+      };
 
       if (existing) {
         const prevMeta =
           (existing.metadata as Record<string, unknown> | null) ?? {};
-        const stageChanged = prevMeta.stage !== leadMetadata.stage;
-        const addressChanged =
-          prevMeta.property_address !== leadMetadata.property_address;
-        const titleChanged = existing.title !== title;
+        const changed =
+          prevMeta.stage !== leadMetadata.stage ||
+          existing.title !== title ||
+          existing.description !== (wpLead.requirements ?? existing.description);
 
-        if (!stageChanged && !addressChanged && !titleChanged && !contactId) {
+        if (!changed && !contactId) {
           result.skipped += 1;
           continue;
         }
@@ -134,25 +118,19 @@ export async function syncVendorLeadsFromWordPress(
         await prisma.lead.update({
           where: { id: existing.id },
           data: {
-            title: titleChanged ? title : existing.title,
-            description: leadMetadata.property_address
-              ? String(leadMetadata.property_address)
-              : existing.description,
+            title,
+            description: wpLead.requirements ?? existing.description,
             contactId: contactId ?? existing.contactId,
             status: wpLead.status ?? existing.status,
-            metadata: {
-              ...prevMeta,
-              ...leadMetadata,
-            } as Prisma.InputJsonValue,
+            metadata: { ...prevMeta, ...leadMetadata } as Prisma.InputJsonValue,
             externalRefs: {
               ...((existing.externalRefs as Record<string, unknown> | null) ?? {}),
-              wp_vendor_lead_id: wpId,
+              wp_buyer_lead_id: wpId,
               wp_created_at: wpLead.created_at,
               wp_synced_at: new Date().toISOString(),
             } as Prisma.InputJsonValue,
           },
         });
-
         result.updated += 1;
         continue;
       }
@@ -160,24 +138,21 @@ export async function syncVendorLeadsFromWordPress(
       await createLead({
         organisationId: input.organisationId,
         actorId: input.actorId,
-        source: wpLead.source ?? "wordpress",
+        source: "buyer_enquiry",
         title,
-        description: leadMetadata.property_address
-          ? String(leadMetadata.property_address)
-          : undefined,
+        description: wpLead.requirements ?? undefined,
         contactId,
         status: wpLead.status ?? "new",
         metadata: leadMetadata,
         externalRefs: {
-          wp_vendor_lead_id: wpId,
+          wp_buyer_lead_id: wpId,
           wp_created_at: wpLead.created_at,
         },
       });
-
       result.created += 1;
     } catch (err) {
       result.errors.push(
-        `Lead ${wpLead.id}: ${err instanceof Error ? err.message : "sync failed"}`,
+        `Buyer ${wpLead.id}: ${err instanceof Error ? err.message : "sync failed"}`,
       );
     }
   }

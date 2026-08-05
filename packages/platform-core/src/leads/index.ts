@@ -12,7 +12,17 @@ export const VENDOR_STAGES = [
   "past_client",
 ] as const;
 
+export const BUYER_STAGES = [
+  "inquiry",
+  "qualified",
+  "viewing",
+  "offer",
+  "purchased",
+] as const;
+
 export type VendorStage = (typeof VENDOR_STAGES)[number];
+export type BuyerStage = (typeof BUYER_STAGES)[number];
+export type LeadType = "vendor" | "buyer";
 
 export interface CreateLeadInput {
   organisationId: string;
@@ -30,6 +40,8 @@ export interface ListLeadsOptions {
   organisationId: string;
   status?: string;
   source?: string;
+  /** Filter by RE pipeline type — vendor vs buyer imports */
+  leadType?: LeadType;
   limit?: number;
   offset?: number;
 }
@@ -63,6 +75,12 @@ export async function listLeads(options: ListLeadsOptions) {
   };
   if (options.status) where.status = options.status;
   if (options.source) where.source = options.source;
+
+  if (options.leadType === "buyer") {
+    where.source = "buyer_enquiry";
+  } else if (options.leadType === "vendor") {
+    where.NOT = { source: "buyer_enquiry" };
+  }
 
   const [items, total] = await Promise.all([
     prisma.lead.findMany({

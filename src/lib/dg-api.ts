@@ -307,6 +307,237 @@ export async function fetchWpVendorLeads(
   }
 }
 
+type WpFetchErrorCode =
+  | "missing_api_key"
+  | "auth_failed"
+  | "not_found"
+  | "upstream_error"
+  | "network_error";
+
+async function wpConnectorFetch<T>(
+  path: string,
+  options?: { baseUrl?: string; apiKey?: string; allowEmpty?: boolean },
+): Promise<
+  | { ok: true; data: T }
+  | { ok: false; code: WpFetchErrorCode; message: string; status?: number }
+> {
+  const baseUrl = (options?.baseUrl ?? getWpConnectorBase()).replace(/\/$/, "");
+  const apiKey =
+    options?.apiKey?.trim() ||
+    process.env.DG_WP_CONNECTOR_API_KEY?.trim() ||
+    process.env.DG_API_KEY?.trim();
+
+  if (!apiKey) {
+    return {
+      ok: false,
+      code: "missing_api_key",
+      message:
+        "Set DG_WP_CONNECTOR_API_KEY (WordPress → DG Platform → API Settings) on Vercel or .env.local.",
+    };
+  }
+
+  try {
+    const res = await fetch(`${baseUrl}${path}`, {
+      headers: { Accept: "application/json", "X-API-Key": apiKey },
+      cache: "no-store",
+    });
+    const data = (await res.json().catch(() => null)) as T & {
+      message?: string;
+    } | null;
+
+    if (res.status === 401 || res.status === 403) {
+      return {
+        ok: false,
+        code: "auth_failed",
+        status: res.status,
+        message: "WordPress rejected the API key — check DG_WP_CONNECTOR_API_KEY.",
+      };
+    }
+
+    if (res.status === 404) {
+      return {
+        ok: false,
+        code: "not_found",
+        status: res.status,
+        message: `Endpoint not found: ${baseUrl}${path}`,
+      };
+    }
+
+    if (!res.ok) {
+      return {
+        ok: false,
+        code: "upstream_error",
+        status: res.status,
+        message: data?.message ?? `WordPress returned HTTP ${res.status}`,
+      };
+    }
+
+    return { ok: true, data: data as T };
+  } catch {
+    return {
+      ok: false,
+      code: "network_error",
+      message: `Could not reach ${baseUrl}${path}`,
+    };
+  }
+}
+
+export type WpBuyerLeadRow = {
+  id: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  property_address?: string;
+  property_url?: string;
+  requirements?: string;
+  stage?: string;
+  status?: string;
+  created_at?: string;
+};
+
+export async function fetchWpBuyerLeads(limit = 100) {
+  const result = await wpConnectorFetch<{ leads?: WpBuyerLeadRow[] }>(
+    `/leads/buyer?limit=${limit}`,
+  );
+  if (!result.ok) return result;
+  return { ok: true as const, leads: result.data.leads ?? [] };
+}
+
+export type WpReBookingRow = {
+  id: number;
+  contact?: string;
+  email?: string;
+  phone?: string;
+  service?: string;
+  type?: string;
+  date?: string;
+  time?: string;
+  status?: string;
+  created_at?: string;
+};
+
+export async function fetchWpRecentBookings(limit = 50) {
+  const result = await wpConnectorFetch<{ bookings?: WpReBookingRow[] }>(
+    `/bookings/recent?limit=${limit}`,
+  );
+  if (!result.ok) return result;
+  return { ok: true as const, bookings: result.data.bookings ?? [] };
+}
+
+export type WpRePipelineSummary = {
+  site?: string;
+  property_reports_this_month?: number;
+  bookings_this_month?: number;
+  vendor_conversion?: Record<string, unknown>;
+  vendor_pipeline?: Record<string, { label: string; count: number }>;
+  buyer_pipeline?: Record<string, { label: string; count: number }>;
+};
+
+export async function fetchWpReSummary(days = 30) {
+  return wpConnectorFetch<WpRePipelineSummary>(`/leads/summary?days=${days}`);
+}
+
+export type WpAccommodationSite = WpHealthSite;
+
+/** Accommodation WordPress sites — JSON in DG_WP_ACCOMMODATION_SITES, else health sites. */
+export function listWpAccommodationSites(): WpAccommodationSite[] {
+  const raw = process.env.DG_WP_ACCOMMODATION_SITES?.trim();
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw) as WpAccommodationSite[];
+      if (Array.isArray(parsed) && parsed.length) {
+        return parsed.map((site) => ({
+          id: site.id,
+          label: site.label || siteLabelFromBaseUrl(site.baseUrl),
+          baseUrl: site.baseUrl.replace(/\/$/, ""),
+          apiKey: site.apiKey,
+        }));
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+  return listWpHealthSites();
+}
+
+export function getWpAccommodationSite(siteId?: string | null): WpAccommodationSite {
+  const sites = listWpAccommodationSites();
+  if (siteId) {
+    return sites.find((s) => s.id === siteId) ?? sites[0];
+  }
+  return sites[0];
+}
+
+export type WpAccommodationSummary = {
+  site?: string;
+  site_profile?: string;
+  occupancy_rate?: number;
+  revenue_mtd?: number;
+  checkins_tomorrow?: number;
+  housekeeping?: Record<string, unknown>;
+  recent_bookings?: WpAccBookingRow[];
+};
+
+export type WpAccUnitRow = {
+  id: number;
+  title: string;
+  slug?: string;
+  weekday_rate?: number;
+  cleaning_fee?: number;
+  housekeeping_status?: string;
+  listing_status?: string;
+  checkin_slug?: string;
+};
+
+export type WpAccBookingRow = {
+  id: number;
+  ref?: string;
+  guest_name?: string;
+  email?: string;
+  accommodation?: string;
+  accommodation_id?: number;
+  checkin?: string;
+  checkout?: string;
+  status?: string;
+  total?: number;
+};
+
+export async function fetchWpAccommodationSummary(siteId?: string | null, days = 30) {
+  const site = getWpAccommodationSite(siteId);
+  return wpConnectorFetch<WpAccommodationSummary>(
+    `/accommodation/summary?days=${days}`,
+    { baseUrl: site.baseUrl, apiKey: site.apiKey },
+  );
+}
+
+export async function fetchWpAccommodationUnits(siteId?: string | null) {
+  const site = getWpAccommodationSite(siteId);
+  const result = await wpConnectorFetch<{ properties?: WpAccUnitRow[] }>(
+    "/accommodation/properties",
+    { baseUrl: site.baseUrl, apiKey: site.apiKey },
+  );
+  if (!result.ok) return result;
+  return { ok: true as const, units: result.data.properties ?? [], site: site.label };
+}
+
+export async function fetchWpAccommodationBookings(
+  siteId?: string | null,
+  limit = 50,
+) {
+  const site = getWpAccommodationSite(siteId);
+  const result = await wpConnectorFetch<{ bookings?: WpAccBookingRow[]; total?: number }>(
+    `/accommodation/bookings?limit=${limit}`,
+    { baseUrl: site.baseUrl, apiKey: site.apiKey },
+  );
+  if (!result.ok) return result;
+  return {
+    ok: true as const,
+    bookings: result.data.bookings ?? [],
+    total: result.data.total ?? 0,
+    site: site.label,
+  };
+}
+
 export type WpSiteHealthPayload = {
   site?: string;
   generated_at?: string;

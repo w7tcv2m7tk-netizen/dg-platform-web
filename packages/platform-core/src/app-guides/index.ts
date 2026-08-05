@@ -189,6 +189,22 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
         href: "/apps/re/vendor-leads",
         hrefLabel: "Lead commerce panel",
       },
+      {
+        id: "re-6",
+        title: "Sync buyer leads",
+        description:
+          "Property enquiry forms on roerealty.com.au create buyer pipeline records. Sync them into Postgres from Buyer leads.",
+        href: "/apps/re/buyer-leads",
+        hrefLabel: "Open buyer leads",
+      },
+      {
+        id: "re-7",
+        title: "Review appraisal bookings",
+        description:
+          "Appraisal and strategy call bookings appear live from WordPress — no Postgres sync required yet.",
+        href: "/apps/re/bookings",
+        hrefLabel: "Open bookings",
+      },
     ],
     envVars: [
       {
@@ -251,34 +267,48 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
   },
   {
     appId: "accommodation",
-    headline: "Prepare hospitality on Gen 2",
+    headline: "Connect CVH hospitality to Gen 2",
     summary:
-      "Accommodation covers units, bookings, availability, and housekeeping — built for Currumbin Valley Hideaway domes and short-stay.",
-    estimatedMinutes: 5,
-    prerequisites: ["Commerce for booking payments", "Websites Health Centre for CVH site"],
+      "Overview, units, and bookings pull live from the WordPress accommodation module — same connector pattern as Roe vendor leads.",
+    estimatedMinutes: 10,
+    prerequisites: ["DG Platform plugin on CVH WordPress", "Commerce for booking payments (optional)"],
     steps: [
       {
         id: "acc-1",
-        title: "Enable in Apps (when ready)",
+        title: "Configure accommodation sites",
         description:
-          "Accommodation is scaffolded on Gen 2. Enable the App from your plan when CVH migration begins.",
-        href: "/dashboard/apps",
-        hrefLabel: "Browse apps",
+          "Point Gen 2 at your CVH WordPress REST API. Falls back to DG_WP_HEALTH_SITES when unset.",
+        code: 'DG_WP_ACCOMMODATION_SITES=[{"id":"cvh","label":"Currumbin Valley Hideaway","baseUrl":"https://YOUR-CVH-SITE/wp-json/digitalgate/v1","apiKey":"dgdev_..."}]',
       },
       {
         id: "acc-2",
-        title: "Port CVH from WordPress Gen 1",
+        title: "Open the overview dashboard",
         description:
-          "The accommodation module on WordPress already handles domes, bookings, check-in QR, and housekeeping.",
-        detail: "Gen 2 will sync bookings and units via the WordPress connector pattern.",
+          "Occupancy, revenue MTD, and recent bookings load directly from WordPress.",
+        href: "/apps/accommodation",
+        hrefLabel: "Accommodation overview",
       },
       {
         id: "acc-3",
+        title: "Review units and bookings",
+        description:
+          "Domes, rates, and reservations mirror wp-admin. Calendar and housekeeping ship next.",
+        href: "/apps/accommodation/units",
+        hrefLabel: "Units",
+      },
+      {
+        id: "acc-4",
         title: "Connect Commerce checkout",
         description:
-          "Booking deposits and full payments will flow through Commerce payment requests — same Stripe setup as Real Estate.",
+          "Booking deposits and full payments flow through Commerce payment requests — same Stripe setup as Real Estate.",
         href: "/dashboard/apps/commerce/setup",
         hrefLabel: "Commerce setup",
+      },
+    ],
+    envVars: [
+      {
+        name: "DG_WP_ACCOMMODATION_SITES",
+        description: "JSON array of { id, label, baseUrl, apiKey? } — CVH WordPress connector",
       },
     ],
   },

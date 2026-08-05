@@ -69,7 +69,7 @@ export function AppSetupGuideView({ guide }: { guide: AppSetupGuide }) {
       <PlatformRoadmapBar />
       <header className="border-b border-slate-800 px-8 py-5">
         <Link href="/dashboard/apps" className="text-sm text-blue-400 hover:underline">
-          ← Apps
+          ← Apps & plan
         </Link>
       </header>
 

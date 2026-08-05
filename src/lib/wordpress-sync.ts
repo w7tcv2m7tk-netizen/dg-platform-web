@@ -1,9 +1,10 @@
 import {
   syncVendorLeadsFromWordPress,
+  syncBuyerLeadsFromWordPress,
   type PlatformSession,
 } from "@dg/platform-core";
 
-import { fetchWpVendorLeads } from "@/lib/dg-api";
+import { fetchWpBuyerLeads, fetchWpVendorLeads } from "@/lib/dg-api";
 
 /** Minimum interval between automatic WordPress vendor lead syncs */
 export const WP_VENDOR_SYNC_INTERVAL_MS = 4 * 60 * 60 * 1000; // 4 hours
@@ -28,6 +29,8 @@ type OrgSettings = {
     wordpress?: {
       lastVendorLeadSyncAt?: string;
       lastVendorLeadSync?: WordPressSyncResult;
+      lastBuyerLeadSyncAt?: string;
+      lastBuyerLeadSync?: WordPressSyncResult;
     };
   };
 };
@@ -57,6 +60,62 @@ export async function syncWordPressVendorLeads(
   await saveLastSync(session.organisationId, result);
 
   return { ok: true, result };
+}
+
+export async function syncWordPressBuyerLeads(
+  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
+): Promise<
+  | { ok: true; result: WordPressSyncResult }
+  | { ok: false; message: string }
+> {
+  const wp = await fetchWpBuyerLeads(100);
+  if (!wp.ok) {
+    return { ok: false, message: wp.message };
+  }
+
+  const syncResult = await syncBuyerLeadsFromWordPress({
+    organisationId: session.organisationId,
+    actorId: session.clerkUserId,
+    leads: wp.leads,
+  });
+
+  const result: WordPressSyncResult = {
+    ...syncResult,
+    ranAt: new Date().toISOString(),
+  };
+
+  await saveLastBuyerSync(session.organisationId, result);
+
+  return { ok: true, result };
+}
+
+async function saveLastBuyerSync(organisationId: string, result: WordPressSyncResult) {
+  const { prisma } = await import("@dg/database");
+  type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
+
+  const org = await prisma.organisation.findUnique({
+    where: { id: organisationId },
+    select: { settings: true },
+  });
+
+  const settings = (org?.settings as OrgSettings | null) ?? {};
+
+  await prisma.organisation.update({
+    where: { id: organisationId },
+    data: {
+      settings: {
+        ...settings,
+        connectors: {
+          ...settings.connectors,
+          wordpress: {
+            ...settings.connectors?.wordpress,
+            lastBuyerLeadSyncAt: result.ranAt,
+            lastBuyerLeadSync: result,
+          },
+        },
+      } as unknown as InputJsonValue,
+    },
+  });
 }
 
 export async function autoSyncWordPressVendorLeadsIfNeeded(

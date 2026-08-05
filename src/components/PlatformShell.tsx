@@ -1,10 +1,16 @@
+import { EnabledAppsProvider } from "@/components/platform/EnabledAppsProvider";
 import { Sidebar } from "@/components/Sidebar";
+import { getOrgEnabledAppIds } from "@/lib/org-apps";
 
-export function PlatformShell({ children }: { children: React.ReactNode }) {
+export async function PlatformShell({ children }: { children: React.ReactNode }) {
+  const enabledIds = await getOrgEnabledAppIds();
+
   return (
-    <div className="flex min-h-full">
-      <Sidebar />
-      <div className="flex flex-1 flex-col">{children}</div>
-    </div>
+    <EnabledAppsProvider initialEnabledIds={enabledIds}>
+      <div className="flex min-h-full">
+        <Sidebar />
+        <div className="flex flex-1 flex-col">{children}</div>
+      </div>
+    </EnabledAppsProvider>
   );
 }

@@ -15,6 +15,7 @@ import {
 
 type PlanPickerProps = {
   onContinue?: (selection: SignupSelection) => void;
+  continueLabel?: string;
 };
 
 function toggle<T extends string>(list: T[], value: T): T[] {
@@ -23,7 +24,7 @@ function toggle<T extends string>(list: T[], value: T): T[] {
     : [...list, value];
 }
 
-export function PlanPicker({ onContinue }: PlanPickerProps) {
+export function PlanPicker({ onContinue, continueLabel = "Continue to checkout" }: PlanPickerProps) {
   const [platformTier, setPlatformTier] = useState<PlatformTier | "">("");
   const [industryApps, setIndustryApps] = useState<IndustryApp[]>([]);
   const [premiumApps, setPremiumApps] = useState<PremiumApp[]>([]);
@@ -133,7 +134,7 @@ export function PlanPicker({ onContinue }: PlanPickerProps) {
         onClick={() => onContinue?.(selection)}
         className="w-full rounded-full bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        Continue to checkout
+        {continueLabel}
       </button>
     </div>
   );

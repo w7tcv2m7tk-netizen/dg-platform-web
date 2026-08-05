@@ -21,7 +21,9 @@ import {
 
 
 import { PlatformRoadmapBar } from "@/components/platform/PlatformRoadmapBar";
-
+import { AppInstallToggle } from "@/components/platform/AppInstallToggle";
+import { AppsOnboardingSection } from "@/components/platform/AppsOnboardingSection";
+import { AppsPlanSection } from "@/components/platform/AppsPlanSection";
 import { RoadmapStatusBadge } from "@/components/platform/RoadmapStatusBadge";
 
 
@@ -44,17 +46,20 @@ export default function AppsPage() {
 
       <header className="border-b border-slate-800 px-8 py-5">
 
-        <h1 className="text-2xl font-bold text-white">Apps</h1>
+        <h1 className="text-2xl font-bold text-white">Apps & plan</h1>
 
         <p className="text-sm text-slate-400">
 
-          {allApps.length} apps · {summary.percentComplete}% platform complete
+          {allApps.length} apps · {summary.percentComplete}% platform complete · configure your
+          subscription below
 
         </p>
 
       </header>
 
       <main className="flex-1 space-y-8 p-8">
+        <AppsOnboardingSection />
+        <AppsPlanSection />
 
         <AppTierSection
 
@@ -185,15 +190,7 @@ function AppTierSection({
 
                   <RoadmapStatusBadge status={primaryStatus} />
 
-                  {!enabled ? (
-
-                    <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-500">
-
-                      Not installed
-
-                    </span>
-
-                  ) : null}
+                  <AppInstallToggle appId={manifest.id} installed={enabled} />
 
                 </div>
 
