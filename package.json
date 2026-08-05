@@ -10,6 +10,7 @@
     "db:generate": "prisma generate --schema=packages/database/prisma/schema.prisma",
     "db:push": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma/schema.prisma",
     "db:studio": "dotenv -e .env.local -- prisma studio --schema=packages/database/prisma/schema.prisma",
+    "setup:stripe-webhook": "node scripts/setup-stripe-webhook.mjs",
     "postinstall": "npm run db:generate"
   },
   "dependencies": {
