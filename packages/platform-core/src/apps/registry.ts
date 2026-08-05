@@ -5,6 +5,11 @@ import { crmApp } from "./builtins/crm";
 import { aiCommunicationsApp } from "./builtins/ai-communications";
 import { infrastructureApp } from "./builtins/infrastructure";
 import { realEstateApp } from "./builtins/real-estate";
+import { accommodationApp } from "./builtins/accommodation";
+import { financeApp } from "./builtins/finance";
+import { servicesApp } from "./builtins/services";
+import { creatorApp } from "./builtins/creator";
+import { commercialApp } from "./builtins/commercial";
 import { seoApp, aiVisibilityApp } from "./builtins/seo";
 import { websitesApp } from "./builtins/websites";
 
@@ -17,6 +22,11 @@ const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: crmApp, enabled: true },
   { manifest: commerceApp, enabled: true },
   { manifest: realEstateApp, enabled: true },
+  { manifest: accommodationApp, enabled: false },
+  { manifest: financeApp, enabled: false },
+  { manifest: servicesApp, enabled: false },
+  { manifest: creatorApp, enabled: false },
+  { manifest: commercialApp, enabled: false },
   { manifest: seoApp, enabled: false },
   { manifest: aiVisibilityApp, enabled: false },
   { manifest: aiCommunicationsApp, enabled: false },
