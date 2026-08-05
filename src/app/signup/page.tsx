@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { SignupForm } from "@/components/SignupForm";
+import { DigitalGateLogo } from "@/components/brand/DigitalGateLogo";
 
 export default function SignupPage() {
   return (
     <div className="min-h-full px-4 py-10">
       <div className="mx-auto max-w-3xl">
-        <Link href="/" className="text-sm text-slate-500 hover:text-slate-300">
-          ← DigitalGate
-        </Link>
-        <h1 className="mt-4 text-3xl font-bold text-white">
+        <DigitalGateLogo variant="logo" href="/" logoHeight={32} className="mb-6" />
+        <h1 className="text-3xl font-bold text-white">
           Build your platform
         </h1>
         <p className="mt-2 text-slate-400">

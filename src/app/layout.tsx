@@ -15,6 +15,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ?? "https://app.digitalgate.com.au",
   ),
+  icons: {
+    icon: "/brand/icon.png",
+    apple: "/brand/icon.png",
+  },
 };
 
 export default function RootLayout({
