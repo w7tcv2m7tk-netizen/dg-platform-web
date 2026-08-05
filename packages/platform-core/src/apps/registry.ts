@@ -2,8 +2,10 @@ import type { AppNavItem, AppTier, AppVisibility, RegisteredApp } from "./manife
 import { commandCentreApp } from "./builtins/command-centre";
 import { crmApp } from "./builtins/crm";
 import { aiCommunicationsApp } from "./builtins/ai-communications";
+import { infrastructureApp } from "./builtins/infrastructure";
 import { realEstateApp } from "./builtins/real-estate";
 import { seoApp, aiVisibilityApp } from "./builtins/seo";
+import { websitesApp } from "./builtins/websites";
 
 function appVisibility(manifest: RegisteredApp["manifest"]): AppVisibility {
   return manifest.visibility ?? "customer";
@@ -16,6 +18,8 @@ const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: seoApp, enabled: false },
   { manifest: aiVisibilityApp, enabled: false },
   { manifest: aiCommunicationsApp, enabled: false },
+  { manifest: websitesApp, enabled: false },
+  { manifest: infrastructureApp, enabled: false },
   { manifest: commandCentreApp, enabled: true },
 ];
 

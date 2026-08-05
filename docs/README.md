@@ -13,6 +13,7 @@ These documents capture **why** the platform is built the way it is. They are as
 
 | Document | Purpose |
 |----------|---------|
+| [CAPABILITY-MODEL.md](./CAPABILITY-MODEL.md) | Business Capabilities taxonomy + boundary rule |
 | [PRODUCT-VISION.md](./PRODUCT-VISION.md) | Gateway brand, mission, five pillars, positioning |
 | [ROADMAP.md](./ROADMAP.md) | Execution phases and priorities |
 | [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) | Internal intelligence App — how DG runs DG |
@@ -55,7 +56,9 @@ These documents capture **why** the platform is built the way it is. They are as
 | Document | Purpose |
 |----------|---------|
 | [ai/AI-ARCHITECTURE.md](./ai/AI-ARCHITECTURE.md) | AI Service, Business Memory, tool registry |
-| [ai/COMMUNICATIONS-ARCHITECTURE.md](./ai/COMMUNICATIONS-ARCHITECTURE.md) | AI Communications Growth App — voice, messaging, orchestration |
+| [ai/COMMUNICATIONS-ARCHITECTURE.md](./ai/COMMUNICATIONS-ARCHITECTURE.md) | AI Communications — voice, messaging, orchestration |
+| [websites/WEBSITES-ARCHITECTURE.md](./websites/WEBSITES-ARCHITECTURE.md) | AI Website Studio, Health Centre, funnels, content |
+| [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](./infrastructure/INFRASTRUCTURE-ARCHITECTURE.md) | Domains, hosting, DNS, SSL, deployments |
 | [connectors/CONNECTOR-SPECIFICATION.md](./connectors/CONNECTOR-SPECIFICATION.md) | Connector contract — sync, auth, mapping |
 | [design/DESIGN-SYSTEM.md](./design/DESIGN-SYSTEM.md) | UI package (`@dg/ui`), tokens, components |
 

@@ -124,10 +124,26 @@ Public and partner APIs must remain **backwards compatible** through explicit ve
 
 ---
 
+## 11. Digital Presence Boundary
+
+Every new capability must answer:
+
+> **Would a business reasonably expect to manage this as part of its digital presence?**
+
+If yes, it belongs in the DigitalGate ecosystem (Core, App, Connector, or Shared Service). If no, keep it external.
+
+**Current execution filter:** Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer until the active release exit criteria are met.
+
+See [CAPABILITY-MODEL.md](./CAPABILITY-MODEL.md) for the full capability map.
+
+---
+
 ## Decision checklist
 
 Before shipping any feature, confirm:
 
+- [ ] Passes the **digital presence boundary rule** (Principle 11)?
+- [ ] Passes the **current execution filter** (Core / RE)?
 - [ ] Exposed via Platform API (not direct DB from UI)?
 - [ ] Scoped to `organisation_id`?
 - [ ] Publishes domain events on write?
@@ -143,6 +159,7 @@ Before shipping any feature, confirm:
 
 ## Related documents
 
+- [CAPABILITY-MODEL.md](./CAPABILITY-MODEL.md)
 - [PRODUCT-VISION.md](./PRODUCT-VISION.md)
 - [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md)
 - [ROADMAP.md](./ROADMAP.md)

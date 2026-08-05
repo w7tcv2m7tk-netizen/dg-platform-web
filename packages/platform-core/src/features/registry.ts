@@ -87,7 +87,73 @@ export const AI_COMMUNICATIONS_FEATURES: FeatureGroup = {
   ],
 };
 
-const ALL_GROUPS: FeatureGroup[] = [CRM_FEATURES, AI_COMMUNICATIONS_FEATURES];
+export const WEBSITES_FEATURES: FeatureGroup = {
+  appId: "websites",
+  label: "Websites",
+  features: [
+    { id: "websites.health.read", appId: "websites", label: "View Website Health Centre" },
+    {
+      id: "websites.studio.use",
+      appId: "websites",
+      label: "Use AI Website Studio",
+      tier: "premium",
+    },
+    { id: "websites.content.draft", appId: "websites", label: "Draft content" },
+    {
+      id: "websites.content.publish",
+      appId: "websites",
+      label: "Publish content",
+      tier: "standard",
+    },
+    {
+      id: "websites.funnels.create",
+      appId: "websites",
+      label: "Create funnels",
+      tier: "premium",
+    },
+    {
+      id: "websites.developer.use",
+      appId: "websites",
+      label: "AI Developer edits",
+      tier: "premium",
+    },
+  ],
+};
+
+export const INFRASTRUCTURE_FEATURES: FeatureGroup = {
+  appId: "infrastructure",
+  label: "Infrastructure",
+  features: [
+    { id: "infra.domains.read", appId: "infrastructure", label: "View domains" },
+    {
+      id: "infra.domains.register",
+      appId: "infrastructure",
+      label: "Register domains",
+      tier: "standard",
+    },
+    { id: "infra.dns.read", appId: "infrastructure", label: "View DNS" },
+    {
+      id: "infra.dns.write",
+      appId: "infrastructure",
+      label: "Edit DNS records",
+      tier: "standard",
+    },
+    {
+      id: "infra.deploy.production",
+      appId: "infrastructure",
+      label: "Deploy to production",
+      tier: "premium",
+    },
+    { id: "infra.monitoring.read", appId: "infrastructure", label: "View monitoring" },
+  ],
+};
+
+const ALL_GROUPS: FeatureGroup[] = [
+  CRM_FEATURES,
+  AI_COMMUNICATIONS_FEATURES,
+  WEBSITES_FEATURES,
+  INFRASTRUCTURE_FEATURES,
+];
 
 export class FeatureRegistry {
   private features = new Map<string, FeatureDefinition>();
