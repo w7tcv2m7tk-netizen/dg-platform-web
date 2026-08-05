@@ -7,6 +7,7 @@ import {
   resolvePlatformSession,
 } from "@dg/platform-core";
 
+import { CommerceStripeSetup } from "@/components/commerce/CommerceStripeSetup";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 function formatMoney(cents: number) {
@@ -64,6 +65,8 @@ export default async function CommerceOverviewPage() {
         </p>
       </header>
       <main className="flex-1 space-y-8 p-8">
+        <CommerceStripeSetup />
+
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
             <p className="text-xs uppercase tracking-wide text-slate-500">
@@ -171,6 +174,12 @@ export default async function CommerceOverviewPage() {
             className="rounded-full bg-slate-800 px-4 py-2 text-sm text-white hover:bg-slate-700"
           >
             Invoices
+          </Link>
+          <Link
+            href="/apps/automation"
+            className="rounded-full bg-slate-800 px-4 py-2 text-sm text-white hover:bg-slate-700"
+          >
+            Automation
           </Link>
           <Link
             href="/apps/re/vendor-leads"

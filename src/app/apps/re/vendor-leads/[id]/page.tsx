@@ -5,10 +5,13 @@ import {
   getContact,
   getLead,
   getPropertyForLead,
+  listInvoicesForEntity,
   listLeadActivities,
+  listQuotesForEntity,
   resolvePlatformSession,
 } from "@dg/platform-core";
 
+import { LeadCommercePanel } from "@/components/re/LeadCommercePanel";
 import { RequestPaymentButton } from "@/components/re/RequestPaymentButton";
 import { LeadStageSelect } from "@/components/re/LeadStageSelect";
 import { StartAppraisalButton } from "@/components/re/StartAppraisalButton";
@@ -51,12 +54,14 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
   const lead = await getLead(session.organisationId, id);
   if (!lead) notFound();
 
-  const [activities, contact, property] = await Promise.all([
+  const [activities, contact, property, quotes, invoices] = await Promise.all([
     listLeadActivities(session.organisationId, id),
     lead.contactId
       ? getContact(session.organisationId, lead.contactId)
       : Promise.resolve(null),
     getPropertyForLead(session.organisationId, id),
+    listQuotesForEntity(session.organisationId, "Lead", id),
+    listInvoicesForEntity(session.organisationId, "Lead", id),
   ]);
 
   const wpName = lead.metadata?.wp_name as string | undefined;
@@ -116,7 +121,32 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
             </div>
 
             <div className="dg-card">
-              <h2 className="font-semibold text-white">Payments</h2>
+              <h2 className="font-semibold text-white">Commerce workflow</h2>
+              <p className="mt-2 text-sm text-slate-400">
+                Quote → accept → send invoice → request payment.
+              </p>
+              <div className="mt-4">
+                <LeadCommercePanel
+                  leadId={lead.id}
+                  contactId={lead.contactId ?? undefined}
+                  quotes={quotes.map((q) => ({
+                    id: q.id,
+                    quoteNumber: q.quoteNumber ?? "—",
+                    status: q.status,
+                    totalCents: q.totalCents,
+                  }))}
+                  invoices={invoices.map((inv) => ({
+                    id: inv.id,
+                    invoiceNumber: inv.invoiceNumber ?? "—",
+                    status: inv.status,
+                    totalCents: inv.totalCents,
+                  }))}
+                />
+              </div>
+            </div>
+
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">Quick payment</h2>
               <p className="mt-2 text-sm text-slate-400">
                 Send a Stripe checkout link for marketing contribution or other fees.
               </p>

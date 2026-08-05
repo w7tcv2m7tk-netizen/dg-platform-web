@@ -2,6 +2,7 @@ import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { listQuotes, resolvePlatformSession } from "@dg/platform-core";
 
+import { CreateDocumentForm } from "@/components/commerce/CreateDocumentForm";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 function formatMoney(cents: number) {
@@ -58,7 +59,8 @@ export default async function CommerceQuotesPage() {
         <h1 className="mt-2 text-2xl font-bold text-white">Quotes</h1>
         <p className="text-sm text-slate-400">{quotes.length} quote(s)</p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="flex-1 space-y-6 p-8">
+        <CreateDocumentForm kind="quote" />
         <div className="dg-card overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>

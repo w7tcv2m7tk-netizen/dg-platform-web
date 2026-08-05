@@ -172,12 +172,52 @@ export async function listQuotes(organisationId: string, limit = 50) {
   });
 }
 
+export async function listQuotesForEntity(
+  organisationId: string,
+  entityType: string,
+  entityId: string,
+) {
+  const { prisma } = await import("@dg/database");
+  return prisma.commerceQuote.findMany({
+    where: { organisationId, sourceEntityType: entityType, sourceEntityId: entityId },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+}
+
 export async function listInvoices(organisationId: string, limit = 50) {
   const { prisma } = await import("@dg/database");
   return prisma.commerceInvoice.findMany({
     where: { organisationId },
     orderBy: { createdAt: "desc" },
     take: limit,
+  });
+}
+
+export async function listInvoicesForEntity(
+  organisationId: string,
+  entityType: string,
+  entityId: string,
+) {
+  const { prisma } = await import("@dg/database");
+  return prisma.commerceInvoice.findMany({
+    where: { organisationId, sourceEntityType: entityType, sourceEntityId: entityId },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+}
+
+export async function getQuote(organisationId: string, quoteId: string) {
+  const { prisma } = await import("@dg/database");
+  return prisma.commerceQuote.findFirst({
+    where: { id: quoteId, organisationId },
+  });
+}
+
+export async function getInvoice(organisationId: string, invoiceId: string) {
+  const { prisma } = await import("@dg/database");
+  return prisma.commerceInvoice.findFirst({
+    where: { id: invoiceId, organisationId },
   });
 }
 

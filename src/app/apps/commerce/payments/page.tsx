@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
+import { CommerceStripeSetup } from "@/components/commerce/CommerceStripeSetup";
 import { resolvePlatformSession } from "@dg/platform-core";
 
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -36,7 +37,8 @@ export default async function CommercePaymentsPage() {
           Payment requests are created from app workflows (e.g. vendor leads)
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="flex-1 space-y-6 p-8">
+        <CommerceStripeSetup />
         <div className="dg-card max-w-2xl">
           <p className="text-slate-300">
             Stripe checkout links are issued per lead or invoice. Open a vendor

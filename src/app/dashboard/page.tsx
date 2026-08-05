@@ -113,6 +113,18 @@ export default async function DashboardPage() {
               </Link>
             </div>
           ) : null}
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">Automation</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Triggers and actions declared across apps — builder scaffold live.
+              </p>
+              <Link
+                href="/apps/automation"
+                className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
+              >
+                Open automation →
+              </Link>
+            </div>
           <div className="dg-card">
             <h2 className="font-semibold text-white">Apps</h2>
             <p className="mt-1 text-sm text-slate-400">

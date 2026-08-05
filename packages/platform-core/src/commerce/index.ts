@@ -12,9 +12,15 @@ export {
   createInvoice,
   acceptQuote,
   listQuotes,
+  listQuotesForEntity,
   listInvoices,
+  listInvoicesForEntity,
+  getQuote,
+  getInvoice,
   sendInvoice,
 } from "./document-engine";
+export { getStripeSetupStatus } from "./stripe-setup";
+export type { StripeSetupStatus } from "./stripe-setup";
 export {
   registerPaymentConnector,
   getPaymentConnector,
