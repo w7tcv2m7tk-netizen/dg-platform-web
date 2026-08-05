@@ -158,23 +158,89 @@ export type WpVendorLeadRow = {
   created_at?: string;
 };
 
-export async function fetchWpVendorLeads(limit = 100): Promise<WpVendorLeadRow[]> {
-  const headers = apiHeaders();
-  if (!headers) {
-    return [];
+export type FetchWpVendorLeadsResult =
+  | { ok: true; leads: WpVendorLeadRow[] }
+  | {
+      ok: false;
+      code:
+        | "missing_api_key"
+        | "auth_failed"
+        | "not_found"
+        | "upstream_error"
+        | "empty"
+        | "network_error";
+      message: string;
+      status?: number;
+    };
+
+export async function fetchWpVendorLeads(
+  limit = 100,
+): Promise<FetchWpVendorLeadsResult> {
+  const connectorKey = process.env.DG_WP_CONNECTOR_API_KEY?.trim();
+  const fallbackKey = process.env.DG_API_KEY?.trim();
+  const apiKey = connectorKey || fallbackKey;
+
+  if (!apiKey) {
+    return {
+      ok: false,
+      code: "missing_api_key",
+      message:
+        "Set DG_WP_CONNECTOR_API_KEY (Roe roerealty.com.au → DG Platform → API Settings) on Vercel or .env.local.",
+    };
   }
+
+  const headers: HeadersInit = {
+    Accept: "application/json",
+    "X-API-Key": apiKey,
+  };
 
   try {
     const url = `${getWpConnectorBase()}/leads/vendor?limit=${limit}`;
     const res = await fetch(url, { headers, cache: "no-store" });
     const data = (await res.json().catch(() => null)) as {
       leads?: WpVendorLeadRow[];
+      message?: string;
+      code?: string;
     } | null;
-    if (!res.ok || !data?.leads) {
-      return [];
+
+    if (res.status === 401 || res.status === 403) {
+      return {
+        ok: false,
+        code: "auth_failed",
+        status: res.status,
+        message: connectorKey
+          ? "Roe API rejected DG_WP_CONNECTOR_API_KEY — copy the Dev API key from roerealty.com.au → DG Platform → API Settings."
+          : "Roe API rejected the API key. Use DG_WP_CONNECTOR_API_KEY from roerealty.com.au (not the digitalgate.com.au key).",
+      };
     }
-    return data.leads;
+
+    if (!res.ok) {
+      return {
+        ok: false,
+        code: "upstream_error",
+        status: res.status,
+        message:
+          data?.message ??
+          `WordPress returned HTTP ${res.status} from ${getWpConnectorBase()}/leads/vendor`,
+      };
+    }
+
+    const leads = data?.leads ?? [];
+    if (!leads.length) {
+      return {
+        ok: false,
+        code: "empty",
+        message:
+          "WordPress authenticated OK but returned 0 vendor leads. Add a test lead in Roe wp-admin → Vendor Leads, or check the Roe site has the Real Estate module active.",
+      };
+    }
+
+    return { ok: true, leads };
   } catch {
-    return [];
+    return {
+      ok: false,
+      code: "network_error",
+      message: `Could not reach ${getWpConnectorBase()} — check DG_WP_CONNECTOR_BASE_URL.`,
+    };
   }
 }

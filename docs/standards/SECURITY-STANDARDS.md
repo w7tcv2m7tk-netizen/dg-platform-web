@@ -25,7 +25,8 @@
 | Secret | Storage |
 |--------|---------|
 | `CLERK_SECRET_KEY` | Vercel env (server only) |
-| `DG_API_KEY` | Vercel env (server only) |
+| `DG_API_KEY` | Vercel env (server only) — digitalgate.com.au |
+| `DG_WP_CONNECTOR_API_KEY` | Vercel env (server only) — roerealty.com.au vendor sync |
 | `DATABASE_URL` | Vercel env (server only) |
 | Stripe keys | Platform Core billing service |
 

@@ -33,14 +33,14 @@ export async function POST(req: Request) {
   const action = body.action as string | undefined;
 
   if (action === "sync_wordpress") {
-    const wpLeads = await fetchWpVendorLeads(100);
-    if (!wpLeads.length) {
+    const wp = await fetchWpVendorLeads(100);
+    if (!wp.ok) {
       return NextResponse.json(
         {
           error: {
-            code: "sync_empty",
-            message:
-              "No vendor leads returned from WordPress. Check DG_API_KEY and DG_WP_CONNECTOR_BASE_URL.",
+            code: wp.code,
+            message: wp.message,
+            status: wp.status,
           },
         },
         { status: 422 },
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     const result = await syncVendorLeadsFromWordPress({
       organisationId: session.organisationId,
       actorId: session.clerkUserId,
-      leads: wpLeads,
+      leads: wp.leads,
     });
 
     return NextResponse.json({ data: result });

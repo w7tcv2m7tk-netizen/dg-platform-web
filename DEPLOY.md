@@ -50,7 +50,9 @@ Open [http://localhost:3000](http://localhost:3000):
    | `DG_API_BASE_URL` | `https://digitalgate.com.au/wp-json/digitalgate/v1` |
    | `DG_ONBOARDING_URL` | `https://digitalgate.com.au/onboarding/` |
    | `NEXT_PUBLIC_DG_ONBOARDING_URL` | `https://digitalgate.com.au/onboarding/` |
-   | `DG_API_KEY` | WordPress dev API key (optional — CRM bridge) |
+   | `DG_API_KEY` | Dev API key from **digitalgate.com.au** → API Settings (portal/CRM bridge) |
+   | `DG_WP_CONNECTOR_API_KEY` | Dev API key from **roerealty.com.au** → API Settings (vendor lead sync) |
+   | `DG_WP_CONNECTOR_BASE_URL` | `https://roerealty.com.au/wp-json/digitalgate/v1` |
    | **`DATABASE_URL`** | **Neon pooled connection string (Platform 1.0)** |
    | **`CLERK_WEBHOOK_SIGNING_SECRET`** | **From Clerk webhook endpoint (`whsec_…`)** |
 
