@@ -45,3 +45,52 @@ export async function requirePlatformSession(): Promise<
 export function isNextResponse(value: unknown): value is NextResponse {
   return value instanceof NextResponse;
 }
+
+function extractConnectorApiKey(req: Request) {
+  const headerKey = req.headers.get("X-API-Key")?.trim();
+  if (headerKey) return headerKey;
+
+  const authHeader = req.headers.get("Authorization")?.trim();
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    return authHeader.slice(7).trim();
+  }
+
+  return "";
+}
+
+function isValidConnectorKey(provided: string) {
+  const keys = [
+    process.env.DG_WP_CONNECTOR_API_KEY?.trim(),
+    process.env.DG_API_KEY?.trim(),
+    process.env.DG_ADDRESS_RESOLVE_API_KEY?.trim(),
+  ].filter(Boolean) as string[];
+
+  return keys.some((key) => key === provided);
+}
+
+export type PlatformAuthContext =
+  | { mode: "session"; session: PlatformSession }
+  | { mode: "connector" };
+
+/** Clerk session or connector API key — for address resolve and WP bridge */
+export async function authenticatePlatformOrConnector(
+  req: Request,
+): Promise<PlatformAuthContext | NextResponse> {
+  const apiKey = extractConnectorApiKey(req);
+  if (apiKey && isValidConnectorKey(apiKey)) {
+    return { mode: "connector" };
+  }
+
+  const session = await requirePlatformSession();
+  if (isNextResponse(session)) {
+    if (apiKey) {
+      return NextResponse.json(
+        { error: { code: "auth_failed", message: "Invalid API key" } },
+        { status: 401 },
+      );
+    }
+    return session;
+  }
+
+  return { mode: "session", session };
+}

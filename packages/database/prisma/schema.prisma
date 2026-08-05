@@ -35,6 +35,15 @@ model Organisation {
   appInstallations AppInstallation[]
   auditLogs        AuditLog[]
 
+  commerceProducts           CommerceProduct[]
+  commerceQuotes             CommerceQuote[]
+  commerceInvoices           CommerceInvoice[]
+  commercePaymentRequests    CommercePaymentRequest[]
+  commercePayments           CommercePayment[]
+  commerceSubscriptions      CommerceSubscription[]
+  commerceRefunds            CommerceRefund[]
+  paymentConnectorInstallations PaymentConnectorInstallation[]
+
   @@map("organisations")
 }
 
@@ -231,4 +240,211 @@ model AuditLog {
   @@index([organisationId, occurredAt])
   @@index([organisationId, entityType, entityId])
   @@map("audit_logs")
+}
+
+// ─── Commerce (customer-facing commercial layer) ───────────────────────────
+
+model CommerceProduct {
+  id             String    @id @default(cuid())
+  organisationId String    @map("organisation_id")
+  name           String
+  description    String?
+  sku            String?
+  unitAmountCents Int      @map("unit_amount_cents")
+  currency       String    @default("AUD")
+  taxCode        String?   @map("tax_code")
+  taxRateBps     Int?      @map("tax_rate_bps")
+  active         Boolean   @default(true)
+  metadata       Json?
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, active])
+  @@map("commerce_products")
+}
+
+model CommerceQuote {
+  id             String    @id @default(cuid())
+  organisationId String    @map("organisation_id")
+  contactId      String?   @map("contact_id")
+  quoteNumber    String?   @map("quote_number")
+  status         String    @default("draft")
+  sourceApp      String?   @map("source_app")
+  sourceEntityType String? @map("source_entity_type")
+  sourceEntityId String?   @map("source_entity_id")
+  currency       String    @default("AUD")
+  subtotalCents  Int       @map("subtotal_cents")
+  taxCents       Int       @default(0) @map("tax_cents")
+  totalCents     Int       @map("total_cents")
+  validUntil     DateTime? @map("valid_until")
+  acceptedAt     DateTime? @map("accepted_at")
+  notes          String?
+  lineItems      Json      @map("line_items")
+  metadata       Json?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  invoices     CommerceInvoice[]
+
+  @@index([organisationId, status])
+  @@map("commerce_quotes")
+}
+
+model CommerceInvoice {
+  id             String    @id @default(cuid())
+  organisationId String    @map("organisation_id")
+  contactId      String?   @map("contact_id")
+  quoteId        String?   @map("quote_id")
+  invoiceNumber  String?   @map("invoice_number")
+  status         String    @default("draft")
+  sourceApp      String?   @map("source_app")
+  sourceEntityType String? @map("source_entity_type")
+  sourceEntityId String?   @map("source_entity_id")
+  currency       String    @default("AUD")
+  subtotalCents  Int       @map("subtotal_cents")
+  taxCents       Int       @default(0) @map("tax_cents")
+  totalCents     Int       @map("total_cents")
+  dueAt          DateTime? @map("due_at")
+  paidAt         DateTime? @map("paid_at")
+  notes          String?
+  lineItems      Json      @map("line_items")
+  metadata       Json?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organisation    Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  quote           CommerceQuote? @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  paymentRequests CommercePaymentRequest[]
+
+  @@index([organisationId, status])
+  @@index([organisationId, dueAt])
+  @@map("commerce_invoices")
+}
+
+model CommercePaymentRequest {
+  id                String    @id @default(cuid())
+  organisationId    String    @map("organisation_id")
+  contactId         String?   @map("contact_id")
+  quoteId           String?   @map("quote_id")
+  invoiceId         String?   @map("invoice_id")
+  sourceApp         String    @map("source_app")
+  sourceEntityType  String?   @map("source_entity_type")
+  sourceEntityId    String?   @map("source_entity_id")
+  status            String    @default("pending")
+  currency          String    @default("AUD")
+  subtotalCents     Int       @map("subtotal_cents")
+  totalCents        Int       @map("total_cents")
+  allowedMethods    Json?     @map("allowed_methods")
+  providerId        String?   @map("provider_id")
+  providerSessionId String?   @map("provider_session_id")
+  checkoutUrl       String?   @map("checkout_url")
+  paymentLinkUrl    String?   @map("payment_link_url")
+  description       String?
+  dueAt             DateTime? @map("due_at")
+  paidAt            DateTime? @map("paid_at")
+  expiresAt         DateTime? @map("expires_at")
+  metadata          Json?
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  invoice      CommerceInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  payments     CommercePayment[]
+
+  @@index([organisationId, status])
+  @@index([organisationId, sourceApp])
+  @@map("commerce_payment_requests")
+}
+
+model CommercePayment {
+  id                String    @id @default(cuid())
+  organisationId    String    @map("organisation_id")
+  paymentRequestId  String    @map("payment_request_id")
+  contactId         String?   @map("contact_id")
+  providerId        String    @map("provider_id")
+  providerPaymentId String    @map("provider_payment_id")
+  status            String    @default("pending")
+  amountCents       Int       @map("amount_cents")
+  currency          String    @default("AUD")
+  paymentMethod     String?   @map("payment_method")
+  paidAt            DateTime? @map("paid_at")
+  metadata          Json?
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  paymentRequest CommercePaymentRequest @relation(fields: [paymentRequestId], references: [id], onDelete: Cascade)
+  refunds        CommerceRefund[]
+
+  @@unique([organisationId, providerPaymentId])
+  @@index([organisationId, paidAt])
+  @@map("commerce_payments")
+}
+
+model CommerceSubscription {
+  id                   String    @id @default(cuid())
+  organisationId       String    @map("organisation_id")
+  contactId            String?   @map("contact_id")
+  providerId           String    @map("provider_id")
+  providerSubscriptionId String  @map("provider_subscription_id")
+  status               String    @default("active")
+  currency             String    @default("AUD")
+  amountCents          Int       @map("amount_cents")
+  interval             String    @default("month")
+  currentPeriodStart   DateTime? @map("current_period_start")
+  currentPeriodEnd     DateTime? @map("current_period_end")
+  cancelledAt          DateTime? @map("cancelled_at")
+  metadata             Json?
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, providerSubscriptionId])
+  @@index([organisationId, status])
+  @@map("commerce_subscriptions")
+}
+
+model CommerceRefund {
+  id               String   @id @default(cuid())
+  organisationId   String   @map("organisation_id")
+  paymentId        String   @map("payment_id")
+  providerId       String   @map("provider_id")
+  providerRefundId String   @map("provider_refund_id")
+  status           String   @default("pending")
+  amountCents      Int      @map("amount_cents")
+  currency         String   @default("AUD")
+  reason           String?
+  metadata         Json?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  payment      CommercePayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, providerRefundId])
+  @@map("commerce_refunds")
+}
+
+model PaymentConnectorInstallation {
+  id             String   @id @default(cuid())
+  organisationId String   @map("organisation_id")
+  providerId     String   @map("provider_id")
+  status         String   @default("pending")
+  accountId      String?  @map("account_id")
+  credentialRef  String?  @map("credential_ref")
+  enabledMethods Json?    @map("enabled_methods")
+  settings       Json?
+  connectedAt    DateTime? @map("connected_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, providerId])
+  @@map("payment_connector_installations")
 }

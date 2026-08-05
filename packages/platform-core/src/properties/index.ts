@@ -3,6 +3,11 @@ import type { Property, Prisma } from "@dg/database";
 import { writeAuditLog } from "../audit";
 import { platformEvents } from "../events";
 import { updateLeadStage } from "../leads";
+import {
+  addressMetadataFromParsed,
+  resolveAddress,
+  shouldAutoResolveAddress,
+} from "../addresses";
 import { parsePropertyAddress, resolvePropertyAddress } from "./address";
 
 export { parsePropertyAddress, needsAddressRefinement, resolvePropertyAddress } from "./address";
@@ -129,27 +134,56 @@ export async function getProperty(organisationId: string, propertyId: string) {
   return property ? serializeProperty(property) : null;
 }
 
+async function mergeResolvedAddress(input: CreatePropertyInput): Promise<CreatePropertyInput> {
+  if (input.metadata?.skip_geocode === true) return input;
+
+  const raw = input.addressLine1.trim();
+  if (!raw) return input;
+
+  const resolved = await resolveAddress(raw, { geocode: true });
+  const keepManualSuburb =
+    Boolean(input.suburb?.trim()) &&
+    input.postcode?.trim() !== "0000" &&
+    !shouldAutoResolveAddress(raw);
+
+  return {
+    ...input,
+    addressLine1: resolved.addressLine1,
+    suburb: keepManualSuburb ? input.suburb.trim() : resolved.suburb,
+    state: (input.state?.trim() || resolved.state).toUpperCase(),
+    postcode:
+      input.postcode?.trim() && input.postcode.trim() !== "0000"
+        ? input.postcode.trim()
+        : resolved.postcode,
+    metadata: {
+      ...(input.metadata ?? {}),
+      ...resolved.metadata,
+    },
+  };
+}
+
 export async function createProperty(input: CreatePropertyInput) {
   const { prisma } = await import("@dg/database");
+  const resolvedInput = await mergeResolvedAddress(input);
 
   const property = await prisma.property.create({
     data: {
-      organisationId: input.organisationId,
-      addressLine1: input.addressLine1.trim(),
-      addressLine2: input.addressLine2?.trim() || null,
-      suburb: input.suburb.trim(),
-      state: input.state.trim().toUpperCase(),
-      postcode: input.postcode.trim(),
-      country: input.country ?? "AU",
-      status: input.status ?? "prospect",
-      propertyType: input.propertyType,
-      bedrooms: input.bedrooms,
-      bathrooms: input.bathrooms,
-      ownerContactId: input.ownerContactId,
-      leadId: input.leadId,
-      listingPriceCents: input.listingPriceCents,
-      currency: input.currency ?? "AUD",
-      metadata: input.metadata as Prisma.InputJsonValue,
+      organisationId: resolvedInput.organisationId,
+      addressLine1: resolvedInput.addressLine1.trim(),
+      addressLine2: resolvedInput.addressLine2?.trim() || null,
+      suburb: resolvedInput.suburb.trim(),
+      state: resolvedInput.state.trim().toUpperCase(),
+      postcode: resolvedInput.postcode.trim(),
+      country: resolvedInput.country ?? "AU",
+      status: resolvedInput.status ?? "prospect",
+      propertyType: resolvedInput.propertyType,
+      bedrooms: resolvedInput.bedrooms,
+      bathrooms: resolvedInput.bathrooms,
+      ownerContactId: resolvedInput.ownerContactId,
+      leadId: resolvedInput.leadId,
+      listingPriceCents: resolvedInput.listingPriceCents,
+      currency: resolvedInput.currency ?? "AUD",
+      metadata: resolvedInput.metadata as Prisma.InputJsonValue,
     },
   });
 
@@ -188,20 +222,6 @@ export async function createProperty(input: CreatePropertyInput) {
   });
 
   return serializeProperty(property);
-}
-
-function addressMetadataFromParsed(
-  parsed: Awaited<ReturnType<typeof resolvePropertyAddress>>,
-  extra?: Record<string, unknown>,
-) {
-  return {
-    address_confidence: parsed.confidence,
-    ...(parsed.latitude != null ? { latitude: parsed.latitude } : {}),
-    ...(parsed.longitude != null ? { longitude: parsed.longitude } : {}),
-    ...(parsed.formattedAddress ? { formatted_address: parsed.formattedAddress } : {}),
-    ...(parsed.geocodeSource ? { geocode_source: parsed.geocodeSource } : {}),
-    ...extra,
-  };
 }
 
 async function applyResolvedAddressToProperty(

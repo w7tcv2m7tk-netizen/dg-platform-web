@@ -37,6 +37,14 @@ export interface DigitalTwinSnapshot {
     connectedConnectors?: number;
     pendingAutomations?: number;
     unrepliedReviews?: number;
+    /** Commerce / Financial Health (Digital Twin™) */
+    revenueMtdCents?: number;
+    outstandingArCents?: number;
+    overdueArCents?: number;
+    mrrCents?: number;
+    avgPaymentDays?: number;
+    failedPayments30d?: number;
+    refundRate?: number;
   };
 
   /** Connected system IDs */

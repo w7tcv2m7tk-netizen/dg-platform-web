@@ -9,6 +9,7 @@ import {
   resolvePlatformSession,
 } from "@dg/platform-core";
 
+import { RequestPaymentButton } from "@/components/re/RequestPaymentButton";
 import { LeadStageSelect } from "@/components/re/LeadStageSelect";
 import { StartAppraisalButton } from "@/components/re/StartAppraisalButton";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -112,6 +113,19 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
                   </div>
                 </div>
               )}
+            </div>
+
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">Payments</h2>
+              <p className="mt-2 text-sm text-slate-400">
+                Send a Stripe checkout link for marketing contribution or other fees.
+              </p>
+              <div className="mt-4">
+                <RequestPaymentButton
+                  leadId={lead.id}
+                  contactId={lead.contactId ?? undefined}
+                />
+              </div>
             </div>
 
             <div className="dg-card">

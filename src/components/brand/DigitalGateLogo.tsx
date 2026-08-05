@@ -1,14 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const BRAND = {
-  icon: "/brand/icon.png",
-  logo: "/brand/logo.png",
-} as const;
+import { brandAssetsForTheme, type BrandTheme } from "@/lib/brand";
 
 type DigitalGateLogoProps = {
-  /** icon = mark only, logo = wordmark, lockup = icon + subtitle */
+  /** icon = mark only, logo = wordmark, lockup = icon + wordmark */
   variant?: "icon" | "logo" | "lockup";
+  /** on-dark = light marks (default). on-light = navy marks for white backgrounds */
+  theme?: BrandTheme;
   href?: string;
   className?: string;
   iconSize?: number;
@@ -17,15 +16,18 @@ type DigitalGateLogoProps = {
 
 export function DigitalGateLogo({
   variant = "lockup",
+  theme = "on-dark",
   href = "/dashboard",
   className = "",
   iconSize = 32,
-  logoHeight = 32,
+  logoHeight = 28,
 }: DigitalGateLogoProps) {
+  const brand = brandAssetsForTheme(theme);
+
   const content =
     variant === "icon" ? (
       <Image
-        src={BRAND.icon}
+        src={brand.icon}
         alt="DigitalGate"
         width={iconSize}
         height={iconSize}
@@ -34,18 +36,18 @@ export function DigitalGateLogo({
       />
     ) : variant === "logo" ? (
       <Image
-        src={BRAND.logo}
+        src={brand.logo}
         alt="DigitalGate"
-        width={3882}
-        height={362}
+        width={1200}
+        height={112}
         className="h-auto w-auto max-w-[220px] sm:max-w-[280px]"
-        style={{ height: logoHeight }}
+        style={{ height: logoHeight, width: "auto" }}
         priority
       />
     ) : (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         <Image
-          src={BRAND.icon}
+          src={brand.icon}
           alt=""
           width={iconSize}
           height={iconSize}
@@ -53,12 +55,15 @@ export function DigitalGateLogo({
           aria-hidden
           priority
         />
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-blue-400">
-            DigitalGate
-          </p>
-          <p className="text-sm text-slate-400">Business Platform</p>
-        </div>
+        <Image
+          src={brand.logo}
+          alt="DigitalGate"
+          width={1200}
+          height={112}
+          className="h-auto w-auto max-w-[140px] sm:max-w-[160px]"
+          style={{ height: Math.max(logoHeight - 4, 20), width: "auto" }}
+          priority
+        />
       </div>
     );
 

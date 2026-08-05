@@ -1,4 +1,9 @@
-import { createContact, createLead } from "@dg/platform-core";
+import {
+  createContact,
+  createLead,
+  enrichLeadAddressMetadata,
+  resolveAddress,
+} from "@dg/platform-core";
 
 export interface WpVendorLead {
   id: number;
@@ -72,24 +77,33 @@ export async function syncVendorLeadsFromWordPress(
         }
       }
 
+      const rawAddress = wpLead.property_address?.trim() ?? "";
+      let leadMetadata: Record<string, unknown> = {
+        stage: wpLead.stage ?? "vendor_lead",
+        property_address: rawAddress || undefined,
+        wp_name: wpLead.name,
+      };
+
+      if (rawAddress) {
+        const resolved = await resolveAddress(rawAddress, { geocode: true });
+        leadMetadata = enrichLeadAddressMetadata(leadMetadata, resolved);
+      }
+
       const title =
-        wpLead.property_address?.trim() ||
-        wpLead.name?.trim() ||
-        `Vendor lead #${wpId}`;
+        (leadMetadata.property_formatted as string | undefined) ??
+        (rawAddress ||
+          wpLead.name?.trim() ||
+          `Vendor lead #${wpId}`);
 
       await createLead({
         organisationId: input.organisationId,
         actorId: input.actorId,
         source: wpLead.source ?? "wordpress",
         title,
-        description: wpLead.property_address,
+        description: rawAddress || undefined,
         contactId,
         status: wpLead.status ?? "new",
-        metadata: {
-          stage: wpLead.stage ?? "vendor_lead",
-          property_address: wpLead.property_address,
-          wp_name: wpLead.name,
-        },
+        metadata: leadMetadata,
         externalRefs: {
           wp_vendor_lead_id: wpId,
           wp_created_at: wpLead.created_at,

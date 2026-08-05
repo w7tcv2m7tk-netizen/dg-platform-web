@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import { clerkAppearance } from "@/lib/clerk-appearance";
+import { BRAND_DEFAULT } from "@/lib/brand";
 import "./globals.css";
 
 const inter = Inter({
@@ -16,8 +17,8 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_APP_URL ?? "https://app.digitalgate.com.au",
   ),
   icons: {
-    icon: "/brand/icon.png",
-    apple: "/brand/icon.png",
+    icon: [{ url: BRAND_DEFAULT.icon, type: "image/png" }],
+    apple: [{ url: "/apple-icon.png", type: "image/png" }],
   },
 };
 

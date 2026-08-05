@@ -38,14 +38,19 @@ Every Connector must implement:
 
 ---
 
-## Stripe Connector
+## Stripe Connector (Commerce)
+
+Commerce Payment Engine owns business logic. Stripe connector implements `PaymentConnector`.
 
 | Event | Platform action |
 |-------|-----------------|
-| `checkout.session.completed` | Create/update Contact, tags, org billing |
-| Subscription updated | Update Subscription object |
+| `checkout.session.completed` | `recordPaymentFromWebhook` → `commerce.payment.completed` |
+| `invoice.paid` | Update CommerceInvoice + emit event |
+| Subscription updated | Update CommerceSubscription |
 
-Moves from WP webhook → Platform API (Phase 2).
+Moves from WP webhook → Platform API (`/api/webhooks/stripe`).
+
+See `docs/commerce/COMMERCE-SPECIFICATION.md`.
 
 ---
 

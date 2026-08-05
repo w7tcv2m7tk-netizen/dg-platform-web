@@ -2,6 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { listProperties, resolvePlatformSession } from "@dg/platform-core";
 
 import { PropertyList } from "@/components/re/PropertyList";
+import { CreatePropertyForm } from "@/components/re/CreatePropertyForm";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 export default async function PropertiesPage() {
@@ -54,7 +55,8 @@ export default async function PropertiesPage() {
           {appraisalCount} in appraisal · {listedCount} listed · {items.length} total
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="flex-1 space-y-6 p-8">
+        <CreatePropertyForm />
         <PropertyList properties={items} />
       </main>
     </>

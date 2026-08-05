@@ -18,5 +18,7 @@ export * from "./connectors/wordpress";
 export * from "./contacts";
 export * from "./leads";
 export * from "./properties";
+export * from "./addresses";
 export * from "./websites";
+export * from "./commerce";
 export * from "./session";

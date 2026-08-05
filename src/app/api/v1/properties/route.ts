@@ -57,12 +57,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ data: property }, { status: 201 });
   }
 
-  if (!body?.addressLine1?.trim() || !body?.suburb?.trim()) {
+  const rawAddress = (body?.rawAddress ?? body?.addressLine1 ?? "").toString().trim();
+  const suburb = (body?.suburb ?? "").toString().trim();
+  const state = (body?.state ?? "QLD").toString().trim();
+  const postcode = (body?.postcode ?? "0000").toString().trim();
+
+  if (!rawAddress) {
     return NextResponse.json(
       {
         error: {
           code: "validation_error",
-          message: "addressLine1 and suburb are required",
+          message: "rawAddress or addressLine1 is required",
         },
       },
       { status: 422 },
@@ -72,11 +77,11 @@ export async function POST(req: Request) {
   const property = await createProperty({
     organisationId: session.organisationId,
     actorId: session.clerkUserId,
-    addressLine1: body.addressLine1,
+    addressLine1: rawAddress,
     addressLine2: body.addressLine2,
-    suburb: body.suburb,
-    state: body.state ?? "QLD",
-    postcode: body.postcode ?? "0000",
+    suburb: suburb || "Gold Coast",
+    state,
+    postcode,
     status: body.status,
     propertyType: body.propertyType,
     ownerContactId: body.ownerContactId,
