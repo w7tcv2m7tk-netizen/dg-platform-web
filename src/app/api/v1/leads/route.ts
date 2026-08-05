@@ -1,14 +1,13 @@
 import {
   listLeads,
-  syncVendorLeadsFromWordPress,
   updateLeadStage,
   VENDOR_STAGES,
   type VendorStage,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { fetchWpVendorLeads } from "@/lib/dg-api";
 import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
+import { syncWordPressVendorLeads } from "@/lib/wordpress-sync";
 
 export async function GET(req: Request) {
   const session = await requirePlatformSession();
@@ -30,36 +29,22 @@ export async function POST(req: Request) {
   if (isNextResponse(session)) return session;
 
   const body = await req.json().catch(() => ({}));
-  const action = body.action as string | undefined;
-
-  if (action === "sync_wordpress") {
-    const wp = await fetchWpVendorLeads(100);
-    if (!wp.ok) {
-      return NextResponse.json(
-        {
-          error: {
-            code: wp.code,
-            message: wp.message,
-            status: wp.status,
-          },
-        },
-        { status: 422 },
-      );
-    }
-
-    const result = await syncVendorLeadsFromWordPress({
-      organisationId: session.organisationId,
-      actorId: session.clerkUserId,
-      leads: wp.leads,
-    });
-
-    return NextResponse.json({ data: result });
+  if (body.action !== "sync_wordpress") {
+    return NextResponse.json(
+      { error: { code: "unknown_action", message: "Unsupported action" } },
+      { status: 400 },
+    );
   }
 
-  return NextResponse.json(
-    { error: { code: "unknown_action", message: "Unsupported action" } },
-    { status: 400 },
-  );
+  const outcome = await syncWordPressVendorLeads(session);
+  if (!outcome.ok) {
+    return NextResponse.json(
+      { error: { code: "sync_failed", message: outcome.message } },
+      { status: 422 },
+    );
+  }
+
+  return NextResponse.json({ data: outcome.result });
 }
 
 export async function PATCH(req: Request) {

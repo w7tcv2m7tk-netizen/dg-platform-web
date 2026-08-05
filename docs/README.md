@@ -55,6 +55,7 @@ These documents capture **why** the platform is built the way it is. They are as
 | Document | Purpose |
 |----------|---------|
 | [ai/AI-ARCHITECTURE.md](./ai/AI-ARCHITECTURE.md) | AI Service, Business Memory, tool registry |
+| [ai/COMMUNICATIONS-ARCHITECTURE.md](./ai/COMMUNICATIONS-ARCHITECTURE.md) | AI Communications Growth App — voice, messaging, orchestration |
 | [connectors/CONNECTOR-SPECIFICATION.md](./connectors/CONNECTOR-SPECIFICATION.md) | Connector contract — sync, auth, mapping |
 | [design/DESIGN-SYSTEM.md](./design/DESIGN-SYSTEM.md) | UI package (`@dg/ui`), tokens, components |
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -77,7 +78,31 @@ export function VendorLeadPipeline({
         >
           {syncing ? "Syncing…" : "Sync from WordPress"}
         </button>
+        <button
+          type="button"
+          onClick={async () => {
+            const res = await fetch("/api/v1/connectors/wordpress/status");
+            const json = await res.json().catch(() => null);
+            const p = json?.data?.probe;
+            const env = json?.data?.env;
+            if (p?.ok) {
+              setSyncMsg(
+                `Connector OK — ${p.leadCount} lead(s) available at ${json?.data?.connectorBaseUrl}`,
+              );
+            } else {
+              setSyncMsg(
+                `[${env?.usingKey ?? "?"}] ${p?.message ?? "Diagnostic failed"}`,
+              );
+            }
+          }}
+          className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:bg-slate-900"
+        >
+          Test connection
+        </button>
         {syncMsg ? <p className="text-sm text-slate-400">{syncMsg}</p> : null}
+        <p className="text-xs text-slate-500">
+          Auto-sync runs every 4 hours when you open this page
+        </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3 xl:grid-cols-6">
@@ -91,8 +116,15 @@ export function VendorLeadPipeline({
                   key={lead.id}
                   className="rounded-lg border border-slate-800 bg-slate-900/50 p-2 text-xs"
                 >
-                  <p className="font-medium text-white">{lead.title ?? "Untitled"}</p>
-                  <p className="text-slate-500">{lead.source}</p>
+                  <Link
+                    href={`/apps/re/vendor-leads/${lead.id}`}
+                    className="block hover:opacity-90"
+                  >
+                    <p className="font-medium text-white">
+                      {lead.title ?? "Untitled"}
+                    </p>
+                    <p className="text-slate-500">{lead.source}</p>
+                  </Link>
                   <select
                     className="mt-2 w-full rounded border border-slate-700 bg-slate-950 px-1 py-1 text-slate-300"
                     value={lead.stage || "vendor_lead"}

@@ -32,7 +32,62 @@ export const CRM_FEATURES: FeatureGroup = {
   ],
 };
 
-const ALL_GROUPS: FeatureGroup[] = [CRM_FEATURES];
+/** AI Communications feature registry */
+export const AI_COMMUNICATIONS_FEATURES: FeatureGroup = {
+  appId: "ai-communications",
+  label: "AI Communications",
+  features: [
+    { id: "comms.inbox.read", appId: "ai-communications", label: "View inbox" },
+    { id: "comms.messages.draft", appId: "ai-communications", label: "Draft messages" },
+    {
+      id: "comms.messages.send",
+      appId: "ai-communications",
+      label: "Send messages",
+      tier: "standard",
+    },
+    { id: "comms.voice.read", appId: "ai-communications", label: "View voice agents" },
+    {
+      id: "comms.voice.inbound",
+      appId: "ai-communications",
+      label: "Inbound voice agents",
+      tier: "premium",
+    },
+    {
+      id: "comms.voice.outbound",
+      appId: "ai-communications",
+      label: "Outbound voice agents",
+      tier: "premium",
+    },
+    {
+      id: "comms.agents.configure",
+      appId: "ai-communications",
+      label: "Configure AI agents",
+      tier: "premium",
+    },
+    { id: "comms.knowledge.read", appId: "ai-communications", label: "View knowledge base" },
+    {
+      id: "comms.knowledge.write",
+      appId: "ai-communications",
+      label: "Edit knowledge base",
+      tier: "standard",
+    },
+    { id: "comms.call_centre.read", appId: "ai-communications", label: "View call centre" },
+    {
+      id: "comms.analytics.read",
+      appId: "ai-communications",
+      label: "View communications analytics",
+      tier: "standard",
+    },
+    {
+      id: "comms.ai.coaching.read",
+      appId: "ai-communications",
+      label: "View AI coaching insights",
+      tier: "premium",
+    },
+  ],
+};
+
+const ALL_GROUPS: FeatureGroup[] = [CRM_FEATURES, AI_COMMUNICATIONS_FEATURES];
 
 export class FeatureRegistry {
   private features = new Map<string, FeatureDefinition>();

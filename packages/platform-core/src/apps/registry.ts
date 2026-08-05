@@ -1,6 +1,7 @@
 import type { AppNavItem, AppTier, AppVisibility, RegisteredApp } from "./manifest";
 import { commandCentreApp } from "./builtins/command-centre";
 import { crmApp } from "./builtins/crm";
+import { aiCommunicationsApp } from "./builtins/ai-communications";
 import { realEstateApp } from "./builtins/real-estate";
 import { seoApp, aiVisibilityApp } from "./builtins/seo";
 
@@ -14,6 +15,7 @@ const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: realEstateApp, enabled: true },
   { manifest: seoApp, enabled: false },
   { manifest: aiVisibilityApp, enabled: false },
+  { manifest: aiCommunicationsApp, enabled: false },
   { manifest: commandCentreApp, enabled: true },
 ];
 

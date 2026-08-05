@@ -3,6 +3,10 @@ import { listLeads, resolvePlatformSession } from "@dg/platform-core";
 
 import { VendorLeadPipeline } from "@/components/re/VendorLeadPipeline";
 import { fetchPortalMe } from "@/lib/dg-api";
+import {
+  autoSyncWordPressVendorLeadsIfNeeded,
+  getLastWordPressSync,
+} from "@/lib/wordpress-sync";
 
 export default async function VendorLeadsPage() {
   const user = await currentUser();
@@ -38,7 +42,14 @@ export default async function VendorLeadsPage() {
     );
   }
 
+  const autoSync = await autoSyncWordPressVendorLeadsIfNeeded(session);
+  const lastSync = await getLastWordPressSync(session.organisationId);
   const { items } = await listLeads({ organisationId: session.organisationId });
+
+  let autoSyncNote: string | undefined;
+  if (autoSync.ran && autoSync.result) {
+    autoSyncNote = `Auto-synced ${autoSync.result.created} new lead(s) from WordPress`;
+  }
 
   return (
     <>
@@ -47,6 +58,18 @@ export default async function VendorLeadsPage() {
         <p className="text-sm text-slate-400">
           {session.organisationName} · Roe Realty pipeline on Platform
         </p>
+        {autoSyncNote ? (
+          <p className="mt-1 text-xs text-emerald-400/90">{autoSyncNote}</p>
+        ) : null}
+        {lastSync?.lastVendorLeadSyncAt ? (
+          <p className="mt-1 text-xs text-slate-500">
+            Last sync:{" "}
+            {new Date(lastSync.lastVendorLeadSyncAt).toLocaleString("en-AU")}
+            {lastSync.lastVendorLeadSync
+              ? ` · ${lastSync.lastVendorLeadSync.created} imported`
+              : ""}
+          </p>
+        ) : null}
       </header>
       <main className="flex-1 p-8">
         <VendorLeadPipeline leads={items} />

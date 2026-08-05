@@ -176,3 +176,33 @@ export async function updateLeadStage(
 
   return serializeLead(updated);
 }
+
+export async function listLeadActivities(organisationId: string, leadId: string) {
+  const { prisma } = await import("@dg/database");
+
+  const lead = await prisma.lead.findFirst({
+    where: { id: leadId, organisationId },
+  });
+  if (!lead) return null;
+
+  const activities = await prisma.activity.findMany({
+    where: {
+      organisationId,
+      entityType: "Lead",
+      entityId: leadId,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
+
+  return activities.map((a) => ({
+    id: a.id,
+    activityType: a.activityType,
+    title: a.title,
+    body: a.body,
+    sourceApp: a.sourceApp,
+    createdBy: a.createdBy,
+    metadata: a.metadata as Record<string, unknown> | null,
+    createdAt: a.createdAt.toISOString(),
+  }));
+}
