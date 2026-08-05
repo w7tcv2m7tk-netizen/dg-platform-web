@@ -1,6 +1,6 @@
 import { PlatformShell } from "@/components/PlatformShell";
 
-export default function DashboardLayout({
+export default function SignupPlatformLayout({
   children,
 }: {
   children: React.ReactNode;

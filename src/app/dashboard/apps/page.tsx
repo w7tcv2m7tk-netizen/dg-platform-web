@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAppsByTier, getPlatformNavigation } from "@dg/platform-core";
+import { getAppsByTier } from "@dg/platform-core";
 
 export default function AppsPage() {
   const tiers = getAppsByTier();

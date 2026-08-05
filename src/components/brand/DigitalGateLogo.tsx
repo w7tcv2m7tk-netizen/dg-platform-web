@@ -8,7 +8,7 @@ const LOGO_WIDTH = 1024;
 const LOGO_HEIGHT = 95;
 
 type DigitalGateLogoProps = {
-  /** icon = mark only, logo = wordmark, lockup = icon + wordmark + tagline */
+  /** icon = mark only, logo = wordmark, lockup = icon beside wordmark + tagline */
   variant?: "icon" | "logo" | "lockup";
   theme?: BrandTheme;
   href?: string;
@@ -19,22 +19,12 @@ type DigitalGateLogoProps = {
   showTagline?: boolean;
 };
 
-function iconClassName(theme: BrandTheme) {
-  /* Light PNGs are black-on-white — invert + lighten hides the white box on dark UI */
-  return theme === "on-dark" ? "invert mix-blend-lighten" : "";
-}
-
-function wordmarkClassName(theme: BrandTheme) {
-  /* White-on-black wordmark — lighten drops the black box on dark UI */
-  return theme === "on-dark" ? "mix-blend-lighten" : "";
-}
-
 export function DigitalGateLogo({
   variant = "lockup",
   theme = "on-dark",
   href = "/dashboard",
   className = "",
-  iconSize = 22,
+  iconSize = 24,
   logoWidth = 128,
   showTagline = true,
 }: DigitalGateLogoProps) {
@@ -44,9 +34,9 @@ export function DigitalGateLogo({
     <Image
       src={brand.icon}
       alt=""
-      width={LOGO_WIDTH}
-      height={LOGO_WIDTH}
-      className={`shrink-0 object-contain ${iconClassName(theme)}`}
+      width={512}
+      height={512}
+      className="shrink-0 object-contain"
       style={{ width: iconSize, height: iconSize }}
       aria-hidden={variant === "lockup"}
       priority
@@ -59,37 +49,42 @@ export function DigitalGateLogo({
       alt="DigitalGate"
       width={LOGO_WIDTH}
       height={LOGO_HEIGHT}
-      className={`block h-auto max-w-full object-contain object-left ${wordmarkClassName(theme)}`}
+      className="block h-auto max-w-full object-contain object-left"
       style={{ width: logoWidth }}
       priority
     />
   );
 
   const tagline = showTagline ? (
-    <p className="text-[11px] font-medium tracking-wide text-slate-400">Business Platform</p>
+    <p className="text-[11px] font-medium leading-tight tracking-wide text-slate-400">
+      Business Platform
+    </p>
   ) : null;
+
+  const textBlock = (
+    <div className="flex min-w-0 flex-col justify-center gap-0.5">
+      {wordmark}
+      {tagline}
+    </div>
+  );
 
   const content =
     variant === "icon" ? (
       <Image
         src={brand.icon}
         alt="DigitalGate"
-        width={LOGO_WIDTH}
-        height={LOGO_WIDTH}
-        className={`shrink-0 object-contain ${iconClassName(theme)}`}
+        width={512}
+        height={512}
+        className="shrink-0 object-contain"
         style={{ width: iconSize, height: iconSize }}
         priority
       />
     ) : variant === "logo" ? (
-      <div className="flex flex-col items-start gap-1">
-        {wordmark}
-        {tagline}
-      </div>
+      textBlock
     ) : (
-      <div className="flex flex-col items-start gap-1.5">
+      <div className="flex items-center gap-2.5">
         {icon}
-        {wordmark}
-        {tagline}
+        {textBlock}
       </div>
     );
 

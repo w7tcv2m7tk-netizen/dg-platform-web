@@ -16,7 +16,7 @@ export const websitesApp: AppManifest = {
     { path: "/apps/websites/sites", label: "Sites" },
   ],
   navigation: [
-    { href: "/apps/websites/health", label: "Websites", icon: "🌐" },
+    { href: "/apps/websites/health", label: "Websites", icon: "◫" },
   ],
   permissions: [
     { id: "websites.view", label: "View websites" },

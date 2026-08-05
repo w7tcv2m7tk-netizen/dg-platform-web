@@ -6,8 +6,8 @@ export function SidebarBrand() {
       <DigitalGateLogo
         variant="lockup"
         href="/dashboard"
-        iconSize={20}
-        logoWidth={118}
+        iconSize={26}
+        logoWidth={120}
       />
     </div>
   );

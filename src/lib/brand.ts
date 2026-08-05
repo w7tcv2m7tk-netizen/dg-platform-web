@@ -9,11 +9,13 @@ export type BrandTheme = "on-dark" | "on-light";
 
 export const BRAND_ASSETS = {
   "on-dark": {
-    icon: "/brand/icon-light.png",
-    logo: "/brand/logo-light.png",
+    /** Light Door shape — transparent canvas, slate door on platform shell */
+    icon: "/brand/icon-on-dark.png",
+    /** White wordmark — transparent canvas */
+    logo: "/brand/logo-on-dark.png",
   },
   "on-light": {
-    icon: "/brand/icon-navy.png",
+    icon: "/brand/icon-light.png",
     logo: "/brand/logo-navy.png",
   },
 } as const;
