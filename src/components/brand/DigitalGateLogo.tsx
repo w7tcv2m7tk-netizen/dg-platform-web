@@ -30,13 +30,15 @@ export function DigitalGateLogo({
 }: DigitalGateLogoProps) {
   const brand = brandAssetsForTheme(theme);
 
+  const iconClassName = theme === "on-dark" ? "mix-blend-multiply" : "";
+
   const icon = (
     <Image
       src={brand.icon}
       alt=""
       width={512}
       height={512}
-      className="shrink-0 object-contain"
+      className={`shrink-0 object-contain ${iconClassName}`}
       style={{ width: iconSize, height: iconSize }}
       aria-hidden={variant === "lockup"}
       priority
@@ -75,7 +77,7 @@ export function DigitalGateLogo({
         alt="DigitalGate"
         width={512}
         height={512}
-        className="shrink-0 object-contain"
+        className={`shrink-0 object-contain ${iconClassName}`}
         style={{ width: iconSize, height: iconSize }}
         priority
       />

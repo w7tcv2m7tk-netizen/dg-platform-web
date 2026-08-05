@@ -9,8 +9,8 @@ export type BrandTheme = "on-dark" | "on-light";
 
 export const BRAND_ASSETS = {
   "on-dark": {
-    /** Light Door shape — transparent canvas, slate door on platform shell */
-    icon: "/brand/icon-on-dark.png",
+    /** Icon Light Door — black mark; multiply drops the white PNG canvas */
+    icon: "/brand/icon-light.png",
     /** White wordmark — transparent canvas */
     logo: "/brand/logo-on-dark.png",
   },
