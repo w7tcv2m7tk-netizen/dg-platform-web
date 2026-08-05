@@ -1,10 +1,23 @@
 const DEFAULT_API_BASE = "https://digitalgate.com.au/wp-json/digitalgate/v1";
 
+/** Production CVH site — used when env contains placeholder URLs. */
+export const CVH_WP_REST_BASE =
+  "https://currumbinvalleyhideaway.com.au/wp-json/digitalgate/v1";
+
+function isPlaceholderWpUrl(baseUrl: string): boolean {
+  return /YOUR-CVH-SITE|example\.com|localhost|placeholder/i.test(baseUrl);
+}
+
 function wpSiteConfigHint(baseUrl: string, envVar = "DG_WP_ACCOMMODATION_SITES"): string {
-  if (/YOUR-CVH-SITE|example\.com|localhost/i.test(baseUrl)) {
-    return `Replace the placeholder in ${envVar} with the live WordPress URL (CVH: https://currumbinvalleyhideaway.com.au/wp-json/digitalgate/v1).`;
+  if (isPlaceholderWpUrl(baseUrl)) {
+    return `Replace the placeholder in ${envVar} with the live WordPress URL (CVH: ${CVH_WP_REST_BASE}).`;
   }
   return `Check ${envVar} baseUrl and that the DG Platform plugin is active on that site.`;
+}
+
+function normalizeWpSites<T extends WpHealthSite>(sites: T[], fallback: T[]): T[] {
+  const valid = sites.filter((site) => !isPlaceholderWpUrl(site.baseUrl));
+  return valid.length ? valid : fallback;
 }
 
 function wpNetworkErrorMessage(baseUrl: string, path: string, envVar?: string): string {
@@ -208,31 +221,35 @@ function siteLabelFromBaseUrl(baseUrl: string) {
 
 /** Configured WordPress sites for Health Centre (JSON in DG_WP_HEALTH_SITES). */
 export function listWpHealthSites(): WpHealthSite[] {
+  const roeFallback: WpHealthSite[] = [
+    {
+      id: "default",
+      label: siteLabelFromBaseUrl(getWpConnectorBase()),
+      baseUrl: getWpConnectorBase(),
+    },
+  ];
+
   const raw = process.env.DG_WP_HEALTH_SITES?.trim();
   if (raw) {
     try {
       const parsed = JSON.parse(raw) as WpHealthSite[];
       if (Array.isArray(parsed) && parsed.length) {
-        return parsed.map((site) => ({
-          id: site.id,
-          label: site.label || siteLabelFromBaseUrl(site.baseUrl),
-          baseUrl: site.baseUrl.replace(/\/$/, ""),
-          apiKey: site.apiKey,
-        }));
+        return normalizeWpSites(
+          parsed.map((site) => ({
+            id: site.id,
+            label: site.label || siteLabelFromBaseUrl(site.baseUrl),
+            baseUrl: site.baseUrl.replace(/\/$/, ""),
+            apiKey: site.apiKey,
+          })),
+          roeFallback,
+        );
       }
     } catch {
       /* fall through to default */
     }
   }
 
-  const base = getWpConnectorBase();
-  return [
-    {
-      id: "default",
-      label: siteLabelFromBaseUrl(base),
-      baseUrl: base,
-    },
-  ];
+  return roeFallback;
 }
 
 export function getWpHealthSite(siteId?: string | null): WpHealthSite {
@@ -485,23 +502,41 @@ export type WpAccommodationSite = WpHealthSite;
 
 /** Accommodation WordPress sites — JSON in DG_WP_ACCOMMODATION_SITES, else health sites. */
 export function listWpAccommodationSites(): WpAccommodationSite[] {
+  const cvhFallback: WpAccommodationSite[] = [
+    {
+      id: "cvh",
+      label: "Currumbin Valley Hideaway",
+      baseUrl: CVH_WP_REST_BASE,
+    },
+  ];
+
   const raw = process.env.DG_WP_ACCOMMODATION_SITES?.trim();
   if (raw) {
     try {
       const parsed = JSON.parse(raw) as WpAccommodationSite[];
       if (Array.isArray(parsed) && parsed.length) {
-        return parsed.map((site) => ({
-          id: site.id,
-          label: site.label || siteLabelFromBaseUrl(site.baseUrl),
-          baseUrl: site.baseUrl.replace(/\/$/, ""),
-          apiKey: site.apiKey,
-        }));
+        return normalizeWpSites(
+          parsed.map((site) => ({
+            id: site.id,
+            label: site.label || siteLabelFromBaseUrl(site.baseUrl),
+            baseUrl: site.baseUrl.replace(/\/$/, ""),
+            apiKey: site.apiKey,
+          })),
+          cvhFallback,
+        );
       }
     } catch {
       /* fall through */
     }
   }
-  return listWpHealthSites();
+
+  const healthSites = listWpHealthSites();
+  const validHealth = healthSites.filter((site) => !isPlaceholderWpUrl(site.baseUrl));
+  if (validHealth.length) {
+    return validHealth;
+  }
+
+  return cvhFallback;
 }
 
 export function getWpAccommodationSite(siteId?: string | null): WpAccommodationSite {
