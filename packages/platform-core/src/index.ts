@@ -25,3 +25,4 @@ export * from "./session";
 export * from "./real-estate/pipeline";
 export * from "./automation";
 export * from "./communications";
+export * from "./roadmap";
