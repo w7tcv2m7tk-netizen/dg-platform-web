@@ -11,6 +11,7 @@ import {
 } from "@dg/platform-core";
 
 import { PropertyStatusSelect } from "@/components/re/PropertyStatusSelect";
+import { RefreshAddressButton } from "@/components/re/RefreshAddressButton";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -61,6 +62,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
   ]);
 
   const fullAddress = formatPropertyAddress(property);
+  const formattedAddress = property.metadata?.formatted_address as string | undefined;
 
   return (
     <>
@@ -93,6 +95,17 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                   {(property.listingPriceCents / 100).toLocaleString("en-AU")}
                 </p>
               ) : null}
+            </div>
+
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">Address</h2>
+              <p className="mt-2 text-sm text-slate-300">{fullAddress}</p>
+              {formattedAddress ? (
+                <p className="mt-2 text-xs text-slate-500">{formattedAddress}</p>
+              ) : null}
+              <div className="mt-4">
+                <RefreshAddressButton propertyId={property.id} />
+              </div>
             </div>
 
             {lead ? (

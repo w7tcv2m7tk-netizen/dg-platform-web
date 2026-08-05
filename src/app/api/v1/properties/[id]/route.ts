@@ -1,4 +1,5 @@
 import {
+  geocodePropertyAddress,
   getProperty,
   listPropertyActivities,
   PROPERTY_STATUSES,
@@ -38,6 +39,24 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
   const { id } = await params;
   const body = await req.json().catch(() => null);
+
+  if (body?.action === "geocode_address") {
+    const updated = await geocodePropertyAddress(
+      session.organisationId,
+      id,
+      session.clerkUserId,
+    );
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: { code: "property_not_found", message: "Property not found" } },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ data: updated });
+  }
+
   const status = body?.status as PropertyStatus | undefined;
 
   if (!status || !PROPERTY_STATUSES.includes(status)) {

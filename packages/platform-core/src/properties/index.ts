@@ -3,10 +3,12 @@ import type { Property, Prisma } from "@dg/database";
 import { writeAuditLog } from "../audit";
 import { platformEvents } from "../events";
 import { updateLeadStage } from "../leads";
-import { parsePropertyAddress } from "./address";
+import { parsePropertyAddress, resolvePropertyAddress } from "./address";
 
-export { parsePropertyAddress, needsAddressRefinement } from "./address";
+export { parsePropertyAddress, needsAddressRefinement, resolvePropertyAddress } from "./address";
 export type { ParsedPropertyAddress } from "./address";
+export { geocodeAustralianAddress, isGeocodingConfigured } from "./geocode";
+export type { GeocodeResult } from "./geocode";
 
 export const PROPERTY_STATUSES = [
   "prospect",
@@ -188,6 +190,70 @@ export async function createProperty(input: CreatePropertyInput) {
   return serializeProperty(property);
 }
 
+function addressMetadataFromParsed(
+  parsed: Awaited<ReturnType<typeof resolvePropertyAddress>>,
+  extra?: Record<string, unknown>,
+) {
+  return {
+    address_confidence: parsed.confidence,
+    ...(parsed.latitude != null ? { latitude: parsed.latitude } : {}),
+    ...(parsed.longitude != null ? { longitude: parsed.longitude } : {}),
+    ...(parsed.formattedAddress ? { formatted_address: parsed.formattedAddress } : {}),
+    ...(parsed.geocodeSource ? { geocode_source: parsed.geocodeSource } : {}),
+    ...extra,
+  };
+}
+
+async function applyResolvedAddressToProperty(
+  organisationId: string,
+  propertyId: string,
+  parsed: Awaited<ReturnType<typeof resolvePropertyAddress>>,
+  actorId?: string,
+  activityTitle = "Property address updated",
+) {
+  const { prisma } = await import("@dg/database");
+
+  const property = await prisma.property.findFirst({
+    where: { id: propertyId, organisationId, deletedAt: null },
+  });
+  if (!property) return null;
+
+  const updated = await prisma.property.update({
+    where: { id: propertyId },
+    data: {
+      addressLine1: parsed.addressLine1,
+      suburb: parsed.suburb,
+      state: parsed.state,
+      postcode: parsed.postcode,
+      metadata: {
+        ...((property.metadata as Record<string, unknown> | null) ?? {}),
+        ...addressMetadataFromParsed(parsed, {
+          address_refreshed_at: new Date().toISOString(),
+        }),
+      } as Prisma.InputJsonValue,
+    },
+  });
+
+  await prisma.activity.create({
+    data: {
+      organisationId,
+      entityType: "Property",
+      entityId: propertyId,
+      activityType: "address_updated",
+      title: activityTitle,
+      body: formatPropertyAddress(updated),
+      sourceApp: "real-estate",
+      createdBy: actorId,
+      metadata: {
+        geocode_source: parsed.geocodeSource ?? null,
+        address_confidence: parsed.confidence,
+      } as Prisma.InputJsonValue,
+    },
+  });
+
+  return serializeProperty(updated);
+}
+
 export async function createPropertyFromLead(input: CreatePropertyFromLeadInput) {
   const { prisma } = await import("@dg/database");
 
@@ -212,7 +278,7 @@ export async function createPropertyFromLead(input: CreatePropertyFromLeadInput)
     lead.title ??
     "Address TBC";
 
-  const parsed = parsePropertyAddress(rawAddress);
+  const parsed = await resolvePropertyAddress(rawAddress, { geocode: true });
 
   const property = await createProperty({
     organisationId: input.organisationId,
@@ -236,10 +302,7 @@ export async function createPropertyFromLead(input: CreatePropertyFromLeadInput)
     status: "appraisal",
     ownerContactId: lead.contactId ?? undefined,
     leadId: lead.id,
-    metadata: {
-      source_lead_id: lead.id,
-      address_confidence: parsed.confidence,
-    },
+    metadata: addressMetadataFromParsed(parsed, { source_lead_id: lead.id }),
   });
 
   const leadMetadata = (lead.metadata as Record<string, unknown> | null) ?? {};
@@ -291,46 +354,52 @@ export async function refreshPropertyAddressFromLead(
   const metadata = (lead.metadata as Record<string, unknown> | null) ?? {};
   const rawAddress =
     (metadata.property_address as string | undefined) ?? lead.title ?? property.addressLine1;
-  const parsed = parsePropertyAddress(rawAddress);
+  const parsed = await resolvePropertyAddress(rawAddress, { geocode: true });
 
-  const updated = await prisma.property.update({
-    where: { id: propertyId },
-    data: {
-      addressLine1: parsed.addressLine1,
-      suburb:
-        (metadata.suburb as string | undefined) ??
-        (metadata.property_suburb as string | undefined) ??
-        parsed.suburb,
-      state:
-        (metadata.state as string | undefined) ??
-        (metadata.property_state as string | undefined) ??
-        parsed.state,
-      postcode:
-        (metadata.postcode as string | undefined) ??
-        (metadata.property_postcode as string | undefined) ??
-        parsed.postcode,
-      metadata: {
-        ...((property.metadata as Record<string, unknown> | null) ?? {}),
-        address_confidence: parsed.confidence,
-        address_refreshed_at: new Date().toISOString(),
-      } as Prisma.InputJsonValue,
-    },
+  return applyResolvedAddressToProperty(
+    organisationId,
+    propertyId,
+    parsed,
+    actorId,
+    "Property address refined",
+  );
+}
+
+/** Force geocode lookup for a property address */
+export async function geocodePropertyAddress(
+  organisationId: string,
+  propertyId: string,
+  actorId?: string,
+) {
+  const { prisma } = await import("@dg/database");
+
+  const property = await prisma.property.findFirst({
+    where: { id: propertyId, organisationId, deletedAt: null },
   });
+  if (!property) return null;
 
-  await prisma.activity.create({
-    data: {
-      organisationId,
-      entityType: "Property",
-      entityId: propertyId,
-      activityType: "address_updated",
-      title: "Property address refined",
-      body: formatPropertyAddress(updated),
-      sourceApp: "real-estate",
-      createdBy: actorId,
-    },
-  });
+  let rawAddress = property.addressLine1;
+  if (property.leadId) {
+    const lead = await prisma.lead.findFirst({
+      where: { id: property.leadId, organisationId },
+    });
+    const leadMeta = (lead?.metadata as Record<string, unknown> | null) ?? {};
+    rawAddress =
+      (leadMeta.property_address as string | undefined) ??
+      lead?.title ??
+      property.addressLine1;
+  }
 
-  return serializeProperty(updated);
+  const parsed = await resolvePropertyAddress(rawAddress, { forceGeocode: true });
+  return applyResolvedAddressToProperty(
+    organisationId,
+    propertyId,
+    parsed,
+    actorId,
+    parsed.confidence === "geocoded"
+      ? "Address found automatically"
+      : "Address lookup attempted",
+  );
 }
 
 export async function updatePropertyStatus(

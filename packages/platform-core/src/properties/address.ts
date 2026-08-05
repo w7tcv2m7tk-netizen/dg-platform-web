@@ -1,9 +1,15 @@
+import { geocodeAustralianAddress } from "./geocode";
+
 export type ParsedPropertyAddress = {
   addressLine1: string;
   suburb: string;
   state: string;
   postcode: string;
-  confidence: "full" | "partial" | "inferred" | "fallback";
+  confidence: "full" | "partial" | "inferred" | "geocoded" | "fallback";
+  latitude?: number;
+  longitude?: number;
+  formattedAddress?: string;
+  geocodeSource?: "google" | "nominatim";
 };
 
 /** Roe / southern Gold Coast suburbs — longest match wins */
@@ -163,4 +169,31 @@ export function needsAddressRefinement(parsed: ParsedPropertyAddress) {
     parsed.suburb === "Gold Coast" ||
     parsed.postcode === "0000"
   );
+}
+
+/** Parse heuristics first, then geocode when suburb/postcode still uncertain */
+export async function resolvePropertyAddress(
+  raw: string,
+  options?: { geocode?: boolean; regionBias?: string; forceGeocode?: boolean },
+) {
+  const parsed = parsePropertyAddress(raw);
+  const shouldGeocode =
+    options?.geocode !== false &&
+    (options?.forceGeocode || needsAddressRefinement(parsed));
+
+  if (!shouldGeocode) {
+    return parsed;
+  }
+
+  const geocoded = await geocodeAustralianAddress(raw, options?.regionBias);
+  if (!geocoded.ok) {
+    return parsed;
+  }
+
+  return {
+    ...geocoded.address,
+    addressLine1: parsed.addressLine1 !== geocoded.address.addressLine1 && parsed.confidence !== "fallback"
+      ? parsed.addressLine1
+      : geocoded.address.addressLine1,
+  };
 }
