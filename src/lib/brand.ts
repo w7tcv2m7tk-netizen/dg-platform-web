@@ -7,6 +7,8 @@
 
 export type BrandTheme = "on-dark" | "on-light";
 
+export const BRAND_EMAIL_ICON = "/brand/icon-light.png";
+
 export const BRAND_ASSETS = {
   "on-dark": {
     /** Icon Light Door — black mark; multiply drops the white PNG canvas */
