@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  getAppSetupGuide,
+  getAppSetupHref,
   getRoadmapByArea,
   getRoadmapForApp,
   getRoadmapItem,
@@ -52,6 +54,7 @@ export function AppFeaturePlaceholder(props: AppFeaturePlaceholderProps) {
   const summary = getRoadmapSummary();
   const related = item.appId ? getRoadmapForApp(item.appId) : [];
   const areaItems = getRoadmapByArea().find((a) => a.area === item.area)?.items ?? [];
+  const setupGuide = item.appId ? getAppSetupGuide(item.appId) : undefined;
 
   return (
     <>
@@ -63,6 +66,14 @@ export function AppFeaturePlaceholder(props: AppFeaturePlaceholderProps) {
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold text-white">{item.label}</h1>
           <RoadmapStatusBadge status={item.status} />
+          {setupGuide ? (
+            <Link
+              href={getAppSetupHref(item.appId!)}
+              className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-0.5 text-xs font-medium text-blue-300 hover:bg-blue-500/15"
+            >
+              Setup guide
+            </Link>
+          ) : null}
         </div>
         <p className="mt-1 text-sm text-slate-400">
           {item.area} · {item.description}

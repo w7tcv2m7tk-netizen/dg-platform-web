@@ -26,3 +26,4 @@ export * from "./real-estate/pipeline";
 export * from "./automation";
 export * from "./communications";
 export * from "./roadmap";
+export * from "./app-guides";

@@ -4,6 +4,10 @@ import {
 
   getAppsByTier,
 
+  getAppSetupGuide,
+
+  getAppSetupHref,
+
   getRoadmapForApp,
 
   getRoadmapItemByHref,
@@ -161,12 +165,13 @@ function AppTierSection({
 
 
           const navIcon = manifest.navigation[0]?.icon ?? manifest.icon;
+          const setupGuide = getAppSetupGuide(manifest.id);
 
 
 
           return (
 
-            <div key={manifest.id} className="dg-card">
+            <div key={manifest.id} className="dg-card flex flex-col">
 
               <div className="flex items-start justify-between gap-2">
 
@@ -197,6 +202,16 @@ function AppTierSection({
               <h3 className="mt-3 font-semibold text-white">{manifest.name}</h3>
 
               <p className="mt-1 text-sm text-slate-400">{manifest.description}</p>
+
+              {setupGuide ? (
+                <Link
+                  href={getAppSetupHref(manifest.id)}
+                  className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300 transition hover:border-blue-400/50 hover:bg-blue-500/15"
+                >
+                  <span aria-hidden>◎</span>
+                  Setup guide
+                </Link>
+              ) : null}
 
               <p className="mt-2 font-mono text-xs text-slate-500">
 
@@ -252,13 +267,15 @@ function AppTierSection({
 
 
 
+              <div className="mt-auto flex flex-wrap items-center gap-4 pt-4">
+
               {enabled && manifest.navigation[0] ? (
 
                 <Link
 
                   href={manifest.navigation[0].href}
 
-                  className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
+                  className="text-sm font-medium text-blue-400 hover:underline"
 
                 >
 
@@ -272,7 +289,7 @@ function AppTierSection({
 
                   href={manifest.routes[0].path}
 
-                  className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
+                  className="text-sm font-medium text-blue-400 hover:underline"
 
                 >
 
@@ -281,6 +298,17 @@ function AppTierSection({
                 </Link>
 
               ) : null}
+
+              {setupGuide ? (
+                <Link
+                  href={getAppSetupHref(manifest.id)}
+                  className="text-sm text-slate-500 hover:text-slate-300"
+                >
+                  Full setup guide →
+                </Link>
+              ) : null}
+
+              </div>
 
             </div>
 
