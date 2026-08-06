@@ -13,7 +13,6 @@ export default function LoginPage() {
         signUpUrl="/signup/account"
         forceRedirectUrl="/dashboard"
         fallbackRedirectUrl="/dashboard"
-        oauthFlow="redirect"
       />
     </AuthShell>
   );

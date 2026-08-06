@@ -5,6 +5,7 @@ import { clerkAppearance } from "@/lib/clerk-appearance";
 import { BRAND_DEFAULT } from "@/lib/brand";
 import { ServiceWorkerRegistration } from "@/components/platform/ServiceWorkerRegistration";
 import "./globals.css";
+import "./clerk-overrides.css";
 
 const inter = Inter({
   subsets: ["latin"],

@@ -1,0 +1,103 @@
+/**
+ * Clerk auth contrast fixes — MUST stay outside @layer.
+ * Clerk's cl-internal-* styles override Tailwind utilities inside @layer components.
+ */
+
+.cl-signIn-root .cl-headerTitle,
+.cl-signUp-root .cl-headerTitle,
+.cl-signIn-root .cl-formHeaderTitle,
+.cl-signUp-root .cl-formHeaderTitle,
+.cl-signIn-root .cl-drawerTitle,
+.cl-signUp-root .cl-drawerTitle {
+  color: #f8fafc !important;
+}
+
+.cl-signIn-root .cl-headerSubtitle,
+.cl-signUp-root .cl-headerSubtitle,
+.cl-signIn-root .cl-formHeaderSubtitle,
+.cl-signUp-root .cl-formHeaderSubtitle {
+  color: #e2e8f0 !important;
+}
+
+.cl-signIn-root .cl-formFieldLabel,
+.cl-signUp-root .cl-formFieldLabel,
+.cl-signIn-root .cl-formFieldLabelRow label,
+.cl-signUp-root .cl-formFieldLabelRow label {
+  color: #f1f5f9 !important;
+}
+
+.cl-signIn-root .cl-dividerText,
+.cl-signUp-root .cl-dividerText {
+  color: #cbd5e1 !important;
+}
+
+.cl-signIn-root .cl-footerActionText,
+.cl-signUp-root .cl-footerActionText,
+.cl-signIn-root .cl-identityPreviewText,
+.cl-signUp-root .cl-identityPreviewText {
+  color: #e2e8f0 !important;
+}
+
+.cl-signIn-root .cl-footerActionLink,
+.cl-signUp-root .cl-footerActionLink,
+.cl-signIn-root .cl-formResendCodeLink,
+.cl-signUp-root .cl-formResendCodeLink,
+.cl-signIn-root .cl-backLink,
+.cl-signUp-root .cl-backLink {
+  color: #bfdbfe !important;
+}
+
+.cl-signIn-root .cl-footerActionLink:hover,
+.cl-signUp-root .cl-footerActionLink:hover,
+.cl-signIn-root .cl-formResendCodeLink:hover,
+.cl-signUp-root .cl-formResendCodeLink:hover,
+.cl-signIn-root .cl-backLink:hover,
+.cl-signUp-root .cl-backLink:hover {
+  color: #ffffff !important;
+}
+
+.cl-signIn-root .cl-formFieldInput,
+.cl-signUp-root .cl-formFieldInput,
+.cl-signIn-root .cl-formFieldInput input,
+.cl-signUp-root .cl-formFieldInput input {
+  background-color: #1e293b !important;
+  border-color: #64748b !important;
+  color: #f8fafc !important;
+  caret-color: #f8fafc !important;
+}
+
+.cl-signIn-root .cl-formFieldInput::placeholder,
+.cl-signUp-root .cl-formFieldInput::placeholder {
+  color: #94a3b8 !important;
+}
+
+.cl-signIn-root .cl-otpCodeFieldInput,
+.cl-signUp-root .cl-otpCodeFieldInput,
+.cl-signIn-root .cl-otpCodeFieldInput input,
+.cl-signUp-root .cl-otpCodeFieldInput input {
+  background-color: #1e293b !important;
+  border: 1px solid #64748b !important;
+  color: #f8fafc !important;
+  caret-color: #f8fafc !important;
+  min-height: 3rem;
+  min-width: 2.5rem;
+  font-size: 1.125rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.cl-signIn-root .cl-otpCodeFieldInput:focus-within,
+.cl-signUp-root .cl-otpCodeFieldInput:focus-within,
+.cl-signIn-root .cl-otpCodeFieldInput input:focus,
+.cl-signUp-root .cl-otpCodeFieldInput input:focus {
+  border-color: #60a5fa !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgb(59 130 246 / 0.35) !important;
+}
+
+/* Hide Google / social login until re-enabled */
+.cl-signIn-root .cl-socialButtonsRoot,
+.cl-signUp-root .cl-socialButtonsRoot,
+.cl-signIn-root .cl-dividerRow,
+.cl-signUp-root .cl-dividerRow {
+  display: none !important;
+}

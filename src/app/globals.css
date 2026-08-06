@@ -76,29 +76,4 @@ body {
     }
   }
 
-  /* Clerk auth cards — fallback if theme variables are overridden */
-  .cl-headerTitle,
-  .cl-formHeaderTitle,
-  .cl-drawerTitle {
-    color: #f8fafc !important;
-  }
-
-  .cl-headerSubtitle,
-  .cl-formHeaderSubtitle {
-    color: #e2e8f0 !important;
-  }
-
-  .cl-footerActionText {
-    color: #e2e8f0 !important;
-  }
-
-  .cl-footerActionLink,
-  .cl-formResendCodeLink {
-    color: #bfdbfe !important;
-  }
-
-  .cl-footerActionLink:hover,
-  .cl-formResendCodeLink:hover {
-    color: #ffffff !important;
-  }
 }
