@@ -90,6 +90,22 @@ export interface OverviewAiPrompt {
   prompt: string;
 }
 
+export interface OverviewSetupStep {
+  id: string;
+  label: string;
+  done: boolean;
+  href?: string;
+  detail?: string;
+}
+
+export interface OverviewSetupProgress {
+  percent: number;
+  completed: number;
+  total: number;
+  complete: boolean;
+  steps: OverviewSetupStep[];
+}
+
 export interface BusinessOverview {
   organisationName: string;
   userDisplayName: string;
@@ -115,4 +131,5 @@ export interface BusinessOverview {
   teamActivity: OverviewTeamMember[];
   visibleWidgets: OverviewWidgetId[];
   setupIncomplete: boolean;
+  setupProgress: OverviewSetupProgress;
 }

@@ -3,6 +3,7 @@ import {
   buildBusinessOverview,
   gatherOverviewLiveMetrics,
   getOrganisationBusinessProfile,
+  getPlatformSetupStatus,
   healthDeltaFromHistory,
   healthTrendFromHistory,
   listOrganisationActivities,
@@ -23,13 +24,14 @@ export default async function DashboardPage() {
   let connectorProbes = {};
   let activities = null;
   let healthHistory: Awaited<ReturnType<typeof loadHealthHistory>> = [];
+  let setupStatus = null;
 
   if (platformSession) {
     after(async () => {
       await autoSyncWordPressVendorLeadsIfNeeded(platformSession).catch(() => null);
     });
 
-    [liveMetrics, connectorProbes, activities, healthHistory] = await Promise.all([
+    [liveMetrics, connectorProbes, activities, healthHistory, setupStatus] = await Promise.all([
       gatherOverviewLiveMetrics(platformSession.organisationId),
       fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
       listOrganisationActivities({
@@ -37,6 +39,7 @@ export default async function DashboardPage() {
         limit: 10,
       }),
       loadHealthHistory(platformSession.organisationId),
+      getPlatformSetupStatus(platformSession.organisationId),
     ]);
   }
 
@@ -51,16 +54,7 @@ export default async function DashboardPage() {
     userDisplayName: user?.firstName ?? name,
     enabledAppIds,
     businessProfile,
-    setupStatus: liveMetrics
-      ? {
-          orgProvisioned: true,
-          hasTeamMember: true,
-          hasContacts: liveMetrics.hasContacts,
-          hasTimelineActivity: liveMetrics.hasTimelineActivity,
-          contactCount: liveMetrics.contactCount,
-          activityCount: liveMetrics.activityCount,
-        }
-      : null,
+    setupStatus,
     activities: activities?.items,
     liveMetrics,
     connectorProbes,

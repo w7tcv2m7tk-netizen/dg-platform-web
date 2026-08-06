@@ -7,9 +7,11 @@ import type { OverviewConnectorProbes } from "./connector-probes";
 import type { OverviewLiveMetrics } from "./gather-live-metrics";
 import type { HealthHistoryEntry } from "./health-history";
 import { healthDeltaFromHistory, healthTrendFromHistory } from "./health-history";
+import { buildSetupProgress } from "./setup-progress";
 import type {
   BusinessOverview,
   OverviewConnectedSystem,
+  OverviewSetupProgress,
   OverviewSnapshotKpi,
   OverviewTimelineEntry,
   OverviewWidgetId,
@@ -299,9 +301,16 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
   const firstName = userDisplayName.split(" ")[0] || userDisplayName;
   const setupIncomplete = !setupStatus?.hasContacts;
   const scoresLive = Boolean(liveMetrics);
+  const setupProgress = buildSetupProgress({
+    setupStatus,
+    businessProfile: input.businessProfile as OrganisationBusinessProfile | null,
+    connectorProbes,
+    enabledAppIds,
+    hasSession: Boolean(input.organisationId),
+  });
 
   if (!liveMetrics) {
-    return buildPreviewOverview(input, firstName, hour, setupIncomplete);
+    return buildPreviewOverview(input, firstName, hour, setupIncomplete, setupProgress);
   }
 
   const snapshot = captureDigitalTwinSnapshot({
@@ -414,6 +423,7 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
     teamActivity: [],
     visibleWidgets: widgetsForApps(enabledAppIds),
     setupIncomplete,
+    setupProgress,
   };
 }
 
@@ -423,6 +433,7 @@ function buildPreviewOverview(
   firstName: string,
   hour: number,
   setupIncomplete: boolean,
+  setupProgress: OverviewSetupProgress,
 ): BusinessOverview {
   const { organisationName, enabledAppIds, activities } = input;
   const reOrg = /roe|realty|real estate|estate/i.test(organisationName);
@@ -483,5 +494,6 @@ function buildPreviewOverview(
     teamActivity: [],
     visibleWidgets: widgetsForApps(enabledAppIds),
     setupIncomplete,
+    setupProgress,
   };
 }

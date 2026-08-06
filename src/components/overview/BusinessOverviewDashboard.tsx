@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useChatWidget } from "@/components/platform/ChatWidgetProvider";
+import { SetupProgressBar } from "@/components/overview/SetupProgressBar";
 import type { BusinessOverview } from "@dg/platform-core";
 
 function StatusDot({ status }: { status: string }) {
@@ -58,11 +59,13 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
         </div>
       ) : null}
 
+      <SetupProgressBar progress={overview.setupProgress} />
+
       {overview.setupIncomplete ? (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100">
-          Finish setup to unlock live KPIs.{" "}
-          <Link href="/dashboard/business" className="font-medium underline">
-            Open checklist →
+          Add your first CRM contact to unlock pipeline KPIs.{" "}
+          <Link href="/apps/crm/contacts" className="font-medium underline">
+            Add contact →
           </Link>
         </div>
       ) : null}
