@@ -5,6 +5,8 @@ import { useState } from "react";
 
 import type { BusinessContext, OrganisationBusinessProfile } from "@dg/platform-core";
 
+import { BrandAssetsEditor } from "@/components/platform/BrandAssetsEditor";
+
 function Field({
   label,
   children,
@@ -208,6 +210,11 @@ export function BusinessProfileEditor({
         {message ? <p className="mt-3 text-sm text-emerald-400/90">{message}</p> : null}
       </section>
 
+      <BrandAssetsEditor
+        profile={profile}
+        onChange={(patch) => setProfile((prev) => ({ ...prev, ...patch }))}
+      />
+
       <section className="dg-card">
         <h3 className="text-lg font-semibold text-white">Identity</h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -251,21 +258,6 @@ export function BusinessProfileEditor({
               className={inputClass}
               value={profile.acn ?? ""}
               onChange={(e) => setField("acn", e.target.value)}
-            />
-          </Field>
-          <Field label="Logo URL">
-            <input
-              className={inputClass}
-              value={profile.logoUrl ?? ""}
-              onChange={(e) => setField("logoUrl", e.target.value)}
-            />
-          </Field>
-          <Field label="Brand colours">
-            <input
-              className={inputClass}
-              placeholder="#3B82F6, #10B981"
-              value={profile.brandColours ?? ""}
-              onChange={(e) => setField("brandColours", e.target.value)}
             />
           </Field>
           <Field label="Timezone">

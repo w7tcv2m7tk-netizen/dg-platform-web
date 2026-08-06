@@ -2,6 +2,7 @@ import { canAccessCommandCentre } from "@dg/platform-core";
 
 import { PlatformShell } from "@/components/PlatformShell";
 import { getOrgEnabledAppIdsCached } from "@/lib/org-apps";
+import { getOrgBrandThemeCached } from "@/lib/org-brand-theme";
 import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
@@ -13,10 +14,11 @@ export async function PlatformShellLoader({
   children: React.ReactNode;
   showFloatingChat?: boolean;
 }) {
-  const [{ user, session }, , enabledIds] = await Promise.all([
+  const [{ user, session }, , enabledIds, brandTheme] = await Promise.all([
     getPlatformPageContext(),
     ensureOrganisationOnboardingSync().catch(() => null),
     getOrgEnabledAppIdsCached(),
+    getOrgBrandThemeCached(),
   ]);
 
   const userName =
@@ -42,6 +44,7 @@ export async function PlatformShellLoader({
       activeOrganisationId={session?.organisationId}
       activeOrganisationName={session?.organisationName}
       organisations={session?.organisations ?? []}
+      brandTheme={brandTheme}
     >
       {children}
     </PlatformShell>

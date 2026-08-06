@@ -55,8 +55,11 @@ export type OrganisationBusinessProfile = {
   gstNumber?: string;
   industryLicenseNumber?: string;
   position?: string;
+  /** Full wordmark / horizontal logo */
   logoUrl?: string;
-  /** Comma-separated or JSON colour tokens */
+  /** Square mark for sidebar, favicon, and compact UI */
+  iconUrl?: string;
+  /** Comma-separated or JSON colour tokens — first = primary, second = accent */
   brandColours?: string;
   websiteUrl?: string;
   industryVertical?: string;

@@ -1,11 +1,13 @@
 import type { DigitalTwinSnapshot } from "../twin/types";
 import type { OrganisationBusinessProfile } from "./business-profile-types";
+import { parseBrandColours } from "./brand-theme";
 import { getOrganisationBusinessProfile } from "./onboarding-profile";
 
 export type BusinessContextIdentity = {
   businessName: string;
   tradingName?: string;
   logoUrl?: string;
+  iconUrl?: string;
   brandColours?: string[];
   industry?: string;
   abn?: string;
@@ -62,20 +64,6 @@ export type BusinessContext = {
   capturedAt: string;
 };
 
-function parseBrandColours(raw?: string): string[] | undefined {
-  if (!raw?.trim()) return undefined;
-  const trimmed = raw.trim();
-  if (trimmed.startsWith("[")) {
-    try {
-      const parsed = JSON.parse(trimmed) as unknown;
-      if (Array.isArray(parsed)) return parsed.map(String);
-    } catch {
-      /* fall through */
-    }
-  }
-  return trimmed.split(/[,;]+/).map((c) => c.trim()).filter(Boolean);
-}
-
 function formatLocation(
   loc: NonNullable<OrganisationBusinessProfile["locations"]>[number],
 ): string {
@@ -118,7 +106,11 @@ function profileToIdentity(
     businessName: profile?.businessName?.trim() || org.name,
     tradingName: profile?.tradingName,
     logoUrl: profile?.logoUrl,
-    brandColours: parseBrandColours(profile?.brandColours),
+    iconUrl: profile?.iconUrl ?? profile?.logoUrl,
+    brandColours: (() => {
+      const colours = parseBrandColours(profile?.brandColours);
+      return colours.length ? colours : undefined;
+    })(),
     industry: profile?.industryVertical || org.industry || undefined,
     abn: profile?.abn,
     acn: profile?.acn,
@@ -231,6 +223,9 @@ export function buildAiSystemPrompt(context: BusinessContext): string {
 
   if (context.identity.tradingName) lines.push(`Trading name: ${context.identity.tradingName}`);
   if (context.identity.industry) lines.push(`Industry: ${context.identity.industry}`);
+  if (context.identity.brandColours?.length) {
+    lines.push(`Brand colours: ${context.identity.brandColours.join(", ")}`);
+  }
   if (context.identity.website) lines.push(`Website: ${context.identity.website}`);
   if (context.identity.abn) lines.push(`ABN: ${context.identity.abn}`);
   if (context.identity.locations.length) {

@@ -10,8 +10,10 @@ import {
 import { usePathname } from "next/navigation";
 
 import { MobileHeader } from "@/components/MobileHeader";
+import { OrgBrandProvider, orgBrandStyle } from "@/components/brand/OrgBrandProvider";
 import { Sidebar } from "@/components/Sidebar";
-import type { UserOrganisationSummary } from "@dg/platform-core";
+import type { OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
+import { DEFAULT_ORG_BRAND_THEME } from "@/lib/org-brand-theme";
 
 type MobileNavContextValue = {
   close: () => void;
@@ -30,11 +32,13 @@ export function AppShellLayout({
   activeOrganisationId,
   activeOrganisationName,
   organisations = [],
+  brandTheme = DEFAULT_ORG_BRAND_THEME,
 }: {
   children: ReactNode;
   activeOrganisationId?: string;
   activeOrganisationName?: string;
   organisations?: UserOrganisationSummary[];
+  brandTheme?: OrgBrandTheme;
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -61,8 +65,9 @@ export function AppShellLayout({
   };
 
   return (
-    <MobileNavContext.Provider value={{ close }}>
-      <div className="flex min-h-[100dvh]">
+    <OrgBrandProvider theme={brandTheme}>
+      <MobileNavContext.Provider value={{ close }}>
+        <div className="dg-branded-shell flex min-h-[100dvh]" style={orgBrandStyle(brandTheme)}>
         <div className="hidden shrink-0 md:flex">
           <Sidebar {...sidebarProps} />
         </div>
@@ -95,7 +100,8 @@ export function AppShellLayout({
 
           {children}
         </div>
-      </div>
-    </MobileNavContext.Provider>
+        </div>
+      </MobileNavContext.Provider>
+    </OrgBrandProvider>
   );
 }

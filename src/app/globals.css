@@ -3,10 +3,18 @@
 :root {
   --dg-blue: #3b82f6;
   --dg-navy: #0a0e17;
+  --org-primary: var(--dg-blue);
+  --org-accent: #10b981;
 }
 
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --color-blue-300: color-mix(in srgb, var(--org-primary) 70%, white);
+  --color-blue-400: color-mix(in srgb, var(--org-primary) 82%, white);
+  --color-blue-500: color-mix(in srgb, var(--org-primary) 92%, white);
+  --color-blue-600: var(--org-primary);
+  --color-emerald-400: color-mix(in srgb, var(--org-accent) 82%, white);
+  --color-emerald-500: var(--org-accent);
 }
 
 body {
@@ -25,8 +33,8 @@ body {
 }
 
 .dg-input:focus {
-  border-color: var(--dg-blue);
-  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.25);
+  border-color: var(--org-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--org-primary) 25%, transparent);
 }
 
 .dg-input::placeholder {

@@ -15,14 +15,16 @@ import {
 function linkClass(active: boolean) {
   return `flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
     active
-      ? "bg-slate-900 text-white"
+      ? "bg-[color-mix(in_srgb,var(--org-primary)_14%,transparent)] text-white ring-1 ring-[color-mix(in_srgb,var(--org-primary)_35%,transparent)]"
       : "text-slate-300 hover:bg-slate-900 hover:text-white"
   }`;
 }
 
 function childLinkClass(active: boolean) {
   return `block min-h-10 rounded-md py-2 pl-9 pr-2 text-sm transition ${
-    active ? "text-white" : "text-slate-400 hover:text-slate-200"
+    active
+      ? "border-l-2 border-[var(--org-primary)] text-white"
+      : "text-slate-400 hover:text-slate-200"
   }`;
 }
 
@@ -60,7 +62,7 @@ function CollapsibleNavSection({
               onClick={() => onToggle(item.id)}
               className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition ${
                 itemActive
-                  ? "bg-slate-900/80 text-white"
+                  ? "bg-[color-mix(in_srgb,var(--org-primary)_14%,transparent)] text-white ring-1 ring-[color-mix(in_srgb,var(--org-primary)_35%,transparent)]"
                   : "text-slate-300 hover:bg-slate-900 hover:text-white"
               }`}
             >

@@ -1,7 +1,8 @@
 import { EnabledAppsProvider } from "@/components/platform/EnabledAppsProvider";
 import { ChatWidgetProvider } from "@/components/platform/ChatWidgetProvider";
 import { AppShellLayout } from "@/components/AppShellLayout";
-import type { UserOrganisationSummary } from "@dg/platform-core";
+import type { OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
+import { DEFAULT_ORG_BRAND_THEME } from "@/lib/org-brand-theme";
 
 export function PlatformShell({
   children,
@@ -12,6 +13,7 @@ export function PlatformShell({
   activeOrganisationId,
   activeOrganisationName,
   organisations = [],
+  brandTheme = DEFAULT_ORG_BRAND_THEME,
 }: {
   children: React.ReactNode;
   showFloatingChat?: boolean;
@@ -21,6 +23,7 @@ export function PlatformShell({
   activeOrganisationId?: string;
   activeOrganisationName?: string;
   organisations?: UserOrganisationSummary[];
+  brandTheme?: OrgBrandTheme;
 }) {
   return (
     <EnabledAppsProvider
@@ -32,6 +35,7 @@ export function PlatformShell({
           activeOrganisationId={activeOrganisationId}
           activeOrganisationName={activeOrganisationName}
           organisations={organisations}
+          brandTheme={brandTheme}
         >
           {children}
         </AppShellLayout>

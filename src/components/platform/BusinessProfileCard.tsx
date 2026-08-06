@@ -93,11 +93,11 @@ export function BusinessProfileCard({
   return (
     <div className="dg-card">
       <div className="flex flex-wrap items-start gap-6">
-        {profile.logoUrl ? (
+        {(profile.iconUrl ?? profile.logoUrl) ? (
           <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-700 bg-slate-900">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={profile.logoUrl}
+              src={profile.iconUrl ?? profile.logoUrl}
               alt={`${profile.businessName} logo`}
               className="max-h-full max-w-full object-contain p-2"
             />

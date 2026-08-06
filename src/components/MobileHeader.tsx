@@ -2,7 +2,7 @@
 
 import { UserButton } from "@clerk/nextjs";
 
-import { DigitalGateLogo } from "@/components/brand/DigitalGateLogo";
+import { OrgBrandMark } from "@/components/brand/OrgBrandMark";
 
 function MenuIcon() {
   return (
@@ -35,12 +35,11 @@ export function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
         <MenuIcon />
       </button>
 
-      <DigitalGateLogo
+      <OrgBrandMark
         variant="lockup"
         href="/dashboard"
         iconSize={22}
         logoWidth={96}
-        showTagline={false}
         className="min-w-0 flex-1"
       />
 
