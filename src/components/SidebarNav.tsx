@@ -16,7 +16,7 @@ function linkClass(active: boolean) {
   return `flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
     active
       ? "bg-[color-mix(in_srgb,var(--org-primary)_14%,transparent)] text-white ring-1 ring-[color-mix(in_srgb,var(--org-primary)_35%,transparent)]"
-      : "text-slate-300 hover:bg-slate-900 hover:text-white"
+      : "text-slate-300 hover:bg-[var(--org-bg-surface-hover)] hover:text-white"
   }`;
 }
 
@@ -63,7 +63,7 @@ function CollapsibleNavSection({
               className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition ${
                 itemActive
                   ? "bg-[color-mix(in_srgb,var(--org-primary)_14%,transparent)] text-white ring-1 ring-[color-mix(in_srgb,var(--org-primary)_35%,transparent)]"
-                  : "text-slate-300 hover:bg-slate-900 hover:text-white"
+                  : "text-slate-300 hover:bg-[var(--org-bg-surface-hover)] hover:text-white"
               }`}
             >
               <SidebarIcon glyph={item.icon} />

@@ -1,3 +1,4 @@
+import { PlatformAttribution } from "@/components/brand/PlatformAttribution";
 import { SidebarBrand } from "@/components/brand/SidebarBrand";
 import { OrgSwitcher } from "@/components/platform/OrgSwitcher";
 import { SidebarNav } from "@/components/SidebarNav";
@@ -39,7 +40,7 @@ export function Sidebar({
     <aside
       className={
         variant === "fixed"
-          ? "flex h-full w-56 shrink-0 flex-col border-r border-slate-800 bg-slate-950 px-4 py-6"
+          ? "dg-branded-sidebar flex h-full w-56 shrink-0 flex-col border-r px-4 py-6"
           : "flex h-full min-h-0 flex-col"
       }
     >
@@ -50,7 +51,7 @@ export function Sidebar({
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-300 transition hover:bg-slate-800 hover:text-white"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border dg-branded-surface text-slate-300 transition hover:text-white"
           >
             <CloseIcon />
           </button>
@@ -68,6 +69,7 @@ export function Sidebar({
       ) : null}
 
       <SidebarNav onNavigate={onNavigate} />
+      <PlatformAttribution className="mt-4" />
       <SidebarUser />
     </aside>
   );

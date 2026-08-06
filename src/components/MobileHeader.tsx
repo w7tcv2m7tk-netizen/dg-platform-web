@@ -23,14 +23,14 @@ function MenuIcon() {
 export function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   return (
     <header
-      className="sticky top-0 z-40 flex items-center gap-3 border-b border-slate-800 bg-slate-950/95 px-4 py-3 backdrop-blur md:hidden"
+      className="sticky top-0 z-40 flex items-center gap-3 border-b dg-branded-header px-4 py-3 backdrop-blur md:hidden"
       style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
     >
       <button
         type="button"
         onClick={onMenuClick}
         aria-label="Open menu"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-200 transition hover:bg-slate-800 hover:text-white"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border dg-branded-surface text-slate-200 transition hover:text-white"
       >
         <MenuIcon />
       </button>

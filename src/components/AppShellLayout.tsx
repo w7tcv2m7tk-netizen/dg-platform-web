@@ -13,7 +13,7 @@ import { MobileHeader } from "@/components/MobileHeader";
 import { OrgBrandProvider, orgBrandStyle } from "@/components/brand/OrgBrandProvider";
 import { Sidebar } from "@/components/Sidebar";
 import type { OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
-import { DEFAULT_ORG_BRAND_THEME } from "@/lib/brand-client";
+import { DEFAULT_ORG_BRAND_THEME, orgBrandCssVariables } from "@/lib/brand-client";
 
 type MobileNavContextValue = {
   close: () => void;
@@ -54,6 +54,18 @@ export function AppShellLayout({
     };
   }, [open]);
 
+  useEffect(() => {
+    const vars = orgBrandCssVariables(brandTheme);
+    const previousBackground = document.body.style.background;
+    const previousColor = document.body.style.color;
+    document.body.style.background = vars["--org-shell-gradient"] ?? vars["--org-bg-base"] ?? "";
+    document.body.style.color = "#f1f5f9";
+    return () => {
+      document.body.style.background = previousBackground;
+      document.body.style.color = previousColor;
+    };
+  }, [brandTheme]);
+
   function close() {
     setOpen(false);
   }
@@ -81,7 +93,7 @@ export function AppShellLayout({
           >
             <button
               type="button"
-              className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${
+              className={`absolute inset-0 dg-branded-overlay backdrop-blur-sm transition-opacity duration-200 ${
                 open ? "opacity-100" : "opacity-0"
               }`}
               aria-label="Close menu"
@@ -89,7 +101,7 @@ export function AppShellLayout({
               onClick={close}
             />
             <aside
-              className={`absolute inset-y-0 left-0 flex w-[min(18rem,88vw)] flex-col border-r border-slate-800 bg-slate-950 px-4 py-5 shadow-2xl transition-transform duration-200 ease-out ${
+              className={`dg-branded-sidebar absolute inset-y-0 left-0 flex w-[min(18rem,88vw)] flex-col border-r px-4 py-5 shadow-2xl transition-transform duration-200 ease-out ${
                 open ? "translate-x-0" : "-translate-x-full"
               }`}
               style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}

@@ -4,7 +4,7 @@ import { UserButton } from "@clerk/nextjs";
 
 export function SidebarUser() {
   return (
-    <div className="mt-auto border-t border-slate-800 pt-4">
+    <div className="mt-auto border-t border-[var(--org-border-subtle)] pt-4">
       <div className="flex items-center gap-3 px-2">
         <UserButton
           appearance={{

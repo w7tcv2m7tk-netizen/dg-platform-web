@@ -21,11 +21,35 @@ body {
   font-family: var(--font-sans);
 }
 
+.dg-branded-shell {
+  background: var(--org-shell-gradient, var(--org-bg-base, #020617));
+  color: #f1f5f9;
+}
+
+.dg-branded-sidebar {
+  background: var(--org-bg-elevated, rgb(2 6 23));
+  border-color: var(--org-border-subtle, rgb(30 41 59));
+}
+
+.dg-branded-header {
+  background: color-mix(in srgb, var(--org-bg-elevated, rgb(2 6 23)) 94%, transparent);
+  border-color: var(--org-border-subtle, rgb(30 41 59));
+}
+
+.dg-branded-overlay {
+  background: color-mix(in srgb, var(--org-bg-inset, #000) 72%, transparent);
+}
+
+.dg-branded-surface {
+  background: var(--org-bg-surface-hover, rgb(15 23 42));
+  border-color: var(--org-border-subtle, rgb(30 41 59));
+}
+
 .dg-input {
   width: 100%;
   border-radius: 0.75rem;
-  border: 1px solid rgb(51 65 85);
-  background: rgb(15 23 42);
+  border: 1px solid var(--org-border-subtle, rgb(51 65 85));
+  background: var(--org-bg-inset, rgb(15 23 42));
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
   color: white;
@@ -43,14 +67,15 @@ body {
 
 .dg-card {
   border-radius: 1rem;
-  border: 1px solid rgb(51 65 85);
-  background: rgb(30 41 59 / 0.5);
+  border: 1px solid var(--org-border-subtle, rgb(51 65 85));
+  background: color-mix(in srgb, var(--org-bg-surface, rgb(30 41 59)) 88%, transparent);
   padding: 1.5rem;
 }
 
 @layer components {
   .dg-page-header {
-    border-bottom: 1px solid rgb(30 41 59);
+    border-bottom: 1px solid var(--org-border-subtle, rgb(30 41 59));
+    background: color-mix(in srgb, var(--org-bg-elevated, rgb(2 6 23)) 55%, transparent);
     padding: 1rem;
   }
 

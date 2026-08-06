@@ -4,6 +4,8 @@ import { createContext, useContext, type CSSProperties, type ReactNode } from "r
 
 import type { OrgBrandTheme } from "@dg/platform-core";
 
+import { orgBrandCssVariables } from "@/lib/brand-client";
+
 const OrgBrandContext = createContext<OrgBrandTheme | null>(null);
 
 export function useOrgBrand() {
@@ -11,13 +13,8 @@ export function useOrgBrand() {
 }
 
 export function orgBrandStyle(theme: OrgBrandTheme): CSSProperties {
-  return {
-    "--org-primary": theme.primaryColor,
-    "--org-accent": theme.accentColor,
-    "--dg-blue": theme.primaryColor,
-  } as CSSProperties;
+  return orgBrandCssVariables(theme) as CSSProperties;
 }
-
 export function OrgBrandProvider({
   theme,
   children,
