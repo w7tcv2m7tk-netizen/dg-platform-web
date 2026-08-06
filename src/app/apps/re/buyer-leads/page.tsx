@@ -1,9 +1,12 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { listLeads, resolvePlatformSession } from "@dg/platform-core";
 
-import { BuyerLeadList } from "@/components/re/BuyerLeadList";
+import { BuyerLeadPipeline } from "@/components/re/BuyerLeadPipeline";
 import { fetchPortalMe } from "@/lib/dg-api";
-import { getLastWordPressSync } from "@/lib/wordpress-sync";
+import {
+  autoSyncWordPressBuyerLeadsIfNeeded,
+  getLastWordPressSync,
+} from "@/lib/wordpress-sync";
 
 export default async function BuyerLeadsPage() {
   const user = await currentUser();
@@ -40,6 +43,7 @@ export default async function BuyerLeadsPage() {
   }
 
   const lastSync = await getLastWordPressSync(session.organisationId);
+  const autoSync = await autoSyncWordPressBuyerLeadsIfNeeded(session);
   const { items } = await listLeads({
     organisationId: session.organisationId,
     leadType: "buyer",
@@ -52,6 +56,13 @@ export default async function BuyerLeadsPage() {
         <p className="text-sm text-slate-400">
           {session.organisationName} · Property enquiry pipeline synced from Roe WordPress
         </p>
+        {autoSync.ran && autoSync.result ? (
+          <p className="mt-1 text-xs text-emerald-400/90">
+            Auto-synced buyers from WordPress
+            {autoSync.result.created ? ` · ${autoSync.result.created} new` : ""}
+            {autoSync.result.updated ? ` · ${autoSync.result.updated} updated` : ""}
+          </p>
+        ) : null}
         {lastSync?.lastBuyerLeadSyncAt ? (
           <p className="mt-1 text-xs text-slate-500">
             Last sync: {new Date(lastSync.lastBuyerLeadSyncAt).toLocaleString("en-AU")}
@@ -66,7 +77,7 @@ export default async function BuyerLeadsPage() {
         ) : null}
       </header>
       <main className="dg-page-main">
-        <BuyerLeadList leads={items} />
+        <BuyerLeadPipeline leads={items} />
       </main>
     </>
   );

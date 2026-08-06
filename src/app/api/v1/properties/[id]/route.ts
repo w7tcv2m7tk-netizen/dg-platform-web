@@ -3,8 +3,11 @@ import {
   getProperty,
   listPropertyActivities,
   PROPERTY_STATUSES,
+  updatePropertyListing,
   updatePropertyStatus,
+  updateSettlementChecklist,
   type PropertyStatus,
+  type SettlementChecklist,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
@@ -58,6 +61,46 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   }
 
   const status = body?.status as PropertyStatus | undefined;
+  const listingPriceCents = body?.listingPriceCents as number | null | undefined;
+  const marketing = body?.marketing as Record<string, unknown> | undefined;
+  const settlementChecklist = body?.settlement_checklist as SettlementChecklist | undefined;
+
+  if (settlementChecklist) {
+    const updated = await updateSettlementChecklist(
+      session.organisationId,
+      id,
+      settlementChecklist,
+      session.clerkUserId,
+    );
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: { code: "property_not_found", message: "Property not found" } },
+        { status: 404 },
+      );
+    }
+
+    const property = await getProperty(session.organisationId, id);
+    return NextResponse.json({ data: property });
+  }
+
+  if (listingPriceCents !== undefined || marketing) {
+    const updated = await updatePropertyListing(
+      session.organisationId,
+      id,
+      { listingPriceCents, marketing },
+      session.clerkUserId,
+    );
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: { code: "property_not_found", message: "Property not found" } },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ data: updated });
+  }
 
   if (!status || !PROPERTY_STATUSES.includes(status)) {
     return NextResponse.json(

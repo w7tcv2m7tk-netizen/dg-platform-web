@@ -152,6 +152,40 @@ export async function autoSyncWordPressVendorLeadsIfNeeded(
   return { ran: true, result: outcome.result };
 }
 
+export async function autoSyncWordPressBuyerLeadsIfNeeded(
+  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
+): Promise<AutoSyncOutcome> {
+  const { prisma } = await import("@dg/database");
+
+  const org = await prisma.organisation.findUnique({
+    where: { id: session.organisationId },
+    select: { settings: true },
+  });
+
+  const settings = (org?.settings as OrgSettings | null) ?? {};
+  const lastAt = settings.connectors?.wordpress?.lastBuyerLeadSyncAt;
+  if (lastAt) {
+    const elapsed = Date.now() - new Date(lastAt).getTime();
+    if (elapsed < WP_VENDOR_SYNC_INTERVAL_MS) {
+      return { ran: false, reason: "too_soon" };
+    }
+  }
+
+  const hasKey =
+    Boolean(process.env.DG_WP_CONNECTOR_API_KEY?.trim()) ||
+    Boolean(process.env.DG_API_KEY?.trim());
+  if (!hasKey) {
+    return { ran: false, reason: "missing_key" };
+  }
+
+  const outcome = await syncWordPressBuyerLeads(session);
+  if (!outcome.ok) {
+    return { ran: false, reason: "fetch_failed", message: outcome.message };
+  }
+
+  return { ran: true, result: outcome.result };
+}
+
 async function saveLastSync(organisationId: string, result: WordPressSyncResult) {
   const { prisma } = await import("@dg/database");
   type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;

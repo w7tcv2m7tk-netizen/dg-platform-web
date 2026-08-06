@@ -491,6 +491,51 @@ export async function updatePropertyStatus(
   return serializeProperty(property);
 }
 
+export async function updatePropertyListing(
+  organisationId: string,
+  propertyId: string,
+  input: {
+    listingPriceCents?: number | null;
+    marketing?: Record<string, unknown>;
+  },
+  actorId?: string,
+) {
+  const { prisma } = await import("@dg/database");
+
+  const existing = await prisma.property.findFirst({
+    where: { id: propertyId, organisationId, deletedAt: null },
+  });
+  if (!existing) return null;
+
+  const metadata = {
+    ...((existing.metadata as Record<string, unknown> | null) ?? {}),
+    ...(input.marketing ? { marketing: input.marketing } : {}),
+  };
+
+  const property = await prisma.property.update({
+    where: { id: propertyId },
+    data: {
+      listingPriceCents: input.listingPriceCents ?? existing.listingPriceCents,
+      metadata: metadata as Prisma.InputJsonValue,
+    },
+  });
+
+  await prisma.activity.create({
+    data: {
+      organisationId,
+      entityType: "Property",
+      entityId: propertyId,
+      activityType: "listing_updated",
+      title: "Listing details updated",
+      body: formatPropertyAddress(property),
+      sourceApp: "real-estate",
+      createdBy: actorId,
+    },
+  });
+
+  return serializeProperty(property);
+}
+
 export async function getPropertyForLead(organisationId: string, leadId: string) {
   const { prisma } = await import("@dg/database");
   const property = await prisma.property.findFirst({

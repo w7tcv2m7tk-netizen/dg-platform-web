@@ -1,7 +1,10 @@
 import {
   listLeads,
+  updateBuyerLeadStage,
   updateLeadStage,
+  BUYER_STAGES,
   VENDOR_STAGES,
+  type BuyerStage,
   type VendorStage,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
@@ -66,11 +69,44 @@ export async function PATCH(req: Request) {
 
   const body = await req.json().catch(() => null);
   const leadId = body?.id as string | undefined;
-  const stage = body?.stage as VendorStage | undefined;
+  const stage = body?.stage as string | undefined;
+  const leadType = body?.leadType as "vendor" | "buyer" | undefined;
 
-  if (!leadId || !stage || !VENDOR_STAGES.includes(stage)) {
+  if (!leadId || !stage) {
     return NextResponse.json(
-      { error: { code: "validation_error", message: "id and valid stage required" } },
+      { error: { code: "validation_error", message: "id and stage required" } },
+      { status: 422 },
+    );
+  }
+
+  if (leadType === "buyer" || BUYER_STAGES.includes(stage as BuyerStage)) {
+    if (!BUYER_STAGES.includes(stage as BuyerStage)) {
+      return NextResponse.json(
+        { error: { code: "validation_error", message: "valid buyer stage required" } },
+        { status: 422 },
+      );
+    }
+
+    const updated = await updateBuyerLeadStage(
+      session.organisationId,
+      leadId,
+      stage as BuyerStage,
+      session.clerkUserId,
+    );
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: { code: "lead_not_found", message: "Buyer lead not found" } },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ data: updated });
+  }
+
+  if (!VENDOR_STAGES.includes(stage as VendorStage)) {
+    return NextResponse.json(
+      { error: { code: "validation_error", message: "valid vendor stage required" } },
       { status: 422 },
     );
   }
@@ -78,7 +114,7 @@ export async function PATCH(req: Request) {
   const updated = await updateLeadStage(
     session.organisationId,
     leadId,
-    stage,
+    stage as VendorStage,
     session.clerkUserId,
   );
 

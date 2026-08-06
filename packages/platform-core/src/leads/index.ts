@@ -223,6 +223,45 @@ export async function updateLeadStage(
   return serializeLead(updated);
 }
 
+export async function updateBuyerLeadStage(
+  organisationId: string,
+  leadId: string,
+  stage: BuyerStage,
+  actorId?: string,
+) {
+  const { prisma } = await import("@dg/database");
+  const lead = await prisma.lead.findFirst({
+    where: { id: leadId, organisationId, source: "buyer_enquiry" },
+  });
+  if (!lead) return null;
+
+  const metadata = {
+    ...((lead.metadata as Record<string, unknown> | null) ?? {}),
+    stage,
+  };
+
+  const updated = await prisma.lead.update({
+    where: { id: leadId },
+    data: { metadata: metadata as Prisma.InputJsonValue },
+  });
+
+  await prisma.activity.create({
+    data: {
+      organisationId,
+      entityType: "Lead",
+      entityId: leadId,
+      activityType: "stage_change",
+      title: `Buyer moved to ${stage.replace(/_/g, " ")}`,
+      body: lead.title,
+      sourceApp: "real-estate",
+      createdBy: actorId,
+      metadata: { stage, leadType: "buyer" },
+    },
+  });
+
+  return serializeLead(updated);
+}
+
 export async function listLeadActivities(organisationId: string, leadId: string) {
   const { prisma } = await import("@dg/database");
 

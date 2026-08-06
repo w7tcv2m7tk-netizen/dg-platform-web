@@ -1,4 +1,5 @@
 import type { AppManifest } from "../manifest";
+import { getSidebarIcon } from "../sidebar-icons";
 
 export const realEstateApp: AppManifest = {
   id: "real-estate",
@@ -8,6 +9,7 @@ export const realEstateApp: AppManifest = {
   version: "1.0.0",
   icon: "🏠",
   routes: [
+    { path: "/apps/re", label: "Overview" },
     { path: "/apps/re/vendor-leads", label: "Vendor leads" },
     { path: "/apps/re/buyer-leads", label: "Buyer leads" },
     { path: "/apps/re/properties", label: "Properties & appraisals" },
@@ -16,8 +18,13 @@ export const realEstateApp: AppManifest = {
     { path: "/apps/re/settlements", label: "Settlements" },
   ],
   navigation: [
+    { href: "/apps/re", label: "Overview", icon: getSidebarIcon("overview") },
     { href: "/apps/re/vendor-leads", label: "Vendor leads", icon: "◈" },
-    { href: "/apps/re/properties", label: "Properties", icon: "⌂" },
+    { href: "/apps/re/buyer-leads", label: "Buyer leads", icon: "◎" },
+    { href: "/apps/re/properties", label: "Properties", icon: getSidebarIcon("real-estate") },
+    { href: "/apps/re/listings", label: "Listings", icon: "▦" },
+    { href: "/apps/re/bookings", label: "Bookings", icon: "◉" },
+    { href: "/apps/re/settlements", label: "Settlements", icon: "⎔" },
   ],
   permissions: [
     { id: "re.view_leads", label: "View vendor leads" },

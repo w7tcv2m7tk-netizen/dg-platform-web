@@ -1,10 +1,14 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { listProperties, resolvePlatformSession } from "@dg/platform-core";
+import { getReDashboardStats, resolvePlatformSession } from "@dg/platform-core";
 
-import { ListingList } from "@/components/re/ListingList";
-import { fetchPortalMe } from "@/lib/dg-api";
+import { ReDashboard } from "@/components/re/ReDashboard";
+import { fetchPortalMe, fetchWpReSummary } from "@/lib/dg-api";
+import {
+  autoSyncWordPressBuyerLeadsIfNeeded,
+  autoSyncWordPressVendorLeadsIfNeeded,
+} from "@/lib/wordpress-sync";
 
-export default async function ListingsPage() {
+export default async function RealEstateOverviewPage() {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const name =
@@ -27,7 +31,7 @@ export default async function ListingsPage() {
     return (
       <>
         <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Listings</h1>
+          <h1 className="text-2xl font-bold text-white">Real Estate</h1>
         </header>
         <main className="dg-page-main">
           <div className="dg-card">
@@ -38,23 +42,30 @@ export default async function ListingsPage() {
     );
   }
 
-  const { items } = await listProperties({ organisationId: session.organisationId, limit: 200 });
-  const listings = items.filter((p) => p.status === "listed" || p.status === "under_offer");
+  await Promise.all([
+    autoSyncWordPressVendorLeadsIfNeeded(session),
+    autoSyncWordPressBuyerLeadsIfNeeded(session),
+  ]);
+
+  const [stats, wpSummary] = await Promise.all([
+    getReDashboardStats(session.organisationId),
+    fetchWpReSummary(30),
+  ]);
 
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Listings</h1>
+        <h1 className="text-2xl font-bold text-white">Real Estate</h1>
         <p className="text-sm text-slate-400">
-          {session.organisationName} · Active listings and under-offer properties
-        </p>
-        <p className="mt-1 text-xs text-slate-500">
-          {listings.filter((p) => p.status === "listed").length} listed ·{" "}
-          {listings.filter((p) => p.status === "under_offer").length} under offer
+          {session.organisationName} · Vendor & buyer pipelines on Platform
         </p>
       </header>
       <main className="dg-page-main">
-        <ListingList properties={listings} />
+        <ReDashboard
+          stats={stats}
+          wpSummary={wpSummary.ok ? wpSummary.data : undefined}
+          wpError={wpSummary.ok ? undefined : wpSummary.message}
+        />
       </main>
     </>
   );

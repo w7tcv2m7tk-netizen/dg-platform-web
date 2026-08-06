@@ -27,6 +27,8 @@ export * from "./session";
 export * from "./api-keys";
 export * from "./api";
 export * from "./real-estate/pipeline";
+export * from "./real-estate/settlements";
+export * from "./real-estate/dashboard";
 export * from "./automation";
 export * from "./communications";
 export * from "./roadmap";

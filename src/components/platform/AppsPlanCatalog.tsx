@@ -78,6 +78,7 @@ function CatalogAppCard({
   badge,
   enabled,
   primaryHref,
+  align = "center",
 }: {
   appId: string;
   icon: string;
@@ -88,12 +89,14 @@ function CatalogAppCard({
   badge?: string;
   enabled: boolean;
   primaryHref?: string;
+  align?: "left" | "center";
 }) {
   const setupGuide = getAppSetupGuide(appId);
   const canToggle = status !== "soon" && platformApps.get(appId);
+  const isLeft = align === "left";
 
   return (
-    <div className="dg-card flex flex-col text-center">
+    <div className={`dg-card flex flex-col ${isLeft ? "text-left" : "text-center"}`}>
       <div className="flex items-start justify-between gap-2">
         <span className="text-2xl" aria-hidden>
           {icon}
@@ -105,18 +108,20 @@ function CatalogAppCard({
         ) : null}
       </div>
       {badge ? (
-        <div className="mt-2 flex justify-center">
+        <div className={`mt-2 flex ${isLeft ? "justify-start" : "justify-center"}`}>
           <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-300">
             {badge}
           </span>
         </div>
       ) : !canToggle && status && status !== "included" ? (
-        <div className="mt-2 flex justify-center">{statusBadge(status)}</div>
+        <div className={`mt-2 flex ${isLeft ? "justify-start" : "justify-center"}`}>
+          {statusBadge(status)}
+        </div>
       ) : null}
       <h3 className="mt-2 font-semibold text-white">{label}</h3>
       <p className="mt-1 text-sm font-semibold text-blue-400">{price}</p>
       <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-400">{description}</p>
-      <div className="mt-4 flex flex-wrap justify-center gap-2">
+      <div className={`mt-4 flex flex-wrap gap-2 ${isLeft ? "justify-start" : "justify-center"}`}>
         {enabled && primaryHref ? (
           <Link
             href={primaryHref}
@@ -307,9 +312,9 @@ export function AppsPlanCatalog() {
           title="Extend your platform"
           description="Extra users and white label — add to any tier. Purchase on the website; toggles here control sidebar apps only."
         />
-        <div className="mx-auto grid max-w-2xl gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PLATFORM_ADDON_CATALOG.map((addon) => (
-            <div key={addon.key} className="dg-card text-center">
+            <div key={addon.key} className="dg-card text-left">
               <div className="text-2xl" aria-hidden>
                 {addon.icon}
               </div>
@@ -384,7 +389,7 @@ export function AppsPlanCatalog() {
               Infrastructure and commerce — connected to your operating system, not bolted on
             </p>
           </div>
-          <div className="mx-auto grid max-w-4xl gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PLATFORM_CAPABILITY_CATALOG.map((item) => (
               <CatalogAppCard
                 key={item.appId}
@@ -397,6 +402,7 @@ export function AppsPlanCatalog() {
                 badge={item.badge}
                 enabled={enabledIds.includes(item.appId)}
                 primaryHref={appHref(item.appId)}
+                align="left"
               />
             ))}
           </div>
