@@ -13,7 +13,7 @@ import { MobileHeader } from "@/components/MobileHeader";
 import { OrgBrandProvider, orgBrandStyle } from "@/components/brand/OrgBrandProvider";
 import { Sidebar } from "@/components/Sidebar";
 import type { OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
-import { DEFAULT_ORG_BRAND_THEME } from "@/lib/org-brand-theme";
+import { DEFAULT_ORG_BRAND_THEME } from "@/lib/brand-client";
 
 type MobileNavContextValue = {
   close: () => void;

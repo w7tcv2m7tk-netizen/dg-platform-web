@@ -9,7 +9,7 @@ import {
   parseBrandColours,
   serializeBrandColours,
   type OrganisationBusinessProfile,
-} from "@dg/platform-core";
+} from "@/lib/brand-client";
 
 type BrandAssetsEditorProps = {
   profile: OrganisationBusinessProfile;

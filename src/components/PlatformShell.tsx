@@ -2,7 +2,7 @@ import { EnabledAppsProvider } from "@/components/platform/EnabledAppsProvider";
 import { ChatWidgetProvider } from "@/components/platform/ChatWidgetProvider";
 import { AppShellLayout } from "@/components/AppShellLayout";
 import type { OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
-import { DEFAULT_ORG_BRAND_THEME } from "@/lib/org-brand-theme";
+import { DEFAULT_ORG_BRAND_THEME } from "@/lib/brand-client";
 
 export function PlatformShell({
   children,

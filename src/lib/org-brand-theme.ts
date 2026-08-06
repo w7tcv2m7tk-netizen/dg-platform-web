@@ -5,14 +5,10 @@ import {
 } from "@dg/platform-core";
 import { cache } from "react";
 
+import { DEFAULT_ORG_BRAND_THEME } from "@/lib/brand-client";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
-export const DEFAULT_ORG_BRAND_THEME: OrgBrandTheme = {
-  businessName: "DigitalGate",
-  primaryColor: "#3b82f6",
-  accentColor: "#10b981",
-  hasCustomBrand: false,
-};
+export { DEFAULT_ORG_BRAND_THEME };
 
 /** Resolve active org brand theme once per request. */
 export const getOrgBrandThemeCached = cache(async (): Promise<OrgBrandTheme> => {
