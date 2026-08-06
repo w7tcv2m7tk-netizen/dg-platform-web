@@ -127,6 +127,7 @@ export interface BusinessOverview {
   connectedSystems: OverviewConnectedSystem[];
   aiPrompts: OverviewAiPrompt[];
   growthOpportunities: OverviewGrowthOpportunity[];
+  growthOpportunityCount: number;
   recentReports: OverviewReportLink[];
   teamActivity: OverviewTeamMember[];
   visibleWidgets: OverviewWidgetId[];

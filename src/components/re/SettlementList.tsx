@@ -34,6 +34,17 @@ export function SettlementList({
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
 
+  async function completePastClient(leadId: string) {
+    setPending(leadId);
+    await fetch("/api/v1/re/past-client", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ vendorLeadId: leadId }),
+    });
+    setPending(null);
+    router.refresh();
+  }
+
   async function toggleItem(propertyId: string, checklist: SettlementChecklist, itemId: string) {
     const next = { ...checklist, [itemId]: !checklist[itemId as keyof SettlementChecklist] };
     setPending(propertyId);
@@ -114,6 +125,19 @@ export function SettlementList({
               </li>
             ))}
           </ul>
+
+          {item.leadId &&
+          item.progress.percent >= 100 &&
+          item.leadStage !== "past_client" ? (
+            <button
+              type="button"
+              disabled={pending === item.leadId}
+              onClick={() => completePastClient(item.leadId!)}
+              className="mt-4 rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+            >
+              {pending === item.leadId ? "Processing…" : "Mark past client & request review →"}
+            </button>
+          ) : null}
         </li>
       ))}
     </ul>

@@ -282,8 +282,15 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
         </section>
 
         {/* Growth opportunities */}
-        <section className="dg-card">
-          <h2 className="font-semibold text-white">Growth opportunities</h2>
+        <section id="growth-opportunities" className="dg-card">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-semibold text-white">Growth opportunities</h2>
+            {overview.growthOpportunityCount > 0 ? (
+              <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+                {overview.growthOpportunityCount} total
+              </span>
+            ) : null}
+          </div>
           <ul className="mt-4 space-y-2">
             {overview.growthOpportunities.map((opp) => (
               <li key={opp.id}>

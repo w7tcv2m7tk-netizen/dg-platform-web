@@ -5,6 +5,7 @@ import {
   resolvePlatformSession,
 } from "@dg/platform-core";
 
+import { BillingActions } from "@/components/settings/BillingActions";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { getOrgEnabledAppIds } from "@/lib/org-apps";
 import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
@@ -80,9 +81,13 @@ export default async function BillingSettingsPage() {
                 rel="noopener noreferrer"
                 className="rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-200 hover:border-blue-500"
               >
-                Change plan ↗
+                View pricing ↗
               </a>
             </div>
+            <BillingActions
+              platformTier={profile?.platformTier}
+              hasBillingCustomer={Boolean(portal?.linked || profile?.platformTier)}
+            />
           </div>
 
           <div className="dg-card">
@@ -109,17 +114,15 @@ export default async function BillingSettingsPage() {
         <div className="dg-card border-dashed border-slate-700">
           <h2 className="font-semibold text-white">Invoices & payment method</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Subscription billing is managed through DigitalGate checkout. Stripe Customer Portal
-            for invoices ships next — contact support for billing changes in the meantime.
+            Manage subscriptions, download invoices, and update your payment method through the
+            Stripe Customer Portal.
           </p>
-          <a
-            href="https://digitalgate.com.au/contact/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-block text-sm text-blue-400 hover:underline"
-          >
-            Contact billing support →
-          </a>
+          {session ? (
+            <BillingActions
+              platformTier={profile?.platformTier}
+              hasBillingCustomer={Boolean(portal?.linked || profile?.platformTier)}
+            />
+          ) : null}
         </div>
       </main>
     </>

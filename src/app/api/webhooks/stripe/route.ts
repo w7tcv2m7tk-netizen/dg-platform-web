@@ -1,4 +1,5 @@
-import { bootPaymentConnectors, processPaymentWebhookEvent, requirePaymentConnector } from "@dg/platform-core";
+import { bootPaymentConnectors, isPlatformCheckoutSession, processPaymentWebhookEvent, provisionFromPlatformCheckout, requirePaymentConnector } from "@dg/platform-core";
+import type Stripe from "stripe";
 import { NextResponse } from "next/server";
 
 bootPaymentConnectors();
@@ -10,6 +11,16 @@ export async function POST(req: Request) {
   try {
     const connector = requirePaymentConnector("stripe");
     const event = await connector.parseWebhook(rawBody, headers);
+
+    if (event.type === "checkout.completed" && event.raw) {
+      const session = event.raw as Stripe.Checkout.Session;
+      if (isPlatformCheckoutSession(session)) {
+        const platformResult = await provisionFromPlatformCheckout(session);
+        console.info("[stripe webhook] platform checkout:", platformResult);
+        return NextResponse.json({ received: true, platform: platformResult });
+      }
+    }
+
     const result = await processPaymentWebhookEvent(event);
 
     if (!result.ok) {

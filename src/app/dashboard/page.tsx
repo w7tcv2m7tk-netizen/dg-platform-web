@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { after } from "next/server";
 import {
   buildBusinessOverview,
@@ -96,6 +97,15 @@ export default async function DashboardPage() {
           <span className="text-xs text-slate-500">
             Last updated: {overview.lastUpdatedLabel}
           </span>
+          {overview.growthOpportunityCount > 0 ? (
+            <Link
+              href="#growth-opportunities"
+              className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300 hover:border-emerald-400/50"
+            >
+              {overview.growthOpportunityCount} growth opportunit
+              {overview.growthOpportunityCount === 1 ? "y" : "ies"}
+            </Link>
+          ) : null}
         </div>
       </header>
       <main className="dg-page-main">

@@ -127,6 +127,17 @@ export async function syncReBookingsFromWordPress(
             externalRefs: { wp_booking_id: wpId } as Prisma.InputJsonValue,
           },
         });
+        const created = await prisma.lead.findFirst({
+          where: {
+            organisationId: input.organisationId,
+            source: RE_BOOKING_SOURCE,
+            externalRefs: { path: ["wp_booking_id"], equals: wpId },
+          },
+        });
+        if (created) {
+          const { linkBookingToVendorLead } = await import("./reports");
+          await linkBookingToVendorLead(input.organisationId, created.id);
+        }
         result.created++;
       }
     } catch (err) {

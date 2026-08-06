@@ -8,6 +8,7 @@ import type { OverviewLiveMetrics } from "./gather-live-metrics";
 import type { HealthHistoryEntry } from "./health-history";
 import { healthDeltaFromHistory, healthTrendFromHistory } from "./health-history";
 import { buildSetupProgress } from "./setup-progress";
+import { buildGrowthOpportunities } from "./growth-opportunities";
 import type {
   BusinessOverview,
   OverviewConnectedSystem,
@@ -245,43 +246,14 @@ function buildConnectedSystems(connectors: OverviewConnectorProbes): OverviewCon
   ];
 }
 
-function buildGrowthOpportunities(enabledAppIds: string[]) {
-  const opps = [];
-  if (!enabledAppIds.includes("ai-visibility")) {
-    opps.push({
-      id: "ai-vis",
-      label: "AI Visibility Pro",
-      status: "Not enabled",
-      impact: "Potential +17%",
-      href: "/dashboard/apps",
-    });
-  }
-  if (!enabledAppIds.includes("reviews")) {
-    opps.push({
-      id: "reviews-auto",
-      label: "Review Automation",
-      status: "Not enabled",
-      impact: "Save 8 hrs/month",
-      href: "/dashboard/apps",
-    });
-  }
-  opps.push({
-    id: "web-opt",
-    label: "Website Optimisation",
-    status: "Available",
-    impact: "Potential +11%",
-    href: "/apps/websites/health",
-  });
-  if (!enabledAppIds.includes("marketing")) {
-    opps.push({
-      id: "mkt-auto",
-      label: "Marketing Automation",
-      status: "Recommended",
-      impact: "Increase reach",
-      href: "/apps/marketing",
-    });
-  }
-  return opps;
+function buildOpportunities(input: {
+  enabledAppIds: string[];
+  scores?: import("../scoring/types").ScoreResult[];
+  businessProfile?: OrganisationBusinessProfile | null;
+  connectorProbes?: OverviewConnectorProbes;
+  setupPercent?: number;
+}) {
+  return buildGrowthOpportunities(input);
 }
 
 /** Build CEO dashboard payload from live Twin → Scoring → BI pipeline. */
@@ -371,6 +343,14 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
 
   const timeline = timelineFromActivities(activities);
 
+  const opportunities = buildOpportunities({
+    enabledAppIds,
+    scores: scores.scores,
+    businessProfile: input.businessProfile as OrganisationBusinessProfile | null,
+    connectorProbes,
+    setupPercent: setupProgress.percent,
+  });
+
   return {
     organisationName,
     userDisplayName: firstName,
@@ -412,7 +392,8 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
       { id: "automation", label: "Build an automation", prompt: "Suggest an automation to improve lead follow-up." },
       { id: "proposal", label: "Generate a proposal", prompt: "Generate a client proposal with services and pricing." },
     ],
-    growthOpportunities: buildGrowthOpportunities(enabledAppIds),
+    growthOpportunities: opportunities.items,
+    growthOpportunityCount: opportunities.totalCount,
     recentReports: [
       { id: "growth", label: "Monthly Growth Report", href: "/command/reports" },
       { id: "seo", label: "SEO Report", href: "/apps/seo" },
@@ -437,6 +418,13 @@ function buildPreviewOverview(
 ): BusinessOverview {
   const { organisationName, enabledAppIds, activities } = input;
   const reOrg = /roe|realty|real estate|estate/i.test(organisationName);
+
+  const opportunities = buildOpportunities({
+    enabledAppIds,
+    connectorProbes: input.connectorProbes,
+    businessProfile: input.businessProfile as OrganisationBusinessProfile | null,
+    setupPercent: setupProgress.percent,
+  });
 
   return {
     organisationName,
@@ -489,7 +477,8 @@ function buildPreviewOverview(
     aiPrompts: [
       { id: "pipeline", label: "Summarise my pipeline", prompt: "Summarise my sales pipeline." },
     ],
-    growthOpportunities: buildGrowthOpportunities(enabledAppIds),
+    growthOpportunities: opportunities.items,
+    growthOpportunityCount: opportunities.totalCount,
     recentReports: [{ id: "web", label: "Website Audit", href: "/apps/websites/health" }],
     teamActivity: [],
     visibleWidgets: widgetsForApps(enabledAppIds),
