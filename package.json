@@ -11,7 +11,7 @@
     "db:push": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma/schema.prisma",
     "db:studio": "dotenv -e .env.local -- prisma studio --schema=packages/database/prisma/schema.prisma",
     "setup:stripe-webhook": "node scripts/setup-stripe-webhook.mjs",
-    "verify:env": "dotenv -e .env.local -- node scripts/verify-env.mjs",
+    "capture:screenshots": "node scripts/capture-marketing-screenshots.mjs",
     "postinstall": "npm run db:generate"
   },
   "dependencies": {
@@ -30,6 +30,7 @@
     "dotenv-cli": "^8.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
+    "playwright": "^1.62.1",
     "prisma": "^6.19.0",
     "tailwindcss": "^4",
     "typescript": "^5"
