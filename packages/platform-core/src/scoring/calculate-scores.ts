@@ -1,3 +1,4 @@
+import type { OrganisationBusinessProfile } from "../org/business-profile-types";
 import type { DigitalTwinSnapshot } from "../twin/types";
 import type { ScoreId, ScoreResult } from "./types";
 
@@ -20,11 +21,22 @@ function scoreFromSeo(websiteHealth: number, snapshot: DigitalTwinSnapshot): num
   return clamp(websiteHealth * 0.88 + pagespeedBonus + 4);
 }
 
-function scoreFromAiVisibility(enabledAppIds: string[], websiteHealth: number): number {
+function scoreFromAiVisibility(
+  enabledAppIds: string[],
+  websiteHealth: number,
+  profile?: OrganisationBusinessProfile | null,
+): number {
   let base = websiteHealth * 0.82 + 8;
   if (enabledAppIds.includes("ai-visibility")) base += 8;
   if (enabledAppIds.includes("seo")) base += 4;
   if (enabledAppIds.includes("marketing")) base += 3;
+  if (profile?.websiteUrl?.trim()) base += 4;
+  if (profile?.social?.googleBusiness?.trim()) base += 6;
+  const socialCount = Object.values(profile?.social ?? {}).filter(Boolean).length;
+  if (socialCount >= 3) base += 4;
+  if (profile?.brandVoice?.services?.trim() && profile?.brandVoice?.targetAudience?.trim()) {
+    base += 3;
+  }
   return clamp(base);
 }
 
@@ -84,6 +96,7 @@ export interface CalculateScoresInput {
   snapshot: DigitalTwinSnapshot;
   enabledAppIds: string[];
   metrics: OverviewMetricsContext;
+  profile?: OrganisationBusinessProfile | null;
 }
 
 export interface OverviewMetricsContext {
@@ -107,13 +120,13 @@ export interface OrgScoresResult {
 
 /** Compute org scores from a Digital Twin snapshot. */
 export function calculateOrgScores(input: CalculateScoresInput): OrgScoresResult {
-  const { snapshot, enabledAppIds, metrics } = input;
+  const { snapshot, enabledAppIds, metrics, profile } = input;
   const now = new Date();
   const orgId = snapshot.organisationId;
 
   const websiteHealth = scoreFromWebsite(snapshot);
   const seo = scoreFromSeo(websiteHealth, snapshot);
-  const aiVisibility = scoreFromAiVisibility(enabledAppIds, websiteHealth);
+  const aiVisibility = scoreFromAiVisibility(enabledAppIds, websiteHealth, profile);
   const businessGrowth = scoreFromBusinessGrowth(snapshot);
   const sales = scoreFromSales(snapshot, metrics);
   const cx = scoreFromCx(snapshot, metrics);

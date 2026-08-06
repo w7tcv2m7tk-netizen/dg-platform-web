@@ -158,7 +158,7 @@ function snapshotToTwinSummary(snapshot?: DigitalTwinSnapshot | null): BusinessC
     return { connectedSystems: [], websites: [] };
   }
   return {
-    businessHealth: snapshot.scores.businessGrowth,
+    businessHealth: snapshot.scores.businessHealth ?? snapshot.scores.businessGrowth,
     aiVisibility: snapshot.scores.aiVisibility,
     seo: snapshot.scores.seo,
     websiteHealth: snapshot.scores.websiteHealth,

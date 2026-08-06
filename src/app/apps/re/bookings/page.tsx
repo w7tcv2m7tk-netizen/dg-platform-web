@@ -1,8 +1,8 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { resolvePlatformSession } from "@dg/platform-core";
+import { listReBookings, resolvePlatformSession } from "@dg/platform-core";
 
 import { ReBookingsPanel } from "@/components/re/ReBookingsPanel";
-import { fetchPortalMe, fetchWpRecentBookings } from "@/lib/dg-api";
+import { fetchPortalMe } from "@/lib/dg-api";
 
 export default async function ReBookingsPage() {
   const user = await currentUser();
@@ -23,22 +23,19 @@ export default async function ReBookingsPage() {
       })
     : null;
 
-  const bookingsResult = await fetchWpRecentBookings(50);
+  const bookings =
+    session ? await listReBookings(session.organisationId, 50) : [];
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Bookings</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "Real Estate"} · Live from Roe WordPress (appraisals &
-          strategy calls)
+          {session?.organisationName ?? "Real Estate"} · Synced to Postgres from Roe WordPress
         </p>
       </header>
       <main className="dg-page-main">
-        <ReBookingsPanel
-          bookings={bookingsResult.ok ? bookingsResult.bookings : []}
-          error={bookingsResult.ok ? undefined : bookingsResult.message}
-        />
+        <ReBookingsPanel bookings={bookings} />
       </main>
     </>
   );

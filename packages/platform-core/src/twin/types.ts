@@ -15,6 +15,7 @@ export interface DigitalTwinScores {
   seo?: number;
   websiteHealth?: number;
   businessGrowth?: number;
+  businessHealth?: number;
   reputation?: number;
   automation?: number;
   calculatedAt?: Date;

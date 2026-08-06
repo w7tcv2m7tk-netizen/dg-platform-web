@@ -120,6 +120,11 @@ export default async function PlatformSettingsPage() {
             <h2 className="font-semibold text-white">Quick links</h2>
             <ul className="mt-3 space-y-2 text-sm">
               <li>
+                <Link href="/dashboard/settings/billing" className="text-blue-400 hover:underline">
+                  Billing & plan →
+                </Link>
+              </li>
+              <li>
                 <Link href="/dashboard/settings/api" className="text-blue-400 hover:underline">
                   API →
                 </Link>

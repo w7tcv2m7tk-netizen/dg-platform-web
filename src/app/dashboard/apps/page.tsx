@@ -1,4 +1,7 @@
+import { Suspense } from "react";
+
 import { AppsPlanCatalog } from "@/components/platform/AppsPlanCatalog";
+import { PostPurchaseSyncBanner } from "@/components/platform/PostPurchaseSyncBanner";
 
 const DIGITALGATE_WEBSITE = "https://digitalgate.com.au";
 
@@ -34,6 +37,9 @@ export default function AppsPage() {
       </header>
 
       <main className="dg-page-main">
+        <Suspense fallback={null}>
+          <PostPurchaseSyncBanner />
+        </Suspense>
         <AppsPlanCatalog />
       </main>
     </>

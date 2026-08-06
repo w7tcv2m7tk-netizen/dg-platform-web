@@ -13,6 +13,8 @@ const isPublicRoute = createRouteMatcher([
   "/api/v1/platform",
   "/api/v1/addresses/resolve",
   "/api/webhooks/stripe",
+  "/api/webhooks/dg-onboarding-sync",
+  "/api/webhooks/dg-discovery",
   "/commerce/checkout/(.*)",
   "/api/webhooks/clerk(.*)",
 ]);

@@ -272,11 +272,11 @@ export async function syncOrganisationFromPortal(input: {
   }
 
   const hasConfiguredApps = Array.isArray(settings.apps?.enabled) && settings.apps.enabled.length > 0;
-  if (
-    !hasConfiguredApps &&
+  const tierOnly =
     profile.platformTier &&
-    (profile.purchasedApps?.length || profile.purchasedPremium?.length)
-  ) {
+    !(profile.purchasedApps?.length || profile.purchasedPremium?.length);
+
+  if (!hasConfiguredApps && profile.platformTier) {
     const enabled = appIdsFromPlanSelection({
       platformTier: profile.platformTier,
       industryApps: profile.purchasedApps ?? [],
@@ -293,7 +293,11 @@ export async function syncOrganisationFromPortal(input: {
           industryApps: profile.purchasedApps ?? [],
           premiumApps: profile.purchasedPremium ?? [],
           appliedAt: profile.syncedAt,
-          source: input.portal.onboarding?.platform_tier ? "onboarding_sync" : "purchase_sync",
+          source: tierOnly
+            ? "tier_sync"
+            : input.portal.onboarding?.platform_tier
+              ? "onboarding_sync"
+              : "purchase_sync",
         },
       },
     } as unknown as InputJsonValue;

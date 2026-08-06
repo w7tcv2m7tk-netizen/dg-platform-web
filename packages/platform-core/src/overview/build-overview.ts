@@ -1,3 +1,4 @@
+import type { OrganisationBusinessProfile } from "../org/business-profile-types";
 import { generateBusinessIntelligence } from "../intelligence/generate-intelligence";
 import { calculateOrgScores, getScoreValue } from "../scoring/calculate-scores";
 import { captureDigitalTwinSnapshot } from "../twin/capture-snapshot";
@@ -313,20 +314,34 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
   });
   snapshot.organisationId = input.organisationId ?? snapshot.organisationId;
 
+  const metricsContext = {
+    newLeadsThisWeek: liveMetrics.newLeadsThisWeek,
+    overdueFollowUps: liveMetrics.overdueFollowUps,
+    listedPropertyCount: liveMetrics.listedPropertyCount,
+    openTasksDue: liveMetrics.openTasksDue,
+    contactCount: liveMetrics.contactCount,
+    hasTimelineActivity: liveMetrics.hasTimelineActivity,
+    activeSubscriptions: liveMetrics.activeSubscriptions,
+    revenueMtdCents: liveMetrics.revenueMtdCents,
+  };
+
   const scores = calculateOrgScores({
     snapshot,
     enabledAppIds,
-    metrics: {
-      newLeadsThisWeek: liveMetrics.newLeadsThisWeek,
-      overdueFollowUps: liveMetrics.overdueFollowUps,
-      listedPropertyCount: liveMetrics.listedPropertyCount,
-      openTasksDue: liveMetrics.openTasksDue,
-      contactCount: liveMetrics.contactCount,
-      hasTimelineActivity: liveMetrics.hasTimelineActivity,
-      activeSubscriptions: liveMetrics.activeSubscriptions,
-      revenueMtdCents: liveMetrics.revenueMtdCents,
-    },
+    metrics: metricsContext,
+    profile: input.businessProfile as OrganisationBusinessProfile | null,
   });
+
+  snapshot.scores = {
+    websiteHealth: getScoreValue(scores.scores, "website_health"),
+    aiVisibility: getScoreValue(scores.scores, "ai_visibility"),
+    seo: getScoreValue(scores.scores, "seo"),
+    businessGrowth: getScoreValue(scores.scores, "business_growth"),
+    businessHealth: scores.businessHealth,
+    reputation: getScoreValue(scores.scores, "reputation"),
+    automation: getScoreValue(scores.scores, "automation"),
+    calculatedAt: new Date(),
+  };
 
   const intelligence = generateBusinessIntelligence({
     organisationName,

@@ -2,6 +2,7 @@ import type { DigitalTwinSnapshot } from "../twin/types";
 import type { OverviewConnectorProbes } from "../overview/connector-probes";
 import type { OverviewLiveMetrics } from "../overview/gather-live-metrics";
 import type { OrgScoresResult } from "../scoring/calculate-scores";
+import { getScoreValue } from "../scoring/calculate-scores";
 import type {
   OverviewInsight,
   OverviewPriority,
@@ -172,6 +173,14 @@ export function generateBusinessIntelligence(
     insights.push({
       text: `Website health score: ${websiteScore}/100.`,
       tone: websiteScore >= 85 ? "positive" : websiteScore >= 70 ? "neutral" : "warning",
+    });
+  }
+
+  const aiVis = getScoreValue(scores.scores, "ai_visibility");
+  if (aiVis > 0) {
+    insights.push({
+      text: `AI Visibility Score: ${aiVis}/100.`,
+      tone: aiVis >= 80 ? "positive" : aiVis >= 60 ? "neutral" : "warning",
     });
   }
 

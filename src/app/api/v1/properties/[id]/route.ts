@@ -5,8 +5,10 @@ import {
   PROPERTY_STATUSES,
   updatePropertyListing,
   updatePropertyStatus,
+  updatePropertyContract,
   updateSettlementChecklist,
   type PropertyStatus,
+  type PropertyContract,
   type SettlementChecklist,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
@@ -64,6 +66,26 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   const listingPriceCents = body?.listingPriceCents as number | null | undefined;
   const marketing = body?.marketing as Record<string, unknown> | undefined;
   const settlementChecklist = body?.settlement_checklist as SettlementChecklist | undefined;
+  const contract = body?.contract as PropertyContract | undefined;
+
+  if (contract) {
+    const updated = await updatePropertyContract(
+      session.organisationId,
+      id,
+      contract,
+      session.clerkUserId,
+    );
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: { code: "property_not_found", message: "Property not found" } },
+        { status: 404 },
+      );
+    }
+
+    const property = await getProperty(session.organisationId, id);
+    return NextResponse.json({ data: property });
+  }
 
   if (settlementChecklist) {
     const updated = await updateSettlementChecklist(

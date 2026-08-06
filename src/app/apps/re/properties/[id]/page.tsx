@@ -7,8 +7,12 @@ import {
   getLead,
   getProperty,
   listPropertyActivities,
+  listPropertyOffers,
   resolvePlatformSession,
 } from "@dg/platform-core";
+
+import { PropertyContractPanel } from "@/components/re/PropertyContractPanel";
+import { PropertyOffersPanel } from "@/components/re/PropertyOffersPanel";
 
 import { PropertyStatusSelect } from "@/components/re/PropertyStatusSelect";
 import { RefreshAddressButton } from "@/components/re/RefreshAddressButton";
@@ -51,7 +55,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
   const property = await getProperty(session.organisationId, id);
   if (!property) notFound();
 
-  const [activities, lead, contact] = await Promise.all([
+  const [activities, lead, contact, offers] = await Promise.all([
     listPropertyActivities(session.organisationId, id),
     property.leadId
       ? getLead(session.organisationId, property.leadId)
@@ -59,7 +63,18 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     property.ownerContactId
       ? getContact(session.organisationId, property.ownerContactId)
       : Promise.resolve(null),
+    listPropertyOffers(session.organisationId, id),
   ]);
+
+  const contract = property.metadata?.contract as
+    | {
+        signedAt?: string;
+        settlementDate?: string;
+        purchasePriceCents?: number;
+        buyerName?: string;
+        specialConditions?: string;
+      }
+    | undefined;
 
   const fullAddress = formatPropertyAddress(property);
   const formattedAddress = property.metadata?.formatted_address as string | undefined;
@@ -138,6 +153,9 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                 </Link>
               </div>
             ) : null}
+
+            <PropertyOffersPanel propertyId={property.id} offers={offers ?? []} />
+            <PropertyContractPanel propertyId={property.id} contract={contract} />
           </div>
 
           <div className="dg-card">
