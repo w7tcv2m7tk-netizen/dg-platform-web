@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
 import { DigitalGateLogo } from "@/components/brand/DigitalGateLogo";
+import { AUTH_AFTER_SIGN_IN_URL, AUTH_SIGN_IN_URL, AUTH_SIGN_UP_URL } from "@/lib/auth-routes";
 
 export default async function HomePage() {
   const { userId } = await auth();
+  if (userId) {
+    redirect(AUTH_AFTER_SIGN_IN_URL);
+  }
 
   return (
     <div className="flex min-h-full flex-col">
@@ -21,11 +26,11 @@ export default async function HomePage() {
               </Link>
             ) : (
               <>
-                <Link href="/login" className="text-slate-300 hover:text-white">
+                <Link href={AUTH_SIGN_IN_URL} className="text-slate-300 hover:text-white">
                   Log in
                 </Link>
                 <Link
-                  href="/signup/account"
+                  href={AUTH_SIGN_UP_URL}
                   className="rounded-full bg-blue-600 px-4 py-1.5 font-medium text-white hover:bg-blue-500"
                 >
                   Create account
@@ -58,13 +63,13 @@ export default async function HomePage() {
           ) : (
             <>
               <Link
-                href="/signup/account"
+                href={AUTH_SIGN_UP_URL}
                 className="rounded-full bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-500"
               >
                 Create account
               </Link>
               <Link
-                href="/login"
+                href={AUTH_SIGN_IN_URL}
                 className="rounded-full border border-slate-600 px-6 py-3 font-semibold text-slate-200 hover:border-slate-500"
               >
                 Log in

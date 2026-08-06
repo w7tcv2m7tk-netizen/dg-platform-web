@@ -1,4 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+
+import { AUTH_AFTER_SIGN_IN_URL } from "@/lib/auth-routes";
 
 const isPublicRoute = createRouteMatcher([
   "/",
@@ -12,6 +15,8 @@ const isPublicRoute = createRouteMatcher([
   "/commerce/checkout/(.*)",
   "/api/webhooks/clerk(.*)",
 ]);
+
+const isAuthEntryRoute = createRouteMatcher(["/login(.*)", "/signup/account(.*)"]);
 
 const isApiV1Route = createRouteMatcher(["/api/v1/(.*)"]);
 
@@ -33,6 +38,12 @@ export default clerkMiddleware(
   async (auth, req) => {
     if (isApiV1Route(req) && hasPlatformApiKey(req)) {
       return;
+    }
+
+    const authState = await auth();
+
+    if (authState.userId && isAuthEntryRoute(req)) {
+      return NextResponse.redirect(new URL(AUTH_AFTER_SIGN_IN_URL, req.url));
     }
 
     if (!isPublicRoute(req)) {

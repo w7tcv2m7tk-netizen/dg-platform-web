@@ -3,6 +3,7 @@
 import { UserButton } from "@clerk/nextjs";
 
 import { DigitalGateLogo } from "@/components/brand/DigitalGateLogo";
+import { AUTH_AFTER_SIGN_OUT_URL } from "@/lib/auth-routes";
 
 function MenuIcon() {
   return (
@@ -45,6 +46,7 @@ export function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
       />
 
       <UserButton
+        afterSignOutUrl={AUTH_AFTER_SIGN_OUT_URL}
         appearance={{
           elements: {
             avatarBox: "h-9 w-9",

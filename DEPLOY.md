@@ -4,6 +4,8 @@ Get the Next.js client portal live with real login (Clerk) on Vercel.
 
 ## 1. Clerk (auth)
 
+See also **[docs/CLERK-AUTH-SETTINGS.md](./docs/CLERK-AUTH-SETTINGS.md)** for session length, Client Trust (2FA on new devices only), and same-window login.
+
 1. Go to [dashboard.clerk.com](https://dashboard.clerk.com) → **Add application** → name it e.g. `DigitalGate Platform`.
 2. **API Keys** — copy Publishable key and Secret key.
 3. **Configure → Paths** (optional if using env vars below):
@@ -47,6 +49,9 @@ Open [http://localhost:3000](http://localhost:3000):
    | `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | `/signup/account` |
    | `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | `/dashboard` |
    | `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | `/dashboard` |
+   | `NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL` | `/dashboard` |
+   | `NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL` | `/dashboard` |
+   | `NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL` | `/login` |
    | `DG_API_BASE_URL` | `https://digitalgate.com.au/wp-json/digitalgate/v1` |
    | `DG_ONBOARDING_URL` | `https://digitalgate.com.au/onboarding/` |
    | `NEXT_PUBLIC_DG_ONBOARDING_URL` | `https://digitalgate.com.au/onboarding/` |

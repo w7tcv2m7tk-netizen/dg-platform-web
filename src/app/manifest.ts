@@ -9,7 +9,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "CRM, industry apps, and growth tools — your business command centre",
     start_url: "/dashboard",
     scope: "/",
-    display: "standalone",
+    display: "browser",
     orientation: "any",
     background_color: "#020617",
     theme_color: "#020617",

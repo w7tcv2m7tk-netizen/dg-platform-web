@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import { clerkAppearance } from "@/lib/clerk-appearance";
+import {
+  AUTH_AFTER_SIGN_IN_URL,
+  AUTH_AFTER_SIGN_OUT_URL,
+  AUTH_SIGN_IN_URL,
+  AUTH_SIGN_UP_URL,
+} from "@/lib/auth-routes";
 import { BRAND_DEFAULT } from "@/lib/brand";
 import { ServiceWorkerRegistration } from "@/components/platform/ServiceWorkerRegistration";
 import "./globals.css";
@@ -39,10 +45,18 @@ export default function RootLayout({
   return (
     <ClerkProvider
       appearance={clerkAppearance}
-      signInUrl="/login"
-      signUpUrl="/signup/account"
-      signInFallbackRedirectUrl="/dashboard"
-      signUpFallbackRedirectUrl="/dashboard"
+      signInUrl={AUTH_SIGN_IN_URL}
+      signUpUrl={AUTH_SIGN_UP_URL}
+      signInForceRedirectUrl={AUTH_AFTER_SIGN_IN_URL}
+      signUpForceRedirectUrl={AUTH_AFTER_SIGN_IN_URL}
+      signInFallbackRedirectUrl={AUTH_AFTER_SIGN_IN_URL}
+      signUpFallbackRedirectUrl={AUTH_AFTER_SIGN_IN_URL}
+      afterSignOutUrl={AUTH_AFTER_SIGN_OUT_URL}
+      touchSession
+      taskUrls={{
+        "setup-mfa": AUTH_AFTER_SIGN_IN_URL,
+        "reset-password": AUTH_SIGN_IN_URL,
+      }}
     >
       <html lang="en" className={`${inter.variable} h-full`}>
         <body className="min-h-full bg-slate-950 font-sans text-slate-100 antialiased">

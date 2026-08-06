@@ -1,7 +1,16 @@
 import { SignUp } from "@clerk/nextjs";
-import { AuthShell } from "@/components/AuthShell";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
-export default function SignUpAccountPage() {
+import { AuthShell } from "@/components/AuthShell";
+import { AUTH_AFTER_SIGN_IN_URL, AUTH_SIGN_IN_URL } from "@/lib/auth-routes";
+
+export default async function SignUpAccountPage() {
+  const { userId } = await auth();
+  if (userId) {
+    redirect(AUTH_AFTER_SIGN_IN_URL);
+  }
+
   return (
     <AuthShell
       title="Create your account"
@@ -10,9 +19,10 @@ export default function SignUpAccountPage() {
       <SignUp
         routing="path"
         path="/signup/account"
-        signInUrl="/login"
-        forceRedirectUrl="/dashboard"
-        fallbackRedirectUrl="/dashboard"
+        signInUrl={AUTH_SIGN_IN_URL}
+        forceRedirectUrl={AUTH_AFTER_SIGN_IN_URL}
+        fallbackRedirectUrl={AUTH_AFTER_SIGN_IN_URL}
+        oauthFlow="redirect"
       />
     </AuthShell>
   );
