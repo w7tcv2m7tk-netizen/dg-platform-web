@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import { BRAND_DEFAULT } from "@/lib/brand";
+import { ServiceWorkerRegistration } from "@/components/platform/ServiceWorkerRegistration";
 import "./globals.css";
 
 const inter = Inter({
@@ -45,6 +46,7 @@ export default function RootLayout({
       <html lang="en" className={`${inter.variable} h-full`}>
         <body className="min-h-full bg-slate-950 font-sans text-slate-100 antialiased">
           {children}
+          <ServiceWorkerRegistration />
         </body>
       </html>
     </ClerkProvider>

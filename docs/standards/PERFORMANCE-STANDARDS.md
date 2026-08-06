@@ -63,9 +63,16 @@ Native apps don't automatically fix these — optimise the web platform first.
 |---------|--------|
 | Web app manifest | ✅ |
 | Install prompt (Add to Home Screen) | Browser-native |
-| Service worker / offline shell | Planned |
+| Service worker / offline shell | ✅ |
+| Online/offline status banner | ✅ |
 | Push notifications | Planned |
 | Offline CRM read + sync queue | Planned |
+
+### Implementation
+
+- **Service worker** — `public/sw.js` precaches offline shell; stale-while-revalidate for `/_next/static` assets
+- **Offline page** — `public/offline.html` shown when navigation fails without network
+- **Registration** — `ServiceWorkerRegistration` in root layout (production only)
 
 ---
 

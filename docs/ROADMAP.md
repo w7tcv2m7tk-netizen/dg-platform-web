@@ -138,8 +138,8 @@ Make the web app feel like desktop software before investing in native apps.
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| **1 — Feel like software** | Request dedup, parallel fetch, skeletons, prefetch, PWA manifest | 🔄 In progress |
-| **2 — PWA polish** | Service worker, offline shell, push notifications | ⏳ Planned |
+| **1 — Feel like software** | Request dedup, parallel fetch, skeletons, prefetch, PWA manifest | ✅ Done |
+| **2 — PWA polish** | Service worker, offline shell, push notifications | 🔄 In progress |
 | **3 — Mobile apps** | Industry-specific (RE, Accommodation, DG staff) | ⏳ Later |
 | **4 — Desktop app** | Electron/Tauri when OS integration adds value | ⏳ Later |
 
