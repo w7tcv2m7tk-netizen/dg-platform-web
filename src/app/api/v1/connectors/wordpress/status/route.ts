@@ -1,11 +1,11 @@
 import { fetchWpVendorLeads, getWpConnectorBase } from "@/lib/dg-api";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
+import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
 /** Debug WordPress connector config — does not expose API keys */
-export async function GET() {
-  const session = await requirePlatformSession();
+export async function GET(req: Request) {
+  const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const hasDgApiKey = Boolean(process.env.DG_API_KEY?.trim());

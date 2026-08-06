@@ -1,10 +1,10 @@
 import { listAuditLogs } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requirePlatformSession } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
-  const session = await requirePlatformSession();
+  const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const denied = requireFeature(session, "crm.contacts.read");

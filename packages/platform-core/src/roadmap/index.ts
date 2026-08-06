@@ -76,6 +76,14 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     href: "/dashboard",
   },
   {
+    id: "platform.api",
+    area: "Platform",
+    label: "Platform API v1",
+    description: "Org-scoped REST API with dg_live_ keys, catalog, and settings UI",
+    status: "done",
+    href: "/dashboard/settings/api",
+  },
+  {
     id: "platform.audit",
     area: "Platform",
     label: "Audit log",

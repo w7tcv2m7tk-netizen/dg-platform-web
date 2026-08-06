@@ -4,10 +4,10 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
+import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function POST(req: Request) {
-  const session = await requirePlatformSession();
+  const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const body = await req.json().catch(() => null);
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const session = await requirePlatformSession();
+  const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const { searchParams } = new URL(req.url);

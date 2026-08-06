@@ -1,10 +1,10 @@
 import { listAutomationRules, platformApps } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
+import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
-export async function GET() {
-  const session = await requirePlatformSession();
+export async function GET(req: Request) {
+  const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const rules = listAutomationRules();

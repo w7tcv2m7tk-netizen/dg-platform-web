@@ -1,10 +1,75 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { sessionHasFeature, resolvePlatformSession, type PlatformSession } from "@dg/platform-core";
+import {
+  apiKeyToPlatformSession,
+  sessionHasFeature,
+  resolvePlatformSession,
+  verifyPlatformApiKey,
+  type PlatformSession,
+} from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-export async function requirePlatformSession(): Promise<
-  PlatformSession | NextResponse
-> {
+export function extractApiKeyFromRequest(req: Request) {
+  const headerKey = req.headers.get("X-API-Key")?.trim();
+  if (headerKey) return headerKey;
+
+  const authHeader = req.headers.get("Authorization")?.trim();
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    return authHeader.slice(7).trim();
+  }
+
+  return "";
+}
+
+function isValidLegacyConnectorKey(provided: string) {
+  const keys = [
+    process.env.DG_WP_CONNECTOR_API_KEY?.trim(),
+    process.env.DG_API_KEY?.trim(),
+    process.env.DG_ADDRESS_RESOLVE_API_KEY?.trim(),
+  ].filter(Boolean) as string[];
+
+  return keys.some((key) => key === provided);
+}
+
+/** Clerk session only — for user-specific routes (support chat, key management). */
+export async function requireClerkSession(): Promise<PlatformSession | NextResponse> {
+  return resolveClerkSession();
+}
+
+/** Clerk session or organisation API key (`dg_live_…`). */
+export async function requirePlatformAuth(
+  req: Request,
+): Promise<PlatformSession | NextResponse> {
+  const apiKey = extractApiKeyFromRequest(req);
+
+  if (apiKey) {
+    const verified = await verifyPlatformApiKey(apiKey);
+    if (verified) {
+      return apiKeyToPlatformSession(verified);
+    }
+
+    return NextResponse.json(
+      {
+        error: {
+          code: "auth_failed",
+          message: "Invalid or revoked API key",
+        },
+      },
+      { status: 401 },
+    );
+  }
+
+  return resolveClerkSession();
+}
+
+/** @deprecated Use requirePlatformAuth(req) or requireClerkSession() */
+export async function requirePlatformSession(
+  req?: Request,
+): Promise<PlatformSession | NextResponse> {
+  if (req) return requirePlatformAuth(req);
+  return resolveClerkSession();
+}
+
+async function resolveClerkSession(): Promise<PlatformSession | NextResponse> {
   const { userId } = await auth();
   const user = await currentUser();
 
@@ -65,42 +130,25 @@ export function requireFeature(
   return null;
 }
 
-function extractConnectorApiKey(req: Request) {
-  const headerKey = req.headers.get("X-API-Key")?.trim();
-  if (headerKey) return headerKey;
-
-  const authHeader = req.headers.get("Authorization")?.trim();
-  if (authHeader?.toLowerCase().startsWith("bearer ")) {
-    return authHeader.slice(7).trim();
-  }
-
-  return "";
-}
-
-function isValidConnectorKey(provided: string) {
-  const keys = [
-    process.env.DG_WP_CONNECTOR_API_KEY?.trim(),
-    process.env.DG_API_KEY?.trim(),
-    process.env.DG_ADDRESS_RESOLVE_API_KEY?.trim(),
-  ].filter(Boolean) as string[];
-
-  return keys.some((key) => key === provided);
-}
-
 export type PlatformAuthContext =
   | { mode: "session"; session: PlatformSession }
   | { mode: "connector" };
 
-/** Clerk session or connector API key — for address resolve and WP bridge */
+/** Clerk session or legacy env connector key — for address resolve and WP bridge */
 export async function authenticatePlatformOrConnector(
   req: Request,
 ): Promise<PlatformAuthContext | NextResponse> {
-  const apiKey = extractConnectorApiKey(req);
-  if (apiKey && isValidConnectorKey(apiKey)) {
+  const apiKey = extractApiKeyFromRequest(req);
+  if (apiKey && isValidLegacyConnectorKey(apiKey)) {
     return { mode: "connector" };
   }
 
-  const session = await requirePlatformSession();
+  const verified = apiKey ? await verifyPlatformApiKey(apiKey) : null;
+  if (verified) {
+    return { mode: "session", session: apiKeyToPlatformSession(verified) };
+  }
+
+  const session = await resolveClerkSession();
   if (isNextResponse(session)) {
     if (apiKey) {
       return NextResponse.json(
@@ -112,4 +160,23 @@ export async function authenticatePlatformOrConnector(
   }
 
   return { mode: "session", session };
+}
+
+/** Organisation owners/admins only (Clerk sessions — not API keys). */
+export function requireOrgAdmin(session: PlatformSession): NextResponse | null {
+  if (session.clerkUserId.startsWith("api_key:")) {
+    return NextResponse.json(
+      { error: { code: "forbidden", message: "API keys cannot manage API keys" } },
+      { status: 403 },
+    );
+  }
+
+  if (!["owner", "admin"].includes(session.role)) {
+    return NextResponse.json(
+      { error: { code: "forbidden", message: "Organisation admin required" } },
+      { status: 403 },
+    );
+  }
+
+  return null;
 }

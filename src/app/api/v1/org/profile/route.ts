@@ -5,18 +5,18 @@ import {
 } from "@dg/platform-core";
 
 import { fetchPortalMe } from "@/lib/dg-api";
-import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
+import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
-export async function GET() {
-  const session = await requirePlatformSession();
+export async function GET(req: Request) {
+  const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const profile = await getOrganisationBusinessProfile(session.organisationId);
   return NextResponse.json({ data: profile });
 }
 
-export async function POST() {
-  const session = await requirePlatformSession();
+export async function POST(req: Request) {
+  const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const portal = await fetchPortalMe(session.email, session.clerkUserId);

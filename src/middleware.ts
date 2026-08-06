@@ -12,6 +12,15 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks/clerk(.*)",
 ]);
 
+const isApiV1Route = createRouteMatcher(["/api/v1/(.*)"]);
+
+function hasPlatformApiKey(req: Request) {
+  const header = req.headers.get("X-API-Key")?.trim();
+  if (header) return true;
+  const auth = req.headers.get("Authorization")?.trim();
+  return Boolean(auth?.toLowerCase().startsWith("bearer "));
+}
+
 const authorizedParties = [
   "https://app.digitalgate.com.au",
   "https://dg-platform-web.vercel.app",
@@ -21,6 +30,10 @@ const authorizedParties = [
 
 export default clerkMiddleware(
   async (auth, req) => {
+    if (isApiV1Route(req) && hasPlatformApiKey(req)) {
+      return;
+    }
+
     if (!isPublicRoute(req)) {
       await auth.protect();
     }

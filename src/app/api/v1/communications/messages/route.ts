@@ -5,12 +5,12 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
+import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
 const CHANNELS = new Set<CommsChannel>(["email", "sms", "voice", "chat"]);
 
-export async function GET() {
-  const session = await requirePlatformSession();
+export async function GET(req: Request) {
+  const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const health = await communicationsHealthCheck(session.organisationId);
@@ -18,7 +18,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await requirePlatformSession();
+  const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const body = await req.json().catch(() => null);
