@@ -1,7 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import {
   buildBusinessOverview,
-  getPlatformSetupStatus,
+  gatherOverviewLiveMetrics,
   listOrganisationActivities,
   resolvePlatformSession,
 } from "@dg/platform-core";
@@ -9,6 +9,8 @@ import {
 import { BusinessOverviewDashboard } from "@/components/overview/BusinessOverviewDashboard";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { getOrgEnabledAppIds } from "@/lib/org-apps";
+import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
+import { autoSyncWordPressVendorLeadsIfNeeded } from "@/lib/wordpress-sync";
 
 export default async function DashboardPage() {
   const user = await currentUser();
@@ -31,25 +33,42 @@ export default async function DashboardPage() {
       : null;
 
   const enabledAppIds = await getOrgEnabledAppIds();
-  const setupStatus = platformSession
-    ? await getPlatformSetupStatus(platformSession.organisationId)
-    : null;
 
-  const activities = platformSession
-    ? await listOrganisationActivities({
+  let liveMetrics = null;
+  let connectorProbes = {};
+  let activities = null;
+
+  if (platformSession) {
+    await autoSyncWordPressVendorLeadsIfNeeded(platformSession).catch(() => null);
+
+    [liveMetrics, connectorProbes, activities] = await Promise.all([
+      gatherOverviewLiveMetrics(platformSession.organisationId),
+      fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
+      listOrganisationActivities({
         organisationId: platformSession.organisationId,
         limit: 10,
-      })
-    : null;
+      }),
+    ]);
+  }
 
   const overview = buildBusinessOverview({
+    organisationId: platformSession?.organisationId,
     organisationName: platformSession?.organisationName ?? portal?.org_name ?? "Your business",
     userDisplayName: user?.firstName ?? name,
     enabledAppIds,
-    setupStatus,
+    setupStatus: liveMetrics
+      ? {
+          orgProvisioned: true,
+          hasTeamMember: true,
+          hasContacts: liveMetrics.hasContacts,
+          hasTimelineActivity: liveMetrics.hasTimelineActivity,
+          contactCount: liveMetrics.contactCount,
+          activityCount: liveMetrics.activityCount,
+        }
+      : null,
     activities: activities?.items,
-    scoresLive: false,
-    stripeConfigured: Boolean(process.env.STRIPE_SECRET_KEY?.trim()),
+    liveMetrics,
+    connectorProbes,
   });
 
   return (

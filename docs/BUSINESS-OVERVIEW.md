@@ -62,9 +62,16 @@ Industry defaults:
 Connectors → Digital Twin → Scoring Engine → BI Engine → Business Overview
 ```
 
-Preview mode (Platform 1.0): Roe-flavoured demo intelligence until Twin + Scoring v1 live.
+**Live mode** (when `DATABASE_URL` + org session): dashboard loads real KPIs from Postgres, probes WordPress site health and RE summary, calculates Business Health from the Twin snapshot, and generates rule-based briefings and recommended actions.
 
-Implementation: `packages/platform-core/src/overview/build-overview.ts`
+**Preview mode**: shown when no database session — setup prompts and static demo scores.
+
+Implementation:
+- `packages/platform-core/src/overview/gather-live-metrics.ts` — Postgres KPIs
+- `packages/platform-core/src/twin/capture-snapshot.ts` — Digital Twin snapshot
+- `packages/platform-core/src/scoring/calculate-scores.ts` — Business Health calculation
+- `packages/platform-core/src/intelligence/generate-intelligence.ts` — briefing, priorities, insights
+- `src/lib/overview-connectors.ts` — WordPress / Stripe / site health probes
 
 ---
 
