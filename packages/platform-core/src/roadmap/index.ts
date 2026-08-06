@@ -68,6 +68,14 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     href: "/dashboard/settings",
   },
   {
+    id: "platform.overview",
+    area: "Platform",
+    label: "Business Overview (CEO dashboard)",
+    description: "AI briefing, Business Health, priorities, and recommended actions",
+    status: "done",
+    href: "/dashboard",
+  },
+  {
     id: "platform.audit",
     area: "Platform",
     label: "Audit log",

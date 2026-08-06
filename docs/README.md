@@ -17,6 +17,7 @@ These documents capture **why** the platform is built the way it is. They are as
 | [PRODUCT-VISION.md](./PRODUCT-VISION.md) | Gateway brand, mission, five pillars, positioning |
 | [ROADMAP.md](./ROADMAP.md) | Execution phases and priorities |
 | [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) | Internal intelligence App — how DG runs DG |
+| [BUSINESS-OVERVIEW.md](./BUSINESS-OVERVIEW.md) | CEO dashboard — Business Overview at `/dashboard` |
 | [GROWTH-ENGINE.md](./GROWTH-ENGINE.md) | Growth Engine™ — acquisition OS inside Command Centre |
 | **[foundations/](./foundations/README.md)** | **Governance, domain model, commercialisation — read before implementing** |
 
