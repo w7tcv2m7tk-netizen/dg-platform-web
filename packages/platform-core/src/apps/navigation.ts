@@ -131,6 +131,36 @@ export function getCategorizedPlatformNavigation(
       .map((a) => toTreeItem(a, enabledIds)),
   })).filter((g) => g.apps.length > 0);
 
+  if (options?.showCommandCentre) {
+    const cc = getCommandCentreNavItem();
+    const ccTreeItem: AppNavTreeItem = {
+      kind: "app",
+      id: cc.id,
+      name: cc.name,
+      icon: cc.icon,
+      tier: "business",
+      enabled: true,
+      routes: cc.routes,
+      primaryHref: cc.primaryHref,
+    };
+
+    const businessIdx = tiers.findIndex((g) => g.tier === "business");
+    if (businessIdx >= 0) {
+      tiers[businessIdx] = {
+        ...tiers[businessIdx],
+        apps: [ccTreeItem, ...tiers[businessIdx].apps],
+      };
+    } else {
+      const coreIdx = tiers.findIndex((g) => g.tier === "core");
+      const insertAt = coreIdx >= 0 ? coreIdx + 1 : 0;
+      tiers.splice(insertAt, 0, {
+        tier: "business",
+        label: APP_TIER_LABELS.business,
+        apps: [ccTreeItem],
+      });
+    }
+  }
+
   const tools: PlatformToolsNavGroup = {
     label: PLATFORM_TOOLS_SECTION_LABEL,
     tools: PLATFORM_TOOL_GROUPS.map((group) => ({
@@ -147,7 +177,7 @@ export function getCategorizedPlatformNavigation(
     shell: SHELL_NAV,
     tiers,
     tools,
-    commandCentre: options?.showCommandCentre ? getCommandCentreNavItem() : null,
+    commandCentre: null,
   };
 }
 
