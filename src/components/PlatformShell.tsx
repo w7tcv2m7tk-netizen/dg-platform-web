@@ -7,14 +7,19 @@ export function PlatformShell({
   showFloatingChat = true,
   enabledIds,
   userName,
+  showCommandCentre = false,
 }: {
   children: React.ReactNode;
   showFloatingChat?: boolean;
   enabledIds: string[];
   userName?: string;
+  showCommandCentre?: boolean;
 }) {
   return (
-    <EnabledAppsProvider initialEnabledIds={enabledIds}>
+    <EnabledAppsProvider
+      initialEnabledIds={enabledIds}
+      showCommandCentre={showCommandCentre}
+    >
       <ChatWidgetProvider userName={userName} showFloatingChat={showFloatingChat}>
         <AppShellLayout>{children}</AppShellLayout>
       </ChatWidgetProvider>

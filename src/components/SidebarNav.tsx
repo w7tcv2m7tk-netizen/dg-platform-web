@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { SidebarIcon } from "@/components/SidebarIcon";
 import { itemHasActiveRoute, routeIsActive } from "@/lib/nav-route-match";
-import type { AppRoute } from "@dg/platform-core";
+import { COMMAND_CENTRE_NAV_SECTION_LABEL, type AppRoute } from "@dg/platform-core";
 
 function linkClass(active: boolean) {
   return `flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
@@ -108,8 +108,11 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     for (const tool of nav.tools.tools) {
       if (itemHasActiveRoute(pathname, tool.routes)) next[tool.id] = true;
     }
+    if (nav.commandCentre && itemHasActiveRoute(pathname, nav.commandCentre.routes)) {
+      next[nav.commandCentre.id] = true;
+    }
     setExpanded(next);
-  }, [pathname, nav.tiers, nav.tools.tools]);
+  }, [pathname, nav.tiers, nav.tools.tools, nav.commandCentre]);
 
   function toggleItem(id: string) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -162,6 +165,21 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           onNavigate={onNavigate}
         />
       </div>
+
+      {nav.commandCentre ? (
+        <div className="mt-4">
+          <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+            {COMMAND_CENTRE_NAV_SECTION_LABEL}
+          </p>
+          <CollapsibleNavSection
+            items={[nav.commandCentre]}
+            expanded={expanded}
+            onToggle={toggleItem}
+            pathname={pathname}
+            onNavigate={onNavigate}
+          />
+        </div>
+      ) : null}
     </nav>
   );
 }

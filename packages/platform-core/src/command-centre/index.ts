@@ -1,5 +1,6 @@
 export * from "./types";
 export * from "./growth-engine";
+export * from "./access";
 
 /** Clerk role / org claim used to gate Command Centre routes */
 export const COMMAND_CENTRE_STAFF_ROLE = "dg:staff";

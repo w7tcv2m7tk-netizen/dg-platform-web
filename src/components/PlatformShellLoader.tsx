@@ -1,3 +1,5 @@
+import { canAccessCommandCentre } from "@dg/platform-core";
+
 import { PlatformShell } from "@/components/PlatformShell";
 import { getOrgEnabledAppIdsCached } from "@/lib/org-apps";
 import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
@@ -11,7 +13,7 @@ export async function PlatformShellLoader({
   children: React.ReactNode;
   showFloatingChat?: boolean;
 }) {
-  const [{ user }, , enabledIds] = await Promise.all([
+  const [{ user, session }, , enabledIds] = await Promise.all([
     getPlatformPageContext(),
     ensureOrganisationOnboardingSync().catch(() => null),
     getOrgEnabledAppIdsCached(),
@@ -22,11 +24,21 @@ export async function PlatformShellLoader({
     user?.fullName ??
     user?.primaryEmailAddress?.emailAddress?.split("@")[0];
 
+  const showCommandCentre = session
+    ? canAccessCommandCentre({
+        organisationId: session.organisationId,
+        organisationName: session.organisationName,
+        organisationSlug: session.organisationSlug,
+        role: session.role,
+      })
+    : false;
+
   return (
     <PlatformShell
       enabledIds={enabledIds}
       userName={userName ?? undefined}
       showFloatingChat={showFloatingChat}
+      showCommandCentre={showCommandCentre}
     >
       {children}
     </PlatformShell>

@@ -1,8 +1,11 @@
 import type { AppNavItem, AppRoute, AppTier, RegisteredApp } from "./manifest";
+import { commandCentreApp } from "./builtins/command-centre";
 import { PLATFORM_TOOL_GROUPS, PLATFORM_TOOLS_SECTION_LABEL } from "./platform-tools";
 import { APP_TIER_LABELS, APP_TIER_ORDER, isAppEnabled } from "./org-apps";
 import { platformApps } from "./registry";
-import { getSidebarIcon } from "./sidebar-icons";export interface PlatformShellNavItem extends AppNavItem {
+import { getSidebarIcon } from "./sidebar-icons";
+
+export interface PlatformShellNavItem extends AppNavItem {
   kind: "shell";
 }
 
@@ -70,12 +73,36 @@ function toTreeItem(app: RegisteredApp, enabledIds: string[]): AppNavTreeItem {
   };
 }
 
-/** Categorized sidebar tree — only customer apps that are enabled. */
-export function getCategorizedPlatformNavigation(enabledIds: string[]): {
+export interface CategorizedPlatformNavigation {
   shell: PlatformShellNavItem[];
   tiers: AppNavTierGroup[];
   tools: PlatformToolsNavGroup;
-} {
+  /** DigitalGate staff only — Command Centre collapsible section */
+  commandCentre: PlatformToolNavItem | null;
+}
+
+export const COMMAND_CENTRE_NAV_SECTION_LABEL = "DigitalGate";
+
+function getCommandCentreNavItem(): PlatformToolNavItem {
+  const manifest = commandCentreApp;
+  return {
+    kind: "tool",
+    id: manifest.id,
+    name: manifest.name,
+    icon: getSidebarIcon(manifest.id, manifest.icon),
+    primaryHref: manifest.navigation[0]?.href ?? "/command",
+    routes: manifest.navigation.map((item) => ({
+      path: item.href,
+      label: item.label,
+    })),
+  };
+}
+
+/** Categorized sidebar tree — only customer apps that are enabled. */
+export function getCategorizedPlatformNavigation(
+  enabledIds: string[],
+  options?: { showCommandCentre?: boolean },
+): CategorizedPlatformNavigation {
   const customerApps = platformApps
     .list()
     .filter((a) => (a.manifest.visibility ?? "customer") === "customer");
@@ -100,7 +127,12 @@ export function getCategorizedPlatformNavigation(enabledIds: string[]): {
     })),
   };
 
-  return { shell: SHELL_NAV, tiers, tools };
+  return {
+    shell: SHELL_NAV,
+    tiers,
+    tools,
+    commandCentre: options?.showCommandCentre ? getCommandCentreNavItem() : null,
+  };
 }
 
 /** All customer apps grouped by tier — for Apps & plan page (includes disabled). */
