@@ -13,9 +13,11 @@ export function AuthShell({
     <div className="flex min-h-full flex-col items-center justify-center bg-slate-950 px-4 py-10">
       <div className="mb-8 flex flex-col items-center text-center">
         <DigitalGateLogo
-          variant="icon"
+          variant="stacked"
           href="/"
           iconSize={80}
+          logoWidth={148}
+          showTagline={false}
           className="mb-5 drop-shadow-lg"
         />
         {title ? (

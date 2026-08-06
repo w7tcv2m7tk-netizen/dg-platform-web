@@ -8,8 +8,8 @@ const LOGO_WIDTH = 1024;
 const LOGO_HEIGHT = 95;
 
 type DigitalGateLogoProps = {
-  /** icon = mark only, logo = wordmark, lockup = icon beside wordmark + tagline */
-  variant?: "icon" | "logo" | "lockup";
+  /** icon = mark only, logo = wordmark, lockup = icon beside wordmark, stacked = icon above wordmark */
+  variant?: "icon" | "logo" | "lockup" | "stacked";
   theme?: BrandTheme;
   href?: string;
   className?: string;
@@ -93,6 +93,11 @@ export function DigitalGateLogo({
       <BrandIcon src={brand.icon} size={iconSize} alt="DigitalGate" />
     ) : variant === "logo" ? (
       textBlock
+    ) : variant === "stacked" ? (
+      <div className="flex flex-col items-center gap-3">
+        <BrandIcon src={brand.icon} size={iconSize} alt="" ariaHidden />
+        <div className="flex flex-col items-center gap-0.5">{wordmark}{tagline}</div>
+      </div>
     ) : (
       <div className="flex items-center gap-2.5">
         {icon}
@@ -105,7 +110,10 @@ export function DigitalGateLogo({
   }
 
   return (
-    <Link href={href} className={`inline-flex ${className}`}>
+    <Link
+      href={href}
+      className={`inline-flex ${variant === "stacked" ? "flex-col items-center" : ""} ${className}`}
+    >
       {content}
     </Link>
   );
