@@ -7,7 +7,11 @@ import { useEffect, useState } from "react";
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { SidebarIcon } from "@/components/SidebarIcon";
 import { itemHasActiveRoute, routeIsActive } from "@/lib/nav-route-match";
-import { COMMAND_CENTRE_NAV_SECTION_LABEL, type AppRoute } from "@dg/platform-core";
+import {
+  BUSINESS_WORKSPACE_SECTION_LABEL,
+  COMMAND_CENTRE_NAV_SECTION_LABEL,
+  type AppRoute,
+} from "@dg/platform-core";
 
 function linkClass(active: boolean) {
   return `flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
@@ -120,6 +124,9 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
+      <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+        {BUSINESS_WORKSPACE_SECTION_LABEL}
+      </p>
       {nav.shell.map((link) => {
         const active =
           pathname === link.href ||

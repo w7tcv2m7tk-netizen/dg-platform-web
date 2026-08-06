@@ -40,10 +40,16 @@ export interface PlatformToolNavItem {
   primaryHref: string;
 }
 
+/** Primary Business Workspace shell — client opens their business, not a CRM */
 const SHELL_NAV: PlatformShellNavItem[] = [
   { kind: "shell", href: "/dashboard", label: "Overview", icon: "◉" },
+  { kind: "shell", href: "/dashboard/business", label: "Business Profile", icon: "◇" },
+  { kind: "shell", href: "/dashboard/settings/team", label: "Team", icon: "👥" },
   { kind: "shell", href: "/dashboard/apps", label: "Apps & plan", icon: "▦" },
+  { kind: "shell", href: "/dashboard/settings", label: "Settings", icon: "⚙" },
 ];
+
+export const BUSINESS_WORKSPACE_SECTION_LABEL = "Your business";
 
 export function getPlatformShellNavigation(): PlatformShellNavItem[] {
   return SHELL_NAV;

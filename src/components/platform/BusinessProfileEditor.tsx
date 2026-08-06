@@ -1,0 +1,455 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+import type { BusinessContext, OrganisationBusinessProfile } from "@dg/platform-core";
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</span>
+      <div className="mt-1">{children}</div>
+    </label>
+  );
+}
+
+const inputClass =
+  "w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+
+function TwinPanel({ context }: { context: BusinessContext }) {
+  const { twin } = context;
+  const items = [
+    { label: "Website health", value: twin.websiteHealth, suffix: "/100" },
+    { label: "AI Visibility", value: twin.aiVisibility, suffix: "/100" },
+    { label: "SEO", value: twin.seo, suffix: "/100" },
+    { label: "Contacts", value: twin.contactCount },
+    { label: "Active leads", value: twin.activeLeads },
+    { label: "Connected systems", value: twin.connectedSystems.length },
+  ].filter((i) => i.value != null && i.value !== 0);
+
+  if (!items.length) {
+    return (
+      <p className="text-sm text-slate-500">
+        Digital Twin signals appear here as apps and connectors gather data.
+      </p>
+    );
+  }
+
+  return (
+    <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map((item) => (
+        <div key={item.label} className="rounded-lg border border-slate-800 bg-slate-900/40 p-3">
+          <dt className="text-xs text-slate-500">{item.label}</dt>
+          <dd className="mt-1 text-lg font-semibold text-white">
+            {item.value}
+            {item.suffix ?? ""}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function AiQuickActions() {
+  const [loading, setLoading] = useState<string | null>(null);
+  const [output, setOutput] = useState<string | null>(null);
+
+  async function run(action: "social_post" | "email_draft" | "briefing") {
+    setLoading(action);
+    setOutput(null);
+    const res = await fetch("/api/v1/ai/assist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+    const json = await res.json().catch(() => null);
+    setLoading(null);
+    if (!res.ok) {
+      setOutput(json?.error?.message ?? "Generation failed");
+      return;
+    }
+    setOutput(json.data.output as string);
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-400">
+        AI uses your Business Profile automatically — no prompting required.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {(
+          [
+            ["social_post", "Generate social post"],
+            ["email_draft", "Draft follow-up email"],
+            ["briefing", "Daily briefing"],
+          ] as const
+        ).map(([action, label]) => (
+          <button
+            key={action}
+            type="button"
+            disabled={loading !== null}
+            onClick={() => run(action)}
+            className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-blue-500 hover:text-white disabled:opacity-50"
+          >
+            {loading === action ? "Generating…" : label}
+          </button>
+        ))}
+      </div>
+      {output ? (
+        <pre className="max-h-64 overflow-auto rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm whitespace-pre-wrap text-slate-300">
+          {output}
+        </pre>
+      ) : null}
+    </div>
+  );
+}
+
+export function BusinessProfileEditor({
+  profile: initialProfile,
+  context,
+  linked,
+}: {
+  profile: OrganisationBusinessProfile | null;
+  context: BusinessContext;
+  linked: boolean;
+}) {
+  const router = useRouter();
+  const [profile, setProfile] = useState<OrganisationBusinessProfile>(
+    initialProfile ?? {},
+  );
+  const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  function setField<K extends keyof OrganisationBusinessProfile>(
+    key: K,
+    value: OrganisationBusinessProfile[K],
+  ) {
+    setProfile((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function save() {
+    setSaving(true);
+    setMessage(null);
+    const res = await fetch("/api/v1/org/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profile),
+    });
+    setSaving(false);
+    if (!res.ok) {
+      const json = await res.json().catch(() => null);
+      setMessage(json?.error?.message ?? "Save failed");
+      return;
+    }
+    setMessage("Business Profile saved");
+    router.refresh();
+  }
+
+  async function syncFromOnboarding() {
+    setSyncing(true);
+    setMessage(null);
+    const res = await fetch("/api/v1/org/profile", { method: "POST" });
+    const json = await res.json().catch(() => null);
+    setSyncing(false);
+    if (!res.ok) {
+      setMessage(json?.error?.message ?? "Sync failed");
+      return;
+    }
+    if (json.data.profile) setProfile(json.data.profile);
+    setMessage(json.data.synced ? "Synced from onboarding" : "Already up to date");
+    router.refresh();
+  }
+
+  return (
+    <div className="space-y-8">
+      <section className="dg-card">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-blue-300">
+              Digital Business Identity
+            </p>
+            <h2 className="mt-1 text-xl font-bold text-white">
+              {context.identity.businessName}
+            </h2>
+            <p className="mt-1 text-sm text-slate-400">
+              The central record every app and AI capability builds on — your Digital Twin™
+              foundation.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {linked ? (
+              <button
+                type="button"
+                onClick={syncFromOnboarding}
+                disabled={syncing}
+                className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:border-slate-500 disabled:opacity-50"
+              >
+                {syncing ? "Syncing…" : "Pull from onboarding"}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={save}
+              disabled={saving}
+              className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+            >
+              {saving ? "Saving…" : "Save profile"}
+            </button>
+          </div>
+        </div>
+        {message ? <p className="mt-3 text-sm text-emerald-400/90">{message}</p> : null}
+      </section>
+
+      <section className="dg-card">
+        <h3 className="text-lg font-semibold text-white">Identity</h3>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Field label="Business name">
+            <input
+              className={inputClass}
+              value={profile.businessName ?? ""}
+              onChange={(e) => setField("businessName", e.target.value)}
+            />
+          </Field>
+          <Field label="Trading name">
+            <input
+              className={inputClass}
+              value={profile.tradingName ?? ""}
+              onChange={(e) => setField("tradingName", e.target.value)}
+            />
+          </Field>
+          <Field label="Industry">
+            <input
+              className={inputClass}
+              value={profile.industryVertical ?? ""}
+              onChange={(e) => setField("industryVertical", e.target.value)}
+            />
+          </Field>
+          <Field label="Website">
+            <input
+              className={inputClass}
+              value={profile.websiteUrl ?? ""}
+              onChange={(e) => setField("websiteUrl", e.target.value)}
+            />
+          </Field>
+          <Field label="ABN">
+            <input
+              className={inputClass}
+              value={profile.abn ?? ""}
+              onChange={(e) => setField("abn", e.target.value)}
+            />
+          </Field>
+          <Field label="ACN">
+            <input
+              className={inputClass}
+              value={profile.acn ?? ""}
+              onChange={(e) => setField("acn", e.target.value)}
+            />
+          </Field>
+          <Field label="Logo URL">
+            <input
+              className={inputClass}
+              value={profile.logoUrl ?? ""}
+              onChange={(e) => setField("logoUrl", e.target.value)}
+            />
+          </Field>
+          <Field label="Brand colours">
+            <input
+              className={inputClass}
+              placeholder="#3B82F6, #10B981"
+              value={profile.brandColours ?? ""}
+              onChange={(e) => setField("brandColours", e.target.value)}
+            />
+          </Field>
+          <Field label="Timezone">
+            <input
+              className={inputClass}
+              placeholder="Australia/Brisbane"
+              value={profile.businessHours?.timezone ?? ""}
+              onChange={(e) =>
+                setField("businessHours", {
+                  ...profile.businessHours,
+                  timezone: e.target.value,
+                })
+              }
+            />
+          </Field>
+          <Field label="Business hours">
+            <input
+              className={inputClass}
+              placeholder="Mon–Fri 9am–5pm"
+              value={profile.businessHours?.schedule ?? ""}
+              onChange={(e) =>
+                setField("businessHours", {
+                  ...profile.businessHours,
+                  schedule: e.target.value,
+                })
+              }
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="dg-card">
+        <h3 className="text-lg font-semibold text-white">Contact information</h3>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Field label="Primary contact">
+            <input
+              className={inputClass}
+              value={profile.contactName ?? ""}
+              onChange={(e) => setField("contactName", e.target.value)}
+            />
+          </Field>
+          <Field label="Role">
+            <input
+              className={inputClass}
+              value={profile.position ?? ""}
+              onChange={(e) => setField("position", e.target.value)}
+            />
+          </Field>
+          <Field label="Phone">
+            <input
+              className={inputClass}
+              value={profile.businessPhone ?? profile.contactPhone ?? ""}
+              onChange={(e) => setField("businessPhone", e.target.value)}
+            />
+          </Field>
+          <Field label="Email">
+            <input
+              className={inputClass}
+              value={profile.businessEmail ?? profile.contactEmail ?? ""}
+              onChange={(e) => setField("businessEmail", e.target.value)}
+            />
+          </Field>
+          <Field label="Support email">
+            <input
+              className={inputClass}
+              value={profile.supportEmail ?? ""}
+              onChange={(e) => setField("supportEmail", e.target.value)}
+            />
+          </Field>
+          <Field label="Support phone">
+            <input
+              className={inputClass}
+              value={profile.supportPhone ?? ""}
+              onChange={(e) => setField("supportPhone", e.target.value)}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="dg-card">
+        <h3 className="text-lg font-semibold text-white">Online presence</h3>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {(
+            [
+              ["googleBusiness", "Google Business Profile"],
+              ["facebook", "Facebook"],
+              ["instagram", "Instagram"],
+              ["linkedin", "LinkedIn"],
+              ["youtube", "YouTube"],
+              ["tiktok", "TikTok"],
+              ["x", "X"],
+              ["pinterest", "Pinterest"],
+            ] as const
+          ).map(([key, label]) => (
+            <Field key={key} label={label}>
+              <input
+                className={inputClass}
+                value={profile.social?.[key] ?? ""}
+                onChange={(e) =>
+                  setField("social", { ...profile.social, [key]: e.target.value })
+                }
+              />
+            </Field>
+          ))}
+        </div>
+      </section>
+
+      <section className="dg-card">
+        <h3 className="text-lg font-semibold text-white">Brand voice (powers AI)</h3>
+        <p className="mt-1 text-sm text-slate-400">
+          The AI assistant reads these fields automatically when generating content.
+        </p>
+        <div className="mt-4 grid gap-4">
+          <Field label="Tagline">
+            <input
+              className={inputClass}
+              value={profile.brandVoice?.tagline ?? ""}
+              onChange={(e) =>
+                setField("brandVoice", { ...profile.brandVoice, tagline: e.target.value })
+              }
+            />
+          </Field>
+          <Field label="Tone">
+            <input
+              className={inputClass}
+              placeholder="Professional, warm, expert"
+              value={profile.brandVoice?.tone ?? ""}
+              onChange={(e) =>
+                setField("brandVoice", { ...profile.brandVoice, tone: e.target.value })
+              }
+            />
+          </Field>
+          <Field label="Services">
+            <textarea
+              className={`${inputClass} min-h-[80px]`}
+              value={profile.brandVoice?.services ?? ""}
+              onChange={(e) =>
+                setField("brandVoice", { ...profile.brandVoice, services: e.target.value })
+              }
+            />
+          </Field>
+          <Field label="Target audience">
+            <textarea
+              className={`${inputClass} min-h-[80px]`}
+              value={profile.brandVoice?.targetAudience ?? ""}
+              onChange={(e) =>
+                setField("brandVoice", {
+                  ...profile.brandVoice,
+                  targetAudience: e.target.value,
+                })
+              }
+            />
+          </Field>
+          <Field label="Competitors">
+            <textarea
+              className={`${inputClass} min-h-[60px]`}
+              value={profile.brandVoice?.competitors ?? ""}
+              onChange={(e) =>
+                setField("brandVoice", {
+                  ...profile.brandVoice,
+                  competitors: e.target.value,
+                })
+              }
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="dg-card">
+        <h3 className="text-lg font-semibold text-white">Digital Twin™ — live signals</h3>
+        <p className="mt-1 text-sm text-slate-400">
+          Read-only metrics aggregated from apps and connectors. Updates as your business operates.
+        </p>
+        <div className="mt-4">
+          <TwinPanel context={context} />
+        </div>
+      </section>
+
+      <section className="dg-card">
+        <h3 className="text-lg font-semibold text-white">AI Assistant</h3>
+        <div className="mt-4">
+          <AiQuickActions />
+        </div>
+      </section>
+    </div>
+  );
+}

@@ -61,7 +61,7 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
       {overview.setupIncomplete ? (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100">
           Finish setup to unlock live KPIs.{" "}
-          <Link href="/dashboard/apps#onboarding" className="font-medium underline">
+          <Link href="/dashboard/business" className="font-medium underline">
             Open checklist →
           </Link>
         </div>

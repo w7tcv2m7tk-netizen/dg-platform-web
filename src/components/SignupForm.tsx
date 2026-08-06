@@ -70,7 +70,7 @@ export function SignupForm() {
             Create account →
           </Link>
           <Link
-            href="/dashboard/apps#onboarding"
+            href="/dashboard/business"
             className="inline-block rounded-full border border-slate-600 px-6 py-2 text-sm font-semibold text-slate-200 hover:border-slate-500"
           >
             Continue setup in platform

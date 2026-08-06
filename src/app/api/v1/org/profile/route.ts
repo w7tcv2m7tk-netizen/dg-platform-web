@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import {
   getOrganisationBusinessProfile,
   syncOrganisationFromPortal,
+  updateOrganisationBusinessProfile,
+  type BusinessProfilePatch,
 } from "@dg/platform-core";
 
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -12,6 +14,35 @@ export async function GET(req: Request) {
   if (isNextResponse(session)) return session;
 
   const profile = await getOrganisationBusinessProfile(session.organisationId);
+  return NextResponse.json({ data: profile });
+}
+
+export async function PATCH(req: Request) {
+  const session = await requirePlatformAuth(req);
+  if (isNextResponse(session)) return session;
+
+  let body: BusinessProfilePatch;
+  try {
+    body = (await req.json()) as BusinessProfilePatch;
+  } catch {
+    return NextResponse.json(
+      { error: { code: "invalid_json", message: "Invalid JSON body" } },
+      { status: 400 },
+    );
+  }
+
+  const profile = await updateOrganisationBusinessProfile(
+    session.organisationId,
+    body,
+  );
+
+  if (!profile) {
+    return NextResponse.json(
+      { error: { code: "unavailable", message: "Profile storage unavailable" } },
+      { status: 503 },
+    );
+  }
+
   return NextResponse.json({ data: profile });
 }
 

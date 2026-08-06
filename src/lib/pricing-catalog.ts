@@ -1,0 +1,290 @@
+import type { Addon, IndustryApp, PlatformTier, PremiumApp } from "@/lib/plans";
+
+export type CatalogStatus = "live" | "soon" | "rolling-out" | "included";
+
+export type PlatformTierCatalogItem = {
+  key: PlatformTier;
+  label: string;
+  icon: string;
+  price: string;
+  period: string;
+  users: string;
+  outcome: string;
+  features: string[];
+  popular?: boolean;
+};
+
+export type PlatformAddonCatalogItem = {
+  key: Addon;
+  label: string;
+  icon: string;
+  price: string;
+  description: string;
+  pricingHref: string;
+};
+
+export type IndustryAppCatalogItem = {
+  appId: string;
+  industryKey: IndustryApp;
+  label: string;
+  icon: string;
+  price: string;
+  description: string;
+  status: CatalogStatus;
+};
+
+export type GrowthAppCatalogItem = {
+  appId: string;
+  premiumKey: PremiumApp;
+  label: string;
+  icon: string;
+  price: string;
+  description: string;
+};
+
+export type PlatformCapabilityCatalogItem = {
+  appId: string;
+  label: string;
+  icon: string;
+  price: string;
+  description: string;
+  status: CatalogStatus;
+  badge?: string;
+};
+
+/** Mirrors digitalgate.com.au/pricing — Platform section */
+export const PLATFORM_TIER_CATALOG: PlatformTierCatalogItem[] = [
+  {
+    key: "starter",
+    label: "Starter",
+    icon: "🚀",
+    price: "$99",
+    period: "/month",
+    users: "1 User",
+    outcome: "For businesses replacing spreadsheets.",
+    features: [
+      "Platform Core",
+      "CRM & Dashboard",
+      "AI Assistant",
+      "Digital Twin snapshot",
+    ],
+  },
+  {
+    key: "professional",
+    label: "Growth",
+    icon: "📈",
+    price: "$249",
+    period: "/month",
+    users: "5 Users",
+    outcome: "For businesses ready to automate growth.",
+    features: [
+      "Everything in Starter",
+      "Automation & workflows",
+      "Email + SMS",
+      "1 Industry App included",
+      "Website Manager",
+    ],
+    popular: true,
+  },
+  {
+    key: "business",
+    label: "Scale",
+    icon: "🏢",
+    price: "$499",
+    period: "/month",
+    users: "Unlimited Users",
+    outcome: "For teams running their entire operation.",
+    features: [
+      "Everything in Growth",
+      "Unlimited Industry Apps",
+      "Advanced AI & automation",
+      "API access",
+      "Multiple pipelines",
+    ],
+  },
+  {
+    key: "enterprise",
+    label: "Enterprise",
+    icon: "🏛️",
+    price: "Custom",
+    period: "",
+    users: "Unlimited Users",
+    outcome: "For organisations needing complete customisation.",
+    features: [
+      "Everything in Scale",
+      "White label",
+      "Priority support & SLA",
+      "Custom integrations",
+    ],
+  },
+];
+
+/** Mirrors pricing page — Extend your platform */
+export const PLATFORM_ADDON_CATALOG: PlatformAddonCatalogItem[] = [
+  {
+    key: "extra_users",
+    label: "Extra Users",
+    icon: "👥",
+    price: "+$29/user",
+    description: "Additional team seats beyond your plan limit",
+    pricingHref: "https://digitalgate.com.au/pricing#addons",
+  },
+  {
+    key: "white_label",
+    label: "White Label",
+    icon: "🏷️",
+    price: "+$199/mo",
+    description: "Your brand on the platform — for agencies & resellers",
+    pricingHref: "https://digitalgate.com.au/pricing#addons",
+  },
+];
+
+/** Mirrors pricing page — Industry Apps grid */
+export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
+  {
+    appId: "real-estate",
+    industryKey: "real-estate",
+    label: "Real Estate",
+    icon: "🏠",
+    price: "+$99/mo",
+    description: "Vendor leads, appraisals, listings & buyer pipelines",
+    status: "live",
+  },
+  {
+    appId: "accommodation",
+    industryKey: "accommodation",
+    label: "Accommodation",
+    icon: "🏨",
+    price: "+$99/mo",
+    description: "Bookings, guests, housekeeping & OTA sync",
+    status: "live",
+  },
+  {
+    appId: "services",
+    industryKey: "services",
+    label: "Services",
+    icon: "🔧",
+    price: "+$99/mo",
+    description: "Jobs, quotes, scheduling & trades CRM",
+    status: "live",
+  },
+  {
+    appId: "finance",
+    industryKey: "finance",
+    label: "Finance",
+    icon: "💰",
+    price: "+$99/mo",
+    description: "Loans, lenders, borrowers & finance pipeline",
+    status: "soon",
+  },
+  {
+    appId: "creator",
+    industryKey: "creator",
+    label: "Creator",
+    icon: "✨",
+    price: "+$99/mo",
+    description: "Audience tools, content & creator studio",
+    status: "live",
+  },
+  {
+    appId: "automotive",
+    industryKey: "automotive",
+    label: "Automotive",
+    icon: "🚗",
+    price: "+$99/mo",
+    description: "Inventory, test drives & dealership pipelines",
+    status: "soon",
+  },
+  {
+    appId: "commercial",
+    industryKey: "commercial",
+    label: "Commercial",
+    icon: "🏢",
+    price: "+$99/mo",
+    description: "Leases, tenants & commercial property pipelines",
+    status: "soon",
+  },
+];
+
+/** Mirrors pricing page — Growth & Intelligence Apps */
+export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
+  {
+    appId: "ai-visibility",
+    premiumKey: "ai_visibility_pro",
+    label: "AI Visibility",
+    icon: "🤖",
+    price: "+$99/mo",
+    description: "AI search visibility scoring & monitoring",
+  },
+  {
+    appId: "seo",
+    premiumKey: "seo_pro",
+    label: "SEO",
+    icon: "🔍",
+    price: "+$99/mo",
+    description: "Deep audits, rankings & technical optimisation",
+  },
+  {
+    appId: "automation",
+    premiumKey: "automation_pro",
+    label: "Automation",
+    icon: "⚡",
+    price: "+$49/mo",
+    description: "Multi-step workflows, triggers & webhooks",
+  },
+  {
+    appId: "analytics",
+    premiumKey: "analytics_pro",
+    label: "Analytics",
+    icon: "📊",
+    price: "+$49/mo",
+    description: "KPI snapshots, trends & custom reporting",
+  },
+  {
+    appId: "social",
+    premiumKey: "social_pro",
+    label: "Social",
+    icon: "📱",
+    price: "+$79/mo",
+    description: "Publish to LinkedIn, Facebook, Instagram, X & Pinterest",
+  },
+  {
+    appId: "ai-communications",
+    premiumKey: "voice_ai",
+    label: "Voice AI",
+    icon: "🎙️",
+    price: "+$99/mo",
+    description: "Inbound calls, qualification & CRM sync",
+  },
+];
+
+/** Mirrors pricing page — Platform Capabilities */
+export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
+  {
+    appId: "websites",
+    label: "Website Builder",
+    icon: "🌐",
+    price: "Included",
+    badge: "Included on Growth+",
+    description: "Templates, AI content, publish & manage from the platform",
+    status: "included",
+  },
+  {
+    appId: "infrastructure",
+    label: "Infrastructure",
+    icon: "🔧",
+    price: "TBA",
+    description: "Domains, hosting, email, SSL, DNS & deployment",
+    status: "rolling-out",
+  },
+  {
+    appId: "commerce",
+    label: "Commerce",
+    icon: "💳",
+    price: "TBA",
+    description: "Payments, quotes, invoices, checkout & subscriptions",
+    status: "soon",
+  },
+];
+
+export const PRICING_PAGE_URL = "https://digitalgate.com.au/pricing";

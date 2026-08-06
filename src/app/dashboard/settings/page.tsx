@@ -45,6 +45,11 @@ export default async function PlatformSettingsPage() {
           linked={portal?.linked ?? false}
           purchaseLabel={portal?.purchase_label}
         />
+        <p className="text-sm text-slate-400">
+          <a href="/dashboard/business" className="text-blue-400 hover:underline">
+            Open full Business Profile →
+          </a>
+        </p>
 
         <div className="grid gap-4 lg:grid-cols-2">
           <Link
@@ -104,10 +109,10 @@ export default async function PlatformSettingsPage() {
               Self-serve checklist for CRM, connectors, and first workflows.
             </p>
             <Link
-              href="/dashboard/apps#onboarding"
+              href="/dashboard/business"
               className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
             >
-              Open setup checklist →
+              Business Profile →
             </Link>
           </div>
 

@@ -8,13 +8,29 @@ export interface CaptureTwinSnapshotInput {
   enabledAppIds: string[];
   metrics: OverviewLiveMetrics;
   connectors: OverviewConnectorProbes;
+  profile?: {
+    businessName?: string;
+    tradingName?: string;
+    logoUrl?: string;
+    brandColours?: string;
+    brandVoice?: { tagline?: string };
+  } | null;
 }
 
 /** Build a Digital Twin snapshot from live metrics and connector probes. */
 export function captureDigitalTwinSnapshot(
   input: CaptureTwinSnapshotInput,
 ): DigitalTwinSnapshot {
-  const { organisationId, organisationName, enabledAppIds, metrics, connectors } = input;
+  const { organisationId, organisationName, enabledAppIds, metrics, connectors, profile } =
+    input;
+
+  const displayName =
+    profile?.tradingName?.trim() ||
+    profile?.businessName?.trim() ||
+    organisationName;
+  const brandColours = profile?.brandColours
+    ? profile.brandColours.split(/[,;]+/).map((c) => c.trim()).filter(Boolean)
+    : undefined;
 
   const connected: string[] = [];
   if (connectors.website?.ok) connected.push("website");
@@ -39,7 +55,12 @@ export function captureDigitalTwinSnapshot(
     organisationId,
     version: 1,
     capturedAt: new Date(),
-    brand: { name: organisationName },
+    brand: {
+      name: displayName,
+      tagline: profile?.brandVoice?.tagline,
+      colours: brandColours?.length ? brandColours : undefined,
+      logoAssetId: profile?.logoUrl,
+    },
     scores: {
       websiteHealth: websiteScore,
       calculatedAt: new Date(),

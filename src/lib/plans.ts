@@ -5,6 +5,7 @@ export type IndustryApp =
   | "accommodation"
   | "finance"
   | "services"
+  | "creator"
   | "automotive"
   | "commercial";
 
@@ -13,9 +14,10 @@ export type PremiumApp =
   | "social_pro"
   | "analytics_pro"
   | "ai_visibility_pro"
-  | "automation_pro";
+  | "automation_pro"
+  | "voice_ai";
 
-export type Addon = "voice_ai" | "training" | "white_label" | "extra_users";
+export type Addon = "white_label" | "extra_users";
 
 export const PLATFORM_TIERS: {
   key: PlatformTier;
@@ -52,25 +54,25 @@ export const PLATFORM_TIERS: {
 export const INDUSTRY_APPS: { key: IndustryApp; label: string; price: string }[] = [
   { key: "real-estate", label: "Real Estate", price: "+$99/mo" },
   { key: "accommodation", label: "Accommodation", price: "+$99/mo" },
+  { key: "services", label: "Services", price: "+$99/mo" },
   { key: "finance", label: "Finance", price: "+$99/mo" },
-  { key: "services", label: "Services & Trades", price: "+$99/mo" },
+  { key: "creator", label: "Creator", price: "+$99/mo" },
   { key: "automotive", label: "Automotive", price: "+$99/mo" },
   { key: "commercial", label: "Commercial", price: "+$99/mo" },
 ];
 
 export const PREMIUM_APPS: { key: PremiumApp; label: string; price: string }[] = [
-  { key: "seo_pro", label: "SEO", price: "+$99/mo" },
-  { key: "social_pro", label: "Social", price: "+$79/mo" },
-  { key: "analytics_pro", label: "Analytics", price: "+$49/mo" },
   { key: "ai_visibility_pro", label: "AI Visibility", price: "+$99/mo" },
+  { key: "seo_pro", label: "SEO", price: "+$99/mo" },
   { key: "automation_pro", label: "Automation", price: "+$49/mo" },
+  { key: "analytics_pro", label: "Analytics", price: "+$49/mo" },
+  { key: "social_pro", label: "Social", price: "+$79/mo" },
+  { key: "voice_ai", label: "Voice AI", price: "+$99/mo" },
 ];
 
 export const ADDONS: { key: Addon; label: string; price: string }[] = [
-  { key: "voice_ai", label: "Voice AI", price: "+$99/mo" },
-  { key: "training", label: "Training & Onboarding", price: "$497 once" },
-  { key: "white_label", label: "White Label", price: "+$199/mo" },
   { key: "extra_users", label: "Extra Users", price: "+$29/user" },
+  { key: "white_label", label: "White Label", price: "+$199/mo" },
 ];
 
 export type SignupSelection = {
@@ -109,7 +111,7 @@ export function recommendPlanFromDiscovery(input: DiscoveryInput): SignupSelecti
     "Professional Services": "services",
     "Commercial Property": "commercial",
     "Automotive": "automotive",
-    "Creators & Personal Brands": "services",
+    "Creators & Personal Brands": "creator",
   };
   const industryApps: IndustryApp[] = [];
   const mapped = input.industry ? industryMap[input.industry] : undefined;
@@ -127,8 +129,7 @@ export function recommendPlanFromDiscovery(input: DiscoveryInput): SignupSelecti
     premiumApps.push("automation_pro");
   }
 
-  const addons: Addon[] = [];
-  if (interested.includes("Voice AI")) addons.push("voice_ai");
+  if (interested.includes("Voice AI")) premiumApps.push("voice_ai");
 
-  return { platformTier, industryApps, premiumApps, addons };
+  return { platformTier, industryApps, premiumApps, addons: [] };
 }

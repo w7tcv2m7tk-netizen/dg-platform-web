@@ -1,39 +1,12 @@
 import type { PortalOnboardingProfile, PortalPurchaseProfile } from "../connectors/portal-types";
 import { appIdsFromPlanSelection } from "../apps/org-apps";
+import type {
+  BusinessProfilePatch,
+  OrganisationBusinessProfile,
+} from "./business-profile-types";
 
+export type { OrganisationBusinessProfile, BusinessProfilePatch } from "./business-profile-types";
 export type { PortalOnboardingProfile, PortalPurchaseProfile };
-
-export type OrganisationBusinessProfile = {
-  businessName?: string;
-  contactName?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  businessPhone?: string;
-  businessEmail?: string;
-  abn?: string;
-  gstNumber?: string;
-  industryLicenseNumber?: string;
-  position?: string;
-  logoUrl?: string;
-  brandColours?: string;
-  websiteUrl?: string;
-  industryVertical?: string;
-  platformTier?: string;
-  purchasedApps?: string[];
-  purchasedPremium?: string[];
-  purchasedAddons?: string[];
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    postcode?: string;
-    country?: string;
-  };
-  wpContactId?: number;
-  wpOrganisationId?: number;
-  purchaseLabel?: string;
-  syncedAt?: string;
-};
 
 type OrgSettings = {
   profile?: OrganisationBusinessProfile;
@@ -103,6 +76,74 @@ export async function getOrganisationBusinessProfile(
   });
   const settings = (org?.settings as OrgSettings | null) ?? {};
   return settings.profile ?? null;
+}
+
+function mergeProfile(
+  existing: OrganisationBusinessProfile | undefined,
+  patch: BusinessProfilePatch,
+): OrganisationBusinessProfile {
+  return {
+    ...existing,
+    ...patch,
+    address: patch.address
+      ? { ...existing?.address, ...patch.address }
+      : existing?.address,
+    locations: patch.locations ?? existing?.locations,
+    businessHours: patch.businessHours
+      ? { ...existing?.businessHours, ...patch.businessHours }
+      : existing?.businessHours,
+    social: patch.social ? { ...existing?.social, ...patch.social } : existing?.social,
+    brandVoice: patch.brandVoice
+      ? { ...existing?.brandVoice, ...patch.brandVoice }
+      : existing?.brandVoice,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export async function updateOrganisationBusinessProfile(
+  organisationId: string,
+  patch: BusinessProfilePatch,
+): Promise<OrganisationBusinessProfile | null> {
+  if (!process.env.DATABASE_URL) return null;
+
+  const { prisma } = await import("@dg/database");
+  type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
+
+  const org = await prisma.organisation.findUnique({
+    where: { id: organisationId },
+    select: { settings: true, name: true, industry: true, timezone: true },
+  });
+  if (!org) return null;
+
+  const settings = (org.settings as OrgSettings | null) ?? {};
+  const profile = mergeProfile(settings.profile, patch);
+
+  const data: {
+    settings: InputJsonValue;
+    name?: string;
+    industry?: string;
+    timezone?: string;
+  } = {
+    settings: { ...settings, profile } as unknown as InputJsonValue,
+  };
+
+  const businessName = profile.businessName?.trim();
+  if (businessName && isAutoOrgName(org.name)) {
+    data.name = businessName;
+  }
+  if (profile.industryVertical && !org.industry) {
+    data.industry = profile.industryVertical;
+  }
+  if (profile.businessHours?.timezone && !org.timezone) {
+    data.timezone = profile.businessHours.timezone;
+  }
+
+  await prisma.organisation.update({
+    where: { id: organisationId },
+    data,
+  });
+
+  return profile;
 }
 
 function hasSyncableProfile(onboarding?: PortalOnboardingProfile | null, purchase?: PortalPurchaseProfile | null) {

@@ -2,6 +2,7 @@ import { after } from "next/server";
 import {
   buildBusinessOverview,
   gatherOverviewLiveMetrics,
+  getOrganisationBusinessProfile,
   healthDeltaFromHistory,
   healthTrendFromHistory,
   listOrganisationActivities,
@@ -39,11 +40,17 @@ export default async function DashboardPage() {
     ]);
   }
 
+  let businessProfile = null;
+  if (platformSession) {
+    businessProfile = await getOrganisationBusinessProfile(platformSession.organisationId);
+  }
+
   let overview = buildBusinessOverview({
     organisationId: platformSession?.organisationId,
     organisationName: platformSession?.organisationName ?? portal?.org_name ?? "Your business",
     userDisplayName: user?.firstName ?? name,
     enabledAppIds,
+    businessProfile,
     setupStatus: liveMetrics
       ? {
           orgProvisioned: true,

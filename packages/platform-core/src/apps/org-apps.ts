@@ -24,6 +24,7 @@ const PREMIUM_APP_MAP: Record<string, string[]> = {
   analytics_pro: ["analytics"],
   ai_visibility_pro: ["ai-visibility"],
   automation_pro: ["automation"],
+  voice_ai: ["ai-communications"],
 };
 
 const TIER_BASE_APPS: Record<string, string[]> = {

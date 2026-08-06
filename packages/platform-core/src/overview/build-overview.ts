@@ -20,6 +20,13 @@ export interface BuildBusinessOverviewInput {
   userDisplayName: string;
   enabledAppIds: string[];
   setupStatus?: PlatformSetupStatus | null;
+  businessProfile?: {
+    businessName?: string;
+    tradingName?: string;
+    logoUrl?: string;
+    brandColours?: string;
+    brandVoice?: { tagline?: string };
+  } | null;
   activities?: Array<{
     id: string;
     title: string;
@@ -302,6 +309,7 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
     enabledAppIds,
     metrics: liveMetrics,
     connectors: connectorProbes,
+    profile: input.businessProfile,
   });
   snapshot.organisationId = input.organisationId ?? snapshot.organisationId;
 
@@ -443,7 +451,7 @@ function buildPreviewOverview(
         id: "setup",
         label: "Complete platform setup",
         impact: "Unlock live KPIs",
-        href: "/dashboard/apps#onboarding",
+        href: "/dashboard/business",
         buttonLabel: "Start",
       },
     ],

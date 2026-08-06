@@ -1,0 +1,422 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import {
+  getAppSetupGuide,
+  getAppSetupHref,
+  platformApps,
+} from "@dg/platform-core";
+
+import { AppInstallToggle } from "@/components/platform/AppInstallToggle";
+import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
+import type { PlatformTier } from "@/lib/plans";
+import {
+  GROWTH_APP_CATALOG,
+  INDUSTRY_APP_CATALOG,
+  PLATFORM_ADDON_CATALOG,
+  PLATFORM_CAPABILITY_CATALOG,
+  PLATFORM_TIER_CATALOG,
+  PRICING_PAGE_URL,
+  type CatalogStatus,
+} from "@/lib/pricing-catalog";
+
+function statusBadge(status: CatalogStatus) {
+  switch (status) {
+    case "live":
+      return (
+        <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
+          Live
+        </span>
+      );
+    case "soon":
+      return (
+        <span className="rounded-full bg-slate-700/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+          Coming soon
+        </span>
+      );
+    case "rolling-out":
+      return (
+        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+          Rolling out
+        </span>
+      );
+    case "included":
+      return (
+        <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-300">
+          Included on Growth+
+        </span>
+      );
+  }
+}
+
+function SectionHeader({
+  label,
+  title,
+  description,
+}: {
+  label: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="mb-6">
+      <p className="text-xs font-semibold uppercase tracking-widest text-blue-300">{label}</p>
+      <h2 className="mt-2 text-xl font-bold text-white">{title}</h2>
+      <p className="mt-1 max-w-2xl text-sm text-slate-400">{description}</p>
+    </div>
+  );
+}
+
+function CatalogAppCard({
+  appId,
+  icon,
+  label,
+  price,
+  description,
+  status,
+  badge,
+  enabled,
+  primaryHref,
+}: {
+  appId: string;
+  icon: string;
+  label: string;
+  price: string;
+  description: string;
+  status?: CatalogStatus;
+  badge?: string;
+  enabled: boolean;
+  primaryHref?: string;
+}) {
+  const setupGuide = getAppSetupGuide(appId);
+  const canToggle = status !== "soon" && platformApps.get(appId);
+
+  return (
+    <div className="dg-card flex flex-col text-center">
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-2xl" aria-hidden>
+          {icon}
+        </span>
+        {canToggle ? (
+          <AppInstallToggle appId={appId} installed={enabled} />
+        ) : status ? (
+          statusBadge(status)
+        ) : null}
+      </div>
+      {badge ? (
+        <div className="mt-2 flex justify-center">
+          <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-300">
+            {badge}
+          </span>
+        </div>
+      ) : !canToggle && status && status !== "included" ? (
+        <div className="mt-2 flex justify-center">{statusBadge(status)}</div>
+      ) : null}
+      <h3 className="mt-2 font-semibold text-white">{label}</h3>
+      <p className="mt-1 text-sm font-semibold text-blue-400">{price}</p>
+      <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-400">{description}</p>
+      <div className="mt-4 flex flex-wrap justify-center gap-2">
+        {enabled && primaryHref ? (
+          <Link
+            href={primaryHref}
+            className="rounded-full border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-blue-500 hover:text-white"
+          >
+            Open app
+          </Link>
+        ) : null}
+        {setupGuide && canToggle ? (
+          <Link
+            href={getAppSetupHref(appId)}
+            className="rounded-full border border-slate-700 px-3 py-1.5 text-xs text-slate-400 hover:border-slate-500 hover:text-slate-200"
+          >
+            Setup guide
+          </Link>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+export function AppsPlanCatalog() {
+  const { enabledIds, applyPlan, resetApps, syncing } = useEnabledApps();
+  const [activeTier, setActiveTier] = useState<PlatformTier>("professional");
+
+  const selectionFromEnabled = useMemo(
+    () => ({
+      industryApps: INDUSTRY_APP_CATALOG.filter((item) =>
+        enabledIds.includes(item.appId),
+      ).map((item) => item.industryKey),
+      premiumApps: GROWTH_APP_CATALOG.filter((item) => enabledIds.includes(item.appId)).map(
+        (item) => item.premiumKey,
+      ),
+    }),
+    [enabledIds],
+  );
+
+  const applyTier = (tier: PlatformTier) => {
+    setActiveTier(tier);
+    if (tier === "enterprise") return;
+    void applyPlan({
+      platformTier: tier,
+      industryApps: selectionFromEnabled.industryApps,
+      premiumApps: selectionFromEnabled.premiumApps,
+    });
+  };
+
+  const appHref = (appId: string) => {
+    const manifest = platformApps.get(appId)?.manifest;
+    if (!manifest) return undefined;
+    return (
+      manifest.navigation[0]?.href ??
+      manifest.routes[0]?.path ??
+      undefined
+    );
+  };
+
+  return (
+    <div className="space-y-12">
+      <nav
+        className="sticky top-0 z-10 -mx-1 rounded-xl border border-slate-800 bg-slate-950/95 px-2 py-2 backdrop-blur"
+        aria-label="Plan sections"
+      >
+        <div className="flex flex-wrap gap-1 text-sm">
+          <a href="#platform" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
+            1 · Platform
+          </a>
+          <a href="#addons" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
+            Add-ons
+          </a>
+          <a href="#apps" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
+            2 · Apps
+          </a>
+          <a
+            href={`${PRICING_PAGE_URL}#support-plans`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"
+          >
+            Support plans ↗
+          </a>
+        </div>
+      </nav>
+
+      <section id="platform" className="scroll-mt-24">
+        <SectionHeader
+          label="☁️ 1 · Platform"
+          title="The platform is the product"
+          description="Start with the core operating system. Add apps only when you need them. Applying a tier updates your sidebar preview."
+        />
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+          {PLATFORM_TIER_CATALOG.map((tier) => {
+            const isActive = activeTier === tier.key;
+            const isEnterprise = tier.key === "enterprise";
+
+            return (
+              <div
+                key={tier.key}
+                className={`relative flex flex-col rounded-2xl border p-5 transition ${
+                  isActive
+                    ? "border-blue-500 bg-blue-500/5 ring-1 ring-blue-500/30"
+                    : "border-slate-700 bg-slate-900/60 hover:border-slate-600"
+                }`}
+              >
+                {tier.popular ? (
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-blue-600 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                    Most popular
+                  </span>
+                ) : null}
+                <div className="flex items-center gap-2">
+                  <span aria-hidden>{tier.icon}</span>
+                  <h3 className="text-lg font-bold text-white">{tier.label}</h3>
+                </div>
+                <p className="mt-2 text-sm italic text-slate-400">&ldquo;{tier.outcome}&rdquo;</p>
+                <p className="mt-3 text-2xl font-bold text-white">
+                  {tier.price}
+                  {tier.period ? (
+                    <span className="text-sm font-normal text-slate-400">{tier.period}</span>
+                  ) : null}
+                </p>
+                <p className="text-xs text-slate-500">{tier.users}</p>
+                <ul className="mt-4 flex-1 space-y-1.5 text-sm text-slate-300">
+                  {tier.features.map((feature) => (
+                    <li key={feature} className="flex gap-2">
+                      <span className="text-emerald-400" aria-hidden>
+                        ✓
+                      </span>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                {isEnterprise ? (
+                  <a
+                    href="https://digitalgate.com.au/contact/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-5 block rounded-full border border-slate-600 py-2.5 text-center text-sm font-semibold text-slate-200 hover:border-slate-500"
+                  >
+                    Contact sales
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={syncing}
+                    onClick={() => applyTier(tier.key)}
+                    className={`mt-5 rounded-full py-2.5 text-sm font-semibold transition disabled:opacity-50 ${
+                      isActive
+                        ? "bg-blue-600 text-white hover:bg-blue-500"
+                        : "border border-slate-600 text-slate-200 hover:border-blue-500 hover:text-white"
+                    }`}
+                  >
+                    {isActive ? "Applied to sidebar" : "Apply tier"}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button
+            type="button"
+            disabled={syncing}
+            onClick={() => resetApps()}
+            className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:border-slate-500 disabled:opacity-50"
+          >
+            Reset defaults
+          </button>
+          <Link
+            href="/signup/account"
+            className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:border-slate-500"
+          >
+            New customer signup
+          </Link>
+          <a
+            href={PRICING_PAGE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:border-slate-500"
+          >
+            View pricing & checkout ↗
+          </a>
+        </div>
+      </section>
+
+      <section id="addons" className="scroll-mt-24">
+        <SectionHeader
+          label="➕ Platform add-ons"
+          title="Extend your platform"
+          description="Extra users and white label — add to any tier. Purchase on the website; toggles here control sidebar apps only."
+        />
+        <div className="mx-auto grid max-w-2xl gap-4 sm:grid-cols-2">
+          {PLATFORM_ADDON_CATALOG.map((addon) => (
+            <div key={addon.key} className="dg-card text-center">
+              <div className="text-2xl" aria-hidden>
+                {addon.icon}
+              </div>
+              <h3 className="mt-2 font-semibold text-white">{addon.label}</h3>
+              <p className="mt-1 text-sm font-semibold text-blue-400">{addon.price}</p>
+              <p className="mt-2 text-xs text-slate-400">{addon.description}</p>
+              <a
+                href={addon.pricingHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-block rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-300 hover:border-blue-500 hover:text-white"
+              >
+                Add on ↗
+              </a>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="apps" className="scroll-mt-24 space-y-10">
+        <SectionHeader
+          label="🧩 2 · Apps"
+          title="Build the platform your business needs"
+          description={`Install only what you need — industry verticals, growth intelligence, and platform capabilities. ${enabledIds.length} apps currently on in your sidebar.`}
+        />
+
+        <div id="industry-apps" className="scroll-mt-24">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {INDUSTRY_APP_CATALOG.map((item) => (
+              <CatalogAppCard
+                key={item.appId}
+                appId={item.appId}
+                icon={item.icon}
+                label={item.label}
+                price={item.price}
+                description={item.description}
+                status={item.status}
+                enabled={enabledIds.includes(item.appId)}
+                primaryHref={appHref(item.appId)}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div id="growth-apps" className="scroll-mt-24">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-white">Growth & Intelligence Apps</h3>
+            <p className="text-sm text-slate-400">
+              Unlock advanced SEO, AI visibility, automation, and analytics on top of the core platform
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            {GROWTH_APP_CATALOG.map((item) => (
+              <CatalogAppCard
+                key={item.appId}
+                appId={item.appId}
+                icon={item.icon}
+                label={item.label}
+                price={item.price}
+                description={item.description}
+                enabled={enabledIds.includes(item.appId)}
+                primaryHref={appHref(item.appId)}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div id="platform-apps" className="scroll-mt-24">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-white">Platform Capabilities</h3>
+            <p className="text-sm text-slate-400">
+              Infrastructure and commerce — connected to your operating system, not bolted on
+            </p>
+          </div>
+          <div className="mx-auto grid max-w-4xl gap-4 sm:grid-cols-3">
+            {PLATFORM_CAPABILITY_CATALOG.map((item) => (
+              <CatalogAppCard
+                key={item.appId}
+                appId={item.appId}
+                icon={item.icon}
+                label={item.label}
+                price={item.price}
+                description={item.description}
+                status={item.status}
+                badge={item.badge}
+                enabled={enabledIds.includes(item.appId)}
+                primaryHref={appHref(item.appId)}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="dg-card border-dashed border-slate-700 bg-slate-900/30 text-center">
+        <p className="text-sm text-slate-400">
+          Professional services and support plans are optional — same structure as{" "}
+          <a
+            href={PRICING_PAGE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:underline"
+          >
+            digitalgate.com.au/pricing
+          </a>
+          .
+        </p>
+      </section>
+    </div>
+  );
+}

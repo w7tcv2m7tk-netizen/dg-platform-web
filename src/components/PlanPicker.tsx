@@ -85,7 +85,10 @@ export function PlanPicker({ onContinue, continueLabel = "Continue to checkout" 
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold text-white">Growth apps</h2>
+        <h2 className="mb-1 text-lg font-semibold text-white">Growth & Intelligence Apps</h2>
+        <p className="mb-3 text-sm text-slate-500">
+          SEO, AI visibility, automation, analytics, social, and voice AI
+        </p>
         <div className="flex flex-wrap gap-2">
           {PREMIUM_APPS.map((app) => (
             <button
@@ -108,7 +111,8 @@ export function PlanPicker({ onContinue, continueLabel = "Continue to checkout" 
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold text-white">Add-ons</h2>
+        <h2 className="mb-1 text-lg font-semibold text-white">Platform add-ons</h2>
+        <p className="mb-3 text-sm text-slate-500">Extra users and white label</p>
         <div className="flex flex-wrap gap-2">
           {ADDONS.map((addon) => (
             <button
