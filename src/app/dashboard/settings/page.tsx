@@ -46,7 +46,21 @@ export default async function PlatformSettingsPage() {
           purchaseLabel={portal?.purchase_label}
         />
 
-        <div className="grid gap-4 lg:grid-cols-2">          <div className="dg-card">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Link
+            href="/dashboard/settings/api"
+            className="dg-card block border-blue-500/20 bg-gradient-to-br from-slate-900 to-blue-950/20 hover:border-blue-500/40 lg:col-span-2"
+          >
+            <p className="text-xs font-medium uppercase tracking-wide text-blue-400">Platform API</p>
+            <h2 className="mt-2 text-lg font-semibold text-white">REST API &amp; integration keys</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Create <code className="text-slate-300">dg_live_</code> keys for CRM, leads, commerce, and
+              automations. Base URL: <code className="text-slate-300">/api/v1</code>
+            </p>
+            <span className="mt-4 inline-block text-sm font-medium text-blue-400">Manage API keys →</span>
+          </Link>
+
+          <div className="dg-card">
             <h2 className="font-semibold text-white">Organisation</h2>
             {session ? (
               <dl className="mt-4 space-y-3 text-sm">

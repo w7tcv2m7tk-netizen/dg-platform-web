@@ -18,6 +18,7 @@ export const PLATFORM_TOOL_GROUPS: PlatformToolGroup[] = [
     primaryHref: "/dashboard/settings",
     routes: [
       { path: "/dashboard/settings", label: "General" },
+      { path: "/dashboard/settings/api", label: "Platform API" },
       { path: "/dashboard/settings/connectors", label: "Connectors" },
       { path: "/dashboard/settings/team", label: "Team & access" },
     ],
