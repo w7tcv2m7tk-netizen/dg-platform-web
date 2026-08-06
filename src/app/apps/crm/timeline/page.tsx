@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import { listOrganisationActivities, resolvePlatformSession } from "@dg/platform-core";
+import { listOrganisationActivities,} from "@dg/platform-core";
 
 function entityHref(entityType: string, entityId: string) {
   if (entityType === "Contact") return `/apps/crm/contacts/${entityId}`;
@@ -17,7 +18,7 @@ export default async function CrmTimelinePage() {
     email;
 
   const session = user?.id
-    ? await resolvePlatformSession({ clerkUserId: user.id, email, name })
+    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
     : null;
 
   if (!session) {

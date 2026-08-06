@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { getReDashboardStats, resolvePlatformSession } from "@dg/platform-core";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { getReDashboardStats,} from "@dg/platform-core";
 
 import { ReDashboard } from "@/components/re/ReDashboard";
 import { fetchPortalMe, fetchWpReSummary } from "@/lib/dg-api";
@@ -19,7 +20,7 @@ export default async function RealEstateOverviewPage() {
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
 
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

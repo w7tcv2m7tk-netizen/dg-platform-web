@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import { resolvePlatformSession } from "@dg/platform-core";
+import {} from "@dg/platform-core";
 
 import { fetchPortalMe } from "@/lib/dg-api";
 import { getLastWordPressSync } from "@/lib/wordpress-sync";
@@ -26,7 +27,7 @@ export default async function ConnectorsSettingsPage() {
 
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

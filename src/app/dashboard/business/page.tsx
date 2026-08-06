@@ -1,11 +1,10 @@
 import { currentUser } from "@clerk/nextjs/server";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   captureDigitalTwinSnapshot,
   gatherOverviewLiveMetrics,
   getBusinessContext,
-  getOrganisationBusinessProfile,
-  resolvePlatformSession,
-} from "@dg/platform-core";
+  getOrganisationBusinessProfile,} from "@dg/platform-core";
 
 import { BusinessProfileEditor } from "@/components/platform/BusinessProfileEditor";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -25,7 +24,7 @@ export default async function BusinessProfilePage() {
   await ensureOrganisationOnboardingSync();
 
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

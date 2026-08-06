@@ -2,11 +2,12 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import {
   apiKeyToPlatformSession,
   sessionHasFeature,
-  resolvePlatformSession,
   verifyPlatformApiKey,
   type PlatformSession,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
+
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
 export function extractApiKeyFromRequest(req: Request) {
   const headerKey = req.headers.get("X-API-Key")?.trim();
@@ -86,7 +87,7 @@ async function resolveClerkSession(): Promise<PlatformSession | NextResponse> {
     [user.firstName, user.lastName].filter(Boolean).join(" ") ??
     email;
 
-  const session = await resolvePlatformSession({
+  const session = await resolveActivePlatformSession({
     clerkUserId: userId,
     email,
     name,

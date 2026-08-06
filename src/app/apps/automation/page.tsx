@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import { getAppSetupHref, resolvePlatformSession } from "@dg/platform-core";
+import { getAppSetupHref,} from "@dg/platform-core";
 
 import { AutomationBuilderPanel } from "@/components/automation/AutomationBuilderPanel";
 import { PlatformRoadmapBar } from "@/components/platform/PlatformRoadmapBar";
@@ -16,7 +17,7 @@ export default async function AutomationPage() {
 
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

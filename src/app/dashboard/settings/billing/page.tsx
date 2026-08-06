@@ -1,9 +1,8 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
 import {
-  getOrganisationBusinessProfile,
-  resolvePlatformSession,
-} from "@dg/platform-core";
+  getOrganisationBusinessProfile,} from "@dg/platform-core";
 
 import { BillingActions } from "@/components/settings/BillingActions";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -22,7 +21,7 @@ export default async function BillingSettingsPage() {
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
   await ensureOrganisationOnboardingSync();
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

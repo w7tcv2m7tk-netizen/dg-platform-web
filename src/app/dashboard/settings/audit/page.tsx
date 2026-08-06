@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import { listAuditLogs, resolvePlatformSession } from "@dg/platform-core";
+import { listAuditLogs,} from "@dg/platform-core";
 
 export default async function AuditLogPage() {
   const user = await currentUser();
@@ -11,7 +12,7 @@ export default async function AuditLogPage() {
     email;
 
   const session = user?.id
-    ? await resolvePlatformSession({ clerkUserId: user.id, email, name })
+    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
     : null;
 
   const logs = session

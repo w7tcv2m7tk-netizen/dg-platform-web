@@ -1,4 +1,5 @@
 export * from "./provision";
+export * from "./memberships";
 export * from "./setup-status";
 export * from "./onboarding-profile";
 export * from "./business-profile-types";

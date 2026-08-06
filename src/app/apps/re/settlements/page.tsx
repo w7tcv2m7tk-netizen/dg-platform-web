@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { listSettlementProperties, resolvePlatformSession } from "@dg/platform-core";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { listSettlementProperties,} from "@dg/platform-core";
 
 import { SettlementList } from "@/components/re/SettlementList";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -15,7 +16,7 @@ export default async function SettlementsPage() {
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
 
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

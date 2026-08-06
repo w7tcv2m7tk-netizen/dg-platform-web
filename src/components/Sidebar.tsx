@@ -1,6 +1,8 @@
 import { SidebarBrand } from "@/components/brand/SidebarBrand";
+import { OrgSwitcher } from "@/components/platform/OrgSwitcher";
 import { SidebarNav } from "@/components/SidebarNav";
 import { SidebarUser } from "@/components/SidebarUser";
+import type { UserOrganisationSummary } from "@dg/platform-core";
 
 function CloseIcon() {
   return (
@@ -22,11 +24,16 @@ export function Sidebar({
   variant = "fixed",
   onNavigate,
   onClose,
+  activeOrganisationId,
+  activeOrganisationName,
+  organisations = [],
 }: {
-  /** fixed = desktop rail; drawer = mobile slide-over panel */
   variant?: "fixed" | "drawer";
   onNavigate?: () => void;
   onClose?: () => void;
+  activeOrganisationId?: string;
+  activeOrganisationName?: string;
+  organisations?: UserOrganisationSummary[];
 }) {
   return (
     <aside
@@ -51,6 +58,14 @@ export function Sidebar({
       ) : (
         <SidebarBrand />
       )}
+
+      {activeOrganisationId && activeOrganisationName ? (
+        <OrgSwitcher
+          activeOrganisationId={activeOrganisationId}
+          activeOrganisationName={activeOrganisationName}
+          organisations={organisations}
+        />
+      ) : null}
 
       <SidebarNav onNavigate={onNavigate} />
       <SidebarUser />

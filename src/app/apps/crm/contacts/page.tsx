@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import { listContacts, listCompanies, resolvePlatformSession } from "@dg/platform-core";
+import { listContacts, listCompanies,} from "@dg/platform-core";
 
 import { CreateContactForm } from "@/components/crm/CreateContactForm";
 import { ContactImportExport } from "@/components/crm/ContactImportExport";
@@ -14,7 +15,7 @@ export default async function CrmContactsPage() {
     email;
 
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

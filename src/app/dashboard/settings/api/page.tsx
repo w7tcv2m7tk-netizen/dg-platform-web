@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import { getPlatformApiCatalog, resolvePlatformSession } from "@dg/platform-core";
+import { getPlatformApiCatalog,} from "@dg/platform-core";
 
 import { PlatformApiKeysPanel } from "@/components/platform/PlatformApiKeysPanel";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -15,7 +16,7 @@ export default async function PlatformApiSettingsPage() {
 
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import {
@@ -7,9 +8,7 @@ import {
   getLead,
   getProperty,
   listPropertyActivities,
-  listPropertyOffers,
-  resolvePlatformSession,
-} from "@dg/platform-core";
+  listPropertyOffers,} from "@dg/platform-core";
 
 import { PropertyContractPanel } from "@/components/re/PropertyContractPanel";
 import { PropertyOffersPanel } from "@/components/re/PropertyOffersPanel";
@@ -42,7 +41,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

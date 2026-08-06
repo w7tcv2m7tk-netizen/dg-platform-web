@@ -8,6 +8,7 @@ export interface PlatformSession {
   membershipId: string;
   role: string;
   dbConfigured: boolean;
+  organisations: import("../org/memberships").UserOrganisationSummary[];
 }
 
 export interface ResolveSessionInput {
@@ -16,6 +17,8 @@ export interface ResolveSessionInput {
   name: string;
   clerkOrgId?: string;
   orgName?: string;
+  /** Active tenant from cookie — must match a membership or falls back to first org. */
+  activeOrganisationId?: string;
 }
 
 /** Resolve tenant context for the current Clerk user; provisions org if needed. */
@@ -27,6 +30,7 @@ export async function resolvePlatformSession(
   }
 
   const { provisionOrganisation } = await import("../org/provision");
+  const { resolveUserMembership, listUserOrganisations } = await import("../org/memberships");
   await provisionOrganisation({
     clerkUserId: input.clerkUserId,
     email: input.email,
@@ -37,12 +41,14 @@ export async function resolvePlatformSession(
 
   const { prisma } = await import("@dg/database");
 
-  const membership = await prisma.membership.findFirst({
-    where: { clerkUserId: input.clerkUserId },
-    include: { organisation: true },
-  });
+  const membership = await resolveUserMembership(
+    input.clerkUserId,
+    input.activeOrganisationId,
+  );
 
   if (!membership) return null;
+
+  const organisations = await listUserOrganisations(input.clerkUserId);
 
   if (input.email && membership.email !== input.email) {
     await prisma.membership.update({
@@ -64,6 +70,7 @@ export async function resolvePlatformSession(
     membershipId: membership.id,
     role: membership.role,
     dbConfigured: true,
+    organisations,
   };
 }
 

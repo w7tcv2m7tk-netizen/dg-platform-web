@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { normalizeSiteHealthSnapshot, resolvePlatformSession } from "@dg/platform-core";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { normalizeSiteHealthSnapshot,} from "@dg/platform-core";
 import { Suspense } from "react";
 
 import {
@@ -30,7 +31,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
 
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

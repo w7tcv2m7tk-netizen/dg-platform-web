@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
-import { getContact, listCompanies, listContactActivities, resolvePlatformSession } from "@dg/platform-core";
+import { getContact, listCompanies, listContactActivities,} from "@dg/platform-core";
 
 import { AddContactNoteForm } from "@/components/crm/AddContactNoteForm";
 import { EditContactForm } from "@/components/crm/EditContactForm";
@@ -20,7 +21,7 @@ export default async function ContactDetailPage({ params }: PageProps) {
     email;
 
   const session = user?.id
-    ? await resolvePlatformSession({ clerkUserId: user.id, email, name })
+    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
     : null;
 
   if (!session) {

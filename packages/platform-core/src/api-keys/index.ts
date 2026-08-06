@@ -195,6 +195,16 @@ export function apiKeyToPlatformSession(verified: VerifiedApiKey): PlatformSessi
     membershipId: `api_key:${verified.keyId}`,
     role: "admin",
     dbConfigured: true,
+    organisations: [
+      {
+        organisationId: verified.organisationId,
+        organisationName: verified.organisationName,
+        organisationSlug: verified.organisationSlug,
+        membershipId: `api_key:${verified.keyId}`,
+        role: "admin",
+        createdAt: new Date().toISOString(),
+      },
+    ],
   };
 }
 

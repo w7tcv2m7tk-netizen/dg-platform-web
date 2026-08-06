@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { listProperties, resolvePlatformSession } from "@dg/platform-core";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { listProperties,} from "@dg/platform-core";
 
 import { PropertyList } from "@/components/re/PropertyList";
 import { CreatePropertyForm } from "@/components/re/CreatePropertyForm";
@@ -16,7 +17,7 @@ export default async function PropertiesPage() {
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
 
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

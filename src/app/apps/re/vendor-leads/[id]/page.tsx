@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import {
@@ -7,9 +8,7 @@ import {
   getPropertyForLead,
   listInvoicesForEntity,
   listLeadActivities,
-  listQuotesForEntity,
-  resolvePlatformSession,
-} from "@dg/platform-core";
+  listQuotesForEntity,} from "@dg/platform-core";
 
 import { LeadCommercePanel } from "@/components/re/LeadCommercePanel";
 import { RequestPaymentButton } from "@/components/re/RequestPaymentButton";
@@ -41,7 +40,7 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
 
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

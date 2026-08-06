@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { resolvePlatformSession } from "@dg/platform-core";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import {} from "@dg/platform-core";
 import { Suspense } from "react";
 
 import { AccommodationBookingsTable } from "@/components/accommodation/AccommodationBookingsTable";
@@ -27,7 +28,7 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
 
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

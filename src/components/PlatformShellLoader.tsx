@@ -39,6 +39,9 @@ export async function PlatformShellLoader({
       userName={userName ?? undefined}
       showFloatingChat={showFloatingChat}
       showCommandCentre={showCommandCentre}
+      activeOrganisationId={session?.organisationId}
+      activeOrganisationName={session?.organisationName}
+      organisations={session?.organisations ?? []}
     >
       {children}
     </PlatformShell>

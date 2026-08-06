@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import { resolvePlatformSession } from "@dg/platform-core";
+import {} from "@dg/platform-core";
 
 import { AppFeaturePlaceholder } from "@/components/platform/AppFeaturePlaceholder";
 
@@ -12,7 +13,7 @@ async function CommandOverviewPage() {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name: user.fullName ?? email,

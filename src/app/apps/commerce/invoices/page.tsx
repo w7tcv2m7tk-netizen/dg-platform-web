@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import { listInvoices, resolvePlatformSession } from "@dg/platform-core";
+import { listInvoices,} from "@dg/platform-core";
 
 import { CreateDocumentForm } from "@/components/commerce/CreateDocumentForm";
 import { SendInvoiceButton } from "@/components/commerce/CommerceDocumentActions";
@@ -23,7 +24,7 @@ export default async function CommerceInvoicesPage() {
 
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

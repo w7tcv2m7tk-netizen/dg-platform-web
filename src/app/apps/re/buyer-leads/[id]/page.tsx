@@ -1,12 +1,11 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import {
   getContact,
   getLead,
-  listLeadActivities,
-  resolvePlatformSession,
-} from "@dg/platform-core";
+  listLeadActivities,} from "@dg/platform-core";
 
 import { BuyerLeadStageSelect } from "@/components/re/BuyerLeadStageSelect";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -34,7 +33,7 @@ export default async function BuyerLeadDetailPage({ params }: PageProps) {
 
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

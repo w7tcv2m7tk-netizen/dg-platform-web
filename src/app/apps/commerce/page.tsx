@@ -1,11 +1,10 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
 import {
   getCommerceFinancialSnapshot,
   listInvoices,
-  listQuotes,
-  resolvePlatformSession,
-} from "@dg/platform-core";
+  listQuotes,} from "@dg/platform-core";
 
 import { CommerceStripeSetup } from "@/components/commerce/CommerceStripeSetup";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -27,7 +26,7 @@ export default async function CommerceOverviewPage() {
 
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

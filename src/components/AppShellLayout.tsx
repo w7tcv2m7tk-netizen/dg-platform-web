@@ -11,6 +11,7 @@ import { usePathname } from "next/navigation";
 
 import { MobileHeader } from "@/components/MobileHeader";
 import { Sidebar } from "@/components/Sidebar";
+import type { UserOrganisationSummary } from "@dg/platform-core";
 
 type MobileNavContextValue = {
   close: () => void;
@@ -24,7 +25,17 @@ export function useMobileNav() {
   return useContext(MobileNavContext);
 }
 
-export function AppShellLayout({ children }: { children: ReactNode }) {
+export function AppShellLayout({
+  children,
+  activeOrganisationId,
+  activeOrganisationName,
+  organisations = [],
+}: {
+  children: ReactNode;
+  activeOrganisationId?: string;
+  activeOrganisationName?: string;
+  organisations?: UserOrganisationSummary[];
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -43,11 +54,17 @@ export function AppShellLayout({ children }: { children: ReactNode }) {
     setOpen(false);
   }
 
+  const sidebarProps = {
+    activeOrganisationId,
+    activeOrganisationName,
+    organisations,
+  };
+
   return (
     <MobileNavContext.Provider value={{ close }}>
       <div className="flex min-h-[100dvh]">
         <div className="hidden shrink-0 md:flex">
-          <Sidebar />
+          <Sidebar {...sidebarProps} />
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col">
@@ -72,7 +89,7 @@ export function AppShellLayout({ children }: { children: ReactNode }) {
               }`}
               style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}
             >
-              <Sidebar variant="drawer" onNavigate={close} onClose={close} />
+              <Sidebar variant="drawer" onNavigate={close} onClose={close} {...sidebarProps} />
             </aside>
           </div>
 

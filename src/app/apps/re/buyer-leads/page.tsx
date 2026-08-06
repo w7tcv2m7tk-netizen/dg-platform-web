@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { listLeads, resolvePlatformSession } from "@dg/platform-core";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { listLeads,} from "@dg/platform-core";
 
 import { BuyerLeadPipeline } from "@/components/re/BuyerLeadPipeline";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -19,7 +20,7 @@ export default async function BuyerLeadsPage() {
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
 
   const session = user?.id
-    ? await resolvePlatformSession({
+    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,

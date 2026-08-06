@@ -1,11 +1,10 @@
 import Link from "next/link";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import {
   getCompany,
-  listCompanyContacts,
-  resolvePlatformSession,
-} from "@dg/platform-core";
+  listCompanyContacts,} from "@dg/platform-core";
 
 import { EditCompanyForm } from "@/components/crm/EditCompanyForm";
 
@@ -23,7 +22,7 @@ export default async function CompanyDetailPage({ params }: PageProps) {
     email;
 
   const session = user?.id
-    ? await resolvePlatformSession({ clerkUserId: user.id, email, name })
+    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
     : null;
 
   if (!session) notFound();

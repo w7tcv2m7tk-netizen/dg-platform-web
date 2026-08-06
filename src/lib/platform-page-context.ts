@@ -2,11 +2,11 @@ import { currentUser } from "@clerk/nextjs/server";
 import {
   getDefaultEnabledAppIds,
   resolveEnabledAppIds,
-  resolvePlatformSession,
   type PlatformSession,
 } from "@dg/platform-core";
 import { cache } from "react";
 
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe, type PortalProfile } from "@/lib/dg-api";
 
 export type PlatformPageContext = {
@@ -33,7 +33,7 @@ export const getPlatformPageContext = cache(async (): Promise<PlatformPageContex
   }
 
   const portal = await fetchPortalMe(email, clerkUserId);
-  const session = await resolvePlatformSession({
+  const session = await resolveActivePlatformSession({
     clerkUserId,
     email,
     name,
