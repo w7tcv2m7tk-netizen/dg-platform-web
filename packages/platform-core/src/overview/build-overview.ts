@@ -4,6 +4,8 @@ import { captureDigitalTwinSnapshot } from "../twin/capture-snapshot";
 import type { PlatformSetupStatus } from "../org/setup-status";
 import type { OverviewConnectorProbes } from "./connector-probes";
 import type { OverviewLiveMetrics } from "./gather-live-metrics";
+import type { HealthHistoryEntry } from "./health-history";
+import { healthDeltaFromHistory, healthTrendFromHistory } from "./health-history";
 import type {
   BusinessOverview,
   OverviewConnectedSystem,
@@ -29,6 +31,8 @@ export interface BuildBusinessOverviewInput {
   liveMetrics?: OverviewLiveMetrics | null;
   /** Connector probes from app layer (WordPress, Stripe, etc.) */
   connectorProbes?: OverviewConnectorProbes;
+  /** Stored monthly Business Health scores */
+  healthHistory?: HealthHistoryEntry[];
 }
 
 function greetingForHour(hour: number, name: string) {
@@ -280,6 +284,7 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
     activities,
     liveMetrics,
     connectorProbes = {},
+    healthHistory = [],
   } = input;
 
   const hour = new Date().getHours();
@@ -325,15 +330,22 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
     scores,
   });
 
+  const businessHealth = scores.businessHealth;
+  const healthDelta =
+    healthHistory.length >= 2
+      ? healthDeltaFromHistory(healthHistory, businessHealth)
+      : scores.businessHealthDelta;
+  const healthTrend = healthTrendFromHistory(healthHistory, businessHealth);
+
   const timeline = timelineFromActivities(activities);
 
   return {
     organisationName,
     userDisplayName: firstName,
     greeting: greetingForHour(hour, firstName),
-    businessHealth: scores.businessHealth,
-    businessHealthDelta: scores.businessHealthDelta,
-    businessHealthDeltaLabel: `${scores.businessHealthDelta >= 0 ? "+" : ""}${scores.businessHealthDelta} this month`,
+    businessHealth,
+    businessHealthDelta: healthDelta,
+    businessHealthDeltaLabel: `${healthDelta >= 0 ? "+" : ""}${healthDelta} this month`,
     lastUpdatedLabel: new Date().toLocaleTimeString("en-AU", {
       hour: "2-digit",
       minute: "2-digit",
@@ -358,7 +370,7 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
     timeline: timeline.length
       ? timeline
       : [{ id: "empty", timeLabel: "—", title: "No activity yet — actions across your apps will appear here." }],
-    healthTrend: scores.healthTrend,
+    healthTrend,
     connectedSystems: buildConnectedSystems(connectorProbes),
     aiPrompts: [
       { id: "pipeline", label: "Summarise my pipeline", prompt: "Summarise my sales pipeline and highlight priorities for today." },

@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { useChatWidget } from "@/components/platform/ChatWidgetProvider";
 import type { BusinessOverview } from "@dg/platform-core";
 
 function StatusDot({ status }: { status: string }) {
@@ -41,6 +44,8 @@ function HealthTrendChart({ values }: { values: number[] }) {
 }
 
 export function BusinessOverviewDashboard({ overview }: { overview: BusinessOverview }) {
+  const { openSupportChat } = useChatWidget();
+
   return (
     <div className="space-y-6">
       {!overview.scoresLive ? (
@@ -261,6 +266,9 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
               <button
                 key={p.id}
                 type="button"
+                onClick={() =>
+                  openSupportChat(`[AI Studio · ${p.label}]\n\n${p.prompt}`)
+                }
                 className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-slate-200 hover:border-blue-500/50 hover:text-white"
                 title={p.prompt}
               >

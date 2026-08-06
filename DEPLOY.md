@@ -96,10 +96,14 @@ Provision Postgres org when users sign up in production:
 - [ ] `/login` shows Clerk sign-in
 - [ ] `/signup/account` creates account
 - [ ] `/dashboard` requires login and shows welcome name
-- [ ] Dashboard shows **Platform org: … (Postgres)** when `DATABASE_URL` is set
+- [ ] Dashboard shows live Business Health when `DATABASE_URL` is set
 - [ ] `/apps/crm/contacts` — add a contact (stored in Neon)
 - [ ] Sign out via sidebar user menu → returns to home
 - [ ] `/onboarding` requires login
+
+**Env check (local):** `npm run verify:env`
+
+**WordPress plugin deploy:** [DEPLOY-WP-PLUGIN.md](./docs/DEPLOY-WP-PLUGIN.md)
 
 ## Routes
 

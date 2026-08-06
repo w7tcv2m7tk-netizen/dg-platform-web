@@ -30,9 +30,13 @@ function escapeHtml(text: string) {
 export function SupportChatPanel({
   embedded = false,
   userName,
+  initialDraft,
+  onDraftApplied,
 }: {
   embedded?: boolean;
   userName?: string;
+  initialDraft?: string;
+  onDraftApplied?: () => void;
 }) {
   const [messages, setMessages] = useState<SupportChatMessage[]>([]);
   const [lastId, setLastId] = useState(0);
@@ -99,6 +103,12 @@ export function SupportChatPanel({
   useEffect(() => {
     void loadConversation();
   }, [loadConversation]);
+
+  useEffect(() => {
+    if (!initialDraft?.trim()) return;
+    setDraft(initialDraft);
+    onDraftApplied?.();
+  }, [initialDraft, onDraftApplied]);
 
   useEffect(() => {
     if (!linked || loading) return;
@@ -219,14 +229,28 @@ export function SupportChatPanel({
   );
 }
 
-export function SupportChatWidget({ userName }: { userName?: string }) {
-  const [open, setOpen] = useState(false);
+export function SupportChatWidget({
+  userName,
+  open: controlledOpen,
+  onOpenChange,
+  initialDraft,
+  onDraftApplied,
+}: {
+  userName?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  initialDraft?: string;
+  onDraftApplied?: () => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(!open)}
         aria-label={open ? "Close live support chat" : "Open live support chat"}
         aria-expanded={open}
         className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-xl text-white shadow-lg shadow-blue-500/30 transition hover:-translate-y-0.5"
@@ -236,7 +260,11 @@ export function SupportChatWidget({ userName }: { userName?: string }) {
 
       {open ? (
         <div className="fixed bottom-24 right-6 z-50 flex h-[min(520px,calc(100vh-120px))] w-[min(380px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
-          <SupportChatPanel userName={userName} />
+          <SupportChatPanel
+            userName={userName}
+            initialDraft={initialDraft}
+            onDraftApplied={onDraftApplied}
+          />
         </div>
       ) : null}
     </>

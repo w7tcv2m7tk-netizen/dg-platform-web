@@ -3,6 +3,8 @@ import {
   buildBusinessOverview,
   gatherOverviewLiveMetrics,
   listOrganisationActivities,
+  loadHealthHistory,
+  persistHealthSnapshot,
   resolvePlatformSession,
 } from "@dg/platform-core";
 
@@ -37,21 +39,23 @@ export default async function DashboardPage() {
   let liveMetrics = null;
   let connectorProbes = {};
   let activities = null;
+  let healthHistory: Awaited<ReturnType<typeof loadHealthHistory>> = [];
 
   if (platformSession) {
     await autoSyncWordPressVendorLeadsIfNeeded(platformSession).catch(() => null);
 
-    [liveMetrics, connectorProbes, activities] = await Promise.all([
+    [liveMetrics, connectorProbes, activities, healthHistory] = await Promise.all([
       gatherOverviewLiveMetrics(platformSession.organisationId),
       fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
       listOrganisationActivities({
         organisationId: platformSession.organisationId,
         limit: 10,
       }),
+      loadHealthHistory(platformSession.organisationId),
     ]);
   }
 
-  const overview = buildBusinessOverview({
+  let overview = buildBusinessOverview({
     organisationId: platformSession?.organisationId,
     organisationName: platformSession?.organisationName ?? portal?.org_name ?? "Your business",
     userDisplayName: user?.firstName ?? name,
@@ -69,7 +73,33 @@ export default async function DashboardPage() {
     activities: activities?.items,
     liveMetrics,
     connectorProbes,
+    healthHistory,
   });
+
+  if (platformSession && liveMetrics && overview.scoresLive) {
+    const updatedHistory = await persistHealthSnapshot(
+      platformSession.organisationId,
+      overview.businessHealth,
+    );
+    overview = buildBusinessOverview({
+      organisationId: platformSession.organisationId,
+      organisationName: overview.organisationName,
+      userDisplayName: overview.userDisplayName,
+      enabledAppIds,
+      setupStatus: {
+        orgProvisioned: true,
+        hasTeamMember: true,
+        hasContacts: liveMetrics.hasContacts,
+        hasTimelineActivity: liveMetrics.hasTimelineActivity,
+        contactCount: liveMetrics.contactCount,
+        activityCount: liveMetrics.activityCount,
+      },
+      activities: activities?.items,
+      liveMetrics,
+      connectorProbes,
+      healthHistory: updatedHistory,
+    });
+  }
 
   return (
     <>
@@ -84,7 +114,9 @@ export default async function DashboardPage() {
           <div className="flex items-baseline gap-2">
             <span className="text-sm text-slate-400">Business Health:</span>
             <span className="text-2xl font-bold text-emerald-400">{overview.businessHealth}/100</span>
-            <span className="text-sm text-emerald-400/80">↑ {overview.businessHealthDeltaLabel}</span>
+            <span className={`text-sm ${overview.businessHealthDelta >= 0 ? "text-emerald-400/80" : "text-amber-400/80"}`}>
+              {overview.businessHealthDelta >= 0 ? "↑" : "↓"} {overview.businessHealthDeltaLabel}
+            </span>
           </div>
           <span className="text-xs text-slate-500">
             Last updated: {overview.lastUpdatedLabel}

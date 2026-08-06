@@ -18,6 +18,7 @@ These documents capture **why** the platform is built the way it is. They are as
 | [ROADMAP.md](./ROADMAP.md) | Execution phases and priorities |
 | [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) | Internal intelligence App — how DG runs DG |
 | [BUSINESS-OVERVIEW.md](./BUSINESS-OVERVIEW.md) | CEO dashboard — Business Overview at `/dashboard` |
+| [DEPLOY-WP-PLUGIN.md](./DEPLOY-WP-PLUGIN.md) | WordPress plugin deploy zip and site checklist |
 | [GROWTH-ENGINE.md](./GROWTH-ENGINE.md) | Growth Engine™ — acquisition OS inside Command Centre |
 | **[foundations/](./foundations/README.md)** | **Governance, domain model, commercialisation — read before implementing** |
 

@@ -5,5 +5,5 @@ export default function SupportLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <PlatformShell showSupportChat={false}>{children}</PlatformShell>;
+  return <PlatformShell showFloatingChat={false}>{children}</PlatformShell>;
 }
