@@ -4,6 +4,7 @@ import { listReBookings,} from "@dg/platform-core";
 
 import { ReBookingsPanel } from "@/components/re/ReBookingsPanel";
 import { fetchPortalMe } from "@/lib/dg-api";
+import { autoSyncWordPressBookingsIfNeeded } from "@/lib/wordpress-sync";
 
 export default async function ReBookingsPage() {
   const user = await currentUser();
@@ -24,6 +25,10 @@ export default async function ReBookingsPage() {
       })
     : null;
 
+  if (session) {
+    await autoSyncWordPressBookingsIfNeeded(session);
+  }
+
   const bookings =
     session ? await listReBookings(session.organisationId, 50) : [];
 
@@ -32,7 +37,7 @@ export default async function ReBookingsPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Bookings</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "Real Estate"} · Synced to Postgres from Roe WordPress
+          {session?.organisationName ?? "Real Estate"} · Auto-syncs from WordPress every 4 hours
         </p>
       </header>
       <main className="dg-page-main">

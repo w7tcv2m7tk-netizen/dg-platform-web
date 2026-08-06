@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import { CommerceStripeSetup } from "@/components/commerce/CommerceStripeSetup";
-import {} from "@dg/platform-core";
+import { listOrganisationPaymentRequests } from "@dg/platform-core";
 
+import { CommercePaymentsList } from "@/components/commerce/CommercePaymentsList";
+import { CommerceStripeSetup } from "@/components/commerce/CommerceStripeSetup";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 export default async function CommercePaymentsPage() {
@@ -24,6 +25,10 @@ export default async function CommercePaymentsPage() {
       })
     : null;
 
+  const payments = session
+    ? await listOrganisationPaymentRequests(session.organisationId)
+    : [];
+
   return (
     <>
       <header className="dg-page-header">
@@ -35,28 +40,20 @@ export default async function CommercePaymentsPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Payments</h1>
         <p className="text-sm text-slate-400">
-          Payment requests are created from app workflows (e.g. vendor leads)
+          Stripe checkout links and payment request history for this business
         </p>
       </header>
       <main className="flex-1 space-y-6 p-8">
         <CommerceStripeSetup />
-        <div className="dg-card max-w-2xl">
-          <p className="text-slate-300">
-            Stripe checkout links are issued per lead or invoice. Open a vendor
-            lead to request marketing contribution, or use the payment requests
-            API for custom flows.
-          </p>
-          {session ? (
-            <Link
-              href="/apps/re/vendor-leads"
-              className="mt-4 inline-block rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
-            >
-              Vendor leads →
-            </Link>
-          ) : (
-            <p className="mt-4 text-sm text-slate-500">Sign in to manage payments.</p>
-          )}
-        </div>
+        <CommercePaymentsList items={payments} />
+        {session ? (
+          <Link
+            href="/apps/re/vendor-leads"
+            className="inline-block text-sm text-blue-400 hover:underline"
+          >
+            Create from vendor leads →
+          </Link>
+        ) : null}
       </main>
     </>
   );

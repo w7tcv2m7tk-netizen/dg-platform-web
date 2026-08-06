@@ -3,6 +3,7 @@ export {
   createPaymentRequest,
   recordPaymentFromWebhook,
   listPaymentRequestsForEntity,
+  listOrganisationPaymentRequests,
   processPaymentWebhookEvent,
   confirmCheckoutSession,
   getCommerceFinancialSnapshot,

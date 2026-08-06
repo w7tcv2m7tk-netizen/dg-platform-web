@@ -230,6 +230,31 @@ export async function recordPaymentFromWebhook(input: {
   return payment;
 }
 
+export async function listOrganisationPaymentRequests(organisationId: string, limit = 50) {
+  const { prisma } = await import("@dg/database");
+
+  const items = await prisma.commercePaymentRequest.findMany({
+    where: { organisationId },
+    orderBy: { createdAt: "desc" },
+    take: Math.min(limit, 100),
+  });
+
+  return items.map((row) => ({
+    id: row.id,
+    status: row.status,
+    totalCents: row.totalCents,
+    currency: row.currency,
+    checkoutUrl: row.checkoutUrl,
+    paymentLinkUrl: row.paymentLinkUrl,
+    description: row.description,
+    sourceApp: row.sourceApp,
+    sourceEntityType: row.sourceEntityType,
+    sourceEntityId: row.sourceEntityId,
+    paidAt: row.paidAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+  }));
+}
+
 export async function listPaymentRequestsForEntity(
   organisationId: string,
   entityType: string,
@@ -251,7 +276,7 @@ export async function listPaymentRequestsForEntity(
     checkoutUrl: row.checkoutUrl,
     paymentLinkUrl: row.paymentLinkUrl,
     description: row.description,
-    paidAt: row.paidAt?.toISOString(),
+    paidAt: row.paidAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
   }));
 }

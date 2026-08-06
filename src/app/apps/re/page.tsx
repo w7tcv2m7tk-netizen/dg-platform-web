@@ -4,6 +4,7 @@ import { getReDashboardStats,} from "@dg/platform-core";
 
 import { ReDashboard } from "@/components/re/ReDashboard";
 import { fetchPortalMe, fetchWpReSummary } from "@/lib/dg-api";
+import { wpConnectorForOrg } from "@/lib/org-wordpress-connector";
 import {
   autoSyncWordPressBuyerLeadsIfNeeded,
   autoSyncWordPressVendorLeadsIfNeeded,
@@ -50,7 +51,9 @@ export default async function RealEstateOverviewPage() {
 
   const [stats, wpSummary] = await Promise.all([
     getReDashboardStats(session.organisationId),
-    fetchWpReSummary(30),
+    wpConnectorForOrg(session.organisationId).then((connector) =>
+      fetchWpReSummary(30, connector),
+    ),
   ]);
 
   return (

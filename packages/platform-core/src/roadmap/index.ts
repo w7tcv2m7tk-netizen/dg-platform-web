@@ -460,7 +460,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Commerce",
     label: "Payment requests & Stripe checkout",
     description: "Checkout links on vendor leads, webhook + success fallback",
-    status: "in_progress",
+    status: "done",
     priority: "high",
     appId: "commerce",
     href: "/apps/commerce/payments",

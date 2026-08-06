@@ -1,5 +1,6 @@
 import {
   createPaymentRequest,
+  listOrganisationPaymentRequests,
   listPaymentRequestsForEntity,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
@@ -65,6 +66,12 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const entityType = searchParams.get("entityType") ?? undefined;
   const entityId = searchParams.get("entityId") ?? undefined;
+  const scope = searchParams.get("scope");
+
+  if (scope === "organisation" || (!entityType && !entityId)) {
+    const items = await listOrganisationPaymentRequests(session.organisationId);
+    return NextResponse.json({ data: items });
+  }
 
   if (!entityType || !entityId) {
     return NextResponse.json(

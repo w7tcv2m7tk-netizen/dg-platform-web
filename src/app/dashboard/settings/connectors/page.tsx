@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import {} from "@dg/platform-core";
+import {
+  getOrgWordPressConnectorSettings,
+  resolveOrgWordPressConnector,
+} from "@dg/platform-core";
 
+import { WordPressConnectorPanel } from "@/components/settings/WordPressConnectorPanel";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { getLastWordPressSync } from "@/lib/wordpress-sync";
 
@@ -36,6 +40,12 @@ export default async function ConnectorsSettingsPage() {
     : null;
 
   const lastSync = session ? await getLastWordPressSync(session.organisationId) : null;
+  const [wpSettings, wpResolved] = session
+    ? await Promise.all([
+        getOrgWordPressConnectorSettings(session.organisationId),
+        resolveOrgWordPressConnector(session.organisationId),
+      ])
+    : [null, null];
 
   const envFlags = {
     database: Boolean(process.env.DATABASE_URL),
@@ -58,9 +68,22 @@ export default async function ConnectorsSettingsPage() {
         </p>
       </header>
       <main className="flex-1 space-y-6 p-8">
+        {session && wpResolved ? (
+          <WordPressConnectorPanel
+            initial={{
+              baseUrl: wpSettings?.baseUrl ?? "",
+              label: wpSettings?.label ?? "",
+              hasApiKey: Boolean(wpSettings?.apiKey?.trim()),
+              resolvedLabel: wpResolved.label,
+              resolvedBaseUrl: wpResolved.baseUrl,
+              source: wpResolved.source,
+            }}
+          />
+        ) : null}
+
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="dg-card">
-            <h2 className="font-semibold text-white">WordPress sync</h2>
+            <h2 className="font-semibold text-white">WordPress sync status</h2>
             {lastSync?.lastVendorLeadSyncAt ? (
               <p className="mt-2 text-sm text-slate-400">
                 Last vendor sync:{" "}
@@ -76,6 +99,12 @@ export default async function ConnectorsSettingsPage() {
               <p className="mt-1 text-sm text-slate-400">
                 Last buyer sync:{" "}
                 {new Date(lastSync.lastBuyerLeadSyncAt).toLocaleString("en-AU")}
+              </p>
+            ) : null}
+            {lastSync?.lastBookingSyncAt ? (
+              <p className="mt-1 text-sm text-slate-400">
+                Last booking sync:{" "}
+                {new Date(lastSync.lastBookingSyncAt).toLocaleString("en-AU")}
               </p>
             ) : null}
             <Link

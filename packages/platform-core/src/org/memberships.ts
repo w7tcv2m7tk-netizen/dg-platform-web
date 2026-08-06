@@ -1,4 +1,5 @@
 import { getDefaultEnabledAppIds } from "../apps/org-apps";
+import { seedWordPressConnectorForTemplate } from "../connectors/wordpress/org-connector";
 import type { ProvisionOrganisationResult } from "./provision";
 
 export type OrgTemplate = "default" | "real-estate" | "accommodation";
@@ -140,6 +141,7 @@ export async function createOrganisationForUser(
   }
 
   const enabledApps = enabledAppsForTemplate(template);
+  const wpConnector = seedWordPressConnectorForTemplate(template);
 
   const org = await prisma.organisation.create({
     data: {
@@ -156,6 +158,9 @@ export async function createOrganisationForUser(
           businessName: orgName,
           industryVertical: template === "real-estate" ? "real_estate" : template === "accommodation" ? "hospitality" : undefined,
         },
+        ...(wpConnector
+          ? { connectors: { wordpress: wpConnector } }
+          : {}),
       } as unknown as InputJsonValue,
       memberships: {
         create: {

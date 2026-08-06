@@ -212,6 +212,12 @@ export function getWpConnectorBase(): string {
   );
 }
 
+export type WpConnectorOverride = {
+  baseUrl?: string;
+  apiKey?: string;
+  label?: string;
+};
+
 export type WpHealthSite = {
   id: string;
   label: string;
@@ -307,74 +313,30 @@ export type FetchWpVendorLeadsResult =
 
 export async function fetchWpVendorLeads(
   limit = 100,
+  connector?: WpConnectorOverride,
 ): Promise<FetchWpVendorLeadsResult> {
-  const connectorKey = process.env.DG_WP_CONNECTOR_API_KEY?.trim();
-  const fallbackKey = process.env.DG_API_KEY?.trim();
-  const apiKey = connectorKey || fallbackKey;
+  const result = await wpConnectorFetch<{ leads?: WpVendorLeadRow[] }>(
+    `/leads/vendor?limit=${limit}`,
+    {
+      baseUrl: connector?.baseUrl,
+      apiKey: connector?.apiKey,
+    },
+  );
+  if (!result.ok) {
+    return result;
+  }
 
-  if (!apiKey) {
+  const leads = result.data.leads ?? [];
+  if (!leads.length) {
+    const label = connector?.label ?? "WordPress";
     return {
       ok: false,
-      code: "missing_api_key",
-      message:
-        "Set DG_WP_CONNECTOR_API_KEY (Roe roerealty.com.au → DG Platform → API Settings) on Vercel or .env.local.",
+      code: "empty",
+      message: `${label} authenticated OK but returned 0 vendor leads. Add a test lead in wp-admin or check the Real Estate module is active.`,
     };
   }
 
-  const headers: HeadersInit = {
-    Accept: "application/json",
-    "X-API-Key": apiKey,
-  };
-
-  try {
-    const url = `${getWpConnectorBase()}/leads/vendor?limit=${limit}`;
-    const res = await fetch(url, { headers, cache: "no-store" });
-    const data = (await res.json().catch(() => null)) as {
-      leads?: WpVendorLeadRow[];
-      message?: string;
-      code?: string;
-    } | null;
-
-    if (res.status === 401 || res.status === 403) {
-      return {
-        ok: false,
-        code: "auth_failed",
-        status: res.status,
-        message: connectorKey
-          ? "Roe API rejected DG_WP_CONNECTOR_API_KEY — copy the Dev API key from roerealty.com.au → DG Platform → API Settings."
-          : "Roe API rejected the API key. Use DG_WP_CONNECTOR_API_KEY from roerealty.com.au (not the digitalgate.com.au key).",
-      };
-    }
-
-    if (!res.ok) {
-      return {
-        ok: false,
-        code: "upstream_error",
-        status: res.status,
-        message:
-          data?.message ??
-          `WordPress returned HTTP ${res.status} from ${getWpConnectorBase()}/leads/vendor`,
-      };
-    }
-
-    const leads = data?.leads ?? [];
-    if (!leads.length) {
-      return {
-        ok: false,
-        code: "empty",
-        message:
-          "WordPress authenticated OK but returned 0 vendor leads. Add a test lead in Roe wp-admin → Vendor Leads, or check the Roe site has the Real Estate module active.",
-      };
-    }
-
-    return { ok: true, leads };
-  } catch {
-    return {
-      ok: false,
-      code: "network_error",
-      message: `Could not reach ${getWpConnectorBase()} — check DG_WP_CONNECTOR_BASE_URL.`,
-    };
-  }
+  return { ok: true, leads };
 }
 
 type WpFetchErrorCode =
@@ -465,9 +427,13 @@ export type WpBuyerLeadRow = {
   created_at?: string;
 };
 
-export async function fetchWpBuyerLeads(limit = 100) {
+export async function fetchWpBuyerLeads(limit = 100, connector?: WpConnectorOverride) {
   const result = await wpConnectorFetch<{ leads?: WpBuyerLeadRow[] }>(
     `/leads/buyer?limit=${limit}`,
+    {
+      baseUrl: connector?.baseUrl,
+      apiKey: connector?.apiKey,
+    },
   );
   if (!result.ok) return result;
   return { ok: true as const, leads: result.data.leads ?? [] };
@@ -486,9 +452,14 @@ export type WpReBookingRow = {
   created_at?: string;
 };
 
-export async function fetchWpRecentBookings(limit = 50) {
+export async function fetchWpRecentBookings(limit = 50, connector?: WpConnectorOverride) {
   const result = await wpConnectorFetch<{ bookings?: WpReBookingRow[] }>(
     `/bookings/recent?limit=${limit}`,
+    {
+      baseUrl: connector?.baseUrl,
+      apiKey: connector?.apiKey,
+      allowEmpty: true,
+    },
   );
   if (!result.ok) return result;
   return { ok: true as const, bookings: result.data.bookings ?? [] };
@@ -503,8 +474,11 @@ export type WpRePipelineSummary = {
   buyer_pipeline?: Record<string, { label: string; count: number }>;
 };
 
-export async function fetchWpReSummary(days = 30) {
-  return wpConnectorFetch<WpRePipelineSummary>(`/leads/summary?days=${days}`);
+export async function fetchWpReSummary(days = 30, connector?: WpConnectorOverride) {
+  return wpConnectorFetch<WpRePipelineSummary>(`/leads/summary?days=${days}`, {
+    baseUrl: connector?.baseUrl,
+    apiKey: connector?.apiKey,
+  });
 }
 
 export type WpAccommodationSite = WpHealthSite;

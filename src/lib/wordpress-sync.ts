@@ -1,13 +1,21 @@
 import {
   syncVendorLeadsFromWordPress,
   syncBuyerLeadsFromWordPress,
+  syncReBookingsFromWordPress,
   type PlatformSession,
 } from "@dg/platform-core";
 
-import { fetchWpBuyerLeads, fetchWpVendorLeads } from "@/lib/dg-api";
+import {
+  fetchWpBuyerLeads,
+  fetchWpRecentBookings,
+  fetchWpVendorLeads,
+} from "@/lib/dg-api";
+import { wpConnectorForOrg } from "@/lib/org-wordpress-connector";
 
-/** Minimum interval between automatic WordPress vendor lead syncs */
-export const WP_VENDOR_SYNC_INTERVAL_MS = 4 * 60 * 60 * 1000; // 4 hours
+/** Minimum interval between automatic WordPress syncs */
+export const WP_SYNC_INTERVAL_MS = 4 * 60 * 60 * 1000; // 4 hours
+
+export const WP_VENDOR_SYNC_INTERVAL_MS = WP_SYNC_INTERVAL_MS;
 
 export interface WordPressSyncResult {
   created: number;
@@ -24,16 +32,76 @@ export interface AutoSyncOutcome {
   message?: string;
 }
 
+type OrgWordPressSettings = {
+  lastVendorLeadSyncAt?: string;
+  lastVendorLeadSync?: WordPressSyncResult;
+  lastBuyerLeadSyncAt?: string;
+  lastBuyerLeadSync?: WordPressSyncResult;
+  lastBookingSyncAt?: string;
+  lastBookingSync?: WordPressSyncResult;
+};
+
 type OrgSettings = {
   connectors?: {
-    wordpress?: {
-      lastVendorLeadSyncAt?: string;
-      lastVendorLeadSync?: WordPressSyncResult;
-      lastBuyerLeadSyncAt?: string;
-      lastBuyerLeadSync?: WordPressSyncResult;
-    };
+    wordpress?: OrgWordPressSettings;
   };
 };
+
+async function loadOrgWordPressSettings(organisationId: string) {
+  const { prisma } = await import("@dg/database");
+  const org = await prisma.organisation.findUnique({
+    where: { id: organisationId },
+    select: { settings: true },
+  });
+  return ((org?.settings as OrgSettings | null) ?? {}).connectors?.wordpress ?? {};
+}
+
+async function patchOrgWordPressSettings(
+  organisationId: string,
+  patch: Partial<OrgWordPressSettings>,
+) {
+  const { prisma } = await import("@dg/database");
+  type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
+
+  const org = await prisma.organisation.findUnique({
+    where: { id: organisationId },
+    select: { settings: true },
+  });
+
+  const settings = (org?.settings as OrgSettings | null) ?? {};
+  const wordpress = settings.connectors?.wordpress ?? {};
+
+  await prisma.organisation.update({
+    where: { id: organisationId },
+    data: {
+      settings: {
+        ...settings,
+        connectors: {
+          ...settings.connectors,
+          wordpress: { ...wordpress, ...patch },
+        },
+      } as unknown as InputJsonValue,
+    },
+  });
+}
+
+function connectorHasKey(connector: Awaited<ReturnType<typeof wpConnectorForOrg>>) {
+  return Boolean(
+    connector.apiKey?.trim() ||
+      process.env.DG_WP_CONNECTOR_API_KEY?.trim() ||
+      process.env.DG_API_KEY?.trim(),
+  );
+}
+
+async function shouldRunSync(
+  organisationId: string,
+  lastAtKey: keyof OrgWordPressSettings,
+): Promise<boolean> {
+  const wp = await loadOrgWordPressSettings(organisationId);
+  const lastAt = wp[lastAtKey];
+  if (typeof lastAt !== "string") return true;
+  return Date.now() - new Date(lastAt).getTime() >= WP_SYNC_INTERVAL_MS;
+}
 
 export async function syncWordPressVendorLeads(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
@@ -41,7 +109,8 @@ export async function syncWordPressVendorLeads(
   | { ok: true; result: WordPressSyncResult }
   | { ok: false; message: string }
 > {
-  const wp = await fetchWpVendorLeads(100);
+  const connector = await wpConnectorForOrg(session.organisationId);
+  const wp = await fetchWpVendorLeads(100, connector);
   if (!wp.ok) {
     return { ok: false, message: wp.message };
   }
@@ -57,7 +126,10 @@ export async function syncWordPressVendorLeads(
     ranAt: new Date().toISOString(),
   };
 
-  await saveLastSync(session.organisationId, result);
+  await patchOrgWordPressSettings(session.organisationId, {
+    lastVendorLeadSyncAt: result.ranAt,
+    lastVendorLeadSync: result,
+  });
 
   return { ok: true, result };
 }
@@ -68,7 +140,8 @@ export async function syncWordPressBuyerLeads(
   | { ok: true; result: WordPressSyncResult }
   | { ok: false; message: string }
 > {
-  const wp = await fetchWpBuyerLeads(100);
+  const connector = await wpConnectorForOrg(session.organisationId);
+  const wp = await fetchWpBuyerLeads(100, connector);
   if (!wp.ok) {
     return { ok: false, message: wp.message };
   }
@@ -84,143 +157,94 @@ export async function syncWordPressBuyerLeads(
     ranAt: new Date().toISOString(),
   };
 
-  await saveLastBuyerSync(session.organisationId, result);
+  await patchOrgWordPressSettings(session.organisationId, {
+    lastBuyerLeadSyncAt: result.ranAt,
+    lastBuyerLeadSync: result,
+  });
 
   return { ok: true, result };
 }
 
-async function saveLastBuyerSync(organisationId: string, result: WordPressSyncResult) {
-  const { prisma } = await import("@dg/database");
-  type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
+export async function syncWordPressBookings(
+  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
+): Promise<
+  | { ok: true; result: WordPressSyncResult }
+  | { ok: false; message: string }
+> {
+  const connector = await wpConnectorForOrg(session.organisationId);
+  const wp = await fetchWpRecentBookings(100, connector);
+  if (!wp.ok) {
+    return { ok: false, message: wp.message };
+  }
 
-  const org = await prisma.organisation.findUnique({
-    where: { id: organisationId },
-    select: { settings: true },
+  const syncResult = await syncReBookingsFromWordPress({
+    organisationId: session.organisationId,
+    actorId: session.clerkUserId,
+    bookings: wp.bookings,
   });
 
-  const settings = (org?.settings as OrgSettings | null) ?? {};
+  const result: WordPressSyncResult = {
+    ...syncResult,
+    ranAt: new Date().toISOString(),
+  };
 
-  await prisma.organisation.update({
-    where: { id: organisationId },
-    data: {
-      settings: {
-        ...settings,
-        connectors: {
-          ...settings.connectors,
-          wordpress: {
-            ...settings.connectors?.wordpress,
-            lastBuyerLeadSyncAt: result.ranAt,
-            lastBuyerLeadSync: result,
-          },
-        },
-      } as unknown as InputJsonValue,
-    },
+  await patchOrgWordPressSettings(session.organisationId, {
+    lastBookingSyncAt: result.ranAt,
+    lastBookingSync: result,
   });
+
+  return { ok: true, result };
+}
+
+async function autoSyncIfNeeded(
+  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
+  lastAtKey: "lastVendorLeadSyncAt" | "lastBuyerLeadSyncAt" | "lastBookingSyncAt",
+  run: () => Promise<
+    | { ok: true; result: WordPressSyncResult }
+    | { ok: false; message: string }
+  >,
+): Promise<AutoSyncOutcome> {
+  if (!(await shouldRunSync(session.organisationId, lastAtKey))) {
+    return { ran: false, reason: "too_soon" };
+  }
+
+  const connector = await wpConnectorForOrg(session.organisationId);
+  if (!connectorHasKey(connector)) {
+    return { ran: false, reason: "missing_key" };
+  }
+
+  const outcome = await run();
+  if (!outcome.ok) {
+    return { ran: false, reason: "fetch_failed", message: outcome.message };
+  }
+
+  return { ran: true, result: outcome.result };
 }
 
 export async function autoSyncWordPressVendorLeadsIfNeeded(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
 ): Promise<AutoSyncOutcome> {
-  const { prisma } = await import("@dg/database");
-
-  const org = await prisma.organisation.findUnique({
-    where: { id: session.organisationId },
-    select: { settings: true },
-  });
-
-  const settings = (org?.settings as OrgSettings | null) ?? {};
-  const lastAt = settings.connectors?.wordpress?.lastVendorLeadSyncAt;
-  if (lastAt) {
-    const elapsed = Date.now() - new Date(lastAt).getTime();
-    if (elapsed < WP_VENDOR_SYNC_INTERVAL_MS) {
-      return { ran: false, reason: "too_soon" };
-    }
-  }
-
-  const hasKey =
-    Boolean(process.env.DG_WP_CONNECTOR_API_KEY?.trim()) ||
-    Boolean(process.env.DG_API_KEY?.trim());
-  if (!hasKey) {
-    return { ran: false, reason: "missing_key" };
-  }
-
-  const outcome = await syncWordPressVendorLeads(session);
-  if (!outcome.ok) {
-    return { ran: false, reason: "fetch_failed", message: outcome.message };
-  }
-
-  return { ran: true, result: outcome.result };
+  return autoSyncIfNeeded(session, "lastVendorLeadSyncAt", () =>
+    syncWordPressVendorLeads(session),
+  );
 }
 
 export async function autoSyncWordPressBuyerLeadsIfNeeded(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
 ): Promise<AutoSyncOutcome> {
-  const { prisma } = await import("@dg/database");
-
-  const org = await prisma.organisation.findUnique({
-    where: { id: session.organisationId },
-    select: { settings: true },
-  });
-
-  const settings = (org?.settings as OrgSettings | null) ?? {};
-  const lastAt = settings.connectors?.wordpress?.lastBuyerLeadSyncAt;
-  if (lastAt) {
-    const elapsed = Date.now() - new Date(lastAt).getTime();
-    if (elapsed < WP_VENDOR_SYNC_INTERVAL_MS) {
-      return { ran: false, reason: "too_soon" };
-    }
-  }
-
-  const hasKey =
-    Boolean(process.env.DG_WP_CONNECTOR_API_KEY?.trim()) ||
-    Boolean(process.env.DG_API_KEY?.trim());
-  if (!hasKey) {
-    return { ran: false, reason: "missing_key" };
-  }
-
-  const outcome = await syncWordPressBuyerLeads(session);
-  if (!outcome.ok) {
-    return { ran: false, reason: "fetch_failed", message: outcome.message };
-  }
-
-  return { ran: true, result: outcome.result };
+  return autoSyncIfNeeded(session, "lastBuyerLeadSyncAt", () =>
+    syncWordPressBuyerLeads(session),
+  );
 }
 
-async function saveLastSync(organisationId: string, result: WordPressSyncResult) {
-  const { prisma } = await import("@dg/database");
-  type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
-
-  const org = await prisma.organisation.findUnique({
-    where: { id: organisationId },
-    select: { settings: true },
-  });
-
-  const settings = (org?.settings as OrgSettings | null) ?? {};
-
-  await prisma.organisation.update({
-    where: { id: organisationId },
-    data: {
-      settings: {
-        ...settings,
-        connectors: {
-          ...settings.connectors,
-          wordpress: {
-            ...settings.connectors?.wordpress,
-            lastVendorLeadSyncAt: result.ranAt,
-            lastVendorLeadSync: result,
-          },
-        },
-      } as unknown as InputJsonValue,
-    },
-  });
+export async function autoSyncWordPressBookingsIfNeeded(
+  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
+): Promise<AutoSyncOutcome> {
+  return autoSyncIfNeeded(session, "lastBookingSyncAt", () =>
+    syncWordPressBookings(session),
+  );
 }
 
 export async function getLastWordPressSync(organisationId: string) {
-  const { prisma } = await import("@dg/database");
-  const org = await prisma.organisation.findUnique({
-    where: { id: organisationId },
-    select: { settings: true },
-  });
-  const settings = (org?.settings as OrgSettings | null) ?? {};
-  return settings.connectors?.wordpress ?? null;
+  return loadOrgWordPressSettings(organisationId);
 }
