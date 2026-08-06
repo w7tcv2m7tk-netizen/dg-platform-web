@@ -1,8 +1,9 @@
 import { getDefaultEnabledAppIds } from "../apps/org-apps";
+import { ORG_BRAND_PRESETS } from "./brand-presets";
 import { seedWordPressConnectorForTemplate } from "../connectors/wordpress/org-connector";
 import type { ProvisionOrganisationResult } from "./provision";
 
-export type OrgTemplate = "default" | "real-estate" | "accommodation";
+export type OrgTemplate = "default" | "real-estate" | "accommodation" | "creator";
 
 export type UserOrganisationSummary = {
   organisationId: string;
@@ -35,6 +36,7 @@ const ORG_TEMPLATE_APPS: Record<OrgTemplate, string[]> = {
     "marketing",
     "automation",
   ],
+  creator: getDefaultEnabledAppIds(),
 };
 
 function slugify(name: string): string {
@@ -142,6 +144,14 @@ export async function createOrganisationForUser(
 
   const enabledApps = enabledAppsForTemplate(template);
   const wpConnector = seedWordPressConnectorForTemplate(template);
+  const brandPreset =
+    template === "real-estate"
+      ? ORG_BRAND_PRESETS["roe-realty"].patch
+      : template === "accommodation"
+        ? ORG_BRAND_PRESETS.cvh.patch
+        : template === "creator"
+          ? ORG_BRAND_PRESETS.aetherra.patch
+          : undefined;
 
   const org = await prisma.organisation.create({
     data: {
@@ -151,12 +161,27 @@ export async function createOrganisationForUser(
       timezone: "Australia/Brisbane",
       currency: "AUD",
       status: "trial",
-      industry: template === "real-estate" ? "real_estate" : template === "accommodation" ? "hospitality" : null,
+      industry:
+        template === "real-estate"
+          ? "real_estate"
+          : template === "accommodation"
+            ? "hospitality"
+            : template === "creator"
+              ? "creator"
+              : null,
       settings: {
         apps: { enabled: enabledApps },
         profile: {
           businessName: orgName,
-          industryVertical: template === "real-estate" ? "real_estate" : template === "accommodation" ? "hospitality" : undefined,
+          industryVertical:
+            template === "real-estate"
+              ? "real_estate"
+              : template === "accommodation"
+                ? "hospitality"
+                : template === "creator"
+                  ? "creator"
+                  : undefined,
+          ...brandPreset,
         },
         ...(wpConnector
           ? { connectors: { wordpress: wpConnector } }
