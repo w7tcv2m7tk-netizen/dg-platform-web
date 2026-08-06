@@ -1,9 +1,9 @@
-import { PlatformShell } from "@/components/PlatformShell";
+import { PlatformShellLoader } from "@/components/PlatformShellLoader";
 
 export default function CommandLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <PlatformShell>{children}</PlatformShell>;
+  return <PlatformShellLoader>{children}</PlatformShellLoader>;
 }

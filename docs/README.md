@@ -52,6 +52,7 @@ These documents capture **why** the platform is built the way it is. They are as
 | [standards/API-STANDARDS.md](./standards/API-STANDARDS.md) | Platform API conventions, versioning, auth |
 | [standards/SECURITY-STANDARDS.md](./standards/SECURITY-STANDARDS.md) | Tenant isolation, audit, secrets, least privilege |
 | [standards/CODING-STANDARDS.md](./standards/CODING-STANDARDS.md) | Repo layout, naming, PR expectations |
+| [standards/PERFORMANCE-STANDARDS.md](./standards/PERFORMANCE-STANDARDS.md) | Latency targets, PWA phases, optimisation patterns |
 
 ---
 

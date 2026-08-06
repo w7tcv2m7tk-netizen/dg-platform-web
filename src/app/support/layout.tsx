@@ -1,9 +1,9 @@
-import { PlatformShell } from "@/components/PlatformShell";
+import { PlatformShellLoader } from "@/components/PlatformShellLoader";
 
 export default function SupportLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <PlatformShell showFloatingChat={false}>{children}</PlatformShell>;
+  return <PlatformShellLoader showFloatingChat={false}>{children}</PlatformShellLoader>;
 }

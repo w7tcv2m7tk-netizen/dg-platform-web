@@ -1,40 +1,22 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { after } from "next/server";
 import {
   buildBusinessOverview,
   gatherOverviewLiveMetrics,
+  healthDeltaFromHistory,
+  healthTrendFromHistory,
   listOrganisationActivities,
   loadHealthHistory,
   persistHealthSnapshot,
-  resolvePlatformSession,
 } from "@dg/platform-core";
 
 import { BusinessOverviewDashboard } from "@/components/overview/BusinessOverviewDashboard";
-import { fetchPortalMe } from "@/lib/dg-api";
-import { getOrgEnabledAppIds } from "@/lib/org-apps";
+import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { autoSyncWordPressVendorLeadsIfNeeded } from "@/lib/wordpress-sync";
 
 export default async function DashboardPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const clerkUserId = user?.id;
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const portal = email && clerkUserId ? await fetchPortalMe(email, clerkUserId) : null;
-  const platformSession =
-    clerkUserId && email
-      ? await resolvePlatformSession({
-          clerkUserId,
-          email,
-          name,
-          orgName: portal?.org_name,
-        })
-      : null;
-
-  const enabledAppIds = await getOrgEnabledAppIds();
+  const { user, name, portal, session: platformSession } = await getPlatformPageContext();
+  const enabledAppIds = await getOrgEnabledAppIdsCached();
 
   let liveMetrics = null;
   let connectorProbes = {};
@@ -42,7 +24,9 @@ export default async function DashboardPage() {
   let healthHistory: Awaited<ReturnType<typeof loadHealthHistory>> = [];
 
   if (platformSession) {
-    await autoSyncWordPressVendorLeadsIfNeeded(platformSession).catch(() => null);
+    after(async () => {
+      await autoSyncWordPressVendorLeadsIfNeeded(platformSession).catch(() => null);
+    });
 
     [liveMetrics, connectorProbes, activities, healthHistory] = await Promise.all([
       gatherOverviewLiveMetrics(platformSession.organisationId),
@@ -81,24 +65,14 @@ export default async function DashboardPage() {
       platformSession.organisationId,
       overview.businessHealth,
     );
-    overview = buildBusinessOverview({
-      organisationId: platformSession.organisationId,
-      organisationName: overview.organisationName,
-      userDisplayName: overview.userDisplayName,
-      enabledAppIds,
-      setupStatus: {
-        orgProvisioned: true,
-        hasTeamMember: true,
-        hasContacts: liveMetrics.hasContacts,
-        hasTimelineActivity: liveMetrics.hasTimelineActivity,
-        contactCount: liveMetrics.contactCount,
-        activityCount: liveMetrics.activityCount,
-      },
-      activities: activities?.items,
-      liveMetrics,
-      connectorProbes,
-      healthHistory: updatedHistory,
-    });
+    const businessHealth = overview.businessHealth;
+    const healthDelta = healthDeltaFromHistory(updatedHistory, businessHealth);
+    overview = {
+      ...overview,
+      businessHealthDelta: healthDelta,
+      businessHealthDeltaLabel: `${healthDelta >= 0 ? "+" : ""}${healthDelta} this month`,
+      healthTrend: healthTrendFromHistory(updatedHistory, businessHealth),
+    };
   }
 
   return (

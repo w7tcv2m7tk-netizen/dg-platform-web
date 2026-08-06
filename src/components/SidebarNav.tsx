@@ -73,7 +73,7 @@ function CollapsibleNavSection({
                     pathname === route.path || pathname.startsWith(`${route.path}/`);
                   return (
                     <li key={route.path}>
-                      <Link href={route.path} className={childLinkClass(active)}>
+                      <Link href={route.path} prefetch className={childLinkClass(active)}>
                         {route.label}
                       </Link>
                     </li>
@@ -123,7 +123,7 @@ export function SidebarNav() {
           pathname === link.href ||
           (link.href !== "/dashboard" && pathname.startsWith(link.href));
         return (
-          <Link key={link.href} href={link.href} className={linkClass(active)}>
+          <Link key={link.href} href={link.href} prefetch className={linkClass(active)}>
             <SidebarIcon glyph={link.icon ?? "◈"} />
             {link.label}
           </Link>

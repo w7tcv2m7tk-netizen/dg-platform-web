@@ -16,6 +16,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ?? "https://app.digitalgate.com.au",
   ),
+  applicationName: "DigitalGate",
+  appleWebApp: {
+    capable: true,
+    title: "DigitalGate",
+    statusBarStyle: "black-translucent",
+  },
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: [{ url: BRAND_DEFAULT.icon, type: "image/png" }],
     apple: [{ url: "/apple-icon.png", type: "image/png" }],
