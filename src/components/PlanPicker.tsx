@@ -85,7 +85,7 @@ export function PlanPicker({ onContinue, continueLabel = "Continue to checkout" 
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold text-white">Premium apps</h2>
+        <h2 className="mb-3 text-lg font-semibold text-white">Growth apps</h2>
         <div className="flex flex-wrap gap-2">
           {PREMIUM_APPS.map((app) => (
             <button

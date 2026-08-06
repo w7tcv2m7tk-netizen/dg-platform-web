@@ -27,25 +27,25 @@ export const PLATFORM_TIERS: {
     key: "starter",
     label: "Starter",
     price: "$99/mo",
-    tagline: "Core CRM for solo operators",
+    tagline: "For businesses replacing spreadsheets",
   },
   {
     key: "professional",
-    label: "Professional",
+    label: "Growth",
     price: "$249/mo",
-    tagline: "Automation + 1 industry app",
+    tagline: "For businesses ready to automate growth",
   },
   {
     key: "business",
-    label: "Business",
+    label: "Scale",
     price: "$499/mo",
-    tagline: "AI visibility + unlimited apps",
+    tagline: "For teams running their entire operation",
   },
   {
     key: "enterprise",
     label: "Enterprise",
     price: "Custom",
-    tagline: "White-label + priority support",
+    tagline: "For organisations needing complete customisation",
   },
 ];
 
@@ -59,11 +59,11 @@ export const INDUSTRY_APPS: { key: IndustryApp; label: string; price: string }[]
 ];
 
 export const PREMIUM_APPS: { key: PremiumApp; label: string; price: string }[] = [
-  { key: "seo_pro", label: "SEO Pro", price: "+$99/mo" },
-  { key: "social_pro", label: "Social Pro", price: "+$79/mo" },
-  { key: "analytics_pro", label: "Analytics Pro", price: "+$49/mo" },
-  { key: "ai_visibility_pro", label: "AI Visibility Pro", price: "+$99/mo" },
-  { key: "automation_pro", label: "Automation Pro", price: "+$49/mo" },
+  { key: "seo_pro", label: "SEO", price: "+$99/mo" },
+  { key: "social_pro", label: "Social", price: "+$79/mo" },
+  { key: "analytics_pro", label: "Analytics", price: "+$49/mo" },
+  { key: "ai_visibility_pro", label: "AI Visibility", price: "+$99/mo" },
+  { key: "automation_pro", label: "Automation", price: "+$49/mo" },
 ];
 
 export const ADDONS: { key: Addon; label: string; price: string }[] = [
@@ -79,3 +79,56 @@ export type SignupSelection = {
   premiumApps: PremiumApp[];
   addons: Addon[];
 };
+
+export type DiscoveryInput = {
+  teamSize?: string;
+  industry?: string;
+  challenges?: string[];
+  softwareSpend?: string;
+  aiLevel?: string;
+  interestedIn?: string[];
+};
+
+/** Rule-based plan recommendation from AI Discovery answers. */
+export function recommendPlanFromDiscovery(input: DiscoveryInput): SignupSelection {
+  const challenges = input.challenges ?? [];
+  const interested = input.interestedIn ?? [];
+  let platformTier: PlatformTier = "professional";
+
+  const team = input.teamSize ?? "";
+  if (team === "Just me" || team === "1") {
+    platformTier = "starter";
+  } else if (team === "26–50" || team === "50+" || team === "11–25") {
+    platformTier = "business";
+  }
+
+  const industryMap: Record<string, IndustryApp> = {
+    "Real Estate": "real-estate",
+    "Accommodation & Hospitality": "accommodation",
+    "Finance & Mortgage Broking": "finance",
+    "Professional Services": "services",
+    "Commercial Property": "commercial",
+    "Automotive": "automotive",
+    "Creators & Personal Brands": "services",
+  };
+  const industryApps: IndustryApp[] = [];
+  const mapped = input.industry ? industryMap[input.industry] : undefined;
+  if (mapped) industryApps.push(mapped);
+
+  const premiumApps: PremiumApp[] = [];
+  if (
+    challenges.includes("ai-visibility") ||
+    challenges.includes("online-visibility") ||
+    interested.includes("AI Visibility")
+  ) {
+    premiumApps.push("ai_visibility_pro");
+  }
+  if (challenges.includes("manual-follow-up") || interested.includes("Automation")) {
+    premiumApps.push("automation_pro");
+  }
+
+  const addons: Addon[] = [];
+  if (interested.includes("Voice AI")) addons.push("voice_ai");
+
+  return { platformTier, industryApps, premiumApps, addons };
+}

@@ -17,10 +17,30 @@ export function AuthShell({
           <h1 className="text-2xl font-bold tracking-tight text-white">{title}</h1>
         ) : null}
         {subtitle ? (
-          <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-300">{subtitle}</p>
+          <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-200">{subtitle}</p>
         ) : null}
       </div>
       <div className="flex w-full max-w-md justify-center">{children}</div>
+      <p className="mt-8 max-w-sm text-center text-sm leading-relaxed text-slate-400">
+        Need help signing in?{" "}
+        <a
+          href="https://digitalgate.com.au/contact/"
+          className="font-medium text-blue-300 hover:text-white"
+        >
+          Contact support
+        </a>{" "}
+        ·{" "}
+        <a href="tel:+61405227227" className="font-medium text-blue-300 hover:text-white">
+          0405 227 227
+        </a>{" "}
+        ·{" "}
+        <a
+          href="mailto:hello@digitalgate.com.au"
+          className="font-medium text-blue-300 hover:text-white"
+        >
+          hello@digitalgate.com.au
+        </a>
+      </p>
     </div>
   );
 }

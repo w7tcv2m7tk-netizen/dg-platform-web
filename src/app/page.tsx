@@ -21,7 +21,7 @@ export default async function HomePage() {
               </Link>
             ) : (
               <>
-                <Link href="/login" className="text-slate-400 hover:text-white">
+                <Link href="/login" className="text-slate-300 hover:text-white">
                   Log in
                 </Link>
                 <Link
@@ -37,13 +37,13 @@ export default async function HomePage() {
       </header>
 
       <main className="mx-auto flex max-w-5xl flex-1 flex-col justify-center px-6 py-20">
-        <p className="text-sm font-semibold uppercase tracking-widest text-blue-400">
+        <p className="text-sm font-semibold uppercase tracking-widest text-blue-300">
           Business Platform
         </p>
         <h1 className="mt-4 max-w-2xl text-4xl font-bold leading-tight text-white sm:text-5xl">
           CRM, industry apps, and growth tools — one platform.
         </h1>
-        <p className="mt-4 max-w-xl text-lg text-slate-400">
+        <p className="mt-4 max-w-xl text-lg text-slate-300">
           Sign in to manage your platform setup, onboarding, and plan. New
           clients can create an account and choose their industry apps.
         </p>

@@ -7,7 +7,7 @@ export default function SignupPage() {
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Signup</h1>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-300">
           New customer signup — select tier, industry apps, and add-ons.{" "}
           <Link href="/dashboard/apps#plan" className="text-blue-400 hover:underline">
             Already signed in? Open Apps & plan
