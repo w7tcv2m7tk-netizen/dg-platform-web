@@ -18,7 +18,7 @@ export const PLATFORM_TOOL_GROUPS: PlatformToolGroup[] = [
     primaryHref: "/dashboard/settings",
     routes: [
       { path: "/dashboard/settings", label: "General" },
-      { path: "/dashboard/settings/api", label: "Platform API" },
+      { path: "/dashboard/settings/api", label: "API" },
       { path: "/dashboard/settings/connectors", label: "Connectors" },
       { path: "/dashboard/settings/team", label: "Team & access" },
     ],
@@ -29,7 +29,7 @@ export const PLATFORM_TOOL_GROUPS: PlatformToolGroup[] = [
     icon: getSidebarIcon("platform-tools"),
     primaryHref: "/dashboard/settings/roadmap",
     routes: [
-      { path: "/dashboard/settings/roadmap", label: "Platform roadmap" },
+      { path: "/dashboard/settings/roadmap", label: "Roadmap" },
       { path: "/dashboard/settings/audit", label: "Audit log" },
       { path: "/support", label: "Support" },
     ],

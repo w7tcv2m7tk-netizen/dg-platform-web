@@ -32,7 +32,7 @@ export default async function PlatformApiSettingsPage() {
         <Link href="/dashboard/settings" className="text-sm text-blue-400 hover:underline">
           ← Settings
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Platform API</h1>
+        <h1 className="mt-2 text-2xl font-bold text-white">API</h1>
         <p className="text-sm text-slate-400">
           REST API for integrations, automations, and connectors
         </p>

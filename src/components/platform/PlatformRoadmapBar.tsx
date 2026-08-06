@@ -8,7 +8,7 @@ export function PlatformRoadmapBar() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            Platform roadmap
+            Roadmap
           </p>
           <p className="mt-0.5 text-sm font-semibold text-white">{summary.label}</p>
         </div>

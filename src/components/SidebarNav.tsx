@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { SidebarIcon } from "@/components/SidebarIcon";
+import { itemHasActiveRoute, routeIsActive } from "@/lib/nav-route-match";
 import type { AppRoute } from "@dg/platform-core";
 
 function linkClass(active: boolean) {
@@ -47,9 +48,7 @@ function CollapsibleNavSection({
     <div className="flex flex-col gap-0.5">
       {items.map((item) => {
         const isOpen = expanded[item.id] ?? false;
-        const itemActive = item.routes.some(
-          (r) => pathname === r.path || pathname.startsWith(`${r.path}/`),
-        );
+        const itemActive = itemHasActiveRoute(pathname, item.routes);
 
         return (
           <div key={item.id}>
@@ -71,8 +70,7 @@ function CollapsibleNavSection({
             {isOpen ? (
               <ul className="mb-1 mt-0.5 space-y-0.5">
                 {item.routes.map((route) => {
-                  const active =
-                    pathname === route.path || pathname.startsWith(`${route.path}/`);
+                  const active = routeIsActive(pathname, route.path, item.routes);
                   return (
                     <li key={route.path}>
                       <Link
@@ -104,19 +102,13 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     const next: Record<string, boolean> = {};
     for (const group of nav.tiers) {
       for (const app of group.apps) {
-        const isActive = app.routes.some(
-          (r) => pathname === r.path || pathname.startsWith(`${r.path}/`),
-        );
-        if (isActive) next[app.id] = true;
+        if (itemHasActiveRoute(pathname, app.routes)) next[app.id] = true;
       }
     }
     for (const tool of nav.tools.tools) {
-      const isActive = tool.routes.some(
-        (r) => pathname === r.path || pathname.startsWith(`${r.path}/`),
-      );
-      if (isActive) next[tool.id] = true;
+      if (itemHasActiveRoute(pathname, tool.routes)) next[tool.id] = true;
     }
-    setExpanded((prev) => ({ ...prev, ...next }));
+    setExpanded(next);
   }, [pathname, nav.tiers, nav.tools.tools]);
 
   function toggleItem(id: string) {

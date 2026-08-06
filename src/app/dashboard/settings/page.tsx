@@ -51,7 +51,7 @@ export default async function PlatformSettingsPage() {
             href="/dashboard/settings/api"
             className="dg-card block border-blue-500/20 bg-gradient-to-br from-slate-900 to-blue-950/20 hover:border-blue-500/40 lg:col-span-2"
           >
-            <p className="text-xs font-medium uppercase tracking-wide text-blue-400">Platform API</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-blue-400">API</p>
             <h2 className="mt-2 text-lg font-semibold text-white">REST API &amp; integration keys</h2>
             <p className="mt-2 text-sm text-slate-400">
               Create <code className="text-slate-300">dg_live_</code> keys for CRM, leads, commerce, and
@@ -116,7 +116,7 @@ export default async function PlatformSettingsPage() {
             <ul className="mt-3 space-y-2 text-sm">
               <li>
                 <Link href="/dashboard/settings/api" className="text-blue-400 hover:underline">
-                  Platform API →
+                  API →
                 </Link>
               </li>
               <li>
@@ -136,7 +136,7 @@ export default async function PlatformSettingsPage() {
               </li>
               <li>
                 <Link href="/dashboard/settings/roadmap" className="text-blue-400 hover:underline">
-                  Platform roadmap →
+                  Roadmap →
                 </Link>
               </li>
             </ul>

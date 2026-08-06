@@ -11,7 +11,7 @@ export default function PlatformRoadmapSettingsPage() {
         <Link href="/dashboard/settings" className="text-sm text-blue-400 hover:underline">
           ← Settings
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Platform roadmap</h1>
+        <h1 className="mt-2 text-2xl font-bold text-white">Roadmap</h1>
         <p className="text-sm text-slate-400">
           What&apos;s shipped and what&apos;s next across Platform Gen 2
         </p>
