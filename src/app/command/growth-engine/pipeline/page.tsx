@@ -15,7 +15,7 @@ export default async function GrowthPipelinePage() {
 
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <Link href="/command/growth-engine" className="text-sm text-blue-400 hover:underline">
           ← Growth Engine
         </Link>

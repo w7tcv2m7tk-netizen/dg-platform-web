@@ -41,7 +41,7 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
 
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Bookings</h1>
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · {site.label} · reservations from
@@ -53,7 +53,7 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
           </div>
         </Suspense>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <AccommodationBookingsTable
           bookings={bookingsResult.ok ? bookingsResult.bookings : []}
           total={bookingsResult.ok ? bookingsResult.total : undefined}

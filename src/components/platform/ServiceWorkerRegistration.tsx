@@ -42,6 +42,7 @@ export function ServiceWorkerRegistration() {
   return (
     <div
       className={`fixed bottom-4 left-1/2 z-[100] flex -translate-x-1/2 items-center gap-3 rounded-lg border px-4 py-2.5 text-sm shadow-lg backdrop-blur ${tone}`}
+      style={{ bottom: "max(1rem, env(safe-area-inset-bottom))" }}
       role="status"
       aria-live="polite"
     >

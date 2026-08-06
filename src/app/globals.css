@@ -39,3 +39,40 @@ body {
   background: rgb(30 41 59 / 0.5);
   padding: 1.5rem;
 }
+
+@layer components {
+  .dg-page-header {
+    border-bottom: 1px solid rgb(30 41 59);
+    padding: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .dg-page-header {
+      padding: 1.25rem 1.5rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .dg-page-header {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  .dg-page-main {
+    flex: 1 1 0%;
+    padding: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .dg-page-main {
+      padding: 1.5rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .dg-page-main {
+      padding: 2rem;
+    }
+  }
+}

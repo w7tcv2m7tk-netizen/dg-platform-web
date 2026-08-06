@@ -33,7 +33,7 @@ export default async function PlatformSettingsPage() {
     : null;
 
   return (    <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="text-sm text-slate-400">
           Organisation, connectors, and platform configuration

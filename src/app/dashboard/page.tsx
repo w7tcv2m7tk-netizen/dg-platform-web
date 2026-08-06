@@ -77,7 +77,7 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-6">
+      <header className="dg-page-header md:py-6">
         <p className="text-lg text-slate-300">
           {overview.greeting} 👋
         </p>
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
           </span>
         </div>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         {!platformSession ? (
           <div className="dg-card mb-6 border-amber-500/30">
             <p className="text-amber-300">

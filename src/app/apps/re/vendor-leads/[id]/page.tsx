@@ -69,7 +69,7 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
 
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <Link
           href="/apps/re/vendor-leads"
           className="text-sm text-blue-400 hover:underline"
@@ -83,7 +83,7 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
           {STAGE_LABELS[lead.stage] ?? lead.stage} · {lead.status} · {lead.source}
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="space-y-6">
             <div className="dg-card">

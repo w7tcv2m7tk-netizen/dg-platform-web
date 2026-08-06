@@ -5,7 +5,7 @@ import { SignupForm } from "@/components/SignupForm";
 export default function SignupPage() {
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Signup</h1>
         <p className="text-sm text-slate-400">
           New customer signup — select tier, industry apps, and add-ons.{" "}
@@ -22,7 +22,7 @@ export default function SignupPage() {
           </Link>
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <div className="max-w-3xl">
           <SignupForm />
         </div>

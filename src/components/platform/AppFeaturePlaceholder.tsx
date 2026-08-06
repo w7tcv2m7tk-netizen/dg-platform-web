@@ -59,7 +59,7 @@ export function AppFeaturePlaceholder(props: AppFeaturePlaceholderProps) {
   return (
     <>
       <PlatformRoadmapBar />
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <Link href="/dashboard" className="text-sm text-blue-400 hover:underline">
           ← Overview
         </Link>

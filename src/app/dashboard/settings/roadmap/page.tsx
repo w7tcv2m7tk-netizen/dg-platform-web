@@ -7,7 +7,7 @@ export default function PlatformRoadmapSettingsPage() {
   return (
     <>
       <PlatformRoadmapBar />
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <Link href="/dashboard/settings" className="text-sm text-blue-400 hover:underline">
           ← Settings
         </Link>
@@ -16,7 +16,7 @@ export default function PlatformRoadmapSettingsPage() {
           What&apos;s shipped and what&apos;s next across Platform Gen 2
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <PlatformRoadmapPanel />
       </main>
     </>

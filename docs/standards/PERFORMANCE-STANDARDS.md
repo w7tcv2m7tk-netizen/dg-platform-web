@@ -45,6 +45,8 @@ Native apps don't automatically fix these — optimise the web platform first.
 | Skeleton loaders (`loading.tsx`) | ✅ |
 | Route prefetch (Next.js Link) | ✅ default |
 | PWA manifest (installable) | ✅ |
+| Mobile nav (drawer + top bar) | ✅ |
+| Responsive page padding | ✅ |
 | Efficient DB queries (limits, indexes) | Ongoing |
 
 ### Implementation patterns

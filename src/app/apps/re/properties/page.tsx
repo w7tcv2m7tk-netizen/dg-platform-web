@@ -27,10 +27,10 @@ export default async function PropertiesPage() {
   if (!session) {
     return (
       <>
-        <header className="border-b border-slate-800 px-8 py-5">
+        <header className="dg-page-header">
           <h1 className="text-2xl font-bold text-white">Properties</h1>
         </header>
-        <main className="flex-1 p-8">
+        <main className="dg-page-main">
           <div className="dg-card">
             <p className="text-slate-300">Database not configured.</p>
           </div>
@@ -46,7 +46,7 @@ export default async function PropertiesPage() {
 
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Properties</h1>
         <p className="text-sm text-slate-400">
           {session.organisationName} · Appraisals & listings

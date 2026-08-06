@@ -19,10 +19,10 @@ export default async function CrmCompaniesPage() {
   if (!session) {
     return (
       <>
-        <header className="border-b border-slate-800 px-8 py-5">
+        <header className="dg-page-header">
           <h1 className="text-2xl font-bold text-white">Companies</h1>
         </header>
-        <main className="flex-1 p-8">
+        <main className="dg-page-main">
           <div className="dg-card max-w-2xl">
             <p className="text-slate-300">Configure DATABASE_URL to enable Companies.</p>
           </div>
@@ -35,7 +35,7 @@ export default async function CrmCompaniesPage() {
 
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <Link href="/apps/crm/contacts" className="text-sm text-blue-400 hover:underline">
           ← CRM
         </Link>
@@ -44,7 +44,7 @@ export default async function CrmCompaniesPage() {
           {meta.total} compan{meta.total === 1 ? "y" : "ies"} · B2B accounts linked to contacts
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="dg-card">
             <h2 className="font-semibold text-white">Add company</h2>

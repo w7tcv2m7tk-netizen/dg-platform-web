@@ -27,7 +27,7 @@ export default async function AutomationPage() {
   return (
     <>
       <PlatformRoadmapBar />
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <Link href="/dashboard" className="text-sm text-blue-400 hover:underline">
           ← Overview
         </Link>
@@ -44,7 +44,7 @@ export default async function AutomationPage() {
           {session?.organisationName ?? "DigitalGate"} · triggers & actions registry
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <AutomationBuilderPanel />
       </main>
     </>

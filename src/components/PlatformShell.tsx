@@ -1,6 +1,6 @@
 import { EnabledAppsProvider } from "@/components/platform/EnabledAppsProvider";
 import { ChatWidgetProvider } from "@/components/platform/ChatWidgetProvider";
-import { Sidebar } from "@/components/Sidebar";
+import { AppShellLayout } from "@/components/AppShellLayout";
 
 export function PlatformShell({
   children,
@@ -16,10 +16,7 @@ export function PlatformShell({
   return (
     <EnabledAppsProvider initialEnabledIds={enabledIds}>
       <ChatWidgetProvider userName={userName} showFloatingChat={showFloatingChat}>
-        <div className="flex min-h-full">
-          <Sidebar />
-          <div className="flex flex-1 flex-col">{children}</div>
-        </div>
+        <AppShellLayout>{children}</AppShellLayout>
       </ChatWidgetProvider>
     </EnabledAppsProvider>
   );

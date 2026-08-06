@@ -35,7 +35,7 @@ export default async function CompanyDetailPage({ params }: PageProps) {
 
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <Link href="/apps/crm/companies" className="text-sm text-blue-400 hover:underline">
           ← Companies
         </Link>
@@ -44,7 +44,7 @@ export default async function CompanyDetailPage({ params }: PageProps) {
           {[company.industry, company.email, company.website].filter(Boolean).join(" · ")}
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="dg-card">
             <h2 className="font-semibold text-white">Edit company</h2>

@@ -24,11 +24,11 @@ export default async function CrmContactsPage() {
   if (!session) {
     return (
       <>
-        <header className="border-b border-slate-800 px-8 py-5">
+        <header className="dg-page-header">
           <h1 className="text-2xl font-bold text-white">Contacts</h1>
           <p className="text-sm text-slate-400">CRM Core App</p>
         </header>
-        <main className="flex-1 p-8">
+        <main className="dg-page-main">
           <div className="dg-card max-w-2xl">
             <p className="text-slate-300">
               Connect{" "}
@@ -60,14 +60,14 @@ export default async function CrmContactsPage() {
 
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Contacts</h1>
         <p className="text-sm text-slate-400">
           {session.organisationName} · {meta.total} contact
           {meta.total === 1 ? "" : "s"} in Platform
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <div className="mb-6">
           <ContactImportExport />
         </div>

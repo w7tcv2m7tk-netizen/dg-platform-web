@@ -66,7 +66,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <Link
           href="/apps/re/properties"
           className="text-sm text-blue-400 hover:underline"
@@ -78,7 +78,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           {STATUS_LABELS[property.status] ?? property.status} · {fullAddress}
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="space-y-6">
             <div className="dg-card">

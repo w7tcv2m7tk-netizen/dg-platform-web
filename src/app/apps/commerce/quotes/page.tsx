@@ -34,10 +34,10 @@ export default async function CommerceQuotesPage() {
   if (!session) {
     return (
       <>
-        <header className="border-b border-slate-800 px-8 py-5">
+        <header className="dg-page-header">
           <h1 className="text-2xl font-bold text-white">Quotes</h1>
         </header>
-        <main className="flex-1 p-8">
+        <main className="dg-page-main">
           <div className="dg-card">
             <p className="text-slate-300">Database not configured.</p>
           </div>
@@ -50,7 +50,7 @@ export default async function CommerceQuotesPage() {
 
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <Link
           href="/apps/commerce"
           className="text-sm text-blue-400 hover:underline"

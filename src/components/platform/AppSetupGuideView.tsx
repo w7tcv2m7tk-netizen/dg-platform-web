@@ -67,13 +67,13 @@ export function AppSetupGuideView({ guide }: { guide: AppSetupGuide }) {
   return (
     <>
       <PlatformRoadmapBar />
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <Link href="/dashboard/apps" className="text-sm text-blue-400 hover:underline">
           ← Apps & plan
         </Link>
       </header>
 
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <div className="mx-auto max-w-3xl space-y-8">
           {/* Hero */}
           <section className="relative overflow-hidden rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0c1220] to-blue-950/50 p-8 shadow-lg shadow-blue-950/20">

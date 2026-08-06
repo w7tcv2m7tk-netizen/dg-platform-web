@@ -1,8 +1,8 @@
 import { DigitalGateLogo } from "@/components/brand/DigitalGateLogo";
 
-export function SidebarBrand() {
+export function SidebarBrand({ className = "" }: { className?: string }) {
   return (
-    <div className="mb-6 px-1">
+    <div className={`mb-6 px-1 ${className}`}>
       <DigitalGateLogo
         variant="lockup"
         href="/dashboard"

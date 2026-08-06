@@ -23,10 +23,10 @@ export default async function CrmTimelinePage() {
   if (!session) {
     return (
       <>
-        <header className="border-b border-slate-800 px-8 py-5">
+        <header className="dg-page-header">
           <h1 className="text-2xl font-bold text-white">Timeline</h1>
         </header>
-        <main className="flex-1 p-8">
+        <main className="dg-page-main">
           <div className="dg-card">
             <p className="text-slate-300">Configure DATABASE_URL to view the activity timeline.</p>
           </div>
@@ -42,7 +42,7 @@ export default async function CrmTimelinePage() {
 
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <Link href="/apps/crm/contacts" className="text-sm text-blue-400 hover:underline">
           ← CRM
         </Link>
@@ -51,7 +51,7 @@ export default async function CrmTimelinePage() {
           Cross-app activity feed · {meta.total} event{meta.total === 1 ? "" : "s"}
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <div className="dg-card max-w-3xl">
           {items.length === 0 ? (
             <p className="text-sm text-slate-400">

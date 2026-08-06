@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function TeamSettingsPage() {
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <Link href="/dashboard/settings" className="text-sm text-blue-400 hover:underline">
           ← Settings
         </Link>
@@ -12,7 +12,7 @@ export default function TeamSettingsPage() {
           Invite agents and staff — managed through Clerk
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <div className="dg-card max-w-xl">
           <h2 className="font-semibold text-white">Organisation members</h2>
           <p className="mt-2 text-sm text-slate-400">

@@ -17,7 +17,7 @@ function linkClass(active: boolean) {
 }
 
 function childLinkClass(active: boolean) {
-  return `block rounded-md py-1.5 pl-9 pr-2 text-sm transition ${
+  return `block min-h-10 rounded-md py-2 pl-9 pr-2 text-sm transition ${
     active ? "text-white" : "text-slate-400 hover:text-slate-200"
   }`;
 }
@@ -35,11 +35,13 @@ function CollapsibleNavSection({
   expanded,
   onToggle,
   pathname,
+  onNavigate,
 }: {
   items: CollapsibleItem[];
   expanded: Record<string, boolean>;
   onToggle: (id: string) => void;
   pathname: string;
+  onNavigate?: () => void;
 }) {
   return (
     <div className="flex flex-col gap-0.5">
@@ -54,7 +56,7 @@ function CollapsibleNavSection({
             <button
               type="button"
               onClick={() => onToggle(item.id)}
-              className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition ${
+              className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition ${
                 itemActive
                   ? "bg-slate-900/80 text-white"
                   : "text-slate-300 hover:bg-slate-900 hover:text-white"
@@ -73,7 +75,12 @@ function CollapsibleNavSection({
                     pathname === route.path || pathname.startsWith(`${route.path}/`);
                   return (
                     <li key={route.path}>
-                      <Link href={route.path} prefetch className={childLinkClass(active)}>
+                      <Link
+                        href={route.path}
+                        prefetch
+                        onClick={onNavigate}
+                        className={childLinkClass(active)}
+                      >
                         {route.label}
                       </Link>
                     </li>
@@ -88,7 +95,7 @@ function CollapsibleNavSection({
   );
 }
 
-export function SidebarNav() {
+export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { nav } = useEnabledApps();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -123,7 +130,13 @@ export function SidebarNav() {
           pathname === link.href ||
           (link.href !== "/dashboard" && pathname.startsWith(link.href));
         return (
-          <Link key={link.href} href={link.href} prefetch className={linkClass(active)}>
+          <Link
+            key={link.href}
+            href={link.href}
+            prefetch
+            onClick={onNavigate}
+            className={`${linkClass(active)} min-h-11 py-2.5`}
+          >
             <SidebarIcon glyph={link.icon ?? "◈"} />
             {link.label}
           </Link>
@@ -140,6 +153,7 @@ export function SidebarNav() {
             expanded={expanded}
             onToggle={toggleItem}
             pathname={pathname}
+            onNavigate={onNavigate}
           />
         </div>
       ))}
@@ -153,6 +167,7 @@ export function SidebarNav() {
           expanded={expanded}
           onToggle={toggleItem}
           pathname={pathname}
+          onNavigate={onNavigate}
         />
       </div>
     </nav>

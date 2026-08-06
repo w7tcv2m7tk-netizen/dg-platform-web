@@ -20,7 +20,7 @@ export default async function AuditLogPage() {
 
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <Link href="/dashboard/settings" className="text-sm text-blue-400 hover:underline">
           ← Settings
         </Link>
@@ -29,7 +29,7 @@ export default async function AuditLogPage() {
           Immutable record of creates, updates, and exports in your organisation
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <div className="dg-card overflow-x-auto">
           {!session || !logs ? (
             <p className="text-sm text-slate-400">Sign in with DATABASE_URL configured to view audit logs.</p>

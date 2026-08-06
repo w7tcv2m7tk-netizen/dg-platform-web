@@ -47,7 +47,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <header className="border-b border-slate-800 px-8 py-5">
+      <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Website Health Centre</h1>
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · {siteLabel} · read-only
@@ -56,7 +56,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
           <HealthSitePicker sites={sites} />
         </Suspense>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         {healthResult.ok ? (
           <HealthCentreDashboard
             snapshot={normalizeSiteHealthSnapshot(healthResult.payload)}
