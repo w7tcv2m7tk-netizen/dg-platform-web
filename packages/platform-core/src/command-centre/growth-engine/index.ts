@@ -1,5 +1,6 @@
 export * from "./types";
 export * from "./prospects";
+export * from "./audits";
 
 /** Route prefix for Growth Engine modules inside Command Centre */
 export const GROWTH_ENGINE_BASE_PATH = "/command/growth-engine";

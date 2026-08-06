@@ -79,9 +79,18 @@ export type PortalProfile = {
   organisation_id?: number;
   org_name?: string;
   purchase_label?: string;
+  purchase?: PortalPurchaseProfile | null;
   clerk_user_id?: string;
   setup: PortalSetup;
   onboarding?: PortalOnboardingProfile | null;
+};
+
+export type PortalPurchaseProfile = {
+  dg_category?: string;
+  dg_plan?: string;
+  dg_platform_tier?: string;
+  purchase_label?: string;
+  stripe_session_id?: string;
 };
 
 const DEFAULT_UNLINKED_PROFILE = (email: string): PortalProfile => ({

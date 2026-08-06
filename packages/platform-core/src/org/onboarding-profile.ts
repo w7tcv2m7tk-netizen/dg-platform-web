@@ -1,7 +1,7 @@
-import type { PortalOnboardingProfile } from "../connectors/portal-types";
+import type { PortalOnboardingProfile, PortalPurchaseProfile } from "../connectors/portal-types";
 import { appIdsFromPlanSelection } from "../apps/org-apps";
 
-export type { PortalOnboardingProfile };
+export type { PortalOnboardingProfile, PortalPurchaseProfile };
 
 export type OrganisationBusinessProfile = {
   businessName?: string;
@@ -105,6 +105,61 @@ export async function getOrganisationBusinessProfile(
   return settings.profile ?? null;
 }
 
+function hasSyncableProfile(onboarding?: PortalOnboardingProfile | null, purchase?: PortalPurchaseProfile | null) {
+  if (onboarding?.platform_tier) return true;
+  if (purchase?.dg_platform_tier) return true;
+  if ((onboarding?.purchased_apps?.length ?? 0) > 0) return true;
+  if ((onboarding?.purchased_premium?.length ?? 0) > 0) return true;
+  if (purchase) {
+    const mapped = mapPurchaseToOnboarding(purchase);
+    if ((mapped.purchased_apps?.length ?? 0) > 0) return true;
+    if ((mapped.purchased_premium?.length ?? 0) > 0) return true;
+  }
+  return false;
+}
+
+function mapPurchaseToOnboarding(purchase: PortalPurchaseProfile): PortalOnboardingProfile {
+  const profile: PortalOnboardingProfile = {
+    platform_tier: purchase.dg_platform_tier || undefined,
+    purchased_apps: [],
+    purchased_premium: [],
+    purchased_addons: [],
+  };
+
+  if (purchase.dg_category === "app" && purchase.dg_plan) {
+    profile.purchased_apps = [purchase.dg_plan];
+  } else if (purchase.dg_category === "premium" && purchase.dg_plan) {
+    profile.purchased_premium = [purchase.dg_plan];
+  } else if (purchase.dg_category === "addon" && purchase.dg_plan) {
+    profile.purchased_addons = [purchase.dg_plan];
+  }
+
+  return profile;
+}
+
+function mergeOnboardingWithPurchase(
+  onboarding?: PortalOnboardingProfile | null,
+  purchase?: PortalPurchaseProfile | null,
+): PortalOnboardingProfile {
+  const base: PortalOnboardingProfile = { ...(onboarding ?? {}) };
+  const fromPurchase = purchase ? mapPurchaseToOnboarding(purchase) : {};
+
+  if (!base.platform_tier && fromPurchase.platform_tier) {
+    base.platform_tier = fromPurchase.platform_tier;
+  }
+  if (!base.purchased_apps?.length && fromPurchase.purchased_apps?.length) {
+    base.purchased_apps = fromPurchase.purchased_apps;
+  }
+  if (!base.purchased_premium?.length && fromPurchase.purchased_premium?.length) {
+    base.purchased_premium = fromPurchase.purchased_premium;
+  }
+  if (!base.purchased_addons?.length && fromPurchase.purchased_addons?.length) {
+    base.purchased_addons = fromPurchase.purchased_addons;
+  }
+
+  return base;
+}
+
 export async function syncOrganisationFromPortal(input: {
   organisationId: string;
   organisationName: string;
@@ -115,11 +170,21 @@ export async function syncOrganisationFromPortal(input: {
     org_name?: string;
     purchase_label?: string;
     onboarding?: PortalOnboardingProfile | null;
+    purchase?: PortalPurchaseProfile | null;
   };
   force?: boolean;
 }): Promise<{ synced: boolean; profile?: OrganisationBusinessProfile }> {
   if (!process.env.DATABASE_URL) return { synced: false };
-  if (!input.portal.linked || !input.portal.onboarding) return { synced: false };
+  if (!input.portal.linked) return { synced: false };
+
+  const mergedOnboarding = mergeOnboardingWithPurchase(
+    input.portal.onboarding,
+    input.portal.purchase,
+  );
+
+  if (!hasSyncableProfile(input.portal.onboarding, input.portal.purchase)) {
+    return { synced: false };
+  }
 
   const { prisma } = await import("@dg/database");
   type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
@@ -139,7 +204,7 @@ export async function syncOrganisationFromPortal(input: {
     }
   }
 
-  const profile = mapPortalProfile(input.portal.onboarding, {
+  const profile = mapPortalProfile(mergedOnboarding, {
     wpContactId: input.portal.contact_id,
     wpOrganisationId: input.portal.organisation_id,
     purchaseLabel: input.portal.purchase_label,
@@ -187,7 +252,7 @@ export async function syncOrganisationFromPortal(input: {
           industryApps: profile.purchasedApps ?? [],
           premiumApps: profile.purchasedPremium ?? [],
           appliedAt: profile.syncedAt,
-          source: "onboarding_sync",
+          source: input.portal.onboarding?.platform_tier ? "onboarding_sync" : "purchase_sync",
         },
       },
     } as unknown as InputJsonValue;

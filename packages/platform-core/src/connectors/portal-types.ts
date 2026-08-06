@@ -1,3 +1,12 @@
+/** Stripe purchase metadata from WordPress portal/me */
+export type PortalPurchaseProfile = {
+  dg_category?: string;
+  dg_plan?: string;
+  dg_platform_tier?: string;
+  purchase_label?: string;
+  stripe_session_id?: string;
+};
+
 /** Onboarding profile payload from WordPress portal/me */
 export type PortalOnboardingProfile = {
   business_name?: string;

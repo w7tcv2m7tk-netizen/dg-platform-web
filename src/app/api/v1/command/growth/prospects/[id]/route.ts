@@ -2,14 +2,14 @@ import { getGrowthProspect, updateGrowthProspect } from "@dg/platform-core";
 import type { ProspectPipelineStage } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requirePlatformSession } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-export async function GET(_req: Request, { params }: RouteParams) {
-  const session = await requirePlatformSession();
+export async function GET(req: Request, { params }: RouteParams) {
+  const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const denied = requireFeature(session, "command.growth.read");
@@ -28,7 +28,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
 }
 
 export async function PATCH(req: Request, { params }: RouteParams) {
-  const session = await requirePlatformSession();
+  const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const denied = requireFeature(session, "command.growth.manage");
