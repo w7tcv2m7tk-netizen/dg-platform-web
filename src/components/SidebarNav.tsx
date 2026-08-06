@@ -109,17 +109,29 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         if (itemHasActiveRoute(pathname, app.routes)) next[app.id] = true;
       }
     }
-    for (const tool of nav.tools.tools) {
-      if (itemHasActiveRoute(pathname, tool.routes)) next[tool.id] = true;
-    }
     if (nav.commandCentre && itemHasActiveRoute(pathname, nav.commandCentre.routes)) {
       next[nav.commandCentre.id] = true;
     }
     setExpanded(next);
-  }, [pathname, nav.tiers, nav.tools.tools, nav.commandCentre]);
+  }, [pathname, nav.tiers, nav.commandCentre]);
 
   function toggleItem(id: string) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
+
+  function shellLinkActive(href: string, label: string): boolean {
+    if (pathname === href) return true;
+    if (href === "/dashboard") return false;
+    if (label === "Team") {
+      return pathname.startsWith("/dashboard/settings/team");
+    }
+    if (label === "Settings") {
+      return (
+        pathname.startsWith("/dashboard/settings") &&
+        !pathname.startsWith("/dashboard/settings/team")
+      );
+    }
+    return pathname.startsWith(`${href}/`);
   }
 
   return (
@@ -128,9 +140,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         {BUSINESS_WORKSPACE_SECTION_LABEL}
       </p>
       {nav.shell.map((link) => {
-        const active =
-          pathname === link.href ||
-          (link.href !== "/dashboard" && pathname.startsWith(link.href));
+        const active = shellLinkActive(link.href, link.label);
         return (
           <Link
             key={link.href}
@@ -164,13 +174,22 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
           {nav.tools.label}
         </p>
-        <CollapsibleNavSection
-          items={nav.tools.tools}
-          expanded={expanded}
-          onToggle={toggleItem}
-          pathname={pathname}
-          onNavigate={onNavigate}
-        />
+        {nav.tools.tools.flatMap((tool) =>
+          tool.routes.map((route) => {
+            const active = routeIsActive(pathname, route.path, tool.routes);
+            return (
+              <Link
+                key={route.path}
+                href={route.path}
+                prefetch
+                onClick={onNavigate}
+                className={`${linkClass(active)} min-h-11 py-2.5`}
+              >
+                {route.label}
+              </Link>
+            );
+          }),
+        )}
       </div>
 
       {nav.commandCentre ? (

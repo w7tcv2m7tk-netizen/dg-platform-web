@@ -1,7 +1,13 @@
-/** Geometric sidebar glyphs — keep in sync with shell nav (◉ ▦). */
+/** Geometric sidebar glyphs — keep in sync with shell nav. */
 const DEFAULT = "◈";
 
 const SIDEBAR_ICONS: Record<string, string> = {
+  // Business workspace shell
+  overview: "◉",
+  "business-profile": "◇",
+  team: "⊕",
+  apps: "▦",
+  settings: "⎔",
   // Apps
   crm: "◎",
   commerce: "▤",
@@ -23,8 +29,6 @@ const SIDEBAR_ICONS: Record<string, string> = {
   websites: "◫",
   infrastructure: "⬡",
   "command-centre": "◈",
-  // Settings & tools groups
-  "platform-settings": "◈",
   "platform-tools": "⎔",
 };
 

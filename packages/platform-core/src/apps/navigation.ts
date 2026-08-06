@@ -42,11 +42,21 @@ export interface PlatformToolNavItem {
 
 /** Primary Business Workspace shell — client opens their business, not a CRM */
 const SHELL_NAV: PlatformShellNavItem[] = [
-  { kind: "shell", href: "/dashboard", label: "Overview", icon: "◉" },
-  { kind: "shell", href: "/dashboard/business", label: "Business Profile", icon: "◇" },
-  { kind: "shell", href: "/dashboard/settings/team", label: "Team", icon: "👥" },
-  { kind: "shell", href: "/dashboard/apps", label: "Apps & plan", icon: "▦" },
-  { kind: "shell", href: "/dashboard/settings", label: "Settings", icon: "⚙" },
+  { kind: "shell", href: "/dashboard", label: "Overview", icon: getSidebarIcon("overview") },
+  {
+    kind: "shell",
+    href: "/dashboard/business",
+    label: "Business Profile",
+    icon: getSidebarIcon("business-profile"),
+  },
+  { kind: "shell", href: "/dashboard/settings/team", label: "Team", icon: getSidebarIcon("team") },
+  { kind: "shell", href: "/dashboard/apps", label: "Apps & plan", icon: getSidebarIcon("apps") },
+  {
+    kind: "shell",
+    href: "/dashboard/settings",
+    label: "Settings",
+    icon: getSidebarIcon("settings"),
+  },
 ];
 
 export const BUSINESS_WORKSPACE_SECTION_LABEL = "Your business";
