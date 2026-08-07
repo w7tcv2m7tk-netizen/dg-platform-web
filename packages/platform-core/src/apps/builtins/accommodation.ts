@@ -5,7 +5,7 @@ export const accommodationApp: AppManifest = {
   name: "Accommodation",
   description: "Hospitality units, bookings, availability, and housekeeping",
   tier: "business",
-  version: "0.2.0",
+  version: "0.3.0",
   icon: "⛺",
   routes: [
     { path: "/apps/accommodation", label: "Overview" },
@@ -22,8 +22,11 @@ export const accommodationApp: AppManifest = {
   ],
   features: [
     "accommodation.units.read",
+    "accommodation.units.write",
     "accommodation.bookings.read",
+    "accommodation.bookings.write",
     "accommodation.guests.read",
+    "accommodation.guests.write",
     "accommodation.calendar.read",
     "accommodation.housekeeping.read",
     "accommodation.housekeeping.write",
