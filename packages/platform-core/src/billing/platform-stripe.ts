@@ -3,6 +3,8 @@ import Stripe from "stripe";
 
 import { appIdsFromPlanSelection } from "../apps/org-apps";
 import type { PlanSelectionInput } from "../apps/org-apps";
+import { applyBrandPresetToProfile } from "../org/brand-presets";
+import type { OrganisationBusinessProfile } from "../org/business-profile-types";
 
 const TIER_AMOUNTS_CENTS: Record<string, number> = {
   starter: 9900,
@@ -159,7 +161,16 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
   if (membership) {
     const org = membership.organisation;
     const settings = (org.settings as Record<string, unknown> | null) ?? {};
-    const profile = (settings.profile as Record<string, unknown> | null) ?? {};
+    const profile = applyBrandPresetToProfile(
+      {
+        id: org.id,
+        name: org.name,
+        slug: org.slug,
+        industry: org.industry,
+        settings,
+      },
+      (settings.profile as OrganisationBusinessProfile | null) ?? {},
+    );
 
     await prisma.organisation.update({
       where: { id: org.id },

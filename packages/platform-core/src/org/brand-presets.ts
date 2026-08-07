@@ -1,4 +1,7 @@
-import type { BusinessProfilePatch } from "./business-profile-types";
+import type {
+  BusinessProfilePatch,
+  OrganisationBusinessProfile,
+} from "./business-profile-types";
 import { serializeBrandColours } from "./brand-theme";
 import { WP_CONNECTOR_PRESETS } from "../connectors/wordpress/org-connector";
 
@@ -100,6 +103,26 @@ export function resolveOrgBrandPresetKey(org: OrgLike): OrgBrandPresetKey | null
   return null;
 }
 
+/** Fill missing brand fields from a matched preset (onboarding / checkout). */
+export function applyBrandPresetToProfile(
+  org: OrgLike,
+  profile: OrganisationBusinessProfile,
+): OrganisationBusinessProfile {
+  if (profile.brandColours && profile.logoUrl && profile.iconUrl) return profile;
+
+  const presetKey = resolveOrgBrandPresetKey(org);
+  if (!presetKey) return profile;
+
+  const preset = ORG_BRAND_PRESETS[presetKey];
+  return {
+    ...profile,
+    brandColours: profile.brandColours ?? preset.patch.brandColours,
+    iconUrl: profile.iconUrl ?? preset.patch.iconUrl,
+    logoUrl: profile.logoUrl ?? preset.patch.logoUrl,
+    websiteUrl: profile.websiteUrl ?? preset.patch.websiteUrl,
+  };
+}
+
 export type SeedOrgBrandProfilesResult = {
   organisationId: string;
   organisationName: string;
@@ -169,8 +192,13 @@ export async function seedOrgBrandProfiles(options?: {
 
     const nextSettings = { ...settings, profile: nextProfile } as Record<string, unknown>;
 
-    if (presetKey === "cvh" || presetKey === "roe-realty") {
-      const template = presetKey === "cvh" ? "accommodation" : "real-estate";
+    if (presetKey === "cvh" || presetKey === "roe-realty" || presetKey === "aetherra") {
+      const template =
+        presetKey === "cvh"
+          ? "accommodation"
+          : presetKey === "roe-realty"
+            ? "real-estate"
+            : "creator";
       const wpPreset = WP_CONNECTOR_PRESETS[template];
       const connectors = (nextSettings.connectors as Record<string, unknown> | undefined) ?? {};
       const wordpress = (connectors.wordpress as Record<string, unknown> | undefined) ?? {};

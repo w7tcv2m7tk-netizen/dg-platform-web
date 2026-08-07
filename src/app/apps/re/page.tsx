@@ -7,6 +7,7 @@ import { fetchPortalMe, fetchWpReSummary } from "@/lib/dg-api";
 import { wpConnectorForOrg } from "@/lib/org-wordpress-connector";
 import {
   autoSyncWordPressBuyerLeadsIfNeeded,
+  autoSyncWordPressBookingsIfNeeded,
   autoSyncWordPressVendorLeadsIfNeeded,
 } from "@/lib/wordpress-sync";
 
@@ -47,6 +48,7 @@ export default async function RealEstateOverviewPage() {
   await Promise.all([
     autoSyncWordPressVendorLeadsIfNeeded(session),
     autoSyncWordPressBuyerLeadsIfNeeded(session),
+    autoSyncWordPressBookingsIfNeeded(session),
   ]);
 
   const [stats, wpSummary] = await Promise.all([

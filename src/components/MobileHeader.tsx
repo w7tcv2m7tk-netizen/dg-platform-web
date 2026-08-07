@@ -3,6 +3,8 @@
 import { UserButton } from "@clerk/nextjs";
 
 import { OrgBrandMark } from "@/components/brand/OrgBrandMark";
+import { useOrgBrand } from "@/components/brand/OrgBrandProvider";
+import { clerkAppearanceForBrand } from "@/lib/clerk-brand-appearance";
 
 function MenuIcon() {
   return (
@@ -21,6 +23,8 @@ function MenuIcon() {
 }
 
 export function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
+  const brand = useOrgBrand();
+
   return (
     <header
       className="sticky top-0 z-40 flex items-center gap-3 border-b dg-branded-header px-4 py-3 backdrop-blur md:hidden"
@@ -43,13 +47,7 @@ export function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
         className="min-w-0 flex-1"
       />
 
-      <UserButton
-        appearance={{
-          elements: {
-            avatarBox: "h-9 w-9",
-          },
-        }}
-      />
+      <UserButton appearance={clerkAppearanceForBrand(brand)} />
     </header>
   );
 }

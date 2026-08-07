@@ -4,7 +4,12 @@ import { NextResponse } from "next/server";
 import { writeActiveOrganisationId } from "@/lib/active-org-cookie";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
-const VALID_TEMPLATES = new Set<OrgTemplate>(["default", "real-estate", "accommodation"]);
+const VALID_TEMPLATES = new Set<OrgTemplate>([
+  "default",
+  "real-estate",
+  "accommodation",
+  "creator",
+]);
 
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);

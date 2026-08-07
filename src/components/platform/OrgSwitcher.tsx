@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import type { UserOrganisationSummary } from "@dg/platform-core";
@@ -14,14 +13,13 @@ export function OrgSwitcher({
   activeOrganisationName: string;
   organisations: UserOrganisationSummary[];
 }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newTemplate, setNewTemplate] = useState<"real-estate" | "accommodation" | "default">(
-    "default",
-  );
+  const [newTemplate, setNewTemplate] = useState<
+    "real-estate" | "accommodation" | "creator" | "default"
+  >("default");
   const [error, setError] = useState<string | null>(null);
 
   async function switchOrg(organisationId: string) {
@@ -37,13 +35,13 @@ export function OrgSwitcher({
       body: JSON.stringify({ organisationId }),
     });
     const json = await res.json().catch(() => ({}));
-    setPending(false);
     if (!res.ok) {
+      setPending(false);
       setError(json.error?.message ?? "Could not switch organisation");
       return;
     }
-    setOpen(false);
-    router.refresh();
+    // Hard navigate so brand theme, favicon, apps, and page data all remount for the new org.
+    window.location.assign("/dashboard");
   }
 
   async function createOrg(e: React.FormEvent) {
@@ -57,15 +55,12 @@ export function OrgSwitcher({
       body: JSON.stringify({ name: newName.trim(), template: newTemplate }),
     });
     const json = await res.json().catch(() => ({}));
-    setCreating(false);
     if (!res.ok) {
+      setCreating(false);
       setError(json.error?.message ?? "Could not create organisation");
       return;
     }
-    setNewName("");
-    setCreating(false);
-    setOpen(false);
-    router.refresh();
+    window.location.assign("/dashboard");
   }
 
   const hasMultiple = organisations.length > 1;
@@ -132,12 +127,15 @@ export function OrgSwitcher({
               <select
                 value={ newTemplate}
                 onChange={(e) =>
-                  setNewTemplate(e.target.value as "real-estate" | "accommodation" | "default")
+                  setNewTemplate(
+                    e.target.value as "real-estate" | "accommodation" | "creator" | "default",
+                  )
                 }
                 className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-sm text-slate-200"
               >
                 <option value="real-estate">Real Estate template</option>
                 <option value="accommodation">Accommodation template (CVH)</option>
+                <option value="creator">Creator template (Aëtherra)</option>
                 <option value="default">General business</option>
               </select>
               <button

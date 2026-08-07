@@ -31,3 +31,15 @@ export function canAccessCommandCentre(input: CommandCentreAccessInput): boolean
 
   return false;
 }
+
+/** Industry apps hidden from DigitalGate operator org navigation. */
+export const OPERATOR_ORG_HIDDEN_APP_IDS = ["real-estate", "accommodation"] as const;
+
+export function filterEnabledAppsForOperatorOrg(
+  enabledIds: string[],
+  isOperatorOrg: boolean,
+): string[] {
+  if (!isOperatorOrg) return enabledIds;
+  const hidden = new Set<string>(OPERATOR_ORG_HIDDEN_APP_IDS);
+  return enabledIds.filter((id) => !hidden.has(id));
+}

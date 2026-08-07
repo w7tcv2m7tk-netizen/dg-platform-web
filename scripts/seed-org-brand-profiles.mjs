@@ -45,6 +45,10 @@ const PRESETS = {
       "https://aetherra.com.au/wp-content/uploads/2026/07/cropped-Aetherra-Icon-Dark-scaled-1.png",
     logoUrl: "https://aetherra.com.au/wp-content/uploads/2026/06/Aetherra-White.png",
     websiteUrl: "https://aetherra.com.au",
+    wp: {
+      baseUrl: "https://aetherra.com.au/wp-json/digitalgate/v1",
+      label: "Aëtherra",
+    },
   },
 };
 

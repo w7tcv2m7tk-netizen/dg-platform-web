@@ -36,7 +36,15 @@ const ORG_TEMPLATE_APPS: Record<OrgTemplate, string[]> = {
     "marketing",
     "automation",
   ],
-  creator: getDefaultEnabledAppIds(),
+  creator: [
+    "crm",
+    "commerce",
+    "websites",
+    "creator",
+    "reviews",
+    "marketing",
+    "automation",
+  ],
 };
 
 function slugify(name: string): string {
@@ -181,7 +189,7 @@ export async function createOrganisationForUser(
                 : template === "creator"
                   ? "creator"
                   : undefined,
-          ...brandPreset,
+          ...(brandPreset ?? {}),
         },
         ...(wpConnector
           ? { connectors: { wordpress: wpConnector } }

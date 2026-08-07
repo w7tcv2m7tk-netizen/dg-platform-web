@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { storeOrgBrandAsset } from "@dg/platform-core/assets/org-brand-storage";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
 const MAX_BYTES = 400 * 1024;
@@ -58,13 +59,28 @@ export async function POST(req: Request) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const dataUrl = `data:${file.type};base64,${buffer.toString("base64")}`;
 
-  return NextResponse.json({
-    data: {
-      url: dataUrl,
+  try {
+    const stored = await storeOrgBrandAsset({
+      organisationId: session.organisationId,
+      buffer,
       contentType: file.type,
-      sizeBytes: file.size,
-    },
-  });
+      maxBytes: MAX_BYTES,
+    });
+
+    return NextResponse.json({
+      data: {
+        url: stored.url,
+        contentType: stored.contentType,
+        sizeBytes: stored.sizeBytes,
+        storage: stored.storage,
+      },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Upload failed";
+    return NextResponse.json(
+      { error: { code: "upload_failed", message } },
+      { status: 422 },
+    );
+  }
 }

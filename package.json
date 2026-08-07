@@ -11,12 +11,14 @@
     "db:push": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma/schema.prisma",
     "db:studio": "dotenv -e .env.local -- prisma studio --schema=packages/database/prisma/schema.prisma",
     "setup:stripe-webhook": "node scripts/setup-stripe-webhook.mjs",
+    "commerce:smoke": "node scripts/commerce-smoke-test.mjs",
     "capture:screenshots": "node scripts/capture-marketing-screenshots.mjs",
     "postinstall": "npm run db:generate"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.6.4",
     "@prisma/client": "^6.19.0",
+    "@vercel/blob": "^0.27.0",
     "next": "16.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4",

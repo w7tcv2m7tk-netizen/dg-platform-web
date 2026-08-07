@@ -1,4 +1,4 @@
-import { canAccessCommandCentre } from "@dg/platform-core";
+import { canAccessCommandCentre, filterEnabledAppsForOperatorOrg } from "@dg/platform-core";
 
 import { PlatformShell } from "@/components/PlatformShell";
 import { getOrgEnabledAppIdsCached } from "@/lib/org-apps";
@@ -35,9 +35,11 @@ export async function PlatformShellLoader({
       })
     : false;
 
+  const navEnabledIds = filterEnabledAppsForOperatorOrg(enabledIds, showCommandCentre);
+
   return (
     <PlatformShell
-      enabledIds={enabledIds}
+      enabledIds={navEnabledIds}
       userName={userName ?? undefined}
       showFloatingChat={showFloatingChat}
       showCommandCentre={showCommandCentre}

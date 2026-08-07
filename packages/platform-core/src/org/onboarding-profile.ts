@@ -1,5 +1,6 @@
 import type { PortalOnboardingProfile, PortalPurchaseProfile } from "../connectors/portal-types";
 import { appIdsFromPlanSelection } from "../apps/org-apps";
+import { applyBrandPresetToProfile } from "./brand-presets";
 import type {
   BusinessProfilePatch,
   OrganisationBusinessProfile,
@@ -232,7 +233,7 @@ export async function syncOrganisationFromPortal(input: {
 
   const org = await prisma.organisation.findUnique({
     where: { id: input.organisationId },
-    select: { settings: true, name: true, industry: true },
+    select: { settings: true, name: true, slug: true, industry: true },
   });
   if (!org) return { synced: false };
 
@@ -245,11 +246,14 @@ export async function syncOrganisationFromPortal(input: {
     }
   }
 
-  const profile = mapPortalProfile(mergedOnboarding, {
-    wpContactId: input.portal.contact_id,
-    wpOrganisationId: input.portal.organisation_id,
-    purchaseLabel: input.portal.purchase_label,
-  });
+  const profile = applyBrandPresetToProfile(
+    { id: input.organisationId, name: org.name, slug: org.slug, industry: org.industry, settings },
+    mapPortalProfile(mergedOnboarding, {
+      wpContactId: input.portal.contact_id,
+      wpOrganisationId: input.portal.organisation_id,
+      purchaseLabel: input.portal.purchase_label,
+    }),
+  );
 
   const orgUpdates: {
     name?: string;
