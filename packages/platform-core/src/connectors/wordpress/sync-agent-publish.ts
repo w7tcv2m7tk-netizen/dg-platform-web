@@ -1,5 +1,6 @@
 import {
   getMembershipByClerkUser,
+  membershipCardEmail,
   setMembershipExternalRefs,
   type MembershipProfile,
 } from "../../org/membership-profile";
@@ -32,11 +33,12 @@ export async function publishMembershipToWordPressAgent(input: {
     };
   }
 
-  const name = input.membership.displayName?.trim() || input.membership.email || "Team member";
+  const cardEmail = membershipCardEmail(input.membership);
+  const name = input.membership.displayName?.trim() || cardEmail || "Team member";
   const payload = {
     dg_membership_id: input.membership.id,
     name,
-    email: input.membership.email ?? undefined,
+    email: cardEmail ?? undefined,
     phone: input.membership.phone ?? undefined,
     title: input.membership.jobTitle ?? undefined,
     bio: input.membership.bio ?? undefined,

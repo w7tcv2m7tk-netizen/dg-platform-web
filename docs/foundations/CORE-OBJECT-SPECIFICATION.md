@@ -93,7 +93,7 @@ A **person** who accesses the platform. Identity lives in Clerk; Platform stores
 
 ### Optional fields
 
-`displayName`, `email` (cached from Clerk), `featureOverrides` (JSON), `lastActiveAt`, `avatarUrl`
+`displayName`, `email` (Clerk login cache), `publicEmail` (per-org team/agent card), `bio`, `jobTitle`, `phone`, `avatarUrl`, `featureOverrides` (JSON), `lastActiveAt`
 
 ### Relationships
 

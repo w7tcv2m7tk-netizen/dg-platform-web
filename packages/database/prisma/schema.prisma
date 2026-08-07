@@ -56,7 +56,13 @@ model Membership {
   clerkUserId    String   @map("clerk_user_id")
   role           String   @default("member")
   status         String   @default("active")
+  /** Login / account email cached from Clerk (not the public profile address). */
   email          String?
+  /**
+   * Public-facing email on this org's team / agent card.
+   * Per-organisation — may differ from login `email` (e.g. sales@agency vs personal login).
+   */
+  publicEmail    String?  @map("public_email")
   displayName    String?  @map("display_name")
   /** Public-facing bio / about — used for agent profiles and team pages */
   bio            String?  @db.Text

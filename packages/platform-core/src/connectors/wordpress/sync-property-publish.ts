@@ -101,14 +101,16 @@ export async function publishPropertyToWordPress(
       input.actorId,
     );
     if (membership) {
+      const { membershipCardEmail } = await import("../../org/membership-profile");
+      const cardEmail = membershipCardEmail(membership);
       const agentSync = await publishMembershipToWordPressAgent({
         organisationId: input.organisationId,
         membership,
       });
       agent = {
-        name: membership.displayName ?? membership.email ?? undefined,
+        name: membership.displayName ?? cardEmail ?? undefined,
         phone: membership.phone ?? undefined,
-        email: membership.email ?? undefined,
+        email: cardEmail ?? undefined,
         wp_agent_id: agentSync.ok ? agentSync.wpAgentId : undefined,
       };
     }

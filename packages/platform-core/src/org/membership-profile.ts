@@ -6,7 +6,10 @@ export type MembershipProfile = {
   clerkUserId: string;
   role: string;
   status: string;
+  /** Clerk login email cache — not the public card address. */
   email: string | null;
+  /** Per-org public contact email on the team / agent card. */
+  publicEmail: string | null;
   displayName: string | null;
   bio: string | null;
   jobTitle: string | null;
@@ -25,7 +28,20 @@ export type MembershipProfilePatch = {
   jobTitle?: string | null;
   phone?: string | null;
   avatarUrl?: string | null;
+  publicEmail?: string | null;
 };
+
+/** Email shown on team cards / website agents — public override, else login email. */
+export function membershipCardEmail(
+  m: Pick<MembershipProfile, "publicEmail" | "email">,
+): string | null {
+  return m.publicEmail?.trim() || m.email?.trim() || null;
+}
+
+function normalizeEmail(value: string | null | undefined): string | null {
+  const trimmed = value?.trim().toLowerCase() || "";
+  return trimmed || null;
+}
 
 function serializeMembership(m: {
   id: string;
@@ -34,6 +50,7 @@ function serializeMembership(m: {
   role: string;
   status: string;
   email: string | null;
+  publicEmail: string | null;
   displayName: string | null;
   bio: string | null;
   jobTitle: string | null;
@@ -50,6 +67,7 @@ function serializeMembership(m: {
     role: m.role,
     status: m.status,
     email: m.email,
+    publicEmail: m.publicEmail,
     displayName: m.displayName,
     bio: m.bio,
     jobTitle: m.jobTitle,
@@ -174,6 +192,9 @@ export async function updateMembershipProfile(
   }
   if (patch.avatarUrl !== undefined) {
     data.avatarUrl = patch.avatarUrl?.trim() || null;
+  }
+  if (patch.publicEmail !== undefined) {
+    data.publicEmail = normalizeEmail(patch.publicEmail);
   }
 
   const updated = await prisma.membership.update({

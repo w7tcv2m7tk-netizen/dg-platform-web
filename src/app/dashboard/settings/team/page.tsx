@@ -62,9 +62,10 @@ export default async function TeamSettingsPage() {
         <div className="dg-card max-w-2xl">
           <h2 className="font-semibold text-white">Account vs team profile</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Your team card shows your live Clerk Account photo unless you upload a custom one.
-            Saving a custom photo also updates the sidebar Account menu (via Clerk). Bio, title,
-            and phone stay on the team profile for the website.
+            Your team card is per business: photo, name, title, phone, bio, and public email can
+            differ for each organisation. Saving a custom photo also updates the sidebar Account
+            menu (Clerk). Your login email stays on the Clerk Account — set a different public
+            email here when clients should contact a business address.
           </p>
         </div>
 
@@ -80,6 +81,7 @@ export default async function TeamSettingsPage() {
                     id: member.id,
                     displayName: member.displayName,
                     email: member.email,
+                    publicEmail: member.publicEmail,
                     role: member.role,
                     bio: member.bio,
                     jobTitle: member.jobTitle,

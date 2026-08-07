@@ -51,11 +51,11 @@ export async function resolvePlatformSession(
   const organisations = await listUserOrganisations(input.clerkUserId);
 
   if (input.email && membership.email !== input.email) {
+    // Keep login email cache in sync — never overwrite displayName / publicEmail here.
     await prisma.membership.update({
       where: { id: membership.id },
       data: {
         email: input.email,
-        displayName: input.name,
       },
     });
   }

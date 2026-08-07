@@ -7,7 +7,10 @@ import { useRef, useState } from "react";
 export type TeamMemberCard = {
   id: string;
   displayName: string | null;
+  /** Clerk login email cache */
   email: string | null;
+  /** Per-org public contact email (optional override) */
+  publicEmail?: string | null;
   role: string;
   bio: string | null;
   jobTitle: string | null;
@@ -54,6 +57,9 @@ export function TeamProfileEditor({
   const [jobTitle, setJobTitle] = useState(member.jobTitle ?? "");
   const [phone, setPhone] = useState(member.phone ?? "");
   const [bio, setBio] = useState(member.bio ?? "");
+  const [publicEmail, setPublicEmail] = useState(
+    member.publicEmail?.trim() || member.email?.trim() || "",
+  );
   const [avatarUrl, setAvatarUrl] = useState(
     member.avatarUrl || member.clerkImageUrl || "",
   );
@@ -65,12 +71,16 @@ export function TeamProfileEditor({
   const preview = avatarUrl || member.clerkImageUrl || null;
   const shownName =
     (editing ? displayName : member.displayName)?.trim() ||
+    member.publicEmail?.trim() ||
     member.email ||
     "Team member";
   const shownTitle = editing ? jobTitle : member.jobTitle;
   const shownPhone = editing ? phone : member.phone;
   const shownBio = editing ? bio : member.bio;
-  const shownEmail = member.email;
+  const shownEmail =
+    (editing ? publicEmail : member.publicEmail)?.trim() ||
+    member.email?.trim() ||
+    null;
 
   async function uploadPhoto(file: File) {
     setUploading(true);
@@ -135,6 +145,12 @@ export function TeamProfileEditor({
 
     const nextAvatar = avatarUrl.trim() || null;
     const storedAvatar = isCustomTeamPhoto(nextAvatar) ? nextAvatar : null;
+    const nextPublicEmail = publicEmail.trim().toLowerCase() || null;
+    // Empty / same as login → clear override so card falls back to Clerk email.
+    const storedPublicEmail =
+      nextPublicEmail && nextPublicEmail !== member.email?.trim().toLowerCase()
+        ? nextPublicEmail
+        : null;
 
     const res = await fetch("/api/v1/org/team", {
       method: "PATCH",
@@ -145,6 +161,7 @@ export function TeamProfileEditor({
         jobTitle,
         phone,
         bio,
+        publicEmail: storedPublicEmail,
         avatarUrl: storedAvatar,
         syncToWebsite: true,
         // Prefer Clerk client API so UserButton updates immediately.
@@ -182,6 +199,7 @@ export function TeamProfileEditor({
     setJobTitle(member.jobTitle ?? "");
     setPhone(member.phone ?? "");
     setBio(member.bio ?? "");
+    setPublicEmail(member.publicEmail?.trim() || member.email?.trim() || "");
     setAvatarUrl(member.avatarUrl || member.clerkImageUrl || "");
     setError(null);
     setEditing(false);
@@ -350,6 +368,21 @@ export function TeamProfileEditor({
                 onChange={(e) => setDisplayName(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
               />
+            </label>
+            <label className="block text-sm">
+              <span className="text-slate-400">Public email</span>
+              <input
+                type="email"
+                value={publicEmail}
+                onChange={(e) => setPublicEmail(e.target.value)}
+                placeholder={member.email || "you@business.com.au"}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+              />
+              <span className="mt-1 block text-[11px] text-slate-500">
+                Shown on this business card and website agent profile. Leave as your login
+                email, or set a different address per organisation. Does not change how you
+                sign in.
+              </span>
             </label>
             <label className="block text-sm">
               <span className="text-slate-400">Job title</span>
