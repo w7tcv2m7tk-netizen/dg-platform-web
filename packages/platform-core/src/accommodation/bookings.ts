@@ -4,6 +4,8 @@ import { resolveOrgWordPressConnector } from "../connectors/wordpress/org-connec
 
 export interface WpAccBookingRow {
   id: number;
+  /** Neon StayBooking id when row comes from Platform sync */
+  platform_id?: string;
   ref?: string;
   guest_name?: string;
   email?: string;
@@ -13,6 +15,7 @@ export interface WpAccBookingRow {
   checkin?: string;
   checkout?: string;
   status?: string;
+  source?: string;
   /** Dollars (WordPress) — converted to totalCents on upsert */
   total?: number;
 }
@@ -107,6 +110,7 @@ function serializeStayBooking(row: {
 export function stayBookingToWpRow(item: StayBookingListItem): WpAccBookingRow {
   return {
     id: item.externalWpId,
+    platform_id: item.id,
     ref: item.ref ?? undefined,
     guest_name: item.guestName,
     email: item.email ?? undefined,
@@ -118,6 +122,62 @@ export function stayBookingToWpRow(item: StayBookingListItem): WpAccBookingRow {
     status: item.status,
     total: item.totalCents != null ? item.totalCents / 100 : undefined,
   };
+}
+
+/** Patch a synced StayBooking after a WordPress booking edit. */
+export async function updateStayBooking(
+  organisationId: string,
+  input: {
+    platformId?: string;
+    externalWpId?: number;
+    guestName?: string;
+    email?: string | null;
+    phone?: string | null;
+    accommodationName?: string | null;
+    accommodationWpId?: number | null;
+    checkin?: string | null;
+    checkout?: string | null;
+    status?: string;
+    total?: number | null;
+    ref?: string | null;
+  },
+): Promise<StayBookingListItem | null> {
+  if (!process.env.DATABASE_URL) return null;
+  const { prisma } = await import("@dg/database");
+
+  const existing = input.platformId
+    ? await prisma.stayBooking.findFirst({
+        where: { id: input.platformId, organisationId },
+      })
+    : input.externalWpId != null
+      ? await prisma.stayBooking.findFirst({
+          where: { organisationId, externalWpId: input.externalWpId },
+        })
+      : null;
+
+  if (!existing) return null;
+
+  const data: Prisma.StayBookingUpdateInput = {};
+  if (input.guestName !== undefined) data.guestName = input.guestName.trim() || existing.guestName;
+  if (input.email !== undefined) data.email = input.email?.trim() || null;
+  if (input.phone !== undefined) data.phone = input.phone?.trim() || null;
+  if (input.accommodationName !== undefined) {
+    data.accommodationName = input.accommodationName?.trim() || null;
+  }
+  if (input.accommodationWpId !== undefined) {
+    data.accommodationWpId = input.accommodationWpId;
+  }
+  if (input.checkin !== undefined) data.checkin = parseStayDate(input.checkin);
+  if (input.checkout !== undefined) data.checkout = parseStayDate(input.checkout);
+  if (input.status !== undefined) data.status = input.status;
+  if (input.total !== undefined) data.totalCents = toTotalCents(input.total ?? undefined);
+  if (input.ref !== undefined) data.ref = input.ref?.trim() || null;
+
+  const updated = await prisma.stayBooking.update({
+    where: { id: existing.id },
+    data,
+  });
+  return serializeStayBooking(updated);
 }
 
 export async function listStayBookings(organisationId: string, limit = 50) {

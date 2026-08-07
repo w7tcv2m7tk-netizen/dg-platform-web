@@ -1,4 +1,4 @@
-import { listStayBookings, stayBookingToWpRow } from "@dg/platform-core";
+import { listStayBookings, stayBookingToWpRow, updateStayBooking } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
@@ -8,7 +8,10 @@ import {
   fetchWpAccommodationSummary,
   fetchWpAccommodationUnits,
   listWpAccommodationSites,
+  patchWpAccommodationBookings,
+  patchWpAccommodationGuests,
   patchWpAccommodationHousekeeping,
+  patchWpAccommodationUnits,
   syncWpAccommodationOtaCalendars,
 } from "@/lib/dg-api";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
@@ -149,6 +152,7 @@ export async function PATCH(req: Request) {
   if (isNextResponse(session)) return session;
 
   const body = await req.json().catch(() => ({}));
+  const resource = (body.resource as string | undefined) ?? "housekeeping";
   const updates = Array.isArray(body.updates) ? body.updates : [];
   if (!updates.length) {
     return NextResponse.json(
@@ -158,6 +162,64 @@ export async function PATCH(req: Request) {
   }
 
   const connector = await accommodationConnectorForSession(session.organisationId);
+
+  if (resource === "units" || resource === "properties") {
+    const result = await patchWpAccommodationUnits(updates, connector);
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: { code: result.code, message: result.message } },
+        { status: 422 },
+      );
+    }
+    return NextResponse.json({ data: result.data });
+  }
+
+  if (resource === "bookings") {
+    const result = await patchWpAccommodationBookings(updates, connector);
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: { code: result.code, message: result.message } },
+        { status: 422 },
+      );
+    }
+
+    // Mirror into Postgres StayBooking when present.
+    for (const row of updates) {
+      if (!row || typeof row !== "object") continue;
+      const patch = row as Record<string, unknown>;
+      await updateStayBooking(session.organisationId, {
+        platformId: typeof patch.platform_id === "string" ? patch.platform_id : undefined,
+        externalWpId: typeof patch.id === "number" ? patch.id : undefined,
+        guestName: typeof patch.guest_name === "string" ? patch.guest_name : undefined,
+        email: typeof patch.email === "string" ? patch.email : undefined,
+        phone: typeof patch.phone === "string" ? patch.phone : undefined,
+        checkin: typeof patch.checkin === "string" ? patch.checkin : undefined,
+        checkout: typeof patch.checkout === "string" ? patch.checkout : undefined,
+        status: typeof patch.status === "string" ? patch.status : undefined,
+        total: typeof patch.total === "number" ? patch.total : undefined,
+        ref: typeof patch.ref === "string" ? patch.ref : undefined,
+        accommodationWpId:
+          typeof patch.accommodation_id === "number" ? patch.accommodation_id : undefined,
+        accommodationName:
+          typeof patch.accommodation === "string" ? patch.accommodation : undefined,
+      }).catch(() => null);
+    }
+
+    return NextResponse.json({ data: result.data });
+  }
+
+  if (resource === "guests") {
+    const result = await patchWpAccommodationGuests(updates, connector);
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: { code: result.code, message: result.message } },
+        { status: 422 },
+      );
+    }
+    return NextResponse.json({ data: result.data });
+  }
+
+  // Default: housekeeping (existing behaviour).
   const result = await patchWpAccommodationHousekeeping(updates, connector);
   if (!result.ok) {
     return NextResponse.json(

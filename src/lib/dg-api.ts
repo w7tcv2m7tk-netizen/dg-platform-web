@@ -792,6 +792,7 @@ export type WpAccUnitRow = {
 
 export type WpAccBookingRow = {
   id: number;
+  platform_id?: string;
   ref?: string;
   guest_name?: string;
   email?: string;
@@ -981,6 +982,54 @@ export async function patchWpAccommodationHousekeeping(
   const site = resolveAccConnector(null, connector);
   return wpConnectorFetch<{ ok?: boolean; updated?: number[]; count?: number }>(
     "/accommodation/housekeeping",
+    {
+      baseUrl: site.baseUrl,
+      apiKey: site.apiKey,
+      method: "PATCH",
+      body: { updates },
+    },
+  );
+}
+
+export async function patchWpAccommodationUnits(
+  updates: Array<Record<string, unknown>>,
+  connector?: WpConnectorOverride,
+) {
+  const site = resolveAccConnector(null, connector);
+  return wpConnectorFetch<{ ok?: boolean; updated?: unknown[]; count?: number }>(
+    "/accommodation/properties",
+    {
+      baseUrl: site.baseUrl,
+      apiKey: site.apiKey,
+      method: "PATCH",
+      body: { updates },
+    },
+  );
+}
+
+export async function patchWpAccommodationBookings(
+  updates: Array<Record<string, unknown>>,
+  connector?: WpConnectorOverride,
+) {
+  const site = resolveAccConnector(null, connector);
+  return wpConnectorFetch<{ ok?: boolean; updated?: unknown[]; count?: number }>(
+    "/accommodation/bookings",
+    {
+      baseUrl: site.baseUrl,
+      apiKey: site.apiKey,
+      method: "PATCH",
+      body: { updates },
+    },
+  );
+}
+
+export async function patchWpAccommodationGuests(
+  updates: Array<Record<string, unknown>>,
+  connector?: WpConnectorOverride,
+) {
+  const site = resolveAccConnector(null, connector);
+  return wpConnectorFetch<{ ok?: boolean; updated?: unknown[]; count?: number }>(
+    "/accommodation/guests",
     {
       baseUrl: site.baseUrl,
       apiKey: site.apiKey,

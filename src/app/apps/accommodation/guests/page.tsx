@@ -47,7 +47,8 @@ export default async function AccommodationGuestsPage({ searchParams }: PageProp
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Guests</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · guest CRM from WordPress
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · edit guest details from
+          WordPress
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">
