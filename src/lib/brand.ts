@@ -7,7 +7,12 @@
 
 export type BrandTheme = "on-dark" | "on-light";
 
-export const BRAND_EMAIL_ICON = "/brand/icon-light.png";
+/** Absolute HTTPS — safe for email clients (relative paths break in mail). */
+export const BRAND_EMAIL_ICON =
+  "https://app.digitalgate.com.au/brand/icon-light.png";
+
+export const BRAND_EMAIL_LOGO =
+  "https://app.digitalgate.com.au/brand/logo-on-dark.png";
 
 export const BRAND_ASSETS = {
   "on-dark": {
