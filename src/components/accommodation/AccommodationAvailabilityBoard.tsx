@@ -112,6 +112,31 @@ function bookingOnDay(unit: WpAccAvailabilityUnit, day: string) {
   return (unit.bookings ?? []).find((b) => bookingOccupiesNight(b, day));
 }
 
+/**
+ * Month chips must show a unit name even when guest text dominates the cell.
+ * Prefer unit.title from the availability payload; fall back to booking.accommodation.
+ * Long branded titles ("Site — Rainforest Dome") shorten to the distinctive tail.
+ */
+function resolveUnitLabel(
+  unit: Pick<WpAccAvailabilityUnit, "id" | "title">,
+  booking?: Pick<WpAccBookingRow, "accommodation" | "accommodation_id"> | null,
+): string {
+  const raw =
+    unit.title?.trim() ||
+    booking?.accommodation?.trim() ||
+    (booking?.accommodation_id
+      ? `Unit #${booking.accommodation_id}`
+      : unit.id
+        ? `Unit #${unit.id}`
+        : "Unit");
+  const parts = raw.split(/\s+[—–|-]\s+/);
+  if (parts.length > 1) {
+    const tail = parts[parts.length - 1]!.trim();
+    if (tail.length >= 3 && tail.length < raw.length) return tail;
+  }
+  return raw;
+}
+
 /** Prefer explicit manual list; fall back to merged blocked_dates minus booking nights. */
 function manualBlockedSet(unit: WpAccAvailabilityUnit): Set<string> {
   if (unit.manual_blocked_dates?.length) {
@@ -141,7 +166,7 @@ function flattenBookings(units: WpAccAvailabilityUnit[]) {
   const rows: Array<WpAccBookingRow & { unitTitle: string }> = [];
   for (const unit of units) {
     for (const b of unit.bookings ?? []) {
-      rows.push({ ...b, unitTitle: unit.title });
+      rows.push({ ...b, unitTitle: resolveUnitLabel(unit, b) });
     }
   }
   return rows.sort((a, b) => (a.checkin ?? "").localeCompare(b.checkin ?? ""));
@@ -928,7 +953,12 @@ function MonthGrid({
   // including stays that started before this month.
   const byDay = new Map<
     string,
-    Array<{ unit: string; booking: WpAccBookingRow; isCheckin: boolean }>
+    Array<{
+      unitId: number;
+      unitLabel: string;
+      booking: WpAccBookingRow;
+      isCheckin: boolean;
+    }>
   >();
   for (const unit of units) {
     for (const day of days) {
@@ -936,7 +966,8 @@ function MonthGrid({
       if (booking) {
         const list = byDay.get(day) ?? [];
         list.push({
-          unit: unit.title,
+          unitId: unit.id,
+          unitLabel: resolveUnitLabel(unit, booking),
           booking,
           isCheckin: booking.checkin === day,
         });
@@ -974,7 +1005,7 @@ function MonthGrid({
           return (
             <div
               key={day ?? `pad-${i}`}
-              className="min-h-[88px] bg-slate-950 p-1.5"
+              className="min-h-[100px] bg-slate-950 p-1.5"
               style={
                 primary
                   ? { backgroundColor: bookingWash(primary.booking) }
@@ -1008,21 +1039,24 @@ function MonthGrid({
                     ) : null}
                   </div>
                   <div className="mt-1 space-y-1">
-                    {entries.slice(0, 3).map(({ unit, booking, isCheckin }) => {
+                    {entries.slice(0, 3).map(({ unitId, unitLabel, booking, isCheckin }) => {
                       const guest = booking.guest_name?.trim() || "Guest";
-                      // Unit first so multi-unit days stay distinguishable when truncated.
-                      const label = `${unit} · ${guest}`;
                       return (
                         <div
-                          key={`${booking.id}-${unit}-${day}`}
-                          className="truncate rounded px-1 py-0.5 text-[10px] text-white"
+                          key={`${booking.id}-${unitId}-${day}`}
+                          className="rounded px-1 py-0.5 text-[10px] leading-tight text-white"
                           style={{
                             backgroundColor: bookingColor(booking),
                             opacity: isCheckin ? 1 : 0.85,
                           }}
-                          title={`${unit}: ${guest} · ${booking.checkin} → ${booking.checkout}`}
+                          title={`${unitLabel}: ${guest} · ${booking.checkin} → ${booking.checkout}`}
                         >
-                          {isCheckin ? label : `→ ${label}`}
+                          <p className="truncate font-semibold">
+                            {isCheckin ? unitLabel : `→ ${unitLabel}`}
+                          </p>
+                          <p className="truncate text-[9px] font-normal opacity-85">
+                            {guest}
+                          </p>
                         </div>
                       );
                     })}
@@ -1031,13 +1065,16 @@ function MonthGrid({
                         +{entries.length - 3} more
                       </p>
                     ) : null}
-                    {selectedBlocked && !selectedBooked ? (
+                    {selectedBlocked && !selectedBooked && selected ? (
                       <div
-                        className="truncate rounded px-1 py-0.5 text-[10px] text-slate-300"
+                        className="rounded px-1 py-0.5 text-[10px] leading-tight text-slate-300"
                         style={{ backgroundColor: CHANNEL_COLORS.blocked.bg }}
-                        title={`Manual block · ${selected?.title}`}
+                        title={`Manual block · ${selected.title}`}
                       >
-                        Blocked · {selected?.title}
+                        <p className="truncate font-semibold">
+                          {resolveUnitLabel(selected)}
+                        </p>
+                        <p className="truncate text-[9px] opacity-85">Blocked</p>
                       </div>
                     ) : null}
                   </div>
