@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -25,6 +26,19 @@ function initials(name: string) {
   return (name.charAt(0) || "?").toUpperCase();
 }
 
+function splitName(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return { firstName: "", lastName: "" };
+  if (parts.length === 1) return { firstName: parts[0]!, lastName: "" };
+  return { firstName: parts[0]!, lastName: parts.slice(1).join(" ") };
+}
+
+/** Custom team photo (Blob) vs Clerk-hosted Account image. */
+function isCustomTeamPhoto(url: string | null | undefined) {
+  if (!url?.trim()) return false;
+  return !/clerk\.com|img\.clerk/i.test(url);
+}
+
 export function TeamProfileEditor({
   member,
   canEdit,
@@ -33,6 +47,7 @@ export function TeamProfileEditor({
   canEdit: boolean;
 }) {
   const router = useRouter();
+  const { user } = useUser();
   const fileRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState(member.displayName ?? "");
@@ -48,9 +63,10 @@ export function TeamProfileEditor({
   const [error, setError] = useState<string | null>(null);
 
   const preview = avatarUrl || member.clerkImageUrl || null;
-  const shownName = (editing ? displayName : member.displayName)?.trim()
-    || member.email
-    || "Team member";
+  const shownName =
+    (editing ? displayName : member.displayName)?.trim() ||
+    member.email ||
+    "Team member";
   const shownTitle = editing ? jobTitle : member.jobTitle;
   const shownPhone = editing ? phone : member.phone;
   const shownBio = editing ? bio : member.bio;
@@ -61,7 +77,7 @@ export function TeamProfileEditor({
     setError(null);
     const form = new FormData();
     form.append("file", file);
-    const res = await fetch("/api/v1/org/brand-asset", {
+    const res = await fetch("/api/v1/org/brand-asset?maxKb=2048", {
       method: "POST",
       body: form,
     });
@@ -75,12 +91,51 @@ export function TeamProfileEditor({
     if (url) setAvatarUrl(url);
   }
 
+  async function syncOwnClerkAccount(name: string, photoUrl: string | null) {
+    if (!member.isMe || !user) return { ok: true as const };
+
+    try {
+      const { firstName, lastName } = splitName(name);
+      await user.update({
+        firstName: firstName || "",
+        lastName: lastName || "",
+      });
+
+      if (photoUrl && isCustomTeamPhoto(photoUrl)) {
+        const imageRes = await fetch(photoUrl);
+        if (!imageRes.ok) {
+          return {
+            ok: false as const,
+            message: `Could not read photo for Account sync (HTTP ${imageRes.status})`,
+          };
+        }
+        const blob = await imageRes.blob();
+        const file = new File([blob], "profile-photo", {
+          type: blob.type || "image/png",
+        });
+        await user.setProfileImage({ file });
+      }
+
+      await user.reload();
+      return { ok: true as const };
+    } catch (err) {
+      return {
+        ok: false as const,
+        message: err instanceof Error ? err.message : "Account sync failed",
+      };
+    }
+  }
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!canEdit) return;
     setPending(true);
     setError(null);
     setMessage(null);
+
+    const nextAvatar = avatarUrl.trim() || null;
+    const storedAvatar = isCustomTeamPhoto(nextAvatar) ? nextAvatar : null;
+
     const res = await fetch("/api/v1/org/team", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -90,43 +145,33 @@ export function TeamProfileEditor({
         jobTitle,
         phone,
         bio,
-        avatarUrl: avatarUrl.trim() || null,
+        avatarUrl: storedAvatar,
         syncToWebsite: true,
+        // Prefer Clerk client API so UserButton updates immediately.
+        syncToAccount: false,
       }),
     });
     const json = await res.json().catch(() => ({}));
-    setPending(false);
     if (!res.ok) {
+      setPending(false);
       setError(json.error?.message ?? "Could not save profile");
       return;
     }
 
+    const account = await syncOwnClerkAccount(displayName, storedAvatar);
+    setPending(false);
+
     const sync = json.data?.websiteSync;
-    const account = json.data?.accountSync;
-    if (sync?.ok && account?.ok !== false) {
-      setMessage(
-        sync.created
-          ? "Saved — Account + website updated"
-          : "Saved — Account + website updated",
-      );
-    } else if (account?.ok === false) {
+    if (!account.ok) {
       setMessage(`Profile saved — Account sync failed: ${account.message}`);
     } else if (sync?.ok) {
-      setMessage(
-        sync.created
-          ? "Profile card saved and published to website"
-          : "Profile card saved and updated on website",
-      );
+      setMessage("Saved — Account photo/name + website updated");
     } else if (sync?.reason === "skipped" || sync?.reason === "missing_key") {
-      setMessage(
-        account?.ok
-          ? "Saved to Account — website sync skipped (connector not ready)."
-          : "Profile card saved — website sync skipped (connector not ready).",
-      );
+      setMessage("Saved — Account updated (website sync skipped)");
     } else if (sync && !sync.ok) {
-      setMessage(`Profile card saved — website sync failed: ${sync.message}`);
+      setMessage(`Saved to Account — website sync failed: ${sync.message}`);
     } else {
-      setMessage(account?.ok ? "Saved — Account updated" : "Profile card saved");
+      setMessage("Saved — Account updated");
     }
     setEditing(false);
     router.refresh();
@@ -144,7 +189,6 @@ export function TeamProfileEditor({
 
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/80 shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
-      {/* Soft brand wash */}
       <div
         className="relative h-28 bg-gradient-to-br from-blue-600/40 via-slate-800 to-slate-950"
         aria-hidden
@@ -254,6 +298,9 @@ export function TeamProfileEditor({
             <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-3">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                 Profile photo
+              </p>
+              <p className="mt-1 text-[11px] text-slate-500">
+                Upload updates your team card and sidebar Account photo together.
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 <button

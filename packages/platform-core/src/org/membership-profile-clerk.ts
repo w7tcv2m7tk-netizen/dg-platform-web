@@ -27,11 +27,19 @@ export async function enrichMembersWithClerkAccount(
         [user.firstName, user.lastName].filter(Boolean).join(" ") ||
         user.primaryEmailAddress?.emailAddress ||
         null;
+      const clerkImage = user.imageUrl || null;
+      // Stale Clerk CDN URLs stored as avatarUrl hide live Account photo updates.
+      const storedAvatar = m.avatarUrl?.trim() || null;
+      const customAvatar =
+        storedAvatar && !/clerk\.com|img\.clerk/i.test(storedAvatar)
+          ? storedAvatar
+          : null;
       return {
         ...m,
         displayName: m.displayName?.trim() || clerkName,
         email: m.email || user.primaryEmailAddress?.emailAddress || null,
-        clerkImageUrl: user.imageUrl || null,
+        avatarUrl: customAvatar,
+        clerkImageUrl: clerkImage,
       };
     });
   } catch {

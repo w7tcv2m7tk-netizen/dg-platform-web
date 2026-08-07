@@ -105,10 +105,8 @@ export async function syncMembershipFromClerkAccount(input: {
   if (!existing.email?.trim() && input.email?.trim()) {
     data.email = input.email.trim().toLowerCase();
   }
-  // Seed team avatar from Clerk Account when the member has no override yet.
-  if (!existing.avatarUrl?.trim() && input.imageUrl?.trim()) {
-    data.avatarUrl = input.imageUrl.trim();
-  }
+  // Do not copy Clerk image into membership.avatarUrl — that freezes a stale URL.
+  // UI uses clerkImageUrl as live fallback until the member uploads a custom photo.
 
   if (Object.keys(data).length === 0) {
     return serializeMembership(existing);
