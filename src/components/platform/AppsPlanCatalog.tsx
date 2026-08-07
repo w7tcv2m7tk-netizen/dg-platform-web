@@ -97,7 +97,7 @@ function CatalogAppCard({
 
   return (
     <div
-      className={`dg-card flex flex-col border-[color:var(--org-border,#64748b)] ${isLeft ? "text-left" : "text-center"}`}
+      className={`dg-card flex flex-col !border-slate-600 !bg-slate-800 shadow-[0_8px_24px_rgba(0,0,0,0.28)] ${isLeft ? "text-left" : "text-center"}`}
     >
       <div className="flex items-start justify-between gap-2">
         <span className="text-2xl" aria-hidden>
@@ -222,10 +222,10 @@ export function AppsPlanCatalog() {
             return (
               <div
                 key={tier.key}
-                className={`relative flex flex-col rounded-2xl border p-5 shadow-[0_0_0_1px_rgba(100,116,139,0.35)] transition ${
+                className={`relative flex flex-col rounded-2xl border p-5 shadow-[0_8px_24px_rgba(0,0,0,0.28)] transition ${
                   isActive
-                    ? "border-blue-500 bg-blue-500/5 ring-1 ring-blue-500/30"
-                    : "border-slate-500/80 bg-slate-900/60 hover:border-slate-400"
+                    ? "border-blue-500 bg-slate-800 ring-1 ring-blue-500/40"
+                    : "border-slate-600 bg-slate-800 hover:border-slate-500"
                 }`}
               >
                 {tier.popular ? (
@@ -318,7 +318,7 @@ export function AppsPlanCatalog() {
           {PLATFORM_ADDON_CATALOG.map((addon) => (
             <div
               key={addon.key}
-              className="dg-card border-[color:var(--org-border,#64748b)] text-left"
+              className="dg-card !border-slate-600 !bg-slate-800 text-left shadow-[0_8px_24px_rgba(0,0,0,0.28)]"
             >
               <div className="text-2xl" aria-hidden>
                 {addon.icon}
