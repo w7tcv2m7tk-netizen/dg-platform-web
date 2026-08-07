@@ -276,12 +276,35 @@ export function getWpHealthSite(siteId?: string | null): WpHealthSite {
 }
 
 function wpConnectorApiKey(site?: WpHealthSite): string | undefined {
-  return (
-    site?.apiKey?.trim() ||
+  if (site?.apiKey?.trim()) return site.apiKey.trim();
+
+  const dedicated = process.env.DG_WP_ACCOMMODATION_API_KEY?.trim();
+  const baseUrl = site?.baseUrl?.replace(/\/$/, "") || "";
+  const isCvh =
+    /currumbinvalleyhideaway/i.test(baseUrl) ||
+    site?.id === "cvh" ||
+    /currumbin|hideaway|cvh/i.test(site?.label ?? "");
+
+  if (isCvh && dedicated) return dedicated;
+
+  // Only reuse the global connector key when it targets the same host.
+  const globalKey =
     process.env.DG_WP_CONNECTOR_API_KEY?.trim() ||
-    process.env.DG_API_KEY?.trim() ||
-    undefined
-  );
+    process.env.DG_API_KEY?.trim();
+  if (!globalKey || !baseUrl) return isCvh ? dedicated : globalKey;
+
+  try {
+    const targetHost = new URL(baseUrl).hostname;
+    const envBase = (
+      process.env.DG_WP_CONNECTOR_BASE_URL || getWpConnectorBase()
+    ).replace(/\/$/, "");
+    const envHost = new URL(envBase).hostname;
+    if (targetHost === envHost) return globalKey;
+  } catch {
+    /* ignore */
+  }
+
+  return undefined;
 }
 
 export type WpVendorLeadRow = {
@@ -366,11 +389,20 @@ async function wpConnectorFetch<T>(
     process.env.DG_API_KEY?.trim();
 
   if (!apiKey) {
+    const host = (() => {
+      try {
+        return new URL(baseUrl).hostname;
+      } catch {
+        return baseUrl;
+      }
+    })();
+    const isCvh = /currumbinvalleyhideaway/i.test(host);
     return {
       ok: false,
       code: "missing_api_key",
-      message:
-        "Set DG_WP_CONNECTOR_API_KEY (WordPress → DG Platform → API Settings) on Vercel or .env.local.",
+      message: isCvh
+        ? "Missing CVH API key. Copy it from currumbinvalleyhideaway.com.au → DG Platform → API Settings, then paste it under Settings → Connectors (CVH preset) or set apiKey in DG_WP_ACCOMMODATION_SITES / DG_WP_ACCOMMODATION_API_KEY."
+        : "Set DG_WP_CONNECTOR_API_KEY (WordPress → DG Platform → API Settings) on Vercel or .env.local.",
     };
   }
 
@@ -394,11 +426,21 @@ async function wpConnectorFetch<T>(
     } | null;
 
     if (res.status === 401 || res.status === 403) {
+      const host = (() => {
+        try {
+          return new URL(baseUrl).hostname;
+        } catch {
+          return baseUrl;
+        }
+      })();
+      const isCvh = /currumbinvalleyhideaway/i.test(host);
       return {
         ok: false,
         code: "auth_failed",
         status: res.status,
-        message: "WordPress rejected the API key — check DG_WP_CONNECTOR_API_KEY.",
+        message: isCvh
+          ? "CVH WordPress rejected the API key. Use the key from currumbinvalleyhideaway.com.au → DG Platform → API Settings (not the Roe or DigitalGate key). Set it on the org Connectors page or as apiKey in DG_WP_ACCOMMODATION_SITES."
+          : `WordPress rejected the API key for ${host} — check DG_WP_CONNECTOR_API_KEY / the org connector key.`,
       };
     }
 

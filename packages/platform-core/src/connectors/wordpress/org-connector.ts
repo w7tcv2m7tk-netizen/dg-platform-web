@@ -68,6 +68,20 @@ function envWpApiKey(): string | undefined {
   );
 }
 
+/** Only reuse the deployment env key when it targets the same WordPress host. */
+function envWpApiKeyForBaseUrl(baseUrl: string): string | undefined {
+  const key = envWpApiKey();
+  if (!key) return undefined;
+  try {
+    const targetHost = new URL(baseUrl).hostname;
+    const envHost = new URL(envWpBaseUrl()).hostname;
+    if (targetHost && envHost && targetHost === envHost) return key;
+  } catch {
+    /* ignore */
+  }
+  return undefined;
+}
+
 type OrgSettings = {
   connectors?: { wordpress?: OrgWordPressConnectorSettings };
 };
@@ -145,9 +159,10 @@ export function resolveWordPressConnector(
   orgSettings?: OrgWordPressConnectorSettings | null,
   options?: { source?: "org" | "env" | "preset" },
 ): ResolvedWordPressConnector {
-  const baseUrl = orgSettings?.baseUrl?.trim() || envWpBaseUrl();
+  const baseUrl = (orgSettings?.baseUrl?.trim() || envWpBaseUrl()).replace(/\/$/, "");
   const apiKey =
-    decryptApiKeyIfNeeded(orgSettings?.apiKey?.trim()) || envWpApiKey();
+    decryptApiKeyIfNeeded(orgSettings?.apiKey?.trim()) ||
+    envWpApiKeyForBaseUrl(baseUrl);
   const label =
     orgSettings?.label?.trim() ||
     (() => {
@@ -165,7 +180,7 @@ export function resolveWordPressConnector(
     (orgSettings?.baseUrl || orgSettings?.apiKey ? "org" : "env");
 
   return {
-    baseUrl: baseUrl.replace(/\/$/, ""),
+    baseUrl,
     apiKey,
     label,
     source,
