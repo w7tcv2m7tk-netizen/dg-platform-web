@@ -19,6 +19,17 @@ export async function POST(req: Request) {
     const connector = requirePaymentConnector("stripe");
     const event = await connector.parseWebhook(rawBody, headers);
 
+    if (event.type === "ignored") {
+      const ignoredType =
+        event.raw &&
+        typeof event.raw === "object" &&
+        "ignoredStripeType" in event.raw
+          ? String((event.raw as { ignoredStripeType?: string }).ignoredStripeType)
+          : "unknown";
+      console.info("[stripe webhook] ignored event type:", ignoredType);
+      return NextResponse.json({ received: true, ignored: ignoredType });
+    }
+
     if (event.type === "checkout.completed" && event.raw) {
       const session = event.raw as Stripe.Checkout.Session;
       if (isPlatformCheckoutSession(session)) {

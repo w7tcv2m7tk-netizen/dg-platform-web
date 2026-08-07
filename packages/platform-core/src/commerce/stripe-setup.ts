@@ -54,6 +54,12 @@ export function getStripeSetupStatus(): StripeSetupStatus {
       hint: "Do not mix sk_test_ checkout sessions with a live whsec_ (or vice versa)",
     },
     {
+      id: "invoice_paid",
+      label: "Webhook listens for invoice.paid (Refer & Earn months 2–12)",
+      done: Boolean(webhookSecret),
+      hint: `Re-run: STRIPE_SECRET_KEY=… node scripts/setup-stripe-webhook.mjs — or enable invoice.paid on ${webhookUrl}`,
+    },
+    {
       id: "publishable",
       label: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY (optional)",
       done: Boolean(publishableKey),

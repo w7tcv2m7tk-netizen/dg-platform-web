@@ -80,13 +80,15 @@ Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 | Feature Flags | ❌ | ❌ |
 | Audit Logs | ✅ Schema + write path | ⚠️ Partial coverage |
 
-**Next:** Connectors reliability (ongoing) → AI on more CRM/RE workflows → Roe RE v0 depth.
+**Next:** AI on more CRM/RE workflows → Roe RE v0 depth → remaining Connectors reliability.
 
 **Shipped (Aug 2026 Core slice):** Platform Refer & Earn MVP (`/r/{code}`, Settings dashboard, invite email stub, first-paid credit); CRM lead create upserts Contact; Lead → Opportunity convert + CRM Opportunities list.
 
 **Shipped (Aug 2026 Refer & Earn P2):** Stripe `invoice.paid` monthly referral credits (months 2–12, idempotent); invite delivery via Resend when `RESEND_API_KEY` set else branded Activity queue; cash payout threshold UI (ledger stub).
 
-**Shipped (Aug 2026 Connectors):** Org WordPress connector host/key UX, `dgdev_` validation, CVH site-key requirement, Test connection probe without key rewrite.
+**Shipped (Aug 2026 Refer & Earn ops):** Webhook setup script/docs register + update `invoice.paid`; Gen 2 route acknowledges unknown Stripe events; Commerce checklist reminds Ben to enable renewals event.
+
+**Shipped (Aug 2026 Connectors):** Org WordPress connector host/key UX, `dgdev_` validation, CVH site-key requirement, Test connection probe without key rewrite; RE probe treats empty vendor inbox as connected (auth OK).
 
 **Shipped (Aug 2026 AI on CRM):** Lead/opportunity/contact AI assist — draft follow-up + summarise (template generation from Business Profile + record context).
 

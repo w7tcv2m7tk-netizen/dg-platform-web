@@ -17,7 +17,9 @@ export type PaymentWebhookEventType =
   | "subscription.updated"
   | "subscription.cancelled"
   | "refund.created"
-  | "refund.failed";
+  | "refund.failed"
+  /** Stripe sent an event we do not process — acknowledge without error */
+  | "ignored";
 
 export interface PaymentWebhookEvent {
   type: PaymentWebhookEventType;

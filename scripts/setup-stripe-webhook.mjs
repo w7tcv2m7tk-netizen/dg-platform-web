@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 /**
- * Register (or verify) Stripe webhook for DigitalGate Commerce.
+ * Register (or update) Stripe webhook for DigitalGate Gen 2.
  *
  * Usage:
  *   STRIPE_SECRET_KEY=sk_test_... node scripts/setup-stripe-webhook.mjs
  *
  * Optional:
  *   WEBHOOK_URL=https://app.digitalgate.com.au/api/webhooks/stripe
+ *
+ * Events include commerce checkout + Platform Refer & Earn monthly credits
+ * (`invoice.paid` for subscription renewals months 2–12).
  */
 
 const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
@@ -19,6 +22,8 @@ const events = [
   "checkout.session.async_payment_succeeded",
   "checkout.session.expired",
   "payment_intent.payment_failed",
+  // Platform Refer & Earn — months 2–12 accrual (see accrueMonthlyReferralCreditFromInvoice)
+  "invoice.paid",
 ];
 
 if (!secretKey) {
@@ -58,33 +63,54 @@ function encodeForm(params) {
   return form;
 }
 
+function missingEvents(enabled) {
+  const set = new Set(enabled ?? []);
+  return events.filter((e) => !set.has(e));
+}
+
 async function main() {
   const mode = secretKey.startsWith("sk_live_") ? "live" : "test";
   console.log(`Stripe mode: ${mode}`);
   console.log(`Target URL: ${webhookUrl}`);
+  console.log(`Required events: ${events.join(", ")}`);
 
-  const existing = await stripeRequest(
-    `/webhook_endpoints?limit=100`,
-  );
+  const existing = await stripeRequest(`/webhook_endpoints?limit=100`);
 
   const match = (existing.data ?? []).find((endpoint) => endpoint.url === webhookUrl);
   if (match) {
+    const missing = missingEvents(match.enabled_events);
     console.log("\n✓ Webhook already exists:");
     console.log(`  ID: ${match.id}`);
     console.log(`  Status: ${match.status}`);
     console.log(`  Events: ${(match.enabled_events ?? []).join(", ")}`);
+
+    if (missing.length) {
+      console.log(`\n→ Updating endpoint — adding missing events: ${missing.join(", ")}`);
+      const updated = await stripeRequest(
+        `/webhook_endpoints/${match.id}`,
+        "POST",
+        encodeForm({ enabled_events: events }),
+      );
+      console.log(`  Events now: ${(updated.enabled_events ?? []).join(", ")}`);
+      console.log("\n✓ Endpoint updated. No need to rotate STRIPE_WEBHOOK_SECRET.");
+    } else {
+      console.log("\n✓ All required events already enabled.");
+    }
+
     console.log(
       "\nSigning secret (whsec_…) is only shown when the endpoint is created.",
     );
     console.log(
       "Stripe Dashboard → Developers → Webhooks → this endpoint → Signing secret",
     );
+    console.log("\nVercel must have:");
+    console.log("  STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET (same Stripe mode)");
     return;
   }
 
   const body = encodeForm({
     url: webhookUrl,
-    description: "DigitalGate Commerce (Gen 2 platform)",
+    description: "DigitalGate Gen 2 (commerce + Refer & Earn)",
     enabled_events: events,
   });
 
@@ -93,6 +119,7 @@ async function main() {
   console.log("\n✓ Webhook created:");
   console.log(`  ID: ${created.id}`);
   console.log(`  URL: ${created.url}`);
+  console.log(`  Events: ${events.join(", ")}`);
   console.log(`\nAdd to Vercel (Production + Preview for test mode):`);
   console.log(`  STRIPE_SECRET_KEY=${secretKey.slice(0, 12)}...`);
   console.log(`  STRIPE_WEBHOOK_SECRET=${created.secret}`);

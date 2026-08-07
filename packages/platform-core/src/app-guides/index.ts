@@ -100,8 +100,8 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
         id: "commerce-2",
         title: "Register the webhook endpoint",
         description:
-          "In Stripe Dashboard → Developers → Webhooks, add your app URL and listen for checkout.session.completed.",
-        code: "https://app.digitalgate.com.au/api/webhooks/stripe",
+          "In Stripe Dashboard → Developers → Webhooks, add your app URL. Listen for checkout.session.completed and invoice.paid (Refer & Earn renewals). Or run: STRIPE_SECRET_KEY=sk_… node scripts/setup-stripe-webhook.mjs",
+        code: "https://app.digitalgate.com.au/api/webhooks/stripe\nEvents: checkout.session.completed, invoice.paid, …",
       },
       {
         id: "commerce-3",

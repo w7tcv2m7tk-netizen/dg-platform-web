@@ -219,7 +219,15 @@ export class StripePaymentConnector implements PaymentConnector {
       };
     }
 
-    throw new Error(`Unhandled Stripe event type: ${event.type}`);
+    // Acknowledge unknown events so Stripe does not retry (400) when the
+    // Dashboard endpoint listens to extras beyond our handled set.
+    return {
+      type: "ignored",
+      providerId: "stripe",
+      providerEventId: event.id,
+      occurredAt: new Date(event.created * 1000),
+      raw: { ignoredStripeType: event.type, stripeEventId: event.id },
+    };
   }
 
   async retrievePaidCheckoutSession(

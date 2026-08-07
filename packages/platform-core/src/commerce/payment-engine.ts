@@ -286,6 +286,10 @@ export async function processPaymentWebhookEvent(
 ) {
   const { prisma } = await import("@dg/database");
 
+  if (event.type === "ignored") {
+    return { ok: false as const, reason: "ignored_event" };
+  }
+
   if (event.type === "checkout.completed") {
     if (!event.organisationId || !event.paymentRequestId || !event.providerPaymentId) {
       return { ok: false as const, reason: "missing_metadata" };

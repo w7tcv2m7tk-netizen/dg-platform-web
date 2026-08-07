@@ -24,19 +24,21 @@ Redeploy after adding env vars.
 STRIPE_SECRET_KEY=sk_test_... node scripts/setup-stripe-webhook.mjs
 ```
 
-The script creates:
+The script creates **or updates** the endpoint:
 
 - **URL:** `https://app.digitalgate.com.au/api/webhooks/stripe`
-- **Events:** `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`, `payment_intent.payment_failed`
+- **Events:** `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`, `payment_intent.payment_failed`, **`invoice.paid`**
 
-Copy the printed `whsec_…` into Vercel as `STRIPE_WEBHOOK_SECRET`.
+`invoice.paid` is required for Platform **Refer & Earn** months 2–12 (subscription renewals). Re-run the script on an existing endpoint to add any missing events (signing secret unchanged).
+
+Copy the printed `whsec_…` into Vercel as `STRIPE_WEBHOOK_SECRET` (only shown on **create**).
 
 ## 4. Manual (Stripe Dashboard)
 
 1. [Stripe Dashboard → Webhooks](https://dashboard.stripe.com/webhooks)
-2. **Add endpoint**
+2. **Add endpoint** (or edit the existing Gen 2 URL)
 3. URL: `https://app.digitalgate.com.au/api/webhooks/stripe`
-4. Select events listed above
+4. Select events listed above — **include `invoice.paid`**
 5. Copy **Signing secret** → Vercel `STRIPE_WEBHOOK_SECRET`
 
 ## 5. Verify
@@ -52,12 +54,26 @@ Test payment flow:
 2. Pay with test card `4242 4242 4242 4242`
 3. Webhook marks payment request as **paid**
 
+## Refer & Earn (`invoice.paid`) — ops checklist
+
+Gen 2 route: `POST /api/webhooks/stripe` → `accrueMonthlyReferralCreditFromInvoice`.
+
+| Check | Detail |
+|-------|--------|
+| Endpoint events | Stripe webhook for app URL must include **`invoice.paid`** |
+| Env | `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` on Vercel (same mode) |
+| First month | Credited on `checkout.session.completed` (platform checkout), not `invoice.paid` |
+| Months 2–12 | Only `billing_reason=subscription_cycle`; idempotent on Stripe invoice id |
+| Org linkage | Invoice/sub metadata `organisation_id` **or** org `billingCustomerId` = Stripe customer |
+
+Verify GET: `curl https://app.digitalgate.com.au/api/webhooks/stripe` → `configured: true`.
+
 ## Note: two Stripe webhooks
 
 | Endpoint | Purpose |
 |----------|---------|
 | `digitalgate.com.au/.../billing/webhook` | DigitalGate **sales** (onboarding purchases) — existing WP |
-| `app.digitalgate.com.au/api/webhooks/stripe` | **Commerce** (Roe vendor fees, etc.) — Gen 2 platform |
+| `app.digitalgate.com.au/api/webhooks/stripe` | **Commerce** + **Refer & Earn** renewals — Gen 2 platform |
 
 Use the same Stripe account; create a **separate** webhook endpoint for the app URL.
 

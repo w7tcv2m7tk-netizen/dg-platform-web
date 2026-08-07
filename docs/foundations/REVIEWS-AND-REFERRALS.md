@@ -119,6 +119,8 @@ Prefer billing + Organisation fields over premature Network tables.
 | Cash payout at ~$100 | ⚠️ UI + ledger stub only (no Stripe Connect) |
 | Partner 25–30% / Reseller rates | ❌ Not productised (`commissionBps` default 2000) |
 
+**Ops (Ben):** Stripe webhook for `https://app.digitalgate.com.au/api/webhooks/stripe` must include **`invoice.paid`**. Re-run `STRIPE_SECRET_KEY=… node scripts/setup-stripe-webhook.mjs` to create/update. Vercel needs `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` (same mode). Details: [STRIPE-SETUP.md](../commerce/STRIPE-SETUP.md) § Refer & Earn.
+
 ### Timing vs Network
 
 | | Platform Referral Programme | Business Referral Network |

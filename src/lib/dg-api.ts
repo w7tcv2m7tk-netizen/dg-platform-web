@@ -294,9 +294,18 @@ export async function probeWordPressConnector(
   if (kind === "real-estate") {
     const leads = await fetchWpVendorLeads(3, connector);
     if (!leads.ok) {
+      // Auth succeeded but inbox is empty — still a healthy connector.
+      if (leads.code === "empty") {
+        return {
+          ok: true,
+          kind,
+          detail: "Connected — 0 vendor leads (auth OK)",
+          leadCount: 0,
+        };
+      }
       return {
         ok: false,
-        code: leads.code === "empty" ? "upstream_error" : leads.code,
+        code: leads.code,
         message: leads.message,
         status: leads.status,
       };
