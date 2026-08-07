@@ -28,7 +28,6 @@ body {
 
 .dg-branded-sidebar {
   background: var(--org-bg-elevated, rgb(2 6 23));
-  border-color: var(--org-border-subtle, rgb(30 41 59));
 }
 
 .dg-branded-header {

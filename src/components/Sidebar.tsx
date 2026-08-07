@@ -40,7 +40,7 @@ export function Sidebar({
     <aside
       className={
         variant === "fixed"
-          ? "dg-branded-sidebar flex h-full w-56 shrink-0 flex-col border-r px-4 py-6"
+          ? "dg-branded-sidebar flex h-full w-56 shrink-0 flex-col border-r border-slate-800 px-4 py-6"
           : "flex h-full min-h-0 flex-col"
       }
     >

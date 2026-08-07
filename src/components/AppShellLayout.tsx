@@ -101,7 +101,7 @@ export function AppShellLayout({
               onClick={close}
             />
             <aside
-              className={`dg-branded-sidebar absolute inset-y-0 left-0 flex w-[min(18rem,88vw)] flex-col border-r px-4 py-5 shadow-2xl transition-transform duration-200 ease-out ${
+              className={`dg-branded-sidebar absolute inset-y-0 left-0 flex w-[min(18rem,88vw)] flex-col border-r border-slate-800 px-4 py-5 shadow-2xl transition-transform duration-200 ease-out ${
                 open ? "translate-x-0" : "-translate-x-full"
               }`}
               style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}
