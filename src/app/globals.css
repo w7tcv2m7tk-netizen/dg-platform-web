@@ -73,20 +73,24 @@ body {
   padding: 1.5rem;
 }
 
-/* Apps & plan catalog only — beat org brand CSS / washed .dg-card tokens. */
+/* Apps & plan catalog — visible but quiet (1px slate-700, soft lift). */
 .dg-plan-card {
   border-radius: 1rem !important;
-  border: 2px solid #64748b !important;
-  background: #1e293b !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid #334155 !important;
+  background: rgba(15, 23, 42, 0.72) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important;
   padding: 1.5rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dg-plan-card:hover {
+  border-color: #475569 !important;
 }
 
 .dg-plan-card[data-active="true"] {
   border-color: #3b82f6 !important;
-  box-shadow:
-    0 0 0 1px rgba(59, 130, 246, 0.4),
-    0 8px 24px rgba(0, 0, 0, 0.35) !important;
+  background: rgba(59, 130, 246, 0.06) !important;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25) !important;
 }
 
 @layer components {

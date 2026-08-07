@@ -97,7 +97,7 @@ function CatalogAppCard({
 
   return (
     <div
-      className={`dg-plan-card flex flex-col border-2 border-slate-500 bg-slate-900 shadow-lg ${isLeft ? "text-left" : "text-center"}`}
+      className={`dg-plan-card flex flex-col ${isLeft ? "text-left" : "text-center"}`}
     >
       <div className="flex items-start justify-between gap-2">
         <span className="text-2xl" aria-hidden>
@@ -223,11 +223,7 @@ export function AppsPlanCatalog() {
               <div
                 key={tier.key}
                 data-active={isActive ? "true" : undefined}
-                className={`dg-plan-card relative flex flex-col border-2 shadow-lg transition ${
-                  isActive
-                    ? "border-blue-500 bg-slate-900 ring-1 ring-blue-500/40"
-                    : "border-slate-500 bg-slate-900 hover:border-slate-400"
-                }`}
+                className="dg-plan-card relative flex flex-col"
               >
                 {tier.popular ? (
                   <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-blue-600 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
@@ -394,7 +390,7 @@ export function AppsPlanCatalog() {
           {PLATFORM_ADDON_CATALOG.map((addon) => (
             <div
               key={addon.key}
-              className="dg-plan-card border-2 border-slate-500 bg-slate-900 text-left shadow-lg"
+              className="dg-plan-card text-left"
             >
               <div className="text-2xl" aria-hidden>
                 {addon.icon}
