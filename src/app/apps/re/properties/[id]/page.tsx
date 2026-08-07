@@ -12,6 +12,7 @@ import {
 
 import { PropertyContractPanel } from "@/components/re/PropertyContractPanel";
 import { PropertyOffersPanel } from "@/components/re/PropertyOffersPanel";
+import { PublishToWebsiteButton } from "@/components/re/PublishToWebsiteButton";
 
 import { PropertyStatusSelect } from "@/components/re/PropertyStatusSelect";
 import { RefreshAddressButton } from "@/components/re/RefreshAddressButton";
@@ -77,6 +78,8 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
   const fullAddress = formatPropertyAddress(property);
   const formattedAddress = property.metadata?.formatted_address as string | undefined;
+  const wpPermalink = property.externalRefs?.wp_property_permalink as string | undefined;
+  const wpPropertyId = property.externalRefs?.wp_property_id as number | string | undefined;
 
   return (
     <>
@@ -109,6 +112,21 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                   {(property.listingPriceCents / 100).toLocaleString("en-AU")}
                 </p>
               ) : null}
+            </div>
+
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">Website listing</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Push this property to the connected WordPress site (Roe Realty).
+              </p>
+              <div className="mt-4">
+                <PublishToWebsiteButton
+                  propertyId={property.id}
+                  status={property.status}
+                  permalink={wpPermalink}
+                  wpPropertyId={wpPropertyId}
+                />
+              </div>
             </div>
 
             <div className="dg-card">

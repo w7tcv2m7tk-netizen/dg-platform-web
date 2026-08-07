@@ -4,6 +4,7 @@ import { writeAuditLog } from "../audit";
 import { platformEvents } from "../events";
 import { updateLeadStage, type VendorStage } from "../leads";
 import { leadStageForPropertyStatus } from "../real-estate/pipeline";
+import { maybeAutoPublishPropertyToWordPress } from "../connectors/wordpress/sync-property-publish";
 import {
   addressMetadataFromParsed,
   resolveAddress,
@@ -26,6 +27,8 @@ export const PROPERTY_STATUSES = [
 ] as const;
 
 export type PropertyStatus = (typeof PROPERTY_STATUSES)[number];
+
+const WEBSITE_PUBLISH_STATUSES = new Set(["listed", "under_offer", "sold", "withdrawn"]);
 
 export interface CreatePropertyInput {
   organisationId: string;
@@ -488,7 +491,18 @@ export async function updatePropertyStatus(
     }
   }
 
-  return serializeProperty(property);
+  await maybeAutoPublishPropertyToWordPress({
+    organisationId,
+    propertyId,
+    status,
+    actorId,
+  }).catch(() => null);
+
+  return serializeProperty(
+    (await prisma.property.findFirst({
+      where: { id: propertyId, organisationId, deletedAt: null },
+    })) ?? property,
+  );
 }
 
 export async function updatePropertyListing(
@@ -533,7 +547,21 @@ export async function updatePropertyListing(
     },
   });
 
-  return serializeProperty(property);
+  const refs = (property.externalRefs as Record<string, unknown> | null) ?? {};
+  if (refs.wp_property_id || WEBSITE_PUBLISH_STATUSES.has(property.status)) {
+    await maybeAutoPublishPropertyToWordPress({
+      organisationId,
+      propertyId,
+      status: property.status,
+      actorId,
+    }).catch(() => null);
+  }
+
+  return serializeProperty(
+    (await prisma.property.findFirst({
+      where: { id: propertyId, organisationId, deletedAt: null },
+    })) ?? property,
+  );
 }
 
 export async function getPropertyForLead(organisationId: string, leadId: string) {

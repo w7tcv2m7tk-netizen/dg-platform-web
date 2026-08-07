@@ -57,6 +57,12 @@ model Membership {
   status         String   @default("active")
   email          String?
   displayName    String?  @map("display_name")
+  /** Public-facing bio / about — used for agent profiles and team pages */
+  bio            String?  @db.Text
+  jobTitle       String?  @map("job_title")
+  phone          String?
+  /** WordPress agent post ID when synced */
+  externalRefs   Json?    @map("external_refs")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 

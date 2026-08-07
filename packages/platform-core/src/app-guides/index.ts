@@ -205,6 +205,14 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
         href: "/apps/re/bookings",
         hrefLabel: "Open bookings",
       },
+      {
+        id: "re-8",
+        title: "Publish a listing to the website",
+        description:
+          "Set a property status to Listed (or use Publish to website). Gen 2 upserts the Roe property CPT via digitalgate/v1/properties.",
+        href: "/apps/re/properties",
+        hrefLabel: "Open properties",
+      },
     ],
     envVars: [
       {

@@ -3,6 +3,7 @@ import {
   getProperty,
   listPropertyActivities,
   PROPERTY_STATUSES,
+  publishPropertyToWordPress,
   updatePropertyListing,
   updatePropertyStatus,
   updatePropertyContract,
@@ -44,6 +45,31 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
   const { id } = await params;
   const body = await req.json().catch(() => null);
+
+  if (body?.action === "publish_to_website") {
+    const result = await publishPropertyToWordPress({
+      organisationId: session.organisationId,
+      propertyId: id,
+      actorId: session.clerkUserId,
+      force: Boolean(body.force),
+    });
+
+    if (!result.ok) {
+      const status =
+        result.reason === "not_found"
+          ? 404
+          : result.reason === "skipped_status"
+            ? 422
+            : 502;
+      return NextResponse.json(
+        { error: { code: result.reason, message: result.message } },
+        { status },
+      );
+    }
+
+    const property = await getProperty(session.organisationId, id);
+    return NextResponse.json({ data: { property, publish: result } });
+  }
 
   if (body?.action === "geocode_address") {
     const updated = await geocodePropertyAddress(
