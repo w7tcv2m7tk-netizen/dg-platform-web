@@ -11,6 +11,8 @@ export type OrgWordPressConnectorSettings = {
   lastBuyerLeadSync?: Record<string, unknown>;
   lastBookingSyncAt?: string;
   lastBookingSync?: Record<string, unknown>;
+  lastAccBookingSyncAt?: string;
+  lastAccBookingSync?: Record<string, unknown>;
   lastPropertySyncAt?: string;
   lastPropertySync?: Record<string, unknown>;
 };
