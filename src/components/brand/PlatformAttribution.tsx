@@ -6,7 +6,7 @@ import { BRAND_DEFAULT } from "@/lib/brand";
 
 export function PlatformAttribution({ className = "" }: { className?: string }) {
   return (
-    <div className={`border-t border-[var(--org-border-subtle)] pt-3 ${className}`}>
+    <div className={`border-t border-slate-800 pt-3 ${className}`}>
       <Link
         href="https://digitalgate.com.au"
         target="_blank"

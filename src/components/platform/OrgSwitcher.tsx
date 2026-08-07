@@ -76,7 +76,7 @@ export function OrgSwitcher({
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={ pending}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border dg-branded-surface px-3 py-2.5 text-left transition hover:border-[var(--org-border)]"
+        className="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-2.5 text-left transition hover:border-slate-600 hover:bg-slate-900"
         aria-expanded={ open}
         aria-haspopup="listbox"
       >
@@ -92,7 +92,7 @@ export function OrgSwitcher({
       </button>
 
       { open ? (
-        <div className="absolute left-0 right-0 z-50 mt-1 rounded-xl border border-[var(--org-border-subtle)] bg-[var(--org-bg-elevated)] py-1 shadow-xl">
+        <div className="absolute left-0 right-0 z-50 mt-1 rounded-xl border border-slate-700 bg-slate-950 py-1 shadow-xl">
           <ul className="max-h-48 overflow-y-auto" role="listbox">
             { organisations.map((org) => (
               <li key={ org.organisationId}>
@@ -102,7 +102,7 @@ export function OrgSwitcher({
                   aria-selected={ org.organisationId === activeOrganisationId}
                   onClick={() => switchOrg(org.organisationId)}
                   disabled={ pending}
-                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-[var(--org-bg-surface-hover)] ${
+                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-800/80 ${
                     org.organisationId === activeOrganisationId
                       ? "bg-blue-500/10 text-blue-200"
                       : "text-slate-200"
@@ -117,7 +117,7 @@ export function OrgSwitcher({
             ))}
           </ul>
 
-          <div className="border-t border-[var(--org-border-subtle)] p-3">
+          <div className="border-t border-slate-800 p-3">
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
               Add business
             </p>
@@ -127,14 +127,14 @@ export function OrgSwitcher({
                 value={ newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="e.g. Roe Realty"
-                className="dg-input px-2.5 py-1.5 text-sm"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-sm text-white placeholder:text-slate-600"
               />
               <select
                 value={ newTemplate}
                 onChange={(e) =>
                   setNewTemplate(e.target.value as "real-estate" | "accommodation" | "default")
                 }
-                className="dg-input px-2.5 py-1.5 text-sm text-slate-200"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-sm text-slate-200"
               >
                 <option value="real-estate">Real Estate template</option>
                 <option value="accommodation">Accommodation template (CVH)</option>
