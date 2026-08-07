@@ -60,10 +60,13 @@ Open [http://localhost:3000](http://localhost:3000):
    | `DG_WP_CONNECTOR_BASE_URL` | `https://roerealty.com.au/wp-json/digitalgate/v1` |
    | **`DATABASE_URL`** | **Neon pooled connection string (Platform 1.0)** |
    | **`CLERK_WEBHOOK_SIGNING_SECRET`** | **From Clerk webhook endpoint (`whsec_…`)** |
+   | **`BLOB_READ_WRITE_TOKEN`** | **Vercel Storage → Blob → token (`vercel_blob_rw_…`) — logo/icon/listing uploads** |
 
    Use **Production** Clerk keys (`pk_live_` / `sk_live_`) in Vercel — not test keys.
 
    For Neon, prefer the **Pooled** connection string (serverless-friendly).
+
+   **Blob (required for uploads on Vercel):** Project → **Storage** → create a **Blob** store (or open existing) → copy **`BLOB_READ_WRITE_TOKEN`** → **Settings → Environment Variables** → add for Production (+ Preview). Redeploy after saving. Without this, logo/icon uploads return *Set BLOB_READ_WRITE_TOKEN in Vercel…* (serverless cannot write to `public/`).
 
 5. Deploy. Note the `*.vercel.app` URL for DNS step.
 
