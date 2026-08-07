@@ -191,11 +191,11 @@ export function AppsPlanCatalog() {
           <a href="#platform" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
             1 · Platform
           </a>
-          <a href="#addons" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
-            Add-ons
-          </a>
           <a href="#apps" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
             2 · Apps
+          </a>
+          <a href="#addons" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
+            Add-ons
           </a>
           <a
             href={`${PRICING_PAGE_URL}#support-plans`}
@@ -308,37 +308,6 @@ export function AppsPlanCatalog() {
         </div>
       </section>
 
-      <section id="addons" className="scroll-mt-24">
-        <SectionHeader
-          label="➕ Platform add-ons"
-          title="Extend your platform"
-          description="Extra users and white label — add to any tier. Purchase on the website; toggles here control sidebar apps only."
-        />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {PLATFORM_ADDON_CATALOG.map((addon) => (
-            <div
-              key={addon.key}
-              className="dg-card !border-slate-600 !bg-slate-800 text-left shadow-[0_8px_24px_rgba(0,0,0,0.28)]"
-            >
-              <div className="text-2xl" aria-hidden>
-                {addon.icon}
-              </div>
-              <h3 className="mt-2 font-semibold text-white">{addon.label}</h3>
-              <p className="mt-1 text-sm font-semibold text-blue-400">{addon.price}</p>
-              <p className="mt-2 text-xs text-slate-400">{addon.description}</p>
-              <a
-                href={addon.pricingHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-block rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-300 hover:border-blue-500 hover:text-white"
-              >
-                Add on ↗
-              </a>
-            </div>
-          ))}
-        </div>
-      </section>
-
       <section id="apps" className="scroll-mt-24 space-y-10">
         <SectionHeader
           label="🧩 2 · Apps"
@@ -411,6 +380,37 @@ export function AppsPlanCatalog() {
               />
             ))}
           </div>
+        </div>
+      </section>
+
+      <section id="addons" className="scroll-mt-24">
+        <SectionHeader
+          label="➕ Platform add-ons"
+          title="Extend your platform"
+          description="Extra users and white label — add to any tier. Purchase on the website; toggles here control sidebar apps only."
+        />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {PLATFORM_ADDON_CATALOG.map((addon) => (
+            <div
+              key={addon.key}
+              className="dg-card !border-slate-600 !bg-slate-800 text-left shadow-[0_8px_24px_rgba(0,0,0,0.28)]"
+            >
+              <div className="text-2xl" aria-hidden>
+                {addon.icon}
+              </div>
+              <h3 className="mt-2 font-semibold text-white">{addon.label}</h3>
+              <p className="mt-1 text-sm font-semibold text-blue-400">{addon.price}</p>
+              <p className="mt-2 text-xs text-slate-400">{addon.description}</p>
+              <a
+                href={addon.pricingHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-block rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-300 hover:border-blue-500 hover:text-white"
+              >
+                Add on ↗
+              </a>
+            </div>
+          ))}
         </div>
       </section>
 
