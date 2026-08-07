@@ -1,4 +1,5 @@
 import { resolveUserMembership } from "@dg/platform-core";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { writeActiveOrganisationId } from "@/lib/active-org-cookie";
@@ -27,6 +28,8 @@ export async function POST(req: Request) {
   }
 
   await writeActiveOrganisationId(organisationId);
+  revalidateTag("portal-me", "max");
+  revalidateTag(`portal-me-${session.clerkUserId}`, "max");
 
   return NextResponse.json({
     data: {

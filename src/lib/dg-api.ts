@@ -135,9 +135,11 @@ export async function fetchPortalMe(
 
   try {
     const url = `${getApiBase()}/portal/me?email=${encodeURIComponent(email)}`;
+    // Short SWR — shell remounts / soft navs should not block on a fresh WP round-trip every time.
+    // Org switch and onboarding still force fresh reads via revalidateTag("portal-me").
     const res = await fetch(url, {
       headers,
-      cache: "no-store",
+      next: { revalidate: 45, tags: ["portal-me", clerkUserId ? `portal-me-${clerkUserId}` : "portal-me-anon"] },
     });
     const data = (await res.json().catch(() => null)) as PortalProfile | null;
     if (!res.ok || !data || typeof data.linked !== "boolean") {

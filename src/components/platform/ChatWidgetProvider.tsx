@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 
 import { SupportChatWidget } from "@/components/support/SupportChatPanel";
 
@@ -16,6 +17,12 @@ type ChatWidgetContextValue = {
 };
 
 const ChatWidgetContext = createContext<ChatWidgetContextValue | null>(null);
+
+function shouldShowFloatingChat(pathname: string | null, forced?: boolean) {
+  if (forced === false) return false;
+  if (!pathname) return true;
+  return !(pathname.startsWith("/command") || pathname.startsWith("/support"));
+}
 
 export function useChatWidget() {
   const ctx = useContext(ChatWidgetContext);
@@ -34,8 +41,10 @@ export function ChatWidgetProvider({
   userName?: string;
   showFloatingChat?: boolean;
 }) {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [pendingDraft, setPendingDraft] = useState<string | undefined>();
+  const floating = shouldShowFloatingChat(pathname, showFloatingChat);
 
   const openSupportChat = useCallback((draft?: string) => {
     if (draft?.trim()) setPendingDraft(draft.trim());
@@ -47,7 +56,7 @@ export function ChatWidgetProvider({
   return (
     <ChatWidgetContext.Provider value={value}>
       {children}
-      {showFloatingChat ? (
+      {floating ? (
         <SupportChatWidget
           userName={userName}
           open={open}

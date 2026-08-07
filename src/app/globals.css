@@ -21,6 +21,45 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Soft route transitions (experimental.viewTransition) — respect reduced motion. */
+::view-transition-old(.dg-nav-fade),
+::view-transition-new(.dg-nav-fade) {
+  animation-duration: 160ms;
+  animation-timing-function: ease-out;
+}
+
+::view-transition-old(.dg-nav-fade) {
+  animation-name: dg-fade-out;
+}
+
+::view-transition-new(.dg-nav-fade) {
+  animation-name: dg-fade-in;
+}
+
+@keyframes dg-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes dg-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  .animate-pulse {
+    animation: none !important;
+  }
+}
+
 .dg-branded-shell {
   background: var(--org-shell-gradient, var(--org-bg-base, #020617));
   color: #f1f5f9;

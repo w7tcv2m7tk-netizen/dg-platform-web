@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { canAccessCommandCentre } from "@dg/platform-core";
 
-import { PlatformShellLoader } from "@/components/PlatformShellLoader";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function CommandLayout({
@@ -24,5 +23,5 @@ export default async function CommandLayout({
     redirect("/dashboard");
   }
 
-  return <PlatformShellLoader showFloatingChat={false}>{children}</PlatformShellLoader>;
+  return children;
 }

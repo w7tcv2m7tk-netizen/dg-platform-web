@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useState,
+  ViewTransition,
   type ReactNode,
 } from "react";
 import { usePathname } from "next/navigation";
@@ -114,7 +115,9 @@ export function AppShellLayout({
             </aside>
           </div>
 
-          {children}
+          <ViewTransition default="dg-nav-fade" enter="dg-nav-fade" exit="dg-nav-fade">
+            <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+          </ViewTransition>
         </div>
         </div>
       </MobileNavContext.Provider>

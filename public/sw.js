@@ -1,5 +1,5 @@
 /* DigitalGate PWA service worker — offline shell + static asset cache */
-const VERSION = "dg-v2";
+const VERSION = "dg-v3";
 const STATIC_CACHE = `dg-static-${VERSION}`;
 const RUNTIME_CACHE = `dg-runtime-${VERSION}`;
 
@@ -13,11 +13,9 @@ const PRECACHE = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches
-      .open(STATIC_CACHE)
-      .then((cache) => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting()),
+    caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE)),
   );
+  // Stay in waiting until the client accepts the update (banner → SKIP_WAITING).
 });
 
 self.addEventListener("activate", (event) => {
@@ -35,12 +33,20 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
 function isStaticAsset(pathname) {
   return (
     pathname.startsWith("/_next/static/") ||
     pathname.startsWith("/brand/") ||
     pathname === "/icon.png" ||
-    pathname === "/apple-icon.png"
+    pathname === "/apple-icon.png" ||
+    pathname === "/offline.html" ||
+    pathname === "/manifest.webmanifest"
   );
 }
 
@@ -52,6 +58,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  // Never cache HTML navigations or API — always network (offline fallback only).
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request).catch(() =>
@@ -60,6 +67,8 @@ self.addEventListener("fetch", (event) => {
     );
     return;
   }
+
+  if (url.pathname.startsWith("/api/")) return;
 
   if (isStaticAsset(url.pathname)) {
     event.respondWith(
@@ -74,6 +83,7 @@ self.addEventListener("fetch", (event) => {
           })
           .catch(() => cached);
 
+        // Stale-while-revalidate for hashed/_next and brand assets.
         return cached || network;
       }),
     );

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import { clerkAppearance } from "@/lib/clerk-appearance";
@@ -16,7 +16,20 @@ import "./clerk-overrides.css";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+  preload: true,
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#020617" },
+    { media: "(prefers-color-scheme: light)", color: "#020617" },
+  ],
+  colorScheme: "dark",
+};
 
 export const metadata: Metadata = {
   title: "DigitalGate Business Platform",
@@ -30,10 +43,16 @@ export const metadata: Metadata = {
     title: "DigitalGate",
     statusBarStyle: "black-translucent",
   },
+  formatDetection: {
+    telephone: false,
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [{ url: BRAND_DEFAULT.icon, type: "image/png" }],
-    apple: [{ url: "/apple-icon.png", type: "image/png" }],
+    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
   },
 };
 

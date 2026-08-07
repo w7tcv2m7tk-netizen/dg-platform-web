@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { canAccessCommandCentre, filterEnabledAppsForOperatorOrg } from "@dg/platform-core";
 
 import { PlatformShell } from "@/components/PlatformShell";
@@ -14,9 +15,13 @@ export async function PlatformShellLoader({
   children: React.ReactNode;
   showFloatingChat?: boolean;
 }) {
-  const [{ user, session }, , enabledIds, brandTheme] = await Promise.all([
+  // Don't block first paint on WordPress→Postgres onboarding sync.
+  after(() => {
+    void ensureOrganisationOnboardingSync().catch(() => null);
+  });
+
+  const [{ user, session }, enabledIds, brandTheme] = await Promise.all([
     getPlatformPageContext(),
-    ensureOrganisationOnboardingSync().catch(() => null),
     getOrgEnabledAppIdsCached(),
     getOrgBrandThemeCached(),
   ]);
