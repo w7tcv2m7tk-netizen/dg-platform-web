@@ -8,6 +8,7 @@ import {
   fetchWpAccommodationSummary,
   fetchWpAccommodationUnits,
   listWpAccommodationSites,
+  deleteWpAccommodationBookings,
   patchWpAccommodationBookings,
   patchWpAccommodationGuests,
   patchWpAccommodationHousekeeping,
@@ -226,6 +227,57 @@ export async function PATCH(req: Request) {
       { error: { code: result.code, message: result.message } },
       { status: 422 },
     );
+  }
+
+  return NextResponse.json({ data: result.data });
+}
+
+export async function DELETE(req: Request) {
+  const session = await requirePlatformAuth(req);
+  if (isNextResponse(session)) return session;
+
+  const body = await req.json().catch(() => ({}));
+  const resource = (body.resource as string | undefined) ?? "bookings";
+
+  if (resource !== "bookings") {
+    return NextResponse.json(
+      { error: { code: "unsupported_resource", message: "DELETE only supports resource=bookings" } },
+      { status: 400 },
+    );
+  }
+
+  const ids: number[] = [];
+  if (Array.isArray(body.ids)) {
+    for (const raw of body.ids) {
+      const id = typeof raw === "number" ? raw : Number(raw);
+      if (Number.isFinite(id) && id > 0) ids.push(id);
+    }
+  } else if (typeof body.id === "number" && body.id > 0) {
+    ids.push(body.id);
+  }
+
+  if (!ids.length) {
+    return NextResponse.json(
+      { error: { code: "missing_ids", message: "ids[] is required" } },
+      { status: 400 },
+    );
+  }
+
+  const connector = await accommodationConnectorForSession(session.organisationId);
+  const result = await deleteWpAccommodationBookings(ids, connector);
+  if (!result.ok) {
+    return NextResponse.json(
+      { error: { code: result.code, message: result.message } },
+      { status: 422 },
+    );
+  }
+
+  // Mirror soft-cancel into Postgres StayBooking when present.
+  for (const id of ids) {
+    await updateStayBooking(session.organisationId, {
+      externalWpId: id,
+      status: "cancelled",
+    }).catch(() => null);
   }
 
   return NextResponse.json({ data: result.data });

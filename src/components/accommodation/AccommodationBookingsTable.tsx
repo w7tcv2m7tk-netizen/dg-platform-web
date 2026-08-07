@@ -88,6 +88,44 @@ export function AccommodationBookingsTable({
     router.refresh();
   }
 
+  async function deleteRow(row: WpAccBookingRow) {
+    const label = row.guest_name || row.ref || `#${row.id}`;
+    const dates =
+      row.checkin && row.checkout ? ` (${row.checkin} → ${row.checkout})` : "";
+    if (
+      !window.confirm(
+        `Cancel booking “${label}”${dates}?\n\nThis soft-deletes the booking (status → cancelled). It will free the dates on the calendar and drop from the iCal export. OTA-sourced rows keep their history so a later sync can restore them if they reappear on Airbnb/Booking.com.`,
+      )
+    ) {
+      return;
+    }
+
+    setPending(true);
+    setMessage(null);
+    setSaveError(null);
+    const res = await fetch("/api/v1/accommodation", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        resource: "bookings",
+        ids: [row.id],
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setPending(false);
+    if (!res.ok) {
+      setSaveError(
+        json.error?.message ??
+          "Could not cancel booking — deploy DG Platform plugin v10.60.0+ on CVH.",
+      );
+      return;
+    }
+    setEditingId(null);
+    setRows((prev) => prev.filter((r) => r.id !== row.id));
+    setMessage(`Cancelled booking ${row.ref ?? row.id}`);
+    router.refresh();
+  }
+
   return (
     <div className="space-y-3">
       {siteLabel || total != null ? (
@@ -121,6 +159,7 @@ export function AccommodationBookingsTable({
             <tbody className="divide-y divide-slate-800">
               {rows.map((b) => {
                 const editing = editingId === b.id;
+                const isCancelled = (b.status ?? "").toLowerCase() === "cancelled";
                 return (
                   <tr key={b.id} className="hover:bg-slate-900/40 align-top">
                     <td className="px-4 py-3 font-mono text-xs text-slate-400">
@@ -240,13 +279,25 @@ export function AccommodationBookingsTable({
                           </button>
                         </div>
                       ) : (
-                        <button
-                          type="button"
-                          onClick={() => setEditingId(b.id)}
-                          className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300 hover:border-blue-500 hover:text-white"
-                        >
-                          Edit
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setEditingId(b.id)}
+                            className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300 hover:border-blue-500 hover:text-white"
+                          >
+                            Edit
+                          </button>
+                          {!isCancelled ? (
+                            <button
+                              type="button"
+                              disabled={pending}
+                              onClick={() => void deleteRow(b)}
+                              className="rounded-full border border-red-900/60 px-3 py-1 text-xs text-red-300 hover:border-red-500 hover:text-red-200 disabled:opacity-50"
+                            >
+                              Delete
+                            </button>
+                          ) : null}
+                        </div>
                       )}
                     </td>
                   </tr>

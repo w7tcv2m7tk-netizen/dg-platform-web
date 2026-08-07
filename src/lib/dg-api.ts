@@ -1024,6 +1024,23 @@ export async function patchWpAccommodationBookings(
   );
 }
 
+/** Soft-cancel bookings on WordPress (status=cancelled). Requires plugin v10.60.0+. */
+export async function deleteWpAccommodationBookings(
+  ids: number[],
+  connector?: WpConnectorOverride,
+) {
+  const site = resolveAccConnector(null, connector);
+  return wpConnectorFetch<{ ok?: boolean; cancelled?: unknown[]; count?: number }>(
+    "/accommodation/bookings",
+    {
+      baseUrl: site.baseUrl,
+      apiKey: site.apiKey,
+      method: "DELETE",
+      body: { ids },
+    },
+  );
+}
+
 export async function patchWpAccommodationGuests(
   updates: Array<Record<string, unknown>>,
   connector?: WpConnectorOverride,
