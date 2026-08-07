@@ -825,7 +825,11 @@ export type WpAccAvailabilityUnit = {
   listing_status?: string;
   weekday_rate?: number;
   weekend_rate?: number;
+  cleaning_fee?: number;
+  /** Merged bookings + manual blocks (legacy). Prefer manual_blocked_dates for operator UI. */
   blocked_dates?: string[];
+  /** Operator manual blocks only (dg_blocked_dates). Requires plugin v10.62.0+. */
+  manual_blocked_dates?: string[];
   bookings?: WpAccBookingRow[];
 };
 

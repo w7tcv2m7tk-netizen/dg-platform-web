@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { WpAccAvailabilityUnit, WpAccBookingRow } from "@/lib/dg-api";
@@ -12,7 +12,7 @@ export const CHANNEL_COLORS = {
   airbnb: { bg: "#FF5A5F", label: "Airbnb" },
   bookingcom: { bg: "#003580", label: "Booking.com" },
   completed: { bg: "rgba(100, 116, 139, 0.85)", label: "Completed" },
-  blocked: { bg: "rgba(51, 65, 85, 0.95)", label: "Blocked" },
+  blocked: { bg: "rgba(51, 65, 85, 0.95)", label: "Manual block" },
   open: { bg: "rgba(6, 78, 59, 0.45)", label: "Open" },
 } as const;
 
@@ -112,6 +112,31 @@ function bookingOnDay(unit: WpAccAvailabilityUnit, day: string) {
   return (unit.bookings ?? []).find((b) => bookingOccupiesNight(b, day));
 }
 
+/** Prefer explicit manual list; fall back to merged blocked_dates minus booking nights. */
+function manualBlockedSet(unit: WpAccAvailabilityUnit): Set<string> {
+  if (unit.manual_blocked_dates?.length) {
+    return new Set(unit.manual_blocked_dates);
+  }
+  if (unit.manual_blocked_dates && unit.manual_blocked_dates.length === 0) {
+    return new Set();
+  }
+  // Older plugin: derive by subtracting booking nights from merged blocked_dates.
+  const merged = new Set(unit.blocked_dates ?? []);
+  for (const b of unit.bookings ?? []) {
+    if (!b.checkin || !b.checkout) continue;
+    let cur = b.checkin;
+    while (cur < b.checkout) {
+      merged.delete(cur);
+      cur = addDays(cur, 1);
+    }
+  }
+  return merged;
+}
+
+function isManuallyBlocked(unit: WpAccAvailabilityUnit, day: string) {
+  return manualBlockedSet(unit).has(day);
+}
+
 function flattenBookings(units: WpAccAvailabilityUnit[]) {
   const rows: Array<WpAccBookingRow & { unitTitle: string }> = [];
   for (const unit of units) {
@@ -122,10 +147,15 @@ function flattenBookings(units: WpAccAvailabilityUnit[]) {
   return rows.sort((a, b) => (a.checkin ?? "").localeCompare(b.checkin ?? ""));
 }
 
+function formatMoney(n?: number) {
+  if (n == null || Number.isNaN(n)) return "—";
+  return `$${n}`;
+}
+
 export function AccommodationAvailabilityBoard({
   from,
   to,
-  units,
+  units: initialUnits,
   error,
   siteLabel,
 }: {
@@ -140,6 +170,55 @@ export function AccommodationAvailabilityBoard({
   const [anchor, setAnchor] = useState(from);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [units, setUnits] = useState(initialUnits);
+  const [selectedId, setSelectedId] = useState<number | null>(
+    initialUnits[0]?.id ?? null,
+  );
+  const [pendingBlock, setPendingBlock] = useState<string | null>(null);
+  const [blockMsg, setBlockMsg] = useState<string | null>(null);
+  const [blockError, setBlockError] = useState<string | null>(null);
+  const [rateDraft, setRateDraft] = useState<{
+    weekday_rate: string;
+    weekend_rate: string;
+    cleaning_fee: string;
+  }>({ weekday_rate: "", weekend_rate: "", cleaning_fee: "" });
+  const [savingRates, setSavingRates] = useState(false);
+  const [rateMsg, setRateMsg] = useState<string | null>(null);
+  const [rateError, setRateError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUnits(initialUnits);
+  }, [initialUnits]);
+
+  useEffect(() => {
+    if (selectedId == null || !units.some((u) => u.id === selectedId)) {
+      setSelectedId(units[0]?.id ?? null);
+    }
+  }, [units, selectedId]);
+
+  const selected = useMemo(
+    () => units.find((u) => u.id === selectedId) ?? null,
+    [units, selectedId],
+  );
+
+  useEffect(() => {
+    if (!selected) {
+      setRateDraft({ weekday_rate: "", weekend_rate: "", cleaning_fee: "" });
+      return;
+    }
+    setRateDraft({
+      weekday_rate:
+        selected.weekday_rate != null ? String(selected.weekday_rate) : "",
+      weekend_rate:
+        selected.weekend_rate != null ? String(selected.weekend_rate) : "",
+      cleaning_fee:
+        selected.cleaning_fee != null ? String(selected.cleaning_fee) : "",
+    });
+    setRateMsg(null);
+    setRateError(null);
+    // Intentionally only when the selected unit changes — not on every rate/block patch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync draft on unit switch only
+  }, [selected?.id]);
 
   const weekStart = startOfWeek(anchor);
   const weekDays = daysBetween(weekStart, addDays(weekStart, 6));
@@ -167,12 +246,147 @@ export function AccommodationAvailabilityBoard({
     router.refresh();
   }
 
+  async function saveRates() {
+    if (!selected) return;
+    setSavingRates(true);
+    setRateMsg(null);
+    setRateError(null);
+    const weekday =
+      rateDraft.weekday_rate === "" ? undefined : Number(rateDraft.weekday_rate);
+    const weekend =
+      rateDraft.weekend_rate === "" ? undefined : Number(rateDraft.weekend_rate);
+    const cleaning =
+      rateDraft.cleaning_fee === "" ? undefined : Number(rateDraft.cleaning_fee);
+    const res = await fetch("/api/v1/accommodation", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        resource: "units",
+        updates: [
+          {
+            id: selected.id,
+            weekday_rate: weekday,
+            weekend_rate: weekend,
+            cleaning_fee: cleaning,
+          },
+        ],
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setSavingRates(false);
+    if (!res.ok) {
+      setRateError(
+        json.error?.message ??
+          "Could not save rates — deploy plugin v10.58.0+ on CVH.",
+      );
+      return;
+    }
+    setUnits((prev) =>
+      prev.map((u) =>
+        u.id === selected.id
+          ? {
+              ...u,
+              weekday_rate: weekday,
+              weekend_rate: weekend,
+              cleaning_fee: cleaning,
+            }
+          : u,
+      ),
+    );
+    setRateMsg(`Saved rates for ${selected.title}`);
+    router.refresh();
+  }
+
+  async function toggleManualBlock(unitId: number, day: string) {
+    const unit = units.find((u) => u.id === unitId);
+    if (!unit) return;
+    if (bookingOnDay(unit, day)) {
+      setBlockError("That night has a booking — cancel or move the stay first.");
+      return;
+    }
+
+    const blocked = isManuallyBlocked(unit, day);
+    const key = `${unitId}:${day}`;
+    const snapshot = units;
+    setPendingBlock(key);
+    setBlockMsg(null);
+    setBlockError(null);
+
+    // Optimistic update
+    setUnits((prev) =>
+      prev.map((u) => {
+        if (u.id !== unitId) return u;
+        const set = manualBlockedSet(u);
+        if (blocked) set.delete(day);
+        else set.add(day);
+        const next = Array.from(set).sort();
+        return {
+          ...u,
+          manual_blocked_dates: next,
+        };
+      }),
+    );
+
+    const res = await fetch("/api/v1/accommodation", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        resource: "units",
+        updates: [
+          blocked
+            ? { id: unitId, unblock_dates: [day] }
+            : { id: unitId, block_dates: [day] },
+        ],
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setPendingBlock(null);
+    if (!res.ok) {
+      setUnits(snapshot);
+      setBlockError(
+        json.error?.message ??
+          "Could not update block — deploy plugin v10.62.0+ on CVH.",
+      );
+      return;
+    }
+
+    const updated = Array.isArray(json.data?.updated)
+      ? (json.data.updated as Array<{
+          id: number;
+          manual_blocked_dates?: string[];
+          blocked_dates?: string[];
+        }>)
+      : [];
+    const row = updated.find((r) => r.id === unitId);
+    if (row) {
+      setUnits((prev) =>
+        prev.map((u) =>
+          u.id === unitId
+            ? {
+                ...u,
+                manual_blocked_dates: row.manual_blocked_dates ?? u.manual_blocked_dates,
+                blocked_dates: row.blocked_dates ?? u.blocked_dates,
+              }
+            : u,
+        ),
+      );
+    }
+
+    setBlockMsg(
+      blocked
+        ? `${unit.title}: ${day} unblocked`
+        : `${unit.title}: ${day} blocked`,
+    );
+    setSelectedId(unitId);
+    router.refresh();
+  }
+
   if (error) {
     return (
       <div className="dg-card border-amber-500/30">
         <p className="text-amber-300">{error}</p>
         <p className="mt-2 text-sm text-slate-500">
-          Deploy plugin v10.57.0+ on CVH and set the org WordPress API key under Settings →
+          Deploy plugin v10.62.0+ on CVH and set the org WordPress API key under Settings →
           Connectors.
         </p>
       </div>
@@ -204,6 +418,8 @@ export function AccommodationAvailabilityBoard({
             {from} → {to}
           </p>
           {syncMsg ? <p className="mt-1 text-xs text-emerald-400">{syncMsg}</p> : null}
+          {blockMsg ? <p className="mt-1 text-xs text-emerald-400">{blockMsg}</p> : null}
+          {blockError ? <p className="mt-1 text-xs text-amber-400">{blockError}</p> : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex rounded-full border border-slate-700 p-0.5">
@@ -272,6 +488,19 @@ export function AccommodationAvailabilityBoard({
         </div>
       </div>
 
+      <UnitPricingPanel
+        units={units}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        draft={rateDraft}
+        onDraftChange={setRateDraft}
+        saving={savingRates}
+        onSave={() => void saveRates()}
+        message={rateMsg}
+        error={rateError}
+        monthHint={view === "month"}
+      />
+
       <div className="flex flex-wrap gap-3 text-xs text-slate-500">
         {(
           [
@@ -291,18 +520,162 @@ export function AccommodationAvailabilityBoard({
             {CHANNEL_COLORS[key].label}
           </span>
         ))}
+        <span className="text-slate-600">
+          Click an open or blocked cell to toggle a manual block
+        </span>
       </div>
 
       {view === "inventory" ? (
-        <InventoryGrid units={units} days={inventoryDays} />
+        <InventoryGrid
+          units={units}
+          days={inventoryDays}
+          selectedId={selectedId}
+          pendingBlock={pendingBlock}
+          onSelectUnit={setSelectedId}
+          onToggleDay={(unitId, day) => void toggleManualBlock(unitId, day)}
+        />
       ) : null}
       {view === "week" ? (
-        <WeekGrid units={units} days={weekDays} title={`${formatDayLabel(weekStart, "long")} – ${formatDayLabel(weekDays[6]!, "long")}`} />
+        <WeekGrid
+          units={units}
+          days={weekDays}
+          title={`${formatDayLabel(weekStart, "long")} – ${formatDayLabel(weekDays[6]!, "long")}`}
+          selectedId={selectedId}
+          pendingBlock={pendingBlock}
+          onSelectUnit={setSelectedId}
+          onToggleDay={(unitId, day) => void toggleManualBlock(unitId, day)}
+        />
       ) : null}
       {view === "month" ? (
-        <MonthGrid units={units} days={monthDays} title={new Date(`${monthStart}T12:00:00`).toLocaleDateString("en-AU", { month: "long", year: "numeric" })} />
+        <MonthGrid
+          units={units}
+          days={monthDays}
+          title={new Date(`${monthStart}T12:00:00`).toLocaleDateString("en-AU", {
+            month: "long",
+            year: "numeric",
+          })}
+          selectedId={selectedId}
+          pendingBlock={pendingBlock}
+          onToggleDay={(unitId, day) => void toggleManualBlock(unitId, day)}
+        />
       ) : null}
       {view === "list" ? <ListView bookings={listBookings} /> : null}
+    </div>
+  );
+}
+
+function UnitPricingPanel({
+  units,
+  selectedId,
+  onSelect,
+  draft,
+  onDraftChange,
+  saving,
+  onSave,
+  message,
+  error,
+  monthHint,
+}: {
+  units: WpAccAvailabilityUnit[];
+  selectedId: number | null;
+  onSelect: (id: number) => void;
+  draft: { weekday_rate: string; weekend_rate: string; cleaning_fee: string };
+  onDraftChange: (d: {
+    weekday_rate: string;
+    weekend_rate: string;
+    cleaning_fee: string;
+  }) => void;
+  saving: boolean;
+  onSave: () => void;
+  message: string | null;
+  error: string | null;
+  monthHint: boolean;
+}) {
+  const selected = units.find((u) => u.id === selectedId) ?? null;
+
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex min-w-[180px] flex-1 flex-col gap-1">
+          <span className="text-[11px] uppercase tracking-wide text-slate-500">
+            Unit pricing
+          </span>
+          <select
+            value={selectedId ?? ""}
+            onChange={(e) => onSelect(Number(e.target.value))}
+            className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          >
+            {units.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.title}
+                {u.weekday_rate != null || u.weekend_rate != null
+                  ? ` · ${formatMoney(u.weekday_rate)} / ${formatMoney(u.weekend_rate)}`
+                  : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex w-28 flex-col gap-1">
+          <span className="text-[11px] uppercase tracking-wide text-slate-500">
+            Weekday
+          </span>
+          <input
+            type="number"
+            value={draft.weekday_rate}
+            onChange={(e) =>
+              onDraftChange({ ...draft, weekday_rate: e.target.value })
+            }
+            className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            placeholder="250"
+          />
+        </label>
+        <label className="flex w-28 flex-col gap-1">
+          <span className="text-[11px] uppercase tracking-wide text-slate-500">
+            Weekend
+          </span>
+          <input
+            type="number"
+            value={draft.weekend_rate}
+            onChange={(e) =>
+              onDraftChange({ ...draft, weekend_rate: e.target.value })
+            }
+            className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            placeholder="350"
+          />
+        </label>
+        <label className="flex w-28 flex-col gap-1">
+          <span className="text-[11px] uppercase tracking-wide text-slate-500">
+            Cleaning
+          </span>
+          <input
+            type="number"
+            value={draft.cleaning_fee}
+            onChange={(e) =>
+              onDraftChange({ ...draft, cleaning_fee: e.target.value })
+            }
+            className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            placeholder="80"
+          />
+        </label>
+        <button
+          type="button"
+          disabled={saving || !selected}
+          onClick={onSave}
+          className="rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Save rates"}
+        </button>
+      </div>
+      {selected ? (
+        <p className="mt-2 text-xs text-slate-500">
+          Editing <span className="text-slate-300">{selected.title}</span>
+          {monthHint
+            ? " · in Month view, clicks toggle blocks for this unit"
+            : null}
+        </p>
+      ) : null}
+      {message ? <p className="mt-1 text-xs text-emerald-400">{message}</p> : null}
+      {error ? <p className="mt-1 text-xs text-amber-400">{error}</p> : null}
     </div>
   );
 }
@@ -310,9 +683,17 @@ export function AccommodationAvailabilityBoard({
 function InventoryGrid({
   units,
   days,
+  selectedId,
+  pendingBlock,
+  onSelectUnit,
+  onToggleDay,
 }: {
   units: WpAccAvailabilityUnit[];
   days: string[];
+  selectedId: number | null;
+  pendingBlock: string | null;
+  onSelectUnit: (id: number) => void;
+  onToggleDay: (unitId: number, day: string) => void;
 }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-800">
@@ -332,36 +713,69 @@ function InventoryGrid({
         </thead>
         <tbody>
           {units.map((unit) => {
-            const blocked = new Set(unit.blocked_dates ?? []);
             return (
-              <tr key={unit.id} className="border-t border-slate-800">
+              <tr
+                key={unit.id}
+                className={`border-t border-slate-800 ${
+                  selectedId === unit.id ? "bg-slate-900/40" : ""
+                }`}
+              >
                 <td className="sticky left-0 z-10 bg-slate-950 px-3 py-2 font-medium text-white">
-                  {unit.title}
-                  <p className="mt-0.5 text-[10px] capitalize text-slate-500">
-                    {unit.listing_status ?? "bookable"}
+                  <button
+                    type="button"
+                    className="text-left hover:text-blue-300"
+                    onClick={() => onSelectUnit(unit.id)}
+                  >
+                    {unit.title}
+                  </button>
+                  <p className="mt-0.5 text-[10px] text-slate-500">
+                    {formatMoney(unit.weekday_rate)} / {formatMoney(unit.weekend_rate)}
+                    <span className="mx-1 text-slate-700">·</span>
+                    <span className="capitalize">{unit.listing_status ?? "bookable"}</span>
                   </p>
                 </td>
                 {days.map((d) => {
                   const booking = bookingOnDay(unit, d);
-                  const isBlocked = blocked.has(d);
+                  const isBlocked = isManuallyBlocked(unit, d);
+                  const busy = pendingBlock === `${unit.id}:${d}`;
                   const bg = booking
                     ? bookingColor(booking)
                     : isBlocked
                       ? CHANNEL_COLORS.blocked.bg
                       : CHANNEL_COLORS.open.bg;
+                  const title = booking
+                    ? `${booking.guest_name ?? "Guest"} (${booking.source || booking.status})`
+                    : isBlocked
+                      ? "Manual block — click to unblock"
+                      : "Open — click to block";
                   return (
                     <td key={d} className="px-1 py-2">
-                      <div
-                        title={
-                          booking
-                            ? `${booking.guest_name ?? "Guest"} (${booking.source || booking.status})`
-                            : isBlocked
-                              ? "Blocked"
-                              : "Open"
-                        }
-                        className="mx-auto h-6 w-6 rounded-sm"
-                        style={{ backgroundColor: bg }}
-                      />
+                      {booking ? (
+                        <div
+                          title={title}
+                          className="mx-auto h-6 w-6 rounded-sm"
+                          style={{ backgroundColor: bg }}
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          title={title}
+                          disabled={busy}
+                          onClick={() => {
+                            onSelectUnit(unit.id);
+                            onToggleDay(unit.id, d);
+                          }}
+                          className={`mx-auto block h-6 w-6 rounded-sm outline-none ring-offset-1 ring-offset-slate-950 transition hover:ring-2 hover:ring-white/40 focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 ${
+                            isBlocked ? "ring-1 ring-slate-400/50" : ""
+                          }`}
+                          style={{ backgroundColor: bg }}
+                          aria-label={
+                            isBlocked
+                              ? `Unblock ${unit.title} on ${d}`
+                              : `Block ${unit.title} on ${d}`
+                          }
+                        />
+                      )}
                     </td>
                   );
                 })}
@@ -378,10 +792,18 @@ function WeekGrid({
   units,
   days,
   title,
+  selectedId,
+  pendingBlock,
+  onSelectUnit,
+  onToggleDay,
 }: {
   units: WpAccAvailabilityUnit[];
   days: string[];
   title: string;
+  selectedId: number | null;
+  pendingBlock: string | null;
+  onSelectUnit: (id: number) => void;
+  onToggleDay: (unitId: number, day: string) => void;
 }) {
   return (
     <div className="space-y-3">
@@ -400,15 +822,29 @@ function WeekGrid({
           </thead>
           <tbody>
             {units.map((unit) => {
-              const blocked = new Set(unit.blocked_dates ?? []);
               return (
-                <tr key={unit.id} className="border-t border-slate-800 align-top">
+                <tr
+                  key={unit.id}
+                  className={`border-t border-slate-800 align-top ${
+                    selectedId === unit.id ? "bg-slate-900/30" : ""
+                  }`}
+                >
                   <td className="sticky left-0 z-10 bg-slate-950 px-3 py-2 font-medium text-white">
-                    {unit.title}
+                    <button
+                      type="button"
+                      className="text-left hover:text-blue-300"
+                      onClick={() => onSelectUnit(unit.id)}
+                    >
+                      {unit.title}
+                    </button>
+                    <p className="mt-0.5 text-[10px] text-slate-500">
+                      {formatMoney(unit.weekday_rate)} / {formatMoney(unit.weekend_rate)}
+                    </p>
                   </td>
                   {days.map((d) => {
                     const booking = bookingOnDay(unit, d);
-                    const isBlocked = blocked.has(d);
+                    const isBlocked = isManuallyBlocked(unit, d);
+                    const busy = pendingBlock === `${unit.id}:${d}`;
                     return (
                       <td key={d} className="px-1.5 py-2">
                         {booking ? (
@@ -422,16 +858,29 @@ function WeekGrid({
                             </p>
                           </div>
                         ) : (
-                          <div
-                            className="rounded-md px-2 py-3 text-center text-[10px] text-slate-500"
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => {
+                              onSelectUnit(unit.id);
+                              onToggleDay(unit.id, d);
+                            }}
+                            className={`w-full rounded-md px-2 py-3 text-center text-[10px] transition hover:brightness-110 disabled:opacity-50 ${
+                              isBlocked ? "font-medium text-slate-200" : "text-slate-500"
+                            }`}
                             style={{
                               backgroundColor: isBlocked
                                 ? CHANNEL_COLORS.blocked.bg
                                 : CHANNEL_COLORS.open.bg,
                             }}
+                            title={
+                              isBlocked
+                                ? "Manual block — click to unblock"
+                                : "Open — click to block"
+                            }
                           >
-                            {isBlocked ? "Blocked" : "Open"}
-                          </div>
+                            {busy ? "…" : isBlocked ? "Blocked" : "Open"}
+                          </button>
                         )}
                       </td>
                     );
@@ -450,10 +899,16 @@ function MonthGrid({
   units,
   days,
   title,
+  selectedId,
+  pendingBlock,
+  onToggleDay,
 }: {
   units: WpAccAvailabilityUnit[];
   days: string[];
   title: string;
+  selectedId: number | null;
+  pendingBlock: string | null;
+  onToggleDay: (unitId: number, day: string) => void;
 }) {
   // Pad to Monday-start weeks
   const lead = (() => {
@@ -467,15 +922,15 @@ function MonthGrid({
   ];
   while (cells.length % 7 !== 0) cells.push(null);
 
+  const selected = units.find((u) => u.id === selectedId) ?? units[0] ?? null;
+
   // Every occupied night in the stay range (check-in inclusive, check-out exclusive),
   // including stays that started before this month.
   const byDay = new Map<
     string,
     Array<{ unit: string; booking: WpAccBookingRow; isCheckin: boolean }>
   >();
-  const blockedOnlyByDay = new Map<string, number>();
   for (const unit of units) {
-    const blocked = new Set(unit.blocked_dates ?? []);
     for (const day of days) {
       const booking = bookingOnDay(unit, day);
       if (booking) {
@@ -486,10 +941,6 @@ function MonthGrid({
           isCheckin: booking.checkin === day,
         });
         byDay.set(day, list);
-        continue;
-      }
-      if (blocked.has(day)) {
-        blockedOnlyByDay.set(day, (blockedOnlyByDay.get(day) ?? 0) + 1);
       }
     }
   }
@@ -499,6 +950,9 @@ function MonthGrid({
       <h2 className="text-sm font-medium text-slate-300">{title}</h2>
       <p className="text-[11px] text-slate-500">
         Booked nights shown for each stay (check-in inclusive, check-out day free).
+        {selected
+          ? ` Click empty days to toggle a manual block on ${selected.title}.`
+          : null}
       </p>
       <div className="grid grid-cols-7 gap-px overflow-hidden rounded-xl border border-slate-800 bg-slate-800">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
@@ -508,8 +962,15 @@ function MonthGrid({
         ))}
         {cells.map((day, i) => {
           const entries = day ? byDay.get(day) ?? [] : [];
-          const blockedCount = day ? blockedOnlyByDay.get(day) ?? 0 : 0;
           const primary = entries[0];
+          const selectedBlocked =
+            day && selected ? isManuallyBlocked(selected, day) : false;
+          const selectedBooked =
+            day && selected ? Boolean(bookingOnDay(selected, day)) : false;
+          const busy =
+            day && selected ? pendingBlock === `${selected.id}:${day}` : false;
+          const canToggle = Boolean(day && selected && !selectedBooked);
+
           return (
             <div
               key={day ?? `pad-${i}`}
@@ -517,14 +978,35 @@ function MonthGrid({
               style={
                 primary
                   ? { backgroundColor: bookingWash(primary.booking) }
-                  : blockedCount
-                    ? { backgroundColor: "rgba(51, 65, 85, 0.35)" }
+                  : selectedBlocked
+                    ? { backgroundColor: "rgba(51, 65, 85, 0.45)" }
                     : undefined
               }
             >
               {day ? (
                 <>
-                  <p className="text-[11px] text-slate-500">{day.slice(8)}</p>
+                  <div className="flex items-center justify-between gap-1">
+                    <p className="text-[11px] text-slate-500">{day.slice(8)}</p>
+                    {canToggle && selected ? (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => onToggleDay(selected.id, day)}
+                        className={`rounded px-1.5 py-0.5 text-[9px] font-medium disabled:opacity-50 ${
+                          selectedBlocked
+                            ? "bg-slate-700 text-slate-200 hover:bg-slate-600"
+                            : "bg-emerald-900/60 text-emerald-300 hover:bg-emerald-800/70"
+                        }`}
+                        title={
+                          selectedBlocked
+                            ? `Unblock ${selected.title}`
+                            : `Block ${selected.title}`
+                        }
+                      >
+                        {busy ? "…" : selectedBlocked ? "Unblock" : "Block"}
+                      </button>
+                    ) : null}
+                  </div>
                   <div className="mt-1 space-y-1">
                     {entries.slice(0, 3).map(({ unit, booking, isCheckin }) => {
                       const guest = booking.guest_name?.trim() || "Guest";
@@ -549,13 +1031,13 @@ function MonthGrid({
                         +{entries.length - 3} more
                       </p>
                     ) : null}
-                    {!entries.length && blockedCount > 0 ? (
+                    {selectedBlocked && !selectedBooked ? (
                       <div
                         className="truncate rounded px-1 py-0.5 text-[10px] text-slate-300"
                         style={{ backgroundColor: CHANNEL_COLORS.blocked.bg }}
-                        title="Blocked (manual / OTA)"
+                        title={`Manual block · ${selected?.title}`}
                       >
-                        Blocked
+                        Blocked · {selected?.title}
                       </div>
                     ) : null}
                   </div>
