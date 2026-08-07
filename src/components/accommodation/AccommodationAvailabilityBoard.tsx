@@ -13,7 +13,7 @@ export const CHANNEL_COLORS = {
   bookingcom: { bg: "#003580", label: "Booking.com" },
   completed: { bg: "rgba(100, 116, 139, 0.85)", label: "Completed" },
   blocked: { bg: "rgba(51, 65, 85, 0.95)", label: "Manual block" },
-  open: { bg: "rgba(6, 78, 59, 0.45)", label: "Open" },
+  open: { bg: "rgba(16, 185, 129, 0.28)", label: "Open" },
 } as const;
 
 type CalendarView = "inventory" | "week" | "month" | "list";
