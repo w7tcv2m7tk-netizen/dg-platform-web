@@ -11,6 +11,7 @@ import {
 
 import { AccommodationGuestPanel } from "@/components/accommodation/AccommodationGuestPanel";
 import { AddContactNoteForm } from "@/components/crm/AddContactNoteForm";
+import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
 import { EditContactForm } from "@/components/crm/EditContactForm";
 
 interface PageProps {
@@ -110,6 +111,8 @@ export default async function ContactDetailPage({ params }: PageProps) {
               </div>
             </dl>
           </div>
+
+          <CrmAiAssistPanel contactId={contact.id} variant="contact" />
 
           <div className="dg-card">
             <h2 className="font-semibold text-white">Timeline</h2>

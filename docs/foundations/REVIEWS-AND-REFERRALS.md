@@ -113,10 +113,10 @@ Prefer billing + Organisation fields over premature Network tables.
 | `/r/{code}` + cookie attribution | ✅ |
 | `PlatformReferral` + ledger | ✅ |
 | Settings → Refer & Earn dashboard | ✅ |
-| Share link + email invite | ✅ (email via Communications **stub**) |
+| Share link + email invite | ✅ (Resend when `RESEND_API_KEY`; else branded Activity queue) |
 | First-paid 20% credit on Stripe checkout | ✅ |
-| Monthly accrual on `invoice.paid` | ❌ Stub — document only |
-| Cash payout at ~$100 | ❌ Stub ledger entry only (no Stripe Connect) |
+| Monthly accrual on `invoice.paid` | ✅ (subscription_cycle renewals; idempotent on invoice id) |
+| Cash payout at ~$100 | ⚠️ UI + ledger stub only (no Stripe Connect) |
 | Partner 25–30% / Reseller rates | ❌ Not productised (`commissionBps` default 2000) |
 
 ### Timing vs Network

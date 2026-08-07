@@ -75,16 +75,22 @@ Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 | Universal Objects | ✅ Types + schema; Contact → App Role ([CONTACTS-AND-APP-ROLES](./foundations/CONTACTS-AND-APP-ROLES.md)) | ⚠️ Contact CRUD live; guests Contact-linked |
 | Event Bus | ✅ In-process | ❌ No producers on writes |
 | Platform API | ⚠️ Partial (`/portal/me` bridge) | ❌ No `/v1` CRUD |
-| Billing | ⚠️ Stripe checkout + portal | ⚠️ Live checkout; invoice.paid accrual gaps |
-| **Refer & Earn** (Platform SaaS referrals) | ✅ MVP | ⚠️ Credit on first paid; monthly accrual + cash payout stubbed — [REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md) §A |
+| Billing | ⚠️ Stripe checkout + portal | ⚠️ Live checkout; monthly referral accrual on invoice.paid |
+| **Refer & Earn** (Platform SaaS referrals) | ✅ MVP + P2 | ✅ Credit on first paid + months 2–12 via `invoice.paid`; invite Resend/queue; cash payout UI stub — [REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md) §A |
 | Feature Flags | ❌ | ❌ |
 | Audit Logs | ✅ Schema + write path | ⚠️ Partial coverage |
 
-**Next:** Contact CRUD + Opportunity convert smoke across tenants → Connectors reliability → AI on real CRM workflows.
+**Next:** Connectors reliability (ongoing) → AI on more CRM/RE workflows → Roe RE v0 depth.
 
 **Shipped (Aug 2026 Core slice):** Platform Refer & Earn MVP (`/r/{code}`, Settings dashboard, invite email stub, first-paid credit); CRM lead create upserts Contact; Lead → Opportunity convert + CRM Opportunities list.
 
-**Shipped (Aug 2026 Commerce):** AU tax invoices & quotes (Business Profile letterhead, GST 10%, print/PDF), quote→invoice, Commerce **Reports** (P&L, GST, Balance Sheet scaffold, Cash Flow). Core/commerce-adjacent — not Xero/MYOB; AU Country Pack tax conventions on Business Profile (`taxSettings`, `bankDetails`).
+**Shipped (Aug 2026 Refer & Earn P2):** Stripe `invoice.paid` monthly referral credits (months 2–12, idempotent); invite delivery via Resend when `RESEND_API_KEY` set else branded Activity queue; cash payout threshold UI (ledger stub).
+
+**Shipped (Aug 2026 Connectors):** Org WordPress connector host/key UX, `dgdev_` validation, CVH site-key requirement, Test connection probe without key rewrite.
+
+**Shipped (Aug 2026 AI on CRM):** Lead/opportunity/contact AI assist — draft follow-up + summarise (template generation from Business Profile + record context).
+
+**Shipped (Aug 2026 Commerce):** AU tax invoices & quotes (Business Profile letterhead, GST 10%, print/PDF), quote→invoice, Commerce **Reports** (P&L, GST, Balance Sheet scaffold, Cash Flow). Core/commerce-adjacent — not Xero/MYOB; AU Country Pack tax conventions on Business Profile (`taxSettings`, `bankDetails`). Logo/icon on invoice & quote letterheads.
 
 **Exit criteria:** Sign up → org in DB → create contact → timeline event — no wp-admin.
 

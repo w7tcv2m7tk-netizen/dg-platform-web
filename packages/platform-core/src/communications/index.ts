@@ -78,11 +78,16 @@ async function persistQueuedEmail(input: {
           provider: input.provider,
           status: input.status,
           error: input.error,
-          purpose: input.metadata?.purpose,
-          referralId: input.metadata?.referralId,
+          purpose:
+            typeof input.metadata?.purpose === "string"
+              ? input.metadata.purpose
+              : undefined,
+          referralId:
+            typeof input.metadata?.referralId === "string"
+              ? input.metadata.referralId
+              : undefined,
           hasBrandedHtml: Boolean(input.brandedHtml),
           brandedHtmlPreview: input.brandedHtml?.slice(0, 500),
-          ...input.metadata,
         },
       },
     });

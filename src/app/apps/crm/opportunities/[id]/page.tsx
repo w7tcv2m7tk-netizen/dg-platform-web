@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { getContact, getLead, getOpportunity } from "@dg/platform-core";
 
+import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -118,6 +120,15 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
                 </li>
               ) : null}
             </ul>
+          </div>
+
+          <div className="lg:col-span-2">
+            <CrmAiAssistPanel
+              opportunityId={opportunity.id}
+              leadId={opportunity.leadId ?? undefined}
+              contactId={opportunity.contactId ?? undefined}
+              variant="opportunity"
+            />
           </div>
         </div>
       </main>

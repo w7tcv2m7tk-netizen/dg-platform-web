@@ -9,9 +9,11 @@ import {
   getPropertyForLead,
   listInvoicesForEntity,
   listLeadActivities,
-  listQuotesForEntity,} from "@dg/platform-core";
+  listQuotesForEntity,
+} from "@dg/platform-core";
 
 import { ConvertToOpportunityButton } from "@/components/re/ConvertToOpportunityButton";
+import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
 import { LeadCommercePanel } from "@/components/re/LeadCommercePanel";
 import { RequestPaymentButton } from "@/components/re/RequestPaymentButton";
 import { LeadStageSelect } from "@/components/re/LeadStageSelect";
@@ -159,6 +161,8 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
                 />
               </div>
             </div>
+
+            <CrmAiAssistPanel leadId={lead.id} variant="lead" />
 
             <div className="dg-card">
               <h2 className="font-semibold text-white">Quick payment</h2>

@@ -280,12 +280,37 @@ export function buildAiSystemPrompt(context: BusinessContext): string {
   return lines.join("\n");
 }
 
-export type AiGenerateAction = "social_post" | "email_draft" | "briefing";
+export type AiGenerateAction =
+  | "social_post"
+  | "email_draft"
+  | "briefing"
+  | "lead_follow_up"
+  | "lead_summary"
+  | "opportunity_follow_up"
+  | "opportunity_summary";
+
+export type CrmAssistEntity = {
+  kind: "lead" | "opportunity" | "contact";
+  id: string;
+  title?: string | null;
+  status?: string | null;
+  stage?: string | null;
+  source?: string | null;
+  description?: string | null;
+  propertyAddress?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  valueCents?: number | null;
+  currency?: string | null;
+  notes?: string[];
+};
 
 /** Template generation using full business context — no external LLM required */
 export function generateFromBusinessContext(
   context: BusinessContext,
   action: AiGenerateAction,
+  entity?: CrmAssistEntity | null,
 ): string {
   const name = context.identity.businessName;
   const industry = context.identity.industry ?? "your industry";
@@ -293,6 +318,12 @@ export function generateFromBusinessContext(
   const services = context.brandVoice.services ?? "our core services";
   const audience = context.brandVoice.targetAudience ?? "local customers";
   const location = context.identity.locations[0]?.formatted;
+  const contactFirst =
+    entity?.contactName?.trim()?.split(/\s+/)[0] || "{{first_name}}";
+  const entityLabel =
+    entity?.title ||
+    entity?.propertyAddress ||
+    (entity?.kind === "opportunity" ? "this opportunity" : "this lead");
 
   switch (action) {
     case "social_post":
@@ -313,7 +344,7 @@ export function generateFromBusinessContext(
       return [
         `Subject: Following up from ${name}`,
         "",
-        `Hi {{first_name}},`,
+        `Hi ${contactFirst},`,
         "",
         `Thank you for connecting with ${name}. We help ${audience} with ${services}.`,
         location ? `We're based in ${location}.` : "",
@@ -344,6 +375,69 @@ export function generateFromBusinessContext(
       ]
         .filter(Boolean)
         .join("\n");
+    case "lead_follow_up":
+    case "opportunity_follow_up":
+      return [
+        `Subject: Following up — ${entityLabel}`,
+        "",
+        `Hi ${contactFirst},`,
+        "",
+        `Thanks for your interest with ${name}.`,
+        entity?.propertyAddress
+          ? `I wanted to follow up regarding ${entity.propertyAddress}.`
+          : `I wanted to follow up on ${entityLabel}.`,
+        entity?.stage
+          ? `We're currently at the ${entity.stage.replace(/_/g, " ")} stage and happy to help with next steps.`
+          : `Happy to help with next steps when you're ready.`,
+        "",
+        `Would a short call this week work for you?`,
+        "",
+        `Best regards,`,
+        context.contact.primaryName ?? name,
+        "",
+        `(${tone} draft — review before sending)`,
+      ]
+        .filter(Boolean)
+        .join("\n");
+    case "lead_summary":
+    case "opportunity_summary": {
+      const value =
+        entity?.valueCents != null
+          ? new Intl.NumberFormat("en-AU", {
+              style: "currency",
+              currency: entity.currency || "AUD",
+            }).format(entity.valueCents / 100)
+          : null;
+      return [
+        `Summary — ${entityLabel}`,
+        "",
+        entity?.kind ? `Type: ${entity.kind}` : "",
+        entity?.status ? `Status: ${entity.status}` : "",
+        entity?.stage ? `Stage: ${entity.stage.replace(/_/g, " ")}` : "",
+        entity?.source ? `Source: ${entity.source}` : "",
+        entity?.propertyAddress ? `Property: ${entity.propertyAddress}` : "",
+        entity?.contactName ? `Contact: ${entity.contactName}` : "",
+        entity?.contactEmail ? `Email: ${entity.contactEmail}` : "",
+        entity?.contactPhone ? `Phone: ${entity.contactPhone}` : "",
+        value ? `Pipeline value: ${value}` : "",
+        entity?.description ? `Notes: ${entity.description}` : "",
+        entity?.notes?.length
+          ? `Recent activity:\n${entity.notes
+              .slice(0, 5)
+              .map((n) => `• ${n}`)
+              .join("\n")}`
+          : "",
+        "",
+        `Suggested next step: ${
+          action === "lead_summary"
+            ? "Send a personalised follow-up and confirm appraisal / discovery timing."
+            : "Advance the opportunity stage or schedule a decision call."
+        }`,
+        `(Generated for ${name} — edit before sharing)`,
+      ]
+        .filter(Boolean)
+        .join("\n");
+    }
     default:
       return `Context loaded for ${name}.`;
   }
