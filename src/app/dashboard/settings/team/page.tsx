@@ -69,7 +69,7 @@ export default async function TeamSettingsPage() {
         </div>
 
         {session ? (
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {members.map((member) => {
               const isMe = member.clerkUserId === session.clerkUserId;
               return (

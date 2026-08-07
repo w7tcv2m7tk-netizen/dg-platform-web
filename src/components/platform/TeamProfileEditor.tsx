@@ -17,6 +17,14 @@ export type TeamMemberCard = {
   wpAgentPermalink?: string;
 };
 
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
+  }
+  return (name.charAt(0) || "?").toUpperCase();
+}
+
 export function TeamProfileEditor({
   member,
   canEdit,
@@ -26,6 +34,7 @@ export function TeamProfileEditor({
 }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState(member.displayName ?? "");
   const [jobTitle, setJobTitle] = useState(member.jobTitle ?? "");
   const [phone, setPhone] = useState(member.phone ?? "");
@@ -37,6 +46,15 @@ export function TeamProfileEditor({
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const preview = avatarUrl || member.clerkImageUrl || null;
+  const shownName = (editing ? displayName : member.displayName)?.trim()
+    || member.email
+    || "Team member";
+  const shownTitle = editing ? jobTitle : member.jobTitle;
+  const shownPhone = editing ? phone : member.phone;
+  const shownBio = editing ? bio : member.bio;
+  const shownEmail = member.email;
 
   async function uploadPhoto(file: File) {
     setUploading(true);
@@ -87,168 +105,240 @@ export function TeamProfileEditor({
     if (sync?.ok) {
       setMessage(
         sync.created
-          ? "Saved and published profile to website"
-          : "Saved and updated website profile",
+          ? "Profile card saved and published to website"
+          : "Profile card saved and updated on website",
       );
     } else if (sync?.reason === "skipped" || sync?.reason === "missing_key") {
-      setMessage("Saved locally — website sync skipped (connector not ready or unsupported).");
+      setMessage("Profile card saved — website sync skipped (connector not ready).");
     } else if (sync && !sync.ok) {
-      setMessage(`Saved locally — website sync failed: ${sync.message}`);
+      setMessage(`Profile card saved — website sync failed: ${sync.message}`);
     } else {
-      setMessage("Profile saved");
+      setMessage("Profile card saved");
     }
+    setEditing(false);
     router.refresh();
   }
 
-  const preview = avatarUrl || member.clerkImageUrl || null;
+  function cancelEdit() {
+    setDisplayName(member.displayName ?? "");
+    setJobTitle(member.jobTitle ?? "");
+    setPhone(member.phone ?? "");
+    setBio(member.bio ?? "");
+    setAvatarUrl(member.avatarUrl || member.clerkImageUrl || "");
+    setError(null);
+    setEditing(false);
+  }
 
   return (
-    <div className="dg-card">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="font-semibold text-white">
-            {member.displayName || member.email || "Team member"}
-            {member.isMe ? (
-              <span className="ml-2 text-xs font-normal text-blue-400">You</span>
-            ) : null}
-          </h3>
-          <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">{member.role}</p>
-          {member.email ? <p className="mt-1 text-sm text-slate-400">{member.email}</p> : null}
+    <article className="overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/80 shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+      {/* Soft brand wash */}
+      <div
+        className="relative h-28 bg-gradient-to-br from-blue-600/40 via-slate-800 to-slate-950"
+        aria-hidden
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.35),transparent_55%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-900/90 to-transparent" />
+        <div className="absolute right-3 top-3 flex gap-2">
+          {member.isMe ? (
+            <span className="rounded-full bg-blue-500/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-300 ring-1 ring-blue-400/30">
+              You
+            </span>
+          ) : null}
+          <span className="rounded-full bg-slate-950/50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-300 ring-1 ring-white/10">
+            {member.role}
+          </span>
         </div>
-        {member.wpAgentPermalink ? (
-          <a
-            href={member.wpAgentPermalink}
-            target="_blank"
-            rel="noreferrer"
-            className="text-sm text-blue-400 hover:underline"
-          >
-            View on website →
-          </a>
-        ) : null}
       </div>
 
-      {/* Profile photo is always visible — not buried in optional fields */}
-      <div className="mt-4 rounded-xl border border-slate-700 bg-slate-950/60 p-4">
-        <p className="text-sm font-medium text-white">Profile photo</p>
-        <p className="mt-1 text-xs text-slate-500">
-          Used on this business team page and website agent profile. Separate from your Clerk
-          account photo.
-        </p>
-        <div className="mt-3 flex flex-wrap items-center gap-4">
-          {preview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={preview}
-              alt=""
-              className="h-20 w-20 rounded-full object-cover ring-2 ring-slate-600"
-            />
-          ) : (
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-800 text-2xl text-slate-400 ring-2 ring-slate-700">
-              {(member.displayName || member.email || "?").charAt(0).toUpperCase()}
-            </div>
-          )}
-          {canEdit ? (
-            <div className="flex flex-wrap gap-2">
+      <div className="relative px-5 pb-5 pt-0">
+        <div className="-mt-12 flex items-end justify-between gap-3">
+          <div className="relative">
+            {preview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={preview}
+                alt=""
+                className="h-24 w-24 rounded-2xl object-cover shadow-lg ring-4 ring-slate-900"
+              />
+            ) : (
+              <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 text-2xl font-semibold text-white shadow-lg ring-4 ring-slate-900">
+                {initials(shownName)}
+              </div>
+            )}
+          </div>
+          <div className="mb-1 flex flex-wrap justify-end gap-2">
+            {member.wpAgentPermalink ? (
+              <a
+                href={member.wpAgentPermalink}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-slate-600 px-3 py-1.5 text-xs text-slate-300 hover:border-blue-500 hover:text-white"
+              >
+                Website →
+              </a>
+            ) : null}
+            {canEdit && !editing ? (
               <button
                 type="button"
-                disabled={uploading}
-                onClick={() => fileRef.current?.click()}
-                className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+                onClick={() => {
+                  setMessage(null);
+                  setEditing(true);
+                }}
+                className="rounded-full bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-500"
               >
-                {uploading ? "Uploading…" : "Upload photo"}
+                Edit profile
               </button>
-              {member.clerkImageUrl ? (
-                <button
-                  type="button"
-                  onClick={() => setAvatarUrl(member.clerkImageUrl || "")}
-                  className="rounded-full border border-slate-600 px-3 py-2 text-xs text-slate-300 hover:border-blue-500"
+            ) : null}
+          </div>
+        </div>
+
+        {!editing ? (
+          <div className="mt-4">
+            <h3 className="text-xl font-semibold tracking-tight text-white">{shownName}</h3>
+            {shownTitle?.trim() ? (
+              <p className="mt-1 text-sm font-medium text-blue-300/90">{shownTitle}</p>
+            ) : (
+              <p className="mt-1 text-sm text-slate-500">No title yet</p>
+            )}
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {shownEmail ? (
+                <a
+                  href={`mailto:${shownEmail}`}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1.5 text-xs text-slate-300 hover:border-blue-500 hover:text-white"
                 >
-                  Use account photo
-                </button>
+                  <span aria-hidden>✉</span>
+                  {shownEmail}
+                </a>
               ) : null}
-              {avatarUrl ? (
-                <button
-                  type="button"
-                  onClick={() => setAvatarUrl("")}
-                  className="rounded-full border border-slate-700 px-3 py-2 text-xs text-slate-400 hover:text-amber-300"
+              {shownPhone?.trim() ? (
+                <a
+                  href={`tel:${shownPhone.replace(/\s+/g, "")}`}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1.5 text-xs text-slate-300 hover:border-blue-500 hover:text-white"
                 >
-                  Clear
-                </button>
+                  <span aria-hidden>☎</span>
+                  {shownPhone}
+                </a>
               ) : null}
             </div>
-          ) : null}
-        </div>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/gif"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) void uploadPhoto(file);
-            e.target.value = "";
-          }}
-        />
-      </div>
 
-      {canEdit ? (
-        <form onSubmit={save} className="mt-4 space-y-3">
-          <label className="block text-sm">
-            <span className="text-slate-400">Display name</span>
-            <input
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
-            />
-          </label>
-          <label className="block text-sm">
-            <span className="text-slate-400">Job title / role</span>
-            <input
-              value={jobTitle}
-              onChange={(e) => setJobTitle(e.target.value)}
-              placeholder="e.g. Principal, Sales Consultant"
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
-            />
-          </label>
-          <label className="block text-sm">
-            <span className="text-slate-400">Phone</span>
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
-            />
-          </label>
-          <label className="block text-sm">
-            <span className="text-slate-400">About / description</span>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows={5}
-              placeholder="A short bio for your team page and website agent profile…"
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
-          >
-            {pending ? "Saving…" : "Save profile"}
-          </button>
-          {message ? <p className="text-sm text-emerald-400">{message}</p> : null}
-          {error ? <p className="text-sm text-amber-400">{error}</p> : null}
-        </form>
-      ) : (
-        <div className="mt-4 space-y-2 text-sm text-slate-300">
-          {member.jobTitle ? <p>{member.jobTitle}</p> : null}
-          {member.phone ? <p>{member.phone}</p> : null}
-          {member.bio ? (
-            <p className="whitespace-pre-wrap text-slate-400">{member.bio}</p>
-          ) : (
-            <p className="text-slate-500">No bio yet.</p>
-          )}
-        </div>
-      )}
-    </div>
+            {shownBio?.trim() ? (
+              <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-slate-300">
+                {shownBio}
+              </p>
+            ) : (
+              <p className="mt-4 text-sm italic text-slate-500">
+                {canEdit
+                  ? "Add a short about section so clients know who you are."
+                  : "No description yet."}
+              </p>
+            )}
+
+            {message ? <p className="mt-4 text-sm text-emerald-400">{message}</p> : null}
+          </div>
+        ) : (
+          <form onSubmit={save} className="mt-5 space-y-3">
+            <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Profile photo
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => fileRef.current?.click()}
+                  className="rounded-full bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+                >
+                  {uploading ? "Uploading…" : "Upload photo"}
+                </button>
+                {member.clerkImageUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => setAvatarUrl(member.clerkImageUrl || "")}
+                    className="rounded-full border border-slate-600 px-3 py-1.5 text-xs text-slate-300"
+                  >
+                    Use account photo
+                  </button>
+                ) : null}
+                {avatarUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => setAvatarUrl("")}
+                    className="rounded-full border border-slate-700 px-3 py-1.5 text-xs text-slate-400"
+                  >
+                    Clear
+                  </button>
+                ) : null}
+              </div>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void uploadPhoto(file);
+                  e.target.value = "";
+                }}
+              />
+            </div>
+
+            <label className="block text-sm">
+              <span className="text-slate-400">Display name</span>
+              <input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="text-slate-400">Job title</span>
+              <input
+                value={jobTitle}
+                onChange={(e) => setJobTitle(e.target.value)}
+                placeholder="e.g. Principal, Sales Consultant"
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="text-slate-400">Phone</span>
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="text-slate-400">About / description</span>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                rows={5}
+                placeholder="A short bio for your team page and website agent profile…"
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+              />
+            </label>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              <button
+                type="submit"
+                disabled={pending}
+                className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+              >
+                {pending ? "Saving…" : "Save profile card"}
+              </button>
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:border-slate-400"
+              >
+                Cancel
+              </button>
+            </div>
+            {error ? <p className="text-sm text-amber-400">{error}</p> : null}
+          </form>
+        )}
+      </div>
+    </article>
   );
 }
