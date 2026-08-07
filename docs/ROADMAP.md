@@ -68,17 +68,19 @@ Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 | Component | Scaffold | Production-ready |
 |-----------|----------|------------------|
 | Multi-tenancy (`organisation_id`) | ✅ Prisma schema | ❌ Not deployed |
-| Organisations | ✅ Provision stub | ❌ Needs Neon + webhook |
-| Users / Memberships | ✅ Schema | ❌ Clerk → DB not live |
-| Roles & Permissions | ✅ Feature Registry types | ❌ Not enforced in API |
+| Organisations | ✅ Provision + Clerk webhook | ⚠️ Neon live ops still Ben |
+| Users / Memberships | ✅ Schema + invite | ⚠️ Clerk → DB on sign-in / webhook |
+| Roles & Permissions | ✅ Feature Registry + `requireFeature` | ⚠️ Role gate (owner/admin write); per-membership grants later |
 | App Registry | ✅ Manifests + registry | ✅ |
 | Universal Objects | ✅ Types + schema; Contact → App Role ([CONTACTS-AND-APP-ROLES](./foundations/CONTACTS-AND-APP-ROLES.md)) | ⚠️ Contact CRUD live; guests Contact-linked |
-| Event Bus | ✅ In-process | ❌ No producers on writes |
-| Platform API | ⚠️ Partial (`/portal/me` bridge) | ❌ No `/v1` CRUD |
+| Event Bus | ✅ In-process + CRM/referral producers | ✅ Fan-out → in-app Notifications |
+| Platform API | ⚠️ Partial (`/portal/me` bridge) + Core CRUD | ⚠️ Expanding `/api/v1` |
 | Billing | ⚠️ Stripe checkout + portal | ⚠️ Live checkout; monthly referral accrual on invoice.paid |
-| **Refer & Earn** (Platform SaaS referrals) | ✅ MVP + P2 | ✅ Credit on first paid + months 2–12 via `invoice.paid`; invite Resend/queue; cash payout UI stub — [REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md) §A |
-| Feature Flags | ❌ | ❌ |
+| **Refer & Earn** (Platform SaaS referrals) | ✅ MVP + P2 + Partner tiers | ✅ Credit on first paid + months 2–12; Customer 20% / Partner 25% / Reseller 30%; invite Resend/queue; cash payout UI stub — [REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md) §A |
+| Feature Flags | ✅ Org settings JSON + `/api/v1/org/feature-flags` | ⚠️ No Command UI yet |
 | Audit Logs | ✅ Schema + write path | ⚠️ Partial coverage |
+| Notifications | ✅ In-app bell + Notification model | ⚠️ Push/OS still planned (PWA Phase 2) |
+| AI Assist | ✅ `/api/v1/ai/assist` | ✅ Real OpenAI/Anthropic when keyed; template fallback |
 
 **Next:** AI on more CRM/RE workflows → Roe RE v0 depth → remaining Connectors reliability.
 
@@ -93,6 +95,8 @@ Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 **Shipped (Aug 2026 AI on CRM):** Lead/opportunity/contact AI assist — draft follow-up + summarise (template generation from Business Profile + record context).
 
 **Shipped (Aug 2026 Commerce):** AU tax invoices & quotes (Business Profile letterhead, GST 10%, print/PDF), quote→invoice, Commerce **Reports** (P&L, GST, Balance Sheet scaffold, Cash Flow). Core/commerce-adjacent — not Xero/MYOB; AU Country Pack tax conventions on Business Profile (`taxSettings`, `bankDetails`). Logo/icon on invoice & quote letterheads.
+
+**Shipped (Aug 2026 Core completeness):** Real LLM router (`OPENAI_API_KEY` / `ANTHROPIC_API_KEY`) behind `/api/v1/ai/assist` with template fallback; Partner/Reseller referral tiers; in-app Notifications from event bus; org feature flags API; CRM leads/opportunities feature gates; lead stage events; WP multi-site connector guidance.
 
 **Exit criteria:** Sign up → org in DB → create contact → timeline event — no wp-admin.
 

@@ -10,12 +10,16 @@ function formatAud(cents: number) {
   }).format(cents / 100);
 }
 
+type ReferralTier = "customer" | "partner" | "reseller";
+
 export function ReferAndEarnPanel({
   shareUrl,
   code,
   metrics,
   referrals,
   stubsNote,
+  programme,
+  canEditTier = false,
 }: {
   shareUrl: string;
   code: string;
@@ -28,6 +32,8 @@ export function ReferAndEarnPanel({
     lifetimeRewardCents: number;
     cashAvailableStubCents: number;
     cashPayoutThresholdCents: number;
+    commissionBps?: number;
+    tier?: ReferralTier;
   };
   referrals: Array<{
     id: string;
@@ -38,6 +44,12 @@ export function ReferAndEarnPanel({
     createdAt: string;
   }>;
   stubsNote: string;
+  programme?: {
+    tier: ReferralTier;
+    commissionBps: number;
+    label: string;
+  };
+  canEditTier?: boolean;
 }) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
@@ -45,11 +57,18 @@ export function ReferAndEarnPanel({
   const [name, setName] = useState("");
   const [pending, setPending] = useState(false);
   const [cashPending, setCashPending] = useState(false);
+  const [tierPending, setTierPending] = useState(false);
+  const [tier, setTier] = useState<ReferralTier>(
+    programme?.tier ?? metrics.tier ?? "customer",
+  );
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const canRequestCash =
     metrics.cashAvailableStubCents >= metrics.cashPayoutThresholdCents;
+  const commissionBps =
+    programme?.commissionBps ?? metrics.commissionBps ?? 2000;
+  const commissionPct = (commissionBps / 100).toFixed(0);
 
   async function copyLink() {
     try {
@@ -124,6 +143,25 @@ export function ReferAndEarnPanel({
     router.refresh();
   }
 
+  async function saveTier() {
+    setTierPending(true);
+    setError(null);
+    setMessage(null);
+    const res = await fetch("/api/v1/referrals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "set_referral_tier", tier }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setTierPending(false);
+    if (!res.ok) {
+      setError(json.error?.message ?? "Could not update tier");
+      return;
+    }
+    setMessage(`Referral tier updated to ${json.data?.label ?? tier}. New invites use this rate.`);
+    router.refresh();
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -163,6 +201,44 @@ export function ReferAndEarnPanel({
             {copied ? "Copied" : "Copy link"}
           </button>
         </div>
+      </div>
+
+      <div className="dg-card">
+        <h2 className="font-semibold text-white">Referrer tier</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Current rate{" "}
+          <strong className="text-slate-200">{commissionPct}%</strong>
+          {programme?.label ? ` · ${programme.label}` : ""}. Applies to new
+          referrals (existing rows keep their stored commission).
+        </p>
+        {canEditTier ? (
+          <div className="mt-4 flex flex-wrap items-end gap-3">
+            <label className="block text-sm">
+              <span className="text-slate-400">Tier</span>
+              <select
+                value={tier}
+                onChange={(e) => setTier(e.target.value as ReferralTier)}
+                className="mt-1 block rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+              >
+                <option value="customer">Customer — 20%</option>
+                <option value="partner">Partner — 25%</option>
+                <option value="reseller">Reseller — 30%</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              disabled={tierPending}
+              onClick={() => void saveTier()}
+              className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-blue-500 disabled:opacity-50"
+            >
+              {tierPending ? "Saving…" : "Save tier"}
+            </button>
+          </div>
+        ) : (
+          <p className="mt-3 text-xs text-slate-500">
+            Ask an org owner/admin to change Partner or Reseller rates.
+          </p>
+        )}
       </div>
 
       <div className="dg-card">
@@ -259,11 +335,11 @@ export function ReferAndEarnPanel({
       <div className="dg-card border-dashed border-slate-700">
         <h2 className="font-semibold text-white">Rewards policy</h2>
         <p className="mt-2 text-sm text-slate-400">
-          Earn <strong className="text-slate-200">20%</strong> of the referred
-          organisation&apos;s subscription as <strong className="text-slate-200">platform credit</strong>{" "}
-          for 12 months after they pay. Cash payout at{" "}
-          {formatAud(metrics.cashPayoutThresholdCents)} is stubbed (
-          {formatAud(metrics.cashAvailableStubCents)} available in ledger).
+          Earn <strong className="text-slate-200">{commissionPct}%</strong> of the
+          referred organisation&apos;s subscription as{" "}
+          <strong className="text-slate-200">platform credit</strong> for 12 months
+          after they pay. Cash payout at {formatAud(metrics.cashPayoutThresholdCents)}{" "}
+          is stubbed ({formatAud(metrics.cashAvailableStubCents)} available in ledger).
         </p>
         <p className="mt-2 text-xs text-slate-500">{stubsNote}</p>
       </div>

@@ -117,7 +117,7 @@ Prefer billing + Organisation fields over premature Network tables.
 | First-paid 20% credit on Stripe checkout | ✅ |
 | Monthly accrual on `invoice.paid` | ✅ (subscription_cycle renewals; idempotent on invoice id) |
 | Cash payout at ~$100 | ⚠️ UI + ledger stub only (no Stripe Connect) |
-| Partner 25–30% / Reseller rates | ❌ Not productised (`commissionBps` default 2000) |
+| Partner 25–30% / Reseller rates | ✅ Org `settings.referralProgramme.tier` (customer 20% / partner 25% / reseller 30%) |
 
 **Ops (Ben):** Stripe webhook for `https://app.digitalgate.com.au/api/webhooks/stripe` must include **`invoice.paid`**. Re-run `STRIPE_SECRET_KEY=… node scripts/setup-stripe-webhook.mjs` to create/update. Vercel needs `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` (same mode). Details: [STRIPE-SETUP.md](../commerce/STRIPE-SETUP.md) § Refer & Earn.
 

@@ -4,6 +4,7 @@ import { UserButton } from "@clerk/nextjs";
 
 import { OrgBrandMark } from "@/components/brand/OrgBrandMark";
 import { useOrgBrand } from "@/components/brand/OrgBrandProvider";
+import { NotificationBell } from "@/components/platform/NotificationBell";
 import { clerkAppearanceForBrand } from "@/lib/clerk-brand-appearance";
 
 function MenuIcon() {
@@ -46,6 +47,8 @@ export function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
         logoWidth={96}
         className="min-w-0 flex-1"
       />
+
+      <NotificationBell />
 
       <UserButton appearance={clerkAppearanceForBrand(brand)} />
     </header>

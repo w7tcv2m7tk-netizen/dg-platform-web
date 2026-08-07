@@ -3,7 +3,7 @@ import {
   buildAiSystemPrompt,
   buildLiveTwinWithScores,
   gatherOverviewLiveMetrics,
-  generateFromBusinessContext,
+  generateAiAssist,
   getBusinessContext,
   getContact,
   getLead,
@@ -11,6 +11,7 @@ import {
   getOrganisationBusinessProfile,
   listContactActivities,
   listLeadActivities,
+  llmConfigured,
   metricsContextFromLiveMetrics,
   type AiGenerateAction,
   type CrmAssistEntity,
@@ -28,6 +29,8 @@ const VALID_ACTIONS: AiGenerateAction[] = [
   "lead_summary",
   "opportunity_follow_up",
   "opportunity_summary",
+  "contact_follow_up",
+  "contact_summary",
 ];
 
 async function loadTwinContext(session: {
@@ -172,6 +175,7 @@ export async function GET(req: Request) {
     data: {
       context,
       systemPrompt: buildAiSystemPrompt(context),
+      llmConfigured: llmConfigured(),
     },
   });
 }
@@ -208,6 +212,8 @@ export async function POST(req: Request) {
     "lead_summary",
     "opportunity_follow_up",
     "opportunity_summary",
+    "contact_follow_up",
+    "contact_summary",
   ];
   if (
     crmActions.includes(action) &&
@@ -246,14 +252,24 @@ export async function POST(req: Request) {
     profileOverride: profile,
   });
 
-  const output = generateFromBusinessContext(context, action, entity);
+  const result = await generateAiAssist({
+    context,
+    action,
+    entity,
+  });
 
   return NextResponse.json({
     data: {
       action,
-      output,
+      output: result.output,
+      source: result.source,
+      provider: result.provider ?? null,
+      model: result.model ?? null,
+      latencyMs: result.latencyMs ?? null,
+      fallbackError: result.error ?? null,
       entity,
       systemPrompt: buildAiSystemPrompt(context),
+      llmConfigured: llmConfigured(),
     },
   });
 }

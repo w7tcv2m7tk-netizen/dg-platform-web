@@ -54,6 +54,9 @@ export default async function ConnectorsSettingsPage() {
     wpHealthSites: Boolean(process.env.DG_WP_HEALTH_SITES?.trim()),
     wpAccommodationSites: Boolean(process.env.DG_WP_ACCOMMODATION_SITES?.trim()),
     stripe: Boolean(process.env.STRIPE_SECRET_KEY?.trim()),
+    resend: Boolean(process.env.RESEND_API_KEY?.trim()),
+    openai: Boolean(process.env.OPENAI_API_KEY?.trim()),
+    anthropic: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),
   };
 
   return (
@@ -80,6 +83,19 @@ export default async function ConnectorsSettingsPage() {
             }}
           />
         ) : null}
+
+        <div className="dg-card">
+          <h2 className="font-semibold text-white">Multi-site WordPress</h2>
+          <p className="mt-2 text-sm text-slate-400">
+            Each organisation stores <strong className="text-slate-200">one</strong>{" "}
+            primary WordPress host + site API key (above). Env keys are only reused when
+            the host matches — never send Roe/DigitalGate keys to CVH. Website Health and
+            Accommodation multi-site lists use{" "}
+            <code className="text-slate-300">DG_WP_HEALTH_SITES</code> /{" "}
+            <code className="text-slate-300">DG_WP_ACCOMMODATION_SITES</code> on Vercel for
+            portfolio probes; per-tenant sync still uses the org connector.
+          </p>
+        </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="dg-card">
@@ -130,6 +146,9 @@ export default async function ConnectorsSettingsPage() {
                 configured={envFlags.wpAccommodationSites}
               />
               <EnvStatus name="STRIPE_SECRET_KEY" configured={envFlags.stripe} />
+              <EnvStatus name="RESEND_API_KEY" configured={envFlags.resend} />
+              <EnvStatus name="OPENAI_API_KEY" configured={envFlags.openai} />
+              <EnvStatus name="ANTHROPIC_API_KEY" configured={envFlags.anthropic} />
             </ul>
           </div>
         </div>

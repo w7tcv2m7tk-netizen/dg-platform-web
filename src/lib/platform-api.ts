@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import {
   apiKeyToPlatformSession,
+  registerNotificationEventHandlers,
   sessionHasFeature,
   verifyPlatformApiKey,
   type PlatformSession,
@@ -8,6 +9,9 @@ import {
 import { NextResponse } from "next/server";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+
+// Ensure in-app notification fan-out is bound in this Node isolate.
+registerNotificationEventHandlers();
 
 export function extractApiKeyFromRequest(req: Request) {
   const headerKey = req.headers.get("X-API-Key")?.trim();

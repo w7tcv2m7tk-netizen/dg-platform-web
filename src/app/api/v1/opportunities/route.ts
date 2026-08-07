@@ -7,11 +7,13 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "crm.opportunities.read");
+  if (denied) return denied;
 
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status") ?? undefined;
@@ -43,6 +45,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "crm.opportunities.write");
+  if (denied) return denied;
 
   const body = await req.json().catch(() => ({}));
 
@@ -103,6 +107,8 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "crm.opportunities.write");
+  if (denied) return denied;
 
   const body = await req.json().catch(() => null);
   const id = body?.id as string | undefined;

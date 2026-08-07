@@ -1,7 +1,9 @@
 import {
   createReferralInvite,
   getReferAndEarnDashboard,
+  normalizeReferralTier,
   requestCashPayoutStub,
+  updateOrganisationReferralProgramme,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
@@ -46,6 +48,29 @@ export async function POST(req: Request) {
       );
     }
     return NextResponse.json({ data: result });
+  }
+
+  if (body.action === "set_referral_tier") {
+    if (session.role !== "owner" && session.role !== "admin") {
+      return NextResponse.json(
+        {
+          error: {
+            code: "forbidden",
+            message: "Only owners and admins can change referral tier",
+          },
+        },
+        { status: 403 },
+      );
+    }
+    const tier = normalizeReferralTier(body.tier);
+    const programme = await updateOrganisationReferralProgramme({
+      organisationId: session.organisationId,
+      actorId: session.clerkUserId,
+      tier,
+      commissionBps:
+        typeof body.commissionBps === "number" ? body.commissionBps : null,
+    });
+    return NextResponse.json({ data: programme });
   }
 
   const email = typeof body.email === "string" ? body.email.trim() : "";

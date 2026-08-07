@@ -60,7 +60,8 @@ export default async function ReferAndEarnPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Refer &amp; Earn</h1>
         <p className="text-sm text-slate-400">
-          Share DigitalGate — earn 20% platform credit for 12 months when they subscribe
+          Share DigitalGate — earn platform credit for 12 months when they subscribe
+          (Customer 20% · Partner 25% · Reseller 30%)
         </p>
       </header>
       <main className="flex-1 space-y-6 p-8">
@@ -75,6 +76,10 @@ export default async function ReferAndEarnPage() {
             metrics={dash.metrics}
             referrals={dash.referrals}
             stubsNote={dash.stubs.note}
+            programme={dash.programme}
+            canEditTier={
+              session.role === "owner" || session.role === "admin"
+            }
           />
         )}
       </main>

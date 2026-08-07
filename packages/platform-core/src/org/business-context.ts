@@ -287,7 +287,9 @@ export type AiGenerateAction =
   | "lead_follow_up"
   | "lead_summary"
   | "opportunity_follow_up"
-  | "opportunity_summary";
+  | "opportunity_summary"
+  | "contact_follow_up"
+  | "contact_summary";
 
 export type CrmAssistEntity = {
   kind: "lead" | "opportunity" | "contact";
@@ -377,6 +379,7 @@ export function generateFromBusinessContext(
         .join("\n");
     case "lead_follow_up":
     case "opportunity_follow_up":
+    case "contact_follow_up":
       return [
         `Subject: Following up — ${entityLabel}`,
         "",
@@ -400,7 +403,8 @@ export function generateFromBusinessContext(
         .filter(Boolean)
         .join("\n");
     case "lead_summary":
-    case "opportunity_summary": {
+    case "opportunity_summary":
+    case "contact_summary": {
       const value =
         entity?.valueCents != null
           ? new Intl.NumberFormat("en-AU", {
@@ -408,6 +412,12 @@ export function generateFromBusinessContext(
               currency: entity.currency || "AUD",
             }).format(entity.valueCents / 100)
           : null;
+      const nextStep =
+        action === "lead_summary"
+          ? "Send a personalised follow-up and confirm appraisal / discovery timing."
+          : action === "contact_summary"
+            ? "Send a personalised check-in and confirm how you can help next."
+            : "Advance the opportunity stage or schedule a decision call.";
       return [
         `Summary — ${entityLabel}`,
         "",
@@ -428,11 +438,7 @@ export function generateFromBusinessContext(
               .join("\n")}`
           : "",
         "",
-        `Suggested next step: ${
-          action === "lead_summary"
-            ? "Send a personalised follow-up and confirm appraisal / discovery timing."
-            : "Advance the opportunity stage or schedule a decision call."
-        }`,
+        `Suggested next step: ${nextStep}`,
         `(Generated for ${name} — edit before sharing)`,
       ]
         .filter(Boolean)

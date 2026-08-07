@@ -8,7 +8,7 @@
  * - First-paid credit from checkout.completed via markReferralPaidAndAccrue.
  * - Monthly renewal credit from invoice.paid (billing_reason=subscription_cycle).
  * - Cash payout at ~$100 threshold is stubbed (ledger entryType cash_payout_stub).
- * - Partner 25–30% / Reseller custom rates not yet productised (commissionBps default 2000).
+ * - Partner / Reseller rates via org settings.referralProgramme.tier (customer 20%, partner 25%, reseller 30%).
  */
 
 import type { PlatformReferral, PlatformReferralLedger, Prisma } from "@dg/database";
@@ -20,9 +20,20 @@ import { platformEvents } from "../events";
 export const REFERRAL_COOKIE = "dg_ref";
 export const REFERRAL_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 30; // 30 days
 export const CUSTOMER_COMMISSION_BPS = 2000; // 20%
+export const PARTNER_COMMISSION_BPS = 2500; // 25%
+export const RESELLER_COMMISSION_BPS = 3000; // 30%
 export const REWARD_MONTHS = 12;
 /** Cash-out threshold — stubbed; credits remain default payout form. */
 export const CASH_PAYOUT_THRESHOLD_CENTS = 10_000;
+
+export const REFERRAL_TIERS = ["customer", "partner", "reseller"] as const;
+export type ReferralTier = (typeof REFERRAL_TIERS)[number];
+
+export const REFERRAL_TIER_BPS: Record<ReferralTier, number> = {
+  customer: CUSTOMER_COMMISSION_BPS,
+  partner: PARTNER_COMMISSION_BPS,
+  reseller: RESELLER_COMMISSION_BPS,
+};
 
 export const REFERRAL_STATUSES = [
   "invited",
@@ -46,6 +57,107 @@ function slugifyCode(raw: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "")
     .slice(0, 32);
+}
+
+type ReferralProgrammeSettings = {
+  tier?: ReferralTier;
+  /** Optional override — when set, used instead of tier default */
+  commissionBps?: number;
+};
+
+type OrgSettingsWithReferral = {
+  referralProgramme?: ReferralProgrammeSettings;
+  [key: string]: unknown;
+};
+
+export function normalizeReferralTier(raw: unknown): ReferralTier {
+  if (raw === "partner" || raw === "reseller" || raw === "customer") return raw;
+  return "customer";
+}
+
+export function commissionBpsForTier(tier: ReferralTier, override?: number | null) {
+  if (typeof override === "number" && override > 0 && override <= 5000) {
+    return Math.round(override);
+  }
+  return REFERRAL_TIER_BPS[tier];
+}
+
+/** Resolve referrer org commission rate from settings.referralProgramme */
+export async function getOrganisationReferralProgramme(organisationId: string) {
+  const { prisma } = await import("@dg/database");
+  const org = await prisma.organisation.findUnique({
+    where: { id: organisationId },
+    select: { settings: true },
+  });
+  const settings = (org?.settings as OrgSettingsWithReferral | null) ?? {};
+  const prog = settings.referralProgramme ?? {};
+  const tier = normalizeReferralTier(prog.tier);
+  const commissionBps = commissionBpsForTier(tier, prog.commissionBps);
+  return {
+    tier,
+    commissionBps,
+    label:
+      tier === "partner"
+        ? "Partner (25%)"
+        : tier === "reseller"
+          ? "Reseller (30%)"
+          : "Customer (20%)",
+  };
+}
+
+export async function updateOrganisationReferralProgramme(input: {
+  organisationId: string;
+  actorId?: string;
+  tier: ReferralTier;
+  commissionBps?: number | null;
+}) {
+  const { prisma } = await import("@dg/database");
+  type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
+
+  const org = await prisma.organisation.findUnique({
+    where: { id: input.organisationId },
+    select: { settings: true },
+  });
+  if (!org) throw new Error("Organisation not found");
+
+  const settings = (org.settings as OrgSettingsWithReferral | null) ?? {};
+  const tier = normalizeReferralTier(input.tier);
+  const commissionBps = commissionBpsForTier(tier, input.commissionBps);
+
+  const next: OrgSettingsWithReferral = {
+    ...settings,
+    referralProgramme: {
+      tier,
+      ...(typeof input.commissionBps === "number"
+        ? { commissionBps }
+        : settings.referralProgramme?.commissionBps
+          ? { commissionBps: settings.referralProgramme.commissionBps }
+          : {}),
+    },
+  };
+
+  // Clear override when switching tier without explicit override
+  if (input.commissionBps === null) {
+    delete next.referralProgramme!.commissionBps;
+  }
+
+  await prisma.organisation.update({
+    where: { id: input.organisationId },
+    data: { settings: next as unknown as InputJsonValue },
+  });
+
+  await writeAuditLog({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    action: "update",
+    entityType: "Organisation",
+    entityId: input.organisationId,
+    changes: {
+      after: { referralProgramme: next.referralProgramme },
+    },
+  });
+
+  return getOrganisationReferralProgramme(input.organisationId);
 }
 
 function serializeReferral(row: PlatformReferral) {
@@ -136,7 +248,10 @@ export async function resolveReferralCode(code: string) {
 
 export async function getReferAndEarnDashboard(organisationId: string) {
   const { prisma } = await import("@dg/database");
-  const code = await ensureReferralCode(organisationId);
+  const [code, programme] = await Promise.all([
+    ensureReferralCode(organisationId),
+    getOrganisationReferralProgramme(organisationId),
+  ]);
 
   const [referrals, ledger] = await Promise.all([
     prisma.platformReferral.findMany({
@@ -184,6 +299,7 @@ export async function getReferAndEarnDashboard(organisationId: string) {
   return {
     code,
     sharePath: `/r/${code}`,
+    programme,
     metrics: {
       invited,
       signedUp,
@@ -193,15 +309,16 @@ export async function getReferAndEarnDashboard(organisationId: string) {
       lifetimeRewardCents: lifetimeCredits,
       cashAvailableStubCents: Math.max(0, lifetimeCredits - lifetimeCashStub),
       cashPayoutThresholdCents: CASH_PAYOUT_THRESHOLD_CENTS,
+      commissionBps: programme.commissionBps,
+      tier: programme.tier,
     },
     referrals: referrals.map(serializeReferral),
     ledger: ledger.map(serializeLedger),
     stubs: {
       monthlyInvoiceAccrual: false,
       cashPayout: true,
-      partnerRates: true,
-      note:
-        "Rewards: 20% of subscription × 12 months as platform credit (first month on checkout; months 2–12 on Stripe invoice.paid renewals). Cash payout at threshold is ledger-stubbed — no Stripe Connect transfer yet.",
+      partnerRates: false,
+      note: `Rewards: ${(programme.commissionBps / 100).toFixed(0)}% of subscription × 12 months as platform credit (tier: ${programme.tier}). First month on checkout; months 2–12 on Stripe invoice.paid. Cash payout at threshold is ledger-stubbed — no Stripe Connect transfer yet.`,
     },
   };
 }
@@ -220,6 +337,7 @@ export async function createReferralInvite(input: {
 
   const { prisma } = await import("@dg/database");
   const code = await ensureReferralCode(input.organisationId);
+  const programme = await getOrganisationReferralProgramme(input.organisationId);
 
   const existing = await prisma.platformReferral.findFirst({
     where: {
@@ -238,13 +356,14 @@ export async function createReferralInvite(input: {
         status: "invited",
         inviteEmail: email,
         inviteName: input.name?.trim() || null,
-        commissionBps: CUSTOMER_COMMISSION_BPS,
+        commissionBps: programme.commissionBps,
         rewardMonthsRemaining: REWARD_MONTHS,
       },
     }));
   const resent = Boolean(existing);
 
   const shareUrl = `${input.appBaseUrl.replace(/\/$/, "")}/r/${code}`;
+  const pct = (programme.commissionBps / 100).toFixed(0);
   const body = [
     input.name?.trim()
       ? `Hi ${input.name.trim()},`
@@ -255,7 +374,7 @@ export async function createReferralInvite(input: {
     `Sign up with this link and we'll attribute your trial to your referrer:`,
     shareUrl,
     "",
-    "Your referrer earns platform credit when you become a paying customer (20% of subscription for 12 months) — single-level only, no multi-level schemes.",
+    `Your referrer earns platform credit when you become a paying customer (${pct}% of subscription for 12 months) — single-level only, no multi-level schemes.`,
   ].join("\n");
 
   const delivery = await sendMessage({
@@ -354,6 +473,8 @@ export async function attributeOrganisationReferral(input: {
     return { attributed: false, reason: "self_referral" };
   }
 
+  const programme = await getOrganisationReferralProgramme(referrer.id);
+
   const email = input.inviteEmail?.trim().toLowerCase() || null;
 
   await prisma.organisation.update({
@@ -387,6 +508,7 @@ export async function attributeOrganisationReferral(input: {
       data: {
         referredOrganisationId: org.id,
         status: nextStatus,
+        commissionBps: referral.commissionBps || programme.commissionBps,
       },
     });
   } else {
@@ -397,7 +519,7 @@ export async function attributeOrganisationReferral(input: {
         code: referrer.referralCode ?? code,
         status: nextStatus,
         inviteEmail: email,
-        commissionBps: CUSTOMER_COMMISSION_BPS,
+        commissionBps: programme.commissionBps,
         rewardMonthsRemaining: REWARD_MONTHS,
       },
     });

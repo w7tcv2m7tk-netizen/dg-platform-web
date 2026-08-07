@@ -34,6 +34,7 @@ model Organisation {
   companies        Company[]
   activities       Activity[]
   tasks            Task[]
+  notifications    Notification[]
   leads            Lead[]
   opportunities    Opportunity[]
   properties       Property[]
@@ -184,6 +185,30 @@ model Task {
 
   @@index([organisationId, status])
   @@map("tasks")
+}
+
+/** In-app notifications — fan-out from platform event bus (not push/OS yet). */
+model Notification {
+  id               String    @id @default(cuid())
+  organisationId   String    @map("organisation_id")
+  /** Null = org-wide; otherwise Clerk user id */
+  recipientUserId  String?   @map("recipient_user_id")
+  type             String
+  title            String
+  body             String?
+  href             String?
+  entityType       String?   @map("entity_type")
+  entityId         String?   @map("entity_id")
+  readAt           DateTime? @map("read_at")
+  metadata         Json?
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, createdAt])
+  @@index([organisationId, readAt])
+  @@index([recipientUserId, readAt])
+  @@map("notifications")
 }
 
 model Lead {
