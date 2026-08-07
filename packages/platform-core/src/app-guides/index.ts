@@ -298,11 +298,19 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
       },
       {
         id: "acc-3",
-        title: "Review units and bookings",
+        title: "Review units, bookings, availability, and housekeeping",
         description:
-          "Domes, rates, and reservations mirror wp-admin. Calendar and housekeeping ship next.",
+          "Domes, rates, reservations, the 45-day availability grid, and housekeeping board all mirror WordPress.",
         href: "/apps/accommodation/units",
         hrefLabel: "Units",
+      },
+      {
+        id: "acc-3b",
+        title: "Update housekeeping after turnovers",
+        description:
+          "Mark units clean / dirty / in progress from Gen 2 — syncs to WordPress housekeeping meta.",
+        href: "/apps/accommodation/housekeeping",
+        hrefLabel: "Housekeeping",
       },
       {
         id: "acc-4",

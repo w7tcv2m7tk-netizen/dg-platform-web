@@ -348,7 +348,13 @@ type WpFetchErrorCode =
 
 async function wpConnectorFetch<T>(
   path: string,
-  options?: { baseUrl?: string; apiKey?: string; allowEmpty?: boolean },
+  options?: {
+    baseUrl?: string;
+    apiKey?: string;
+    allowEmpty?: boolean;
+    method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+    body?: unknown;
+  },
 ): Promise<
   | { ok: true; data: T }
   | { ok: false; code: WpFetchErrorCode; message: string; status?: number }
@@ -369,8 +375,18 @@ async function wpConnectorFetch<T>(
   }
 
   try {
+    const method = options?.method ?? "GET";
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      "X-API-Key": apiKey,
+    };
+    if (options?.body !== undefined) {
+      headers["Content-Type"] = "application/json";
+    }
     const res = await fetch(`${baseUrl}${path}`, {
-      headers: { Accept: "application/json", "X-API-Key": apiKey },
+      method,
+      headers,
+      body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
       cache: "no-store",
     });
     const data = (await res.json().catch(() => null)) as T & {
@@ -578,8 +594,13 @@ export function getWpAccommodationSite(siteId?: string | null): WpAccommodationS
 export type WpAccommodationSummary = {
   site?: string;
   site_profile?: string;
+  /** 0–100 percentage from WordPress. */
   occupancy_rate?: number;
   revenue_mtd?: number;
+  revenue_month?: number;
+  properties?: number;
+  guests?: number;
+  upcoming_30d?: number;
   checkins_tomorrow?: number;
   housekeeping?: Record<string, unknown>;
   recent_bookings?: WpAccBookingRow[];
@@ -590,10 +611,15 @@ export type WpAccUnitRow = {
   title: string;
   slug?: string;
   weekday_rate?: number;
+  weekend_rate?: number;
   cleaning_fee?: number;
   housekeeping_status?: string;
+  housekeeping_notes?: string;
+  last_cleaned?: string | null;
   listing_status?: string;
   checkin_slug?: string;
+  checkin_url?: string;
+  cleaning_form_url?: string;
 };
 
 export type WpAccBookingRow = {
@@ -609,19 +635,65 @@ export type WpAccBookingRow = {
   total?: number;
 };
 
-export async function fetchWpAccommodationSummary(siteId?: string | null, days = 30) {
+export type WpAccAvailabilityUnit = {
+  id: number;
+  title: string;
+  listing_status?: string;
+  weekday_rate?: number;
+  weekend_rate?: number;
+  blocked_dates?: string[];
+  bookings?: WpAccBookingRow[];
+};
+
+export type WpAccHousekeepingItem = {
+  id: number;
+  title: string;
+  status: string;
+  notes?: string;
+  last_cleaned?: string | null;
+  cleaning_form_url?: string;
+  checkin_url?: string;
+};
+
+function resolveAccConnector(
+  siteId?: string | null,
+  connector?: WpConnectorOverride,
+): { baseUrl: string; apiKey?: string; label: string } {
+  if (connector?.baseUrl) {
+    return {
+      baseUrl: connector.baseUrl.replace(/\/$/, ""),
+      apiKey: connector.apiKey,
+      label: connector.label || "Currumbin Valley Hideaway",
+    };
+  }
   const site = getWpAccommodationSite(siteId);
+  return {
+    baseUrl: site.baseUrl,
+    apiKey: wpConnectorApiKey(site),
+    label: site.label,
+  };
+}
+
+export async function fetchWpAccommodationSummary(
+  siteId?: string | null,
+  days = 30,
+  connector?: WpConnectorOverride,
+) {
+  const site = resolveAccConnector(siteId, connector);
   return wpConnectorFetch<WpAccommodationSummary>(
     `/accommodation/summary?days=${days}`,
-    { baseUrl: site.baseUrl, apiKey: wpConnectorApiKey(site) },
+    { baseUrl: site.baseUrl, apiKey: site.apiKey },
   );
 }
 
-export async function fetchWpAccommodationUnits(siteId?: string | null) {
-  const site = getWpAccommodationSite(siteId);
+export async function fetchWpAccommodationUnits(
+  siteId?: string | null,
+  connector?: WpConnectorOverride,
+) {
+  const site = resolveAccConnector(siteId, connector);
   const result = await wpConnectorFetch<{ properties?: WpAccUnitRow[] }>(
     "/accommodation/properties",
-    { baseUrl: site.baseUrl, apiKey: wpConnectorApiKey(site) },
+    { baseUrl: site.baseUrl, apiKey: site.apiKey },
   );
   if (!result.ok) return result;
   return { ok: true as const, units: result.data.properties ?? [], site: site.label };
@@ -630,11 +702,12 @@ export async function fetchWpAccommodationUnits(siteId?: string | null) {
 export async function fetchWpAccommodationBookings(
   siteId?: string | null,
   limit = 50,
+  connector?: WpConnectorOverride,
 ) {
-  const site = getWpAccommodationSite(siteId);
+  const site = resolveAccConnector(siteId, connector);
   const result = await wpConnectorFetch<{ bookings?: WpAccBookingRow[]; total?: number }>(
     `/accommodation/bookings?limit=${limit}`,
-    { baseUrl: site.baseUrl, apiKey: wpConnectorApiKey(site) },
+    { baseUrl: site.baseUrl, apiKey: site.apiKey },
   );
   if (!result.ok) return result;
   return {
@@ -643,6 +716,82 @@ export async function fetchWpAccommodationBookings(
     total: result.data.total ?? 0,
     site: site.label,
   };
+}
+
+export async function fetchWpAccommodationAvailability(
+  opts?: {
+    siteId?: string | null;
+    from?: string;
+    to?: string;
+    propertyId?: number;
+    connector?: WpConnectorOverride;
+  },
+) {
+  const site = resolveAccConnector(opts?.siteId, opts?.connector);
+  const params = new URLSearchParams();
+  if (opts?.from) params.set("from", opts.from);
+  if (opts?.to) params.set("to", opts.to);
+  if (opts?.propertyId) params.set("property_id", String(opts.propertyId));
+  const qs = params.toString();
+  const result = await wpConnectorFetch<{
+    from?: string;
+    to?: string;
+    units?: WpAccAvailabilityUnit[];
+    total?: number;
+  }>(`/accommodation/availability${qs ? `?${qs}` : ""}`, {
+    baseUrl: site.baseUrl,
+    apiKey: site.apiKey,
+  });
+  if (!result.ok) return result;
+  return {
+    ok: true as const,
+    from: result.data.from,
+    to: result.data.to,
+    units: result.data.units ?? [],
+    total: result.data.total ?? 0,
+    site: site.label,
+  };
+}
+
+export async function fetchWpAccommodationHousekeeping(
+  siteId?: string | null,
+  connector?: WpConnectorOverride,
+) {
+  const site = resolveAccConnector(siteId, connector);
+  const result = await wpConnectorFetch<{
+    items?: WpAccHousekeepingItem[];
+    summary?: Record<string, number>;
+    statuses?: Record<string, string>;
+    total?: number;
+  }>("/accommodation/housekeeping", {
+    baseUrl: site.baseUrl,
+    apiKey: site.apiKey,
+  });
+  if (!result.ok) return result;
+  return {
+    ok: true as const,
+    items: result.data.items ?? [],
+    summary: result.data.summary ?? {},
+    statuses: result.data.statuses ?? {},
+    total: result.data.total ?? 0,
+    site: site.label,
+  };
+}
+
+export async function patchWpAccommodationHousekeeping(
+  updates: Array<{ property_id: number; status: string; notes?: string }>,
+  connector?: WpConnectorOverride,
+) {
+  const site = resolveAccConnector(null, connector);
+  return wpConnectorFetch<{ ok?: boolean; updated?: number[]; count?: number }>(
+    "/accommodation/housekeeping",
+    {
+      baseUrl: site.baseUrl,
+      apiKey: site.apiKey,
+      method: "PATCH",
+      body: { updates },
+    },
+  );
 }
 
 export type WpSiteHealthPayload = {

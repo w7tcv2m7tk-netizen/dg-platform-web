@@ -3,11 +3,13 @@ import {
   type OverviewConnectorProbes,
 } from "@dg/platform-core";
 
+import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
 import {
   fetchWpAccommodationSummary,
   fetchWpReSummary,
   fetchWpSiteHealth,
 } from "@/lib/dg-api";
+import { wpConnectorForOrg } from "@/lib/org-wordpress-connector";
 import { getLastWordPressSync } from "@/lib/wordpress-sync";
 
 function sumPipelineCounts(
@@ -25,16 +27,21 @@ export async function fetchOverviewConnectorProbes(
 ): Promise<OverviewConnectorProbes> {
   const stripe = getStripeSetupStatus();
   const wpSync = await getLastWordPressSync(organisationId);
+  const orgConnector = await wpConnectorForOrg(organisationId);
+  const accConnector = await accommodationConnectorForSession(organisationId);
 
   const [siteHealth, reSummary, accSummary] = await Promise.all([
     fetchWpSiteHealth(),
-    enabledAppIds.includes("real-estate") ? fetchWpReSummary(30) : Promise.resolve(null),
+    enabledAppIds.includes("real-estate")
+      ? fetchWpReSummary(30, orgConnector)
+      : Promise.resolve(null),
     enabledAppIds.includes("accommodation")
-      ? fetchWpAccommodationSummary()
+      ? fetchWpAccommodationSummary(null, 30, accConnector)
       : Promise.resolve(null),
   ]);
 
   const hasWpKey =
+    Boolean(orgConnector.apiKey?.trim()) ||
     Boolean(process.env.DG_WP_CONNECTOR_API_KEY?.trim()) ||
     Boolean(process.env.DG_API_KEY?.trim());
 
@@ -57,7 +64,10 @@ export async function fetchOverviewConnectorProbes(
   }
 
   const wpConnected =
-    Boolean(wpSync?.lastVendorLeadSyncAt) || reSummary?.ok === true || (hasWpKey && siteHealth.ok);
+    Boolean(wpSync?.lastVendorLeadSyncAt) ||
+    reSummary?.ok === true ||
+    accSummary?.ok === true ||
+    (hasWpKey && siteHealth.ok);
 
   probes.wordpress = {
     ok: wpConnected,
@@ -79,10 +89,12 @@ export async function fetchOverviewConnectorProbes(
   }
 
   if (accSummary?.ok) {
+    const rate = accSummary.data.occupancy_rate;
     probes.accommodation = {
       ok: true,
-      occupancyRate: accSummary.data.occupancy_rate,
-      revenueMtd: accSummary.data.revenue_mtd,
+      occupancyRate:
+        typeof rate === "number" ? Math.round(rate <= 1 ? rate * 100 : rate) : undefined,
+      revenueMtd: accSummary.data.revenue_mtd ?? accSummary.data.revenue_month,
       checkinsTomorrow: accSummary.data.checkins_tomorrow,
     };
   }

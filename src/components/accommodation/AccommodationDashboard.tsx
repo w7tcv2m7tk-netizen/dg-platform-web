@@ -32,8 +32,8 @@ export function AccommodationDashboard({
       <div className="dg-card border-amber-500/30">
         <p className="text-amber-300">{error}</p>
         <p className="mt-2 text-sm text-slate-500">
-          Set DG_WP_ACCOMMODATION_SITES with your CVH WordPress REST base URL and API key. Falls back
-          to DG_WP_HEALTH_SITES when unset.
+          Open Settings → Connectors and apply the CVH WordPress preset with your API key. Or set
+          DG_WP_ACCOMMODATION_SITES / DG_WP_CONNECTOR_API_KEY on Vercel.
         </p>
       </div>
     );
@@ -45,8 +45,15 @@ export function AccommodationDashboard({
 
   const occupancy =
     typeof summary.occupancy_rate === "number"
-      ? `${Math.round(summary.occupancy_rate * 100)}%`
+      ? `${Math.round(
+          summary.occupancy_rate <= 1
+            ? summary.occupancy_rate * 100
+            : summary.occupancy_rate,
+        )}%`
       : "—";
+
+  const revenue =
+    summary.revenue_mtd ?? summary.revenue_month;
 
   return (
     <div className="space-y-6">
@@ -59,8 +66,8 @@ export function AccommodationDashboard({
         <StatCard
           label="Revenue MTD"
           value={
-            typeof summary.revenue_mtd === "number"
-              ? `$${summary.revenue_mtd.toLocaleString("en-AU")}`
+            typeof revenue === "number"
+              ? `$${revenue.toLocaleString("en-AU")}`
               : "—"
           }
         />

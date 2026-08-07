@@ -1,10 +1,10 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import {} from "@dg/platform-core";
 import { Suspense } from "react";
 
 import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
 import { AccommodationUnitsTable } from "@/components/accommodation/AccommodationUnitsTable";
+import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   fetchPortalMe,
   fetchWpAccommodationUnits,
@@ -38,14 +38,16 @@ export default async function AccommodationUnitsPage({ searchParams }: PageProps
 
   const sites = listWpAccommodationSites();
   const site = getWpAccommodationSite(siteId);
-  const unitsResult = await fetchWpAccommodationUnits(site.id);
+  const connector = await accommodationConnectorForSession(session?.organisationId);
+  const unitsResult = await fetchWpAccommodationUnits(site.id, connector);
+  const siteLabel = connector?.label ?? site.label;
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Units</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {site.label} · domes and short-stay units
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · domes and short-stay units
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">
@@ -57,7 +59,7 @@ export default async function AccommodationUnitsPage({ searchParams }: PageProps
         <AccommodationUnitsTable
           units={unitsResult.ok ? unitsResult.units : []}
           error={unitsResult.ok ? undefined : unitsResult.message}
-          siteLabel={site.label}
+          siteLabel={siteLabel}
         />
       </main>
     </>

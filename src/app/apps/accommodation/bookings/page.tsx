@@ -1,10 +1,10 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import {} from "@dg/platform-core";
 import { Suspense } from "react";
 
 import { AccommodationBookingsTable } from "@/components/accommodation/AccommodationBookingsTable";
 import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
+import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   fetchPortalMe,
   fetchWpAccommodationBookings,
@@ -38,14 +38,16 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
 
   const sites = listWpAccommodationSites();
   const site = getWpAccommodationSite(siteId);
-  const bookingsResult = await fetchWpAccommodationBookings(site.id, 50);
+  const connector = await accommodationConnectorForSession(session?.organisationId);
+  const bookingsResult = await fetchWpAccommodationBookings(site.id, 50, connector);
+  const siteLabel = connector?.label ?? site.label;
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Bookings</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {site.label} · reservations from
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · reservations from
           WordPress
         </p>
         <Suspense fallback={null}>
@@ -59,7 +61,7 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
           bookings={bookingsResult.ok ? bookingsResult.bookings : []}
           total={bookingsResult.ok ? bookingsResult.total : undefined}
           error={bookingsResult.ok ? undefined : bookingsResult.message}
-          siteLabel={site.label}
+          siteLabel={siteLabel}
         />
       </main>
     </>

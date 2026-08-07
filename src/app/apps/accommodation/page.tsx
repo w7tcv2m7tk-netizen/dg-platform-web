@@ -1,10 +1,10 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import {} from "@dg/platform-core";
 import { Suspense } from "react";
 
 import { AccommodationDashboard } from "@/components/accommodation/AccommodationDashboard";
 import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
+import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   fetchPortalMe,
   fetchWpAccommodationSummary,
@@ -38,14 +38,16 @@ export default async function AccommodationOverviewPage({ searchParams }: PagePr
 
   const sites = listWpAccommodationSites();
   const site = getWpAccommodationSite(siteId);
-  const summaryResult = await fetchWpAccommodationSummary(site.id);
+  const connector = await accommodationConnectorForSession(session?.organisationId);
+  const summaryResult = await fetchWpAccommodationSummary(site.id, 30, connector);
+  const siteLabel = connector?.label ?? site.label;
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Accommodation</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {site.label} · live from WordPress
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · live from WordPress
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">
@@ -57,7 +59,7 @@ export default async function AccommodationOverviewPage({ searchParams }: PagePr
         <AccommodationDashboard
           summary={summaryResult.ok ? summaryResult.data : undefined}
           error={summaryResult.ok ? undefined : summaryResult.message}
-          siteLabel={site.label}
+          siteLabel={siteLabel}
         />
       </main>
     </>
