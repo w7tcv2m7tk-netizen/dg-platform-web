@@ -61,7 +61,7 @@ function serializeMembership(m: {
   };
 }
 
-/** List active members for an organisation (Team page). */
+/** List active + invited members for an organisation (Team page). */
 export async function listOrganisationMembers(
   organisationId: string,
 ): Promise<MembershipProfile[]> {
@@ -69,7 +69,10 @@ export async function listOrganisationMembers(
 
   const { prisma } = await import("@dg/database");
   const rows = await prisma.membership.findMany({
-    where: { organisationId, status: "active" },
+    where: {
+      organisationId,
+      status: { in: ["active", "invited"] },
+    },
     orderBy: [{ role: "asc" }, { createdAt: "asc" }],
   });
   return rows.map(serializeMembership);

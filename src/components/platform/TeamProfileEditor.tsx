@@ -105,29 +105,15 @@ export function TeamProfileEditor({
   return (
     <div className="dg-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-3">
-          {preview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={preview}
-              alt=""
-              className="h-14 w-14 shrink-0 rounded-full object-cover ring-1 ring-slate-700"
-            />
-          ) : (
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-slate-800 text-lg text-slate-400">
-              {(member.displayName || member.email || "?").charAt(0).toUpperCase()}
-            </div>
-          )}
-          <div className="min-w-0">
-            <h3 className="font-semibold text-white">
-              {member.displayName || member.email || "Team member"}
-              {member.isMe ? (
-                <span className="ml-2 text-xs font-normal text-blue-400">You</span>
-              ) : null}
-            </h3>
-            <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">{member.role}</p>
-            {member.email ? <p className="mt-1 text-sm text-slate-400">{member.email}</p> : null}
-          </div>
+        <div className="min-w-0">
+          <h3 className="font-semibold text-white">
+            {member.displayName || member.email || "Team member"}
+            {member.isMe ? (
+              <span className="ml-2 text-xs font-normal text-blue-400">You</span>
+            ) : null}
+          </h3>
+          <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">{member.role}</p>
+          {member.email ? <p className="mt-1 text-sm text-slate-400">{member.email}</p> : null}
         </div>
         {member.wpAgentPermalink ? (
           <a
@@ -141,24 +127,41 @@ export function TeamProfileEditor({
         ) : null}
       </div>
 
-      {canEdit ? (
-        <form onSubmit={save} className="mt-4 space-y-3">
-          <div>
-            <p className="text-sm text-slate-400">Profile photo</p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+      {/* Profile photo is always visible — not buried in optional fields */}
+      <div className="mt-4 rounded-xl border border-slate-700 bg-slate-950/60 p-4">
+        <p className="text-sm font-medium text-white">Profile photo</p>
+        <p className="mt-1 text-xs text-slate-500">
+          Used on this business team page and website agent profile. Separate from your Clerk
+          account photo.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-4">
+          {preview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={preview}
+              alt=""
+              className="h-20 w-20 rounded-full object-cover ring-2 ring-slate-600"
+            />
+          ) : (
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-800 text-2xl text-slate-400 ring-2 ring-slate-700">
+              {(member.displayName || member.email || "?").charAt(0).toUpperCase()}
+            </div>
+          )}
+          {canEdit ? (
+            <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 disabled={uploading}
                 onClick={() => fileRef.current?.click()}
-                className="rounded-full border border-slate-600 px-3 py-1.5 text-xs text-slate-200 hover:border-blue-500 disabled:opacity-50"
+                className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
               >
                 {uploading ? "Uploading…" : "Upload photo"}
               </button>
-              {member.clerkImageUrl && avatarUrl !== member.clerkImageUrl ? (
+              {member.clerkImageUrl ? (
                 <button
                   type="button"
                   onClick={() => setAvatarUrl(member.clerkImageUrl || "")}
-                  className="rounded-full border border-slate-700 px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200"
+                  className="rounded-full border border-slate-600 px-3 py-2 text-xs text-slate-300 hover:border-blue-500"
                 >
                   Use account photo
                 </button>
@@ -167,28 +170,29 @@ export function TeamProfileEditor({
                 <button
                   type="button"
                   onClick={() => setAvatarUrl("")}
-                  className="rounded-full border border-slate-700 px-3 py-1.5 text-xs text-slate-400 hover:text-amber-300"
+                  className="rounded-full border border-slate-700 px-3 py-2 text-xs text-slate-400 hover:text-amber-300"
                 >
                   Clear
                 </button>
               ) : null}
             </div>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/gif"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void uploadPhoto(file);
-                e.target.value = "";
-              }}
-            />
-            <p className="mt-1 text-xs text-slate-500">
-              Defaults from your Clerk account photo. Upload to override for this business.
-            </p>
-          </div>
+          ) : null}
+        </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) void uploadPhoto(file);
+            e.target.value = "";
+          }}
+        />
+      </div>
 
+      {canEdit ? (
+        <form onSubmit={save} className="mt-4 space-y-3">
           <label className="block text-sm">
             <span className="text-slate-400">Display name</span>
             <input

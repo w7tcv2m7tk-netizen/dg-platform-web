@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import { storeOrgBrandAsset } from "@dg/platform-core/assets/org-brand-storage";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
-const MAX_BYTES = 400 * 1024;
+const DEFAULT_MAX_BYTES = 400 * 1024;
+const HARD_MAX_BYTES = 2 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
   "image/png",
   "image/jpeg",
@@ -15,6 +16,12 @@ const ALLOWED_TYPES = new Set([
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const url = new URL(req.url);
+  const maxKb = Number(url.searchParams.get("maxKb") ?? "");
+  const maxBytes = Number.isFinite(maxKb) && maxKb > 0
+    ? Math.min(Math.round(maxKb * 1024), HARD_MAX_BYTES)
+    : DEFAULT_MAX_BYTES;
 
   let form: FormData;
   try {
@@ -46,12 +53,12 @@ export async function POST(req: Request) {
     );
   }
 
-  if (file.size > MAX_BYTES) {
+  if (file.size > maxBytes) {
     return NextResponse.json(
       {
         error: {
           code: "file_too_large",
-          message: "Image must be 400 KB or smaller. Use a URL for larger logos.",
+          message: `Image must be ${Math.round(maxBytes / 1024)} KB or smaller.`,
         },
       },
       { status: 400 },
@@ -65,7 +72,7 @@ export async function POST(req: Request) {
       organisationId: session.organisationId,
       buffer,
       contentType: file.type,
-      maxBytes: MAX_BYTES,
+      maxBytes,
     });
 
     return NextResponse.json({

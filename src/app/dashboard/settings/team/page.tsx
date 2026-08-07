@@ -6,6 +6,7 @@ import {
   syncMembershipFromClerkAccount,
 } from "@dg/platform-core";
 
+import { TeamInviteForm } from "@/components/platform/TeamInviteForm";
 import { TeamProfileEditor } from "@/components/platform/TeamProfileEditor";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -61,10 +62,9 @@ export default async function TeamSettingsPage() {
         <div className="dg-card max-w-2xl">
           <h2 className="font-semibold text-white">Account vs team profile</h2>
           <p className="mt-2 text-sm text-slate-400">
-            The sidebar <span className="text-slate-300">Account</span> menu is your Clerk login
-            (email, password, account photo). Team profiles are per-business: name, bio, title,
-            phone, and photo used on the website agent page. We pull your Clerk name and photo
-            as defaults; you can override them here without changing your login account.
+            The sidebar Account menu is your Clerk login (email, password, account photo). Team
+            profiles are per-business: name, bio, title, phone, and photo used on the website
+            agent page. Upload a profile photo on your card below.
           </p>
         </div>
 
@@ -85,7 +85,7 @@ export default async function TeamSettingsPage() {
                     jobTitle: member.jobTitle,
                     phone: member.phone,
                     avatarUrl: member.avatarUrl,
-                    clerkImageUrl: member.clerkImageUrl,
+                    clerkImageUrl: member.clerkImageUrl ?? (isMe ? user?.imageUrl : null),
                     isMe,
                     wpAgentPermalink: member.externalRefs?.wp_agent_permalink as
                       | string
@@ -102,14 +102,12 @@ export default async function TeamSettingsPage() {
         )}
 
         <div className="dg-card max-w-xl">
-          <h2 className="font-semibold text-white">Invites</h2>
+          <h2 className="font-semibold text-white">Invite teammates</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Invite colleagues via Clerk. Once they join this org they appear here and can edit
-            their own team profile.
+            Send a Clerk invite email. When they accept and sign in, they join this organisation
+            and can edit their own team profile.
           </p>
-          <p className="mt-4 text-xs text-slate-500">
-            Tip: Account menu → Manage account for login photo; Team for business/agent photo.
-          </p>
+          <TeamInviteForm canInvite={Boolean(isOwner)} />
         </div>
       </main>
     </>

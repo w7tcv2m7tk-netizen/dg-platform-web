@@ -10,7 +10,9 @@ export function clerkAppearanceForBrand(theme?: OrgBrandTheme | null) {
       colorRing: primary,
     },
     elements: {
-      avatarBox: "h-9 w-9",
+      avatarBox: "h-9 w-9 rounded-full ring-1 ring-slate-600",
+      userButtonAvatarBox: "h-9 w-9",
+      userButtonTrigger: "focus:shadow-none",
     },
   };
 }

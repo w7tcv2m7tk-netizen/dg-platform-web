@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 type ListingFields = {
   propertyId: string;
@@ -20,6 +20,7 @@ type ListingFields = {
 
 export function PropertyListingEditor(props: ListingFields) {
   const router = useRouter();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [price, setPrice] = useState(
     props.listingPriceCents != null ? String(props.listingPriceCents / 100) : "",
   );
@@ -38,15 +39,44 @@ export function PropertyListingEditor(props: ListingFields) {
   const [headline, setHeadline] = useState(props.headline ?? "");
   const [description, setDescription] = useState(props.description ?? "");
   const [features, setFeatures] = useState(props.features ?? "");
+  const [images, setImages] = useState<string[]>(props.images ?? []);
   const [imagesText, setImagesText] = useState((props.images ?? []).join("\n"));
   const [pending, setPending] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const previewImages = imagesText
-    .split(/[\n,]+/)
-    .map((s) => s.trim())
-    .filter((s) => s.startsWith("http"));
+  function syncImagesFromText(text: string) {
+    setImagesText(text);
+    setImages(
+      text
+        .split(/[\n,]+/)
+        .map((s) => s.trim())
+        .filter((s) => s.startsWith("http")),
+    );
+  }
+
+  async function uploadImage(file: File) {
+    setUploading(true);
+    setError(null);
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch("/api/v1/org/brand-asset?maxKb=2048", {
+      method: "POST",
+      body: form,
+    });
+    const json = await res.json().catch(() => ({}));
+    setUploading(false);
+    if (!res.ok) {
+      setError(json.error?.message ?? "Could not upload image");
+      return;
+    }
+    const url = json.data?.url as string | undefined;
+    if (!url) return;
+    const next = [...images, url];
+    setImages(next);
+    setImagesText(next.join("\n"));
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -70,7 +100,7 @@ export function PropertyListingEditor(props: ListingFields) {
         carSpaces: carSpaces.trim() ? parseInt(carSpaces, 10) : null,
         landSize: landSize.trim() || null,
         buildingSize: buildingSize.trim() || null,
-        images: previewImages,
+        images,
         marketing: {
           headline: headline.trim() || undefined,
           description: description.trim() || undefined,
@@ -94,7 +124,7 @@ export function PropertyListingEditor(props: ListingFields) {
       <div>
         <h2 className="font-semibold text-white">Listing details</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Edit copy, specs, and image URLs. Changes sync to the website when published/listed.
+          Edit copy, specs, and images. Changes sync to the website when published/listed.
         </p>
       </div>
 
@@ -187,37 +217,73 @@ export function PropertyListingEditor(props: ListingFields) {
         />
       </label>
 
-      <label className="block text-sm">
-        <span className="text-slate-400">Image URLs (one per line)</span>
-        <textarea
-          value={imagesText}
-          onChange={(e) => setImagesText(e.target.value)}
-          rows={4}
-          placeholder="https://…/photo1.jpg"
-          className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-xs text-white"
-        />
-      </label>
-
-      {previewImages.length ? (
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {previewImages.slice(0, 8).map((url) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={url}
-              src={url}
-              alt=""
-              className="aspect-square rounded-lg object-cover"
-            />
-          ))}
+      <div>
+        <p className="text-sm text-slate-400">Listing images</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => fileRef.current?.click()}
+            className="rounded-full border border-slate-600 px-3 py-1.5 text-xs text-slate-200 hover:border-blue-500 disabled:opacity-50"
+          >
+            {uploading ? "Uploading…" : "Upload image"}
+          </button>
+          <span className="self-center text-xs text-slate-500">PNG/JPG/WebP up to 2 MB</span>
         </div>
-      ) : null}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) void uploadImage(file);
+            e.target.value = "";
+          }}
+        />
+        {images.length ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {images.map((url) => (
+              <div key={url} className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={url}
+                  alt=""
+                  className="h-20 w-28 rounded-lg object-cover ring-1 ring-slate-700"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = images.filter((u) => u !== url);
+                    setImages(next);
+                    setImagesText(next.join("\n"));
+                  }}
+                  className="absolute right-1 top-1 rounded bg-black/70 px-1.5 text-[10px] text-white"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        <label className="mt-3 block text-sm">
+          <span className="text-slate-500">Or paste image URLs (one per line)</span>
+          <textarea
+            value={imagesText}
+            onChange={(e) => syncImagesFromText(e.target.value)}
+            rows={3}
+            placeholder="https://…/photo1.jpg"
+            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-xs text-white"
+          />
+        </label>
+      </div>
 
       <button
         type="submit"
         disabled={pending}
         className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
       >
-        {pending ? "Saving…" : "Save listing details"}
+        {pending ? "Saving…" : "Save listing"}
       </button>
       {message ? <p className="text-sm text-emerald-400">{message}</p> : null}
       {error ? <p className="text-sm text-amber-400">{error}</p> : null}
