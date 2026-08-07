@@ -789,6 +789,17 @@ export type WpAccUnitProp = {
   checkin_slug?: string;
   checkin_url?: string;
   cleaning_form_url?: string;
+  /** Airbnb calendar import URL (dg_ical_url). Requires plugin v10.61.0+. */
+  airbnb_ical_url?: string;
+  /** Booking.com calendar import URL. Requires plugin v10.61.0+. */
+  bookingcom_ical_url?: string;
+  /** DigitalGate .ics export — paste into OTAs. Requires plugin v10.61.0+. */
+  ical_export_url?: string;
+  ical_export_fallback_url?: string;
+  airbnb_last_sync?: string | null;
+  bookingcom_last_sync?: string | null;
+  airbnb_last_error?: string | null;
+  bookingcom_last_error?: string | null;
 };
 
 export type WpAccBookingRow = {
