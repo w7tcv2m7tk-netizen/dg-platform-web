@@ -16,6 +16,7 @@ These documents capture **why** the platform is built the way it is. They are as
 | [CAPABILITY-MODEL.md](./CAPABILITY-MODEL.md) | Business Capabilities taxonomy + boundary rule |
 | [PRODUCT-VISION.md](./PRODUCT-VISION.md) | Gateway brand, mission, five pillars, positioning |
 | [ROADMAP.md](./ROADMAP.md) | Execution phases and priorities |
+| [WP-DETACH-BACKLOG.md](./WP-DETACH-BACKLOG.md) | Sequenced Gen 2 ↔ WordPress detach tickets (P0–P5) |
 | [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) | Internal intelligence App — how DG runs DG |
 | [BUSINESS-OVERVIEW.md](./BUSINESS-OVERVIEW.md) | CEO dashboard — Business Overview at `/dashboard` |
 | [PLATFORM-API.md](./PLATFORM-API.md) | REST API v1 — keys, auth, endpoints |

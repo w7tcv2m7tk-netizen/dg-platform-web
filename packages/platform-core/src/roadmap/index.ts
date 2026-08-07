@@ -1106,6 +1106,56 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     appId: "command-centre",
     href: "/command/growth-engine/pipeline",
   },
+
+  // —— WP Detach (see docs/WP-DETACH-BACKLOG.md) ——
+  {
+    id: "detach.roe_sot",
+    area: "WP Detach",
+    label: "P1 · Roe RE source of truth",
+    description: "Gen 2 lead create + capture; Neon property SoT; WP forms → webhook",
+    status: "planned",
+    priority: "high",
+    appId: "real-estate",
+    href: "/apps/re",
+  },
+  {
+    id: "detach.portal_billing",
+    area: "WP Detach",
+    label: "P2 · Portal & billing entitlements",
+    description: "Drop portal/me bridge; Gen 2 Stripe checkout owns apps/tier",
+    status: "planned",
+    priority: "high",
+    href: "/dashboard/settings/billing",
+  },
+  {
+    id: "detach.support_health",
+    area: "WP Detach",
+    label: "P3 · Support & health off WP",
+    description: "Native support store; Health Centre without /site/health SoT",
+    status: "planned",
+    priority: "medium",
+    href: "/apps/websites/health",
+  },
+  {
+    id: "detach.cvh_bookings",
+    area: "WP Detach",
+    label: "P4 · CVH booking SoT",
+    description: "StayBooking + units/guests in Neon; book-now dual-write then Gen 2",
+    status: "planned",
+    priority: "medium",
+    appId: "accommodation",
+    href: "/apps/accommodation/bookings",
+  },
+  {
+    id: "detach.public_headless",
+    area: "WP Detach",
+    label: "P5 · Public / headless",
+    description: "WP publish as connector mirror; Website Studio without WP SoT",
+    status: "planned",
+    priority: "low",
+    appId: "websites",
+    href: "/apps/websites/sites",
+  },
 ];
 
 export function getRoadmapItem(id: string): RoadmapItem | undefined {

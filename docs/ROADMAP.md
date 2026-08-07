@@ -130,6 +130,13 @@ After Core + RE v0:
 
 Each connector improves Twin, BI, and AI recommendations.
 
+### WordPress detach (parallel to Core + RE)
+
+ADR: [0002 — WordPress as Connector](./adr/0002-wordpress-as-connector.md).  
+Executable tickets: **[WP-DETACH-BACKLOG.md](./WP-DETACH-BACKLOG.md)** (P0 guardrails → P1 Roe SoT → P2 portal/billing → P3 support+health → P4 CVH → P5 public/headless).
+
+Value order: Roe ops independence before CVH booking engine before public sites. WP stays a connector for forms/public mirror/health probes — not Platform Core.
+
 ---
 
 ## Workstream 6 — Platform performance & PWA
