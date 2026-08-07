@@ -157,7 +157,8 @@ export function SupportChatPanel({
       <div className="border-b border-slate-800 bg-gradient-to-r from-slate-950 to-slate-900 px-4 py-3">
         <h3 className="text-sm font-semibold text-white">Live support</h3>
         <p className="text-xs text-slate-400">
-          Chat with DigitalGate{userName ? ` · ${userName}` : ""} — replies here and by email
+          DigitalGate Assist can reply instantly
+          {userName ? ` · ${userName}` : ""} — humans follow up here and by email
         </p>
       </div>
 
@@ -180,28 +181,34 @@ export function SupportChatPanel({
           <p className="m-auto text-sm text-amber-300">{error}</p>
         ) : messages.length === 0 ? (
           <p className="m-auto text-center text-sm text-slate-500">
-            Say hello — we typically reply within a few hours on business days.
+            Say hello — Assist usually replies within a few seconds; the team follows up on business days.
           </p>
         ) : (
-          messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
-                msg.role === "client"
-                  ? "ml-auto rounded-br-md bg-blue-600 text-white"
-                  : "mr-auto rounded-bl-md border border-slate-700 bg-slate-950 text-slate-200"
-              }`}
-            >
-              <span className="mb-1 block text-[10px] opacity-75">
-                {msg.sender} · {formatTime(msg.at)}
-              </span>
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: escapeHtml(msg.body).replace(/\n/g, "<br>"),
-                }}
-              />
-            </div>
-          ))
+          messages.map((msg) => {
+            const isClient = msg.role === "client";
+            const isAi = msg.role === "ai";
+            return (
+              <div
+                key={msg.id}
+                className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+                  isClient
+                    ? "ml-auto rounded-br-md bg-blue-600 text-white"
+                    : isAi
+                      ? "mr-auto rounded-bl-md border border-emerald-500/40 bg-emerald-950/60 text-emerald-50"
+                      : "mr-auto rounded-bl-md border border-slate-700 bg-slate-950 text-slate-200"
+                }`}
+              >
+                <span className="mb-1 block text-[10px] opacity-75">
+                  {msg.sender} · {formatTime(msg.at)}
+                </span>
+                <span
+                  dangerouslySetInnerHTML={{
+                    __html: escapeHtml(msg.body).replace(/\n/g, "<br>"),
+                  }}
+                />
+              </div>
+            );
+          })
         )}
       </div>
 

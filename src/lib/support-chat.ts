@@ -2,7 +2,7 @@ import { getApiBase } from "@/lib/dg-api";
 
 export type SupportChatMessage = {
   id: number;
-  role: "client" | "staff";
+  role: "client" | "staff" | "ai";
   sender: string;
   body: string;
   at: string;
