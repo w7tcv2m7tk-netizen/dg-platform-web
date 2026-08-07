@@ -526,21 +526,24 @@ function MonthGrid({
                 <>
                   <p className="text-[11px] text-slate-500">{day.slice(8)}</p>
                   <div className="mt-1 space-y-1">
-                    {entries.slice(0, 3).map(({ unit, booking, isCheckin }) => (
-                      <div
-                        key={`${booking.id}-${unit}-${day}`}
-                        className="truncate rounded px-1 py-0.5 text-[10px] text-white"
-                        style={{
-                          backgroundColor: bookingColor(booking),
-                          opacity: isCheckin ? 1 : 0.85,
-                        }}
-                        title={`${unit}: ${booking.guest_name ?? "Guest"} · ${booking.checkin} → ${booking.checkout}`}
-                      >
-                        {isCheckin
-                          ? (booking.guest_name ?? unit)
-                          : `→ ${booking.guest_name ?? unit}`}
-                      </div>
-                    ))}
+                    {entries.slice(0, 3).map(({ unit, booking, isCheckin }) => {
+                      const guest = booking.guest_name?.trim() || "Guest";
+                      // Unit first so multi-unit days stay distinguishable when truncated.
+                      const label = `${unit} · ${guest}`;
+                      return (
+                        <div
+                          key={`${booking.id}-${unit}-${day}`}
+                          className="truncate rounded px-1 py-0.5 text-[10px] text-white"
+                          style={{
+                            backgroundColor: bookingColor(booking),
+                            opacity: isCheckin ? 1 : 0.85,
+                          }}
+                          title={`${unit}: ${guest} · ${booking.checkin} → ${booking.checkout}`}
+                        >
+                          {isCheckin ? label : `→ ${label}`}
+                        </div>
+                      );
+                    })}
                     {entries.length > 3 ? (
                       <p className="text-[10px] text-slate-500">
                         +{entries.length - 3} more
