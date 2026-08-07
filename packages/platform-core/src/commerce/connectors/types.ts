@@ -12,6 +12,7 @@ export type PaymentWebhookEventType =
   | "checkout.expired"
   | "payment.failed"
   | "payment.disputed"
+  | "invoice.paid"
   | "subscription.created"
   | "subscription.updated"
   | "subscription.cancelled"
@@ -29,6 +30,12 @@ export interface PaymentWebhookEvent {
   amountCents?: number;
   currency?: CommerceCurrency;
   paymentMethod?: PaymentMethod;
+  /** Stripe invoice billing_reason when type is invoice.paid */
+  billingReason?: string;
+  /** Stripe invoice / subscription ids for referral accrual */
+  stripeInvoiceId?: string;
+  stripeSubscriptionId?: string;
+  platformTier?: string;
   occurredAt: Date;
   raw?: unknown;
 }

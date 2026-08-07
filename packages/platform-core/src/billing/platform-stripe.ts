@@ -202,7 +202,7 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
       },
     });
 
-    // Platform Refer & Earn — first-paid credit (monthly invoice.paid accrual stubbed)
+    // Platform Refer & Earn — first-paid credit (months 2–12 via invoice.paid)
     let referralReward: unknown = null;
     try {
       const { markReferralPaidAndAccrue } = await import("../referrals");

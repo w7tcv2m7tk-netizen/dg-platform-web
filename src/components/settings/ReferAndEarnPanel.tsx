@@ -44,8 +44,12 @@ export function ReferAndEarnPanel({
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [pending, setPending] = useState(false);
+  const [cashPending, setCashPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const canRequestCash =
+    metrics.cashAvailableStubCents >= metrics.cashPayoutThresholdCents;
 
   async function copyLink() {
     try {
@@ -73,13 +77,50 @@ export function ReferAndEarnPanel({
       setError(json.error?.message ?? "Invite failed");
       return;
     }
-    setMessage(
-      json.data?.resent
-        ? "Invite already on file — link ready to share again."
-        : "Invite queued (email provider stub — branded HTML prepared).",
-    );
+    const delivery = json.data?.delivery;
+    const resent = json.data?.resent;
+    if (delivery?.status === "sent") {
+      setMessage(
+        resent
+          ? "Invite re-sent via email."
+          : "Invite email sent.",
+      );
+    } else if (delivery?.queued || delivery?.status === "queued") {
+      setMessage(
+        resent
+          ? "Invite already on file — branded email re-queued (set RESEND_API_KEY for live delivery)."
+          : "Invite queued with branded HTML (set RESEND_API_KEY for live email delivery).",
+      );
+    } else {
+      setMessage(
+        resent
+          ? "Invite already on file — link ready to share again."
+          : "Invite created.",
+      );
+    }
     setEmail("");
     setName("");
+    router.refresh();
+  }
+
+  async function requestCashPayout() {
+    setCashPending(true);
+    setError(null);
+    setMessage(null);
+    const res = await fetch("/api/v1/referrals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "cash_payout_stub" }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setCashPending(false);
+    if (!res.ok) {
+      setError(json.error?.message ?? "Cash payout unavailable");
+      return;
+    }
+    setMessage(
+      `Cash payout stub recorded for ${formatAud(json.data?.amountCents ?? 0)} — Stripe Connect transfer not wired yet.`,
+    );
     router.refresh();
   }
 
@@ -127,7 +168,8 @@ export function ReferAndEarnPanel({
       <div className="dg-card">
         <h2 className="font-semibold text-white">Email invite</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Sends a branded invite via the Communications stub (provider not live yet).
+          Delivers via Resend when configured; otherwise queues a branded email on the
+          organisation timeline.
         </p>
         <form onSubmit={sendInvite} className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm sm:col-span-1">
@@ -160,6 +202,27 @@ export function ReferAndEarnPanel({
         </form>
         {error ? <p className="mt-2 text-sm text-amber-400">{error}</p> : null}
         {message ? <p className="mt-2 text-sm text-emerald-400">{message}</p> : null}
+      </div>
+
+      <div className="dg-card">
+        <h2 className="font-semibold text-white">Cash payout (stub)</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Available {formatAud(metrics.cashAvailableStubCents)} · threshold{" "}
+          {formatAud(metrics.cashPayoutThresholdCents)}. Records a ledger intent only —
+          bank transfer / Stripe Connect is not wired.
+        </p>
+        <button
+          type="button"
+          disabled={!canRequestCash || cashPending}
+          onClick={() => void requestCashPayout()}
+          className="mt-4 rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {cashPending
+            ? "Recording…"
+            : canRequestCash
+              ? "Request cash payout (stub)"
+              : `Need ${formatAud(metrics.cashPayoutThresholdCents)} to cash out`}
+        </button>
       </div>
 
       <div className="dg-card">

@@ -184,6 +184,41 @@ export class StripePaymentConnector implements PaymentConnector {
       };
     }
 
+    if (event.type === "invoice.paid") {
+      const invoice = event.data.object as Stripe.Invoice;
+      const sub =
+        typeof invoice.subscription === "string"
+          ? invoice.subscription
+          : invoice.subscription?.id;
+      const meta = (invoice.subscription_details?.metadata ??
+        invoice.metadata ??
+        {}) as Record<string, string>;
+      const organisationId =
+        meta.organisation_id ||
+        meta.organisationId ||
+        undefined;
+      const customerId =
+        typeof invoice.customer === "string"
+          ? invoice.customer
+          : invoice.customer?.id;
+      return {
+        type: "invoice.paid",
+        providerId: "stripe",
+        providerEventId: event.id,
+        organisationId,
+        providerCustomerId: customerId,
+        providerPaymentId: invoice.id,
+        amountCents: invoice.amount_paid ?? undefined,
+        currency: invoice.currency?.toUpperCase() as PaymentWebhookEvent["currency"],
+        billingReason: invoice.billing_reason ?? undefined,
+        stripeInvoiceId: invoice.id,
+        stripeSubscriptionId: sub,
+        platformTier: meta.dg_platform_tier,
+        occurredAt: new Date(event.created * 1000),
+        raw: invoice,
+      };
+    }
+
     throw new Error(`Unhandled Stripe event type: ${event.type}`);
   }
 

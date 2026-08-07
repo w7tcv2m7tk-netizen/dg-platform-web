@@ -32,7 +32,8 @@ export type PlatformEventType =
   | "prospect.proposal_accepted"
   | "platform_referral.invited"
   | "platform_referral.signed_up"
-  | "platform_referral.paid";
+  | "platform_referral.paid"
+  | "platform_referral.credit_accrued";
 
 export interface PlatformEvent<TPayload = Record<string, unknown>> {
   type: PlatformEventType;

@@ -4,9 +4,9 @@
  *
  * Hard rule: single-level only — no MLM / downlines.
  *
- * Stripe gaps (stubbed):
- * - Monthly accrual on subscription invoice.paid is not wired; first-paid
- *   credit is applied once from checkout.completed via accrueFirstPaidReward.
+ * Stripe:
+ * - First-paid credit from checkout.completed via markReferralPaidAndAccrue.
+ * - Monthly renewal credit from invoice.paid (billing_reason=subscription_cycle).
  * - Cash payout at ~$100 threshold is stubbed (ledger entryType cash_payout_stub).
  * - Partner 25–30% / Reseller custom rates not yet productised (commissionBps default 2000).
  */
@@ -197,11 +197,11 @@ export async function getReferAndEarnDashboard(organisationId: string) {
     referrals: referrals.map(serializeReferral),
     ledger: ledger.map(serializeLedger),
     stubs: {
-      monthlyInvoiceAccrual: true,
+      monthlyInvoiceAccrual: false,
       cashPayout: true,
       partnerRates: true,
       note:
-        "Rewards: 20% of subscription × 12 months as platform credit. Cash payout and invoice.paid accrual are stubbed — see REVIEWS-AND-REFERRALS.md.",
+        "Rewards: 20% of subscription × 12 months as platform credit (first month on checkout; months 2–12 on Stripe invoice.paid renewals). Cash payout at threshold is ledger-stubbed — no Stripe Connect transfer yet.",
     },
   };
 }
@@ -228,21 +228,21 @@ export async function createReferralInvite(input: {
       referredOrganisationId: null,
     },
   });
-  if (existing) {
-    return { referral: serializeReferral(existing), resent: true as const };
-  }
 
-  const referral = await prisma.platformReferral.create({
-    data: {
-      referrerOrganisationId: input.organisationId,
-      code,
-      status: "invited",
-      inviteEmail: email,
-      inviteName: input.name?.trim() || null,
-      commissionBps: CUSTOMER_COMMISSION_BPS,
-      rewardMonthsRemaining: REWARD_MONTHS,
-    },
-  });
+  const referral =
+    existing ??
+    (await prisma.platformReferral.create({
+      data: {
+        referrerOrganisationId: input.organisationId,
+        code,
+        status: "invited",
+        inviteEmail: email,
+        inviteName: input.name?.trim() || null,
+        commissionBps: CUSTOMER_COMMISSION_BPS,
+        rewardMonthsRemaining: REWARD_MONTHS,
+      },
+    }));
+  const resent = Boolean(existing);
 
   const shareUrl = `${input.appBaseUrl.replace(/\/$/, "")}/r/${code}`;
   const body = [
@@ -258,7 +258,7 @@ export async function createReferralInvite(input: {
     "Your referrer earns platform credit when you become a paying customer (20% of subscription for 12 months) — single-level only, no multi-level schemes.",
   ].join("\n");
 
-  await sendMessage({
+  const delivery = await sendMessage({
     organisationId: input.organisationId,
     channel: "email",
     to: email,
@@ -267,29 +267,54 @@ export async function createReferralInvite(input: {
     metadata: {
       footerNote: "Platform Refer & Earn invite",
       referralId: referral.id,
+      purpose: "platform_referral_invite",
+      resent,
     },
   });
 
-  await writeAuditLog({
-    organisationId: input.organisationId,
-    actorId: input.actorId,
-    action: "create",
-    entityType: "PlatformReferral",
-    entityId: referral.id,
-    changes: { after: { inviteEmail: email, status: "invited" } },
-  });
+  if (!resent) {
+    await writeAuditLog({
+      organisationId: input.organisationId,
+      actorId: input.actorId,
+      action: "create",
+      entityType: "PlatformReferral",
+      entityId: referral.id,
+      changes: {
+        after: {
+          inviteEmail: email,
+          status: "invited",
+          deliveryStatus: delivery.status,
+          deliveryProvider: delivery.provider,
+        },
+      },
+    });
 
-  await platformEvents.publish({
-    type: "platform_referral.invited",
-    organisationId: input.organisationId,
-    actorId: input.actorId,
-    entityType: "PlatformReferral",
-    entityId: referral.id,
-    payload: { email, code },
-    occurredAt: new Date(),
-  });
+    await platformEvents.publish({
+      type: "platform_referral.invited",
+      organisationId: input.organisationId,
+      actorId: input.actorId,
+      entityType: "PlatformReferral",
+      entityId: referral.id,
+      payload: {
+        email,
+        code,
+        deliveryStatus: delivery.status,
+        deliveryProvider: delivery.provider,
+      },
+      occurredAt: new Date(),
+    });
+  }
 
-  return { referral: serializeReferral(referral), resent: false as const };
+  return {
+    referral: serializeReferral(referral),
+    resent,
+    delivery: {
+      status: delivery.status,
+      provider: delivery.provider,
+      id: delivery.id,
+      queued: delivery.status === "queued",
+    },
+  };
 }
 
 /**
@@ -392,7 +417,8 @@ export async function attributeOrganisationReferral(input: {
 
 /**
  * Mark referral paid and accrue first month of platform credit (20%).
- * Called from Stripe platform checkout provision. Monthly renewals stubbed.
+ * Called from Stripe platform checkout provision.
+ * Months 2–12 accrue via accrueMonthlyReferralCreditFromInvoice on invoice.paid.
  */
 export async function markReferralPaidAndAccrue(input: {
   referredOrganisationId: string;
@@ -456,7 +482,8 @@ export async function markReferralPaidAndAccrue(input: {
       metadata: {
         platformTier: input.platformTier,
         subscriptionAmountCents: amountCents,
-        stub: "invoice.paid monthly accrual not wired",
+        monthIndex: 1,
+        source: "checkout.completed",
       } as Prisma.InputJsonValue,
     },
   });
@@ -479,6 +506,168 @@ export async function markReferralPaidAndAccrue(input: {
     alreadyPaid: false,
     referralId: referral.id,
     creditCents,
+  };
+}
+
+/**
+ * Accrue month 2–12 referral credit from Stripe subscription renewals.
+ * Skips subscription_create (first invoice) — that credit comes from checkout.
+ * Idempotent on stripe invoice id (ledger.stripeRef).
+ */
+export async function accrueMonthlyReferralCreditFromInvoice(input: {
+  referredOrganisationId?: string | null;
+  stripeCustomerId?: string | null;
+  stripeInvoiceId: string;
+  billingReason?: string | null;
+  amountPaidCents?: number | null;
+  platformTier?: string | null;
+  periodStart?: Date | null;
+  periodEnd?: Date | null;
+}) {
+  // First invoice is credited via checkout.completed — avoid double-pay.
+  if (input.billingReason && input.billingReason !== "subscription_cycle") {
+    return {
+      ok: false as const,
+      reason: "not_renewal" as const,
+      billingReason: input.billingReason,
+    };
+  }
+
+  const { prisma } = await import("@dg/database");
+
+  const existing = await prisma.platformReferralLedger.findFirst({
+    where: { stripeRef: input.stripeInvoiceId, entryType: "credit" },
+  });
+  if (existing) {
+    return {
+      ok: true as const,
+      alreadyAccrued: true as const,
+      ledgerId: existing.id,
+      creditCents: existing.amountCents,
+    };
+  }
+
+  let orgId = input.referredOrganisationId?.trim() || null;
+  if (!orgId && input.stripeCustomerId) {
+    const byCustomer = await prisma.organisation.findFirst({
+      where: { billingCustomerId: input.stripeCustomerId },
+      select: { id: true },
+    });
+    orgId = byCustomer?.id ?? null;
+  }
+  if (!orgId) {
+    return { ok: false as const, reason: "org_not_found" as const };
+  }
+
+  const org = await prisma.organisation.findUnique({
+    where: { id: orgId },
+    select: {
+      id: true,
+      name: true,
+      referredByOrganisationId: true,
+    },
+  });
+  if (!org?.referredByOrganisationId) {
+    return { ok: false as const, reason: "not_referred" as const };
+  }
+
+  const referral = await prisma.platformReferral.findFirst({
+    where: { referredOrganisationId: org.id },
+  });
+  if (!referral) {
+    return { ok: false as const, reason: "referral_row_missing" as const };
+  }
+
+  if (!referral.firstPaidAt) {
+    // Checkout webhook may be delayed — treat this renewal as first paid if needed.
+    await markReferralPaidAndAccrue({
+      referredOrganisationId: org.id,
+      platformTier: input.platformTier ?? undefined,
+      stripeSessionId: input.stripeInvoiceId,
+      subscriptionAmountCents: input.amountPaidCents ?? undefined,
+    });
+    return {
+      ok: true as const,
+      promotedToFirstPaid: true as const,
+      referralId: referral.id,
+    };
+  }
+
+  const remaining = referral.rewardMonthsRemaining ?? 0;
+  if (remaining <= 0 || referral.status === "rewarded") {
+    if (referral.status !== "rewarded") {
+      await prisma.platformReferral.update({
+        where: { id: referral.id },
+        data: { status: "rewarded", rewardMonthsRemaining: 0 },
+      });
+    }
+    return { ok: false as const, reason: "window_exhausted" as const };
+  }
+
+  const amountCents =
+    input.amountPaidCents && input.amountPaidCents > 0
+      ? input.amountPaidCents
+      : TIER_AMOUNTS_CENTS[input.platformTier ?? ""] ??
+        TIER_AMOUNTS_CENTS.professional;
+  const creditCents = Math.round(
+    (amountCents * (referral.commissionBps || CUSTOMER_COMMISSION_BPS)) / 10_000,
+  );
+  const nextRemaining = remaining - 1;
+  const monthIndex = REWARD_MONTHS - remaining + 1;
+  const now = new Date();
+
+  await prisma.platformReferral.update({
+    where: { id: referral.id },
+    data: {
+      status: nextRemaining <= 0 ? "rewarded" : "paid",
+      rewardMonthsRemaining: Math.max(0, nextRemaining),
+    },
+  });
+
+  const ledger = await prisma.platformReferralLedger.create({
+    data: {
+      organisationId: referral.referrerOrganisationId,
+      referralId: referral.id,
+      entryType: "credit",
+      amountCents: creditCents,
+      currency: "AUD",
+      description: `Month ${monthIndex} referral credit (20%) — ${org.name}`,
+      stripeRef: input.stripeInvoiceId,
+      periodStart: input.periodStart ?? now,
+      periodEnd: input.periodEnd ?? null,
+      metadata: {
+        platformTier: input.platformTier,
+        subscriptionAmountCents: amountCents,
+        monthIndex,
+        source: "invoice.paid",
+        billingReason: input.billingReason ?? "subscription_cycle",
+      } as Prisma.InputJsonValue,
+    },
+  });
+
+  await platformEvents.publish({
+    type: "platform_referral.credit_accrued",
+    organisationId: referral.referrerOrganisationId,
+    entityType: "PlatformReferral",
+    entityId: referral.id,
+    payload: {
+      referredOrganisationId: org.id,
+      creditCents,
+      monthsRemaining: Math.max(0, nextRemaining),
+      monthIndex,
+      stripeInvoiceId: input.stripeInvoiceId,
+    },
+    occurredAt: now,
+  });
+
+  return {
+    ok: true as const,
+    alreadyAccrued: false as const,
+    referralId: referral.id,
+    ledgerId: ledger.id,
+    creditCents,
+    monthsRemaining: Math.max(0, nextRemaining),
+    monthIndex,
   };
 }
 
