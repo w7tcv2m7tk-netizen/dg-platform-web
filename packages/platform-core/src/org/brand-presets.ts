@@ -19,8 +19,9 @@ export const ORG_BRAND_PRESETS: Record<OrgBrandPresetKey, OrgBrandPreset> = {
     label: "DigitalGate",
     patch: {
       brandColours: serializeBrandColours("#3B82F6", "#10B981"),
-      iconUrl: "https://app.digitalgate.com.au/brand/icon-light.png",
-      logoUrl: "https://app.digitalgate.com.au/brand/logo-on-dark.png",
+      // Relative paths resolve via absoluteBrandAssetUrl; letterhead remaps wordmark to navy.
+      iconUrl: "/brand/icon-light.png",
+      logoUrl: "/brand/logo-on-dark.png",
       websiteUrl: "https://digitalgate.com.au",
     },
   },

@@ -156,6 +156,44 @@ export function absoluteBrandAssetUrl(
   return `${base}${trimmed.startsWith("/") ? trimmed : `/${trimmed}`}`;
 }
 
+export type LetterheadBrandAsset = {
+  src?: string;
+  /** White/light marks need a dark plate on cream invoices */
+  needsContrastPlate: boolean;
+};
+
+/**
+ * Resolve a brand asset for light document backgrounds (AU invoices / quotes).
+ * Remaps known dark-UI wordmarks to navy/on-light equivalents when available.
+ */
+export function resolveLetterheadBrandAsset(
+  url: string | undefined | null,
+): LetterheadBrandAsset {
+  const trimmed = url?.trim();
+  if (!trimmed) return { needsContrastPlate: false };
+
+  // DigitalGate white wordmark → navy mark for cream paper
+  if (/logo-on-dark\.png(?:\?|$)/i.test(trimmed)) {
+    return {
+      src: absoluteBrandAssetUrl("/brand/logo-navy.png"),
+      needsContrastPlate: false,
+    };
+  }
+
+  const absolute = absoluteBrandAssetUrl(trimmed);
+  if (!absolute) return { needsContrastPlate: false };
+
+  // Preset / uploaded white wordmarks with no light equivalent
+  const looksWhiteOnTransparent =
+    /(?:^|[/_-])(?:logo-on-dark|icon-on-dark|white)(?:[._-]|$)/i.test(absolute) ||
+    /Aetherra-White/i.test(absolute);
+
+  return {
+    src: absolute,
+    needsContrastPlate: looksWhiteOnTransparent,
+  };
+}
+
 export function resolveOrgBrandTheme(input: {
   profile?: OrganisationBusinessProfile | null;
   organisationName: string;

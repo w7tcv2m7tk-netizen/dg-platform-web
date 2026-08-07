@@ -61,11 +61,24 @@ async function uploadBrandAsset(file: File): Promise<string> {
   return json.data.url as string;
 }
 
+async function persistBrandPatch(patch: Partial<OrganisationBusinessProfile>) {
+  const res = await fetch("/api/v1/org/profile", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(json?.error?.message ?? "Could not save brand asset");
+  }
+}
+
 export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps) {
   const iconInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState<"icon" | "logo" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [savedNote, setSavedNote] = useState<string | null>(null);
 
   const colours = parseBrandColours(profile.brandColours);
   const primary = colours[0] ?? DEFAULT_ORG_PRIMARY;
@@ -80,9 +93,17 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
   async function handleFile(kind: "icon" | "logo", file: File) {
     setUploading(kind);
     setError(null);
+    setSavedNote(null);
     try {
       const url = await uploadBrandAsset(file);
-      onChange(kind === "icon" ? { iconUrl: url } : { logoUrl: url });
+      const patch = kind === "icon" ? { iconUrl: url } : { logoUrl: url };
+      onChange(patch);
+      await persistBrandPatch(patch);
+      setSavedNote(
+        kind === "icon"
+          ? "Icon uploaded and saved — it will appear on invoices and quotes."
+          : "Logo uploaded and saved — it will appear on invoices and quotes.",
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -96,8 +117,9 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
         <div>
           <h3 className="text-lg font-semibold text-white">Brand appearance</h3>
           <p className="mt-1 text-sm text-slate-400">
-            Your logo, icon, and colours appear across the platform — sidebar, tax invoices, quotes,
-            links, buttons, and accents.
+            Your logo and icon appear on tax invoices, quotes, the sidebar, and accents.
+            Uploads save immediately; colour and URL edits still need{" "}
+            <span className="text-slate-300">Save profile</span>.
           </p>
         </div>
         <div className="flex gap-4">
@@ -256,6 +278,7 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
         </div>
       </div>
 
+      {savedNote ? <p className="mt-3 text-sm text-emerald-400">{savedNote}</p> : null}
       {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
     </section>
   );

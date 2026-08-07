@@ -79,24 +79,48 @@ export async function getOrganisationBusinessProfile(
   return settings.profile ?? null;
 }
 
+/** Drop undefined keys so portal sync / sparse patches cannot wipe saved fields. */
+function compactDefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === undefined) continue;
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      const nested = compactDefined(value as Record<string, unknown>);
+      if (Object.keys(nested).length > 0) out[key] = nested;
+      continue;
+    }
+    out[key] = value;
+  }
+  return out as Partial<T>;
+}
+
 function mergeProfile(
   existing: OrganisationBusinessProfile | undefined,
-  patch: BusinessProfilePatch,
+  patch: Partial<OrganisationBusinessProfile>,
 ): OrganisationBusinessProfile {
+  const clean = compactDefined(
+    patch as Record<string, unknown>,
+  ) as Partial<OrganisationBusinessProfile>;
   return {
     ...existing,
-    ...patch,
-    address: patch.address
-      ? { ...existing?.address, ...patch.address }
+    ...clean,
+    address: clean.address
+      ? { ...existing?.address, ...clean.address }
       : existing?.address,
-    locations: patch.locations ?? existing?.locations,
-    businessHours: patch.businessHours
-      ? { ...existing?.businessHours, ...patch.businessHours }
+    locations: clean.locations ?? existing?.locations,
+    businessHours: clean.businessHours
+      ? { ...existing?.businessHours, ...clean.businessHours }
       : existing?.businessHours,
-    social: patch.social ? { ...existing?.social, ...patch.social } : existing?.social,
-    brandVoice: patch.brandVoice
-      ? { ...existing?.brandVoice, ...patch.brandVoice }
+    social: clean.social ? { ...existing?.social, ...clean.social } : existing?.social,
+    brandVoice: clean.brandVoice
+      ? { ...existing?.brandVoice, ...clean.brandVoice }
       : existing?.brandVoice,
+    bankDetails: clean.bankDetails
+      ? { ...existing?.bankDetails, ...clean.bankDetails }
+      : existing?.bankDetails,
+    taxSettings: clean.taxSettings
+      ? { ...existing?.taxSettings, ...clean.taxSettings }
+      : existing?.taxSettings,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -246,13 +270,20 @@ export async function syncOrganisationFromPortal(input: {
     }
   }
 
+  // Merge portal fields into the existing profile — never replace wholesale.
+  // Replacing wiped uploaded logo/icon, bank details, tax settings, etc.
+  const fromPortal = mapPortalProfile(mergedOnboarding, {
+    wpContactId: input.portal.contact_id,
+    wpOrganisationId: input.portal.organisation_id,
+    purchaseLabel: input.portal.purchase_label,
+  });
+  const merged = mergeProfile(settings.profile, {
+    ...fromPortal,
+    syncedAt: new Date().toISOString(),
+  });
   const profile = applyBrandPresetToProfile(
     { id: input.organisationId, name: org.name, slug: org.slug, industry: org.industry, settings },
-    mapPortalProfile(mergedOnboarding, {
-      wpContactId: input.portal.contact_id,
-      wpOrganisationId: input.portal.organisation_id,
-      purchaseLabel: input.portal.purchase_label,
-    }),
+    merged,
   );
 
   const orgUpdates: {
