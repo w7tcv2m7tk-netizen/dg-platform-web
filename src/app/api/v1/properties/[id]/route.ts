@@ -132,7 +132,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     return NextResponse.json({ data: property });
   }
 
-  if (listingPriceCents !== undefined || marketing || body?.images || body?.propertyType !== undefined || body?.bedrooms !== undefined || body?.bathrooms !== undefined || body?.details) {
+  if (listingPriceCents !== undefined || marketing || body?.images || body?.propertyType !== undefined || body?.bedrooms !== undefined || body?.bathrooms !== undefined || body?.details || body?.inspectionTimes !== undefined) {
     const details = (body?.details as Record<string, unknown> | undefined) ?? {};
     const updated = await updatePropertyListing(
       session.organisationId,
@@ -161,6 +161,9 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         buildingSize:
           (body?.buildingSize as string | null | undefined) ??
           (details.buildingSize as string | null | undefined),
+        inspectionTimes:
+          (body?.inspectionTimes as string | null | undefined) ??
+          (details.inspectionTimes as string | null | undefined),
         syncToWebsite: body?.syncToWebsite !== false,
       },
       session.clerkUserId,

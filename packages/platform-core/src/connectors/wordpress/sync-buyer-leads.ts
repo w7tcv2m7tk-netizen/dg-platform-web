@@ -56,6 +56,12 @@ async function resolveContactId(
   return created.id;
 }
 
+async function applyBuyerRole(organisationId: string, contactId: string | undefined) {
+  if (!contactId) return;
+  const { ensureReContactRole } = await import("../../real-estate/contact-roles");
+  await ensureReContactRole({ organisationId, contactId, role: "buyer" });
+}
+
 /** Idempotent sync — buyer enquiries from WordPress RE module. */
 export async function syncBuyerLeadsFromWordPress(
   input: SyncBuyerLeadsInput,
@@ -86,6 +92,7 @@ export async function syncBuyerLeadsFromWordPress(
         input.actorId,
         wpLead,
       );
+      await applyBuyerRole(input.organisationId, contactId);
 
       const rawAddress = wpLead.property_address?.trim() ?? "";
       const title =

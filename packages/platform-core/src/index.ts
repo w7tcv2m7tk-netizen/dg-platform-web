@@ -36,6 +36,7 @@ export * from "./accommodation/bookings";
 export * from "./accommodation/guests";
 export * from "./real-estate/offers";
 export * from "./real-estate/reports";
+export * from "./real-estate/contact-roles";
 export * from "./billing/platform-stripe";
 export * from "./overview/growth-opportunities";
 export * from "./twin/build-live-twin";

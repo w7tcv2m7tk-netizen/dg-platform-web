@@ -84,7 +84,8 @@ export async function listLeads(options: ListLeadsOptions) {
   if (options.leadType === "buyer") {
     where.source = "buyer_enquiry";
   } else if (options.leadType === "vendor") {
-    where.NOT = { source: "buyer_enquiry" };
+    // Exclude buyer enquiries and appraisal bookings (bookings live under /apps/re/bookings)
+    where.NOT = { source: { in: ["buyer_enquiry", "re_booking"] } };
   }
 
   const [items, total] = await Promise.all([
@@ -179,8 +180,12 @@ export async function updateLeadStage(
   });
   if (!lead) return null;
 
+  const previousMeta = (lead.metadata as Record<string, unknown> | null) ?? {};
+  const previousStage =
+    typeof previousMeta.stage === "string" ? previousMeta.stage : null;
+
   const metadata = {
-    ...((lead.metadata as Record<string, unknown> | null) ?? {}),
+    ...previousMeta,
     stage,
   };
 
@@ -201,6 +206,16 @@ export async function updateLeadStage(
       createdBy: actorId,
       metadata: { stage },
     },
+  });
+
+  await platformEvents.publish({
+    type: "lead.stage_changed",
+    organisationId,
+    actorId,
+    entityType: "Lead",
+    entityId: leadId,
+    payload: { stage, leadType: "vendor", previous: previousStage },
+    occurredAt: new Date(),
   });
 
   if (!options?.skipPropertySync) {
@@ -240,8 +255,12 @@ export async function updateBuyerLeadStage(
   });
   if (!lead) return null;
 
+  const previousMeta = (lead.metadata as Record<string, unknown> | null) ?? {};
+  const previousStage =
+    typeof previousMeta.stage === "string" ? previousMeta.stage : null;
+
   const metadata = {
-    ...((lead.metadata as Record<string, unknown> | null) ?? {}),
+    ...previousMeta,
     stage,
   };
 
@@ -262,6 +281,16 @@ export async function updateBuyerLeadStage(
       createdBy: actorId,
       metadata: { stage, leadType: "buyer" },
     },
+  });
+
+  await platformEvents.publish({
+    type: "lead.stage_changed",
+    organisationId,
+    actorId,
+    entityType: "Lead",
+    entityId: leadId,
+    payload: { stage, leadType: "buyer", previous: previousStage },
+    occurredAt: new Date(),
   });
 
   return serializeLead(updated);

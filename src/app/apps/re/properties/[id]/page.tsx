@@ -160,6 +160,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               }
               features={typeof marketing.features === "string" ? marketing.features : undefined}
               images={images}
+              inspectionTimes={inspectionTimes}
             />
 
             <div className="dg-card">
@@ -204,7 +205,15 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               </div>
             ) : null}
 
-            <PropertyOffersPanel propertyId={property.id} offers={offers ?? []} />
+            <PropertyOffersPanel
+              propertyId={property.id}
+              offers={offers ?? []}
+              buyerLeads={buyerLeadsResult.items.map((b) => ({
+                id: b.id,
+                title: b.title,
+                stage: b.stage,
+              }))}
+            />
             <PropertyContractPanel propertyId={property.id} contract={contract} />
           </div>
 

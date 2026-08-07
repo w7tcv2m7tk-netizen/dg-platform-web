@@ -149,6 +149,10 @@ export async function publishPropertyToWordPress(
     agent_id: agent?.wp_agent_id,
     images,
     gallery_urls: images,
+    inspection_times:
+      typeof metadata.inspection_times === "string" && metadata.inspection_times.trim()
+        ? metadata.inspection_times.trim()
+        : undefined,
   };
 
   try {

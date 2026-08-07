@@ -1,9 +1,10 @@
-import { listReBookings, syncReBookingsFromWordPress } from "@dg/platform-core";
+import { listReBookings, syncReBookingsFromWordPress, createReBooking } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { fetchWpRecentBookings, fetchWpReSummary } from "@/lib/dg-api";
 import { wpConnectorForOrg } from "@/lib/org-wordpress-connector";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
@@ -64,8 +65,31 @@ export async function POST(req: Request) {
     return NextResponse.json({ data: result });
   }
 
-  return NextResponse.json(
-    { error: { code: "unknown_action", message: "Unsupported action" } },
-    { status: 400 },
-  );
+  const contactName =
+    typeof body.contactName === "string" ? body.contactName.trim() : "";
+  if (!contactName) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "validation_error",
+          message: "contactName required (or action: sync_wordpress)",
+        },
+      },
+      { status: 422 },
+    );
+  }
+
+  const booking = await createReBooking({
+    organisationId: session.organisationId,
+    actorId: session.clerkUserId,
+    contactName,
+    email: typeof body.email === "string" ? body.email : undefined,
+    phone: typeof body.phone === "string" ? body.phone : undefined,
+    service: typeof body.service === "string" ? body.service : undefined,
+    scheduledAt: typeof body.scheduledAt === "string" ? body.scheduledAt : undefined,
+    notes: typeof body.notes === "string" ? body.notes : undefined,
+    vendorLeadId: typeof body.vendorLeadId === "string" ? body.vendorLeadId : undefined,
+  });
+
+  return NextResponse.json({ data: booking }, { status: 201 });
 }

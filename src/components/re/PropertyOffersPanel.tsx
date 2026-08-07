@@ -1,25 +1,30 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function PropertyOffersPanel({
   propertyId,
   offers,
+  buyerLeads = [],
 }: {
   propertyId: string;
   offers: Array<{
     id: string;
+    buyerLeadId?: string;
     buyerName?: string;
     amountCents: number;
     status: string;
     conditions?: string;
     submittedAt?: string;
   }>;
+  buyerLeads?: Array<{ id: string; title: string | null; stage?: string }>;
 }) {
   const router = useRouter();
   const [amount, setAmount] = useState("");
   const [buyerName, setBuyerName] = useState("");
+  const [buyerLeadId, setBuyerLeadId] = useState("");
   const [pending, setPending] = useState<string | null>(null);
 
   async function createOffer(e: React.FormEvent) {
@@ -27,6 +32,7 @@ export function PropertyOffersPanel({
     const cents = Math.round(parseFloat(amount.replace(/[^0-9.]/g, "")) * 100);
     if (!cents) return;
 
+    const selected = buyerLeads.find((b) => b.id === buyerLeadId);
     setPending("create");
     await fetch("/api/v1/re/offers", {
       method: "POST",
@@ -34,21 +40,23 @@ export function PropertyOffersPanel({
       body: JSON.stringify({
         propertyId,
         amountCents: cents,
-        buyerName: buyerName || undefined,
+        buyerName: buyerName || selected?.title || undefined,
+        buyerLeadId: buyerLeadId || undefined,
       }),
     });
     setPending(null);
     setAmount("");
     setBuyerName("");
+    setBuyerLeadId("");
     router.refresh();
   }
 
-  async function acceptOffer(offerId: string) {
+  async function setOfferStatus(offerId: string, status: "accepted" | "rejected" | "withdrawn") {
     setPending(offerId);
     await fetch("/api/v1/re/offers", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ propertyId, offerId, status: "accepted" }),
+      body: JSON.stringify({ propertyId, offerId, status }),
     });
     setPending(null);
     router.refresh();
@@ -58,7 +66,8 @@ export function PropertyOffersPanel({
     <div className="dg-card">
       <h2 className="font-semibold text-white">Offers</h2>
       <p className="mt-1 text-sm text-slate-400">
-        Track buyer offers — accepting moves property to under offer and vendor lead to sale.
+        Link a buyer lead when recording an offer — accepting moves property to under offer and
+        vendor lead to sale.
       </p>
 
       {offers.length ? (
@@ -75,19 +84,37 @@ export function PropertyOffersPanel({
                     {offer.buyerName ? ` · ${offer.buyerName}` : ""}
                   </p>
                   <p className="text-xs capitalize text-slate-500">{offer.status}</p>
+                  {offer.buyerLeadId ? (
+                    <Link
+                      href={`/apps/re/buyer-leads/${offer.buyerLeadId}`}
+                      className="mt-1 inline-block text-xs text-blue-400 hover:underline"
+                    >
+                      Buyer lead →
+                    </Link>
+                  ) : null}
                   {offer.conditions ? (
                     <p className="mt-1 text-xs text-slate-400">{offer.conditions}</p>
                   ) : null}
                 </div>
                 {offer.status === "submitted" ? (
-                  <button
-                    type="button"
-                    disabled={pending === offer.id}
-                    onClick={() => acceptOffer(offer.id)}
-                    className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
-                  >
-                    Accept
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={pending === offer.id}
+                      onClick={() => setOfferStatus(offer.id, "accepted")}
+                      className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      type="button"
+                      disabled={pending === offer.id}
+                      onClick={() => setOfferStatus(offer.id, "rejected")}
+                      className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300 hover:border-rose-500 hover:text-rose-300 disabled:opacity-50"
+                    >
+                      Reject
+                    </button>
+                  </div>
                 ) : null}
               </div>
             </li>
@@ -105,6 +132,25 @@ export function PropertyOffersPanel({
           onChange={(e) => setAmount(e.target.value)}
           className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
         />
+        {buyerLeads.length ? (
+          <select
+            value={buyerLeadId}
+            onChange={(e) => {
+              setBuyerLeadId(e.target.value);
+              const selected = buyerLeads.find((b) => b.id === e.target.value);
+              if (selected?.title && !buyerName) setBuyerName(selected.title);
+            }}
+            className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+          >
+            <option value="">Buyer lead (optional)</option>
+            {buyerLeads.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.title || b.id}
+                {b.stage ? ` · ${b.stage}` : ""}
+              </option>
+            ))}
+          </select>
+        ) : null}
         <input
           type="text"
           placeholder="Buyer name"

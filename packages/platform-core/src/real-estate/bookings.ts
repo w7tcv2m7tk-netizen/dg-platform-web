@@ -149,3 +149,85 @@ export async function syncReBookingsFromWordPress(
 
   return result;
 }
+
+export async function createReBooking(input: {
+  organisationId: string;
+  actorId?: string;
+  contactName: string;
+  email?: string;
+  phone?: string;
+  service?: string;
+  scheduledAt?: string;
+  notes?: string;
+  vendorLeadId?: string;
+}) {
+  const { prisma } = await import("@dg/database");
+  const title = input.contactName.trim() || "Appraisal booking";
+  const metadata: Record<string, unknown> = {
+    contact_name: input.contactName.trim() || undefined,
+    email: input.email?.trim() || undefined,
+    phone: input.phone?.trim() || undefined,
+    service: input.service?.trim() || "Appraisal",
+    booking_type: "appraisal",
+    scheduled_at: input.scheduledAt || undefined,
+    notes: input.notes?.trim() || undefined,
+    vendor_lead_id: input.vendorLeadId || undefined,
+    lead_type: "booking",
+  };
+
+  let contactId: string | undefined;
+  if (input.contactName || input.email || input.phone) {
+    const { ensureContactForLeadFields } = await import("../contacts");
+    const contact = await ensureContactForLeadFields({
+      organisationId: input.organisationId,
+      actorId: input.actorId,
+      name: input.contactName,
+      email: input.email,
+      phone: input.phone,
+      source: RE_BOOKING_SOURCE,
+    });
+    contactId = contact?.id;
+    if (contactId) {
+      const { ensureReContactRole } = await import("./contact-roles");
+      await ensureReContactRole({
+        organisationId: input.organisationId,
+        contactId,
+        role: "vendor",
+      });
+    }
+  }
+
+  const lead = await prisma.lead.create({
+    data: {
+      organisationId: input.organisationId,
+      source: RE_BOOKING_SOURCE,
+      title,
+      status: "pending",
+      contactId,
+      description: input.notes?.trim() || undefined,
+      metadata: metadata as Prisma.InputJsonValue,
+      externalRefs: { source: "gen2" } as Prisma.InputJsonValue,
+    },
+  });
+
+  await prisma.activity.create({
+    data: {
+      organisationId: input.organisationId,
+      entityType: "Lead",
+      entityId: lead.id,
+      activityType: "booking_created",
+      title: "Appraisal booking created",
+      body: metadata.scheduled_at
+        ? `Scheduled ${String(metadata.scheduled_at)}`
+        : title,
+      sourceApp: "real-estate",
+      createdBy: input.actorId,
+    },
+  });
+
+  const { linkBookingToVendorLead } = await import("./reports");
+  await linkBookingToVendorLead(input.organisationId, lead.id);
+
+  return serializeBooking(lead);
+}
+

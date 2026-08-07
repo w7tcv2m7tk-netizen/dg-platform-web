@@ -137,6 +137,8 @@ export async function updatePropertyOfferStatus(
     }
 
     const checklist = (metadata.settlement_checklist as Record<string, boolean> | undefined) ?? {};
+    const prevContract =
+      (metadata.contract as PropertyContract | Record<string, unknown> | undefined) ?? {};
 
     await prisma.property.update({
       where: { id: propertyId },
@@ -147,10 +149,12 @@ export async function updatePropertyOfferStatus(
           ...metadata,
           offers,
           accepted_offer_id: offerId,
+          // camelCase matches PropertyContract / UI readers
           contract: {
-            purchase_price_cents: offer.amountCents,
-            buyer_lead_id: offer.buyerLeadId,
-            buyer_name: offer.buyerName,
+            ...prevContract,
+            purchasePriceCents: offer.amountCents,
+            buyerLeadId: offer.buyerLeadId,
+            buyerName: offer.buyerName,
           },
           settlement_checklist: checklist,
         } as unknown as Prisma.InputJsonValue,
@@ -188,6 +192,65 @@ export interface PropertyContract {
   buyerLeadId?: string;
   buyerName?: string;
   specialConditions?: string;
+}
+
+/** Normalize legacy snake_case contract keys written by older accept-offer paths. */
+export function normalizePropertyContract(
+  raw: Record<string, unknown> | PropertyContract | null | undefined,
+): PropertyContract | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const r = raw as Record<string, unknown>;
+  const purchasePriceCents =
+    typeof r.purchasePriceCents === "number"
+      ? r.purchasePriceCents
+      : typeof r.purchase_price_cents === "number"
+        ? r.purchase_price_cents
+        : undefined;
+  const buyerLeadId =
+    typeof r.buyerLeadId === "string"
+      ? r.buyerLeadId
+      : typeof r.buyer_lead_id === "string"
+        ? r.buyer_lead_id
+        : undefined;
+  const buyerName =
+    typeof r.buyerName === "string"
+      ? r.buyerName
+      : typeof r.buyer_name === "string"
+        ? r.buyer_name
+        : undefined;
+  const signedAt = typeof r.signedAt === "string" ? r.signedAt : undefined;
+  const settlementDate =
+    typeof r.settlementDate === "string"
+      ? r.settlementDate
+      : typeof r.settlement_date === "string"
+        ? r.settlement_date
+        : undefined;
+  const specialConditions =
+    typeof r.specialConditions === "string"
+      ? r.specialConditions
+      : typeof r.special_conditions === "string"
+        ? r.special_conditions
+        : undefined;
+
+  if (
+    purchasePriceCents == null &&
+    !buyerLeadId &&
+    !buyerName &&
+    !signedAt &&
+    !settlementDate &&
+    !specialConditions
+  ) {
+    return undefined;
+  }
+
+  return {
+    signedAt,
+    settlementDate,
+    purchasePriceCents,
+    buyerLeadId,
+    buyerName,
+    specialConditions,
+  };
 }
 
 export async function updatePropertyContract(

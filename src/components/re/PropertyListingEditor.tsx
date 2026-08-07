@@ -16,6 +16,7 @@ type ListingFields = {
   description?: string;
   features?: string;
   images?: string[];
+  inspectionTimes?: string | null;
 };
 
 export function PropertyListingEditor(props: ListingFields) {
@@ -39,6 +40,7 @@ export function PropertyListingEditor(props: ListingFields) {
   const [headline, setHeadline] = useState(props.headline ?? "");
   const [description, setDescription] = useState(props.description ?? "");
   const [features, setFeatures] = useState(props.features ?? "");
+  const [inspectionTimes, setInspectionTimes] = useState(props.inspectionTimes ?? "");
   const [images, setImages] = useState<string[]>(props.images ?? []);
   const [imagesText, setImagesText] = useState((props.images ?? []).join("\n"));
   const [pending, setPending] = useState(false);
@@ -106,6 +108,7 @@ export function PropertyListingEditor(props: ListingFields) {
           description: description.trim() || undefined,
           features: features.trim() || undefined,
         },
+        inspectionTimes: inspectionTimes.trim() || null,
         syncToWebsite: true,
       }),
     });
@@ -213,6 +216,16 @@ export function PropertyListingEditor(props: ListingFields) {
           value={features}
           onChange={(e) => setFeatures(e.target.value)}
           rows={4}
+          className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
+        />
+      </label>
+
+      <label className="block text-sm">
+        <span className="text-slate-400">Inspection / open home times</span>
+        <input
+          value={inspectionTimes}
+          onChange={(e) => setInspectionTimes(e.target.value)}
+          placeholder="e.g. Saturday 10:00–10:30am"
           className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
         />
       </label>

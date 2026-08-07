@@ -11,12 +11,18 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import {
+  isNextResponse,
+  requireFeature,
+  requirePlatformAuth,
+} from "@/lib/platform-api";
 import { syncWordPressBuyerLeads, syncWordPressVendorLeads } from "@/lib/wordpress-sync";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "crm.leads.read");
+  if (denied) return denied;
 
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status") ?? undefined;
@@ -34,6 +40,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "crm.leads.write");
+  if (denied) return denied;
 
   const body = await req.json().catch(() => ({}));
 
@@ -142,6 +150,14 @@ export async function POST(req: Request) {
       source: leadType === "buyer" ? "buyer_enquiry" : body.source || "manual",
     });
     contactId = contact?.id;
+    if (contactId) {
+      const { ensureReContactRole } = await import("@dg/platform-core");
+      await ensureReContactRole({
+        organisationId: session.organisationId,
+        contactId,
+        role: leadType === "buyer" ? "buyer" : "vendor",
+      });
+    }
   }
 
   const lead = await createLead({
@@ -168,6 +184,8 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "crm.leads.write");
+  if (denied) return denied;
 
   const body = await req.json().catch(() => null);
   const leadId = body?.id as string | undefined;

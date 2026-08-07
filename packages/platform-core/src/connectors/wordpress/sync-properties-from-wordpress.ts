@@ -20,6 +20,7 @@ export type WpPropertyListing = {
   building_size?: string;
   features?: string;
   description?: string;
+  inspection_times?: string;
   external_id?: string;
   images?: string[];
   featured_image?: string | null;
@@ -183,6 +184,7 @@ export async function syncPropertiesFromWordPress(
         car_spaces: toInt(wp.car_spaces),
         land_size: wp.land_size?.trim() || undefined,
         building_size: wp.building_size?.trim() || undefined,
+        inspection_times: wp.inspection_times?.trim() || undefined,
         wp_agent: wp.agent ?? undefined,
         wp_synced_at: new Date().toISOString(),
       };

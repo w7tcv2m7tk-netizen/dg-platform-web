@@ -21,6 +21,14 @@ export function ReBookingsPanel({
   const router = useRouter();
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [service, setService] = useState("Appraisal");
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [createError, setCreateError] = useState<string | null>(null);
 
   async function syncFromWordPress() {
     setSyncing(true);
@@ -42,12 +50,42 @@ export function ReBookingsPanel({
     router.refresh();
   }
 
+  async function createBooking(e: React.FormEvent) {
+    e.preventDefault();
+    setCreating(true);
+    setCreateError(null);
+    const res = await fetch("/api/v1/re/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contactName,
+        email: email || undefined,
+        phone: phone || undefined,
+        service: service || undefined,
+        scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setCreating(false);
+    if (!res.ok) {
+      setCreateError(json.error?.message ?? "Could not create booking");
+      return;
+    }
+    setContactName("");
+    setEmail("");
+    setPhone("");
+    setService("Appraisal");
+    setScheduledAt("");
+    setShowCreate(false);
+    router.refresh();
+  }
+
   if (error) {
     return (
       <div className="dg-card border-amber-500/30">
         <p className="text-amber-300">{error}</p>
         <p className="mt-2 text-sm text-slate-500">
-          Check DG_WP_CONNECTOR_API_KEY and that the Real Estate module is active on Roe.
+          Check WordPress connector settings — or create bookings directly in Gen 2 below.
         </p>
       </div>
     );
@@ -56,6 +94,13 @@ export function ReBookingsPanel({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setShowCreate((v) => !v)}
+          className="rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 hover:border-blue-500"
+        >
+          {showCreate ? "Cancel" : "Add booking"}
+        </button>
         <button
           type="button"
           onClick={syncFromWordPress}
@@ -67,11 +112,75 @@ export function ReBookingsPanel({
         {syncMsg ? <p className="text-sm text-slate-400">{syncMsg}</p> : null}
       </div>
 
+      {showCreate ? (
+        <form onSubmit={createBooking} className="dg-card max-w-lg space-y-3 border border-slate-700">
+          <h3 className="font-semibold text-white">New appraisal booking</h3>
+          <p className="text-xs text-slate-500">
+            Stored in Platform — links to a vendor Contact (role badge). WordPress sync optional.
+          </p>
+          <label className="block text-sm">
+            <span className="text-slate-400">Name</span>
+            <input
+              required
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+            />
+          </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm">
+              <span className="text-slate-400">Email</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="text-slate-400">Phone</span>
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+              />
+            </label>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm">
+              <span className="text-slate-400">Service</span>
+              <input
+                value={service}
+                onChange={(e) => setService(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="text-slate-400">When</span>
+              <input
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+              />
+            </label>
+          </div>
+          <button
+            type="submit"
+            disabled={creating}
+            className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
+          >
+            {creating ? "Saving…" : "Create booking"}
+          </button>
+          {createError ? <p className="text-sm text-amber-400">{createError}</p> : null}
+        </form>
+      ) : null}
+
       {!bookings.length ? (
         <div className="dg-card border-dashed border-slate-700">
-          <p className="text-slate-300">No bookings in Postgres yet.</p>
+          <p className="text-slate-300">No bookings yet.</p>
           <p className="mt-2 text-sm text-slate-500">
-            Sync from Roe WordPress — appraisal and strategy call bookings import here.
+            Add an appraisal booking here, or sync from Roe WordPress.
           </p>
         </div>
       ) : (

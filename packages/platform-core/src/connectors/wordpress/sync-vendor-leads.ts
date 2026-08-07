@@ -86,6 +86,12 @@ async function resolveContactId(
   return created.id;
 }
 
+async function applyVendorRole(organisationId: string, contactId: string | undefined) {
+  if (!contactId) return;
+  const { ensureReContactRole } = await import("../../real-estate/contact-roles");
+  await ensureReContactRole({ organisationId, contactId, role: "vendor" });
+}
+
 /** Idempotent sync — creates new leads or updates existing WP imports. */
 export async function syncVendorLeadsFromWordPress(
   input: SyncVendorLeadsInput,
@@ -116,6 +122,7 @@ export async function syncVendorLeadsFromWordPress(
         input.actorId,
         wpLead,
       );
+      await applyVendorRole(input.organisationId, contactId);
       const { leadMetadata, title } = await resolveLeadMetadata(wpLead);
 
       if (existing) {

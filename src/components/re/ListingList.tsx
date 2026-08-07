@@ -9,6 +9,13 @@ function formatPrice(cents: number | null | undefined) {
   return `$${(cents / 100).toLocaleString("en-AU")}`;
 }
 
+const STATUS_OPTIONS = [
+  { value: "listed", label: "Listed" },
+  { value: "under_offer", label: "Under offer" },
+  { value: "sold", label: "Sold" },
+  { value: "withdrawn", label: "Withdrawn" },
+];
+
 export function ListingList({
   properties,
 }: {
@@ -44,6 +51,17 @@ export function ListingList({
     router.refresh();
   }
 
+  async function updateStatus(propertyId: string, status: string) {
+    setPending(propertyId);
+    await fetch(`/api/v1/properties/${propertyId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    setPending(null);
+    router.refresh();
+  }
+
   if (!properties.length) {
     return (
       <div className="dg-card border-dashed border-slate-700">
@@ -68,6 +86,10 @@ export function ListingList({
         const marketing = (property.metadata?.marketing as Record<string, unknown> | undefined) ?? {};
         const campaign = marketing.campaign as string | undefined;
         const portalUrl = marketing.portal_url as string | undefined;
+        const inspectionTimes =
+          typeof property.metadata?.inspection_times === "string"
+            ? property.metadata.inspection_times
+            : null;
 
         return (
           <li
@@ -100,6 +122,9 @@ export function ListingList({
                   {property.bedrooms != null ? ` · ${property.bedrooms} bed` : ""}
                   {property.bathrooms != null ? ` · ${property.bathrooms} bath` : ""}
                 </p>
+                {inspectionTimes ? (
+                  <p className="mt-1 text-xs text-slate-400">Inspections: {inspectionTimes}</p>
+                ) : null}
                 {campaign ? (
                   <p className="mt-1 text-xs text-emerald-400/90">Campaign: {campaign}</p>
                 ) : null}
@@ -114,6 +139,25 @@ export function ListingList({
             </div>
 
             <div className="mt-4 flex flex-wrap items-end gap-3">
+              <label className="text-sm text-slate-400">
+                Status
+                <select
+                  value={
+                    STATUS_OPTIONS.some((o) => o.value === property.status)
+                      ? property.status
+                      : "listed"
+                  }
+                  disabled={pending === property.id}
+                  onChange={(e) => updateStatus(property.id, e.target.value)}
+                  className="mt-1 block rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-white"
+                >
+                  {STATUS_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <label className="text-sm text-slate-400">
                 Update guide ($)
                 <input

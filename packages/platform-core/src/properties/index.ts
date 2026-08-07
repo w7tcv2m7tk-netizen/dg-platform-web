@@ -518,6 +518,8 @@ export async function updatePropertyListing(
     carSpaces?: number | null;
     landSize?: string | null;
     buildingSize?: string | null;
+    /** Open home / inspection times (synced to WP as roe_property_inspection_times). */
+    inspectionTimes?: string | null;
     syncToWebsite?: boolean;
   },
   actorId?: string,
@@ -552,6 +554,9 @@ export async function updatePropertyListing(
   }
   if (input.buildingSize !== undefined) {
     metadata.building_size = input.buildingSize?.trim() || null;
+  }
+  if (input.inspectionTimes !== undefined) {
+    metadata.inspection_times = input.inspectionTimes?.trim() || null;
   }
 
   const property = await prisma.property.update({

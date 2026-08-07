@@ -6,6 +6,7 @@ export type PlatformEventType =
   | "company.created"
   | "lead.created"
   | "lead.converted"
+  | "lead.stage_changed"
   | "opportunity.created"
   | "opportunity.stage_changed"
   | "opportunity.won"
