@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { storeOrgBrandAsset } from "@dg/platform-core/assets/org-brand-storage";
+import {
+  BrandAssetStorageError,
+  storeOrgBrandAsset,
+} from "@dg/platform-core/assets/org-brand-storage";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
 const DEFAULT_MAX_BYTES = 400 * 1024;
@@ -84,6 +87,12 @@ export async function POST(req: Request) {
       },
     });
   } catch (err) {
+    if (err instanceof BrandAssetStorageError) {
+      return NextResponse.json(
+        { error: { code: err.code, message: err.message } },
+        { status: err.status },
+      );
+    }
     const message = err instanceof Error ? err.message : "Upload failed";
     return NextResponse.json(
       { error: { code: "upload_failed", message } },
