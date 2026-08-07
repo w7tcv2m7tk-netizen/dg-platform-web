@@ -89,7 +89,10 @@ export function AccommodationUnitsTable({
     const json = await res.json().catch(() => ({}));
     setPending(false);
     if (!res.ok) {
-      setSaveError(json.error?.message ?? "Could not save unit");
+      setSaveError(
+        json.error?.message ??
+          "Could not save unit — deploy DG Platform plugin v10.58.0+ on CVH (Plugins → Upload dg-platform-build.zip).",
+      );
       return;
     }
     setEditingId(null);

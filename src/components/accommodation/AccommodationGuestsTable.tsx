@@ -60,7 +60,10 @@ export function AccommodationGuestsTable({
     const json = await res.json().catch(() => ({}));
     setPending(false);
     if (!res.ok) {
-      setSaveError(json.error?.message ?? "Could not save guest");
+      setSaveError(
+        json.error?.message ??
+          "Could not save guest — deploy DG Platform plugin v10.58.0+ on CVH.",
+      );
       return;
     }
     setEditingId(null);

@@ -77,7 +77,10 @@ export function AccommodationBookingsTable({
     const json = await res.json().catch(() => ({}));
     setPending(false);
     if (!res.ok) {
-      setSaveError(json.error?.message ?? "Could not save booking");
+      setSaveError(
+        json.error?.message ??
+          "Could not save booking — deploy DG Platform plugin v10.58.0+ on CVH.",
+      );
       return;
     }
     setEditingId(null);
