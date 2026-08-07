@@ -229,21 +229,80 @@ export async function upsertGuestFromWpRow(
     email?: string;
     phone?: string;
     total_stays?: number;
+    vip?: boolean;
+    notes?: string;
+    tags?: string;
+    address?: string;
+    source?: string;
+    contact_id?: string | null;
   },
   options?: { actorId?: string },
 ): Promise<AccommodationGuestListItem | null> {
-  const contactId = await ensureContactForStayGuest({
-    organisationId,
-    actorId: options?.actorId,
-    guestName: guest.name,
-    email: guest.email,
-    phone: guest.phone,
-    legacyWpGuestId: guest.id,
-  });
+  const { prisma } = await import("@dg/database");
+
+  let contactId: string | null = null;
+  if (guest.contact_id?.trim()) {
+    const existing = await prisma.contact.findFirst({
+      where: {
+        id: guest.contact_id.trim(),
+        organisationId,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+    if (existing) {
+      contactId = existing.id;
+      await ensureGuestProfile({
+        organisationId,
+        contactId,
+        legacyWpGuestId: guest.id,
+      });
+    }
+  }
+
+  if (!contactId) {
+    contactId = await ensureContactForStayGuest({
+      organisationId,
+      actorId: options?.actorId,
+      guestName: guest.name,
+      email: guest.email,
+      phone: guest.phone,
+      legacyWpGuestId: guest.id,
+    });
+  }
   if (!contactId) return null;
 
+  const profilePatch: Prisma.AccommodationGuestProfileUpdateInput = {
+    legacyWpGuestId: guest.id,
+  };
+  if (guest.vip !== undefined) profilePatch.vip = Boolean(guest.vip);
+  if (guest.notes !== undefined) profilePatch.guestNotes = guest.notes.trim() || null;
+
+  try {
+    await prisma.accommodationGuestProfile.update({
+      where: { contactId },
+      data: profilePatch,
+    });
+  } catch {
+    await ensureGuestProfile({
+      organisationId,
+      contactId,
+      legacyWpGuestId: guest.id,
+    });
+    if (guest.vip !== undefined || guest.notes !== undefined) {
+      await prisma.accommodationGuestProfile.update({
+        where: { contactId },
+        data: {
+          ...(guest.vip !== undefined ? { vip: Boolean(guest.vip) } : {}),
+          ...(guest.notes !== undefined
+            ? { guestNotes: guest.notes.trim() || null }
+            : {}),
+        },
+      });
+    }
+  }
+
   // Attach any unlinked bookings that match email/name
-  const { prisma } = await import("@dg/database");
   const email = guest.email?.trim().toLowerCase() || null;
   if (email) {
     await prisma.stayBooking.updateMany({
@@ -505,6 +564,113 @@ export async function getContactAccommodationGuestPanel(
   organisationId: string,
   contactId: string,
 ): Promise<AccommodationGuestDetail | null> {
+  return getAccommodationGuest(organisationId, contactId);
+}
+
+export async function updateAccommodationGuestProfile(
+  organisationId: string,
+  contactId: string,
+  input: {
+    vip?: boolean;
+    marketingConsent?: boolean | null;
+    preferences?: string | null;
+    specialRequests?: string | null;
+    guestNotes?: string | null;
+    favouriteUnit?: string | null;
+    /** Optional Contact identity fields */
+    displayName?: string;
+    email?: string | null;
+    phone?: string | null;
+    /** Mirror VIP/notes to WordPress guest when legacy id known */
+    syncWp?: {
+      patchWp: (updates: Array<Record<string, unknown>>) => Promise<unknown>;
+    };
+  },
+): Promise<AccommodationGuestDetail | null> {
+  const { prisma } = await import("@dg/database");
+  const contact = await prisma.contact.findFirst({
+    where: { id: contactId, organisationId, deletedAt: null },
+  });
+  if (!contact) return null;
+
+  await ensureGuestProfile({ organisationId, contactId });
+
+  const profileData: Prisma.AccommodationGuestProfileUpdateInput = {};
+  if (input.vip !== undefined) profileData.vip = Boolean(input.vip);
+  if (input.marketingConsent !== undefined) {
+    profileData.marketingConsent = input.marketingConsent;
+  }
+  if (input.preferences !== undefined) {
+    profileData.preferences = input.preferences?.trim() || null;
+  }
+  if (input.specialRequests !== undefined) {
+    profileData.specialRequests = input.specialRequests?.trim() || null;
+  }
+  if (input.guestNotes !== undefined) {
+    profileData.guestNotes = input.guestNotes?.trim() || null;
+  }
+  if (input.favouriteUnit !== undefined) {
+    profileData.favouriteUnit = input.favouriteUnit?.trim() || null;
+  }
+
+  if (Object.keys(profileData).length > 0) {
+    await prisma.accommodationGuestProfile.update({
+      where: { contactId },
+      data: profileData,
+    });
+  }
+
+  const contactData: Prisma.ContactUpdateInput = {};
+  if (input.displayName !== undefined) {
+    const parts = input.displayName.trim().split(/\s+/);
+    contactData.firstName = parts[0] || contact.firstName;
+    contactData.lastName = parts.slice(1).join(" ") || null;
+  }
+  if (input.email !== undefined) {
+    contactData.email = input.email?.trim().toLowerCase() || null;
+  }
+  if (input.phone !== undefined) {
+    contactData.phone = input.phone?.trim() || null;
+  }
+  if (Object.keys(contactData).length > 0) {
+    await prisma.contact.update({ where: { id: contactId }, data: contactData });
+  }
+
+  const profile = await prisma.accommodationGuestProfile.findUnique({
+    where: { contactId },
+  });
+
+  if (input.syncWp && profile?.legacyWpGuestId != null) {
+    await input.syncWp
+      .patchWp([
+        {
+          id: profile.legacyWpGuestId,
+          contact_id: contactId,
+          vip: profile.vip,
+          notes: profile.guestNotes ?? "",
+          name:
+            input.displayName ??
+            [contact.firstName, contact.lastName].filter(Boolean).join(" "),
+          email: input.email !== undefined ? input.email : contact.email,
+          phone: input.phone !== undefined ? input.phone : contact.phone,
+        },
+      ])
+      .catch(() => null);
+  } else if (input.syncWp && profile?.legacyWpGuestId == null) {
+    // Still attempt contact_id linkage update if WP guest matched later.
+    await input.syncWp
+      .patchWp([
+        {
+          contact_id: contactId,
+          vip: profile?.vip ?? false,
+          notes: profile?.guestNotes ?? "",
+          email: input.email !== undefined ? input.email : contact.email,
+          phone: input.phone !== undefined ? input.phone : contact.phone,
+        },
+      ])
+      .catch(() => null);
+  }
+
   return getAccommodationGuest(organisationId, contactId);
 }
 

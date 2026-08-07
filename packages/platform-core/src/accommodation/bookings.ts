@@ -15,10 +15,15 @@ export interface WpAccBookingRow {
   accommodation_id?: number;
   checkin?: string;
   checkout?: string;
+  nights?: number | null;
+  guests?: number | null;
   status?: string;
   source?: string;
   /** Dollars (WordPress) — converted to totalCents on upsert */
   total?: number;
+  paid?: string | null;
+  payment_method?: string | null;
+  message?: string;
 }
 
 export interface SyncAccommodationBookingsResult {
@@ -48,8 +53,14 @@ export interface StayBookingListItem {
   accommodationWpId?: number | null;
   checkin?: string | null;
   checkout?: string | null;
+  nights?: number | null;
+  guests?: number | null;
   status: string;
+  source?: string | null;
   totalCents?: number | null;
+  paid?: string | null;
+  paymentMethod?: string | null;
+  message?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -103,8 +114,15 @@ function serializeStayBooking(row: {
     accommodationWpId: row.accommodationWpId,
     checkin: formatStayDate(row.checkin, metadata.checkin as string | undefined),
     checkout: formatStayDate(row.checkout, metadata.checkout as string | undefined),
+    nights: typeof metadata.nights === "number" ? metadata.nights : null,
+    guests: typeof metadata.guests === "number" ? metadata.guests : null,
     status: row.status,
+    source: typeof metadata.source === "string" ? metadata.source : null,
     totalCents: row.totalCents,
+    paid: typeof metadata.paid === "string" ? metadata.paid : null,
+    paymentMethod:
+      typeof metadata.payment_method === "string" ? metadata.payment_method : null,
+    message: typeof metadata.message === "string" ? metadata.message : null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -145,8 +163,14 @@ export function stayBookingToWpRow(item: StayBookingListItem): WpAccBookingRow {
     accommodation_id: item.accommodationWpId ?? undefined,
     checkin: item.checkin ?? undefined,
     checkout: item.checkout ?? undefined,
+    nights: item.nights ?? undefined,
+    guests: item.guests ?? undefined,
     status: item.status,
+    source: item.source ?? undefined,
     total: item.totalCents != null ? item.totalCents / 100 : undefined,
+    paid: item.paid ?? undefined,
+    payment_method: item.paymentMethod ?? undefined,
+    message: item.message ?? undefined,
   };
 }
 
@@ -282,7 +306,12 @@ function mapBookingFields(booking: WpAccBookingRow) {
     checkin: booking.checkin ?? null,
     checkout: booking.checkout ?? null,
     total: booking.total ?? null,
-    source: "wordpress",
+    nights: booking.nights ?? null,
+    guests: booking.guests ?? null,
+    paid: booking.paid ?? null,
+    payment_method: booking.payment_method ?? null,
+    message: booking.message ?? null,
+    source: booking.source ?? "wordpress",
   };
 
   return {

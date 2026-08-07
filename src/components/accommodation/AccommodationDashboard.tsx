@@ -62,6 +62,7 @@ export function AccommodationDashboard({
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Occupancy" value={occupancy} hint={siteLabel ?? summary.site} />
+        <StatCard label="Check-ins today" value={summary.checkins_today ?? 0} />
         <StatCard
           label="Check-ins tomorrow"
           value={summary.checkins_tomorrow ?? 0}
@@ -74,7 +75,6 @@ export function AccommodationDashboard({
               : "—"
           }
         />
-        <StatCard label="Site" value={summary.site_profile ?? siteLabel ?? "CVH"} />
       </div>
 
       {summary.recent_bookings?.length ? (

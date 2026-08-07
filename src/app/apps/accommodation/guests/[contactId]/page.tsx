@@ -4,6 +4,7 @@ import { getAccommodationGuest, getContact } from "@dg/platform-core";
 import { notFound } from "next/navigation";
 
 import { AccommodationGuestPanel } from "@/components/accommodation/AccommodationGuestPanel";
+import { AccommodationGuestPrefsEditor } from "@/components/accommodation/AccommodationGuestPrefsEditor";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
 interface PageProps {
@@ -58,8 +59,9 @@ export default async function AccommodationGuestDetailPage({ params }: PageProps
           </Link>
         </p>
       </header>
-      <main className="dg-page-main">
+      <main className="dg-page-main space-y-6">
         <AccommodationGuestPanel guest={guest} />
+        <AccommodationGuestPrefsEditor guest={guest} />
       </main>
     </>
   );

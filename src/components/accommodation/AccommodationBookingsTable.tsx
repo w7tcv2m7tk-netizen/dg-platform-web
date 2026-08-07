@@ -191,6 +191,9 @@ export function AccommodationBookingsTable({
                         <>
                           <p className="text-white">{b.guest_name ?? "—"}</p>
                           <p className="text-xs text-slate-500">{b.email}</p>
+                          {b.phone ? (
+                            <p className="text-xs text-slate-500">{b.phone}</p>
+                          ) : null}
                         </>
                       )}
                     </td>

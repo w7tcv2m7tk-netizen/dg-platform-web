@@ -161,8 +161,8 @@ export function AccommodationGuestPanel({
       </div>
 
       <p className="text-xs text-slate-500">
-        Reviews and full communication history are not wired on this panel yet — use Contact
-        timeline for notes/activity.
+        Edit VIP, notes, preferences and marketing consent with the form below. Reviews and full
+        communication history live on Contact timeline.
       </p>
     </div>
   );

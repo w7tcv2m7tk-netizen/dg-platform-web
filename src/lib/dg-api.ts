@@ -769,6 +769,7 @@ export type WpAccommodationSummary = {
   properties?: number;
   guests?: number;
   upcoming_30d?: number;
+  checkins_today?: number;
   checkins_tomorrow?: number;
   housekeeping?: Record<string, unknown>;
   recent_bookings?: WpAccBookingRow[];
@@ -848,10 +849,15 @@ export type WpAccBookingRow = {
   accommodation_id?: number;
   checkin?: string;
   checkout?: string;
+  nights?: number | null;
+  guests?: number | null;
   status?: string;
   /** Channel when status is airbnb/bookingcom, or explicit source field. */
   source?: string;
   total?: number;
+  paid?: string | null;
+  payment_method?: string | null;
+  message?: string;
 };
 
 export type WpAccAvailabilityUnit = {
@@ -1074,6 +1080,26 @@ export async function patchWpAccommodationBookings(
   );
 }
 
+/** Create manual/direct bookings on WordPress. Requires plugin v10.65.0+. */
+export async function createWpAccommodationBookings(
+  booking: Record<string, unknown> | Array<Record<string, unknown>>,
+  connector?: WpConnectorOverride,
+) {
+  const site = resolveAccConnector(null, connector);
+  const body = Array.isArray(booking) ? { bookings: booking } : { booking };
+  return wpConnectorFetch<{
+    ok?: boolean;
+    created?: WpAccBookingRow[];
+    count?: number;
+    errors?: Array<{ index?: number; message?: string }>;
+  }>("/accommodation/bookings", {
+    baseUrl: site.baseUrl,
+    apiKey: site.apiKey,
+    method: "POST",
+    body,
+  });
+}
+
 /** Soft-cancel bookings on WordPress (status=cancelled). Requires plugin v10.60.0+. */
 export async function deleteWpAccommodationBookings(
   ids: number[],
@@ -1112,7 +1138,16 @@ export type WpAccGuestRow = {
   name?: string;
   email?: string;
   phone?: string;
+  address?: string;
+  source?: string;
+  vip?: boolean;
+  notes?: string;
+  tags?: string;
   total_stays?: number;
+  total_nights?: number;
+  total_spent?: number;
+  last_stay?: string | null;
+  contact_id?: string | null;
 };
 
 export async function fetchWpAccommodationGuests(

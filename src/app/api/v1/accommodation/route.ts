@@ -8,6 +8,7 @@ import {
   fetchWpAccommodationSummary,
   fetchWpAccommodationUnits,
   listWpAccommodationSites,
+  createWpAccommodationBookings,
   deleteWpAccommodationBookings,
   patchWpAccommodationBookings,
   patchWpAccommodationGuests,
@@ -142,6 +143,96 @@ export async function POST(req: Request) {
     return NextResponse.json({ data: result.data });
   }
 
+  if (body.action === "create_booking") {
+    const connector = await accommodationConnectorForSession(session.organisationId);
+    const payload: Record<string, unknown> =
+      body.booking && typeof body.booking === "object"
+        ? (body.booking as Record<string, unknown>)
+        : (() => {
+            const { action: _action, ...rest } = body as Record<string, unknown>;
+            return rest;
+          })();
+
+    const result = await createWpAccommodationBookings(payload, connector);
+    if (!result.ok) {
+      return NextResponse.json(
+        {
+          error: {
+            code: result.code,
+            message:
+              result.message ??
+              "Could not create booking — deploy DG Platform plugin v10.65.0+ on CVH.",
+          },
+        },
+        { status: 422 },
+      );
+    }
+
+    // Mirror into Postgres StayBooking.
+    const { syncAccBookingsFromWordPress } = await import("@dg/platform-core");
+    const created = result.data.created ?? [];
+    if (created.length) {
+      await syncAccBookingsFromWordPress({
+        organisationId: session.organisationId,
+        bookings: created,
+        actorId: session.clerkUserId,
+      }).catch(() => null);
+    }
+
+    return NextResponse.json({ data: result.data });
+  }
+
+  if (body.action === "update_guest_profile") {
+    const contactId =
+      typeof body.contactId === "string"
+        ? body.contactId
+        : typeof body.contact_id === "string"
+          ? body.contact_id
+          : "";
+    if (!contactId) {
+      return NextResponse.json(
+        { error: { code: "missing_contact", message: "contactId is required" } },
+        { status: 400 },
+      );
+    }
+
+    const connector = await accommodationConnectorForSession(session.organisationId);
+    const { updateAccommodationGuestProfile } = await import("@dg/platform-core");
+    const updated = await updateAccommodationGuestProfile(
+      session.organisationId,
+      contactId,
+      {
+        vip: typeof body.vip === "boolean" ? body.vip : undefined,
+        marketingConsent:
+          body.marketingConsent === null
+            ? null
+            : typeof body.marketingConsent === "boolean"
+              ? body.marketingConsent
+              : undefined,
+        preferences: typeof body.preferences === "string" ? body.preferences : undefined,
+        specialRequests:
+          typeof body.specialRequests === "string" ? body.specialRequests : undefined,
+        guestNotes: typeof body.guestNotes === "string" ? body.guestNotes : undefined,
+        favouriteUnit:
+          typeof body.favouriteUnit === "string" ? body.favouriteUnit : undefined,
+        displayName: typeof body.displayName === "string" ? body.displayName : undefined,
+        email: typeof body.email === "string" ? body.email : undefined,
+        phone: typeof body.phone === "string" ? body.phone : undefined,
+        syncWp: {
+          patchWp: (updates) => patchWpAccommodationGuests(updates, connector),
+        },
+      },
+    );
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: { code: "not_found", message: "Guest profile not found" } },
+        { status: 404 },
+      );
+    }
+    return NextResponse.json({ data: updated });
+  }
+
   return NextResponse.json(
     { error: { code: "unknown_action", message: "Unsupported action" } },
     { status: 400 },
@@ -231,6 +322,12 @@ export async function PATCH(req: Request) {
           name: typeof patch.name === "string" ? patch.name : undefined,
           email: typeof patch.email === "string" ? patch.email : undefined,
           phone: typeof patch.phone === "string" ? patch.phone : undefined,
+          vip: typeof patch.vip === "boolean" ? patch.vip : undefined,
+          notes: typeof patch.notes === "string" ? patch.notes : undefined,
+          tags: typeof patch.tags === "string" ? patch.tags : undefined,
+          address: typeof patch.address === "string" ? patch.address : undefined,
+          source: typeof patch.source === "string" ? patch.source : undefined,
+          contact_id: typeof patch.contact_id === "string" ? patch.contact_id : null,
         },
         { actorId: session.clerkUserId },
       ).catch(() => null);
