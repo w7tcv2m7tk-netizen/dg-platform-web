@@ -9,6 +9,7 @@ import {
   fetchWpAccommodationUnits,
   listWpAccommodationSites,
   patchWpAccommodationHousekeeping,
+  syncWpAccommodationOtaCalendars,
 } from "@/lib/dg-api";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 import { syncWordPressAccBookings } from "@/lib/wordpress-sync";
@@ -120,6 +121,21 @@ export async function POST(req: Request) {
       );
     }
     return NextResponse.json({ data: outcome.result });
+  }
+
+  if (body.action === "sync_ota") {
+    const connector = await accommodationConnectorForSession(session.organisationId);
+    const result = await syncWpAccommodationOtaCalendars(connector, {
+      propertyId: typeof body.propertyId === "number" ? body.propertyId : undefined,
+      source: body.source === "airbnb" || body.source === "bookingcom" ? body.source : "all",
+    });
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: { code: result.code, message: result.message } },
+        { status: 422 },
+      );
+    }
+    return NextResponse.json({ data: result.data });
   }
 
   return NextResponse.json(

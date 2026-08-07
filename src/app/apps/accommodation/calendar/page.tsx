@@ -59,7 +59,8 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Availability</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · next 45 days
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · inventory, week, month &
+          list · Airbnb / Booking.com iCal
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">

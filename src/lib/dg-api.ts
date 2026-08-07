@@ -801,6 +801,8 @@ export type WpAccBookingRow = {
   checkin?: string;
   checkout?: string;
   status?: string;
+  /** Channel when status is airbnb/bookingcom, or explicit source field. */
+  source?: string;
   total?: number;
 };
 
@@ -921,6 +923,30 @@ export async function fetchWpAccommodationAvailability(
     total: result.data.total ?? 0,
     site: site.label,
   };
+}
+
+export async function syncWpAccommodationOtaCalendars(
+  connector?: WpConnectorOverride,
+  options?: { propertyId?: number; source?: "all" | "airbnb" | "bookingcom" },
+) {
+  const site = resolveAccConnector(null, connector);
+  return wpConnectorFetch<{
+    ok?: boolean;
+    imported?: number;
+    updated?: number;
+    cancelled?: number;
+    message?: string;
+    errors?: string[];
+    properties?: Array<Record<string, unknown>>;
+  }>("/accommodation/ota-sync", {
+    baseUrl: site.baseUrl,
+    apiKey: site.apiKey,
+    method: "POST",
+    body: {
+      property_id: options?.propertyId,
+      source: options?.source ?? "all",
+    },
+  });
 }
 
 export async function fetchWpAccommodationHousekeeping(
