@@ -4,6 +4,8 @@
 **Last updated:** August 2026  
 
 > **Feature filter:** Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer.
+>
+> **Market filter:** Ship for **Australia first**; keep schemas and Apps **Country Pack–ready** so NZ/UK/US don’t require a rebuild ([GLOBAL-READINESS.md](./foundations/GLOBAL-READINESS.md)).
 
 > **Implementation gate:** Complete [foundations/CORE-OBJECT-SPECIFICATION.md](./foundations/CORE-OBJECT-SPECIFICATION.md) review and lock Platform 1.0 scope before expanding code. See [foundations/README.md](./foundations/README.md).
 
@@ -161,8 +163,16 @@ Targets: dashboard < 2 s, navigation < 300 ms, CRM updates optimistic. Full spec
 | **1 — Foundation** | Now | Platform Core + RE App + Roe as tenant |
 | **2 — Validation** | +6 mo | 5–10 pilot agencies, weekly feedback |
 | **3 — Commercial launch** | +12 mo | Public SaaS, billing, onboarding, support |
-| **4 — Expansion** | +18 mo | Accommodation, Finance, more Connectors |
-| **5 — Scale** | +24 mo | SDK, marketplace, enterprise, international |
+| **4 — Expansion** | +18 mo | Accommodation, Finance, more Connectors · Country Packs ready |
+| **5 — DigitalGate Network** | +24 mo | Community · B2B partner graph · Marketplace (services + software + opportunities) · SDK / third-party Apps · enterprise · international communities |
+
+**Phase 5 detail:** [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md). Design Org/User/industry/location/consent for network readiness **now**; ship Community only when enough active businesses make the network useful.
+
+**Execution priority until Phase 5:**
+
+```
+Core → CRM → Connectors → AI → Industry Apps → Intelligence → Scale
+```
 
 ---
 
@@ -184,6 +194,7 @@ Do not start RE App port or AI Visibility until steps 1–4 are done.
 - ❌ HubSpot feature checklist  
 - ❌ Major Gen 1 WP modules  
 - ❌ Features that fail the Core / RE filter  
+- ❌ Community / social network / B2B Marketplace product UI before Phase 5 (design only — see NETWORK-LAYER)  
 
 ---
 

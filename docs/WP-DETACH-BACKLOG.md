@@ -62,9 +62,10 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 
 | Field | Detail |
 |-------|--------|
-| **Why** | Catalog claims create; route only runs WP sync actions — blocks Gen 2 capture. |
-| **Touchpoints** | `src/app/api/v1/leads/route.ts` (`POST` — today `sync_wordpress` / `sync_wordpress_buyers` only); `packages/platform-core/src/leads/index.ts` (`createLead`); `packages/platform-core/src/api/catalog.ts` (`POST /api/v1/leads` → "Create lead"). |
-| **Done means** | Authenticated create for vendor + buyer leads in Neon (`metadata.lead_type` / `source: buyer_enquiry`); sync actions remain as separate `action` bodies or `/sync` sub-route. |
+| **Status** | ✅ Done (Aug 2026) — create vendor/buyer leads in Neon; sync actions unchanged |
+| **Why** | Catalog claims create; route only ran WP sync actions — blocked Gen 2 capture. |
+| **Touchpoints** | `src/app/api/v1/leads/route.ts`; `packages/platform-core/src/leads/index.ts` (`createLead`); `CreateLeadForm.tsx`. |
+| **Done means** | Authenticated create for vendor + buyer leads in Neon (`metadata.lead_type` / `source: buyer_enquiry`); sync actions remain as separate `action` bodies. |
 | **Effort** | M |
 | **Depends on** | WP-D-001 |
 
@@ -72,8 +73,9 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 
 | Field | Detail |
 |-------|--------|
-| **Why** | Pipeline UI only offers “Sync from WordPress” — cannot seed Roe without WP. |
-| **Touchpoints** | `src/components/re/VendorLeadPipeline.tsx`; `src/components/re/BuyerLeadPipeline.tsx` / `BuyerLeadList.tsx`; pages `src/app/apps/re/vendor-leads/page.tsx`, `buyer-leads/page.tsx`; stages `VENDOR_STAGES` / `BUYER_STAGES` in `leads/index.ts`. |
+| **Status** | ✅ Done (Aug 2026) — Add lead on vendor + buyer pipelines |
+| **Why** | Pipeline UI only offered “Sync from WordPress” — could not seed Roe without WP. |
+| **Touchpoints** | `src/components/re/CreateLeadForm.tsx`; `VendorLeadPipeline.tsx`; `BuyerLeadPipeline.tsx`. |
 | **Done means** | “Add lead” form → `POST /api/v1/leads`; list/detail work with zero WP sync. |
 | **Effort** | M |
 | **Depends on** | WP-D-101 |

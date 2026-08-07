@@ -32,12 +32,11 @@ export function AccommodationDashboard({
       <div className="dg-card border-amber-500/30">
         <p className="text-amber-300">{error}</p>
         <p className="mt-2 text-sm text-slate-500">
-          Open Settings → Connectors → apply the CVH preset and paste the API key from
-          currumbinvalleyhideaway.com.au → DG Platform → API Settings. Do not reuse the Roe or
-          DigitalGate key. Or set{" "}
-          <code className="text-slate-400">apiKey</code> in{" "}
-          <code className="text-slate-400">DG_WP_ACCOMMODATION_SITES</code> /{" "}
-          <code className="text-slate-400">DG_WP_ACCOMMODATION_API_KEY</code> on Vercel.
+          Open Settings → Connectors while on the <strong>CVH</strong> business → paste the
+          key from currumbinvalleyhideaway.com.au → DG Platform → API Settings → Save (do not
+          leave the key blank). Roe/DigitalGate env keys are never sent to CVH. Optional Vercel
+          fallback:{" "}
+          <code className="text-slate-400">DG_WP_ACCOMMODATION_API_KEY</code>.
         </p>
       </div>
     );

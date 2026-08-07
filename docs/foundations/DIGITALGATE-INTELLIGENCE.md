@@ -6,6 +6,8 @@ Software can be copied. **A growing corpus of what actually works across hundred
 
 This is DigitalGate's greatest long-term asset — not the CRM, not the dashboard chrome.
 
+**Later:** the same consented signals power **Network** recommendations (partners, communities, resources) — see [NETWORK-LAYER.md](./NETWORK-LAYER.md). Cohort intelligence (this doc) and Community/Marketplace are related but distinct: one is anonymised benchmarks; the other is opt-in discovery between members.
+
 ---
 
 ## What it is

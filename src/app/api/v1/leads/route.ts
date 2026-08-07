@@ -1,4 +1,5 @@
 import {
+  createLead,
   listLeads,
   updateBuyerLeadStage,
   updateLeadStage,
@@ -57,10 +58,68 @@ export async function POST(req: Request) {
     return NextResponse.json({ data: outcome.result });
   }
 
-  return NextResponse.json(
-    { error: { code: "unknown_action", message: "Unsupported action" } },
-    { status: 400 },
-  );
+  const leadType = (body.leadType as "vendor" | "buyer" | undefined) ?? "vendor";
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  const title =
+    (typeof body.title === "string" && body.title.trim()) ||
+    name ||
+    (typeof body.propertyAddress === "string" && body.propertyAddress.trim()) ||
+    "";
+
+  if (!title) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "validation_error",
+          message: "title, name, or propertyAddress is required",
+        },
+      },
+      { status: 422 },
+    );
+  }
+
+  const stage =
+    leadType === "buyer"
+      ? ((body.stage as BuyerStage | undefined) ?? "inquiry")
+      : ((body.stage as VendorStage | undefined) ?? "vendor_lead");
+
+  if (leadType === "buyer" && !BUYER_STAGES.includes(stage as BuyerStage)) {
+    return NextResponse.json(
+      { error: { code: "validation_error", message: "valid buyer stage required" } },
+      { status: 422 },
+    );
+  }
+  if (leadType === "vendor" && !VENDOR_STAGES.includes(stage as VendorStage)) {
+    return NextResponse.json(
+      { error: { code: "validation_error", message: "valid vendor stage required" } },
+      { status: 422 },
+    );
+  }
+
+  const propertyAddress =
+    typeof body.propertyAddress === "string" ? body.propertyAddress.trim() : "";
+  const email = typeof body.email === "string" ? body.email.trim() : "";
+  const phone = typeof body.phone === "string" ? body.phone.trim() : "";
+  const notes = typeof body.notes === "string" ? body.notes.trim() : "";
+
+  const lead = await createLead({
+    organisationId: session.organisationId,
+    actorId: session.clerkUserId,
+    source: leadType === "buyer" ? "buyer_enquiry" : body.source || "manual",
+    title,
+    description: notes || undefined,
+    status: "new",
+    metadata: {
+      lead_type: leadType,
+      stage,
+      ...(name ? { contact_name: name } : {}),
+      ...(email ? { email } : {}),
+      ...(phone ? { phone } : {}),
+      ...(propertyAddress ? { property_address: propertyAddress } : {}),
+    },
+  });
+
+  return NextResponse.json({ data: lead }, { status: 201 });
 }
 
 export async function PATCH(req: Request) {

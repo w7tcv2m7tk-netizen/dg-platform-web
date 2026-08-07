@@ -52,6 +52,27 @@ DigitalGate is more than a CRM. More than marketing software. More than AI.
 
 **It is the gateway to a business's digital world.**
 
+### Internal principle (global OS)
+
+> Every business deserves a single intelligent operating system that connects every digital tool, every customer interaction, and every business insight into one place.
+
+That principle is as true for a plumber in Brisbane as for a real estate agency in London or a consultancy in Toronto. **Build the platform globally; win the first market in Australia.** See [foundations/GLOBAL-READINESS.md](./foundations/GLOBAL-READINESS.md) (Country Packs + GTM stages).
+
+When someone buys DigitalGate they should not think “I’m buying a CRM.” They should think: **“This is where I run my business.”**
+
+### Four interconnected layers (ecosystem)
+
+| Layer | Promise |
+|-------|---------|
+| **1. Operating System** | Run your business. |
+| **2. Intelligence** | Understand your business and tell you what to do. |
+| **3. Network** | Connect you with people, businesses, and opportunities. |
+| **4. Marketplace** | Buy software, services, integrations, and expertise. |
+
+OS + Intelligence ship first. **Network and Marketplace are Phase 5** — design the foundation now (Organisation, User, industry, location, consent, permissions); do not build Community product until there is critical mass. Full spec: [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md).
+
+That progression takes *The Gateway to Your Digital World™* from strong SaaS positioning into an **ecosystem businesses operate within**.
+
 ---
 
 ## Philosophy
@@ -215,13 +236,13 @@ Long-term competitors are platforms: **HubSpot, Odoo, Salesforce, Zoho** — not
 
 ## Long-term vision
 
-DigitalGate should become more than software — the **Digital Operating System for Modern Businesses**.
+DigitalGate should become more than software — the **Digital Operating System for Modern Businesses**, then an **ecosystem**: OS → Intelligence → Network → Marketplace.
 
-Businesses no longer manage dozens of disconnected systems. DigitalGate becomes the intelligent gateway to their entire digital world — every website, customer, campaign, AI interaction, review, connector, automation, insight, and decision flows through **one platform**.
+Businesses no longer manage dozens of disconnected systems. DigitalGate becomes the intelligent gateway to their entire digital world — every website, customer, campaign, AI interaction, review, connector, automation, insight, partner, and decision flows through **one platform**.
 
-The place where they **begin their day** · **monitor performance** · **manage customers** · **communicate** · **automate** · **make decisions** · **grow**.
+The place where they **begin their day** · **monitor performance** · **manage customers** · **communicate** · **automate** · **make decisions** · **connect** · **grow**.
 
-Rather than simply managing contacts, **DigitalGate manages the entire business** through the **Digital Twin™**.
+Rather than simply managing contacts, **DigitalGate manages the entire business** through the **Digital Twin™** — and eventually connects businesses to each other through Network and Marketplace.
 
 ---
 
@@ -242,4 +263,5 @@ Rather than simply managing contacts, **DigitalGate manages the entire business*
 
 - [PLATFORM-PRINCIPLES.md](./PLATFORM-PRINCIPLES.md) — engineering constitution
 - [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md) — Core, Apps, Connectors, Twin, Graph
+- [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md) — Community, B2B network, Marketplace (Phase 5)
 - [ROADMAP.md](./ROADMAP.md) — quarterly milestones

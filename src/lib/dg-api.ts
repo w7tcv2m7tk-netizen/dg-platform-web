@@ -385,36 +385,55 @@ export function getWpHealthSite(siteId?: string | null): WpHealthSite {
   return sites[0];
 }
 
-function wpConnectorApiKey(site?: WpHealthSite): string | undefined {
-  if (site?.apiKey?.trim()) return site.apiKey.trim();
+function isCvhWpHost(baseUrl: string): boolean {
+  try {
+    return /currumbinvalleyhideaway/i.test(new URL(baseUrl).hostname);
+  } catch {
+    return /currumbinvalleyhideaway/i.test(baseUrl);
+  }
+}
+
+/**
+ * Resolve a WordPress Dev API key for a specific host.
+ * Never reuse the global Roe/DigitalGate connector key on CVH (or any other host).
+ */
+export function resolveWpApiKeyForBaseUrl(
+  baseUrl: string,
+  explicitKey?: string | null,
+  site?: WpHealthSite,
+): string | undefined {
+  const trimmed = explicitKey?.trim();
+  if (trimmed && !trimmed.startsWith("enc:v1:")) return trimmed;
+
+  if (site?.apiKey?.trim() && !site.apiKey.trim().startsWith("enc:v1:")) {
+    return site.apiKey.trim();
+  }
 
   const dedicated = process.env.DG_WP_ACCOMMODATION_API_KEY?.trim();
-  const baseUrl = site?.baseUrl?.replace(/\/$/, "") || "";
-  const isCvh =
-    /currumbinvalleyhideaway/i.test(baseUrl) ||
-    site?.id === "cvh" ||
-    /currumbin|hideaway|cvh/i.test(site?.label ?? "");
+  if (isCvhWpHost(baseUrl) && dedicated) return dedicated;
 
-  if (isCvh && dedicated) return dedicated;
-
-  // Only reuse the global connector key when it targets the same host.
   const globalKey =
     process.env.DG_WP_CONNECTOR_API_KEY?.trim() ||
     process.env.DG_API_KEY?.trim();
-  if (!globalKey || !baseUrl) return isCvh ? dedicated : globalKey;
+  if (!globalKey) return undefined;
 
   try {
-    const targetHost = new URL(baseUrl).hostname;
+    const targetHost = new URL(baseUrl.replace(/\/$/, "")).hostname;
     const envBase = (
       process.env.DG_WP_CONNECTOR_BASE_URL || getWpConnectorBase()
     ).replace(/\/$/, "");
     const envHost = new URL(envBase).hostname;
-    if (targetHost === envHost) return globalKey;
+    if (targetHost && envHost && targetHost === envHost) return globalKey;
   } catch {
     /* ignore */
   }
 
   return undefined;
+}
+
+function wpConnectorApiKey(site?: WpHealthSite): string | undefined {
+  const baseUrl = site?.baseUrl?.replace(/\/$/, "") || "";
+  return resolveWpApiKeyForBaseUrl(baseUrl, site?.apiKey, site);
 }
 
 export type WpVendorLeadRow = {
@@ -493,10 +512,7 @@ async function wpConnectorFetch<T>(
   | { ok: false; code: WpFetchErrorCode; message: string; status?: number }
 > {
   const baseUrl = (options?.baseUrl ?? getWpConnectorBase()).replace(/\/$/, "");
-  const apiKey =
-    options?.apiKey?.trim() ||
-    process.env.DG_WP_CONNECTOR_API_KEY?.trim() ||
-    process.env.DG_API_KEY?.trim();
+  const apiKey = resolveWpApiKeyForBaseUrl(baseUrl, options?.apiKey);
 
   if (!apiKey) {
     const host = (() => {
@@ -506,13 +522,13 @@ async function wpConnectorFetch<T>(
         return baseUrl;
       }
     })();
-    const isCvh = /currumbinvalleyhideaway/i.test(host);
+    const isCvh = isCvhWpHost(baseUrl);
     return {
       ok: false,
       code: "missing_api_key",
       message: isCvh
-        ? "Missing CVH API key. Copy it from currumbinvalleyhideaway.com.au → DG Platform → API Settings, then paste it under Settings → Connectors (CVH preset) or set apiKey in DG_WP_ACCOMMODATION_SITES / DG_WP_ACCOMMODATION_API_KEY."
-        : "Set DG_WP_CONNECTOR_API_KEY (WordPress → DG Platform → API Settings) on Vercel or .env.local.",
+        ? "Missing CVH API key. Copy it from currumbinvalleyhideaway.com.au → DG Platform → API Settings, then paste it under Settings → Connectors (CVH preset) and Save. Do not leave the key blank — the Roe/DigitalGate env key is never sent to CVH."
+        : `Missing API key for ${host}. Paste the site Dev API key under Settings → Connectors, or set DG_WP_CONNECTOR_API_KEY when the env base URL matches this host.`,
     };
   }
 
@@ -543,14 +559,14 @@ async function wpConnectorFetch<T>(
           return baseUrl;
         }
       })();
-      const isCvh = /currumbinvalleyhideaway/i.test(host);
+      const isCvh = isCvhWpHost(baseUrl);
       return {
         ok: false,
         code: "auth_failed",
         status: res.status,
         message: isCvh
-          ? "CVH WordPress rejected the API key. Use the key from currumbinvalleyhideaway.com.au → DG Platform → API Settings (not the Roe or DigitalGate key). Set it on the org Connectors page or as apiKey in DG_WP_ACCOMMODATION_SITES."
-          : `WordPress rejected the API key for ${host} — check DG_WP_CONNECTOR_API_KEY / the org connector key.`,
+          ? "CVH WordPress rejected the API key. Re-copy the key from currumbinvalleyhideaway.com.au → DG Platform → API Settings (regenerate if unsure), paste it on Settings → Connectors for the CVH business, then Save + Test. Do not use the Roe or DigitalGate key."
+          : `WordPress rejected the API key for ${host} — check the org connector key matches that site's DG Platform → API Settings.`,
       };
     }
 
@@ -813,9 +829,10 @@ function resolveAccConnector(
   connector?: WpConnectorOverride,
 ): { baseUrl: string; apiKey?: string; label: string } {
   if (connector?.baseUrl) {
+    const baseUrl = connector.baseUrl.replace(/\/$/, "");
     return {
-      baseUrl: connector.baseUrl.replace(/\/$/, ""),
-      apiKey: connector.apiKey,
+      baseUrl,
+      apiKey: resolveWpApiKeyForBaseUrl(baseUrl, connector.apiKey),
       label: connector.label || "Currumbin Valley Hideaway",
     };
   }

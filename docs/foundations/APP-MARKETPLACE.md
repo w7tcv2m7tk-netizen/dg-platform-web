@@ -2,7 +2,9 @@
 
 **Design every App as installable, licensable, and removable — even before third parties**
 
-The marketplace may not launch until Platform 3.0, but **App architecture must support it from Platform 1.0**.
+The marketplace may not launch until Platform 3.0 / **Roadmap Phase 5**, but **App architecture must support it from Platform 1.0**.
+
+Phase 5 expands Marketplace beyond Apps into **services, software, and opportunities**, alongside Community — see [NETWORK-LAYER.md](./NETWORK-LAYER.md). This doc remains the contract for **installable Apps**.
 
 ---
 

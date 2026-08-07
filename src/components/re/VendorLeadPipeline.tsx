@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { CreateLeadForm } from "@/components/re/CreateLeadForm";
+
 const STAGES = [
   { id: "vendor_lead", label: "Vendor Lead" },
   { id: "appraisal", label: "Appraisal" },
@@ -70,6 +72,7 @@ export function VendorLeadPipeline({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
+        <CreateLeadForm leadType="vendor" />
         <button
           type="button"
           onClick={syncFromWordPress}

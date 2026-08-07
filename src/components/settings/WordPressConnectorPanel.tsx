@@ -30,10 +30,42 @@ export function WordPressConnectorPanel({
         ? "using brand preset"
         : "currently using env";
 
-  async function save(preset?: "digitalgate" | "real-estate" | "accommodation" | "creator") {
+  const isCvh =
+    /currumbinvalleyhideaway/i.test(baseUrl) ||
+    /hideaway|cvh/i.test(label);
+
+  async function save(
+    preset?: "digitalgate" | "real-estate" | "accommodation" | "creator",
+    options?: { requireKey?: boolean },
+  ) {
     setPending(true);
     setError(null);
     setMessage(null);
+
+    const nextPresetUrl = preset
+      ? {
+          digitalgate: "https://digitalgate.com.au/wp-json/digitalgate/v1",
+          "real-estate": "https://roerealty.com.au/wp-json/digitalgate/v1",
+          accommodation:
+            "https://currumbinvalleyhideaway.com.au/wp-json/digitalgate/v1",
+          creator: "https://aetherra.com.au/wp-json/digitalgate/v1",
+        }[preset]
+      : null;
+
+    const effectiveUrl = (nextPresetUrl || baseUrl).trim();
+    const needsCvhKey =
+      options?.requireKey ||
+      /currumbinvalleyhideaway/i.test(effectiveUrl) ||
+      preset === "accommodation";
+
+    if (needsCvhKey && !apiKey.trim() && !initial.hasApiKey) {
+      setPending(false);
+      setError(
+        "Paste the CVH Dev API key before saving. Settings → Connectors stores it per business — the Roe/DigitalGate env key is never sent to CVH.",
+      );
+      return null;
+    }
+
     const res = await fetch("/api/v1/connectors/wordpress", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -42,32 +74,41 @@ export function WordPressConnectorPanel({
         baseUrl: baseUrl.trim(),
         label: label.trim(),
         apiKey: apiKey.trim() || undefined,
+        probe: true,
       }),
     });
     const json = await res.json().catch(() => ({}));
     setPending(false);
     if (!res.ok) {
       setError(json.error?.message ?? "Could not save connector");
-      return;
+      return null;
     }
+
+    if (preset === "accommodation" || nextPresetUrl) {
+      setBaseUrl(json.data?.baseUrl || nextPresetUrl || baseUrl);
+      if (json.data?.label) setLabel(json.data.label);
+    }
+
     setApiKey("");
-    setMessage("WordPress connector saved for this business.");
+    const probe = json.data?.probe;
+    if (probe?.ok) {
+      setMessage(probe.detail ?? "WordPress connector saved and connected.");
+    } else if (probe && !probe.ok) {
+      setError(probe.message ?? "Saved, but connection test failed");
+      setMessage(
+        json.data?.hasApiKey
+          ? "Connector saved — fix the API key and test again."
+          : "Connector URL saved — paste the CVH API key and Save again.",
+      );
+    } else {
+      setMessage("WordPress connector saved for this business.");
+    }
     router.refresh();
+    return json.data;
   }
 
   async function testConnection() {
-    setPending(true);
-    setError(null);
-    setMessage(null);
-    await save();
-    const res = await fetch("/api/v1/connectors/wordpress");
-    const json = await res.json().catch(() => ({}));
-    setPending(false);
-    if (json.data?.probe?.ok) {
-      setMessage(json.data.probe.detail ?? "Connected");
-    } else {
-      setError(json.data?.probe?.message ?? "Connection test failed");
-    }
+    await save(undefined, { requireKey: isCvh });
   }
 
   return (
@@ -75,15 +116,23 @@ export function WordPressConnectorPanel({
       <h2 className="font-semibold text-white">WordPress connector (this business)</h2>
       <p className="mt-2 text-sm text-slate-400">
         Each organisation can point at its own WordPress site. API keys are stored per
-        business; leave blank to use deployment env vars (
-        {sourceLabel}).
+        business; leave blank to keep the saved key ({sourceLabel}).
+        {isCvh ? (
+          <>
+            {" "}
+            <span className="text-amber-300/90">
+              CVH requires its own key from currumbinvalleyhideaway.com.au — never reuse Roe
+              or DigitalGate.
+            </span>
+          </>
+        ) : null}
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
           disabled={pending}
-          onClick={() => save("digitalgate")}
+          onClick={() => void save("digitalgate")}
           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
         >
           DigitalGate preset
@@ -91,7 +140,7 @@ export function WordPressConnectorPanel({
         <button
           type="button"
           disabled={pending}
-          onClick={() => save("real-estate")}
+          onClick={() => void save("real-estate")}
           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
         >
           Roe Realty preset
@@ -99,7 +148,7 @@ export function WordPressConnectorPanel({
         <button
           type="button"
           disabled={pending}
-          onClick={() => save("accommodation")}
+          onClick={() => void save("accommodation", { requireKey: true })}
           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
         >
           CVH preset
@@ -107,7 +156,7 @@ export function WordPressConnectorPanel({
         <button
           type="button"
           disabled={pending}
-          onClick={() => save("creator")}
+          onClick={() => void save("creator")}
           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
         >
           Aëtherra preset
@@ -134,7 +183,7 @@ export function WordPressConnectorPanel({
         </label>
         <label className="block text-sm">
           <span className="text-slate-400">
-            Dev API key {initial.hasApiKey ? "(saved — enter to replace)" : "(optional)"}
+            Dev API key {initial.hasApiKey ? "(saved — enter to replace)" : "(required for CVH)"}
           </span>
           <input
             type="password"
@@ -150,7 +199,7 @@ export function WordPressConnectorPanel({
         <button
           type="button"
           disabled={pending}
-          onClick={() => save()}
+          onClick={() => void save()}
           className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
         >
           {pending ? "Saving…" : "Save connector"}
@@ -158,7 +207,7 @@ export function WordPressConnectorPanel({
         <button
           type="button"
           disabled={pending}
-          onClick={testConnection}
+          onClick={() => void testConnection()}
           className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-blue-500 disabled:opacity-50"
         >
           Test connection

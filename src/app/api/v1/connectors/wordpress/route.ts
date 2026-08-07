@@ -50,6 +50,9 @@ export async function GET(req: Request) {
       envFallback: {
         DG_WP_CONNECTOR_API_KEY: Boolean(process.env.DG_WP_CONNECTOR_API_KEY?.trim()),
         DG_WP_CONNECTOR_BASE_URL: Boolean(process.env.DG_WP_CONNECTOR_BASE_URL?.trim()),
+        DG_WP_ACCOMMODATION_API_KEY: Boolean(
+          process.env.DG_WP_ACCOMMODATION_API_KEY?.trim(),
+        ),
       },
     },
   });
@@ -61,6 +64,7 @@ export async function PATCH(req: Request) {
 
   const body = await req.json().catch(() => ({}));
   const preset = body.preset as keyof typeof WP_CONNECTOR_PRESETS | undefined;
+  const runProbe = body.probe !== false;
 
   let patch: { baseUrl?: string; apiKey?: string; label?: string } = {
     baseUrl: body.baseUrl,
@@ -77,11 +81,32 @@ export async function PATCH(req: Request) {
     patch,
   );
 
+  const resolved = await resolveOrgWordPressConnector(session.organisationId);
+  const probe = runProbe
+    ? await probeWordPressConnector({
+        baseUrl: resolved.baseUrl,
+        apiKey: resolved.apiKey,
+        label: resolved.label,
+      })
+    : null;
+
   return NextResponse.json({
     data: {
       baseUrl: updated.baseUrl ?? "",
       label: updated.label ?? "",
       hasApiKey: Boolean(updated.apiKey?.trim()),
+      resolvedHasApiKey: Boolean(resolved.apiKey?.trim()),
+      probe: probe
+        ? probe.ok
+          ? {
+              ok: true,
+              kind: probe.kind,
+              detail: probe.detail,
+              leadCount: probe.leadCount,
+              occupancyRate: probe.occupancyRate,
+            }
+          : { ok: false, code: probe.code, message: probe.message }
+        : null,
     },
   });
 }

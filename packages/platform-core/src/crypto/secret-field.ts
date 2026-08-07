@@ -24,7 +24,10 @@ export function encryptSecret(plaintext: string): string {
 export function decryptSecret(stored: string): string {
   if (!stored || !stored.startsWith(PREFIX)) return stored;
   const key = encryptionKey();
-  if (!key) return stored;
+  if (!key) {
+    // Encrypted at rest but no key in this environment — never return ciphertext as a password.
+    return "";
+  }
 
   try {
     const payload = Buffer.from(stored.slice(PREFIX.length), "base64url");
@@ -35,7 +38,7 @@ export function decryptSecret(stored: string): string {
     decipher.setAuthTag(tag);
     return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString("utf8");
   } catch {
-    return stored;
+    return "";
   }
 }
 

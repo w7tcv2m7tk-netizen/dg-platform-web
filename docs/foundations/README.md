@@ -41,7 +41,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | 1 | [CORE-OBJECT-SPECIFICATION.md](./CORE-OBJECT-SPECIFICATION.md) | **Canonical domain model** — what, fields, relationships, ownership, events |
 | 2 | [PLATFORM-RELEASES.md](./PLATFORM-RELEASES.md) | Platform versioning (1.0, 1.5, 2.0…) — outcomes not endless features |
 | 3 | [APP-MARKETPLACE.md](./APP-MARKETPLACE.md) | Install, license, update, remove, version — third-party ready |
-| 4 | [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) | Currencies, time zones, languages, tax, regional settings |
+| 4 | [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) | **Build globally / sell AU first** — Country Packs, currencies, tax, GTM stages |
 | 5 | [WHITE-LABELLING.md](./WHITE-LABELLING.md) | Agency-branded platform — design now, enable later |
 | 6 | [DATA-GOVERNANCE.md](./DATA-GOVERNANCE.md) | Ownership, export, backups, retention, deletion, compliance |
 | 7 | [CUSTOMER-SUCCESS.md](./CUSTOMER-SUCCESS.md) | Adoption, usage, onboarding, health alerts — built into product |
@@ -50,6 +50,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | 10 | [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md) | Subscriptions, Apps, AI tiers, marketplace, enterprise |
 | 11 | [AI-GOVERNANCE.md](./AI-GOVERNANCE.md) | Models, automation boundaries, approval, logging, privacy |
 | 12 | [DIGITALGATE-INTELLIGENCE.md](./DIGITALGATE-INTELLIGENCE.md) | Anonymised network intelligence — the ultimate moat |
+| 13 | [NETWORK-LAYER.md](./NETWORK-LAYER.md) | **Phase 5** — Community, B2B network, Marketplace; design now, build later |
 
 ---
 

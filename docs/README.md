@@ -15,6 +15,8 @@ These documents capture **why** the platform is built the way it is. They are as
 |----------|---------|
 | [CAPABILITY-MODEL.md](./CAPABILITY-MODEL.md) | Business Capabilities taxonomy + boundary rule |
 | [PRODUCT-VISION.md](./PRODUCT-VISION.md) | Gateway brand, mission, five pillars, positioning |
+| [foundations/GLOBAL-READINESS.md](./foundations/GLOBAL-READINESS.md) | Build globally / sell AU first — Country Packs + GTM stages |
+| [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md) | Phase 5 — Community, B2B network, Marketplace (design now) |
 | [ROADMAP.md](./ROADMAP.md) | Execution phases and priorities |
 | [WP-DETACH-BACKLOG.md](./WP-DETACH-BACKLOG.md) | Sequenced Gen 2 ↔ WordPress detach tickets (P0–P5) |
 | [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) | Internal intelligence App — how DG runs DG |
