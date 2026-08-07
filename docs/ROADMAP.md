@@ -164,9 +164,9 @@ Targets: dashboard < 2 s, navigation < 300 ms, CRM updates optimistic. Full spec
 | **2 — Validation** | +6 mo | 5–10 pilot agencies, weekly feedback |
 | **3 — Commercial launch** | +12 mo | Public SaaS, billing, onboarding, support |
 | **4 — Expansion** | +18 mo | Accommodation, Finance, more Connectors · Country Packs ready |
-| **5 — DigitalGate Network** | +24 mo | Community · B2B partner graph · Marketplace (services + software + opportunities) · SDK / third-party Apps · enterprise · international communities |
+| **5 — DigitalGate Network** | +24 mo | Community · B2B partner graph · Marketplace (services + software + opportunities) · Reviews / Referrals (design now) · SDK / third-party Apps · enterprise · international communities |
 
-**Phase 5 detail:** [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md). Design Org/User/industry/location/consent for network readiness **now**; ship Community only when enough active businesses make the network useful.
+**Phase 5 detail:** [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md). Design Org/User/industry/location/consent for network readiness **now**; ship Community only when enough active businesses make the network useful. **Reviews ≠ Referrals** — reputation vs introductions / disclosed fees; architect now, build after Core/CRM: [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md).
 
 **Execution priority until Phase 5:**
 
@@ -195,6 +195,7 @@ Do not start RE App port or AI Visibility until steps 1–4 are done.
 - ❌ Major Gen 1 WP modules  
 - ❌ Features that fail the Core / RE filter  
 - ❌ Community / social network / B2B Marketplace product UI before Phase 5 (design only — see NETWORK-LAYER)  
+- ❌ Reviews / Referrals / paid referral fees before Core → CRM → Connectors → AI maturity (design only — see REVIEWS-AND-REFERRALS)  
 
 ---
 
@@ -206,7 +207,7 @@ Do not start RE App port or AI Visibility until steps 1–4 are done.
 | Architecture IP (`docs/`) | ✅ Done |
 | Platform Core scaffold | ✅ Done |
 | Command Centre architecture | ✅ Done |
-| **Platform foundations (12 docs)** | ✅ Done |
+| **Platform foundations (14 docs)** | ✅ Done |
 | **Core Object Spec review** | ⏳ **Next — Ben** |
 | **Postgres + org live** | ⏳ After spec lock |
 | Contact API + CRM UI | ⏳ |

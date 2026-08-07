@@ -15,7 +15,8 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 | **Premium Growth Apps** | AI Visibility Pro, SEO Pro | 1.5 |
 | **AI usage tiers** | Included tokens + overage | 1.5 |
 | **Managed services** | DigitalGate agency work (existing business) | Now |
-| **Marketplace revenue** | % of third-party App sales | 3.0 |
+| **Marketplace revenue** | % of third-party App sales | 3.0 / Phase 5 |
+| **Referral / transaction fees** | Disclosed Free / Reciprocal / Paid / Commission — see [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) | Phase 5+ |
 | **Implementation** | One-time onboarding fee | 2.0 |
 | **Training** | Workshops, certification | 2.0 |
 | **Enterprise licensing** | Custom features, SLA, white-label | 2.0 |

@@ -51,6 +51,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | 11 | [AI-GOVERNANCE.md](./AI-GOVERNANCE.md) | Models, automation boundaries, approval, logging, privacy |
 | 12 | [DIGITALGATE-INTELLIGENCE.md](./DIGITALGATE-INTELLIGENCE.md) | Anonymised network intelligence — the ultimate moat |
 | 13 | [NETWORK-LAYER.md](./NETWORK-LAYER.md) | **Phase 5** — Community, B2B network, Marketplace; design now, build later |
+| 14 | [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) | **Phase 5+** — Reviews ≠ Referrals; reputation, referral network, disclosure; design now |
 
 ---
 

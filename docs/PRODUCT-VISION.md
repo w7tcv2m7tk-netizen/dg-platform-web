@@ -2,7 +2,7 @@
 
 **The Gateway to Your Digital World**
 
-**Version:** 1.2  
+**Version:** 1.3  
 **Last updated:** August 2026  
 **Status:** Living document — evolves with the platform
 
@@ -69,7 +69,7 @@ When someone buys DigitalGate they should not think “I’m buying a CRM.” Th
 | **3. Network** | Connect you with people, businesses, and opportunities. |
 | **4. Marketplace** | Buy software, services, integrations, and expertise. |
 
-OS + Intelligence ship first. **Network and Marketplace are Phase 5** — design the foundation now (Organisation, User, industry, location, consent, permissions); do not build Community product until there is critical mass. Full spec: [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md).
+OS + Intelligence ship first. **Network and Marketplace are Phase 5** — design the foundation now (Organisation, User, industry, location, consent, permissions); do not build Community product until there is critical mass. Full spec: [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md). **Reviews and Referrals** are related Network-layer concepts (separate products — reputation vs introductions) — design now, build later: [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md).
 
 That progression takes *The Gateway to Your Digital World™* from strong SaaS positioning into an **ecosystem businesses operate within**.
 
@@ -264,4 +264,5 @@ Rather than simply managing contacts, **DigitalGate manages the entire business*
 - [PLATFORM-PRINCIPLES.md](./PLATFORM-PRINCIPLES.md) — engineering constitution
 - [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md) — Core, Apps, Connectors, Twin, Graph
 - [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md) — Community, B2B network, Marketplace (Phase 5)
+- [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md) — Reviews ≠ Referrals; design now, build after Core/CRM (Phase 5+)
 - [ROADMAP.md](./ROADMAP.md) — quarterly milestones

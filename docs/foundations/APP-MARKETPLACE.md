@@ -4,7 +4,7 @@
 
 The marketplace may not launch until Platform 3.0 / **Roadmap Phase 5**, but **App architecture must support it from Platform 1.0**.
 
-Phase 5 expands Marketplace beyond Apps into **services, software, and opportunities**, alongside Community — see [NETWORK-LAYER.md](./NETWORK-LAYER.md). This doc remains the contract for **installable Apps**.
+Phase 5 expands Marketplace beyond Apps into **services, software, and opportunities**, alongside Community — see [NETWORK-LAYER.md](./NETWORK-LAYER.md). Reviews and Referrals (trust + introductions) connect to that flywheel later — [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md). This doc remains the contract for **installable Apps**.
 
 ---
 
