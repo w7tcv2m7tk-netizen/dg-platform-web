@@ -63,8 +63,9 @@ export function resolveOrgShellPalette(
     bgSurface,
     bgSurfaceHover,
     bgInset,
-    border: `color-mix(in srgb, ${primary} 30%, #243044)`,
-    borderSubtle: `color-mix(in srgb, ${atmosphere} 20%, #1e293b)`,
+    // Keep borders lighter than surfaces so cards stay outlined on dark shells.
+    border: `color-mix(in srgb, ${primary} 28%, #64748b)`,
+    borderSubtle: `color-mix(in srgb, ${primary} 18%, #475569)`,
     textMuted: `color-mix(in srgb, ${primary} 28%, #94a3b8)`,
     gradient: [
       `radial-gradient(ellipse 120% 80% at 100% -20%, color-mix(in srgb, ${primary} 24%, transparent), transparent 55%)`,

@@ -66,8 +66,12 @@ body {
 
 .dg-card {
   border-radius: 1rem;
-  border: 1px solid var(--org-border-subtle, rgb(51 65 85));
-  background: color-mix(in srgb, var(--org-bg-surface, rgb(30 41 59)) 88%, transparent);
+  /* Use the stronger org border — subtle blends into dark DigitalGate shells. */
+  border: 1px solid var(--org-border, rgb(71 85 105));
+  background: color-mix(in srgb, var(--org-bg-surface, rgb(30 41 59)) 92%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--org-border, rgb(71 85 105)) 55%, transparent),
+    0 10px 28px rgba(0, 0, 0, 0.22);
   padding: 1.5rem;
 }
 
