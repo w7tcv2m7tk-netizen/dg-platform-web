@@ -47,8 +47,8 @@ export default async function AccommodationUnitsPage({ searchParams }: PageProps
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Units</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · edit rates, listing &
-          housekeeping
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · all listings including
+          coming soon
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">

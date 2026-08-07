@@ -774,10 +774,11 @@ export type WpAccommodationSummary = {
   recent_bookings?: WpAccBookingRow[];
 };
 
-export type WpAccUnitRow = {
+export type WpAccUnitProp = {
   id: number;
   title: string;
   slug?: string;
+  post_status?: string;
   weekday_rate?: number;
   weekend_rate?: number;
   cleaning_fee?: number;
@@ -864,7 +865,7 @@ export async function fetchWpAccommodationUnits(
   connector?: WpConnectorOverride,
 ) {
   const site = resolveAccConnector(siteId, connector);
-  const result = await wpConnectorFetch<{ properties?: WpAccUnitRow[] }>(
+  const result = await wpConnectorFetch<{ properties?: WpAccUnitProp[] }>(
     "/accommodation/properties",
     { baseUrl: site.baseUrl, apiKey: site.apiKey },
   );

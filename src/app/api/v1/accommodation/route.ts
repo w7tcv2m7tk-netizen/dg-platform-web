@@ -31,7 +31,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ data: listWpAccommodationSites() });
   }
 
-  if (resource === "units") {
+  if (resource === "units" || resource === "properties") {
     const units = await fetchWpAccommodationUnits(siteId, connector);
     if (!units.ok) {
       return NextResponse.json(
