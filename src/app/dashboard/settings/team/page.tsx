@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import {
-  enrichMembersWithClerkAccount,
   listOrganisationMembers,
   syncMembershipFromClerkAccount,
 } from "@dg/platform-core";
+import { enrichMembersWithClerkAccount } from "@dg/platform-core/org/membership-profile-clerk";
 
 import { TeamInviteForm } from "@/components/platform/TeamInviteForm";
 import { TeamProfileEditor } from "@/components/platform/TeamProfileEditor";

@@ -5,8 +5,8 @@ import { useMemo, useState } from "react";
 import {
   getAppSetupGuide,
   getAppSetupHref,
-  platformApps,
-} from "@dg/platform-core";
+} from "@dg/platform-core/app-guides";
+import { platformApps } from "@dg/platform-core/apps/registry";
 
 import { AppInstallToggle } from "@/components/platform/AppInstallToggle";
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
@@ -97,7 +97,7 @@ function CatalogAppCard({
 
   return (
     <div
-      className={`dg-card flex flex-col !border-slate-600 !bg-slate-800 shadow-[0_8px_24px_rgba(0,0,0,0.28)] ${isLeft ? "text-left" : "text-center"}`}
+      className={`dg-plan-card flex flex-col border-2 border-slate-500 bg-slate-900 shadow-lg ${isLeft ? "text-left" : "text-center"}`}
     >
       <div className="flex items-start justify-between gap-2">
         <span className="text-2xl" aria-hidden>
@@ -222,10 +222,11 @@ export function AppsPlanCatalog() {
             return (
               <div
                 key={tier.key}
-                className={`relative flex flex-col rounded-2xl border p-5 shadow-[0_8px_24px_rgba(0,0,0,0.28)] transition ${
+                data-active={isActive ? "true" : undefined}
+                className={`dg-plan-card relative flex flex-col border-2 shadow-lg transition ${
                   isActive
-                    ? "border-blue-500 bg-slate-800 ring-1 ring-blue-500/40"
-                    : "border-slate-600 bg-slate-800 hover:border-slate-500"
+                    ? "border-blue-500 bg-slate-900 ring-1 ring-blue-500/40"
+                    : "border-slate-500 bg-slate-900 hover:border-slate-400"
                 }`}
               >
                 {tier.popular ? (
@@ -393,7 +394,7 @@ export function AppsPlanCatalog() {
           {PLATFORM_ADDON_CATALOG.map((addon) => (
             <div
               key={addon.key}
-              className="dg-card !border-slate-600 !bg-slate-800 text-left shadow-[0_8px_24px_rgba(0,0,0,0.28)]"
+              className="dg-plan-card border-2 border-slate-500 bg-slate-900 text-left shadow-lg"
             >
               <div className="text-2xl" aria-hidden>
                 {addon.icon}

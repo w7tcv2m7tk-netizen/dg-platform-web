@@ -73,6 +73,22 @@ body {
   padding: 1.5rem;
 }
 
+/* Apps & plan catalog only — beat org brand CSS / washed .dg-card tokens. */
+.dg-plan-card {
+  border-radius: 1rem !important;
+  border: 2px solid #64748b !important;
+  background: #1e293b !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+  padding: 1.5rem;
+}
+
+.dg-plan-card[data-active="true"] {
+  border-color: #3b82f6 !important;
+  box-shadow:
+    0 0 0 1px rgba(59, 130, 246, 0.4),
+    0 8px 24px rgba(0, 0, 0, 0.35) !important;
+}
+
 @layer components {
   .dg-page-header {
     border-bottom: 1px solid var(--org-border-subtle, rgb(30 41 59));
