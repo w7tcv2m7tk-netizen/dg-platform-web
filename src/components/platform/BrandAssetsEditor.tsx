@@ -96,8 +96,8 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
         <div>
           <h3 className="text-lg font-semibold text-white">Brand appearance</h3>
           <p className="mt-1 text-sm text-slate-400">
-            Your logo, icon, and colours appear across the platform — sidebar, links, buttons, and
-            accents.
+            Your logo, icon, and colours appear across the platform — sidebar, tax invoices, quotes,
+            links, buttons, and accents.
           </p>
         </div>
         <div className="flex gap-4">

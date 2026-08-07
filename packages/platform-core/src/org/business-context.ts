@@ -1,6 +1,6 @@
 import type { DigitalTwinSnapshot } from "../twin/types";
 import type { OrganisationBusinessProfile } from "./business-profile-types";
-import { parseBrandColours } from "./brand-theme";
+import { absoluteBrandAssetUrl, parseBrandColours } from "./brand-theme";
 import { getOrganisationBusinessProfile } from "./onboarding-profile";
 
 export type BusinessContextIdentity = {
@@ -102,11 +102,15 @@ function profileToIdentity(
     if (formatted) locations.push({ label: "Primary", formatted });
   }
 
+  const logoUrl = absoluteBrandAssetUrl(profile?.logoUrl);
+  const iconUrl =
+    absoluteBrandAssetUrl(profile?.iconUrl) || logoUrl || undefined;
+
   return {
     businessName: profile?.businessName?.trim() || org.name,
     tradingName: profile?.tradingName,
-    logoUrl: profile?.logoUrl,
-    iconUrl: profile?.iconUrl ?? profile?.logoUrl,
+    logoUrl,
+    iconUrl,
     brandColours: (() => {
       const colours = parseBrandColours(profile?.brandColours);
       return colours.length ? colours : undefined;

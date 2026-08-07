@@ -4,7 +4,7 @@ import type {
   CommerceLineItem,
   OrganisationBusinessProfile,
 } from "@dg/platform-core";
-import { formatAbn } from "@dg/platform-core";
+import { absoluteBrandAssetUrl, formatAbn } from "@dg/platform-core";
 
 function money(cents: number, currency = "AUD") {
   return new Intl.NumberFormat("en-AU", {
@@ -33,6 +33,53 @@ function formatAddress(profile: OrganisationBusinessProfile | null | undefined) 
   ]
     .filter(Boolean)
     .join("\n");
+}
+
+function DocumentBrandMark({
+  logoUrl,
+  iconUrl,
+  businessName,
+}: {
+  logoUrl?: string;
+  iconUrl?: string;
+  businessName: string;
+}) {
+  const logoSrc = absoluteBrandAssetUrl(logoUrl);
+  const iconSrc = absoluteBrandAssetUrl(iconUrl) || logoSrc;
+  const wordmarkSrc = logoSrc || iconSrc;
+
+  if (!wordmarkSrc && !iconSrc) {
+    return <p className="au-document__brand-name">{businessName}</p>;
+  }
+
+  const showIconBesideLogo = Boolean(
+    iconSrc && wordmarkSrc && iconSrc !== wordmarkSrc,
+  );
+
+  return (
+    <div className="au-document__brand-lockup">
+      {showIconBesideLogo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={iconSrc!}
+          alt=""
+          className="au-document__icon"
+          width={56}
+          height={56}
+        />
+      ) : null}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={wordmarkSrc!}
+        alt={businessName}
+        className={
+          showIconBesideLogo || logoSrc
+            ? "au-document__logo"
+            : "au-document__icon au-document__icon--solo"
+        }
+      />
+    </div>
+  );
 }
 
 export type CommerceDocumentViewProps = {
@@ -98,16 +145,11 @@ export function CommerceDocumentView(props: CommerceDocumentViewProps) {
     <article className="au-document print:shadow-none">
       <header className="au-document__letterhead">
         <div className="au-document__brand">
-          {identity.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={identity.logoUrl}
-              alt={legalName}
-              className="au-document__logo"
-            />
-          ) : (
-            <p className="au-document__brand-name">{legalName}</p>
-          )}
+          <DocumentBrandMark
+            logoUrl={identity.logoUrl ?? profile?.logoUrl}
+            iconUrl={identity.iconUrl ?? profile?.iconUrl}
+            businessName={legalName}
+          />
           {tradingName ? (
             <p className="au-document__trading">Trading as {tradingName}</p>
           ) : null}

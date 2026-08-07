@@ -82,12 +82,14 @@ export function AppShellLayout({
       <OrgBrandHead iconUrl={brandTheme.iconUrl} />
       <MobileNavContext.Provider value={{ close }}>
         <div className="dg-branded-shell flex min-h-[100dvh]" style={orgBrandStyle(brandTheme)}>
-        <div className="hidden shrink-0 md:flex">
+        <div className="hidden shrink-0 print:hidden md:flex">
           <Sidebar {...sidebarProps} />
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <MobileHeader onMenuClick={() => setOpen(true)} />
+          <div className="print:hidden">
+            <MobileHeader onMenuClick={() => setOpen(true)} />
+          </div>
 
           <div
             className={`fixed inset-0 z-50 md:hidden ${open ? "pointer-events-auto" : "pointer-events-none"}`}

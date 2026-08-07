@@ -134,6 +134,28 @@ export function serializeBrandColours(primary: string, accent?: string): string 
   return colours.join(", ");
 }
 
+/**
+ * Normalise brand asset URLs for print/PDF and email clients.
+ * Absolute https preferred; http → https; root-relative paths get app origin.
+ */
+export function absoluteBrandAssetUrl(
+  url: string | undefined | null,
+): string | undefined {
+  const trimmed = url?.trim();
+  if (!trimmed) return undefined;
+  if (/^https:\/\//i.test(trimmed)) return trimmed;
+  if (/^http:\/\//i.test(trimmed)) return trimmed.replace(/^http:/i, "https:");
+  if (/^data:/i.test(trimmed) || /^blob:/i.test(trimmed)) return trimmed;
+  const base = (
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (typeof process.env.VERCEL_URL === "string" && process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL.replace(/^https?:\/\//, "")}`
+      : "") ||
+    "https://app.digitalgate.com.au"
+  ).replace(/\/$/, "");
+  return `${base}${trimmed.startsWith("/") ? trimmed : `/${trimmed}`}`;
+}
+
 export function resolveOrgBrandTheme(input: {
   profile?: OrganisationBusinessProfile | null;
   organisationName: string;
@@ -141,9 +163,10 @@ export function resolveOrgBrandTheme(input: {
   const colours = parseBrandColours(input.profile?.brandColours);
   const primaryColor = colours[0] ?? DEFAULT_ORG_PRIMARY;
   const accentColor = colours[1] ?? primaryColor;
-  const logoUrl = input.profile?.logoUrl?.trim() || undefined;
+  const logoUrl =
+    absoluteBrandAssetUrl(input.profile?.logoUrl) || undefined;
   const iconUrl =
-    input.profile?.iconUrl?.trim() || logoUrl || undefined;
+    absoluteBrandAssetUrl(input.profile?.iconUrl) || logoUrl || undefined;
   const businessName =
     input.profile?.tradingName?.trim() ||
     input.profile?.businessName?.trim() ||

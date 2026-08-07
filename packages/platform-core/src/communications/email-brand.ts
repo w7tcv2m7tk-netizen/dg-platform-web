@@ -10,7 +10,7 @@ import {
   type OrgBrandPresetKey,
 } from "../org/brand-presets";
 import { getOrganisationBusinessProfile } from "../org/onboarding-profile";
-import { parseBrandColours } from "../org/brand-theme";
+import { absoluteBrandAssetUrl, parseBrandColours } from "../org/brand-theme";
 import type { OrganisationBusinessProfile } from "../org/business-profile-types";
 
 const DG_FALLBACK_LOGO =
@@ -47,18 +47,6 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function absoluteHttpsUrl(url: string | undefined | null): string | undefined {
-  const trimmed = url?.trim();
-  if (!trimmed) return undefined;
-  if (/^https:\/\//i.test(trimmed)) return trimmed;
-  if (/^http:\/\//i.test(trimmed)) return trimmed.replace(/^http:/i, "https:");
-  const base = (process.env.NEXT_PUBLIC_APP_URL || "https://app.digitalgate.com.au").replace(
-    /\/$/,
-    "",
-  );
-  return `${base}${trimmed.startsWith("/") ? trimmed : `/${trimmed}`}`;
-}
-
 /** Resolve logo + colours for an org (profile → preset → DigitalGate fallback). */
 export function resolveEmailBrandAssets(input: {
   organisationId?: string;
@@ -86,13 +74,13 @@ export function resolveEmailBrandAssets(input: {
   const preset = presetKey ? ORG_BRAND_PRESETS[presetKey] : null;
 
   const logoUrl =
-    absoluteHttpsUrl(profile.logoUrl) ||
-    absoluteHttpsUrl(preset?.patch.logoUrl) ||
+    absoluteBrandAssetUrl(profile.logoUrl) ||
+    absoluteBrandAssetUrl(preset?.patch.logoUrl) ||
     DG_FALLBACK_LOGO;
   const iconUrl =
-    absoluteHttpsUrl(profile.iconUrl) ||
-    absoluteHttpsUrl(preset?.patch.iconUrl) ||
-    absoluteHttpsUrl(logoUrl) ||
+    absoluteBrandAssetUrl(profile.iconUrl) ||
+    absoluteBrandAssetUrl(preset?.patch.iconUrl) ||
+    absoluteBrandAssetUrl(logoUrl) ||
     DG_FALLBACK_ICON;
 
   return {
@@ -109,7 +97,7 @@ export function resolveEmailBrandAssets(input: {
 export function wrapTransactionalEmail(input: WrapTransactionalEmailInput): string {
   const businessName = input.businessName.trim() || "DigitalGate";
   const logoUrl =
-    absoluteHttpsUrl(input.logoUrl) || DG_FALLBACK_LOGO;
+    absoluteBrandAssetUrl(input.logoUrl) || DG_FALLBACK_LOGO;
   const primary = input.primaryColor || "#3B82F6";
   const footer =
     input.footerNote?.trim() ||

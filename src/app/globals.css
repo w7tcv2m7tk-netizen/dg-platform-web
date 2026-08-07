@@ -165,10 +165,38 @@ body {
   line-height: 1.15;
 }
 
+.au-document__brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 56px;
+}
+
 .au-document__logo {
+  display: block;
   max-height: 64px;
-  max-width: 220px;
+  max-width: 240px;
+  width: auto;
+  height: auto;
   object-fit: contain;
+  object-position: left center;
+}
+
+.au-document__icon {
+  display: block;
+  width: 56px;
+  height: 56px;
+  max-width: 56px;
+  max-height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.au-document__icon--solo {
+  width: auto;
+  max-width: 96px;
+  max-height: 72px;
+  height: auto;
 }
 
 .au-document__trading {
@@ -359,16 +387,65 @@ body {
 @media print {
   body {
     background: white !important;
+    color: #1a1a1a !important;
   }
 
-  .print\:hidden {
+  .print\:hidden,
+  .dg-branded-sidebar,
+  .dg-branded-header,
+  .dg-branded-overlay,
+  aside.dg-branded-sidebar {
     display: none !important;
   }
 
+  .dg-branded-shell {
+    display: block !important;
+    background: white !important;
+    min-height: 0 !important;
+  }
+
   .au-document {
-    box-shadow: none;
+    box-shadow: none !important;
     max-width: none;
     padding: 0;
-    background: white;
+    background: white !important;
+    color: #1a1a1a !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .au-document__brand-lockup {
+    display: flex !important;
+    visibility: visible !important;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .au-document__logo,
+  .au-document__icon {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .au-document__logo {
+    max-height: 72px !important;
+    max-width: 260px !important;
+    height: auto !important;
+    width: auto !important;
+  }
+
+  .au-document__icon {
+    width: 56px !important;
+    height: 56px !important;
+    max-width: 56px !important;
+    max-height: 56px !important;
+  }
+
+  .au-document__icon--solo {
+    width: auto !important;
+    height: auto !important;
+    max-width: 96px !important;
+    max-height: 72px !important;
   }
 }
