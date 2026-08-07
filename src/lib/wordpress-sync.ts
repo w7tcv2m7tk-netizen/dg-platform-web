@@ -2,11 +2,13 @@ import {
   syncVendorLeadsFromWordPress,
   syncBuyerLeadsFromWordPress,
   syncReBookingsFromWordPress,
+  syncPropertiesFromWordPress,
   type PlatformSession,
 } from "@dg/platform-core";
 
 import {
   fetchWpBuyerLeads,
+  fetchWpProperties,
   fetchWpRecentBookings,
   fetchWpVendorLeads,
 } from "@/lib/dg-api";
@@ -39,6 +41,8 @@ type OrgWordPressSettings = {
   lastBuyerLeadSync?: WordPressSyncResult;
   lastBookingSyncAt?: string;
   lastBookingSync?: WordPressSyncResult;
+  lastPropertySyncAt?: string;
+  lastPropertySync?: WordPressSyncResult;
 };
 
 type OrgSettings = {
@@ -196,9 +200,44 @@ export async function syncWordPressBookings(
   return { ok: true, result };
 }
 
+export async function syncWordPressProperties(
+  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
+): Promise<
+  | { ok: true; result: WordPressSyncResult }
+  | { ok: false; message: string }
+> {
+  const connector = await wpConnectorForOrg(session.organisationId);
+  const wp = await fetchWpProperties(100, connector);
+  if (!wp.ok) {
+    return { ok: false, message: wp.message };
+  }
+
+  const syncResult = await syncPropertiesFromWordPress({
+    organisationId: session.organisationId,
+    actorId: session.clerkUserId,
+    properties: wp.properties,
+  });
+
+  const result: WordPressSyncResult = {
+    ...syncResult,
+    ranAt: new Date().toISOString(),
+  };
+
+  await patchOrgWordPressSettings(session.organisationId, {
+    lastPropertySyncAt: result.ranAt,
+    lastPropertySync: result,
+  });
+
+  return { ok: true, result };
+}
+
 async function autoSyncIfNeeded(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-  lastAtKey: "lastVendorLeadSyncAt" | "lastBuyerLeadSyncAt" | "lastBookingSyncAt",
+  lastAtKey:
+    | "lastVendorLeadSyncAt"
+    | "lastBuyerLeadSyncAt"
+    | "lastBookingSyncAt"
+    | "lastPropertySyncAt",
   run: () => Promise<
     | { ok: true; result: WordPressSyncResult }
     | { ok: false; message: string }
@@ -242,6 +281,14 @@ export async function autoSyncWordPressBookingsIfNeeded(
 ): Promise<AutoSyncOutcome> {
   return autoSyncIfNeeded(session, "lastBookingSyncAt", () =>
     syncWordPressBookings(session),
+  );
+}
+
+export async function autoSyncWordPressPropertiesIfNeeded(
+  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
+): Promise<AutoSyncOutcome> {
+  return autoSyncIfNeeded(session, "lastPropertySyncAt", () =>
+    syncWordPressProperties(session),
   );
 }
 

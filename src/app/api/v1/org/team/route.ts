@@ -53,6 +53,7 @@ export async function PATCH(req: Request) {
     bio: body.bio,
     jobTitle: body.jobTitle,
     phone: body.phone,
+    avatarUrl: body.avatarUrl,
   });
 
   if (!updated) {

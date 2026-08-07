@@ -132,11 +132,37 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     return NextResponse.json({ data: property });
   }
 
-  if (listingPriceCents !== undefined || marketing) {
+  if (listingPriceCents !== undefined || marketing || body?.images || body?.propertyType !== undefined || body?.bedrooms !== undefined || body?.bathrooms !== undefined || body?.details) {
+    const details = (body?.details as Record<string, unknown> | undefined) ?? {};
     const updated = await updatePropertyListing(
       session.organisationId,
       id,
-      { listingPriceCents, marketing },
+      {
+        listingPriceCents,
+        marketing: marketing ?? (details.marketing as Record<string, unknown> | undefined),
+        propertyType:
+          (body?.propertyType as string | null | undefined) ??
+          (details.propertyType as string | null | undefined),
+        bedrooms:
+          (body?.bedrooms as number | null | undefined) ??
+          (details.bedrooms as number | null | undefined),
+        bathrooms:
+          (body?.bathrooms as number | null | undefined) ??
+          (details.bathrooms as number | null | undefined),
+        images:
+          (body?.images as string[] | undefined) ??
+          (details.images as string[] | undefined),
+        carSpaces:
+          (body?.carSpaces as number | null | undefined) ??
+          (details.carSpaces as number | null | undefined),
+        landSize:
+          (body?.landSize as string | null | undefined) ??
+          (details.landSize as string | null | undefined),
+        buildingSize:
+          (body?.buildingSize as string | null | undefined) ??
+          (details.buildingSize as string | null | undefined),
+        syncToWebsite: body?.syncToWebsite !== false,
+      },
       session.clerkUserId,
     );
 

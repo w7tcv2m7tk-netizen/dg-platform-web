@@ -11,6 +11,9 @@ export type MembershipProfile = {
   bio: string | null;
   jobTitle: string | null;
   phone: string | null;
+  avatarUrl: string | null;
+  /** Clerk account image when available (may differ from avatarUrl override). */
+  clerkImageUrl?: string | null;
   externalRefs: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
@@ -21,6 +24,7 @@ export type MembershipProfilePatch = {
   bio?: string | null;
   jobTitle?: string | null;
   phone?: string | null;
+  avatarUrl?: string | null;
 };
 
 function serializeMembership(m: {
@@ -34,6 +38,7 @@ function serializeMembership(m: {
   bio: string | null;
   jobTitle: string | null;
   phone: string | null;
+  avatarUrl: string | null;
   externalRefs: unknown;
   createdAt: Date;
   updatedAt: Date;
@@ -49,6 +54,7 @@ function serializeMembership(m: {
     bio: m.bio,
     jobTitle: m.jobTitle,
     phone: m.phone,
+    avatarUrl: m.avatarUrl,
     externalRefs: (m.externalRefs as Record<string, unknown> | null) ?? null,
     createdAt: m.createdAt.toISOString(),
     updatedAt: m.updatedAt.toISOString(),
@@ -67,6 +73,85 @@ export async function listOrganisationMembers(
     orderBy: [{ role: "asc" }, { createdAt: "asc" }],
   });
   return rows.map(serializeMembership);
+}
+
+/**
+ * Enrich memberships with Clerk account name/image.
+ * Fills empty displayName from Clerk; exposes clerkImageUrl for UI fallback.
+ */
+export async function enrichMembersWithClerkAccount(
+  members: MembershipProfile[],
+): Promise<MembershipProfile[]> {
+  if (!members.length) return members;
+
+  try {
+    const { clerkClient } = await import("@clerk/nextjs/server");
+    const client = await clerkClient();
+    const ids = [...new Set(members.map((m) => m.clerkUserId).filter(Boolean))];
+    if (!ids.length) return members;
+
+    const users = await client.users.getUserList({ userId: ids, limit: 100 });
+    const byId = new Map(users.data.map((u) => [u.id, u]));
+
+    return members.map((m) => {
+      const user = byId.get(m.clerkUserId);
+      if (!user) return m;
+      const clerkName =
+        user.fullName ||
+        [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+        user.primaryEmailAddress?.emailAddress ||
+        null;
+      return {
+        ...m,
+        displayName: m.displayName?.trim() || clerkName,
+        email: m.email || user.primaryEmailAddress?.emailAddress || null,
+        // Keep stored team avatar separate; UI falls back to clerkImageUrl.
+        clerkImageUrl: user.imageUrl || null,
+      };
+    });
+  } catch {
+    return members;
+  }
+}
+
+/** Pull Clerk name/email/image into membership when fields are empty. */
+export async function syncMembershipFromClerkAccount(input: {
+  organisationId: string;
+  clerkUserId: string;
+  email?: string;
+  name?: string;
+  imageUrl?: string;
+}): Promise<MembershipProfile | null> {
+  if (!process.env.DATABASE_URL) return null;
+
+  const { prisma } = await import("@dg/database");
+  const existing = await prisma.membership.findFirst({
+    where: {
+      organisationId: input.organisationId,
+      clerkUserId: input.clerkUserId,
+      status: "active",
+    },
+  });
+  if (!existing) return null;
+
+  const data: Prisma.MembershipUpdateInput = {};
+  if (!existing.displayName?.trim() && input.name?.trim()) {
+    data.displayName = input.name.trim();
+  }
+  if (!existing.email?.trim() && input.email?.trim()) {
+    data.email = input.email.trim().toLowerCase();
+  }
+  // Team avatar is an explicit override — Clerk image is shown via enrichMembersWithClerkAccount.
+
+  if (Object.keys(data).length === 0) {
+    return serializeMembership(existing);
+  }
+
+  const updated = await prisma.membership.update({
+    where: { id: existing.id },
+    data,
+  });
+  return serializeMembership(updated);
 }
 
 export async function getMembershipProfile(
@@ -121,6 +206,9 @@ export async function updateMembershipProfile(
   }
   if (patch.phone !== undefined) {
     data.phone = patch.phone?.trim() || null;
+  }
+  if (patch.avatarUrl !== undefined) {
+    data.avatarUrl = patch.avatarUrl?.trim() || null;
   }
 
   const updated = await prisma.membership.update({

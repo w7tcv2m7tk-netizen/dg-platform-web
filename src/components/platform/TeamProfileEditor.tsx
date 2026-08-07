@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export type TeamMemberCard = {
   id: string;
@@ -11,6 +11,8 @@ export type TeamMemberCard = {
   bio: string | null;
   jobTitle: string | null;
   phone: string | null;
+  avatarUrl?: string | null;
+  clerkImageUrl?: string | null;
   isMe: boolean;
   wpAgentPermalink?: string;
 };
@@ -23,13 +25,37 @@ export function TeamProfileEditor({
   canEdit: boolean;
 }) {
   const router = useRouter();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [displayName, setDisplayName] = useState(member.displayName ?? "");
   const [jobTitle, setJobTitle] = useState(member.jobTitle ?? "");
   const [phone, setPhone] = useState(member.phone ?? "");
   const [bio, setBio] = useState(member.bio ?? "");
+  const [avatarUrl, setAvatarUrl] = useState(
+    member.avatarUrl || member.clerkImageUrl || "",
+  );
   const [pending, setPending] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  async function uploadPhoto(file: File) {
+    setUploading(true);
+    setError(null);
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch("/api/v1/org/brand-asset", {
+      method: "POST",
+      body: form,
+    });
+    const json = await res.json().catch(() => ({}));
+    setUploading(false);
+    if (!res.ok) {
+      setError(json.error?.message ?? "Could not upload photo");
+      return;
+    }
+    const url = json.data?.url as string | undefined;
+    if (url) setAvatarUrl(url);
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -46,6 +72,7 @@ export function TeamProfileEditor({
         jobTitle,
         phone,
         bio,
+        avatarUrl: avatarUrl.trim() || null,
         syncToWebsite: true,
       }),
     });
@@ -73,18 +100,34 @@ export function TeamProfileEditor({
     router.refresh();
   }
 
+  const preview = avatarUrl || member.clerkImageUrl || null;
+
   return (
     <div className="dg-card">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <h3 className="font-semibold text-white">
-            {member.displayName || member.email || "Team member"}
-            {member.isMe ? (
-              <span className="ml-2 text-xs font-normal text-blue-400">You</span>
-            ) : null}
-          </h3>
-          <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">{member.role}</p>
-          {member.email ? <p className="mt-1 text-sm text-slate-400">{member.email}</p> : null}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          {preview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={preview}
+              alt=""
+              className="h-14 w-14 shrink-0 rounded-full object-cover ring-1 ring-slate-700"
+            />
+          ) : (
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-slate-800 text-lg text-slate-400">
+              {(member.displayName || member.email || "?").charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="min-w-0">
+            <h3 className="font-semibold text-white">
+              {member.displayName || member.email || "Team member"}
+              {member.isMe ? (
+                <span className="ml-2 text-xs font-normal text-blue-400">You</span>
+              ) : null}
+            </h3>
+            <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">{member.role}</p>
+            {member.email ? <p className="mt-1 text-sm text-slate-400">{member.email}</p> : null}
+          </div>
         </div>
         {member.wpAgentPermalink ? (
           <a
@@ -100,6 +143,52 @@ export function TeamProfileEditor({
 
       {canEdit ? (
         <form onSubmit={save} className="mt-4 space-y-3">
+          <div>
+            <p className="text-sm text-slate-400">Profile photo</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={() => fileRef.current?.click()}
+                className="rounded-full border border-slate-600 px-3 py-1.5 text-xs text-slate-200 hover:border-blue-500 disabled:opacity-50"
+              >
+                {uploading ? "Uploading…" : "Upload photo"}
+              </button>
+              {member.clerkImageUrl && avatarUrl !== member.clerkImageUrl ? (
+                <button
+                  type="button"
+                  onClick={() => setAvatarUrl(member.clerkImageUrl || "")}
+                  className="rounded-full border border-slate-700 px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200"
+                >
+                  Use account photo
+                </button>
+              ) : null}
+              {avatarUrl ? (
+                <button
+                  type="button"
+                  onClick={() => setAvatarUrl("")}
+                  className="rounded-full border border-slate-700 px-3 py-1.5 text-xs text-slate-400 hover:text-amber-300"
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void uploadPhoto(file);
+                e.target.value = "";
+              }}
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Defaults from your Clerk account photo. Upload to override for this business.
+            </p>
+          </div>
+
           <label className="block text-sm">
             <span className="text-slate-400">Display name</span>
             <input

@@ -84,6 +84,12 @@ export async function publishPropertyToWordPress(
         ? marketing.features.map(String).join("\n")
         : "";
 
+  const images = Array.isArray(metadata.images)
+    ? (metadata.images as unknown[]).filter(
+        (u): u is string => typeof u === "string" && u.startsWith("http"),
+      )
+    : [];
+
   let agent:
     | { name?: string; phone?: string; email?: string; wp_agent_id?: number }
     | undefined;
@@ -139,6 +145,8 @@ export async function publishPropertyToWordPress(
         : property.id,
     agent,
     agent_id: agent?.wp_agent_id,
+    images,
+    gallery_urls: images,
   };
 
   try {

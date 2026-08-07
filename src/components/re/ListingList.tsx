@@ -75,7 +75,17 @@ export function ListingList({
             className="rounded-xl border border-slate-800 bg-slate-900/40 p-4"
           >
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
+              <div className="flex min-w-0 flex-1 gap-3">
+                {Array.isArray(property.metadata?.images) &&
+                (property.metadata.images as string[])[0] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={(property.metadata.images as string[])[0]}
+                    alt=""
+                    className="h-16 w-16 shrink-0 rounded-lg object-cover"
+                  />
+                ) : null}
+                <div className="min-w-0">
                 <Link
                   href={`/apps/re/properties/${property.id}`}
                   className="text-lg font-medium text-white hover:underline"
@@ -93,6 +103,7 @@ export function ListingList({
                 {campaign ? (
                   <p className="mt-1 text-xs text-emerald-400/90">Campaign: {campaign}</p>
                 ) : null}
+                </div>
               </div>
               <div className="text-right">
                 <p className="text-xs uppercase text-slate-500">Guide price</p>

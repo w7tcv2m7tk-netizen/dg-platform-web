@@ -465,6 +465,51 @@ export async function fetchWpRecentBookings(limit = 50, connector?: WpConnectorO
   return { ok: true as const, bookings: result.data.bookings ?? [] };
 }
 
+export type WpPropertyListingRow = {
+  id: number;
+  dg_property_id?: string;
+  title?: string;
+  permalink?: string;
+  post_status?: string;
+  status?: string;
+  address?: string;
+  suburb?: string;
+  state?: string;
+  postcode?: string;
+  price?: string | number;
+  property_type?: string;
+  bedrooms?: string | number;
+  bathrooms?: string | number;
+  car_spaces?: string | number;
+  land_size?: string;
+  building_size?: string;
+  features?: string;
+  description?: string;
+  external_id?: string;
+  images?: string[];
+  featured_image?: string | null;
+  agent?: {
+    id?: number;
+    name?: string;
+    phone?: string;
+    email?: string;
+  };
+  modified_at?: string;
+};
+
+export async function fetchWpProperties(limit = 100, connector?: WpConnectorOverride) {
+  const result = await wpConnectorFetch<{ properties?: WpPropertyListingRow[] }>(
+    `/properties?limit=${limit}`,
+    {
+      baseUrl: connector?.baseUrl,
+      apiKey: connector?.apiKey,
+      allowEmpty: true,
+    },
+  );
+  if (!result.ok) return result;
+  return { ok: true as const, properties: result.data.properties ?? [] };
+}
+
 export type WpRePipelineSummary = {
   site?: string;
   property_reports_this_month?: number;

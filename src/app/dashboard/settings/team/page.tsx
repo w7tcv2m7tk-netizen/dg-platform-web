@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
-import { listOrganisationMembers } from "@dg/platform-core";
+import {
+  enrichMembersWithClerkAccount,
+  listOrganisationMembers,
+  syncMembershipFromClerkAccount,
+} from "@dg/platform-core";
 
 import { TeamProfileEditor } from "@/components/platform/TeamProfileEditor";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
@@ -24,8 +28,20 @@ export default async function TeamSettingsPage() {
       })
     : null;
 
+  if (session && user?.id) {
+    await syncMembershipFromClerkAccount({
+      organisationId: session.organisationId,
+      clerkUserId: user.id,
+      email,
+      name,
+      imageUrl: user.imageUrl,
+    }).catch(() => null);
+  }
+
   const members = session
-    ? await listOrganisationMembers(session.organisationId)
+    ? await enrichMembersWithClerkAccount(
+        await listOrganisationMembers(session.organisationId),
+      )
     : [];
 
   const isOwner = session?.role === "owner" || session?.role === "admin";
@@ -38,15 +54,17 @@ export default async function TeamSettingsPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Team & access</h1>
         <p className="text-sm text-slate-400">
-          Team profiles, bios, and website agent sync — invites still go through Clerk
+          Business-facing profiles for this organisation — linked to your Clerk login account
         </p>
       </header>
       <main className="dg-page-main space-y-6">
         <div className="dg-card max-w-2xl">
-          <h2 className="font-semibold text-white">Your profile</h2>
+          <h2 className="font-semibold text-white">Account vs team profile</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Add a short description about yourself. For Real Estate orgs this also syncs to
-            the website agent profile when you save (and when you publish listings).
+            The sidebar <span className="text-slate-300">Account</span> menu is your Clerk login
+            (email, password, account photo). Team profiles are per-business: name, bio, title,
+            phone, and photo used on the website agent page. We pull your Clerk name and photo
+            as defaults; you can override them here without changing your login account.
           </p>
         </div>
 
@@ -66,6 +84,8 @@ export default async function TeamSettingsPage() {
                     bio: member.bio,
                     jobTitle: member.jobTitle,
                     phone: member.phone,
+                    avatarUrl: member.avatarUrl,
+                    clerkImageUrl: member.clerkImageUrl,
                     isMe,
                     wpAgentPermalink: member.externalRefs?.wp_agent_permalink as
                       | string
@@ -84,11 +104,11 @@ export default async function TeamSettingsPage() {
         <div className="dg-card max-w-xl">
           <h2 className="font-semibold text-white">Invites</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Invite colleagues via Clerk organisation settings. Once they join, they appear
-            here and can fill in their own bio.
+            Invite colleagues via Clerk. Once they join this org they appear here and can edit
+            their own team profile.
           </p>
           <p className="mt-4 text-xs text-slate-500">
-            Tip: Clerk Dashboard → Organizations → invite members.
+            Tip: Account menu → Manage account for login photo; Team for business/agent photo.
           </p>
         </div>
       </main>

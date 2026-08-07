@@ -12,6 +12,7 @@ import {
 
 import { PropertyContractPanel } from "@/components/re/PropertyContractPanel";
 import { PropertyOffersPanel } from "@/components/re/PropertyOffersPanel";
+import { PropertyListingEditor } from "@/components/re/PropertyListingEditor";
 import { PublishToWebsiteButton } from "@/components/re/PublishToWebsiteButton";
 
 import { PropertyStatusSelect } from "@/components/re/PropertyStatusSelect";
@@ -80,6 +81,21 @@ export default async function PropertyDetailPage({ params }: PageProps) {
   const formattedAddress = property.metadata?.formatted_address as string | undefined;
   const wpPermalink = property.externalRefs?.wp_property_permalink as string | undefined;
   const wpPropertyId = property.externalRefs?.wp_property_id as number | string | undefined;
+  const marketing =
+    (property.metadata?.marketing as Record<string, unknown> | undefined) ?? {};
+  const images = Array.isArray(property.metadata?.images)
+    ? (property.metadata.images as string[])
+    : [];
+  const carSpaces =
+    typeof property.metadata?.car_spaces === "number"
+      ? property.metadata.car_spaces
+      : null;
+  const landSize =
+    typeof property.metadata?.land_size === "string" ? property.metadata.land_size : null;
+  const buildingSize =
+    typeof property.metadata?.building_size === "string"
+      ? property.metadata.building_size
+      : null;
 
   return (
     <>
@@ -128,6 +144,23 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                 />
               </div>
             </div>
+
+            <PropertyListingEditor
+              propertyId={property.id}
+              listingPriceCents={property.listingPriceCents}
+              propertyType={property.propertyType}
+              bedrooms={property.bedrooms}
+              bathrooms={property.bathrooms}
+              carSpaces={carSpaces}
+              landSize={landSize}
+              buildingSize={buildingSize}
+              headline={typeof marketing.headline === "string" ? marketing.headline : undefined}
+              description={
+                typeof marketing.description === "string" ? marketing.description : undefined
+              }
+              features={typeof marketing.features === "string" ? marketing.features : undefined}
+              images={images}
+            />
 
             <div className="dg-card">
               <h2 className="font-semibold text-white">Address</h2>

@@ -61,6 +61,8 @@ model Membership {
   bio            String?  @db.Text
   jobTitle       String?  @map("job_title")
   phone          String?
+  /** Profile / agent photo URL (Clerk default or uploaded override) */
+  avatarUrl      String?  @map("avatar_url")
   /** WordPress agent post ID when synced */
   externalRefs   Json?    @map("external_refs")
   createdAt      DateTime @default(now()) @map("created_at")

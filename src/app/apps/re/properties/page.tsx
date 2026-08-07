@@ -4,7 +4,9 @@ import { listProperties,} from "@dg/platform-core";
 
 import { PropertyList } from "@/components/re/PropertyList";
 import { CreatePropertyForm } from "@/components/re/CreatePropertyForm";
+import { SyncListingsButton } from "@/components/re/SyncListingsButton";
 import { fetchPortalMe } from "@/lib/dg-api";
+import { autoSyncWordPressPropertiesIfNeeded } from "@/lib/wordpress-sync";
 
 export default async function PropertiesPage() {
   const user = await currentUser();
@@ -40,6 +42,8 @@ export default async function PropertiesPage() {
     );
   }
 
+  await autoSyncWordPressPropertiesIfNeeded(session);
+
   const { items } = await listProperties({ organisationId: session.organisationId });
 
   const appraisalCount = items.filter((p) => p.status === "appraisal").length;
@@ -48,13 +52,18 @@ export default async function PropertiesPage() {
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Properties</h1>
-        <p className="text-sm text-slate-400">
-          {session.organisationName} · Appraisals & listings
-        </p>
-        <p className="mt-1 text-xs text-slate-500">
-          {appraisalCount} in appraisal · {listedCount} listed · {items.length} total
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Properties</h1>
+            <p className="text-sm text-slate-400">
+              {session.organisationName} · Appraisals & listings
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              {appraisalCount} in appraisal · {listedCount} listed · {items.length} total
+            </p>
+          </div>
+          <SyncListingsButton />
+        </div>
       </header>
       <main className="flex-1 space-y-6 p-8">
         <CreatePropertyForm />

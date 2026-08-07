@@ -511,6 +511,14 @@ export async function updatePropertyListing(
   input: {
     listingPriceCents?: number | null;
     marketing?: Record<string, unknown>;
+    propertyType?: string | null;
+    bedrooms?: number | null;
+    bathrooms?: number | null;
+    images?: string[];
+    carSpaces?: number | null;
+    landSize?: string | null;
+    buildingSize?: string | null;
+    syncToWebsite?: boolean;
   },
   actorId?: string,
 ) {
@@ -521,15 +529,44 @@ export async function updatePropertyListing(
   });
   if (!existing) return null;
 
-  const metadata = {
-    ...((existing.metadata as Record<string, unknown> | null) ?? {}),
-    ...(input.marketing ? { marketing: input.marketing } : {}),
+  const prevMeta = (existing.metadata as Record<string, unknown> | null) ?? {};
+  const prevMarketing = (prevMeta.marketing as Record<string, unknown> | undefined) ?? {};
+  const nextMarketing = input.marketing
+    ? { ...prevMarketing, ...input.marketing }
+    : prevMarketing;
+
+  const metadata: Record<string, unknown> = {
+    ...prevMeta,
+    marketing: nextMarketing,
   };
+
+  if (input.images !== undefined) {
+    metadata.images = input.images.filter((u) => typeof u === "string" && u.trim());
+    metadata.featured_image = (metadata.images as string[])[0] ?? null;
+  }
+  if (input.carSpaces !== undefined) {
+    metadata.car_spaces = input.carSpaces;
+  }
+  if (input.landSize !== undefined) {
+    metadata.land_size = input.landSize?.trim() || null;
+  }
+  if (input.buildingSize !== undefined) {
+    metadata.building_size = input.buildingSize?.trim() || null;
+  }
 
   const property = await prisma.property.update({
     where: { id: propertyId },
     data: {
-      listingPriceCents: input.listingPriceCents ?? existing.listingPriceCents,
+      listingPriceCents:
+        input.listingPriceCents !== undefined
+          ? input.listingPriceCents
+          : existing.listingPriceCents,
+      propertyType:
+        input.propertyType !== undefined
+          ? input.propertyType?.trim() || null
+          : existing.propertyType,
+      bedrooms: input.bedrooms !== undefined ? input.bedrooms : existing.bedrooms,
+      bathrooms: input.bathrooms !== undefined ? input.bathrooms : existing.bathrooms,
       metadata: metadata as Prisma.InputJsonValue,
     },
   });
@@ -547,8 +584,12 @@ export async function updatePropertyListing(
     },
   });
 
-  const refs = (property.externalRefs as Record<string, unknown> | null) ?? {};
-  if (refs.wp_property_id || WEBSITE_PUBLISH_STATUSES.has(property.status)) {
+  const shouldSync =
+    input.syncToWebsite !== false &&
+    (((property.externalRefs as Record<string, unknown> | null) ?? {}).wp_property_id ||
+      WEBSITE_PUBLISH_STATUSES.has(property.status));
+
+  if (shouldSync) {
     await maybeAutoPublishPropertyToWordPress({
       organisationId,
       propertyId,

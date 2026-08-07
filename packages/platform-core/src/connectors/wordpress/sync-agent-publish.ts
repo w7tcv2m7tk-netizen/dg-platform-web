@@ -40,6 +40,7 @@ export async function publishMembershipToWordPressAgent(input: {
     phone: input.membership.phone ?? undefined,
     title: input.membership.jobTitle ?? undefined,
     bio: input.membership.bio ?? undefined,
+    photo_url: input.membership.avatarUrl ?? undefined,
   };
 
   try {
