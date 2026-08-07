@@ -12,6 +12,7 @@ export function AccommodationGuestPrefsEditor({
     displayName?: string;
     email?: string | null;
     phone?: string | null;
+    legacyWpGuestId?: number | null;
   };
 }) {
   const router = useRouter();
@@ -42,6 +43,9 @@ export function AccommodationGuestPrefsEditor({
         preferences,
         specialRequests,
         guestNotes,
+        displayName: guest.displayName,
+        email: guest.email,
+        phone: guest.phone,
       }),
     });
     const json = await res.json().catch(() => null);
@@ -50,7 +54,25 @@ export function AccommodationGuestPrefsEditor({
       setError(json?.error?.message ?? "Could not save guest preferences");
       return;
     }
-    setMessage("Guest preferences saved");
+
+    const wpSync = json?.data?.wpSync as
+      | {
+          attempted?: boolean;
+          ok?: boolean;
+          message?: string;
+        }
+      | undefined;
+
+    if (wpSync?.attempted) {
+      if (wpSync.ok) {
+        setMessage(`Guest preferences saved · ${wpSync.message ?? "WordPress synced"}`);
+      } else {
+        setMessage("Guest preferences saved on Contact");
+        setError(wpSync.message ?? "WordPress sync did not match a guest");
+      }
+    } else {
+      setMessage("Guest preferences saved");
+    }
     router.refresh();
   }
 
@@ -62,8 +84,9 @@ export function AccommodationGuestPrefsEditor({
       <div>
         <h2 className="font-semibold text-white">Guest preferences</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Stored on Contact guest profile. VIP/notes sync to WordPress when a legacy guest id is
-          linked.
+          Stored on Contact guest profile. VIP, notes, preferences, and special requests sync to
+          WordPress when a guest is linked by id, contact, or email
+          {guest.legacyWpGuestId != null ? ` (WP #${guest.legacyWpGuestId})` : ""}.
         </p>
       </div>
 

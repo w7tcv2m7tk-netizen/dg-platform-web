@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
-import { getAccommodationGuest, getContact } from "@dg/platform-core";
+import {
+  getAccommodationGuest,
+  getContact,
+  listContactActivities,
+} from "@dg/platform-core";
 import { notFound } from "next/navigation";
 
 import { AccommodationGuestPanel } from "@/components/accommodation/AccommodationGuestPanel";
@@ -33,7 +37,10 @@ export default async function AccommodationGuestDetailPage({ params }: PageProps
     notFound();
   }
 
-  const contact = await getContact(session.organisationId, contactId);
+  const [contact, activities] = await Promise.all([
+    getContact(session.organisationId, contactId),
+    listContactActivities(session.organisationId, contactId),
+  ]);
   const displayName =
     guest.displayName ||
     (contact ? [contact.firstName, contact.lastName].filter(Boolean).join(" ") : "Guest");
@@ -61,7 +68,52 @@ export default async function AccommodationGuestDetailPage({ params }: PageProps
       </header>
       <main className="dg-page-main space-y-6">
         <AccommodationGuestPanel guest={guest} />
-        <AccommodationGuestPrefsEditor guest={guest} />
+        <AccommodationGuestPrefsEditor
+          guest={{
+            ...guest,
+            displayName,
+            email: guest.email,
+            phone: guest.phone,
+            legacyWpGuestId: guest.legacyWpGuestId,
+          }}
+        />
+
+        <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-semibold text-white">Contact history</h2>
+            <Link
+              href={`/apps/crm/contacts/${guest.contactId}`}
+              className="text-xs text-blue-400 hover:underline"
+            >
+              Open full timeline →
+            </Link>
+          </div>
+          <p className="mt-1 text-sm text-slate-500">
+            Notes and CRM activity on this Contact (communications appear when logged).
+          </p>
+          {!activities?.length ? (
+            <p className="mt-4 text-sm text-slate-500">No timeline activity yet.</p>
+          ) : (
+            <ul className="mt-4 space-y-3">
+              {activities.slice(0, 12).map((activity) => (
+                <li
+                  key={activity.id}
+                  className="border-l-2 border-blue-600/40 pl-3 text-sm"
+                >
+                  <p className="font-medium text-white">{activity.title}</p>
+                  {activity.body ? (
+                    <p className="mt-0.5 text-slate-400">{activity.body}</p>
+                  ) : null}
+                  <p className="mt-1 text-xs text-slate-500">
+                    {activity.activityType}
+                    {activity.sourceApp ? ` · ${activity.sourceApp}` : ""} ·{" "}
+                    {new Date(activity.createdAt).toLocaleString("en-AU")}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </main>
     </>
   );

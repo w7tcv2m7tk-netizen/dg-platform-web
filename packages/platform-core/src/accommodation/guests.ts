@@ -231,6 +231,8 @@ export async function upsertGuestFromWpRow(
     total_stays?: number;
     vip?: boolean;
     notes?: string;
+    preferences?: string;
+    special_requests?: string;
     tags?: string;
     address?: string;
     source?: string;
@@ -277,6 +279,12 @@ export async function upsertGuestFromWpRow(
   };
   if (guest.vip !== undefined) profilePatch.vip = Boolean(guest.vip);
   if (guest.notes !== undefined) profilePatch.guestNotes = guest.notes.trim() || null;
+  if (guest.preferences !== undefined) {
+    profilePatch.preferences = guest.preferences.trim() || null;
+  }
+  if (guest.special_requests !== undefined) {
+    profilePatch.specialRequests = guest.special_requests.trim() || null;
+  }
 
   try {
     await prisma.accommodationGuestProfile.update({
@@ -289,13 +297,19 @@ export async function upsertGuestFromWpRow(
       contactId,
       legacyWpGuestId: guest.id,
     });
-    if (guest.vip !== undefined || guest.notes !== undefined) {
+    if (guest.vip !== undefined || guest.notes !== undefined || guest.preferences !== undefined || guest.special_requests !== undefined) {
       await prisma.accommodationGuestProfile.update({
         where: { contactId },
         data: {
           ...(guest.vip !== undefined ? { vip: Boolean(guest.vip) } : {}),
           ...(guest.notes !== undefined
             ? { guestNotes: guest.notes.trim() || null }
+            : {}),
+          ...(guest.preferences !== undefined
+            ? { preferences: guest.preferences.trim() || null }
+            : {}),
+          ...(guest.special_requests !== undefined
+            ? { specialRequests: guest.special_requests.trim() || null }
             : {}),
         },
       });
@@ -581,12 +595,23 @@ export async function updateAccommodationGuestProfile(
     displayName?: string;
     email?: string | null;
     phone?: string | null;
-    /** Mirror VIP/notes to WordPress guest when legacy id known */
+    /** Mirror VIP/notes/prefs to WordPress guest when linked or email-matched */
     syncWp?: {
       patchWp: (updates: Array<Record<string, unknown>>) => Promise<unknown>;
     };
   },
-): Promise<AccommodationGuestDetail | null> {
+): Promise<
+  | (AccommodationGuestDetail & {
+      wpSync?: {
+        attempted: boolean;
+        ok: boolean;
+        updatedCount: number;
+        skippedCount: number;
+        message?: string;
+      };
+    })
+  | null
+> {
   const { prisma } = await import("@dg/database");
   const contact = await prisma.contact.findFirst({
     where: { id: contactId, organisationId, deletedAt: null },
@@ -640,38 +665,97 @@ export async function updateAccommodationGuestProfile(
     where: { contactId },
   });
 
-  if (input.syncWp && profile?.legacyWpGuestId != null) {
-    await input.syncWp
-      .patchWp([
-        {
-          id: profile.legacyWpGuestId,
-          contact_id: contactId,
-          vip: profile.vip,
-          notes: profile.guestNotes ?? "",
-          name:
-            input.displayName ??
-            [contact.firstName, contact.lastName].filter(Boolean).join(" "),
-          email: input.email !== undefined ? input.email : contact.email,
-          phone: input.phone !== undefined ? input.phone : contact.phone,
-        },
-      ])
-      .catch(() => null);
-  } else if (input.syncWp && profile?.legacyWpGuestId == null) {
-    // Still attempt contact_id linkage update if WP guest matched later.
-    await input.syncWp
-      .patchWp([
-        {
-          contact_id: contactId,
-          vip: profile?.vip ?? false,
-          notes: profile?.guestNotes ?? "",
-          email: input.email !== undefined ? input.email : contact.email,
-          phone: input.phone !== undefined ? input.phone : contact.phone,
-        },
-      ])
-      .catch(() => null);
+  let wpSync: {
+    attempted: boolean;
+    ok: boolean;
+    updatedCount: number;
+    skippedCount: number;
+    message?: string;
+  } = { attempted: false, ok: true, updatedCount: 0, skippedCount: 0 };
+
+  if (input.syncWp) {
+    wpSync.attempted = true;
+    const email = input.email !== undefined ? input.email : contact.email;
+    const payload: Record<string, unknown> = {
+      contact_id: contactId,
+      vip: profile?.vip ?? false,
+      notes: profile?.guestNotes ?? "",
+      preferences: profile?.preferences ?? "",
+      special_requests: profile?.specialRequests ?? "",
+      name:
+        input.displayName ??
+        [contact.firstName, contact.lastName].filter(Boolean).join(" "),
+      email,
+      phone: input.phone !== undefined ? input.phone : contact.phone,
+    };
+    if (profile?.legacyWpGuestId != null) {
+      payload.id = profile.legacyWpGuestId;
+    }
+
+    try {
+      const result = (await input.syncWp.patchWp([payload])) as {
+        ok?: boolean;
+        data?: { ok?: boolean; updated?: unknown[]; skipped?: unknown[]; count?: number };
+        code?: string;
+        message?: string;
+      } | null;
+
+      // patchWp may return connector shape { ok, data } or raw WP body.
+      const body =
+        result && typeof result === "object" && "data" in result && result.data
+          ? result.data
+          : (result as { ok?: boolean; updated?: unknown[]; skipped?: unknown[]; count?: number } | null);
+
+      if (result && "ok" in (result as object) && (result as { ok?: boolean }).ok === false) {
+        wpSync = {
+          attempted: true,
+          ok: false,
+          updatedCount: 0,
+          skippedCount: 0,
+          message: (result as { message?: string }).message ?? "WordPress sync failed",
+        };
+      } else {
+        const updated = Array.isArray(body?.updated) ? body.updated.length : body?.count ?? 0;
+        const skipped = Array.isArray(body?.skipped) ? body.skipped.length : 0;
+        wpSync = {
+          attempted: true,
+          ok: updated > 0,
+          updatedCount: updated,
+          skippedCount: skipped,
+          message:
+            updated > 0
+              ? `Synced to WordPress guest (#${updated})`
+              : skipped > 0
+                ? "No matching WordPress guest (link by email or sync guests first)"
+                : "WordPress sync returned no updates",
+        };
+
+        // Persist legacy id when email/contact match succeeded.
+        const first =
+          Array.isArray(body?.updated) && body.updated[0] && typeof body.updated[0] === "object"
+            ? (body.updated[0] as { id?: number })
+            : null;
+        if (first?.id && profile && profile.legacyWpGuestId == null) {
+          await prisma.accommodationGuestProfile.update({
+            where: { contactId },
+            data: { legacyWpGuestId: first.id },
+          });
+        }
+      }
+    } catch (err) {
+      wpSync = {
+        attempted: true,
+        ok: false,
+        updatedCount: 0,
+        skippedCount: 0,
+        message: err instanceof Error ? err.message : "WordPress sync error",
+      };
+    }
   }
 
-  return getAccommodationGuest(organisationId, contactId);
+  const detail = await getAccommodationGuest(organisationId, contactId);
+  if (!detail) return null;
+  return { ...detail, wpSync };
 }
 
 /** Format LTV for Accommodation Guests list copy */

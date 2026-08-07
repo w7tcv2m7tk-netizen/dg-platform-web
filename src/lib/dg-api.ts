@@ -1151,6 +1151,8 @@ export type WpAccGuestRow = {
   source?: string;
   vip?: boolean;
   notes?: string;
+  preferences?: string;
+  special_requests?: string;
   tags?: string;
   total_stays?: number;
   total_nights?: number;
@@ -1174,6 +1176,48 @@ export async function fetchWpAccommodationGuests(
     ok: true as const,
     guests: result.data.guests ?? [],
     total: result.data.total ?? 0,
+    site: site.label,
+  };
+}
+
+export type WpAccReviewRow = {
+  id: number;
+  platform?: string;
+  platform_label?: string;
+  author_name?: string;
+  author_photo?: string;
+  rating?: number;
+  title?: string;
+  content?: string;
+  review_date?: string | null;
+  source_url?: string;
+  listing_id?: string;
+  external_id?: string;
+};
+
+export async function fetchWpAccommodationReviews(
+  siteId?: string | null,
+  limit = 40,
+  connector?: WpConnectorOverride,
+) {
+  const site = resolveAccConnector(siteId, connector);
+  const result = await wpConnectorFetch<{
+    reviews?: WpAccReviewRow[];
+    total?: number;
+    by_platform?: Record<string, number>;
+    available?: boolean;
+    message?: string;
+  }>(`/accommodation/reviews?limit=${limit}`, {
+    baseUrl: site.baseUrl,
+    apiKey: site.apiKey,
+  });
+  if (!result.ok) return result;
+  return {
+    ok: true as const,
+    reviews: result.data.reviews ?? [],
+    total: result.data.total ?? result.data.reviews?.length ?? 0,
+    byPlatform: result.data.by_platform ?? {},
+    available: result.data.available !== false,
     site: site.label,
   };
 }

@@ -161,8 +161,8 @@ export function AccommodationGuestPanel({
       </div>
 
       <p className="text-xs text-slate-500">
-        Edit VIP, notes, preferences and marketing consent with the form below. Reviews and full
-        communication history live on Contact timeline.
+        Edit VIP, notes, and preferences below. Contact history and communications show on this
+        guest page and the Universal Contact timeline.
       </p>
     </div>
   );
