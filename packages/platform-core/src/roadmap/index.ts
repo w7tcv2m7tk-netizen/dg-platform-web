@@ -268,6 +268,16 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     appId: "accommodation",
     href: "/apps/accommodation/housekeeping",
   },
+  {
+    id: "accommodation.guests",
+    area: "Accommodation",
+    label: "Guests",
+    description: "Guest CRM records live from WordPress",
+    status: "done",
+    priority: "high",
+    appId: "accommodation",
+    href: "/apps/accommodation/guests",
+  },
 
   // —— Finance ——
   {

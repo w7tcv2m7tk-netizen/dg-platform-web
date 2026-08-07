@@ -313,6 +313,13 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
         hrefLabel: "Housekeeping",
       },
       {
+        id: "acc-3c",
+        title: "Review guest CRM",
+        description: "Guest names, emails, and stay counts pull live from WordPress.",
+        href: "/apps/accommodation/guests",
+        hrefLabel: "Guests",
+      },
+      {
         id: "acc-4",
         title: "Connect Commerce checkout",
         description:

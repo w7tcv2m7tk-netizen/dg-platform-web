@@ -5,12 +5,13 @@ export const accommodationApp: AppManifest = {
   name: "Accommodation",
   description: "Hospitality units, bookings, availability, and housekeeping",
   tier: "business",
-  version: "0.1.0",
+  version: "0.2.0",
   icon: "⛺",
   routes: [
     { path: "/apps/accommodation", label: "Overview" },
     { path: "/apps/accommodation/units", label: "Units" },
     { path: "/apps/accommodation/bookings", label: "Bookings" },
+    { path: "/apps/accommodation/guests", label: "Guests" },
     { path: "/apps/accommodation/calendar", label: "Availability" },
     { path: "/apps/accommodation/housekeeping", label: "Housekeeping" },
   ],
@@ -22,9 +23,10 @@ export const accommodationApp: AppManifest = {
   features: [
     "accommodation.units.read",
     "accommodation.bookings.read",
-    "accommodation.bookings.write",
+    "accommodation.guests.read",
     "accommodation.calendar.read",
     "accommodation.housekeeping.read",
+    "accommodation.housekeeping.write",
   ],
   entities: ["Accommodation", "Booking", "Contact", "Activity"],
   automationTriggers: [

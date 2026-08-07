@@ -794,6 +794,33 @@ export async function patchWpAccommodationHousekeeping(
   );
 }
 
+export type WpAccGuestRow = {
+  id: number;
+  name?: string;
+  email?: string;
+  phone?: string;
+  total_stays?: number;
+};
+
+export async function fetchWpAccommodationGuests(
+  siteId?: string | null,
+  limit = 50,
+  connector?: WpConnectorOverride,
+) {
+  const site = resolveAccConnector(siteId, connector);
+  const result = await wpConnectorFetch<{ guests?: WpAccGuestRow[]; total?: number }>(
+    `/accommodation/guests?limit=${limit}`,
+    { baseUrl: site.baseUrl, apiKey: site.apiKey },
+  );
+  if (!result.ok) return result;
+  return {
+    ok: true as const,
+    guests: result.data.guests ?? [],
+    total: result.data.total ?? 0,
+    site: site.label,
+  };
+}
+
 export type WpSiteHealthPayload = {
   site?: string;
   generated_at?: string;

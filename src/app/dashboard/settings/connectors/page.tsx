@@ -103,7 +103,7 @@ export default async function ConnectorsSettingsPage() {
             ) : null}
             {lastSync?.lastBookingSyncAt ? (
               <p className="mt-1 text-sm text-slate-400">
-                Last booking sync:{" "}
+                Last RE appraisal booking sync:{" "}
                 {new Date(lastSync.lastBookingSyncAt).toLocaleString("en-AU")}
               </p>
             ) : null}
