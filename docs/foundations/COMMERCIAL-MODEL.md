@@ -16,7 +16,8 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 | **AI usage tiers** | Included tokens + overage | 1.5 |
 | **Managed services** | DigitalGate agency work (existing business) | Now |
 | **Marketplace revenue** | % of third-party App sales | 3.0 / Phase 5 |
-| **Referral / transaction fees** | Disclosed Free / Reciprocal / Paid / Commission — see [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) | Phase 5+ |
+| **Platform Refer & Earn** | Cost of acquisition — 20% of referred sub × 12 mo (credits default); Partner 25–30%; Reseller custom — [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) §A | With Billing / Core |
+| **Business referral / transaction fees** | Disclosed Free / Reciprocal / Paid / Commission between DG businesses — [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) §B | Phase 5+ |
 | **Implementation** | One-time onboarding fee | 2.0 |
 | **Training** | Workshops, certification | 2.0 |
 | **Enterprise licensing** | Custom features, SLA, white-label | 2.0 |

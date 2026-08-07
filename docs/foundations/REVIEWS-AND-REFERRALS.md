@@ -1,10 +1,18 @@
 # Reviews & Referrals
 
-**Design now. Build later — after Core, CRM, Connectors, AI, and Intelligence.**
+**Three distinct surfaces — do not blend them.**
 
-Reviews and Referrals are a **major ecosystem piece** that sits on the Network / Marketplace layer. They are **not** the same product, and they must not become a pile of disconnected features ahead of the platform spine.
+| Surface | Layer / timing | Purpose |
+|---------|----------------|---------|
+| **Platform Referral Programme** (SaaS Refer & Earn) | **Core-adjacent — earlier** (with billing / commercial launch) | Customers & partners refer *DigitalGate subscriptions* |
+| **DigitalGate Reviews** | Network / Growth App — Phase 5+ | Reputation & trust |
+| **Business Referral Network** | Network — Phase 5+ | Verified businesses refer *each other* (leads, disclosed fees) |
 
-**Do not implement this product surface yet.** Architect so Organisation, CRM, Connectors, AI, and consent can support it without a rebuild.
+**Reviews ≠ Platform Referrals ≠ Business Referrals.** Design all three now. Ship Platform Refer & Earn with (or soon after) subscription billing; build Reviews and the B2B Referral Network only after Core → CRM → Connectors → AI maturity and critical mass.
+
+Architect so Organisation, billing, CRM, Connectors, AI, and consent can support all three without a rebuild.
+
+See [NETWORK-LAYER.md](./NETWORK-LAYER.md), [PRODUCT-VISION.md](../PRODUCT-VISION.md), [ROADMAP.md](../ROADMAP.md), [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md).
 
 ---
 
@@ -12,22 +20,21 @@ Reviews and Referrals are a **major ecosystem piece** that sits on the Network /
 
 | Surface | Purpose | Primary outcome |
 |---------|---------|-----------------|
+| **Platform Referral Programme** | Grow SaaS via Refer & Earn | Referred org pays subscription → referrer earns credit / cash |
 | **DigitalGate Reviews** | Reputation & trust | Monitor, request, respond, score, theme-intelligence |
-| **Referral Engine** | Customer / partner introductions | Referral Profile → lead in recipient CRM |
-| **Referral Network** | B2B network effect | Verified businesses refer each other; tracked transactions |
+| **Referral Engine** (Business) | Customer / partner introductions | Referral Profile → lead in recipient CRM |
+| **Business Referral Network** | B2B network effect | Verified businesses refer each other; tracked transactions |
 | **Marketplace** | Discovery & facilitation | Software · Services · Professionals · Partners · Integrations |
-
-**Reviews ≠ Referrals.** Reviews build trust and visibility. Referrals create tracked introductions and (optionally) disclosed commercial outcomes. Marketplace facilitates; CRM records.
 
 ### Flywheel (long-term)
 
 ```
-Join DigitalGate
+Join DigitalGate (often via Refer & Earn link)
   → Connect digital world (Connectors)
   → Build reputation (Reviews)
   → Run CRM + AI
   → Join communities / find partners (Network)
-  → Refer and receive referrals
+  → Refer businesses to each other (Business Referral Network)
   → More reviews → more visibility → more business
   → DigitalGate earns subscription + App + transaction / referral revenue
 ```
@@ -36,16 +43,85 @@ Immediate execution remains:
 
 ```
 Core → Universal Objects → CRM → Connectors → AI → Industry Apps → Intelligence
-→ then Network (Community + Reviews/Referrals product + Marketplace)
+→ Platform Refer & Earn (with billing / commercial launch — Core-adjacent)
+→ then Network (Community + Reviews + Business Referral Network + Marketplace)
 ```
 
-See [NETWORK-LAYER.md](./NETWORK-LAYER.md), [PRODUCT-VISION.md](../PRODUCT-VISION.md), [ROADMAP.md](../ROADMAP.md).
+---
+
+## 0. Platform Referral Programme (SaaS Refer & Earn) — Core-adjacent
+
+**Grow DigitalGate itself** — not B2B introductions between customers. This is a **first-party growth loop** tied to Stripe subscriptions and Organisation billing. It ships **earlier than Phase 5 Network**, alongside (or shortly after) public SaaS billing.
+
+### Economics
+
+| Rule | Detail |
+|------|--------|
+| **Customer referrer** | **20%** of the referred organisation’s **subscription** revenue for **12 months** |
+| **Partner referrer** | **25–30%** of referred subscription (partner agreement) |
+| **Reseller / White Label** | **Custom** commercial terms (enterprise / WL contracts) |
+| **Payout form** | **Platform credit by default**; **cash** once accrued balance reaches ~**$100** (threshold configurable) |
+| **What earns** | Qualifying **paid subscription** only (plan / App add-ons per policy) — not Marketplace or B2B referral fees |
+
+Commission is **single-level only**: the person (or partner org) whose link/code signed up the new paying org. See hard rule below.
+
+### Hard rule — no multi-level / MLM
+
+- ❌ **No multi-level marketing**, downlines, or “earn on your referrals’ referrals”
+- ❌ No cascading tiers that pay more than one hop away from the signup
+- ✅ One referrer attribution per new Organisation (last-touch / first-touch policy TBD; document before ship)
+- ✅ Transparent terms in-product and in partner agreements
+
+### Product surface
+
+| Piece | Notes |
+|-------|-------|
+| **Refer & Earn link** | Personal / org share URL, e.g. `/r/benroe` (slug from User or Organisation) |
+| **Dashboard metrics** | Invites sent · signups · trials · paid · retained · credits earned · cash available |
+| **Share channels** | Copy link, email, SMS, social — via Communications where available |
+| **Attribution** | Cookie / signup param → Organisation `referredBy` (or equivalent) on create |
+
+### Lifecycle
+
+```
+Invite → Signup → Trial → Paid → Retained → Reward
+```
+
+| Stage | Meaning |
+|-------|---------|
+| **Invite** | Referrer shares `/r/{slug}` or invite |
+| **Signup** | New org / user attributed to referrer |
+| **Trial** | Trial started (if plan has trial) — no reward yet |
+| **Paid** | First qualifying subscription payment |
+| **Retained** | Continues paying within the 12-month window |
+| **Reward** | Credit accrued monthly (or per invoice); cash-out at ~$100 |
+
+Rewards stop after 12 months from first paid period (or per partner/WL contract). Churn / refunds reverse or pause accrual per billing policy.
+
+### Suggested future objects (document only)
+
+- `ReferralCode` / share slug (user- or org-scoped)  
+- `PlatformReferral` (referrer → referred Organisation, status along lifecycle)  
+- `ReferralLedger` (credits, cash-outs, Stripe linkage)  
+
+Prefer billing + Organisation fields over premature Network tables.
+
+### Timing vs Network
+
+| | Platform Referral Programme | Business Referral Network |
+|--|----------------------------|---------------------------|
+| **What is referred** | DigitalGate SaaS | Another business’s services / leads |
+| **When** | Core-adjacent — commercial launch / billing | Phase 5+ Network |
+| **Revenue** | Subscription share to referrer (CAC / growth cost) | Disclosed B2B fees; DG may take a cut |
+| **Depends on** | Plans, Stripe, Organisation | Community, CRM, compliance packs |
+
+Do **not** bury Platform Refer & Earn inside Phase 5 Network planning.
 
 ---
 
 ## 1. DigitalGate Reviews (Reviews & Reputation App)
 
-A **Growth App** concept for reputation management — not a social feed.
+A **Growth App** concept for reputation management — not a social feed. **Phase 5+** product work.
 
 Businesses can (when built):
 
@@ -75,9 +151,9 @@ Connectors (GBP etc.) · CRM / deal completion events · Automation · AI Servic
 
 ---
 
-## 2. Referral Engine
+## 2. Referral Engine (Business introductions)
 
-Every DigitalGate business eventually gets a **Referral Profile** (illustrative):
+Every DigitalGate business eventually gets a **Referral Profile** (illustrative) — **Network timing**, not Platform Refer & Earn:
 
 | Field | Example |
 |-------|---------|
@@ -98,11 +174,11 @@ Every DigitalGate business eventually gets a **Referral Profile** (illustrative)
 - `Referral` (from → to, type, disclosure, status)  
 - `ReferralReward` (optional; policy-gated)  
 
-Do not schema-spam before Network phase.
+Do not schema-spam before Network phase. These are **not** the Platform Referral Programme ledger objects.
 
 ---
 
-## 3. DigitalGate referral network (B2B)
+## 3. Business Referral Network (B2B)
 
 Network effect example (real estate):
 
@@ -115,13 +191,15 @@ Agency sends referral
   → DigitalGate may earn a disclosed referral fee
 ```
 
-This is a **different revenue stream from SaaS subscription** — transaction / referral economics, not seat pricing. See [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md).
+This is a **different revenue stream from SaaS subscription** — and **different from Platform Refer & Earn** (which shares subscription revenue with the person who brought a new DG customer). See [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md).
 
 Depends on critical mass + [NETWORK-LAYER.md](./NETWORK-LAYER.md) Community / partner graph. **Not before Phase 5 product work.**
 
 ---
 
-## 4. Referral fee transparency + Referral CRM
+## 4. Referral fee transparency + Referral CRM (Business Network)
+
+Applies to **Business Referral Network** Paid / Commission types — not to Platform Refer & Earn subscription credits (those are first-party growth terms).
 
 ### Referral types (clearly disclosed)
 
@@ -165,7 +243,8 @@ Marketplace lanes (Phase 5+): **Software · Services · Professionals · Partner
 |-------|------------------|
 | **Reviews** | Trust |
 | **Community** | Relationships |
-| **Referrals** | Transactions |
+| **Business Referrals** | Transactions between businesses |
+| **Platform Refer & Earn** | New DigitalGate customers (earlier loop) |
 | **Marketplace** | Facilitates discovery & listing |
 | **CRM** | Records leads, pipeline, revenue |
 
@@ -177,25 +256,28 @@ App install marketplace remains [APP-MARKETPLACE.md](./APP-MARKETPLACE.md). Broa
 
 | Concept | Why it matters later |
 |---------|----------------------|
-| **Organisation** | Referral Profile node; Verified DG Business |
-| **Contact / Lead / Opportunity** | Referral lands in recipient CRM |
+| **Organisation** | Referral Profile node; Verified DG Business; `referredBy` for Platform Refer & Earn |
+| **Billing / Plan / Stripe** | Platform referral ledger + credit / cash-out |
+| **Contact / Lead / Opportunity** | Business referral lands in recipient CRM |
 | **Deal / Project completion events** | Trigger review requests |
 | **Connectors** | GBP and other review sources |
 | **Consent / discoverability** | Network + competitor monitoring boundaries |
-| **Country Pack + industry pack** | Compliance gate for Paid / Commission referrals |
+| **Country Pack + industry pack** | Compliance gate for Paid / Commission *business* referrals |
 | **Scoring Engine slot** | Reputation Score™ |
 | **Audit / disclosure fields** | Fee type, terms acknowledged, settlement status |
 
-Prefer reserved settings and events over premature tables until Network phase.
+Prefer reserved settings and events over premature tables until the relevant phase (billing for Platform Refer & Earn; Network for Reviews / B2B).
 
 ---
 
 ## Explicit non-goals (now)
 
-- ❌ Shipping Reviews or Referrals product UI before Core / CRM / Connectors maturity  
-- ❌ Treating Reviews and Referrals as one blended feature  
-- ❌ Invisible or undisclosed referral commissions  
-- ❌ Enabling Paid / Commission referrals in regulated industries without a compliance pack  
+- ❌ Shipping Reviews or **Business** Referral Network UI before Core / CRM / Connectors maturity  
+- ❌ Treating Reviews, Platform Refer & Earn, and Business Referrals as one blended feature  
+- ❌ Burying Platform Refer & Earn only in Phase 5 Network (it is **Core-adjacent**)  
+- ❌ Multi-level / MLM structures on Platform Refer & Earn  
+- ❌ Invisible or undisclosed *business* referral commissions  
+- ❌ Enabling Paid / Commission business referrals in regulated industries without a compliance pack  
 - ❌ Building Marketplace / Network flywheel ahead of Intelligence and critical mass  
 
 ---
@@ -204,9 +286,10 @@ Prefer reserved settings and events over premature tables until Network phase.
 
 | When | What |
 |------|------|
-| **Now – Phase 4** | Design constraints above; Connector hooks for reviews; CRM events for post-job triggers; disclosure / compliance requirements documented |
-| **Phase 5 — Network** | Community + partner graph; Reviews App v1 concepts; Referral Engine / Profiles (non-financial first) |
-| **Phase 5+** | Paid / Commission referrals behind compliance packs; Marketplace opportunities lane; DG referral fee settlement |
+| **Now – design** | All constraints above; Platform Refer & Earn attribution + ledger concepts; Connector hooks for reviews; CRM events; disclosure / compliance for B2B |
+| **Commercial launch / billing (Core-adjacent)** | **Platform Referral Programme** — Refer & Earn links, dashboard, credit / cash at ~$100, 20% / partner / WL tiers, single-level only |
+| **Phase 5 — Network** | Community + partner graph; Reviews App v1 concepts; Business Referral Engine / Profiles (non-financial first) |
+| **Phase 5+** | Paid / Commission *business* referrals behind compliance packs; Marketplace opportunities lane; DG B2B referral fee settlement |
 
 Detail for Network surface: [NETWORK-LAYER.md](./NETWORK-LAYER.md). Execution priority: [ROADMAP.md](../ROADMAP.md).
 
@@ -219,5 +302,5 @@ Detail for Network surface: [NETWORK-LAYER.md](./NETWORK-LAYER.md). Execution pr
 - [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) — Country Packs / jurisdiction gates  
 - [APP-MARKETPLACE.md](./APP-MARKETPLACE.md) — installable Apps contract  
 - [DIGITALGATE-INTELLIGENCE.md](./DIGITALGATE-INTELLIGENCE.md) — cohort signals vs Network discovery  
-- [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md) — subscription vs transaction / referral revenue  
+- [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md) — subscription vs Platform Refer & Earn vs B2B referral revenue  
 - [AI-GOVERNANCE.md](./AI-GOVERNANCE.md) — AI draft responses, theme extraction boundaries  
