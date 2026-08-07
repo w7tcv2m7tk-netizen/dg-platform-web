@@ -53,7 +53,7 @@ Not feature parity with HubSpot.
 | Phase | Scope |
 |-------|-------|
 | **Now** | Manifest, types, ADR, architecture doc ✅ |
-| **After Core + Twin v1** | `/command` shell, Platform Overview, Client Intelligence |
+| **Aug 2026 ops slice** | `/command` ops home (pulse, today’s actions, deep links), Client Intelligence signals, Platform Health (connectors/Stripe), Revenue + Refer & Earn snapshot ✅ |
 | **After Scoring v1** | Success Score™, Agency Health Ranking |
 | **Validation phase** | Growth Reports, AI Advisor, Opportunity Engine, Benchmarking |
 

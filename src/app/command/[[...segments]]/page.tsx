@@ -1,66 +1,57 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
-import {} from "@dg/platform-core";
+import { getCommandCentreOpsHome } from "@dg/platform-core";
 
+import { CommandCentreNav } from "@/components/command/CommandCentreNav";
+import { CommandOpsHome } from "@/components/command/CommandOpsHome";
 import { AppFeaturePlaceholder } from "@/components/platform/AppFeaturePlaceholder";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 interface PageProps {
   params: Promise<{ segments?: string[] }>;
 }
 
 async function CommandOverviewPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name: user.fullName ?? email,
-      })
-    : null;
+  const { session } = await getPlatformPageContext();
+  const data = process.env.DATABASE_URL ? await getCommandCentreOpsHome() : null;
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/dashboard" className="text-sm text-blue-400 hover:underline">
-          ← Dashboard
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Command Centre</h1>
-        <p className="text-sm text-slate-400">
-          Internal OS for DigitalGate{session ? ` · ${session.organisationName}` : ""}
-        </p>
-      </header>
-      <main className="flex-1 space-y-6 p-8">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Link href="/command/growth-engine" className="dg-card block hover:border-blue-500/40">
-            <p className="text-xs uppercase tracking-wide text-blue-400">Growth Engine™</p>
-            <h2 className="mt-2 text-lg font-semibold text-white">Acquisition pipeline</h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Discover businesses, run AI audits, send reports, convert to clients.
-            </p>
+      <header className="dg-page-header relative overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-80"
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 60% at 10% 0%, rgba(14, 165, 233, 0.18), transparent 55%), linear-gradient(180deg, rgba(2,6,23,0.2), transparent)",
+          }}
+        />
+        <div className="relative">
+          <Link href="/dashboard" className="text-sm text-sky-400 hover:underline">
+            ← Business workspace
           </Link>
-          <Link href="/command/clients" className="dg-card block hover:border-slate-600">
-            <h2 className="font-semibold text-white">Client intelligence</h2>
-            <p className="mt-2 text-sm text-slate-400">Per-tenant scores, usage, and success metrics.</p>
-          </Link>
-          <Link href="/command/platform-health" className="dg-card block hover:border-slate-600">
-            <h2 className="font-semibold text-white">Platform health</h2>
-            <p className="mt-2 text-sm text-slate-400">Infrastructure, API, and AI usage.</p>
-          </Link>
-          <Link href="/command/revenue" className="dg-card block hover:border-slate-600">
-            <h2 className="font-semibold text-white">Revenue</h2>
-            <p className="mt-2 text-sm text-slate-400">MRR, ARR, churn, and trials.</p>
-          </Link>
-          <Link href="/command/reports" className="dg-card block hover:border-slate-600">
-            <h2 className="font-semibold text-white">Executive dashboard</h2>
-            <p className="mt-2 text-sm text-slate-400">Growth reports and agency rankings.</p>
-          </Link>
-          <Link href="/command/support" className="dg-card block hover:border-slate-600">
-            <h2 className="font-semibold text-white">Support centre</h2>
-            <p className="mt-2 text-sm text-slate-400">Cross-tenant support context.</p>
-          </Link>
+          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400">
+            DigitalGate
+          </p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            Command Centre
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm text-slate-400">
+            {data?.briefing ??
+              `Internal OS for DigitalGate${session ? ` · ${session.organisationName}` : ""}`}
+          </p>
         </div>
+      </header>
+      <main className="flex-1 space-y-8 p-6 md:p-8">
+        <CommandCentreNav active="overview" />
+
+        {!data ? (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
+            Set <code className="text-amber-200">DATABASE_URL</code> and run{" "}
+            <code className="text-amber-200">npm run db:push</code> to enable live Command Centre
+            aggregates.
+          </div>
+        ) : (
+          <CommandOpsHome data={data} />
+        )}
       </main>
     </>
   );

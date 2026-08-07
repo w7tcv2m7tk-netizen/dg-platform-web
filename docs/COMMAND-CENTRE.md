@@ -4,7 +4,7 @@
 
 **Version:** 1.0  
 **Last updated:** August 2026  
-**Status:** Architecture defined — implementation after Platform Core + tenant data
+**Status:** Ops home live (Aug 2026) — `/command` pulse + clients/health/revenue; Growth Engine hub/pipeline; Twin/Scoring modules still phased
 
 ---
 

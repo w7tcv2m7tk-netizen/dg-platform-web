@@ -13,7 +13,7 @@ export const commandCentreApp: AppManifest = {
     "DigitalGate internal OS — platform ops, client success, Growth Engine acquisition, revenue",
   tier: "internal",
   visibility: "internal",
-  version: "0.2.0",
+  version: "0.3.0",
   icon: "⬡",
   routes: [
     { path: "/command", label: "Platform Overview" },

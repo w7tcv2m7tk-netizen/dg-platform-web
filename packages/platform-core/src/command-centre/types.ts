@@ -18,6 +18,122 @@ export interface PlatformOverview {
   generatedAt: Date;
 }
 
+/** Live ops pulse — what staff see on /command today */
+export interface CommandPlatformPulse {
+  organisations: number;
+  users: number;
+  leads: number;
+  leadsThisWeek: number;
+  openOpportunities: number;
+  properties: number;
+  listedProperties: number;
+  stayBookings: number;
+  stayBookingsActive: number;
+  checkinsToday: number;
+  growthProspects: number;
+  growthInPipeline: number;
+  openTasksDue: number;
+  overdueLeadResponses: number;
+}
+
+export type CommandActionSeverity = "urgent" | "today" | "watch";
+
+export interface CommandActionItem {
+  id: string;
+  severity: CommandActionSeverity;
+  title: string;
+  detail: string;
+  href: string;
+}
+
+export interface CommandClientRow {
+  organisationId: string;
+  organisationName: string;
+  organisationSlug: string;
+  status: string;
+  industry: string | null;
+  memberCount: number;
+  contactCount: number;
+  leadCount: number;
+  propertyCount: number;
+  stayBookingCount: number;
+  installedApps: string[];
+  needsAttention: boolean;
+  attentionReasons: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CommandConnectorOrgStatus {
+  organisationId: string;
+  organisationName: string;
+  organisationSlug: string;
+  wordpressConfigured: boolean;
+  lastSyncAt: string | null;
+  hasBillingCustomer: boolean;
+  installedApps: string[];
+}
+
+export interface CommandReferEarnSnapshot {
+  totalReferrals: number;
+  invited: number;
+  signedUp: number;
+  paid: number;
+  creditsMtdCents: number;
+}
+
+export interface CommandDeepLink {
+  id: string;
+  label: string;
+  href: string;
+  description: string;
+}
+
+export interface CommandRecentActivity {
+  id: string;
+  title: string;
+  activityType: string;
+  sourceApp: string | null;
+  organisationName: string;
+  organisationSlug: string;
+  createdAt: string;
+}
+
+/** Full ops home payload for /command */
+export interface CommandCentreOpsHome {
+  generatedAt: string;
+  briefing: string;
+  pulse: CommandPlatformPulse;
+  actions: CommandActionItem[];
+  clients: CommandClientRow[];
+  connectors: {
+    stripeOk: boolean;
+    stripeMode: "test" | "live" | "unset";
+    orgsWithBillingCustomer: number;
+    wordpressConfiguredCount: number;
+    wordpressSyncedRecently: number;
+    orgs: CommandConnectorOrgStatus[];
+  };
+  billing: {
+    activeSubscriptions: number;
+    estimatedMrrCents: number;
+    invoicePaidMtdCents: number;
+    orgsWithBillingCustomer: number;
+    stripeOk: boolean;
+    stripeMode: "test" | "live" | "unset";
+    estimatedMrrLabel: string;
+    invoicePaidMtdLabel: string;
+  };
+  referEarn: CommandReferEarnSnapshot;
+  growth: {
+    totalProspects: number;
+    byStage: Record<string, number>;
+    engagementsThisWeek: number;
+  };
+  recentActivity: CommandRecentActivity[];
+  deepLinks: CommandDeepLink[];
+}
+
 /** Per-client view in Command Centre (richer than customer dashboard) */
 export interface ClientIntelligence {
   organisationId: string;

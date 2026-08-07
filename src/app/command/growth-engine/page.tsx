@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getGrowthEngineSummary } from "@dg/platform-core";
 
+import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import {
   GrowthEngineModuleGrid,
   GrowthEngineNav,
@@ -12,7 +13,7 @@ export default async function GrowthEngineHubPage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/command" className="text-sm text-blue-400 hover:underline">
+        <Link href="/command" className="text-sm text-sky-400 hover:underline">
           ← Command Centre
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Growth Engine™</h1>
@@ -21,6 +22,7 @@ export default async function GrowthEngineHubPage() {
         </p>
       </header>
       <main className="flex-1 space-y-8 p-8">
+        <CommandCentreNav active="growth" />
         <GrowthEngineNav active="hub" />
 
         {summary ? (
