@@ -30,6 +30,19 @@ function bookingColor(booking?: Pick<WpAccBookingRow, "status" | "source"> | nul
     ?? CHANNEL_COLORS.pending.bg;
 }
 
+/** Soft cell wash for month view (keeps chips readable). */
+function bookingWash(booking?: Pick<WpAccBookingRow, "status" | "source"> | null) {
+  const key = channelKey(booking);
+  const washes: Record<string, string> = {
+    confirmed: "rgba(16, 185, 129, 0.18)",
+    pending: "rgba(245, 158, 11, 0.18)",
+    airbnb: "rgba(255, 90, 95, 0.18)",
+    bookingcom: "rgba(0, 53, 128, 0.22)",
+    completed: "rgba(100, 116, 139, 0.2)",
+  };
+  return washes[key] ?? washes.pending;
+}
+
 function daysBetween(from: string, to: string): string[] {
   const out: string[] = [];
   const cur = new Date(`${from}T12:00:00`);
@@ -78,10 +91,25 @@ function formatDayLabel(iso: string, mode: "short" | "long" = "short") {
   return d.toLocaleDateString("en-AU", { weekday: "narrow", day: "numeric" });
 }
 
-function bookingOnDay(unit: WpAccAvailabilityUnit, day: string) {
-  return (unit.bookings ?? []).find(
-    (b) => b.checkin && b.checkout && day >= b.checkin && day < b.checkout,
+/**
+ * Stay nights use hotel semantics: check-in inclusive, check-out exclusive.
+ * A stay 2026-08-01 → 2026-08-04 occupies nights 01, 02, 03 (not the checkout day).
+ * Matches WP DG_Acc_Frontend::get_blocked_dates / calculate_total.
+ */
+function bookingOccupiesNight(
+  booking: Pick<WpAccBookingRow, "checkin" | "checkout">,
+  day: string,
+) {
+  return Boolean(
+    booking.checkin &&
+      booking.checkout &&
+      day >= booking.checkin &&
+      day < booking.checkout,
   );
+}
+
+function bookingOnDay(unit: WpAccAvailabilityUnit, day: string) {
+  return (unit.bookings ?? []).find((b) => bookingOccupiesNight(b, day));
 }
 
 function flattenBookings(units: WpAccAvailabilityUnit[]) {
@@ -439,57 +467,100 @@ function MonthGrid({
   ];
   while (cells.length % 7 !== 0) cells.push(null);
 
-  const byDay = new Map<string, Array<{ unit: string; booking: WpAccBookingRow }>>();
+  // Every occupied night in the stay range (check-in inclusive, check-out exclusive),
+  // including stays that started before this month.
+  const byDay = new Map<
+    string,
+    Array<{ unit: string; booking: WpAccBookingRow; isCheckin: boolean }>
+  >();
+  const blockedOnlyByDay = new Map<string, number>();
   for (const unit of units) {
+    const blocked = new Set(unit.blocked_dates ?? []);
     for (const day of days) {
       const booking = bookingOnDay(unit, day);
-      if (!booking) continue;
-      // Only show on check-in day to avoid clutter
-      if (booking.checkin !== day) continue;
-      const list = byDay.get(day) ?? [];
-      list.push({ unit: unit.title, booking });
-      byDay.set(day, list);
+      if (booking) {
+        const list = byDay.get(day) ?? [];
+        list.push({
+          unit: unit.title,
+          booking,
+          isCheckin: booking.checkin === day,
+        });
+        byDay.set(day, list);
+        continue;
+      }
+      if (blocked.has(day)) {
+        blockedOnlyByDay.set(day, (blockedOnlyByDay.get(day) ?? 0) + 1);
+      }
     }
   }
 
   return (
     <div className="space-y-3">
       <h2 className="text-sm font-medium text-slate-300">{title}</h2>
+      <p className="text-[11px] text-slate-500">
+        Booked nights shown for each stay (check-in inclusive, check-out day free).
+      </p>
       <div className="grid grid-cols-7 gap-px overflow-hidden rounded-xl border border-slate-800 bg-slate-800">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
           <div key={d} className="bg-slate-950 px-2 py-1.5 text-center text-[10px] font-medium uppercase text-slate-500">
             {d}
           </div>
         ))}
-        {cells.map((day, i) => (
-          <div
-            key={day ?? `pad-${i}`}
-            className="min-h-[88px] bg-slate-950 p-1.5"
-          >
-            {day ? (
-              <>
-                <p className="text-[11px] text-slate-500">{day.slice(8)}</p>
-                <div className="mt-1 space-y-1">
-                  {(byDay.get(day) ?? []).slice(0, 3).map(({ unit, booking }) => (
-                    <div
-                      key={`${booking.id}-${unit}`}
-                      className="truncate rounded px-1 py-0.5 text-[10px] text-white"
-                      style={{ backgroundColor: bookingColor(booking) }}
-                      title={`${unit}: ${booking.guest_name ?? "Guest"}`}
-                    >
-                      {booking.guest_name ?? unit}
-                    </div>
-                  ))}
-                  {(byDay.get(day)?.length ?? 0) > 3 ? (
-                    <p className="text-[10px] text-slate-500">
-                      +{(byDay.get(day)?.length ?? 0) - 3} more
-                    </p>
-                  ) : null}
-                </div>
-              </>
-            ) : null}
-          </div>
-        ))}
+        {cells.map((day, i) => {
+          const entries = day ? byDay.get(day) ?? [] : [];
+          const blockedCount = day ? blockedOnlyByDay.get(day) ?? 0 : 0;
+          const primary = entries[0];
+          return (
+            <div
+              key={day ?? `pad-${i}`}
+              className="min-h-[88px] bg-slate-950 p-1.5"
+              style={
+                primary
+                  ? { backgroundColor: bookingWash(primary.booking) }
+                  : blockedCount
+                    ? { backgroundColor: "rgba(51, 65, 85, 0.35)" }
+                    : undefined
+              }
+            >
+              {day ? (
+                <>
+                  <p className="text-[11px] text-slate-500">{day.slice(8)}</p>
+                  <div className="mt-1 space-y-1">
+                    {entries.slice(0, 3).map(({ unit, booking, isCheckin }) => (
+                      <div
+                        key={`${booking.id}-${unit}-${day}`}
+                        className="truncate rounded px-1 py-0.5 text-[10px] text-white"
+                        style={{
+                          backgroundColor: bookingColor(booking),
+                          opacity: isCheckin ? 1 : 0.85,
+                        }}
+                        title={`${unit}: ${booking.guest_name ?? "Guest"} · ${booking.checkin} → ${booking.checkout}`}
+                      >
+                        {isCheckin
+                          ? (booking.guest_name ?? unit)
+                          : `→ ${booking.guest_name ?? unit}`}
+                      </div>
+                    ))}
+                    {entries.length > 3 ? (
+                      <p className="text-[10px] text-slate-500">
+                        +{entries.length - 3} more
+                      </p>
+                    ) : null}
+                    {!entries.length && blockedCount > 0 ? (
+                      <div
+                        className="truncate rounded px-1 py-0.5 text-[10px] text-slate-300"
+                        style={{ backgroundColor: CHANNEL_COLORS.blocked.bg }}
+                        title="Blocked (manual / OTA)"
+                      >
+                        Blocked
+                      </div>
+                    ) : null}
+                  </div>
+                </>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
