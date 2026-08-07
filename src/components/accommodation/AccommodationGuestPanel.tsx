@@ -48,14 +48,22 @@ export function AccommodationGuestPanel({
             App context on Contact — stays, spend, and preferences.
           </p>
         </div>
-        {showContactLink ? (
+        <div className="flex flex-wrap gap-2">
           <Link
-            href={`/apps/crm/contacts/${guest.contactId}`}
+            href="/apps/accommodation/reviews"
             className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300 hover:border-blue-500 hover:text-white"
           >
-            Open Contact
+            Acc Reviews
           </Link>
-        ) : null}
+          {showContactLink ? (
+            <Link
+              href={`/apps/crm/contacts/${guest.contactId}`}
+              className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300 hover:border-blue-500 hover:text-white"
+            >
+              Open Contact
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       <dl className="grid gap-3 text-sm sm:grid-cols-2">

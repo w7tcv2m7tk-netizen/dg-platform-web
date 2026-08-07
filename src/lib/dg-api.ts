@@ -780,6 +780,10 @@ export type WpAccommodationSummary = {
   upcoming_30d?: number;
   checkins_today?: number;
   checkins_tomorrow?: number;
+  checkouts_today?: number;
+  /** Site-local YYYY-MM-DD (plugin v10.65.2+). */
+  today?: string;
+  tomorrow?: string;
   housekeeping?: Record<string, unknown>;
   recent_bookings?: WpAccBookingRow[];
 };
@@ -889,6 +893,9 @@ export type WpAccHousekeepingItem = {
   status: string;
   notes?: string;
   last_cleaned?: string | null;
+  /** Plugin v10.65.2+ */
+  last_report_id?: number | null;
+  checkout_today?: boolean;
   cleaning_form_url?: string;
   checkin_url?: string;
 };
@@ -1025,6 +1032,8 @@ export async function fetchWpAccommodationHousekeeping(
     items?: WpAccHousekeepingItem[];
     summary?: Record<string, number>;
     statuses?: Record<string, string>;
+    checkouts_today?: number;
+    today?: string;
     total?: number;
   }>("/accommodation/housekeeping", {
     baseUrl: site.baseUrl,
@@ -1036,6 +1045,8 @@ export async function fetchWpAccommodationHousekeeping(
     items: result.data.items ?? [],
     summary: result.data.summary ?? {},
     statuses: result.data.statuses ?? {},
+    checkoutsToday: result.data.checkouts_today ?? 0,
+    today: result.data.today,
     total: result.data.total ?? 0,
     site: site.label,
   };

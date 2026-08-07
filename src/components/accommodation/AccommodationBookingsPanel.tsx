@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AccommodationBookingsTable } from "@/components/accommodation/AccommodationBookingsTable";
+import { accIsSaturday, accNightsBetween } from "@/lib/acc-dates";
 import type { WpAccBookingRow, WpAccUnitProp } from "@/lib/dg-api";
 
 type NewBookingForm = {
@@ -20,6 +21,7 @@ type NewBookingForm = {
   paid: string;
   payment_method: string;
   message: string;
+  allow_saturday: boolean;
 };
 
 const EMPTY_FORM: NewBookingForm = {
@@ -36,7 +38,28 @@ const EMPTY_FORM: NewBookingForm = {
   paid: "no",
   payment_method: "",
   message: "",
+  allow_saturday: false,
 };
+
+function estimateTotal(unit: WpAccUnitProp | undefined, checkin: string, checkout: string): number | null {
+  if (!unit || !checkin || !checkout) return null;
+  const nights = accNightsBetween(checkin, checkout);
+  if (nights <= 0) return null;
+  const weekday = Number(unit.weekday_rate ?? 0);
+  const weekend = Number(unit.weekend_rate ?? weekday);
+  if (!weekday && !weekend) return null;
+
+  let subtotal = 0;
+  const [y, m, d] = checkin.split("-").map(Number);
+  const cursor = new Date(Date.UTC(y, (m ?? 1) - 1, d ?? 1, 12));
+  for (let i = 0; i < nights; i++) {
+    const dow = cursor.getUTCDay();
+    subtotal += dow === 5 || dow === 6 ? weekend || weekday : weekday || weekend;
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  const cleaning = Number(unit.cleaning_fee ?? 0);
+  return Math.round((subtotal + (Number.isFinite(cleaning) ? cleaning : 0)) * 100) / 100;
+}
 
 export function AccommodationBookingsPanel({
   bookings,
@@ -57,6 +80,7 @@ export function AccommodationBookingsPanel({
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState<NewBookingForm>(EMPTY_FORM);
   const [units, setUnits] = useState<WpAccUnitProp[]>([]);
+  const [unitsError, setUnitsError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createMsg, setCreateMsg] = useState<string | null>(null);
@@ -65,15 +89,32 @@ export function AccommodationBookingsPanel({
     if (!showNew || units.length) return;
     let cancelled = false;
     (async () => {
+      setUnitsError(null);
       const res = await fetch("/api/v1/accommodation?resource=units");
       const json = await res.json().catch(() => null);
-      if (cancelled || !res.ok) return;
+      if (cancelled) return;
+      if (!res.ok) {
+        setUnitsError(json?.error?.message ?? "Could not load units");
+        return;
+      }
       setUnits(Array.isArray(json?.data) ? json.data : []);
     })();
     return () => {
       cancelled = true;
     };
   }, [showNew, units.length]);
+
+  const selectedUnit = useMemo(
+    () => units.find((u) => String(u.id) === form.accommodation_id),
+    [units, form.accommodation_id],
+  );
+
+  const nights =
+    form.checkin && form.checkout ? accNightsBetween(form.checkin, form.checkout) : 0;
+  const quote = estimateTotal(selectedUnit, form.checkin, form.checkout);
+  const saturdayHit =
+    (form.checkin && accIsSaturday(form.checkin)) ||
+    (form.checkout && accIsSaturday(form.checkout));
 
   async function syncFromWordPress() {
     setSyncing(true);
@@ -107,6 +148,18 @@ export function AccommodationBookingsPanel({
       setCreating(false);
       return;
     }
+    if (nights <= 0) {
+      setCreateError("Check-out must be after check-in.");
+      setCreating(false);
+      return;
+    }
+    if (saturdayHit && !form.allow_saturday) {
+      setCreateError(
+        "Saturday check-in/out is blocked for CVH — tick “Allow Saturday” to override.",
+      );
+      setCreating(false);
+      return;
+    }
 
     const res = await fetch("/api/v1/accommodation", {
       method: "POST",
@@ -121,27 +174,43 @@ export function AccommodationBookingsPanel({
           checkin: form.checkin,
           checkout: form.checkout,
           guests: form.guests ? Number(form.guests) : 2,
-          total: form.total === "" ? 0 : Number(form.total),
+          total: form.total === "" ? (quote ?? 0) : Number(form.total),
           status: form.status,
           source: form.source,
           paid: form.paid,
           payment_method: form.payment_method || undefined,
           message: form.message.trim() || undefined,
+          allow_saturday: form.allow_saturday || undefined,
         },
       }),
     });
     const json = await res.json().catch(() => null);
     setCreating(false);
     if (!res.ok) {
+      const partial =
+        Array.isArray(json?.error?.errors) && json.error.errors[0]?.message
+          ? String(json.error.errors[0].message)
+          : null;
       setCreateError(
-        json?.error?.message ??
-          "Could not create booking — deploy DG Platform plugin v10.65.0+ on CVH.",
+        partial ??
+          json?.error?.message ??
+          "Could not create booking — deploy DG Platform plugin v10.65.2+ on CVH.",
       );
       return;
     }
 
+    const wpErrors = Array.isArray(json?.data?.errors) ? json.data.errors : [];
+    if (wpErrors.length && !json?.data?.created?.length) {
+      setCreateError(wpErrors[0]?.message ?? "Could not create booking");
+      return;
+    }
+
     const ref = json?.data?.created?.[0]?.ref;
-    setCreateMsg(ref ? `Created booking ${ref}` : "Booking created");
+    const warn =
+      wpErrors.length > 0
+        ? ` (with ${wpErrors.length} row warning${wpErrors.length === 1 ? "" : "s"})`
+        : "";
+    setCreateMsg(ref ? `Created booking ${ref}${warn}` : `Booking created${warn}`);
     setForm(EMPTY_FORM);
     setShowNew(false);
     router.refresh();
@@ -184,9 +253,10 @@ export function AccommodationBookingsPanel({
         >
           <h2 className="font-semibold text-white">New manual / direct booking</h2>
           <p className="text-sm text-slate-500">
-            Creates on WordPress CVH and rebuilds blocked dates for the unit. Requires plugin
-            v10.65.0+.
+            Creates on WordPress CVH, rejects date conflicts, and rebuilds blocked dates.
+            Requires plugin v10.65.2+.
           </p>
+          {unitsError ? <p className="text-sm text-amber-400">{unitsError}</p> : null}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label className="text-sm text-slate-400">
               Guest name *
@@ -266,9 +336,17 @@ export function AccommodationBookingsPanel({
                 type="number"
                 step="0.01"
                 value={form.total}
+                placeholder={quote != null ? String(quote) : undefined}
                 onChange={(e) => setForm((f) => ({ ...f, total: e.target.value }))}
                 className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-white"
               />
+              {nights > 0 ? (
+                <span className="mt-1 block text-xs text-slate-500">
+                  {nights} night{nights === 1 ? "" : "s"}
+                  {quote != null ? ` · estimate $${quote.toLocaleString("en-AU")}` : ""}
+                  {form.total === "" && quote != null ? " (used if blank)" : ""}
+                </span>
+              ) : null}
             </label>
             <label className="text-sm text-slate-400">
               Status
@@ -331,6 +409,18 @@ export function AccommodationBookingsPanel({
               />
             </label>
           </div>
+          {saturdayHit ? (
+            <label className="flex items-center gap-2 text-sm text-amber-300">
+              <input
+                type="checkbox"
+                checked={form.allow_saturday}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, allow_saturday: e.target.checked }))
+                }
+              />
+              Allow Saturday check-in/out (CVH override)
+            </label>
+          ) : null}
           {createError ? <p className="text-sm text-amber-400">{createError}</p> : null}
           <button
             type="submit"

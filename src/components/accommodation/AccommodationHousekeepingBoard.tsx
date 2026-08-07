@@ -11,12 +11,16 @@ export function AccommodationHousekeepingBoard({
   summary,
   error,
   siteLabel,
+  checkoutsToday,
+  today,
 }: {
   items: WpAccHousekeepingItem[];
   statuses: Record<string, string>;
   summary: Record<string, number>;
   error?: string;
   siteLabel?: string;
+  checkoutsToday?: number;
+  today?: string;
 }) {
   const router = useRouter();
   const [rows, setRows] = useState(items);
@@ -46,6 +50,9 @@ export function AccommodationHousekeepingBoard({
           inspection: "Awaiting inspection",
         };
 
+  const turnoverCount =
+    checkoutsToday ?? rows.filter((r) => r.checkout_today).length;
+
   async function saveAll() {
     setPending(true);
     setMessage(null);
@@ -71,9 +78,43 @@ export function AccommodationHousekeepingBoard({
     router.refresh();
   }
 
+  async function saveRow(item: WpAccHousekeepingItem) {
+    setPending(true);
+    setMessage(null);
+    setSaveError(null);
+    const res = await fetch("/api/v1/accommodation/housekeeping", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        updates: [
+          {
+            property_id: item.id,
+            status: item.status,
+            notes: item.notes ?? "",
+          },
+        ],
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setPending(false);
+    if (!res.ok) {
+      setSaveError(json.error?.message ?? "Could not save unit");
+      return;
+    }
+    setMessage(`Saved ${item.title}`);
+    router.refresh();
+  }
+
   return (
     <div className="space-y-4">
       {siteLabel ? <p className="text-sm text-slate-500">{siteLabel}</p> : null}
+
+      {turnoverCount > 0 ? (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100">
+          {turnoverCount} unit{turnoverCount === 1 ? "" : "s"} with checkout
+          {today ? ` on ${today}` : " today"} — suggest marking dirty after departure.
+        </div>
+      ) : null}
 
       {Object.keys(summary).length ? (
         <div className="flex flex-wrap gap-2">
@@ -94,20 +135,36 @@ export function AccommodationHousekeepingBoard({
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-800">
-          <table className="w-full min-w-[820px] text-left text-sm">
+          <table className="w-full min-w-[920px] text-left text-sm">
             <thead className="border-b border-slate-800 bg-slate-900/60 text-xs uppercase text-slate-500">
               <tr>
                 <th className="px-4 py-3">Property</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Last cleaned</th>
+                <th className="px-4 py-3">Last report</th>
                 <th className="px-4 py-3">Notes</th>
                 <th className="px-4 py-3">Links</th>
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
               {rows.map((item, idx) => (
-                <tr key={item.id} className="hover:bg-slate-900/40">
-                  <td className="px-4 py-3 font-medium text-white">{item.title}</td>
+                <tr
+                  key={item.id}
+                  className={
+                    item.checkout_today
+                      ? "bg-amber-500/5 hover:bg-amber-500/10"
+                      : "hover:bg-slate-900/40"
+                  }
+                >
+                  <td className="px-4 py-3 font-medium text-white">
+                    {item.title}
+                    {item.checkout_today ? (
+                      <span className="ml-2 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-200">
+                        Checkout today
+                      </span>
+                    ) : null}
+                  </td>
                   <td className="px-4 py-3">
                     <select
                       value={item.status}
@@ -129,6 +186,9 @@ export function AccommodationHousekeepingBoard({
                     </select>
                   </td>
                   <td className="px-4 py-3 text-slate-400">{item.last_cleaned ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-400">
+                    {item.last_report_id ? `#${item.last_report_id}` : "—"}
+                  </td>
                   <td className="px-4 py-3">
                     <input
                       value={item.notes ?? ""}
@@ -164,6 +224,16 @@ export function AccommodationHousekeepingBoard({
                         </a>
                       ) : null}
                     </div>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => void saveRow(rows[idx]!)}
+                      className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300 hover:border-blue-500 hover:text-white disabled:opacity-50"
+                    >
+                      Save
+                    </button>
                   </td>
                 </tr>
               ))}

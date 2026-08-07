@@ -1,20 +1,48 @@
+import Link from "next/link";
+
 import type { WpAccommodationSummary } from "@/lib/dg-api";
 
 function StatCard({
   label,
   value,
   hint,
+  href,
 }: {
   label: string;
   value: string | number;
   hint?: string;
+  href?: string;
 }) {
-  return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+  const inner = (
+    <>
       <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-1 text-2xl font-bold text-white">{value}</p>
       {hint ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
-    </div>
+    </>
+  );
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="block rounded-xl border border-slate-800 bg-slate-900/50 p-4 transition hover:border-blue-500/40"
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">{inner}</div>;
+}
+
+function housekeepingDirty(summary?: WpAccommodationSummary): number {
+  const hk = summary?.housekeeping;
+  if (!hk || typeof hk !== "object") return 0;
+  const dirty = Number((hk as Record<string, unknown>).dirty ?? 0);
+  const inProgress = Number((hk as Record<string, unknown>).in_progress ?? 0);
+  const inspection = Number((hk as Record<string, unknown>).inspection ?? 0);
+  return (
+    (Number.isFinite(dirty) ? dirty : 0) +
+    (Number.isFinite(inProgress) ? inProgress : 0) +
+    (Number.isFinite(inspection) ? inspection : 0)
   );
 }
 
@@ -55,31 +83,91 @@ export function AccommodationDashboard({
         )}%`
       : "—";
 
-  const revenue =
-    summary.revenue_mtd ?? summary.revenue_month;
+  const revenue = summary.revenue_mtd ?? summary.revenue_month;
+  const dirty = housekeepingDirty(summary);
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Occupancy" value={occupancy} hint={siteLabel ?? summary.site} />
-        <StatCard label="Check-ins today" value={summary.checkins_today ?? 0} />
+        <StatCard
+          label="Check-ins today"
+          value={summary.checkins_today ?? 0}
+          href="/apps/accommodation/check-ins"
+          hint={
+            summary.checkouts_today != null
+              ? `${summary.checkouts_today} checkouts today`
+              : undefined
+          }
+        />
         <StatCard
           label="Check-ins tomorrow"
           value={summary.checkins_tomorrow ?? 0}
+          href="/apps/accommodation/check-ins"
         />
         <StatCard
           label="Revenue MTD"
           value={
-            typeof revenue === "number"
-              ? `$${revenue.toLocaleString("en-AU")}`
-              : "—"
+            typeof revenue === "number" ? `$${revenue.toLocaleString("en-AU")}` : "—"
           }
+          href="/apps/accommodation/payments"
         />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Properties"
+          value={summary.properties ?? "—"}
+          href="/apps/accommodation/units"
+        />
+        <StatCard
+          label="Guests"
+          value={summary.guests ?? "—"}
+          href="/apps/accommodation/guests"
+        />
+        <StatCard
+          label="Upcoming 30d"
+          value={summary.upcoming_30d ?? "—"}
+          href="/apps/accommodation/bookings"
+        />
+        <StatCard
+          label="Housekeeping"
+          value={dirty}
+          hint={dirty ? "Need attention" : "All clear"}
+          href="/apps/accommodation/housekeeping"
+        />
+      </div>
+
+      <div className="flex flex-wrap gap-2 text-sm">
+        {[
+          { href: "/apps/accommodation/bookings", label: "Bookings" },
+          { href: "/apps/accommodation/check-ins", label: "Check-ins" },
+          { href: "/apps/accommodation/payments", label: "Payments" },
+          { href: "/apps/accommodation/housekeeping", label: "Housekeeping" },
+          { href: "/apps/accommodation/calendar", label: "Availability" },
+          { href: "/apps/accommodation/reviews", label: "Reviews" },
+        ].map((l) => (
+          <Link
+            key={l.href}
+            href={l.href}
+            className="rounded-full border border-slate-700 px-3 py-1 text-slate-300 hover:border-blue-500 hover:text-white"
+          >
+            {l.label}
+          </Link>
+        ))}
       </div>
 
       {summary.recent_bookings?.length ? (
         <div className="dg-card">
-          <h2 className="font-semibold text-white">Recent bookings</h2>
+          <div className="flex items-baseline justify-between gap-2">
+            <h2 className="font-semibold text-white">Recent bookings</h2>
+            <Link
+              href="/apps/accommodation/bookings"
+              className="text-xs text-blue-400 hover:underline"
+            >
+              View all →
+            </Link>
+          </div>
           <ul className="mt-3 space-y-2 text-sm">
             {summary.recent_bookings.slice(0, 5).map((b) => (
               <li
@@ -93,6 +181,7 @@ export function AccommodationDashboard({
                 </span>
                 <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs capitalize text-slate-300">
                   {b.status}
+                  {b.paid === "yes" ? " · paid" : b.paid === "no" ? " · unpaid" : ""}
                 </span>
               </li>
             ))}

@@ -62,6 +62,8 @@ export default async function AccommodationHousekeepingPage({ searchParams }: Pa
           summary={board.ok ? board.summary : {}}
           error={board.ok ? undefined : board.message}
           siteLabel={siteLabel}
+          checkoutsToday={board.ok ? board.checkoutsToday : 0}
+          today={board.ok ? board.today : undefined}
         />
       </main>
     </>

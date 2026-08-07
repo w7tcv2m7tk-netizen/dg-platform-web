@@ -190,6 +190,12 @@ export async function updateStayBooking(
     status?: string;
     total?: number | null;
     ref?: string | null;
+    paid?: string | null;
+    paymentMethod?: string | null;
+    source?: string | null;
+    guests?: number | null;
+    nights?: number | null;
+    message?: string | null;
   },
 ): Promise<StayBookingListItem | null> {
   if (!process.env.DATABASE_URL) return null;
@@ -222,6 +228,30 @@ export async function updateStayBooking(
   if (input.status !== undefined) data.status = input.status;
   if (input.total !== undefined) data.totalCents = toTotalCents(input.total ?? undefined);
   if (input.ref !== undefined) data.ref = input.ref?.trim() || null;
+
+  const metaTouched =
+    input.paid !== undefined ||
+    input.paymentMethod !== undefined ||
+    input.source !== undefined ||
+    input.guests !== undefined ||
+    input.nights !== undefined ||
+    input.message !== undefined ||
+    input.checkin !== undefined ||
+    input.checkout !== undefined;
+
+  if (metaTouched) {
+    const prev = (existing.metadata as Record<string, unknown> | null) ?? {};
+    const next: Record<string, unknown> = { ...prev };
+    if (input.paid !== undefined) next.paid = input.paid;
+    if (input.paymentMethod !== undefined) next.payment_method = input.paymentMethod;
+    if (input.source !== undefined) next.source = input.source;
+    if (input.guests !== undefined) next.guests = input.guests;
+    if (input.nights !== undefined) next.nights = input.nights;
+    if (input.message !== undefined) next.message = input.message;
+    if (input.checkin !== undefined) next.checkin = input.checkin;
+    if (input.checkout !== undefined) next.checkout = input.checkout;
+    data.metadata = next as Prisma.InputJsonValue;
+  }
 
   const updated = await prisma.stayBooking.update({
     where: { id: existing.id },

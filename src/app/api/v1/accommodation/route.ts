@@ -161,7 +161,7 @@ export async function POST(req: Request) {
             code: result.code,
             message:
               result.message ??
-              "Could not create booking — deploy DG Platform plugin v10.65.0+ on CVH.",
+              "Could not create booking — deploy DG Platform plugin v10.65.2+ on CVH.",
           },
         },
         { status: 422 },
@@ -275,7 +275,7 @@ export async function PATCH(req: Request) {
       );
     }
 
-    // Mirror into Postgres StayBooking when present.
+    // Mirror into Postgres StayBooking when present (incl. payment metadata).
     for (const row of updates) {
       if (!row || typeof row !== "object") continue;
       const patch = row as Record<string, unknown>;
@@ -294,6 +294,13 @@ export async function PATCH(req: Request) {
           typeof patch.accommodation_id === "number" ? patch.accommodation_id : undefined,
         accommodationName:
           typeof patch.accommodation === "string" ? patch.accommodation : undefined,
+        paid: typeof patch.paid === "string" ? patch.paid : undefined,
+        paymentMethod:
+          typeof patch.payment_method === "string" ? patch.payment_method : undefined,
+        source: typeof patch.source === "string" ? patch.source : undefined,
+        guests: typeof patch.guests === "number" ? patch.guests : undefined,
+        nights: typeof patch.nights === "number" ? patch.nights : undefined,
+        message: typeof patch.message === "string" ? patch.message : undefined,
       }).catch(() => null);
     }
 

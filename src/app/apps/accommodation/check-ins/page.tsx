@@ -1,9 +1,10 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { listStayBookings, stayBookingToWpRow } from "@dg/platform-core";
+import Link from "next/link";
 import { Suspense } from "react";
 
 import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
+import { accAddDays, accDayKey, accToday } from "@/lib/acc-dates";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   fetchPortalMe,
@@ -17,17 +18,6 @@ import { autoSyncWordPressAccBookingsIfNeeded } from "@/lib/wordpress-sync";
 
 interface PageProps {
   searchParams: Promise<{ siteId?: string }>;
-}
-
-function dayKey(value?: string | null): string | null {
-  if (!value?.trim()) return null;
-  return value.trim().slice(0, 10);
-}
-
-function addDays(iso: string, days: number): string {
-  const d = new Date(`${iso}T00:00:00`);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
 }
 
 function Board({
@@ -61,6 +51,29 @@ function Board({
                 <p className="text-slate-500">
                   {[b.accommodation, b.phone, b.email].filter(Boolean).join(" · ")}
                 </p>
+                <div className="mt-2 flex flex-wrap gap-3 text-xs">
+                  <Link
+                    href="/apps/accommodation/bookings"
+                    className="text-blue-400 hover:underline"
+                  >
+                    Open bookings
+                  </Link>
+                  {b.email ? (
+                    <a
+                      href={`mailto:${encodeURIComponent(b.email)}?subject=${encodeURIComponent(
+                        `Check-in — ${b.accommodation ?? "your stay"} (${b.checkin ?? ""})`,
+                      )}`}
+                      className="text-blue-400 hover:underline"
+                    >
+                      Email guest
+                    </a>
+                  ) : null}
+                  {b.phone ? (
+                    <a href={`tel:${b.phone.replace(/\s+/g, "")}`} className="text-blue-400 hover:underline">
+                      Call
+                    </a>
+                  ) : null}
+                </div>
               </div>
               <div className="text-right text-slate-400">
                 <p>
@@ -70,6 +83,7 @@ function Board({
                   {b.status}
                   {b.guests != null ? ` · ${b.guests} guests` : ""}
                   {b.source ? ` · ${b.source}` : ""}
+                  {b.paid === "yes" ? " · paid" : b.paid === "no" ? " · unpaid" : ""}
                 </p>
               </div>
             </li>
@@ -99,8 +113,9 @@ export default async function AccommodationCheckInsPage({ searchParams }: PagePr
       })
     : null;
 
+  // Background mirror — board itself prefers live WP so ops see OTA/admin edits immediately.
   if (session) {
-    await autoSyncWordPressAccBookingsIfNeeded(session);
+    void autoSyncWordPressAccBookingsIfNeeded(session);
   }
 
   const sites = listWpAccommodationSites();
@@ -108,48 +123,46 @@ export default async function AccommodationCheckInsPage({ searchParams }: PagePr
   const connector = await accommodationConnectorForSession(session?.organisationId);
   const siteLabel = connector?.label ?? site.label;
 
-  const summary = await fetchWpAccommodationSummary(site.id, 30, connector);
-  const stored = session ? await listStayBookings(session.organisationId, 100) : [];
-  const live =
-    stored.length === 0
-      ? await fetchWpAccommodationBookings(site.id, 100, connector)
-      : null;
+  const [summary, live] = await Promise.all([
+    fetchWpAccommodationSummary(site.id, 30, connector),
+    fetchWpAccommodationBookings(site.id, 150, connector),
+  ]);
 
-  const bookings: WpAccBookingRow[] =
-    stored.length > 0
-      ? stored.map(stayBookingToWpRow)
-      : live?.ok
-        ? live.bookings
-        : [];
-
-  const today = new Date().toISOString().slice(0, 10);
-  const tomorrow = addDays(today, 1);
-  const upcomingEnd = addDays(today, 14);
+  const bookings: WpAccBookingRow[] = live.ok ? live.bookings : [];
+  const today = summary.ok && summary.data.today ? summary.data.today : accToday();
+  const tomorrow =
+    summary.ok && summary.data.tomorrow ? summary.data.tomorrow : accAddDays(today, 1);
+  const upcomingEnd = accAddDays(today, 14);
 
   const active = bookings.filter((b) => {
     const status = (b.status ?? "").toLowerCase();
     return status !== "cancelled" && status !== "canceled" && status !== "completed";
   });
 
-  const todayList = active.filter((b) => dayKey(b.checkin) === today);
-  const tomorrowList = active.filter((b) => dayKey(b.checkin) === tomorrow);
+  const todayList = active.filter((b) => accDayKey(b.checkin) === today);
+  const tomorrowList = active.filter((b) => accDayKey(b.checkin) === tomorrow);
   const upcoming = active
     .filter((b) => {
-      const d = dayKey(b.checkin);
+      const d = accDayKey(b.checkin);
       return d && d > tomorrow && d <= upcomingEnd;
     })
     .sort((a, b) => (a.checkin ?? "").localeCompare(b.checkin ?? ""));
+
+  const wpToday = summary.ok ? summary.data.checkins_today ?? 0 : null;
+  const wpTomorrow = summary.ok ? summary.data.checkins_tomorrow ?? 0 : null;
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Check-ins</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · today / tomorrow /
-          next 14 days
-          {summary.ok
-            ? ` · WP says ${summary.data.checkins_today ?? 0} today, ${summary.data.checkins_tomorrow ?? 0} tomorrow`
-            : ""}
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · live WordPress ·{" "}
+          {today} Brisbane
+          {wpToday != null
+            ? ` · ${wpToday} today, ${wpTomorrow ?? 0} tomorrow`
+            : live.ok
+              ? ""
+              : ` · ${live.message}`}
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">
@@ -158,6 +171,11 @@ export default async function AccommodationCheckInsPage({ searchParams }: PagePr
         </Suspense>
       </header>
       <main className="dg-page-main space-y-8">
+        {!live.ok ? (
+          <div className="dg-card border-amber-500/30">
+            <p className="text-amber-300">{live.message}</p>
+          </div>
+        ) : null}
         <Board title="Today" hint={today} bookings={todayList} />
         <Board title="Tomorrow" hint={tomorrow} bookings={tomorrowList} />
         <Board title="Upcoming" hint={`Through ${upcomingEnd}`} bookings={upcoming} />

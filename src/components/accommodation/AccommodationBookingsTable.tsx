@@ -70,6 +70,10 @@ export function AccommodationBookingsTable({
             accommodation: row.accommodation,
             accommodation_id: row.accommodation_id,
             ref: row.ref,
+            paid: row.paid,
+            payment_method: row.payment_method,
+            source: row.source,
+            guests: row.guests,
           },
         ],
       }),
@@ -143,7 +147,7 @@ export function AccommodationBookingsTable({
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-800">
-          <table className="w-full min-w-[960px] text-left text-sm">
+          <table className="w-full min-w-[1100px] text-left text-sm">
             <thead className="border-b border-slate-800 bg-slate-900/60 text-xs uppercase text-slate-500">
               <tr>
                 <th className="px-4 py-3">Ref</th>
@@ -152,6 +156,8 @@ export function AccommodationBookingsTable({
                 <th className="px-4 py-3">Check-in</th>
                 <th className="px-4 py-3">Check-out</th>
                 <th className="px-4 py-3">Total</th>
+                <th className="px-4 py-3">Paid</th>
+                <th className="px-4 py-3">Source</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3" />
               </tr>
@@ -193,6 +199,9 @@ export function AccommodationBookingsTable({
                           <p className="text-xs text-slate-500">{b.email}</p>
                           {b.phone ? (
                             <p className="text-xs text-slate-500">{b.phone}</p>
+                          ) : null}
+                          {b.guests != null ? (
+                            <p className="text-xs text-slate-500">{b.guests} guests</p>
                           ) : null}
                         </>
                       )}
@@ -239,6 +248,33 @@ export function AccommodationBookingsTable({
                           {b.total != null ? `$${b.total.toLocaleString("en-AU")}` : "—"}
                         </span>
                       )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {editing ? (
+                        <select
+                          value={b.paid ?? "no"}
+                          onChange={(e) => patchRow(b.id, { paid: e.target.value })}
+                          className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-white"
+                        >
+                          <option value="no">Unpaid</option>
+                          <option value="yes">Paid</option>
+                        </select>
+                      ) : (
+                        <span
+                          className={
+                            b.paid === "yes"
+                              ? "text-emerald-400"
+                              : b.paid === "no"
+                                ? "text-amber-400"
+                                : "text-slate-500"
+                          }
+                        >
+                          {b.paid === "yes" ? "Paid" : b.paid === "no" ? "Unpaid" : "—"}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-xs capitalize text-slate-400">
+                      {b.source ?? "—"}
                     </td>
                     <td className="px-4 py-3">
                       {editing ? (
