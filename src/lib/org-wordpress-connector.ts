@@ -4,7 +4,7 @@ import type { WpConnectorOverride } from "@/lib/dg-api";
 
 export async function wpConnectorForOrg(
   organisationId: string,
-): Promise<WpConnectorOverride & { source: "org" | "env" }> {
+): Promise<WpConnectorOverride & { source: "org" | "env" | "preset" }> {
   const resolved = await resolveOrgWordPressConnector(organisationId);
   return {
     baseUrl: resolved.baseUrl,

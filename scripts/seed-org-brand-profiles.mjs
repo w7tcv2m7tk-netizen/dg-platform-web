@@ -17,6 +17,10 @@ const PRESETS = {
     iconUrl: "https://app.digitalgate.com.au/brand/icon-light.png",
     logoUrl: "https://app.digitalgate.com.au/brand/logo-on-dark.png",
     websiteUrl: "https://digitalgate.com.au",
+    wp: {
+      baseUrl: "https://digitalgate.com.au/wp-json/digitalgate/v1",
+      label: "DigitalGate",
+    },
   },
   "roe-realty": {
     brandColours: "#C9A46C, #1C2B2A",

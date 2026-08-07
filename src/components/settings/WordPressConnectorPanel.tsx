@@ -12,7 +12,7 @@ export function WordPressConnectorPanel({
     hasApiKey: boolean;
     resolvedLabel: string;
     resolvedBaseUrl: string;
-    source: "org" | "env";
+    source: "org" | "env" | "preset";
   };
 }) {
   const router = useRouter();
@@ -23,7 +23,14 @@ export function WordPressConnectorPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function save(preset?: "real-estate" | "accommodation") {
+  const sourceLabel =
+    initial.source === "org"
+      ? "org override active"
+      : initial.source === "preset"
+        ? "using brand preset"
+        : "currently using env";
+
+  async function save(preset?: "digitalgate" | "real-estate" | "accommodation" | "creator") {
     setPending(true);
     setError(null);
     setMessage(null);
@@ -69,10 +76,18 @@ export function WordPressConnectorPanel({
       <p className="mt-2 text-sm text-slate-400">
         Each organisation can point at its own WordPress site. API keys are stored per
         business; leave blank to use deployment env vars (
-        {initial.source === "env" ? "currently using env" : "org override active"}).
+        {sourceLabel}).
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => save("digitalgate")}
+          className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
+        >
+          DigitalGate preset
+        </button>
         <button
           type="button"
           disabled={pending}
@@ -88,6 +103,14 @@ export function WordPressConnectorPanel({
           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
         >
           CVH preset
+        </button>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => save("creator")}
+          className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
+        >
+          Aëtherra preset
         </button>
       </div>
 

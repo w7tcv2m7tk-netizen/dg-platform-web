@@ -1,12 +1,14 @@
 import type { AppNavItem, AppRoute, AppTier, RegisteredApp } from "./manifest";
 import { commandCentreApp } from "./builtins/command-centre";
-import { PLATFORM_TOOL_GROUPS, PLATFORM_TOOLS_SECTION_LABEL } from "./platform-tools";
+import { SETTINGS_NAV_ROUTES } from "./platform-tools";
 import { APP_TIER_LABELS, APP_TIER_ORDER, isAppEnabled } from "./org-apps";
 import { platformApps } from "./registry";
 import { getSidebarIcon } from "./sidebar-icons";
 
 export interface PlatformShellNavItem extends AppNavItem {
   kind: "shell";
+  /** When set, Settings (and similar) render as a collapsible group. */
+  routes?: AppRoute[];
 }
 
 export interface AppNavTreeItem {
@@ -56,6 +58,7 @@ const SHELL_NAV: PlatformShellNavItem[] = [
     href: "/dashboard/settings",
     label: "Settings",
     icon: getSidebarIcon("settings"),
+    routes: SETTINGS_NAV_ROUTES,
   },
 ];
 
@@ -162,15 +165,8 @@ export function getCategorizedPlatformNavigation(
   }
 
   const tools: PlatformToolsNavGroup = {
-    label: PLATFORM_TOOLS_SECTION_LABEL,
-    tools: PLATFORM_TOOL_GROUPS.map((group) => ({
-      kind: "tool" as const,
-      id: group.id,
-      name: group.label,
-      icon: group.icon,
-      routes: group.routes,
-      primaryHref: group.primaryHref,
-    })),
+    label: "Settings",
+    tools: [],
   };
 
   return {

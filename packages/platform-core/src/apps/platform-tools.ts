@@ -1,7 +1,7 @@
 import type { AppRoute } from "./manifest";
 import { getSidebarIcon } from "./sidebar-icons";
 
-/** Platform utilities — sub-pages linked from Settings; not duplicated in workspace shell. */
+/** Settings sub-pages — shown under Settings in the shell (includes former Tools). */
 export interface PlatformToolGroup {
   id: string;
   label: string;
@@ -10,18 +10,26 @@ export interface PlatformToolGroup {
   primaryHref: string;
 }
 
+export const SETTINGS_NAV_ROUTES: AppRoute[] = [
+  { path: "/dashboard/settings", label: "Overview" },
+  { path: "/dashboard/settings/billing", label: "Billing" },
+  { path: "/dashboard/settings/connectors", label: "Connectors" },
+  { path: "/dashboard/settings/api", label: "API" },
+  { path: "/dashboard/settings/roadmap", label: "Roadmap" },
+  { path: "/dashboard/settings/audit", label: "Audit log" },
+  { path: "/support", label: "Support" },
+];
+
+/** @deprecated Tools section merged into Settings — kept for type compatibility. */
 export const PLATFORM_TOOL_GROUPS: PlatformToolGroup[] = [
   {
-    id: "platform-tools",
-    label: "Tools",
-    icon: getSidebarIcon("platform-tools"),
-    primaryHref: "/dashboard/settings/roadmap",
-    routes: [
-      { path: "/dashboard/settings/roadmap", label: "Roadmap" },
-      { path: "/dashboard/settings/audit", label: "Audit log" },
-      { path: "/support", label: "Support" },
-    ],
+    id: "settings",
+    label: "Settings",
+    icon: getSidebarIcon("settings"),
+    primaryHref: "/dashboard/settings",
+    routes: SETTINGS_NAV_ROUTES,
   },
 ];
 
-export const PLATFORM_TOOLS_SECTION_LABEL = "Tools";
+/** @deprecated */
+export const PLATFORM_TOOLS_SECTION_LABEL = "Settings";

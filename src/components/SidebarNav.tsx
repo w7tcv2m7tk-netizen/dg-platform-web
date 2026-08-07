@@ -110,24 +110,24 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         if (itemHasActiveRoute(pathname, app.routes)) next[app.id] = true;
       }
     }
+    for (const link of nav.shell) {
+      if (link.routes?.length && itemHasActiveRoute(pathname, link.routes)) {
+        next[`shell-${link.href}`] = true;
+      }
+    }
     setExpanded(next);
-  }, [pathname, nav.tiers]);
+  }, [pathname, nav.tiers, nav.shell]);
 
   function toggleItem(id: string) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
-  function shellLinkActive(href: string, label: string): boolean {
+  function shellLinkActive(href: string, label: string, routes?: AppRoute[]): boolean {
+    if (routes?.length) return itemHasActiveRoute(pathname, routes);
     if (pathname === href) return true;
     if (href === "/dashboard") return false;
     if (label === "Team") {
       return pathname.startsWith("/dashboard/settings/team");
-    }
-    if (label === "Settings") {
-      return (
-        pathname.startsWith("/dashboard/settings") &&
-        !pathname.startsWith("/dashboard/settings/team")
-      );
     }
     return pathname.startsWith(`${href}/`);
   }
@@ -138,6 +138,28 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         {BUSINESS_WORKSPACE_SECTION_LABEL}
       </p>
       {nav.shell.map((link) => {
+        if (link.routes?.length) {
+          const id = `shell-${link.href}`;
+          return (
+            <CollapsibleNavSection
+              key={link.href}
+              items={[
+                {
+                  id,
+                  name: link.label,
+                  icon: link.icon ?? "◈",
+                  routes: link.routes,
+                  primaryHref: link.href,
+                },
+              ]}
+              expanded={expanded}
+              onToggle={toggleItem}
+              pathname={pathname}
+              onNavigate={onNavigate}
+            />
+          );
+        }
+
         const active = shellLinkActive(link.href, link.label);
         return (
           <Link
@@ -167,28 +189,6 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           />
         </div>
       ))}
-
-      <div className="mt-4">
-        <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-          {nav.tools.label}
-        </p>
-        {nav.tools.tools.flatMap((tool) =>
-          tool.routes.map((route) => {
-            const active = routeIsActive(pathname, route.path, tool.routes);
-            return (
-              <Link
-                key={route.path}
-                href={route.path}
-                prefetch
-                onClick={onNavigate}
-                className={`${linkClass(active)} min-h-11 py-2.5`}
-              >
-                {route.label}
-              </Link>
-            );
-          }),
-        )}
-      </div>
     </nav>
   );
 }

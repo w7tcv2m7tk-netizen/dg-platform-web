@@ -192,13 +192,20 @@ export async function seedOrgBrandProfiles(options?: {
 
     const nextSettings = { ...settings, profile: nextProfile } as Record<string, unknown>;
 
-    if (presetKey === "cvh" || presetKey === "roe-realty" || presetKey === "aetherra") {
+    if (
+      presetKey === "digitalgate" ||
+      presetKey === "cvh" ||
+      presetKey === "roe-realty" ||
+      presetKey === "aetherra"
+    ) {
       const template =
-        presetKey === "cvh"
-          ? "accommodation"
-          : presetKey === "roe-realty"
-            ? "real-estate"
-            : "creator";
+        presetKey === "digitalgate"
+          ? "digitalgate"
+          : presetKey === "cvh"
+            ? "accommodation"
+            : presetKey === "roe-realty"
+              ? "real-estate"
+              : "creator";
       const wpPreset = WP_CONNECTOR_PRESETS[template];
       const connectors = (nextSettings.connectors as Record<string, unknown> | undefined) ?? {};
       const wordpress = (connectors.wordpress as Record<string, unknown> | undefined) ?? {};
