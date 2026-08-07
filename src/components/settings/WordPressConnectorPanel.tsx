@@ -1,7 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+function hostFromUrl(url: string): string | null {
+  try {
+    return new URL(url.replace(/\/wp-json.*/, "")).hostname;
+  } catch {
+    return null;
+  }
+}
+
+function looksLikeDgApiKey(key: string): boolean {
+  const t = key.trim();
+  if (!t) return false;
+  return /^dg(dev|live)?_[A-Za-z0-9]+/i.test(t) || t.length >= 16;
+}
 
 export function WordPressConnectorPanel({
   initial,
@@ -20,6 +34,7 @@ export function WordPressConnectorPanel({
   const [apiKey, setApiKey] = useState("");
   const [label, setLabel] = useState(initial.label || initial.resolvedLabel);
   const [pending, setPending] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,9 +45,22 @@ export function WordPressConnectorPanel({
         ? "using brand preset"
         : "currently using env";
 
+  const effectiveUrl = (baseUrl || initial.resolvedBaseUrl).trim();
+  const host = useMemo(() => hostFromUrl(effectiveUrl), [effectiveUrl]);
   const isCvh =
-    /currumbinvalleyhideaway/i.test(baseUrl) ||
+    /currumbinvalleyhideaway/i.test(effectiveUrl) ||
     /hideaway|cvh/i.test(label);
+
+  const keyHint = useMemo(() => {
+    if (!host) return null;
+    if (isCvh) {
+      return "This host is CVH — paste the Currumbin Valley Hideaway Dev API key only. Roe/DigitalGate keys are never sent here.";
+    }
+    if (initial.source === "env" && !initial.hasApiKey) {
+      return `Using deployment env key only when env base URL host matches ${host}. For multi-site orgs, paste this site's own key.`;
+    }
+    return `API key must match the WordPress site at ${host} (DG Platform → API Settings).`;
+  }, [host, isCvh, initial.hasApiKey, initial.source]);
 
   async function save(
     preset?: "digitalgate" | "real-estate" | "accommodation" | "creator",
@@ -52,16 +80,24 @@ export function WordPressConnectorPanel({
         }[preset]
       : null;
 
-    const effectiveUrl = (nextPresetUrl || baseUrl).trim();
-    const needsCvhKey =
+    const nextUrl = (nextPresetUrl || baseUrl).trim();
+    const needsSiteKey =
       options?.requireKey ||
-      /currumbinvalleyhideaway/i.test(effectiveUrl) ||
+      /currumbinvalleyhideaway/i.test(nextUrl) ||
       preset === "accommodation";
 
-    if (needsCvhKey && !apiKey.trim() && !initial.hasApiKey) {
+    if (needsSiteKey && !apiKey.trim() && !initial.hasApiKey) {
       setPending(false);
       setError(
-        "Paste the CVH Dev API key before saving. Settings → Connectors stores it per business — the Roe/DigitalGate env key is never sent to CVH.",
+        "Paste this site's Dev API key before saving. Settings → Connectors stores keys per business — never reuse Roe/DigitalGate keys on CVH or other hosts.",
+      );
+      return null;
+    }
+
+    if (apiKey.trim() && !looksLikeDgApiKey(apiKey)) {
+      setPending(false);
+      setError(
+        "That doesn't look like a DigitalGate Dev API key (expected dgdev_… from WP → DG Platform → API Settings).",
       );
       return null;
     }
@@ -97,8 +133,8 @@ export function WordPressConnectorPanel({
       setError(probe.message ?? "Saved, but connection test failed");
       setMessage(
         json.data?.hasApiKey
-          ? "Connector saved — fix the API key and test again."
-          : "Connector URL saved — paste the CVH API key and Save again.",
+          ? "Connector saved — fix the API key for this site and Test again."
+          : "Connector URL saved — paste this site's API key and Save again.",
       );
     } else {
       setMessage("WordPress connector saved for this business.");
@@ -108,15 +144,54 @@ export function WordPressConnectorPanel({
   }
 
   async function testConnection() {
-    await save(undefined, { requireKey: isCvh });
+    setTesting(true);
+    setError(null);
+    setMessage(null);
+
+    if (apiKey.trim() && !looksLikeDgApiKey(apiKey)) {
+      setTesting(false);
+      setError(
+        "That doesn't look like a DigitalGate Dev API key (expected dgdev_…).",
+      );
+      return;
+    }
+
+    // If a new key was typed, save+probe; otherwise GET status probe only
+    if (apiKey.trim() || !initial.hasApiKey) {
+      await save(undefined, { requireKey: isCvh || !initial.hasApiKey });
+      setTesting(false);
+      return;
+    }
+
+    const res = await fetch("/api/v1/connectors/wordpress", { method: "GET" });
+    const json = await res.json().catch(() => ({}));
+    setTesting(false);
+    if (!res.ok) {
+      setError(json.error?.message ?? "Connection test failed");
+      return;
+    }
+    const probe = json.data?.probe;
+    const resolvedHost = hostFromUrl(json.data?.resolved?.baseUrl || effectiveUrl);
+    if (probe?.ok) {
+      setMessage(
+        `${probe.detail ?? "Connected"}${resolvedHost ? ` · ${resolvedHost}` : ""}`,
+      );
+    } else {
+      setError(
+        probe?.message ??
+          `Could not reach WordPress${resolvedHost ? ` at ${resolvedHost}` : ""}.`,
+      );
+    }
+    router.refresh();
   }
 
   return (
     <div className="dg-card">
       <h2 className="font-semibold text-white">WordPress connector (this business)</h2>
       <p className="mt-2 text-sm text-slate-400">
-        Each organisation can point at its own WordPress site. API keys are stored per
-        business; leave blank to keep the saved key ({sourceLabel}).
+        Each organisation points at its own WordPress site. Keys are stored per business
+        ({sourceLabel}). Multi-site tip: the env fallback key only applies when the env
+        base URL host matches this org&apos;s host — paste a site-specific key otherwise.
         {isCvh ? (
           <>
             {" "}
@@ -128,10 +203,17 @@ export function WordPressConnectorPanel({
         ) : null}
       </p>
 
+      {host ? (
+        <p className="mt-3 rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 font-mono text-xs text-slate-300">
+          Target host: <span className="text-white">{host}</span>
+          {initial.hasApiKey ? " · org key saved" : " · no org key yet"}
+        </p>
+      ) : null}
+
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
-          disabled={pending}
+          disabled={pending || testing}
           onClick={() => void save("digitalgate")}
           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
         >
@@ -139,7 +221,7 @@ export function WordPressConnectorPanel({
         </button>
         <button
           type="button"
-          disabled={pending}
+          disabled={pending || testing}
           onClick={() => void save("real-estate")}
           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
         >
@@ -147,7 +229,7 @@ export function WordPressConnectorPanel({
         </button>
         <button
           type="button"
-          disabled={pending}
+          disabled={pending || testing}
           onClick={() => void save("accommodation", { requireKey: true })}
           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
         >
@@ -155,7 +237,7 @@ export function WordPressConnectorPanel({
         </button>
         <button
           type="button"
-          disabled={pending}
+          disabled={pending || testing}
           onClick={() => void save("creator")}
           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
         >
@@ -183,7 +265,8 @@ export function WordPressConnectorPanel({
         </label>
         <label className="block text-sm">
           <span className="text-slate-400">
-            Dev API key {initial.hasApiKey ? "(saved — enter to replace)" : "(required for CVH)"}
+            Site Dev API key{" "}
+            {initial.hasApiKey ? "(saved — enter to replace)" : "(required per site)"}
           </span>
           <input
             type="password"
@@ -192,13 +275,16 @@ export function WordPressConnectorPanel({
             placeholder="dgdev_… from WP → DG Platform → API Settings"
             className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-sm text-white"
           />
+          {keyHint ? (
+            <span className="mt-1 block text-xs text-slate-500">{keyHint}</span>
+          ) : null}
         </label>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
-          disabled={pending}
+          disabled={pending || testing}
           onClick={() => void save()}
           className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
         >
@@ -206,11 +292,11 @@ export function WordPressConnectorPanel({
         </button>
         <button
           type="button"
-          disabled={pending}
+          disabled={pending || testing}
           onClick={() => void testConnection()}
           className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-blue-500 disabled:opacity-50"
         >
-          Test connection
+          {testing ? "Testing…" : "Test connection"}
         </button>
       </div>
 

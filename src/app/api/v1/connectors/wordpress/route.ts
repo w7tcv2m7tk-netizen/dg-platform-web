@@ -36,6 +36,13 @@ export async function GET(req: Request) {
         label: resolved.label,
         source: resolved.source,
         hasApiKey: Boolean(resolved.apiKey),
+        host: (() => {
+          try {
+            return new URL(resolved.baseUrl).hostname;
+          } catch {
+            return null;
+          }
+        })(),
       },
       presets: WP_CONNECTOR_PRESETS,
       probe: probe.ok
@@ -76,6 +83,44 @@ export async function PATCH(req: Request) {
     patch = { ...WP_CONNECTOR_PRESETS[preset], apiKey: body.apiKey ?? patch.apiKey };
   }
 
+  if (typeof patch.apiKey === "string" && patch.apiKey.trim()) {
+    const key = patch.apiKey.trim();
+    const looksOk =
+      /^dg(dev|live)?_[A-Za-z0-9]+/i.test(key) || key.length >= 16;
+    if (!looksOk) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "invalid_api_key",
+            message:
+              "API key should look like dgdev_… from WordPress → DG Platform → API Settings for this site.",
+          },
+        },
+        { status: 422 },
+      );
+    }
+  }
+
+  const nextBase =
+    (patch.baseUrl || "").trim() ||
+    (await resolveOrgWordPressConnector(session.organisationId)).baseUrl;
+  const isCvhHost = /currumbinvalleyhideaway/i.test(nextBase);
+  if (isCvhHost) {
+    const existing = await getOrgWordPressConnectorSettings(session.organisationId);
+    if (!patch.apiKey?.trim() && !existing?.apiKey?.trim()) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "cvh_key_required",
+            message:
+              "CVH requires a site-specific Dev API key. Paste the key from currumbinvalleyhideaway.com.au — do not rely on Roe/DigitalGate env keys.",
+          },
+        },
+        { status: 422 },
+      );
+    }
+  }
+
   const updated = await updateOrgWordPressConnectorSettings(
     session.organisationId,
     patch,
@@ -96,6 +141,13 @@ export async function PATCH(req: Request) {
       label: updated.label ?? "",
       hasApiKey: Boolean(updated.apiKey?.trim()),
       resolvedHasApiKey: Boolean(resolved.apiKey?.trim()),
+      resolvedHost: (() => {
+        try {
+          return new URL(resolved.baseUrl).hostname;
+        } catch {
+          return null;
+        }
+      })(),
       probe: probe
         ? probe.ok
           ? {
