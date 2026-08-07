@@ -1,6 +1,7 @@
 import type { Prisma } from "@dg/database";
 
 import { resolveOrgWordPressConnector } from "../connectors/wordpress/org-connector";
+import { ensureContactForStayGuest } from "./guests";
 
 export interface WpAccBookingRow {
   id: number;
@@ -38,6 +39,7 @@ export type SyncAccommodationBookingsOutcome =
 export interface StayBookingListItem {
   id: string;
   externalWpId: number;
+  contactId?: string | null;
   ref?: string | null;
   guestName: string;
   email?: string | null;
@@ -73,6 +75,7 @@ function toTotalCents(total?: number): number | null {
 function serializeStayBooking(row: {
   id: string;
   externalWpId: number;
+  contactId?: string | null;
   ref: string | null;
   guestName: string;
   email: string | null;
@@ -91,6 +94,7 @@ function serializeStayBooking(row: {
   return {
     id: row.id,
     externalWpId: row.externalWpId,
+    contactId: row.contactId ?? null,
     ref: row.ref,
     guestName: row.guestName,
     email: row.email,
@@ -104,6 +108,28 @@ function serializeStayBooking(row: {
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
+}
+
+async function resolveGuestContactId(
+  organisationId: string,
+  fields: {
+    guestName: string;
+    email: string | null;
+    phone: string | null;
+    accommodationName: string | null;
+  },
+  actorId?: string,
+  existingContactId?: string | null,
+): Promise<string | null> {
+  if (existingContactId) return existingContactId;
+  return ensureContactForStayGuest({
+    organisationId,
+    actorId,
+    guestName: fields.guestName,
+    email: fields.email,
+    phone: fields.phone,
+    favouriteUnit: fields.accommodationName,
+  });
 }
 
 /** Map Postgres stay bookings into the WpAccBookingRow shape used by UI tables. */
@@ -313,6 +339,13 @@ export async function syncAccommodationBookingsFromWordPress(
         },
       });
 
+      const contactId = await resolveGuestContactId(
+        organisationId,
+        fields,
+        options?.actorId,
+        existing?.contactId,
+      );
+
       if (existing) {
         const unchanged =
           existing.ref === fields.ref &&
@@ -323,6 +356,7 @@ export async function syncAccommodationBookingsFromWordPress(
           existing.accommodationWpId === fields.accommodationWpId &&
           existing.status === fields.status &&
           existing.totalCents === fields.totalCents &&
+          existing.contactId === contactId &&
           (existing.checkin?.getTime() ?? null) === (fields.checkin?.getTime() ?? null) &&
           (existing.checkout?.getTime() ?? null) === (fields.checkout?.getTime() ?? null);
 
@@ -335,6 +369,7 @@ export async function syncAccommodationBookingsFromWordPress(
           where: { id: existing.id },
           data: {
             ...fields,
+            contactId,
             metadata: fields.metadata as Prisma.InputJsonValue,
           },
         });
@@ -345,6 +380,7 @@ export async function syncAccommodationBookingsFromWordPress(
             organisationId,
             externalWpId: wpId,
             ...fields,
+            contactId,
             metadata: fields.metadata as Prisma.InputJsonValue,
           },
         });
@@ -414,12 +450,19 @@ export async function syncAccBookingsFromWordPress(
           },
         },
       });
+      const contactId = await resolveGuestContactId(
+        input.organisationId,
+        fields,
+        input.actorId,
+        existing?.contactId,
+      );
 
       if (existing) {
         await prisma.stayBooking.update({
           where: { id: existing.id },
           data: {
             ...fields,
+            contactId,
             metadata: fields.metadata as Prisma.InputJsonValue,
           },
         });
@@ -430,6 +473,7 @@ export async function syncAccBookingsFromWordPress(
             organisationId: input.organisationId,
             externalWpId: wpId,
             ...fields,
+            contactId,
             metadata: fields.metadata as Prisma.InputJsonValue,
           },
         });

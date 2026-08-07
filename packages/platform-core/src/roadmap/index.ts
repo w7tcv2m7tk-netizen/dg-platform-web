@@ -272,7 +272,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "accommodation.guests",
     area: "Accommodation",
     label: "Guests",
-    description: "Guest CRM records live from WordPress",
+    description: "Contacts with Accommodation guest context (stays, LTV, VIP/repeat)",
     status: "done",
     priority: "high",
     appId: "accommodation",

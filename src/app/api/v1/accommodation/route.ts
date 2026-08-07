@@ -217,6 +217,24 @@ export async function PATCH(req: Request) {
         { status: 422 },
       );
     }
+    // Keep Gen 2 Contact + AccommodationGuestProfile aligned with connector edits.
+    const { upsertGuestFromWpRow } = await import("@dg/platform-core");
+    for (const row of updates) {
+      if (!row || typeof row !== "object") continue;
+      const patch = row as Record<string, unknown>;
+      const id = typeof patch.id === "number" ? patch.id : Number(patch.id);
+      if (!Number.isFinite(id)) continue;
+      await upsertGuestFromWpRow(
+        session.organisationId,
+        {
+          id,
+          name: typeof patch.name === "string" ? patch.name : undefined,
+          email: typeof patch.email === "string" ? patch.email : undefined,
+          phone: typeof patch.phone === "string" ? patch.phone : undefined,
+        },
+        { actorId: session.clerkUserId },
+      ).catch(() => null);
+    }
     return NextResponse.json({ data: result.data });
   }
 

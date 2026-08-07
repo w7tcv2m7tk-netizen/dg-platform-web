@@ -9,9 +9,9 @@ export const accommodationApp: AppManifest = {
   icon: "⛺",
   routes: [
     { path: "/apps/accommodation", label: "Overview" },
-    { path: "/apps/accommodation/units", label: "Units" },
     { path: "/apps/accommodation/bookings", label: "Bookings" },
     { path: "/apps/accommodation/guests", label: "Guests" },
+    { path: "/apps/accommodation/units", label: "Units" },
     { path: "/apps/accommodation/calendar", label: "Availability" },
     { path: "/apps/accommodation/housekeeping", label: "Housekeeping" },
   ],

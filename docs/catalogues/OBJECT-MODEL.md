@@ -14,6 +14,7 @@ See also: [DOMAIN-MODEL.md](../domain/DOMAIN-MODEL.md) for business language.
 2. Industry extensions use `metadata` JSON or typed extension tables keyed to universal `id`  
 3. All objects are scoped by `organisation_id`  
 4. All writes emit domain events (see [EVENT-CATALOGUE.md](./EVENT-CATALOGUE.md))  
+5. **People:** only `Contact` — never Guest / Vendor / Buyer / Customer / Client / Borrower / Member as Universal Objects ([CONTACTS-AND-APP-ROLES.md](../foundations/CONTACTS-AND-APP-ROLES.md))
 
 ---
 
@@ -23,8 +24,10 @@ See also: [DOMAIN-MODEL.md](../domain/DOMAIN-MODEL.md) for business language.
 |------|-------------|--------------|
 | `Organisation` | Tenant | ✅ |
 | `User` | Platform user (via Membership) | ✅ |
-| `Contact` | Person | ✅ |
+| `Contact` | Person (sole people type — app roles attach here) | ✅ |
 | `Company` | Business account | ✅ |
+
+> **Not Universal Objects:** Accommodation Guest Profile, RE Vendor/Buyer links, Finance Borrower — app contexts on Contact.
 
 ---
 

@@ -39,6 +39,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | # | Document | Covers |
 |---|----------|--------|
 | 1 | [CORE-OBJECT-SPECIFICATION.md](./CORE-OBJECT-SPECIFICATION.md) | **Canonical domain model** — what, fields, relationships, ownership, events |
+| 1b | [CONTACTS-AND-APP-ROLES.md](./CONTACTS-AND-APP-ROLES.md) | **ONE Contact** — forbid duplicate people (Guest/Vendor/Buyer…); Contact → App Role |
 | 2 | [PLATFORM-RELEASES.md](./PLATFORM-RELEASES.md) | Platform versioning (1.0, 1.5, 2.0…) — outcomes not endless features |
 | 3 | [APP-MARKETPLACE.md](./APP-MARKETPLACE.md) | Install, license, update, remove, version — third-party ready |
 | 4 | [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) | **Build globally / sell AU first** — Country Packs, currencies, tax, GTM stages |

@@ -2,8 +2,14 @@ import Link from "next/link";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
-import { getContact, listCompanies, listContactActivities,} from "@dg/platform-core";
+import {
+  getContact,
+  getContactAccommodationGuestPanel,
+  listCompanies,
+  listContactActivities,
+} from "@dg/platform-core";
 
+import { AccommodationGuestPanel } from "@/components/accommodation/AccommodationGuestPanel";
 import { AddContactNoteForm } from "@/components/crm/AddContactNoteForm";
 import { EditContactForm } from "@/components/crm/EditContactForm";
 
@@ -41,6 +47,10 @@ export default async function ContactDetailPage({ params }: PageProps) {
   const company = contact.companyId
     ? companies.find((c) => c.id === contact.companyId)
     : null;
+  const accommodationGuest = await getContactAccommodationGuestPanel(
+    session.organisationId,
+    id,
+  );
 
   const displayName = [contact.firstName, contact.lastName].filter(Boolean).join(" ");
 
@@ -64,6 +74,17 @@ export default async function ContactDetailPage({ params }: PageProps) {
                 className="text-blue-400 hover:underline"
               >
                 {company.name}
+              </Link>
+            </>
+          ) : null}
+          {accommodationGuest ? (
+            <>
+              {" · "}
+              <Link
+                href={`/apps/accommodation/guests/${id}`}
+                className="text-blue-400 hover:underline"
+              >
+                Accommodation Guest
               </Link>
             </>
           ) : null}
@@ -116,6 +137,12 @@ export default async function ContactDetailPage({ params }: PageProps) {
             <AddContactNoteForm contactId={contact.id} />
           </div>
         </div>
+
+        {accommodationGuest ? (
+          <div className="mt-8">
+            <AccommodationGuestPanel guest={accommodationGuest} showContactLink={false} />
+          </div>
+        ) : null}
       </main>
     </>
   );

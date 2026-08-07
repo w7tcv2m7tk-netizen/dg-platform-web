@@ -44,6 +44,7 @@ These documents capture **why** the platform is built the way it is. They are as
 | Document | Purpose |
 |----------|---------|
 | [catalogues/OBJECT-MODEL.md](./catalogues/OBJECT-MODEL.md) | Universal Objects — identity, commercial, operational, assets |
+| [foundations/CONTACTS-AND-APP-ROLES.md](./foundations/CONTACTS-AND-APP-ROLES.md) | **ONE Contact** — app roles (Guest/Vendor/…) never duplicate people |
 | [catalogues/EVENT-CATALOGUE.md](./catalogues/EVENT-CATALOGUE.md) | Domain events — names, payloads, producers, consumers |
 | [domain/DOMAIN-MODEL.md](./domain/DOMAIN-MODEL.md) | Business domain language — entities, relationships, bounded contexts |
 

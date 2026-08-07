@@ -81,6 +81,8 @@ Avoid tightly coupled functionality. If it doesn't fit a layer, reconsider the d
 
 Industry Apps **extend** shared objects — they do not create parallel entities for Contact, Lead, Property, etc.
 
+**People:** only one Universal Contact. Do **not** create Guest, Vendor, Buyer, Customer, Client, Borrower, or Member as separate people objects — Apps add roles/context on Contact ([foundations/CONTACTS-AND-APP-ROLES.md](./foundations/CONTACTS-AND-APP-ROLES.md)).
+
 Relationships are modelled in the **Digital Knowledge Graph**, not duplicated in app-specific tables.
 
 ---

@@ -314,8 +314,9 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
       },
       {
         id: "acc-3c",
-        title: "Review guest CRM",
-        description: "Guest names, emails, and stay counts pull live from WordPress.",
+        title: "Review guest Contacts",
+        description:
+          "Guests are universal Contacts with Accommodation context (stays, LTV, VIP/repeat) — open the Guests section or the Contact record.",
         href: "/apps/accommodation/guests",
         hrefLabel: "Guests",
       },

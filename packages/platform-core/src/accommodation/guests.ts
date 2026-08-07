@@ -1,0 +1,533 @@
+/**
+ * Accommodation Guest = Contact + app context.
+ * Never a Universal Object / parallel people type.
+ * @see docs/foundations/CONTACTS-AND-APP-ROLES.md
+ */
+
+import type { Prisma } from "@dg/database";
+
+import { ensureContactForLeadFields } from "../contacts";
+
+const REPEAT_STAY_THRESHOLD = 2;
+const VIP_SPEND_CENTS = 250_000; // $2,500 AUD
+
+export interface AccommodationGuestListItem {
+  contactId: string;
+  displayName: string;
+  email?: string | null;
+  phone?: string | null;
+  role: "Guest";
+  stayCount: number;
+  totalSpendCents: number;
+  lastStayAt?: string | null;
+  nextStayAt?: string | null;
+  favouriteUnit?: string | null;
+  vip: boolean;
+  repeatGuest: boolean;
+  marketingConsent?: boolean | null;
+  legacyWpGuestId?: number | null;
+}
+
+export interface AccommodationGuestDetail extends AccommodationGuestListItem {
+  preferences?: string | null;
+  specialRequests?: string | null;
+  guestNotes?: string | null;
+  bookings: Array<{
+    id: string;
+    ref?: string | null;
+    accommodationName?: string | null;
+    checkin?: string | null;
+    checkout?: string | null;
+    status: string;
+    totalCents?: number | null;
+  }>;
+  upcomingBookings: Array<{
+    id: string;
+    ref?: string | null;
+    accommodationName?: string | null;
+    checkin?: string | null;
+    checkout?: string | null;
+    status: string;
+    totalCents?: number | null;
+  }>;
+}
+
+function formatDay(value: Date | null | undefined): string | null {
+  if (!value) return null;
+  return value.toISOString().slice(0, 10);
+}
+
+function favouriteUnitFromBookings(
+  bookings: Array<{ accommodationName: string | null }>,
+): string | null {
+  const counts = new Map<string, number>();
+  for (const b of bookings) {
+    const name = b.accommodationName?.trim();
+    if (!name) continue;
+    counts.set(name, (counts.get(name) ?? 0) + 1);
+  }
+  let best: string | null = null;
+  let bestCount = 0;
+  for (const [name, count] of counts) {
+    if (count > bestCount) {
+      best = name;
+      bestCount = count;
+    }
+  }
+  return best;
+}
+
+async function ensureGuestProfile(input: {
+  organisationId: string;
+  contactId: string;
+  legacyWpGuestId?: number | null;
+  favouriteUnit?: string | null;
+}): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const existing = await prisma.accommodationGuestProfile.findUnique({
+    where: { contactId: input.contactId },
+  });
+
+  if (existing) {
+    if (existing.organisationId !== input.organisationId) return;
+    const data: Prisma.AccommodationGuestProfileUpdateInput = {};
+    if (input.legacyWpGuestId != null && existing.legacyWpGuestId == null) {
+      data.legacyWpGuestId = input.legacyWpGuestId;
+    }
+    if (input.favouriteUnit && !existing.favouriteUnit) {
+      data.favouriteUnit = input.favouriteUnit;
+    }
+    if (Object.keys(data).length > 0) {
+      await prisma.accommodationGuestProfile.update({
+        where: { id: existing.id },
+        data,
+      });
+    }
+    return;
+  }
+
+  try {
+    await prisma.accommodationGuestProfile.create({
+      data: {
+        organisationId: input.organisationId,
+        contactId: input.contactId,
+        legacyWpGuestId: input.legacyWpGuestId ?? null,
+        favouriteUnit: input.favouriteUnit ?? null,
+      },
+    });
+  } catch {
+    // Unique race or legacyWpGuestId conflict — ignore; list path re-reads.
+  }
+}
+
+/**
+ * Ensure Contact (+ guest profile) for a booking guest and return contactId.
+ */
+export async function ensureContactForStayGuest(input: {
+  organisationId: string;
+  actorId?: string;
+  guestName?: string;
+  email?: string | null;
+  phone?: string | null;
+  legacyWpGuestId?: number | null;
+  favouriteUnit?: string | null;
+}): Promise<string | null> {
+  const ensured = await ensureContactForLeadFields({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    name: input.guestName,
+    email: input.email ?? undefined,
+    phone: input.phone ?? undefined,
+    source: "accommodation",
+  });
+  if (!ensured) return null;
+
+  await ensureGuestProfile({
+    organisationId: input.organisationId,
+    contactId: ensured.id,
+    legacyWpGuestId: input.legacyWpGuestId,
+    favouriteUnit: input.favouriteUnit,
+  });
+
+  return ensured.id;
+}
+
+/**
+ * Link StayBooking → Contact and ensure AccommodationGuestProfile.
+ */
+export async function linkStayBookingToContact(
+  organisationId: string,
+  stayBookingId: string,
+  options?: { actorId?: string; legacyWpGuestId?: number | null },
+): Promise<string | null> {
+  const { prisma } = await import("@dg/database");
+  const booking = await prisma.stayBooking.findFirst({
+    where: { id: stayBookingId, organisationId },
+  });
+  if (!booking) return null;
+
+  if (booking.contactId) {
+    await ensureGuestProfile({
+      organisationId,
+      contactId: booking.contactId,
+      legacyWpGuestId: options?.legacyWpGuestId,
+      favouriteUnit: booking.accommodationName,
+    });
+    return booking.contactId;
+  }
+
+  const contactId = await ensureContactForStayGuest({
+    organisationId,
+    actorId: options?.actorId,
+    guestName: booking.guestName,
+    email: booking.email,
+    phone: booking.phone,
+    legacyWpGuestId: options?.legacyWpGuestId,
+    favouriteUnit: booking.accommodationName,
+  });
+  if (!contactId) return null;
+
+  await prisma.stayBooking.update({
+    where: { id: booking.id },
+    data: { contactId },
+  });
+  return contactId;
+}
+
+export async function ensureContactsForOrganisationStayBookings(
+  organisationId: string,
+  options?: { actorId?: string; limit?: number },
+): Promise<{ linked: number; skipped: number }> {
+  const { prisma } = await import("@dg/database");
+  const limit = Math.min(options?.limit ?? 200, 500);
+  const bookings = await prisma.stayBooking.findMany({
+    where: { organisationId, contactId: null },
+    orderBy: { updatedAt: "desc" },
+    take: limit,
+  });
+
+  let linked = 0;
+  let skipped = 0;
+  for (const booking of bookings) {
+    const contactId = await linkStayBookingToContact(organisationId, booking.id, {
+      actorId: options?.actorId,
+    });
+    if (contactId) linked += 1;
+    else skipped += 1;
+  }
+  return { linked, skipped };
+}
+
+/**
+ * Upsert Contact + guest profile from a WordPress guest row (connector bridge).
+ */
+export async function upsertGuestFromWpRow(
+  organisationId: string,
+  guest: {
+    id: number;
+    name?: string;
+    email?: string;
+    phone?: string;
+    total_stays?: number;
+  },
+  options?: { actorId?: string },
+): Promise<AccommodationGuestListItem | null> {
+  const contactId = await ensureContactForStayGuest({
+    organisationId,
+    actorId: options?.actorId,
+    guestName: guest.name,
+    email: guest.email,
+    phone: guest.phone,
+    legacyWpGuestId: guest.id,
+  });
+  if (!contactId) return null;
+
+  // Attach any unlinked bookings that match email/name
+  const { prisma } = await import("@dg/database");
+  const email = guest.email?.trim().toLowerCase() || null;
+  if (email) {
+    await prisma.stayBooking.updateMany({
+      where: {
+        organisationId,
+        contactId: null,
+        email: { equals: email, mode: "insensitive" },
+      },
+      data: { contactId },
+    });
+  }
+
+  const detail = await getAccommodationGuest(organisationId, contactId);
+  return detail;
+}
+
+function buildListItem(input: {
+  contact: {
+    id: string;
+    firstName: string;
+    lastName: string | null;
+    email: string | null;
+    phone: string | null;
+  };
+  profile: {
+    vip: boolean;
+    marketingConsent: boolean | null;
+    favouriteUnit: string | null;
+    legacyWpGuestId: number | null;
+  } | null;
+  bookings: Array<{
+    checkin: Date | null;
+    accommodationName: string | null;
+    totalCents: number | null;
+    status: string;
+  }>;
+}): AccommodationGuestListItem {
+  const now = new Date();
+  const completed = input.bookings.filter(
+    (b) => b.status !== "cancelled" && b.status !== "canceled",
+  );
+  const stayCount = completed.length;
+  const totalSpendCents = completed.reduce((sum, b) => sum + (b.totalCents ?? 0), 0);
+
+  const past = completed
+    .filter((b) => b.checkin && b.checkin.getTime() <= now.getTime())
+    .sort((a, b) => (b.checkin?.getTime() ?? 0) - (a.checkin?.getTime() ?? 0));
+  const upcoming = completed
+    .filter((b) => b.checkin && b.checkin.getTime() > now.getTime())
+    .sort((a, b) => (a.checkin?.getTime() ?? 0) - (b.checkin?.getTime() ?? 0));
+
+  const favouriteUnit =
+    input.profile?.favouriteUnit ?? favouriteUnitFromBookings(completed);
+  const repeatGuest = stayCount >= REPEAT_STAY_THRESHOLD;
+  const vip = Boolean(input.profile?.vip) || totalSpendCents >= VIP_SPEND_CENTS || stayCount >= 5;
+
+  return {
+    contactId: input.contact.id,
+    displayName: [input.contact.firstName, input.contact.lastName].filter(Boolean).join(" "),
+    email: input.contact.email,
+    phone: input.contact.phone,
+    role: "Guest",
+    stayCount,
+    totalSpendCents,
+    lastStayAt: formatDay(past[0]?.checkin),
+    nextStayAt: formatDay(upcoming[0]?.checkin),
+    favouriteUnit,
+    vip,
+    repeatGuest,
+    marketingConsent: input.profile?.marketingConsent ?? null,
+    legacyWpGuestId: input.profile?.legacyWpGuestId ?? null,
+  };
+}
+
+export async function listAccommodationGuests(
+  organisationId: string,
+  options?: { limit?: number; search?: string },
+): Promise<{ items: AccommodationGuestListItem[]; meta: { total: number } }> {
+  const { prisma } = await import("@dg/database");
+  await ensureContactsForOrganisationStayBookings(organisationId, {
+    limit: options?.limit ?? 200,
+  });
+
+  const limit = Math.min(options?.limit ?? 100, 200);
+  const search = options?.search?.trim();
+
+  const profiles = await prisma.accommodationGuestProfile.findMany({
+    where: {
+      organisationId,
+      ...(search
+        ? {
+            contact: {
+              OR: [
+                { firstName: { contains: search, mode: "insensitive" } },
+                { lastName: { contains: search, mode: "insensitive" } },
+                { email: { contains: search, mode: "insensitive" } },
+                { phone: { contains: search, mode: "insensitive" } },
+              ],
+            },
+          }
+        : {}),
+    },
+    include: {
+      contact: true,
+    },
+    orderBy: { updatedAt: "desc" },
+    take: limit,
+  });
+
+  // Also include contacts that have stay bookings but somehow no profile yet
+  const profileContactIds = new Set(profiles.map((p) => p.contactId));
+  const orphanBookings = await prisma.stayBooking.findMany({
+    where: {
+      organisationId,
+      AND: [
+        { contactId: { not: null } },
+        ...(profileContactIds.size
+          ? [{ contactId: { notIn: [...profileContactIds] } }]
+          : []),
+      ],
+    },
+    select: { contactId: true },
+    distinct: ["contactId"],
+    take: limit,
+  });
+
+  for (const row of orphanBookings) {
+    if (!row.contactId || profileContactIds.has(row.contactId)) continue;
+    await ensureGuestProfile({ organisationId, contactId: row.contactId });
+  }
+
+  const refreshed =
+    orphanBookings.length > 0
+      ? await prisma.accommodationGuestProfile.findMany({
+          where: {
+            organisationId,
+            ...(search
+              ? {
+                  contact: {
+                    OR: [
+                      { firstName: { contains: search, mode: "insensitive" } },
+                      { lastName: { contains: search, mode: "insensitive" } },
+                      { email: { contains: search, mode: "insensitive" } },
+                      { phone: { contains: search, mode: "insensitive" } },
+                    ],
+                  },
+                }
+              : {}),
+          },
+          include: { contact: true },
+          orderBy: { updatedAt: "desc" },
+          take: limit,
+        })
+      : profiles;
+
+  const contactIds = refreshed.map((p) => p.contactId);
+  const bookings = contactIds.length
+    ? await prisma.stayBooking.findMany({
+        where: { organisationId, contactId: { in: contactIds } },
+        orderBy: { checkin: "desc" },
+      })
+    : [];
+
+  const byContact = new Map<string, typeof bookings>();
+  for (const b of bookings) {
+    if (!b.contactId) continue;
+    const list = byContact.get(b.contactId) ?? [];
+    list.push(b);
+    byContact.set(b.contactId, list);
+  }
+
+  const items = refreshed
+    .filter((p) => p.contact.deletedAt == null)
+    .map((p) =>
+      buildListItem({
+        contact: p.contact,
+        profile: p,
+        bookings: byContact.get(p.contactId) ?? [],
+      }),
+    )
+    .sort((a, b) => {
+      const aKey = a.lastStayAt ?? a.nextStayAt ?? "";
+      const bKey = b.lastStayAt ?? b.nextStayAt ?? "";
+      return bKey.localeCompare(aKey);
+    });
+
+  return { items, meta: { total: items.length } };
+}
+
+export async function getAccommodationGuest(
+  organisationId: string,
+  contactId: string,
+): Promise<AccommodationGuestDetail | null> {
+  const { prisma } = await import("@dg/database");
+  const contact = await prisma.contact.findFirst({
+    where: { id: contactId, organisationId, deletedAt: null },
+  });
+  if (!contact) return null;
+
+  let profile = await prisma.accommodationGuestProfile.findUnique({
+    where: { contactId },
+  });
+  if (profile && profile.organisationId !== organisationId) {
+    return null;
+  }
+
+  const bookings = await prisma.stayBooking.findMany({
+    where: { organisationId, contactId },
+    orderBy: { checkin: "desc" },
+  });
+
+  if (!profile && bookings.length === 0) {
+    // Allow opening guest detail only when Accommodation relationship exists
+    return null;
+  }
+
+  if (!profile) {
+    await ensureGuestProfile({
+      organisationId,
+      contactId,
+      favouriteUnit: favouriteUnitFromBookings(bookings),
+    });
+    profile = await prisma.accommodationGuestProfile.findUnique({
+      where: { contactId },
+    });
+  }
+
+  const listItem = buildListItem({
+    contact,
+    profile,
+    bookings,
+  });
+
+  const now = Date.now();
+  const mapped = bookings.map((b) => ({
+    id: b.id,
+    ref: b.ref,
+    accommodationName: b.accommodationName,
+    checkin: formatDay(b.checkin),
+    checkout: formatDay(b.checkout),
+    status: b.status,
+    totalCents: b.totalCents,
+  }));
+
+  return {
+    ...listItem,
+    preferences: profile?.preferences ?? null,
+    specialRequests: profile?.specialRequests ?? null,
+    guestNotes: profile?.guestNotes ?? null,
+    bookings: mapped,
+    upcomingBookings: mapped.filter((b) => {
+      if (!b.checkin) return false;
+      return new Date(`${b.checkin}T00:00:00`).getTime() > now;
+    }),
+  };
+}
+
+export async function getContactAccommodationGuestPanel(
+  organisationId: string,
+  contactId: string,
+): Promise<AccommodationGuestDetail | null> {
+  return getAccommodationGuest(organisationId, contactId);
+}
+
+/** Format LTV for Accommodation Guests list copy */
+export function formatGuestSpendAud(cents: number): string {
+  const dollars = cents / 100;
+  return new Intl.NumberFormat("en-AU", {
+    style: "currency",
+    currency: "AUD",
+    maximumFractionDigits: 0,
+  }).format(dollars);
+}
+
+export function guestListSummaryLine(guest: AccommodationGuestListItem): string {
+  const parts = [
+    guest.displayName,
+    guest.role,
+    `${guest.stayCount} stay${guest.stayCount === 1 ? "" : "s"}`,
+    `${formatGuestSpendAud(guest.totalSpendCents)} LTV`,
+  ];
+  if (guest.lastStayAt) parts.push(`Last stay ${guest.lastStayAt}`);
+  if (guest.favouriteUnit) parts.push(guest.favouriteUnit);
+  if (guest.repeatGuest) parts.push("Repeat Guest");
+  if (guest.vip) parts.push("VIP");
+  return parts.join(" · ");
+}

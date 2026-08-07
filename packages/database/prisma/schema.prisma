@@ -51,6 +51,7 @@ model Organisation {
   convertedGrowthProspects      GrowthProspect[] @relation("ConvertedProspect")
   platformApiKeys               PlatformApiKey[]
   stayBookings                  StayBooking[]
+  accommodationGuestProfiles    AccommodationGuestProfile[]
 
   referredBy        Organisation?  @relation("OrgReferral", fields: [referredByOrganisationId], references: [id], onDelete: SetNull)
   referralsMade     Organisation[] @relation("OrgReferral")
@@ -115,6 +116,8 @@ model Contact {
   company       Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
   leads         Lead[]
   opportunities Opportunity[]
+  stayBookings  StayBooking[]
+  accommodationGuestProfile AccommodationGuestProfile?
 
   @@index([organisationId, email])
   @@index([organisationId, status])
@@ -277,6 +280,8 @@ model StayBooking {
   organisationId     String    @map("organisation_id")
   externalWpId       Int       @map("external_wp_id")
   ref                String?
+  /** Universal Contact — guest is never a separate people object */
+  contactId          String?   @map("contact_id")
   guestName          String    @map("guest_name")
   email              String?
   phone              String?
@@ -291,11 +296,43 @@ model StayBooking {
   updatedAt          DateTime  @updatedAt @map("updated_at")
 
   organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  contact      Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
   @@unique([organisationId, externalWpId])
   @@index([organisationId, status])
   @@index([organisationId, checkin])
+  @@index([organisationId, contactId])
   @@map("stay_bookings")
+}
+
+/**
+ * Accommodation app context on a Contact — NOT a Universal Object / people type.
+ * Preferences and VIP flags live here; identity stays on Contact.
+ * @see docs/foundations/CONTACTS-AND-APP-ROLES.md
+ */
+model AccommodationGuestProfile {
+  id                 String    @id @default(cuid())
+  organisationId     String    @map("organisation_id")
+  /** One guest profile per Contact (Contact ids are globally unique) */
+  contactId          String    @unique @map("contact_id")
+  /** WordPress guest / customer id when mirrored from connector */
+  legacyWpGuestId    Int?      @map("legacy_wp_guest_id")
+  vip                Boolean   @default(false)
+  marketingConsent   Boolean?  @map("marketing_consent")
+  favouriteUnit      String?   @map("favourite_unit")
+  preferences        String?   @db.Text
+  specialRequests    String?   @map("special_requests") @db.Text
+  guestNotes         String?   @map("guest_notes") @db.Text
+  metadata           Json?
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  contact      Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, legacyWpGuestId])
+  @@index([organisationId])
+  @@map("accommodation_guest_profiles")
 }
 
 model AppInstallation {

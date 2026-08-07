@@ -1,6 +1,10 @@
 /**
  * Universal object type identifiers.
  * Apps extend these — they do not create parallel types for the same concept.
+ *
+ * People: ONLY Contact. Never add Guest, Vendor, Buyer, Customer, Client,
+ * Borrower, or Member here — those are app roles/contexts on Contact.
+ * @see docs/foundations/CONTACTS-AND-APP-ROLES.md
  */
 
 export const UNIVERSAL_OBJECTS = {

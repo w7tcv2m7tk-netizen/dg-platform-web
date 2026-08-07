@@ -124,6 +124,8 @@ A **person** who accesses the platform. Identity lives in Clerk; Platform stores
 
 A **person** the organisation has a relationship with — client, vendor, buyer, guest, lead source contact. Not a platform User unless they also have Membership.
 
+**ONE Contact only.** Guest, Vendor, Buyer, Customer, Client, Borrower, and Member are **roles / app contexts**, not separate Universal Objects. See [CONTACTS-AND-APP-ROLES.md](./CONTACTS-AND-APP-ROLES.md).
+
 ### Mandatory fields
 
 | Field | Type | Notes |
@@ -147,11 +149,12 @@ A **person** the organisation has a relationship with — client, vendor, buyer,
 | works at | Company | N:1 (optional) |
 | generates | Lead | 1:N |
 | linked to | Property (owner, buyer) | N:M via graph |
+| guest of | StayBooking / AccommodationGuestProfile | 1:N / 1:1 (Accommodation app context) |
 | has | Activity, Task, Note | 1:N (polymorphic) |
 
 ### Ownership
 
-**CRM App** (Core) — canonical contact record. Connectors may create/update via Platform API.
+**CRM App** (Core) — canonical contact record. Connectors may create/update via Platform API. Industry Apps add context tables keyed to `contactId`; they do not create parallel people rows.
 
 ### Events
 
@@ -506,7 +509,9 @@ A **reserved period** for an accommodation unit — hospitality, short-stay, dom
 
 ### Optional fields
 
-`guestContactId`, `totalCents`, `currency`, `source`, `notes`, `metadata`, `externalRefs` (Airbnb, Booking.com)
+`contactId` (guest — Universal Contact), `totalCents`, `currency`, `source`, `notes`, `metadata`, `externalRefs` (Airbnb, Booking.com)
+
+> **Do not** introduce a `Guest` Universal Object. Guests are Contacts; Accommodation guest attributes live on `AccommodationGuestProfile` + booking aggregates. See [CONTACTS-AND-APP-ROLES.md](./CONTACTS-AND-APP-ROLES.md).
 
 ### Relationships
 
@@ -519,7 +524,7 @@ A **reserved period** for an accommodation unit — hospitality, short-stay, dom
 
 ### Ownership
 
-**Accommodation App** (Business tier) — not in Platform 1.0 schema; defined now for forward compatibility.
+**Accommodation App** (Business tier) — `StayBooking` + `AccommodationGuestProfile` in Gen 2 schema; WordPress remains connector SoT until cutover.
 
 ### Events
 

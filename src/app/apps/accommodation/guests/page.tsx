@@ -1,4 +1,8 @@
 import { currentUser } from "@clerk/nextjs/server";
+import {
+  listAccommodationGuests,
+  upsertGuestFromWpRow,
+} from "@dg/platform-core";
 import { Suspense } from "react";
 
 import { AccommodationGuestsTable } from "@/components/accommodation/AccommodationGuestsTable";
@@ -39,16 +43,46 @@ export default async function AccommodationGuestsPage({ searchParams }: PageProp
   const sites = listWpAccommodationSites();
   const site = getWpAccommodationSite(siteId);
   const connector = await accommodationConnectorForSession(session?.organisationId);
-  const guestsResult = await fetchWpAccommodationGuests(site.id, 100, connector);
   const siteLabel = connector?.label ?? site.label;
+
+  let guests: Awaited<ReturnType<typeof listAccommodationGuests>>["items"] = [];
+  let total = 0;
+  let error: string | undefined;
+  let sourceLabel = "Platform Contacts";
+
+  if (session) {
+    // Bridge WP guests → Contact + AccommodationGuestProfile when connector available
+    const wpGuests = await fetchWpAccommodationGuests(site.id, 100, connector);
+    if (wpGuests.ok) {
+      for (const row of wpGuests.guests) {
+        await upsertGuestFromWpRow(session.organisationId, row, {
+          actorId: user?.id,
+        });
+      }
+    }
+
+    const listed = await listAccommodationGuests(session.organisationId, { limit: 100 });
+    guests = listed.items;
+    total = listed.meta.total;
+    if (!guests.length && wpGuests.ok === false) {
+      error = wpGuests.message;
+      sourceLabel = "WordPress (unavailable)";
+    } else if (wpGuests.ok) {
+      sourceLabel = "Contacts · synced from WordPress + stay bookings";
+    } else {
+      sourceLabel = "Contacts · stay bookings";
+    }
+  } else {
+    error = "Sign in to view accommodation guests linked to Contacts.";
+  }
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Guests</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · edit guest details from
-          WordPress
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · Contacts with Accommodation
+          guest context
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">
@@ -58,10 +92,11 @@ export default async function AccommodationGuestsPage({ searchParams }: PageProp
       </header>
       <main className="dg-page-main">
         <AccommodationGuestsTable
-          guests={guestsResult.ok ? guestsResult.guests : []}
-          total={guestsResult.ok ? guestsResult.total : undefined}
-          error={guestsResult.ok ? undefined : guestsResult.message}
+          guests={guests}
+          total={total}
+          error={error}
           siteLabel={siteLabel}
+          sourceLabel={sourceLabel}
         />
       </main>
     </>

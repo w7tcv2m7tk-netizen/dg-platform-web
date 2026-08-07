@@ -72,7 +72,7 @@ Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 | Users / Memberships | ✅ Schema | ❌ Clerk → DB not live |
 | Roles & Permissions | ✅ Feature Registry types | ❌ Not enforced in API |
 | App Registry | ✅ Manifests + registry | ✅ |
-| Universal Objects | ✅ Types + schema | ❌ No CRUD API |
+| Universal Objects | ✅ Types + schema; Contact → App Role ([CONTACTS-AND-APP-ROLES](./foundations/CONTACTS-AND-APP-ROLES.md)) | ⚠️ Contact CRUD live; guests Contact-linked |
 | Event Bus | ✅ In-process | ❌ No producers on writes |
 | Platform API | ⚠️ Partial (`/portal/me` bridge) | ❌ No `/v1` CRUD |
 | Billing | ⚠️ Stripe checkout + portal | ⚠️ Live checkout; invoice.paid accrual gaps |

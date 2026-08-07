@@ -166,7 +166,7 @@ The dashboard answers one question:
 |-----------|---------|
 | Connect systems | Connectors unify external tools |
 | Simplify complexity | One login, one truth |
-| Eliminate duplication | Universal Objects — no parallel data models |
+| Eliminate duplication | Universal Objects — no parallel data models; **one Contact**, app roles not duplicate people ([CONTACTS-AND-APP-ROLES](./foundations/CONTACTS-AND-APP-ROLES.md)) |
 | Save time | Automation + AI assistance |
 | Improve decision making | Insights, scores, recommendations |
 | Increase visibility | SEO, AI Visibility, analytics in one place |
