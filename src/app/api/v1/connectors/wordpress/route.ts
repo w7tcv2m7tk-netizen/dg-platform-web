@@ -6,7 +6,7 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { fetchWpVendorLeads } from "@/lib/dg-api";
+import { probeWordPressConnector } from "@/lib/dg-api";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
@@ -18,7 +18,7 @@ export async function GET(req: Request) {
     resolveOrgWordPressConnector(session.organisationId),
   ]);
 
-  const probe = await fetchWpVendorLeads(3, {
+  const probe = await probeWordPressConnector({
     baseUrl: resolved.baseUrl,
     apiKey: resolved.apiKey,
     label: resolved.label,
@@ -39,7 +39,13 @@ export async function GET(req: Request) {
       },
       presets: WP_CONNECTOR_PRESETS,
       probe: probe.ok
-        ? { ok: true, leadCount: probe.leads.length }
+        ? {
+            ok: true,
+            kind: probe.kind,
+            detail: probe.detail,
+            leadCount: probe.leadCount,
+            occupancyRate: probe.occupancyRate,
+          }
         : { ok: false, code: probe.code, message: probe.message },
       envFallback: {
         DG_WP_CONNECTOR_API_KEY: Boolean(process.env.DG_WP_CONNECTOR_API_KEY?.trim()),

@@ -204,6 +204,12 @@ export async function pingApi(): Promise<{ ok: boolean; base: string }> {
   }
 }
 
+export type WpConnectorOverride = {
+  baseUrl?: string;
+  apiKey?: string;
+  label?: string;
+};
+
 /** WordPress connector — vendor leads from Gen 1 RE module */
 export function getWpConnectorBase(): string {
   return (
@@ -212,11 +218,115 @@ export function getWpConnectorBase(): string {
   );
 }
 
-export type WpConnectorOverride = {
-  baseUrl?: string;
-  apiKey?: string;
-  label?: string;
-};
+export type WpConnectorProbeResult =
+  | {
+      ok: true;
+      kind: "real-estate" | "accommodation" | "site";
+      detail: string;
+      leadCount?: number;
+      occupancyRate?: number;
+    }
+  | {
+      ok: false;
+      code:
+        | "missing_api_key"
+        | "auth_failed"
+        | "not_found"
+        | "upstream_error"
+        | "network_error";
+      message: string;
+      status?: number;
+    };
+
+function detectWpConnectorKind(
+  connector?: WpConnectorOverride | null,
+): "real-estate" | "accommodation" | "site" {
+  const hay = `${connector?.baseUrl ?? ""} ${connector?.label ?? ""}`.toLowerCase();
+  if (
+    hay.includes("currumbin") ||
+    hay.includes("hideaway") ||
+    hay.includes("accommodation") ||
+    hay.includes("cvh")
+  ) {
+    return "accommodation";
+  }
+  if (
+    hay.includes("roe") ||
+    hay.includes("realty") ||
+    hay.includes("real-estate") ||
+    hay.includes("realestate")
+  ) {
+    return "real-estate";
+  }
+  return "site";
+}
+
+/** Probe the right module endpoint for this WordPress connector (RE vs accommodation vs generic). */
+export async function probeWordPressConnector(
+  connector?: WpConnectorOverride,
+): Promise<WpConnectorProbeResult> {
+  const kind = detectWpConnectorKind(connector);
+
+  if (kind === "accommodation") {
+    const summary = await fetchWpAccommodationSummary(null, 30, connector);
+    if (!summary.ok) {
+      return {
+        ok: false,
+        code: summary.code,
+        message: summary.message,
+        status: summary.status,
+      };
+    }
+    const rate = summary.data.occupancy_rate;
+    const occupancy =
+      typeof rate === "number" ? Math.round(rate <= 1 ? rate * 100 : rate) : undefined;
+    return {
+      ok: true,
+      kind,
+      detail:
+        occupancy != null
+          ? `Accommodation connected — occupancy ${occupancy}%`
+          : "Accommodation connected",
+      occupancyRate: occupancy,
+    };
+  }
+
+  if (kind === "real-estate") {
+    const leads = await fetchWpVendorLeads(3, connector);
+    if (!leads.ok) {
+      return {
+        ok: false,
+        code: leads.code === "empty" ? "upstream_error" : leads.code,
+        message: leads.message,
+        status: leads.status,
+      };
+    }
+    return {
+      ok: true,
+      kind,
+      detail: `Connected — ${leads.leads.length} vendor lead(s) found`,
+      leadCount: leads.leads.length,
+    };
+  }
+
+  const health = await wpConnectorFetch<{ score?: number }>(`/site/health`, {
+    baseUrl: connector?.baseUrl,
+    apiKey: connector?.apiKey,
+  });
+  if (!health.ok) {
+    return {
+      ok: false,
+      code: health.code,
+      message: health.message,
+      status: health.status,
+    };
+  }
+  return {
+    ok: true,
+    kind: "site",
+    detail: `Connected — site health score ${health.data.score ?? "OK"}`,
+  };
+}
 
 export type WpHealthSite = {
   id: string;

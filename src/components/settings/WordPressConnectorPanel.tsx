@@ -64,7 +64,7 @@ export function WordPressConnectorPanel({
     const json = await res.json().catch(() => ({}));
     setPending(false);
     if (json.data?.probe?.ok) {
-      setMessage(`Connected — ${json.data.probe.leadCount} vendor lead(s) found.`);
+      setMessage(json.data.probe.detail ?? "Connected");
     } else {
       setError(json.data?.probe?.message ?? "Connection test failed");
     }
