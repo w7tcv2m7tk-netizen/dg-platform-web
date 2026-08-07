@@ -24,7 +24,7 @@ export function AccommodationBookingsTable({
       {siteLabel || total != null ? (
         <p className="text-sm text-slate-500">
           {siteLabel ? `${siteLabel}` : ""}
-          {total != null ? ` · ${total} total bookings in WordPress` : ""}
+          {total != null ? ` · ${total} bookings` : ""}
         </p>
       ) : null}
       {!bookings.length ? (

@@ -1,132 +1,383 @@
 import type { Prisma } from "@dg/database";
 
-export const ACC_BOOKING_SOURCE = "acc_booking";
+import { resolveOrgWordPressConnector } from "../connectors/wordpress/org-connector";
 
-export interface WpAccBookingSyncRow {
+export interface WpAccBookingRow {
   id: number;
   ref?: string;
   guest_name?: string;
   email?: string;
+  phone?: string;
   accommodation?: string;
   accommodation_id?: number;
   checkin?: string;
   checkout?: string;
   status?: string;
+  /** Dollars (WordPress) — converted to totalCents on upsert */
   total?: number;
 }
 
-export interface SyncAccBookingsResult {
+export interface SyncAccommodationBookingsResult {
   created: number;
   updated: number;
   skipped: number;
   errors: string[];
 }
 
-function serializeAccBooking(lead: {
+export type SyncAccommodationBookingsOutcome =
+  | { ok: true; result: SyncAccommodationBookingsResult }
+  | {
+      ok: false;
+      reason: "missing_key" | "fetch_failed" | "network_error";
+      message: string;
+    };
+
+export interface StayBookingListItem {
   id: string;
-  title: string | null;
+  externalWpId: number;
+  ref?: string | null;
+  guestName: string;
+  email?: string | null;
+  phone?: string | null;
+  accommodationName?: string | null;
+  accommodationWpId?: number | null;
+  checkin?: string | null;
+  checkout?: string | null;
   status: string;
+  totalCents?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+function parseStayDate(value?: string | null): Date | null {
+  if (!value?.trim()) return null;
+  const raw = value.trim();
+  const parsed = new Date(raw.includes("T") ? raw : `${raw}T00:00:00`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatStayDate(value: Date | null | undefined, fallback?: string | null): string | null {
+  if (fallback?.trim()) return fallback.trim();
+  if (!value) return null;
+  return value.toISOString().slice(0, 10);
+}
+
+function toTotalCents(total?: number): number | null {
+  if (total == null || !Number.isFinite(total)) return null;
+  return Math.round(total * 100);
+}
+
+function serializeStayBooking(row: {
+  id: string;
+  externalWpId: number;
+  ref: string | null;
+  guestName: string;
+  email: string | null;
+  phone: string | null;
+  accommodationName: string | null;
+  accommodationWpId: number | null;
+  checkin: Date | null;
+  checkout: Date | null;
+  status: string;
+  totalCents: number | null;
   metadata: unknown;
-  externalRefs: unknown;
   createdAt: Date;
   updatedAt: Date;
-}) {
-  const metadata = (lead.metadata as Record<string, unknown> | null) ?? {};
-  const externalRefs = (lead.externalRefs as Record<string, unknown> | null) ?? {};
+}): StayBookingListItem {
+  const metadata = (row.metadata as Record<string, unknown> | null) ?? {};
   return {
-    id: lead.id,
-    guestName: (metadata.guest_name as string | undefined) ?? lead.title,
-    email: metadata.email as string | undefined,
-    accommodation: metadata.accommodation as string | undefined,
-    accommodationId: metadata.accommodation_id as number | undefined,
-    checkin: metadata.checkin as string | undefined,
-    checkout: metadata.checkout as string | undefined,
-    ref: metadata.ref as string | undefined,
-    total: metadata.total as number | undefined,
-    status: lead.status,
-    wpBookingId: externalRefs.wp_booking_id as number | undefined,
-    createdAt: lead.createdAt.toISOString(),
-    updatedAt: lead.updatedAt.toISOString(),
+    id: row.id,
+    externalWpId: row.externalWpId,
+    ref: row.ref,
+    guestName: row.guestName,
+    email: row.email,
+    phone: row.phone,
+    accommodationName: row.accommodationName,
+    accommodationWpId: row.accommodationWpId,
+    checkin: formatStayDate(row.checkin, metadata.checkin as string | undefined),
+    checkout: formatStayDate(row.checkout, metadata.checkout as string | undefined),
+    status: row.status,
+    totalCents: row.totalCents,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
   };
 }
 
-export async function listAccBookings(organisationId: string, limit = 50) {
-  if (!process.env.DATABASE_URL) return [];
-  const { prisma } = await import("@dg/database");
-  const items = await prisma.lead.findMany({
-    where: { organisationId, source: ACC_BOOKING_SOURCE },
-    orderBy: { updatedAt: "desc" },
-    take: Math.min(limit, 100),
-  });
-  return items.map(serializeAccBooking);
+/** Map Postgres stay bookings into the WpAccBookingRow shape used by UI tables. */
+export function stayBookingToWpRow(item: StayBookingListItem): WpAccBookingRow {
+  return {
+    id: item.externalWpId,
+    ref: item.ref ?? undefined,
+    guest_name: item.guestName,
+    email: item.email ?? undefined,
+    phone: item.phone ?? undefined,
+    accommodation: item.accommodationName ?? undefined,
+    accommodation_id: item.accommodationWpId ?? undefined,
+    checkin: item.checkin ?? undefined,
+    checkout: item.checkout ?? undefined,
+    status: item.status,
+    total: item.totalCents != null ? item.totalCents / 100 : undefined,
+  };
 }
 
-export async function syncAccBookingsFromWordPress(input: {
-  organisationId: string;
-  bookings: WpAccBookingSyncRow[];
-}): Promise<SyncAccBookingsResult> {
+export async function listStayBookings(organisationId: string, limit = 50) {
+  if (!process.env.DATABASE_URL) return [];
   const { prisma } = await import("@dg/database");
-  const result: SyncAccBookingsResult = { created: 0, updated: 0, skipped: 0, errors: [] };
+  const items = await prisma.stayBooking.findMany({
+    where: { organisationId },
+    orderBy: [{ checkin: "desc" }, { createdAt: "desc" }],
+    take: Math.min(limit, 200),
+  });
+  return items.map(serializeStayBooking);
+}
 
-  for (const booking of input.bookings) {
+async function fetchWpAccommodationBookings(
+  organisationId: string,
+  limit: number,
+): Promise<
+  | { ok: true; bookings: WpAccBookingRow[] }
+  | { ok: false; reason: "missing_key" | "fetch_failed" | "network_error"; message: string }
+> {
+  const connector = await resolveOrgWordPressConnector(organisationId);
+  if (!connector.apiKey?.trim()) {
+    return {
+      ok: false,
+      reason: "missing_key",
+      message: "WordPress API key not configured for this organisation",
+    };
+  }
+
+  try {
+    const res = await fetch(
+      `${connector.baseUrl}/accommodation/bookings?limit=${Math.min(limit, 200)}`,
+      {
+        headers: {
+          Accept: "application/json",
+          "X-API-Key": connector.apiKey,
+        },
+        cache: "no-store",
+      },
+    );
+
+    const data = (await res.json().catch(() => null)) as {
+      bookings?: WpAccBookingRow[];
+      message?: string;
+    } | null;
+
+    if (!res.ok) {
+      return {
+        ok: false,
+        reason: "fetch_failed",
+        message:
+          data?.message ??
+          (res.status === 404
+            ? "WordPress accommodation bookings endpoint not found"
+            : `WordPress returned HTTP ${res.status}`),
+      };
+    }
+
+    return { ok: true, bookings: data?.bookings ?? [] };
+  } catch (err) {
+    return {
+      ok: false,
+      reason: "network_error",
+      message: err instanceof Error ? err.message : "Network error fetching bookings",
+    };
+  }
+}
+
+function mapBookingFields(booking: WpAccBookingRow) {
+  const guestName = booking.guest_name?.trim() || booking.ref?.trim() || `Booking #${booking.id}`;
+  const status = booking.status?.trim() || "pending";
+  const checkin = parseStayDate(booking.checkin);
+  const checkout = parseStayDate(booking.checkout);
+  const totalCents = toTotalCents(booking.total);
+  const metadata = {
+    checkin: booking.checkin ?? null,
+    checkout: booking.checkout ?? null,
+    total: booking.total ?? null,
+    source: "wordpress",
+  };
+
+  return {
+    ref: booking.ref?.trim() || null,
+    guestName,
+    email: booking.email?.trim() || null,
+    phone: booking.phone?.trim() || null,
+    accommodationName: booking.accommodation?.trim() || null,
+    accommodationWpId: booking.accommodation_id ?? null,
+    checkin,
+    checkout,
+    status,
+    totalCents,
+    metadata,
+  };
+}
+
+/**
+ * Resolve the org WordPress connector, fetch `/accommodation/bookings`,
+ * and upsert StayBooking rows by organisationId + externalWpId.
+ */
+export async function syncAccommodationBookingsFromWordPress(
+  organisationId: string,
+  options?: { limit?: number; actorId?: string },
+): Promise<SyncAccommodationBookingsOutcome> {
+  const fetched = await fetchWpAccommodationBookings(organisationId, options?.limit ?? 100);
+  if (!fetched.ok) {
+    return { ok: false, reason: fetched.reason, message: fetched.message };
+  }
+
+  const { prisma } = await import("@dg/database");
+  const result: SyncAccommodationBookingsResult = {
+    created: 0,
+    updated: 0,
+    skipped: 0,
+    errors: [],
+  };
+
+  for (const booking of fetched.bookings) {
     try {
       const wpId = booking.id;
-      const existing = await prisma.lead.findFirst({
+      if (!Number.isFinite(wpId)) {
+        result.skipped++;
+        continue;
+      }
+
+      const fields = mapBookingFields(booking);
+      const existing = await prisma.stayBooking.findUnique({
         where: {
-          organisationId: input.organisationId,
-          source: ACC_BOOKING_SOURCE,
-          externalRefs: { path: ["wp_booking_id"], equals: wpId },
+          organisationId_externalWpId: {
+            organisationId,
+            externalWpId: wpId,
+          },
         },
       });
 
-      const metadata = {
-        guest_name: booking.guest_name,
-        email: booking.email,
-        accommodation: booking.accommodation,
-        accommodation_id: booking.accommodation_id,
-        checkin: booking.checkin,
-        checkout: booking.checkout,
-        ref: booking.ref,
-        total: booking.total,
-      };
-      const title =
-        booking.guest_name?.trim() ||
-        booking.ref?.trim() ||
-        `Stay #${wpId}`;
-      const status = booking.status ?? "pending";
-
       if (existing) {
-        const prev = JSON.stringify(existing.metadata);
-        const next = JSON.stringify(metadata);
-        if (prev === next && existing.status === status && existing.title === title) {
+        const unchanged =
+          existing.ref === fields.ref &&
+          existing.guestName === fields.guestName &&
+          existing.email === fields.email &&
+          existing.phone === fields.phone &&
+          existing.accommodationName === fields.accommodationName &&
+          existing.accommodationWpId === fields.accommodationWpId &&
+          existing.status === fields.status &&
+          existing.totalCents === fields.totalCents &&
+          (existing.checkin?.getTime() ?? null) === (fields.checkin?.getTime() ?? null) &&
+          (existing.checkout?.getTime() ?? null) === (fields.checkout?.getTime() ?? null);
+
+        if (unchanged) {
           result.skipped++;
           continue;
         }
-        await prisma.lead.update({
+
+        await prisma.stayBooking.update({
           where: { id: existing.id },
           data: {
-            title,
-            status,
-            metadata: metadata as Prisma.InputJsonValue,
+            ...fields,
+            metadata: fields.metadata as Prisma.InputJsonValue,
           },
         });
         result.updated++;
       } else {
-        await prisma.lead.create({
+        await prisma.stayBooking.create({
           data: {
-            organisationId: input.organisationId,
-            source: ACC_BOOKING_SOURCE,
-            title,
-            status,
-            metadata: metadata as Prisma.InputJsonValue,
-            externalRefs: { wp_booking_id: wpId } as Prisma.InputJsonValue,
+            organisationId,
+            externalWpId: wpId,
+            ...fields,
+            metadata: fields.metadata as Prisma.InputJsonValue,
           },
         });
         result.created++;
       }
     } catch (err) {
       result.errors.push(
-        `Stay #${booking.id}: ${err instanceof Error ? err.message : "sync failed"}`,
+        `Booking #${booking.id}: ${err instanceof Error ? err.message : "sync failed"}`,
+      );
+    }
+  }
+
+  return { ok: true, result };
+}
+
+/** Alias for listStayBookings */
+export const listAccBookings = listStayBookings;
+
+/**
+ * Compatibility wrapper — prefer syncAccommodationBookingsFromWordPress(organisationId).
+ * Accepts either organisationId string or { organisationId, bookings? }.
+ * When bookings are provided, upserts those rows without re-fetching.
+ */
+export async function syncAccBookingsFromWordPress(
+  input:
+    | string
+    | {
+        organisationId: string;
+        bookings?: WpAccBookingRow[];
+        actorId?: string;
+        limit?: number;
+      },
+): Promise<SyncAccommodationBookingsResult | SyncAccommodationBookingsOutcome> {
+  if (typeof input === "string") {
+    return syncAccommodationBookingsFromWordPress(input);
+  }
+
+  if (!input.bookings) {
+    return syncAccommodationBookingsFromWordPress(input.organisationId, {
+      actorId: input.actorId,
+      limit: input.limit,
+    });
+  }
+
+  // Upsert provided rows (used by older wordpress-sync call sites)
+  const { prisma } = await import("@dg/database");
+  const result: SyncAccommodationBookingsResult = {
+    created: 0,
+    updated: 0,
+    skipped: 0,
+    errors: [],
+  };
+
+  for (const booking of input.bookings) {
+    try {
+      const wpId = booking.id;
+      if (!Number.isFinite(wpId)) {
+        result.skipped++;
+        continue;
+      }
+      const fields = mapBookingFields(booking);
+      const existing = await prisma.stayBooking.findUnique({
+        where: {
+          organisationId_externalWpId: {
+            organisationId: input.organisationId,
+            externalWpId: wpId,
+          },
+        },
+      });
+
+      if (existing) {
+        await prisma.stayBooking.update({
+          where: { id: existing.id },
+          data: {
+            ...fields,
+            metadata: fields.metadata as Prisma.InputJsonValue,
+          },
+        });
+        result.updated++;
+      } else {
+        await prisma.stayBooking.create({
+          data: {
+            organisationId: input.organisationId,
+            externalWpId: wpId,
+            ...fields,
+            metadata: fields.metadata as Prisma.InputJsonValue,
+          },
+        });
+        result.created++;
+      }
+    } catch (err) {
+      result.errors.push(
+        `Booking #${booking.id}: ${err instanceof Error ? err.message : "sync failed"}`,
       );
     }
   }

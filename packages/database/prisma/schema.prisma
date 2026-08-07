@@ -45,6 +45,7 @@ model Organisation {
   paymentConnectorInstallations PaymentConnectorInstallation[]
   convertedGrowthProspects      GrowthProspect[] @relation("ConvertedProspect")
   platformApiKeys               PlatformApiKey[]
+  stayBookings                  StayBooking[]
 
   @@map("organisations")
 }
@@ -215,6 +216,33 @@ model Property {
   @@index([organisationId, status])
   @@index([organisationId, leadId])
   @@map("properties")
+}
+
+/** Hospitality stay booking synced from WordPress dg_booking posts */
+model StayBooking {
+  id                 String    @id @default(cuid())
+  organisationId     String    @map("organisation_id")
+  externalWpId       Int       @map("external_wp_id")
+  ref                String?
+  guestName          String    @map("guest_name")
+  email              String?
+  phone              String?
+  accommodationName  String?   @map("accommodation_name")
+  accommodationWpId  Int?      @map("accommodation_wp_id")
+  checkin            DateTime?
+  checkout           DateTime?
+  status             String    @default("pending")
+  totalCents         Int?      @map("total_cents")
+  metadata           Json?
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, externalWpId])
+  @@index([organisationId, status])
+  @@index([organisationId, checkin])
+  @@map("stay_bookings")
 }
 
 model AppInstallation {

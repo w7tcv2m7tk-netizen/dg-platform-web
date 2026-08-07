@@ -1,8 +1,8 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { listAccBookings } from "@dg/platform-core";
+import { listStayBookings, stayBookingToWpRow } from "@dg/platform-core";
 import { Suspense } from "react";
 
-import { AccommodationBookingsTable } from "@/components/accommodation/AccommodationBookingsTable";
+import { AccommodationBookingsPanel } from "@/components/accommodation/AccommodationBookingsPanel";
 import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
@@ -47,36 +47,29 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
   const connector = await accommodationConnectorForSession(session?.organisationId);
   const siteLabel = connector?.label ?? site.label;
 
-  const stored = session ? await listAccBookings(session.organisationId, 50) : [];
-  const live = await fetchWpAccommodationBookings(site.id, 50, connector);
+  const stored = session ? await listStayBookings(session.organisationId, 50) : [];
+  const live =
+    stored.length === 0
+      ? await fetchWpAccommodationBookings(site.id, 50, connector)
+      : null;
 
   const bookings =
     stored.length > 0
-      ? stored.map((b) => ({
-          id: b.wpBookingId ?? Number.parseInt(b.id.slice(-6), 36) || 0,
-          ref: b.ref,
-          guest_name: b.guestName ?? undefined,
-          email: b.email,
-          accommodation: b.accommodation,
-          accommodation_id: b.accommodationId,
-          checkin: b.checkin,
-          checkout: b.checkout,
-          status: b.status,
-          total: b.total,
-        }))
-      : live.ok
+      ? stored.map(stayBookingToWpRow)
+      : live?.ok
         ? live.bookings
         : [];
 
-  const error =
-    stored.length === 0 && !live.ok ? live.message : undefined;
+  const error = stored.length === 0 && live && !live.ok ? live.message : undefined;
+  const total = stored.length > 0 ? stored.length : live?.ok ? live.total : undefined;
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Bookings</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · synced from WordPress
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · auto-syncs from
+          WordPress every 4 hours
           {stored.length ? ` · ${stored.length} on Platform` : ""}
         </p>
         <Suspense fallback={null}>
@@ -86,11 +79,12 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
         </Suspense>
       </header>
       <main className="dg-page-main">
-        <AccommodationBookingsTable
+        <AccommodationBookingsPanel
           bookings={bookings}
-          total={stored.length || (live.ok ? live.total : undefined)}
+          total={total}
           error={error}
           siteLabel={siteLabel}
+          source={stored.length > 0 ? "postgres" : "wordpress"}
         />
       </main>
     </>

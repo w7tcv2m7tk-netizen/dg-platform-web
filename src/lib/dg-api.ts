@@ -627,6 +627,7 @@ export type WpAccBookingRow = {
   ref?: string;
   guest_name?: string;
   email?: string;
+  phone?: string;
   accommodation?: string;
   accommodation_id?: number;
   checkin?: string;

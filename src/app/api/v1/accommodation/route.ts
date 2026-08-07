@@ -1,3 +1,4 @@
+import { listStayBookings, stayBookingToWpRow } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
@@ -10,6 +11,7 @@ import {
   patchWpAccommodationHousekeeping,
 } from "@/lib/dg-api";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { syncWordPressAccBookings } from "@/lib/wordpress-sync";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -18,6 +20,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const siteId = searchParams.get("siteId");
   const resource = searchParams.get("resource") ?? "summary";
+  const source = searchParams.get("source");
   const connector = await accommodationConnectorForSession(session.organisationId);
 
   if (resource === "sites") {
@@ -37,6 +40,29 @@ export async function GET(req: Request) {
 
   if (resource === "bookings") {
     const limit = Number(searchParams.get("limit") ?? 50);
+
+    if (source === "wp") {
+      const bookings = await fetchWpAccommodationBookings(siteId, limit, connector);
+      if (!bookings.ok) {
+        return NextResponse.json(
+          { error: { code: bookings.code, message: bookings.message } },
+          { status: 422 },
+        );
+      }
+      return NextResponse.json({
+        data: bookings.bookings,
+        meta: { total: bookings.total, site: bookings.site, source: "wordpress" },
+      });
+    }
+
+    const stored = await listStayBookings(session.organisationId, limit);
+    if (stored.length > 0) {
+      return NextResponse.json({
+        data: stored.map(stayBookingToWpRow),
+        meta: { total: stored.length, source: "postgres" },
+      });
+    }
+
     const bookings = await fetchWpAccommodationBookings(siteId, limit, connector);
     if (!bookings.ok) {
       return NextResponse.json(
@@ -46,7 +72,7 @@ export async function GET(req: Request) {
     }
     return NextResponse.json({
       data: bookings.bookings,
-      meta: { total: bookings.total, site: bookings.site },
+      meta: { total: bookings.total, site: bookings.site, source: "wordpress" },
     });
   }
 
@@ -77,6 +103,29 @@ export async function GET(req: Request) {
   }
 
   return NextResponse.json({ data: summary.data });
+}
+
+export async function POST(req: Request) {
+  const session = await requirePlatformAuth(req);
+  if (isNextResponse(session)) return session;
+
+  const body = await req.json().catch(() => ({}));
+
+  if (body.action === "sync_wordpress") {
+    const outcome = await syncWordPressAccBookings(session);
+    if (!outcome.ok) {
+      return NextResponse.json(
+        { error: { code: "sync_failed", message: outcome.message } },
+        { status: 422 },
+      );
+    }
+    return NextResponse.json({ data: outcome.result });
+  }
+
+  return NextResponse.json(
+    { error: { code: "unknown_action", message: "Unsupported action" } },
+    { status: 400 },
+  );
 }
 
 export async function PATCH(req: Request) {

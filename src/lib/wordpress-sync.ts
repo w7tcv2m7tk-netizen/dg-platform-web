@@ -2,13 +2,12 @@ import {
   syncVendorLeadsFromWordPress,
   syncBuyerLeadsFromWordPress,
   syncReBookingsFromWordPress,
-  syncAccBookingsFromWordPress,
+  syncAccommodationBookingsFromWordPress,
   syncPropertiesFromWordPress,
   type PlatformSession,
 } from "@dg/platform-core";
 
 import {
-  fetchWpAccommodationBookings,
   fetchWpBuyerLeads,
   fetchWpProperties,
   fetchWpRecentBookings,
@@ -241,19 +240,16 @@ export async function syncWordPressAccBookings(
   | { ok: true; result: WordPressSyncResult }
   | { ok: false; message: string }
 > {
-  const connector = await wpConnectorForOrg(session.organisationId);
-  const wp = await fetchWpAccommodationBookings(null, 100, connector);
-  if (!wp.ok) {
-    return { ok: false, message: wp.message };
-  }
-
-  const syncResult = await syncAccBookingsFromWordPress({
-    organisationId: session.organisationId,
-    bookings: wp.bookings,
+  const outcome = await syncAccommodationBookingsFromWordPress(session.organisationId, {
+    actorId: session.clerkUserId,
   });
 
+  if (!outcome.ok) {
+    return { ok: false, message: outcome.message };
+  }
+
   const result: WordPressSyncResult = {
-    ...syncResult,
+    ...outcome.result,
     ranAt: new Date().toISOString(),
   };
 
