@@ -22,6 +22,10 @@ model Organisation {
   settings        Json?
   billingCustomerId String? @map("billing_customer_id")
   industry        String?
+  /** Share slug for Platform Refer & Earn — /r/{referralCode} */
+  referralCode    String?  @unique @map("referral_code")
+  /** Organisation that referred this tenant (single-level only — no MLM) */
+  referredByOrganisationId String? @map("referred_by_organisation_id")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -31,6 +35,7 @@ model Organisation {
   activities       Activity[]
   tasks            Task[]
   leads            Lead[]
+  opportunities    Opportunity[]
   properties       Property[]
   appInstallations AppInstallation[]
   auditLogs        AuditLog[]
@@ -46,6 +51,12 @@ model Organisation {
   convertedGrowthProspects      GrowthProspect[] @relation("ConvertedProspect")
   platformApiKeys               PlatformApiKey[]
   stayBookings                  StayBooking[]
+
+  referredBy        Organisation?  @relation("OrgReferral", fields: [referredByOrganisationId], references: [id], onDelete: SetNull)
+  referralsMade     Organisation[] @relation("OrgReferral")
+  platformReferralsAsReferrer PlatformReferral[] @relation("ReferralReferrer")
+  platformReferralsAsReferred PlatformReferral[] @relation("ReferralReferred")
+  referralLedgerEntries       PlatformReferralLedger[]
 
   @@map("organisations")
 }
@@ -100,8 +111,10 @@ model Contact {
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  company      Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  organisation  Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  company       Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  leads         Lead[]
+  opportunities Opportunity[]
 
   @@index([organisationId, email])
   @@index([organisationId, status])
@@ -188,10 +201,44 @@ model Lead {
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
-  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  organisation Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  contact      Contact?      @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  opportunity  Opportunity?
 
   @@index([organisationId, status])
+  @@index([organisationId, contactId])
   @@map("leads")
+}
+
+/** Qualified pipeline item — CRM base; RE / industry apps own stage definitions. */
+model Opportunity {
+  id               String    @id @default(cuid())
+  organisationId   String    @map("organisation_id")
+  title            String
+  stage            String
+  status           String    @default("open")
+  contactId        String?   @map("contact_id")
+  companyId        String?   @map("company_id")
+  leadId           String?   @unique @map("lead_id")
+  propertyId       String?   @map("property_id")
+  assignedUserId   String?   @map("assigned_user_id")
+  valueCents       Int?      @map("value_cents")
+  currency         String    @default("AUD")
+  probability      Int?
+  expectedCloseDate DateTime? @map("expected_close_date")
+  lostReason       String?   @map("lost_reason")
+  pipelineId       String?   @map("pipeline_id")
+  metadata         Json?
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  contact      Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  lead         Lead?        @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, status])
+  @@index([organisationId, stage])
+  @@map("opportunities")
 }
 
 model Property {
@@ -587,4 +634,64 @@ model PlatformApiKey {
   @@index([organisationId])
   @@index([keyHash])
   @@map("platform_api_keys")
+}
+
+// ─── Platform Refer & Earn (SaaS acquisition — not B2B Network referrals) ───
+
+/**
+ * Single-level only: referrer Organisation → referred Organisation.
+ * Lifecycle: invited → signed_up → trial → paid → rewarded (or churned).
+ * See docs/foundations/REVIEWS-AND-REFERRALS.md §A.
+ */
+model PlatformReferral {
+  id                     String    @id @default(cuid())
+  referrerOrganisationId String    @map("referrer_organisation_id")
+  referredOrganisationId String?   @unique @map("referred_organisation_id")
+  code                   String
+  /** invited | signed_up | trial | paid | rewarded | churned */
+  status                 String    @default("invited")
+  inviteEmail            String?   @map("invite_email")
+  inviteName             String?   @map("invite_name")
+  /** Months of reward remaining (starts at 12 on first paid) */
+  rewardMonthsRemaining  Int       @default(12) @map("reward_months_remaining")
+  /** Customer 20% default; partner rates set later */
+  commissionBps          Int       @default(2000) @map("commission_bps")
+  firstPaidAt            DateTime? @map("first_paid_at")
+  rewardedUntil          DateTime? @map("rewarded_until")
+  metadata               Json?
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  referrer Organisation              @relation("ReferralReferrer", fields: [referrerOrganisationId], references: [id], onDelete: Cascade)
+  referred Organisation?             @relation("ReferralReferred", fields: [referredOrganisationId], references: [id], onDelete: SetNull)
+  ledger   PlatformReferralLedger[]
+
+  @@index([referrerOrganisationId, status])
+  @@index([code])
+  @@index([inviteEmail])
+  @@map("platform_referrals")
+}
+
+model PlatformReferralLedger {
+  id             String   @id @default(cuid())
+  organisationId String   @map("organisation_id")
+  referralId     String   @map("referral_id")
+  /** credit | cash_payout_stub | reversal */
+  entryType      String   @map("entry_type")
+  amountCents    Int      @map("amount_cents")
+  currency       String   @default("AUD")
+  description    String?
+  /** Stripe invoice / subscription period id when available */
+  stripeRef      String?  @map("stripe_ref")
+  periodStart    DateTime? @map("period_start")
+  periodEnd      DateTime? @map("period_end")
+  metadata       Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organisation Organisation     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  referral     PlatformReferral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, createdAt])
+  @@index([referralId])
+  @@map("platform_referral_ledger")
 }

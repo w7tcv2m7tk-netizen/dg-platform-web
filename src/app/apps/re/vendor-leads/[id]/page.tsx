@@ -5,11 +5,13 @@ import { currentUser } from "@clerk/nextjs/server";
 import {
   getContact,
   getLead,
+  getOpportunityForLead,
   getPropertyForLead,
   listInvoicesForEntity,
   listLeadActivities,
   listQuotesForEntity,} from "@dg/platform-core";
 
+import { ConvertToOpportunityButton } from "@/components/re/ConvertToOpportunityButton";
 import { LeadCommercePanel } from "@/components/re/LeadCommercePanel";
 import { RequestPaymentButton } from "@/components/re/RequestPaymentButton";
 import { LeadStageSelect } from "@/components/re/LeadStageSelect";
@@ -53,7 +55,7 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
   const lead = await getLead(session.organisationId, id);
   if (!lead) notFound();
 
-  const [activities, contact, property, quotes, invoices] = await Promise.all([
+  const [activities, contact, property, quotes, invoices, opportunity] = await Promise.all([
     listLeadActivities(session.organisationId, id),
     lead.contactId
       ? getContact(session.organisationId, lead.contactId)
@@ -61,9 +63,14 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
     getPropertyForLead(session.organisationId, id),
     listQuotesForEntity(session.organisationId, "Lead", id),
     listInvoicesForEntity(session.organisationId, "Lead", id),
+    getOpportunityForLead(session.organisationId, id),
   ]);
 
   const wpName = lead.metadata?.wp_name as string | undefined;
+  const contactName =
+    (lead.metadata?.contact_name as string | undefined) || wpName;
+  const metaEmail = lead.metadata?.email as string | undefined;
+  const metaPhone = lead.metadata?.phone as string | undefined;
   const wpId = lead.externalRefs?.wp_vendor_lead_id as number | undefined;
 
   return (
@@ -89,6 +96,15 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
               <h2 className="font-semibold text-white">Pipeline</h2>
               <div className="mt-4">
                 <LeadStageSelect leadId={lead.id} currentStage={lead.stage} />
+              </div>
+              <div className="mt-4 border-t border-slate-800 pt-4">
+                <p className="mb-2 text-xs text-slate-500">
+                  CRM opportunity — qualify / convert without leaving pipeline
+                </p>
+                <ConvertToOpportunityButton
+                  leadId={lead.id}
+                  existingOpportunityId={opportunity?.id}
+                />
               </div>
             </div>
 
@@ -172,10 +188,22 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
                     <dd className="text-white">{lead.description}</dd>
                   </div>
                 ) : null}
-                {wpName ? (
+                {contactName ? (
                   <div>
-                    <dt className="text-slate-500">Contact name (WP)</dt>
-                    <dd className="text-white">{wpName}</dd>
+                    <dt className="text-slate-500">Contact name</dt>
+                    <dd className="text-white">{contactName}</dd>
+                  </div>
+                ) : null}
+                {metaEmail ? (
+                  <div>
+                    <dt className="text-slate-500">Email</dt>
+                    <dd className="text-white">{metaEmail}</dd>
+                  </div>
+                ) : null}
+                {metaPhone ? (
+                  <div>
+                    <dt className="text-slate-500">Phone</dt>
+                    <dd className="text-white">{metaPhone}</dd>
                   </div>
                 ) : null}
                 {wpId ? (

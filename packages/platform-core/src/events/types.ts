@@ -5,6 +5,11 @@ export type PlatformEventType =
   | "contact.updated"
   | "company.created"
   | "lead.created"
+  | "lead.converted"
+  | "opportunity.created"
+  | "opportunity.stage_changed"
+  | "opportunity.won"
+  | "opportunity.lost"
   | "property.created"
   | "property.listed"
   | "booking.confirmed"
@@ -24,7 +29,10 @@ export type PlatformEventType =
   | "prospect.created"
   | "prospect.report_sent"
   | "prospect.report_viewed"
-  | "prospect.proposal_accepted";
+  | "prospect.proposal_accepted"
+  | "platform_referral.invited"
+  | "platform_referral.signed_up"
+  | "platform_referral.paid";
 
 export interface PlatformEvent<TPayload = Record<string, unknown>> {
   type: PlatformEventType;

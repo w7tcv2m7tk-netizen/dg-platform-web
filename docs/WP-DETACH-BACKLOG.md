@@ -65,7 +65,7 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 | **Status** | ✅ Done (Aug 2026) — create vendor/buyer leads in Neon; sync actions unchanged |
 | **Why** | Catalog claims create; route only ran WP sync actions — blocked Gen 2 capture. |
 | **Touchpoints** | `src/app/api/v1/leads/route.ts`; `packages/platform-core/src/leads/index.ts` (`createLead`); `CreateLeadForm.tsx`. |
-| **Done means** | Authenticated create for vendor + buyer leads in Neon (`metadata.lead_type` / `source: buyer_enquiry`); sync actions remain as separate `action` bodies. |
+| **Done means** | Authenticated create for vendor + buyer leads in Neon (`metadata.lead_type` / `source: buyer_enquiry`); upserts Contact; sync actions remain as separate `action` bodies. Convert → Opportunity via `POST /api/v1/opportunities`. |
 | **Effort** | M |
 | **Depends on** | WP-D-001 |
 

@@ -1,5 +1,6 @@
 import {
   createLead,
+  ensureContactForLeadFields,
   listLeads,
   updateBuyerLeadStage,
   updateLeadStage,
@@ -58,6 +59,33 @@ export async function POST(req: Request) {
     return NextResponse.json({ data: outcome.result });
   }
 
+  if (body.action === "convert_to_opportunity") {
+    const leadId = typeof body.id === "string" ? body.id : "";
+    if (!leadId) {
+      return NextResponse.json(
+        { error: { code: "validation_error", message: "id required" } },
+        { status: 422 },
+      );
+    }
+    const { convertLeadToOpportunity } = await import("@dg/platform-core");
+    const opportunity = await convertLeadToOpportunity({
+      organisationId: session.organisationId,
+      leadId,
+      actorId: session.clerkUserId,
+      stage: typeof body.stage === "string" ? body.stage : undefined,
+      title: typeof body.title === "string" ? body.title : undefined,
+      valueCents:
+        typeof body.valueCents === "number" ? body.valueCents : undefined,
+    });
+    if (!opportunity) {
+      return NextResponse.json(
+        { error: { code: "lead_not_found", message: "Lead not found" } },
+        { status: 404 },
+      );
+    }
+    return NextResponse.json({ data: opportunity }, { status: 201 });
+  }
+
   const leadType = (body.leadType as "vendor" | "buyer" | undefined) ?? "vendor";
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const title =
@@ -102,12 +130,27 @@ export async function POST(req: Request) {
   const phone = typeof body.phone === "string" ? body.phone.trim() : "";
   const notes = typeof body.notes === "string" ? body.notes.trim() : "";
 
+  // Mirror WP sync: upsert Contact so CRM + convert/opportunity stay linked
+  let contactId: string | undefined;
+  if (name || email || phone) {
+    const contact = await ensureContactForLeadFields({
+      organisationId: session.organisationId,
+      actorId: session.clerkUserId,
+      name: name || undefined,
+      email: email || undefined,
+      phone: phone || undefined,
+      source: leadType === "buyer" ? "buyer_enquiry" : body.source || "manual",
+    });
+    contactId = contact?.id;
+  }
+
   const lead = await createLead({
     organisationId: session.organisationId,
     actorId: session.clerkUserId,
     source: leadType === "buyer" ? "buyer_enquiry" : body.source || "manual",
     title,
     description: notes || undefined,
+    contactId,
     status: "new",
     metadata: {
       lead_type: leadType,

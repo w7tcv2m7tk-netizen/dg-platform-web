@@ -106,6 +106,19 @@ Rewards stop after 12 months from first paid period (or per partner/WL contract)
 
 Prefer billing + Organisation fields over premature Network tables.
 
+### MVP shipped (Aug 2026) + Stripe stubs
+
+| Piece | Status |
+|-------|--------|
+| `/r/{code}` + cookie attribution | ✅ |
+| `PlatformReferral` + ledger | ✅ |
+| Settings → Refer & Earn dashboard | ✅ |
+| Share link + email invite | ✅ (email via Communications **stub**) |
+| First-paid 20% credit on Stripe checkout | ✅ |
+| Monthly accrual on `invoice.paid` | ❌ Stub — document only |
+| Cash payout at ~$100 | ❌ Stub ledger entry only (no Stripe Connect) |
+| Partner 25–30% / Reseller rates | ❌ Not productised (`commissionBps` default 2000) |
+
 ### Timing vs Network
 
 | | Platform Referral Programme | Business Referral Network |

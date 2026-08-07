@@ -124,6 +124,11 @@ export default async function PlatformSettingsPage() {
                 </Link>
               </li>
               <li>
+                <Link href="/dashboard/settings/referrals" className="text-blue-400 hover:underline">
+                  Refer &amp; Earn →
+                </Link>
+              </li>
+              <li>
                 <Link href="/dashboard/settings/api" className="text-blue-400 hover:underline">
                   API →
                 </Link>

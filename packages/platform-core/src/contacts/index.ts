@@ -99,6 +99,59 @@ export async function getContact(organisationId: string, contactId: string) {
   return contact ? serializeContact(contact) : null;
 }
 
+/**
+ * Find-or-create Contact from lead form fields so manual create mirrors WP sync.
+ * Requires at least a name, email, or phone — otherwise returns null.
+ */
+export async function ensureContactForLeadFields(input: {
+  organisationId: string;
+  actorId?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  source?: string;
+}): Promise<{ id: string; created: boolean } | null> {
+  const email = input.email?.trim().toLowerCase() || "";
+  const phone = input.phone?.trim() || "";
+  const name = input.name?.trim() || "";
+  if (!email && !phone && !name) return null;
+
+  const { prisma } = await import("@dg/database");
+
+  if (email) {
+    const existing = await prisma.contact.findFirst({
+      where: { organisationId: input.organisationId, email, deletedAt: null },
+    });
+    if (existing) {
+      const patch: Prisma.ContactUpdateInput = {};
+      if (phone && !existing.phone) patch.phone = phone;
+      if (name) {
+        const parts = name.split(/\s+/);
+        const first = parts[0] ?? "";
+        const last = parts.slice(1).join(" ") || null;
+        if (first && existing.firstName === "Unknown") patch.firstName = first;
+        if (last && !existing.lastName) patch.lastName = last;
+      }
+      if (Object.keys(patch).length > 0) {
+        await prisma.contact.update({ where: { id: existing.id }, data: patch });
+      }
+      return { id: existing.id, created: false };
+    }
+  }
+
+  const parts = name.split(/\s+/).filter(Boolean);
+  const created = await createContact({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    firstName: parts[0] || (email ? email.split("@")[0] : "Unknown"),
+    lastName: parts.slice(1).join(" ") || undefined,
+    email: email || undefined,
+    phone: phone || undefined,
+    source: input.source ?? "manual",
+  });
+  return { id: created.id, created: true };
+}
+
 export async function createContact(input: CreateContactInput) {
   const { prisma } = await import("@dg/database");
 

@@ -19,6 +19,8 @@ export interface ResolveSessionInput {
   orgName?: string;
   /** Active tenant from cookie — must match a membership or falls back to first org. */
   activeOrganisationId?: string;
+  /** Platform Refer & Earn code from /r/{code} cookie */
+  referralCode?: string | null;
 }
 
 /** Resolve tenant context for the current Clerk user; provisions org if needed. */
@@ -31,13 +33,29 @@ export async function resolvePlatformSession(
 
   const { provisionOrganisation } = await import("../org/provision");
   const { resolveUserMembership, listUserOrganisations } = await import("../org/memberships");
-  await provisionOrganisation({
+
+  const provisioned = await provisionOrganisation({
     clerkUserId: input.clerkUserId,
     email: input.email,
     name: input.name,
     clerkOrgId: input.clerkOrgId,
     orgName: input.orgName,
+    referralCode: input.referralCode,
   });
+
+  // Late attribution when org already existed at signup but cookie arrived later
+  if (input.referralCode && provisioned.organisationId) {
+    try {
+      const { attributeOrganisationReferral } = await import("../referrals");
+      await attributeOrganisationReferral({
+        organisationId: provisioned.organisationId,
+        referralCode: input.referralCode,
+        inviteEmail: input.email,
+      });
+    } catch {
+      /* non-fatal */
+    }
+  }
 
   const { prisma } = await import("@dg/database");
 

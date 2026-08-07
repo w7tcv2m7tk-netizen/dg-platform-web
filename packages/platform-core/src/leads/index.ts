@@ -48,6 +48,11 @@ export interface ListLeadsOptions {
 
 function serializeLead(lead: Lead) {
   const metadata = (lead.metadata as Record<string, unknown> | null) ?? {};
+  const leadType = metadata.lead_type as string | undefined;
+  const defaultStage =
+    leadType === "buyer" || lead.source === "buyer_enquiry"
+      ? "inquiry"
+      : "vendor_lead";
   return {
     id: lead.id,
     organisationId: lead.organisationId,
@@ -56,7 +61,7 @@ function serializeLead(lead: Lead) {
     title: lead.title,
     description: lead.description,
     contactId: lead.contactId,
-    stage: (metadata.stage as string | undefined) ?? "vendor_lead",
+    stage: (metadata.stage as string | undefined) ?? defaultStage,
     propertyAddress: metadata.property_address as string | undefined,
     metadata,
     externalRefs: lead.externalRefs as Record<string, unknown> | null,

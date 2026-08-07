@@ -5,9 +5,11 @@ import { currentUser } from "@clerk/nextjs/server";
 import {
   getContact,
   getLead,
+  getOpportunityForLead,
   listLeadActivities,} from "@dg/platform-core";
 
 import { BuyerLeadStageSelect } from "@/components/re/BuyerLeadStageSelect";
+import { ConvertToOpportunityButton } from "@/components/re/ConvertToOpportunityButton";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 const STAGE_LABELS: Record<string, string> = {
@@ -46,15 +48,19 @@ export default async function BuyerLeadDetailPage({ params }: PageProps) {
   const lead = await getLead(session.organisationId, id);
   if (!lead || lead.source !== "buyer_enquiry") notFound();
 
-  const [activities, contact] = await Promise.all([
+  const [activities, contact, opportunity] = await Promise.all([
     listLeadActivities(session.organisationId, id),
     lead.contactId
       ? getContact(session.organisationId, lead.contactId)
       : Promise.resolve(null),
+    getOpportunityForLead(session.organisationId, id),
   ]);
 
   const propertyUrl = lead.metadata?.property_url as string | undefined;
   const wpId = lead.externalRefs?.wp_buyer_lead_id as number | undefined;
+  const contactName = lead.metadata?.contact_name as string | undefined;
+  const metaEmail = lead.metadata?.email as string | undefined;
+  const metaPhone = lead.metadata?.phone as string | undefined;
 
   return (
     <>
@@ -79,6 +85,15 @@ export default async function BuyerLeadDetailPage({ params }: PageProps) {
               <h2 className="font-semibold text-white">Pipeline</h2>
               <div className="mt-4">
                 <BuyerLeadStageSelect leadId={lead.id} currentStage={lead.stage} />
+              </div>
+              <div className="mt-4 border-t border-slate-800 pt-4">
+                <p className="mb-2 text-xs text-slate-500">
+                  CRM opportunity — convert without broken contact linkage
+                </p>
+                <ConvertToOpportunityButton
+                  leadId={lead.id}
+                  existingOpportunityId={opportunity?.id}
+                />
               </div>
             </div>
 
@@ -110,6 +125,24 @@ export default async function BuyerLeadDetailPage({ params }: PageProps) {
                         View on Roe ↗
                       </a>
                     </dd>
+                  </div>
+                ) : null}
+                {contactName ? (
+                  <div>
+                    <dt className="text-slate-500">Contact name</dt>
+                    <dd className="text-white">{contactName}</dd>
+                  </div>
+                ) : null}
+                {metaEmail ? (
+                  <div>
+                    <dt className="text-slate-500">Email</dt>
+                    <dd className="text-white">{metaEmail}</dd>
+                  </div>
+                ) : null}
+                {metaPhone ? (
+                  <div>
+                    <dt className="text-slate-500">Phone</dt>
+                    <dd className="text-white">{metaPhone}</dd>
                   </div>
                 ) : null}
                 {wpId ? (

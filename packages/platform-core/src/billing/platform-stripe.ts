@@ -202,7 +202,27 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
       },
     });
 
-    return { handled: true as const, ok: true, organisationId: org.id, email };
+    // Platform Refer & Earn — first-paid credit (monthly invoice.paid accrual stubbed)
+    let referralReward: unknown = null;
+    try {
+      const { markReferralPaidAndAccrue } = await import("../referrals");
+      referralReward = await markReferralPaidAndAccrue({
+        referredOrganisationId: org.id,
+        platformTier,
+        stripeSessionId: session.id,
+        subscriptionAmountCents: TIER_AMOUNTS_CENTS[platformTier],
+      });
+    } catch (err) {
+      console.warn("[billing] referral reward accrual failed", err);
+    }
+
+    return {
+      handled: true as const,
+      ok: true,
+      organisationId: org.id,
+      email,
+      referralReward,
+    };
   }
 
   return {

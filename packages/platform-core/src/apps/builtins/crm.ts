@@ -10,11 +10,13 @@ export const crmApp: AppManifest = {
   routes: [
     { path: "/apps/crm/contacts", label: "Contacts" },
     { path: "/apps/crm/companies", label: "Companies" },
+    { path: "/apps/crm/opportunities", label: "Opportunities" },
     { path: "/apps/crm/timeline", label: "Timeline" },
   ],
   navigation: [
     { href: "/apps/crm/contacts", label: "Contacts", icon: "☷" },
     { href: "/apps/crm/companies", label: "Companies", icon: "▣" },
+    { href: "/apps/crm/opportunities", label: "Opportunities", icon: "◈" },
     { href: "/apps/crm/timeline", label: "Timeline", icon: "▤" },
   ],
   permissions: [
@@ -30,10 +32,12 @@ export const crmApp: AppManifest = {
     "crm.timeline.read",
     "crm.tags.write",
   ],
-  entities: ["Contact", "Company", "Activity", "Task", "Note"],
+  entities: ["Contact", "Company", "Lead", "Opportunity", "Activity", "Task", "Note"],
   automationTriggers: [
     { id: "contact.created", label: "Contact created", objectType: "Contact" },
     { id: "contact.updated", label: "Contact updated", objectType: "Contact" },
+    { id: "opportunity.created", label: "Opportunity created", objectType: "Opportunity" },
+    { id: "lead.converted", label: "Lead converted", objectType: "Lead" },
   ],
   automationActions: [
     { id: "contact.assign", label: "Assign contact" },

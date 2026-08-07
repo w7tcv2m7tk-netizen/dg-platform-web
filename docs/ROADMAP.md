@@ -75,12 +75,14 @@ Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 | Universal Objects | ✅ Types + schema | ❌ No CRUD API |
 | Event Bus | ✅ In-process | ❌ No producers on writes |
 | Platform API | ⚠️ Partial (`/portal/me` bridge) | ❌ No `/v1` CRUD |
-| Billing | ❌ | ❌ |
-| **Refer & Earn** (Platform SaaS referrals) | ❌ Design — see [REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md) §A | ❌ After Billing |
+| Billing | ⚠️ Stripe checkout + portal | ⚠️ Live checkout; invoice.paid accrual gaps |
+| **Refer & Earn** (Platform SaaS referrals) | ✅ MVP | ⚠️ Credit on first paid; monthly accrual + cash payout stubbed — [REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md) §A |
 | Feature Flags | ❌ | ❌ |
-| Audit Logs | ❌ | ❌ |
+| Audit Logs | ✅ Schema + write path | ⚠️ Partial coverage |
 
-**Next:** Postgres live → org on signup → Contact CRUD API → audit on write.
+**Next:** Contact CRUD + Opportunity convert smoke across tenants → Connectors reliability → AI on real CRM workflows.
+
+**Shipped (Aug 2026 Core slice):** Platform Refer & Earn MVP (`/r/{code}`, Settings dashboard, invite email stub, first-paid credit); CRM lead create upserts Contact; Lead → Opportunity convert + CRM Opportunities list.
 
 **Exit criteria:** Sign up → org in DB → create contact → timeline event — no wp-admin.
 

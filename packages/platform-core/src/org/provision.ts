@@ -9,6 +9,8 @@ export interface ProvisionOrganisationInput {
   email: string;
   name: string;
   orgName?: string;
+  /** Platform Refer & Earn code from /r/{code} cookie or query */
+  referralCode?: string | null;
 }
 
 export interface ProvisionOrganisationResult {
@@ -131,6 +133,30 @@ export async function provisionOrganisation(
     payload: { slug: org.slug, name: org.name },
     occurredAt: new Date(),
   });
+
+  if (input.referralCode) {
+    try {
+      const { attributeOrganisationReferral, ensureReferralCode } = await import(
+        "../referrals"
+      );
+      await attributeOrganisationReferral({
+        organisationId: org.id,
+        referralCode: input.referralCode,
+        inviteEmail: input.email,
+      });
+      // New orgs also get their own share code for Refer & Earn
+      await ensureReferralCode(org.id);
+    } catch (err) {
+      console.warn("[provision] referral attribution failed", err);
+    }
+  } else {
+    try {
+      const { ensureReferralCode } = await import("../referrals");
+      await ensureReferralCode(org.id);
+    } catch {
+      /* non-fatal */
+    }
+  }
 
   return {
     organisationId: org.id,
