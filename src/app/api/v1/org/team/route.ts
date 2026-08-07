@@ -4,6 +4,7 @@ import {
   publishMembershipToWordPressAgent,
   updateMembershipProfile,
 } from "@dg/platform-core";
+import { pushMembershipProfileToClerk } from "@dg/platform-core/org/membership-profile-clerk";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
@@ -63,6 +64,15 @@ export async function PATCH(req: Request) {
     );
   }
 
+  let accountSync: { ok: true } | { ok: false; message: string } | null = null;
+  if (isSelf && body.syncToAccount !== false) {
+    accountSync = await pushMembershipProfileToClerk({
+      clerkUserId: target.clerkUserId,
+      displayName: updated.displayName,
+      avatarUrl: updated.avatarUrl,
+    });
+  }
+
   let websiteSync: Awaited<ReturnType<typeof publishMembershipToWordPressAgent>> | null =
     null;
   if (body.syncToWebsite !== false) {
@@ -78,6 +88,7 @@ export async function PATCH(req: Request) {
   return NextResponse.json({
     data: {
       member: refreshed,
+      accountSync,
       websiteSync,
     },
   });

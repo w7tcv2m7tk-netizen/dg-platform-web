@@ -62,9 +62,9 @@ export default async function TeamSettingsPage() {
         <div className="dg-card max-w-2xl">
           <h2 className="font-semibold text-white">Account vs team profile</h2>
           <p className="mt-2 text-sm text-slate-400">
-            The sidebar Account menu is your Clerk login (email, password, account photo). Team
-            profiles are per-business: name, bio, title, phone, and photo used on the website
-            agent page. Upload a profile photo on your card below.
+            Saving your team card also updates your Clerk Account name and photo (sidebar
+            Account menu). Incoming Account photos seed your team card when it has no photo
+            yet. Bio, title, and phone stay on the team profile for the website.
           </p>
         </div>
 

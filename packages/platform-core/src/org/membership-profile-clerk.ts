@@ -31,11 +31,64 @@ export async function enrichMembersWithClerkAccount(
         ...m,
         displayName: m.displayName?.trim() || clerkName,
         email: m.email || user.primaryEmailAddress?.emailAddress || null,
-        // Keep stored team avatar separate; UI falls back to clerkImageUrl.
         clerkImageUrl: user.imageUrl || null,
       };
     });
   } catch {
     return members;
+  }
+}
+
+function splitDisplayName(name: string): { firstName: string; lastName: string } {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return { firstName: "", lastName: "" };
+  if (parts.length === 1) return { firstName: parts[0]!, lastName: "" };
+  return {
+    firstName: parts[0]!,
+    lastName: parts.slice(1).join(" "),
+  };
+}
+
+/**
+ * Push team profile name + photo back to the Clerk Account (self-service sync).
+ * Photo: fetch the public URL and set as Clerk profile image.
+ */
+export async function pushMembershipProfileToClerk(input: {
+  clerkUserId: string;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+}): Promise<{ ok: true } | { ok: false; message: string }> {
+  try {
+    const { clerkClient } = await import("@clerk/nextjs/server");
+    const client = await clerkClient();
+
+    const name = input.displayName?.trim();
+    if (name) {
+      const { firstName, lastName } = splitDisplayName(name);
+      await client.users.updateUser(input.clerkUserId, {
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+      });
+    }
+
+    const avatarUrl = input.avatarUrl?.trim();
+    if (avatarUrl && /^https?:\/\//i.test(avatarUrl)) {
+      const imageRes = await fetch(avatarUrl, { cache: "no-store" });
+      if (!imageRes.ok) {
+        return {
+          ok: false,
+          message: `Could not fetch profile photo (HTTP ${imageRes.status})`,
+        };
+      }
+      const bytes = await imageRes.arrayBuffer();
+      const contentType = imageRes.headers.get("content-type") || "image/png";
+      const file = new File([bytes], "avatar", { type: contentType });
+      await client.users.updateUserProfileImage(input.clerkUserId, { file });
+    }
+
+    return { ok: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Clerk sync failed";
+    return { ok: false, message };
   }
 }

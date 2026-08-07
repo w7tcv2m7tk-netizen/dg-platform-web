@@ -102,18 +102,31 @@ export function TeamProfileEditor({
     }
 
     const sync = json.data?.websiteSync;
-    if (sync?.ok) {
+    const account = json.data?.accountSync;
+    if (sync?.ok && account?.ok !== false) {
+      setMessage(
+        sync.created
+          ? "Saved — Account + website updated"
+          : "Saved — Account + website updated",
+      );
+    } else if (account?.ok === false) {
+      setMessage(`Profile saved — Account sync failed: ${account.message}`);
+    } else if (sync?.ok) {
       setMessage(
         sync.created
           ? "Profile card saved and published to website"
           : "Profile card saved and updated on website",
       );
     } else if (sync?.reason === "skipped" || sync?.reason === "missing_key") {
-      setMessage("Profile card saved — website sync skipped (connector not ready).");
+      setMessage(
+        account?.ok
+          ? "Saved to Account — website sync skipped (connector not ready)."
+          : "Profile card saved — website sync skipped (connector not ready).",
+      );
     } else if (sync && !sync.ok) {
       setMessage(`Profile card saved — website sync failed: ${sync.message}`);
     } else {
-      setMessage("Profile card saved");
+      setMessage(account?.ok ? "Saved — Account updated" : "Profile card saved");
     }
     setEditing(false);
     router.refresh();

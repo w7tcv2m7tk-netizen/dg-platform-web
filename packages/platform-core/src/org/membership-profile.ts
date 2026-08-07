@@ -105,7 +105,10 @@ export async function syncMembershipFromClerkAccount(input: {
   if (!existing.email?.trim() && input.email?.trim()) {
     data.email = input.email.trim().toLowerCase();
   }
-  // Team avatar is an explicit override — Clerk image is shown via enrichMembersWithClerkAccount.
+  // Seed team avatar from Clerk Account when the member has no override yet.
+  if (!existing.avatarUrl?.trim() && input.imageUrl?.trim()) {
+    data.avatarUrl = input.imageUrl.trim();
+  }
 
   if (Object.keys(data).length === 0) {
     return serializeMembership(existing);
