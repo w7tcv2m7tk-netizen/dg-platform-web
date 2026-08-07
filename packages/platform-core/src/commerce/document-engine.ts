@@ -2,13 +2,20 @@ import type { Prisma } from "@dg/database";
 
 import { writeAuditLog } from "../audit";
 import { platformEvents } from "../events";
+import { getOrganisationBusinessProfile } from "../org/onboarding-profile";
+import {
+  computeDocumentTotals,
+  resolveOrgTaxDefaults,
+  withDefaultLineTax,
+} from "./tax";
 import type {
   CommerceCurrency,
   CommerceLineItem,
   CreateInvoiceInput,
   CreateQuoteInput,
+  InvoiceStatus,
+  QuoteStatus,
 } from "./types";
-import { lineItemsWithTaxCents, sumLineItemsCents } from "./types";
 
 function serializeLineItems(items: CommerceLineItem[]) {
   return items.map((item, index) => ({ ...item, sortOrder: index }));
@@ -19,12 +26,43 @@ function nextDocNumber(prefix: string, count: number) {
   return `${prefix}-${year}-${String(count + 1).padStart(4, "0")}`;
 }
 
+function buildDocumentMetadata(
+  input: {
+    taxInclusive?: boolean;
+    buyer?: CreateQuoteInput["buyer"];
+    metadata?: Record<string, unknown>;
+  },
+  taxInclusive: boolean,
+) {
+  return {
+    ...(input.metadata ?? {}),
+    taxInclusive,
+    ...(input.buyer ? { buyer: input.buyer } : {}),
+  } as unknown as Prisma.InputJsonValue;
+}
+
+async function prepareLineItems(
+  organisationId: string,
+  lineItems: CommerceLineItem[],
+  taxInclusiveOverride?: boolean,
+) {
+  const profile = await getOrganisationBusinessProfile(organisationId);
+  const defaults = resolveOrgTaxDefaults(profile);
+  const items = withDefaultLineTax(lineItems, defaults);
+  const taxInclusive = taxInclusiveOverride ?? defaults.pricesIncludeTax;
+  const totals = computeDocumentTotals(items, { taxInclusive });
+  return { items, taxInclusive, totals, defaults };
+}
+
 export async function createQuote(input: CreateQuoteInput) {
   const { prisma } = await import("@dg/database");
   const currency = (input.currency ?? "AUD") as CommerceCurrency;
-  const lineItems = serializeLineItems(input.lineItems);
-  const subtotalCents = sumLineItemsCents(lineItems);
-  const totalCents = lineItemsWithTaxCents(input.lineItems);
+  const { items, taxInclusive, totals } = await prepareLineItems(
+    input.organisationId,
+    input.lineItems,
+    input.taxInclusive,
+  );
+  const lineItems = serializeLineItems(items);
 
   const count = await prisma.commerceQuote.count({
     where: { organisationId: input.organisationId },
@@ -40,13 +78,13 @@ export async function createQuote(input: CreateQuoteInput) {
       sourceEntityType: input.sourceEntity?.type,
       sourceEntityId: input.sourceEntity?.id,
       currency,
-      subtotalCents,
-      taxCents: totalCents - subtotalCents,
-      totalCents,
+      subtotalCents: totals.subtotalCents,
+      taxCents: totals.taxCents,
+      totalCents: totals.totalCents,
       validUntil: input.validUntil,
       notes: input.notes,
       lineItems: lineItems as unknown as Prisma.InputJsonValue,
-      metadata: (input.metadata ?? {}) as Prisma.InputJsonValue,
+      metadata: buildDocumentMetadata(input, taxInclusive),
     },
   });
 
@@ -64,9 +102,12 @@ export async function createQuote(input: CreateQuoteInput) {
 export async function createInvoice(input: CreateInvoiceInput) {
   const { prisma } = await import("@dg/database");
   const currency = (input.currency ?? "AUD") as CommerceCurrency;
-  const lineItems = serializeLineItems(input.lineItems);
-  const subtotalCents = sumLineItemsCents(lineItems);
-  const totalCents = lineItemsWithTaxCents(input.lineItems);
+  const { items, taxInclusive, totals } = await prepareLineItems(
+    input.organisationId,
+    input.lineItems,
+    input.taxInclusive,
+  );
+  const lineItems = serializeLineItems(items);
 
   const count = await prisma.commerceInvoice.count({
     where: { organisationId: input.organisationId },
@@ -83,13 +124,13 @@ export async function createInvoice(input: CreateInvoiceInput) {
       sourceEntityType: input.sourceEntity?.type,
       sourceEntityId: input.sourceEntity?.id,
       currency,
-      subtotalCents,
-      taxCents: totalCents - subtotalCents,
-      totalCents,
+      subtotalCents: totals.subtotalCents,
+      taxCents: totals.taxCents,
+      totalCents: totals.totalCents,
       dueAt: input.dueAt,
       notes: input.notes,
       lineItems: lineItems as unknown as Prisma.InputJsonValue,
-      metadata: (input.metadata ?? {}) as Prisma.InputJsonValue,
+      metadata: buildDocumentMetadata(input, taxInclusive),
     },
   });
 
@@ -115,8 +156,14 @@ export async function acceptQuote(
     where: { id: quoteId, organisationId },
   });
   if (!quote) return null;
+  if (quote.status === "accepted" || quote.status === "void" || quote.status === "declined") {
+    return null;
+  }
 
   const lineItems = quote.lineItems as unknown as CommerceLineItem[];
+  const meta = (quote.metadata ?? {}) as Record<string, unknown>;
+  const taxInclusive = Boolean(meta.taxInclusive);
+  const buyer = meta.buyer as CreateInvoiceInput["buyer"] | undefined;
 
   const invoice = await createInvoice({
     organisationId,
@@ -132,6 +179,9 @@ export async function acceptQuote(
     currency: quote.currency as CommerceCurrency,
     notes: quote.notes ?? undefined,
     dueAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    taxInclusive,
+    buyer,
+    metadata: { convertedFromQuote: quote.id },
   });
 
   await prisma.commerceQuote.update({
@@ -245,6 +295,125 @@ export async function sendInvoice(
     entityId: invoiceId,
     payload: { totalCents: invoice.totalCents },
     occurredAt: new Date(),
+  });
+
+  return updated;
+}
+
+export async function sendQuote(
+  organisationId: string,
+  quoteId: string,
+  actorId?: string,
+) {
+  const { prisma } = await import("@dg/database");
+  const quote = await prisma.commerceQuote.findFirst({
+    where: { id: quoteId, organisationId },
+  });
+  if (!quote) return null;
+
+  const updated = await prisma.commerceQuote.update({
+    where: { id: quoteId },
+    data: { status: quote.status === "draft" ? "sent" : quote.status },
+  });
+
+  await writeAuditLog({
+    organisationId,
+    actorId,
+    action: "update",
+    entityType: "CommerceQuote",
+    entityId: quoteId,
+    changes: { status: updated.status },
+  });
+
+  return updated;
+}
+
+export async function declineQuote(
+  organisationId: string,
+  quoteId: string,
+  actorId?: string,
+) {
+  const { prisma } = await import("@dg/database");
+  const quote = await prisma.commerceQuote.findFirst({
+    where: { id: quoteId, organisationId },
+  });
+  if (!quote) return null;
+  if (quote.status === "accepted" || quote.status === "void") return null;
+
+  const updated = await prisma.commerceQuote.update({
+    where: { id: quoteId },
+    data: { status: "declined" satisfies QuoteStatus },
+  });
+
+  await writeAuditLog({
+    organisationId,
+    actorId,
+    action: "update",
+    entityType: "CommerceQuote",
+    entityId: quoteId,
+    changes: { status: "declined" },
+  });
+
+  return updated;
+}
+
+export async function voidInvoice(
+  organisationId: string,
+  invoiceId: string,
+  actorId?: string,
+) {
+  const { prisma } = await import("@dg/database");
+  const invoice = await prisma.commerceInvoice.findFirst({
+    where: { id: invoiceId, organisationId },
+  });
+  if (!invoice) return null;
+  if (invoice.status === "paid") return null;
+
+  const updated = await prisma.commerceInvoice.update({
+    where: { id: invoiceId },
+    data: { status: "void" satisfies InvoiceStatus },
+  });
+
+  await writeAuditLog({
+    organisationId,
+    actorId,
+    action: "update",
+    entityType: "CommerceInvoice",
+    entityId: invoiceId,
+    changes: { status: "void" },
+  });
+
+  return updated;
+}
+
+export async function markInvoicePaid(
+  organisationId: string,
+  invoiceId: string,
+  actorId?: string,
+  paidAt?: Date,
+) {
+  const { prisma } = await import("@dg/database");
+  const invoice = await prisma.commerceInvoice.findFirst({
+    where: { id: invoiceId, organisationId },
+  });
+  if (!invoice) return null;
+  if (invoice.status === "void") return null;
+
+  const updated = await prisma.commerceInvoice.update({
+    where: { id: invoiceId },
+    data: {
+      status: "paid" satisfies InvoiceStatus,
+      paidAt: paidAt ?? new Date(),
+    },
+  });
+
+  await writeAuditLog({
+    organisationId,
+    actorId,
+    action: "update",
+    entityType: "CommerceInvoice",
+    entityId: invoiceId,
+    changes: { status: "paid" },
   });
 
   return updated;

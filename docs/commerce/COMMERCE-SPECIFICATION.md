@@ -138,9 +138,12 @@ Commerce feeds Twin metrics:
 |-------|-------------|
 | **1** | Schema + Payment Engine + Stripe connector + payment links |
 | **2** | Quotes, invoices, checkout pages |
+| **2.5** | AU tax invoice / quote documents (Business Profile letterhead, GST 10%, print) + Commerce Reports (P&L, GST, BS scaffold, Cash Flow) |
 | **3** | Subscriptions, recurring billing |
 | **4** | Commerce dashboard + Twin financial health |
 | **5** | PayPal, Square, digital assets (stablecoins first) |
+
+**AU Country Pack:** Documents pull legal/trading name, ABN, address, phone, email, logo, and bank remittance from Business Profile. Default GST 10% (`taxRateBps: 1000`). Reports summarise invoices & payments only — not a general ledger.
 
 ---
 

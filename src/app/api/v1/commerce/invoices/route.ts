@@ -1,4 +1,4 @@
-import { createInvoice, listInvoices, sendInvoice } from "@dg/platform-core";
+import { createInvoice, listInvoices } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
@@ -36,6 +36,9 @@ export async function POST(req: Request) {
     currency: body?.currency,
     dueAt: body?.dueAt ? new Date(body.dueAt) : undefined,
     notes: body?.notes,
+    taxInclusive:
+      typeof body?.taxInclusive === "boolean" ? body.taxInclusive : undefined,
+    buyer: body?.buyer,
     metadata: body?.metadata,
   });
 

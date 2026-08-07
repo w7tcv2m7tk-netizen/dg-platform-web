@@ -35,6 +35,9 @@ export async function POST(req: Request) {
     currency: body?.currency,
     validUntil: body?.validUntil ? new Date(body.validUntil) : undefined,
     notes: body?.notes,
+    taxInclusive:
+      typeof body?.taxInclusive === "boolean" ? body.taxInclusive : undefined,
+    buyer: body?.buyer,
     metadata: body?.metadata,
   });
 

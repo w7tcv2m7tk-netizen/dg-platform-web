@@ -131,3 +131,244 @@ body {
   }
 
 }
+
+/* Australian tax invoice / quote document (print-friendly) */
+.au-document {
+  --au-ink: #1a1a1a;
+  --au-muted: #555;
+  --au-rule: #c8c8c8;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem;
+  background: #faf8f5
+    linear-gradient(180deg, #fffefb 0%, #f7f3ec 100%);
+  color: var(--au-ink);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman",
+    serif;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.au-document__letterhead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid var(--au-ink);
+}
+
+.au-document__brand-name {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.au-document__logo {
+  max-height: 64px;
+  max-width: 220px;
+  object-fit: contain;
+}
+
+.au-document__trading {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: var(--au-muted);
+  font-style: italic;
+}
+
+.au-document__supplier-meta {
+  margin-top: 0.75rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--au-muted);
+}
+
+.au-document__supplier-meta p {
+  margin: 0;
+}
+
+.au-document__title {
+  margin: 0;
+  font-size: 1.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: right;
+}
+
+.au-document__meta {
+  margin: 0.75rem 0 0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+.au-document__meta div {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0.35rem 0.75rem;
+  justify-content: end;
+}
+
+.au-document__meta dt {
+  color: var(--au-muted);
+}
+
+.au-document__meta dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.au-document__parties {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem;
+}
+
+.au-document__parties h2 {
+  margin: 0 0 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--au-muted);
+}
+
+.au-document__party-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.au-document__parties p {
+  margin: 0.15rem 0;
+  color: var(--au-muted);
+}
+
+.au-document__lines {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.85rem;
+}
+
+.au-document__lines th {
+  padding: 0.55rem 0.4rem;
+  border-bottom: 1px solid var(--au-ink);
+  text-align: left;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--au-muted);
+}
+
+.au-document__lines td {
+  padding: 0.65rem 0.4rem;
+  border-bottom: 1px solid var(--au-rule);
+  vertical-align: top;
+}
+
+.au-document__lines .num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.au-document__tax-code {
+  color: var(--au-muted);
+  font-size: 0.75rem;
+}
+
+.au-document__totals {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.au-document__totals dl {
+  margin: 0;
+  min-width: 240px;
+}
+
+.au-document__totals div {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 0.3rem 0;
+  font-size: 0.875rem;
+}
+
+.au-document__totals dt {
+  color: var(--au-muted);
+}
+
+.au-document__totals dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.au-document__grand {
+  margin-top: 0.35rem;
+  padding-top: 0.5rem !important;
+  border-top: 2px solid var(--au-ink);
+  font-weight: 700;
+  font-size: 1rem !important;
+}
+
+.au-document__payment,
+.au-document__notes {
+  margin-top: 1.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--au-rule);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.85rem;
+}
+
+.au-document__payment h2,
+.au-document__notes h2 {
+  margin: 0 0 0.4rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--au-muted);
+}
+
+.au-document__payment p,
+.au-document__notes p {
+  margin: 0.2rem 0;
+}
+
+.au-document__footer {
+  margin-top: 2rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  color: var(--au-muted);
+}
+
+.au-document__warn {
+  color: #8a5a00;
+}
+
+@media print {
+  body {
+    background: white !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .au-document {
+    box-shadow: none;
+    max-width: none;
+    padding: 0;
+    background: white;
+  }
+}

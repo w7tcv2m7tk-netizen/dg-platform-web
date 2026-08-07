@@ -121,7 +121,12 @@ export default async function CommerceOverviewPage() {
                     key={quote.id}
                     className="flex items-center justify-between text-sm"
                   >
-                    <span className="text-white">{quote.quoteNumber}</span>
+                    <Link
+                      href={`/apps/commerce/quotes/${quote.id}`}
+                      className="text-blue-400 hover:underline"
+                    >
+                      {quote.quoteNumber}
+                    </Link>
                     <span className="text-slate-400">
                       {formatMoney(quote.totalCents)} · {quote.status}
                     </span>
@@ -150,7 +155,12 @@ export default async function CommerceOverviewPage() {
                     key={invoice.id}
                     className="flex items-center justify-between text-sm"
                   >
-                    <span className="text-white">{invoice.invoiceNumber}</span>
+                    <Link
+                      href={`/apps/commerce/invoices/${invoice.id}`}
+                      className="text-blue-400 hover:underline"
+                    >
+                      {invoice.invoiceNumber}
+                    </Link>
                     <span className="text-slate-400">
                       {formatMoney(invoice.totalCents)} · {invoice.status}
                     </span>
@@ -173,6 +183,12 @@ export default async function CommerceOverviewPage() {
             className="rounded-full bg-slate-800 px-4 py-2 text-sm text-white hover:bg-slate-700"
           >
             Invoices
+          </Link>
+          <Link
+            href="/apps/commerce/reports"
+            className="rounded-full bg-slate-800 px-4 py-2 text-sm text-white hover:bg-slate-700"
+          >
+            Reports
           </Link>
           <Link
             href="/apps/automation"

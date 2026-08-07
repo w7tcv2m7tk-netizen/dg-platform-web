@@ -83,9 +83,19 @@ export interface CommerceLineItem {
   unitAmountCents: number;
   currency?: CommerceCurrency;
   taxCode?: string;
+  /** Tax rate in basis points (AU GST 10% = 1000) */
   taxRateBps?: number;
   productId?: string;
   metadata?: Record<string, unknown>;
+}
+
+/** Buyer / bill-to block stored on document metadata */
+export interface CommerceBuyerDetails {
+  name?: string;
+  email?: string;
+  phone?: string;
+  abn?: string;
+  address?: string;
 }
 
 export interface CommerceSourceEntity {
@@ -134,6 +144,9 @@ export interface CreateQuoteInput {
   currency?: CommerceCurrency;
   validUntil?: Date;
   notes?: string;
+  /** When true, unit amounts include tax */
+  taxInclusive?: boolean;
+  buyer?: CommerceBuyerDetails;
   metadata?: Record<string, unknown>;
 }
 
@@ -148,6 +161,9 @@ export interface CreateInvoiceInput {
   currency?: CommerceCurrency;
   dueAt?: Date;
   notes?: string;
+  /** When true, unit amounts include tax */
+  taxInclusive?: boolean;
+  buyer?: CommerceBuyerDetails;
   metadata?: Record<string, unknown>;
 }
 
@@ -171,6 +187,7 @@ export function sumLineItemsCents(items: CommerceLineItem[]) {
   return items.reduce((sum, item) => sum + item.quantity * item.unitAmountCents, 0);
 }
 
+/** Tax-exclusive total including GST (legacy helper) */
 export function lineItemsWithTaxCents(items: CommerceLineItem[]) {
   return items.reduce((sum, item) => {
     const subtotal = item.quantity * item.unitAmountCents;

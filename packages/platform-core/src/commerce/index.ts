@@ -1,4 +1,5 @@
 export * from "./types";
+export * from "./tax";
 export {
   createPaymentRequest,
   recordPaymentFromWebhook,
@@ -19,7 +20,26 @@ export {
   getQuote,
   getInvoice,
   sendInvoice,
+  sendQuote,
+  declineQuote,
+  voidInvoice,
+  markInvoicePaid,
 } from "./document-engine";
+export {
+  parseReportRange,
+  getProfitAndLossReport,
+  getGstReport,
+  getBalanceSheetReport,
+  getCashFlowReport,
+} from "./reports-engine";
+export type {
+  ReportDateRange,
+  CommerceProfitAndLossReport,
+  CommerceGstReport,
+  CommerceBalanceSheetReport,
+  CommerceCashFlowReport,
+  CommerceReportLine,
+} from "./reports-engine";
 export { getStripeSetupStatus } from "./stripe-setup";
 export type { StripeSetupStatus } from "./stripe-setup";
 export {

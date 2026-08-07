@@ -17,6 +17,7 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 | **Managed services** | DigitalGate agency work (existing business) | Now |
 | **Marketplace revenue** | % of third-party App sales | 3.0 / Phase 5 |
 | **Platform Refer & Earn** | Cost of acquisition — 20% of referred sub × 12 mo (credits default); Partner 25–30%; Reseller custom — [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) §A | With Billing / Core |
+| **Customer Commerce (quotes/invoices)** | Core capability — customer-facing AR, not platform SaaS billing; AU tax documents + reports adjacent to Core | Core / Commerce |
 | **Business referral / transaction fees** | Disclosed Free / Reciprocal / Paid / Commission between DG businesses — [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) §B | Phase 5+ |
 | **Implementation** | One-time onboarding fee | 2.0 |
 | **Training** | Workshops, certification | 2.0 |

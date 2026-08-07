@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import { listQuotes,} from "@dg/platform-core";
+import {
+  getOrganisationBusinessProfile,
+  listQuotes,
+  resolveOrgTaxDefaults,
+} from "@dg/platform-core";
 
 import { CreateDocumentForm } from "@/components/commerce/CreateDocumentForm";
-import { AcceptQuoteButton } from "@/components/commerce/CommerceDocumentActions";
+import {
+  AcceptQuoteButton,
+  SendQuoteButton,
+} from "@/components/commerce/CommerceDocumentActions";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 function formatMoney(cents: number) {
@@ -47,7 +54,11 @@ export default async function CommerceQuotesPage() {
     );
   }
 
-  const quotes = await listQuotes(session.organisationId);
+  const [quotes, profile] = await Promise.all([
+    listQuotes(session.organisationId),
+    getOrganisationBusinessProfile(session.organisationId),
+  ]);
+  const taxDefaults = resolveOrgTaxDefaults(profile);
 
   return (
     <>
@@ -59,10 +70,16 @@ export default async function CommerceQuotesPage() {
           ← Commerce
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Quotes</h1>
-        <p className="text-sm text-slate-400">{quotes.length} quote(s)</p>
+        <p className="text-sm text-slate-400">
+          {quotes.length} quote(s) · convert accepted quotes to invoices
+        </p>
       </header>
       <main className="flex-1 space-y-6 p-8">
-        <CreateDocumentForm kind="quote" />
+        <CreateDocumentForm
+          kind="quote"
+          defaultTaxInclusive={taxDefaults.pricesIncludeTax}
+          defaultApplyGst={taxDefaults.defaultTaxRateBps > 0}
+        />
         <div className="dg-card overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -77,8 +94,17 @@ export default async function CommerceQuotesPage() {
             <tbody>
               {quotes.map((quote) => (
                 <tr key={quote.id} className="border-b border-slate-800/60">
-                  <td className="py-3 pr-4 text-white">{quote.quoteNumber}</td>
-                  <td className="py-3 pr-4 text-slate-300">{quote.status}</td>
+                  <td className="py-3 pr-4">
+                    <Link
+                      href={`/apps/commerce/quotes/${quote.id}`}
+                      className="font-medium text-blue-400 hover:underline"
+                    >
+                      {quote.quoteNumber}
+                    </Link>
+                  </td>
+                  <td className="py-3 pr-4 capitalize text-slate-300">
+                    {quote.status.replace(/_/g, " ")}
+                  </td>
                   <td className="py-3 pr-4 text-slate-300">
                     {formatMoney(quote.totalCents)}
                   </td>
@@ -86,10 +112,14 @@ export default async function CommerceQuotesPage() {
                     {new Date(quote.createdAt).toLocaleDateString("en-AU")}
                   </td>
                   <td className="py-3">
-                    <AcceptQuoteButton
-                      quoteId={quote.id}
-                      disabled={quote.status !== "draft"}
-                    />
+                    <div className="flex flex-wrap gap-2">
+                      <SendQuoteButton quoteId={quote.id} status={quote.status} />
+                      <AcceptQuoteButton
+                        quoteId={quote.id}
+                        disabled={!["draft", "sent", "viewed"].includes(quote.status)}
+                        redirectOnSuccess={false}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -97,7 +127,7 @@ export default async function CommerceQuotesPage() {
           </table>
           {!quotes.length ? (
             <p className="py-6 text-center text-sm text-slate-400">
-              No quotes yet — create via API or RE workflows.
+              No quotes yet — create one to send to a customer.
             </p>
           ) : null}
         </div>

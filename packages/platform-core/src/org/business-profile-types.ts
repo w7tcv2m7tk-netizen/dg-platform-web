@@ -39,6 +39,31 @@ export type BusinessBrandVoice = {
   competitors?: string;
 };
 
+/** Remittance details for AU tax invoices / quotes */
+export type BusinessBankDetails = {
+  accountName?: string;
+  bsb?: string;
+  accountNumber?: string;
+  bankName?: string;
+  /** Shown on documents, e.g. "Please quote invoice number" */
+  paymentReferenceHint?: string;
+};
+
+/**
+ * Tax defaults for Commerce documents (AU Country Pack first).
+ * Stored on Business Profile — not a separate GL tax engine.
+ */
+export type BusinessTaxSettings = {
+  /** ISO country for tax conventions (AU default) */
+  country?: string;
+  /** Registered for GST — drives Tax Invoice wording */
+  gstRegistered?: boolean;
+  /** Default rate in basis points (AU GST = 1000 = 10%) */
+  defaultTaxRateBps?: number;
+  /** When true, line unit amounts are GST-inclusive */
+  pricesIncludeTax?: boolean;
+};
+
 export type OrganisationBusinessProfile = {
   /** Legal / registered name */
   businessName?: string;
@@ -79,6 +104,10 @@ export type OrganisationBusinessProfile = {
   businessHours?: BusinessHours;
   social?: SocialProfiles;
   brandVoice?: BusinessBrandVoice;
+  /** Bank / EFT remittance for invoices & quotes */
+  bankDetails?: BusinessBankDetails;
+  /** GST / sales-tax defaults for Commerce */
+  taxSettings?: BusinessTaxSettings;
   wpContactId?: number;
   wpOrganisationId?: number;
   purchaseLabel?: string;

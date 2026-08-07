@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import { listInvoices,} from "@dg/platform-core";
+import {
+  getOrganisationBusinessProfile,
+  listInvoices,
+  resolveOrgTaxDefaults,
+} from "@dg/platform-core";
 
 import { CreateDocumentForm } from "@/components/commerce/CreateDocumentForm";
 import { SendInvoiceButton } from "@/components/commerce/CommerceDocumentActions";
@@ -47,7 +51,11 @@ export default async function CommerceInvoicesPage() {
     );
   }
 
-  const invoices = await listInvoices(session.organisationId);
+  const [invoices, profile] = await Promise.all([
+    listInvoices(session.organisationId),
+    getOrganisationBusinessProfile(session.organisationId),
+  ]);
+  const taxDefaults = resolveOrgTaxDefaults(profile);
 
   return (
     <>
@@ -59,10 +67,16 @@ export default async function CommerceInvoicesPage() {
           ← Commerce
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Invoices</h1>
-        <p className="text-sm text-slate-400">{invoices.length} invoice(s)</p>
+        <p className="text-sm text-slate-400">
+          {invoices.length} invoice(s) · AU tax invoice layout from Business Profile
+        </p>
       </header>
       <main className="flex-1 space-y-6 p-8">
-        <CreateDocumentForm kind="invoice" />
+        <CreateDocumentForm
+          kind="invoice"
+          defaultTaxInclusive={taxDefaults.pricesIncludeTax}
+          defaultApplyGst={taxDefaults.defaultTaxRateBps > 0}
+        />
         <div className="dg-card overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -70,6 +84,7 @@ export default async function CommerceInvoicesPage() {
                 <th className="py-2 pr-4 font-medium">Number</th>
                 <th className="py-2 pr-4 font-medium">Status</th>
                 <th className="py-2 pr-4 font-medium">Total</th>
+                <th className="py-2 pr-4 font-medium">GST</th>
                 <th className="py-2 font-medium">Due</th>
                 <th className="py-2 font-medium">Actions</th>
               </tr>
@@ -77,10 +92,22 @@ export default async function CommerceInvoicesPage() {
             <tbody>
               {invoices.map((invoice) => (
                 <tr key={invoice.id} className="border-b border-slate-800/60">
-                  <td className="py-3 pr-4 text-white">{invoice.invoiceNumber}</td>
-                  <td className="py-3 pr-4 text-slate-300">{invoice.status}</td>
+                  <td className="py-3 pr-4">
+                    <Link
+                      href={`/apps/commerce/invoices/${invoice.id}`}
+                      className="font-medium text-blue-400 hover:underline"
+                    >
+                      {invoice.invoiceNumber}
+                    </Link>
+                  </td>
+                  <td className="py-3 pr-4 capitalize text-slate-300">
+                    {invoice.status.replace(/_/g, " ")}
+                  </td>
                   <td className="py-3 pr-4 text-slate-300">
                     {formatMoney(invoice.totalCents)}
+                  </td>
+                  <td className="py-3 pr-4 text-slate-400">
+                    {formatMoney(invoice.taxCents)}
                   </td>
                   <td className="py-3 text-slate-400">
                     {invoice.dueAt
@@ -96,7 +123,7 @@ export default async function CommerceInvoicesPage() {
           </table>
           {!invoices.length ? (
             <p className="py-6 text-center text-sm text-slate-400">
-              No invoices yet — accept a quote or create via API.
+              No invoices yet — create one or convert an accepted quote.
             </p>
           ) : null}
         </div>

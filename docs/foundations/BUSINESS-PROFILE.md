@@ -30,6 +30,9 @@ Industry apps (CRM, Real Estate, etc.) appear below in the sidebar as installed 
 | Section | Storage | Editable |
 |---------|---------|----------|
 | **Identity** | `settings.profile` | Yes — name, trading name, logo, colours, industry, ABN/ACN, hours, timezone |
+| **Address** | `settings.profile.address` | Yes — street, city, state, postcode, country (letterhead on invoices) |
+| **GST defaults** | `settings.profile.taxSettings` | Yes — GST registered, prices include tax (AU Country Pack) |
+| **Bank / remittance** | `settings.profile.bankDetails` | Yes — BSB, account name/number for invoice payment block |
 | **Contact** | `settings.profile` | Yes — phones, emails, support details |
 | **Online presence** | `settings.profile.social` | Yes — GBP, social URLs |
 | **Brand voice** | `settings.profile.brandVoice` | Yes — tone, services, audience, competitors (powers AI) |

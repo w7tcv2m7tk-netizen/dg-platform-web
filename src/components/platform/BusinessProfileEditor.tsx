@@ -290,6 +290,171 @@ export function BusinessProfileEditor({
       </section>
 
       <section className="dg-card">
+        <h3 className="text-lg font-semibold text-white">Business address</h3>
+        <p className="mt-1 text-sm text-slate-400">
+          Shown on tax invoices and quotes.
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Field label="Street">
+            <input
+              className={inputClass}
+              value={profile.address?.street ?? ""}
+              onChange={(e) =>
+                setField("address", { ...profile.address, street: e.target.value })
+              }
+            />
+          </Field>
+          <Field label="City / suburb">
+            <input
+              className={inputClass}
+              value={profile.address?.city ?? ""}
+              onChange={(e) =>
+                setField("address", { ...profile.address, city: e.target.value })
+              }
+            />
+          </Field>
+          <Field label="State">
+            <input
+              className={inputClass}
+              value={profile.address?.state ?? ""}
+              onChange={(e) =>
+                setField("address", { ...profile.address, state: e.target.value })
+              }
+            />
+          </Field>
+          <Field label="Postcode">
+            <input
+              className={inputClass}
+              value={profile.address?.postcode ?? ""}
+              onChange={(e) =>
+                setField("address", { ...profile.address, postcode: e.target.value })
+              }
+            />
+          </Field>
+          <Field label="Country">
+            <input
+              className={inputClass}
+              placeholder="Australia"
+              value={profile.address?.country ?? ""}
+              onChange={(e) =>
+                setField("address", { ...profile.address, country: e.target.value })
+              }
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="dg-card">
+        <h3 className="text-lg font-semibold text-white">GST & invoicing defaults</h3>
+        <p className="mt-1 text-sm text-slate-400">
+          AU Country Pack defaults — used when creating quotes and invoices.
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className="flex items-center gap-2 text-sm text-slate-200">
+            <input
+              type="checkbox"
+              checked={profile.taxSettings?.gstRegistered ?? Boolean(profile.abn)}
+              onChange={(e) =>
+                setField("taxSettings", {
+                  ...profile.taxSettings,
+                  gstRegistered: e.target.checked,
+                  country: profile.taxSettings?.country ?? "AU",
+                  defaultTaxRateBps: e.target.checked
+                    ? profile.taxSettings?.defaultTaxRateBps ?? 1000
+                    : 0,
+                })
+              }
+            />
+            Registered for GST
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-200">
+            <input
+              type="checkbox"
+              checked={profile.taxSettings?.pricesIncludeTax ?? false}
+              onChange={(e) =>
+                setField("taxSettings", {
+                  ...profile.taxSettings,
+                  pricesIncludeTax: e.target.checked,
+                })
+              }
+            />
+            Prices include GST by default
+          </label>
+        </div>
+      </section>
+
+      <section className="dg-card">
+        <h3 className="text-lg font-semibold text-white">Bank / payment details</h3>
+        <p className="mt-1 text-sm text-slate-400">
+          Printed on invoices for EFT remittance (BSB + account).
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Field label="Bank name">
+            <input
+              className={inputClass}
+              value={profile.bankDetails?.bankName ?? ""}
+              onChange={(e) =>
+                setField("bankDetails", {
+                  ...profile.bankDetails,
+                  bankName: e.target.value,
+                })
+              }
+            />
+          </Field>
+          <Field label="Account name">
+            <input
+              className={inputClass}
+              value={profile.bankDetails?.accountName ?? ""}
+              onChange={(e) =>
+                setField("bankDetails", {
+                  ...profile.bankDetails,
+                  accountName: e.target.value,
+                })
+              }
+            />
+          </Field>
+          <Field label="BSB">
+            <input
+              className={inputClass}
+              placeholder="000-000"
+              value={profile.bankDetails?.bsb ?? ""}
+              onChange={(e) =>
+                setField("bankDetails", {
+                  ...profile.bankDetails,
+                  bsb: e.target.value,
+                })
+              }
+            />
+          </Field>
+          <Field label="Account number">
+            <input
+              className={inputClass}
+              value={profile.bankDetails?.accountNumber ?? ""}
+              onChange={(e) =>
+                setField("bankDetails", {
+                  ...profile.bankDetails,
+                  accountNumber: e.target.value,
+                })
+              }
+            />
+          </Field>
+          <Field label="Payment reference hint">
+            <input
+              className={inputClass}
+              placeholder="Please quote invoice number"
+              value={profile.bankDetails?.paymentReferenceHint ?? ""}
+              onChange={(e) =>
+                setField("bankDetails", {
+                  ...profile.bankDetails,
+                  paymentReferenceHint: e.target.value,
+                })
+              }
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="dg-card">
         <h3 className="text-lg font-semibold text-white">Contact information</h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <Field label="Primary contact">

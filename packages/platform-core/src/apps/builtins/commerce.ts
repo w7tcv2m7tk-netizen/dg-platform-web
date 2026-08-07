@@ -12,6 +12,7 @@ export const commerceApp: AppManifest = {
     { path: "/apps/commerce", label: "Overview" },
     { path: "/apps/commerce/invoices", label: "Invoices" },
     { path: "/apps/commerce/quotes", label: "Quotes" },
+    { path: "/apps/commerce/reports", label: "Reports" },
     { path: "/apps/commerce/payments", label: "Payments" },
     { path: "/apps/commerce/products", label: "Products" },
     { path: "/apps/commerce/subscriptions", label: "Subscriptions" },
@@ -74,6 +75,10 @@ export const commerceApp: AppManifest = {
     },
   ],
   reports: [
+    { id: "commerce.profit_and_loss", label: "Profit & Loss" },
+    { id: "commerce.gst", label: "GST / Sales Tax" },
+    { id: "commerce.balance_sheet", label: "Balance Sheet" },
+    { id: "commerce.cash_flow", label: "Cash Flow" },
     { id: "commerce.revenue", label: "Revenue" },
     { id: "commerce.outstanding_ar", label: "Outstanding invoices" },
     { id: "commerce.mrr", label: "Recurring revenue" },
