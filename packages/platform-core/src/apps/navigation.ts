@@ -55,6 +55,18 @@ const SHELL_NAV: PlatformShellNavItem[] = [
   { kind: "shell", href: "/dashboard/apps", label: "Apps & plan", icon: getSidebarIcon("apps") },
   {
     kind: "shell",
+    href: "/dashboard/marketplace",
+    label: "Marketplace",
+    icon: getSidebarIcon("marketplace"),
+  },
+  {
+    kind: "shell",
+    href: "/dashboard/network",
+    label: "Network",
+    icon: getSidebarIcon("network"),
+  },
+  {
+    kind: "shell",
     href: "/dashboard/settings",
     label: "Settings",
     icon: getSidebarIcon("settings"),

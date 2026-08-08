@@ -84,6 +84,11 @@ const TITLE_FOR: Partial<Record<PlatformEventType, (e: PlatformEvent) => string>
   "platform_referral.signed_up": () => "Referral signed up",
   "platform_referral.paid": () => "Referral converted (paid)",
   "platform_referral.credit_accrued": () => "Referral credit accrued",
+  "business_referral.created": (e) =>
+    `Business referral → ${String(e.payload.recipientBusiness ?? "partner")}`,
+  "business_referral.status_changed": (e) =>
+    `Business referral ${String(e.payload.status ?? "updated")}`,
+  "review.request_queued": () => "Review request queued",
   "organisation.created": () => "Organisation provisioned",
 };
 
@@ -101,6 +106,9 @@ const NOTIFY_TYPES = new Set<PlatformEventType>([
   "platform_referral.signed_up",
   "platform_referral.paid",
   "platform_referral.credit_accrued",
+  "business_referral.created",
+  "business_referral.status_changed",
+  "review.request_queued",
 ]);
 
 export async function createNotification(input: {

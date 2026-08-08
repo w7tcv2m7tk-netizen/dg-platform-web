@@ -3,8 +3,10 @@ import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import {
+  BUSINESS_REFERRAL_COMPLIANCE_NOTE,
   getContact,
   getContactAccommodationGuestPanel,
+  listBusinessReferralsForContact,
   listCompanies,
   listContactActivities,
 } from "@dg/platform-core";
@@ -13,6 +15,7 @@ import { AccommodationGuestPanel } from "@/components/accommodation/Accommodatio
 import { AddContactNoteForm } from "@/components/crm/AddContactNoteForm";
 import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
 import { EditContactForm } from "@/components/crm/EditContactForm";
+import { BusinessReferralPanel } from "@/components/network/BusinessReferralPanel";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -49,6 +52,10 @@ export default async function ContactDetailPage({ params }: PageProps) {
     ? companies.find((c) => c.id === contact.companyId)
     : null;
   const accommodationGuest = await getContactAccommodationGuestPanel(
+    session.organisationId,
+    id,
+  );
+  const businessReferrals = await listBusinessReferralsForContact(
     session.organisationId,
     id,
   );
@@ -113,6 +120,13 @@ export default async function ContactDetailPage({ params }: PageProps) {
           </div>
 
           <CrmAiAssistPanel contactId={contact.id} variant="contact" />
+
+          <BusinessReferralPanel
+            contactId={contact.id}
+            industry={company?.industry}
+            referrals={businessReferrals}
+            complianceNote={BUSINESS_REFERRAL_COMPLIANCE_NOTE}
+          />
 
           <div className="dg-card">
             <h2 className="font-semibold text-white">Timeline</h2>

@@ -7,6 +7,8 @@ const SIDEBAR_ICONS: Record<string, string> = {
   "business-profile": "◇",
   team: "⊕",
   apps: "▦",
+  marketplace: "▣",
+  network: "◎",
   settings: "⎔",
   // Apps
   crm: "◎",

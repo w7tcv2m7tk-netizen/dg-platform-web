@@ -5,11 +5,12 @@ export const reviewsApp: AppManifest = {
   name: "Reviews",
   description: "Review inbox, response workflow, and reputation score",
   tier: "growth",
-  version: "0.1.0",
+  version: "0.2.0",
   icon: "★",
   routes: [
     { path: "/apps/reviews", label: "Overview" },
     { path: "/apps/reviews/inbox", label: "Review inbox" },
+    { path: "/apps/reviews/sources", label: "Sources" },
     { path: "/apps/reviews/requests", label: "Review requests" },
     { path: "/apps/reviews/reputation", label: "Reputation score" },
   ],

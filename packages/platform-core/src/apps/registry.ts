@@ -41,7 +41,7 @@ const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: analyticsApp, enabled: false },
   { manifest: socialApp, enabled: false },
   { manifest: marketingApp, enabled: false },
-  { manifest: reviewsApp, enabled: false },
+  { manifest: reviewsApp, enabled: true },
   { manifest: websitesApp, enabled: true },
   { manifest: infrastructureApp, enabled: false },
   { manifest: commandCentreApp, enabled: true },
