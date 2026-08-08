@@ -8,6 +8,8 @@ export * from "./crud";
 export * from "./assist";
 export * from "./form-capture";
 export * from "./native-health";
+export * from "./html-to-components";
+export * from "./wp-import";
 
 import type { SiteHealthSnapshot } from "./types";
 

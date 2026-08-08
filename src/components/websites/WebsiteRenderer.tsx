@@ -339,6 +339,75 @@ export function WebsiteComponentView({
         </footer>
       );
     }
+    case "heading": {
+      const level = Math.min(
+        6,
+        Math.max(1, Number(component.props.level) || 2),
+      );
+      const text = asString(component.props.text);
+      const className = "wb-heading";
+      return (
+        <section className="wb-section wb-heading-block">
+          {level === 1 ? (
+            <h1 className={className}>{text}</h1>
+          ) : level === 3 ? (
+            <h3 className={className}>{text}</h3>
+          ) : level === 4 ? (
+            <h4 className={className}>{text}</h4>
+          ) : level >= 5 ? (
+            <h5 className={className}>{text}</h5>
+          ) : (
+            <h2 className={className}>{text}</h2>
+          )}
+        </section>
+      );
+    }
+    case "paragraph":
+      return (
+        <section className="wb-section wb-paragraph-block">
+          <p className="wb-paragraph">{asString(component.props.text)}</p>
+        </section>
+      );
+    case "image": {
+      const src = asString(component.props.src);
+      if (!src) return null;
+      return (
+        <section className="wb-section wb-image-block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={asString(component.props.alt, name)}
+            className="wb-content-image"
+          />
+        </section>
+      );
+    }
+    case "list": {
+      const items = Array.isArray(component.props.items)
+        ? component.props.items.map((x) => String(x))
+        : [];
+      const ordered = Boolean(component.props.ordered);
+      const ListTag = ordered ? "ol" : "ul";
+      return (
+        <section className="wb-section">
+          <ListTag className="wb-content-list">
+            {items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ListTag>
+        </section>
+      );
+    }
+    case "html": {
+      const html = asString(component.props.html);
+      if (!html) return null;
+      return (
+        <section
+          className="wb-section wb-html-block"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      );
+    }
     default:
       return null;
   }

@@ -331,13 +331,13 @@ Existing WP sites remain on the **WordPress Connector** (health, content sync, f
 | **4. DNS cutover** | Point domain to **DG Hosting / DG DNS**; auto SSL. WP becomes archive or read-only mirror. |
 | **5. Decommission** | Optional: retire WP hosting; Connector health optional. |
 
-### Explicitly later (not this sprint)
+### Explicitly later
 
-- Full WP page importer UI / job runner  
-- Theme parity for arbitrary WP builders (Elementor, etc.)  
-- Automated media CDN remaps at scale  
+- Theme / Elementor / Divi pixel-perfect recreation  
+- Menus, widgets, WooCommerce, shortcode runtime parity  
+- Automated media re-host to DG CDN at scale
 
-Studio shows an **Import from WordPress** flow labelled **queue-only / coming soon** (connector status + interest queue). It must never imply a full mapper is running. Full importer implementation tracks Connector work + hosting productization.
+Studio **Import from WordPress** (v0) pulls real pages via Connector `GET /site/content` (DG Platform plugin **10.70+**) or public WP REST fallback (`/wp/v2/pages`). HTML is flattened into Studio blocks (heading, paragraph, image, list, CTA, html). **Not** a theme/Elementor/pixel clone — review drafts in Studio after import. Media URLs are hotlinked in v0.
 
 ---
 
@@ -360,6 +360,7 @@ Studio shows an **Import from WordPress** flow labelled **queue-only / coming so
 | `PATCH /api/v1/websites/[id]/pages` | Reorder pages (`pageIds`) |
 | `POST /api/v1/websites/public/[slug]/form` | Contact form → Contact + Lead |
 | `POST /api/v1/infrastructure/go-live` | Connect domain → DNS → publish checklist |
+| `POST /api/v1/websites/[id]/import-wordpress` | Import WP pages into Gen 2 site (replaces pages; draft) |
 
 ### Schema
 
@@ -388,7 +389,7 @@ Shipped in post-MVP depth pass:
 - Industry starter packs (RE / Accommodation / generic) from Business Profile + create picker  
 - **Content** overview (pages/components per site → Studio)  
 - Native **Health** checklist (published, domain, DNS, SSL, form→CRM, SEO, last updated)  
-- **Import from WordPress** path (connector status, queue, documented steps — not full importer)
+- **Import from WordPress v0** — Connector `/site/content` or WP REST → Studio blocks (not theme clone)
 
 Shipped in Funnel / Studio polish pass:
 
@@ -403,7 +404,8 @@ Still later:
 - Domains / DG DNS / hosting / SSL productization polish (Infrastructure)  
 - Visual drag-drop Studio (level 2)  
 - Developer Studio sandbox (level 3)  
-- Complete WordPress import job (phases 2–4 above)  
+- Richer WP import (menus, media re-host, builder parity) — phases 3–5 above  
+
 - Deeper SEO / AI Visibility Apps on publish  
 - Multi-step funnel sequences / email follow-ups  
 
@@ -428,7 +430,7 @@ Theme tokens come from Business Profile at generate time. Draft-by-default; publ
 | **SEO + AI Visibility Score™ Apps** | Deeper wiring on publish |
 | **DG DNS / Hosting / SSL product UI** | Infrastructure Core ([INFRASTRUCTURE.md](./INFRASTRUCTURE.md)) |
 | **Visual + Developer Studio** | Levels 2–3 |
-| **Full WP importer** | Migration phases 2–4 |
+| **Richer WP importer** | Menus, media CDN, builder parity |
 | **Industry App site contracts** | RE / Acc template packs |
 
 ---
@@ -441,7 +443,7 @@ Theme tokens come from Business Profile at generate time. Draft-by-default; publ
 - ❌ Replacing the WP Connector for customers who stay on WordPress  
 - ❌ Full DG Hosting productization (CDN controls, staging) — Domains + go-live checklist are live  
 - ❌ Visual drag-drop Studio / Developer sandbox this sprint  
-- ❌ Complete WP site importer this sprint (queue-only / coming soon UI; job runner later)  
+- ❌ Theme/Elementor pixel clone or full media CDN remaps (content importer v0 shipped)  
 
 ---
 
@@ -451,7 +453,7 @@ Theme tokens come from Business Profile at generate time. Draft-by-default; publ
 |------|------|
 | **Now (pilot)** | Website Studio MVP, Funnel Builder v0, Content overview, Gen 2 Health, Domains go-live |
 | **Later** | Visual Studio, schema library depth, DG Hosting productization polish |
-| **Later+** | Developer Studio sandbox, deeper Industry App site contracts, full WP importer, multi-step email funnels |
+| **Later+** | Developer Studio sandbox, deeper Industry App site contracts, richer WP import, multi-step email funnels |
 
 Operational module notes: [websites/WEBSITES-ARCHITECTURE.md](../websites/WEBSITES-ARCHITECTURE.md). Phase placement: [ROADMAP.md](../ROADMAP.md).
 

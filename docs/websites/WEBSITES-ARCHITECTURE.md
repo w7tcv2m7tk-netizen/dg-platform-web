@@ -4,7 +4,7 @@
 
 **Version:** 0.1  
 **Last updated:** August 2026  
-**Status:** Pilot MVP — native Website asset + Studio + `/sites/[slug]` renderer + Funnel Builder v0 + Gen 2 Health/Content; WP import queue-only; Domains go-live live
+**Status:** Pilot MVP — native Website asset + Studio + `/sites/[slug]` renderer + Funnel Builder v0 + Gen 2 Health/Content; WP → Gen 2 content importer v0; Domains go-live live
 
 **Related:** [foundations/WEBSITE-BUILDER.md](../foundations/WEBSITE-BUILDER.md) (pipeline + schema-first model + WP migration) · [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) · [ai/AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) · [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](../infrastructure/INFRASTRUCTURE-ARCHITECTURE.md)
 

@@ -221,7 +221,7 @@ export default async function WebsitesHomePage() {
                               href={`/apps/websites/studio/${site.id}?tab=import`}
                               className="text-slate-400 hover:text-slate-200"
                             >
-                              WP import (queue only)
+                              Import from WordPress
                             </Link>
                           </div>
                         </li>

@@ -58,6 +58,12 @@ export const WEBSITE_COMPONENT_TYPES = [
   "faq",
   "contact_form",
   "footer",
+  /** WP import / content blocks */
+  "heading",
+  "paragraph",
+  "image",
+  "list",
+  "html",
 ] as const;
 
 export type WebsiteComponentType = (typeof WEBSITE_COMPONENT_TYPES)[number];

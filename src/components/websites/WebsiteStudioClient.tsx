@@ -392,9 +392,13 @@ export function WebsiteStudioClient({
       {tab === "import" ? (
         <WordPressImportPanel
           website={website}
-          onQueued={(next) => {
+          onImported={(next, summary) => {
             setWebsite(next);
-            setStatus("WordPress import queued");
+            setPageId(next.pages?.[0]?.id ?? "");
+            setSelectedComponentId(null);
+            setStatus(summary || "WordPress import complete");
+            setTab("edit");
+            router.refresh();
           }}
         />
       ) : null}
@@ -594,13 +598,17 @@ function ComponentSummary({ component }: { component: WebsiteComponent }) {
   const hint =
     typeof component.props.headline === "string"
       ? component.props.headline
-      : typeof component.props.businessName === "string"
-        ? component.props.businessName
-        : typeof component.props.ctaLabel === "string"
-          ? component.props.ctaLabel
-          : typeof component.props.buttonLabel === "string"
-            ? component.props.buttonLabel
-            : null;
+      : typeof component.props.text === "string"
+        ? component.props.text
+        : typeof component.props.src === "string"
+          ? component.props.src
+          : typeof component.props.businessName === "string"
+            ? component.props.businessName
+            : typeof component.props.ctaLabel === "string"
+              ? component.props.ctaLabel
+              : typeof component.props.buttonLabel === "string"
+                ? component.props.buttonLabel
+                : null;
   if (!hint) return null;
   return (
     <span className="block text-[11px] text-slate-500 truncate font-sans">
@@ -708,6 +716,11 @@ function hasFriendlyFields(type: string): boolean {
     "footer",
     "services",
     "trust",
+    "heading",
+    "paragraph",
+    "image",
+    "list",
+    "html",
   ].includes(type);
 }
 
@@ -893,6 +906,87 @@ function FriendlyFields({
           }
         />
       </div>
+    );
+  }
+  if (type === "heading") {
+    return (
+      <div className="space-y-2">
+        <Field
+          label="Level (1–6)"
+          value={String(props.level ?? 2)}
+          disabled={disabled}
+          onChange={(v) => onChange("level", Number(v) || 2)}
+        />
+        <Field
+          label="Text"
+          value={str("text")}
+          disabled={disabled}
+          onChange={(v) => onChange("text", v)}
+        />
+      </div>
+    );
+  }
+  if (type === "paragraph") {
+    return (
+      <Field
+        label="Text"
+        value={str("text")}
+        disabled={disabled}
+        multiline
+        onChange={(v) => onChange("text", v)}
+      />
+    );
+  }
+  if (type === "image") {
+    return (
+      <div className="space-y-2">
+        <Field label="Image URL" value={str("src")} disabled={disabled} onChange={(v) => onChange("src", v)} />
+        <Field label="Alt text" value={str("alt")} disabled={disabled} onChange={(v) => onChange("alt", v)} />
+      </div>
+    );
+  }
+  if (type === "list") {
+    const items = Array.isArray(props.items)
+      ? props.items.map((x) => String(x)).join("\n")
+      : "";
+    return (
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 text-xs text-slate-500">
+          <input
+            type="checkbox"
+            checked={Boolean(props.ordered)}
+            disabled={disabled}
+            onChange={(e) => onChange("ordered", e.target.checked)}
+          />
+          Ordered list
+        </label>
+        <Field
+          label="Items (one per line)"
+          value={items}
+          disabled={disabled}
+          multiline
+          onChange={(v) =>
+            onChange(
+              "items",
+              v
+                .split("\n")
+                .map((s) => s.trim())
+                .filter(Boolean),
+            )
+          }
+        />
+      </div>
+    );
+  }
+  if (type === "html") {
+    return (
+      <Field
+        label="HTML (sanitized leftover from WP)"
+        value={str("html")}
+        disabled={disabled}
+        multiline
+        onChange={(v) => onChange("html", v)}
+      />
     );
   }
   return null;

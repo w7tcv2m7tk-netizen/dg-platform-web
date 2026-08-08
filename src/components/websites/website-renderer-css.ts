@@ -332,6 +332,68 @@ export const websiteRendererCss = `
   border-radius: 0.4rem;
 }
 
+.wb-heading-block {
+  padding-bottom: 0;
+}
+
+.wb-heading {
+  font-family: "Fraunces", Georgia, serif;
+  margin: 0 0 0.5rem;
+  color: var(--wb-ink);
+  line-height: 1.2;
+}
+
+.wb-paragraph-block {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.wb-paragraph {
+  margin: 0;
+  max-width: 42rem;
+  color: var(--wb-muted);
+  line-height: 1.65;
+  font-size: 1.05rem;
+}
+
+.wb-image-block {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.wb-content-image {
+  display: block;
+  width: 100%;
+  max-width: 48rem;
+  height: auto;
+  border-radius: 0.35rem;
+  object-fit: cover;
+}
+
+.wb-content-list {
+  max-width: 42rem;
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--wb-muted);
+  line-height: 1.6;
+}
+
+.wb-content-list li + li {
+  margin-top: 0.35rem;
+}
+
+.wb-html-block {
+  max-width: 48rem;
+  color: var(--wb-muted);
+  line-height: 1.65;
+}
+
+.wb-html-block img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.35rem;
+}
+
 .wb-footer {
   padding: 2.25rem clamp(1.25rem, 4vw, 3rem) 2.75rem;
   border-top: 1px solid color-mix(in srgb, var(--wb-primary) 12%, transparent);
