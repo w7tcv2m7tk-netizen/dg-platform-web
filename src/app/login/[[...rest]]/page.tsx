@@ -21,7 +21,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <AuthShell
       title="Client login"
-      subtitle="Sign in with your email and password to open the DigitalGate platform dashboard."
+      subtitle="Sign in with your email and password to open DigitalGate — CRM, industry apps, websites, and more."
     >
       <ClientSignIn redirectUrl={redirectUrl} />
     </AuthShell>

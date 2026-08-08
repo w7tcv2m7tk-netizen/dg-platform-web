@@ -43,14 +43,15 @@ export default async function HomePage() {
 
       <main className="mx-auto flex max-w-5xl flex-1 flex-col justify-center px-6 py-20">
         <p className="text-sm font-semibold uppercase tracking-widest text-blue-300">
-          Business Platform
+          DigitalGate
         </p>
         <h1 className="mt-4 max-w-2xl text-4xl font-bold leading-tight text-white sm:text-5xl">
-          CRM, industry apps, and growth tools — one platform.
+          The Business OS for your digital world.
         </h1>
         <p className="mt-4 max-w-xl text-lg text-slate-300">
-          Sign in to manage your platform setup, onboarding, and plan. New
-          clients can create an account and choose their industry apps.
+          CRM, industry apps, Website Builder, and infrastructure — one login,
+          one platform. Sign in to manage your workspace, plan, and apps. New
+          clients can create an account and choose what they need.
         </p>
         <div className="mt-8 flex flex-wrap gap-4">
           {userId ? (
