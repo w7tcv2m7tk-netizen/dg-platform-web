@@ -169,6 +169,7 @@ Run as the agency owner (or staff switched into their org).
 
 ## Related docs
 
+- [RE-BETA-PILOT-PACK.md](./RE-BETA-PILOT-PACK.md) — outreach scripts, discovery questions, Day-0 + Week-1 pilot checklist  
 - [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) — staff ops home  
 - [DEPLOY-WP-PLUGIN.md](./DEPLOY-WP-PLUGIN.md) — plugin deploy  
 - [foundations/CONTACTS-AND-APP-ROLES.md](./foundations/CONTACTS-AND-APP-ROLES.md) — Vendor/Buyer as Contact roles  
