@@ -1,6 +1,7 @@
 import {
   buildAvailabilityFromNeon,
   organisationUsesUnitSot,
+  sortAccommodationUnitsByDisplayOrder,
 } from "@dg/platform-core";
 import { currentUser } from "@clerk/nextjs/server";
 import { Suspense } from "react";
@@ -89,7 +90,7 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
     if (availability.ok) {
       availFrom = availability.from ?? from;
       availTo = availability.to ?? to;
-      units = availability.units;
+      units = sortAccommodationUnitsByDisplayOrder(availability.units);
     } else {
       error = availability.message;
     }

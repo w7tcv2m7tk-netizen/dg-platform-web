@@ -1,6 +1,7 @@
 import {
   listAccommodationUnits,
   organisationUsesUnitSot,
+  sortAccommodationUnitsByDisplayOrder,
   syncAccommodationUnitsFromWordPress,
   unitToWpProp,
   type PlatformSession,
@@ -76,7 +77,10 @@ export async function loadUnitsForOps(
   }
 
   return {
-    units: live.units as unknown as Record<string, unknown>[],
+    units: sortAccommodationUnitsByDisplayOrder(live.units) as unknown as Record<
+      string,
+      unknown
+    >[],
     source: "wordpress",
     sot: false,
     seeded,

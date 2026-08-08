@@ -8,6 +8,7 @@ import {
   organisationHasFlag,
   organisationUsesHousekeepingSot,
   organisationUsesUnitSot,
+  sortAccommodationUnitsByDisplayOrder,
   stayBookingToWpRow,
   syncAccommodationUnitsFromWordPress,
   unitToWpProp,
@@ -72,7 +73,7 @@ export async function GET(req: Request) {
       );
     }
     return NextResponse.json({
-      data: units.units,
+      data: sortAccommodationUnitsByDisplayOrder(units.units),
       meta: { site: units.site, source: "wordpress", sot: false },
     });
   }
@@ -112,12 +113,13 @@ export async function GET(req: Request) {
         { status: 422 },
       );
     }
+    const orderedUnits = sortAccommodationUnitsByDisplayOrder(avail.units);
     return NextResponse.json({
       data: {
         from: avail.from,
         to: avail.to,
-        units: avail.units,
-        total: avail.total,
+        units: orderedUnits,
+        total: orderedUnits.length,
       },
       meta: { site: avail.site, source: "wordpress", sot: false },
     });
@@ -192,7 +194,7 @@ export async function GET(req: Request) {
     }
     return NextResponse.json({
       data: {
-        items: board.items,
+        items: sortAccommodationUnitsByDisplayOrder(board.items),
         summary: board.summary,
         statuses: board.statuses,
       },

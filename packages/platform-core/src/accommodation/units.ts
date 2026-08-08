@@ -8,6 +8,17 @@ import type { Prisma } from "@dg/database";
 
 import { organisationHasFlag } from "../features/flags";
 import { resolveOrgWordPressConnector } from "../connectors/wordpress/org-connector";
+import { sortAccommodationUnitsByDisplayOrder } from "./display-order";
+
+export {
+  CVH_UNIT_DISPLAY_ORDER,
+  accommodationUnitDisplayOrderIndex,
+  accommodationUnitDisplayTail,
+  resolveCvhUnitDisplaySlug,
+  sortAccommodationUnitsByDisplayOrder,
+  type AccommodationUnitOrderable,
+  type CvhUnitDisplaySlug,
+} from "./display-order";
 
 export type WpAccUnitPropRow = {
   id: number;
@@ -240,7 +251,8 @@ export async function listAccommodationUnits(organisationId: string) {
     where: { organisationId },
     orderBy: { title: "asc" },
   });
-  return rows.map(serializeUnit);
+  // CVH canonical order (Private Studio → … → The Shed); unknowns after, A–Z.
+  return sortAccommodationUnitsByDisplayOrder(rows.map(serializeUnit));
 }
 
 export async function countAccommodationUnits(organisationId: string): Promise<number> {

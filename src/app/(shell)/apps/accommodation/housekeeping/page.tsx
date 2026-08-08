@@ -2,6 +2,7 @@ import {
   housekeepingBoardFromUnits,
   listAccommodationUnits,
   organisationUsesHousekeepingSot,
+  sortAccommodationUnitsByDisplayOrder,
 } from "@dg/platform-core";
 import { currentUser } from "@clerk/nextjs/server";
 import { Suspense } from "react";
@@ -75,7 +76,7 @@ export default async function AccommodationHousekeepingPage({ searchParams }: Pa
   } else {
     const board = await fetchWpAccommodationHousekeeping(site.id, connector);
     if (board.ok) {
-      items = board.items;
+      items = sortAccommodationUnitsByDisplayOrder(board.items);
       statuses = board.statuses;
       summary = board.summary;
       checkoutsToday = board.checkoutsToday;
