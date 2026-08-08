@@ -117,8 +117,11 @@ export function DomainAvailabilitySearch() {
                     keys 401 on sandbox).
                   </li>
                   <li>
-                    IP whitelist: leave empty/disabled on sandbox, or whitelist
-                    Vercel Static IPs — default Vercel egress IPs change.
+                    IP whitelist cannot be empty or 0.0.0.0/0 (API rejects).
+                    Local: whitelist your public IP. Vercel: no reliable free
+                    public IP range — use Vercel Static IPs (Pro) or
+                    DREAMSCAPE_HTTPS_PROXY / HTTPS_PROXY (Fixie/QuotaGuard) and
+                    whitelist that static egress IP.
                   </li>
                   <li>
                     Reseller ID is account/WHMCS identity only — not a REST

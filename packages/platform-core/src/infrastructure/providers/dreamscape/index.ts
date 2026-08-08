@@ -12,7 +12,9 @@ export {
   isDreamscapeApiKeyFormatValid,
   isDreamscapeConfigured,
   normalizeDreamscapeApiKey,
+  resetDreamscapeProxyDispatcherCache,
   resolveDreamscapeConfig,
+  resolveDreamscapeHttpsProxy,
 } from "./client";
 export {
   DreamscapeDomainProvider,

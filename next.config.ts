@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
   experimental: {
     viewTransition: true,
   },
+  // Dreamscape HTTPS proxy (Fixie/QuotaGuard) uses undici ProxyAgent on Node only.
+  serverExternalPackages: ["undici"],
   async headers() {
     return [
       {

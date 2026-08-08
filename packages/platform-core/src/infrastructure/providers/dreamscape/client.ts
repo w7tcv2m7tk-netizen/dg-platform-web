@@ -30,6 +30,62 @@ export function isDreamscapeApiKeyFormatValid(apiKey: string): boolean {
 }
 
 /**
+ * Optional HTTPS proxy for Dreamscape egress (Fixie / QuotaGuard / similar).
+ * Prefer `DREAMSCAPE_HTTPS_PROXY`; falls back to standard `HTTPS_PROXY` /
+ * `https_proxy`. When set, all `dreamscapeFetch` calls tunnel through it so
+ * Dreamscape can whitelist the proxy’s static outbound IP.
+ */
+export function resolveDreamscapeHttpsProxy(): string | null {
+  const raw =
+    process.env.DREAMSCAPE_HTTPS_PROXY?.trim() ||
+    process.env.HTTPS_PROXY?.trim() ||
+    process.env.https_proxy?.trim() ||
+    "";
+  return raw || null;
+}
+
+type ProxyDispatcher = { close?: () => Promise<void> };
+
+let cachedProxy: {
+  url: string;
+  dispatcher: ProxyDispatcher;
+  fetch: typeof fetch;
+} | null = null;
+
+/** Test helper — clears cached ProxyAgent between cases. */
+export function resetDreamscapeProxyDispatcherCache(): void {
+  cachedProxy = null;
+}
+
+/**
+ * Load undici only when a proxy is configured (Node runtime).
+ * Opaque import() so Turbopack/webpack do not pull undici into the client
+ * bundle — `@dg/platform-core` is imported by client components via the barrel.
+ */
+async function loadUndici(): Promise<typeof import("undici")> {
+  const importer = new Function(
+    "specifier",
+    "return import(specifier)",
+  ) as (specifier: string) => Promise<typeof import("undici")>;
+  return importer("undici");
+}
+
+async function resolveProxiedFetch(proxyUrl: string): Promise<{
+  fetch: typeof fetch;
+  dispatcher: ProxyDispatcher;
+}> {
+  if (cachedProxy?.url === proxyUrl) {
+    return { fetch: cachedProxy.fetch, dispatcher: cachedProxy.dispatcher };
+  }
+
+  const undici = await loadUndici();
+  const dispatcher = new undici.ProxyAgent(proxyUrl);
+  const proxiedFetch = undici.fetch as unknown as typeof fetch;
+  cachedProxy = { url: proxyUrl, dispatcher, fetch: proxiedFetch };
+  return { fetch: proxiedFetch, dispatcher };
+}
+
+/**
  * Sandbox-first: default base URL is always sandbox.
  * Production URL is only used when explicitly set via env — never guess.
  *
@@ -40,12 +96,18 @@ export function resolveDreamscapeConfig(): {
   apiKey: string | null;
   baseUrl: string;
   isSandbox: boolean;
+  httpsProxy: string | null;
 } {
   const apiKey = normalizeDreamscapeApiKey(process.env.DREAMSCAPE_API_KEY);
   const configured = process.env.DREAMSCAPE_API_BASE_URL?.trim();
   const baseUrl = (configured || DREAMSCAPE_SANDBOX_BASE_URL).replace(/\/$/, "");
   const isSandbox = baseUrl.includes("sandbox");
-  return { apiKey, baseUrl, isSandbox };
+  return {
+    apiKey,
+    baseUrl,
+    isSandbox,
+    httpsProxy: resolveDreamscapeHttpsProxy(),
+  };
 }
 
 export function isDreamscapeConfigured(): boolean {
@@ -91,16 +153,16 @@ export function describeDreamscapeAuthFailure(
     return {
       code: "auth_sandbox_key_rejected",
       message:
-        "Dreamscape sandbox rejected the request (401). Usual causes: sandbox/prod key mismatch, or IP whitelist blocking Vercel’s dynamic egress.",
-      hint: "1) Key from https://reseller.sandbox.ds.network → Account Settings → API & WHMCS → API Setup (not live). 2) On that same page, clear/disable IP whitelist for sandbox, or enable Vercel Static IPs and whitelist those IPs — standard Vercel egress is dynamic. 3) Set DREAMSCAPE_API_KEY + DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network, then redeploy. Reseller ID is not used for REST.",
+        "Dreamscape sandbox rejected the request (401). Usual causes: sandbox/prod key mismatch, or IP whitelist blocking dynamic egress (empty/0.0.0.0/0 are rejected).",
+      hint: "1) Key from https://reseller.sandbox.ds.network → Account Settings → API & WHMCS → API Setup (not live). 2) Whitelist a real IP — Dreamscape rejects empty whitelist and 0.0.0.0/0. Local: your public IP. Vercel: there is no reliable free public IP range — use Vercel Static IPs (Pro) or set DREAMSCAPE_HTTPS_PROXY / HTTPS_PROXY (Fixie/QuotaGuard) and whitelist that static egress IP. 3) Redeploy after env changes. Reseller ID is not used for REST.",
     };
   }
 
   return {
     code: "auth_production_key_rejected",
     message:
-      "Dreamscape production rejected the request (401). Usual causes: sandbox/prod key mismatch, or IP whitelist blocking Vercel’s dynamic egress.",
-    hint: "1) Key from https://reseller.ds.network → Account Settings → API & WHMCS → API Setup (not sandbox). 2) Whitelist stable egress (Vercel Static IPs) or proxy via a static-IP host — do not rely on dynamic Vercel IPs. 3) Redeploy after env changes. Reseller ID is not used for REST.",
+      "Dreamscape production rejected the request (401). Usual causes: sandbox/prod key mismatch, or IP whitelist blocking dynamic egress (empty/0.0.0.0/0 are rejected).",
+    hint: "1) Key from https://reseller.ds.network → Account Settings → API & WHMCS → API Setup (not sandbox). 2) Whitelist a stable egress IP — Vercel Static IPs (Pro) or DREAMSCAPE_HTTPS_PROXY / HTTPS_PROXY (Fixie/QuotaGuard). Do not leave whitelist empty or use 0.0.0.0/0. 3) Redeploy after env changes. Reseller ID is not used for REST.",
   };
 }
 
@@ -127,14 +189,42 @@ export async function dreamscapeFetch<T = unknown>(
     });
   }
 
-  const { searchParams: _sp, headers: initHeaders, ...rest } = init ?? {};
-  const response = await fetch(url.toString(), {
-    ...rest,
-    headers: {
-      ...dreamscapeAuthHeaders(apiKey),
-      ...(initHeaders as Record<string, string> | undefined),
-    },
-  });
+  const {
+    searchParams: _sp,
+    headers: initHeaders,
+    method,
+    body: requestBody,
+    signal,
+  } = init ?? {};
+
+  const headers: Record<string, string> = {
+    ...dreamscapeAuthHeaders(apiKey),
+    ...(initHeaders as Record<string, string> | undefined),
+  };
+
+  const proxyUrl = resolveDreamscapeHttpsProxy();
+  let response: Response;
+
+  if (proxyUrl) {
+    // undici ProxyAgent — Node runtime only (Fixie / QuotaGuard / HTTPS_PROXY)
+    const { fetch: proxiedFetch, dispatcher } =
+      await resolveProxiedFetch(proxyUrl);
+    response = await proxiedFetch(url.toString(), {
+      method: method ?? "GET",
+      body: requestBody,
+      signal: signal ?? undefined,
+      headers,
+      // undici RequestInit
+      ...({ dispatcher } as RequestInit),
+    });
+  } else {
+    response = await fetch(url.toString(), {
+      method: method ?? "GET",
+      body: requestBody,
+      signal: signal ?? undefined,
+      headers,
+    });
+  }
 
   const text = await response.text();
   let body: unknown = null;

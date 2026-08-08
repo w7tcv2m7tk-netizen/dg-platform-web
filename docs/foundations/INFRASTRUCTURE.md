@@ -22,7 +22,7 @@
 | **Sandbox first** | Develop only against `https://reseller-api.sandbox.ds.network` until automated tests pass |
 | **Credentials** | `DREAMSCAPE_API_KEY` **server-side only**; browser → DigitalGate API → Dreamscape |
 | **Keys** | Never commit real keys. Docs/example hashes are **docs-only** — if a real key was pasted into chat/docs, **regenerate it** in Reseller Console |
-| **401 on Vercel** | Check sandbox key origin, **IP whitelist** (Vercel egress is dynamic), then redeploy — Reseller ID is **not** for REST |
+| **401 on Vercel** | Check sandbox key origin + **IP whitelist** (cannot be empty / `0.0.0.0/0`; Vercel egress is dynamic — use Static IPs or HTTPS proxy), then redeploy — Reseller ID is **not** for REST |
 
 ---
 
@@ -143,16 +143,31 @@ Official docs and the PHP SDK authenticator use **API key only** for REST. There
 | Step | Action |
 |------|--------|
 | **1. Key origin** | Copy the key from **sandbox** console (`reseller.sandbox.ds.network`), not live. Keys can differ; a prod key **401s** on sandbox. |
-| **2. IP whitelist** | Same page → IP whitelist. Support may require the connecting server IP. **Vercel egress is dynamic by default** — there is no stable public IP range to paste. Prefer: **leave whitelist empty / disabled on sandbox** if Dreamscape allows; **or** enable [Vercel Static IPs](https://vercel.com/docs/networking/static-ips) (Pro/Enterprise) and whitelist those project IPs ([allowlist guide](https://vercel.com/kb/guide/how-to-allowlist-deployment-ip-address)); **or** call Dreamscape from a host/Worker with a fixed egress IP. |
+| **2. IP whitelist** | Same page → IP whitelist. **Dreamscape confirmed: whitelist cannot be empty and cannot be `0.0.0.0/0`** — the API rejects if no valid IP is configured. **Vercel egress is dynamic by default** — there is **no** reliable free public IP range to paste long-term. Options: **(A)** local — whitelist your current public IP for `npm run dev`; **(B)** [Vercel Static IPs](https://vercel.com/docs/networking/static-ips) (Pro/Enterprise) and whitelist those project IPs ([allowlist guide](https://vercel.com/kb/guide/how-to-allowlist-deployment-ip-address)); **(C)** HTTPS proxy with a static egress IP ([Fixie](https://usefixie.com/documentation/vercel) / QuotaGuard) via `DREAMSCAPE_HTTPS_PROXY` or `HTTPS_PROXY` — DigitalGate’s Dreamscape client tunnels all REST calls through it when set. |
 | **3. Reseller ID** | **Not required for REST.** Ignore unless a WHMCS/plugin form explicitly asks for it (ours does not). |
 | **4. Redeploy** | After changing Vercel env vars, **redeploy** so serverless picks them up. |
 
 Other classic **401** causes (Dreamscape FAQ): wrong key, whitespace/quotes around the key, or sandbox/prod key mismatch.
 
+#### Local smoke (whitelist your public IP)
+
+1. Get your public IP: `curl -s https://api.ipify.org` (or similar).
+2. In sandbox Reseller Console → API Setup → add that IP to the whitelist (not empty, not `0.0.0.0/0`).
+3. Set `DREAMSCAPE_API_KEY` + sandbox base URL in `.env.local`, run `npm run dev`, try Domains availability search.
+
+#### Production on Vercel (static egress required)
+
+1. Pick **one**: enable [Vercel Static IPs](https://vercel.com/docs/networking/static-ips) **or** provision Fixie/QuotaGuard and set `DREAMSCAPE_HTTPS_PROXY` (or `HTTPS_PROXY`) to the proxy URL (e.g. Fixie’s `http://fix:pass@host:port`).
+2. Whitelist the **static outbound IP(s)** from that choice in Dreamscape (sandbox or live console matching your key).
+3. Redeploy. Reseller ID is still not needed for REST.
+
 ```bash
 # .env.local / Vercel — never commit real values
 DREAMSCAPE_API_KEY=          # sandbox key when using sandbox base URL
 DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network
+# Optional: static-IP HTTPS proxy for Dreamscape (Fixie / QuotaGuard).
+# Prefer DREAMSCAPE_HTTPS_PROXY; HTTPS_PROXY / https_proxy also work.
+# DREAMSCAPE_HTTPS_PROXY=http://fix:password@fixie.example.com:80
 # Optional webhook (domain transfer Notification URL) — separate secret:
 # DREAMSCAPE_WEBHOOK_SECRET=
 # Do NOT set a Reseller ID env for REST — not used by Api-Request-Id / Api-Signature.
