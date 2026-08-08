@@ -25,6 +25,7 @@ export {
   resolveDreamscapeResellerIdHeader,
   sanitizeDreamscapeBodySnippet,
   serializeDreamscapeSearchParams,
+  shouldSendDreamscapeResellerId,
   type DreamscapeEnvPresence,
   type DreamscapeRequestDebug,
 } from "./client";

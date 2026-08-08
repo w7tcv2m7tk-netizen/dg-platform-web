@@ -22,7 +22,7 @@ export function requireDomainProvider(): DomainProvider {
   const provider = getDomainProvider();
   if (!provider) {
     throw new InfrastructureNotConfiguredError(
-      "No domain provider configured. Set DREAMSCAPE_API_KEY and DREAMSCAPE_RESELLER_ID against the sandbox API first.",
+      "No domain provider configured. Set DREAMSCAPE_API_KEY against the sandbox API first.",
     );
   }
   return provider;

@@ -33,8 +33,8 @@ export function isDreamscapeApiKeyFormatValid(apiKey: string): boolean {
 }
 
 /**
- * Reseller ID from API Setup (digits). Required per Dreamscape support
- * alongside the API key — public REST examples omit it.
+ * Reseller ID from API Setup (digits). Optional — only sent when
+ * DREAMSCAPE_SEND_RESELLER_ID=true (support experiments).
  */
 export function normalizeDreamscapeResellerId(
   raw: string | undefined | null,
@@ -48,6 +48,15 @@ export function normalizeDreamscapeResellerId(
 export function resolveDreamscapeResellerIdHeader(): string {
   const configured = readServerEnv("DREAMSCAPE_RESELLER_ID_HEADER")?.trim();
   return configured || DREAMSCAPE_DEFAULT_RESELLER_ID_HEADER;
+}
+
+/**
+ * Opt-in Reseller ID headers/query for support experiments.
+ * Official REST docs use Api-Request-Id + Api-Signature only.
+ */
+export function shouldSendDreamscapeResellerId(): boolean {
+  const raw = readServerEnv("DREAMSCAPE_SEND_RESELLER_ID")?.trim().toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes";
 }
 
 /**
@@ -81,6 +90,8 @@ export type DreamscapeEnvPresence = {
   hasKey: boolean;
   hasResellerId: boolean;
   hasBaseUrl: boolean;
+  /** True when DREAMSCAPE_SEND_RESELLER_ID opt-in is enabled. */
+  sendResellerId: boolean;
   /** Normalized key length (0 when missing). Never the key itself. */
   keyLength: number;
 };
@@ -95,6 +106,7 @@ export function dreamscapeEnvPresence(): DreamscapeEnvPresence {
     hasKey: Boolean(apiKey),
     hasResellerId: Boolean(resellerId),
     hasBaseUrl: Boolean(baseUrl),
+    sendResellerId: shouldSendDreamscapeResellerId(),
     keyLength: apiKey?.length ?? 0,
   };
 }
@@ -144,8 +156,8 @@ async function resolveProxiedFetch(proxyUrl: string): Promise<{
  * Sandbox-first: default base URL is always sandbox.
  * Production URL is only used when explicitly set via env — never guess.
  *
- * Dreamscape support (Aug 2026): Reseller ID must be passed with the API key.
- * Sandbox has no IP whitelist (IP was a red herring for sandbox 401s).
+ * Default auth is official REST only (Api-Request-Id + Api-Signature).
+ * Reseller ID headers/query are opt-in via DREAMSCAPE_SEND_RESELLER_ID.
  */
 /**
  * Resolve Dreamscape config at call/request time (not module init).
@@ -155,6 +167,7 @@ export function resolveDreamscapeConfig(): {
   apiKey: string | null;
   resellerId: string | null;
   resellerIdHeader: string;
+  sendResellerId: boolean;
   baseUrl: string;
   isSandbox: boolean;
   httpsProxy: string | null;
@@ -170,16 +183,17 @@ export function resolveDreamscapeConfig(): {
     apiKey,
     resellerId,
     resellerIdHeader: resolveDreamscapeResellerIdHeader(),
+    sendResellerId: shouldSendDreamscapeResellerId(),
     baseUrl,
     isSandbox,
     httpsProxy: resolveDreamscapeHttpsProxy(),
   };
 }
 
-/** Both API key and Reseller ID are required (Dreamscape support). */
+/** Configured when API key is present (Reseller ID is optional / opt-in). */
 export function isDreamscapeConfigured(): boolean {
-  const { apiKey, resellerId } = resolveDreamscapeConfig();
-  return Boolean(apiKey && resellerId);
+  const { apiKey } = resolveDreamscapeConfig();
+  return Boolean(apiKey);
 }
 
 /** Safe request metadata for staff debug — never includes API key or signature. */
@@ -190,6 +204,7 @@ export type DreamscapeRequestDebug = {
   resellerIdHeadersSent: string[];
   queryKeysSent: string[];
   hasResellerIdQuery: boolean;
+  sendResellerId: boolean;
   signatureAlgo: "md5(request_id + api_key)";
   isSandbox: boolean;
 };
@@ -259,7 +274,7 @@ export class DreamscapeApiError extends Error {
 export function describeDreamscapeAuthFailure(
   isSandbox: boolean,
   apiKey: string,
-  opts?: { resellerId?: string | null },
+  _opts?: { sendResellerId?: boolean },
 ): { code: string; message: string; hint: string } {
   if (!isDreamscapeApiKeyFormatValid(apiKey)) {
     return {
@@ -270,29 +285,20 @@ export function describeDreamscapeAuthFailure(
     };
   }
 
-  if (!opts?.resellerId) {
-    return {
-      code: "auth_missing_reseller_id",
-      message:
-        "Dreamscape rejected the request (401). Reseller ID is required alongside the API key (Dreamscape support).",
-      hint: "Set DREAMSCAPE_RESELLER_ID from Reseller Console → Account Settings → API & WHMCS → API Setup (e.g. 25735). We send X-Reseller-Id, Reseller-Id, Api-Reseller-Id, and reseller_id query. Redeploy after env changes.",
-    };
-  }
-
   if (isSandbox) {
     return {
       code: "auth_sandbox_key_rejected",
       message:
-        "Dreamscape sandbox rejected the request (401). Usual causes: wrong sandbox key, Reseller ID mismatch, or regenerated key not redeployed.",
-      hint: "1) Key from https://reseller.sandbox.ds.network → Account Settings → API & WHMCS → API Setup (not live). 2) DREAMSCAPE_RESELLER_ID matches sandbox API Setup. 3) Sandbox has no IP whitelist. 4) If the key was exposed, regenerate, set DREAMSCAPE_API_KEY, redeploy. We send headers X-Reseller-Id + Reseller-Id + Api-Reseller-Id and query reseller_id. Retry with ?debug=1 for header names + response snippet.",
+        "Dreamscape sandbox rejected the request (401). Usual causes: wrong sandbox key, key/base URL mismatch, or regenerated key not redeployed.",
+      hint: "1) Key from https://reseller.sandbox.ds.network → Account Settings → API & WHMCS → API Setup (not live). 2) DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network. 3) Auth is Api-Request-Id + Api-Signature only (Reseller ID not sent by default). 4) Sandbox has no IP whitelist. 5) If the key was exposed, regenerate, set DREAMSCAPE_API_KEY, redeploy. Retry with ?debug=1 for header names + response snippet.",
     };
   }
 
   return {
     code: "auth_production_key_rejected",
     message:
-      "Dreamscape production rejected the request (401). Usual causes: wrong live key, Reseller ID mismatch, or IP whitelist blocking dynamic egress.",
-    hint: "1) Key from https://reseller.ds.network → Account Settings → API & WHMCS → API Setup (not sandbox). 2) DREAMSCAPE_RESELLER_ID from live API Setup. 3) Whitelist stable egress (Vercel Static IPs or DREAMSCAPE_HTTPS_PROXY). 4) Redeploy. We send X-Reseller-Id + Reseller-Id + Api-Reseller-Id and reseller_id query. Retry with ?debug=1.",
+      "Dreamscape production rejected the request (401). Usual causes: wrong live key, key/base URL mismatch, or IP whitelist blocking dynamic egress.",
+    hint: "1) Key from https://reseller.ds.network → Account Settings → API & WHMCS → API Setup (not sandbox). 2) Matching production base URL. 3) Auth is Api-Request-Id + Api-Signature only by default. 4) Whitelist stable egress if needed (Vercel Static IPs or DREAMSCAPE_HTTPS_PROXY). 5) Redeploy. Retry with ?debug=1.",
   };
 }
 
@@ -318,24 +324,19 @@ export async function dreamscapeFetch<T = unknown>(
   path: string,
   init?: RequestInit & { searchParams?: URLSearchParams },
 ): Promise<T> {
-  const { apiKey, resellerId, resellerIdHeader, baseUrl, isSandbox } =
-    resolveDreamscapeConfig();
+  const {
+    apiKey,
+    resellerId,
+    resellerIdHeader,
+    sendResellerId,
+    baseUrl,
+    isSandbox,
+  } = resolveDreamscapeConfig();
   if (!apiKey) {
     throw new DreamscapeApiError(503, "DREAMSCAPE_API_KEY is not configured", undefined, {
       code: "missing_api_key",
-      hint: "Set DREAMSCAPE_API_KEY from the Reseller Console that matches DREAMSCAPE_API_BASE_URL (sandbox by default). Also set DREAMSCAPE_RESELLER_ID (required per Dreamscape support).",
+      hint: "Set DREAMSCAPE_API_KEY from the Reseller Console that matches DREAMSCAPE_API_BASE_URL (sandbox by default). Official auth uses Api-Request-Id + Api-Signature only.",
     });
-  }
-  if (!resellerId) {
-    throw new DreamscapeApiError(
-      503,
-      "DREAMSCAPE_RESELLER_ID is not configured",
-      undefined,
-      {
-        code: "missing_reseller_id",
-        hint: "Set DREAMSCAPE_RESELLER_ID from Reseller Console → Account Settings → API & WHMCS → API Setup. Dreamscape support requires Reseller ID alongside the API key. We send X-Reseller-Id, Reseller-Id, and Api-Reseller-Id.",
-      },
-    );
   }
 
   const url = new URL(
@@ -354,8 +355,8 @@ export async function dreamscapeFetch<T = unknown>(
     });
   }
 
-  // Always include reseller_id as a query param (support-implied identity).
-  if (!mergedParams.has("reseller_id")) {
+  // Reseller ID query only when opt-in (support experiments).
+  if (sendResellerId && resellerId && !mergedParams.has("reseller_id")) {
     mergedParams.set("reseller_id", resellerId);
   }
 
@@ -373,8 +374,9 @@ export async function dreamscapeFetch<T = unknown>(
   } = init ?? {};
 
   const auth = buildDreamscapeAuthHeaders(apiKey, {
-    resellerId,
-    resellerIdHeader,
+    sendResellerId,
+    resellerId: sendResellerId ? resellerId : null,
+    resellerIdHeader: sendResellerId ? resellerIdHeader : null,
   });
 
   const headers: Record<string, string> = {
@@ -389,6 +391,7 @@ export async function dreamscapeFetch<T = unknown>(
     resellerIdHeadersSent: auth.resellerIdHeadersSent,
     queryKeysSent: [...mergedParams.keys()],
     hasResellerIdQuery: mergedParams.has("reseller_id"),
+    sendResellerId,
     signatureAlgo: auth.signatureAlgo,
     isSandbox,
   };
@@ -401,6 +404,7 @@ export async function dreamscapeFetch<T = unknown>(
     headersSent: requestDebug.headersSent,
     resellerIdHeadersSent: requestDebug.resellerIdHeadersSent,
     queryKeysSent: requestDebug.queryKeysSent,
+    sendResellerId: requestDebug.sendResellerId,
     signatureAlgo: requestDebug.signatureAlgo,
   });
 
@@ -408,6 +412,7 @@ export async function dreamscapeFetch<T = unknown>(
   let response: Response;
 
   // Prefer href with our serialized search; avoid URLSearchParams re-encode.
+  // Docs: GET {base}/domains/availability?domain_names[]=…
   const requestUrl = `${url.origin}${url.pathname}${queryString ? `?${queryString}` : ""}`;
 
   if (proxyUrl) {
@@ -446,7 +451,7 @@ export async function dreamscapeFetch<T = unknown>(
   if (!response.ok) {
     if (response.status === 401) {
       const authFail = describeDreamscapeAuthFailure(isSandbox, apiKey, {
-        resellerId,
+        sendResellerId,
       });
       throw new DreamscapeApiError(401, authFail.message, body, {
         code: authFail.code,

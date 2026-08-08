@@ -1,10 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
 
 /**
- * Reseller ID header names to send together (same value).
- * Public REST docs omit Reseller ID; support (Aug 2026) says it must be
- * passed with the API key but did not name a single header — send all known
- * variants so one of them matches.
+ * Reseller ID header names used only when opt-in
+ * `DREAMSCAPE_SEND_RESELLER_ID=true` is set (support experiments).
+ * Official REST docs do not use Reseller ID headers.
  */
 export const DREAMSCAPE_RESELLER_ID_HEADERS = [
   "X-Reseller-Id",
@@ -24,21 +23,28 @@ export function dreamscapeRequestId(): string {
 
 /**
  * Api-Signature = md5(request_id + api_key) — documented formula only.
- * Do not invent variants (e.g. including reseller_id) unless support confirms.
+ * @see https://doc-reseller-api.ds.network/
  */
 export function dreamscapeSignature(requestId: string, apiKey: string): string {
   return createHash("md5").update(`${requestId}${apiKey}`).digest("hex");
 }
 
 export type DreamscapeAuthHeaderOptions = {
-  /** Numeric Reseller ID from API Setup (required per Dreamscape support). */
+  /**
+   * When set with sendResellerId, attach Reseller ID headers (opt-in only).
+   * Official REST auth does not require this.
+   */
   resellerId?: string | null;
   /**
-   * Extra / override header name. Always also send the standard trio
-   * (X-Reseller-Id, Reseller-Id, Api-Reseller-Id). Override via
-   * DREAMSCAPE_RESELLER_ID_HEADER if support names something else.
+   * Extra / override header name when sendResellerId is true.
+   * Override via DREAMSCAPE_RESELLER_ID_HEADER if support names something else.
    */
   resellerIdHeader?: string | null;
+  /**
+   * Opt-in: send Reseller ID headers. Default false — official docs use only
+   * Api-Request-Id + Api-Signature (+ Accept).
+   */
+  sendResellerId?: boolean;
 };
 
 export type DreamscapeAuthHeadersResult = {
@@ -52,12 +58,12 @@ export type DreamscapeAuthHeadersResult = {
 };
 
 /**
- * REST auth headers per https://doc-reseller-api.ds.network/ plus Reseller ID.
+ * REST auth headers per https://doc-reseller-api.ds.network/
  *
- * Documented: Api-Request-Id + Api-Signature (md5(request_id + api_key)).
- * Support (Aug 2026): also pass Reseller ID alongside the API key. Public docs
- * do not name the header — we send X-Reseller-Id, Reseller-Id, and
- * Api-Reseller-Id with the same value.
+ * Default (official): Accept + Api-Request-Id + Api-Signature
+ *   where Api-Signature = md5(request_id + api_key).
+ *
+ * Opt-in Reseller ID headers only when sendResellerId is true.
  */
 export function dreamscapeAuthHeaders(
   apiKey: string,
@@ -80,7 +86,7 @@ export function buildDreamscapeAuthHeaders(
 
   const resellerIdHeadersSent: string[] = [];
   const resellerId = opts?.resellerId?.trim();
-  if (resellerId) {
+  if (opts?.sendResellerId && resellerId) {
     const names = new Set<string>([...DREAMSCAPE_RESELLER_ID_HEADERS]);
     const extra = opts?.resellerIdHeader?.trim();
     if (extra) names.add(extra);

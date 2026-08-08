@@ -60,7 +60,6 @@ export async function GET(req: Request) {
   if (!configured) {
     const missing: string[] = [];
     if (!env.hasKey) missing.push("DREAMSCAPE_API_KEY");
-    if (!env.hasResellerId) missing.push("DREAMSCAPE_RESELLER_ID");
 
     return NextResponse.json({
       configured: false,
@@ -74,8 +73,8 @@ export async function GET(req: Request) {
         message:
           missing.length > 0
             ? `Domain provider is not configured. Missing: ${missing.join(", ")}.`
-            : "Domain provider is not configured. Set DREAMSCAPE_API_KEY and DREAMSCAPE_RESELLER_ID against the sandbox API first.",
-        hint: "Vercel → Settings → Environment Variables: set DREAMSCAPE_API_KEY and DREAMSCAPE_RESELLER_ID (e.g. 25735) for Production, Preview, and Development. Server-only (not NEXT_PUBLIC). Redeploy after changes. Reseller Console (sandbox) → Account Settings → API & WHMCS → API Setup.",
+            : "Domain provider is not configured. Set DREAMSCAPE_API_KEY against the sandbox API first.",
+        hint: "Vercel → Settings → Environment Variables: set DREAMSCAPE_API_KEY for Production, Preview, and Development. Server-only (not NEXT_PUBLIC). Match sandbox base URL. Redeploy after changes. Reseller Console (sandbox) → Account Settings → API & WHMCS → API Setup. Reseller ID is optional (DREAMSCAPE_SEND_RESELLER_ID=true for support experiments).",
       },
     });
   }
@@ -108,16 +107,10 @@ export async function GET(req: Request) {
     if (debug) {
       payload.debug = {
         note: "Request succeeded — auth headers accepted by Dreamscape",
-        expectedHeaders: [
-          "Accept",
-          "Api-Request-Id",
-          "Api-Signature",
-          "X-Reseller-Id",
-          "Reseller-Id",
-          "Api-Reseller-Id",
-        ],
-        expectedQueryKeys: ["domain_names[]", "reseller_id"],
+        expectedHeaders: ["Accept", "Api-Request-Id", "Api-Signature"],
+        expectedQueryKeys: ["domain_names[]"],
         signatureAlgo: "md5(request_id + api_key)",
+        sendResellerId: env.sendResellerId,
       };
     }
     return NextResponse.json(payload);
@@ -202,6 +195,7 @@ function sanitizeRequestDebug(
     resellerIdHeadersSent: [...debug.resellerIdHeadersSent],
     queryKeysSent: [...debug.queryKeysSent],
     hasResellerIdQuery: debug.hasResellerIdQuery,
+    sendResellerId: debug.sendResellerId,
     signatureAlgo: debug.signatureAlgo,
     isSandbox: debug.isSandbox,
   };

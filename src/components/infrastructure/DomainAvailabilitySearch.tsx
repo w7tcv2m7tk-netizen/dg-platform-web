@@ -19,6 +19,7 @@ type AvailabilityResponse = {
     hasKey?: boolean;
     hasResellerId?: boolean;
     hasBaseUrl?: boolean;
+    sendResellerId?: boolean;
     keyLength?: number;
   };
   error?: {
@@ -33,6 +34,7 @@ type AvailabilityResponse = {
       resellerIdHeadersSent?: string[];
       queryKeysSent?: string[];
       hasResellerIdQuery?: boolean;
+      sendResellerId?: boolean;
       signatureAlgo?: string;
       isSandbox?: boolean;
     };
@@ -141,23 +143,26 @@ export function DomainAvailabilitySearch() {
                       : "missing (length 0)"}
                   </li>
                   <li>
-                    DREAMSCAPE_RESELLER_ID:{" "}
-                    {result.env.hasResellerId ? "present" : "missing"}
-                  </li>
-                  <li>
                     DREAMSCAPE_API_BASE_URL:{" "}
                     {result.env.hasBaseUrl
                       ? "set"
                       : "unset (defaults to sandbox)"}
+                  </li>
+                  <li>
+                    Reseller ID opt-in:{" "}
+                    {result.env.sendResellerId
+                      ? "on (DREAMSCAPE_SEND_RESELLER_ID)"
+                      : "off (official auth only)"}
+                    {result.env.hasResellerId ? " · ID present" : ""}
                   </li>
                 </ul>
               ) : null}
               {result.error.code?.startsWith("auth_") ? (
                 <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-amber-200/70">
                   <li>
-                    We send Reseller ID on X-Reseller-Id, Reseller-Id,
-                    Api-Reseller-Id, and reseller_id query — confirm
-                    DREAMSCAPE_RESELLER_ID matches sandbox API Setup.
+                    Default auth is official only: Accept + Api-Request-Id +
+                    Api-Signature (md5(request_id + api_key)). Reseller ID is
+                    not sent unless DREAMSCAPE_SEND_RESELLER_ID=true.
                   </li>
                   <li>
                     Sandbox key must come from reseller.sandbox.ds.network (prod
