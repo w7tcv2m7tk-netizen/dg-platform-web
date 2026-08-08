@@ -41,7 +41,7 @@ export default async function ContentOverviewPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Content</h1>
         <p className="text-sm text-slate-400">
-          Pages and components across your Gen 2 sites
+          Live page map for Gen 2 sites — open Studio to edit components and SEO
         </p>
       </header>
       <main className="dg-page-main space-y-6">

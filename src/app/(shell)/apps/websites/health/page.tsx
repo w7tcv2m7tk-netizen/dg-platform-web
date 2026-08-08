@@ -49,15 +49,19 @@ function healthActionHref(
   switch (checkId) {
     case "published":
       return {
-        href: `/apps/websites/studio/${siteId}`,
+        href: `/apps/websites/studio/${siteId}?live=1`,
         label: "Publish in Studio",
       };
     case "custom_domain":
+      return {
+        href: `/apps/websites/studio/${siteId}?live=1`,
+        label: "Make it live",
+      };
     case "dns":
     case "ssl":
       return {
-        href: `/apps/websites/studio/${siteId}`,
-        label: "Make it live",
+        href: `/apps/websites/studio/${siteId}?live=1`,
+        label: "Fix go-live checklist",
       };
     case "form_crm":
       return {
@@ -123,8 +127,10 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Website Health Centre</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · Gen 2 checklist
-          {showWp ? " · WordPress connector" : ""}
+          {session?.organisationName ?? "DigitalGate"} ·{" "}
+          {showWp
+            ? "WordPress connector health"
+            : "Live Gen 2 checklist (publish, domain, DNS, SSL, forms, SEO)"}
         </p>
       </header>
       <main className="dg-page-main space-y-8">
@@ -213,10 +219,10 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
                           {snapshot.score}
                         </p>
                         <Link
-                          href={`/apps/websites/studio/${site.id}`}
+                          href={`/apps/websites/studio/${site.id}?live=1`}
                           className="text-sm text-sky-400 hover:underline"
                         >
-                          Studio →
+                          Studio / Make it live →
                         </Link>
                       </div>
                     </div>

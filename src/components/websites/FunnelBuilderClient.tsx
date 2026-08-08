@@ -69,7 +69,10 @@ export function FunnelBuilderClient({
           <h2 className="text-sm font-semibold text-white">New funnel</h2>
           <p className="mt-1 text-xs text-slate-500">
             Landing page → contact form → Contact + Lead in CRM. Preview at{" "}
-            <code className="text-slate-400">/sites/[slug]</code>, then publish.
+            <code className="text-slate-400">/sites/[slug]</code>, then{" "}
+            <strong className="font-medium text-slate-400">Publish</strong> and{" "}
+            <strong className="font-medium text-slate-400">Open live</strong> (or
+            attach a custom domain via Make it live).
           </p>
         </div>
 
@@ -88,6 +91,9 @@ export function FunnelBuilderClient({
               <span className="block text-sm text-white">{t.label}</span>
               <span className="block text-[11px] text-slate-500 mt-0.5">
                 {t.detail}
+              </span>
+              <span className="block text-[11px] text-sky-400/80 mt-1">
+                CTA: {t.cta}
               </span>
             </button>
           ))}
@@ -113,7 +119,13 @@ export function FunnelBuilderClient({
             className="w-full rounded-md border border-slate-600 bg-slate-950 px-3 py-2 text-white min-h-[72px]"
             value={offer}
             onChange={(e) => setOffer(e.target.value)}
-            placeholder="e.g. Free appraisal for Currumbin vendors this month"
+            placeholder={
+              template === "appraisal_request"
+                ? "e.g. Free appraisal for Currumbin vendors this month"
+                : template === "booking_enquiry"
+                  ? "e.g. Mid-week stays from $189 — enquire for your dates"
+                  : "e.g. Free 15-minute consultation for new enquiries"
+            }
           />
         </div>
 
@@ -170,10 +182,10 @@ export function FunnelBuilderClient({
                       target="_blank"
                       className="rounded-md border border-slate-600 px-2.5 py-1 text-xs text-slate-300 hover:bg-slate-800"
                     >
-                      Preview
+                      {f.status === "published" ? "Open live" : "Preview"}
                     </Link>
                     <Link
-                      href={`/apps/websites/studio/${f.id}`}
+                      href={`/apps/websites/studio/${f.id}?live=1`}
                       className="rounded-md bg-slate-800 px-2.5 py-1 text-xs text-white hover:bg-slate-700"
                     >
                       Studio

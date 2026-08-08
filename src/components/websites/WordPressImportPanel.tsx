@@ -60,7 +60,7 @@ export function WordPressImportPanel({
 
   async function queueImport() {
     setBusy(true);
-    setStatus("Queuing import…");
+    setStatus("Queuing interest…");
     const res = await fetch(`/api/v1/websites/${website.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -68,7 +68,7 @@ export function WordPressImportPanel({
         metadata: {
           wpImport: {
             status: "queued",
-            note: "Import job queued — full mapper ships with Connector migration phases 2–4",
+            note: "Queue-only — full WordPress → Gen 2 mapper is coming soon (Connector migration phases 2–4). Nothing is imported yet.",
             queuedAt: new Date().toISOString(),
             steps: [
               "connect_wordpress",
@@ -85,7 +85,9 @@ export function WordPressImportPanel({
     };
     if (json.data) {
       onQueued?.(json.data);
-      setStatus("Queued — you’ll map pages into draft components when the importer ships");
+      setStatus(
+        "Queued — interest recorded. Full page mapping is not available yet.",
+      );
     } else {
       setStatus(json.error?.message || "Could not queue import");
     }
@@ -99,14 +101,26 @@ export function WordPressImportPanel({
   return (
     <div className="max-w-2xl space-y-4 rounded-md border border-slate-700 bg-slate-950/60 p-5">
       <div>
-        <h2 className="text-base font-semibold text-white">
-          Import from WordPress
-        </h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-base font-semibold text-white">
+            Import from WordPress
+          </h2>
+          <span className="rounded border border-amber-800/60 bg-amber-950/40 px-1.5 py-0.5 text-[11px] font-medium text-amber-200">
+            Queue only · coming soon
+          </span>
+        </div>
         <p className="mt-1 text-sm text-slate-400">
-          Migrate an existing WordPress site into this Gen 2 structured model —
-          not theme PHP. Requires the{" "}
-          <strong className="font-medium text-slate-300">WordPress Connector</strong>.
+          This flow records interest and checks your{" "}
+          <strong className="font-medium text-slate-300">WordPress Connector</strong>
+          . It does <strong className="font-medium text-slate-300">not</strong> run
+          a full site mapper yet — no pages or media are copied into Gen 2 today.
         </p>
+      </div>
+
+      <div className="rounded-md border border-amber-900/50 bg-amber-950/25 px-3 py-2.5 text-xs text-amber-100/90">
+        <strong className="font-medium text-amber-100">Coming soon:</strong> map
+        WP pages/posts into typed components and draft Studio pages. Until then,
+        build Gen 2 sites from Business Profile or Funnel templates.
       </div>
 
       <div className="rounded-md border border-slate-800 bg-slate-900/50 px-3 py-3 space-y-1">
@@ -154,10 +168,11 @@ export function WordPressImportPanel({
           Connect WordPress (base URL + Dev API key) in Settings → Connectors
         </li>
         <li>
-          Map WP pages/posts into typed components (hero, about, services…)
+          Queue interest below (records intent — does not import content)
         </li>
         <li>
-          Review draft pages in Studio — never treat HTML dumps as source of truth
+          When the mapper ships: review draft pages in Studio — never treat HTML
+          dumps as source of truth
         </li>
       </ol>
 
@@ -168,7 +183,7 @@ export function WordPressImportPanel({
           onClick={() => void queueImport()}
           className="rounded-md bg-[var(--org-primary,#1e3a5f)] px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {queued ? "Import queued" : "Queue import (coming soon)"}
+          {queued ? "Interest queued" : "Queue interest (coming soon)"}
         </button>
         {wp.queuedAt ? (
           <span className="text-xs text-slate-500">

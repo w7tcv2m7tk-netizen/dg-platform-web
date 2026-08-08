@@ -46,7 +46,9 @@ export function WebsiteStudioClient({
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
     null,
   );
-  const [showLivePanel, setShowLivePanel] = useState(true);
+  const [showLivePanel, setShowLivePanel] = useState(
+    () => searchParams.get("live") === "1" || searchParams.get("tab") !== "import",
+  );
   const [tab, setTab] = useState<StudioTab>(() => {
     const t = searchParams.get("tab");
     if (t === "seo" || t === "import" || t === "edit") return t;
@@ -56,6 +58,10 @@ export function WebsiteStudioClient({
   useEffect(() => {
     const t = searchParams.get("tab");
     if (t === "seo" || t === "import" || t === "edit") setTab(t);
+    if (searchParams.get("live") === "1") {
+      setShowLivePanel(true);
+      if (t !== "seo" && t !== "import") setTab("edit");
+    }
     const fromQuery = searchParams.get("page");
     if (fromQuery && website.pages) {
       const match = website.pages.find(
@@ -286,6 +292,17 @@ export function WebsiteStudioClient({
             >
               Open {linkedDomain}
             </a>
+          ) : !customLiveUrl ? (
+            <button
+              type="button"
+              onClick={() => {
+                setTab("edit");
+                setShowLivePanel(true);
+              }}
+              className="rounded-md border border-amber-800/50 px-3 py-1.5 text-sm text-amber-200 hover:bg-amber-950/30"
+            >
+              Connect domain
+            </button>
           ) : null}
           <button
             type="button"
@@ -683,6 +700,7 @@ function ComponentPropsEditor({
 
 function hasFriendlyFields(type: string): boolean {
   return [
+    "nav",
     "hero",
     "cta",
     "about",
@@ -744,6 +762,37 @@ function FriendlyFields({
   const str = (key: string) =>
     typeof props[key] === "string" ? (props[key] as string) : "";
 
+  if (type === "nav") {
+    const links = Array.isArray(props.links)
+      ? (props.links as Array<{ label?: string; href?: string }>)
+          .map((l) => `${l.label ?? ""}|${l.href ?? ""}`)
+          .join("\n")
+      : "";
+    return (
+      <Field
+        label="Links (label|href per line)"
+        value={links}
+        disabled={disabled}
+        multiline
+        onChange={(v) =>
+          onChange(
+            "links",
+            v
+              .split("\n")
+              .map((line) => line.trim())
+              .filter(Boolean)
+              .map((line) => {
+                const [label, ...rest] = line.split("|");
+                return {
+                  label: label.trim() || "Link",
+                  href: rest.join("|").trim() || "/",
+                };
+              }),
+          )
+        }
+      />
+    );
+  }
   if (type === "hero") {
     return (
       <div className="space-y-2">

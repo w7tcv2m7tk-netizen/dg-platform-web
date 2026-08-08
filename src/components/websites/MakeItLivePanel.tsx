@@ -141,8 +141,10 @@ export function MakeItLivePanel({
     const pending = coreItems.find((i) => i.state !== "pass" && i.state !== "skipped");
     if (!pending) return "Ready — domain path live when DNS propagates.";
     if (pending.id === "domain") return "Connect or register a domain first.";
-    if (pending.id === "dns") return "Apply hosting DNS (CNAME/A to Vercel target).";
-    if (pending.id === "ssl") return "SSL provisions automatically after DNS points at hosting.";
+    if (pending.id === "dns")
+      return "Apply hosting DNS (CNAME/A to Vercel). If apply failed, check Domains → Apply website DNS for the provider error.";
+    if (pending.id === "ssl")
+      return "SSL stays pending until DNS points at hosting and Vercel verifies the hostname (VERCEL_TOKEN + PROJECT_ID, or add domain manually).";
     if (pending.id === "website") return "Publish the website when content looks good.";
     return pending.detail || "Complete the remaining checklist items.";
   }, [coreItems]);
@@ -166,19 +168,53 @@ export function MakeItLivePanel({
       data?: {
         checklist?: { items?: ChecklistItem[]; score?: number };
         website?: SerializedWebsite;
+        dns?:
+          | { error?: string; suggested?: unknown }
+          | unknown[]
+          | null;
+        vercel?: {
+          ok?: boolean;
+          configured?: boolean;
+          message?: string;
+          verified?: boolean | null;
+        } | null;
+        warnings?: string[];
       };
-      error?: { message?: string };
+      error?: { message?: string; hint?: string };
     };
     if (res.ok) {
       setChecklist(json.data?.checklist?.items ?? []);
       setScore(json.data?.checklist?.score ?? 0);
-      setStatus("Go-live steps submitted");
+      const parts: string[] = ["Go-live steps submitted"];
+      const dns = json.data?.dns;
+      if (dns && typeof dns === "object" && !Array.isArray(dns) && "error" in dns) {
+        parts.push(
+          `DNS apply failed: ${String((dns as { error?: string }).error || "unknown")}. Fix registrar DNS or retry Apply website DNS under Domains.`,
+        );
+      }
+      const vercel = json.data?.vercel;
+      if (vercel && !vercel.ok) {
+        parts.push(
+          vercel.configured === false
+            ? "SSL pending: set VERCEL_TOKEN + VERCEL_PROJECT_ID (or add hostname in Vercel → Domains)."
+            : `SSL pending: Vercel attach failed (${vercel.message || "error"}).`,
+        );
+      } else if (vercel?.ok && vercel.verified === false) {
+        parts.push(
+          "SSL pending until DNS verifies at Vercel (often a few minutes after CNAME/A propagates).",
+        );
+      }
+      if (json.data?.warnings?.length) {
+        parts.push(...json.data.warnings);
+      }
+      setStatus(parts.join(" · "));
       if (json.data?.website && onWebsiteChange) {
         onWebsiteChange(json.data.website);
       }
       await refresh();
     } else {
-      setStatus(json.error?.message || "Go-live failed");
+      const msg = json.error?.message || "Go-live failed";
+      setStatus(json.error?.hint ? `${msg} — ${json.error.hint}` : msg);
     }
     setBusy(false);
   }
@@ -226,32 +262,50 @@ export function MakeItLivePanel({
         })}
       </ol>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
-        <span>Next: {nextHint}</span>
-        <Link
-          href={platformLive}
-          target="_blank"
-          className="text-sky-400 hover:underline"
-        >
-          {isPublished ? "Open live" : "Preview"} (/sites/{website.slug})
-        </Link>
-        {customLiveUrl ? (
-          <a
-            href={customLiveUrl}
+      <div className="rounded-md border border-slate-800 bg-slate-900/40 px-3 py-2.5 space-y-2">
+        <p className="text-[11px] uppercase tracking-wide text-slate-500">
+          Dogfood path
+        </p>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+          <Link
+            href={platformLive}
             target="_blank"
-            rel="noreferrer"
-            className="text-emerald-400 hover:underline"
+            className="font-medium text-sky-400 hover:underline"
           >
-            Custom domain · {linkedDomain}
-          </a>
-        ) : (
-          <Link href="/apps/websites/domains" className="text-slate-500 hover:underline">
-            Connect domain
+            {isPublished ? "Open live" : "Preview"} · /sites/{website.slug}
           </Link>
-        )}
-        <Link href="/apps/websites/hosting" className="text-slate-500 hover:underline">
-          Hosting
-        </Link>
+          {customLiveUrl ? (
+            <a
+              href={customLiveUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-emerald-400 hover:underline"
+            >
+              Custom domain · {linkedDomain}
+            </a>
+          ) : (
+            <Link
+              href="/apps/websites/domains"
+              className="text-amber-200/90 hover:underline"
+            >
+              Connect custom domain →
+            </Link>
+          )}
+          <Link
+            href="/apps/websites/hosting"
+            className="text-slate-500 hover:underline"
+          >
+            Hosting status
+          </Link>
+        </div>
+        <p className="text-[11px] text-slate-500">
+          {customLiveUrl
+            ? isPublished
+              ? "Platform URL is live now. Custom host works after DNS propagates (check Hosting / Domains)."
+              : "Publish below (or Publish in Studio), then use Open live. Custom domain follows DNS."
+            : "1) Select/connect domain · 2) Connect & go live · 3) Open live on /sites/[slug] · 4) Custom host after DNS"}
+        </p>
+        <p className="text-[11px] text-slate-400">Next: {nextHint}</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

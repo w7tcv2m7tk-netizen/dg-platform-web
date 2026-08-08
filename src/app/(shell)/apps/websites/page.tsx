@@ -182,13 +182,25 @@ export default async function WebsitesHomePage() {
                                 className="rounded-md border border-slate-600 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800"
                                 target="_blank"
                               >
-                                Preview
+                                {site.status === "published"
+                                  ? "Open live"
+                                  : "Preview"}
                               </Link>
+                              {domain && site.status === "published" ? (
+                                <a
+                                  href={`https://${domain.name.replace(/^https?:\/\//, "")}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="rounded-md border border-emerald-800/60 px-3 py-1.5 text-sm text-emerald-200 hover:bg-emerald-950/40"
+                                >
+                                  {domain.name}
+                                </a>
+                              ) : null}
                             </div>
                           </div>
                           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
                             <Link
-                              href={`/apps/websites/studio/${site.id}`}
+                              href={`/apps/websites/studio/${site.id}?live=1`}
                               className="text-slate-400 hover:text-slate-200"
                             >
                               Make it live
@@ -206,10 +218,10 @@ export default async function WebsitesHomePage() {
                               Hosting
                             </Link>
                             <Link
-                              href={`/apps/websites/studio/${site.id}`}
+                              href={`/apps/websites/studio/${site.id}?tab=import`}
                               className="text-slate-400 hover:text-slate-200"
                             >
-                              Import from WordPress
+                              WP import (queue only)
                             </Link>
                           </div>
                         </li>

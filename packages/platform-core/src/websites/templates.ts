@@ -71,7 +71,7 @@ export function buildIndustrySiteModel(input: {
     input;
 
   if (template === "real_estate") {
-    const cta = "Book an appraisal";
+    const cta = "Book a free appraisal";
     const links = [
       { label: "Home", href: "/" },
       { label: "Listings", href: "/listings" },
@@ -109,8 +109,8 @@ export function buildIndustrySiteModel(input: {
             component("trust", {
               items: [
                 "Local market expertise",
-                "Clear vendor communication",
-                "Results-focused selling",
+                "No-obligation appraisal",
+                "Clear vendor next steps",
               ],
             }),
             component("services", {
@@ -125,7 +125,7 @@ export function buildIndustrySiteModel(input: {
             }),
             component("cta", {
               headline: "Thinking of selling?",
-              body: "Book a no-obligation appraisal and get a clear plan for your property.",
+              body: "Book a free, no-obligation appraisal and get a clear plan for your property.",
               buttonLabel: cta,
               buttonHref: "/contact",
             }),
@@ -144,7 +144,7 @@ export function buildIndustrySiteModel(input: {
             navLinks(links),
             component("hero", {
               headline: "Listings & appraisals",
-              subheadline: `Explore opportunities or book an appraisal with ${name}.`,
+              subheadline: `Explore opportunities or book a free appraisal with ${name}.`,
               ctaLabel: cta,
               ctaHref: "/contact",
             }),
@@ -169,7 +169,7 @@ export function buildIndustrySiteModel(input: {
               ],
             }),
             component("cta", {
-              headline: "Book an appraisal",
+              headline: "Book a free appraisal",
               body: "Share your address and goals — we’ll respond promptly.",
               buttonLabel: cta,
               buttonHref: "/contact",
@@ -203,20 +203,21 @@ export function buildIndustrySiteModel(input: {
           intent: "contact",
           seo: {
             title: `Contact | ${name}`,
-            description: `Contact ${name} for appraisals and listings.`,
+            description: `Contact ${name} for free appraisals and listings.`,
           },
           components: [
             navLinks(links),
             component("hero", {
-              headline: "Contact us",
-              subheadline: "Book an appraisal or ask about a property",
-              ctaLabel: "Send a message",
+              headline: "Book a free appraisal",
+              subheadline: "No obligation — or ask about a property",
+              ctaLabel: cta,
               ctaHref: "#contact-form",
             }),
             component("contact_form", {
-              headline: "Book an appraisal",
-              submitLabel: "Submit enquiry",
-              successMessage: "Thanks — we’ll be in touch shortly.",
+              headline: "Request your free appraisal",
+              submitLabel: "Book a free appraisal",
+              successMessage:
+                "Thanks — we’ll confirm your appraisal and be in touch shortly.",
             }),
             footer(name, phone, email),
           ],

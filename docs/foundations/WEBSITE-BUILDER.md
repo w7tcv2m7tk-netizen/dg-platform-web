@@ -225,7 +225,7 @@ Buy Domain
 | **Profile link** | Published site stays wired to Business Profile (identity, NAP, brand) |
 | **Connected stack** | Forms, CRM, Analytics, SEO App, AI Visibility App as first-class integrations on the Website asset |
 
-This is what makes Website Builder a **platform surface**, not a standalone CMS clone. Domains / Hosting product UI ships as Infrastructure (Domains MVP after Website Builder MVP) — Website Builder stubs only.
+This is what makes Website Builder a **platform surface**, not a standalone CMS clone. **Domains** ship as a real Infrastructure product surface (shared under `/apps/websites/domains` and `/apps/infrastructure/domains`). Hosting status and Make it live checklist are live for dogfood; deeper DG Hosting productization (CDN controls, staging slots) continues on the Infrastructure track.
 
 ---
 
@@ -337,7 +337,7 @@ Existing WP sites remain on the **WordPress Connector** (health, content sync, f
 - Theme parity for arbitrary WP builders (Elementor, etc.)  
 - Automated media CDN remaps at scale  
 
-Studio shows an **Import from WordPress** flow (connector status + queue). Full importer implementation tracks Connector work + hosting productization.
+Studio shows an **Import from WordPress** flow labelled **queue-only / coming soon** (connector status + interest queue). It must never imply a full mapper is running. Full importer implementation tracks Connector work + hosting productization.
 
 ---
 
@@ -439,9 +439,9 @@ Theme tokens come from Business Profile at generate time. Draft-by-default; publ
 - ❌ Treating WordPress theme PHP as the native builder  
 - ❌ Raw HTML as the source of truth for native sites  
 - ❌ Replacing the WP Connector for customers who stay on WordPress  
-- ❌ Full DG Hosting / DNS / SSL product UI (Infrastructure track — stubs only here)  
+- ❌ Full DG Hosting productization (CDN controls, staging) — Domains + go-live checklist are live  
 - ❌ Visual drag-drop Studio / Developer sandbox this sprint  
-- ❌ Complete WP site importer this sprint (path + queue UI shipped; job runner later)  
+- ❌ Complete WP site importer this sprint (queue-only / coming soon UI; job runner later)  
 
 ---
 
@@ -449,19 +449,11 @@ Theme tokens come from Business Profile at generate time. Draft-by-default; publ
 
 | When | What |
 |------|------|
-| **Now** | Architecture in this doc; keep Profile / Forms / Connectors / SEO / asset model compatible |
-| **After Core + CRM + Connectors + RE beta** | Website Studio v0 — Profile → structured model → preview (AI Website level) |
-| **Later** | Full Studio nav, schema library depth, DG Hosting/Domains/DNS/SSL polish, Visual Studio |
-| **Later+** | Developer Studio sandbox, Industry App–generated sites, Funnel Builder, proactive Website Health |
+| **Now (pilot)** | Website Studio MVP, Funnel Builder v0, Content overview, Gen 2 Health, Domains go-live |
+| **Later** | Visual Studio, schema library depth, DG Hosting productization polish |
+| **Later+** | Developer Studio sandbox, deeper Industry App site contracts, full WP importer, multi-step email funnels |
 
-Immediate priority remains:
-
-```
-Core → CRM → Connectors → AI → Industry Apps (RE beta) → Intelligence
-→ then Website Builder (native Next.js Gen 2)
-```
-
-Operational module notes and phased tickets: [websites/WEBSITES-ARCHITECTURE.md](../websites/WEBSITES-ARCHITECTURE.md). Phase placement: [ROADMAP.md](../ROADMAP.md).
+Operational module notes: [websites/WEBSITES-ARCHITECTURE.md](../websites/WEBSITES-ARCHITECTURE.md). Phase placement: [ROADMAP.md](../ROADMAP.md).
 
 ---
 

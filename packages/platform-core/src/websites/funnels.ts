@@ -27,23 +27,26 @@ export const FUNNEL_TEMPLATE_OPTIONS: Array<{
   {
     id: "lead_capture",
     label: "Lead capture",
-    detail: "Landing → form → CRM enquiry lead",
-    cta: "Get in touch",
-    defaultBrief: "Capture new enquiries from a focused landing page.",
+    detail: "One landing page → form → CRM enquiry",
+    cta: "Get a free consultation",
+    defaultBrief:
+      "Capture qualified enquiries from a focused landing page — clear offer, one CTA, CRM follow-up.",
   },
   {
     id: "appraisal_request",
     label: "Appraisal request",
-    detail: "RE vendor funnel — book an appraisal → CRM",
-    cta: "Book an appraisal",
-    defaultBrief: "Vendor appraisal landing page for real estate.",
+    detail: "RE vendor funnel — free appraisal → CRM lead",
+    cta: "Book a free appraisal",
+    defaultBrief:
+      "No-obligation vendor appraisal landing page for real estate — address + goals → CRM.",
   },
   {
     id: "booking_enquiry",
     label: "Booking enquiry",
-    detail: "Stay / booking interest → CRM",
+    detail: "Stay interest → availability enquiry → CRM",
     cta: "Check availability",
-    defaultBrief: "Accommodation booking enquiry landing page.",
+    defaultBrief:
+      "Accommodation booking enquiry — dates and guests → CRM availability follow-up.",
   },
 ];
 
@@ -80,48 +83,51 @@ function funnelCopy(
 } {
   if (template === "appraisal_request") {
     return {
-      title: "Book an appraisal",
-      headline: `Sell with ${name}`,
+      title: "Book a free appraisal",
+      headline: `What’s your property worth with ${name}?`,
       subheadline:
-        "Request a no-obligation appraisal and get a clear plan for your property.",
+        "Book a free, no-obligation appraisal and get a clear local selling plan — usually within one business day.",
       trust: [
         "Local market expertise",
-        "Clear vendor communication",
-        "Results-focused selling",
+        "No-obligation appraisal",
+        "Clear vendor next steps",
       ],
-      formHeadline: "Request your appraisal",
-      submitLabel: "Book an appraisal",
-      successMessage: "Thanks — we’ll confirm your appraisal shortly.",
-      seoTitle: `Book an appraisal | ${name}`,
-      seoDescription: `Request a property appraisal with ${name}.`,
-      cta: "Book an appraisal",
+      formHeadline: "Request your free appraisal",
+      submitLabel: "Book a free appraisal",
+      successMessage:
+        "Thanks — we’ll confirm your appraisal and be in touch shortly.",
+      seoTitle: `Book a free property appraisal | ${name}`,
+      seoDescription: `Request a free, no-obligation property appraisal with ${name}.`,
+      cta: "Book a free appraisal",
     };
   }
   if (template === "booking_enquiry") {
     return {
-      title: "Enquire to stay",
+      title: "Check availability",
       headline: `Stay with ${name}`,
-      subheadline: "Tell us your dates and we’ll confirm availability.",
-      trust: ["Guest-ready stays", "Local hosts", "Fast replies"],
+      subheadline:
+        "Tell us your dates and guests — we’ll confirm what’s available and next steps.",
+      trust: ["Guest-ready stays", "Local hospitality", "Fast replies"],
       formHeadline: "Check availability",
-      submitLabel: "Send enquiry",
+      submitLabel: "Send booking enquiry",
       successMessage: "Thanks — we’ll reply with availability shortly.",
-      seoTitle: `Booking enquiry | ${name}`,
+      seoTitle: `Check availability | ${name}`,
       seoDescription: `Enquire about staying with ${name}.`,
       cta: "Check availability",
     };
   }
   return {
     title: "Get in touch",
-    headline: `Talk to ${name}`,
-    subheadline: "Share a little context and we’ll follow up promptly.",
+    headline: `Ready to talk to ${name}?`,
+    subheadline:
+      "Tell us what you need — we’ll reply with clear next steps. No obligation.",
     trust: ["Fast response", "Clear next steps", "No obligation"],
-    formHeadline: "Send a message",
-    submitLabel: "Submit enquiry",
+    formHeadline: "Send your enquiry",
+    submitLabel: "Get a free consultation",
     successMessage: "Thanks — we’ll be in touch shortly.",
     seoTitle: `Contact | ${name}`,
-    seoDescription: `Enquire with ${name}.`,
-    cta: "Get in touch",
+    seoDescription: `Enquire with ${name} — free consultation, clear next steps.`,
+    cta: "Get a free consultation",
   };
 }
 

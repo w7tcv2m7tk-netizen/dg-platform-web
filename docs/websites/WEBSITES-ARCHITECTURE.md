@@ -4,7 +4,7 @@
 
 **Version:** 0.1  
 **Last updated:** August 2026  
-**Status:** MVP scaffold — native Website asset + Studio + `/sites/[slug]` renderer; WP migrate path documented
+**Status:** Pilot MVP — native Website asset + Studio + `/sites/[slug]` renderer + Funnel Builder v0 + Gen 2 Health/Content; WP import queue-only; Domains go-live live
 
 **Related:** [foundations/WEBSITE-BUILDER.md](../foundations/WEBSITE-BUILDER.md) (pipeline + schema-first model + WP migration) · [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) · [ai/AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) · [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](../infrastructure/INFRASTRUCTURE-ARCHITECTURE.md)
 
@@ -80,16 +80,17 @@ Form path: webhook → Connector → Contact/Lead → Activity → Automation.
 
 ---
 
-## Code map (planned)
+## Code map (shipped)
 
 | Path | Purpose |
 |------|---------|
 | `packages/platform-core/src/apps/builtins/websites.ts` | Manifest ✅ |
-| `packages/platform-core/src/websites/` | CRUD, AI generate/assist, form→CRM ✅ |
+| `packages/platform-core/src/websites/` | CRUD, AI generate/assist, funnels, form→CRM, native health ✅ |
 | `packages/database/prisma/schema.prisma` | `Website` / `WebsitePage` ✅ |
-| `src/app/(shell)/apps/websites/` | App shell + Studio ✅ |
+| `src/app/(shell)/apps/websites/` | Sites, Studio, Health, Content, Funnels, Domains, Hosting ✅ |
 | `src/app/sites/[slug]/` | Public renderer ✅ |
 | `src/app/api/v1/websites/` | API ✅ |
+| `src/app/api/v1/infrastructure/go-live` | Domain → DNS → publish checklist ✅ |
 
 ---
 
