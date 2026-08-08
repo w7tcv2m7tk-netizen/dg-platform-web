@@ -48,16 +48,27 @@ function daysBetween(from: string, to: string): string[] {
   const cur = new Date(`${from}T12:00:00`);
   const end = new Date(`${to}T12:00:00`);
   while (cur <= end) {
-    out.push(cur.toISOString().slice(0, 10));
+    out.push(toLocalISODate(cur));
     cur.setDate(cur.getDate() + 1);
   }
   return out;
 }
 
+function toLocalISODate(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function todayLocalISO() {
+  return toLocalISODate(new Date());
+}
+
 function addDays(iso: string, n: number) {
   const d = new Date(`${iso}T12:00:00`);
   d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
+  return toLocalISODate(d);
 }
 
 function startOfWeek(iso: string) {
@@ -65,7 +76,7 @@ function startOfWeek(iso: string) {
   const day = d.getDay(); // 0 Sun
   const diff = day === 0 ? -6 : 1 - day; // Monday start
   d.setDate(d.getDate() + diff);
-  return d.toISOString().slice(0, 10);
+  return toLocalISODate(d);
 }
 
 function startOfMonth(iso: string) {
@@ -76,7 +87,7 @@ function endOfMonth(iso: string) {
   const d = new Date(`${iso.slice(0, 7)}-01T12:00:00`);
   d.setMonth(d.getMonth() + 1);
   d.setDate(0);
-  return d.toISOString().slice(0, 10);
+  return toLocalISODate(d);
 }
 
 function formatDayLabel(iso: string, mode: "short" | "long" = "short") {
@@ -191,8 +202,9 @@ export function AccommodationAvailabilityBoard({
   siteLabel?: string;
 }) {
   const router = useRouter();
-  const [view, setView] = useState<CalendarView>("inventory");
-  const [anchor, setAnchor] = useState(from);
+  const [view, setView] = useState<CalendarView>("week");
+  // Anchor on today — not `from` (often month start), which made week view open last week.
+  const [anchor, setAnchor] = useState(() => todayLocalISO());
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
   const [units, setUnits] = useState(initialUnits);
@@ -473,7 +485,7 @@ export function AccommodationAvailabilityBoard({
                   else {
                     const d = new Date(`${monthStart}T12:00:00`);
                     d.setMonth(d.getMonth() - 1);
-                    setAnchor(d.toISOString().slice(0, 10));
+                    setAnchor(toLocalISODate(d));
                   }
                 }}
               >
@@ -482,7 +494,7 @@ export function AccommodationAvailabilityBoard({
               <button
                 type="button"
                 className="rounded-full border border-slate-700 px-3 py-1.5 text-xs text-slate-300"
-                onClick={() => setAnchor(from)}
+                onClick={() => setAnchor(todayLocalISO())}
               >
                 Today
               </button>
@@ -494,7 +506,7 @@ export function AccommodationAvailabilityBoard({
                   else {
                     const d = new Date(`${monthStart}T12:00:00`);
                     d.setMonth(d.getMonth() + 1);
-                    setAnchor(d.toISOString().slice(0, 10));
+                    setAnchor(toLocalISODate(d));
                   }
                 }}
               >

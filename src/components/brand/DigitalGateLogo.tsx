@@ -76,7 +76,7 @@ export function DigitalGateLogo({
   );
 
   const tagline = showTagline ? (
-    <p className="text-[11px] font-medium leading-tight tracking-wide text-slate-400">
+    <p className="text-[11px] font-medium leading-tight tracking-wide text-white/90">
       Business Platform
     </p>
   ) : null;
