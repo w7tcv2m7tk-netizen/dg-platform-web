@@ -18,6 +18,9 @@ import { wpConnectorForOrg } from "@/lib/org-wordpress-connector";
 /** Minimum interval between automatic WordPress syncs */
 export const WP_SYNC_INTERVAL_MS = 4 * 60 * 60 * 1000; // 4 hours
 
+/** StayBooking pull cadence — tighter while WP still originates public/OTA stays. */
+export const WP_ACC_SYNC_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+
 export const WP_VENDOR_SYNC_INTERVAL_MS = WP_SYNC_INTERVAL_MS;
 
 export interface WordPressSyncResult {
@@ -103,11 +106,12 @@ function connectorHasKey(connector: Awaited<ReturnType<typeof wpConnectorForOrg>
 async function shouldRunSync(
   organisationId: string,
   lastAtKey: keyof OrgWordPressSettings,
+  intervalMs: number = WP_SYNC_INTERVAL_MS,
 ): Promise<boolean> {
   const wp = await loadOrgWordPressSettings(organisationId);
   const lastAt = wp[lastAtKey];
   if (typeof lastAt !== "string") return true;
-  return Date.now() - new Date(lastAt).getTime() >= WP_SYNC_INTERVAL_MS;
+  return Date.now() - new Date(lastAt).getTime() >= intervalMs;
 }
 
 export async function syncWordPressVendorLeads(
@@ -273,8 +277,9 @@ async function autoSyncIfNeeded(
     | { ok: true; result: WordPressSyncResult }
     | { ok: false; message: string }
   >,
+  intervalMs: number = WP_SYNC_INTERVAL_MS,
 ): Promise<AutoSyncOutcome> {
-  if (!(await shouldRunSync(session.organisationId, lastAtKey))) {
+  if (!(await shouldRunSync(session.organisationId, lastAtKey, intervalMs))) {
     return { ran: false, reason: "too_soon" };
   }
 
@@ -326,8 +331,11 @@ export async function autoSyncWordPressPropertiesIfNeeded(
 export async function autoSyncWordPressAccBookingsIfNeeded(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
 ): Promise<AutoSyncOutcome> {
-  return autoSyncIfNeeded(session, "lastAccBookingSyncAt", () =>
-    syncWordPressAccBookings(session),
+  return autoSyncIfNeeded(
+    session,
+    "lastAccBookingSyncAt",
+    () => syncWordPressAccBookings(session),
+    WP_ACC_SYNC_INTERVAL_MS,
   );
 }
 

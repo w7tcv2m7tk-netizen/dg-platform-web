@@ -1,6 +1,6 @@
 # Deploy WordPress plugin (Gen 1)
 
-**Current version:** check `dg-platform/dg-platform.php` (e.g. **10.47.0**)  
+**Current version:** check `dg-platform/dg-platform.php` (e.g. **10.67.0**)  
 **Build zip:** `/Users/aetherra/Documents/dg-platform-build.zip`
 
 ## 1. Build the zip (local)

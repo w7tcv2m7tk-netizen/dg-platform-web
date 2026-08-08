@@ -23,7 +23,7 @@
 | Portal purchase + onboarding profile | **WP** (`/portal/me`) | Mirror into `organisation.settings` | **P2** |
 | Support chat | **WP** (`dg_support_*` tables) | Thin proxy | **P3** |
 | Website health | **WP** (`/site/health`) | Read-only UI | **P3** |
-| CVH stays / units / guests / availability | **WP** accommodation module | Live read + `StayBooking` cache; housekeeping PATCH back | **P4** |
+| CVH stays / units / guests / availability | **Stays: Gen 2 StayBooking (read)**; units/availability/housekeeping still **WP** | Dual-write + pull-sync; housekeeping PATCH still to WP | **P4** |
 | Public sites / headless CMS | **WP** | Only RE property/agent publish implemented | **P5** |
 
 **Order by detach value:** Roe ops independence (P1) → portal/billing (P2) → support+health (P3) → CVH booking engine (P4) → public/headless (P5).
@@ -222,9 +222,10 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 
 | Field | Detail |
 |-------|--------|
-| **Why** | Bookings API prefers Postgres if rows exist else live WP — ops still tied to WP uptime. |
-| **Touchpoints** | `packages/platform-core/src/accommodation/bookings.ts` (`listStayBookings`, `syncAccommodationBookingsFromWordPress`, `stayBookingToWpRow`); `src/app/api/v1/accommodation/route.ts`; `src/lib/wordpress-sync.ts` (`syncWordPressAccBookings`); `AccommodationBookingsPanel.tsx`; pages under `src/app/apps/accommodation/`. |
-| **Done means** | UI always reads `StayBooking`; sync is background; `?source=wp` admin-only. |
+| **Status** | ✅ Done (Aug 2026) — bookings / payments / check-ins read Neon `StayBooking`; API no longer falls back to live WP; `?source=wp` is debug probe only |
+| **Why** | Bookings API preferred Postgres if rows exist else live WP — ops still tied to WP uptime. |
+| **Touchpoints** | `packages/platform-core/src/accommodation/bookings.ts`; `src/lib/accommodation-stay-bookings.ts`; `src/app/api/v1/accommodation/route.ts`; pages under `src/app/(shell)/apps/accommodation/{bookings,payments,check-ins}`; `WP_ACC_SYNC_INTERVAL_MS` (15m pull). |
+| **Done means** | UI always reads `StayBooking`; sync is background (or seed-on-empty); `?source=wp` admin/debug only. |
 | **Effort** | M |
 | **Depends on** | WP-D-001 |
 
@@ -232,7 +233,8 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 
 | Field | Detail |
 |-------|--------|
-| **Why** | Those resources are still live `fetchWpAccommodation*` with no Postgres models (except bookings cache). |
+| **Status** | ⏳ Open — guests already have Contact + `AccommodationGuestProfile`; units/availability/housekeeping still live WP |
+| **Why** | Those resources are still live `fetchWpAccommodation*` with no Postgres models (except bookings cache + guest profiles). |
 | **Touchpoints** | `src/lib/dg-api.ts` (`fetchWpAccommodationUnits|Guests|Availability|Housekeeping|Summary`, `patchWpAccommodationHousekeeping`); `src/app/api/v1/accommodation/route.ts`; `housekeeping/route.ts`; WP `modules/accommodation/includes/class-acc-dev-api.php`, `class-acc-housekeeping.php`, CPTs in `accommodation.php`. |
 | **Done means** | Prisma models (or Universal Objects) for units/guests/availability; Gen 2 CRUD; housekeeping SoT in Gen 2 with optional WP mirror. |
 | **Effort** | L |
@@ -242,23 +244,25 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 
 | Field | Detail |
 |-------|--------|
+| **Status** | 🔶 Interim dual-write shipped (Aug 2026) — WP still creates (calendar SoT); plugin v10.67.0+ pushes to `/api/webhooks/dg-stay-booking`; Gen 2 ops create is WP-then-Neon. Full Gen 2-first create waits on WP-D-402 availability. |
 | **Why** | Guest booking + Stripe still WP accommodation module. |
-| **Touchpoints** | WP `class-acc-payments.php`, shortcodes `shortcode-book-now.php`, `class-acc-shortcode-render.php`; Gen 2 commerce Stripe is separate — do not conflate with `platform-stripe`. |
+| **Touchpoints** | WP `class-acc-platform-sync.php`, `class-acc-payments.php`, shortcodes; Gen 2 `src/app/api/webhooks/dg-stay-booking/route.ts`; `upsertStayBookingFromWpRow`. CVH guest Stripe ≠ `platform-stripe`. |
 | **Done means** | New stays created in Gen 2 first; WP calendar is display or retired; CVH guest Stripe keys documented separately from SaaS Stripe. |
 | **Effort** | L |
-| **Depends on** | WP-D-402 |
+| **Depends on** | WP-D-402 (for Gen 2-first); dual-write does not. |
 
 ### WP-D-404 · P4 — Reverse or drop housekeeping PATCH to WP
 
 | Field | Detail |
 |-------|--------|
+| **Status** | ⏳ Open — still Gen 2 → WP PATCH (correct while housekeeping SoT is WP) |
 | **Why** | Only Gen 2 → WP write-back in accommodation today; after SoT flip it becomes wrong-direction. |
 | **Touchpoints** | `patchWpAccommodationHousekeeping` in `dg-api.ts`; `src/app/api/v1/accommodation/housekeeping/route.ts`. |
 | **Done means** | Housekeeping updates persist in Gen 2; WP patch removed or becomes optional mirror. |
 | **Effort** | S |
 | **Depends on** | WP-D-402 |
 
-**P4 exit:** CVH ops dashboard runs from Neon with WP connector offline (public book-now may still be WP until WP-D-403).
+**P4 exit:** CVH ops dashboard runs from Neon with WP connector offline (public book-now may still be WP until WP-D-403 Gen 2-first).
 
 ---
 

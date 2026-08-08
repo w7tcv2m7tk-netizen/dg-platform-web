@@ -4,14 +4,13 @@ import { Suspense } from "react";
 import { AccommodationPaymentsTable } from "@/components/accommodation/AccommodationPaymentsTable";
 import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
+import { loadStayBookingsForOps } from "@/lib/accommodation-stay-bookings";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   fetchPortalMe,
-  fetchWpAccommodationBookings,
   getWpAccommodationSite,
   listWpAccommodationSites,
 } from "@/lib/dg-api";
-import { autoSyncWordPressAccBookingsIfNeeded } from "@/lib/wordpress-sync";
 
 interface PageProps {
   searchParams: Promise<{ siteId?: string }>;
@@ -36,17 +35,13 @@ export default async function AccommodationPaymentsPage({ searchParams }: PagePr
       })
     : null;
 
-  if (session) {
-    void autoSyncWordPressAccBookingsIfNeeded(session);
-  }
-
   const sites = listWpAccommodationSites();
   const site = getWpAccommodationSite(siteId);
   const connector = await accommodationConnectorForSession(session?.organisationId);
   const siteLabel = connector?.label ?? site.label;
 
-  const live = await fetchWpAccommodationBookings(site.id, 150, connector);
-  const bookings = live.ok ? live.bookings : [];
+  const loaded = await loadStayBookingsForOps(session, 150);
+  const bookings = loaded.bookings;
   const unpaid = bookings.filter((b) => (b.paid ?? "no") !== "yes");
   const paid = bookings.filter((b) => b.paid === "yes");
 
@@ -55,8 +50,8 @@ export default async function AccommodationPaymentsPage({ searchParams }: PagePr
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Payments</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · mark paid / method on
-          WordPress bookings
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · StayBooking (Neon) · mark
+          paid syncs to WordPress calendar
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">
@@ -65,11 +60,11 @@ export default async function AccommodationPaymentsPage({ searchParams }: PagePr
         </Suspense>
       </header>
       <main className="dg-page-main space-y-6">
-        {!live.ok ? (
+        {loaded.syncError && bookings.length === 0 ? (
           <div className="dg-card border-amber-500/30">
-            <p className="text-amber-300">{live.message}</p>
+            <p className="text-amber-300">{loaded.syncError}</p>
             <p className="mt-2 text-sm text-slate-500">
-              Deploy plugin v10.65.2+ on CVH for paid / payment_method write-back.
+              Sync from WordPress on Bookings, or deploy plugin v10.67.0+ for dual-write push.
             </p>
           </div>
         ) : (

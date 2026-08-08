@@ -4,14 +4,13 @@ import { Suspense } from "react";
 import { AccommodationBookingsPanel } from "@/components/accommodation/AccommodationBookingsPanel";
 import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
+import { loadStayBookingsForOps } from "@/lib/accommodation-stay-bookings";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   fetchPortalMe,
-  fetchWpAccommodationBookings,
   getWpAccommodationSite,
   listWpAccommodationSites,
 } from "@/lib/dg-api";
-import { autoSyncWordPressAccBookingsIfNeeded } from "@/lib/wordpress-sync";
 
 interface PageProps {
   searchParams: Promise<{ siteId?: string }>;
@@ -37,28 +36,22 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
       })
     : null;
 
-  // Background mirror — ops table prefers live WP so admin/OTA edits show immediately.
-  if (session) {
-    void autoSyncWordPressAccBookingsIfNeeded(session);
-  }
-
   const sites = listWpAccommodationSites();
   const site = getWpAccommodationSite(siteId);
   const connector = await accommodationConnectorForSession(session?.organisationId);
   const siteLabel = connector?.label ?? site.label;
 
-  const live = await fetchWpAccommodationBookings(site.id, 150, connector);
-  const bookings = live.ok ? live.bookings : [];
-  const error = live.ok ? undefined : live.message;
-  const total = live.ok ? live.total : undefined;
+  const loaded = await loadStayBookingsForOps(session, 150);
+  const error =
+    loaded.syncError && loaded.bookings.length === 0 ? loaded.syncError : undefined;
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Bookings</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · live WordPress
-          {total != null ? ` · ${total} bookings` : ""}
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · StayBooking (Neon)
+          {loaded.total != null ? ` · ${loaded.total} bookings` : ""}
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">
@@ -68,11 +61,11 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
       </header>
       <main className="dg-page-main">
         <AccommodationBookingsPanel
-          bookings={bookings}
-          total={total}
+          bookings={loaded.bookings}
+          total={loaded.total}
           error={error}
           siteLabel={siteLabel}
-          source="wordpress"
+          source="postgres"
         />
       </main>
     </>

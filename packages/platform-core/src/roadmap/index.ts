@@ -1174,8 +1174,9 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "detach.cvh_bookings",
     area: "WP Detach",
     label: "P4 · CVH booking SoT",
-    description: "StayBooking + units/guests in Neon; book-now dual-write then Gen 2",
-    status: "planned",
+    description:
+      "StayBooking read SoT + dual-write; units/availability + Gen 2-first book-now still open",
+    status: "in_progress",
     priority: "medium",
     appId: "accommodation",
     href: "/apps/accommodation/bookings",

@@ -4,17 +4,16 @@ import { Suspense } from "react";
 
 import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
+import { loadStayBookingsForOps } from "@/lib/accommodation-stay-bookings";
 import { accAddDays, accDayKey, accToday } from "@/lib/acc-dates";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   fetchPortalMe,
-  fetchWpAccommodationBookings,
   fetchWpAccommodationSummary,
   getWpAccommodationSite,
   listWpAccommodationSites,
   type WpAccBookingRow,
 } from "@/lib/dg-api";
-import { autoSyncWordPressAccBookingsIfNeeded } from "@/lib/wordpress-sync";
 
 interface PageProps {
   searchParams: Promise<{ siteId?: string }>;
@@ -43,7 +42,7 @@ function Board({
         <ul className="space-y-2">
           {bookings.map((b) => (
             <li
-              key={b.id}
+              key={b.platform_id ?? b.id}
               className="flex flex-wrap items-baseline justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-3 text-sm"
             >
               <div>
@@ -69,7 +68,10 @@ function Board({
                     </a>
                   ) : null}
                   {b.phone ? (
-                    <a href={`tel:${b.phone.replace(/\s+/g, "")}`} className="text-blue-400 hover:underline">
+                    <a
+                      href={`tel:${b.phone.replace(/\s+/g, "")}`}
+                      className="text-blue-400 hover:underline"
+                    >
                       Call
                     </a>
                   ) : null}
@@ -113,22 +115,18 @@ export default async function AccommodationCheckInsPage({ searchParams }: PagePr
       })
     : null;
 
-  // Background mirror — board itself prefers live WP so ops see OTA/admin edits immediately.
-  if (session) {
-    void autoSyncWordPressAccBookingsIfNeeded(session);
-  }
-
   const sites = listWpAccommodationSites();
   const site = getWpAccommodationSite(siteId);
   const connector = await accommodationConnectorForSession(session?.organisationId);
   const siteLabel = connector?.label ?? site.label;
 
-  const [summary, live] = await Promise.all([
+  // Lists from StayBooking SoT; summary probe still WP until units/availability land (WP-D-402).
+  const [summary, loaded] = await Promise.all([
     fetchWpAccommodationSummary(site.id, 30, connector),
-    fetchWpAccommodationBookings(site.id, 150, connector),
+    loadStayBookingsForOps(session, 150),
   ]);
 
-  const bookings: WpAccBookingRow[] = live.ok ? live.bookings : [];
+  const bookings: WpAccBookingRow[] = loaded.bookings;
   const today = summary.ok && summary.data.today ? summary.data.today : accToday();
   const tomorrow =
     summary.ok && summary.data.tomorrow ? summary.data.tomorrow : accAddDays(today, 1);
@@ -148,21 +146,13 @@ export default async function AccommodationCheckInsPage({ searchParams }: PagePr
     })
     .sort((a, b) => (a.checkin ?? "").localeCompare(b.checkin ?? ""));
 
-  const wpToday = summary.ok ? summary.data.checkins_today ?? 0 : null;
-  const wpTomorrow = summary.ok ? summary.data.checkins_tomorrow ?? 0 : null;
-
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Check-ins</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · live WordPress ·{" "}
-          {today} Brisbane
-          {wpToday != null
-            ? ` · ${wpToday} today, ${wpTomorrow ?? 0} tomorrow`
-            : live.ok
-              ? ""
-              : ` · ${live.message}`}
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · StayBooking (Neon) ·{" "}
+          {today} Brisbane · {todayList.length} today, {tomorrowList.length} tomorrow
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">
@@ -171,9 +161,9 @@ export default async function AccommodationCheckInsPage({ searchParams }: PagePr
         </Suspense>
       </header>
       <main className="dg-page-main space-y-8">
-        {!live.ok ? (
+        {loaded.syncError && bookings.length === 0 ? (
           <div className="dg-card border-amber-500/30">
-            <p className="text-amber-300">{live.message}</p>
+            <p className="text-amber-300">{loaded.syncError}</p>
           </div>
         ) : null}
         <Board title="Today" hint={today} bookings={todayList} />

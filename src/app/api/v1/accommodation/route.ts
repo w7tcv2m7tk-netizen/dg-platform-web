@@ -47,6 +47,7 @@ export async function GET(req: Request) {
   if (resource === "bookings") {
     const limit = Number(searchParams.get("limit") ?? 50);
 
+    // Debug / connector probe only — ops UI must not use this as SoT (WP-D-401).
     if (source === "wp") {
       const bookings = await fetchWpAccommodationBookings(siteId, limit, connector);
       if (!bookings.ok) {
@@ -57,28 +58,28 @@ export async function GET(req: Request) {
       }
       return NextResponse.json({
         data: bookings.bookings,
-        meta: { total: bookings.total, site: bookings.site, source: "wordpress" },
+        meta: {
+          total: bookings.total,
+          site: bookings.site,
+          source: "wordpress",
+          sot: false,
+          note: "Live WordPress probe — StayBooking (postgres) is the read SoT",
+        },
       });
     }
 
     const stored = await listStayBookings(session.organisationId, limit);
-    if (stored.length > 0) {
-      return NextResponse.json({
-        data: stored.map(stayBookingToWpRow),
-        meta: { total: stored.length, source: "postgres" },
-      });
-    }
-
-    const bookings = await fetchWpAccommodationBookings(siteId, limit, connector);
-    if (!bookings.ok) {
-      return NextResponse.json(
-        { error: { code: bookings.code, message: bookings.message } },
-        { status: 422 },
-      );
-    }
     return NextResponse.json({
-      data: bookings.bookings,
-      meta: { total: bookings.total, site: bookings.site, source: "wordpress" },
+      data: stored.map(stayBookingToWpRow),
+      meta: {
+        total: stored.length,
+        source: "postgres",
+        sot: true,
+        emptyHint:
+          stored.length === 0
+            ? "No StayBooking rows yet — POST action=sync_wordpress or wait for WP dual-write webhook"
+            : undefined,
+      },
     });
   }
 
@@ -153,6 +154,8 @@ export async function POST(req: Request) {
             return rest;
           })();
 
+    // Interim (WP-D-403): availability/conflict SoT stays on WP calendar.
+    // Gen 2 creates via WP, then dual-writes StayBooking as the read SoT.
     const result = await createWpAccommodationBookings(payload, connector);
     if (!result.ok) {
       return NextResponse.json(
@@ -168,18 +171,36 @@ export async function POST(req: Request) {
       );
     }
 
-    // Mirror into Postgres StayBooking.
-    const { syncAccBookingsFromWordPress } = await import("@dg/platform-core");
+    const { upsertStayBookingFromWpRow } = await import("@dg/platform-core");
     const created = result.data.created ?? [];
-    if (created.length) {
-      await syncAccBookingsFromWordPress({
-        organisationId: session.organisationId,
-        bookings: created,
-        actorId: session.clerkUserId,
-      }).catch(() => null);
+    const mirror = {
+      created: 0,
+      updated: 0,
+      skipped: 0,
+      errors: [] as string[],
+    };
+    for (const row of created) {
+      try {
+        const outcome = await upsertStayBookingFromWpRow(session.organisationId, row, {
+          actorId: session.clerkUserId,
+        });
+        if (outcome === "created") mirror.created++;
+        else if (outcome === "updated") mirror.updated++;
+        else mirror.skipped++;
+      } catch (err) {
+        mirror.errors.push(
+          `#${row.id}: ${err instanceof Error ? err.message : "StayBooking mirror failed"}`,
+        );
+      }
     }
 
-    return NextResponse.json({ data: result.data });
+    return NextResponse.json({
+      data: {
+        ...result.data,
+        stayBookingMirror: mirror,
+        writePath: "wp_then_neon",
+      },
+    });
   }
 
   if (body.action === "update_guest_profile") {

@@ -359,6 +359,149 @@ function mapBookingFields(booking: WpAccBookingRow) {
   };
 }
 
+function metadataFingerprint(meta: unknown): string {
+  const m = (meta as Record<string, unknown> | null) ?? {};
+  return JSON.stringify({
+    paid: m.paid ?? null,
+    payment_method: m.payment_method ?? null,
+    nights: m.nights ?? null,
+    guests: m.guests ?? null,
+    message: m.message ?? null,
+    source: m.source ?? null,
+    checkin: m.checkin ?? null,
+    checkout: m.checkout ?? null,
+  });
+}
+
+/**
+ * Upsert a single StayBooking from a WordPress (or dual-write) booking row.
+ * Idempotent on organisationId + externalWpId.
+ */
+export async function upsertStayBookingFromWpRow(
+  organisationId: string,
+  booking: WpAccBookingRow,
+  options?: { actorId?: string },
+): Promise<"created" | "updated" | "skipped"> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL not configured");
+  }
+  const wpId = booking.id;
+  if (!Number.isFinite(wpId)) {
+    return "skipped";
+  }
+
+  const { prisma } = await import("@dg/database");
+  const fields = mapBookingFields(booking);
+  const existing = await prisma.stayBooking.findUnique({
+    where: {
+      organisationId_externalWpId: {
+        organisationId,
+        externalWpId: wpId,
+      },
+    },
+  });
+
+  const contactId = await resolveGuestContactId(
+    organisationId,
+    fields,
+    options?.actorId,
+    existing?.contactId,
+  );
+
+  if (existing) {
+    const unchanged =
+      existing.ref === fields.ref &&
+      existing.guestName === fields.guestName &&
+      existing.email === fields.email &&
+      existing.phone === fields.phone &&
+      existing.accommodationName === fields.accommodationName &&
+      existing.accommodationWpId === fields.accommodationWpId &&
+      existing.status === fields.status &&
+      existing.totalCents === fields.totalCents &&
+      existing.contactId === contactId &&
+      (existing.checkin?.getTime() ?? null) === (fields.checkin?.getTime() ?? null) &&
+      (existing.checkout?.getTime() ?? null) === (fields.checkout?.getTime() ?? null) &&
+      metadataFingerprint(existing.metadata) === metadataFingerprint(fields.metadata);
+
+    if (unchanged) return "skipped";
+
+    await prisma.stayBooking.update({
+      where: { id: existing.id },
+      data: {
+        ...fields,
+        contactId,
+        metadata: fields.metadata as Prisma.InputJsonValue,
+      },
+    });
+    return "updated";
+  }
+
+  await prisma.stayBooking.create({
+    data: {
+      organisationId,
+      externalWpId: wpId,
+      ...fields,
+      contactId,
+      metadata: fields.metadata as Prisma.InputJsonValue,
+    },
+  });
+  return "created";
+}
+
+/**
+ * Resolve which Neon organisation owns CVH / accommodation StayBooking rows.
+ * Used by WP → Gen 2 dual-write webhooks.
+ */
+export async function resolveOrganisationIdForStaySync(input?: {
+  organisationId?: string;
+  siteUrl?: string;
+}): Promise<string | null> {
+  const explicit = input?.organisationId?.trim();
+  if (explicit) return explicit;
+
+  const envId =
+    process.env.DG_ACC_ORGANISATION_ID?.trim() ||
+    process.env.DG_CVH_ORGANISATION_ID?.trim();
+  if (envId) return envId;
+
+  if (!process.env.DATABASE_URL) return null;
+
+  const { prisma } = await import("@dg/database");
+  const { resolveOrgBrandPresetKey } = await import("../org/brand-presets");
+
+  let targetHost = "currumbinvalleyhideaway.com.au";
+  if (input?.siteUrl?.trim()) {
+    try {
+      targetHost = new URL(input.siteUrl.trim()).hostname.toLowerCase();
+    } catch {
+      /* keep default */
+    }
+  }
+
+  const orgs = await prisma.organisation.findMany({
+    select: { id: true, name: true, slug: true, industry: true, settings: true },
+    take: 200,
+  });
+
+  for (const org of orgs) {
+    if (resolveOrgBrandPresetKey(org) === "cvh") return org.id;
+  }
+
+  for (const org of orgs) {
+    const base = (
+      org.settings as { connectors?: { wordpress?: { baseUrl?: string } } } | null
+    )?.connectors?.wordpress?.baseUrl;
+    if (!base) continue;
+    try {
+      if (new URL(base).hostname.toLowerCase() === targetHost) return org.id;
+    } catch {
+      if (base.toLowerCase().includes(targetHost)) return org.id;
+    }
+  }
+
+  return null;
+}
+
 /**
  * Resolve the org WordPress connector, fetch `/accommodation/bookings`,
  * and upsert StayBooking rows by organisationId + externalWpId.
@@ -372,7 +515,6 @@ export async function syncAccommodationBookingsFromWordPress(
     return { ok: false, reason: fetched.reason, message: fetched.message };
   }
 
-  const { prisma } = await import("@dg/database");
   const result: SyncAccommodationBookingsResult = {
     created: 0,
     updated: 0,
@@ -382,69 +524,12 @@ export async function syncAccommodationBookingsFromWordPress(
 
   for (const booking of fetched.bookings) {
     try {
-      const wpId = booking.id;
-      if (!Number.isFinite(wpId)) {
-        result.skipped++;
-        continue;
-      }
-
-      const fields = mapBookingFields(booking);
-      const existing = await prisma.stayBooking.findUnique({
-        where: {
-          organisationId_externalWpId: {
-            organisationId,
-            externalWpId: wpId,
-          },
-        },
+      const outcome = await upsertStayBookingFromWpRow(organisationId, booking, {
+        actorId: options?.actorId,
       });
-
-      const contactId = await resolveGuestContactId(
-        organisationId,
-        fields,
-        options?.actorId,
-        existing?.contactId,
-      );
-
-      if (existing) {
-        const unchanged =
-          existing.ref === fields.ref &&
-          existing.guestName === fields.guestName &&
-          existing.email === fields.email &&
-          existing.phone === fields.phone &&
-          existing.accommodationName === fields.accommodationName &&
-          existing.accommodationWpId === fields.accommodationWpId &&
-          existing.status === fields.status &&
-          existing.totalCents === fields.totalCents &&
-          existing.contactId === contactId &&
-          (existing.checkin?.getTime() ?? null) === (fields.checkin?.getTime() ?? null) &&
-          (existing.checkout?.getTime() ?? null) === (fields.checkout?.getTime() ?? null);
-
-        if (unchanged) {
-          result.skipped++;
-          continue;
-        }
-
-        await prisma.stayBooking.update({
-          where: { id: existing.id },
-          data: {
-            ...fields,
-            contactId,
-            metadata: fields.metadata as Prisma.InputJsonValue,
-          },
-        });
-        result.updated++;
-      } else {
-        await prisma.stayBooking.create({
-          data: {
-            organisationId,
-            externalWpId: wpId,
-            ...fields,
-            contactId,
-            metadata: fields.metadata as Prisma.InputJsonValue,
-          },
-        });
-        result.created++;
-      }
+      if (outcome === "created") result.created++;
+      else if (outcome === "updated") result.updated++;
+      else result.skipped++;
     } catch (err) {
       result.errors.push(
         `Booking #${booking.id}: ${err instanceof Error ? err.message : "sync failed"}`,
@@ -484,8 +569,6 @@ export async function syncAccBookingsFromWordPress(
     });
   }
 
-  // Upsert provided rows (used by older wordpress-sync call sites)
-  const { prisma } = await import("@dg/database");
   const result: SyncAccommodationBookingsResult = {
     created: 0,
     updated: 0,
@@ -495,49 +578,12 @@ export async function syncAccBookingsFromWordPress(
 
   for (const booking of input.bookings) {
     try {
-      const wpId = booking.id;
-      if (!Number.isFinite(wpId)) {
-        result.skipped++;
-        continue;
-      }
-      const fields = mapBookingFields(booking);
-      const existing = await prisma.stayBooking.findUnique({
-        where: {
-          organisationId_externalWpId: {
-            organisationId: input.organisationId,
-            externalWpId: wpId,
-          },
-        },
+      const outcome = await upsertStayBookingFromWpRow(input.organisationId, booking, {
+        actorId: input.actorId,
       });
-      const contactId = await resolveGuestContactId(
-        input.organisationId,
-        fields,
-        input.actorId,
-        existing?.contactId,
-      );
-
-      if (existing) {
-        await prisma.stayBooking.update({
-          where: { id: existing.id },
-          data: {
-            ...fields,
-            contactId,
-            metadata: fields.metadata as Prisma.InputJsonValue,
-          },
-        });
-        result.updated++;
-      } else {
-        await prisma.stayBooking.create({
-          data: {
-            organisationId: input.organisationId,
-            externalWpId: wpId,
-            ...fields,
-            contactId,
-            metadata: fields.metadata as Prisma.InputJsonValue,
-          },
-        });
-        result.created++;
-      }
+      if (outcome === "created") result.created++;
+      else if (outcome === "updated") result.updated++;
+      else result.skipped++;
     } catch (err) {
       result.errors.push(
         `Booking #${booking.id}: ${err instanceof Error ? err.message : "sync failed"}`,

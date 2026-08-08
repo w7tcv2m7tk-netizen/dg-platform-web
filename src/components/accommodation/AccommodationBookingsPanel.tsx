@@ -239,7 +239,10 @@ export function AccommodationBookingsPanel({
         </button>
         {source ? (
           <p className="text-sm text-slate-500">
-            Showing {source === "postgres" ? "Platform (Postgres)" : "live WordPress"} data
+            Showing{" "}
+            {source === "postgres"
+              ? "StayBooking SoT (Neon) — sync keeps WordPress/OTA in mirror"
+              : "live WordPress (debug probe)"}
           </p>
         ) : null}
         {syncMsg ? <p className="text-sm text-slate-400">{syncMsg}</p> : null}
@@ -253,8 +256,8 @@ export function AccommodationBookingsPanel({
         >
           <h2 className="font-semibold text-white">New manual / direct booking</h2>
           <p className="text-sm text-slate-500">
-            Creates on WordPress CVH, rejects date conflicts, and rebuilds blocked dates.
-            Requires plugin v10.65.2+.
+            Writes WordPress calendar first (availability SoT), then dual-writes StayBooking in
+            Neon for Gen 2 reads. Requires plugin v10.65.2+ (v10.67.0+ for public book-now push).
           </p>
           {unitsError ? <p className="text-sm text-amber-400">{unitsError}</p> : null}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
