@@ -344,9 +344,8 @@ model AccommodationUnit {
   airbnbIcalUrl        String?   @map("airbnb_ical_url")
   bookingcomIcalUrl    String?   @map("bookingcom_ical_url")
   icalExportUrl        String?   @map("ical_export_url")
-  /** Airbnb listing / room ID (OTA deep links + reviews) */
+  /** OTA listing identifiers (reviews / deep links) */
   airbnbId             String?   @map("airbnb_id")
-  /** Booking.com hotel / listing ID */
   bookingcomId         String?   @map("bookingcom_id")
   housekeepingStatus   String    @default("unknown") @map("housekeeping_status")
   housekeepingNotes    String?   @map("housekeeping_notes") @db.Text

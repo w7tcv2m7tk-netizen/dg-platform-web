@@ -481,22 +481,69 @@ export async function PATCH(req: Request) {
 
   if (resource === "units" || resource === "properties") {
     const usesUnits = await organisationUsesUnitSot(session.organisationId);
-    const { upsertAccommodationUnitFromWpRow, wpUnitRowFromClientPatch } = await import(
-      "@dg/platform-core"
-    );
-
     if (usesUnits) {
-      // Persist full unit patch into Neon (incl. OTA iCal URLs + listing IDs).
+      const { upsertAccommodationUnitFromWpRow } = await import("@dg/platform-core");
+      // Persist full unit patches into Neon (incl. OTA URLs + listing IDs), then mirror to WP.
       for (const row of updates) {
         if (!row || typeof row !== "object") continue;
-        const mapped = wpUnitPropFromClientPatch(row as Record<string, unknown>);
-        if (!mapped) continue;
-        await upsertAccommodationUnitFromWpRow(session.organisationId, mapped).catch(
-          () => null,
-        );
+        const patch = row as Record<string, unknown>;
+        const id =
+          typeof patch.id === "number"
+            ? patch.id
+            : typeof patch.property_id === "number"
+              ? patch.property_id
+              : Number(patch.id ?? patch.property_id);
+        if (!Number.isFinite(id)) continue;
+        await upsertAccommodationUnitFromWpRow(session.organisationId, {
+          id,
+          title: typeof patch.title === "string" ? patch.title : undefined,
+          listing_status:
+            typeof patch.listing_status === "string" ? patch.listing_status : undefined,
+          weekday_rate:
+            typeof patch.weekday_rate === "number" ? patch.weekday_rate : undefined,
+          weekend_rate:
+            typeof patch.weekend_rate === "number" ? patch.weekend_rate : undefined,
+          cleaning_fee:
+            typeof patch.cleaning_fee === "number" ? patch.cleaning_fee : undefined,
+          housekeeping_status:
+            typeof patch.housekeeping_status === "string"
+              ? patch.housekeeping_status
+              : undefined,
+          housekeeping_notes:
+            typeof patch.housekeeping_notes === "string"
+              ? patch.housekeeping_notes
+              : undefined,
+          manual_blocked_dates: Array.isArray(patch.manual_blocked_dates)
+            ? (patch.manual_blocked_dates as string[])
+            : undefined,
+          airbnb_ical_url:
+            typeof patch.airbnb_ical_url === "string" ? patch.airbnb_ical_url : undefined,
+          bookingcom_ical_url:
+            typeof patch.bookingcom_ical_url === "string"
+              ? patch.bookingcom_ical_url
+              : undefined,
+          airbnb_id: typeof patch.airbnb_id === "string" ? patch.airbnb_id : undefined,
+          bookingcom_id:
+            typeof patch.bookingcom_id === "string" ? patch.bookingcom_id : undefined,
+          description:
+            typeof patch.description === "string" ? patch.description : undefined,
+          address: typeof patch.address === "string" ? patch.address : undefined,
+          sleeps: typeof patch.sleeps === "number" ? patch.sleeps : undefined,
+          bedrooms: typeof patch.bedrooms === "number" ? patch.bedrooms : undefined,
+          bathrooms: typeof patch.bathrooms === "number" ? patch.bathrooms : undefined,
+          max_guests: typeof patch.max_guests === "number" ? patch.max_guests : undefined,
+          min_nights: typeof patch.min_nights === "number" ? patch.min_nights : undefined,
+          checkin_time:
+            typeof patch.checkin_time === "string" ? patch.checkin_time : undefined,
+          checkout_time:
+            typeof patch.checkout_time === "string" ? patch.checkout_time : undefined,
+          features:
+            patch.features && typeof patch.features === "object"
+              ? (patch.features as Record<string, 0 | 1 | boolean>)
+              : undefined,
+        }).catch(() => null);
       }
     }
-
     const result = await patchWpAccommodationUnits(updates, connector);
     if (!result.ok) {
       return NextResponse.json(
@@ -504,34 +551,20 @@ export async function PATCH(req: Request) {
         { status: 422 },
       );
     }
-
-    // Reconcile Neon from WordPress authoritative rows after mirror.
+    // Prefer WP response as SoT for OTA export URLs / confirmed meta after mirror.
     if (usesUnits && Array.isArray(result.data?.updated)) {
-      for (const row of result.data.updated) {
-        if (!row || typeof row !== "object") continue;
-        const mapped = wpUnitPropFromClientPatch(row as Record<string, unknown>);
-        if (!mapped) continue;
-        // WP format_property always returns these — force write-through even if empty.
-        const full = row as Record<string, unknown>;
-        await upsertAccommodationUnitFromWpRow(session.organisationId, {
-          ...mapped,
-          airbnb_ical_url:
-            typeof full.airbnb_ical_url === "string" ? full.airbnb_ical_url : mapped.airbnb_ical_url,
-          bookingcom_ical_url:
-            typeof full.bookingcom_ical_url === "string"
-              ? full.bookingcom_ical_url
-              : mapped.bookingcom_ical_url,
-          ical_export_url:
-            typeof full.ical_export_url === "string"
-              ? full.ical_export_url
-              : mapped.ical_export_url,
-          airbnb_id: typeof full.airbnb_id === "string" ? full.airbnb_id : mapped.airbnb_id,
-          bookingcom_id:
-            typeof full.bookingcom_id === "string" ? full.bookingcom_id : mapped.bookingcom_id,
-        }).catch(() => null);
+      const { upsertAccommodationUnitFromWpRow } = await import("@dg/platform-core");
+      for (const updated of result.data.updated) {
+        if (!updated || typeof updated !== "object") continue;
+        const row = updated as Record<string, unknown>;
+        const id = typeof row.id === "number" ? row.id : Number(row.id);
+        if (!Number.isFinite(id)) continue;
+        await upsertAccommodationUnitFromWpRow(
+          session.organisationId,
+          row as Parameters<typeof upsertAccommodationUnitFromWpRow>[1],
+        ).catch(() => null);
       }
     }
-
     return NextResponse.json({
       data: { ...result.data, sot: usesUnits ? "neon_then_wp" : "wordpress" },
     });

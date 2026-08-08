@@ -229,7 +229,6 @@ function OtaCalendarsSection({
           <FieldLabel>Airbnb import URL</FieldLabel>
           {editing ? (
             <TextInput
-              type="url"
               value={u.airbnb_ical_url}
               onChange={(v) => patchRow(u.id, { airbnb_ical_url: v })}
               placeholder="https://www.airbnb.com/calendar/ical/..."
@@ -252,10 +251,9 @@ function OtaCalendarsSection({
           <FieldLabel>Booking.com import URL</FieldLabel>
           {editing ? (
             <TextInput
-              type="url"
               value={u.bookingcom_ical_url}
               onChange={(v) => patchRow(u.id, { bookingcom_ical_url: v })}
-              placeholder="https://www.booking.com/.../ical"
+              placeholder="https://admin.booking.com/.../ical.html?t=..."
             />
           ) : (
             <p className="break-all rounded border border-slate-800 bg-slate-900/50 px-3 py-2 text-xs text-slate-300">
