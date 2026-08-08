@@ -22,6 +22,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/v1/addresses/resolve",
   "/api/v1/websites/public/(.*)",
   "/api/webhooks/stripe",
+  "/api/webhooks/dreamscape",
   "/api/webhooks/dg-onboarding-sync",
   "/api/webhooks/dg-discovery",
   "/commerce/checkout/(.*)",

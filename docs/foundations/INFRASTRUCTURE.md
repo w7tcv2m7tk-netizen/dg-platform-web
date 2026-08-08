@@ -146,6 +146,25 @@ DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network
 > **Security:** Example API keys in Dreamscape’s public docs are **not** DigitalGate credentials. If any real key was pasted into chat, tickets, or git history, **regenerate** it in Reseller Console immediately. Browser never holds the key — only `GET /api/v1/infrastructure/...` (and future routes) call Dreamscape.  
 > Optional later: separate `DREAMSCAPE_API_KEY_SANDBOX` vs prod — today one `DREAMSCAPE_API_KEY` must match the configured base URL.
 
+### Domain transfer Notification URL
+
+Reseller Console asks for a **Notification URL** for domain transfer callbacks. DigitalGate endpoint:
+
+| Env | URL |
+|-----|-----|
+| **Production** | `https://app.digitalgate.com.au/api/webhooks/dreamscape?secret=<DREAMSCAPE_WEBHOOK_SECRET>` |
+| Local | `http://localhost:3000/api/webhooks/dreamscape?secret=<DREAMSCAPE_WEBHOOK_SECRET>` |
+
+```bash
+# Separate from the API key — generate a random string for Vercel / .env.local
+DREAMSCAPE_WEBHOOK_SECRET=
+```
+
+- Dreamscape public API docs **do not** define an inbound webhook HMAC; we verify a shared secret (`?secret=` / `?token=` query, or `X-Dreamscape-Webhook-Secret` / Bearer).
+- Paste the production URL (with secret query) into Reseller Console. Never put `DREAMSCAPE_API_KEY` in the URL.
+- **Today:** `POST` acknowledges `200`, classifies transfer/status payloads, and persists an **in-memory event stub** (domain inventory update lands with Domains MVP).
+- Route: `src/app/api/webhooks/dreamscape/route.ts` · helpers: `providers/dreamscape/webhooks.ts`
+
 ---
 
 ## Recommended stack
@@ -218,5 +237,6 @@ Scaffold: `getDigitalInfrastructureOverview(organisationId)` + checklist types. 
 | DomainProvider | `…/domains/` |
 | DreamscapeDomainProvider | `…/providers/dreamscape/` |
 | Availability API | `src/app/api/v1/infrastructure/domains/availability/route.ts` |
+| Transfer Notification webhook | `src/app/api/webhooks/dreamscape/route.ts` |
 | Domains UX stub | `/apps/infrastructure/domains` |
 | Overview helper | `getDigitalInfrastructureOverview` |

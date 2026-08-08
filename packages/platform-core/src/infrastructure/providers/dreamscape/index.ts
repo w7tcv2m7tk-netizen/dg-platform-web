@@ -18,3 +18,17 @@ export {
   DreamscapeDomainProvider,
   DreamscapeProvider,
 } from "./domain-provider";
+export {
+  DREAMSCAPE_WEBHOOK_PATH,
+  clearDreamscapeWebhookEvents,
+  dreamscapeNotificationUrl,
+  extractDreamscapeWebhookSecret,
+  handleDreamscapeWebhookPayload,
+  isDreamscapeWebhookConfigured,
+  listDreamscapeWebhookEvents,
+  resolveDreamscapeWebhookSecret,
+  verifyDreamscapeWebhookRequest,
+  type DreamscapeWebhookEventKind,
+  type DreamscapeWebhookEventStub,
+  type HandleDreamscapeWebhookResult,
+} from "./webhooks";
