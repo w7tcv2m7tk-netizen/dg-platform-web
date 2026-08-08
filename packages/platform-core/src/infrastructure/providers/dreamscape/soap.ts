@@ -12,17 +12,52 @@
 
 export const DREAMSCAPE_SOAP_NS = "https://soap.secureapi.com.au/API-1.3";
 
-/** Production SOAP endpoint (from WSDL API-1.3Port). */
+/**
+ * Production SOAP endpoint.
+ *
+ * WSDL still advertises `/server.php?v=1.3`, but live probe (2026-08) shows that
+ * path returns HTTP 200 with an **empty body** on both soap + soap-test.
+ * `/API-1.3` returns real AuthenticateResponse / DomainCheckResponse XML.
+ */
 export const DREAMSCAPE_SOAP_PROD_ENDPOINT =
-  "https://soap.secureapi.com.au/server.php?v=1.3";
+  "https://soap.secureapi.com.au/API-1.3";
 
 /**
- * Sandbox SOAP endpoint — WSDL lists both `/server.php?v=1.3` and `/API-1.3`.
- * Live probe: `/server.php?v=1.3` returns HTTP 200 with an empty body;
- * `/API-1.3` returns real AuthenticateResponse / DomainCheckResponse XML.
+ * Sandbox SOAP endpoint — use `/API-1.3` (not WSDL's server.php alternate).
  */
 export const DREAMSCAPE_SOAP_SANDBOX_ENDPOINT =
   "https://soap-test.secureapi.com.au/API-1.3";
+
+/**
+ * Rewrite known-broken SecureAPI paths.
+ * `…/server.php?v=1.3` → `…/API-1.3` on soap.secureapi.com.au / soap-test.
+ */
+export function normalizeDreamscapeSoapEndpoint(endpoint: string): string {
+  const trimmed = endpoint.trim().replace(/\/$/, "");
+  try {
+    const url = new URL(trimmed);
+    const host = url.hostname.toLowerCase();
+    if (
+      (host === "soap.secureapi.com.au" ||
+        host === "soap-test.secureapi.com.au") &&
+      (/^\/server\.php$/i.test(url.pathname) ||
+        url.pathname.toLowerCase() === "/server.php")
+    ) {
+      url.pathname = "/API-1.3";
+      url.search = "";
+      url.hash = "";
+      return url.toString().replace(/\/$/, "");
+    }
+  } catch {
+    // fall through
+  }
+  return trimmed.replace(/\/server\.php\?v=1\.3$/i, "/API-1.3");
+}
+
+/** True when the endpoint hostname is soap-test / sandbox. */
+export function isDreamscapeSoapSandboxEndpoint(endpoint: string): boolean {
+  return /soap-test|sandbox/i.test(endpoint);
+}
 
 export const DREAMSCAPE_SOAP_PROD_WSDL =
   "https://soap.secureapi.com.au/wsdl/API-1.3.wsdl";
@@ -314,9 +349,20 @@ async function resolveProxiedFetch(proxyUrl: string): Promise<{
 
 function authHint(isSandbox: boolean): string {
   return isSandbox
-    ? "SOAP auth = Reseller ID + API Key (API Setup). Sandbox endpoint: https://soap-test.secureapi.com.au/API-1.3 (not server.php — that returns empty). Use sandbox console keys + DREAMSCAPE_SOAP_ENV=sandbox. Live console keys need DREAMSCAPE_SOAP_ENV=production."
-    : "SOAP auth = Reseller ID + API Key (API Setup). Live console → DREAMSCAPE_SOAP_ENV=production → https://soap.secureapi.com.au/server.php?v=1.3. Do not use soap-test with live keys.";
+    ? "SOAP auth = Reseller ID + API Key (API Setup). Sandbox endpoint: https://soap-test.secureapi.com.au/API-1.3 (never …/server.php?v=1.3 — empty body). Use sandbox console keys + DREAMSCAPE_SOAP_ENV=sandbox. Live console keys need DREAMSCAPE_SOAP_ENV=production."
+    : "SOAP auth = Reseller ID + API Key (API Setup). Live console → DREAMSCAPE_SOAP_ENV=production → https://soap.secureapi.com.au/API-1.3 (never …/server.php?v=1.3 — empty body). Do not use soap-test with live keys.";
 }
+
+function emptyBodyHint(endpoint: string, isSandbox: boolean): string {
+  const looksLikeServerPhp = /server\.php/i.test(endpoint);
+  if (looksLikeServerPhp) {
+    return isSandbox
+      ? "Empty body usually means the wrong SOAP path. Use https://soap-test.secureapi.com.au/API-1.3 (not server.php)."
+      : "Empty body usually means the wrong SOAP path. Use https://soap.secureapi.com.au/API-1.3 (not server.php — WSDL advertises it but it returns empty).";
+  }
+  return authHint(isSandbox);
+}
+
 
 /** Shared SOAP POST — used by DomainCheck and provisioning ops. */
 export async function soapPost(opts: {
@@ -386,19 +432,16 @@ export async function soapPost(opts: {
     );
   }
 
-  // Wrong sandbox path (server.php) answers 200 with an empty body.
+  // Wrong SecureAPI path (…/server.php?v=1.3) answers 200 with an empty body
+  // on both production and soap-test. Working path is …/API-1.3.
   if (!text.trim()) {
     throw new DreamscapeSoapError(
-      401,
-      "Dreamscape SOAP returned an empty response (often wrong sandbox endpoint).",
+      502,
+      "Dreamscape SOAP returned an empty response (wrong endpoint path — use /API-1.3, not /server.php).",
       text,
       {
-        code: isSandbox
-          ? "auth_soap_sandbox_rejected"
-          : "auth_soap_production_rejected",
-        hint: isSandbox
-          ? "Use https://soap-test.secureapi.com.au/API-1.3 (default). soap-test …/server.php?v=1.3 returns empty. Override with DREAMSCAPE_SOAP_ENDPOINT if needed."
-          : authHint(isSandbox),
+        code: "soap_empty_response",
+        hint: emptyBodyHint(endpoint, isSandbox),
         providerBodySnippet,
         isSandbox,
         endpoint,

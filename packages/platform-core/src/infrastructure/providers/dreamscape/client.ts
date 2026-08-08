@@ -5,6 +5,8 @@ import {
 import {
   DREAMSCAPE_SOAP_PROD_ENDPOINT,
   DREAMSCAPE_SOAP_SANDBOX_ENDPOINT,
+  isDreamscapeSoapSandboxEndpoint,
+  normalizeDreamscapeSoapEndpoint,
 } from "./soap";
 
 export const DREAMSCAPE_PROD_BASE_URL = "https://reseller-api.ds.network";
@@ -227,8 +229,11 @@ async function resolveProxiedFetch(proxyUrl: string): Promise<{
  * 4. Default: sandbox (soap-test) — safe for local/dev
  *
  * Live API Setup (reseller.ds.network, Reseller ID + key) → set
- * DREAMSCAPE_SOAP_ENV=production (soap.secureapi.com.au).
+ * DREAMSCAPE_SOAP_ENV=production → https://soap.secureapi.com.au/API-1.3
  * Sandbox console (reseller.sandbox.ds.network) → soap-test (default).
+ *
+ * Note: WSDL's `/server.php?v=1.3` returns empty bodies — always use `/API-1.3`.
+ * Overrides pointing at server.php are rewritten automatically.
  */
 export function resolveDreamscapeSoapEndpoint(opts?: {
   restBaseUrl?: string;
@@ -242,8 +247,8 @@ export function resolveDreamscapeSoapEndpoint(opts?: {
     readServerEnv("DREAMSCAPE_SOAP_ENDPOINT")?.trim() ||
     readServerEnv("DREAMSCAPE_SOAP_URL")?.trim();
   if (override) {
-    const endpoint = override.replace(/\/$/, "");
-    const isSandbox = /soap-test|sandbox/i.test(endpoint);
+    const endpoint = normalizeDreamscapeSoapEndpoint(override);
+    const isSandbox = isDreamscapeSoapSandboxEndpoint(endpoint);
     const soapEnv: DreamscapeSoapEnv = isSandbox ? "sandbox" : "production";
     return {
       endpoint,
@@ -257,19 +262,21 @@ export function resolveDreamscapeSoapEndpoint(opts?: {
     parseDreamscapeSoapEnv(readServerEnv("DREAMSCAPE_SOAP_ENV")) ??
     parseDreamscapeSoapEnv(readServerEnv("DREAMSCAPE_ENV"));
   if (explicitEnv === "production") {
+    const endpoint = DREAMSCAPE_SOAP_PROD_ENDPOINT;
     return {
-      endpoint: DREAMSCAPE_SOAP_PROD_ENDPOINT,
+      endpoint,
       isSandbox: false,
       soapEnv: "production",
-      soapHost: soapHostFromEndpoint(DREAMSCAPE_SOAP_PROD_ENDPOINT),
+      soapHost: soapHostFromEndpoint(endpoint),
     };
   }
   if (explicitEnv === "sandbox") {
+    const endpoint = DREAMSCAPE_SOAP_SANDBOX_ENDPOINT;
     return {
-      endpoint: DREAMSCAPE_SOAP_SANDBOX_ENDPOINT,
+      endpoint,
       isSandbox: true,
       soapEnv: "sandbox",
-      soapHost: soapHostFromEndpoint(DREAMSCAPE_SOAP_SANDBOX_ENDPOINT),
+      soapHost: soapHostFromEndpoint(endpoint),
     };
   }
 
@@ -281,18 +288,20 @@ export function resolveDreamscapeSoapEndpoint(opts?: {
     /reseller-api\.ds\.network/i.test(restBase) &&
     !/sandbox/i.test(restBase);
   if (restIsProd) {
+    const endpoint = DREAMSCAPE_SOAP_PROD_ENDPOINT;
     return {
-      endpoint: DREAMSCAPE_SOAP_PROD_ENDPOINT,
+      endpoint,
       isSandbox: false,
       soapEnv: "production",
-      soapHost: soapHostFromEndpoint(DREAMSCAPE_SOAP_PROD_ENDPOINT),
+      soapHost: soapHostFromEndpoint(endpoint),
     };
   }
+  const endpoint = DREAMSCAPE_SOAP_SANDBOX_ENDPOINT;
   return {
-    endpoint: DREAMSCAPE_SOAP_SANDBOX_ENDPOINT,
+    endpoint,
     isSandbox: true,
     soapEnv: "sandbox",
-    soapHost: soapHostFromEndpoint(DREAMSCAPE_SOAP_SANDBOX_ENDPOINT),
+    soapHost: soapHostFromEndpoint(endpoint),
   };
 }
 
@@ -454,8 +463,8 @@ export function describeDreamscapeAuthFailure(
       message:
         "Dreamscape SOAP rejected the request (401). Reseller ID + API Key auth failed.",
       hint: isSandbox
-        ? "1) Credentials from reseller.sandbox.ds.network → API Setup (not live). 2) DREAMSCAPE_RESELLER_ID + DREAMSCAPE_API_KEY. 3) DREAMSCAPE_SOAP_ENV=sandbox (default) → soap-test.secureapi.com.au. 4) Live console keys need DREAMSCAPE_SOAP_ENV=production. 5) Redeploy after env changes."
-        : "1) Live credentials from reseller.ds.network → API Setup. 2) DREAMSCAPE_RESELLER_ID + DREAMSCAPE_API_KEY. 3) DREAMSCAPE_SOAP_ENV=production → soap.secureapi.com.au. 4) Whitelist egress if required. 5) Redeploy.",
+        ? "1) Credentials from reseller.sandbox.ds.network → API Setup (not live). 2) DREAMSCAPE_RESELLER_ID + DREAMSCAPE_API_KEY. 3) DREAMSCAPE_SOAP_ENV=sandbox → https://soap-test.secureapi.com.au/API-1.3 (never server.php). 4) Live console keys need DREAMSCAPE_SOAP_ENV=production. 5) Redeploy after env changes."
+        : "1) Live credentials from reseller.ds.network → API Setup. 2) DREAMSCAPE_RESELLER_ID + DREAMSCAPE_API_KEY. 3) DREAMSCAPE_SOAP_ENV=production → https://soap.secureapi.com.au/API-1.3 (never server.php — empty body). 4) Whitelist egress if required. 5) Redeploy.",
     };
   }
 

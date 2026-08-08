@@ -132,7 +132,19 @@ describe("SOAP DomainCheck envelope + parse", () => {
     );
     assert.equal(
       soap.DREAMSCAPE_SOAP_PROD_ENDPOINT,
-      "https://soap.secureapi.com.au/server.php?v=1.3",
+      "https://soap.secureapi.com.au/API-1.3",
+    );
+    assert.equal(
+      soap.normalizeDreamscapeSoapEndpoint(
+        "https://soap.secureapi.com.au/server.php?v=1.3",
+      ),
+      "https://soap.secureapi.com.au/API-1.3",
+    );
+    assert.equal(
+      soap.normalizeDreamscapeSoapEndpoint(
+        "https://soap-test.secureapi.com.au/server.php?v=1.3",
+      ),
+      "https://soap-test.secureapi.com.au/API-1.3",
     );
     assert.equal(
       soap.DREAMSCAPE_SOAP_DOMAIN_CHECK_ACTION,

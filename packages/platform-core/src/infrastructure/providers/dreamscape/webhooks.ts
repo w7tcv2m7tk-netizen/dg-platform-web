@@ -44,10 +44,61 @@ export interface HandleDreamscapeWebhookResult {
   note: string;
 }
 
+/** Hot cache — Neon (`DreamscapeWebhookEvent`) is durable source of truth. */
 const eventStore: DreamscapeWebhookEventStub[] = [];
+
+function rowToStub(row: {
+  id: string;
+  receivedAt: Date;
+  kind: string;
+  domainName: string | null;
+  statusId: number | null;
+  statusLabel: string | null;
+  mappedStatus: string | null;
+  providerEventId: string | null;
+  summary: unknown;
+  rawKeys: unknown;
+}): DreamscapeWebhookEventStub {
+  return {
+    id: row.id,
+    receivedAt: row.receivedAt.toISOString(),
+    kind: row.kind as DreamscapeWebhookEventKind,
+    domainName: row.domainName,
+    statusId: row.statusId,
+    statusLabel: row.statusLabel,
+    mappedStatus: (row.mappedStatus as DomainStatus | null) ?? null,
+    providerEventId: row.providerEventId,
+    summary:
+      row.summary && typeof row.summary === "object" && !Array.isArray(row.summary)
+        ? (row.summary as Record<string, unknown>)
+        : {},
+    rawKeys: Array.isArray(row.rawKeys)
+      ? row.rawKeys.filter((k): k is string => typeof k === "string")
+      : [],
+  };
+}
 
 export function listDreamscapeWebhookEvents(): DreamscapeWebhookEventStub[] {
   return [...eventStore];
+}
+
+/** Prefer Neon when DATABASE_URL is set; falls back to in-memory cache. */
+export async function listDreamscapeWebhookEventsAsync(
+  limit = 50,
+): Promise<DreamscapeWebhookEventStub[]> {
+  if (!process.env.DATABASE_URL) {
+    return listDreamscapeWebhookEvents().slice(0, limit);
+  }
+  try {
+    const { prisma } = await import("@dg/database");
+    const rows = await prisma.dreamscapeWebhookEvent.findMany({
+      orderBy: { receivedAt: "desc" },
+      take: Math.min(Math.max(limit, 1), MAX_STORED_EVENTS),
+    });
+    return rows.map(rowToStub);
+  } catch {
+    return listDreamscapeWebhookEvents().slice(0, limit);
+  }
 }
 
 export function clearDreamscapeWebhookEvents(): void {
@@ -58,6 +109,46 @@ function pushEvent(event: DreamscapeWebhookEventStub): void {
   eventStore.unshift(event);
   if (eventStore.length > MAX_STORED_EVENTS) {
     eventStore.length = MAX_STORED_EVENTS;
+  }
+}
+
+async function persistWebhookEvent(
+  event: DreamscapeWebhookEventStub,
+  inventoryUpdated: boolean,
+): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return false;
+  try {
+    const { prisma } = await import("@dg/database");
+    await prisma.dreamscapeWebhookEvent.upsert({
+      where: { id: event.id },
+      create: {
+        id: event.id,
+        receivedAt: new Date(event.receivedAt),
+        kind: event.kind,
+        domainName: event.domainName,
+        statusId: event.statusId,
+        statusLabel: event.statusLabel,
+        mappedStatus: event.mappedStatus,
+        providerEventId: event.providerEventId,
+        summary: event.summary,
+        rawKeys: event.rawKeys,
+        inventoryUpdated,
+      },
+      update: {
+        kind: event.kind,
+        domainName: event.domainName,
+        statusId: event.statusId,
+        statusLabel: event.statusLabel,
+        mappedStatus: event.mappedStatus,
+        providerEventId: event.providerEventId,
+        summary: event.summary,
+        rawKeys: event.rawKeys,
+        inventoryUpdated,
+      },
+    });
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -315,11 +406,16 @@ export function handleDreamscapeWebhookPayload(
   return { received: true, event, handled, note };
 }
 
-/** Acknowledge + update InfrastructureDomain status when the name matches inventory. */
+/** Acknowledge + persist event + update InfrastructureDomain status when matched. */
 export async function handleDreamscapeWebhookPayloadAsync(
   body: unknown,
   rawBody = "",
-): Promise<HandleDreamscapeWebhookResult & { inventoryUpdated: boolean }> {
+): Promise<
+  HandleDreamscapeWebhookResult & {
+    inventoryUpdated: boolean;
+    persisted: boolean;
+  }
+> {
   const result = handleDreamscapeWebhookPayload(body, rawBody);
   let inventoryUpdated = false;
   if (
@@ -346,12 +442,21 @@ export async function handleDreamscapeWebhookPayloadAsync(
       inventoryUpdated = false;
     }
   }
+
+  const persisted = await persistWebhookEvent(result.event, inventoryUpdated);
+
+  let note = result.note;
+  if (inventoryUpdated) {
+    note = `Domain inventory updated to ${result.event.mappedStatus}.`;
+  } else if (persisted) {
+    note = `${result.note} Event persisted.`;
+  }
+
   return {
     ...result,
     inventoryUpdated,
-    note: inventoryUpdated
-      ? `Domain inventory updated to ${result.event.mappedStatus}.`
-      : result.note,
+    persisted,
+    note,
   };
 }
 

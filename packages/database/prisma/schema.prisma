@@ -930,6 +930,30 @@ model DreamscapeCustomerLink {
   @@map("dreamscape_customer_links")
 }
 
+/**
+ * Durable Dreamscape Notification URL (domain transfer / status) events.
+ * In-memory stub remains as a hot cache; Neon is source of truth when DATABASE_URL is set.
+ */
+model DreamscapeWebhookEvent {
+  id               String   @id
+  receivedAt       DateTime @default(now()) @map("received_at")
+  kind             String
+  domainName       String?  @map("domain_name")
+  statusId         Int?     @map("status_id")
+  statusLabel      String?  @map("status_label")
+  mappedStatus     String?  @map("mapped_status")
+  providerEventId  String?  @map("provider_event_id")
+  summary          Json?
+  rawKeys          Json?    @map("raw_keys")
+  inventoryUpdated Boolean  @default(false) @map("inventory_updated")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([receivedAt])
+  @@index([domainName])
+  @@index([kind])
+  @@map("dreamscape_webhook_events")
+}
+
 model WebsitePage {
   id         String   @id @default(cuid())
   websiteId  String   @map("website_id")

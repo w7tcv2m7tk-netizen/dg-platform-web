@@ -103,6 +103,7 @@ export async function POST(req: Request) {
 
   let dns = null;
   let vercel = null;
+  const warnings: string[] = [];
   if (body.applyDns) {
     const records = websiteHostingDnsRecords(domainRow.name).map((r) => ({
       type: r.type,
@@ -124,10 +125,14 @@ export async function POST(req: Request) {
       });
       dns = applied;
     } catch (err) {
+      const message = err instanceof Error ? err.message : "DNS apply failed";
       dns = {
-        error: err instanceof Error ? err.message : "DNS apply failed",
+        error: message,
         suggested: records,
       };
+      warnings.push(
+        `DNS apply failed: ${message}. Retry from Domains → Apply website DNS, or set records manually at the registrar.`,
+      );
     }
   }
 
@@ -143,6 +148,20 @@ export async function POST(req: Request) {
           vercelDomain: vercel,
         },
       });
+      if (vercel.verified === false) {
+        warnings.push(
+          "SSL pending: hostname attached but not verified yet — wait for DNS propagation.",
+        );
+      }
+    } else if (!vercel.configured) {
+      warnings.push(
+        vercel.message ||
+          "SSL pending: Vercel attach not configured (VERCEL_TOKEN + VERCEL_PROJECT_ID).",
+      );
+    } else {
+      warnings.push(
+        `SSL pending: Vercel attach failed (${vercel.message}). Add the hostname manually in Vercel → Domains.`,
+      );
     }
   }
 
@@ -169,6 +188,7 @@ export async function POST(req: Request) {
       dns,
       vercel,
       checklist,
+      warnings,
     },
   });
 }

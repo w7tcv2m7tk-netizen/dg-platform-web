@@ -166,17 +166,55 @@ export function DomainsConsole() {
       body: JSON.stringify({ applyHosting: true, attachVercel: true }),
     });
     const json = (await res.json()) as {
-      error?: { message?: string };
-      data?: { instructions?: string[] | null };
+      error?: { message?: string; hint?: string; code?: string };
+      data?: {
+        instructions?: string[] | null;
+        vercel?: {
+          ok?: boolean;
+          configured?: boolean;
+          message?: string;
+          verified?: boolean | null;
+        } | null;
+        domain?: InventoryDomain;
+      };
     };
     if (res.ok) {
-      setStatus("Hosting DNS applied (or instructions returned)");
+      const parts: string[] = [];
       if (json.data?.instructions?.length) {
-        setStatus(json.data.instructions.join(" · "));
+        parts.push(...json.data.instructions);
+      } else {
+        parts.push("Hosting DNS applied at the registrar.");
       }
+      const vercel = json.data?.vercel;
+      if (vercel) {
+        if (vercel.ok) {
+          parts.push(
+            vercel.verified === false
+              ? "Vercel hostname attached — SSL pending until DNS verifies (can take minutes)."
+              : "Vercel hostname attached — SSL will provision automatically.",
+          );
+        } else if (!vercel.configured) {
+          parts.push(
+            vercel.message ||
+              "Vercel attach skipped — set VERCEL_TOKEN + VERCEL_PROJECT_ID, or add the domain manually in Vercel → Domains. SSL stays pending until then.",
+          );
+        } else {
+          parts.push(
+            `Vercel attach failed: ${vercel.message || "unknown error"}. SSL stays pending — fix attach or add hostname manually.`,
+          );
+        }
+      }
+      const ssl = json.data?.domain?.sslState;
+      if (ssl === "pending") {
+        parts.push("SSL state: pending (normal until DNS propagates).");
+      }
+      setStatus(parts.join(" · "));
       await refreshInventory();
     } else {
-      setStatus(json.error?.message || "DNS apply failed");
+      const msg = json.error?.message || "DNS apply failed";
+      setStatus(
+        json.error?.hint ? `${msg} — ${json.error.hint}` : msg,
+      );
     }
     setBusy(false);
   }
@@ -190,6 +228,18 @@ export function DomainsConsole() {
           <code className="text-slate-300">infra.domain_register</code> and a
           typed confirm{!isSandbox ? " (+ production confirm)" : ""}.
         </p>
+        {result?.soapHost || result?.apiMode ? (
+          <p className="mt-2 text-[11px] text-slate-500">
+            {result.apiMode?.toUpperCase() ?? "SOAP"}
+            {result.soapHost ? ` · ${result.soapHost}` : ""}
+            {result.soapEnv ? ` (${result.soapEnv})` : ""}
+            {result.isSandbox != null
+              ? result.isSandbox
+                ? " · sandbox"
+                : " · production"
+              : ""}
+          </p>
+        ) : null}
         <form onSubmit={onSearch} className="mt-4 flex flex-col gap-3 sm:flex-row">
           <input
             type="text"

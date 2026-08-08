@@ -151,7 +151,7 @@ export async function buildGoLiveChecklist(input: {
       detail: domainRow?.dnsConfiguredAt
         ? `Configured ${domainRow.dnsConfiguredAt}`
         : domainRow
-          ? "Apply hosting records (CNAME/A to Vercel target)"
+          ? "Pending — Apply website DNS (Domains) or Make it live with Apply hosting DNS. Failures usually mean SOAP DomainDNSUpdate rejected the records or the domain isn’t at this reseller."
           : undefined,
     },
     {
@@ -167,7 +167,11 @@ export async function buildGoLiveChecklist(input: {
       detail:
         domainRow?.sslState === "active"
           ? "Auto SSL active (Vercel)"
-          : "SSL provisions automatically after DNS points at hosting",
+          : domainRow?.sslState === "pending"
+            ? "Pending — wait for DNS propagation, confirm Vercel project has the hostname (VERCEL_TOKEN + VERCEL_PROJECT_ID or manual Domains add). Certificate issues after that are Vercel-side."
+            : domainRow?.dnsConfiguredAt
+              ? "DNS set — SSL should flip to pending/active after Vercel verifies the hostname"
+              : "SSL provisions automatically after DNS points at hosting",
     },
     {
       id: "website",

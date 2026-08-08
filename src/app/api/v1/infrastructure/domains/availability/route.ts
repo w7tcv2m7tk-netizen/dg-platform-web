@@ -93,7 +93,7 @@ export async function GET(req: Request) {
             : "Domain provider is not configured.",
         hint:
           apiMode === "soap"
-            ? "SOAP mode: set DREAMSCAPE_API_KEY + DREAMSCAPE_RESELLER_ID from API Setup. Live console → DREAMSCAPE_SOAP_ENV=production (soap.secureapi.com.au). Sandbox console → DREAMSCAPE_SOAP_ENV=sandbox (soap-test, default). Redeploy after Vercel env changes."
+            ? "SOAP mode: set DREAMSCAPE_API_KEY + DREAMSCAPE_RESELLER_ID from API Setup. Live console → DREAMSCAPE_SOAP_ENV=production → https://soap.secureapi.com.au/API-1.3. Sandbox → DREAMSCAPE_SOAP_ENV=sandbox (soap-test …/API-1.3). Never use …/server.php (empty body). Redeploy after Vercel env changes."
             : "REST mode: set DREAMSCAPE_API_KEY (Api-Request-Id + Api-Signature). If support insists on Reseller ID, set DREAMSCAPE_RESELLER_ID (auto-selects SOAP) or DREAMSCAPE_API_MODE=soap.",
       },
     });

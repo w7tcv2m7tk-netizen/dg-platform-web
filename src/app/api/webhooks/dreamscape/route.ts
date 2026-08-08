@@ -77,6 +77,7 @@ export async function POST(req: Request) {
     mappedStatus: result.event.mappedStatus,
     handled: result.handled,
     inventoryUpdated: result.inventoryUpdated,
+    persisted: result.persisted,
     eventId: result.event.id,
   });
 
@@ -85,6 +86,7 @@ export async function POST(req: Request) {
       received: true,
       handled: result.handled,
       inventoryUpdated: result.inventoryUpdated,
+      persisted: result.persisted,
       eventId: result.event.id,
       kind: result.event.kind,
       domain: result.event.domainName,
