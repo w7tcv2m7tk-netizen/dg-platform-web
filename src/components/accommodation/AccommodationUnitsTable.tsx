@@ -261,7 +261,9 @@ function OtaCalendarsSection({
             </p>
           )}
           <FieldHint>
-            Booking.com → Calendar → iCal import link
+            Booking.com Extranet → Rates &amp; Availability → Sync calendars →{" "}
+            <span className="text-slate-300">Export calendar</span> → copy link into DigitalGate
+            (not the Import calendar field — that is for the DigitalGate export URL below)
             {bookingSync ? ` · Last synced ${bookingSync}` : ""}
           </FieldHint>
           {u.bookingcom_last_error ? (
