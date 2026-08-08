@@ -1,15 +1,21 @@
+import {
+  buildAvailabilityFromNeon,
+  organisationUsesUnitSot,
+} from "@dg/platform-core";
 import { currentUser } from "@clerk/nextjs/server";
 import { Suspense } from "react";
 
 import { AccommodationAvailabilityBoard } from "@/components/accommodation/AccommodationAvailabilityBoard";
 import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
+import { loadUnitsForOps } from "@/lib/accommodation-units";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   fetchPortalMe,
   fetchWpAccommodationAvailability,
   getWpAccommodationSite,
   listWpAccommodationSites,
+  type WpAccAvailabilityUnit,
 } from "@/lib/dg-api";
 
 interface PageProps {
@@ -40,8 +46,6 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
   const site = getWpAccommodationSite(siteId);
   const connector = await accommodationConnectorForSession(session?.organisationId);
 
-  // Local calendar dates (avoid UTC off-by-one). Start at month boundary so
-  // month view can paint stays that began earlier in the current month.
   const today = new Date();
   const localISO = (d: Date) => {
     const y = d.getFullYear();
@@ -55,12 +59,35 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
   const from = localISO(monthStart);
   const to = localISO(toDate);
 
-  const availability = await fetchWpAccommodationAvailability({
-    siteId: site.id,
-    from,
-    to,
-    connector,
-  });
+  let availFrom = from;
+  let availTo = to;
+  let units: WpAccAvailabilityUnit[] = [];
+  let error: string | undefined;
+  let sotLabel = "WordPress";
+
+  if (session && (await organisationUsesUnitSot(session.organisationId))) {
+    await loadUnitsForOps(session, site.id);
+    const neon = await buildAvailabilityFromNeon(session.organisationId, { from, to });
+    availFrom = neon.from;
+    availTo = neon.to;
+    units = neon.units as unknown as WpAccAvailabilityUnit[];
+    sotLabel = "Neon (units + StayBooking)";
+  } else {
+    const availability = await fetchWpAccommodationAvailability({
+      siteId: site.id,
+      from,
+      to,
+      connector,
+    });
+    if (availability.ok) {
+      availFrom = availability.from ?? from;
+      availTo = availability.to ?? to;
+      units = availability.units;
+    } else {
+      error = availability.message;
+    }
+  }
+
   const siteLabel = connector?.label ?? site.label;
 
   return (
@@ -68,8 +95,8 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Availability</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · inventory, week, month &
-          list · Airbnb / Booking.com iCal
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · {sotLabel} · inventory,
+          week, month & list · Airbnb / Booking.com iCal
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">
@@ -79,10 +106,10 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
       </header>
       <main className="dg-page-main">
         <AccommodationAvailabilityBoard
-          from={availability.ok ? availability.from ?? from : from}
-          to={availability.ok ? availability.to ?? to : to}
-          units={availability.ok ? availability.units : []}
-          error={availability.ok ? undefined : availability.message}
+          from={availFrom}
+          to={availTo}
+          units={units}
+          error={error}
           siteLabel={siteLabel}
         />
       </main>

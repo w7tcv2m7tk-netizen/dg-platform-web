@@ -43,7 +43,8 @@ export type SyncAccommodationBookingsOutcome =
 
 export interface StayBookingListItem {
   id: string;
-  externalWpId: number;
+  /** Null for Gen 2-native bookings not yet mirrored to WordPress */
+  externalWpId: number | null;
   contactId?: string | null;
   ref?: string | null;
   guestName: string;
@@ -51,6 +52,7 @@ export interface StayBookingListItem {
   phone?: string | null;
   accommodationName?: string | null;
   accommodationWpId?: number | null;
+  accommodationUnitId?: string | null;
   checkin?: string | null;
   checkout?: string | null;
   nights?: number | null;
@@ -85,7 +87,7 @@ function toTotalCents(total?: number): number | null {
 
 function serializeStayBooking(row: {
   id: string;
-  externalWpId: number;
+  externalWpId: number | null;
   contactId?: string | null;
   ref: string | null;
   guestName: string;
@@ -93,6 +95,7 @@ function serializeStayBooking(row: {
   phone: string | null;
   accommodationName: string | null;
   accommodationWpId: number | null;
+  accommodationUnitId?: string | null;
   checkin: Date | null;
   checkout: Date | null;
   status: string;
@@ -112,6 +115,7 @@ function serializeStayBooking(row: {
     phone: row.phone,
     accommodationName: row.accommodationName,
     accommodationWpId: row.accommodationWpId,
+    accommodationUnitId: row.accommodationUnitId ?? null,
     checkin: formatStayDate(row.checkin, metadata.checkin as string | undefined),
     checkout: formatStayDate(row.checkout, metadata.checkout as string | undefined),
     nights: typeof metadata.nights === "number" ? metadata.nights : null,
@@ -153,7 +157,7 @@ async function resolveGuestContactId(
 /** Map Postgres stay bookings into the WpAccBookingRow shape used by UI tables. */
 export function stayBookingToWpRow(item: StayBookingListItem): WpAccBookingRow {
   return {
-    id: item.externalWpId,
+    id: item.externalWpId ?? 0,
     platform_id: item.id,
     ref: item.ref ?? undefined,
     guest_name: item.guestName,
@@ -538,6 +542,146 @@ export async function syncAccommodationBookingsFromWordPress(
   }
 
   return { ok: true, result };
+}
+
+/**
+ * Gen 2-first stay create (WP-D-403): conflict-check Neon units + StayBooking,
+ * persist StayBooking, optionally attach WP id after WP mirror.
+ */
+export async function createStayBookingGen2First(
+  organisationId: string,
+  input: {
+    guestName: string;
+    email?: string;
+    phone?: string;
+    accommodationWpId: number;
+    checkin: string;
+    checkout: string;
+    guests?: number;
+    nights?: number;
+    total?: number;
+    status?: string;
+    source?: string;
+    message?: string;
+    ref?: string;
+    paid?: string;
+    paymentMethod?: string;
+    actorId?: string;
+    /** Skip availability check (admin force) */
+    force?: boolean;
+  },
+): Promise<
+  | { ok: true; booking: StayBookingListItem; conflictChecked: boolean }
+  | { ok: false; code: string; message: string; conflictDates?: string[] }
+> {
+  if (!process.env.DATABASE_URL) {
+    return { ok: false, code: "database_not_configured", message: "DATABASE_URL not set" };
+  }
+
+  const { checkStayAvailability } = await import("./units");
+  if (!input.force) {
+    const availability = await checkStayAvailability(organisationId, {
+      accommodationWpId: input.accommodationWpId,
+      checkin: input.checkin,
+      checkout: input.checkout,
+    });
+    if (!availability.ok) {
+      return {
+        ok: false,
+        code: "dates_unavailable",
+        message: availability.message ?? "dates_unavailable",
+        conflictDates: availability.conflictDates,
+      };
+    }
+  }
+
+  const { prisma } = await import("@dg/database");
+  const unit = await prisma.accommodationUnit.findUnique({
+    where: {
+      organisationId_externalWpId: {
+        organisationId,
+        externalWpId: input.accommodationWpId,
+      },
+    },
+  });
+
+  const guestName = input.guestName.trim();
+  if (!guestName) {
+    return { ok: false, code: "validation_error", message: "guest_name is required" };
+  }
+
+  const fields = mapBookingFields({
+    id: 0,
+    guest_name: guestName,
+    email: input.email,
+    phone: input.phone,
+    accommodation: unit?.title,
+    accommodation_id: input.accommodationWpId,
+    checkin: input.checkin,
+    checkout: input.checkout,
+    guests: input.guests,
+    nights: input.nights,
+    total: input.total,
+    status: input.status ?? "pending",
+    source: input.source ?? "gen2",
+    message: input.message,
+    ref: input.ref,
+    paid: input.paid ?? null,
+    payment_method: input.paymentMethod ?? null,
+  });
+
+  const contactId = await resolveGuestContactId(
+    organisationId,
+    fields,
+    input.actorId,
+  );
+
+  const created = await prisma.stayBooking.create({
+    data: {
+      organisationId,
+      externalWpId: null,
+      ...fields,
+      accommodationUnitId: unit?.id ?? null,
+      contactId,
+      metadata: {
+        ...fields.metadata,
+        gen2_origin: true,
+        write_path: "gen2_first",
+      } as Prisma.InputJsonValue,
+    },
+  });
+
+  return {
+    ok: true,
+    booking: serializeStayBooking(created),
+    conflictChecked: !input.force,
+  };
+}
+
+/** Attach WordPress booking id after dual-write mirror succeeds. */
+export async function linkStayBookingExternalWpId(
+  organisationId: string,
+  stayBookingId: string,
+  externalWpId: number,
+): Promise<StayBookingListItem | null> {
+  if (!process.env.DATABASE_URL) return null;
+  const { prisma } = await import("@dg/database");
+  const existing = await prisma.stayBooking.findFirst({
+    where: { id: stayBookingId, organisationId },
+  });
+  if (!existing) return null;
+
+  const updated = await prisma.stayBooking.update({
+    where: { id: stayBookingId },
+    data: {
+      externalWpId,
+      metadata: {
+        ...((existing.metadata as Record<string, unknown> | null) ?? {}),
+        wp_mirrored_at: new Date().toISOString(),
+      } as Prisma.InputJsonValue,
+    },
+  });
+  return serializeStayBooking(updated);
 }
 
 /** Alias for listStayBookings */

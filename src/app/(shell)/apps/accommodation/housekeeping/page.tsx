@@ -1,9 +1,15 @@
+import {
+  housekeepingBoardFromUnits,
+  listAccommodationUnits,
+  organisationUsesHousekeepingSot,
+} from "@dg/platform-core";
 import { currentUser } from "@clerk/nextjs/server";
 import { Suspense } from "react";
 
 import { AccommodationHousekeepingBoard } from "@/components/accommodation/AccommodationHousekeepingBoard";
 import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
+import { loadUnitsForOps } from "@/lib/accommodation-units";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   fetchPortalMe,
@@ -39,7 +45,46 @@ export default async function AccommodationHousekeepingPage({ searchParams }: Pa
   const sites = listWpAccommodationSites();
   const site = getWpAccommodationSite(siteId);
   const connector = await accommodationConnectorForSession(session?.organisationId);
-  const board = await fetchWpAccommodationHousekeeping(site.id, connector);
+
+  let items: Array<{
+    id: number;
+    title: string;
+    status: string;
+    notes?: string;
+    last_cleaned?: string | null;
+    checkout_today?: boolean;
+    cleaning_form_url?: string;
+    checkin_url?: string;
+  }> = [];
+  let statuses: Record<string, string> = {};
+  let summary: Record<string, number> = {};
+  let error: string | undefined;
+  let checkoutsToday = 0;
+  let today: string | undefined;
+  let sotLabel = "WordPress";
+
+  if (session && (await organisationUsesHousekeepingSot(session.organisationId))) {
+    await loadUnitsForOps(session, site.id);
+    const units = await listAccommodationUnits(session.organisationId);
+    const board = housekeepingBoardFromUnits(units);
+    items = board.items;
+    statuses = board.statuses;
+    summary = board.summary;
+    today = board.today;
+    sotLabel = "AccommodationUnit (Neon)";
+  } else {
+    const board = await fetchWpAccommodationHousekeeping(site.id, connector);
+    if (board.ok) {
+      items = board.items;
+      statuses = board.statuses;
+      summary = board.summary;
+      checkoutsToday = board.checkoutsToday;
+      today = board.today;
+    } else {
+      error = board.message;
+    }
+  }
+
   const siteLabel = connector?.label ?? site.label;
 
   return (
@@ -47,7 +92,8 @@ export default async function AccommodationHousekeepingPage({ searchParams }: Pa
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Housekeeping</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · turnover status
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · {sotLabel} · turnover
+          status
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">
@@ -57,13 +103,13 @@ export default async function AccommodationHousekeepingPage({ searchParams }: Pa
       </header>
       <main className="dg-page-main">
         <AccommodationHousekeepingBoard
-          items={board.ok ? board.items : []}
-          statuses={board.ok ? board.statuses : {}}
-          summary={board.ok ? board.summary : {}}
-          error={board.ok ? undefined : board.message}
+          items={items}
+          statuses={statuses}
+          summary={summary}
+          error={error}
           siteLabel={siteLabel}
-          checkoutsToday={board.ok ? board.checkoutsToday : 0}
-          today={board.ok ? board.today : undefined}
+          checkoutsToday={checkoutsToday}
+          today={today}
         />
       </main>
     </>

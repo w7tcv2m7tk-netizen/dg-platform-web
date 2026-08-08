@@ -16,14 +16,15 @@
 | CRM contacts / companies / timeline | **Gen 2** | Native | — |
 | Commerce shell (invoices, quotes, Stripe connector) | **Gen 2** | Native | — |
 | Platform SaaS billing (in-app checkout) | **Gen 2** (`platform-stripe`) | Dual with WP Payment Links | **P2** |
-| Roe vendor/buyer **capture** | **WP** (property report + enquiry forms) | Pull-sync into `Lead` | **P1** |
-| Roe vendor/buyer **pipeline stages** | **Gen 2** (Neon; no WP write-back) | Native after import | P1 polish |
+| Roe vendor/buyer **capture** | **Dual-write** — WP forms still create; plugin v10.68+ pushes `/api/webhooks/dg-leads` → Neon `Lead` | Pull-sync backup | **P1** ✅ interim |
+| Roe vendor/buyer **pipeline stages** | **Gen 2** SoT; optional WP write-back via `re.stage_writeback` + PATCH `/leads/vendor|buyer/{id}` | Native ops in Gen 2 | **P1** ✅ |
 | Properties / listings | **Gen 2** Neon + publish mirror to WP | Bidirectional sync | P1 / P5 |
 | RE appraisal bookings | **WP** | Pull into `Lead` (`source: re_booking`) | **P1** (capture) / ops |
 | Portal purchase + onboarding profile | **WP** (`/portal/me`) | Mirror into `organisation.settings` | **P2** |
 | Support chat | **WP** (`dg_support_*` tables) | Thin proxy | **P3** |
 | Website health | **WP** (`/site/health`) | Read-only UI | **P3** |
-| CVH stays / units / guests / availability | **Stays: Gen 2 StayBooking (read)**; units/availability/housekeeping still **WP** | Dual-write + pull-sync; housekeeping PATCH still to WP | **P4** |
+| CVH stays | **Gen 2 StayBooking** (read SoT) + WP dual-write | Ops create WP→Neon; Gen 2-first behind `acc.gen2_first_booking` | **P4** |
+| CVH units / availability / housekeeping | **Gen 2 `AccommodationUnit`** when synced (soft SoT); WP mirror | Flags: `acc.units_sot`, `acc.housekeeping_sot` | **P4** ✅ interim |
 | Public sites / headless CMS | **WP** | Only RE property/agent publish implemented | **P5** |
 
 **Order by detach value:** Roe ops independence (P1) → portal/billing (P2) → support+health (P3) → CVH booking engine (P4) → public/headless (P5).
@@ -84,8 +85,9 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 
 | Field | Detail |
 |-------|--------|
+| **Status** | 🔶 Dual-write shipped (Aug 2026) — WP forms still create; plugin v10.68+ `DG_RE_Platform_Sync` → `POST /api/webhooks/dg-leads`; pull-sync backup. Full Gen 2-first public form is later. |
 | **Why** | Roe inbound SoT is still WP property-report / enquiry forms. |
-| **Touchpoints** | WP: `modules/real-estate/includes/property-report-leads.php` (`dg_re_process_property_report_lead`, `roe_crm_property_report_form_shortcode`); `modules/real-estate/includes/class-buyer-leads.php`; `modules/real-estate/includes/class-vendor-leads.php`; Dev API `class-crm-dev-api.php` (`GET /leads/vendor`, `/leads/buyer`). Gen 2: `syncVendorLeadsFromWordPress` / `syncBuyerLeadsFromWordPress`; `src/lib/wordpress-sync.ts`; prefer new `POST /api/webhooks/wp-leads` or Platform API key create. |
+| **Touchpoints** | WP: `class-re-platform-sync.php`; Gen 2: `src/app/api/webhooks/dg-leads/route.ts`; `packages/platform-core/src/leads/public-capture.ts`. |
 | **Done means** | Form submit creates Neon `Lead` (+ Contact) within seconds; WP store optional mirror; pull-sync becomes backup not primary. |
 | **Effort** | L |
 | **Depends on** | WP-D-101 |
@@ -94,8 +96,9 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 
 | Field | Detail |
 |-------|--------|
+| **Status** | ✅ Done (Aug 2026) — Gen 2 is SoT; optional write-back behind `re.stage_writeback` → WP `PATCH /leads/vendor|buyer/{id}` (plugin v10.68+) |
 | **Why** | Stages update in Neon only (`updateLeadStage` / `updateBuyerLeadStage`) — WP admin drifts if still used. |
-| **Touchpoints** | `src/app/api/v1/leads/route.ts` `PATCH`; `packages/platform-core/src/leads/index.ts`; WP `class-crm-dev-api.php` vendor/buyer detail routes. |
+| **Touchpoints** | `packages/platform-core/src/leads/index.ts` (`maybeWriteBackLeadStageToWordPress`); WP `class-crm-dev-api.php` PATCH handlers. |
 | **Done means** | Either (a) Gen 2 → WP stage PATCH when connector present, or (b) documented one-way: Gen 2 is SoT, WP admin read-only for pipeline. |
 | **Effort** | M |
 | **Depends on** | WP-D-102 |
@@ -233,10 +236,10 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⏳ Open — guests already have Contact + `AccommodationGuestProfile`; units/availability/housekeeping still live WP |
-| **Why** | Those resources are still live `fetchWpAccommodation*` with no Postgres models (except bookings cache + guest profiles). |
-| **Touchpoints** | `src/lib/dg-api.ts` (`fetchWpAccommodationUnits|Guests|Availability|Housekeeping|Summary`, `patchWpAccommodationHousekeeping`); `src/app/api/v1/accommodation/route.ts`; `housekeeping/route.ts`; WP `modules/accommodation/includes/class-acc-dev-api.php`, `class-acc-housekeeping.php`, CPTs in `accommodation.php`. |
-| **Done means** | Prisma models (or Universal Objects) for units/guests/availability; Gen 2 CRUD; housekeeping SoT in Gen 2 with optional WP mirror. |
+| **Status** | 🔶 Soft SoT shipped (Aug 2026) — Prisma `AccommodationUnit`; sync + ops UI/API prefer Neon when rows exist (or `acc.units_sot`); availability derived from units + StayBooking; guests already Contact-centric |
+| **Why** | Those resources were still live `fetchWpAccommodation*` with no Postgres models (except bookings cache + guest profiles). |
+| **Touchpoints** | `packages/database/prisma/schema.prisma` (`AccommodationUnit`); `packages/platform-core/src/accommodation/units.ts`; `src/lib/accommodation-units.ts`; Acc API `resource=units|availability|housekeeping`; `POST action=sync_units`. |
+| **Done means** | Prisma models for units/guests/availability; Gen 2 CRUD; housekeeping SoT in Gen 2 with optional WP mirror. |
 | **Effort** | L |
 | **Depends on** | WP-D-401 |
 
@@ -244,9 +247,9 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 
 | Field | Detail |
 |-------|--------|
-| **Status** | 🔶 Interim dual-write shipped (Aug 2026) — WP still creates (calendar SoT); plugin v10.67.0+ pushes to `/api/webhooks/dg-stay-booking`; Gen 2 ops create is WP-then-Neon. Full Gen 2-first create waits on WP-D-402 availability. |
+| **Status** | 🔶 Dual-write live; Gen 2-first ops create behind `acc.gen2_first_booking` (Neon conflict-check → StayBooking → WP mirror). Public book-now still WP. |
 | **Why** | Guest booking + Stripe still WP accommodation module. |
-| **Touchpoints** | WP `class-acc-platform-sync.php`, `class-acc-payments.php`, shortcodes; Gen 2 `src/app/api/webhooks/dg-stay-booking/route.ts`; `upsertStayBookingFromWpRow`. CVH guest Stripe ≠ `platform-stripe`. |
+| **Touchpoints** | WP `class-acc-platform-sync.php`; Gen 2 `createStayBookingGen2First`; `src/app/api/v1/accommodation/route.ts` `create_booking`. |
 | **Done means** | New stays created in Gen 2 first; WP calendar is display or retired; CVH guest Stripe keys documented separately from SaaS Stripe. |
 | **Effort** | L |
 | **Depends on** | WP-D-402 (for Gen 2-first); dual-write does not. |
@@ -255,9 +258,9 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 
 | Field | Detail |
 |-------|--------|
-| **Status** | ⏳ Open — still Gen 2 → WP PATCH (correct while housekeeping SoT is WP) |
+| **Status** | 🔶 Soft flip (Aug 2026) — when units/HK SoT active, PATCH writes Neon first then optional WP mirror (`acc.housekeeping_sot`) |
 | **Why** | Only Gen 2 → WP write-back in accommodation today; after SoT flip it becomes wrong-direction. |
-| **Touchpoints** | `patchWpAccommodationHousekeeping` in `dg-api.ts`; `src/app/api/v1/accommodation/housekeeping/route.ts`. |
+| **Touchpoints** | `updateUnitHousekeeping`; `src/app/api/v1/accommodation/housekeeping/route.ts`. |
 | **Done means** | Housekeeping updates persist in Gen 2; WP patch removed or becomes optional mirror. |
 | **Effort** | S |
 | **Depends on** | WP-D-402 |

@@ -1,4 +1,19 @@
-import { listStayBookings, stayBookingToWpRow, updateStayBooking } from "@dg/platform-core";
+import {
+  buildAvailabilityFromNeon,
+  createStayBookingGen2First,
+  housekeepingBoardFromUnits,
+  linkStayBookingExternalWpId,
+  listAccommodationUnits,
+  listStayBookings,
+  organisationHasFlag,
+  organisationUsesHousekeepingSot,
+  organisationUsesUnitSot,
+  stayBookingToWpRow,
+  syncAccommodationUnitsFromWordPress,
+  unitToWpProp,
+  updateStayBooking,
+  updateUnitHousekeeping,
+} from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
@@ -17,7 +32,7 @@ import {
   syncWpAccommodationOtaCalendars,
 } from "@/lib/dg-api";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
-import { syncWordPressAccBookings } from "@/lib/wordpress-sync";
+import { syncWordPressAccBookings, syncWordPressAccUnits } from "@/lib/wordpress-sync";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -34,6 +49,21 @@ export async function GET(req: Request) {
   }
 
   if (resource === "units" || resource === "properties") {
+    if (source !== "wp" && (await organisationUsesUnitSot(session.organisationId))) {
+      const stored = await listAccommodationUnits(session.organisationId);
+      return NextResponse.json({
+        data: stored.map(unitToWpProp),
+        meta: {
+          site: connector?.label ?? "Accommodation",
+          source: "postgres",
+          sot: true,
+          emptyHint:
+            stored.length === 0
+              ? "No AccommodationUnit rows — POST action=sync_units"
+              : undefined,
+        },
+      });
+    }
     const units = await fetchWpAccommodationUnits(siteId, connector);
     if (!units.ok) {
       return NextResponse.json(
@@ -41,7 +71,56 @@ export async function GET(req: Request) {
         { status: 422 },
       );
     }
-    return NextResponse.json({ data: units.units, meta: { site: units.site } });
+    return NextResponse.json({
+      data: units.units,
+      meta: { site: units.site, source: "wordpress", sot: false },
+    });
+  }
+
+  if (resource === "availability") {
+    const from = searchParams.get("from") ?? undefined;
+    const to = searchParams.get("to") ?? undefined;
+    const propertyIdRaw = searchParams.get("property_id") ?? searchParams.get("propertyId");
+    const propertyId =
+      propertyIdRaw && Number.isFinite(Number(propertyIdRaw))
+        ? Number(propertyIdRaw)
+        : undefined;
+
+    if (source !== "wp" && (await organisationUsesUnitSot(session.organisationId))) {
+      const avail = await buildAvailabilityFromNeon(session.organisationId, {
+        from,
+        to,
+        propertyId,
+      });
+      return NextResponse.json({
+        data: avail,
+        meta: { source: "postgres", sot: true },
+      });
+    }
+
+    const { fetchWpAccommodationAvailability } = await import("@/lib/dg-api");
+    const avail = await fetchWpAccommodationAvailability({
+      siteId,
+      from,
+      to,
+      propertyId,
+      connector,
+    });
+    if (!avail.ok) {
+      return NextResponse.json(
+        { error: { code: avail.code, message: avail.message } },
+        { status: 422 },
+      );
+    }
+    return NextResponse.json({
+      data: {
+        from: avail.from,
+        to: avail.to,
+        units: avail.units,
+        total: avail.total,
+      },
+      meta: { site: avail.site, source: "wordpress", sot: false },
+    });
   }
 
   if (resource === "bookings") {
@@ -84,6 +163,26 @@ export async function GET(req: Request) {
   }
 
   if (resource === "housekeeping") {
+    if (
+      source !== "wp" &&
+      (await organisationUsesHousekeepingSot(session.organisationId))
+    ) {
+      const stored = await listAccommodationUnits(session.organisationId);
+      const board = housekeepingBoardFromUnits(stored);
+      return NextResponse.json({
+        data: {
+          items: board.items,
+          summary: board.summary,
+          statuses: board.statuses,
+        },
+        meta: {
+          site: connector?.label ?? "Accommodation",
+          source: "postgres",
+          sot: true,
+          today: board.today,
+        },
+      });
+    }
     const board = await fetchWpAccommodationHousekeeping(siteId, connector);
     if (!board.ok) {
       return NextResponse.json(
@@ -97,7 +196,7 @@ export async function GET(req: Request) {
         summary: board.summary,
         statuses: board.statuses,
       },
-      meta: { site: board.site },
+      meta: { site: board.site, source: "wordpress", sot: false },
     });
   }
 
@@ -129,6 +228,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ data: outcome.result });
   }
 
+  if (body.action === "sync_units") {
+    const outcome = await syncWordPressAccUnits(session);
+    if (!outcome.ok) {
+      // Fall back to direct core sync if helper missing settings write
+      const direct = await syncAccommodationUnitsFromWordPress(session.organisationId);
+      if (!direct.ok) {
+        return NextResponse.json(
+          { error: { code: "sync_failed", message: outcome.message || direct.message } },
+          { status: 422 },
+        );
+      }
+      return NextResponse.json({ data: direct.result });
+    }
+    return NextResponse.json({ data: outcome.result });
+  }
+
   if (body.action === "sync_ota") {
     const connector = await accommodationConnectorForSession(session.organisationId);
     const result = await syncWpAccommodationOtaCalendars(connector, {
@@ -154,8 +269,96 @@ export async function POST(req: Request) {
             return rest;
           })();
 
-    // Interim (WP-D-403): availability/conflict SoT stays on WP calendar.
-    // Gen 2 creates via WP, then dual-writes StayBooking as the read SoT.
+    const gen2First = await organisationHasFlag(
+      session.organisationId,
+      "acc.gen2_first_booking",
+    );
+    const usesUnits = await organisationUsesUnitSot(session.organisationId);
+
+    // WP-D-403: when flag + units SoT, conflict-check Neon and create StayBooking first.
+    if (gen2First && usesUnits) {
+      const accommodationId =
+        typeof payload.accommodation_id === "number"
+          ? payload.accommodation_id
+          : Number(payload.accommodation_id);
+      const checkin = typeof payload.checkin === "string" ? payload.checkin : "";
+      const checkout = typeof payload.checkout === "string" ? payload.checkout : "";
+      const guestName =
+        typeof payload.guest_name === "string"
+          ? payload.guest_name
+          : typeof payload.name === "string"
+            ? payload.name
+            : "";
+
+      const native = await createStayBookingGen2First(session.organisationId, {
+        guestName,
+        email: typeof payload.email === "string" ? payload.email : undefined,
+        phone: typeof payload.phone === "string" ? payload.phone : undefined,
+        accommodationWpId: accommodationId,
+        checkin,
+        checkout,
+        guests: typeof payload.guests === "number" ? payload.guests : undefined,
+        nights: typeof payload.nights === "number" ? payload.nights : undefined,
+        total: typeof payload.total === "number" ? payload.total : undefined,
+        status: typeof payload.status === "string" ? payload.status : undefined,
+        source: typeof payload.source === "string" ? payload.source : "gen2",
+        message: typeof payload.message === "string" ? payload.message : undefined,
+        ref: typeof payload.ref === "string" ? payload.ref : undefined,
+        paid: typeof payload.paid === "string" ? payload.paid : undefined,
+        paymentMethod:
+          typeof payload.payment_method === "string" ? payload.payment_method : undefined,
+        actorId: session.clerkUserId,
+        force: payload.force === true || payload.allow_overlap === true,
+      });
+
+      if (!native.ok) {
+        return NextResponse.json(
+          {
+            error: {
+              code: native.code,
+              message: native.message,
+              conflict_dates: native.conflictDates,
+            },
+          },
+          { status: 422 },
+        );
+      }
+
+      // Dual-write WP calendar (CVH public/OTA stay safe).
+      const wpResult = await createWpAccommodationBookings(
+        { ...payload, force: true },
+        connector,
+      );
+      let wpMirror: { ok: boolean; wpId?: number; message?: string } = { ok: false };
+      if (wpResult.ok) {
+        const createdRow = wpResult.data.created?.[0];
+        if (createdRow?.id) {
+          await linkStayBookingExternalWpId(
+            session.organisationId,
+            native.booking.id,
+            createdRow.id,
+          );
+          wpMirror = { ok: true, wpId: createdRow.id };
+        }
+      } else {
+        wpMirror = {
+          ok: false,
+          message: wpResult.message ?? "WP mirror failed — StayBooking kept in Neon",
+        };
+      }
+
+      return NextResponse.json({
+        data: {
+          created: [stayBookingToWpRow(native.booking)],
+          stayBooking: native.booking,
+          wpMirror,
+          writePath: "neon_then_wp",
+          conflictChecked: native.conflictChecked,
+        },
+      });
+    }
+
+    // Default interim: WP calendar create, then dual-write StayBooking.
     const result = await createWpAccommodationBookings(payload, connector);
     if (!result.ok) {
       return NextResponse.json(
@@ -277,6 +480,45 @@ export async function PATCH(req: Request) {
   const connector = await accommodationConnectorForSession(session.organisationId);
 
   if (resource === "units" || resource === "properties") {
+    const usesUnits = await organisationUsesUnitSot(session.organisationId);
+    if (usesUnits) {
+      const { upsertAccommodationUnitFromWpRow } = await import("@dg/platform-core");
+      // Persist block/rate patches into Neon when present, then mirror to WP.
+      for (const row of updates) {
+        if (!row || typeof row !== "object") continue;
+        const patch = row as Record<string, unknown>;
+        const id =
+          typeof patch.id === "number"
+            ? patch.id
+            : typeof patch.property_id === "number"
+              ? patch.property_id
+              : Number(patch.id ?? patch.property_id);
+        if (!Number.isFinite(id)) continue;
+        await upsertAccommodationUnitFromWpRow(session.organisationId, {
+          id,
+          title: typeof patch.title === "string" ? patch.title : undefined,
+          listing_status:
+            typeof patch.listing_status === "string" ? patch.listing_status : undefined,
+          weekday_rate:
+            typeof patch.weekday_rate === "number" ? patch.weekday_rate : undefined,
+          weekend_rate:
+            typeof patch.weekend_rate === "number" ? patch.weekend_rate : undefined,
+          cleaning_fee:
+            typeof patch.cleaning_fee === "number" ? patch.cleaning_fee : undefined,
+          housekeeping_status:
+            typeof patch.housekeeping_status === "string"
+              ? patch.housekeeping_status
+              : undefined,
+          housekeeping_notes:
+            typeof patch.housekeeping_notes === "string"
+              ? patch.housekeeping_notes
+              : undefined,
+          manual_blocked_dates: Array.isArray(patch.manual_blocked_dates)
+            ? (patch.manual_blocked_dates as string[])
+            : undefined,
+        }).catch(() => null);
+      }
+    }
     const result = await patchWpAccommodationUnits(updates, connector);
     if (!result.ok) {
       return NextResponse.json(
@@ -284,7 +526,9 @@ export async function PATCH(req: Request) {
         { status: 422 },
       );
     }
-    return NextResponse.json({ data: result.data });
+    return NextResponse.json({
+      data: { ...result.data, sot: usesUnits ? "neon_then_wp" : "wordpress" },
+    });
   }
 
   if (resource === "bookings") {
@@ -363,7 +607,52 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ data: result.data });
   }
 
-  // Default: housekeeping (existing behaviour).
+  // Default: housekeeping — Neon SoT when units/HK flag on (WP-D-404).
+  const hkSot = await organisationUsesHousekeepingSot(session.organisationId);
+  if (hkSot) {
+    type HkPatch = {
+      property_id?: number;
+      id?: number;
+      platform_id?: string;
+      status: string;
+      notes?: string;
+    };
+    const typed: HkPatch[] = [];
+    for (const raw of updates) {
+      if (!raw || typeof raw !== "object") continue;
+      const u = raw as Record<string, unknown>;
+      if (typeof u.status !== "string") continue;
+      typed.push({
+        property_id: typeof u.property_id === "number" ? u.property_id : undefined,
+        id: typeof u.id === "number" ? u.id : undefined,
+        platform_id: typeof u.platform_id === "string" ? u.platform_id : undefined,
+        status: u.status,
+        notes: typeof u.notes === "string" ? u.notes : undefined,
+      });
+    }
+    const neon = await updateUnitHousekeeping(session.organisationId, typed);
+    const mirror = await patchWpAccommodationHousekeeping(
+      typed.map((u: HkPatch) => ({
+        property_id: u.property_id ?? u.id ?? 0,
+        status: u.status,
+        notes: u.notes,
+      })),
+      connector,
+    ).catch(() => ({ ok: false as const, code: "mirror_failed", message: "WP mirror failed" }));
+
+    return NextResponse.json({
+      data: {
+        ok: true,
+        updated: neon.updated,
+        count: neon.count,
+        writePath: "neon_then_wp",
+        wpMirror: mirror.ok
+          ? { ok: true, ...(typeof mirror.data === "object" ? mirror.data : {}) }
+          : { ok: false, message: "message" in mirror ? mirror.message : "WP mirror failed" },
+      },
+    });
+  }
+
   const result = await patchWpAccommodationHousekeeping(updates, connector);
   if (!result.ok) {
     return NextResponse.json(
@@ -372,7 +661,7 @@ export async function PATCH(req: Request) {
     );
   }
 
-  return NextResponse.json({ data: result.data });
+  return NextResponse.json({ data: { ...result.data, writePath: "wordpress" } });
 }
 
 export async function DELETE(req: Request) {

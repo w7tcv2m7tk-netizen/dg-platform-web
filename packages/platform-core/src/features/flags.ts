@@ -94,4 +94,28 @@ export const KNOWN_FEATURE_FLAGS = [
     label: "Email notification digest",
     description: "Queue daily digest of in-app notifications (requires Resend)",
   },
+  {
+    id: "acc.units_sot",
+    label: "Accommodation units SoT (Neon)",
+    description:
+      "Force Gen 2 AccommodationUnit as SoT for units/availability (WP becomes mirror). Soft-on when Neon already has units.",
+  },
+  {
+    id: "acc.housekeeping_sot",
+    label: "Accommodation housekeeping SoT (Neon)",
+    description:
+      "Housekeeping PATCH writes Neon first; WordPress mirror optional. Soft-on with units SoT.",
+  },
+  {
+    id: "acc.gen2_first_booking",
+    label: "Gen 2-first stay create",
+    description:
+      "Ops create_booking conflict-checks Neon and creates StayBooking first, then dual-writes WordPress. Public book-now stays WP until cutover.",
+  },
+  {
+    id: "re.stage_writeback",
+    label: "RE stage write-back to WordPress",
+    description:
+      "When on, Gen 2 stage changes PATCH WordPress pipeline (plugin v10.68+). Gen 2 remains SoT either way.",
+  },
 ] as const;

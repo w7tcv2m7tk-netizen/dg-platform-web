@@ -61,6 +61,7 @@ model Organisation {
   platformApiKeys               PlatformApiKey[]
   stayBookings                  StayBooking[]
   accommodationGuestProfiles    AccommodationGuestProfile[]
+  accommodationUnits            AccommodationUnit[]
 
   referredBy        Organisation?  @relation("OrgReferral", fields: [referredByOrganisationId], references: [id], onDelete: SetNull)
   referralsMade     Organisation[] @relation("OrgReferral")
@@ -308,11 +309,64 @@ model Property {
   @@map("properties")
 }
 
-/** Hospitality stay booking synced from WordPress dg_booking posts */
+/**
+ * Hospitality unit / property (WP dg_accommodation mirror → Gen 2 SoT when synced).
+ * Housekeeping status + manual blocks live here; availability is derived with StayBooking.
+ */
+model AccommodationUnit {
+  id                   String    @id @default(cuid())
+  organisationId       String    @map("organisation_id")
+  /** WordPress dg_accommodation post ID when mirrored */
+  externalWpId         Int?      @map("external_wp_id")
+  title                String
+  slug                 String?
+  postStatus           String?   @map("post_status")
+  listingStatus        String    @default("bookable") @map("listing_status")
+  description          String?   @db.Text
+  accommodationType    String?   @map("accommodation_type")
+  address              String?
+  weekdayRateCents     Int?      @map("weekday_rate_cents")
+  weekendRateCents     Int?      @map("weekend_rate_cents")
+  cleaningFeeCents     Int?      @map("cleaning_fee_cents")
+  sleeps               Int?
+  bedrooms             Int?
+  bathrooms            Float?
+  maxGuests            Int?      @map("max_guests")
+  minNights            Int?      @map("min_nights")
+  checkinTime          String?   @map("checkin_time")
+  checkoutTime         String?   @map("checkout_time")
+  features             Json?
+  featuredImageUrl     String?   @map("featured_image_url")
+  galleryUrls          Json?     @map("gallery_urls")
+  airbnbIcalUrl        String?   @map("airbnb_ical_url")
+  bookingcomIcalUrl    String?   @map("bookingcom_ical_url")
+  icalExportUrl        String?   @map("ical_export_url")
+  housekeepingStatus   String    @default("unknown") @map("housekeeping_status")
+  housekeepingNotes    String?   @map("housekeeping_notes") @db.Text
+  lastCleaned          DateTime? @map("last_cleaned")
+  /** Operator manual blocks only (YYYY-MM-DD[]) */
+  manualBlockedDates   Json?     @map("manual_blocked_dates")
+  checkinUrl           String?   @map("checkin_url")
+  cleaningFormUrl      String?   @map("cleaning_form_url")
+  metadata             Json?
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  stayBookings StayBooking[]
+
+  @@unique([organisationId, externalWpId])
+  @@index([organisationId, listingStatus])
+  @@index([organisationId, housekeepingStatus])
+  @@map("accommodation_units")
+}
+
+/** Hospitality stay booking — Gen 2 read SoT; externalWpId null until WP mirror (Gen 2-first). */
 model StayBooking {
   id                 String    @id @default(cuid())
   organisationId     String    @map("organisation_id")
-  externalWpId       Int       @map("external_wp_id")
+  /** WordPress dg_booking post ID when mirrored; null for Gen 2-native creates */
+  externalWpId       Int?      @map("external_wp_id")
   ref                String?
   /** Universal Contact — guest is never a separate people object */
   contactId          String?   @map("contact_id")
@@ -321,6 +375,7 @@ model StayBooking {
   phone              String?
   accommodationName  String?   @map("accommodation_name")
   accommodationWpId  Int?      @map("accommodation_wp_id")
+  accommodationUnitId String?  @map("accommodation_unit_id")
   checkin            DateTime?
   checkout           DateTime?
   status             String    @default("pending")
@@ -329,13 +384,15 @@ model StayBooking {
   createdAt          DateTime  @default(now()) @map("created_at")
   updatedAt          DateTime  @updatedAt @map("updated_at")
 
-  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  contact      Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  organisation       Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  contact            Contact?           @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  accommodationUnit  AccommodationUnit? @relation(fields: [accommodationUnitId], references: [id], onDelete: SetNull)
 
   @@unique([organisationId, externalWpId])
   @@index([organisationId, status])
   @@index([organisationId, checkin])
   @@index([organisationId, contactId])
+  @@index([organisationId, accommodationUnitId])
   @@map("stay_bookings")
 }
 

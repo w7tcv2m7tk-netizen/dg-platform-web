@@ -3,6 +3,7 @@ import {
   syncBuyerLeadsFromWordPress,
   syncReBookingsFromWordPress,
   syncAccommodationBookingsFromWordPress,
+  syncAccommodationUnitsFromWordPress,
   syncPropertiesFromWordPress,
   type PlatformSession,
 } from "@dg/platform-core";
@@ -47,6 +48,8 @@ type OrgWordPressSettings = {
   lastBookingSync?: WordPressSyncResult;
   lastAccBookingSyncAt?: string;
   lastAccBookingSync?: WordPressSyncResult;
+  lastAccUnitSyncAt?: string;
+  lastAccUnitSync?: WordPressSyncResult;
   lastPropertySyncAt?: string;
   lastPropertySync?: WordPressSyncResult;
 };
@@ -265,6 +268,30 @@ export async function syncWordPressAccBookings(
   return { ok: true, result };
 }
 
+export async function syncWordPressAccUnits(
+  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
+): Promise<
+  | { ok: true; result: WordPressSyncResult }
+  | { ok: false; message: string }
+> {
+  const outcome = await syncAccommodationUnitsFromWordPress(session.organisationId);
+  if (!outcome.ok) {
+    return { ok: false, message: outcome.message };
+  }
+
+  const result: WordPressSyncResult = {
+    ...outcome.result,
+    ranAt: new Date().toISOString(),
+  };
+
+  await patchOrgWordPressSettings(session.organisationId, {
+    lastAccUnitSyncAt: result.ranAt,
+    lastAccUnitSync: result,
+  });
+
+  return { ok: true, result };
+}
+
 async function autoSyncIfNeeded(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
   lastAtKey:
@@ -272,6 +299,7 @@ async function autoSyncIfNeeded(
     | "lastBuyerLeadSyncAt"
     | "lastBookingSyncAt"
     | "lastAccBookingSyncAt"
+    | "lastAccUnitSyncAt"
     | "lastPropertySyncAt",
   run: () => Promise<
     | { ok: true; result: WordPressSyncResult }
@@ -335,6 +363,17 @@ export async function autoSyncWordPressAccBookingsIfNeeded(
     session,
     "lastAccBookingSyncAt",
     () => syncWordPressAccBookings(session),
+    WP_ACC_SYNC_INTERVAL_MS,
+  );
+}
+
+export async function autoSyncWordPressAccUnitsIfNeeded(
+  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
+): Promise<AutoSyncOutcome> {
+  return autoSyncIfNeeded(
+    session,
+    "lastAccUnitSyncAt",
+    () => syncWordPressAccUnits(session),
     WP_ACC_SYNC_INTERVAL_MS,
   );
 }

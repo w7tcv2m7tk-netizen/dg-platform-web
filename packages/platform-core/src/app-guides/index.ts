@@ -322,7 +322,7 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
         id: "acc-3",
         title: "Review units, bookings, availability, and housekeeping",
         description:
-          "Domes, rates, reservations, the 45-day availability grid, and housekeeping board all mirror WordPress.",
+          "Units, availability, and housekeeping prefer Neon AccommodationUnit when synced; stays read StayBooking. WordPress remains the public book-now mirror.",
         href: "/apps/accommodation/units",
         hrefLabel: "Units",
       },
@@ -330,7 +330,7 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
         id: "acc-3b",
         title: "Update housekeeping after turnovers",
         description:
-          "Mark units clean / dirty / in progress from Gen 2 — syncs to WordPress housekeeping meta.",
+          "Mark units clean / dirty / in progress in Gen 2 (Neon SoT when units synced) — optional WordPress mirror.",
         href: "/apps/accommodation/housekeeping",
         hrefLabel: "Housekeeping",
       },

@@ -160,6 +160,8 @@ Executable tickets: **[WP-DETACH-BACKLOG.md](./WP-DETACH-BACKLOG.md)** (P0 guard
 
 Value order: Roe ops independence before CVH booking engine before public sites. WP stays a connector for forms/public mirror/health probes — not Platform Core.
 
+**Aug 2026 slice:** AccommodationUnit Neon SoT (soft) + HK Neon-first; Gen 2-first stay create behind `acc.gen2_first_booking`; Roe lead dual-write webhook (`dg-leads`) + optional stage write-back (`re.stage_writeback`). Plugin **v10.68.0**. Still WP: public book-now/Stripe guest pay, portal/support/health, RE appraisal form capture origin, headless CMS.
+
 ---
 
 ## Workstream 6 — Platform performance & PWA

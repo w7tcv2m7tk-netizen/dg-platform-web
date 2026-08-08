@@ -1146,8 +1146,9 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "detach.roe_sot",
     area: "WP Detach",
     label: "P1 · Roe RE source of truth",
-    description: "Gen 2 lead create + capture; Neon property SoT; WP forms → webhook",
-    status: "planned",
+    description:
+      "Lead create/UI + stage SoT in Gen 2; WP forms dual-write via dg-leads; optional stage write-back",
+    status: "in_progress",
     priority: "high",
     appId: "real-estate",
     href: "/apps/re",
@@ -1175,7 +1176,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "WP Detach",
     label: "P4 · CVH booking SoT",
     description:
-      "StayBooking read SoT + dual-write; units/availability + Gen 2-first book-now still open",
+      "StayBooking + AccommodationUnit soft SoT; HK Neon-first; Gen 2-first ops create behind flag; public book-now still WP",
     status: "in_progress",
     priority: "medium",
     appId: "accommodation",
