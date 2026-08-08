@@ -130,9 +130,9 @@ In-app checklist lives on `/apps/accommodation` (`AccBetaChecklist`).
 
 Run as the property owner (or staff switched into their org).
 
-1. **Flag** — Confirm Accommodation appears in the sidebar (`acc.beta` on).
+1. **Flag + app** — Confirm Accommodation appears in the sidebar (`acc.beta` on + app installed via **Enable Acc beta**, not Flags-only).
 2. **Profile** — ABN + logo saved on Business Profile.
-3. **Connector** — Connectors page → Test / status OK; note last Acc booking sync.
+3. **Connector** — Connectors page → property Dev API key saved (URL-only preset does not count) → Test / status OK.
 4. **Units** — Sync units; confirm at least one unit; open OTA fields.
 5. **OTA** — Set one import URL (sandbox OK); confirm export URL present; sync calendars on Availability.
 6. **Booking** — Sync stays or create ops booking; confirm Bookings list.
@@ -148,9 +148,9 @@ Run as the property owner (or staff switched into their org).
 
 | Symptom | Check |
 |---------|--------|
-| No Accommodation in sidebar | `acc.beta` off — provision or Flags |
-| “Accommodation beta” gate page | Same — enrol org |
-| Sync fails / summary error | Connector base URL + API key; plugin ≥ 10.63.0; CVH key not Roe key |
+| No Accommodation in sidebar | Prefer **Enable Acc beta** (flag + AppInstallation). Flags-only can leave the app missing |
+| “Accommodation beta” gate page | Same — enrol org via Clients → Enable Acc beta |
+| Sync fails / summary error | Connector base URL + API key; plugin ≥ 10.63.0; property key only (never Roe/DG keys on another host) |
 | No units | Sync from WordPress; Accommodation module enabled on WP |
 | OTA gaps / double-book risk | Import vs export direction; never OTA↔OTA; run Availability sync |
 | Bookings empty | Sync StayBookings / wait for WP dual-write webhook |

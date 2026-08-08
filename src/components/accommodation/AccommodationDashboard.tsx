@@ -72,10 +72,10 @@ export function AccommodationDashboard({
         <div className="dg-card border-amber-500/30">
           <p className="text-amber-300">{error}</p>
           <p className="mt-2 text-sm text-slate-500">
-            Open Settings → Connectors while on the <strong>CVH</strong> business → paste the
-            key from currumbinvalleyhideaway.com.au → DG Platform → API Settings → Save (do not
-            leave the key blank). Roe/DigitalGate env keys are never sent to CVH. Optional Vercel
-            fallback:{" "}
+            Open Settings → Connectors while on this property org → paste the Dev API key from that
+            site’s WordPress → DG Platform → API Settings → Save (do not leave the key blank). Use
+            the property’s own key only — never paste Roe/DigitalGate keys onto another host.
+            Optional Vercel fallback for the CVH pilot:{" "}
             <code className="text-slate-400">DG_WP_ACCOMMODATION_API_KEY</code>.
           </p>
         </div>

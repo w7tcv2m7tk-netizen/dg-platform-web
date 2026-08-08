@@ -6,8 +6,11 @@ import {
 } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
+import { ConvertProspectToOrgButton } from "@/components/command/GrowthEngineActions";
 import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 import { ProspectStageSelect } from "@/components/command/ProspectStageSelect";
+
+const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding"]);
 
 const BOARD_STAGES = [
   "prospect",
@@ -105,12 +108,26 @@ export default async function GrowthPipelinePage() {
                               {prospect.websiteUrl.replace(/^https?:\/\//, "")}
                             </a>
                           ) : null}
-                          <div className="mt-2">
+                          <div className="mt-2 space-y-2">
                             <ProspectStageSelect
                               prospectId={prospect.id}
                               stage={prospect.stage}
                               stages={stages}
                             />
+                            {CONVERT_STAGES.has(prospect.stage) ||
+                            prospect.convertedOrganisationId ? (
+                              <ConvertProspectToOrgButton
+                                prospectId={prospect.id}
+                                convertedOrganisationId={
+                                  prospect.convertedOrganisationId
+                                }
+                                label={
+                                  prospect.stage === "proposal_sent"
+                                    ? "Convert to org"
+                                    : "Create client org"
+                                }
+                              />
+                            ) : null}
                           </div>
                         </li>
                       ))
@@ -135,11 +152,22 @@ export default async function GrowthPipelinePage() {
                           {GROWTH_ENGINE_STAGE_LABELS[prospect.stage] ?? prospect.stage}
                         </p>
                       </div>
-                      <ProspectStageSelect
-                        prospectId={prospect.id}
-                        stage={prospect.stage}
-                        stages={stages}
-                      />
+                      <div className="flex flex-col items-end gap-2">
+                        <ProspectStageSelect
+                          prospectId={prospect.id}
+                          stage={prospect.stage}
+                          stages={stages}
+                        />
+                        {CONVERT_STAGES.has(prospect.stage) ||
+                        prospect.convertedOrganisationId ? (
+                          <ConvertProspectToOrgButton
+                            prospectId={prospect.id}
+                            convertedOrganisationId={
+                              prospect.convertedOrganisationId
+                            }
+                          />
+                        ) : null}
+                      </div>
                     </li>
                   ))}
                 </ul>

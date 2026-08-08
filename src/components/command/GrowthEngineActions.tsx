@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -199,6 +200,78 @@ export function CreateProposalQuoteButton({
         disabled={pending}
         onClick={() => void onClick()}
         className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+      >
+        {pending ? "Creating…" : label}
+      </button>
+      {error ? <span className="text-[11px] text-rose-300">{error}</span> : null}
+    </div>
+  );
+}
+
+/** Create or finish linking a platform Organisation after a won Growth deal. */
+export function ConvertProspectToOrgButton({
+  prospectId,
+  label = "Create client org",
+  convertedOrganisationId,
+}: {
+  prospectId: string;
+  label?: string;
+  convertedOrganisationId?: string | null;
+}) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (convertedOrganisationId) {
+    return (
+      <Link
+        href="/command/clients"
+        className="text-xs text-emerald-400 hover:underline"
+      >
+        Org linked →
+      </Link>
+    );
+  }
+
+  async function onClick() {
+    if (
+      !window.confirm(
+        "Create a client organisation from this prospect? Name, website, and contact details carry over. No billing is created.",
+      )
+    ) {
+      return;
+    }
+    setPending(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/v1/command/growth/prospects/${prospectId}/transition`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        },
+      );
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(json?.error?.message ?? "Could not create client org");
+      }
+      router.push("/command/clients");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Transition failed");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className="inline-flex flex-col items-end gap-1">
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => void onClick()}
+        className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-200 hover:border-emerald-400/60 hover:bg-emerald-500/20 disabled:opacity-50"
       >
         {pending ? "Creating…" : label}
       </button>

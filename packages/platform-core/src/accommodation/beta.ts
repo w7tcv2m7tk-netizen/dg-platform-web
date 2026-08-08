@@ -15,6 +15,7 @@ export const ACC_BETA_FLAG = "acc.beta" as const;
 
 export type AccBetaChecklistItemId =
   | "flag"
+  | "app"
   | "profile_abn"
   | "profile_logo"
   | "wordpress"
@@ -49,9 +50,10 @@ type OrgSettings = {
   profile?: { abn?: string; logoUrl?: string };
 };
 
+/** True when a real key exists or Acc sync has already succeeded (not URL-only presets). */
 function wpConfigured(settings: OrgSettings | null): boolean {
   const wp = settings?.connectors?.wordpress;
-  return Boolean(wp?.baseUrl?.trim() || wp?.apiKey?.trim() || wp?.lastAccBookingSyncAt);
+  return Boolean(wp?.apiKey?.trim() || wp?.lastAccBookingSyncAt);
 }
 
 function wpLastSync(settings: OrgSettings | null): string | null {
@@ -121,7 +123,14 @@ export async function getAccBetaReadiness(
       label: "Acc beta enabled",
       done: betaEnabled,
       href: "/dashboard/apps",
-      hint: "DigitalGate staff enable acc.beta in Command Centre → Flags",
+      hint: "Ask DigitalGate to run Enable Acc beta on Command Centre → Clients (not Flags-only)",
+    },
+    {
+      id: "app",
+      label: "Accommodation app installed",
+      done: appInstalled,
+      href: "/dashboard/apps",
+      hint: "Staff Enable Acc beta installs the app — Flags-only may leave this unchecked",
     },
     {
       id: "profile_abn",
@@ -142,7 +151,7 @@ export async function getAccBetaReadiness(
       label: "WordPress connector",
       done: connectorConfigured,
       href: "/dashboard/settings/connectors",
-      hint: "Connect the property site (CVH) so units and stays sync",
+      hint: "Paste the property site Dev API key (base URL alone from a template preset is not enough)",
     },
     {
       id: "team",
@@ -168,9 +177,9 @@ export async function getAccBetaReadiness(
   ];
 
   const completedCount = items.filter((i) => i.done).length;
-  /** Pilot-ready: flag + connector + identity + at least one unit in Neon. */
+  /** Pilot-ready: flag + app + connector + identity + at least one unit in Neon. */
   const readyForPilot =
-    betaEnabled && connectorConfigured && hasAbn && hasUnit;
+    betaEnabled && appInstalled && connectorConfigured && hasAbn && hasUnit;
 
   return {
     organisationId,

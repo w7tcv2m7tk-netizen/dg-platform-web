@@ -5,6 +5,7 @@ import {
 } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
+import { ConvertProspectToOrgButton } from "@/components/command/GrowthEngineActions";
 import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 
 export default async function GrowthConversionsPage() {
@@ -109,9 +110,15 @@ export default async function GrowthConversionsPage() {
                           {row.convertedOrganisationId ? " · org linked" : ""}
                         </p>
                       </div>
-                      <span className="text-xs text-slate-500">
-                        {new Date(row.updatedAt).toLocaleDateString("en-AU")}
-                      </span>
+                      <div className="flex flex-col items-end gap-2">
+                        <ConvertProspectToOrgButton
+                          prospectId={row.id}
+                          convertedOrganisationId={row.convertedOrganisationId}
+                        />
+                        <span className="text-xs text-slate-500">
+                          {new Date(row.updatedAt).toLocaleDateString("en-AU")}
+                        </span>
+                      </div>
                     </li>
                   ))}
                 </ul>

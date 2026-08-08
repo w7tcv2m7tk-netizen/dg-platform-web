@@ -1,8 +1,8 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { organisationHasAccBeta } from "@dg/platform-core";
 
 import { AccBetaGateMessage } from "@/components/accommodation/AccBetaChecklist";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { checkAccBetaAccess } from "@/lib/acc-beta-access";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 /**
@@ -34,7 +34,7 @@ export default async function AccommodationAppLayout({
 
   if (!session) return children;
 
-  const allowed = await organisationHasAccBeta(session.organisationId);
+  const { allowed } = await checkAccBetaAccess(session.organisationId);
   if (allowed) return children;
 
   return (

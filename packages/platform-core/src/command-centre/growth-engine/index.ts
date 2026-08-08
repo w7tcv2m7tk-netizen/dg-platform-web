@@ -6,6 +6,7 @@ export * from "./reports";
 export * from "./proposals";
 export * from "./follow-ups";
 export * from "./conversions";
+export * from "./client-transition";
 
 /** Route prefix for Growth Engine modules inside Command Centre */
 export const GROWTH_ENGINE_BASE_PATH = "/command/growth-engine";

@@ -1146,8 +1146,9 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "growth.transition",
     area: "Growth Engine",
     label: "Client transition",
-    description: "Prospect accepted → org, subscription, apps, onboarding, Twin",
-    status: "planned",
+    description:
+      "Prospect → create/link client org + onboarding stage (no invented billing; Stripe attribution later)",
+    status: "in_progress",
     appId: "command-centre",
     href: "/command/growth-engine/pipeline",
   },

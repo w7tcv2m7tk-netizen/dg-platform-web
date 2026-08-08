@@ -245,29 +245,29 @@ Sales funnel metrics for leadership:
 
 ## Module 10 — Client Transition
 
-When proposal is accepted — **zero re-keying**:
+When a deal is won — **zero re-keying** for identity:
 
 ```
-Prospect accepted
+Prospect won / Convert to org
       ↓
-Organisation created (Postgres + Clerk)
+Organisation created or linked (Postgres)
       ↓
-Subscription activated (Stripe)
+Apps installed from industry template (sidebar)
       ↓
-Apps installed (plan → sidebar)
+Stage → onboarding · convertedOrganisationId set
       ↓
-Onboarding started (portal sync)
+Staff admin seat (switch into client org)
       ↓
-Website connected (Connectors)
+Website connected (Connectors — operator)
       ↓
-Digital Twin™ initial snapshot
-      ↓
-Business Dashboard live
+Subscription / Twin (later — not invented here)
 ```
 
-Prospect history, audit, and report attach to the new org as provenance.
+**Shipped (GE-8a):** `transitionGrowthProspectToClient` + `POST /api/v1/command/growth/prospects/[id]/transition` + Pipeline / Proposals / Reports / Conversions CTAs (“Create client org” / “Convert to org”). Carries business name, website, contact, industry/location into Business Profile. No Stripe subscription is created.
 
-**Integration:** `provisionOrganisation`, onboarding sync, Apps & plan, Connectors — already shipping in Platform 1.0.
+**Still planned:** contact invite as owner, subscription attribution (MRR), Twin snapshot.
+
+Prospect history, audit, and report remain on the Growth prospect; `settings.growth.sourceProspectId` links the new org.
 
 ---
 

@@ -3,10 +3,13 @@ import { listGrowthProspectReports } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import {
+  ConvertProspectToOrgButton,
   CopyShareLinkButton,
   MarkReportSentButton,
 } from "@/components/command/GrowthEngineActions";
 import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
+
+const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding"]);
 
 export default async function GrowthReportsPage() {
   const db = Boolean(process.env.DATABASE_URL);
@@ -90,6 +93,16 @@ export default async function GrowthReportsPage() {
                     >
                       Pipeline →
                     </Link>
+                    {CONVERT_STAGES.has(report.prospect.stage) ||
+                    report.prospect.convertedOrganisationId ? (
+                      <ConvertProspectToOrgButton
+                        prospectId={report.prospectId}
+                        convertedOrganisationId={
+                          report.prospect.convertedOrganisationId
+                        }
+                        label="Convert to org"
+                      />
+                    ) : null}
                   </div>
                 </div>
                 {report.executiveSummary ? (

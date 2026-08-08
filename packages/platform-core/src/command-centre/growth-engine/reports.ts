@@ -68,6 +68,7 @@ export async function listGrowthProspectReports(options?: { limit?: number }) {
           location: true,
           stage: true,
           contactEmail: true,
+          convertedOrganisationId: true,
         },
       },
     },

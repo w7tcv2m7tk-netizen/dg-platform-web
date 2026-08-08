@@ -2,7 +2,10 @@ import Link from "next/link";
 import { listGrowthProposalDrafts } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
-import { CreateProposalQuoteButton } from "@/components/command/GrowthEngineActions";
+import {
+  ConvertProspectToOrgButton,
+  CreateProposalQuoteButton,
+} from "@/components/command/GrowthEngineActions";
 import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 
 function formatAud(cents: number) {
@@ -93,6 +96,16 @@ export default async function GrowthProposalsPage() {
                       >
                         Open last quote →
                       </Link>
+                    ) : null}
+                    {draft.latestQuoteId ||
+                    draft.stage === "proposal_sent" ||
+                    draft.stage === "won" ||
+                    draft.stage === "onboarding" ? (
+                      <ConvertProspectToOrgButton
+                        prospectId={draft.prospectId}
+                        convertedOrganisationId={draft.convertedOrganisationId}
+                        label="Convert to org"
+                      />
                     ) : null}
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 export * from "./provision";
 export * from "./memberships";
+export * from "./client-org";
 export * from "./membership-profile";
 export * from "./setup-status";
 export * from "./onboarding-profile";
