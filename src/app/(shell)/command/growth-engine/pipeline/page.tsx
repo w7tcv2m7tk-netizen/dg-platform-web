@@ -6,7 +6,10 @@ import {
 } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
-import { ConvertProspectToOrgButton } from "@/components/command/GrowthEngineActions";
+import {
+  ArchiveProspectButton,
+  ConvertProspectToOrgButton,
+} from "@/components/command/GrowthEngineActions";
 import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 import { ProspectStageSelect } from "@/components/command/ProspectStageSelect";
 
@@ -23,9 +26,19 @@ const BOARD_STAGES = [
   "lost",
 ] as const;
 
-export default async function GrowthPipelinePage() {
+interface PageProps {
+  searchParams: Promise<{ archived?: string }>;
+}
+
+export default async function GrowthPipelinePage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const showArchived = params.archived === "1";
   const stages = growthPipelineStages();
-  const prospects = process.env.DATABASE_URL ? await listGrowthProspects() : [];
+  const prospects = process.env.DATABASE_URL
+    ? await listGrowthProspects(
+        showArchived ? { archivedOnly: true, limit: 200 } : undefined,
+      )
+    : [];
 
   const columns = BOARD_STAGES.map((stage) => ({
     stage,
@@ -44,8 +57,26 @@ export default async function GrowthPipelinePage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Prospect Pipeline</h1>
         <p className="mt-1 text-sm text-slate-400">
-          {prospects.length} prospect{prospects.length === 1 ? "" : "s"} · drag-free board with
-          stage controls
+          {prospects.length}{" "}
+          {showArchived ? "archived" : "active"} prospect
+          {prospects.length === 1 ? "" : "s"} · drag-free board with stage controls
+        </p>
+        <p className="mt-2 text-xs">
+          {showArchived ? (
+            <Link
+              href="/command/growth-engine/pipeline"
+              className="text-sky-400 hover:underline"
+            >
+              ← Hide archived
+            </Link>
+          ) : (
+            <Link
+              href="/command/growth-engine/pipeline?archived=1"
+              className="text-slate-500 hover:text-sky-400 hover:underline"
+            >
+              Show archived
+            </Link>
+          )}
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -58,14 +89,42 @@ export default async function GrowthPipelinePage() {
           </div>
         ) : prospects.length === 0 ? (
           <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-6 max-w-xl">
-            <p className="text-slate-300">No prospects yet.</p>
-            <Link
-              href="/command/growth-engine/discovery"
-              className="mt-3 inline-block text-sm text-sky-400 hover:underline"
-            >
-              Add your first prospect →
-            </Link>
+            <p className="text-slate-300">
+              {showArchived ? "No archived prospects." : "No prospects yet."}
+            </p>
+            {!showArchived ? (
+              <Link
+                href="/command/growth-engine/discovery"
+                className="mt-3 inline-block text-sm text-sky-400 hover:underline"
+              >
+                Add your first prospect →
+              </Link>
+            ) : null}
           </div>
+        ) : showArchived ? (
+          <ul className="space-y-2 max-w-2xl">
+            {prospects.map((prospect) => (
+              <li
+                key={prospect.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3"
+              >
+                <div>
+                  <p className="font-medium text-white">{prospect.businessName}</p>
+                  <p className="text-xs text-slate-500">
+                    {GROWTH_ENGINE_STAGE_LABELS[prospect.stage] ?? prospect.stage}
+                    {prospect.archivedAt
+                      ? ` · Archived ${new Date(prospect.archivedAt).toLocaleDateString("en-AU")}`
+                      : ""}
+                  </p>
+                </div>
+                <ArchiveProspectButton
+                  prospectId={prospect.id}
+                  businessName={prospect.businessName}
+                  archived
+                />
+              </li>
+            ))}
+          </ul>
         ) : (
           <>
             <div className="flex gap-3 overflow-x-auto pb-2">
@@ -128,6 +187,10 @@ export default async function GrowthPipelinePage() {
                                 }
                               />
                             ) : null}
+                            <ArchiveProspectButton
+                              prospectId={prospect.id}
+                              businessName={prospect.businessName}
+                            />
                           </div>
                         </li>
                       ))
@@ -167,6 +230,10 @@ export default async function GrowthPipelinePage() {
                             }
                           />
                         ) : null}
+                        <ArchiveProspectButton
+                          prospectId={prospect.id}
+                          businessName={prospect.businessName}
+                        />
                       </div>
                     </li>
                   ))}

@@ -56,6 +56,7 @@ export async function listGrowthProspectReports(options?: { limit?: number }) {
   const limit = Math.min(options?.limit ?? 50, 100);
 
   const rows = await prisma.growthProspectReport.findMany({
+    where: { prospect: { archivedAt: null } },
     orderBy: { generatedAt: "desc" },
     take: limit,
     include: {
@@ -101,7 +102,7 @@ export async function createGrowthProspectReport(input: {
   const prospect = await prisma.growthProspect.findUnique({
     where: { id: input.prospectId },
   });
-  if (!prospect) return null;
+  if (!prospect || prospect.archivedAt) return null;
 
   const audit = input.auditId
     ? await prisma.growthProspectAudit.findFirst({
@@ -256,11 +257,13 @@ export async function getPublicGrowthOpportunityReport(shareToken: string) {
           industry: true,
           location: true,
           stage: true,
+          archivedAt: true,
         },
       },
     },
   });
-  if (!report) return null;
+  // Soft-archived prospects: share tokens stay but public page is unavailable.
+  if (!report || report.prospect.archivedAt) return null;
 
   const audit = report.auditId
     ? await prisma.growthProspectAudit.findUnique({ where: { id: report.auditId } })
@@ -304,6 +307,8 @@ export async function getPublicGrowthOpportunityReport(shareToken: string) {
     aiVisibility: audit?.aiVisibility ?? null,
   };
 
+  const { archivedAt: _archivedAt, ...publicProspect } = report.prospect;
+
   return {
     id: report.id,
     shareToken: report.shareToken,
@@ -313,7 +318,7 @@ export async function getPublicGrowthOpportunityReport(shareToken: string) {
     firstViewedAt: updated.firstViewedAt?.toISOString() ?? null,
     generatedAt: report.generatedAt.toISOString(),
     auditedAt: audit?.auditedAt.toISOString() ?? null,
-    prospect: report.prospect,
+    prospect: publicProspect,
     scores,
     findings,
     recommendedActions: recommendedActions(findings),

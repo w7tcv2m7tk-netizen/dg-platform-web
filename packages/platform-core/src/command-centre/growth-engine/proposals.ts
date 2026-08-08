@@ -211,6 +211,7 @@ export async function listGrowthProposalDrafts(options?: { limit?: number }) {
 
   const prospects = await prisma.growthProspect.findMany({
     where: {
+      archivedAt: null,
       stage: {
         in: [
           "report_viewed",

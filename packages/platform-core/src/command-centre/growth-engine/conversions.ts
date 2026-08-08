@@ -34,10 +34,10 @@ export async function getGrowthConversionDashboard(options?: {
       where: { type: "meeting_booked", occurredAt: { gte: since } },
     }),
     prisma.growthProspect.count({
-      where: { stage: "won", updatedAt: { gte: since } },
+      where: { archivedAt: null, stage: "won", updatedAt: { gte: since } },
     }),
     prisma.growthProspect.count({
-      where: { stage: "lost", updatedAt: { gte: since } },
+      where: { archivedAt: null, stage: "lost", updatedAt: { gte: since } },
     }),
   ]);
 
@@ -47,7 +47,7 @@ export async function getGrowthConversionDashboard(options?: {
   const reportViewRatePercent = percent(reportViewed, reportsSent);
 
   const wonRows = await prisma.growthProspect.findMany({
-    where: { stage: "won", updatedAt: { gte: since } },
+    where: { archivedAt: null, stage: "won", updatedAt: { gte: since } },
     select: { createdAt: true, updatedAt: true },
     take: 50,
   });
@@ -86,21 +86,26 @@ export async function getGrowthConversionSnapshot(options?: { days?: number }) {
   const [won, lost, proposalsSent, totalProspects, byStage, recentWins] =
     await Promise.all([
       prisma.growthProspect.count({
-        where: { stage: "won", updatedAt: { gte: since } },
+        where: { archivedAt: null, stage: "won", updatedAt: { gte: since } },
       }),
       prisma.growthProspect.count({
-        where: { stage: "lost", updatedAt: { gte: since } },
+        where: { archivedAt: null, stage: "lost", updatedAt: { gte: since } },
       }),
       prisma.growthProspectEngagement.count({
-        where: { type: "proposal_sent", occurredAt: { gte: since } },
+        where: {
+          type: "proposal_sent",
+          occurredAt: { gte: since },
+          prospect: { archivedAt: null },
+        },
       }),
-      prisma.growthProspect.count(),
+      prisma.growthProspect.count({ where: { archivedAt: null } }),
       prisma.growthProspect.groupBy({
         by: ["stage"],
+        where: { archivedAt: null },
         _count: { id: true },
       }),
       prisma.growthProspect.findMany({
-        where: { stage: { in: ["won", "onboarding"] } },
+        where: { archivedAt: null, stage: { in: ["won", "onboarding"] } },
         orderBy: { updatedAt: "desc" },
         take: 8,
         select: {

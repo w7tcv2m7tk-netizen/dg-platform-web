@@ -27,6 +27,7 @@ export async function getGrowthFollowUpQueue(options?: {
 
   const rows = await prisma.growthProspect.findMany({
     where: {
+      archivedAt: null,
       stage: { in: IDLE_FOLLOW_UP_STAGES },
       updatedAt: { lte: cutoff },
     },

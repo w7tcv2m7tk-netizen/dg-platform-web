@@ -21,9 +21,12 @@ export async function GET(req: Request) {
   }
 
   const stage = searchParams.get("stage") ?? undefined;
+  const archived = searchParams.get("archived");
   const prospects = await listGrowthProspects({
     stage: stage as import("@dg/platform-core").ProspectPipelineStage | undefined,
     ownerClerkUserId: searchParams.get("owner") ?? undefined,
+    includeArchived: archived === "1" || archived === "all",
+    archivedOnly: archived === "only",
   });
 
   return NextResponse.json({ data: prospects });

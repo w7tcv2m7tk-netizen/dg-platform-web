@@ -6,11 +6,19 @@ import {
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { CreateProspectForm } from "@/components/command/CreateProspectForm";
-import { RunProspectAuditButton } from "@/components/command/GrowthEngineActions";
+import {
+  ArchiveProspectButton,
+  RunProspectAuditButton,
+} from "@/components/command/GrowthEngineActions";
 import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 
 interface PageProps {
-  searchParams: Promise<{ q?: string; industry?: string; location?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    industry?: string;
+    location?: string;
+    archived?: string;
+  }>;
 }
 
 export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
@@ -18,8 +26,14 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
   const q = (params.q ?? "").trim().toLowerCase();
   const industry = (params.industry ?? "").trim().toLowerCase();
   const location = (params.location ?? "").trim().toLowerCase();
+  const showArchived = params.archived === "1";
 
-  const all = process.env.DATABASE_URL ? await listGrowthProspects({ limit: 200 }) : [];
+  const all = process.env.DATABASE_URL
+    ? await listGrowthProspects({
+        limit: 200,
+        ...(showArchived ? { archivedOnly: true } : {}),
+      })
+    : [];
   const filtered = all.filter((p) => {
     if (q) {
       const hay = `${p.businessName} ${p.contactName ?? ""} ${p.websiteUrl ?? ""}`.toLowerCase();
@@ -30,6 +44,16 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
     return true;
   });
 
+  const filterHref = (archived: boolean) => {
+    const sp = new URLSearchParams();
+    if (params.q) sp.set("q", params.q);
+    if (params.industry) sp.set("industry", params.industry);
+    if (params.location) sp.set("location", params.location);
+    if (archived) sp.set("archived", "1");
+    const qs = sp.toString();
+    return `/command/growth-engine/discovery${qs ? `?${qs}` : ""}`;
+  };
+
   return (
     <>
       <header className="dg-page-header">
@@ -39,6 +63,20 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
         <h1 className="mt-2 text-2xl font-bold text-white">Business Discovery</h1>
         <p className="mt-1 text-sm text-slate-400">
           Add prospects and filter the book. Automated search / GBP crawl is still GE-2.
+        </p>
+        <p className="mt-2 text-xs">
+          {showArchived ? (
+            <Link href={filterHref(false)} className="text-sky-400 hover:underline">
+              ← Hide archived
+            </Link>
+          ) : (
+            <Link
+              href={filterHref(true)}
+              className="text-slate-500 hover:text-sky-400 hover:underline"
+            >
+              Show archived
+            </Link>
+          )}
         </p>
       </header>
       <main className="dg-page-main space-y-8">
@@ -58,6 +96,7 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
 
           <div className="space-y-4">
             <form className="grid gap-3 sm:grid-cols-3" method="get">
+              {showArchived ? <input type="hidden" name="archived" value="1" /> : null}
               <label className="block text-sm">
                 <span className="text-slate-400">Search</span>
                 <input
@@ -100,7 +139,9 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
             ) : filtered.length === 0 ? (
               <p className="text-sm text-slate-500">
                 {all.length === 0
-                  ? "No prospects yet — add one on the left."
+                  ? showArchived
+                    ? "No archived prospects."
+                    : "No prospects yet — add one on the left."
                   : "No prospects match these filters."}
               </p>
             ) : (
@@ -118,16 +159,26 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
                           .filter(Boolean)
                           .map((v) => ` · ${v}`)
                           .join("")}
+                        {prospect.archivedAt ? " · Archived" : ""}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Link
-                        href="/command/growth-engine/pipeline"
-                        className="text-xs text-sky-400 hover:underline"
-                      >
-                        Pipeline
-                      </Link>
-                      <RunProspectAuditButton prospectId={prospect.id} label="Audit" />
+                      {!showArchived ? (
+                        <>
+                          <Link
+                            href="/command/growth-engine/pipeline"
+                            className="text-xs text-sky-400 hover:underline"
+                          >
+                            Pipeline
+                          </Link>
+                          <RunProspectAuditButton prospectId={prospect.id} label="Audit" />
+                        </>
+                      ) : null}
+                      <ArchiveProspectButton
+                        prospectId={prospect.id}
+                        businessName={prospect.businessName}
+                        archived={showArchived}
+                      />
                     </div>
                   </li>
                 ))}

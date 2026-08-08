@@ -83,7 +83,7 @@ export async function runGrowthProspectAudit(input: {
   const prospect = await prisma.growthProspect.findUnique({
     where: { id: input.prospectId },
   });
-  if (!prospect) return null;
+  if (!prospect || prospect.archivedAt) return null;
 
   const presence = await runPresenceAudit({
     businessName: prospect.businessName,
@@ -125,6 +125,7 @@ export async function listGrowthProspectAudits(options?: { limit?: number }) {
   const limit = Math.min(options?.limit ?? 50, 100);
 
   const rows = await prisma.growthProspectAudit.findMany({
+    where: { prospect: { archivedAt: null } },
     orderBy: { auditedAt: "desc" },
     take: limit,
     include: {
@@ -153,6 +154,7 @@ export async function listProspectsNeedingAudit(options?: { limit?: number }) {
 
   const rows = await prisma.growthProspect.findMany({
     where: {
+      archivedAt: null,
       stage: { in: ["prospect", "audit_created"] },
       audits: { none: {} },
     },

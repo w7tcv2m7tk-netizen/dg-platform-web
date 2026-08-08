@@ -1,6 +1,6 @@
 import type { Prisma } from "@dg/database";
 
-export type AuditAction = "create" | "update" | "delete" | "export";
+export type AuditAction = "create" | "update" | "delete" | "export" | "archive" | "restore";
 
 export interface WriteAuditLogInput {
   organisationId: string;

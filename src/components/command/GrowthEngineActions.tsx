@@ -208,6 +208,73 @@ export function CreateProposalQuoteButton({
   );
 }
 
+/** Soft-archive (or restore) a Growth prospect for Command Centre demo cleanup. */
+export function ArchiveProspectButton({
+  prospectId,
+  businessName,
+  archived = false,
+}: {
+  prospectId: string;
+  businessName?: string;
+  archived?: boolean;
+}) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onClick() {
+    const label = businessName?.trim() || "this prospect";
+    if (archived) {
+      if (!window.confirm(`Restore ${label} to the active pipeline?`)) return;
+    } else if (
+      !window.confirm(
+        `Archive ${label}? They will leave Pipeline and Discovery. Audits and reports stay on file; public opportunity links become unavailable. Quotes/invoices are unchanged.`,
+      )
+    ) {
+      return;
+    }
+
+    setPending(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/v1/command/growth/prospects/${prospectId}`, {
+        method: archived ? "POST" : "DELETE",
+        headers: archived ? { "Content-Type": "application/json" } : undefined,
+        body: archived ? JSON.stringify({ action: "restore" }) : undefined,
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(
+          json?.error?.message ?? (archived ? "Could not restore" : "Could not archive"),
+        );
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Request failed");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className="inline-flex flex-col items-end gap-1">
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => void onClick()}
+        className={
+          archived
+            ? "rounded-lg border border-sky-500/40 px-3 py-1.5 text-xs font-medium text-sky-200 hover:border-sky-400/60 disabled:opacity-50"
+            : "rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-rose-500/40 hover:text-rose-200 disabled:opacity-50"
+        }
+      >
+        {pending ? (archived ? "Restoring…" : "Archiving…") : archived ? "Restore" : "Archive"}
+      </button>
+      {error ? <span className="text-[11px] text-rose-300">{error}</span> : null}
+    </div>
+  );
+}
+
 /** Create or finish linking a platform Organisation after a won Growth deal. */
 export function ConvertProspectToOrgButton({
   prospectId,

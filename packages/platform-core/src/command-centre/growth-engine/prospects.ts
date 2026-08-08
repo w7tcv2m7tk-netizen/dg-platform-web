@@ -59,9 +59,15 @@ function serializeProspect(row: GrowthProspect) {
     stage: row.stage as ProspectPipelineStage,
     ownerClerkUserId: row.ownerClerkUserId,
     convertedOrganisationId: row.convertedOrganisationId,
+    archivedAt: row.archivedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
+}
+
+/** Active (non-archived) prospects — use in pipeline / discovery defaults. */
+export function activeProspectWhere(extra?: Record<string, unknown>) {
+  return { archivedAt: null, ...extra };
 }
 
 export function growthPipelineStages(): ProspectPipelineStage[] {
@@ -72,12 +78,23 @@ export async function listGrowthProspects(options?: {
   stage?: ProspectPipelineStage;
   ownerClerkUserId?: string;
   limit?: number;
+  /** When true, include soft-archived prospects (default: hide them). */
+  includeArchived?: boolean;
+  /** When true, only return archived prospects. */
+  archivedOnly?: boolean;
 }) {
   const { prisma } = await import("@dg/database");
   const limit = Math.min(options?.limit ?? 100, 200);
 
+  const archivedFilter = options?.archivedOnly
+    ? { archivedAt: { not: null } }
+    : options?.includeArchived
+      ? {}
+      : { archivedAt: null };
+
   const rows = await prisma.growthProspect.findMany({
     where: {
+      ...archivedFilter,
       ...(options?.stage ? { stage: options.stage } : {}),
       ...(options?.ownerClerkUserId ? { ownerClerkUserId: options.ownerClerkUserId } : {}),
     },
@@ -193,18 +210,124 @@ export async function updateGrowthProspect(input: UpdateGrowthProspectInput) {
   return serializeProspect(row);
 }
 
+/**
+ * Soft-archive a prospect for Command Centre demo cleanup.
+ * Keeps audits/reports/engagements; hides from default lists and disables public share.
+ */
+export async function archiveGrowthProspect(input: {
+  prospectId: string;
+  actorId?: string;
+  operatorOrganisationId?: string;
+}) {
+  const { prisma } = await import("@dg/database");
+
+  const existing = await prisma.growthProspect.findUnique({
+    where: { id: input.prospectId },
+  });
+  if (!existing) return null;
+  if (existing.archivedAt) return serializeProspect(existing);
+
+  const row = await prisma.growthProspect.update({
+    where: { id: input.prospectId },
+    data: { archivedAt: new Date() },
+  });
+
+  await prisma.growthProspectEngagement.create({
+    data: {
+      prospectId: row.id,
+      type: "prospect_archived",
+      metadata: {},
+    },
+  });
+
+  if (input.operatorOrganisationId) {
+    await writeAuditLog({
+      organisationId: input.operatorOrganisationId,
+      actorId: input.actorId,
+      action: "archive",
+      entityType: "GrowthProspect",
+      entityId: row.id,
+      changes: { archivedAt: row.archivedAt?.toISOString() },
+    });
+  }
+
+  await platformEvents.publish({
+    type: "prospect.archived",
+    organisationId: input.operatorOrganisationId ?? "platform",
+    actorId: input.actorId,
+    entityType: "GrowthProspect",
+    entityId: row.id,
+    payload: { businessName: row.businessName },
+    occurredAt: new Date(),
+  });
+
+  return serializeProspect(row);
+}
+
+export async function restoreGrowthProspect(input: {
+  prospectId: string;
+  actorId?: string;
+  operatorOrganisationId?: string;
+}) {
+  const { prisma } = await import("@dg/database");
+
+  const existing = await prisma.growthProspect.findUnique({
+    where: { id: input.prospectId },
+  });
+  if (!existing) return null;
+  if (!existing.archivedAt) return serializeProspect(existing);
+
+  const row = await prisma.growthProspect.update({
+    where: { id: input.prospectId },
+    data: { archivedAt: null },
+  });
+
+  await prisma.growthProspectEngagement.create({
+    data: {
+      prospectId: row.id,
+      type: "prospect_restored",
+      metadata: {},
+    },
+  });
+
+  if (input.operatorOrganisationId) {
+    await writeAuditLog({
+      organisationId: input.operatorOrganisationId,
+      actorId: input.actorId,
+      action: "restore",
+      entityType: "GrowthProspect",
+      entityId: row.id,
+      changes: { archivedAt: null },
+    });
+  }
+
+  await platformEvents.publish({
+    type: "prospect.restored",
+    organisationId: input.operatorOrganisationId ?? "platform",
+    actorId: input.actorId,
+    entityType: "GrowthProspect",
+    entityId: row.id,
+    payload: { businessName: row.businessName },
+    occurredAt: new Date(),
+  });
+
+  return serializeProspect(row);
+}
+
 export async function getGrowthEngineSummary() {
   const { prisma } = await import("@dg/database");
 
   const [total, byStage, recentEngagements] = await Promise.all([
-    prisma.growthProspect.count(),
+    prisma.growthProspect.count({ where: { archivedAt: null } }),
     prisma.growthProspect.groupBy({
       by: ["stage"],
+      where: { archivedAt: null },
       _count: { id: true },
     }),
     prisma.growthProspectEngagement.count({
       where: {
         occurredAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+        prospect: { archivedAt: null },
       },
     }),
   ]);

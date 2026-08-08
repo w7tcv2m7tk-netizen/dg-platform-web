@@ -1,4 +1,9 @@
-import { getGrowthProspect, updateGrowthProspect } from "@dg/platform-core";
+import {
+  archiveGrowthProspect,
+  getGrowthProspect,
+  restoreGrowthProspect,
+  updateGrowthProspect,
+} from "@dg/platform-core";
 import type { ProspectPipelineStage } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
@@ -59,4 +64,62 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   }
 
   return NextResponse.json({ data: updated });
+}
+
+/** Soft-archive prospect (demo cleanup). Audits/reports remain; hidden from default lists. */
+export async function DELETE(req: Request, { params }: RouteParams) {
+  const session = await requirePlatformAuth(req);
+  if (isNextResponse(session)) return session;
+
+  const denied = requireFeature(session, "command.growth.manage");
+  if (denied) return denied;
+
+  const { id } = await params;
+  const archived = await archiveGrowthProspect({
+    prospectId: id,
+    actorId: session.clerkUserId,
+    operatorOrganisationId: session.organisationId,
+  });
+
+  if (!archived) {
+    return NextResponse.json(
+      { error: { code: "not_found", message: "Prospect not found" } },
+      { status: 404 },
+    );
+  }
+
+  return NextResponse.json({ data: archived });
+}
+
+/** Restore a soft-archived prospect (`{ "action": "restore" }`). */
+export async function POST(req: Request, { params }: RouteParams) {
+  const session = await requirePlatformAuth(req);
+  if (isNextResponse(session)) return session;
+
+  const denied = requireFeature(session, "command.growth.manage");
+  if (denied) return denied;
+
+  const { id } = await params;
+  const body = await req.json().catch(() => null);
+  if (body?.action !== "restore") {
+    return NextResponse.json(
+      { error: { code: "validation_error", message: 'Expected action: "restore"' } },
+      { status: 422 },
+    );
+  }
+
+  const restored = await restoreGrowthProspect({
+    prospectId: id,
+    actorId: session.clerkUserId,
+    operatorOrganisationId: session.organisationId,
+  });
+
+  if (!restored) {
+    return NextResponse.json(
+      { error: { code: "not_found", message: "Prospect not found" } },
+      { status: 404 },
+    );
+  }
+
+  return NextResponse.json({ data: restored });
 }

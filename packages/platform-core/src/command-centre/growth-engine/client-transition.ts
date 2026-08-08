@@ -54,6 +54,7 @@ export async function transitionGrowthProspectToClient(
     where: { id: input.prospectId },
   });
   if (!prospect) return { error: "not_found" };
+  if (prospect.archivedAt) return { error: "not_found" };
 
   if (prospect.convertedOrganisationId) {
     return {

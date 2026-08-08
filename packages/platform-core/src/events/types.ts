@@ -31,6 +31,8 @@ export type PlatformEventType =
   | "organisation.created"
   | "app.installed"
   | "prospect.created"
+  | "prospect.archived"
+  | "prospect.restored"
   | "prospect.report_sent"
   | "prospect.report_viewed"
   | "prospect.proposal_accepted"
