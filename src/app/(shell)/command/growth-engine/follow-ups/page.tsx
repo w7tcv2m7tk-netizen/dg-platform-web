@@ -7,11 +7,17 @@ import {
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import {
+  ConvertProspectToOrgButton,
+  CopyShareLinkButton,
+  CreateProposalQuoteButton,
   GenerateProspectReportButton,
+  MarkReportSentButton,
   RunProspectAuditButton,
 } from "@/components/command/GrowthEngineActions";
 import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 import { ProspectStageSelect } from "@/components/command/ProspectStageSelect";
+
+const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding", "report_viewed"]);
 
 export default async function GrowthFollowUpsPage() {
   const db = Boolean(process.env.DATABASE_URL);
@@ -26,7 +32,7 @@ export default async function GrowthFollowUpsPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Smart Follow-Up</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Idle prospects (≥5 days without stage movement) — queue from live pipeline data.
+          Idle prospects (≥5 days without stage movement) — actionable CTAs from live pipeline data.
         </p>
       </header>
       <main className="dg-page-main space-y-8">
@@ -57,6 +63,9 @@ export default async function GrowthFollowUpsPage() {
                       {item.latestAuditScore != null
                         ? ` · Health ${item.latestAuditScore}`
                         : ""}
+                      {item.hasReport
+                        ? ` · ${item.reportViewCount} view${item.reportViewCount === 1 ? "" : "s"}`
+                        : ""}
                       {item.lastEngagementType
                         ? ` · last ${item.lastEngagementType.replace(/_/g, " ")}`
                         : ""}
@@ -77,14 +86,48 @@ export default async function GrowthFollowUpsPage() {
                     {!item.latestAuditScore ? (
                       <RunProspectAuditButton prospectId={item.prospectId} />
                     ) : !item.hasReport ? (
-                      <GenerateProspectReportButton prospectId={item.prospectId} />
+                      <>
+                        <GenerateProspectReportButton
+                          prospectId={item.prospectId}
+                          auditId={item.latestAuditId ?? undefined}
+                          markSent
+                        />
+                        <GenerateProspectReportButton
+                          prospectId={item.prospectId}
+                          auditId={item.latestAuditId ?? undefined}
+                          label="Generate draft"
+                        />
+                      </>
                     ) : (
-                      <Link
-                        href="/command/growth-engine/reports"
-                        className="text-xs text-sky-400 hover:underline"
-                      >
-                        Open reports →
-                      </Link>
+                      <>
+                        {item.reportSharePath ? (
+                          <>
+                            <CopyShareLinkButton sharePath={item.reportSharePath} />
+                            <Link
+                              href={`${item.reportSharePath}?preview=1`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-sky-400 hover:underline"
+                            >
+                              Open report (preview) →
+                            </Link>
+                          </>
+                        ) : null}
+                        {item.reportId && !item.reportSentAt ? (
+                          <MarkReportSentButton reportId={item.reportId} />
+                        ) : null}
+                        <CreateProposalQuoteButton
+                          prospectId={item.prospectId}
+                          label="Propose quote"
+                        />
+                        {CONVERT_STAGES.has(item.stage) || item.convertedOrganisationId ? (
+                          <ConvertProspectToOrgButton
+                            prospectId={item.prospectId}
+                            convertedOrganisationId={item.convertedOrganisationId}
+                            label="Convert to org"
+                          />
+                        ) : null}
+                      </>
                     )}
                   </div>
                 </div>

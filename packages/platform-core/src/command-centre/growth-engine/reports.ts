@@ -197,12 +197,25 @@ export async function markGrowthReportSent(input: {
   const { prisma } = await import("@dg/database");
   const existing = await prisma.growthProspectReport.findUnique({
     where: { id: input.reportId },
+    include: {
+      prospect: { select: { stage: true, archivedAt: true } },
+    },
   });
-  if (!existing) return null;
+  if (!existing || existing.prospect.archivedAt) return null;
+
+  const alreadySent = Boolean(existing.sentAt);
+  if (alreadySent) {
+    return {
+      id: existing.id,
+      sentAt: existing.sentAt?.toISOString() ?? null,
+      sharePath: growthReportSharePath(existing.shareToken),
+      alreadySent: true,
+    };
+  }
 
   const report = await prisma.growthProspectReport.update({
     where: { id: input.reportId },
-    data: { sentAt: existing.sentAt ?? new Date() },
+    data: { sentAt: new Date() },
   });
 
   await prisma.growthProspectEngagement.create({
@@ -214,17 +227,22 @@ export async function markGrowthReportSent(input: {
     },
   });
 
-  await updateGrowthProspect({
-    prospectId: report.prospectId,
-    stage: "report_sent",
-    actorId: input.actorId,
-    operatorOrganisationId: input.operatorOrganisationId,
-  });
+  // Don't rewind later funnel stages when marking sent.
+  const mayAdvance = new Set(["prospect", "audit_created", "email_opened"]);
+  if (mayAdvance.has(existing.prospect.stage)) {
+    await updateGrowthProspect({
+      prospectId: report.prospectId,
+      stage: "report_sent",
+      actorId: input.actorId,
+      operatorOrganisationId: input.operatorOrganisationId,
+    });
+  }
 
   return {
     id: report.id,
     sentAt: report.sentAt?.toISOString() ?? null,
     sharePath: growthReportSharePath(report.shareToken),
+    alreadySent: false,
   };
 }
 
@@ -238,11 +256,16 @@ const VIEW_STAGE_ADVANCE_FROM = new Set([
 
 /**
  * Load a shareable opportunity report by token and record the view.
+ * Pass `recordView: false` (staff preview) to skip engagement / stage advance.
  * Safe for unauthenticated public pages — returns only prospect-facing fields.
  */
-export async function getPublicGrowthOpportunityReport(shareToken: string) {
+export async function getPublicGrowthOpportunityReport(
+  shareToken: string,
+  options?: { recordView?: boolean },
+) {
   const token = shareToken.trim();
   if (!token) return null;
+  const recordView = options?.recordView !== false;
 
   const { prisma } = await import("@dg/database");
 
@@ -273,31 +296,38 @@ export async function getPublicGrowthOpportunityReport(shareToken: string) {
       });
 
   const findings = findingItems(audit?.findings);
-  const now = new Date();
-  const isFirstView = !report.firstViewedAt;
+  let viewCount = report.viewCount;
+  let firstViewedAt = report.firstViewedAt;
 
-  const updated = await prisma.growthProspectReport.update({
-    where: { id: report.id },
-    data: {
-      viewCount: { increment: 1 },
-      firstViewedAt: report.firstViewedAt ?? now,
-    },
-  });
+  if (recordView) {
+    const now = new Date();
+    const isFirstView = !report.firstViewedAt;
 
-  await prisma.growthProspectEngagement.create({
-    data: {
-      prospectId: report.prospectId,
-      reportId: report.id,
-      type: "report_viewed",
-      metadata: { firstView: isFirstView },
-    },
-  });
-
-  if (VIEW_STAGE_ADVANCE_FROM.has(report.prospect.stage)) {
-    await updateGrowthProspect({
-      prospectId: report.prospectId,
-      stage: "report_viewed",
+    const updated = await prisma.growthProspectReport.update({
+      where: { id: report.id },
+      data: {
+        viewCount: { increment: 1 },
+        firstViewedAt: report.firstViewedAt ?? now,
+      },
     });
+    viewCount = updated.viewCount;
+    firstViewedAt = updated.firstViewedAt;
+
+    await prisma.growthProspectEngagement.create({
+      data: {
+        prospectId: report.prospectId,
+        reportId: report.id,
+        type: "report_viewed",
+        metadata: { firstView: isFirstView },
+      },
+    });
+
+    if (VIEW_STAGE_ADVANCE_FROM.has(report.prospect.stage)) {
+      await updateGrowthProspect({
+        prospectId: report.prospectId,
+        stage: "report_viewed",
+      });
+    }
   }
 
   const scores = {
@@ -314,8 +344,8 @@ export async function getPublicGrowthOpportunityReport(shareToken: string) {
     shareToken: report.shareToken,
     sharePath: growthReportSharePath(report.shareToken),
     executiveSummary: report.executiveSummary,
-    viewCount: updated.viewCount,
-    firstViewedAt: updated.firstViewedAt?.toISOString() ?? null,
+    viewCount,
+    firstViewedAt: firstViewedAt?.toISOString() ?? null,
     generatedAt: report.generatedAt.toISOString(),
     auditedAt: audit?.auditedAt.toISOString() ?? null,
     prospect: publicProspect,
@@ -324,5 +354,6 @@ export async function getPublicGrowthOpportunityReport(shareToken: string) {
     recommendedActions: recommendedActions(findings),
     howDigitalGateHelps:
       "DigitalGate connects Website Health, AI Visibility™, SEO, and industry apps into one operating system — so these gaps become a managed programme, not a spreadsheet.",
+    preview: !recordView,
   };
 }

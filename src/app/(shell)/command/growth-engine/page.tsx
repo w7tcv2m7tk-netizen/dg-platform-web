@@ -1,14 +1,28 @@
 import Link from "next/link";
-import { getGrowthEngineSummary } from "@dg/platform-core";
+import {
+  GROWTH_ENGINE_STAGE_LABELS,
+  getGrowthEngineSummary,
+  getSalesCallRecommendations,
+} from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
+import {
+  ConvertProspectToOrgButton,
+  CreateProposalQuoteButton,
+} from "@/components/command/GrowthEngineActions";
 import {
   GrowthEngineModuleGrid,
   GrowthEngineNav,
 } from "@/components/command/GrowthEngineNav";
 
 export default async function GrowthEngineHubPage() {
-  const summary = process.env.DATABASE_URL ? await getGrowthEngineSummary() : null;
+  const db = Boolean(process.env.DATABASE_URL);
+  const [summary, callToday] = db
+    ? await Promise.all([
+        getGrowthEngineSummary(),
+        getSalesCallRecommendations({ limit: 8, idleDays: 2 }),
+      ])
+    : [null, []];
 
   return (
     <>
@@ -51,6 +65,77 @@ export default async function GrowthEngineHubPage() {
             </p>
           </div>
         )}
+
+        <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-semibold text-white">Call today</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Ranked from idle days, report views, and health scores — no invented metrics.
+              </p>
+            </div>
+            <Link
+              href="/command/growth-engine/follow-ups"
+              className="text-xs text-sky-400 hover:underline"
+            >
+              Full follow-up queue →
+            </Link>
+          </div>
+          {!db ? (
+            <p className="mt-4 text-sm text-slate-500">Database required.</p>
+          ) : callToday.length === 0 ? (
+            <p className="mt-4 text-sm text-emerald-200/90">
+              No high-priority call targets right now.
+            </p>
+          ) : (
+            <ul className="mt-4 space-y-3">
+              {callToday.map((rec, index) => (
+                <li
+                  key={rec.prospectId}
+                  className="flex flex-wrap items-start justify-between gap-3 border-t border-slate-800/80 pt-3 first:border-0 first:pt-0"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-white">
+                      <span className="mr-2 text-slate-500">{index + 1}.</span>
+                      {rec.businessName}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {GROWTH_ENGINE_STAGE_LABELS[rec.stage] ?? rec.stage}
+                      {rec.businessHealthScore
+                        ? ` · Health ${rec.businessHealthScore}`
+                        : ""}
+                      {rec.reportViewCount
+                        ? ` · ${rec.reportViewCount} view${rec.reportViewCount === 1 ? "" : "s"}`
+                        : ""}
+                      {` · priority ${rec.priority}`}
+                    </p>
+                    <p className="mt-1 text-sm text-amber-100/90">{rec.reason}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <CreateProposalQuoteButton
+                      prospectId={rec.prospectId}
+                      label="Propose"
+                    />
+                    {(rec.stage === "proposal_sent" ||
+                      rec.stage === "report_viewed" ||
+                      rec.stage === "meeting_booked") && (
+                      <ConvertProspectToOrgButton
+                        prospectId={rec.prospectId}
+                        label="Convert"
+                      />
+                    )}
+                    <Link
+                      href="/command/growth-engine/pipeline"
+                      className="text-xs text-sky-400 hover:underline"
+                    >
+                      Pipeline →
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
         <p className="text-sm text-slate-400">
           Start with Discovery → run a presence Audit → generate an Opportunity Report → track on

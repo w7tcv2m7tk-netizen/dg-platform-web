@@ -120,6 +120,12 @@ export default async function GrowthAuditsPage() {
                           <GenerateProspectReportButton
                             prospectId={audit.prospectId}
                             auditId={audit.id}
+                            markSent
+                          />
+                          <GenerateProspectReportButton
+                            prospectId={audit.prospectId}
+                            auditId={audit.id}
+                            label="Draft only"
                           />
                         </div>
                       </div>

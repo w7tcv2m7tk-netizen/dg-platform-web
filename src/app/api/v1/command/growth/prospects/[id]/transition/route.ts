@@ -96,7 +96,7 @@ export async function POST(req: Request, { params }: RouteParams) {
       data: {
         ...result,
         transitionedAt: result.transitionedAt.toISOString(),
-        clientsHref: `/command/clients`,
+        clientsHref: result.nextSteps.clientsHref,
       },
     },
     { status: 201 },

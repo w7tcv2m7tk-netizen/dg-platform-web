@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getCommandCentreOpsHome } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
@@ -9,6 +10,12 @@ import { getPlatformPageContext } from "@/lib/platform-page-context";
 interface PageProps {
   params: Promise<{ segments?: string[] }>;
 }
+
+/** Placeholder Command routes that must not show fake UI — redirect to real surfaces. */
+const VAPOR_REDIRECTS: Record<string, string> = {
+  support: "/support",
+  audit: "/dashboard/settings/audit",
+};
 
 async function CommandOverviewPage() {
   const { session } = await getPlatformPageContext();
@@ -62,6 +69,11 @@ export default async function CommandPage({ params }: PageProps) {
 
   if (!segments?.length) {
     return <CommandOverviewPage />;
+  }
+
+  const head = segments[0];
+  if (head && VAPOR_REDIRECTS[head] && segments.length === 1) {
+    redirect(VAPOR_REDIRECTS[head]);
   }
 
   const href = `/command/${segments.join("/")}`;

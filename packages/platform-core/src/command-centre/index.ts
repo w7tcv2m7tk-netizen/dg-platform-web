@@ -27,6 +27,7 @@ export const COMMAND_CENTRE_ROUTES = {
   advisor: `${COMMAND_CENTRE_BASE_PATH}/advisor`,
   benchmarks: `${COMMAND_CENTRE_BASE_PATH}/benchmarks`,
   flags: `${COMMAND_CENTRE_BASE_PATH}/flags`,
-  support: `${COMMAND_CENTRE_BASE_PATH}/support`,
+  /** @deprecated redirects to /support — no Command Support Centre page */
+  support: "/support",
   growthEngine: `${COMMAND_CENTRE_BASE_PATH}/growth-engine`,
 } as const;

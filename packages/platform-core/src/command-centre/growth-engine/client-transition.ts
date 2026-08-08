@@ -246,13 +246,29 @@ export async function transitionGrowthProspectToClient(
     occurredAt: transitionedAt,
   });
 
+  const org = await prisma.organisation.findUnique({
+    where: { id: organisationId },
+    select: { name: true },
+  });
+
   const result: ClientTransitionResult = {
     prospectId: prospect.id,
     organisationId,
+    organisationName: org?.name ?? prospect.businessName,
     installedAppIds,
     onboardingStarted: true,
     twinSnapshotCreated: false,
     transitionedAt,
+    contactEmail: prospect.contactEmail,
+    contactName: prospect.contactName,
+    nextSteps: {
+      clientsHref: "/command/clients",
+      teamHref: "/dashboard/settings/team",
+      billingHref: "/dashboard/settings/billing",
+      connectorsHref: "/dashboard/settings/connectors",
+      switchHint:
+        "Switch into the new client org (org switcher), then invite the owner and open Billing — Stripe checkout is created there, not invented here.",
+    },
   };
 
   return result;

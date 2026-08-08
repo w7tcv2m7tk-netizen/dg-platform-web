@@ -4,6 +4,31 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+async function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // fall through to execCommand
+  }
+  try {
+    const el = document.createElement("textarea");
+    el.value = text;
+    el.setAttribute("readonly", "");
+    el.style.position = "fixed";
+    el.style.left = "-9999px";
+    document.body.appendChild(el);
+    el.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(el);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 export function RunProspectAuditButton({
   prospectId,
   label = "Run audit",
@@ -65,10 +90,12 @@ export function GenerateProspectReportButton({
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   async function onClick() {
     setPending(true);
     setError(null);
+    setCopied(false);
     try {
       const res = await fetch("/api/v1/command/growth/reports", {
         method: "POST",
@@ -78,6 +105,15 @@ export function GenerateProspectReportButton({
       const json = await res.json().catch(() => null);
       if (!res.ok) {
         throw new Error(json?.error?.message ?? "Could not generate report");
+      }
+      const sharePath = json?.data?.sharePath as string | undefined;
+      if (sharePath) {
+        const origin = typeof window !== "undefined" ? window.location.origin : "";
+        const ok = await copyText(`${origin}${sharePath}`);
+        if (ok) {
+          setCopied(true);
+          window.setTimeout(() => setCopied(false), 2500);
+        }
       }
       router.push("/command/growth-engine/reports");
       router.refresh();
@@ -96,7 +132,11 @@ export function GenerateProspectReportButton({
         onClick={() => void onClick()}
         className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-sky-500/50 hover:text-white disabled:opacity-50"
       >
-        {pending ? "Generating…" : label ?? (markSent ? "Generate & mark sent" : "Generate report")}
+        {pending
+          ? "Generating…"
+          : copied
+            ? "Link copied"
+            : (label ?? (markSent ? "Generate & mark sent" : "Generate report"))}
       </button>
       {error ? <span className="text-[11px] text-rose-300">{error}</span> : null}
     </div>
@@ -106,53 +146,79 @@ export function GenerateProspectReportButton({
 export function MarkReportSentButton({ reportId }: { reportId: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
 
   async function onClick() {
     setPending(true);
-    await fetch("/api/v1/command/growth/reports", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "mark_sent", reportId }),
-    });
-    setPending(false);
-    router.refresh();
+    setError(null);
+    try {
+      const res = await fetch("/api/v1/command/growth/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "mark_sent", reportId }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(json?.error?.message ?? "Could not mark sent");
+      }
+      setDone(true);
+      const sharePath = json?.data?.sharePath as string | undefined;
+      if (sharePath) {
+        const origin = typeof window !== "undefined" ? window.location.origin : "";
+        await copyText(`${origin}${sharePath}`);
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Mark sent failed");
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
-    <button
-      type="button"
-      disabled={pending}
-      onClick={() => void onClick()}
-      className="text-xs text-sky-400 hover:underline disabled:opacity-50"
-    >
-      {pending ? "Saving…" : "Mark sent"}
-    </button>
+    <div className="inline-flex flex-col items-end gap-1">
+      <button
+        type="button"
+        disabled={pending || done}
+        onClick={() => void onClick()}
+        className="text-xs text-sky-400 hover:underline disabled:opacity-50"
+      >
+        {pending ? "Saving…" : done ? "Marked sent" : "Mark sent"}
+      </button>
+      {error ? <span className="text-[11px] text-rose-300">{error}</span> : null}
+    </div>
   );
 }
 
 export function CopyShareLinkButton({ sharePath }: { sharePath: string }) {
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onClick() {
+    setError(null);
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     const url = `${origin}${sharePath}`;
-    try {
-      await navigator.clipboard.writeText(url);
+    const ok = await copyText(url);
+    if (ok) {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(false);
+    } else {
+      setError("Copy failed — select the link manually");
     }
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => void onClick()}
-      className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-sky-500/50 hover:text-white"
-    >
-      {copied ? "Copied" : "Copy share link"}
-    </button>
+    <div className="inline-flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={() => void onClick()}
+        className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-sky-500/50 hover:text-white"
+      >
+        {copied ? "Copied" : "Copy share link"}
+      </button>
+      {error ? <span className="text-[11px] text-rose-300">{error}</span> : null}
+    </div>
   );
 }
 
@@ -275,6 +341,14 @@ export function ArchiveProspectButton({
   );
 }
 
+type TransitionNextSteps = {
+  clientsHref: string;
+  teamHref: string;
+  billingHref: string;
+  connectorsHref: string;
+  switchHint: string;
+};
+
 /** Create or finish linking a platform Organisation after a won Growth deal. */
 export function ConvertProspectToOrgButton({
   prospectId,
@@ -288,8 +362,16 @@ export function ConvertProspectToOrgButton({
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [invitePending, setInvitePending] = useState(false);
+  const [inviteMessage, setInviteMessage] = useState<string | null>(null);
+  const [result, setResult] = useState<{
+    organisationId: string;
+    organisationName: string;
+    contactEmail: string | null;
+    nextSteps: TransitionNextSteps;
+  } | null>(null);
 
-  if (convertedOrganisationId) {
+  if (convertedOrganisationId && !result) {
     return (
       <Link
         href="/command/clients"
@@ -298,6 +380,41 @@ export function ConvertProspectToOrgButton({
         Org linked →
       </Link>
     );
+  }
+
+  async function inviteOwner(email: string) {
+    setInvitePending(true);
+    setInviteMessage(null);
+    setError(null);
+    try {
+      // Switch into the new client org first so team invite targets it.
+      const switchRes = await fetch("/api/v1/org/switch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ organisationId: result!.organisationId }),
+      });
+      const switchJson = await switchRes.json().catch(() => null);
+      if (!switchRes.ok) {
+        throw new Error(
+          switchJson?.error?.message ??
+            "Could not switch into client org — use org switcher, then Team → invite",
+        );
+      }
+      const inviteRes = await fetch("/api/v1/org/team/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, role: "admin" }),
+      });
+      const inviteJson = await inviteRes.json().catch(() => null);
+      if (!inviteRes.ok) {
+        throw new Error(inviteJson?.error?.message ?? "Invite failed");
+      }
+      setInviteMessage(`Invite sent to ${email} (owner/admin). Open Billing next.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invite failed");
+    } finally {
+      setInvitePending(false);
+    }
   }
 
   async function onClick() {
@@ -323,13 +440,73 @@ export function ConvertProspectToOrgButton({
       if (!res.ok) {
         throw new Error(json?.error?.message ?? "Could not create client org");
       }
-      router.push("/command/clients");
+      const data = json?.data;
+      setResult({
+        organisationId: data.organisationId as string,
+        organisationName: (data.organisationName as string) || "Client org",
+        contactEmail: (data.contactEmail as string | null) ?? null,
+        nextSteps: data.nextSteps as TransitionNextSteps,
+      });
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Transition failed");
     } finally {
       setPending(false);
     }
+  }
+
+  if (result) {
+    const { nextSteps, contactEmail, organisationName } = result;
+    return (
+      <div className="w-full max-w-sm rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-3 text-left">
+        <p className="text-xs font-medium text-emerald-200">
+          Org created · {organisationName}
+        </p>
+        <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
+          {nextSteps.switchHint}
+        </p>
+        <ul className="mt-2 space-y-1 text-xs">
+          <li>
+            <Link href={nextSteps.clientsHref} className="text-sky-400 hover:underline">
+              Clients list →
+            </Link>
+          </li>
+          <li>
+            <Link href={nextSteps.teamHref} className="text-sky-400 hover:underline">
+              Team / invite owner →
+            </Link>
+          </li>
+          <li>
+            <Link href={nextSteps.billingHref} className="text-sky-400 hover:underline">
+              Billing (Stripe checkout) →
+            </Link>
+          </li>
+          <li>
+            <Link href={nextSteps.connectorsHref} className="text-sky-400 hover:underline">
+              Connectors →
+            </Link>
+          </li>
+        </ul>
+        {contactEmail ? (
+          <button
+            type="button"
+            disabled={invitePending}
+            onClick={() => void inviteOwner(contactEmail)}
+            className="mt-3 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-100 hover:bg-emerald-500/20 disabled:opacity-50"
+          >
+            {invitePending ? "Inviting…" : `Invite ${contactEmail}`}
+          </button>
+        ) : (
+          <p className="mt-2 text-[11px] text-slate-500">
+            No contact email on prospect — invite from Team after switching org.
+          </p>
+        )}
+        {inviteMessage ? (
+          <p className="mt-2 text-[11px] text-emerald-300">{inviteMessage}</p>
+        ) : null}
+        {error ? <p className="mt-2 text-[11px] text-rose-300">{error}</p> : null}
+      </div>
+    );
   }
 
   return (

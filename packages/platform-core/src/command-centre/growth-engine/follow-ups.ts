@@ -52,10 +52,11 @@ export async function getGrowthFollowUpQueue(options?: {
   return rows.map((row) => {
     const idle = daysSince(row.updatedAt);
     const latestEngagement = row.engagements[0];
+    const latestReport = row.reports[0];
     const reason =
       row.stage === "prospect" && !row.audits[0]
         ? "No audit yet — run presence audit"
-        : row.stage === "audit_created" && !row.reports[0]
+        : row.stage === "audit_created" && !latestReport
           ? "Audit ready — generate and send opportunity report"
           : row.stage === "report_sent" || row.stage === "email_opened"
             ? "Report outbound with no recent engagement logged"
@@ -77,7 +78,16 @@ export async function getGrowthFollowUpQueue(options?: {
       lastEngagementType: latestEngagement?.type ?? null,
       lastEngagementAt: latestEngagement?.occurredAt.toISOString() ?? null,
       latestAuditScore: row.audits[0]?.businessHealth ?? null,
-      hasReport: Boolean(row.reports[0]),
+      latestAuditId: row.audits[0]?.id ?? null,
+      hasReport: Boolean(latestReport),
+      reportId: latestReport?.id ?? null,
+      reportShareToken: latestReport?.shareToken ?? null,
+      reportSharePath: latestReport
+        ? `/opportunity/${latestReport.shareToken}`
+        : null,
+      reportSentAt: latestReport?.sentAt?.toISOString() ?? null,
+      reportViewCount: latestReport?.viewCount ?? 0,
+      convertedOrganisationId: row.convertedOrganisationId,
       updatedAt: row.updatedAt.toISOString(),
     };
   });

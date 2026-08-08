@@ -601,7 +601,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Websites",
     label: "Website Builder MVP",
     description:
-      "Structured model + AI generate + renderer + forms→CRM; Domains go-live; WP import queue-only",
+      "Structured model + AI generate + renderer + forms→CRM; Domains go-live; WP content import v0",
     status: "done",
     priority: "high",
     appId: "websites",

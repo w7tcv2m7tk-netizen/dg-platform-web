@@ -35,7 +35,7 @@ const MODULES = [
   {
     href: GROWTH_ENGINE_ROUTES.proposals,
     title: "Proposal Generator",
-    description: "Audit-based service briefings (Commerce quotes next)",
+    description: "Audit briefings + Commerce list-price quotes",
     status: "Live",
   },
   {

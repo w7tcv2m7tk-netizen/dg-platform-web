@@ -80,12 +80,20 @@ export default async function GrowthReportsPage() {
                     {!report.sentAt ? <MarkReportSentButton reportId={report.id} /> : null}
                     <CopyShareLinkButton sharePath={report.sharePath} />
                     <Link
-                      href={report.sharePath}
+                      href={`${report.sharePath}?preview=1`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-sky-400 hover:underline"
                     >
-                      Open public report →
+                      Open preview →
+                    </Link>
+                    <Link
+                      href={report.sharePath}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-slate-500 hover:text-sky-400 hover:underline"
+                    >
+                      Open as prospect (counts view) →
                     </Link>
                     <Link
                       href="/command/growth-engine/pipeline"

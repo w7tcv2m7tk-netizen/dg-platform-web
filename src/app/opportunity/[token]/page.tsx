@@ -4,12 +4,16 @@ import { getPublicGrowthOpportunityReport } from "@dg/platform-core";
 
 export default async function PublicOpportunityReportPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }) {
   const { token } = await params;
+  const { preview } = await searchParams;
+  const isPreview = preview === "1" || preview === "true";
   const report = process.env.DATABASE_URL
-    ? await getPublicGrowthOpportunityReport(token)
+    ? await getPublicGrowthOpportunityReport(token, { recordView: !isPreview })
     : null;
 
   if (!report) notFound();
@@ -22,6 +26,11 @@ export default async function PublicOpportunityReportPage({
     <div className="min-h-screen bg-[#0b1220] text-slate-100">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(56,189,248,0.12),_transparent_55%),radial-gradient(ellipse_at_bottom_right,_rgba(14,165,233,0.08),_transparent_40%)]" />
       <div className="relative mx-auto max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
+        {isPreview ? (
+          <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            Staff preview — this visit is not counted and will not advance pipeline stage.
+          </div>
+        ) : null}
         <header className="border-b border-slate-800/80 pb-8">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-400">
             DigitalGate

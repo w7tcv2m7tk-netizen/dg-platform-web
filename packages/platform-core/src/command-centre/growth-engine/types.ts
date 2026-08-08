@@ -196,10 +196,22 @@ export interface GrowthConversionDashboard {
 export interface ClientTransitionResult {
   prospectId: string;
   organisationId: string;
+  organisationName: string;
   clerkOrgId?: string;
   subscriptionId?: string;
   installedAppIds: string[];
   onboardingStarted: boolean;
   twinSnapshotCreated: boolean;
   transitionedAt: Date;
+  /** Contact email carried from prospect — used for owner invite CTA */
+  contactEmail: string | null;
+  contactName: string | null;
+  /** Honest next-step deep links — no invented Stripe checkout / MRR */
+  nextSteps: {
+    clientsHref: string;
+    teamHref: string;
+    billingHref: string;
+    connectorsHref: string;
+    switchHint: string;
+  };
 }

@@ -24,10 +24,9 @@ export const commandCentreApp: AppManifest = {
     { path: "/command/opportunities", label: "Client Expansion" },
     { path: "/command/benchmarks", label: "Benchmarking" },
     { path: "/command/reports", label: "Executive Dashboard" },
-    { path: "/command/support", label: "Support Centre" },
     { path: "/command/flags", label: "Feature Flags" },
-    { path: "/command/audit", label: "Audit & Compliance" },
     // Growth Engine™ — acquisition pipeline (internal)
+    // /command/support and /command/audit redirect away — not listed (no fake UI)
     { path: "/command/growth-engine", label: "Growth Engine" },
     { path: "/command/growth-engine/discovery", label: "Business Discovery" },
     { path: "/command/growth-engine/audits", label: "AI Audit Engine" },
