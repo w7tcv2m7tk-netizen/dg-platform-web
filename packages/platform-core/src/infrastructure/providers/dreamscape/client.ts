@@ -46,9 +46,9 @@ export function normalizeDreamscapeResellerId(
   return id || null;
 }
 
-/** Header name for Reseller ID; default Api-Reseller-Id (Api-* convention). */
+/** Header name for Reseller ID; default X-Reseller-Id (Dreamscape support). */
 export function resolveDreamscapeResellerIdHeader(): string {
-  const configured = process.env.DREAMSCAPE_RESELLER_ID_HEADER?.trim();
+  const configured = readServerEnv("DREAMSCAPE_RESELLER_ID_HEADER")?.trim();
   return configured || DREAMSCAPE_DEFAULT_RESELLER_ID_HEADER;
 }
 
@@ -60,11 +60,45 @@ export function resolveDreamscapeResellerIdHeader(): string {
  */
 export function resolveDreamscapeHttpsProxy(): string | null {
   const raw =
-    process.env.DREAMSCAPE_HTTPS_PROXY?.trim() ||
-    process.env.HTTPS_PROXY?.trim() ||
-    process.env.https_proxy?.trim() ||
+    readServerEnv("DREAMSCAPE_HTTPS_PROXY")?.trim() ||
+    readServerEnv("HTTPS_PROXY")?.trim() ||
+    readServerEnv("https_proxy")?.trim() ||
     "";
   return raw || null;
+}
+
+/**
+ * Read server env at request time via bracket access.
+ * Avoids accidental build-time inlining of empty values when identifier
+ * form `process.env.FOO` is statically analyzed / bundled.
+ * Server-only — never call from client components.
+ */
+function readServerEnv(name: string): string | undefined {
+  const value = process.env[name];
+  return typeof value === "string" ? value : undefined;
+}
+
+/** Safe env presence for API debug — never includes secret values. */
+export type DreamscapeEnvPresence = {
+  hasKey: boolean;
+  hasResellerId: boolean;
+  hasBaseUrl: boolean;
+  /** Normalized key length (0 when missing). Never the key itself. */
+  keyLength: number;
+};
+
+export function dreamscapeEnvPresence(): DreamscapeEnvPresence {
+  const apiKey = normalizeDreamscapeApiKey(readServerEnv("DREAMSCAPE_API_KEY"));
+  const resellerId = normalizeDreamscapeResellerId(
+    readServerEnv("DREAMSCAPE_RESELLER_ID"),
+  );
+  const baseUrl = readServerEnv("DREAMSCAPE_API_BASE_URL")?.trim();
+  return {
+    hasKey: Boolean(apiKey),
+    hasResellerId: Boolean(resellerId),
+    hasBaseUrl: Boolean(baseUrl),
+    keyLength: apiKey?.length ?? 0,
+  };
 }
 
 type ProxyDispatcher = { close?: () => Promise<void> };
@@ -118,6 +152,10 @@ async function resolveProxiedFetch(proxyUrl: string): Promise<{
  * Dreamscape support (Aug 2026): Reseller ID must be passed with the API key.
  * Sandbox has no IP whitelist (IP was a red herring for sandbox 401s).
  */
+/**
+ * Resolve Dreamscape config at call/request time (not module init).
+ * Trims / strip-quotes via normalize helpers. Server-only.
+ */
 export function resolveDreamscapeConfig(): {
   apiKey: string | null;
   resellerId: string | null;
@@ -126,11 +164,11 @@ export function resolveDreamscapeConfig(): {
   isSandbox: boolean;
   httpsProxy: string | null;
 } {
-  const apiKey = normalizeDreamscapeApiKey(process.env.DREAMSCAPE_API_KEY);
+  const apiKey = normalizeDreamscapeApiKey(readServerEnv("DREAMSCAPE_API_KEY"));
   const resellerId = normalizeDreamscapeResellerId(
-    process.env.DREAMSCAPE_RESELLER_ID,
+    readServerEnv("DREAMSCAPE_RESELLER_ID"),
   );
-  const configured = process.env.DREAMSCAPE_API_BASE_URL?.trim();
+  const configured = readServerEnv("DREAMSCAPE_API_BASE_URL")?.trim();
   const baseUrl = (configured || DREAMSCAPE_SANDBOX_BASE_URL).replace(/\/$/, "");
   const isSandbox = baseUrl.includes("sandbox");
   return {
@@ -143,6 +181,7 @@ export function resolveDreamscapeConfig(): {
   };
 }
 
+/** Both API key and Reseller ID are required (Dreamscape support). */
 export function isDreamscapeConfigured(): boolean {
   const { apiKey, resellerId } = resolveDreamscapeConfig();
   return Boolean(apiKey && resellerId);
@@ -189,7 +228,7 @@ export function describeDreamscapeAuthFailure(
       code: "auth_missing_reseller_id",
       message:
         "Dreamscape rejected the request (401). Reseller ID is required alongside the API key (Dreamscape support).",
-      hint: "Set DREAMSCAPE_RESELLER_ID from Reseller Console → Account Settings → API & WHMCS → API Setup (e.g. 25735). Optional: DREAMSCAPE_RESELLER_ID_HEADER if support names a different header (default Api-Reseller-Id). Redeploy after env changes.",
+      hint: "Set DREAMSCAPE_RESELLER_ID from Reseller Console → Account Settings → API & WHMCS → API Setup (e.g. 25735). Optional: DREAMSCAPE_RESELLER_ID_HEADER if support names a different header (default X-Reseller-Id; also try Reseller-Id). Redeploy after env changes.",
     };
   }
 
@@ -198,7 +237,7 @@ export function describeDreamscapeAuthFailure(
       code: "auth_sandbox_key_rejected",
       message:
         "Dreamscape sandbox rejected the request (401). Usual causes: missing/wrong Reseller ID, sandbox/prod key mismatch, or regenerated key not redeployed.",
-      hint: "1) Set DREAMSCAPE_RESELLER_ID from sandbox API Setup (required per Dreamscape support — e.g. 25735). 2) Key from https://reseller.sandbox.ds.network → Account Settings → API & WHMCS → API Setup (not live). 3) Sandbox has no IP whitelist (IP is a red herring for sandbox). 4) If the key was exposed in chat/ticket, regenerate it immediately, set the new DREAMSCAPE_API_KEY, redeploy. Optional header override: DREAMSCAPE_RESELLER_ID_HEADER (default Api-Reseller-Id).",
+      hint: "1) Set DREAMSCAPE_RESELLER_ID from sandbox API Setup (required per Dreamscape support — e.g. 25735). 2) Key from https://reseller.sandbox.ds.network → Account Settings → API & WHMCS → API Setup (not live). 3) Sandbox has no IP whitelist (IP is a red herring for sandbox). 4) If the key was exposed in chat/ticket, regenerate it immediately, set the new DREAMSCAPE_API_KEY, redeploy. Optional header override: DREAMSCAPE_RESELLER_ID_HEADER (default X-Reseller-Id).",
     };
   }
 
@@ -206,7 +245,7 @@ export function describeDreamscapeAuthFailure(
     code: "auth_production_key_rejected",
     message:
       "Dreamscape production rejected the request (401). Usual causes: missing/wrong Reseller ID, sandbox/prod key mismatch, or IP whitelist blocking dynamic egress.",
-    hint: "1) Set DREAMSCAPE_RESELLER_ID from live API Setup (required per Dreamscape support). 2) Key from https://reseller.ds.network → Account Settings → API & WHMCS → API Setup (not sandbox). 3) For production egress: whitelist a stable IP — Vercel Static IPs (Pro) or DREAMSCAPE_HTTPS_PROXY / HTTPS_PROXY (Fixie/QuotaGuard). 4) Redeploy after env changes. Optional: DREAMSCAPE_RESELLER_ID_HEADER (default Api-Reseller-Id).",
+    hint: "1) Set DREAMSCAPE_RESELLER_ID from live API Setup (required per Dreamscape support). 2) Key from https://reseller.ds.network → Account Settings → API & WHMCS → API Setup (not sandbox). 3) For production egress: whitelist a stable IP — Vercel Static IPs (Pro) or DREAMSCAPE_HTTPS_PROXY / HTTPS_PROXY (Fixie/QuotaGuard). 4) Redeploy after env changes. Optional: DREAMSCAPE_RESELLER_ID_HEADER (default X-Reseller-Id).",
   };
 }
 
@@ -229,7 +268,7 @@ export async function dreamscapeFetch<T = unknown>(
       undefined,
       {
         code: "missing_reseller_id",
-        hint: "Set DREAMSCAPE_RESELLER_ID from Reseller Console → Account Settings → API & WHMCS → API Setup. Dreamscape support requires Reseller ID alongside the API key. Optional: DREAMSCAPE_RESELLER_ID_HEADER (default Api-Reseller-Id).",
+        hint: "Set DREAMSCAPE_RESELLER_ID from Reseller Console → Account Settings → API & WHMCS → API Setup. Dreamscape support requires Reseller ID alongside the API key. Optional: DREAMSCAPE_RESELLER_ID_HEADER (default X-Reseller-Id; also try Reseller-Id).",
       },
     );
   }

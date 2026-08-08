@@ -10,6 +10,7 @@ export {
   DREAMSCAPE_SANDBOX_BASE_URL,
   DreamscapeApiError,
   describeDreamscapeAuthFailure,
+  dreamscapeEnvPresence,
   dreamscapeFetch,
   isDreamscapeApiKeyFormatValid,
   isDreamscapeConfigured,
@@ -19,6 +20,7 @@ export {
   resolveDreamscapeConfig,
   resolveDreamscapeHttpsProxy,
   resolveDreamscapeResellerIdHeader,
+  type DreamscapeEnvPresence,
 } from "./client";
 export {
   DreamscapeDomainProvider,

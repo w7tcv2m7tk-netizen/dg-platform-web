@@ -15,6 +15,12 @@ type AvailabilityResponse = {
   isSandbox?: boolean;
   baseUrl?: string;
   data?: AvailabilityRow[];
+  env?: {
+    hasKey?: boolean;
+    hasResellerId?: boolean;
+    hasBaseUrl?: boolean;
+    keyLength?: number;
+  };
   error?: {
     code?: string;
     message?: string;
@@ -109,6 +115,26 @@ export function DomainAvailabilitySearch() {
               <p className="mt-1 text-amber-100/90">{result.error.message}</p>
               {result.error.hint ? (
                 <p className="mt-1 text-xs text-amber-200/70">{result.error.hint}</p>
+              ) : null}
+              {result.error.code === "provider_not_configured" && result.env ? (
+                <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-amber-200/70">
+                  <li>
+                    DREAMSCAPE_API_KEY:{" "}
+                    {result.env.hasKey
+                      ? `present (length ${result.env.keyLength ?? "?"})`
+                      : "missing (length 0)"}
+                  </li>
+                  <li>
+                    DREAMSCAPE_RESELLER_ID:{" "}
+                    {result.env.hasResellerId ? "present" : "missing"}
+                  </li>
+                  <li>
+                    DREAMSCAPE_API_BASE_URL:{" "}
+                    {result.env.hasBaseUrl
+                      ? "set"
+                      : "unset (defaults to sandbox)"}
+                  </li>
+                </ul>
               ) : null}
               {result.error.code?.startsWith("auth_") ? (
                 <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-amber-200/70">

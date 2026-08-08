@@ -133,7 +133,7 @@ Sandbox Reseller Console: `https://reseller.sandbox.ds.network`
 
 1. `Api-Request-Id` — unique MD5  
 2. `Api-Signature` — MD5(`request_id + api_key`)  
-3. **Reseller ID header** — Dreamscape support (Aug 2026) requires Reseller ID **alongside** the API key. Public REST examples only show (1)+(2); the header name is not documented. DigitalGate defaults to `Api-Reseller-Id` (matches `Api-*` naming). Override with `DREAMSCAPE_RESELLER_ID_HEADER` if support names another header (`Reseller-Id`, `X-Reseller-Id`, etc.).
+3. **Reseller ID header** — Dreamscape support (Aug 2026) requires Reseller ID **alongside** the API key. Public REST examples only show (1)+(2); the header name is not documented. DigitalGate defaults to **`X-Reseller-Id`** (support also mentioned `Reseller-Id`). Override with `DREAMSCAPE_RESELLER_ID_HEADER` if needed.
 
 **Get sandbox credentials:** [reseller.sandbox.ds.network](https://reseller.sandbox.ds.network) → **Account Settings → API & WHMCS → API Setup** — copy **API Key** and **Reseller ID**.
 
@@ -142,11 +142,11 @@ Sandbox Reseller Console: `https://reseller.sandbox.ds.network`
 | Step | Action |
 |------|--------|
 | **1. Reseller ID** | **Required.** Set `DREAMSCAPE_RESELLER_ID` from API Setup (e.g. `25735`). Dreamscape support: must be passed with the API key. |
-| **2. Key origin** | Copy the key from **sandbox** console (`reseller.sandbox.ds.network`), not live. Keys can differ; a prod key **401s** on sandbox. **If a key was pasted into chat/tickets: regenerate immediately** and update Vercel. |
+| **2. Key origin** | Copy the key from **sandbox** console (`reseller.sandbox.ds.network`), not live. Keys can differ; a prod key **401s** on sandbox. **If a key was pasted into chat/tickets: regenerate immediately** and update Vercel. If you already regenerated, do **not** put the old exposed value back — use the new key only. |
 | **3. IP whitelist** | **Sandbox: no IP whitelist** (support confirmed — IP was a red herring for sandbox 401s). Production may still use IP allowlisting; for dynamic Vercel egress use [Static IPs](https://vercel.com/docs/networking/static-ips) or `DREAMSCAPE_HTTPS_PROXY` / `HTTPS_PROXY` (Fixie/QuotaGuard). |
-| **4. Redeploy** | After changing Vercel env vars, **redeploy** so serverless picks them up. |
+| **4. Redeploy** | After changing Vercel env vars, **redeploy** so serverless picks them up. Set vars for **Production + Preview + Development**. Server-only (not `NEXT_PUBLIC_`). |
 
-Other classic **401** causes (Dreamscape FAQ): wrong key, whitespace/quotes around the key, or sandbox/prod key mismatch. If auth still fails after Reseller ID, try `DREAMSCAPE_RESELLER_ID_HEADER=Reseller-Id` (or `X-Reseller-Id`) — logs print which header name was sent (never the API key).
+Other classic **401** causes (Dreamscape FAQ): wrong key, whitespace/quotes around the key, or sandbox/prod key mismatch. If auth still fails after Reseller ID, try `DREAMSCAPE_RESELLER_ID_HEADER=Reseller-Id` — logs print which header name was sent (never the API key). Availability API returns safe `env` flags (`hasKey`, `hasResellerId`, `hasBaseUrl`, `keyLength`) when not configured — never the key itself.
 
 #### Local smoke
 
@@ -156,16 +156,17 @@ Other classic **401** causes (Dreamscape FAQ): wrong key, whitespace/quotes arou
 
 #### Production on Vercel
 
-1. Set `DREAMSCAPE_API_KEY`, `DREAMSCAPE_RESELLER_ID`, matching base URL.
+1. Set `DREAMSCAPE_API_KEY`, `DREAMSCAPE_RESELLER_ID`, matching base URL (all three Vercel environments).
 2. If live API enforces IP allowlisting: enable [Vercel Static IPs](https://vercel.com/docs/networking/static-ips) **or** set `DREAMSCAPE_HTTPS_PROXY` / `HTTPS_PROXY` and whitelist that egress IP.
 3. Redeploy.
 
 ```bash
 # .env.local / Vercel — never commit real values
 DREAMSCAPE_API_KEY=          # sandbox key when using sandbox base URL
-DREAMSCAPE_RESELLER_ID=      # from API Setup (required per Dreamscape support)
-# Optional if support names a different header (default Api-Reseller-Id):
-# DREAMSCAPE_RESELLER_ID_HEADER=Api-Reseller-Id
+DREAMSCAPE_RESELLER_ID=25735 # from API Setup (required per Dreamscape support)
+# Optional if support names a different header (default X-Reseller-Id):
+# DREAMSCAPE_RESELLER_ID_HEADER=X-Reseller-Id
+# # or: DREAMSCAPE_RESELLER_ID_HEADER=Reseller-Id
 DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network
 # Optional: static-IP HTTPS proxy for Dreamscape (Fixie / QuotaGuard) — mainly production.
 # Prefer DREAMSCAPE_HTTPS_PROXY; HTTPS_PROXY / https_proxy also work.
@@ -174,7 +175,7 @@ DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network
 # DREAMSCAPE_WEBHOOK_SECRET=
 ```
 
-> **Security:** Example API keys in Dreamscape’s public docs are **not** DigitalGate credentials. If any real key was pasted into chat, tickets, or git history, **regenerate** it in Reseller Console immediately. Never paste keys into chat again. Browser never holds the key — only `GET /api/v1/infrastructure/...` (and future routes) call Dreamscape.  
+> **Security:** Example API keys in Dreamscape’s public docs are **not** DigitalGate credentials. If any real key was pasted into chat, tickets, or git history, **regenerate** it in Reseller Console immediately. Never paste keys into chat again. If you already regenerated, do **not** restore the old exposed value (`90e59881…`). Browser never holds the key — only `GET /api/v1/infrastructure/...` (and future routes) call Dreamscape (Node runtime).  
 > Optional later: separate `DREAMSCAPE_API_KEY_SANDBOX` vs prod — today one `DREAMSCAPE_API_KEY` must match the configured base URL.
 
 ### Domain transfer Notification URL

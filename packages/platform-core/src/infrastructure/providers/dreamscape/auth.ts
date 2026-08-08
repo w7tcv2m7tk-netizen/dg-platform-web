@@ -1,7 +1,10 @@
 import { createHash, randomBytes } from "node:crypto";
 
-/** Dreamscape Api-* naming; override via DREAMSCAPE_RESELLER_ID_HEADER if support differs. */
-export const DREAMSCAPE_DEFAULT_RESELLER_ID_HEADER = "Api-Reseller-Id";
+/**
+ * Default Reseller ID header per Dreamscape support (Aug 2026): try
+ * `X-Reseller-Id` or `Reseller-Id`. Override via DREAMSCAPE_RESELLER_ID_HEADER.
+ */
+export const DREAMSCAPE_DEFAULT_RESELLER_ID_HEADER = "X-Reseller-Id";
 
 /** Unique MD5 request id per Dreamscape API call. */
 export function dreamscapeRequestId(): string {
@@ -20,8 +23,8 @@ export type DreamscapeAuthHeaderOptions = {
   resellerId?: string | null;
   /**
    * Header name for Reseller ID. Public REST docs omit this; support says it
-   * must be sent. Default `Api-Reseller-Id` matches Api-Request-Id / Api-Signature.
-   * Override with DREAMSCAPE_RESELLER_ID_HEADER if needed (e.g. Reseller-Id).
+   * must be sent. Default `X-Reseller-Id` (support also mentioned `Reseller-Id`).
+   * Override with DREAMSCAPE_RESELLER_ID_HEADER if needed.
    */
   resellerIdHeader?: string | null;
 };
@@ -31,7 +34,7 @@ export type DreamscapeAuthHeaderOptions = {
  *
  * Documented: Api-Request-Id + Api-Signature (md5(request_id + api_key)).
  * Support (Aug 2026): also pass Reseller ID alongside the API key. Public docs
- * do not name the header — we default to Api-Reseller-Id (Api-* convention).
+ * do not name the header — we default to X-Reseller-Id.
  */
 export function dreamscapeAuthHeaders(
   apiKey: string,

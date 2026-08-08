@@ -7,6 +7,9 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
+/** Node runtime — webhook secret + handlers stay server-side. */
+export const runtime = "nodejs";
+
 /**
  * POST /api/webhooks/dreamscape
  *

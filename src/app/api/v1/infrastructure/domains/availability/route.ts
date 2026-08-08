@@ -2,6 +2,7 @@ import {
   DreamscapeApiError,
   InfrastructureNotConfiguredError,
   InfrastructureNotImplementedError,
+  dreamscapeEnvPresence,
   getDomainProvider,
   isDreamscapeConfigured,
   resolveDreamscapeConfig,
@@ -10,6 +11,12 @@ import {
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+
+/**
+ * Node only — Dreamscape auth uses node:crypto; undici proxy needs Node.
+ * Server env vars (non-NEXT_PUBLIC) are read at request time here.
+ */
+export const runtime = "nodejs";
 
 /**
  * GET /api/v1/infrastructure/domains/availability?q=example.com.au
@@ -38,21 +45,30 @@ export async function GET(req: Request) {
     );
   }
 
+  // Read at request time — never cache empty env from module init.
   const { baseUrl, isSandbox } = resolveDreamscapeConfig();
   const configured = isDreamscapeConfigured();
+  const env = dreamscapeEnvPresence();
 
   if (!configured) {
+    const missing: string[] = [];
+    if (!env.hasKey) missing.push("DREAMSCAPE_API_KEY");
+    if (!env.hasResellerId) missing.push("DREAMSCAPE_RESELLER_ID");
+
     return NextResponse.json({
       configured: false,
       provider: null,
       baseUrl,
       isSandbox,
+      env,
       data: [] as DomainAvailability[],
       error: {
         code: "provider_not_configured",
         message:
-          "Domain provider is not configured. Set DREAMSCAPE_API_KEY and DREAMSCAPE_RESELLER_ID against the sandbox API first.",
-        hint: "Reseller Console (sandbox) → Account Settings → API & WHMCS → API Setup — copy API Key and Reseller ID (both required per Dreamscape support)",
+          missing.length > 0
+            ? `Domain provider is not configured. Missing: ${missing.join(", ")}.`
+            : "Domain provider is not configured. Set DREAMSCAPE_API_KEY and DREAMSCAPE_RESELLER_ID against the sandbox API first.",
+        hint: "Vercel → Settings → Environment Variables: set DREAMSCAPE_API_KEY and DREAMSCAPE_RESELLER_ID (e.g. 25735) for Production, Preview, and Development. Server-only (not NEXT_PUBLIC). Redeploy after changes. Reseller Console (sandbox) → Account Settings → API & WHMCS → API Setup.",
       },
     });
   }
@@ -64,6 +80,7 @@ export async function GET(req: Request) {
       provider: null,
       baseUrl,
       isSandbox,
+      env,
       data: [] as DomainAvailability[],
       error: {
         code: "provider_not_configured",
@@ -88,6 +105,7 @@ export async function GET(req: Request) {
         provider: provider.id,
         baseUrl,
         isSandbox,
+        env,
         data: [] as DomainAvailability[],
         error: { code: err.code, message: err.message },
       });
