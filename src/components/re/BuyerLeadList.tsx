@@ -144,8 +144,8 @@ export function BuyerLeadList({
       )}
 
       <p className="text-xs text-slate-500">
-        Buyer stages match Roe WordPress pipeline. Stage editing on Gen 2 ships next — sync keeps
-        Postgres up to date with wp-admin.
+        Buyer stages follow the agency WordPress enquiry pipeline. Prefer the kanban view under
+        Buyer Leads for stage moves; Sync keeps Platform aligned with your site.
       </p>
     </div>
   );

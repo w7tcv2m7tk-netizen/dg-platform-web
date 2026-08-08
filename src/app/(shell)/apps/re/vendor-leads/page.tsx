@@ -70,7 +70,7 @@ export default async function VendorLeadsPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Vendor Leads</h1>
         <p className="text-sm text-slate-400">
-          {session.organisationName} · Roe Realty pipeline on Platform
+          {session.organisationName} · Vendor pipeline on Platform
         </p>
         {autoSyncNote ? (
           <p className="mt-1 text-xs text-emerald-400/90">{autoSyncNote}</p>

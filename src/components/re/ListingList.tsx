@@ -65,10 +65,10 @@ export function ListingList({
   if (!properties.length) {
     return (
       <div className="dg-card border-dashed border-slate-700">
-        <p className="text-slate-300">No active listings yet.</p>
-        <p className="mt-2 text-sm text-slate-500">
-          Move a property to <strong className="text-slate-400">Listed</strong> on the Properties
-          page, or advance a vendor lead to the Listing stage.
+        <h2 className="text-lg font-semibold text-white">No active listings yet</h2>
+        <p className="mt-2 text-sm text-slate-400">
+          Move a property to <span className="text-slate-300">Listed</span> on the Properties page,
+          or advance a vendor lead to the Listing stage.
         </p>
         <Link
           href="/apps/re/properties"

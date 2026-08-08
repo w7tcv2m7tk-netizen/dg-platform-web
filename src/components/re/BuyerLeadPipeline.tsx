@@ -86,9 +86,14 @@ export function BuyerLeadPipeline({
 
       {leads.length === 0 ? (
         <div className="dg-card border-dashed border-slate-700">
-          <p className="text-slate-300">No buyer leads in Postgres yet.</p>
-          <p className="mt-2 text-sm text-slate-500">
-            Sync from Roe WordPress — property enquiry forms create buyer pipeline records.
+          <h2 className="text-lg font-semibold text-white">Add your first buyer lead</h2>
+          <p className="mt-2 max-w-xl text-sm text-slate-400">
+            Create a buyer enquiry here, or sync property enquiry forms from your WordPress site.
+            Contacts are tagged as Buyer automatically.
+          </p>
+          <p className="mt-3 text-xs text-slate-500">
+            Tip: use <span className="text-slate-400">Add buyer lead</span> above, or Sync buyers
+            from WordPress when the connector is live.
           </p>
         </div>
       ) : (

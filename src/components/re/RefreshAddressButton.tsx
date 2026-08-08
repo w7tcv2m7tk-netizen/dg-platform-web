@@ -38,7 +38,7 @@ export function RefreshAddressButton({ propertyId }: { propertyId: string }) {
       );
     } else {
       setMessage(
-        "No online match — kept local Roe address hints. Add GOOGLE_GEOCODING_API_KEY for best results.",
+        "No online match — kept local address hints. Add GOOGLE_GEOCODING_API_KEY for best results.",
       );
     }
     router.refresh();

@@ -144,7 +144,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             <div className="dg-card">
               <h2 className="font-semibold text-white">Website listing</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Push this property to the connected WordPress site (Roe Realty).
+                Push this property to the connected WordPress site.
               </p>
               <div className="mt-4">
                 <PublishToWebsiteButton

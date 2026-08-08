@@ -183,8 +183,8 @@ export async function getReBetaReadiness(
       id: "appraisal",
       label: "First appraisal or booking",
       done: hasAppraisal,
-      href: "/apps/re/bookings",
-      hint: "Start an appraisal from a vendor lead, or book an appraisal",
+      href: "/apps/re/vendor-leads",
+      hint: "Open a vendor lead → Start appraisal, or create a booking under Bookings",
     },
   ];
 

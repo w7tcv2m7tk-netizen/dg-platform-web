@@ -178,9 +178,10 @@ export function ReBookingsPanel({
 
       {!bookings.length ? (
         <div className="dg-card border-dashed border-slate-700">
-          <p className="text-slate-300">No bookings yet.</p>
-          <p className="mt-2 text-sm text-slate-500">
-            Add an appraisal booking here, or sync from Roe WordPress.
+          <h2 className="text-lg font-semibold text-white">Add your first appraisal booking</h2>
+          <p className="mt-2 max-w-xl text-sm text-slate-400">
+            Create a booking above, or sync inspection times from your WordPress site when the
+            connector is live.
           </p>
         </div>
       ) : (

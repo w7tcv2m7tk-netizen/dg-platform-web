@@ -55,7 +55,7 @@ export default async function BuyerLeadsPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Buyer Leads</h1>
         <p className="text-sm text-slate-400">
-          {session.organisationName} · Property enquiry pipeline synced from Roe WordPress
+          {session.organisationName} · Property enquiry pipeline · sync from WordPress
         </p>
         {autoSync.ran && autoSync.result ? (
           <p className="mt-1 text-xs text-emerald-400/90">

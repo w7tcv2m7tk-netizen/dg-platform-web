@@ -122,7 +122,7 @@ export default async function BuyerLeadDetailPage({ params }: PageProps) {
                         rel="noopener noreferrer"
                         className="text-blue-400 hover:underline"
                       >
-                        View on Roe ↗
+                        View listing ↗
                       </a>
                     </dd>
                   </div>
