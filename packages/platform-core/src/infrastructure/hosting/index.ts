@@ -22,3 +22,6 @@ export class UnimplementedHostingProvider implements HostingProvider {
 export function getHostingProvider(): HostingProvider | null {
   return null;
 }
+
+export * from "./vercel-domains";
+

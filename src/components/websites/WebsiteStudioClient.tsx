@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import type { SerializedWebsite, WebsiteComponent } from "@dg/platform-core";
 
+import { MakeItLivePanel } from "@/components/websites/MakeItLivePanel";
+
 export function WebsiteStudioClient({
   initial,
 }: {
@@ -193,18 +195,18 @@ export function WebsiteStudioClient({
             ))}
           </ul>
           <div className="pt-4 space-y-1 border-t border-slate-800">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Later</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">Go live</p>
             <Link
               href="/apps/websites/domains"
               className="block text-sm text-slate-400 hover:text-slate-200"
             >
-              Domains (stub)
+              Domains
             </Link>
             <Link
-              href="/apps/websites/hosting"
+              href="/apps/infrastructure/dns"
               className="block text-sm text-slate-400 hover:text-slate-200"
             >
-              Hosting (stub)
+              DNS
             </Link>
             <p className="text-xs text-slate-600 pt-2">
               Import from WordPress — connector path after native builder (see docs).
@@ -213,6 +215,8 @@ export function WebsiteStudioClient({
         </aside>
 
         <section className="space-y-4 min-w-0">
+          <MakeItLivePanel website={website} />
+
           <form onSubmit={runAssist} className="flex gap-2">
             <input
               className="flex-1 rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white"

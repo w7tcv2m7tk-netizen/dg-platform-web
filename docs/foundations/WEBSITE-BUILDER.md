@@ -347,16 +347,31 @@ Studio shows an **Import from WordPress** stub pointing at this path. Importer i
 |-------|---------|
 | `/apps/websites` | List sites · create from Business Profile + brief |
 | `/apps/websites/studio/[id]` | Pages list · edit component props · NL assist |
-| `/apps/websites/domains` | Stub — points at Infrastructure Core (Dreamscape) |
-| `/apps/websites/hosting` | Stub — points at Infrastructure Core (hosting/SSL) |
+| `/apps/websites/domains` | DigitalGate Domains (shared with Infrastructure) |
+| `/apps/websites/hosting` | Stub — SSL/DNS notes point at Infrastructure |
+| `/apps/websites/studio/[id]` | Studio + **Make it live** panel |
 | `/sites/[slug]` | Public (or `?preview=1` draft) renderer |
 | `/sites/[slug]/[pageSlug]` | Inner pages |
+| `/sites/by-host` | Custom hostname entry (middleware rewrite) |
 | `POST /api/v1/websites/public/[slug]/form` | Contact form → Contact + Lead |
+| `POST /api/v1/infrastructure/go-live` | Connect domain → DNS → publish checklist |
 
 ### Schema
 
 - `Website` — org-scoped site, slug, theme JSON, status, brief, metadata  
 - `WebsitePage` — slug, intent, `components` JSON (typed `{ id, type, props }[]`)  
+- `InfrastructureDomain` — custom hostname inventory (linked to Website)  
+- `DreamscapeCustomerLink` — Org ↔ provider contact/customer  
+
+### Make it live
+
+1. Publish or keep draft in Studio.  
+2. Connect/register domain (Infrastructure Domains; `.au` needs ABN on Business Profile).  
+3. Studio → **Make it live**: bind domain, apply hosting DNS, optional Vercel attach, publish.  
+4. Point DNS at `DG_WEBSITE_DNS_CNAME_TARGET` (default `cname.vercel-dns.com`).  
+5. Custom host hits middleware → `/sites/by-host` → site renderer.  
+
+Paid **register** requires org flag `infra.domain_register` + typed confirm (+ `confirmProduction` on live SOAP). See [INFRASTRUCTURE.md](./INFRASTRUCTURE.md).
 
 ---
 
@@ -379,7 +394,7 @@ Studio shows an **Import from WordPress** stub pointing at this path. Importer i
 | `Website` | ✅ Prisma — org-scoped site + theme/seo/metadata |
 | `WebsitePage` | ✅ Prisma — components JSON (typed tree) |
 | `WebsiteVersion` | Later — published revision snapshots |
-| `WebsiteDomain` / hosting bindings | Stub UI only |
+| `InfrastructureDomain` / hosting bindings | ✅ Prisma + go-live APIs |
 | Forms → Contact/Lead | ✅ Public form API |
 
 Theme tokens come from Business Profile at generate time. Draft-by-default; publish sets `status=published`.

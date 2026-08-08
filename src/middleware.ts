@@ -29,6 +29,39 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks/clerk(.*)",
 ]);
 
+const PLATFORM_HOSTS = new Set(
+  [
+    "localhost",
+    "127.0.0.1",
+    "app.digitalgate.com.au",
+    "dg-platform-web.vercel.app",
+    process.env.NEXT_PUBLIC_APP_HOST?.trim().toLowerCase(),
+    (() => {
+      try {
+        const u = process.env.NEXT_PUBLIC_APP_URL?.trim();
+        return u ? new URL(u).hostname.toLowerCase() : "";
+      } catch {
+        return "";
+      }
+    })(),
+    (() => {
+      try {
+        const u = process.env.VERCEL_URL?.trim();
+        return u ? u.replace(/^https?:\/\//, "").split("/")[0].toLowerCase() : "";
+      } catch {
+        return "";
+      }
+    })(),
+  ].filter(Boolean) as string[],
+);
+
+function isPlatformHost(hostname: string): boolean {
+  const host = hostname.toLowerCase().split(":")[0];
+  if (PLATFORM_HOSTS.has(host)) return true;
+  if (host.endsWith(".vercel.app")) return true;
+  if (host.endsWith(".localhost")) return true;
+  return false;
+}
 const isAuthEntryRoute = createRouteMatcher(["/login(.*)", "/signup/account(.*)"]);
 
 const isApiV1Route = createRouteMatcher(["/api/v1/(.*)"]);
@@ -107,6 +140,28 @@ function keepAuthOnAppOrigin(req: NextRequest, response: Response): Response {
 }
 
 export default async function middleware(req: NextRequest, event: unknown) {
+  const hostname = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
+
+  // Custom domain → public site renderer (multi-tenant host header)
+  if (hostname && !isPlatformHost(hostname)) {
+    const path = req.nextUrl.pathname;
+    if (
+      !path.startsWith("/api") &&
+      !path.startsWith("/_next") &&
+      !path.startsWith("/__clerk") &&
+      !path.startsWith("/sites/")
+    ) {
+      const url = req.nextUrl.clone();
+      const pageSlug =
+        path === "/" ? "" : path.replace(/^\//, "").split("/")[0] || "";
+      url.pathname = "/sites/by-host";
+      if (pageSlug) url.searchParams.set("page", pageSlug);
+      const rewrite = NextResponse.rewrite(url);
+      rewrite.headers.set("x-dg-custom-host", hostname);
+      return rewrite;
+    }
+  }
+
   const response = await clerkHandler(req, event as never);
   if (!response) return response;
   return keepAuthOnAppOrigin(req, response);

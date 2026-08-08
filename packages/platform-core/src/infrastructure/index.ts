@@ -15,7 +15,12 @@ import {
   type InfrastructureHealth,
   type ProvisioningHealthChecklist,
 } from "./core";
-import { getDomainProvider, requireDomainProvider } from "./domains";
+import {
+  buildGoLiveChecklist,
+  countOrganisationDomains,
+  getDomainProvider,
+  requireDomainProvider,
+} from "./domains";
 import {
   DreamscapeDomainProvider,
   isDreamscapeConfigured,
@@ -40,8 +45,7 @@ export function requireInfrastructureProvider() {
 }
 
 /**
- * Command Centre — Digital Infrastructure health (scaffold).
- * Vision: assets list + health score + AI renew recommendations.
+ * Command Centre — Digital Infrastructure health + asset counts.
  */
 export async function getDigitalInfrastructureOverview(organisationId: string): Promise<{
   configured: boolean;
@@ -50,11 +54,37 @@ export async function getDigitalInfrastructureOverview(organisationId: string): 
   baseUrl: string;
   health: InfrastructureHealth;
   checklist: ProvisioningHealthChecklist;
+  assets: { domains: number; websites: number };
   notes: string[];
 }> {
   const { activeEndpoint, isSandbox, apiMode } = resolveDreamscapeConfig();
   const configured = isDreamscapeConfigured();
-  const checklist = emptyProvisioningChecklist(organisationId);
+  let checklist = emptyProvisioningChecklist(organisationId);
+  let domainCount = 0;
+  let websiteCount = 0;
+
+  if (process.env.DATABASE_URL && organisationId !== "platform") {
+    try {
+      domainCount = await countOrganisationDomains(organisationId);
+      const { prisma } = await import("@dg/database");
+      websiteCount = await prisma.website.count({
+        where: { organisationId },
+      });
+      checklist = await buildGoLiveChecklist({ organisationId });
+    } catch {
+      /* ignore — overview still useful without DB counts */
+    }
+  } else if (process.env.DATABASE_URL && organisationId === "platform") {
+    try {
+      const { prisma } = await import("@dg/database");
+      domainCount = await prisma.infrastructureDomain.count();
+      websiteCount = await prisma.website.count();
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const assets = { domains: domainCount, websites: websiteCount };
 
   if (!configured) {
     return {
@@ -73,10 +103,12 @@ export async function getDigitalInfrastructureOverview(organisationId: string): 
         details: { baseUrl: activeEndpoint, isSandbox, apiMode },
       },
       checklist,
+      assets,
       notes: [
         "Infrastructure is a Core Platform Service — not an industry App",
         "Develop against sandbox only until automated tests pass",
         "Customer UX: DigitalGate Domains / Hosting / Email — never Dreamscape",
+        "Paid registration requires org flag infra.domain_register + typed confirm",
       ],
     };
   }
@@ -101,12 +133,13 @@ export async function getDigitalInfrastructureOverview(organisationId: string): 
       },
     },
     checklist,
+    assets,
     notes: [
       check.isSandbox
-        ? "Sandbox mode — safe for availability tests; no real registrations"
-        : "Production API — do not provision without automated test pass",
+        ? "Sandbox mode — safe for availability tests; registrations still need infra.domain_register"
+        : "Production API — registration charges reseller balance; flag + confirmProduction required",
       `Transport: ${check.apiMode.toUpperCase()}`,
-      "AI renew recommendations and asset inventory: planned for Command Centre",
+      `${domainCount} domain(s) · ${websiteCount} website(s)`,
     ],
   };
 }

@@ -236,8 +236,8 @@ function eventIdFrom(merged: Record<string, unknown>, rawBody: string): string {
 }
 
 /**
- * Parse + persist a Dreamscape notification stub.
- * Domain inventory persistence is not wired yet — we acknowledge + store in-memory.
+ * Parse + acknowledge a Dreamscape notification.
+ * Prefer handleDreamscapeWebhookPayloadAsync so inventory status can update.
  */
 export function handleDreamscapeWebhookPayload(
   body: unknown,
@@ -308,11 +308,51 @@ export function handleDreamscapeWebhookPayload(
   const handled = kind === "domain.transfer" || kind === "domain.status";
   const note = handled
     ? kind === "domain.transfer"
-      ? "Domain transfer notification acknowledged (status stub persisted; domain inventory update pending Domains MVP)."
-      : "Domain status notification acknowledged (status stub persisted; domain inventory update pending Domains MVP)."
+      ? "Domain transfer notification acknowledged (use async handler to persist inventory status)."
+      : "Domain status notification acknowledged (use async handler to persist inventory status)."
     : "Notification acknowledged; payload shape not fully mapped — stored as stub.";
 
   return { received: true, event, handled, note };
+}
+
+/** Acknowledge + update InfrastructureDomain status when the name matches inventory. */
+export async function handleDreamscapeWebhookPayloadAsync(
+  body: unknown,
+  rawBody = "",
+): Promise<HandleDreamscapeWebhookResult & { inventoryUpdated: boolean }> {
+  const result = handleDreamscapeWebhookPayload(body, rawBody);
+  let inventoryUpdated = false;
+  if (
+    result.event.domainName &&
+    result.event.mappedStatus &&
+    process.env.DATABASE_URL
+  ) {
+    try {
+      const { updateDomainStatusByName } = await import("../../domains/inventory");
+      const updated = await updateDomainStatusByName(
+        result.event.domainName,
+        result.event.mappedStatus,
+        {
+          metadata: {
+            webhookEventId: result.event.id,
+            webhookKind: result.event.kind,
+            statusId: result.event.statusId,
+            statusLabel: result.event.statusLabel,
+          },
+        },
+      );
+      inventoryUpdated = Boolean(updated);
+    } catch {
+      inventoryUpdated = false;
+    }
+  }
+  return {
+    ...result,
+    inventoryUpdated,
+    note: inventoryUpdated
+      ? `Domain inventory updated to ${result.event.mappedStatus}.`
+      : result.note,
+  };
 }
 
 /** Production Notification URL (append ?secret= when using query auth). */

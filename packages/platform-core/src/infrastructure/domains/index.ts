@@ -36,3 +36,7 @@ export async function searchDomains(
 }
 
 export type { DomainProvider } from "./provider";
+export * from "./inventory";
+export * from "./customer";
+export * from "./register-gate";
+export * from "./go-live";

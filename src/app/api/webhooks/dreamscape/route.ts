@@ -1,7 +1,7 @@
 import {
   DREAMSCAPE_WEBHOOK_PATH,
   dreamscapeNotificationUrl,
-  handleDreamscapeWebhookPayload,
+  handleDreamscapeWebhookPayloadAsync,
   isDreamscapeWebhookConfigured,
   verifyDreamscapeWebhookRequest,
 } from "@dg/platform-core";
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     body = {};
   }
 
-  const result = handleDreamscapeWebhookPayload(body, rawBody);
+  const result = await handleDreamscapeWebhookPayloadAsync(body, rawBody);
 
   console.info("[dreamscape webhook]", {
     kind: result.event.kind,
@@ -76,6 +76,7 @@ export async function POST(req: Request) {
     statusId: result.event.statusId,
     mappedStatus: result.event.mappedStatus,
     handled: result.handled,
+    inventoryUpdated: result.inventoryUpdated,
     eventId: result.event.id,
   });
 
@@ -83,6 +84,7 @@ export async function POST(req: Request) {
     {
       received: true,
       handled: result.handled,
+      inventoryUpdated: result.inventoryUpdated,
       eventId: result.event.id,
       kind: result.event.kind,
       domain: result.event.domainName,

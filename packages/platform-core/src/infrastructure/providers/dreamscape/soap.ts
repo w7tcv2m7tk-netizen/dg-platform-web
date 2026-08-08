@@ -86,6 +86,9 @@ function escapeXml(value: string): string {
     .replace(/'/g, "&apos;");
 }
 
+/** @internal — shared by soap-ops */
+export { escapeXml as soapEscapeXml };
+
 function sanitizeSnippet(text: string, maxLen = 400): string | null {
   let out = text.replace(/\s+/g, " ").trim();
   if (!out) return null;
@@ -111,6 +114,8 @@ function soapBool(raw: string | null | undefined): boolean | undefined {
   if (v === "false" || v === "0") return false;
   return undefined;
 }
+
+export { soapBool as soapParseBool };
 
 function readServerEnv(name: string): string | undefined {
   const value = process.env[name];
@@ -313,7 +318,8 @@ function authHint(isSandbox: boolean): string {
     : "SOAP auth = Reseller ID + API Key (API Setup). Live console → DREAMSCAPE_SOAP_ENV=production → https://soap.secureapi.com.au/server.php?v=1.3. Do not use soap-test with live keys.";
 }
 
-async function soapPost(opts: {
+/** Shared SOAP POST — used by DomainCheck and provisioning ops. */
+export async function soapPost(opts: {
   endpoint: string;
   soapAction: string;
   body: string;

@@ -2,10 +2,10 @@
 
 **Core Platform Service — provider-agnostic orchestration (Dreamscape first)**
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Last updated:** August 2026  
-**Status:** Architecture locked · DomainProvider + DreamscapeDomainProvider scaffold  
-**Website Builder:** MVP shipped (`c188170`) — separate track; Infrastructure enables “Make it live” later
+**Status:** Architecture locked · Domain search + register/connect/DNS/go-live shipped (SOAP)  
+**Website Builder:** MVP + Make it live checklist — see go-live path below
 
 **Related:** [WEBSITE-BUILDER.md](./WEBSITE-BUILDER.md) · [PRODUCT-VISION.md](../PRODUCT-VISION.md) · [ROADMAP.md](../ROADMAP.md) · [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) · [PLATFORM-ARCHITECTURE.md](../PLATFORM-ARCHITECTURE.md) · [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](../infrastructure/INFRASTRUCTURE-ARCHITECTURE.md)
 
@@ -114,10 +114,10 @@ interface DomainProvider {
 }
 ```
 
-**Implemented today:** `DreamscapeDomainProvider.search`  
-- **SOAP (preferred when Reseller ID set):** SecureAPI `DomainCheck`  
-- **REST (alternative):** `GET /domains/availability`  
-**Stubs:** register / renew / transfer / get / update / list
+**Implemented today:** `DreamscapeDomainProvider.search` + `register` / `renew` / `transfer` / `get`  
+- **SOAP (preferred when Reseller ID set):** SecureAPI `DomainCheck`, `DomainCreate`, `ContactCreate`, `DomainDNSUpdate`, `DomainInfo`, `DomainRenew`, `TransferStart`  
+- **REST (alternative):** `GET /domains/availability`, `POST /domains`, `POST /customers`  
+**DNS:** `DreamscapeDnsProvider` via SOAP `DomainDNSUpdate` / `DomainInfo`
 
 ---
 
@@ -280,8 +280,61 @@ DREAMSCAPE_WEBHOOK_SECRET=
 - Dreamscape public API docs **do not** define an inbound webhook HMAC; we verify a shared secret (`?secret=` / `?token=` query, or `X-Dreamscape-Webhook-Secret` / Bearer).
 - Paste the production URL (with secret query) into Reseller Console. Never put `DREAMSCAPE_API_KEY` in the URL.
 - If the webhook secret was exposed (chat, ticket, logs): **rotate** `DREAMSCAPE_WEBHOOK_SECRET` in Vercel, redeploy, and update the Notification URL in Reseller Console to the new `?secret=` value.
-- **Today:** `POST` acknowledges `200`, classifies transfer/status payloads, and persists an **in-memory event stub** (domain inventory update lands with Domains MVP).
+- **Today:** `POST` acknowledges `200`, classifies transfer/status payloads, updates matching `InfrastructureDomain` status when present, and keeps an in-memory event stub.
 - Route: `src/app/api/webhooks/dreamscape/route.ts` · helpers: `providers/dreamscape/webhooks.ts`
+
+---
+
+## Go-live path (Domains → Website)
+
+```
+Business Profile (ABN for .au)
+  → Upsert provider contact (SOAP ContactCreate / REST customer)
+  → Search domain (SOAP DomainCheck)
+  → Register (SOAP DomainCreate) OR Connect existing
+  → Persist InfrastructureDomain on Organisation
+  → Apply hosting DNS (SOAP DomainDNSUpdate → CNAME/A to Vercel)
+  → Attach custom hostname (VERCEL_* optional) · SSL auto
+  → Website Studio “Make it live” (publish + checklist)
+  → Custom Host → middleware → /sites/by-host → /sites/[slug]
+```
+
+### Safety — paid registration
+
+| Gate | Detail |
+|------|--------|
+| Org flag `infra.domain_register` | Must be `true` (Command Centre → Flags) |
+| Typed confirm | Body `confirmDomain` must equal the FQDN |
+| Production | Also requires `confirmProduction: true` |
+| Kill-switch | `DG_DOMAIN_REGISTER_ENABLED=0` blocks globally |
+
+### Key APIs
+
+| Method | Path |
+|--------|------|
+| GET | `/api/v1/infrastructure/domains/availability?q=` |
+| GET/POST | `/api/v1/infrastructure/domains` (`action: register \| connect`) |
+| GET/POST | `/api/v1/infrastructure/domains/[id]/dns` (`applyHosting`) |
+| GET/POST | `/api/v1/infrastructure/customer` |
+| GET/POST | `/api/v1/infrastructure/go-live` |
+| POST | `/api/webhooks/dreamscape` |
+
+### Prisma
+
+- `InfrastructureDomain` — org inventory + website bind + DNS/SSL state  
+- `DreamscapeCustomerLink` — org ↔ SOAP contact / REST customer id  
+
+### Hosting DNS env
+
+```bash
+DG_WEBSITE_DNS_CNAME_TARGET=cname.vercel-dns.com
+# DG_WEBSITE_DNS_A_TARGET=76.76.21.21
+# Optional Vercel attach:
+# VERCEL_TOKEN=
+# VERCEL_PROJECT_ID=
+# VERCEL_TEAM_ID=
+# DG_DOMAIN_REGISTER_ENABLED=1
+```
 
 ---
 

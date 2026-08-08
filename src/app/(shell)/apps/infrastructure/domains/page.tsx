@@ -1,12 +1,12 @@
+import { DomainsConsole } from "@/components/infrastructure/DomainsConsole";
 import { AppFeaturePlaceholder } from "@/components/platform/AppFeaturePlaceholder";
-import { DomainAvailabilitySearch } from "@/components/infrastructure/DomainAvailabilitySearch";
 
-/** DigitalGate Domains — Core Infrastructure UX stub (provider brand hidden). */
+/** DigitalGate Domains — search, register (gated), connect, DNS. */
 export default function Page() {
   return (
     <>
       <AppFeaturePlaceholder itemId="infra.domains" />
-      <DomainAvailabilitySearch />
+      <DomainsConsole />
     </>
   );
 }

@@ -63,6 +63,8 @@ model Organisation {
   accommodationGuestProfiles    AccommodationGuestProfile[]
   accommodationUnits            AccommodationUnit[]
   websites                      Website[]
+  infrastructureDomains         InfrastructureDomain[]
+  dreamscapeCustomerLink        DreamscapeCustomerLink?
 
   referredBy        Organisation?  @relation("OrgReferral", fields: [referredByOrganisationId], references: [id], onDelete: SetNull)
   referralsMade     Organisation[] @relation("OrgReferral")
@@ -846,11 +848,81 @@ model Website {
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  organisation Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  organisation Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   pages        WebsitePage[]
+  domains      InfrastructureDomain[]
 
   @@index([organisationId, status])
   @@map("websites")
+}
+
+/**
+ * Org-owned domain inventory (DigitalGate Domains).
+ * Provider brand stays internal — UX never says “Dreamscape”.
+ */
+model InfrastructureDomain {
+  id                   String    @id @default(cuid())
+  organisationId       String    @map("organisation_id")
+  /** FQDN lowercase, e.g. example.com.au */
+  name                 String
+  /**
+   * registered | pending | connected | transferring | expired | error | unknown
+   */
+  status               String    @default("unknown")
+  /**
+   * registered (bought via DG) | connected (bring-your-own) | transferred
+   */
+  source               String    @default("connected")
+  providerId           String    @default("dreamscape") @map("provider_id")
+  /** Provider domain id when known (REST) */
+  providerDomainId     String?   @map("provider_domain_id")
+  /** SOAP contact id or REST customer id used at registration */
+  providerCustomerId   String?   @map("provider_customer_id")
+  websiteId            String?   @map("website_id")
+  /** When true, DigitalGate manages DNS / go-live for this domain */
+  managed              Boolean   @default(true)
+  autoRenew            Boolean?  @map("auto_renew")
+  expiresAt            DateTime? @map("expires_at")
+  nameservers          Json?
+  /** Desired / last-applied DNS records snapshot */
+  dnsRecords           Json?     @map("dns_records")
+  dnsConfiguredAt      DateTime? @map("dns_configured_at")
+  /** unknown | pending | active | missing */
+  sslState             String    @default("unknown") @map("ssl_state")
+  eligibility          Json?
+  metadata             Json?
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  website      Website?     @relation(fields: [websiteId], references: [id], onDelete: SetNull)
+
+  @@unique([organisationId, name])
+  @@index([name])
+  @@index([organisationId, status])
+  @@index([websiteId])
+  @@map("infrastructure_domains")
+}
+
+/** Durable Org ↔ Dreamscape customer / SOAP contact mapping */
+model DreamscapeCustomerLink {
+  id                     String   @id @default(cuid())
+  organisationId         String   @unique @map("organisation_id")
+  /** REST customer id when available */
+  dreamscapeCustomerId   String?  @map("dreamscape_customer_id")
+  /** SOAP ContactIdentifier used for DomainCreate */
+  contactIdentifier      String?  @map("contact_identifier")
+  customerName           String?  @map("customer_name")
+  linkedAt               DateTime @default(now()) @map("linked_at")
+  metadata               Json?
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([dreamscapeCustomerId])
+  @@index([contactIdentifier])
+  @@map("dreamscape_customer_links")
 }
 
 model WebsitePage {

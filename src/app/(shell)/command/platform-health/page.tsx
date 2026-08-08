@@ -46,6 +46,10 @@ export default async function CommandPlatformHealthPage() {
               >
                 {infra.health.status} · {infra.isSandbox ? "sandbox" : "production"}
               </span>
+              <span className="text-xs text-slate-500">
+                {infra.assets?.domains ?? 0} domains · {infra.assets?.websites ?? 0}{" "}
+                websites
+              </span>
               <Link
                 href="/apps/infrastructure/domains"
                 className="text-sm text-sky-400 hover:underline"

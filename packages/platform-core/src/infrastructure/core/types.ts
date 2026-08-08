@@ -51,9 +51,15 @@ export interface RegisterDomainParams {
   organisationId: string;
   /** Dreamscape / provider customer id — create via Org mapping if missing */
   providerCustomerId: string;
+  /** Years (converted from periodMonths when calling SOAP RegistrationPeriod) */
   periodMonths?: number;
   nameservers?: string[];
   eligibility?: Record<string, unknown>;
+  /** SOAP: use same contact for admin/billing/tech when omitted */
+  adminContactIdentifier?: string;
+  billingContactIdentifier?: string;
+  techContactIdentifier?: string;
+  premium?: boolean;
 }
 
 export interface RenewDomainParams {

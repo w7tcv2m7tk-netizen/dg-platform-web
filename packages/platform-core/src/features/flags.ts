@@ -124,4 +124,10 @@ export const KNOWN_FEATURE_FLAGS = [
     description:
       "Gates AI Website Studio, Sites manager, and native site generation. Health Centre stays available without this flag.",
   },
+  {
+    id: "infra.domain_register",
+    label: "Domain registration (paid)",
+    description:
+      "Allows DigitalGate Domains registration via Dreamscape SOAP/REST. Keep off until ready — production charges the reseller account. Also requires typed domain confirm (+ confirmProduction on live).",
+  },
 ] as const;

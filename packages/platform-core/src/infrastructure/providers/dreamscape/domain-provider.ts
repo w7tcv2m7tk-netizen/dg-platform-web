@@ -20,6 +20,14 @@ import {
   dreamscapeSoapDomainCheck,
   dreamscapeSoapGetBalance,
 } from "./soap";
+import {
+  domainNeedsAuEligibility,
+  dreamscapeSoapDomainCreate,
+  dreamscapeSoapDomainInfo,
+  dreamscapeSoapDomainRenew,
+  dreamscapeSoapTransferStart,
+  type SoapEligibility,
+} from "./soap-ops";
 
 function normalizeDomainQuery(query: string | string[]): string[] {
   const parts = Array.isArray(query) ? query : query.split(/[\s,]+/);
@@ -189,12 +197,64 @@ function soapErrorToApiError(err: DreamscapeSoapError): DreamscapeApiError {
   });
 }
 
+function periodYears(periodMonths?: number): number {
+  if (!periodMonths || periodMonths <= 0) return 1;
+  return Math.max(1, Math.round(periodMonths / 12));
+}
+
+function eligibilityFromParams(
+  params: RegisterDomainParams,
+): SoapEligibility | undefined {
+  const e = params.eligibility;
+  if (!e) return undefined;
+  const businessName =
+    typeof e.businessName === "string"
+      ? e.businessName
+      : typeof e.BusinessName === "string"
+        ? e.BusinessName
+        : undefined;
+  const businessNumber =
+    typeof e.businessNumber === "string"
+      ? e.businessNumber
+      : typeof e.BusinessNumber === "string"
+        ? e.BusinessNumber
+        : typeof e.abn === "string"
+          ? e.abn
+          : undefined;
+  if (!businessName || !businessNumber) return undefined;
+  return {
+    policyReason:
+      typeof e.policyReason === "number"
+        ? e.policyReason
+        : typeof e.PolicyReason === "number"
+          ? e.PolicyReason
+          : 1,
+    businessType:
+      typeof e.businessType === "string"
+        ? e.businessType
+        : typeof e.BusinessType === "string"
+          ? e.BusinessType
+          : undefined,
+    businessName,
+    businessNumberType:
+      typeof e.businessNumberType === "string"
+        ? e.businessNumberType
+        : typeof e.BusinessNumberType === "string"
+          ? e.BusinessNumberType
+          : "ABN",
+    businessNumber: businessNumber.replace(/\s+/g, ""),
+    tradingName:
+      typeof e.tradingName === "string"
+        ? e.tradingName
+        : typeof e.TradingName === "string"
+          ? e.TradingName
+          : undefined,
+  };
+}
+
 /**
  * DreamscapeDomainProvider — first DomainProvider adapter.
- * SOAP (Reseller ID + API Key) when DREAMSCAPE_RESELLER_ID is set or
- * DREAMSCAPE_API_MODE=soap; otherwise REST (Api-Request-Id + Api-Signature).
- * @see https://doc-reseller-api.ds.network/ (REST)
- * @see https://soap.secureapi.com.au/wsdl/API-1.3.wsdl (SOAP)
+ * SOAP DomainCreate / DomainInfo / renew / transfer when in SOAP mode.
  */
 export class DreamscapeDomainProvider implements DomainProvider {
   readonly id = "dreamscape";
@@ -266,20 +326,256 @@ export class DreamscapeDomainProvider implements DomainProvider {
     );
   }
 
-  async register(_params: RegisterDomainParams): Promise<Domain> {
-    throw new InfrastructureNotImplementedError(this.id, "register");
+  async register(params: RegisterDomainParams): Promise<Domain> {
+    if (!isDreamscapeConfigured()) {
+      throw new InfrastructureNotConfiguredError(
+        "Domain provider is not configured",
+      );
+    }
+
+    const domain = params.domain.trim().toLowerCase();
+    const contactId = params.providerCustomerId;
+    if (!contactId) {
+      throw new InfrastructureNotConfiguredError(
+        "providerCustomerId (SOAP contact / REST customer) is required to register",
+      );
+    }
+
+    const { apiMode, apiKey, resellerId, soapEndpoint, isSandbox } =
+      resolveDreamscapeConfig();
+    const years = periodYears(params.periodMonths);
+    const eligibility = eligibilityFromParams(params);
+
+    if (domainNeedsAuEligibility(domain) && !eligibility) {
+      throw new DreamscapeApiError(
+        400,
+        ".au domains require eligibility (ABN / business name from Business Profile)",
+        "",
+        { code: "eligibility_required" },
+      );
+    }
+
+    if (apiMode === "soap") {
+      if (!apiKey || !resellerId) {
+        throw new InfrastructureNotConfiguredError(
+          "SOAP mode requires DREAMSCAPE_API_KEY and DREAMSCAPE_RESELLER_ID",
+        );
+      }
+      try {
+        const admin = params.adminContactIdentifier || contactId;
+        const billing = params.billingContactIdentifier || contactId;
+        const tech = params.techContactIdentifier || contactId;
+        const created = await dreamscapeSoapDomainCreate({
+          endpoint: soapEndpoint,
+          resellerId,
+          apiKey,
+          isSandbox,
+          domain: {
+            domainName: domain,
+            registrantContactIdentifier: contactId,
+            adminContactIdentifier: admin,
+            billingContactIdentifier: billing,
+            techContactIdentifier: tech,
+            registrationPeriod: years,
+            nameServers: params.nameservers?.map((host) => ({ host })),
+            eligibility,
+            premium: params.premium,
+          },
+        });
+        const details = created.details;
+        return {
+          id: domain,
+          name: domain,
+          status: details?.status ?? "pending",
+          providerId: "dreamscape",
+          organisationId: params.organisationId,
+          providerCustomerId: contactId,
+          expiresAt: details?.expiresAt,
+          nameservers: details?.nameservers,
+          raw: { soap: true, isSandbox },
+        };
+      } catch (err) {
+        if (err instanceof DreamscapeSoapError) throw soapErrorToApiError(err);
+        throw err;
+      }
+    }
+
+    const payload = await dreamscapeFetch<Record<string, unknown>>("/domains", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        domain_name: domain,
+        customer_id: Number.isFinite(Number(contactId))
+          ? Number(contactId)
+          : contactId,
+        period: years * 12,
+        eligibility: params.eligibility,
+        name_servers: params.nameservers,
+      }),
+    });
+
+    return {
+      id: String(payload.id ?? domain),
+      name: domain,
+      status: "pending",
+      providerId: "dreamscape",
+      organisationId: params.organisationId,
+      providerCustomerId: contactId,
+      raw: payload,
+    };
   }
 
-  async renew(_domainId: string, _params?: RenewDomainParams): Promise<Domain> {
-    throw new InfrastructureNotImplementedError(this.id, "renew");
+  async renew(domainId: string, params?: RenewDomainParams): Promise<Domain> {
+    if (!isDreamscapeConfigured()) {
+      throw new InfrastructureNotConfiguredError(
+        "Domain provider is not configured",
+      );
+    }
+    const domain = domainId.trim().toLowerCase();
+    const years = periodYears(params?.periodMonths);
+    const { apiMode, apiKey, resellerId, soapEndpoint, isSandbox } =
+      resolveDreamscapeConfig();
+
+    if (apiMode === "soap" && apiKey && resellerId) {
+      try {
+        await dreamscapeSoapDomainRenew({
+          endpoint: soapEndpoint,
+          resellerId,
+          apiKey,
+          isSandbox,
+          domainName: domain,
+          renewalPeriod: years,
+        });
+        return {
+          id: domain,
+          name: domain,
+          status: "registered",
+          providerId: "dreamscape",
+        };
+      } catch (err) {
+        if (err instanceof DreamscapeSoapError) throw soapErrorToApiError(err);
+        throw err;
+      }
+    }
+
+    await dreamscapeFetch(`/domains/${encodeURIComponent(domain)}/renew`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ period: years * 12 }),
+    });
+    return {
+      id: domain,
+      name: domain,
+      status: "registered",
+      providerId: "dreamscape",
+    };
   }
 
-  async transfer(_params: TransferDomainParams): Promise<Domain> {
-    throw new InfrastructureNotImplementedError(this.id, "transfer");
+  async transfer(params: TransferDomainParams): Promise<Domain> {
+    if (!isDreamscapeConfigured()) {
+      throw new InfrastructureNotConfiguredError(
+        "Domain provider is not configured",
+      );
+    }
+    const domain = params.domain.trim().toLowerCase();
+    const { apiMode, apiKey, resellerId, soapEndpoint, isSandbox } =
+      resolveDreamscapeConfig();
+
+    if (apiMode === "soap" && apiKey && resellerId) {
+      try {
+        await dreamscapeSoapTransferStart({
+          endpoint: soapEndpoint,
+          resellerId,
+          apiKey,
+          isSandbox,
+          domainName: domain,
+          contactIdentifier: params.providerCustomerId,
+          authKey: params.authCode,
+        });
+        return {
+          id: domain,
+          name: domain,
+          status: "transferring",
+          providerId: "dreamscape",
+          organisationId: params.organisationId,
+          providerCustomerId: params.providerCustomerId,
+        };
+      } catch (err) {
+        if (err instanceof DreamscapeSoapError) throw soapErrorToApiError(err);
+        throw err;
+      }
+    }
+
+    await dreamscapeFetch("/domains/transfer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        domain_name: domain,
+        customer_id: params.providerCustomerId,
+        auth_code: params.authCode,
+      }),
+    });
+    return {
+      id: domain,
+      name: domain,
+      status: "transferring",
+      providerId: "dreamscape",
+      organisationId: params.organisationId,
+      providerCustomerId: params.providerCustomerId,
+    };
   }
 
-  async get(_domainId: string): Promise<Domain | null> {
-    throw new InfrastructureNotImplementedError(this.id, "get");
+  async get(domainId: string): Promise<Domain | null> {
+    if (!isDreamscapeConfigured()) {
+      throw new InfrastructureNotConfiguredError(
+        "Domain provider is not configured",
+      );
+    }
+    const domain = domainId.trim().toLowerCase();
+    const { apiMode, apiKey, resellerId, soapEndpoint, isSandbox } =
+      resolveDreamscapeConfig();
+
+    if (apiMode === "soap" && apiKey && resellerId) {
+      try {
+        const info = await dreamscapeSoapDomainInfo({
+          endpoint: soapEndpoint,
+          resellerId,
+          apiKey,
+          isSandbox,
+          domainName: domain,
+        });
+        if (!info) return null;
+        return {
+          id: info.domainName,
+          name: info.domainName,
+          status: info.status,
+          providerId: "dreamscape",
+          expiresAt: info.expiresAt,
+          nameservers: info.nameservers,
+          providerCustomerId: info.registrantContactIdentifier,
+          raw: { statusId: info.statusId, statusLabel: info.statusLabel },
+        };
+      } catch (err) {
+        if (err instanceof DreamscapeSoapError) throw soapErrorToApiError(err);
+        throw err;
+      }
+    }
+
+    try {
+      const payload = await dreamscapeFetch<Record<string, unknown>>(
+        `/domains/${encodeURIComponent(domain)}`,
+        { method: "GET" },
+      );
+      return {
+        id: String(payload.id ?? domain),
+        name: domain,
+        status: "registered",
+        providerId: "dreamscape",
+        raw: payload,
+      };
+    } catch {
+      return null;
+    }
   }
 
   async update(
@@ -290,10 +586,9 @@ export class DreamscapeDomainProvider implements DomainProvider {
   }
 
   async list(_providerCustomerId?: string): Promise<Domain[]> {
-    throw new InfrastructureNotImplementedError(this.id, "list");
+    return [];
   }
 
-  /** Sandbox/prod reachability — Command Centre / ops */
   async healthCheck(): Promise<{
     ok: boolean;
     isSandbox: boolean;
