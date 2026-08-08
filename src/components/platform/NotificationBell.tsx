@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 type NotificationItem = {
   id: string;
@@ -11,6 +11,18 @@ type NotificationItem = {
   readAt: string | null;
   createdAt: string;
 };
+
+type PanelPos = {
+  top?: number;
+  bottom?: number;
+  left: number;
+  width: number;
+  maxHeight: number;
+};
+
+const PANEL_WIDTH = 320;
+const PANEL_GAP = 8;
+const VIEWPORT_PAD = 8;
 
 function BellIcon({ className }: { className?: string }) {
   return (
@@ -30,12 +42,43 @@ function BellIcon({ className }: { className?: string }) {
   );
 }
 
+function positionPanel(anchor: DOMRect): PanelPos {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const width = Math.min(PANEL_WIDTH, vw - VIEWPORT_PAD * 2);
+
+  let left = anchor.right - width;
+  left = Math.max(VIEWPORT_PAD, Math.min(left, vw - width - VIEWPORT_PAD));
+
+  const spaceBelow = vh - anchor.bottom - PANEL_GAP - VIEWPORT_PAD;
+  const spaceAbove = anchor.top - PANEL_GAP - VIEWPORT_PAD;
+  const openAbove = spaceBelow < 240 && spaceAbove > spaceBelow;
+
+  if (openAbove) {
+    return {
+      bottom: vh - anchor.top + PANEL_GAP,
+      left,
+      width,
+      maxHeight: Math.max(160, spaceAbove),
+    };
+  }
+
+  return {
+    top: anchor.bottom + PANEL_GAP,
+    left,
+    width,
+    maxHeight: Math.max(160, spaceBelow),
+  };
+}
+
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [panelPos, setPanelPos] = useState<PanelPos | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -51,19 +94,46 @@ export function NotificationBell() {
     }
   }, []);
 
+  const updatePosition = useCallback(() => {
+    const el = buttonRef.current;
+    if (!el) return;
+    setPanelPos(positionPanel(el.getBoundingClientRect()));
+  }, []);
+
   useEffect(() => {
     void load();
     const id = window.setInterval(() => void load(), 60_000);
     return () => window.clearInterval(id);
   }, [load]);
 
+  useLayoutEffect(() => {
+    if (!open) {
+      setPanelPos(null);
+      return;
+    }
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open, updatePosition]);
+
   useEffect(() => {
     if (!open) return;
     function onDoc(e: MouseEvent) {
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
     document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   async function markAllRead() {
@@ -81,7 +151,10 @@ export function NotificationBell() {
   return (
     <div ref={rootRef} className="relative">
       <button
+        ref={buttonRef}
         type="button"
+        aria-expanded={open}
+        aria-haspopup="dialog"
         aria-label={
           unreadCount > 0
             ? `Notifications, ${unreadCount} unread`
@@ -101,9 +174,22 @@ export function NotificationBell() {
         ) : null}
       </button>
 
-      {open ? (
-        <div className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-slate-700 bg-slate-950 shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2">
+      {open && panelPos ? (
+        <div
+          role="dialog"
+          aria-label="Notifications"
+          className="fixed z-[100] overflow-hidden rounded-xl border border-slate-700 bg-slate-950 shadow-xl"
+          style={{
+            top: panelPos.top,
+            bottom: panelPos.bottom,
+            left: panelPos.left,
+            width: panelPos.width,
+            maxHeight: panelPos.maxHeight,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div className="flex shrink-0 items-center justify-between border-b border-slate-800 px-3 py-2">
             <p className="text-sm font-medium text-white">Notifications</p>
             <button
               type="button"
@@ -114,7 +200,7 @@ export function NotificationBell() {
               Mark all read
             </button>
           </div>
-          <ul className="max-h-80 overflow-y-auto">
+          <ul className="min-h-0 flex-1 overflow-y-auto">
             {loading && items.length === 0 ? (
               <li className="px-3 py-4 text-sm text-slate-500">Loading…</li>
             ) : items.length === 0 ? (
@@ -165,7 +251,7 @@ export function NotificationBell() {
               })
             )}
           </ul>
-          <div className="border-t border-slate-800 px-3 py-2">
+          <div className="shrink-0 border-t border-slate-800 px-3 py-2">
             <Link
               href="/apps/crm/timeline"
               onClick={() => setOpen(false)}

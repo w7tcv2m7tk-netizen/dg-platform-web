@@ -135,6 +135,13 @@ body {
   color: #f1f5f9;
 }
 
+/* Authenticated shell: document never scrolls — panes own overflow. */
+html.dg-shell-scroll-lock,
+html.dg-shell-scroll-lock body {
+  height: 100%;
+  overflow: hidden;
+}
+
 .dg-branded-sidebar {
   background: var(--org-bg-elevated, rgb(2 6 23));
 }
@@ -559,8 +566,18 @@ body {
 
   .dg-branded-shell {
     display: block !important;
+    position: static !important;
+    inset: auto !important;
     background: white !important;
+    height: auto !important;
     min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  html.dg-shell-scroll-lock,
+  html.dg-shell-scroll-lock body {
+    height: auto !important;
+    overflow: visible !important;
   }
 
   .au-document {

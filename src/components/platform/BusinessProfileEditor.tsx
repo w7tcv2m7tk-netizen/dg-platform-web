@@ -3,9 +3,23 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import type { BusinessContext, OrganisationBusinessProfile } from "@dg/platform-core";
+import type {
+  BusinessContext,
+  BusinessBankDetails,
+  OrganisationBusinessProfile,
+} from "@dg/platform-core";
 
 import { BrandAssetsEditor } from "@/components/platform/BrandAssetsEditor";
+
+const PAY_ID_TYPES: Array<{
+  value: NonNullable<BusinessBankDetails["payIdType"]>;
+  label: string;
+}> = [
+  { value: "email", label: "Email" },
+  { value: "phone", label: "Mobile" },
+  { value: "abn", label: "ABN" },
+  { value: "organisation", label: "Organisation ID" },
+];
 
 function Field({
   label,
@@ -386,7 +400,7 @@ export function BusinessProfileEditor({
       <section className="dg-card">
         <h3 className="text-lg font-semibold text-white">Bank / payment details</h3>
         <p className="mt-1 text-sm text-slate-400">
-          Printed on invoices for EFT remittance (BSB + account).
+          Printed on invoices for EFT and PayID remittance.
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <Field label="Bank name">
@@ -437,6 +451,41 @@ export function BusinessProfileEditor({
                 })
               }
             />
+          </Field>
+          <Field label="PayID">
+            <input
+              className={inputClass}
+              placeholder="email, mobile, or ABN"
+              value={profile.bankDetails?.payId ?? ""}
+              onChange={(e) =>
+                setField("bankDetails", {
+                  ...profile.bankDetails,
+                  payId: e.target.value,
+                })
+              }
+            />
+          </Field>
+          <Field label="PayID type">
+            <select
+              className={inputClass}
+              value={profile.bankDetails?.payIdType ?? ""}
+              onChange={(e) => {
+                const value = e.target.value as
+                  | BusinessBankDetails["payIdType"]
+                  | "";
+                setField("bankDetails", {
+                  ...profile.bankDetails,
+                  payIdType: value || undefined,
+                });
+              }}
+            >
+              <option value="">Not specified</option>
+              {PAY_ID_TYPES.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label="Payment reference hint">
             <input

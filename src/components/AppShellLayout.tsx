@@ -50,12 +50,27 @@ export function AppShellLayout({
     setOpen(false);
   }, [pathname]);
 
+  // Lock document scroll so sidebar + main are the only scroll containers.
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
+    const html = document.documentElement;
+    const body = document.body;
+    const prev = {
+      htmlOverflow: html.style.overflow,
+      bodyOverflow: body.style.overflow,
+      bodyHeight: body.style.height,
+      htmlClass: html.classList.contains("dg-shell-scroll-lock"),
     };
-  }, [open]);
+    html.classList.add("dg-shell-scroll-lock");
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.height = "100%";
+    return () => {
+      html.classList.remove("dg-shell-scroll-lock");
+      html.style.overflow = prev.htmlOverflow;
+      body.style.overflow = prev.bodyOverflow;
+      body.style.height = prev.bodyHeight;
+    };
+  }, []);
 
   useEffect(() => {
     const vars = orgBrandCssVariables(brandTheme);
@@ -84,43 +99,57 @@ export function AppShellLayout({
       <OrgBrandHead iconUrl={brandTheme.iconUrl} />
       <PrefetchCriticalRoutes />
       <MobileNavContext.Provider value={{ close }}>
-        <div className="dg-branded-shell flex min-h-[100dvh]" style={orgBrandStyle(brandTheme)}>
-        <div className="hidden shrink-0 print:hidden md:flex">
-          <Sidebar {...sidebarProps} />
-        </div>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="print:hidden">
-            <MobileHeader onMenuClick={() => setOpen(true)} />
+        <div
+          className="dg-branded-shell fixed inset-0 z-0 flex overflow-hidden print:static print:inset-auto print:h-auto print:min-h-0 print:overflow-visible"
+          style={orgBrandStyle(brandTheme)}
+        >
+          <div className="hidden h-full min-h-0 w-56 shrink-0 flex-col print:hidden md:flex">
+            <Sidebar {...sidebarProps} />
           </div>
 
-          <div
-            className={`fixed inset-0 z-50 md:hidden ${open ? "pointer-events-auto" : "pointer-events-none"}`}
-            aria-hidden={!open}
-          >
-            <button
-              type="button"
-              className={`absolute inset-0 dg-branded-overlay backdrop-blur-sm transition-opacity duration-200 ${
-                open ? "opacity-100" : "opacity-0"
-              }`}
-              aria-label="Close menu"
-              tabIndex={open ? 0 : -1}
-              onClick={close}
-            />
-            <aside
-              className={`dg-branded-sidebar absolute inset-y-0 left-0 flex w-[min(18rem,88vw)] flex-col border-r border-slate-800 px-4 py-5 shadow-2xl transition-transform duration-200 ease-out ${
-                open ? "translate-x-0" : "-translate-x-full"
-              }`}
-              style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            <div className="shrink-0 print:hidden">
+              <MobileHeader onMenuClick={() => setOpen(true)} />
+            </div>
+
+            <div
+              className={`fixed inset-0 z-50 md:hidden ${open ? "pointer-events-auto" : "pointer-events-none"}`}
+              aria-hidden={!open}
             >
-              <Sidebar variant="drawer" onNavigate={close} onClose={close} {...sidebarProps} />
-            </aside>
-          </div>
+              <button
+                type="button"
+                className={`absolute inset-0 dg-branded-overlay backdrop-blur-sm transition-opacity duration-200 ${
+                  open ? "opacity-100" : "opacity-0"
+                }`}
+                aria-label="Close menu"
+                tabIndex={open ? 0 : -1}
+                onClick={close}
+              />
+              <aside
+                className={`dg-branded-sidebar absolute inset-y-0 left-0 flex h-full w-[min(18rem,88vw)] flex-col overflow-hidden border-r border-slate-800 px-4 py-5 shadow-2xl transition-transform duration-200 ease-out ${
+                  open ? "translate-x-0" : "-translate-x-full"
+                }`}
+                style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}
+              >
+                <Sidebar
+                  variant="drawer"
+                  onNavigate={close}
+                  onClose={close}
+                  {...sidebarProps}
+                />
+              </aside>
+            </div>
 
-          <ViewTransition default="dg-nav-fade" enter="dg-nav-fade" exit="dg-nav-fade">
-            <div className="flex min-h-0 flex-1 flex-col">{children}</div>
-          </ViewTransition>
-        </div>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+              <ViewTransition
+                default="dg-nav-fade"
+                enter="dg-nav-fade"
+                exit="dg-nav-fade"
+              >
+                <div className="flex min-h-full flex-col">{children}</div>
+              </ViewTransition>
+            </div>
+          </div>
         </div>
       </MobileNavContext.Provider>
     </OrgBrandProvider>

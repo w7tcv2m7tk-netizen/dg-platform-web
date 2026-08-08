@@ -20,6 +20,16 @@ function money(cents: number, currency = "AUD") {
   }).format(cents / 100);
 }
 
+const PAY_ID_TYPE_LABEL: Record<
+  NonNullable<NonNullable<OrganisationBusinessProfile["bankDetails"]>["payIdType"]>,
+  string
+> = {
+  email: "email",
+  phone: "mobile",
+  abn: "ABN",
+  organisation: "organisation ID",
+};
+
 function formatAddress(profile: OrganisationBusinessProfile | null | undefined) {
   const a = profile?.address;
   if (!a) return profile?.locations?.[0]
@@ -257,13 +267,22 @@ export function CommerceDocumentView(props: CommerceDocumentViewProps) {
         </dl>
       </section>
 
-      {props.kind === "invoice" && bank && (bank.bsb || bank.accountNumber) ? (
+      {props.kind === "invoice" &&
+      bank &&
+      (bank.bsb || bank.accountNumber || bank.payId) ? (
         <section className="au-document__payment">
           <h2>Payment details</h2>
           {bank.bankName ? <p>{bank.bankName}</p> : null}
           {bank.accountName ? <p>Account name: {bank.accountName}</p> : null}
           {bank.bsb ? <p>BSB: {bank.bsb}</p> : null}
           {bank.accountNumber ? <p>Account number: {bank.accountNumber}</p> : null}
+          {bank.payId ? (
+            <p>
+              PayID
+              {bank.payIdType ? ` (${PAY_ID_TYPE_LABEL[bank.payIdType]})` : ""}
+              : {bank.payId}
+            </p>
+          ) : null}
           <p>
             {bank.paymentReferenceHint ||
               `Please quote ${props.documentNumber ?? "invoice number"} as reference`}

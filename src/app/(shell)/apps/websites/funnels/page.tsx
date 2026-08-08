@@ -23,7 +23,7 @@ export default function FunnelsStubPage() {
             <Link href="/apps/websites" className="text-sm text-sky-400 hover:underline">
               ← Sites
             </Link>
-            <Link href="/apps/crm" className="text-sm text-slate-400 hover:underline">
+            <Link href="/apps/crm/contacts" className="text-sm text-slate-400 hover:underline">
               CRM →
             </Link>
           </div>

@@ -368,7 +368,7 @@ Studio shows an **Import from WordPress** stub pointing at this path. Importer i
 
 1. Publish or keep draft in Studio.  
 2. Connect/register domain (Infrastructure Domains; `.au` needs ABN on Business Profile).  
-3. Studio → **Make it live**: bind domain, apply hosting DNS, optional Vercel attach, publish.  
+3. Studio → **Make it live**: checklist (Domain / DNS / SSL / Published), bind domain, apply hosting DNS, optional Vercel attach, publish.  
 4. Point DNS at `DG_WEBSITE_DNS_CNAME_TARGET` (default `cname.vercel-dns.com`).  
 5. Custom host hits middleware → `/sites/by-host` → site renderer.  
 

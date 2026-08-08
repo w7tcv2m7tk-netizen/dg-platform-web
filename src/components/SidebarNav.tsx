@@ -133,7 +133,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   return (
-    <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
+    <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain">
       <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
         {BUSINESS_WORKSPACE_SECTION_LABEL}
       </p>

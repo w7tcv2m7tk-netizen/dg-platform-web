@@ -45,6 +45,12 @@ export type BusinessBankDetails = {
   bsb?: string;
   accountNumber?: string;
   bankName?: string;
+  /**
+   * AU PayID (email, mobile, ABN, or Org ID) — shown on invoices alongside EFT.
+   */
+  payId?: string;
+  /** Optional hint for the PayID type shown on documents */
+  payIdType?: "email" | "phone" | "abn" | "organisation";
   /** Shown on documents, e.g. "Please quote invoice number" */
   paymentReferenceHint?: string;
 };

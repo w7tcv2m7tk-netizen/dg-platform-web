@@ -10,7 +10,7 @@ export function SidebarUser() {
   const brand = useOrgBrand();
 
   return (
-    <div className="mt-auto border-t border-slate-800 pt-4">
+    <div className="shrink-0 border-t border-slate-800 pt-4">
       <div className="flex items-center gap-3 px-2">
         <UserButton appearance={clerkAppearanceForBrand(brand)} />
         <div className="min-w-0 flex-1">

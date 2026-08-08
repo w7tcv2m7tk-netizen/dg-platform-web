@@ -40,37 +40,42 @@ export function Sidebar({
     <aside
       className={
         variant === "fixed"
-          ? "dg-branded-sidebar flex h-full w-56 shrink-0 flex-col border-r border-slate-800 px-4 py-6"
-          : "flex h-full min-h-0 flex-col"
+          ? "dg-branded-sidebar flex h-full min-h-0 w-full flex-col overflow-hidden border-r border-slate-800 px-4 py-6"
+          : "flex h-full min-h-0 flex-col overflow-hidden"
       }
     >
-      {variant === "drawer" ? (
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <SidebarBrand className="mb-0 min-w-0 flex-1" />
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close menu"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border dg-branded-surface text-slate-300 transition hover:text-white"
-          >
-            <CloseIcon />
-          </button>
-        </div>
-      ) : (
-        <SidebarBrand />
-      )}
+      <div className="shrink-0">
+        {variant === "drawer" ? (
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <SidebarBrand className="mb-0 min-w-0 flex-1" />
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close menu"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border dg-branded-surface text-slate-300 transition hover:text-white"
+            >
+              <CloseIcon />
+            </button>
+          </div>
+        ) : (
+          <SidebarBrand />
+        )}
 
-      {activeOrganisationId && activeOrganisationName ? (
-        <OrgSwitcher
-          activeOrganisationId={activeOrganisationId}
-          activeOrganisationName={activeOrganisationName}
-          organisations={organisations}
-        />
-      ) : null}
+        {activeOrganisationId && activeOrganisationName ? (
+          <OrgSwitcher
+            activeOrganisationId={activeOrganisationId}
+            activeOrganisationName={activeOrganisationName}
+            organisations={organisations}
+          />
+        ) : null}
+      </div>
 
       <SidebarNav onNavigate={onNavigate} />
-      <PlatformAttribution className="mt-4" />
-      <SidebarUser />
+
+      <div className="mt-auto shrink-0">
+        <PlatformAttribution className="mt-4" />
+        <SidebarUser />
+      </div>
     </aside>
   );
 }
