@@ -1,9 +1,11 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-import { AUTH_AFTER_SIGN_IN_URL } from "@/lib/auth-routes";
+import { AUTH_AFTER_SIGN_IN_URL, AUTH_SIGN_IN_URL } from "@/lib/auth-routes";
 import {
   CLERK_PROXY_PATH,
+  inAppSignInUrl,
+  isOffAppClerkNavigationUrl,
   shouldEnableClerkFrontendApiProxy,
 } from "@/lib/clerk-proxy";
 
@@ -42,7 +44,7 @@ const authorizedParties = [
   process.env.NEXT_PUBLIC_APP_URL,
 ].filter((url): url is string => Boolean(url));
 
-export default clerkMiddleware(
+const clerkHandler = clerkMiddleware(
   async (auth, req) => {
     if (isApiV1Route(req) && hasPlatformApiKey(req)) {
       return;
@@ -60,9 +62,11 @@ export default clerkMiddleware(
   },
   {
     authorizedParties,
+    signInUrl: AUTH_SIGN_IN_URL,
     /**
      * Proxy Clerk FAPI through the app origin so session handshake stays inside
-     * the installed PWA window (clerk.digitalgate.com.au is outside manifest scope).
+     * the installed PWA window. Only when NEXT_PUBLIC_CLERK_PROXY_URL is set
+     * (Dashboard proxy must already be validated — otherwise SignIn breaks).
      */
     frontendApiProxy: {
       enabled: (url) => shouldEnableClerkFrontendApiProxy(url),
@@ -70,6 +74,40 @@ export default clerkMiddleware(
     },
   },
 );
+
+/**
+ * Keep auth navigations on the app origin when Clerk would otherwise send the
+ * browser to clerk.* / Account Portal (leaves installed PWA scope).
+ */
+function keepAuthOnAppOrigin(req: NextRequest, response: Response): Response {
+  if (response.status < 300 || response.status >= 400) return response;
+
+  const location = response.headers.get("location");
+  if (!location) return response;
+
+  if (!isOffAppClerkNavigationUrl(location, req.url)) return response;
+
+  const loginUrl = inAppSignInUrl(req.url);
+  const rewrite = NextResponse.redirect(loginUrl, response.status);
+
+  response.headers.forEach((value, key) => {
+    if (key.toLowerCase() === "location") return;
+    // Avoid duplicating set-cookie issues; copy non-location headers for session cleanup.
+    if (key.toLowerCase() === "set-cookie") {
+      rewrite.headers.append(key, value);
+      return;
+    }
+    rewrite.headers.set(key, value);
+  });
+
+  return rewrite;
+}
+
+export default async function middleware(req: NextRequest, event: unknown) {
+  const response = await clerkHandler(req, event as never);
+  if (!response) return response;
+  return keepAuthOnAppOrigin(req, response);
+}
 
 export const config = {
   matcher: [

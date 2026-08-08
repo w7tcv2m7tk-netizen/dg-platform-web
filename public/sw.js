@@ -1,5 +1,5 @@
 /* DigitalGate PWA service worker — offline shell + static asset cache */
-const VERSION = "dg-v4";
+const VERSION = "dg-v5";
 const STATIC_CACHE = `dg-static-${VERSION}`;
 const RUNTIME_CACHE = `dg-runtime-${VERSION}`;
 
@@ -57,6 +57,9 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  // Never touch Clerk FAPI proxy — must hit network/middleware untouched.
+  if (url.pathname === "/__clerk" || url.pathname.startsWith("/__clerk/")) return;
 
   // Never cache HTML navigations or API — always network (offline fallback only).
   if (request.mode === "navigate") {

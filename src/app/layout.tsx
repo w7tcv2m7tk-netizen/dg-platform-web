@@ -10,10 +10,12 @@ import {
 } from "@/lib/auth-routes";
 import { BRAND_DEFAULT } from "@/lib/brand";
 import { clerkProxyUrl } from "@/lib/clerk-proxy";
+import { ClerkPwaNavigationGuard } from "@/components/platform/ClerkPwaNavigationGuard";
 import { ServiceWorkerRegistration } from "@/components/platform/ServiceWorkerRegistration";
 import "./globals.css";
 import "./clerk-overrides.css";
 
+/** Only set when NEXT_PUBLIC_CLERK_PROXY_URL is present (Dashboard proxy validated). */
 const proxyUrl = clerkProxyUrl();
 
 const inter = Inter({
@@ -84,6 +86,7 @@ export default function RootLayout({
       <html lang="en" className={`${inter.variable} h-full`}>
         <body className="min-h-full bg-slate-950 font-sans text-slate-100 antialiased">
           {children}
+          <ClerkPwaNavigationGuard />
           <ServiceWorkerRegistration />
         </body>
       </html>

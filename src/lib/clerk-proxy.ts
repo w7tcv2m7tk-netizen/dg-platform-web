@@ -2,31 +2,72 @@
  * Clerk Frontend API proxy — keeps handshake/session refresh on the app origin
  * so installed PWAs (display: standalone) do not open clerk.* in an external browser.
  *
- * Dashboard: Domains → Frontend API → Set proxy → https://app.digitalgate.com.au/__clerk
- * Env (Vercel Production): NEXT_PUBLIC_CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk
+ * Opt-in only via NEXT_PUBLIC_CLERK_PROXY_URL. Do NOT enable the client proxyUrl until
+ * Clerk Dashboard → Domains → Frontend API → Set proxy has been validated, or Clerk
+ * returns host_invalid and SignIn never loads email/password.
  *
- * Clerk only supports proxying on production instances (not pk_test_ / localhost).
+ * Order:
+ * 1. Deploy app (middleware can serve /__clerk)
+ * 2. Dashboard proxy → https://app.digitalgate.com.au/__clerk (must validate)
+ * 3. Vercel: NEXT_PUBLIC_CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk
+ * 4. Redeploy
  */
 
 export const CLERK_PROXY_PATH = "/__clerk";
 
 const PRODUCTION_APP_HOST = "app.digitalgate.com.au";
 
-/** Absolute proxy URL for ClerkProvider / env (trailing slash optional; Clerk accepts both). */
-export function clerkProxyUrl(): string | undefined {
-  const fromEnv = process.env.NEXT_PUBLIC_CLERK_PROXY_URL?.trim();
-  if (fromEnv) return fromEnv.replace(/\/$/, "");
-
-  // Sensible production default once Dashboard proxy is enabled.
-  if (process.env.VERCEL_ENV === "production") {
-    return `https://${PRODUCTION_APP_HOST}${CLERK_PROXY_PATH}`;
-  }
-
-  return undefined;
+/** True when Ben has explicitly enabled the production FAPI proxy via env. */
+export function isClerkFrontendApiProxyConfigured(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_CLERK_PROXY_URL?.trim());
 }
 
-/** Enable middleware FAPI proxy for hosts that should never leave the PWA origin. */
-export function shouldEnableClerkFrontendApiProxy(url: URL): boolean {
-  if (process.env.NEXT_PUBLIC_CLERK_PROXY_URL?.trim()) return true;
-  return url.hostname === PRODUCTION_APP_HOST;
+/** Absolute proxy URL for ClerkProvider (only when env is set). */
+export function clerkProxyUrl(): string | undefined {
+  const fromEnv = process.env.NEXT_PUBLIC_CLERK_PROXY_URL?.trim();
+  if (!fromEnv) return undefined;
+  return fromEnv.replace(/\/$/, "");
+}
+
+/** Enable middleware FAPI proxy only when Dashboard + env are ready. */
+export function shouldEnableClerkFrontendApiProxy(_url: URL): boolean {
+  return isClerkFrontendApiProxyConfigured();
+}
+
+/**
+ * Off-app Clerk hosts that break PWA scope (Account Portal / FAPI / accounts).
+ * Used to rewrite middleware redirects back onto /login inside the app.
+ */
+export function isOffAppClerkNavigationUrl(target: string, requestOrigin: string): boolean {
+  try {
+    const url = new URL(target, requestOrigin);
+    if (url.origin === new URL(requestOrigin).origin) return false;
+
+    const host = url.hostname.toLowerCase();
+    if (host === PRODUCTION_APP_HOST) return false;
+
+    return (
+      host === "clerk.digitalgate.com.au" ||
+      host.endsWith(".clerk.accounts.dev") ||
+      host.endsWith(".accounts.dev") ||
+      host === "accounts.clerk.com" ||
+      host.endsWith(".clerk.com") ||
+      host.endsWith(".clerk.services") ||
+      host === "frontend-api.clerk.dev" ||
+      host.endsWith(".clerk.dev")
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** Same-origin login URL with optional return path (never opens a new window). */
+export function inAppSignInUrl(requestUrl: string | URL, returnPath?: string): URL {
+  const base = typeof requestUrl === "string" ? new URL(requestUrl) : requestUrl;
+  const login = new URL("/login", base.origin);
+  const redirectTarget = returnPath || `${base.pathname}${base.search}`;
+  if (redirectTarget && redirectTarget !== "/login" && !redirectTarget.startsWith("/login?")) {
+    login.searchParams.set("redirect_url", redirectTarget);
+  }
+  return login;
 }

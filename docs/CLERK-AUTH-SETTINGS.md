@@ -4,12 +4,33 @@ Code handles redirects and same-window login. These **Clerk Dashboard** settings
 
 ## Same-window login (no pop-ups)
 
-In the app we set `oauthFlow="redirect"` on Sign In / Sign Up so OAuth and callbacks stay in the same tab.
+In the app we set `oauthFlow="redirect"` on Sign In / Sign Up so OAuth and callbacks stay in the same tab. A PWA navigation guard also blocks `window.open` / anchor clicks to `clerk.*` and sends users to in-app `/login` instead.
 
 If email verification opens a **new tab**, switch Client Trust / verification from **email link** to **email code**:
 
 1. [Clerk Dashboard](https://dashboard.clerk.com) → **User & authentication**
 2. Under **Email** / **Password** / **Client Trust**, prefer **one-time code** over **magic link** for second-factor on new devices
+
+## Email + password (client login)
+
+App sign-in is the **embedded** `<SignIn />` on **`https://app.digitalgate.com.au/login`** (not Account Portal on `clerk.*`).
+
+Dashboard:
+
+1. **User & authentication → Email** — enabled  
+2. **User & authentication → Password** — enabled (required for client email/password)  
+3. Optional SSO is fine; social buttons are hidden in the app until re-enabled in CSS  
+4. **Avoid** making Account Portal / Hosted Pages the default sign-in destination for this app  
+
+Vercel / Clerk path env (must match app routes — **`/login`**, not `/sign-in`):
+
+| Variable | Value |
+|----------|--------|
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | `/login` |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | `/signup/account` |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL` | `/login` |
+
+If SignIn shows **no email/password fields**, the usual cause is a **broken FAPI proxy** (`host_invalid` on `/__clerk/v1/environment`). See PWA section — remove or fix `NEXT_PUBLIC_CLERK_PROXY_URL` until Dashboard proxy validates.
 
 ## Stay signed in (manual sign-out only)
 
@@ -48,30 +69,49 @@ Manifest `display: "standalone"` + `scope: "/"` only covers `https://app.digital
 
 Session refresh that redirects to `https://clerk.digitalgate.com.au/v1/client/handshake?...` leaves PWA scope → OS opens an external browser. Reason often includes `session-token-expired-refresh-non-eligible-no-refresh-cookie` (refresh cookie missing / partitioned in standalone).
 
-### Fix in code (shipped)
+### Fix in code
 
-- Middleware `frontendApiProxy` on `/__clerk` for `app.digitalgate.com.au`
-- `ClerkProvider` `proxyUrl` from `NEXT_PUBLIC_CLERK_PROXY_URL` (production default derived)
+- Middleware can proxy FAPI on `/__clerk` **only when** `NEXT_PUBLIC_CLERK_PROXY_URL` is set
+- `ClerkProvider` `proxyUrl` from that same env (no silent production default)
+- If Clerk would redirect off-origin to `clerk.*` / Account Portal, middleware rewrites to **same-window `/login`**
+- Client guard: never `window.open` Clerk; click-capture sends users to `/login`
 - Manifest stays `standalone` with same-origin `start_url`
 
-### Ben must enable in Clerk Dashboard
+### Ben config checklist (exact order)
 
-1. Deploy the build that serves `/__clerk/*` first.
-2. [Domains](https://dashboard.clerk.com/~/domains) → **Frontend API** → **Set proxy configuration**
+Do **not** set the Vercel proxy env before Dashboard validates — that blanks SignIn (`host_invalid`).
+
+1. Deploy a build that includes the `/__clerk` middleware matcher (already on `main`).
+2. [Clerk Dashboard → Domains](https://dashboard.clerk.com/~/domains) → **Frontend API** → **Set proxy configuration**
 3. Proxy URL: **`https://app.digitalgate.com.au/__clerk`**
-4. Vercel Production: set  
-   `NEXT_PUBLIC_CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk`
-5. Redeploy.
-6. **Allowed redirect URLs / origins**: include `https://app.digitalgate.com.au` (and previews if needed).
+4. Wait until Clerk reports the proxy as **valid** (not failed).
+5. Vercel **Production** env:
+   - `NEXT_PUBLIC_CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk`
+   - `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/login`
+   - `NEXT_PUBLIC_CLERK_SIGN_UP_URL=/signup/account`
+   - `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard`
+   - `NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL=/dashboard`
+   - `NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL=/login`
+6. Redeploy Vercel.
+7. **Allowed redirect URLs / origins**: include `https://app.digitalgate.com.au` (and previews if needed).
+8. Confirm password strategy is enabled (see Email + password above).
 
-Clerk proxy validation fails if the proxy is not live yet — enable Dashboard **after** deploy.
+Proxying works on **production** Clerk instances only (not `pk_test_` / localhost).
 
-Proxying works on **production** Clerk instances only (not development `pk_test_` / localhost).
+### Verify proxy health
 
-### Verify
+```bash
+curl -s "https://app.digitalgate.com.au/__clerk/v1/environment" | head
+```
 
-1. Reinstall or Refresh the PWA (`dg-v4` update banner).
-2. Sign in **inside** the installed app.
-3. On next session handshake, URL should stay on `app.digitalgate.com.au/__clerk/...` inside the standalone window — no Safari/Chrome spawn.
+- **Good**: JSON environment payload (instance config), not `host_invalid`
+- **Bad**: `{"errors":[{"code":"host_invalid",...}]}` → Dashboard proxy not enabled/validated; **unset** `NEXT_PUBLIC_CLERK_PROXY_URL` until fixed
+
+### Verify in installed app
+
+1. Open the installed DigitalGate app; tap **Update available → Refresh** if shown (`dg-v5`).
+2. Sign out if needed, then open **Client login** — you should see **email + password**.
+3. Sign in **inside** the installed app (not only in a browser tab).
+4. On next session handshake, URL should stay on `app.digitalgate.com.au/__clerk/...` (with proxy) or `/login` (without) — **never** spawn Safari/Chrome on `clerk.digitalgate.com.au`.
 
 See also [PWA.md](./PWA.md).

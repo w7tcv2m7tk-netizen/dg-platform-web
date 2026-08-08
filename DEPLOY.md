@@ -90,10 +90,14 @@ After DNS works, in Clerk → **Domains** → add `app.digitalgate.com.au` and s
 
 Installed DigitalGate uses `display: standalone`. Handshake redirects to `clerk.digitalgate.com.au` leave the PWA and open Safari/Chrome.
 
+**Order matters** — setting the Vercel env before Dashboard validates blanks SignIn (`host_invalid`).
+
 1. Deploy the app (serves `/__clerk`).
-2. Clerk → **Domains** → Frontend API → **Set proxy** → `https://app.digitalgate.com.au/__clerk`
+2. Clerk → **Domains** → Frontend API → **Set proxy** → `https://app.digitalgate.com.au/__clerk` (wait until valid).
 3. Vercel env: `NEXT_PUBLIC_CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk`
-4. Redeploy
+4. Keep `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/login` (embedded app page — not Account Portal).
+5. Redeploy
+6. Smoke: `curl -s https://app.digitalgate.com.au/__clerk/v1/environment` must **not** return `host_invalid`.
 
 Details: [docs/CLERK-AUTH-SETTINGS.md](./docs/CLERK-AUTH-SETTINGS.md) and [docs/PWA.md](./docs/PWA.md).
 
