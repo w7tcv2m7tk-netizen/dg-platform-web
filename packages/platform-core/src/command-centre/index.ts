@@ -2,6 +2,13 @@ export * from "./types";
 export * from "./growth-engine";
 export * from "./access";
 export * from "./overview";
+export * from "./success-score";
+export * from "./client-intelligence";
+export * from "./advisor";
+export * from "./growth-reports";
+export * from "./opportunities";
+export * from "./benchmarks";
+export * from "./flags-admin";
 
 /** Clerk role / org claim used to gate Command Centre routes */
 export const COMMAND_CENTRE_STAFF_ROLE = "dg:staff";
@@ -16,6 +23,9 @@ export const COMMAND_CENTRE_ROUTES = {
   revenue: `${COMMAND_CENTRE_BASE_PATH}/revenue`,
   opportunities: `${COMMAND_CENTRE_BASE_PATH}/opportunities`,
   reports: `${COMMAND_CENTRE_BASE_PATH}/reports`,
+  advisor: `${COMMAND_CENTRE_BASE_PATH}/advisor`,
+  benchmarks: `${COMMAND_CENTRE_BASE_PATH}/benchmarks`,
+  flags: `${COMMAND_CENTRE_BASE_PATH}/flags`,
   support: `${COMMAND_CENTRE_BASE_PATH}/support`,
   growthEngine: `${COMMAND_CENTRE_BASE_PATH}/growth-engine`,
 } as const;

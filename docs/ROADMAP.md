@@ -54,8 +54,8 @@ Not feature parity with HubSpot.
 |-------|-------|
 | **Now** | Manifest, types, ADR, architecture doc ✅ |
 | **Aug 2026 ops slice** | `/command` ops home (pulse, today’s actions, deep links), Client Intelligence signals, Platform Health (connectors/Stripe), Revenue + Refer & Earn snapshot ✅ |
-| **After Scoring v1** | Success Score™, Agency Health Ranking |
-| **Validation phase** | Growth Reports, AI Advisor, Opportunity Engine, Benchmarking |
+| **Aug 2026 intelligence slice** | Success Score™ + Agency Health Ranking, AI Advisor, Growth Reports, Opportunity Engine, Benchmarking, Feature Flags UI ✅ |
+| **Later** | Historical Twin score trends, auto-send Growth Reports, Support Centre |
 
 Does **not** block Platform Core or Real Estate. Built on the same Twin + Scoring pipeline as the customer wow moment.
 
@@ -76,7 +76,7 @@ Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 | Event Bus | ✅ In-process + CRM/referral producers | ✅ Fan-out → in-app Notifications |
 | Platform API | ⚠️ Partial (`/portal/me` bridge) + Core CRUD | ⚠️ Expanding `/api/v1` |
 | Billing | ⚠️ Stripe checkout + portal | ⚠️ Live checkout; monthly referral accrual on invoice.paid |
-| **Refer & Earn** (Platform SaaS referrals) | ✅ MVP + P2 + Partner tiers | ✅ Credit on first paid + months 2–12; Customer 20% / Partner 25% / Reseller 30%; invite Resend/queue; cash payout UI stub — [REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md) §A |
+| **Refer & Earn** (Platform SaaS referrals) | ✅ MVP + P2 + Partner tiers + Connect cash | ✅ Credit on first paid + months 2–12; Customer 20% / Partner 25% / Reseller 30%; invite Resend/queue; cash via Stripe Connect Express (opt-in `STRIPE_CONNECT_ENABLED`) — [REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md) §A |
 | Feature Flags | ✅ Org settings JSON + `/api/v1/org/feature-flags` | ⚠️ No Command UI yet |
 | Audit Logs | ✅ Schema + write path | ⚠️ Partial coverage |
 | Notifications | ✅ In-app bell + Notification model | ⚠️ Push/OS still planned (PWA Phase 2) |
@@ -88,7 +88,9 @@ Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 
 **Shipped (Aug 2026 Refer & Earn P2):** Stripe `invoice.paid` monthly referral credits (months 2–12, idempotent); invite delivery via Resend when `RESEND_API_KEY` set else branded Activity queue; cash payout threshold UI (ledger stub).
 
-**Shipped (Aug 2026 Refer & Earn ops):** Webhook setup script/docs register + update `invoice.paid`; Gen 2 route acknowledges unknown Stripe events; Commerce checklist reminds Ben to enable renewals event.
+**Shipped (Aug 2026 Refer & Earn Connect cash):** Stripe Connect Express (AU) onboarding; transfer at ~A$100 threshold; Settings → Refer & Earn Connect status + request payout; webhooks for `account.updated` / transfer failure reversals; opt-in `STRIPE_CONNECT_ENABLED` (graceful UI when unset). Platform credit remains default.
+
+**Shipped (Aug 2026 Refer & Earn ops):** Webhook setup script/docs register + update `invoice.paid` + Connect transfer events; Gen 2 route acknowledges unknown Stripe events; Commerce checklist reminds Ben to enable renewals event.
 
 **Shipped (Aug 2026 Connectors):** Org WordPress connector host/key UX, `dgdev_` validation, CVH site-key requirement, Test connection probe without key rewrite; RE probe treats empty vendor inbox as connected (auth OK).
 
@@ -97,6 +99,8 @@ Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 **Shipped (Aug 2026 Commerce):** AU tax invoices & quotes (Business Profile letterhead, GST 10%, print/PDF), quote→invoice, Commerce **Reports** (P&L, GST, Balance Sheet scaffold, Cash Flow). Core/commerce-adjacent — not Xero/MYOB; AU Country Pack tax conventions on Business Profile (`taxSettings`, `bankDetails`). Logo/icon on invoice & quote letterheads.
 
 **Shipped (Aug 2026 Core completeness):** Real LLM router (`OPENAI_API_KEY` / `ANTHROPIC_API_KEY`) behind `/api/v1/ai/assist` with template fallback; Partner/Reseller referral tiers; in-app Notifications from event bus; org feature flags API; CRM leads/opportunities feature gates; lead stage events; WP multi-site connector guidance.
+
+**Shipped (Aug 2026 Network foundations):** Reviews App MVP (`/apps/reviews` — Acc `dg_reviews` feed, Reputation Score™ stub, AI themes LLM/stub, request queue after stay/settlement); Marketplace browse (`/dashboard/marketplace` — Software/Services/Professionals/Partners/Integrations); Business Referral Network scaffold on Contact (`/dashboard/network`) — Free/Reciprocal/Paid/Commission disclosed, separate from Platform Refer & Earn.
 
 **Exit criteria:** Sign up → org in DB → create contact → timeline event — no wp-admin.
 
@@ -181,11 +185,11 @@ Targets: dashboard < 2 s, navigation < 300 ms, CRM updates optimistic. Full spec
 | **2 — Validation** | +6 mo | 5–10 pilot agencies, weekly feedback |
 | **3 — Commercial launch** | +12 mo | Public SaaS, billing, onboarding, support |
 | **4 — Expansion** | +18 mo | Accommodation, Finance, more Connectors · Country Packs ready |
-| **5 — DigitalGate Network** | +24 mo | Community · B2B partner graph · Marketplace (services + software + opportunities) · Reviews / Referrals (design now) · SDK / third-party Apps · enterprise · international communities |
+| **5 — DigitalGate Network** | +24 mo | Community · B2B partner graph · Marketplace · Reviews / Referrals · SDK / third-party Apps · enterprise · international communities |
 
-**Phase 5 detail:** [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md). Design Org/User/industry/location/consent for network readiness **now**; ship Community only when enough active businesses make the network useful.
+**Phase 5 detail:** [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md). Gen 2 foundations scaffold (Reviews / Marketplace / B2B referrals) shipped Aug 2026; ship full Community when enough active businesses make the network useful.
 
-**Referrals — two products:** (A) **Platform Refer & Earn** ships with / after Billing (Core) — customers refer DigitalGate. (B) **Business Referral Network** + **Reviews** stay Phase 5+ — architect now: [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md).
+**Referrals — two products:** (A) **Platform Refer & Earn** ships with / after Billing (Core) — customers refer DigitalGate. (B) **Business Referral Network** + **Reviews** — foundations scaffold live (`/apps/reviews`, `/dashboard/marketplace`, `/dashboard/network`); depth Phase 5+: [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md).
 
 **Execution priority until Phase 5:**
 
@@ -213,8 +217,8 @@ Do not start RE App port or AI Visibility until steps 1–4 are done.
 - ❌ HubSpot feature checklist  
 - ❌ Major Gen 1 WP modules  
 - ❌ Features that fail the Core / RE filter  
-- ❌ Community / social network / B2B Marketplace product UI before Phase 5 (design only — see NETWORK-LAYER)  
-- ❌ Reviews / **Business** Referral Network / paid B2B referral fees before Core → CRM → Connectors → AI maturity (design only — see REVIEWS-AND-REFERRALS)  
+- ❌ Full Community / social network before critical mass (foundations scaffold OK — see NETWORK-LAYER)  
+- ❌ Paid/Commission B2B referral settlement / compliance packs before Country Pack gates (scaffold + disclosure UI OK — see REVIEWS-AND-REFERRALS)  
 - ❌ MLM / multi-level on Platform Refer & Earn (single-level SaaS only)  
 
 ---

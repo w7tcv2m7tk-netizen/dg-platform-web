@@ -46,6 +46,8 @@ export interface CommandActionItem {
   href: string;
 }
 
+export type AgencyHealthTier = "top_performer" | "healthy" | "needs_attention";
+
 export interface CommandClientRow {
   organisationId: string;
   organisationName: string;
@@ -58,10 +60,16 @@ export interface CommandClientRow {
   propertyCount: number;
   stayBookingCount: number;
   installedApps: string[];
+  /** Real Estate agency beta (`re.beta` feature flag) */
+  reBeta: boolean;
   needsAttention: boolean;
   attentionReasons: string[];
   createdAt: string;
   updatedAt: string;
+  /** Success Score™ 0–100 when Client Intelligence has computed it */
+  successScore?: number;
+  healthTier?: AgencyHealthTier;
+  rank?: number;
 }
 
 export interface CommandConnectorOrgStatus {
@@ -149,8 +157,6 @@ export interface ClientIntelligence {
   needsAttention: boolean;
   attentionReasons?: string[];
 }
-
-export type AgencyHealthTier = "top_performer" | "healthy" | "needs_attention";
 
 export interface AgencyHealthRanking {
   organisationId: string;

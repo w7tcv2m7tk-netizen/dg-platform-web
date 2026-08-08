@@ -197,11 +197,11 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
             <div>
               <h2 className="text-lg font-semibold text-white">Clients needing attention</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Lightweight signals until Success Score ships.
+                Lowest Success Score™ / needs-attention tier.
               </p>
             </div>
             <Link href="/command/clients" className="text-sm text-sky-400 hover:underline">
-              All clients →
+              Ranking →
             </Link>
           </div>
           {attentionClients.length === 0 ? (
@@ -217,6 +217,7 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
                     <div>
                       <p className="font-medium text-white">{client.organisationName}</p>
                       <p className="mt-1 text-xs text-slate-500">
+                        {client.successScore != null ? `Score ${client.successScore} · ` : ""}
                         {client.status}
                         {client.industry ? ` · ${client.industry}` : ""} · {client.leadCount} leads
                       </p>
@@ -224,7 +225,12 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
                         {client.attentionReasons.slice(0, 2).join(" · ")}
                       </p>
                     </div>
-                    <span className="text-xs text-slate-500">{client.organisationSlug}</span>
+                    <Link
+                      href={`/command/advisor?org=${client.organisationId}`}
+                      className="shrink-0 text-xs text-sky-400 hover:underline"
+                    >
+                      Advise
+                    </Link>
                   </div>
                 </li>
               ))}

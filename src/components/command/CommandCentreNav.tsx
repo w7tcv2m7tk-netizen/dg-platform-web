@@ -4,9 +4,14 @@ import { COMMAND_CENTRE_ROUTES } from "@dg/platform-core";
 const NAV = [
   { href: COMMAND_CENTRE_ROUTES.overview, label: "Ops home", id: "overview" },
   { href: COMMAND_CENTRE_ROUTES.clients, label: "Clients", id: "clients" },
+  { href: COMMAND_CENTRE_ROUTES.advisor, label: "AI Advisor", id: "advisor" },
+  { href: COMMAND_CENTRE_ROUTES.reports, label: "Reports", id: "reports" },
+  { href: COMMAND_CENTRE_ROUTES.opportunities, label: "Expansion", id: "opportunities" },
+  { href: COMMAND_CENTRE_ROUTES.benchmarks, label: "Benchmarks", id: "benchmarks" },
   { href: COMMAND_CENTRE_ROUTES.growthEngine, label: "Growth Engine", id: "growth" },
   { href: COMMAND_CENTRE_ROUTES.platformHealth, label: "Health", id: "health" },
   { href: COMMAND_CENTRE_ROUTES.revenue, label: "Revenue", id: "revenue" },
+  { href: COMMAND_CENTRE_ROUTES.flags, label: "Flags", id: "flags" },
 ] as const;
 
 export function CommandCentreNav({ active }: { active: (typeof NAV)[number]["id"] }) {

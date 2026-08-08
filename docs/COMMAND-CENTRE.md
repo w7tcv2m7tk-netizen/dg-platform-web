@@ -4,7 +4,7 @@
 
 **Version:** 1.0  
 **Last updated:** August 2026  
-**Status:** Ops home live (Aug 2026) — `/command` pulse + clients/health/revenue; Growth Engine hub/pipeline; Twin/Scoring modules still phased
+**Status:** Ops home + Success Score™ / Agency Health Ranking, AI Advisor, Growth Reports, Expansion, Benchmarks, Feature Flags live (Aug 2026); Growth Engine hub/pipeline; deeper Twin history still phased
 
 ---
 
@@ -150,6 +150,13 @@ No manual reporting. Account managers review before send, or auto-send when conf
 | **Needs attention** | Low usage, declining visibility, slow lead response, no reviews |
 
 Surfaces in Command Centre morning view so the team knows where to focus.
+
+### Real Estate beta (pilots)
+
+- Flag: `re.beta` (also listed under **Flags**)
+- **Clients** table: **Enable RE beta** provisions the flag + Real Estate app install
+- Attention: RE beta orgs with WordPress connector down or zero leads
+- Full playbook: [RE-BETA-LAUNCH.md](./RE-BETA-LAUNCH.md)
 
 ---
 

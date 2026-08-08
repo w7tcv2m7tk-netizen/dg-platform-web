@@ -15,6 +15,7 @@ import type {
 } from "./types";
 import { getStripeSetupStatus } from "../commerce/stripe-setup";
 import { getGrowthEngineSummary } from "./growth-engine/prospects";
+import { getClientIntelligence } from "./client-intelligence";
 import type { OrgWordPressConnectorSettings } from "../connectors/wordpress/org-connector";
 
 function startOfToday() {
@@ -53,6 +54,7 @@ function formatAud(cents: number): string {
 
 type OrgSettings = {
   connectors?: { wordpress?: OrgWordPressConnectorSettings };
+  featureFlags?: Record<string, boolean>;
 };
 
 function wpConfigured(settings: unknown): boolean {
@@ -120,6 +122,24 @@ const CORE_DEEP_LINKS: CommandDeepLink[] = [
     href: "/command/growth-engine",
     description: "Acquisition pipeline",
   },
+  {
+    id: "reports",
+    label: "Growth Reports",
+    href: "/command/reports",
+    description: "Period client reports",
+  },
+  {
+    id: "advisor",
+    label: "AI Advisor",
+    href: "/command/advisor",
+    description: "Org-level staff insights",
+  },
+  {
+    id: "opportunities",
+    label: "Expansion",
+    href: "/command/opportunities",
+    description: "Upsell opportunities",
+  },
 ];
 
 /** Cross-tenant Command Centre ops home. Staff-scoped; no PII dumps. */
@@ -155,6 +175,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     growth,
     orgRows,
     recentActivities,
+    intelligence,
   ] = await Promise.all([
     prisma.organisation.count(),
     prisma.membership.count({ where: { status: "active" } }),
@@ -250,6 +271,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
         organisation: { select: { name: true, slug: true } },
       },
     }),
+    getClientIntelligence(),
   ]);
 
   const stripe = getStripeSetupStatus();
@@ -311,44 +333,27 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     return Number.isFinite(ts) && Date.now() - ts < 7 * 24 * 60 * 60 * 1000;
   }).length;
 
-  const clients: CommandClientRow[] = orgRows.map((org) => {
-    const attentionReasons: string[] = [];
-    if (org.status === "trial") attentionReasons.push("On trial");
-    if (org._count.contacts === 0) attentionReasons.push("No contacts");
-    if (org._count.appInstallations === 0) attentionReasons.push("No apps installed");
-    if (!wpConfigured(org.settings) && org.appInstallations.some((a) =>
-      ["real-estate", "accommodation"].includes(a.appId),
-    )) {
-      attentionReasons.push("WordPress connector missing");
-    }
-    if (!org.billingCustomerId && org.status !== "trial") {
-      attentionReasons.push("No Stripe customer");
-    }
-
-    const daysSinceUpdate =
-      (Date.now() - org.updatedAt.getTime()) / (24 * 60 * 60 * 1000);
-    if (daysSinceUpdate > 14 && org._count.leads === 0) {
-      attentionReasons.push("Quiet for 14+ days");
-    }
-
-    return {
-      organisationId: org.id,
-      organisationName: org.name,
-      organisationSlug: org.slug,
-      status: org.status,
-      industry: org.industry,
-      memberCount: org._count.memberships,
-      contactCount: org._count.contacts,
-      leadCount: org._count.leads,
-      propertyCount: org._count.properties,
-      stayBookingCount: org._count.stayBookings,
-      installedApps: org.appInstallations.map((a) => a.appId),
-      needsAttention: attentionReasons.length > 0,
-      attentionReasons,
-      createdAt: org.createdAt.toISOString(),
-      updatedAt: org.updatedAt.toISOString(),
-    };
-  });
+  const clients: CommandClientRow[] = intelligence.clients.map((c) => ({
+    organisationId: c.organisationId,
+    organisationName: c.organisationName,
+    organisationSlug: c.organisationSlug,
+    status: c.status,
+    industry: c.industry,
+    memberCount: c.memberCount,
+    contactCount: c.contactCount,
+    leadCount: c.leadCount,
+    propertyCount: c.propertyCount,
+    stayBookingCount: c.stayBookingCount,
+    installedApps: c.installedApps,
+    reBeta: c.reBeta,
+    needsAttention: c.needsAttention,
+    attentionReasons: c.attentionReasons,
+    createdAt: c.createdAt,
+    updatedAt: c.updatedAt,
+    successScore: c.successScore,
+    healthTier: c.healthTier,
+    rank: c.rank,
+  }));
 
   const actions: CommandActionItem[] = [];
 
@@ -417,6 +422,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
 
   const briefingParts = [
     `${organisations} organisation${organisations === 1 ? "" : "s"}`,
+    `avg Success Score ${intelligence.averageSuccessScore}`,
     `${leadsThisWeek} new lead${leadsThisWeek === 1 ? "" : "s"} this week`,
     `${listedProperties} live listing${listedProperties === 1 ? "" : "s"}`,
     stayBookingsActive > 0

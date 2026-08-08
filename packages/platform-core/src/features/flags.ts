@@ -74,6 +74,12 @@ export async function updateOrganisationFeatureFlags(input: {
 /** Documented Core flags (defaults off unless set). */
 export const KNOWN_FEATURE_FLAGS = [
   {
+    id: "re.beta",
+    label: "Real Estate beta",
+    description:
+      "Gates the Real Estate app for pilot agencies. Enable via Command Centre → Flags or Provision RE beta.",
+  },
+  {
     id: "ai.auto_execute",
     label: "AI auto-execute",
     description: "Allow approved AI actions to run without extra confirmation",
