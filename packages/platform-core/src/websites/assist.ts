@@ -29,6 +29,7 @@ type HeuristicPatch =
   | { kind: "change_subheadline"; subheadline: string }
   | { kind: "make_premium" }
   | { kind: "set_primary_color"; color: string }
+  | { kind: "ai_visibility" }
   | { kind: "noop" };
 
 function navLinks(active?: string) {
@@ -237,6 +238,14 @@ function heuristicPatch(
     return { kind: "make_premium" };
   }
 
+  if (
+    /ai\s+visibility/.test(lower) ||
+    /rewrite\s+for\s+ai/.test(lower) ||
+    /answer[- ]?engine/.test(lower)
+  ) {
+    return { kind: "ai_visibility" };
+  }
+
   return { kind: "noop" };
 }
 
@@ -369,6 +378,241 @@ function refinePremiumCopy(text: string): string {
   return `${trimmed.replace(/\.$/, "")} — delivered with care and clarity.`;
 }
 
+function refineAiVisibilityCopy(text: string, businessName: string): string {
+  const trimmed = text.trim();
+  const base =
+    trimmed ||
+    `${businessName} helps local clients with clear advice and practical next steps.`;
+  if (/who we help|what we offer|how it works|faq/i.test(base)) return base;
+  return `${base.replace(/\.$/, "")}. Who we help: local clients seeking clear guidance. What to do next: send an enquiry and we’ll outline options.`;
+}
+
+async function applyHeuristicPatch(
+  input: {
+    organisationId: string;
+    websiteId: string;
+    actorId?: string;
+  },
+  website: SerializedWebsite,
+  heuristic: Exclude<HeuristicPatch, { kind: "noop" }>,
+): Promise<WebsiteAssistResult> {
+  if (heuristic.kind === "add_page" && heuristic.page) {
+    const exists = website.pages?.some((p) => p.slug === heuristic.page.slug);
+    if (!exists) {
+      await createWebsitePage({
+        organisationId: input.organisationId,
+        websiteId: website.id,
+        actorId: input.actorId,
+        title: heuristic.page.title,
+        slug: heuristic.page.slug,
+        intent: heuristic.page.intent,
+        components: heuristic.page.components,
+      });
+    }
+    const updated = await getWebsite(input.organisationId, website.id);
+    return {
+      website: updated!,
+      applied: exists
+        ? `${heuristic.page.title} page already exists`
+        : `Added ${heuristic.page.slug} page`,
+      source: "heuristic",
+    };
+  }
+
+  if (heuristic.kind === "change_cta") {
+    for (const page of website.pages ?? []) {
+      await updateWebsitePage({
+        organisationId: input.organisationId,
+        websiteId: website.id,
+        pageId: page.id,
+        actorId: input.actorId,
+        components: applyCtaLabel(page.components, heuristic.ctaLabel),
+      });
+    }
+    const updated = await getWebsite(input.organisationId, website.id);
+    return {
+      website: updated!,
+      applied: `CTA → ${heuristic.ctaLabel}`,
+      source: "heuristic",
+    };
+  }
+
+  if (heuristic.kind === "change_headline") {
+    const home =
+      website.pages?.find((p) => p.intent === "home" || p.slug === "home") ||
+      website.pages?.[0];
+    if (home) {
+      await updateWebsitePage({
+        organisationId: input.organisationId,
+        websiteId: website.id,
+        pageId: home.id,
+        actorId: input.actorId,
+        components: applyHeadline(home.components, heuristic.headline),
+      });
+    }
+    const updated = await getWebsite(input.organisationId, website.id);
+    return {
+      website: updated!,
+      applied: `Headline → ${heuristic.headline}`,
+      source: "heuristic",
+    };
+  }
+
+  if (heuristic.kind === "change_subheadline") {
+    const home =
+      website.pages?.find((p) => p.intent === "home" || p.slug === "home") ||
+      website.pages?.[0];
+    if (home) {
+      await updateWebsitePage({
+        organisationId: input.organisationId,
+        websiteId: website.id,
+        pageId: home.id,
+        actorId: input.actorId,
+        components: applySubheadline(home.components, heuristic.subheadline),
+      });
+    }
+    const updated = await getWebsite(input.organisationId, website.id);
+    return {
+      website: updated!,
+      applied: `Subheadline → ${heuristic.subheadline}`,
+      source: "heuristic",
+    };
+  }
+
+  if (heuristic.kind === "set_primary_color") {
+    await updateWebsite({
+      organisationId: input.organisationId,
+      websiteId: website.id,
+      actorId: input.actorId,
+      theme: { ...(website.theme ?? {}), primaryColor: heuristic.color },
+    });
+    const updated = await getWebsite(input.organisationId, website.id);
+    return {
+      website: updated!,
+      applied: `Primary colour → ${heuristic.color}`,
+      source: "heuristic",
+    };
+  }
+
+  if (heuristic.kind === "make_premium") {
+    const biz = website.theme?.businessName || website.name;
+    for (const page of website.pages ?? []) {
+      await updateWebsitePage({
+        organisationId: input.organisationId,
+        websiteId: website.id,
+        pageId: page.id,
+        actorId: input.actorId,
+        components: makePremiumComponents(page.components, biz),
+      });
+    }
+    const updated = await getWebsite(input.organisationId, website.id);
+    return {
+      website: updated!,
+      applied: "Elevated tone (premium)",
+      source: "heuristic",
+    };
+  }
+
+  if (heuristic.kind === "ai_visibility") {
+    const biz = website.theme?.businessName || website.name;
+    const siteDesc = refineAiVisibilityCopy(
+      website.seo?.description || website.brief || "",
+      biz,
+    );
+    await updateWebsite({
+      organisationId: input.organisationId,
+      websiteId: website.id,
+      actorId: input.actorId,
+      seo: {
+        ...(website.seo ?? {}),
+        title: website.seo?.title || `${biz} | Clear answers`,
+        description: siteDesc.slice(0, 160),
+        keywords: [
+          ...new Set([
+            ...(website.seo?.keywords ?? []),
+            biz,
+            "local",
+            "enquiry",
+          ]),
+        ].slice(0, 8),
+      },
+      metadata: {
+        ...(website.metadata ?? {}),
+        aiVisibility: {
+          tunedAt: new Date().toISOString(),
+          note: "Answer-engine friendly SEO + FAQ-ready copy",
+        },
+      },
+    });
+    for (const page of website.pages ?? []) {
+      const nextComponents = page.components.map((c) => {
+        if (c.type === "about" && typeof c.props.body === "string") {
+          return {
+            ...c,
+            props: {
+              ...c.props,
+              body: refineAiVisibilityCopy(c.props.body, biz),
+            },
+          };
+        }
+        if (c.type === "faq") return c;
+        return c;
+      });
+      const hasFaq = nextComponents.some((c) => c.type === "faq");
+      const withFaq = hasFaq
+        ? nextComponents
+        : [
+            ...nextComponents.filter((c) => c.type !== "footer"),
+            component("faq", {
+              headline: "Quick answers",
+              items: [
+                {
+                  q: `What does ${biz} help with?`,
+                  a: `${biz} helps clients with clear advice and practical next steps.`,
+                },
+                {
+                  q: "How do I get started?",
+                  a: "Send a short enquiry via the contact form and we’ll reply with options.",
+                },
+                {
+                  q: "Which areas do you cover?",
+                  a: "We work with local clients and can advise on the best approach for your situation.",
+                },
+              ],
+            }),
+            ...nextComponents.filter((c) => c.type === "footer"),
+          ];
+      await updateWebsitePage({
+        organisationId: input.organisationId,
+        websiteId: website.id,
+        pageId: page.id,
+        actorId: input.actorId,
+        components: withFaq,
+        seo: {
+          ...(page.seo ?? {}),
+          title: page.seo?.title || `${page.title} | ${biz}`,
+          description: refineAiVisibilityCopy(
+            page.seo?.description || siteDesc,
+            biz,
+          ).slice(0, 160),
+        },
+      });
+    }
+    const updated = await getWebsite(input.organisationId, website.id);
+    return {
+      website: updated!,
+      applied: "Tuned for AI visibility (SEO + FAQ)",
+      source: "heuristic",
+    };
+  }
+
+  return {
+    website,
+    applied: "no change",
+    source: "heuristic",
+  };
+}
+
 /**
  * Apply an NL Studio prompt to a website model.
  */
@@ -386,7 +630,13 @@ export async function applyWebsiteAssistPrompt(input: {
     return { website, applied: "empty prompt", source: "heuristic" };
   }
 
-  // Prefer structured LLM patch when available
+  // Reliable path first: known prompts use heuristics (skip LLM round-trip)
+  const earlyHeuristic = heuristicPatch(website, prompt);
+  if (earlyHeuristic.kind !== "noop") {
+    return applyHeuristicPatch(input, website, earlyHeuristic);
+  }
+
+  // Prefer structured LLM patch when available for open-ended prompts
   if (llmConfigured()) {
     try {
       const result = await llmChat({
@@ -585,142 +835,20 @@ export async function applyWebsiteAssistPrompt(input: {
 
       // Fall through to heuristic if action unknown
     } catch (err) {
-      const heuristic = heuristicPatch(website, prompt);
-      if (heuristic.kind === "noop") {
-        return {
-          website,
-          applied: "no change",
-          source: "heuristic",
-          error: err instanceof Error ? err.message : "LLM patch failed",
-        };
-      }
-      // continue with heuristic below
+      return {
+        website,
+        applied:
+          "no matching edit — try “add services page”, “change CTA to …”, “make it more premium”, “rewrite for AI visibility”, or “set primary colour to navy”",
+        source: "heuristic",
+        error: err instanceof Error ? err.message : "LLM patch failed",
+      };
     }
-  }
-
-  const heuristic = heuristicPatch(website, prompt);
-
-  if (heuristic.kind === "add_page" && heuristic.page) {
-    const exists = website.pages?.some((p) => p.slug === heuristic.page.slug);
-    if (!exists) {
-      await createWebsitePage({
-        organisationId: input.organisationId,
-        websiteId: website.id,
-        actorId: input.actorId,
-        title: heuristic.page.title,
-        slug: heuristic.page.slug,
-        intent: heuristic.page.intent,
-        components: heuristic.page.components,
-      });
-    }
-    const updated = await getWebsite(input.organisationId, website.id);
-    return {
-      website: updated!,
-      applied: exists
-        ? `${heuristic.page.title} page already exists`
-        : `Added ${heuristic.page.slug} page`,
-      source: "heuristic",
-    };
-  }
-
-  if (heuristic.kind === "change_cta" && heuristic.ctaLabel) {
-    for (const page of website.pages ?? []) {
-      await updateWebsitePage({
-        organisationId: input.organisationId,
-        websiteId: website.id,
-        pageId: page.id,
-        actorId: input.actorId,
-        components: applyCtaLabel(page.components, heuristic.ctaLabel),
-      });
-    }
-    const updated = await getWebsite(input.organisationId, website.id);
-    return {
-      website: updated!,
-      applied: `CTA → ${heuristic.ctaLabel}`,
-      source: "heuristic",
-    };
-  }
-
-  if (heuristic.kind === "change_headline") {
-    const home =
-      website.pages?.find((p) => p.intent === "home" || p.slug === "home") ||
-      website.pages?.[0];
-    if (home) {
-      await updateWebsitePage({
-        organisationId: input.organisationId,
-        websiteId: website.id,
-        pageId: home.id,
-        actorId: input.actorId,
-        components: applyHeadline(home.components, heuristic.headline),
-      });
-    }
-    const updated = await getWebsite(input.organisationId, website.id);
-    return {
-      website: updated!,
-      applied: `Headline → ${heuristic.headline}`,
-      source: "heuristic",
-    };
-  }
-
-  if (heuristic.kind === "change_subheadline") {
-    const home =
-      website.pages?.find((p) => p.intent === "home" || p.slug === "home") ||
-      website.pages?.[0];
-    if (home) {
-      await updateWebsitePage({
-        organisationId: input.organisationId,
-        websiteId: website.id,
-        pageId: home.id,
-        actorId: input.actorId,
-        components: applySubheadline(home.components, heuristic.subheadline),
-      });
-    }
-    const updated = await getWebsite(input.organisationId, website.id);
-    return {
-      website: updated!,
-      applied: `Subheadline → ${heuristic.subheadline}`,
-      source: "heuristic",
-    };
-  }
-
-  if (heuristic.kind === "set_primary_color") {
-    await updateWebsite({
-      organisationId: input.organisationId,
-      websiteId: website.id,
-      actorId: input.actorId,
-      theme: { ...(website.theme ?? {}), primaryColor: heuristic.color },
-    });
-    const updated = await getWebsite(input.organisationId, website.id);
-    return {
-      website: updated!,
-      applied: `Primary colour → ${heuristic.color}`,
-      source: "heuristic",
-    };
-  }
-
-  if (heuristic.kind === "make_premium") {
-    const biz = website.theme?.businessName || website.name;
-    for (const page of website.pages ?? []) {
-      await updateWebsitePage({
-        organisationId: input.organisationId,
-        websiteId: website.id,
-        pageId: page.id,
-        actorId: input.actorId,
-        components: makePremiumComponents(page.components, biz),
-      });
-    }
-    const updated = await getWebsite(input.organisationId, website.id);
-    return {
-      website: updated!,
-      applied: "Elevated tone (premium)",
-      source: "heuristic",
-    };
   }
 
   return {
     website,
     applied:
-      "no matching edit — try “add services page”, “change CTA to …”, “make it more premium”, or “set primary colour to navy”",
+      "no matching edit — try “add services page”, “change CTA to …”, “make it more premium”, “rewrite for AI visibility”, or “set primary colour to navy”",
     source: "heuristic",
   };
 }

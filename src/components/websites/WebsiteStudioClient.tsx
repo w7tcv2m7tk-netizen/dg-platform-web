@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import type { SerializedWebsite, WebsiteComponent } from "@dg/platform-core";
 
 import { MakeItLivePanel } from "@/components/websites/MakeItLivePanel";
@@ -17,16 +17,29 @@ const SUGGESTED_PROMPTS = [
   "Add a FAQ page",
   "Set primary colour to navy",
   "Change headline to Local experts you can trust",
+  "Rewrite for AI visibility",
 ];
 
 export function WebsiteStudioClient({
   initial,
+  linkedDomain,
 }: {
   initial: SerializedWebsite;
+  linkedDomain?: string | null;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [website, setWebsite] = useState(initial);
-  const [pageId, setPageId] = useState(initial.pages?.[0]?.id ?? "");
+  const [pageId, setPageId] = useState(() => {
+    const fromQuery = searchParams.get("page");
+    if (fromQuery && initial.pages?.some((p) => p.id === fromQuery || p.slug === fromQuery)) {
+      const match = initial.pages.find(
+        (p) => p.id === fromQuery || p.slug === fromQuery,
+      );
+      return match?.id ?? initial.pages?.[0]?.id ?? "";
+    }
+    return initial.pages?.[0]?.id ?? "";
+  });
   const [prompt, setPrompt] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
@@ -34,7 +47,23 @@ export function WebsiteStudioClient({
     null,
   );
   const [showLivePanel, setShowLivePanel] = useState(true);
-  const [tab, setTab] = useState<StudioTab>("edit");
+  const [tab, setTab] = useState<StudioTab>(() => {
+    const t = searchParams.get("tab");
+    if (t === "seo" || t === "import" || t === "edit") return t;
+    return "edit";
+  });
+
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t === "seo" || t === "import" || t === "edit") setTab(t);
+    const fromQuery = searchParams.get("page");
+    if (fromQuery && website.pages) {
+      const match = website.pages.find(
+        (p) => p.id === fromQuery || p.slug === fromQuery,
+      );
+      if (match) setPageId(match.id);
+    }
+  }, [searchParams, website.pages]);
 
   const page = useMemo(
     () => website.pages?.find((p) => p.id === pageId) ?? website.pages?.[0],
@@ -45,6 +74,10 @@ export function WebsiteStudioClient({
   const isPublished = website.status === "published";
   const previewQs = isPublished ? "" : "?preview=1";
   const primary = website.theme?.primaryColor || "#1e3a5f";
+  const livePath = `/sites/${website.slug}`;
+  const customLiveUrl = linkedDomain
+    ? `https://${linkedDomain.replace(/^https?:\/\//, "")}`
+    : null;
 
   async function refreshFromServer() {
     const res = await fetch(`/api/v1/websites/${website.id}`);
@@ -154,6 +187,61 @@ export function WebsiteStudioClient({
     setBusy(false);
   }
 
+  async function duplicatePage(targetPageId: string) {
+    setBusy(true);
+    setStatus("Duplicating page…");
+    const res = await fetch(`/api/v1/websites/${website.id}/pages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "duplicate", pageId: targetPageId }),
+    });
+    const json = (await res.json()) as {
+      data?: { id: string };
+      error?: { message?: string };
+    };
+    if (!res.ok) {
+      setStatus(json.error?.message || "Duplicate failed");
+      setBusy(false);
+      return;
+    }
+    await refreshFromServer();
+    if (json.data?.id) {
+      setPageId(json.data.id);
+      setSelectedComponentId(null);
+    }
+    setStatus("Page duplicated");
+    setBusy(false);
+  }
+
+  async function movePage(targetPageId: string, direction: -1 | 1) {
+    const pages = website.pages ?? [];
+    const index = pages.findIndex((p) => p.id === targetPageId);
+    if (index < 0) return;
+    const next = index + direction;
+    if (next < 0 || next >= pages.length) return;
+    const ordered = pages.map((p) => p.id);
+    const tmp = ordered[index];
+    ordered[index] = ordered[next];
+    ordered[next] = tmp;
+    setBusy(true);
+    const res = await fetch(`/api/v1/websites/${website.id}/pages`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pageIds: ordered }),
+    });
+    const json = (await res.json()) as {
+      data?: SerializedWebsite;
+      error?: { message?: string };
+    };
+    if (json.data) {
+      setWebsite(json.data);
+      setStatus("Pages reordered");
+    } else {
+      setStatus(json.error?.message || "Reorder failed");
+    }
+    setBusy(false);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3 justify-between">
@@ -168,21 +256,37 @@ export function WebsiteStudioClient({
             >
               {website.status}
             </span>
+            {website.metadata?.kind === "funnel" ? (
+              <span className="rounded border border-sky-800/50 bg-sky-950/30 px-1.5 py-0.5 text-[11px] text-sky-200">
+                funnel
+              </span>
+            ) : null}
             <p className="text-sm text-slate-400">
-              /sites/{website.slug}
+              {livePath}
               {website.pages ? ` · ${website.pages.length} pages` : ""}
+              {linkedDomain ? ` · ${linkedDomain}` : ""}
             </p>
           </div>
           {status ? <p className="text-xs text-slate-500">{status}</p> : null}
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
-            href={`/sites/${website.slug}${previewQs}`}
+            href={`${livePath}${previewQs}`}
             target="_blank"
             className="rounded-md border border-slate-600 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800"
           >
-            Preview
+            {isPublished ? "Open live" : "Preview"}
           </Link>
+          {customLiveUrl && isPublished ? (
+            <a
+              href={customLiveUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-md border border-emerald-800/60 px-3 py-1.5 text-sm text-emerald-200 hover:bg-emerald-950/40"
+            >
+              Open {linkedDomain}
+            </a>
+          ) : null}
           <button
             type="button"
             disabled={busy}
@@ -279,12 +383,12 @@ export function WebsiteStudioClient({
       ) : null}
 
       {tab === "edit" ? (
-      <div className="grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)_17rem]">
+      <div className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)_17rem]">
         <aside className="space-y-3">
           <h2 className="text-xs uppercase tracking-wide text-slate-500">Pages</h2>
           <ul className="space-y-1">
-            {(website.pages ?? []).map((p) => (
-              <li key={p.id}>
+            {(website.pages ?? []).map((p, index) => (
+              <li key={p.id} className="rounded-md border border-transparent hover:border-slate-800">
                 <button
                   type="button"
                   onClick={() => {
@@ -302,6 +406,34 @@ export function WebsiteStudioClient({
                     /{p.slug} · {p.components.length} blocks
                   </span>
                 </button>
+                <div className="flex flex-wrap gap-1 px-1 pb-1">
+                  <button
+                    type="button"
+                    disabled={busy || index === 0}
+                    onClick={() => void movePage(p.id, -1)}
+                    className="rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:text-slate-300 disabled:opacity-30"
+                    title="Move up"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy || index >= (website.pages?.length ?? 0) - 1}
+                    onClick={() => void movePage(p.id, 1)}
+                    className="rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:text-slate-300 disabled:opacity-30"
+                    title="Move down"
+                  >
+                    ↓
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void duplicatePage(p.id)}
+                    className="rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:text-slate-300 disabled:opacity-30"
+                  >
+                    Duplicate
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -337,13 +469,19 @@ export function WebsiteStudioClient({
         </aside>
 
         <section className="space-y-4 min-w-0">
-          {showLivePanel ? <MakeItLivePanel website={website} /> : null}
+          {showLivePanel ? (
+            <MakeItLivePanel
+              website={website}
+              linkedDomain={linkedDomain}
+              onWebsiteChange={(next) => setWebsite(next)}
+            />
+          ) : null}
 
           <div className="space-y-2">
             <form onSubmit={(e) => void runAssist(e)} className="flex gap-2">
               <input
                 className="flex-1 rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white"
-                placeholder='Try: “make it more premium” or “change CTA to Book an appraisal”'
+                placeholder='Try: “make it more premium” or “rewrite for AI visibility”'
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 disabled={busy}
@@ -380,8 +518,8 @@ export function WebsiteStudioClient({
                 <Link
                   href={
                     page.slug === "home" || page.intent === "home"
-                      ? `/sites/${website.slug}${previewQs}`
-                      : `/sites/${website.slug}/${page.slug}${previewQs}`
+                      ? `${livePath}${previewQs}`
+                      : `${livePath}/${page.slug}${previewQs}`
                   }
                   target="_blank"
                   className="text-[11px] text-sky-400 hover:underline"

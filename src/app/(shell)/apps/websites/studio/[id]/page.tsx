@@ -1,8 +1,10 @@
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import {
   getWebsite,
+  listOrganisationDomains,
   organisationHasWebsitesBuilder,
 } from "@dg/platform-core";
 
@@ -62,17 +64,31 @@ export default async function WebsiteStudioPage({ params }: Props) {
   const website = await getWebsite(session.organisationId, id);
   if (!website) notFound();
 
+  const domains = await listOrganisationDomains(session.organisationId);
+  const linkedDomain =
+    domains.find((d) => d.websiteId === website.id)?.name ?? null;
+
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">{website.name}</h1>
         <p className="text-sm text-slate-400">
           Studio · structured model · {session.organisationName}
+          {linkedDomain ? ` · ${linkedDomain}` : ""}
         </p>
       </header>
       <main className="dg-page-main">
         <WebsitesSubnav active="sites" />
-        <WebsiteStudioClient initial={website} />
+        <Suspense
+          fallback={
+            <p className="text-sm text-slate-500">Loading studio…</p>
+          }
+        >
+          <WebsiteStudioClient
+            initial={website}
+            linkedDomain={linkedDomain}
+          />
+        </Suspense>
       </main>
     </>
   );

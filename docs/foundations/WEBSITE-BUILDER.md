@@ -350,10 +350,14 @@ Studio shows an **Import from WordPress** flow (connector status + queue). Full 
 | `/apps/websites` | Hub — site cards, create flow, Studio / Preview / Domains / Hosting links |
 | `/apps/websites/domains` | DigitalGate Domains (shared with Infrastructure) |
 | `/apps/websites/hosting` | Hosting status — published sites, linked domains, DNS/SSL summary |
-| `/apps/websites/studio/[id]` | Studio — NL assist, field editors, publish/unpublish, **Make it live** |
+| `/apps/websites/funnels` | Funnel Builder v0 — landing → form → CRM |
+| `/apps/websites/studio/[id]` | Studio — NL assist, field editors, publish/unpublish, **Make it live**, page reorder/duplicate |
 | `/sites/[slug]` | Public (or `?preview=1` draft) renderer |
 | `/sites/[slug]/[pageSlug]` | Inner pages |
 | `/sites/by-host` | Custom hostname entry (middleware rewrite) |
+| `POST /api/v1/websites` | Create site or `{ kind: "funnel", funnelTemplate }` |
+| `POST /api/v1/websites/[id]/pages` | Create / duplicate page |
+| `PATCH /api/v1/websites/[id]/pages` | Reorder pages (`pageIds`) |
 | `POST /api/v1/websites/public/[slug]/form` | Contact form → Contact + Lead |
 | `POST /api/v1/infrastructure/go-live` | Connect domain → DNS → publish checklist |
 
@@ -386,14 +390,22 @@ Shipped in post-MVP depth pass:
 - Native **Health** checklist (published, domain, DNS, SSL, form→CRM, SEO, last updated)  
 - **Import from WordPress** path (connector status, queue, documented steps — not full importer)
 
+Shipped in Funnel / Studio polish pass:
+
+- **Funnel Builder v0** — landing templates (lead capture / appraisal / booking) → form → CRM (`website_funnel`)  
+- Studio page list: reorder ↑↓, duplicate page, deep links `?tab=` / `?page=`  
+- NL assist: heuristic-first reliability + “rewrite for AI visibility”  
+- Publish / preview UX: Open live, custom domain link from Make it live + Studio  
+- Health / Content actions: Fix SEO gaps, jump to Studio fields  
+
 Still later:
 
 - Domains / DG DNS / hosting / SSL productization polish (Infrastructure)  
 - Visual drag-drop Studio (level 2)  
 - Developer Studio sandbox (level 3)  
 - Complete WordPress import job (phases 2–4 above)  
-- Funnel Builder  
 - Deeper SEO / AI Visibility Apps on publish  
+- Multi-step funnel sequences / email follow-ups  
 
 ---
 

@@ -80,6 +80,12 @@ export type WebsitePageIntent =
 /** Starter IA packs for industry-aware generation */
 export type WebsiteTemplateId = "generic" | "real_estate" | "accommodation";
 
+/** Funnel Builder v0 — single-page conversion templates */
+export type FunnelTemplateId =
+  | "lead_capture"
+  | "appraisal_request"
+  | "booking_enquiry";
+
 export type WebsiteTheme = {
   primaryColor?: string;
   accentColor?: string;

@@ -119,12 +119,20 @@ export default async function ContentOverviewPage() {
                                 : " · no page SEO title"}
                             </p>
                           </div>
-                          <Link
-                            href={`/apps/websites/studio/${site.id}`}
-                            className="text-xs text-sky-400 hover:underline shrink-0"
-                          >
-                            Edit in Studio →
-                          </Link>
+                          <div className="flex flex-wrap gap-2 shrink-0">
+                            <Link
+                              href={`/apps/websites/studio/${site.id}?page=${encodeURIComponent(page.slug)}`}
+                              className="text-xs text-sky-400 hover:underline"
+                            >
+                              Edit page →
+                            </Link>
+                            <Link
+                              href={`/apps/websites/studio/${site.id}?tab=seo&page=${encodeURIComponent(page.slug)}`}
+                              className="text-xs text-slate-500 hover:text-sky-400"
+                            >
+                              SEO →
+                            </Link>
+                          </div>
                         </li>
                       );
                     })}

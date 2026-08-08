@@ -460,6 +460,7 @@ export async function createWebsitePage(input: {
   slug: string;
   intent?: string;
   components?: WebsiteComponent[];
+  seo?: WebsiteSeo;
 }) {
   const { prisma } = await import("@dg/database");
   const site = await prisma.website.findFirst({
@@ -477,6 +478,7 @@ export async function createWebsitePage(input: {
       intent: input.intent ?? "custom",
       status: "draft",
       sortOrder,
+      seo: (input.seo ?? undefined) as Prisma.InputJsonValue | undefined,
       components: (input.components
         ? normalizeComponents(input.components)
         : []) as unknown as Prisma.InputJsonValue,
@@ -492,4 +494,116 @@ export async function createWebsitePage(input: {
   });
 
   return serializePage(page);
+}
+
+/** Duplicate a page with a unique slug and refreshed component ids */
+export async function duplicateWebsitePage(input: {
+  organisationId: string;
+  websiteId: string;
+  pageId: string;
+  actorId?: string;
+}): Promise<SerializedWebsitePage | null> {
+  const { prisma } = await import("@dg/database");
+  const site = await prisma.website.findFirst({
+    where: { id: input.websiteId, organisationId: input.organisationId },
+    select: { id: true },
+  });
+  if (!site) return null;
+
+  const source = await prisma.websitePage.findFirst({
+    where: { id: input.pageId, websiteId: site.id },
+  });
+  if (!source) return null;
+
+  const components = normalizeComponents(source.components).map((c) => ({
+    ...c,
+    id: `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`,
+  }));
+
+  let baseSlug = `${source.slug}-copy`.slice(0, 60);
+  let slug = baseSlug;
+  for (let i = 0; i < 20; i++) {
+    const candidate = i === 0 ? baseSlug : `${baseSlug}-${i + 1}`.slice(0, 64);
+    const clash = await prisma.websitePage.findFirst({
+      where: { websiteId: site.id, slug: candidate },
+      select: { id: true },
+    });
+    if (!clash) {
+      slug = candidate;
+      break;
+    }
+  }
+
+  const maxSort = await prisma.websitePage.findFirst({
+    where: { websiteId: site.id },
+    orderBy: { sortOrder: "desc" },
+    select: { sortOrder: true },
+  });
+
+  const page = await prisma.websitePage.create({
+    data: {
+      websiteId: site.id,
+      title: `${source.title} (copy)`,
+      slug,
+      intent: source.intent ?? "custom",
+      status: "draft",
+      sortOrder: (maxSort?.sortOrder ?? -1) + 1,
+      seo: (source.seo as Prisma.InputJsonValue) ?? undefined,
+      components: components as unknown as Prisma.InputJsonValue,
+    },
+  });
+
+  await writeAuditLog({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    action: "create",
+    entityType: "WebsitePage",
+    entityId: page.id,
+    changes: { after: { duplicatedFrom: source.id, slug: page.slug } },
+  });
+
+  return serializePage(page);
+}
+
+/** Reorder pages — pageIds is the desired order (all pages for the site) */
+export async function reorderWebsitePages(input: {
+  organisationId: string;
+  websiteId: string;
+  actorId?: string;
+  pageIds: string[];
+}): Promise<SerializedWebsite | null> {
+  const { prisma } = await import("@dg/database");
+  const site = await prisma.website.findFirst({
+    where: { id: input.websiteId, organisationId: input.organisationId },
+    include: { pages: { select: { id: true } } },
+  });
+  if (!site) return null;
+
+  const existingIds = new Set(site.pages.map((p) => p.id));
+  if (
+    input.pageIds.length !== existingIds.size ||
+    input.pageIds.some((id) => !existingIds.has(id))
+  ) {
+    throw new Error("pageIds must include every page exactly once");
+  }
+
+  await prisma.$transaction(
+    input.pageIds.map((id, index) =>
+      prisma.websitePage.update({
+        where: { id },
+        data: { sortOrder: index },
+      }),
+    ),
+  );
+
+  await writeAuditLog({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    action: "update",
+    entityType: "Website",
+    entityId: site.id,
+    changes: { after: { pageOrder: input.pageIds } },
+  });
+
+  return getWebsite(input.organisationId, site.id);
 }

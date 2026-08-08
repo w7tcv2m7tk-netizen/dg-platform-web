@@ -59,7 +59,15 @@ function stateStyles(state: string): {
 
 const CORE_STEPS = ["domain", "dns", "ssl", "website"] as const;
 
-export function MakeItLivePanel({ website }: { website: SerializedWebsite }) {
+export function MakeItLivePanel({
+  website,
+  linkedDomain: linkedDomainProp,
+  onWebsiteChange,
+}: {
+  website: SerializedWebsite;
+  linkedDomain?: string | null;
+  onWebsiteChange?: (next: SerializedWebsite) => void;
+}) {
   const [domains, setDomains] = useState<InventoryDomain[]>([]);
   const [domainId, setDomainId] = useState("");
   const [newDomain, setNewDomain] = useState("");
@@ -91,6 +99,17 @@ export function MakeItLivePanel({ website }: { website: SerializedWebsite }) {
   useEffect(() => {
     void refresh();
   }, [refresh, website.status]);
+
+  const linkedDomain =
+    linkedDomainProp ||
+    domains.find((d) => d.websiteId === website.id)?.name ||
+    null;
+  const isPublished = website.status === "published";
+  const previewQs = isPublished ? "" : "?preview=1";
+  const platformLive = `/sites/${website.slug}${previewQs}`;
+  const customLiveUrl = linkedDomain
+    ? `https://${linkedDomain.replace(/^https?:\/\//, "")}`
+    : null;
 
   const coreItems = useMemo(() => {
     const byId = new Map(checklist.map((i) => [i.id, i]));
@@ -144,13 +163,19 @@ export function MakeItLivePanel({ website }: { website: SerializedWebsite }) {
       }),
     });
     const json = (await res.json()) as {
-      data?: { checklist?: { items?: ChecklistItem[]; score?: number } };
+      data?: {
+        checklist?: { items?: ChecklistItem[]; score?: number };
+        website?: SerializedWebsite;
+      };
       error?: { message?: string };
     };
     if (res.ok) {
       setChecklist(json.data?.checklist?.items ?? []);
       setScore(json.data?.checklist?.score ?? 0);
       setStatus("Go-live steps submitted");
+      if (json.data?.website && onWebsiteChange) {
+        onWebsiteChange(json.data.website);
+      }
       await refresh();
     } else {
       setStatus(json.error?.message || "Go-live failed");
@@ -168,7 +193,7 @@ export function MakeItLivePanel({ website }: { website: SerializedWebsite }) {
           </p>
         </div>
         <span className="rounded-full border border-slate-700 px-2.5 py-0.5 text-xs text-slate-300">
-          {score}% ready
+          {score}% ready · {website.status}
         </span>
       </div>
 
@@ -201,18 +226,33 @@ export function MakeItLivePanel({ website }: { website: SerializedWebsite }) {
         })}
       </ol>
 
-      <p className="text-xs text-slate-400">
-        Next: {nextHint} Preview stays at{" "}
-        <code className="text-slate-300">/sites/{website.slug}</code>
-        {" · "}
-        <Link href="/apps/websites/domains" className="text-sky-400 hover:underline">
-          Domains
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+        <span>Next: {nextHint}</span>
+        <Link
+          href={platformLive}
+          target="_blank"
+          className="text-sky-400 hover:underline"
+        >
+          {isPublished ? "Open live" : "Preview"} (/sites/{website.slug})
         </Link>
-        {" · "}
-        <Link href="/apps/websites/hosting" className="text-sky-400 hover:underline">
+        {customLiveUrl ? (
+          <a
+            href={customLiveUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-emerald-400 hover:underline"
+          >
+            Custom domain · {linkedDomain}
+          </a>
+        ) : (
+          <Link href="/apps/websites/domains" className="text-slate-500 hover:underline">
+            Connect domain
+          </Link>
+        )}
+        <Link href="/apps/websites/hosting" className="text-slate-500 hover:underline">
           Hosting
         </Link>
-      </p>
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block text-xs text-slate-500">

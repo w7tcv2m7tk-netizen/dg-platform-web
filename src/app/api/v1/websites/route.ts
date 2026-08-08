@@ -1,5 +1,7 @@
 import {
+  createFunnelWebsite,
   createWebsite,
+  isFunnelTemplateId,
   listWebsites,
   organisationHasWebsitesBuilder,
 } from "@dg/platform-core";
@@ -52,7 +54,35 @@ export async function POST(req: Request) {
     brief?: string;
     generate?: boolean;
     template?: "generic" | "real_estate" | "accommodation" | "auto";
+    kind?: "site" | "funnel";
+    funnelTemplate?: string;
+    offer?: string;
   } | null;
+
+  if (body?.kind === "funnel") {
+    if (!isFunnelTemplateId(body.funnelTemplate)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "validation_error",
+            message:
+              "funnelTemplate must be lead_capture, appraisal_request, or booking_enquiry",
+          },
+        },
+        { status: 400 },
+      );
+    }
+    const result = await createFunnelWebsite({
+      organisationId: session.organisationId,
+      organisationName: session.organisationName,
+      actorId: session.clerkUserId,
+      template: body.funnelTemplate,
+      name: body.name,
+      brief: body.brief,
+      offer: body.offer,
+    });
+    return NextResponse.json({ data: result }, { status: 201 });
+  }
 
   const result = await createWebsite({
     organisationId: session.organisationId,

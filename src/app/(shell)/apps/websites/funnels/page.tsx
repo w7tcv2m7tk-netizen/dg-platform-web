@@ -1,33 +1,65 @@
+import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
+import {
+  isFunnelWebsite,
+  listWebsites,
+  organisationHasWebsitesBuilder,
+} from "@dg/platform-core";
 
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { fetchPortalMe } from "@/lib/dg-api";
+import { FunnelBuilderClient } from "@/components/websites/FunnelBuilderClient";
 import { WebsitesSubnav } from "@/components/websites/WebsitesSubnav";
 
-export default function FunnelsStubPage() {
+export default async function FunnelsPage() {
+  const user = await currentUser();
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
+  const name =
+    user?.fullName ??
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
+    email;
+
+  const portal = email ? await fetchPortalMe(email, user?.id) : null;
+  const session = user?.id
+    ? await resolveActivePlatformSession({
+        clerkUserId: user.id,
+        email,
+        name,
+        orgName: portal?.org_name,
+      })
+    : null;
+
+  const allowed = session
+    ? await organisationHasWebsitesBuilder(session.organisationId)
+    : false;
+
+  const sites =
+    session && allowed ? await listWebsites(session.organisationId) : [];
+  const funnels = sites.filter((s) => isFunnelWebsite(s));
+
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Funnels</h1>
+        <h1 className="text-2xl font-bold text-white">Funnel Builder</h1>
         <p className="text-sm text-slate-400">
-          Conversion paths — planned after Studio + CRM forms
+          Landing page → form → CRM · Gen 2 structured sites
         </p>
       </header>
       <main className="dg-page-main space-y-4">
         <WebsitesSubnav active="funnels" />
-        <div className="rounded-lg border border-slate-700 bg-slate-900/40 p-5 max-w-xl space-y-3">
-          <p className="text-sm text-slate-300">
-            Funnel builder is not in this demo slice. Contact forms already
-            capture into CRM from published pages — use Studio → Contact form,
-            then track leads in CRM.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/apps/websites" className="text-sm text-sky-400 hover:underline">
-              ← Sites
-            </Link>
-            <Link href="/apps/crm/contacts" className="text-sm text-slate-400 hover:underline">
-              CRM →
-            </Link>
+
+        {!allowed ? (
+          <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-xl">
+            <p className="text-sm text-amber-100/90">
+              Enable Website Builder to create funnels.{" "}
+              <Link href="/apps/websites" className="underline">
+                Sites
+              </Link>
+            </p>
           </div>
-        </div>
+        ) : (
+          <FunnelBuilderClient funnels={funnels} />
+        )}
       </main>
     </>
   );

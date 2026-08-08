@@ -42,6 +42,42 @@ function statusBadge(status: "pass" | "warn" | "fail") {
   );
 }
 
+function healthActionHref(
+  siteId: string,
+  checkId: string,
+): { href: string; label: string } | null {
+  switch (checkId) {
+    case "published":
+      return {
+        href: `/apps/websites/studio/${siteId}`,
+        label: "Publish in Studio",
+      };
+    case "custom_domain":
+    case "dns":
+    case "ssl":
+      return {
+        href: `/apps/websites/studio/${siteId}`,
+        label: "Make it live",
+      };
+    case "form_crm":
+      return {
+        href: `/apps/websites/studio/${siteId}?tab=edit`,
+        label: "Add form in Studio",
+      };
+    case "seo_title":
+    case "seo_description":
+      return {
+        href: `/apps/websites/studio/${siteId}?tab=seo`,
+        label: "Fix SEO gaps",
+      };
+    default:
+      return {
+        href: `/apps/websites/studio/${siteId}`,
+        label: "Open Studio",
+      };
+  }
+}
+
 export default async function WebsiteHealthPage({ searchParams }: PageProps) {
   const { site: siteId, view } = await searchParams;
   const user = await currentUser();
@@ -199,22 +235,35 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
                           </tr>
                         </thead>
                         <tbody>
-                          {snapshot.checks.map((check) => (
-                            <tr
-                              key={check.id}
-                              className="border-b border-slate-800/60"
-                            >
-                              <td className="py-2.5 pr-4 text-slate-200">
-                                {check.label}
-                              </td>
-                              <td className="py-2.5 pr-4">
-                                {statusBadge(check.status)}
-                              </td>
-                              <td className="py-2.5 text-slate-400">
-                                {check.detail}
-                              </td>
-                            </tr>
-                          ))}
+                          {snapshot.checks.map((check) => {
+                            const action = healthActionHref(site.id, check.id);
+                            return (
+                              <tr
+                                key={check.id}
+                                className="border-b border-slate-800/60"
+                              >
+                                <td className="py-2.5 pr-4 text-slate-200">
+                                  {check.label}
+                                </td>
+                                <td className="py-2.5 pr-4">
+                                  {statusBadge(check.status)}
+                                </td>
+                                <td className="py-2.5 text-slate-400">
+                                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                    <span>{check.detail}</span>
+                                    {action && check.status !== "pass" ? (
+                                      <Link
+                                        href={action.href}
+                                        className="text-sky-400 hover:underline shrink-0"
+                                      >
+                                        {action.label} →
+                                      </Link>
+                                    ) : null}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>

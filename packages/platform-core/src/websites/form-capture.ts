@@ -53,10 +53,22 @@ export async function captureWebsiteFormSubmission(
     if (!draft) {
       return { ok: false, code: "not_found", message: "Website not found" };
     }
-    return captureForWebsite(draft.organisationId, draft.id, draft.slug, input);
+    return captureForWebsite(
+      draft.organisationId,
+      draft.id,
+      draft.slug,
+      input,
+      draft.metadata,
+    );
   }
 
-  return captureForWebsite(site.organisationId, site.id, site.slug, input);
+  return captureForWebsite(
+    site.organisationId,
+    site.id,
+    site.slug,
+    input,
+    site.metadata,
+  );
 }
 
 async function captureForWebsite(
@@ -64,10 +76,20 @@ async function captureForWebsite(
   websiteId: string,
   siteSlug: string,
   input: WebsiteFormCaptureInput,
+  siteMeta?: Record<string, unknown> | null,
 ): Promise<WebsiteFormCaptureResult> {
   const { prisma } = await import("@dg/database");
   const email = input.email?.trim().toLowerCase() || undefined;
   const phone = input.phone?.trim() || undefined;
+  const isFunnel =
+    siteMeta?.kind === "funnel" || typeof siteMeta?.funnelTemplate === "string";
+  const funnelTemplate =
+    typeof siteMeta?.funnelTemplate === "string"
+      ? siteMeta.funnelTemplate
+      : null;
+  const leadTitle = isFunnel
+    ? `Funnel enquiry${funnelTemplate ? ` (${funnelTemplate.replace(/_/g, " ")})` : ""} — ${input.name.trim()}`
+    : `Website enquiry — ${input.name.trim()}`;
 
   let contactId: string | undefined;
   if (email) {
@@ -85,20 +107,20 @@ async function captureForWebsite(
       lastName: parts.lastName,
       email,
       phone,
-      source: "website_form",
+      source: isFunnel ? "website_funnel" : "website_form",
     });
     contactId = contact.id;
   }
 
   const lead = await createLead({
     organisationId,
-    source: "website_form",
-    title: `Website enquiry — ${input.name.trim()}`,
+    source: isFunnel ? "website_funnel" : "website_form",
+    title: leadTitle,
     description: input.message?.trim() || undefined,
     contactId,
     status: "new",
     metadata: {
-      lead_type: "enquiry",
+      lead_type: isFunnel ? "funnel_enquiry" : "enquiry",
       stage: "new",
       website_id: websiteId,
       site_slug: siteSlug,
@@ -106,7 +128,9 @@ async function captureForWebsite(
       contact_name: input.name.trim(),
       email,
       phone,
-      capture_path: "website_builder_form",
+      capture_path: isFunnel ? "website_builder_funnel" : "website_builder_form",
+      funnel: isFunnel,
+      funnel_template: funnelTemplate,
     },
   });
 

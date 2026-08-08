@@ -2,6 +2,7 @@ export * from "./types";
 export * from "./schema";
 export * from "./access";
 export * from "./templates";
+export * from "./funnels";
 export * from "./generate";
 export * from "./crud";
 export * from "./assist";
