@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function formatAud(cents: number) {
   return new Intl.NumberFormat("en-AU", {
@@ -12,6 +12,32 @@ function formatAud(cents: number) {
 
 type ReferralTier = "customer" | "partner" | "reseller";
 
+type ConnectSnapshot = {
+  configured: boolean;
+  accountType: string;
+  accountId: string | null;
+  status: "not_started" | "pending" | "restricted" | "complete" | "disabled";
+  payoutsEnabled: boolean;
+  detailsSubmitted: boolean;
+  canRequestPayout: boolean;
+  message: string;
+};
+
+function connectStatusLabel(status: ConnectSnapshot["status"]) {
+  switch (status) {
+    case "complete":
+      return "Ready for payouts";
+    case "pending":
+      return "Onboarding in progress";
+    case "restricted":
+      return "Action required";
+    case "disabled":
+      return "Disabled";
+    default:
+      return "Not connected";
+  }
+}
+
 export function ReferAndEarnPanel({
   shareUrl,
   code,
@@ -19,7 +45,9 @@ export function ReferAndEarnPanel({
   referrals,
   stubsNote,
   programme,
+  connect,
   canEditTier = false,
+  canManageConnect = false,
 }: {
   shareUrl: string;
   code: string;
@@ -30,6 +58,7 @@ export function ReferAndEarnPanel({
     active: number;
     monthlyRewardCents: number;
     lifetimeRewardCents: number;
+    cashAvailableCents?: number;
     cashAvailableStubCents: number;
     cashPayoutThresholdCents: number;
     commissionBps?: number;
@@ -49,7 +78,9 @@ export function ReferAndEarnPanel({
     commissionBps: number;
     label: string;
   };
+  connect: ConnectSnapshot;
   canEditTier?: boolean;
+  canManageConnect?: boolean;
 }) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
@@ -57,6 +88,7 @@ export function ReferAndEarnPanel({
   const [name, setName] = useState("");
   const [pending, setPending] = useState(false);
   const [cashPending, setCashPending] = useState(false);
+  const [connectPending, setConnectPending] = useState(false);
   const [tierPending, setTierPending] = useState(false);
   const [tier, setTier] = useState<ReferralTier>(
     programme?.tier ?? metrics.tier ?? "customer",
@@ -64,11 +96,44 @@ export function ReferAndEarnPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const cashAvailable =
+    metrics.cashAvailableCents ?? metrics.cashAvailableStubCents;
   const canRequestCash =
-    metrics.cashAvailableStubCents >= metrics.cashPayoutThresholdCents;
+    connect.configured &&
+    connect.canRequestPayout &&
+    cashAvailable >= metrics.cashPayoutThresholdCents;
   const commissionBps =
     programme?.commissionBps ?? metrics.commissionBps ?? 2000;
   const commissionPct = (commissionBps / 100).toFixed(0);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const connectParam = params.get("connect");
+    if (connectParam !== "return" && connectParam !== "refresh") return;
+
+    void (async () => {
+      setConnectPending(true);
+      setError(null);
+      try {
+        await fetch("/api/v1/referrals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "connect_sync" }),
+        });
+        setMessage(
+          connectParam === "return"
+            ? "Stripe Connect status updated."
+            : "Onboarding link expired — start Connect again if needed.",
+        );
+        router.replace("/dashboard/settings/referrals");
+        router.refresh();
+      } catch {
+        setError("Could not refresh Connect status");
+      } finally {
+        setConnectPending(false);
+      }
+    })();
+  }, [router]);
 
   async function copyLink() {
     try {
@@ -99,11 +164,7 @@ export function ReferAndEarnPanel({
     const delivery = json.data?.delivery;
     const resent = json.data?.resent;
     if (delivery?.status === "sent") {
-      setMessage(
-        resent
-          ? "Invite re-sent via email."
-          : "Invite email sent.",
-      );
+      setMessage(resent ? "Invite re-sent via email." : "Invite email sent.");
     } else if (delivery?.queued || delivery?.status === "queued") {
       setMessage(
         resent
@@ -122,6 +183,28 @@ export function ReferAndEarnPanel({
     router.refresh();
   }
 
+  async function startConnectOnboarding() {
+    setConnectPending(true);
+    setError(null);
+    setMessage(null);
+    const res = await fetch("/api/v1/referrals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "connect_onboarding" }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setConnectPending(false);
+    if (!res.ok) {
+      setError(json.error?.message ?? "Could not start bank onboarding");
+      return;
+    }
+    if (json.data?.url) {
+      window.location.href = json.data.url as string;
+      return;
+    }
+    setError("Stripe did not return an onboarding URL");
+  }
+
   async function requestCashPayout() {
     setCashPending(true);
     setError(null);
@@ -129,7 +212,7 @@ export function ReferAndEarnPanel({
     const res = await fetch("/api/v1/referrals", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "cash_payout_stub" }),
+      body: JSON.stringify({ action: "cash_payout" }),
     });
     const json = await res.json().catch(() => ({}));
     setCashPending(false);
@@ -138,7 +221,7 @@ export function ReferAndEarnPanel({
       return;
     }
     setMessage(
-      `Cash payout stub recorded for ${formatAud(json.data?.amountCents ?? 0)} — Stripe Connect transfer not wired yet.`,
+      `Cash payout of ${formatAud(json.data?.amountCents ?? 0)} sent to your connected bank account via Stripe.`,
     );
     router.refresh();
   }
@@ -281,24 +364,68 @@ export function ReferAndEarnPanel({
       </div>
 
       <div className="dg-card">
-        <h2 className="font-semibold text-white">Cash payout (stub)</h2>
+        <h2 className="font-semibold text-white">Cash payout</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Available {formatAud(metrics.cashAvailableStubCents)} · threshold{" "}
-          {formatAud(metrics.cashPayoutThresholdCents)}. Records a ledger intent only —
-          bank transfer / Stripe Connect is not wired.
+          Available {formatAud(cashAvailable)} · threshold{" "}
+          {formatAud(metrics.cashPayoutThresholdCents)}. Platform credit is the
+          default reward; cash is optional once you hit the threshold.
         </p>
-        <button
-          type="button"
-          disabled={!canRequestCash || cashPending}
-          onClick={() => void requestCashPayout()}
-          className="mt-4 rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {cashPending
-            ? "Recording…"
-            : canRequestCash
-              ? "Request cash payout (stub)"
-              : `Need ${formatAud(metrics.cashPayoutThresholdCents)} to cash out`}
-        </button>
+
+        {!connect.configured ? (
+          <p className="mt-4 rounded-lg border border-dashed border-slate-700 bg-slate-950/60 px-3 py-3 text-sm text-slate-400">
+            {connect.message}
+          </p>
+        ) : (
+          <>
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+              <span className="rounded-full border border-slate-600 px-3 py-0.5 text-xs text-slate-300">
+                Stripe {connect.accountType} · {connectStatusLabel(connect.status)}
+              </span>
+              {connect.accountId ? (
+                <span className="font-mono text-xs text-slate-500">
+                  {connect.accountId}
+                </span>
+              ) : null}
+            </div>
+            <p className="mt-2 text-sm text-slate-400">{connect.message}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {canManageConnect &&
+              (!connect.canRequestPayout || connect.status !== "complete") ? (
+                <button
+                  type="button"
+                  disabled={connectPending}
+                  onClick={() => void startConnectOnboarding()}
+                  className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+                >
+                  {connectPending
+                    ? "Opening Stripe…"
+                    : connect.status === "not_started"
+                      ? "Connect bank account"
+                      : "Continue Stripe onboarding"}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                disabled={!canRequestCash || cashPending}
+                onClick={() => void requestCashPayout()}
+                className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {cashPending
+                  ? "Sending…"
+                  : canRequestCash
+                    ? `Request cash payout (${formatAud(cashAvailable)})`
+                    : !connect.canRequestPayout
+                      ? "Connect bank account to cash out"
+                      : `Need ${formatAud(metrics.cashPayoutThresholdCents)} to cash out`}
+              </button>
+            </div>
+            {!canManageConnect && !connect.canRequestPayout ? (
+              <p className="mt-3 text-xs text-slate-500">
+                Ask an org owner/admin to complete Stripe Connect onboarding.
+              </p>
+            ) : null}
+          </>
+        )}
       </div>
 
       <div className="dg-card">
@@ -338,8 +465,10 @@ export function ReferAndEarnPanel({
           Earn <strong className="text-slate-200">{commissionPct}%</strong> of the
           referred organisation&apos;s subscription as{" "}
           <strong className="text-slate-200">platform credit</strong> for 12 months
-          after they pay. Cash payout at {formatAud(metrics.cashPayoutThresholdCents)}{" "}
-          is stubbed ({formatAud(metrics.cashAvailableStubCents)} available in ledger).
+          after they pay. Optional cash payout at{" "}
+          {formatAud(metrics.cashPayoutThresholdCents)} via Stripe Connect (
+          {formatAud(cashAvailable)} available). Single-level only — not multi-level
+          marketing.
         </p>
         <p className="mt-2 text-xs text-slate-500">{stubsNote}</p>
       </div>

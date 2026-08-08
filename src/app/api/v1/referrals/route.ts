@@ -1,8 +1,10 @@
 import {
   createReferralInvite,
+  createStripeConnectOnboardingLink,
   getReferAndEarnDashboard,
   normalizeReferralTier,
-  requestCashPayoutStub,
+  requestCashPayout,
+  syncStripeConnectAccount,
   updateOrganisationReferralProgramme,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
@@ -21,6 +23,14 @@ export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
+  const url = new URL(req.url);
+  if (url.searchParams.get("syncConnect") === "1") {
+    await syncStripeConnectAccount({
+      organisationId: session.organisationId,
+      actorId: session.clerkUserId,
+    }).catch(() => null);
+  }
+
   const dashboard = await getReferAndEarnDashboard(session.organisationId);
   return NextResponse.json({
     data: {
@@ -36,17 +46,82 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => ({}));
 
-  if (body.action === "cash_payout_stub") {
-    const result = await requestCashPayoutStub({
+  if (body.action === "cash_payout" || body.action === "cash_payout_stub") {
+    const result = await requestCashPayout({
       organisationId: session.organisationId,
       actorId: session.clerkUserId,
     });
     if (!result.ok) {
+      const message =
+        "message" in result && typeof result.message === "string"
+          ? result.message
+          : result.reason === "below_threshold"
+            ? "Balance is below the cash payout threshold"
+            : result.reason === "connect_not_configured"
+              ? "Cash bank payouts are not enabled on this environment"
+              : result.reason === "connect_incomplete"
+                ? "Finish Stripe Connect onboarding before requesting a cash payout"
+                : "Cash payout unavailable";
       return NextResponse.json(
-        { error: { code: result.reason, message: "Cash payout unavailable", ...result } },
+        { error: { code: result.reason, message, ...result } },
         { status: 422 },
       );
     }
+    return NextResponse.json({ data: result });
+  }
+
+  if (body.action === "connect_onboarding") {
+    if (session.role !== "owner" && session.role !== "admin") {
+      return NextResponse.json(
+        {
+          error: {
+            code: "forbidden",
+            message: "Only owners and admins can connect a bank account",
+          },
+        },
+        { status: 403 },
+      );
+    }
+    try {
+      const result = await createStripeConnectOnboardingLink({
+        organisationId: session.organisationId,
+        actorId: session.clerkUserId,
+        email: typeof body.email === "string" ? body.email : undefined,
+        returnPath: "/dashboard/settings/referrals",
+      });
+      if (!result.ok) {
+        return NextResponse.json(
+          {
+            error: {
+              code: result.reason,
+              message: result.message,
+            },
+          },
+          { status: 422 },
+        );
+      }
+      return NextResponse.json({ data: result });
+    } catch (err) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "connect_onboarding_failed",
+            message:
+              err instanceof Error
+                ? err.message
+                : "Could not start Stripe Connect onboarding",
+          },
+        },
+        { status: 422 },
+      );
+    }
+  }
+
+  if (body.action === "connect_sync") {
+    const result = await syncStripeConnectAccount({
+      organisationId: session.organisationId,
+      actorId: session.clerkUserId,
+    });
     return NextResponse.json({ data: result });
   }
 

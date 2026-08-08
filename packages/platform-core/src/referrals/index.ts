@@ -7,7 +7,7 @@
  * Stripe:
  * - First-paid credit from checkout.completed via markReferralPaidAndAccrue.
  * - Monthly renewal credit from invoice.paid (billing_reason=subscription_cycle).
- * - Cash payout at ~$100 threshold is stubbed (ledger entryType cash_payout_stub).
+ * - Cash payout at threshold via Stripe Connect Express (platform credit remains default).
  * - Partner / Reseller rates via org settings.referralProgramme.tier (customer 20%, partner 25%, reseller 30%).
  */
 
@@ -16,6 +16,23 @@ import type { PlatformReferral, PlatformReferralLedger, Prisma } from "@dg/datab
 import { writeAuditLog } from "../audit";
 import { sendMessage } from "../communications";
 import { platformEvents } from "../events";
+import {
+  createReferralCashTransfer,
+  getOrganisationStripeConnect,
+  isStripeConnectConfigured,
+} from "./stripe-connect";
+
+export {
+  STRIPE_CONNECT_ACCOUNT_TYPE,
+  createStripeConnectOnboardingLink,
+  getOrganisationStripeConnect,
+  handleConnectAccountUpdated,
+  handleConnectTransferFailure,
+  isStripeConnectConfigured,
+  syncStripeConnectAccount,
+  type StripeConnectSnapshot,
+  type StripeConnectStatus,
+} from "./stripe-connect";
 
 export const REFERRAL_COOKIE = "dg_ref";
 export const REFERRAL_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 30; // 30 days
@@ -23,8 +40,16 @@ export const CUSTOMER_COMMISSION_BPS = 2000; // 20%
 export const PARTNER_COMMISSION_BPS = 2500; // 25%
 export const RESELLER_COMMISSION_BPS = 3000; // 30%
 export const REWARD_MONTHS = 12;
-/** Cash-out threshold — stubbed; credits remain default payout form. */
+/** Cash-out threshold (AUD cents). Platform credit remains the default reward. */
 export const CASH_PAYOUT_THRESHOLD_CENTS = 10_000;
+
+const LEDGER_BALANCE_TYPES = new Set([
+  "credit",
+  "cash_payout",
+  "cash_payout_stub",
+  "cash_payout_reversal",
+  "reversal",
+]);
 
 export const REFERRAL_TIERS = ["customer", "partner", "reseller"] as const;
 export type ReferralTier = (typeof REFERRAL_TIERS)[number];
@@ -253,18 +278,41 @@ export async function getReferAndEarnDashboard(organisationId: string) {
     getOrganisationReferralProgramme(organisationId),
   ]);
 
-  const [referrals, ledger] = await Promise.all([
-    prisma.platformReferral.findMany({
-      where: { referrerOrganisationId: organisationId },
-      orderBy: { createdAt: "desc" },
-      take: 100,
-    }),
-    prisma.platformReferralLedger.findMany({
-      where: { organisationId },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    }),
-  ]);
+  const [referrals, ledger, allBalanceRows, monthlyAgg, lifetimeAgg] =
+    await Promise.all([
+      prisma.platformReferral.findMany({
+        where: { referrerOrganisationId: organisationId },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+      }),
+      prisma.platformReferralLedger.findMany({
+        where: { organisationId },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      }),
+      prisma.platformReferralLedger.findMany({
+        where: {
+          organisationId,
+          entryType: { in: [...LEDGER_BALANCE_TYPES] },
+        },
+        select: { amountCents: true },
+      }),
+      prisma.platformReferralLedger.aggregate({
+        where: {
+          organisationId,
+          entryType: "credit",
+          amountCents: { gt: 0 },
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          },
+        },
+        _sum: { amountCents: true },
+      }),
+      prisma.platformReferralLedger.aggregate({
+        where: { organisationId, entryType: "credit" },
+        _sum: { amountCents: true },
+      }),
+    ]);
 
   const invited = referrals.filter((r) => r.status === "invited").length;
   const signedUp = referrals.filter((r) =>
@@ -279,27 +327,21 @@ export async function getReferAndEarnDashboard(organisationId: string) {
       (r.rewardMonthsRemaining ?? 0) > 0,
   ).length;
 
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthlyCredits = ledger
-    .filter(
-      (e) =>
-        e.entryType === "credit" &&
-        e.createdAt >= monthStart &&
-        e.amountCents > 0,
-    )
-    .reduce((sum, e) => sum + e.amountCents, 0);
-  const lifetimeCredits = ledger
-    .filter((e) => e.entryType === "credit")
-    .reduce((sum, e) => sum + e.amountCents, 0);
-  const lifetimeCashStub = ledger
-    .filter((e) => e.entryType === "cash_payout_stub")
-    .reduce((sum, e) => sum + Math.abs(e.amountCents), 0);
+  const monthlyCredits = monthlyAgg._sum.amountCents ?? 0;
+  const lifetimeCredits = lifetimeAgg._sum.amountCents ?? 0;
+  const cashAvailableCents = Math.max(
+    0,
+    allBalanceRows.reduce((sum, e) => sum + e.amountCents, 0),
+  );
+
+  const connect = await getOrganisationStripeConnect(organisationId);
+  const connectReady = isStripeConnectConfigured();
 
   return {
     code,
     sharePath: `/r/${code}`,
     programme,
+    connect,
     metrics: {
       invited,
       signedUp,
@@ -307,7 +349,9 @@ export async function getReferAndEarnDashboard(organisationId: string) {
       active,
       monthlyRewardCents: monthlyCredits,
       lifetimeRewardCents: lifetimeCredits,
-      cashAvailableStubCents: Math.max(0, lifetimeCredits - lifetimeCashStub),
+      /** @deprecated use cashAvailableCents */
+      cashAvailableStubCents: cashAvailableCents,
+      cashAvailableCents,
       cashPayoutThresholdCents: CASH_PAYOUT_THRESHOLD_CENTS,
       commissionBps: programme.commissionBps,
       tier: programme.tier,
@@ -316,9 +360,11 @@ export async function getReferAndEarnDashboard(organisationId: string) {
     ledger: ledger.map(serializeLedger),
     stubs: {
       monthlyInvoiceAccrual: false,
-      cashPayout: true,
+      cashPayout: !connectReady,
       partnerRates: false,
-      note: `Rewards: ${(programme.commissionBps / 100).toFixed(0)}% of subscription × 12 months as platform credit (tier: ${programme.tier}). First month on checkout; months 2–12 on Stripe invoice.paid. Cash payout at threshold is ledger-stubbed — no Stripe Connect transfer yet.`,
+      note: connectReady
+        ? `Rewards: ${(programme.commissionBps / 100).toFixed(0)}% of subscription × 12 months as platform credit by default (tier: ${programme.tier}). Cash bank payout via Stripe Connect Express once balance reaches the threshold and onboarding is complete. Single-level only — you earn on orgs you refer, not their referrals.`
+        : `Rewards: ${(programme.commissionBps / 100).toFixed(0)}% of subscription × 12 months as platform credit (tier: ${programme.tier}). Cash bank payouts need Stripe Connect (STRIPE_CONNECT_ENABLED) — until then, rewards stay as platform credit.`,
     },
   };
 }
@@ -793,40 +839,91 @@ export async function accrueMonthlyReferralCreditFromInvoice(input: {
   };
 }
 
-/** Stub cash payout — records ledger intent only; no Stripe Connect transfer. */
-export async function requestCashPayoutStub(input: {
+/**
+ * Request cash payout via Stripe Connect Transfer.
+ * Platform credit remains default — cash requires Connect complete + threshold.
+ */
+export async function requestCashPayout(input: {
   organisationId: string;
   actorId?: string;
 }) {
   const dash = await getReferAndEarnDashboard(input.organisationId);
-  const available = dash.metrics.cashAvailableStubCents;
+  const available = dash.metrics.cashAvailableCents;
   if (available < CASH_PAYOUT_THRESHOLD_CENTS) {
     return {
       ok: false as const,
-      reason: "below_threshold",
+      reason: "below_threshold" as const,
       availableCents: available,
       thresholdCents: CASH_PAYOUT_THRESHOLD_CENTS,
     };
   }
 
-  const { prisma } = await import("@dg/database");
+  if (!isStripeConnectConfigured()) {
+    return {
+      ok: false as const,
+      reason: "connect_not_configured" as const,
+      availableCents: available,
+      thresholdCents: CASH_PAYOUT_THRESHOLD_CENTS,
+      message: dash.connect.message,
+    };
+  }
+
+  if (!dash.connect.canRequestPayout) {
+    return {
+      ok: false as const,
+      reason: "connect_incomplete" as const,
+      availableCents: available,
+      thresholdCents: CASH_PAYOUT_THRESHOLD_CENTS,
+      connect: dash.connect,
+      message: dash.connect.message,
+    };
+  }
+
   const latest = dash.referrals[0];
   if (!latest) {
-    return { ok: false as const, reason: "no_referrals" };
+    return { ok: false as const, reason: "no_referrals" as const };
+  }
+
+  const { prisma } = await import("@dg/database");
+  const idempotencyKey = `dg_ref_cash_${input.organisationId}_${available}_${Date.now()}`;
+
+  let transferId: string;
+  try {
+    const transfer = await createReferralCashTransfer({
+      organisationId: input.organisationId,
+      amountCents: available,
+      currency: "aud",
+      idempotencyKey,
+      metadata: {
+        threshold_cents: String(CASH_PAYOUT_THRESHOLD_CENTS),
+        actor_id: input.actorId ?? "",
+      },
+    });
+    transferId = transfer.id;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Transfer failed";
+    return {
+      ok: false as const,
+      reason: "transfer_failed" as const,
+      availableCents: available,
+      thresholdCents: CASH_PAYOUT_THRESHOLD_CENTS,
+      message,
+    };
   }
 
   const entry = await prisma.platformReferralLedger.create({
     data: {
       organisationId: input.organisationId,
       referralId: latest.id,
-      entryType: "cash_payout_stub",
+      entryType: "cash_payout",
       amountCents: -available,
       currency: "AUD",
-      description:
-        "Cash payout requested (STUB — Stripe Connect / bank transfer not wired)",
+      description: "Cash payout via Stripe Connect",
+      stripeRef: transferId,
       metadata: {
-        stub: true,
         thresholdCents: CASH_PAYOUT_THRESHOLD_CENTS,
+        connectAccountId: dash.connect.accountId,
+        idempotencyKey,
       } as Prisma.InputJsonValue,
     },
   });
@@ -837,13 +934,42 @@ export async function requestCashPayoutStub(input: {
     action: "create",
     entityType: "PlatformReferralLedger",
     entityId: entry.id,
-    changes: { after: { entryType: "cash_payout_stub", amountCents: -available } },
+    changes: {
+      after: {
+        entryType: "cash_payout",
+        amountCents: -available,
+        stripeRef: transferId,
+      },
+    },
+  });
+
+  await platformEvents.publish({
+    type: "platform_referral.cash_payout_requested",
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    entityType: "PlatformReferralLedger",
+    entityId: entry.id,
+    payload: {
+      amountCents: available,
+      transferId,
+      connectAccountId: dash.connect.accountId,
+    },
+    occurredAt: new Date(),
   });
 
   return {
     ok: true as const,
-    stub: true as const,
+    stub: false as const,
     amountCents: available,
+    transferId,
     entry: serializeLedger(entry),
   };
+}
+
+/** @deprecated Use requestCashPayout — kept for older clients posting cash_payout_stub. */
+export async function requestCashPayoutStub(input: {
+  organisationId: string;
+  actorId?: string;
+}) {
+  return requestCashPayout(input);
 }

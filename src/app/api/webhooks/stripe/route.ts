@@ -1,6 +1,8 @@
 import {
   accrueMonthlyReferralCreditFromInvoice,
   bootPaymentConnectors,
+  handleConnectAccountUpdated,
+  handleConnectTransferFailure,
   isPlatformCheckoutSession,
   processPaymentWebhookEvent,
   provisionFromPlatformCheckout,
@@ -37,6 +39,30 @@ export async function POST(req: Request) {
         console.info("[stripe webhook] platform checkout:", platformResult);
         return NextResponse.json({ received: true, platform: platformResult });
       }
+    }
+
+    if (event.type === "connect.account.updated" && event.raw) {
+      const account = event.raw as Stripe.Account;
+      const connectResult = await handleConnectAccountUpdated(account);
+      console.info("[stripe webhook] connect account.updated:", connectResult);
+      return NextResponse.json({ received: true, connect: connectResult });
+    }
+
+    if (
+      (event.type === "connect.transfer.failed" ||
+        event.type === "connect.transfer.reversed") &&
+      event.raw
+    ) {
+      const transfer = event.raw as Stripe.Transfer;
+      const kind =
+        event.type === "connect.transfer.failed" ? "failed" : "reversed";
+      const transferResult = await handleConnectTransferFailure({
+        transfer,
+        kind,
+        failureMessage: event.failureMessage,
+      });
+      console.info("[stripe webhook] connect transfer:", kind, transferResult);
+      return NextResponse.json({ received: true, transfer: transferResult });
     }
 
     if (event.type === "invoice.paid") {

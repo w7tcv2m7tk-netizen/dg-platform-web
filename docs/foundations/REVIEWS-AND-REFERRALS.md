@@ -116,10 +116,10 @@ Prefer billing + Organisation fields over premature Network tables.
 | Share link + email invite | ✅ (Resend when `RESEND_API_KEY`; else branded Activity queue) |
 | First-paid 20% credit on Stripe checkout | ✅ |
 | Monthly accrual on `invoice.paid` | ✅ (subscription_cycle renewals; idempotent on invoice id) |
-| Cash payout at ~$100 | ⚠️ UI + ledger stub only (no Stripe Connect) |
+| Cash payout at ~$100 | ✅ Stripe Connect Express + transfer; platform credit remains default. Graceful UI when `STRIPE_CONNECT_ENABLED` unset |
 | Partner 25–30% / Reseller rates | ✅ Org `settings.referralProgramme.tier` (customer 20% / partner 25% / reseller 30%) |
 
-**Ops (Ben):** Stripe webhook for `https://app.digitalgate.com.au/api/webhooks/stripe` must include **`invoice.paid`**. Re-run `STRIPE_SECRET_KEY=… node scripts/setup-stripe-webhook.mjs` to create/update. Vercel needs `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` (same mode). Details: [STRIPE-SETUP.md](../commerce/STRIPE-SETUP.md) § Refer & Earn.
+**Ops (Ben):** Stripe webhook for `https://app.digitalgate.com.au/api/webhooks/stripe` must include **`invoice.paid`** plus Connect events (`account.updated`, `transfer.failed`, `transfer.reversed`). Re-run `STRIPE_SECRET_KEY=… node scripts/setup-stripe-webhook.mjs`. Vercel: `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` (same mode) and `STRIPE_CONNECT_ENABLED=true` for cash payouts. Details: [STRIPE-SETUP.md](../commerce/STRIPE-SETUP.md) § Refer & Earn / Connect.
 
 ### Timing vs Network
 

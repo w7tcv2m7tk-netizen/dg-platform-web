@@ -60,6 +60,14 @@ export function getStripeSetupStatus(): StripeSetupStatus {
       hint: `Re-run: STRIPE_SECRET_KEY=… node scripts/setup-stripe-webhook.mjs — or enable invoice.paid on ${webhookUrl}`,
     },
     {
+      id: "connect",
+      label: "STRIPE_CONNECT_ENABLED for Refer & Earn cash payouts (optional)",
+      done:
+        process.env.STRIPE_CONNECT_ENABLED?.trim().toLowerCase() === "true" ||
+        process.env.STRIPE_CONNECT_ENABLED?.trim() === "1",
+      hint: "Express AU accounts; webhook needs account.updated + transfer.failed/reversed. Platform credit stays default without this.",
+    },
+    {
       id: "publishable",
       label: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY (optional)",
       done: Boolean(publishableKey),

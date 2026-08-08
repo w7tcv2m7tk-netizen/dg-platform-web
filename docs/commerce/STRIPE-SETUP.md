@@ -27,9 +27,9 @@ STRIPE_SECRET_KEY=sk_test_... node scripts/setup-stripe-webhook.mjs
 The script creates **or updates** the endpoint:
 
 - **URL:** `https://app.digitalgate.com.au/api/webhooks/stripe`
-- **Events:** `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`, `payment_intent.payment_failed`, **`invoice.paid`**
+- **Events:** `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`, `payment_intent.payment_failed`, **`invoice.paid`**, **`account.updated`**, **`transfer.failed`**, **`transfer.reversed`**
 
-`invoice.paid` is required for Platform **Refer & Earn** months 2–12 (subscription renewals). Re-run the script on an existing endpoint to add any missing events (signing secret unchanged).
+`invoice.paid` is required for Platform **Refer & Earn** months 2–12 (subscription renewals). Connect events power cash payouts. Re-run the script on an existing endpoint to add any missing events (signing secret unchanged).
 
 Copy the printed `whsec_…` into Vercel as `STRIPE_WEBHOOK_SECRET` (only shown on **create**).
 
@@ -67,6 +67,39 @@ Gen 2 route: `POST /api/webhooks/stripe` → `accrueMonthlyReferralCreditFromInv
 | Org linkage | Invoice/sub metadata `organisation_id` **or** org `billingCustomerId` = Stripe customer |
 
 Verify GET: `curl https://app.digitalgate.com.au/api/webhooks/stripe` → `configured: true`.
+
+## Refer & Earn cash payouts — Stripe Connect Express
+
+Platform credit is the **default** reward. Cash-out is optional at ~**A$100** ledger balance via **Stripe Connect Express** (AU).
+
+| Variable / setting | Detail |
+|--------------------|--------|
+| `STRIPE_SECRET_KEY` | Platform Stripe account (same key as commerce) — must have **Connect** enabled |
+| `STRIPE_CONNECT_ENABLED` | Set to `true` to expose Connect onboarding + cash payout in Settings → Refer & Earn. Without it, UI shows a clear “not enabled” state (no stub debits). |
+| `STRIPE_WEBHOOK_SECRET` | Same Gen 2 endpoint; must include Connect events below |
+| Account type | **Express** (recommended). This codebase creates Express + `transfers` capability. |
+| Country | `AU` on account create |
+| Funding | Transfers pull from the **platform Stripe balance** → connected Express account. Ensure sufficient balance (or use test mode). |
+
+Webhook events for Connect:
+
+| Event | Handler |
+|-------|---------|
+| `account.updated` | Syncs org `stripeConnectStatus` / `stripeConnectPayoutsEnabled` (enable Connected-account events in Dashboard, or rely on in-app sync after onboarding return) |
+| `transfer.failed` / `transfer.reversed` | Credits ledger back (`cash_payout_reversal`) if a `cash_payout` row exists for that transfer |
+
+```bash
+# After enabling Connect in Stripe Dashboard → Settings → Connect
+STRIPE_SECRET_KEY=sk_test_... node scripts/setup-stripe-webhook.mjs
+```
+
+Vercel:
+
+```
+STRIPE_CONNECT_ENABLED=true
+```
+
+Then redeploy. Owners/admins complete Express onboarding from **Settings → Refer & Earn**.
 
 ## Note: two Stripe webhooks
 

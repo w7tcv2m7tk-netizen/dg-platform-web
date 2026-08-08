@@ -18,6 +18,11 @@ export type PaymentWebhookEventType =
   | "subscription.cancelled"
   | "refund.created"
   | "refund.failed"
+  /** Stripe Connect — referrer Express account status */
+  | "connect.account.updated"
+  /** Stripe Connect — transfer to referrer failed / reversed */
+  | "connect.transfer.failed"
+  | "connect.transfer.reversed"
   /** Stripe sent an event we do not process — acknowledge without error */
   | "ignored";
 
@@ -38,6 +43,12 @@ export interface PaymentWebhookEvent {
   stripeInvoiceId?: string;
   stripeSubscriptionId?: string;
   platformTier?: string;
+  /** Stripe Connect account id (acct_…) */
+  connectAccountId?: string;
+  /** Stripe Transfer id (tr_…) */
+  transferId?: string;
+  /** Failure / reverse reason from Stripe when present */
+  failureMessage?: string;
   occurredAt: Date;
   raw?: unknown;
 }

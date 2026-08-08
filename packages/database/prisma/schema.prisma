@@ -26,6 +26,14 @@ model Organisation {
   referralCode    String?  @unique @map("referral_code")
   /** Organisation that referred this tenant (single-level only — no MLM) */
   referredByOrganisationId String? @map("referred_by_organisation_id")
+  /** Stripe Connect Express account for Refer & Earn cash payouts */
+  stripeConnectAccountId String? @map("stripe_connect_account_id")
+  /**
+   * Connect onboarding: not_started | pending | restricted | complete | disabled
+   * Synced from account.updated webhooks / onboarding return.
+   */
+  stripeConnectStatus String? @map("stripe_connect_status")
+  stripeConnectPayoutsEnabled Boolean @default(false) @map("stripe_connect_payouts_enabled")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -60,6 +68,7 @@ model Organisation {
   platformReferralsAsReferred PlatformReferral[] @relation("ReferralReferred")
   referralLedgerEntries       PlatformReferralLedger[]
 
+  @@index([stripeConnectAccountId])
   @@map("organisations")
 }
 
@@ -738,7 +747,7 @@ model PlatformReferralLedger {
   id             String   @id @default(cuid())
   organisationId String   @map("organisation_id")
   referralId     String   @map("referral_id")
-  /** credit | cash_payout_stub | reversal */
+  /** credit | cash_payout | cash_payout_stub | cash_payout_reversal | reversal */
   entryType      String   @map("entry_type")
   amountCents    Int      @map("amount_cents")
   currency       String   @default("AUD")

@@ -93,15 +93,15 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
         id: "commerce-1",
         title: "Add Stripe keys to Vercel",
         description:
-          "Set STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET in your deployment environment. Use sk_test_ keys while testing.",
-        code: "STRIPE_SECRET_KEY=sk_test_...\nSTRIPE_WEBHOOK_SECRET=whsec_...",
+          "Set STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET in your deployment environment. Use sk_test_ keys while testing. For Refer & Earn cash payouts, also set STRIPE_CONNECT_ENABLED=true (Stripe Connect Express).",
+        code: "STRIPE_SECRET_KEY=sk_test_...\nSTRIPE_WEBHOOK_SECRET=whsec_...\nSTRIPE_CONNECT_ENABLED=true",
       },
       {
         id: "commerce-2",
         title: "Register the webhook endpoint",
         description:
-          "In Stripe Dashboard → Developers → Webhooks, add your app URL. Listen for checkout.session.completed and invoice.paid (Refer & Earn renewals). Or run: STRIPE_SECRET_KEY=sk_… node scripts/setup-stripe-webhook.mjs",
-        code: "https://app.digitalgate.com.au/api/webhooks/stripe\nEvents: checkout.session.completed, invoice.paid, …",
+          "In Stripe Dashboard → Developers → Webhooks, add your app URL. Listen for checkout.session.completed, invoice.paid (Refer & Earn renewals), and Connect transfer/account events. Or run: STRIPE_SECRET_KEY=sk_… node scripts/setup-stripe-webhook.mjs",
+        code: "https://app.digitalgate.com.au/api/webhooks/stripe\nEvents: checkout.session.completed, invoice.paid, account.updated, transfer.failed, …",
       },
       {
         id: "commerce-3",
@@ -135,6 +135,12 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
         name: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
         description: "Optional — for future embedded checkout",
         example: "pk_test_...",
+      },
+      {
+        name: "STRIPE_CONNECT_ENABLED",
+        description:
+          "Opt-in Refer & Earn cash payouts via Stripe Connect Express (AU). Without this, UI keeps platform credit as default.",
+        example: "true",
       },
     ],
     resources: [

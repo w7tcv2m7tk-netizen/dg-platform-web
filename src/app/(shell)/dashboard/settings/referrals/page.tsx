@@ -77,7 +77,11 @@ export default async function ReferAndEarnPage() {
             referrals={dash.referrals}
             stubsNote={dash.stubs.note}
             programme={dash.programme}
+            connect={dash.connect}
             canEditTier={
+              session.role === "owner" || session.role === "admin"
+            }
+            canManageConnect={
               session.role === "owner" || session.role === "admin"
             }
           />

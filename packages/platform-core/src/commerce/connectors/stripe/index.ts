@@ -219,6 +219,53 @@ export class StripePaymentConnector implements PaymentConnector {
       };
     }
 
+    if (event.type === "account.updated") {
+      const account = event.data.object as Stripe.Account;
+      return {
+        type: "connect.account.updated",
+        providerId: "stripe",
+        providerEventId: event.id,
+        organisationId:
+          account.metadata?.organisation_id ||
+          account.metadata?.organisationId ||
+          undefined,
+        connectAccountId: account.id,
+        occurredAt: new Date(event.created * 1000),
+        raw: account,
+      };
+    }
+
+    if (event.type === "transfer.failed" || event.type === "transfer.reversed") {
+      const transfer = event.data.object as Stripe.Transfer;
+      const failureMessage =
+        event.type === "transfer.failed"
+          ? ((transfer as Stripe.Transfer & { failure_message?: string | null })
+              .failure_message ?? undefined)
+          : "Transfer reversed";
+      return {
+        type:
+          event.type === "transfer.failed"
+            ? "connect.transfer.failed"
+            : "connect.transfer.reversed",
+        providerId: "stripe",
+        providerEventId: event.id,
+        organisationId:
+          transfer.metadata?.organisation_id ||
+          transfer.metadata?.organisationId ||
+          undefined,
+        transferId: transfer.id,
+        connectAccountId:
+          typeof transfer.destination === "string"
+            ? transfer.destination
+            : transfer.destination?.id,
+        amountCents: transfer.amount,
+        currency: transfer.currency?.toUpperCase() as PaymentWebhookEvent["currency"],
+        failureMessage: failureMessage ?? undefined,
+        occurredAt: new Date(event.created * 1000),
+        raw: transfer,
+      };
+    }
+
     // Acknowledge unknown events so Stripe does not retry (400) when the
     // Dashboard endpoint listens to extras beyond our handled set.
     return {

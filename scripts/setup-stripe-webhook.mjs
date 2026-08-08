@@ -9,7 +9,9 @@
  *   WEBHOOK_URL=https://app.digitalgate.com.au/api/webhooks/stripe
  *
  * Events include commerce checkout + Platform Refer & Earn monthly credits
- * (`invoice.paid` for subscription renewals months 2–12).
+ * (`invoice.paid`) + Stripe Connect transfer lifecycle. For Express
+ * `account.updated`, enable “Events on Connected accounts” on this endpoint
+ * in Stripe Dashboard (or rely on Settings → Refer & Earn sync after return).
  */
 
 const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
@@ -17,19 +19,20 @@ const webhookUrl =
   process.env.WEBHOOK_URL?.trim() ??
   "https://app.digitalgate.com.au/api/webhooks/stripe";
 
-const events = [
+const platformEvents = [
   "checkout.session.completed",
   "checkout.session.async_payment_succeeded",
   "checkout.session.expired",
   "payment_intent.payment_failed",
-  // Platform Refer & Earn — months 2–12 accrual (see accrueMonthlyReferralCreditFromInvoice)
   "invoice.paid",
+  "transfer.failed",
+  "transfer.reversed",
+  "account.updated",
 ];
 
 if (!secretKey) {
   console.error("Missing STRIPE_SECRET_KEY.");
   console.error("Copy sk_test_… or sk_live_… from Stripe Dashboard → Developers → API keys");
-  console.error("Or from digitalgate.com.au → DG Platform → API Settings → Stripe Secret Key");
   process.exit(1);
 }
 
@@ -65,18 +68,20 @@ function encodeForm(params) {
 
 function missingEvents(enabled) {
   const set = new Set(enabled ?? []);
-  return events.filter((e) => !set.has(e));
+  return platformEvents.filter((e) => !set.has(e));
 }
 
 async function main() {
   const mode = secretKey.startsWith("sk_live_") ? "live" : "test";
   console.log(`Stripe mode: ${mode}`);
   console.log(`Target URL: ${webhookUrl}`);
-  console.log(`Required events: ${events.join(", ")}`);
+  console.log(`Required events: ${platformEvents.join(", ")}`);
 
   const existing = await stripeRequest(`/webhook_endpoints?limit=100`);
 
-  const match = (existing.data ?? []).find((endpoint) => endpoint.url === webhookUrl);
+  const match = (existing.data ?? []).find(
+    (endpoint) => endpoint.url === webhookUrl && !endpoint.application,
+  );
   if (match) {
     const missing = missingEvents(match.enabled_events);
     console.log("\n✓ Webhook already exists:");
@@ -89,7 +94,7 @@ async function main() {
       const updated = await stripeRequest(
         `/webhook_endpoints/${match.id}`,
         "POST",
-        encodeForm({ enabled_events: events }),
+        encodeForm({ enabled_events: platformEvents }),
       );
       console.log(`  Events now: ${(updated.enabled_events ?? []).join(", ")}`);
       console.log("\n✓ Endpoint updated. No need to rotate STRIPE_WEBHOOK_SECRET.");
@@ -98,20 +103,21 @@ async function main() {
     }
 
     console.log(
-      "\nSigning secret (whsec_…) is only shown when the endpoint is created.",
+      "\nConnect (Refer & Earn cash): enable “Listen to events on Connected accounts”",
     );
     console.log(
-      "Stripe Dashboard → Developers → Webhooks → this endpoint → Signing secret",
+      "for account.updated (or rely on in-app sync after onboarding return).",
     );
     console.log("\nVercel must have:");
     console.log("  STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET (same Stripe mode)");
+    console.log("  STRIPE_CONNECT_ENABLED=true  (to expose cash payout UI)");
     return;
   }
 
   const body = encodeForm({
     url: webhookUrl,
-    description: "DigitalGate Gen 2 (commerce + Refer & Earn)",
-    enabled_events: events,
+    description: "DigitalGate Gen 2 (commerce + Refer & Earn + Connect)",
+    enabled_events: platformEvents,
   });
 
   const created = await stripeRequest("/webhook_endpoints", "POST", body);
@@ -119,11 +125,15 @@ async function main() {
   console.log("\n✓ Webhook created:");
   console.log(`  ID: ${created.id}`);
   console.log(`  URL: ${created.url}`);
-  console.log(`  Events: ${events.join(", ")}`);
+  console.log(`  Events: ${platformEvents.join(", ")}`);
   console.log(`\nAdd to Vercel (Production + Preview for test mode):`);
   console.log(`  STRIPE_SECRET_KEY=${secretKey.slice(0, 12)}...`);
   console.log(`  STRIPE_WEBHOOK_SECRET=${created.secret}`);
-  console.log("\nLocal .env.local — same two variables for dev testing.");
+  console.log(`  STRIPE_CONNECT_ENABLED=true`);
+  console.log(
+    "\nIn Stripe Dashboard → Webhooks → this endpoint, enable Connected account events",
+  );
+  console.log("for account.updated (Express onboarding status).");
 }
 
 main().catch((err) => {
