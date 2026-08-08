@@ -6,13 +6,16 @@ import type { Prisma, Website, WebsitePage } from "@dg/database";
 
 import { writeAuditLog } from "../audit";
 import { getOrganisationBusinessProfile } from "../org/onboarding-profile";
+import { resolveEnabledAppIds } from "../apps/org-apps";
 import { generateSiteModel } from "./generate";
 import { normalizeComponents, slugifySiteName } from "./schema";
+import { resolveWebsiteTemplateId } from "./templates";
 import type {
   SerializedWebsite,
   SerializedWebsitePage,
   WebsiteComponent,
   WebsiteSeo,
+  WebsiteTemplateId,
   WebsiteTheme,
 } from "./types";
 
@@ -80,6 +83,17 @@ export async function listWebsites(organisationId: string) {
   }));
 }
 
+/** Sites with full page/component trees — for Content overview */
+export async function listWebsitesWithPages(organisationId: string) {
+  const { prisma } = await import("@dg/database");
+  const items = await prisma.website.findMany({
+    where: { organisationId },
+    orderBy: { updatedAt: "desc" },
+    include: { pages: { orderBy: { sortOrder: "asc" } } },
+  });
+  return items.map((site) => serializeWebsite(site, site.pages));
+}
+
 export async function getWebsite(
   organisationId: string,
   websiteId: string,
@@ -115,9 +129,23 @@ export async function createWebsite(input: {
   brief?: string;
   /** When true, immediately generate pages from profile + brief */
   generate?: boolean;
+  /** Industry starter pack — auto derives from Business Profile / enabled apps */
+  template?: WebsiteTemplateId | "auto";
 }) {
   const { prisma } = await import("@dg/database");
   const profile = await getOrganisationBusinessProfile(input.organisationId);
+  const org = await prisma.organisation.findUnique({
+    where: { id: input.organisationId },
+    select: { settings: true },
+  });
+  const enabledAppIds = resolveEnabledAppIds(
+    (org?.settings as { apps?: { enabled?: string[] } } | null) ?? null,
+  );
+  const template = resolveWebsiteTemplateId({
+    explicit: input.template ?? "auto",
+    industryVertical: profile?.industryVertical,
+    enabledAppIds,
+  });
   const display =
     input.name?.trim() ||
     profile?.tradingName?.trim() ||
@@ -131,6 +159,8 @@ export async function createWebsite(input: {
       organisationName: input.organisationName,
       profile,
       brief: input.brief,
+      template,
+      enabledAppIds,
     });
   }
 
@@ -149,12 +179,15 @@ export async function createWebsite(input: {
       seo: (seo ?? undefined) as Prisma.InputJsonValue | undefined,
       metadata: {
         generatorSource: generated?.source ?? "none",
+        template: generated?.template ?? template,
         industryHooks: {
-          realEstate: profile?.industryVertical?.includes("real") ?? false,
-          accommodation:
-            profile?.industryVertical?.includes("accommodation") ?? false,
+          realEstate: template === "real_estate",
+          accommodation: template === "accommodation",
         },
-        wpImport: { status: "not_started", note: "Use WordPress Connector later" },
+        wpImport: {
+          status: "not_started",
+          note: "Connect WordPress, then queue import from Studio",
+        },
       } as Prisma.InputJsonValue,
       pages: generated
         ? {
@@ -195,6 +228,7 @@ export async function regenerateWebsitePages(input: {
   websiteId: string;
   actorId?: string;
   brief?: string;
+  template?: WebsiteTemplateId | "auto";
 }) {
   const { prisma } = await import("@dg/database");
   const existing = await prisma.website.findFirst({
@@ -204,14 +238,33 @@ export async function regenerateWebsitePages(input: {
 
   const org = await prisma.organisation.findUnique({
     where: { id: input.organisationId },
-    select: { name: true },
+    select: { name: true, settings: true },
   });
   const profile = await getOrganisationBusinessProfile(input.organisationId);
+  const enabledAppIds = resolveEnabledAppIds(
+    (org?.settings as { apps?: { enabled?: string[] } } | null) ?? null,
+  );
+  const meta = (existing.metadata as Record<string, unknown> | null) ?? {};
+  const priorTemplate =
+    typeof meta.template === "string" ? meta.template : undefined;
+  const template = resolveWebsiteTemplateId({
+    explicit:
+      input.template ??
+      (priorTemplate === "real_estate" ||
+      priorTemplate === "accommodation" ||
+      priorTemplate === "generic"
+        ? priorTemplate
+        : "auto"),
+    industryVertical: profile?.industryVertical,
+    enabledAppIds,
+  });
   const brief = input.brief ?? existing.brief;
   const generated = await generateSiteModel({
     organisationName: org?.name ?? "Business",
     profile,
     brief,
+    template,
+    enabledAppIds,
   });
 
   await prisma.websitePage.deleteMany({ where: { websiteId: existing.id } });
@@ -223,8 +276,13 @@ export async function regenerateWebsitePages(input: {
       theme: (generated.model.theme ?? existing.theme) as Prisma.InputJsonValue,
       seo: (generated.model.seo ?? existing.seo) as Prisma.InputJsonValue,
       metadata: {
-        ...((existing.metadata as Record<string, unknown> | null) ?? {}),
+        ...meta,
         generatorSource: generated.source,
+        template: generated.template,
+        industryHooks: {
+          realEstate: generated.template === "real_estate",
+          accommodation: generated.template === "accommodation",
+        },
         regeneratedAt: new Date().toISOString(),
       } as Prisma.InputJsonValue,
     },
@@ -263,6 +321,8 @@ export async function updateWebsite(input: {
   websiteId: string;
   actorId?: string;
   name?: string;
+  /** Public /sites/[slug] — only [a-z0-9-], uniqueness enforced */
+  slug?: string;
   brief?: string;
   theme?: WebsiteTheme;
   seo?: WebsiteSeo;
@@ -277,6 +337,12 @@ export async function updateWebsite(input: {
 
   const data: Prisma.WebsiteUpdateInput = {};
   if (input.name?.trim()) data.name = input.name.trim();
+  if (input.slug !== undefined) {
+    const next = slugifySiteName(input.slug);
+    if (next && next !== existing.slug) {
+      data.slug = await uniqueSlug(next, existing.id);
+    }
+  }
   if (input.brief !== undefined) data.brief = input.brief?.trim() || null;
   if (input.theme) data.theme = input.theme as Prisma.InputJsonValue;
   if (input.seo) data.seo = input.seo as Prisma.InputJsonValue;
@@ -334,11 +400,36 @@ export async function updateWebsitePage(input: {
   });
   if (!page) return null;
 
+  let nextSlug: string | undefined;
+  if (input.slug !== undefined) {
+    const cleaned = input.slug
+      .replace(/^\/+/, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 64);
+    if (!cleaned) {
+      throw new Error("Page slug must use letters, numbers, or hyphens");
+    }
+    if (cleaned !== page.slug) {
+      const clash = await prisma.websitePage.findFirst({
+        where: {
+          websiteId: site.id,
+          slug: cleaned,
+          NOT: { id: page.id },
+        },
+        select: { id: true },
+      });
+      if (clash) throw new Error("Another page already uses that slug");
+      nextSlug = cleaned;
+    }
+  }
+
   const updated = await prisma.websitePage.update({
     where: { id: page.id },
     data: {
       title: input.title?.trim() || undefined,
-      slug: input.slug?.trim() || undefined,
+      slug: nextSlug,
       status: input.status || undefined,
       seo: input.seo
         ? (input.seo as Prisma.InputJsonValue)

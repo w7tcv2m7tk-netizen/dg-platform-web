@@ -6,6 +6,10 @@ import { useMemo, useState } from "react";
 import type { SerializedWebsite, WebsiteComponent } from "@dg/platform-core";
 
 import { MakeItLivePanel } from "@/components/websites/MakeItLivePanel";
+import { StudioSeoPanel } from "@/components/websites/StudioSeoPanel";
+import { WordPressImportPanel } from "@/components/websites/WordPressImportPanel";
+
+type StudioTab = "edit" | "seo" | "import";
 
 const SUGGESTED_PROMPTS = [
   "Make it more premium",
@@ -30,6 +34,7 @@ export function WebsiteStudioClient({
     null,
   );
   const [showLivePanel, setShowLivePanel] = useState(true);
+  const [tab, setTab] = useState<StudioTab>("edit");
 
   const page = useMemo(
     () => website.pages?.find((p) => p.id === pageId) ?? website.pages?.[0],
@@ -209,6 +214,71 @@ export function WebsiteStudioClient({
         </div>
       </div>
 
+      <div className="flex flex-wrap gap-1 border-b border-slate-800 pb-2">
+        {(
+          [
+            { id: "edit" as const, label: "Edit" },
+            { id: "seo" as const, label: "SEO" },
+            { id: "import" as const, label: "WordPress" },
+          ] as const
+        ).map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={`rounded-md px-3 py-1.5 text-sm ${
+              tab === t.id
+                ? "bg-slate-800 text-white"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "seo" ? (
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-1.5">
+            {(website.pages ?? []).map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setPageId(p.id)}
+                className={`rounded-md px-2.5 py-1 text-xs ${
+                  pageId === p.id
+                    ? "bg-slate-800 text-white"
+                    : "border border-slate-700 text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                {p.title}
+              </button>
+            ))}
+          </div>
+          <StudioSeoPanel
+            website={website}
+            pageId={pageId}
+            disabled={busy}
+            onSaved={(next, message) => {
+              setWebsite(next);
+              setStatus(message);
+              router.refresh();
+            }}
+          />
+        </div>
+      ) : null}
+
+      {tab === "import" ? (
+        <WordPressImportPanel
+          website={website}
+          onQueued={(next) => {
+            setWebsite(next);
+            setStatus("WordPress import queued");
+          }}
+        />
+      ) : null}
+
+      {tab === "edit" ? (
       <div className="grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)_17rem]">
         <aside className="space-y-3">
           <h2 className="text-xs uppercase tracking-wide text-slate-500">Pages</h2>
@@ -256,6 +326,13 @@ export function WebsiteStudioClient({
             >
               Hosting status
             </Link>
+            <button
+              type="button"
+              onClick={() => setTab("seo")}
+              className="block text-sm text-slate-400 hover:text-slate-200"
+            >
+              SEO
+            </button>
           </div>
         </aside>
 
@@ -353,6 +430,7 @@ export function WebsiteStudioClient({
           )}
         </aside>
       </div>
+      ) : null}
     </div>
   );
 }

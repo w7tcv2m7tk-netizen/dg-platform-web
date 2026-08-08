@@ -29,24 +29,36 @@ export async function PATCH(req: Request, ctx: Ctx) {
     status?: string;
   } | null;
 
-  const updated = await updateWebsitePage({
-    organisationId: session.organisationId,
-    websiteId: id,
-    pageId,
-    actorId: session.clerkUserId,
-    title: body?.title,
-    slug: body?.slug,
-    components: body?.components as never,
-    seo: body?.seo as never,
-    status: body?.status,
-  });
+  try {
+    const updated = await updateWebsitePage({
+      organisationId: session.organisationId,
+      websiteId: id,
+      pageId,
+      actorId: session.clerkUserId,
+      title: body?.title,
+      slug: body?.slug,
+      components: body?.components as never,
+      seo: body?.seo as never,
+      status: body?.status,
+    });
 
-  if (!updated) {
+    if (!updated) {
+      return NextResponse.json(
+        { error: { code: "not_found", message: "Page not found" } },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ data: updated });
+  } catch (err) {
     return NextResponse.json(
-      { error: { code: "not_found", message: "Page not found" } },
-      { status: 404 },
+      {
+        error: {
+          code: "validation_error",
+          message: err instanceof Error ? err.message : "Update failed",
+        },
+      },
+      { status: 400 },
     );
   }
-
-  return NextResponse.json({ data: updated });
 }

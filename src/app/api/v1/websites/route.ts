@@ -51,6 +51,7 @@ export async function POST(req: Request) {
     name?: string;
     brief?: string;
     generate?: boolean;
+    template?: "generic" | "real_estate" | "accommodation" | "auto";
   } | null;
 
   const result = await createWebsite({
@@ -60,6 +61,7 @@ export async function POST(req: Request) {
     name: body?.name,
     brief: body?.brief,
     generate: body?.generate !== false,
+    template: body?.template,
   });
 
   return NextResponse.json({ data: result }, { status: 201 });

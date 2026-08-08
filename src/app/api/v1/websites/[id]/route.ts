@@ -50,9 +50,12 @@ export async function PATCH(req: Request, ctx: Ctx) {
     name?: string;
     brief?: string;
     status?: string;
+    slug?: string;
     regenerate?: boolean;
+    template?: "generic" | "real_estate" | "accommodation" | "auto";
     theme?: Record<string, unknown>;
     seo?: Record<string, unknown>;
+    metadata?: Record<string, unknown>;
   } | null;
 
   if (body?.regenerate) {
@@ -61,6 +64,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       websiteId: id,
       actorId: session.clerkUserId,
       brief: body.brief,
+      template: body.template,
     });
     if (!result) {
       return NextResponse.json(
@@ -76,10 +80,12 @@ export async function PATCH(req: Request, ctx: Ctx) {
     websiteId: id,
     actorId: session.clerkUserId,
     name: body?.name,
+    slug: body?.slug,
     brief: body?.brief,
     status: body?.status,
     theme: body?.theme as never,
     seo: body?.seo as never,
+    metadata: body?.metadata,
   });
 
   if (!updated) {

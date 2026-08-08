@@ -72,8 +72,13 @@ export type WebsitePageIntent =
   | "home"
   | "about"
   | "services"
+  | "listings"
+  | "stay"
   | "contact"
   | "custom";
+
+/** Starter IA packs for industry-aware generation */
+export type WebsiteTemplateId = "generic" | "real_estate" | "accommodation";
 
 export type WebsiteTheme = {
   primaryColor?: string;
@@ -90,6 +95,10 @@ export type WebsiteSeo = {
   title?: string;
   description?: string;
   keywords?: string[];
+  /** Open Graph — falls back to title/description when omitted */
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
 };
 
 export type WebsiteStatus = "draft" | "published" | "archived";

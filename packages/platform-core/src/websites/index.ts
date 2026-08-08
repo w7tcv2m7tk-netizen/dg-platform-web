@@ -1,10 +1,12 @@
 export * from "./types";
 export * from "./schema";
 export * from "./access";
+export * from "./templates";
 export * from "./generate";
 export * from "./crud";
 export * from "./assist";
 export * from "./form-capture";
+export * from "./native-health";
 
 import type { SiteHealthSnapshot } from "./types";
 

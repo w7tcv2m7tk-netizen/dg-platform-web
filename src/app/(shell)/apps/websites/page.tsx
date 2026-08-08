@@ -1,9 +1,11 @@
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import {
+  getOrganisationBusinessProfile,
   listOrganisationDomains,
   listWebsites,
   organisationHasWebsitesBuilder,
+  suggestTemplateFromProfile,
 } from "@dg/platform-core";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
@@ -52,6 +54,11 @@ export default async function WebsitesHomePage() {
   const domainByWebsite = new Map(
     domains.filter((d) => d.websiteId).map((d) => [d.websiteId!, d]),
   );
+  const profile =
+    session && allowed
+      ? await getOrganisationBusinessProfile(session.organisationId)
+      : null;
+  const suggestedTemplate = suggestTemplateFromProfile(profile);
 
   return (
     <>
@@ -198,9 +205,12 @@ export default async function WebsitesHomePage() {
                             >
                               Hosting
                             </Link>
-                            <span className="text-slate-600">
-                              WP import — connector later
-                            </span>
+                            <Link
+                              href={`/apps/websites/studio/${site.id}`}
+                              className="text-slate-400 hover:text-slate-200"
+                            >
+                              Import from WordPress
+                            </Link>
                           </div>
                         </li>
                       );
@@ -213,7 +223,7 @@ export default async function WebsitesHomePage() {
                 <h2 className="text-lg font-semibold text-white">
                   {sites.length === 0 ? "Create your first website" : "Create another"}
                 </h2>
-                <CreateWebsiteForm />
+                <CreateWebsiteForm suggestedTemplate={suggestedTemplate} />
               </section>
             </div>
           </div>

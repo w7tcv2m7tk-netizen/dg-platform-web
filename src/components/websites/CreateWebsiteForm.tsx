@@ -3,15 +3,48 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { WebsiteTemplateId } from "@dg/platform-core";
+
+const TEMPLATES: Array<{
+  id: WebsiteTemplateId | "auto";
+  label: string;
+  detail: string;
+}> = [
+  {
+    id: "auto",
+    label: "Auto (from profile)",
+    detail: "Uses industry vertical / enabled apps",
+  },
+  {
+    id: "real_estate",
+    label: "Real Estate",
+    detail: "Home · Listings/Appraisals · About · Contact",
+  },
+  {
+    id: "accommodation",
+    label: "Accommodation",
+    detail: "Home · Stay/Units · About · Contact",
+  },
+  {
+    id: "generic",
+    label: "Services / generic",
+    detail: "Home · Services · About · Contact",
+  },
+];
 
 export function CreateWebsiteForm({
   defaultBrief,
+  suggestedTemplate = "auto",
 }: {
   defaultBrief?: string;
+  suggestedTemplate?: WebsiteTemplateId | "auto";
 }) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [brief, setBrief] = useState(defaultBrief ?? "");
+  const [template, setTemplate] = useState<WebsiteTemplateId | "auto">(
+    suggestedTemplate,
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -27,6 +60,7 @@ export function CreateWebsiteForm({
           name: name.trim() || undefined,
           brief: brief.trim() || undefined,
           generate: true,
+          template,
         }),
       });
       const json = (await res.json().catch(() => ({}))) as {
@@ -66,6 +100,28 @@ export function CreateWebsiteForm({
         />
       </div>
       <div>
+        <p className="block text-sm text-slate-300 mb-2">Industry template</p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {TEMPLATES.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTemplate(t.id)}
+              className={`rounded-md border px-3 py-2 text-left transition ${
+                template === t.id
+                  ? "border-sky-700/70 bg-sky-950/30"
+                  : "border-slate-700 bg-slate-950/40 hover:border-slate-600"
+              }`}
+            >
+              <span className="block text-sm text-white">{t.label}</span>
+              <span className="block text-[11px] text-slate-500 mt-0.5">
+                {t.detail}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
         <label className="block text-sm text-slate-300 mb-1">Brief</label>
         <textarea
           className="w-full rounded-md border border-slate-600 bg-slate-950 px-3 py-2 text-white min-h-[100px]"
@@ -83,7 +139,7 @@ export function CreateWebsiteForm({
         {loading ? "Generating site…" : "Create from Business Profile"}
       </button>
       <p className="text-xs text-slate-500">
-        Opens Studio with Home, Services, About, and Contact (form → CRM).{" "}
+        Structured components (not HTML).{" "}
         <Link href="/dashboard/business" className="text-slate-300 underline">
           Edit Business Profile
         </Link>{" "}

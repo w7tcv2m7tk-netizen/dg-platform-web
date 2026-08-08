@@ -337,7 +337,7 @@ Existing WP sites remain on the **WordPress Connector** (health, content sync, f
 - Theme parity for arbitrary WP builders (Elementor, etc.)  
 - Automated media CDN remaps at scale  
 
-Studio shows an **Import from WordPress** stub pointing at this path. Importer implementation tracks Connector work + hosting productization.
+Studio shows an **Import from WordPress** flow (connector status + queue). Full importer implementation tracks Connector work + hosting productization.
 
 ---
 
@@ -378,13 +378,22 @@ Paid **register** requires org flag `infra.domain_register` + typed confirm (+ `
 
 ## Next after MVP
 
-- Domains MVP via Infrastructure Core (after this Website Builder MVP)  
-- Full DG DNS / hosting / SSL productization (Infrastructure — not this App)  
+Shipped in post-MVP depth pass:
+
+- Studio **SEO** tab (site + page title/description/OG; safe slug edits) → public `/sites/[slug]` meta  
+- Industry starter packs (RE / Accommodation / generic) from Business Profile + create picker  
+- **Content** overview (pages/components per site → Studio)  
+- Native **Health** checklist (published, domain, DNS, SSL, form→CRM, SEO, last updated)  
+- **Import from WordPress** path (connector status, queue, documented steps — not full importer)
+
+Still later:
+
+- Domains / DG DNS / hosting / SSL productization polish (Infrastructure)  
 - Visual drag-drop Studio (level 2)  
 - Developer Studio sandbox (level 3)  
-- Industry RE / Accommodation template packs (hooks exist in metadata)  
 - Complete WordPress import job (phases 2–4 above)  
-- Deeper SEO / AI Visibility wiring on publish  
+- Funnel Builder  
+- Deeper SEO / AI Visibility Apps on publish  
 
 ---
 
@@ -420,7 +429,7 @@ Theme tokens come from Business Profile at generate time. Draft-by-default; publ
 - ❌ Replacing the WP Connector for customers who stay on WordPress  
 - ❌ Full DG Hosting / DNS / SSL product UI (Infrastructure track — stubs only here)  
 - ❌ Visual drag-drop Studio / Developer sandbox this sprint  
-- ❌ Complete WP site importer this sprint (path documented; stub in Studio)  
+- ❌ Complete WP site importer this sprint (path + queue UI shipped; job runner later)  
 
 ---
 
