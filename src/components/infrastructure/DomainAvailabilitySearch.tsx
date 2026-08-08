@@ -214,7 +214,8 @@ export function DomainAvailabilitySearch() {
                   </li>
                   <li>
                     Sandbox console: same vars with DREAMSCAPE_SOAP_ENV=sandbox →
-                    soap-test.secureapi.com.au (default when unset).
+                    https://soap-test.secureapi.com.au/API-1.3 (default). Do not
+                    use soap-test …/server.php — it returns an empty body.
                   </li>
                   <li>
                     REST (signature only): force DREAMSCAPE_API_MODE=rest — Reseller

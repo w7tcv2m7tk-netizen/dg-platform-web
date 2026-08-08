@@ -128,7 +128,7 @@ describe("SOAP DomainCheck envelope + parse", () => {
     const soap = await loadSoap();
     assert.equal(
       soap.DREAMSCAPE_SOAP_SANDBOX_ENDPOINT,
-      "https://soap-test.secureapi.com.au/server.php?v=1.3",
+      "https://soap-test.secureapi.com.au/API-1.3",
     );
     assert.equal(
       soap.DREAMSCAPE_SOAP_PROD_ENDPOINT,
@@ -138,6 +138,27 @@ describe("SOAP DomainCheck envelope + parse", () => {
       soap.DREAMSCAPE_SOAP_DOMAIN_CHECK_ACTION,
       "urn:API-1.3#API-1.3Server#DomainCheck",
     );
+  });
+  it("detects SecureAPI Authenticate Errors as auth failure", async () => {
+    const { soapResponseIndicatesAuthFailure, extractSoapFault } =
+      await loadSoap();
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="https://soap-test.secureapi.com.au/API-1.3">
+  <SOAP-ENV:Header>
+    <ns1:AuthenticateResponse>
+      <return>
+        <APIResponse>
+          <Errors>
+            <item><Item>ResellerID</Item><Message>ResellerID 25735 is invalid</Message></item>
+            <item><Item>APIKey</Item><Message>APIKey is invalid</Message></item>
+          </Errors>
+        </APIResponse>
+      </return>
+    </ns1:AuthenticateResponse>
+  </SOAP-ENV:Header>
+</SOAP-ENV:Envelope>`;
+    assert.equal(soapResponseIndicatesAuthFailure(xml), true);
+    assert.match(extractSoapFault(xml) ?? "", /ResellerID|invalid/i);
   });
 });
 

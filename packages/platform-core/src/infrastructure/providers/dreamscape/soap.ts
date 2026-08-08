@@ -16,9 +16,13 @@ export const DREAMSCAPE_SOAP_NS = "https://soap.secureapi.com.au/API-1.3";
 export const DREAMSCAPE_SOAP_PROD_ENDPOINT =
   "https://soap.secureapi.com.au/server.php?v=1.3";
 
-/** Sandbox / test SOAP endpoint (from test WSDL). */
+/**
+ * Sandbox SOAP endpoint — WSDL lists both `/server.php?v=1.3` and `/API-1.3`.
+ * Live probe: `/server.php?v=1.3` returns HTTP 200 with an empty body;
+ * `/API-1.3` returns real AuthenticateResponse / DomainCheckResponse XML.
+ */
 export const DREAMSCAPE_SOAP_SANDBOX_ENDPOINT =
-  "https://soap-test.secureapi.com.au/server.php?v=1.3";
+  "https://soap-test.secureapi.com.au/API-1.3";
 
 export const DREAMSCAPE_SOAP_PROD_WSDL =
   "https://soap.secureapi.com.au/wsdl/API-1.3.wsdl";
@@ -247,18 +251,24 @@ export function soapResponseIndicatesAuthFailure(xml: string): boolean {
     lower.includes("authentication") ||
     (lower.includes("authenticate") && lower.includes("fail")) ||
     lower.includes("invalid api") ||
+    lower.includes("apikey is invalid") ||
+    lower.includes("api key is invalid") ||
     lower.includes("invalid reseller") ||
+    (lower.includes("resellerid") && lower.includes("invalid")) ||
     lower.includes("access denied")
   ) {
     return true;
   }
   const success = soapBool(soapTagText(xml, "Success"));
   const errors = soapTagText(xml, "Errors");
-  if (success === false && errors) {
+  // SecureAPI often returns Errors without Success=false on auth failure.
+  if (errors) {
     const errLower = errors.toLowerCase();
     if (
+      success === false ||
       errLower.includes("auth") ||
       errLower.includes("api key") ||
+      errLower.includes("apikey") ||
       errLower.includes("reseller")
     ) {
       return true;
@@ -299,8 +309,8 @@ async function resolveProxiedFetch(proxyUrl: string): Promise<{
 
 function authHint(isSandbox: boolean): string {
   return isSandbox
-    ? "SOAP auth = Reseller ID + API Key (API Setup). Use sandbox console keys with DREAMSCAPE_SOAP_ENV=sandbox → soap-test.secureapi.com.au. Live console keys need DREAMSCAPE_SOAP_ENV=production."
-    : "SOAP auth = Reseller ID + API Key (API Setup). Live console → DREAMSCAPE_SOAP_ENV=production → soap.secureapi.com.au. Do not use soap-test with live keys.";
+    ? "SOAP auth = Reseller ID + API Key (API Setup). Sandbox endpoint: https://soap-test.secureapi.com.au/API-1.3 (not server.php — that returns empty). Use sandbox console keys + DREAMSCAPE_SOAP_ENV=sandbox. Live console keys need DREAMSCAPE_SOAP_ENV=production."
+    : "SOAP auth = Reseller ID + API Key (API Setup). Live console → DREAMSCAPE_SOAP_ENV=production → https://soap.secureapi.com.au/server.php?v=1.3. Do not use soap-test with live keys.";
 }
 
 async function soapPost(opts: {
@@ -370,9 +380,29 @@ async function soapPost(opts: {
     );
   }
 
+  // Wrong sandbox path (server.php) answers 200 with an empty body.
+  if (!text.trim()) {
+    throw new DreamscapeSoapError(
+      401,
+      "Dreamscape SOAP returned an empty response (often wrong sandbox endpoint).",
+      text,
+      {
+        code: isSandbox
+          ? "auth_soap_sandbox_rejected"
+          : "auth_soap_production_rejected",
+        hint: isSandbox
+          ? "Use https://soap-test.secureapi.com.au/API-1.3 (default). soap-test …/server.php?v=1.3 returns empty. Override with DREAMSCAPE_SOAP_ENDPOINT if needed."
+          : authHint(isSandbox),
+        providerBodySnippet,
+        isSandbox,
+        endpoint,
+      },
+    );
+  }
+
   const fault = extractSoapFault(text);
   if (
-    (fault && /auth|unauthor|api key|reseller|denied/i.test(fault)) ||
+    (fault && /auth|unauthor|api.?key|reseller|denied|invalid/i.test(fault)) ||
     soapResponseIndicatesAuthFailure(text)
   ) {
     throw new DreamscapeSoapError(

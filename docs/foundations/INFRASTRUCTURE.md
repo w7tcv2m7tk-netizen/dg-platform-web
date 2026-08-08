@@ -131,7 +131,7 @@ Dreamscape exposes **two** integration surfaces. The Reseller Console page **Acc
 | **Auth** | SOAP header `Authenticate` → `ResellerID` + `APIKey` | Headers `Api-Request-Id` + `Api-Signature` = MD5(`request_id + api_key`) (+ `Accept`) |
 | **Reseller ID** | **Required** | **Not used** (unless experimenting with `DREAMSCAPE_SEND_RESELLER_ID`) |
 | **Domain check** | `DomainCheck` | `GET /domains/availability?domain_names[]=` |
-| **Sandbox** | `https://soap-test.secureapi.com.au/server.php?v=1.3` | `https://reseller-api.sandbox.ds.network` |
+| **Sandbox** | `https://soap-test.secureapi.com.au/API-1.3` | `https://reseller-api.sandbox.ds.network` |
 | **Production** | `https://soap.secureapi.com.au/server.php?v=1.3` | `https://reseller-api.ds.network` |
 | **WSDL / docs** | `https://soap.secureapi.com.au/wsdl/API-1.3.wsdl` | [doc-reseller-api.ds.network](https://doc-reseller-api.ds.network/) |
 
@@ -159,8 +159,11 @@ Sandbox Reseller Console: `https://reseller.sandbox.ds.network`
 
 | Env | Endpoint | WSDL | Console |
 |-----|----------|------|---------|
-| **Sandbox (default)** | `https://soap-test.secureapi.com.au/server.php?v=1.3` | `https://soap-test.secureapi.com.au/wsdl/API-1.3.wsdl` | `reseller.sandbox.ds.network` |
+| **Sandbox (default)** | `https://soap-test.secureapi.com.au/API-1.3` | `https://soap-test.secureapi.com.au/wsdl/API-1.3.wsdl` | `reseller.sandbox.ds.network` |
 | Production | `https://soap.secureapi.com.au/server.php?v=1.3` | `https://soap.secureapi.com.au/wsdl/API-1.3.wsdl` | `reseller.ds.network` (live) |
+
+> **Sandbox SOAP path:** use `/API-1.3`. The alternate WSDL address `…/server.php?v=1.3` on soap-test returns HTTP 200 with an **empty body** and looks like a hung/failed auth.
+
 
 **Match console → SOAP host.** Live API Setup credentials (e.g. Reseller ID **25735** from `reseller.ds.network`) must use **production SOAP**. Sandbox console keys must use **soap-test**. Mixing live keys with soap-test (or vice versa) causes 401.
 
@@ -192,7 +195,7 @@ DREAMSCAPE_API_KEY=<from sandbox API Setup>
 DREAMSCAPE_API_MODE=soap
 DREAMSCAPE_SOAP_ENV=sandbox
 # Optional override:
-# DREAMSCAPE_SOAP_ENDPOINT=https://soap-test.secureapi.com.au/server.php?v=1.3
+# DREAMSCAPE_SOAP_ENDPOINT=https://soap-test.secureapi.com.au/API-1.3
 ```
 
 **If using official REST only (no Reseller ID):**
@@ -236,7 +239,7 @@ DREAMSCAPE_SOAP_ENV=production
 
 # --- Sandbox console → SOAP soap-test ---
 # DREAMSCAPE_SOAP_ENV=sandbox
-# DREAMSCAPE_SOAP_ENDPOINT=https://soap-test.secureapi.com.au/server.php?v=1.3
+# DREAMSCAPE_SOAP_ENDPOINT=https://soap-test.secureapi.com.au/API-1.3
 
 # --- REST alternative (signature auth; no Reseller ID) ---
 # DREAMSCAPE_API_MODE=rest
