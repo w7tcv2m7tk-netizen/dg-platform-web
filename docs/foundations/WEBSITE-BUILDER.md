@@ -1,14 +1,14 @@
 # DigitalGate Website Builder
 
-**Design now. Build later.**
+**Design now. Build MVP.**
 
 AI-native web presence for DigitalGate organisations — not another generic page builder, and **not** arbitrary PHP on the main platform.
 
-The native builder targets **Next.js Generation 2**. Existing WordPress sites stay on the **WordPress Connector**. Advanced code edits happen only in a **controlled sandbox**.
+The native builder targets **Next.js Generation 2**. Existing WordPress sites stay on the **WordPress Connector** until migrated. Advanced code edits happen only in a **controlled sandbox** (later).
 
-**Do not implement this product surface yet.** Immediate execution remains Core → CRM → Connectors → Real Estate beta. Architect so Business Profile, SEO/AI Visibility context, Forms → CRM, Domains/Hosting, Country Packs, and first-class Website assets can support Website Builder without a rebuild.
+**MVP vertical slice (shipped):** Website as first-class asset → AI structured generate → Studio basics → `/sites/[slug]` renderer → Forms → CRM. Feature flag: `websites.builder` (soft-on when unset).
 
-See [PRODUCT-VISION.md](../PRODUCT-VISION.md), [ROADMAP.md](../ROADMAP.md), [GLOBAL-READINESS.md](./GLOBAL-READINESS.md), [NETWORK-LAYER.md](./NETWORK-LAYER.md), [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md), [websites/WEBSITES-ARCHITECTURE.md](../websites/WEBSITES-ARCHITECTURE.md), [ADR 0001](../adr/0001-generation-2-nextjs-platform.md), [ADR 0002](../adr/0002-wordpress-as-connector.md).
+See [PRODUCT-VISION.md](../PRODUCT-VISION.md), [ROADMAP.md](../ROADMAP.md), [GLOBAL-READINESS.md](./GLOBAL-READINESS.md), [INFRASTRUCTURE.md](./INFRASTRUCTURE.md), [NETWORK-LAYER.md](./NETWORK-LAYER.md), [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md), [websites/WEBSITES-ARCHITECTURE.md](../websites/WEBSITES-ARCHITECTURE.md), [ADR 0001](../adr/0001-generation-2-nextjs-platform.md), [ADR 0002](../adr/0002-wordpress-as-connector.md).
 
 ---
 
@@ -203,27 +203,29 @@ Sandbox may emit custom components that still register against the schema system
 
 The end-to-end path is owned by DigitalGate — not “export HTML to a third-party host.”
 
+**Hosting, DNS, and SSL come from the Infrastructure Core layer** — not from Website Builder itself. Website Builder publishes a structured site; Infrastructure makes it live (domain connect, DNS, auto SSL, hosting abstraction). See [INFRASTRUCTURE.md](./INFRASTRUCTURE.md).
+
 ```
 Buy Domain
   → Create Website
   → AI builds (structured model)
-  → DG Hosting
-  → DG DNS
-  → auto SSL
+  → DG Hosting          ← Infrastructure (Vercel/CF adapter)
+  → DG DNS              ← Infrastructure (Dreamscape → Cloudflare)
+  → auto SSL            ← Infrastructure (invisible)
   → connected to Business Profile
   → CRM + Forms + Analytics + SEO + AI Visibility
 ```
 
 | Concern | Design-now expectation |
 |---------|------------------------|
-| **Domains** | Purchase / attach under Organisation; Website asset owns the binding |
-| **Hosting** | DG-managed deploy of Next.js Gen 2 renderer output |
-| **DNS** | DG DNS (or guided records) so SSL and publish are automatic |
+| **Domains** | Purchase / attach via Infrastructure (Dreamscape reseller); Website asset owns the binding |
+| **Hosting** | Infrastructure-managed deploy of Next.js Gen 2 renderer output |
+| **DNS** | Infrastructure DNS so SSL and publish are automatic |
 | **SSL** | Auto-provisioned on connect — no manual cert workflow for default path |
 | **Profile link** | Published site stays wired to Business Profile (identity, NAP, brand) |
 | **Connected stack** | Forms, CRM, Analytics, SEO App, AI Visibility App as first-class integrations on the Website asset |
 
-This is what makes Website Builder a **platform surface**, not a standalone CMS clone. Infrastructure hooks stay design-compatible with Domains / Hosting work; do not ship product UI yet.
+This is what makes Website Builder a **platform surface**, not a standalone CMS clone. Domains / Hosting product UI ships as Infrastructure (Domains MVP after Website Builder MVP) — Website Builder stubs only.
 
 ---
 
@@ -313,45 +315,96 @@ Do not hardcode AU-only component IDs or tax copy into the renderer core. Same p
 
 ---
 
-## Design-now requirements (no product UI yet)
+## Migration from WordPress
+
+**Yes — WordPress sites can migrate to the native DigitalGate builder once it exists.**
+
+Existing WP sites remain on the **WordPress Connector** (health, content sync, forms) until cutover. Migration is **not** “export theme PHP into Gen 2.” Content and IA land in the **structured page/component model**; the Next.js renderer becomes source of truth.
+
+### Phases
+
+| Phase | What happens |
+|-------|----------------|
+| **1. Native builder ready** | Org can create / publish Gen 2 sites from Business Profile (this MVP). WP sites keep running on Connector. |
+| **2. Import (WordPress Connector)** | Connector pulls pages/posts/media/menus → map into typed components + `WebsitePage` rows. Gaps become draft components or TODO blocks — never opaque HTML as SoT. |
+| **3. Dual-run** | WP remains live; Gen 2 site on `/sites/[slug]` (then custom domain staging). Forms dual-write or Gen 2-only → CRM. Compare SEO, forms, CWV. |
+| **4. DNS cutover** | Point domain to **DG Hosting / DG DNS**; auto SSL. WP becomes archive or read-only mirror. |
+| **5. Decommission** | Optional: retire WP hosting; Connector health optional. |
+
+### Explicitly later (not this sprint)
+
+- Full WP page importer UI / job runner  
+- Theme parity for arbitrary WP builders (Elementor, etc.)  
+- Automated media CDN remaps at scale  
+
+Studio shows an **Import from WordPress** stub pointing at this path. Importer implementation tracks Connector work + hosting productization.
+
+---
+
+## MVP routes (shipped)
+
+| Route | Purpose |
+|-------|---------|
+| `/apps/websites` | List sites · create from Business Profile + brief |
+| `/apps/websites/studio/[id]` | Pages list · edit component props · NL assist |
+| `/apps/websites/domains` | Stub — points at Infrastructure Core (Dreamscape) |
+| `/apps/websites/hosting` | Stub — points at Infrastructure Core (hosting/SSL) |
+| `/sites/[slug]` | Public (or `?preview=1` draft) renderer |
+| `/sites/[slug]/[pageSlug]` | Inner pages |
+| `POST /api/v1/websites/public/[slug]/form` | Contact form → Contact + Lead |
+
+### Schema
+
+- `Website` — org-scoped site, slug, theme JSON, status, brief, metadata  
+- `WebsitePage` — slug, intent, `components` JSON (typed `{ id, type, props }[]`)  
+
+---
+
+## Next after MVP
+
+- Domains MVP via Infrastructure Core (after this Website Builder MVP)  
+- Full DG DNS / hosting / SSL productization (Infrastructure — not this App)  
+- Visual drag-drop Studio (level 2)  
+- Developer Studio sandbox (level 3)  
+- Industry RE / Accommodation template packs (hooks exist in metadata)  
+- Complete WordPress import job (phases 2–4 above)  
+- Deeper SEO / AI Visibility wiring on publish  
+
+---
+
+## Persistence (MVP shipped)
+
+| Object | Status |
+|--------|--------|
+| `Website` | ✅ Prisma — org-scoped site + theme/seo/metadata |
+| `WebsitePage` | ✅ Prisma — components JSON (typed tree) |
+| `WebsiteVersion` | Later — published revision snapshots |
+| `WebsiteDomain` / hosting bindings | Stub UI only |
+| Forms → Contact/Lead | ✅ Public form API |
+
+Theme tokens come from Business Profile at generate time. Draft-by-default; publish sets `status=published`.
+
+### Still design-forward
 
 | Concept | Why it matters later |
 |---------|----------------------|
-| **Business Profile completeness** | Source of truth for generation |
-| **Website as first-class asset** | Org → Profile → Websites[] hierarchy |
-| **Document / site config objects** | Persist structured site model (see catalogues) |
-| **Forms → Contact/Lead** | Conversion path into CRM |
-| **SEO + AI Visibility fields** | Planner/generator context + Score™ Apps |
-| **Infrastructure hooks** | Domains, DG DNS, SSL, DG Hosting deploy |
-| **Ecosystem integration points** | Analytics, Reviews, Payments, Bookings, Industry Apps |
-| **WP Connector boundary** | Existing sites ≠ native builder |
-| **Country Pack hooks** | Locality, compliance, template packs |
-| **Industry App site contracts** | Vertical schemas/templates → Website assets |
-| **AI governance** | Draft-by-default, review for code deploy ([AI-GOVERNANCE.md](./AI-GOVERNANCE.md)) |
-
-### Suggested future objects (document only)
-
-- `Website` / `WebsiteVersion` (org-scoped site + published revision)  
-- `WebsitePage` (slug, intent, composition)  
-- `ComponentInstance` (type + typed props)  
-- `WebsiteTheme` (tokens from brand)  
-- `WebsiteForm` (definition → CRM mapping)  
-- `WebsiteDomain` / deploy records  
-- Hosting / DNS / SSL binding records (DG-managed path)  
-
-Prefer Profile + optional JSON site draft over premature tables until Core / RE beta priorities clear.
+| **SEO + AI Visibility Score™ Apps** | Deeper wiring on publish |
+| **DG DNS / Hosting / SSL product UI** | Infrastructure Core ([INFRASTRUCTURE.md](./INFRASTRUCTURE.md)) |
+| **Visual + Developer Studio** | Levels 2–3 |
+| **Full WP importer** | Migration phases 2–4 |
+| **Industry App site contracts** | RE / Acc template packs |
 
 ---
 
 ## Explicit non-goals (now)
 
-- ❌ Shipping Website Studio UI before Core / CRM / Connectors / RE beta maturity  
 - ❌ Arbitrary PHP generation on Gen 2 Platform Core  
 - ❌ Treating WordPress theme PHP as the native builder  
 - ❌ Raw HTML as the source of truth for native sites  
 - ❌ Replacing the WP Connector for customers who stay on WordPress  
-- ❌ Building DG Hosting / DNS product UI before infrastructure priorities allow  
-- ❌ Treating Website as App-only state with no first-class asset model  
+- ❌ Full DG Hosting / DNS / SSL product UI (Infrastructure track — stubs only here)  
+- ❌ Visual drag-drop Studio / Developer sandbox this sprint  
+- ❌ Complete WP site importer this sprint (path documented; stub in Studio)  
 
 ---
 

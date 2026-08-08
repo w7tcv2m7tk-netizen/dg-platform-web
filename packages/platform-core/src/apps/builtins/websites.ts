@@ -9,14 +9,16 @@ export const websitesApp: AppManifest = {
   version: "0.1.0",
   icon: "🌐",
   routes: [
+    { path: "/apps/websites", label: "Sites" },
     { path: "/apps/websites/studio", label: "AI Website Studio" },
     { path: "/apps/websites/health", label: "Health Centre" },
     { path: "/apps/websites/content", label: "Content Studio" },
     { path: "/apps/websites/funnels", label: "Funnel Builder" },
-    { path: "/apps/websites/sites", label: "Sites" },
+    { path: "/apps/websites/domains", label: "Domains" },
+    { path: "/apps/websites/hosting", label: "Hosting" },
   ],
   navigation: [
-    { href: "/apps/websites/health", label: "Websites", icon: "◫" },
+    { href: "/apps/websites", label: "Websites", icon: "◫" },
   ],
   permissions: [
     { id: "websites.view", label: "View websites" },
@@ -28,6 +30,7 @@ export const websitesApp: AppManifest = {
   features: [
     "websites.health.read",
     "websites.studio.use",
+    "websites.builder.use",
     "websites.content.draft",
     "websites.content.publish",
     "websites.funnels.create",
@@ -35,7 +38,7 @@ export const websitesApp: AppManifest = {
     "websites.forms.manage",
     "websites.analytics.read",
   ],
-  entities: ["Document", "Contact", "Lead", "Activity", "Campaign"],
+  entities: ["Website", "WebsitePage", "Contact", "Lead", "Activity", "Campaign"],
   automationTriggers: [
     { id: "site.published", label: "Site published", objectType: "Document" },
     { id: "site.health_degraded", label: "Site health score dropped" },

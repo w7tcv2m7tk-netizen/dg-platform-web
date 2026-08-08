@@ -118,4 +118,10 @@ export const KNOWN_FEATURE_FLAGS = [
     description:
       "When on, Gen 2 stage changes PATCH WordPress pipeline (plugin v10.68+). Gen 2 remains SoT either way.",
   },
+  {
+    id: "websites.builder",
+    label: "Website Builder (native)",
+    description:
+      "Gates AI Website Studio, Sites manager, and native site generation. Health Centre stays available without this flag.",
+  },
 ] as const;

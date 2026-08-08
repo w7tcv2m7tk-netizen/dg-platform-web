@@ -1,3 +1,8 @@
+/**
+ * Website Builder — structured site model (not raw HTML).
+ * See docs/foundations/WEBSITE-BUILDER.md
+ */
+
 export type HealthCheckStatus = "pass" | "warn" | "fail";
 
 export type HealthCheck = {
@@ -40,3 +45,95 @@ export type SiteHealthFetchResult =
       message: string;
       status?: number;
     };
+
+/** Typed component kinds the renderer + Studio understand */
+export const WEBSITE_COMPONENT_TYPES = [
+  "nav",
+  "hero",
+  "trust",
+  "services",
+  "about",
+  "testimonials",
+  "cta",
+  "faq",
+  "contact_form",
+  "footer",
+] as const;
+
+export type WebsiteComponentType = (typeof WEBSITE_COMPONENT_TYPES)[number];
+
+export type WebsiteComponent = {
+  id: string;
+  type: WebsiteComponentType;
+  props: Record<string, unknown>;
+};
+
+export type WebsitePageIntent =
+  | "home"
+  | "about"
+  | "services"
+  | "contact"
+  | "custom";
+
+export type WebsiteTheme = {
+  primaryColor?: string;
+  accentColor?: string;
+  backgroundColor?: string;
+  logoUrl?: string;
+  iconUrl?: string;
+  businessName?: string;
+  fontHeading?: string;
+  fontBody?: string;
+};
+
+export type WebsiteSeo = {
+  title?: string;
+  description?: string;
+  keywords?: string[];
+};
+
+export type WebsiteStatus = "draft" | "published" | "archived";
+
+export type SerializedWebsitePage = {
+  id: string;
+  websiteId: string;
+  title: string;
+  slug: string;
+  intent: string | null;
+  status: string;
+  sortOrder: number;
+  seo: WebsiteSeo | null;
+  components: WebsiteComponent[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SerializedWebsite = {
+  id: string;
+  organisationId: string;
+  name: string;
+  slug: string;
+  status: string;
+  brief: string | null;
+  theme: WebsiteTheme | null;
+  seo: WebsiteSeo | null;
+  metadata: Record<string, unknown> | null;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  pages?: SerializedWebsitePage[];
+};
+
+/** AI generator output shape */
+export type GeneratedSiteModel = {
+  name?: string;
+  seo?: WebsiteSeo;
+  theme?: Partial<WebsiteTheme>;
+  pages: Array<{
+    title: string;
+    slug: string;
+    intent?: WebsitePageIntent | string;
+    seo?: WebsiteSeo;
+    components: WebsiteComponent[];
+  }>;
+};

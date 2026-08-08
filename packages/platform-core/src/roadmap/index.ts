@@ -562,7 +562,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Websites",
     label: "AI Website Studio",
     description: "Generate sites, pages, and copy with AI",
-    status: "planned",
+    status: "scaffold",
     appId: "websites",
     href: "/apps/websites/studio",
   },
@@ -588,10 +588,21 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "websites.sites",
     area: "Websites",
     label: "Sites manager",
-    description: "Connected sites, domains, and publish status",
-    status: "planned",
+    description: "Native Website assets, Studio, publish to /sites/[slug]",
+    status: "scaffold",
     appId: "websites",
-    href: "/apps/websites/sites",
+    href: "/apps/websites",
+  },
+  {
+    id: "websites.builder_mvp",
+    area: "Websites",
+    label: "Website Builder MVP",
+    description:
+      "Structured model + AI generate + renderer + forms→CRM; WP migrate path documented",
+    status: "scaffold",
+    priority: "high",
+    appId: "websites",
+    href: "/apps/websites",
   },
 
   // —— Automation ——

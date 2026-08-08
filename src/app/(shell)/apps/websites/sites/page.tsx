@@ -1,5 +1,5 @@
-import { AppFeaturePlaceholder } from "@/components/platform/AppFeaturePlaceholder";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return <AppFeaturePlaceholder itemId="websites.sites" />;
+export default function SitesAliasPage() {
+  redirect("/apps/websites");
 }

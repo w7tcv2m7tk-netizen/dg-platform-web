@@ -193,7 +193,9 @@ Targets: dashboard < 2 s, navigation < 300 ms, CRM updates optimistic. Full spec
 
 **Referrals — two products:** (A) **Platform Refer & Earn** ships with / after Billing (Core) — customers refer DigitalGate. (B) **Business Referral Network** + **Reviews** — foundations scaffold live (`/apps/reviews`, `/dashboard/marketplace`, `/dashboard/network`); depth Phase 5+: [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md).
 
-**Website Builder (Phase later):** AI Website Studio — Business Profile → structured page/component model → Next.js Gen 2 renderer. **Not** arbitrary PHP on Platform Core; WP sites via Connector. Design now, build after Core / CRM / Connectors / RE beta: [foundations/WEBSITE-BUILDER.md](./foundations/WEBSITE-BUILDER.md).
+**Website Builder (MVP scaffold):** AI Website Studio — Business Profile → structured page/component model → `/sites/[slug]` renderer + forms→CRM. WP migrate via Connector (documented phases). Domains/Hosting/SSL come from **Infrastructure Core** (not Website Builder) — architect now; Domains MVP after Website Builder MVP: [foundations/WEBSITE-BUILDER.md](./foundations/WEBSITE-BUILDER.md) · [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md).
+
+**Infrastructure (Core):** Provider orchestration (Dreamscape reseller first) for domains, DNS, SSL, hosting abstraction, email, media — enables “Make it live.” Scaffold: Dreamscape availability API. Separate from WP migrate + Website Builder tracks.
 
 **Execution priority until Phase 5:**
 
@@ -224,7 +226,7 @@ Do not start RE App port or AI Visibility until steps 1–4 are done.
 - ❌ Full Community / social network before critical mass (foundations scaffold OK — see NETWORK-LAYER)  
 - ❌ Paid/Commission B2B referral settlement / compliance packs before Country Pack gates (scaffold + disclosure UI OK — see REVIEWS-AND-REFERRALS)  
 - ❌ MLM / multi-level on Platform Refer & Earn (single-level SaaS only)  
-- ❌ Native Website Builder / AI PHP on Gen 2 before Core + RE beta (architect only — see WEBSITE-BUILDER)  
+- ❌ Arbitrary AI PHP on Gen 2 Platform Core (WP stays Connector; native builder is structured model — see WEBSITE-BUILDER)  
 
 ---
 

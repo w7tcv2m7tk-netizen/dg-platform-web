@@ -99,6 +99,11 @@ export const WEBSITES_FEATURES: FeatureGroup = {
   features: [
     { id: "websites.health.read", appId: "websites", label: "View Website Health Centre" },
     {
+      id: "websites.builder.use",
+      appId: "websites",
+      label: "Use native Website Builder",
+    },
+    {
       id: "websites.studio.use",
       appId: "websites",
       label: "Use AI Website Studio",

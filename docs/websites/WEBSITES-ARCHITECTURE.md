@@ -4,9 +4,9 @@
 
 **Version:** 0.1  
 **Last updated:** August 2026  
-**Status:** Design — manifest registered; implementation Phase 2+
+**Status:** MVP scaffold — native Website asset + Studio + `/sites/[slug]` renderer; WP migrate path documented
 
-**Related:** [foundations/WEBSITE-BUILDER.md](../foundations/WEBSITE-BUILDER.md) (design-now pipeline + schema-first model) · [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) · [ai/AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) · [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](../infrastructure/INFRASTRUCTURE-ARCHITECTURE.md)
+**Related:** [foundations/WEBSITE-BUILDER.md](../foundations/WEBSITE-BUILDER.md) (pipeline + schema-first model + WP migration) · [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) · [ai/AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) · [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](../infrastructure/INFRASTRUCTURE-ARCHITECTURE.md)
 
 ---
 
@@ -85,9 +85,11 @@ Form path: webhook → Connector → Contact/Lead → Activity → Automation.
 | Path | Purpose |
 |------|---------|
 | `packages/platform-core/src/apps/builtins/websites.ts` | Manifest ✅ |
-| `packages/platform-core/src/websites/` | Orchestration |
-| `src/app/apps/websites/` | UI |
-| `src/app/api/v1/websites/` | API |
+| `packages/platform-core/src/websites/` | CRUD, AI generate/assist, form→CRM ✅ |
+| `packages/database/prisma/schema.prisma` | `Website` / `WebsitePage` ✅ |
+| `src/app/(shell)/apps/websites/` | App shell + Studio ✅ |
+| `src/app/sites/[slug]/` | Public renderer ✅ |
+| `src/app/api/v1/websites/` | API ✅ |
 
 ---
 

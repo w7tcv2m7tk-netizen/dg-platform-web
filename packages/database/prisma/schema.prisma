@@ -62,6 +62,7 @@ model Organisation {
   stayBookings                  StayBooking[]
   accommodationGuestProfiles    AccommodationGuestProfile[]
   accommodationUnits            AccommodationUnit[]
+  websites                      Website[]
 
   referredBy        Organisation?  @relation("OrgReferral", fields: [referredByOrganisationId], references: [id], onDelete: SetNull)
   referralsMade     Organisation[] @relation("OrgReferral")
@@ -822,4 +823,58 @@ model PlatformReferralLedger {
   @@index([organisationId, createdAt])
   @@index([referralId])
   @@map("platform_referral_ledger")
+}
+
+// ─── Website Builder (first-class Org → Business Profile → Websites) ───
+// Structured page/component model — not raw HTML. See docs/foundations/WEBSITE-BUILDER.md
+
+model Website {
+  id             String    @id @default(cuid())
+  organisationId String    @map("organisation_id")
+  name           String
+  /** Public path slug — unique globally for /sites/[slug] */
+  slug           String    @unique
+  /** draft | published | archived */
+  status         String    @default("draft")
+  brief          String?   @db.Text
+  /** Brand tokens (primary, accent, logo, fonts) derived from Business Profile */
+  theme          Json?
+  seo            Json?
+  /** Domains / hosting stubs, WP import markers, industry hooks */
+  metadata       Json?
+  publishedAt    DateTime? @map("published_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  pages        WebsitePage[]
+
+  @@index([organisationId, status])
+  @@map("websites")
+}
+
+model WebsitePage {
+  id         String   @id @default(cuid())
+  websiteId  String   @map("website_id")
+  title      String
+  slug       String
+  /** home | about | services | contact | custom */
+  intent     String?
+  /** draft | published */
+  status     String   @default("draft")
+  sortOrder  Int      @default(0) @map("sort_order")
+  seo        Json?
+  /**
+   * Typed component tree — source of truth for Studio + renderer.
+   * Array of { id, type, props } — never raw HTML dumps.
+   */
+  components Json     @default("[]")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@unique([websiteId, slug])
+  @@index([websiteId, sortOrder])
+  @@map("website_pages")
 }
