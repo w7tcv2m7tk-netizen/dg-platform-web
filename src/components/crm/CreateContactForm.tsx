@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import { CompanySelect } from "@/components/crm/CompanySelect";
+import { AuPhoneInput } from "@/components/ui/AuPhoneInput";
 import { usePendingAction } from "@/hooks/usePendingAction";
 
 export function CreateContactForm({
@@ -86,11 +87,10 @@ export function CreateContactForm({
         </label>
         <label className="block min-w-0">
           <span className="text-sm text-slate-400">Phone</span>
-          <input
+          <AuPhoneInput
             name="phone"
             className="dg-input mt-1"
-            placeholder="+61 400 000 000"
-            autoComplete="tel"
+            placeholder="0412 345 678"
           />
         </label>
       </div>

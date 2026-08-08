@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { PlanPicker } from "@/components/PlanPicker";
+import { AuPhoneInput } from "@/components/ui/AuPhoneInput";
 import type { SignupSelection } from "@/lib/plans";
 
 export function SignupForm() {
@@ -103,11 +104,11 @@ export function SignupForm() {
           value={contactEmail}
           onChange={(e) => setContactEmail(e.target.value)}
         />
-        <input
+        <AuPhoneInput
           className="dg-input"
           placeholder="Phone"
           value={contactPhone}
-          onChange={(e) => setContactPhone(e.target.value)}
+          onValueChange={setContactPhone}
         />
         <input
           className="dg-input"

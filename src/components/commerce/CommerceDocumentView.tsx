@@ -7,6 +7,7 @@ import type {
 import {
   contrastInkForBackground,
   formatAbn,
+  formatAuPhone,
   isDarkBackground,
   resolveDocumentBackgroundColor,
 } from "@dg/platform-core";
@@ -109,7 +110,7 @@ export function CommerceDocumentView(props: CommerceDocumentViewProps) {
   const billToLines = [
     props.buyer?.address,
     props.buyer?.email || props.contact?.email,
-    props.buyer?.phone || props.contact?.phone,
+    formatAuPhone(props.buyer?.phone || props.contact?.phone) || null,
     props.buyer?.abn ? `ABN ${formatAbn(props.buyer.abn)}` : null,
   ].filter(Boolean);
 
@@ -185,7 +186,7 @@ export function CommerceDocumentView(props: CommerceDocumentViewProps) {
           {supplierAddress
             ? supplierAddress.split("\n").map((line) => <p key={line}>{line}</p>)
             : null}
-          {phone ? <p>{phone}</p> : null}
+          {phone ? <p>{formatAuPhone(phone)}</p> : null}
           {email ? <p>{email}</p> : null}
         </div>
       </section>

@@ -481,44 +481,22 @@ export async function PATCH(req: Request) {
 
   if (resource === "units" || resource === "properties") {
     const usesUnits = await organisationUsesUnitSot(session.organisationId);
+    const { upsertAccommodationUnitFromWpRow, wpUnitRowFromClientPatch } = await import(
+      "@dg/platform-core"
+    );
+
     if (usesUnits) {
-      const { upsertAccommodationUnitFromWpRow } = await import("@dg/platform-core");
-      // Persist block/rate patches into Neon when present, then mirror to WP.
+      // Persist full unit patch into Neon (incl. OTA iCal URLs + listing IDs).
       for (const row of updates) {
         if (!row || typeof row !== "object") continue;
-        const patch = row as Record<string, unknown>;
-        const id =
-          typeof patch.id === "number"
-            ? patch.id
-            : typeof patch.property_id === "number"
-              ? patch.property_id
-              : Number(patch.id ?? patch.property_id);
-        if (!Number.isFinite(id)) continue;
-        await upsertAccommodationUnitFromWpRow(session.organisationId, {
-          id,
-          title: typeof patch.title === "string" ? patch.title : undefined,
-          listing_status:
-            typeof patch.listing_status === "string" ? patch.listing_status : undefined,
-          weekday_rate:
-            typeof patch.weekday_rate === "number" ? patch.weekday_rate : undefined,
-          weekend_rate:
-            typeof patch.weekend_rate === "number" ? patch.weekend_rate : undefined,
-          cleaning_fee:
-            typeof patch.cleaning_fee === "number" ? patch.cleaning_fee : undefined,
-          housekeeping_status:
-            typeof patch.housekeeping_status === "string"
-              ? patch.housekeeping_status
-              : undefined,
-          housekeeping_notes:
-            typeof patch.housekeeping_notes === "string"
-              ? patch.housekeeping_notes
-              : undefined,
-          manual_blocked_dates: Array.isArray(patch.manual_blocked_dates)
-            ? (patch.manual_blocked_dates as string[])
-            : undefined,
-        }).catch(() => null);
+        const mapped = wpUnitPropFromClientPatch(row as Record<string, unknown>);
+        if (!mapped) continue;
+        await upsertAccommodationUnitFromWpRow(session.organisationId, mapped).catch(
+          () => null,
+        );
       }
     }
+
     const result = await patchWpAccommodationUnits(updates, connector);
     if (!result.ok) {
       return NextResponse.json(
@@ -526,6 +504,34 @@ export async function PATCH(req: Request) {
         { status: 422 },
       );
     }
+
+    // Reconcile Neon from WordPress authoritative rows after mirror.
+    if (usesUnits && Array.isArray(result.data?.updated)) {
+      for (const row of result.data.updated) {
+        if (!row || typeof row !== "object") continue;
+        const mapped = wpUnitPropFromClientPatch(row as Record<string, unknown>);
+        if (!mapped) continue;
+        // WP format_property always returns these — force write-through even if empty.
+        const full = row as Record<string, unknown>;
+        await upsertAccommodationUnitFromWpRow(session.organisationId, {
+          ...mapped,
+          airbnb_ical_url:
+            typeof full.airbnb_ical_url === "string" ? full.airbnb_ical_url : mapped.airbnb_ical_url,
+          bookingcom_ical_url:
+            typeof full.bookingcom_ical_url === "string"
+              ? full.bookingcom_ical_url
+              : mapped.bookingcom_ical_url,
+          ical_export_url:
+            typeof full.ical_export_url === "string"
+              ? full.ical_export_url
+              : mapped.ical_export_url,
+          airbnb_id: typeof full.airbnb_id === "string" ? full.airbnb_id : mapped.airbnb_id,
+          bookingcom_id:
+            typeof full.bookingcom_id === "string" ? full.bookingcom_id : mapped.bookingcom_id,
+        }).catch(() => null);
+      }
+    }
+
     return NextResponse.json({
       data: { ...result.data, sot: usesUnits ? "neon_then_wp" : "wordpress" },
     });

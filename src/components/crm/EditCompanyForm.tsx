@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AuPhoneInput } from "@/components/ui/AuPhoneInput";
+
 type Company = {
   id: string;
   name: string;
@@ -90,10 +92,11 @@ export function EditCompanyForm({ company }: { company: Company }) {
         </label>
         <label className="block">
           <span className="text-sm text-slate-400">Phone</span>
-          <input
+          <AuPhoneInput
             name="phone"
             defaultValue={company.phone ?? ""}
             className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
+            placeholder="02 1234 5678"
           />
         </label>
       </div>

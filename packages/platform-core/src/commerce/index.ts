@@ -1,5 +1,6 @@
 export * from "./types";
 export * from "./tax";
+export * from "../au/phone";
 export {
   createPaymentRequest,
   recordPaymentFromWebhook,

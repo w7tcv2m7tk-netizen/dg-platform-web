@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AuPhoneInput } from "@/components/ui/AuPhoneInput";
 import { usePendingAction } from "@/hooks/usePendingAction";
 
 export function CreateLeadForm({
@@ -113,11 +114,11 @@ export function CreateLeadForm({
         </label>
         <label className="block min-w-0 text-sm">
           <span className="text-slate-400">Phone</span>
-          <input
+          <AuPhoneInput
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onValueChange={setPhone}
             className="dg-input mt-1"
-            autoComplete="tel"
+            placeholder="0412 345 678"
           />
         </label>
       </div>

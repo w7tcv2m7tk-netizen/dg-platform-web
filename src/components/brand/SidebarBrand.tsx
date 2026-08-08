@@ -7,7 +7,7 @@ export function SidebarBrand({ className = "" }: { className?: string }) {
       <OrgBrandMark
         variant="logo"
         href="/dashboard"
-        logoWidth={120}
+        logoWidth={148}
       />
     </div>
   );

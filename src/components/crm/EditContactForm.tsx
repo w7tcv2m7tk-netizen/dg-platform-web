@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { CompanySelect } from "@/components/crm/CompanySelect";
+import { AuPhoneInput } from "@/components/ui/AuPhoneInput";
 
 export function EditContactForm({
   contact,
@@ -92,10 +93,11 @@ export function EditContactForm({
         </label>
         <label className="block">
           <span className="text-sm text-slate-400">Phone</span>
-          <input
+          <AuPhoneInput
             name="phone"
             defaultValue={contact.phone ?? ""}
             className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
+            placeholder="0412 345 678"
           />
         </label>
         <label className="block">

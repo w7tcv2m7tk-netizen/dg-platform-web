@@ -33,6 +33,8 @@ export type WpAccUnitPropRow = {
   airbnb_ical_url?: string;
   bookingcom_ical_url?: string;
   ical_export_url?: string;
+  airbnb_id?: string;
+  bookingcom_id?: string;
   housekeeping_status?: string;
   housekeeping_notes?: string;
   last_cleaned?: string | null;
@@ -69,6 +71,8 @@ export type AccommodationUnitListItem = {
   airbnbIcalUrl?: string | null;
   bookingcomIcalUrl?: string | null;
   icalExportUrl?: string | null;
+  airbnbId?: string | null;
+  bookingcomId?: string | null;
   housekeepingStatus: string;
   housekeepingNotes?: string | null;
   lastCleaned?: string | null;
@@ -137,6 +141,8 @@ function serializeUnit(row: {
   airbnbIcalUrl: string | null;
   bookingcomIcalUrl: string | null;
   icalExportUrl: string | null;
+  airbnbId: string | null;
+  bookingcomId: string | null;
   housekeepingStatus: string;
   housekeepingNotes: string | null;
   lastCleaned: Date | null;
@@ -176,6 +182,8 @@ function serializeUnit(row: {
     airbnbIcalUrl: row.airbnbIcalUrl,
     bookingcomIcalUrl: row.bookingcomIcalUrl,
     icalExportUrl: row.icalExportUrl,
+    airbnbId: row.airbnbId,
+    bookingcomId: row.bookingcomId,
     housekeepingStatus: row.housekeepingStatus || "unknown",
     housekeepingNotes: row.housekeepingNotes,
     lastCleaned: row.lastCleaned ? row.lastCleaned.toISOString() : null,
@@ -212,6 +220,8 @@ export function unitToWpProp(item: AccommodationUnitListItem): Record<string, un
     airbnb_ical_url: item.airbnbIcalUrl ?? undefined,
     bookingcom_ical_url: item.bookingcomIcalUrl ?? undefined,
     ical_export_url: item.icalExportUrl ?? undefined,
+    airbnb_id: item.airbnbId ?? undefined,
+    bookingcom_id: item.bookingcomId ?? undefined,
     housekeeping_status: item.housekeepingStatus,
     housekeeping_notes: item.housekeepingNotes ?? undefined,
     last_cleaned: item.lastCleaned,
@@ -243,6 +253,74 @@ export async function countAccommodationUnits(organisationId: string): Promise<n
 export async function organisationUsesUnitSot(organisationId: string): Promise<boolean> {
   if (await organisationHasFlag(organisationId, "acc.units_sot")) return true;
   return (await countAccommodationUnits(organisationId)) > 0;
+}
+
+/**
+ * Map a Gen 2 units PATCH body row into the WP/Neon upsert shape.
+ * Only includes fields present on the client patch (undefined = leave unchanged).
+ */
+export function wpUnitRowFromClientPatch(
+  patch: Record<string, unknown>,
+): WpAccUnitPropRow | null {
+  const id =
+    typeof patch.id === "number"
+      ? patch.id
+      : typeof patch.property_id === "number"
+        ? patch.property_id
+        : Number(patch.id ?? patch.property_id);
+  if (!Number.isFinite(id) || id <= 0) return null;
+
+  const str = (key: string) =>
+    typeof patch[key] === "string" ? (patch[key] as string) : undefined;
+  const num = (key: string) =>
+    typeof patch[key] === "number" && Number.isFinite(patch[key] as number)
+      ? (patch[key] as number)
+      : undefined;
+
+  const row: WpAccUnitPropRow = { id };
+  if (str("title") !== undefined) row.title = str("title");
+  if (str("slug") !== undefined) row.slug = str("slug");
+  if (str("post_status") !== undefined) row.post_status = str("post_status");
+  if (str("description") !== undefined) row.description = str("description");
+  if (str("accommodation_type") !== undefined) {
+    row.accommodation_type = str("accommodation_type");
+  }
+  if (str("address") !== undefined) row.address = str("address");
+  if (num("weekday_rate") !== undefined) row.weekday_rate = num("weekday_rate");
+  if (num("weekend_rate") !== undefined) row.weekend_rate = num("weekend_rate");
+  if (num("cleaning_fee") !== undefined) row.cleaning_fee = num("cleaning_fee");
+  if (num("sleeps") !== undefined) row.sleeps = num("sleeps");
+  if (num("bedrooms") !== undefined) row.bedrooms = num("bedrooms");
+  if (num("bathrooms") !== undefined) row.bathrooms = num("bathrooms");
+  if (num("max_guests") !== undefined) row.max_guests = num("max_guests");
+  if (num("min_nights") !== undefined) row.min_nights = num("min_nights");
+  if (str("checkin_time") !== undefined) row.checkin_time = str("checkin_time");
+  if (str("checkout_time") !== undefined) row.checkout_time = str("checkout_time");
+  if (str("listing_status") !== undefined) row.listing_status = str("listing_status");
+  if (str("housekeeping_status") !== undefined) {
+    row.housekeeping_status = str("housekeeping_status");
+  }
+  if (str("housekeeping_notes") !== undefined) {
+    row.housekeeping_notes = str("housekeeping_notes");
+  }
+  if (str("airbnb_ical_url") !== undefined) row.airbnb_ical_url = str("airbnb_ical_url");
+  if (str("bookingcom_ical_url") !== undefined) {
+    row.bookingcom_ical_url = str("bookingcom_ical_url");
+  }
+  if (str("ical_export_url") !== undefined) row.ical_export_url = str("ical_export_url");
+  if (str("airbnb_id") !== undefined) row.airbnb_id = str("airbnb_id");
+  if (str("bookingcom_id") !== undefined) row.bookingcom_id = str("bookingcom_id");
+  if (str("checkin_url") !== undefined) row.checkin_url = str("checkin_url");
+  if (str("cleaning_form_url") !== undefined) {
+    row.cleaning_form_url = str("cleaning_form_url");
+  }
+  if (Array.isArray(patch.manual_blocked_dates)) {
+    row.manual_blocked_dates = patch.manual_blocked_dates as string[];
+  }
+  if (patch.features && typeof patch.features === "object") {
+    row.features = patch.features as Record<string, 0 | 1 | boolean>;
+  }
+  return row;
 }
 
 export async function organisationUsesHousekeepingSot(
@@ -311,6 +389,12 @@ export async function upsertAccommodationUnitFromWpRow(
   if (unit.ical_export_url !== undefined) {
     patch.icalExportUrl = unit.ical_export_url?.trim() || null;
   }
+  if (unit.airbnb_id !== undefined) {
+    patch.airbnbId = unit.airbnb_id?.trim() || null;
+  }
+  if (unit.bookingcom_id !== undefined) {
+    patch.bookingcomId = unit.bookingcom_id?.trim() || null;
+  }
   if (unit.housekeeping_status?.trim()) {
     patch.housekeepingStatus = unit.housekeeping_status.trim();
   }
@@ -364,6 +448,8 @@ export async function upsertAccommodationUnitFromWpRow(
       airbnbIcalUrl: unit.airbnb_ical_url?.trim() || null,
       bookingcomIcalUrl: unit.bookingcom_ical_url?.trim() || null,
       icalExportUrl: unit.ical_export_url?.trim() || null,
+      airbnbId: unit.airbnb_id?.trim() || null,
+      bookingcomId: unit.bookingcom_id?.trim() || null,
       housekeepingStatus: unit.housekeeping_status?.trim() || "unknown",
       housekeepingNotes: unit.housekeeping_notes?.trim() || null,
       lastCleaned: parseLastCleaned(unit.last_cleaned),

@@ -10,6 +10,7 @@ import type {
 } from "@dg/platform-core";
 
 import { BrandAssetsEditor } from "@/components/platform/BrandAssetsEditor";
+import { AuPhoneInput } from "@/components/ui/AuPhoneInput";
 
 const PAY_ID_TYPES: Array<{
   value: NonNullable<BusinessBankDetails["payIdType"]>;
@@ -521,10 +522,11 @@ export function BusinessProfileEditor({
             />
           </Field>
           <Field label="Phone">
-            <input
+            <AuPhoneInput
               className={inputClass}
+              placeholder="0412 345 678"
               value={profile.businessPhone ?? profile.contactPhone ?? ""}
-              onChange={(e) => setField("businessPhone", e.target.value)}
+              onValueChange={(v) => setField("businessPhone", v)}
             />
           </Field>
           <Field label="Email">
@@ -542,10 +544,11 @@ export function BusinessProfileEditor({
             />
           </Field>
           <Field label="Support phone">
-            <input
+            <AuPhoneInput
               className={inputClass}
+              placeholder="02 1234 5678"
               value={profile.supportPhone ?? ""}
-              onChange={(e) => setField("supportPhone", e.target.value)}
+              onValueChange={(v) => setField("supportPhone", v)}
             />
           </Field>
         </div>
