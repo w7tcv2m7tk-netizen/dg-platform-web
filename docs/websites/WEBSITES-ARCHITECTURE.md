@@ -6,7 +6,7 @@
 **Last updated:** August 2026  
 **Status:** Design — manifest registered; implementation Phase 2+
 
-**Related:** [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) · [ai/AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) · [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](../infrastructure/INFRASTRUCTURE-ARCHITECTURE.md)
+**Related:** [foundations/WEBSITE-BUILDER.md](../foundations/WEBSITE-BUILDER.md) (design-now pipeline + schema-first model) · [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) · [ai/AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) · [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](../infrastructure/INFRASTRUCTURE-ARCHITECTURE.md)
 
 ---
 

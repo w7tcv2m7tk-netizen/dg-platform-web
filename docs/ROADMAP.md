@@ -193,6 +193,8 @@ Targets: dashboard < 2 s, navigation < 300 ms, CRM updates optimistic. Full spec
 
 **Referrals — two products:** (A) **Platform Refer & Earn** ships with / after Billing (Core) — customers refer DigitalGate. (B) **Business Referral Network** + **Reviews** — foundations scaffold live (`/apps/reviews`, `/dashboard/marketplace`, `/dashboard/network`); depth Phase 5+: [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md).
 
+**Website Builder (Phase later):** AI Website Studio — Business Profile → structured page/component model → Next.js Gen 2 renderer. **Not** arbitrary PHP on Platform Core; WP sites via Connector. Design now, build after Core / CRM / Connectors / RE beta: [foundations/WEBSITE-BUILDER.md](./foundations/WEBSITE-BUILDER.md).
+
 **Execution priority until Phase 5:**
 
 ```
@@ -222,6 +224,7 @@ Do not start RE App port or AI Visibility until steps 1–4 are done.
 - ❌ Full Community / social network before critical mass (foundations scaffold OK — see NETWORK-LAYER)  
 - ❌ Paid/Commission B2B referral settlement / compliance packs before Country Pack gates (scaffold + disclosure UI OK — see REVIEWS-AND-REFERRALS)  
 - ❌ MLM / multi-level on Platform Refer & Earn (single-level SaaS only)  
+- ❌ Native Website Builder / AI PHP on Gen 2 before Core + RE beta (architect only — see WEBSITE-BUILDER)  
 
 ---
 
@@ -233,7 +236,7 @@ Do not start RE App port or AI Visibility until steps 1–4 are done.
 | Architecture IP (`docs/`) | ✅ Done |
 | Platform Core scaffold | ✅ Done |
 | Command Centre architecture | ✅ Done |
-| **Platform foundations (14 docs)** | ✅ Done |
+| **Platform foundations (15 docs)** | ✅ Done |
 | **Core Object Spec review** | ⏳ **Next — Ben** |
 | **Postgres + org live** | ⏳ After spec lock |
 | Contact API + CRM UI | ⏳ |
