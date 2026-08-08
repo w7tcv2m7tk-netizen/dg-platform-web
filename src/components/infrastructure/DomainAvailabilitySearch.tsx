@@ -110,6 +110,22 @@ export function DomainAvailabilitySearch() {
               {result.error.hint ? (
                 <p className="mt-1 text-xs text-amber-200/70">{result.error.hint}</p>
               ) : null}
+              {result.error.code?.startsWith("auth_") ? (
+                <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-amber-200/70">
+                  <li>
+                    Sandbox key must come from reseller.sandbox.ds.network (prod
+                    keys 401 on sandbox).
+                  </li>
+                  <li>
+                    IP whitelist: leave empty/disabled on sandbox, or whitelist
+                    Vercel Static IPs — default Vercel egress IPs change.
+                  </li>
+                  <li>
+                    Reseller ID is account/WHMCS identity only — not a REST
+                    header (do not set it in Vercel for this integration).
+                  </li>
+                </ul>
+              ) : null}
               {result.isSandbox != null ? (
                 <p className="mt-1 text-xs text-slate-400">
                   {result.isSandbox ? "Sandbox API" : "Production API"} ·{" "}

@@ -91,16 +91,16 @@ export function describeDreamscapeAuthFailure(
     return {
       code: "auth_sandbox_key_rejected",
       message:
-        "Dreamscape sandbox rejected the API key (401). Sandbox key must come from reseller.sandbox.ds.network — production keys won’t work on sandbox.",
-      hint: "Get the sandbox key: https://reseller.sandbox.ds.network → Account Settings → API & WHMCS → API Setup. Set Vercel DREAMSCAPE_API_KEY to that key, DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network, then redeploy.",
+        "Dreamscape sandbox rejected the request (401). Usual causes: sandbox/prod key mismatch, or IP whitelist blocking Vercel’s dynamic egress.",
+      hint: "1) Key from https://reseller.sandbox.ds.network → Account Settings → API & WHMCS → API Setup (not live). 2) On that same page, clear/disable IP whitelist for sandbox, or enable Vercel Static IPs and whitelist those IPs — standard Vercel egress is dynamic. 3) Set DREAMSCAPE_API_KEY + DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network, then redeploy. Reseller ID is not used for REST.",
     };
   }
 
   return {
     code: "auth_production_key_rejected",
     message:
-      "Dreamscape production rejected the API key (401). Production key must come from the live Reseller Console — sandbox keys won’t work on production.",
-    hint: "Copy the key from https://reseller.ds.network → Account Settings → API & WHMCS → API Setup (not the sandbox console).",
+      "Dreamscape production rejected the request (401). Usual causes: sandbox/prod key mismatch, or IP whitelist blocking Vercel’s dynamic egress.",
+    hint: "1) Key from https://reseller.ds.network → Account Settings → API & WHMCS → API Setup (not sandbox). 2) Whitelist stable egress (Vercel Static IPs) or proxy via a static-IP host — do not rely on dynamic Vercel IPs. 3) Redeploy after env changes. Reseller ID is not used for REST.",
   };
 }
 
