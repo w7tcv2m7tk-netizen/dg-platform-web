@@ -1,17 +1,16 @@
-import { DigitalGateLogo } from "@/components/brand/DigitalGateLogo";
+import { OrgBrandMark } from "@/components/brand/OrgBrandMark";
 
 /**
- * Sidebar header — always DigitalGate wordmark (not org brand).
+ * Sidebar header — org/account wordmark (falls back to DigitalGate).
  * Aligned with nav `px-3`.
  */
 export function SidebarBrand({ className = "" }: { className?: string }) {
   return (
     <div className={`mb-5 px-3 ${className}`}>
-      <DigitalGateLogo
+      <OrgBrandMark
         variant="logo"
         href="/dashboard"
         logoWidth={172}
-        showTagline
         className="w-full max-w-full"
       />
     </div>

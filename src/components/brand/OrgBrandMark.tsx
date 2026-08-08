@@ -51,7 +51,7 @@ function OrgWordmark({
     <img
       src={src}
       alt={alt}
-      className="max-h-8 object-contain object-left"
+      className="max-h-11 object-contain object-left"
       style={{ width, maxWidth: "100%" }}
     />
   );
