@@ -105,15 +105,28 @@ export function DigitalGateLogo({
       </div>
     );
 
+  const linkClass = `inline-flex ${variant === "stacked" ? "flex-col items-center" : ""} ${className}`;
+
   if (!href) {
     return <div className={className}>{content}</div>;
   }
 
+  const external = /^https?:\/\//i.test(href);
+  if (external) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={linkClass}
+      >
+        {content}
+      </a>
+    );
+  }
+
   return (
-    <Link
-      href={href}
-      className={`inline-flex ${variant === "stacked" ? "flex-col items-center" : ""} ${className}`}
-    >
+    <Link href={href} className={linkClass}>
       {content}
     </Link>
   );
