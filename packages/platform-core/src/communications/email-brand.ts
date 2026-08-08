@@ -1,6 +1,7 @@
 /**
- * Shared transactional email HTML shell — org logo from business profile / brand presets.
+ * Shared transactional email HTML shell — org wordmark/logo from business profile / brand presets.
  * Absolute HTTPS image URLs only (email clients block relative paths).
+ * Header is logo-only (no icon lockup) — matches AU invoice letterhead.
  */
 
 import {
@@ -17,14 +18,9 @@ const DG_FALLBACK_LOGO =
   ORG_BRAND_PRESETS.digitalgate.patch.logoUrl ??
   "https://app.digitalgate.com.au/brand/logo-on-dark.png";
 
-const DG_FALLBACK_ICON =
-  ORG_BRAND_PRESETS.digitalgate.patch.iconUrl ??
-  "https://app.digitalgate.com.au/brand/icon-light.png";
-
 export type EmailBrandAssets = {
   businessName: string;
   logoUrl: string;
-  iconUrl?: string;
   primaryColor: string;
   accentColor: string;
 };
@@ -32,7 +28,6 @@ export type EmailBrandAssets = {
 export type WrapTransactionalEmailInput = {
   businessName: string;
   logoUrl?: string;
-  iconUrl?: string;
   primaryColor?: string;
   accentColor?: string;
   bodyHtml: string;
@@ -47,7 +42,7 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-/** Resolve logo + colours for an org (profile → preset → DigitalGate fallback). */
+/** Resolve wordmark logo + colours for an org (profile → preset → DigitalGate fallback). */
 export function resolveEmailBrandAssets(input: {
   organisationId?: string;
   organisationName?: string;
@@ -77,23 +72,17 @@ export function resolveEmailBrandAssets(input: {
     absoluteBrandAssetUrl(profile.logoUrl) ||
     absoluteBrandAssetUrl(preset?.patch.logoUrl) ||
     DG_FALLBACK_LOGO;
-  const iconUrl =
-    absoluteBrandAssetUrl(profile.iconUrl) ||
-    absoluteBrandAssetUrl(preset?.patch.iconUrl) ||
-    absoluteBrandAssetUrl(logoUrl) ||
-    DG_FALLBACK_ICON;
 
   return {
     businessName:
       profile.tradingName?.trim() || profile.businessName?.trim() || name,
     logoUrl: logoUrl!,
-    iconUrl,
     primaryColor: colours[0] ?? "#3B82F6",
     accentColor: colours[1] ?? colours[0] ?? "#10B981",
   };
 }
 
-/** Sync HTML wrap — pass resolved assets or raw logo URL. */
+/** Sync HTML wrap — wordmark/logo in header only (no icon). */
 export function wrapTransactionalEmail(input: WrapTransactionalEmailInput): string {
   const businessName = input.businessName.trim() || "DigitalGate";
   const logoUrl =
@@ -189,7 +178,6 @@ export async function renderOrgTransactionalEmail(input: {
   const html = wrapTransactionalEmail({
     businessName: brand.businessName,
     logoUrl: brand.logoUrl,
-    iconUrl: brand.iconUrl,
     primaryColor: brand.primaryColor,
     accentColor: brand.accentColor,
     bodyHtml,

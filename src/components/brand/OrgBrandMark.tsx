@@ -6,7 +6,8 @@ import { DigitalGateLogo } from "@/components/brand/DigitalGateLogo";
 import { useOrgBrand } from "@/components/brand/OrgBrandProvider";
 
 type OrgBrandMarkProps = {
-  variant?: "icon" | "lockup";
+  /** icon = mark only; logo = wordmark only; lockup = icon beside wordmark */
+  variant?: "icon" | "logo" | "lockup";
   href?: string;
   className?: string;
   iconSize?: number;
@@ -69,7 +70,7 @@ export function OrgBrandMark({
   if (!brand?.hasCustomBrand) {
     return (
       <DigitalGateLogo
-        variant={variant === "icon" ? "icon" : "lockup"}
+        variant={variant === "icon" ? "icon" : variant === "logo" ? "logo" : "lockup"}
         href={href}
         iconSize={iconSize}
         logoWidth={logoWidth}
@@ -86,7 +87,7 @@ export function OrgBrandMark({
       <OrgIcon src={iconSrc} alt={`${brand.businessName} icon`} size={iconSize} />
     ) : wordmarkSrc ? (
       <div className="flex min-w-0 items-center gap-2.5">
-        {iconSrc && iconSrc !== wordmarkSrc ? (
+        {variant === "lockup" && iconSrc && iconSrc !== wordmarkSrc ? (
           <OrgIcon src={iconSrc} alt="" size={iconSize} />
         ) : null}
         <OrgWordmark
