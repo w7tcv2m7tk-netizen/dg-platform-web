@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getCommandCentreOpsHome } from "@dg/platform-core";
+import { getCommandCentreOpsHome, getCommandMrrAttribution } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 
@@ -12,7 +12,10 @@ function formatAudCents(cents: number) {
 }
 
 export default async function CommandRevenuePage() {
-  const data = process.env.DATABASE_URL ? await getCommandCentreOpsHome() : null;
+  const db = Boolean(process.env.DATABASE_URL);
+  const [data, attribution] = db
+    ? await Promise.all([getCommandCentreOpsHome(), getCommandMrrAttribution()])
+    : [null, null];
 
   return (
     <>
@@ -22,14 +25,14 @@ export default async function CommandRevenuePage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Revenue intelligence</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Commerce subscriptions, paid invoices, and Refer &amp; Earn — ARR/churn after Stripe MRR
-          pipeline.
+          Commerce subscriptions attributed per organisation — ARR/churn still after fuller Stripe
+          sync.
         </p>
       </header>
       <main className="dg-page-main space-y-8">
         <CommandCentreNav active="revenue" />
 
-        {!data ? (
+        {!data || !attribution ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
             Database not configured — revenue snapshot unavailable.
           </div>
@@ -70,6 +73,61 @@ export default async function CommandRevenuePage() {
                 Stripe mode: {data.billing.stripeMode}
                 {data.billing.stripeOk ? " · configured" : " · setup incomplete"}
               </p>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-semibold text-white">MRR by organisation</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                {attribution.monthlyMrrLabel} monthly from{" "}
+                {attribution.rows.filter((r) => r.interval === "month").length} monthly
+                subscription
+                {attribution.rows.filter((r) => r.interval === "month").length === 1 ? "" : "s"}.
+              </p>
+              {attribution.rows.length === 0 ? (
+                <p className="mt-4 text-sm text-slate-500">
+                  No active Commerce subscriptions yet — checkout or webhook sync will populate this
+                  table.
+                </p>
+              ) : (
+                <div className="mt-4 overflow-x-auto rounded-xl border border-slate-700/80">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
+                      <tr>
+                        <th className="px-4 py-3 font-medium">Organisation</th>
+                        <th className="px-4 py-3 font-medium">Status</th>
+                        <th className="px-4 py-3 font-medium">Interval</th>
+                        <th className="px-4 py-3 font-medium">Provider</th>
+                        <th className="px-4 py-3 font-medium text-right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {attribution.rows.map((row) => (
+                        <tr
+                          key={row.subscriptionId}
+                          className="border-b border-slate-800/80 last:border-0"
+                        >
+                          <td className="px-4 py-3">
+                            <Link
+                              href={`/command/advisor?org=${row.organisationId}`}
+                              className="font-medium text-white hover:text-sky-400"
+                            >
+                              {row.organisationName}
+                            </Link>
+                            <p className="text-xs text-slate-500">{row.organisationSlug}</p>
+                          </td>
+                          <td className="px-4 py-3 capitalize text-slate-300">{row.status}</td>
+                          <td className="px-4 py-3 text-slate-400">{row.interval}</td>
+                          <td className="px-4 py-3 text-slate-400">{row.providerId}</td>
+                          <td className="px-4 py-3 text-right tabular-nums text-slate-200">
+                            {row.amountLabel}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <p className="mt-3 text-xs text-slate-500">{attribution.note}</p>
             </section>
 
             <section>

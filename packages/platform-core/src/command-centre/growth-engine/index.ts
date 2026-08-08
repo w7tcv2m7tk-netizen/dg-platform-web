@@ -3,6 +3,7 @@ export * from "./prospects";
 export * from "./audits";
 export * from "./presence-audit";
 export * from "./reports";
+export * from "./proposals";
 export * from "./follow-ups";
 export * from "./conversions";
 

@@ -9,6 +9,7 @@ export * from "./growth-reports";
 export * from "./opportunities";
 export * from "./benchmarks";
 export * from "./flags-admin";
+export * from "./revenue";
 
 /** Clerk role / org claim used to gate Command Centre routes */
 export const COMMAND_CENTRE_STAFF_ROLE = "dg:staff";

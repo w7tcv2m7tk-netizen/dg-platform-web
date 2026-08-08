@@ -2,7 +2,10 @@ import Link from "next/link";
 import { listGrowthProspectReports } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
-import { MarkReportSentButton } from "@/components/command/GrowthEngineActions";
+import {
+  CopyShareLinkButton,
+  MarkReportSentButton,
+} from "@/components/command/GrowthEngineActions";
 import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 
 export default async function GrowthReportsPage() {
@@ -17,7 +20,8 @@ export default async function GrowthReportsPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Opportunity Reports</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Staff-facing drafts from the latest presence audit. Public share pages come next.
+          Staff drafts plus public token links — share{" "}
+          <code className="text-slate-300">/opportunity/&lt;token&gt;</code> with prospects.
         </p>
       </header>
       <main className="dg-page-main space-y-8">
@@ -64,13 +68,25 @@ export default async function GrowthReportsPage() {
                         ? ` · Sent ${new Date(report.sentAt).toLocaleString("en-AU")}`
                         : " · Draft"}
                       {` · ${report.viewCount} view${report.viewCount === 1 ? "" : "s"}`}
+                      {report.firstViewedAt
+                        ? ` · First view ${new Date(report.firstViewedAt).toLocaleString("en-AU")}`
+                        : ""}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     {!report.sentAt ? <MarkReportSentButton reportId={report.id} /> : null}
+                    <CopyShareLinkButton sharePath={report.sharePath} />
+                    <Link
+                      href={report.sharePath}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-sky-400 hover:underline"
+                    >
+                      Open public report →
+                    </Link>
                     <Link
                       href="/command/growth-engine/pipeline"
-                      className="text-xs text-sky-400 hover:underline"
+                      className="text-xs text-slate-500 hover:text-sky-400 hover:underline"
                     >
                       Pipeline →
                     </Link>

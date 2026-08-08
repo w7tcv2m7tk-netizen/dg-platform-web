@@ -2,6 +2,13 @@ import type { ProspectAuditFinding } from "./types";
 import { newShareToken } from "./audits";
 import { updateGrowthProspect } from "./prospects";
 
+/** Public, unauthenticated share path for opportunity reports */
+export const GROWTH_PUBLIC_REPORT_BASE = "/opportunity";
+
+export function growthReportSharePath(shareToken: string) {
+  return `${GROWTH_PUBLIC_REPORT_BASE}/${shareToken}`;
+}
+
 function findingItems(findings: unknown): ProspectAuditFinding[] {
   if (!findings || typeof findings !== "object") return [];
   const items = (findings as { items?: ProspectAuditFinding[] }).items;
@@ -30,6 +37,18 @@ function buildExecutiveSummary(input: {
   ]
     .filter(Boolean)
     .join(" ");
+}
+
+function recommendedActions(findings: ProspectAuditFinding[]) {
+  return findings
+    .filter((f) => f.recommendedAction)
+    .slice(0, 6)
+    .map((f) => ({
+      title: f.title,
+      action: f.recommendedAction as string,
+      severity: f.severity,
+      domain: f.domain,
+    }));
 }
 
 export async function listGrowthProspectReports(options?: { limit?: number }) {
@@ -64,7 +83,7 @@ export async function listGrowthProspectReports(options?: { limit?: number }) {
     sentAt: row.sentAt?.toISOString() ?? null,
     firstViewedAt: row.firstViewedAt?.toISOString() ?? null,
     generatedAt: row.generatedAt.toISOString(),
-    sharePath: `/command/growth-engine/reports?token=${row.shareToken}`,
+    sharePath: growthReportSharePath(row.shareToken),
     prospect: row.prospect,
   }));
 }
@@ -148,7 +167,7 @@ export async function createGrowthProspectReport(input: {
     sentAt: report.sentAt?.toISOString() ?? null,
     firstViewedAt: report.firstViewedAt?.toISOString() ?? null,
     generatedAt: report.generatedAt.toISOString(),
-    sharePath: `/command/growth-engine/reports?token=${report.shareToken}`,
+    sharePath: growthReportSharePath(report.shareToken),
     prospect: {
       id: prospect.id,
       businessName: prospect.businessName,
@@ -203,5 +222,101 @@ export async function markGrowthReportSent(input: {
   return {
     id: report.id,
     sentAt: report.sentAt?.toISOString() ?? null,
+    sharePath: growthReportSharePath(report.shareToken),
+  };
+}
+
+const VIEW_STAGE_ADVANCE_FROM = new Set([
+  "prospect",
+  "audit_created",
+  "report_sent",
+  "email_opened",
+  "follow_up_due",
+]);
+
+/**
+ * Load a shareable opportunity report by token and record the view.
+ * Safe for unauthenticated public pages — returns only prospect-facing fields.
+ */
+export async function getPublicGrowthOpportunityReport(shareToken: string) {
+  const token = shareToken.trim();
+  if (!token) return null;
+
+  const { prisma } = await import("@dg/database");
+
+  const report = await prisma.growthProspectReport.findUnique({
+    where: { shareToken: token },
+    include: {
+      prospect: {
+        select: {
+          id: true,
+          businessName: true,
+          websiteUrl: true,
+          industry: true,
+          location: true,
+          stage: true,
+        },
+      },
+    },
+  });
+  if (!report) return null;
+
+  const audit = report.auditId
+    ? await prisma.growthProspectAudit.findUnique({ where: { id: report.auditId } })
+    : await prisma.growthProspectAudit.findFirst({
+        where: { prospectId: report.prospectId },
+        orderBy: { auditedAt: "desc" },
+      });
+
+  const findings = findingItems(audit?.findings);
+  const now = new Date();
+  const isFirstView = !report.firstViewedAt;
+
+  const updated = await prisma.growthProspectReport.update({
+    where: { id: report.id },
+    data: {
+      viewCount: { increment: 1 },
+      firstViewedAt: report.firstViewedAt ?? now,
+    },
+  });
+
+  await prisma.growthProspectEngagement.create({
+    data: {
+      prospectId: report.prospectId,
+      reportId: report.id,
+      type: "report_viewed",
+      metadata: { firstView: isFirstView },
+    },
+  });
+
+  if (VIEW_STAGE_ADVANCE_FROM.has(report.prospect.stage)) {
+    await updateGrowthProspect({
+      prospectId: report.prospectId,
+      stage: "report_viewed",
+    });
+  }
+
+  const scores = {
+    businessHealth: audit?.businessHealth ?? null,
+    websiteHealth: audit?.websiteHealth ?? null,
+    seoScore: audit?.seoScore ?? null,
+    aiVisibility: audit?.aiVisibility ?? null,
+  };
+
+  return {
+    id: report.id,
+    shareToken: report.shareToken,
+    sharePath: growthReportSharePath(report.shareToken),
+    executiveSummary: report.executiveSummary,
+    viewCount: updated.viewCount,
+    firstViewedAt: updated.firstViewedAt?.toISOString() ?? null,
+    generatedAt: report.generatedAt.toISOString(),
+    auditedAt: audit?.auditedAt.toISOString() ?? null,
+    prospect: report.prospect,
+    scores,
+    findings,
+    recommendedActions: recommendedActions(findings),
+    howDigitalGateHelps:
+      "DigitalGate connects Website Health, AI Visibility™, SEO, and industry apps into one operating system — so these gaps become a managed programme, not a spreadsheet.",
   };
 }
