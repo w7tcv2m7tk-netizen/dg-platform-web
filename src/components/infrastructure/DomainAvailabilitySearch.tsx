@@ -14,12 +14,14 @@ type AvailabilityResponse = {
   configured?: boolean;
   isSandbox?: boolean;
   baseUrl?: string;
+  apiMode?: "soap" | "rest";
   data?: AvailabilityRow[];
   env?: {
     hasKey?: boolean;
     hasResellerId?: boolean;
     hasBaseUrl?: boolean;
     sendResellerId?: boolean;
+    apiMode?: "soap" | "rest";
     keyLength?: number;
   };
   error?: {
@@ -37,6 +39,7 @@ type AvailabilityResponse = {
       sendResellerId?: boolean;
       signatureAlgo?: string;
       isSandbox?: boolean;
+      apiMode?: string;
     };
   };
 };
@@ -137,46 +140,40 @@ export function DomainAvailabilitySearch() {
               {result.error.code === "provider_not_configured" && result.env ? (
                 <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-amber-200/70">
                   <li>
-                    DREAMSCAPE_API_KEY:{" "}
+                    Mode: {result.env.apiMode ?? result.apiMode ?? "unknown"}
+                    {" · "}
+                    API key:{" "}
                     {result.env.hasKey
                       ? `present (length ${result.env.keyLength ?? "?"})`
-                      : "missing (length 0)"}
+                      : "missing"}
                   </li>
                   <li>
-                    DREAMSCAPE_API_BASE_URL:{" "}
+                    Reseller ID:{" "}
+                    {result.env.hasResellerId
+                      ? "present (required for SOAP)"
+                      : "missing"}
+                  </li>
+                  <li>
+                    REST base URL:{" "}
                     {result.env.hasBaseUrl
                       ? "set"
-                      : "unset (defaults to sandbox)"}
-                  </li>
-                  <li>
-                    Reseller ID opt-in:{" "}
-                    {result.env.sendResellerId
-                      ? "on (DREAMSCAPE_SEND_RESELLER_ID)"
-                      : "off (official auth only)"}
-                    {result.env.hasResellerId ? " · ID present" : ""}
+                      : "unset (defaults to sandbox REST)"}
                   </li>
                 </ul>
               ) : null}
               {result.error.code?.startsWith("auth_") ? (
                 <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-amber-200/70">
                   <li>
-                    Default auth is official only: Accept + Api-Request-Id +
-                    Api-Signature (md5(request_id + api_key)). Reseller ID is
-                    not sent unless DREAMSCAPE_SEND_RESELLER_ID=true.
+                    SOAP (Reseller ID + API Key): set DREAMSCAPE_RESELLER_ID +
+                    DREAMSCAPE_API_KEY — sandbox endpoint soap-test.secureapi.com.au.
                   </li>
                   <li>
-                    Sandbox key must come from reseller.sandbox.ds.network (prod
-                    keys 401 on sandbox). If a key was exposed in chat, regenerate
-                    it immediately.
+                    REST (signature only): Api-Request-Id + Api-Signature — Reseller
+                    ID is not part of REST auth. Force with DREAMSCAPE_API_MODE=rest.
                   </li>
                   <li>
-                    Sandbox: no IP whitelist (IP is a red herring). Production:
-                    whitelist a stable egress IP if needed (Vercel Static IPs or
-                    DREAMSCAPE_HTTPS_PROXY).
-                  </li>
-                  <li>
-                    Staff: append ?debug=1 to this page URL for header names +
-                    provider response snippet.
+                    Staff: append ?debug=1 for mode/endpoint metadata (never the
+                    key).
                   </li>
                 </ul>
               ) : null}

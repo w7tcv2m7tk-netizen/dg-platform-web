@@ -19,10 +19,10 @@
 | **What it is not** | Not an industry App; not bolted onto Website Builder |
 | **First provider** | **Dreamscape** — strong V1 foundation; **keep it; don’t swap providers** |
 | **Customer UX** | DigitalGate Domains / Hosting / Email / DNS / SSL — **never** say “Dreamscape” |
-| **Sandbox first** | Develop only against `https://reseller-api.sandbox.ds.network` until automated tests pass |
-| **Credentials** | `DREAMSCAPE_API_KEY` **server-side only** (Reseller ID optional / opt-in); browser → DigitalGate API → Dreamscape |
+| **Sandbox first** | Develop only against sandbox (SOAP soap-test or REST reseller-api.sandbox) until automated tests pass |
+| **Credentials** | Server-side only. **SOAP** = Reseller ID + API Key (API Setup). **REST** = API Key + signature (no Reseller ID). Browser → DigitalGate API → Dreamscape |
 | **Keys** | Never commit real keys. Docs/example hashes are **docs-only** — if a real key was pasted into chat/docs, **regenerate it** in Reseller Console |
-| **401 on Vercel** | Set sandbox key + sandbox base URL, redeploy. Default auth is key-only (no Reseller ID). Sandbox has **no IP whitelist**. Production may still need static egress IP |
+| **401 on Vercel** | Support’s “Reseller ID + API Key” = **SOAP**. Set `DREAMSCAPE_RESELLER_ID` + `DREAMSCAPE_API_KEY` (auto SOAP). REST uses Api-Request-Id/Signature only — Redeploy after env changes |
 
 ---
 
@@ -97,7 +97,7 @@ packages/platform-core/src/infrastructure/
   hosting/                  HostingProvider stubs
   ssl/                      SslProvider (auto stub)
   email/                    EmailProvider stubs
-  providers/dreamscape/     auth + REST client + DreamscapeDomainProvider
+  providers/dreamscape/     auth + REST/SOAP clients + DreamscapeDomainProvider
 ```
 
 ### DomainProvider (provider-agnostic)
@@ -114,12 +114,38 @@ interface DomainProvider {
 }
 ```
 
-**Implemented today:** `DreamscapeDomainProvider.search` → `GET /domains/availability`  
+**Implemented today:** `DreamscapeDomainProvider.search`  
+- **SOAP (preferred when Reseller ID set):** SecureAPI `DomainCheck`  
+- **REST (alternative):** `GET /domains/availability`  
 **Stubs:** register / renew / transfer / get / update / list
 
 ---
 
+## Two Dreamscape APIs (do not mix auth)
+
+Dreamscape exposes **two** integration surfaces. The Reseller Console page **Account Settings → API & WHMCS → API Setup** shows **Reseller ID + API Key** — that pair is the **SOAP / WHMCS** model. Public **REST** docs use a different auth scheme and **do not** take Reseller ID.
+
+| | **SOAP (SecureAPI)** | **REST (doc-reseller-api)** |
+|--|----------------------|------------------------------|
+| **When** | Support / WHMCS / “Reseller ID + API Key” | Official REST docs + PHP SDK |
+| **Auth** | SOAP header `Authenticate` → `ResellerID` + `APIKey` | Headers `Api-Request-Id` + `Api-Signature` = MD5(`request_id + api_key`) (+ `Accept`) |
+| **Reseller ID** | **Required** | **Not used** (unless experimenting with `DREAMSCAPE_SEND_RESELLER_ID`) |
+| **Domain check** | `DomainCheck` | `GET /domains/availability?domain_names[]=` |
+| **Sandbox** | `https://soap-test.secureapi.com.au/server.php?v=1.3` | `https://reseller-api.sandbox.ds.network` |
+| **Production** | `https://soap.secureapi.com.au/server.php?v=1.3` | `https://reseller-api.ds.network` |
+| **WSDL / docs** | `https://soap.secureapi.com.au/wsdl/API-1.3.wsdl` | [doc-reseller-api.ds.network](https://doc-reseller-api.ds.network/) |
+
+### Mode selection (`DREAMSCAPE_API_MODE`)
+
+1. `DREAMSCAPE_API_MODE=soap` or `rest` → forced  
+2. Else if `DREAMSCAPE_RESELLER_ID` is set → **SOAP** (matches API Setup credentials)  
+3. Else → **REST**
+
+---
+
 ## Sandbox first (mandatory)
+
+### REST endpoints
 
 | Env | URL |
 |-----|-----|
@@ -129,57 +155,88 @@ interface DomainProvider {
 Sandbox Reseller Console: `https://reseller.sandbox.ds.network`  
 (Login same as live; **API keys can differ** — copy from the console you are targeting.)
 
-**Auth (every request, server-side) — official REST docs:**
+### SOAP endpoints (SecureAPI)
 
-1. `Api-Request-Id` — unique MD5  
-2. `Api-Signature` — MD5(`request_id + api_key`) (documented formula only)  
-3. `Accept: application/json` (Node.js example)
+| Env | Endpoint | WSDL |
+|-----|----------|------|
+| **Sandbox (default)** | `https://soap-test.secureapi.com.au/server.php?v=1.3` | `https://soap-test.secureapi.com.au/wsdl/API-1.3.wsdl` |
+| Production | `https://soap.secureapi.com.au/server.php?v=1.3` | `https://soap.secureapi.com.au/wsdl/API-1.3.wsdl` |
 
-**Reseller ID is not part of official REST auth.** Optional opt-in for support experiments: set `DREAMSCAPE_SEND_RESELLER_ID=true` plus `DREAMSCAPE_RESELLER_ID` to also send `X-Reseller-Id` / `Reseller-Id` / `Api-Reseller-Id` and query `reseller_id`.
+Override with `DREAMSCAPE_SOAP_ENDPOINT` if needed.
 
-**Get sandbox credentials:** [reseller.sandbox.ds.network](https://reseller.sandbox.ds.network) → **Account Settings → API & WHMCS → API Setup** — copy **API Key** (match sandbox base URL).
+**Get credentials:** Reseller Console → **Account Settings → API & WHMCS → API Setup** — copy **Reseller ID** + **API Key**.
 
-### 401 checklist (sandbox on Vercel)
+### 401 checklist (what Ben should set)
+
+**If support says use Reseller ID 25735 + API key → use SOAP:**
+
+```bash
+DREAMSCAPE_API_MODE=soap          # optional if Reseller ID is set (auto soap)
+DREAMSCAPE_RESELLER_ID=25735
+DREAMSCAPE_API_KEY=<from API Setup>
+# Optional override:
+# DREAMSCAPE_SOAP_ENDPOINT=https://soap-test.secureapi.com.au/server.php?v=1.3
+```
+
+**If using official REST only (no Reseller ID):**
+
+```bash
+DREAMSCAPE_API_MODE=rest          # required if Reseller ID is also set but you want REST
+DREAMSCAPE_API_KEY=<sandbox key>
+DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network
+# Do NOT expect Reseller ID to fix REST 401s
+```
 
 | Step | Action |
 |------|--------|
-| **1. API key** | **Required.** Set `DREAMSCAPE_API_KEY` from **sandbox** console (`reseller.sandbox.ds.network`), not live. Keys can differ; a prod key **401s** on sandbox. **If a key was pasted into chat/tickets: regenerate immediately** and update Vercel. |
-| **2. Base URL** | `DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network` (or leave unset — sandbox is the default). |
-| **3. Auth shape** | Default: `Accept` + `Api-Request-Id` + `Api-Signature` only. Do **not** rely on Reseller ID unless experimenting with `DREAMSCAPE_SEND_RESELLER_ID=true`. |
-| **4. IP whitelist** | **Sandbox: no IP whitelist** (support confirmed — IP was a red herring for sandbox 401s). Production may still use IP allowlisting; for dynamic Vercel egress use [Static IPs](https://vercel.com/docs/networking/static-ips) or `DREAMSCAPE_HTTPS_PROXY` / `HTTPS_PROXY` (Fixie/QuotaGuard). |
-| **5. Redeploy** | After changing Vercel env vars, **redeploy** so serverless picks them up. Set vars for **Production + Preview + Development**. Server-only (not `NEXT_PUBLIC_`). |
+| **1. Pick mode** | Reseller ID story → SOAP. Signature-only docs → REST. |
+| **2. Keys** | From matching console/environment. No spaces/quotes. Regenerate if ever pasted into chat. |
+| **3. Redeploy** | Vercel env for Production + Preview + Development; redeploy after changes. |
+| **4. IP whitelist** | REST sandbox: no IP whitelist (support). Production REST/SOAP may need static egress (`DREAMSCAPE_HTTPS_PROXY` / Vercel Static IPs). |
 
-Other classic **401** causes (Dreamscape FAQ): wrong key, whitespace/quotes around the key, or sandbox/prod key mismatch. Availability API returns safe `env` flags when not configured, and on auth failure includes a sanitized `providerBodySnippet`. Staff: `?debug=1` returns header/query names sent (never the key). Server logs print `[dreamscape] request auth`.
+Staff: availability `?debug=1` returns mode + endpoint metadata (never the key). Logs: `[dreamscape] soap request` or `[dreamscape] request auth`.
 
-#### Local smoke
+#### Local smoke (SOAP)
 
-1. Set `DREAMSCAPE_API_KEY` and sandbox base URL in `.env.local`.
-2. Run `npm run dev`, try Domains availability search.
-3. Check server logs for `[dreamscape] request auth` — confirms official headers only (unless Reseller ID opt-in). Or hit availability with `?debug=1`.
+1. Set `DREAMSCAPE_RESELLER_ID`, `DREAMSCAPE_API_KEY` in `.env.local` (mode auto-selects SOAP).
+2. `npm run dev` → Domains availability search.
+3. Server log should show `[dreamscape] soap request` with soap-test endpoint.
 
-#### Production on Vercel
+#### Local smoke (REST)
 
-1. Set `DREAMSCAPE_API_KEY` and matching production base URL (all three Vercel environments).
-2. If live API enforces IP allowlisting: enable [Vercel Static IPs](https://vercel.com/docs/networking/static-ips) **or** set `DREAMSCAPE_HTTPS_PROXY` / `HTTPS_PROXY` and whitelist that egress IP.
-3. Redeploy.
+1. Set `DREAMSCAPE_API_KEY` + sandbox REST base URL; leave Reseller ID unset **or** set `DREAMSCAPE_API_MODE=rest`.
+2. Logs show `[dreamscape] request auth` with Api-Request-Id / Api-Signature.
 
 ```bash
 # .env.local / Vercel — never commit real values
-DREAMSCAPE_API_KEY=          # sandbox key when using sandbox base URL
-DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network
-# Optional support experiment only — not required for official REST auth:
+
+# --- Preferred when support gives Reseller ID + API Key (SOAP) ---
+DREAMSCAPE_RESELLER_ID=
+DREAMSCAPE_API_KEY=
+# DREAMSCAPE_API_MODE=soap
+# DREAMSCAPE_SOAP_ENDPOINT=https://soap-test.secureapi.com.au/server.php?v=1.3
+
+# --- REST alternative (signature auth; no Reseller ID) ---
+# DREAMSCAPE_API_MODE=rest
+# DREAMSCAPE_API_KEY=
+# DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network
+# Optional REST-only experiment (not official):
 # DREAMSCAPE_SEND_RESELLER_ID=true
-# DREAMSCAPE_RESELLER_ID=25735
-# DREAMSCAPE_RESELLER_ID_HEADER=Some-Other-Header
-# Optional: static-IP HTTPS proxy for Dreamscape (Fixie / QuotaGuard) — mainly production.
-# Prefer DREAMSCAPE_HTTPS_PROXY; HTTPS_PROXY / https_proxy also work.
+
+# Optional: static-IP HTTPS proxy (Fixie / QuotaGuard) — mainly production.
 # DREAMSCAPE_HTTPS_PROXY=http://user:password@fixie.example.com:80
 # Optional webhook (domain transfer Notification URL) — separate secret:
 # DREAMSCAPE_WEBHOOK_SECRET=
 ```
 
-> **Security:** Example API keys in Dreamscape’s public docs are **not** DigitalGate credentials. If any real key was pasted into chat, tickets, or git history, **regenerate** it in Reseller Console immediately. Never paste keys into chat again. If you already regenerated, do **not** restore the old exposed value (`90e59881…`). Browser never holds the key — only `GET /api/v1/infrastructure/...` (and future routes) call Dreamscape (Node runtime).  
-> Optional later: separate `DREAMSCAPE_API_KEY_SANDBOX` vs prod — today one `DREAMSCAPE_API_KEY` must match the configured base URL.
+> **Security:** Example API keys in Dreamscape’s public docs are **not** DigitalGate credentials. If any real key was pasted into chat, tickets, or git history, **regenerate** it in Reseller Console immediately. Never paste keys into chat again. Browser never holds the key — only `GET /api/v1/infrastructure/...` (and future routes) call Dreamscape (Node runtime).
+
+### What to tell Dreamscape support if still stuck
+
+1. Confirm whether **API Setup** credentials are for **SecureAPI SOAP** (`soap(-test).secureapi.com.au`) or **REST** (`reseller-api(.sandbox).ds.network`).  
+2. We call SOAP `DomainCheck` with Authenticate header `{ ResellerID, APIKey }` against sandbox `https://soap-test.secureapi.com.au/server.php?v=1.3`.  
+3. REST 401 with `{"status":false,"error_message":"Unauthorized"}` while using Reseller ID is expected — Reseller ID is **not** part of REST auth.  
+4. Ask them to verify Reseller ID **25735** + the sandbox API key are enabled for SOAP on soap-test, and whether IP allowlisting applies to SOAP sandbox.
 
 ### Domain transfer Notification URL
 

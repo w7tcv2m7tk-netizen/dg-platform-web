@@ -2,10 +2,17 @@ import {
   DREAMSCAPE_DEFAULT_RESELLER_ID_HEADER,
   buildDreamscapeAuthHeaders,
 } from "./auth";
+import {
+  DREAMSCAPE_SOAP_PROD_ENDPOINT,
+  DREAMSCAPE_SOAP_SANDBOX_ENDPOINT,
+} from "./soap";
 
 export const DREAMSCAPE_PROD_BASE_URL = "https://reseller-api.ds.network";
 export const DREAMSCAPE_SANDBOX_BASE_URL =
   "https://reseller-api.sandbox.ds.network";
+
+/** REST (doc-reseller-api) vs SOAP SecureAPI (Reseller ID + API Key). */
+export type DreamscapeApiMode = "soap" | "rest";
 
 /** Dreamscape keys are 32 lowercase alphanumeric chars (docs FAQ). */
 const DREAMSCAPE_API_KEY_RE = /^[a-f0-9]{32}$/;
@@ -33,8 +40,8 @@ export function isDreamscapeApiKeyFormatValid(apiKey: string): boolean {
 }
 
 /**
- * Reseller ID from API Setup (digits). Optional — only sent when
- * DREAMSCAPE_SEND_RESELLER_ID=true (support experiments).
+ * Reseller ID from API Setup. Required for SOAP; optional for REST
+ * (REST only sends it when DREAMSCAPE_SEND_RESELLER_ID=true).
  */
 export function normalizeDreamscapeResellerId(
   raw: string | undefined | null,
@@ -51,12 +58,28 @@ export function resolveDreamscapeResellerIdHeader(): string {
 }
 
 /**
- * Opt-in Reseller ID headers/query for support experiments.
+ * Opt-in Reseller ID headers/query on REST only (support experiments).
  * Official REST docs use Api-Request-Id + Api-Signature only.
+ * SOAP always authenticates with Reseller ID in the Authenticate header.
  */
 export function shouldSendDreamscapeResellerId(): boolean {
   const raw = readServerEnv("DREAMSCAPE_SEND_RESELLER_ID")?.trim().toLowerCase();
   return raw === "1" || raw === "true" || raw === "yes";
+}
+
+/**
+ * API mode selection:
+ * - DREAMSCAPE_API_MODE=soap|rest wins when set
+ * - else SOAP when DREAMSCAPE_RESELLER_ID is set (API Setup / WHMCS pattern)
+ * - else REST (doc-reseller-api signature auth)
+ */
+export function resolveDreamscapeApiMode(): DreamscapeApiMode {
+  const raw = readServerEnv("DREAMSCAPE_API_MODE")?.trim().toLowerCase();
+  if (raw === "soap" || raw === "rest") return raw;
+  if (normalizeDreamscapeResellerId(readServerEnv("DREAMSCAPE_RESELLER_ID"))) {
+    return "soap";
+  }
+  return "rest";
 }
 
 /**
@@ -90,8 +113,9 @@ export type DreamscapeEnvPresence = {
   hasKey: boolean;
   hasResellerId: boolean;
   hasBaseUrl: boolean;
-  /** True when DREAMSCAPE_SEND_RESELLER_ID opt-in is enabled. */
+  /** True when DREAMSCAPE_SEND_RESELLER_ID opt-in is enabled (REST only). */
   sendResellerId: boolean;
+  apiMode: DreamscapeApiMode;
   /** Normalized key length (0 when missing). Never the key itself. */
   keyLength: number;
 };
@@ -107,6 +131,7 @@ export function dreamscapeEnvPresence(): DreamscapeEnvPresence {
     hasResellerId: Boolean(resellerId),
     hasBaseUrl: Boolean(baseUrl),
     sendResellerId: shouldSendDreamscapeResellerId(),
+    apiMode: resolveDreamscapeApiMode(),
     keyLength: apiKey?.length ?? 0,
   };
 }
@@ -153,22 +178,47 @@ async function resolveProxiedFetch(proxyUrl: string): Promise<{
 }
 
 /**
- * Sandbox-first: default base URL is always sandbox.
- * Production URL is only used when explicitly set via env — never guess.
- *
- * Default auth is official REST only (Api-Request-Id + Api-Signature).
- * Reseller ID headers/query are opt-in via DREAMSCAPE_SEND_RESELLER_ID.
+ * Resolve SOAP endpoint. Override with DREAMSCAPE_SOAP_ENDPOINT.
+ * Sandbox-first: soap-test unless REST base is explicitly production
+ * (reseller-api.ds.network without sandbox) or SOAP endpoint override says so.
  */
+export function resolveDreamscapeSoapEndpoint(opts?: {
+  restBaseUrl?: string;
+}): { endpoint: string; isSandbox: boolean } {
+  const override = readServerEnv("DREAMSCAPE_SOAP_ENDPOINT")?.trim();
+  if (override) {
+    const isSandbox = /soap-test|sandbox/i.test(override);
+    return { endpoint: override.replace(/\/$/, ""), isSandbox };
+  }
+  const restBase =
+    opts?.restBaseUrl ??
+    readServerEnv("DREAMSCAPE_API_BASE_URL")?.trim() ??
+    DREAMSCAPE_SANDBOX_BASE_URL;
+  const restIsProd =
+    /reseller-api\.ds\.network/i.test(restBase) &&
+    !/sandbox/i.test(restBase);
+  if (restIsProd) {
+    return { endpoint: DREAMSCAPE_SOAP_PROD_ENDPOINT, isSandbox: false };
+  }
+  return { endpoint: DREAMSCAPE_SOAP_SANDBOX_ENDPOINT, isSandbox: true };
+}
+
 /**
  * Resolve Dreamscape config at call/request time (not module init).
  * Trims / strip-quotes via normalize helpers. Server-only.
+ *
+ * REST: Api-Request-Id + Api-Signature (Reseller ID opt-in via SEND_RESELLER_ID).
+ * SOAP: Reseller ID + API Key in Authenticate SOAP header.
  */
 export function resolveDreamscapeConfig(): {
   apiKey: string | null;
   resellerId: string | null;
   resellerIdHeader: string;
   sendResellerId: boolean;
+  apiMode: DreamscapeApiMode;
   baseUrl: string;
+  soapEndpoint: string;
+  activeEndpoint: string;
   isSandbox: boolean;
   httpsProxy: string | null;
 } {
@@ -176,24 +226,37 @@ export function resolveDreamscapeConfig(): {
   const resellerId = normalizeDreamscapeResellerId(
     readServerEnv("DREAMSCAPE_RESELLER_ID"),
   );
+  const apiMode = resolveDreamscapeApiMode();
   const configured = readServerEnv("DREAMSCAPE_API_BASE_URL")?.trim();
   const baseUrl = (configured || DREAMSCAPE_SANDBOX_BASE_URL).replace(/\/$/, "");
-  const isSandbox = baseUrl.includes("sandbox");
+  const soap = resolveDreamscapeSoapEndpoint({ restBaseUrl: baseUrl });
+  const isSandbox =
+    apiMode === "soap" ? soap.isSandbox : baseUrl.includes("sandbox");
   return {
     apiKey,
     resellerId,
     resellerIdHeader: resolveDreamscapeResellerIdHeader(),
     sendResellerId: shouldSendDreamscapeResellerId(),
+    apiMode,
+    /** REST base URL (always). For the active transport URL see activeEndpoint. */
     baseUrl,
+    soapEndpoint: soap.endpoint,
+    /** Endpoint currently used for provider calls (SOAP or REST). */
+    activeEndpoint: apiMode === "soap" ? soap.endpoint : baseUrl,
     isSandbox,
     httpsProxy: resolveDreamscapeHttpsProxy(),
   };
 }
 
-/** Configured when API key is present (Reseller ID is optional / opt-in). */
+/**
+ * REST: API key only.
+ * SOAP: API key + Reseller ID (API Setup credentials).
+ */
 export function isDreamscapeConfigured(): boolean {
-  const { apiKey } = resolveDreamscapeConfig();
-  return Boolean(apiKey);
+  const { apiKey, resellerId, apiMode } = resolveDreamscapeConfig();
+  if (!apiKey) return false;
+  if (apiMode === "soap") return Boolean(resellerId);
+  return true;
 }
 
 /** Safe request metadata for staff debug — never includes API key or signature. */
@@ -207,6 +270,7 @@ export type DreamscapeRequestDebug = {
   sendResellerId: boolean;
   signatureAlgo: "md5(request_id + api_key)";
   isSandbox: boolean;
+  apiMode?: DreamscapeApiMode;
 };
 
 /**
@@ -274,7 +338,7 @@ export class DreamscapeApiError extends Error {
 export function describeDreamscapeAuthFailure(
   isSandbox: boolean,
   apiKey: string,
-  _opts?: { sendResellerId?: boolean },
+  opts?: { sendResellerId?: boolean; apiMode?: DreamscapeApiMode },
 ): { code: string; message: string; hint: string } {
   if (!isDreamscapeApiKeyFormatValid(apiKey)) {
     return {
@@ -285,20 +349,33 @@ export function describeDreamscapeAuthFailure(
     };
   }
 
+  if (opts?.apiMode === "soap") {
+    return {
+      code: isSandbox
+        ? "auth_soap_sandbox_rejected"
+        : "auth_soap_production_rejected",
+      message:
+        "Dreamscape SOAP rejected the request (401). Reseller ID + API Key auth failed.",
+      hint: isSandbox
+        ? "1) DREAMSCAPE_RESELLER_ID + DREAMSCAPE_API_KEY from API & WHMCS → API Setup. 2) DREAMSCAPE_API_MODE=soap (or leave unset when Reseller ID is set). 3) Sandbox SOAP: https://soap-test.secureapi.com.au/server.php?v=1.3. 4) Support’s Reseller ID pattern is SOAP — not REST Api-Signature. 5) Redeploy after env changes."
+        : "1) Live Reseller ID + API Key. 2) Production SOAP: https://soap.secureapi.com.au/server.php?v=1.3. 3) DREAMSCAPE_API_MODE=soap. 4) Whitelist egress if required. 5) Redeploy.",
+    };
+  }
+
   if (isSandbox) {
     return {
       code: "auth_sandbox_key_rejected",
       message:
-        "Dreamscape sandbox rejected the request (401). Usual causes: wrong sandbox key, key/base URL mismatch, or regenerated key not redeployed.",
-      hint: "1) Key from https://reseller.sandbox.ds.network → Account Settings → API & WHMCS → API Setup (not live). 2) DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network. 3) Auth is Api-Request-Id + Api-Signature only (Reseller ID not sent by default). 4) Sandbox has no IP whitelist. 5) If the key was exposed, regenerate, set DREAMSCAPE_API_KEY, redeploy. Retry with ?debug=1 for header names + response snippet.",
+        "Dreamscape REST sandbox rejected the request (401). Usual causes: wrong sandbox key, key/base URL mismatch, or regenerated key not redeployed.",
+      hint: "1) Key from https://reseller.sandbox.ds.network → API Setup (not live). 2) DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network. 3) REST auth is Api-Request-Id + Api-Signature only (no Reseller ID). 4) If support insists on Reseller ID, set DREAMSCAPE_API_MODE=soap + DREAMSCAPE_RESELLER_ID instead. 5) Redeploy. Retry with ?debug=1.",
     };
   }
 
   return {
     code: "auth_production_key_rejected",
     message:
-      "Dreamscape production rejected the request (401). Usual causes: wrong live key, key/base URL mismatch, or IP whitelist blocking dynamic egress.",
-    hint: "1) Key from https://reseller.ds.network → Account Settings → API & WHMCS → API Setup (not sandbox). 2) Matching production base URL. 3) Auth is Api-Request-Id + Api-Signature only by default. 4) Whitelist stable egress if needed (Vercel Static IPs or DREAMSCAPE_HTTPS_PROXY). 5) Redeploy. Retry with ?debug=1.",
+      "Dreamscape REST production rejected the request (401). Usual causes: wrong live key, key/base URL mismatch, or IP whitelist blocking dynamic egress.",
+    hint: "1) Live key from https://reseller.ds.network → API Setup. 2) Matching production REST base URL. 3) Auth is Api-Request-Id + Api-Signature. 4) Whitelist stable egress if needed. 5) Or switch to SOAP with Reseller ID if that is what API Setup credentials are for.",
   };
 }
 
@@ -331,11 +408,12 @@ export async function dreamscapeFetch<T = unknown>(
     sendResellerId,
     baseUrl,
     isSandbox,
+    apiMode,
   } = resolveDreamscapeConfig();
   if (!apiKey) {
     throw new DreamscapeApiError(503, "DREAMSCAPE_API_KEY is not configured", undefined, {
       code: "missing_api_key",
-      hint: "Set DREAMSCAPE_API_KEY from the Reseller Console that matches DREAMSCAPE_API_BASE_URL (sandbox by default). Official auth uses Api-Request-Id + Api-Signature only.",
+      hint: "Set DREAMSCAPE_API_KEY from the Reseller Console that matches DREAMSCAPE_API_BASE_URL (sandbox by default). REST auth uses Api-Request-Id + Api-Signature; SOAP needs Reseller ID too.",
     });
   }
 
@@ -394,6 +472,7 @@ export async function dreamscapeFetch<T = unknown>(
     sendResellerId,
     signatureAlgo: auth.signatureAlgo,
     isSandbox,
+    apiMode,
   };
 
   // Log header names only — never the API key or signature value.
@@ -452,6 +531,7 @@ export async function dreamscapeFetch<T = unknown>(
     if (response.status === 401) {
       const authFail = describeDreamscapeAuthFailure(isSandbox, apiKey, {
         sendResellerId,
+        apiMode: "rest",
       });
       throw new DreamscapeApiError(401, authFail.message, body, {
         code: authFail.code,

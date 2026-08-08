@@ -15,6 +15,11 @@ import {
   isDreamscapeConfigured,
   resolveDreamscapeConfig,
 } from "./client";
+import {
+  DreamscapeSoapError,
+  dreamscapeSoapDomainCheck,
+  dreamscapeSoapGetBalance,
+} from "./soap";
 
 function normalizeDomainQuery(query: string | string[]): string[] {
   const parts = Array.isArray(query) ? query : query.split(/[\s,]+/);
@@ -128,10 +133,68 @@ function mapAvailabilityRow(row: unknown): DomainAvailability | null {
   };
 }
 
+function mapSoapAvailability(
+  domains: string[],
+  rows: Awaited<ReturnType<typeof dreamscapeSoapDomainCheck>>,
+): DomainAvailability[] {
+  const byName = new Map(
+    rows.map((r) => {
+      const priceCents =
+        r.price === undefined
+          ? undefined
+          : r.price < 1000
+            ? Math.round(r.price * 100)
+            : Math.round(r.price);
+      const mapped: DomainAvailability = {
+        domain: r.domain,
+        available: r.available,
+        premium: r.premium,
+        priceCents,
+        currency: priceCents !== undefined ? "AUD" : undefined,
+        providerId: "dreamscape",
+        raw: r.raw ?? r,
+      };
+      return [r.domain, mapped] as const;
+    }),
+  );
+
+  return domains.map(
+    (domain) =>
+      byName.get(domain) ?? {
+        domain,
+        available: false,
+        providerId: "dreamscape" as const,
+        raw: { note: "missing_from_provider_response" },
+      },
+  );
+}
+
+function soapErrorToApiError(err: DreamscapeSoapError): DreamscapeApiError {
+  return new DreamscapeApiError(err.status, err.message, err.body, {
+    code: err.code,
+    hint: err.hint,
+    providerBodySnippet: err.providerBodySnippet,
+    requestDebug: {
+      path: err.endpoint,
+      method: "POST",
+      headersSent: ["Content-Type", "SOAPAction", "Accept"],
+      resellerIdHeadersSent: ["SOAP Authenticate/ResellerID"],
+      queryKeysSent: [],
+      hasResellerIdQuery: false,
+      sendResellerId: true,
+      signatureAlgo: "md5(request_id + api_key)",
+      isSandbox: err.isSandbox,
+      apiMode: "soap",
+    },
+  });
+}
+
 /**
  * DreamscapeDomainProvider — first DomainProvider adapter.
- * Develop against sandbox only until automated tests pass.
- * @see https://doc-reseller-api.ds.network/
+ * SOAP (Reseller ID + API Key) when DREAMSCAPE_RESELLER_ID is set or
+ * DREAMSCAPE_API_MODE=soap; otherwise REST (Api-Request-Id + Api-Signature).
+ * @see https://doc-reseller-api.ds.network/ (REST)
+ * @see https://soap.secureapi.com.au/wsdl/API-1.3.wsdl (SOAP)
  */
 export class DreamscapeDomainProvider implements DomainProvider {
   readonly id = "dreamscape";
@@ -140,13 +203,42 @@ export class DreamscapeDomainProvider implements DomainProvider {
 
   async search(query: string | string[]): Promise<DomainAvailability[]> {
     if (!isDreamscapeConfigured()) {
+      const { apiMode } = resolveDreamscapeConfig();
       throw new InfrastructureNotConfiguredError(
-        "Set DREAMSCAPE_API_KEY (sandbox Reseller Console → API Setup) to enable domain search",
+        apiMode === "soap"
+          ? "Set DREAMSCAPE_API_KEY + DREAMSCAPE_RESELLER_ID (SOAP / API Setup) to enable domain search"
+          : "Set DREAMSCAPE_API_KEY (sandbox Reseller Console → API Setup) to enable domain search",
       );
     }
 
     const domains = normalizeDomainQuery(query);
     if (domains.length === 0) return [];
+
+    const { apiMode, apiKey, resellerId, soapEndpoint, isSandbox } =
+      resolveDreamscapeConfig();
+
+    if (apiMode === "soap") {
+      if (!apiKey || !resellerId) {
+        throw new InfrastructureNotConfiguredError(
+          "SOAP mode requires DREAMSCAPE_API_KEY and DREAMSCAPE_RESELLER_ID",
+        );
+      }
+      try {
+        const rows = await dreamscapeSoapDomainCheck({
+          endpoint: soapEndpoint,
+          resellerId,
+          apiKey,
+          domains,
+          isSandbox,
+        });
+        return mapSoapAvailability(domains, rows);
+      } catch (err) {
+        if (err instanceof DreamscapeSoapError) {
+          throw soapErrorToApiError(err);
+        }
+        throw err;
+      }
+    }
 
     const searchParams = new URLSearchParams();
     for (const domain of domains) {
@@ -206,32 +298,81 @@ export class DreamscapeDomainProvider implements DomainProvider {
     ok: boolean;
     isSandbox: boolean;
     baseUrl: string;
+    apiMode: "soap" | "rest";
     message: string;
   }> {
-    const { apiKey, baseUrl, isSandbox } = resolveDreamscapeConfig();
+    const {
+      apiKey,
+      resellerId,
+      baseUrl,
+      soapEndpoint,
+      activeEndpoint,
+      isSandbox,
+      apiMode,
+    } = resolveDreamscapeConfig();
     if (!apiKey) {
       return {
         ok: false,
         isSandbox,
-        baseUrl,
+        baseUrl: activeEndpoint,
+        apiMode,
         message: "DREAMSCAPE_API_KEY is not set",
       };
     }
+    if (apiMode === "soap" && !resellerId) {
+      return {
+        ok: false,
+        isSandbox,
+        baseUrl: soapEndpoint,
+        apiMode,
+        message: "DREAMSCAPE_RESELLER_ID is required for SOAP mode",
+      };
+    }
+
     try {
+      if (apiMode === "soap" && resellerId) {
+        await dreamscapeSoapGetBalance({
+          endpoint: soapEndpoint,
+          resellerId,
+          apiKey,
+          isSandbox,
+        });
+        return {
+          ok: true,
+          isSandbox,
+          baseUrl: soapEndpoint,
+          apiMode,
+          message: isSandbox
+            ? "Sandbox SOAP reachable"
+            : "Production SOAP reachable — confirm tests passed before provisioning",
+        };
+      }
+
       await dreamscapeFetch("/currencies", { method: "GET" });
       return {
         ok: true,
         isSandbox,
         baseUrl,
+        apiMode,
         message: isSandbox
-          ? "Sandbox API reachable"
-          : "Production API reachable — confirm tests passed before provisioning",
+          ? "Sandbox REST API reachable"
+          : "Production REST API reachable — confirm tests passed before provisioning",
       };
     } catch (err) {
+      if (err instanceof DreamscapeSoapError) {
+        return {
+          ok: false,
+          isSandbox,
+          baseUrl: soapEndpoint,
+          apiMode,
+          message: err.message,
+        };
+      }
       return {
         ok: false,
         isSandbox,
-        baseUrl,
+        baseUrl: activeEndpoint,
+        apiMode,
         message:
           err instanceof DreamscapeApiError
             ? err.message

@@ -5,7 +5,7 @@
  *   core/                  shared types, org↔customer map, checklist
  *   domains/               DomainProvider + resolve
  *   dns/ hosting/ ssl/ email/   capability stubs
- *   providers/dreamscape/  DreamscapeDomainProvider + REST auth
+ *   providers/dreamscape/  DreamscapeDomainProvider + REST/SOAP auth
  *
  * Customer UX never names Dreamscape — only DigitalGate Domains/Hosting/Email/DNS/SSL.
  */
@@ -52,7 +52,7 @@ export async function getDigitalInfrastructureOverview(organisationId: string): 
   checklist: ProvisioningHealthChecklist;
   notes: string[];
 }> {
-  const { baseUrl, isSandbox } = resolveDreamscapeConfig();
+  const { activeEndpoint, isSandbox, apiMode } = resolveDreamscapeConfig();
   const configured = isDreamscapeConfigured();
   const checklist = emptyProvisioningChecklist(organisationId);
 
@@ -61,13 +61,16 @@ export async function getDigitalInfrastructureOverview(organisationId: string): 
       configured: false,
       provider: null,
       isSandbox,
-      baseUrl,
+      baseUrl: activeEndpoint,
       health: {
         status: "not_configured",
         providerId: "dreamscape",
         checkedAt: new Date().toISOString(),
-        message: "Set DREAMSCAPE_API_KEY against sandbox before provisioning",
-        details: { baseUrl, isSandbox },
+        message:
+          apiMode === "soap"
+            ? "Set DREAMSCAPE_API_KEY + DREAMSCAPE_RESELLER_ID (SOAP) against sandbox before provisioning"
+            : "Set DREAMSCAPE_API_KEY against sandbox before provisioning",
+        details: { baseUrl: activeEndpoint, isSandbox, apiMode },
       },
       checklist,
       notes: [
@@ -91,13 +94,18 @@ export async function getDigitalInfrastructureOverview(organisationId: string): 
       providerId: "dreamscape",
       checkedAt: new Date().toISOString(),
       message: check.message,
-      details: { baseUrl: check.baseUrl, isSandbox: check.isSandbox },
+      details: {
+        baseUrl: check.baseUrl,
+        isSandbox: check.isSandbox,
+        apiMode: check.apiMode,
+      },
     },
     checklist,
     notes: [
       check.isSandbox
         ? "Sandbox mode — safe for availability tests; no real registrations"
         : "Production API — do not provision without automated test pass",
+      `Transport: ${check.apiMode.toUpperCase()}`,
       "AI renew recommendations and asset inventory: planned for Command Centre",
     ],
   };

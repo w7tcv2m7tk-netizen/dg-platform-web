@@ -53,18 +53,26 @@ export async function GET(req: Request) {
   }
 
   // Read at request time — never cache empty env from module init.
-  const { baseUrl, isSandbox } = resolveDreamscapeConfig();
+  const { activeEndpoint, isSandbox, apiMode, soapEndpoint, baseUrl } =
+    resolveDreamscapeConfig();
   const configured = isDreamscapeConfigured();
   const env = dreamscapeEnvPresence();
+  const displayEndpoint = apiMode === "soap" ? soapEndpoint : baseUrl;
 
   if (!configured) {
     const missing: string[] = [];
     if (!env.hasKey) missing.push("DREAMSCAPE_API_KEY");
+    if (apiMode === "soap" && !env.hasResellerId) {
+      missing.push("DREAMSCAPE_RESELLER_ID");
+    }
 
     return NextResponse.json({
       configured: false,
       provider: null,
-      baseUrl,
+      apiMode,
+      baseUrl: displayEndpoint,
+      restBaseUrl: baseUrl,
+      soapEndpoint,
       isSandbox,
       env,
       data: [] as DomainAvailability[],
@@ -73,8 +81,11 @@ export async function GET(req: Request) {
         message:
           missing.length > 0
             ? `Domain provider is not configured. Missing: ${missing.join(", ")}.`
-            : "Domain provider is not configured. Set DREAMSCAPE_API_KEY against the sandbox API first.",
-        hint: "Vercel → Settings → Environment Variables: set DREAMSCAPE_API_KEY for Production, Preview, and Development. Server-only (not NEXT_PUBLIC). Match sandbox base URL. Redeploy after changes. Reseller Console (sandbox) → Account Settings → API & WHMCS → API Setup. Reseller ID is optional (DREAMSCAPE_SEND_RESELLER_ID=true for support experiments).",
+            : "Domain provider is not configured.",
+        hint:
+          apiMode === "soap"
+            ? "SOAP mode (Reseller ID auth): set DREAMSCAPE_API_KEY + DREAMSCAPE_RESELLER_ID from API & WHMCS → API Setup. Sandbox SOAP: https://soap-test.secureapi.com.au/server.php?v=1.3. Force with DREAMSCAPE_API_MODE=soap. Redeploy after Vercel env changes."
+            : "REST mode: set DREAMSCAPE_API_KEY (Api-Request-Id + Api-Signature). If support insists on Reseller ID, set DREAMSCAPE_RESELLER_ID (auto-selects SOAP) or DREAMSCAPE_API_MODE=soap.",
       },
     });
   }
@@ -84,7 +95,8 @@ export async function GET(req: Request) {
     return NextResponse.json({
       configured: false,
       provider: null,
-      baseUrl,
+      apiMode,
+      baseUrl: displayEndpoint,
       isSandbox,
       env,
       data: [] as DomainAvailability[],
@@ -100,18 +112,29 @@ export async function GET(req: Request) {
     const payload: Record<string, unknown> = {
       configured: true,
       provider: provider.id,
-      baseUrl,
+      apiMode,
+      baseUrl: activeEndpoint,
+      restBaseUrl: baseUrl,
+      soapEndpoint,
       isSandbox,
       data,
     };
     if (debug) {
-      payload.debug = {
-        note: "Request succeeded — auth headers accepted by Dreamscape",
-        expectedHeaders: ["Accept", "Api-Request-Id", "Api-Signature"],
-        expectedQueryKeys: ["domain_names[]"],
-        signatureAlgo: "md5(request_id + api_key)",
-        sendResellerId: env.sendResellerId,
-      };
+      payload.debug =
+        apiMode === "soap"
+          ? {
+              note: "SOAP DomainCheck — Authenticate header (ResellerID + APIKey)",
+              endpoint: soapEndpoint,
+              soapAction: "urn:API-1.3#API-1.3Server#DomainCheck",
+              auth: "SOAP header Authenticate",
+            }
+          : {
+              note: "REST request succeeded — auth headers accepted by Dreamscape",
+              expectedHeaders: ["Accept", "Api-Request-Id", "Api-Signature"],
+              expectedQueryKeys: ["domain_names[]"],
+              signatureAlgo: "md5(request_id + api_key)",
+              sendResellerId: env.sendResellerId,
+            };
     }
     return NextResponse.json(payload);
   } catch (err) {
@@ -119,7 +142,8 @@ export async function GET(req: Request) {
       return NextResponse.json({
         configured: false,
         provider: provider.id,
-        baseUrl,
+        apiMode,
+        baseUrl: activeEndpoint,
         isSandbox,
         env,
         data: [] as DomainAvailability[],
@@ -145,7 +169,8 @@ export async function GET(req: Request) {
         {
           configured: true,
           provider: provider.id,
-          baseUrl,
+          apiMode,
+          baseUrl: activeEndpoint,
           isSandbox,
           data: [] as DomainAvailability[],
           error: errorPayload,
@@ -174,7 +199,8 @@ export async function GET(req: Request) {
       {
         configured: true,
         provider: provider.id,
-        baseUrl,
+        apiMode,
+        baseUrl: activeEndpoint,
         isSandbox,
         data: [] as DomainAvailability[],
         error: { code: "provider_error", message },
@@ -198,5 +224,6 @@ function sanitizeRequestDebug(
     sendResellerId: debug.sendResellerId,
     signatureAlgo: debug.signatureAlgo,
     isSandbox: debug.isSandbox,
+    apiMode: debug.apiMode,
   };
 }

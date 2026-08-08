@@ -12,11 +12,16 @@ const dreamscapeDir = path.join(
 );
 
 /**
- * Load auth.ts directly (only depends on node:crypto).
+ * Load auth.ts / soap.ts directly (node:crypto / pure helpers).
  * @see https://doc-reseller-api.ds.network/
+ * @see https://soap.secureapi.com.au/wsdl/API-1.3.wsdl
  */
 async function loadAuth() {
   return import(pathToFileURL(path.join(dreamscapeDir, "auth.ts")).href);
+}
+
+async function loadSoap() {
+  return import(pathToFileURL(path.join(dreamscapeDir, "soap.ts")).href);
 }
 
 describe("dreamscapeSignature", () => {
@@ -73,31 +78,101 @@ describe("buildDreamscapeAuthHeaders", () => {
   });
 });
 
+describe("SOAP DomainCheck envelope + parse", () => {
+  it("builds Authenticate header with ResellerID + APIKey", async () => {
+    const { buildDomainCheckEnvelope } = await loadSoap();
+    const xml = buildDomainCheckEnvelope({
+      resellerId: "25735",
+      apiKey: "202cb962ac59075b964b07152d234b70",
+      domains: ["example.com.au", "test.net"],
+    });
+    assert.match(xml, /<ResellerID[^>]*>25735<\/ResellerID>/);
+    assert.match(
+      xml,
+      /<APIKey[^>]*>202cb962ac59075b964b07152d234b70<\/APIKey>/,
+    );
+    assert.match(xml, /<ns1:DomainCheck>/);
+    assert.match(xml, /example\.com\.au/);
+    assert.match(xml, /test\.net/);
+    assert.match(xml, /arrayType="xsd:string\[2\]"/);
+  });
+
+  it("parses AvailabilityItem rows from SOAP XML", async () => {
+    const { parseDomainCheckResponse } = await loadSoap();
+    const xml = `
+      <APIResponse>
+        <AvailabilityList>
+          <AvailabilityItem>
+            <Item>example.com.au</Item>
+            <Available>true</Available>
+            <Price>14.95</Price>
+            <IsPremium>false</IsPremium>
+          </AvailabilityItem>
+          <AvailabilityItem>
+            <Item>taken.net</Item>
+            <Available>false</Available>
+          </AvailabilityItem>
+        </AvailabilityList>
+      </APIResponse>`;
+    const rows = parseDomainCheckResponse(xml);
+    assert.equal(rows.length, 2);
+    assert.equal(rows[0].domain, "example.com.au");
+    assert.equal(rows[0].available, true);
+    assert.equal(rows[0].price, 14.95);
+    assert.equal(rows[0].premium, false);
+    assert.equal(rows[1].domain, "taken.net");
+    assert.equal(rows[1].available, false);
+  });
+
+  it("exports sandbox + prod SOAP endpoints", async () => {
+    const soap = await loadSoap();
+    assert.equal(
+      soap.DREAMSCAPE_SOAP_SANDBOX_ENDPOINT,
+      "https://soap-test.secureapi.com.au/server.php?v=1.3",
+    );
+    assert.equal(
+      soap.DREAMSCAPE_SOAP_PROD_ENDPOINT,
+      "https://soap.secureapi.com.au/server.php?v=1.3",
+    );
+    assert.equal(
+      soap.DREAMSCAPE_SOAP_DOMAIN_CHECK_ACTION,
+      "urn:API-1.3#API-1.3Server#DomainCheck",
+    );
+  });
+});
+
 describe("client.ts policy (source contracts)", () => {
   const clientSrc = readFileSync(path.join(dreamscapeDir, "client.ts"), "utf8");
+  const providerSrc = readFileSync(
+    path.join(dreamscapeDir, "domain-provider.ts"),
+    "utf8",
+  );
 
-  it("isDreamscapeConfigured requires only apiKey", () => {
+  it("resolves API mode soap|rest with Reseller ID auto-soap", () => {
+    assert.match(clientSrc, /function resolveDreamscapeApiMode/);
+    assert.match(clientSrc, /DREAMSCAPE_API_MODE/);
+    assert.match(clientSrc, /return "soap"/);
+    assert.match(clientSrc, /return "rest"/);
+  });
+
+  it("SOAP configured requires apiKey + resellerId", () => {
     assert.match(
       clientSrc,
-      /export function isDreamscapeConfigured\(\): boolean \{\s*const \{ apiKey \} = resolveDreamscapeConfig\(\);\s*return Boolean\(apiKey\);\s*\}/,
+      /if \(apiMode === "soap"\) return Boolean\(resellerId\)/,
     );
   });
 
-  it("Reseller ID send is gated by DREAMSCAPE_SEND_RESELLER_ID", () => {
+  it("REST path still calls /domains/availability", () => {
+    assert.match(
+      providerSrc,
+      /dreamscapeFetch<unknown>\("\/domains\/availability"/,
+    );
+    assert.match(providerSrc, /dreamscapeSoapDomainCheck/);
+    assert.match(clientSrc, /domain_names\[\]/);
+  });
+
+  it("Reseller ID send on REST is gated by DREAMSCAPE_SEND_RESELLER_ID", () => {
     assert.match(clientSrc, /DREAMSCAPE_SEND_RESELLER_ID/);
     assert.match(clientSrc, /function shouldSendDreamscapeResellerId/);
-    assert.match(
-      clientSrc,
-      /if \(sendResellerId && resellerId && !mergedParams\.has\("reseller_id"\)\)/,
-    );
-  });
-
-  it("availability path matches docs /domains/availability", () => {
-    const providerSrc = readFileSync(
-      path.join(dreamscapeDir, "domain-provider.ts"),
-      "utf8",
-    );
-    assert.match(providerSrc, /dreamscapeFetch<unknown>\("\/domains\/availability"/);
-    assert.match(clientSrc, /domain_names\[\]/);
   });
 });
