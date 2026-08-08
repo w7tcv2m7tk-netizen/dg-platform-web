@@ -6,9 +6,56 @@ AI-native web presence for DigitalGate organisations — not another generic pag
 
 The native builder targets **Next.js Generation 2**. Existing WordPress sites stay on the **WordPress Connector**. Advanced code edits happen only in a **controlled sandbox**.
 
-**Do not implement this product surface yet.** Immediate execution remains Core → CRM → Connectors → Real Estate beta. Architect so Business Profile, SEO/AI Visibility context, Forms → CRM, Domains/Hosting, and Country Packs can support Website Builder without a rebuild.
+**Do not implement this product surface yet.** Immediate execution remains Core → CRM → Connectors → Real Estate beta. Architect so Business Profile, SEO/AI Visibility context, Forms → CRM, Domains/Hosting, Country Packs, and first-class Website assets can support Website Builder without a rebuild.
 
 See [PRODUCT-VISION.md](../PRODUCT-VISION.md), [ROADMAP.md](../ROADMAP.md), [GLOBAL-READINESS.md](./GLOBAL-READINESS.md), [NETWORK-LAYER.md](./NETWORK-LAYER.md), [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md), [websites/WEBSITES-ARCHITECTURE.md](../websites/WEBSITES-ARCHITECTURE.md), [ADR 0001](../adr/0001-generation-2-nextjs-platform.md), [ADR 0002](../adr/0002-wordpress-as-connector.md).
+
+---
+
+## Product framing
+
+**Not** “AI that writes HTML.”
+
+**=** an **AI-native website platform** that understands the business and can create, manage, optimise, and evolve its digital presence.
+
+More than “another website builder”: Buy Domain → Create Website → AI builds → **DG Hosting** → **DG DNS** → auto SSL → connected to **Business Profile** → **CRM + Forms + Analytics + SEO + AI Visibility**.
+
+### Flywheel
+
+```
+Business Profile → AI → Website → CRM → Marketing → Automation → Intelligence → Growth
+```
+
+Website Builder sits in that loop as the digital-presence surface; Intelligence and Growth Apps close the feedback cycle. Vision and pillar placement: [PRODUCT-VISION.md](../PRODUCT-VISION.md). Execution filter: [ROADMAP.md](../ROADMAP.md).
+
+---
+
+## Architectural decision
+
+| Layer | Role |
+|-------|------|
+| **Website Builder** | Growth / Platform **App** (Studio surfaces, generative UX, publish tooling) |
+| **Website** | **First-class DigitalGate asset** — not merely an App artifact |
+
+### Asset hierarchy (target)
+
+```
+Organisation
+  └── Business Profile
+        └── Websites[]
+              ├── Domain
+              ├── Pages
+              ├── Components
+              ├── Forms
+              ├── SEO
+              ├── Analytics
+              ├── AI Visibility
+              └── Integrations
+```
+
+**AI Service** is the intelligence layer across the website lifecycle (plan → generate → edit → optimise → evolve) — same AI Service posture as the rest of the platform ([PRODUCT-VISION.md](../PRODUCT-VISION.md)).
+
+Design Core / Profile / catalogues so `Website` can hang under Organisation → Business Profile later without a rebuild. Suggested objects remain design-only until after Core / RE beta (see Design-now requirements below).
 
 ---
 
@@ -71,7 +118,7 @@ Optional enrichment (when Apps/connectors exist): Twin health, connected GBP, li
 
 ## 2. AI Website Studio (major App)
 
-Primary product surface for create → edit → publish. Natural-language and structured editing share the **same model**.
+Primary product surface for create → edit → publish. Natural-language and structured editing share the **same model**. Studio spans three capability levels (see §9); most users stay on AI Website.
 
 ### Nav (target)
 
@@ -138,7 +185,7 @@ Industry and Country Pack templates specialise **which** components and defaults
 
 ## 4. Advanced Code / AI Developer layer
 
-For power users and edge cases: HTML · CSS · JS · React · Next.js · API · schema · custom blocks — only inside a **controlled sandbox**.
+For power users and edge cases: HTML · CSS · JS · React · Next.js · API · schema · custom blocks — only inside a **controlled sandbox**. This is the foundation for **Developer Studio** (§9).
 
 | Rule | Detail |
 |------|--------|
@@ -149,6 +196,103 @@ For power users and edge cases: HTML · CSS · JS · React · Next.js · API · 
 | **Sandbox** | Isolated preview/deploy; no unrestricted write into tenant data or core |
 
 Sandbox may emit custom components that still register against the schema system where possible, so Studio and SEO tooling remain coherent.
+
+---
+
+## 5. DigitalGate hosting
+
+The end-to-end path is owned by DigitalGate — not “export HTML to a third-party host.”
+
+```
+Buy Domain
+  → Create Website
+  → AI builds (structured model)
+  → DG Hosting
+  → DG DNS
+  → auto SSL
+  → connected to Business Profile
+  → CRM + Forms + Analytics + SEO + AI Visibility
+```
+
+| Concern | Design-now expectation |
+|---------|------------------------|
+| **Domains** | Purchase / attach under Organisation; Website asset owns the binding |
+| **Hosting** | DG-managed deploy of Next.js Gen 2 renderer output |
+| **DNS** | DG DNS (or guided records) so SSL and publish are automatic |
+| **SSL** | Auto-provisioned on connect — no manual cert workflow for default path |
+| **Profile link** | Published site stays wired to Business Profile (identity, NAP, brand) |
+| **Connected stack** | Forms, CRM, Analytics, SEO App, AI Visibility App as first-class integrations on the Website asset |
+
+This is what makes Website Builder a **platform surface**, not a standalone CMS clone. Infrastructure hooks stay design-compatible with Domains / Hosting work; do not ship product UI yet.
+
+---
+
+## 6. Generative flow UX
+
+Target happy path for most users (**AI Website** level):
+
+```
+“I want a website”
+  → Business Profile already known
+  → Recommend N-page site around growth objective
+  → Generate Website
+  → Full page set
+  → Visual or NL edit
+  → Publish (draft-by-default)
+```
+
+### Full page set (illustrative)
+
+Home · About · Services · Service pages · Locations · Contact · FAQs · Nav · CTAs · Forms · SEO · Schema · Sitemap · AI-readable content
+
+Planner chooses **N** and IA from Profile + growth objective (leads, bookings, appraisals, quotes — industry-aware). Generator emits the structured model for that set in one pass; Studio then supports visual or natural-language edit on the same model (§2, §9).
+
+Do not require users to assemble pages from a blank canvas before they have a coherent site.
+
+---
+
+## 7. Connected business interface
+
+A Website is a **connected interface** into the DigitalGate ecosystem — not a brochure silo.
+
+| Path | Flow (target) |
+|------|----------------|
+| **Conversion** | Forms → Contact → Lead → CRM → Automation → AI qualification → Notification → Pipeline |
+| **Measurement** | Analytics → BI → Dashboard |
+| **Discoverability** | SEO App / SEO Score™ · AI Visibility App / Score™ |
+| **Trust** | Reviews (testimonials, schema, request flows) |
+| **Commerce** | Payments |
+| **Scheduling** | Bookings / Calendar / Industry Apps |
+
+Wire definitions at the **Website asset** and Form mapping layers so Core / CRM / Connectors work already underway stays forward-compatible. Reviews feed: [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md). Growth Apps placement: [PRODUCT-VISION.md](../PRODUCT-VISION.md).
+
+---
+
+## 8. Industry App–generated sites
+
+Industry Apps can **generate and specialise** sites (schema + templates), not only consume a generic builder.
+
+| Industry | Example site outcomes |
+|----------|----------------------|
+| **Real Estate** | Vendor appraisal sites; forms; suburb pages; funnels from vendors / buyers / properties |
+| **Accommodation** | Booking sites with availability, payments, guests |
+| **Services** | Quote / booking / lead sites |
+
+Schema and templates are **per Industry App** (and Country Pack–aware — [GLOBAL-READINESS.md](./GLOBAL-READINESS.md)): which pages, components, forms, and CRM object mappings appear by default. Renderer and Studio stay shared; Apps own vertical specialisation.
+
+Architect Industry App contracts so generated sites still land as first-class `Website` assets under Business Profile.
+
+---
+
+## 9. Three levels
+
+| Level | Who | What |
+|-------|-----|------|
+| **1. AI Website** | Most users | Generate → Edit → Publish |
+| **2. Visual Studio** | Operators who want layout control | Drag / drop + AI on the same structured model |
+| **3. Developer Studio** | Agencies / developers | Code · Components · API · Database · Custom Functions (sandbox — §4) |
+
+Progressive disclosure: start at level 1; unlock 2/3 without forking the site model. Level 3 never becomes arbitrary PHP on Platform Core.
 
 ---
 
@@ -165,7 +309,7 @@ Sandbox may emit custom components that still register against the schema system
 | Payments / forms | Stripe and CRM paths already Country Pack–aware |
 | Templates | AU real-estate / services packs first; NZ/UK/US via packs later |
 
-Do not hardcode AU-only component IDs or tax copy into the renderer core.
+Do not hardcode AU-only component IDs or tax copy into the renderer core. Same posture as Network: design globally, ship AU first ([NETWORK-LAYER.md](./NETWORK-LAYER.md)).
 
 ---
 
@@ -174,12 +318,15 @@ Do not hardcode AU-only component IDs or tax copy into the renderer core.
 | Concept | Why it matters later |
 |---------|----------------------|
 | **Business Profile completeness** | Source of truth for generation |
+| **Website as first-class asset** | Org → Profile → Websites[] hierarchy |
 | **Document / site config objects** | Persist structured site model (see catalogues) |
 | **Forms → Contact/Lead** | Conversion path into CRM |
-| **SEO + AI Visibility fields** | Planner/generator context |
-| **Infrastructure hooks** | Domains, SSL, deploy |
+| **SEO + AI Visibility fields** | Planner/generator context + Score™ Apps |
+| **Infrastructure hooks** | Domains, DG DNS, SSL, DG Hosting deploy |
+| **Ecosystem integration points** | Analytics, Reviews, Payments, Bookings, Industry Apps |
 | **WP Connector boundary** | Existing sites ≠ native builder |
 | **Country Pack hooks** | Locality, compliance, template packs |
+| **Industry App site contracts** | Vertical schemas/templates → Website assets |
 | **AI governance** | Draft-by-default, review for code deploy ([AI-GOVERNANCE.md](./AI-GOVERNANCE.md)) |
 
 ### Suggested future objects (document only)
@@ -190,6 +337,7 @@ Do not hardcode AU-only component IDs or tax copy into the renderer core.
 - `WebsiteTheme` (tokens from brand)  
 - `WebsiteForm` (definition → CRM mapping)  
 - `WebsiteDomain` / deploy records  
+- Hosting / DNS / SSL binding records (DG-managed path)  
 
 Prefer Profile + optional JSON site draft over premature tables until Core / RE beta priorities clear.
 
@@ -202,6 +350,8 @@ Prefer Profile + optional JSON site draft over premature tables until Core / RE 
 - ❌ Treating WordPress theme PHP as the native builder  
 - ❌ Raw HTML as the source of truth for native sites  
 - ❌ Replacing the WP Connector for customers who stay on WordPress  
+- ❌ Building DG Hosting / DNS product UI before infrastructure priorities allow  
+- ❌ Treating Website as App-only state with no first-class asset model  
 
 ---
 
@@ -209,10 +359,10 @@ Prefer Profile + optional JSON site draft over premature tables until Core / RE 
 
 | When | What |
 |------|------|
-| **Now** | Architecture in this doc; keep Profile / Forms / Connectors / SEO context compatible |
-| **After Core + CRM + Connectors + RE beta** | Website Studio v0 — Profile → structured model → preview |
-| **Later** | Full Studio nav, schema library depth, Hosting/Domains polish |
-| **Later+** | AI Developer sandbox, Funnel Builder, proactive Website Health |
+| **Now** | Architecture in this doc; keep Profile / Forms / Connectors / SEO / asset model compatible |
+| **After Core + CRM + Connectors + RE beta** | Website Studio v0 — Profile → structured model → preview (AI Website level) |
+| **Later** | Full Studio nav, schema library depth, DG Hosting/Domains/DNS/SSL polish, Visual Studio |
+| **Later+** | Developer Studio sandbox, Industry App–generated sites, Funnel Builder, proactive Website Health |
 
 Immediate priority remains:
 
@@ -221,18 +371,18 @@ Core → CRM → Connectors → AI → Industry Apps (RE beta) → Intelligence
 → then Website Builder (native Next.js Gen 2)
 ```
 
-Operational module notes and phased tickets: [websites/WEBSITES-ARCHITECTURE.md](../websites/WEBSITES-ARCHITECTURE.md).
+Operational module notes and phased tickets: [websites/WEBSITES-ARCHITECTURE.md](../websites/WEBSITES-ARCHITECTURE.md). Phase placement: [ROADMAP.md](../ROADMAP.md).
 
 ---
 
 ## Related
 
-- [PRODUCT-VISION.md](../PRODUCT-VISION.md) — Websites as Growth / digital presence  
+- [PRODUCT-VISION.md](../PRODUCT-VISION.md) — Growth Apps, AI Service, digital presence flywheel  
 - [ROADMAP.md](../ROADMAP.md) — execution filter; Phase later  
 - [NETWORK-LAYER.md](./NETWORK-LAYER.md) — same design-now / build-later posture  
 - [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) — trust content feeds Testimonials  
 - [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) — Country Packs + AU GTM  
-- [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) — generation source  
+- [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) — generation source; parent of Website assets  
 - [websites/WEBSITES-ARCHITECTURE.md](../websites/WEBSITES-ARCHITECTURE.md) — Studio / Health / Content / Funnels modules  
 - [adr/0001-generation-2-nextjs-platform.md](../adr/0001-generation-2-nextjs-platform.md)  
 - [adr/0002-wordpress-as-connector.md](../adr/0002-wordpress-as-connector.md)  
