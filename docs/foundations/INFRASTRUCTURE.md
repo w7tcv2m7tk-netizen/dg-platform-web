@@ -157,23 +157,40 @@ Sandbox Reseller Console: `https://reseller.sandbox.ds.network`
 
 ### SOAP endpoints (SecureAPI)
 
-| Env | Endpoint | WSDL |
-|-----|----------|------|
-| **Sandbox (default)** | `https://soap-test.secureapi.com.au/server.php?v=1.3` | `https://soap-test.secureapi.com.au/wsdl/API-1.3.wsdl` |
-| Production | `https://soap.secureapi.com.au/server.php?v=1.3` | `https://soap.secureapi.com.au/wsdl/API-1.3.wsdl` |
+| Env | Endpoint | WSDL | Console |
+|-----|----------|------|---------|
+| **Sandbox (default)** | `https://soap-test.secureapi.com.au/server.php?v=1.3` | `https://soap-test.secureapi.com.au/wsdl/API-1.3.wsdl` | `reseller.sandbox.ds.network` |
+| Production | `https://soap.secureapi.com.au/server.php?v=1.3` | `https://soap.secureapi.com.au/wsdl/API-1.3.wsdl` | `reseller.ds.network` (live) |
 
-Override with `DREAMSCAPE_SOAP_ENDPOINT` if needed.
+**Match console → SOAP host.** Live API Setup credentials (e.g. Reseller ID **25735** from `reseller.ds.network`) must use **production SOAP**. Sandbox console keys must use **soap-test**. Mixing live keys with soap-test (or vice versa) causes 401.
+
+SOAP host resolution:
+
+1. `DREAMSCAPE_SOAP_ENDPOINT` or `DREAMSCAPE_SOAP_URL` (full URL override)  
+2. `DREAMSCAPE_SOAP_ENV` or `DREAMSCAPE_ENV` = `sandbox` \| `production`  
+3. Else if `DREAMSCAPE_API_BASE_URL` is production REST → production SOAP  
+4. Else → **sandbox** (`soap-test`) — safe default for local/dev  
 
 **Get credentials:** Reseller Console → **Account Settings → API & WHMCS → API Setup** — copy **Reseller ID** + **API Key**.
 
 ### 401 checklist (what Ben should set)
 
-**If support says use Reseller ID 25735 + API key → use SOAP:**
+**Live API Setup (reseller.ds.network) — Reseller ID 25735 + live key → SOAP production:**
 
 ```bash
-DREAMSCAPE_API_MODE=soap          # optional if Reseller ID is set (auto soap)
 DREAMSCAPE_RESELLER_ID=25735
-DREAMSCAPE_API_KEY=<from API Setup>
+DREAMSCAPE_API_KEY=<from live API Setup>
+DREAMSCAPE_API_MODE=soap
+DREAMSCAPE_SOAP_ENV=production
+```
+
+**Sandbox console (reseller.sandbox.ds.network) → SOAP soap-test:**
+
+```bash
+DREAMSCAPE_RESELLER_ID=<sandbox reseller id>
+DREAMSCAPE_API_KEY=<from sandbox API Setup>
+DREAMSCAPE_API_MODE=soap
+DREAMSCAPE_SOAP_ENV=sandbox
 # Optional override:
 # DREAMSCAPE_SOAP_ENDPOINT=https://soap-test.secureapi.com.au/server.php?v=1.3
 ```
@@ -190,17 +207,18 @@ DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network
 | Step | Action |
 |------|--------|
 | **1. Pick mode** | Reseller ID story → SOAP. Signature-only docs → REST. |
-| **2. Keys** | From matching console/environment. No spaces/quotes. Regenerate if ever pasted into chat. |
-| **3. Redeploy** | Vercel env for Production + Preview + Development; redeploy after changes. |
-| **4. IP whitelist** | REST sandbox: no IP whitelist (support). Production REST/SOAP may need static egress (`DREAMSCAPE_HTTPS_PROXY` / Vercel Static IPs). |
+| **2. Match env** | Live console → `DREAMSCAPE_SOAP_ENV=production`. Sandbox console → `sandbox` (default). |
+| **3. Keys** | From matching console. No spaces/quotes. Regenerate if ever pasted into chat. |
+| **4. Redeploy** | Vercel env for Production + Preview + Development; redeploy after changes. |
+| **5. IP whitelist** | REST sandbox: no IP whitelist (support). Production REST/SOAP may need static egress (`DREAMSCAPE_HTTPS_PROXY` / Vercel Static IPs). |
 
-Staff: availability `?debug=1` returns mode + endpoint metadata (never the key). Logs: `[dreamscape] soap request` or `[dreamscape] request auth`.
+Staff: Domains UI shows SOAP host; availability `?debug=1` returns mode + endpoint metadata (never the key). Logs: `[dreamscape] soap request` or `[dreamscape] request auth`.
 
 #### Local smoke (SOAP)
 
-1. Set `DREAMSCAPE_RESELLER_ID`, `DREAMSCAPE_API_KEY` in `.env.local` (mode auto-selects SOAP).
-2. `npm run dev` → Domains availability search.
-3. Server log should show `[dreamscape] soap request` with soap-test endpoint.
+1. Set `DREAMSCAPE_RESELLER_ID`, `DREAMSCAPE_API_KEY`, and matching `DREAMSCAPE_SOAP_ENV` in `.env.local`.
+2. `npm run dev` → Domains availability search (UI shows SOAP host).
+3. Server log should show `[dreamscape] soap request` with the expected host (`soap-test` or `soap.secureapi.com.au`).
 
 #### Local smoke (REST)
 
@@ -210,10 +228,14 @@ Staff: availability `?debug=1` returns mode + endpoint metadata (never the key).
 ```bash
 # .env.local / Vercel — never commit real values
 
-# --- Preferred when support gives Reseller ID + API Key (SOAP) ---
+# --- Live API Setup → SOAP production ---
 DREAMSCAPE_RESELLER_ID=
 DREAMSCAPE_API_KEY=
-# DREAMSCAPE_API_MODE=soap
+DREAMSCAPE_API_MODE=soap
+DREAMSCAPE_SOAP_ENV=production
+
+# --- Sandbox console → SOAP soap-test ---
+# DREAMSCAPE_SOAP_ENV=sandbox
 # DREAMSCAPE_SOAP_ENDPOINT=https://soap-test.secureapi.com.au/server.php?v=1.3
 
 # --- REST alternative (signature auth; no Reseller ID) ---
@@ -229,14 +251,14 @@ DREAMSCAPE_API_KEY=
 # DREAMSCAPE_WEBHOOK_SECRET=
 ```
 
-> **Security:** Example API keys in Dreamscape’s public docs are **not** DigitalGate credentials. If any real key was pasted into chat, tickets, or git history, **regenerate** it in Reseller Console immediately. Never paste keys into chat again. Browser never holds the key — only `GET /api/v1/infrastructure/...` (and future routes) call Dreamscape (Node runtime).
+> **Security:** Example API keys in Dreamscape’s public docs are **not** DigitalGate credentials. If any real API key or webhook secret was pasted into chat, tickets, or git history, **rotate** it in Reseller Console immediately and update Notification URL / Vercel env. Never paste secrets into chat again. Browser never holds the key — only `GET /api/v1/infrastructure/...` (and future routes) call Dreamscape (Node runtime).
 
 ### What to tell Dreamscape support if still stuck
 
 1. Confirm whether **API Setup** credentials are for **SecureAPI SOAP** (`soap(-test).secureapi.com.au`) or **REST** (`reseller-api(.sandbox).ds.network`).  
-2. We call SOAP `DomainCheck` with Authenticate header `{ ResellerID, APIKey }` against sandbox `https://soap-test.secureapi.com.au/server.php?v=1.3`.  
+2. We call SOAP `DomainCheck` with Authenticate header `{ ResellerID, APIKey }` — live keys against `https://soap.secureapi.com.au/server.php?v=1.3` (`DREAMSCAPE_SOAP_ENV=production`), sandbox keys against soap-test.  
 3. REST 401 with `{"status":false,"error_message":"Unauthorized"}` while using Reseller ID is expected — Reseller ID is **not** part of REST auth.  
-4. Ask them to verify Reseller ID **25735** + the sandbox API key are enabled for SOAP on soap-test, and whether IP allowlisting applies to SOAP sandbox.
+4. Ask them to verify Reseller ID **25735** + the matching API key are enabled for the SOAP host in use, and whether IP allowlisting applies.
 
 ### Domain transfer Notification URL
 
@@ -254,6 +276,7 @@ DREAMSCAPE_WEBHOOK_SECRET=
 
 - Dreamscape public API docs **do not** define an inbound webhook HMAC; we verify a shared secret (`?secret=` / `?token=` query, or `X-Dreamscape-Webhook-Secret` / Bearer).
 - Paste the production URL (with secret query) into Reseller Console. Never put `DREAMSCAPE_API_KEY` in the URL.
+- If the webhook secret was exposed (chat, ticket, logs): **rotate** `DREAMSCAPE_WEBHOOK_SECRET` in Vercel, redeploy, and update the Notification URL in Reseller Console to the new `?secret=` value.
 - **Today:** `POST` acknowledges `200`, classifies transfer/status payloads, and persists an **in-memory event stub** (domain inventory update lands with Domains MVP).
 - Route: `src/app/api/webhooks/dreamscape/route.ts` · helpers: `providers/dreamscape/webhooks.ts`
 

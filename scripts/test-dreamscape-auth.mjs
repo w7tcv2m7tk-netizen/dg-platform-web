@@ -155,6 +155,14 @@ describe("client.ts policy (source contracts)", () => {
     assert.match(clientSrc, /return "rest"/);
   });
 
+  it("SOAP env resolves via DREAMSCAPE_SOAP_ENV / SOAP_URL / default sandbox", () => {
+    assert.match(clientSrc, /function resolveDreamscapeSoapEndpoint/);
+    assert.match(clientSrc, /DREAMSCAPE_SOAP_ENV/);
+    assert.match(clientSrc, /DREAMSCAPE_SOAP_URL/);
+    assert.match(clientSrc, /parseDreamscapeSoapEnv/);
+    assert.match(clientSrc, /soapHostFromEndpoint/);
+  });
+
   it("SOAP configured requires apiKey + resellerId", () => {
     assert.match(
       clientSrc,

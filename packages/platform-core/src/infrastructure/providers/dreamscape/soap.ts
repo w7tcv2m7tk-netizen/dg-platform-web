@@ -299,8 +299,8 @@ async function resolveProxiedFetch(proxyUrl: string): Promise<{
 
 function authHint(isSandbox: boolean): string {
   return isSandbox
-    ? "SOAP auth = Reseller ID + API Key in the Authenticate SOAP header (API & WHMCS → API Setup). Set DREAMSCAPE_RESELLER_ID + DREAMSCAPE_API_KEY. Sandbox endpoint: https://soap-test.secureapi.com.au/server.php?v=1.3 (WSDL: …/wsdl/API-1.3.wsdl). Force with DREAMSCAPE_API_MODE=soap."
-    : "SOAP auth = Reseller ID + API Key in the Authenticate SOAP header. Production endpoint: https://soap.secureapi.com.au/server.php?v=1.3. Confirm live Reseller ID + key (not sandbox).";
+    ? "SOAP auth = Reseller ID + API Key (API Setup). Use sandbox console keys with DREAMSCAPE_SOAP_ENV=sandbox → soap-test.secureapi.com.au. Live console keys need DREAMSCAPE_SOAP_ENV=production."
+    : "SOAP auth = Reseller ID + API Key (API Setup). Live console → DREAMSCAPE_SOAP_ENV=production → soap.secureapi.com.au. Do not use soap-test with live keys.";
 }
 
 async function soapPost(opts: {

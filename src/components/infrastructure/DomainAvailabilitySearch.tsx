@@ -14,6 +14,9 @@ type AvailabilityResponse = {
   configured?: boolean;
   isSandbox?: boolean;
   baseUrl?: string;
+  soapEndpoint?: string;
+  soapEnv?: "sandbox" | "production";
+  soapHost?: string;
   apiMode?: "soap" | "rest";
   data?: AvailabilityRow[];
   env?: {
@@ -22,6 +25,8 @@ type AvailabilityResponse = {
     hasBaseUrl?: boolean;
     sendResellerId?: boolean;
     apiMode?: "soap" | "rest";
+    soapEnv?: "sandbox" | "production";
+    soapHost?: string;
     keyLength?: number;
   };
   error?: {
@@ -55,6 +60,32 @@ function formatPrice(row: AvailabilityRow) {
   } catch {
     return `${(row.priceCents / 100).toFixed(2)} ${currency}`;
   }
+}
+
+function endpointLabel(result: AvailabilityResponse): string | null {
+  const mode = result.apiMode ?? result.env?.apiMode;
+  if (mode === "soap") {
+    const host =
+      result.soapHost ?? result.env?.soapHost ?? result.soapEndpoint ?? result.baseUrl;
+    const env = result.soapEnv ?? result.env?.soapEnv;
+    if (!host) return null;
+    const envLabel =
+      env === "production"
+        ? "production"
+        : env === "sandbox"
+          ? "sandbox"
+          : result.isSandbox
+            ? "sandbox"
+            : "production";
+    return `SOAP · ${host} (${envLabel})`;
+  }
+  if (result.baseUrl) {
+    return `${result.isSandbox ? "Sandbox" : "Production"} REST · ${result.baseUrl}`;
+  }
+  if (result.isSandbox != null) {
+    return result.isSandbox ? "Sandbox API" : "Production API";
+  }
+  return null;
 }
 
 /** Internal scaffold — DigitalGate Domains availability (provider hidden from UX). */
@@ -95,12 +126,14 @@ export function DomainAvailabilitySearch() {
     }
   }
 
+  const endpointHint = result ? endpointLabel(result) : null;
+
   return (
     <section className="mt-8 max-w-xl rounded-lg border border-slate-800 bg-slate-950/60 p-5">
       <h2 className="text-lg font-semibold text-white">Domain search</h2>
       <p className="mt-1 text-sm text-slate-400">
-        DigitalGate Domains · availability check (sandbox). Purchase, DNS, and SSL
-        follow the unified provisioning path after Website Builder publish.
+        DigitalGate Domains · availability check. Purchase, DNS, and SSL follow
+        the unified provisioning path after Website Builder publish.
       </p>
 
       <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -124,6 +157,10 @@ export function DomainAvailabilitySearch() {
 
       {result ? (
         <div className="mt-4 space-y-3 text-sm">
+          {endpointHint ? (
+            <p className="font-mono text-xs text-slate-500">{endpointHint}</p>
+          ) : null}
+
           {result.error ? (
             <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-amber-100">
               <p className="font-medium">
@@ -154,6 +191,13 @@ export function DomainAvailabilitySearch() {
                       : "missing"}
                   </li>
                   <li>
+                    SOAP host:{" "}
+                    {result.env.soapHost ?? result.soapHost ?? "—"}
+                    {" · "}
+                    {result.env.soapEnv ?? result.soapEnv ?? "—"}
+                    {" (set DREAMSCAPE_SOAP_ENV=production for live API Setup)"}
+                  </li>
+                  <li>
                     REST base URL:{" "}
                     {result.env.hasBaseUrl
                       ? "set"
@@ -164,12 +208,17 @@ export function DomainAvailabilitySearch() {
               {result.error.code?.startsWith("auth_") ? (
                 <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-amber-200/70">
                   <li>
-                    SOAP (Reseller ID + API Key): set DREAMSCAPE_RESELLER_ID +
-                    DREAMSCAPE_API_KEY — sandbox endpoint soap-test.secureapi.com.au.
+                    Live API Setup (reseller.ds.network): DREAMSCAPE_RESELLER_ID +
+                    DREAMSCAPE_API_KEY + DREAMSCAPE_SOAP_ENV=production →
+                    soap.secureapi.com.au.
                   </li>
                   <li>
-                    REST (signature only): Api-Request-Id + Api-Signature — Reseller
-                    ID is not part of REST auth. Force with DREAMSCAPE_API_MODE=rest.
+                    Sandbox console: same vars with DREAMSCAPE_SOAP_ENV=sandbox →
+                    soap-test.secureapi.com.au (default when unset).
+                  </li>
+                  <li>
+                    REST (signature only): force DREAMSCAPE_API_MODE=rest — Reseller
+                    ID is not part of REST auth.
                   </li>
                   <li>
                     Staff: append ?debug=1 for mode/endpoint metadata (never the
@@ -186,12 +235,6 @@ export function DomainAvailabilitySearch() {
                 <pre className="mt-2 overflow-x-auto rounded border border-amber-500/20 bg-black/30 p-2 font-mono text-[11px] text-amber-100/80">
                   {JSON.stringify(result.error.debug, null, 2)}
                 </pre>
-              ) : null}
-              {result.isSandbox != null ? (
-                <p className="mt-1 text-xs text-slate-400">
-                  {result.isSandbox ? "Sandbox API" : "Production API"} ·{" "}
-                  {result.baseUrl}
-                </p>
               ) : null}
             </div>
           ) : null}

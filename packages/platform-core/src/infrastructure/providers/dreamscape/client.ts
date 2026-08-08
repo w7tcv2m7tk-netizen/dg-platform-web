@@ -14,6 +14,13 @@ export const DREAMSCAPE_SANDBOX_BASE_URL =
 /** REST (doc-reseller-api) vs SOAP SecureAPI (Reseller ID + API Key). */
 export type DreamscapeApiMode = "soap" | "rest";
 
+/**
+ * SOAP SecureAPI environment.
+ * Live Reseller Console (reseller.ds.network) → production (`soap.secureapi.com.au`).
+ * Sandbox console (reseller.sandbox.ds.network) → sandbox (`soap-test.secureapi.com.au`).
+ */
+export type DreamscapeSoapEnv = "sandbox" | "production";
+
 /** Dreamscape keys are 32 lowercase alphanumeric chars (docs FAQ). */
 const DREAMSCAPE_API_KEY_RE = /^[a-f0-9]{32}$/;
 
@@ -116,6 +123,10 @@ export type DreamscapeEnvPresence = {
   /** True when DREAMSCAPE_SEND_RESELLER_ID opt-in is enabled (REST only). */
   sendResellerId: boolean;
   apiMode: DreamscapeApiMode;
+  /** SOAP env when mode is soap (or when SOAP vars are set). */
+  soapEnv: DreamscapeSoapEnv;
+  /** Hostname only — e.g. soap.secureapi.com.au (never secrets). */
+  soapHost: string;
   /** Normalized key length (0 when missing). Never the key itself. */
   keyLength: number;
 };
@@ -126,14 +137,43 @@ export function dreamscapeEnvPresence(): DreamscapeEnvPresence {
     readServerEnv("DREAMSCAPE_RESELLER_ID"),
   );
   const baseUrl = readServerEnv("DREAMSCAPE_API_BASE_URL")?.trim();
+  const soap = resolveDreamscapeSoapEndpoint({
+    restBaseUrl: (baseUrl || DREAMSCAPE_SANDBOX_BASE_URL).replace(/\/$/, ""),
+  });
   return {
     hasKey: Boolean(apiKey),
     hasResellerId: Boolean(resellerId),
     hasBaseUrl: Boolean(baseUrl),
     sendResellerId: shouldSendDreamscapeResellerId(),
     apiMode: resolveDreamscapeApiMode(),
+    soapEnv: soap.soapEnv,
+    soapHost: soapHostFromEndpoint(soap.endpoint),
     keyLength: apiKey?.length ?? 0,
   };
+}
+
+/** Hostname from a SOAP endpoint URL (safe for UI / debug). */
+export function soapHostFromEndpoint(endpoint: string): string {
+  try {
+    return new URL(endpoint).hostname;
+  } catch {
+    return endpoint.replace(/^https?:\/\//i, "").split("/")[0] || endpoint;
+  }
+}
+
+/**
+ * Parse DREAMSCAPE_SOAP_ENV / DREAMSCAPE_ENV.
+ * Accepts: sandbox|test · production|prod|live
+ */
+export function parseDreamscapeSoapEnv(
+  raw: string | undefined | null,
+): DreamscapeSoapEnv | null {
+  if (raw == null) return null;
+  const v = raw.trim().toLowerCase();
+  if (!v) return null;
+  if (v === "sandbox" || v === "test" || v === "soap-test") return "sandbox";
+  if (v === "production" || v === "prod" || v === "live") return "production";
+  return null;
 }
 
 type ProxyDispatcher = { close?: () => Promise<void> };
@@ -178,18 +218,61 @@ async function resolveProxiedFetch(proxyUrl: string): Promise<{
 }
 
 /**
- * Resolve SOAP endpoint. Override with DREAMSCAPE_SOAP_ENDPOINT.
- * Sandbox-first: soap-test unless REST base is explicitly production
- * (reseller-api.ds.network without sandbox) or SOAP endpoint override says so.
+ * Resolve SOAP SecureAPI endpoint.
+ *
+ * Priority:
+ * 1. DREAMSCAPE_SOAP_ENDPOINT or DREAMSCAPE_SOAP_URL (full URL override)
+ * 2. DREAMSCAPE_SOAP_ENV or DREAMSCAPE_ENV = sandbox|production
+ * 3. Derive from DREAMSCAPE_API_BASE_URL (prod REST → prod SOAP)
+ * 4. Default: sandbox (soap-test) — safe for local/dev
+ *
+ * Live API Setup (reseller.ds.network, Reseller ID + key) → set
+ * DREAMSCAPE_SOAP_ENV=production (soap.secureapi.com.au).
+ * Sandbox console (reseller.sandbox.ds.network) → soap-test (default).
  */
 export function resolveDreamscapeSoapEndpoint(opts?: {
   restBaseUrl?: string;
-}): { endpoint: string; isSandbox: boolean } {
-  const override = readServerEnv("DREAMSCAPE_SOAP_ENDPOINT")?.trim();
+}): {
+  endpoint: string;
+  isSandbox: boolean;
+  soapEnv: DreamscapeSoapEnv;
+  soapHost: string;
+} {
+  const override =
+    readServerEnv("DREAMSCAPE_SOAP_ENDPOINT")?.trim() ||
+    readServerEnv("DREAMSCAPE_SOAP_URL")?.trim();
   if (override) {
-    const isSandbox = /soap-test|sandbox/i.test(override);
-    return { endpoint: override.replace(/\/$/, ""), isSandbox };
+    const endpoint = override.replace(/\/$/, "");
+    const isSandbox = /soap-test|sandbox/i.test(endpoint);
+    const soapEnv: DreamscapeSoapEnv = isSandbox ? "sandbox" : "production";
+    return {
+      endpoint,
+      isSandbox,
+      soapEnv,
+      soapHost: soapHostFromEndpoint(endpoint),
+    };
   }
+
+  const explicitEnv =
+    parseDreamscapeSoapEnv(readServerEnv("DREAMSCAPE_SOAP_ENV")) ??
+    parseDreamscapeSoapEnv(readServerEnv("DREAMSCAPE_ENV"));
+  if (explicitEnv === "production") {
+    return {
+      endpoint: DREAMSCAPE_SOAP_PROD_ENDPOINT,
+      isSandbox: false,
+      soapEnv: "production",
+      soapHost: soapHostFromEndpoint(DREAMSCAPE_SOAP_PROD_ENDPOINT),
+    };
+  }
+  if (explicitEnv === "sandbox") {
+    return {
+      endpoint: DREAMSCAPE_SOAP_SANDBOX_ENDPOINT,
+      isSandbox: true,
+      soapEnv: "sandbox",
+      soapHost: soapHostFromEndpoint(DREAMSCAPE_SOAP_SANDBOX_ENDPOINT),
+    };
+  }
+
   const restBase =
     opts?.restBaseUrl ??
     readServerEnv("DREAMSCAPE_API_BASE_URL")?.trim() ??
@@ -198,9 +281,19 @@ export function resolveDreamscapeSoapEndpoint(opts?: {
     /reseller-api\.ds\.network/i.test(restBase) &&
     !/sandbox/i.test(restBase);
   if (restIsProd) {
-    return { endpoint: DREAMSCAPE_SOAP_PROD_ENDPOINT, isSandbox: false };
+    return {
+      endpoint: DREAMSCAPE_SOAP_PROD_ENDPOINT,
+      isSandbox: false,
+      soapEnv: "production",
+      soapHost: soapHostFromEndpoint(DREAMSCAPE_SOAP_PROD_ENDPOINT),
+    };
   }
-  return { endpoint: DREAMSCAPE_SOAP_SANDBOX_ENDPOINT, isSandbox: true };
+  return {
+    endpoint: DREAMSCAPE_SOAP_SANDBOX_ENDPOINT,
+    isSandbox: true,
+    soapEnv: "sandbox",
+    soapHost: soapHostFromEndpoint(DREAMSCAPE_SOAP_SANDBOX_ENDPOINT),
+  };
 }
 
 /**
@@ -218,6 +311,8 @@ export function resolveDreamscapeConfig(): {
   apiMode: DreamscapeApiMode;
   baseUrl: string;
   soapEndpoint: string;
+  soapEnv: DreamscapeSoapEnv;
+  soapHost: string;
   activeEndpoint: string;
   isSandbox: boolean;
   httpsProxy: string | null;
@@ -241,6 +336,8 @@ export function resolveDreamscapeConfig(): {
     /** REST base URL (always). For the active transport URL see activeEndpoint. */
     baseUrl,
     soapEndpoint: soap.endpoint,
+    soapEnv: soap.soapEnv,
+    soapHost: soap.soapHost,
     /** Endpoint currently used for provider calls (SOAP or REST). */
     activeEndpoint: apiMode === "soap" ? soap.endpoint : baseUrl,
     isSandbox,
@@ -357,8 +454,8 @@ export function describeDreamscapeAuthFailure(
       message:
         "Dreamscape SOAP rejected the request (401). Reseller ID + API Key auth failed.",
       hint: isSandbox
-        ? "1) DREAMSCAPE_RESELLER_ID + DREAMSCAPE_API_KEY from API & WHMCS → API Setup. 2) DREAMSCAPE_API_MODE=soap (or leave unset when Reseller ID is set). 3) Sandbox SOAP: https://soap-test.secureapi.com.au/server.php?v=1.3. 4) Support’s Reseller ID pattern is SOAP — not REST Api-Signature. 5) Redeploy after env changes."
-        : "1) Live Reseller ID + API Key. 2) Production SOAP: https://soap.secureapi.com.au/server.php?v=1.3. 3) DREAMSCAPE_API_MODE=soap. 4) Whitelist egress if required. 5) Redeploy.",
+        ? "1) Credentials from reseller.sandbox.ds.network → API Setup (not live). 2) DREAMSCAPE_RESELLER_ID + DREAMSCAPE_API_KEY. 3) DREAMSCAPE_SOAP_ENV=sandbox (default) → soap-test.secureapi.com.au. 4) Live console keys need DREAMSCAPE_SOAP_ENV=production. 5) Redeploy after env changes."
+        : "1) Live credentials from reseller.ds.network → API Setup. 2) DREAMSCAPE_RESELLER_ID + DREAMSCAPE_API_KEY. 3) DREAMSCAPE_SOAP_ENV=production → soap.secureapi.com.au. 4) Whitelist egress if required. 5) Redeploy.",
     };
   }
 
