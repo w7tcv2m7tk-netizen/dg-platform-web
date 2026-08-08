@@ -235,16 +235,20 @@ export class StripePaymentConnector implements PaymentConnector {
       };
     }
 
-    if (event.type === "transfer.failed" || event.type === "transfer.reversed") {
+    // Stripe's TS Event type includes transfer.reversed/created/updated but not
+    // transfer.failed; keep a runtime check for Dashboard/webhook configurations
+    // that still emit it (and for forward-compat).
+    const stripeEventType = event.type as string;
+    if (stripeEventType === "transfer.failed" || stripeEventType === "transfer.reversed") {
       const transfer = event.data.object as Stripe.Transfer;
       const failureMessage =
-        event.type === "transfer.failed"
+        stripeEventType === "transfer.failed"
           ? ((transfer as Stripe.Transfer & { failure_message?: string | null })
               .failure_message ?? undefined)
           : "Transfer reversed";
       return {
         type:
-          event.type === "transfer.failed"
+          stripeEventType === "transfer.failed"
             ? "connect.transfer.failed"
             : "connect.transfer.reversed",
         providerId: "stripe",

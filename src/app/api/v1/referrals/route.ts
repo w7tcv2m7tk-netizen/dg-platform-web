@@ -52,16 +52,19 @@ export async function POST(req: Request) {
       actorId: session.clerkUserId,
     });
     if (!result.ok) {
+      // Resolve reason → copy before `"message" in result` narrows away Connect reasons.
+      const fallback =
+        result.reason === "below_threshold"
+          ? "Balance is below the cash payout threshold"
+          : result.reason === "connect_not_configured"
+            ? "Cash bank payouts are not enabled on this environment"
+            : result.reason === "connect_incomplete"
+              ? "Finish Stripe Connect onboarding before requesting a cash payout"
+              : "Cash payout unavailable";
       const message =
         "message" in result && typeof result.message === "string"
           ? result.message
-          : result.reason === "below_threshold"
-            ? "Balance is below the cash payout threshold"
-            : result.reason === "connect_not_configured"
-              ? "Cash bank payouts are not enabled on this environment"
-              : result.reason === "connect_incomplete"
-                ? "Finish Stripe Connect onboarding before requesting a cash payout"
-                : "Cash payout unavailable";
+          : fallback;
       return NextResponse.json(
         { error: { code: result.reason, message, ...result } },
         { status: 422 },

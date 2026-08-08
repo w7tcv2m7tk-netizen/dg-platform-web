@@ -7,8 +7,10 @@ import {
   getContact,
   getLead,
   getProperty,
+  listLeads,
   listPropertyActivities,
-  listPropertyOffers,} from "@dg/platform-core";
+  listPropertyOffers,
+} from "@dg/platform-core";
 
 import { PropertyContractPanel } from "@/components/re/PropertyContractPanel";
 import { PropertyOffersPanel } from "@/components/re/PropertyOffersPanel";
@@ -56,7 +58,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
   const property = await getProperty(session.organisationId, id);
   if (!property) notFound();
 
-  const [activities, lead, contact, offers] = await Promise.all([
+  const [activities, lead, contact, offers, buyerLeadsResult] = await Promise.all([
     listPropertyActivities(session.organisationId, id),
     property.leadId
       ? getLead(session.organisationId, property.leadId)
@@ -65,6 +67,11 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       ? getContact(session.organisationId, property.ownerContactId)
       : Promise.resolve(null),
     listPropertyOffers(session.organisationId, id),
+    listLeads({
+      organisationId: session.organisationId,
+      leadType: "buyer",
+      limit: 100,
+    }),
   ]);
 
   const contract = property.metadata?.contract as
@@ -95,6 +102,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
   const buildingSize =
     typeof property.metadata?.building_size === "string"
       ? property.metadata.building_size
+      : null;
+  const inspectionTimes =
+    typeof property.metadata?.inspection_times === "string"
+      ? property.metadata.inspection_times
       : null;
 
   return (
