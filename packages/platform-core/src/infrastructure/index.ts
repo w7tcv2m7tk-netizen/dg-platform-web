@@ -66,7 +66,7 @@ export async function getDigitalInfrastructureOverview(organisationId: string): 
         status: "not_configured",
         providerId: "dreamscape",
         checkedAt: new Date().toISOString(),
-        message: "Set DREAMSCAPE_API_KEY against sandbox before provisioning",
+        message: "Set DREAMSCAPE_API_KEY and DREAMSCAPE_RESELLER_ID against sandbox before provisioning",
         details: { baseUrl, isSandbox },
       },
       checklist,

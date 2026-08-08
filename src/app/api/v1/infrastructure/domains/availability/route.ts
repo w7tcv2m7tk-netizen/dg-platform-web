@@ -51,8 +51,8 @@ export async function GET(req: Request) {
       error: {
         code: "provider_not_configured",
         message:
-          "Domain provider is not configured. Set DREAMSCAPE_API_KEY against the sandbox API first.",
-        hint: "Reseller Console (sandbox) → Account Settings → API & WHMCS → API Setup",
+          "Domain provider is not configured. Set DREAMSCAPE_API_KEY and DREAMSCAPE_RESELLER_ID against the sandbox API first.",
+        hint: "Reseller Console (sandbox) → Account Settings → API & WHMCS → API Setup — copy API Key and Reseller ID (both required per Dreamscape support)",
       },
     });
   }

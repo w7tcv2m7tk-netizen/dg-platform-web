@@ -141,7 +141,7 @@ export class DreamscapeDomainProvider implements DomainProvider {
   async search(query: string | string[]): Promise<DomainAvailability[]> {
     if (!isDreamscapeConfigured()) {
       throw new InfrastructureNotConfiguredError(
-        "Set DREAMSCAPE_API_KEY (sandbox Reseller Console) to enable domain search",
+        "Set DREAMSCAPE_API_KEY and DREAMSCAPE_RESELLER_ID (sandbox Reseller Console → API Setup) to enable domain search",
       );
     }
 
@@ -208,13 +208,21 @@ export class DreamscapeDomainProvider implements DomainProvider {
     baseUrl: string;
     message: string;
   }> {
-    const { apiKey, baseUrl, isSandbox } = resolveDreamscapeConfig();
+    const { apiKey, resellerId, baseUrl, isSandbox } = resolveDreamscapeConfig();
     if (!apiKey) {
       return {
         ok: false,
         isSandbox,
         baseUrl,
         message: "DREAMSCAPE_API_KEY is not set",
+      };
+    }
+    if (!resellerId) {
+      return {
+        ok: false,
+        isSandbox,
+        baseUrl,
+        message: "DREAMSCAPE_RESELLER_ID is not set",
       };
     }
     try {

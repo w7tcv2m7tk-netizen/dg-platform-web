@@ -113,19 +113,18 @@ export function DomainAvailabilitySearch() {
               {result.error.code?.startsWith("auth_") ? (
                 <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-amber-200/70">
                   <li>
+                    Set DREAMSCAPE_RESELLER_ID (e.g. 25735) — required alongside
+                    the API key per Dreamscape support.
+                  </li>
+                  <li>
                     Sandbox key must come from reseller.sandbox.ds.network (prod
-                    keys 401 on sandbox).
+                    keys 401 on sandbox). If a key was exposed in chat, regenerate
+                    it immediately.
                   </li>
                   <li>
-                    IP whitelist cannot be empty or 0.0.0.0/0 (API rejects).
-                    Local: whitelist your public IP. Vercel: no reliable free
-                    public IP range — use Vercel Static IPs (Pro) or
-                    DREAMSCAPE_HTTPS_PROXY / HTTPS_PROXY (Fixie/QuotaGuard) and
-                    whitelist that static egress IP.
-                  </li>
-                  <li>
-                    Reseller ID is account/WHMCS identity only — not a REST
-                    header (do not set it in Vercel for this integration).
+                    Sandbox: no IP whitelist (IP is a red herring). Production:
+                    whitelist a stable egress IP if needed (Vercel Static IPs or
+                    DREAMSCAPE_HTTPS_PROXY).
                   </li>
                 </ul>
               ) : null}

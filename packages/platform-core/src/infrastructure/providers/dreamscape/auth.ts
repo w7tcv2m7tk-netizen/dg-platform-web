@@ -1,5 +1,8 @@
 import { createHash, randomBytes } from "node:crypto";
 
+/** Dreamscape Api-* naming; override via DREAMSCAPE_RESELLER_ID_HEADER if support differs. */
+export const DREAMSCAPE_DEFAULT_RESELLER_ID_HEADER = "Api-Reseller-Id";
+
 /** Unique MD5 request id per Dreamscape API call. */
 export function dreamscapeRequestId(): string {
   return createHash("md5")
@@ -12,17 +15,41 @@ export function dreamscapeSignature(requestId: string, apiKey: string): string {
   return createHash("md5").update(`${requestId}${apiKey}`).digest("hex");
 }
 
+export type DreamscapeAuthHeaderOptions = {
+  /** Numeric Reseller ID from API Setup (required per Dreamscape support). */
+  resellerId?: string | null;
+  /**
+   * Header name for Reseller ID. Public REST docs omit this; support says it
+   * must be sent. Default `Api-Reseller-Id` matches Api-Request-Id / Api-Signature.
+   * Override with DREAMSCAPE_RESELLER_ID_HEADER if needed (e.g. Reseller-Id).
+   */
+  resellerIdHeader?: string | null;
+};
+
 /**
- * REST auth headers per https://doc-reseller-api.ds.network/
- * Only Api-Request-Id + Api-Signature. Reseller ID is NOT a REST header
- * (console “Reseller ID” is account / WHMCS identity — do not send it).
- * PHP SDK: “authentication via Reseller API Key only.”
+ * REST auth headers per https://doc-reseller-api.ds.network/ plus Reseller ID.
+ *
+ * Documented: Api-Request-Id + Api-Signature (md5(request_id + api_key)).
+ * Support (Aug 2026): also pass Reseller ID alongside the API key. Public docs
+ * do not name the header — we default to Api-Reseller-Id (Api-* convention).
  */
-export function dreamscapeAuthHeaders(apiKey: string): Record<string, string> {
+export function dreamscapeAuthHeaders(
+  apiKey: string,
+  opts?: DreamscapeAuthHeaderOptions,
+): Record<string, string> {
   const requestId = dreamscapeRequestId();
-  return {
+  const headers: Record<string, string> = {
     Accept: "application/json",
     "Api-Request-Id": requestId,
     "Api-Signature": dreamscapeSignature(requestId, apiKey),
   };
+
+  const resellerId = opts?.resellerId?.trim();
+  if (resellerId) {
+    const headerName =
+      opts?.resellerIdHeader?.trim() || DREAMSCAPE_DEFAULT_RESELLER_ID_HEADER;
+    headers[headerName] = resellerId;
+  }
+
+  return headers;
 }
