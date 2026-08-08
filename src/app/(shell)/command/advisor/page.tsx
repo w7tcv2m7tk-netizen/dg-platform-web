@@ -29,7 +29,7 @@ export default async function CommandAdvisorPage({ searchParams }: PageProps) {
           Staff insights from Success Score™, CRM, connectors, and billing — LLM when configured.
         </p>
       </header>
-      <main className="flex-1 space-y-8 p-6 md:p-8">
+      <main className="dg-page-main space-y-8">
         <CommandCentreNav active="advisor" />
         {!data ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">

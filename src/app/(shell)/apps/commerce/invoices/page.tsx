@@ -71,13 +71,14 @@ export default async function CommerceInvoicesPage() {
           {invoices.length} invoice(s) · AU tax invoice layout from Business Profile
         </p>
       </header>
-      <main className="flex-1 space-y-6 p-8">
+      <main className="dg-page-main space-y-6">
         <CreateDocumentForm
           kind="invoice"
           defaultTaxInclusive={taxDefaults.pricesIncludeTax}
           defaultApplyGst={taxDefaults.defaultTaxRateBps > 0}
         />
-        <div className="dg-card overflow-x-auto">
+        <div className="dg-card dg-table-scroll !p-0 sm:!p-6">
+          <div className="p-4 sm:p-0">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-slate-800 text-slate-500">
@@ -126,6 +127,7 @@ export default async function CommerceInvoicesPage() {
               No invoices yet — create one or convert an accepted quote.
             </p>
           ) : null}
+          </div>
         </div>
       </main>
     </>

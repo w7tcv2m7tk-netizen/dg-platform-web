@@ -38,7 +38,7 @@ export default async function PlatformApiSettingsPage() {
           REST API for integrations, automations, and connectors
         </p>
       </header>
-      <main className="flex-1 space-y-8 p-8">
+      <main className="dg-page-main space-y-8">
         <div className="dg-card">
           <h2 className="font-semibold text-white">Base URL</h2>
           <p className="mt-2 font-mono text-sm text-blue-300">{baseUrl}/api/v1</p>

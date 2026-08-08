@@ -146,7 +146,7 @@ export function AccommodationBookingsTable({
           <p className="text-slate-300">No bookings returned.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-800">
+        <div className="overflow-x-auto rounded-xl border border-slate-800 dg-table-scroll">
           <table className="w-full min-w-[1100px] text-left text-sm">
             <thead className="border-b border-slate-800 bg-slate-900/60 text-xs uppercase text-slate-500">
               <tr>
@@ -195,8 +195,8 @@ export function AccommodationBookingsTable({
                         </div>
                       ) : (
                         <>
-                          <p className="text-white">{b.guest_name ?? "—"}</p>
-                          <p className="text-xs text-slate-500">{b.email}</p>
+                          <p className="dg-break-anywhere text-white">{b.guest_name ?? "—"}</p>
+                          <p className="dg-break-anywhere text-xs text-slate-500">{b.email}</p>
                           {b.phone ? (
                             <p className="text-xs text-slate-500">{b.phone}</p>
                           ) : null}

@@ -19,7 +19,7 @@ export default async function CommandPlatformHealthPage() {
           Connectors and commercial plumbing — infra metrics land with monitoring.
         </p>
       </header>
-      <main className="flex-1 space-y-8 p-6 md:p-8">
+      <main className="dg-page-main space-y-8">
         <CommandCentreNav active="health" />
 
         <section>

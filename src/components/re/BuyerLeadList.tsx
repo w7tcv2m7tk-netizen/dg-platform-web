@@ -60,7 +60,7 @@ export function BuyerLeadList({
           type="button"
           onClick={syncFromWordPress}
           disabled={syncing}
-          className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+          className="dg-btn dg-btn-primary"
         >
           {syncing ? "Syncing…" : "Sync buyers from WordPress"}
         </button>
@@ -76,8 +76,8 @@ export function BuyerLeadList({
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-800">
-          <table className="w-full min-w-[640px] text-left text-sm">
+        <div className="dg-table-scroll rounded-xl border border-slate-800">
+          <table className="w-full text-left text-sm">
             <thead className="border-b border-slate-800 bg-slate-900/60 text-xs uppercase text-slate-500">
               <tr>
                 <th className="px-4 py-3">Lead</th>
@@ -95,10 +95,18 @@ export function BuyerLeadList({
 
                 return (
                   <tr key={lead.id} className="hover:bg-slate-900/40">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-white">{lead.title ?? "Buyer lead"}</p>
+                    <td className="max-w-[14rem] px-4 py-3">
+                      <Link
+                        href={`/apps/re/buyer-leads/${lead.id}`}
+                        className="dg-break-anywhere font-medium text-white hover:text-blue-300"
+                        prefetch
+                      >
+                        {lead.title ?? "Buyer lead"}
+                      </Link>
                       {lead.propertyAddress ? (
-                        <p className="text-xs text-slate-500">{lead.propertyAddress}</p>
+                        <p className="dg-break-anywhere text-xs text-slate-500">
+                          {lead.propertyAddress}
+                        </p>
                       ) : null}
                     </td>
                     <td className="px-4 py-3">
@@ -106,8 +114,10 @@ export function BuyerLeadList({
                         {stageLabel}
                       </span>
                     </td>
-                    <td className="max-w-xs truncate px-4 py-3 text-slate-400">
-                      {lead.description ?? "—"}
+                    <td className="max-w-xs px-4 py-3 text-slate-400">
+                      <span className="dg-break-anywhere line-clamp-3">
+                        {lead.description ?? "—"}
+                      </span>
                       {propertyUrl ? (
                         <>
                           {" "}
@@ -122,7 +132,7 @@ export function BuyerLeadList({
                         </>
                       ) : null}
                     </td>
-                    <td className="px-4 py-3 text-slate-500">
+                    <td className="whitespace-nowrap px-4 py-3 text-slate-500">
                       {new Date(lead.createdAt).toLocaleDateString("en-AU")}
                     </td>
                   </tr>

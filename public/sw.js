@@ -1,5 +1,5 @@
 /* DigitalGate PWA service worker — offline shell + static asset cache */
-const VERSION = "dg-v3";
+const VERSION = "dg-v4";
 const STATIC_CACHE = `dg-static-${VERSION}`;
 const RUNTIME_CACHE = `dg-runtime-${VERSION}`;
 

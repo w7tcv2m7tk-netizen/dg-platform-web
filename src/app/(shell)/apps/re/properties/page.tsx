@@ -65,7 +65,7 @@ export default async function PropertiesPage() {
           <SyncListingsButton />
         </div>
       </header>
-      <main className="flex-1 space-y-6 p-8">
+      <main className="dg-page-main space-y-6">
         <CreatePropertyForm />
         <PropertyList properties={items} />
       </main>

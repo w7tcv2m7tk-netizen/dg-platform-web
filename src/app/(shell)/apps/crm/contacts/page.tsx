@@ -92,17 +92,18 @@ export default async function CrmContactsPage() {
             ) : (
               <ul className="mt-4 divide-y divide-slate-800">
                 {items.map((contact) => (
-                  <li key={contact.id} className="py-3">
+                  <li key={contact.id} className="min-w-0 py-3">
                     <Link
                       href={`/apps/crm/contacts/${contact.id}`}
-                      className="block hover:opacity-90"
+                      className="dg-list-row block hover:opacity-90"
+                      prefetch
                     >
-                      <p className="font-medium text-white">
+                      <p className="dg-break-anywhere font-medium text-white">
                         {[contact.firstName, contact.lastName]
                           .filter(Boolean)
                           .join(" ")}
                       </p>
-                      <p className="text-sm text-slate-400">
+                      <p className="dg-break-anywhere text-sm text-slate-400">
                         {[contact.email, contact.phone, contact.source]
                           .filter(Boolean)
                           .join(" · ")}

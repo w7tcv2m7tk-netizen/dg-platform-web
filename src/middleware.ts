@@ -2,6 +2,10 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { AUTH_AFTER_SIGN_IN_URL } from "@/lib/auth-routes";
+import {
+  CLERK_PROXY_PATH,
+  shouldEnableClerkFrontendApiProxy,
+} from "@/lib/clerk-proxy";
 
 const isPublicRoute = createRouteMatcher([
   "/",
@@ -54,12 +58,24 @@ export default clerkMiddleware(
       await auth.protect();
     }
   },
-  { authorizedParties },
+  {
+    authorizedParties,
+    /**
+     * Proxy Clerk FAPI through the app origin so session handshake stays inside
+     * the installed PWA window (clerk.digitalgate.com.au is outside manifest scope).
+     */
+    frontendApiProxy: {
+      enabled: (url) => shouldEnableClerkFrontendApiProxy(url),
+      path: CLERK_PROXY_PATH,
+    },
+  },
 );
 
 export const config = {
   matcher: [
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/(api|trpc)(.*)",
+    // Clerk FAPI proxy — must be a static string for Next matcher parsing
+    "/__clerk/(.*)",
   ],
 };

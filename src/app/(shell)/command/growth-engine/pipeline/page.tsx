@@ -24,7 +24,7 @@ export default async function GrowthPipelinePage() {
           {prospects.length} prospect{prospects.length === 1 ? "" : "s"} · auto-advances on report and engagement events
         </p>
       </header>
-      <main className="flex-1 space-y-6 p-8">
+      <main className="dg-page-main space-y-6">
         <GrowthEngineNav active="/command/growth-engine/pipeline" />
 
         {!process.env.DATABASE_URL ? (

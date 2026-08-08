@@ -22,7 +22,7 @@ export default async function SupportPage() {
           Live chat with the DigitalGate team — or email if you prefer
         </p>
       </header>
-      <main className="flex-1 space-y-6 p-8">
+      <main className="dg-page-main space-y-6">
         <SupportChatPanel embedded userName={userName ?? undefined} />
 
         <div className="dg-card max-w-xl">

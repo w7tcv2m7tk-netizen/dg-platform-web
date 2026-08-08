@@ -35,7 +35,7 @@ export function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
         type="button"
         onClick={onMenuClick}
         aria-label="Open menu"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border dg-branded-surface text-slate-200 transition hover:text-white"
+        className="dg-touch-target flex shrink-0 items-center justify-center rounded-lg border dg-branded-surface text-slate-200 transition hover:text-white"
       >
         <MenuIcon />
       </button>

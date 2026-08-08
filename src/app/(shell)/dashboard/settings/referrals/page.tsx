@@ -64,7 +64,7 @@ export default async function ReferAndEarnPage() {
           (Customer 20% · Partner 25% · Reseller 30%)
         </p>
       </header>
-      <main className="flex-1 space-y-6 p-8">
+      <main className="dg-page-main space-y-6">
         {!session || !dash ? (
           <div className="dg-card">
             <p className="text-sm text-slate-400">Sign in to view your referral programme.</p>

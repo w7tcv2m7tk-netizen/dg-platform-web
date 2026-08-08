@@ -20,7 +20,7 @@ export default async function CommandFlagsPage() {
           Cross-tenant rollout controls stored on organisation settings.
         </p>
       </header>
-      <main className="flex-1 space-y-8 p-6 md:p-8">
+      <main className="dg-page-main space-y-8">
         <CommandCentreNav active="flags" />
         {!data ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">

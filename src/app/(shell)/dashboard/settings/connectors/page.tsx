@@ -70,7 +70,7 @@ export default async function ConnectorsSettingsPage() {
           WordPress sync, site health, and payment provider configuration
         </p>
       </header>
-      <main className="flex-1 space-y-6 p-8">
+      <main className="dg-page-main space-y-6">
         {session && wpResolved ? (
           <WordPressConnectorPanel
             initial={{

@@ -9,9 +9,12 @@ import {
   AUTH_SIGN_UP_URL,
 } from "@/lib/auth-routes";
 import { BRAND_DEFAULT } from "@/lib/brand";
+import { clerkProxyUrl } from "@/lib/clerk-proxy";
 import { ServiceWorkerRegistration } from "@/components/platform/ServiceWorkerRegistration";
 import "./globals.css";
 import "./clerk-overrides.css";
+
+const proxyUrl = clerkProxyUrl();
 
 const inter = Inter({
   subsets: ["latin"],
@@ -72,6 +75,7 @@ export default function RootLayout({
       signUpFallbackRedirectUrl={AUTH_AFTER_SIGN_IN_URL}
       afterSignOutUrl={AUTH_AFTER_SIGN_OUT_URL}
       touchSession
+      {...(proxyUrl ? { proxyUrl } : {})}
       taskUrls={{
         "setup-mfa": AUTH_AFTER_SIGN_IN_URL,
         "reset-password": AUTH_SIGN_IN_URL,

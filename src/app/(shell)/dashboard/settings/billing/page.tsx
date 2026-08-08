@@ -45,7 +45,7 @@ export default async function BillingSettingsPage() {
           Your subscription, purchase history, and enabled apps
         </p>
       </header>
-      <main className="flex-1 space-y-6 p-8">
+      <main className="dg-page-main space-y-6">
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="dg-card">
             <h2 className="font-semibold text-white">Current plan</h2>

@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { EmailLine } from "@/components/ui/BreakText";
+import { TableScroll } from "@/components/ui/TableScroll";
+
 export type AccommodationGuestListRow = {
   contactId: string;
   displayName: string;
@@ -23,6 +26,26 @@ function formatSpendAud(cents: number): string {
     currency: "AUD",
     maximumFractionDigits: 0,
   }).format(cents / 100);
+}
+
+function GuestStatusBadges({ g }: { g: AccommodationGuestListRow }) {
+  return (
+    <div className="flex flex-wrap gap-1">
+      {g.repeatGuest ? (
+        <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300">
+          Repeat Guest
+        </span>
+      ) : null}
+      {g.vip ? (
+        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-300">
+          VIP
+        </span>
+      ) : null}
+      {!g.repeatGuest && !g.vip ? (
+        <span className="text-slate-500">—</span>
+      ) : null}
+    </div>
+  );
 }
 
 export function AccommodationGuestsTable({
@@ -71,65 +94,84 @@ export function AccommodationGuestsTable({
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-800">
-          <table className="w-full min-w-[880px] text-left text-sm">
-            <thead className="border-b border-slate-800 bg-slate-900/60 text-xs uppercase text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Guest</th>
-                <th className="px-4 py-3">Contact</th>
-                <th className="px-4 py-3">Stays</th>
-                <th className="px-4 py-3">LTV</th>
-                <th className="px-4 py-3">Last stay</th>
-                <th className="px-4 py-3">Favourite unit</th>
-                <th className="px-4 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800">
-              {guests.map((g) => (
-                <tr
-                  key={g.contactId}
-                  className="cursor-pointer hover:bg-slate-900/40"
+        <>
+          {/* Mobile: stacked cards — no horizontal scroll trap */}
+          <ul className="space-y-3 md:hidden">
+            {guests.map((g) => (
+              <li key={g.contactId}>
+                <button
+                  type="button"
+                  className="dg-card dg-list-row w-full min-w-0 p-4 text-left"
                   onClick={() => router.push(`/apps/accommodation/guests/${g.contactId}`)}
                 >
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-white">{g.displayName}</div>
-                    <div className="text-xs text-slate-500">
-                      {[g.email, g.phone].filter(Boolean).join(" · ") || "—"}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="rounded-full border border-slate-600 px-2 py-0.5 text-xs text-slate-300">
-                      {g.role}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-slate-300">{g.stayCount}</td>
-                  <td className="px-4 py-3 text-slate-300">
-                    {formatSpendAud(g.totalSpendCents)}
-                  </td>
-                  <td className="px-4 py-3 text-slate-400">{g.lastStayAt ?? "—"}</td>
-                  <td className="px-4 py-3 text-slate-400">{g.favouriteUnit ?? "—"}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
-                      {g.repeatGuest ? (
-                        <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300">
-                          Repeat Guest
+                  <p className="dg-break-anywhere font-medium text-white">{g.displayName}</p>
+                  {g.email ? <EmailLine email={g.email} className="text-sm" /> : null}
+                  {g.phone ? <p className="text-sm text-slate-500">{g.phone}</p> : null}
+                  <p className="text-sm text-slate-400">
+                    {g.stayCount} stays · {formatSpendAud(g.totalSpendCents)}
+                    {g.lastStayAt ? ` · last ${g.lastStayAt}` : ""}
+                  </p>
+                  <GuestStatusBadges g={g} />
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {/* Desktop / tablet: table in a contained scroller */}
+          <div className="hidden md:block">
+            <TableScroll>
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-slate-800 bg-slate-900/60 text-xs uppercase text-slate-500">
+                  <tr>
+                    <th className="px-4 py-3">Guest</th>
+                    <th className="px-4 py-3">Contact</th>
+                    <th className="px-4 py-3">Stays</th>
+                    <th className="px-4 py-3">LTV</th>
+                    <th className="px-4 py-3">Last stay</th>
+                    <th className="px-4 py-3">Favourite unit</th>
+                    <th className="px-4 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                  {guests.map((g) => (
+                    <tr
+                      key={g.contactId}
+                      className="cursor-pointer hover:bg-slate-900/40"
+                      onClick={() => router.push(`/apps/accommodation/guests/${g.contactId}`)}
+                    >
+                      <td className="max-w-[16rem] px-4 py-3">
+                        <div className="dg-break-anywhere font-medium text-white">
+                          {g.displayName}
+                        </div>
+                        <div className="mt-0.5 text-xs text-slate-500">
+                          {g.email ? <EmailLine email={g.email} className="text-xs" /> : null}
+                          {!g.email && g.phone ? g.phone : null}
+                          {!g.email && !g.phone ? "—" : null}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="rounded-full border border-slate-600 px-2 py-0.5 text-xs text-slate-300">
+                          {g.role}
                         </span>
-                      ) : null}
-                      {g.vip ? (
-                        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-300">
-                          VIP
-                        </span>
-                      ) : null}
-                      {!g.repeatGuest && !g.vip ? (
-                        <span className="text-slate-500">—</span>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-300">{g.stayCount}</td>
+                      <td className="px-4 py-3 text-slate-300">
+                        {formatSpendAud(g.totalSpendCents)}
+                      </td>
+                      <td className="px-4 py-3 text-slate-400">{g.lastStayAt ?? "—"}</td>
+                      <td className="max-w-[10rem] px-4 py-3 text-slate-400">
+                        <span className="dg-break-anywhere">{g.favouriteUnit ?? "—"}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <GuestStatusBadges g={g} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </TableScroll>
+          </div>
+        </>
       )}
 
       <p className="text-xs text-slate-500">

@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { usePendingAction } from "@/hooks/usePendingAction";
+
 export function CreateLeadForm({
   leadType = "vendor",
 }: {
@@ -15,38 +17,39 @@ export function CreateLeadForm({
   const [phone, setPhone] = useState("");
   const [propertyAddress, setPropertyAddress] = useState("");
   const [notes, setNotes] = useState("");
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { pending, error, setError, run, startTransition } = usePendingAction();
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setPending(true);
-    setError(null);
-    const res = await fetch("/api/v1/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        leadType,
-        name,
-        email,
-        phone,
-        propertyAddress,
-        notes,
-      }),
+    await run(async () => {
+      const res = await fetch("/api/v1/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadType,
+          name,
+          email,
+          phone,
+          propertyAddress,
+          notes,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const message = json.error?.message ?? "Could not create lead";
+        setError(message);
+        throw new Error(message);
+      }
+      setName("");
+      setEmail("");
+      setPhone("");
+      setPropertyAddress("");
+      setNotes("");
+      setOpen(false);
+      startTransition(() => {
+        router.refresh();
+      });
     });
-    const json = await res.json().catch(() => ({}));
-    setPending(false);
-    if (!res.ok) {
-      setError(json.error?.message ?? "Could not create lead");
-      return;
-    }
-    setName("");
-    setEmail("");
-    setPhone("");
-    setPropertyAddress("");
-    setNotes("");
-    setOpen(false);
-    router.refresh();
   }
 
   if (!open) {
@@ -54,7 +57,7 @@ export function CreateLeadForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 hover:border-blue-500 hover:text-white"
+        className="dg-btn border border-slate-600 text-slate-200 hover:border-blue-500 hover:text-white"
       >
         Add {leadType} lead
       </button>
@@ -73,7 +76,7 @@ export function CreateLeadForm({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="text-xs text-slate-400 hover:text-white"
+          className="dg-touch-target px-2 text-sm text-slate-400 hover:text-white"
         >
           Cancel
         </button>
@@ -81,56 +84,54 @@ export function CreateLeadForm({
       <p className="text-xs text-slate-500">
         Stored in Platform (Neon) — WordPress sync not required.
       </p>
-      <label className="block text-sm">
+      <label className="block min-w-0 text-sm">
         <span className="text-slate-400">Name</span>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+          className="dg-input mt-1"
         />
       </label>
-      <label className="block text-sm">
+      <label className="block min-w-0 text-sm">
         <span className="text-slate-400">Property address</span>
         <input
           value={propertyAddress}
           onChange={(e) => setPropertyAddress(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+          className="dg-input mt-1"
         />
       </label>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block text-sm">
+        <label className="block min-w-0 text-sm">
           <span className="text-slate-400">Email</span>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+            className="dg-input mt-1"
+            autoComplete="email"
           />
         </label>
-        <label className="block text-sm">
+        <label className="block min-w-0 text-sm">
           <span className="text-slate-400">Phone</span>
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+            className="dg-input mt-1"
+            autoComplete="tel"
           />
         </label>
       </div>
-      <label className="block text-sm">
+      <label className="block min-w-0 text-sm">
         <span className="text-slate-400">Notes</span>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
-          className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+          className="dg-input mt-1"
         />
       </label>
       {error ? <p className="text-sm text-amber-400">{error}</p> : null}
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
-      >
+      <button type="submit" disabled={pending} className="dg-btn dg-btn-primary">
         {pending ? "Creating…" : "Create lead"}
       </button>
     </form>

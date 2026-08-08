@@ -40,7 +40,7 @@ async function CommandOverviewPage() {
           </p>
         </div>
       </header>
-      <main className="flex-1 space-y-8 p-6 md:p-8">
+      <main className="dg-page-main space-y-8">
         <CommandCentreNav active="overview" />
 
         {!data ? (

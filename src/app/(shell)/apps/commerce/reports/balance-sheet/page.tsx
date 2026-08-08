@@ -60,7 +60,7 @@ export default async function BalanceSheetReportPage({
         <h1 className="mt-2 text-2xl font-bold text-white">Balance Sheet</h1>
         <p className="text-sm text-slate-400">{report.scopeNote}</p>
       </header>
-      <main className="flex-1 space-y-6 p-8">
+      <main className="dg-page-main space-y-6">
         <Suspense fallback={null}>
           <ReportDateRangeFilter basePath="/apps/commerce/reports/balance-sheet" />
         </Suspense>

@@ -81,7 +81,7 @@ export default async function AiVisibilityPage() {
           Live scoring for {firstName}&apos;s discoverability in AI search and assistants
         </p>
       </header>
-      <main className="flex-1 p-8">
+      <main className="dg-page-main">
         <AiVisibilityDashboard
           aiVisibilityScore={aiVisibilityScore}
           businessHealth={businessHealth}

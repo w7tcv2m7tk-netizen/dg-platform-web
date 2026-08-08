@@ -40,7 +40,7 @@ export default async function CommandReportsPage({ searchParams }: PageProps) {
           Period executive snapshots from Neon aggregates — leads, activity, listings, invoices.
         </p>
       </header>
-      <main className="flex-1 space-y-8 p-6 md:p-8">
+      <main className="dg-page-main space-y-8">
         <CommandCentreNav active="reports" />
 
         <div className="flex flex-wrap gap-2">

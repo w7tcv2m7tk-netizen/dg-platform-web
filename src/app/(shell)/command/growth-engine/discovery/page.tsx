@@ -15,7 +15,7 @@ export default function GrowthDiscoveryPage() {
           Add prospect businesses — automated search and Google Business Profile integration coming in GE-2
         </p>
       </header>
-      <main className="flex-1 space-y-6 p-8">
+      <main className="dg-page-main space-y-6">
         <GrowthEngineNav active="/command/growth-engine/discovery" />
         <div className="dg-card max-w-2xl">
           <h2 className="font-semibold text-white">Add prospect</h2>

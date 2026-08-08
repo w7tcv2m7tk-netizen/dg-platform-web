@@ -280,10 +280,12 @@ export function TeamProfileEditor({
               {shownEmail ? (
                 <a
                   href={`mailto:${shownEmail}`}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1.5 text-xs text-slate-300 hover:border-blue-500 hover:text-white"
+                  className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1.5 text-xs text-slate-300 hover:border-blue-500 hover:text-white"
                 >
-                  <span aria-hidden>✉</span>
-                  {shownEmail}
+                  <span aria-hidden className="shrink-0">
+                    ✉
+                  </span>
+                  <span className="dg-break-anywhere min-w-0">{shownEmail}</span>
                 </a>
               ) : null}
               {shownPhone?.trim() ? (

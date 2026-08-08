@@ -9,7 +9,7 @@ export function DashboardSkeleton() {
           <div className="h-4 w-24 animate-pulse rounded bg-slate-800/60" />
         </div>
       </header>
-      <main className="flex-1 space-y-6 p-8">
+      <main className="dg-page-main space-y-6">
         <div className="h-28 animate-pulse rounded-xl border border-slate-800 bg-slate-900/50" />
         <div className="h-48 animate-pulse rounded-xl border border-slate-800 bg-slate-900/50" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -21,7 +21,7 @@ export default async function GrowthEngineHubPage() {
           Discover → audit → report → pipeline → proposal → client — repeatable AI-powered acquisition
         </p>
       </header>
-      <main className="flex-1 space-y-8 p-8">
+      <main className="dg-page-main space-y-8">
         <CommandCentreNav active="growth" />
         <GrowthEngineNav active="hub" />
 

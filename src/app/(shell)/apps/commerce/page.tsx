@@ -63,7 +63,7 @@ export default async function CommerceOverviewPage() {
           {session.organisationName} · payments, quotes & invoices
         </p>
       </header>
-      <main className="flex-1 space-y-8 p-8">
+      <main className="dg-page-main space-y-8">
         <CommerceStripeSetup />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

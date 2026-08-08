@@ -43,7 +43,7 @@ export default async function CommercePaymentsPage() {
           Stripe checkout links and payment request history for this business
         </p>
       </header>
-      <main className="flex-1 space-y-6 p-8">
+      <main className="dg-page-main space-y-6">
         <CommerceStripeSetup />
         <CommercePaymentsList items={payments} />
         {session ? (

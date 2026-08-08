@@ -42,7 +42,7 @@ export default function CommerceReportsIndexPage() {
           Financial summaries from DigitalGate invoices & payments (AU-first).
         </p>
       </header>
-      <main className="flex-1 space-y-4 p-8">
+      <main className="dg-page-main space-y-4">
         <p className="max-w-2xl text-sm text-slate-400">
           These reports use real Commerce data where available. Balance Sheet is
           scaffolded from AR and settled payments — DigitalGate is not a

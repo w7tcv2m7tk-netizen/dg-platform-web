@@ -86,6 +86,17 @@ In Vercel → Project → **Settings → Domains** → add `app.digitalgate.com.
 
 After DNS works, in Clerk → **Domains** → add `app.digitalgate.com.au` and switch to production keys if you created separate prod/test apps.
 
+### PWA: Frontend API proxy (required for installed app auth)
+
+Installed DigitalGate uses `display: standalone`. Handshake redirects to `clerk.digitalgate.com.au` leave the PWA and open Safari/Chrome.
+
+1. Deploy the app (serves `/__clerk`).
+2. Clerk → **Domains** → Frontend API → **Set proxy** → `https://app.digitalgate.com.au/__clerk`
+3. Vercel env: `NEXT_PUBLIC_CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk`
+4. Redeploy
+
+Details: [docs/CLERK-AUTH-SETTINGS.md](./docs/CLERK-AUTH-SETTINGS.md) and [docs/PWA.md](./docs/PWA.md).
+
 ## 5. Clerk production webhook (Platform 1.0)
 
 Provision Postgres org when users sign up in production:

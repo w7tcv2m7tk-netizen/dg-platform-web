@@ -13,6 +13,7 @@ import { usePathname } from "next/navigation";
 import { MobileHeader } from "@/components/MobileHeader";
 import { OrgBrandHead } from "@/components/brand/OrgBrandHead";
 import { OrgBrandProvider, orgBrandStyle } from "@/components/brand/OrgBrandProvider";
+import { PrefetchCriticalRoutes } from "@/components/platform/PrefetchCriticalRoutes";
 import { Sidebar } from "@/components/Sidebar";
 import type { OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
 import { DEFAULT_ORG_BRAND_THEME, orgBrandCssVariables } from "@/lib/brand-client";
@@ -81,6 +82,7 @@ export function AppShellLayout({
   return (
     <OrgBrandProvider theme={brandTheme}>
       <OrgBrandHead iconUrl={brandTheme.iconUrl} />
+      <PrefetchCriticalRoutes />
       <MobileNavContext.Provider value={{ close }}>
         <div className="dg-branded-shell flex min-h-[100dvh]" style={orgBrandStyle(brandTheme)}>
         <div className="hidden shrink-0 print:hidden md:flex">

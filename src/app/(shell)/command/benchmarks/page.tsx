@@ -25,7 +25,7 @@ export default async function CommandBenchmarksPage() {
           Anonymous cohort comparison — you vs average vs top decile.
         </p>
       </header>
-      <main className="flex-1 space-y-8 p-6 md:p-8">
+      <main className="dg-page-main space-y-8">
         <CommandCentreNav active="benchmarks" />
 
         {!data ? (

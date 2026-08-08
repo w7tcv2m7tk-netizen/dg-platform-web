@@ -19,6 +19,76 @@
 
 body {
   font-family: var(--font-sans);
+  /* Slightly larger base type on phones — long lists / forms stay readable. */
+  font-size: 16px;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+@media (min-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+}
+
+@layer utilities {
+  /* Long emails, URLs, tokens — never force the page wider than the viewport. */
+  .dg-break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Wide data tables: scroll inside the card, not the whole page. */
+  .dg-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .dg-table-scroll table {
+    min-width: 36rem;
+  }
+
+  /* Practical touch target (≥44px) without changing desktop density too much. */
+  .dg-touch-target {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+
+  .dg-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    min-height: 2.75rem;
+    border-radius: 9999px;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+  }
+
+  .dg-btn:disabled {
+    opacity: 0.5;
+  }
+
+  .dg-btn-primary {
+    background: #2563eb;
+    color: #fff;
+  }
+
+  .dg-btn-primary:hover:not(:disabled) {
+    background: #3b82f6;
+  }
+
+  /* Mobile list rows — stack fields without horizontal overflow. */
+  .dg-list-row {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
 }
 
 /* Soft route transitions (experimental.viewTransition) — respect reduced motion. */
@@ -85,13 +155,20 @@ body {
 
 .dg-input {
   width: 100%;
+  min-height: 2.75rem;
   border-radius: 0.75rem;
   border: 1px solid var(--org-border-subtle, rgb(51 65 85));
   background: var(--org-bg-inset, rgb(15 23 42));
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: white;
   outline: none;
+}
+
+@media (min-width: 640px) {
+  .dg-input {
+    font-size: 0.875rem;
+  }
 }
 
 .dg-input:focus {
@@ -155,6 +232,7 @@ body {
   .dg-page-main {
     flex: 1 1 0%;
     padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 
   @media (min-width: 640px) {
