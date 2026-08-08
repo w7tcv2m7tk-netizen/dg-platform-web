@@ -5,56 +5,56 @@ const MODULES = [
   {
     href: GROWTH_ENGINE_ROUTES.discovery,
     title: "Business Discovery",
-    description: "Add and search prospect businesses by industry and location",
+    description: "Add and filter prospect businesses by industry and location",
     status: "Live",
   },
   {
     href: GROWTH_ENGINE_ROUTES.pipeline,
     title: "Prospect Pipeline",
-    description: "Track every prospect from audit through to client conversion",
+    description: "Kanban board from audit through to client conversion",
     status: "Live",
   },
   {
     href: GROWTH_ENGINE_ROUTES.audits,
     title: "AI Audit Engine™",
-    description: "Automated website, SEO, AI Visibility, and GBP analysis",
-    status: "Coming soon",
+    description: "Live website presence probes with Business Health scores",
+    status: "Live",
   },
   {
     href: GROWTH_ENGINE_ROUTES.reports,
     title: "Opportunity Reports",
-    description: "Branded interactive audit reports for prospects",
-    status: "Coming soon",
+    description: "Executive summaries generated from the latest audit",
+    status: "Live",
   },
   {
     href: GROWTH_ENGINE_ROUTES.followUps,
     title: "Smart Follow-Up",
-    description: "Engagement-triggered reminders and tasks",
-    status: "Coming soon",
+    description: "Idle-prospect queue from real pipeline timestamps",
+    status: "Live",
   },
   {
     href: GROWTH_ENGINE_ROUTES.proposals,
     title: "Proposal Generator",
-    description: "AI proposals with services, pricing, and ROI",
-    status: "Coming soon",
+    description: "Audit-based service briefings (Commerce quotes next)",
+    status: "Live",
   },
   {
     href: GROWTH_ENGINE_ROUTES.conversions,
     title: "Conversion Dashboard",
-    description: "Audits, open rates, meetings, MRR won, forecast",
-    status: "Coming soon",
+    description: "Audits, open rates, meetings, wins — real funnel counts",
+    status: "Live",
   },
-];
+] as const;
 
 export function GrowthEngineNav({ active }: { active?: string }) {
   return (
-    <nav className="flex flex-wrap gap-2 border-b border-slate-800 pb-4">
+    <nav className="flex flex-wrap gap-2 border-b border-slate-800 pb-4" aria-label="Growth Engine">
       <Link
         href={GROWTH_ENGINE_ROUTES.hub}
-        className={`rounded-full px-3 py-1 text-sm ${
+        className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${
           active === "hub"
-            ? "bg-blue-600 text-white"
-            : "border border-slate-700 text-slate-300 hover:border-slate-500"
+            ? "bg-sky-600 text-white"
+            : "border border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white"
         }`}
       >
         Hub
@@ -63,10 +63,10 @@ export function GrowthEngineNav({ active }: { active?: string }) {
         <Link
           key={mod.href}
           href={mod.href}
-          className={`rounded-full px-3 py-1 text-sm ${
+          className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${
             active === mod.href
-              ? "bg-blue-600 text-white"
-              : "border border-slate-700 text-slate-300 hover:border-slate-500"
+              ? "bg-sky-600 text-white"
+              : "border border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white"
           }`}
         >
           {mod.title}
@@ -83,17 +83,11 @@ export function GrowthEngineModuleGrid() {
         <Link
           key={mod.href}
           href={mod.href}
-          className="dg-card block transition hover:border-slate-600"
+          className="block rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4 transition-colors hover:border-sky-500/40"
         >
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-white">{mod.title}</h3>
-            <span
-              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide ${
-                mod.status === "Live"
-                  ? "bg-emerald-500/15 text-emerald-400"
-                  : "bg-slate-800 text-slate-500"
-              }`}
-            >
+            <span className="shrink-0 rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-emerald-400">
               {mod.status}
             </span>
           </div>

@@ -27,15 +27,15 @@ export default async function GrowthEngineHubPage() {
 
         {summary ? (
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="dg-card">
+            <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
               <p className="text-xs uppercase tracking-wide text-slate-500">Prospects</p>
               <p className="mt-1 text-3xl font-bold text-white">{summary.totalProspects}</p>
             </div>
-            <div className="dg-card">
+            <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
               <p className="text-xs uppercase tracking-wide text-slate-500">Engagements (7d)</p>
               <p className="mt-1 text-3xl font-bold text-white">{summary.engagementsThisWeek}</p>
             </div>
-            <div className="dg-card">
+            <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
               <p className="text-xs uppercase tracking-wide text-slate-500">In pipeline</p>
               <p className="mt-1 text-3xl font-bold text-white">
                 {summary.totalProspects -
@@ -45,10 +45,17 @@ export default async function GrowthEngineHubPage() {
             </div>
           </div>
         ) : (
-          <div className="dg-card border-amber-500/30">
-            <p className="text-amber-300">Set DATABASE_URL and run npm run db:push to enable Growth Engine.</p>
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4">
+            <p className="text-amber-200">
+              Set DATABASE_URL and run npm run db:push to enable Growth Engine.
+            </p>
           </div>
         )}
+
+        <p className="text-sm text-slate-400">
+          Start with Discovery → run a presence Audit → generate an Opportunity Report → track on
+          the Pipeline board.
+        </p>
 
         <GrowthEngineModuleGrid />
       </main>
