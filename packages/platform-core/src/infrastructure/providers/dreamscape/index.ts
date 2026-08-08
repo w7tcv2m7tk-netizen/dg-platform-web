@@ -1,9 +1,12 @@
 export {
   DREAMSCAPE_DEFAULT_RESELLER_ID_HEADER,
+  DREAMSCAPE_RESELLER_ID_HEADERS,
+  buildDreamscapeAuthHeaders,
   dreamscapeAuthHeaders,
   dreamscapeRequestId,
   dreamscapeSignature,
   type DreamscapeAuthHeaderOptions,
+  type DreamscapeAuthHeadersResult,
 } from "./auth";
 export {
   DREAMSCAPE_PROD_BASE_URL,
@@ -20,7 +23,10 @@ export {
   resolveDreamscapeConfig,
   resolveDreamscapeHttpsProxy,
   resolveDreamscapeResellerIdHeader,
+  sanitizeDreamscapeBodySnippet,
+  serializeDreamscapeSearchParams,
   type DreamscapeEnvPresence,
+  type DreamscapeRequestDebug,
 } from "./client";
 export {
   DreamscapeDomainProvider,

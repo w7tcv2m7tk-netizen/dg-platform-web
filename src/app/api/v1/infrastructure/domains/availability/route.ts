@@ -7,6 +7,7 @@ import {
   isDreamscapeConfigured,
   resolveDreamscapeConfig,
   type DomainAvailability,
+  type DreamscapeRequestDebug,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
@@ -21,6 +22,9 @@ export const runtime = "nodejs";
 /**
  * GET /api/v1/infrastructure/domains/availability?q=example.com.au
  *
+ * Optional staff debug: ?debug=1 (requires platform auth) returns headers
+ * sent (names only) and a sanitized Dreamscape response body snippet.
+ *
  * Browser → DigitalGate API → Dreamscape (server-side key only).
  * Sandbox-first: defaults to reseller-api.sandbox.ds.network.
  */
@@ -32,6 +36,9 @@ export async function GET(req: Request) {
   const q = url.searchParams.get("q")?.trim() ?? "";
   const fromArray = url.searchParams.getAll("domain_names[]");
   const query = [q, ...fromArray].filter(Boolean).join(",");
+  const debug =
+    url.searchParams.get("debug") === "1" ||
+    url.searchParams.get("debug") === "true";
 
   if (!query) {
     return NextResponse.json(
@@ -91,13 +98,29 @@ export async function GET(req: Request) {
 
   try {
     const data = await provider.search(query);
-    return NextResponse.json({
+    const payload: Record<string, unknown> = {
       configured: true,
       provider: provider.id,
       baseUrl,
       isSandbox,
       data,
-    });
+    };
+    if (debug) {
+      payload.debug = {
+        note: "Request succeeded — auth headers accepted by Dreamscape",
+        expectedHeaders: [
+          "Accept",
+          "Api-Request-Id",
+          "Api-Signature",
+          "X-Reseller-Id",
+          "Reseller-Id",
+          "Api-Reseller-Id",
+        ],
+        expectedQueryKeys: ["domain_names[]", "reseller_id"],
+        signatureAlgo: "md5(request_id + api_key)",
+      };
+    }
+    return NextResponse.json(payload);
   } catch (err) {
     if (err instanceof InfrastructureNotConfiguredError) {
       return NextResponse.json({
@@ -112,6 +135,19 @@ export async function GET(req: Request) {
     }
 
     if (err instanceof DreamscapeApiError) {
+      const errorPayload: Record<string, unknown> = {
+        code: err.code ?? "provider_error",
+        message: err.message,
+        hint: err.hint,
+        status: err.status,
+      };
+      if (err.providerBodySnippet) {
+        errorPayload.providerBodySnippet = err.providerBodySnippet;
+      }
+      if (debug && err.requestDebug) {
+        errorPayload.debug = sanitizeRequestDebug(err.requestDebug);
+      }
+
       return NextResponse.json(
         {
           configured: true,
@@ -119,12 +155,7 @@ export async function GET(req: Request) {
           baseUrl,
           isSandbox,
           data: [] as DomainAvailability[],
-          error: {
-            code: err.code ?? "provider_error",
-            message: err.message,
-            hint: err.hint,
-            status: err.status,
-          },
+          error: errorPayload,
         },
         {
           status:
@@ -158,4 +189,20 @@ export async function GET(req: Request) {
       { status: 502 },
     );
   }
+}
+
+/** Strip anything unexpected from request debug before returning to client. */
+function sanitizeRequestDebug(
+  debug: DreamscapeRequestDebug,
+): DreamscapeRequestDebug {
+  return {
+    path: debug.path,
+    method: debug.method,
+    headersSent: [...debug.headersSent],
+    resellerIdHeadersSent: [...debug.resellerIdHeadersSent],
+    queryKeysSent: [...debug.queryKeysSent],
+    hasResellerIdQuery: debug.hasResellerIdQuery,
+    signatureAlgo: debug.signatureAlgo,
+    isSandbox: debug.isSandbox,
+  };
 }

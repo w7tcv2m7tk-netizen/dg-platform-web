@@ -25,6 +25,17 @@ type AvailabilityResponse = {
     code?: string;
     message?: string;
     hint?: string;
+    providerBodySnippet?: string;
+    debug?: {
+      path?: string;
+      method?: string;
+      headersSent?: string[];
+      resellerIdHeadersSent?: string[];
+      queryKeysSent?: string[];
+      hasResellerIdQuery?: boolean;
+      signatureAlgo?: string;
+      isSandbox?: boolean;
+    };
   };
 };
 
@@ -55,8 +66,13 @@ export function DomainAvailabilitySearch() {
     setLoading(true);
     setResult(null);
     try {
+      const debug =
+        typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get("debug") === "1";
+      const params = new URLSearchParams({ q });
+      if (debug) params.set("debug", "1");
       const res = await fetch(
-        `/api/v1/infrastructure/domains/availability?q=${encodeURIComponent(q)}`,
+        `/api/v1/infrastructure/domains/availability?${params.toString()}`,
       );
       const json = (await res.json()) as AvailabilityResponse;
       setResult(json);
@@ -139,8 +155,9 @@ export function DomainAvailabilitySearch() {
               {result.error.code?.startsWith("auth_") ? (
                 <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-amber-200/70">
                   <li>
-                    Set DREAMSCAPE_RESELLER_ID (e.g. 25735) — required alongside
-                    the API key per Dreamscape support.
+                    We send Reseller ID on X-Reseller-Id, Reseller-Id,
+                    Api-Reseller-Id, and reseller_id query — confirm
+                    DREAMSCAPE_RESELLER_ID matches sandbox API Setup.
                   </li>
                   <li>
                     Sandbox key must come from reseller.sandbox.ds.network (prod
@@ -152,7 +169,21 @@ export function DomainAvailabilitySearch() {
                     whitelist a stable egress IP if needed (Vercel Static IPs or
                     DREAMSCAPE_HTTPS_PROXY).
                   </li>
+                  <li>
+                    Staff: append ?debug=1 to this page URL for header names +
+                    provider response snippet.
+                  </li>
                 </ul>
+              ) : null}
+              {result.error.providerBodySnippet ? (
+                <p className="mt-2 break-all font-mono text-xs text-amber-200/60">
+                  Provider: {result.error.providerBodySnippet}
+                </p>
+              ) : null}
+              {result.error.debug ? (
+                <pre className="mt-2 overflow-x-auto rounded border border-amber-500/20 bg-black/30 p-2 font-mono text-[11px] text-amber-100/80">
+                  {JSON.stringify(result.error.debug, null, 2)}
+                </pre>
               ) : null}
               {result.isSandbox != null ? (
                 <p className="mt-1 text-xs text-slate-400">
