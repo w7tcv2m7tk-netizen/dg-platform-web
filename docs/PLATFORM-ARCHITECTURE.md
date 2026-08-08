@@ -20,10 +20,10 @@ Architecturally, it is a **multi-tenant SaaS** built as:
 Next.js (apps/web) + packages/ui (Design System)
        ↓
 Platform Core (Auth, Orgs, Billing, Permissions, Memory, Identity, Assets, …)
-       ↓
-Shared Services (AI, Scoring, BI Engine, Automation, Event Bus)
-       ↓
-Apps (manifest + Feature Registry)
+       ├── Apps (manifest + Feature Registry)
+       ├── Shared Services (AI, Scoring, BI Engine, Automation, Event Bus)
+       └── Infrastructure (Core Platform Service — Domains/DNS/Hosting/SSL/Email)
+              └── Provider Adapters (Dreamscape V1 → Cloudflare / Vercel / …)
        ↓
 Connectors (WordPress, Shopify, Stripe, Google, …)
        ↓
@@ -32,6 +32,7 @@ Universal Objects + Knowledge Graph + Digital Twin™
 PostgreSQL
 ```
 
+**Infrastructure detail:** [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md) — provider-agnostic Core; Dreamscape first; sandbox-first; customer never sees provider brand.
 **Repository:** `dg-platform-web` (Generation 2) — evolving into monorepo layout.
 
 ---

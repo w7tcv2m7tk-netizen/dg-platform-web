@@ -70,7 +70,8 @@ These documents capture **why** the platform is built the way it is. They are as
 | [ai/AI-ARCHITECTURE.md](./ai/AI-ARCHITECTURE.md) | AI Service, Business Memory, tool registry |
 | [ai/COMMUNICATIONS-ARCHITECTURE.md](./ai/COMMUNICATIONS-ARCHITECTURE.md) | AI Communications — voice, messaging, orchestration |
 | [websites/WEBSITES-ARCHITECTURE.md](./websites/WEBSITES-ARCHITECTURE.md) | AI Website Studio, Health Centre, funnels, content |
-| [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](./infrastructure/INFRASTRUCTURE-ARCHITECTURE.md) | Domains, hosting, DNS, SSL, deployments |
+| [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md) | **Core** — domains/DNS/SSL/hosting via providers (Dreamscape first) |
+| [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](./infrastructure/INFRASTRUCTURE-ARCHITECTURE.md) | Modules, phases (points to foundations doc) |
 | [connectors/CONNECTOR-SPECIFICATION.md](./connectors/CONNECTOR-SPECIFICATION.md) | Connector contract — sync, auth, mapping |
 | [design/DESIGN-SYSTEM.md](./design/DESIGN-SYSTEM.md) | UI package (`@dg/ui`), tokens, components |
 

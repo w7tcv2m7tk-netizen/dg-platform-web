@@ -82,6 +82,7 @@ Architect so nothing needs a rebuild for NZ / UK / US:
 | AI models | Provider/routing keyed by region later |
 | Payments | Stripe (org currency); gateway interface for others |
 | Connectors | Manifests declare `countries[]` / Country Pack deps |
+| Domains / infra | Infrastructure Core providers (Dreamscape AU-first); Country Pack may swap registrars later — [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) |
 
 ### Organisation regional settings
 
@@ -238,6 +239,7 @@ Do **not** block Roe / AU GTM on full multi-country UI — ship AU pack defaults
 
 - [PRODUCT-VISION.md](../PRODUCT-VISION.md) — Gateway brand + OS category  
 - [CORE-OBJECT-SPECIFICATION.md](./CORE-OBJECT-SPECIFICATION.md) — Organisation fields  
+- [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) — domains/hosting providers (AU Dreamscape first)  
 - [APP-MARKETPLACE.md](./APP-MARKETPLACE.md) — install / license  
 - [CONNECTOR-SPECIFICATION.md](../connectors/CONNECTOR-SPECIFICATION.md) — connectors  
 - [WHITE-LABELLING.md](./WHITE-LABELLING.md) — regional branding  

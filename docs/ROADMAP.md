@@ -193,9 +193,9 @@ Targets: dashboard < 2 s, navigation < 300 ms, CRM updates optimistic. Full spec
 
 **Referrals — two products:** (A) **Platform Refer & Earn** ships with / after Billing (Core) — customers refer DigitalGate. (B) **Business Referral Network** + **Reviews** — foundations scaffold live (`/apps/reviews`, `/dashboard/marketplace`, `/dashboard/network`); depth Phase 5+: [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md).
 
-**Website Builder (MVP scaffold):** AI Website Studio — Business Profile → structured page/component model → `/sites/[slug]` renderer + forms→CRM. WP migrate via Connector (documented phases). Domains/Hosting/SSL come from **Infrastructure Core** (not Website Builder) — architect now; Domains MVP after Website Builder MVP: [foundations/WEBSITE-BUILDER.md](./foundations/WEBSITE-BUILDER.md) · [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md).
+**Website Builder (MVP shipped):** AI Website Studio — Business Profile → structured page/component model → `/sites/[slug]` renderer + forms→CRM. WP migrate via Connector (separate). Domains/Hosting/SSL are **Infrastructure Core**, not Website Builder: [foundations/WEBSITE-BUILDER.md](./foundations/WEBSITE-BUILDER.md) · [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md).
 
-**Infrastructure (Core):** Provider orchestration (Dreamscape reseller first) for domains, DNS, SSL, hosting abstraction, email, media — enables “Make it live.” Scaffold: Dreamscape availability API. Separate from WP migrate + Website Builder tracks.
+**Infrastructure (Core Platform Service):** Provider-agnostic domains/DNS/hosting/SSL/email — **Dreamscape first** (keep; strong V1 API + sandbox). Customer UX = DigitalGate Domains/Hosting/Email (never provider brand). **Sandbox only** until automated tests pass. Credentials server-side (`DREAMSCAPE_API_KEY`). Scaffold: `DomainProvider` + `DreamscapeDomainProvider.search` + availability API. Domains MVP after Website Builder MVP.
 
 **Execution priority until Phase 5:**
 

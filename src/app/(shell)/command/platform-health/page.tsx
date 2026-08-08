@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { getCommandCentreOpsHome, getStripeSetupStatus } from "@dg/platform-core";
+import {
+  getCommandCentreOpsHome,
+  getDigitalInfrastructureOverview,
+  getStripeSetupStatus,
+} from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 
@@ -7,6 +11,7 @@ export default async function CommandPlatformHealthPage() {
   const data = process.env.DATABASE_URL ? await getCommandCentreOpsHome() : null;
   const stripe = getStripeSetupStatus();
   const connectors = data?.connectors;
+  const infra = await getDigitalInfrastructureOverview("platform");
 
   return (
     <>
@@ -16,11 +21,55 @@ export default async function CommandPlatformHealthPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Platform health</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Connectors and commercial plumbing — infra metrics land with monitoring.
+          Connectors, commercial plumbing, and Digital Infrastructure (scaffold).
         </p>
       </header>
       <main className="dg-page-main space-y-8">
         <CommandCentreNav active="health" />
+
+        <section>
+          <h2 className="text-lg font-semibold text-white">Digital Infrastructure</h2>
+          <p className="mt-1 text-sm text-slate-400">
+            Core Platform Service — assets, health checklist, and AI renew
+            recommendations (vision). Provider brand stays internal.
+          </p>
+          <div className="mt-4 rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <span
+                className={`rounded-md px-2 py-0.5 text-xs font-medium ${
+                  infra.health.status === "ok"
+                    ? "bg-emerald-500/15 text-emerald-300"
+                    : infra.health.status === "not_configured"
+                      ? "bg-amber-500/15 text-amber-200"
+                      : "bg-rose-500/15 text-rose-200"
+                }`}
+              >
+                {infra.health.status} · {infra.isSandbox ? "sandbox" : "production"}
+              </span>
+              <Link
+                href="/apps/infrastructure/domains"
+                className="text-sm text-sky-400 hover:underline"
+              >
+                Domains →
+              </Link>
+            </div>
+            <p className="mt-3 text-sm text-slate-300">{infra.health.message}</p>
+            <ul className="mt-4 grid gap-2 sm:grid-cols-3">
+              {infra.checklist.items.map((item) => (
+                <li
+                  key={item.id}
+                  className="rounded-md border border-slate-800 px-3 py-2 text-sm text-slate-400"
+                >
+                  {item.label}
+                  <span className="ml-2 text-xs text-slate-600">{item.state}</span>
+                </li>
+              ))}
+            </ul>
+            {infra.notes[0] ? (
+              <p className="mt-3 text-xs text-slate-500">{infra.notes[0]}</p>
+            ) : null}
+          </div>
+        </section>
 
         <section>
           <h2 className="text-lg font-semibold text-white">Stripe</h2>

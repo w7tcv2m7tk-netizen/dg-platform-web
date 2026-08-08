@@ -30,6 +30,7 @@ export * from "./network-referrals";
 export * from "./properties";
 export * from "./addresses";
 export * from "./websites";
+export * from "./infrastructure";
 export * from "./commerce";
 export * from "./session";
 export * from "./api-keys";

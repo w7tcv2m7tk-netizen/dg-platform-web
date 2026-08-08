@@ -203,9 +203,11 @@ Gen 1 is preserved IP and production. Gen 2 is the evolution — same product, m
 
 | Offering | Role |
 |----------|------|
-| **DigitalGate Platform** | Flagship SaaS — Core, Apps, Connectors, AI |
+| **DigitalGate Platform** | Flagship SaaS — Core, Apps, Connectors, AI, **Infrastructure** |
 | **DigitalGate Growth** | Professional services delivered *using* the Platform |
 | **DigitalGate Websites** | Design & build — connected via Connectors (Next.js, WordPress, Shopify, Webflow, …) |
+
+**Infrastructure** is Core (domains, DNS, SSL, hosting abstraction, email, media) — provider adapters starting with Dreamscape. It enables Digital Identity (`Profile → Domain → Website → GBP → Social → Email → Reviews → AI`) and Website Builder’s “Make it live” path. See [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md).
 
 ---
 
@@ -267,4 +269,6 @@ Rather than simply managing contacts, **DigitalGate manages the entire business*
 - [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md) — Core, Apps, Connectors, Twin, Graph
 - [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md) — Community, B2B network, Marketplace (Phase 5)
 - [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md) — Platform Refer & Earn (Core) vs Reviews + Business referrals (Phase 5+)
+- [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md) — Core domains/DNS/SSL/hosting (Dreamscape first)
+- [foundations/WEBSITE-BUILDER.md](./foundations/WEBSITE-BUILDER.md) — AI Website Studio (separate track; “Make it live” via Infrastructure)
 - [ROADMAP.md](./ROADMAP.md) — quarterly milestones
