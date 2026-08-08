@@ -171,10 +171,10 @@ export async function buildGoLiveChecklist(input: {
     },
     {
       id: "website",
-      label: "Website",
+      label: "Published",
       state: websiteState,
       detail: websiteSlug
-        ? `${websiteStatus} · /sites/${websiteSlug}`
+        ? `${websiteStatus === "published" ? "Live" : websiteStatus ?? "unknown"} · /sites/${websiteSlug}`
         : "Publish from Website Studio",
     },
     {

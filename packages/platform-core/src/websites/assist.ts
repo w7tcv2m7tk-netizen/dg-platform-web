@@ -3,7 +3,7 @@
  */
 
 import { llmChat, llmConfigured } from "../ai/llm";
-import { createWebsitePage, getWebsite, updateWebsitePage } from "./crud";
+import { createWebsitePage, getWebsite, updateWebsite, updateWebsitePage } from "./crud";
 import { component, normalizeComponents } from "./schema";
 import type { SerializedWebsite, WebsiteComponent } from "./types";
 
@@ -14,34 +14,55 @@ export type WebsiteAssistResult = {
   error?: string;
 };
 
+type HeuristicPatch =
+  | {
+      kind: "add_page";
+      page: {
+        title: string;
+        slug: string;
+        intent: string;
+        components: WebsiteComponent[];
+      };
+    }
+  | { kind: "change_cta"; ctaLabel: string }
+  | { kind: "change_headline"; headline: string }
+  | { kind: "change_subheadline"; subheadline: string }
+  | { kind: "make_premium" }
+  | { kind: "set_primary_color"; color: string }
+  | { kind: "noop" };
+
+function navLinks(active?: string) {
+  const links = [
+    { label: "Home", href: "/" },
+    { label: "Services", href: "/services" },
+    { label: "About", href: "/about" },
+    { label: "Contact", href: "/contact" },
+  ];
+  if (active === "faq") {
+    links.splice(3, 0, { label: "FAQ", href: "/faq" });
+  }
+  return links;
+}
+
 function heuristicPatch(
   website: SerializedWebsite,
   prompt: string,
-): {
-  kind: "add_services" | "change_cta" | "noop";
-  ctaLabel?: string;
-  page?: { title: string; slug: string; components: WebsiteComponent[] };
-} {
-  const lower = prompt.toLowerCase();
+): HeuristicPatch {
+  const lower = prompt.toLowerCase().trim();
+  const name = website.theme?.businessName || website.name;
 
   if (
     /add\s+(a\s+)?services?\s+page/.test(lower) ||
     /create\s+(a\s+)?services?\s+page/.test(lower)
   ) {
-    const name = website.theme?.businessName || website.name;
     return {
-      kind: "add_services",
+      kind: "add_page",
       page: {
         title: "Services",
         slug: "services",
+        intent: "services",
         components: [
-          component("nav", {
-            links: [
-              { label: "Home", href: "/" },
-              { label: "Services", href: "/services" },
-              { label: "Contact", href: "/contact" },
-            ],
-          }),
+          component("nav", { links: navLinks() }),
           component("hero", {
             headline: "Our services",
             subheadline: `How ${name} helps you`,
@@ -62,15 +83,176 @@ function heuristicPatch(
     };
   }
 
+  if (
+    /add\s+(an?\s+)?about\s+page/.test(lower) ||
+    /create\s+(an?\s+)?about\s+page/.test(lower)
+  ) {
+    return {
+      kind: "add_page",
+      page: {
+        title: "About",
+        slug: "about",
+        intent: "about",
+        components: [
+          component("nav", { links: navLinks() }),
+          component("hero", {
+            headline: `About ${name}`,
+            subheadline: "Our story and approach",
+            ctaLabel: "Work with us",
+            ctaHref: "/contact",
+          }),
+          component("about", {
+            headline: "Who we are",
+            body: `${name} is built around clear communication, local expertise, and outcomes that matter.`,
+          }),
+          component("footer", { businessName: name }),
+        ],
+      },
+    };
+  }
+
+  if (
+    /add\s+(a\s+)?contact\s+page/.test(lower) ||
+    /create\s+(a\s+)?contact\s+page/.test(lower)
+  ) {
+    return {
+      kind: "add_page",
+      page: {
+        title: "Contact",
+        slug: "contact",
+        intent: "contact",
+        components: [
+          component("nav", { links: navLinks() }),
+          component("hero", {
+            headline: "Contact us",
+            subheadline: "We’d love to hear from you",
+            ctaLabel: "Send a message",
+            ctaHref: "#contact-form",
+          }),
+          component("contact_form", {
+            headline: "Send a message",
+            submitLabel: "Submit",
+            successMessage: "Thanks — we’ll be in touch shortly.",
+          }),
+          component("footer", { businessName: name }),
+        ],
+      },
+    };
+  }
+
+  if (
+    /add\s+(an?\s+)?faq/.test(lower) ||
+    /create\s+(an?\s+)?faq/.test(lower) ||
+    /add\s+(a\s+)?faq\s+page/.test(lower)
+  ) {
+    return {
+      kind: "add_page",
+      page: {
+        title: "FAQ",
+        slug: "faq",
+        intent: "custom",
+        components: [
+          component("nav", { links: navLinks("faq") }),
+          component("hero", {
+            headline: "Frequently asked questions",
+            subheadline: "Quick answers before you get in touch",
+            ctaLabel: "Contact us",
+            ctaHref: "/contact",
+          }),
+          component("faq", {
+            headline: "FAQs",
+            items: [
+              {
+                q: "How do we get started?",
+                a: "Send a short message via the contact form and we’ll reply with next steps.",
+              },
+              {
+                q: "Which areas do you cover?",
+                a: "We work with clients locally and can advise on the best approach for your situation.",
+              },
+              {
+                q: "What happens after I enquire?",
+                a: "We’ll confirm details, outline options, and book a time that suits you.",
+              },
+            ],
+          }),
+          component("footer", { businessName: name }),
+        ],
+      },
+    };
+  }
+
   const ctaMatch =
     lower.match(/change\s+(?:the\s+)?(?:primary\s+)?cta\s+to\s+["']?(.+?)["']?\s*$/) ||
+    lower.match(/(?:set|update)\s+(?:the\s+)?cta\s+to\s+["']?(.+?)["']?\s*$/) ||
     lower.match(/cta\s+to\s+["']([^"']+)["']/i) ||
     prompt.match(/change\s+(?:the\s+)?(?:primary\s+)?CTA\s+to\s+(.+)$/i);
   if (ctaMatch?.[1]) {
-    return { kind: "change_cta", ctaLabel: ctaMatch[1].trim().replace(/[."]+$/, "") };
+    return {
+      kind: "change_cta",
+      ctaLabel: ctaMatch[1].trim().replace(/[."]+$/, ""),
+    };
+  }
+
+  const headlineMatch =
+    lower.match(
+      /(?:change|set|update)\s+(?:the\s+)?(?:hero\s+)?headline\s+to\s+["']?(.+?)["']?\s*$/,
+    ) || prompt.match(/(?:change|set|update)\s+(?:the\s+)?(?:hero\s+)?headline\s+to\s+(.+)$/i);
+  if (headlineMatch?.[1]) {
+    return {
+      kind: "change_headline",
+      headline: headlineMatch[1].trim().replace(/[."]+$/, ""),
+    };
+  }
+
+  const subMatch =
+    lower.match(
+      /(?:change|set|update)\s+(?:the\s+)?(?:hero\s+)?(?:subheadline|tagline|subtitle)\s+to\s+["']?(.+?)["']?\s*$/,
+    ) ||
+    prompt.match(
+      /(?:change|set|update)\s+(?:the\s+)?(?:hero\s+)?(?:subheadline|tagline|subtitle)\s+to\s+(.+)$/i,
+    );
+  if (subMatch?.[1]) {
+    return {
+      kind: "change_subheadline",
+      subheadline: subMatch[1].trim().replace(/[."]+$/, ""),
+    };
+  }
+
+  const colorMatch =
+    lower.match(
+      /(?:change|set|update)\s+(?:the\s+)?(?:primary\s+)?(?:colo(?:u)?r|brand)\s+to\s+(#[0-9a-f]{3,8}|\w+)/i,
+    ) || lower.match(/primary\s+(?:colo(?:u)?r|brand)\s+(#[0-9a-f]{3,8})/i);
+  if (colorMatch?.[1]) {
+    const raw = colorMatch[1].trim();
+    const color = raw.startsWith("#") ? raw : namedColor(raw);
+    if (color) return { kind: "set_primary_color", color };
+  }
+
+  if (
+    /make\s+(it\s+)?(more\s+)?premium/.test(lower) ||
+    /more\s+premium/.test(lower) ||
+    /elevate\s+(the\s+)?(tone|copy|brand)/.test(lower)
+  ) {
+    return { kind: "make_premium" };
   }
 
   return { kind: "noop" };
+}
+
+function namedColor(name: string): string | null {
+  const map: Record<string, string> = {
+    navy: "#1e3a5f",
+    blue: "#1d4ed8",
+    teal: "#0f766e",
+    green: "#166534",
+    charcoal: "#1f2937",
+    black: "#111827",
+    gold: "#b45309",
+    burgundy: "#7f1d1d",
+    forest: "#14532d",
+  };
+  return map[name.toLowerCase()] ?? null;
 }
 
 function applyCtaLabel(
@@ -89,6 +271,102 @@ function applyCtaLabel(
     }
     return c;
   });
+}
+
+function applyHeadline(
+  components: WebsiteComponent[],
+  headline: string,
+): WebsiteComponent[] {
+  let done = false;
+  return components.map((c) => {
+    if (!done && c.type === "hero") {
+      done = true;
+      return { ...c, props: { ...c.props, headline } };
+    }
+    return c;
+  });
+}
+
+function applySubheadline(
+  components: WebsiteComponent[],
+  subheadline: string,
+): WebsiteComponent[] {
+  let done = false;
+  return components.map((c) => {
+    if (!done && c.type === "hero") {
+      done = true;
+      return { ...c, props: { ...c.props, subheadline } };
+    }
+    return c;
+  });
+}
+
+function makePremiumComponents(
+  components: WebsiteComponent[],
+  businessName: string,
+): WebsiteComponent[] {
+  return components.map((c) => {
+    if (c.type === "hero") {
+      return {
+        ...c,
+        props: {
+          ...c.props,
+          headline:
+            typeof c.props.headline === "string" && c.props.headline.trim()
+              ? c.props.headline
+              : businessName,
+          subheadline:
+            typeof c.props.subheadline === "string"
+              ? refinePremiumCopy(c.props.subheadline)
+              : `Discerning service from ${businessName}`,
+          ctaLabel:
+            typeof c.props.ctaLabel === "string" && c.props.ctaLabel.trim()
+              ? c.props.ctaLabel
+              : "Arrange a consultation",
+        },
+      };
+    }
+    if (c.type === "trust") {
+      return {
+        ...c,
+        props: {
+          ...c.props,
+          items: ["Trusted locally", "White-glove service", "Clear, considered advice"],
+        },
+      };
+    }
+    if (c.type === "cta") {
+      return {
+        ...c,
+        props: {
+          ...c.props,
+          headline: "Ready when you are",
+          body: "Share a little context and we’ll prepare a thoughtful next step.",
+          buttonLabel:
+            typeof c.props.buttonLabel === "string" && c.props.buttonLabel.trim()
+              ? c.props.buttonLabel
+              : "Arrange a consultation",
+        },
+      };
+    }
+    if (c.type === "about" && typeof c.props.body === "string") {
+      return {
+        ...c,
+        props: {
+          ...c.props,
+          body: refinePremiumCopy(c.props.body),
+        },
+      };
+    }
+    return c;
+  });
+}
+
+function refinePremiumCopy(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed) return "A considered approach for clients who value clarity and results.";
+  if (/premium|bespoke|considered|discerning/i.test(trimmed)) return trimmed;
+  return `${trimmed.replace(/\.$/, "")} — delivered with care and clarity.`;
 }
 
 /**
@@ -122,8 +400,13 @@ export async function applyWebsiteAssistPrompt(input: {
               '1) { "action": "add_page", "page": { title, slug, intent, components: [{type, props}] } }',
               '2) { "action": "update_pages", "pages": [{ "slug": "...", "components": [...] }] }',
               '3) { "action": "set_cta", "label": "..." }',
+              '4) { "action": "set_headline", "headline": "..." }',
+              '5) { "action": "set_subheadline", "subheadline": "..." }',
+              '6) { "action": "set_theme", "theme": { "primaryColor"?: "#hex", "accentColor"?: "#hex" } }',
+              '7) { "action": "make_premium" }',
               "Component types: nav, hero, trust, services, about, testimonials, cta, faq, contact_form, footer.",
               "Never return HTML. Preserve brand voice. Australian English.",
+              "Prefer minimal patches — only change what the user asked for.",
             ].join("\n"),
           },
           {
@@ -151,6 +434,9 @@ export async function applyWebsiteAssistPrompt(input: {
       const patch = JSON.parse(jsonText) as {
         action?: string;
         label?: string;
+        headline?: string;
+        subheadline?: string;
+        theme?: { primaryColor?: string; accentColor?: string };
         page?: {
           title: string;
           slug: string;
@@ -178,6 +464,82 @@ export async function applyWebsiteAssistPrompt(input: {
         };
       }
 
+      if (patch.action === "set_headline" && patch.headline) {
+        const home =
+          website.pages?.find((p) => p.intent === "home" || p.slug === "home") ||
+          website.pages?.[0];
+        if (home) {
+          await updateWebsitePage({
+            organisationId: input.organisationId,
+            websiteId: website.id,
+            pageId: home.id,
+            actorId: input.actorId,
+            components: applyHeadline(home.components, patch.headline),
+          });
+        }
+        const updated = await getWebsite(input.organisationId, website.id);
+        return {
+          website: updated!,
+          applied: `Headline → ${patch.headline}`,
+          source: "llm",
+        };
+      }
+
+      if (patch.action === "set_subheadline" && patch.subheadline) {
+        const home =
+          website.pages?.find((p) => p.intent === "home" || p.slug === "home") ||
+          website.pages?.[0];
+        if (home) {
+          await updateWebsitePage({
+            organisationId: input.organisationId,
+            websiteId: website.id,
+            pageId: home.id,
+            actorId: input.actorId,
+            components: applySubheadline(home.components, patch.subheadline),
+          });
+        }
+        const updated = await getWebsite(input.organisationId, website.id);
+        return {
+          website: updated!,
+          applied: `Subheadline → ${patch.subheadline}`,
+          source: "llm",
+        };
+      }
+
+      if (patch.action === "set_theme" && patch.theme) {
+        await updateWebsite({
+          organisationId: input.organisationId,
+          websiteId: website.id,
+          actorId: input.actorId,
+          theme: { ...(website.theme ?? {}), ...patch.theme },
+        });
+        const updated = await getWebsite(input.organisationId, website.id);
+        return {
+          website: updated!,
+          applied: "Updated theme colours",
+          source: "llm",
+        };
+      }
+
+      if (patch.action === "make_premium") {
+        const biz = website.theme?.businessName || website.name;
+        for (const page of website.pages ?? []) {
+          await updateWebsitePage({
+            organisationId: input.organisationId,
+            websiteId: website.id,
+            pageId: page.id,
+            actorId: input.actorId,
+            components: makePremiumComponents(page.components, biz),
+          });
+        }
+        const updated = await getWebsite(input.organisationId, website.id);
+        return {
+          website: updated!,
+          applied: "Elevated tone (premium)",
+          source: "llm",
+        };
+      }
+
       if (patch.action === "add_page" && patch.page?.title && patch.page?.slug) {
         const existing = website.pages?.find((p) => p.slug === patch.page!.slug);
         if (!existing) {
@@ -194,7 +556,9 @@ export async function applyWebsiteAssistPrompt(input: {
         const updated = await getWebsite(input.organisationId, website.id);
         return {
           website: updated!,
-          applied: `Added page ${patch.page.slug}`,
+          applied: existing
+            ? `Page ${patch.page.slug} already exists`
+            : `Added page ${patch.page.slug}`,
           source: "llm",
         };
       }
@@ -221,7 +585,6 @@ export async function applyWebsiteAssistPrompt(input: {
 
       // Fall through to heuristic if action unknown
     } catch (err) {
-      // heuristic below
       const heuristic = heuristicPatch(website, prompt);
       if (heuristic.kind === "noop") {
         return {
@@ -231,13 +594,14 @@ export async function applyWebsiteAssistPrompt(input: {
           error: err instanceof Error ? err.message : "LLM patch failed",
         };
       }
+      // continue with heuristic below
     }
   }
 
   const heuristic = heuristicPatch(website, prompt);
 
-  if (heuristic.kind === "add_services" && heuristic.page) {
-    const exists = website.pages?.some((p) => p.slug === "services");
+  if (heuristic.kind === "add_page" && heuristic.page) {
+    const exists = website.pages?.some((p) => p.slug === heuristic.page.slug);
     if (!exists) {
       await createWebsitePage({
         organisationId: input.organisationId,
@@ -245,14 +609,16 @@ export async function applyWebsiteAssistPrompt(input: {
         actorId: input.actorId,
         title: heuristic.page.title,
         slug: heuristic.page.slug,
-        intent: "services",
+        intent: heuristic.page.intent,
         components: heuristic.page.components,
       });
     }
     const updated = await getWebsite(input.organisationId, website.id);
     return {
       website: updated!,
-      applied: exists ? "Services page already exists" : "Added services page",
+      applied: exists
+        ? `${heuristic.page.title} page already exists`
+        : `Added ${heuristic.page.slug} page`,
       source: "heuristic",
     };
   }
@@ -275,9 +641,86 @@ export async function applyWebsiteAssistPrompt(input: {
     };
   }
 
+  if (heuristic.kind === "change_headline") {
+    const home =
+      website.pages?.find((p) => p.intent === "home" || p.slug === "home") ||
+      website.pages?.[0];
+    if (home) {
+      await updateWebsitePage({
+        organisationId: input.organisationId,
+        websiteId: website.id,
+        pageId: home.id,
+        actorId: input.actorId,
+        components: applyHeadline(home.components, heuristic.headline),
+      });
+    }
+    const updated = await getWebsite(input.organisationId, website.id);
+    return {
+      website: updated!,
+      applied: `Headline → ${heuristic.headline}`,
+      source: "heuristic",
+    };
+  }
+
+  if (heuristic.kind === "change_subheadline") {
+    const home =
+      website.pages?.find((p) => p.intent === "home" || p.slug === "home") ||
+      website.pages?.[0];
+    if (home) {
+      await updateWebsitePage({
+        organisationId: input.organisationId,
+        websiteId: website.id,
+        pageId: home.id,
+        actorId: input.actorId,
+        components: applySubheadline(home.components, heuristic.subheadline),
+      });
+    }
+    const updated = await getWebsite(input.organisationId, website.id);
+    return {
+      website: updated!,
+      applied: `Subheadline → ${heuristic.subheadline}`,
+      source: "heuristic",
+    };
+  }
+
+  if (heuristic.kind === "set_primary_color") {
+    await updateWebsite({
+      organisationId: input.organisationId,
+      websiteId: website.id,
+      actorId: input.actorId,
+      theme: { ...(website.theme ?? {}), primaryColor: heuristic.color },
+    });
+    const updated = await getWebsite(input.organisationId, website.id);
+    return {
+      website: updated!,
+      applied: `Primary colour → ${heuristic.color}`,
+      source: "heuristic",
+    };
+  }
+
+  if (heuristic.kind === "make_premium") {
+    const biz = website.theme?.businessName || website.name;
+    for (const page of website.pages ?? []) {
+      await updateWebsitePage({
+        organisationId: input.organisationId,
+        websiteId: website.id,
+        pageId: page.id,
+        actorId: input.actorId,
+        components: makePremiumComponents(page.components, biz),
+      });
+    }
+    const updated = await getWebsite(input.organisationId, website.id);
+    return {
+      website: updated!,
+      applied: "Elevated tone (premium)",
+      source: "heuristic",
+    };
+  }
+
   return {
     website,
-    applied: "no matching edit — try “add services page” or “change CTA to …”",
+    applied:
+      "no matching edit — try “add services page”, “change CTA to …”, “make it more premium”, or “set primary colour to navy”",
     source: "heuristic",
   };
 }

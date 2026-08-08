@@ -311,19 +311,34 @@ export function WebsiteComponentView({
           />
         </section>
       );
-    case "footer":
+    case "footer": {
+      const phone = asString(component.props.phone);
+      const email = asString(component.props.email);
       return (
         <footer className="wb-footer">
           <p>
-            {asString(component.props.businessName, name)}
-            {component.props.phone ? ` · ${asString(component.props.phone)}` : ""}
-            {component.props.email ? ` · ${asString(component.props.email)}` : ""}
+            <strong style={{ color: "var(--wb-ink)" }}>
+              {asString(component.props.businessName, name)}
+            </strong>
+            {phone ? (
+              <>
+                {" · "}
+                <a href={`tel:${phone.replace(/\s+/g, "")}`}>{phone}</a>
+              </>
+            ) : null}
+            {email ? (
+              <>
+                {" · "}
+                <a href={`mailto:${email}`}>{email}</a>
+              </>
+            ) : null}
           </p>
           <p className="wb-footer-meta" style={{ color: accent }}>
             Powered by DigitalGate
           </p>
         </footer>
       );
+    }
     default:
       return null;
   }

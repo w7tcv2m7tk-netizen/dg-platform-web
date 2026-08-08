@@ -347,9 +347,10 @@ Studio shows an **Import from WordPress** stub pointing at this path. Importer i
 |-------|---------|
 | `/apps/websites` | List sites · create from Business Profile + brief |
 | `/apps/websites/studio/[id]` | Pages list · edit component props · NL assist |
+| `/apps/websites` | Hub — site cards, create flow, Studio / Preview / Domains / Hosting links |
 | `/apps/websites/domains` | DigitalGate Domains (shared with Infrastructure) |
-| `/apps/websites/hosting` | Stub — SSL/DNS notes point at Infrastructure |
-| `/apps/websites/studio/[id]` | Studio + **Make it live** panel |
+| `/apps/websites/hosting` | Hosting status — published sites, linked domains, DNS/SSL summary |
+| `/apps/websites/studio/[id]` | Studio — NL assist, field editors, publish/unpublish, **Make it live** |
 | `/sites/[slug]` | Public (or `?preview=1` draft) renderer |
 | `/sites/[slug]/[pageSlug]` | Inner pages |
 | `/sites/by-host` | Custom hostname entry (middleware rewrite) |

@@ -52,11 +52,14 @@ export function CreateWebsiteForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 max-w-xl">
+    <form
+      onSubmit={onSubmit}
+      className="space-y-4 max-w-xl rounded-lg border border-slate-700 bg-slate-900/40 p-5"
+    >
       <div>
         <label className="block text-sm text-slate-300 mb-1">Site name (optional)</label>
         <input
-          className="w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-white"
+          className="w-full rounded-md border border-slate-600 bg-slate-950 px-3 py-2 text-white"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Uses Business Profile name if blank"
@@ -65,7 +68,7 @@ export function CreateWebsiteForm({
       <div>
         <label className="block text-sm text-slate-300 mb-1">Brief</label>
         <textarea
-          className="w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-white min-h-[100px]"
+          className="w-full rounded-md border border-slate-600 bg-slate-950 px-3 py-2 text-white min-h-[100px]"
           value={brief}
           onChange={(e) => setBrief(e.target.value)}
           placeholder="e.g. Premium Currumbin agency focused on vendor appraisals…"
@@ -77,14 +80,14 @@ export function CreateWebsiteForm({
         disabled={loading}
         className="rounded-md bg-[var(--org-primary,#1e3a5f)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
       >
-        {loading ? "Generating…" : "Create from Business Profile"}
+        {loading ? "Generating site…" : "Create from Business Profile"}
       </button>
       <p className="text-xs text-slate-500">
-        AI emits a structured page/component model (not HTML).{" "}
+        Opens Studio with Home, Services, About, and Contact (form → CRM).{" "}
         <Link href="/dashboard/business" className="text-slate-300 underline">
           Edit Business Profile
         </Link>{" "}
-        first for better results.
+        first for better brand colours and copy.
       </p>
     </form>
   );

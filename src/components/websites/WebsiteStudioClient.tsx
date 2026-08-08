@@ -7,6 +7,14 @@ import type { SerializedWebsite, WebsiteComponent } from "@dg/platform-core";
 
 import { MakeItLivePanel } from "@/components/websites/MakeItLivePanel";
 
+const SUGGESTED_PROMPTS = [
+  "Make it more premium",
+  "Change CTA to Book an appraisal",
+  "Add a FAQ page",
+  "Set primary colour to navy",
+  "Change headline to Local experts you can trust",
+];
+
 export function WebsiteStudioClient({
   initial,
 }: {
@@ -21,6 +29,7 @@ export function WebsiteStudioClient({
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
     null,
   );
+  const [showLivePanel, setShowLivePanel] = useState(true);
 
   const page = useMemo(
     () => website.pages?.find((p) => p.id === pageId) ?? website.pages?.[0],
@@ -28,6 +37,9 @@ export function WebsiteStudioClient({
   );
 
   const selected = page?.components.find((c) => c.id === selectedComponentId);
+  const isPublished = website.status === "published";
+  const previewQs = isPublished ? "" : "?preview=1";
+  const primary = website.theme?.primaryColor || "#1e3a5f";
 
   async function refreshFromServer() {
     const res = await fetch(`/api/v1/websites/${website.id}`);
@@ -36,13 +48,13 @@ export function WebsiteStudioClient({
     router.refresh();
   }
 
-  async function publish() {
+  async function setPublishStatus(next: "published" | "draft") {
     setBusy(true);
-    setStatus("Publishing…");
+    setStatus(next === "published" ? "Publishing…" : "Unpublishing…");
     const res = await fetch(`/api/v1/websites/${website.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "published" }),
+      body: JSON.stringify({ status: next }),
     });
     const json = (await res.json()) as {
       data?: SerializedWebsite;
@@ -50,9 +62,9 @@ export function WebsiteStudioClient({
     };
     if (json.data) {
       setWebsite(json.data);
-      setStatus("Published");
+      setStatus(next === "published" ? "Published" : "Back to draft");
     } else {
-      setStatus(json.error?.message || "Publish failed");
+      setStatus(json.error?.message || "Status update failed");
     }
     setBusy(false);
   }
@@ -72,6 +84,7 @@ export function WebsiteStudioClient({
     if (json.data?.website) {
       setWebsite(json.data.website);
       setPageId(json.data.website.pages?.[0]?.id ?? "");
+      setSelectedComponentId(null);
       setStatus(`Regenerated (${json.data.generator?.source ?? "ok"})`);
     } else {
       setStatus(json.error?.message || "Regenerate failed");
@@ -79,15 +92,16 @@ export function WebsiteStudioClient({
     setBusy(false);
   }
 
-  async function runAssist(e: React.FormEvent) {
-    e.preventDefault();
-    if (!prompt.trim()) return;
+  async function runAssist(e?: React.FormEvent, overridePrompt?: string) {
+    e?.preventDefault();
+    const text = (overridePrompt ?? prompt).trim();
+    if (!text) return;
     setBusy(true);
     setStatus("Applying…");
     const res = await fetch(`/api/v1/websites/${website.id}/assist`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ prompt: text }),
     });
     const json = (await res.json()) as {
       data?: { website: SerializedWebsite; applied: string; source: string };
@@ -96,7 +110,11 @@ export function WebsiteStudioClient({
     if (json.data) {
       setWebsite(json.data.website);
       setStatus(`${json.data.applied} (${json.data.source})`);
-      setPrompt("");
+      if (!overridePrompt) setPrompt("");
+      if (json.data.website.pages?.length) {
+        const still = json.data.website.pages.find((p) => p.id === pageId);
+        if (!still) setPageId(json.data.website.pages[0].id);
+      }
     } else {
       setStatus(json.error?.message || "Assist failed");
     }
@@ -131,17 +149,26 @@ export function WebsiteStudioClient({
     setBusy(false);
   }
 
-  const previewQs = website.status === "published" ? "" : "?preview=1";
-
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3 justify-between">
-        <div>
-          <p className="text-sm text-slate-400">
-            {website.status} · /sites/{website.slug}
-            {website.pages ? ` · ${website.pages.length} pages` : ""}
-          </p>
-          {status ? <p className="text-xs text-slate-500 mt-1">{status}</p> : null}
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`rounded border px-1.5 py-0.5 text-[11px] capitalize ${
+                isPublished
+                  ? "border-emerald-800/60 bg-emerald-950/40 text-emerald-300"
+                  : "border-amber-800/50 bg-amber-950/30 text-amber-200"
+              }`}
+            >
+              {website.status}
+            </span>
+            <p className="text-sm text-slate-400">
+              /sites/{website.slug}
+              {website.pages ? ` · ${website.pages.length} pages` : ""}
+            </p>
+          </div>
+          {status ? <p className="text-xs text-slate-500">{status}</p> : null}
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
@@ -159,19 +186,31 @@ export function WebsiteStudioClient({
           >
             Regenerate
           </button>
-          <button
-            type="button"
-            disabled={busy || website.status === "published"}
-            onClick={publish}
-            className="rounded-md bg-[var(--org-primary,#1e3a5f)] px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
-          >
-            Publish
-          </button>
+          {isPublished ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void setPublishStatus("draft")}
+              className="rounded-md border border-slate-600 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50"
+            >
+              Unpublish
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void setPublishStatus("published")}
+              className="rounded-md px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+              style={{ background: primary }}
+            >
+              Publish
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[14rem_1fr_18rem]">
-        <aside className="space-y-2">
+      <div className="grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)_17rem]">
+        <aside className="space-y-3">
           <h2 className="text-xs uppercase tracking-wide text-slate-500">Pages</h2>
           <ul className="space-y-1">
             {(website.pages ?? []).map((p) => (
@@ -189,13 +228,22 @@ export function WebsiteStudioClient({
                   }`}
                 >
                   {p.title}
-                  <span className="block text-[11px] text-slate-500">/{p.slug}</span>
+                  <span className="block text-[11px] text-slate-500">
+                    /{p.slug} · {p.components.length} blocks
+                  </span>
                 </button>
               </li>
             ))}
           </ul>
-          <div className="pt-4 space-y-1 border-t border-slate-800">
+          <div className="pt-3 space-y-1 border-t border-slate-800">
             <p className="text-xs uppercase tracking-wide text-slate-500">Go live</p>
+            <button
+              type="button"
+              onClick={() => setShowLivePanel((v) => !v)}
+              className="block text-sm text-slate-400 hover:text-slate-200"
+            >
+              {showLivePanel ? "Hide" : "Show"} checklist
+            </button>
             <Link
               href="/apps/websites/domains"
               className="block text-sm text-slate-400 hover:text-slate-200"
@@ -203,54 +251,83 @@ export function WebsiteStudioClient({
               Domains
             </Link>
             <Link
-              href="/apps/infrastructure/dns"
+              href="/apps/websites/hosting"
               className="block text-sm text-slate-400 hover:text-slate-200"
             >
-              DNS
+              Hosting status
             </Link>
-            <p className="text-xs text-slate-600 pt-2">
-              Import from WordPress — connector path after native builder (see docs).
-            </p>
           </div>
         </aside>
 
         <section className="space-y-4 min-w-0">
-          <MakeItLivePanel website={website} />
+          {showLivePanel ? <MakeItLivePanel website={website} /> : null}
 
-          <form onSubmit={runAssist} className="flex gap-2">
-            <input
-              className="flex-1 rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white"
-              placeholder='Try: “add services page” or “change CTA to Book an appraisal”'
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              disabled={busy}
-            />
-            <button
-              type="submit"
-              disabled={busy}
-              className="rounded-md border border-slate-500 px-3 py-2 text-sm text-white disabled:opacity-50"
-            >
-              Apply
-            </button>
-          </form>
+          <div className="space-y-2">
+            <form onSubmit={(e) => void runAssist(e)} className="flex gap-2">
+              <input
+                className="flex-1 rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white"
+                placeholder='Try: “make it more premium” or “change CTA to Book an appraisal”'
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                disabled={busy}
+              />
+              <button
+                type="submit"
+                disabled={busy}
+                className="rounded-md border border-slate-500 px-3 py-2 text-sm text-white disabled:opacity-50"
+              >
+                Apply
+              </button>
+            </form>
+            <div className="flex flex-wrap gap-1.5">
+              {SUGGESTED_PROMPTS.map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void runAssist(undefined, chip)}
+                  className="rounded-full border border-slate-700 px-2.5 py-1 text-[11px] text-slate-400 hover:border-slate-500 hover:text-slate-200 disabled:opacity-50"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="rounded-md border border-slate-700 bg-slate-950/60 p-3">
-            <h2 className="text-xs uppercase tracking-wide text-slate-500 mb-2">
-              Components — {page?.title}
-            </h2>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <h2 className="text-xs uppercase tracking-wide text-slate-500">
+                Components — {page?.title}
+              </h2>
+              {page ? (
+                <Link
+                  href={
+                    page.slug === "home" || page.intent === "home"
+                      ? `/sites/${website.slug}${previewQs}`
+                      : `/sites/${website.slug}/${page.slug}${previewQs}`
+                  }
+                  target="_blank"
+                  className="text-[11px] text-sky-400 hover:underline"
+                >
+                  Preview page
+                </Link>
+              ) : null}
+            </div>
             <ul className="space-y-1">
-              {(page?.components ?? []).map((c) => (
+              {(page?.components ?? []).map((c, index) => (
                 <li key={c.id}>
                   <button
                     type="button"
                     onClick={() => setSelectedComponentId(c.id)}
-                    className={`w-full text-left rounded px-2 py-1.5 text-sm font-mono ${
+                    className={`w-full text-left rounded px-2 py-1.5 text-sm ${
                       selectedComponentId === c.id
                         ? "bg-slate-800 text-amber-200"
                         : "text-slate-300 hover:bg-slate-900"
                     }`}
                   >
-                    {c.type}
+                    <span className="text-slate-500 mr-2">{index + 1}.</span>
+                    <span className="font-mono">{c.type}</span>
+                    <ComponentSummary component={c} />
                   </button>
                 </li>
               ))}
@@ -260,7 +337,7 @@ export function WebsiteStudioClient({
 
         <aside className="space-y-3">
           <h2 className="text-xs uppercase tracking-wide text-slate-500">
-            Edit props
+            Edit component
           </h2>
           {selected ? (
             <ComponentPropsEditor
@@ -270,11 +347,32 @@ export function WebsiteStudioClient({
               onSave={saveComponentProps}
             />
           ) : (
-            <p className="text-sm text-slate-500">Select a component to edit props.</p>
+            <p className="text-sm text-slate-500">
+              Select a component to edit fields, or use AI prompts above.
+            </p>
           )}
         </aside>
       </div>
     </div>
+  );
+}
+
+function ComponentSummary({ component }: { component: WebsiteComponent }) {
+  const hint =
+    typeof component.props.headline === "string"
+      ? component.props.headline
+      : typeof component.props.businessName === "string"
+        ? component.props.businessName
+        : typeof component.props.ctaLabel === "string"
+          ? component.props.ctaLabel
+          : typeof component.props.buttonLabel === "string"
+            ? component.props.buttonLabel
+            : null;
+  if (!hint) return null;
+  return (
+    <span className="block text-[11px] text-slate-500 truncate font-sans">
+      {hint}
+    </span>
   );
 }
 
@@ -287,35 +385,250 @@ function ComponentPropsEditor({
   disabled?: boolean;
   onSave: (props: Record<string, unknown>) => void;
 }) {
+  const [props, setProps] = useState<Record<string, unknown>>(component.props);
+  const [mode, setMode] = useState<"fields" | "json">(
+    hasFriendlyFields(component.type) ? "fields" : "json",
+  );
   const [raw, setRaw] = useState(JSON.stringify(component.props, null, 2));
   const [error, setError] = useState("");
 
+  function updateField(key: string, value: unknown) {
+    setProps((prev) => ({ ...prev, [key]: value }));
+  }
+
   return (
-    <div className="space-y-2">
-      <p className="text-sm text-slate-300 font-mono">{component.type}</p>
-      <textarea
-        className="w-full min-h-[220px] rounded-md border border-slate-600 bg-slate-900 px-2 py-2 font-mono text-xs text-slate-200"
-        value={raw}
-        onChange={(e) => setRaw(e.target.value)}
-        disabled={disabled}
-      />
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm text-slate-300 font-mono">{component.type}</p>
+        {hasFriendlyFields(component.type) ? (
+          <button
+            type="button"
+            className="text-[11px] text-slate-500 hover:text-slate-300"
+            onClick={() => {
+              if (mode === "fields") {
+                setRaw(JSON.stringify(props, null, 2));
+                setMode("json");
+              } else {
+                try {
+                  setProps(JSON.parse(raw) as Record<string, unknown>);
+                  setError("");
+                  setMode("fields");
+                } catch {
+                  setError("Invalid JSON");
+                }
+              }
+            }}
+          >
+            {mode === "fields" ? "JSON" : "Fields"}
+          </button>
+        ) : null}
+      </div>
+
+      {mode === "fields" && hasFriendlyFields(component.type) ? (
+        <FriendlyFields
+          type={component.type}
+          props={props}
+          disabled={disabled}
+          onChange={updateField}
+        />
+      ) : (
+        <textarea
+          className="w-full min-h-[220px] rounded-md border border-slate-600 bg-slate-900 px-2 py-2 font-mono text-xs text-slate-200"
+          value={raw}
+          onChange={(e) => setRaw(e.target.value)}
+          disabled={disabled}
+        />
+      )}
+
       {error ? <p className="text-xs text-rose-400">{error}</p> : null}
       <button
         type="button"
         disabled={disabled}
         className="rounded-md bg-slate-700 px-3 py-1.5 text-sm text-white disabled:opacity-50"
         onClick={() => {
-          try {
-            const parsed = JSON.parse(raw) as Record<string, unknown>;
-            setError("");
-            onSave(parsed);
-          } catch {
-            setError("Invalid JSON");
+          if (mode === "json") {
+            try {
+              const parsed = JSON.parse(raw) as Record<string, unknown>;
+              setError("");
+              onSave(parsed);
+            } catch {
+              setError("Invalid JSON");
+            }
+            return;
           }
+          onSave(props);
         }}
       >
-        Save props
+        Save
       </button>
     </div>
   );
+}
+
+function hasFriendlyFields(type: string): boolean {
+  return [
+    "hero",
+    "cta",
+    "about",
+    "contact_form",
+    "footer",
+    "services",
+    "trust",
+  ].includes(type);
+}
+
+function Field({
+  label,
+  value,
+  disabled,
+  multiline,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  disabled?: boolean;
+  multiline?: boolean;
+  onChange: (v: string) => void;
+}) {
+  const className =
+    "mt-1 w-full rounded-md border border-slate-600 bg-slate-900 px-2 py-1.5 text-sm text-white";
+  return (
+    <label className="block text-xs text-slate-500">
+      {label}
+      {multiline ? (
+        <textarea
+          className={`${className} min-h-[88px]`}
+          value={value}
+          disabled={disabled}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      ) : (
+        <input
+          className={className}
+          value={value}
+          disabled={disabled}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
+    </label>
+  );
+}
+
+function FriendlyFields({
+  type,
+  props,
+  disabled,
+  onChange,
+}: {
+  type: string;
+  props: Record<string, unknown>;
+  disabled?: boolean;
+  onChange: (key: string, value: unknown) => void;
+}) {
+  const str = (key: string) =>
+    typeof props[key] === "string" ? (props[key] as string) : "";
+
+  if (type === "hero") {
+    return (
+      <div className="space-y-2">
+        <Field label="Headline" value={str("headline")} disabled={disabled} onChange={(v) => onChange("headline", v)} />
+        <Field label="Subheadline" value={str("subheadline")} disabled={disabled} multiline onChange={(v) => onChange("subheadline", v)} />
+        <Field label="CTA label" value={str("ctaLabel")} disabled={disabled} onChange={(v) => onChange("ctaLabel", v)} />
+        <Field label="CTA href" value={str("ctaHref")} disabled={disabled} onChange={(v) => onChange("ctaHref", v)} />
+      </div>
+    );
+  }
+  if (type === "cta") {
+    return (
+      <div className="space-y-2">
+        <Field label="Headline" value={str("headline")} disabled={disabled} onChange={(v) => onChange("headline", v)} />
+        <Field label="Body" value={str("body")} disabled={disabled} multiline onChange={(v) => onChange("body", v)} />
+        <Field label="Button label" value={str("buttonLabel")} disabled={disabled} onChange={(v) => onChange("buttonLabel", v)} />
+        <Field label="Button href" value={str("buttonHref")} disabled={disabled} onChange={(v) => onChange("buttonHref", v)} />
+      </div>
+    );
+  }
+  if (type === "about") {
+    return (
+      <div className="space-y-2">
+        <Field label="Headline" value={str("headline")} disabled={disabled} onChange={(v) => onChange("headline", v)} />
+        <Field label="Body" value={str("body")} disabled={disabled} multiline onChange={(v) => onChange("body", v)} />
+      </div>
+    );
+  }
+  if (type === "contact_form") {
+    return (
+      <div className="space-y-2">
+        <Field label="Headline" value={str("headline")} disabled={disabled} onChange={(v) => onChange("headline", v)} />
+        <Field label="Submit label" value={str("submitLabel")} disabled={disabled} onChange={(v) => onChange("submitLabel", v)} />
+        <Field label="Success message" value={str("successMessage")} disabled={disabled} multiline onChange={(v) => onChange("successMessage", v)} />
+      </div>
+    );
+  }
+  if (type === "footer") {
+    return (
+      <div className="space-y-2">
+        <Field label="Business name" value={str("businessName")} disabled={disabled} onChange={(v) => onChange("businessName", v)} />
+        <Field label="Phone" value={str("phone")} disabled={disabled} onChange={(v) => onChange("phone", v)} />
+        <Field label="Email" value={str("email")} disabled={disabled} onChange={(v) => onChange("email", v)} />
+      </div>
+    );
+  }
+  if (type === "trust") {
+    const items = Array.isArray(props.items)
+      ? props.items.map((x) => String(x)).join("\n")
+      : "";
+    return (
+      <Field
+        label="Trust items (one per line)"
+        value={items}
+        disabled={disabled}
+        multiline
+        onChange={(v) =>
+          onChange(
+            "items",
+            v
+              .split("\n")
+              .map((s) => s.trim())
+              .filter(Boolean),
+          )
+        }
+      />
+    );
+  }
+  if (type === "services") {
+    const items = Array.isArray(props.items)
+      ? (props.items as Array<{ title?: string; description?: string }>)
+          .map((i) => `${i.title ?? ""}|${i.description ?? ""}`)
+          .join("\n")
+      : "";
+    return (
+      <div className="space-y-2">
+        <Field label="Headline" value={str("headline")} disabled={disabled} onChange={(v) => onChange("headline", v)} />
+        <Field
+          label="Services (title|description per line)"
+          value={items}
+          disabled={disabled}
+          multiline
+          onChange={(v) =>
+            onChange(
+              "items",
+              v
+                .split("\n")
+                .map((line) => line.trim())
+                .filter(Boolean)
+                .map((line) => {
+                  const [title, ...rest] = line.split("|");
+                  return {
+                    title: title.trim() || "Service",
+                    description: rest.join("|").trim(),
+                  };
+                }),
+            )
+          }
+        />
+      </div>
+    );
+  }
+  return null;
 }
