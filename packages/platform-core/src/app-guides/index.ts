@@ -147,82 +147,98 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
   },
   {
     appId: "real-estate",
-    headline: "Connect Roe Realty to Gen 2",
+    headline: "Real Estate beta — agency setup",
     summary:
-      "Sync vendor leads, properties, and appraisals from WordPress into Postgres — Roe agents work in the platform, not wp-admin.",
-    estimatedMinutes: 25,
-    prerequisites: ["DG Platform plugin on roerealty.com.au", "CRM contacts", "Commerce (optional, for payments)"],
+      "Enrol with re.beta, connect the agency WordPress site, then run vendor → appraisal → listing → offer → settlement in Gen 2. See docs/RE-BETA-LAUNCH.md.",
+    estimatedMinutes: 30,
+    prerequisites: [
+      "re.beta enabled (Real Estate template or Command Centre → Enable RE beta)",
+      "DG Platform plugin 10.66.0+ on the agency WordPress site",
+      "CRM contacts",
+      "Commerce (optional, for payments)",
+    ],
     steps: [
+      {
+        id: "re-0",
+        title: "Complete Business Profile",
+        description:
+          "Add ABN and logo so invoices, quotes, and the workspace look like the agency.",
+        href: "/dashboard/business",
+        hrefLabel: "Business Profile",
+      },
       {
         id: "re-1",
         title: "Deploy the WordPress plugin",
         description:
-          "Upload the latest dg-platform-build zip to roerealty.com.au. Confirm Real Estate module is enabled.",
+          "Upload the latest dg-platform-build zip to the agency site. Confirm Real Estate module is enabled.",
         detail: "Plugins → DG Platform → Modules → Real Estate ✓",
       },
       {
         id: "re-2",
         title: "Configure the WordPress connector",
         description:
-          "Set the connector API key and base URL in Vercel so Gen 2 can pull vendor leads.",
-        code: "DG_WP_CONNECTOR_API_KEY=dgdev_...\nDG_WP_CONNECTOR_BASE_URL=https://roerealty.com.au/wp-json/digitalgate/v1",
+          "In Settings → Connectors, set the site base URL and per-org Dev API key (preferred over shared Vercel env for multi-agency).",
+        href: "/dashboard/settings/connectors",
+        hrefLabel: "Connectors",
+        code: "https://{agency-site}/wp-json/digitalgate/v1",
       },
       {
         id: "re-3",
-        title: "Enable geocoding (recommended)",
-        description:
-          "Add GOOGLE_GEOCODING_API_KEY for address autocomplete on properties. Falls back to OpenStreetMap if unset.",
+        title: "Invite the team",
+        description: "Send Clerk invites so agents can work the pipeline.",
+        href: "/dashboard/settings/team",
+        hrefLabel: "Team",
       },
       {
         id: "re-4",
+        title: "Open Real Estate & finish the checklist",
+        description:
+          "Use the Getting Started checklist on the RE overview, then add or sync the first vendor lead.",
+        href: "/apps/re",
+        hrefLabel: "Real Estate overview",
+      },
+      {
+        id: "re-5",
         title: "Verify vendor lead sync",
         description:
-          "Submit a property report on roerealty.com.au, then confirm the lead appears in Vendor leads within a minute.",
+          "Submit a property report on the agency site (or add a lead manually), then confirm it appears in Vendor leads.",
         href: "/apps/re/vendor-leads",
         hrefLabel: "Open vendor leads",
       },
       {
-        id: "re-5",
-        title: "Test the commerce chain",
+        id: "re-6",
+        title: "Run appraisal → listing → offer",
         description:
-          "On a vendor lead: create quote → accept → send invoice → request payment. Confirm payment lands in Commerce.",
-        href: "/apps/re/vendor-leads",
-        hrefLabel: "Lead commerce panel",
+          "Start an appraisal from a vendor lead, move to Listed, add an offer, and accept it.",
+        href: "/apps/re/properties",
+        hrefLabel: "Open properties",
       },
       {
-        id: "re-6",
+        id: "re-7",
         title: "Sync buyer leads",
         description:
-          "Property enquiry forms on roerealty.com.au create buyer pipeline records. Sync them into Postgres from Buyer leads.",
+          "Property enquiry forms on WordPress create buyer pipeline records. Sync or add buyers manually.",
         href: "/apps/re/buyer-leads",
         hrefLabel: "Open buyer leads",
       },
       {
-        id: "re-7",
-        title: "Review appraisal bookings",
-        description:
-          "Appraisal and strategy call bookings appear live from WordPress — no Postgres sync required yet.",
-        href: "/apps/re/bookings",
-        hrefLabel: "Open bookings",
-      },
-      {
         id: "re-8",
-        title: "Publish a listing to the website",
+        title: "Optional — commerce chain",
         description:
-          "Set a property status to Listed (or use Publish to website). Gen 2 upserts the Roe property CPT via digitalgate/v1/properties.",
-        href: "/apps/re/properties",
-        hrefLabel: "Open properties",
+          "On a vendor lead: create quote → accept → send invoice → request payment.",
+        href: "/apps/re/vendor-leads",
+        hrefLabel: "Lead commerce panel",
       },
     ],
     envVars: [
       {
         name: "DG_WP_CONNECTOR_API_KEY",
-        description: "Dev API key from WP → DG Platform → API Settings",
+        description: "Fallback env key — prefer per-org key in Connectors",
       },
       {
         name: "DG_WP_CONNECTOR_BASE_URL",
-        description: "Roe REST base URL",
-        example: "https://roerealty.com.au/wp-json/digitalgate/v1",
+        description: "Fallback REST base URL if org connector unset",
+        example: "https://agency.example/wp-json/digitalgate/v1",
       },
       {
         name: "GOOGLE_GEOCODING_API_KEY",
