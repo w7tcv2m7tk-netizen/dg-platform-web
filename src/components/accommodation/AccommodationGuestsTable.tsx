@@ -87,11 +87,17 @@ export function AccommodationGuestsTable({
 
       {!guests.length ? (
         <div className="dg-card border-dashed border-slate-700">
-          <p className="text-slate-300">No accommodation guests yet.</p>
+          <h2 className="text-lg font-semibold text-white">Add your first guests</h2>
           <p className="mt-2 text-sm text-slate-500">
             Guests appear when stay bookings sync and link to Contacts, or when WordPress guest
             rows are imported.
           </p>
+          <a
+            href="/apps/accommodation/bookings"
+            className="mt-4 inline-block rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+          >
+            Open bookings
+          </a>
         </div>
       ) : (
         <>

@@ -158,6 +158,13 @@ Surfaces in Command Centre morning view so the team knows where to focus.
 - Attention: RE beta orgs with WordPress connector down or zero leads
 - Full playbook: [RE-BETA-LAUNCH.md](./RE-BETA-LAUNCH.md)
 
+### Accommodation beta (pilots)
+
+- Flag: `acc.beta` (also listed under **Flags**)
+- **Clients** table: **Enable Acc beta** provisions the flag + Accommodation app install
+- Attention: Acc beta orgs with WordPress connector down or zero stay bookings
+- Full playbook: [ACC-BETA-LAUNCH.md](./ACC-BETA-LAUNCH.md) · pilot pack: [ACC-BETA-PILOT-PACK.md](./ACC-BETA-PILOT-PACK.md)
+
 ---
 
 ## Opportunity Engine

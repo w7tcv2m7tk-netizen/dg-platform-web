@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+import type { AccBetaReadiness } from "@dg/platform-core";
+
+import { AccBetaChecklist } from "@/components/accommodation/AccBetaChecklist";
 import type { WpAccommodationSummary } from "@/lib/dg-api";
 
 function StatCard({
@@ -50,28 +53,63 @@ export function AccommodationDashboard({
   summary,
   error,
   siteLabel,
+  readiness,
 }: {
   summary?: WpAccommodationSummary;
   error?: string;
   siteLabel?: string;
+  readiness?: AccBetaReadiness;
 }) {
+  const checklist =
+    readiness && readiness.completedCount < readiness.totalCount ? (
+      <AccBetaChecklist readiness={readiness} />
+    ) : null;
+
   if (error) {
     return (
-      <div className="dg-card border-amber-500/30">
-        <p className="text-amber-300">{error}</p>
-        <p className="mt-2 text-sm text-slate-500">
-          Open Settings → Connectors while on the <strong>CVH</strong> business → paste the
-          key from currumbinvalleyhideaway.com.au → DG Platform → API Settings → Save (do not
-          leave the key blank). Roe/DigitalGate env keys are never sent to CVH. Optional Vercel
-          fallback:{" "}
-          <code className="text-slate-400">DG_WP_ACCOMMODATION_API_KEY</code>.
-        </p>
+      <div className="space-y-6">
+        {checklist}
+        <div className="dg-card border-amber-500/30">
+          <p className="text-amber-300">{error}</p>
+          <p className="mt-2 text-sm text-slate-500">
+            Open Settings → Connectors while on the <strong>CVH</strong> business → paste the
+            key from currumbinvalleyhideaway.com.au → DG Platform → API Settings → Save (do not
+            leave the key blank). Roe/DigitalGate env keys are never sent to CVH. Optional Vercel
+            fallback:{" "}
+            <code className="text-slate-400">DG_WP_ACCOMMODATION_API_KEY</code>.
+          </p>
+        </div>
       </div>
     );
   }
 
   if (!summary) {
-    return <p className="text-sm text-slate-400">Loading accommodation data…</p>;
+    return (
+      <div className="space-y-6">
+        {checklist}
+        <div className="dg-card border-dashed border-slate-700">
+          <h2 className="text-lg font-semibold text-white">Add your first units</h2>
+          <p className="mt-2 max-w-xl text-sm text-slate-400">
+            Connect WordPress, sync units, then open Availability and Bookings. Public book-now
+            stays on the website for this beta.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/apps/accommodation/units"
+              className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500"
+            >
+              Open units
+            </Link>
+            <Link
+              href="/dashboard/settings/connectors"
+              className="rounded-full border border-slate-600 px-5 py-2 text-sm text-slate-300 hover:bg-slate-900"
+            >
+              Connect WordPress
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const occupancy =
@@ -85,9 +123,39 @@ export function AccommodationDashboard({
 
   const revenue = summary.revenue_mtd ?? summary.revenue_month;
   const dirty = housekeepingDirty(summary);
+  const isEmpty =
+    (summary.properties ?? 0) === 0 &&
+    (summary.upcoming_30d ?? 0) === 0 &&
+    !(summary.recent_bookings?.length);
 
   return (
     <div className="space-y-6">
+      {checklist}
+
+      {isEmpty ? (
+        <div className="dg-card border-dashed border-slate-700">
+          <h2 className="text-lg font-semibold text-white">Add your first units</h2>
+          <p className="mt-2 max-w-xl text-sm text-slate-400">
+            Sync units from WordPress, confirm Airbnb / Booking.com iCal import + DigitalGate
+            export URLs, then work stays on Bookings and Availability.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/apps/accommodation/units"
+              className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500"
+            >
+              Sync units
+            </Link>
+            <Link
+              href="/apps/accommodation/calendar"
+              className="rounded-full border border-slate-600 px-5 py-2 text-sm text-slate-300 hover:bg-slate-900"
+            >
+              Open availability
+            </Link>
+          </div>
+        </div>
+      ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Occupancy" value={occupancy} hint={siteLabel ?? summary.site} />
         <StatCard

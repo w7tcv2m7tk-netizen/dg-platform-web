@@ -1,4 +1,5 @@
 import { currentUser } from "@clerk/nextjs/server";
+import { getAccBetaReadiness } from "@dg/platform-core";
 import { Suspense } from "react";
 
 import { AccommodationDashboard } from "@/components/accommodation/AccommodationDashboard";
@@ -41,13 +42,16 @@ export default async function AccommodationOverviewPage({ searchParams }: PagePr
   const connector = await accommodationConnectorForSession(session?.organisationId);
   const summaryResult = await fetchWpAccommodationSummary(site.id, 30, connector);
   const siteLabel = connector?.label ?? site.label;
+  const readiness = session
+    ? await getAccBetaReadiness(session.organisationId)
+    : undefined;
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Accommodation</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · live from WordPress
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · Ops beta
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">
@@ -60,6 +64,7 @@ export default async function AccommodationOverviewPage({ searchParams }: PagePr
           summary={summaryResult.ok ? summaryResult.data : undefined}
           error={summaryResult.ok ? undefined : summaryResult.message}
           siteLabel={siteLabel}
+          readiness={readiness}
         />
       </main>
     </>

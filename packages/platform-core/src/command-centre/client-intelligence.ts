@@ -184,6 +184,7 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     const installedApps = org.appInstallations.map((a) => a.appId);
     const settings = (org.settings as OrgSettings | null) ?? {};
     const reBeta = settings.featureFlags?.["re.beta"] === true;
+    const accBeta = settings.featureFlags?.["acc.beta"] === true;
     const connectorOk = wpConfigured(org.settings);
     const scoreInput: SuccessScoreInput = {
       wordpressConfigured: connectorOk,
@@ -217,6 +218,16 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     if (reBeta && installedApps.includes("real-estate") && org._count.leads === 0) {
       attentionReasons.push("RE beta — no leads yet");
     }
+    if (accBeta && !connectorOk) {
+      attentionReasons.unshift("Acc beta — WordPress connector down");
+    }
+    if (
+      accBeta &&
+      installedApps.includes("accommodation") &&
+      org._count.stayBookings === 0
+    ) {
+      attentionReasons.push("Acc beta — no stay bookings yet");
+    }
 
     const row: Omit<EnrichedCommandClient, "rank"> = {
       organisationId: org.id,
@@ -231,6 +242,7 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       stayBookingCount: org._count.stayBookings,
       installedApps,
       reBeta,
+      accBeta,
       needsAttention:
         result.tier === "needs_attention" || attentionReasons.length > 0,
       attentionReasons,

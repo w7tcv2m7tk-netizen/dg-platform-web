@@ -52,7 +52,9 @@ export const getOrgEnabledAppIdsCached = cache(async (): Promise<string[]> => {
   }
 
   const { prisma } = await import("@dg/database");
-  const { filterAppsForReBeta } = await import("@dg/platform-core");
+  const { filterAppsForAccBeta, filterAppsForReBeta } = await import(
+    "@dg/platform-core"
+  );
   const org = await prisma.organisation.findUnique({
     where: { id: session.organisationId },
     select: { settings: true },
@@ -63,5 +65,8 @@ export const getOrgEnabledAppIdsCached = cache(async (): Promise<string[]> => {
     featureFlags?: Record<string, boolean>;
   } | null;
   const enabled = resolveEnabledAppIds(settings ?? undefined);
-  return filterAppsForReBeta(enabled, settings?.featureFlags);
+  return filterAppsForAccBeta(
+    filterAppsForReBeta(enabled, settings?.featureFlags),
+    settings?.featureFlags,
+  );
 });

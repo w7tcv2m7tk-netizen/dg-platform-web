@@ -414,10 +414,11 @@ export function AccommodationUnitsTable({
     return (
       <div className="space-y-3">
         <div className="dg-card border-dashed border-slate-700">
-          <p className="text-slate-300">No accommodation units returned from WordPress.</p>
+          <h2 className="text-lg font-semibold text-white">Add your first units</h2>
           {siteLabel ? <p className="mt-1 text-sm text-slate-500">Site: {siteLabel}</p> : null}
           <p className="mt-2 text-sm text-slate-500">
-            Deploy plugin v10.63.0+ so all unit meta and iCal fields are included, then refresh.
+            Sync units from WordPress (plugin v10.63.0+ for full meta + iCal fields). Then paste
+            Airbnb / Booking.com import URLs and copy the DigitalGate export URL into each OTA.
           </p>
         </div>
         <button

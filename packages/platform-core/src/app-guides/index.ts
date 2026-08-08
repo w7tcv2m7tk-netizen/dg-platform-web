@@ -297,56 +297,71 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
   },
   {
     appId: "accommodation",
-    headline: "Connect CVH hospitality to Gen 2",
+    headline: "Accommodation beta — property setup",
     summary:
-      "Overview, units, and bookings pull live from the WordPress accommodation module — same connector pattern as Roe vendor leads.",
-    estimatedMinutes: 10,
-    prerequisites: ["DG Platform plugin on CVH WordPress", "Commerce for booking payments (optional)"],
+      "Enrol with acc.beta, connect the property WordPress site (CVH), then run units → availability → stays → housekeeping in Gen 2. Public book-now stays on WordPress. See docs/ACC-BETA-LAUNCH.md.",
+    estimatedMinutes: 25,
+    prerequisites: [
+      "acc.beta enabled (Accommodation template or Command Centre → Enable Acc beta)",
+      "DG Platform plugin 10.63.0+ on the property WordPress site",
+      "CRM contacts (guests)",
+      "Commerce for booking payments (optional)",
+    ],
     steps: [
       {
-        id: "acc-1",
-        title: "Configure accommodation sites",
+        id: "acc-0",
+        title: "Complete Business Profile",
         description:
-          "Point Gen 2 at your CVH WordPress REST API. Falls back to DG_WP_HEALTH_SITES when unset.",
-        code: 'DG_WP_ACCOMMODATION_SITES=[{"id":"cvh","label":"Currumbin Valley Hideaway","baseUrl":"https://currumbinvalleyhideaway.com.au/wp-json/digitalgate/v1","apiKey":"dgdev_..."}]',
+          "Add ABN and logo so invoices and the workspace look like the property.",
+        href: "/dashboard/business",
+        hrefLabel: "Business Profile",
+      },
+      {
+        id: "acc-1",
+        title: "Configure the WordPress connector",
+        description:
+          "In Settings → Connectors, set the CVH site base URL and per-org Dev API key (never paste Roe/DG keys onto CVH).",
+        href: "/dashboard/settings/connectors",
+        hrefLabel: "Connectors",
+        code: "https://currumbinvalleyhideaway.com.au/wp-json/digitalgate/v1",
       },
       {
         id: "acc-2",
-        title: "Open the overview dashboard",
+        title: "Open the overview checklist",
         description:
-          "Occupancy, revenue MTD, and recent bookings load directly from WordPress.",
+          "Complete the in-app Acc beta checklist, then review occupancy and recent stays.",
         href: "/apps/accommodation",
         hrefLabel: "Accommodation overview",
       },
       {
         id: "acc-3",
-        title: "Review units, bookings, availability, and housekeeping",
+        title: "Sync units and set OTA iCal",
         description:
-          "Units, availability, and housekeeping prefer Neon AccommodationUnit when synced; stays read StayBooking. WordPress remains the public book-now mirror.",
+          "Sync units from WordPress. Paste Airbnb/Booking.com import URLs; copy DigitalGate export into each OTA (never OTA↔OTA).",
         href: "/apps/accommodation/units",
         hrefLabel: "Units",
       },
       {
         id: "acc-3b",
-        title: "Update housekeeping after turnovers",
+        title: "Work availability and housekeeping",
         description:
-          "Mark units clean / dirty / in progress in Gen 2 (Neon SoT when units synced) — optional WordPress mirror.",
-        href: "/apps/accommodation/housekeeping",
-        hrefLabel: "Housekeeping",
+          "Use calendar views and OTA sync; mark units clean / dirty after turnovers (Neon SoT when units synced).",
+        href: "/apps/accommodation/calendar",
+        hrefLabel: "Availability",
       },
       {
         id: "acc-3c",
-        title: "Review guest Contacts",
+        title: "Review guests and stays",
         description:
-          "Guests are universal Contacts with Accommodation context (stays, LTV, VIP/repeat) — open the Guests section or the Contact record.",
+          "Guests are universal Contacts with Accommodation context (stays, LTV, VIP/repeat).",
         href: "/apps/accommodation/guests",
         hrefLabel: "Guests",
       },
       {
         id: "acc-4",
-        title: "Connect Commerce checkout",
+        title: "Connect Commerce checkout (optional)",
         description:
-          "Booking deposits and full payments flow through Commerce payment requests — same Stripe setup as Real Estate.",
+          "Ops payment requests can use Commerce — public book-now Stripe remains on WordPress for this beta.",
         href: "/dashboard/apps/commerce/setup",
         hrefLabel: "Commerce setup",
       },
@@ -354,7 +369,14 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
     envVars: [
       {
         name: "DG_WP_ACCOMMODATION_SITES",
-        description: "JSON array of { id, label, baseUrl, apiKey? } — CVH WordPress connector",
+        description:
+          "JSON array of { id, label, baseUrl, apiKey? } — CVH WordPress connector fallback",
+      },
+    ],
+    resources: [
+      {
+        label: "Accommodation overview",
+        href: "/apps/accommodation",
       },
     ],
   },

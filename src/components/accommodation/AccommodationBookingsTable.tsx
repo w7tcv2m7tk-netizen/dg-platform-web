@@ -143,7 +143,25 @@ export function AccommodationBookingsTable({
 
       {!rows.length ? (
         <div className="dg-card border-dashed border-slate-700">
-          <p className="text-slate-300">No bookings returned.</p>
+          <h2 className="text-lg font-semibold text-white">Add your first booking</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            Sync StayBookings from WordPress, or create an ops booking on Availability. Public
+            book-now stays on the website for this beta.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3 text-sm">
+            <a
+              href="/apps/accommodation/calendar"
+              className="rounded-full bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-500"
+            >
+              Open availability
+            </a>
+            <a
+              href="/dashboard/settings/connectors"
+              className="rounded-full border border-slate-600 px-4 py-2 text-slate-300 hover:bg-slate-900"
+            >
+              Connect WordPress
+            </a>
+          </div>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-800 dg-table-scroll">

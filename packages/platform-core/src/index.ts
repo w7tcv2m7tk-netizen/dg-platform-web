@@ -42,6 +42,7 @@ export * from "./real-estate/bookings";
 export * from "./accommodation/bookings";
 export * from "./accommodation/guests";
 export * from "./accommodation/units";
+export * from "./accommodation/beta";
 export * from "./real-estate/offers";
 export * from "./real-estate/reports";
 export * from "./real-estate/contact-roles";

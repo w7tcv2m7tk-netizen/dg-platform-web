@@ -179,10 +179,12 @@ export async function createOrganisationForUser(
               : null,
       settings: {
         apps: { enabled: enabledApps },
-        // Real Estate template orgs enter the RE agency beta program
+        // Template orgs enter the matching closed-beta program
         ...(template === "real-estate"
           ? { featureFlags: { "re.beta": true } }
-          : {}),
+          : template === "accommodation"
+            ? { featureFlags: { "acc.beta": true } }
+            : {}),
         profile: {
           businessName: orgName,
           industryVertical:

@@ -62,6 +62,8 @@ export interface CommandClientRow {
   installedApps: string[];
   /** Real Estate agency beta (`re.beta` feature flag) */
   reBeta: boolean;
+  /** Accommodation property beta (`acc.beta` feature flag) */
+  accBeta: boolean;
   needsAttention: boolean;
   attentionReasons: string[];
   createdAt: string;

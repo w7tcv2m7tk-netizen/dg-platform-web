@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getClientIntelligence, getCommandCentreOpsHome } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
+import { ProvisionAccBetaButton } from "@/components/command/ProvisionAccBetaButton";
 import { ProvisionReBetaButton } from "@/components/command/ProvisionReBetaButton";
 import { ScoreCell, TierBadge } from "@/components/command/tier-badge";
 
@@ -14,6 +15,9 @@ export default async function CommandClientsPage() {
   const reBetaCount =
     ops?.clients.filter((c) => c.reBeta).length ??
     clients.filter((c) => c.reBeta).length;
+  const accBetaCount =
+    ops?.clients.filter((c) => c.accBeta).length ??
+    clients.filter((c) => c.accBeta).length;
 
   return (
     <>
@@ -23,7 +27,8 @@ export default async function CommandClientsPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Client intelligence</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Success Score™ ranking plus RE beta enrolment. Watch connector-down attention on pilots.
+          Success Score™ ranking plus RE / Acc beta enrolment. Watch connector-down attention on
+          pilots.
         </p>
       </header>
       <main className="dg-page-main space-y-8">
@@ -35,7 +40,7 @@ export default async function CommandClientsPage() {
           </div>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
               <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Organisations</p>
                 <p className="mt-1 text-3xl font-semibold text-white">{clients.length}</p>
@@ -43,6 +48,10 @@ export default async function CommandClientsPage() {
               <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">RE beta</p>
                 <p className="mt-1 text-3xl font-semibold text-sky-300">{reBetaCount}</p>
+              </div>
+              <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Acc beta</p>
+                <p className="mt-1 text-3xl font-semibold text-teal-300">{accBetaCount}</p>
               </div>
               <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Avg Success Score</p>
@@ -69,8 +78,8 @@ export default async function CommandClientsPage() {
                 <div>
                   <h2 className="text-lg font-semibold text-white">Agency Health Ranking</h2>
                   <p className="mt-1 text-sm text-slate-400">
-                    Enable RE beta to install Real Estate and open the pilot checklist. Bulk toggles
-                    also live under{" "}
+                    Enable RE or Acc beta to install the app and open the pilot checklist. Bulk
+                    toggles also live under{" "}
                     <Link href="/command/flags" className="text-sky-400 hover:underline">
                       Flags
                     </Link>
@@ -91,6 +100,7 @@ export default async function CommandClientsPage() {
                       <th className="px-4 py-3 font-medium">Tier</th>
                       <th className="px-4 py-3 font-medium">CRM / Acc·RE</th>
                       <th className="px-4 py-3 font-medium">RE beta</th>
+                      <th className="px-4 py-3 font-medium">Acc beta</th>
                       <th className="px-4 py-3 font-medium">Signals</th>
                       <th className="px-4 py-3 font-medium" />
                     </tr>
@@ -121,6 +131,13 @@ export default async function CommandClientsPage() {
                             organisationId={client.organisationId}
                             organisationName={client.organisationName}
                             alreadyBeta={client.reBeta}
+                          />
+                        </td>
+                        <td className="px-4 py-3">
+                          <ProvisionAccBetaButton
+                            organisationId={client.organisationId}
+                            organisationName={client.organisationName}
+                            alreadyBeta={client.accBeta}
                           />
                         </td>
                         <td className="px-4 py-3">

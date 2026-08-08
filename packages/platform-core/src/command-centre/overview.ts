@@ -346,6 +346,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     stayBookingCount: c.stayBookingCount,
     installedApps: c.installedApps,
     reBeta: c.reBeta,
+    accBeta: c.accBeta,
     needsAttention: c.needsAttention,
     attentionReasons: c.attentionReasons,
     createdAt: c.createdAt,

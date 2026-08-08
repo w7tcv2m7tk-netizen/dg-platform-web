@@ -23,6 +23,7 @@ These documents capture **why** the platform is built the way it is. They are as
 | [WP-DETACH-BACKLOG.md](./WP-DETACH-BACKLOG.md) | Sequenced Gen 2 ↔ WordPress detach tickets (P0–P5) |
 | [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) | Internal intelligence App — how DG runs DG |
 | [RE-BETA-LAUNCH.md](./RE-BETA-LAUNCH.md) | Real Estate agency closed beta — in/out, provision, smoke test |
+| [ACC-BETA-LAUNCH.md](./ACC-BETA-LAUNCH.md) | Accommodation property closed beta — CVH path, in/out, provision |
 | [BUSINESS-OVERVIEW.md](./BUSINESS-OVERVIEW.md) | CEO dashboard — Business Overview at `/dashboard` |
 | [PLATFORM-API.md](./PLATFORM-API.md) | REST API v1 — keys, auth, endpoints |
 | [DEPLOY-WP-PLUGIN.md](./DEPLOY-WP-PLUGIN.md) | WordPress plugin deploy zip and site checklist |

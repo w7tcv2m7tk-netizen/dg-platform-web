@@ -433,8 +433,17 @@ export function AccommodationAvailabilityBoard({
   if (!units.length) {
     return (
       <div className="dg-card border-dashed border-slate-700">
-        <p className="text-slate-300">No units returned for availability.</p>
+        <h2 className="text-lg font-semibold text-white">Add your first units</h2>
         {siteLabel ? <p className="mt-1 text-sm text-slate-500">Site: {siteLabel}</p> : null}
+        <p className="mt-2 text-sm text-slate-500">
+          Sync units from WordPress, then use week / month / list views and OTA iCal sync here.
+        </p>
+        <a
+          href="/apps/accommodation/units"
+          className="mt-4 inline-block rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+        >
+          Open units
+        </a>
       </div>
     );
   }

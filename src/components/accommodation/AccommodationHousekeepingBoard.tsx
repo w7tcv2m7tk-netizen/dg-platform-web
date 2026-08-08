@@ -131,7 +131,16 @@ export function AccommodationHousekeepingBoard({
 
       {!rows.length ? (
         <div className="dg-card border-dashed border-slate-700">
-          <p className="text-slate-300">No properties returned.</p>
+          <h2 className="text-lg font-semibold text-white">Add your first units</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            Sync units first, then mark clean / dirty / in progress after turnovers.
+          </p>
+          <a
+            href="/apps/accommodation/units"
+            className="mt-4 inline-block rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+          >
+            Open units
+          </a>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-800">
