@@ -7,8 +7,11 @@ export {
   DREAMSCAPE_PROD_BASE_URL,
   DREAMSCAPE_SANDBOX_BASE_URL,
   DreamscapeApiError,
+  describeDreamscapeAuthFailure,
   dreamscapeFetch,
+  isDreamscapeApiKeyFormatValid,
   isDreamscapeConfigured,
+  normalizeDreamscapeApiKey,
   resolveDreamscapeConfig,
 } from "./client";
 export {

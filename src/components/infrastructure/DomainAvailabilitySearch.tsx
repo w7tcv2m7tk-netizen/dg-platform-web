@@ -102,7 +102,9 @@ export function DomainAvailabilitySearch() {
               <p className="font-medium">
                 {result.error.code === "provider_not_configured"
                   ? "Not configured"
-                  : "Availability check"}
+                  : result.error.code?.startsWith("auth_")
+                    ? "API authentication failed"
+                    : "Availability check"}
               </p>
               <p className="mt-1 text-amber-100/90">{result.error.message}</p>
               {result.error.hint ? (

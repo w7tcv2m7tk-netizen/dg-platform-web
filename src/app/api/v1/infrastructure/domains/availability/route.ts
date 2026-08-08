@@ -102,8 +102,9 @@ export async function GET(req: Request) {
           isSandbox,
           data: [] as DomainAvailability[],
           error: {
-            code: "provider_error",
+            code: err.code ?? "provider_error",
             message: err.message,
+            hint: err.hint,
             status: err.status,
           },
         },

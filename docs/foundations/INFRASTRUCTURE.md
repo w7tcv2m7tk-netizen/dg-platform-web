@@ -133,15 +133,18 @@ Sandbox Reseller Console: `https://reseller.sandbox.ds.network`
 1. `Api-Request-Id` — unique MD5  
 2. `Api-Signature` — MD5(`request_id + api_key`)
 
-**Get API key:** Reseller Console → **Account Settings → API & WHMCS → API Setup**
+**Get sandbox API key:** [reseller.sandbox.ds.network](https://reseller.sandbox.ds.network) → **Account Settings → API & WHMCS → API Setup**
+
+Classic **401** causes (Dreamscape FAQ): wrong key, whitespace/quotes around the key, or **sandbox/prod key mismatch**. Production keys will not work on `reseller-api.sandbox.ds.network`.
 
 ```bash
-# .env.local — never commit real values
-DREAMSCAPE_API_KEY=
+# .env.local / Vercel — never commit real values
+DREAMSCAPE_API_KEY=          # sandbox key when using sandbox base URL
 DREAMSCAPE_API_BASE_URL=https://reseller-api.sandbox.ds.network
 ```
 
-> **Security:** Example API keys in Dreamscape’s public docs are **not** DigitalGate credentials. If any real key was pasted into chat, tickets, or git history, **regenerate** it in Reseller Console immediately. Browser never holds the key — only `GET /api/v1/infrastructure/...` (and future routes) call Dreamscape.
+> **Security:** Example API keys in Dreamscape’s public docs are **not** DigitalGate credentials. If any real key was pasted into chat, tickets, or git history, **regenerate** it in Reseller Console immediately. Browser never holds the key — only `GET /api/v1/infrastructure/...` (and future routes) call Dreamscape.  
+> Optional later: separate `DREAMSCAPE_API_KEY_SANDBOX` vs prod — today one `DREAMSCAPE_API_KEY` must match the configured base URL.
 
 ---
 
