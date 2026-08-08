@@ -108,6 +108,20 @@ export function VendorLeadPipeline({
         </p>
       </div>
 
+      {!leads.length ? (
+        <div className="dg-card border-dashed border-slate-700">
+          <h2 className="text-lg font-semibold text-white">Add your first vendor lead</h2>
+          <p className="mt-2 max-w-xl text-sm text-slate-400">
+            Capture a vendor enquiry here, or sync property reports from WordPress. Next step:
+            start an appraisal and move the lead through listing → offer → settlement.
+          </p>
+          <p className="mt-3 text-xs text-slate-500">
+            Tip: use <span className="text-slate-400">Add vendor lead</span> above — contact is
+            tagged as Vendor automatically.
+          </p>
+        </div>
+      ) : null}
+
       <div className="grid gap-4 lg:grid-cols-3 xl:grid-cols-6">
         {byStage.map((column) => (
           <div key={column.id} className="dg-card min-h-48">

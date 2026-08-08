@@ -1,6 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { getReDashboardStats,} from "@dg/platform-core";
+import { getReBetaReadiness, getReDashboardStats } from "@dg/platform-core";
 
 import { ReDashboard } from "@/components/re/ReDashboard";
 import { fetchPortalMe, fetchWpReSummary } from "@/lib/dg-api";
@@ -45,6 +45,9 @@ export default async function RealEstateOverviewPage() {
     );
   }
 
+  // Layout gates re.beta; load checklist + stats for enrolled orgs.
+  const readiness = await getReBetaReadiness(session.organisationId);
+
   await Promise.all([
     autoSyncWordPressVendorLeadsIfNeeded(session),
     autoSyncWordPressBuyerLeadsIfNeeded(session),
@@ -63,12 +66,13 @@ export default async function RealEstateOverviewPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Real Estate</h1>
         <p className="text-sm text-slate-400">
-          {session.organisationName} · Vendor & buyer pipelines on Platform
+          {session.organisationName} · Vendor & buyer pipelines · Beta
         </p>
       </header>
       <main className="dg-page-main">
         <ReDashboard
           stats={stats}
+          readiness={readiness}
           wpSummary={wpSummary.ok ? wpSummary.data : undefined}
           wpError={wpSummary.ok ? undefined : wpSummary.message}
         />

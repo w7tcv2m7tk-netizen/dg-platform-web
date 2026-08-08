@@ -52,11 +52,16 @@ export const getOrgEnabledAppIdsCached = cache(async (): Promise<string[]> => {
   }
 
   const { prisma } = await import("@dg/database");
+  const { filterAppsForReBeta } = await import("@dg/platform-core");
   const org = await prisma.organisation.findUnique({
     where: { id: session.organisationId },
     select: { settings: true },
   });
 
-  const settings = org?.settings as { apps?: { enabled?: string[] } } | null;
-  return resolveEnabledAppIds(settings ?? undefined);
+  const settings = org?.settings as {
+    apps?: { enabled?: string[] };
+    featureFlags?: Record<string, boolean>;
+  } | null;
+  const enabled = resolveEnabledAppIds(settings ?? undefined);
+  return filterAppsForReBeta(enabled, settings?.featureFlags);
 });

@@ -1,7 +1,9 @@
 import Link from "next/link";
 
-import type { ReDashboardStats } from "@dg/platform-core";
+import type { ReBetaReadiness, ReDashboardStats } from "@dg/platform-core";
 import type { WpRePipelineSummary } from "@/lib/dg-api";
+
+import { ReBetaChecklist } from "@/components/re/ReBetaChecklist";
 
 function StatCard({
   label,
@@ -46,13 +48,48 @@ export function ReDashboard({
   stats,
   wpSummary,
   wpError,
+  readiness,
 }: {
   stats: ReDashboardStats;
   wpSummary?: WpRePipelineSummary;
   wpError?: string;
+  readiness?: ReBetaReadiness;
 }) {
+  const isEmpty =
+    stats.vendorLeads === 0 && stats.buyerLeads === 0 && stats.properties === 0;
+
   return (
     <div className="space-y-8">
+      {readiness && readiness.completedCount < readiness.totalCount ? (
+        <ReBetaChecklist readiness={readiness} />
+      ) : null}
+
+      {isEmpty ? (
+        <div className="dg-card border-dashed border-slate-700">
+          <h2 className="text-lg font-semibold text-white">
+            Add your first vendor lead
+          </h2>
+          <p className="mt-2 max-w-xl text-sm text-slate-400">
+            Start with a vendor lead, book an appraisal, then progress through listing → offer →
+            settlement. Or sync leads from your WordPress site once the connector is live.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/apps/re/vendor-leads"
+              className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500"
+            >
+              Add vendor lead
+            </Link>
+            <Link
+              href="/dashboard/settings/connectors"
+              className="rounded-full border border-slate-600 px-5 py-2 text-sm text-slate-300 hover:bg-slate-900"
+            >
+              Connect WordPress
+            </Link>
+          </div>
+        </div>
+      ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Vendor leads"
@@ -85,7 +122,12 @@ export function ReDashboard({
               </li>
             ))}
             {!Object.keys(stats.vendorByStage).length ? (
-              <li className="text-slate-500">No vendor leads yet</li>
+              <li className="text-slate-500">
+                No vendor leads yet —{" "}
+                <Link href="/apps/re/vendor-leads" className="text-sky-400 hover:underline">
+                  add your first
+                </Link>
+              </li>
             ) : null}
           </ul>
           <Link
@@ -106,7 +148,9 @@ export function ReDashboard({
               </li>
             ))}
             {!Object.keys(stats.buyerByStage).length ? (
-              <li className="text-slate-500">No buyer leads yet</li>
+              <li className="text-slate-500">
+                No buyer leads yet — sync from WordPress or add manually
+              </li>
             ) : null}
           </ul>
           <Link
@@ -121,19 +165,29 @@ export function ReDashboard({
       {wpError ? (
         <div className="dg-card border-amber-500/30">
           <p className="text-sm text-amber-300">WordPress summary unavailable: {wpError}</p>
+          <Link
+            href="/dashboard/settings/connectors"
+            className="mt-2 inline-block text-sm text-sky-400 hover:underline"
+          >
+            Fix WordPress connector →
+          </Link>
         </div>
       ) : wpSummary ? (
         <div className="dg-card">
-          <h2 className="font-semibold text-white">WordPress (Roe) — last 30 days</h2>
+          <h2 className="font-semibold text-white">WordPress site — last 30 days</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             <StatCard
               label="Property reports"
               value={wpSummary.property_reports_this_month ?? "—"}
             />
             <StatCard label="Bookings" value={wpSummary.bookings_this_month ?? "—"} />
-            <StatCard label="Site" value={wpSummary.site ?? "Roe"} />
+            <StatCard label="Site" value={wpSummary.site ?? "Connected"} />
           </div>
         </div>
+      ) : null}
+
+      {readiness && readiness.completedCount >= readiness.totalCount ? (
+        <ReBetaChecklist readiness={readiness} />
       ) : null}
 
       <div className="flex flex-wrap gap-3">

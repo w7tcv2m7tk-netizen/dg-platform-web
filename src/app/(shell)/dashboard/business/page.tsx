@@ -1,10 +1,12 @@
+import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   captureDigitalTwinSnapshot,
   gatherOverviewLiveMetrics,
   getBusinessContext,
-  getOrganisationBusinessProfile,} from "@dg/platform-core";
+  getOrganisationBusinessProfile,
+} from "@dg/platform-core";
 
 import { BusinessProfileEditor } from "@/components/platform/BusinessProfileEditor";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -12,7 +14,11 @@ import { getOrgEnabledAppIdsCached } from "@/lib/org-apps";
 import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 
-export default async function BusinessProfilePage() {
+export default async function BusinessProfilePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ reOnboarding?: string }>;
+}) {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const name =
@@ -36,6 +42,8 @@ export default async function BusinessProfilePage() {
   const profile = session
     ? await getOrganisationBusinessProfile(session.organisationId)
     : null;
+  const params = searchParams ? await searchParams : undefined;
+  const reOnboarding = params?.reOnboarding === "1";
 
   let context = null;
   if (session) {
@@ -70,7 +78,45 @@ export default async function BusinessProfilePage() {
           Your Digital Business Identity — the foundation every app and AI capability references.
         </p>
       </header>
-      <main className="dg-page-main">
+      <main className="dg-page-main space-y-6">
+        {reOnboarding ? (
+          <section className="dg-card border border-sky-500/30 bg-sky-500/5">
+            <p className="text-xs font-medium uppercase tracking-wide text-sky-400">
+              Real Estate beta onboarding
+            </p>
+            <h2 className="mt-1 text-lg font-semibold text-white">
+              Welcome — finish these steps next
+            </h2>
+            <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-300">
+              <li>Complete ABN + logo on this Business Profile</li>
+              <li>
+                <Link
+                  href="/dashboard/settings/connectors"
+                  className="text-sky-400 hover:underline"
+                >
+                  Connect WordPress
+                </Link>{" "}
+                for your agency site
+              </li>
+              <li>
+                <Link
+                  href="/dashboard/settings/team"
+                  className="text-sky-400 hover:underline"
+                >
+                  Invite teammates
+                </Link>
+              </li>
+              <li>
+                Land on{" "}
+                <Link href="/apps/re" className="text-sky-400 hover:underline">
+                  Real Estate
+                </Link>{" "}
+                and add your first vendor lead
+              </li>
+            </ol>
+          </section>
+        ) : null}
+
         {!session || !context ? (
           <div className="dg-card border-amber-500/30">
             <p className="text-amber-300">

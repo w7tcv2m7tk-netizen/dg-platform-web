@@ -60,6 +60,11 @@ export function OrgSwitcher({
       setError(json.error?.message ?? "Could not create organisation");
       return;
     }
+    // RE beta onboarding path: Business Profile → connector → team → /apps/re
+    if (newTemplate === "real-estate") {
+      window.location.assign("/dashboard/business?reOnboarding=1");
+      return;
+    }
     window.location.assign("/dashboard");
   }
 

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { CreateLeadForm } from "@/components/re/CreateLeadForm";
+
 const STAGES = [
   { id: "inquiry", label: "Inquiry" },
   { id: "qualified", label: "Qualified" },
@@ -53,6 +55,7 @@ export function BuyerLeadList({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
+        <CreateLeadForm leadType="buyer" />
         <button
           type="button"
           onClick={syncFromWordPress}
@@ -66,9 +69,10 @@ export function BuyerLeadList({
 
       {leads.length === 0 ? (
         <div className="dg-card border-dashed border-slate-700">
-          <p className="text-slate-300">No buyer leads in Postgres yet.</p>
-          <p className="mt-2 text-sm text-slate-500">
-            Sync from Roe WordPress — property enquiry forms create buyer pipeline records.
+          <h2 className="text-lg font-semibold text-white">Add your first buyer lead</h2>
+          <p className="mt-2 text-sm text-slate-400">
+            Create a buyer enquiry here, or sync property enquiry forms from your WordPress site.
+            Contacts are tagged as Buyer automatically.
           </p>
         </div>
       ) : (

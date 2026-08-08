@@ -67,9 +67,27 @@ export function PropertyList({
       </div>
 
       {!filtered.length ? (
-        <p className="text-sm text-slate-400">
-          No properties yet. Start an appraisal from a vendor lead.
-        </p>
+        <div className="dg-card border-dashed border-slate-700">
+          <h2 className="text-lg font-semibold text-white">
+            {properties.length === 0
+              ? "Start your first appraisal"
+              : "No properties in this filter"}
+          </h2>
+          <p className="mt-2 text-sm text-slate-400">
+            {properties.length === 0 ? (
+              <>
+                Open a{" "}
+                <Link href="/apps/re/vendor-leads" className="text-sky-400 hover:underline">
+                  vendor lead
+                </Link>{" "}
+                and use <span className="text-slate-300">Start appraisal</span> — that creates the
+                property record you’ll list and settle from.
+              </>
+            ) : (
+              "Try another status filter, or open All."
+            )}
+          </p>
+        </div>
       ) : (
         <ul className="space-y-3">
           {filtered.map((property) => (

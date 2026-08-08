@@ -60,16 +60,16 @@ export function SettlementList({
   if (!items.length) {
     return (
       <div className="dg-card border-dashed border-slate-700">
-        <p className="text-slate-300">No properties in settlement yet.</p>
-        <p className="mt-2 text-sm text-slate-500">
-          Properties move here when status is under offer or sold, or when a vendor lead reaches
-          settlement.
+        <h2 className="text-lg font-semibold text-white">No settlements yet</h2>
+        <p className="mt-2 text-sm text-slate-400">
+          When a listing goes under offer or sold — or a vendor lead reaches settlement — it appears
+          here with the settlement checklist.
         </p>
         <Link
           href="/apps/re/vendor-leads"
           className="mt-4 inline-block text-sm text-blue-400 hover:underline"
         >
-          Open vendor pipeline →
+          Start from a vendor lead →
         </Link>
       </div>
     );
