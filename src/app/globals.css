@@ -176,9 +176,12 @@ body {
   --au-ink: #1a1a1a;
   --au-muted: #555;
   --au-rule: #c8c8c8;
+  --au-header-bg: #0f172a;
+  --au-header-ink: #ffffff;
   max-width: 800px;
   margin: 0 auto;
-  padding: 2.5rem 2rem;
+  padding: 0 0 2.5rem;
+  overflow: hidden;
   background: #faf8f5
     linear-gradient(180deg, #fffefb 0%, #f7f3ec 100%);
   color: var(--au-ink);
@@ -191,9 +194,13 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 1.5rem;
-  padding-bottom: 1.25rem;
-  border-bottom: 2px solid var(--au-ink);
+  padding: 1.75rem 2rem 1.5rem;
+  background: var(--au-header-bg);
+  color: var(--au-header-ink);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 .au-document__brand-name {
@@ -202,6 +209,7 @@ body {
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.15;
+  color: inherit;
 }
 
 .au-document__brand-lockup {
@@ -211,12 +219,16 @@ body {
   min-height: 56px;
 }
 
-/* White / light wordmarks (dark-UI assets) on cream paper */
+/* Fallback plate when a mark still fights the header band */
 .au-document__brand-lockup--contrast {
   display: inline-flex;
   padding: 0.65rem 0.9rem;
   border-radius: 0.5rem;
   background: #0f172a;
+}
+
+.au-document__letterhead--dark .au-document__brand-lockup--contrast {
+  background: #f8fafc;
 }
 
 .au-document__brand-fallback {
@@ -229,12 +241,17 @@ body {
   margin: 0;
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 0.75rem;
+  color: #fbbf24;
+}
+
+.au-document__letterhead--light .au-document__brand-hint {
   color: #8a5a00;
 }
 
 .au-document__brand-hint-link {
-  color: #1d4ed8;
+  color: inherit;
   text-decoration: underline;
+  opacity: 0.9;
 }
 
 .au-document__logo {
@@ -247,32 +264,20 @@ body {
   object-position: left center;
 }
 
-.au-document__icon {
-  display: block;
-  width: 56px;
-  height: 56px;
-  max-width: 56px;
-  max-height: 56px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.au-document__icon--solo {
-  width: auto;
-  max-width: 96px;
-  max-height: 72px;
-  height: auto;
-}
-
 .au-document__trading {
   margin: 0.35rem 0 0;
   font-size: 0.85rem;
-  color: var(--au-muted);
   font-style: italic;
+  opacity: 0.85;
+}
+
+.au-document__supplier-bar {
+  padding: 1rem 2rem 0;
+  border-bottom: 1px solid var(--au-rule);
 }
 
 .au-document__supplier-meta {
-  margin-top: 0.75rem;
+  padding-bottom: 1rem;
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 0.8rem;
   line-height: 1.45;
@@ -290,6 +295,7 @@ body {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   text-align: right;
+  color: inherit;
 }
 
 .au-document__meta {
@@ -297,6 +303,8 @@ body {
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 0.8rem;
   text-align: right;
+  color: inherit;
+  opacity: 0.92;
 }
 
 .au-document__meta div {
@@ -307,12 +315,14 @@ body {
 }
 
 .au-document__meta dt {
-  color: var(--au-muted);
+  opacity: 0.72;
+  color: inherit;
 }
 
 .au-document__meta dd {
   margin: 0;
   font-weight: 600;
+  color: inherit;
 }
 
 .au-document__parties {
@@ -320,6 +330,7 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
   margin: 1.5rem 0;
+  padding: 0 2rem;
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 0.875rem;
 }
@@ -345,7 +356,8 @@ body {
 }
 
 .au-document__lines {
-  width: 100%;
+  width: calc(100% - 4rem);
+  margin: 0 2rem;
   border-collapse: collapse;
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 0.85rem;
@@ -380,6 +392,7 @@ body {
 
 .au-document__totals {
   margin-top: 1.25rem;
+  padding: 0 2rem;
   display: flex;
   justify-content: flex-end;
   font-family: ui-sans-serif, system-ui, sans-serif;
@@ -418,6 +431,8 @@ body {
 .au-document__payment,
 .au-document__notes {
   margin-top: 1.75rem;
+  margin-left: 2rem;
+  margin-right: 2rem;
   padding-top: 1rem;
   border-top: 1px solid var(--au-rule);
   font-family: ui-sans-serif, system-ui, sans-serif;
@@ -440,6 +455,7 @@ body {
 
 .au-document__footer {
   margin-top: 2rem;
+  padding: 0 2rem;
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 0.75rem;
   color: var(--au-muted);
@@ -479,6 +495,13 @@ body {
     print-color-adjust: exact;
   }
 
+  .au-document__letterhead {
+    background: var(--au-header-bg) !important;
+    color: var(--au-header-ink) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   .au-document__brand-lockup {
     display: flex !important;
     visibility: visible !important;
@@ -493,35 +516,25 @@ body {
     print-color-adjust: exact;
   }
 
+  .au-document__letterhead--dark .au-document__brand-lockup--contrast {
+    background: #f8fafc !important;
+  }
+
   .au-document__brand-hint {
+    color: #fbbf24 !important;
+  }
+
+  .au-document__letterhead--light .au-document__brand-hint {
     color: #8a5a00 !important;
   }
 
-  .au-document__logo,
-  .au-document__icon {
+  .au-document__logo {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
-  }
-
-  .au-document__logo {
     max-height: 72px !important;
     max-width: 260px !important;
     height: auto !important;
     width: auto !important;
-  }
-
-  .au-document__icon {
-    width: 56px !important;
-    height: 56px !important;
-    max-width: 56px !important;
-    max-height: 56px !important;
-  }
-
-  .au-document__icon--solo {
-    width: auto !important;
-    height: auto !important;
-    max-width: 96px !important;
-    max-height: 72px !important;
   }
 }

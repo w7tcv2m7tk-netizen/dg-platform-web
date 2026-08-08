@@ -18,8 +18,8 @@ export const ORG_BRAND_PRESETS: Record<OrgBrandPresetKey, OrgBrandPreset> = {
     key: "digitalgate",
     label: "DigitalGate",
     patch: {
-      brandColours: serializeBrandColours("#3B82F6", "#10B981"),
-      // Relative paths resolve via absoluteBrandAssetUrl; letterhead remaps wordmark to navy.
+      brandColours: serializeBrandColours("#3B82F6", "#10B981", "#0F172A"),
+      // Relative paths resolve via absoluteBrandAssetUrl; letterhead picks on-dark vs navy from header.
       iconUrl: "/brand/icon-light.png",
       logoUrl: "/brand/logo-on-dark.png",
       websiteUrl: "https://digitalgate.com.au",
@@ -29,7 +29,7 @@ export const ORG_BRAND_PRESETS: Record<OrgBrandPresetKey, OrgBrandPreset> = {
     key: "roe-realty",
     label: "Roe Realty",
     patch: {
-      brandColours: serializeBrandColours("#C9A46C", "#1C2B2A"),
+      brandColours: serializeBrandColours("#C9A46C", "#1C2B2A", "#1C2B2A"),
       iconUrl: "https://roerealty.com.au/wp-content/uploads/2026/05/R-Main.png",
       logoUrl: "https://roerealty.com.au/wp-content/uploads/2026/05/R-Main.png",
       websiteUrl: "https://roerealty.com.au",
@@ -39,7 +39,7 @@ export const ORG_BRAND_PRESETS: Record<OrgBrandPresetKey, OrgBrandPreset> = {
     key: "cvh",
     label: "Currumbin Valley Hideaway",
     patch: {
-      brandColours: serializeBrandColours("#B9A48A", "#2C4137"),
+      brandColours: serializeBrandColours("#B9A48A", "#2C4137", "#2C4137"),
       iconUrl: "https://currumbinvalleyhideaway.com.au/wp-content/uploads/2026/05/Icon.png",
       logoUrl:
         "https://currumbinvalleyhideaway.com.au/wp-content/uploads/2026/06/CVH-Logo-and-Icon.png",
@@ -50,7 +50,7 @@ export const ORG_BRAND_PRESETS: Record<OrgBrandPresetKey, OrgBrandPreset> = {
     key: "aetherra",
     label: "Aëtherra",
     patch: {
-      brandColours: serializeBrandColours("#B88952", "#C9B38C"),
+      brandColours: serializeBrandColours("#B88952", "#C9B38C", "#1A1510"),
       iconUrl:
         "https://aetherra.com.au/wp-content/uploads/2026/07/cropped-Aetherra-Icon-Dark-scaled-1.png",
       logoUrl: "https://aetherra.com.au/wp-content/uploads/2026/06/Aetherra-White.png",

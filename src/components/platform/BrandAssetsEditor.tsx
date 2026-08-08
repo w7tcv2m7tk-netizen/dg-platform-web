@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import {
   DEFAULT_ORG_ACCENT,
+  DEFAULT_ORG_BACKGROUND,
   DEFAULT_ORG_PRIMARY,
   normalizeHex,
   parseBrandColours,
@@ -83,11 +84,14 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
   const colours = parseBrandColours(profile.brandColours);
   const primary = colours[0] ?? DEFAULT_ORG_PRIMARY;
   const accent = colours[1] ?? DEFAULT_ORG_ACCENT;
+  const background = colours[2] ?? DEFAULT_ORG_BACKGROUND;
   const businessInitial =
     profile.businessName?.charAt(0) || profile.tradingName?.charAt(0) || "?";
 
-  function setColours(nextPrimary: string, nextAccent: string) {
-    onChange({ brandColours: serializeBrandColours(nextPrimary, nextAccent) });
+  function setColours(nextPrimary: string, nextAccent: string, nextBackground: string) {
+    onChange({
+      brandColours: serializeBrandColours(nextPrimary, nextAccent, nextBackground),
+    });
   }
 
   async function handleFile(kind: "icon" | "logo", file: File) {
@@ -101,7 +105,7 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
       await persistBrandPatch(patch);
       setSavedNote(
         kind === "icon"
-          ? "Icon uploaded and saved — it will appear on invoices and quotes."
+          ? "Icon uploaded and saved — used in the sidebar and compact UI."
           : "Logo uploaded and saved — it will appear on invoices and quotes.",
       );
     } catch (err) {
@@ -117,9 +121,9 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
         <div>
           <h3 className="text-lg font-semibold text-white">Brand appearance</h3>
           <p className="mt-1 text-sm text-slate-400">
-            Your logo and icon appear on tax invoices, quotes, the sidebar, and accents.
-            Uploads save immediately; colour and URL edits still need{" "}
-            <span className="text-slate-300">Save profile</span>.
+            Logo and background colour brand tax invoices and quotes. Icon is for the
+            sidebar and compact UI only. Uploads save immediately; colour and URL edits
+            still need <span className="text-slate-300">Save profile</span>.
           </p>
         </div>
         <div className="flex gap-4">
@@ -213,7 +217,7 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
             <input
               type="color"
               value={normalizeHex(primary) ?? DEFAULT_ORG_PRIMARY}
-              onChange={(e) => setColours(e.target.value, accent)}
+              onChange={(e) => setColours(e.target.value, accent, background)}
               className="h-10 w-14 cursor-pointer rounded-lg border border-slate-700 bg-transparent"
             />
             <input
@@ -221,7 +225,7 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
               value={primary}
               onChange={(e) => {
                 const next = normalizeHex(e.target.value);
-                if (next) setColours(next, accent);
+                if (next) setColours(next, accent, background);
               }}
               placeholder="#3B82F6"
             />
@@ -236,7 +240,7 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
             <input
               type="color"
               value={normalizeHex(accent) ?? DEFAULT_ORG_ACCENT}
-              onChange={(e) => setColours(primary, e.target.value)}
+              onChange={(e) => setColours(primary, e.target.value, background)}
               className="h-10 w-14 cursor-pointer rounded-lg border border-slate-700 bg-transparent"
             />
             <input
@@ -244,37 +248,85 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
               value={accent}
               onChange={(e) => {
                 const next = normalizeHex(e.target.value);
-                if (next) setColours(primary, next);
+                if (next) setColours(primary, next, background);
               }}
               placeholder="#10B981"
             />
           </div>
         </label>
+
+        <label className="block lg:col-span-2">
+          <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+            Background colour
+          </span>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Used as the header band on invoices and quotes. Defaults to navy if unset.
+          </p>
+          <div className="mt-1 flex items-center gap-3">
+            <input
+              type="color"
+              value={normalizeHex(background) ?? DEFAULT_ORG_BACKGROUND}
+              onChange={(e) => setColours(primary, accent, e.target.value)}
+              className="h-10 w-14 cursor-pointer rounded-lg border border-slate-700 bg-transparent"
+            />
+            <input
+              className={inputClass}
+              value={background}
+              onChange={(e) => {
+                const next = normalizeHex(e.target.value);
+                if (next) setColours(primary, accent, next);
+              }}
+              placeholder="#0F172A"
+            />
+          </div>
+        </label>
       </div>
 
-      <div
-        className="mt-6 rounded-xl border border-slate-800 p-4"
-        style={{
-          background: `linear-gradient(135deg, color-mix(in srgb, ${primary} 18%, #0f172a), #0f172a 55%, color-mix(in srgb, ${accent} 12%, #0f172a))`,
-        }}
-      >
-        <p className="text-xs uppercase tracking-wide text-slate-500">Live preview</p>
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <span
-            className="rounded-full px-4 py-2 text-sm font-medium text-white"
-            style={{ backgroundColor: primary }}
-          >
-            Primary button
+      <div className="mt-6 overflow-hidden rounded-xl border border-slate-800">
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 px-4 py-4"
+          style={{ backgroundColor: background }}
+        >
+          <span className="text-xs uppercase tracking-wide text-slate-400">
+            Document header preview
           </span>
-          <span
-            className="rounded-full border px-4 py-2 text-sm font-medium text-white"
-            style={{ borderColor: accent, color: accent }}
-          >
-            Accent outline
-          </span>
-          <span className="text-sm" style={{ color: primary }}>
-            Branded link
-          </span>
+          {profile.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.logoUrl}
+              alt="Logo preview"
+              className="max-h-10 max-w-[180px] object-contain"
+            />
+          ) : (
+            <span className="text-sm font-semibold text-white">
+              {profile.businessName || profile.tradingName || "Your business"}
+            </span>
+          )}
+        </div>
+        <div
+          className="p-4"
+          style={{
+            background: `linear-gradient(135deg, color-mix(in srgb, ${primary} 18%, #0f172a), #0f172a 55%, color-mix(in srgb, ${accent} 12%, #0f172a))`,
+          }}
+        >
+          <p className="text-xs uppercase tracking-wide text-slate-500">UI accents</p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <span
+              className="rounded-full px-4 py-2 text-sm font-medium text-white"
+              style={{ backgroundColor: primary }}
+            >
+              Primary button
+            </span>
+            <span
+              className="rounded-full border px-4 py-2 text-sm font-medium text-white"
+              style={{ borderColor: accent, color: accent }}
+            >
+              Accent outline
+            </span>
+            <span className="text-sm" style={{ color: primary }}>
+              Branded link
+            </span>
+          </div>
         </div>
       </div>
 

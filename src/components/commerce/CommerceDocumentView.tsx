@@ -4,7 +4,12 @@ import type {
   CommerceLineItem,
   OrganisationBusinessProfile,
 } from "@dg/platform-core";
-import { formatAbn } from "@dg/platform-core";
+import {
+  contrastInkForBackground,
+  formatAbn,
+  isDarkBackground,
+  resolveDocumentBackgroundColor,
+} from "@dg/platform-core";
 
 import { DocumentBrandMark } from "@/components/commerce/DocumentBrandMark";
 
@@ -73,6 +78,12 @@ export function CommerceDocumentView(props: CommerceDocumentViewProps) {
       ? identity.tradingName
       : null;
 
+  const headerBackground = resolveDocumentBackgroundColor(
+    identity.brandColours ?? profile?.brandColours,
+  );
+  const headerInk = contrastInkForBackground(headerBackground);
+  const headerIsDark = isDarkBackground(headerBackground);
+
   const title =
     props.kind === "invoice"
       ? gstRegistered && props.taxCents > 0
@@ -98,29 +109,37 @@ export function CommerceDocumentView(props: CommerceDocumentViewProps) {
 
   return (
     <article className="au-document print:shadow-none">
-      <header className="au-document__letterhead">
+      <header
+        className={
+          headerIsDark
+            ? "au-document__letterhead au-document__letterhead--dark"
+            : "au-document__letterhead au-document__letterhead--light"
+        }
+        style={{
+          backgroundColor: headerBackground,
+          color: headerInk,
+          ["--au-header-bg" as string]: headerBackground,
+          ["--au-header-ink" as string]: headerInk,
+        }}
+      >
         <div className="au-document__brand">
           <DocumentBrandMark
             logoUrl={identity.logoUrl ?? profile?.logoUrl}
-            iconUrl={identity.iconUrl ?? profile?.iconUrl}
             businessName={legalName}
+            headerBackground={headerBackground}
+            inkColor={headerInk}
           />
           {tradingName ? (
-            <p className="au-document__trading">Trading as {tradingName}</p>
+            <p className="au-document__trading" style={{ color: headerInk }}>
+              Trading as {tradingName}
+            </p>
           ) : null}
-          <div className="au-document__supplier-meta">
-            {identity.abn ? <p>ABN {formatAbn(identity.abn)}</p> : null}
-            {identity.acn ? <p>ACN {identity.acn}</p> : null}
-            {supplierAddress
-              ? supplierAddress.split("\n").map((line) => <p key={line}>{line}</p>)
-              : null}
-            {phone ? <p>{phone}</p> : null}
-            {email ? <p>{email}</p> : null}
-          </div>
         </div>
         <div className="au-document__title-block">
-          <h1 className="au-document__title">{title}</h1>
-          <dl className="au-document__meta">
+          <h1 className="au-document__title" style={{ color: headerInk }}>
+            {title}
+          </h1>
+          <dl className="au-document__meta" style={{ color: headerInk }}>
             <div>
               <dt>{props.kind === "invoice" ? "Invoice no." : "Quote no."}</dt>
               <dd>{props.documentNumber ?? "—"}</dd>
@@ -148,6 +167,18 @@ export function CommerceDocumentView(props: CommerceDocumentViewProps) {
           </dl>
         </div>
       </header>
+
+      <section className="au-document__supplier-bar">
+        <div className="au-document__supplier-meta">
+          {identity.abn ? <p>ABN {formatAbn(identity.abn)}</p> : null}
+          {identity.acn ? <p>ACN {identity.acn}</p> : null}
+          {supplierAddress
+            ? supplierAddress.split("\n").map((line) => <p key={line}>{line}</p>)
+            : null}
+          {phone ? <p>{phone}</p> : null}
+          {email ? <p>{email}</p> : null}
+        </div>
+      </section>
 
       <section className="au-document__parties">
         <div>

@@ -84,7 +84,7 @@ export type OrganisationBusinessProfile = {
   logoUrl?: string;
   /** Square mark for sidebar, favicon, and compact UI */
   iconUrl?: string;
-  /** Comma-separated or JSON colour tokens — first = primary, second = accent */
+  /** Comma-separated or JSON colour tokens — 1st = primary, 2nd = accent, 3rd = document background */
   brandColours?: string;
   websiteUrl?: string;
   industryVertical?: string;

@@ -2,6 +2,8 @@ import type { OrganisationBusinessProfile } from "./business-profile-types";
 
 export const DEFAULT_ORG_PRIMARY = "#3b82f6";
 export const DEFAULT_ORG_ACCENT = "#10b981";
+/** Document letterhead / print header band — navy, not a bright primary or purple default */
+export const DEFAULT_ORG_BACKGROUND = "#0f172a";
 
 export type OrgBrandTheme = {
   businessName: string;
@@ -9,6 +11,8 @@ export type OrgBrandTheme = {
   iconUrl?: string;
   primaryColor: string;
   accentColor: string;
+  /** Header / letterhead band colour for white print documents */
+  backgroundColor: string;
   hasCustomBrand: boolean;
 };
 
@@ -129,9 +133,36 @@ function expandShortHex(hex: string): string {
   return `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
 }
 
-export function serializeBrandColours(primary: string, accent?: string): string {
-  const colours = [normalizeHex(primary), normalizeHex(accent)].filter(Boolean) as string[];
+export function serializeBrandColours(
+  primary: string,
+  accent?: string,
+  background?: string,
+): string {
+  const colours = [
+    normalizeHex(primary),
+    normalizeHex(accent),
+    normalizeHex(background),
+  ].filter(Boolean) as string[];
   return colours.join(", ");
+}
+
+/** brandColours[2] when set; otherwise navy letterhead fallback (never purple AI default). */
+export function resolveDocumentBackgroundColor(
+  brandColours?: string | string[] | null,
+): string {
+  const colours = Array.isArray(brandColours)
+    ? (brandColours.map(normalizeHex).filter(Boolean) as string[])
+    : parseBrandColours(brandColours ?? undefined);
+  return colours[2] ?? DEFAULT_ORG_BACKGROUND;
+}
+
+/** Readable ink for text sitting on a brand background band. */
+export function contrastInkForBackground(background: string): "#ffffff" | "#0f172a" {
+  return hexLuminance(background) < 0.45 ? "#ffffff" : "#0f172a";
+}
+
+export function isDarkBackground(background: string): boolean {
+  return hexLuminance(background) < 0.45;
 }
 
 /**
@@ -158,24 +189,57 @@ export function absoluteBrandAssetUrl(
 
 export type LetterheadBrandAsset = {
   src?: string;
-  /** White/light marks need a dark plate on cream invoices */
+  /**
+   * When true, wrap the mark in a small dark plate.
+   * Prefer a coloured letterhead band instead; plate is a last resort on light bands.
+   */
   needsContrastPlate: boolean;
 };
 
+export type ResolveLetterheadOptions = {
+  /** Letterhead band colour — drives light vs dark asset remapping */
+  headerBackground?: string;
+};
+
 /**
- * Resolve a brand asset for light document backgrounds (AU invoices / quotes).
- * Remaps known dark-UI wordmarks to navy/on-light equivalents when available.
+ * Resolve a brand wordmark for white print documents (invoices / quotes).
+ * Picks on-dark vs on-light DigitalGate assets from header luminance; plates
+ * unknown white marks only when the header band itself is light.
  */
 export function resolveLetterheadBrandAsset(
   url: string | undefined | null,
+  options?: ResolveLetterheadOptions,
 ): LetterheadBrandAsset {
   const trimmed = url?.trim();
   if (!trimmed) return { needsContrastPlate: false };
 
-  // DigitalGate white wordmark → navy mark for cream paper
+  const headerBg = normalizeHex(options?.headerBackground) ?? DEFAULT_ORG_BACKGROUND;
+  const darkHeader = isDarkBackground(headerBg);
+
+  // DigitalGate paired assets
   if (/logo-on-dark\.png(?:\?|$)/i.test(trimmed)) {
     return {
-      src: absoluteBrandAssetUrl("/brand/logo-navy.png"),
+      src: absoluteBrandAssetUrl(
+        darkHeader ? "/brand/logo-on-dark.png" : "/brand/logo-navy.png",
+      ),
+      needsContrastPlate: false,
+    };
+  }
+  if (/logo-navy\.png(?:\?|$)/i.test(trimmed) || /logo-dark\.png(?:\?|$)/i.test(trimmed)) {
+    return {
+      src: absoluteBrandAssetUrl(
+        darkHeader ? "/brand/logo-on-dark.png" : trimmed.includes("logo-navy")
+          ? "/brand/logo-navy.png"
+          : "/brand/logo-dark.png",
+      ),
+      needsContrastPlate: false,
+    };
+  }
+  if (/logo-light\.png(?:\?|$)/i.test(trimmed)) {
+    return {
+      src: absoluteBrandAssetUrl(
+        darkHeader ? "/brand/logo-on-dark.png" : "/brand/logo-navy.png",
+      ),
       needsContrastPlate: false,
     };
   }
@@ -183,11 +247,23 @@ export function resolveLetterheadBrandAsset(
   const absolute = absoluteBrandAssetUrl(trimmed);
   if (!absolute) return { needsContrastPlate: false };
 
-  // Preset / uploaded white wordmarks with no light equivalent
   const looksWhiteOnTransparent =
-    /(?:^|[/_-])(?:logo-on-dark|icon-on-dark|white)(?:[._-]|$)/i.test(absolute) ||
-    /Aetherra-White/i.test(absolute);
+    /(?:^|[/_-])(?:logo-on-dark|icon-on-dark|white|on-dark)(?:[._-]|$)/i.test(
+      absolute,
+    ) || /Aetherra-White/i.test(absolute);
 
+  const looksDarkOnTransparent =
+    /(?:^|[/_-])(?:logo-navy|logo-dark|on-light|black)(?:[._-]|$)/i.test(absolute);
+
+  if (darkHeader) {
+    // White/light marks sit correctly on the brand band; dark marks need a light plate.
+    return {
+      src: absolute,
+      needsContrastPlate: looksDarkOnTransparent && !looksWhiteOnTransparent,
+    };
+  }
+
+  // Light header band (or cream paper): white marks need a dark plate or remapped asset
   return {
     src: absolute,
     needsContrastPlate: looksWhiteOnTransparent,
@@ -201,6 +277,7 @@ export function resolveOrgBrandTheme(input: {
   const colours = parseBrandColours(input.profile?.brandColours);
   const primaryColor = colours[0] ?? DEFAULT_ORG_PRIMARY;
   const accentColor = colours[1] ?? primaryColor;
+  const backgroundColor = colours[2] ?? DEFAULT_ORG_BACKGROUND;
   const logoUrl =
     absoluteBrandAssetUrl(input.profile?.logoUrl) || undefined;
   const iconUrl =
@@ -216,6 +293,7 @@ export function resolveOrgBrandTheme(input: {
     iconUrl,
     primaryColor,
     accentColor,
+    backgroundColor,
     hasCustomBrand: Boolean(
       logoUrl || iconUrl || colours.length > 0,
     ),
