@@ -352,9 +352,11 @@ Vercel **Production** env (then Redeploy):
 
 ### Hosting DNS env
 
+Apex **must** be an A record — Dreamscape rejects CNAME on the root zone (`Invalid CNAME Record … Subdomain: CNAME cannot be set on the root zone`).
+
 ```bash
-DG_WEBSITE_DNS_CNAME_TARGET=cname.vercel-dns.com
-# DG_WEBSITE_DNS_A_TARGET=76.76.21.21
+DG_WEBSITE_DNS_A_TARGET=76.76.21.21          # apex A (default if unset)
+DG_WEBSITE_DNS_CNAME_TARGET=cname.vercel-dns.com  # www only
 # Optional Vercel attach:
 # VERCEL_TOKEN=
 # VERCEL_PROJECT_ID=
@@ -362,6 +364,7 @@ DG_WEBSITE_DNS_CNAME_TARGET=cname.vercel-dns.com
 # DG_DOMAIN_REGISTER_ENABLED=1
 ```
 
+Apply website DNS / Make it live writes: `A @ → 76.76.21.21` + `CNAME www → cname.vercel-dns.com`.
 ---
 
 ## Recommended stack

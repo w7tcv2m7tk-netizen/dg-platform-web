@@ -23,6 +23,16 @@ function scoreOf(items: ProvisioningCheckItem[]): number {
   return Math.round((sum / items.length) * 100);
 }
 
+/**
+ * Hosting DNS records for DigitalGate / Vercel.
+ *
+ * Dreamscape (and DNS generally) rejects CNAME on the root zone. Always use an A
+ * record for apex; CNAME only for www (and other subdomains).
+ *
+ * Override targets via:
+ *   DG_WEBSITE_DNS_CNAME_TARGET (default cname.vercel-dns.com)
+ *   DG_WEBSITE_DNS_A_TARGET (default 76.76.21.21 — Vercel anycast)
+ */
 export function websiteHostingDnsRecords(domainName: string): Array<{
   type: string;
   name: string;
@@ -32,9 +42,17 @@ export function websiteHostingDnsRecords(domainName: string): Array<{
 }> {
   const cnameTarget =
     process.env.DG_WEBSITE_DNS_CNAME_TARGET?.trim() || "cname.vercel-dns.com";
-  const aTarget = process.env.DG_WEBSITE_DNS_A_TARGET?.trim() || "";
+  const aTarget =
+    process.env.DG_WEBSITE_DNS_A_TARGET?.trim() || "76.76.21.21";
   const apex = domainName.toLowerCase();
-  const records = [
+
+  return [
+    {
+      type: "A",
+      name: "@",
+      content: aTarget,
+      purpose: `Apex ${apex} → hosting IP (CNAME not allowed on root zone)`,
+    },
     {
       type: "CNAME",
       name: "www",
@@ -42,23 +60,6 @@ export function websiteHostingDnsRecords(domainName: string): Array<{
       purpose: "www → DigitalGate / Vercel hosting",
     },
   ];
-  if (aTarget) {
-    records.unshift({
-      type: "A",
-      name: "@",
-      content: aTarget,
-      purpose: `Apex ${apex} → hosting IP`,
-    });
-  } else {
-    records.push({
-      type: "CNAME",
-      name: "@",
-      content: cnameTarget,
-      purpose:
-        "Apex alias when provider supports CNAME flattening; otherwise set A record via DG_WEBSITE_DNS_A_TARGET",
-    });
-  }
-  return records;
 }
 
 export async function buildGoLiveChecklist(input: {
@@ -151,7 +152,7 @@ export async function buildGoLiveChecklist(input: {
       detail: domainRow?.dnsConfiguredAt
         ? `Configured ${domainRow.dnsConfiguredAt}`
         : domainRow
-          ? "Pending — Apply website DNS (Domains) or Make it live with Apply hosting DNS. Failures usually mean SOAP DomainDNSUpdate rejected the records or the domain isn’t at this reseller."
+          ? "Pending — Apply website DNS (Domains) or Make it live. Uses apex A + www CNAME (never apex CNAME — Dreamscape rejects root CNAME)."
           : undefined,
     },
     {

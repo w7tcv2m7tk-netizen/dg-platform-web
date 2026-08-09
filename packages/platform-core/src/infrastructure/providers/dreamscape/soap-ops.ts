@@ -264,9 +264,18 @@ export function buildDomainDnsUpdateEnvelope(opts: {
   const mx: Array<{ subdomain: string; content: string; priority?: number }> = [];
 
   for (const r of opts.records) {
-    const subdomain = r.name === "@" || r.name === opts.domainName ? "" : r.name.replace(/\.$/, "");
+    const subdomain =
+      r.name === "@" || r.name === opts.domainName || r.name === ""
+        ? ""
+        : r.name.replace(/\.$/, "");
     const entry = { subdomain, content: r.content, priority: r.priority };
     const t = r.type.toUpperCase();
+    // Dreamscape: "CNAME cannot be set on the root zone"
+    if (t === "CNAME" && subdomain === "") {
+      throw new Error(
+        "Invalid DNS plan: CNAME cannot be set on the root zone. Use an A record for apex (DG_WEBSITE_DNS_A_TARGET) and CNAME only for www.",
+      );
+    }
     if (t === "A") a.push(entry);
     else if (t === "AAAA") aaaa.push(entry);
     else if (t === "CNAME") cname.push(entry);

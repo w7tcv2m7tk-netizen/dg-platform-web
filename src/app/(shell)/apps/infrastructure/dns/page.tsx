@@ -25,7 +25,9 @@ export default function Page() {
             Domains
           </Link>{" "}
           and use <strong className="text-slate-200">Apply website DNS</strong>{" "}
-          to point CNAME/A at the DigitalGate / Vercel hosting target. Or use{" "}
+          to set apex <strong className="text-slate-200">A</strong> +{" "}
+          <strong className="text-slate-200">www CNAME</strong> at Vercel (Dreamscape
+          rejects CNAME on the root zone). Or use{" "}
           <Link
             href="/apps/websites/hosting"
             className="text-sky-400 hover:underline"
@@ -43,11 +45,12 @@ export default function Page() {
         </p>
         <ul className="list-disc pl-5 text-xs text-slate-500 space-y-1">
           <li>
-            <code>DG_WEBSITE_DNS_CNAME_TARGET</code> (default{" "}
-            <code>cname.vercel-dns.com</code>)
+            <code>DG_WEBSITE_DNS_A_TARGET</code> (default{" "}
+            <code>76.76.21.21</code>) — apex A record
           </li>
           <li>
-            <code>DG_WEBSITE_DNS_A_TARGET</code> — optional apex A record
+            <code>DG_WEBSITE_DNS_CNAME_TARGET</code> (default{" "}
+            <code>cname.vercel-dns.com</code>) — www only
           </li>
         </ul>
       </div>

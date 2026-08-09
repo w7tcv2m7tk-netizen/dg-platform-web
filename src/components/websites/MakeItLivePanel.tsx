@@ -142,7 +142,7 @@ export function MakeItLivePanel({
     if (!pending) return "Ready — domain path live when DNS propagates.";
     if (pending.id === "domain") return "Connect or register a domain first.";
     if (pending.id === "dns")
-      return "Apply hosting DNS (CNAME/A to Vercel). If apply failed, check Domains → Apply website DNS for the provider error.";
+      return "Apply hosting DNS: apex A → Vercel (76.76.21.21) + www CNAME. Dreamscape rejects CNAME on the root zone.";
     if (pending.id === "ssl")
       return "SSL stays pending until DNS points at hosting and Vercel verifies the hostname (VERCEL_TOKEN + PROJECT_ID, or add domain manually).";
     if (pending.id === "website") return "Publish the website when content looks good.";
