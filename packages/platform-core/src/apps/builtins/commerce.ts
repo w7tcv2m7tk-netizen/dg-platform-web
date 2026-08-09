@@ -4,9 +4,9 @@ export const commerceApp: AppManifest = {
   id: "commerce",
   name: "Commerce",
   description:
-    "Payments, quotes, invoices, subscriptions, and checkout — the customer-facing commercial layer",
+    "Payments, quotes, invoices, and checkout — the customer-facing commercial layer",
   tier: "core",
-  version: "0.1.0",
+  version: "0.2.0",
   icon: "▤",
   routes: [
     { path: "/apps/commerce", label: "Overview" },
@@ -14,8 +14,7 @@ export const commerceApp: AppManifest = {
     { path: "/apps/commerce/quotes", label: "Quotes" },
     { path: "/apps/commerce/reports", label: "Reports" },
     { path: "/apps/commerce/payments", label: "Payments" },
-    { path: "/apps/commerce/products", label: "Products" },
-    { path: "/apps/commerce/subscriptions", label: "Subscriptions" },
+    // Products / Subscriptions: placeholder pages exist but stay off nav for closed beta.
   ],
   navigation: [
     { href: "/apps/commerce", label: "Commerce", icon: "▤" },
@@ -30,10 +29,7 @@ export const commerceApp: AppManifest = {
     "commerce.payments",
     "commerce.quotes",
     "commerce.invoices",
-    "commerce.subscriptions",
     "commerce.checkout",
-    "commerce.products",
-    "commerce.crypto",
   ],
   entities: [
     "CommerceProduct",

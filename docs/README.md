@@ -27,7 +27,8 @@ These documents capture **why** the platform is built the way it is. They are as
 | [RE-BETA-LAUNCH.md](./RE-BETA-LAUNCH.md) | Real Estate agency closed beta — in/out, provision, smoke test |
 | [ACC-BETA-LAUNCH.md](./ACC-BETA-LAUNCH.md) | Accommodation property closed beta — CVH path, in/out, provision |
 | [WEBSITES-BETA-LAUNCH.md](./WEBSITES-BETA-LAUNCH.md) | Website Builder closed beta — Studio, publish, WP content import |
-| [INFRASTRUCTURE-BETA-LAUNCH.md](./INFRASTRUCTURE-BETA-LAUNCH.md) | Domains closed beta — SOAP search/connect/DNS/go-live |
+| [INFRASTRUCTURE-BETA-LAUNCH.md](./INFRASTRUCTURE-BETA-LAUNCH.md) | Domains + Email E1 closed beta — SOAP search/connect/DNS/go-live |
+| [COMMERCE-BETA-LAUNCH.md](./COMMERCE-BETA-LAUNCH.md) | Commerce closed beta — Stripe payments, quotes, invoices, reports |
 | [COMMAND-CENTRE-BETA.md](./COMMAND-CENTRE-BETA.md) | Staff Command Centre closed beta — Growth Engine core |
 | [BUSINESS-OVERVIEW.md](./BUSINESS-OVERVIEW.md) | CEO dashboard — Business Overview at `/dashboard` |
 | [PLATFORM-API.md](./PLATFORM-API.md) | REST API v1 — keys, auth, endpoints |

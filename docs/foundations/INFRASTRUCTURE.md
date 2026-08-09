@@ -4,7 +4,7 @@
 
 **Version:** 0.3  
 **Last updated:** August 2026  
-**Status:** **Domains closed beta ready** — see [INFRASTRUCTURE-BETA-LAUNCH.md](../INFRASTRUCTURE-BETA-LAUNCH.md). Architecture locked · Domain search + register/connect/DNS/go-live shipped (SOAP `/API-1.3`).  
+**Status:** **Domains + Email E1 closed beta packaged** — see [INFRASTRUCTURE-BETA-LAUNCH.md](../INFRASTRUCTURE-BETA-LAUNCH.md). Architecture locked · Search/connect/DNS/go-live + Resend auth DNS shipped. Hosting/Deploy/Monitoring Apps stay OUT.  
 **Website Builder:** Closed beta + Make it live — [WEBSITES-BETA-LAUNCH.md](../WEBSITES-BETA-LAUNCH.md)
 
 **Related:** [WEBSITE-BUILDER.md](./WEBSITE-BUILDER.md) · [PRODUCT-VISION.md](../PRODUCT-VISION.md) · [ROADMAP.md](../ROADMAP.md) · [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) · [PLATFORM-ARCHITECTURE.md](../PLATFORM-ARCHITECTURE.md) · [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](../infrastructure/INFRASTRUCTURE-ARCHITECTURE.md)

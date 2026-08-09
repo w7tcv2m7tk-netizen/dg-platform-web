@@ -120,4 +120,5 @@ In-app checklist: Domains page (`InfraDomainsBetaChecklist`).
 
 - [INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md)
 - [WEBSITES-BETA-LAUNCH.md](./WEBSITES-BETA-LAUNCH.md)
+- [COMMERCE-BETA-LAUNCH.md](./COMMERCE-BETA-LAUNCH.md)
 - [COMMAND-CENTRE-BETA.md](./COMMAND-CENTRE-BETA.md)

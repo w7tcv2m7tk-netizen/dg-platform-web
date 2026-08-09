@@ -513,8 +513,9 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "commerce.financial_health",
     area: "Commerce",
     label: "Twin financial health",
-    description: "Revenue MTD/YTD, AR, overdue snapshot",
-    status: "scaffold",
+    description:
+      "Neon revenue MTD/YTD, AR, overdue on Commerce overview + reports (full Twin GL OUT)",
+    status: "done",
     appId: "commerce",
     href: "/apps/commerce",
   },

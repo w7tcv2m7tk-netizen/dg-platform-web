@@ -173,6 +173,6 @@ Commerce MRR on `/command/revenue` remains real Neon subscription totals — do 
 
 - [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) — product vision + architecture  
 - [GROWTH-ENGINE.md](./GROWTH-ENGINE.md) — acquisition module spec  
-- [ACC-BETA-LAUNCH.md](./ACC-BETA-LAUNCH.md) / [RE-BETA-LAUNCH.md](./RE-BETA-LAUNCH.md) / [WEBSITES-BETA-LAUNCH.md](./WEBSITES-BETA-LAUNCH.md) / [INFRASTRUCTURE-BETA-LAUNCH.md](./INFRASTRUCTURE-BETA-LAUNCH.md) — client product betas enrolled from Command  
+- [ACC-BETA-LAUNCH.md](./ACC-BETA-LAUNCH.md) / [RE-BETA-LAUNCH.md](./RE-BETA-LAUNCH.md) / [WEBSITES-BETA-LAUNCH.md](./WEBSITES-BETA-LAUNCH.md) / [INFRASTRUCTURE-BETA-LAUNCH.md](./INFRASTRUCTURE-BETA-LAUNCH.md) / [COMMERCE-BETA-LAUNCH.md](./COMMERCE-BETA-LAUNCH.md) — client product betas enrolled from Command  
 - Manifest: `packages/platform-core/src/apps/builtins/command-centre.ts`  
 - Access: `packages/platform-core/src/command-centre/access.ts`  

@@ -265,8 +265,8 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
     label: "Commerce",
     icon: "💳",
     price: "TBA",
-    description: "Payments, quotes, invoices, checkout & subscriptions",
-    status: "soon",
+    description: "Payments, quotes, invoices & checkout",
+    status: "rolling-out",
   },
   {
     appId: "websites",
