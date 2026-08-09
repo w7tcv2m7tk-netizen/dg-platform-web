@@ -224,8 +224,18 @@ Domain · DNS · Hosting · SSL · Website · Email
 |------|------|
 | `packages/platform-core/src/communications/` | App send API + Resend + branded HTML |
 | `packages/platform-core/src/infrastructure/email/` | Email Infrastructure service (this layer) |
-| `packages/platform-core/src/infrastructure/dns/` | DNS apply for auth records |
+| `…/email/resend-domains.ts` | Resend Domains API — ensure / get / verify |
+| `…/email/deliverability.ts` | Auth plan + `applyEmailAuthDns` |
+| `packages/platform-core/src/infrastructure/dns/` | DNS apply for auth records (incl. TXT) |
+| `src/app/(shell)/apps/infrastructure/email/` | Email console (Prepare → Apply → Verify) |
+| `src/app/api/v1/infrastructure/email/` | Overview + prepare / apply / verify API |
 | `docs/foundations/INFRASTRUCTURE.md` | Domains / hosting / SSL umbrella |
+
+### E1 smoke
+
+1. `RESEND_API_KEY` set on Gen 2; domain in Domains inventory (e.g. `aetheriel.com.au`).
+2. Infrastructure → Email → select domain → **Prepare sending domain** → **Apply auth DNS** → **Check verification**.
+3. Confirm ESP status moves toward verified; `dig` shows `send` TXT/MX + DKIM hosts. Apex website A/www unchanged.
 
 ---
 

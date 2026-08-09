@@ -1008,7 +1008,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Infrastructure",
     label: "Email domain auth (SPF/DKIM/DMARC)",
     description: "Resend domain verify + apply auth DNS via Domains (E1)",
-    status: "planned",
+    status: "done",
     appId: "infrastructure",
     href: "/apps/infrastructure/email",
   },

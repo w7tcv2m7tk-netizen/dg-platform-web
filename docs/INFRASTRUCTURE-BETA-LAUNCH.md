@@ -1,8 +1,8 @@
 # Infrastructure Domains closed beta — launch guide
 
 **Audience:** Ben (DigitalGate) + pilot organisations needing DigitalGate Domains  
-**Status:** Ready for closed beta testing (Aug 2026)  
-**Depends on:** Gen 2 + Dreamscape **SOAP** production credentials; Neon schema for domains/webhooks
+**Status:** Code-complete for Domains + Email E1 IN surface (Aug 2026)  
+**Depends on:** Gen 2 + Dreamscape **SOAP** production credentials; Neon schema for domains/webhooks; `RESEND_API_KEY` for Email auth DNS
 
 ---
 
@@ -31,9 +31,11 @@ Not for: Dreamscape-branded reseller console, mailbox product, full hosting mark
 | Register | Paid — requires **separate** flag `infra.domain_register` + typed confirm (+ production checkbox) |
 | DNS / go-live | Apply hosting DNS, link website, Make it live checklist |
 | DNS page | Honest pointer into Domains (not a fake full console) |
+| Email (E1) | Prepare sending domain → Apply auth DNS (SPF/DKIM/DMARC) → Verify (`RESEND_API_KEY`) |
 | Webhooks | Durable `DreamscapeWebhookEvent` persistence (after `db:push`) |
 
-**Beta core path:** Search → connect (or gated register) → Apply DNS → Make it live with a Website.
+**Beta core path:** Search → connect (or gated register) → Apply DNS → Make it live with a Website.  
+**Email path:** Domains inventory → Email → Prepare → Apply auth DNS → Check verification.
 
 ---
 
@@ -59,6 +61,7 @@ DREAMSCAPE_SOAP_ENV=production
 - Redeploy after env changes.
 - Run `npm run db:push` (or migrate) for domain + webhook tables.
 - Optional: `VERCEL_TOKEN` + `VERCEL_PROJECT_ID` for SSL attach helpers.
+- Email E1: `RESEND_API_KEY` (+ optional `RESEND_FROM_EMAIL`).
 
 Details: [INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md).
 
