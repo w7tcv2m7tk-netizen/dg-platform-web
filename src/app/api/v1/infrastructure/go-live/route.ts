@@ -1,10 +1,11 @@
 import {
+  DreamscapeApiError,
+  applyWebsiteHostingDns,
   attachDomainToWebsite,
   attachVercelProjectDomain,
   buildGoLiveChecklist,
   getOrganisationDomain,
   listOrganisationDomains,
-  requireDnsProvider,
   updateWebsite,
   upsertInfrastructureDomain,
   websiteHostingDnsRecords,
@@ -105,33 +106,38 @@ export async function POST(req: Request) {
   let vercel = null;
   const warnings: string[] = [];
   if (body.applyDns) {
-    const records = websiteHostingDnsRecords(domainRow.name).map((r) => ({
-      type: r.type,
-      name: r.name,
-      content: r.content,
-      priority: r.priority,
-    }));
     try {
-      const applied = await requireDnsProvider().upsertRecords(
-        domainRow.name,
-        records,
-      );
+      const result = await applyWebsiteHostingDns({
+        domainName: domainRow.name,
+        mode: "full",
+        allowWwwFallback: true,
+      });
       domainRow = await upsertInfrastructureDomain({
         organisationId: session.organisationId,
         name: domainRow.name,
-        dnsRecords: applied,
+        dnsRecords: result.records,
         dnsConfiguredAt: new Date().toISOString(),
         sslState: "pending",
       });
-      dns = applied;
+      dns = {
+        records: result.records,
+        modeApplied: result.modeApplied,
+        fellBack: result.fellBack,
+        note: result.note,
+      };
+      if (result.fellBack && result.note) warnings.push(result.note);
     } catch (err) {
       const message = err instanceof Error ? err.message : "DNS apply failed";
+      const hint =
+        err instanceof DreamscapeApiError ? err.hint : undefined;
+      const suggested = websiteHostingDnsRecords(domainRow.name);
       dns = {
         error: message,
-        suggested: records,
+        hint,
+        suggested,
       };
       warnings.push(
-        `DNS apply failed: ${message}. Retry from Domains → Apply website DNS, or set records manually at the registrar.`,
+        `DNS apply failed: ${message}${hint ? ` — ${hint}` : ""}. Retry from Domains → Inspect DNS / Apply www only, or set records manually at the registrar.`,
       );
     }
   }

@@ -157,13 +157,68 @@ export function DomainsConsole() {
     setBusy(false);
   }
 
-  async function applyHostingDns(domainId: string) {
+  async function inspectDns(domainId: string) {
     setBusy(true);
-    setStatus("Applying hosting DNS…");
+    setStatus("Inspecting DNS zone…");
+    const res = await fetch(`/api/v1/infrastructure/domains/${domainId}/dns`);
+    const json = (await res.json()) as {
+      error?: { message?: string };
+      data?: {
+        zone?: {
+          manageable?: boolean;
+          nameservers?: string[];
+          recordCount?: number;
+          message?: string;
+          hint?: string;
+          status?: string | null;
+        } | null;
+        suggestedHosting?: Array<{ type: string; name: string; content: string }>;
+        providerError?: string | null;
+      };
+    };
+    if (!res.ok) {
+      setStatus(json.error?.message || "DNS inspect failed");
+      setBusy(false);
+      return;
+    }
+    const z = json.data?.zone;
+    const suggested = json.data?.suggestedHosting ?? [];
+    const parts = [
+      z?.message || "Zone inspected",
+      z?.manageable === false ? "not manageable" : "manageable",
+      z?.nameservers?.length
+        ? `NS: ${z.nameservers.join(", ")}`
+        : "NS: (none in DomainInfo)",
+      suggested.length
+        ? `Plan: ${suggested.map((r) => `${r.type} ${r.name}`).join(" · ")}`
+        : null,
+      z?.hint,
+      json.data?.providerError,
+    ].filter(Boolean);
+    setStatus(parts.join(" — "));
+    setBusy(false);
+  }
+
+  async function applyHostingDns(
+    domainId: string,
+    mode: "full" | "www" | "apex" = "full",
+  ) {
+    setBusy(true);
+    setStatus(
+      mode === "www"
+        ? "Applying www CNAME…"
+        : mode === "apex"
+          ? "Applying apex A…"
+          : "Applying hosting DNS (apex A + www CNAME)…",
+    );
     const res = await fetch(`/api/v1/infrastructure/domains/${domainId}/dns`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ applyHosting: true, attachVercel: true }),
+      body: JSON.stringify({
+        applyHosting: mode,
+        attachVercel: true,
+        allowWwwFallback: mode === "full",
+      }),
     });
     const json = (await res.json()) as {
       error?: {
@@ -174,6 +229,9 @@ export function DomainsConsole() {
       };
       data?: {
         instructions?: string[] | null;
+        note?: string;
+        fellBack?: boolean;
+        modeApplied?: string;
         vercel?: {
           ok?: boolean;
           configured?: boolean;
@@ -185,10 +243,17 @@ export function DomainsConsole() {
     };
     if (res.ok) {
       const parts: string[] = [];
+      if (json.data?.fellBack) {
+        parts.push(json.data.note || `Fell back to ${json.data.modeApplied}`);
+      } else {
+        parts.push(
+          json.data?.modeApplied
+            ? `DNS applied (${json.data.modeApplied})`
+            : "Hosting DNS applied at the registrar.",
+        );
+      }
       if (json.data?.instructions?.length) {
         parts.push(...json.data.instructions);
-      } else {
-        parts.push("Hosting DNS applied at the registrar.");
       }
       const vercel = json.data?.vercel;
       if (vercel) {
@@ -409,7 +474,23 @@ export function DomainsConsole() {
                   <button
                     type="button"
                     disabled={busy}
-                    onClick={() => void applyHostingDns(d.id)}
+                    onClick={() => void inspectDns(d.id)}
+                    className="rounded border border-slate-600 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+                  >
+                    Inspect DNS
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void applyHostingDns(d.id, "www")}
+                    className="rounded border border-sky-700/60 px-2 py-1 text-xs text-sky-300 hover:bg-sky-500/10 disabled:opacity-50"
+                  >
+                    Apply www only
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void applyHostingDns(d.id, "full")}
                     className="rounded border border-slate-600 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800 disabled:opacity-50"
                   >
                     Apply website DNS

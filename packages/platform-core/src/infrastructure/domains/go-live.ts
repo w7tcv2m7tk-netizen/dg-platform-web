@@ -29,11 +29,21 @@ function scoreOf(items: ProvisioningCheckItem[]): number {
  * Dreamscape (and DNS generally) rejects CNAME on the root zone. Always use an A
  * record for apex; CNAME only for www (and other subdomains).
  *
+ * Modes:
+ *   full — apex A + www CNAME (default)
+ *   www  — www CNAME only (safer first step / fallback after HTTP 500)
+ *   apex — apex A only
+ *
  * Override targets via:
  *   DG_WEBSITE_DNS_CNAME_TARGET (default cname.vercel-dns.com)
  *   DG_WEBSITE_DNS_A_TARGET (default 76.76.21.21 — Vercel anycast)
  */
-export function websiteHostingDnsRecords(domainName: string): Array<{
+export type WebsiteHostingDnsMode = "full" | "www" | "apex";
+
+export function websiteHostingDnsRecords(
+  domainName: string,
+  mode: WebsiteHostingDnsMode = "full",
+): Array<{
   type: string;
   name: string;
   content: string;
@@ -46,20 +56,22 @@ export function websiteHostingDnsRecords(domainName: string): Array<{
     process.env.DG_WEBSITE_DNS_A_TARGET?.trim() || "76.76.21.21";
   const apex = domainName.toLowerCase();
 
-  return [
-    {
-      type: "A",
-      name: "@",
-      content: aTarget,
-      purpose: `Apex ${apex} → hosting IP (CNAME not allowed on root zone)`,
-    },
-    {
-      type: "CNAME",
-      name: "www",
-      content: cnameTarget,
-      purpose: "www → DigitalGate / Vercel hosting",
-    },
-  ];
+  const apexRecord = {
+    type: "A",
+    name: "@",
+    content: aTarget,
+    purpose: `Apex ${apex} → hosting IP (CNAME not allowed on root zone)`,
+  };
+  const wwwRecord = {
+    type: "CNAME",
+    name: "www",
+    content: cnameTarget,
+    purpose: "www → DigitalGate / Vercel hosting",
+  };
+
+  if (mode === "www") return [wwwRecord];
+  if (mode === "apex") return [apexRecord];
+  return [apexRecord, wwwRecord];
 }
 
 export async function buildGoLiveChecklist(input: {

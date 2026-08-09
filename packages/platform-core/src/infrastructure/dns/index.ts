@@ -4,13 +4,20 @@ import {
   InfrastructureNotImplementedError,
 } from "../core/types";
 import {
+  type WebsiteHostingDnsMode,
+  websiteHostingDnsRecords,
+} from "../domains/go-live";
+import {
   DreamscapeApiError,
   dreamscapeFetch,
   isDreamscapeConfigured,
   resolveDreamscapeConfig,
 } from "../providers/dreamscape/client";
 import { DreamscapeSoapError } from "../providers/dreamscape/soap";
-import { dreamscapeSoapDomainDnsUpdate, dreamscapeSoapDomainInfo } from "../providers/dreamscape/soap-ops";
+import {
+  dreamscapeSoapDomainDnsUpdate,
+  dreamscapeSoapDomainInfo,
+} from "../providers/dreamscape/soap-ops";
 
 export interface DnsProvider {
   readonly id: string;
@@ -21,12 +28,212 @@ export interface DnsProvider {
   deleteRecord(domainName: string, recordId: string): Promise<void>;
 }
 
+export type DnsZoneInspection = {
+  domainName: string;
+  manageable: boolean;
+  nameservers: string[];
+  records: DnsRecord[];
+  recordCount: number;
+  status: string | null;
+  message: string;
+  hint?: string;
+};
+
 function soapErrorToApiError(err: DreamscapeSoapError): DreamscapeApiError {
   return new DreamscapeApiError(err.status, err.message, err.body, {
     code: err.code,
     hint: err.hint,
     providerBodySnippet: err.providerBodySnippet,
   });
+}
+
+function looksLikeDreamscapeNs(ns: string[]): boolean {
+  if (ns.length === 0) return false;
+  return ns.some((h) =>
+    /dreamscape|ds\.network|crazydomains|vodien|secureapi|nameserver/i.test(h),
+  );
+}
+
+/**
+ * Preflight before DomainDNSUpdate — DomainInfo + NS heuristics.
+ * DomainDNSUpdate only works when the zone is hosted on Dreamscape DNS.
+ */
+export async function inspectDnsZone(
+  domainName: string,
+): Promise<DnsZoneInspection> {
+  const name = domainName.toLowerCase();
+  if (!isDreamscapeConfigured()) {
+    throw new InfrastructureNotConfiguredError(
+      "Domain provider is not configured for DNS",
+    );
+  }
+  const { apiMode, apiKey, resellerId, soapEndpoint, isSandbox } =
+    resolveDreamscapeConfig();
+
+  if (apiMode === "soap" && apiKey && resellerId) {
+    try {
+      const info = await dreamscapeSoapDomainInfo({
+        endpoint: soapEndpoint,
+        resellerId,
+        apiKey,
+        isSandbox,
+        domainName: name,
+      });
+      if (!info) {
+        return {
+          domainName: name,
+          manageable: false,
+          nameservers: [],
+          records: [],
+          recordCount: 0,
+          status: null,
+          message:
+            "DomainInfo returned no details — domain may not be at this reseller.",
+          hint: "Register or transfer the domain into the Dreamscape reseller account before Apply website DNS.",
+        };
+      }
+      const ns = info.nameservers ?? [];
+      // If DomainInfo succeeded, the reseller can usually update DNS even when
+      // NS strings don’t match our heuristic — treat readable zone as manageable.
+      const manageable = true;
+      return {
+        domainName: name,
+        manageable,
+        nameservers: ns,
+        records: info.dnsRecords ?? [],
+        recordCount: info.dnsRecords?.length ?? 0,
+        status: info.statusLabel ?? info.status,
+        message: `Zone readable · ${info.dnsRecords?.length ?? 0} record(s)`,
+        hint: looksLikeDreamscapeNs(ns)
+          ? undefined
+          : ns.length === 0
+            ? "Nameservers empty in DomainInfo — Apply may still work; if SOAP 500 persists, set Dreamscape NS at the registrar."
+            : "NS hostnames don’t look like Dreamscape — confirm the zone is hosted here before relying on DomainDNSUpdate.",
+      };
+    } catch (err) {
+      if (err instanceof DreamscapeSoapError) {
+        return {
+          domainName: name,
+          manageable: false,
+          nameservers: [],
+          records: [],
+          recordCount: 0,
+          status: null,
+          message: err.message,
+          hint:
+            err.hint ||
+            "DomainInfo failed — domain may not be in this reseller account, or NS are external.",
+        };
+      }
+      throw err;
+    }
+  }
+
+  try {
+    const records = await requireDnsProvider().listRecords(name);
+    return {
+      domainName: name,
+      manageable: true,
+      nameservers: [],
+      records,
+      recordCount: records.length,
+      status: null,
+      message: `REST DNS list · ${records.length} record(s)`,
+    };
+  } catch (err) {
+    return {
+      domainName: name,
+      manageable: false,
+      nameservers: [],
+      records: [],
+      recordCount: 0,
+      status: null,
+      message: err instanceof Error ? err.message : "DNS inspect failed",
+    };
+  }
+}
+
+export type ApplyHostingDnsResult = {
+  records: DnsRecord[];
+  modeRequested: WebsiteHostingDnsMode;
+  modeApplied: WebsiteHostingDnsMode;
+  fellBack: boolean;
+  note?: string;
+  zone: DnsZoneInspection;
+};
+
+/**
+ * Apply Vercel hosting DNS with optional www-only fallback after SOAP HTTP 500.
+ */
+export async function applyWebsiteHostingDns(input: {
+  domainName: string;
+  mode?: WebsiteHostingDnsMode;
+  /** When true (default), retry www-only if full/apex hits soap_http_500 */
+  allowWwwFallback?: boolean;
+}): Promise<ApplyHostingDnsResult> {
+  const modeRequested = input.mode ?? "full";
+  const allowWwwFallback = input.allowWwwFallback !== false;
+  const zone = await inspectDnsZone(input.domainName);
+
+  if (!zone.manageable) {
+    throw new DreamscapeApiError(
+      422,
+      zone.message || "DNS zone is not manageable via Dreamscape",
+      null,
+      {
+        code: "dns_zone_not_manageable",
+        hint:
+          zone.hint ||
+          "Confirm the domain is in the reseller account and uses Dreamscape nameservers, then retry.",
+      },
+    );
+  }
+
+  const provider = requireDnsProvider();
+  const plan = (mode: WebsiteHostingDnsMode) =>
+    websiteHostingDnsRecords(input.domainName, mode).map((r) => ({
+      type: r.type,
+      name: r.name,
+      content: r.content,
+      priority: r.priority,
+    }));
+
+  try {
+    const records = await provider.upsertRecords(
+      input.domainName,
+      plan(modeRequested),
+    );
+    return {
+      records,
+      modeRequested,
+      modeApplied: modeRequested,
+      fellBack: false,
+      zone,
+    };
+  } catch (err) {
+    const canFallback =
+      allowWwwFallback &&
+      modeRequested !== "www" &&
+      err instanceof DreamscapeApiError &&
+      (err.code === "soap_http_500" ||
+        err.status === 500 ||
+        /HTTP 500/i.test(err.message));
+
+    if (!canFallback) throw err;
+
+    const records = await provider.upsertRecords(
+      input.domainName,
+      plan("www"),
+    );
+    return {
+      records,
+      modeRequested,
+      modeApplied: "www",
+      fellBack: true,
+      note: "Full/apex apply failed (SOAP HTTP 500) — applied www CNAME only. Fix apex A in the Dreamscape DNS panel or retry apex later.",
+      zone,
+    };
+  }
 }
 
 /** Dreamscape DNS via SOAP DomainDNSUpdate / DomainInfo (REST fallback list). */
@@ -58,7 +265,6 @@ export class DreamscapeDnsProvider implements DnsProvider {
       }
     }
 
-    // REST — best-effort common paths
     try {
       const payload = await dreamscapeFetch<unknown>(
         `/domains/${encodeURIComponent(domainName)}/dns`,

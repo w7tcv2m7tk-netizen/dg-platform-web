@@ -366,7 +366,7 @@ DG_WEBSITE_DNS_CNAME_TARGET=cname.vercel-dns.com  # www only
 
 Apply website DNS / Make it live writes: `A @ → 76.76.21.21` + `CNAME www → cname.vercel-dns.com`.
 
-**Apex Subdomain:** SOAP `DNSARecord.Subdomain` for the root zone must be an **empty string**, never `xsi:nil` (nil has caused SecureAPI HTTP 500). Domain must use Dreamscape nameservers for `DomainDNSUpdate` to work.
+**Progressive apply:** Domains → **Inspect DNS** (DomainInfo + NS) → **Apply www only** (safer) → **Apply website DNS** (apex A + www; auto-falls back to www on SOAP HTTP 500).
 ---
 
 ## Recommended stack
