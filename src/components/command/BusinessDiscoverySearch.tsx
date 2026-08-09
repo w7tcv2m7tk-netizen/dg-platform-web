@@ -40,15 +40,27 @@ const INDUSTRY_PRESETS = [
 
 export function BusinessDiscoverySearch({
   initialProviders = [],
+  initialIndustry = "Real Estate",
+  initialLocation = "Currumbin, QLD",
+  initialBusinessType = "Agency",
+  initialRadiusKm = 10,
+  initialQ = "",
 }: {
   initialProviders?: ProviderStatus[];
+  initialIndustry?: string;
+  initialLocation?: string;
+  initialBusinessType?: string;
+  initialRadiusKm?: (typeof RADIUS_OPTIONS)[number];
+  initialQ?: string;
 }) {
   const router = useRouter();
-  const [industry, setIndustry] = useState("Real Estate");
-  const [location, setLocation] = useState("Currumbin, QLD");
-  const [businessType, setBusinessType] = useState("Agency");
-  const [radiusKm, setRadiusKm] = useState<(typeof RADIUS_OPTIONS)[number]>(10);
-  const [q, setQ] = useState("");
+  const [industry, setIndustry] = useState(initialIndustry);
+  const [location, setLocation] = useState(initialLocation);
+  const [businessType, setBusinessType] = useState(initialBusinessType);
+  const [radiusKm, setRadiusKm] = useState<(typeof RADIUS_OPTIONS)[number]>(
+    initialRadiusKm,
+  );
+  const [q, setQ] = useState(initialQ);
   const [pending, setPending] = useState(false);
   const [importing, setImporting] = useState(false);
   const [runAudit, setRunAudit] = useState(true);

@@ -5,7 +5,9 @@
 **Version:** 0.1  
 **Last updated:** August 2026  
 **Status:** V1 search + selective import shipped (Places + ABN providers env-gated)  
-**Parent:** [GROWTH-ENGINE.md](../GROWTH-ENGINE.md) · Command Centre `/command/growth-engine/discovery`
+**Parent:** [GROWTH-ENGINE.md](../GROWTH-ENGINE.md) · [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md) · Command Centre `/command/growth-engine/discovery`
+
+**Downstream:** After import + audit, [Opportunity Engine](./OPPORTUNITY-ENGINE.md) ranks who to speak to today.
 
 ---
 

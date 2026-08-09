@@ -35,6 +35,7 @@ These documents capture **why** the platform is built the way it is. They are as
 | [DEPLOY-WP-PLUGIN.md](./DEPLOY-WP-PLUGIN.md) | WordPress plugin deploy zip and site checklist |
 | [GROWTH-ENGINE.md](./GROWTH-ENGINE.md) | Growth Engine™ — acquisition OS inside Command Centre |
 | [foundations/BUSINESS-DISCOVERY.md](./foundations/BUSINESS-DISCOVERY.md) | Core — Business Discovery Engine (providers, import, packs) |
+| [foundations/OPPORTUNITY-ENGINE.md](./foundations/OPPORTUNITY-ENGINE.md) | Core — Opportunity Engine Daily Briefing (who today) |
 | **[foundations/](./foundations/README.md)** | **Governance, domain model, commercialisation — read before implementing** |
 
 ---

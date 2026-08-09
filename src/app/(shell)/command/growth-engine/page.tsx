@@ -1,14 +1,15 @@
 import Link from "next/link";
 import {
   GROWTH_ENGINE_STAGE_LABELS,
+  getDailyOpportunityBriefing,
   getGrowthEngineSummary,
-  getSalesCallRecommendations,
 } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import {
   ConvertProspectToOrgButton,
   CreateProposalQuoteButton,
+  RunProspectAuditButton,
 } from "@/components/command/GrowthEngineActions";
 import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
 import {
@@ -16,14 +17,24 @@ import {
   GrowthEngineNav,
 } from "@/components/command/GrowthEngineNav";
 
+function formatAudCents(cents: number) {
+  return new Intl.NumberFormat("en-AU", {
+    style: "currency",
+    currency: "AUD",
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
+}
+
 export default async function GrowthEngineHubPage() {
   const db = Boolean(process.env.DATABASE_URL);
-  const [summary, callToday] = db
+  const [summary, briefing] = db
     ? await Promise.all([
         getGrowthEngineSummary(),
-        getSalesCallRecommendations({ limit: 8, idleDays: 2 }),
+        getDailyOpportunityBriefing({ limit: 20, staffName: "Ben" }),
       ])
-    : [null, []];
+    : [null, null];
+
+  const top = briefing?.top ?? null;
 
   return (
     <>
@@ -33,7 +44,7 @@ export default async function GrowthEngineHubPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Growth Engine™</h1>
         <p className="text-sm text-slate-400">
-          Discover → audit → report → pipeline → proposal → client — Command Centre beta core
+          Discover → Opportunity Engine → audit → report → pipeline → client
         </p>
       </header>
       <main className="dg-page-main space-y-8">
@@ -43,12 +54,37 @@ export default async function GrowthEngineHubPage() {
         <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-4 text-sm text-sky-50">
           <p className="font-medium text-white">Closed beta — what pilots get</p>
           <p className="mt-1 text-sky-100/90">
-            Send reports, work follow-ups, convert to a client org, then invite + Billing on that org.
-            Staff playbook:{" "}
+            Daily Briefing ranks who to speak to today from real pipeline + audit signals. Playbook:{" "}
             <code className="text-sky-200">docs/COMMAND-CENTRE-BETA.md</code>.
           </p>
         </div>
         <CommandHonestyBanner compact />
+
+        {briefing ? (
+          <section className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5 space-y-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-sky-400">
+                Opportunity Engine · Daily Briefing
+              </p>
+              <h2 className="mt-1 text-xl font-semibold text-white">{briefing.greeting}</h2>
+              <p className="mt-1 text-sm text-slate-200">{briefing.headline}</p>
+              <p className="mt-1 text-sm text-slate-500">{briefing.subhead}</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <BriefStat label="Recommended" value={briefing.recommendedCount} />
+              <BriefStat label="Contacted today" value={briefing.contactedToday} />
+              <BriefStat label="Conversations" value={briefing.conversations} />
+              <BriefStat label="Meetings booked" value={briefing.meetingsBooked} />
+            </div>
+            <p className="text-sm text-slate-400">
+              {briefing.stillRequireAction} prospect
+              {briefing.stillRequireAction === 1 ? "" : "s"} still require action
+              {briefing.proposalPipelineCents != null
+                ? ` · Open proposals ${formatAudCents(briefing.proposalPipelineCents)}`
+                : " · Proposal $ only shown when real quotes exist"}
+            </p>
+          </section>
+        ) : null}
 
         {summary ? (
           <div className="grid gap-4 sm:grid-cols-3">
@@ -77,16 +113,72 @@ export default async function GrowthEngineHubPage() {
           </div>
         )}
 
+        {top ? (
+          <section className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-5 py-5 space-y-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-amber-200/90">
+              Priority #1
+            </p>
+            <h2 className="text-lg font-semibold text-white">
+              {top.businessName}{" "}
+              <span className="text-slate-400 font-normal">
+                · Opportunity Score {top.score}/100 ({top.bandLabel})
+              </span>
+            </h2>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-500">Why contact them</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-300">
+                {top.reasons.map((r) => (
+                  <li key={r}>{r}</li>
+                ))}
+              </ul>
+            </div>
+            <p className="text-sm text-amber-100/90">
+              <span className="font-medium text-white">Recommended: </span>
+              {top.recommendedActionLabel}. {top.approachHint}
+            </p>
+            <div className="flex flex-wrap gap-3 pt-1">
+              {!top.hasAudit ? (
+                <RunProspectAuditButton prospectId={top.prospectId} label="Run audit" />
+              ) : (
+                <Link
+                  href="/command/growth-engine/audits"
+                  className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-sky-300 hover:bg-slate-700"
+                >
+                  View audits
+                </Link>
+              )}
+              <Link
+                href="/command/growth-engine/reports"
+                className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-sky-300 hover:bg-slate-700"
+              >
+                Reports
+              </Link>
+              <CreateProposalQuoteButton prospectId={top.prospectId} label="Propose" />
+              {(top.stage === "proposal_sent" ||
+                top.stage === "report_viewed" ||
+                top.stage === "meeting_booked") && (
+                <ConvertProspectToOrgButton prospectId={top.prospectId} label="Convert" />
+              )}
+              <Link
+                href="/command/growth-engine/pipeline"
+                className="text-sm text-sky-400 hover:underline self-center"
+              >
+                Pipeline →
+              </Link>
+            </div>
+          </section>
+        ) : null}
+
         <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                Sales Assistant v0
+                Daily recommended
               </p>
-              <h2 className="mt-1 text-lg font-semibold text-white">Call today</h2>
+              <h2 className="mt-1 text-lg font-semibold text-white">Who to speak to today</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Ranked call list from idle days, report views, and health scores — not an
-                autonomous AI SDR. No invented metrics.
+                Ranked by Prospect Opportunity Score from audits, engagement, and fit — not an
+                autonomous AI SDR. No invented MRR.
               </p>
             </div>
             <Link
@@ -98,67 +190,81 @@ export default async function GrowthEngineHubPage() {
           </div>
           {!db ? (
             <p className="mt-4 text-sm text-slate-500">Database required.</p>
-          ) : callToday.length === 0 ? (
+          ) : !briefing || briefing.rows.length === 0 ? (
             <p className="mt-4 text-sm text-emerald-200/90">
-              No high-priority call targets right now.
+              No recommended prospects — use Discovery to find businesses, then audit.
             </p>
           ) : (
-            <ul className="mt-4 space-y-3">
-              {callToday.map((rec, index) => (
-                <li
-                  key={rec.prospectId}
-                  className="flex flex-wrap items-start justify-between gap-3 border-t border-slate-800/80 pt-3 first:border-0 first:pt-0"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-white">
-                      <span className="mr-2 text-slate-500">{index + 1}.</span>
-                      {rec.businessName}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {GROWTH_ENGINE_STAGE_LABELS[rec.stage] ?? rec.stage}
-                      {rec.businessHealthScore
-                        ? ` · Health ${rec.businessHealthScore}`
-                        : ""}
-                      {rec.reportViewCount
-                        ? ` · ${rec.reportViewCount} view${rec.reportViewCount === 1 ? "" : "s"}`
-                        : ""}
-                      {` · priority ${rec.priority}`}
-                    </p>
-                    <p className="mt-1 text-sm text-amber-100/90">{rec.reason}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <CreateProposalQuoteButton
-                      prospectId={rec.prospectId}
-                      label="Propose"
-                    />
-                    {(rec.stage === "proposal_sent" ||
-                      rec.stage === "report_viewed" ||
-                      rec.stage === "meeting_booked") && (
-                      <ConvertProspectToOrgButton
-                        prospectId={rec.prospectId}
-                        label="Convert"
-                      />
-                    )}
-                    <Link
-                      href="/command/growth-engine/pipeline"
-                      className="text-xs text-sky-400 hover:underline"
-                    >
-                      Pipeline →
-                    </Link>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-4 overflow-x-auto rounded-lg border border-slate-800">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-3 py-2">Rank</th>
+                    <th className="px-3 py-2">Business</th>
+                    <th className="px-3 py-2">Opportunity</th>
+                    <th className="px-3 py-2">Score</th>
+                    <th className="px-3 py-2">Action</th>
+                    <th className="px-3 py-2" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {briefing.rows.map((row) => (
+                    <tr key={row.prospectId} className="border-t border-slate-800/80">
+                      <td className="px-3 py-2 text-slate-500">{row.rank}</td>
+                      <td className="px-3 py-2">
+                        <p className="font-medium text-white">{row.businessName}</p>
+                        <p className="text-xs text-slate-500">
+                          {GROWTH_ENGINE_STAGE_LABELS[row.stage] ?? row.stage}
+                        </p>
+                      </td>
+                      <td className="px-3 py-2 text-slate-300">{row.bandLabel}</td>
+                      <td className="px-3 py-2 text-white">{row.score}</td>
+                      <td className="px-3 py-2 text-amber-100/90">
+                        {row.recommendedActionLabel}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <div className="flex flex-wrap justify-end gap-2">
+                          {!row.hasAudit ? (
+                            <RunProspectAuditButton
+                              prospectId={row.prospectId}
+                              label="Audit"
+                            />
+                          ) : null}
+                          <CreateProposalQuoteButton
+                            prospectId={row.prospectId}
+                            label="Propose"
+                          />
+                          <Link
+                            href="/command/growth-engine/pipeline"
+                            className="text-xs text-sky-400 hover:underline self-center"
+                          >
+                            Pipeline
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </section>
 
         <p className="text-sm text-slate-400">
-          Start with Discovery → run a presence Audit → generate an Opportunity Report → track on
-          the Pipeline board.
+          Start with Discovery → run a presence Audit → Opportunity Report → Pipeline.
         </p>
 
         <GrowthEngineModuleGrid />
       </main>
     </>
+  );
+}
+
+function BriefStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-3">
+      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-white">{value}</p>
+    </div>
   );
 }

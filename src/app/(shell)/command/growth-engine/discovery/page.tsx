@@ -20,14 +20,66 @@ interface PageProps {
     industry?: string;
     location?: string;
     archived?: string;
+    mode?: string;
   }>;
 }
+
+const MODE_CHIPS: Array<{
+  id: string;
+  label: string;
+  href: string;
+  hint: string;
+}> = [
+  {
+    id: "daily",
+    label: "Daily Recommended",
+    href: "/command/growth-engine",
+    hint: "Opportunity Engine briefing",
+  },
+  {
+    id: "location",
+    label: "Location Search",
+    href: "/command/growth-engine/discovery?mode=location&location=Burleigh+Waters%2C+QLD&industry=Real+Estate",
+    hint: "Agencies near Burleigh Waters",
+  },
+  {
+    id: "industry",
+    label: "Industry Search",
+    href: "/command/growth-engine/discovery?mode=industry&industry=Finance&location=Brisbane%2C+QLD&type=Mortgage+Broker",
+    hint: "Mortgage brokers in Brisbane",
+  },
+  {
+    id: "problem",
+    label: "Problem Search",
+    href: "/command/growth-engine/discovery?mode=problem",
+    hint: "Audited book · weak SEO",
+  },
+  {
+    id: "ai",
+    label: "AI Visibility Search",
+    href: "/command/growth-engine/discovery?mode=ai",
+    hint: "Audited book · weak AI visibility",
+  },
+  {
+    id: "highvalue",
+    label: "High-Value Prospects",
+    href: "/command/growth-engine/discovery?mode=highvalue",
+    hint: "Proposal-sent pipeline",
+  },
+  {
+    id: "hot",
+    label: "Hot Prospects",
+    href: "/command/growth-engine/discovery?mode=hot",
+    hint: "Coming when buying signals ship",
+  },
+];
 
 export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const q = (params.q ?? "").trim().toLowerCase();
   const industry = (params.industry ?? "").trim().toLowerCase();
   const location = (params.location ?? "").trim().toLowerCase();
+  const mode = (params.mode ?? "").trim().toLowerCase();
   const showArchived = params.archived === "1";
 
   const providers = listDiscoveryProviderStatuses();
@@ -38,7 +90,40 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
         ...(showArchived ? { archivedOnly: true } : {}),
       })
     : [];
+
+  // Mode filters on the prospect book (problem / AI / high-value) use audit metadata when present
+  const { prisma } = process.env.DATABASE_URL
+    ? await import("@dg/database")
+    : { prisma: null };
+
+  let weakSeoIds: Set<string> | null = null;
+  let weakAiIds: Set<string> | null = null;
+  if (prisma && (mode === "problem" || mode === "ai")) {
+    const audits = await prisma.growthProspectAudit.findMany({
+      orderBy: { auditedAt: "desc" },
+      take: 400,
+      select: {
+        prospectId: true,
+        seoScore: true,
+        aiVisibility: true,
+      },
+    });
+    const seen = new Set<string>();
+    weakSeoIds = new Set();
+    weakAiIds = new Set();
+    for (const a of audits) {
+      if (seen.has(a.prospectId)) continue;
+      seen.add(a.prospectId);
+      if (a.seoScore != null && a.seoScore < 55) weakSeoIds.add(a.prospectId);
+      if (a.aiVisibility != null && a.aiVisibility < 50) weakAiIds.add(a.prospectId);
+    }
+  }
+
   const filtered = all.filter((p) => {
+    if (mode === "problem" && weakSeoIds && !weakSeoIds.has(p.id)) return false;
+    if (mode === "ai" && weakAiIds && !weakAiIds.has(p.id)) return false;
+    if (mode === "highvalue" && p.stage !== "proposal_sent") return false;
+    if (mode === "hot") return false; // no buying-signal source yet
     if (q) {
       const hay = `${p.businessName} ${p.contactName ?? ""} ${p.websiteUrl ?? ""}`.toLowerCase();
       if (!hay.includes(q)) return false;
@@ -47,6 +132,21 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
     if (location && !(p.location ?? "").toLowerCase().includes(location)) return false;
     return true;
   });
+
+  const searchDefaults = {
+    initialIndustry: params.industry?.trim() || (mode === "industry" ? "Finance" : "Real Estate"),
+    initialLocation:
+      params.location?.trim() ||
+      (mode === "location"
+        ? "Burleigh Waters, QLD"
+        : mode === "industry"
+          ? "Brisbane, QLD"
+          : "Currumbin, QLD"),
+    initialBusinessType:
+      mode === "industry" ? "Mortgage Broker" : mode === "location" ? "Agency" : "Agency",
+    initialRadiusKm: (mode === "location" ? 25 : 10) as 5 | 10 | 25 | 50,
+    initialQ: params.q?.trim() || "",
+  };
 
   const filterHref = (archived: boolean) => {
     const sp = new URLSearchParams();
@@ -88,7 +188,39 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
         <CommandCentreNav active="growth" />
         <GrowthEngineNav active="/command/growth-engine/discovery" />
 
-        <BusinessDiscoverySearch initialProviders={providers} />
+        <div className="flex flex-wrap gap-2">
+          {MODE_CHIPS.map((chip) => {
+            const active = chip.id === "daily" ? false : mode === chip.id;
+            return (
+              <Link
+                key={chip.id}
+                href={chip.href}
+                title={chip.hint}
+                className={`rounded-md px-3 py-1.5 text-xs ${
+                  active
+                    ? "bg-sky-600 text-white"
+                    : "bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                }`}
+              >
+                {chip.label}
+              </Link>
+            );
+          })}
+        </div>
+        {mode === "hot" ? (
+          <p className="text-sm text-amber-200/90">
+            Hot Prospects need buying-signal sources — not wired yet. Use Daily Recommended or
+            Location / Industry search.
+          </p>
+        ) : null}
+        {mode === "problem" || mode === "ai" || mode === "highvalue" ? (
+          <p className="text-sm text-slate-500">
+            Filtering your prospect book ({mode}
+            ). Provider search below stays available for new discovery.
+          </p>
+        ) : null}
+
+        <BusinessDiscoverySearch initialProviders={providers} {...searchDefaults} />
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">

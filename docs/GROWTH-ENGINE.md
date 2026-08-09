@@ -137,6 +137,12 @@ Not a static PDF — a **professionally branded interactive report** (shareable 
 
 ---
 
+## Module 3b — Opportunity Engine™ (Daily Briefing)
+
+**Who should I speak to today?** — see [foundations/OPPORTUNITY-ENGINE.md](./foundations/OPPORTUNITY-ENGINE.md).
+
+Ranks GrowthProspects by **Prospect Opportunity Score** (audit gaps, stage, engagement, fit). Surfaces Daily Briefing on `/command/growth-engine` and Today’s Prospecting on `/command`. Extends Sales Assistant v0 — not an autonomous AI SDR.
+
 ## Module 4 — Prospect Pipeline
 
 Automatic CRM — no manual entry when a report is generated.

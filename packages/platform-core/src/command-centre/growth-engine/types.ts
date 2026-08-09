@@ -158,6 +158,65 @@ export interface SalesCallRecommendation {
   priority: number;
 }
 
+/** Opportunity Engine™ — Prospect Opportunity Score band */
+export type OpportunityBand = "very_high" | "high" | "medium" | "low";
+
+export type OpportunityRecommendedAction =
+  | "run_audit"
+  | "send_audit"
+  | "call_today"
+  | "call_and_email"
+  | "follow_up"
+  | "close_loop";
+
+export interface ProspectOpportunityScoreResult {
+  score: number;
+  band: OpportunityBand;
+  bandLabel: string;
+  reasons: string[];
+  recommendedAction: OpportunityRecommendedAction;
+  recommendedActionLabel: string;
+  approachHint: string;
+}
+
+export interface DailyOpportunityRow {
+  rank: number;
+  prospectId: string;
+  businessName: string;
+  stage: ProspectPipelineStage;
+  score: number;
+  band: OpportunityBand;
+  bandLabel: string;
+  recommendedAction: OpportunityRecommendedAction;
+  recommendedActionLabel: string;
+  reasons: string[];
+  approachHint: string;
+  businessHealthScore: number | null;
+  reportViewCount: number;
+  hasAudit: boolean;
+  hasReport: boolean;
+  websiteUrl: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
+}
+
+/** Morning Daily Briefing payload — no invented MRR */
+export interface DailyOpportunityBriefing {
+  generatedAt: string;
+  greeting: string;
+  headline: string;
+  subhead: string;
+  recommendedCount: number;
+  contactedToday: number;
+  conversations: number;
+  meetingsBooked: number;
+  stillRequireAction: number;
+  /** Sum of real proposal_sent engagement totalCents when present; else null */
+  proposalPipelineCents: number | null;
+  top: DailyOpportunityRow | null;
+  rows: DailyOpportunityRow[];
+}
+
 export interface GrowthProposalDraft {
   id: string;
   prospectId: string;

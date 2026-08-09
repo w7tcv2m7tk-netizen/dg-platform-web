@@ -27,12 +27,75 @@ function relativeTime(iso: string) {
 }
 
 export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
-  const { pulse, actions, billing, referEarn, connectors, clients, deepLinks, recentActivity } =
-    data;
+  const {
+    pulse,
+    actions,
+    billing,
+    referEarn,
+    connectors,
+    clients,
+    deepLinks,
+    recentActivity,
+    prospectingToday,
+  } = data;
   const attentionClients = clients.filter((c) => c.needsAttention).slice(0, 5);
 
   return (
     <div className="space-y-10">
+      {/* Opportunity Engine — Today's Prospecting */}
+      <section className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-5 py-5">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">
+              Today&apos;s Prospecting
+            </p>
+            <h2 className="mt-2 text-lg font-semibold text-white">Opportunity Engine</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Who to speak to today — ranked from audits, engagement, and fit. No invented MRR.
+            </p>
+          </div>
+          <Link
+            href="/command/growth-engine"
+            className="text-sm text-sky-300 hover:underline"
+          >
+            Open Daily Briefing →
+          </Link>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <PulseStat
+            label="Recommended"
+            value={prospectingToday.recommendedCount}
+            href="/command/growth-engine"
+          />
+          <PulseStat
+            label="Contacted today"
+            value={prospectingToday.contactedToday}
+            href="/command/growth-engine"
+          />
+          <PulseStat
+            label="Conversations"
+            value={prospectingToday.conversations}
+            href="/command/growth-engine/pipeline"
+          />
+          <PulseStat
+            label="Meetings booked"
+            value={prospectingToday.meetingsBooked}
+            href="/command/growth-engine/pipeline"
+          />
+        </div>
+        <p className="mt-3 text-sm text-slate-400">
+          {prospectingToday.stillRequireAction} still require action
+          {prospectingToday.topBusinessName
+            ? ` · Top: ${prospectingToday.topBusinessName}${
+                prospectingToday.topScore != null ? ` (${prospectingToday.topScore}/100)` : ""
+              }`
+            : ""}
+          {prospectingToday.proposalPipelineCents != null
+            ? ` · Open proposals ${formatAudCents(prospectingToday.proposalPipelineCents)}`
+            : ""}
+        </p>
+      </section>
+
       {/* Pulse */}
       <section>
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">

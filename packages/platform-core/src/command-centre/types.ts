@@ -144,6 +144,17 @@ export interface CommandCentreOpsHome {
     byStage: Record<string, number>;
     engagementsThisWeek: number;
   };
+  /** Opportunity Engine Daily Briefing summary for Command home */
+  prospectingToday: {
+    recommendedCount: number;
+    contactedToday: number;
+    conversations: number;
+    meetingsBooked: number;
+    stillRequireAction: number;
+    proposalPipelineCents: number | null;
+    topBusinessName: string | null;
+    topScore: number | null;
+  };
   recentActivity: CommandRecentActivity[];
   deepLinks: CommandDeepLink[];
 }

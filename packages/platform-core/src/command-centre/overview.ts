@@ -15,6 +15,7 @@ import type {
 } from "./types";
 import { getStripeSetupStatus } from "../commerce/stripe-setup";
 import { getGrowthEngineSummary } from "./growth-engine/prospects";
+import { getDailyOpportunityBriefing } from "./growth-engine/opportunity-engine";
 import { getClientIntelligence } from "./client-intelligence";
 import type { OrgWordPressConnectorSettings } from "../connectors/wordpress/org-connector";
 
@@ -173,6 +174,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     referralByStatus,
     referralCreditsMtd,
     growth,
+    prospectingBriefing,
     orgRows,
     recentActivities,
     intelligence,
@@ -230,6 +232,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       _sum: { amountCents: true },
     }),
     getGrowthEngineSummary(),
+    getDailyOpportunityBriefing({ limit: 20 }),
     prisma.organisation.findMany({
       orderBy: { updatedAt: "desc" },
       take: 40,
@@ -462,6 +465,16 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     },
     referEarn,
     growth,
+    prospectingToday: {
+      recommendedCount: prospectingBriefing.recommendedCount,
+      contactedToday: prospectingBriefing.contactedToday,
+      conversations: prospectingBriefing.conversations,
+      meetingsBooked: prospectingBriefing.meetingsBooked,
+      stillRequireAction: prospectingBriefing.stillRequireAction,
+      proposalPipelineCents: prospectingBriefing.proposalPipelineCents,
+      topBusinessName: prospectingBriefing.top?.businessName ?? null,
+      topScore: prospectingBriefing.top?.score ?? null,
+    },
     recentActivity: recentActivities.map((a) => ({
       id: a.id,
       title: a.title,

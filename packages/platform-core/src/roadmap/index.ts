@@ -1236,10 +1236,51 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
   {
     id: "growth.sales_assistant",
     area: "Growth Engine",
-    label: "Call today (Sales Assistant v0)",
+    label: "Call today (Sales Assistant)",
     description:
-      "Ranked call list from idle days, views, health — not autonomous AI SDR",
+      "Compatibility wrapper over Opportunity Engine scores — not autonomous AI SDR",
     status: "done",
+    appId: "command-centre",
+    href: "/command/growth-engine",
+  },
+  {
+    id: "growth.opportunity_engine",
+    area: "Growth Engine",
+    label: "Opportunity Engine™",
+    description:
+      "Prospect Opportunity Score from audits, engagement, fit — Daily Briefing ranked actions",
+    status: "done",
+    priority: "high",
+    appId: "command-centre",
+    href: "/command/growth-engine",
+  },
+  {
+    id: "growth.daily_briefing",
+    area: "Growth Engine",
+    label: "Daily Briefing UX",
+    description:
+      "Morning greeting, counters, priority card, ranked table on Growth hub + Command strip",
+    status: "done",
+    priority: "high",
+    appId: "command-centre",
+    href: "/command/growth-engine",
+  },
+  {
+    id: "growth.prospecting_modes",
+    area: "Growth Engine",
+    label: "Prospecting modes",
+    description:
+      "Daily / location / industry / problem / AI visibility / high-value chips; Hot planned",
+    status: "done",
+    appId: "command-centre",
+    href: "/command/growth-engine/discovery",
+  },
+  {
+    id: "growth.opportunity_learning",
+    area: "Growth Engine",
+    label: "Outcome-learning score weights",
+    description: "Tune Opportunity Score from won/lost patterns — not started",
+    status: "planned",
     appId: "command-centre",
     href: "/command/growth-engine",
   },
