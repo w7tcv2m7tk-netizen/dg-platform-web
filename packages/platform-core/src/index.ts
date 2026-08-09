@@ -17,6 +17,7 @@ export * from "./audit";
 export * from "./activities";
 export * from "./notifications";
 export * from "./command-centre";
+export * from "./business-discovery";
 export * from "./connectors/wordpress";
 export * from "./contacts";
 export * from "./companies";

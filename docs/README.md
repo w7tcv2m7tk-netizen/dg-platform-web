@@ -34,6 +34,7 @@ These documents capture **why** the platform is built the way it is. They are as
 | [PLATFORM-API.md](./PLATFORM-API.md) | REST API v1 — keys, auth, endpoints |
 | [DEPLOY-WP-PLUGIN.md](./DEPLOY-WP-PLUGIN.md) | WordPress plugin deploy zip and site checklist |
 | [GROWTH-ENGINE.md](./GROWTH-ENGINE.md) | Growth Engine™ — acquisition OS inside Command Centre |
+| [foundations/BUSINESS-DISCOVERY.md](./foundations/BUSINESS-DISCOVERY.md) | Core — Business Discovery Engine (providers, import, packs) |
 | **[foundations/](./foundations/README.md)** | **Governance, domain model, commercialisation — read before implementing** |
 
 ---

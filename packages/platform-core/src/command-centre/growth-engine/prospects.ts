@@ -15,6 +15,8 @@ export interface CreateGrowthProspectInput {
   ownerClerkUserId?: string;
   actorId?: string;
   operatorOrganisationId?: string;
+  /** Opaque discovery / enrichment payload (providerRefs, ratings, pack id). */
+  metadata?: Record<string, unknown>;
 }
 
 export interface UpdateGrowthProspectInput {
@@ -59,6 +61,7 @@ function serializeProspect(row: GrowthProspect) {
     stage: row.stage as ProspectPipelineStage,
     ownerClerkUserId: row.ownerClerkUserId,
     convertedOrganisationId: row.convertedOrganisationId,
+    metadata: (row.metadata as Record<string, unknown> | null) ?? null,
     archivedAt: row.archivedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -125,6 +128,7 @@ export async function createGrowthProspect(input: CreateGrowthProspectInput) {
       websiteUrl: input.websiteUrl?.trim() || null,
       ownerClerkUserId: input.ownerClerkUserId ?? input.actorId ?? null,
       stage: "prospect",
+      metadata: input.metadata ?? undefined,
     },
   });
 

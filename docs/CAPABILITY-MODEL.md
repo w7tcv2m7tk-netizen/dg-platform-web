@@ -77,7 +77,7 @@ Same pattern across Communications (ElevenLabs), Infrastructure (registrar API),
 | `ai-communications` | growth | Communications |
 | `websites` | core | Websites |
 | `infrastructure` | core | Infrastructure |
-| `command-centre` | internal | Intelligence |
+| `command-centre` | internal | Intelligence (incl. Business Discovery Engine — see foundations/BUSINESS-DISCOVERY.md) |
 
 ---
 

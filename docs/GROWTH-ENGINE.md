@@ -69,22 +69,27 @@ Every stage feeds the next. **No duplicate data entry** at conversion — prospe
 
 ## Module 1 — Business Discovery
 
-Search and list businesses by:
+**Core Platform capability** — see [foundations/BUSINESS-DISCOVERY.md](./foundations/BUSINESS-DISCOVERY.md).
+
+| Layer | Status |
+|-------|--------|
+| Manual prospect book | Shipped (create / filter / archive) |
+| Provider search + select-import | Shipped V1 (Google Places + ABN Lookup, env-gated) |
+| Enrichment + industry audit packs | Packs + optional presence audit on import; deeper score breakdown continues |
+
+Search filters:
 
 | Filter | Examples |
 |--------|----------|
-| Industry | Real estate, hospitality, finance |
-| Location | Gold Coast, Brisbane, AU-wide |
-| Size | Employees, revenue band |
-| Keywords | “buyers agent”, “luxury homes” |
-| Signals | Google Business Profile, website, reviews |
-| Scores (when known) | AI Visibility™, SEO strength, ad activity |
+| Industry / pack | Real estate, finance, trades, professional, accommodation, automotive |
+| Location + radius | Currumbin / Gold Coast / Brisbane · 5–50 km |
+| Business type | Agency, mortgage broker, builder, accountant |
+| Keywords | Free-text name override |
 
-**Example query:** *Gold Coast Real Estate Agencies*
+**Example:** *Real estate agencies in Burleigh Waters* → select → Import → GrowthProspect (not CRM).
 
-**Output:** ranked prospect list with discovery metadata (source, confidence, last scanned).
-
-**Route:** `/command/growth-engine/discovery`
+**Route:** `/command/growth-engine/discovery`  
+**APIs:** `POST /api/v1/command/growth/discovery/search` · `POST …/import`
 
 ---
 
@@ -293,7 +298,8 @@ That is a **repeatable acquisition engine**, not a lead list.
 | Phase | Deliverable | Depends on |
 |-------|-------------|------------|
 | **GE-0** | Spec, types, manifest, routes (this doc) | Command Centre scaffold |
-| **GE-1** | Business Discovery + manual audit trigger | Connectors, external APIs |
+| **GE-1** | Business Discovery manual book + audit trigger | Postgres prospects |
+| **GE-1b** | Provider search + select-import (Places / ABN) | BUSINESS-DISCOVERY.md |
 | **GE-2** | AI Audit Engine (prospect mode) | Scoring v1, Website Health |
 | **GE-3** | Interactive Opportunity Report | Report renderer, branding |
 | **GE-4** | Prospect Pipeline + auto CRM | Postgres prospect models |

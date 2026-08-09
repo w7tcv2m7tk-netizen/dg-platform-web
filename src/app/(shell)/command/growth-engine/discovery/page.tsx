@@ -1,9 +1,11 @@
 import Link from "next/link";
 import {
   GROWTH_ENGINE_STAGE_LABELS,
+  listDiscoveryProviderStatuses,
   listGrowthProspects,
 } from "@dg/platform-core";
 
+import { BusinessDiscoverySearch } from "@/components/command/BusinessDiscoverySearch";
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { CreateProspectForm } from "@/components/command/CreateProspectForm";
 import {
@@ -27,6 +29,8 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
   const industry = (params.industry ?? "").trim().toLowerCase();
   const location = (params.location ?? "").trim().toLowerCase();
   const showArchived = params.archived === "1";
+
+  const providers = listDiscoveryProviderStatuses();
 
   const all = process.env.DATABASE_URL
     ? await listGrowthProspects({
@@ -62,7 +66,8 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Business Discovery</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Add prospects and filter the book. Automated search / GBP crawl is still GE-2.
+          Core Platform engine — discover via providers, select-import to prospects, then audit /
+          report / pipeline. Manual add remains for one-off leads.
         </p>
         <p className="mt-2 text-xs">
           {showArchived ? (
@@ -83,11 +88,13 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
         <CommandCentreNav active="growth" />
         <GrowthEngineNav active="/command/growth-engine/discovery" />
 
+        <BusinessDiscoverySearch initialProviders={providers} />
+
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
-            <h2 className="font-semibold text-white">Add prospect</h2>
+            <h2 className="font-semibold text-white">Add prospect manually</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Creates a pipeline record automatically — no manual CRM entry.
+              Creates a pipeline record automatically — no CRM Company until you convert.
             </p>
             <div className="mt-4">
               <CreateProspectForm />
@@ -98,7 +105,7 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
             <form className="grid gap-3 sm:grid-cols-3" method="get">
               {showArchived ? <input type="hidden" name="archived" value="1" /> : null}
               <label className="block text-sm">
-                <span className="text-slate-400">Search</span>
+                <span className="text-slate-400">Filter book</span>
                 <input
                   name="q"
                   defaultValue={params.q ?? ""}
@@ -141,7 +148,7 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
                 {all.length === 0
                   ? showArchived
                     ? "No archived prospects."
-                    : "No prospects yet — add one on the left."
+                    : "No prospects yet — discover above or add manually."
                   : "No prospects match these filters."}
               </p>
             ) : (

@@ -1147,8 +1147,51 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
   {
     id: "growth.discovery",
     area: "Growth Engine",
-    label: "Business discovery",
-    description: "Search businesses by industry, location, and digital signals",
+    label: "Business Discovery book",
+    description: "Manual create / filter / archive GrowthProspects in Command Centre",
+    status: "done",
+    appId: "command-centre",
+    href: "/command/growth-engine/discovery",
+  },
+  {
+    id: "growth.discovery.providers",
+    area: "Growth Engine",
+    label: "Business Data Provider layer",
+    description:
+      "Core provider interface — Google Places + ABN Lookup adapters (env-gated)",
+    status: "done",
+    priority: "high",
+    appId: "command-centre",
+    href: "/command/growth-engine/discovery",
+  },
+  {
+    id: "growth.discovery.search",
+    area: "Growth Engine",
+    label: "Discovery search + select-import",
+    description:
+      "Industry/location/radius search UI → multi-select import with providerRefs",
+    status: "done",
+    priority: "high",
+    appId: "command-centre",
+    href: "/command/growth-engine/discovery",
+  },
+  {
+    id: "growth.discovery.enrich",
+    area: "Growth Engine",
+    label: "Discovery enrichment + Business Score",
+    description:
+      "Optional presence audit on import; fuller Visibility/SEO/AI/Conversion breakdown next",
+    status: "in_progress",
+    priority: "high",
+    appId: "command-centre",
+    href: "/command/growth-engine/audits",
+  },
+  {
+    id: "growth.discovery.industry_packs",
+    area: "Growth Engine",
+    label: "Industry audit packs",
+    description:
+      "Universal packs (RE/finance/trades/professional/accommodation/automotive) for query + audit focus",
     status: "done",
     appId: "command-centre",
     href: "/command/growth-engine/discovery",
