@@ -104,7 +104,7 @@ export function AccBetaGateMessage() {
           href="/dashboard/apps"
           className="text-sm text-sky-400 hover:underline"
         >
-          Apps & plan →
+          Apps & Plan →
         </Link>
       </div>
     </div>

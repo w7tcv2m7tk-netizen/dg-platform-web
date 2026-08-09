@@ -52,7 +52,7 @@ const SHELL_NAV: PlatformShellNavItem[] = [
     icon: getSidebarIcon("business-profile"),
   },
   { kind: "shell", href: "/dashboard/settings/team", label: "Team", icon: getSidebarIcon("team") },
-  { kind: "shell", href: "/dashboard/apps", label: "Apps & plan", icon: getSidebarIcon("apps") },
+  { kind: "shell", href: "/dashboard/apps", label: "Apps & Plan", icon: getSidebarIcon("apps") },
   {
     kind: "shell",
     href: "/dashboard/marketplace",
@@ -189,7 +189,7 @@ export function getCategorizedPlatformNavigation(
   };
 }
 
-/** All customer apps grouped by tier — for Apps & plan page (includes disabled). */
+/** All customer apps grouped by tier — for Apps & Plan page (includes disabled). */
 export function getAllAppsByTierForCatalog(enabledIds: string[]): AppNavTierGroup[] {
   const customerApps = platformApps
     .list()

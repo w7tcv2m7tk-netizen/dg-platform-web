@@ -69,7 +69,7 @@ export function AppSetupGuideView({ guide }: { guide: AppSetupGuide }) {
       <PlatformRoadmapBar />
       <header className="dg-page-header">
         <Link href="/dashboard/apps" className="text-sm text-blue-400 hover:underline">
-          ← Apps & plan
+          ← Apps & Plan
         </Link>
       </header>
 

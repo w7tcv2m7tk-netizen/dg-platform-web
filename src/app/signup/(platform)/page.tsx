@@ -10,7 +10,7 @@ export default function SignupPage() {
         <p className="text-sm text-slate-300">
           New customer signup — select tier, industry apps, and add-ons.{" "}
           <Link href="/dashboard/apps#plan" className="text-blue-400 hover:underline">
-            Already signed in? Open Apps & plan
+            Already signed in? Open Apps & Plan
           </Link>
           {" · "}
           <Link href="/signup/account" className="text-blue-400 hover:underline">

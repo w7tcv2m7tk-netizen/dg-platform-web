@@ -82,7 +82,7 @@ export const PLATFORM_TIER_CATALOG: PlatformTierCatalogItem[] = [
       "Automation & workflows",
       "Email + SMS",
       "1 Industry App included",
-      "Website Manager",
+      "Websites",
     ],
     popular: true,
   },
@@ -258,19 +258,20 @@ export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
   },
 ];
 
-/** Mirrors pricing page — Platform Capabilities (Commerce, Websites, Infrastructure) */
+/** Mirrors pricing page — Platform Capabilities (Core · Platform: Commerce, Websites, Infrastructure) */
 export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
   {
     appId: "commerce",
     label: "Commerce",
     icon: "💳",
-    price: "TBA",
+    price: "Included",
+    badge: "Closed beta",
     description: "Payments, quotes, invoices & checkout",
     status: "rolling-out",
   },
   {
     appId: "websites",
-    label: "Website Builder",
+    label: "Websites",
     icon: "🌐",
     price: "Included",
     badge: "Included on Growth+",
@@ -280,9 +281,10 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
   {
     appId: "infrastructure",
     label: "Infrastructure",
-    icon: "🔧",
-    price: "TBA",
-    description: "Domains, hosting, email, SSL, DNS & deployment",
+    icon: "⚙",
+    price: "Included",
+    badge: "Closed beta",
+    description: "Domains, DNS, email, SSL & hosting — Domains closed beta",
     status: "rolling-out",
   },
 ];

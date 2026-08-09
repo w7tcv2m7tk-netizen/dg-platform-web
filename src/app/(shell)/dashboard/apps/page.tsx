@@ -11,7 +11,7 @@ export default function AppsPage() {
       <header className="dg-page-header">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">Apps & plan</h1>
+            <h1 className="text-2xl font-bold text-white">Apps & Plan</h1>
             <p className="text-sm text-slate-400">
               Same structure as{" "}
               <a
