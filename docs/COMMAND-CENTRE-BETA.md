@@ -1,7 +1,7 @@
 # Command Centre closed beta — launch guide
 
 **Audience:** Ben (DigitalGate staff)  
-**Status:** Ready for internal AU pilot (Aug 2026)  
+**Status:** Closed-beta **code-complete** for IN surface (Aug 2026) — run Day-0 checklist in prod  
 **Depends on:** Gen 2 with `DATABASE_URL` + schema pushed; Clerk staff access (or org allowlist)
 
 This is **staff-only**. Customers never see Command Centre. Client product betas (RE / Acc) are separate — see [RE-BETA-LAUNCH.md](./RE-BETA-LAUNCH.md) and [ACC-BETA-LAUNCH.md](./ACC-BETA-LAUNCH.md).
@@ -27,7 +27,7 @@ Not for: promising a full Support Centre / Audit Centre inside `/command`, Strip
 |------|-----------------|
 | Access | `/command/*` for `dg:staff`, DigitalGate org slug/name, or `DG_COMMAND_CENTRE_ORG_IDS` |
 | Ops home | Platform pulse, today’s actions, deep links — live Neon aggregates |
-| Clients | Org list, Success Score signals, **Enable RE / Acc / Websites / Domains beta** |
+| Clients | Org list + **client detail**, Success Score signals, **Enable RE / Acc / Websites / Domains beta** |
 | Flags | Cross-tenant feature flags (`re.beta`, `acc.beta`, `websites.builder`, `infra.domains_beta`, `infra.domain_register`, …) |
 | Growth hub | Summary + **Call today** ranking (idle days, views, health — no invented metrics) |
 | Discovery | Create / filter / soft-archive prospects |
@@ -118,7 +118,9 @@ Run as staff with `DATABASE_URL` live.
 |-------|-----------|
 | `/command` | Ops home |
 | `/command/clients` | Client intelligence + RE/Acc enrol |
+| `/command/clients/[orgId]` | Client detail (score breakdown + enrol) |
 | `/command/flags` | Cross-tenant flags |
+| `/command/advisor` | AI Advisor |
 | `/command/growth-engine` | Hub + Call today |
 | `/command/growth-engine/discovery` | Prospects |
 | `/command/growth-engine/audits` | Presence audits |
@@ -157,6 +159,7 @@ These are intentional — surfaces label them; do not promise the opposite to pi
 | Constraint | Where it’s shown |
 |------------|------------------|
 | Growth **MRR won / forecast** = **$0** until Stripe attribution | Conversions dashboard ($0 cards) + Growth hub banner |
+| Email open rate = **manual stage** (no open pixel yet) | Conversions dashboard subtitle |
 | Expansion $ = **catalogue list prices** for missing apps, not Stripe | Expansion page (“catalogue” labels + pricing note) |
 | Sales Assistant = **ranked Call today** list, not autonomous AI SDR | Growth hub + module card |
 | Support / Audit Command modules **deferred** (redirects only) | Ops home deferred note; `/command/support` → `/support`; `/command/audit` → tenant audit |

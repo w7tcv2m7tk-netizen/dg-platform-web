@@ -130,7 +130,12 @@ export default async function CommandClientsPage() {
                       <tr key={client.organisationId} className="bg-slate-950/30">
                         <td className="px-4 py-3 text-slate-500">{client.rank}</td>
                         <td className="px-4 py-3">
-                          <p className="font-medium text-white">{client.organisationName}</p>
+                          <Link
+                            href={`/command/clients/${client.organisationId}`}
+                            className="font-medium text-white hover:text-sky-300"
+                          >
+                            {client.organisationName}
+                          </Link>
                           <p className="text-xs text-slate-500">
                             {client.organisationSlug}
                             {client.industry ? ` · ${client.industry}` : ""}
@@ -186,6 +191,13 @@ export default async function CommandClientsPage() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-right">
+                          <Link
+                            href={`/command/clients/${client.organisationId}`}
+                            className="text-sm text-sky-400 hover:underline"
+                          >
+                            Open
+                          </Link>
+                          <span className="mx-1.5 text-slate-600">·</span>
                           <Link
                             href={`/command/advisor?org=${client.organisationId}`}
                             className="text-sm text-sky-400 hover:underline"

@@ -44,12 +44,12 @@ export default async function GrowthConversionsPage() {
               <Stat
                 label="Email open rate"
                 value={`${snap.emailOpenRatePercent}%`}
-                sub="of reports sent"
+                sub="manual stage only — no open pixel yet"
               />
               <Stat
                 label="Report view rate"
                 value={`${snap.reportViewRatePercent}%`}
-                sub="of reports sent"
+                sub="of reports sent (public link views)"
               />
               <Stat
                 label="Conversion rate"

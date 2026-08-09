@@ -14,7 +14,7 @@ export const commandCentreApp: AppManifest = {
     "DigitalGate internal OS — platform ops, client success, Growth Engine acquisition, revenue",
   tier: "internal",
   visibility: "internal",
-  version: "0.4.0",
+  version: "0.5.0",
   icon: "⬡",
   routes: [
     { path: "/command", label: "Platform Overview" },
@@ -54,7 +54,6 @@ export const commandCentreApp: AppManifest = {
     { id: "command.growth.read", label: "View Growth Engine" },
     { id: "command.growth.manage", label: "Manage prospects and reports" },
     { id: "command.flags.manage", label: "Manage feature flags" },
-    { id: "command.audit.read", label: "View audit logs" },
   ],
   features: [
     "command.overview.read",
@@ -65,9 +64,7 @@ export const commandCentreApp: AppManifest = {
     "command.opportunities.read",
     "command.benchmarks.read",
     "command.reports.generate",
-    "command.support.read",
     "command.flags.manage",
-    "command.audit.read",
     "command.beta.manage",
     "command.growth.discovery",
     "command.growth.audit",
