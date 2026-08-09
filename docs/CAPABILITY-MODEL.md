@@ -75,8 +75,8 @@ Same pattern across Communications (ElevenLabs), Infrastructure (registrar API),
 | `seo` | growth | Growth Apps |
 | `ai-visibility` | growth | Growth Apps |
 | `ai-communications` | growth | Communications |
-| `websites` | growth | Websites |
-| `infrastructure` | growth | Infrastructure |
+| `websites` | core | Websites |
+| `infrastructure` | core | Infrastructure |
 | `command-centre` | internal | Intelligence |
 
 ---
