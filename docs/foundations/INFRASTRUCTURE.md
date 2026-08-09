@@ -341,7 +341,7 @@ Vercel **Production** env (then Redeploy):
 | `DREAMSCAPE_WEBHOOK_SECRET` | Random secret ≠ API key; Notification URL `?secret=` |
 | `DG_DOMAIN_REGISTER_ENABLED` | Leave unset/`1` when ready; `0` = global kill-switch |
 | Org flag `infra.domain_register` | Command Centre → Flags → `true` before paid register |
-| Optional | `VERCEL_TOKEN` + `VERCEL_PROJECT_ID` (+ `VERCEL_TEAM_ID`) for auto hostname attach |
+| Optional | `VERCEL_TOKEN` + `VERCEL_PROJECT_ID` (+ `VERCEL_TEAM_ID`) — attach apex+www **and** pull recommended DNS |
 | Optional | `DREAMSCAPE_HTTPS_PROXY` if Dreamscape requires static egress |
 
 **Do not set** `DREAMSCAPE_SOAP_ENDPOINT=…/server.php?v=1.3` (empty body). Prefer `DREAMSCAPE_SOAP_ENV=production` so code picks `/API-1.3`.
@@ -358,19 +358,28 @@ Vercel **Production** env (then Redeploy):
 
 Apex **must** be an A record — Dreamscape rejects CNAME on the root zone (`Invalid CNAME Record … Subdomain: CNAME cannot be set on the root zone`).
 
+**Target resolution order**
+
+1. Both `DG_WEBSITE_DNS_A_TARGET` + `DG_WEBSITE_DNS_CNAME_TARGET` set → use env  
+2. Else if `VERCEL_TOKEN` + `VERCEL_PROJECT_ID` → attach apex+www, then `GET /v6/domains/{host}/config` recommended IPv4 / CNAME  
+3. Else legacy anycast (`76.76.21.21` + `cname.vercel-dns.com`) — still works but Vercel UI often stays **Invalid** until project-specific records are used  
+
 ```bash
-DG_WEBSITE_DNS_A_TARGET=76.76.21.21          # apex A (default if unset)
-DG_WEBSITE_DNS_CNAME_TARGET=cname.vercel-dns.com  # www only
-# Optional Vercel attach:
-# VERCEL_TOKEN=
-# VERCEL_PROJECT_ID=
+# Preferred — project-specific recommended DNS + auto attach:
+VERCEL_TOKEN=
+VERCEL_PROJECT_ID=
 # VERCEL_TEAM_ID=
+
+# Optional hard overrides (skip Vercel recommendations when both set):
+# DG_WEBSITE_DNS_A_TARGET=216.198.79.1
+# DG_WEBSITE_DNS_CNAME_TARGET=xxxx.vercel-dns-017.com
+
 # DG_DOMAIN_REGISTER_ENABLED=1
 ```
 
-Apply website DNS / Make it live writes: `A @ → 76.76.21.21` + `CNAME www → cname.vercel-dns.com`.
+Apply website DNS / Make it live writes apex A + www CNAME using the resolved targets above.
 
-**Progressive apply:** Domains → **Inspect DNS** (DomainInfo + NS) → **Apply www only** (safer) → **Apply website DNS** (apex A + www; auto-falls back to www on SOAP HTTP 500).
+**Progressive apply:** Domains → **Inspect DNS** (DomainInfo + NS; `secureparkme` counts as Dreamscape parking NS) → **Apply www only** (safer) → **Apply website DNS** (apex A + www; auto-falls back to www on SOAP HTTP 500). If Vercel stays Invalid after legacy targets, remove/re-add the hostname in Vercel Domains (or set Vercel token so Apply uses recommended records).
 ---
 
 ## Recommended stack

@@ -142,7 +142,7 @@ export function MakeItLivePanel({
     if (!pending) return "Ready — domain path live when DNS propagates.";
     if (pending.id === "domain") return "Connect or register a domain first.";
     if (pending.id === "dns")
-      return "Apply hosting DNS: apex A → Vercel (76.76.21.21) + www CNAME. Dreamscape rejects CNAME on the root zone.";
+      return "Apply hosting DNS: apex A + www CNAME (Vercel recommended targets when VERCEL_TOKEN is set). Dreamscape rejects CNAME on the root zone.";
     if (pending.id === "ssl")
       return "SSL stays pending until DNS points at hosting and Vercel verifies the hostname (VERCEL_TOKEN + PROJECT_ID, or add domain manually).";
     if (pending.id === "website") return "Publish the website when content looks good.";
@@ -173,10 +173,18 @@ export function MakeItLivePanel({
           | unknown[]
           | null;
         vercel?: {
-          ok?: boolean;
-          configured?: boolean;
-          message?: string;
-          verified?: boolean | null;
+          apex?: {
+            ok?: boolean;
+            configured?: boolean;
+            message?: string;
+            verified?: boolean | null;
+          };
+          www?: {
+            ok?: boolean;
+            configured?: boolean;
+            message?: string;
+            verified?: boolean | null;
+          };
         } | null;
         warnings?: string[];
       };
@@ -193,16 +201,25 @@ export function MakeItLivePanel({
         );
       }
       const vercel = json.data?.vercel;
-      if (vercel && !vercel.ok) {
-        parts.push(
-          vercel.configured === false
-            ? "SSL pending: set VERCEL_TOKEN + VERCEL_PROJECT_ID (or add hostname in Vercel → Domains)."
-            : `SSL pending: Vercel attach failed (${vercel.message || "error"}).`,
+      if (vercel) {
+        const anyOk = Boolean(vercel.apex?.ok || vercel.www?.ok);
+        const configured = Boolean(
+          vercel.apex?.configured || vercel.www?.configured,
         );
-      } else if (vercel?.ok && vercel.verified === false) {
-        parts.push(
-          "SSL pending until DNS verifies at Vercel (often a few minutes after CNAME/A propagates).",
-        );
+        if (!anyOk) {
+          parts.push(
+            !configured
+              ? "SSL pending: set VERCEL_TOKEN + VERCEL_PROJECT_ID (or add hostname in Vercel → Domains)."
+              : `SSL pending: Vercel attach failed (${vercel.apex?.message || vercel.www?.message || "error"}).`,
+          );
+        } else if (
+          vercel.apex?.verified === false ||
+          vercel.www?.verified === false
+        ) {
+          parts.push(
+            "SSL pending until DNS verifies at Vercel (often a few minutes after CNAME/A propagates).",
+          );
+        }
       }
       if (json.data?.warnings?.length) {
         parts.push(...json.data.warnings);

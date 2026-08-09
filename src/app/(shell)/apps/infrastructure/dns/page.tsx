@@ -38,19 +38,25 @@ export default function Page() {
         </p>
         <p className="text-slate-500 text-xs">
           SSL is automatic via Vercel once the custom hostname is attached and
-          DNS propagates. Optional: set{" "}
+          DNS propagates. Set{" "}
           <code className="text-slate-400">VERCEL_TOKEN</code> +{" "}
-          <code className="text-slate-400">VERCEL_PROJECT_ID</code> for API
-          attach, or add the domain manually in Vercel.
+          <code className="text-slate-400">VERCEL_PROJECT_ID</code> so Apply
+          pulls project-specific recommended A/CNAME (and attaches apex + www).
+          Without that, Apply falls back to legacy anycast targets.
         </p>
         <ul className="list-disc pl-5 text-xs text-slate-500 space-y-1">
           <li>
-            <code>DG_WEBSITE_DNS_A_TARGET</code> (default{" "}
-            <code>76.76.21.21</code>) — apex A record
+            Preferred: Vercel{" "}
+            <code>/v6/domains/…/config</code> recommended records (when token
+            set)
           </li>
           <li>
-            <code>DG_WEBSITE_DNS_CNAME_TARGET</code> (default{" "}
-            <code>cname.vercel-dns.com</code>) — www only
+            Override: <code>DG_WEBSITE_DNS_A_TARGET</code> /{" "}
+            <code>DG_WEBSITE_DNS_CNAME_TARGET</code>
+          </li>
+          <li>
+            Legacy fallback: <code>76.76.21.21</code> +{" "}
+            <code>cname.vercel-dns.com</code>
           </li>
         </ul>
       </div>

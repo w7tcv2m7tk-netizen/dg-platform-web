@@ -232,11 +232,25 @@ export function DomainsConsole() {
         note?: string;
         fellBack?: boolean;
         modeApplied?: string;
+        targets?: {
+          aTarget?: string;
+          cnameTarget?: string;
+          source?: string;
+          note?: string;
+        } | null;
         vercel?: {
-          ok?: boolean;
-          configured?: boolean;
-          message?: string;
-          verified?: boolean | null;
+          apex?: {
+            ok?: boolean;
+            configured?: boolean;
+            message?: string;
+            verified?: boolean | null;
+          };
+          www?: {
+            ok?: boolean;
+            configured?: boolean;
+            message?: string;
+            verified?: boolean | null;
+          };
         } | null;
         domain?: InventoryDomain;
       };
@@ -252,25 +266,44 @@ export function DomainsConsole() {
             : "Hosting DNS applied at the registrar.",
         );
       }
+      if (json.data?.targets?.aTarget) {
+        parts.push(`Apex A → ${json.data.targets.aTarget}`);
+      }
+      if (json.data?.targets?.cnameTarget) {
+        parts.push(`www CNAME → ${json.data.targets.cnameTarget}`);
+      }
+      if (json.data?.targets?.source) {
+        parts.push(`DNS targets: ${json.data.targets.source}`);
+      }
+      if (json.data?.note && !json.data?.fellBack) {
+        parts.push(json.data.note);
+      }
       if (json.data?.instructions?.length) {
         parts.push(...json.data.instructions);
       }
       const vercel = json.data?.vercel;
       if (vercel) {
-        if (vercel.ok) {
+        const apex = vercel.apex;
+        const www = vercel.www;
+        const anyOk = Boolean(apex?.ok || www?.ok);
+        const configured = Boolean(apex?.configured || www?.configured);
+        const pendingVerify =
+          apex?.verified === false || www?.verified === false;
+        if (anyOk) {
           parts.push(
-            vercel.verified === false
-              ? "Vercel hostname attached — SSL pending until DNS verifies (can take minutes)."
-              : "Vercel hostname attached — SSL will provision automatically.",
+            pendingVerify
+              ? "Vercel apex+www attached — SSL pending until DNS verifies (can take minutes)."
+              : "Vercel apex+www attached — SSL will provision automatically.",
           );
-        } else if (!vercel.configured) {
+        } else if (!configured) {
           parts.push(
-            vercel.message ||
+            apex?.message ||
+              www?.message ||
               "Vercel attach skipped — set VERCEL_TOKEN + VERCEL_PROJECT_ID, or add the domain manually in Vercel → Domains. SSL stays pending until then.",
           );
         } else {
           parts.push(
-            `Vercel attach failed: ${vercel.message || "unknown error"}. SSL stays pending — fix attach or add hostname manually.`,
+            `Vercel attach failed: ${apex?.message || www?.message || "unknown error"}. SSL stays pending — fix attach or add hostname manually.`,
           );
         }
       }

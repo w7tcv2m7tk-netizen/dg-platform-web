@@ -8,6 +8,10 @@ import {
   websiteHostingDnsRecords,
 } from "../domains/go-live";
 import {
+  resolveWebsiteHostingDnsTargets,
+  type WebsiteHostingDnsTargets,
+} from "../hosting/vercel-domains";
+import {
   DreamscapeApiError,
   dreamscapeFetch,
   isDreamscapeConfigured,
@@ -50,7 +54,9 @@ function soapErrorToApiError(err: DreamscapeSoapError): DreamscapeApiError {
 function looksLikeDreamscapeNs(ns: string[]): boolean {
   if (ns.length === 0) return false;
   return ns.some((h) =>
-    /dreamscape|ds\.network|crazydomains|vodien|secureapi|nameserver/i.test(h),
+    /dreamscape|ds\.network|crazydomains|vodien|secureapi|secureparkme|nameserver/i.test(
+      h,
+    ),
   );
 }
 
@@ -160,10 +166,12 @@ export type ApplyHostingDnsResult = {
   fellBack: boolean;
   note?: string;
   zone: DnsZoneInspection;
+  targets: WebsiteHostingDnsTargets;
 };
 
 /**
  * Apply Vercel hosting DNS with optional www-only fallback after SOAP HTTP 500.
+ * Resolves project-specific A/CNAME via Vercel when VERCEL_TOKEN is set.
  */
 export async function applyWebsiteHostingDns(input: {
   domainName: string;
@@ -189,14 +197,22 @@ export async function applyWebsiteHostingDns(input: {
     );
   }
 
+  const targets = await resolveWebsiteHostingDnsTargets(input.domainName);
   const provider = requireDnsProvider();
   const plan = (mode: WebsiteHostingDnsMode) =>
-    websiteHostingDnsRecords(input.domainName, mode).map((r) => ({
+    websiteHostingDnsRecords(input.domainName, mode, targets).map((r) => ({
       type: r.type,
       name: r.name,
       content: r.content,
       priority: r.priority,
     }));
+
+  const targetNote =
+    targets.source === "vercel"
+      ? targets.note
+      : targets.note
+        ? targets.note
+        : undefined;
 
   try {
     const records = await provider.upsertRecords(
@@ -208,7 +224,9 @@ export async function applyWebsiteHostingDns(input: {
       modeRequested,
       modeApplied: modeRequested,
       fellBack: false,
+      note: targetNote,
       zone,
+      targets,
     };
   } catch (err) {
     const canFallback =
@@ -230,8 +248,14 @@ export async function applyWebsiteHostingDns(input: {
       modeRequested,
       modeApplied: "www",
       fellBack: true,
-      note: "Full/apex apply failed (SOAP HTTP 500) — applied www CNAME only. Fix apex A in the Dreamscape DNS panel or retry apex later.",
+      note: [
+        "Full/apex apply failed (SOAP HTTP 500) — applied www CNAME only. Fix apex A in the Dreamscape DNS panel or retry apex later.",
+        targetNote,
+      ]
+        .filter(Boolean)
+        .join(" · "),
       zone,
+      targets,
     };
   }
 }

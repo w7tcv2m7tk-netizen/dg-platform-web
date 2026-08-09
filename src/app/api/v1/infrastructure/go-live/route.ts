@@ -2,10 +2,11 @@ import {
   DreamscapeApiError,
   applyWebsiteHostingDns,
   attachDomainToWebsite,
-  attachVercelProjectDomain,
+  attachVercelWebsiteHostnames,
   buildGoLiveChecklist,
   getOrganisationDomain,
   listOrganisationDomains,
+  resolveWebsiteHostingDnsTargets,
   updateWebsite,
   upsertInfrastructureDomain,
   websiteHostingDnsRecords,
@@ -31,14 +32,15 @@ export async function GET(req: Request) {
     domainIdOrName: domain,
   });
   const domains = await listOrganisationDomains(session.organisationId);
+  const suggestedDomain = checklist.domain ?? "example.com.au";
+  const targets = await resolveWebsiteHostingDnsTargets(suggestedDomain);
 
   return NextResponse.json({
     data: {
       checklist,
       domains,
-      suggestedDns: checklist.domain
-        ? websiteHostingDnsRecords(checklist.domain)
-        : websiteHostingDnsRecords("example.com.au"),
+      targets,
+      suggestedDns: websiteHostingDnsRecords(suggestedDomain, "full", targets),
     },
   });
 }
@@ -118,23 +120,35 @@ export async function POST(req: Request) {
         dnsRecords: result.records,
         dnsConfiguredAt: new Date().toISOString(),
         sslState: "pending",
+        metadata: {
+          ...(domainRow.metadata ?? {}),
+          dnsTargets: result.targets,
+        },
       });
       dns = {
         records: result.records,
         modeApplied: result.modeApplied,
         fellBack: result.fellBack,
         note: result.note,
+        targets: result.targets,
       };
       if (result.fellBack && result.note) warnings.push(result.note);
+      else if (result.note) warnings.push(result.note);
     } catch (err) {
       const message = err instanceof Error ? err.message : "DNS apply failed";
       const hint =
         err instanceof DreamscapeApiError ? err.hint : undefined;
-      const suggested = websiteHostingDnsRecords(domainRow.name);
+      const targets = await resolveWebsiteHostingDnsTargets(domainRow.name);
+      const suggested = websiteHostingDnsRecords(
+        domainRow.name,
+        "full",
+        targets,
+      );
       dns = {
         error: message,
         hint,
         suggested,
+        targets,
       };
       warnings.push(
         `DNS apply failed: ${message}${hint ? ` — ${hint}` : ""}. Retry from Domains → Inspect DNS / Apply www only, or set records manually at the registrar.`,
@@ -143,8 +157,10 @@ export async function POST(req: Request) {
   }
 
   if (body.attachVercel !== false) {
-    vercel = await attachVercelProjectDomain(domainRow.name);
-    if (vercel.ok) {
+    vercel = await attachVercelWebsiteHostnames(domainRow.name);
+    const anyOk = vercel.apex.ok || vercel.www.ok;
+    const configured = vercel.apex.configured || vercel.www.configured;
+    if (anyOk) {
       domainRow = await upsertInfrastructureDomain({
         organisationId: session.organisationId,
         name: domainRow.name,
@@ -154,19 +170,26 @@ export async function POST(req: Request) {
           vercelDomain: vercel,
         },
       });
-      if (vercel.verified === false) {
+      const apexVerified = vercel.apex.ok ? vercel.apex.verified : null;
+      const wwwVerified = vercel.www.ok ? vercel.www.verified : null;
+      if (apexVerified === false || wwwVerified === false) {
         warnings.push(
           "SSL pending: hostname attached but not verified yet — wait for DNS propagation.",
         );
       }
-    } else if (!vercel.configured) {
-      warnings.push(
-        vercel.message ||
-          "SSL pending: Vercel attach not configured (VERCEL_TOKEN + VERCEL_PROJECT_ID).",
-      );
+    } else if (!configured) {
+      const msg =
+        (!vercel.apex.ok && vercel.apex.message) ||
+        (!vercel.www.ok && vercel.www.message) ||
+        "SSL pending: Vercel attach not configured (VERCEL_TOKEN + VERCEL_PROJECT_ID).";
+      warnings.push(msg);
     } else {
+      const msg =
+        (!vercel.apex.ok && vercel.apex.message) ||
+        (!vercel.www.ok && vercel.www.message) ||
+        "unknown error";
       warnings.push(
-        `SSL pending: Vercel attach failed (${vercel.message}). Add the hostname manually in Vercel → Domains.`,
+        `SSL pending: Vercel attach failed (${msg}). Add the hostname manually in Vercel → Domains.`,
       );
     }
   }

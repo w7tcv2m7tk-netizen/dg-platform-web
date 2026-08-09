@@ -23,6 +23,12 @@ function scoreOf(items: ProvisioningCheckItem[]): number {
   return Math.round((sum / items.length) * 100);
 }
 
+import {
+  LEGACY_VERCEL_A_TARGET,
+  LEGACY_VERCEL_CNAME_TARGET,
+  type WebsiteHostingDnsTargets,
+} from "../hosting/vercel-domains";
+
 /**
  * Hosting DNS records for DigitalGate / Vercel.
  *
@@ -34,15 +40,18 @@ function scoreOf(items: ProvisioningCheckItem[]): number {
  *   www  — www CNAME only (safer first step / fallback after HTTP 500)
  *   apex — apex A only
  *
- * Override targets via:
- *   DG_WEBSITE_DNS_CNAME_TARGET (default cname.vercel-dns.com)
- *   DG_WEBSITE_DNS_A_TARGET (default 76.76.21.21 — Vercel anycast)
+ * Prefer `resolveWebsiteHostingDnsTargets()` (Vercel project recommendations).
+ * Sync fallback / overrides:
+ *   DG_WEBSITE_DNS_CNAME_TARGET
+ *   DG_WEBSITE_DNS_A_TARGET
+ * Legacy anycast: 76.76.21.21 + cname.vercel-dns.com (still work; often Invalid in UI).
  */
 export type WebsiteHostingDnsMode = "full" | "www" | "apex";
 
 export function websiteHostingDnsRecords(
   domainName: string,
   mode: WebsiteHostingDnsMode = "full",
+  targets?: Pick<WebsiteHostingDnsTargets, "aTarget" | "cnameTarget">,
 ): Array<{
   type: string;
   name: string;
@@ -51,9 +60,13 @@ export function websiteHostingDnsRecords(
   purpose: string;
 }> {
   const cnameTarget =
-    process.env.DG_WEBSITE_DNS_CNAME_TARGET?.trim() || "cname.vercel-dns.com";
+    targets?.cnameTarget?.trim() ||
+    process.env.DG_WEBSITE_DNS_CNAME_TARGET?.trim() ||
+    LEGACY_VERCEL_CNAME_TARGET;
   const aTarget =
-    process.env.DG_WEBSITE_DNS_A_TARGET?.trim() || "76.76.21.21";
+    targets?.aTarget?.trim() ||
+    process.env.DG_WEBSITE_DNS_A_TARGET?.trim() ||
+    LEGACY_VERCEL_A_TARGET;
   const apex = domainName.toLowerCase();
 
   const apexRecord = {

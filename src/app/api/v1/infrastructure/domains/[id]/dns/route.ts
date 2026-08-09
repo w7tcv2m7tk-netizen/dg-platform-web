@@ -2,10 +2,11 @@ import {
   DreamscapeApiError,
   InfrastructureNotConfiguredError,
   applyWebsiteHostingDns,
-  attachVercelProjectDomain,
+  attachVercelWebsiteHostnames,
   getOrganisationDomain,
   inspectDnsZone,
   requireDnsProvider,
+  resolveWebsiteHostingDnsTargets,
   upsertInfrastructureDomain,
   websiteHostingDnsRecords,
   type DnsRecord,
@@ -41,7 +42,8 @@ export async function GET(req: Request, ctx: Ctx) {
     );
   }
 
-  const suggested = websiteHostingDnsRecords(domain.name, "full");
+  const targets = await resolveWebsiteHostingDnsTargets(domain.name);
+  const suggested = websiteHostingDnsRecords(domain.name, "full", targets);
   let zone = null;
   let providerError: string | null = null;
   try {
@@ -67,6 +69,7 @@ export async function GET(req: Request, ctx: Ctx) {
       stored: domain.dnsRecords ?? [],
       provider: providerRecords,
       suggestedHosting: suggested,
+      targets,
       zone,
       providerError,
       sslNote:
@@ -128,6 +131,9 @@ export async function POST(req: Request, ctx: Ctx) {
     let fellBack = false;
     let note: string | undefined;
     let zone = null;
+    let targets = null as Awaited<
+      ReturnType<typeof resolveWebsiteHostingDnsTargets>
+    > | null;
 
     if (hostingMode) {
       const result = await applyWebsiteHostingDns({
@@ -140,6 +146,7 @@ export async function POST(req: Request, ctx: Ctx) {
       fellBack = result.fellBack;
       note = result.note;
       zone = result.zone;
+      targets = result.targets;
     } else {
       applied = await requireDnsProvider().upsertRecords(
         domain.name,
@@ -150,6 +157,7 @@ export async function POST(req: Request, ctx: Ctx) {
       } catch {
         zone = null;
       }
+      targets = await resolveWebsiteHostingDnsTargets(domain.name);
     }
 
     const updated = await upsertInfrastructureDomain({
@@ -161,10 +169,12 @@ export async function POST(req: Request, ctx: Ctx) {
       managed: true,
     });
 
-    let vercel = null;
+    let vercel = null as Awaited<
+      ReturnType<typeof attachVercelWebsiteHostnames>
+    > | null;
     if (body?.attachVercel || hostingMode) {
-      vercel = await attachVercelProjectDomain(domain.name);
-      if (vercel.ok) {
+      vercel = await attachVercelWebsiteHostnames(domain.name);
+      if (vercel.apex.ok || vercel.www.ok) {
         await upsertInfrastructureDomain({
           organisationId: session.organisationId,
           name: domain.name,
@@ -173,10 +183,22 @@ export async function POST(req: Request, ctx: Ctx) {
             ...(updated.metadata ?? {}),
             vercelDomain: vercel,
             dnsModeApplied: modeApplied,
+            dnsTargets: targets,
           },
         });
       }
     }
+
+    const apexHint =
+      applied.find((r) => r.type === "A" && (r.name === "@" || !r.name))
+        ?.content || targets?.aTarget;
+    const wwwHint =
+      applied.find((r) => r.type === "CNAME" && r.name === "www")?.content ||
+      targets?.cnameTarget;
+
+    const vercelConfigured =
+      vercel?.apex.configured || vercel?.www.configured || false;
+    const vercelOk = Boolean(vercel?.apex.ok || vercel?.www.ok);
 
     return NextResponse.json({
       data: {
@@ -186,15 +208,21 @@ export async function POST(req: Request, ctx: Ctx) {
         fellBack,
         note,
         zone,
+        targets,
         vercel,
-        instructions: vercel?.configured
+        instructions: vercelOk
           ? null
           : [
-              `Apex A → ${process.env.DG_WEBSITE_DNS_A_TARGET || "76.76.21.21"}`,
-              `www CNAME → ${process.env.DG_WEBSITE_DNS_CNAME_TARGET || "cname.vercel-dns.com"}`,
-              "Add the hostname in Vercel → Project → Domains (or set VERCEL_TOKEN + VERCEL_PROJECT_ID)",
+              apexHint ? `Apex A → ${apexHint}` : null,
+              wwwHint ? `www CNAME → ${wwwHint}` : null,
+              targets?.source === "vercel"
+                ? "Targets from Vercel recommended DNS"
+                : "Add the hostname in Vercel → Project → Domains (or set VERCEL_TOKEN + VERCEL_PROJECT_ID)",
               "SSL provisions automatically once DNS verifies",
-            ],
+              !vercelConfigured
+                ? "Vercel domain attach not configured. Set VERCEL_TOKEN + VERCEL_PROJECT_ID (optional VERCEL_TEAM_ID), or add the domain manually in Vercel → Domains."
+                : null,
+            ].filter(Boolean),
       },
     });
   } catch (err) {
