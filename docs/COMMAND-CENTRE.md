@@ -4,7 +4,7 @@
 
 **Version:** 1.0  
 **Last updated:** August 2026  
-**Status:** Ops home + Success Score™ / Agency Health Ranking, AI Advisor, Growth Reports, Expansion, Benchmarks, Feature Flags live (Aug 2026); Growth Engine hub/pipeline; deeper Twin history still phased
+**Status:** **Closed beta ready (staff)** — Ops home, Clients/Flags, Growth Engine core loop (discover → audit → report send → follow-ups → propose → convert), Health/Revenue live. Support/Audit Command modules intentionally vapor (redirect). See [COMMAND-CENTRE-BETA.md](./COMMAND-CENTRE-BETA.md).
 
 ---
 
@@ -53,9 +53,8 @@ DigitalGate staff only:
 | **Benchmarking** | Anonymous cohort comparison (customer + prospect reports) |
 | **Executive Dashboard** | Auto-generated monthly DigitalGate Growth Reports |
 | **AI Business Advisor** | Natural-language client performance analysis |
-| **Support Centre** | Cross-tenant support context |
-| **Feature Flags & Beta** | Rollout control |
-| **Audit & Compliance** | Cross-tenant audit trail |
+| **Feature Flags & Beta** | Rollout control (RE / Acc / Websites / Domains flags) |
+| ~~Support Centre~~ / ~~Audit~~ | **Not in beta** — `/command/support` → `/support`; `/command/audit` → tenant audit settings |
 
 **Route:** `/command/*`  
 **Audience:** DigitalGate staff (`dg:staff` role)
@@ -164,6 +163,12 @@ Surfaces in Command Centre morning view so the team knows where to focus.
 - **Clients** table: **Enable Acc beta** provisions the flag + Accommodation app install
 - Attention: Acc beta orgs with WordPress connector down or zero stay bookings
 - Full playbook: [ACC-BETA-LAUNCH.md](./ACC-BETA-LAUNCH.md) · pilot pack: [ACC-BETA-PILOT-PACK.md](./ACC-BETA-PILOT-PACK.md)
+
+### Command Centre beta (staff)
+
+- **No `command.beta` flag** — access via DigitalGate org, Clerk `dg:staff`, or `DG_COMMAND_CENTRE_ORG_IDS`
+- **Beta core:** Growth Engine send → follow-ups → convert → invite (honest funnel; Growth MRR won = $0)
+- Full playbook: [COMMAND-CENTRE-BETA.md](./COMMAND-CENTRE-BETA.md)
 
 ---
 
@@ -279,6 +284,7 @@ Over time, the **data network effect** (more tenants → better benchmarks → b
 
 ## Related documents
 
+- [COMMAND-CENTRE-BETA.md](./COMMAND-CENTRE-BETA.md) — staff closed-beta IN/OUT, demo path, checklist
 - [ADR 0008 — Command Centre as internal App](./adr/0008-command-centre-internal-app.md)
 - [GROWTH-ENGINE.md](./GROWTH-ENGINE.md) — acquisition pipeline spec
 - [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md)

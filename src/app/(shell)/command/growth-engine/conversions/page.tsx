@@ -63,11 +63,12 @@ export default async function GrowthConversionsPage() {
               />
             </div>
 
-            <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4">
-              <p className="text-sm text-slate-300">
-                Est. MRR won: <span className="font-medium text-white">$0</span>
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-5 py-4">
+              <p className="text-sm text-amber-50">
+                MRR won / forecast:{" "}
+                <span className="font-medium text-white">not attributed yet ($0)</span>
               </p>
-              <p className="mt-1 text-xs text-slate-500">{snap.mrrNote}</p>
+              <p className="mt-1 text-xs text-amber-100/70">{snap.mrrNote}</p>
               <p className="mt-3 text-sm text-slate-400">
                 {snap.totalProspects} total prospects · {snap.proposalsSent} proposal_sent
                 engagements in period · {snap.periodLabel}

@@ -4,6 +4,7 @@ import type { AppManifest } from "../manifest";
  * DigitalGate Command Centre — internal-only App.
  * The operating system DigitalGate uses to run DigitalGate.
  * @see docs/COMMAND-CENTRE.md
+ * @see docs/COMMAND-CENTRE-BETA.md
  * @see docs/GROWTH-ENGINE.md
  */
 export const commandCentreApp: AppManifest = {
@@ -13,7 +14,7 @@ export const commandCentreApp: AppManifest = {
     "DigitalGate internal OS — platform ops, client success, Growth Engine acquisition, revenue",
   tier: "internal",
   visibility: "internal",
-  version: "0.3.0",
+  version: "0.4.0",
   icon: "⬡",
   routes: [
     { path: "/command", label: "Platform Overview" },

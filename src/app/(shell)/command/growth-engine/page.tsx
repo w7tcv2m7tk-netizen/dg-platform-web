@@ -32,12 +32,22 @@ export default async function GrowthEngineHubPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Growth Engine™</h1>
         <p className="text-sm text-slate-400">
-          Discover → audit → report → pipeline → proposal → client — repeatable AI-powered acquisition
+          Discover → audit → report → pipeline → proposal → client — Command Centre beta core
         </p>
       </header>
       <main className="dg-page-main space-y-8">
         <CommandCentreNav active="growth" />
         <GrowthEngineNav active="hub" />
+
+        <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-4 text-sm text-sky-50">
+          <p className="font-medium text-white">Closed beta — what pilots get</p>
+          <p className="mt-1 text-sky-100/90">
+            Send reports, work follow-ups, convert to a client org, then invite + Billing on that org.
+            Growth MRR won stays $0 until Stripe attribution. Support/Audit Command modules redirect
+            away (no vapor UI). Staff playbook:{" "}
+            <code className="text-sky-200">docs/COMMAND-CENTRE-BETA.md</code>.
+          </p>
+        </div>
 
         {summary ? (
           <div className="grid gap-4 sm:grid-cols-3">

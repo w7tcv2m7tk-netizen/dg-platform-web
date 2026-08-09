@@ -309,6 +309,7 @@ That is a **repeatable acquisition engine**, not a lead list.
 ## Related documents
 
 - [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) — internal App shell  
+- [COMMAND-CENTRE-BETA.md](./COMMAND-CENTRE-BETA.md) — staff closed-beta IN/OUT + demo path  
 - [PRODUCT-VISION.md](./PRODUCT-VISION.md) — gateway + growth philosophy  
 - [foundations/CUSTOMER-SUCCESS.md](./foundations/CUSTOMER-SUCCESS.md) — post-conversion  
 - Types: `packages/platform-core/src/command-centre/growth-engine/types.ts`  

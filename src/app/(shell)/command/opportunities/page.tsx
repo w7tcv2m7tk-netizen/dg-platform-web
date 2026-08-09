@@ -24,7 +24,7 @@ export default async function CommandOpportunitiesPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Client expansion</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Opportunity Engine — evidence-based upsells from installed Apps and Twin gaps.
+          Opportunity Engine — app-gap upsells using catalogue list prices (not Stripe-won MRR).
         </p>
       </header>
       <main className="dg-page-main space-y-8">
@@ -38,14 +38,14 @@ export default async function CommandOpportunitiesPage() {
           <>
             <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-5 py-5">
               <p className="text-xs uppercase tracking-wide text-sky-400">
-                Potential additional MRR
+                Catalogue list-price gap
               </p>
               <p className="mt-1 text-3xl font-semibold text-white">
                 {data.totalPotentialMrrLabel}
               </p>
               <p className="mt-2 text-sm text-slate-400">
-                Across {data.summaries.length} client
-                {data.summaries.length === 1 ? "" : "s"} with expansion signals.
+                Static catalogue totals across {data.summaries.length} client
+                {data.summaries.length === 1 ? "" : "s"} — not attributed revenue.
               </p>
             </div>
 
