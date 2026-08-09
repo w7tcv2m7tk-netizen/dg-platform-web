@@ -218,7 +218,7 @@ export function buildDomainCreateEnvelope(opts: {
 }
 
 function dnsRecordItems(
-  type: "A" | "AAAA" | "CNAME" | "MX",
+  type: "A" | "AAAA" | "CNAME" | "MX" | "TXT",
   records: Array<{ subdomain: string; content: string; priority?: number }>,
 ): string {
   if (records.length === 0) return "";
@@ -229,15 +229,10 @@ function dnsRecordItems(
         ? "ns1:DNSAAAARecord"
         : type === "CNAME"
           ? "ns1:DNSCNAMERecord"
-          : "ns1:DNSMXRecord";
-  const arrayType =
-    type === "A"
-      ? "ns1:DNSARecord"
-      : type === "AAAA"
-        ? "ns1:DNSAAAARecord"
-        : type === "CNAME"
-          ? "ns1:DNSCNAMERecord"
-          : "ns1:DNSMXRecord";
+          : type === "MX"
+            ? "ns1:DNSMXRecord"
+            : "ns1:DNSTXTRecord";
+  const arrayType = xsiType;
   const items = records
     .map((r) => {
       const priority =
@@ -265,12 +260,20 @@ export function buildDomainDnsUpdateEnvelope(opts: {
   const aaaa: Array<{ subdomain: string; content: string }> = [];
   const cname: Array<{ subdomain: string; content: string }> = [];
   const mx: Array<{ subdomain: string; content: string; priority?: number }> = [];
+  const txt: Array<{ subdomain: string; content: string }> = [];
 
   for (const r of opts.records) {
-    const subdomain =
+    let subdomain =
       r.name === "@" || r.name === opts.domainName || r.name === ""
         ? ""
         : r.name.replace(/\.$/, "");
+    const apex = opts.domainName.toLowerCase();
+    const lower = subdomain.toLowerCase();
+    if (lower.endsWith(`.${apex}`)) {
+      subdomain = subdomain.slice(0, -(apex.length + 1));
+    } else if (lower === apex) {
+      subdomain = "";
+    }
     const entry = { subdomain, content: r.content, priority: r.priority };
     const t = r.type.toUpperCase();
     // Dreamscape: "CNAME cannot be set on the root zone"
@@ -283,6 +286,7 @@ export function buildDomainDnsUpdateEnvelope(opts: {
     else if (t === "AAAA") aaaa.push(entry);
     else if (t === "CNAME") cname.push(entry);
     else if (t === "MX") mx.push(entry);
+    else if (t === "TXT") txt.push(entry);
   }
 
   const recordsXml = `<Records xsi:type="ns1:DNSRecords">
@@ -290,6 +294,7 @@ export function buildDomainDnsUpdateEnvelope(opts: {
     ${dnsRecordItems("AAAA", aaaa)}
     ${dnsRecordItems("CNAME", cname)}
     ${dnsRecordItems("MX", mx)}
+    ${dnsRecordItems("TXT", txt)}
   </Records>`;
 
   const inner = `<ns1:DomainDNSUpdate>
@@ -407,6 +412,7 @@ function parseDnsFromDomainDetails(block: string): DnsRecord[] {
   pushType("AAAA", "DNSAAAARecord");
   pushType("CNAME", "DNSCNAMERecord");
   pushType("MX", "DNSMXRecord");
+  pushType("TXT", "DNSTXTRecord");
   return records;
 }
 

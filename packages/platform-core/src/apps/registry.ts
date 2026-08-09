@@ -28,7 +28,7 @@ const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: crmApp, enabled: true },
   { manifest: commerceApp, enabled: true },
   { manifest: websitesApp, enabled: true },
-  { manifest: infrastructureApp, enabled: false },
+  { manifest: infrastructureApp, enabled: true },
   { manifest: realEstateApp, enabled: true },
   { manifest: accommodationApp, enabled: true },
   { manifest: financeApp, enabled: false },

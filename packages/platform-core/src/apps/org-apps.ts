@@ -28,7 +28,7 @@ const PREMIUM_APP_MAP: Record<string, string[]> = {
 };
 
 const TIER_BASE_APPS: Record<string, string[]> = {
-  starter: ["crm", "commerce"],
+  starter: ["crm", "commerce", "websites", "infrastructure"],
   professional: ["crm", "commerce", "websites", "infrastructure", "automation"],
   business: ["crm", "commerce", "websites", "infrastructure", "automation"],
   enterprise: ["crm", "commerce", "websites", "infrastructure", "automation"],

@@ -4,7 +4,7 @@
 
 **Version:** 0.1  
 **Last updated:** August 2026  
-**Status:** Architecture locked · Transactional send via Resend (communications) · Mailbox / auth DNS design now  
+**Status:** Architecture locked · E1 shipped (Resend domain prepare / auth DNS apply / verify) · Mailbox later  
 **Audience:** Founder + developers building Core / Infrastructure
 
 **Related:** [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) · [PRODUCT-VISION.md](../PRODUCT-VISION.md) · [PLATFORM-ARCHITECTURE.md](../PLATFORM-ARCHITECTURE.md) · [COMMUNICATIONS](../../packages/platform-core/src/communications/index.ts) · Digital Identity (`Profile → Domain → Website → … → Email → …`)
@@ -181,7 +181,8 @@ Domain · DNS · Hosting · SSL · Website · Email
 
 - Architecture + package layout (this doc)
 - Overview status: Resend configured? suggested auth DNS for a domain
-- Honest Email page under Infrastructure (no fake mailbox UI)
+- Email console: Prepare → Apply auth DNS → Check verification (Domains inventory required)
+- Dreamscape SOAP DomainDNSUpdate supports TXT (SPF/DKIM/DMARC)
 - Keep using Resend for platform/tenant transactional where keys exist
 
 ### OUT (do not promise yet)
@@ -208,8 +209,8 @@ Domain · DNS · Hosting · SSL · Website · Email
 
 | Step | Work |
 |------|------|
-| **E0** | Docs + types + overview API/UI (this ship) |
-| **E1** | Resend domain verify + suggest SPF/DKIM/DMARC via Domains DNS apply |
+| **E0** | Docs + types + overview API/UI |
+| **E1** | Resend domain verify + apply SPF/DKIM/DMARC via Domains DNS (**shipped**) |
 | **E2** | Tenant from-domain on Communications send |
 | **E3** | Dreamscape mailbox list/provision stub → real product SKU |
 | **E4** | Bounce/complaint webhooks + suppressions |

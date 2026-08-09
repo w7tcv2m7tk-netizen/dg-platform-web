@@ -380,6 +380,10 @@ VERCEL_PROJECT_ID=
 Apply website DNS / Make it live writes apex A + www CNAME using the resolved targets above.
 
 **Progressive apply:** Domains → **Inspect DNS** (DomainInfo + NS; `secureparkme` counts as Dreamscape parking NS) → **Apply www only** (safer) → **Apply website DNS** (apex A + www; auto-falls back to www on SOAP HTTP 500). If Vercel stays Invalid after legacy targets, remove/re-add the hostname in Vercel Domains (or set Vercel token so Apply uses recommended records).
+
+### Email auth DNS (E1)
+
+Infrastructure → **Email**: Prepare sending domain (Resend) → **Apply auth DNS** (Dreamscape DomainDNSUpdate including **TXT**) → Check verification. Requires domain in Domains inventory + `RESEND_API_KEY`. Does not replace apex website A/www. See [EMAIL-INFRASTRUCTURE.md](./EMAIL-INFRASTRUCTURE.md).
 ---
 
 ## Recommended stack

@@ -2,12 +2,15 @@
  * DigitalGate Email Infrastructure — Core Platform Service.
  *
  * Orchestrates transactional send (Resend), business mailboxes (Dreamscape stub),
- * and deliverability DNS suggestions. Does not run a mail server.
+ * and deliverability DNS (Resend domain verify + Domains DNS apply).
  *
  * @see docs/foundations/EMAIL-INFRASTRUCTURE.md
  */
 
-import { emptyEmailDomainIdentity, suggestEmailAuthDns } from "./deliverability";
+import {
+  emptyEmailDomainIdentity,
+  suggestEmailAuthDns,
+} from "./deliverability";
 import { getBusinessMailboxProvider } from "./mailbox";
 import { getTransactionalEmailProvider } from "./transactional";
 import type { EmailInfrastructureOverview } from "./types";
@@ -16,6 +19,7 @@ export * from "./types";
 export * from "./deliverability";
 export * from "./transactional";
 export * from "./mailbox";
+export * from "./resend-domains";
 
 /** @deprecated Prefer getBusinessMailboxProvider */
 export function getBusinessEmailProvider() {
@@ -38,7 +42,7 @@ export async function getEmailInfrastructureOverview(
     );
   } else {
     nextSteps.push(
-      "Verify a customer domain in Resend, then apply SPF/DKIM/DMARC via Domains DNS",
+      "Email → select a Domains inventory hostname → Prepare → Apply auth DNS → Check verification",
     );
   }
   if (!mbOk) {
@@ -81,7 +85,7 @@ export async function getEmailInfrastructureOverview(
   };
 }
 
-/** Build auth checklist for a domain (no live DNS probe yet). */
+/** @deprecated Prefer buildEmailDomainAuthPlan */
 export function getEmailDomainAuthPlan(domain: string, organisationId?: string) {
   return {
     identity: emptyEmailDomainIdentity(domain, organisationId),
