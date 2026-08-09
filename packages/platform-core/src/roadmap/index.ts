@@ -1145,10 +1145,10 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
   {
     id: "growth.sales_assistant",
     area: "Growth Engine",
-    label: "AI sales assistant",
+    label: "Call today (Sales Assistant v0)",
     description:
-      "Call-today ranking from idle days, views, health (full autonomous SDR deferred)",
-    status: "in_progress",
+      "Ranked call list from idle days, views, health — not autonomous AI SDR",
+    status: "done",
     appId: "command-centre",
     href: "/command/growth-engine",
   },

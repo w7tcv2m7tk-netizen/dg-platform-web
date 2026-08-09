@@ -1,6 +1,7 @@
 /**
  * Growth Engine Sales Assistant v0 — ranked “call today” list from live pipeline signals.
  * Priority uses idle days, report views, health score, and stage intent — no invented metrics.
+ * Not an autonomous AI SDR.
  */
 
 import type { ProspectPipelineStage, SalesCallRecommendation } from "./types";

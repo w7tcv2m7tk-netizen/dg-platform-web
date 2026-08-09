@@ -24,7 +24,8 @@ export default async function CommandOpportunitiesPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Client expansion</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Opportunity Engine — app-gap upsells using catalogue list prices (not Stripe-won MRR).
+          Opportunity Engine — missing-app gaps priced from the static product catalogue (not
+          Stripe revenue).
         </p>
       </header>
       <main className="dg-page-main space-y-8">
@@ -38,14 +39,16 @@ export default async function CommandOpportunitiesPage() {
           <>
             <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-5 py-5">
               <p className="text-xs uppercase tracking-wide text-sky-400">
-                Catalogue list-price gap
+                Catalogue list-price gap · not Stripe MRR
               </p>
               <p className="mt-1 text-3xl font-semibold text-white">
                 {data.totalPotentialMrrLabel}
+                <span className="ml-2 text-base font-normal text-slate-400">/mo catalogue</span>
               </p>
-              <p className="mt-2 text-sm text-slate-400">
-                Static catalogue totals across {data.summaries.length} client
-                {data.summaries.length === 1 ? "" : "s"} — not attributed revenue.
+              <p className="mt-2 text-sm text-slate-400">{data.pricingNote}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                Source: {data.pricingSource} · {data.summaries.length} client
+                {data.summaries.length === 1 ? "" : "s"} with gaps
               </p>
             </div>
 
@@ -66,7 +69,8 @@ export default async function CommandOpportunitiesPage() {
                           {summary.organisationName}
                         </h2>
                         <p className="mt-1 text-sm text-slate-400">
-                          Potential {formatAud(summary.totalPotentialMrrCents)}/mo
+                          Catalogue{" "}
+                          {formatAud(summary.totalPotentialMrrCents)}/mo list price (missing apps)
                         </p>
                       </div>
                       <Link
@@ -86,10 +90,19 @@ export default async function CommandOpportunitiesPage() {
                             <p className="font-medium text-white">{opp.label}</p>
                             <p className="mt-1 text-sm text-slate-400">{opp.rationale}</p>
                           </div>
-                          <span className="shrink-0 text-sm tabular-nums text-emerald-300">
-                            {opp.estimatedAdditionalMrrCents > 0
-                              ? `+${formatAud(opp.estimatedAdditionalMrrCents)}/mo`
-                              : "Ops fix"}
+                          <span className="shrink-0 text-right text-sm tabular-nums text-sky-300">
+                            {opp.estimatedAdditionalMrrCents > 0 ? (
+                              <>
+                                <span className="block">
+                                  +{formatAud(opp.estimatedAdditionalMrrCents)}/mo
+                                </span>
+                                <span className="text-[10px] uppercase tracking-wide text-slate-500">
+                                  catalogue
+                                </span>
+                              </>
+                            ) : (
+                              "Ops fix"
+                            )}
                           </span>
                         </li>
                       ))}

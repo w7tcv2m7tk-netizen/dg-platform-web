@@ -150,13 +150,19 @@ Run as staff with `DATABASE_URL` live.
 
 ---
 
-## Known gaps (honest)
+## Honest beta constraints (locked in UI)
 
-- Growth **MRR won / forecast** intentionally zero.
-- Expansion “potential MRR” uses a **static catalogue** of list prices for missing apps — label as catalogue, not Stripe revenue.
-- Sales Assistant = ranked call list, not autonomous AI SDR.
-- Support Centre + Audit & Compliance Command modules deferred (redirects only).
-- Full Success Score™ / Twin history still matures with tenant data.
+These are intentional — surfaces label them; do not promise the opposite to pilots.
+
+| Constraint | Where it’s shown |
+|------------|------------------|
+| Growth **MRR won / forecast** = **$0** until Stripe attribution | Conversions dashboard ($0 cards) + Growth hub banner |
+| Expansion $ = **catalogue list prices** for missing apps, not Stripe | Expansion page (“catalogue” labels + pricing note) |
+| Sales Assistant = **ranked Call today** list, not autonomous AI SDR | Growth hub + module card |
+| Support / Audit Command modules **deferred** (redirects only) | Ops home deferred note; `/command/support` → `/support`; `/command/audit` → tenant audit |
+| Success Score™ / Twin **matures with tenant data** | Clients intelligence banner |
+
+Commerce MRR on `/command/revenue` remains real Neon subscription totals — do not confuse with Growth MRR won.
 
 ---
 

@@ -1,6 +1,8 @@
 /**
  * Client Expansion / Opportunity Engine — upsell signals on live tenants.
- * @see docs/COMMAND-CENTRE.md
+ * Dollar amounts are **static catalogue list prices** for missing apps — not Stripe
+ * subscription revenue or Growth “MRR won”.
+ * @see docs/COMMAND-CENTRE.md · docs/COMMAND-CENTRE-BETA.md
  */
 
 import { getClientIntelligence } from "./client-intelligence";
@@ -77,8 +79,12 @@ function industryMatch(orgIndustry: string | null, wanted?: string[]): boolean {
 
 export type OpportunitiesBundle = {
   generatedAt: string;
+  /** Sum of catalogue list prices for missing apps — not Stripe MRR. */
   totalPotentialMrrCents: number;
   totalPotentialMrrLabel: string;
+  /** Always catalogue for this engine (honest beta). */
+  pricingSource: "catalogue";
+  pricingNote: string;
   summaries: ClientOpportunitySummary[];
 };
 
@@ -168,6 +174,9 @@ export async function getClientExpansionOpportunities(): Promise<OpportunitiesBu
     generatedAt: now.toISOString(),
     totalPotentialMrrCents,
     totalPotentialMrrLabel: formatAud(totalPotentialMrrCents),
+    pricingSource: "catalogue",
+    pricingNote:
+      "Catalogue list prices for apps not installed — not Stripe revenue, not Growth MRR won.",
     summaries,
   };
 }

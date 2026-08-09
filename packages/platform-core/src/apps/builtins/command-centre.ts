@@ -127,9 +127,9 @@ export const commandCentreApp: AppManifest = {
     },
     {
       id: "command.growth.sales_assistant",
-      label: "AI Sales Assistant",
+      label: "Call today (ranked list)",
       description:
-        "Who to call today — ranked prospects by engagement, scores, and fit",
+        "Sales Assistant v0 — ranked call list from idle days, report views, and health. Not an autonomous AI SDR.",
     },
     {
       id: "command.growth.run_audit",

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCommandCentreOpsHome } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
+import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
 import { CommandOpsHome } from "@/components/command/CommandOpsHome";
 import { AppFeaturePlaceholder } from "@/components/platform/AppFeaturePlaceholder";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
@@ -58,6 +59,22 @@ async function CommandOverviewPage() {
           {" "}
           (send → follow-ups → convert). Playbook:{" "}
           <code className="text-sky-200">docs/COMMAND-CENTRE-BETA.md</code>.
+        </div>
+
+        <CommandHonestyBanner />
+
+        <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3 text-xs text-slate-400">
+          Deferred Command modules (redirect only):{" "}
+          <code className="text-slate-300">/command/support</code> →{" "}
+          <Link href="/support" className="text-sky-400 hover:underline">
+            /support
+          </Link>
+          {" · "}
+          <code className="text-slate-300">/command/audit</code> →{" "}
+          <Link href="/dashboard/settings/audit" className="text-sky-400 hover:underline">
+            tenant audit settings
+          </Link>
+          . No fake Support Centre / Audit Centre UI.
         </div>
 
         {!data ? (

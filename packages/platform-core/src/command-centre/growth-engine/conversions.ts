@@ -127,8 +127,12 @@ export async function getGrowthConversionSnapshot(options?: { days?: number }) {
     proposalsSent,
     totalProspects,
     byStage: Object.fromEntries(byStage.map((s) => [s.stage, s._count.id])),
+    mrrWonCents: 0,
+    mrrForecastCents: 0,
+    mrrWonLabel: "$0",
+    mrrForecastLabel: "$0",
     mrrNote:
-      "MRR won / forecast stay at $0 until Growth → Stripe subscription attribution ships.",
+      "Growth MRR won and revenue forecast are intentionally $0 until Growth → Stripe subscription attribution ships. Commerce MRR on /command/revenue is separate (Neon subscriptions).",
     recentWins: recentWins.map((r) => ({
       ...r,
       updatedAt: r.updatedAt.toISOString(),

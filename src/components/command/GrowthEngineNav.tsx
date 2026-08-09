@@ -41,10 +41,19 @@ const MODULES = [
   {
     href: GROWTH_ENGINE_ROUTES.conversions,
     title: "Conversion Dashboard",
-    description: "Audits, open rates, meetings, wins — real funnel counts",
+    description:
+      "Audits, open rates, meetings, wins — real funnel counts; Growth MRR won stays $0",
     status: "Live",
   },
 ] as const;
+
+const CALL_TODAY_CARD = {
+  href: GROWTH_ENGINE_ROUTES.hub,
+  title: "Call today",
+  description:
+    "Sales Assistant v0 — ranked call list (idle + views + health). Not an autonomous AI SDR.",
+  status: "Live",
+} as const;
 
 export function GrowthEngineNav({ active }: { active?: string }) {
   return (
@@ -77,11 +86,12 @@ export function GrowthEngineNav({ active }: { active?: string }) {
 }
 
 export function GrowthEngineModuleGrid() {
+  const cards = [...MODULES, CALL_TODAY_CARD];
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {MODULES.map((mod) => (
+      {cards.map((mod) => (
         <Link
-          key={mod.href}
+          key={mod.title}
           href={mod.href}
           className="block rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4 transition-colors hover:border-sky-500/40"
         >

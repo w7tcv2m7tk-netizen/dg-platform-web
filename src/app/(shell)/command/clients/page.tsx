@@ -37,6 +37,13 @@ export default async function CommandClientsPage() {
       <main className="dg-page-main space-y-8">
         <CommandCentreNav active="clients" />
 
+        <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-3 text-sm text-slate-400">
+          <span className="font-medium text-slate-200">Success Score™ / Twin:</span> scores use
+          live connectors, usage, and commerce signals available today. Full Twin history and
+          Scoring v1 completeness still mature with tenant data — treat sparse orgs as early
+          signal, not invented gaps.
+        </div>
+
         {!intel ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
             Database not configured — client list unavailable.

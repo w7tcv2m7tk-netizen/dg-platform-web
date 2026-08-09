@@ -27,7 +27,9 @@ export const COMMAND_CENTRE_ROUTES = {
   advisor: `${COMMAND_CENTRE_BASE_PATH}/advisor`,
   benchmarks: `${COMMAND_CENTRE_BASE_PATH}/benchmarks`,
   flags: `${COMMAND_CENTRE_BASE_PATH}/flags`,
-  /** @deprecated redirects to /support — no Command Support Centre page */
+  /** @deprecated — /command/support redirects to /support (no Command Support Centre) */
   support: "/support",
+  /** @deprecated — /command/audit redirects to tenant audit settings */
+  audit: "/dashboard/settings/audit",
   growthEngine: `${COMMAND_CENTRE_BASE_PATH}/growth-engine`,
 } as const;

@@ -25,8 +25,8 @@ export default async function CommandRevenuePage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Revenue intelligence</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Commerce subscriptions attributed per organisation — ARR/churn still after fuller Stripe
-          sync.
+          Neon commerce subscription MRR per organisation — separate from Growth Engine “MRR won”
+          (still $0). ARR/churn after fuller Stripe sync.
         </p>
       </header>
       <main className="dg-page-main space-y-8">

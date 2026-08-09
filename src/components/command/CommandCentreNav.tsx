@@ -6,7 +6,11 @@ const NAV = [
   { href: COMMAND_CENTRE_ROUTES.clients, label: "Clients", id: "clients" },
   { href: COMMAND_CENTRE_ROUTES.advisor, label: "AI Advisor", id: "advisor" },
   { href: COMMAND_CENTRE_ROUTES.reports, label: "Reports", id: "reports" },
-  { href: COMMAND_CENTRE_ROUTES.opportunities, label: "Expansion", id: "opportunities" },
+  {
+    href: COMMAND_CENTRE_ROUTES.opportunities,
+    label: "Expansion",
+    id: "opportunities",
+  },
   { href: COMMAND_CENTRE_ROUTES.benchmarks, label: "Benchmarks", id: "benchmarks" },
   { href: COMMAND_CENTRE_ROUTES.growthEngine, label: "Growth Engine", id: "growth" },
   { href: COMMAND_CENTRE_ROUTES.platformHealth, label: "Health", id: "health" },

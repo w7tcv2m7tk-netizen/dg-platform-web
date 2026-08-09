@@ -10,6 +10,7 @@ import {
   ConvertProspectToOrgButton,
   CreateProposalQuoteButton,
 } from "@/components/command/GrowthEngineActions";
+import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
 import {
   GrowthEngineModuleGrid,
   GrowthEngineNav,
@@ -43,11 +44,11 @@ export default async function GrowthEngineHubPage() {
           <p className="font-medium text-white">Closed beta — what pilots get</p>
           <p className="mt-1 text-sky-100/90">
             Send reports, work follow-ups, convert to a client org, then invite + Billing on that org.
-            Growth MRR won stays $0 until Stripe attribution. Support/Audit Command modules redirect
-            away (no vapor UI). Staff playbook:{" "}
+            Staff playbook:{" "}
             <code className="text-sky-200">docs/COMMAND-CENTRE-BETA.md</code>.
           </p>
         </div>
+        <CommandHonestyBanner compact />
 
         {summary ? (
           <div className="grid gap-4 sm:grid-cols-3">
@@ -79,9 +80,13 @@ export default async function GrowthEngineHubPage() {
         <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
-              <h2 className="text-lg font-semibold text-white">Call today</h2>
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Sales Assistant v0
+              </p>
+              <h2 className="mt-1 text-lg font-semibold text-white">Call today</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Ranked from idle days, report views, and health scores — no invented metrics.
+                Ranked call list from idle days, report views, and health scores — not an
+                autonomous AI SDR. No invented metrics.
               </p>
             </div>
             <Link
