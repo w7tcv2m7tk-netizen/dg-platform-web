@@ -5,7 +5,7 @@ export const infrastructureApp: AppManifest = {
   name: "Infrastructure",
   description:
     "DigitalGate Domains, DNS, SSL, hosting, and email — Core Platform Service (provider adapters; Dreamscape V1)",
-  tier: "growth",
+  tier: "core",
   version: "0.2.0",
   icon: "⚙",
   routes: [

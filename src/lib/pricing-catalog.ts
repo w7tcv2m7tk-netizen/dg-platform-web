@@ -258,8 +258,16 @@ export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
   },
 ];
 
-/** Mirrors pricing page — Platform Capabilities */
+/** Mirrors pricing page — Platform Capabilities (Commerce, Websites, Infrastructure) */
 export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
+  {
+    appId: "commerce",
+    label: "Commerce",
+    icon: "💳",
+    price: "TBA",
+    description: "Payments, quotes, invoices, checkout & subscriptions",
+    status: "soon",
+  },
   {
     appId: "websites",
     label: "Website Builder",
@@ -276,14 +284,6 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
     price: "TBA",
     description: "Domains, hosting, email, SSL, DNS & deployment",
     status: "rolling-out",
-  },
-  {
-    appId: "commerce",
-    label: "Commerce",
-    icon: "💳",
-    price: "TBA",
-    description: "Payments, quotes, invoices, checkout & subscriptions",
-    status: "soon",
   },
 ];
 

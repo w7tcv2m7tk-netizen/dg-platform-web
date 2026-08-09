@@ -27,6 +27,8 @@ function appVisibility(manifest: RegisteredApp["manifest"]): AppVisibility {
 const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: crmApp, enabled: true },
   { manifest: commerceApp, enabled: true },
+  { manifest: websitesApp, enabled: true },
+  { manifest: infrastructureApp, enabled: false },
   { manifest: realEstateApp, enabled: true },
   { manifest: accommodationApp, enabled: true },
   { manifest: financeApp, enabled: false },
@@ -42,8 +44,6 @@ const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: socialApp, enabled: false },
   { manifest: marketingApp, enabled: false },
   { manifest: reviewsApp, enabled: true },
-  { manifest: websitesApp, enabled: true },
-  { manifest: infrastructureApp, enabled: false },
   { manifest: commandCentreApp, enabled: true },
 ];
 

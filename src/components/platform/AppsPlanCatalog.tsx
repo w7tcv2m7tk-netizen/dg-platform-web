@@ -191,8 +191,11 @@ export function AppsPlanCatalog() {
           <a href="#platform" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
             1 · Platform
           </a>
+          <a href="#platform-apps" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
+            2 · Capabilities
+          </a>
           <a href="#apps" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
-            2 · Apps
+            3 · Apps
           </a>
           <a href="#addons" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
             Add-ons
@@ -305,11 +308,36 @@ export function AppsPlanCatalog() {
         </div>
       </section>
 
+      <section id="platform-apps" className="scroll-mt-24">
+        <SectionHeader
+          label="⬡ 2 · Platform Capabilities"
+          title="Commerce, Websites & Infrastructure"
+          description="Core operating capabilities — connected to your business, not bolted on. Toggle them into the Core · Platform sidebar group."
+        />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {PLATFORM_CAPABILITY_CATALOG.map((item) => (
+            <CatalogAppCard
+              key={item.appId}
+              appId={item.appId}
+              icon={item.icon}
+              label={item.label}
+              price={item.price}
+              description={item.description}
+              status={item.status}
+              badge={item.badge}
+              enabled={enabledIds.includes(item.appId)}
+              primaryHref={appHref(item.appId)}
+              align="left"
+            />
+          ))}
+        </div>
+      </section>
+
       <section id="apps" className="scroll-mt-24 space-y-10">
         <SectionHeader
-          label="🧩 2 · Apps"
-          title="Build the platform your business needs"
-          description={`Install only what you need — industry verticals, growth intelligence, and platform capabilities. ${enabledIds.length} apps currently on in your sidebar.`}
+          label="🧩 3 · Apps"
+          title="Industry & growth apps"
+          description={`Install only what you need — industry verticals and growth intelligence. ${enabledIds.length} apps currently on in your sidebar.`}
         />
 
         <div id="industry-apps" className="scroll-mt-24">
@@ -348,32 +376,6 @@ export function AppsPlanCatalog() {
                 description={item.description}
                 enabled={enabledIds.includes(item.appId)}
                 primaryHref={appHref(item.appId)}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div id="platform-apps" className="scroll-mt-24">
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold text-white">Platform Capabilities</h3>
-            <p className="text-sm text-slate-400">
-              Infrastructure and commerce — connected to your operating system, not bolted on
-            </p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {PLATFORM_CAPABILITY_CATALOG.map((item) => (
-              <CatalogAppCard
-                key={item.appId}
-                appId={item.appId}
-                icon={item.icon}
-                label={item.label}
-                price={item.price}
-                description={item.description}
-                status={item.status}
-                badge={item.badge}
-                enabled={enabledIds.includes(item.appId)}
-                primaryHref={appHref(item.appId)}
-                align="left"
               />
             ))}
           </div>

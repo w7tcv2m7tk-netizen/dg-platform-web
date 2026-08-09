@@ -29,9 +29,9 @@ const PREMIUM_APP_MAP: Record<string, string[]> = {
 
 const TIER_BASE_APPS: Record<string, string[]> = {
   starter: ["crm", "commerce"],
-  professional: ["crm", "commerce", "websites", "automation"],
-  business: ["crm", "commerce", "websites", "automation"],
-  enterprise: ["crm", "commerce", "websites", "automation"],
+  professional: ["crm", "commerce", "websites", "infrastructure", "automation"],
+  business: ["crm", "commerce", "websites", "infrastructure", "automation"],
+  enterprise: ["crm", "commerce", "websites", "infrastructure", "automation"],
 };
 
 export type PlanSelectionInput = {
@@ -75,7 +75,7 @@ export function isAppEnabled(appId: string, enabledIds: string[]): boolean {
 }
 
 export const APP_TIER_LABELS: Record<AppTier, string> = {
-  core: "Core Apps",
+  core: "Core · Platform",
   business: "Business Apps",
   growth: "Growth Apps",
   internal: "Internal",

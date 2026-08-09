@@ -5,7 +5,7 @@ export const websitesApp: AppManifest = {
   name: "Websites",
   description:
     "AI Website Studio, health monitoring, content studio, funnels, and proactive site management",
-  tier: "growth",
+  tier: "core",
   version: "0.1.0",
   icon: "🌐",
   routes: [
