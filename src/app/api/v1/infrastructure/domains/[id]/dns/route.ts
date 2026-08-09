@@ -155,6 +155,7 @@ export async function POST(req: Request, ctx: Ctx) {
             code: err.code ?? "provider_error",
             message: err.message,
             hint: err.hint,
+            providerBodySnippet: err.providerBodySnippet,
           },
         },
         { status: 502 },

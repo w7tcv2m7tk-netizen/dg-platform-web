@@ -93,7 +93,7 @@ export class DreamscapeDnsProvider implements DnsProvider {
 
     if (apiMode === "soap" && apiKey && resellerId) {
       try {
-        await dreamscapeSoapDomainDnsUpdate({
+        const result = await dreamscapeSoapDomainDnsUpdate({
           endpoint: soapEndpoint,
           resellerId,
           apiKey,
@@ -101,7 +101,7 @@ export class DreamscapeDnsProvider implements DnsProvider {
           domainName: domainName.toLowerCase(),
           records,
         });
-        return records;
+        return result.records;
       } catch (err) {
         if (err instanceof DreamscapeSoapError) throw soapErrorToApiError(err);
         throw err;

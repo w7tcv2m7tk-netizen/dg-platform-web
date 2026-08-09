@@ -166,7 +166,12 @@ export function DomainsConsole() {
       body: JSON.stringify({ applyHosting: true, attachVercel: true }),
     });
     const json = (await res.json()) as {
-      error?: { message?: string; hint?: string; code?: string };
+      error?: {
+        message?: string;
+        hint?: string;
+        code?: string;
+        providerBodySnippet?: string | null;
+      };
       data?: {
         instructions?: string[] | null;
         vercel?: {
@@ -212,9 +217,12 @@ export function DomainsConsole() {
       await refreshInventory();
     } else {
       const msg = json.error?.message || "DNS apply failed";
-      setStatus(
-        json.error?.hint ? `${msg} — ${json.error.hint}` : msg,
-      );
+      const bits = [msg];
+      if (json.error?.hint) bits.push(json.error.hint);
+      if (json.error?.providerBodySnippet) {
+        bits.push(`Provider: ${json.error.providerBodySnippet}`);
+      }
+      setStatus(bits.join(" — "));
     }
     setBusy(false);
   }

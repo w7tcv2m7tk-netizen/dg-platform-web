@@ -242,8 +242,11 @@ function dnsRecordItems(
     .map((r) => {
       const priority =
         type === "MX" && r.priority != null ? xmlInt("Priority", r.priority) : "";
+      // Apex = empty string. Never xsi:nil — WSDL requires Subdomain as xsd:string
+      // (nil on root A records has produced HTTP 500 from SecureAPI).
+      const subdomainXml = `<Subdomain xsi:type="xsd:string">${escapeXml(r.subdomain)}</Subdomain>`;
       return `<item xsi:type="${xsiType}">
-        ${xmlString("Subdomain", r.subdomain)}
+        ${subdomainXml}
         ${priority}
         ${xmlString("Content", r.content)}
       </item>`;
@@ -500,6 +503,33 @@ export async function dreamscapeSoapDomainCreate(opts: {
   return { details: parseDomainInfoResponse(xml), raw: xml };
 }
 
+/** Merge hosting records into an existing zone (replace same type+name; drop apex CNAME if apex A is set). */
+export function mergeDnsRecordsForUpdate(
+  existing: DnsRecord[],
+  incoming: DnsRecord[],
+): DnsRecord[] {
+  const keyOf = (r: DnsRecord) =>
+    `${r.type.toUpperCase()}|${(r.name || "@").toLowerCase()}`;
+  const incomingKeys = new Set(incoming.map(keyOf));
+  const hasApexA = incoming.some(
+    (r) =>
+      r.type.toUpperCase() === "A" &&
+      (r.name === "@" || r.name === "" || !r.name),
+  );
+  const kept = existing.filter((r) => {
+    if (incomingKeys.has(keyOf(r))) return false;
+    if (
+      hasApexA &&
+      r.type.toUpperCase() === "CNAME" &&
+      (r.name === "@" || r.name === "" || !r.name)
+    ) {
+      return false;
+    }
+    return true;
+  });
+  return [...kept, ...incoming];
+}
+
 export async function dreamscapeSoapDomainDnsUpdate(opts: {
   endpoint: string;
   resellerId: string;
@@ -507,12 +537,32 @@ export async function dreamscapeSoapDomainDnsUpdate(opts: {
   isSandbox: boolean;
   domainName: string;
   records: DnsRecord[];
-}): Promise<{ raw: string }> {
+  /** When true (default), merge with DomainInfo zone so MX/TXT aren’t wiped. */
+  mergeExisting?: boolean;
+}): Promise<{ raw: string; records: DnsRecord[] }> {
+  let records = opts.records;
+  if (opts.mergeExisting !== false) {
+    try {
+      const info = await dreamscapeSoapDomainInfo({
+        endpoint: opts.endpoint,
+        resellerId: opts.resellerId,
+        apiKey: opts.apiKey,
+        isSandbox: opts.isSandbox,
+        domainName: opts.domainName,
+      });
+      if (info?.dnsRecords?.length) {
+        records = mergeDnsRecordsForUpdate(info.dnsRecords, opts.records);
+      }
+    } catch {
+      /* DomainInfo may fail for non-Dreamscape NS — still try the update */
+    }
+  }
+
   const body = buildDomainDnsUpdateEnvelope({
     resellerId: opts.resellerId,
     apiKey: opts.apiKey,
     domainName: opts.domainName,
-    records: opts.records,
+    records,
   });
   const xml = await soapPost({
     endpoint: opts.endpoint,
@@ -521,7 +571,7 @@ export async function dreamscapeSoapDomainDnsUpdate(opts: {
     isSandbox: opts.isSandbox,
   });
   assertApiSuccess(xml, opts.endpoint, opts.isSandbox);
-  return { raw: xml };
+  return { raw: xml, records };
 }
 
 export async function dreamscapeSoapDomainInfo(opts: {

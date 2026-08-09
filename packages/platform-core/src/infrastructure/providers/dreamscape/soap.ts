@@ -364,6 +364,20 @@ function emptyBodyHint(endpoint: string, isSandbox: boolean): string {
 }
 
 
+function httpErrorHint(
+  status: number,
+  soapAction: string,
+  isSandbox: boolean,
+): string | undefined {
+  if (status === 500 && /DomainDNSUpdate/i.test(soapAction)) {
+    return "DomainDNSUpdate HTTP 500 usually means malformed DNS XML or the domain isn’t on Dreamscape nameservers. Apex Subdomain must be an empty string (not nil). Confirm NS at the registrar points to Dreamscape, then retry Apply website DNS.";
+  }
+  if (status >= 500) {
+    return authHint(isSandbox);
+  }
+  return undefined;
+}
+
 /** Shared SOAP POST — used by DomainCheck and provisioning ops. */
 export async function soapPost(opts: {
   endpoint: string;
@@ -423,8 +437,12 @@ export async function soapPost(opts: {
           ? isSandbox
             ? "auth_soap_sandbox_rejected"
             : "auth_soap_production_rejected"
-          : "provider_error",
-        hint: authish ? authHint(isSandbox) : undefined,
+          : response.status === 500
+            ? "soap_http_500"
+            : "provider_error",
+        hint: authish
+          ? authHint(isSandbox)
+          : httpErrorHint(response.status, soapAction, isSandbox),
         providerBodySnippet,
         isSandbox,
         endpoint,
