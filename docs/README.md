@@ -19,6 +19,8 @@ These documents capture **why** the platform is built the way it is. They are as
 | [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md) | Phase 5 — Community, B2B network, Marketplace (design now) |
 | [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md) | Platform Refer & Earn (Core) vs Reviews + Business referrals (Phase 5+) |
 | [foundations/WEBSITE-BUILDER.md](./foundations/WEBSITE-BUILDER.md) | Phase later — AI Website Studio; structured Next.js Gen 2 model (design now) |
+| [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md) | Core — Domains/DNS/SSL/hosting; Dreamscape V1 |
+| [foundations/EMAIL-INFRASTRUCTURE.md](./foundations/EMAIL-INFRASTRUCTURE.md) | Core — Email Service (Resend + Dreamscape mailbox; deliverability) |
 | [ROADMAP.md](./ROADMAP.md) | Execution phases and priorities |
 | [WP-DETACH-BACKLOG.md](./WP-DETACH-BACKLOG.md) | Sequenced Gen 2 ↔ WordPress detach tickets (P0–P5) |
 | [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) | Internal intelligence App — how DG runs DG |

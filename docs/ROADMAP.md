@@ -195,7 +195,7 @@ Targets: dashboard < 2 s, navigation < 300 ms, CRM updates optimistic. Full spec
 
 **Website Builder (MVP shipped):** AI Website Studio — Business Profile → structured page/component model → `/sites/[slug]` renderer + forms→CRM. WP migrate via Connector (separate). Domains/Hosting/SSL are **Infrastructure Core**, not Website Builder: [foundations/WEBSITE-BUILDER.md](./foundations/WEBSITE-BUILDER.md) · [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md).
 
-**Infrastructure (Core Platform Service):** Provider-agnostic domains/DNS/hosting/SSL/email — **Dreamscape first** (keep; strong V1 API + sandbox). Customer UX = DigitalGate Domains/Hosting/Email (never provider brand). **Sandbox only** until automated tests pass. Credentials server-side (`DREAMSCAPE_API_KEY`). Scaffold: `DomainProvider` + `DreamscapeDomainProvider.search` + availability API. Domains MVP after Website Builder MVP.
+**Infrastructure (Core Platform Service):** Provider-agnostic domains/DNS/hosting/SSL/**email** — **Dreamscape first** for domains/DNS/mailbox; **Resend** for transactional. Customer UX = DigitalGate Domains/Hosting/Email (never provider brand). **Sandbox only** for Dreamscape until automated tests pass. Email architecture: [EMAIL-INFRASTRUCTURE.md](./foundations/EMAIL-INFRASTRUCTURE.md). Domains MVP after Website Builder MVP.
 
 **Execution priority until Phase 5:**
 

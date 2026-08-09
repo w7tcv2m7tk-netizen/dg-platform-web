@@ -1,22 +1,92 @@
-import type { EmailMailbox } from "../core/types";
-import { InfrastructureNotImplementedError } from "../core/types";
+/**
+ * DigitalGate Email Infrastructure — Core Platform Service.
+ *
+ * Orchestrates transactional send (Resend), business mailboxes (Dreamscape stub),
+ * and deliverability DNS suggestions. Does not run a mail server.
+ *
+ * @see docs/foundations/EMAIL-INFRASTRUCTURE.md
+ */
 
-export interface EmailProvider {
-  readonly id: string;
-  /** business mailbox vs transactional is a Core concern — adapters differ */
-  kind: "business" | "transactional";
-  listMailboxes(organisationId: string): Promise<EmailMailbox[]>;
+import { emptyEmailDomainIdentity, suggestEmailAuthDns } from "./deliverability";
+import { getBusinessMailboxProvider } from "./mailbox";
+import { getTransactionalEmailProvider } from "./transactional";
+import type { EmailInfrastructureOverview } from "./types";
+
+export * from "./types";
+export * from "./deliverability";
+export * from "./transactional";
+export * from "./mailbox";
+
+/** @deprecated Prefer getBusinessMailboxProvider */
+export function getBusinessEmailProvider() {
+  return getBusinessMailboxProvider();
 }
 
-export class UnimplementedEmailProvider implements EmailProvider {
-  readonly id = "unimplemented";
-  readonly kind = "business" as const;
+export async function getEmailInfrastructureOverview(
+  _organisationId?: string,
+): Promise<EmailInfrastructureOverview> {
+  const tx = getTransactionalEmailProvider();
+  const mailbox = getBusinessMailboxProvider();
+  const from = tx.defaultFrom();
+  const txOk = tx.isConfigured();
+  const mbOk = Boolean(mailbox?.isConfigured());
 
-  async listMailboxes(): Promise<EmailMailbox[]> {
-    throw new InfrastructureNotImplementedError(this.id, "listMailboxes");
+  const nextSteps: string[] = [];
+  if (!txOk) {
+    nextSteps.push(
+      "Set RESEND_API_KEY (+ RESEND_FROM_EMAIL) for transactional send",
+    );
+  } else {
+    nextSteps.push(
+      "Verify a customer domain in Resend, then apply SPF/DKIM/DMARC via Domains DNS",
+    );
   }
+  if (!mbOk) {
+    nextSteps.push(
+      "Dreamscape credentials enable future mailbox provisioning (not shipped)",
+    );
+  } else {
+    nextSteps.push(
+      "Business mailbox provision is stubbed — use Dreamscape console until E3",
+    );
+  }
+  nextSteps.push("See docs/foundations/EMAIL-INFRASTRUCTURE.md");
+
+  return {
+    checkedAt: new Date().toISOString(),
+    platform: {
+      configured: txOk,
+      providerId: txOk ? tx.id : null,
+      fromAddress: from,
+      message: txOk
+        ? `Transactional provider ready${from ? ` · from ${from}` : ""}`
+        : "Platform transactional email not configured (RESEND_API_KEY)",
+    },
+    tenantTransactional: {
+      configured: txOk,
+      providerId: txOk ? tx.id : null,
+      message: txOk
+        ? "V1 shares Resend with platform — separate tenant keys/streams later"
+        : "Tenant send unavailable until Resend is configured",
+    },
+    mailbox: {
+      configured: mbOk,
+      providerId: mailbox?.id ?? null,
+      message: mbOk
+        ? "Dreamscape connected — mailbox list/provision not implemented yet"
+        : "Business mailbox provider not configured",
+    },
+    nextSteps,
+    docsPath: "docs/foundations/EMAIL-INFRASTRUCTURE.md",
+  };
 }
 
-export function getBusinessEmailProvider(): EmailProvider | null {
-  return null;
+/** Build auth checklist for a domain (no live DNS probe yet). */
+export function getEmailDomainAuthPlan(domain: string, organisationId?: string) {
+  return {
+    identity: emptyEmailDomainIdentity(domain, organisationId),
+    suggestedDns: suggestEmailAuthDns(domain)
+      .map((c) => c.suggestedRecord)
+      .filter(Boolean),
+  };
 }

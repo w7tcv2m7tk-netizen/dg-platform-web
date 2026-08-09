@@ -992,6 +992,35 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     appId: "infrastructure",
     href: "/apps/infrastructure/monitoring",
   },
+  {
+    id: "infra.email_service",
+    area: "Infrastructure",
+    label: "Email Infrastructure service",
+    description:
+      "Architecture + overview UI: Resend transactional, Dreamscape mailbox stub, SPF/DKIM/DMARC plan — no mail server",
+    status: "done",
+    priority: "high",
+    appId: "infrastructure",
+    href: "/apps/infrastructure/email",
+  },
+  {
+    id: "infra.email_domain_auth",
+    area: "Infrastructure",
+    label: "Email domain auth (SPF/DKIM/DMARC)",
+    description: "Resend domain verify + apply auth DNS via Domains (E1)",
+    status: "planned",
+    appId: "infrastructure",
+    href: "/apps/infrastructure/email",
+  },
+  {
+    id: "infra.email_mailbox",
+    area: "Infrastructure",
+    label: "Business mailbox provision",
+    description: "Dreamscape email hosting seats/aliases (E3)",
+    status: "planned",
+    appId: "infrastructure",
+    href: "/apps/infrastructure/email",
+  },
 
   // —— Command Centre (internal) ——
   {

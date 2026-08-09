@@ -70,11 +70,13 @@ Build website (Website Builder)
         Domain · DNS · Hosting · SSL · Website · Email
 ```
 
-SSL stays **invisible** on the default path (auto). Email splits:
+SSL stays **invisible** on the default path (auto). Email is a full **Infrastructure service**:
 
-- **Transactional** → Resend (platform)
-- **Business mailbox** → Dreamscape → Google / Microsoft later
+- **Transactional / platform send** → Resend (Communications + Email Service)
+- **Business mailbox** → Dreamscape → Google / Microsoft later  
+- **Deliverability** → SPF / DKIM / DMARC via Domains DNS  
 
+Canonical design: [EMAIL-INFRASTRUCTURE.md](./EMAIL-INFRASTRUCTURE.md).
 ---
 
 ## Digital Identity
@@ -96,9 +98,11 @@ packages/platform-core/src/infrastructure/
   dns/                      DnsProvider stubs
   hosting/                  HostingProvider stubs
   ssl/                      SslProvider (auto stub)
-  email/                    EmailProvider stubs
+  email/                    Email Service (Resend transactional + Dreamscape mailbox stub + deliverability)
   providers/dreamscape/     auth + REST/SOAP clients + DreamscapeDomainProvider
 ```
+
+**Email Service:** [EMAIL-INFRASTRUCTURE.md](./EMAIL-INFRASTRUCTURE.md) — orchestrate providers; never run our own MTA. Overview: `/apps/infrastructure/email`.
 
 ### DomainProvider (provider-agnostic)
 

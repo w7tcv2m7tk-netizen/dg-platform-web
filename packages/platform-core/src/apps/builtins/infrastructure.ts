@@ -11,6 +11,7 @@ export const infrastructureApp: AppManifest = {
   routes: [
     { path: "/apps/infrastructure/domains", label: "Domains" },
     { path: "/apps/infrastructure/dns", label: "DNS" },
+    { path: "/apps/infrastructure/email", label: "Email" },
     // Hosting / Deployments / Monitoring: routes exist as “coming later”
     // pages but are hidden from nav so the AU pilot doesn’t show empty Apps.
   ],
@@ -21,6 +22,7 @@ export const infrastructureApp: AppManifest = {
     { id: "infra.view", label: "View infrastructure" },
     { id: "infra.domains.manage", label: "Manage domains" },
     { id: "infra.dns.manage", label: "Manage DNS" },
+    { id: "infra.email.manage", label: "Manage email infrastructure" },
     { id: "infra.hosting.manage", label: "Manage hosting" },
     { id: "infra.deploy", label: "Deploy sites" },
   ],
@@ -30,6 +32,8 @@ export const infrastructureApp: AppManifest = {
     "infra.dns.read",
     "infra.dns.write",
     "infra.ssl.read",
+    "infra.email.read",
+    "infra.email.send",
     "infra.hosting.read",
     "infra.hosting.provision",
     "infra.deploy.staging",

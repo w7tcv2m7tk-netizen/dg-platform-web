@@ -1,5 +1,6 @@
 import { getInfraDomainsBetaReadiness } from "@dg/platform-core";
 import { currentUser } from "@clerk/nextjs/server";
+import Link from "next/link";
 
 import { DomainsConsole } from "@/components/infrastructure/DomainsConsole";
 import { InfraDomainsBetaChecklist } from "@/components/infrastructure/InfraDomainsBetaChecklist";
@@ -37,6 +38,10 @@ export default async function Page() {
         <p className="text-sm text-slate-400">
           Closed beta · Search, connect, DNS, Make it live
           {session?.organisationName ? ` · ${session.organisationName}` : ""}
+          {" · "}
+          <Link href="/apps/infrastructure/email" className="text-sky-400 hover:underline">
+            Email
+          </Link>
         </p>
       </header>
       <main className="dg-page-main">
