@@ -18,6 +18,11 @@ export async function GET(req: Request) {
     organisationName: session.organisationName,
     organisationSlug: session.organisationSlug,
     role: session.role,
+    organisations: session.organisations.map((o) => ({
+      organisationId: o.organisationId,
+      organisationName: o.organisationName,
+      organisationSlug: o.organisationSlug,
+    })),
   });
 
   if (!allowed) {
