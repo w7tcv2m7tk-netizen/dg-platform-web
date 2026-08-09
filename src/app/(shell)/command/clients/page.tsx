@@ -3,7 +3,9 @@ import { getClientIntelligence, getCommandCentreOpsHome } from "@dg/platform-cor
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { ProvisionAccBetaButton } from "@/components/command/ProvisionAccBetaButton";
+import { ProvisionInfraDomainsBetaButton } from "@/components/command/ProvisionInfraDomainsBetaButton";
 import { ProvisionReBetaButton } from "@/components/command/ProvisionReBetaButton";
+import { ProvisionWebsitesBetaButton } from "@/components/command/ProvisionWebsitesBetaButton";
 import { ScoreCell, TierBadge } from "@/components/command/tier-badge";
 
 export default async function CommandClientsPage() {
@@ -18,6 +20,8 @@ export default async function CommandClientsPage() {
   const accBetaCount =
     ops?.clients.filter((c) => c.accBeta).length ??
     clients.filter((c) => c.accBeta).length;
+  const websitesBetaCount = clients.filter((c) => c.websitesBeta).length;
+  const domainsBetaCount = clients.filter((c) => c.infraDomainsBeta).length;
 
   return (
     <>
@@ -27,8 +31,7 @@ export default async function CommandClientsPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Client intelligence</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Success Score™ ranking plus RE / Acc beta enrolment. Watch connector-down attention on
-          pilots.
+          Success Score™ ranking plus RE / Acc / Websites / Domains beta enrolment.
         </p>
       </header>
       <main className="dg-page-main space-y-8">
@@ -40,7 +43,7 @@ export default async function CommandClientsPage() {
           </div>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
               <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Organisations</p>
                 <p className="mt-1 text-3xl font-semibold text-white">{clients.length}</p>
@@ -52,6 +55,14 @@ export default async function CommandClientsPage() {
               <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Acc beta</p>
                 <p className="mt-1 text-3xl font-semibold text-teal-300">{accBetaCount}</p>
+              </div>
+              <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Websites</p>
+                <p className="mt-1 text-3xl font-semibold text-sky-200">{websitesBetaCount}</p>
+              </div>
+              <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Domains</p>
+                <p className="mt-1 text-3xl font-semibold text-violet-300">{domainsBetaCount}</p>
               </div>
               <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Avg Success Score</p>
@@ -78,8 +89,8 @@ export default async function CommandClientsPage() {
                 <div>
                   <h2 className="text-lg font-semibold text-white">Agency Health Ranking</h2>
                   <p className="mt-1 text-sm text-slate-400">
-                    Enable RE or Acc beta to install the app and open the pilot checklist. Bulk
-                    toggles also live under{" "}
+                    Enable RE / Acc / Websites / Domains beta to install apps and open pilot
+                    checklists. Bulk toggles also under{" "}
                     <Link href="/command/flags" className="text-sky-400 hover:underline">
                       Flags
                     </Link>
@@ -99,8 +110,10 @@ export default async function CommandClientsPage() {
                       <th className="px-4 py-3 font-medium">Score</th>
                       <th className="px-4 py-3 font-medium">Tier</th>
                       <th className="px-4 py-3 font-medium">CRM / Acc·RE</th>
-                      <th className="px-4 py-3 font-medium">RE beta</th>
-                      <th className="px-4 py-3 font-medium">Acc beta</th>
+                      <th className="px-4 py-3 font-medium">RE</th>
+                      <th className="px-4 py-3 font-medium">Acc</th>
+                      <th className="px-4 py-3 font-medium">Websites</th>
+                      <th className="px-4 py-3 font-medium">Domains</th>
                       <th className="px-4 py-3 font-medium">Signals</th>
                       <th className="px-4 py-3 font-medium" />
                     </tr>
@@ -138,6 +151,20 @@ export default async function CommandClientsPage() {
                             organisationId={client.organisationId}
                             organisationName={client.organisationName}
                             alreadyBeta={client.accBeta}
+                          />
+                        </td>
+                        <td className="px-4 py-3">
+                          <ProvisionWebsitesBetaButton
+                            organisationId={client.organisationId}
+                            organisationName={client.organisationName}
+                            alreadyBeta={client.websitesBeta}
+                          />
+                        </td>
+                        <td className="px-4 py-3">
+                          <ProvisionInfraDomainsBetaButton
+                            organisationId={client.organisationId}
+                            organisationName={client.organisationName}
+                            alreadyBeta={client.infraDomainsBeta}
                           />
                         </td>
                         <td className="px-4 py-3">

@@ -27,8 +27,8 @@ Not for: promising a full Support Centre / Audit Centre inside `/command`, Strip
 |------|-----------------|
 | Access | `/command/*` for `dg:staff`, DigitalGate org slug/name, or `DG_COMMAND_CENTRE_ORG_IDS` |
 | Ops home | Platform pulse, today’s actions, deep links — live Neon aggregates |
-| Clients | Org list, Success Score signals, **Enable RE / Acc beta** |
-| Flags | Cross-tenant feature flags (`re.beta`, `acc.beta`, `websites.builder`, `infra.domain_register`, …) |
+| Clients | Org list, Success Score signals, **Enable RE / Acc / Websites / Domains beta** |
+| Flags | Cross-tenant feature flags (`re.beta`, `acc.beta`, `websites.builder`, `infra.domains_beta`, `infra.domain_register`, …) |
 | Growth hub | Summary + **Call today** ranking (idle days, views, health — no invented metrics) |
 | Discovery | Create / filter / soft-archive prospects |
 | Audits | Live website presence probes → Business Health from reachable HTML signals |
@@ -164,6 +164,6 @@ Run as staff with `DATABASE_URL` live.
 
 - [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) — product vision + architecture  
 - [GROWTH-ENGINE.md](./GROWTH-ENGINE.md) — acquisition module spec  
-- [ACC-BETA-LAUNCH.md](./ACC-BETA-LAUNCH.md) / [RE-BETA-LAUNCH.md](./RE-BETA-LAUNCH.md) — client product betas enrolled from Command  
+- [ACC-BETA-LAUNCH.md](./ACC-BETA-LAUNCH.md) / [RE-BETA-LAUNCH.md](./RE-BETA-LAUNCH.md) / [WEBSITES-BETA-LAUNCH.md](./WEBSITES-BETA-LAUNCH.md) / [INFRASTRUCTURE-BETA-LAUNCH.md](./INFRASTRUCTURE-BETA-LAUNCH.md) — client product betas enrolled from Command  
 - Manifest: `packages/platform-core/src/apps/builtins/command-centre.ts`  
 - Access: `packages/platform-core/src/command-centre/access.ts`  

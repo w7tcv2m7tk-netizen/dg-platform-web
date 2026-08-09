@@ -563,10 +563,21 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Websites",
     label: "AI Website Studio",
     description:
-      "Generate/edit sites, NL assist, SEO, Make it live — Visual Studio later",
-    status: "in_progress",
+      "Generate/edit sites, NL assist, SEO, WP content import, Make it live — Visual Studio later",
+    status: "done",
     appId: "websites",
     href: "/apps/websites/studio",
+  },
+  {
+    id: "websites.beta",
+    area: "Websites",
+    label: "Website Builder closed beta",
+    description:
+      "Playbook, checklist, Command Centre Enable Websites beta (websites.builder)",
+    status: "done",
+    priority: "high",
+    appId: "websites",
+    href: "/apps/websites",
   },
   {
     id: "websites.content",
@@ -939,9 +950,20 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Infrastructure",
     label: "DNS management",
     description: "Per-domain hosting DNS via Domains console (not a standalone DNS console yet)",
-    status: "in_progress",
+    status: "done",
     appId: "infrastructure",
     href: "/apps/infrastructure/dns",
+  },
+  {
+    id: "infra.domains_beta",
+    area: "Infrastructure",
+    label: "Domains closed beta",
+    description:
+      "Playbook, checklist, Enable Domains beta; paid register stays behind infra.domain_register",
+    status: "done",
+    priority: "high",
+    appId: "infrastructure",
+    href: "/apps/infrastructure/domains",
   },
   {
     id: "infra.hosting",

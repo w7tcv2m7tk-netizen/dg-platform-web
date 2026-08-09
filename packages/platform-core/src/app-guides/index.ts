@@ -254,44 +254,115 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
   },
   {
     appId: "websites",
-    headline: "Monitor website health",
+    headline: "Website Builder closed beta",
     summary:
-      "Website Health Centre connects to WordPress sites and surfaces scores, PageSpeed, SSL, and proactive fixes.",
-    estimatedMinutes: 15,
-    prerequisites: ["DG Platform plugin on target WordPress site(s)"],
+      "Enrol with websites.builder, generate a Gen 2 site from Business Profile, edit in Studio, publish, then Domains go-live. Optional WP content import (plugin 10.70+). See docs/WEBSITES-BETA-LAUNCH.md.",
+    estimatedMinutes: 20,
+    prerequisites: [
+      "websites.builder enabled (Command Centre → Enable Websites beta)",
+      "Business Profile started",
+      "Optional: DG Platform plugin 10.70+ for WP content export",
+    ],
     steps: [
       {
+        id: "web-0",
+        title: "Complete Business Profile",
+        description: "Trading name / ABN / services improve AI generate quality.",
+        href: "/dashboard/business",
+        hrefLabel: "Business Profile",
+      },
+      {
         id: "web-1",
-        title: "Confirm plugin health endpoints",
+        title: "Open Websites checklist",
         description:
-          "The WordPress plugin exposes health data via the digitalgate/v1 REST API on each connected site.",
+          "Create a site from profile (or import WordPress pages), then finish the closed-beta checklist.",
+        href: "/apps/websites",
+        hrefLabel: "Website Builder",
       },
       {
         id: "web-2",
-        title: "Configure multi-site health",
+        title: "Edit in Studio and publish",
         description:
-          "Set DG_WP_HEALTH_SITES as a JSON array in Vercel — one entry per WordPress site.",
-        code: '[{"id":"roe","label":"Roe Realty","baseUrl":"https://roerealty.com.au/wp-json/digitalgate/v1"}]',
+          "Polish blocks/SEO, Preview, then Publish to /sites/[slug].",
+        href: "/apps/websites",
+        hrefLabel: "Sites",
       },
       {
         id: "web-3",
-        title: "Open Health Centre",
+        title: "Make it live on a domain",
         description:
-          "Use the site picker to switch between connected properties and review health scores.",
-        href: "/apps/websites/health",
-        hrefLabel: "Health Centre",
+          "Infrastructure → Domains → connect/register → Apply DNS / Make it live.",
+        href: "/apps/infrastructure/domains",
+        hrefLabel: "Domains",
       },
       {
         id: "web-4",
-        title: "Add Currumbin Valley Hideaway",
+        title: "Health Centre (optional)",
         description:
-          "When CVH WordPress is live, append a second site entry with its baseUrl to DG_WP_HEALTH_SITES.",
+          "Gen 2 publish/domain checklist; WordPress multi-site health via DG_WP_HEALTH_SITES if needed.",
+        href: "/apps/websites/health",
+        hrefLabel: "Health Centre",
       },
     ],
     envVars: [
       {
+        name: "DG_WEBSITES_BUILDER",
+        description: "1 force-on / 0 force-off Website Builder (overrides soft-on)",
+      },
+      {
         name: "DG_WP_HEALTH_SITES",
-        description: "JSON array of { id, label, baseUrl } site configs",
+        description: "Optional JSON array of { id, label, baseUrl } for WP health",
+      },
+    ],
+  },
+  {
+    appId: "infrastructure",
+    headline: "Domains closed beta",
+    summary:
+      "Enrol with infra.domains_beta, search/connect domains over Dreamscape SOAP, Apply DNS and Make it live. Paid register stays behind infra.domain_register. See docs/INFRASTRUCTURE-BETA-LAUNCH.md.",
+    estimatedMinutes: 15,
+    prerequisites: [
+      "Platform Dreamscape SOAP production env on Vercel",
+      "infra.domains_beta (Command Centre → Enable Domains beta)",
+      "Website to attach (Websites beta recommended)",
+    ],
+    steps: [
+      {
+        id: "infra-1",
+        title: "Confirm Domains checklist",
+        description:
+          "Console should show production SOAP host (/API-1.3). Complete enrolment steps.",
+        href: "/apps/infrastructure/domains",
+        hrefLabel: "Domains",
+      },
+      {
+        id: "infra-2",
+        title: "Search and connect",
+        description:
+          "Search availability, then Connect an existing domain (safest first smoke).",
+        href: "/apps/infrastructure/domains",
+        hrefLabel: "Domains",
+      },
+      {
+        id: "infra-3",
+        title: "Make it live",
+        description: "Link a Website → Apply DNS → wait for SSL.",
+        href: "/apps/infrastructure/domains",
+        hrefLabel: "Domains",
+      },
+    ],
+    envVars: [
+      {
+        name: "DREAMSCAPE_RESELLER_ID",
+        description: "SOAP Reseller ID from Dreamscape API Setup",
+      },
+      {
+        name: "DREAMSCAPE_API_KEY",
+        description: "SOAP API key (never commit)",
+      },
+      {
+        name: "DREAMSCAPE_SOAP_ENV",
+        description: "production for live keys (uses /API-1.3)",
       },
     ],
   },

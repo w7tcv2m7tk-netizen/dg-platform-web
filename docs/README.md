@@ -24,6 +24,9 @@ These documents capture **why** the platform is built the way it is. They are as
 | [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) | Internal intelligence App — how DG runs DG |
 | [RE-BETA-LAUNCH.md](./RE-BETA-LAUNCH.md) | Real Estate agency closed beta — in/out, provision, smoke test |
 | [ACC-BETA-LAUNCH.md](./ACC-BETA-LAUNCH.md) | Accommodation property closed beta — CVH path, in/out, provision |
+| [WEBSITES-BETA-LAUNCH.md](./WEBSITES-BETA-LAUNCH.md) | Website Builder closed beta — Studio, publish, WP content import |
+| [INFRASTRUCTURE-BETA-LAUNCH.md](./INFRASTRUCTURE-BETA-LAUNCH.md) | Domains closed beta — SOAP search/connect/DNS/go-live |
+| [COMMAND-CENTRE-BETA.md](./COMMAND-CENTRE-BETA.md) | Staff Command Centre closed beta — Growth Engine core |
 | [BUSINESS-OVERVIEW.md](./BUSINESS-OVERVIEW.md) | CEO dashboard — Business Overview at `/dashboard` |
 | [PLATFORM-API.md](./PLATFORM-API.md) | REST API v1 — keys, auth, endpoints |
 | [DEPLOY-WP-PLUGIN.md](./DEPLOY-WP-PLUGIN.md) | WordPress plugin deploy zip and site checklist |

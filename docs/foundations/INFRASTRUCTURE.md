@@ -4,8 +4,8 @@
 
 **Version:** 0.3  
 **Last updated:** August 2026  
-**Status:** Architecture locked · Domain search + register/connect/DNS/go-live shipped (SOAP)  
-**Website Builder:** MVP + Make it live checklist — see go-live path below
+**Status:** **Domains closed beta ready** — see [INFRASTRUCTURE-BETA-LAUNCH.md](../INFRASTRUCTURE-BETA-LAUNCH.md). Architecture locked · Domain search + register/connect/DNS/go-live shipped (SOAP `/API-1.3`).  
+**Website Builder:** Closed beta + Make it live — [WEBSITES-BETA-LAUNCH.md](../WEBSITES-BETA-LAUNCH.md)
 
 **Related:** [WEBSITE-BUILDER.md](./WEBSITE-BUILDER.md) · [PRODUCT-VISION.md](../PRODUCT-VISION.md) · [ROADMAP.md](../ROADMAP.md) · [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) · [PLATFORM-ARCHITECTURE.md](../PLATFORM-ARCHITECTURE.md) · [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](../infrastructure/INFRASTRUCTURE-ARCHITECTURE.md)
 

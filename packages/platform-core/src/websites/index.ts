@@ -10,6 +10,7 @@ export * from "./form-capture";
 export * from "./native-health";
 export * from "./html-to-components";
 export * from "./wp-import";
+export * from "./beta";
 
 import type { SiteHealthSnapshot } from "./types";
 

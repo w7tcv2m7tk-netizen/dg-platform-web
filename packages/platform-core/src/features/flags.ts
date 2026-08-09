@@ -126,9 +126,15 @@ export const KNOWN_FEATURE_FLAGS = [
   },
   {
     id: "websites.builder",
-    label: "Website Builder (native)",
+    label: "Website Builder beta",
     description:
-      "Gates AI Website Studio, Sites manager, and native site generation. Health Centre stays available without this flag.",
+      "Enrols Website Builder closed beta — Studio, Sites, generate, WP content import. Soft-on when unset; Enable Websites beta sets this true. Health Centre stays available without it. See docs/WEBSITES-BETA-LAUNCH.md.",
+  },
+  {
+    id: "infra.domains_beta",
+    label: "Domains beta",
+    description:
+      "Enrols Infrastructure Domains closed beta (search/connect/DNS/go-live). Does not enable paid register — use infra.domain_register separately. See docs/INFRASTRUCTURE-BETA-LAUNCH.md.",
   },
   {
     id: "infra.domain_register",

@@ -6,7 +6,9 @@ AI-native web presence for DigitalGate organisations — not another generic pag
 
 The native builder targets **Next.js Generation 2**. Existing WordPress sites stay on the **WordPress Connector** until migrated. Advanced code edits happen only in a **controlled sandbox** (later).
 
-**MVP vertical slice (shipped):** Website as first-class asset → AI structured generate → Studio basics → `/sites/[slug]` renderer → Forms → CRM. Feature flag: `websites.builder` (soft-on when unset).
+**Status:** **Closed beta ready** — see [WEBSITES-BETA-LAUNCH.md](../WEBSITES-BETA-LAUNCH.md).  
+
+**MVP vertical slice (shipped):** Website as first-class asset → AI structured generate → Studio basics → `/sites/[slug]` renderer → Forms → CRM → WP content import v0 → Domains go-live. Feature flag: `websites.builder` (soft-on when unset; Enable Websites beta sets true).
 
 See [PRODUCT-VISION.md](../PRODUCT-VISION.md), [ROADMAP.md](../ROADMAP.md), [GLOBAL-READINESS.md](./GLOBAL-READINESS.md), [INFRASTRUCTURE.md](./INFRASTRUCTURE.md), [NETWORK-LAYER.md](./NETWORK-LAYER.md), [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md), [websites/WEBSITES-ARCHITECTURE.md](../websites/WEBSITES-ARCHITECTURE.md), [ADR 0001](../adr/0001-generation-2-nextjs-platform.md), [ADR 0002](../adr/0002-wordpress-as-connector.md).
 

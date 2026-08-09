@@ -119,6 +119,9 @@ async function persistWebhookEvent(
   if (!process.env.DATABASE_URL) return false;
   try {
     const { prisma } = await import("@dg/database");
+    type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
+    const summaryJson = event.summary as unknown as InputJsonValue;
+    const rawKeysJson = event.rawKeys as unknown as InputJsonValue;
     await prisma.dreamscapeWebhookEvent.upsert({
       where: { id: event.id },
       create: {
@@ -130,8 +133,8 @@ async function persistWebhookEvent(
         statusLabel: event.statusLabel,
         mappedStatus: event.mappedStatus,
         providerEventId: event.providerEventId,
-        summary: event.summary,
-        rawKeys: event.rawKeys,
+        summary: summaryJson,
+        rawKeys: rawKeysJson,
         inventoryUpdated,
       },
       update: {
@@ -141,8 +144,8 @@ async function persistWebhookEvent(
         statusLabel: event.statusLabel,
         mappedStatus: event.mappedStatus,
         providerEventId: event.providerEventId,
-        summary: event.summary,
-        rawKeys: event.rawKeys,
+        summary: summaryJson,
+        rawKeys: rawKeysJson,
         inventoryUpdated,
       },
     });

@@ -185,6 +185,9 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     const settings = (org.settings as OrgSettings | null) ?? {};
     const reBeta = settings.featureFlags?.["re.beta"] === true;
     const accBeta = settings.featureFlags?.["acc.beta"] === true;
+    const websitesBeta = settings.featureFlags?.["websites.builder"] === true;
+    const infraDomainsBeta =
+      settings.featureFlags?.["infra.domains_beta"] === true;
     const connectorOk = wpConfigured(org.settings);
     const scoreInput: SuccessScoreInput = {
       wordpressConfigured: connectorOk,
@@ -243,6 +246,8 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       installedApps,
       reBeta,
       accBeta,
+      websitesBeta,
+      infraDomainsBeta,
       needsAttention:
         result.tier === "needs_attention" || attentionReasons.length > 0,
       attentionReasons,

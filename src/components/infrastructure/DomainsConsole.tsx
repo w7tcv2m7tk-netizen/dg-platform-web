@@ -220,7 +220,7 @@ export function DomainsConsole() {
   }
 
   return (
-    <div className="mt-6 space-y-8 max-w-2xl">
+    <div className="space-y-8 max-w-2xl">
       <section className="rounded-lg border border-slate-800 bg-slate-950/60 p-5">
         <h2 className="text-lg font-semibold text-white">Domain search</h2>
         <p className="mt-1 text-sm text-slate-400">

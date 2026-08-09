@@ -64,6 +64,10 @@ export interface CommandClientRow {
   reBeta: boolean;
   /** Accommodation property beta (`acc.beta` feature flag) */
   accBeta: boolean;
+  /** Website Builder beta (`websites.builder`) */
+  websitesBeta: boolean;
+  /** Domains beta (`infra.domains_beta`) */
+  infraDomainsBeta: boolean;
   needsAttention: boolean;
   attentionReasons: string[];
   createdAt: string;
