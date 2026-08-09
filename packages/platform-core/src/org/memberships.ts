@@ -68,7 +68,11 @@ export async function listUserOrganisations(
   const { prisma } = await import("@dg/database");
 
   const memberships = await prisma.membership.findMany({
-    where: { clerkUserId, status: "active" },
+    where: {
+      clerkUserId,
+      status: "active",
+      organisation: { status: { not: "archived" } },
+    },
     include: { organisation: true },
     orderBy: { createdAt: "asc" },
   });
@@ -98,6 +102,7 @@ export async function resolveUserMembership(
         clerkUserId,
         organisationId: activeOrganisationId,
         status: "active",
+        organisation: { status: { not: "archived" } },
       },
       include: { organisation: true },
     });
@@ -105,7 +110,11 @@ export async function resolveUserMembership(
   }
 
   return prisma.membership.findFirst({
-    where: { clerkUserId, status: "active" },
+    where: {
+      clerkUserId,
+      status: "active",
+      organisation: { status: { not: "archived" } },
+    },
     include: { organisation: true },
     orderBy: { createdAt: "asc" },
   });
