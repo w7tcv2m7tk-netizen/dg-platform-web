@@ -145,7 +145,7 @@ export interface CommandCentreOpsHome {
     engagementsThisWeek: number;
   };
   /** Opportunity Engine Daily Briefing summary for Command home */
-  prospectingToday: {
+  prospectingToday?: {
     recommendedCount: number;
     contactedToday: number;
     conversations: number;

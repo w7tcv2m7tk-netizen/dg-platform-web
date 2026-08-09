@@ -47,11 +47,11 @@ const MODULES = [
   },
 ] as const;
 
-const CALL_TODAY_CARD = {
+const DAILY_BRIEFING_CARD = {
   href: GROWTH_ENGINE_ROUTES.hub,
-  title: "Call today",
+  title: "Daily Briefing",
   description:
-    "Sales Assistant v0 — ranked call list (idle + views + health). Not an autonomous AI SDR.",
+    "Opportunity Engine — who to speak to today (Prospect Opportunity Score). Not an autonomous AI SDR.",
   status: "Live",
 } as const;
 
@@ -66,7 +66,7 @@ export function GrowthEngineNav({ active }: { active?: string }) {
             : "border border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white"
         }`}
       >
-        Hub
+        Daily Briefing
       </Link>
       {MODULES.map((mod) => (
         <Link
@@ -86,7 +86,7 @@ export function GrowthEngineNav({ active }: { active?: string }) {
 }
 
 export function GrowthEngineModuleGrid() {
-  const cards = [...MODULES, CALL_TODAY_CARD];
+  const cards = [DAILY_BRIEFING_CARD, ...MODULES];
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {cards.map((mod) => (

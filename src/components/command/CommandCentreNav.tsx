@@ -12,7 +12,7 @@ const NAV = [
     id: "opportunities",
   },
   { href: COMMAND_CENTRE_ROUTES.benchmarks, label: "Benchmarks", id: "benchmarks" },
-  { href: COMMAND_CENTRE_ROUTES.growthEngine, label: "Growth Engine", id: "growth" },
+  { href: COMMAND_CENTRE_ROUTES.growthEngine, label: "Opportunity Engine", id: "growth" },
   { href: COMMAND_CENTRE_ROUTES.platformHealth, label: "Health", id: "health" },
   { href: COMMAND_CENTRE_ROUTES.revenue, label: "Revenue", id: "revenue" },
   { href: COMMAND_CENTRE_ROUTES.flags, label: "Flags", id: "flags" },

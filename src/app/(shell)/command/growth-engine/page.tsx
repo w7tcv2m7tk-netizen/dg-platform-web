@@ -27,12 +27,19 @@ function formatAudCents(cents: number) {
 
 export default async function GrowthEngineHubPage() {
   const db = Boolean(process.env.DATABASE_URL);
-  const [summary, briefing] = db
-    ? await Promise.all([
+  let summary: Awaited<ReturnType<typeof getGrowthEngineSummary>> | null = null;
+  let briefing: Awaited<ReturnType<typeof getDailyOpportunityBriefing>> | null = null;
+  if (db) {
+    try {
+      [summary, briefing] = await Promise.all([
         getGrowthEngineSummary(),
         getDailyOpportunityBriefing({ limit: 20, staffName: "Ben" }),
-      ])
-    : [null, null];
+      ]);
+    } catch {
+      summary = null;
+      briefing = null;
+    }
+  }
 
   const top = briefing?.top ?? null;
 

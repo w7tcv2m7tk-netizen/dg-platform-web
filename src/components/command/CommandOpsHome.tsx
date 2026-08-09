@@ -36,8 +36,17 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
     clients,
     deepLinks,
     recentActivity,
-    prospectingToday,
   } = data;
+  const prospectingToday = data.prospectingToday ?? {
+    recommendedCount: 0,
+    contactedToday: 0,
+    conversations: 0,
+    meetingsBooked: 0,
+    stillRequireAction: 0,
+    proposalPipelineCents: null,
+    topBusinessName: null,
+    topScore: null,
+  };
   const attentionClients = clients.filter((c) => c.needsAttention).slice(0, 5);
 
   return (
