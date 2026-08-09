@@ -33,7 +33,13 @@ function deriveOrgName(input: ProvisionOrganisationInput): string {
     return input.orgName.trim();
   }
   const name = input.name?.trim();
-  if (name && name !== input.email && !name.includes("@")) {
+  // Require a real personal name — empty / punctuation-only became "'s Organisation"
+  if (
+    name &&
+    name !== input.email &&
+    !name.includes("@") &&
+    /[a-z0-9]/i.test(name)
+  ) {
     return `${name}'s Organisation`;
   }
   const local = input.email.split("@")[0]?.replace(/[^a-z0-9]+/gi, " ").trim();
