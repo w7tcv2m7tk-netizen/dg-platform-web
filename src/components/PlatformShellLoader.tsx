@@ -37,25 +37,10 @@ export async function PlatformShellLoader({
         organisationName: session.organisationName,
         organisationSlug: session.organisationSlug,
         role: session.role,
-        organisations: session.organisations.map((o) => ({
-          organisationId: o.organisationId,
-          organisationName: o.organisationName,
-          organisationSlug: o.organisationSlug,
-        })),
       })
     : false;
 
-  // Hide industry apps only when the *active* tenant is the DigitalGate operator org.
-  const isOperatorOrg = session
-    ? canAccessCommandCentre({
-        organisationId: session.organisationId,
-        organisationName: session.organisationName,
-        organisationSlug: session.organisationSlug,
-        role: session.role,
-      })
-    : false;
-
-  const navEnabledIds = filterEnabledAppsForOperatorOrg(enabledIds, isOperatorOrg);
+  const navEnabledIds = filterEnabledAppsForOperatorOrg(enabledIds, showCommandCentre);
 
   return (
     <PlatformShell

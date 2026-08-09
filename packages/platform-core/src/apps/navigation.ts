@@ -146,24 +146,34 @@ export function getCategorizedPlatformNavigation(
       .map((a) => toTreeItem(a, enabledIds)),
   })).filter((g) => g.apps.length > 0);
 
-  const shell: PlatformShellNavItem[] = [...SHELL_NAV];
-
   if (options?.showCommandCentre) {
-    // Top of sidebar — staff must not hunt for Command Centre under Business Apps.
-    shell.unshift(
-      {
-        kind: "shell",
-        href: "/command",
-        label: "Command Centre",
-        icon: getSidebarIcon("command-centre", "◈"),
-      },
-      {
-        kind: "shell",
-        href: "/command/growth-engine",
-        label: "Opportunity Engine",
-        icon: "◎",
-      },
-    );
+    const cc = getCommandCentreNavItem();
+    const ccTreeItem: AppNavTreeItem = {
+      kind: "app",
+      id: cc.id,
+      name: cc.name,
+      icon: cc.icon,
+      tier: "business",
+      enabled: true,
+      routes: cc.routes,
+      primaryHref: cc.primaryHref,
+    };
+
+    const businessIdx = tiers.findIndex((g) => g.tier === "business");
+    if (businessIdx >= 0) {
+      tiers[businessIdx] = {
+        ...tiers[businessIdx],
+        apps: [ccTreeItem, ...tiers[businessIdx].apps],
+      };
+    } else {
+      const coreIdx = tiers.findIndex((g) => g.tier === "core");
+      const insertAt = coreIdx >= 0 ? coreIdx + 1 : 0;
+      tiers.splice(insertAt, 0, {
+        tier: "business",
+        label: APP_TIER_LABELS.business,
+        apps: [ccTreeItem],
+      });
+    }
   }
 
   const tools: PlatformToolsNavGroup = {
@@ -172,7 +182,7 @@ export function getCategorizedPlatformNavigation(
   };
 
   return {
-    shell,
+    shell: SHELL_NAV,
     tiers,
     tools,
     commandCentre: options?.showCommandCentre ? getCommandCentreNavItem() : null,
