@@ -14,7 +14,6 @@ export const websitesApp: AppManifest = {
     { path: "/apps/websites/health", label: "Health Centre" },
     { path: "/apps/websites/content", label: "Content Studio" },
     { path: "/apps/websites/funnels", label: "Funnel Builder" },
-    { path: "/apps/websites/domains", label: "Domains" },
     { path: "/apps/websites/hosting", label: "Hosting" },
   ],
   navigation: [

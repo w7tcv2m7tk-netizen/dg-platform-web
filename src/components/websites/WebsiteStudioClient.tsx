@@ -468,7 +468,7 @@ export function WebsiteStudioClient({
               {showLivePanel ? "Hide" : "Show"} checklist
             </button>
             <Link
-              href="/apps/websites/domains"
+              href="/apps/infrastructure/domains"
               className="block text-sm text-slate-400 hover:text-slate-200"
             >
               Domains

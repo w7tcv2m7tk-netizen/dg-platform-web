@@ -214,7 +214,7 @@ export default async function WebsitesHomePage() {
                               Make it live
                             </Link>
                             <Link
-                              href="/apps/websites/domains"
+                              href="/apps/infrastructure/domains"
                               className="text-slate-400 hover:text-slate-200"
                             >
                               Domains

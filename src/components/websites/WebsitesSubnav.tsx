@@ -4,7 +4,6 @@ export function WebsitesSubnav({ active }: { active: string }) {
   const items = [
     { href: "/apps/websites", id: "sites", label: "Sites" },
     { href: "/apps/websites/health", id: "health", label: "Health" },
-    { href: "/apps/websites/domains", id: "domains", label: "Domains" },
     { href: "/apps/websites/hosting", id: "hosting", label: "Hosting" },
     { href: "/apps/websites/content", id: "content", label: "Content" },
     { href: "/apps/websites/funnels", id: "funnels", label: "Funnels" },

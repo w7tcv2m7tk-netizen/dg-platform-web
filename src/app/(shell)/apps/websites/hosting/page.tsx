@@ -86,16 +86,10 @@ export default async function HostingStatusPage() {
               ← Sites
             </Link>
             <Link
-              href="/apps/websites/domains"
+              href="/apps/infrastructure/domains"
               className="text-sm text-sky-400 hover:underline"
             >
               Domains
-            </Link>
-            <Link
-              href="/apps/infrastructure/domains"
-              className="text-sm text-slate-400 hover:underline"
-            >
-              Infrastructure Domains →
             </Link>
           </div>
         </section>

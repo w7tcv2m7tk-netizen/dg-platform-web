@@ -302,7 +302,7 @@ export function MakeItLivePanel({
             </a>
           ) : (
             <Link
-              href="/apps/websites/domains"
+              href="/apps/infrastructure/domains"
               className="text-amber-200/90 hover:underline"
             >
               Connect custom domain →
