@@ -197,8 +197,11 @@ export function AppsPlanCatalog() {
           <a href="#apps" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
             3 · Apps
           </a>
+          <a href="#growth-apps" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
+            4 · Growth
+          </a>
           <a href="#addons" className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">
-            Add-ons
+            5 · Add-ons
           </a>
           <a
             href={`${PRICING_PAGE_URL}#support-plans`}
@@ -333,13 +336,12 @@ export function AppsPlanCatalog() {
         </div>
       </section>
 
-      <section id="apps" className="scroll-mt-24 space-y-10">
+      <section id="apps" className="scroll-mt-24">
         <SectionHeader
           label="🧩 3 · Apps"
-          title="Industry & growth apps"
-          description={`Install only what you need — industry verticals and growth intelligence. ${enabledIds.length} apps currently on in your sidebar.`}
+          title="Industry apps"
+          description={`Install vertical apps for your industry. ${enabledIds.length} apps currently on in your sidebar.`}
         />
-
         <div id="industry-apps" className="scroll-mt-24">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {INDUSTRY_APP_CATALOG.map((item) => (
@@ -357,34 +359,33 @@ export function AppsPlanCatalog() {
             ))}
           </div>
         </div>
+      </section>
 
-        <div id="growth-apps" className="scroll-mt-24">
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold text-white">Growth & Intelligence Apps</h3>
-            <p className="text-sm text-slate-400">
-              Unlock advanced SEO, AI visibility, automation, and analytics on top of the core platform
-            </p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            {GROWTH_APP_CATALOG.map((item) => (
-              <CatalogAppCard
-                key={item.appId}
-                appId={item.appId}
-                icon={item.icon}
-                label={item.label}
-                price={item.price}
-                description={item.description}
-                enabled={enabledIds.includes(item.appId)}
-                primaryHref={appHref(item.appId)}
-              />
-            ))}
-          </div>
+      <section id="growth-apps" className="scroll-mt-24">
+        <SectionHeader
+          label="📈 4 · Growth & Intelligence Apps"
+          title="Unlock growth on top of the core platform"
+          description="Advanced SEO, AI visibility, automation, analytics, social, and voice."
+        />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          {GROWTH_APP_CATALOG.map((item) => (
+            <CatalogAppCard
+              key={item.appId}
+              appId={item.appId}
+              icon={item.icon}
+              label={item.label}
+              price={item.price}
+              description={item.description}
+              enabled={enabledIds.includes(item.appId)}
+              primaryHref={appHref(item.appId)}
+            />
+          ))}
         </div>
       </section>
 
       <section id="addons" className="scroll-mt-24">
         <SectionHeader
-          label="➕ Platform add-ons"
+          label="➕ 5 · Platform add-ons"
           title="Extend your platform"
           description="Extra users and white label — add to any tier. Purchase on the website; toggles here control sidebar apps only."
         />
