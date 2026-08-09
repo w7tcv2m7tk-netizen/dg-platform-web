@@ -1,4 +1,4 @@
-import type { GrowthProspect } from "@dg/database";
+import type { GrowthProspect, Prisma } from "@dg/database";
 import type { ProspectPipelineStage } from "./types";
 
 import { writeAuditLog } from "../../audit";
@@ -128,7 +128,10 @@ export async function createGrowthProspect(input: CreateGrowthProspectInput) {
       websiteUrl: input.websiteUrl?.trim() || null,
       ownerClerkUserId: input.ownerClerkUserId ?? input.actorId ?? null,
       stage: "prospect",
-      metadata: input.metadata ?? undefined,
+      metadata:
+        input.metadata !== undefined
+          ? (input.metadata as Prisma.InputJsonValue)
+          : undefined,
     },
   });
 
