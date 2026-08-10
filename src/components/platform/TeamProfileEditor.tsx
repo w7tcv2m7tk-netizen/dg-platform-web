@@ -47,9 +47,12 @@ function isCustomTeamPhoto(url: string | null | undefined) {
 export function TeamProfileEditor({
   member,
   canEdit,
+  canRemove = false,
 }: {
   member: TeamMemberCard;
   canEdit: boolean;
+  /** Owner/admin may soft-remove another teammate from this org. */
+  canRemove?: boolean;
 }) {
   const router = useRouter();
   const { user } = useUser();
@@ -66,6 +69,7 @@ export function TeamProfileEditor({
     member.avatarUrl || member.clerkImageUrl || "",
   );
   const [pending, setPending] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -207,6 +211,37 @@ export function TeamProfileEditor({
     setEditing(false);
   }
 
+  async function removeMember() {
+    if (!canRemove || member.isMe || removing) return;
+    const label =
+      member.displayName?.trim() ||
+      member.publicEmail?.trim() ||
+      member.email?.trim() ||
+      "this empty team card";
+    if (
+      !window.confirm(
+        `Remove ${label} from this business? They’ll lose access until invited again.`,
+      )
+    ) {
+      return;
+    }
+    setRemoving(true);
+    setError(null);
+    setMessage(null);
+    const res = await fetch("/api/v1/org/team", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ membershipId: member.id }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setRemoving(false);
+    if (!res.ok) {
+      setError(json.error?.message ?? "Could not remove team member");
+      return;
+    }
+    router.refresh();
+  }
+
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/80 shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
       <div
@@ -266,6 +301,16 @@ export function TeamProfileEditor({
                 Edit profile
               </button>
             ) : null}
+            {canRemove && !editing ? (
+              <button
+                type="button"
+                disabled={removing}
+                onClick={() => void removeMember()}
+                className="rounded-full border border-red-500/40 px-3 py-1.5 text-xs font-medium text-red-300 hover:border-red-400 hover:bg-red-500/10 disabled:opacity-50"
+              >
+                {removing ? "Removing…" : "Remove"}
+              </button>
+            ) : null}
           </div>
         </div>
 
@@ -314,6 +359,9 @@ export function TeamProfileEditor({
             )}
 
             {message ? <p className="mt-4 text-sm text-emerald-400">{message}</p> : null}
+            {error && !editing ? (
+              <p className="mt-2 text-sm text-amber-400">{error}</p>
+            ) : null}
           </div>
         ) : (
           <form onSubmit={save} className="mt-5 space-y-3">

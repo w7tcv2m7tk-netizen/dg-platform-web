@@ -229,3 +229,81 @@ export async function setMembershipExternalRefs(
     },
   });
 }
+
+export type RemoveOrganisationMemberResult =
+  | { ok: true; membershipId: string }
+  | {
+      ok: false;
+      code:
+        | "not_found"
+        | "forbidden_self"
+        | "last_owner"
+        | "already_removed"
+        | "db_unavailable";
+      message: string;
+    };
+
+/**
+ * Soft-remove a teammate from this organisation (status → removed).
+ * Hidden from Team page; unique (org, clerkUserId) is kept so re-invite can reactivate later.
+ */
+export async function removeOrganisationMember(input: {
+  organisationId: string;
+  membershipId: string;
+  /** Actor's own membership id — cannot remove yourself via this path. */
+  actorMembershipId: string;
+}): Promise<RemoveOrganisationMemberResult> {
+  if (!process.env.DATABASE_URL) {
+    return {
+      ok: false,
+      code: "db_unavailable",
+      message: "Database is not configured",
+    };
+  }
+
+  const { prisma } = await import("@dg/database");
+  const target = await prisma.membership.findFirst({
+    where: { id: input.membershipId, organisationId: input.organisationId },
+  });
+  if (!target) {
+    return { ok: false, code: "not_found", message: "Team member not found" };
+  }
+  if (target.id === input.actorMembershipId) {
+    return {
+      ok: false,
+      code: "forbidden_self",
+      message: "You can’t remove your own team card. Switch account or ask another owner.",
+    };
+  }
+  if (target.status !== "active" && target.status !== "invited") {
+    return {
+      ok: false,
+      code: "already_removed",
+      message: "This team member is already removed",
+    };
+  }
+
+  if (target.role === "owner" && target.status === "active") {
+    const ownerCount = await prisma.membership.count({
+      where: {
+        organisationId: input.organisationId,
+        role: "owner",
+        status: "active",
+      },
+    });
+    if (ownerCount <= 1) {
+      return {
+        ok: false,
+        code: "last_owner",
+        message: "You can’t remove the last owner of this business",
+      };
+    }
+  }
+
+  await prisma.membership.update({
+    where: { id: target.id },
+    data: { status: "removed" },
+  });
+
+  return { ok: true, membershipId: target.id };
+}

@@ -130,6 +130,10 @@ export async function syncDigitalGateOwnersOntoWantd(
       },
     });
     if (existing) {
+      // Respect intentional removals — do not auto-reactivate.
+      if (existing.status === "removed") {
+        continue;
+      }
       if (existing.status !== "active") {
         await prisma.membership.update({
           where: { id: existing.id },

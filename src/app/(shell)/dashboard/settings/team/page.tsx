@@ -77,6 +77,7 @@ export default async function TeamSettingsPage() {
                 <TeamProfileEditor
                   key={member.id}
                   canEdit={isMe || isOwner}
+                  canRemove={isOwner && !isMe}
                   member={{
                     id: member.id,
                     displayName: member.displayName,

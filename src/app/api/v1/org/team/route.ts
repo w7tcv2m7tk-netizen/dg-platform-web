@@ -2,6 +2,7 @@ import {
   getMembershipProfile,
   listOrganisationMembers,
   publishMembershipToWordPressAgent,
+  removeOrganisationMember,
   updateMembershipProfile,
 } from "@dg/platform-core";
 import { pushMembershipProfileToClerk } from "@dg/platform-core/org/membership-profile-clerk";
@@ -93,4 +94,47 @@ export async function PATCH(req: Request) {
       websiteSync,
     },
   });
+}
+
+/** Soft-remove a teammate (owner/admin only). */
+export async function DELETE(req: Request) {
+  const session = await requirePlatformAuth(req);
+  if (isNextResponse(session)) return session;
+
+  if (session.role !== "owner" && session.role !== "admin") {
+    return NextResponse.json(
+      { error: { code: "forbidden", message: "Only owners and admins can remove team members" } },
+      { status: 403 },
+    );
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const membershipId = String(body.membershipId ?? "").trim();
+  if (!membershipId) {
+    return NextResponse.json(
+      { error: { code: "validation_error", message: "membershipId is required" } },
+      { status: 422 },
+    );
+  }
+
+  const result = await removeOrganisationMember({
+    organisationId: session.organisationId,
+    membershipId,
+    actorMembershipId: session.membershipId,
+  });
+
+  if (!result.ok) {
+    const status =
+      result.code === "not_found"
+        ? 404
+        : result.code === "forbidden_self" || result.code === "last_owner"
+          ? 403
+          : 422;
+    return NextResponse.json(
+      { error: { code: result.code, message: result.message } },
+      { status },
+    );
+  }
+
+  return NextResponse.json({ data: { removed: true, membershipId: result.membershipId } });
 }
