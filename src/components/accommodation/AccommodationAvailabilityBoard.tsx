@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ACC_CALENDAR_HORIZON_DAYS } from "@dg/platform-core";
 
 import type { WpAccAvailabilityUnit, WpAccBookingRow } from "@/lib/dg-api";
 

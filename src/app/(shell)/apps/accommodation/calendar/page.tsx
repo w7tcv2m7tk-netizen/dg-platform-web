@@ -1,4 +1,5 @@
 import {
+  ACC_CALENDAR_HORIZON_DAYS,
   buildAvailabilityFromNeon,
   organisationUsesUnitSot,
   sortAccommodationUnitsByDisplayOrder,
@@ -62,10 +63,9 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
     d.setDate(d.getDate() + diff);
     return d;
   })();
-  // Load far enough ahead that far-dated OTA blocks (Booking.com often ships
-  // CLOSED windows months out) still paint when navigating month/list views.
+  // 2-year horizon so far-dated OTA blocks (Booking.com CLOSED windows, etc.) paint in month/list.
   const toDate = new Date(today);
-  toDate.setDate(toDate.getDate() + 400);
+  toDate.setDate(toDate.getDate() + ACC_CALENDAR_HORIZON_DAYS);
   const from = localISO(weekStartFetch);
   const to = localISO(toDate);
 

@@ -527,6 +527,9 @@ export async function updateUnitHousekeeping(
   return { updated, count: updated.length };
 }
 
+/** How far ahead Gen 2 Acc calendars + OTA Neon pulls load (2 years). */
+export const ACC_CALENDAR_HORIZON_DAYS = 730;
+
 export async function buildAvailabilityFromNeon(
   organisationId: string,
   opts?: { from?: string; to?: string; propertyId?: number },
@@ -538,9 +541,10 @@ export async function buildAvailabilityFromNeon(
       : units;
 
   const from = opts?.from ?? new Date().toISOString().slice(0, 10);
+  /** Default horizon: 2 years when caller omits `to`. */
   const toDate = opts?.to
     ? new Date(opts.to)
-    : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
+    : new Date(Date.now() + ACC_CALENDAR_HORIZON_DAYS * 24 * 60 * 60 * 1000);
   const to = opts?.to ?? toDate.toISOString().slice(0, 10);
 
   const { prisma } = await import("@dg/database");
