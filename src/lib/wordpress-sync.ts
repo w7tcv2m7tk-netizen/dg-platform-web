@@ -5,10 +5,13 @@ import {
   syncAccommodationBookingsFromWordPress,
   syncAccommodationUnitsFromWordPress,
   syncPropertiesFromWordPress,
+  upsertStayBookingFromWpRow,
   type PlatformSession,
 } from "@dg/platform-core";
 
+import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
 import {
+  fetchWpAccommodationBookings,
   fetchWpBuyerLeads,
   fetchWpProperties,
   fetchWpRecentBookings,
@@ -247,8 +250,59 @@ export async function syncWordPressAccBookings(
   | { ok: true; result: WordPressSyncResult }
   | { ok: false; message: string }
 > {
+  // Prefer the same host-safe CVH key resolution used by OTA sync / calendar.
+  // Core resolveOrgWordPressConnector alone often lacks DG_WP_ACCOMMODATION_* keys.
+  const connector = await accommodationConnectorForSession(session.organisationId);
+  if (connector?.baseUrl && connector.apiKey) {
+    const today = new Date();
+    const from = new Date(today);
+    from.setDate(from.getDate() - 30);
+    const to = new Date(today);
+    to.setDate(to.getDate() + 365);
+    const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+    const fetched = await fetchWpAccommodationBookings(null, 200, connector, {
+      from: iso(from),
+      to: iso(to),
+    });
+    if (!fetched.ok) {
+      return { ok: false, message: fetched.message };
+    }
+
+    const result: WordPressSyncResult = {
+      created: 0,
+      updated: 0,
+      skipped: 0,
+      errors: [],
+      ranAt: new Date().toISOString(),
+    };
+
+    for (const booking of fetched.bookings) {
+      try {
+        const outcome = await upsertStayBookingFromWpRow(session.organisationId, booking, {
+          actorId: session.clerkUserId,
+        });
+        if (outcome === "created") result.created++;
+        else if (outcome === "updated") result.updated++;
+        else result.skipped++;
+      } catch (err) {
+        result.errors.push(
+          `Booking #${booking.id}: ${err instanceof Error ? err.message : "sync failed"}`,
+        );
+      }
+    }
+
+    await patchOrgWordPressSettings(session.organisationId, {
+      lastAccBookingSyncAt: result.ranAt,
+      lastAccBookingSync: result,
+    });
+
+    return { ok: true, result };
+  }
+
   const outcome = await syncAccommodationBookingsFromWordPress(session.organisationId, {
     actorId: session.clerkUserId,
+    limit: 200,
   });
 
   if (!outcome.ok) {

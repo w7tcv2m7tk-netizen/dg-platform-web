@@ -951,10 +951,15 @@ export async function fetchWpAccommodationBookings(
   siteId?: string | null,
   limit = 50,
   connector?: WpConnectorOverride,
+  opts?: { from?: string; to?: string },
 ) {
   const site = resolveAccConnector(siteId, connector);
+  const params = new URLSearchParams();
+  params.set("limit", String(limit));
+  if (opts?.from) params.set("from", opts.from);
+  if (opts?.to) params.set("to", opts.to);
   const result = await wpConnectorFetch<{ bookings?: WpAccBookingRow[]; total?: number }>(
-    `/accommodation/bookings?limit=${limit}`,
+    `/accommodation/bookings?${params.toString()}`,
     { baseUrl: site.baseUrl, apiKey: site.apiKey },
   );
   if (!result.ok) return result;

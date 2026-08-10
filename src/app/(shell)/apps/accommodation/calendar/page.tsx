@@ -75,6 +75,8 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
 
   if (session && (await organisationUsesUnitSot(session.organisationId))) {
     await loadUnitsForOps(session, site.id);
+    const { autoSyncWordPressAccBookingsIfNeeded } = await import("@/lib/wordpress-sync");
+    await autoSyncWordPressAccBookingsIfNeeded(session).catch(() => null);
     const neon = await buildAvailabilityFromNeon(session.organisationId, { from, to });
     availFrom = neon.from;
     availTo = neon.to;
