@@ -1019,6 +1019,15 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
 
   // —— Growth ——
   {
+    id: "ai_vis.dashboard",
+    area: "SEO & Visibility",
+    label: "AI Visibility dashboard",
+    description: "Brand presence across AI platforms",
+    status: "scaffold",
+    appId: "ai-visibility",
+    href: "/apps/ai-visibility",
+  },
+  {
     id: "seo.overview",
     area: "SEO & Visibility",
     label: "SEO overview",
@@ -1035,15 +1044,6 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     status: "scaffold",
     appId: "seo",
     href: "/apps/seo/audit",
-  },
-  {
-    id: "ai_vis.dashboard",
-    area: "SEO & Visibility",
-    label: "AI Visibility dashboard",
-    description: "Brand presence across AI platforms",
-    status: "scaffold",
-    appId: "ai-visibility",
-    href: "/apps/ai-visibility",
   },
 
   // —— Infrastructure ——

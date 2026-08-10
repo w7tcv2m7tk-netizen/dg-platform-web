@@ -19,8 +19,8 @@ const ORG_TEMPLATE_APPS: Record<OrgTemplate, string[]> = {
     "reviews",
     "marketing",
     "automation",
-    "seo",
     "ai-visibility",
+    "seo",
   ],
   accommodation: [
     "crm",

@@ -5,8 +5,8 @@ import { AnalyticsSubnav } from "@/components/analytics/AnalyticsSubnav";
 import { formatAudMoney, loadAnalyticsPageData } from "@/lib/analytics-page-data";
 
 const SCORE_CARDS = [
-  { id: "seo", label: "SEO", key: "seo" as const, href: "/apps/seo" },
   { id: "ai_visibility", label: "AI Visibility", key: "aiVisibility" as const, href: "/apps/ai-visibility" },
+  { id: "seo", label: "SEO", key: "seo" as const, href: "/apps/seo" },
   { id: "website_health", label: "Website Health", key: "websiteHealth" as const, href: "/apps/websites/health" },
   { id: "reputation", label: "Reputation", key: "reputation" as const, href: "/apps/reviews" },
 ];

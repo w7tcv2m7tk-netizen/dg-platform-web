@@ -19,11 +19,11 @@ export type OrgAppsSettings = {
 };
 
 const PREMIUM_APP_MAP: Record<string, string[]> = {
-  seo_pro: ["seo"],
-  social_pro: ["social"],
-  analytics_pro: ["analytics"],
   ai_visibility_pro: ["ai-visibility"],
+  seo_pro: ["seo"],
   automation_pro: ["automation"],
+  analytics_pro: ["analytics"],
+  social_pro: ["social"],
   voice_ai: ["ai-communications"],
 };
 

@@ -40,8 +40,8 @@ function HealthTrendChart({ values }: { values: number[] }) {
 }
 
 const SCORE_STRIP = [
-  { id: "seo", label: "SEO", key: "seo" as const },
   { id: "ai_visibility", label: "AI Visibility", key: "aiVisibility" as const },
+  { id: "seo", label: "SEO", key: "seo" as const },
   { id: "website_health", label: "Website", key: "websiteHealth" as const },
   { id: "reputation", label: "Reputation", key: "reputation" as const },
 ];

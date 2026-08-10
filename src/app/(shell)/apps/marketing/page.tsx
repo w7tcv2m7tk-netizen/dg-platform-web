@@ -73,8 +73,8 @@ export default async function MarketingOverviewPage() {
   }
 
   const scoreCards = [
-    { id: "seo", label: "SEO", value: twinScores.seo, href: "/apps/seo" },
     { id: "ai_visibility", label: "AI Visibility", value: twinScores.aiVisibility, href: "/apps/ai-visibility" },
+    { id: "seo", label: "SEO", value: twinScores.seo, href: "/apps/seo" },
     { id: "website", label: "Website", value: twinScores.websiteHealth, href: "/apps/websites/health" },
     { id: "growth", label: "Business Growth", value: twinScores.businessGrowth, href: "/apps/marketing/campaigns" },
   ];
