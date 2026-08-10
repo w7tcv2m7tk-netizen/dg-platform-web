@@ -78,6 +78,30 @@ export default async function ServicesOverviewPage() {
 
         <p className="text-xs text-slate-500">{overview.honestyNote}</p>
 
+        <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4">
+          <h2 className="text-sm font-semibold text-white">Uses platform Core</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Not separate Services modules — same objects as the rest of DigitalGate.
+          </p>
+          <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+            <li>
+              <Link href="/apps/commerce/quotes" className="text-sky-400 hover:underline">
+                Quotes → Commerce
+              </Link>
+            </li>
+            <li>
+              <Link href="/apps/crm/contacts" className="text-sky-400 hover:underline">
+                Customers → CRM
+              </Link>
+            </li>
+            <li>
+              <Link href="/dashboard/settings/team" className="text-sky-400 hover:underline">
+                Team → Settings
+              </Link>
+            </li>
+          </ul>
+        </section>
+
         <div className="grid gap-6 lg:grid-cols-2">
           <section className="dg-card space-y-3">
             <h2 className="font-semibold text-white">Pipeline</h2>

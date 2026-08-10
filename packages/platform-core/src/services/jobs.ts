@@ -10,6 +10,15 @@ import type {
   UpdateServiceJobInput,
 } from "./types";
 
+/** Stages before a job is on the calendar — setting a start time advances to scheduled. */
+const PRE_SCHEDULE_STAGES = new Set([
+  "new_enquiry",
+  "qualified",
+  "site_visit",
+  "quote",
+  "approved",
+]);
+
 function serializeJob(row: ServiceJob): ServiceJobRecord {
   return {
     id: row.id,
@@ -32,6 +41,14 @@ function serializeJob(row: ServiceJob): ServiceJobRecord {
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
+}
+
+function resolveCreateStage(input: CreateServiceJobInput): string {
+  const stage = input.stage ?? "new_enquiry";
+  if (input.scheduledStartAt && PRE_SCHEDULE_STAGES.has(stage)) {
+    return "scheduled";
+  }
+  return stage;
 }
 
 export async function listServiceJobs(options: ListServiceJobsOptions) {
@@ -84,16 +101,19 @@ export async function createServiceJob(input: CreateServiceJobInput) {
   const title = input.title.trim();
   if (!title) throw new Error("title is required");
 
+  const stage = resolveCreateStage(input);
+
   const row = await prisma.serviceJob.create({
     data: {
       organisationId: input.organisationId,
       title,
-      stage: input.stage ?? "new_enquiry",
+      stage,
       status: input.status ?? "open",
       jobType: input.jobType?.trim() || null,
       description: input.description?.trim() || null,
       contactId: input.contactId ?? null,
       leadId: input.leadId ?? null,
+      assignedUserId: input.assignedUserId ?? null,
       siteAddress: input.siteAddress?.trim() || null,
       scheduledStartAt: input.scheduledStartAt ? new Date(input.scheduledStartAt) : null,
       scheduledEndAt: input.scheduledEndAt ? new Date(input.scheduledEndAt) : null,
@@ -181,8 +201,20 @@ export async function updateServiceJob(input: UpdateServiceJobInput) {
     data.metadata = input.metadata as Prisma.InputJsonValue;
   }
 
+  // Setting a schedule start auto-advances pre-schedule stages (unless caller set stage).
+  if (
+    input.scheduledStartAt &&
+    input.stage === undefined &&
+    PRE_SCHEDULE_STAGES.has(existing.stage)
+  ) {
+    data.stage = "scheduled";
+  }
+
   const becomingCompleted =
-    (input.stage === "completed" || input.status === "won") && !existing.completedAt;
+    (input.stage === "completed" ||
+      data.stage === "completed" ||
+      input.status === "won") &&
+    !existing.completedAt;
   if (becomingCompleted) {
     data.completedAt = new Date();
   }
@@ -192,7 +224,7 @@ export async function updateServiceJob(input: UpdateServiceJobInput) {
     data,
   });
 
-  const stageChanged = input.stage !== undefined && input.stage !== existing.stage;
+  const stageChanged = row.stage !== existing.stage;
 
   await prisma.activity.create({
     data: {

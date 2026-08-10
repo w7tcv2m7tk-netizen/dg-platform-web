@@ -65,6 +65,11 @@ export default async function CommandClientDetailPage({ params }: Ctx) {
             <div className="mt-2">
               <ScoreCell score={client.successScore} />
             </div>
+            {client.scoreProvisional ? (
+              <p className="mt-2 text-[11px] text-slate-500">
+                Provisional · {client.dataCoverage} data — not invented gaps
+              </p>
+            ) : null}
           </div>
           <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
             <p className="text-xs uppercase tracking-wide text-slate-500">Health tier</p>

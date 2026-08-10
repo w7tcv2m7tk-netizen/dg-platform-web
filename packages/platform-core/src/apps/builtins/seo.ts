@@ -3,9 +3,9 @@ import type { AppManifest } from "../manifest";
 export const seoApp: AppManifest = {
   id: "seo",
   name: "SEO Engine",
-  description: "On-page, technical, and local SEO — native, no Rank Math",
+  description: "Live HTML presence probes + Studio on-page checks — shared with AI Visibility",
   tier: "growth",
-  version: "1.0.0",
+  version: "1.1.0",
   icon: "🔍",
   routes: [
     { path: "/apps/seo", label: "Overview" },
@@ -32,9 +32,10 @@ export const seoApp: AppManifest = {
 export const aiVisibilityApp: AppManifest = {
   id: "ai-visibility",
   name: "AI Visibility",
-  description: "Track brand presence across AI platforms",
+  description:
+    "Website readiness for AI answer engines — schema, Open Graph, and technical signals (not live citation monitoring)",
   tier: "growth",
-  version: "1.0.0",
+  version: "1.1.0",
   icon: "✦",
   routes: [{ path: "/apps/ai-visibility", label: "Dashboard" }],
   navigation: [

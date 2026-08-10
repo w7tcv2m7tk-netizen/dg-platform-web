@@ -65,6 +65,8 @@ export async function POST(req: Request) {
       typeof body.scheduledStartAt === "string" ? body.scheduledStartAt : undefined,
     scheduledEndAt:
       typeof body.scheduledEndAt === "string" ? body.scheduledEndAt : undefined,
+    assignedUserId:
+      typeof body.assignedUserId === "string" ? body.assignedUserId : undefined,
     templateKey,
     metadata:
       body.metadata && typeof body.metadata === "object"

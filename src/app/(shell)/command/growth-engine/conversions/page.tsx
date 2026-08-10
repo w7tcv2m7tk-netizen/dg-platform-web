@@ -5,6 +5,7 @@ import {
 } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
+import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
 import { ConvertProspectToOrgButton } from "@/components/command/GrowthEngineActions";
 import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 
@@ -26,6 +27,7 @@ export default async function GrowthConversionsPage() {
       <main className="dg-page-main space-y-8">
         <CommandCentreNav active="growth" />
         <GrowthEngineNav active="/command/growth-engine/conversions" />
+        <CommandHonestyBanner compact />
 
         {!snap ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
@@ -68,19 +70,19 @@ export default async function GrowthConversionsPage() {
                 <p className="text-xs uppercase tracking-wide text-amber-200/80">
                   Growth MRR won
                 </p>
-                <p className="mt-1 text-3xl font-semibold text-white">
-                  {snap.mrrWonLabel ?? "$0"}
+                <p className="mt-1 text-3xl font-semibold text-white">$0</p>
+                <p className="mt-1 text-xs text-amber-100/70">
+                  Locked at $0 until Growth → Stripe attribution (not Commerce MRR)
                 </p>
-                <p className="mt-1 text-xs text-amber-100/70">Intentionally zero — no Stripe attribution</p>
               </div>
               <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 px-4 py-4">
                 <p className="text-xs uppercase tracking-wide text-amber-200/80">
                   Revenue forecast
                 </p>
-                <p className="mt-1 text-3xl font-semibold text-white">
-                  {snap.mrrForecastLabel ?? "$0"}
+                <p className="mt-1 text-3xl font-semibold text-white">$0</p>
+                <p className="mt-1 text-xs text-amber-100/70">
+                  Locked at $0 until Stripe attribution ships
                 </p>
-                <p className="mt-1 text-xs text-amber-100/70">Intentionally zero until attribution</p>
               </div>
             </div>
             <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4">

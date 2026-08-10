@@ -90,12 +90,21 @@ export function resolveEnabledAppIds(
       ? configured.filter((id) => platformApps.get(id))
       : getDefaultEnabledAppIds();
 
+  const next = [...ids];
+
   // Opportunities is Core platform capability — always available when shipped enabled.
-  if (platformApps.get("opportunities")?.enabled && !ids.includes("opportunities")) {
-    return [...ids, "opportunities"];
+  if (platformApps.get("opportunities")?.enabled && !next.includes("opportunities")) {
+    next.push("opportunities");
   }
 
-  return ids;
+  // SEO + AI Visibility honest presence slice — available when shipped enabled.
+  for (const id of ["seo", "ai-visibility"] as const) {
+    if (platformApps.get(id)?.enabled && !next.includes(id)) {
+      next.push(id);
+    }
+  }
+
+  return next;
 }
 
 export function isAppEnabled(appId: string, enabledIds: string[]): boolean {

@@ -359,6 +359,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     successScore: c.successScore,
     healthTier: c.healthTier,
     rank: c.rank,
+    scoreProvisional: c.scoreProvisional,
   }));
 
   const actions: CommandActionItem[] = [];
@@ -421,7 +422,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       id: "clients-attention",
       severity: "watch",
       title: `${needsAttentionClients} client${needsAttentionClients === 1 ? "" : "s"} need attention`,
-      detail: "Trials, missing connectors, or quiet usage — open Client Intelligence.",
+      detail: "Observed blockers (connectors, overdue leads, billing) — open Client Intelligence.",
       href: "/command/clients",
     });
   }

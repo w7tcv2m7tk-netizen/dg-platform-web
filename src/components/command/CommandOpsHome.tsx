@@ -269,7 +269,8 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
             <div>
               <h2 className="text-lg font-semibold text-white">Clients needing attention</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Lowest Success Score™ / needs-attention tier.
+                Observed blockers only (connectors, overdue leads, billing) — not provisional
+                empty-tenant scores.
               </p>
             </div>
             <Link href="/command/clients" className="text-sm text-sky-400 hover:underline">

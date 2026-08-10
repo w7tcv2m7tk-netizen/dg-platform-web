@@ -9,17 +9,15 @@ export const servicesApp: AppManifest = {
   id: "services",
   name: "Services",
   description:
-    "Jobs, quotes, scheduling, teams & field operations — industry via Service Templates",
+    "Jobs & scheduling for field/trade ops — quotes live in Commerce, customers in CRM, team in Settings",
   tier: "business",
-  version: "0.2.0",
+  version: "0.2.1",
   icon: "⚙",
   routes: [
+    // Owned surfaces only — Quotes → Commerce, Customers → CRM, Teams → Settings (no duplicate nav).
     { path: "/apps/services", label: "Overview" },
     { path: "/apps/services/jobs", label: "Jobs" },
     { path: "/apps/services/scheduling", label: "Scheduling" },
-    { path: "/apps/services/quotes", label: "Quotes" },
-    { path: "/apps/services/customers", label: "Customers" },
-    { path: "/apps/services/teams", label: "Teams" },
   ],
   navigation: [{ href: "/apps/services", label: "Services", icon: "⚙" }],
   permissions: [

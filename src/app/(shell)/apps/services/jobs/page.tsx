@@ -3,6 +3,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import {
   getActiveServiceTemplate,
   listContacts,
+  listOrganisationMembers,
   listServiceJobs,
 } from "@dg/platform-core";
 
@@ -10,6 +11,14 @@ import { CreateServiceJobForm } from "@/components/services/CreateServiceJobForm
 import { ServicesNav } from "@/components/services/ServicesNav";
 import { UpdateJobStageForm } from "@/components/services/UpdateJobStageForm";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+
+function memberLabel(m: {
+  displayName: string | null;
+  email: string | null;
+  clerkUserId: string;
+}) {
+  return m.displayName?.trim() || m.email || m.clerkUserId.slice(0, 8);
+}
 
 export default async function ServicesJobsPage() {
   const user = await currentUser();
@@ -46,10 +55,19 @@ export default async function ServicesJobsPage() {
     select: { settings: true },
   });
   const template = getActiveServiceTemplate(org?.settings);
-  const [{ items, meta }, contacts] = await Promise.all([
+  const [{ items, meta }, contacts, members] = await Promise.all([
     listServiceJobs({ organisationId: session.organisationId, limit: 50 }),
     listContacts({ organisationId: session.organisationId, limit: 100 }),
+    listOrganisationMembers(session.organisationId),
   ]);
+
+  const assigneeByClerkId = new Map(
+    members.map((m) => [m.clerkUserId, memberLabel(m)] as const),
+  );
+  const memberOptions = members.map((m) => ({
+    clerkUserId: m.clerkUserId,
+    label: memberLabel(m),
+  }));
 
   return (
     <>
@@ -68,6 +86,8 @@ export default async function ServicesJobsPage() {
               id: c.id,
               label: [c.firstName, c.lastName].filter(Boolean).join(" "),
             }))}
+            jobFields={template.jobFields}
+            members={memberOptions}
             templateKey={template.key}
             jobLabel={template.terminology.job}
           />
@@ -100,6 +120,9 @@ export default async function ServicesJobsPage() {
                       {job.siteAddress ? ` · ${job.siteAddress}` : ""}
                       {job.scheduledStartAt
                         ? ` · ${new Date(job.scheduledStartAt).toLocaleString("en-AU")}`
+                        : ""}
+                      {job.assignedUserId
+                        ? ` · ${assigneeByClerkId.get(job.assignedUserId) ?? "Assigned"}`
                         : ""}
                     </p>
                   </div>

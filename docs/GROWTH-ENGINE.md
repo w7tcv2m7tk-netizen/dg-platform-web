@@ -184,18 +184,18 @@ Powered by **Automation App** triggers on prospect events + **AI Communications*
 
 ---
 
-## Module 6 — AI Sales Assistant
+## Module 6 — Call today (Sales Assistant v0)
 
-Natural-language queries over prospect + engagement data.
+Ranked “who should I speak to today?” list from Prospect Opportunity Score (audits, engagement, fit). **Not** an autonomous AI SDR — no auto-outreach.
 
 > **“Who should I call today?”**
 
-> These five businesses viewed their audit report this week, have Business Health below 60, and are strong fits for AI Visibility optimisation.
+Surfaces Daily Briefing on `/command/growth-engine` and Today’s Prospecting on `/command`.
 
 **Tool ID:** `command.growth.sales_assistant`  
 **Context:** Pipeline stage, scores, engagement events, industry cohort
 
-**Route:** embedded in Growth Engine hub + Command Centre global advisor
+**Route:** embedded in Growth Engine hub (Daily Briefing)
 
 ---
 
@@ -310,7 +310,7 @@ That is a **repeatable acquisition engine**, not a lead list.
 | **GE-3** | Interactive Opportunity Report | Report renderer, branding |
 | **GE-4** | Prospect Pipeline + auto CRM | Postgres prospect models |
 | **GE-5** | Engagement tracking + Smart Follow-Up | Automation, comms |
-| **GE-6** | AI Sales Assistant + Conversion Dashboard | Event bus, AI Service |
+| **GE-6** | Call today (Sales Assistant v0) + Conversion Dashboard | Event bus; MRR won stays $0 |
 | **GE-7** | Proposal Generator | Commerce quotes |
 | **GE-8** | Client Transition automation | Platform 1.0 provisioning live |
 

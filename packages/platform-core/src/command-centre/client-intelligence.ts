@@ -48,6 +48,8 @@ export type EnrichedCommandClient = CommandClientRow & {
   scoreBreakdown: SuccessScoreBreakdown;
   highlights: string[];
   rank: number;
+  scoreProvisional: boolean;
+  dataCoverage: "sparse" | "partial" | "rich";
 };
 
 export type ClientIntelligenceBundle = {
@@ -214,22 +216,13 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     };
 
     const result = computeSuccessScore(scoreInput);
+    // Observed problems only — do not invent "no leads yet" / empty CRM gaps.
     const attentionReasons = [...result.concerns];
     if (reBeta && !connectorOk) {
       attentionReasons.unshift("RE beta — WordPress connector down");
     }
-    if (reBeta && installedApps.includes("real-estate") && org._count.leads === 0) {
-      attentionReasons.push("RE beta — no leads yet");
-    }
     if (accBeta && !connectorOk) {
       attentionReasons.unshift("Acc beta — WordPress connector down");
-    }
-    if (
-      accBeta &&
-      installedApps.includes("accommodation") &&
-      org._count.stayBookings === 0
-    ) {
-      attentionReasons.push("Acc beta — no stay bookings yet");
     }
 
     const row: Omit<EnrichedCommandClient, "rank"> = {
@@ -249,7 +242,8 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       websitesBeta,
       infraDomainsBeta,
       needsAttention:
-        result.tier === "needs_attention" || attentionReasons.length > 0,
+        attentionReasons.length > 0 ||
+        (!result.provisional && result.tier === "needs_attention"),
       attentionReasons,
       createdAt: org.createdAt.toISOString(),
       updatedAt: org.updatedAt.toISOString(),
@@ -257,6 +251,8 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       healthTier: result.tier,
       scoreBreakdown: result.breakdown,
       highlights: result.highlights,
+      scoreProvisional: result.provisional,
+      dataCoverage: result.dataCoverage,
     };
     return row;
   });

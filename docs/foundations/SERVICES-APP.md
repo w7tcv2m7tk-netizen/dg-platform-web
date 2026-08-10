@@ -1,10 +1,9 @@
 # Services App — Industry-Configurable Field Operations
 
-**Status:** Architecture locked · MVP in progress (engine + templates + UI) · August 2026  
+**Status:** Architecture locked · MVP job ops + day schedule board shipped (Aug 2026) · calendar / checklists / recurrence next  
 **Classification:** **One Business App** with **Service Templates** — not separate Apps per trade  
 **App id:** `services`  
 **Related:** [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) · [COMMERCE-SPECIFICATION.md](../commerce/COMMERCE-SPECIFICATION.md) · [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) · [GLOBAL-READINESS.md](./GLOBAL-READINESS.md)
-
 ---
 
 ## Principle
@@ -43,24 +42,16 @@ Differences between trades are mainly:
                     (Auth · CRM · Commerce · Automation · AI · Events · …)
                               │
                        SERVICES APP
-                    Jobs · Quotes · Scheduling · Customers · Teams · Field Ops
+                    Jobs · Scheduling · Field Ops
                               │
                  Shared Service Engine
                               │
         ┌─────────────────────┼─────────────────────┐
         │                     │                     │
-   Customers               Jobs                  Quotes
-   Scheduling           Checklists              Invoices
-   Payments             Documents          Communications
-   Staff / Teams          Assets                Reviews
+   Jobs (owned)          Scheduling            Templates
                               │
-                    Service Templates
-                              │
-        ┌─────────────────────┼─────────────────────┐
-   Electrician            Plumber               Builder
-   Cleaner              Landscaper                HVAC
-   Pest Control           Painter             Handyman
-   Solar               Pool Service              …
+                    Commerce · CRM · Settings
+                    (Quotes · Customers · Teams)
 ```
 
 ```
@@ -156,11 +147,21 @@ Prefer Universal Objects + Commerce where possible:
 | Customer | **Contact** (+ company when needed) |
 | Enquiry | **Lead** or Services Job draft |
 | Quote / Invoice / Payment | **Commerce** |
-| Job / Schedule | Services Job (+ Task / Activity timeline) |
+| Job / Schedule | Services Job (+ Task / Activity timeline) — **day board + job editor shipped** |
 | Review | **Reviews** App |
 | Comms | Communications / Automation |
 
 Introduce dedicated Job / Schedule models only when Contact + Task + Commerce are insufficient.
+
+### MVP shipped (job ops slice)
+
+* Job create/edit with template `jobFields` → metadata  
+* Schedule start/end; auto-stage to `scheduled` when start set  
+* Assignee from org memberships (Settings → Team)  
+* Scheduling day board (next 14 days)  
+* Soft Commerce quote links on job detail  
+
+Still next: full calendar, checklists, recurrence, invoice auto-create.
 
 ---
 

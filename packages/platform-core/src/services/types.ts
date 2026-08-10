@@ -85,6 +85,7 @@ export type CreateServiceJobInput = {
   siteAddress?: string;
   scheduledStartAt?: string;
   scheduledEndAt?: string;
+  assignedUserId?: string | null;
   templateKey?: string;
   metadata?: Record<string, unknown>;
 };

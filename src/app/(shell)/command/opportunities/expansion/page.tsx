@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getClientExpansionOpportunities } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
+import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
 
 function formatAud(cents: number) {
   return new Intl.NumberFormat("en-AU", {
@@ -24,12 +25,13 @@ export default async function CommandExpansionPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Client expansion</h1>
         <p className="mt-1 text-sm text-slate-400">
-          One opportunity kind — missing-app gaps priced from the static product catalogue (not
-          Stripe revenue). Part of DigitalGate Opportunity Engine™.
+          Missing-app gaps priced from the static product catalogue (list prices) — not Stripe
+          revenue. Part of DigitalGate Opportunity Engine™.
         </p>
       </header>
       <main className="dg-page-main space-y-8">
         <CommandCentreNav active="opportunities" />
+        <CommandHonestyBanner compact />
 
         {!data ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
@@ -43,12 +45,14 @@ export default async function CommandExpansionPage() {
               </p>
               <p className="mt-1 text-3xl font-semibold text-white">
                 {data.totalPotentialMrrLabel}
-                <span className="ml-2 text-base font-normal text-slate-400">/mo catalogue</span>
+                <span className="ml-2 text-base font-normal text-slate-400">
+                  /mo catalogue list price
+                </span>
               </p>
               <p className="mt-2 text-sm text-slate-400">{data.pricingNote}</p>
               <p className="mt-1 text-xs text-slate-500">
                 Source: {data.pricingSource} · {data.summaries.length} client
-                {data.summaries.length === 1 ? "" : "s"} with gaps
+                {data.summaries.length === 1 ? "" : "s"} with catalogue gaps
               </p>
             </div>
 

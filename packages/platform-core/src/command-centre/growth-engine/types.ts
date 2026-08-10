@@ -147,7 +147,7 @@ export interface FollowUpRule {
   enabled: boolean;
 }
 
-/** AI Sales Assistant ranked recommendation */
+/** AI Sales Assistant ranked recommendation — Call today list (not autonomous SDR) */
 export interface SalesCallRecommendation {
   prospectId: string;
   businessName: string;

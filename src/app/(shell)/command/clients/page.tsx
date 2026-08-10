@@ -143,6 +143,11 @@ export default async function CommandClientsPage() {
                         </td>
                         <td className="px-4 py-3">
                           <ScoreCell score={client.successScore} />
+                          {client.scoreProvisional ? (
+                            <p className="mt-0.5 text-[10px] uppercase tracking-wide text-slate-500">
+                              Provisional
+                            </p>
+                          ) : null}
                         </td>
                         <td className="px-4 py-3">
                           <TierBadge tier={client.healthTier} />

@@ -162,8 +162,8 @@ These are intentional — surfaces label them; do not promise the opposite to pi
 | Email open rate = **manual stage** (no open pixel yet) | Conversions dashboard subtitle |
 | Expansion $ = **catalogue list prices** for missing apps, not Stripe | Expansion page (“catalogue” labels + pricing note) |
 | Sales Assistant = **ranked Call today** list, not autonomous AI SDR | Growth hub + module card |
-| Support / Audit Command modules **deferred** (redirects only) | Ops home deferred note; `/command/support` → `/support`; `/command/audit` → tenant audit |
-| Success Score™ / Twin **matures with tenant data** | Clients intelligence banner |
+| Support / Audit Command modules **deferred** (redirects only) | Ops home deferred note; dedicated `/command/support` + `/command/audit` pages redirect |
+| Success Score™ / Twin **matures with tenant data** — no invented gaps | Clients banner; provisional scores; opportunity engine skips sparse low-score ops |
 
 Commerce MRR on `/command/revenue` remains real Neon subscription totals — do not confuse with Growth MRR won.
 

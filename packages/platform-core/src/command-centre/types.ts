@@ -76,6 +76,8 @@ export interface CommandClientRow {
   successScore?: number;
   healthTier?: AgencyHealthTier;
   rank?: number;
+  /** True when score is early — don't invent gaps from it */
+  scoreProvisional?: boolean;
 }
 
 export interface CommandConnectorOrgStatus {

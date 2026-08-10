@@ -13,6 +13,12 @@ export type BuildLiveTwinWithScoresInput = CaptureTwinSnapshotInput & {
   profile?: OrganisationBusinessProfile | null;
   metricsContext: OverviewMetricsContext;
   reputationOverride?: number | null;
+  /** Fresh presence/SEO audit scores — preferred over Twin heuristics. */
+  presenceAuditOverride?: {
+    seo: number;
+    aiVisibility: number;
+    websiteHealth: number;
+  } | null;
 };
 
 /** Capture twin snapshot and enrich with calculated scores in one pass. */
@@ -25,6 +31,7 @@ export function buildLiveTwinWithScores(input: BuildLiveTwinWithScoresInput) {
     metrics: input.metricsContext,
     profile: input.profile,
     reputationOverride: input.reputationOverride,
+    presenceAuditOverride: input.presenceAuditOverride,
   });
 
   snapshot.scores = {

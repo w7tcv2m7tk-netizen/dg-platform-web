@@ -81,6 +81,12 @@ export async function PATCH(req: Request, ctx: Ctx) {
         : body.scheduledEndAt === null
           ? null
           : undefined,
+    assignedUserId:
+      typeof body.assignedUserId === "string"
+        ? body.assignedUserId
+        : body.assignedUserId === null
+          ? null
+          : undefined,
     quoteId: typeof body.quoteId === "string" ? body.quoteId : undefined,
     metadata:
       body.metadata && typeof body.metadata === "object"

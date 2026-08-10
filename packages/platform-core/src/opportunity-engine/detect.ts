@@ -114,7 +114,7 @@ export async function detectOverdueTaskOpportunities(): Promise<PlatformOpportun
   });
 }
 
-/** Client attention reasons + Success Score gaps. */
+/** Client attention reasons + Success Score gaps (observed only). */
 export async function detectClientAttentionOpportunities(): Promise<PlatformOpportunity[]> {
   const intelligence = await getClientIntelligence().catch(() => null);
   if (!intelligence) return [];
@@ -122,6 +122,11 @@ export async function detectClientAttentionOpportunities(): Promise<PlatformOppo
   const items: PlatformOpportunity[] = [];
   for (const client of intelligence.clients) {
     const reasons = client.attentionReasons ?? [];
+    const provisional = client.scoreProvisional === true;
+
+    // Provisional / sparse scores: only surface real attentionReasons — never invent
+    // "Low Success Score" ops from early empty-tenant baselines.
+    if (provisional && reasons.length === 0) continue;
     if (!client.needsAttention && client.successScore >= 70) continue;
 
     for (const reason of reasons.slice(0, 3)) {
@@ -144,7 +149,7 @@ export async function detectClientAttentionOpportunities(): Promise<PlatformOppo
       });
     }
 
-    if (client.successScore < 55 && reasons.length === 0) {
+    if (!provisional && client.successScore < 55 && reasons.length === 0) {
       const score = clampOpportunityScore(100 - client.successScore);
       const breakdown = client.scoreBreakdown;
       const scoreLines = breakdown

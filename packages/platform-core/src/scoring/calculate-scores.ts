@@ -99,6 +99,15 @@ export interface CalculateScoresInput {
   profile?: OrganisationBusinessProfile | null;
   /** When set (e.g. from Reviews feed), overrides CX heuristic for reputation. */
   reputationOverride?: number | null;
+  /**
+   * When set from a recent org SEO/presence audit, prefer these over heuristics
+   * for seo / ai_visibility / website_health.
+   */
+  presenceAuditOverride?: {
+    seo: number;
+    aiVisibility: number;
+    websiteHealth: number;
+  } | null;
 }
 
 export interface OverviewMetricsContext {
@@ -122,13 +131,27 @@ export interface OrgScoresResult {
 
 /** Compute org scores from a Digital Twin snapshot. */
 export function calculateOrgScores(input: CalculateScoresInput): OrgScoresResult {
-  const { snapshot, enabledAppIds, metrics, profile, reputationOverride } = input;
+  const {
+    snapshot,
+    enabledAppIds,
+    metrics,
+    profile,
+    reputationOverride,
+    presenceAuditOverride,
+  } = input;
   const now = new Date();
   const orgId = snapshot.organisationId;
 
-  const websiteHealth = scoreFromWebsite(snapshot);
-  const seo = scoreFromSeo(websiteHealth, snapshot);
-  const aiVisibility = scoreFromAiVisibility(enabledAppIds, websiteHealth, profile);
+  let websiteHealth = scoreFromWebsite(snapshot);
+  let seo = scoreFromSeo(websiteHealth, snapshot);
+  let aiVisibility = scoreFromAiVisibility(enabledAppIds, websiteHealth, profile);
+
+  if (presenceAuditOverride) {
+    websiteHealth = clamp(presenceAuditOverride.websiteHealth);
+    seo = clamp(presenceAuditOverride.seo);
+    aiVisibility = clamp(presenceAuditOverride.aiVisibility);
+  }
+
   const businessGrowth = scoreFromBusinessGrowth(snapshot);
   const sales = scoreFromSales(snapshot, metrics);
   const cx = scoreFromCx(snapshot, metrics);
