@@ -216,7 +216,7 @@ Gen 1 is preserved IP and production. Gen 2 is the evolution — same product, m
 | Tier | Apps | Positioning |
 |------|------|-------------|
 | **Core Apps** | CRM, Tasks, Calendar, Contacts, Documents | Always on — the business OS |
-| **Business Apps** | Real Estate, Accommodation, Finance, Services, Creator, Commercial | Industry verticals |
+| **Business Apps** | Real Estate, Accommodation, Finance, **Services** (templates: electrician, plumber, …), Creator, Commercial | Industry verticals — Services is one App, not one App per trade |
 | **Growth Apps** | SEO, AI Visibility, AI Communications, Marketing, Automation, Analytics, Reviews, Websites | Growth and measurement |
 
 The CRM is one App. SEO is one App. Real Estate is one App. **The Platform is what ties them together.**

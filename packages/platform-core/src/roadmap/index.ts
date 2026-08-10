@@ -438,7 +438,51 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     href: "/apps/finance/applications",
   },
 
-  // —— Services ——
+  // —— Services (one App · industry = Service Templates — docs/foundations/SERVICES-APP.md) ——
+  {
+    id: "services.engine",
+    area: "Services",
+    label: "Shared Service Engine",
+    description:
+      "Enquiry → Customer → Quote → Job → Schedule → Work → Invoice → Payment → Review — Core + Commerce",
+    status: "planned",
+    priority: "high",
+    appId: "services",
+    href: "/apps/services",
+  },
+  {
+    id: "services.templates",
+    area: "Services",
+    label: "Service Templates framework",
+    description:
+      "Configurable workflow, fields, job types, forms, automations, reports — not separate trade Apps",
+    status: "planned",
+    priority: "high",
+    appId: "services",
+    href: "/apps/services",
+  },
+  {
+    id: "services.template.electrician",
+    area: "Services",
+    label: "Electrician template (first vertical)",
+    description:
+      "Job types, compliance fields, electrical workflow — proves template model before other trades",
+    status: "planned",
+    priority: "medium",
+    appId: "services",
+    href: "/apps/services",
+  },
+  {
+    id: "services.ai_configure",
+    area: "Services",
+    label: "AI template configuration",
+    description:
+      "Onboarding: describe the business → auto-configure services, terminology, workflows, KPIs",
+    status: "planned",
+    priority: "medium",
+    appId: "services",
+    href: "/apps/services",
+  },
   {
     id: "services.overview",
     area: "Services",

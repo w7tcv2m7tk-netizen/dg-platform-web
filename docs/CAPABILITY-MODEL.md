@@ -26,7 +26,7 @@ DigitalGate Platform
 └── Platform                ← Settings / administration
 ```
 
-**Apps are the packaging.** Capabilities are the architecture. **Core owns Opportunities; Command Centre orchestrates them.** **AI Brand Studio** is Core (Business Profile → identity → presence), not a Logo Maker App — [foundations/BRAND-STUDIO.md](./foundations/BRAND-STUDIO.md).
+**Apps are the packaging.** Capabilities are the architecture. **Core owns Opportunities; Command Centre orchestrates them.** **AI Brand Studio** is Core (Business Profile → identity → presence), not a Logo Maker App — [foundations/BRAND-STUDIO.md](./foundations/BRAND-STUDIO.md). **Services** is one Business App with Service Templates (not Electrician/Plumber Apps) — [foundations/SERVICES-APP.md](./foundations/SERVICES-APP.md).
 
 ---
 

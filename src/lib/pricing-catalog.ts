@@ -165,7 +165,7 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
     label: "Services",
     icon: "🔧",
     price: "+$99/mo",
-    description: "Jobs, quotes, scheduling & trades CRM",
+    description: "One App for trades — jobs, quotes, schedule; industry via Service Templates",
     status: "live",
   },
   {
