@@ -51,7 +51,6 @@ const SHELL_NAV: PlatformShellNavItem[] = [
     label: "Business Profile",
     icon: getSidebarIcon("business-profile"),
   },
-  { kind: "shell", href: "/dashboard/settings/team", label: "Team", icon: getSidebarIcon("team") },
   { kind: "shell", href: "/dashboard/apps", label: "Apps & Plan", icon: getSidebarIcon("apps") },
   {
     kind: "shell",

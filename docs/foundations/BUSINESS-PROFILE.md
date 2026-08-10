@@ -17,9 +17,8 @@ When a client logs in, they open **their business** (Business Workspace), not a 
 |----------------|-------|
 | Overview | `/dashboard` |
 | Business Profile | `/dashboard/business` |
-| Team | `/dashboard/settings/team` |
-| Apps & plan | `/dashboard/apps` |
-| Settings | `/dashboard/settings` |
+| Apps & Plan | `/dashboard/apps` |
+| Settings | `/dashboard/settings` (Team under Settings → Team) |
 
 Industry apps (CRM, Real Estate, etc.) appear below in the sidebar as installed modules.
 

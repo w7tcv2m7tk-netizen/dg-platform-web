@@ -122,13 +122,10 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
-  function shellLinkActive(href: string, label: string, routes?: AppRoute[]): boolean {
+  function shellLinkActive(href: string, routes?: AppRoute[]): boolean {
     if (routes?.length) return itemHasActiveRoute(pathname, routes);
     if (pathname === href) return true;
     if (href === "/dashboard") return false;
-    if (label === "Team") {
-      return pathname.startsWith("/dashboard/settings/team");
-    }
     return pathname.startsWith(`${href}/`);
   }
 
