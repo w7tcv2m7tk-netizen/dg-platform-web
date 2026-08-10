@@ -60,6 +60,7 @@ export * from "./communications";
 export * from "./seo";
 export * from "./opportunity-engine";
 export * from "./wantd";
+export * from "./services";
 export * from "./roadmap";
 export * from "./app-guides";
 

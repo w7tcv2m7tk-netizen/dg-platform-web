@@ -1,6 +1,6 @@
 # Services App — Industry-Configurable Field Operations
 
-**Status:** Architecture locked · MVP planned · August 2026  
+**Status:** Architecture locked · MVP in progress (engine + templates + UI) · August 2026  
 **Classification:** **One Business App** with **Service Templates** — not separate Apps per trade  
 **App id:** `services`  
 **Related:** [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) · [COMMERCE-SPECIFICATION.md](../commerce/COMMERCE-SPECIFICATION.md) · [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) · [GLOBAL-READINESS.md](./GLOBAL-READINESS.md)

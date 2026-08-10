@@ -18,7 +18,7 @@ export function OrgSwitcher({
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newTemplate, setNewTemplate] = useState<
-    "real-estate" | "accommodation" | "creator" | "default"
+    "real-estate" | "accommodation" | "creator" | "services" | "default"
   >("default");
   const [error, setError] = useState<string | null>(null);
 
@@ -133,13 +133,19 @@ export function OrgSwitcher({
                 value={ newTemplate}
                 onChange={(e) =>
                   setNewTemplate(
-                    e.target.value as "real-estate" | "accommodation" | "creator" | "default",
+                    e.target.value as
+                      | "real-estate"
+                      | "accommodation"
+                      | "creator"
+                      | "services"
+                      | "default",
                   )
                 }
                 className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-sm text-slate-200"
               >
                 <option value="real-estate">Real Estate template</option>
                 <option value="accommodation">Accommodation template</option>
+                <option value="services">Services template</option>
                 <option value="creator">Creator template</option>
                 <option value="default">General business</option>
               </select>

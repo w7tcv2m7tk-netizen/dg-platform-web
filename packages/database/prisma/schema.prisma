@@ -65,6 +65,7 @@ model Organisation {
   websites                      Website[]
   infrastructureDomains         InfrastructureDomain[]
   dreamscapeCustomerLink        DreamscapeCustomerLink?
+  serviceJobs                   ServiceJob[]
 
   referredBy        Organisation?  @relation("OrgReferral", fields: [referredByOrganisationId], references: [id], onDelete: SetNull)
   referralsMade     Organisation[] @relation("OrgReferral")
@@ -132,6 +133,7 @@ model Contact {
   opportunities Opportunity[]
   stayBookings  StayBooking[]
   accommodationGuestProfile AccommodationGuestProfile?
+  serviceJobs   ServiceJob[]
 
   @@index([organisationId, email])
   @@index([organisationId, status])
@@ -198,6 +200,44 @@ model Task {
 
   @@index([organisationId, status])
   @@map("tasks")
+}
+
+/**
+ * Services App — field job / work order.
+ * Industry differences live in jobType + metadata via Service Templates.
+ * @see docs/foundations/SERVICES-APP.md
+ */
+model ServiceJob {
+  id               String    @id @default(cuid())
+  organisationId   String    @map("organisation_id")
+  title            String
+  /** Workflow stage — template-defined (e.g. new_enquiry, scheduled, completed) */
+  stage            String    @default("new_enquiry")
+  status           String    @default("open")
+  jobType          String?   @map("job_type")
+  description      String?
+  contactId        String?   @map("contact_id")
+  leadId           String?   @map("lead_id")
+  quoteId          String?   @map("quote_id")
+  assignedUserId   String?   @map("assigned_user_id")
+  siteAddress      String?   @map("site_address")
+  scheduledStartAt DateTime? @map("scheduled_start_at")
+  scheduledEndAt   DateTime? @map("scheduled_end_at")
+  completedAt      DateTime? @map("completed_at")
+  /** Service template key when created (electrician, plumber, …) */
+  templateKey      String?   @map("template_key")
+  metadata         Json?
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  contact      Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, status])
+  @@index([organisationId, stage])
+  @@index([organisationId, scheduledStartAt])
+  @@index([organisationId, contactId])
+  @@map("service_jobs")
 }
 
 /** In-app notifications — fan-out from platform event bus (not push/OS yet). */

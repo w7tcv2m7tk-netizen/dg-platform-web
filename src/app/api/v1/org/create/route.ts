@@ -9,6 +9,7 @@ const VALID_TEMPLATES = new Set<OrgTemplate>([
   "real-estate",
   "accommodation",
   "creator",
+  "services",
 ]);
 
 export async function POST(req: Request) {

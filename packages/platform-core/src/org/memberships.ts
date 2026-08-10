@@ -3,7 +3,12 @@ import { ORG_BRAND_PRESETS } from "./brand-presets";
 import { seedWordPressConnectorForTemplate } from "../connectors/wordpress/org-connector";
 import type { ProvisionOrganisationResult } from "./provision";
 
-export type OrgTemplate = "default" | "real-estate" | "accommodation" | "creator";
+export type OrgTemplate =
+  | "default"
+  | "real-estate"
+  | "accommodation"
+  | "creator"
+  | "services";
 
 export type UserOrganisationSummary = {
   organisationId: string;
@@ -44,6 +49,16 @@ const ORG_TEMPLATE_APPS: Record<OrgTemplate, string[]> = {
     "reviews",
     "marketing",
     "automation",
+  ],
+  services: [
+    "crm",
+    "commerce",
+    "websites",
+    "services",
+    "reviews",
+    "marketing",
+    "automation",
+    "opportunities",
   ],
 };
 
@@ -185,7 +200,9 @@ export async function createOrganisationForUser(
             ? "hospitality"
             : template === "creator"
               ? "creator"
-              : null,
+              : template === "services"
+                ? "services"
+                : null,
       settings: {
         apps: { enabled: enabledApps },
         // Template orgs enter the matching closed-beta program
@@ -194,6 +211,14 @@ export async function createOrganisationForUser(
           : template === "accommodation"
             ? { featureFlags: { "acc.beta": true } }
             : {}),
+        ...(template === "services"
+          ? {
+              services: {
+                templateKey: "general",
+                appliedAt: new Date().toISOString(),
+              },
+            }
+          : {}),
         profile: {
           businessName: orgName,
           industryVertical:
@@ -203,7 +228,9 @@ export async function createOrganisationForUser(
                 ? "hospitality"
                 : template === "creator"
                   ? "creator"
-                  : undefined,
+                  : template === "services"
+                    ? "services"
+                    : undefined,
           ...(brandPreset ?? {}),
         },
         ...(wpConnector

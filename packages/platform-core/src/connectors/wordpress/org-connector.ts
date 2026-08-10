@@ -233,7 +233,7 @@ export async function resolveOrgWordPressConnector(
 }
 
 export function seedWordPressConnectorForTemplate(
-  template: "real-estate" | "accommodation" | "creator" | "default",
+  template: "real-estate" | "accommodation" | "creator" | "default" | "services",
 ): OrgWordPressConnectorSettings | undefined {
   if (template === "real-estate") {
     return { ...WP_CONNECTOR_PRESETS["real-estate"] };

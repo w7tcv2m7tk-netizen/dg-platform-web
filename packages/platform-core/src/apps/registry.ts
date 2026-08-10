@@ -34,7 +34,7 @@ const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: realEstateApp, enabled: true },
   { manifest: accommodationApp, enabled: true },
   { manifest: financeApp, enabled: false },
-  { manifest: servicesApp, enabled: false },
+  { manifest: servicesApp, enabled: true },
   { manifest: creatorApp, enabled: false },
   { manifest: commercialApp, enabled: false },
   { manifest: automotiveApp, enabled: false },

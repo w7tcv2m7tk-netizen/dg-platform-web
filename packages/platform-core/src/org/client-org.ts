@@ -40,6 +40,16 @@ const ORG_TEMPLATE_APPS: Record<OrgTemplate, string[]> = {
     "marketing",
     "automation",
   ],
+  services: [
+    "crm",
+    "commerce",
+    "websites",
+    "services",
+    "reviews",
+    "marketing",
+    "automation",
+    "opportunities",
+  ],
 };
 
 export type ClientOrgProfileSeed = {
@@ -76,6 +86,7 @@ function industryForTemplate(template: OrgTemplate): string | null {
   if (template === "real-estate") return "real_estate";
   if (template === "accommodation") return "hospitality";
   if (template === "creator") return "creator";
+  if (template === "services") return "services";
   return null;
 }
 
@@ -83,6 +94,7 @@ function verticalForTemplate(template: OrgTemplate): string | undefined {
   if (template === "real-estate") return "real_estate";
   if (template === "accommodation") return "hospitality";
   if (template === "creator") return "creator";
+  if (template === "services") return "services";
   return undefined;
 }
 
@@ -106,6 +118,17 @@ export function inferOrgTemplateFromIndustry(
   }
   if (value.includes("creator") || value.includes("influencer")) {
     return "creator";
+  }
+  if (
+    value.includes("electric") ||
+    value.includes("plumb") ||
+    value.includes("builder") ||
+    value.includes("clean") ||
+    value.includes("trade") ||
+    value.includes("hvac") ||
+    value.includes("service")
+  ) {
+    return "services";
   }
   return "default";
 }
