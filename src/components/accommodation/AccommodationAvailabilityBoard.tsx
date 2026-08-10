@@ -279,7 +279,7 @@ export function AccommodationAvailabilityBoard({
       setSyncMsg(json.error?.message ?? "OTA sync failed — deploy plugin v10.57.0+ on CVH");
       return;
     }
-    setSyncMsg(json.data?.message ?? "Airbnb & Booking.com calendars synced");
+    setSyncMsg(json.data?.message ?? "Airbnb & Booking.com calendars synced to platform");
     router.refresh();
   }
 
