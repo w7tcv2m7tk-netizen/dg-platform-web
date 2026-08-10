@@ -887,6 +887,7 @@ function UnitPricingPanel({
       {selected ? (
         <p className="mt-2 text-xs text-slate-500">
           Editing <span className="text-slate-300">{selected.title}</span>
+          {isolateUnit ? " · calendar shows this unit only (all platforms)" : null}
           {monthHint
             ? " · in Month view, clicks toggle blocks for this unit"
             : null}
