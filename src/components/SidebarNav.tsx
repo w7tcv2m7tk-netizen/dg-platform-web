@@ -157,7 +157,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           );
         }
 
-        const active = shellLinkActive(link.href, link.label);
+        const active = shellLinkActive(link.href);
         return (
           <Link
             key={link.href}
