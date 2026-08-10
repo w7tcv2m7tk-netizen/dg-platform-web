@@ -42,7 +42,7 @@ export const commandCentreApp: AppManifest = {
    */
   navigation: [
     { href: "/command", label: "Priorities", icon: "◈" },
-    { href: "/command/opportunities", label: "Opportunities", icon: "⚡" },
+    { href: "/command/opportunities", label: "Opportunities", icon: "✦" },
     { href: "/command/growth-engine", label: "Prospecting", icon: "◎" },
     { href: "/command/advisor", label: "Recommended Actions", icon: "✓" },
     { href: "/command/platform-health", label: "Alerts", icon: "◉" },

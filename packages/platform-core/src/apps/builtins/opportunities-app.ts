@@ -12,11 +12,11 @@ export const opportunitiesApp: AppManifest = {
     "What matters next — ranked opportunities from CRM, scores, connectors, and ops signals",
   tier: "core",
   version: "0.1.0",
-  icon: "⚡",
+  icon: "✦",
   routes: [
     { path: "/apps/opportunities", label: "All Opportunities" },
   ],
-  navigation: [{ href: "/apps/opportunities", label: "Opportunities", icon: "⚡" }],
+  navigation: [{ href: "/apps/opportunities", label: "Opportunities", icon: "✦" }],
   permissions: [
     { id: "opportunities.view", label: "View opportunities" },
     { id: "opportunities.act", label: "Act on recommended actions" },
