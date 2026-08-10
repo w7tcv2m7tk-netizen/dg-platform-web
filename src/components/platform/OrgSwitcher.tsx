@@ -139,8 +139,8 @@ export function OrgSwitcher({
                 className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-sm text-slate-200"
               >
                 <option value="real-estate">Real Estate template</option>
-                <option value="accommodation">Accommodation template (CVH)</option>
-                <option value="creator">Creator template (Aëtherra)</option>
+                <option value="accommodation">Accommodation template</option>
+                <option value="creator">Creator template</option>
                 <option value="default">General business</option>
               </select>
               <button
