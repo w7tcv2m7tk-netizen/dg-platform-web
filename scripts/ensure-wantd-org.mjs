@@ -157,6 +157,44 @@ async function main() {
     });
   }
 
+  // Ensure DigitalGate owners can see Wantd in OrgSwitcher
+  const digitalgate = await prisma.organisation.findUnique({
+    where: { slug: "digitalgate" },
+    select: {
+      memberships: {
+        where: { status: "active", role: { in: ["owner", "admin"] } },
+        select: { clerkUserId: true, email: true, displayName: true },
+      },
+    },
+  });
+  let ownersSynced = 0;
+  for (const member of digitalgate?.memberships ?? []) {
+    const existing = await prisma.membership.findFirst({
+      where: { organisationId: updated.id, clerkUserId: member.clerkUserId },
+    });
+    if (existing) {
+      if (existing.status !== "active") {
+        await prisma.membership.update({
+          where: { id: existing.id },
+          data: { status: "active", role: "owner" },
+        });
+        ownersSynced += 1;
+      }
+      continue;
+    }
+    await prisma.membership.create({
+      data: {
+        organisationId: updated.id,
+        clerkUserId: member.clerkUserId,
+        role: "owner",
+        status: "active",
+        email: member.email ?? undefined,
+        displayName: member.displayName ?? undefined,
+      },
+    });
+    ownersSynced += 1;
+  }
+
   console.log(
     JSON.stringify(
       {
@@ -166,6 +204,7 @@ async function main() {
         slug: updated.slug,
         name: updated.name,
         previous,
+        ownersSynced,
       },
       null,
       2,

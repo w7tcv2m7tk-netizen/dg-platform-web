@@ -81,11 +81,70 @@ export type EnsureWantdOrganisationResult = {
   reactivated: boolean;
   previousName?: string;
   previousSlug?: string;
+  /** Clerk users granted (or confirmed) owner on Wantd from DigitalGate */
+  ownersSynced?: number;
 };
 
 /**
+ * Copy active DigitalGate owners onto Wantd so the OrgSwitcher shows Wantd
+ * for the same account that runs the other businesses.
+ */
+export async function syncDigitalGateOwnersOntoWantd(
+  wantdOrganisationId: string,
+): Promise<number> {
+  const { prisma } = await import("@dg/database");
+
+  const digitalgate = await prisma.organisation.findUnique({
+    where: { slug: "digitalgate" },
+    select: {
+      memberships: {
+        where: { status: "active", role: { in: ["owner", "admin"] } },
+        select: {
+          clerkUserId: true,
+          email: true,
+          displayName: true,
+          role: true,
+        },
+      },
+    },
+  });
+
+  let synced = 0;
+  for (const member of digitalgate?.memberships ?? []) {
+    const existing = await prisma.membership.findFirst({
+      where: {
+        organisationId: wantdOrganisationId,
+        clerkUserId: member.clerkUserId,
+      },
+    });
+    if (existing) {
+      if (existing.status !== "active") {
+        await prisma.membership.update({
+          where: { id: existing.id },
+          data: { status: "active", role: "owner" },
+        });
+        synced += 1;
+      }
+      continue;
+    }
+    await prisma.membership.create({
+      data: {
+        organisationId: wantdOrganisationId,
+        clerkUserId: member.clerkUserId,
+        role: "owner",
+        status: "active",
+        email: member.email ?? undefined,
+        displayName: member.displayName ?? undefined,
+      },
+    });
+    synced += 1;
+  }
+  return synced;
+}
+
+/**
  * Convert the archived placeholder org into Wantd (or create Wantd if missing).
- * Preserves memberships — Ben stays owner and can switch via OrgSwitcher.
+ * Syncs DigitalGate owners onto Wantd so OrgSwitcher lists it for Ben.
  */
 export async function ensureWantdOrganisation(options?: {
   forceBrand?: boolean;
