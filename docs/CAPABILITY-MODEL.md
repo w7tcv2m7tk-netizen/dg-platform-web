@@ -19,14 +19,14 @@ Customers still **buy and install Apps**, but internally we organise work by **B
 ```
 DigitalGate Platform
 ├── Your Business           ← Overview, profile, Apps & Billing, Marketplace, Network
-├── Core · Platform         ← CRM, Commerce, Websites, Infrastructure, Opportunities
+├── Core · Platform         ← CRM, Commerce, Websites, Infrastructure, Opportunities, Brand Studio
 ├── Command Centre          ← cockpit — priorities / orchestrated opportunities (staff)
 ├── Growth & Intelligence   ← AI Visibility, SEO, Analytics, Automation, Comms…
 ├── Business Apps           ← install-driven verticals (RE, Accommodation, …)
 └── Platform                ← Settings / administration
 ```
 
-**Apps are the packaging.** Capabilities are the architecture. **Core owns Opportunities; Command Centre orchestrates them.**
+**Apps are the packaging.** Capabilities are the architecture. **Core owns Opportunities; Command Centre orchestrates them.** **AI Brand Studio** is Core (Business Profile → identity → presence), not a Logo Maker App — [foundations/BRAND-STUDIO.md](./foundations/BRAND-STUDIO.md).
 
 ---
 

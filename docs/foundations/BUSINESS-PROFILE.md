@@ -35,6 +35,7 @@ Industry apps (CRM, Real Estate, etc.) appear below in the sidebar as installed 
 | **Contact** | `settings.profile` | Yes — phones, emails, support details |
 | **Online presence** | `settings.profile.social` | Yes — GBP, social URLs |
 | **Brand voice** | `settings.profile.brandVoice` | Yes — tone, services, audience, competitors (powers AI) |
+| **Brand identity** | `settings.profile` (+ assets) | Yes — logo, icon, colours today; **AI Brand Studio** (roadmap) expands identity pack — [BRAND-STUDIO.md](./BRAND-STUDIO.md) |
 | **Digital Twin signals** | Computed | Read-only on profile page |
 | Marketing / Sales / Finance KPIs | Twin + apps | Read-only (future: dedicated panels) |
 

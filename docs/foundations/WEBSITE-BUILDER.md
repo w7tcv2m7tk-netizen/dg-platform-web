@@ -455,6 +455,7 @@ Theme tokens come from Business Profile at generate time. Draft-by-default; publ
 |------|------|
 | **Now (pilot)** | Website Studio MVP, Funnel Builder v0, Content overview, Gen 2 Health, Domains go-live |
 | **Later** | Visual Studio, schema library depth, DG Hosting productization polish |
+| **Later** | **AI Brand Studio** entry (optional) — Core capability; have brand / create with AI / later — [BRAND-STUDIO.md](./BRAND-STUDIO.md) |
 | **Later+** | Developer Studio sandbox, deeper Industry App site contracts, richer WP import, multi-step email funnels |
 
 Operational module notes: [websites/WEBSITES-ARCHITECTURE.md](../websites/WEBSITES-ARCHITECTURE.md). Phase placement: [ROADMAP.md](../ROADMAP.md).
@@ -469,6 +470,7 @@ Operational module notes: [websites/WEBSITES-ARCHITECTURE.md](../websites/WEBSIT
 - [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) — trust content feeds Testimonials  
 - [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) — Country Packs + AU GTM  
 - [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) — generation source; parent of Website assets  
+- [BRAND-STUDIO.md](./BRAND-STUDIO.md) — AI Brand Studio (Core); optional entry from Website create  
 - [websites/WEBSITES-ARCHITECTURE.md](../websites/WEBSITES-ARCHITECTURE.md) — Studio / Health / Content / Funnels modules  
 - [adr/0001-generation-2-nextjs-platform.md](../adr/0001-generation-2-nextjs-platform.md)  
 - [adr/0002-wordpress-as-connector.md](../adr/0002-wordpress-as-connector.md)  

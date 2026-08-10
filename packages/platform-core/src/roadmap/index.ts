@@ -100,6 +100,26 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     href: "/dashboard/settings/team",
   },
   {
+    id: "core.brand_studio",
+    area: "Platform",
+    label: "AI Brand Studio (Core)",
+    description:
+      "Business Profile → brand identity (logo, palette, type, voice) → Website/Email/Social/Docs — not a Logo Maker App — docs/foundations/BRAND-STUDIO.md",
+    status: "planned",
+    priority: "high",
+    href: "/dashboard/business",
+  },
+  {
+    id: "core.brand_studio.v1",
+    area: "Platform",
+    label: "Brand Studio V1",
+    description:
+      "Logo concepts + palette + typography + favicon + guidelines with AI iteration; writes back to Business Profile; optional (have brand / AI / later)",
+    status: "planned",
+    priority: "high",
+    href: "/dashboard/business",
+  },
+  {
     id: "platform.connector_engine",
     area: "Platform",
     label: "Connector Engine",
@@ -667,6 +687,17 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     description:
       "Generate/edit sites, NL assist, SEO, WP content import, Make it live — Visual Studio later",
     status: "done",
+    appId: "websites",
+    href: "/apps/websites/studio",
+  },
+  {
+    id: "websites.brand_studio_entry",
+    area: "Websites",
+    label: "Brand Studio entry (Website create)",
+    description:
+      "Optional: I have a brand / Create with AI / Do it later — Core Brand Studio, not required before build — docs/foundations/BRAND-STUDIO.md",
+    status: "planned",
+    priority: "medium",
     appId: "websites",
     href: "/apps/websites/studio",
   },

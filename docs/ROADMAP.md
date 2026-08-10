@@ -84,6 +84,8 @@ Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 
 **Next:** AI on more CRM/RE workflows → Roe RE v0 depth → remaining Connectors reliability.
 
+**Roadmap (planned):** **AI Brand Studio** — Core capability (not Logo Maker). Business Profile → logo / palette / type / favicon / guidelines with AI iteration; optional entry from Website Builder; writes brand into profile for Websites, Email, Docs. Spec: [foundations/BRAND-STUDIO.md](./foundations/BRAND-STUDIO.md). V1 stays small; expand asset packs after validation.
+
 **Shipped (Aug 2026 Core slice):** Platform Refer & Earn MVP (`/r/{code}`, Settings dashboard, invite email stub, first-paid credit); CRM lead create upserts Contact; Lead → Opportunity convert + CRM Opportunities list.
 
 **Shipped (Aug 2026 Refer & Earn P2):** Stripe `invoice.paid` monthly referral credits (months 2–12, idempotent); invite delivery via Resend when `RESEND_API_KEY` set else branded Activity queue; cash payout threshold UI (ledger stub).
