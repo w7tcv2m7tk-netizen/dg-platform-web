@@ -189,12 +189,15 @@ export async function ensureWantdOrganisation(options?: {
       },
     });
 
+    const ownersSynced = await syncDigitalGateOwnersOntoWantd(created.id);
+
     return {
       organisationId: created.id,
       slug: created.slug,
       name: created.name,
       created: true,
       reactivated: false,
+      ownersSynced,
     };
   }
 
@@ -267,6 +270,8 @@ export async function ensureWantdOrganisation(options?: {
     });
   }
 
+  const ownersSynced = await syncDigitalGateOwnersOntoWantd(updated.id);
+
   return {
     organisationId: updated.id,
     slug: updated.slug,
@@ -275,5 +280,6 @@ export async function ensureWantdOrganisation(options?: {
     reactivated,
     previousName: previousName !== updated.name ? previousName : undefined,
     previousSlug: previousSlug !== updated.slug ? previousSlug : undefined,
+    ownersSynced,
   };
 }
