@@ -111,5 +111,6 @@ Gen 2 calendar / sync_ota call the registry; UI stays channel-agnostic.
 ## Related
 
 - [ACC-BETA-LAUNCH.md](../ACC-BETA-LAUNCH.md) — iCal ops checklist  
+- [PROPERTY-SYNDICATION.md](./PROPERTY-SYNDICATION.md) — RE portal syndication (Domain / REA) — same adapter idea  
 - [WP-DETACH-BACKLOG.md](../WP-DETACH-BACKLOG.md) — StayBooking SoT / Gen 2-first flags  
 - Units OTA fields: `/apps/accommodation/units`
