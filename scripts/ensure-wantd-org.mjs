@@ -63,7 +63,8 @@ async function resolveId() {
 
 async function main() {
   const existingId = await resolveId();
-  const brandColours = "#E8A838, #2DD4BF, #0B1220";
+  const brandColours = "#8E3028, #C49A5A, #171513";
+  const tagline = "Tell the marketplace what you WANT.";
 
   if (!existingId) {
     const created = await prisma.organisation.create({
@@ -83,7 +84,7 @@ async function main() {
             brandColours,
             industryVertical: "marketplace",
             verticalLabel: "Wantd Property",
-            tagline: "Tell us what you want — we find the match.",
+            tagline,
             updatedAt: new Date().toISOString(),
           },
         },
@@ -135,7 +136,7 @@ async function main() {
           brandColours,
           industryVertical: "marketplace",
           verticalLabel: "Wantd Property",
-          tagline: "Tell us what you want — we find the match.",
+          tagline,
           updatedAt: new Date().toISOString(),
         },
       },

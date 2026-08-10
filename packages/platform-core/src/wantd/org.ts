@@ -1,5 +1,9 @@
 import { serializeBrandColours } from "../org/brand-theme";
 import {
+  WANTD_COLOURS,
+  WANTD_TAGLINE,
+} from "./brand";
+import {
   WANTD_ORG_NAME,
   WANTD_ORG_SLUG,
   WANTD_VERTICAL,
@@ -18,12 +22,20 @@ export const WANTD_ENABLED_APPS = [
   "reviews",
 ] as const;
 
+/**
+ * Org Business Profile brand — primary = Western Red CTA, accent = Brass Gold,
+ * background = Wantd Black (letterhead / dark surfaces).
+ */
 export const WANTD_BRAND_PATCH = {
-  brandColours: serializeBrandColours("#E8A838", "#2DD4BF", "#0B1220"),
+  brandColours: serializeBrandColours(
+    WANTD_COLOURS.westernRed,
+    WANTD_COLOURS.brassGold,
+    WANTD_COLOURS.black,
+  ),
   websiteUrl: WANTD_WEBSITE,
   businessName: WANTD_ORG_NAME,
   industryVertical: "marketplace",
-  tagline: "Tell us what you want — we find the match.",
+  tagline: WANTD_TAGLINE,
 };
 
 const ARCHIVED_SLUG_CANDIDATES = ["s-organisation"];
@@ -211,7 +223,7 @@ export async function ensureWantdOrganisation(options?: {
 
   const nextProfile = {
     ...profile,
-    ...(options?.forceBrand || !profile.brandColours ? WANTD_BRAND_PATCH : {}),
+    ...WANTD_BRAND_PATCH,
     businessName: WANTD_ORG_NAME,
     websiteUrl: WANTD_WEBSITE,
     verticalLabel: WANTD_VERTICAL,

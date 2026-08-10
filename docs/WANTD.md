@@ -106,6 +106,7 @@ Want stages (`Opportunity.stage`): `new` → `contacted` → `matching` → `mat
 
 | Surface | Path |
 |---------|------|
+| Public homepage | `/wantd` |
 | Public demand form | `/wantd/property` |
 | Capture API | `POST /api/v1/wantd/property-want` |
 | CRM Opportunities | `/apps/crm/opportunities` (Wantd org context) |
@@ -115,9 +116,39 @@ Optional env: `DG_WANTD_ORGANISATION_ID`.
 
 ---
 
+## Brand (locked)
+
+Western heritage, **modern digital marketplace** — not a themed “old Western” site. Personality comes from the logo/wordmark; UI stays contemporary.
+
+### Palette
+
+| Colour | Hex | Use |
+|--------|-----|-----|
+| Wantd Black | `#171513` | Main text, header, dark sections |
+| Charcoal | `#292622` | Cards, navigation, dark UI |
+| Warm Cream | `#F5EBDD` | Main background (~60%) |
+| Antique White | `#FFF9EF` | Cards / clean backgrounds |
+| Saddle Tan | `#B88952` | Secondary accents, borders (~10% with gold) |
+| Brass Gold | `#C49A5A` | Premium highlights, icons |
+| Western Red | `#8E3028` | Primary CTA / Wanted (~5%) |
+| Dusty Red | `#B94A3D` | Hover / secondary accent |
+| Muted Sage | `#69705C` | Optional category/status |
+
+**Ratio:** ~60% cream · 20% black/charcoal · 10% tan/gold · 5% western red · 5% supporting.
+
+**Do not** use blue/purple SaaS gradients for Wantd identity.
+
+**Dark mode:** `#171513` background · `#F5EBDD` text · `#C49A5A` gold · `#8E3028` red (listings / app).
+
+Org Business Profile brand colours: primary Western Red, accent Brass Gold, background Wantd Black (`WANTD_BRAND_PATCH` in `packages/platform-core/src/wantd/`). Tokens: `packages/platform-core/src/wantd/brand.ts` · CSS: `src/app/wantd/wantd.css`.
+
+Re-apply org brand: `node scripts/ensure-wantd-org.mjs` (updates `brandColours` + tagline).
+
+---
+
 ## Code
 
-`packages/platform-core/src/wantd/` — org resolve/provision + Want capture helpers (Core package, **not** an App).
+`packages/platform-core/src/wantd/` — org resolve/provision + Want capture helpers + brand tokens (Core package, **not** an App).
 
 Brand preset key: `wantd`.
 

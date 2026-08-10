@@ -15,6 +15,9 @@ const TRANSACTIONS = [
   { value: "rent", label: "Rent" },
 ] as const;
 
+const fieldClass =
+  "wantd-input w-full rounded-xl px-4 py-3 text-[var(--wantd-ink)] placeholder:text-[var(--wantd-ink-muted)]";
+
 export function WantdPropertyWantForm() {
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
@@ -61,9 +64,11 @@ export function WantdPropertyWantForm() {
 
   if (done) {
     return (
-      <div className="rounded-2xl border border-teal-500/30 bg-teal-500/10 px-6 py-8 text-center">
-        <p className="text-lg font-semibold text-white">We have your Want</p>
-        <p className="mt-2 text-sm text-slate-300">
+      <div className="rounded-2xl border border-[var(--wantd-tan)]/40 bg-[var(--wantd-antique)] px-6 py-8 text-center">
+        <p className="wantd-display text-lg font-semibold text-[var(--wantd-black)]">
+          We have your Want
+        </p>
+        <p className="wantd-muted mt-2 text-sm">
           Thanks — Wantd will match relevant supply and be in touch. Matching is curated for this
           MVP; you will hear from us when there is a fit.
         </p>
@@ -74,48 +79,33 @@ export function WantdPropertyWantForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold uppercase tracking-wide text-amber-200/90">
+        <legend className="text-sm font-semibold uppercase tracking-wide text-[var(--wantd-tan)]">
           About you
         </legend>
-        <input
-          name="name"
-          required
-          placeholder="Full name"
-          className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
-        />
+        <input name="name" required placeholder="Full name" className={fieldClass} />
         <div className="grid gap-3 sm:grid-cols-2">
-          <input
-            name="email"
-            type="email"
-            placeholder="Email"
-            className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
-          />
-          <input
-            name="phone"
-            type="tel"
-            placeholder="Phone"
-            className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
-          />
+          <input name="email" type="email" placeholder="Email" className={fieldClass} />
+          <input name="phone" type="tel" placeholder="Phone" className={fieldClass} />
         </div>
-        <p className="text-xs text-slate-500">Email or phone required.</p>
+        <p className="wantd-muted text-xs">Email or phone required.</p>
       </fieldset>
 
       <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold uppercase tracking-wide text-amber-200/90">
+        <legend className="text-sm font-semibold uppercase tracking-wide text-[var(--wantd-tan)]">
           Transaction
         </legend>
         <div className="flex flex-wrap gap-2">
           {TRANSACTIONS.map((t) => (
             <label
               key={t.value}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-700 px-3 py-2 text-sm text-slate-200 has-[:checked]:border-amber-500/50 has-[:checked]:bg-amber-500/10"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--wantd-border)] bg-[var(--wantd-antique)] px-3 py-2 text-sm text-[var(--wantd-ink)] has-[:checked]:border-[var(--wantd-gold)] has-[:checked]:ring-1 has-[:checked]:ring-[var(--wantd-gold)]"
             >
               <input
                 type="radio"
                 name="transaction"
                 value={t.value}
                 defaultChecked={t.value === "buy"}
-                className="accent-amber-400"
+                className="accent-[var(--wantd-red)]"
               />
               {t.label}
             </label>
@@ -124,36 +114,36 @@ export function WantdPropertyWantForm() {
       </fieldset>
 
       <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold uppercase tracking-wide text-amber-200/90">
+        <legend className="text-sm font-semibold uppercase tracking-wide text-[var(--wantd-tan)]">
           Property
         </legend>
         <input
           name="propertyType"
           placeholder="Property type (e.g. Acreage, House, Townhouse)"
-          className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
+          className={fieldClass}
         />
         <input
           name="preferredSuburbs"
           placeholder="Preferred suburbs (comma-separated)"
-          className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
+          className={fieldClass}
         />
         <input
           name="preferredRegions"
           placeholder="Preferred regions (comma-separated)"
-          className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
+          className={fieldClass}
         />
         <div className="grid gap-3 sm:grid-cols-2">
           <input
             name="minBudgetAud"
             inputMode="decimal"
             placeholder="Min budget (AUD)"
-            className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
+            className={fieldClass}
           />
           <input
             name="maxBudgetAud"
             inputMode="decimal"
             placeholder="Max budget (AUD)"
-            className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
+            className={fieldClass}
           />
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
@@ -161,54 +151,46 @@ export function WantdPropertyWantForm() {
             name="bedrooms"
             inputMode="numeric"
             placeholder="Bedrooms"
-            className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
+            className={fieldClass}
           />
           <input
             name="bathrooms"
             inputMode="numeric"
             placeholder="Bathrooms"
-            className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
+            className={fieldClass}
           />
           <input
             name="minLandSizeSqm"
             inputMode="numeric"
             placeholder="Min land (sqm)"
-            className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
+            className={fieldClass}
           />
         </div>
       </fieldset>
 
       <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold uppercase tracking-wide text-amber-200/90">
+        <legend className="text-sm font-semibold uppercase tracking-wide text-[var(--wantd-tan)]">
           Requirements
         </legend>
         <input
           name="mustHaves"
           placeholder="Must-haves (pool, privacy, views…)"
-          className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
+          className={fieldClass}
         />
-        <input
-          name="lifestyle"
-          placeholder="Lifestyle requirements"
-          className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
-        />
+        <input name="lifestyle" placeholder="Lifestyle requirements" className={fieldClass} />
         <textarea
           name="description"
           rows={4}
           placeholder="Tell us what you want in your own words"
-          className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500"
+          className={fieldClass}
         />
       </fieldset>
 
       <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold uppercase tracking-wide text-amber-200/90">
+        <legend className="text-sm font-semibold uppercase tracking-wide text-[var(--wantd-tan)]">
           Timing
         </legend>
-        <select
-          name="timeline"
-          defaultValue="1_3_months"
-          className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white"
-        >
+        <select name="timeline" defaultValue="1_3_months" className={fieldClass}>
           {TIMELINES.map((t) => (
             <option key={t.value} value={t.value}>
               {t.label}
@@ -217,14 +199,14 @@ export function WantdPropertyWantForm() {
         </select>
       </fieldset>
 
-      {error ? <p className="text-sm text-red-300">{error}</p> : null}
+      {error ? <p className="text-sm text-[var(--wantd-red)]">{error}</p> : null}
 
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl bg-amber-500 px-4 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:opacity-60"
+        className="wantd-btn-wanted w-full rounded-xl px-4 py-3.5 text-sm disabled:opacity-60"
       >
-        {pending ? "Submitting…" : "Tell us what property you want"}
+        {pending ? "Submitting…" : "Post this Want"}
       </button>
     </form>
   );
