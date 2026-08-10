@@ -1,6 +1,6 @@
 # Connector Engine
 
-**Status:** Architecture accepted · WordPress + Stripe live · Framework expansion in progress  
+**Status:** Architecture accepted · WordPress + Stripe live · Domain OAuth + Google GBP scaffold · Framework booted  
 **Layer:** **Platform Core** (not an industry app)  
 **Positioning:** “Gateway to Your Digital World” — connectors feed Universal Objects → AI + scoring → Insights / Automation / Actions.
 

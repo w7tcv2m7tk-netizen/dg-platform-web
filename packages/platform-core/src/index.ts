@@ -21,6 +21,7 @@ export * from "./business-discovery";
 export * from "./connectors/wordpress";
 export * from "./connectors/framework";
 export * from "./connectors/domain";
+export * from "./connectors/google";
 export * from "./contacts";
 export * from "./companies";
 export * from "./leads";

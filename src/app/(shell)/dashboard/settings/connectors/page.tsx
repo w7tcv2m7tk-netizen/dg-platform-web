@@ -2,14 +2,19 @@ import Link from "next/link";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
 import {
+  bootConnectorEngine,
   getOrgWordPressConnectorSettings,
   resolveOrgWordPressConnector,
 } from "@dg/platform-core";
 
+import { ConnectorEngineCatalog } from "@/components/settings/ConnectorEngineCatalog";
 import { DomainConnectorPanel } from "@/components/settings/DomainConnectorPanel";
+import { GoogleGbpConnectorPanel } from "@/components/settings/GoogleGbpConnectorPanel";
 import { WordPressConnectorPanel } from "@/components/settings/WordPressConnectorPanel";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { getLastWordPressSync } from "@/lib/wordpress-sync";
+
+bootConnectorEngine();
 
 function EnvStatus({ name, configured }: { name: string; configured: boolean }) {
   return (
@@ -23,11 +28,19 @@ function EnvStatus({ name, configured }: { name: string; configured: boolean }) 
 }
 
 interface PageProps {
-  searchParams: Promise<{ domain?: string; message?: string }>;
+  searchParams: Promise<{
+    domain?: string;
+    google?: string;
+    message?: string;
+  }>;
 }
 
 export default async function ConnectorsSettingsPage({ searchParams }: PageProps) {
-  const { domain: domainFlash, message: domainMessage } = await searchParams;
+  const {
+    domain: domainFlash,
+    google: googleFlash,
+    message: flashMessage,
+  } = await searchParams;
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const name =
@@ -65,6 +78,8 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
     anthropic: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),
     domainClient: Boolean(process.env.DOMAIN_CLIENT_ID?.trim()),
     domainSecret: Boolean(process.env.DOMAIN_CLIENT_SECRET?.trim()),
+    googleClient: Boolean(process.env.GOOGLE_CLIENT_ID?.trim()),
+    googleSecret: Boolean(process.env.GOOGLE_CLIENT_SECRET?.trim()),
   };
 
   return (
@@ -75,10 +90,12 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Connectors</h1>
         <p className="text-sm text-slate-400">
-          WordPress sync, Domain syndication OAuth, site health, and payment providers
+          Connector Engine · Domain · Google Business Profile · WordPress · payments
         </p>
       </header>
       <main className="dg-page-main space-y-6">
+        <ConnectorEngineCatalog />
+
         <DomainConnectorPanel
           flash={
             domainFlash === "connected"
@@ -87,7 +104,18 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
                 ? "error"
                 : null
           }
-          flashMessage={domainMessage ?? null}
+          flashMessage={domainFlash ? flashMessage ?? null : null}
+        />
+
+        <GoogleGbpConnectorPanel
+          flash={
+            googleFlash === "connected"
+              ? "connected"
+              : googleFlash === "error"
+                ? "error"
+                : null
+          }
+          flashMessage={googleFlash ? flashMessage ?? null : null}
         />
 
         {session && wpResolved ? (
@@ -167,6 +195,8 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
               <EnvStatus name="STRIPE_SECRET_KEY" configured={envFlags.stripe} />
               <EnvStatus name="DOMAIN_CLIENT_ID" configured={envFlags.domainClient} />
               <EnvStatus name="DOMAIN_CLIENT_SECRET" configured={envFlags.domainSecret} />
+              <EnvStatus name="GOOGLE_CLIENT_ID" configured={envFlags.googleClient} />
+              <EnvStatus name="GOOGLE_CLIENT_SECRET" configured={envFlags.googleSecret} />
               <EnvStatus name="RESEND_API_KEY" configured={envFlags.resend} />
               <EnvStatus name="OPENAI_API_KEY" configured={envFlags.openai} />
               <EnvStatus name="ANTHROPIC_API_KEY" configured={envFlags.anthropic} />

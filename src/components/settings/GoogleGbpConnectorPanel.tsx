@@ -2,20 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-type DomainStatus = {
+type GoogleStatus = {
   platform: {
     configured: boolean;
     clientIdSet: boolean;
     secretSet: boolean;
     redirectUri: string;
-    probe: {
-      ok: boolean;
-      configured: boolean;
-      tokenOk?: boolean;
-      apiOk?: boolean;
-      expiresAt?: string;
-      message: string;
-    } | null;
   };
   organisation: {
     id: string;
@@ -30,18 +22,19 @@ type DomainStatus = {
       apiOk?: boolean;
       expiresAt?: string;
       message: string;
+      accountCount?: number;
     } | null;
-  } | null;
+  };
 };
 
-export function DomainConnectorPanel({
+export function GoogleGbpConnectorPanel({
   flash,
   flashMessage,
 }: {
   flash?: "connected" | "error" | null;
   flashMessage?: string | null;
 }) {
-  const [status, setStatus] = useState<DomainStatus | null>(null);
+  const [status, setStatus] = useState<GoogleStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -49,24 +42,24 @@ export function DomainConnectorPanel({
   async function load() {
     setLoading(true);
     setError(null);
-    const res = await fetch("/api/v1/connectors/domain/status");
+    const res = await fetch("/api/v1/connectors/google/status");
     const json = await res.json().catch(() => ({}));
     setLoading(false);
     if (!res.ok) {
-      setError(json.error?.message ?? "Could not load Domain status");
+      setError(json.error?.message ?? "Could not load Google status");
       return;
     }
-    setStatus(json.data as DomainStatus);
+    setStatus(json.data as GoogleStatus);
   }
 
   async function disconnect() {
     setBusy(true);
     setError(null);
-    const res = await fetch("/api/v1/connectors/domain/disconnect", { method: "POST" });
+    const res = await fetch("/api/v1/connectors/google/disconnect", { method: "POST" });
     const json = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) {
-      setError(json.error?.message ?? "Could not disconnect Domain");
+      setError(json.error?.message ?? "Could not disconnect Google");
       return;
     }
     await load();
@@ -83,11 +76,10 @@ export function DomainConnectorPanel({
     <div className="dg-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-wide text-slate-500">Property</p>
-          <h2 className="font-semibold text-white">Domain</h2>
+          <p className="text-xs uppercase tracking-wide text-slate-500">Business</p>
+          <h2 className="font-semibold text-white">Google Business Profile</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Property syndication (Listings Management) · OAuth client on{" "}
-            <span className="text-slate-300">app.digitalgate.com.au</span>
+            Profile, reviews, and insights for AI Visibility — OAuth (GBP manage scope)
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -102,20 +94,26 @@ export function DomainConnectorPanel({
             </button>
           ) : null}
           <a
-            href="/api/connectors/domain/connect"
-            className="rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-500"
+            href="/api/connectors/google/connect"
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold text-white ${
+              platform?.configured
+                ? "bg-blue-600 hover:bg-blue-500"
+                : "pointer-events-none bg-slate-700 text-slate-400"
+            }`}
           >
-            {org?.connected ? "Reconnect" : "Connect Domain account"}
+            {org?.connected ? "Reconnect" : "Connect Google"}
           </a>
         </div>
       </div>
 
       {flash === "connected" ? (
-        <p className="mt-3 text-sm text-emerald-400">Domain account connected for this organisation.</p>
+        <p className="mt-3 text-sm text-emerald-400">
+          Google Business Profile connected for this organisation.
+        </p>
       ) : null}
       {flash === "error" ? (
         <p className="mt-3 text-sm text-amber-400">
-          Domain connect failed{flashMessage ? `: ${flashMessage}` : " — try again."}
+          Google connect failed{flashMessage ? `: ${flashMessage}` : " — try again."}
         </p>
       ) : null}
       {error ? <p className="mt-3 text-sm text-amber-400">{error}</p> : null}
@@ -128,20 +126,14 @@ export function DomainConnectorPanel({
           <li>
             Platform credentials:{" "}
             <span className={platform.configured ? "text-emerald-400" : "text-amber-400"}>
-              {platform.configured ? "Configured" : "Missing DOMAIN_CLIENT_ID / SECRET"}
+              {platform.configured
+                ? "Configured"
+                : "Missing GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET"}
             </span>
           </li>
           <li className="font-mono text-xs text-slate-500">
             Redirect: {platform.redirectUri}
           </li>
-          {platform.probe ? (
-            <li>
-              Client-credentials probe:{" "}
-              <span className={platform.probe.ok ? "text-emerald-400" : "text-amber-400"}>
-                {platform.probe.message}
-              </span>
-            </li>
-          ) : null}
           {org ? (
             <>
               <li>
@@ -149,12 +141,12 @@ export function DomainConnectorPanel({
                 <span className={org.connected ? "text-emerald-400" : "text-slate-500"}>
                   {org.connected
                     ? `Connected${org.connectedAt ? ` · ${new Date(org.connectedAt).toLocaleString("en-AU")}` : ""}`
-                    : "Not connected — use Connect Domain account for agency context"}
+                    : "Not connected"}
                 </span>
               </li>
               {org.probe ? (
                 <li>
-                  Org token probe:{" "}
+                  GBP probe:{" "}
                   <span className={org.probe.ok ? "text-emerald-400" : "text-amber-400"}>
                     {org.probe.message}
                   </span>

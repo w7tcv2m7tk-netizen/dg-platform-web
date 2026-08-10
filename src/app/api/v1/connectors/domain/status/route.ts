@@ -1,49 +1,35 @@
 import {
+  bootConnectorEngine,
   domainCredentialsConfigured,
   getOrgDomainConnectorTokens,
   probeDomainConnection,
+  probeOrgDomainConnection,
 } from "@dg/platform-core";
-import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { fetchPortalMe } from "@/lib/dg-api";
+import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/v1/connectors/domain/status — platform + org Domain connection health. */
-export async function GET() {
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json(
-      { error: { code: "unauthorized", message: "Sign in required" } },
-      { status: 401 },
-    );
-  }
+bootConnectorEngine();
 
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  const session = await resolveActivePlatformSession({
-    clerkUserId: userId,
-    email,
-    name,
-    orgName: portal?.org_name,
-  });
+/** GET /api/v1/connectors/domain/status — platform + org Domain connection health. */
+export async function GET(req: Request) {
+  const session = await requirePlatformAuth(req);
+  if (isNextResponse(session)) return session;
 
   const configured = domainCredentialsConfigured();
-  let orgTokens = null;
-  if (session) {
-    orgTokens = await getOrgDomainConnectorTokens(session.organisationId);
+  const orgTokens = await getOrgDomainConnectorTokens(session.organisationId);
+  const connected = Boolean(orgTokens?.accessToken || orgTokens?.refreshToken);
+
+  let platformProbe: Awaited<ReturnType<typeof probeDomainConnection>> | null = null;
+  if (configured) {
+    platformProbe = await probeDomainConnection();
   }
 
-  let probe: Awaited<ReturnType<typeof probeDomainConnection>> | null = null;
-  if (configured) {
-    probe = await probeDomainConnection();
+  let orgProbe: Awaited<ReturnType<typeof probeOrgDomainConnection>> | null = null;
+  if (connected) {
+    orgProbe = await probeOrgDomainConnection(session.organisationId);
   }
 
   return NextResponse.json({
@@ -55,18 +41,17 @@ export async function GET() {
         redirectUri:
           process.env.DOMAIN_REDIRECT_URI?.trim() ||
           "https://app.digitalgate.com.au/api/connectors/domain/callback",
-        probe,
+        probe: platformProbe,
       },
-      organisation: session
-        ? {
-            id: session.organisationId,
-            name: session.organisationName,
-            connected: Boolean(orgTokens?.accessToken || orgTokens?.refreshToken),
-            expiresAt: orgTokens?.expiresAt ?? null,
-            connectedAt: orgTokens?.connectedAt ?? null,
-            scope: orgTokens?.scope ?? null,
-          }
-        : null,
+      organisation: {
+        id: session.organisationId,
+        name: session.organisationName,
+        connected,
+        expiresAt: orgTokens?.expiresAt ?? null,
+        connectedAt: orgTokens?.connectedAt ?? null,
+        scope: orgTokens?.scope ?? null,
+        probe: orgProbe,
+      },
     },
   });
 }

@@ -1,3 +1,10 @@
+import { decryptSecret, encryptSecret } from "../../crypto/secret-field";
+import {
+  clearOrgConnectorSettings,
+  getOrgConnectorSettings,
+  saveOrgConnectorSettings,
+} from "../framework/store";
+
 /**
  * Domain.com.au OAuth + API client (platform credentials).
  *
@@ -295,47 +302,136 @@ export type OrgDomainConnectorTokens = {
   connectedAt?: string;
   /** Domain user / agency hint from last connect */
   label?: string;
+  lastError?: string;
 };
+
+function encryptTokenField(value: string | undefined): string | undefined {
+  if (!value) return value;
+  return encryptSecret(value);
+}
+
+function decryptTokenField(value: string | undefined): string | undefined {
+  if (!value) return value;
+  const decrypted = decryptSecret(value);
+  return decrypted || value;
+}
 
 export async function getOrgDomainConnectorTokens(
   organisationId: string,
 ): Promise<OrgDomainConnectorTokens | null> {
-  if (!process.env.DATABASE_URL) return null;
-  const { prisma } = await import("@dg/database");
-  const org = await prisma.organisation.findUnique({
-    where: { id: organisationId },
-    select: { settings: true },
-  });
-  const settings = (org?.settings as { connectors?: { domain?: OrgDomainConnectorTokens } } | null)
-    ?.connectors?.domain;
-  return settings ?? null;
+  const blob = await getOrgConnectorSettings(organisationId, "domain");
+  if (!blob) return null;
+  return {
+    accessToken: decryptTokenField(
+      typeof blob.accessToken === "string" ? blob.accessToken : undefined,
+    ),
+    refreshToken: decryptTokenField(
+      typeof blob.refreshToken === "string" ? blob.refreshToken : undefined,
+    ),
+    expiresAt: typeof blob.expiresAt === "string" ? blob.expiresAt : undefined,
+    scope: typeof blob.scope === "string" ? blob.scope : undefined,
+    connectedAt: typeof blob.connectedAt === "string" ? blob.connectedAt : undefined,
+    label: typeof blob.label === "string" ? blob.label : undefined,
+    lastError: typeof blob.lastError === "string" ? blob.lastError : undefined,
+  };
 }
 
 export async function saveOrgDomainConnectorTokens(
   organisationId: string,
   tokens: OrgDomainConnectorTokens,
 ): Promise<void> {
-  if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL not configured");
+  await saveOrgConnectorSettings(organisationId, "domain", {
+    accessToken: encryptTokenField(tokens.accessToken),
+    refreshToken: encryptTokenField(tokens.refreshToken),
+    expiresAt: tokens.expiresAt ?? null,
+    scope: tokens.scope ?? null,
+    connectedAt: tokens.connectedAt ?? new Date().toISOString(),
+    label: tokens.label ?? null,
+    lastError: tokens.lastError ?? null,
+  });
+}
+
+export async function clearOrgDomainConnectorTokens(
+  organisationId: string,
+): Promise<void> {
+  await clearOrgConnectorSettings(organisationId, "domain");
+}
+
+/** Refresh if expired / near expiry; returns usable org access token. */
+export async function ensureValidOrgDomainAccessToken(
+  organisationId: string,
+): Promise<
+  | { ok: true; accessToken: string; tokens: OrgDomainConnectorTokens }
+  | { ok: false; message: string }
+> {
+  const tokens = await getOrgDomainConnectorTokens(organisationId);
+  if (!tokens?.accessToken && !tokens?.refreshToken) {
+    return { ok: false, message: "Domain account not connected for this organisation" };
   }
-  const { prisma } = await import("@dg/database");
-  type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
-  const org = await prisma.organisation.findUnique({
-    where: { id: organisationId },
-    select: { settings: true },
-  });
-  const prev = (org?.settings as Record<string, unknown> | null) ?? {};
-  const connectors = (prev.connectors as Record<string, unknown> | undefined) ?? {};
-  await prisma.organisation.update({
-    where: { id: organisationId },
-    data: {
-      settings: {
-        ...prev,
-        connectors: {
-          ...connectors,
-          domain: tokens,
-        },
-      } as InputJsonValue,
-    },
-  });
+
+  const expiresAt = tokens.expiresAt ? Date.parse(tokens.expiresAt) : 0;
+  const needsRefresh =
+    Boolean(tokens.refreshToken) &&
+    (!tokens.accessToken || !Number.isFinite(expiresAt) || expiresAt < Date.now() + 60_000);
+
+  if (!needsRefresh && tokens.accessToken) {
+    return { ok: true, accessToken: tokens.accessToken, tokens };
+  }
+
+  if (!tokens.refreshToken) {
+    return { ok: false, message: "Domain access token expired — reconnect the account" };
+  }
+
+  const refreshed = await refreshDomainAccessToken({ refreshToken: tokens.refreshToken });
+  if (!refreshed.ok) {
+    await saveOrgDomainConnectorTokens(organisationId, {
+      ...tokens,
+      lastError: refreshed.message,
+    });
+    return { ok: false, message: refreshed.message };
+  }
+
+  const next: OrgDomainConnectorTokens = {
+    ...tokens,
+    accessToken: refreshed.token.access_token,
+    refreshToken: refreshed.token.refresh_token || tokens.refreshToken,
+    expiresAt: refreshed.token.expiresAt,
+    scope: refreshed.token.scope || tokens.scope,
+    lastError: undefined,
+  };
+  await saveOrgDomainConnectorTokens(organisationId, next);
+  return { ok: true, accessToken: next.accessToken!, tokens: next };
+}
+
+/** Org-token probe against Domain agencies API. */
+export async function probeOrgDomainConnection(organisationId: string): Promise<{
+  ok: boolean;
+  connected: boolean;
+  apiOk?: boolean;
+  expiresAt?: string;
+  message: string;
+}> {
+  const ensured = await ensureValidOrgDomainAccessToken(organisationId);
+  if (!ensured.ok) {
+    return { ok: false, connected: false, message: ensured.message };
+  }
+
+  const probe = await domainApiGet("/v1/agencies", ensured.accessToken);
+  if (!probe.ok) {
+    return {
+      ok: false,
+      connected: true,
+      apiOk: false,
+      expiresAt: ensured.tokens.expiresAt,
+      message: `Token OK · API probe: ${probe.message}`,
+    };
+  }
+
+  return {
+    ok: true,
+    connected: true,
+    apiOk: true,
+    expiresAt: ensured.tokens.expiresAt,
+    message: "Domain org token + agencies probe OK",
+  };
 }

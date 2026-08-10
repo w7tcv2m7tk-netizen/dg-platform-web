@@ -1,10 +1,11 @@
 /**
  * Domain Listings Management syndication adapter.
- * Auth via platform DOMAIN_* credentials; write APIs require product access + agency consent.
+ * Prefers org OAuth tokens; falls back to platform client-credentials for smoke validation.
  */
 
 import {
   domainCredentialsConfigured,
+  ensureValidOrgDomainAccessToken,
   fetchDomainClientCredentialsToken,
 } from "../../connectors/domain/auth";
 import type {
@@ -33,6 +34,18 @@ export const domainSyndicationAdapter: SyndicationChannelAdapter = {
         message: "listingId and propertyId are required",
       };
     }
+
+    if (input.organisationId) {
+      const orgToken = await ensureValidOrgDomainAccessToken(input.organisationId);
+      if (orgToken.ok) {
+        return {
+          ok: true,
+          status: "draft",
+          message: "Domain org credentials OK — Listings Management write not wired yet",
+        };
+      }
+    }
+
     const token = await fetchDomainClientCredentialsToken();
     if (!token.ok) {
       return { ok: false, status: "error", message: token.message, raw: token.raw };
@@ -40,7 +53,8 @@ export const domainSyndicationAdapter: SyndicationChannelAdapter = {
     return {
       ok: true,
       status: "draft",
-      message: "Domain credentials OK — Listings Management write not wired yet",
+      message:
+        "Domain platform credentials OK — connect an org Domain account for agency-context publish",
     };
   },
 
