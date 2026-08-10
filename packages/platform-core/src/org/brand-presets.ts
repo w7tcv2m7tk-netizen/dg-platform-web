@@ -40,9 +40,8 @@ export const ORG_BRAND_PRESETS: Record<OrgBrandPresetKey, OrgBrandPreset> = {
     label: "Currumbin Valley Hideaway",
     patch: {
       brandColours: serializeBrandColours("#B9A48A", "#2C4137", "#2C4137"),
-      iconUrl: "https://currumbinvalleyhideaway.com.au/wp-content/uploads/2026/05/Icon.png",
-      logoUrl:
-        "https://currumbinvalleyhideaway.com.au/wp-content/uploads/2026/06/CVH-Logo-and-Icon.png",
+      iconUrl: "/brand/cvh-icon.png",
+      logoUrl: "/brand/cvh-logo.png",
       websiteUrl: "https://currumbinvalleyhideaway.com.au",
     },
   },

@@ -1,7 +1,11 @@
 /**
  * Shared transactional email HTML shell — org wordmark/logo from business profile / brand presets.
  * Absolute HTTPS image URLs only (email clients block relative paths).
- * Header is logo-only (no icon lockup) — matches AU invoice letterhead.
+ *
+ * Layout contract (all themes):
+ * - Header: logo / wordmark only (no icon lockup)
+ * - Footer: icon mark only (+ copyright / note)
+ * - Mobile: viewport meta, fluid max-width images, 16px outer padding
  */
 
 import {
@@ -17,10 +21,14 @@ import type { OrganisationBusinessProfile } from "../org/business-profile-types"
 const DG_FALLBACK_LOGO =
   ORG_BRAND_PRESETS.digitalgate.patch.logoUrl ??
   "https://app.digitalgate.com.au/brand/logo-on-dark.png";
+const DG_FALLBACK_ICON =
+  ORG_BRAND_PRESETS.digitalgate.patch.iconUrl ??
+  "https://app.digitalgate.com.au/brand/icon-light.png";
 
 export type EmailBrandAssets = {
   businessName: string;
   logoUrl: string;
+  iconUrl: string;
   primaryColor: string;
   accentColor: string;
 };
@@ -28,6 +36,7 @@ export type EmailBrandAssets = {
 export type WrapTransactionalEmailInput = {
   businessName: string;
   logoUrl?: string;
+  iconUrl?: string;
   primaryColor?: string;
   accentColor?: string;
   bodyHtml: string;
@@ -42,7 +51,7 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-/** Resolve wordmark logo + colours for an org (profile → preset → DigitalGate fallback). */
+/** Resolve wordmark logo + icon + colours for an org (profile → preset → DigitalGate fallback). */
 export function resolveEmailBrandAssets(input: {
   organisationId?: string;
   organisationName?: string;
@@ -51,8 +60,11 @@ export function resolveEmailBrandAssets(input: {
   profile?: OrganisationBusinessProfile | null;
   settings?: unknown;
 }): EmailBrandAssets {
-  const name = input.organisationName?.trim() || input.profile?.tradingName?.trim()
-    || input.profile?.businessName?.trim() || "DigitalGate";
+  const name =
+    input.organisationName?.trim() ||
+    input.profile?.tradingName?.trim() ||
+    input.profile?.businessName?.trim() ||
+    "DigitalGate";
   const orgLike = {
     id: input.organisationId ?? "unknown",
     name,
@@ -68,40 +80,74 @@ export function resolveEmailBrandAssets(input: {
   const presetKey: OrgBrandPresetKey | null = resolveOrgBrandPresetKey(orgLike);
   const preset = presetKey ? ORG_BRAND_PRESETS[presetKey] : null;
 
-  const logoUrl =
+  let logoUrl =
     absoluteBrandAssetUrl(profile.logoUrl) ||
     absoluteBrandAssetUrl(preset?.patch.logoUrl) ||
     DG_FALLBACK_LOGO;
+
+  let iconUrl =
+    absoluteBrandAssetUrl(profile.iconUrl) ||
+    absoluteBrandAssetUrl(preset?.patch.iconUrl) ||
+    absoluteBrandAssetUrl(logoUrl) ||
+    DG_FALLBACK_ICON;
+
+  // CVH WP uploads often ship a combined logo+icon lockup — emails need separate marks.
+  if (presetKey === "cvh") {
+    if (/logo-and-icon|Logo-and-Icon/i.test(logoUrl || "")) {
+      logoUrl = absoluteBrandAssetUrl("/brand/cvh-logo.png") || logoUrl;
+    }
+    iconUrl = absoluteBrandAssetUrl("/brand/cvh-icon.png") || iconUrl;
+  }
 
   return {
     businessName:
       profile.tradingName?.trim() || profile.businessName?.trim() || name,
     logoUrl: logoUrl!,
+    iconUrl: iconUrl!,
     primaryColor: colours[0] ?? "#3B82F6",
     accentColor: colours[1] ?? colours[0] ?? "#10B981",
   };
 }
 
-/** Sync HTML wrap — wordmark/logo in header only (no icon). */
+/** Sync HTML wrap — logo in header, icon in footer. Mobile-first table layout. */
 export function wrapTransactionalEmail(input: WrapTransactionalEmailInput): string {
   const businessName = input.businessName.trim() || "DigitalGate";
-  const logoUrl =
-    absoluteBrandAssetUrl(input.logoUrl) || DG_FALLBACK_LOGO;
+  const logoUrl = absoluteBrandAssetUrl(input.logoUrl) || DG_FALLBACK_LOGO;
+  const iconUrl =
+    absoluteBrandAssetUrl(input.iconUrl) ||
+    absoluteBrandAssetUrl(logoUrl) ||
+    DG_FALLBACK_ICON;
   const primary = input.primaryColor || "#3B82F6";
   const footer =
-    input.footerNote?.trim() ||
-    `You're receiving this email from ${businessName}.`;
+    input.footerNote?.trim() || `You're receiving this email from ${businessName}.`;
   const alt = escapeHtml(businessName);
 
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#0A0F1A;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#0A0F1A;padding:32px 16px;"><tr><td align="center">
-<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px;background:#141B2B;border:1px solid rgba(59,130,246,0.12);border-radius:24px;overflow:hidden;">
-<tr><td style="padding:32px 32px 24px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);">
-<img src="${escapeHtml(logoUrl!)}" alt="${alt}" width="180" style="max-width:180px;height:auto;display:block;margin:0 auto;border:0;">
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<title>${alt}</title>
+<style type="text/css">
+@media only screen and (max-width:620px){
+  .dg-email-outer{padding:16px 12px !important;}
+  .dg-email-card{border-radius:16px !important;}
+  .dg-email-pad{padding:24px 18px !important;}
+  .dg-email-logo{max-width:160px !important;width:160px !important;}
+  .dg-email-icon{max-width:40px !important;width:40px !important;}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background:#0A0F1A;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-text-size-adjust:100%;">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="dg-email-outer" style="background:#0A0F1A;padding:32px 16px;"><tr><td align="center">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="dg-email-card" style="max-width:600px;width:100%;background:#141B2B;border:1px solid rgba(59,130,246,0.12);border-radius:24px;overflow:hidden;">
+<tr><td class="dg-email-pad" style="padding:32px 32px 24px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);">
+<img class="dg-email-logo" src="${escapeHtml(logoUrl!)}" alt="${alt}" width="180" style="max-width:180px;width:100%;height:auto;display:block;margin:0 auto;border:0;outline:none;text-decoration:none;">
 </td></tr>
-<tr><td style="padding:32px;color:#E2E8F0;font-size:16px;line-height:1.65;">${input.bodyHtml}</td></tr>
-<tr><td style="padding:24px 32px 32px;background:#0A0F1A;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
+<tr><td class="dg-email-pad" style="padding:32px;color:#E2E8F0;font-size:16px;line-height:1.65;">${input.bodyHtml}</td></tr>
+<tr><td class="dg-email-pad" style="padding:24px 32px 32px;background:#0A0F1A;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
+<img class="dg-email-icon" src="${escapeHtml(iconUrl!)}" alt="" width="40" style="max-width:40px;width:40px;height:auto;display:block;margin:0 auto 14px;border:0;outline:none;opacity:0.9;">
 <p style="margin:0;font-size:13px;line-height:1.6;color:#64748B;">© ${new Date().getFullYear()} ${alt}</p>
 <p style="margin:12px 0 0;font-size:11px;line-height:1.5;color:#475569;">${escapeHtml(footer)}</p>
 <p style="margin:0;font-size:0;line-height:0;color:${escapeHtml(primary)};">&nbsp;</p>
@@ -134,8 +180,12 @@ export async function renderOrgTransactionalEmail(input: {
   footerNote?: string;
 }): Promise<{ html: string; brand: EmailBrandAssets }> {
   let profile: OrganisationBusinessProfile | null = null;
-  let orgMeta: { name: string; slug: string; industry: string | null; settings: unknown } | null =
-    null;
+  let orgMeta: {
+    name: string;
+    slug: string;
+    industry: string | null;
+    settings: unknown;
+  } | null = null;
 
   if (process.env.DATABASE_URL) {
     try {
@@ -173,11 +223,12 @@ export async function renderOrgTransactionalEmail(input: {
   const bodyHtml =
     input.bodyHtml?.trim() ||
     plainTextToEmailHtml(input.bodyText ?? "") ||
-    "<p style=\"margin:0;color:#E2E8F0;\">&nbsp;</p>";
+    '<p style="margin:0;color:#E2E8F0;">&nbsp;</p>';
 
   const html = wrapTransactionalEmail({
     businessName: brand.businessName,
     logoUrl: brand.logoUrl,
+    iconUrl: brand.iconUrl,
     primaryColor: brand.primaryColor,
     accentColor: brand.accentColor,
     bodyHtml,

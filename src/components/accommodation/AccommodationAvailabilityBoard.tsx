@@ -262,16 +262,23 @@ export function AccommodationAvailabilityBoard({
   const monthStart = startOfMonth(anchor);
   const monthEnd = endOfMonth(anchor);
   const monthDays = daysBetween(monthStart, monthEnd);
-  const inventoryDays = daysBetween(from, to).slice(0, 60);
+  const inventoryDays = daysBetween(from, to).slice(0, 90);
   const listBookings = useMemo(() => flattenBookings(units), [units]);
 
   async function syncOta() {
     setSyncing(true);
     setSyncMsg(null);
+    // Pull a long horizon — Booking.com CLOSED blocks are often far ahead of the inventory strip.
+    const syncTo = addDays(todayLocalISO(), 400);
     const res = await fetch("/api/v1/accommodation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "sync_ota", source: "all", from, to }),
+      body: JSON.stringify({
+        action: "sync_ota",
+        source: "all",
+        from: todayLocalISO(),
+        to: syncTo,
+      }),
     });
     const json = await res.json().catch(() => ({}));
     setSyncing(false);
@@ -569,10 +576,20 @@ export function AccommodationAvailabilityBoard({
               style={{ backgroundColor: CHANNEL_COLORS[key].bg }}
             />
             {CHANNEL_COLORS[key].label}
+            {key === "airbnb" || key === "bookingcom" ? (
+              <span className="text-slate-600">
+                (
+                {
+                  listBookings.filter((b) => channelKey(b) === key).length
+                }
+                )
+              </span>
+            ) : null}
           </span>
         ))}
         <span className="text-slate-600">
-          Click an open or blocked cell to toggle a manual block
+          Click an open or blocked cell to toggle a manual block · OTA horizon{" "}
+          {from} → {to}
         </span>
       </div>
 

@@ -62,8 +62,10 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
     d.setDate(d.getDate() + diff);
     return d;
   })();
+  // Load far enough ahead that far-dated OTA blocks (Booking.com often ships
+  // CLOSED windows months out) still paint when navigating month/list views.
   const toDate = new Date(today);
-  toDate.setDate(toDate.getDate() + 60);
+  toDate.setDate(toDate.getDate() + 400);
   const from = localISO(weekStartFetch);
   const to = localISO(toDate);
 

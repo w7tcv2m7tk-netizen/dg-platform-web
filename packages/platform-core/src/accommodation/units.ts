@@ -561,6 +561,7 @@ export async function buildAvailabilityFromNeon(
       checkout: true,
       status: true,
       ref: true,
+      metadata: true,
     },
   });
 
@@ -571,16 +572,24 @@ export async function buildAvailabilityFromNeon(
           b.accommodationUnitId === unit.id ||
           (unit.externalWpId != null && b.accommodationWpId === unit.externalWpId),
       )
-      .map((b) => ({
-        id: b.externalWpId ?? 0,
-        platform_id: b.id,
-        guest_name: b.guestName,
-        accommodation_id: unit.externalWpId ?? undefined,
-        checkin: b.checkin?.toISOString().slice(0, 10),
-        checkout: b.checkout?.toISOString().slice(0, 10),
-        status: b.status,
-        ref: b.ref ?? undefined,
-      }));
+      .map((b) => {
+        const meta = (b.metadata as Record<string, unknown> | null) ?? {};
+        const source =
+          typeof meta.source === "string" && meta.source.trim()
+            ? meta.source.trim()
+            : undefined;
+        return {
+          id: b.externalWpId ?? 0,
+          platform_id: b.id,
+          guest_name: b.guestName,
+          accommodation_id: unit.externalWpId ?? undefined,
+          checkin: b.checkin?.toISOString().slice(0, 10),
+          checkout: b.checkout?.toISOString().slice(0, 10),
+          status: b.status,
+          source,
+          ref: b.ref ?? undefined,
+        };
+      });
 
     const bookingDates = new Set<string>();
     for (const b of unitBookings) {

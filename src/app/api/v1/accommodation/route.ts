@@ -270,7 +270,8 @@ export async function POST(req: Request) {
         ? body.from
         : iso(today);
     const toDate = new Date(today);
-    toDate.setDate(toDate.getDate() + 90);
+    // Match calendar page horizon so OTA stays months out land in Neon.
+    toDate.setDate(toDate.getDate() + 400);
     const to =
       typeof body.to === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.to)
         ? body.to
