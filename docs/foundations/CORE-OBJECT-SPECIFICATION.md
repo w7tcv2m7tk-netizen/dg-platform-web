@@ -462,12 +462,15 @@ A **real estate asset** — residential, commercial, land — central to the Rea
 
 `addressLine2`, `latitude`, `longitude`, `propertyType`, `bedrooms`, `bathrooms`, `landAreaSqm`, `buildingAreaSqm`, `ownerContactId`, `listingPriceCents`, `currency`, `metadata`, `externalRefs` (REA, Domain IDs)
 
+> **Listing vs Property:** Property is the **asset**. A **Listing** (first-class — §10b) is the agency’s marketing/sale campaign for that asset. Portal IDs (Domain, REA) belong on **ListingPlacement**, not only on Property `externalRefs`. See [PROPERTY-SYNDICATION.md](./PROPERTY-SYNDICATION.md).
+
 ### Relationships
 
 | Relation | Target | Cardinality |
 |----------|--------|-------------|
 | belongs to | Organisation | N:1 |
 | owned by | Contact | N:M |
+| has | Listing (campaign) | 1:N |
 | has | Opportunity (listing pipeline) | 1:N |
 | has | Lead (buyer enquiries) | 1:N |
 | has | Document, Campaign | 1:N |
@@ -482,9 +485,64 @@ A **real estate asset** — residential, commercial, land — central to the Rea
 |-------|------|
 | `property.created` | |
 | `property.updated` | |
-| `property.listed` | Goes live |
+| `property.listed` | Goes live (legacy — prefer `listing.published` via Listing) |
 | `property.sold` | Settlement complete |
 | `property.withdrawn` | |
+
+---
+
+## 10b. Listing
+
+### What is it?
+
+An **agency marketing / sale campaign** for a Property — price, copy, media set, and syndication to portals. Distinct from the underlying asset so a Property can be re-listed over time and each campaign can have multiple portal placements.
+
+### Mandatory fields
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | string | |
+| `organisationId` | string | |
+| `propertyId` | string | Underlying asset |
+| `status` | enum | `draft` \| `ready` \| `syndicating` \| `live` \| `under_offer` \| `sold` \| `withdrawn` |
+| `createdAt` | datetime | |
+| `updatedAt` | datetime | |
+
+### Optional fields
+
+`headline`, `description`, `listPriceCents`, `currency`, `agencyContactId`, `opportunityId`, `metadata`, `externalRefs`
+
+### Relationships
+
+| Relation | Target | Cardinality |
+|----------|--------|-------------|
+| belongs to | Organisation | N:1 |
+| for | Property | N:1 |
+| has | ListingPlacement (Domain, REA, website, …) | 1:N |
+| linked to | Opportunity | N:1 optional |
+
+### Ownership
+
+**Real Estate App** — Property Syndication Engine; see [PROPERTY-SYNDICATION.md](./PROPERTY-SYNDICATION.md).
+
+### Events
+
+| Event | When |
+|-------|------|
+| `listing.created` | |
+| `listing.updated` | |
+| `listing.published` | First portal or website live |
+| `listing.withdrawn` | |
+| `listing.placement_status_changed` | Webhook / sync from portal |
+
+### ListingPlacement (channel row)
+
+| Field | Notes |
+|-------|------|
+| `channel` | `domain` \| `rea` \| `website` \| … |
+| `status` | `draft` \| `pending` \| `published` \| `withdrawn` \| `error` |
+| `externalId` | Portal listing ID |
+| `lastSyncedAt`, `lastError`, `metadata` | |
 
 ---
 

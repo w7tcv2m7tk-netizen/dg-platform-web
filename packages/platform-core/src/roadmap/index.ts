@@ -198,6 +198,35 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     href: "/apps/re/listings",
   },
   {
+    id: "re.syndication_engine",
+    area: "Real Estate",
+    label: "Property Syndication Engine",
+    description:
+      "Listing + ListingPlacement; Domain/REA/website adapters; syndication panel — docs/foundations/PROPERTY-SYNDICATION.md",
+    status: "planned",
+    priority: "high",
+    appId: "real-estate",
+    href: "/apps/re/listings",
+  },
+  {
+    id: "re.syndication_domain_sandbox",
+    area: "Real Estate",
+    label: "Domain Listings Management (sandbox)",
+    description:
+      "Add Listings Management Sandbox to Domain Developer Portal project; implement publish/update/withdraw/status MVP",
+    status: "planned",
+    priority: "high",
+    appId: "real-estate",
+  },
+  {
+    id: "re.syndication_domain_prod",
+    area: "Real Estate",
+    label: "Domain Listings Management (production)",
+    description: "Request production access; Address Suggestions + Webhooks; Agents & Listings separately",
+    status: "planned",
+    appId: "real-estate",
+  },
+  {
     id: "re.bookings",
     area: "Real Estate",
     label: "Bookings",

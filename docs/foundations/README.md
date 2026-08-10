@@ -58,6 +58,8 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | 16b | [EMAIL-INFRASTRUCTURE.md](./EMAIL-INFRASTRUCTURE.md) | **Email Service** — transactional (Resend), mailbox (Dreamscape), deliverability; no mail server |
 | [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) | Core — Business Discovery Engine (Command Centre prospecting) |
 | [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md) | Core — Opportunity Engine Daily Briefing |
+| [ACC-CHANNEL-CONNECTIVITY.md](./ACC-CHANNEL-CONNECTIVITY.md) | Acc — OTA channels (iCal → Booking.com / Airbnb APIs) |
+| [PROPERTY-SYNDICATION.md](./PROPERTY-SYNDICATION.md) | RE — Property Syndication Engine (Domain → REA → portals) |
 
 ---
 
