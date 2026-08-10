@@ -97,6 +97,8 @@ export interface CalculateScoresInput {
   enabledAppIds: string[];
   metrics: OverviewMetricsContext;
   profile?: OrganisationBusinessProfile | null;
+  /** When set (e.g. from Reviews feed), overrides CX heuristic for reputation. */
+  reputationOverride?: number | null;
 }
 
 export interface OverviewMetricsContext {
@@ -120,7 +122,7 @@ export interface OrgScoresResult {
 
 /** Compute org scores from a Digital Twin snapshot. */
 export function calculateOrgScores(input: CalculateScoresInput): OrgScoresResult {
-  const { snapshot, enabledAppIds, metrics, profile } = input;
+  const { snapshot, enabledAppIds, metrics, profile, reputationOverride } = input;
   const now = new Date();
   const orgId = snapshot.organisationId;
 
@@ -130,6 +132,10 @@ export function calculateOrgScores(input: CalculateScoresInput): OrgScoresResult
   const businessGrowth = scoreFromBusinessGrowth(snapshot);
   const sales = scoreFromSales(snapshot, metrics);
   const cx = scoreFromCx(snapshot, metrics);
+  const reputation =
+    reputationOverride != null && Number.isFinite(reputationOverride)
+      ? clamp(reputationOverride)
+      : cx;
   const automation = scoreFromAutomation(enabledAppIds, metrics);
   const finance = scoreFromFinance(snapshot, metrics);
 
@@ -139,7 +145,7 @@ export function calculateOrgScores(input: CalculateScoresInput): OrgScoresResult
       websiteHealth * 0.16 +
       businessGrowth * 0.12 +
       sales * 0.16 +
-      cx * 0.12 +
+      reputation * 0.12 +
       automation * 0.08 +
       finance * 0.1,
   );
@@ -150,7 +156,7 @@ export function calculateOrgScores(input: CalculateScoresInput): OrgScoresResult
     { scoreId: "website_health", organisationId: orgId, value: websiteHealth, maxValue: 100, calculatedAt: now },
     { scoreId: "business_growth", organisationId: orgId, value: businessGrowth, maxValue: 100, calculatedAt: now },
     { scoreId: "conversion", organisationId: orgId, value: sales, maxValue: 100, calculatedAt: now },
-    { scoreId: "reputation", organisationId: orgId, value: cx, maxValue: 100, calculatedAt: now },
+    { scoreId: "reputation", organisationId: orgId, value: reputation, maxValue: 100, calculatedAt: now },
     { scoreId: "automation", organisationId: orgId, value: automation, maxValue: 100, calculatedAt: now },
     { scoreId: "success_score", organisationId: orgId, value: businessHealth, maxValue: 100, calculatedAt: now },
   ];

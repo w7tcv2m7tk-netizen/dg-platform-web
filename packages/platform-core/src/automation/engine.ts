@@ -1,3 +1,4 @@
+import { createActivity } from "../activities";
 import type { PlatformEvent, PlatformEventType } from "../events/types";
 
 export type AutomationActionHandler = (
@@ -41,6 +42,30 @@ export async function runAutomationForEvent(event: PlatformEvent) {
         ok: false,
         error: err instanceof Error ? err.message : "automation failed",
       });
+    }
+  }
+
+  if (event.organisationId && matched.length > 0) {
+    const okCount = results.filter((r) => r.ok).length;
+    const failCount = results.length - okCount;
+    try {
+      await createActivity({
+        organisationId: event.organisationId,
+        entityType: event.entityType || "Event",
+        entityId: event.entityId || event.type,
+        activityType: failCount > 0 ? "automation.run_partial" : "automation.run",
+        title: `Automation · ${event.type} (${okCount}/${results.length} ok)`,
+        body: results
+          .map((r) => `${r.ruleId}: ${r.ok ? "ok" : r.error ?? "failed"}`)
+          .join("\n"),
+        sourceApp: "automation",
+        metadata: {
+          eventType: event.type,
+          results,
+        },
+      });
+    } catch {
+      // Never block event path on log write
     }
   }
 

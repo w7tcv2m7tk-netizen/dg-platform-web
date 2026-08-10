@@ -12,6 +12,7 @@ import type { DigitalTwinSnapshot } from "./types";
 export type BuildLiveTwinWithScoresInput = CaptureTwinSnapshotInput & {
   profile?: OrganisationBusinessProfile | null;
   metricsContext: OverviewMetricsContext;
+  reputationOverride?: number | null;
 };
 
 /** Capture twin snapshot and enrich with calculated scores in one pass. */
@@ -23,6 +24,7 @@ export function buildLiveTwinWithScores(input: BuildLiveTwinWithScoresInput) {
     enabledAppIds: input.enabledAppIds,
     metrics: input.metricsContext,
     profile: input.profile,
+    reputationOverride: input.reputationOverride,
   });
 
   snapshot.scores = {

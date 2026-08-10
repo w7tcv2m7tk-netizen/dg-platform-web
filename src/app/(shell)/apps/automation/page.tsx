@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import { getAppSetupHref,} from "@dg/platform-core";
+import { getAppSetupHref } from "@dg/platform-core";
 
 import { AutomationBuilderPanel } from "@/components/automation/AutomationBuilderPanel";
+import { AutomationSubnav } from "@/components/automation/AutomationSubnav";
 import { PlatformRoadmapBar } from "@/components/platform/PlatformRoadmapBar";
 import { fetchPortalMe } from "@/lib/dg-api";
 
@@ -44,6 +45,7 @@ export default async function AutomationPage() {
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · triggers & actions registry
         </p>
+        <AutomationSubnav active="/apps/automation" />
       </header>
       <main className="dg-page-main">
         <AutomationBuilderPanel />

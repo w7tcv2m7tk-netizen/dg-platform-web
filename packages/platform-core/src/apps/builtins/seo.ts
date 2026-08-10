@@ -7,8 +7,11 @@ export const seoApp: AppManifest = {
   tier: "growth",
   version: "1.0.0",
   icon: "🔍",
-  routes: [{ path: "/apps/seo/audit", label: "Page audit" }],
-  navigation: [{ href: "/apps/seo/audit", label: "SEO audit", icon: "⎔" }],
+  routes: [
+    { path: "/apps/seo", label: "Overview" },
+    { path: "/apps/seo/audit", label: "Page audit" },
+  ],
+  navigation: [{ href: "/apps/seo", label: "SEO Engine", icon: "⎔" }],
   permissions: [{ id: "seo.view_audit", label: "View SEO audits" }],
   features: ["seo.audit.read", "seo.audit.run", "seo.score.read"],
   entities: ["Document", "Activity"],

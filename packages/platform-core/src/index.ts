@@ -56,5 +56,6 @@ export * from "./overview/growth-opportunities";
 export * from "./twin/build-live-twin";
 export * from "./automation";
 export * from "./communications";
+export * from "./seo";
 export * from "./roadmap";
 export * from "./app-guides";

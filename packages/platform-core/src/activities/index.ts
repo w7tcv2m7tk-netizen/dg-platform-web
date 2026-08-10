@@ -85,6 +85,7 @@ export async function listOrganisationActivities(options: ListActivitiesOptions)
       sourceApp: a.sourceApp,
       createdBy: a.createdBy,
       createdAt: a.createdAt.toISOString(),
+      metadata: (a.metadata as Record<string, unknown> | null) ?? null,
     })),
     meta: { total, limit, offset },
   };

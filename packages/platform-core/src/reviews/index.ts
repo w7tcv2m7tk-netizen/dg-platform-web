@@ -104,6 +104,55 @@ export function computeReputationScore(reviews: ReviewFeedItem[]): ReputationSco
   };
 }
 
+/** Draft an on-brand public reply for a single review (LLM when configured). */
+export async function draftReviewReply(input: {
+  review: ReviewFeedItem;
+  businessName?: string | null;
+}): Promise<{ draft: string; source: "llm" | "stub"; provider?: string; model?: string }> {
+  const name = input.businessName?.trim() || "our team";
+  const author = input.review.authorName?.trim() || "there";
+  const rating = input.review.rating;
+  const stub =
+    rating != null && rating <= 3
+      ? `Hi ${author}, thank you for sharing this with ${name}. We're sorry the experience fell short — please reply so we can make it right.`
+      : `Hi ${author}, thank you for your kind words. We're glad you enjoyed your stay with ${name}, and we hope to welcome you again soon.`;
+
+  if (!llmConfigured()) {
+    return { draft: stub, source: "stub" };
+  }
+
+  try {
+    const result = await llmChat({
+      maxTokens: 280,
+      messages: [
+        {
+          role: "system",
+          content: [
+            "You draft short public review replies for an Australian hospitality or property business.",
+            "Australian English. Warm, professional, no emojis. Max 80 words.",
+            "Do not invent facts not in the review. Do not offer refunds unless the review clearly asks.",
+            "Return plain text only — no markdown or quotes around the reply.",
+          ].join(" "),
+        },
+        {
+          role: "user",
+          content: [
+            `Business: ${name}`,
+            `Reviewer: ${author}`,
+            `Rating: ${rating ?? "n/a"}`,
+            `Title: ${input.review.title ?? ""}`,
+            `Review: ${input.review.content ?? ""}`,
+          ].join("\n"),
+        },
+      ],
+    });
+    const draft = result.text.replace(/^["']|["']$/g, "").trim() || stub;
+    return { draft, source: "llm", provider: result.provider, model: result.model };
+  } catch {
+    return { draft: stub, source: "stub" };
+  }
+}
+
 export type ReviewTheme = {
   theme: string;
   sentiment: "positive" | "negative" | "mixed" | "neutral";

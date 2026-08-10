@@ -48,7 +48,10 @@ export default async function ReviewsInboxPage() {
                 Sources →
               </Link>
             </div>
-            <ReviewFeedList reviews={feed} />
+            <ReviewFeedList
+              reviews={feed}
+              businessName={session?.organisationName}
+            />
           </>
         )}
       </main>

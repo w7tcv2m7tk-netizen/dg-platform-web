@@ -1,11 +1,19 @@
 import type { ReviewFeedItem } from "@dg/platform-core";
 
+import { ReviewReplyDraftButton } from "@/components/reviews/ReviewReplyDraftButton";
+
 function stars(rating: number): string {
   const filled = Math.max(0, Math.min(5, Math.round(rating)));
   return `${"★".repeat(filled)}${"☆".repeat(5 - filled)}`;
 }
 
-export function ReviewFeedList({ reviews }: { reviews: ReviewFeedItem[] }) {
+export function ReviewFeedList({
+  reviews,
+  businessName,
+}: {
+  reviews: ReviewFeedItem[];
+  businessName?: string;
+}) {
   if (!reviews.length) {
     return (
       <p className="text-sm text-slate-400">
@@ -52,6 +60,7 @@ export function ReviewFeedList({ reviews }: { reviews: ReviewFeedItem[] }) {
               View source →
             </a>
           ) : null}
+          <ReviewReplyDraftButton review={review} businessName={businessName} />
         </li>
       ))}
     </ul>
