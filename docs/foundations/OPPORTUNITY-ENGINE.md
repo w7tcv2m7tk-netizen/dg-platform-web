@@ -4,8 +4,9 @@
 
 **Customer-facing term:** Opportunities  
 **Internal / IP name:** DigitalGate Opportunity Engine™  
-**Primary UI:** Command Centre (`/command/opportunities`)  
-**Version:** 0.2 · August 2026
+**Core App UI:** `/apps/opportunities` (full ranked list for the org)  
+**Cockpit UI:** Command Centre (`/command/opportunities`) — orchestrates / prioritises  
+**Version:** 0.3 · August 2026
 
 ---
 
@@ -26,19 +27,21 @@ DIGITALGATE PLATFORM CORE
 │
 └── Apps (CRM, RE, SEO, AI Visibility, Marketing, Acc, …)
 
-COMMAND CENTRE  ← cockpit (staff)
+CORE · OPPORTUNITIES APP  ← tenant module (`/apps/opportunities`)
 │
-├── Today's priorities
-├── Opportunities          ← primary surface for this engine
-├── Recommended actions
-├── Alerts / Business health / AI insights
-└── Prospecting (Growth Engine UI)
-      ├── Business Discovery
-      ├── Audits / Reports / Pipeline
-      └── Outreach
+└── All opportunities table (type · score · status · next action)
+
+COMMAND CENTRE  ← cockpit (staff) — does not compete with Core Opportunities
+│
+├── Priorities
+├── Opportunities          ← orchestrated “what matters today”
+├── Prospecting
+├── Recommended Actions
+├── Alerts
+└── Clients / Reports
 ```
 
-**Core = brain · Command Centre = cockpit · Apps = specialists · Connectors = nervous system.**
+**Core owns Opportunities · Command Centre orchestrates · Apps generate data · AI prioritises · Automation acts.**
 
 Prospecting workflows live under Command Centre. Prospect / Opportunity **scoring and objects** live in Core so every future industry reuses the same engine.
 
@@ -83,8 +86,10 @@ PlatformOpportunity {
 | Engine | `packages/platform-core/src/opportunity-engine/` |
 | List API | `listPlatformOpportunities({ scope: "staff" \| "org" })` |
 | Detectors | overdue leads/tasks, client attention, expansion, prospect briefing |
+| Core App | `/apps/opportunities` · manifest `opportunities` |
 | Cockpit | `/command/opportunities` |
 | Expansion detail | `/command/opportunities/expansion` |
+| Badge API | `/api/v1/command/opportunities/summary` |
 | Prospect briefing (detector) | `command-centre/growth-engine/opportunity-engine.ts` |
 
 ---

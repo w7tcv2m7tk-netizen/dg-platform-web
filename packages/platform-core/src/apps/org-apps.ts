@@ -28,10 +28,31 @@ const PREMIUM_APP_MAP: Record<string, string[]> = {
 };
 
 const TIER_BASE_APPS: Record<string, string[]> = {
-  starter: ["crm", "commerce", "websites", "infrastructure"],
-  professional: ["crm", "commerce", "websites", "infrastructure", "automation"],
-  business: ["crm", "commerce", "websites", "infrastructure", "automation"],
-  enterprise: ["crm", "commerce", "websites", "infrastructure", "automation"],
+  starter: ["crm", "commerce", "websites", "infrastructure", "opportunities"],
+  professional: [
+    "crm",
+    "commerce",
+    "websites",
+    "infrastructure",
+    "opportunities",
+    "automation",
+  ],
+  business: [
+    "crm",
+    "commerce",
+    "websites",
+    "infrastructure",
+    "opportunities",
+    "automation",
+  ],
+  enterprise: [
+    "crm",
+    "commerce",
+    "websites",
+    "infrastructure",
+    "opportunities",
+    "automation",
+  ],
 };
 
 export type PlanSelectionInput = {
@@ -64,10 +85,17 @@ export function resolveEnabledAppIds(
   orgSettings?: { apps?: OrgAppsSettings } | null,
 ): string[] {
   const configured = orgSettings?.apps?.enabled;
-  if (Array.isArray(configured) && configured.length) {
-    return configured.filter((id) => platformApps.get(id));
+  const ids =
+    Array.isArray(configured) && configured.length
+      ? configured.filter((id) => platformApps.get(id))
+      : getDefaultEnabledAppIds();
+
+  // Opportunities is Core platform capability — always available when shipped enabled.
+  if (platformApps.get("opportunities")?.enabled && !ids.includes("opportunities")) {
+    return [...ids, "opportunities"];
   }
-  return getDefaultEnabledAppIds();
+
+  return ids;
 }
 
 export function isAppEnabled(appId: string, enabledIds: string[]): boolean {
@@ -77,8 +105,9 @@ export function isAppEnabled(appId: string, enabledIds: string[]): boolean {
 export const APP_TIER_LABELS: Record<AppTier, string> = {
   core: "Core · Platform",
   business: "Business Apps",
-  growth: "Growth Apps",
+  growth: "Growth & Intelligence",
   internal: "Internal",
 };
 
-export const APP_TIER_ORDER: AppTier[] = ["core", "business", "growth", "internal"];
+/** Sidebar / catalog order — Core → Growth → industry apps (Business Apps are install-driven). */
+export const APP_TIER_ORDER: AppTier[] = ["core", "growth", "business", "internal"];

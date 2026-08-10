@@ -18,18 +18,15 @@ Customers still **buy and install Apps**, but internally we organise work by **B
 
 ```
 DigitalGate Platform
-├── Core Platform           ← multi-tenant foundation
-├── Industry Apps           ← vertical workflows (Real Estate, Accommodation…)
-├── Growth Apps             ← SEO, visibility, marketing, reviews
-├── AI Apps                 ← studio, content, funnels, developer
-├── Communications          ← voice, chat, email, SMS orchestration
-├── Websites                ← AI Website Studio, health, site management
-├── Commerce                ← payments, products (later)
-├── Infrastructure          ← domains, hosting, DNS, SSL, deploy
-└── Intelligence            ← Twin, scoring, BI, Command Centre
+├── Your Business           ← Overview, profile, Apps & Billing, Marketplace, Network
+├── Core · Platform         ← CRM, Commerce, Websites, Infrastructure, Opportunities
+├── Command Centre          ← cockpit — priorities / orchestrated opportunities (staff)
+├── Growth & Intelligence   ← AI Visibility, SEO, Analytics, Automation, Comms…
+├── Business Apps           ← install-driven verticals (RE, Accommodation, …)
+└── Platform                ← Settings / administration
 ```
 
-**Apps are the packaging.** Capabilities are the architecture.
+**Apps are the packaging.** Capabilities are the architecture. **Core owns Opportunities; Command Centre orchestrates them.**
 
 ---
 

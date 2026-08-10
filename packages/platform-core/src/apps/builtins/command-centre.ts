@@ -2,28 +2,28 @@ import type { AppManifest } from "../manifest";
 
 /**
  * DigitalGate Command Centre — internal-only App.
- * The operating system DigitalGate uses to run DigitalGate.
+ * Cockpit for priorities and orchestrated Opportunities (Core Opportunity Engine™).
  * @see docs/COMMAND-CENTRE.md
- * @see docs/COMMAND-CENTRE-BETA.md
- * @see docs/GROWTH-ENGINE.md
+ * @see docs/foundations/OPPORTUNITY-ENGINE.md
  */
 export const commandCentreApp: AppManifest = {
   id: "command-centre",
   name: "Command Centre",
   description:
-    "DigitalGate cockpit — priorities, Opportunities (Opportunity Engine™), client success, and Prospecting",
+    "DigitalGate cockpit — priorities, Opportunities, Prospecting, and recommended actions",
   tier: "internal",
   visibility: "internal",
-  version: "0.8.0",
-  icon: "⬡",
+  version: "0.9.0",
+  icon: "◈",
   routes: [
     { path: "/command", label: "Priorities" },
     { path: "/command/opportunities", label: "Opportunities" },
     { path: "/command/opportunities/expansion", label: "Expansion" },
+    { path: "/command/growth-engine", label: "Prospecting" },
+    { path: "/command/advisor", label: "Recommended Actions" },
+    { path: "/command/platform-health", label: "Alerts" },
     { path: "/command/clients", label: "Clients" },
     { path: "/command/clients/[orgId]", label: "Client Detail" },
-    { path: "/command/advisor", label: "AI insights" },
-    { path: "/command/growth-engine", label: "Prospecting" },
     { path: "/command/growth-engine/discovery", label: "Business Discovery" },
     { path: "/command/growth-engine/pipeline", label: "Prospect Pipeline" },
     { path: "/command/growth-engine/audits", label: "AI Audits" },
@@ -31,24 +31,23 @@ export const commandCentreApp: AppManifest = {
     { path: "/command/growth-engine/follow-ups", label: "Smart Follow-Up" },
     { path: "/command/growth-engine/proposals", label: "Proposals" },
     { path: "/command/growth-engine/conversions", label: "Conversions" },
-    { path: "/command/platform-health", label: "Platform Health" },
     { path: "/command/reports", label: "Reports" },
     { path: "/command/revenue", label: "Revenue" },
     { path: "/command/benchmarks", label: "Benchmarks" },
     { path: "/command/flags", label: "Feature Flags" },
   ],
-  /** Sidebar cockpit order — Core Opportunity Engine surfaces as Opportunities */
+  /**
+   * Sidebar cockpit — Core owns Opportunities module; Command Centre orchestrates.
+   * Prospecting children stay on Growth Engine pages (not competing top-level destinations).
+   */
   navigation: [
     { href: "/command", label: "Priorities", icon: "◈" },
-    { href: "/command/opportunities", label: "Opportunities", icon: "✦" },
-    { href: "/command/clients", label: "Clients", icon: "☷" },
-    { href: "/command/advisor", label: "AI insights", icon: "◉" },
+    { href: "/command/opportunities", label: "Opportunities", icon: "⚡" },
     { href: "/command/growth-engine", label: "Prospecting", icon: "◎" },
-    { href: "/command/growth-engine/discovery", label: "Business Discovery", icon: "◎" },
-    { href: "/command/growth-engine/pipeline", label: "Prospect Pipeline", icon: "◎" },
-    { href: "/command/platform-health", label: "Health", icon: "◉" },
+    { href: "/command/advisor", label: "Recommended Actions", icon: "✓" },
+    { href: "/command/platform-health", label: "Alerts", icon: "◉" },
+    { href: "/command/clients", label: "Clients", icon: "☷" },
     { href: "/command/reports", label: "Reports", icon: "▥" },
-    { href: "/command/revenue", label: "Revenue", icon: "▣" },
   ],
   permissions: [
     { id: "command.view", label: "View Command Centre" },

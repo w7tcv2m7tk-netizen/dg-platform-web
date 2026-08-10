@@ -42,8 +42,8 @@ export interface PlatformToolNavItem {
   primaryHref: string;
 }
 
-/** Primary Business Workspace shell — client opens their business, not a CRM */
-const SHELL_NAV: PlatformShellNavItem[] = [
+/** Primary Business Workspace shell — who you are / what you've bought */
+const SHELL_WORKSPACE_NAV: PlatformShellNavItem[] = [
   { kind: "shell", href: "/dashboard", label: "Overview", icon: getSidebarIcon("overview") },
   {
     kind: "shell",
@@ -51,7 +51,12 @@ const SHELL_NAV: PlatformShellNavItem[] = [
     label: "Business Profile",
     icon: getSidebarIcon("business-profile"),
   },
-  { kind: "shell", href: "/dashboard/apps", label: "Apps & Plan", icon: getSidebarIcon("apps") },
+  {
+    kind: "shell",
+    href: "/dashboard/apps",
+    label: "Apps & Billing",
+    icon: getSidebarIcon("apps"),
+  },
   {
     kind: "shell",
     href: "/dashboard/marketplace",
@@ -64,16 +69,24 @@ const SHELL_NAV: PlatformShellNavItem[] = [
     label: "Network",
     icon: getSidebarIcon("network"),
   },
-  {
-    kind: "shell",
-    href: "/dashboard/settings",
-    label: "Settings",
-    icon: getSidebarIcon("settings"),
-    routes: SETTINGS_NAV_ROUTES,
-  },
 ];
 
+const SHELL_PLATFORM_NAV: PlatformShellNavItem = {
+  kind: "shell",
+  href: "/dashboard/settings",
+  label: "Settings",
+  icon: getSidebarIcon("settings"),
+  routes: SETTINGS_NAV_ROUTES,
+};
+
+/** Full shell list (workspace + platform) — for flat / deprecated consumers */
+const SHELL_NAV: PlatformShellNavItem[] = [...SHELL_WORKSPACE_NAV, SHELL_PLATFORM_NAV];
+
 export const BUSINESS_WORKSPACE_SECTION_LABEL = "Your business";
+export const PLATFORM_NAV_SECTION_LABEL = "Platform";
+export const COMMAND_CENTRE_NAV_SECTION_LABEL = "Command Centre";
+/** Soft staff sub-label — do not surface Opportunity Engine™ as a product name to customers */
+export const COMMAND_CENTRE_NAV_SUBLABEL = "What should I do next";
 
 export function getPlatformShellNavigation(): PlatformShellNavItem[] {
   return SHELL_NAV;
@@ -104,14 +117,15 @@ function toTreeItem(app: RegisteredApp, enabledIds: string[]): AppNavTreeItem {
 }
 
 export interface CategorizedPlatformNavigation {
+  /** Overview · Profile · Apps & Billing · Marketplace · Network */
   shell: PlatformShellNavItem[];
+  /** Settings / admin — rendered after app tiers */
+  platform: PlatformShellNavItem;
   tiers: AppNavTierGroup[];
   tools: PlatformToolsNavGroup;
   /** DigitalGate staff only — Command Centre collapsible section */
   commandCentre: PlatformToolNavItem | null;
 }
-
-export const COMMAND_CENTRE_NAV_SECTION_LABEL = "Command Centre";
 
 function getCommandCentreNavItem(): PlatformToolNavItem {
   const manifest = commandCentreApp;
@@ -120,7 +134,7 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
     id: manifest.id,
     name: manifest.name,
     icon: getSidebarIcon(manifest.id, manifest.icon),
-    primaryHref: "/command/opportunities",
+    primaryHref: "/command",
     routes: manifest.navigation.map((item) => ({
       path: item.href,
       label: item.label,
@@ -128,7 +142,10 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
   };
 }
 
-/** Categorized sidebar tree — only customer apps that are enabled. */
+/**
+ * Categorized sidebar tree — only customer apps that are enabled.
+ * Business Apps are dynamic from installed manifests (enabledIds).
+ */
 export function getCategorizedPlatformNavigation(
   enabledIds: string[],
   options?: { showCommandCentre?: boolean },
@@ -145,23 +162,23 @@ export function getCategorizedPlatformNavigation(
       .map((a) => toTreeItem(a, enabledIds)),
   })).filter((g) => g.apps.length > 0);
 
-  // Command Centre is its own cockpit section in the sidebar — not buried in Business apps.
   const commandCentre = options?.showCommandCentre ? getCommandCentreNavItem() : null;
 
   const tools: PlatformToolsNavGroup = {
-    label: "Settings",
+    label: PLATFORM_NAV_SECTION_LABEL,
     tools: [],
   };
 
   return {
-    shell: SHELL_NAV,
+    shell: SHELL_WORKSPACE_NAV,
+    platform: SHELL_PLATFORM_NAV,
     tiers,
     tools,
     commandCentre,
   };
 }
 
-/** All customer apps grouped by tier — for Apps & Plan page (includes disabled). */
+/** All customer apps grouped by tier — for Apps & Billing page (includes disabled). */
 export function getAllAppsByTierForCatalog(enabledIds: string[]): AppNavTierGroup[] {
   const customerApps = platformApps
     .list()

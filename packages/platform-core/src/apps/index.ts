@@ -10,3 +10,5 @@ export * from "./builtins/seo";
 export * from "./builtins/ai-communications";
 export * from "./builtins/websites";
 export * from "./builtins/infrastructure";
+export * from "./builtins/opportunities-app";
+export * from "./builtins/command-centre";

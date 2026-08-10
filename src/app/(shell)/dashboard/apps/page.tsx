@@ -11,9 +11,9 @@ export default function AppsPage() {
       <header className="dg-page-header">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">Apps & Plan</h1>
+            <h1 className="text-2xl font-bold text-white">Apps & Billing</h1>
             <p className="text-sm text-slate-400">
-              Same structure as{" "}
+              Plan, installed apps, usage, and billing for this organisation — same structure as{" "}
               <a
                 href={`${DIGITALGATE_WEBSITE}/pricing`}
                 target="_blank"
@@ -22,7 +22,7 @@ export default function AppsPage() {
               >
                 digitalgate.com.au/pricing
               </a>
-              — configure your tier and apps for this organisation.
+              . Discover new apps in Marketplace.
             </p>
           </div>
           <a

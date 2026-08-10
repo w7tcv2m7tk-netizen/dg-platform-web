@@ -10,6 +10,9 @@ import { itemHasActiveRoute, routeIsActive } from "@/lib/nav-route-match";
 import {
   BUSINESS_WORKSPACE_SECTION_LABEL,
   COMMAND_CENTRE_NAV_SECTION_LABEL,
+  COMMAND_CENTRE_NAV_SUBLABEL,
+  PLATFORM_NAV_SECTION_LABEL,
+  type AppNavTierGroup,
   type AppRoute,
 } from "@dg/platform-core";
 
@@ -35,6 +38,7 @@ type CollapsibleItem = {
   icon: string;
   routes: AppRoute[];
   primaryHref: string;
+  badge?: number;
 };
 
 function CollapsibleNavSection({
@@ -69,6 +73,11 @@ function CollapsibleNavSection({
             >
               <SidebarIcon glyph={item.icon} />
               <span className="flex-1 truncate">{item.name}</span>
+              {item.badge != null && item.badge > 0 ? (
+                <span className="rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-amber-200">
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              ) : null}
               <span className="text-xs text-slate-500" aria-hidden>
                 {isOpen ? "▾" : "▸"}
               </span>
@@ -99,10 +108,40 @@ function CollapsibleNavSection({
   );
 }
 
+function TierSection({
+  group,
+  expanded,
+  onToggle,
+  pathname,
+  onNavigate,
+}: {
+  group: AppNavTierGroup;
+  expanded: Record<string, boolean>;
+  onToggle: (id: string) => void;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <div className="mt-4">
+      <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+        {group.label}
+      </p>
+      <CollapsibleNavSection
+        items={group.apps}
+        expanded={expanded}
+        onToggle={onToggle}
+        pathname={pathname}
+        onNavigate={onNavigate}
+      />
+    </div>
+  );
+}
+
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { nav } = useEnabledApps();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [ccBadge, setCcBadge] = useState<number | null>(null);
 
   useEffect(() => {
     const next: Record<string, boolean> = {};
@@ -116,11 +155,35 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         next[`shell-${link.href}`] = true;
       }
     }
+    if (nav.platform.routes?.length && itemHasActiveRoute(pathname, nav.platform.routes)) {
+      next[`shell-${nav.platform.href}`] = true;
+    }
     if (nav.commandCentre && itemHasActiveRoute(pathname, nav.commandCentre.routes)) {
       next[nav.commandCentre.id] = true;
     }
     setExpanded(next);
-  }, [pathname, nav.tiers, nav.shell, nav.commandCentre]);
+  }, [pathname, nav.tiers, nav.shell, nav.platform, nav.commandCentre]);
+
+  useEffect(() => {
+    if (!nav.commandCentre) {
+      setCcBadge(null);
+      return;
+    }
+    let cancelled = false;
+    fetch("/api/v1/command/opportunities/summary")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { attentionCount?: number } | null) => {
+        if (!cancelled && typeof data?.attentionCount === "number") {
+          setCcBadge(data.attentionCount);
+        }
+      })
+      .catch(() => {
+        /* badge is optional */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [nav.commandCentre]);
 
   function toggleItem(id: string) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -133,34 +196,16 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     return pathname.startsWith(`${href}/`);
   }
 
+  const coreTier = nav.tiers.find((g) => g.tier === "core");
+  const growthTier = nav.tiers.filter((g) => g.tier === "growth");
+  const businessTiers = nav.tiers.filter((g) => g.tier === "business");
+
   return (
     <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain">
       <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
         {BUSINESS_WORKSPACE_SECTION_LABEL}
       </p>
       {nav.shell.map((link) => {
-        if (link.routes?.length) {
-          const id = `shell-${link.href}`;
-          return (
-            <CollapsibleNavSection
-              key={link.href}
-              items={[
-                {
-                  id,
-                  name: link.label,
-                  icon: link.icon ?? "◈",
-                  routes: link.routes,
-                  primaryHref: link.href,
-                },
-              ]}
-              expanded={expanded}
-              onToggle={toggleItem}
-              pathname={pathname}
-              onNavigate={onNavigate}
-            />
-          );
-        }
-
         const active = shellLinkActive(link.href);
         return (
           <Link
@@ -176,13 +221,23 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         );
       })}
 
+      {coreTier ? (
+        <TierSection
+          group={coreTier}
+          expanded={expanded}
+          onToggle={toggleItem}
+          pathname={pathname}
+          onNavigate={onNavigate}
+        />
+      ) : null}
+
       {nav.commandCentre ? (
         <div className="mt-4">
           <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
             {COMMAND_CENTRE_NAV_SECTION_LABEL}
           </p>
           <p className="mb-2 px-3 text-[10px] leading-snug text-slate-600">
-            Cockpit · Opportunity Engine™
+            {COMMAND_CENTRE_NAV_SUBLABEL}
           </p>
           <CollapsibleNavSection
             items={[
@@ -192,6 +247,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 icon: nav.commandCentre.icon,
                 routes: nav.commandCentre.routes,
                 primaryHref: nav.commandCentre.primaryHref,
+                badge: ccBadge ?? undefined,
               },
             ]}
             expanded={expanded}
@@ -202,20 +258,48 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       ) : null}
 
-      {nav.tiers.map((group) => (
-        <div key={group.tier} className="mt-4">
-          <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-            {group.label}
-          </p>
-          <CollapsibleNavSection
-            items={group.apps}
-            expanded={expanded}
-            onToggle={toggleItem}
-            pathname={pathname}
-            onNavigate={onNavigate}
-          />
-        </div>
+      {growthTier.map((group) => (
+        <TierSection
+          key={group.tier}
+          group={group}
+          expanded={expanded}
+          onToggle={toggleItem}
+          pathname={pathname}
+          onNavigate={onNavigate}
+        />
       ))}
+
+      {businessTiers.map((group) => (
+        <TierSection
+          key={group.tier}
+          group={group}
+          expanded={expanded}
+          onToggle={toggleItem}
+          pathname={pathname}
+          onNavigate={onNavigate}
+        />
+      ))}
+
+      <div className="mt-4">
+        <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+          {PLATFORM_NAV_SECTION_LABEL}
+        </p>
+        <CollapsibleNavSection
+          items={[
+            {
+              id: `shell-${nav.platform.href}`,
+              name: nav.platform.label,
+              icon: nav.platform.icon ?? "⎔",
+              routes: nav.platform.routes ?? [],
+              primaryHref: nav.platform.href,
+            },
+          ]}
+          expanded={expanded}
+          onToggle={toggleItem}
+          pathname={pathname}
+          onNavigate={onNavigate}
+        />
+      </div>
     </nav>
   );
 }
