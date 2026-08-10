@@ -55,12 +55,10 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
     const day = String(d.getDate()).padStart(2, "0");
     return `${y}-${m}-${day}`;
   };
-  // Fetch from start of current week so week view always has today's nights.
+  // Fetch from start of current week (Sunday) so week view always has today's nights.
   const weekStartFetch = (() => {
     const d = new Date(today);
-    const day = d.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    d.setDate(d.getDate() + diff);
+    d.setDate(d.getDate() - d.getDay());
     return d;
   })();
   // 2-year horizon so far-dated OTA blocks (Booking.com CLOSED windows, etc.) paint in month/list.

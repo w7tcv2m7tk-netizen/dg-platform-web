@@ -75,8 +75,7 @@ function addDays(iso: string, n: number) {
 function startOfWeek(iso: string) {
   const d = new Date(`${iso}T12:00:00`);
   const day = d.getDay(); // 0 Sun
-  const diff = day === 0 ? -6 : 1 - day; // Monday start
-  d.setDate(d.getDate() + diff);
+  d.setDate(d.getDate() - day); // Sunday start
   return toLocalISODate(d);
 }
 
@@ -269,8 +268,8 @@ export function AccommodationAvailabilityBoard({
   async function syncOta() {
     setSyncing(true);
     setSyncMsg(null);
-    // Pull a long horizon — Booking.com CLOSED blocks are often far ahead of the inventory strip.
-    const syncTo = addDays(todayLocalISO(), 400);
+    // Pull the same 2-year horizon the calendar page loads.
+    const syncTo = addDays(todayLocalISO(), ACC_CALENDAR_HORIZON_DAYS);
     const res = await fetch("/api/v1/accommodation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -979,11 +978,10 @@ function MonthGrid({
   pendingBlock: string | null;
   onToggleDay: (unitId: number, day: string) => void;
 }) {
-  // Pad to Monday-start weeks
+  // Pad to Sunday-start weeks
   const lead = (() => {
     const d = new Date(`${days[0]}T12:00:00`);
-    const day = d.getDay();
-    return day === 0 ? 6 : day - 1;
+    return d.getDay(); // 0 Sun … 6 Sat
   })();
   const cells: (string | null)[] = [
     ...Array.from({ length: lead }, () => null),
@@ -1030,7 +1028,7 @@ function MonthGrid({
           : null}
       </p>
       <div className="grid grid-cols-7 gap-px overflow-hidden rounded-xl border border-slate-800 bg-slate-800">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
           <div key={d} className="bg-slate-950 px-2 py-1.5 text-center text-[10px] font-medium uppercase text-slate-500">
             {d}
           </div>
