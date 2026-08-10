@@ -989,12 +989,18 @@ function WeekGrid({
     <div className="space-y-3">
       <h2 className="text-sm font-medium text-slate-300">{title}</h2>
       <div className="overflow-x-auto rounded-xl border border-slate-800">
-        <table className="w-full min-w-[720px] border-collapse text-left text-xs">
+        <table className="w-full min-w-[900px] table-fixed border-collapse text-left text-xs">
+          <colgroup>
+            <col className="w-40" />
+            {days.map((d) => (
+              <col key={d} />
+            ))}
+          </colgroup>
           <thead className="bg-slate-900/60 text-slate-500">
             <tr>
-              <th className="sticky left-0 z-10 w-40 bg-slate-950 px-3 py-2">Unit</th>
+              <th className="sticky left-0 z-10 bg-slate-950 px-3 py-2">Unit</th>
               {days.map((d) => (
-                <th key={d} className="px-2 py-2 text-center font-normal text-slate-400">
+                <th key={d} className="px-1.5 py-2 text-center font-normal text-slate-400">
                   {formatDayLabel(d, "long")}
                 </th>
               ))}
@@ -1005,7 +1011,7 @@ function WeekGrid({
               return (
                 <tr
                   key={unit.id}
-                  className={`border-t border-slate-800 align-top ${
+                  className={`border-t border-slate-800 ${
                     selectedId === unit.id ? "bg-slate-900/30" : ""
                   }`}
                 >
@@ -1026,7 +1032,7 @@ function WeekGrid({
                     const isBlocked = showManual && isManuallyBlocked(unit, d);
                     const busy = pendingBlock === `${unit.id}:${d}`;
                     const cellClass =
-                      "flex h-14 w-full flex-col items-center justify-center rounded-md px-2 text-center text-[10px] leading-tight";
+                      "box-border flex h-14 w-full min-w-0 flex-col items-center justify-center overflow-hidden rounded-md px-1.5 text-center text-[10px] leading-tight";
                     return (
                       <td key={d} className="px-1.5 py-2 align-middle">
                         {booking ? (
