@@ -51,13 +51,13 @@ const DAILY_BRIEFING_CARD = {
   href: GROWTH_ENGINE_ROUTES.hub,
   title: "Daily Briefing",
   description:
-    "Opportunity Engine — who to speak to today (Prospect Opportunity Score). Not an autonomous AI SDR.",
+    "Prospect ranks feeding Opportunity Engine™ — who to speak to today. Not an autonomous AI SDR.",
   status: "Live",
 } as const;
 
 export function GrowthEngineNav({ active }: { active?: string }) {
   return (
-    <nav className="flex flex-wrap gap-2 border-b border-slate-800 pb-4" aria-label="Growth Engine">
+    <nav className="flex flex-wrap gap-2 border-b border-slate-800 pb-4" aria-label="Prospecting">
       <Link
         href={GROWTH_ENGINE_ROUTES.hub}
         className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${

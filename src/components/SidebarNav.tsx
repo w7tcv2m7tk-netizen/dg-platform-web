@@ -9,6 +9,7 @@ import { SidebarIcon } from "@/components/SidebarIcon";
 import { itemHasActiveRoute, routeIsActive } from "@/lib/nav-route-match";
 import {
   BUSINESS_WORKSPACE_SECTION_LABEL,
+  COMMAND_CENTRE_NAV_SECTION_LABEL,
   type AppRoute,
 } from "@dg/platform-core";
 
@@ -115,8 +116,11 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         next[`shell-${link.href}`] = true;
       }
     }
+    if (nav.commandCentre && itemHasActiveRoute(pathname, nav.commandCentre.routes)) {
+      next[nav.commandCentre.id] = true;
+    }
     setExpanded(next);
-  }, [pathname, nav.tiers, nav.shell]);
+  }, [pathname, nav.tiers, nav.shell, nav.commandCentre]);
 
   function toggleItem(id: string) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -171,6 +175,32 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           </Link>
         );
       })}
+
+      {nav.commandCentre ? (
+        <div className="mt-4">
+          <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+            {COMMAND_CENTRE_NAV_SECTION_LABEL}
+          </p>
+          <p className="mb-2 px-3 text-[10px] leading-snug text-slate-600">
+            Cockpit · Opportunity Engine™
+          </p>
+          <CollapsibleNavSection
+            items={[
+              {
+                id: nav.commandCentre.id,
+                name: nav.commandCentre.name,
+                icon: nav.commandCentre.icon,
+                routes: nav.commandCentre.routes,
+                primaryHref: nav.commandCentre.primaryHref,
+              },
+            ]}
+            expanded={expanded}
+            onToggle={toggleItem}
+            pathname={pathname}
+            onNavigate={onNavigate}
+          />
+        </div>
+      ) : null}
 
       {nav.tiers.map((group) => (
         <div key={group.tier} className="mt-4">

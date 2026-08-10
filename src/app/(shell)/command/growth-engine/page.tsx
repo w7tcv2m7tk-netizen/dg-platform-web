@@ -49,9 +49,9 @@ export default async function GrowthEngineHubPage() {
         <Link href="/command" className="text-sm text-sky-400 hover:underline">
           ← Command Centre
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Growth Engine™</h1>
+        <h1 className="mt-2 text-2xl font-bold text-white">Prospecting</h1>
         <p className="text-sm text-slate-400">
-          Discover → Opportunity Engine → audit → report → pipeline → client
+          Discover → audit → report → pipeline → client · feeds Opportunity Engine™
         </p>
       </header>
       <main className="dg-page-main space-y-8">
@@ -71,7 +71,7 @@ export default async function GrowthEngineHubPage() {
           <section className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5 space-y-4">
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-sky-400">
-                Opportunity Engine · Daily Briefing
+                Prospect ranks · Daily Briefing
               </p>
               <h2 className="mt-1 text-xl font-semibold text-white">{briefing.greeting}</h2>
               <p className="mt-1 text-sm text-slate-200">{briefing.headline}</p>

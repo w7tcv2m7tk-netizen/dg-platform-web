@@ -111,7 +111,7 @@ export interface CategorizedPlatformNavigation {
   commandCentre: PlatformToolNavItem | null;
 }
 
-export const COMMAND_CENTRE_NAV_SECTION_LABEL = "DigitalGate";
+export const COMMAND_CENTRE_NAV_SECTION_LABEL = "Command Centre";
 
 function getCommandCentreNavItem(): PlatformToolNavItem {
   const manifest = commandCentreApp;
@@ -120,7 +120,7 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
     id: manifest.id,
     name: manifest.name,
     icon: getSidebarIcon(manifest.id, manifest.icon),
-    primaryHref: manifest.navigation[0]?.href ?? "/command",
+    primaryHref: "/command/opportunities",
     routes: manifest.navigation.map((item) => ({
       path: item.href,
       label: item.label,
@@ -145,35 +145,8 @@ export function getCategorizedPlatformNavigation(
       .map((a) => toTreeItem(a, enabledIds)),
   })).filter((g) => g.apps.length > 0);
 
-  if (options?.showCommandCentre) {
-    const cc = getCommandCentreNavItem();
-    const ccTreeItem: AppNavTreeItem = {
-      kind: "app",
-      id: cc.id,
-      name: cc.name,
-      icon: cc.icon,
-      tier: "business",
-      enabled: true,
-      routes: cc.routes,
-      primaryHref: cc.primaryHref,
-    };
-
-    const businessIdx = tiers.findIndex((g) => g.tier === "business");
-    if (businessIdx >= 0) {
-      tiers[businessIdx] = {
-        ...tiers[businessIdx],
-        apps: [ccTreeItem, ...tiers[businessIdx].apps],
-      };
-    } else {
-      const coreIdx = tiers.findIndex((g) => g.tier === "core");
-      const insertAt = coreIdx >= 0 ? coreIdx + 1 : 0;
-      tiers.splice(insertAt, 0, {
-        tier: "business",
-        label: APP_TIER_LABELS.business,
-        apps: [ccTreeItem],
-      });
-    }
-  }
+  // Command Centre is its own cockpit section in the sidebar — not buried in Business apps.
+  const commandCentre = options?.showCommandCentre ? getCommandCentreNavItem() : null;
 
   const tools: PlatformToolsNavGroup = {
     label: "Settings",
@@ -184,7 +157,7 @@ export function getCategorizedPlatformNavigation(
     shell: SHELL_NAV,
     tiers,
     tools,
-    commandCentre: options?.showCommandCentre ? getCommandCentreNavItem() : null,
+    commandCentre,
   };
 }
 

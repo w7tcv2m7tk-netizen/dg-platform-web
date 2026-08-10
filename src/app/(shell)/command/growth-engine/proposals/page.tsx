@@ -27,7 +27,7 @@ export default async function GrowthProposalsPage() {
     <>
       <header className="dg-page-header">
         <Link href="/command/growth-engine" className="text-sm text-sky-400 hover:underline">
-          ← Growth Engine
+          ← Prospecting
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Proposal Generator</h1>
         <p className="mt-1 text-sm text-slate-400">
