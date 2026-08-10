@@ -14,11 +14,13 @@ import {
   unitToWpProp,
   updateStayBooking,
   updateUnitHousekeeping,
+  upsertStayBookingFromWpRow,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
 import {
+  fetchWpAccommodationAvailability,
   fetchWpAccommodationBookings,
   fetchWpAccommodationHousekeeping,
   fetchWpAccommodationSummary,
@@ -258,24 +260,90 @@ export async function POST(req: Request) {
         { status: 422 },
       );
     }
-    // OTA sync writes WordPress dg_booking rows; Gen 2 calendar reads Neon StayBooking.
-    // Pull WP → Neon so Booking.com / Airbnb imports show on /apps/accommodation/calendar.
-    const neonSync = await syncWordPressAccBookings(session);
-    if (neonSync.ok) {
-      const neonResult = neonSync.result;
-      const neonSummary = `${neonResult.created} created, ${neonResult.updated} updated on platform`;
+
+    // Prefer availability-window pull (same WP query the CVH calendar uses) so OTA
+    // stays in the visible range always land in Neon StayBooking.
+    const today = new Date();
+    const iso = (d: Date) => d.toISOString().slice(0, 10);
+    const from =
+      typeof body.from === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.from)
+        ? body.from
+        : iso(today);
+    const toDate = new Date(today);
+    toDate.setDate(toDate.getDate() + 90);
+    const to =
+      typeof body.to === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.to)
+        ? body.to
+        : iso(toDate);
+
+    let created = 0;
+    let updated = 0;
+    let skipped = 0;
+    const errors: string[] = [];
+
+    const availability = await fetchWpAccommodationAvailability({
+      from,
+      to,
+      propertyId: typeof body.propertyId === "number" ? body.propertyId : undefined,
+      connector,
+    });
+
+    if (availability.ok) {
+      const seen = new Set<number>();
+      for (const unit of availability.units) {
+        for (const booking of unit.bookings ?? []) {
+          if (!booking?.id || seen.has(booking.id)) continue;
+          seen.add(booking.id);
+          // Ensure accommodation_id is set for calendar unit matching.
+          const row = {
+            ...booking,
+            accommodation_id: booking.accommodation_id ?? unit.id,
+            accommodation: booking.accommodation ?? unit.title,
+          };
+          try {
+            const outcome = await upsertStayBookingFromWpRow(session.organisationId, row, {
+              actorId: session.clerkUserId,
+            });
+            if (outcome === "created") created++;
+            else if (outcome === "updated") updated++;
+            else skipped++;
+          } catch (err) {
+            errors.push(
+              `Booking #${booking.id}: ${err instanceof Error ? err.message : "sync failed"}`,
+            );
+          }
+        }
+      }
+
       return NextResponse.json({
         data: {
           ...result.data,
-          neon: neonResult,
-          message: `${result.data?.message ?? "OTA calendars synced"} · ${neonSummary}`,
+          neon: { created, updated, skipped, errors, from, to, source: "availability" },
+          message: `${result.data?.message ?? "OTA calendars synced"} · ${created} created, ${updated} updated on platform (${from}→${to})`,
+        },
+      });
+    }
+
+    // Fallback: list bookings pull (host-safe CVH key).
+    const neonSync = await syncWordPressAccBookings(session);
+    if (neonSync.ok) {
+      const neonResult = neonSync.result;
+      return NextResponse.json({
+        data: {
+          ...result.data,
+          neon: { ...neonResult, source: "bookings_list", availabilityError: availability.message },
+          message: `${result.data?.message ?? "OTA calendars synced"} · ${neonResult.created} created, ${neonResult.updated} updated on platform`,
         },
       });
     }
     return NextResponse.json({
       data: {
         ...result.data,
-        neon: { ok: false, message: neonSync.message },
+        neon: {
+          ok: false,
+          message: neonSync.message,
+          availabilityError: availability.message,
+        },
         message: `OTA synced on WordPress — platform pull failed: ${neonSync.message}`,
       },
     });

@@ -29,6 +29,7 @@ Not for: multi-property franchise SaaS, Network Reviews as a beta promise, or fu
 | Units | Sync + edit; Neon `AccommodationUnit` soft SoT when synced (`acc.units_sot`) |
 | Calendar / availability | Week, month, list; blocks; OTA sync |
 | OTA iCal | Airbnb / Booking.com **import** URLs on unit; DigitalGate **export** URL → paste into OTAs |
+| Channel roadmap | Stage 1 iCal → Stage 2 Booking.com Connectivity + Airbnb partner APIs — [ACC-CHANNEL-CONNECTIVITY.md](./foundations/ACC-CHANNEL-CONNECTIVITY.md) |
 | Bookings | StayBooking read SoT; ops create + WP dual-write; Gen 2-first behind `acc.gen2_first_booking` |
 | Guests | Contacts with Accommodation guest context (stays, LTV, VIP/repeat) |
 | Housekeeping | Status board; Neon SoT when units synced |

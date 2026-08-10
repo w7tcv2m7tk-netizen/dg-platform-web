@@ -271,7 +271,7 @@ export function AccommodationAvailabilityBoard({
     const res = await fetch("/api/v1/accommodation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "sync_ota", source: "all" }),
+      body: JSON.stringify({ action: "sync_ota", source: "all", from, to }),
     });
     const json = await res.json().catch(() => ({}));
     setSyncing(false);
