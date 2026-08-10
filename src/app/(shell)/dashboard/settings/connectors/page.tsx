@@ -6,6 +6,7 @@ import {
   resolveOrgWordPressConnector,
 } from "@dg/platform-core";
 
+import { DomainConnectorPanel } from "@/components/settings/DomainConnectorPanel";
 import { WordPressConnectorPanel } from "@/components/settings/WordPressConnectorPanel";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { getLastWordPressSync } from "@/lib/wordpress-sync";
@@ -21,7 +22,12 @@ function EnvStatus({ name, configured }: { name: string; configured: boolean }) 
   );
 }
 
-export default async function ConnectorsSettingsPage() {
+interface PageProps {
+  searchParams: Promise<{ domain?: string; message?: string }>;
+}
+
+export default async function ConnectorsSettingsPage({ searchParams }: PageProps) {
+  const { domain: domainFlash, message: domainMessage } = await searchParams;
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const name =
@@ -57,6 +63,8 @@ export default async function ConnectorsSettingsPage() {
     resend: Boolean(process.env.RESEND_API_KEY?.trim()),
     openai: Boolean(process.env.OPENAI_API_KEY?.trim()),
     anthropic: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),
+    domainClient: Boolean(process.env.DOMAIN_CLIENT_ID?.trim()),
+    domainSecret: Boolean(process.env.DOMAIN_CLIENT_SECRET?.trim()),
   };
 
   return (
@@ -67,10 +75,21 @@ export default async function ConnectorsSettingsPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Connectors</h1>
         <p className="text-sm text-slate-400">
-          WordPress sync, site health, and payment provider configuration
+          WordPress sync, Domain syndication OAuth, site health, and payment providers
         </p>
       </header>
       <main className="dg-page-main space-y-6">
+        <DomainConnectorPanel
+          flash={
+            domainFlash === "connected"
+              ? "connected"
+              : domainFlash === "error"
+                ? "error"
+                : null
+          }
+          flashMessage={domainMessage ?? null}
+        />
+
         {session && wpResolved ? (
           <WordPressConnectorPanel
             initial={{
@@ -146,6 +165,8 @@ export default async function ConnectorsSettingsPage() {
                 configured={envFlags.wpAccommodationSites}
               />
               <EnvStatus name="STRIPE_SECRET_KEY" configured={envFlags.stripe} />
+              <EnvStatus name="DOMAIN_CLIENT_ID" configured={envFlags.domainClient} />
+              <EnvStatus name="DOMAIN_CLIENT_SECRET" configured={envFlags.domainSecret} />
               <EnvStatus name="RESEND_API_KEY" configured={envFlags.resend} />
               <EnvStatus name="OPENAI_API_KEY" configured={envFlags.openai} />
               <EnvStatus name="ANTHROPIC_API_KEY" configured={envFlags.anthropic} />

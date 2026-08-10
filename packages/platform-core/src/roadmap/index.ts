@@ -99,6 +99,60 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     status: "done",
     href: "/dashboard/settings/team",
   },
+  {
+    id: "platform.connector_engine",
+    area: "Platform",
+    label: "Connector Engine",
+    description:
+      "Core framework: manifests, auth, sync, health — Property / Business / Marketing categories — docs/foundations/CONNECTOR-ENGINE.md",
+    status: "in_progress",
+    priority: "high",
+    href: "/dashboard/settings",
+  },
+  {
+    id: "platform.connector_google",
+    area: "Platform",
+    label: "Google connectors",
+    description: "Business Profile + Analytics + Search Console + Ads (after Stripe)",
+    status: "planned",
+    priority: "high",
+  },
+  {
+    id: "platform.connector_meta",
+    area: "Platform",
+    label: "Meta connectors",
+    description: "Facebook / Instagram + Lead Ads",
+    status: "planned",
+  },
+  {
+    id: "platform.connector_comms",
+    area: "Platform",
+    label: "Email / SMS connectors",
+    description: "Communications infrastructure for automation and outreach",
+    status: "planned",
+  },
+  {
+    id: "platform.connector_xero",
+    area: "Platform",
+    label: "Xero connector",
+    description: "Accounting / invoices / payments sync",
+    status: "planned",
+  },
+  {
+    id: "platform.connector_shopify",
+    area: "Platform",
+    label: "Shopify connector",
+    description: "Commerce channel via Connector Engine",
+    status: "planned",
+  },
+  {
+    id: "platform.connector_property_intel",
+    area: "Platform",
+    label: "Property intelligence connectors",
+    description:
+      "CoreLogic / PropTrack / PriceFinder — subject to commercial API access (Tier 2)",
+    status: "planned",
+  },
 
   // —— CRM ——
   {
@@ -200,9 +254,9 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
   {
     id: "re.syndication_engine",
     area: "Real Estate",
-    label: "Property Syndication Engine",
+    label: "Listing Hub (Property Syndication)",
     description:
-      "Listing + ListingPlacement; Domain/REA/website adapters; syndication panel — docs/foundations/PROPERTY-SYNDICATION.md",
+      "SoT listings via Connector Engine; Domain/REA/website/social adapters — CONNECTOR-ENGINE.md · PROPERTY-SYNDICATION.md",
     status: "planned",
     priority: "high",
     appId: "real-estate",
@@ -213,8 +267,8 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Real Estate",
     label: "Domain Listings Management (sandbox)",
     description:
-      "Add Listings Management Sandbox to Domain Developer Portal project; implement publish/update/withdraw/status MVP",
-    status: "planned",
+      "OAuth client + connect/callback shipped; implement publish/update/withdraw/status against Listings Management Sandbox",
+    status: "in_progress",
     priority: "high",
     appId: "real-estate",
   },
@@ -223,6 +277,24 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Real Estate",
     label: "Domain Listings Management (production)",
     description: "Request production access; Address Suggestions + Webhooks; Agents & Listings separately",
+    status: "planned",
+    appId: "real-estate",
+  },
+  {
+    id: "re.syndication_rea",
+    area: "Real Estate",
+    label: "REA listing syndication",
+    description:
+      "realestate.com.au connector: publish/update, enquiries, agent/property data — Tier 1 via Connector Engine",
+    status: "planned",
+    priority: "high",
+    appId: "real-estate",
+  },
+  {
+    id: "re.agency_pms_connectors",
+    area: "Real Estate",
+    label: "Agency PMS connectors (Tier 3)",
+    description: "Assess VaultRE / Rex / LockedOn / Agentbox APIs — Agency → DigitalGate → portals",
     status: "planned",
     appId: "real-estate",
   },

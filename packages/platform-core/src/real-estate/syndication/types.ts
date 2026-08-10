@@ -66,28 +66,3 @@ export function getSyndicationChannel(
 export function listSyndicationChannels(): SyndicationChannelId[] {
   return [...adapters.keys()];
 }
-
-/**
- * Domain Listings Management — stub until sandbox credentials + HTTP client land.
- * Register in app bootstrap when `re.syndication_domain_sandbox` is on.
- */
-export const domainSyndicationStub: SyndicationChannelAdapter = {
-  channel: "domain",
-  async validate() {
-    return {
-      ok: false,
-      status: "error",
-      message:
-        "Domain Listings Management not configured — add Sandbox to Domain Developer Portal project",
-    };
-  },
-  async publish(input) {
-    return this.validate(input);
-  },
-  async update(input) {
-    return this.validate(input);
-  },
-  async withdraw(input) {
-    return this.validate(input);
-  },
-};

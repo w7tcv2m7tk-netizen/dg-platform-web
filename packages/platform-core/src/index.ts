@@ -19,6 +19,8 @@ export * from "./notifications";
 export * from "./command-centre";
 export * from "./business-discovery";
 export * from "./connectors/wordpress";
+export * from "./connectors/framework";
+export * from "./connectors/domain";
 export * from "./contacts";
 export * from "./companies";
 export * from "./leads";
