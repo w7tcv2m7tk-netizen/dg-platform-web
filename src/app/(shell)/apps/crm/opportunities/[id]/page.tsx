@@ -69,7 +69,7 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">{opportunity.title}</h1>
         <p className="text-sm text-slate-400">
-          {want ? "Want · " : ""}
+          {want ? "Demand / Want · " : ""}
           {opportunity.stage.replace(/_/g, " ")} · {opportunity.status}
         </p>
       </header>
@@ -135,9 +135,9 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
 
           {want ? (
             <div className="dg-card lg:col-span-2">
-              <h2 className="font-semibold text-white">Property Want</h2>
+              <h2 className="font-semibold text-white">Demand / Want</h2>
               <p className="mt-1 text-xs text-slate-500">
-                Demand capture · manual matching for MVP
+                Opportunity type: demand · property requirements · manual matching for MVP
               </p>
               <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
                 <div>

@@ -2,9 +2,78 @@
 
 **Status:** MVP validation · August 2026  
 **Organisation:** Wantd (`wantd`)  
-**Vertical:** Wantd Property · [wantdproperty.com.au](https://wantdproperty.com.au)
+**Vertical:** Wantd Property · [wantdproperty.com.au](https://wantdproperty.com.au)  
+**Classification:** Business / Organisation — **not** a DigitalGate App
 
-Wantd is a **first-class Business** on the DigitalGate platform — not a separate tech stack.
+---
+
+## 11. Architectural Classification (locked)
+
+Wantd is initially a **Business/Organisation**, not a dedicated DigitalGate App.
+
+The MVP must use existing DigitalGate **Core** infrastructure and **Universal Objects** wherever possible.
+
+**Do not create a dedicated Wantd App** unless the functionality cannot reasonably be represented through existing Core services and objects.
+
+### Initial implementation
+
+```
+Wantd Business (Organisation)
+  → CRM (Core App)
+  → Contact
+  → Opportunity
+       · Type: Demand / Want
+       · Property requirement data (metadata)
+  → Automation
+  → AI
+  → Matching workflow (manual for MVP)
+  → Reporting
+```
+
+There is **no** `wantd` entry in the App Registry. Public capture (`/wantd/property`) and `packages/platform-core/src/wantd/` are **org-scoped domain helpers**, not an App manifest.
+
+### Anticipated future Universal Object
+
+```
+Contact
+  → Demand          ← future Universal Object
+  → Matching Engine
+  → Supply
+  → Opportunity     ← commercial deal / listing response
+  → Deal
+```
+
+For MVP validation, **Demand is represented as an Opportunity** with:
+
+| Field | Value |
+|-------|--------|
+| `metadata.opportunity_type` | `"demand"` |
+| `metadata.record_kind` | `"want"` |
+| `metadata.category` | `"property"` (+ requirement payload) |
+| `metadata.demand_object_ready` | `false` (migration seam) |
+| `pipelineId` | `wantd_property_want` |
+
+### If validation succeeds — future Business App
+
+Wantd may later become a dedicated **Business App** containing:
+
+* Demand Engine  
+* AI Intent Understanding  
+* Matching Engine  
+* Supplier Network  
+* Marketplace  
+* Marketplace Analytics  
+* Revenue / Referral Engine  
+
+That App **must continue to use DigitalGate Platform Core** — do not duplicate authentication, CRM, users, billing, automation, AI, notifications, or other shared infrastructure.
+
+### Principle
+
+**Validate the marketplace before building marketplace-specific infrastructure.**
+
+---
+
+## Platform placement
 
 ```
 DigitalGate Platform
@@ -13,33 +82,23 @@ DigitalGate Platform
         +-- Roe Realty
         +-- Currumbin Valley Hideaway
         +-- Aëtherra
-        +-- Wantd
+        +-- Wantd          ← Organisation context only
 ```
 
-Switch via the existing OrgSwitcher (User → Organisations / businesses).
-
----
-
-## Principle
-
-Validation first: prove people submit demand, structured capture works, supply can be matched manually, and suppliers value access. Dedicated marketplace engines come later.
+Switch via OrgSwitcher (User → Organisations / businesses). Shared services: Auth, Organisations, CRM, Contacts, Opportunities, Tasks, Activities, AI, Automation, Event Bus, Notifications, Reporting, Billing.
 
 ---
 
 ## Data model (MVP)
 
-Use Universal Objects:
-
 | Object | Role |
 |--------|------|
 | **Contact** | Buyer who submitted a Want |
-| **Opportunity** | The Want / property demand (`metadata.record_kind = "want"`) |
+| **Opportunity** | Demand / Want (structured type + Wantd metadata) |
 | **Activity** | Timeline (`want_captured`) |
 | **Automation / Events** | `opportunity.created` → confirmations, nurture |
 
-A dedicated **Demand** object can be introduced later; metadata includes `demand_object_ready: false` as the migration seam.
-
-Want stages (Opportunity.stage): `new` → `contacted` → `matching` → `match_found` → `inspection` → `negotiation` → `successful` | `closed_lost`.
+Want stages (`Opportunity.stage`): `new` → `contacted` → `matching` → `match_found` → `inspection` → `negotiation` → `successful` \| `closed_lost`.
 
 ---
 
@@ -58,7 +117,7 @@ Optional env: `DG_WANTD_ORGANISATION_ID`.
 
 ## Code
 
-`packages/platform-core/src/wantd/` — types, `capturePropertyWant`, `ensureWantdOrganisation`, `resolveWantdOrganisationId`.
+`packages/platform-core/src/wantd/` — org resolve/provision + Want capture helpers (Core package, **not** an App).
 
 Brand preset key: `wantd`.
 
@@ -66,4 +125,4 @@ Brand preset key: `wantd`.
 
 ## Out of scope (now)
 
-Matching engine, supplier network, multi-vertical marketplace apps, separate Wantd infrastructure.
+Wantd App manifest, Demand Universal Object table, matching engine, supplier network, multi-vertical marketplace, separate Wantd infrastructure.

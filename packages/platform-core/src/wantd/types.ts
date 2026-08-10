@@ -1,7 +1,7 @@
 /**
- * Wantd Property — demand-first “Want” capture on DigitalGate CRM Opportunities.
- * Architected so a dedicated Demand object can replace metadata later without breaking capture.
- * @see docs/WANTD.md
+ * Wantd Property — demand-first capture as CRM Opportunity (type Demand / Want).
+ * Wantd is an Organisation, not an App. Helpers live in Core for reuse.
+ * @see docs/WANTD.md § Architectural Classification
  */
 
 export const WANTD_ORG_SLUG = "wantd";
@@ -11,6 +11,9 @@ export const WANTD_VERTICAL = "Wantd Property";
 
 /** Marks Opportunity.metadata as a Want (future Demand object migration key). */
 export const WANT_RECORD_KIND = "want" as const;
+
+/** Opportunity type for demand-first capture — not a sales deal until matched. */
+export const OPPORTUNITY_TYPE_DEMAND = "demand" as const;
 
 export const WANT_TRANSACTIONS = ["buy", "invest", "rent"] as const;
 export type WantTransaction = (typeof WANT_TRANSACTIONS)[number];
@@ -53,8 +56,11 @@ export type WantRequirements = {
   description?: string;
 };
 
-/** Stored on Opportunity.metadata when record_kind === "want". */
+/** Stored on Opportunity.metadata for Demand / Want (MVP stand-in for Demand UO). */
 export type WantOpportunityMetadata = {
+  /** Structured opportunity type — Demand until a Demand Universal Object exists */
+  opportunity_type: typeof OPPORTUNITY_TYPE_DEMAND;
+  /** Want subtype within Demand; migration key for future Demand.id */
   record_kind: typeof WANT_RECORD_KIND;
   category: "property";
   vertical: typeof WANTD_VERTICAL;
@@ -62,7 +68,7 @@ export type WantOpportunityMetadata = {
   property: WantPropertyBrief;
   requirements: WantRequirements;
   timeline: WantTimeline;
-  /** Reserved: migrate to Demand.id later without losing history */
+  /** Reserved: migrate to Demand Universal Object without losing history */
   demand_object_ready: false;
   source?: string;
   capture_path?: string;
@@ -95,7 +101,11 @@ export type CapturePropertyWantResult =
 export function isWantOpportunityMetadata(
   meta: Record<string, unknown> | null | undefined,
 ): meta is WantOpportunityMetadata & Record<string, unknown> {
-  return meta?.record_kind === WANT_RECORD_KIND;
+  if (!meta) return false;
+  return (
+    meta.opportunity_type === OPPORTUNITY_TYPE_DEMAND ||
+    meta.record_kind === WANT_RECORD_KIND
+  );
 }
 
 export function formatWantBudget(property: WantPropertyBrief): string | null {

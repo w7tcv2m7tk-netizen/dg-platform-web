@@ -264,6 +264,8 @@ An **expression of interest** before qualification — form submission, enquiry,
 
 A **qualified pipeline item** with expected value and stage — vendor listing journey, buyer offer track, commercial deal.
 
+**Demand / Want (Wantd MVP):** Until a Demand Universal Object exists, demand-first marketplace capture may use Opportunity with `metadata.opportunity_type = "demand"` and `metadata.record_kind = "want"` (property requirements in metadata). Wantd is an **Organisation**, not a dedicated App — see [WANTD.md](../WANTD.md). Preferred future chain: Contact → Demand → Matching → Supply → Opportunity → Deal.
+
 ### Mandatory fields
 
 | Field | Type | Notes |

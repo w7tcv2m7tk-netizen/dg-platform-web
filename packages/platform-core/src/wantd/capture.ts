@@ -3,6 +3,7 @@ import { createOpportunity } from "../opportunities";
 import {
   buildWantTitle,
   formatWantBudget,
+  OPPORTUNITY_TYPE_DEMAND,
   WANT_RECORD_KIND,
   WANTD_VERTICAL,
   type CapturePropertyWantInput,
@@ -26,8 +27,9 @@ function parseAudToCents(aud?: number): number | undefined {
 }
 
 /**
- * MVP demand capture: Contact + CRM Opportunity (Want metadata).
- * Matching stays manual; automation hooks via opportunity.created.
+ * MVP demand capture: Contact + CRM Opportunity (type Demand / Want).
+ * Not a Wantd App — Organisation context only. Matching stays manual;
+ * automation hooks via opportunity.created. Future: Demand Universal Object.
  */
 export async function capturePropertyWant(
   input: CapturePropertyWantInput,
@@ -92,6 +94,7 @@ export async function capturePropertyWant(
   }
 
   const metadata: WantOpportunityMetadata = {
+    opportunity_type: OPPORTUNITY_TYPE_DEMAND,
     record_kind: WANT_RECORD_KIND,
     category: "property",
     vertical: WANTD_VERTICAL,
