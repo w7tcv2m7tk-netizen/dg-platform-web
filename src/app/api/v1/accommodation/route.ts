@@ -271,8 +271,8 @@ export async function POST(req: Request) {
         ? body.from
         : iso(today);
     const toDate = new Date(today);
-    // Match calendar page horizon so OTA stays months out land in Neon.
-    toDate.setDate(toDate.getDate() + 400);
+    // Match calendar page horizon (2 years) so far OTA stays land in Neon.
+    toDate.setDate(toDate.getDate() + ACC_CALENDAR_HORIZON_DAYS);
     const to =
       typeof body.to === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.to)
         ? body.to

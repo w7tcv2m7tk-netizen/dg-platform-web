@@ -241,6 +241,7 @@ Do **not** block Roe / AU GTM on full multi-country UI — ship AU pack defaults
 - [CORE-OBJECT-SPECIFICATION.md](./CORE-OBJECT-SPECIFICATION.md) — Organisation fields  
 - [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) — domains/hosting providers (AU Dreamscape first)  
 - [APP-MARKETPLACE.md](./APP-MARKETPLACE.md) — install / license  
-- [CONNECTOR-SPECIFICATION.md](../connectors/CONNECTOR-SPECIFICATION.md) — connectors  
+- [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) — Connector Framework (`countries[]` on manifests)
+- [CONNECTOR-SPECIFICATION.md](../connectors/CONNECTOR-SPECIFICATION.md) — short ops summary  
 - [WHITE-LABELLING.md](./WHITE-LABELLING.md) — regional branding  
 - [WP-DETACH-BACKLOG.md](../WP-DETACH-BACKLOG.md) — Gen 2 SoT path (AU proving ground first)  
