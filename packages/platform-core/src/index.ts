@@ -59,6 +59,7 @@ export * from "./automation";
 export * from "./communications";
 export * from "./seo";
 export * from "./opportunity-engine";
+export * from "./wantd";
 export * from "./roadmap";
 export * from "./app-guides";
 

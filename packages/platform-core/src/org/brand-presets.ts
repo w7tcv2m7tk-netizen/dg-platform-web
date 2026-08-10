@@ -5,7 +5,12 @@ import type {
 import { serializeBrandColours } from "./brand-theme";
 import { WP_CONNECTOR_PRESETS } from "../connectors/wordpress/org-connector";
 
-export type OrgBrandPresetKey = "digitalgate" | "roe-realty" | "cvh" | "aetherra";
+export type OrgBrandPresetKey =
+  | "digitalgate"
+  | "roe-realty"
+  | "cvh"
+  | "aetherra"
+  | "wantd";
 
 export type OrgBrandPreset = {
   key: OrgBrandPresetKey;
@@ -56,6 +61,14 @@ export const ORG_BRAND_PRESETS: Record<OrgBrandPresetKey, OrgBrandPreset> = {
       websiteUrl: "https://aetherra.com.au",
     },
   },
+  wantd: {
+    key: "wantd",
+    label: "Wantd",
+    patch: {
+      brandColours: serializeBrandColours("#E8A838", "#2DD4BF", "#0B1220"),
+      websiteUrl: "https://wantdproperty.com.au",
+    },
+  },
 };
 
 type OrgLike = {
@@ -77,6 +90,9 @@ export function resolveOrgBrandPresetKey(org: OrgLike): OrgBrandPresetKey | null
   const hay = `${org.name} ${org.slug} ${org.industry ?? ""}`.toLowerCase();
   const wp = wpBaseUrl(org.settings);
 
+  if (hay.includes("wantd") || hay.includes("want d") || wp.includes("wantdproperty")) {
+    return "wantd";
+  }
   if (hay.includes("aetherra") || hay.includes("aether")) return "aetherra";
   if (
     hay.includes("currumbin") ||
@@ -96,6 +112,7 @@ export function resolveOrgBrandPresetKey(org: OrgLike): OrgBrandPresetKey | null
   }
   if (hay.includes("digitalgate") || hay.includes("digital gate")) return "digitalgate";
 
+  if (org.industry === "marketplace") return "wantd";
   if (org.industry === "hospitality") return "cvh";
   if (org.industry === "real_estate") return "roe-realty";
   if (org.industry?.toLowerCase().includes("software")) return "digitalgate";

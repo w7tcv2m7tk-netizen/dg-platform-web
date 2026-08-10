@@ -2,7 +2,13 @@ import Link from "next/link";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
-import { getContact, getLead, getOpportunity } from "@dg/platform-core";
+import {
+  formatWantBudget,
+  getContact,
+  getLead,
+  getOpportunity,
+  isWantOpportunityMetadata,
+} from "@dg/platform-core";
 
 import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
 
@@ -32,6 +38,10 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
   const opportunity = await getOpportunity(session.organisationId, id);
   if (!opportunity) notFound();
 
+  const want = isWantOpportunityMetadata(opportunity.metadata)
+    ? opportunity.metadata
+    : null;
+
   const [contact, lead] = await Promise.all([
     opportunity.contactId
       ? getContact(session.organisationId, opportunity.contactId)
@@ -59,6 +69,7 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">{opportunity.title}</h1>
         <p className="text-sm text-slate-400">
+          {want ? "Want · " : ""}
           {opportunity.stage.replace(/_/g, " ")} · {opportunity.status}
         </p>
       </header>
@@ -70,7 +81,7 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
               <div>
                 <dt className="text-slate-500">Pipeline</dt>
                 <dd className="text-white capitalize">
-                  {opportunity.pipelineId ?? "—"}
+                  {opportunity.pipelineId?.replace(/_/g, " ") ?? "—"}
                 </dd>
               </div>
               {opportunity.valueCents != null ? (
@@ -121,6 +132,77 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
               ) : null}
             </ul>
           </div>
+
+          {want ? (
+            <div className="dg-card lg:col-span-2">
+              <h2 className="font-semibold text-white">Property Want</h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Demand capture · manual matching for MVP
+              </p>
+              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                <div>
+                  <dt className="text-slate-500">Transaction</dt>
+                  <dd className="capitalize text-white">{want.transaction}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Timeline</dt>
+                  <dd className="text-white">{want.timeline.replace(/_/g, " ")}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Type</dt>
+                  <dd className="text-white">{want.property.propertyType ?? "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Budget</dt>
+                  <dd className="text-white">{formatWantBudget(want.property) ?? "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Suburbs</dt>
+                  <dd className="text-white">
+                    {want.property.preferredSuburbs?.join(", ") || "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Regions</dt>
+                  <dd className="text-white">
+                    {want.property.preferredRegions?.join(", ") || "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Beds / baths / land</dt>
+                  <dd className="text-white">
+                    {[
+                      want.property.bedrooms != null ? `${want.property.bedrooms}+ bed` : null,
+                      want.property.bathrooms != null ? `${want.property.bathrooms} bath` : null,
+                      want.property.minLandSizeSqm != null
+                        ? `${want.property.minLandSizeSqm} sqm+`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") || "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Must-haves</dt>
+                  <dd className="text-white">{want.requirements.mustHaves ?? "—"}</dd>
+                </div>
+                {want.requirements.lifestyle ? (
+                  <div className="sm:col-span-2">
+                    <dt className="text-slate-500">Lifestyle</dt>
+                    <dd className="text-white">{want.requirements.lifestyle}</dd>
+                  </div>
+                ) : null}
+                {want.requirements.description ? (
+                  <div className="sm:col-span-2">
+                    <dt className="text-slate-500">Description</dt>
+                    <dd className="whitespace-pre-wrap text-white">
+                      {want.requirements.description}
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
+            </div>
+          ) : null}
 
           <div className="lg:col-span-2">
             <CrmAiAssistPanel
