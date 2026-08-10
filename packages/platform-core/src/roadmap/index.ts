@@ -1189,14 +1189,34 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     href: "/command/revenue",
   },
   {
+    id: "core.opportunity_engine",
+    area: "Platform Core",
+    label: "Opportunity Engine™",
+    description:
+      "Core detection + scoring + next-best-action; Command Centre Opportunities cockpit",
+    status: "scaffold",
+    priority: "high",
+    href: "/command/opportunities",
+  },
+  {
     id: "command.opportunities",
     area: "Command Centre",
-    label: "Client expansion",
+    label: "Opportunities cockpit",
+    description:
+      "Ranked platform opportunities (attention, prospects, expansion) — not CRM deals",
+    status: "scaffold",
+    appId: "command-centre",
+    href: "/command/opportunities",
+  },
+  {
+    id: "command.expansion",
+    area: "Command Centre",
+    label: "Client expansion catalogue",
     description:
       "Upsell signals from installed-app gaps — catalogue list prices only (not Stripe-won MRR)",
     status: "done",
     appId: "command-centre",
-    href: "/command/opportunities",
+    href: "/command/opportunities/expansion",
   },
   {
     id: "command.benchmarks",
@@ -1356,9 +1376,9 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
   {
     id: "growth.opportunity_engine",
     area: "Growth Engine",
-    label: "Opportunity Engine™",
+    label: "Prospect Opportunity Score",
     description:
-      "Prospect Opportunity Score from audits, engagement, fit — Daily Briefing ranked actions",
+      "Prospect rank from audits/engagement — detector under Core Opportunity Engine™",
     status: "done",
     priority: "high",
     appId: "command-centre",

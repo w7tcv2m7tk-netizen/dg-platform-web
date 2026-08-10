@@ -1,8 +1,8 @@
 /**
- * Client Expansion / Opportunity Engine — upsell signals on live tenants.
+ * Client expansion — one Opportunity Engine™ kind (missing-app catalogue gaps).
  * Dollar amounts are **static catalogue list prices** for missing apps — not Stripe
  * subscription revenue or Growth “MRR won”.
- * @see docs/COMMAND-CENTRE.md · docs/COMMAND-CENTRE-BETA.md
+ * @see docs/foundations/OPPORTUNITY-ENGINE.md · docs/COMMAND-CENTRE.md
  */
 
 import { getClientIntelligence } from "./client-intelligence";

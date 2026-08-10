@@ -1,7 +1,7 @@
 /**
- * Opportunity Engine™ — Prospect Opportunity Score + Daily Briefing.
- * Answers “who should I speak to today?” from real Growth Engine signals.
- * Not an autonomous AI SDR; does not invent MRR.
+ * Prospect Opportunity Score + Daily Briefing — Growth detector for Opportunity Engine™.
+ * Prefer `listPlatformOpportunities` (Platform Core) for the Command Centre Opportunities cockpit.
+ * This module remains the prospect-rank implementation consumed by that engine.
  * @see docs/foundations/OPPORTUNITY-ENGINE.md
  */
 

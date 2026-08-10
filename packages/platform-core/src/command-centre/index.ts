@@ -23,6 +23,7 @@ export const COMMAND_CENTRE_ROUTES = {
   platformHealth: `${COMMAND_CENTRE_BASE_PATH}/platform-health`,
   revenue: `${COMMAND_CENTRE_BASE_PATH}/revenue`,
   opportunities: `${COMMAND_CENTRE_BASE_PATH}/opportunities`,
+  expansion: `${COMMAND_CENTRE_BASE_PATH}/opportunities/expansion`,
   reports: `${COMMAND_CENTRE_BASE_PATH}/reports`,
   advisor: `${COMMAND_CENTRE_BASE_PATH}/advisor`,
   benchmarks: `${COMMAND_CENTRE_BASE_PATH}/benchmarks`,

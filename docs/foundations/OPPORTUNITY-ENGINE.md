@@ -1,124 +1,113 @@
 # Opportunity Engine™
 
-**Core Command Centre capability — “Who should I speak to today?”**
+**Platform Core** capability — proactive intelligence across every DigitalGate tenant and prospect.
 
-**Version:** 0.1  
-**Last updated:** August 2026  
-**Status:** V1 Daily Briefing shipped (honest signals only)  
-**Parent:** [GROWTH-ENGINE.md](../GROWTH-ENGINE.md) · [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md)
+**Customer-facing term:** Opportunities  
+**Internal / IP name:** DigitalGate Opportunity Engine™  
+**Primary UI:** Command Centre (`/command/opportunities`)  
+**Version:** 0.2 · August 2026
 
 ---
 
-## Naming
+## Architecture (locked)
 
-| Layer | Name |
-|-------|------|
-| Capability | **Opportunity Engine™** |
-| Morning UX | **Daily Briefing** (`/command` + `/command/growth-engine`) |
-| Parent OS | **Growth Engine™** |
-| Verb in copy | Prospecting |
+```
+DIGITALGATE PLATFORM CORE
+│
+├── Universal Objects · Event Bus · AI · Scoring · Automation · …
+│
+├── OPPORTUNITY ENGINE  ← CORE
+│     ├── Opportunity detection
+│     ├── Opportunity scoring
+│     ├── Opportunity types
+│     ├── Opportunity lifecycle (V1 = ranked list)
+│     ├── AI recommendations / next-best-action
+│     └── Opportunity → Task / Lead / Campaign / Automation (execute hints)
+│
+└── Apps (CRM, RE, SEO, AI Visibility, Marketing, Acc, …)
 
-Not a separate App. Not tenant-facing in V1.
+COMMAND CENTRE  ← cockpit (staff)
+│
+├── Today's priorities
+├── Opportunities          ← primary surface for this engine
+├── Recommended actions
+├── Alerts / Business health / AI insights
+└── Prospecting (Growth Engine UI)
+      ├── Business Discovery
+      ├── Audits / Reports / Pipeline
+      └── Outreach
+```
+
+**Core = brain · Command Centre = cockpit · Apps = specialists · Connectors = nervous system.**
+
+Prospecting workflows live under Command Centre. Prospect / Opportunity **scoring and objects** live in Core so every future industry reuses the same engine.
+
+---
+
+## Naming (do not confuse)
+
+| Term | Meaning |
+|------|---------|
+| **Opportunities** | Customer / staff UI label |
+| **DigitalGate Opportunity Engine™** | Core IP — detection + score + next-best-action |
+| **CRM Opportunity** | Universal Object deal (`packages/platform-core/src/opportunities`) — separate |
+| **Client expansion** | One *kind* of opportunity (missing apps · catalogue list prices) |
+| **Growth Engine / Prospecting** | Acquisition OS UI under Command Centre |
+| **Prospect Opportunity Score** | Detector input for prospect-kind opportunities |
+
+---
+
+## Opportunity shape (V1)
+
+```typescript
+PlatformOpportunity {
+  id, kind, severity, score (0–100),
+  title, summary, reasons[],
+  recommendedAction, href,
+  organisationId?, prospectId?,
+  impactLabel?,  // honest — catalogue $ labelled; never invented Stripe MRR
+  executeHints?  // task | email | call | campaign | report | pipeline | …
+}
+```
+
+**Kinds:** `attention` · `follow_up` · `prospect` · `expansion` · `score_gap` · `ops` · `reputation`
+
+**Honesty:** No fabricated Growth/Stripe MRR. Catalogue dollars are labelled list prices.
+
+---
+
+## Code
+
+| Module | Path |
+|--------|------|
+| Engine | `packages/platform-core/src/opportunity-engine/` |
+| List API | `listPlatformOpportunities({ scope: "staff" \| "org" })` |
+| Detectors | overdue leads/tasks, client attention, expansion, prospect briefing |
+| Cockpit | `/command/opportunities` |
+| Expansion detail | `/command/opportunities/expansion` |
+| Prospect briefing (detector) | `command-centre/growth-engine/opportunity-engine.ts` |
 
 ---
 
 ## Flow
 
 ```
-Business Discovery
+Universal Objects + Events + Connectors + Scores + Timeline + Discovery
         ↓
-Enrichment / presence audit
+   Opportunity Engine™
         ↓
-Prospect Opportunity Score
+Opportunity → Why → Value/impact → Confidence (score) → Recommended action → Execute
         ↓
-Daily Briefing (ranked actions)
-        ↓
-Pipeline → Outreach → Meeting → Proposal → Customer
-        ↓
-(Outcomes → weight tuning — future)
+Command Centre Opportunities (+ App deep-links)
 ```
 
-Discovery answers **who can I find?**  
-Opportunity Engine answers **who should I speak to today?**
-
----
-
-## Prospect Opportunity Score (V1)
-
-Weighted from **observable** Growth Engine fields only:
-
-| Component | Weight (approx) | Signals |
-|-----------|-----------------|---------|
-| Digital gap | 0–35 | Audit health / SEO / AI / website (lower = higher opportunity) |
-| Intent / urgency | 0–30 | Stage, idle days, report views |
-| Reachability | 0–15 | Website, phone, email on file |
-| Industry fit | 0–10 | Discovery pack / industry |
-| Reputation | 0–10 | Import rating when present |
-
-**Bands:** Very high (≥90) · High (≥80) · Medium (≥70) · Low (&lt;70)
-
-**Recommended actions (deterministic):**
-
-| Condition | Action |
-|-----------|--------|
-| No audit | Run audit |
-| Audit, no report | Send audit |
-| Report sent, idle | Follow up |
-| Report viewed | Call + email |
-| Proposal / meeting | Close the loop |
-
-### Explicitly OUT of V1 score
-
-- GBP depth / competitor outperformance / tech-stack detection  
-- ML close-probability  
-- Invented **Today’s opportunity $MRR** (open proposal $ only when `proposal_sent` engagement carries real `totalCents`)  
-- Autonomous email / SMS / LinkedIn send  
-
----
-
-## Daily Briefing UX
-
-- Greeting + “N prospects recommended today”  
-- Counters: recommended · contacted today · conversations · meetings  
-- Priority #1 card (reasons + approach + CTAs)  
-- Ranked table: Rank / Business / Opportunity / Score / Action  
-
-Command home shows a compact **Today’s Prospecting** strip linking into Growth Engine.
-
----
-
-## Prospecting modes (Discovery)
-
-| Mode | Behaviour (V1) |
-|------|----------------|
-| Daily Recommended | → Growth Engine Daily Briefing |
-| Location Search | Preset location + radius search |
-| Industry Search | Preset industry / type search |
-| Problem Search | Filter book: weak SEO from latest audit |
-| AI Visibility Search | Filter book: weak AI Visibility |
-| High-Value Prospects | Filter book: `proposal_sent` |
-| Hot Prospects | Planned — needs buying-signal sources |
-
----
-
-## Code
-
-- `packages/platform-core/src/command-centre/growth-engine/opportunity-engine.ts`  
-- Sales Assistant v0 is a thin compatibility wrapper over the same scorer  
-
----
-
-## Roadmap (next)
-
-- Richer score breakdown UI (Visibility / Conversion / Reputation axes)  
-- Outcome-learning weight tuning  
-- Hot / buying-signal mode  
-- Staff reminder + outreach assist (still human-gated, not AI SDR)  
+Execute (V1): deep-link + execute hints. V2: trigger Automation / Comms / Task create.
 
 ---
 
 ## Related
 
-- [GROWTH-ENGINE.md](../GROWTH-ENGINE.md)  
-- [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md)  
-- [COMMAND-CENTRE-BETA.md](../COMMAND-CENTRE-BETA.md)
+- [COMMAND-CENTRE.md](../COMMAND-CENTRE.md)
+- [GROWTH-ENGINE.md](../GROWTH-ENGINE.md)
+- [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md)
+- [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md)
