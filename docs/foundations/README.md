@@ -59,7 +59,8 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) | Core — Business Discovery Engine (Command Centre prospecting) |
 | [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md) | Core — Opportunity Engine Daily Briefing |
 | [ACC-CHANNEL-CONNECTIVITY.md](./ACC-CHANNEL-CONNECTIVITY.md) | Acc — OTA channels (iCal → Booking.com / Airbnb APIs) |
-| [PROPERTY-SYNDICATION.md](./PROPERTY-SYNDICATION.md) | RE — Property Syndication Engine (Domain → REA → portals) |
+| [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) | **Core** — Connector Framework; Property / Business / Marketing; Listing Hub parent |
+| [PROPERTY-SYNDICATION.md](./PROPERTY-SYNDICATION.md) | RE — Listing Hub / Property Syndication (Domain → REA → portals) |
 
 ---
 

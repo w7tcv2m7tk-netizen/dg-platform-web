@@ -1,85 +1,43 @@
 # Connector Specification
 
-**How external systems integrate with Platform Core**
+**Canonical architecture:** [../foundations/CONNECTOR-ENGINE.md](../foundations/CONNECTOR-ENGINE.md)
 
-Connectors are **not** the platform. They sync data in/out via **Platform API**.
-
----
-
-## Connector contract
-
-Every Connector must implement:
-
-| Capability | Description |
-|------------|-------------|
-| **Identity** | Unique ID (`wordpress`, `stripe`, `google-gbp`) |
-| **Auth** | API key, OAuth, or webhook signature |
-| **Sync modes** | Push (webhook), pull (scheduled), or both |
-| **Object mapping** | External record → Universal Object |
-| **Health check** | Last sync, error count, status |
-| **Events emitted** | e.g. `lead.created` after form submit |
+This page is the short operational summary. Design decisions, tiers, Listing Hub, and implementation priority live in **Connector Engine**.
 
 ---
 
-## WordPress Connector (Gen 1 → Gen 2)
+## Contract (summary)
 
-**Current state:** Gen 1 plugin (`dg-platform`) is full platform on WP sites.
+Connectors are **not** the platform. They sync via **Platform API** into Universal Objects.
 
-**Target state:** Slim connector:
-
-| Sync | Direction | Objects |
-|------|-----------|---------|
-| Forms / leads | WP → Platform | Lead, Contact, Activity |
-| SEO scores | WP → Platform | Twin metrics |
-| Site health | WP → Platform | Twin metrics |
-| Portal user | Platform → WP (legacy) | Until Roe migrates |
-
-**Bridge today:** `GET /digitalgate/v1/portal/me` with `DG_API_KEY`
+Every connector must cover: identity, auth, sync modes, object mapping, health, events — plus credentials, webhooks, logs, rate limits, permissions, disconnect/reconnect, manual sync, and data ownership (full table in Connector Engine).
 
 ---
 
-## Stripe Connector (Commerce)
+## Live today
 
-Commerce Payment Engine owns business logic. Stripe connector implements `PaymentConnector`.
+| Connector | Notes |
+|-----------|--------|
+| **WordPress** | Gen 1 plugin → Gen 2 slim connector; leads, properties, Acc stays |
+| **Stripe** | Platform billing + Commerce Payment Engine |
 
-| Event | Platform action |
-|-------|-----------------|
-| `checkout.session.completed` | `recordPaymentFromWebhook` → `commerce.payment.completed` |
-| `invoice.paid` | Update CommerceInvoice + emit event |
-| Subscription updated | Update CommerceSubscription |
-
-Moves from WP webhook → Platform API (`/api/webhooks/stripe`).
-
-See `docs/commerce/COMMERCE-SPECIFICATION.md`.
+Code: `packages/platform-core/src/connectors/wordpress/`, `commerce/connectors/stripe/`, `connectors/framework/`.
 
 ---
 
-## Google Connector (future)
+## Priority queue
 
-- Business Profile, Analytics, Ads  
-- Feeds Digital Identity + Twin  
+See Connector Engine § Implementation priority: Stripe → Google → WordPress → REA → Domain → Meta → Email/SMS → Xero → Shopify → property intelligence.
+
+REA / Domain = **start of the ecosystem**, not the centre. Listing Hub: [PROPERTY-SYNDICATION.md](../foundations/PROPERTY-SYNDICATION.md).
 
 ---
 
 ## Rules
 
 1. Connectors call **Platform API only** — no direct DB  
-2. Idempotent sync (external ID stored on object metadata)  
-3. Failures retried with backoff; dead-letter queue at scale  
-4. Connector credentials encrypted per org  
-
----
-
-## Manifest (future)
-
-```typescript
-interface ConnectorManifest {
-  id: string;
-  name: string;
-  syncObjects: string[];
-  webhookEvents?: string[];
-  oauthScopes?: string[];
-}
-```
-
-**Code location (future):** `packages/connectors/`
+2. Idempotent sync (external ID on object / placement)  
+3. Failures retried with backoff; dead-letter at scale  
+4. Credentials encrypted per org  
+5. Prefer webhooks over polling  
+6. Country Pack / `countries[]` on manifests where relevant  
