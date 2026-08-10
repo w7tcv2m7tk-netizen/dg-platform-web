@@ -261,18 +261,22 @@ export async function POST(req: Request) {
     // OTA sync writes WordPress dg_booking rows; Gen 2 calendar reads Neon StayBooking.
     // Pull WP → Neon so Booking.com / Airbnb imports show on /apps/accommodation/calendar.
     const neonSync = await syncWordPressAccBookings(session);
-    const neonOk = neonSync.ok;
-    const neonResult = neonOk ? neonSync.result : null;
-    const neonSummary = neonResult
-      ? `${neonResult.created} created, ${neonResult.updated} updated on platform`
-      : neonSync.message;
+    if (neonSync.ok) {
+      const neonResult = neonSync.result;
+      const neonSummary = `${neonResult.created} created, ${neonResult.updated} updated on platform`;
+      return NextResponse.json({
+        data: {
+          ...result.data,
+          neon: neonResult,
+          message: `${result.data?.message ?? "OTA calendars synced"} · ${neonSummary}`,
+        },
+      });
+    }
     return NextResponse.json({
       data: {
         ...result.data,
-        neon: neonOk ? neonResult : { ok: false, message: neonSync.message },
-        message: neonOk
-          ? `${result.data?.message ?? "OTA calendars synced"} · ${neonSummary}`
-          : `OTA synced on WordPress — platform pull failed: ${neonSync.message}`,
+        neon: { ok: false, message: neonSync.message },
+        message: `OTA synced on WordPress — platform pull failed: ${neonSync.message}`,
       },
     });
   }
