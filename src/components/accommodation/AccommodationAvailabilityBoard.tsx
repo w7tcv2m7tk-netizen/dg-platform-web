@@ -238,6 +238,8 @@ export function AccommodationAvailabilityBoard({
   const router = useRouter();
   const [view, setView] = useState<CalendarView>("week");
   const [channelFilter, setChannelFilter] = useState<BookingChannelFilter>("all");
+  /** When true, calendars/list show only the selected unit (all or filtered channels). */
+  const [isolateUnit, setIsolateUnit] = useState(false);
   // Anchor on today — not `from` (often month start), which made week view open last week.
   const [anchor, setAnchor] = useState(() => todayLocalISO());
   const [syncing, setSyncing] = useState(false);
@@ -298,14 +300,20 @@ export function AccommodationAvailabilityBoard({
   const monthEnd = endOfMonth(anchor);
   const monthDays = daysBetween(monthStart, monthEnd);
   const inventoryDays = daysBetween(from, to).slice(0, 90);
+  const displayUnits = useMemo(() => {
+    if (!isolateUnit || selectedId == null) return units;
+    const one = units.find((u) => u.id === selectedId);
+    return one ? [one] : units;
+  }, [units, isolateUnit, selectedId]);
+
   const listBookings = useMemo(() => {
-    const all = flattenBookings(units);
+    const all = flattenBookings(displayUnits);
     if (channelFilter === "all") return all;
     return all.filter((b) => bookingMatchesChannel(b, channelFilter));
-  }, [units, channelFilter]);
+  }, [displayUnits, channelFilter]);
 
   const channelCounts = useMemo(() => {
-    const all = flattenBookings(units);
+    const all = flattenBookings(displayUnits);
     const counts: Record<BookingChannelFilter, number> = {
       all: all.length,
       airbnb: 0,
@@ -322,7 +330,7 @@ export function AccommodationAvailabilityBoard({
       }
     }
     return counts;
-  }, [units]);
+  }, [displayUnits]);
 
   async function syncOta() {
     setSyncing(true);
@@ -619,6 +627,8 @@ export function AccommodationAvailabilityBoard({
         channelFilter={channelFilter}
         channelCounts={channelCounts}
         onChannelFilterChange={setChannelFilter}
+        isolateUnit={isolateUnit}
+        onIsolateUnitChange={setIsolateUnit}
       />
 
       <div className="flex flex-wrap gap-3 text-xs text-slate-500">
@@ -648,7 +658,7 @@ export function AccommodationAvailabilityBoard({
 
       {view === "inventory" ? (
         <InventoryGrid
-          units={units}
+          units={displayUnits}
           days={inventoryDays}
           selectedId={selectedId}
           pendingBlock={pendingBlock}
@@ -659,7 +669,7 @@ export function AccommodationAvailabilityBoard({
       ) : null}
       {view === "week" ? (
         <WeekGrid
-          units={units}
+          units={displayUnits}
           days={weekDays}
           title={`${formatDayLabel(weekStart, "long")} – ${formatDayLabel(weekDays[6]!, "long")}`}
           selectedId={selectedId}
@@ -671,7 +681,7 @@ export function AccommodationAvailabilityBoard({
       ) : null}
       {view === "month" ? (
         <MonthGrid
-          units={units}
+          units={displayUnits}
           days={monthDays}
           title={new Date(`${monthStart}T12:00:00`).toLocaleDateString("en-AU", {
             month: "long",
@@ -702,6 +712,8 @@ function UnitPricingPanel({
   channelFilter,
   channelCounts,
   onChannelFilterChange,
+  isolateUnit,
+  onIsolateUnitChange,
 }: {
   units: WpAccAvailabilityUnit[];
   selectedId: number | null;
@@ -720,6 +732,8 @@ function UnitPricingPanel({
   channelFilter: BookingChannelFilter;
   channelCounts: Record<BookingChannelFilter, number>;
   onChannelFilterChange: (filter: BookingChannelFilter) => void;
+  isolateUnit: boolean;
+  onIsolateUnitChange: (isolate: boolean) => void;
 }) {
   const selected = units.find((u) => u.id === selectedId) ?? null;
 
@@ -757,22 +771,17 @@ function UnitPricingPanel({
             </button>
           );
         })}
-        {channelFilter !== "all" ? (
-          <span className="text-[11px] text-slate-500">
-            Showing {CHANNEL_FILTERS.find((f) => f.id === channelFilter)?.label} bookings
-            only · all units
-          </span>
-        ) : (
-          <span className="text-[11px] text-slate-600">
-            Isolate Airbnb, Booking.com, or Direct across every unit
-          </span>
-        )}
+        <span className="text-[11px] text-slate-600">
+          {isolateUnit && selected
+            ? `Counts for ${selected.title}`
+            : "Platform filter · all units unless isolated below"}
+        </span>
       </div>
 
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex min-w-[180px] flex-1 flex-col gap-1">
           <span className="text-[11px] uppercase tracking-wide text-slate-500">
-            Unit pricing
+            Unit
           </span>
           <select
             value={selectedId ?? ""}
@@ -789,6 +798,41 @@ function UnitPricingPanel({
             ))}
           </select>
         </label>
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] uppercase tracking-wide text-slate-500">
+            Calendar scope
+          </span>
+          <div className="flex rounded-lg border border-slate-700 p-0.5">
+            <button
+              type="button"
+              onClick={() => onIsolateUnitChange(false)}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                !isolateUnit
+                  ? "bg-blue-600 text-white"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              All units
+            </button>
+            <button
+              type="button"
+              onClick={() => onIsolateUnitChange(true)}
+              disabled={selectedId == null}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium disabled:opacity-40 ${
+                isolateUnit
+                  ? "bg-blue-600 text-white"
+                  : "text-slate-400 hover:text-white"
+              }`}
+              title={
+                selected
+                  ? `Show only ${selected.title} across Airbnb, Booking.com, Direct…`
+                  : "Select a unit first"
+              }
+            >
+              This unit only
+            </button>
+          </div>
+        </div>
         <label className="flex w-28 flex-col gap-1">
           <span className="text-[11px] uppercase tracking-wide text-slate-500">
             Weekday
