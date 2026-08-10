@@ -258,7 +258,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       ) : null}
 
-      {growthTier.map((group) => (
+      {businessTiers.map((group) => (
         <TierSection
           key={group.tier}
           group={group}
@@ -269,7 +269,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         />
       ))}
 
-      {businessTiers.map((group) => (
+      {growthTier.map((group) => (
         <TierSection
           key={group.tier}
           group={group}

@@ -109,5 +109,5 @@ export const APP_TIER_LABELS: Record<AppTier, string> = {
   internal: "Internal",
 };
 
-/** Sidebar / catalog order — Core → Growth → industry apps (Business Apps are install-driven). */
-export const APP_TIER_ORDER: AppTier[] = ["core", "growth", "business", "internal"];
+/** Sidebar / catalog order — Core → Business Apps → Growth & Intelligence. */
+export const APP_TIER_ORDER: AppTier[] = ["core", "business", "growth", "internal"];
