@@ -142,6 +142,9 @@ function buildChecksFromResend(
   const spfRecs = byPurpose("SPF");
   const dkimRecs = byPurpose("DKIM");
   const trackingRecs = byPurpose("Tracking");
+  const domainVerified =
+    domain.status.toLowerCase() === "verified" ||
+    domain.status.toLowerCase() === "valid";
 
   const worst = (states: EmailAuthCheckState[]): EmailAuthCheckState => {
     if (states.includes("fail")) return "fail";
@@ -151,35 +154,48 @@ function buildChecksFromResend(
     return "unknown";
   };
 
-  const spfState = spfRecs.length
-    ? worst(spfRecs.map((r) => mapResendRecordStatus(r.status)))
-    : "missing";
-  const dkimState = dkimRecs.length
-    ? worst(dkimRecs.map((r) => mapResendRecordStatus(r.status)))
-    : "missing";
+  // Resend can report domain.status=verified while per-record status lags as
+  // pending/empty — trust the domain when verified so Gen 2 matches the ESP UI.
+  const spfState = domainVerified
+    ? "pass"
+    : spfRecs.length
+      ? worst(spfRecs.map((r) => mapResendRecordStatus(r.status)))
+      : "missing";
+  const dkimState = domainVerified
+    ? "pass"
+    : dkimRecs.length
+      ? worst(dkimRecs.map((r) => mapResendRecordStatus(r.status)))
+      : "missing";
+  const dmarcState = domainVerified ? "pass" : "missing";
 
   const checks: EmailAuthCheckItem[] = [
     {
       id: "SPF",
       label: "SPF",
       state: spfState,
-      detail: spfRecs.length
-        ? `${spfRecs.length} ESP SPF record(s) on send path`
-        : "No SPF records from ESP yet — run Prepare",
+      detail: domainVerified
+        ? "ESP domain verified — sending SPF OK"
+        : spfRecs.length
+          ? `${spfRecs.length} ESP SPF record(s) on send path`
+          : "No SPF records from ESP yet — run Prepare",
     },
     {
       id: "DKIM",
       label: "DKIM",
       state: dkimState,
-      detail: dkimRecs.length
-        ? `${dkimRecs.length} DKIM record(s)`
-        : "No DKIM records from ESP yet — run Prepare",
+      detail: domainVerified
+        ? "ESP domain verified — DKIM OK"
+        : dkimRecs.length
+          ? `${dkimRecs.length} DKIM record(s)`
+          : "No DKIM records from ESP yet — run Prepare",
     },
     {
       id: "DMARC",
       label: "DMARC",
-      state: "missing",
-      detail: "Platform suggests p=none until SPF/DKIM pass",
+      state: dmarcState,
+      detail: domainVerified
+        ? "Optional DMARC — publish p=none (or tighter) at _dmarc"
+        : "Platform suggests p=none until SPF/DKIM pass",
       suggestedRecord: {
         type: "TXT",
         name: "_dmarc",
@@ -199,7 +215,9 @@ function buildChecksFromResend(
     checks.push({
       id: "Tracking",
       label: "Click tracking",
-      state: worst(trackingRecs.map((r) => mapResendRecordStatus(r.status))),
+      state: domainVerified
+        ? "pass"
+        : worst(trackingRecs.map((r) => mapResendRecordStatus(r.status))),
       detail: "Optional ESP click-tracking CNAME",
     });
   }
@@ -415,13 +433,41 @@ export async function triggerEmailDomainVerify(input: {
     };
   }
   const result = await verifyResendDomain(plan.resendDomainId);
-  const refreshed = await buildEmailDomainAuthPlan({
-    domain: input.domain,
-    organisationId: input.organisationId,
-    ensure: false,
-  });
+  // Prefer the fresh GET from verify — list/ensure can lag behind Resend UI.
+  const refreshed = result.domain
+    ? (() => {
+        const checks = buildChecksFromResend(result.domain!, input.domain);
+        const byId = Object.fromEntries(checks.map((c) => [c.id, c.state]));
+        const apex = input.domain
+          .toLowerCase()
+          .replace(/^www\./, "")
+          .replace(/\.$/, "");
+        return {
+          identity: {
+            domain: apex,
+            organisationId: input.organisationId,
+            status: domainStatusFromResend(result.domain!.status),
+            spf: byId.SPF ?? "unknown",
+            dkim: byId.DKIM ?? "unknown",
+            dmarc: byId.DMARC ?? "unknown",
+            mx: byId.MX ?? "skipped",
+            checks,
+            transactionalProviderId: "resend" as const,
+            mailboxProviderId: null,
+          },
+          suggestedDns: suggestedDnsFromPlan(result.domain, apex),
+          resendDomainId: result.domain.id,
+          resendStatus: result.domain.status,
+          created: false,
+        } satisfies EmailDomainAuthPlan;
+      })()
+    : await buildEmailDomainAuthPlan({
+        domain: input.domain,
+        organisationId: input.organisationId,
+        ensure: false,
+      });
   return {
-    ok: result.ok,
+    ok: result.ok || refreshed.resendStatus?.toLowerCase() === "verified",
     plan: refreshed,
     error: result.error,
   };
