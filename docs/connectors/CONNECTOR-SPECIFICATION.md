@@ -22,6 +22,7 @@ Every connector must cover: identity, auth, sync modes, object mapping, health, 
 | **WordPress** | Gen 1 plugin → Gen 2 slim connector; leads, properties, Acc stays |
 | **Stripe** | Platform billing + Commerce Payment Engine |
 | **Domain** | OAuth + status / connect (Listing Hub path) |
+| **REA** | Scaffold — status UI + fail-closed publish; partner OAuth/upsert pending ([REA.md](./REA.md)) |
 | **Google GBP** | OAuth + accounts/locations sync · reviews when My Business API allows |
 | **Cotality (CoreLogic)** | Sandbox OAuth + Address Match → address resolve + Property `externalRefs.corelogic_property_id` |
 
@@ -36,7 +37,7 @@ Under Core **Business Services** → customer **Business Setup / Start Your Busi
 | **Dreamscape** | Infrastructure reseller (domains/hosting/SSL/email) — customer UX = DigitalGate Domains/Hosting/Email. |
 | **Google / Social** | Digital Identity pillar — GBP OAuth + location/profile sync; reviews into Reputation when API allows; social as shipped. |
 
-Code: `packages/platform-core/src/connectors/` (+ `commerce/connectors/stripe/`). Cotality: [COTALITY-CORELOGIC.md](./COTALITY-CORELOGIC.md). GBP: [GOOGLE-GBP.md](./GOOGLE-GBP.md).
+Code: `packages/platform-core/src/connectors/` (+ `commerce/connectors/stripe/`). Cotality: [COTALITY-CORELOGIC.md](./COTALITY-CORELOGIC.md). GBP: [GOOGLE-GBP.md](./GOOGLE-GBP.md). REA: [REA.md](./REA.md).
 
 ---
 

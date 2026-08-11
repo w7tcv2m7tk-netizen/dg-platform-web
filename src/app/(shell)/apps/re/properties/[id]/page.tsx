@@ -19,6 +19,7 @@ import { PropertyOffersPanel } from "@/components/re/PropertyOffersPanel";
 import { PropertyListingEditor } from "@/components/re/PropertyListingEditor";
 import { PublishToWebsiteButton } from "@/components/re/PublishToWebsiteButton";
 import { DomainSyndicationPanel } from "@/components/re/DomainSyndicationPanel";
+import { ReaSyndicationPanel } from "@/components/re/ReaSyndicationPanel";
 
 import { PropertyStatusSelect } from "@/components/re/PropertyStatusSelect";
 import { RefreshAddressButton } from "@/components/re/RefreshAddressButton";
@@ -114,6 +115,18 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           path?: string | null;
         })
       : null;
+  const reaPlacement =
+    property.externalRefs?.rea && typeof property.externalRefs.rea === "object"
+      ? (property.externalRefs.rea as {
+          channel?: string;
+          status?: string;
+          providerAdId?: string;
+          reaAgencyId?: string | null;
+          lastSyncedAt?: string | null;
+          lastError?: string | null;
+          path?: string | null;
+        })
+      : null;
   const marketing =
     (property.metadata?.marketing as Record<string, unknown> | undefined) ?? {};
   const images = Array.isArray(property.metadata?.images)
@@ -192,6 +205,16 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                   propertyId={property.id}
                   placement={domainPlacement}
                 />
+              </div>
+            </div>
+
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">REA syndication</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Publish to realestate.com.au via Listing Hub (partner access required — fail closed).
+              </p>
+              <div className="mt-4">
+                <ReaSyndicationPanel propertyId={property.id} placement={reaPlacement} />
               </div>
             </div>
 

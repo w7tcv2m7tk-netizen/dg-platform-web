@@ -1,6 +1,6 @@
 # Property Syndication Engine
 
-**Status:** Architecture accepted · Domain OAuth wired · **Listings Management publish MVP (residential upsert)**  
+**Status:** Architecture accepted · Domain OAuth + publish MVP · **REA connector scaffold (fail closed)**  
 **App:** Real Estate (capability of RE App — **not** platform-wide RE-only design)  
 **Parent:** [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) — Property & Listing Syndication is a **capability** of the Connector Engine, not a one-off portal integration.  
 **Goal:** DigitalGate Listing Hub is SoT — create once, syndicate to REA / Domain / Website / social / future portals.
@@ -19,7 +19,7 @@ Parallel pattern: Accommodation OTA channels — [ACC-CHANNEL-CONNECTIVITY.md](.
 
 Universal platform stays industry-agnostic: syndication is an **RE App capability**. Other verticals get their own engines later (vehicles → automotive marketplaces, products → commerce channels, accommodation → OTAs).
 
-**RE connector capability tiers** (REA · Domain · GBP · PropTrack · CoreLogic · PriceFinder · agency PMS) are in [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md). **Platform build order / DigitalGate 15:** [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md). This doc is the Domain MVP + Listing Hub detail.
+**RE connector capability tiers** (REA · Domain · GBP · PropTrack · CoreLogic · PriceFinder · agency PMS) are in [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md). **Platform build order / DigitalGate 15:** [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md). This doc is the Domain MVP + Listing Hub detail. **REA scaffold:** [../connectors/REA.md](../connectors/REA.md).
 
 ---
 
@@ -188,7 +188,7 @@ See Core Object Spec § Listing (added with this design).
 | Channel | Example UI |
 |---------|------------|
 | Domain | 🟢 Published · Last synced 10:42am |
-| REA | 🟡 Pending |
+| REA | 🟡 Scaffold / awaiting partner access (Connect & Publish disabled) |
 | Portal X | 🔴 Error — missing suburb |
 | Website | 🟢 Live |
 
@@ -213,7 +213,8 @@ Ops:
   handleWebhook()
 ```
 
-Domain Stage 1 = Domain adapter over Listings Management API. REA/other = later adapters; UI unchanged.
+Domain Stage 1 = Domain adapter over Listings Management API.  
+REA Stage 0 = connector + syndication adapter + status UI scaffold — **fail closed** until partner OAuth + upsert smoke ([REA.md](../connectors/REA.md)).
 
 ---
 
@@ -276,13 +277,20 @@ packages/platform-core/src/connectors/domain/
   listings.ts          # residential upsert + test agency
   publish-property.ts  # Property → Domain publish
 
+packages/platform-core/src/connectors/rea/
+  auth.ts              # Config + token storage + probes (OAuth TBD)
+  publish-property.ts  # Fail-closed publish scaffold
+
 packages/platform-core/src/real-estate/syndication/
   types.ts
   domain-adapter.ts    # SyndicationChannelAdapter
+  rea-adapter.ts       # SyndicationChannelAdapter (scaffold)
   index.ts
 
 src/app/api/v1/properties/[id]/syndicate/domain/route.ts
+src/app/api/v1/properties/[id]/syndicate/rea/route.ts
 src/components/re/DomainSyndicationPanel.tsx
+src/components/re/ReaSyndicationPanel.tsx
 ```
 
 Prisma (when implementing — ADR if post–Platform 1.0 field freeze):
@@ -290,9 +298,9 @@ Prisma (when implementing — ADR if post–Platform 1.0 field freeze):
 - `Listing` (organisationId, propertyId, status, price, copy refs, …)  
 - `ListingPlacement` (listingId, channel, externalId, status, lastSyncedAt, lastError, metadata)
 
-UI: `/apps/re/properties/[id]` → **Domain syndication** (Listing detail later).
+UI: `/apps/re/properties/[id]` → **Domain syndication** + **REA syndication** (Listing detail later).
 
-Flags (suggested): `re.syndication_domain_sandbox`, `re.syndication_domain_prod`.
+Flags (suggested): `re.syndication_domain_sandbox`, `re.syndication_domain_prod`, `re.syndication_rea` (off until partner smoke).
 
 ---
 
@@ -314,4 +322,5 @@ Same idea: **platform core objects + app-owned channel adapters**.
 - [CORE-OBJECT-SPECIFICATION.md](./CORE-OBJECT-SPECIFICATION.md) — Property · Listing  
 - [ACC-CHANNEL-CONNECTIVITY.md](./ACC-CHANNEL-CONNECTIVITY.md) — OTA parallel  
 - [RE-BETA-LAUNCH.md](../RE-BETA-LAUNCH.md) — agency beta  
-- Code: `packages/platform-core/src/connectors/domain/` · `packages/platform-core/src/real-estate/syndication/`
+- Code: `packages/platform-core/src/connectors/domain/` · `packages/platform-core/src/connectors/rea/` · `packages/platform-core/src/real-estate/syndication/`
+- REA scaffold: [../connectors/REA.md](../connectors/REA.md)

@@ -23,6 +23,7 @@ export * from "./business-identity";
 export * from "./connectors/wordpress";
 export * from "./connectors/framework";
 export * from "./connectors/domain";
+export * from "./connectors/rea";
 export * from "./connectors/google";
 export * from "./connectors/corelogic";
 export * from "./connectors/abr";

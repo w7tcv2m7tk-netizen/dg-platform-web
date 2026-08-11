@@ -148,7 +148,7 @@ The fifteen connectors / provider seats that define Gen 2 focus. Rank = programm
 | 5 | **Dreamscape** | 1 / 10 | Infra adapter — **sandbox-first** until automated tests pass |
 | 6 | **WordPress** | 1 | **Live** production connector |
 | 7 | **Domain** | 1 / 5 | OAuth + Listing Hub path (sandbox → prod) |
-| 8 | **REA** | 1 / 5 | Planned / not full Gen 2 adapter yet |
+| 8 | **REA** | 1 / 5 | Scaffold / fail closed — partner API pending ([REA.md](../connectors/REA.md)) |
 | 9 | **RP Data / CoreLogic** | 5 | Cotality sandbox (OAuth + Address Match) |
 | 10 | **Meta** | 1 / 9 | Planned (high) — not full connector yet |
 | 11 | **OpenAI** | 1 / 2 | **Live** via Model Router when `OPENAI_API_KEY` set |

@@ -40,7 +40,7 @@ export type SyndicationResult = {
 };
 
 /**
- * One portal (or website) adapter. Implement Domain first; REA/others later.
+ * One portal (or website) adapter. Domain + REA scaffold registered; REA fail-closed until partner API.
  */
 export interface SyndicationChannelAdapter {
   readonly channel: SyndicationChannelId;
