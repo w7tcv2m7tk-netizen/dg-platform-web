@@ -1,5 +1,4 @@
 import { EnabledAppsProvider } from "@/components/platform/EnabledAppsProvider";
-import { ChatWidgetProvider } from "@/components/platform/ChatWidgetProvider";
 import { AppShellLayout } from "@/components/AppShellLayout";
 import type { OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
 import { DEFAULT_ORG_BRAND_THEME } from "@/lib/brand-client";
@@ -30,16 +29,16 @@ export function PlatformShell({
       initialEnabledIds={enabledIds}
       showCommandCentre={showCommandCentre}
     >
-      <ChatWidgetProvider userName={userName} showFloatingChat={showFloatingChat}>
-        <AppShellLayout
-          activeOrganisationId={activeOrganisationId}
-          activeOrganisationName={activeOrganisationName}
-          organisations={organisations}
-          brandTheme={brandTheme}
-        >
-          {children}
-        </AppShellLayout>
-      </ChatWidgetProvider>
+      <AppShellLayout
+        activeOrganisationId={activeOrganisationId}
+        activeOrganisationName={activeOrganisationName}
+        organisations={organisations}
+        brandTheme={brandTheme}
+        chatUserName={userName}
+        showFloatingChat={showFloatingChat}
+      >
+        {children}
+      </AppShellLayout>
     </EnabledAppsProvider>
   );
 }

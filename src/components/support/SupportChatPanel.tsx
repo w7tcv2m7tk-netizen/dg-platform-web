@@ -170,7 +170,7 @@ export function SupportChatPanel({
             <p>{error}</p>
             <Link
               href="https://digitalgate.com.au/onboarding/"
-              className="mt-3 inline-block text-blue-400 hover:underline"
+              className="mt-3 inline-block text-[color-mix(in_srgb,var(--org-primary,#3b82f6)_82%,white)] hover:underline"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -192,7 +192,7 @@ export function SupportChatPanel({
                 key={msg.id}
                 className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
                   isClient
-                    ? "ml-auto rounded-br-md bg-blue-600 text-white"
+                    ? "ml-auto rounded-br-md bg-[var(--org-primary,#3b82f6)] text-white"
                     : isAi
                       ? "mr-auto rounded-bl-md border border-emerald-500/40 bg-emerald-950/60 text-emerald-50"
                       : "mr-auto rounded-bl-md border border-slate-700 bg-slate-950 text-slate-200"
@@ -227,7 +227,7 @@ export function SupportChatPanel({
         <button
           type="submit"
           disabled={!linked || sending || !draft.trim()}
-          className="self-end rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-40"
+          className="self-end rounded-xl bg-[var(--org-primary,#3b82f6)] px-4 py-2 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-40"
         >
           Send
         </button>
@@ -260,7 +260,7 @@ export function SupportChatWidget({
         onClick={() => setOpen(!open)}
         aria-label={open ? "Close live support chat" : "Open live support chat"}
         aria-expanded={open}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-xl text-white shadow-lg shadow-blue-500/30 transition hover:-translate-y-0.5"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--org-primary,#3b82f6)] text-xl text-white shadow-lg shadow-[0_10px_15px_-3px_color-mix(in_srgb,var(--org-primary,#3b82f6)_30%,transparent)] transition hover:-translate-y-0.5 hover:brightness-110"
       >
         {open ? "×" : "💬"}
       </button>
