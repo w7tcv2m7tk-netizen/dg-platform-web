@@ -35,10 +35,13 @@ export const commandCentreApp: AppManifest = {
     { path: "/command/revenue", label: "Revenue" },
     { path: "/command/benchmarks", label: "Benchmarks" },
     { path: "/command/flags", label: "Feature Flags" },
+    { path: "/command/docs", label: "Platform docs" },
+    { path: "/command/docs/[slug]", label: "Platform doc" },
   ],
   /**
    * Sidebar cockpit — Core owns Opportunities module; Command Centre orchestrates.
    * Prospecting children stay on Growth Engine pages (not competing top-level destinations).
+   * Platform docs is staff architecture/SSOT — not the client “what next” loop.
    */
   navigation: [
     { href: "/command", label: "Priorities", icon: "◈" },
@@ -48,6 +51,7 @@ export const commandCentreApp: AppManifest = {
     { href: "/command/platform-health", label: "Alerts", icon: "◉" },
     { href: "/command/clients", label: "Clients", icon: "☷" },
     { href: "/command/reports", label: "Reports", icon: "▥" },
+    { href: "/command/docs", label: "Platform docs", icon: "▤" },
   ],
   permissions: [
     { id: "command.view", label: "View Command Centre" },

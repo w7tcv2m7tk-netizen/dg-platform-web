@@ -10,6 +10,7 @@ export * from "./opportunities";
 export * from "./benchmarks";
 export * from "./flags-admin";
 export * from "./revenue";
+export * from "./platform-docs";
 
 /** Clerk role / org claim used to gate Command Centre routes */
 export const COMMAND_CENTRE_STAFF_ROLE = "dg:staff";
@@ -28,6 +29,8 @@ export const COMMAND_CENTRE_ROUTES = {
   advisor: `${COMMAND_CENTRE_BASE_PATH}/advisor`,
   benchmarks: `${COMMAND_CENTRE_BASE_PATH}/benchmarks`,
   flags: `${COMMAND_CENTRE_BASE_PATH}/flags`,
+  /** Staff-only curated architecture / strategy docs library */
+  docs: `${COMMAND_CENTRE_BASE_PATH}/docs`,
   /** @deprecated — /command/support redirects to /support (no Command Support Centre) */
   support: "/support",
   /** @deprecated — /command/audit redirects to tenant audit settings */

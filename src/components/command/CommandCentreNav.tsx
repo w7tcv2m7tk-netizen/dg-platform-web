@@ -12,6 +12,7 @@ const NAV = [
   { href: COMMAND_CENTRE_ROUTES.benchmarks, label: "Benchmarks", id: "benchmarks" },
   { href: COMMAND_CENTRE_ROUTES.revenue, label: "Revenue", id: "revenue" },
   { href: COMMAND_CENTRE_ROUTES.flags, label: "Flags", id: "flags" },
+  { href: COMMAND_CENTRE_ROUTES.docs, label: "Platform docs", id: "docs" },
 ] as const;
 
 export function CommandCentreNav({ active }: { active: (typeof NAV)[number]["id"] }) {
