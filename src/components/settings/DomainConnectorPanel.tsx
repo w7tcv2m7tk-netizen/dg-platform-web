@@ -8,11 +8,14 @@ type DomainStatus = {
     clientIdSet: boolean;
     secretSet: boolean;
     redirectUri: string;
+    apiPathPrefix?: string;
     probe: {
       ok: boolean;
       configured: boolean;
+      skipped?: boolean;
       tokenOk?: boolean;
       apiOk?: boolean;
+      probePath?: string;
       expiresAt?: string;
       message: string;
     } | null;
@@ -27,8 +30,11 @@ type DomainStatus = {
     probe: {
       ok: boolean;
       connected: boolean;
+      tokenOk?: boolean;
       apiOk?: boolean;
+      probePath?: string;
       expiresAt?: string;
+      scope?: string;
       message: string;
     } | null;
   } | null;
@@ -134,10 +140,23 @@ export function DomainConnectorPanel({
           <li className="font-mono text-xs text-slate-500">
             Redirect: {platform.redirectUri}
           </li>
+          {platform.apiPathPrefix ? (
+            <li className="font-mono text-xs text-slate-500">
+              API path prefix: {platform.apiPathPrefix}
+            </li>
+          ) : null}
           {platform.probe ? (
             <li>
               Client-credentials probe:{" "}
-              <span className={platform.probe.ok ? "text-emerald-400" : "text-amber-400"}>
+              <span
+                className={
+                  platform.probe.skipped
+                    ? "text-slate-300"
+                    : platform.probe.ok
+                      ? "text-emerald-400"
+                      : "text-amber-400"
+                }
+              >
                 {platform.probe.message}
               </span>
             </li>
@@ -152,9 +171,13 @@ export function DomainConnectorPanel({
                     : "Not connected — use Connect Domain account for agency context"}
                 </span>
               </li>
+              {org.scope ? (
+                <li className="font-mono text-xs text-slate-500">Org token scopes: {org.scope}</li>
+              ) : null}
               {org.probe ? (
                 <li>
-                  Org token probe:{" "}
+                  Org API probe
+                  {org.probe.probePath ? ` (${org.probe.probePath})` : ""}:{" "}
                   <span className={org.probe.ok ? "text-emerald-400" : "text-amber-400"}>
                     {org.probe.message}
                   </span>

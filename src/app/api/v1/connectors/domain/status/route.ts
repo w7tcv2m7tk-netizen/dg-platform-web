@@ -41,6 +41,7 @@ export async function GET(req: Request) {
         redirectUri:
           process.env.DOMAIN_REDIRECT_URI?.trim() ||
           "https://app.digitalgate.com.au/api/connectors/domain/callback",
+        apiPathPrefix: process.env.DOMAIN_API_PATH_PREFIX?.trim() || "",
         probe: platformProbe,
       },
       organisation: {

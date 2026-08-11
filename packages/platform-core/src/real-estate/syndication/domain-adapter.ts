@@ -1,6 +1,7 @@
 /**
  * Domain Listings Management syndication adapter.
- * Prefers org OAuth tokens; falls back to platform client-credentials for smoke validation.
+ * Prefers org OAuth tokens (Authorization Code). Client-credentials is optional /
+ * often unsupported on Listing Management clients.
  */
 
 import {
@@ -48,6 +49,16 @@ export const domainSyndicationAdapter: SyndicationChannelAdapter = {
 
     const token = await fetchDomainClientCredentialsToken();
     if (!token.ok) {
+      const msg = token.message.toLowerCase();
+      if (msg.includes("unauthorized_client")) {
+        return {
+          ok: false,
+          status: "error",
+          message:
+            "Connect a Domain account for this organisation (Listing Management uses Authorization Code; client_credentials is N/A)",
+          raw: token.raw,
+        };
+      }
       return { ok: false, status: "error", message: token.message, raw: token.raw };
     }
     return {

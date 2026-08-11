@@ -30,22 +30,43 @@ Universal platform stays industry-agnostic: syndication is an **RE App capabilit
 | `DOMAIN_CLIENT_ID` | OAuth client id from Domain Developer Portal |
 | `DOMAIN_CLIENT_SECRET` | Client secret — **Vercel only, never commit** |
 | `DOMAIN_REDIRECT_URI` | Default `https://app.digitalgate.com.au/api/connectors/domain/callback` |
-| `DOMAIN_OAUTH_SCOPES` | Client-credentials scopes (read smoke tests) |
-| `DOMAIN_AUTH_CODE_SCOPES` | Auth-code scopes (agency user context; include `offline_access` for refresh) |
+| `DOMAIN_API_PATH_PREFIX` | Set `/sandbox` for Listing Management Sandbox; omit for Primary |
+| `DOMAIN_OAUTH_SCOPES` | Client-credentials scopes only (optional; Listing Mgmt clients usually skip CC) |
+| `DOMAIN_AUTH_CODE_SCOPES` | Auth-code scopes (agency user context; include `offline_access` + listing write scopes) |
 
 Routes:
 
 - `GET /api/connectors/domain/connect` — start Authorization Code flow  
 - `GET /api/connectors/domain/callback` — exchange code → store tokens on org  
-- `GET /api/v1/connectors/domain/status` — configured? + client-credentials probe  
+- `GET /api/v1/connectors/domain/status` — configured? + probes  
 
 Settings → Connectors shows the Domain card.
+
+**Probe behaviour**
+
+| Probe | Meaning |
+|-------|---------|
+| Client-credentials | Optional. Listing Management OAuth clients are **Authorization Code** — `unauthorized_client` is **N/A**, not a failure. |
+| Org API | Uses `GET /v1/me` then `GET /v1/me/agencies` (Listings Management). Does **not** use Agents & Listings `GET /v1/agencies`. |
 
 Client URL / logo on the Domain project (marketing only): `https://app.digitalgate.com.au` · DigitalGate banner/logo assets.
 
 ---
 
 ## Domain Developer Portal — do now
+
+### Credential + package checklist (Ben)
+
+1. **Credential grant type** = `Authorization Code` (correct for agency connect). Do **not** expect client_credentials on this client.
+2. **Redirect URI** exact match: `https://app.digitalgate.com.au/api/connectors/domain/callback` (portal updates can take ~10 minutes).
+3. **API Access → Add to project**: **Listings Management — Sandbox** (required for `/sandbox/v1/…` and `_testAgency`).
+4. If probing sandbox APIs from DigitalGate, set Vercel `DOMAIN_API_PATH_PREFIX=/sandbox`.
+5. **Scopes on the OAuth client / consent**: at least  
+   `openid offline_access api_listings_read api_listings_write api_agencies_read api_agencies_write`  
+   (reconnect org after changing scopes).
+6. Confirm **API Access** includes Listings Management — **not** only Agents & Listings. A 403 on `/v1/agencies` with Token OK usually means wrong product package; use `/v1/me` instead.
+7. For a 403 that still appears on `/v1/me`: check Domain response / `X-Domain-Security-Reason` (Missing Required Scope · plan · sandbox vs Primary · agency consent).
+8. Email **api@domain.com.au** to activate Listings Management on the developer org if the package is missing; later request **Listings Management — Production** + principal-agent approval per live agency.
 
 ### Add to project
 
@@ -60,7 +81,7 @@ Client URL / logo on the Domain project (marketing only): `https://app.digitalga
 | **Listings Management — Production** | Critical production approval for live agencies |
 | **Address Suggestions** | Type-ahead address → populate Property on create |
 | **Webhooks** | Domain → DigitalGate status (accepted / rejected / errors) — no polling |
-| **Agents & Listings** | Agents, listings, relationships, agency activity — **not** MVP-blocking |
+| **Agents & Listings** | Agents, listings, relationships, agency activity — **not** MVP-blocking (do not use `/v1/agencies` as the health probe) |
 
 ### Leave for later
 
