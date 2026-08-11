@@ -4,7 +4,7 @@
 **Underlying capability:** **Business Services** — provider-agnostic Core capability  
 **Customer-facing:** **Business Setup** / **Start Your Business** (never “ASIC” in the UI)  
 **Classification:** Core platform capability / onboarding service — **not** a Growth App, **not** a standalone “Business Registration App”  
-**Related:** [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) · [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) · [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md) (DG15 / ABR·ASIC·Dreamscape·Google) · [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) · [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) · [BRAND-STUDIO.md](./BRAND-STUDIO.md) · [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) · [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md)
+**Related:** [architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md) (§4 Business Identity) · [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) · [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) · [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md) (DG15 / ABR·ASIC·Dreamscape·Google) · [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) · [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) · [BRAND-STUDIO.md](./BRAND-STUDIO.md) · [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) · [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md)
 
 ---
 
@@ -60,7 +60,7 @@ Customer UX: **Business Setup** / **Start Your Business**. Docs and connector ma
               └───────────┼───────────┘
                           │
          SEO · AI Visibility · Automation · Analytics
-         (+ Reputation / Reviews — Core)
+         (+ Reputation — Growth App on Core Universal Review)
 ```
 
 **Country packs:** Australia = ABR + ASIC (stub). US / UK / other = future registry connectors. Product shape stays.
@@ -86,7 +86,7 @@ Customer UX: **Business Setup** / **Start Your Business**. Docs and connector ma
 | **3. Establish** | Lock identity in DG | Business Profile (legal / trading / contacts / GST) | Available |
 | **4. Build** | Create presence | Website · brand/logo (**Brand Studio — roadmap**) · CRM · forms | Website / CRM live-ish; Brand Studio planned |
 | **5. Connect** | How the world finds you | Domain · DNS · SSL · email · social · GBP | Infra / connectors exist or scaffolded |
-| **6. Grow** | Improve and operate | SEO · AI Visibility · Reviews / **Reputation (Core)** · Social · Ads · Automation · Analytics | Growth apps + Core Reputation — no fake scores |
+| **6. Grow** | Improve and operate | SEO · AI Visibility · **Reputation** (Growth App) · Social · Ads · Automation · Analytics | Growth apps — no fake scores |
 
 Stages are Launchpad checklist groups — not separate Apps.
 
@@ -142,7 +142,7 @@ If GUID is missing locally: paste from the ABR registration email into `.env.loc
 - **No screen-scraping** of government portals.
 - **ABR ≠ registration.**
 - Brand Studio remains **roadmap only** inside Build.
-- Other holds unchanged: no digitalgate.com.au cutover; no fake MRR / AI SDR / citations; Reputation stays Core.
+- Other holds unchanged: no digitalgate.com.au cutover; no fake MRR / AI SDR / citations; Reputation Growth App on Core plumbing (no decorative scores).
 
 ---
 

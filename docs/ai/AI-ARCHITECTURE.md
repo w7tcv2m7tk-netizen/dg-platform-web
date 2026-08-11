@@ -2,6 +2,9 @@
 
 **AI Native — shared service, not per-App chatbots**
 
+**Related (foundational):** [PLATFORM-INTELLIGENCE.md](./PLATFORM-INTELLIGENCE.md) — Platform Knowledge Layer, live tools, confidence levels, Super Admin AI. Distinct from app-level assist and from [DIGITALGATE-INTELLIGENCE.md](../foundations/DIGITALGATE-INTELLIGENCE.md) (cohort moat).  
+**Gen 2 north-star (§5–6, §27, §31–32):** [../architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md)
+
 ---
 
 ## Layers
@@ -15,11 +18,24 @@ AI Service (Platform Core)
   │     ├── Universal Objects
   │     ├── Knowledge Graph
   │     ├── Digital Twin snapshot
-  │     └── Business Memory
-  ├── Tool Registry (app-declared aiTools in manifest)
+  │     ├── Business Memory
+  │     └── Platform Knowledge Layer (docs + live tools — see PLATFORM-INTELLIGENCE)
+  ├── Tool Registry
+  │     ├── App-declared aiTools in manifest
+  │     └── Knowledge Tool Registry (platform/ops — design)
   └── Model Router (OpenAI, Anthropic, Gemini)
        ↓
 Provider APIs
+```
+
+Full stack for platform Q&A / ops:
+
+```
+DIGITALGATE AI
+  → PLATFORM KNOWLEDGE LAYER (Documentation | Live Platform | Connectors)
+  → CONTEXT / RAG ENGINE
+  → MODEL ROUTER
+  → ANSWER + ACTION ENGINE
 ```
 
 ---
@@ -61,7 +77,7 @@ Platform registers tools; AI Service dispatches with org-scoped context.
 
 AI Visibility Score™ and BI insights feed from Twin + Graph — AI Service generates **narratives** and **recommended actions**, not just numbers.
 
-**Related:** [PLATFORM-ARCHITECTURE.md](../PLATFORM-ARCHITECTURE.md) — BI Engine, Scoring Engine · [COMMUNICATIONS-ARCHITECTURE.md](./COMMUNICATIONS-ARCHITECTURE.md) — voice & messaging orchestration · [CONNECTOR-PRIORITY.md](../foundations/CONNECTOR-PRIORITY.md) — Model Router / OpenAI in DigitalGate 15
+**Related:** [GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md) — Gen 2 north-star · [PLATFORM-INTELLIGENCE.md](./PLATFORM-INTELLIGENCE.md) — Platform AI / Knowledge Layer · [PLATFORM-ARCHITECTURE.md](../PLATFORM-ARCHITECTURE.md) — BI Engine, Scoring Engine · [COMMUNICATIONS-ARCHITECTURE.md](./COMMUNICATIONS-ARCHITECTURE.md) — voice & messaging orchestration · [CONNECTOR-PRIORITY.md](../foundations/CONNECTOR-PRIORITY.md) — Model Router / OpenAI in DigitalGate 15 · [INDUSTRY-INTELLIGENCE.md](../foundations/INDUSTRY-INTELLIGENCE.md) — Core industry feed Understand layer (summarise / personalise; not article reprint)
 
 ---
 

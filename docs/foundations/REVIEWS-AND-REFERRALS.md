@@ -5,10 +5,10 @@
 | Surface | Layer / timing | Purpose |
 |---------|----------------|---------|
 | **Platform Referral Programme** (SaaS Refer & Earn) | **Core-adjacent — earlier** (with billing / commercial launch) | Customers & partners refer *DigitalGate subscriptions* |
-| **DigitalGate Reputation** | **Core platform capability** | Reputation & trust (Universal Review Object) |
+| **DigitalGate Reputation** | **Growth App** (Core plumbing) | Customer Reputation surface on Universal Review + connectors |
 | **Business Referral Network** | Network — Phase 5+ | Verified businesses refer *each other* (leads, disclosed fees) |
 
-**Reputation ≠ Platform Referrals ≠ Business Referrals.** Design all three now. Ship Platform Refer & Earn with (or soon after) subscription billing; Core Reputation beta ships with Connectors maturity; Business Referral Network remains Phase 5+.
+**Reputation ≠ Platform Referrals ≠ Business Referrals.** Design all three now. Ship Platform Refer & Earn with (or soon after) subscription billing; Reputation Growth App beta ships with Connectors maturity; Business Referral Network remains Phase 5+.
 
 Architect so Organisation, billing, CRM, Connectors, AI, and consent can support all three without a rebuild.
 
@@ -21,7 +21,7 @@ See [NETWORK-LAYER.md](./NETWORK-LAYER.md), [PRODUCT-VISION.md](../PRODUCT-VISIO
 | Surface | Purpose | Primary outcome |
 |---------|---------|-----------------|
 | **Platform Referral Programme** | Grow SaaS via Refer & Earn | Referred org pays subscription → referrer earns credit / cash |
-| **DigitalGate Reputation** | Reputation & trust (Core) | Monitor, request, respond, score — via Connectors |
+| **DigitalGate Reputation** | Reputation & trust (Growth App + Core plumbing) | Monitor, request, respond, score — via Connectors |
 | **Referral Engine** (Business) | Customer / partner introductions | Referral Profile → lead in recipient CRM |
 | **Business Referral Network** | B2B network effect | Verified businesses refer each other; tracked transactions |
 | **Marketplace** | Discovery & facilitation | Software · Services · Professionals · Partners · Integrations |
@@ -31,7 +31,7 @@ See [NETWORK-LAYER.md](./NETWORK-LAYER.md), [PRODUCT-VISION.md](../PRODUCT-VISIO
 ```
 Join DigitalGate (often via Refer & Earn link)
   → Connect digital world (Connectors)
-  → Build reputation (Core Reputation via Connectors)
+  → Build reputation (Reputation Growth App via Connectors)
   → Run CRM + AI
   → Join communities / find partners (Network)
   → Refer businesses to each other (Business Referral Network)
@@ -134,13 +134,15 @@ Do **not** bury Platform Refer & Earn inside Phase 5 Network planning.
 
 ---
 
-## 1. Reputation (Core platform capability)
+## 1. Reputation (hybrid — Growth App + Core plumbing)
 
 **Core owns** the Universal Review Object, Reputation Service, aggregation, Connector-backed sources, author matching, sentiment/star/response fields, history, notifications/events, timeline/AI availability, and **Reputation Score™ only when real connected data exists** (never decorative stand-ins).
 
+**Growth App (`reviews` / label Reputation)** is the customer-facing product surface: monitoring inbox, request queue, sources UI, honest empty states, and Reputation Score™ display when data exists. Registry id stays `reviews`; routes stay `/apps/reviews/*`.
+
 **Not a “Google Reviews App.”** Tier 8 in [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md): Universal Review + connectors — **GBP first**.
 
-**Not a Growth App product** for closed beta. Optional later: Growth → **Reputation Pro** (campaigns, AI respond UX, competitor analysis, request-more-reviews product surface) — roadmap only.
+**Reputation Pro** (campaigns, AI respond UX, competitor analysis) remains roadmap on top of this Growth App floor.
 
 **Five pillars:** Connect · Centralise · Understand · Automate · Grow
 
@@ -170,14 +172,14 @@ Connector Framework · CRM / Universal Timeline · Automation · AI Service · S
 
 ## 1b. Growth — Reputation Pro (deferred)
 
-Do **not** ship a vapor Growth “Reviews App” flagship. When Core floor is solid, Reputation Pro may add:
+When the Reputation Growth App floor is solid, Reputation Pro may add:
 
 * Review request campaigns and sequencing  
 * Advanced AI respond / approve workflows  
 * Competitor monitoring (lawful sources)  
 * Sentiment product dashboards beyond Core themes  
 
-Until then, keep Growth nav free of fake Reviews product claims.
+Do **not** invent decorative scores, fake MRR, or citation theatre while the floor is still beta.
 
 ## 2. Referral Engine (Business introductions)
 

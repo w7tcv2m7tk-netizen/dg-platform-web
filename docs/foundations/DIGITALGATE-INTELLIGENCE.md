@@ -8,6 +8,10 @@ This is DigitalGate's greatest long-term asset — not the CRM, not the dashboar
 
 **Later:** the same consented signals power **Network** recommendations (partners, communities, resources) — see [NETWORK-LAYER.md](./NETWORK-LAYER.md). Cohort intelligence (this doc) and Community/Marketplace are related but distinct: one is anonymised benchmarks; the other is opt-in discovery between members.
 
+**Not the same as** [INDUSTRY-INTELLIGENCE.md](./INDUSTRY-INTELLIGENCE.md) — that Core capability covers *external* industry feeds and attributed briefings (Collect → Act). This doc is the *internal network* cohort moat.
+
+**Also not the same as** [PLATFORM-INTELLIGENCE.md](../ai/PLATFORM-INTELLIGENCE.md) — that is Platform AI / Platform Knowledge (docs + live tools + citations for how DigitalGate and a tenant work). Cohort Intelligence aggregates anonymised *outcomes across tenants*; Platform Intelligence answers questions with evidence.
+
 ---
 
 ## What it is
@@ -152,3 +156,5 @@ More tenants
 - [COMMAND-CENTRE.md](../COMMAND-CENTRE.md) — Benchmarking module  
 - [CUSTOMER-SUCCESS.md](./CUSTOMER-SUCCESS.md) — Success Score  
 - [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md) — intelligence as premium tier?  
+- [INDUSTRY-INTELLIGENCE.md](./INDUSTRY-INTELLIGENCE.md) — **external** industry feeds / briefing (distinct Core capability — not cohort aggregates)  
+- [PLATFORM-INTELLIGENCE.md](../ai/PLATFORM-INTELLIGENCE.md) — Platform AI / Knowledge Layer (docs + live tools — distinct from cohort moat)  

@@ -116,3 +116,4 @@ Execute (V1): deep-link + execute hints. V2: trigger Automation / Comms / Task c
 - [GROWTH-ENGINE.md](../GROWTH-ENGINE.md)
 - [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md)
 - [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md)
+- [INDUSTRY-INTELLIGENCE.md](./INDUSTRY-INTELLIGENCE.md) — upstream industry feeds → optional Act path into Opportunities

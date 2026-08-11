@@ -4,6 +4,8 @@
 
 Extends [ai/AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) with policy and compliance.
 
+Platform Q&A / Super Admin AI must also follow [ai/PLATFORM-INTELLIGENCE.md](../ai/PLATFORM-INTELLIGENCE.md): org-scoped tools, privileged Super Admin tools, and 🟢/🟡/🔴 confidence (never invent).
+
 ---
 
 ## Principles

@@ -6,6 +6,8 @@
 **Last updated:** August 2026  
 **Status:** Living document — evolves with the platform
 
+**Architecture north-star:** [architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md) (§§1–36 + Immediate Priority 1–15 — constraints, not a build-all list)
+
 ---
 
 ## The problem
@@ -125,6 +127,8 @@ The platform explains:
 
 Implemented through the **AI Service** and **Scoring Engine** (AI Visibility Score™, SEO Score™, Business Growth Score™, etc.).
 
+**Industry Intelligence** (Core) extends Understand with attributed industry signal — what happened → why it matters → what to do — without becoming a news reprint product. Spec: [foundations/INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md).
+
 ### 4. Automate
 
 Remove repetitive work via the shared **Automation Engine**.
@@ -151,7 +155,7 @@ Business owners should immediately understand:
 |------|----------|
 | **Health** | Business Health, Website Health, Automation Status |
 | **Growth** | Pipeline, Revenue, Marketing Performance, SEO |
-| **Visibility** | AI Visibility Score™, Reviews, Social |
+| **Visibility** | AI Visibility Score™, Reputation, Social |
 | **Action** | Opportunities, Risks, Recommended Actions, Team Activity |
 
 The dashboard answers one question:
@@ -184,6 +188,15 @@ AI assists with: writing · analysis · recommendations · automation · reporti
 
 The platform should feel **intelligent in every interaction** — via a shared **AI Service** with context from Universal Objects and the timeline, not isolated chatbots per App.
 
+**Product split (locked):**
+
+| Offering | Promise |
+|----------|---------|
+| **DigitalGate AI** | Ask about *your* business |
+| **DigitalGate Platform AI** | Ask about *DigitalGate itself* (architecture, ops, fleet — staff Super Admin first) |
+
+Both rest on the **Platform Intelligence Layer** (docs + live platform + connectors → RAG → Model Router → Answer + Action). Spec: [ai/PLATFORM-INTELLIGENCE.md](./ai/PLATFORM-INTELLIGENCE.md). Cohort network intelligence remains separate: [foundations/DIGITALGATE-INTELLIGENCE.md](./foundations/DIGITALGATE-INTELLIGENCE.md).
+
 ---
 
 ## What we are building (technical)
@@ -215,9 +228,9 @@ Gen 1 is preserved IP and production. Gen 2 is the evolution — same product, m
 
 | Tier | Apps | Positioning |
 |------|------|-------------|
-| **Core Apps** | CRM, Tasks, Calendar, Contacts, Documents | Always on — the business OS |
+| **Core Apps** | CRM, Tasks, Calendar, Contacts, Documents (+ Core capabilities: Opportunities, Brand Studio, **Industry Intelligence**, Business Services, …) | Always on — the business OS |
 | **Business Apps** | Real Estate, Accommodation, Finance, **Services** (templates: electrician, plumber, …), Creator, Commercial | Industry verticals — Services is one App, not one App per trade |
-| **Growth Apps** | SEO, AI Visibility, AI Communications, Marketing, Automation, Analytics, Reviews, Websites | Growth and measurement |
+| **Growth Apps** | SEO, AI Visibility, **Reputation**, AI Communications, Marketing, Automation, Analytics | Growth and measurement |
 
 The CRM is one App. SEO is one App. Real Estate is one App. **The Platform is what ties them together.**
 
@@ -271,4 +284,5 @@ Rather than simply managing contacts, **DigitalGate manages the entire business*
 - [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md) — Platform Refer & Earn (Core) vs Reviews + Business referrals (Phase 5+)
 - [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md) — Core domains/DNS/SSL/hosting (Dreamscape first)
 - [foundations/WEBSITE-BUILDER.md](./foundations/WEBSITE-BUILDER.md) — AI Website Studio (separate track; “Make it live” via Infrastructure)
+- [foundations/INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md) — Core industry feeds → briefing → Act (not “News”)
 - [ROADMAP.md](./ROADMAP.md) — quarterly milestones

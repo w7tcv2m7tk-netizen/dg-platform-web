@@ -24,6 +24,12 @@ Each ADR follows [Michael Nygard's template](https://cognitect.com/blog/2011/11/
 | [0007](./0007-feature-registry-permissions.md) | Feature-based permissions and licensing | Accepted |
 | [0008](./0008-command-centre-internal-app.md) | Command Centre as internal App | Accepted |
 | [0009](./0009-core-object-specification-gate.md) | Core Object Spec as implementation gate | Accepted |
+| [0010](./0010-opportunity-engine-remains-core.md) | Opportunity Engine™ remains Platform Core | Accepted |
+| [0011](./0011-reputation-core-plumbing-growth-app.md) | Reputation = Core plumbing + Growth App | Accepted |
+| [0012](./0012-gen-2-architecture-brief-adopted.md) | Gen 2 Architecture Brief = north-star constraints | Accepted |
+
+Alias for Platform Knowledge SSOT tree: [docs/decisions/](../decisions/README.md).  
+North-star brief: [architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md).
 
 ## Creating a new ADR
 

@@ -123,6 +123,15 @@ AI responds with trends, wins, gaps, and quantified recommendations — backed b
 **Tool ID:** `command.client_advisor` (manifest)  
 **Context:** Digital Twin snapshot, score history, BI insights, RE pipeline metrics
 
+### Super Admin / Platform Intelligence
+
+Command Centre is also the home for **DigitalGate Platform AI** (staff): fleet health, deployments, “what’s broken”, and how the platform itself works. That capability is the **Platform Intelligence Layer** — docs + live tools + citations — not a doc chatbot.
+
+- Spec: [ai/PLATFORM-INTELLIGENCE.md](./ai/PLATFORM-INTELLIGENCE.md)
+- Product split: **DigitalGate AI** (tenant — your business) vs **DigitalGate Platform AI** (platform / fleet)
+- Confidence: 🟢 Confirmed / 🟡 Likely / 🔴 Unknown — never invent; cite paths and dates
+- Phases: RAG-with-citations first; live org-scoped tools later; act-with-confirm last
+
 ---
 
 ## DigitalGate Growth Report (monthly)
@@ -247,6 +256,8 @@ Customer app registry filters out `visibility: "internal"`. Command Centre navig
 | Scoring Engine | Computes Success Score and all trademark scores |
 | BI Engine | Customer-facing insights; Command Centre consumes at scale |
 | Connectors | More data → better intelligence for both levels |
+| **Industry Intelligence** (Core) | External industry feeds → attributed briefings → (roadmap) Opportunity / Task / Campaign actions — [foundations/INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md). Not a “News” App; Command Centre may later surface cross-tenant market themes. |
+| **Platform Intelligence** (Platform AI) | Docs + live tools + citations for Super Admin / fleet Q&A — [ai/PLATFORM-INTELLIGENCE.md](./ai/PLATFORM-INTELLIGENCE.md). Distinct from cohort [DIGITALGATE-INTELLIGENCE.md](./foundations/DIGITALGATE-INTELLIGENCE.md). |
 
 The Command Centre does **not** duplicate CRM or RE UIs. Click a client → see intelligence summary → deep-link into tenant context if needed.
 
@@ -287,6 +298,9 @@ Over time, the **data network effect** (more tenants → better benchmarks → b
 - [COMMAND-CENTRE-BETA.md](./COMMAND-CENTRE-BETA.md) — staff closed-beta IN/OUT, demo path, checklist
 - [ADR 0008 — Command Centre as internal App](./adr/0008-command-centre-internal-app.md)
 - [GROWTH-ENGINE.md](./GROWTH-ENGINE.md) — acquisition pipeline spec
+- [foundations/INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md) — Core industry feeds → briefing → Act (roadmap)
+- [ai/PLATFORM-INTELLIGENCE.md](./ai/PLATFORM-INTELLIGENCE.md) — Platform Intelligence Layer (Super Admin / Platform AI)
+- [foundations/OPPORTUNITY-ENGINE.md](./foundations/OPPORTUNITY-ENGINE.md) — Core Opportunities cockpit target
 - [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md)
 - [ROADMAP.md](./ROADMAP.md)
 - Manifest: `packages/platform-core/src/apps/builtins/command-centre.ts`

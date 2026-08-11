@@ -3,7 +3,8 @@
 **Status:** Architecture locked · August 2026  
 **Canonical for:** which connectors we build, in what order, and what we refuse to chase  
 **Parent:** [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md)  
-**Operational summary:** [../connectors/CONNECTOR-SPECIFICATION.md](../connectors/CONNECTOR-SPECIFICATION.md)
+**Operational summary:** [../connectors/CONNECTOR-SPECIFICATION.md](../connectors/CONNECTOR-SPECIFICATION.md)  
+**Gen 2 north-star (§3 Universal Connector):** [../architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md) — detail lives here; brief does not re-list DG15
 
 ---
 
@@ -36,7 +37,7 @@ COMMAND CENTRE
 BUSINESS INTELLIGENCE
 ```
 
-Aligns with: Connector Framework · Reputation (Core) · Business Services / Setup · [AI Architecture / Model Router](../ai/AI-ARCHITECTURE.md).
+Aligns with: Connector Framework · Reputation (Growth App + Core Universal Review) · Business Services / Setup · [AI Architecture / Model Router](../ai/AI-ARCHITECTURE.md).
 
 ---
 
@@ -121,7 +122,7 @@ Detail: [PROPERTY-SYNDICATION.md](./PROPERTY-SYNDICATION.md) · RE connector not
 
 ### Tier 8 — Reviews
 
-**Universal Review** (Reputation Core) + connectors — **GBP first**.  
+**Universal Review** (Reputation — Core plumbing + Growth App UI) + connectors — **GBP first**.  
 Not a “Google Reviews App.” Spec: [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md).
 
 ### Tier 9 — Social
@@ -190,11 +191,12 @@ Manifest field (optional): `priorityTier` / `dg15Rank` on planned manifests — 
 
 ## Related
 
+- [GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md) — Gen 2 north-star (§3 Connector Layer)
 - [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) — framework, categories, Listing Hub  
 - [BUSINESS-SETUP.md](./BUSINESS-SETUP.md) — Business Services connectors  
 - [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) — own UX, integrate infrastructure  
 - [ROADMAP.md](../ROADMAP.md) — execution filter + workstreams  
-- [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) — Reputation Core  
+- [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) — Reputation Growth App + Core plumbing  
 - [AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) — Model Router  
 - [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) — Dreamscape / Cloudflare seating  
 - Code manifests: `packages/platform-core/src/connectors/framework/types.ts`

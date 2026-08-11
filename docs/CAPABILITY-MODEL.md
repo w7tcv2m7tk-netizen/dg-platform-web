@@ -6,7 +6,7 @@
 **Last updated:** August 2026  
 **Status:** Design — guides App registration and roadmap prioritisation
 
-**Related:** [PRODUCT-VISION.md](./PRODUCT-VISION.md) · [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md) · [PLATFORM-PRINCIPLES.md](./PLATFORM-PRINCIPLES.md)
+**Related:** [architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md) (Gen 2 north-star) · [PRODUCT-VISION.md](./PRODUCT-VISION.md) · [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md) · [PLATFORM-PRINCIPLES.md](./PLATFORM-PRINCIPLES.md)
 
 ---
 
@@ -19,14 +19,14 @@ Customers still **buy and install Apps**, but internally we organise work by **B
 ```
 DigitalGate Platform
 ├── Your Business           ← Overview, profile, Apps & Billing, Marketplace, Network
-├── Core · Platform         ← Business Services (Setup), CRM, Commerce, Websites, Infrastructure, Opportunities, Reputation, Brand Studio
+├── Core · Platform         ← Business Services (Setup), CRM, Commerce, Websites, Infrastructure, Opportunities, Brand Studio, Industry Intelligence
 ├── Command Centre          ← cockpit — priorities / orchestrated opportunities (staff)
-├── Growth & Intelligence   ← AI Visibility, SEO, Analytics, Automation, Social, AI Comms…
+├── Growth & Intelligence   ← Reputation, AI Visibility, SEO, Analytics, Automation, Social, AI Comms…
 ├── Business Apps           ← install-driven verticals (RE, Accommodation, …)
 └── Platform                ← Settings / administration
 ```
 
-**Apps are the packaging.** Capabilities are the architecture. **Core owns Opportunities; Command Centre orchestrates them.** **Business Services** is the provider-agnostic Core capability; **Business Setup / Start Your Business** is the customer surface (launch stages: Identify → Register → Establish → Build → Connect → Grow) — not a Growth App, not an “ASIC App” — [foundations/BUSINESS-SETUP.md](./foundations/BUSINESS-SETUP.md). **Business Identity Service** merges ABR (+ later ASIC / domain / Google / user) into Business Profile. Connectors under Business Services: ABR, ASIC (AU registry), Domain/Hosting (Dreamscape), Google, Social. **AI Brand Studio** is Core (roadmap; sits in Build) — [foundations/BRAND-STUDIO.md](./foundations/BRAND-STUDIO.md). **Reputation** is Core (universal reviews; Grow) — [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md). **Services** is one Business App with Service Templates (not Electrician/Plumber Apps) — [foundations/SERVICES-APP.md](./foundations/SERVICES-APP.md).
+**Apps are the packaging.** Capabilities are the architecture. **Core owns Opportunities; Command Centre orchestrates them.** **Business Services** is the provider-agnostic Core capability; **Business Setup / Start Your Business** is the customer surface (launch stages: Identify → Register → Establish → Build → Connect → Grow) — not a Growth App, not an “ASIC App” — [foundations/BUSINESS-SETUP.md](./foundations/BUSINESS-SETUP.md). **Business Identity Service** merges ABR (+ later ASIC / domain / Google / user) into Business Profile. Connectors under Business Services: ABR, ASIC (AU registry), Domain/Hosting (Dreamscape), Google, Social. **AI Brand Studio** is Core (roadmap; sits in Build) — [foundations/BRAND-STUDIO.md](./foundations/BRAND-STUDIO.md). **Industry Intelligence** is Core (not “News”, not a standalone App initially) — Collect → Filter → Understand → Personalise → Act; Industry Apps define feed profiles; feeds AI Service, Search, Reporting, Notifications, Opportunity Engine / Command Centre — [foundations/INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md). **Platform Intelligence** (Platform AI / Platform Knowledge) is the foundational Gen 2 layer for docs + live truth + tools — [ai/PLATFORM-INTELLIGENCE.md](./ai/PLATFORM-INTELLIGENCE.md); distinct from cohort [DIGITALGATE-INTELLIGENCE.md](./foundations/DIGITALGATE-INTELLIGENCE.md). **Reputation** is a Growth App (customer surface) on Core Universal Review plumbing — [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md). **Services** is one Business App with Service Templates (not Electrician/Plumber Apps) — [foundations/SERVICES-APP.md](./foundations/SERVICES-APP.md).
 
 ---
 
@@ -70,7 +70,7 @@ Same pattern across Communications (ElevenLabs), Infrastructure (registrar API),
 | Manifest ID | Tier | Capability group |
 |-------------|------|------------------|
 | `crm` | core | Core Platform |
-| `reviews` | core | Reputation (Universal Review Object) |
+| `reviews` | growth | Reputation (Growth App; Core Universal Review plumbing) |
 | `opportunities` | core | Opportunities |
 | `real-estate` | business | Industry Apps |
 | `seo` | growth | Growth Apps |
@@ -103,7 +103,11 @@ Same pattern across Communications (ElevenLabs), Infrastructure (registrar API),
 
 | Capability | Document |
 |------------|----------|
+| Gen 2 Architecture Brief (north-star) | [architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md) |
 | Business Services · Business Setup | [foundations/BUSINESS-SETUP.md](./foundations/BUSINESS-SETUP.md) |
+| Industry Intelligence (Core) | [foundations/INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md) |
+| Platform Intelligence (Platform AI / Knowledge) | [ai/PLATFORM-INTELLIGENCE.md](./ai/PLATFORM-INTELLIGENCE.md) |
+| Opportunity Engine™ | [foundations/OPPORTUNITY-ENGINE.md](./foundations/OPPORTUNITY-ENGINE.md) |
 | Connector Engine · Priority stack / DG15 | [foundations/CONNECTOR-ENGINE.md](./foundations/CONNECTOR-ENGINE.md) · [foundations/CONNECTOR-PRIORITY.md](./foundations/CONNECTOR-PRIORITY.md) |
 | Communications | [ai/COMMUNICATIONS-ARCHITECTURE.md](./ai/COMMUNICATIONS-ARCHITECTURE.md) |
 | Websites | [websites/WEBSITES-ARCHITECTURE.md](./websites/WEBSITES-ARCHITECTURE.md) |

@@ -4,6 +4,8 @@
 
 Before committing to implementation, these documents define the decisions that are expensive to change later.
 
+**Gen 2 north-star (constraints):** [../architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md)
+
 **Status:** Architecture ~80% complete. Foundations defined here close the gap.
 
 ---
@@ -50,7 +52,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | 9 | [OBSERVABILITY.md](./OBSERVABILITY.md) | API, errors, automations, AI, queues, connectors |
 | 10 | [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md) | Subscriptions, Apps, AI tiers, marketplace, enterprise |
 | 11 | [AI-GOVERNANCE.md](./AI-GOVERNANCE.md) | Models, automation boundaries, approval, logging, privacy |
-| 12 | [DIGITALGATE-INTELLIGENCE.md](./DIGITALGATE-INTELLIGENCE.md) | Anonymised network intelligence — the ultimate moat |
+| 12 | [DIGITALGATE-INTELLIGENCE.md](./DIGITALGATE-INTELLIGENCE.md) | Anonymised network intelligence — the ultimate moat (distinct from Industry Intelligence feeds) |
 | 13 | [NETWORK-LAYER.md](./NETWORK-LAYER.md) | **Phase 5** — Community, B2B network, Marketplace; design now, build later |
 | 14 | [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) | **A** Platform Refer & Earn (Core/Billing) · **B/C** Business referrals + Reviews (Phase 5+) |
 | 15 | [WEBSITE-BUILDER.md](./WEBSITE-BUILDER.md) | **Phase later** — AI Website Studio; structured Next.js Gen 2 model (not PHP); design now |
@@ -61,6 +63,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) | Core — Business Discovery Engine (Command Centre prospecting) |
 | [BUSINESS-SETUP.md](./BUSINESS-SETUP.md) | **Core · Business Services** — Start Your Business; ABR + ASIC DSP (hold) + Dreamscape via Connectors |
 | [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md) | Core — Opportunity Engine Daily Briefing |
+| [INDUSTRY-INTELLIGENCE.md](./INDUSTRY-INTELLIGENCE.md) | **Core** — Industry Intelligence (feeds → briefing → Act; not “News”) |
 | [ACC-CHANNEL-CONNECTIVITY.md](./ACC-CHANNEL-CONNECTIVITY.md) | Acc — OTA channels (iCal → Booking.com / Airbnb APIs) |
 | [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) | **Core** — Connector Framework; Property / Business / Marketing; Listing Hub parent |
 | [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md) | **Core** — Tier 1–10 stack, DigitalGate 15, immediate programme, anti-priorities |

@@ -13,6 +13,7 @@ These documents capture **why** the platform is built the way it is. They are as
 
 | Document | Purpose |
 |----------|---------|
+| **[architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md)** | Gen 2 north-star — Core/UO/Connectors/AI constraints + Immediate Priority 1–15 |
 | [CAPABILITY-MODEL.md](./CAPABILITY-MODEL.md) | Business Capabilities taxonomy + boundary rule |
 | [PRODUCT-VISION.md](./PRODUCT-VISION.md) | Gateway brand, mission, five pillars, positioning |
 | [foundations/GLOBAL-READINESS.md](./foundations/GLOBAL-READINESS.md) | Build globally / sell AU first — Country Packs + GTM stages |
@@ -36,6 +37,7 @@ These documents capture **why** the platform is built the way it is. They are as
 | [GROWTH-ENGINE.md](./GROWTH-ENGINE.md) | Growth Engine™ — acquisition OS inside Command Centre |
 | [foundations/BUSINESS-DISCOVERY.md](./foundations/BUSINESS-DISCOVERY.md) | Core — Business Discovery Engine (providers, import, packs) |
 | [foundations/OPPORTUNITY-ENGINE.md](./foundations/OPPORTUNITY-ENGINE.md) | Core — Opportunity Engine Daily Briefing (who today) |
+| [foundations/INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md) | Core — Industry Intelligence (feeds → briefing → Act; not “News”) |
 | **[foundations/](./foundations/README.md)** | **Governance, domain model, commercialisation — read before implementing** |
 
 ---
@@ -44,9 +46,19 @@ These documents capture **why** the platform is built the way it is. They are as
 
 | Document | Purpose |
 |----------|---------|
+| **[architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md)** | **Canonical Gen 2 north-star** — §§1–36, Immediate Priority 1–15, alignment notes ([ADR 0012](./adr/0012-gen-2-architecture-brief-adopted.md)) |
 | [PLATFORM-PRINCIPLES.md](./PLATFORM-PRINCIPLES.md) | Engineering constitution — non-negotiable defaults |
 | [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md) | Core, Apps, Connectors, Twin, Graph, BI |
 | [adr/](./adr/) | Architecture Decision Records — why we chose X over Y |
+| [decisions/](./decisions/README.md) | Alias → `adr/` (Platform Knowledge SSOT path) |
+
+### Docs SSOT tree (Platform Knowledge indexing)
+
+Target folders for the Knowledge Layer (map gradually — see [ai/PLATFORM-INTELLIGENCE.md](./ai/PLATFORM-INTELLIGENCE.md)):
+
+`architecture` · `core` · `universal-objects` · `apps/*` · `ai` · `automation` · `crm` · `websites` · `infrastructure` · `connectors/*` · `api` · `billing` · `permissions` · `troubleshooting` · `deployment` · `security` · `changelog` · `decisions/` (→ `adr/`)
+
+Today’s layout (`foundations/`, `catalogues/`, `standards/`, …) remains authoritative until folders are promoted; do not mass-move without an ADR.
 
 ---
 
@@ -77,6 +89,7 @@ These documents capture **why** the platform is built the way it is. They are as
 | Document | Purpose |
 |----------|---------|
 | [ai/AI-ARCHITECTURE.md](./ai/AI-ARCHITECTURE.md) | AI Service, Business Memory, tool registry |
+| [ai/PLATFORM-INTELLIGENCE.md](./ai/PLATFORM-INTELLIGENCE.md) | **Platform Intelligence Layer** — docs + live truth + tools (canonical) |
 | [ai/COMMUNICATIONS-ARCHITECTURE.md](./ai/COMMUNICATIONS-ARCHITECTURE.md) | AI Communications — voice, messaging, orchestration |
 | [websites/WEBSITES-ARCHITECTURE.md](./websites/WEBSITES-ARCHITECTURE.md) | AI Website Studio, Health Centre, funnels, content |
 | [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md) | **Core** — domains/DNS/SSL/hosting via providers (Dreamscape first) |

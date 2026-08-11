@@ -9,6 +9,8 @@
 
 > **Implementation gate:** Complete [foundations/CORE-OBJECT-SPECIFICATION.md](./foundations/CORE-OBJECT-SPECIFICATION.md) review and lock Platform 1.0 scope before expanding code. See [foundations/README.md](./foundations/README.md).
 
+> **Architecture north-star:** [architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md) — Immediate Priority 1–15 are architectural foundations; do **not** boil the ocean on all 36 brief items ([ADR 0012](./adr/0012-gen-2-architecture-brief-adopted.md)).
+
 ---
 
 ## North star (wow moment)
@@ -86,6 +88,12 @@ Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 
 **Roadmap (planned):** **AI Brand Studio** — Core capability (not Logo Maker). Business Profile → logo / palette / type / favicon / guidelines with AI iteration; optional entry from Website Builder; writes brand into profile for Websites, Email, Docs. Spec: [foundations/BRAND-STUDIO.md](./foundations/BRAND-STUDIO.md). V1 stays small; expand asset packs after validation.
 
+**Architecture locked (Aug 2026):** **Gen 2 Architecture & Product Considerations Brief** — canonical north-star constraints (§§1–36). Immediate Priority 1–15 = foundations filter. Does **not** authorize building everything. Spec: [architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md) · [ADR 0012](./adr/0012-gen-2-architecture-brief-adopted.md).
+
+**Architecture locked (Aug 2026):** **Industry Intelligence** — Core capability (not “News”, not a standalone App initially). Pipeline: Collect → Filter → Understand → Personalise → Act. Industry Apps define feed profiles; consumers include AI Service, Universal Search, Reporting, Notifications, Opportunity Engine™ / Command Centre. Copyright: summarise/analyse + attribute — do not reproduce full articles. Phase 0 = docs; Phase 1 = RE curated briefing stub. Spec: [foundations/INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md). **Do not build** a full news crawler/aggregator now.
+
+**Architecture locked (Aug 2026):** **Platform Intelligence Layer** (Platform AI / Platform Knowledge) — foundational Gen 2 AI capability. Stack: DigitalGate AI → Platform Knowledge Layer (Documentation \| Live Platform \| Connectors) → Context/RAG → Model Router → Answer + Action Engine. Three knowledge levels: Platform / Business / Live. Super Admin AI ties to Command Centre (cite sources; 🟢/🟡/🔴 confidence). Product split: DigitalGate AI (your business) vs DigitalGate Platform AI (DigitalGate itself). Floating support chat stays thin UX — migrate onto this layer later, do not rip out. Phase 0 = docs + ADRs; Phase 1 = Super Admin RAG + citations; Phase 2 = org-scoped live tools; Phase 3 = diagnose + propose; Phase 4 = act-with-confirm. Spec: [ai/PLATFORM-INTELLIGENCE.md](./ai/PLATFORM-INTELLIGENCE.md). **Do not build** the full agent product now.
+
 **Architecture locked (Aug 2026):** **Business Services** (Core capability) → customer **Business Setup / Start Your Business** (not Growth App, not “ASIC App”). Launch stages: **Identify → Register → Establish → Build → Connect → Grow**. Flow: DIGITALGATE → Business Identity → ABR (+ ASIC later) → Business Profile → Website/Email/CRM → SEO·AI Visibility/Automation/Analytics. **ABR** = verify/enrich (`SearchByABNv202001`, `SearchByASICv201408`; GUID server-only); **ASIC** = AU names/companies via DSP APIs (**hold** — apply to webservices@asic.gov.au; test env only after approval; no production submit / no scrape). Spec: [foundations/BUSINESS-SETUP.md](./foundations/BUSINESS-SETUP.md). Phase 1 = ABR Identify live-ish; next = Establish/Connect wiring (parallel to DSP application).
 
 **Roadmap (planned):** **Services App** — one field-ops App (jobs, quotes, schedule, teams); industry via **Service Templates** (electrician, plumber, cleaner, …). Do not ship separate trade Apps. Spec: [foundations/SERVICES-APP.md](./foundations/SERVICES-APP.md).
@@ -106,7 +114,7 @@ Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 
 **Shipped (Aug 2026 Core completeness):** Real LLM router (`OPENAI_API_KEY` / `ANTHROPIC_API_KEY`) behind `/api/v1/ai/assist` with template fallback; Partner/Reseller referral tiers; in-app Notifications from event bus; org feature flags API; CRM leads/opportunities feature gates; lead stage events; WP multi-site connector guidance.
 
-**Shipped (Aug 2026 Network foundations):** Reviews App MVP (`/apps/reviews` — Acc `dg_reviews` feed, Reputation Score™ stub, AI themes LLM/stub, request queue after stay/settlement); Marketplace browse (`/dashboard/marketplace` — Software/Services/Professionals/Partners/Integrations); Business Referral Network scaffold on Contact (`/dashboard/network`) — Free/Reciprocal/Paid/Commission disclosed, separate from Platform Refer & Earn.
+**Shipped (Aug 2026 Network foundations):** Reputation Growth App MVP (`/apps/reviews` — Acc `dg_reviews` feed, Reputation Score™ when real data exists, AI themes LLM/stub, request queue after stay/settlement); Marketplace browse (`/dashboard/marketplace` — Software/Services/Professionals/Partners/Integrations); Business Referral Network scaffold on Contact (`/dashboard/network`) — Free/Reciprocal/Paid/Commission disclosed, separate from Platform Refer & Earn.
 
 **Exit criteria:** Sign up → org in DB → create contact → timeline event — no wp-admin.
 
@@ -232,6 +240,7 @@ Do not start RE App port or AI Visibility until steps 1–4 are done.
 - ❌ MLM / multi-level on Platform Refer & Earn (single-level SaaS only)  
 - ❌ Arbitrary AI PHP on Gen 2 Platform Core (WP stays Connector; native builder is structured model — see WEBSITE-BUILDER)  
 - ❌ Fifty one-off vendor integrations / “Google Reviews App” / “ASIC App” — use Connector Layer + DigitalGate 15 ([CONNECTOR-PRIORITY.md](./foundations/CONNECTOR-PRIORITY.md))  
+- ❌ Full Industry Intelligence news crawler / article republisher (architecture + RE curated briefing later — [INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md))  
 
 ---
 
