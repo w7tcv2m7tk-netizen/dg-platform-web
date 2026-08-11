@@ -69,13 +69,15 @@ export async function updateSettlementChecklist(
 
 export async function listSettlementProperties(organisationId: string) {
   const { prisma } = await import("@dg/database");
-  const { formatPropertyAddress } = await import("../properties");
+  const { formatPropertyAddress, PROPERTY_IN_CONTRACT_STATUSES } = await import(
+    "../properties"
+  );
 
   const properties = await prisma.property.findMany({
     where: {
       organisationId,
       deletedAt: null,
-      OR: [{ status: "under_offer" }, { status: "sold" }],
+      status: { in: [...PROPERTY_IN_CONTRACT_STATUSES, "sold"] },
     },
     orderBy: { updatedAt: "desc" },
     take: 100,

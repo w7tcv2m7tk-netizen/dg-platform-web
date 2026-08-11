@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import type { SettlementChecklist } from "@dg/platform-core";
+import { PROPERTY_STATUS_LABELS } from "@dg/platform-core";
 
 const CHECKLIST_ITEMS = [
   { id: "contract_signed", label: "Contract signed" },
@@ -62,8 +63,8 @@ export function SettlementList({
       <div className="dg-card border-dashed border-slate-700">
         <h2 className="text-lg font-semibold text-white">No settlements yet</h2>
         <p className="mt-2 text-sm text-slate-400">
-          When a listing goes under offer or sold — or a vendor lead reaches settlement — it appears
-          here with the settlement checklist.
+          When a listing goes under offer, contract signed, unconditional, or sold — or a vendor
+          lead reaches settlement — it appears here with the settlement checklist.
         </p>
         <Link
           href="/apps/re/vendor-leads"
@@ -87,8 +88,10 @@ export function SettlementList({
               >
                 {item.address}
               </Link>
-              <p className="mt-1 text-sm capitalize text-slate-400">
-                {item.status.replace(/_/g, " ")}
+              <p className="mt-1 text-sm text-slate-400">
+                {PROPERTY_STATUS_LABELS[
+                  item.status as keyof typeof PROPERTY_STATUS_LABELS
+                ] ?? item.status.replace(/_/g, " ")}
                 {item.leadStage ? ` · Lead: ${item.leadStage.replace(/_/g, " ")}` : ""}
               </p>
               {item.leadId ? (

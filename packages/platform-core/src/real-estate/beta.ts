@@ -116,7 +116,16 @@ export async function getReBetaReadiness(
         where: {
           organisationId,
           deletedAt: null,
-          status: { in: ["appraisal", "listed", "under_offer", "sold"] },
+          status: {
+            in: [
+              "appraisal",
+              "listed",
+              "under_offer",
+              "contract_signed",
+              "unconditional",
+              "sold",
+            ],
+          },
         },
       }),
       prisma.lead.count({

@@ -8,6 +8,8 @@ const STATUSES = [
   { id: "appraisal", label: "Appraisal" },
   { id: "listed", label: "Listed" },
   { id: "under_offer", label: "Under offer" },
+  { id: "contract_signed", label: "Contract signed" },
+  { id: "unconditional", label: "Unconditional" },
   { id: "sold", label: "Sold" },
   { id: "withdrawn", label: "Withdrawn" },
 ] as const;

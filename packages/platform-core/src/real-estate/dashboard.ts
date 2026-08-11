@@ -1,5 +1,5 @@
 import { listLeads } from "../leads";
-import { listProperties } from "../properties";
+import { listProperties, PROPERTY_IN_CONTRACT_STATUSES } from "../properties";
 
 export interface ReDashboardStats {
   vendorLeads: number;
@@ -33,13 +33,15 @@ export async function getReDashboardStats(organisationId: string): Promise<ReDas
     buyerByStage[stage] = (buyerByStage[stage] ?? 0) + 1;
   }
 
+  const inContract = new Set<string>(PROPERTY_IN_CONTRACT_STATUSES);
+
   return {
     vendorLeads: vendorItems.length,
     buyerLeads: buyerItems.length,
     properties: properties.length,
     appraisals: properties.filter((p) => p.status === "appraisal").length,
     listed: properties.filter((p) => p.status === "listed").length,
-    underOffer: properties.filter((p) => p.status === "under_offer").length,
+    underOffer: properties.filter((p) => inContract.has(p.status)).length,
     sold: properties.filter((p) => p.status === "sold").length,
     vendorByStage,
     buyerByStage,

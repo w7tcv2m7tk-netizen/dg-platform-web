@@ -75,7 +75,15 @@ export async function gatherOverviewLiveMetrics(
     prisma.property.aggregate({
       where: {
         organisationId,
-        status: { in: ["listed", "under_offer", "appraisal"] },
+        status: {
+          in: [
+            "listed",
+            "under_offer",
+            "contract_signed",
+            "unconditional",
+            "appraisal",
+          ],
+        },
         listingPriceCents: { not: null },
       },
       _sum: { listingPriceCents: true },

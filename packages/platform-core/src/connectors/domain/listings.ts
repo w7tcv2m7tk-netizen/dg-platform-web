@@ -160,7 +160,11 @@ export function buildDomainResidentialListingBody(input: {
     domainAgencyID: input.domainAgencyId,
     providerAdId: input.providerAdId.slice(0, 50),
     listingAction: input.listingAction ?? "sale",
-    underOfferOrContract: input.property.status === "under_offer",
+    // Domain has one flag for under-offer / under-contract; map AU stages honestly.
+    underOfferOrContract:
+      input.property.status === "under_offer" ||
+      input.property.status === "contract_signed" ||
+      input.property.status === "unconditional",
     summary: summary.slice(0, 250),
     description: description.slice(0, 6000),
     contacts: input.contacts.map((c) => ({

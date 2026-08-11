@@ -47,8 +47,18 @@ export type SyncPropertiesFromWordPressResult = {
 };
 
 function mapWpStatus(status?: string): string {
-  const raw = (status ?? "").toLowerCase();
-  if (raw.includes("under contract") || raw.includes("under_offer")) return "under_offer";
+  const raw = (status ?? "").toLowerCase().replace(/[_-]+/g, " ").trim();
+  // Prefer specific AU stages before generic "under contract" / sold.
+  if (raw.includes("unconditional")) return "unconditional";
+  if (
+    raw.includes("contract signed") ||
+    raw.includes("contracts exchanged") ||
+    raw === "contract" ||
+    raw.includes("under contract")
+  ) {
+    return "contract_signed";
+  }
+  if (raw.includes("under offer") || raw.includes("under_offer")) return "under_offer";
   if (raw.includes("sold")) return "sold";
   if (raw.includes("withdrawn")) return "withdrawn";
   if (raw.includes("for sale") || raw.includes("listed")) return "listed";

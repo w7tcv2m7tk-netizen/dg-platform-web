@@ -456,7 +456,7 @@ A **real estate asset** — residential, commercial, land — central to the Rea
 | `state` | string | |
 | `postcode` | string | |
 | `country` | string | Default from org |
-| `status` | enum | `prospect` \| `appraisal` \| `listed` \| `under_offer` \| `sold` \| `withdrawn` |
+| `status` | enum | `prospect` \| `appraisal` \| `listed` \| `under_offer` \| `contract_signed` \| `unconditional` \| `sold` \| `withdrawn` |
 | `createdAt` | datetime | |
 | `updatedAt` | datetime | |
 

@@ -18,6 +18,8 @@ export const PROPERTY_STATUS_TO_LEAD_STAGE: Partial<
   appraisal: "appraisal",
   listed: "listing",
   under_offer: "sale",
+  contract_signed: "sale",
+  unconditional: "sale",
   sold: "settlement",
 };
 

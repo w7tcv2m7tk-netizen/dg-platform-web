@@ -48,6 +48,8 @@ export default async function ListingsPage() {
     (p) =>
       p.status === "listed" ||
       p.status === "under_offer" ||
+      p.status === "contract_signed" ||
+      p.status === "unconditional" ||
       p.status === "sold" ||
       Boolean(p.externalRefs?.wp_property_id),
   );
@@ -63,7 +65,15 @@ export default async function ListingsPage() {
             </p>
             <p className="mt-1 text-xs text-slate-500">
               {listings.filter((p) => p.status === "listed").length} listed ·{" "}
-              {listings.filter((p) => p.status === "under_offer").length} under offer
+              {
+                listings.filter(
+                  (p) =>
+                    p.status === "under_offer" ||
+                    p.status === "contract_signed" ||
+                    p.status === "unconditional",
+                ).length
+              }{" "}
+              under offer / contract
               {autoSync.ran
                 ? ` · Synced ${autoSync.result?.created ?? 0} new / ${autoSync.result?.updated ?? 0} updated`
                 : ""}
