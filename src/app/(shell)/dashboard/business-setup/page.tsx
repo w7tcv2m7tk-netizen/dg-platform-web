@@ -12,6 +12,7 @@ import {
   type BusinessSetupStepStatus,
 } from "@dg/platform-core";
 
+import { BusinessSetupIdentifyPanel } from "@/components/platform/BusinessSetupIdentifyPanel";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 function statusLabel(status: BusinessSetupStepStatus): string {
@@ -49,8 +50,8 @@ function statusClass(status: BusinessSetupStepStatus): string {
 }
 
 /**
- * Start Your Business — thin honest Launchpad for Business Services / Business Setup.
- * Does not invent ASIC availability or registration success.
+ * Start Your Business — Launchpad for Business Services / Business Setup.
+ * Identify is live-ish (ABR). Does not invent ASIC availability or registration success.
  */
 export default async function BusinessSetupPage() {
   const { session: platformSession } = await getPlatformPageContext();
@@ -68,19 +69,18 @@ export default async function BusinessSetupPage() {
         <p className="mt-1 max-w-2xl text-sm text-slate-400">{BUSINESS_SETUP_POSITIONING}</p>
         <p className="mt-2 text-sm text-slate-500">
           {platformSession?.organisationName ?? "DigitalGate"} · Business Setup · Phase {phase}{" "}
-          scaffold
+          · Identify
         </p>
       </header>
 
       <main className="dg-page-main space-y-6">
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-slate-300">
-          <p className="font-medium text-amber-200">Honest scaffold — not a finished wizard</p>
+          <p className="font-medium text-amber-200">Honest launch path</p>
           <p className="mt-1 text-slate-400">
-            Business registration through DigitalGate waits on an authorised government digital
-            pathway. We will never invent name availability or claim a registration succeeded.
-            Launch path: Identify → Register → Establish → Build → Connect → Grow. ABN
-            verification uses the ABR connector when configured; name registration stays
-            blocked until provider approval.
+            Identify → Register → Establish → Build → Connect → Grow. ABN / ACN
+            verification uses the ABR connector when configured. Name registration
+            stays blocked until the authorised digital pathway is approved — we never
+            invent availability or claim a registration succeeded.
           </p>
           <ul className="mt-3 space-y-1 text-slate-400">
             <li>
@@ -99,6 +99,8 @@ export default async function BusinessSetupPage() {
             </li>
           </ul>
         </div>
+
+        <BusinessSetupIdentifyPanel abrConfigured={abrReady} />
 
         <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
           {BUSINESS_SETUP_PILLARS.map((pillar) => {
@@ -150,11 +152,12 @@ export default async function BusinessSetupPage() {
           <h2 className="font-semibold text-white">What to do now</h2>
           <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-300">
             <li>
-              Identify: verify ABN on{" "}
+              Identify: use the panel above to verify ABN / ACN (or search by name),
+              then apply to{" "}
               <Link href="/dashboard/business" className="text-sky-400 hover:underline">
                 Business Profile
-              </Link>{" "}
-              (Verify ABN uses ABR when the server GUID is set).
+              </Link>
+              .
             </li>
             <li>
               Connect digital presence via{" "}
@@ -171,9 +174,9 @@ export default async function BusinessSetupPage() {
               .
             </li>
             <li>
-              Name registration in-product stays on hold until the ASIC digital service provider
-              application is approved — use the official process with details prepared here when
-              that step opens.
+              Name registration in-product stays on hold until the authorised
+              digital service provider pathway is approved — use the official
+              process with details prepared here when that step opens.
             </li>
           </ol>
           <p className="mt-3 text-xs text-slate-500">

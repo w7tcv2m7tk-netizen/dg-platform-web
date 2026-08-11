@@ -2,6 +2,7 @@
  * Business Identity Service — Core orchestration over registry connectors.
  */
 
+import { abnLookupProvider } from "../business-discovery/providers/abn-lookup";
 import {
   abrCredentialsConfigured,
   searchByAbn,
@@ -22,6 +23,20 @@ export type BusinessIdentityLookupResponse = {
   identity: BusinessIdentityRecord | null;
   profilePatch: BusinessProfilePatch | null;
   abr: AbrLookupResult;
+};
+
+export type BusinessIdentityNameMatch = {
+  abn: string;
+  businessName: string;
+  location?: string;
+};
+
+export type BusinessIdentityNameSearchResponse = {
+  configured: boolean;
+  query: string;
+  matches: BusinessIdentityNameMatch[];
+  /** Honest note — name search lists entities; it is not ASIC availability */
+  note: string;
 };
 
 async function toLookupResponse(
@@ -87,4 +102,44 @@ export async function lookupBusinessIdentityByAcn(
   }
   const abr = await searchByAcn(acn);
   return toLookupResponse(abr, organisationId);
+}
+
+/**
+ * Name search via ABR ABRSearchByNameAdvancedSimpleProtocol2017 (Discovery adapter).
+ * Returns shortlist candidates — never invents ASIC name availability.
+ */
+export async function searchBusinessIdentityByName(
+  query: string,
+  limit = 10,
+): Promise<BusinessIdentityNameSearchResponse> {
+  const trimmed = query.trim();
+  const note =
+    "Matches existing ABR entities only — not business-name availability or registration.";
+
+  if (!abrCredentialsConfigured()) {
+    return { configured: false, query: trimmed, matches: [], note };
+  }
+  if (trimmed.length < 3) {
+    return { configured: true, query: trimmed, matches: [], note };
+  }
+
+  const candidates = await abnLookupProvider.search({
+    textQuery: trimmed,
+    limit: Math.min(Math.max(limit, 1), 20),
+  });
+
+  const matches: BusinessIdentityNameMatch[] = [];
+  const seen = new Set<string>();
+  for (const c of candidates) {
+    const abn = c.providerRefs.abn?.replace(/\s+/g, "") ?? c.externalId;
+    if (!abn || seen.has(abn)) continue;
+    seen.add(abn);
+    matches.push({
+      abn,
+      businessName: c.businessName,
+      location: c.location,
+    });
+  }
+
+  return { configured: true, query: trimmed, matches, note };
 }

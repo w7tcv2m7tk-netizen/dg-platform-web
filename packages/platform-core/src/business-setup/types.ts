@@ -91,17 +91,20 @@ export const BUSINESS_SETUP_CHECKLIST: BusinessSetupChecklistItem[] = [
     id: "identify.name",
     pillar: "identify",
     label: "Choose a business name",
-    description: "Search and shortlist a name. Availability is never invented.",
-    status: "deferred",
-    note: "Name availability only after ASIC DSP test env.",
+    description:
+      "Search existing ABR entities by name, or shortlist a new name. Availability for registration is never invented.",
+    status: "partial",
+    href: "/dashboard/business-setup#identify",
+    note: "ABR name search lists existing entities. New-name availability waits on ASIC DSP.",
   },
   {
     id: "identify.abn",
     pillar: "identify",
     label: "Verify ABN / entity",
-    description: "ABN or ACN lookup and entity enrichment via ABR connector.",
-    status: "partial",
-    href: "/dashboard/business",
+    description:
+      "ABN or ACN lookup via ABR → Business Identity → apply to Business Profile.",
+    status: "available",
+    href: "/dashboard/business-setup#identify",
     note: "Live when ABN_LOOKUP_GUID / ABR_GUID is set server-side.",
   },
   {
