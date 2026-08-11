@@ -129,6 +129,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             isPriceWithheld?: boolean;
           }>;
           features?: string[];
+          images?: {
+            defaultImage?: { largePhotoUrl?: string } | null;
+            secondaryImageList?: Array<{ largePhotoUrl?: string }>;
+          };
           avm?: { available?: boolean; message?: string };
           sections?: Record<string, string>;
         })
@@ -170,6 +174,15 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         features: Array.isArray(cotalityDetailsRaw.features)
           ? cotalityDetailsRaw.features
           : null,
+        imageCount: (() => {
+          const imgs = cotalityDetailsRaw.images;
+          if (!imgs) return 0;
+          const secondary = Array.isArray(imgs.secondaryImageList)
+            ? imgs.secondaryImageList.length
+            : 0;
+          return (imgs.defaultImage ? 1 : 0) + secondary;
+        })(),
+        imagesStatus: cotalityDetailsRaw.sections?.images ?? null,
         avmAvailable: Boolean(cotalityDetailsRaw.avm?.available),
         avmMessage:
           typeof cotalityDetailsRaw.avm?.message === "string"

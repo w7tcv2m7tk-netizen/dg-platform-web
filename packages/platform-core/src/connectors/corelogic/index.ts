@@ -58,6 +58,8 @@ export {
 
   fetchCoreLogicPropertyDetails,
 
+  listingImageUrlsFromCotality,
+
   parseCoreLogicAdditionalAttributes,
 
   parseCoreLogicAvmResponse,
@@ -66,11 +68,17 @@ export {
 
   parseCoreLogicFeatures,
 
+  parseCoreLogicImages,
+
   parseCoreLogicLastSale,
+
+  parseCoreLogicPropertyImage,
 
   parseCoreLogicSalesHistory,
 
   parseCoreLogicSiteDetails,
+
+  preferredCotalityPhotoUrl,
 
   type CoreLogicAdditionalAttributes,
 
@@ -81,6 +89,10 @@ export {
   type CoreLogicFeatureAttribute,
 
   type CoreLogicLastSale,
+
+  type CoreLogicPropertyImage,
+
+  type CoreLogicPropertyImages,
 
   type CoreLogicPropertyDetailsSnapshot,
 

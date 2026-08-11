@@ -16,6 +16,7 @@ import {
   coreLogicMatchToAddressMetadata,
   fetchCoreLogicPropertyDetails,
   isCoreLogicPropertyMatch,
+  listingImageUrlsFromCotality,
   matchCoreLogicAddress,
   type CoreLogicPropertyDetailsSnapshot,
 } from "../connectors/corelogic";
@@ -703,6 +704,12 @@ function shouldPrefill(existing: unknown, mode: CotalityPrefillMode): boolean {
   return mode === "overwrite" || isBlankValue(existing);
 }
 
+function shouldPrefillImages(existing: unknown, mode: CotalityPrefillMode): boolean {
+  if (mode === "overwrite") return true;
+  if (!Array.isArray(existing)) return true;
+  return existing.filter((u) => typeof u === "string" && u.trim()).length === 0;
+}
+
 function formatAreaM2(n: number): string {
   return `${n} m²`;
 }
@@ -825,7 +832,16 @@ function applyCotalityDetailsToPropertyUpdate(
     filledFields.push("marketing.features");
   }
 
-  // Never invent listing copy or guide price from Cotality last sale / AVM.
+  const imageUrls = listingImageUrlsFromCotality(snapshot.images);
+  if (imageUrls.length && shouldPrefillImages(metadata.images, mode)) {
+    metadata.images = imageUrls;
+    metadata.featured_image = imageUrls[0] ?? null;
+    metadata.corelogic_images_pulled_at = snapshot.fetchedAt;
+    filledFields.push("images");
+  }
+
+  // Never invent listing copy or guide price from Cotality last sale / AVM / OTM.
+  // Cotality Property Details has no marketing description / headline fields.
   metadata.marketing = marketing;
 
   if (snapshot.salesHistory?.length) {

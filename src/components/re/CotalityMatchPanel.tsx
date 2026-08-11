@@ -10,6 +10,7 @@ type CotalitySections = {
   lastSale?: string;
   salesHistory?: string;
   features?: string;
+  images?: string;
   avm?: string;
 };
 
@@ -35,6 +36,8 @@ type CotalityDetailsSummary = {
   salesHistory?: CotalitySaleRow[] | null;
   salesHistoryStatus?: string | null;
   features?: string[] | null;
+  imageCount?: number | null;
+  imagesStatus?: string | null;
   avmAvailable?: boolean;
   avmMessage?: string | null;
   sections?: CotalitySections | null;
@@ -69,6 +72,7 @@ const PREFILL_LABELS: Record<string, string> = {
   zone_code: "Zone code",
   zone_description: "Zone",
   "marketing.features": "Features",
+  images: "Listing images",
 };
 
 export function CotalityMatchPanel({
@@ -295,6 +299,23 @@ export function CotalityMatchPanel({
                 <p>Features: {details.features.slice(0, 8).join(", ")}</p>
               ) : null}
 
+              {details?.imageCount != null && details.imageCount > 0 ? (
+                <p>
+                  Photos: {details.imageCount} Cotality image
+                  {details.imageCount === 1 ? "" : "s"} (watermarked CDN) — prefills blank
+                  listing gallery when pulled
+                </p>
+              ) : (
+                <p className="text-[11px] text-slate-500">
+                  Photos:{" "}
+                  {details?.imagesStatus === "unavailable" ||
+                  details?.imagesStatus === "error"
+                    ? `not available (${details.imagesStatus})`
+                    : "none returned for this property"}
+                  . Gen 2 does not scrape REA/Domain imagery.
+                </p>
+              )}
+
               <div className="space-y-1 border-t border-slate-800 pt-2">
                 <p className="text-slate-300">Sales history</p>
                 {sales.length ? (
@@ -336,8 +357,10 @@ export function CotalityMatchPanel({
                   : details?.avmMessage || "not available for this property"}
               </p>
               <p className="text-[11px] text-slate-600">
-                Honest Cotality sandbox/UAT data only — empty sections are not filled in.
-                Guide price, headline, and description are never invented from Cotality.
+                Honest Cotality data only — empty sections are not filled in. Guide price,
+                headline, and description are never invented from Cotality (use AI draft in
+                Listing details). Photos come from Cotality `/images` when licensed — not
+                portal scrapes.
               </p>
             </div>
           ) : (

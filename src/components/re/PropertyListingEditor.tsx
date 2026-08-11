@@ -53,6 +53,7 @@ export function PropertyListingEditor(props: ListingFields) {
   const [images, setImages] = useState<string[]>(props.images ?? []);
   const [imagesText, setImagesText] = useState(listingImagesText(props.images));
   const [pending, setPending] = useState(false);
+  const [aiPending, setAiPending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -123,6 +124,52 @@ export function PropertyListingEditor(props: ListingFields) {
     const next = [...images, url];
     setImages(next);
     setImagesText(next.join("\n"));
+  }
+
+  async function draftDescriptionWithAi() {
+    setAiPending(true);
+    setError(null);
+    setMessage(null);
+    const res = await fetch("/api/v1/ai/assist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "listing_description",
+        propertyId: props.propertyId,
+        listingDraft: {
+          propertyType: propertyType.trim() || null,
+          bedrooms: bedrooms.trim() ? parseInt(bedrooms, 10) : null,
+          bathrooms: bathrooms.trim() ? parseInt(bathrooms, 10) : null,
+          carSpaces: carSpaces.trim() ? parseInt(carSpaces, 10) : null,
+          landSize: landSize.trim() || null,
+          buildingSize: buildingSize.trim() || null,
+          yearBuilt: yearBuilt.trim() || null,
+          headline: headline.trim() || null,
+          description: description.trim() || null,
+          features: features.trim() || null,
+          listingPriceCents: (() => {
+            const dollars = parseFloat(price.replace(/[^0-9.]/g, ""));
+            return Number.isFinite(dollars) ? Math.round(dollars * 100) : null;
+          })(),
+        },
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setAiPending(false);
+    if (!res.ok) {
+      setError(json.error?.message ?? "Could not draft description");
+      return;
+    }
+    const output = typeof json.data?.output === "string" ? json.data.output.trim() : "";
+    if (!output) {
+      setError("AI assist returned an empty draft");
+      return;
+    }
+    setDescription(output);
+    const source = json.data?.source === "llm" ? "LLM" : "template";
+    setMessage(
+      `AI draft (${source}) from Cotality + listing facts — not a valuation. Edit, then Save listing.`,
+    );
   }
 
   async function save(e: React.FormEvent) {
@@ -267,15 +314,33 @@ export function PropertyListingEditor(props: ListingFields) {
         />
       </label>
 
-      <label className="block text-sm">
-        <span className="text-slate-400">Description</span>
+      <div className="block text-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-slate-400">Description</span>
+          <button
+            type="button"
+            disabled={aiPending || pending}
+            onClick={() => void draftDescriptionWithAi()}
+            className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500 disabled:opacity-50"
+          >
+            {aiPending
+              ? "Drafting…"
+              : description.trim()
+                ? "Update description from Cotality"
+                : "Write description with AI"}
+          </button>
+        </div>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Cotality does not supply marketing copy — this drafts from stored Cotality facts and
+          listing fields. Review before save.
+        </p>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={6}
           className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
         />
-      </label>
+      </div>
 
       <label className="block text-sm">
         <span className="text-slate-400">Features (one per line)</span>

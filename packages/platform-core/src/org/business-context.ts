@@ -289,10 +289,11 @@ export type AiGenerateAction =
   | "opportunity_follow_up"
   | "opportunity_summary"
   | "contact_follow_up"
-  | "contact_summary";
+  | "contact_summary"
+  | "listing_description";
 
 export type CrmAssistEntity = {
-  kind: "lead" | "opportunity" | "contact";
+  kind: "lead" | "opportunity" | "contact" | "property";
   id: string;
   title?: string | null;
   status?: string | null;
@@ -440,6 +441,28 @@ export function generateFromBusinessContext(
         "",
         `Suggested next step: ${nextStep}`,
         `(Generated for ${name} — edit before sharing)`,
+      ]
+        .filter(Boolean)
+        .join("\n");
+    }
+    case "listing_description": {
+      const facts = entity?.notes?.length
+        ? entity.notes.join("\n")
+        : [
+            entity?.propertyAddress ? `Address: ${entity.propertyAddress}` : "",
+            entity?.description ? `Existing description:\n${entity.description}` : "",
+          ]
+            .filter(Boolean)
+            .join("\n");
+      return [
+        facts || `Listing facts for ${entityLabel} are limited.`,
+        "",
+        entity?.propertyAddress
+          ? `Located at ${entity.propertyAddress}, this property is presented by ${name}.`
+          : `This property is presented by ${name}.`,
+        "",
+        "This is an AI draft from Cotality and listing facts — review and edit before publishing. It is not a valuation.",
+        `(${tone} voice — Cotality does not supply marketing description)`,
       ]
         .filter(Boolean)
         .join("\n");

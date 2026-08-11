@@ -9,9 +9,12 @@
  *   GET /au/properties/{id}/sales/last
  *   GET /au/properties/{id}/sales          (sales history when credentialed)
  *   GET /au/properties/{id}/features
+ *   GET /au/properties/{id}/images          (no trailing slash — list + default)
+ *   GET /au/properties/{id}/images/default
  *
  * Optional AVM (separate host): GET /au/properties/{id}/avm/intellival/consumer/current
  * Never invent valuations or sales — persist unavailable / error honestly.
+ * Images are Cotality digital assets (often watermarked); do not scrape REA/Domain.
  *
  * @see docs/connectors/COTALITY-CORELOGIC.md
  */
@@ -66,6 +69,21 @@ export type CoreLogicFeatureAttribute = {
   type?: string;
 };
 
+/** Cotality Property Details photo asset (watermarked CDN URLs in sandbox/UAT). */
+export type CoreLogicPropertyImage = {
+  digitalAssetType?: string;
+  basePhotoUrl?: string;
+  largePhotoUrl?: string;
+  mediumPhotoUrl?: string;
+  thumbnailPhotoUrl?: string;
+  scanDate?: string;
+};
+
+export type CoreLogicPropertyImages = {
+  defaultImage?: CoreLogicPropertyImage | null;
+  secondaryImageList?: CoreLogicPropertyImage[];
+};
+
 export type CoreLogicAvmSnapshot =
   | {
       available: true;
@@ -95,6 +113,8 @@ export type CoreLogicPropertyDetailsSnapshot = {
   salesHistory?: CoreLogicLastSale[];
   features?: string[];
   featureAttributes?: CoreLogicFeatureAttribute[];
+  /** Cotality `/images` payload when returned (default + secondary list). */
+  images?: CoreLogicPropertyImages;
   avm: CoreLogicAvmSnapshot;
   sections: {
     core: CoreLogicSectionStatus;
@@ -103,6 +123,7 @@ export type CoreLogicPropertyDetailsSnapshot = {
     lastSale: CoreLogicSectionStatus;
     salesHistory: CoreLogicSectionStatus;
     features: CoreLogicSectionStatus;
+    images: CoreLogicSectionStatus;
     avm: CoreLogicSectionStatus;
   };
 };
@@ -291,6 +312,84 @@ export function parseCoreLogicSalesHistory(data: unknown): CoreLogicLastSale[] {
   return out;
 }
 
+export function preferredCotalityPhotoUrl(
+  img: CoreLogicPropertyImage | null | undefined,
+): string | undefined {
+  if (!img) return undefined;
+  for (const key of [
+    "largePhotoUrl",
+    "mediumPhotoUrl",
+    "basePhotoUrl",
+    "thumbnailPhotoUrl",
+  ] as const) {
+    const v = img[key];
+    if (typeof v === "string" && v.startsWith("http")) return v;
+  }
+  return undefined;
+}
+
+export function parseCoreLogicPropertyImage(
+  data: unknown,
+): CoreLogicPropertyImage | null {
+  const root = asRecord(data);
+  if (!root) return null;
+  const out: CoreLogicPropertyImage = {};
+  const digitalAssetType = pickString(root, ["digitalAssetType"]);
+  if (digitalAssetType) out.digitalAssetType = digitalAssetType;
+  const basePhotoUrl = pickString(root, ["basePhotoUrl"]);
+  if (basePhotoUrl) out.basePhotoUrl = basePhotoUrl;
+  const largePhotoUrl = pickString(root, ["largePhotoUrl"]);
+  if (largePhotoUrl) out.largePhotoUrl = largePhotoUrl;
+  const mediumPhotoUrl = pickString(root, ["mediumPhotoUrl"]);
+  if (mediumPhotoUrl) out.mediumPhotoUrl = mediumPhotoUrl;
+  const thumbnailPhotoUrl = pickString(root, ["thumbnailPhotoUrl"]);
+  if (thumbnailPhotoUrl) out.thumbnailPhotoUrl = thumbnailPhotoUrl;
+  const scanDate = pickString(root, ["scanDate"]);
+  if (scanDate) out.scanDate = scanDate;
+  return preferredCotalityPhotoUrl(out) ? out : null;
+}
+
+export function parseCoreLogicImages(
+  data: unknown,
+): CoreLogicPropertyImages | undefined {
+  const root = asRecord(data);
+  if (!root) return undefined;
+  const defaultImage = parseCoreLogicPropertyImage(root.defaultImage);
+  const secondaryRaw = Array.isArray(root.secondaryImageList)
+    ? root.secondaryImageList
+    : Array.isArray(root.images)
+      ? root.images
+      : [];
+  const secondaryImageList = secondaryRaw
+    .map(parseCoreLogicPropertyImage)
+    .filter((x): x is CoreLogicPropertyImage => x != null);
+  if (!defaultImage && !secondaryImageList.length) return undefined;
+  return {
+    ...(defaultImage ? { defaultImage } : { defaultImage: null }),
+    ...(secondaryImageList.length ? { secondaryImageList } : {}),
+  };
+}
+
+/** Flatten Cotality image payload to Gen 2 listing gallery URLs (capped). */
+export function listingImageUrlsFromCotality(
+  images: CoreLogicPropertyImages | null | undefined,
+  options?: { limit?: number },
+): string[] {
+  if (!images) return [];
+  const limit = options?.limit ?? 24;
+  const urls: string[] = [];
+  const seen = new Set<string>();
+  const add = (img?: CoreLogicPropertyImage | null) => {
+    const url = preferredCotalityPhotoUrl(img);
+    if (!url || seen.has(url)) return;
+    seen.add(url);
+    urls.push(url);
+  };
+  add(images.defaultImage);
+  for (const img of images.secondaryImageList ?? []) add(img);
+  return urls.slice(0, limit);
+}
+
 export function parseCoreLogicFeatures(data: unknown): {
   features?: string[];
   featureAttributes?: CoreLogicFeatureAttribute[];
@@ -444,7 +543,7 @@ export async function fetchCoreLogicPropertyDetails(
   const accessToken = token.accessToken;
   const includeAvm = options?.includeAvm !== false;
 
-  const [coreRes, additionalRes, siteRes, lastSaleRes, salesHistoryRes, featuresRes] =
+  const [coreRes, additionalRes, siteRes, lastSaleRes, salesHistoryRes, featuresRes, imagesRes] =
     await Promise.all([
       fetchSection(propertyId, "/attributes/core", accessToken),
       fetchSection(propertyId, "/attributes/additional", accessToken),
@@ -452,6 +551,8 @@ export async function fetchCoreLogicPropertyDetails(
       fetchSection(propertyId, "/sales/last", accessToken),
       fetchSection(propertyId, "/sales", accessToken),
       fetchSection(propertyId, "/features", accessToken),
+      // No trailing slash — `/images/` 404s as a static resource on sandbox.
+      fetchSection(propertyId, "/images", accessToken),
     ]);
 
   const coreSection = sectionFromResult(coreRes);
@@ -460,6 +561,7 @@ export async function fetchCoreLogicPropertyDetails(
   const lastSaleSection = sectionFromResult(lastSaleRes);
   const salesHistorySection = sectionFromResult(salesHistoryRes);
   const featuresSection = sectionFromResult(featuresRes);
+  const imagesSection = sectionFromResult(imagesRes);
 
   let avm: CoreLogicAvmSnapshot = {
     available: false,
@@ -481,6 +583,20 @@ export async function fetchCoreLogicPropertyDetails(
   const featuresParsed = featuresSection.data
     ? parseCoreLogicFeatures(featuresSection.data)
     : {};
+
+  let images: CoreLogicPropertyImages | undefined;
+  let imagesStatus: CoreLogicSectionStatus = imagesSection.status;
+  if (imagesSection.status === "ok" && imagesSection.data) {
+    const parsed = parseCoreLogicImages(imagesSection.data);
+    if (parsed) {
+      images = parsed;
+      imagesStatus = "ok";
+    } else {
+      imagesStatus = "empty";
+    }
+  } else if (imagesSection.status === "empty") {
+    imagesStatus = "empty";
+  }
 
   const lastSale =
     lastSaleSection.status === "ok"
@@ -522,6 +638,7 @@ export async function fetchCoreLogicPropertyDetails(
     lastSaleSection.status === "ok" ||
     salesHistoryStatus === "ok" ||
     featuresSection.status === "ok" ||
+    imagesStatus === "ok" ||
     avmStatus === "ok";
 
   if (
@@ -533,6 +650,7 @@ export async function fetchCoreLogicPropertyDetails(
       lastSaleSection,
       salesHistorySection,
       featuresSection,
+      imagesSection,
     ].every((s) => s.status === "error" || s.status === "unavailable")
   ) {
     return {
@@ -561,6 +679,7 @@ export async function fetchCoreLogicPropertyDetails(
     ...(lastSale !== undefined ? { lastSale } : {}),
     ...(salesHistory !== undefined ? { salesHistory } : {}),
     ...featuresParsed,
+    ...(images ? { images } : {}),
     avm,
     sections: {
       core: coreSection.status,
@@ -572,6 +691,7 @@ export async function fetchCoreLogicPropertyDetails(
           : lastSaleSection.status,
       salesHistory: salesHistoryStatus,
       features: featuresSection.status,
+      images: imagesStatus,
       avm: avmStatus,
     },
   };

@@ -76,7 +76,7 @@ Aliases: prefer `CORELOGIC_*` (not `COTALITY_*`) for consistency with existing D
 
 | Property match action | **Live** | `PATCH /api/v1/properties/:id` `{ action: "match_cotality" }` — also pulls details by default |
 
-| Property Details pull | **Live** | `PATCH` `{ action: "pull_cotality", overwrite?: boolean }` → attributes/core, additional, site, sales/last, **/sales**, features + optional AVM; prefills blank listing fields |
+| Property Details pull | **Live** | `PATCH` `{ action: "pull_cotality", overwrite?: boolean }` → attributes/core, additional, site, sales/last, **/sales**, features, **/images** + optional AVM; prefills blank listing fields (incl. gallery URLs when Cotality returns photos) |
 
 | Property report | **Live** | `POST /api/v1/re/reports` `{ action: "property_report", propertyId, to? }` — markdown + optional branded email |
 
@@ -144,13 +144,15 @@ On match / `pull_cotality`, blank Gen 2 listing fields are prefilled from Cotali
 
 | `features` / `featureAttributes` | `metadata.marketing.features` (newline list) |
 
+| `images` (`defaultImage` + `secondaryImageList`) | `metadata.images` / `featured_image` (blank gallery or overwrite) |
+
 | `sales/last` + `/sales` | `corelogic_details.lastSale` / `salesHistory` (UI panel; **not** guide price) |
 
 | Address Match components | Blank suburb/state/postcode/`addressLine1` only when empty/TBC |
 
 
 
-Default mode fills **blanks only**. `PATCH` `{ action: "pull_cotality", overwrite: true }` refreshes from Cotality. Guide price, headline, and description are **never** invented from Cotality.
+Default mode fills **blanks only**. `PATCH` `{ action: "pull_cotality", overwrite: true }` refreshes from Cotality. Guide price, headline, and description are **never** invented from Cotality — Property Details has no marketing copy fields (OTM campaigns expose `priceDescription` only). Use **Write / Update description from Cotality** in Listing details (AI assist from stored facts). Cotality photos come from `/images` when returned (watermarked CDN URLs in sandbox) — Gen 2 does **not** scrape REA/Domain.
 
 
 
@@ -189,6 +191,10 @@ Base: `https://api-sbox.corelogic.asia/property-details`
 | `/au/properties/{id}/sales` | Sales history list (when credentialed; sandbox may 404 → fall back to last sale) |
 
 | `/au/properties/{id}/features` | features[], featureAttributes[] |
+
+| `/au/properties/{id}/images` | `defaultImage` + `secondaryImageList` (photo CDN URLs; **no trailing slash**) |
+
+| `/au/properties/{id}/images/default` | Single default photo asset |
 
 
 
@@ -240,7 +246,7 @@ Honest limits from Cotality portal notes + live sandbox probes (do **not** fake 
 
 | Address Match | Yes | Yes |
 
-| Property Details (attributes / site / last sale / features) | **Yes** (eval dataset) | Yes |
+| Property Details (attributes / site / last sale / features / **images**) | **Yes** (eval dataset) | Yes |
 
 | Search (geo / locality / OTM) | Yes (eval dataset) | Yes |
 
@@ -337,5 +343,9 @@ PropTrack remains on hold (no inventing). This connector is real Cotality sandbo
 7. **Generate report** → markdown preview; **Generate & send** with a test email (Resend or queued Activity).
 
 8. Optional: `PATCH /api/v1/properties/:id` `{ "action": "pull_cotality", "overwrite": true }` to refresh and overwrite listing fields.
+
+9. Listing details → **Write / Update description from Cotality** → review AI draft → **Save listing**.
+
+10. Confirm Cotality panel shows photo count when `/images` returned; blank gallery should receive Cotality CDN URLs after pull (watermarked in sandbox).
 
 

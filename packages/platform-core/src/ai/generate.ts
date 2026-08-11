@@ -6,6 +6,7 @@ import {
   type CrmAssistEntity,
 } from "../org/business-context";
 import { llmChat, llmConfigured, type LlmGenerateResult } from "./llm";
+import { templateListingDescriptionFromFacts } from "./listing-description";
 
 export type AiAssistResult = {
   output: string;
@@ -21,26 +22,38 @@ function userPromptForAction(
   entity?: CrmAssistEntity | null,
 ): string {
   const entityBlock = entity
-    ? [
-        `Entity type: ${entity.kind}`,
-        entity.title ? `Title: ${entity.title}` : "",
-        entity.status ? `Status: ${entity.status}` : "",
-        entity.stage ? `Stage: ${entity.stage}` : "",
-        entity.source ? `Source: ${entity.source}` : "",
-        entity.propertyAddress ? `Property: ${entity.propertyAddress}` : "",
-        entity.contactName ? `Contact: ${entity.contactName}` : "",
-        entity.contactEmail ? `Email: ${entity.contactEmail}` : "",
-        entity.contactPhone ? `Phone: ${entity.contactPhone}` : "",
-        entity.valueCents != null
-          ? `Value cents: ${entity.valueCents} ${entity.currency || "AUD"}`
-          : "",
-        entity.description ? `Description: ${entity.description}` : "",
-        entity.notes?.length
-          ? `Recent activity:\n${entity.notes.map((n) => `- ${n}`).join("\n")}`
-          : "",
-      ]
-        .filter(Boolean)
-        .join("\n")
+    ? entity.kind === "property"
+      ? [
+          `Entity type: property listing`,
+          entity.title ? `Title: ${entity.title}` : "",
+          entity.propertyAddress ? `Property: ${entity.propertyAddress}` : "",
+          entity.description ? `Existing description:\n${entity.description}` : "",
+          entity.notes?.length
+            ? `Facts (Cotality + listing fields — use only these):\n${entity.notes.join("\n")}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : [
+          `Entity type: ${entity.kind}`,
+          entity.title ? `Title: ${entity.title}` : "",
+          entity.status ? `Status: ${entity.status}` : "",
+          entity.stage ? `Stage: ${entity.stage}` : "",
+          entity.source ? `Source: ${entity.source}` : "",
+          entity.propertyAddress ? `Property: ${entity.propertyAddress}` : "",
+          entity.contactName ? `Contact: ${entity.contactName}` : "",
+          entity.contactEmail ? `Email: ${entity.contactEmail}` : "",
+          entity.contactPhone ? `Phone: ${entity.contactPhone}` : "",
+          entity.valueCents != null
+            ? `Value cents: ${entity.valueCents} ${entity.currency || "AUD"}`
+            : "",
+          entity.description ? `Description: ${entity.description}` : "",
+          entity.notes?.length
+            ? `Recent activity:\n${entity.notes.map((n) => `- ${n}`).join("\n")}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n")
     : "No CRM entity attached.";
 
   const tasks: Record<AiGenerateAction, string> = {
@@ -62,6 +75,8 @@ function userPromptForAction(
       "Draft a follow-up email to this contact. Include Subject: line. Keep it warm and concise.",
     contact_summary:
       "Summarise this contact: who they are, recent activity, and one suggested next step.",
+    listing_description:
+      "Write an Australian real-estate listing description (2–4 short paragraphs) from the facts only. Match brand voice. Do not invent features, schools, renovations, views, or prices. Do not present prior sales or AVM as a current guide price or valuation. If an existing description is present, improve/update it using the facts. Clearly write marketing copy an agent can edit — this is an AI draft from Cotality/listing facts, not a valuation.",
   };
 
   return [
@@ -82,11 +97,10 @@ export async function generateAiAssist(input: {
   action: AiGenerateAction;
   entity?: CrmAssistEntity | null;
 }): Promise<AiAssistResult> {
-  const template = generateFromBusinessContext(
-    input.context,
-    input.action,
-    input.entity,
-  );
+  const template =
+    input.action === "listing_description" && input.entity?.notes?.length
+      ? templateListingDescriptionFromFacts(input.entity.notes)
+      : generateFromBusinessContext(input.context, input.action, input.entity);
 
   if (!llmConfigured()) {
     return { output: template, source: "template" };

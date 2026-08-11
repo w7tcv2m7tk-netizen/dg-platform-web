@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   buildAiSystemPrompt,
+  buildListingDescriptionAssistEntity,
   buildLiveTwinWithScores,
   gatherOverviewLiveMetrics,
   generateAiAssist,
@@ -9,12 +10,14 @@ import {
   getLead,
   getOpportunity,
   getOrganisationBusinessProfile,
+  getProperty,
   listContactActivities,
   listLeadActivities,
   llmConfigured,
   metricsContextFromLiveMetrics,
   type AiGenerateAction,
   type CrmAssistEntity,
+  type ListingDescriptionDraftInput,
 } from "@dg/platform-core";
 
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
@@ -31,6 +34,7 @@ const VALID_ACTIONS: AiGenerateAction[] = [
   "opportunity_summary",
   "contact_follow_up",
   "contact_summary",
+  "listing_description",
 ];
 
 async function loadTwinContext(session: {
@@ -189,6 +193,8 @@ export async function POST(req: Request) {
     leadId?: string;
     opportunityId?: string;
     contactId?: string;
+    propertyId?: string;
+    listingDraft?: ListingDescriptionDraftInput;
   };
   try {
     body = (await req.json()) as typeof body;
@@ -232,10 +238,34 @@ export async function POST(req: Request) {
     );
   }
 
-  const [{ enabledAppIds, twinSnapshot, profile }, entity] = await Promise.all([
+  if (action === "listing_description" && !body.propertyId) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "missing_entity",
+          message: "propertyId required for listing description assist",
+        },
+      },
+      { status: 422 },
+    );
+  }
+
+  const [{ enabledAppIds, twinSnapshot, profile }, crmEntity] = await Promise.all([
     loadTwinContext(session),
     resolveCrmEntity(session.organisationId, body),
   ]);
+
+  let entity = crmEntity;
+  if (action === "listing_description" && body.propertyId) {
+    const property = await getProperty(session.organisationId, body.propertyId);
+    if (!property) {
+      return NextResponse.json(
+        { error: { code: "not_found", message: "Property not found" } },
+        { status: 404 },
+      );
+    }
+    entity = buildListingDescriptionAssistEntity(property, body.listingDraft).entity;
+  }
 
   if (crmActions.includes(action) && !entity) {
     return NextResponse.json(
