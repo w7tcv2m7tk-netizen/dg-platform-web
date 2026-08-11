@@ -66,3 +66,59 @@ export function formatDateTime(iso: string, timeZone: string): string {
     timeStyle: "short",
   });
 }
+
+/** Offset of `timeZone` at `date` (ms to add to local wall time to get UTC). */
+function timeZoneOffsetMs(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const get = (type: string) =>
+    Number(parts.find((p) => p.type === type)?.value ?? "0");
+  const asUtc = Date.UTC(
+    get("year"),
+    get("month") - 1,
+    get("day"),
+    get("hour"),
+    get("minute"),
+    get("second"),
+  );
+  return asUtc - date.getTime();
+}
+
+/**
+ * Convert a local calendar day + wall-clock time in `timeZone` to a UTC Date.
+ * Two-pass correction handles DST transitions.
+ */
+export function zonedLocalToUtc(
+  dayKey: string,
+  timeHms: string,
+  timeZone: string,
+): Date {
+  const [y, m, d] = dayKey.split("-").map(Number);
+  const [hh, mm, ss] = timeHms.split(":").map(Number);
+  const wallAsUtc = Date.UTC(y, (m ?? 1) - 1, d ?? 1, hh ?? 0, mm ?? 0, ss ?? 0);
+  let utc = new Date(wallAsUtc - timeZoneOffsetMs(new Date(wallAsUtc), timeZone));
+  utc = new Date(wallAsUtc - timeZoneOffsetMs(utc, timeZone));
+  return utc;
+}
+
+/** Inclusive ISO bounds for a YYYY-MM-DD calendar day in `timeZone`. */
+export function zonedDayBoundsIso(
+  dayKey: string,
+  timeZone: string,
+): { from: string; to: string } {
+  const from = zonedLocalToUtc(dayKey, "00:00:00", timeZone);
+  const next = addDayKeys(dayKey, 1);
+  const endExclusive = zonedLocalToUtc(next, "00:00:00", timeZone);
+  return {
+    from: from.toISOString(),
+    to: new Date(endExclusive.getTime() - 1).toISOString(),
+  };
+}

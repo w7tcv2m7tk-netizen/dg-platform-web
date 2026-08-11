@@ -17,6 +17,7 @@ const PRE_SCHEDULE_STAGES = new Set([
   "site_visit",
   "quote",
   "approved",
+  "booked", // cleaner / pool templates
 ]);
 
 function serializeJob(row: ServiceJob): ServiceJobRecord {

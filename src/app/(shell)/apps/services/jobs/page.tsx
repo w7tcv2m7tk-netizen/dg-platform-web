@@ -12,7 +12,11 @@ import { JobsListFilters } from "@/components/services/JobsListFilters";
 import { ServicesNav } from "@/components/services/ServicesNav";
 import { UpdateJobStageForm } from "@/components/services/UpdateJobStageForm";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { formatDateTime, SERVICES_DEFAULT_TZ } from "@/lib/services-dates";
+import {
+  formatDateTime,
+  SERVICES_DEFAULT_TZ,
+  zonedDayBoundsIso,
+} from "@/lib/services-dates";
 
 function memberLabel(m: {
   displayName: string | null;
@@ -80,11 +84,12 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
   const timeZone = org?.timezone || SERVICES_DEFAULT_TZ;
   const template = getActiveServiceTemplate(org?.settings);
 
+  // Date filters must use org timezone day bounds (Vercel runs UTC).
   const scheduledFrom = filters.from
-    ? new Date(`${filters.from}T00:00:00`).toISOString()
+    ? zonedDayBoundsIso(filters.from, timeZone).from
     : undefined;
   const scheduledTo = filters.to
-    ? new Date(`${filters.to}T23:59:59`).toISOString()
+    ? zonedDayBoundsIso(filters.to, timeZone).to
     : undefined;
 
   const [{ items, meta }, contacts, members] = await Promise.all([
