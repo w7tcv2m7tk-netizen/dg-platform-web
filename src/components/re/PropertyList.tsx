@@ -9,9 +9,15 @@ const STATUS_LABELS: Record<string, string> = {
   appraisal: "Appraisal",
   listed: "Listed",
   under_offer: "Under offer",
+  contract_signed: "Contract signed",
+  unconditional: "Unconditional",
   sold: "Sold",
   withdrawn: "Withdrawn",
 };
+
+function isHiddenFromWebsite(metadata?: Record<string, unknown> | null) {
+  return metadata?.website_hidden === true;
+}
 
 export function PropertyList({
   properties,
@@ -25,6 +31,7 @@ export function PropertyList({
     status: string;
     leadId?: string | null;
     updatedAt: string;
+    metadata?: Record<string, unknown> | null;
   }>;
 }) {
   const router = useRouter();
@@ -34,6 +41,8 @@ export function PropertyList({
   const filtered =
     filter === "all"
       ? properties
+      : filter === "hidden"
+        ? properties.filter((p) => isHiddenFromWebsite(p.metadata))
       : properties.filter((p) => p.status === filter);
 
   async function onStatusChange(propertyId: string, status: string) {
@@ -50,7 +59,7 @@ export function PropertyList({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {["all", "appraisal", "listed", "under_offer", "sold"].map((status) => (
+        {["all", "appraisal", "listed", "under_offer", "contract_signed", "unconditional", "sold", "hidden"].map((status) => (
           <button
             key={status}
             type="button"
@@ -61,7 +70,11 @@ export function PropertyList({
                 : "border border-slate-700 text-slate-300 hover:bg-slate-900"
             }`}
           >
-            {status === "all" ? "All" : (STATUS_LABELS[status] ?? status)}
+            {status === "all"
+              ? "All"
+              : status === "hidden"
+                ? "Hidden"
+                : (STATUS_LABELS[status] ?? status)}
           </button>
         ))}
       </div>
@@ -90,19 +103,28 @@ export function PropertyList({
         </div>
       ) : (
         <ul className="space-y-3">
-          {filtered.map((property) => (
+          {filtered.map((property) => {
+            const hidden = isHiddenFromWebsite(property.metadata);
+            return (
             <li
               key={property.id}
               className="rounded-xl border border-slate-800 bg-slate-900/40 p-4"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
+                    <div className="flex flex-wrap items-center gap-2">
                   <Link
                     href={`/apps/re/properties/${property.id}`}
                     className="font-medium text-white hover:underline"
                   >
                     {property.addressLine1}
                   </Link>
+                      {hidden ? (
+                        <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-300">
+                          Hidden
+                        </span>
+                      ) : null}
+                    </div>
                   <p className="text-sm text-slate-400">
                     {property.suburb} {property.state} {property.postcode}
                   </p>
@@ -124,7 +146,8 @@ export function PropertyList({
                 </select>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </div>

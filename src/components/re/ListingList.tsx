@@ -12,9 +12,20 @@ function formatPrice(cents: number | null | undefined) {
 const STATUS_OPTIONS = [
   { value: "listed", label: "Listed" },
   { value: "under_offer", label: "Under offer" },
+  { value: "contract_signed", label: "Contract signed" },
+  { value: "unconditional", label: "Unconditional" },
   { value: "sold", label: "Sold" },
   { value: "withdrawn", label: "Withdrawn" },
 ];
+
+const STATUS_LABELS: Record<string, string> = {
+  listed: "Listed",
+  under_offer: "Under offer",
+  contract_signed: "Contract signed",
+  unconditional: "Unconditional",
+  sold: "Sold",
+  withdrawn: "Withdrawn",
+};
 
 export function ListingList({
   properties,
@@ -108,17 +119,25 @@ export function ListingList({
                   />
                 ) : null}
                 <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
                 <Link
                   href={`/apps/re/properties/${property.id}`}
                   className="text-lg font-medium text-white hover:underline"
                 >
                   {property.addressLine1}
                 </Link>
+                {property.metadata?.website_hidden === true ? (
+                  <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-300">
+                    Hidden from website
+                  </span>
+                ) : null}
+                </div>
                 <p className="text-sm text-slate-400">
                   {property.suburb} {property.state} {property.postcode}
                 </p>
-                <p className="mt-1 text-xs capitalize text-slate-500">
-                  {property.status.replace(/_/g, " ")}
+                <p className="mt-1 text-xs text-slate-500">
+                  {STATUS_LABELS[property.status] ??
+                    property.status.replace(/_/g, " ")}
                   {property.bedrooms != null ? ` · ${property.bedrooms} bed` : ""}
                   {property.bathrooms != null ? ` · ${property.bathrooms} bath` : ""}
                 </p>

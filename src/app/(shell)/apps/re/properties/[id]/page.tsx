@@ -8,6 +8,7 @@ import {
   getLead,
   getProperty,
   getPropertyCotalityId,
+  isPropertyHiddenFromWebsite,
   listLeads,
   listPropertyActivities,
   listPropertyOffers,
@@ -21,6 +22,7 @@ import { PropertyDisclosureStatementPanel } from "@/components/re/PropertyDisclo
 import { PropertyContractPanel } from "@/components/re/PropertyContractPanel";
 import { PropertyOffersPanel } from "@/components/re/PropertyOffersPanel";
 import { PropertyListingEditor } from "@/components/re/PropertyListingEditor";
+import { HideFromWebsiteToggle } from "@/components/re/HideFromWebsiteToggle";
 import { PublishToWebsiteButton } from "@/components/re/PublishToWebsiteButton";
 import { DomainSyndicationPanel } from "@/components/re/DomainSyndicationPanel";
 import { ReaSyndicationPanel } from "@/components/re/ReaSyndicationPanel";
@@ -34,6 +36,8 @@ const STATUS_LABELS: Record<string, string> = {
   appraisal: "Appraisal",
   listed: "Listed",
   under_offer: "Under offer",
+  contract_signed: "Contract signed",
+  unconditional: "Unconditional",
   sold: "Sold",
   withdrawn: "Withdrawn",
 };
@@ -208,6 +212,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     : null;
   const wpPermalink = property.externalRefs?.wp_property_permalink as string | undefined;
   const wpPropertyId = property.externalRefs?.wp_property_id as number | string | undefined;
+  const hiddenFromWebsite = isPropertyHiddenFromWebsite(property.metadata);
   const domainPlacement =
     property.externalRefs?.domain && typeof property.externalRefs.domain === "object"
       ? (property.externalRefs.domain as {
@@ -275,6 +280,14 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         <h1 className="mt-2 text-2xl font-bold text-white">{property.addressLine1}</h1>
         <p className="text-sm text-slate-400">
           {STATUS_LABELS[property.status] ?? property.status} · {fullAddress}
+          {hiddenFromWebsite ? (
+            <>
+              {" · "}
+              <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-amber-300">
+                Hidden from website
+              </span>
+            </>
+          ) : null}
         </p>
       </header>
       <main className="dg-page-main">
@@ -315,12 +328,17 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               <p className="mt-1 text-sm text-slate-400">
                 Push this property to the connected WordPress site.
               </p>
-              <div className="mt-4">
+              <div className="mt-4 space-y-4">
+                <HideFromWebsiteToggle
+                  propertyId={property.id}
+                  hidden={hiddenFromWebsite}
+                />
                 <PublishToWebsiteButton
                   propertyId={property.id}
                   status={property.status}
                   permalink={wpPermalink}
                   wpPropertyId={wpPropertyId}
+                  hiddenFromWebsite={hiddenFromWebsite}
                 />
               </div>
             </div>

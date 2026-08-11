@@ -4,7 +4,10 @@ import { writeAuditLog } from "../audit";
 import { platformEvents } from "../events";
 import { updateLeadStage, type VendorStage } from "../leads";
 import { leadStageForPropertyStatus } from "../real-estate/pipeline";
-import { maybeAutoPublishPropertyToWordPress } from "../connectors/wordpress/sync-property-publish";
+import {
+  maybeAutoPublishPropertyToWordPress,
+  publishPropertyToWordPress,
+} from "../connectors/wordpress/sync-property-publish";
 import {
   addressMetadataFromParsed,
   resolveAddress,
@@ -62,13 +65,49 @@ export const PROPERTY_STATUSES = [
   "appraisal",
   "listed",
   "under_offer",
+  "contract_signed",
+  "unconditional",
   "sold",
   "withdrawn",
 ] as const;
 
 export type PropertyStatus = (typeof PROPERTY_STATUSES)[number];
 
-const WEBSITE_PUBLISH_STATUSES = new Set(["listed", "under_offer", "sold", "withdrawn"]);
+/** Human labels for listing status (AU agency flow). */
+export const PROPERTY_STATUS_LABELS: Record<PropertyStatus, string> = {
+  prospect: "Prospect",
+  appraisal: "Appraisal",
+  listed: "Listed",
+  under_offer: "Under offer",
+  contract_signed: "Contract signed",
+  unconditional: "Unconditional",
+  sold: "Sold",
+  withdrawn: "Withdrawn",
+};
+
+/** Statuses that stay on the public website when published (not prospect/appraisal). */
+const WEBSITE_PUBLISH_STATUSES = new Set<string>([
+  "listed",
+  "under_offer",
+  "contract_signed",
+  "unconditional",
+  "sold",
+  "withdrawn",
+]);
+
+/** In-contract / sale-pipeline statuses (before settled sold). */
+export const PROPERTY_IN_CONTRACT_STATUSES = [
+  "under_offer",
+  "contract_signed",
+  "unconditional",
+] as const satisfies readonly PropertyStatus[];
+
+/** Hidden from the public website (WP / Gen 2 site), still visible in Gen 2 admin. */
+export function isPropertyHiddenFromWebsite(
+  metadata?: Record<string, unknown> | null,
+): boolean {
+  return metadata?.website_hidden === true;
+}
 
 export interface CreatePropertyInput {
   organisationId: string;
@@ -167,6 +206,26 @@ export async function listProperties(options: ListPropertiesOptions) {
   return {
     items: items.map(serializeProperty),
     meta: { total, limit, offset },
+  };
+}
+
+/**
+ * Properties eligible for public website surfaces (WP / Gen 2 listings).
+ * Excludes website-hidden rows; admin lists should keep using listProperties.
+ */
+export async function listPropertiesForWebsite(options: ListPropertiesOptions) {
+  const result = await listProperties({
+    ...options,
+    limit: Math.min(options.limit ?? 100, 200),
+  });
+  const items = result.items.filter(
+    (p) =>
+      !isPropertyHiddenFromWebsite(p.metadata) &&
+      WEBSITE_PUBLISH_STATUSES.has(p.status),
+  );
+  return {
+    items,
+    meta: { ...result.meta, total: items.length },
   };
 }
 
@@ -1051,7 +1110,7 @@ export async function updatePropertyStatus(
       entityType: "Property",
       entityId: propertyId,
       activityType: "status_change",
-      title: `Status → ${status.replace(/_/g, " ")}`,
+      title: `Status → ${PROPERTY_STATUS_LABELS[status] ?? status.replace(/_/g, " ")}`,
       body: formatPropertyAddress(property),
       sourceApp: "real-estate",
       createdBy: actorId,
@@ -1090,6 +1149,79 @@ export async function updatePropertyStatus(
     status,
     actorId,
   }).catch(() => null);
+
+  return serializeProperty(
+    (await prisma.property.findFirst({
+      where: { id: propertyId, organisationId, deletedAt: null },
+    })) ?? property,
+  );
+}
+
+/**
+ * Hide/show on the public website without changing listing status.
+ * Hidden listings stay in Gen 2 admin; WP publish is forced to draft when already synced.
+ */
+export async function setPropertyWebsiteHidden(
+  organisationId: string,
+  propertyId: string,
+  hidden: boolean,
+  actorId?: string,
+) {
+  const { prisma } = await import("@dg/database");
+
+  const existing = await prisma.property.findFirst({
+    where: { id: propertyId, organisationId, deletedAt: null },
+  });
+  if (!existing) return null;
+
+  const prevMeta = (existing.metadata as Record<string, unknown> | null) ?? {};
+  const wasHidden = isPropertyHiddenFromWebsite(prevMeta);
+  if (wasHidden === hidden) {
+    return serializeProperty(existing);
+  }
+
+  const metadata: Record<string, unknown> = {
+    ...prevMeta,
+    website_hidden: hidden,
+  };
+
+  const property = await prisma.property.update({
+    where: { id: propertyId },
+    data: { metadata: metadata as Prisma.InputJsonValue },
+  });
+
+  await prisma.activity.create({
+    data: {
+      organisationId,
+      entityType: "Property",
+      entityId: propertyId,
+      activityType: hidden ? "website_hidden" : "website_unhidden",
+      title: hidden ? "Hidden from website" : "Shown on website",
+      body: formatPropertyAddress(property),
+      sourceApp: "real-estate",
+      createdBy: actorId,
+      metadata: { website_hidden: hidden } as Prisma.InputJsonValue,
+    },
+  });
+
+  const refs = (property.externalRefs as Record<string, unknown> | null) ?? {};
+  const hasWpListing = Boolean(refs.wp_property_id);
+
+  if (hidden && hasWpListing) {
+    await publishPropertyToWordPress({
+      organisationId,
+      propertyId,
+      actorId,
+      force: true,
+    }).catch(() => null);
+  } else if (!hidden) {
+    await maybeAutoPublishPropertyToWordPress({
+      organisationId,
+      propertyId,
+      status: property.status,
+      actorId,
+    }).catch(() => null);
+  }
 
   return serializeProperty(
     (await prisma.property.findFirst({

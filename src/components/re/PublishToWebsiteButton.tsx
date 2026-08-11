@@ -8,11 +8,13 @@ export function PublishToWebsiteButton({
   status,
   permalink,
   wpPropertyId,
+  hiddenFromWebsite = false,
 }: {
   propertyId: string;
   status: string;
   permalink?: string;
   wpPropertyId?: number | string;
+  hiddenFromWebsite?: boolean;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -56,7 +58,11 @@ export function PublishToWebsiteButton({
 
   return (
     <div className="space-y-3">
-      {permalink || wpPropertyId ? (
+      {hiddenFromWebsite ? (
+        <p className="text-sm text-amber-300/90">
+          This listing is hidden from the public website. Uncheck Hide listing to publish.
+        </p>
+      ) : permalink || wpPropertyId ? (
         <p className="text-sm text-slate-400">
           On website:{" "}
           {permalink ? (
@@ -81,12 +87,14 @@ export function PublishToWebsiteButton({
 
       <button
         type="button"
-        disabled={pending}
+        disabled={pending || hiddenFromWebsite}
         onClick={publish}
         className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
       >
         {pending
           ? "Publishing…"
+          : hiddenFromWebsite
+            ? "Hidden from website"
           : permalink || wpPropertyId
             ? "Update on website"
             : needsForce
@@ -94,7 +102,7 @@ export function PublishToWebsiteButton({
               : "Publish to website"}
       </button>
 
-      {needsForce ? (
+      {needsForce && !hiddenFromWebsite ? (
         <p className="text-xs text-slate-500">
           Prospect/appraisal publishes as a draft on WordPress until status is Listed.
         </p>

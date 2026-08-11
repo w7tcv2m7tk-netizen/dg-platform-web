@@ -22,7 +22,7 @@ export type PublishPropertyResult =
       message: string;
     };
 
-const AUTO_PUBLISH_STATUSES = new Set(["listed", "under_offer", "sold", "withdrawn"]);
+const AUTO_PUBLISH_STATUSES = new Set(["listed", "under_offer", "contract_signed", "unconditional", "sold", "withdrawn"]);
 
 function capitalizeType(value?: string | null): string {
   if (!value) return "";
@@ -51,7 +51,22 @@ export async function publishPropertyToWordPress(
     return { ok: false, reason: "not_found", message: "Property not found" };
   }
 
-  if (!input.force && !AUTO_PUBLISH_STATUSES.has(property.status)) {
+  const metadata = (property.metadata as Record<string, unknown> | null) ?? {};
+  const websiteHidden = metadata.website_hidden === true;
+  const refs = (property.externalRefs as Record<string, unknown> | null) ?? {};
+  const hasWpListing = Boolean(refs.wp_property_id);
+
+  // Hidden from public site: never create a new WP listing; only sync existing → draft.
+  if (websiteHidden && !hasWpListing) {
+    return {
+      ok: false,
+      reason: "skipped_status",
+      message:
+        "Listing is hidden from the website. Unhide it in Website listing to publish.",
+    };
+  }
+
+  if (!websiteHidden && !input.force && !AUTO_PUBLISH_STATUSES.has(property.status)) {
     return {
       ok: false,
       reason: "skipped_status",
@@ -68,7 +83,6 @@ export async function publishPropertyToWordPress(
     };
   }
 
-  const metadata = (property.metadata as Record<string, unknown> | null) ?? {};
   const marketing = (metadata.marketing as Record<string, unknown> | undefined) ?? {};
   const title =
     (typeof marketing.headline === "string" && marketing.headline.trim()) ||
@@ -119,6 +133,7 @@ export async function publishPropertyToWordPress(
   const payload = {
     dg_property_id: property.id,
     status: property.status,
+    website_hidden: websiteHidden,
     title,
     description,
     features,
@@ -196,6 +211,7 @@ export async function publishPropertyToWordPress(
       wp_property_permalink: data.property.permalink,
       wp_property_synced_at: new Date().toISOString(),
       wp_property_source: connector.label,
+      wp_property_hidden: websiteHidden,
     };
 
     await prisma.property.update({
@@ -208,8 +224,12 @@ export async function publishPropertyToWordPress(
         organisationId: input.organisationId,
         entityType: "Property",
         entityId: property.id,
-        activityType: "wordpress_publish",
-        title: data.created ? "Published to website" : "Updated on website",
+        activityType: websiteHidden ? "wordpress_hide" : "wordpress_publish",
+        title: websiteHidden
+          ? "Hidden on website"
+          : data.created
+            ? "Published to website"
+            : "Updated on website",
         body: data.property.permalink ?? `WP #${data.property.id}`,
         sourceApp: "real-estate",
         createdBy: input.actorId,
@@ -217,6 +237,7 @@ export async function publishPropertyToWordPress(
           wp_property_id: data.property.id,
           permalink: data.property.permalink,
           created: Boolean(data.created),
+          website_hidden: websiteHidden,
         } as InputJsonValue,
       },
     });

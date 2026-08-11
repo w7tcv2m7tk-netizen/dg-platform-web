@@ -6,6 +6,7 @@ import {
   PROPERTY_STATUSES,
   publishPropertyToWordPress,
   pullCotalityPropertyDetails,
+  setPropertyWebsiteHidden,
   updatePropertyListing,
   updatePropertyStatus,
   updatePropertyContract,
@@ -71,6 +72,31 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
     const property = await getProperty(session.organisationId, id);
     return NextResponse.json({ data: { property, publish: result } });
+  }
+
+  if (body?.action === "set_website_hidden") {
+    if (typeof body.hidden !== "boolean") {
+      return NextResponse.json(
+        { error: { code: "validation_error", message: "hidden boolean required" } },
+        { status: 422 },
+      );
+    }
+
+    const updated = await setPropertyWebsiteHidden(
+      session.organisationId,
+      id,
+      body.hidden,
+      session.clerkUserId,
+    );
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: { code: "property_not_found", message: "Property not found" } },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ data: updated });
   }
 
   if (body?.action === "geocode_address") {
