@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ListingFields = {
   propertyId: string;
@@ -20,6 +20,10 @@ type ListingFields = {
   inspectionTimes?: string | null;
   cotalityPrefillNote?: string | null;
 };
+
+function listingImagesText(images: string[] | undefined) {
+  return (images ?? []).join("\n");
+}
 
 export function PropertyListingEditor(props: ListingFields) {
   const router = useRouter();
@@ -47,11 +51,47 @@ export function PropertyListingEditor(props: ListingFields) {
   const [features, setFeatures] = useState(props.features ?? "");
   const [inspectionTimes, setInspectionTimes] = useState(props.inspectionTimes ?? "");
   const [images, setImages] = useState<string[]>(props.images ?? []);
-  const [imagesText, setImagesText] = useState((props.images ?? []).join("\n"));
+  const [imagesText, setImagesText] = useState(listingImagesText(props.images));
   const [pending, setPending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Cotality refresh (and other router.refresh paths) update server props while this
+  // client form stays mounted — re-sync so blank/overwrite prefills appear in inputs.
+  const imagesKey = listingImagesText(props.images);
+  useEffect(() => {
+    setPrice(
+      props.listingPriceCents != null ? String(props.listingPriceCents / 100) : "",
+    );
+    setPropertyType(props.propertyType ?? "");
+    setBedrooms(props.bedrooms != null ? String(props.bedrooms) : "");
+    setBathrooms(props.bathrooms != null ? String(props.bathrooms) : "");
+    setCarSpaces(props.carSpaces != null ? String(props.carSpaces) : "");
+    setLandSize(props.landSize ?? "");
+    setBuildingSize(props.buildingSize ?? "");
+    setYearBuilt(props.yearBuilt != null ? String(props.yearBuilt) : "");
+    setHeadline(props.headline ?? "");
+    setDescription(props.description ?? "");
+    setFeatures(props.features ?? "");
+    setInspectionTimes(props.inspectionTimes ?? "");
+    setImages(props.images ?? []);
+    setImagesText(imagesKey);
+  }, [
+    props.listingPriceCents,
+    props.propertyType,
+    props.bedrooms,
+    props.bathrooms,
+    props.carSpaces,
+    props.landSize,
+    props.buildingSize,
+    props.yearBuilt,
+    props.headline,
+    props.description,
+    props.features,
+    props.inspectionTimes,
+    imagesKey,
+  ]);
 
   function syncImagesFromText(text: string) {
     setImagesText(text);

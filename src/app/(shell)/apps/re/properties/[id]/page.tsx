@@ -311,6 +311,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
             {/* 4. Listing details (Cotality prefill lands here for agent review) */}
             <PropertyListingEditor
+              key={cotalityPrefillRaw?.at ?? `listing-${property.id}`}
               propertyId={property.id}
               listingPriceCents={property.listingPriceCents}
               propertyType={property.propertyType}
