@@ -95,7 +95,15 @@ export default async function BusinessProfilePage({
               Welcome — finish these steps next
             </h2>
             <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-300">
-              <li>Complete ABN + logo on this Business Profile</li>
+              <li>
+                <Link
+                  href="/dashboard/business-setup#identify"
+                  className="text-sky-400 hover:underline"
+                >
+                  Verify ABN
+                </Link>{" "}
+                on Start Your Business, then confirm logo on this profile
+              </li>
               <li>
                 <Link
                   href="/dashboard/settings/connectors"

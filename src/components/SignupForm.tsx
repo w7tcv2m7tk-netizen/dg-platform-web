@@ -60,8 +60,9 @@ export function SignupForm() {
       <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-6 text-center">
         <h2 className="text-xl font-semibold text-white">Details received</h2>
         <p className="mt-2 text-slate-300">
-          We received your plan selection. Create an account or log in to track
-          setup in your dashboard.
+          We received your plan selection. Create an account or log in, then
+          verify identity on Start Your Business so your Business Profile
+          populates.
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-3">
           <Link
@@ -71,10 +72,10 @@ export function SignupForm() {
             Create account →
           </Link>
           <Link
-            href="/dashboard/business"
+            href="/dashboard/business-setup"
             className="inline-block rounded-full border border-slate-600 px-6 py-2 text-sm font-semibold text-slate-200 hover:border-slate-500"
           >
-            Continue setup in platform
+            Start Your Business →
           </Link>
         </div>
       </div>

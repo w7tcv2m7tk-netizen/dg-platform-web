@@ -30,6 +30,13 @@ type NameMatch = {
 
 type Mode = "abn" | "acn" | "name";
 
+type ExistingIdentity = {
+  abn?: string;
+  acn?: string;
+  businessName?: string;
+  tradingName?: string;
+};
+
 const inputClass =
   "w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500";
 
@@ -51,24 +58,63 @@ function Message({
   );
 }
 
+function IdentifyMicroProgress({
+  lookedUp,
+  hasPreview,
+  applied,
+}: {
+  lookedUp: boolean;
+  hasPreview: boolean;
+  applied: boolean;
+}) {
+  const steps = [
+    { id: "lookup", label: "Look up", done: lookedUp || hasPreview || applied },
+    { id: "preview", label: "Preview", done: hasPreview || applied },
+    { id: "apply", label: "Apply", done: applied },
+  ];
+  return (
+    <ol className="flex flex-wrap items-center gap-2 text-xs" aria-label="Identify progress">
+      {steps.map((step, i) => (
+        <li key={step.id} className="flex items-center gap-2">
+          {i > 0 ? <span className="text-slate-700" aria-hidden>→</span> : null}
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 ring-1 ring-inset ${
+              step.done
+                ? "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30"
+                : "bg-slate-900/60 text-slate-500 ring-slate-700"
+            }`}
+          >
+            <span aria-hidden>{step.done ? "✓" : "○"}</span>
+            {step.label}
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 /**
  * Business Setup · Identify — ABR verify → Business Identity → apply to Business Profile.
  * Never exposes ABR GUID. ASIC registration is handoff/roadmap only.
  */
 export function BusinessSetupIdentifyPanel({
   abrConfigured,
+  existingIdentity = null,
 }: {
   abrConfigured: boolean;
+  existingIdentity?: ExistingIdentity | null;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("abn");
-  const [abn, setAbn] = useState("");
-  const [acn, setAcn] = useState("");
+  const [abn, setAbn] = useState(existingIdentity?.abn ?? "");
+  const [acn, setAcn] = useState(existingIdentity?.acn ?? "");
   const [nameQuery, setNameQuery] = useState("");
   const [nameMatches, setNameMatches] = useState<NameMatch[]>([]);
   const [lookingUp, setLookingUp] = useState(false);
   const [searchingName, setSearchingName] = useState(false);
   const [applying, setApplying] = useState(false);
+  const [lookedUp, setLookedUp] = useState(false);
+  const [applied, setApplied] = useState(false);
   const [preview, setPreview] = useState<IdentityPreview | null>(null);
   const [profilePatch, setProfilePatch] = useState<BusinessProfilePatch | null>(
     null,
@@ -78,9 +124,18 @@ export function BusinessSetupIdentifyPanel({
     text: string;
   } | null>(null);
 
+  const identityOnFile = Boolean(
+    existingIdentity?.abn?.trim() || existingIdentity?.acn?.trim(),
+  );
+  const displayName =
+    existingIdentity?.businessName?.trim() ||
+    existingIdentity?.tradingName?.trim() ||
+    null;
+
   function clearResult() {
     setPreview(null);
     setProfilePatch(null);
+    setApplied(false);
   }
 
   async function verifyAbn(value?: string) {
@@ -107,6 +162,7 @@ export function BusinessSetupIdentifyPanel({
     );
     const json = await res.json().catch(() => null);
     setLookingUp(false);
+    setLookedUp(true);
 
     if (!res.ok) {
       const text =
@@ -165,6 +221,7 @@ export function BusinessSetupIdentifyPanel({
     );
     const json = await res.json().catch(() => null);
     setLookingUp(false);
+    setLookedUp(true);
 
     if (!res.ok) {
       const text =
@@ -227,6 +284,7 @@ export function BusinessSetupIdentifyPanel({
     );
     const json = await res.json().catch(() => null);
     setSearchingName(false);
+    setLookedUp(true);
 
     if (!res.ok) {
       setMessage({
@@ -278,6 +336,7 @@ export function BusinessSetupIdentifyPanel({
       return;
     }
 
+    setApplied(true);
     setMessage({
       tone: "ok",
       text: "Applied to Business Profile. Identity fields are saved for every app to read.",
@@ -286,6 +345,8 @@ export function BusinessSetupIdentifyPanel({
   }
 
   const busy = lookingUp || searchingName || applying;
+  const showEmptyHint =
+    abrConfigured && !preview && !applied && !message && nameMatches.length === 0;
 
   return (
     <section
@@ -318,14 +379,92 @@ export function BusinessSetupIdentifyPanel({
         </span>
       </div>
 
+      <IdentifyMicroProgress
+        lookedUp={lookedUp || identityOnFile}
+        hasPreview={Boolean(preview)}
+        applied={applied || identityOnFile}
+      />
+
       {!abrConfigured ? (
-        <Message tone="err">
-          ABR not configured. Set{" "}
-          <code className="text-rose-100">ABN_LOOKUP_GUID</code> or{" "}
-          <code className="text-rose-100">ABR_GUID</code> in server{" "}
-          <code className="text-rose-100">.env.local</code>, then restart. The
-          GUID never appears in the UI.
-        </Message>
+        <div className="space-y-2">
+          <Message tone="err">
+            ABR not configured. Set{" "}
+            <code className="text-rose-100">ABN_LOOKUP_GUID</code> or{" "}
+            <code className="text-rose-100">ABR_GUID</code> in server{" "}
+            <code className="text-rose-100">.env.local</code>, then restart. The
+            GUID never appears in the UI.
+          </Message>
+          <p className="text-xs text-slate-500">
+            Ops check: <code className="text-slate-400">npm run abr:smoke</code>{" "}
+            — should report GUID present without printing the value.
+          </p>
+        </div>
+      ) : null}
+
+      {abrConfigured && identityOnFile && !applied ? (
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-4 py-3">
+          <p className="text-sm font-medium text-emerald-200">
+            Identity already on Business Profile
+          </p>
+          <p className="mt-1 text-sm text-slate-400">
+            {displayName ? `${displayName} · ` : ""}
+            {existingIdentity?.abn ? `ABN ${existingIdentity.abn}` : null}
+            {existingIdentity?.abn && existingIdentity?.acn ? " · " : null}
+            {existingIdentity?.acn ? `ACN ${existingIdentity.acn}` : null}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/business"
+              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-500"
+            >
+              Open Business Profile
+            </Link>
+            <a
+              href="#first-steps"
+              className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-300 hover:border-slate-500"
+            >
+              Next first steps
+            </a>
+          </div>
+        </div>
+      ) : null}
+
+      {applied ? (
+        <div className="rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-4 py-4">
+          <p className="text-sm font-semibold text-emerald-100">
+            Applied — Business Profile updated
+          </p>
+          <p className="mt-1 text-sm text-emerald-200/80">
+            {preview?.legalName
+              ? `${preview.legalName} is now on your Digital Business Identity.`
+              : "Verified identity fields are saved for every app to read."}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/business"
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+            >
+              View Business Profile →
+            </Link>
+            <a
+              href="#first-steps"
+              className="rounded-lg border border-emerald-500/40 px-4 py-2 text-sm text-emerald-100 hover:border-emerald-400/60"
+            >
+              Continue first steps
+            </a>
+          </div>
+        </div>
+      ) : null}
+
+      {showEmptyHint ? (
+        <div className="rounded-lg border border-slate-800 bg-slate-950/40 px-4 py-3">
+          <p className="text-sm font-medium text-slate-200">Ready to verify</p>
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-xs text-slate-500">
+            <li>Enter ABN, ACN, or search an existing name on the ABR</li>
+            <li>Preview legal name, status, GST, and address</li>
+            <li>Apply to Business Profile — that is the aha moment</li>
+          </ol>
+        </div>
       ) : null}
 
       <div className="flex flex-wrap gap-2">
@@ -469,9 +608,11 @@ export function BusinessSetupIdentifyPanel({
         </div>
       ) : null}
 
-      {message ? <Message tone={message.tone}>{message.text}</Message> : null}
+      {message && !applied ? (
+        <Message tone={message.tone}>{message.text}</Message>
+      ) : null}
 
-      {preview ? (
+      {preview && !applied ? (
         <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
           <h3 className="text-sm font-semibold text-white">Entity preview</h3>
           <dl className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -557,7 +698,8 @@ export function BusinessSetupIdentifyPanel({
           <span className="text-slate-400">Register</span> (business name /
           company) stays on the official pathway until provider approval — we
           never invent availability or claim a registration succeeded. Domains
-          and digital presence stay under Establish / Connect.
+          and Google stay as connect CTAs under first steps — no listing publish
+          or GBP deep sync from here.
         </p>
       </div>
     </section>

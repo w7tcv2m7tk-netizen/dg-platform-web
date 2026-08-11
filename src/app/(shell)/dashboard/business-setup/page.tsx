@@ -6,12 +6,15 @@ import {
   BUSINESS_SETUP_PILLARS,
   BUSINESS_SETUP_POSITIONING,
   abrCredentialsConfigured,
+  buildBusinessSetupFirstSteps,
   checklistForPillar,
   currentBusinessSetupPhase,
   getAsicConnectorLifecycle,
+  getOrganisationBusinessProfile,
   type BusinessSetupStepStatus,
 } from "@dg/platform-core";
 
+import { BusinessSetupFirstSteps } from "@/components/platform/BusinessSetupFirstSteps";
 import { BusinessSetupIdentifyPanel } from "@/components/platform/BusinessSetupIdentifyPanel";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
@@ -58,6 +61,10 @@ export default async function BusinessSetupPage() {
   const phase = currentBusinessSetupPhase();
   const abrReady = abrCredentialsConfigured();
   const asicLifecycle = getAsicConnectorLifecycle();
+  const profile = platformSession
+    ? await getOrganisationBusinessProfile(platformSession.organisationId)
+    : null;
+  const firstSteps = buildBusinessSetupFirstSteps(profile);
 
   return (
     <>
@@ -77,10 +84,11 @@ export default async function BusinessSetupPage() {
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-slate-300">
           <p className="font-medium text-amber-200">Honest launch path</p>
           <p className="mt-1 text-slate-400">
-            Identify → Register → Establish → Build → Connect → Grow. ABN / ACN
-            verification uses the ABR connector when configured. Name registration
-            stays blocked until the authorised digital pathway is approved — we never
-            invent availability or claim a registration succeeded.
+            Tell us about the business → verify identity → Business Profile
+            populated. Then connect domain, website, and Google when ready. Name
+            registration stays blocked until the authorised digital pathway is
+            approved — we never invent availability or claim a registration
+            succeeded.
           </p>
           <ul className="mt-3 space-y-1 text-slate-400">
             <li>
@@ -100,7 +108,21 @@ export default async function BusinessSetupPage() {
           </ul>
         </div>
 
-        <BusinessSetupIdentifyPanel abrConfigured={abrReady} />
+        <BusinessSetupFirstSteps progress={firstSteps} />
+
+        <BusinessSetupIdentifyPanel
+          abrConfigured={abrReady}
+          existingIdentity={
+            profile
+              ? {
+                  abn: profile.abn,
+                  acn: profile.acn,
+                  businessName: profile.businessName,
+                  tradingName: profile.tradingName,
+                }
+              : null
+          }
+        />
 
         <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
           {BUSINESS_SETUP_PILLARS.map((pillar) => {
@@ -152,12 +174,24 @@ export default async function BusinessSetupPage() {
           <h2 className="font-semibold text-white">What to do now</h2>
           <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-300">
             <li>
-              Identify: use the panel above to verify ABN / ACN (or search by name),
-              then apply to{" "}
-              <Link href="/dashboard/business" className="text-sky-400 hover:underline">
-                Business Profile
-              </Link>
-              .
+              {firstSteps.identifyDone ? (
+                <>
+                  Identify is on file — open{" "}
+                  <Link href="/dashboard/business" className="text-sky-400 hover:underline">
+                    Business Profile
+                  </Link>{" "}
+                  to confirm details.
+                </>
+              ) : (
+                <>
+                  Identify: use the panel above to verify ABN / ACN (or search by
+                  name), then apply to{" "}
+                  <Link href="/dashboard/business" className="text-sky-400 hover:underline">
+                    Business Profile
+                  </Link>
+                  .
+                </>
+              )}
             </li>
             <li>
               Connect digital presence via{" "}
@@ -166,12 +200,19 @@ export default async function BusinessSetupPage() {
                 className="text-sky-400 hover:underline"
               >
                 Domains
-              </Link>{" "}
-              and{" "}
+              </Link>
+              ,{" "}
               <Link href="/apps/websites" className="text-sky-400 hover:underline">
                 Websites
               </Link>
-              .
+              , and{" "}
+              <Link
+                href="/dashboard/settings/connectors"
+                className="text-sky-400 hover:underline"
+              >
+                Google / connectors
+              </Link>{" "}
+              — link out only; no auto-publish from Setup.
             </li>
             <li>
               Name registration in-product stays on hold until the authorised
