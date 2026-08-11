@@ -156,6 +156,127 @@ export async function attachVercelWebsiteHostnames(
   return { apex: apexResult, www: wwwResult };
 }
 
+export type VercelProjectDomainStatus = {
+  hostname: string;
+  ok: boolean;
+  verified: boolean | null;
+  configured: boolean;
+  message?: string;
+};
+
+/** GET project domain — used to flip sslState pending → active after DNS verifies. */
+export async function getVercelProjectDomainStatus(
+  hostname: string,
+): Promise<VercelProjectDomainStatus> {
+  const auth = vercelAuth();
+  const name = hostname.trim().toLowerCase();
+  if (!auth) {
+    return {
+      hostname: name,
+      ok: false,
+      verified: null,
+      configured: false,
+      message: "VERCEL_TOKEN + VERCEL_PROJECT_ID not set",
+    };
+  }
+  const qs = new URLSearchParams();
+  if (auth.teamId) qs.set("teamId", auth.teamId);
+  const url = `https://api.vercel.com/v9/projects/${encodeURIComponent(auth.projectId)}/domains/${encodeURIComponent(name)}${qs.toString() ? `?${qs}` : ""}`;
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${auth.token}` },
+      method: "GET",
+    });
+    const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!res.ok) {
+      return {
+        hostname: name,
+        ok: false,
+        verified: null,
+        configured: true,
+        message:
+          typeof (json.error as { message?: string } | undefined)?.message ===
+          "string"
+            ? (json.error as { message: string }).message
+            : `Vercel HTTP ${res.status}`,
+      };
+    }
+    return {
+      hostname: name,
+      ok: true,
+      verified: typeof json.verified === "boolean" ? json.verified : null,
+      configured: true,
+    };
+  } catch (err) {
+    return {
+      hostname: name,
+      ok: false,
+      verified: null,
+      configured: true,
+      message: err instanceof Error ? err.message : "Vercel domain status failed",
+    };
+  }
+}
+
+/**
+ * If Vercel reports apex and/or www verified, set InfrastructureDomain.sslState=active.
+ */
+export async function refreshInfrastructureDomainSslFromVercel(input: {
+  organisationId: string;
+  domainName: string;
+  currentSslState?: string | null;
+}): Promise<{
+  sslState: string;
+  apex: VercelProjectDomainStatus;
+  www: VercelProjectDomainStatus;
+  updated: boolean;
+}> {
+  const { apex: apexHost, www: wwwHost } = apexAndWwwHostnames(input.domainName);
+  const [apex, www] = await Promise.all([
+    getVercelProjectDomainStatus(apexHost),
+    getVercelProjectDomainStatus(wwwHost),
+  ]);
+
+  let sslState = input.currentSslState || "unknown";
+  if (apex.verified === false || www.verified === false) {
+    sslState = "pending";
+  } else if (apex.verified === true || www.verified === true) {
+    sslState = "active";
+  } else if (apex.ok || www.ok) {
+    sslState = sslState === "active" ? "active" : "pending";
+  }
+
+  let updated = false;
+  if (
+    sslState !== (input.currentSslState || "unknown") &&
+    process.env.DATABASE_URL
+  ) {
+    const { getOrganisationDomain, upsertInfrastructureDomain } = await import(
+      "../domains/inventory"
+    );
+    const existing = await getOrganisationDomain(
+      input.organisationId,
+      apexHost,
+    );
+    await upsertInfrastructureDomain({
+      organisationId: input.organisationId,
+      name: apexHost,
+      sslState,
+      metadata: {
+        ...(existing?.metadata ?? {}),
+        vercelSslCheck: {
+          checkedAt: new Date().toISOString(),
+          apex,
+          www,
+        },
+      },
+    });
+    updated = true;
+  }
+
+  return { sslState, apex, www, updated };
+}
+
 type VercelDomainConfig = {
   recommendedIPv4?: Array<{ rank: number; value: string[] }>;
   recommendedCNAME?: Array<{ rank: number; value: string }>;

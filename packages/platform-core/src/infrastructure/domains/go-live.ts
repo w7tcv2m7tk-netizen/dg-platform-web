@@ -105,6 +105,27 @@ export async function buildGoLiveChecklist(input: {
     domainRow = all.find((d) => d.websiteId === input.websiteId) ?? null;
   }
 
+  if (domainRow?.name) {
+    try {
+      const { refreshInfrastructureDomainSslFromVercel } = await import(
+        "../hosting/vercel-domains"
+      );
+      const refreshed = await refreshInfrastructureDomainSslFromVercel({
+        organisationId: input.organisationId,
+        domainName: domainRow.name,
+        currentSslState: domainRow.sslState,
+      });
+      if (refreshed.updated || refreshed.sslState !== domainRow.sslState) {
+        domainRow = {
+          ...domainRow,
+          sslState: refreshed.sslState,
+        };
+      }
+    } catch {
+      /* Vercel token optional — leave stored sslState */
+    }
+  }
+
   let websiteStatus: string | null = null;
   let websiteSlug: string | null = null;
   if (input.websiteId && process.env.DATABASE_URL) {
