@@ -118,6 +118,10 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         session.organisationId,
         id,
         session.clerkUserId,
+        {
+          includeAvm: body?.includeAvm !== false,
+          mode: body?.overwrite === true ? "overwrite" : "blank",
+        },
       );
     }
 
@@ -131,7 +135,11 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           ? {
               detailsPulled: details.ok,
               ...(details.ok
-                ? { sections: details.snapshot.sections }
+                ? {
+                    sections: details.snapshot.sections,
+                    prefill: details.prefill,
+                    salesHistoryCount: details.snapshot.salesHistory?.length ?? 0,
+                  }
                 : {
                     detailsError: details.message,
                     detailsReason: details.reason,
@@ -147,7 +155,10 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       session.organisationId,
       id,
       session.clerkUserId,
-      { includeAvm: body?.includeAvm !== false },
+      {
+        includeAvm: body?.includeAvm !== false,
+        mode: body?.overwrite === true ? "overwrite" : "blank",
+      },
     );
 
     if (!result.ok) {
@@ -171,6 +182,8 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         sections: result.snapshot.sections,
         fetchedAt: result.snapshot.fetchedAt,
         cotalityPropertyId: result.snapshot.propertyId,
+        prefill: result.prefill,
+        salesHistoryCount: result.snapshot.salesHistory?.length ?? 0,
       },
     });
   }
@@ -257,6 +270,9 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         buildingSize:
           (body?.buildingSize as string | null | undefined) ??
           (details.buildingSize as string | null | undefined),
+        yearBuilt:
+          (body?.yearBuilt as string | number | null | undefined) ??
+          (details.yearBuilt as string | number | null | undefined),
         inspectionTimes:
           (body?.inspectionTimes as string | null | undefined) ??
           (details.inspectionTimes as string | null | undefined),

@@ -298,18 +298,40 @@ _No Cotality Property Details on file. Match the address, then pull details._`;
   }
 
   lines.push("");
-  lines.push(`## Last sale (Cotality)`);
-  if (snapshot.sections.lastSale === "ok" && lastSale) {
-    if (lastSale.price != null && !lastSale.isPriceWithheld) {
-      lines.push(`- **Price:** ${aud(lastSale.price)}`);
-    } else if (lastSale.isPriceWithheld) {
-      lines.push(`- **Price:** withheld`);
+  lines.push(`## Sales history (Cotality)`);
+  const salesRows =
+    snapshot.salesHistory?.length
+      ? snapshot.salesHistory
+      : lastSale
+        ? [lastSale]
+        : [];
+  if (salesRows.length) {
+    for (const sale of salesRows) {
+      const bits: string[] = [];
+      if (sale.price != null && !sale.isPriceWithheld) bits.push(aud(sale.price) ?? "");
+      else if (sale.isPriceWithheld) bits.push("price withheld");
+      if (sale.contractDate) bits.push(`contract ${sale.contractDate}`);
+      if (sale.settlementDate) bits.push(`settlement ${sale.settlementDate}`);
+      if (sale.type) bits.push(sale.type);
+      lines.push(`- ${bits.filter(Boolean).join(" · ") || "Sale record (no price/date returned)"}`);
     }
-    if (lastSale.contractDate) lines.push(`- **Contract:** ${lastSale.contractDate}`);
-    if (lastSale.settlementDate) lines.push(`- **Settlement:** ${lastSale.settlementDate}`);
-    if (lastSale.type) lines.push(`- **Type:** ${lastSale.type}`);
+    if (
+      snapshot.sections.salesHistory === "unavailable" ||
+      snapshot.sections.salesHistory === "error"
+    ) {
+      lines.push(
+        `_Full \`/sales\` history unavailable — showing last sale only when Cotality returned it._`,
+      );
+    }
+  } else if (snapshot.sections.lastSale === "ok" || snapshot.sections.salesHistory === "ok") {
+    lines.push(sectionNote("empty", "sales"));
   } else {
-    lines.push(sectionNote(snapshot.sections.lastSale, "sales/last"));
+    lines.push(
+      sectionNote(
+        snapshot.sections.salesHistory ?? snapshot.sections.lastSale,
+        "sales",
+      ),
+    );
   }
 
   lines.push("");

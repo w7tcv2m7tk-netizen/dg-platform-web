@@ -183,7 +183,45 @@ async function main() {
       ? Object.keys(coreJson).slice(0, 8).join(",")
       : "";
   pass(`Property Details attributes/core HTTP ${coreRes.status} · keys=${keys || "n/a"}`);
+
+  const lastSalePath = `${detailsBase.replace(/\/$/, "")}/au/properties/${propertyId}/sales/last`;
+  const lastSaleRes = await fetch(lastSalePath, {
+    headers: {
+      Authorization: `Bearer ${tokenJson.access_token}`,
+      Accept: "application/json",
+    },
+  });
+  pass(
+    `Property Details sales/last HTTP ${lastSaleRes.status}${
+      lastSaleRes.ok ? "" : " (honest empty/unavailable OK)"
+    }`,
+  );
+
+  const salesPath = `${detailsBase.replace(/\/$/, "")}/au/properties/${propertyId}/sales`;
+  const salesRes = await fetch(salesPath, {
+    headers: {
+      Authorization: `Bearer ${tokenJson.access_token}`,
+      Accept: "application/json",
+    },
+  });
+  if (salesRes.ok) {
+    const salesJson = await salesRes.json().catch(() => null);
+    const count = Array.isArray(salesJson?.sales)
+      ? salesJson.sales.length
+      : Array.isArray(salesJson)
+        ? salesJson.length
+        : "?";
+    pass(`Property Details /sales HTTP ${salesRes.status} · rows=${count}`);
+  } else {
+    info(
+      `Property Details /sales HTTP ${salesRes.status} — Gen 2 falls back to sales/last only (no fake history)`,
+    );
+  }
+
   info("AVM / report generation exercised via app UI or POST /api/v1/re/reports");
+  info(
+    "UI flow: Match → Address panel prefill + sales → Listing details review → REA/Domain",
+  );
 }
 
 main().catch((err) => {

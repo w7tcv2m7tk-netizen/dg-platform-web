@@ -68,6 +68,8 @@ export {
 
   parseCoreLogicLastSale,
 
+  parseCoreLogicSalesHistory,
+
   parseCoreLogicSiteDetails,
 
   type CoreLogicAdditionalAttributes,

@@ -76,7 +76,7 @@ Aliases: prefer `CORELOGIC_*` (not `COTALITY_*`) for consistency with existing D
 
 | Property match action | **Live** | `PATCH /api/v1/properties/:id` `{ action: "match_cotality" }` — also pulls details by default |
 
-| Property Details pull | **Live** | `PATCH` `{ action: "pull_cotality" }` → attributes/core, additional, site, sales/last, features + optional AVM |
+| Property Details pull | **Live** | `PATCH` `{ action: "pull_cotality", overwrite?: boolean }` → attributes/core, additional, site, sales/last, **/sales**, features + optional AVM; prefills blank listing fields |
 
 | Property report | **Live** | `POST /api/v1/re/reports` `{ action: "property_report", propertyId, to? }` — markdown + optional branded email |
 
@@ -110,9 +110,47 @@ Code: `packages/platform-core/src/connectors/corelogic/` + `packages/platform-co
 
 | `corelogic_details_fetched_at` | `Property.metadata` | ISO timestamp of last pull |
 
+| `corelogic_prefill` | `Property.metadata` | `{ at, mode: blank\|overwrite, fields[] }` — which listing fields were filled |
+
+| `corelogic_sales_history` | `Property.metadata` | Prior sales rows (also nested under `corelogic_details.salesHistory`) |
 
 
-Empty Property listing fields (beds/baths/type/car/land/building) may be filled from Cotality when blank — existing listing values are never overwritten.
+
+On match / `pull_cotality`, blank Gen 2 listing fields are prefilled from Cotality when present:
+
+
+
+| Cotality | Gen 2 |
+
+|----------|-------|
+
+| `attributes/core.beds` | `Property.bedrooms` |
+
+| `attributes/core.baths` | `Property.bathrooms` |
+
+| `attributes/core.propertyType` / `propertySubType` | `Property.propertyType` (mapped to House/Apartment/…) |
+
+| `attributes/core.carSpaces` | `metadata.car_spaces` |
+
+| `attributes/core.lockUpGarages` | `metadata.lock_up_garages` |
+
+| `attributes/core.landArea` | `metadata.land_size` (`"{n} m²"`) |
+
+| `attributes/additional.floorArea` | `metadata.building_size` |
+
+| `attributes/additional.yearBuilt` | `metadata.year_built` |
+
+| `site.landUsePrimary` / zone fields | `metadata.land_use` / `zone_code` / `zone_description` |
+
+| `features` / `featureAttributes` | `metadata.marketing.features` (newline list) |
+
+| `sales/last` + `/sales` | `corelogic_details.lastSale` / `salesHistory` (UI panel; **not** guide price) |
+
+| Address Match components | Blank suburb/state/postcode/`addressLine1` only when empty/TBC |
+
+
+
+Default mode fills **blanks only**. `PATCH` `{ action: "pull_cotality", overwrite: true }` refreshes from Cotality. Guide price, headline, and description are **never** invented from Cotality.
 
 
 
@@ -147,6 +185,8 @@ Base: `https://api-sbox.corelogic.asia/property-details`
 | `/au/properties/{id}/site` | landUsePrimary, zoneCodeLocal, zoneDescriptionLocal |
 
 | `/au/properties/{id}/sales/last` | lastSale.price, contractDate, settlementDate, type |
+
+| `/au/properties/{id}/sales` | Sales history list (when credentialed; sandbox may 404 → fall back to last sale) |
 
 | `/au/properties/{id}/features` | features[], featureAttributes[] |
 
@@ -288,12 +328,14 @@ PropTrack remains on hold (no inventing). This connector is real Cotality sandbo
 
 3. `POST /api/v1/connectors/corelogic/address-match` with `42 Marine Parade Coolangatta QLD 4225` → `propertyId`.
 
-4. Create / open an RE property with that address → **Match with Cotality** (auto-pulls details).
+4. Create / open an RE property with that address → **Match with Cotality** (auto-pulls details + prefills blank listing fields).
 
-5. Cotality panel shows attributes / last sale / AVM honesty note.
+5. Property page order: Listing status → Website → **Address** (Cotality panel + sales history) → **Listing details** (review prefill) → REA → Domain.
 
-6. **Generate report** → markdown preview; **Generate & send** with a test email (Resend or queued Activity).
+6. Cotality panel shows prefilled fields / sales history / AVM honesty note.
 
-7. Optional: `PATCH /api/v1/properties/:id` `{ "action": "pull_cotality" }` to refresh.
+7. **Generate report** → markdown preview; **Generate & send** with a test email (Resend or queued Activity).
+
+8. Optional: `PATCH /api/v1/properties/:id` `{ "action": "pull_cotality", "overwrite": true }` to refresh and overwrite listing fields.
 
 

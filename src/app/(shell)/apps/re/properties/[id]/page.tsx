@@ -114,9 +114,33 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             landArea?: number;
           };
           additional?: { floorArea?: number; yearBuilt?: string | number };
-          lastSale?: { price?: number; contractDate?: string; settlementDate?: string };
+          lastSale?: {
+            price?: number;
+            contractDate?: string;
+            settlementDate?: string;
+            type?: string;
+            isPriceWithheld?: boolean;
+          };
+          salesHistory?: Array<{
+            price?: number;
+            contractDate?: string;
+            settlementDate?: string;
+            type?: string;
+            isPriceWithheld?: boolean;
+          }>;
+          features?: string[];
           avm?: { available?: boolean; message?: string };
           sections?: Record<string, string>;
+        })
+      : null;
+  const cotalityPrefillRaw =
+    property.metadata?.corelogic_prefill &&
+    typeof property.metadata.corelogic_prefill === "object" &&
+    !Array.isArray(property.metadata.corelogic_prefill)
+      ? (property.metadata.corelogic_prefill as {
+          at?: string;
+          mode?: string;
+          fields?: string[];
         })
       : null;
   const cotalityDetails = cotalityDetailsRaw
@@ -137,12 +161,25 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           cotalityDetailsRaw.lastSale?.contractDate ||
           cotalityDetailsRaw.lastSale?.settlementDate ||
           null,
+        salesHistory: Array.isArray(cotalityDetailsRaw.salesHistory)
+          ? cotalityDetailsRaw.salesHistory
+          : cotalityDetailsRaw.lastSale
+            ? [cotalityDetailsRaw.lastSale]
+            : [],
+        salesHistoryStatus: cotalityDetailsRaw.sections?.salesHistory ?? null,
+        features: Array.isArray(cotalityDetailsRaw.features)
+          ? cotalityDetailsRaw.features
+          : null,
         avmAvailable: Boolean(cotalityDetailsRaw.avm?.available),
         avmMessage:
           typeof cotalityDetailsRaw.avm?.message === "string"
             ? cotalityDetailsRaw.avm.message
             : null,
         sections: cotalityDetailsRaw.sections ?? null,
+        prefilledFields: Array.isArray(cotalityPrefillRaw?.fields)
+          ? cotalityPrefillRaw!.fields
+          : null,
+        prefillMode: cotalityPrefillRaw?.mode ?? null,
       }
     : null;
   const wpPermalink = property.externalRefs?.wp_property_permalink as string | undefined;
@@ -188,9 +225,18 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     typeof property.metadata?.building_size === "string"
       ? property.metadata.building_size
       : null;
+  const yearBuilt =
+    typeof property.metadata?.year_built === "string" ||
+    typeof property.metadata?.year_built === "number"
+      ? property.metadata.year_built
+      : null;
   const inspectionTimes =
     typeof property.metadata?.inspection_times === "string"
       ? property.metadata.inspection_times
+      : null;
+  const cotalityPrefillNote =
+    cotalityDetails?.prefilledFields?.length && cotalityDetails.fetchedAt
+      ? `Prefill from Cotality · ${new Date(cotalityDetails.fetchedAt).toLocaleString("en-AU")} — review before export`
       : null;
 
   return (
@@ -210,6 +256,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       <main className="dg-page-main">
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="space-y-6">
+            {/* 1. Listing status */}
             <div className="dg-card">
               <h2 className="font-semibold text-white">Listing status</h2>
               <div className="mt-4">
@@ -226,6 +273,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               ) : null}
             </div>
 
+            {/* 2. Website listing */}
             <div className="dg-card">
               <h2 className="font-semibold text-white">Website listing</h2>
               <p className="mt-1 text-sm text-slate-400">
@@ -241,47 +289,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="dg-card">
-              <h2 className="font-semibold text-white">Domain syndication</h2>
-              <p className="mt-1 text-sm text-slate-400">
-                Publish to Domain.com.au via Listings Management (sandbox or production path).
-              </p>
-              <div className="mt-4">
-                <DomainSyndicationPanel
-                  propertyId={property.id}
-                  placement={domainPlacement}
-                />
-              </div>
-            </div>
-
-            <div className="dg-card">
-              <h2 className="font-semibold text-white">REA syndication</h2>
-              <p className="mt-1 text-sm text-slate-400">
-                Publish to realestate.com.au via Listing Hub (partner access required — fail closed).
-              </p>
-              <div className="mt-4">
-                <ReaSyndicationPanel propertyId={property.id} placement={reaPlacement} />
-              </div>
-            </div>
-
-            <PropertyListingEditor
-              propertyId={property.id}
-              listingPriceCents={property.listingPriceCents}
-              propertyType={property.propertyType}
-              bedrooms={property.bedrooms}
-              bathrooms={property.bathrooms}
-              carSpaces={carSpaces}
-              landSize={landSize}
-              buildingSize={buildingSize}
-              headline={typeof marketing.headline === "string" ? marketing.headline : undefined}
-              description={
-                typeof marketing.description === "string" ? marketing.description : undefined
-              }
-              features={typeof marketing.features === "string" ? marketing.features : undefined}
-              images={images}
-              inspectionTimes={inspectionTimes}
-            />
-
+            {/* 3. Address (+ Cotality match / pull / sales history) */}
             <div className="dg-card">
               <h2 className="font-semibold text-white">Address</h2>
               <p className="mt-2 text-sm text-slate-300">{fullAddress}</p>
@@ -299,6 +307,52 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                 details={cotalityDetails}
                 defaultReportEmail={contact?.email ?? null}
               />
+            </div>
+
+            {/* 4. Listing details (Cotality prefill lands here for agent review) */}
+            <PropertyListingEditor
+              propertyId={property.id}
+              listingPriceCents={property.listingPriceCents}
+              propertyType={property.propertyType}
+              bedrooms={property.bedrooms}
+              bathrooms={property.bathrooms}
+              carSpaces={carSpaces}
+              landSize={landSize}
+              buildingSize={buildingSize}
+              yearBuilt={yearBuilt}
+              headline={typeof marketing.headline === "string" ? marketing.headline : undefined}
+              description={
+                typeof marketing.description === "string" ? marketing.description : undefined
+              }
+              features={typeof marketing.features === "string" ? marketing.features : undefined}
+              images={images}
+              inspectionTimes={inspectionTimes}
+              cotalityPrefillNote={cotalityPrefillNote}
+            />
+
+            {/* 5. REA syndication */}
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">REA syndication</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Publish to realestate.com.au via Listing Hub (partner access required — fail closed).
+              </p>
+              <div className="mt-4">
+                <ReaSyndicationPanel propertyId={property.id} placement={reaPlacement} />
+              </div>
+            </div>
+
+            {/* 6. Domain syndication */}
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">Domain syndication</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Publish to Domain.com.au via Listings Management (sandbox or production path).
+              </p>
+              <div className="mt-4">
+                <DomainSyndicationPanel
+                  propertyId={property.id}
+                  placement={domainPlacement}
+                />
+              </div>
             </div>
 
             {lead ? (

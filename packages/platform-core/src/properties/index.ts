@@ -552,6 +552,20 @@ export async function matchPropertyWithCotality(
         corelogic_matched_at: new Date().toISOString(),
       };
 
+  // Persist address components from Cotality match when present (honest fields only).
+  if (matched && result.match.address) {
+    const addr = result.match.address;
+    cotalityMeta.corelogic_address_components = {
+      ...(addr.unitNumber ? { unitNumber: addr.unitNumber } : {}),
+      ...(addr.streetNumber ? { streetNumber: addr.streetNumber } : {}),
+      ...(addr.street ? { street: addr.street } : {}),
+      ...(addr.locality ? { locality: addr.locality } : {}),
+      ...(addr.state ? { state: addr.state } : {}),
+      ...(addr.postcode ? { postcode: addr.postcode } : {}),
+      ...(addr.singleLine ? { singleLine: addr.singleLine } : {}),
+    };
+  }
+
   const { metadata, externalRefs } = mergeCotalityIntoPropertyData(
     (property.metadata as Record<string, unknown> | null) ?? {},
     (property.externalRefs as Record<string, unknown> | null) ?? {},
@@ -564,11 +578,46 @@ export async function matchPropertyWithCotality(
     delete externalRefs.corelogic_property_id;
   }
 
+  // Prefill blank suburb/state/postcode from Cotality match components when available.
+  const addr = matched ? result.match.address : undefined;
+  const addressPatch: {
+    suburb?: string;
+    state?: string;
+    postcode?: string;
+    addressLine1?: string;
+  } = {};
+  if (addr?.locality && (!property.suburb?.trim() || property.suburb.trim() === "TBC")) {
+    addressPatch.suburb = addr.locality;
+  }
+  if (addr?.state && !property.state?.trim()) {
+    addressPatch.state = addr.state.toUpperCase();
+  }
+  if (
+    addr?.postcode &&
+    (!property.postcode?.trim() || property.postcode.trim() === "0000")
+  ) {
+    addressPatch.postcode = addr.postcode;
+  }
+  if (
+    addr &&
+    (addr.streetNumber || addr.street) &&
+    (!property.addressLine1?.trim() ||
+      /^address tbc$/i.test(property.addressLine1.trim()))
+  ) {
+    const line = [addr.unitNumber ? `${addr.unitNumber}/` : "", addr.streetNumber, addr.street]
+      .filter(Boolean)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (line) addressPatch.addressLine1 = line;
+  }
+
   const updated = await prisma.property.update({
     where: { id: propertyId },
     data: {
       metadata: metadata as Prisma.InputJsonValue,
       externalRefs: externalRefs as Prisma.InputJsonValue,
+      ...addressPatch,
     },
   });
 
@@ -603,17 +652,94 @@ export async function matchPropertyWithCotality(
 }
 
 /** Persist Cotality Property Details snapshot on Property.metadata (honest fields only). */
+export type CotalityPrefillMode = "blank" | "overwrite";
+
+export type CotalityPrefillSummary = {
+  at: string;
+  mode: CotalityPrefillMode;
+  fields: string[];
+};
+
+/** Map Cotality property type codes into Gen 2 listing editor options when possible. */
+export function mapCotalityPropertyTypeToGen2(
+  propertyType?: string | null,
+  propertySubType?: string | null,
+): string | null {
+  const raw = (propertySubType || propertyType || "").trim();
+  if (!raw) return null;
+  const key = raw.toLowerCase().replace(/[_\s-]+/g, "");
+  const map: Record<string, string> = {
+    house: "House",
+    houseandland: "House",
+    residential: "House",
+    residentialdwelling: "House",
+    dwelling: "House",
+    apartment: "Apartment",
+    flat: "Apartment",
+    unit: "Unit",
+    apartmentunitflat: "Apartment",
+    townhouse: "Townhouse",
+    villa: "Townhouse",
+    terrace: "Townhouse",
+    duplex: "Townhouse",
+    land: "Land",
+    vacantland: "Land",
+    vacant: "Land",
+    acreage: "Acreage",
+    rural: "Acreage",
+    farm: "Acreage",
+  };
+  return map[key] ?? null;
+}
+
+function isBlankValue(value: unknown): boolean {
+  if (value == null) return true;
+  if (typeof value === "string") return !value.trim();
+  if (typeof value === "number") return !Number.isFinite(value);
+  return false;
+}
+
+function shouldPrefill(existing: unknown, mode: CotalityPrefillMode): boolean {
+  return mode === "overwrite" || isBlankValue(existing);
+}
+
+function formatAreaM2(n: number): string {
+  return `${n} m²`;
+}
+
+function featuresTextFromSnapshot(snapshot: CoreLogicPropertyDetailsSnapshot): string | null {
+  const lines: string[] = [];
+  if (snapshot.features?.length) {
+    for (const f of snapshot.features) {
+      if (f.trim()) lines.push(f.trim());
+    }
+  }
+  if (snapshot.featureAttributes?.length) {
+    for (const fa of snapshot.featureAttributes) {
+      const line = `${fa.name}: ${fa.value}`.trim();
+      if (line) lines.push(line);
+    }
+  }
+  return lines.length ? lines.join("\n") : null;
+}
+
 function applyCotalityDetailsToPropertyUpdate(
   property: Property,
   snapshot: CoreLogicPropertyDetailsSnapshot,
+  options?: { mode?: CotalityPrefillMode },
 ): {
   metadata: Record<string, unknown>;
   externalRefs: Record<string, unknown>;
   bedrooms?: number | null;
   bathrooms?: number | null;
   propertyType?: string | null;
+  filledFields: string[];
 } {
+  const mode: CotalityPrefillMode = options?.mode === "overwrite" ? "overwrite" : "blank";
   const prevMeta = (property.metadata as Record<string, unknown> | null) ?? {};
+  const prevMarketing =
+    (prevMeta.marketing as Record<string, unknown> | undefined) ?? {};
+  const marketing: Record<string, unknown> = { ...prevMarketing };
   const externalRefs = {
     ...((property.externalRefs as Record<string, unknown> | null) ?? {}),
     corelogic_property_id: snapshot.propertyId,
@@ -626,26 +752,96 @@ function applyCotalityDetailsToPropertyUpdate(
     corelogic_details_fetched_at: snapshot.fetchedAt,
   };
 
-  // Fill empty listing fields from Cotality when present — never invent; don't overwrite set values.
+  const filledFields: string[] = [];
+  const core = snapshot.core;
+  const additional = snapshot.additional;
+  const site = snapshot.site;
+
   let bedrooms = property.bedrooms;
   let bathrooms = property.bathrooms;
   let propertyType = property.propertyType;
-  const core = snapshot.core;
 
-  if (core?.beds != null && bedrooms == null) bedrooms = core.beds;
-  if (core?.baths != null && bathrooms == null) bathrooms = core.baths;
-  if (core?.propertyType && !propertyType) {
-    propertyType = core.propertySubType || core.propertyType;
+  if (core?.beds != null && shouldPrefill(bedrooms, mode)) {
+    bedrooms = core.beds;
+    filledFields.push("bedrooms");
   }
-  if (core?.carSpaces != null && metadata.car_spaces == null) {
+  if (core?.baths != null && shouldPrefill(bathrooms, mode)) {
+    bathrooms = core.baths;
+    filledFields.push("bathrooms");
+  }
+
+  const mappedType = mapCotalityPropertyTypeToGen2(core?.propertyType, core?.propertySubType);
+  const cotalityTypeLabel =
+    mappedType ||
+    (core?.propertySubType || core?.propertyType
+      ? String(core.propertySubType || core.propertyType)
+      : null);
+  if (cotalityTypeLabel && shouldPrefill(propertyType, mode)) {
+    // Prefer Gen 2 select options; fall back to Cotality label for review.
+    propertyType = mappedType ?? cotalityTypeLabel;
+    filledFields.push("propertyType");
+  }
+  if (core?.propertyType) {
+    metadata.corelogic_property_type = core.propertySubType || core.propertyType;
+  }
+
+  if (core?.carSpaces != null && shouldPrefill(metadata.car_spaces, mode)) {
     metadata.car_spaces = core.carSpaces;
+    filledFields.push("car_spaces");
   }
-  if (core?.landArea != null && !metadata.land_size) {
-    metadata.land_size = `${core.landArea} m²`;
+  if (core?.lockUpGarages != null && shouldPrefill(metadata.lock_up_garages, mode)) {
+    metadata.lock_up_garages = core.lockUpGarages;
+    filledFields.push("lock_up_garages");
   }
-  if (snapshot.additional?.floorArea != null && !metadata.building_size) {
-    metadata.building_size = `${snapshot.additional.floorArea} m²`;
+  if (core?.landArea != null && shouldPrefill(metadata.land_size, mode)) {
+    metadata.land_size = formatAreaM2(core.landArea);
+    filledFields.push("land_size");
   }
+  if (additional?.floorArea != null && shouldPrefill(metadata.building_size, mode)) {
+    metadata.building_size = formatAreaM2(additional.floorArea);
+    filledFields.push("building_size");
+  }
+  if (additional?.yearBuilt != null && shouldPrefill(metadata.year_built, mode)) {
+    metadata.year_built = additional.yearBuilt;
+    filledFields.push("year_built");
+  }
+
+  if (site?.landUsePrimary && shouldPrefill(metadata.land_use, mode)) {
+    metadata.land_use = site.landUsePrimary;
+    filledFields.push("land_use");
+  }
+  if (site?.zoneCodeLocal && shouldPrefill(metadata.zone_code, mode)) {
+    metadata.zone_code = site.zoneCodeLocal;
+    filledFields.push("zone_code");
+  }
+  if (site?.zoneDescriptionLocal && shouldPrefill(metadata.zone_description, mode)) {
+    metadata.zone_description = site.zoneDescriptionLocal;
+    filledFields.push("zone_description");
+  }
+
+  const featuresText = featuresTextFromSnapshot(snapshot);
+  if (featuresText && shouldPrefill(marketing.features, mode)) {
+    marketing.features = featuresText;
+    filledFields.push("marketing.features");
+  }
+
+  // Never invent listing copy or guide price from Cotality last sale / AVM.
+  metadata.marketing = marketing;
+
+  if (snapshot.salesHistory?.length) {
+    metadata.corelogic_sales_history = snapshot.salesHistory;
+  } else if (snapshot.lastSale) {
+    metadata.corelogic_sales_history = [snapshot.lastSale];
+  } else if (mode === "overwrite") {
+    delete metadata.corelogic_sales_history;
+  }
+
+  const prefill: CotalityPrefillSummary = {
+    at: snapshot.fetchedAt,
+    mode,
+    fields: filledFields,
+  };
+  metadata.corelogic_prefill = prefill;
 
   return {
     metadata,
@@ -653,23 +849,26 @@ function applyCotalityDetailsToPropertyUpdate(
     bedrooms,
     bathrooms,
     propertyType,
+    filledFields,
   };
 }
 
 /**
  * Pull Cotality Property Details (+ optional AVM) for a matched Property and persist.
  * Requires `externalRefs` / metadata `corelogic_property_id` (run match_cotality first).
+ * Default mode fills blank listing fields only; pass overwrite to refresh from Cotality.
  */
 export async function pullCotalityPropertyDetails(
   organisationId: string,
   propertyId: string,
   actorId?: string,
-  options?: { includeAvm?: boolean },
+  options?: { includeAvm?: boolean; mode?: CotalityPrefillMode },
 ): Promise<
   | {
       ok: true;
       property: ReturnType<typeof serializeProperty>;
       snapshot: CoreLogicPropertyDetailsSnapshot;
+      prefill: CotalityPrefillSummary;
     }
   | {
       ok: false;
@@ -721,18 +920,16 @@ export async function pullCotalityPropertyDetails(
     };
   }
 
-  const patch = applyCotalityDetailsToPropertyUpdate(property, fetched.snapshot);
+  const patch = applyCotalityDetailsToPropertyUpdate(property, fetched.snapshot, {
+    mode: options?.mode,
+  });
   const updated = await prisma.property.update({
     where: { id: propertyId },
     data: {
       metadata: patch.metadata as Prisma.InputJsonValue,
       externalRefs: patch.externalRefs as Prisma.InputJsonValue,
-      ...(patch.bedrooms !== property.bedrooms
-        ? { bedrooms: patch.bedrooms }
-        : {}),
-      ...(patch.bathrooms !== property.bathrooms
-        ? { bathrooms: patch.bathrooms }
-        : {}),
+      ...(patch.bedrooms !== property.bedrooms ? { bedrooms: patch.bedrooms } : {}),
+      ...(patch.bathrooms !== property.bathrooms ? { bathrooms: patch.bathrooms } : {}),
       ...(patch.propertyType !== property.propertyType
         ? { propertyType: patch.propertyType }
         : {}),
@@ -742,6 +939,10 @@ export async function pullCotalityPropertyDetails(
   const sectionSummary = Object.entries(fetched.snapshot.sections)
     .map(([k, v]) => `${k}:${v}`)
     .join(", ");
+  const prefillNote =
+    patch.filledFields.length > 0
+      ? ` · prefilled ${patch.filledFields.join(", ")}`
+      : " · no blank listing fields to fill";
 
   await prisma.activity.create({
     data: {
@@ -750,13 +951,16 @@ export async function pullCotalityPropertyDetails(
       entityId: propertyId,
       activityType: "cotality_details_pulled",
       title: "Cotality property details pulled",
-      body: `Cotality id ${String(cotalityId)} · ${sectionSummary}`,
+      body: `Cotality id ${String(cotalityId)} · ${sectionSummary}${prefillNote}`,
       sourceApp: "real-estate",
       createdBy: actorId,
       metadata: {
         corelogic_property_id: cotalityId,
         sections: fetched.snapshot.sections,
         fetched_at: fetched.snapshot.fetchedAt,
+        prefill: patch.filledFields,
+        prefill_mode: options?.mode === "overwrite" ? "overwrite" : "blank",
+        sales_history_count: fetched.snapshot.salesHistory?.length ?? 0,
       } as Prisma.InputJsonValue,
     },
   });
@@ -765,6 +969,11 @@ export async function pullCotalityPropertyDetails(
     ok: true,
     property: serializeProperty(updated),
     snapshot: fetched.snapshot,
+    prefill: {
+      at: fetched.snapshot.fetchedAt,
+      mode: options?.mode === "overwrite" ? "overwrite" : "blank",
+      fields: patch.filledFields,
+    },
   };
 }
 
@@ -774,6 +983,24 @@ export function getPropertyCotalityDetails(property: {
   const raw = property.metadata?.corelogic_details;
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   return raw as CoreLogicPropertyDetailsSnapshot;
+}
+
+export function getPropertyCotalityPrefill(property: {
+  metadata?: Record<string, unknown> | null;
+}): CotalityPrefillSummary | null {
+  const raw = property.metadata?.corelogic_prefill;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const rec = raw as Record<string, unknown>;
+  const fields = Array.isArray(rec.fields)
+    ? rec.fields.filter((f): f is string => typeof f === "string")
+    : [];
+  const at = typeof rec.at === "string" ? rec.at : null;
+  if (!at) return null;
+  return {
+    at,
+    mode: rec.mode === "overwrite" ? "overwrite" : "blank",
+    fields,
+  };
 }
 
 export interface PropertyStatusSyncOptions {
@@ -868,6 +1095,7 @@ export async function updatePropertyListing(
     carSpaces?: number | null;
     landSize?: string | null;
     buildingSize?: string | null;
+    yearBuilt?: string | number | null;
     /** Open home / inspection times (synced to WP as roe_property_inspection_times). */
     inspectionTimes?: string | null;
     syncToWebsite?: boolean;
@@ -904,6 +1132,14 @@ export async function updatePropertyListing(
   }
   if (input.buildingSize !== undefined) {
     metadata.building_size = input.buildingSize?.trim() || null;
+  }
+  if (input.yearBuilt !== undefined) {
+    const raw = input.yearBuilt;
+    if (raw == null || (typeof raw === "string" && !raw.trim())) {
+      metadata.year_built = null;
+    } else {
+      metadata.year_built = raw;
+    }
   }
   if (input.inspectionTimes !== undefined) {
     metadata.inspection_times = input.inspectionTimes?.trim() || null;

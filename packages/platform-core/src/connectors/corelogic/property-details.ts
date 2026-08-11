@@ -7,10 +7,11 @@
  *   GET /au/properties/{id}/attributes/additional
  *   GET /au/properties/{id}/site
  *   GET /au/properties/{id}/sales/last
+ *   GET /au/properties/{id}/sales          (sales history when credentialed)
  *   GET /au/properties/{id}/features
  *
  * Optional AVM (separate host): GET /au/properties/{id}/avm/intellival/consumer/current
- * Never invent valuations — persist unavailable / error honestly.
+ * Never invent valuations or sales — persist unavailable / error honestly.
  *
  * @see docs/connectors/COTALITY-CORELOGIC.md
  */
@@ -90,6 +91,8 @@ export type CoreLogicPropertyDetailsSnapshot = {
   additional?: CoreLogicAdditionalAttributes;
   site?: CoreLogicSiteDetails;
   lastSale?: CoreLogicLastSale | null;
+  /** Prior sales from `/sales` when available; may be empty or unavailable in sandbox. */
+  salesHistory?: CoreLogicLastSale[];
   features?: string[];
   featureAttributes?: CoreLogicFeatureAttribute[];
   avm: CoreLogicAvmSnapshot;
@@ -98,6 +101,7 @@ export type CoreLogicPropertyDetailsSnapshot = {
     additional: CoreLogicSectionStatus;
     site: CoreLogicSectionStatus;
     lastSale: CoreLogicSectionStatus;
+    salesHistory: CoreLogicSectionStatus;
     features: CoreLogicSectionStatus;
     avm: CoreLogicSectionStatus;
   };
@@ -260,6 +264,33 @@ export function parseCoreLogicLastSale(
   return Object.keys(out).length ? out : null;
 }
 
+/** Parse `/sales` history payloads — shapes vary; only keep rows Cotality actually returned. */
+export function parseCoreLogicSalesHistory(data: unknown): CoreLogicLastSale[] {
+  const root = asRecord(data);
+  const list: unknown[] = Array.isArray(data)
+    ? data
+    : Array.isArray(root?.sales)
+      ? (root!.sales as unknown[])
+      : Array.isArray(root?.saleList)
+        ? (root!.saleList as unknown[])
+        : Array.isArray(root?.propertySales)
+          ? (root!.propertySales as unknown[])
+          : Array.isArray(root?.salesHistory)
+            ? (root!.salesHistory as unknown[])
+            : Array.isArray(root?.lastSale)
+              ? (root!.lastSale as unknown[])
+              : root?.lastSale
+                ? [root.lastSale]
+                : [];
+
+  const out: CoreLogicLastSale[] = [];
+  for (const row of list) {
+    const parsed = parseCoreLogicLastSale(row);
+    if (parsed) out.push(parsed);
+  }
+  return out;
+}
+
 export function parseCoreLogicFeatures(data: unknown): {
   features?: string[];
   featureAttributes?: CoreLogicFeatureAttribute[];
@@ -413,12 +444,13 @@ export async function fetchCoreLogicPropertyDetails(
   const accessToken = token.accessToken;
   const includeAvm = options?.includeAvm !== false;
 
-  const [coreRes, additionalRes, siteRes, lastSaleRes, featuresRes] =
+  const [coreRes, additionalRes, siteRes, lastSaleRes, salesHistoryRes, featuresRes] =
     await Promise.all([
       fetchSection(propertyId, "/attributes/core", accessToken),
       fetchSection(propertyId, "/attributes/additional", accessToken),
       fetchSection(propertyId, "/site", accessToken),
       fetchSection(propertyId, "/sales/last", accessToken),
+      fetchSection(propertyId, "/sales", accessToken),
       fetchSection(propertyId, "/features", accessToken),
     ]);
 
@@ -426,6 +458,7 @@ export async function fetchCoreLogicPropertyDetails(
   const additionalSection = sectionFromResult(additionalRes);
   const siteSection = sectionFromResult(siteRes);
   const lastSaleSection = sectionFromResult(lastSaleRes);
+  const salesHistorySection = sectionFromResult(salesHistoryRes);
   const featuresSection = sectionFromResult(featuresRes);
 
   let avm: CoreLogicAvmSnapshot = {
@@ -456,19 +489,51 @@ export async function fetchCoreLogicPropertyDetails(
         ? null
         : undefined;
 
+  let salesHistory: CoreLogicLastSale[] | undefined;
+  let salesHistoryStatus: CoreLogicSectionStatus = salesHistorySection.status;
+  if (salesHistorySection.status === "ok" && salesHistorySection.data) {
+    const parsed = parseCoreLogicSalesHistory(salesHistorySection.data);
+    if (parsed.length) {
+      salesHistory = parsed;
+      salesHistoryStatus = "ok";
+    } else {
+      salesHistory = [];
+      salesHistoryStatus = "empty";
+    }
+  } else if (salesHistorySection.status === "empty") {
+    salesHistory = [];
+  }
+
+  // If history is unavailable but last sale exists, surface last sale as a one-row history for UI.
+  if (
+    (salesHistoryStatus === "unavailable" ||
+      salesHistoryStatus === "error" ||
+      salesHistoryStatus === "empty") &&
+    lastSale
+  ) {
+    salesHistory = [lastSale];
+    // Keep honest section status for /sales; UI can still show lastSale-backed history.
+  }
+
   const anyOk =
     coreSection.status === "ok" ||
     additionalSection.status === "ok" ||
     siteSection.status === "ok" ||
     lastSaleSection.status === "ok" ||
+    salesHistoryStatus === "ok" ||
     featuresSection.status === "ok" ||
     avmStatus === "ok";
 
   if (
     !anyOk &&
-    [coreSection, additionalSection, siteSection, lastSaleSection, featuresSection].every(
-      (s) => s.status === "error" || s.status === "unavailable",
-    )
+    [
+      coreSection,
+      additionalSection,
+      siteSection,
+      lastSaleSection,
+      salesHistorySection,
+      featuresSection,
+    ].every((s) => s.status === "error" || s.status === "unavailable")
   ) {
     return {
       ok: false,
@@ -494,6 +559,7 @@ export async function fetchCoreLogicPropertyDetails(
       ? { site: parseCoreLogicSiteDetails(siteSection.data) }
       : {}),
     ...(lastSale !== undefined ? { lastSale } : {}),
+    ...(salesHistory !== undefined ? { salesHistory } : {}),
     ...featuresParsed,
     avm,
     sections: {
@@ -504,6 +570,7 @@ export async function fetchCoreLogicPropertyDetails(
         lastSaleSection.status === "ok" && lastSale == null
           ? "empty"
           : lastSaleSection.status,
+      salesHistory: salesHistoryStatus,
       features: featuresSection.status,
       avm: avmStatus,
     },

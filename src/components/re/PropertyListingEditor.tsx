@@ -12,11 +12,13 @@ type ListingFields = {
   carSpaces?: number | null;
   landSize?: string | null;
   buildingSize?: string | null;
+  yearBuilt?: string | number | null;
   headline?: string;
   description?: string;
   features?: string;
   images?: string[];
   inspectionTimes?: string | null;
+  cotalityPrefillNote?: string | null;
 };
 
 export function PropertyListingEditor(props: ListingFields) {
@@ -37,6 +39,9 @@ export function PropertyListingEditor(props: ListingFields) {
   );
   const [landSize, setLandSize] = useState(props.landSize ?? "");
   const [buildingSize, setBuildingSize] = useState(props.buildingSize ?? "");
+  const [yearBuilt, setYearBuilt] = useState(
+    props.yearBuilt != null ? String(props.yearBuilt) : "",
+  );
   const [headline, setHeadline] = useState(props.headline ?? "");
   const [description, setDescription] = useState(props.description ?? "");
   const [features, setFeatures] = useState(props.features ?? "");
@@ -102,6 +107,7 @@ export function PropertyListingEditor(props: ListingFields) {
         carSpaces: carSpaces.trim() ? parseInt(carSpaces, 10) : null,
         landSize: landSize.trim() || null,
         buildingSize: buildingSize.trim() || null,
+        yearBuilt: yearBuilt.trim() || null,
         images,
         marketing: {
           headline: headline.trim() || undefined,
@@ -129,6 +135,9 @@ export function PropertyListingEditor(props: ListingFields) {
         <p className="mt-1 text-sm text-slate-400">
           Edit copy, specs, and images. Changes sync to the website when published/listed.
         </p>
+        {props.cotalityPrefillNote ? (
+          <p className="mt-2 text-xs text-emerald-400/90">{props.cotalityPrefillNote}</p>
+        ) : null}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -187,6 +196,24 @@ export function PropertyListingEditor(props: ListingFields) {
             onChange={(e) => setLandSize(e.target.value)}
             className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
             placeholder="e.g. 650 m²"
+          />
+        </label>
+        <label className="block text-sm">
+          <span className="text-slate-400">Building size</span>
+          <input
+            value={buildingSize}
+            onChange={(e) => setBuildingSize(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
+            placeholder="e.g. 180 m²"
+          />
+        </label>
+        <label className="block text-sm">
+          <span className="text-slate-400">Year built</span>
+          <input
+            value={yearBuilt}
+            onChange={(e) => setYearBuilt(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
+            placeholder="e.g. 1998"
           />
         </label>
       </div>
