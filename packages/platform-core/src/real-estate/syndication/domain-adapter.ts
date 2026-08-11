@@ -9,6 +9,7 @@ import {
   ensureValidOrgDomainAccessToken,
   fetchDomainClientCredentialsToken,
 } from "../../connectors/domain/auth";
+import { publishPropertyToDomain } from "../../connectors/domain/publish-property";
 import type {
   ListingPlacementSnapshot,
   SyndicationChannelAdapter,
@@ -35,16 +36,21 @@ export const domainSyndicationAdapter: SyndicationChannelAdapter = {
         message: "listingId and propertyId are required",
       };
     }
+    if (!input.organisationId) {
+      return {
+        ok: false,
+        status: "error",
+        message: "organisationId is required for Domain publish",
+      };
+    }
 
-    if (input.organisationId) {
-      const orgToken = await ensureValidOrgDomainAccessToken(input.organisationId);
-      if (orgToken.ok) {
-        return {
-          ok: true,
-          status: "draft",
-          message: "Domain org credentials OK — Listings Management write not wired yet",
-        };
-      }
+    const orgToken = await ensureValidOrgDomainAccessToken(input.organisationId);
+    if (orgToken.ok) {
+      return {
+        ok: true,
+        status: "draft",
+        message: "Domain org credentials OK — ready to publish via Listings Management",
+      };
     }
 
     const token = await fetchDomainClientCredentialsToken();
@@ -62,21 +68,61 @@ export const domainSyndicationAdapter: SyndicationChannelAdapter = {
       return { ok: false, status: "error", message: token.message, raw: token.raw };
     }
     return {
-      ok: true,
-      status: "draft",
+      ok: false,
+      status: "error",
       message:
-        "Domain platform credentials OK — connect an org Domain account for agency-context publish",
+        "Platform credentials OK but agency-context publish needs an org Domain account — Connect under Settings → Connectors",
     };
   },
 
   async publish(input: SyndicationListingInput): Promise<SyndicationResult> {
     const base = await this.validate(input);
     if (!base.ok) return base;
+
+    const propertyId =
+      (typeof input.payload.propertyId === "string" && input.payload.propertyId) ||
+      input.propertyId;
+    // Until Listing is first-class, Property id is the SoT listing key.
+    const result = await publishPropertyToDomain({
+      organisationId: input.organisationId,
+      propertyId,
+      actorId:
+        typeof input.payload.actorId === "string" ? input.payload.actorId : undefined,
+      domainAgencyId:
+        typeof input.payload.domainAgencyId === "number"
+          ? input.payload.domainAgencyId
+          : undefined,
+      contact:
+        input.payload.contact && typeof input.payload.contact === "object"
+          ? (input.payload.contact as {
+              firstName: string;
+              lastName: string;
+              email: string;
+              phone?: string;
+            })
+          : undefined,
+    });
+
+    if (!result.ok) {
+      return {
+        ok: false,
+        status: "error",
+        message: result.message,
+        externalId: result.placement?.processId ?? null,
+        raw: {
+          securityReason: result.securityReason,
+          placement: result.placement,
+          upstream: result.raw,
+        },
+      };
+    }
+
     return {
-      ok: false,
+      ok: true,
       status: "pending",
-      message:
-        "Domain Listings Management publish MVP next — credentials + token path ready",
+      externalId: result.placement.processId ?? result.placement.providerAdId,
+      message: result.message,
+      raw: result.raw,
     };
   },
 
@@ -90,7 +136,8 @@ export const domainSyndicationAdapter: SyndicationChannelAdapter = {
     return {
       ok: false,
       status: "withdrawn",
-      message: "Domain withdraw not implemented yet",
+      message:
+        "Domain withdraw (off-market) not implemented in this MVP — use Domain extranet or wait for off-market wiring",
     };
   },
 

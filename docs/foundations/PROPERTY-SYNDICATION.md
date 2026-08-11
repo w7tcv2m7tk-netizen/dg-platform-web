@@ -1,6 +1,6 @@
 # Property Syndication Engine
 
-**Status:** Architecture accepted · Domain OAuth wired (Stage 0.5) · Listings Management publish MVP not built  
+**Status:** Architecture accepted · Domain OAuth wired · **Listings Management publish MVP (residential upsert)**  
 **App:** Real Estate (capability of RE App — **not** platform-wide RE-only design)  
 **Parent:** [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) — Property & Listing Syndication is a **capability** of the Connector Engine, not a one-off portal integration.  
 **Goal:** DigitalGate Listing Hub is SoT — create once, syndicate to REA / Domain / Website / social / future portals.
@@ -38,9 +38,10 @@ Routes:
 
 - `GET /api/connectors/domain/connect` — start Authorization Code flow  
 - `GET /api/connectors/domain/callback` — exchange code → store tokens on org  
-- `GET /api/v1/connectors/domain/status` — configured? + probes  
+- `GET /api/v1/connectors/domain/status` — configured? + probes + preferred agency  
+- `POST /api/v1/properties/[id]/syndicate/domain` — residential listing upsert (publish MVP)  
 
-Settings → Connectors shows the Domain card.
+Settings → Connectors shows the Domain card. Property detail → **Domain syndication** panel has Publish.
 
 **Probe behaviour**
 
@@ -48,6 +49,7 @@ Settings → Connectors shows the Domain card.
 |-------|---------|
 | Client-credentials | Optional. Listing Management OAuth clients are **Authorization Code** — `unauthorized_client` is **N/A**, not a failure. |
 | Org API | Uses `GET /v1/me` then `GET /v1/me/agencies` (Listings Management). Does **not** use Agents & Listings `GET /v1/agencies`. |
+| Security header | Failures surface `X-Domain-Security-Reason` when Domain sends it (missing scope · wrong package · sandbox vs Primary). |
 
 Client URL / logo on the Domain project (marketing only): `https://app.digitalgate.com.au` · DigitalGate banner/logo assets.
 
@@ -60,7 +62,7 @@ Client URL / logo on the Domain project (marketing only): `https://app.digitalga
 1. **Credential grant type** = `Authorization Code` (correct for agency connect). Do **not** expect client_credentials on this client.
 2. **Redirect URI** exact match: `https://app.digitalgate.com.au/api/connectors/domain/callback` (portal updates can take ~10 minutes).
 3. **API Access → Add to project**: **Listings Management — Sandbox** (required for `/sandbox/v1/…` and `_testAgency`).
-4. If probing sandbox APIs from DigitalGate, set Vercel `DOMAIN_API_PATH_PREFIX=/sandbox`.
+4. If probing / publishing sandbox APIs from DigitalGate, set Vercel `DOMAIN_API_PATH_PREFIX=/sandbox`.
 5. **Scopes on the OAuth client / consent**: at least  
    `openid offline_access api_listings_read api_listings_write api_agencies_read api_agencies_write`  
    (reconnect org after changing scopes).
@@ -91,6 +93,48 @@ Do not overcomplicate the first integration.
 
 ---
 
+## Publish MVP (what ships now)
+
+**SoT:** DigitalGate `Property` (Listing table later). `providerAdId` = `dg-{propertyId}`.
+
+**API path:** `PUT {DOMAIN_API_PATH_PREFIX}/v1/listings/residential` with org Bearer token.
+
+**Agency resolution order:**
+
+1. Stored org `domainAgencyId` (from prior probe/publish)  
+2. `GET /v1/me/agencies` first agency  
+3. Sandbox only (`DOMAIN_API_PATH_PREFIX` contains `sandbox`): `POST /v1/agencies/_testAgency`  
+
+**Honest success:** Domain returns a **queued** processing job (`processStatus`, job `id`). That is **not** “live on Domain.com.au”. Placement is stored on `property.externalRefs.domain` as `pending` until webhooks/report polling say otherwise.
+
+**UI:** `/apps/re/properties/[id]` → Domain syndication → **Publish to Domain**.
+
+### Smoke steps (Ben)
+
+1. Vercel / `.env.local`: `DOMAIN_CLIENT_ID`, `DOMAIN_CLIENT_SECRET`, `DOMAIN_API_PATH_PREFIX=/sandbox`, redirect URI as above.  
+2. Developer Portal: Listings Management — **Sandbox** on the project; scopes include listing + agency write.  
+3. App → **Settings → Connectors → Domain → Connect Domain account** (Authorization Code).  
+4. Refresh status: org probe should hit `/sandbox/v1/me` (and ideally `/sandbox/v1/me/agencies`). Client-credentials may show **N/A** — expected.  
+5. Open a Property with suburb/state/postcode + marketing headline/description if possible. Ensure your user has an email (membership) for the Domain contact.  
+6. Click **Publish to Domain**. Expect either:  
+   - **Queued** message + job id on the panel, or  
+   - Actionable error with HTTP detail and optional `X-Domain-Security-Reason` (do not treat as success).  
+7. Optional: Domain processing report via `GET /sandbox/v1/listings/processingReports/{id}` (or wait for Webhooks when approved).  
+8. Sandbox data wipes **Sunday night** — re-create test agency / re-publish after wipe.
+
+### If OAuth / portal still red
+
+| Symptom | Likely cause | Action |
+|---------|--------------|--------|
+| Connect fails / redirect mismatch | Portal redirect URI lag or typo | Wait ~10 min; exact URI match |
+| Token OK · `/v1/me` 403 | Wrong package or missing scope | Add Listings Management Sandbox; reconnect with write scopes |
+| Probe used `/v1/agencies` historically | Agents & Listings product | Already fixed to `/v1/me` — refresh deploy |
+| Publish 403 Missing Required Scope | Consent without `api_listings_write` | Reconnect after portal scope update |
+| No agencies + not sandbox | Production without agency auth | api@domain.com.au + principal approval; or use sandbox prefix |
+| `_testAgency` fails | Not on sandbox prefix / missing `api_agencies_write` | Set `/sandbox`; reconnect |
+
+---
+
 ## Object model — Property vs Listing
 
 ```
@@ -111,6 +155,8 @@ Property                    ← underlying asset (address, beds, land…)
 | **ListingPlacement** | One portal (or website) channel for that Listing |
 
 Do **not** treat “listed” as only a Property status long-term — Property can have multiple Listings over time; each Listing has many placements.
+
+**MVP shortcut:** Property carries `externalRefs.domain` placement until `Listing` / `ListingPlacement` tables land.
 
 See Core Object Spec § Listing (added with this design).
 
@@ -190,7 +236,8 @@ DigitalGate Property → DigitalGate Listing
 10. Store Domain listing ID on placement `externalRefs`  
 11. Display syndication status in DigitalGate  
 
-**First objective only:** Create → Publish → Update → Withdraw → Track status.
+**First objective only:** Create → Publish → Update → Withdraw → Track status.  
+**Shipped in this MVP:** Create/Update upsert (queued) + placement status on Property. Withdraw + webhook status still open.
 
 Agents & Listings API informs future CRM enrichment — **not** a dependency for publishing MVP.
 
@@ -224,14 +271,18 @@ Request access now; wire when sandbox Listings Management is stable (can ship Pr
 ## Implementation sketch (Gen 2)
 
 ```
+packages/platform-core/src/connectors/domain/
+  auth.ts              # OAuth + probes + domainApiGet/Put/Post
+  listings.ts          # residential upsert + test agency
+  publish-property.ts  # Property → Domain publish
+
 packages/platform-core/src/real-estate/syndication/
-  types.ts           # ListingPlacementStatus, SyndicationChannelId
-  registry.ts
-  domain/
-    client.ts        # Listings Management sandbox/prod HTTP
-    adapter.ts
-    webhooks.ts
-  # later: rea/, website/
+  types.ts
+  domain-adapter.ts    # SyndicationChannelAdapter
+  index.ts
+
+src/app/api/v1/properties/[id]/syndicate/domain/route.ts
+src/components/re/DomainSyndicationPanel.tsx
 ```
 
 Prisma (when implementing — ADR if post–Platform 1.0 field freeze):
@@ -239,7 +290,7 @@ Prisma (when implementing — ADR if post–Platform 1.0 field freeze):
 - `Listing` (organisationId, propertyId, status, price, copy refs, …)  
 - `ListingPlacement` (listingId, channel, externalId, status, lastSyncedAt, lastError, metadata)
 
-UI: `/apps/re/listings/[id]` → **Syndication** panel.
+UI: `/apps/re/properties/[id]` → **Domain syndication** (Listing detail later).
 
 Flags (suggested): `re.syndication_domain_sandbox`, `re.syndication_domain_prod`.
 
@@ -263,4 +314,4 @@ Same idea: **platform core objects + app-owned channel adapters**.
 - [CORE-OBJECT-SPECIFICATION.md](./CORE-OBJECT-SPECIFICATION.md) — Property · Listing  
 - [ACC-CHANNEL-CONNECTIVITY.md](./ACC-CHANNEL-CONNECTIVITY.md) — OTA parallel  
 - [RE-BETA-LAUNCH.md](../RE-BETA-LAUNCH.md) — agency beta  
-- Scaffold: `packages/platform-core/src/real-estate/syndication/`
+- Code: `packages/platform-core/src/connectors/domain/` · `packages/platform-core/src/real-estate/syndication/`

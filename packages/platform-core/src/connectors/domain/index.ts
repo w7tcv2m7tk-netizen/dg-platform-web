@@ -9,6 +9,8 @@ export {
   buildDomainAuthorizeUrl,
   clearOrgDomainConnectorTokens,
   domainApiGet,
+  domainApiPost,
+  domainApiPut,
   domainCredentialsConfigured,
   ensureValidOrgDomainAccessToken,
   exchangeDomainAuthorizationCode,
@@ -20,10 +22,34 @@ export {
   refreshDomainAccessToken,
   resolveDomainApiPath,
   saveOrgDomainConnectorTokens,
+  type DomainApiFailure,
+  type DomainApiSuccess,
   type DomainOAuthConfig,
+  type DomainOrgAgencySummary,
   type DomainOrgProbeResult,
   type DomainPlatformProbeResult,
   type DomainTokenBundle,
   type DomainTokenResponse,
   type OrgDomainConnectorTokens,
 } from "./auth";
+
+export {
+  DOMAIN_PROCESSING_REPORT_PATH,
+  DOMAIN_RESIDENTIAL_LISTING_PATH,
+  DOMAIN_TEST_AGENCY_PATH,
+  buildDomainResidentialListingBody,
+  fetchDomainProcessingReport,
+  resolveOrgDomainAgencyId,
+  splitStreetAddress,
+  upsertDomainResidentialListing,
+  type DomainListingContact,
+  type DomainListingUpsertResponse,
+  type DomainPropertyLike,
+} from "./listings";
+
+export {
+  publishPropertyToDomain,
+  type DomainPlacementRef,
+  type PublishPropertyToDomainInput,
+  type PublishPropertyToDomainResult,
+} from "./publish-property";

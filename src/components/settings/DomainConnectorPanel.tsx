@@ -27,6 +27,9 @@ type DomainStatus = {
     expiresAt: string | null;
     connectedAt: string | null;
     scope: string | null;
+    domainAgencyId?: number | null;
+    agencies?: Array<{ id: number; name?: string }>;
+    lastError?: string | null;
     probe: {
       ok: boolean;
       connected: boolean;
@@ -35,6 +38,8 @@ type DomainStatus = {
       probePath?: string;
       expiresAt?: string;
       scope?: string;
+      securityReason?: string | null;
+      domainAgencyId?: number | null;
       message: string;
     } | null;
   } | null;
@@ -174,6 +179,19 @@ export function DomainConnectorPanel({
               {org.scope ? (
                 <li className="font-mono text-xs text-slate-500">Org token scopes: {org.scope}</li>
               ) : null}
+              {org.domainAgencyId ? (
+                <li className="font-mono text-xs text-slate-500">
+                  Preferred Domain agency id: {org.domainAgencyId}
+                </li>
+              ) : null}
+              {org.agencies && org.agencies.length > 0 ? (
+                <li className="text-xs text-slate-500">
+                  Agencies:{" "}
+                  {org.agencies
+                    .map((a) => (a.name ? `${a.name} (${a.id})` : String(a.id)))
+                    .join(", ")}
+                </li>
+              ) : null}
               {org.probe ? (
                 <li>
                   Org API probe
@@ -181,7 +199,15 @@ export function DomainConnectorPanel({
                   <span className={org.probe.ok ? "text-emerald-400" : "text-amber-400"}>
                     {org.probe.message}
                   </span>
+                  {org.probe.securityReason ? (
+                    <span className="mt-1 block text-xs text-amber-500">
+                      X-Domain-Security-Reason: {org.probe.securityReason}
+                    </span>
+                  ) : null}
                 </li>
+              ) : null}
+              {org.lastError ? (
+                <li className="text-amber-400">Last token error: {org.lastError}</li>
               ) : null}
             </>
           ) : null}

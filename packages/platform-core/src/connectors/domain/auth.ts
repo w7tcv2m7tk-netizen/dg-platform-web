@@ -282,30 +282,44 @@ function extractDomainApiErrorMessage(
   return detail ? `Domain API HTTP ${status}: ${detail}` : `Domain API HTTP ${status}`;
 }
 
-/** Lightweight authenticated GET against Domain API. */
-export async function domainApiGet(
+export type DomainApiSuccess = {
+  ok: true;
+  status: number;
+  data: unknown;
+  path: string;
+  securityReason?: string | null;
+};
+
+export type DomainApiFailure = {
+  ok: false;
+  status: number;
+  message: string;
+  path: string;
+  securityReason?: string | null;
+  raw?: unknown;
+};
+
+async function domainApiRequest(
+  method: "GET" | "PUT" | "POST",
   path: string,
   accessToken: string,
-): Promise<
-  | { ok: true; status: number; data: unknown; path: string }
-  | {
-      ok: false;
-      status: number;
-      message: string;
-      path: string;
-      securityReason?: string | null;
-      raw?: unknown;
-    }
-> {
+  body?: unknown,
+): Promise<DomainApiSuccess | DomainApiFailure> {
   const resolvedPath = resolveDomainApiPath(path);
   const url = resolvedPath.startsWith("http")
     ? resolvedPath
     : `${DOMAIN_API_BASE_URL}${resolvedPath}`;
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${accessToken}`,
+    Accept: "application/json",
+  };
+  if (body !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
   const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: "application/json",
-    },
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   const securityReason = res.headers.get("X-Domain-Security-Reason");
   const text = await res.text();
@@ -325,7 +339,33 @@ export async function domainApiGet(
       message: extractDomainApiErrorMessage(res.status, data, securityReason),
     };
   }
-  return { ok: true, status: res.status, data, path: resolvedPath };
+  return { ok: true, status: res.status, data, path: resolvedPath, securityReason };
+}
+
+/** Lightweight authenticated GET against Domain API. */
+export async function domainApiGet(
+  path: string,
+  accessToken: string,
+): Promise<DomainApiSuccess | DomainApiFailure> {
+  return domainApiRequest("GET", path, accessToken);
+}
+
+/** Authenticated PUT against Domain API (Listings Management upserts). */
+export async function domainApiPut(
+  path: string,
+  accessToken: string,
+  body: unknown,
+): Promise<DomainApiSuccess | DomainApiFailure> {
+  return domainApiRequest("PUT", path, accessToken, body);
+}
+
+/** Authenticated POST against Domain API (test agency, off-market, …). */
+export async function domainApiPost(
+  path: string,
+  accessToken: string,
+  body?: unknown,
+): Promise<DomainApiSuccess | DomainApiFailure> {
+  return domainApiRequest("POST", path, accessToken, body);
 }
 
 function isUnauthorizedClientError(message: string, raw?: unknown): boolean {
@@ -405,6 +445,8 @@ export type OrgDomainConnectorTokens = {
   connectedAt?: string;
   /** Domain user / agency hint from last connect */
   label?: string;
+  /** Preferred Domain agency id for Listings Management publish */
+  domainAgencyId?: number;
   lastError?: string;
 };
 
@@ -424,6 +466,14 @@ export async function getOrgDomainConnectorTokens(
 ): Promise<OrgDomainConnectorTokens | null> {
   const blob = await getOrgConnectorSettings(organisationId, "domain");
   if (!blob) return null;
+  const agencyRaw = blob.domainAgencyId;
+  const domainAgencyId =
+    typeof agencyRaw === "number" && Number.isFinite(agencyRaw)
+      ? agencyRaw
+      : typeof agencyRaw === "string" && /^\d+$/.test(agencyRaw.trim())
+        ? Number(agencyRaw.trim())
+        : undefined;
+
   return {
     accessToken: decryptTokenField(
       typeof blob.accessToken === "string" ? blob.accessToken : undefined,
@@ -435,6 +485,7 @@ export async function getOrgDomainConnectorTokens(
     scope: typeof blob.scope === "string" ? blob.scope : undefined,
     connectedAt: typeof blob.connectedAt === "string" ? blob.connectedAt : undefined,
     label: typeof blob.label === "string" ? blob.label : undefined,
+    domainAgencyId,
     lastError: typeof blob.lastError === "string" ? blob.lastError : undefined,
   };
 }
@@ -450,6 +501,7 @@ export async function saveOrgDomainConnectorTokens(
     scope: tokens.scope ?? null,
     connectedAt: tokens.connectedAt ?? new Date().toISOString(),
     label: tokens.label ?? null,
+    domainAgencyId: tokens.domainAgencyId ?? null,
     lastError: tokens.lastError ?? null,
   });
 }
@@ -506,6 +558,11 @@ export async function ensureValidOrgDomainAccessToken(
   return { ok: true, accessToken: next.accessToken!, tokens: next };
 }
 
+export type DomainOrgAgencySummary = {
+  id: number;
+  name?: string;
+};
+
 export type DomainOrgProbeResult = {
   ok: boolean;
   connected: boolean;
@@ -514,8 +571,38 @@ export type DomainOrgProbeResult = {
   probePath?: string;
   expiresAt?: string;
   scope?: string;
+  securityReason?: string | null;
+  domainAgencyId?: number | null;
+  agencies?: DomainOrgAgencySummary[];
   message: string;
 };
+
+function parseDomainAgenciesPayload(data: unknown): DomainOrgAgencySummary[] {
+  const rows = Array.isArray(data)
+    ? data
+    : data && typeof data === "object" && Array.isArray((data as { agencies?: unknown }).agencies)
+      ? ((data as { agencies: unknown[] }).agencies)
+      : [];
+  const out: DomainOrgAgencySummary[] = [];
+  for (const row of rows) {
+    if (!row || typeof row !== "object") continue;
+    const idRaw = (row as { id?: unknown; agencyId?: unknown }).id ??
+      (row as { agencyId?: unknown }).agencyId;
+    const id =
+      typeof idRaw === "number"
+        ? idRaw
+        : typeof idRaw === "string" && /^\d+$/.test(idRaw)
+          ? Number(idRaw)
+          : NaN;
+    if (!Number.isFinite(id)) continue;
+    const name =
+      typeof (row as { name?: unknown }).name === "string"
+        ? (row as { name: string }).name
+        : undefined;
+    out.push({ id, name });
+  }
+  return out;
+}
 
 /**
  * Org-token probe against Listings Management identity endpoints.
@@ -531,6 +618,9 @@ export async function probeOrgDomainConnection(
 
   const me = await domainApiGet(DOMAIN_ORG_PROBE_PATH, ensured.accessToken);
   if (!me.ok) {
+    const hint = me.securityReason
+      ? ` Check Domain portal scopes / Listings Management package (${me.securityReason}).`
+      : " Check Domain portal: Listings Management package + auth-code scopes, then reconnect.";
     return {
       ok: false,
       connected: true,
@@ -539,7 +629,9 @@ export async function probeOrgDomainConnection(
       probePath: me.path,
       expiresAt: ensured.tokens.expiresAt,
       scope: ensured.tokens.scope,
-      message: `Token OK · API probe (${me.path}): ${me.message}`,
+      securityReason: me.securityReason,
+      domainAgencyId: ensured.tokens.domainAgencyId ?? null,
+      message: `Token OK · API probe (${me.path}): ${me.message}.${hint}`,
     };
   }
 
@@ -554,8 +646,25 @@ export async function probeOrgDomainConnection(
       probePath: me.path,
       expiresAt: ensured.tokens.expiresAt,
       scope: ensured.tokens.scope,
+      securityReason: agencies.securityReason,
+      domainAgencyId: ensured.tokens.domainAgencyId ?? null,
       message: `Token OK · ${me.path} OK · agencies list (${agencies.path}): ${agencies.message}`,
     };
+  }
+
+  const agencyList = parseDomainAgenciesPayload(agencies.data);
+  const preferred =
+    ensured.tokens.domainAgencyId &&
+    agencyList.some((a) => a.id === ensured.tokens.domainAgencyId)
+      ? ensured.tokens.domainAgencyId
+      : agencyList[0]?.id;
+
+  if (preferred && preferred !== ensured.tokens.domainAgencyId) {
+    await saveOrgDomainConnectorTokens(organisationId, {
+      ...ensured.tokens,
+      domainAgencyId: preferred,
+      lastError: undefined,
+    });
   }
 
   return {
@@ -566,6 +675,11 @@ export async function probeOrgDomainConnection(
     probePath: agencies.path,
     expiresAt: ensured.tokens.expiresAt,
     scope: ensured.tokens.scope,
-    message: `Domain org token + ${me.path} + ${agencies.path} OK`,
+    domainAgencyId: preferred ?? ensured.tokens.domainAgencyId ?? null,
+    agencies: agencyList,
+    message:
+      agencyList.length > 0
+        ? `Domain org token + ${me.path} + ${agencies.path} OK · ${agencyList.length} agency(ies)`
+        : `Domain org token + ${me.path} + ${agencies.path} OK · no agencies yet (sandbox: create test agency on publish)`,
   };
 }
