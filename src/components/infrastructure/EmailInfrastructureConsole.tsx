@@ -64,7 +64,7 @@ export function EmailInfrastructureConsole({
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const load = useCallback(async (selected?: string) => {
+  const load = useCallback(async (selected?: string, opts?: { allowDowngrade?: boolean }) => {
     const q = selected
       ? `?domain=${encodeURIComponent(selected)}`
       : "";
@@ -81,7 +81,29 @@ export function EmailInfrastructureConsole({
       return;
     }
     setDomains(json.data?.domains ?? []);
-    if (selected) setAuthPlan(json.data?.authPlan ?? null);
+    if (!selected) return;
+
+    const next = json.data?.authPlan ?? null;
+    if (!next) {
+      setAuthPlan(null);
+      return;
+    }
+
+    // Resend can flip verified → pending on an immediate re-fetch after Verify.
+    // Don't clobber a verified plan with a lagging pending snapshot.
+    setAuthPlan((prev) => {
+      if (
+        opts?.allowDowngrade === false &&
+        prev &&
+        (prev.resendStatus?.toLowerCase() === "verified" ||
+          prev.identity.status === "verified") &&
+        next.resendStatus?.toLowerCase() !== "verified" &&
+        next.identity.status !== "verified"
+      ) {
+        return prev;
+      }
+      return next;
+    });
   }, []);
 
   useEffect(() => {
@@ -93,7 +115,7 @@ export function EmailInfrastructureConsole({
       setAuthPlan(null);
       return;
     }
-    void load(domain);
+    void load(domain, { allowDowngrade: true });
   }, [domain, load]);
 
   async function run(action: "prepare" | "apply" | "verify") {
@@ -123,11 +145,19 @@ export function EmailInfrastructureConsole({
       if (json.data?.authPlan) setAuthPlan(json.data.authPlan);
       const parts = [json.data?.message || "Done"];
       if (json.data?.verify?.error) parts.push(json.data.verify.error);
-      if (json.data?.verify?.status) {
-        parts.push(`ESP status: ${json.data.verify.status}`);
-      }
+      const esp =
+        json.data?.authPlan?.resendStatus ||
+        json.data?.verify?.status ||
+        json.data?.authPlan?.identity.status;
+      if (esp) parts.push(`ESP status: ${esp}`);
       setStatus(parts.join(" · "));
-      await load(domain);
+      // After verify, refresh inventory only — avoid Resend race that
+      // rewrites verified → pending a moment later.
+      if (action === "verify") {
+        await load(undefined);
+      } else {
+        await load(domain, { allowDowngrade: true });
+      }
     } else {
       const bits = [json.error?.message || "Action failed"];
       if (json.error?.hint) bits.push(json.error.hint);
