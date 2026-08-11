@@ -63,6 +63,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md) | Core — Opportunity Engine Daily Briefing |
 | [ACC-CHANNEL-CONNECTIVITY.md](./ACC-CHANNEL-CONNECTIVITY.md) | Acc — OTA channels (iCal → Booking.com / Airbnb APIs) |
 | [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) | **Core** — Connector Framework; Property / Business / Marketing; Listing Hub parent |
+| [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md) | **Core** — Tier 1–10 stack, DigitalGate 15, immediate programme, anti-priorities |
 | [PROPERTY-SYNDICATION.md](./PROPERTY-SYNDICATION.md) | RE — Listing Hub / Property Syndication (Domain → REA → portals) |
 
 ---

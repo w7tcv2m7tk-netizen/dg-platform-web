@@ -149,13 +149,11 @@ These are the moat — powered by **connected data**, not isolated features.
 
 ## Workstream 4 — Connectors (ecosystem)
 
-After Core + RE v0:
+**Canonical priority:** [foundations/CONNECTOR-PRIORITY.md](./foundations/CONNECTOR-PRIORITY.md) — Tier 1–10, DigitalGate 15, immediate programme. APIs are not the product; DG is the intelligent layer.
 
-1. WordPress (Gen 1 → Platform sync)
-2. Stripe
-3. Google (GBP, Analytics)
-4. Meta
-5. Xero, Microsoft, Shopify — later
+**Immediate programme (Gen 2):** ABR · ASIC (DSP apply) · Dreamscape · Google · Stripe · REA · Domain · RP Data / CoreLogic.
+
+After Core + RE v0 depth, expand along DG15 (Meta, Model Router providers, ElevenLabs/Twilio, Xero, Cloudflare) — not a scatter of fifty vendor Apps.
 
 Each connector improves Twin, BI, and AI recommendations.
 
@@ -233,6 +231,7 @@ Do not start RE App port or AI Visibility until steps 1–4 are done.
 - ❌ Paid/Commission B2B referral settlement / compliance packs before Country Pack gates (scaffold + disclosure UI OK — see REVIEWS-AND-REFERRALS)  
 - ❌ MLM / multi-level on Platform Refer & Earn (single-level SaaS only)  
 - ❌ Arbitrary AI PHP on Gen 2 Platform Core (WP stays Connector; native builder is structured model — see WEBSITE-BUILDER)  
+- ❌ Fifty one-off vendor integrations / “Google Reviews App” / “ASIC App” — use Connector Layer + DigitalGate 15 ([CONNECTOR-PRIORITY.md](./foundations/CONNECTOR-PRIORITY.md))  
 
 ---
 

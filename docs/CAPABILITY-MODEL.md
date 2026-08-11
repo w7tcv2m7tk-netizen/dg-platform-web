@@ -61,6 +61,8 @@ This keeps the vision ambitious without scope drift into unrelated tooling.
 
 Same pattern across Communications (ElevenLabs), Infrastructure (registrar API), Websites (AI codegen), and Hosting (Vercel/Cloudflare).
 
+**Connector build order** (what to integrate when): [foundations/CONNECTOR-PRIORITY.md](./foundations/CONNECTOR-PRIORITY.md) — DigitalGate 15 + immediate programme. Platform value chain: Core → Connector Layer → Universal Objects → AI → Scoring → Automation → Command Centre → BI.
+
 ---
 
 ## App ↔ Capability mapping
@@ -102,6 +104,7 @@ Same pattern across Communications (ElevenLabs), Infrastructure (registrar API),
 | Capability | Document |
 |------------|----------|
 | Business Services · Business Setup | [foundations/BUSINESS-SETUP.md](./foundations/BUSINESS-SETUP.md) |
+| Connector Engine · Priority stack / DG15 | [foundations/CONNECTOR-ENGINE.md](./foundations/CONNECTOR-ENGINE.md) · [foundations/CONNECTOR-PRIORITY.md](./foundations/CONNECTOR-PRIORITY.md) |
 | Communications | [ai/COMMUNICATIONS-ARCHITECTURE.md](./ai/COMMUNICATIONS-ARCHITECTURE.md) |
 | Websites | [websites/WEBSITES-ARCHITECTURE.md](./websites/WEBSITES-ARCHITECTURE.md) |
 | Infrastructure | [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](./infrastructure/INFRASTRUCTURE-ARCHITECTURE.md) |

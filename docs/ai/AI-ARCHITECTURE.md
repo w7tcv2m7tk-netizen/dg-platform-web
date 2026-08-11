@@ -61,7 +61,7 @@ Platform registers tools; AI Service dispatches with org-scoped context.
 
 AI Visibility Score™ and BI insights feed from Twin + Graph — AI Service generates **narratives** and **recommended actions**, not just numbers.
 
-**Related:** [PLATFORM-ARCHITECTURE.md](../PLATFORM-ARCHITECTURE.md) — BI Engine, Scoring Engine · [COMMUNICATIONS-ARCHITECTURE.md](./COMMUNICATIONS-ARCHITECTURE.md) — voice & messaging orchestration
+**Related:** [PLATFORM-ARCHITECTURE.md](../PLATFORM-ARCHITECTURE.md) — BI Engine, Scoring Engine · [COMMUNICATIONS-ARCHITECTURE.md](./COMMUNICATIONS-ARCHITECTURE.md) — voice & messaging orchestration · [CONNECTOR-PRIORITY.md](../foundations/CONNECTOR-PRIORITY.md) — Model Router / OpenAI in DigitalGate 15
 
 ---
 

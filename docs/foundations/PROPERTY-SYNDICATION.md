@@ -19,7 +19,7 @@ Parallel pattern: Accommodation OTA channels — [ACC-CHANNEL-CONNECTIVITY.md](.
 
 Universal platform stays industry-agnostic: syndication is an **RE App capability**. Other verticals get their own engines later (vehicles → automotive marketplaces, products → commerce channels, accommodation → OTAs).
 
-**RE connector tiers** (REA · Domain · GBP · PropTrack · CoreLogic · PriceFinder · agency PMS) are defined in [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) — this doc is the Domain MVP + Listing Hub detail.
+**RE connector capability tiers** (REA · Domain · GBP · PropTrack · CoreLogic · PriceFinder · agency PMS) are in [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md). **Platform build order / DigitalGate 15:** [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md). This doc is the Domain MVP + Listing Hub detail.
 
 ---
 

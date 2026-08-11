@@ -6,16 +6,37 @@
 
 **Do not** ship one-off “REA integration / Domain integration / Google integration” as disconnected features. Ship **connectors** that plug into this engine.
 
+**Priority stack (tiers, DigitalGate 15, immediate programme):** [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md) — read that before adding integrations.
+
 Supersedes the narrow sketch in [../connectors/CONNECTOR-SPECIFICATION.md](../connectors/CONNECTOR-SPECIFICATION.md) (that file now points here).
 
 ---
 
 ## Architecture
 
+APIs are not the product — DigitalGate is the intelligent layer:
+
 ```
-                  DIGITALGATE
-                       │
-               CONNECTOR ENGINE
+DIGITALGATE
+    │
+PLATFORM CORE
+    │
+CONNECTOR LAYER
+    ├── Business   (identity, registries, presence, infra)
+    ├── Growth     (ads, social, reviews, communications, AI providers)
+    └── Industry   (RE portals, property intelligence, vertical PMS/OTAs)
+    │
+UNIVERSAL OBJECTS
+    │
+AI SERVICE  (Model Router → providers)
+    │
+SCORING → AUTOMATION → COMMAND CENTRE → BUSINESS INTELLIGENCE
+```
+
+Connector Engine categories (how adapters group in code / Settings):
+
+```
+                  CONNECTOR ENGINE
                        │
         ┌──────────────┼──────────────┐
         │              │              │
@@ -27,16 +48,6 @@ Supersedes the narrow sketch in [../connectors/CONNECTOR-SPECIFICATION.md](../co
     PropTrack        Maps          Email
     PriceFinder      Reviews       SMS
     Agency PMS       …             …
-        │              │              │
-        └──────────────┼──────────────┘
-                       │
-                UNIVERSAL DATA
-                       │
-                AI + SCORING
-                       │
-           ┌───────────┼───────────┐
-           │           │           │
-       Insights    Automation   Actions
 ```
 
 | Category | Purpose | Examples |
@@ -84,6 +95,10 @@ interface ConnectorManifest {
   oauthScopes?: string[];
   countries?: string[];          // Country Pack awareness
   appIds?: string[];             // Which apps surface this connector
+  /** Strategic priority tier 1–10 — see CONNECTOR-PRIORITY.md (not “enabled”) */
+  priorityTier?: number;
+  /** Rank in DigitalGate 15 (1–15), if applicable */
+  dg15Rank?: number;
 }
 ```
 
@@ -117,6 +132,9 @@ Detail: [PROPERTY-SYNDICATION.md](./PROPERTY-SYNDICATION.md).
 ---
 
 ## Real Estate — connector tiers
+
+> Naming: these are **RE capability tiers** (critical portals → intelligence → PMS).  
+> Platform-wide build order is [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md) (Tier 1–10 / DigitalGate 15).
 
 ### Tier 1 — Critical
 
@@ -185,22 +203,11 @@ Connectors supply facts; Opportunity Engine scores; Growth Engine / Command Cent
 
 ---
 
-## Implementation priority (Core order)
+## Implementation priority
 
-| # | Connector | Why now |
-|---|-----------|---------|
-| 1 | **Stripe** | Billing & subscriptions |
-| 2 | **Google** | GBP + Analytics + Search Console + Ads |
-| 3 | **WordPress** | Production connector (live) |
-| 4 | **REA** | AU residential listing syndication |
-| 5 | **Domain** | AU listing syndication (sandbox → prod) |
-| 6 | **Meta** | Facebook / Instagram + Lead Ads |
-| 7 | **Email / SMS** | Communications infrastructure |
-| 8 | **Xero** | Accounting / invoices |
-| 9 | **Shopify** | Commerce |
-| 10 | **Property intelligence** | CoreLogic / PropTrack / PriceFinder (subject to access) |
+**Canonical:** [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md) — Tier 1–10 framing, **DigitalGate 15**, immediate programme (ABR, ASIC, Dreamscape, Google, Stripe, REA, Domain, RP Data), and anti-priorities.
 
-REA and Domain are the **start of the connector ecosystem**, not its centre.
+REA and Domain are the **start of the RE connector ecosystem**, not the centre of DigitalGate.
 
 Accommodation OTAs follow the same engine via [ACC-CHANNEL-CONNECTIVITY.md](./ACC-CHANNEL-CONNECTIVITY.md).
 
@@ -208,9 +215,10 @@ Accommodation OTAs follow the same engine via [ACC-CHANNEL-CONNECTIVITY.md](./AC
 
 ## Related
 
+- [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md) — **priority stack / DG15**  
 - [PROPERTY-SYNDICATION.md](./PROPERTY-SYNDICATION.md) — Listing Hub + Domain MVP  
 - [ACC-CHANNEL-CONNECTIVITY.md](./ACC-CHANNEL-CONNECTIVITY.md) — OTA adapters  
 - [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) · [BUSINESS-SETUP.md](./BUSINESS-SETUP.md) (Business Services) · [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md)  
 - [OBSERVABILITY.md](./OBSERVABILITY.md) — connector health  
 - [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) — Country Packs on manifests  
-- Live code today: `connectors/wordpress/`, `commerce/connectors/stripe/` · stubs: `connectors/abr/`, `connectors/asic/`
+- Live code today: `connectors/wordpress/`, `commerce/connectors/stripe/`, `connectors/abr/` · scaffolds: Domain, Google GBP, Cotality · stubs: `connectors/asic/`

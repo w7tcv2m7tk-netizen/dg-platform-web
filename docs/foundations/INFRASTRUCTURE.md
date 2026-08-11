@@ -7,7 +7,7 @@
 **Status:** **Domains + Email E1 closed beta packaged** — see [INFRASTRUCTURE-BETA-LAUNCH.md](../INFRASTRUCTURE-BETA-LAUNCH.md). Architecture locked · Search/connect/DNS/go-live + Resend auth DNS shipped. Hosting/Deploy/Monitoring Apps stay OUT.  
 **Website Builder:** Closed beta + Make it live — [WEBSITES-BETA-LAUNCH.md](../WEBSITES-BETA-LAUNCH.md)
 
-**Related:** [WEBSITE-BUILDER.md](./WEBSITE-BUILDER.md) · [PRODUCT-VISION.md](../PRODUCT-VISION.md) · [ROADMAP.md](../ROADMAP.md) · [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) · [PLATFORM-ARCHITECTURE.md](../PLATFORM-ARCHITECTURE.md) · [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](../infrastructure/INFRASTRUCTURE-ARCHITECTURE.md)
+**Related:** [WEBSITE-BUILDER.md](./WEBSITE-BUILDER.md) · [PRODUCT-VISION.md](../PRODUCT-VISION.md) · [ROADMAP.md](../ROADMAP.md) · [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) · [PLATFORM-ARCHITECTURE.md](../PLATFORM-ARCHITECTURE.md) · [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](../infrastructure/INFRASTRUCTURE-ARCHITECTURE.md) · [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md) (Dreamscape #5 · Cloudflare #15)
 
 ---
 

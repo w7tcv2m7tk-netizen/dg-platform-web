@@ -4,7 +4,7 @@
 **Underlying capability:** **Business Services** — provider-agnostic Core capability  
 **Customer-facing:** **Business Setup** / **Start Your Business** (never “ASIC” in the UI)  
 **Classification:** Core platform capability / onboarding service — **not** a Growth App, **not** a standalone “Business Registration App”  
-**Related:** [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) · [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) · [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) · [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) · [BRAND-STUDIO.md](./BRAND-STUDIO.md) · [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) · [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md)
+**Related:** [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) · [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) · [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md) (DG15 / ABR·ASIC·Dreamscape·Google) · [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) · [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) · [BRAND-STUDIO.md](./BRAND-STUDIO.md) · [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) · [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md)
 
 ---
 

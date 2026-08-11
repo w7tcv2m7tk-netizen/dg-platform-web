@@ -37,6 +37,13 @@ export type ConnectorManifest = {
   countries?: string[];
   /** Apps that surface this connector in Settings / setup */
   appIds?: string[];
+  /**
+   * Strategic priority tier 1–10 (CONNECTOR-PRIORITY.md).
+   * Annotation only — does not mean production-ready or enabled.
+   */
+  priorityTier?: number;
+  /** Rank in DigitalGate 15 (1–15), if applicable. Annotation only. */
+  dg15Rank?: number;
 };
 
 export type ConnectorHealth = {
@@ -88,7 +95,10 @@ export function listConnectorManifests(filter?: {
   return list;
 }
 
-/** Seed known / planned connectors (manifests only — adapters register separately). */
+/** Seed known / planned connectors (manifests only — adapters register separately).
+ * priorityTier / dg15Rank are programme annotations — not “enabled”.
+ * @see docs/foundations/CONNECTOR-PRIORITY.md
+ */
 export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
   {
     id: "stripe",
@@ -98,6 +108,8 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     syncObjects: ["Invoice", "Organisation"],
     capabilities: ["payment.checkout"],
     webhookEvents: ["checkout.session.completed", "invoice.paid"],
+    priorityTier: 1,
+    dg15Rank: 1,
   },
   {
     id: "wordpress",
@@ -107,6 +119,8 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     syncObjects: ["Lead", "Contact", "Property", "StayBooking"],
     capabilities: ["lead.ingest", "listing.publish"],
     appIds: ["real-estate", "accommodation", "websites", "crm"],
+    priorityTier: 1,
+    dg15Rank: 6,
   },
   {
     id: "google-gbp",
@@ -115,6 +129,8 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     auth: "oauth",
     syncObjects: ["Organisation", "Activity"],
     capabilities: ["profile.read", "profile.write", "reviews.read", "insights.read"],
+    priorityTier: 1,
+    dg15Rank: 4,
   },
   {
     id: "abr",
@@ -124,6 +140,8 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     syncObjects: ["Organisation"],
     capabilities: ["profile.read", "abn.verify", "entity.enrich"],
     countries: ["AU"],
+    priorityTier: 1,
+    dg15Rank: 2,
   },
   {
     id: "asic",
@@ -133,6 +151,8 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     syncObjects: ["Organisation"],
     capabilities: ["business_name.search", "business_name.register", "company.register"],
     countries: ["AU"],
+    priorityTier: 1,
+    dg15Rank: 3,
   },
   {
     id: "rea",
@@ -143,6 +163,8 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     capabilities: ["listing.publish", "listing.update", "listing.withdraw", "enquiry.ingest"],
     countries: ["AU"],
     appIds: ["real-estate"],
+    priorityTier: 1,
+    dg15Rank: 8,
   },
   {
     id: "domain",
@@ -160,6 +182,8 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     ],
     countries: ["AU"],
     appIds: ["real-estate"],
+    priorityTier: 1,
+    dg15Rank: 7,
   },
   {
     id: "corelogic",
@@ -174,6 +198,8 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     ],
     countries: ["AU", "NZ"],
     appIds: ["real-estate"],
+    priorityTier: 5,
+    dg15Rank: 9,
   },
   {
     id: "meta",
@@ -182,6 +208,8 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     auth: "oauth",
     syncObjects: ["Lead", "Campaign"],
     capabilities: ["lead.ingest", "listing.publish"],
+    priorityTier: 1,
+    dg15Rank: 10,
   },
   {
     id: "xero",
@@ -190,6 +218,8 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     auth: "oauth",
     syncObjects: ["Invoice", "Contact"],
     capabilities: ["payment.checkout"],
+    priorityTier: 6,
+    dg15Rank: 13,
   },
   {
     id: "shopify",
@@ -198,6 +228,62 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     auth: "oauth",
     syncObjects: ["Product", "Order", "Contact"],
     capabilities: ["listing.publish"],
+    priorityTier: 7,
+  },
+  {
+    id: "dreamscape",
+    name: "Dreamscape (Infrastructure reseller)",
+    category: "ops",
+    auth: "api_key",
+    syncObjects: ["Organisation"],
+    capabilities: ["domain.register", "hosting.provision", "mailbox.provision"],
+    countries: ["AU"],
+    appIds: ["infrastructure"],
+    priorityTier: 1,
+    dg15Rank: 5,
+  },
+  {
+    id: "openai",
+    name: "OpenAI (via Model Router)",
+    category: "ops",
+    auth: "api_key",
+    syncObjects: [],
+    capabilities: ["ai.inference"],
+    priorityTier: 1,
+    dg15Rank: 11,
+  },
+  {
+    id: "elevenlabs",
+    name: "ElevenLabs",
+    category: "marketing",
+    auth: "api_key",
+    syncObjects: [],
+    capabilities: ["voice.synthesize"],
+    appIds: ["ai-communications"],
+    priorityTier: 3,
+    dg15Rank: 12,
+  },
+  {
+    id: "twilio",
+    name: "Twilio (SMS / Voice)",
+    category: "marketing",
+    auth: "api_key",
+    syncObjects: ["Contact"],
+    capabilities: ["sms.send", "voice.call"],
+    appIds: ["ai-communications"],
+    priorityTier: 3,
+    dg15Rank: 14,
+  },
+  {
+    id: "cloudflare",
+    name: "Cloudflare",
+    category: "ops",
+    auth: "api_key",
+    syncObjects: [],
+    capabilities: ["cdn.configure", "dns.manage"],
+    appIds: ["infrastructure"],
+    priorityTier: 10,
+    dg15Rank: 15,
   },
 ];
 

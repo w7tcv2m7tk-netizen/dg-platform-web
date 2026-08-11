@@ -138,6 +138,8 @@ Do **not** bury Platform Refer & Earn inside Phase 5 Network planning.
 
 **Core owns** the Universal Review Object, Reputation Service, aggregation, Connector-backed sources, author matching, sentiment/star/response fields, history, notifications/events, timeline/AI availability, and **Reputation Score™ only when real connected data exists** (never decorative stand-ins).
 
+**Not a “Google Reviews App.”** Tier 8 in [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md): Universal Review + connectors — **GBP first**.
+
 **Not a Growth App product** for closed beta. Optional later: Growth → **Reputation Pro** (campaigns, AI respond UX, competitor analysis, request-more-reviews product surface) — roadmap only.
 
 **Five pillars:** Connect · Centralise · Understand · Automate · Grow

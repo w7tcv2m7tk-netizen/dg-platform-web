@@ -1,8 +1,9 @@
 # Connector Specification
 
-**Canonical architecture:** [../foundations/CONNECTOR-ENGINE.md](../foundations/CONNECTOR-ENGINE.md)
+**Canonical architecture:** [../foundations/CONNECTOR-ENGINE.md](../foundations/CONNECTOR-ENGINE.md)  
+**Priority stack / DigitalGate 15:** [../foundations/CONNECTOR-PRIORITY.md](../foundations/CONNECTOR-PRIORITY.md)
 
-This page is the short operational summary. Design decisions, tiers, Listing Hub, and implementation priority live in **Connector Engine**.
+This page is the short operational summary. Framework + Listing Hub live in **Connector Engine**; which connectors we build (and refuse) live in **Connector Priority**.
 
 ---
 
@@ -41,9 +42,13 @@ Code: `packages/platform-core/src/connectors/` (+ `commerce/connectors/stripe/`)
 
 ## Priority queue
 
-See Connector Engine § Implementation priority: Stripe → Google → WordPress → REA → Domain → Meta → Email/SMS → Xero → Shopify → property intelligence.
+See **[CONNECTOR-PRIORITY.md](../foundations/CONNECTOR-PRIORITY.md)**:
 
-REA / Domain = **start of the ecosystem**, not the centre. Listing Hub: [PROPERTY-SYNDICATION.md](../foundations/PROPERTY-SYNDICATION.md).
+- **Immediate programme:** ABR · ASIC (apply) · Dreamscape · Google · Stripe · REA · Domain · RP Data / CoreLogic  
+- **DigitalGate 15:** Stripe → ABR ✅ → ASIC → Google → Dreamscape → WordPress → Domain → REA → CoreLogic → Meta → OpenAI → ElevenLabs → Xero → Twilio/comms → Cloudflare  
+- **Anti-priority:** do not chase 50 one-off integrations
+
+REA / Domain = **start of the RE ecosystem**, not the centre of DigitalGate. Listing Hub: [PROPERTY-SYNDICATION.md](../foundations/PROPERTY-SYNDICATION.md).
 
 ---
 
