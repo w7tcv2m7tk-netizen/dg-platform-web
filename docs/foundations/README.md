@@ -4,7 +4,8 @@
 
 Before committing to implementation, these documents define the decisions that are expensive to change later.
 
-**Gen 2 north-star (constraints):** [../architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md)
+**Gen 2 north-star (constraints):** [../architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md)  
+**GTM / rollout (product–marketing):** [../strategy/DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md)
 
 **Status:** Architecture ~80% complete. Foundations defined here close the gap.
 

@@ -17,6 +17,7 @@ Recent Platform Intelligence–related decisions:
 | [0010](../adr/0010-opportunity-engine-remains-core.md) | Opportunity Engine™ remains Platform Core |
 | [0011](../adr/0011-reputation-core-plumbing-growth-app.md) | Reputation = Core plumbing + Growth App |
 | [0012](../adr/0012-gen-2-architecture-brief-adopted.md) | Gen 2 Architecture Brief = north-star constraints |
+| [0013](../adr/0013-gtm-rollout-strategy-adopted.md) | GTM / rollout strategy = canonical product–marketing lock |
 
 North-star brief: [architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md).
 

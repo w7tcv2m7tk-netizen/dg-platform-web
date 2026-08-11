@@ -73,3 +73,5 @@ Activity (seo.audit_completed)
 * Keyword rankings  
 * Live LLM citation monitoring (true “AI Visibility Pro” depth)  
 * Automation hooks (`seo.score_dropped`, citation events)
+
+**GTM:** Public free AI Visibility audits (rollout Phase 4) must keep these honesty constraints — [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md).

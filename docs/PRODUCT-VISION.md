@@ -2,11 +2,13 @@
 
 **The Gateway to Your Digital World**
 
-**Version:** 1.3  
+**Version:** 1.4  
 **Last updated:** August 2026  
 **Status:** Living document — evolves with the platform
 
 **Architecture north-star:** [architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md) (§§1–36 + Immediate Priority 1–15 — constraints, not a build-all list)
+
+**GTM / rollout (canonical):** [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) — Business Operating Platform; *One platform to run, understand and grow your business* ([ADR 0013](./adr/0013-gtm-rollout-strategy-adopted.md))
 
 ---
 
@@ -238,14 +240,16 @@ The CRM is one App. SEO is one App. Real Estate is one App. **The Platform is wh
 
 ## Competitive positioning
 
+**Category lock:** AI-powered **Business Operating Platform** — outcome: **One platform to run, understand and grow your business.** Not primarily a “marketing platform.” Full GTM: [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md).
+
 Long-term competitors are platforms: **HubSpot, Odoo, Salesforce, Zoho** — not traditional agencies.
 
 | Differentiator | Why it matters |
 |----------------|----------------|
-| **Gateway positioning** | Connect + centralise — not another silo |
+| **Gateway / OS positioning** | Connect + centralise — not another silo; run · understand · grow |
 | **AI-first** | Shared AI Service with structured context |
-| **AI Visibility Engine™** | Unique IP across ChatGPT, Gemini, Perplexity, Copilot |
-| **Scoring Engine** | One engine, many business health scores |
+| **AI Visibility Engine™** | Presence / SEO-style visibility today; live LLM citation monitoring is later — [SEO-AND-AI-VISIBILITY.md](./foundations/SEO-AND-AI-VISIBILITY.md) (no fake citation ranks) |
+| **Scoring Engine** | One engine, many business health scores — honest signals only |
 | **Industry Apps** | Real Estate first (Roe as live lab) |
 | **Connector model** | Any CMS, any stack — not locked to WordPress |
 
@@ -278,6 +282,7 @@ Rather than simply managing contacts, **DigitalGate manages the entire business*
 
 ## Related documents
 
+- [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) — canonical GTM / rollout
 - [PLATFORM-PRINCIPLES.md](./PLATFORM-PRINCIPLES.md) — engineering constitution
 - [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md) — Core, Apps, Connectors, Twin, Graph
 - [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md) — Community, B2B network, Marketplace (Phase 5)

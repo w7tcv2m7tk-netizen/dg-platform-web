@@ -320,6 +320,7 @@ That is a **repeatable acquisition engine**, not a lead list.
 
 ## Related documents
 
+- [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) — GTM Phase 3 (Prospecting Engine sells the platform)  
 - [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) — internal App shell  
 - [COMMAND-CENTRE-BETA.md](./COMMAND-CENTRE-BETA.md) — staff closed-beta IN/OUT + demo path  
 - [PRODUCT-VISION.md](./PRODUCT-VISION.md) — gateway + growth philosophy  

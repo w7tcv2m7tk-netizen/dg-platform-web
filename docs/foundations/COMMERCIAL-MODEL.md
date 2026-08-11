@@ -10,7 +10,7 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 
 | Stream | Model | Phase |
 |--------|-------|-------|
-| **Platform subscription** | Monthly/annual tier (Starter, Pro, Agency) | 1.5 |
+| **Platform subscription** | Monthly/annual tier (**Starter, Pro, Business** — GTM lock; older drafts may say Agency) | 1.5 |
 | **Industry Apps** | Add-on e.g. Real Estate App +$X/mo | 1.5 |
 | **Premium Growth Apps** | AI Visibility Pro, SEO Pro | 1.5 |
 | **AI usage tiers** | Included tokens + overage | 1.5 |
@@ -29,7 +29,7 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 
 ```typescript
 Plan {
-  id                 // starter | pro | agency | enterprise
+  id                 // starter | pro | business | enterprise  (GTM: Business; legacy drafts may say agency)
   name
   basePriceCents
   currency
@@ -44,6 +44,8 @@ Plan {
 
 Organisation links to Plan via Stripe subscription. `AppInstallation.licenseId` for add-ons.
 
+**GTM packaging narrative:** Starter / Pro / Business + Industry Apps — *Start with the platform, add as you grow* — [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) Phase 9.
+
 ---
 
 ## Feature Registry as licensing unit
@@ -54,7 +56,7 @@ Billing grants **features**, not Apps directly:
 |------|----------|
 | Starter | `crm.contacts.*`, basic dashboard |
 | Pro | + `real-estate.pipeline`, `seo.basic` |
-| Agency | + `ai-visibility.basic`, 3 seats, automations |
+| Business | + `ai-visibility.basic`, 3 seats, automations |
 | Enterprise | Custom feature set + white-label |
 
 Apps declare which features they need — install blocked if plan lacks features.
@@ -67,7 +69,7 @@ Apps declare which features they need — install blocked if plan lacks features
 |------|----------|---------|
 | Starter | 10k tokens/mo | Block or upsell |
 | Pro | 100k tokens/mo | $X per 1k |
-| Agency | 500k tokens/mo | $X per 1k |
+| Business | 500k tokens/mo | $X per 1k |
 | Enterprise | Custom | Invoice |
 
 Token usage from [OBSERVABILITY.md](./OBSERVABILITY.md) AiUsageLog → Stripe meter.
@@ -119,6 +121,7 @@ Command Centre Revenue Intelligence module.
 
 ## Related
 
+- [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) — GTM pricing simplicity (Starter / Pro / Business)  
 - [APP-MARKETPLACE.md](./APP-MARKETPLACE.md) — App install licensing  
 - [ADR 0007](../adr/0007-feature-registry-permissions.md) — Feature Registry  
 - [PLATFORM-RELEASES.md](./PLATFORM-RELEASES.md) — when billing ships  

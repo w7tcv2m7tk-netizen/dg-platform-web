@@ -27,9 +27,11 @@ Each ADR follows [Michael Nygard's template](https://cognitect.com/blog/2011/11/
 | [0010](./0010-opportunity-engine-remains-core.md) | Opportunity Engine™ remains Platform Core | Accepted |
 | [0011](./0011-reputation-core-plumbing-growth-app.md) | Reputation = Core plumbing + Growth App | Accepted |
 | [0012](./0012-gen-2-architecture-brief-adopted.md) | Gen 2 Architecture Brief = north-star constraints | Accepted |
+| [0013](./0013-gtm-rollout-strategy-adopted.md) | GTM / rollout strategy = canonical product–marketing lock | Accepted |
 
 Alias for Platform Knowledge SSOT tree: [docs/decisions/](../decisions/README.md).  
-North-star brief: [architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md).
+North-star brief: [architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md).  
+GTM / rollout: [strategy/DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md).
 
 ## Creating a new ADR
 

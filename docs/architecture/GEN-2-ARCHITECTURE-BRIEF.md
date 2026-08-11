@@ -51,6 +51,7 @@ The architecture must therefore be designed for:
 | AI Service / Model Router | [AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) | Shared AI, not per-App LLMs |
 | Platform Principles | [PLATFORM-PRINCIPLES.md](../PLATFORM-PRINCIPLES.md) | Engineering constitution |
 | Product vision | [PRODUCT-VISION.md](../PRODUCT-VISION.md) | Gateway narrative + pillars |
+| GTM / rollout | [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) · [ADR 0013](../adr/0013-gtm-rollout-strategy-adopted.md) | Business Operating Platform positioning; AU-first phases |
 
 ---
 

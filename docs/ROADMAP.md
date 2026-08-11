@@ -10,6 +10,8 @@
 > **Implementation gate:** Complete [foundations/CORE-OBJECT-SPECIFICATION.md](./foundations/CORE-OBJECT-SPECIFICATION.md) review and lock Platform 1.0 scope before expanding code. See [foundations/README.md](./foundations/README.md).
 
 > **Architecture north-star:** [architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md) — Immediate Priority 1–15 are architectural foundations; do **not** boil the ocean on all 36 brief items ([ADR 0012](./adr/0012-gen-2-architecture-brief-adopted.md)).
+>
+> **GTM / rollout:** [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) — Business Operating Platform; AU RE wedge → Founding Customers → Prospecting Engine ([ADR 0013](./adr/0013-gtm-rollout-strategy-adopted.md)). Engineering follows this roadmap; marketing follows that brief.
 
 ---
 
@@ -31,7 +33,9 @@ That's the moment people remember. Every sprint should move toward this.
 
 Not feature parity with HubSpot.
 
-> **Helping businesses understand, improve, and grow their entire digital presence through one AI-powered platform.**
+> **One platform to run, understand and grow your business.**  
+> Category: AI-powered **Business Operating Platform** — not primarily a marketing platform.  
+> Full GTM: [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md).
 
 ---
 
@@ -273,5 +277,6 @@ You wear several today — that's fine. Document so roles can split later.
 ## Related documents
 
 - [docs/README.md](./README.md) — architecture IP index  
+- [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) — canonical GTM / rollout  
 - [PRODUCT-VISION.md](./PRODUCT-VISION.md)  
 - [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md)  

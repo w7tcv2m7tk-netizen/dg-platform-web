@@ -177,6 +177,8 @@ Property object already uses structured address — reuse everywhere.
 
 ## Sell locally first — GTM
 
+**Canonical product / marketing rollout:** [strategy/DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) ([ADR 0013](../adr/0013-gtm-rollout-strategy-adopted.md)). This section locks **geo + Country Pack** sequencing; the strategy doc locks positioning, founding programme, Prospecting Engine, and metrics.
+
 First customers (feedback before expansion):
 
 1. **Roe Realty** — live RE proving ground  
@@ -193,10 +195,10 @@ First customers (feedback before expansion):
 | **2** | Australia · Multi-industry |
 | **3** | New Zealand |
 | **4** | United Kingdom |
-| **5** | North America |
+| **5** | North America (US) |
 | **6** | Europe |
 
-Each stage adds scale **without** forking Core. New stages = Country Pack + connectors + compliance, not a new platform.
+Expansion marketing order in the rollout brief: **AU → NZ → UK → US**. Each stage adds scale **without** forking Core. New stages = Country Pack + connectors + compliance, not a new platform. **Hold:** international demand-gen until the AU RE wedge is working.
 
 ---
 
@@ -237,6 +239,7 @@ Do **not** block Roe / AU GTM on full multi-country UI — ship AU pack defaults
 
 ## Related
 
+- [strategy/DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) — canonical GTM / rollout  
 - [PRODUCT-VISION.md](../PRODUCT-VISION.md) — Gateway brand + OS category  
 - [CORE-OBJECT-SPECIFICATION.md](./CORE-OBJECT-SPECIFICATION.md) — Organisation fields  
 - [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) — domains/hosting providers (AU Dreamscape first)  
