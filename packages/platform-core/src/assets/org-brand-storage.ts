@@ -49,24 +49,39 @@ function extensionForContentType(contentType: string): string {
       return "gif";
     case "image/svg+xml":
       return "svg";
+    case "application/pdf":
+      return "pdf";
     default:
       return "bin";
   }
+}
+
+function objectKey(
+  organisationId: string,
+  contentType: string,
+  buffer: Buffer,
+  keyPrefix?: string,
+): string {
+  const hash = createHash("sha256").update(buffer).digest("hex").slice(0, 16);
+  const ext = extensionForContentType(contentType);
+  const prefix = keyPrefix?.replace(/^\/+|\/+$/g, "") || "";
+  return prefix
+    ? `org-assets/${organisationId}/${prefix}/${hash}.${ext}`
+    : `org-assets/${organisationId}/${hash}.${ext}`;
 }
 
 async function storeWithVercelBlob(
   organisationId: string,
   buffer: Buffer,
   contentType: string,
+  keyPrefix?: string,
 ): Promise<StoredBrandAsset | null> {
   const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
   if (!token) return null;
 
   try {
     const { put } = await import("@vercel/blob");
-    const hash = createHash("sha256").update(buffer).digest("hex").slice(0, 16);
-    const ext = extensionForContentType(contentType);
-    const blob = await put(`org-assets/${organisationId}/${hash}.${ext}`, buffer, {
+    const blob = await put(objectKey(organisationId, contentType, buffer, keyPrefix), buffer, {
       access: "public",
       contentType,
       token,
@@ -86,23 +101,21 @@ async function storeOnPublicDisk(
   organisationId: string,
   buffer: Buffer,
   contentType: string,
+  keyPrefix?: string,
 ): Promise<StoredBrandAsset> {
-  const hash = createHash("sha256").update(buffer).digest("hex").slice(0, 16);
-  const ext = extensionForContentType(contentType);
-  const filename = `${hash}.${ext}`;
-  const relativeDir = path.join("public", "org-assets", organisationId);
-  const absoluteDir = path.join(process.cwd(), relativeDir);
-  await mkdir(absoluteDir, { recursive: true });
-  await writeFile(path.join(absoluteDir, filename), buffer);
+  const key = objectKey(organisationId, contentType, buffer, keyPrefix);
+  // key is org-assets/... — strip that for public/ layout
+  const relativePath = key.startsWith("org-assets/") ? key : `org-assets/${key}`;
+  const absolutePath = path.join(process.cwd(), "public", relativePath);
+  await mkdir(path.dirname(absolutePath), { recursive: true });
+  await writeFile(absolutePath, buffer);
 
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
     process.env.VERCEL_URL?.trim()?.replace(/^/, "https://") ||
     "";
 
-  const url = baseUrl
-    ? `${baseUrl}/org-assets/${organisationId}/${filename}`
-    : `/org-assets/${organisationId}/${filename}`;
+  const url = baseUrl ? `${baseUrl}/${relativePath}` : `/${relativePath}`;
 
   return {
     url,
@@ -112,16 +125,38 @@ async function storeOnPublicDisk(
   };
 }
 
+/** Brand logos/icons and listing images (same Blob / public disk backends). */
 export async function storeOrgBrandAsset(input: {
   organisationId: string;
   buffer: Buffer;
   contentType: string;
   maxBytes?: number;
 }): Promise<StoredBrandAsset> {
+  return storeOrgFile({
+    ...input,
+    maxBytes: input.maxBytes ?? 400 * 1024,
+    sizeLabel: "Image",
+  });
+}
+
+/**
+ * General org file store (PDFs, images, etc.) via Vercel Blob or local public/.
+ * Used for property documents such as signed agency agreements.
+ */
+export async function storeOrgFile(input: {
+  organisationId: string;
+  buffer: Buffer;
+  contentType: string;
+  maxBytes?: number;
+  /** Optional path under org-assets/{orgId}/, e.g. property-docs/{propertyId} */
+  keyPrefix?: string;
+  sizeLabel?: string;
+}): Promise<StoredBrandAsset> {
   const maxBytes = input.maxBytes ?? 400 * 1024;
+  const sizeLabel = input.sizeLabel ?? "File";
   if (input.buffer.length > maxBytes) {
     throw new BrandAssetStorageError(
-      `Image must be ${Math.round(maxBytes / 1024)} KB or smaller`,
+      `${sizeLabel} must be ${Math.round(maxBytes / 1024)} KB or smaller`,
       "file_too_large",
       400,
     );
@@ -139,6 +174,7 @@ export async function storeOrgBrandAsset(input: {
     input.organisationId,
     input.buffer,
     input.contentType,
+    input.keyPrefix,
   );
   if (blobResult) return blobResult;
 
@@ -151,5 +187,10 @@ export async function storeOrgBrandAsset(input: {
   }
 
   // Local / non-serverless: fall back to public/org-assets for dev convenience.
-  return storeOnPublicDisk(input.organisationId, input.buffer, input.contentType);
+  return storeOnPublicDisk(
+    input.organisationId,
+    input.buffer,
+    input.contentType,
+    input.keyPrefix,
+  );
 }

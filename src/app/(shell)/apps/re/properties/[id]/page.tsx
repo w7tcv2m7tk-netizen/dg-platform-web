@@ -11,9 +11,13 @@ import {
   listLeads,
   listPropertyActivities,
   listPropertyOffers,
+  normalizePropertyAgencyAgreement,
+  normalizePropertyDisclosureStatement,
 } from "@dg/platform-core";
 
 import { CotalityMatchPanel } from "@/components/re/CotalityMatchPanel";
+import { PropertyAgencyAgreementPanel } from "@/components/re/PropertyAgencyAgreementPanel";
+import { PropertyDisclosureStatementPanel } from "@/components/re/PropertyDisclosureStatementPanel";
 import { PropertyContractPanel } from "@/components/re/PropertyContractPanel";
 import { PropertyOffersPanel } from "@/components/re/PropertyOffersPanel";
 import { PropertyListingEditor } from "@/components/re/PropertyListingEditor";
@@ -87,6 +91,13 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         specialConditions?: string;
       }
     | undefined;
+
+  const agencyAgreement = normalizePropertyAgencyAgreement(
+    property.metadata?.agencyAgreement as Record<string, unknown> | undefined,
+  );
+  const disclosureStatement = normalizePropertyDisclosureStatement(
+    property.metadata?.disclosureStatement as Record<string, unknown> | undefined,
+  );
 
   const fullAddress = formatPropertyAddress(property);
   const formattedAddress = property.metadata?.formatted_address as string | undefined;
@@ -285,6 +296,18 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                 </p>
               ) : null}
             </div>
+
+            {/* 1b. Signed agency / listing authority (mirrors WP Property Files) */}
+            <PropertyAgencyAgreementPanel
+              propertyId={property.id}
+              agreement={agencyAgreement}
+            />
+
+            {/* 1c. Disclosure statement (same storage pattern as agency agreement) */}
+            <PropertyDisclosureStatementPanel
+              propertyId={property.id}
+              disclosureStatement={disclosureStatement}
+            />
 
             {/* 2. Website listing */}
             <div className="dg-card">
