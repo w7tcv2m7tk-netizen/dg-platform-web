@@ -31,7 +31,7 @@ Aliases: prefer `CORELOGIC_*` (not `COTALITY_*`) for consistency with existing D
 | Capability | Status | Path / notes |
 |------------|--------|----------------|
 | OAuth2 token | **Live** | `POST` token URL, HTTP Basic, `grant_type=client_credentials`; in-memory cache until near expiry |
-| Address Match | **Live** | `GET {searchBase}/au/matcher/address?q=&clientName=&matchProfileId=` |
+| Address Match | **Live** | `GET {searchBase}/au/matcher/address?q=&clientName=&matchProfileId=` — response nests under `matchDetails` |
 | Address resolve enrichment | **Live** | `/api/v1/addresses/resolve` — optional when credentials present; `corelogic: false` skips |
 | Property create / geocode | **Live** | `createProperty` / address refresh call `resolveAddress` → persist Cotality id |
 | Property match action | **Live** | `PATCH /api/v1/properties/:id` `{ action: "match_cotality" }` |

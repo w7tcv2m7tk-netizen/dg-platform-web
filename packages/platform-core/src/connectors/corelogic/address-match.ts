@@ -23,6 +23,7 @@ export type CoreLogicMatchType =
   | "S" // Street
   | "X" // Postal
   | "D" // Duplicate
+  | "M" // Unmatched (sandbox Address Match)
   | "N" // Non-match
   | (string & {});
 
@@ -78,9 +79,12 @@ export function parseCoreLogicAddressMatchResponse(
   data: unknown,
 ): CoreLogicAddressMatchResult {
   const root = asRecord(data);
+  // Live sandbox Search Address Match returns { matchDetails: { propertyId, matchType, matchRule, ... } }
   const candidate =
     root &&
-    (asRecord(root.match) ||
+    (asRecord(root.matchDetails) ||
+      asRecord(root.match_details) ||
+      asRecord(root.match) ||
       asRecord(root.result) ||
       asRecord(root.data) ||
       (Array.isArray(root.matches) ? asRecord(root.matches[0]) : null) ||
@@ -94,10 +98,11 @@ export function parseCoreLogicAddressMatchResponse(
     asRecord(candidate.address) ||
     asRecord(candidate.propertyAddress) ||
     asRecord(candidate.matchedAddress) ||
+    asRecord(root?.address) ||
     null;
 
   return {
-    propertyId: pickId(candidate),
+    propertyId: pickId(candidate) ?? (root ? pickId(root) : undefined),
     matchType: pickString(candidate, ["matchType", "match_type", "matchCode"]) as
       | CoreLogicMatchType
       | undefined,
@@ -127,6 +132,8 @@ export function isCoreLogicPropertyMatch(
 ): boolean {
   if (result.propertyId == null || result.propertyId === "") return false;
   const t = (result.matchType || "").toUpperCase();
+  // Documented non-match. Sandbox unmatched responses use "M" without a propertyId
+  // (already filtered above); do not reject when an id is present.
   if (t === "N") return false;
   return true;
 }

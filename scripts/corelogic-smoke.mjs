@@ -108,8 +108,9 @@ async function main() {
   }
   pass(`Token OK (expires_in=${tokenJson.expires_in ?? "?"})`);
 
-  // Public-format AU sample — do not log full matched address PII in CI summaries.
-  const sample = "1 Aardvark St Brisbane QLD 4000";
+  // Public-format AU sample known to resolve in Cotality sandbox eval data.
+  // (Fake streets like "Aardvark" return matchType M with no propertyId.)
+  const sample = "42 Marine Parade Coolangatta QLD 4225";
   const params = new URLSearchParams({
     q: sample,
     clientName: CLIENT_NAME,
@@ -138,12 +139,14 @@ async function main() {
   }
 
   const propertyId =
+    matchJson?.matchDetails?.propertyId ??
     matchJson?.propertyId ??
     matchJson?.match?.propertyId ??
     matchJson?.result?.propertyId ??
     matchJson?.data?.propertyId ??
     null;
   const matchType =
+    matchJson?.matchDetails?.matchType ??
     matchJson?.matchType ??
     matchJson?.match?.matchType ??
     matchJson?.result?.matchType ??
