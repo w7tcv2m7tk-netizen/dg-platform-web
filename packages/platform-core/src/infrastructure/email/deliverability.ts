@@ -142,9 +142,6 @@ function buildChecksFromResend(
   const spfRecs = byPurpose("SPF");
   const dkimRecs = byPurpose("DKIM");
   const trackingRecs = byPurpose("Tracking");
-  const domainVerified =
-    domain.status.toLowerCase() === "verified" ||
-    domain.status.toLowerCase() === "valid";
 
   const worst = (states: EmailAuthCheckState[]): EmailAuthCheckState => {
     if (states.includes("fail")) return "fail";
@@ -154,18 +151,22 @@ function buildChecksFromResend(
     return "unknown";
   };
 
-  // Resend can report domain.status=verified while per-record status lags as
-  // pending/empty — trust the domain when verified so Gen 2 matches the ESP UI.
-  const spfState = domainVerified
-    ? "pass"
-    : spfRecs.length
-      ? worst(spfRecs.map((r) => mapResendRecordStatus(r.status)))
-      : "missing";
-  const dkimState = domainVerified
-    ? "pass"
-    : dkimRecs.length
-      ? worst(dkimRecs.map((r) => mapResendRecordStatus(r.status)))
-      : "missing";
+  const spfFromRecords = spfRecs.length
+    ? worst(spfRecs.map((r) => mapResendRecordStatus(r.status)))
+    : "missing";
+  const dkimFromRecords = dkimRecs.length
+    ? worst(dkimRecs.map((r) => mapResendRecordStatus(r.status)))
+    : "missing";
+
+  // Trust domain.status=verified OR all critical ESP records reporting verified
+  // (Resend UI can show verified while domain.status briefly lags as pending).
+  const domainVerified =
+    domain.status.toLowerCase() === "verified" ||
+    domain.status.toLowerCase() === "valid" ||
+    (spfFromRecords === "pass" && dkimFromRecords === "pass");
+
+  const spfState = domainVerified ? "pass" : spfFromRecords;
+  const dkimState = domainVerified ? "pass" : dkimFromRecords;
   const dmarcState = domainVerified ? "pass" : "missing";
 
   const checks: EmailAuthCheckItem[] = [
@@ -223,6 +224,17 @@ function buildChecksFromResend(
   }
 
   return checks;
+}
+
+/** Effective ESP status for UI — may upgrade pending → verified from record statuses. */
+export function effectiveResendDomainStatus(domain: ResendDomain): string {
+  const status = (domain.status || "unknown").toLowerCase();
+  if (status === "verified" || status === "valid") return "verified";
+  const checks = buildChecksFromResend(domain, domain.name);
+  const spf = checks.find((c) => c.id === "SPF")?.state;
+  const dkim = checks.find((c) => c.id === "DKIM")?.state;
+  if (spf === "pass" && dkim === "pass") return "verified";
+  return domain.status || "unknown";
 }
 
 function suggestedDnsFromPlan(
@@ -295,11 +307,12 @@ export async function buildEmailDomainAuthPlan(input: {
     }
     const checks = buildChecksFromResend(domain, apex);
     const byId = Object.fromEntries(checks.map((c) => [c.id, c.state]));
+    const espStatus = effectiveResendDomainStatus(domain);
     return {
       identity: {
         domain: apex,
         organisationId: input.organisationId,
-        status: domainStatusFromResend(domain.status),
+        status: domainStatusFromResend(espStatus),
         spf: byId.SPF ?? "unknown",
         dkim: byId.DKIM ?? "unknown",
         dmarc: byId.DMARC ?? "unknown",
@@ -310,7 +323,7 @@ export async function buildEmailDomainAuthPlan(input: {
       },
       suggestedDns: suggestedDnsFromPlan(domain, apex),
       resendDomainId: domain.id,
-      resendStatus: domain.status,
+      resendStatus: espStatus,
       created: false,
     };
   }
@@ -331,11 +344,12 @@ export async function buildEmailDomainAuthPlan(input: {
   const domain = ensured.domain;
   const checks = buildChecksFromResend(domain, apex);
   const byId = Object.fromEntries(checks.map((c) => [c.id, c.state]));
+  const espStatus = effectiveResendDomainStatus(domain);
   return {
     identity: {
       domain: apex,
       organisationId: input.organisationId,
-      status: domainStatusFromResend(domain.status),
+      status: domainStatusFromResend(espStatus),
       spf: byId.SPF ?? "unknown",
       dkim: byId.DKIM ?? "unknown",
       dmarc: byId.DMARC ?? "unknown",
@@ -346,11 +360,13 @@ export async function buildEmailDomainAuthPlan(input: {
     },
     suggestedDns: suggestedDnsFromPlan(domain, apex),
     resendDomainId: domain.id,
-    resendStatus: domain.status,
+    resendStatus: espStatus,
     created: ensured.created,
     note: ensured.created
       ? "Sending domain created — apply auth DNS next"
-      : undefined,
+      : espStatus === "verified"
+        ? "ESP domain verified — ready to send"
+        : undefined,
   };
 }
 
@@ -442,11 +458,12 @@ export async function triggerEmailDomainVerify(input: {
           .toLowerCase()
           .replace(/^www\./, "")
           .replace(/\.$/, "");
+        const espStatus = effectiveResendDomainStatus(result.domain!);
         return {
           identity: {
             domain: apex,
             organisationId: input.organisationId,
-            status: domainStatusFromResend(result.domain!.status),
+            status: domainStatusFromResend(espStatus),
             spf: byId.SPF ?? "unknown",
             dkim: byId.DKIM ?? "unknown",
             dmarc: byId.DMARC ?? "unknown",
@@ -457,8 +474,12 @@ export async function triggerEmailDomainVerify(input: {
           },
           suggestedDns: suggestedDnsFromPlan(result.domain, apex),
           resendDomainId: result.domain.id,
-          resendStatus: result.domain.status,
+          resendStatus: espStatus,
           created: false,
+          note:
+            espStatus === "verified"
+              ? "ESP domain verified — ready to send"
+              : undefined,
         } satisfies EmailDomainAuthPlan;
       })()
     : await buildEmailDomainAuthPlan({
