@@ -31,6 +31,11 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks/dg-discovery",
   "/commerce/checkout/(.*)",
   "/api/webhooks/clerk(.*)",
+  // OAuth provider returns here without a guaranteed Clerk session cookie —
+  // must stay public or protect() → login → /dashboard drops the auth code.
+  "/api/connectors/google/callback",
+  "/api/connectors/domain/callback",
+  "/api/connectors/rea/callback",
 ]);
 
 const PLATFORM_HOSTS = new Set(
