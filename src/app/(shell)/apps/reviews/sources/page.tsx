@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { REVIEW_SOURCE_CONCEPTS } from "@dg/platform-core";
 
+import { GbpReviewSourceCard } from "@/components/reviews/GbpReviewSourceCard";
 import { ReviewsSubnav } from "@/components/reviews/ReviewsSubnav";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
@@ -12,17 +13,35 @@ export default async function ReviewsSourcesPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Review sources</h1>
         <p className="text-sm text-slate-400">
-          Connector Framework slots — Acc live today; other providers planned (not hard-coded
-          vendor pulls)
+          Connector Framework slots — Acc + GBP when connected; other providers planned
         </p>
         <ReviewsSubnav active="/apps/reviews/sources" />
       </header>
       <main className="dg-page-main space-y-4">
         {REVIEW_SOURCE_CONCEPTS.map((source) => {
+          if (source.id === "google_business") {
+            return (
+              <GbpReviewSourceCard
+                key={source.id}
+                description={source.description}
+                connectorHint={source.connectorHint}
+                initial={{
+                  gbpConnected: Boolean(feedStatus.gbpConnected),
+                  gbpLocations: feedStatus.gbpLocations ?? 0,
+                  gbpReviewsCached: feedStatus.gbpReviewsCached ?? 0,
+                  gbpReviewsAvailable: Boolean(feedStatus.gbpReviewsAvailable),
+                  gbpReviewsBlockedReason: feedStatus.gbpReviewsBlockedReason ?? null,
+                  gbpLastSyncAt: feedStatus.gbpLastSyncAt ?? null,
+                }}
+              />
+            );
+          }
+
           const live =
-            source.id === "accommodation_wp" && feedStatus.ok
+            source.id === "accommodation_wp" && feedStatus.accConnected
               ? ("connected" as const)
               : source.status;
+
           return (
             <div key={source.id} className="dg-card flex flex-wrap items-start justify-between gap-4">
               <div>
@@ -65,7 +84,7 @@ export default async function ReviewsSourcesPage() {
           );
         })}
         {!session ? (
-          <p className="text-sm text-slate-500">Sign in to detect live Acc connection status.</p>
+          <p className="text-sm text-slate-500">Sign in to detect live Acc / GBP connection status.</p>
         ) : null}
       </main>
     </>

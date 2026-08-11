@@ -1,6 +1,6 @@
 # Connector Engine
 
-**Status:** Architecture accepted · WordPress + Stripe live · Domain OAuth + Google GBP scaffold · Cotality sandbox (OAuth + Address Match) · Framework booted  
+**Status:** Architecture accepted · WordPress + Stripe live · Domain OAuth + Google GBP OAuth/locations sync · Cotality sandbox (OAuth + Address Match) · Framework booted  
 **Layer:** **Platform Core** (not an industry app)  
 **Positioning:** “Gateway to Your Digital World” — connectors feed Universal Objects → AI + scoring → Insights / Automation / Actions.
 
@@ -174,7 +174,7 @@ Google Business Profile · **ABR** (ABN verify / entity enrichment — **not** r
 |-----------|----------|---------------|------------------------------|
 | **ABR** (`abr`) | business | **Live** (GUID-gated) — SearchByABNv202001 / SearchByASICv201408 | Verify ABN/ACN, enrich entity for Setup + Discovery |
 | **ASIC** (`asic`) | business | Stub — `pending_provider_approval` | AU names/companies registration after DSP approval + test pass |
-| **Google GBP** | business | OAuth scaffold | Digital Identity pillar |
+| **Google GBP** | business | OAuth + locations sync · reviews best-effort | Digital Identity + Reputation |
 | **Dreamscape** | ops / infra | Sandbox-first reseller | Domains / hosting / SSL / mailbox (Infrastructure) |
 
 Profile shape:
@@ -221,4 +221,4 @@ Accommodation OTAs follow the same engine via [ACC-CHANNEL-CONNECTIVITY.md](./AC
 - [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) · [BUSINESS-SETUP.md](./BUSINESS-SETUP.md) (Business Services) · [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md)  
 - [OBSERVABILITY.md](./OBSERVABILITY.md) — connector health  
 - [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) — Country Packs on manifests  
-- Live code today: `connectors/wordpress/`, `commerce/connectors/stripe/`, `connectors/abr/` · scaffolds: Domain, Google GBP, Cotality · stubs: `connectors/asic/`
+- Live code today: `connectors/wordpress/`, `commerce/connectors/stripe/`, `connectors/abr/` · Google GBP OAuth + locations sync · scaffolds: Domain, Cotality · stubs: `connectors/asic/`

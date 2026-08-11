@@ -725,7 +725,7 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
       {
         id: "rev-2",
         title: "Connect sources",
-        description: "Acc WordPress feed is available today; GBP / Meta / ProductReview are Connector slots.",
+        description: "Acc WordPress + Google Business Profile (locations; reviews when API allows); Meta / ProductReview are Connector slots.",
         href: "/apps/reviews/sources",
         hrefLabel: "Review sources",
       },

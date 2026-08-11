@@ -60,6 +60,27 @@ export type OrgGoogleGbpConnectorTokens = {
   connectedAt?: string;
   label?: string;
   lastError?: string;
+  /** Last sync health (accounts / locations / reviews). */
+  health?: {
+    status: "connected" | "degraded" | "error" | "disconnected";
+    lastSyncAt?: string | null;
+    lastError?: string | null;
+    accountCount?: number;
+    locationCount?: number;
+    reviewsSynced?: number;
+    reviewsAvailable?: boolean;
+    reviewsBlockedReason?: string | null;
+    message?: string | null;
+  };
+  accounts?: Array<{
+    name: string;
+    accountName?: string;
+    type?: string;
+    role?: string;
+    verificationState?: string;
+  }>;
+  locations?: Array<Record<string, unknown>>;
+  reviews?: Array<Record<string, unknown>>;
 };
 
 export function getGoogleOAuthConfig():
@@ -258,6 +279,19 @@ export async function getOrgGoogleGbpConnectorTokens(
     connectedAt: typeof blob.connectedAt === "string" ? blob.connectedAt : undefined,
     label: typeof blob.label === "string" ? blob.label : undefined,
     lastError: typeof blob.lastError === "string" ? blob.lastError : undefined,
+    health:
+      blob.health && typeof blob.health === "object"
+        ? (blob.health as OrgGoogleGbpConnectorTokens["health"])
+        : undefined,
+    accounts: Array.isArray(blob.accounts)
+      ? (blob.accounts as OrgGoogleGbpConnectorTokens["accounts"])
+      : undefined,
+    locations: Array.isArray(blob.locations)
+      ? (blob.locations as OrgGoogleGbpConnectorTokens["locations"])
+      : undefined,
+    reviews: Array.isArray(blob.reviews)
+      ? (blob.reviews as OrgGoogleGbpConnectorTokens["reviews"])
+      : undefined,
   };
 }
 
@@ -273,6 +307,10 @@ export async function saveOrgGoogleGbpConnectorTokens(
     connectedAt: tokens.connectedAt ?? new Date().toISOString(),
     label: tokens.label ?? null,
     lastError: tokens.lastError ?? null,
+    health: tokens.health ?? null,
+    accounts: tokens.accounts ?? null,
+    locations: tokens.locations ?? null,
+    reviews: tokens.reviews ?? null,
   });
 }
 

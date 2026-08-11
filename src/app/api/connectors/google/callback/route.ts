@@ -1,6 +1,7 @@
 import {
   exchangeGoogleAuthorizationCode,
   saveOrgGoogleGbpConnectorTokens,
+  syncOrgGoogleGbp,
 } from "@dg/platform-core";
 import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
@@ -70,6 +71,13 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     return fail(err instanceof Error ? err.message : "Failed to save Google tokens");
+  }
+
+  // Best-effort first sync so locations appear immediately after connect
+  try {
+    await syncOrgGoogleGbp(organisationId);
+  } catch {
+    /* sync can be retried from Settings / Reputation sources */
   }
 
   return NextResponse.redirect(

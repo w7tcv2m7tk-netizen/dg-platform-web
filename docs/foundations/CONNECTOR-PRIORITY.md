@@ -144,7 +144,7 @@ The fifteen connectors / provider seats that define Gen 2 focus. Rank = programm
 | 1 | **Stripe** | 1 / 4 | **Live** — platform billing + Commerce |
 | 2 | **ABR** ✅ | 1 | **Live** (GUID-gated) — verify / enrich |
 | 3 | **ASIC** | 1 | **Stub** — apply DSP now; no production submit |
-| 4 | **Google** | 1 / 2 | **GBP OAuth scaffold**; wider Google family planned |
+| 4 | **Google** | 1 / 2 | **GBP OAuth + locations/profile sync**; reviews best-effort into Reputation |
 | 5 | **Dreamscape** | 1 / 10 | Infra adapter — **sandbox-first** until automated tests pass |
 | 6 | **WordPress** | 1 | **Live** production connector |
 | 7 | **Domain** | 1 / 5 | OAuth + Listing Hub path (sandbox → prod) |

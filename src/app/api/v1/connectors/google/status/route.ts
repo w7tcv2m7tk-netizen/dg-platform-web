@@ -1,4 +1,5 @@
 import {
+  getOrgGbpSyncSnapshot,
   getOrgGoogleGbpConnectorTokens,
   googleCredentialsConfigured,
   probeOrgGoogleGbpConnection,
@@ -23,6 +24,10 @@ export async function GET(req: Request) {
     orgProbe = await probeOrgGoogleGbpConnection(session.organisationId);
   }
 
+  const snapshot = connected
+    ? await getOrgGbpSyncSnapshot(session.organisationId)
+    : null;
+
   return NextResponse.json({
     data: {
       platform: {
@@ -41,6 +46,12 @@ export async function GET(req: Request) {
         connectedAt: orgTokens?.connectedAt ?? null,
         scope: orgTokens?.scope ?? null,
         probe: orgProbe,
+        health: snapshot?.health ?? null,
+        accounts: snapshot?.accounts ?? [],
+        locations: snapshot?.locations ?? [],
+        reviewsCached: snapshot?.reviews?.length ?? 0,
+        reviewsAvailable: snapshot?.health?.reviewsAvailable ?? false,
+        reviewsBlockedReason: snapshot?.health?.reviewsBlockedReason ?? null,
       },
     },
   });

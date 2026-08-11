@@ -13,9 +13,11 @@ export default async function ReputationOverviewPage() {
   const { session, feed, feedStatus } = await loadReviewsSessionAndFeed();
   const score = computeReputationScore(feed);
   const themes = await extractReviewThemes(feed);
-  const connectedSources = REVIEW_SOURCE_CONCEPTS.filter((s) =>
-    feedStatus.ok && s.id === "accommodation_wp" ? true : s.status === "connected",
-  );
+  const connectedSources = REVIEW_SOURCE_CONCEPTS.filter((s) => {
+    if (s.id === "accommodation_wp") return Boolean(feedStatus.accConnected);
+    if (s.id === "google_business") return Boolean(feedStatus.gbpConnected);
+    return s.status === "connected";
+  });
 
   return (
     <>
@@ -29,8 +31,9 @@ export default async function ReputationOverviewPage() {
       </header>
       <main className="dg-page-main space-y-6">
         <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3 text-sm text-slate-400">
-          Closed beta: Acc WordPress feed when connected. Google, Meta, ProductReview, Trustpilot,
-          TripAdvisor, and Yelp arrive through the{" "}
+          Closed beta: Acc WordPress and Google Business Profile (locations + reviews when the API
+          allows) when connected. Meta, ProductReview, Trustpilot, TripAdvisor, and Yelp arrive
+          through the{" "}
           <Link href="/dashboard/settings/connectors" className="text-sky-400 hover:underline">
             Connector Framework
           </Link>
@@ -100,7 +103,7 @@ export default async function ReputationOverviewPage() {
                 <p className="text-lg font-medium text-white">No review feed connected yet</p>
                 <p className="mx-auto mt-3 max-w-lg text-sm text-slate-400">
                   Connect a review source to centralise ratings on Contact timelines. Acc WordPress
-                  is available today; other platforms use Connectors.
+                  and Google Business Profile are available today; other platforms use Connectors.
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm">
                   <Link href="/apps/reviews/sources" className="text-sky-400 hover:underline">

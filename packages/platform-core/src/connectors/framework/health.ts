@@ -15,6 +15,7 @@ export type ConnectorCatalogItem = {
     expiresAt?: string | null;
     label?: string | null;
     lastError?: string | null;
+    lastSyncAt?: string | null;
   };
 };
 
@@ -66,6 +67,40 @@ function statusFromBlob(
     };
   }
 
+  if (connectorId === "google-gbp") {
+    const accessToken = typeof blob.accessToken === "string" ? blob.accessToken : "";
+    const refreshToken = typeof blob.refreshToken === "string" ? blob.refreshToken : "";
+    const connected = Boolean(accessToken || refreshToken);
+    const health =
+      blob.health && typeof blob.health === "object"
+        ? (blob.health as {
+            status?: ConnectorConnectionStatus;
+            lastSyncAt?: string | null;
+            lastError?: string | null;
+          })
+        : null;
+    const expiresAt = typeof blob.expiresAt === "string" ? blob.expiresAt : null;
+    let status: ConnectorConnectionStatus = connected ? "connected" : "disconnected";
+    if (health?.status) {
+      status = health.status;
+    } else if (connected && expiresAt) {
+      const ms = Date.parse(expiresAt);
+      if (Number.isFinite(ms) && ms < Date.now()) {
+        status = refreshToken ? "degraded" : "error";
+      }
+    }
+    return {
+      status,
+      connectedAt: typeof blob.connectedAt === "string" ? blob.connectedAt : null,
+      expiresAt,
+      label: typeof blob.label === "string" ? blob.label : null,
+      lastError:
+        (typeof health?.lastError === "string" ? health.lastError : null) ||
+        (typeof blob.lastError === "string" ? blob.lastError : null),
+      lastSyncAt: typeof health?.lastSyncAt === "string" ? health.lastSyncAt : null,
+    };
+  }
+
   const accessToken = typeof blob.accessToken === "string" ? blob.accessToken : "";
   const refreshToken = typeof blob.refreshToken === "string" ? blob.refreshToken : "";
   const connected = Boolean(accessToken || refreshToken);
@@ -114,7 +149,8 @@ export function toConnectorHealth(
     connectorId: item.manifest.id,
     organisationId,
     status: item.organisation.status,
-    lastSyncAt: item.organisation.connectedAt ?? null,
+    lastSyncAt:
+      item.organisation.lastSyncAt ?? item.organisation.connectedAt ?? null,
     lastError: item.organisation.lastError ?? null,
   };
 }

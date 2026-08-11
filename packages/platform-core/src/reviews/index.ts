@@ -49,9 +49,10 @@ export const REVIEW_SOURCE_CONCEPTS: ReviewSourceConcept[] = [
   {
     id: "google_business",
     label: "Google Business Profile",
-    description: "Monitor and respond to Google reviews",
-    status: "planned",
-    connectorHint: "Google Business Profile connector",
+    description:
+      "Locations + profile fields via Google connector; reviews when My Business API allows",
+    status: "available",
+    connectorHint: "Google Business Profile OAuth (business.manage) · Settings → Connectors",
   },
   {
     id: "facebook",
@@ -526,5 +527,32 @@ export function mapWpAccReviewsToFeed(
     sourceUrl: r.source_url ?? null,
     listingId: r.listing_id ?? null,
     responded: false,
+  }));
+}
+
+/** Map cached GBP reviews into Universal Review feed items. */
+export function mapGbpReviewsToFeed(
+  reviews: Array<{
+    reviewId: string;
+    locationName: string;
+    reviewerDisplayName?: string;
+    starRating?: number | null;
+    comment?: string | null;
+    createTime?: string | null;
+    updateTime?: string | null;
+    reviewReplyComment?: string | null;
+  }>,
+): ReviewFeedItem[] {
+  return reviews.map((r) => ({
+    id: `gbp:${r.reviewId}`,
+    source: "Google Business Profile",
+    authorName: r.reviewerDisplayName ?? null,
+    rating: r.starRating ?? null,
+    title: null,
+    content: r.comment ?? null,
+    reviewDate: r.createTime ?? r.updateTime ?? null,
+    sourceUrl: null,
+    listingId: r.locationName,
+    responded: Boolean(r.reviewReplyComment?.trim()),
   }));
 }
