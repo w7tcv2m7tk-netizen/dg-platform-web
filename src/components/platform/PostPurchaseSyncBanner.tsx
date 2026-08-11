@@ -35,9 +35,19 @@ export function PostPurchaseSyncBanner() {
 
   if (!shouldSync) return null;
 
+  const checkoutSuccess = searchParams.get("checkout") === "success";
+
   return (
     <div className="mb-6 rounded-xl border border-emerald-500/30 bg-emerald-950/20 px-4 py-3 text-sm text-emerald-100">
-      {loading ? "Syncing your purchase from DigitalGate…" : message ?? "Checking your purchase…"}
+      {loading
+        ? "Syncing your purchase from DigitalGate…"
+        : message ?? "Checking your purchase…"}
+      {checkoutSuccess && !loading ? (
+        <span className="mt-1 block text-emerald-200/90">
+          Checkout succeeded — Stripe customer should now be linked for invoices and the Customer
+          Portal.
+        </span>
+      ) : null}
     </div>
   );
 }

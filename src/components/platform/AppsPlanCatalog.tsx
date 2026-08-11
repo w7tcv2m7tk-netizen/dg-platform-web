@@ -300,6 +300,12 @@ export function AppsPlanCatalog() {
           >
             New customer signup
           </Link>
+          <Link
+            href="/dashboard/settings/billing"
+            className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:border-slate-500"
+          >
+            Billing & Customer Portal
+          </Link>
           <a
             href={PRICING_PAGE_URL}
             target="_blank"
@@ -309,6 +315,11 @@ export function AppsPlanCatalog() {
             View pricing & checkout ↗
           </a>
         </div>
+        <p className="mt-3 text-xs text-slate-500">
+          Founding Customers get preferential pricing toward Starter / Pro / Business when converting
+          — not a beta seat. Applying a tier here only updates your sidebar preview until checkout or
+          purchase sync.
+        </p>
       </section>
 
       <section id="platform-apps" className="scroll-mt-24">

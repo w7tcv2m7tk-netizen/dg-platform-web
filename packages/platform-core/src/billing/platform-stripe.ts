@@ -101,7 +101,9 @@ export async function createBillingPortalSession(
   });
 
   if (!org?.billingCustomerId) {
-    throw new Error("No Stripe customer on file — complete checkout first");
+    throw new Error(
+      "No Stripe customer on file yet. Complete checkout (or sync a purchase) before opening the Customer Portal — plan previews do not create a customer.",
+    );
   }
 
   const session = await stripe.billingPortal.sessions.create({
