@@ -77,21 +77,22 @@ export function mapGbpStarRating(raw: unknown): number | null {
 export function parseGbpAccounts(data: unknown): GbpAccountSummary[] {
   const root = asRecord(data);
   const list = root && Array.isArray(root.accounts) ? root.accounts : [];
-  return list
-    .map((item) => {
-      const a = asRecord(item);
-      if (!a) return null;
-      const name = asString(a.name);
-      if (!name) return null;
-      return {
-        name,
-        accountName: asString(a.accountName),
-        type: asString(a.type),
-        role: asString(a.role),
-        verificationState: asString(a.verificationState),
-      } satisfies GbpAccountSummary;
-    })
-    .filter((x): x is GbpAccountSummary => Boolean(x));
+  return list.flatMap((item) => {
+    const a = asRecord(item);
+    if (!a) return [];
+    const name = asString(a.name);
+    if (!name) return [];
+    const summary: GbpAccountSummary = { name };
+    const accountName = asString(a.accountName);
+    const type = asString(a.type);
+    const role = asString(a.role);
+    const verificationState = asString(a.verificationState);
+    if (accountName) summary.accountName = accountName;
+    if (type) summary.type = type;
+    if (role) summary.role = role;
+    if (verificationState) summary.verificationState = verificationState;
+    return [summary];
+  });
 }
 
 export function parseGbpLocation(raw: unknown): GbpLocationSummary | null {
@@ -138,9 +139,10 @@ export function parseGbpLocation(raw: unknown): GbpLocationSummary | null {
 export function parseGbpLocations(data: unknown): GbpLocationSummary[] {
   const root = asRecord(data);
   const list = root && Array.isArray(root.locations) ? root.locations : [];
-  return list
-    .map((item) => parseGbpLocation(item))
-    .filter((x): x is GbpLocationSummary => Boolean(x));
+  return list.flatMap((item) => {
+    const loc = parseGbpLocation(item);
+    return loc ? [loc] : [];
+  });
 }
 
 export function parseGbpReviews(
@@ -149,28 +151,28 @@ export function parseGbpReviews(
 ): GbpReviewCacheItem[] {
   const root = asRecord(data);
   const list = root && Array.isArray(root.reviews) ? root.reviews : [];
-  return list
-    .map((item) => {
-      const r = asRecord(item);
-      if (!r) return null;
-      const name = asString(r.name);
-      if (!name) return null;
-      const reviewer = asRecord(r.reviewer);
-      const reply = asRecord(r.reviewReply);
-      const reviewId = name.split("/").pop() || name;
-      return {
-        reviewId,
-        name,
-        locationName,
-        reviewerDisplayName: asString(reviewer?.displayName),
-        starRating: mapGbpStarRating(r.starRating),
-        comment: asString(r.comment) ?? null,
-        createTime: asString(r.createTime) ?? null,
-        updateTime: asString(r.updateTime) ?? null,
-        reviewReplyComment: asString(reply?.comment) ?? null,
-      } satisfies GbpReviewCacheItem;
-    })
-    .filter((x): x is GbpReviewCacheItem => Boolean(x));
+  return list.flatMap((item) => {
+    const r = asRecord(item);
+    if (!r) return [];
+    const name = asString(r.name);
+    if (!name) return [];
+    const reviewer = asRecord(r.reviewer);
+    const reply = asRecord(r.reviewReply);
+    const reviewId = name.split("/").pop() || name;
+    const row: GbpReviewCacheItem = {
+      reviewId,
+      name,
+      locationName,
+      starRating: mapGbpStarRating(r.starRating),
+      comment: asString(r.comment) ?? null,
+      createTime: asString(r.createTime) ?? null,
+      updateTime: asString(r.updateTime) ?? null,
+      reviewReplyComment: asString(reply?.comment) ?? null,
+    };
+    const reviewerDisplayName = asString(reviewer?.displayName);
+    if (reviewerDisplayName) row.reviewerDisplayName = reviewerDisplayName;
+    return [row];
+  });
 }
 
 /** Business Information returns `locations/{id}`; reviews v4 needs `accounts/{a}/locations/{id}`. */
