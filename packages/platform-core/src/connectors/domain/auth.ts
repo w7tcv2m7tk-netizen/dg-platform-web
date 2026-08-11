@@ -605,6 +605,50 @@ function parseDomainAgenciesPayload(data: unknown): DomainOrgAgencySummary[] {
 }
 
 /**
+ * Actionable hint when org OAuth works but Listings Management identity probe fails.
+ * Keep status red — do not treat Token OK as healthy syndication.
+ */
+function buildOrgApiProbeFailureHint(input: {
+  status: number;
+  path: string;
+  securityReason?: string | null;
+  scope?: string;
+  apiPathPrefix: string;
+}): string {
+  const parts: string[] = [];
+  if (input.securityReason) {
+    parts.push(`X-Domain-Security-Reason: ${input.securityReason}.`);
+  }
+
+  const onSandbox =
+    input.path.includes("/sandbox/") || input.apiPathPrefix.includes("sandbox");
+
+  if (input.status === 403 && !onSandbox) {
+    parts.push(
+      "Probe hit Primary (no DOMAIN_API_PATH_PREFIX). Listings Management — Sandbox only authorises /sandbox/v1/… — set DOMAIN_API_PATH_PREFIX=/sandbox on Vercel, redeploy, then Reconnect. Primary/Live needs Listings Management — Production + api@domain.com.au.",
+    );
+  } else if (input.status === 403 && onSandbox) {
+    parts.push(
+      "Confirm developer.domain.com.au → API Access has Listings Management — Sandbox (not only Agents & Listings), credential scopes include api_listings_read (+ write for publish), then Reconnect.",
+    );
+  } else {
+    parts.push(
+      "Check Domain portal: Listings Management package + auth-code scopes, then reconnect.",
+    );
+  }
+
+  if (input.scope) {
+    parts.push(`Current token scopes: ${input.scope}.`);
+  } else {
+    parts.push(
+      "Token has no stored scope string — reconnect so consent includes openid offline_access api_listings_read api_listings_write api_agencies_read api_agencies_write.",
+    );
+  }
+
+  return ` ${parts.join(" ")}`;
+}
+
+/**
  * Org-token probe against Listings Management identity endpoints.
  * Uses GET /v1/me (then /v1/me/agencies) — not Agents & Listings GET /v1/agencies.
  */
@@ -616,11 +660,18 @@ export async function probeOrgDomainConnection(
     return { ok: false, connected: false, tokenOk: false, message: ensured.message };
   }
 
+  const cfg = getDomainOAuthConfig();
+  const apiPathPrefix = cfg.ok ? cfg.config.apiPathPrefix : "";
+
   const me = await domainApiGet(DOMAIN_ORG_PROBE_PATH, ensured.accessToken);
   if (!me.ok) {
-    const hint = me.securityReason
-      ? ` Check Domain portal scopes / Listings Management package (${me.securityReason}).`
-      : " Check Domain portal: Listings Management package + auth-code scopes, then reconnect.";
+    const hint = buildOrgApiProbeFailureHint({
+      status: me.status,
+      path: me.path,
+      securityReason: me.securityReason,
+      scope: ensured.tokens.scope,
+      apiPathPrefix,
+    });
     return {
       ok: false,
       connected: true,
@@ -631,7 +682,7 @@ export async function probeOrgDomainConnection(
       scope: ensured.tokens.scope,
       securityReason: me.securityReason,
       domainAgencyId: ensured.tokens.domainAgencyId ?? null,
-      message: `Token OK · API probe (${me.path}): ${me.message}.${hint}`,
+      message: `OAuth token valid · Listings API denied (${me.path}): ${me.message}.${hint}`,
     };
   }
 

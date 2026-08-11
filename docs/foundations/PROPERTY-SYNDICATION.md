@@ -67,7 +67,7 @@ Client URL / logo on the Domain project (marketing only): `https://app.digitalga
    `openid offline_access api_listings_read api_listings_write api_agencies_read api_agencies_write`  
    (reconnect org after changing scopes).
 6. Confirm **API Access** includes Listings Management — **not** only Agents & Listings. A 403 on `/v1/agencies` with Token OK usually means wrong product package; use `/v1/me` instead.
-7. For a 403 that still appears on `/v1/me`: check Domain response / `X-Domain-Security-Reason` (Missing Required Scope · plan · sandbox vs Primary · agency consent).
+7. For a 403 that still appears on `/v1/me` **without** `/sandbox`: you are on **Primary**. Either set `DOMAIN_API_PATH_PREFIX=/sandbox` (Sandbox package) or obtain **Listings Management — Production**. Check `X-Domain-Security-Reason` when present.
 8. Email **api@domain.com.au** to activate Listings Management on the developer org if the package is missing; later request **Listings Management — Production** + principal-agent approval per live agency.
 
 ### Add to project
@@ -127,7 +127,8 @@ Do not overcomplicate the first integration.
 | Symptom | Likely cause | Action |
 |---------|--------------|--------|
 | Connect fails / redirect mismatch | Portal redirect URI lag or typo | Wait ~10 min; exact URI match |
-| Token OK · `/v1/me` 403 | Wrong package or missing scope | Add Listings Management Sandbox; reconnect with write scopes |
+| OAuth token valid · `/v1/me` 403 (no `/sandbox`) | Hitting **Primary** while project only has **Listings Management — Sandbox** | Set Vercel `DOMAIN_API_PATH_PREFIX=/sandbox`, redeploy, **Reconnect**. Primary needs Listings Management — Production + `api@domain.com.au` |
+| OAuth token valid · `/sandbox/v1/me` 403 | Missing Sandbox package and/or consent scopes | API Access → Listings Management — Sandbox; scopes `openid offline_access api_listings_* api_agencies_*`; reconnect |
 | Probe used `/v1/agencies` historically | Agents & Listings product | Already fixed to `/v1/me` — refresh deploy |
 | Publish 403 Missing Required Scope | Consent without `api_listings_write` | Reconnect after portal scope update |
 | No agencies + not sandbox | Production without agency auth | api@domain.com.au + principal approval; or use sandbox prefix |

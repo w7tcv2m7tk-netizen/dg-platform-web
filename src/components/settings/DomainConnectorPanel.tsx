@@ -145,11 +145,16 @@ export function DomainConnectorPanel({
           <li className="font-mono text-xs text-slate-500">
             Redirect: {platform.redirectUri}
           </li>
-          {platform.apiPathPrefix ? (
             <li className="font-mono text-xs text-slate-500">
-              API path prefix: {platform.apiPathPrefix}
+            API path prefix:{" "}
+            {platform.apiPathPrefix ? (
+              platform.apiPathPrefix
+            ) : (
+              <span className="text-amber-400">
+                (none — Primary /v1/…). For Sandbox package set DOMAIN_API_PATH_PREFIX=/sandbox
+              </span>
+            )}
             </li>
-          ) : null}
           {platform.probe ? (
             <li>
               Client-credentials probe:{" "}
@@ -178,6 +183,10 @@ export function DomainConnectorPanel({
               </li>
               {org.scope ? (
                 <li className="font-mono text-xs text-slate-500">Org token scopes: {org.scope}</li>
+              ) : org.connected ? (
+                <li className="text-xs text-amber-400">
+                  Org token scopes: (none stored) — reconnect after confirming portal scopes
+                </li>
               ) : null}
               {org.domainAgencyId ? (
                 <li className="font-mono text-xs text-slate-500">
@@ -202,6 +211,12 @@ export function DomainConnectorPanel({
                   {org.probe.securityReason ? (
                     <span className="mt-1 block text-xs text-amber-500">
                       X-Domain-Security-Reason: {org.probe.securityReason}
+                    </span>
+                  ) : null}
+                  {org.probe.apiOk === false ? (
+                    <span className="mt-2 block text-xs text-slate-400">
+                      OAuth connected ≠ authorised for Listings Management. Fix portal package /
+                      env prefix / scopes, then use Reconnect (do not treat as green).
                     </span>
                   ) : null}
                 </li>
