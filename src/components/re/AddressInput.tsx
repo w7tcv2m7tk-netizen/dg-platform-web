@@ -93,7 +93,10 @@ export function AddressInput({
 
     applyResolved(data);
 
-    if (data.confidence === "geocoded") {
+    const cotalityId = data.metadata?.corelogic_property_id;
+    if (cotalityId != null && cotalityId !== "") {
+      setMessage(`Address refined · Cotality id ${String(cotalityId)}`);
+    } else if (data.confidence === "geocoded") {
       setMessage(
         data.geocodeSource === "google"
           ? "Address found via Google"

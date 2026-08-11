@@ -7,15 +7,18 @@ import {
   getContact,
   getLead,
   getProperty,
+  getPropertyCotalityId,
   listLeads,
   listPropertyActivities,
   listPropertyOffers,
 } from "@dg/platform-core";
 
+import { CotalityMatchPanel } from "@/components/re/CotalityMatchPanel";
 import { PropertyContractPanel } from "@/components/re/PropertyContractPanel";
 import { PropertyOffersPanel } from "@/components/re/PropertyOffersPanel";
 import { PropertyListingEditor } from "@/components/re/PropertyListingEditor";
 import { PublishToWebsiteButton } from "@/components/re/PublishToWebsiteButton";
+import { DomainSyndicationPanel } from "@/components/re/DomainSyndicationPanel";
 
 import { PropertyStatusSelect } from "@/components/re/PropertyStatusSelect";
 import { RefreshAddressButton } from "@/components/re/RefreshAddressButton";
@@ -86,8 +89,31 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
   const fullAddress = formatPropertyAddress(property);
   const formattedAddress = property.metadata?.formatted_address as string | undefined;
+  const cotalityPropertyId = getPropertyCotalityId(property);
+  const cotalityMatchType =
+    typeof property.metadata?.corelogic_match_type === "string"
+      ? property.metadata.corelogic_match_type
+      : null;
+  const cotalityMatchedAddress =
+    typeof property.metadata?.corelogic_matched_address === "string"
+      ? property.metadata.corelogic_matched_address
+      : null;
   const wpPermalink = property.externalRefs?.wp_property_permalink as string | undefined;
   const wpPropertyId = property.externalRefs?.wp_property_id as number | string | undefined;
+  const domainPlacement =
+    property.externalRefs?.domain && typeof property.externalRefs.domain === "object"
+      ? (property.externalRefs.domain as {
+          channel?: string;
+          status?: string;
+          providerAdId?: string;
+          domainAgencyId?: number;
+          processId?: string | null;
+          processStatus?: string | null;
+          lastSyncedAt?: string | null;
+          lastError?: string | null;
+          path?: string | null;
+        })
+      : null;
   const marketing =
     (property.metadata?.marketing as Record<string, unknown> | undefined) ?? {};
   const images = Array.isArray(property.metadata?.images)
@@ -156,6 +182,19 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               </div>
             </div>
 
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">Domain syndication</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Publish to Domain.com.au via Listings Management (sandbox or production path).
+              </p>
+              <div className="mt-4">
+                <DomainSyndicationPanel
+                  propertyId={property.id}
+                  placement={domainPlacement}
+                />
+              </div>
+            </div>
+
             <PropertyListingEditor
               propertyId={property.id}
               listingPriceCents={property.listingPriceCents}
@@ -183,6 +222,12 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               <div className="mt-4">
                 <RefreshAddressButton propertyId={property.id} />
               </div>
+              <CotalityMatchPanel
+                propertyId={property.id}
+                cotalityPropertyId={cotalityPropertyId}
+                matchType={cotalityMatchType}
+                matchedAddress={cotalityMatchedAddress}
+              />
             </div>
 
             {lead ? (

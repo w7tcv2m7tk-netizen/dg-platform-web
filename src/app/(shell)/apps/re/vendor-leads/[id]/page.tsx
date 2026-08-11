@@ -74,6 +74,14 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
   const metaEmail = lead.metadata?.email as string | undefined;
   const metaPhone = lead.metadata?.phone as string | undefined;
   const wpId = lead.externalRefs?.wp_vendor_lead_id as number | undefined;
+  const leadCotalityId =
+    lead.metadata?.corelogic_property_id != null &&
+    lead.metadata.corelogic_property_id !== ""
+      ? lead.metadata.corelogic_property_id
+      : property
+        ? (property.externalRefs?.corelogic_property_id ??
+          property.metadata?.corelogic_property_id)
+        : null;
 
   return (
     <>
@@ -118,6 +126,11 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
                   <p className="text-sm text-slate-400">
                     {property.suburb} {property.state} · {property.status}
                   </p>
+                  {leadCotalityId != null ? (
+                    <p className="mt-1 font-mono text-xs text-slate-500">
+                      Cotality id {String(leadCotalityId)}
+                    </p>
+                  ) : null}
                   <Link
                     href={`/apps/re/properties/${property.id}`}
                     className="mt-3 inline-block text-sm text-blue-400 hover:underline"
@@ -130,6 +143,11 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
                   <p className="text-sm text-slate-400">
                     Create a property record to start the appraisal workflow.
                   </p>
+                  {leadCotalityId != null ? (
+                    <p className="mt-2 font-mono text-xs text-slate-500">
+                      Address already matched · Cotality id {String(leadCotalityId)}
+                    </p>
+                  ) : null}
                   <div className="mt-3">
                     <StartAppraisalButton leadId={lead.id} />
                   </div>

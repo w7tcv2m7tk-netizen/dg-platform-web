@@ -33,10 +33,25 @@ Aliases: prefer `CORELOGIC_*` (not `COTALITY_*`) for consistency with existing D
 | OAuth2 token | **Live** | `POST` token URL, HTTP Basic, `grant_type=client_credentials`; in-memory cache until near expiry |
 | Address Match | **Live** | `GET {searchBase}/au/matcher/address?q=&clientName=&matchProfileId=` |
 | Address resolve enrichment | **Live** | `/api/v1/addresses/resolve` — optional when credentials present; `corelogic: false` skips |
+| Property create / geocode | **Live** | `createProperty` / address refresh call `resolveAddress` → persist Cotality id |
+| Property match action | **Live** | `PATCH /api/v1/properties/:id` `{ action: "match_cotality" }` |
 | Status probe | **Live** | `GET /api/v1/connectors/corelogic/status` (auth) |
 | Direct match API | **Live** | `POST /api/v1/connectors/corelogic/address-match` (auth) |
 
-Code: `packages/platform-core/src/connectors/corelogic/`
+Code: `packages/platform-core/src/connectors/corelogic/` + `packages/platform-core/src/properties/`
+
+### Property storage
+
+| Field | Location | Notes |
+|-------|----------|--------|
+| `corelogic_property_id` | `Property.externalRefs` **and** `Property.metadata` | Canonical Cotality property id for later AVM |
+| `corelogic_match_type` | `Property.metadata` | E/A/P/F/… from Address Match |
+| `corelogic_matched_address` | `Property.metadata` | Cotality single-line when returned |
+| `corelogic_source` | `Property.metadata` / lead metadata | Usually `address_match` |
+
+Vendor / public capture already enrich lead metadata via `resolveAddress` → `enrichLeadAddressMetadata`. Appraisal (`createPropertyFromLead`) carries lead Cotality fields and re-resolves on create.
+
+**Never invent AVM values.** Address Match only until IntelliVal is wired.
 
 ---
 
@@ -84,9 +99,12 @@ PropTrack remains on hold (no inventing). This connector is real Cotality sandbo
 
 ---
 
-## Smoke checklist
+## Smoke checklist (needs `CORELOGIC_CLIENT_SECRET`)
 
 1. Set `CORELOGIC_CLIENT_ID` + `CORELOGIC_CLIENT_SECRET` in `.env.local` (secret never in git).
 2. `GET /api/v1/connectors/corelogic/status` → `tokenOk: true`.
 3. `POST /api/v1/connectors/corelogic/address-match` with a public AU sample address → `propertyId` or honest non-match.
 4. `POST /api/v1/addresses/resolve` with same address → `metadata.corelogic_property_id` when matched.
+5. Create an RE property (UI or `POST /api/v1/properties`) with that address → property has `externalRefs.corelogic_property_id` + `metadata.corelogic_property_id`.
+6. Open property detail → Cotality panel shows matched id; if unmatched, use **Match with Cotality** (`PATCH` `{ action: "match_cotality" }`).
+7. Optional prospecting: vendor lead with resolved address shows Cotality id; Start appraisal carries it onto the property.

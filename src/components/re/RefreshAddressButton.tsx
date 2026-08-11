@@ -30,7 +30,11 @@ export function RefreshAddressButton({ propertyId }: { propertyId: string }) {
 
     const confidence = json?.data?.metadata?.address_confidence;
     const source = json?.data?.metadata?.geocode_source;
-    if (confidence === "geocoded") {
+    const cotalityId = json?.data?.metadata?.corelogic_property_id ??
+      json?.data?.externalRefs?.corelogic_property_id;
+    if (cotalityId != null && cotalityId !== "") {
+      setMessage(`Address updated · Cotality id ${String(cotalityId)}`);
+    } else if (confidence === "geocoded") {
       setMessage(
         source === "google"
           ? "Address found via Google"

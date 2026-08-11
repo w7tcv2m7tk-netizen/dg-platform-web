@@ -2,6 +2,7 @@ import {
   geocodePropertyAddress,
   getProperty,
   listPropertyActivities,
+  matchPropertyWithCotality,
   PROPERTY_STATUSES,
   publishPropertyToWordPress,
   updatePropertyListing,
@@ -88,6 +89,36 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     return NextResponse.json({ data: updated });
   }
 
+  if (body?.action === "match_cotality") {
+    const result = await matchPropertyWithCotality(
+      session.organisationId,
+      id,
+      session.clerkUserId,
+    );
+
+    if (!result.ok) {
+      const status =
+        result.reason === "not_found"
+          ? 404
+          : result.reason === "not_configured"
+            ? 503
+            : 502;
+      return NextResponse.json(
+        { error: { code: result.reason, message: result.message } },
+        { status },
+      );
+    }
+
+    return NextResponse.json({
+      data: result.property,
+      meta: {
+        matched: result.matched,
+        cotalityPropertyId: result.cotalityPropertyId,
+        ...(result.message ? { message: result.message } : {}),
+      },
+    });
+  }
+
   const status = body?.status as PropertyStatus | undefined;
   const listingPriceCents = body?.listingPriceCents as number | null | undefined;
   const marketing = body?.marketing as Record<string, unknown> | undefined;
@@ -132,7 +163,16 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     return NextResponse.json({ data: property });
   }
 
-  if (listingPriceCents !== undefined || marketing || body?.images || body?.propertyType !== undefined || body?.bedrooms !== undefined || body?.bathrooms !== undefined || body?.details || body?.inspectionTimes !== undefined) {
+  if (
+    listingPriceCents !== undefined ||
+    marketing ||
+    body?.images ||
+    body?.propertyType !== undefined ||
+    body?.bedrooms !== undefined ||
+    body?.bathrooms !== undefined ||
+    body?.details ||
+    body?.inspectionTimes !== undefined
+  ) {
     const details = (body?.details as Record<string, unknown> | undefined) ?? {};
     const updated = await updatePropertyListing(
       session.organisationId,

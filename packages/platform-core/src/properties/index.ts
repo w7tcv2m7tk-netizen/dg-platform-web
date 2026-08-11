@@ -9,13 +9,50 @@ import {
   addressMetadataFromParsed,
   resolveAddress,
   shouldAutoResolveAddress,
+  type ResolvedAddressPayload,
 } from "../addresses";
+import {
+  coreLogicCredentialsConfigured,
+  coreLogicMatchToAddressMetadata,
+  isCoreLogicPropertyMatch,
+  matchCoreLogicAddress,
+} from "../connectors/corelogic";
 import { parsePropertyAddress, resolvePropertyAddress } from "./address";
 
 export { parsePropertyAddress, needsAddressRefinement, resolvePropertyAddress } from "./address";
 export type { ParsedPropertyAddress } from "./address";
 export { geocodeAustralianAddress, isGeocodingConfigured } from "./geocode";
 export type { GeocodeResult } from "./geocode";
+
+/** Cotality / CoreLogic property id from externalRefs (preferred) or metadata. */
+export function getPropertyCotalityId(property: {
+  metadata?: Record<string, unknown> | null;
+  externalRefs?: Record<string, unknown> | null;
+}): string | number | null {
+  const fromRefs = property.externalRefs?.corelogic_property_id;
+  if (fromRefs != null && fromRefs !== "") return fromRefs as string | number;
+  const fromMeta = property.metadata?.corelogic_property_id;
+  if (fromMeta != null && fromMeta !== "") return fromMeta as string | number;
+  return null;
+}
+
+function mergeCotalityIntoPropertyData(
+  existingMeta: Record<string, unknown> | null | undefined,
+  existingRefs: Record<string, unknown> | null | undefined,
+  cotalityMeta: Record<string, unknown>,
+): {
+  metadata: Record<string, unknown>;
+  externalRefs: Record<string, unknown>;
+} {
+  const metadata = { ...(existingMeta ?? {}), ...cotalityMeta };
+  const externalRefs = { ...(existingRefs ?? {}) };
+  const id = cotalityMeta.corelogic_property_id;
+  if (id != null && id !== "") {
+    externalRefs.corelogic_property_id = id;
+    metadata.corelogic_property_id = id;
+  }
+  return { metadata, externalRefs };
+}
 
 export const PROPERTY_STATUSES = [
   "prospect",
@@ -170,6 +207,13 @@ export async function createProperty(input: CreatePropertyInput) {
   const { prisma } = await import("@dg/database");
   const resolvedInput = await mergeResolvedAddress(input);
 
+  const meta = resolvedInput.metadata ?? {};
+  const cotalityId = meta.corelogic_property_id;
+  const externalRefs =
+    cotalityId != null && cotalityId !== ""
+      ? ({ corelogic_property_id: cotalityId } as Record<string, unknown>)
+      : undefined;
+
   const property = await prisma.property.create({
     data: {
       organisationId: resolvedInput.organisationId,
@@ -187,7 +231,10 @@ export async function createProperty(input: CreatePropertyInput) {
       leadId: resolvedInput.leadId,
       listingPriceCents: resolvedInput.listingPriceCents,
       currency: resolvedInput.currency ?? "AUD",
-      metadata: resolvedInput.metadata as Prisma.InputJsonValue,
+      metadata: meta as Prisma.InputJsonValue,
+      ...(externalRefs
+        ? { externalRefs: externalRefs as Prisma.InputJsonValue }
+        : {}),
     },
   });
 
@@ -231,7 +278,7 @@ export async function createProperty(input: CreatePropertyInput) {
 async function applyResolvedAddressToProperty(
   organisationId: string,
   propertyId: string,
-  parsed: Awaited<ReturnType<typeof resolvePropertyAddress>>,
+  resolved: ResolvedAddressPayload,
   actorId?: string,
   activityTitle = "Property address updated",
 ) {
@@ -242,19 +289,25 @@ async function applyResolvedAddressToProperty(
   });
   if (!property) return null;
 
+  const { metadata, externalRefs } = mergeCotalityIntoPropertyData(
+    {
+      ...((property.metadata as Record<string, unknown> | null) ?? {}),
+      ...resolved.metadata,
+      address_refreshed_at: new Date().toISOString(),
+    },
+    (property.externalRefs as Record<string, unknown> | null) ?? {},
+    resolved.metadata,
+  );
+
   const updated = await prisma.property.update({
     where: { id: propertyId },
     data: {
-      addressLine1: parsed.addressLine1,
-      suburb: parsed.suburb,
-      state: parsed.state,
-      postcode: parsed.postcode,
-      metadata: {
-        ...((property.metadata as Record<string, unknown> | null) ?? {}),
-        ...addressMetadataFromParsed(parsed, {
-          address_refreshed_at: new Date().toISOString(),
-        }),
-      } as Prisma.InputJsonValue,
+      addressLine1: resolved.addressLine1,
+      suburb: resolved.suburb,
+      state: resolved.state,
+      postcode: resolved.postcode,
+      metadata: metadata as Prisma.InputJsonValue,
+      externalRefs: externalRefs as Prisma.InputJsonValue,
     },
   });
 
@@ -269,8 +322,9 @@ async function applyResolvedAddressToProperty(
       sourceApp: "real-estate",
       createdBy: actorId,
       metadata: {
-        geocode_source: parsed.geocodeSource ?? null,
-        address_confidence: parsed.confidence,
+        geocode_source: resolved.geocodeSource ?? null,
+        address_confidence: resolved.confidence,
+        corelogic_property_id: metadata.corelogic_property_id ?? null,
       } as Prisma.InputJsonValue,
     },
   });
@@ -304,6 +358,19 @@ export async function createPropertyFromLead(input: CreatePropertyFromLeadInput)
 
   const parsed = await resolvePropertyAddress(rawAddress, { geocode: true });
 
+  const leadCotality: Record<string, unknown> = {};
+  if (metadata.corelogic_property_id != null && metadata.corelogic_property_id !== "") {
+    leadCotality.corelogic_property_id = metadata.corelogic_property_id;
+    if (metadata.corelogic_match_type != null) {
+      leadCotality.corelogic_match_type = metadata.corelogic_match_type;
+    }
+    if (metadata.corelogic_matched_address != null) {
+      leadCotality.corelogic_matched_address = metadata.corelogic_matched_address;
+    }
+    leadCotality.corelogic_source =
+      metadata.corelogic_source ?? "lead_address_match";
+  }
+
   const property = await createProperty({
     organisationId: input.organisationId,
     actorId: input.actorId,
@@ -326,7 +393,10 @@ export async function createPropertyFromLead(input: CreatePropertyFromLeadInput)
     status: "appraisal",
     ownerContactId: lead.contactId ?? undefined,
     leadId: lead.id,
-    metadata: addressMetadataFromParsed(parsed, { source_lead_id: lead.id }),
+    metadata: addressMetadataFromParsed(parsed, {
+      source_lead_id: lead.id,
+      ...leadCotality,
+    }),
   });
 
   const leadMetadata = (lead.metadata as Record<string, unknown> | null) ?? {};
@@ -378,18 +448,18 @@ export async function refreshPropertyAddressFromLead(
   const metadata = (lead.metadata as Record<string, unknown> | null) ?? {};
   const rawAddress =
     (metadata.property_address as string | undefined) ?? lead.title ?? property.addressLine1;
-  const parsed = await resolvePropertyAddress(rawAddress, { geocode: true });
+  const resolved = await resolveAddress(rawAddress, { geocode: true });
 
   return applyResolvedAddressToProperty(
     organisationId,
     propertyId,
-    parsed,
+    resolved,
     actorId,
     "Property address refined",
   );
 }
 
-/** Force geocode lookup for a property address */
+/** Force geocode + optional Cotality Address Match for a property address */
 export async function geocodePropertyAddress(
   organisationId: string,
   propertyId: string,
@@ -402,7 +472,7 @@ export async function geocodePropertyAddress(
   });
   if (!property) return null;
 
-  let rawAddress = property.addressLine1;
+  let rawAddress = formatPropertyAddress(property);
   if (property.leadId) {
     const lead = await prisma.lead.findFirst({
       where: { id: property.leadId, organisationId },
@@ -411,19 +481,123 @@ export async function geocodePropertyAddress(
     rawAddress =
       (leadMeta.property_address as string | undefined) ??
       lead?.title ??
-      property.addressLine1;
+      formatPropertyAddress(property);
   }
 
-  const parsed = await resolvePropertyAddress(rawAddress, { forceGeocode: true });
+  const resolved = await resolveAddress(rawAddress, { forceGeocode: true });
   return applyResolvedAddressToProperty(
     organisationId,
     propertyId,
-    parsed,
+    resolved,
     actorId,
-    parsed.confidence === "geocoded"
+    resolved.confidence === "geocoded"
       ? "Address found automatically"
       : "Address lookup attempted",
   );
+}
+
+export async function matchPropertyWithCotality(
+  organisationId: string,
+  propertyId: string,
+  actorId?: string,
+): Promise<
+  | {
+      ok: true;
+      property: ReturnType<typeof serializeProperty>;
+      matched: boolean;
+      cotalityPropertyId: string | number | null;
+      message?: string;
+    }
+  | { ok: false; reason: "not_found" | "not_configured" | "upstream_error"; message: string }
+> {
+  const { prisma } = await import("@dg/database");
+
+  if (!coreLogicCredentialsConfigured()) {
+    return {
+      ok: false,
+      reason: "not_configured",
+      message: "CORELOGIC_CLIENT_ID / CORELOGIC_CLIENT_SECRET not configured",
+    };
+  }
+
+  const property = await prisma.property.findFirst({
+    where: { id: propertyId, organisationId, deletedAt: null },
+  });
+  if (!property) {
+    return { ok: false, reason: "not_found", message: "Property not found" };
+  }
+
+  const query = formatPropertyAddress(property);
+  const result = await matchCoreLogicAddress(query);
+
+  if (!result.ok) {
+    return {
+      ok: false,
+      reason: result.status === 503 ? "not_configured" : "upstream_error",
+      message: result.message,
+    };
+  }
+
+  const matched = isCoreLogicPropertyMatch(result.match);
+  const cotalityMeta: Record<string, unknown> = matched
+    ? {
+        ...coreLogicMatchToAddressMetadata(result.match),
+        corelogic_matched_at: new Date().toISOString(),
+      }
+    : {
+        corelogic_source: "address_match",
+        corelogic_match_type: result.match.matchType ?? "N",
+        corelogic_matched_at: new Date().toISOString(),
+      };
+
+  const { metadata, externalRefs } = mergeCotalityIntoPropertyData(
+    (property.metadata as Record<string, unknown> | null) ?? {},
+    (property.externalRefs as Record<string, unknown> | null) ?? {},
+    cotalityMeta,
+  );
+
+  // Clear stale id on honest non-match
+  if (!matched) {
+    delete metadata.corelogic_property_id;
+    delete externalRefs.corelogic_property_id;
+  }
+
+  const updated = await prisma.property.update({
+    where: { id: propertyId },
+    data: {
+      metadata: metadata as Prisma.InputJsonValue,
+      externalRefs: externalRefs as Prisma.InputJsonValue,
+    },
+  });
+
+  await prisma.activity.create({
+    data: {
+      organisationId,
+      entityType: "Property",
+      entityId: propertyId,
+      activityType: matched ? "cotality_matched" : "cotality_no_match",
+      title: matched ? "Matched with Cotality" : "Cotality address match — no property id",
+      body: matched
+        ? `Cotality property id ${String(result.match.propertyId)}`
+        : formatPropertyAddress(updated),
+      sourceApp: "real-estate",
+      createdBy: actorId,
+      metadata: {
+        corelogic_property_id: matched ? result.match.propertyId ?? null : null,
+        corelogic_match_type: result.match.matchType ?? null,
+      } as Prisma.InputJsonValue,
+    },
+  });
+
+  return {
+    ok: true,
+    property: serializeProperty(updated),
+    matched,
+    cotalityPropertyId: matched ? (result.match.propertyId ?? null) : null,
+    message: matched
+      ? undefined
+      : "Address Match returned no Cotality property id",
+  };
 }
 
 export interface PropertyStatusSyncOptions {
