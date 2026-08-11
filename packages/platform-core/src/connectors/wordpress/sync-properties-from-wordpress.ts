@@ -74,14 +74,23 @@ function normalizeType(value?: string): string | undefined {
   return t || undefined;
 }
 
+/** Keep last occurrence so newer payload fields win. */
+function dedupeByWpId(properties: WpPropertyListing[]): WpPropertyListing[] {
+  const byId = new Map<number, WpPropertyListing>();
+  for (const wp of properties) {
+    if (!Number.isFinite(wp.id)) continue;
+    byId.set(wp.id, wp);
+  }
+  return [...byId.values()];
+}
+
 async function findExistingProperty(
+  db: Prisma.TransactionClient,
   organisationId: string,
   wp: WpPropertyListing,
 ) {
-  const { prisma } = await import("@dg/database");
-
   if (wp.dg_property_id?.trim()) {
-    const byDg = await prisma.property.findFirst({
+    const byDg = await db.property.findFirst({
       where: {
         id: wp.dg_property_id.trim(),
         organisationId,
@@ -91,20 +100,21 @@ async function findExistingProperty(
     if (byDg) return byDg;
   }
 
-  const byWpId = await prisma.property.findFirst({
+  // JSON equality is type-sensitive — match both number and string forms.
+  const byWpId = await db.property.findFirst({
     where: {
       organisationId,
       deletedAt: null,
-      externalRefs: {
-        path: ["wp_property_id"],
-        equals: wp.id,
-      },
+      OR: [
+        { externalRefs: { path: ["wp_property_id"], equals: wp.id } },
+        { externalRefs: { path: ["wp_property_id"], equals: String(wp.id) } },
+      ],
     },
   });
   if (byWpId) return byWpId;
 
   if (wp.external_id?.trim() && wp.external_id !== String(wp.id)) {
-    const byExternal = await prisma.property.findFirst({
+    const byExternal = await db.property.findFirst({
       where: {
         organisationId,
         deletedAt: null,
@@ -130,15 +140,15 @@ async function findExistingProperty(
   const address = wp.address?.trim();
   const suburb = wp.suburb?.trim();
   if (address && suburb) {
-    return prisma.property.findFirst({
-      where: {
-        organisationId,
-        deletedAt: null,
-        addressLine1: address,
-        suburb,
-        postcode: wp.postcode?.trim() || undefined,
-      },
-    });
+    const where: Prisma.PropertyWhereInput = {
+      organisationId,
+      deletedAt: null,
+      addressLine1: { equals: address, mode: "insensitive" },
+      suburb: { equals: suburb, mode: "insensitive" },
+    };
+    const postcode = wp.postcode?.trim();
+    if (postcode) where.postcode = postcode;
+    return db.property.findFirst({ where });
   }
 
   return null;
@@ -157,7 +167,9 @@ export async function syncPropertiesFromWordPress(
     errors: [],
   };
 
-  for (const wp of input.properties) {
+  const properties = dedupeByWpId(input.properties);
+
+  for (const wp of properties) {
     try {
       const address = wp.address?.trim() || wp.title?.split(",")[0]?.trim() || "";
       const suburb = wp.suburb?.trim() || "Unknown";
@@ -166,7 +178,6 @@ export async function syncPropertiesFromWordPress(
         continue;
       }
 
-      const existing = await findExistingProperty(input.organisationId, wp);
       const images = Array.isArray(wp.images)
         ? wp.images.filter((u) => typeof u === "string" && u.startsWith("http"))
         : [];
@@ -196,48 +207,48 @@ export async function syncPropertiesFromWordPress(
         wp_property_synced_at: new Date().toISOString(),
       };
 
-      if (existing) {
-        const prevMeta = (existing.metadata as Record<string, unknown> | null) ?? {};
-        const prevMarketing =
-          (prevMeta.marketing as Record<string, unknown> | undefined) ?? {};
-        const prevRefs = (existing.externalRefs as Record<string, unknown> | null) ?? {};
+      // Serialize create/update per WP listing so concurrent syncs (Properties +
+      // Listings page auto-sync) cannot insert two rows for the same wp_property_id.
+      const outcome = await prisma.$transaction(async (tx) => {
+        await tx.$executeRaw`
+          SELECT pg_advisory_xact_lock(
+            hashtext(${`${input.organisationId}:wp-property:${wp.id}`})
+          )
+        `;
 
-        await prisma.property.update({
-          where: { id: existing.id },
-          data: {
-            addressLine1: address,
-            suburb,
-            state: (wp.state?.trim() || existing.state || "QLD").toUpperCase(),
-            postcode: wp.postcode?.trim() || existing.postcode || "0000",
-            status: mapWpStatus(wp.status),
-            propertyType: normalizeType(wp.property_type) ?? existing.propertyType,
-            bedrooms: toInt(wp.bedrooms) ?? existing.bedrooms,
-            bathrooms: toInt(wp.bathrooms) ?? existing.bathrooms,
-            listingPriceCents: toPriceCents(wp.price) ?? existing.listingPriceCents,
-            metadata: {
-              ...prevMeta,
-              ...metadataBase,
-              marketing: { ...prevMarketing, ...marketing },
-              // Prefer newer WP gallery when present
-              images: images.length ? images : prevMeta.images,
-            } as InputJsonValue,
-            externalRefs: { ...prevRefs, ...externalRefs } as InputJsonValue,
-          },
-        });
+        const existing = await findExistingProperty(tx, input.organisationId, wp);
 
-        // Back-link dg id on WP if missing — handled on next publish
-        if (!existing.externalRefs || !(existing.externalRefs as Record<string, unknown>).wp_property_id) {
-          /* refs just set */
+        if (existing) {
+          const prevMeta = (existing.metadata as Record<string, unknown> | null) ?? {};
+          const prevMarketing =
+            (prevMeta.marketing as Record<string, unknown> | undefined) ?? {};
+          const prevRefs = (existing.externalRefs as Record<string, unknown> | null) ?? {};
+
+          await tx.property.update({
+            where: { id: existing.id },
+            data: {
+              addressLine1: address,
+              suburb,
+              state: (wp.state?.trim() || existing.state || "QLD").toUpperCase(),
+              postcode: wp.postcode?.trim() || existing.postcode || "0000",
+              status: mapWpStatus(wp.status),
+              propertyType: normalizeType(wp.property_type) ?? existing.propertyType,
+              bedrooms: toInt(wp.bedrooms) ?? existing.bedrooms,
+              bathrooms: toInt(wp.bathrooms) ?? existing.bathrooms,
+              listingPriceCents: toPriceCents(wp.price) ?? existing.listingPriceCents,
+              metadata: {
+                ...prevMeta,
+                ...metadataBase,
+                marketing: { ...prevMarketing, ...marketing },
+                images: images.length ? images : prevMeta.images,
+              } as InputJsonValue,
+              externalRefs: { ...prevRefs, ...externalRefs } as InputJsonValue,
+            },
+          });
+          return "updated" as const;
         }
 
-        // Ensure WP knows our id for future upserts
-        if (!wp.dg_property_id) {
-          /* optional reverse link on next publish */
-        }
-
-        result.updated += 1;
-      } else {
-        const created = await prisma.property.create({
+        const created = await tx.property.create({
           data: {
             organisationId: input.organisationId,
             addressLine1: address,
@@ -256,7 +267,7 @@ export async function syncPropertiesFromWordPress(
           },
         });
 
-        await prisma.activity.create({
+        await tx.activity.create({
           data: {
             organisationId: input.organisationId,
             entityType: "Property",
@@ -269,8 +280,11 @@ export async function syncPropertiesFromWordPress(
           },
         });
 
-        result.created += 1;
-      }
+        return "created" as const;
+      });
+
+      if (outcome === "created") result.created += 1;
+      else result.updated += 1;
     } catch (err) {
       result.errors.push(
         `WP #${wp.id}: ${err instanceof Error ? err.message : "sync failed"}`,

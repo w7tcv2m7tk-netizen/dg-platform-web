@@ -219,29 +219,54 @@ export async function syncWordPressProperties(
   | { ok: true; result: WordPressSyncResult }
   | { ok: false; message: string }
 > {
-  const connector = await wpConnectorForOrg(session.organisationId);
-  const wp = await fetchWpProperties(100, connector);
-  if (!wp.ok) {
-    return { ok: false, message: wp.message };
+  const { prisma } = await import("@dg/database");
+  const lockKey = `wp-property-sync:${session.organisationId}`;
+
+  // Session advisory lock — blocks concurrent Properties/Listings auto-syncs
+  // on the same org (the race that duplicated 11 Kianga Court).
+  const lockRows = await prisma.$queryRaw<Array<{ ok: boolean }>>`
+    SELECT pg_try_advisory_lock(hashtext(${lockKey})) AS ok
+  `;
+  if (!lockRows[0]?.ok) {
+    return {
+      ok: true,
+      result: {
+        created: 0,
+        updated: 0,
+        skipped: 0,
+        errors: [],
+        ranAt: new Date().toISOString(),
+      },
+    };
   }
 
-  const syncResult = await syncPropertiesFromWordPress({
-    organisationId: session.organisationId,
-    actorId: session.clerkUserId,
-    properties: wp.properties,
-  });
+  try {
+    const connector = await wpConnectorForOrg(session.organisationId);
+    const wp = await fetchWpProperties(100, connector);
+    if (!wp.ok) {
+      return { ok: false, message: wp.message };
+    }
 
-  const result: WordPressSyncResult = {
-    ...syncResult,
-    ranAt: new Date().toISOString(),
-  };
+    const syncResult = await syncPropertiesFromWordPress({
+      organisationId: session.organisationId,
+      actorId: session.clerkUserId,
+      properties: wp.properties,
+    });
 
-  await patchOrgWordPressSettings(session.organisationId, {
-    lastPropertySyncAt: result.ranAt,
-    lastPropertySync: result,
-  });
+    const result: WordPressSyncResult = {
+      ...syncResult,
+      ranAt: new Date().toISOString(),
+    };
 
-  return { ok: true, result };
+    await patchOrgWordPressSettings(session.organisationId, {
+      lastPropertySyncAt: result.ranAt,
+      lastPropertySync: result,
+    });
+
+    return { ok: true, result };
+  } finally {
+    await prisma.$queryRaw`SELECT pg_advisory_unlock(hashtext(${lockKey}))`;
+  }
 }
 
 export async function syncWordPressAccBookings(

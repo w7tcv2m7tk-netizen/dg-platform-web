@@ -9,22 +9,26 @@ export function SyncListingsButton() {
   const [message, setMessage] = useState<string | null>(null);
 
   async function syncNow() {
+    if (pending) return;
     setPending(true);
     setMessage(null);
-    const res = await fetch("/api/v1/re/listings/sync", { method: "POST" });
-    const json = await res.json().catch(() => ({}));
-    setPending(false);
-    if (!res.ok) {
-      setMessage(json.error?.message ?? "Sync failed");
-      return;
+    try {
+      const res = await fetch("/api/v1/re/listings/sync", { method: "POST" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMessage(json.error?.message ?? "Sync failed");
+        return;
+      }
+      const r = json.data?.result;
+      setMessage(
+        r
+          ? `Synced — ${r.created} new, ${r.updated} updated, ${r.skipped} skipped`
+          : "Synced",
+      );
+      router.refresh();
+    } finally {
+      setPending(false);
     }
-    const r = json.data?.result;
-    setMessage(
-      r
-        ? `Synced — ${r.created} new, ${r.updated} updated, ${r.skipped} skipped`
-        : "Synced",
-    );
-    router.refresh();
   }
 
   return (
