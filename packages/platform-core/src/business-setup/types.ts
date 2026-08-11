@@ -81,7 +81,7 @@ export const BUSINESS_SETUP_PILLARS: {
     id: "grow",
     title: "Grow",
     summary:
-      "SEO, AI Visibility, Reputation (Core), Social, Ads, Automation, and Analytics.",
+      "SEO, AI Visibility, Reputation, Social, Ads, Automation, and Analytics.",
   },
 ];
 
@@ -201,8 +201,8 @@ export const BUSINESS_SETUP_CHECKLIST: BusinessSetupChecklistItem[] = [
   {
     id: "grow.reputation",
     pillar: "grow",
-    label: "Reviews & Reputation",
-    description: "Core Reputation — universal reviews (not a Growth SKU).",
+    label: "Reputation",
+    description: "Growth App — universal reviews via Connectors (Core plumbing).",
     status: "partial",
     href: "/apps/reviews",
   },

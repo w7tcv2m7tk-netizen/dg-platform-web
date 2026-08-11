@@ -154,8 +154,8 @@ export function AppsPlanCatalog() {
       industryApps: INDUSTRY_APP_CATALOG.filter((item) =>
         enabledIds.includes(item.appId),
       ).map((item) => item.industryKey),
-      premiumApps: GROWTH_APP_CATALOG.filter((item) => enabledIds.includes(item.appId)).map(
-        (item) => item.premiumKey,
+      premiumApps: GROWTH_APP_CATALOG.flatMap((item) =>
+        item.premiumKey && enabledIds.includes(item.appId) ? [item.premiumKey] : [],
       ),
     }),
     [enabledIds],
@@ -365,9 +365,9 @@ export function AppsPlanCatalog() {
         <SectionHeader
           label="📈 4 · Growth & Intelligence Apps"
           title="Unlock growth on top of the core platform"
-          description="Advanced SEO, AI visibility, automation, analytics, social, and voice."
+          description="Reputation, SEO, AI visibility, automation, analytics, social, and voice."
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {GROWTH_APP_CATALOG.map((item) => (
             <CatalogAppCard
               key={item.appId}
@@ -376,6 +376,8 @@ export function AppsPlanCatalog() {
               label={item.label}
               price={item.price}
               description={item.description}
+              status={item.status}
+              badge={item.badge}
               enabled={enabledIds.includes(item.appId)}
               primaryHref={appHref(item.appId)}
             />

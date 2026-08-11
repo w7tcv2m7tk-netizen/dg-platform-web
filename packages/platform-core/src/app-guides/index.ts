@@ -710,9 +710,9 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
   },
   {
     appId: "reviews",
-    headline: "Reputation (Core)",
+    headline: "Reputation",
     summary:
-      "Core reputation capability — monitor connected review feeds (Acc dg_reviews), queue requests after jobs/stays/settlements, Reputation Score™ only when rated reviews exist.",
+      "Growth App — monitor connected review feeds (Acc dg_reviews), queue requests after jobs/stays/settlements, Reputation Score™ only when rated reviews exist. Core owns Universal Review plumbing and connectors.",
     estimatedMinutes: 8,
     steps: [
       {

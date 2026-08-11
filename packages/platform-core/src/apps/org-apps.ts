@@ -103,14 +103,14 @@ export function resolveEnabledAppIds(
   const next = [...ids];
 
   // Core platform capabilities — always available when shipped enabled.
-  for (const id of ["opportunities", "reviews"] as const) {
+  for (const id of ["opportunities"] as const) {
     if (platformApps.get(id)?.enabled && !next.includes(id)) {
       next.push(id);
     }
   }
 
-  // SEO + AI Visibility + Analytics honest Growth slice — available when shipped enabled.
-  for (const id of ["seo", "ai-visibility", "analytics"] as const) {
+  // Honest Growth slice (incl. Reputation) — available when shipped enabled.
+  for (const id of ["seo", "ai-visibility", "analytics", "reviews"] as const) {
     if (platformApps.get(id)?.enabled && !next.includes(id)) {
       next.push(id);
     }

@@ -1,18 +1,19 @@
 import type { AppManifest } from "../manifest";
 
 /**
- * Reputation — Core platform capability (Universal Review Object + Reputation Service).
- * Sources arrive via Connector Framework; Growth “Reputation Pro” (campaigns, competitor
- * analysis, advanced AI respond UX) is roadmap — not this App.
+ * Reputation — Growth App product surface (monitor, request, score when real).
+ * Core still owns Universal Review Object, Reputation Service, connectors, timeline,
+ * and score computation — this App is the customer-facing packaging, not a
+ * “Google Reviews App.”
  * @see docs/foundations/REVIEWS-AND-REFERRALS.md
  */
 export const reviewsApp: AppManifest = {
   id: "reviews",
   name: "Reputation",
   description:
-    "Core reputation capability — unified review feed, connectors, timeline requests, Reputation Score™ when real data exists",
-  tier: "core",
-  version: "0.3.0",
+    "Monitor connected reviews, queue requests, and Reputation Score™ when real data exists — Universal Review + connectors",
+  tier: "growth",
+  version: "0.4.0",
   icon: "★",
   routes: [
     { path: "/apps/reviews", label: "Overview" },

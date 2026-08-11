@@ -133,9 +133,9 @@ const INTEGRATION_CATALOG: MarketplaceListing[] = [
     id: "int:google",
     category: "integrations",
     name: "Google (GBP / Analytics)",
-    summary: "Reviews monitoring and visibility signals — connector planned",
+    summary: "GBP reviews feed Reputation + visibility signals — connector planned",
     badge: "Planned",
-    tags: ["reviews", "analytics"],
+    tags: ["reviews", "reputation", "analytics"],
     source: "connector_catalog",
   },
   {

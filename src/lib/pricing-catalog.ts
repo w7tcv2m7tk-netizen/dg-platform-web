@@ -35,11 +35,14 @@ export type IndustryAppCatalogItem = {
 
 export type GrowthAppCatalogItem = {
   appId: string;
-  premiumKey: PremiumApp;
+  /** Stripe / plan premium key when billed separately; omit for included beta Growth Apps. */
+  premiumKey?: PremiumApp;
   label: string;
   icon: string;
   price: string;
   description: string;
+  status?: CatalogStatus;
+  badge?: string;
 };
 
 export type PlatformCapabilityCatalogItem = {
@@ -209,6 +212,16 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
 /** Mirrors pricing page — Growth & Intelligence Apps */
 export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
   {
+    appId: "reviews",
+    label: "Reputation",
+    icon: "★",
+    price: "Included",
+    badge: "Closed beta",
+    status: "rolling-out",
+    description:
+      "Unified review inbox, connector sources, timeline requests & Reputation Score™ when real data exists",
+  },
+  {
     appId: "ai-visibility",
     premiumKey: "ai_visibility_pro",
     label: "AI Visibility",
@@ -285,15 +298,6 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
     price: "Included",
     badge: "Closed beta",
     description: "Domains, DNS, email, SSL & hosting — Domains closed beta",
-    status: "rolling-out",
-  },
-  {
-    appId: "reviews",
-    label: "Reputation",
-    icon: "★",
-    price: "Included",
-    badge: "Core",
-    description: "Review feed, connectors, timeline requests & Reputation Score™ when real data exists",
     status: "rolling-out",
   },
 ];

@@ -110,6 +110,16 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     href: "/dashboard/business",
   },
   {
+    id: "core.industry_intelligence",
+    area: "Platform",
+    label: "Industry Intelligence (Core)",
+    description:
+      "Collect → Filter → Understand → Personalise → Act — attributed industry briefings (not News / not full crawler) — docs/foundations/INDUSTRY-INTELLIGENCE.md",
+    status: "planned",
+    priority: "medium",
+    href: "/dashboard/settings/roadmap",
+  },
+  {
     id: "core.business_services",
     area: "Platform",
     label: "Business Services (Core)",
@@ -997,10 +1007,10 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     href: "/apps/marketing/audits",
   },
 
-  // —— Reviews ——
+  // —— Reputation (Growth App) ——
   {
     id: "reviews.overview",
-    area: "Reviews",
+    area: "Reputation",
     label: "Overview",
     description: "Reputation dashboard, Acc feed, and theme stub",
     status: "scaffold",
@@ -1009,7 +1019,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
   },
   {
     id: "reviews.inbox",
-    area: "Reviews",
+    area: "Reputation",
     label: "Review inbox",
     description: "Unified inbox — Acc dg_reviews live when connector available",
     status: "scaffold",
@@ -1018,7 +1028,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
   },
   {
     id: "reviews.sources",
-    area: "Reviews",
+    area: "Reputation",
     label: "Review sources",
     description: "Connect / monitor concepts for GBP, Meta, Acc, manual",
     status: "scaffold",
@@ -1027,7 +1037,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
   },
   {
     id: "reviews.requests",
-    area: "Reviews",
+    area: "Reputation",
     label: "Review requests",
     description: "Queue review requests after completed stay / settlement",
     status: "scaffold",
@@ -1036,7 +1046,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
   },
   {
     id: "reviews.reputation",
-    area: "Reviews",
+    area: "Reputation",
     label: "Reputation score",
     description: "Reputation Score™ stub from live Acc feed + AI themes",
     status: "scaffold",

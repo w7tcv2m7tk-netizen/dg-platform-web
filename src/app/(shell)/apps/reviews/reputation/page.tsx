@@ -18,7 +18,7 @@ export default async function ReputationScorePage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Reputation Score™</h1>
         <p className="text-sm text-slate-400">
-          Core score from connected review feeds only — empty until rated reviews exist
+          Score from connected review feeds only — empty until rated reviews exist
         </p>
         <ReviewsSubnav active="/apps/reviews/reputation" />
       </header>

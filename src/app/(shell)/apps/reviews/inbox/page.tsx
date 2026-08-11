@@ -15,7 +15,7 @@ export default async function ReviewsInboxPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Review inbox</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · Core Reputation — unified monitor
+          {session?.organisationName ?? "DigitalGate"} · Reputation — unified monitor
         </p>
         <ReviewsSubnav active="/apps/reviews/inbox" />
       </header>

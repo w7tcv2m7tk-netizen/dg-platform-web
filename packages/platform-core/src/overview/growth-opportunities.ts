@@ -97,9 +97,9 @@ export function buildGrowthOpportunities(input: BuildOpportunitiesInput): {
   if (!enabledAppIds.includes("reviews")) {
     items.push({
       id: "reviews-auto",
-      label: "Review Automation",
+      label: "Enable Reputation",
       status: "Not enabled",
-      impact: "Save 8 hrs/month",
+      impact: "Monitor & request reviews",
       href: "/dashboard/apps",
     });
   }

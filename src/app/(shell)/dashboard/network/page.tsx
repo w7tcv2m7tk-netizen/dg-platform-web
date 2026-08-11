@@ -67,9 +67,9 @@ export default async function NetworkHomePage() {
             </Link>
           </div>
           <div className="dg-card">
-            <h2 className="font-semibold text-white">Reputation (Core)</h2>
+            <h2 className="font-semibold text-white">Reputation</h2>
             <p className="mt-2 text-sm text-slate-400">
-              Core capability — unified review feed via Connectors, timeline requests, Reputation
+              Growth App — unified review feed via Connectors, timeline requests, Reputation
               Score™ when real data exists. Network Refer &amp; Earn stays separate.
             </p>
             <Link

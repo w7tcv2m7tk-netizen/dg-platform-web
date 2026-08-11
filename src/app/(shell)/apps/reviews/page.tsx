@@ -22,8 +22,8 @@ export default async function ReputationOverviewPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Reputation</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · Core capability — monitor connected
-          reviews, queue requests, score only from real data
+          {session?.organisationName ?? "DigitalGate"} · Growth App — monitor connected reviews,
+          queue requests, score only from real data
         </p>
         <ReviewsSubnav active="/apps/reviews" />
       </header>
@@ -34,8 +34,8 @@ export default async function ReputationOverviewPage() {
           <Link href="/dashboard/settings/connectors" className="text-sky-400 hover:underline">
             Connector Framework
           </Link>
-          . Reputation Pro (campaigns, competitor analysis, advanced AI respond) is roadmap — not
-          this Core surface.
+          . Core owns Universal Review plumbing; this App is the customer surface. Campaigns,
+          competitor analysis, and advanced AI respond UX remain Reputation Pro roadmap.
         </div>
 
         {!session ? (
@@ -106,8 +106,8 @@ export default async function ReputationOverviewPage() {
                   <Link href="/apps/reviews/sources" className="text-sky-400 hover:underline">
                     View sources →
                   </Link>
-                  <Link href="/apps/crm/timeline" className="text-sky-400 hover:underline">
-                    CRM timeline →
+                  <Link href="/dashboard/settings/connectors" className="text-sky-400 hover:underline">
+                    Connectors →
                   </Link>
                   <Link href="/apps/reviews/requests" className="text-sky-400 hover:underline">
                     Queue a request →
