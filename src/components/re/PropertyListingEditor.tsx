@@ -25,9 +25,21 @@ function listingImagesText(images: string[] | undefined) {
   return (images ?? []).join("\n");
 }
 
+function reorderList<T>(list: T[], from: number, to: number): T[] {
+  if (from === to || from < 0 || to < 0 || from >= list.length || to >= list.length) {
+    return list;
+  }
+  const next = [...list];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}
+
 export function PropertyListingEditor(props: ListingFields) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
+  const dragIndexRef = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [price, setPrice] = useState(
     props.listingPriceCents != null ? String(props.listingPriceCents / 100) : "",
   );
@@ -104,6 +116,15 @@ export function PropertyListingEditor(props: ListingFields) {
     );
   }
 
+  function applyImages(next: string[]) {
+    setImages(next);
+    setImagesText(next.join("\n"));
+  }
+
+  function moveImage(from: number, to: number) {
+    applyImages(reorderList(images, from, to));
+  }
+
   async function uploadImage(file: File) {
     setUploading(true);
     setError(null);
@@ -121,9 +142,7 @@ export function PropertyListingEditor(props: ListingFields) {
     }
     const url = json.data?.url as string | undefined;
     if (!url) return;
-    const next = [...images, url];
-    setImages(next);
-    setImagesText(next.join("\n"));
+    applyImages([...images, url]);
   }
 
   async function draftDescriptionWithAi() {
@@ -364,6 +383,9 @@ export function PropertyListingEditor(props: ListingFields) {
 
       <div>
         <p className="text-sm text-slate-400">Listing images</p>
+        <p className="mt-1 text-[11px] text-slate-500">
+          First image is featured. Drag to reorder (desktop) or use ↑ ↓ (mobile).
+        </p>
         <div className="mt-2 flex flex-wrap gap-2">
           <button
             type="button"
@@ -387,32 +409,98 @@ export function PropertyListingEditor(props: ListingFields) {
           }}
         />
         {images.length ? (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {images.map((url) => (
-              <div key={url} className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={url}
-                  alt=""
-                  className="h-20 w-28 rounded-lg object-cover ring-1 ring-slate-700"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const next = images.filter((u) => u !== url);
-                    setImages(next);
-                    setImagesText(next.join("\n"));
+          <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+            {images.map((url, index) => {
+              const isFeatured = index === 0;
+              const isDropTarget = dragOverIndex === index && dragIndexRef.current !== index;
+              return (
+                <li
+                  key={`${url}-${index}`}
+                  draggable
+                  onDragStart={() => {
+                    dragIndexRef.current = index;
                   }}
-                  className="absolute right-1 top-1 rounded bg-black/70 px-1.5 text-[10px] text-white"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (dragOverIndex !== index) setDragOverIndex(index);
+                  }}
+                  onDragLeave={() => {
+                    if (dragOverIndex === index) setDragOverIndex(null);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const from = dragIndexRef.current;
+                    dragIndexRef.current = null;
+                    setDragOverIndex(null);
+                    if (from == null) return;
+                    moveImage(from, index);
+                  }}
+                  onDragEnd={() => {
+                    dragIndexRef.current = null;
+                    setDragOverIndex(null);
+                  }}
+                  className={`relative touch-manipulation rounded-lg ${
+                    isDropTarget ? "ring-2 ring-blue-500" : ""
+                  }`}
                 >
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={url}
+                    alt=""
+                    className={`h-24 w-full cursor-grab rounded-lg object-cover active:cursor-grabbing ${
+                      isFeatured
+                        ? "ring-2 ring-blue-500"
+                        : "ring-1 ring-slate-700"
+                    }`}
+                  />
+                  {isFeatured ? (
+                    <span className="absolute left-1 top-1 rounded bg-blue-600/90 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                      Featured
+                    </span>
+                  ) : (
+                    <span className="absolute left-1 top-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-slate-200">
+                      {index + 1}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    aria-label="Remove image"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={() => applyImages(images.filter((_, i) => i !== index))}
+                    className="absolute right-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white"
+                  >
+                    ✕
+                  </button>
+                  <div
+                    className="absolute bottom-1 right-1 flex gap-0.5"
+                    onMouseDown={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      type="button"
+                      aria-label="Move image earlier"
+                      disabled={index === 0}
+                      onClick={() => moveImage(index, index - 1)}
+                      className="min-h-8 min-w-8 rounded bg-black/70 text-sm text-white disabled:opacity-30"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Move image later"
+                      disabled={index === images.length - 1}
+                      onClick={() => moveImage(index, index + 1)}
+                      className="min-h-8 min-w-8 rounded bg-black/70 text-sm text-white disabled:opacity-30"
+                    >
+                      ↓
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         ) : null}
         <label className="mt-3 block text-sm">
-          <span className="text-slate-500">Or paste image URLs (one per line)</span>
+          <span className="text-slate-500">Or paste image URLs (one per line — order = gallery order)</span>
           <textarea
             value={imagesText}
             onChange={(e) => syncImagesFromText(e.target.value)}
