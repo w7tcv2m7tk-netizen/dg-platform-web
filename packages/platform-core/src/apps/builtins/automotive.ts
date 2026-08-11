@@ -5,7 +5,7 @@ export const automotiveApp: AppManifest = {
   name: "Automotive",
   description: "Dealership inventory, buyer leads, test drives, and sales pipeline",
   tier: "business",
-  version: "0.1.0",
+  version: "0.2.0",
   icon: "⬡",
   routes: [
     { path: "/apps/automotive", label: "Overview" },

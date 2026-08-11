@@ -565,16 +565,25 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
   {
     appId: "finance",
     headline: "Finance & broker workflow",
-    summary: "Loan pipeline, client applications, and broker CRM — a Business App for finance verticals.",
+    summary:
+      "Loan pipeline, client applications, and broker CRM — scaffold floor only until a Finance pilot ships.",
     estimatedMinutes: 5,
+    prerequisites: ["CRM for clients today", "Gen 1 Finance module if already live"],
     steps: [
       {
         id: "fin-1",
-        title: "Install when licensed",
+        title: "Preview the scaffold floor",
         description:
-          "Finance is scaffolded. Enable from your plan when onboarding a finance client.",
+          "Overview and route map are honest empties — no fake pipeline or commission metrics.",
         href: "/apps/finance",
-        hrefLabel: "Preview Finance App",
+        hrefLabel: "Open Finance App",
+      },
+      {
+        id: "fin-2",
+        title: "Use CRM for clients",
+        description: "Client records live in Core CRM until Finance applications ship.",
+        href: "/apps/crm/contacts",
+        hrefLabel: "Open CRM contacts",
       },
     ],
   },
@@ -596,37 +605,50 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
   {
     appId: "creator",
     headline: "Creator economy toolkit",
-    summary: "Content, memberships, and digital storefront — powered by Commerce subscriptions.",
+    summary:
+      "Content, memberships, and digital storefront — scaffold floor; billing stays on Commerce.",
     estimatedMinutes: 5,
+    prerequisites: ["Commerce App available", "CRM for audience contacts"],
     steps: [
       {
         id: "cre-1",
         title: "Set up Commerce first",
         description: "Memberships and storefront checkout use the shared Commerce layer.",
-        href: "/dashboard/apps/commerce/setup",
-        hrefLabel: "Commerce setup",
+        href: "/apps/commerce",
+        hrefLabel: "Open Commerce",
       },
       {
         id: "cre-2",
-        title: "Preview Creator routes",
-        description: "Content library, memberships, and storefront are on the roadmap.",
+        title: "Preview Creator scaffold",
+        description:
+          "Content, memberships, and storefront routes are honest empties — no fake audience or MRR.",
         href: "/apps/creator",
-        hrefLabel: "Preview Creator App",
+        hrefLabel: "Open Creator App",
       },
     ],
   },
   {
     appId: "commercial",
     headline: "Commercial property management",
-    summary: "Leases, tenants, and commercial portfolio — distinct from residential Real Estate.",
+    summary:
+      "Leases, tenants, and commercial portfolio — distinct from residential Real Estate; scaffold only.",
     estimatedMinutes: 5,
+    prerequisites: ["Do not confuse with Real Estate (residential)"],
     steps: [
       {
         id: "com-1",
-        title: "Preview App routes",
-        description: "Commercial properties, leases, and tenant management routes are scaffolded.",
+        title: "Preview Commercial scaffold",
+        description:
+          "Properties, leases, and tenants are product-map routes — no rent-roll theatre.",
         href: "/apps/commercial",
-        hrefLabel: "Preview Commercial App",
+        hrefLabel: "Open Commercial App",
+      },
+      {
+        id: "com-2",
+        title: "Use CRM for tenants",
+        description: "Tenant and landlord contacts live in CRM until commercial context ships.",
+        href: "/apps/crm/contacts",
+        hrefLabel: "Open CRM contacts",
       },
     ],
   },
@@ -634,16 +656,24 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
     appId: "automotive",
     headline: "Dealership pipeline on Gen 2",
     summary:
-      "Automotive covers inventory, buyer leads, and test drive bookings — ported from the WordPress dealer module.",
+      "Inventory, buyer leads, and test drives — Gen 2 scaffold; WordPress Gen 1 Dealership remains ops SoT.",
     estimatedMinutes: 5,
+    prerequisites: ["Gen 1 Dealership module for live ops"],
     steps: [
       {
         id: "auto-1",
-        title: "Preview App routes",
+        title: "Preview Automotive scaffold",
         description:
-          "Inventory, leads, and test drives are scaffolded. WordPress Gen 1 dealer dashboard remains live until migration.",
+          "Inventory, leads, and test drives are honest empties — no fake stock or conversion scores.",
         href: "/apps/automotive",
-        hrefLabel: "Preview Automotive App",
+        hrefLabel: "Open Automotive App",
+      },
+      {
+        id: "auto-2",
+        title: "Use CRM for buyer contacts",
+        description: "Until Gen 2 inventory/leads migrate, track people in CRM (ops stay on Gen 1).",
+        href: "/apps/crm/contacts",
+        hrefLabel: "Open CRM contacts",
       },
     ],
   },

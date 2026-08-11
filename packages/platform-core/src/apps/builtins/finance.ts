@@ -5,7 +5,7 @@ export const financeApp: AppManifest = {
   name: "Finance",
   description: "Loan pipeline, client applications, and broker workflow",
   tier: "business",
-  version: "0.1.0",
+  version: "0.2.0",
   icon: "◫",
   routes: [
     { path: "/apps/finance", label: "Overview" },
@@ -13,6 +13,7 @@ export const financeApp: AppManifest = {
     { path: "/apps/finance/clients", label: "Clients" },
     { path: "/apps/finance/applications", label: "Applications" },
   ],
+  // Registry remains disabled — single nav item until closed beta (Marketing pattern).
   navigation: [{ href: "/apps/finance", label: "Finance", icon: "▣" }],
   permissions: [
     { id: "finance.view", label: "View finance pipeline" },

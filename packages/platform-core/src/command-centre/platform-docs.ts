@@ -126,6 +126,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "foundations/SERVICES-BETA-LAUNCH.md",
   },
   {
+    slug: "business-apps-scaffold",
+    title: "Business Apps Scaffold",
+    summary:
+      "Finance · Creator · Commercial · Automotive — honest product-map floor (not closed beta).",
+    group: "apps",
+    relativePath: "foundations/BUSINESS-APPS-SCAFFOLD.md",
+  },
+  {
     slug: "wantd",
     title: "Wantd",
     summary: "Wantd as a Business/Organisation on DigitalGate — not a dedicated App.",

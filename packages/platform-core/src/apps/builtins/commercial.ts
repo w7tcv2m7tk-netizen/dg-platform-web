@@ -5,7 +5,7 @@ export const commercialApp: AppManifest = {
   name: "Commercial",
   description: "Commercial property, leases, tenants, and asset management",
   tier: "business",
-  version: "0.1.0",
+  version: "0.2.0",
   icon: "▦",
   routes: [
     { path: "/apps/commercial", label: "Overview" },

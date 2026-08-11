@@ -5,7 +5,7 @@ export const creatorApp: AppManifest = {
   name: "Creator",
   description: "Content, memberships, digital products, and creator storefront",
   tier: "business",
-  version: "0.1.0",
+  version: "0.2.0",
   icon: "✦",
   routes: [
     { path: "/apps/creator", label: "Overview" },
