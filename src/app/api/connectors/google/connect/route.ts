@@ -68,21 +68,19 @@ export async function GET() {
   }
 
   const jar = await cookies();
-  const secure = process.env.NODE_ENV === "production";
-  jar.set(STATE_COOKIE, state, {
+  // Secure whenever we are not on plain localhost — Vercel is always HTTPS.
+  const secure =
+    process.env.NODE_ENV === "production" ||
+    !(process.env.NEXT_PUBLIC_APP_URL || "").includes("localhost");
+  const cookieBase = {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "lax" as const,
     secure,
     path: "/",
-    maxAge: 600,
-  });
-  jar.set(ORG_COOKIE, session.organisationId, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure,
-    path: "/",
-    maxAge: 600,
-  });
+    maxAge: 1800, // 30m — Google consent can be slow
+  };
+  jar.set(STATE_COOKIE, state, cookieBase);
+  jar.set(ORG_COOKIE, session.organisationId, cookieBase);
 
   return NextResponse.redirect(authUrl.url);
 }

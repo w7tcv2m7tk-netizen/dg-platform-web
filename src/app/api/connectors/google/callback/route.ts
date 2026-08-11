@@ -12,26 +12,33 @@ export const dynamic = "force-dynamic";
 const STATE_COOKIE = "dg_google_oauth_state";
 const ORG_COOKIE = "dg_google_oauth_org";
 
+function appBase(req: NextRequest): string {
+  const fromEnv = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (fromEnv) return fromEnv.replace(/\/$/, "");
+  return req.nextUrl.origin;
+}
+
 /**
  * Google OAuth redirect —
  * https://app.digitalgate.com.au/api/connectors/google/callback
+ *
+ * Token save uses the org cookie from Connect (set while signed in). We do not
+ * require a live Clerk session for the exchange — otherwise FORCE_REDIRECT to
+ * /dashboard after a mid-flow re-login drops the code and leaves Org disconnected.
  */
 export async function GET(req: NextRequest) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.digitalgate.com.au";
+  const base = appBase(req);
+  const connectorsOk = () =>
+    NextResponse.redirect(
+      new URL("/dashboard/settings/connectors?google=connected", base),
+    );
   const fail = (msg: string) =>
     NextResponse.redirect(
       new URL(
         `/dashboard/settings/connectors?google=error&message=${encodeURIComponent(msg)}`,
-        appUrl,
+        base,
       ),
     );
-
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.redirect(
-      new URL(`/login?redirect_url=${encodeURIComponent(req.url)}`, appUrl),
-    );
-  }
 
   const code = req.nextUrl.searchParams.get("code");
   const state = req.nextUrl.searchParams.get("state");
@@ -73,14 +80,20 @@ export async function GET(req: NextRequest) {
     return fail(err instanceof Error ? err.message : "Failed to save Google tokens");
   }
 
-  // Best-effort first sync so locations appear immediately after connect
   try {
     await syncOrgGoogleGbp(organisationId);
   } catch {
     /* sync can be retried from Settings / Reputation sources */
   }
 
-  return NextResponse.redirect(
-    new URL("/dashboard/settings/connectors?google=connected", appUrl),
-  );
+  const { userId } = await auth();
+  if (!userId) {
+    // Tokens already saved — send them to login, then connectors (not /dashboard FORCE).
+    const after = `/dashboard/settings/connectors?google=connected`;
+    return NextResponse.redirect(
+      new URL(`/login?redirect_url=${encodeURIComponent(after)}`, base),
+    );
+  }
+
+  return connectorsOk();
 }
