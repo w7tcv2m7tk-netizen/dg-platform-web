@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import {
+  canAccessCommandCentre,
   getServicesOverview,
   listServiceTemplates,
 } from "@dg/platform-core";
@@ -50,6 +51,12 @@ export default async function ServicesOverviewPage() {
   const templates = listServiceTemplates();
   const timeZone = org?.timezone || SERVICES_DEFAULT_TZ;
   const jobWord = overview.terminology.job.toLowerCase();
+  const showStaffLaunchLink = canAccessCommandCentre({
+    organisationId: session.organisationId,
+    organisationName: session.organisationName,
+    organisationSlug: session.organisationSlug,
+    role: session.role,
+  });
 
   return (
     <>
@@ -64,6 +71,18 @@ export default async function ServicesOverviewPage() {
       </header>
       <main className="dg-page-main space-y-6">
         <ServicesNav active="overview" />
+
+        {showStaffLaunchLink ? (
+          <p className="text-xs text-slate-500">
+            Staff:{" "}
+            <Link
+              href="/command/docs/services-beta-launch"
+              className="text-sky-400 hover:underline"
+            >
+              Services beta launch checklist
+            </Link>
+          </p>
+        ) : null}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <Link

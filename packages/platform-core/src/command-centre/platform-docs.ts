@@ -119,6 +119,13 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "foundations/SERVICES-APP.md",
   },
   {
+    slug: "services-beta-launch",
+    title: "Services Beta Launch",
+    summary: "Closed-beta checklist for founding agencies (smoke path, redirects, OUT list).",
+    group: "apps",
+    relativePath: "foundations/SERVICES-BETA-LAUNCH.md",
+  },
+  {
     slug: "wantd",
     title: "Wantd",
     summary: "Wantd as a Business/Organisation on DigitalGate — not a dedicated App.",

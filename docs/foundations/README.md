@@ -59,6 +59,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | 15 | [WEBSITE-BUILDER.md](./WEBSITE-BUILDER.md) | **Phase later** — AI Website Studio; structured Next.js Gen 2 model (not PHP); design now |
 | [BRAND-STUDIO.md](./BRAND-STUDIO.md) | **Core** — AI Brand Studio; Business Profile → identity → presence; Website Builder is a surface |
 | [SERVICES-APP.md](./SERVICES-APP.md) | **Business App** — one Services App; Service Templates (electrician, plumber, …) not separate Apps |
+| [SERVICES-BETA-LAUNCH.md](./SERVICES-BETA-LAUNCH.md) | Services closed-beta launch checklist (founding agencies) |
 | 16 | [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) | **Core Platform Service** — Domains/DNS/SSL/hosting/email; Dreamscape V1 adapter; sandbox-first |
 | 16b | [EMAIL-INFRASTRUCTURE.md](./EMAIL-INFRASTRUCTURE.md) | **Email Service** — transactional (Resend), mailbox (Dreamscape), deliverability; no mail server |
 | [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) | Core — Business Discovery Engine (Command Centre prospecting) |

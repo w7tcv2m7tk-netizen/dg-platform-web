@@ -3,7 +3,7 @@
 **Status:** Architecture locked · Closed-beta job ops (create → schedule → assign → stage → day board) · Aug 2026 · drag-drop calendar / checklists / recurrence next  
 **Classification:** **One Business App** with **Service Templates** — not separate Apps per trade  
 **App id:** `services`  
-**Related:** [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) · [COMMERCE-SPECIFICATION.md](../commerce/COMMERCE-SPECIFICATION.md) · [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) · [GLOBAL-READINESS.md](./GLOBAL-READINESS.md)
+**Related:** [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) · [COMMERCE-SPECIFICATION.md](../commerce/COMMERCE-SPECIFICATION.md) · [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) · [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) · [SERVICES-BETA-LAUNCH.md](./SERVICES-BETA-LAUNCH.md) (closed-beta checklist)
 ---
 
 ## Principle
@@ -162,6 +162,8 @@ Introduce dedicated Job / Schedule models only when Contact + Task + Commerce ar
 * Soft Commerce quote links on job detail  
 
 Still next: full calendar, checklists, recurrence, invoice auto-create.
+
+**Closed-beta launch hygiene:** [SERVICES-BETA-LAUNCH.md](./SERVICES-BETA-LAUNCH.md) — prerequisites, smoke path, redirects, OUT list, founding-agency dry-run.
 
 ---
 
