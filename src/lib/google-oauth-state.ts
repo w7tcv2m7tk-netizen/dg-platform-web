@@ -1,9 +1,9 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "crypto";
 
-type GoogleOAuthStatePayload = {
-  n: string;
+type GoogleOAuthStateInner = {
   o: string;
   e: number;
+  n: string;
 };
 
 function signingSecret(): string {
@@ -30,22 +30,27 @@ function fromB64url(input: string): Buffer {
   return Buffer.from(b64, "base64");
 }
 
-/** Embed org id in OAuth `state` so callback works even if cookies are dropped. */
+function signPayload(payloadJson: string, secret: string): string {
+  return createHmac("sha256", secret).update(payloadJson).digest("hex");
+}
+
+/** Single URL-safe token — org id travels with Google (no cookies). */
 export function createGoogleOAuthState(organisationId: string): string {
   const secret = signingSecret();
   if (!secret) {
     throw new Error("No secret available to sign Google OAuth state");
   }
-  const payload: GoogleOAuthStatePayload = {
-    n: b64url(Buffer.from(`${Date.now()}-${Math.random()}`)),
+  const inner: GoogleOAuthStateInner = {
     o: organisationId,
     e: Date.now() + 30 * 60 * 1000,
+    n: randomBytes(8).toString("hex"),
   };
-  const body = b64url(JSON.stringify(payload));
-  const sig = b64url(
-    createHmac("sha256", secret).update(body).digest(),
-  );
-  return `${body}.${sig}`;
+  const payloadJson = JSON.stringify(inner);
+  const envelope = {
+    p: payloadJson,
+    s: signPayload(payloadJson, secret),
+  };
+  return b64url(JSON.stringify(envelope));
 }
 
 export function parseGoogleOAuthState(
@@ -55,15 +60,66 @@ export function parseGoogleOAuthState(
   if (!secret) {
     return { ok: false, message: "OAuth state secret not configured" };
   }
-  const [body, sig] = state.split(".");
-  if (!body || !sig) {
-    return { ok: false, message: "Malformed OAuth state" };
+
+  const trimmed = state.trim();
+  if (!trimmed) {
+    return { ok: false, message: "Empty OAuth state" };
   }
-  const expected = b64url(
-    createHmac("sha256", secret).update(body).digest(),
-  );
+
+  // Reject legacy hex-only state from older connect builds.
+  if (/^[a-f0-9]{32,64}$/i.test(trimmed) && !trimmed.includes(".")) {
+    return {
+      ok: false,
+      message:
+        "Stale Connect link — hard refresh Connectors and click Connect Google again",
+    };
+  }
+
+  let envelope: { p?: string; s?: string };
   try {
-    const a = Buffer.from(sig);
+    // New format: single b64url(JSON({p,s}))
+    envelope = JSON.parse(fromB64url(trimmed).toString("utf8")) as {
+      p?: string;
+      s?: string;
+    };
+  } catch {
+    // Transition: body.sig (previous attempt)
+    const dot = trimmed.indexOf(".");
+    if (dot > 0) {
+      try {
+        const body = trimmed.slice(0, dot);
+        const sig = trimmed.slice(dot + 1);
+        const expected = b64url(
+          createHmac("sha256", secret).update(body).digest(),
+        );
+        const a = Buffer.from(sig);
+        const b = Buffer.from(expected);
+        if (a.length === b.length && timingSafeEqual(a, b)) {
+          const payload = JSON.parse(
+            fromB64url(body).toString("utf8"),
+          ) as GoogleOAuthStateInner;
+          if (payload?.o && typeof payload.e === "number" && Date.now() <= payload.e) {
+            return { ok: true, organisationId: payload.o };
+          }
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+    return {
+      ok: false,
+      message:
+        "Malformed OAuth state — hard refresh and click Connect Google again",
+    };
+  }
+
+  if (!envelope.p || !envelope.s || typeof envelope.p !== "string") {
+    return { ok: false, message: "OAuth state missing payload" };
+  }
+
+  const expected = signPayload(envelope.p, secret);
+  try {
+    const a = Buffer.from(envelope.s);
     const b = Buffer.from(expected);
     if (a.length !== b.length || !timingSafeEqual(a, b)) {
       return { ok: false, message: "OAuth state signature mismatch" };
@@ -73,14 +129,15 @@ export function parseGoogleOAuthState(
   }
 
   try {
-    const payload = JSON.parse(
-      fromB64url(body).toString("utf8"),
-    ) as GoogleOAuthStatePayload;
+    const payload = JSON.parse(envelope.p) as GoogleOAuthStateInner;
     if (!payload?.o || typeof payload.o !== "string") {
       return { ok: false, message: "OAuth state missing organisation" };
     }
     if (typeof payload.e !== "number" || Date.now() > payload.e) {
-      return { ok: false, message: "OAuth state expired — try Connect Google again" };
+      return {
+        ok: false,
+        message: "OAuth state expired — try Connect Google again",
+      };
     }
     return { ok: true, organisationId: payload.o };
   } catch {
