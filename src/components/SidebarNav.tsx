@@ -10,7 +10,6 @@ import { itemHasActiveRoute, routeIsActive } from "@/lib/nav-route-match";
 import {
   BUSINESS_WORKSPACE_SECTION_LABEL,
   COMMAND_CENTRE_NAV_SECTION_LABEL,
-  COMMAND_CENTRE_NAV_SUBLABEL,
   PLATFORM_NAV_SECTION_LABEL,
   type AppNavTierGroup,
   type AppRoute,
@@ -233,11 +232,8 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
       {nav.commandCentre ? (
         <div className="mt-4">
-          <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
             {COMMAND_CENTRE_NAV_SECTION_LABEL}
-          </p>
-          <p className="mb-2 px-3 text-[10px] leading-snug text-slate-600">
-            {COMMAND_CENTRE_NAV_SUBLABEL}
           </p>
           <CollapsibleNavSection
             items={[

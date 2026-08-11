@@ -85,8 +85,6 @@ const SHELL_NAV: PlatformShellNavItem[] = [...SHELL_WORKSPACE_NAV, SHELL_PLATFOR
 export const BUSINESS_WORKSPACE_SECTION_LABEL = "Your business";
 export const PLATFORM_NAV_SECTION_LABEL = "Platform";
 export const COMMAND_CENTRE_NAV_SECTION_LABEL = "Command Centre";
-/** Soft staff sub-label — do not surface Opportunity Engine™ as a product name to customers */
-export const COMMAND_CENTRE_NAV_SUBLABEL = "What should I do next";
 
 export function getPlatformShellNavigation(): PlatformShellNavItem[] {
   return SHELL_NAV;
