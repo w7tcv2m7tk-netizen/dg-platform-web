@@ -109,3 +109,35 @@ export async function listPlatformDocAvailability(): Promise<
     })),
   );
 }
+
+/**
+ * Load all allowlisted platform docs that exist on disk (RAG corpus).
+ * Skips missing files; never reads outside the catalog allowlist.
+ */
+export async function loadPlatformDocCorpus(): Promise<
+  Array<{
+    slug: string;
+    title: string;
+    relativePath: string;
+    content: string;
+  }>
+> {
+  const results = await Promise.all(
+    PLATFORM_DOCS_CATALOG.map(async (entry) => {
+      const absolute = resolveAllowlistedDocsPath(entry.relativePath);
+      if (!absolute) return null;
+      try {
+        const content = await readFile(absolute, "utf8");
+        return {
+          slug: entry.slug,
+          title: entry.title,
+          relativePath: entry.relativePath,
+          content,
+        };
+      } catch {
+        return null;
+      }
+    }),
+  );
+  return results.filter((r): r is NonNullable<typeof r> => r != null);
+}

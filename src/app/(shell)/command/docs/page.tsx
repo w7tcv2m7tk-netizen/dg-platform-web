@@ -28,8 +28,11 @@ export default async function CommandPlatformDocsPage() {
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Platform docs</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
-          Curated DigitalGate documentation for staff review. Readable library first — not client
-          Command Centre, and not the full Platform Intelligence AI layer yet.
+          Curated DigitalGate documentation for staff review. Ask the allowlist via{" "}
+          <Link href="/command/intelligence" className="text-sky-400 hover:underline">
+            Platform Intelligence
+          </Link>{" "}
+          (Phase 1 RAG with citations) — not live org tools, and not the floating support chat.
         </p>
       </header>
       <main className="dg-page-main space-y-8">

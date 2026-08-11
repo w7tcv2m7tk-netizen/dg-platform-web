@@ -37,6 +37,7 @@ export const commandCentreApp: AppManifest = {
     { path: "/command/flags", label: "Feature Flags" },
     { path: "/command/docs", label: "Platform docs" },
     { path: "/command/docs/[slug]", label: "Platform doc" },
+    { path: "/command/intelligence", label: "Platform Intelligence" },
   ],
   /**
    * Sidebar cockpit — Core owns Opportunities module; Command Centre orchestrates.
@@ -52,6 +53,7 @@ export const commandCentreApp: AppManifest = {
     { href: "/command/clients", label: "Clients", icon: "☷" },
     { href: "/command/reports", label: "Reports", icon: "▥" },
     { href: "/command/docs", label: "Platform docs", icon: "▤" },
+    { href: "/command/intelligence", label: "Intelligence", icon: "⬡" },
   ],
   permissions: [
     { id: "command.view", label: "View Command Centre" },
@@ -113,6 +115,12 @@ export const commandCentreApp: AppManifest = {
     { id: "command.growth.transition_client", label: "Convert prospect to client org" },
   ],
   aiTools: [
+    {
+      id: "command.platform_intelligence",
+      label: "Platform Intelligence",
+      description:
+        "Staff RAG over curated platform docs with citations and confidence (Phase 1)",
+    },
     {
       id: "command.client_advisor",
       label: "AI Business Advisor",

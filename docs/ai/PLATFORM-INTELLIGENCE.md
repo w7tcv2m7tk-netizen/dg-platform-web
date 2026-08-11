@@ -214,7 +214,7 @@ RAG citations should surface path + date (+ ADR id when applicable).
 | Phase | Deliverable | Build now? |
 |-------|-------------|------------|
 | **0** | Doc structure + ADRs + this architecture | ✅ Docs only |
-| **1** | Super Admin RAG over docs with **citations** (Command Centre) | Next engineering slice |
+| **1** | Super Admin RAG over docs with **citations** (Command Centre) | ✅ Staff slice at `/command/intelligence` (allowlist + keyword RAG; no live tools) |
 | **2** | Live tools (org-scoped) wired into Context Engine | Later |
 | **3** | Diagnose + propose actions (no auto-mutate) | Later |
 | **4** | Safe **act-with-confirm** (human gate; audit) | Later |
@@ -230,6 +230,19 @@ RAG citations should surface path + date (+ ADR id when applicable).
 3. Enforce confidence: if retrieval empty → 🔴 Unknown.
 4. Log prompts/responses per [AI-GOVERNANCE.md](../foundations/AI-GOVERNANCE.md).
 5. Leave floating support chat unchanged; optional deep-link “View platform docs answer” later.
+
+### Phase 1 status (shipped slice)
+
+| Item | Detail |
+|------|--------|
+| **Surface** | Staff Command Centre [`/command/intelligence`](../../src/app/(shell)/command/intelligence/page.tsx) + `POST /api/v1/command/intelligence` |
+| **Corpus** | Curated allowlist only — [`platform-docs.ts`](../../packages/platform-core/src/command-centre/platform-docs.ts) / `/command/docs` (not a dump of all `docs/**`) |
+| **Retrieval** | In-process markdown chunking (heading-aware) + **keyword / token similarity** — no vector DB, no embeddings infra |
+| **Answer** | Model Router (`llmChat`) with forced `CONFIDENCE` / `ANSWER` / `CITATIONS` format; citations clamped to retrieved paths |
+| **Empty retrieval** | 🔴 Unknown — never invent |
+| **Out of scope** | Live org/fleet tools, act-with-confirm, tenant DigitalGate AI, replacing floating support chat |
+
+**Tradeoff (keyword vs vectors):** Phase 1 prioritises zero new infra and a small allowlisted corpus. Keyword scoring is good enough for exact terminology and heading matches; it is weaker on paraphrases and synonyms. A later slice can add embeddings (still over the same allowlist) without changing the staff UI or confidence contract.
 
 ---
 

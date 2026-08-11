@@ -31,6 +31,8 @@ export const COMMAND_CENTRE_ROUTES = {
   flags: `${COMMAND_CENTRE_BASE_PATH}/flags`,
   /** Staff-only curated architecture / strategy docs library */
   docs: `${COMMAND_CENTRE_BASE_PATH}/docs`,
+  /** Staff Platform Intelligence — Phase 1 RAG over allowlisted docs */
+  intelligence: `${COMMAND_CENTRE_BASE_PATH}/intelligence`,
   /** @deprecated — /command/support redirects to /support (no Command Support Centre) */
   support: "/support",
   /** @deprecated — /command/audit redirects to tenant audit settings */
