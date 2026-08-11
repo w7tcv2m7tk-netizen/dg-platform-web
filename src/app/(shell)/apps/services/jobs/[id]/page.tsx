@@ -5,14 +5,17 @@ import {
   getActiveServiceTemplate,
   getContact,
   getServiceJob,
+  listOrganisationActivities,
   listOrganisationMembers,
   listQuotesForEntity,
 } from "@dg/platform-core";
 
+import { AddServiceJobNoteForm } from "@/components/services/AddServiceJobNoteForm";
 import { EditServiceJobForm } from "@/components/services/EditServiceJobForm";
 import { ServicesNav } from "@/components/services/ServicesNav";
 import { UpdateJobStageForm } from "@/components/services/UpdateJobStageForm";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { formatDateTime, SERVICES_DEFAULT_TZ } from "@/lib/services-dates";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -41,22 +44,30 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
   if (!job) notFound();
 
   const { prisma } = await import("@dg/database");
-  const [org, members, entityQuotes, contactQuotes] = await Promise.all([
-    prisma.organisation.findUnique({
-      where: { id: session.organisationId },
-      select: { settings: true },
-    }),
-    listOrganisationMembers(session.organisationId),
-    listQuotesForEntity(session.organisationId, "ServiceJob", job.id),
-    job.contactId
-      ? prisma.commerceQuote.findMany({
-          where: { organisationId: session.organisationId, contactId: job.contactId },
-          orderBy: { createdAt: "desc" },
-          take: 10,
-        })
-      : Promise.resolve([]),
-  ]);
+  const [org, members, entityQuotes, contactQuotes, activitiesResult] =
+    await Promise.all([
+      prisma.organisation.findUnique({
+        where: { id: session.organisationId },
+        select: { settings: true, timezone: true },
+      }),
+      listOrganisationMembers(session.organisationId),
+      listQuotesForEntity(session.organisationId, "ServiceJob", job.id),
+      job.contactId
+        ? prisma.commerceQuote.findMany({
+            where: { organisationId: session.organisationId, contactId: job.contactId },
+            orderBy: { createdAt: "desc" },
+            take: 10,
+          })
+        : Promise.resolve([]),
+      listOrganisationActivities({
+        organisationId: session.organisationId,
+        entityType: "ServiceJob",
+        entityId: job.id,
+        limit: 40,
+      }),
+    ]);
 
+  const timeZone = org?.timezone || SERVICES_DEFAULT_TZ;
   const template = getActiveServiceTemplate(org?.settings);
   const contact = job.contactId
     ? await getContact(session.organisationId, job.contactId)
@@ -104,6 +115,9 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
     clerkUserId: m.clerkUserId,
     label: m.displayName?.trim() || m.email || m.clerkUserId.slice(0, 8),
   }));
+  const stageLabel =
+    template.workflow.find((s) => s.id === job.stage)?.label ??
+    job.stage.replace(/_/g, " ");
 
   return (
     <>
@@ -113,7 +127,10 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">{job.title}</h1>
         <p className="text-sm text-slate-400">
-          {job.stage.replace(/_/g, " ")} · {job.status}
+          {stageLabel} · {job.status}
+          {job.scheduledStartAt
+            ? ` · ${formatDateTime(job.scheduledStartAt, timeZone)}`
+            : ""}
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -143,6 +160,28 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
           customerLabel={template.terminology.customer}
           quoteLabel={template.terminology.quote}
         />
+        <section className="dg-card">
+          <h2 className="font-semibold text-white">Activity</h2>
+          {!activitiesResult.items.length ? (
+            <p className="mt-3 text-sm text-slate-500">No activity yet.</p>
+          ) : (
+            <ul className="mt-4 space-y-4">
+              {activitiesResult.items.map((activity) => (
+                <li key={activity.id} className="border-l-2 border-sky-600/50 pl-4">
+                  <p className="font-medium text-white">{activity.title}</p>
+                  {activity.body ? (
+                    <p className="text-sm text-slate-400">{activity.body}</p>
+                  ) : null}
+                  <p className="mt-1 text-xs text-slate-500">
+                    {activity.activityType} · {activity.sourceApp ?? "services"} ·{" "}
+                    {formatDateTime(activity.createdAt, timeZone)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+          <AddServiceJobNoteForm jobId={job.id} />
+        </section>
       </main>
     </>
   );

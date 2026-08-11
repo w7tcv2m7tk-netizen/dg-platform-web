@@ -62,6 +62,19 @@ export async function listServiceJobs(options: ListServiceJobsOptions) {
   if (options.status) where.status = options.status;
   if (options.stage) where.stage = options.stage;
   if (options.contactId) where.contactId = options.contactId;
+  if (options.unassigned) {
+    where.assignedUserId = null;
+  } else if (options.assignedUserId) {
+    where.assignedUserId = options.assignedUserId;
+  }
+  const q = options.q?.trim();
+  if (q) {
+    where.OR = [
+      { title: { contains: q, mode: "insensitive" } },
+      { siteAddress: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+    ];
+  }
   if (options.scheduledFrom || options.scheduledTo) {
     where.scheduledStartAt = {};
     if (options.scheduledFrom) {
@@ -72,10 +85,18 @@ export async function listServiceJobs(options: ListServiceJobsOptions) {
     }
   }
 
+  const sort =
+    options.sort ??
+    (options.scheduledFrom || options.scheduledTo ? "scheduled" : "updated");
+  const orderBy: Prisma.ServiceJobOrderByWithRelationInput[] =
+    sort === "scheduled"
+      ? [{ scheduledStartAt: "asc" }, { updatedAt: "desc" }]
+      : [{ updatedAt: "desc" }];
+
   const [items, total] = await Promise.all([
     prisma.serviceJob.findMany({
       where,
-      orderBy: [{ scheduledStartAt: "asc" }, { updatedAt: "desc" }],
+      orderBy,
       take: limit,
       skip: offset,
     }),
@@ -217,6 +238,9 @@ export async function updateServiceJob(input: UpdateServiceJobInput) {
     !existing.completedAt;
   if (becomingCompleted) {
     data.completedAt = new Date();
+    if (input.status === undefined && existing.status === "open") {
+      data.status = "won";
+    }
   }
 
   const row = await prisma.serviceJob.update({

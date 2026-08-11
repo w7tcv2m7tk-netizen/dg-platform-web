@@ -78,6 +78,11 @@ export function CreateServiceJobForm({
     }
     setOpen(false);
     e.currentTarget.reset();
+    const createdId = json.data?.id as string | undefined;
+    if (createdId) {
+      router.push(`/apps/services/jobs/${createdId}`);
+      return;
+    }
     router.refresh();
   }
 

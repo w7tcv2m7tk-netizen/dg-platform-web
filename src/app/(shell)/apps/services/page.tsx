@@ -8,6 +8,7 @@ import {
 import { ApplyServiceTemplateForm } from "@/components/services/ApplyServiceTemplateForm";
 import { ServicesNav } from "@/components/services/ServicesNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { formatDateTime, SERVICES_DEFAULT_TZ } from "@/lib/services-dates";
 
 export default async function ServicesOverviewPage() {
   const user = await currentUser();
@@ -38,10 +39,17 @@ export default async function ServicesOverviewPage() {
     );
   }
 
-  const [overview, templates] = await Promise.all([
+  const { prisma } = await import("@dg/database");
+  const [overview, org] = await Promise.all([
     getServicesOverview(session.organisationId),
-    Promise.resolve(listServiceTemplates()),
+    prisma.organisation.findUnique({
+      where: { id: session.organisationId },
+      select: { timezone: true },
+    }),
   ]);
+  const templates = listServiceTemplates();
+  const timeZone = org?.timezone || SERVICES_DEFAULT_TZ;
+  const jobWord = overview.terminology.job.toLowerCase();
 
   return (
     <>
@@ -49,31 +57,51 @@ export default async function ServicesOverviewPage() {
         <h1 className="text-2xl font-bold text-white">Services</h1>
         <p className="mt-1 text-sm text-slate-400">
           {session.organisationName} · {overview.templateLabel} template
-          {overview.templateKey ? ` (${overview.templateKey})` : " — pick a template to specialise"}
+          {overview.templateKey
+            ? ` (${overview.templateKey})`
+            : " — pick a template to specialise"}
         </p>
       </header>
       <main className="dg-page-main space-y-6">
         <ServicesNav active="overview" />
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <Link
+            href="/apps/services/jobs?status=open"
+            className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4 hover:border-slate-500"
+          >
             <p className="text-xs uppercase tracking-wide text-slate-500">Open jobs</p>
             <p className="mt-1 text-3xl font-semibold text-white">{overview.counts.openJobs}</p>
-          </div>
-          <div className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4">
+          </Link>
+          <Link
+            href="/apps/services/scheduling"
+            className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4 hover:border-slate-500"
+          >
             <p className="text-xs uppercase tracking-wide text-slate-500">Scheduled (7d)</p>
             <p className="mt-1 text-3xl font-semibold text-white">
               {overview.counts.scheduledThisWeek}
             </p>
-          </div>
+          </Link>
+          <Link
+            href="/apps/services/jobs?assignee=unassigned&status=open"
+            className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4 hover:border-slate-500"
+          >
+            <p className="text-xs uppercase tracking-wide text-slate-500">Unassigned</p>
+            <p className="mt-1 text-3xl font-semibold text-white">
+              {overview.counts.unassignedOpen}
+            </p>
+          </Link>
           <div className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4">
             <p className="text-xs uppercase tracking-wide text-slate-500">Completed</p>
             <p className="mt-1 text-3xl font-semibold text-white">{overview.counts.completed}</p>
           </div>
-          <div className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4">
+          <Link
+            href="/apps/commerce/quotes"
+            className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4 hover:border-slate-500"
+          >
             <p className="text-xs uppercase tracking-wide text-slate-500">Quotes</p>
             <p className="mt-1 text-3xl font-semibold text-white">{overview.counts.quotes}</p>
-          </div>
+          </Link>
         </div>
 
         <p className="text-xs text-slate-500">{overview.honestyNote}</p>
@@ -104,6 +132,47 @@ export default async function ServicesOverviewPage() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           <section className="dg-card space-y-3">
+            <h2 className="font-semibold text-white">Up next</h2>
+            {!overview.nextJobs.length ? (
+              <p className="text-sm text-slate-500">
+                Nothing scheduled in the next 14 days.{" "}
+                <Link href="/apps/services/jobs" className="text-sky-400 hover:underline">
+                  Set a start time on a {jobWord}
+                </Link>
+                .
+              </p>
+            ) : (
+              <ul className="divide-y divide-slate-800">
+                {overview.nextJobs.map((job) => (
+                  <li key={job.id} className="py-3">
+                    <Link
+                      href={`/apps/services/jobs/${job.id}`}
+                      className="block hover:opacity-90"
+                    >
+                      <p className="text-xs text-amber-200/90">
+                        {job.scheduledStartAt
+                          ? formatDateTime(job.scheduledStartAt, timeZone)
+                          : "—"}
+                      </p>
+                      <p className="font-medium text-white">{job.title}</p>
+                      <p className="text-sm text-slate-400">
+                        {job.siteAddress ?? "No address"}
+                        {job.assignedUserId ? "" : " · Unassigned"}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link
+              href="/apps/services/scheduling"
+              className="inline-block text-sm text-sky-400 hover:underline"
+            >
+              Open scheduling →
+            </Link>
+          </section>
+
+          <section className="dg-card space-y-3">
             <h2 className="font-semibold text-white">Pipeline</h2>
             {!overview.stageBreakdown.length ? (
               <p className="text-sm text-slate-500">No open jobs yet.</p>
@@ -111,7 +180,12 @@ export default async function ServicesOverviewPage() {
               <ul className="space-y-2 text-sm">
                 {overview.stageBreakdown.map((s) => (
                   <li key={s.stage} className="flex justify-between text-slate-300">
-                    <span>{s.label}</span>
+                    <Link
+                      href={`/apps/services/jobs?stage=${encodeURIComponent(s.stage)}&status=open`}
+                      className="hover:text-white hover:underline"
+                    >
+                      {s.label}
+                    </Link>
                     <span className="tabular-nums text-white">{s.count}</span>
                   </li>
                 ))}
@@ -121,7 +195,9 @@ export default async function ServicesOverviewPage() {
               View all jobs →
             </Link>
           </section>
+        </div>
 
+        <div className="grid gap-6 lg:grid-cols-2">
           <section className="dg-card space-y-3">
             <h2 className="font-semibold text-white">Service template</h2>
             <p className="text-sm text-slate-400">
@@ -129,6 +205,7 @@ export default async function ServicesOverviewPage() {
               types, and profile services.
             </p>
             <ApplyServiceTemplateForm
+              currentKey={overview.templateKey}
               templates={templates.map((t) => ({
                 key: t.key,
                 label: t.label,
@@ -136,36 +213,36 @@ export default async function ServicesOverviewPage() {
               }))}
             />
           </section>
-        </div>
 
-        <section className="dg-card">
-          <h2 className="font-semibold text-white">Recent jobs</h2>
-          {!overview.recentJobs.length ? (
-            <p className="mt-3 text-sm text-slate-500">
-              No jobs yet.{" "}
-              <Link href="/apps/services/jobs" className="text-sky-400 hover:underline">
-                Create one
-              </Link>
-            </p>
-          ) : (
-            <ul className="mt-3 divide-y divide-slate-800">
-              {overview.recentJobs.map((job) => (
-                <li key={job.id} className="py-3">
-                  <Link
-                    href={`/apps/services/jobs/${job.id}`}
-                    className="block hover:opacity-90"
-                  >
-                    <p className="font-medium text-white">{job.title}</p>
-                    <p className="text-sm text-slate-400">
-                      {job.stage.replace(/_/g, " ")} · {job.status}
-                      {job.jobType ? ` · ${job.jobType.replace(/_/g, " ")}` : ""}
-                    </p>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+          <section className="dg-card">
+            <h2 className="font-semibold text-white">Recent jobs</h2>
+            {!overview.recentJobs.length ? (
+              <p className="mt-3 text-sm text-slate-500">
+                No jobs yet.{" "}
+                <Link href="/apps/services/jobs" className="text-sky-400 hover:underline">
+                  Create one
+                </Link>
+              </p>
+            ) : (
+              <ul className="mt-3 divide-y divide-slate-800">
+                {overview.recentJobs.map((job) => (
+                  <li key={job.id} className="py-3">
+                    <Link
+                      href={`/apps/services/jobs/${job.id}`}
+                      className="block hover:opacity-90"
+                    >
+                      <p className="font-medium text-white">{job.title}</p>
+                      <p className="text-sm text-slate-400">
+                        {job.stage.replace(/_/g, " ")} · {job.status}
+                        {job.jobType ? ` · ${job.jobType.replace(/_/g, " ")}` : ""}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
       </main>
     </>
   );

@@ -1,4 +1,9 @@
-import { createActivity, getContact, listOrganisationActivities } from "@dg/platform-core";
+import {
+  createActivity,
+  getContact,
+  getServiceJob,
+  listOrganisationActivities,
+} from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
@@ -7,13 +12,16 @@ export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
-  const denied = requireFeature(session, "crm.timeline.read");
+  const { searchParams } = new URL(req.url);
+  const entityType = searchParams.get("entityType");
+  const feature =
+    entityType === "ServiceJob" ? "services.jobs.read" : "crm.timeline.read";
+  const denied = requireFeature(session, feature);
   if (denied) return denied;
 
-  const { searchParams } = new URL(req.url);
   const result = await listOrganisationActivities({
     organisationId: session.organisationId,
-    entityType: searchParams.get("entityType") ?? undefined,
+    entityType: entityType ?? undefined,
     entityId: searchParams.get("entityId") ?? undefined,
     sourceApp: searchParams.get("sourceApp") ?? undefined,
     limit: searchParams.get("limit")
@@ -30,9 +38,6 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-
-  const denied = requireFeature(session, "crm.contacts.write");
-  if (denied) return denied;
 
   const body = await req.json().catch(() => null);
   const entityType = body?.entityType as string | undefined;
@@ -52,11 +57,26 @@ export async function POST(req: Request) {
     );
   }
 
+  const feature =
+    entityType === "ServiceJob" ? "services.jobs.write" : "crm.contacts.write";
+  const denied = requireFeature(session, feature);
+  if (denied) return denied;
+
   if (entityType === "Contact") {
     const contact = await getContact(session.organisationId, entityId);
     if (!contact) {
       return NextResponse.json(
         { error: { code: "contact_not_found", message: "Contact not found" } },
+        { status: 404 },
+      );
+    }
+  }
+
+  if (entityType === "ServiceJob") {
+    const job = await getServiceJob(session.organisationId, entityId);
+    if (!job) {
+      return NextResponse.json(
+        { error: { code: "not_found", message: "Job not found" } },
         { status: 404 },
       );
     }
@@ -70,7 +90,7 @@ export async function POST(req: Request) {
     activityType: body?.activityType ?? "note",
     title: title.trim(),
     body: noteBody?.trim(),
-    sourceApp: body?.sourceApp ?? "crm",
+    sourceApp: body?.sourceApp ?? (entityType === "ServiceJob" ? "services" : "crm"),
   });
 
   return NextResponse.json({ data: activity }, { status: 201 });

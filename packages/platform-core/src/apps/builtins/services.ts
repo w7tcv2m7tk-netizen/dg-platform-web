@@ -11,7 +11,7 @@ export const servicesApp: AppManifest = {
   description:
     "Jobs & scheduling for field/trade ops — quotes live in Commerce, customers in CRM, team in Settings",
   tier: "business",
-  version: "0.2.1",
+  version: "0.3.0",
   icon: "⚙",
   routes: [
     // Owned surfaces only — Quotes → Commerce, Customers → CRM, Teams → Settings (no duplicate nav).

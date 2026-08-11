@@ -48,6 +48,8 @@ export const ELECTRICIAN_TEMPLATE: ServiceTemplate = {
   jobFields: [
     { id: "access_requirements", label: "Access requirements", type: "textarea" },
     { id: "electrical_requirements", label: "Electrical requirements", type: "textarea" },
+    { id: "switchboard_notes", label: "Switchboard / meter notes", type: "textarea" },
+    { id: "certificate_required", label: "Certificate / COC required", type: "boolean" },
     { id: "compliance_docs", label: "Compliance documents notes", type: "textarea" },
   ],
   terminology: { job: "Job", customer: "Customer", quote: "Quote" },
@@ -80,6 +82,8 @@ export const PLUMBER_TEMPLATE: ServiceTemplate = {
   jobFields: [
     { id: "urgency", label: "Urgency", type: "text" },
     { id: "access_requirements", label: "Access requirements", type: "textarea" },
+    { id: "water_meter_notes", label: "Water / gas meter notes", type: "textarea" },
+    { id: "parts_needed", label: "Parts / materials needed", type: "textarea" },
   ],
   terminology: { job: "Job", customer: "Customer", quote: "Quote" },
 };

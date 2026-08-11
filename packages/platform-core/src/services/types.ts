@@ -113,9 +113,17 @@ export type ListServiceJobsOptions = {
   status?: string;
   stage?: string;
   contactId?: string;
+  /** Clerk user id of assignee */
+  assignedUserId?: string;
+  /** Only jobs with no assignee */
+  unassigned?: boolean;
+  /** Case-insensitive search across title, site address, description */
+  q?: string;
   /** Jobs scheduled on/after this ISO date */
   scheduledFrom?: string;
   scheduledTo?: string;
+  /** Default: scheduled when date range set, otherwise updated */
+  sort?: "updated" | "scheduled";
   limit?: number;
   offset?: number;
 };

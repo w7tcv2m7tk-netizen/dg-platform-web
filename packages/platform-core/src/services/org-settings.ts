@@ -100,10 +100,10 @@ export async function applyServiceTemplate(input: {
     create: {
       organisationId: org.id,
       appId: "services",
-      version: "0.2.0",
+      version: "0.3.0",
       enabled: true,
     },
-    update: { enabled: true },
+    update: { enabled: true, version: "0.3.0" },
   });
 
   await platformEvents.publish({

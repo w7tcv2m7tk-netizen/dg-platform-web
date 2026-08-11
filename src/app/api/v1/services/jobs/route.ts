@@ -14,13 +14,20 @@ export async function GET(req: Request) {
   if (denied) return denied;
 
   const { searchParams } = new URL(req.url);
+  const assignee = searchParams.get("assignedUserId");
+  const unassigned = searchParams.get("unassigned");
+  const sort = searchParams.get("sort");
   const result = await listServiceJobs({
     organisationId: session.organisationId,
     status: searchParams.get("status") ?? undefined,
     stage: searchParams.get("stage") ?? undefined,
     contactId: searchParams.get("contactId") ?? undefined,
+    assignedUserId: assignee && assignee !== "unassigned" ? assignee : undefined,
+    unassigned: unassigned === "1" || unassigned === "true" || assignee === "unassigned",
+    q: searchParams.get("q") ?? undefined,
     scheduledFrom: searchParams.get("scheduledFrom") ?? undefined,
     scheduledTo: searchParams.get("scheduledTo") ?? undefined,
+    sort: sort === "scheduled" || sort === "updated" ? sort : undefined,
     limit: searchParams.get("limit")
       ? Number.parseInt(searchParams.get("limit")!, 10)
       : undefined,

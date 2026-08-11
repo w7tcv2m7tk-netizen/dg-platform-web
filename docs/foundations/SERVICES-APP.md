@@ -1,6 +1,6 @@
 # Services App — Industry-Configurable Field Operations
 
-**Status:** Architecture locked · MVP job ops + day schedule board shipped (Aug 2026) · calendar / checklists / recurrence next  
+**Status:** Architecture locked · Closed-beta job ops (create → schedule → assign → stage → day board) · Aug 2026 · drag-drop calendar / checklists / recurrence next  
 **Classification:** **One Business App** with **Service Templates** — not separate Apps per trade  
 **App id:** `services`  
 **Related:** [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) · [COMMERCE-SPECIFICATION.md](../commerce/COMMERCE-SPECIFICATION.md) · [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) · [GLOBAL-READINESS.md](./GLOBAL-READINESS.md)
