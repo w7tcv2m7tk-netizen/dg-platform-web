@@ -293,7 +293,7 @@ export async function buildEmailDomainAuthPlan(input: {
     const { listResendDomains, getResendDomain } = await import("./resend-domains");
     const listed = await listResendDomains();
     const hit = listed.find((d) => d.name === apex);
-    const domain = hit?.id ? (await getResendDomain(hit.id)) ?? hit : null;
+    let domain = hit?.id ? (await getResendDomain(hit.id)) ?? hit : null;
     if (!domain) {
       const identity = emptyEmailDomainIdentity(apex, input.organisationId);
       return {
@@ -305,6 +305,11 @@ export async function buildEmailDomainAuthPlan(input: {
         note: "Sending domain not prepared yet — click Prepare",
       };
     }
+    domain = await applyStickyVerifiedStatus({
+      domain,
+      organisationId: input.organisationId,
+      apex,
+    });
     const checks = buildChecksFromResend(domain, apex);
     const byId = Object.fromEntries(checks.map((c) => [c.id, c.state]));
     const espStatus = effectiveResendDomainStatus(domain);
@@ -341,7 +346,11 @@ export async function buildEmailDomainAuthPlan(input: {
     };
   }
 
-  const domain = ensured.domain;
+  const domain = await applyStickyVerifiedStatus({
+    domain: ensured.domain,
+    organisationId: input.organisationId,
+    apex,
+  });
   const checks = buildChecksFromResend(domain, apex);
   const byId = Object.fromEntries(checks.map((c) => [c.id, c.state]));
   const espStatus = effectiveResendDomainStatus(domain);
@@ -368,6 +377,39 @@ export async function buildEmailDomainAuthPlan(input: {
         ? "ESP domain verified — ready to send"
         : undefined,
   };
+}
+
+/** If we previously persisted verified on the domain row, don't regress to pending. */
+async function applyStickyVerifiedStatus(input: {
+  domain: ResendDomain;
+  organisationId?: string;
+  apex: string;
+}): Promise<ResendDomain> {
+  if (!input.organisationId || !process.env.DATABASE_URL) return input.domain;
+  try {
+    const { getOrganisationDomain } = await import("../domains/inventory");
+    const row = await getOrganisationDomain(input.organisationId, input.apex);
+    const sticky = String(
+      (row?.metadata as { resendStatus?: string } | null)?.resendStatus || "",
+    ).toLowerCase();
+    const current = effectiveResendDomainStatus(input.domain).toLowerCase();
+    if (sticky === "verified" && current !== "verified") {
+      return {
+        ...input.domain,
+        status: "verified",
+        records: input.domain.records.map((r) => {
+          const purpose = (r.record || "").toUpperCase();
+          if (purpose === "SPF" || purpose === "DKIM") {
+            return { ...r, status: "verified" };
+          }
+          return r;
+        }),
+      };
+    }
+  } catch {
+    /* inventory optional */
+  }
+  return input.domain;
 }
 
 export type ApplyEmailAuthDnsResult = {

@@ -232,6 +232,46 @@ export async function verifyResendDomain(
           : `Resend verify failed (HTTP ${status})`,
     };
   }
-  const full = await getResendDomain(domainId);
-  return { ok: true, domain: full ?? (json.id ? normalizeResendDomain(json) : null) };
+  const fromVerify = json.id ? normalizeResendDomain(json) : null;
+  let full = await getResendDomain(domainId);
+
+  // Resend often needs a beat after Verify before GET reports verified.
+  if (
+    effectiveStatus(full) !== "verified" &&
+    effectiveStatus(fromVerify) !== "verified"
+  ) {
+    await new Promise((r) => setTimeout(r, 2500));
+    full = (await getResendDomain(domainId)) ?? full;
+  }
+
+  const pick =
+    effectiveStatus(full) === "verified"
+      ? full
+      : effectiveStatus(fromVerify) === "verified"
+        ? fromVerify
+        : full ?? fromVerify;
+
+  return { ok: true, domain: pick };
+}
+
+function effectiveStatus(domain: ResendDomain | null): string {
+  if (!domain) return "unknown";
+  const s = (domain.status || "").toLowerCase();
+  if (s === "verified" || s === "valid") return "verified";
+  const records = domain.records || [];
+  if (!records.length) return s || "unknown";
+  const critical = records.filter((r) => {
+    const p = (r.record || "").toUpperCase();
+    return p === "SPF" || p === "DKIM";
+  });
+  if (
+    critical.length &&
+    critical.every((r) => {
+      const st = (r.status || "").toLowerCase();
+      return st === "verified" || st === "valid";
+    })
+  ) {
+    return "verified";
+  }
+  return domain.status || "unknown";
 }

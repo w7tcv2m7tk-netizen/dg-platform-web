@@ -64,7 +64,7 @@ export function EmailInfrastructureConsole({
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const load = useCallback(async (selected?: string, opts?: { allowDowngrade?: boolean }) => {
+  const load = useCallback(async (selected?: string) => {
     const q = selected
       ? `?domain=${encodeURIComponent(selected)}`
       : "";
@@ -89,19 +89,16 @@ export function EmailInfrastructureConsole({
       return;
     }
 
-    // Resend can flip verified → pending on an immediate re-fetch after Verify.
-    // Don't clobber a verified plan with a lagging pending snapshot.
+    // Never downgrade verified → pending (Resend GET races after Verify).
     setAuthPlan((prev) => {
-      if (
-        opts?.allowDowngrade === false &&
+      const prevOk =
         prev &&
         (prev.resendStatus?.toLowerCase() === "verified" ||
-          prev.identity.status === "verified") &&
-        next.resendStatus?.toLowerCase() !== "verified" &&
-        next.identity.status !== "verified"
-      ) {
-        return prev;
-      }
+          prev.identity.status === "verified");
+      const nextOk =
+        next.resendStatus?.toLowerCase() === "verified" ||
+        next.identity.status === "verified";
+      if (prevOk && !nextOk) return prev;
       return next;
     });
   }, []);
@@ -115,7 +112,7 @@ export function EmailInfrastructureConsole({
       setAuthPlan(null);
       return;
     }
-    void load(domain, { allowDowngrade: true });
+    void load(domain);
   }, [domain, load]);
 
   async function run(action: "prepare" | "apply" | "verify") {
@@ -142,21 +139,33 @@ export function EmailInfrastructureConsole({
       error?: { message?: string; hint?: string };
     };
     if (res.ok) {
-      if (json.data?.authPlan) setAuthPlan(json.data.authPlan);
+      if (json.data?.authPlan) {
+        setAuthPlan((prev) => {
+          const next = json.data!.authPlan!;
+          const prevOk =
+            prev &&
+            (prev.resendStatus?.toLowerCase() === "verified" ||
+              prev.identity.status === "verified");
+          const nextOk =
+            next.resendStatus?.toLowerCase() === "verified" ||
+            next.identity.status === "verified";
+          if (prevOk && !nextOk) return prev;
+          return next;
+        });
+      }
+      const plan = json.data?.authPlan;
+      const esp =
+        plan?.resendStatus ||
+        plan?.identity.status ||
+        json.data?.verify?.status;
       const parts = [json.data?.message || "Done"];
       if (json.data?.verify?.error) parts.push(json.data.verify.error);
-      const esp =
-        json.data?.authPlan?.resendStatus ||
-        json.data?.verify?.status ||
-        json.data?.authPlan?.identity.status;
       if (esp) parts.push(`ESP status: ${esp}`);
       setStatus(parts.join(" · "));
-      // After verify, refresh inventory only — avoid Resend race that
-      // rewrites verified → pending a moment later.
-      if (action === "verify") {
-        await load(undefined);
+      if (action !== "verify") {
+        await load(domain);
       } else {
-        await load(domain, { allowDowngrade: true });
+        await load(); // inventory only
       }
     } else {
       const bits = [json.error?.message || "Action failed"];
