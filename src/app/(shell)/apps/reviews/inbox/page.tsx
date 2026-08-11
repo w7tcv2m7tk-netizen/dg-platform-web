@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ReviewFeedList } from "@/components/reviews/ReviewFeedList";
+import { ReviewsEmptyState } from "@/components/reviews/ReviewsEmptyState";
 import { ReviewsSubnav } from "@/components/reviews/ReviewsSubnav";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
@@ -9,6 +10,16 @@ export default async function ReviewsInboxPage() {
   const platformSummary = Object.entries(feedStatus.byPlatform)
     .map(([key, count]) => `${key}: ${count}`)
     .join(" · ");
+  const healthBits = [
+    feedStatus.accConnected ? "Acc connected" : null,
+    feedStatus.gbpConnected
+      ? feedStatus.gbpReviewsBlockedReason
+        ? "GBP connected · reviews blocked"
+        : feedStatus.gbpLastSyncAt
+          ? "GBP connected"
+          : "GBP connected · not synced"
+      : null,
+  ].filter(Boolean);
 
   return (
     <>
@@ -24,22 +35,57 @@ export default async function ReviewsInboxPage() {
           <div className="dg-card">
             <p className="text-sm text-slate-400">Sign in to view the review inbox.</p>
           </div>
-        ) : !feedStatus.ok ? (
-          <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/30 px-6 py-10 text-center">
-            <p className="text-lg font-medium text-white">Feed unavailable</p>
-            <p className="mx-auto mt-3 max-w-lg text-sm text-slate-400">{feedStatus.message}</p>
-            <p className="mt-4 text-sm text-slate-500">
-              Configure a review connector or open{" "}
-              <Link href="/apps/accommodation/reviews" className="text-sky-400 hover:underline">
-                Accommodation Reviews
-              </Link>{" "}
-              ops. Reviews also surface on{" "}
-              <Link href="/apps/crm/timeline" className="text-sky-400 hover:underline">
-                CRM timeline
-              </Link>{" "}
-              when queued as Activity. GBP / Meta / ProductReview arrive via Connectors.
-            </p>
-          </div>
+        ) : feedStatus.emptyKind === "no_sources" ? (
+          <ReviewsEmptyState
+            title="No review sources connected"
+            description="Connect Google Business Profile or the Acc WordPress connector to populate the Universal Review feed. Score stays empty until rated reviews exist — no placeholders."
+            detail={feedStatus.message}
+            actions={[
+              { href: "/apps/reviews/sources", label: "Open sources →" },
+              { href: "/dashboard/settings/connectors", label: "Connectors →" },
+            ]}
+          />
+        ) : feedStatus.emptyKind === "sync_failed" ? (
+          <ReviewsEmptyState
+            title="GBP sync failed"
+            description="Google is connected but the last sync did not return a usable feed. Retry from Sources, or check connector settings."
+            detail={feedStatus.message}
+            tone="danger"
+            actions={[
+              { href: "/apps/reviews/sources", label: "Retry on sources →" },
+              { href: "/dashboard/settings/connectors", label: "Connector settings →" },
+            ]}
+          />
+        ) : feedStatus.emptyKind === "sync_blocked" ? (
+          <ReviewsEmptyState
+            title="Reviews blocked by Google"
+            description="Location metadata may still sync. Reputation Score™ stays empty until the Reviews API returns rated reviews — we never invent scores."
+            detail={feedStatus.gbpReviewsBlockedReason ?? feedStatus.message}
+            tone="amber"
+            actions={[
+              { href: "/apps/reviews/sources", label: "Source health →" },
+              { href: "/dashboard/settings/connectors", label: "Google connector →" },
+            ]}
+          />
+        ) : feed.length === 0 ? (
+          <ReviewsEmptyState
+            title="No reviews in the feed yet"
+            description="A source is connected, but the Universal Review feed has no published items. Sync GBP or import Acc reviews, then refresh this inbox."
+            detail={
+              [
+                healthBits.join(" · ") || null,
+                feedStatus.gbpLastSyncAt
+                  ? `Last GBP sync ${new Date(feedStatus.gbpLastSyncAt).toLocaleString("en-AU")}`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ") || feedStatus.message
+            }
+            actions={[
+              { href: "/apps/reviews/sources", label: "Sync sources →" },
+              { href: "/apps/reviews/requests", label: "Queue a request →" },
+            ]}
+          />
         ) : (
           <>
             <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -47,15 +93,18 @@ export default async function ReviewsInboxPage() {
                 {feedStatus.total} published
                 {platformSummary ? ` · ${platformSummary}` : ""}
                 {feedStatus.siteLabel ? ` · ${feedStatus.siteLabel}` : ""}
+                {healthBits.length ? ` · ${healthBits.join(" · ")}` : ""}
               </p>
               <Link href="/apps/reviews/sources" className="text-xs text-blue-400 hover:underline">
                 Sources →
               </Link>
             </div>
-            <ReviewFeedList
-              reviews={feed}
-              businessName={session?.organisationName}
-            />
+            {feedStatus.gbpReviewsBlockedReason && feedStatus.gbpConnected ? (
+              <p className="rounded-lg border border-amber-800/50 bg-amber-950/15 px-3 py-2 text-xs text-amber-200/90">
+                GBP reviews still blocked: {feedStatus.gbpReviewsBlockedReason}
+              </p>
+            ) : null}
+            <ReviewFeedList reviews={feed} businessName={session?.organisationName} />
           </>
         )}
       </main>

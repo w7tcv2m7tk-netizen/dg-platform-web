@@ -1,6 +1,7 @@
 import type { ReviewFeedItem } from "@dg/platform-core";
 
 import { ReviewReplyDraftButton } from "@/components/reviews/ReviewReplyDraftButton";
+import { ReviewsEmptyState } from "@/components/reviews/ReviewsEmptyState";
 
 function stars(rating: number): string {
   const filled = Math.max(0, Math.min(5, Math.round(rating)));
@@ -16,10 +17,14 @@ export function ReviewFeedList({
 }) {
   if (!reviews.length) {
     return (
-      <p className="text-sm text-slate-400">
-        No reviews in the connected feed yet. Import Acc reviews in WordPress or connect another
-        source.
-      </p>
+      <ReviewsEmptyState
+        title="No reviews in this feed"
+        description="Import Acc reviews in WordPress or sync Google Business Profile, then refresh. Reputation never shows invented ratings."
+        actions={[
+          { href: "/apps/reviews/sources", label: "Sources →" },
+          { href: "/apps/reviews/requests", label: "Queue a request →" },
+        ]}
+      />
     );
   }
 

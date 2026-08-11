@@ -14,12 +14,18 @@ import {
   getWpAccommodationSite,
 } from "@/lib/dg-api";
 
+export type ReviewsFeedEmptyKind = "no_sources" | "no_reviews" | "sync_blocked" | "sync_failed";
+
 export type ReviewsFeedStatus = {
   ok: boolean;
   message?: string;
   total: number;
   byPlatform: Record<string, number>;
   siteLabel?: string;
+  /** Acc WP and/or GBP connector present for this org. */
+  hasSource?: boolean;
+  /** Distinct empty-state for inbox/overview when feed has no items. */
+  emptyKind?: ReviewsFeedEmptyKind | null;
   accConnected?: boolean;
   gbpConnected?: boolean;
   gbpLocations?: number;
@@ -27,6 +33,7 @@ export type ReviewsFeedStatus = {
   gbpReviewsAvailable?: boolean;
   gbpReviewsBlockedReason?: string | null;
   gbpLastSyncAt?: string | null;
+  gbpLastError?: string | null;
 };
 
 export async function loadReviewsSessionAndFeed(siteId?: string | null) {
@@ -84,16 +91,41 @@ export async function loadReviewsSessionAndFeed(siteId?: string | null) {
       }
     }
 
+    const hasSource = accConnected || gbpConnected;
+    const gbpBlocked = Boolean(gbp?.health.reviewsBlockedReason);
+    const gbpFailed =
+      gbpConnected &&
+      (gbp?.health.status === "error" || Boolean(gbp?.health.lastError)) &&
+      feed.length === 0 &&
+      !accConnected;
+    let emptyKind: ReviewsFeedEmptyKind | null = null;
+    let message: string | undefined;
+    if (feed.length === 0) {
+      if (!hasSource) {
+        emptyKind = "no_sources";
+        message = (!result.ok ? result.message : undefined) || "No review source connected yet";
+      } else if (gbpFailed && gbp?.health.lastError) {
+        emptyKind = "sync_failed";
+        message = gbp.health.lastError;
+      } else if (gbpBlocked && !accConnected) {
+        emptyKind = "sync_blocked";
+        message =
+          gbp?.health.reviewsBlockedReason ||
+          "GBP connected — reviews not available from the API yet";
+      } else {
+        emptyKind = "no_reviews";
+        message = gbpConnected
+          ? "Sources connected — no published reviews in the Universal Review feed yet"
+          : "Acc feed reachable — no published reviews yet";
+      }
+    }
+
     feedStatus = {
       // ok = review items available and/or Acc feed reachable (not merely GBP location metadata)
       ok: feed.length > 0 || accConnected,
-      message:
-        feed.length > 0 || accConnected
-          ? undefined
-          : gbpConnected
-            ? gbp?.health.reviewsBlockedReason ||
-              "GBP connected — location metadata synced; no reviews in feed yet"
-            : result.message || "No connector feed yet",
+      message,
+      emptyKind,
+      hasSource,
       total: feed.length,
       byPlatform,
       siteLabel: connector?.label ?? site.label,
@@ -104,6 +136,7 @@ export async function loadReviewsSessionAndFeed(siteId?: string | null) {
       gbpReviewsAvailable: gbp?.health.reviewsAvailable ?? false,
       gbpReviewsBlockedReason: gbp?.health.reviewsBlockedReason ?? null,
       gbpLastSyncAt: gbp?.health.lastSyncAt ?? null,
+      gbpLastError: gbp?.health.lastError ?? null,
     };
   }
 

@@ -6,6 +6,7 @@ import {
 } from "@dg/platform-core";
 
 import { ReviewThemesPanel } from "@/components/reviews/ReviewThemesPanel";
+import { ReviewsEmptyState } from "@/components/reviews/ReviewsEmptyState";
 import { ReviewsSubnav } from "@/components/reviews/ReviewsSubnav";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
@@ -16,8 +17,9 @@ export default async function ReputationOverviewPage() {
   const connectedSources = REVIEW_SOURCE_CONCEPTS.filter((s) => {
     if (s.id === "accommodation_wp") return Boolean(feedStatus.accConnected);
     if (s.id === "google_business") return Boolean(feedStatus.gbpConnected);
-    return s.status === "connected";
+    return false;
   });
+  const liveSourceCount = connectedSources.length;
 
   return (
     <>
@@ -69,9 +71,9 @@ export default async function ReputationOverviewPage() {
                 <p className="text-xs uppercase tracking-wide text-slate-500">Inbox</p>
                 <p className="mt-2 text-4xl font-bold text-white">{feed.length}</p>
                 <p className="mt-1 text-xs text-slate-500">
-                  {feedStatus.ok
+                  {feed.length > 0
                     ? `${feedStatus.siteLabel ?? "Connected"} feed loaded`
-                    : feedStatus.message ?? "No connector feed yet"}
+                    : feedStatus.message ?? "No reviews in feed yet"}
                 </p>
                 <Link
                   href="/apps/reviews/inbox"
@@ -83,12 +85,16 @@ export default async function ReputationOverviewPage() {
               <div className="dg-card">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Sources</p>
                 <p className="mt-2 text-4xl font-bold text-white">
-                  {feedStatus.ok ? connectedSources.length || 1 : 0}
+                  {liveSourceCount}
                   <span className="text-lg font-normal text-slate-500">
                     /{REVIEW_SOURCE_CONCEPTS.length}
                   </span>
                 </p>
-                <p className="mt-1 text-xs text-slate-500">Connector-ready slots</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {liveSourceCount
+                    ? `${liveSourceCount} live · rest planned`
+                    : "None live yet"}
+                </p>
                 <Link
                   href="/apps/reviews/sources"
                   className="mt-3 inline-block text-xs text-sky-400 hover:underline"
@@ -98,25 +104,52 @@ export default async function ReputationOverviewPage() {
               </div>
             </div>
 
-            {!feedStatus.ok && feed.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/30 px-6 py-10 text-center">
-                <p className="text-lg font-medium text-white">No review feed connected yet</p>
-                <p className="mx-auto mt-3 max-w-lg text-sm text-slate-400">
-                  Connect a review source to centralise ratings on Contact timelines. Acc WordPress
-                  and Google Business Profile are available today; other platforms use Connectors.
-                </p>
-                <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm">
-                  <Link href="/apps/reviews/sources" className="text-sky-400 hover:underline">
-                    View sources →
-                  </Link>
-                  <Link href="/dashboard/settings/connectors" className="text-sky-400 hover:underline">
-                    Connectors →
-                  </Link>
-                  <Link href="/apps/reviews/requests" className="text-sky-400 hover:underline">
-                    Queue a request →
-                  </Link>
-                </div>
-              </div>
+            {feedStatus.emptyKind === "no_sources" ? (
+              <ReviewsEmptyState
+                title="No review sources connected"
+                description="Connect Acc WordPress or Google Business Profile to centralise ratings. Score stays empty until rated reviews exist."
+                actions={[
+                  { href: "/apps/reviews/sources", label: "View sources →" },
+                  { href: "/dashboard/settings/connectors", label: "Connectors →" },
+                  { href: "/apps/reviews/requests", label: "Queue a request →" },
+                ]}
+              />
+            ) : feedStatus.emptyKind === "sync_failed" ? (
+              <ReviewsEmptyState
+                title="GBP sync failed"
+                description="Google is connected but sync did not return a usable review feed."
+                detail={feedStatus.message}
+                tone="danger"
+                actions={[
+                  { href: "/apps/reviews/sources", label: "Retry sync →" },
+                  { href: "/dashboard/settings/connectors", label: "Connector settings →" },
+                ]}
+              />
+            ) : feedStatus.emptyKind === "sync_blocked" ? (
+              <ReviewsEmptyState
+                title="GBP connected — reviews blocked"
+                description="Location metadata may still be available. Reputation Score™ stays empty until Google returns rated reviews."
+                detail={feedStatus.gbpReviewsBlockedReason ?? feedStatus.message}
+                tone="amber"
+                actions={[
+                  { href: "/apps/reviews/sources", label: "Source health →" },
+                  { href: "/apps/reviews/inbox", label: "Inbox →" },
+                ]}
+              />
+            ) : feed.length === 0 ? (
+              <ReviewsEmptyState
+                title="Sources connected — feed empty"
+                description="Sync GBP or import Acc reviews to populate the Universal Review feed. No placeholder scores."
+                detail={
+                  feedStatus.gbpLastSyncAt
+                    ? `Last GBP sync ${new Date(feedStatus.gbpLastSyncAt).toLocaleString("en-AU")}`
+                    : feedStatus.message
+                }
+                actions={[
+                  { href: "/apps/reviews/sources", label: "Sync sources →" },
+                  { href: "/apps/reviews/inbox", label: "Open inbox →" },
+                ]}
+              />
             ) : null}
 
             <div className="grid gap-6 lg:grid-cols-2">

@@ -2,9 +2,9 @@ import {
   computeReputationScore,
   extractReviewThemes,
 } from "@dg/platform-core";
-import Link from "next/link";
 
 import { ReviewThemesPanel } from "@/components/reviews/ReviewThemesPanel";
+import { ReviewsEmptyState } from "@/components/reviews/ReviewsEmptyState";
 import { ReviewsSubnav } from "@/components/reviews/ReviewsSubnav";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
@@ -28,21 +28,30 @@ export default async function ReputationScorePage() {
             <p className="text-sm text-slate-400">Sign in to compute reputation.</p>
           </div>
         ) : score.score == null ? (
-          <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/30 px-6 py-10 text-center">
-            <p className="text-lg font-medium text-white">No Reputation Score™ yet</p>
-            <p className="mx-auto mt-3 max-w-lg text-sm text-slate-400">{score.note}</p>
-            {!feedStatus.ok ? (
-              <p className="mt-2 text-sm text-slate-500">{feedStatus.message}</p>
-            ) : null}
-            <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm">
-              <Link href="/apps/reviews/sources" className="text-sky-400 hover:underline">
-                Connect a source →
-              </Link>
-              <Link href="/apps/reviews/inbox" className="text-sky-400 hover:underline">
-                Open inbox →
-              </Link>
-            </div>
-          </div>
+          <ReviewsEmptyState
+            title="No Reputation Score™ yet"
+            description={score.note}
+            detail={
+              feedStatus.emptyKind === "sync_blocked"
+                ? feedStatus.gbpReviewsBlockedReason
+                : feedStatus.emptyKind === "sync_failed"
+                  ? feedStatus.message
+                  : feedStatus.hasSource
+                    ? feedStatus.message
+                    : "Connect a source first — score stays empty until rated reviews exist."
+            }
+            tone={
+              feedStatus.emptyKind === "sync_failed"
+                ? "danger"
+                : feedStatus.emptyKind === "sync_blocked"
+                  ? "amber"
+                  : "neutral"
+            }
+            actions={[
+              { href: "/apps/reviews/sources", label: "Sources →" },
+              { href: "/apps/reviews/inbox", label: "Open inbox →" },
+            ]}
+          />
         ) : (
           <>
             <div className="dg-card max-w-xl">
