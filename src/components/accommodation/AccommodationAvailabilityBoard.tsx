@@ -791,9 +791,6 @@ function UnitPricingPanel({
             {units.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.title}
-                {u.weekday_rate != null || u.weekend_rate != null
-                  ? ` · ${formatMoney(u.weekday_rate)} / ${formatMoney(u.weekend_rate)}`
-                  : ""}
               </option>
             ))}
           </select>
