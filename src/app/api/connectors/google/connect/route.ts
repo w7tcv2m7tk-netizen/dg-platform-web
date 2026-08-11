@@ -3,24 +3,23 @@ import {
   googleCredentialsConfigured,
 } from "@dg/platform-core";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { randomBytes } from "crypto";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
+import { createGoogleOAuthState } from "@/lib/google-oauth-state";
 
 export const dynamic = "force-dynamic";
-
-const STATE_COOKIE = "dg_google_oauth_state";
-const ORG_COOKIE = "dg_google_oauth_org";
 
 /**
  * Start Google Business Profile OAuth.
  * GET /api/connectors/google/connect
  */
-export async function GET() {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.digitalgate.com.au";
+export async function GET(req: Request) {
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    new URL(req.url).origin ||
+    "https://app.digitalgate.com.au";
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.redirect(new URL("/login", appUrl));
@@ -58,7 +57,21 @@ export async function GET() {
     );
   }
 
-  const state = randomBytes(24).toString("hex");
+  let state: string;
+  try {
+    state = createGoogleOAuthState(session.organisationId);
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "google_state",
+          message: err instanceof Error ? err.message : "Could not create OAuth state",
+        },
+      },
+      { status: 503 },
+    );
+  }
+
   const authUrl = buildGoogleAuthorizeUrl({ state });
   if (!authUrl.ok) {
     return NextResponse.json(
@@ -66,21 +79,6 @@ export async function GET() {
       { status: 503 },
     );
   }
-
-  const jar = await cookies();
-  // Secure whenever we are not on plain localhost — Vercel is always HTTPS.
-  const secure =
-    process.env.NODE_ENV === "production" ||
-    !(process.env.NEXT_PUBLIC_APP_URL || "").includes("localhost");
-  const cookieBase = {
-    httpOnly: true,
-    sameSite: "lax" as const,
-    secure,
-    path: "/",
-    maxAge: 1800, // 30m — Google consent can be slow
-  };
-  jar.set(STATE_COOKIE, state, cookieBase);
-  jar.set(ORG_COOKIE, session.organisationId, cookieBase);
 
   return NextResponse.redirect(authUrl.url);
 }

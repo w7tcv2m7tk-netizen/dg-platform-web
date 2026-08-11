@@ -4,30 +4,22 @@ import {
   syncOrgGoogleGbp,
 } from "@dg/platform-core";
 import { auth } from "@clerk/nextjs/server";
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
+import { parseGoogleOAuthState } from "@/lib/google-oauth-state";
+
 export const dynamic = "force-dynamic";
-
-const STATE_COOKIE = "dg_google_oauth_state";
-const ORG_COOKIE = "dg_google_oauth_org";
-
-function appBase(req: NextRequest): string {
-  const fromEnv = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (fromEnv) return fromEnv.replace(/\/$/, "");
-  return req.nextUrl.origin;
-}
 
 /**
  * Google OAuth redirect —
  * https://app.digitalgate.com.au/api/connectors/google/callback
  *
- * Token save uses the org cookie from Connect (set while signed in). We do not
- * require a live Clerk session for the exchange — otherwise FORCE_REDIRECT to
- * /dashboard after a mid-flow re-login drops the code and leaves Org disconnected.
+ * Organisation id travels in signed OAuth `state` (not cookies), so the
+ * Google round-trip cannot drop org context. Callback is a public Clerk route.
  */
 export async function GET(req: NextRequest) {
-  const base = appBase(req);
+  // Always return to the host Google hit — ignore a wrong NEXT_PUBLIC_APP_URL.
+  const base = req.nextUrl.origin;
   const connectorsOk = () =>
     NextResponse.redirect(
       new URL("/dashboard/settings/connectors?google=connected", base),
@@ -50,18 +42,11 @@ export async function GET(req: NextRequest) {
     return fail("Missing code or state from Google");
   }
 
-  const jar = await cookies();
-  const expectedState = jar.get(STATE_COOKIE)?.value;
-  const organisationId = jar.get(ORG_COOKIE)?.value;
-  jar.delete(STATE_COOKIE);
-  jar.delete(ORG_COOKIE);
-
-  if (!expectedState || expectedState !== state) {
-    return fail("OAuth state mismatch — try Connect Google again");
+  const parsed = parseGoogleOAuthState(state);
+  if (!parsed.ok) {
+    return fail(parsed.message);
   }
-  if (!organisationId) {
-    return fail("Missing organisation context — try Connect Google again");
-  }
+  const organisationId = parsed.organisationId;
 
   const exchanged = await exchangeGoogleAuthorizationCode({ code });
   if (!exchanged.ok) {
@@ -88,7 +73,6 @@ export async function GET(req: NextRequest) {
 
   const { userId } = await auth();
   if (!userId) {
-    // Tokens already saved — send them to login, then connectors (not /dashboard FORCE).
     const after = `/dashboard/settings/connectors?google=connected`;
     return NextResponse.redirect(
       new URL(`/login?redirect_url=${encodeURIComponent(after)}`, base),
