@@ -35,8 +35,9 @@ export const ORG_BRAND_PRESETS: Record<OrgBrandPresetKey, OrgBrandPreset> = {
     label: "Roe Realty",
     patch: {
       brandColours: serializeBrandColours("#C9A46C", "#1C2B2A", "#1C2B2A"),
-      iconUrl: "https://roerealty.com.au/wp-content/uploads/2026/05/R-Main.png",
-      logoUrl: "https://roerealty.com.au/wp-content/uploads/2026/05/R-Main.png",
+      // Icon = R mark; logo = full wordmark (header / letterhead).
+      iconUrl: "/brand/roe-icon.png",
+      logoUrl: "/brand/roe-logo.png",
       websiteUrl: "https://roerealty.com.au",
     },
   },

@@ -51,6 +51,21 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
+/** DigitalGate product brand — used for platform-owned emails (e.g. Refer & Earn). */
+export function resolvePlatformEmailBrandAssets(): EmailBrandAssets {
+  const preset = ORG_BRAND_PRESETS.digitalgate;
+  const colours = parseBrandColours(preset.patch.brandColours);
+  return {
+    businessName: preset.label,
+    logoUrl:
+      absoluteBrandAssetUrl(preset.patch.logoUrl) || DG_FALLBACK_LOGO,
+    iconUrl:
+      absoluteBrandAssetUrl(preset.patch.iconUrl) || DG_FALLBACK_ICON,
+    primaryColor: colours[0] ?? "#3B82F6",
+    accentColor: colours[1] ?? colours[0] ?? "#10B981",
+  };
+}
+
 /** Resolve wordmark logo + icon + colours for an org (profile → preset → DigitalGate fallback). */
 export function resolveEmailBrandAssets(input: {
   organisationId?: string;
@@ -97,6 +112,20 @@ export function resolveEmailBrandAssets(input: {
       logoUrl = absoluteBrandAssetUrl("/brand/cvh-logo.png") || logoUrl;
     }
     iconUrl = absoluteBrandAssetUrl("/brand/cvh-icon.png") || iconUrl;
+  }
+
+  // Roe profiles historically stored the R mark as both logo and icon — emails need the wordmark in the header.
+  if (presetKey === "roe-realty") {
+    const wordmark =
+      absoluteBrandAssetUrl("/brand/roe-logo.png") ||
+      "https://roerealty.com.au/wp-content/uploads/2026/05/ROE-Realty-Web-Main.png";
+    const mark =
+      absoluteBrandAssetUrl("/brand/roe-icon.png") ||
+      "https://roerealty.com.au/wp-content/uploads/2026/05/R-Main.png";
+    if (/R-Main/i.test(logoUrl || "") || logoUrl === iconUrl) {
+      logoUrl = wordmark;
+    }
+    iconUrl = mark;
   }
 
   return {
@@ -178,47 +207,58 @@ export async function renderOrgTransactionalEmail(input: {
   bodyHtml?: string;
   bodyText?: string;
   footerNote?: string;
+  /**
+   * `platform` forces DigitalGate product branding (ignores tenant Business Profile).
+   * Use for platform-owned mail such as Refer & Earn invites.
+   */
+  brandMode?: "org" | "platform";
 }): Promise<{ html: string; brand: EmailBrandAssets }> {
-  let profile: OrganisationBusinessProfile | null = null;
-  let orgMeta: {
-    name: string;
-    slug: string;
-    industry: string | null;
-    settings: unknown;
-  } | null = null;
+  let brand: EmailBrandAssets;
 
-  if (process.env.DATABASE_URL) {
-    try {
-      const { prisma } = await import("@dg/database");
-      const org = await prisma.organisation.findUnique({
-        where: { id: input.organisationId },
-        select: { name: true, slug: true, industry: true, settings: true },
-      });
-      if (org) {
-        orgMeta = {
-          name: org.name,
-          slug: org.slug,
-          industry: org.industry,
-          settings: org.settings,
-        };
-        profile =
-          ((org.settings as { profile?: OrganisationBusinessProfile } | null)?.profile ??
-            null) ||
-          (await getOrganisationBusinessProfile(input.organisationId));
+  if (input.brandMode === "platform") {
+    brand = resolvePlatformEmailBrandAssets();
+  } else {
+    let profile: OrganisationBusinessProfile | null = null;
+    let orgMeta: {
+      name: string;
+      slug: string;
+      industry: string | null;
+      settings: unknown;
+    } | null = null;
+
+    if (process.env.DATABASE_URL) {
+      try {
+        const { prisma } = await import("@dg/database");
+        const org = await prisma.organisation.findUnique({
+          where: { id: input.organisationId },
+          select: { name: true, slug: true, industry: true, settings: true },
+        });
+        if (org) {
+          orgMeta = {
+            name: org.name,
+            slug: org.slug,
+            industry: org.industry,
+            settings: org.settings,
+          };
+          profile =
+            ((org.settings as { profile?: OrganisationBusinessProfile } | null)?.profile ??
+              null) ||
+            (await getOrganisationBusinessProfile(input.organisationId));
+        }
+      } catch {
+        profile = await getOrganisationBusinessProfile(input.organisationId);
       }
-    } catch {
-      profile = await getOrganisationBusinessProfile(input.organisationId);
     }
-  }
 
-  const brand = resolveEmailBrandAssets({
-    organisationId: input.organisationId,
-    organisationName: input.organisationName || orgMeta?.name,
-    organisationSlug: input.organisationSlug || orgMeta?.slug,
-    industry: input.industry ?? orgMeta?.industry,
-    profile,
-    settings: orgMeta?.settings,
-  });
+    brand = resolveEmailBrandAssets({
+      organisationId: input.organisationId,
+      organisationName: input.organisationName || orgMeta?.name,
+      organisationSlug: input.organisationSlug || orgMeta?.slug,
+      industry: input.industry ?? orgMeta?.industry,
+      profile,
+      settings: orgMeta?.settings,
+    });
+  }
 
   const bodyHtml =
     input.bodyHtml?.trim() ||

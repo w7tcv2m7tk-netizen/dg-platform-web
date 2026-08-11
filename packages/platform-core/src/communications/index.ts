@@ -33,6 +33,7 @@ export {
   wrapTransactionalEmail,
   renderOrgTransactionalEmail,
   resolveEmailBrandAssets,
+  resolvePlatformEmailBrandAssets,
   plainTextToEmailHtml,
 } from "./email-brand";
 export type { EmailBrandAssets, WrapTransactionalEmailInput } from "./email-brand";
@@ -187,6 +188,10 @@ export async function sendMessage(
     const { html, brand } = await renderOrgTransactionalEmail({
       organisationId: input.organisationId,
       bodyHtml,
+      brandMode:
+        input.metadata?.purpose === "platform_referral_invite"
+          ? "platform"
+          : undefined,
       footerNote:
         typeof input.metadata?.footerNote === "string"
           ? input.metadata.footerNote
