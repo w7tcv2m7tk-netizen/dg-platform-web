@@ -78,6 +78,7 @@ async function main() {
         industry: "marketplace",
         settings: {
           apps: { enabled: WANTD_ENABLED_APPS },
+          billing: { platformExempt: true },
           profile: {
             businessName: WANTD_ORG_NAME,
             websiteUrl: WANTD_WEBSITE,
@@ -129,6 +130,12 @@ async function main() {
       settings: {
         ...settings,
         apps: { ...apps, enabled },
+        billing: {
+          ...(settings.billing && typeof settings.billing === "object"
+            ? settings.billing
+            : {}),
+          platformExempt: true,
+        },
         profile: {
           ...profile,
           businessName: WANTD_ORG_NAME,

@@ -11,6 +11,7 @@ import type {
 } from "./types";
 import {
   computeSuccessScore,
+  organisationExpectsPlatformBilling,
   type SuccessScoreBreakdown,
   type SuccessScoreInput,
 } from "./success-score";
@@ -195,6 +196,11 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       wordpressConfigured: connectorOk,
       lastSyncAt: wpLastSync(org.settings),
       hasBillingCustomer: Boolean(org.billingCustomerId),
+      expectsPlatformBilling: organisationExpectsPlatformBilling({
+        slug: org.slug,
+        industry: org.industry,
+        settings: org.settings,
+      }),
       status: org.status,
       memberCount: org._count.memberships,
       contactCount: org._count.contacts,

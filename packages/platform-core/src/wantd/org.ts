@@ -189,6 +189,8 @@ export async function ensureWantdOrganisation(options?: {
         industry: "marketplace",
         settings: {
           apps: { enabled: [...WANTD_ENABLED_APPS] },
+          // First-party marketplace — not a SaaS tenant on platform Stripe.
+          billing: { platformExempt: true },
           profile: {
             ...WANTD_BRAND_PATCH,
             verticalLabel: WANTD_VERTICAL,
@@ -262,6 +264,10 @@ export async function ensureWantdOrganisation(options?: {
       settings: {
         ...settings,
         apps: { ...apps, enabled: [...enabled] },
+        billing: {
+          ...((settings.billing as object | undefined) ?? {}),
+          platformExempt: true,
+        },
         profile: nextProfile,
       } as unknown as InputJsonValue,
     },

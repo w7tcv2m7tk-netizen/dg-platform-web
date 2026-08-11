@@ -17,6 +17,12 @@ export type SuccessScoreInput = {
   wordpressConfigured: boolean;
   lastSyncAt: string | null;
   hasBillingCustomer: boolean;
+  /**
+   * When false, org is first-party / marketplace / operator — not a SaaS tenant
+   * billed via platform Stripe. Missing `billingCustomerId` is not a concern.
+   * Defaults to true when omitted.
+   */
+  expectsPlatformBilling?: boolean;
   status: string;
   memberCount: number;
   contactCount: number;
@@ -35,6 +41,34 @@ export type SuccessScoreInput = {
   invoicePaidMtdCents: number;
   daysSinceUpdate: number;
 };
+
+/**
+ * Platform Stripe customer is for paying SaaS tenants.
+ * First-party marketplace (Wantd), DigitalGate operator, and explicit exempts
+ * must not look “broken” without inventing a Stripe customer.
+ */
+export function organisationExpectsPlatformBilling(org: {
+  slug?: string | null;
+  industry?: string | null;
+  settings?: unknown;
+}): boolean {
+  const settings = (org.settings ?? null) as {
+    billing?: { platformExempt?: boolean };
+    featureFlags?: Record<string, boolean>;
+  } | null;
+
+  if (settings?.billing?.platformExempt === true) return false;
+  if (settings?.featureFlags?.["billing.platform_exempt"] === true) return false;
+
+  const slug = (org.slug ?? "").toLowerCase();
+  if (slug === "wantd" || slug === "digitalgate" || slug.startsWith("digitalgate-")) {
+    return false;
+  }
+
+  if ((org.industry ?? "").toLowerCase() === "marketplace") return false;
+
+  return true;
+}
 
 /** How much live tenant signal backs the score — sparse ≠ “needs attention”. */
 export type SuccessScoreCoverage = "sparse" | "partial" | "rich";
@@ -152,6 +186,15 @@ function scoreUsage(input: SuccessScoreInput, coverage: SuccessScoreCoverage): n
 }
 
 function scoreBilling(input: SuccessScoreInput): number {
+  const expectsBilling = input.expectsPlatformBilling !== false;
+
+  // First-party / non-SaaS orgs: billing dimension is N/A — do not invent a gap.
+  if (!expectsBilling) {
+    let score = 72;
+    if (input.status === "suspended" || input.status === "cancelled") score -= 30;
+    return clamp(score);
+  }
+
   let score = 40;
   if (input.hasBillingCustomer) score += 22;
   else if (input.status !== "trial") score -= 15;
@@ -229,7 +272,11 @@ export function computeSuccessScore(input: SuccessScoreInput): SuccessScoreResul
       `${input.overdueLeadResponses} overdue lead response${input.overdueLeadResponses === 1 ? "" : "s"}`,
     );
   }
-  if (!input.hasBillingCustomer && input.status !== "trial") {
+  if (
+    input.expectsPlatformBilling !== false &&
+    !input.hasBillingCustomer &&
+    input.status !== "trial"
+  ) {
     concerns.push("No Stripe customer");
   }
   if (input.daysSinceUpdate > 14 && input.leadCount > 0) {
