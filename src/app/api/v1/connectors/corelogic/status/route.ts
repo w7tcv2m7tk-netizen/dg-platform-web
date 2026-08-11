@@ -40,6 +40,12 @@ export async function GET(req: Request) {
           process.env.CORELOGIC_SEARCH_BASE?.trim() ||
           process.env.CORELOGIC_API_BASE?.trim() ||
           "https://api-sbox.corelogic.asia/search",
+        propertyDetailsBase:
+          process.env.CORELOGIC_PROPERTY_DETAILS_BASE?.trim() ||
+          "https://api-sbox.corelogic.asia/property-details",
+        avmBase:
+          process.env.CORELOGIC_AVM_BASE?.trim() ||
+          "https://api-sbox.corelogic.asia/avm",
         clientName:
           process.env.CORELOGIC_CLIENT_NAME?.trim() || "digitalgate-property-data",
         probe,

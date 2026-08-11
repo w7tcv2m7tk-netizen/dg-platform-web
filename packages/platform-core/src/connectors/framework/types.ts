@@ -195,6 +195,7 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
       "address.suggest",
       "valuation.read",
       "insights.read",
+      "property.details.read",
     ],
     countries: ["AU", "NZ"],
     appIds: ["real-estate"],

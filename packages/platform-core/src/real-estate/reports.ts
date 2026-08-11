@@ -1,7 +1,14 @@
 import type { Prisma } from "@dg/database";
 
 import { updateLeadStage, type VendorStage } from "../leads";
-import { updatePropertyStatus } from "../properties";
+import {
+  formatPropertyAddress,
+  getPropertyCotalityDetails,
+  getPropertyCotalityId,
+  pullCotalityPropertyDetails,
+  updatePropertyStatus,
+} from "../properties";
+import type { CoreLogicPropertyDetailsSnapshot } from "../connectors/corelogic";
 
 export async function linkBookingToVendorLead(
   organisationId: string,
@@ -181,7 +188,6 @@ export async function generateAppraisalSummary(
   propertyId: string,
 ) {
   const { prisma } = await import("@dg/database");
-  const { formatPropertyAddress } = await import("../properties");
 
   const property = await prisma.property.findFirst({
     where: { id: propertyId, organisationId, deletedAt: null },
@@ -215,3 +221,314 @@ This property at ${address} is positioned for the ${property.suburb} market. Bas
 ${lead?.description ? `\n**Vendor notes:** ${lead.description}` : ""}
 `.trim();
 }
+
+function aud(amount: number | undefined | null): string | null {
+  if (amount == null || !Number.isFinite(amount)) return null;
+  return `$${amount.toLocaleString("en-AU")}`;
+}
+
+function sectionNote(
+  status: string | undefined,
+  emptyCopy: string,
+): string {
+  if (status === "ok") return "";
+  if (status === "unavailable") {
+    return `_Not available from Cotality for this property (${emptyCopy})._`;
+  }
+  if (status === "error") {
+    return `_Cotality returned an error for this section (${emptyCopy})._`;
+  }
+  if (status === "empty") {
+    return `_No data returned by Cotality (${emptyCopy})._`;
+  }
+  return `_Section not loaded yet — pull Cotality details first._`;
+}
+
+function renderCotalitySections(
+  snapshot: CoreLogicPropertyDetailsSnapshot | null,
+): string {
+  if (!snapshot) {
+    return `## Cotality data
+_No Cotality Property Details on file. Match the address, then pull details._`;
+  }
+
+  const core = snapshot.core;
+  const additional = snapshot.additional;
+  const site = snapshot.site;
+  const lastSale = snapshot.lastSale;
+  const lines: string[] = [];
+
+  lines.push(`## Property attributes (Cotality)`);
+  lines.push(`_Fetched ${new Date(snapshot.fetchedAt).toLocaleString("en-AU")} · Cotality id ${String(snapshot.propertyId)}_`);
+  lines.push("");
+  if (snapshot.sections.core === "ok" && core) {
+    if (core.propertyType) lines.push(`- **Type:** ${core.propertySubType || core.propertyType}`);
+    if (core.beds != null) lines.push(`- **Bedrooms:** ${core.beds}`);
+    if (core.baths != null) lines.push(`- **Bathrooms:** ${core.baths}`);
+    if (core.carSpaces != null) lines.push(`- **Car spaces:** ${core.carSpaces}`);
+    if (core.landArea != null) {
+      lines.push(
+        `- **Land area:** ${core.landArea} m²${core.landAreaSource ? ` (${core.landAreaSource})` : ""}`,
+      );
+    }
+  } else {
+    lines.push(sectionNote(snapshot.sections.core, "attributes/core"));
+  }
+
+  lines.push("");
+  lines.push(`## Additional attributes`);
+  if (snapshot.sections.additional === "ok" && additional) {
+    if (additional.floorArea != null) lines.push(`- **Floor area:** ${additional.floorArea} m²`);
+    if (additional.yearBuilt != null) lines.push(`- **Year built:** ${additional.yearBuilt}`);
+  } else {
+    lines.push(sectionNote(snapshot.sections.additional, "attributes/additional"));
+  }
+
+  lines.push("");
+  lines.push(`## Site / zoning`);
+  if (snapshot.sections.site === "ok" && site) {
+    if (site.landUsePrimary) lines.push(`- **Land use:** ${site.landUsePrimary}`);
+    if (site.zoneDescriptionLocal || site.zoneCodeLocal) {
+      lines.push(
+        `- **Zone:** ${site.zoneDescriptionLocal || site.zoneCodeLocal}${site.zoneCodeLocal && site.zoneDescriptionLocal ? ` (${site.zoneCodeLocal})` : ""}`,
+      );
+    }
+  } else {
+    lines.push(sectionNote(snapshot.sections.site, "site"));
+  }
+
+  lines.push("");
+  lines.push(`## Last sale (Cotality)`);
+  if (snapshot.sections.lastSale === "ok" && lastSale) {
+    if (lastSale.price != null && !lastSale.isPriceWithheld) {
+      lines.push(`- **Price:** ${aud(lastSale.price)}`);
+    } else if (lastSale.isPriceWithheld) {
+      lines.push(`- **Price:** withheld`);
+    }
+    if (lastSale.contractDate) lines.push(`- **Contract:** ${lastSale.contractDate}`);
+    if (lastSale.settlementDate) lines.push(`- **Settlement:** ${lastSale.settlementDate}`);
+    if (lastSale.type) lines.push(`- **Type:** ${lastSale.type}`);
+  } else {
+    lines.push(sectionNote(snapshot.sections.lastSale, "sales/last"));
+  }
+
+  lines.push("");
+  lines.push(`## Features`);
+  if (snapshot.sections.features === "ok") {
+    if (snapshot.features?.length) {
+      for (const f of snapshot.features) lines.push(`- ${f}`);
+    }
+    if (snapshot.featureAttributes?.length) {
+      for (const fa of snapshot.featureAttributes) {
+        lines.push(`- **${fa.name}:** ${fa.value}`);
+      }
+    }
+    if (!snapshot.features?.length && !snapshot.featureAttributes?.length) {
+      lines.push(sectionNote("empty", "features"));
+    }
+  } else {
+    lines.push(sectionNote(snapshot.sections.features, "features"));
+  }
+
+  lines.push("");
+  lines.push(`## Automated valuation (IntelliVal)`);
+  const avm = snapshot.avm;
+  if (avm.available) {
+    if (avm.estimate != null) lines.push(`- **Estimate:** ${aud(avm.estimate)}`);
+    if (avm.lowEstimate != null || avm.highEstimate != null) {
+      lines.push(
+        `- **Range:** ${aud(avm.lowEstimate) ?? "—"} – ${aud(avm.highEstimate) ?? "—"}`,
+      );
+    }
+    if (avm.confidence != null) lines.push(`- **Confidence:** ${avm.confidence}`);
+    if (avm.valuationDate) lines.push(`- **As at:** ${avm.valuationDate}`);
+    lines.push(`_Source: Cotality IntelliVal. Not a formal appraisal._`);
+  } else {
+    lines.push(
+      `_${avm.message || "No AVM estimate from Cotality for this property."}_`,
+    );
+    lines.push(
+      `_We do not invent valuations. When IntelliVal returns an estimate it will appear here._`,
+    );
+  }
+
+  return lines.join("\n");
+}
+
+export type PropertyReportPayload = {
+  markdown: string;
+  plainText: string;
+  organisationName: string;
+  address: string;
+  cotalityPropertyId: string | number | null;
+  detailsFetchedAt: string | null;
+  sections: CoreLogicPropertyDetailsSnapshot["sections"] | null;
+  partial: boolean;
+};
+
+/**
+ * Vendor-facing property report for request follow-up.
+ * Uses Cotality fields when pulled; honest empty/partial sections otherwise.
+ * Does not invent buyer demand scores or fake comparable citations.
+ */
+export async function generatePropertyReport(
+  organisationId: string,
+  propertyId: string,
+  options?: { refreshCotality?: boolean; actorId?: string },
+): Promise<PropertyReportPayload | null> {
+  const { prisma } = await import("@dg/database");
+
+  let property = await prisma.property.findFirst({
+    where: { id: propertyId, organisationId, deletedAt: null },
+  });
+  if (!property) return null;
+
+  if (options?.refreshCotality && getPropertyCotalityId({
+    metadata: (property.metadata as Record<string, unknown> | null) ?? null,
+    externalRefs: (property.externalRefs as Record<string, unknown> | null) ?? null,
+  })) {
+    const pulled = await pullCotalityPropertyDetails(
+      organisationId,
+      propertyId,
+      options.actorId,
+    );
+    if (pulled.ok) {
+      property = await prisma.property.findFirst({
+        where: { id: propertyId, organisationId, deletedAt: null },
+      });
+      if (!property) return null;
+    }
+  }
+
+  const org = await prisma.organisation.findFirst({
+    where: { id: organisationId },
+    select: { name: true },
+  });
+  const organisationName = org?.name?.trim() || "Your agency";
+
+  const meta = (property.metadata as Record<string, unknown> | null) ?? {};
+  const snapshot = getPropertyCotalityDetails({ metadata: meta });
+  const cotalityPropertyId = getPropertyCotalityId({
+    metadata: meta,
+    externalRefs: property.externalRefs as Record<string, unknown> | null,
+  });
+  const address = formatPropertyAddress(property);
+
+  const partial =
+    !snapshot ||
+    Object.values(snapshot.sections).some((s) => s !== "ok") ||
+    (snapshot.avm && !snapshot.avm.available);
+
+  const contactBits = [
+    property.bedrooms != null ? `${property.bedrooms} bed` : null,
+    property.bathrooms != null ? `${property.bathrooms} bath` : null,
+    typeof meta.car_spaces === "number" ? `${meta.car_spaces} car` : null,
+  ].filter(Boolean);
+
+  const markdown = `# Property report
+
+**${organisationName}**
+**${address}**
+
+${contactBits.length ? contactBits.join(" · ") : "_Dwelling attributes shown when Cotality or listing data is available._"}
+
+${renderCotalitySections(snapshot)}
+
+## About this report
+This report summarises **Cotality (CoreLogic) property data** held in DigitalGate for ${address}.
+Public property-report requests on WordPress still create a CRM lead; agents generate and send this report from the platform.
+Sections marked unavailable are honest gaps (sandbox/UAT limits or property out of scope) — values are never fabricated.
+
+_Prepared ${new Date().toLocaleString("en-AU")} · Data source: Cotality where indicated._
+`.trim();
+
+  return {
+    markdown,
+    plainText: markdown.replace(/^#+\s*/gm, "").replace(/\*\*/g, ""),
+    organisationName,
+    address,
+    cotalityPropertyId,
+    detailsFetchedAt: snapshot?.fetchedAt ?? null,
+    sections: snapshot?.sections ?? null,
+    partial: Boolean(partial),
+  };
+}
+
+export async function sendPropertyReportEmail(input: {
+  organisationId: string;
+  propertyId: string;
+  to: string;
+  actorId?: string;
+  refreshCotality?: boolean;
+}): Promise<
+  | {
+      ok: true;
+      report: PropertyReportPayload;
+      delivery: { id: string; status: string; provider?: string };
+    }
+  | { ok: false; reason: string; message: string }
+> {
+  const to = input.to.trim();
+  if (!to || !to.includes("@")) {
+    return { ok: false, reason: "validation_error", message: "Valid email required" };
+  }
+
+  const report = await generatePropertyReport(
+    input.organisationId,
+    input.propertyId,
+    {
+      refreshCotality: input.refreshCotality,
+      actorId: input.actorId,
+    },
+  );
+  if (!report) {
+    return { ok: false, reason: "property_not_found", message: "Property not found" };
+  }
+
+  const { sendMessage } = await import("../communications");
+  const delivery = await sendMessage({
+    organisationId: input.organisationId,
+    channel: "email",
+    to,
+    subject: `Property report — ${report.address}`,
+    body: report.plainText,
+    metadata: {
+      purpose: "property_report",
+      propertyId: input.propertyId,
+      footerNote:
+        "Property data from Cotality where shown. This is not a formal valuation.",
+    },
+  });
+
+  const { prisma } = await import("@dg/database");
+  await prisma.activity.create({
+    data: {
+      organisationId: input.organisationId,
+      entityType: "Property",
+      entityId: input.propertyId,
+      activityType: "property_report_sent",
+      title: `Property report → ${to}`,
+      body: report.address,
+      sourceApp: "real-estate",
+      createdBy: input.actorId,
+      metadata: {
+        to,
+        deliveryId: delivery.id,
+        deliveryStatus: delivery.status,
+        partial: report.partial,
+        cotalityPropertyId: report.cotalityPropertyId,
+      } as Prisma.InputJsonValue,
+    },
+  });
+
+  return {
+    ok: true,
+    report,
+    delivery: {
+      id: delivery.id,
+      status: delivery.status,
+      provider: delivery.provider,
+    },
+  };
+}
+

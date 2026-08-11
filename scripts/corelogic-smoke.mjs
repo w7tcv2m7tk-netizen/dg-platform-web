@@ -156,6 +156,34 @@ async function main() {
     `Address Match HTTP ${matchRes.status} · propertyId=${propertyId ?? "none"} · matchType=${matchType ?? "n/a"}`,
   );
   info("Sample address used; response details not dumped (PII-safe)");
+
+  if (!propertyId) {
+    info("Skip Property Details — no propertyId from Address Match");
+    return;
+  }
+
+  const detailsBase =
+    process.env.CORELOGIC_PROPERTY_DETAILS_BASE?.trim() ||
+    "https://api-sbox.corelogic.asia/property-details";
+  const corePath = `${detailsBase.replace(/\/$/, "")}/au/properties/${propertyId}/attributes/core`;
+  const coreRes = await fetch(corePath, {
+    headers: {
+      Authorization: `Bearer ${tokenJson.access_token}`,
+      Accept: "application/json",
+    },
+  });
+  if (!coreRes.ok) {
+    fail("Property Details attributes/core", `HTTP ${coreRes.status}`);
+    process.exitCode = 1;
+    return;
+  }
+  const coreJson = await coreRes.json().catch(() => null);
+  const keys =
+    coreJson && typeof coreJson === "object"
+      ? Object.keys(coreJson).slice(0, 8).join(",")
+      : "";
+  pass(`Property Details attributes/core HTTP ${coreRes.status} · keys=${keys || "n/a"}`);
+  info("AVM / report generation exercised via app UI or POST /api/v1/re/reports");
 }
 
 main().catch((err) => {

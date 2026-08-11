@@ -99,6 +99,52 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     typeof property.metadata?.corelogic_matched_address === "string"
       ? property.metadata.corelogic_matched_address
       : null;
+  const cotalityDetailsRaw =
+    property.metadata?.corelogic_details &&
+    typeof property.metadata.corelogic_details === "object" &&
+    !Array.isArray(property.metadata.corelogic_details)
+      ? (property.metadata.corelogic_details as {
+          fetchedAt?: string;
+          core?: {
+            propertyType?: string;
+            propertySubType?: string;
+            beds?: number;
+            baths?: number;
+            carSpaces?: number;
+            landArea?: number;
+          };
+          additional?: { floorArea?: number; yearBuilt?: string | number };
+          lastSale?: { price?: number; contractDate?: string; settlementDate?: string };
+          avm?: { available?: boolean; message?: string };
+          sections?: Record<string, string>;
+        })
+      : null;
+  const cotalityDetails = cotalityDetailsRaw
+    ? {
+        fetchedAt: cotalityDetailsRaw.fetchedAt ?? null,
+        propertyType:
+          cotalityDetailsRaw.core?.propertySubType ||
+          cotalityDetailsRaw.core?.propertyType ||
+          null,
+        beds: cotalityDetailsRaw.core?.beds ?? null,
+        baths: cotalityDetailsRaw.core?.baths ?? null,
+        carSpaces: cotalityDetailsRaw.core?.carSpaces ?? null,
+        landArea: cotalityDetailsRaw.core?.landArea ?? null,
+        floorArea: cotalityDetailsRaw.additional?.floorArea ?? null,
+        yearBuilt: cotalityDetailsRaw.additional?.yearBuilt ?? null,
+        lastSalePrice: cotalityDetailsRaw.lastSale?.price ?? null,
+        lastSaleDate:
+          cotalityDetailsRaw.lastSale?.contractDate ||
+          cotalityDetailsRaw.lastSale?.settlementDate ||
+          null,
+        avmAvailable: Boolean(cotalityDetailsRaw.avm?.available),
+        avmMessage:
+          typeof cotalityDetailsRaw.avm?.message === "string"
+            ? cotalityDetailsRaw.avm.message
+            : null,
+        sections: cotalityDetailsRaw.sections ?? null,
+      }
+    : null;
   const wpPermalink = property.externalRefs?.wp_property_permalink as string | undefined;
   const wpPropertyId = property.externalRefs?.wp_property_id as number | string | undefined;
   const domainPlacement =
@@ -250,6 +296,8 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                 cotalityPropertyId={cotalityPropertyId}
                 matchType={cotalityMatchType}
                 matchedAddress={cotalityMatchedAddress}
+                details={cotalityDetails}
+                defaultReportEmail={contact?.email ?? null}
               />
             </div>
 

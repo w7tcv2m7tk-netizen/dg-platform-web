@@ -9,6 +9,8 @@
  *   CORELOGIC_CLIENT_SECRET
  *   CORELOGIC_TOKEN_URL (default sandbox as/token.oauth2)
  *   CORELOGIC_API_BASE / CORELOGIC_SEARCH_BASE (Search + Address Match host)
+ *   CORELOGIC_PROPERTY_DETAILS_BASE (attributes / sales / features)
+ *   CORELOGIC_AVM_BASE (IntelliVal)
  *   CORELOGIC_CLIENT_NAME (Address Match clientName query; default digitalgate-property-data)
  *
  * @see docs/connectors/COTALITY-CORELOGIC.md
@@ -21,6 +23,14 @@ export const CORELOGIC_DEFAULT_TOKEN_URL =
 export const CORELOGIC_DEFAULT_SEARCH_BASE =
   "https://api-sbox.corelogic.asia/search";
 
+/** Sandbox Property Details host (attributes / sales / features). */
+export const CORELOGIC_DEFAULT_PROPERTY_DETAILS_BASE =
+  "https://api-sbox.corelogic.asia/property-details";
+
+/** Sandbox AVM / IntelliVal host. */
+export const CORELOGIC_DEFAULT_AVM_BASE =
+  "https://api-sbox.corelogic.asia/avm";
+
 export const CORELOGIC_DEFAULT_CLIENT_NAME = "digitalgate-property-data";
 
 export type CoreLogicOAuthConfig = {
@@ -30,6 +40,8 @@ export type CoreLogicOAuthConfig = {
   searchBase: string;
   /** Alias for searchBase — general API host override. */
   apiBase: string;
+  propertyDetailsBase: string;
+  avmBase: string;
   clientName: string;
 };
 
@@ -64,6 +76,11 @@ export function getCoreLogicOAuthConfig():
     process.env.CORELOGIC_API_BASE?.trim() ||
     CORELOGIC_DEFAULT_SEARCH_BASE;
   const apiBase = process.env.CORELOGIC_API_BASE?.trim() || searchBase;
+  const propertyDetailsBase =
+    process.env.CORELOGIC_PROPERTY_DETAILS_BASE?.trim() ||
+    CORELOGIC_DEFAULT_PROPERTY_DETAILS_BASE;
+  const avmBase =
+    process.env.CORELOGIC_AVM_BASE?.trim() || CORELOGIC_DEFAULT_AVM_BASE;
   const clientName =
     process.env.CORELOGIC_CLIENT_NAME?.trim() || CORELOGIC_DEFAULT_CLIENT_NAME;
 
@@ -83,6 +100,8 @@ export function getCoreLogicOAuthConfig():
       tokenUrl,
       searchBase: searchBase.replace(/\/$/, ""),
       apiBase: apiBase.replace(/\/$/, ""),
+      propertyDetailsBase: propertyDetailsBase.replace(/\/$/, ""),
+      avmBase: avmBase.replace(/\/$/, ""),
       clientName,
     },
   };
@@ -190,11 +209,11 @@ export async function ensureCoreLogicAccessToken(): Promise<
   };
 }
 
-/** Authenticated GET against Search / API base. */
+/** Authenticated GET against Search / Property Details / AVM / API base. */
 export async function coreLogicApiGet(
   path: string,
   accessToken: string,
-  options?: { base?: "search" | "api" },
+  options?: { base?: "search" | "api" | "propertyDetails" | "avm" },
 ): Promise<
   | { ok: true; status: number; data: unknown }
   | { ok: false; status: number; message: string; data?: unknown }
@@ -203,7 +222,13 @@ export async function coreLogicApiGet(
   if (!cfg.ok) return { ok: false, status: 503, message: cfg.message };
 
   const base =
-    options?.base === "api" ? cfg.config.apiBase : cfg.config.searchBase;
+    options?.base === "api"
+      ? cfg.config.apiBase
+      : options?.base === "propertyDetails"
+        ? cfg.config.propertyDetailsBase
+        : options?.base === "avm"
+          ? cfg.config.avmBase
+          : cfg.config.searchBase;
   const url = path.startsWith("http")
     ? path
     : `${base}${path.startsWith("/") ? path : `/${path}`}`;

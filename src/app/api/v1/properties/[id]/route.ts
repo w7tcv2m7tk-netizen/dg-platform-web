@@ -5,6 +5,7 @@ import {
   matchPropertyWithCotality,
   PROPERTY_STATUSES,
   publishPropertyToWordPress,
+  pullCotalityPropertyDetails,
   updatePropertyListing,
   updatePropertyStatus,
   updatePropertyContract,
@@ -109,12 +110,67 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       );
     }
 
+    // Optionally pull Property Details immediately after a successful match.
+    let details: Awaited<ReturnType<typeof pullCotalityPropertyDetails>> | null =
+      null;
+    if (result.matched && body?.pullDetails !== false) {
+      details = await pullCotalityPropertyDetails(
+        session.organisationId,
+        id,
+        session.clerkUserId,
+      );
+    }
+
     return NextResponse.json({
-      data: result.property,
+      data: details && details.ok ? details.property : result.property,
       meta: {
         matched: result.matched,
         cotalityPropertyId: result.cotalityPropertyId,
         ...(result.message ? { message: result.message } : {}),
+        ...(details
+          ? {
+              detailsPulled: details.ok,
+              ...(details.ok
+                ? { sections: details.snapshot.sections }
+                : {
+                    detailsError: details.message,
+                    detailsReason: details.reason,
+                  }),
+            }
+          : {}),
+      },
+    });
+  }
+
+  if (body?.action === "pull_cotality" || body?.action === "refresh_cotality_details") {
+    const result = await pullCotalityPropertyDetails(
+      session.organisationId,
+      id,
+      session.clerkUserId,
+      { includeAvm: body?.includeAvm !== false },
+    );
+
+    if (!result.ok) {
+      const status =
+        result.reason === "not_found"
+          ? 404
+          : result.reason === "not_configured"
+            ? 503
+            : result.reason === "not_matched"
+              ? 422
+              : 502;
+      return NextResponse.json(
+        { error: { code: result.reason, message: result.message } },
+        { status },
+      );
+    }
+
+    return NextResponse.json({
+      data: result.property,
+      meta: {
+        sections: result.snapshot.sections,
+        fetchedAt: result.snapshot.fetchedAt,
+        cotalityPropertyId: result.snapshot.propertyId,
       },
     });
   }

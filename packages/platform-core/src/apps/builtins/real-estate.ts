@@ -53,5 +53,8 @@ export const realEstateApp: AppManifest = {
       description: "Generate vendor appraisal narrative",
     },
   ],
-  reports: [{ id: "re.pipeline_report", label: "Vendor pipeline report" }],
+  reports: [
+    { id: "re.pipeline_report", label: "Vendor pipeline report" },
+    { id: "re.property_report", label: "Property report (Cotality)" },
+  ],
 };

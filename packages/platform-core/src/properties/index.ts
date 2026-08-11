@@ -14,8 +14,10 @@ import {
 import {
   coreLogicCredentialsConfigured,
   coreLogicMatchToAddressMetadata,
+  fetchCoreLogicPropertyDetails,
   isCoreLogicPropertyMatch,
   matchCoreLogicAddress,
+  type CoreLogicPropertyDetailsSnapshot,
 } from "../connectors/corelogic";
 import { parsePropertyAddress, resolvePropertyAddress } from "./address";
 
@@ -598,6 +600,180 @@ export async function matchPropertyWithCotality(
       ? undefined
       : "Address Match returned no Cotality property id",
   };
+}
+
+/** Persist Cotality Property Details snapshot on Property.metadata (honest fields only). */
+function applyCotalityDetailsToPropertyUpdate(
+  property: Property,
+  snapshot: CoreLogicPropertyDetailsSnapshot,
+): {
+  metadata: Record<string, unknown>;
+  externalRefs: Record<string, unknown>;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  propertyType?: string | null;
+} {
+  const prevMeta = (property.metadata as Record<string, unknown> | null) ?? {};
+  const externalRefs = {
+    ...((property.externalRefs as Record<string, unknown> | null) ?? {}),
+    corelogic_property_id: snapshot.propertyId,
+  };
+
+  const metadata: Record<string, unknown> = {
+    ...prevMeta,
+    corelogic_property_id: snapshot.propertyId,
+    corelogic_details: snapshot,
+    corelogic_details_fetched_at: snapshot.fetchedAt,
+  };
+
+  // Fill empty listing fields from Cotality when present — never invent; don't overwrite set values.
+  let bedrooms = property.bedrooms;
+  let bathrooms = property.bathrooms;
+  let propertyType = property.propertyType;
+  const core = snapshot.core;
+
+  if (core?.beds != null && bedrooms == null) bedrooms = core.beds;
+  if (core?.baths != null && bathrooms == null) bathrooms = core.baths;
+  if (core?.propertyType && !propertyType) {
+    propertyType = core.propertySubType || core.propertyType;
+  }
+  if (core?.carSpaces != null && metadata.car_spaces == null) {
+    metadata.car_spaces = core.carSpaces;
+  }
+  if (core?.landArea != null && !metadata.land_size) {
+    metadata.land_size = `${core.landArea} m²`;
+  }
+  if (snapshot.additional?.floorArea != null && !metadata.building_size) {
+    metadata.building_size = `${snapshot.additional.floorArea} m²`;
+  }
+
+  return {
+    metadata,
+    externalRefs,
+    bedrooms,
+    bathrooms,
+    propertyType,
+  };
+}
+
+/**
+ * Pull Cotality Property Details (+ optional AVM) for a matched Property and persist.
+ * Requires `externalRefs` / metadata `corelogic_property_id` (run match_cotality first).
+ */
+export async function pullCotalityPropertyDetails(
+  organisationId: string,
+  propertyId: string,
+  actorId?: string,
+  options?: { includeAvm?: boolean },
+): Promise<
+  | {
+      ok: true;
+      property: ReturnType<typeof serializeProperty>;
+      snapshot: CoreLogicPropertyDetailsSnapshot;
+    }
+  | {
+      ok: false;
+      reason:
+        | "not_found"
+        | "not_configured"
+        | "not_matched"
+        | "upstream_error";
+      message: string;
+    }
+> {
+  const { prisma } = await import("@dg/database");
+
+  if (!coreLogicCredentialsConfigured()) {
+    return {
+      ok: false,
+      reason: "not_configured",
+      message: "CORELOGIC_CLIENT_ID / CORELOGIC_CLIENT_SECRET not configured",
+    };
+  }
+
+  const property = await prisma.property.findFirst({
+    where: { id: propertyId, organisationId, deletedAt: null },
+  });
+  if (!property) {
+    return { ok: false, reason: "not_found", message: "Property not found" };
+  }
+
+  const cotalityId = getPropertyCotalityId({
+    metadata: property.metadata as Record<string, unknown> | null,
+    externalRefs: property.externalRefs as Record<string, unknown> | null,
+  });
+  if (cotalityId == null) {
+    return {
+      ok: false,
+      reason: "not_matched",
+      message: "Match with Cotality first to obtain a property id",
+    };
+  }
+
+  const fetched = await fetchCoreLogicPropertyDetails(cotalityId, {
+    includeAvm: options?.includeAvm,
+  });
+  if (!fetched.ok) {
+    return {
+      ok: false,
+      reason: fetched.status === 503 ? "not_configured" : "upstream_error",
+      message: fetched.message,
+    };
+  }
+
+  const patch = applyCotalityDetailsToPropertyUpdate(property, fetched.snapshot);
+  const updated = await prisma.property.update({
+    where: { id: propertyId },
+    data: {
+      metadata: patch.metadata as Prisma.InputJsonValue,
+      externalRefs: patch.externalRefs as Prisma.InputJsonValue,
+      ...(patch.bedrooms !== property.bedrooms
+        ? { bedrooms: patch.bedrooms }
+        : {}),
+      ...(patch.bathrooms !== property.bathrooms
+        ? { bathrooms: patch.bathrooms }
+        : {}),
+      ...(patch.propertyType !== property.propertyType
+        ? { propertyType: patch.propertyType }
+        : {}),
+    },
+  });
+
+  const sectionSummary = Object.entries(fetched.snapshot.sections)
+    .map(([k, v]) => `${k}:${v}`)
+    .join(", ");
+
+  await prisma.activity.create({
+    data: {
+      organisationId,
+      entityType: "Property",
+      entityId: propertyId,
+      activityType: "cotality_details_pulled",
+      title: "Cotality property details pulled",
+      body: `Cotality id ${String(cotalityId)} · ${sectionSummary}`,
+      sourceApp: "real-estate",
+      createdBy: actorId,
+      metadata: {
+        corelogic_property_id: cotalityId,
+        sections: fetched.snapshot.sections,
+        fetched_at: fetched.snapshot.fetchedAt,
+      } as Prisma.InputJsonValue,
+    },
+  });
+
+  return {
+    ok: true,
+    property: serializeProperty(updated),
+    snapshot: fetched.snapshot,
+  };
+}
+
+export function getPropertyCotalityDetails(property: {
+  metadata?: Record<string, unknown> | null;
+}): CoreLogicPropertyDetailsSnapshot | null {
+  const raw = property.metadata?.corelogic_details;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  return raw as CoreLogicPropertyDetailsSnapshot;
 }
 
 export interface PropertyStatusSyncOptions {
