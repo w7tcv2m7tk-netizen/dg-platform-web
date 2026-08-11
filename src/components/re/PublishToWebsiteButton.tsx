@@ -21,7 +21,14 @@ export function PublishToWebsiteButton({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const liveStatuses = new Set(["listed", "under_offer", "sold", "withdrawn"]);
+  const liveStatuses = new Set([
+    "listed",
+    "under_offer",
+    "contract_signed",
+    "unconditional",
+    "sold",
+    "withdrawn",
+  ]);
   const needsForce = !liveStatuses.has(status);
 
   async function publish() {
