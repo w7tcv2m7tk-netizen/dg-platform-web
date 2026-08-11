@@ -30,10 +30,23 @@ export async function POST(req: Request) {
       typeof body?.regionBias === "string"
         ? body.regionBias
         : "Gold Coast, QLD, Australia",
+    // Optional Cotality enrichment when CORELOGIC_* credentials are set.
+    // Pass corelogic: false to skip; omit or true to attempt.
+    corelogic: body?.corelogic === false ? false : body?.corelogic === true ? true : undefined,
   });
 
   return NextResponse.json({
     data: resolved,
-    meta: { auth: auth.mode },
+    meta: {
+      auth: auth.mode,
+      corelogic:
+        resolved.metadata.corelogic_property_id != null
+          ? "matched"
+          : resolved.metadata.corelogic_error
+            ? "error"
+            : resolved.metadata.corelogic_source
+              ? "no_match"
+              : "skipped",
+    },
   });
 }

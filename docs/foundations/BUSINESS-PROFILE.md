@@ -1,7 +1,7 @@
 # Business Profile & Business Workspace
 
 **Status:** Implemented (Platform 1.0 foundation)  
-**Related:** [CORE-OBJECT-SPECIFICATION.md](./CORE-OBJECT-SPECIFICATION.md), [ADR 0006](../adr/0006-digital-twin-concept.md)
+**Related:** [CORE-OBJECT-SPECIFICATION.md](./CORE-OBJECT-SPECIFICATION.md), [ADR 0006](../adr/0006-digital-twin-concept.md), [BUSINESS-SETUP.md](./BUSINESS-SETUP.md) (Create / Launch → writes identity here)
 
 ---
 
@@ -48,6 +48,8 @@ Industry apps (CRM, Real Estate, etc.) appear below in the sidebar as installed 
 | `/api/v1/org/profile` | GET | Read profile |
 | `/api/v1/org/profile` | PATCH | Update profile (partial merge) |
 | `/api/v1/org/profile` | POST | Force sync from WordPress onboarding |
+| `/api/v1/business-identity/abn` | GET/POST | ABR ABN verify → Business Identity + profile patch (auth) |
+| `/api/v1/business-identity/acn` | GET/POST | ABR ACN lookup → Business Identity + profile patch (auth) |
 | `/api/v1/ai/assist` | GET | Business context + AI system prompt |
 | `/api/v1/ai/assist` | POST | Generate content (`social_post`, `email_draft`, `briefing`) using context |
 

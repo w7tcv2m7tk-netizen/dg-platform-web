@@ -32,6 +32,15 @@ function platformConfigured(connectorId: string): boolean {
       return Boolean(process.env.STRIPE_SECRET_KEY?.trim());
     case "wordpress":
       return Boolean(process.env.DG_WP_CONNECTOR_API_KEY?.trim());
+    case "abr":
+      return Boolean(
+        process.env.ABN_LOOKUP_GUID?.trim() ||
+          process.env.ABR_GUID?.trim() ||
+          process.env.ABR_AUTHENTICATION_GUID?.trim(),
+      );
+    case "asic":
+      // DSP application + test credentials required — never report configured from env alone yet
+      return false;
     default:
       return false;
   }

@@ -1,6 +1,6 @@
 # Connector Engine
 
-**Status:** Architecture accepted · WordPress + Stripe live · Domain OAuth + Google GBP scaffold · Framework booted  
+**Status:** Architecture accepted · WordPress + Stripe live · Domain OAuth + Google GBP scaffold · Cotality sandbox (OAuth + Address Match) · Framework booted  
 **Layer:** **Platform Core** (not an industry app)  
 **Positioning:** “Gateway to Your Digital World” — connectors feed Universal Objects → AI + scoring → Insights / Automation / Actions.
 
@@ -42,7 +42,7 @@ Supersedes the narrow sketch in [../connectors/CONNECTOR-SPECIFICATION.md](../co
 | Category | Purpose | Examples |
 |----------|---------|----------|
 | **Property** | Listings, valuations, agency PMS | REA, Domain, CoreLogic, PropTrack, PriceFinder, VaultRE, Rex, … |
-| **Business** | Discovery, identity, local presence | GBP, ABR, registries, maps, reviews, directories |
+| **Business** | Discovery, Business Services (Setup), identity, AU registries, local presence | GBP, ABR (verify/enrich), ASIC (names/companies when DSP approved), maps, reviews, directories |
 | **Marketing** | Ads, social, messaging | Google Ads, Meta, Email, SMS |
 | **Commerce / ops** | Money & site | Stripe, Xero, Shopify, WordPress |
 
@@ -146,17 +146,25 @@ Assess APIs individually: **MRI / VaultRE**, **Rex**, **LockedOn**, **Agentbox**
 
 ---
 
-## Business Data (Discovery + Twin)
+## Business Data (Discovery + Twin + Business Services)
 
-Feeds [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) and Opportunity Engine:
+Feeds [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md), [BUSINESS-SETUP.md](./BUSINESS-SETUP.md) (**Business Services** / Start Your Business), and Opportunity Engine:
 
-Google Business Profile · ABR / ABN · company registries · maps · social · reviews · industry directories · tech stack signals.
+Google Business Profile · **ABR** (ABN verify / entity enrichment — **not** registration) · **ASIC** (Business Names & Companies Register APIs for DSPs — **pending application / test env**; no scrape; no production submit yet) · Dreamscape (domains/hosting via Infrastructure) · maps · social · reviews · directories.
+
+| Connector | Category | Honest status | Role under Business Services |
+|-----------|----------|---------------|------------------------------|
+| **ABR** (`abr`) | business | **Live** (GUID-gated) — SearchByABNv202001 / SearchByASICv201408 | Verify ABN/ACN, enrich entity for Setup + Discovery |
+| **ASIC** (`asic`) | business | Stub — `pending_provider_approval` | AU names/companies registration after DSP approval + test pass |
+| **Google GBP** | business | OAuth scaffold | Digital Identity pillar |
+| **Dreamscape** | ops / infra | Sandbox-first reseller | Domains / hosting / SSL / mailbox (Infrastructure) |
 
 Profile shape:
 
 `Business → Website → Social → Reviews → Search → AI visibility → Ads → Stack → Opportunities`
 
-AI output: “These are the 10 businesses DigitalGate should contact today.”
+AI output (Discovery): “These are the 10 businesses DigitalGate should contact today.”  
+**Business Setup** (separate tenant surface): Start Your Business → Profile → Website/Email/CRM → Grow.
 
 ---
 
@@ -202,7 +210,7 @@ Accommodation OTAs follow the same engine via [ACC-CHANNEL-CONNECTIVITY.md](./AC
 
 - [PROPERTY-SYNDICATION.md](./PROPERTY-SYNDICATION.md) — Listing Hub + Domain MVP  
 - [ACC-CHANNEL-CONNECTIVITY.md](./ACC-CHANNEL-CONNECTIVITY.md) — OTA adapters  
-- [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) · [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md)  
+- [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) · [BUSINESS-SETUP.md](./BUSINESS-SETUP.md) (Business Services) · [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md)  
 - [OBSERVABILITY.md](./OBSERVABILITY.md) — connector health  
 - [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) — Country Packs on manifests  
-- Live code today: `connectors/wordpress/`, `commerce/connectors/stripe/`
+- Live code today: `connectors/wordpress/`, `commerce/connectors/stripe/` · stubs: `connectors/abr/`, `connectors/asic/`

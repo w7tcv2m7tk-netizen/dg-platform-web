@@ -20,8 +20,22 @@ Every connector must cover: identity, auth, sync modes, object mapping, health, 
 |-----------|--------|
 | **WordPress** | Gen 1 plugin → Gen 2 slim connector; leads, properties, Acc stays |
 | **Stripe** | Platform billing + Commerce Payment Engine |
+| **Domain** | OAuth + status / connect (Listing Hub path) |
+| **Google GBP** | OAuth scaffold |
+| **Cotality (CoreLogic)** | Sandbox OAuth + Address Match → address resolve enrichment |
 
-Code: `packages/platform-core/src/connectors/wordpress/`, `commerce/connectors/stripe/`, `connectors/framework/`.
+## Business Services connectors (honest)
+
+Under Core **Business Services** → customer **Business Setup / Start Your Business** ([BUSINESS-SETUP.md](../foundations/BUSINESS-SETUP.md)):
+
+| Connector | Notes |
+|-----------|--------|
+| **ABR** | **Live** (GUID-gated) — `SearchByABNv202001` / `SearchByASICv201408` via Business Identity + Discovery (`ABN_LOOKUP_GUID` / `ABR_GUID`) — **verify / enrich only**; not registration. |
+| **ASIC** | Stub — `pending_provider_approval`. DSP APIs exist (no access fee); apply via webservices@asic.gov.au → test env → then build. **No production registration / no scrape.** Customer UI never says “ASIC.” |
+| **Dreamscape** | Infrastructure reseller (domains/hosting/SSL/email) — customer UX = DigitalGate Domains/Hosting/Email. |
+| **Google / Social** | Digital Identity pillar — GBP scaffold; social as shipped. |
+
+Code: `packages/platform-core/src/connectors/` (+ `commerce/connectors/stripe/`). Cotality: [COTALITY-CORELOGIC.md](./COTALITY-CORELOGIC.md).
 
 ---
 

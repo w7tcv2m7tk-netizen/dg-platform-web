@@ -13,6 +13,7 @@
     "db:studio": "dotenv -e .env.local -- prisma studio --schema=packages/database/prisma/schema.prisma",
     "setup:stripe-webhook": "node scripts/setup-stripe-webhook.mjs",
     "commerce:smoke": "node scripts/commerce-smoke-test.mjs",
+    "abr:smoke": "node scripts/abr-smoke.mjs",
     "capture:screenshots": "node scripts/capture-marketing-screenshots.mjs",
     "postinstall": "npm run db:generate"
   },

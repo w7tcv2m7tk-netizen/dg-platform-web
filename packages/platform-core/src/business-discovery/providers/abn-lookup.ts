@@ -1,49 +1,27 @@
+import { resolveAbrGuid } from "../../connectors/abr/client";
+import { allBlocks, stripNs, textBetween } from "../../connectors/abr/xml";
 import type { DiscoveryCandidate } from "../types";
 import { candidateKey, type BusinessDataProvider, type ProviderSearchContext } from "./types";
 
 /**
  * Australian Business Register (ABN Lookup) name search.
  * Free after GUID registration — use for verification / name discovery, not geo radius.
+ * Shares server-only GUID with ABR connector (ABN_LOOKUP_GUID | ABR_GUID | ABR_AUTHENTICATION_GUID).
  * @see https://abr.business.gov.au/Tools/WebServices
  */
-function abrGuid(): string | undefined {
-  return (
-    process.env.ABN_LOOKUP_GUID?.trim() ||
-    process.env.ABR_GUID?.trim() ||
-    undefined
-  );
-}
-
-function stripNs(xml: string): string {
-  return xml.replace(/xmlns(:\w+)?="[^"]*"/g, "");
-}
-
-function textBetween(xml: string, tag: string): string | undefined {
-  const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, "i");
-  const m = xml.match(re);
-  return m?.[1]?.replace(/<!\[CDATA\[|\]\]>/g, "").trim() || undefined;
-}
-
-function allBlocks(xml: string, tag: string): string[] {
-  const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, "gi");
-  const out: string[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(xml))) out.push(m[1]);
-  return out;
-}
 
 export const abnLookupProvider: BusinessDataProvider = {
   id: "abn_lookup",
   label: "ABN Lookup",
   isConfigured() {
-    return Boolean(abrGuid());
+    return Boolean(resolveAbrGuid());
   },
   unavailableReason() {
-    if (abrGuid()) return undefined;
-    return "Set ABN_LOOKUP_GUID from abr.business.gov.au web services registration";
+    if (resolveAbrGuid()) return undefined;
+    return "Set ABN_LOOKUP_GUID (or ABR_GUID) from abr.business.gov.au web services registration";
   },
   async search(ctx: ProviderSearchContext): Promise<DiscoveryCandidate[]> {
-    const guid = abrGuid();
+    const guid = resolveAbrGuid();
     if (!guid) return [];
 
     // ABR is name-oriented — skip weak geo-only queries with no distinctive terms.

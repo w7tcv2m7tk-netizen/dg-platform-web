@@ -27,6 +27,8 @@ A **Business Intelligence + Prospecting Engine** for DigitalGate staff:
 
 **Not** CRM Companies on import — only Growth prospects until explicit promote / client transition.
 
+**Not** tenant **Business Setup / Start Your Business** — that Core **Business Services** product surface (name → ABR verify → registration handoff → Business Profile → presence) is [BUSINESS-SETUP.md](./BUSINESS-SETUP.md). Discovery may share the ABR GUID / adapter; product surfaces stay separate.
+
 ---
 
 ## Architecture
@@ -78,7 +80,7 @@ Env:
 |----------|---------|
 | `GOOGLE_PLACES_API_KEY` | Preferred Places key (Places API New) |
 | `GOOGLE_GEOCODING_API_KEY` | Fallback if Places enabled on same key; also used for radius geocode |
-| `ABN_LOOKUP_GUID` / `ABR_GUID` | ABR authentication GUID |
+| `ABN_LOOKUP_GUID` / `ABR_GUID` / `ABR_AUTHENTICATION_GUID` | ABR authentication GUID (**server-only secret** — never `NEXT_PUBLIC_*` or client) |
 
 ---
 

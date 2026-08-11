@@ -59,6 +59,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | 16 | [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) | **Core Platform Service** — Domains/DNS/SSL/hosting/email; Dreamscape V1 adapter; sandbox-first |
 | 16b | [EMAIL-INFRASTRUCTURE.md](./EMAIL-INFRASTRUCTURE.md) | **Email Service** — transactional (Resend), mailbox (Dreamscape), deliverability; no mail server |
 | [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) | Core — Business Discovery Engine (Command Centre prospecting) |
+| [BUSINESS-SETUP.md](./BUSINESS-SETUP.md) | **Core · Business Services** — Start Your Business; ABR + ASIC DSP (hold) + Dreamscape via Connectors |
 | [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md) | Core — Opportunity Engine Daily Briefing |
 | [ACC-CHANNEL-CONNECTIVITY.md](./ACC-CHANNEL-CONNECTIVITY.md) | Acc — OTA channels (iCal → Booking.com / Airbnb APIs) |
 | [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) | **Core** — Connector Framework; Property / Business / Marketing; Listing Hub parent |

@@ -77,6 +77,13 @@ export default async function BusinessProfilePage({
         <p className="text-sm text-slate-400">
           Your Digital Business Identity — the foundation every app and AI capability references.
         </p>
+        <p className="mt-2 text-sm text-slate-500">
+          Launching a new business?{" "}
+          <Link href="/dashboard/business-setup" className="text-sky-400 hover:underline">
+            Start Your Business
+          </Link>{" "}
+          (Business Setup checklist).
+        </p>
       </header>
       <main className="dg-page-main space-y-6">
         {reOnboarding ? (

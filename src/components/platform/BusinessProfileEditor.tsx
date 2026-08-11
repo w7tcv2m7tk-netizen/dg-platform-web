@@ -143,6 +143,7 @@ export function BusinessProfileEditor({
   );
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [lookingUp, setLookingUp] = useState<"abn" | "acn" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   function setField<K extends keyof OrganisationBusinessProfile>(
@@ -150,6 +151,82 @@ export function BusinessProfileEditor({
     value: OrganisationBusinessProfile[K],
   ) {
     setProfile((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function applyProfilePatch(patch: Partial<OrganisationBusinessProfile> | null) {
+    if (!patch) return;
+    setProfile((prev) => ({
+      ...prev,
+      ...patch,
+      address: { ...prev.address, ...patch.address },
+      taxSettings: { ...prev.taxSettings, ...patch.taxSettings },
+      businessName: prev.businessName?.trim()
+        ? prev.businessName
+        : patch.businessName,
+      tradingName: prev.tradingName?.trim()
+        ? prev.tradingName
+        : patch.tradingName,
+    }));
+  }
+
+  async function lookupAbn() {
+    const abn = profile.abn?.trim() ?? "";
+    if (!abn) {
+      setMessage("Enter an ABN to verify");
+      return;
+    }
+    setLookingUp("abn");
+    setMessage(null);
+    const res = await fetch(
+      `/api/v1/business-identity/abn?abn=${encodeURIComponent(abn)}`,
+    );
+    const json = await res.json().catch(() => null);
+    setLookingUp(null);
+    if (!res.ok) {
+      setMessage(
+        json?.data?.abr?.message ||
+          json?.error?.message ||
+          "ABN lookup failed — check ABR GUID in server .env.local",
+      );
+      return;
+    }
+    applyProfilePatch(json?.data?.profilePatch ?? null);
+    const name = json?.data?.identity?.entity?.legalName;
+    setMessage(
+      name
+        ? `ABN verified — ${name}. Review fields then Save.`
+        : "ABN verified. Review fields then Save.",
+    );
+  }
+
+  async function lookupAcn() {
+    const acn = profile.acn?.trim() ?? "";
+    if (!acn) {
+      setMessage("Enter an ACN to look up");
+      return;
+    }
+    setLookingUp("acn");
+    setMessage(null);
+    const res = await fetch(
+      `/api/v1/business-identity/acn?acn=${encodeURIComponent(acn)}`,
+    );
+    const json = await res.json().catch(() => null);
+    setLookingUp(null);
+    if (!res.ok) {
+      setMessage(
+        json?.data?.abr?.message ||
+          json?.error?.message ||
+          "ACN lookup failed — check ABR GUID in server .env.local",
+      );
+      return;
+    }
+    applyProfilePatch(json?.data?.profilePatch ?? null);
+    const name = json?.data?.identity?.entity?.legalName;
+    setMessage(
+      name
+        ? `ACN matched — ${name}. Review fields then Save.`
+        : "ACN matched. Review fields then Save.",
+    );
   }
 
   async function save() {
@@ -262,18 +339,40 @@ export function BusinessProfileEditor({
             />
           </Field>
           <Field label="ABN">
-            <input
-              className={inputClass}
-              value={profile.abn ?? ""}
-              onChange={(e) => setField("abn", e.target.value)}
-            />
+            <div className="flex gap-2">
+              <input
+                className={inputClass}
+                value={profile.abn ?? ""}
+                onChange={(e) => setField("abn", e.target.value)}
+                placeholder="11 digits"
+              />
+              <button
+                type="button"
+                onClick={lookupAbn}
+                disabled={lookingUp !== null}
+                className="shrink-0 rounded-lg border border-slate-600 px-3 py-2 text-sm text-slate-200 hover:border-sky-500 hover:text-white disabled:opacity-50"
+              >
+                {lookingUp === "abn" ? "Looking up…" : "Verify ABN"}
+              </button>
+            </div>
           </Field>
           <Field label="ACN">
-            <input
-              className={inputClass}
-              value={profile.acn ?? ""}
-              onChange={(e) => setField("acn", e.target.value)}
-            />
+            <div className="flex gap-2">
+              <input
+                className={inputClass}
+                value={profile.acn ?? ""}
+                onChange={(e) => setField("acn", e.target.value)}
+                placeholder="9 digits"
+              />
+              <button
+                type="button"
+                onClick={lookupAcn}
+                disabled={lookingUp !== null}
+                className="shrink-0 rounded-lg border border-slate-600 px-3 py-2 text-sm text-slate-200 hover:border-sky-500 hover:text-white disabled:opacity-50"
+              >
+                {lookingUp === "acn" ? "Looking up…" : "Look up ACN"}
+              </button>
+            </div>
           </Field>
           <Field label="Timezone">
             <input
