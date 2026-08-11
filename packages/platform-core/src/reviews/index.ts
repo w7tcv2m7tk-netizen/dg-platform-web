@@ -1,5 +1,7 @@
 /**
- * DigitalGate Reviews & Reputation — Growth App (Network timing).
+ * DigitalGate Reputation — Core platform capability.
+ * Universal Review Object + Reputation Service. Sources via Connector Framework.
+ * Growth “Reputation Pro” (campaigns, competitor analysis, advanced AI respond) is roadmap.
  * Distinct from Platform Refer & Earn and Business Referral Network.
  * See docs/foundations/REVIEWS-AND-REFERRALS.md §1.
  */
@@ -9,6 +11,7 @@ import { createActivity } from "../activities";
 import { listStayBookings } from "../accommodation/bookings";
 import { platformEvents } from "../events";
 import { listSettlementProperties } from "../real-estate/settlements";
+import { listServiceJobs } from "../services/jobs";
 
 export type ReviewFeedItem = {
   id: string;
@@ -23,6 +26,10 @@ export type ReviewFeedItem = {
   responded?: boolean;
 };
 
+/**
+ * Connector-ready source slots — Core does not hard-code live pulls.
+ * Each row maps to a Connector Framework provider when wired.
+ */
 export type ReviewSourceConcept = {
   id: string;
   label: string;
@@ -37,21 +44,49 @@ export const REVIEW_SOURCE_CONCEPTS: ReviewSourceConcept[] = [
     label: "Accommodation (WordPress dg_reviews)",
     description: "Airbnb / Booking.com / imported guest reviews via Acc connector",
     status: "available",
-    connectorHint: "WordPress accommodation plugin v10.65.1+",
+    connectorHint: "WordPress accommodation connector (v10.65.1+)",
   },
   {
     id: "google_business",
     label: "Google Business Profile",
     description: "Monitor and respond to Google reviews",
     status: "planned",
-    connectorHint: "Google connector (Phase 4+)",
+    connectorHint: "Google Business Profile connector",
   },
   {
     id: "facebook",
     label: "Facebook / Meta",
     description: "Page recommendations and ratings",
     status: "planned",
-    connectorHint: "Meta connector (Phase 4+)",
+    connectorHint: "Meta connector",
+  },
+  {
+    id: "productreview",
+    label: "ProductReview.com.au",
+    description: "Australian product and business reviews",
+    status: "planned",
+    connectorHint: "ProductReview connector",
+  },
+  {
+    id: "trustpilot",
+    label: "Trustpilot",
+    description: "Trustpilot business reviews",
+    status: "planned",
+    connectorHint: "Trustpilot connector",
+  },
+  {
+    id: "tripadvisor",
+    label: "TripAdvisor",
+    description: "Hospitality and attraction reviews where permitted",
+    status: "planned",
+    connectorHint: "TripAdvisor connector",
+  },
+  {
+    id: "yelp",
+    label: "Yelp",
+    description: "Local business reviews where permitted",
+    status: "planned",
+    connectorHint: "Yelp connector",
   },
   {
     id: "manual",
@@ -62,7 +97,8 @@ export const REVIEW_SOURCE_CONCEPTS: ReviewSourceConcept[] = [
 ];
 
 export type ReputationScoreBreakdown = {
-  score: number;
+  /** Null when no rated reviews — never invent a decorative score. */
+  score: number | null;
   averageRating: number | null;
   reviewCount: number;
   responseRate: number;
@@ -72,7 +108,7 @@ export type ReputationScoreBreakdown = {
   note: string;
 };
 
-/** Reputation Score™ stub — transparent weighted formula until Scoring Engine owns it. */
+/** Reputation Score™ — only from connected feed data; null when empty. */
 export function computeReputationScore(reviews: ReviewFeedItem[]): ReputationScoreBreakdown {
   const withRating = reviews.filter((r) => r.rating != null && Number.isFinite(r.rating));
   const reviewCount = withRating.length;
@@ -84,23 +120,33 @@ export function computeReputationScore(reviews: ReviewFeedItem[]): ReputationSco
   const responded = reviews.filter((r) => r.responded).length;
   const responseRate = reviews.length ? responded / reviews.length : 0;
 
-  const ratingScore = averageRating != null ? Math.round((averageRating / 5) * 55) : 0;
+  if (reviewCount === 0) {
+    return {
+      score: null,
+      averageRating: null,
+      reviewCount: 0,
+      responseRate: 0,
+      volumeScore: 0,
+      ratingScore: 0,
+      responseScore: 0,
+      note: "No published reviews in connected feeds — Reputation Score™ stays empty until a connector returns rated reviews.",
+    };
+  }
+
+  const ratingScore = Math.round((averageRating! / 5) * 55);
   const volumeScore = Math.min(25, reviewCount * 2);
   const responseScore = Math.round(responseRate * 20);
   const score = Math.min(100, ratingScore + volumeScore + responseScore);
 
   return {
     score,
-    averageRating: averageRating != null ? Math.round(averageRating * 10) / 10 : null,
+    averageRating: Math.round(averageRating! * 10) / 10,
     reviewCount,
     responseRate: Math.round(responseRate * 100),
     volumeScore,
     ratingScore,
     responseScore,
-    note:
-      reviewCount === 0
-        ? "No published reviews in connected feeds yet — score stays low until sources return data."
-        : "Stub formula: rating quality (55) + volume (25) + response rate (20). Scoring Engine will own the™ formula later.",
+    note: "Transparent formula on connected feed data: rating quality (55) + volume (25) + response rate (20). Scoring Engine will own the™ formula later.",
   };
 }
 
@@ -310,7 +356,7 @@ export async function extractReviewThemes(
 
 export type ReviewRequestCandidate = {
   id: string;
-  kind: "stay" | "settlement";
+  kind: "stay" | "settlement" | "job";
   contactId?: string | null;
   label: string;
   completedAt?: string | null;
@@ -328,7 +374,7 @@ function isCompletedStayStatus(status: string) {
   );
 }
 
-/** Candidates for review requests after completed stay / settlement. */
+/** Candidates for review requests after completed stay / settlement / Services job. */
 export async function listReviewRequestCandidates(
   organisationId: string,
 ): Promise<ReviewRequestCandidate[]> {
@@ -377,6 +423,27 @@ export async function listReviewRequestCandidates(
     }
   } catch {
     /* optional */
+  }
+
+  try {
+    const jobs = await listServiceJobs({
+      organisationId,
+      limit: 80,
+    });
+    for (const job of jobs.items) {
+      const done = job.stage === "completed" || Boolean(job.completedAt);
+      if (!done) continue;
+      candidates.push({
+        id: `job:${job.id}`,
+        kind: "job",
+        contactId: job.contactId,
+        label: job.title || "Completed job",
+        completedAt: job.completedAt ?? job.updatedAt,
+        detail: ["Services job", job.stage, job.siteAddress].filter(Boolean).join(" · "),
+      });
+    }
+  } catch {
+    /* Services optional */
   }
 
   return candidates.slice(0, 40);

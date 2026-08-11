@@ -12,7 +12,8 @@ export default async function ReviewsSourcesPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Review sources</h1>
         <p className="text-sm text-slate-400">
-          Connect and monitor concepts — Acc live today; Google / Meta via Connectors later
+          Connector Framework slots — Acc live today; other providers planned (not hard-coded Core
+          pulls)
         </p>
         <ReviewsSubnav active="/apps/reviews/sources" />
       </header>

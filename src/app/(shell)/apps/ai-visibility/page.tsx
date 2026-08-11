@@ -1,5 +1,6 @@
 import {
   buildLiveTwinWithScores,
+  computeReputationScore,
   gatherOverviewLiveMetrics,
   getOrganisationBusinessProfile,
   getScoreValue,
@@ -15,6 +16,7 @@ import type {
 } from "@/components/seo/WebsiteSignalsPanel";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { getOrgEnabledAppIds, getPlatformPageContext } from "@/lib/org-apps";
+import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
 export default async function AiVisibilityPage() {
   const { session: platformSession } = await getPlatformPageContext();
@@ -42,17 +44,24 @@ export default async function AiVisibilityPage() {
   let findings: WebsiteSignalFinding[] = [];
 
   if (platformSession) {
-    const [metrics, connectors, profile, latestAudit] = await Promise.all([
+    const [metrics, connectors, profile, latestAudit, reviewsBundle] = await Promise.all([
       gatherOverviewLiveMetrics(platformSession.organisationId),
       fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
       getOrganisationBusinessProfile(platformSession.organisationId),
       scoresFromLatestSeoAudit(platformSession.organisationId),
+      loadReviewsSessionAndFeed(),
     ]);
 
     websiteUrl = latestAudit?.websiteUrl ?? profile?.websiteUrl?.trim() ?? null;
     auditedAt = latestAudit?.auditedAt ?? null;
     probes = latestAudit?.probes ?? null;
     findings = latestAudit?.findings ?? [];
+
+    const reputationFromFeed = computeReputationScore(reviewsBundle.feed);
+    scoreBreakdown[3] = {
+      ...scoreBreakdown[3],
+      value: reputationFromFeed.score,
+    };
 
     const presenceOverride = latestAudit?.fresh
       ? {
@@ -72,6 +81,7 @@ export default async function AiVisibilityPage() {
         profile,
         metricsContext: metricsContextFromLiveMetrics(metrics),
         presenceAuditOverride: presenceOverride,
+        reputationOverride: reputationFromFeed.score,
       });
 
       businessHealth = scores.businessHealth;
@@ -114,11 +124,6 @@ export default async function AiVisibilityPage() {
           provisional: true,
         };
       }
-
-      scoreBreakdown[3] = {
-        ...scoreBreakdown[3],
-        value: getScoreValue(scores.scores, "reputation"),
-      };
     } else if (latestAudit) {
       const provisional = !latestAudit.fresh;
       aiVisibilityScore = latestAudit.scores.aiVisibility;

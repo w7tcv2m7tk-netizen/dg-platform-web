@@ -710,29 +710,29 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
   },
   {
     appId: "reviews",
-    headline: "Reviews & reputation",
+    headline: "Reputation (Core)",
     summary:
-      "Monitor connected review feeds (Acc dg_reviews), queue requests after stays/settlements, and view Reputation Score™ + AI themes.",
+      "Core reputation capability — monitor connected review feeds (Acc dg_reviews), queue requests after jobs/stays/settlements, Reputation Score™ only when rated reviews exist.",
     estimatedMinutes: 8,
     steps: [
       {
         id: "rev-1",
-        title: "Open Reviews overview",
-        description: "See score stub, theme summary, and links into inbox / sources / requests.",
+        title: "Open Reputation overview",
+        description: "See live or empty feed, score only from real data, links into inbox / sources / requests.",
         href: "/apps/reviews",
-        hrefLabel: "Open Reviews",
+        hrefLabel: "Open Reputation",
       },
       {
         id: "rev-2",
         title: "Connect sources",
-        description: "Acc WordPress feed is available today; GBP / Meta are planned Connectors.",
+        description: "Acc WordPress feed is available today; GBP / Meta / ProductReview are Connector slots.",
         href: "/apps/reviews/sources",
         hrefLabel: "Review sources",
       },
       {
         id: "rev-3",
         title: "Queue a review request",
-        description: "After a completed stay or RE settlement, queue a request on the Contact timeline.",
+        description: "After a completed Services job, stay, or RE settlement, queue Activity on the Contact timeline.",
         href: "/apps/reviews/requests",
         hrefLabel: "Review requests",
       },

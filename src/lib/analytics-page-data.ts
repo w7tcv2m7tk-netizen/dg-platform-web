@@ -1,5 +1,6 @@
 import {
   buildLiveTwinWithScores,
+  computeReputationScore,
   gatherOverviewLiveMetrics,
   getOrganisationBusinessProfile,
   getScoreValue,
@@ -14,6 +15,7 @@ import {
 
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { getOrgEnabledAppIds, getPlatformPageContext } from "@/lib/org-apps";
+import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
 export function formatAudMoney(cents: number): string {
   return (cents / 100).toLocaleString("en-AU", { style: "currency", currency: "AUD" });
@@ -62,15 +64,17 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
   }
 
   const enabledAppIds = await getOrgEnabledAppIds();
-  const [metrics, connectors, profile, healthHistory] = await Promise.all([
+  const [metrics, connectors, profile, healthHistory, reviewsBundle] = await Promise.all([
     gatherOverviewLiveMetrics(platformSession.organisationId),
     fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
     getOrganisationBusinessProfile(platformSession.organisationId),
     loadHealthHistory(platformSession.organisationId),
+    loadReviewsSessionAndFeed(),
   ]);
 
   let scoreResults: ScoreResult[] = [];
   let twinScores = DEFAULT_TWIN_SCORES;
+  const reputationFromFeed = computeReputationScore(reviewsBundle.feed);
 
   if (metrics) {
     const { scores } = buildLiveTwinWithScores({
@@ -81,6 +85,7 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
       connectors,
       profile,
       metricsContext: metricsContextFromLiveMetrics(metrics),
+      reputationOverride: reputationFromFeed.score,
     });
 
     scoreResults = scores.scores;
@@ -88,7 +93,7 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
       seo: getScoreValue(scores.scores, "seo"),
       aiVisibility: getScoreValue(scores.scores, "ai_visibility"),
       websiteHealth: getScoreValue(scores.scores, "website_health"),
-      reputation: getScoreValue(scores.scores, "reputation"),
+      reputation: reputationFromFeed.score ?? 0,
       businessHealth: scores.businessHealth,
     };
   }

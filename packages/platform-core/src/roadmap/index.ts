@@ -110,6 +110,46 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     href: "/dashboard/business",
   },
   {
+    id: "core.business_services",
+    area: "Platform",
+    label: "Business Services (Core)",
+    description:
+      "Provider-agnostic launch capability — ABR + ASIC + Dreamscape + Google/Social under Connector Framework — docs/foundations/BUSINESS-SETUP.md",
+    status: "scaffold",
+    priority: "high",
+    href: "/dashboard/business-setup",
+  },
+  {
+    id: "core.business_setup",
+    area: "Platform",
+    label: "Business Setup / Start Your Business",
+    description:
+      "Customer Launchpad — Identify → Register → Establish → Build → Connect → Grow. No ASIC in UI. Phase 1 Identify live-ish.",
+    status: "scaffold",
+    priority: "high",
+    href: "/dashboard/business-setup",
+  },
+  {
+    id: "platform.connector_abr",
+    area: "Platform",
+    label: "ABR connector",
+    description:
+      "SearchByABNv202001 + SearchByASICv201408 — ABN/ACN verify & enrich for Business Identity + Discovery",
+    status: "in_progress",
+    priority: "high",
+    href: "/dashboard/business-setup",
+  },
+  {
+    id: "platform.connector_asic",
+    area: "Platform",
+    label: "ASIC connector (DSP hold)",
+    description:
+      "Business Names & Companies APIs — pending_provider_approval; apply webservices@asic.gov.au; no production submit / no scrape",
+    status: "planned",
+    priority: "medium",
+    href: "/dashboard/business-setup",
+  },
+  {
     id: "core.brand_studio.v1",
     area: "Platform",
     label: "Brand Studio V1",

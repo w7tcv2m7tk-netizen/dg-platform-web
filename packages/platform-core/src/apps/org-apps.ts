@@ -28,13 +28,21 @@ const PREMIUM_APP_MAP: Record<string, string[]> = {
 };
 
 const TIER_BASE_APPS: Record<string, string[]> = {
-  starter: ["crm", "commerce", "websites", "infrastructure", "opportunities"],
+  starter: [
+    "crm",
+    "commerce",
+    "websites",
+    "infrastructure",
+    "opportunities",
+    "reviews",
+  ],
   professional: [
     "crm",
     "commerce",
     "websites",
     "infrastructure",
     "opportunities",
+    "reviews",
     "automation",
   ],
   business: [
@@ -43,6 +51,7 @@ const TIER_BASE_APPS: Record<string, string[]> = {
     "websites",
     "infrastructure",
     "opportunities",
+    "reviews",
     "automation",
   ],
   enterprise: [
@@ -51,6 +60,7 @@ const TIER_BASE_APPS: Record<string, string[]> = {
     "websites",
     "infrastructure",
     "opportunities",
+    "reviews",
     "automation",
   ],
 };
@@ -92,13 +102,15 @@ export function resolveEnabledAppIds(
 
   const next = [...ids];
 
-  // Opportunities is Core platform capability — always available when shipped enabled.
-  if (platformApps.get("opportunities")?.enabled && !next.includes("opportunities")) {
-    next.push("opportunities");
+  // Core platform capabilities — always available when shipped enabled.
+  for (const id of ["opportunities", "reviews"] as const) {
+    if (platformApps.get(id)?.enabled && !next.includes(id)) {
+      next.push(id);
+    }
   }
 
-  // SEO + AI Visibility honest presence slice — available when shipped enabled.
-  for (const id of ["seo", "ai-visibility"] as const) {
+  // SEO + AI Visibility + Analytics honest Growth slice — available when shipped enabled.
+  for (const id of ["seo", "ai-visibility", "analytics"] as const) {
     if (platformApps.get(id)?.enabled && !next.includes(id)) {
       next.push(id);
     }

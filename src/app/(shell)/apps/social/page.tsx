@@ -22,14 +22,23 @@ export default async function SocialOverviewPage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/dashboard" className="text-sm text-blue-400 hover:underline">
+        <Link href="/dashboard" className="text-sm text-sky-400 hover:underline">
           ← Overview
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Social</h1>
-        <p className="text-sm text-slate-400">Profile completeness and local drafts</p>
+        <p className="text-sm text-slate-400">Profile links + local drafts — publishing deferred</p>
         <SocialSubnav active="/apps/social" />
       </header>
       <main className="dg-page-main space-y-6">
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-slate-300">
+          <p className="font-medium text-amber-200">Honestly deferred for closed beta</p>
+          <p className="mt-1 text-slate-400">
+            Multi-network publish (LinkedIn, Facebook, Instagram, X, Pinterest) is not ready. This
+            surface tracks Business Profile social URLs and local drafts only — no fake engagement
+            charts.
+          </p>
+        </div>
+
         <section className="dg-card">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -38,7 +47,7 @@ export default async function SocialOverviewPage() {
             </div>
             <Link
               href="/dashboard/business"
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500"
+              className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500"
             >
               Edit Business Profile
             </Link>
@@ -73,18 +82,27 @@ export default async function SocialOverviewPage() {
         ) : null}
 
         <section className="dg-card">
-          <h2 className="font-semibold text-white">Score contribution</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-300">
-            Social URLs on your Business Profile feed AI Visibility and Reputation scores in the
-            Digital Twin. Google Business Profile and a consistent brand presence across LinkedIn,
-            Facebook, and Instagram help discovery models match your business. Each missing channel
-            reduces profile completeness — aim for all six fields before publishing campaigns.
-          </p>
-          <p className="mt-3 text-sm">
-            <Link href="/dashboard/business" className="text-blue-400 hover:underline">
-              Update social links in Business Profile →
-            </Link>
-          </p>
+          <h2 className="font-semibold text-white">What works now</h2>
+          <ul className="mt-3 space-y-2 text-sm text-slate-400">
+            <li>
+              <Link href="/apps/social/compose" className="text-sky-400 hover:underline">
+                Compose
+              </Link>{" "}
+              — save local drafts as Activity (no OAuth publish)
+            </li>
+            <li>
+              <Link href="/apps/social/accounts" className="text-sky-400 hover:underline">
+                Accounts
+              </Link>{" "}
+              — connector placeholders only
+            </li>
+            <li>
+              <Link href="/dashboard/business" className="text-sky-400 hover:underline">
+                Business Profile
+              </Link>{" "}
+              — social URLs feed presence / AI Visibility context
+            </li>
+          </ul>
         </section>
       </main>
     </>

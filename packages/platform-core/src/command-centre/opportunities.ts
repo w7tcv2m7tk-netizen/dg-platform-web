@@ -32,13 +32,6 @@ const EXPANSION_CATALOGUE: Array<{
     rationaleWhenMissing: "SEO App not enabled — cohort clients with SEO score higher retention.",
   },
   {
-    appId: "reviews",
-    appName: "Reputation Management",
-    label: "Add Reputation Management",
-    estimatedAdditionalMrrCents: 19_700,
-    rationaleWhenMissing: "Reviews App missing — reputation loop feeds Twin and Success Score.",
-  },
-  {
     appId: "marketing",
     appName: "Marketing",
     label: "Enable Marketing Automation",

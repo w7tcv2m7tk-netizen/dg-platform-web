@@ -67,15 +67,16 @@ export default async function NetworkHomePage() {
             </Link>
           </div>
           <div className="dg-card">
-            <h2 className="font-semibold text-white">Reviews &amp; reputation</h2>
+            <h2 className="font-semibold text-white">Reputation (Core)</h2>
             <p className="mt-2 text-sm text-slate-400">
-              Trust layer — monitor feeds, Reputation Score™, request after jobs.
+              Core capability — unified review feed via Connectors, timeline requests, Reputation
+              Score™ when real data exists. Network Refer &amp; Earn stays separate.
             </p>
             <Link
               href="/apps/reviews"
-              className="mt-4 inline-block text-sm text-blue-400 hover:underline"
+              className="mt-4 inline-block text-sm text-sky-400 hover:underline"
             >
-              Open Reviews →
+              Open Reputation →
             </Link>
           </div>
         </div>

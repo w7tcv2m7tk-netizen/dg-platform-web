@@ -15,7 +15,7 @@ export default async function ReviewsInboxPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Review inbox</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · unified monitor (Acc feed first)
+          {session?.organisationName ?? "DigitalGate"} · Core Reputation — unified monitor
         </p>
         <ReviewsSubnav active="/apps/reviews/inbox" />
       </header>
@@ -29,11 +29,15 @@ export default async function ReviewsInboxPage() {
             <p className="text-lg font-medium text-white">Feed unavailable</p>
             <p className="mx-auto mt-3 max-w-lg text-sm text-slate-400">{feedStatus.message}</p>
             <p className="mt-4 text-sm text-slate-500">
-              Configure WordPress Acc connector or open{" "}
-              <Link href="/apps/accommodation/reviews" className="text-blue-400 hover:underline">
+              Configure a review connector or open{" "}
+              <Link href="/apps/accommodation/reviews" className="text-sky-400 hover:underline">
                 Accommodation Reviews
               </Link>{" "}
-              ops surface. GBP / Meta arrive with Connectors.
+              ops. Reviews also surface on{" "}
+              <Link href="/apps/crm/timeline" className="text-sky-400 hover:underline">
+                CRM timeline
+              </Link>{" "}
+              when queued as Activity. GBP / Meta / ProductReview arrive via Connectors.
             </p>
           </div>
         ) : (

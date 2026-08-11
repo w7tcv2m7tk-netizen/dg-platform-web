@@ -63,14 +63,6 @@ function scoreFromSales(snapshot: DigitalTwinSnapshot, metrics: OverviewMetricsC
   return clamp(score);
 }
 
-function scoreFromCx(snapshot: DigitalTwinSnapshot, metrics: OverviewMetricsContext): number {
-  let score = 70;
-  if (metrics.hasTimelineActivity) score += 8;
-  if (metrics.contactCount >= 10) score += 6;
-  if (metrics.overdueFollowUps > 2) score -= 10;
-  return clamp(score);
-}
-
 function scoreFromAutomation(enabledAppIds: string[], metrics: OverviewMetricsContext): number {
   let score = 45;
   if (enabledAppIds.includes("automation")) score += 20;
@@ -154,11 +146,11 @@ export function calculateOrgScores(input: CalculateScoresInput): OrgScoresResult
 
   const businessGrowth = scoreFromBusinessGrowth(snapshot);
   const sales = scoreFromSales(snapshot, metrics);
-  const cx = scoreFromCx(snapshot, metrics);
+  // Reputation Score™: only use real feed override. Never invent decorative CX stand-ins.
   const reputation =
     reputationOverride != null && Number.isFinite(reputationOverride)
       ? clamp(reputationOverride)
-      : cx;
+      : 0;
   const automation = scoreFromAutomation(enabledAppIds, metrics);
   const finance = scoreFromFinance(snapshot, metrics);
 

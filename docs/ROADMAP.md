@@ -86,6 +86,8 @@ Full spec: [COMMAND-CENTRE.md](./COMMAND-CENTRE.md)
 
 **Roadmap (planned):** **AI Brand Studio** — Core capability (not Logo Maker). Business Profile → logo / palette / type / favicon / guidelines with AI iteration; optional entry from Website Builder; writes brand into profile for Websites, Email, Docs. Spec: [foundations/BRAND-STUDIO.md](./foundations/BRAND-STUDIO.md). V1 stays small; expand asset packs after validation.
 
+**Architecture locked (Aug 2026):** **Business Services** (Core capability) → customer **Business Setup / Start Your Business** (not Growth App, not “ASIC App”). Launch stages: **Identify → Register → Establish → Build → Connect → Grow**. Flow: DIGITALGATE → Business Identity → ABR (+ ASIC later) → Business Profile → Website/Email/CRM → SEO·AI Visibility/Automation/Analytics. **ABR** = verify/enrich (`SearchByABNv202001`, `SearchByASICv201408`; GUID server-only); **ASIC** = AU names/companies via DSP APIs (**hold** — apply to webservices@asic.gov.au; test env only after approval; no production submit / no scrape). Spec: [foundations/BUSINESS-SETUP.md](./foundations/BUSINESS-SETUP.md). Phase 1 = ABR Identify live-ish; next = Establish/Connect wiring (parallel to DSP application).
+
 **Roadmap (planned):** **Services App** — one field-ops App (jobs, quotes, schedule, teams); industry via **Service Templates** (electrician, plumber, cleaner, …). Do not ship separate trade Apps. Spec: [foundations/SERVICES-APP.md](./foundations/SERVICES-APP.md).
 
 **Shipped (Aug 2026 Core slice):** Platform Refer & Earn MVP (`/r/{code}`, Settings dashboard, invite email stub, first-paid credit); CRM lead create upserts Contact; Lead → Opportunity convert + CRM Opportunities list.

@@ -5,10 +5,10 @@
 | Surface | Layer / timing | Purpose |
 |---------|----------------|---------|
 | **Platform Referral Programme** (SaaS Refer & Earn) | **Core-adjacent — earlier** (with billing / commercial launch) | Customers & partners refer *DigitalGate subscriptions* |
-| **DigitalGate Reviews** | Network / Growth App — Phase 5+ | Reputation & trust |
+| **DigitalGate Reputation** | **Core platform capability** | Reputation & trust (Universal Review Object) |
 | **Business Referral Network** | Network — Phase 5+ | Verified businesses refer *each other* (leads, disclosed fees) |
 
-**Reviews ≠ Platform Referrals ≠ Business Referrals.** Design all three now. Ship Platform Refer & Earn with (or soon after) subscription billing; build Reviews and the B2B Referral Network only after Core → CRM → Connectors → AI maturity and critical mass.
+**Reputation ≠ Platform Referrals ≠ Business Referrals.** Design all three now. Ship Platform Refer & Earn with (or soon after) subscription billing; Core Reputation beta ships with Connectors maturity; Business Referral Network remains Phase 5+.
 
 Architect so Organisation, billing, CRM, Connectors, AI, and consent can support all three without a rebuild.
 
@@ -21,7 +21,7 @@ See [NETWORK-LAYER.md](./NETWORK-LAYER.md), [PRODUCT-VISION.md](../PRODUCT-VISIO
 | Surface | Purpose | Primary outcome |
 |---------|---------|-----------------|
 | **Platform Referral Programme** | Grow SaaS via Refer & Earn | Referred org pays subscription → referrer earns credit / cash |
-| **DigitalGate Reviews** | Reputation & trust | Monitor, request, respond, score, theme-intelligence |
+| **DigitalGate Reputation** | Reputation & trust (Core) | Monitor, request, respond, score — via Connectors |
 | **Referral Engine** (Business) | Customer / partner introductions | Referral Profile → lead in recipient CRM |
 | **Business Referral Network** | B2B network effect | Verified businesses refer each other; tracked transactions |
 | **Marketplace** | Discovery & facilitation | Software · Services · Professionals · Partners · Integrations |
@@ -31,7 +31,7 @@ See [NETWORK-LAYER.md](./NETWORK-LAYER.md), [PRODUCT-VISION.md](../PRODUCT-VISIO
 ```
 Join DigitalGate (often via Refer & Earn link)
   → Connect digital world (Connectors)
-  → Build reputation (Reviews)
+  → Build reputation (Core Reputation via Connectors)
   → Run CRM + AI
   → Join communities / find partners (Network)
   → Refer businesses to each other (Business Referral Network)
@@ -134,37 +134,48 @@ Do **not** bury Platform Refer & Earn inside Phase 5 Network planning.
 
 ---
 
-## 1. DigitalGate Reviews (Reviews & Reputation App)
+## 1. Reputation (Core platform capability)
 
-A **Growth App** concept for reputation management — not a social feed. **Phase 5+** product work.
+**Core owns** the Universal Review Object, Reputation Service, aggregation, Connector-backed sources, author matching, sentiment/star/response fields, history, notifications/events, timeline/AI availability, and **Reputation Score™ only when real connected data exists** (never decorative stand-ins).
 
-Businesses can (when built):
+**Not a Growth App product** for closed beta. Optional later: Growth → **Reputation Pro** (campaigns, AI respond UX, competitor analysis, request-more-reviews product surface) — roadmap only.
 
-| Capability | Notes |
-|------------|-------|
-| Connect review sources | Google Business Profile and other review platforms via Connectors |
-| Monitor in one dashboard | Unified inbox / timeline of reviews |
-| Auto-request after jobs/deals | Triggered from CRM / deal / project completion |
-| SMS / email review requests | Via Communications + Automation |
-| Track response rates | Requested → submitted → responded |
-| AI-draft responses | Shared AI Service; human approve where required |
-| Negative sentiment alerts | Risk / reputation health signal |
-| Competitor monitoring | Opt-in / public-source where lawful |
-| **Reputation Score™** | Platform score concept (Scoring Engine) |
-| Review growth over time | Trends, not only snapshot star rating |
-| Impact on visibility & leads | Correlate reviews → AI Visibility / pipeline (Intelligence) |
-| **AI theme extraction** | e.g. “praise communication, but 18% of negatives mention delays” — more valuable than a raw 4.8★ |
+**Five pillars:** Connect · Centralise · Understand · Automate · Grow
 
-### Product concepts (not implementation)
+| Capability | Beta floor | Roadmap / Reputation Pro |
+|------------|------------|--------------------------|
+| Connect sources via Connector Framework | Acc WordPress feed when connected; other slots planned | GBP, Meta, ProductReview, Trustpilot, TripAdvisor, Yelp, … |
+| Unified inbox / monitor | Live Acc feed or honest empty state | Multi-source merge + response status |
+| Request after job/stay/settlement | Queue Activity on Contact timeline (no SMS invent) | Communications delivery + Automation recipes |
+| AI draft / themes | LLM when keyed; keyword stub otherwise | Full respond UX, campaigns |
+| Reputation Score™ | From connected rated reviews only; `—` when empty | Scoring Engine™ ownership |
+| Competitor analysis | — | Reputation Pro |
 
-- **Reputation Score™** — derived trust signal; feeds dashboards, Referral Profiles, and (later) Network discoverability. Exact formula deferred; reserve Scoring Engine slot.
-- **Theme intelligence** — LLM / NLP over review text → themes, sentiment mix, actionable coaching. Prefer consented org data; competitor themes only from permitted sources.
+### Deep links (honest hooks)
 
-### Dependencies (build order)
+```
+Contact → Deal / Service Job / Invoice → Review
+Services JobCompleted → Automation → review request Activity → Reputation inbox / score
+```
 
-Connectors (GBP etc.) · CRM / deal completion events · Automation · AI Service · Scoring Engine · Growth App shell.
+Email/SMS delivery wires via Communications later — beta only persists timeline Activity + events.
+
+### Dependencies
+
+Connector Framework · CRM / Universal Timeline · Automation · AI Service · Scoring Engine · (later) Communications.
 
 ---
+
+## 1b. Growth — Reputation Pro (deferred)
+
+Do **not** ship a vapor Growth “Reviews App” flagship. When Core floor is solid, Reputation Pro may add:
+
+* Review request campaigns and sequencing  
+* Advanced AI respond / approve workflows  
+* Competitor monitoring (lawful sources)  
+* Sentiment product dashboards beyond Core themes  
+
+Until then, keep Growth nav free of fake Reviews product claims.
 
 ## 2. Referral Engine (Business introductions)
 

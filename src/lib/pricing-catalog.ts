@@ -287,6 +287,15 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
     description: "Domains, DNS, email, SSL & hosting — Domains closed beta",
     status: "rolling-out",
   },
+  {
+    appId: "reviews",
+    label: "Reputation",
+    icon: "★",
+    price: "Included",
+    badge: "Core",
+    description: "Review feed, connectors, timeline requests & Reputation Score™ when real data exists",
+    status: "rolling-out",
+  },
 ];
 
 export const PRICING_PAGE_URL = "https://digitalgate.com.au/pricing";

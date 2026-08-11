@@ -43,11 +43,16 @@ export default async function AutomationPage() {
           </Link>
         </div>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · triggers & actions registry
+          {session?.organisationName ?? "DigitalGate"} · triggers & actions registry — closed beta
         </p>
         <AutomationSubnav active="/apps/automation" />
       </header>
-      <main className="dg-page-main">
+      <main className="dg-page-main space-y-4">
+        <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3 text-sm text-slate-400">
+          Build rules from the platform trigger/action registry. Reputation request hooks
+          (JobCompleted → queue review Activity) are available as candidates — SMS/email delivery
+          still deferred.
+        </div>
         <AutomationBuilderPanel />
       </main>
     </>

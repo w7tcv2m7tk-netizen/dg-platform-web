@@ -16,7 +16,8 @@ export default async function ReviewsRequestsPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Review requests</h1>
         <p className="text-sm text-slate-400">
-          After completed stays or RE settlements — queue a request on the Contact timeline
+          After completed stays, RE settlements, or Services jobs — queue Activity on the Contact
+          timeline (email/SMS delivery later)
         </p>
         <ReviewsSubnav active="/apps/reviews/requests" />
       </header>
@@ -27,18 +28,27 @@ export default async function ReviewsRequestsPage() {
           </div>
         ) : !candidates.length ? (
           <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/30 px-6 py-10 text-center">
-            <p className="text-lg font-medium text-white">No completed stays or settlements yet</p>
+            <p className="text-lg font-medium text-white">No completed jobs, stays, or settlements yet</p>
             <p className="mx-auto mt-3 max-w-lg text-sm text-slate-400">
-              When Accommodation bookings check out or RE settlements complete, they appear here so
-              you can queue a review request (email/SMS delivery via Communications later).
+              When Services jobs complete, Accommodation bookings check out, or RE settlements
+              finish, they appear here so you can queue a review request (delivery via Communications
+              later — this step only writes timeline Activity).
             </p>
             <p className="mt-6 text-sm text-slate-500">
-              <Link href="/apps/accommodation/bookings" className="text-blue-400 hover:underline">
+              <Link href="/apps/services/jobs" className="text-sky-400 hover:underline">
+                Services jobs
+              </Link>
+              {" · "}
+              <Link href="/apps/accommodation/bookings" className="text-sky-400 hover:underline">
                 Acc bookings
               </Link>
               {" · "}
-              <Link href="/apps/re/settlements" className="text-blue-400 hover:underline">
+              <Link href="/apps/re/settlements" className="text-sky-400 hover:underline">
                 RE settlements
+              </Link>
+              {" · "}
+              <Link href="/apps/crm/timeline" className="text-sky-400 hover:underline">
+                CRM timeline
               </Link>
             </p>
           </div>

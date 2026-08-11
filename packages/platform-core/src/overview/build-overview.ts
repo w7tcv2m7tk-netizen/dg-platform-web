@@ -472,7 +472,7 @@ function buildPreviewOverview(
     timeline: timelineFromActivities(activities).length
       ? timelineFromActivities(activities)
       : [{ id: "empty", timeLabel: "—", title: "No activity recorded yet." }],
-    healthTrend: [72, 74, 76, 78, 80, 82, 84, 85, 86, 87, 87, 87],
+    healthTrend: [],
     connectedSystems: buildConnectedSystems(input.connectorProbes ?? {}),
     aiPrompts: [
       { id: "pipeline", label: "Summarise my pipeline", prompt: "Summarise my sales pipeline." },
