@@ -228,13 +228,18 @@ Gen 1 is preserved IP and production. Gen 2 is the evolution — same product, m
 
 ## App taxonomy (what customers buy)
 
-| Tier | Apps | Positioning |
-|------|------|-------------|
-| **Core Apps** | CRM, Tasks, Calendar, Contacts, Documents (+ Core capabilities: Opportunities, Brand Studio, **Industry Intelligence**, Business Services, …) | Always on — the business OS |
-| **Business Apps** | Real Estate, Accommodation, Finance, **Services** (templates: electrician, plumber, …), Creator, Commercial | Industry verticals — Services is one App, not one App per trade |
-| **Growth Apps** | SEO, AI Visibility, **Reputation**, AI Communications, Marketing, Automation, Analytics | Growth and measurement |
+**Canonical order (locked):** [foundations/APP-HIERARCHY.md](./foundations/APP-HIERARCHY.md) — **Core → Infrastructure → Industry → Growth**.
 
-The CRM is one App. SEO is one App. Real Estate is one App. **The Platform is what ties them together.**
+| Tier | Logic | Apps | Positioning |
+|------|-------|------|-------------|
+| **Core** | run | CRM, Contacts, Opportunities, Tasks, Calendar, Documents, Communications, Commerce | Always on — the business OS |
+| **Infrastructure** | power | Websites / Builder, Domains, DNS, Hosting, Email, SSL, Website Management, Backups, Cloudflare | Operate digitally — progressive commercial readiness |
+| **Industry Apps** | specialise | Real Estate, Accommodation, Services, Finance, Commercial, Automotive, Creator (+ future) | Vertical workflows on the same foundation — honesty on developing Apps |
+| **Growth Apps** | grow | AI Visibility, SEO, Analytics, Social, AI Communications, Reviews, Prospecting / Opportunity Engine (where appropriate) | Visibility, acquisition, conversion |
+
+**Across everything (not Apps):** AI · Automation · Event Bus · Digital Twin · Intelligence · Connectors.
+
+The CRM is one App. SEO is one App. Real Estate is one App. **The Platform is what ties them together.** Automation is a **platform / Core-tier capability**, not a Growth App.
 
 ---
 

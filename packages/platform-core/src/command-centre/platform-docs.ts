@@ -63,6 +63,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "CAPABILITY-MODEL.md",
   },
   {
+    slug: "app-hierarchy",
+    title: "App Hierarchy",
+    summary:
+      "Canonical public order: Core → Infrastructure → Industry → Growth (platform capabilities across).",
+    group: "architecture",
+    relativePath: "foundations/APP-HIERARCHY.md",
+  },
+  {
     slug: "business-setup",
     title: "Business Setup",
     summary: "Foundations for identifying and configuring a business on the platform.",

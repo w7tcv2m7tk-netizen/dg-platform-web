@@ -27,7 +27,7 @@ Every App (built-in or third-party) declares via manifest:
 | `id` | Unique slug e.g. `real-estate` |
 | `version` | Semver — App release |
 | `minPlatformVersion` | e.g. `1.0.0` |
-| `tier` | `core` \| `business` \| `growth` \| `internal` |
+| `tier` | `core` \| `infrastructure` \| `industry` \| `growth` \| `internal` |
 | `visibility` | `customer` \| `internal` |
 | `features[]` | Feature Registry IDs for licensing |
 | `entities[]` | Universal Objects used |
