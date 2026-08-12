@@ -12,6 +12,8 @@
 > **Architecture north-star:** [architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md) — Immediate Priority 1–15 are architectural foundations; do **not** boil the ocean on all 36 brief items ([ADR 0012](./adr/0012-gen-2-architecture-brief-adopted.md)).
 >
 > **GTM / rollout:** [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) — Business Operating Platform; AU RE wedge → Founding Customers → Prospecting Engine ([ADR 0013](./adr/0013-gtm-rollout-strategy-adopted.md)). Engineering follows this roadmap; marketing follows that brief.
+>
+> **Commercialisation target:** [foundations/COMMERCIALLY-READY-V1.md](./foundations/COMMERCIALLY-READY-V1.md) — **Commercially Ready v1** (first ~10 paying businesses), Gates 1–4, 🔴 Commercial Core → 🟠 First Customer Value → 🟢 After Validation. Not “finish Gen 2.”
 
 ---
 
@@ -197,13 +199,15 @@ Targets: dashboard < 2 s, navigation < 300 ms, CRM updates optimistic. Full spec
 
 ## 24-month phases
 
-| Phase | When | Focus |
-|-------|------|-------|
-| **1 — Foundation** | Now | Platform Core + RE App + Roe as tenant |
-| **2 — Validation** | +6 mo | 5–10 pilot agencies, weekly feedback |
-| **3 — Commercial launch** | +12 mo | Public SaaS, billing, onboarding, support |
-| **4 — Expansion** | +18 mo | Accommodation, Finance, more Connectors · Country Packs ready |
-| **5 — DigitalGate Network** | +24 mo | Community · B2B partner graph · Marketplace · Reviews / Referrals · SDK / third-party Apps · enterprise · international communities |
+| Phase | When | Focus | Commercial gate |
+|-------|------|-------|-----------------|
+| **1 — Foundation** | Now | Platform Core + RE App + Roe as tenant | **Gate 1** Internal Alpha |
+| **2 — Validation** | +6 mo | 5–10 **founding** businesses (not unpaid QA), weekly feedback | **Gate 2** Founding Customer Programme |
+| **3 — Commercial launch** | +12 mo | Public SaaS, billing, onboarding, support | **Gate 3** Public Launch (~10–20 active) |
+| **4 — Expansion** | +18 mo | Accommodation, Finance, more Connectors · Country Packs ready | **Gate 4** Scale (50–100+) |
+| **5 — DigitalGate Network** | +24 mo | Community · B2B partner graph · Marketplace · Reviews / Referrals · SDK / third-party Apps · enterprise · international communities | After validation (🟢) |
+
+Operating target + honest gap status: [COMMERCIALLY-READY-V1.md](./foundations/COMMERCIALLY-READY-V1.md).
 
 **Phase 5 detail:** [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md). Gen 2 foundations scaffold (Reviews / Marketplace / B2B referrals) shipped Aug 2026; ship full Community when enough active businesses make the network useful.
 
@@ -257,12 +261,14 @@ Do not start RE App port or AI Visibility until steps 1–4 are done.
 | Platform Core scaffold | ✅ Done |
 | Command Centre architecture | ✅ Done |
 | **Platform foundations (15 docs)** | ✅ Done |
-| **Core Object Spec review** | ⏳ **Next — Ben** |
-| **Postgres + org live** | ⏳ After spec lock |
-| Contact API + CRM UI | ⏳ |
-| Roe vendor leads on Gen 2 | ⏳ |
-| Wow moment dashboard | ⏳ |
-| 5–10 pilot agencies | ⏳ |
+| **Commercially Ready v1 lock** | ✅ [COMMERCIALLY-READY-V1.md](./foundations/COMMERCIALLY-READY-V1.md) |
+| **Gate 1 — Internal Alpha** | 🔄 Mostly ready (dogfood); ugly-list + ops env |
+| Contact API + CRM UI | ✅ Contacts / opportunities live; Tasks still partial |
+| Roe vendor leads on Gen 2 | 🔄 RE closed beta — WP capture still required |
+| Billing checkout / Stripe hygiene | 🔄 Partial — pay path exists; SaaS UX thin |
+| Wow moment dashboard | ⏳ Honest scores only |
+| **Gate 2 — Founding customers (5–10)** | ⏳ Scoped pilot only — not full OS yet |
+| **Commercially Ready v1 (launch statement)** | ⏳ Ben still glue for connectors / support / onboarding |
 
 ---
 
@@ -278,5 +284,6 @@ You wear several today — that's fine. Document so roles can split later.
 
 - [docs/README.md](./README.md) — architecture IP index  
 - [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) — canonical GTM / rollout  
+- [foundations/COMMERCIALLY-READY-V1.md](./foundations/COMMERCIALLY-READY-V1.md) — commercialisation operating target  
 - [PRODUCT-VISION.md](./PRODUCT-VISION.md)  
 - [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md)  

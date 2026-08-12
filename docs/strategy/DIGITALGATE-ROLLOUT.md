@@ -73,7 +73,7 @@ See also: [RE-BETA-LAUNCH.md](../RE-BETA-LAUNCH.md) · [ROADMAP.md](../ROADMAP.m
 
 ## Phase 2 — Founding Customer Programme
 
-**First 100 customers** under a **Founding Customer** programme — not “beta testers.”
+**First cohort:** **5–10 businesses** under Gate 2 ([COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)); programme expands toward ~100 founding seats — not “beta testers.”
 
 | Principle | Detail |
 |-----------|--------|
@@ -81,8 +81,9 @@ See also: [RE-BETA-LAUNCH.md](../RE-BETA-LAUNCH.md) · [ROADMAP.md](../ROADMAP.m
 | Value | Preferential pricing / access / influence — not unpaid QA |
 | Quality bar | Real agencies (start AU RE); active use, not logo collection |
 | Exit into | Standard Starter / Pro / Business once founding cohort fills |
+| Engineering bar | Launch statement in Commercially Ready v1 — Ben not holding it together |
 
-Commercial detail lives in [COMMERCIAL-MODEL.md](../foundations/COMMERCIAL-MODEL.md); this phase locks **naming and intent** only.
+Commercial detail lives in [COMMERCIAL-MODEL.md](../foundations/COMMERCIAL-MODEL.md); readiness gates in [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md). This phase locks **naming and intent** only.
 
 ---
 

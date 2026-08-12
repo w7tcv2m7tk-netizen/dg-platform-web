@@ -15,6 +15,7 @@ These documents capture **why** the platform is built the way it is. They are as
 |----------|---------|
 | **[architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md)** | Gen 2 north-star — Core/UO/Connectors/AI constraints + Immediate Priority 1–15 |
 | **[strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md)** | **Canonical GTM / rollout** — Business Operating Platform positioning, Phases 1–12, metrics ([ADR 0013](./adr/0013-gtm-rollout-strategy-adopted.md)) |
+| **[foundations/COMMERCIALLY-READY-V1.md](./foundations/COMMERCIALLY-READY-V1.md)** | **Commercialisation operating target** — Commercially Ready v1, Gates 1–4, essentials, NOW backlog |
 | [CAPABILITY-MODEL.md](./CAPABILITY-MODEL.md) | Business Capabilities taxonomy + boundary rule |
 | [PRODUCT-VISION.md](./PRODUCT-VISION.md) | Gateway brand, mission, five pillars, positioning |
 | [foundations/GLOBAL-READINESS.md](./foundations/GLOBAL-READINESS.md) | Build globally / sell AU first — Country Packs + GTM stages |
