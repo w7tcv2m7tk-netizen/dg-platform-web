@@ -25,6 +25,8 @@ const platformEvents = [
   "checkout.session.expired",
   "payment_intent.payment_failed",
   "invoice.paid",
+  "customer.subscription.deleted",
+  "customer.subscription.updated",
   "transfer.failed",
   "transfer.reversed",
   "account.updated",

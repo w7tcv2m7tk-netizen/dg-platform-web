@@ -206,13 +206,12 @@ export function DomainSyndicationPanel({
             : "Publish to Domain"}
       </button>
 
-      {!connected ? null : (
-        <p className="text-xs text-slate-500">
-          Upserts residential listing via Listings Management. Sandbox uses{" "}
-          <span className="font-mono">DOMAIN_API_PATH_PREFIX=/sandbox</span> and may create a
-          test agency. Acceptance is async — a queue id is not the same as live on Domain.
-        </p>
-      )}
+      <p className="text-xs text-slate-500">
+        Upserts residential listing via Listings Management. Pilots: set{" "}
+        <span className="font-mono">DOMAIN_API_PATH_PREFIX=/sandbox</span> (Sandbox package) —
+        may create a test agency. Acceptance is async — a queue id is not the same as live on
+        Domain.
+      </p>
 
       {message ? <p className="text-sm text-emerald-400">{message}</p> : null}
       {error ? <p className="text-sm text-amber-400">{error}</p> : null}

@@ -34,8 +34,9 @@ export async function AppsBillingStatusCard({
           </div>
           <p className="text-sm text-slate-400">{billingStatusDetail(status)}</p>
           <p className="text-xs text-slate-500">
-            Applying a tier below updates your sidebar preview only — it does not create a Stripe
-            customer or change entitlements until checkout / purchase sync.
+            Tier buttons below are <span className="text-slate-400">preview-only</span> (sidebar /
+            apply_plan). They do not create a Stripe customer or paid entitlements. Use{" "}
+            <span className="text-slate-400">Subscribe in app</span> for the real checkout path.
           </p>
         </div>
         <div className="flex flex-col items-stretch gap-2 sm:items-end">

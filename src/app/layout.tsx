@@ -5,6 +5,7 @@ import { clerkAppearance } from "@/lib/clerk-appearance";
 import {
   AUTH_AFTER_SIGN_IN_URL,
   AUTH_AFTER_SIGN_OUT_URL,
+  AUTH_AFTER_SIGN_UP_URL,
   AUTH_SIGN_IN_URL,
   AUTH_SIGN_UP_URL,
 } from "@/lib/auth-routes";
@@ -72,9 +73,9 @@ export default function RootLayout({
       signInUrl={AUTH_SIGN_IN_URL}
       signUpUrl={AUTH_SIGN_UP_URL}
       signInForceRedirectUrl={AUTH_AFTER_SIGN_IN_URL}
-      signUpForceRedirectUrl={AUTH_AFTER_SIGN_IN_URL}
+      signUpForceRedirectUrl={AUTH_AFTER_SIGN_UP_URL}
       signInFallbackRedirectUrl={AUTH_AFTER_SIGN_IN_URL}
-      signUpFallbackRedirectUrl={AUTH_AFTER_SIGN_IN_URL}
+      signUpFallbackRedirectUrl={AUTH_AFTER_SIGN_UP_URL}
       afterSignOutUrl={AUTH_AFTER_SIGN_OUT_URL}
       touchSession
       {...(proxyUrl ? { proxyUrl } : {})}

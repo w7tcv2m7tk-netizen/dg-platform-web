@@ -48,10 +48,15 @@ export default async function AutomationPage() {
         <AutomationSubnav active="/apps/automation" />
       </header>
       <main className="dg-page-main space-y-4">
-        <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3 text-sm text-slate-400">
-          Build rules from the platform trigger/action registry. Reputation request hooks
-          (JobCompleted → queue review Activity) are available as candidates — SMS/email delivery
-          still deferred.
+        <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-4 py-3 text-sm text-slate-400">
+          <p className="font-medium text-emerald-200">Platform automations (on)</p>
+          <p className="mt-1">
+            Founding-path defaults run in-process: vendor enquiry → contact →
+            opportunity → follow-up task → ack email → notify; opportunity
+            follow-up when opened without a lead; payment completed → notify.
+            Visual builder and durable org-rule CRUD remain next — not required
+            for Gate 1 dogfood.
+          </p>
         </div>
         <AutomationBuilderPanel />
       </main>

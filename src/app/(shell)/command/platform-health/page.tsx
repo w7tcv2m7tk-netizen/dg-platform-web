@@ -12,6 +12,9 @@ export default async function CommandPlatformHealthPage() {
   const stripe = getStripeSetupStatus();
   const connectors = data?.connectors;
   const infra = await getDigitalInfrastructureOverview("platform");
+  const sentryConfigured = Boolean(
+    process.env.SENTRY_DSN?.trim() || process.env.NEXT_PUBLIC_SENTRY_DSN?.trim(),
+  );
 
   return (
     <>
@@ -26,6 +29,13 @@ export default async function CommandPlatformHealthPage() {
       </header>
       <main className="dg-page-main space-y-8">
         <CommandCentreNav active="health" />
+
+        <p className="text-xs text-slate-500">
+          Observability floor:{" "}
+          {sentryConfigured
+            ? "Sentry DSN configured — runtime errors can forward to Sentry (not a customer uptime dashboard)."
+            : "Sentry DSN not set — set SENTRY_DSN / NEXT_PUBLIC_SENTRY_DSN for the ops error floor."}
+        </p>
 
         <section>
           <h2 className="text-lg font-semibold text-white">Digital Infrastructure</h2>

@@ -13,6 +13,7 @@ import {
 
 import { AccommodationGuestPanel } from "@/components/accommodation/AccommodationGuestPanel";
 import { AddContactNoteForm } from "@/components/crm/AddContactNoteForm";
+import { CreateTaskForm } from "@/components/crm/CreateTaskForm";
 import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
 import { EditContactForm } from "@/components/crm/EditContactForm";
 import { BusinessReferralPanel } from "@/components/network/BusinessReferralPanel";
@@ -117,6 +118,22 @@ export default async function ContactDetailPage({ params }: PageProps) {
                 </dd>
               </div>
             </dl>
+            <div className="mt-6 border-t border-slate-800 pt-4">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-medium text-white">Create task</h3>
+                <Link
+                  href="/apps/crm/tasks"
+                  className="text-sm text-sky-400 hover:underline"
+                >
+                  All tasks →
+                </Link>
+              </div>
+              <CreateTaskForm
+                entityType="Contact"
+                entityId={contact.id}
+                compact
+              />
+            </div>
           </div>
 
           <CrmAiAssistPanel contactId={contact.id} variant="contact" />

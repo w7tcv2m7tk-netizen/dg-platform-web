@@ -27,11 +27,16 @@ export function BillingCheckoutBanner({ checkout }: { checkout?: string }) {
   if (checkout === "success") {
     return (
       <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 px-4 py-3 text-sm text-emerald-100">
-        Checkout completed. If your plan looks stale,{" "}
-        <Link href="/dashboard/apps?sync=1" className="underline hover:no-underline">
-          sync purchase
-        </Link>
-        .
+        <p className="font-medium text-emerald-50">Checkout completed</p>
+        <p className="mt-1 text-emerald-100/90">
+          Stripe will link your customer and activate the paid plan via webhook. Customer Portal
+          and invoices unlock once that customer id is on file — sidebar plan previews never create
+          one. If status looks stale after a minute,{" "}
+          <Link href="/dashboard/apps?sync=1&checkout=success" className="underline hover:no-underline">
+            sync purchase
+          </Link>
+          .
+        </p>
       </div>
     );
   }

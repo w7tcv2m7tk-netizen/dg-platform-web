@@ -66,9 +66,7 @@ export function buildBusinessSetupFirstSteps(
       id: "identify",
       label: "Verify identity",
       description: "Look up ABN / ACN on the ABR, then apply to your profile.",
-      href: "/dashboard/business-setup#identify",
-      done: identifyDone,
-      ctaLabel: identifyDone ? "Re-verify" : "Verify ABN",
+      href: "/onboarding#identify",
     },
     {
       id: "profile",

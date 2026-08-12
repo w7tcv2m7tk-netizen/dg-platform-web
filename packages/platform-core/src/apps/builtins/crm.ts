@@ -11,12 +11,14 @@ export const crmApp: AppManifest = {
     { path: "/apps/crm/contacts", label: "Contacts" },
     { path: "/apps/crm/companies", label: "Companies" },
     { path: "/apps/crm/opportunities", label: "Opportunities" },
+    { path: "/apps/crm/tasks", label: "Tasks" },
     { path: "/apps/crm/timeline", label: "Timeline" },
   ],
   navigation: [
     { href: "/apps/crm/contacts", label: "Contacts", icon: "☷" },
     { href: "/apps/crm/companies", label: "Companies", icon: "▣" },
     { href: "/apps/crm/opportunities", label: "Opportunities", icon: "◈" },
+    { href: "/apps/crm/tasks", label: "Tasks", icon: "☑" },
     { href: "/apps/crm/timeline", label: "Timeline", icon: "▤" },
   ],
   permissions: [
@@ -35,6 +37,8 @@ export const crmApp: AppManifest = {
     "crm.leads.write",
     "crm.opportunities.read",
     "crm.opportunities.write",
+    "crm.tasks.read",
+    "crm.tasks.write",
     "crm.timeline.read",
     "crm.tags.write",
   ],
@@ -44,6 +48,8 @@ export const crmApp: AppManifest = {
     { id: "contact.updated", label: "Contact updated", objectType: "Contact" },
     { id: "opportunity.created", label: "Opportunity created", objectType: "Opportunity" },
     { id: "lead.converted", label: "Lead converted", objectType: "Lead" },
+    { id: "task.created", label: "Task created", objectType: "Task" },
+    { id: "task.completed", label: "Task completed", objectType: "Task" },
   ],
   automationActions: [
     { id: "contact.assign", label: "Assign contact" },

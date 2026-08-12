@@ -33,6 +33,7 @@ export * from "./companies";
 export * from "./leads";
 export * from "./leads/public-capture";
 export * from "./opportunities";
+export * from "./tasks";
 export * from "./referrals";
 export * from "./reviews";
 export * from "./marketplace";
@@ -73,4 +74,5 @@ export * from "./wantd";
 export * from "./services";
 export * from "./roadmap";
 export * from "./app-guides";
+export * from "./help";
 

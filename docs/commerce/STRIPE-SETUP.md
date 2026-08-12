@@ -27,9 +27,11 @@ STRIPE_SECRET_KEY=sk_test_... node scripts/setup-stripe-webhook.mjs
 The script creates **or updates** the endpoint:
 
 - **URL:** `https://app.digitalgate.com.au/api/webhooks/stripe`
-- **Events:** `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`, `payment_intent.payment_failed`, **`invoice.paid`**, **`account.updated`**, **`transfer.failed`**, **`transfer.reversed`**
+- **Events:** `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`, `payment_intent.payment_failed`, **`invoice.paid`**, **`customer.subscription.deleted`**, **`customer.subscription.updated`**, **`account.updated`**, **`transfer.failed`**, **`transfer.reversed`**
 
-`invoice.paid` is required for Platform **Refer & Earn** months 2–12 (subscription renewals). Connect events power cash payouts. Re-run the script on an existing endpoint to add any missing events (signing secret unchanged).
+`invoice.paid` is required for Platform **Refer & Earn** months 2–12 (subscription renewals). Subscription deleted/updated keep org status and entitlements honest (suspend / past_due — no invented MRR). Connect events power cash payouts. Re-run the script on an existing endpoint to add any missing events (signing secret unchanged).
+
+Optional env Price IDs (`STRIPE_PRICE_STARTER`, `STRIPE_PRICE_PROFESSIONAL` / `STRIPE_PRICE_GROWTH`, `STRIPE_PRICE_BUSINESS` / `STRIPE_PRICE_SCALE`) — when unset, platform checkout uses inline `price_data`.
 
 Copy the printed `whsec_…` into Vercel as `STRIPE_WEBHOOK_SECRET` (only shown on **create**).
 

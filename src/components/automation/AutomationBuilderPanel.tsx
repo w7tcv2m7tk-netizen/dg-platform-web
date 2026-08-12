@@ -34,10 +34,11 @@ export function AutomationBuilderPanel() {
       <div className="dg-card">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-semibold text-white">Active rules</h2>
-          <RoadmapStatusBadge status="scaffold" />
+          <RoadmapStatusBadge status="in_progress" />
         </div>
         <p className="mt-1 text-sm text-slate-400">
-          In-process rules booted at startup. Visual builder coming next.
+          Platform defaults booted at startup (real CRM / commerce actions). Custom
+          visual builder still deferred.
         </p>
         {!rules.length ? (
           <p className="mt-3 text-sm text-slate-500">No rules registered yet.</p>

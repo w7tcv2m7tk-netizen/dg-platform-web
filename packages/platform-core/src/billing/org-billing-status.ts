@@ -5,13 +5,16 @@ export type OrgBillingSettings = {
   /** Founding Customer programme seat — preferential pricing / access, not “beta”. */
   foundingCustomer?: boolean;
   programme?: string;
+  /** Stripe subscription.status (or cancelled) when known — never invent MRR. */
+  subscriptionStatus?: string | null;
+  entitlementsSuspended?: boolean;
 };
 
 export type OrganisationBillingStatus = {
   organisationId: string;
   organisationName: string;
   organisationSlug: string;
-  /** Organisation.status — typically trial | active | archived */
+  /** Organisation.status — typically trial | active | suspended | archived */
   status: string;
   hasStripeCustomer: boolean;
   /** False for marketplace / Wantd / platformExempt orgs — do not invent Stripe customers. */
@@ -20,6 +23,8 @@ export type OrganisationBillingStatus = {
   foundingCustomer: boolean;
   platformTier: string | null;
   purchaseLabel: string | null;
+  subscriptionStatus: string | null;
+  entitlementsSuspended: boolean;
   /**
    * Honest UI state — never treat a plan preview / WP portal link alone as a Stripe customer.
    */
@@ -29,6 +34,8 @@ export type OrganisationBillingStatus = {
     | "trial"
     | "active"
     | "subscribed"
+    | "past_due"
+    | "suspended"
     | "needs_checkout";
 };
 
@@ -62,8 +69,24 @@ function resolveKind(input: {
   hasStripeCustomer: boolean;
   foundingCustomer: boolean;
   status: string;
+  subscriptionStatus: string | null;
+  entitlementsSuspended: boolean;
 }): OrganisationBillingStatus["kind"] {
   if (!input.expectsPlatformBilling) return "platform_exempt";
+
+  const sub = (input.subscriptionStatus ?? "").toLowerCase();
+  // Prefer Stripe's past_due signal over generic suspended (payment can still recover).
+  if (sub === "past_due") return "past_due";
+  if (
+    input.status === "suspended" ||
+    input.entitlementsSuspended ||
+    sub === "cancelled" ||
+    sub === "canceled" ||
+    sub === "unpaid"
+  ) {
+    return "suspended";
+  }
+
   if (input.hasStripeCustomer) {
     return input.status === "trial" ? "trial" : "subscribed";
   }
@@ -107,6 +130,8 @@ export async function getOrganisationBillingStatus(
   });
   const hasStripeCustomer = Boolean(org.billingCustomerId);
   const foundingCustomer = isFoundingCustomer(billing);
+  const subscriptionStatus = billing.subscriptionStatus?.trim() || null;
+  const entitlementsSuspended = billing.entitlementsSuspended === true;
 
   return {
     organisationId: org.id,
@@ -119,11 +144,15 @@ export async function getOrganisationBillingStatus(
     foundingCustomer,
     platformTier: profile.platformTier,
     purchaseLabel: profile.purchaseLabel,
+    subscriptionStatus,
+    entitlementsSuspended,
     kind: resolveKind({
       expectsPlatformBilling,
       hasStripeCustomer,
       foundingCustomer,
       status: org.status,
+      subscriptionStatus,
+      entitlementsSuspended,
     }),
   };
 }
@@ -138,6 +167,10 @@ export function billingStatusHeadline(status: OrganisationBillingStatus): string
       return status.hasStripeCustomer ? "Trial (Stripe linked)" : "Trial";
     case "subscribed":
       return "Active subscription";
+    case "past_due":
+      return "Payment past due";
+    case "suspended":
+      return "Subscription suspended";
     case "active":
       return "Active — Stripe checkout needed";
     case "needs_checkout":
@@ -157,6 +190,12 @@ export function billingStatusDetail(status: OrganisationBillingStatus): string {
         : "Your organisation is on trial. Sidebar plan previews do not create a Stripe customer — subscribe when you are ready to bill.";
     case "subscribed":
       return "Stripe customer on file. Use the Customer Portal for invoices, payment method, and subscription changes.";
+    case "past_due":
+      return "Stripe reports the subscription as past due. Update payment method in the Customer Portal — we do not invent a paid seat while payment is failing.";
+    case "suspended":
+      return status.hasStripeCustomer
+        ? "Subscription ended or unpaid. Entitlements are marked suspended. Re-subscribe or fix payment in Stripe — the Customer Portal still works with the linked customer."
+        : "Organisation is suspended and no Stripe customer is linked.";
     case "active":
       return "Organisation is active but no Stripe customer is linked yet. Complete in-app checkout or sync a purchase so invoices and the portal work.";
     case "needs_checkout":

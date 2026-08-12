@@ -44,8 +44,9 @@ export function PostPurchaseSyncBanner() {
         : message ?? "Checking your purchase…"}
       {checkoutSuccess && !loading ? (
         <span className="mt-1 block text-emerald-200/90">
-          Checkout succeeded — Stripe customer should now be linked for invoices and the Customer
-          Portal.
+          Paid checkout succeeded. When the Stripe webhook finishes, this org will show a linked
+          customer (not a preview) — then invoices and the Customer Portal work. Status above
+          updates after refresh; we never invent MRR.
         </span>
       ) : null}
     </div>

@@ -59,6 +59,20 @@ export default async function TeamSettingsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
+        <div className="dg-card max-w-2xl border-sky-500/20">
+          <h2 className="font-semibold text-white">Role clarity</h2>
+          <ul className="mt-3 space-y-2 text-sm text-slate-400">
+            <li>
+              <span className="font-medium text-slate-200">Owner / Admin:</span> billing,
+              invites, connectors, and most writes.
+            </li>
+            <li>
+              <span className="font-medium text-slate-200">Member:</span> primarily read —
+              ask an owner for billing, invites, connector, or privileged changes.
+            </li>
+          </ul>
+        </div>
+
         <div className="dg-card max-w-2xl">
           <h2 className="font-semibold text-white">Account vs team profile</h2>
           <p className="mt-2 text-sm text-slate-400">

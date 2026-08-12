@@ -15,9 +15,10 @@ export function AppsPlanSection() {
         <div>
           <h2 className="text-lg font-semibold text-white">Plan & pricing</h2>
           <p className="mt-1 max-w-2xl text-sm text-slate-400">
-            Pick a tier and apps, then apply to preview what appears in your sidebar. Toggle
-            individual apps below for fine-grained control — {enabledIds.length} app
-            {enabledIds.length === 1 ? "" : "s"} currently on.
+            Preview-only: pick a tier and apps, then apply to see what appears in your sidebar.
+            This does not bill you or create a Stripe customer — use Billing → Subscribe for the
+            paid path. Toggle individual apps below for fine-grained control —{" "}
+            {enabledIds.length} app{enabledIds.length === 1 ? "" : "s"} currently on.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -39,7 +40,7 @@ export function AppsPlanSection() {
       </div>
       <div className="mt-6">
         <PlanPicker
-          continueLabel="Apply to sidebar"
+          continueLabel="Apply preview to sidebar"
           onContinue={(sel: SignupSelection) => {
             if (!sel.platformTier) return;
             void applyPlan({
@@ -51,8 +52,9 @@ export function AppsPlanSection() {
         />
       </div>
       <p className="mt-4 text-xs text-slate-500">
-        Continue applies your plan to the sidebar preview and saves to your organisation. Use
-        signup for new customer checkout with business details.
+        Apply preview saves sidebar prefs only (apply_plan) — not a paid subscription. Subscribe
+        from Billing for Stripe checkout; use signup for new customer checkout with business
+        details.
       </p>
     </section>
   );

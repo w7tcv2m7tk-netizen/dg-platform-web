@@ -36,7 +36,7 @@ export function SetupProgressBar({ progress }: { progress: OverviewSetupProgress
           <p className="text-3xl font-bold text-white">{progress.percent}%</p>
           {!progress.complete ? (
             <Link
-              href="/dashboard/business"
+              href="/onboarding"
               className="mt-1 inline-block text-xs font-medium text-blue-400 hover:underline"
             >
               Setup guide →

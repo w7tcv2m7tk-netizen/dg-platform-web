@@ -37,6 +37,10 @@ export function PlanPicker({ onContinue, continueLabel = "Continue to checkout" 
 
   return (
     <div className="space-y-8">
+      <p className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-400">
+        Preview-only picker — applying a selection updates sidebar prefs. It does not open Stripe
+        Checkout or create a billing customer. Paid path: Billing → Subscribe.
+      </p>
       <section>
         <h2 className="mb-3 text-lg font-semibold text-white">Platform tier</h2>
         <div className="grid gap-3 sm:grid-cols-2">

@@ -218,7 +218,7 @@ export function AppsPlanCatalog() {
         <SectionHeader
           label="☁️ 1 · Platform"
           title="The platform is the product"
-          description="Start with the core operating system. Add apps only when you need them. Applying a tier updates your sidebar preview."
+          description="Start with the core operating system. Add apps only when you need them. Applying a tier is preview-only (sidebar) — Subscribe under Billing is the paid Stripe path."
         />
         <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
           {PLATFORM_TIER_CATALOG.map((tier) => {
@@ -278,7 +278,7 @@ export function AppsPlanCatalog() {
                         : "border border-slate-600 text-slate-200 hover:border-blue-500 hover:text-white"
                     }`}
                   >
-                    {isActive ? "Applied to sidebar" : "Apply tier"}
+                    {isActive ? "Preview applied" : "Apply preview"}
                   </button>
                 )}
               </div>
@@ -304,7 +304,7 @@ export function AppsPlanCatalog() {
             href="/dashboard/settings/billing"
             className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:border-slate-500"
           >
-            Billing & Customer Portal
+            Subscribe / Billing →
           </Link>
           <a
             href={PRICING_PAGE_URL}
@@ -317,8 +317,9 @@ export function AppsPlanCatalog() {
         </div>
         <p className="mt-3 text-xs text-slate-500">
           Founding Customers get preferential pricing toward Starter / Pro / Business when converting
-          — not a beta seat. Applying a tier here only updates your sidebar preview until checkout or
-          purchase sync.
+          — not a beta seat. Apply preview (apply_plan) only updates sidebar prefs. Paid entitlements
+          and Stripe customer linking happen via Subscribe checkout or purchase sync — never invented
+          MRR.
         </p>
       </section>
 

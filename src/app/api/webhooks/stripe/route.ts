@@ -3,7 +3,9 @@ import {
   bootPaymentConnectors,
   handleConnectAccountUpdated,
   handleConnectTransferFailure,
+  handlePlatformSubscriptionLifecycle,
   isPlatformCheckoutSession,
+  isPlatformSubscription,
   processPaymentWebhookEvent,
   provisionFromPlatformCheckout,
   requirePaymentConnector,
@@ -38,6 +40,28 @@ export async function POST(req: Request) {
         const platformResult = await provisionFromPlatformCheckout(session);
         console.info("[stripe webhook] platform checkout:", platformResult);
         return NextResponse.json({ received: true, platform: platformResult });
+      }
+    }
+
+    if (
+      (event.type === "subscription.cancelled" ||
+        event.type === "subscription.updated") &&
+      event.raw
+    ) {
+      const subscription = event.raw as Stripe.Subscription;
+      // Resolve by subscription metadata or org.billingCustomerId — skip inventing
+      // updates when neither matches (commerce noise returns ok:false).
+      if (
+        isPlatformSubscription(subscription) ||
+        event.organisationId ||
+        event.providerCustomerId
+      ) {
+        const lifecycle = await handlePlatformSubscriptionLifecycle(
+          subscription,
+          event.type === "subscription.cancelled" ? "deleted" : "updated",
+        );
+        console.info("[stripe webhook] platform subscription:", event.type, lifecycle);
+        return NextResponse.json({ received: true, subscription: lifecycle });
       }
     }
 

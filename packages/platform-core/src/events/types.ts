@@ -11,6 +11,8 @@ export type PlatformEventType =
   | "opportunity.stage_changed"
   | "opportunity.won"
   | "opportunity.lost"
+  | "task.created"
+  | "task.completed"
   | "property.created"
   | "property.listed"
   | "booking.confirmed"

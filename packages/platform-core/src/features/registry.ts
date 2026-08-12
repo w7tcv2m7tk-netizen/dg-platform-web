@@ -33,6 +33,8 @@ export const CRM_FEATURES: FeatureGroup = {
     { id: "crm.leads.write", appId: "crm", label: "Create and edit leads" },
     { id: "crm.opportunities.read", appId: "crm", label: "View opportunities" },
     { id: "crm.opportunities.write", appId: "crm", label: "Create and edit opportunities" },
+    { id: "crm.tasks.read", appId: "crm", label: "View tasks" },
+    { id: "crm.tasks.write", appId: "crm", label: "Create and edit tasks" },
     { id: "crm.timeline.read", appId: "crm", label: "View timeline" },
     { id: "crm.tags.write", appId: "crm", label: "Manage tags" },
   ],

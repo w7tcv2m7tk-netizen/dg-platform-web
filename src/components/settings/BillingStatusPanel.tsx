@@ -25,6 +25,10 @@ function statusBadgeClass(kind: OrganisationBillingStatus["kind"]): string {
       return "bg-amber-500/15 text-amber-200";
     case "platform_exempt":
       return "bg-slate-700/80 text-slate-300";
+    case "past_due":
+      return "bg-amber-500/15 text-amber-200";
+    case "suspended":
+      return "bg-rose-500/15 text-rose-300";
     case "active":
     case "needs_checkout":
       return "bg-amber-500/15 text-amber-200";
@@ -83,6 +87,15 @@ export function BillingStatusPanel({
                 : "Not linked yet"}
           </dd>
         </div>
+        {status.subscriptionStatus ? (
+          <div>
+            <dt className="text-slate-500">Subscription (Stripe)</dt>
+            <dd className="capitalize text-white">
+              {status.subscriptionStatus.replace(/_/g, " ")}
+              {status.entitlementsSuspended ? " · entitlements suspended" : ""}
+            </dd>
+          </div>
+        ) : null}
       </dl>
       {showActions ? (
         <BillingActions

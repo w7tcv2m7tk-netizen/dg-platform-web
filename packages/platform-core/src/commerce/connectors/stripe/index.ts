@@ -219,6 +219,50 @@ export class StripePaymentConnector implements PaymentConnector {
       };
     }
 
+    if (event.type === "customer.subscription.deleted") {
+      const subscription = event.data.object as Stripe.Subscription;
+      const customerId =
+        typeof subscription.customer === "string"
+          ? subscription.customer
+          : subscription.customer?.id;
+      return {
+        type: "subscription.cancelled",
+        providerId: "stripe",
+        providerEventId: event.id,
+        organisationId:
+          subscription.metadata?.organisation_id ||
+          subscription.metadata?.organisationId ||
+          undefined,
+        providerCustomerId: customerId,
+        stripeSubscriptionId: subscription.id,
+        platformTier: subscription.metadata?.dg_platform_tier,
+        occurredAt: new Date(event.created * 1000),
+        raw: subscription,
+      };
+    }
+
+    if (event.type === "customer.subscription.updated") {
+      const subscription = event.data.object as Stripe.Subscription;
+      const customerId =
+        typeof subscription.customer === "string"
+          ? subscription.customer
+          : subscription.customer?.id;
+      return {
+        type: "subscription.updated",
+        providerId: "stripe",
+        providerEventId: event.id,
+        organisationId:
+          subscription.metadata?.organisation_id ||
+          subscription.metadata?.organisationId ||
+          undefined,
+        providerCustomerId: customerId,
+        stripeSubscriptionId: subscription.id,
+        platformTier: subscription.metadata?.dg_platform_tier,
+        occurredAt: new Date(event.created * 1000),
+        raw: subscription,
+      };
+    }
+
     if (event.type === "account.updated") {
       const account = event.data.object as Stripe.Account;
       return {
