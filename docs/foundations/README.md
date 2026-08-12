@@ -6,7 +6,7 @@ Before committing to implementation, these documents define the decisions that a
 
 **Gen 2 north-star (constraints):** [../architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md)  
 **GTM / rollout (product–marketing):** [../strategy/DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md)  
-**Commercialisation operating target:** [COMMERCIALLY-READY-V1.md](./COMMERCIALLY-READY-V1.md) — first **10 paying businesses**; Gate 1–4; 🔴/🟠/🟢 hierarchy
+**Commercialisation operating target:** [COMMERCIALLY-READY-V1.md](./COMMERCIALLY-READY-V1.md) — next milestone **5 founding agencies**; pre-launch marketing stance; Gate 1–4; 🔴/🟠/🟢 hierarchy
 
 **Status:** Architecture ~80% complete. Foundations defined here close the gap. Commercial milestone is **Commercially Ready v1**, not “finish Gen 2.”
 
@@ -42,7 +42,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 
 | # | Document | Covers |
 |---|----------|--------|
-| — | [COMMERCIALLY-READY-V1.md](./COMMERCIALLY-READY-V1.md) | **Operating target** — Gates 1–4, essentials, 🔴/🟠/🟢 hierarchy, gap assessment, NOW backlog |
+| — | [COMMERCIALLY-READY-V1.md](./COMMERCIALLY-READY-V1.md) | **Operating target** — 5 founding agencies, pre-launch GTM stance, Gates 1–4, pre-sell 6 reds, NOW backlog |
 | 1 | [CORE-OBJECT-SPECIFICATION.md](./CORE-OBJECT-SPECIFICATION.md) | **Canonical domain model** — what, fields, relationships, ownership, events |
 | 1b | [CONTACTS-AND-APP-ROLES.md](./CONTACTS-AND-APP-ROLES.md) | **ONE Contact** — forbid duplicate people (Guest/Vendor/Buyer…); Contact → App Role |
 | 2 | [PLATFORM-RELEASES.md](./PLATFORM-RELEASES.md) | Platform versioning (1.0, 1.5, 2.0…) — outcomes not endless features |

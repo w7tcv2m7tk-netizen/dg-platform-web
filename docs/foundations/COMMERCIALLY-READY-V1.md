@@ -4,8 +4,9 @@
 **Source:** Platform Architect (Ben)  
 **Milestone name:** **Commercially Ready v1** — not “finish Gen 2”
 
-> **Target:** Ready for the first **10 paying businesses**, not a complete platform.  
-> Aim: ~**70–80%** of the long-term vision; **90%+** of first-customer functionality.
+> **Next commercial milestone:** **5 founding agencies** with the core workflow in their hands — not “launch DigitalGate,” not 50–100, not a complete AI Business OS.  
+> Aim: ~**70–80%** of the long-term vision; **90%+** of first-customer functionality.  
+> **Done means:** customer independence (launch statement below) — Ben is not the glue.
 
 **Sibling locks (do not contradict):**
 
@@ -27,15 +28,78 @@ This document’s hierarchy 🔴/🟠/🟢 = **commercialisation build order** f
 
 If Ben is still the glue for onboarding, billing, connectors, or support — we are **not** Commercially Ready v1.
 
+**Danger:** adding features instead of putting the **core** in 5 businesses’ hands. Milestone = **customer independence**, not Gen 2 completion.
+
+---
+
+## Marketing stance (locked) — pre-launch / founding mode
+
+**Do** start the marketing machine **now** — in **controlled pre-launch / founding mode**.  
+**Do not** run full-scale spend or claim a “complete AI Business OS.”
+
+| Do | Don’t |
+|----|-------|
+| Sell a **specific customer outcome** | Sell the whole platform inventory |
+| Founding programme branding (limited AU seats) | Free trial / open SaaS launch framing |
+| Build audience + build-in-public now | Wait for “done” before any narrative |
+| Recruit **5 founding agencies** next | “Launch DigitalGate” or chase 50–100 |
+| Honest scoped pilot language | Fake scores / complete-OS demos |
+
+### Outcome to sell (esp. Real Estate)
+
+Digital presence → structured vendor acquisition:
+
+**Website → AI Visibility → SEO → Leads → CRM → Automation → Appointments → Opportunities**
+
+Enough that a RE agency runs a **real** weekly workflow — not a demo tour of every module.
+
+### Founding programme (not a free trial)
+
+| Principle | Detail |
+|-----------|--------|
+| Framing | Limited AU businesses shaping the OS with Ben — founding pricing for feedback + case studies |
+| First internal prove | **DG, Roe, CVH, Aëtherra, Wantd** (Gate 1 dogfood) |
+| First external cohort | **3–5 RE** + **2–3 SMEs** → **5 founding agencies** as the immediate commercial target |
+| Quality bar | Active use and outcomes — not logo collection |
+| Exit | Standard tiers after founding proof + Gate 3 readiness |
+
+Commercial packaging: [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md). Naming/intent also in [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) Phase 2.
+
+### Marketing parallel (alongside engineering)
+
+| Phase | Marketing motion | Gate link |
+|-------|------------------|-----------|
+| **1 — Audience** | Build audience / build-in-public; narrative only — no full-scale acquisition spend | Gate 1 |
+| **2 — Founding outreach** | Prospecting engine → scoped founding offers (RE + SME) | Gate 2 opens **after** pre-sell checklist |
+| **3 — Public launch** | Public SaaS after **~10–20 active** with testimonials + “why buy / don’t” | Gate 3 |
+
+### Immediate objective
+
+1. **Close Gate 1** (internal alpha on DG / Roe / CVH / Aëtherra / Wantd)  
+2. **Recruit 5 founding businesses**  
+3. **Prove the core workflow** in their hands  
+4. **Then** accelerate marketing
+
+### Before actively selling (pre-sell checklist)
+
+Clear these before Gate 2 founding outreach spends real attention:
+
+1. **Onboarding** — guided path that sticks (not a redirect stub)  
+2. **Billing E2E** — checkout → webhook → entitlements → portal  
+3. **Tasks** — API + CRM UI (follow-through without Ben)  
+4. **Automation × 2–3** — real durable actions on the founding path  
+5. **Support / KB** — stubs + escalate path that isn’t only Ben  
+6. **Observability** — Sentry (or equivalent) + honest monitoring floor  
+
 ---
 
 ## Four gates
 
 | Gate | Who | Intent | Marketing |
 |------|-----|--------|-----------|
-| **1 — Internal Alpha** | Ben + internal (DG, CVH, Aëtherra, Roe, Wantd) | Find ugly stuff; dogfood RE + Command | **No** major public marketing |
-| **2 — Founding Customer Programme** | 5–10 businesses (3–5 RE, 2–3 SME, maybe Acc/Services) | Start marketing; one specific valuable workflow | Founding programme open |
-| **3 — Public Launch** | ~10–20 active | Onboarding / billing / support / integrations / AI reliability + testimonials; know why buy / don’t | Public SaaS |
+| **1 — Internal Alpha** | Ben + internal (DG, Roe, CVH, Aëtherra, Wantd) | Find ugly stuff; dogfood RE + Command | Audience / build-in-public only — **no** major public spend |
+| **2 — Founding Customer Programme** | **5 founding** first (3–5 RE, 2–3 SME; Acc/Services only if Core stable) | One specific valuable workflow in customers’ hands | Founding programme open (scoped pilot) |
+| **3 — Public Launch** | ~10–20 active | Onboarding / billing / support / integrations / AI reliability + testimonials | Public SaaS |
 | **4 — Scale** | 50–100+ | Expand industry apps, white label, marketplace, etc. | Growth |
 
 ### Gate 2 founding workflow (RE wedge)
@@ -50,13 +114,15 @@ CRM + RE App + Website + AI Visibility + SEO + Command + automation — enough t
 | General SME | 2–3 | Core CRM + Profile + AI Vis without RE App |
 | Acc / Services | 0–2 | Only if Core is stable and beta packs are honest |
 
+**Immediate Gate 2 target = 5 founding agencies** proving the outcome above. Broader founding seats / ~10 paying / 50–100 are later gates — not this milestone.
+
 ---
 
 ## Scope bands
 
 ### Essential before serious marketing (Commercial Core)
 
-Must be credible before Gate 2 marketing spends real money:
+Must be credible before Gate 2 founding outreach is “active selling”:
 
 - Auth / orgs  
 - Business switching  
@@ -93,10 +159,10 @@ Park until Gate 3+ / Scale:
 - Marketplace (full)  
 - Every Industry App  
 
-### Start NOW (even pre-product)
+### Start NOW (marketing parallel — even pre-product)
 
-- Build audience / build-in-public narrative  
-- Prospecting engine path (later acquisition OS):  
+- Build audience / build-in-public narrative (Phase 1 marketing)  
+- Prospecting engine path for founding outreach (Phase 2 marketing):  
   **Business Discovery → Audit → Score → Report → Outreach → CRM**  
   Spec: [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) · [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md) · [GROWTH-ENGINE.md](../GROWTH-ENGINE.md)
 
@@ -212,7 +278,7 @@ Evidence is code + beta/connector docs — not roadmap optimism.
 
 ### Gate 1 — Internal Alpha
 
-**Verdict: mostly ready (dogfood), with honesty constraints.**
+**Verdict: mostly ready (dogfood), with honesty constraints — not closed.**
 
 Internal orgs can run CRM + RE closed beta + Command Centre + Business Profile + org switch. Treat as alpha to **find ugly stuff**, not as a sales demo of “complete OS.”
 
@@ -222,7 +288,7 @@ Operational gates (env correctness for Stripe / Dreamscape / Resend / Cotality s
 
 ### Gate 2 — Founding Customer Programme
 
-**Verdict: not yet Commercially Ready v1 — sell only as a scoped founding pilot.**
+**Verdict: not cleared — sell only as a scoped founding pilot after the pre-sell checklist.**
 
 A founding RE offer can work **if** scoped to:
 
@@ -235,27 +301,34 @@ A founding RE offer can work **if** scoped to:
 
 **Explicitly exclude or “coming”:** REA live publish, Domain Production portal publish without package, rich automation, full customer KB, hosting marketplace, fake AI citation ranks.
 
-**Launch statement gap:** Ben is still holding glue for connectors, env, WP plugin, and support depth — so Gate 2 marketing should open only after the NOW backlog clears the worst glue.
+**Launch statement gap:** Ben is still holding glue for connectors, env, WP plugin, and support depth — so Gate 2 **active selling** opens only after the NOW pre-sell checklist (6 reds) clears the worst glue. Audience / build-in-public may run in parallel.
 
 ### Gate 3 / 4
 
-Not assessed as near-term. Requires Gate 2 retention evidence, testimonials, and “why buy / don’t” clarity.
+Not assessed as near-term. Requires Gate 2 retention evidence, testimonials, and “why buy / don’t” clarity. Public launch follows ~10–20 active — not before.
 
 ---
 
 ## NOW engineering backlog (Gate 1 → Gate 2)
 
-Ordered for the next founding-customer path — **not** a year-long wishlist.
+Ordered for **before actively selling** — Ben’s 6 reds first. Not a year-long wishlist.
+
+### Pre-sell (must clear)
 
 | Pri | Item | Why |
 |-----|------|-----|
-| 1 | **Alpha dogfood pass** on DG / CVH / Roe / Wantd — punch list of ugly UX/ops | Gate 1 purpose |
-| 2 | **Onboarding path that sticks** — signup → org → Profile → checklist → first connector (replace redirect stub) | Launch statement |
-| 3 | **Billing end-to-end for a real seat** — checkout → webhook → entitlements → portal; SaaS status UI honest | Pay us without Ben |
-| 4 | **Tasks API + CRM UI** (schema exists) | Essential #7 |
-| 5 | **Automation: durable org rules + 2–3 real actions** (email/notify/stage) — retire “scaffold” for founding path | Gate 2 RE workflow |
-| 6 | **Support baseline** — KB stubs for signup, billing, connectors, RE beta; escalate path that isn’t only Ben | Essential #12 |
-| 7 | **Observability floor** — Sentry (or equivalent) + keep Monitoring placeholders honest | Essential #14b |
+| 1 | **Onboarding path that sticks** — signup → org → Profile → checklist → first connector (replace redirect stub) | Launch statement |
+| 2 | **Billing end-to-end for a real seat** — checkout → webhook → entitlements → portal; SaaS status UI honest | Pay us without Ben |
+| 3 | **Tasks API + CRM UI** (schema exists) | Essential #7 |
+| 4 | **Automation: durable org rules + 2–3 real actions** (email/notify/stage) — retire “scaffold” for founding path | Gate 2 RE workflow |
+| 5 | **Support baseline** — KB stubs for signup, billing, connectors, RE beta; escalate path that isn’t only Ben | Essential #12 |
+| 6 | **Observability floor** — Sentry (or equivalent) + keep Monitoring placeholders honest | Essential #14b |
+
+### Gate 1 close + founding path (next)
+
+| Pri | Item | Why |
+|-----|------|-----|
+| 7 | **Alpha dogfood pass** on DG / Roe / CVH / Aëtherra / Wantd — punch list of ugly UX/ops | Gate 1 purpose |
 | 8 | **WP plugin deploy discipline** on founding sites + dual-write smoke | RE public capture still WP |
 | 9 | **Domain.com.au** — confirm `/sandbox` for pilots; document Production gate; no fake “live on Domain” | Syndication honesty |
 | 10 | **REA** — leave fail-closed; chase partner grant; implement only after docs | Don’t fake publish |
@@ -263,18 +336,18 @@ Ordered for the next founding-customer path — **not** a year-long wishlist.
 | 12 | **GBP** — exit Google testing allowlist / verification for founding orgs; reply later | Reputation path |
 | 13 | **Email E1 smoke** on one founding domain (Prepare → DNS → Verify) | Infrastructure beta |
 | 14 | **Permissions for multi-seat** — owner/admin/member clarity for founding agencies | Essential #14 |
-| 15 | **Prospecting engine continuity** — Discovery → audit → score → report → CRM (staff) | Acquisition later; build narrative now |
+| 15 | **Prospecting engine continuity** — Discovery → audit → score → report → CRM (staff) | Founding outreach; build narrative now |
 
 ---
 
 ## Suggested next 2 weeks (Ben)
 
-1. **Week 1 — Gate 1 close:** Internal alpha dogfood on Roe + one other internal org; write the ugly list; fix blockers that stop daily use (auth/org switch, CRM, RE leads, Command). Confirm Stripe / Dreamscape / Resend / Domain sandbox env on Vercel.  
-2. **Week 1–2 — Glue removal:** Ship onboarding that doesn’t dump to Profile only; one real paid checkout path; Tasks MVP; Support KB stubs for the five questions founders will ask.  
-3. **Week 2 — Founding scope card:** One-pager per founding offer (RE vs SME) with IN / OUT lists matching this doc — especially REA parked, Domain sandbox, Automation partial.  
+1. **Week 1 — Gate 1 close:** Internal alpha dogfood on Roe + DG / CVH / Aëtherra / Wantd; write the ugly list; fix blockers that stop daily use (auth/org switch, CRM, RE leads, Command). Confirm Stripe / Dreamscape / Resend / Domain sandbox env on Vercel.  
+2. **Week 1–2 — Pre-sell 6 reds:** Onboarding that doesn’t dump to Profile only; one real paid checkout path; Tasks MVP; Automation 2–3 real actions; Support KB stubs; Sentry floor.  
+3. **Week 2 — Founding scope card:** One-pager per founding offer (RE vs SME) with IN / OUT lists matching this doc — especially REA parked, Domain sandbox, Automation partial. Target **5 founding agencies**.  
 4. **Parallel (non-blocking):** Build-in-public narrative + Prospecting Engine staff usage; chase REA partner access; Cotality/GBP ops gates.
 
-Do **not** spend these two weeks on Marketplace, community, white label, or new Industry Apps.
+Do **not** spend these two weeks on Marketplace, community, white label, or new Industry Apps. Do **not** claim Gate 2 cleared.
 
 ---
 
@@ -282,7 +355,7 @@ Do **not** spend these two weeks on Marketplace, community, white label, or new 
 
 | Doc | How this lock fits |
 |-----|-------------------|
-| [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) | GTM phases; this doc adds **readiness gates** + engineering hierarchy |
+| [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) | GTM phases; this doc adds **readiness gates**, **pre-launch marketing stance**, and engineering hierarchy |
 | [ROADMAP.md](../ROADMAP.md) | Execution workstreams; milestone tracker should reflect Commercially Ready v1 |
 | [RE-BETA-LAUNCH.md](../RE-BETA-LAUNCH.md) | Gate 2 RE offer packaging |
 | [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md) | Plans / Feature Registry — packaging for “pay us” |
@@ -297,4 +370,4 @@ Do **not** spend these two weeks on Marketplace, community, white label, or new 
 | Owner | Founder & Platform Architect |
 | Consumers | Ben, engineering agents, future team |
 | Change process | Update this file when gate criteria or hierarchy shift; link from foundations README + ROADMAP |
-| Anti-patterns | Fake green status · promising REA/Domain Production · calling scaffold “done” · marketing Gate 2 before launch statement holds |
+| Anti-patterns | Fake green status · promising REA/Domain Production · calling scaffold “done” · claiming Gate 2 cleared · full-scale marketing / “complete AI BOS” before launch statement · adding features instead of putting core in 5 businesses’ hands |

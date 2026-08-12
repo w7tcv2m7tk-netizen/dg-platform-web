@@ -8,6 +8,18 @@
 > **This document locks how DigitalGate is positioned, launched, and grown.**  
 > It does **not** authorize building free public audits, LinkedIn content systems, or a pricing-page redesign now. Docs first; product work follows Roadmap + Architecture Brief priorities.
 
+### Marketing mode now (locked)
+
+**Do** run the marketing machine in **controlled pre-launch / founding mode** — audience, build-in-public, and (when ready) founding outreach.  
+**Do not** full-scale spend or claim a “complete AI Business OS.”
+
+| Now | Next commercial milestone | Public launch |
+|-----|---------------------------|---------------|
+| Phase 1 audience / narrative | **5 founding agencies** (scoped outcome, not free trial) | After ~10–20 active (Gate 3) |
+
+Sell a **specific customer outcome** (esp. RE): Website → AI Vis → SEO → Leads → CRM → Automation → Appointments → Opportunities.  
+Readiness + pre-sell checklist: [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md). **Gate 2 is not cleared** until that checklist holds.
+
 ---
 
 ## Positioning (locked)
@@ -52,20 +64,22 @@ Lead with the **outcome**: one place to **run**, **understand**, and **grow** th
 
 ---
 
-## Phase 1 — Wedge (now → first 90 days)
+## Phase 1 — Wedge + audience (now → first 90 days)
 
 **Market:** Australian **real estate agencies**.  
-**Proving ground:** **Roe Realty** (live RE App + platform dogfood).  
-**Goal:** **20–50 real users** on Gen 2 who use the product weekly — not vanity signups.
+**Proving ground:** Internal dogfood — **DG, Roe, CVH, Aëtherra, Wantd** — then founding RE peers.  
+**Marketing mode:** Build audience / build-in-public narrative. **No** major public acquisition spend yet.  
+**Near-term commercial goal:** path to **5 founding agencies** on a real weekly workflow — not vanity signups, not “launch DigitalGate.”
 
 Focus:
 
 1. Platform Core + RE App depth that Roe (and similar) can run daily  
-2. Clear “run / understand / grow” narrative on every surface (docs, trial, demos)  
+2. Clear outcome narrative (digital presence → structured vendor acquisition) on every surface  
 3. Outcome evidence from Roe (workflow + scores that are **real**)  
-4. Command Centre Growth Engine for *our* pipeline — not customer-facing yet
+4. Command Centre Growth Engine / Prospecting Engine for *our* pipeline — staff-facing  
+5. Close Gate 1 + pre-sell checklist before active founding outreach ([COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md))
 
-**Hold:** international marketing (NZ / UK / US campaigns). Architecture stays Country Pack–ready; GTM stays AU RE.
+**Hold:** international marketing (NZ / UK / US campaigns); full-scale spend; “complete AI BOS” claims. Architecture stays Country Pack–ready; GTM stays AU RE.
 
 See also: [RE-BETA-LAUNCH.md](../RE-BETA-LAUNCH.md) · [ROADMAP.md](../ROADMAP.md) Workstream 2.
 
@@ -73,17 +87,18 @@ See also: [RE-BETA-LAUNCH.md](../RE-BETA-LAUNCH.md) · [ROADMAP.md](../ROADMAP.m
 
 ## Phase 2 — Founding Customer Programme
 
-**First cohort:** **5–10 businesses** under Gate 2 ([COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)); programme expands toward ~100 founding seats — not “beta testers.”
+**Next milestone:** **5 founding agencies** (indicative mix **3–5 RE + 2–3 SME**) under Gate 2 ([COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)). Broader founding seats / ~10–20 active / 50–100+ are later — not this milestone. Not “beta testers.”
 
 | Principle | Detail |
 |-----------|--------|
-| Framing | Founders / early partners shaping the OS with Ben |
-| Value | Preferential pricing / access / influence — not unpaid QA |
-| Quality bar | Real agencies (start AU RE); active use, not logo collection |
-| Exit into | Standard Starter / Pro / Business once founding cohort fills |
+| Framing | Founding programme — limited AU businesses shaping the OS with Ben (**not** a free trial) |
+| Value | Founding pricing for feedback + case studies / influence — not unpaid QA |
+| Quality bar | Real agencies (start AU RE); active use of the outcome workflow, not logo collection |
+| Outreach | Prospecting engine path once pre-sell checklist clears |
+| Exit into | Standard Starter / Pro / Business after founding proof + Gate 3 readiness |
 | Engineering bar | Launch statement in Commercially Ready v1 — Ben not holding it together |
 
-Commercial detail lives in [COMMERCIAL-MODEL.md](../foundations/COMMERCIAL-MODEL.md); readiness gates in [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md). This phase locks **naming and intent** only.
+Commercial detail lives in [COMMERCIAL-MODEL.md](../foundations/COMMERCIAL-MODEL.md); readiness gates + pre-sell 6 reds in [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md). This phase locks **naming and intent** only. **Do not claim Gate 2 cleared.**
 
 ---
 
@@ -203,10 +218,10 @@ Matches [GLOBAL-READINESS.md](../foundations/GLOBAL-READINESS.md) stages (AU RE 
 
 | Window | Focus | Success signal |
 |--------|--------|----------------|
-| **Months 0–3** | Phase 1 wedge: Roe + AU RE; positioning change; 20–50 real users; Prospecting Engine for *our* pipeline | Weekly active agencies; honest wow path on Overview |
-| **Months 3–6** | Founding Customer Programme open; RE App depth; first outcome stories; trial aha sketch | Founding seats filling; retention > vanity traffic |
-| **Months 6–9** | Scale AU RE; tighten Prospecting → trial; content pillars start; pricing copy converged | Repeatable demo → trial → paid |
-| **Months 9–12** | Founding cohort → standard tiers; prepare free-tool PLG design; AU multi-industry *design* only if RE is solid | 100 founding path clear; NZ still **not** primary marketing |
+| **Months 0–3** | Phase 1: Gate 1 dogfood (DG/Roe/CVH/Aëtherra/Wantd); audience + build-in-public; pre-sell checklist; Prospecting Engine for *our* pipeline | Gate 1 closing; honest wow path; path to 5 founding offers |
+| **Months 3–6** | Founding programme open (scoped); recruit **5 founding agencies**; RE App depth; first outcome stories | 5 founding active on core workflow; retention > vanity traffic |
+| **Months 6–9** | Prove workflow → toward ~10–20 active; tighten Prospecting → founding/paid; content pillars start | Repeatable demo → founding → paid; Gate 3 evidence building |
+| **Months 9–12** | Public launch readiness if Gate 3 holds; founding → standard tiers; prepare free-tool PLG design; AU multi-industry *design* only if RE is solid | Public SaaS only after ~10–20 active; NZ still **not** primary marketing |
 
 Exact engineering order remains [ROADMAP.md](../ROADMAP.md) + Architecture Brief Immediate Priority 1–15.
 

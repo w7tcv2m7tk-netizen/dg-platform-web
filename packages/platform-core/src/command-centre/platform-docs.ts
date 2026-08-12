@@ -79,7 +79,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
   {
     slug: "digitalgate-rollout",
     title: "DigitalGate Rollout",
-    summary: "Canonical GTM / product–marketing rollout strategy.",
+    summary: "GTM rollout — pre-launch / founding marketing mode, Phases 1–12.",
     group: "strategy",
     relativePath: "strategy/DIGITALGATE-ROLLOUT.md",
   },
@@ -94,7 +94,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "commercially-ready-v1",
     title: "Commercially Ready v1",
     summary:
-      "Operating target for first ~10 paying businesses — gates, build order, definition of done.",
+      "Pre-launch founding mode — 5 founding agencies, outcome sell, pre-sell checklist, gates.",
     group: "strategy",
     relativePath: "foundations/COMMERCIALLY-READY-V1.md",
   },

@@ -13,7 +13,7 @@
 >
 > **GTM / rollout:** [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) — Business Operating Platform; AU RE wedge → Founding Customers → Prospecting Engine ([ADR 0013](./adr/0013-gtm-rollout-strategy-adopted.md)). Engineering follows this roadmap; marketing follows that brief.
 >
-> **Commercialisation target:** [foundations/COMMERCIALLY-READY-V1.md](./foundations/COMMERCIALLY-READY-V1.md) — **Commercially Ready v1** (first ~10 paying businesses), Gates 1–4, 🔴 Commercial Core → 🟠 First Customer Value → 🟢 After Validation. Not “finish Gen 2.”
+> **Commercialisation target:** [foundations/COMMERCIALLY-READY-V1.md](./foundations/COMMERCIALLY-READY-V1.md) — **Commercially Ready v1**; next milestone **5 founding agencies** (pre-launch / founding marketing mode); Gates 1–4; 🔴 Commercial Core → 🟠 First Customer Value → 🟢 After Validation. Not “finish Gen 2.”
 
 ---
 
@@ -202,7 +202,7 @@ Targets: dashboard < 2 s, navigation < 300 ms, CRM updates optimistic. Full spec
 | Phase | When | Focus | Commercial gate |
 |-------|------|-------|-----------------|
 | **1 — Foundation** | Now | Platform Core + RE App + Roe as tenant | **Gate 1** Internal Alpha |
-| **2 — Validation** | +6 mo | 5–10 **founding** businesses (not unpaid QA), weekly feedback | **Gate 2** Founding Customer Programme |
+| **2 — Validation** | +6 mo | **5 founding** agencies first (3–5 RE + 2–3 SME); not unpaid QA | **Gate 2** Founding Customer Programme (not cleared until pre-sell) |
 | **3 — Commercial launch** | +12 mo | Public SaaS, billing, onboarding, support | **Gate 3** Public Launch (~10–20 active) |
 | **4 — Expansion** | +18 mo | Accommodation, Finance, more Connectors · Country Packs ready | **Gate 4** Scale (50–100+) |
 | **5 — DigitalGate Network** | +24 mo | Community · B2B partner graph · Marketplace · Reviews / Referrals · SDK / third-party Apps · enterprise · international communities | After validation (🟢) |
@@ -267,7 +267,7 @@ Do not start RE App port or AI Visibility until steps 1–4 are done.
 | Roe vendor leads on Gen 2 | 🔄 RE closed beta — WP capture still required |
 | Billing checkout / Stripe hygiene | 🔄 Partial — pay path exists; SaaS UX thin |
 | Wow moment dashboard | ⏳ Honest scores only |
-| **Gate 2 — Founding customers (5–10)** | ⏳ Scoped pilot only — not full OS yet |
+| **Gate 2 — Founding customers (5 agencies)** | ⏳ Not cleared — scoped pilot after pre-sell 6 reds |
 | **Commercially Ready v1 (launch statement)** | ⏳ Ben still glue for connectors / support / onboarding |
 
 ---
