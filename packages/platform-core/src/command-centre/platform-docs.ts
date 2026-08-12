@@ -91,6 +91,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "ROADMAP.md",
   },
   {
+    slug: "commercially-ready-v1",
+    title: "Commercially Ready v1",
+    summary:
+      "Operating target for first ~10 paying businesses — gates, build order, definition of done.",
+    group: "strategy",
+    relativePath: "foundations/COMMERCIALLY-READY-V1.md",
+  },
+  {
     slug: "connector-priority",
     title: "Connector Priority",
     summary: "Which connectors matter first and why.",
