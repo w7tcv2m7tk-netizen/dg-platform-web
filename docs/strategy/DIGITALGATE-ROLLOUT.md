@@ -36,7 +36,7 @@ Readiness: [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md) �
 
 Stop leading with “marketing platform,” feature inventories, or “40 things we do.”
 
-Lead with the **outcome**: one place to **run**, **understand**, and **grow** the business. Marketing, CRM, websites, SEO, AI Visibility, Industry Apps, and Infrastructure are **capabilities inside** that platform — not the category story.
+Lead with the **outcome**: one place to **run**, **understand**, and **grow** the business. Marketing, CRM, websites, SEO, AI Visibility, Infrastructure, and Industry Apps are **capabilities inside** that platform — not the category story. Public/commercial category order: **Core → Infrastructure → Industry → Growth**.
 
 | Say | Don’t say (primary) |
 |-----|---------------------|
