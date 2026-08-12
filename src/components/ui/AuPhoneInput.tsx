@@ -7,7 +7,7 @@ import {
   type InputHTMLAttributes,
 } from "react";
 
-import { formatAuPhoneInput } from "@dg/platform-core";
+import { formatAuPhoneInput } from "@dg/platform-core/au/phone";
 
 type AuPhoneInputProps = Omit<
   InputHTMLAttributes<HTMLInputElement>,

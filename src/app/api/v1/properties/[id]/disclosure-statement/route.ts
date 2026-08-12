@@ -1,11 +1,13 @@
 import {
-  BrandAssetStorageError,
   clearPropertyDisclosureStatement,
   getProperty,
   normalizePropertyDisclosureStatement,
   savePropertyDisclosureStatement,
-  storeOrgFile,
 } from "@dg/platform-core";
+import {
+  BrandAssetStorageError,
+  storeOrgFile,
+} from "@dg/platform-core/assets/org-brand-storage";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";

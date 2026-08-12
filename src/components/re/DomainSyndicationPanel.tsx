@@ -27,6 +27,10 @@ type DomainOrgStatus = {
   } | null;
 };
 
+type DomainPlatformStatus = {
+  apiPathPrefix?: string;
+};
+
 export function DomainSyndicationPanel({
   propertyId,
   placement,
@@ -36,6 +40,7 @@ export function DomainSyndicationPanel({
 }) {
   const router = useRouter();
   const [org, setOrg] = useState<DomainOrgStatus | null>(null);
+  const [platform, setPlatform] = useState<DomainPlatformStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -49,9 +54,11 @@ export function DomainSyndicationPanel({
     setStatusLoading(false);
     if (!res.ok) {
       setOrg(null);
+      setPlatform(null);
       return;
     }
     setOrg((json.data?.organisation as DomainOrgStatus | undefined) ?? null);
+    setPlatform((json.data?.platform as DomainPlatformStatus | undefined) ?? null);
   }
 
   useEffect(() => {
@@ -113,9 +120,27 @@ export function DomainSyndicationPanel({
         )}
       </div>
 
+      {!statusLoading ? (
+        <p className="text-xs font-mono text-slate-500">
+          API prefix:{" "}
+          {platform?.apiPathPrefix ? (
+            <span className="text-slate-300">{platform.apiPathPrefix}</span>
+          ) : (
+            <span className="text-amber-400">(none — Primary /v1/…)</span>
+          )}
+          {org?.probe?.probePath ? (
+            <>
+              {" "}
+              · probe <span className="text-slate-300">{org.probe.probePath}</span>
+            </>
+          ) : null}
+        </p>
+      ) : null}
+
       {org?.probe && !org.probe.ok ? (
         <p className="text-sm text-amber-400">
-          Probe: {org.probe.message}
+          Probe
+          {org.probe.probePath ? ` (${org.probe.probePath})` : ""}: {org.probe.message}
           {org.probe.securityReason ? (
             <span className="block text-xs text-amber-500/90 mt-1">
               X-Domain-Security-Reason: {org.probe.securityReason}
