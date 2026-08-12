@@ -84,6 +84,6 @@ Until then: keep scaffolds honest and registry off.
 
 ## Architecture locks
 
-- Core / Business Apps / Growth / Command — Commercial ≠ Commerce App; Commercial ≠ residential RE.
+- Core → Infrastructure → Industry → Growth — Commercial ≠ Commerce App; Commercial ≠ residential RE. See [APP-HIERARCHY.md](./APP-HIERARCHY.md).
 - Opportunity Engine™ is internal IP — soft language only on customer surfaces.
 - Honesty holds: no fake scores, citations, or MRR.

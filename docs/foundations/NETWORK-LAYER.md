@@ -24,9 +24,11 @@ Community and Marketplace are a **strategic component** of the platform — not 
 Priority until then:
 
 ```
-Core → CRM → Connectors → AI → Industry Apps → Intelligence → Scale
+Core → Infrastructure → Industry → Growth → Scale
 → then Network (Community + B2B graph + Marketplace)
 ```
+
+Canonical App hierarchy: [APP-HIERARCHY.md](./APP-HIERARCHY.md).
 
 ---
 

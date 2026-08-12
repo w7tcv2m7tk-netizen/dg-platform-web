@@ -6,7 +6,7 @@
 **Last updated:** August 2026  
 **Status:** Design — guides App registration and roadmap prioritisation
 
-**Related:** [architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md) (Gen 2 north-star) · [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) (GTM / rollout) · [PRODUCT-VISION.md](./PRODUCT-VISION.md) · [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md) · [PLATFORM-PRINCIPLES.md](./PLATFORM-PRINCIPLES.md)
+**Related:** [architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md) (Gen 2 north-star) · [foundations/APP-HIERARCHY.md](./foundations/APP-HIERARCHY.md) (**canonical App hierarchy**) · [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) (GTM / rollout) · [PRODUCT-VISION.md](./PRODUCT-VISION.md) · [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md) · [PLATFORM-PRINCIPLES.md](./PLATFORM-PRINCIPLES.md)
 
 ---
 
@@ -14,19 +14,26 @@
 
 DigitalGate is not a CRM with add-ons. It is a **Digital Operating System** — the place where a business manages everything digital from one unified platform.
 
-Customers still **buy and install Apps**, but internally we organise work by **Business Capability** — a coherent area of value the platform delivers.
+Customers still **buy and install Apps**, but internally we organise work by **Business Capability** — a coherent area of value the platform delivers. Public/commercial packaging follows the locked hierarchy:
+
+```
+CORE → INFRASTRUCTURE → INDUSTRY → GROWTH
+```
+
+Logic: **run · power · specialise · grow**. See [foundations/APP-HIERARCHY.md](./foundations/APP-HIERARCHY.md).
 
 ```
 DigitalGate Platform
-├── Your Business           ← Overview, profile, Apps & Billing, Marketplace, Network
-├── Core · Platform         ← Business Services (Setup), CRM, Commerce, Websites, Infrastructure, Opportunities, Brand Studio, Industry Intelligence
-├── Command Centre          ← cockpit — priorities / orchestrated opportunities (staff)
-├── Growth & Intelligence   ← Reputation, AI Visibility, SEO, Analytics, Automation, Social, AI Comms…
-├── Business Apps           ← install-driven verticals (RE, Accommodation, …)
+├── Core                    ← CRM, Contacts, Opportunities, Tasks, Calendar, Documents, Communications, Commerce
+├── Infrastructure          ← Websites / Website Builder, Domains, DNS, Hosting, Email, SSL, Website Management, Backups, Cloudflare
+├── Industry Apps           ← RE, Accommodation, Services, Finance, Commercial, Automotive, Creator, …
+├── Growth Apps             ← AI Visibility, SEO, Analytics, Social, AI Comms, Reviews, Prospecting / Opportunity Engine
+├── Platform capabilities   ← AI, Automation, Event Bus, Digital Twin, Intelligence, Connectors (NOT Apps — across everything)
+├── Command Centre          ← staff cockpit
 └── Platform                ← Settings / administration
 ```
 
-**Apps are the packaging.** Capabilities are the architecture. **Core owns Opportunities; Command Centre orchestrates them.** **Business Services** is the provider-agnostic Core capability; **Business Setup / Start Your Business** is the customer surface (launch stages: Identify → Register → Establish → Build → Connect → Grow) — not a Growth App, not an “ASIC App” — [foundations/BUSINESS-SETUP.md](./foundations/BUSINESS-SETUP.md). **Business Identity Service** merges ABR (+ later ASIC / domain / Google / user) into Business Profile. Connectors under Business Services: ABR, ASIC (AU registry), Domain/Hosting (Dreamscape), Google, Social. **AI Brand Studio** is Core (roadmap; sits in Build) — [foundations/BRAND-STUDIO.md](./foundations/BRAND-STUDIO.md). **Industry Intelligence** is Core (not “News”, not a standalone App initially) — Collect → Filter → Understand → Personalise → Act; Industry Apps define feed profiles; feeds AI Service, Search, Reporting, Notifications, Opportunity Engine / Command Centre — [foundations/INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md). **Platform Intelligence** (Platform AI / Platform Knowledge) is the foundational Gen 2 layer for docs + live truth + tools — [ai/PLATFORM-INTELLIGENCE.md](./ai/PLATFORM-INTELLIGENCE.md); distinct from cohort [DIGITALGATE-INTELLIGENCE.md](./foundations/DIGITALGATE-INTELLIGENCE.md). **Reputation** is a Growth App (customer surface) on Core Universal Review plumbing — [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md). **Services** is one Business App with Service Templates (not Electrician/Plumber Apps) — [foundations/SERVICES-APP.md](./foundations/SERVICES-APP.md).
+**Apps are the packaging.** Capabilities are the architecture. DigitalGate is an **operating platform with Apps**, not an App marketplace. **Core owns Opportunities; Command Centre orchestrates them.** **Business Services** is the provider-agnostic Core capability; **Business Setup / Start Your Business** is the customer surface (launch stages: Identify → Register → Establish → Build → Connect → Grow) — not a Growth App, not an “ASIC App” — [foundations/BUSINESS-SETUP.md](./foundations/BUSINESS-SETUP.md). **Business Identity Service** merges ABR (+ later ASIC / domain / Google / user) into Business Profile. Connectors under Business Services: ABR, ASIC (AU registry), Domain/Hosting (Dreamscape), Google, Social. **AI Brand Studio** is a Core/platform surface (roadmap; sits in Build) — [foundations/BRAND-STUDIO.md](./foundations/BRAND-STUDIO.md). **Industry Intelligence** is a platform Intelligence capability (not “News”, not a standalone App initially) — Collect → Filter → Understand → Personalise → Act; Industry Apps define feed profiles; feeds AI Service, Search, Reporting, Notifications, Opportunity Engine / Command Centre — [foundations/INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md). **Platform Intelligence** (Platform AI / Platform Knowledge) is the foundational Gen 2 layer for docs + live truth + tools — [ai/PLATFORM-INTELLIGENCE.md](./ai/PLATFORM-INTELLIGENCE.md); distinct from cohort [DIGITALGATE-INTELLIGENCE.md](./foundations/DIGITALGATE-INTELLIGENCE.md). **Reviews** is a Growth App (customer surface) on Core Universal Review plumbing — [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md). **Services** is one Industry App with Service Templates (not Electrician/Plumber Apps) — [foundations/SERVICES-APP.md](./foundations/SERVICES-APP.md). **Automation** is a platform capability (not a Growth App).
 
 ---
 
@@ -69,18 +76,18 @@ Same pattern across Communications (ElevenLabs), Infrastructure (registrar API),
 
 | Manifest ID | Tier | Capability group |
 |-------------|------|------------------|
-| `crm` | core | Core Platform |
-| `reviews` | growth | Reputation (Growth App; Core Universal Review plumbing) |
-| `opportunities` | core | Opportunities |
-| `real-estate` | business | Industry Apps |
+| `crm` | core | Core |
+| `reviews` | growth | Reviews (Growth App; Core Universal Review plumbing) |
+| `opportunities` | core | Opportunities (Core) |
+| `real-estate` | industry | Industry Apps |
 | `seo` | growth | Growth Apps |
 | `ai-visibility` | growth | Growth Apps |
 | `analytics` | growth | Growth Apps |
-| `automation` | growth | Growth Apps |
+| `automation` | platform | Platform capability (not a Growth App) |
 | `social` | growth | Growth Apps (publishing deferred) |
-| `ai-communications` | growth | Communications (Voice AI deferred) |
-| `websites` | core | Websites |
-| `infrastructure` | core | Infrastructure |
+| `ai-communications` | growth | Growth Apps (Voice AI deferred) |
+| `websites` | infrastructure | Infrastructure |
+| `infrastructure` | infrastructure | Infrastructure |
 | `command-centre` | internal | Intelligence (incl. Business Discovery Engine — see foundations/BUSINESS-DISCOVERY.md) |
 
 ---
@@ -105,7 +112,8 @@ Same pattern across Communications (ElevenLabs), Infrastructure (registrar API),
 |------------|----------|
 | Gen 2 Architecture Brief (north-star) | [architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md) |
 | Business Services · Business Setup | [foundations/BUSINESS-SETUP.md](./foundations/BUSINESS-SETUP.md) |
-| Industry Intelligence (Core) | [foundations/INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md) |
+| Industry Intelligence (platform Intelligence) | [foundations/INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md) |
+| App hierarchy (canonical) | [foundations/APP-HIERARCHY.md](./foundations/APP-HIERARCHY.md) |
 | Platform Intelligence (Platform AI / Knowledge) | [ai/PLATFORM-INTELLIGENCE.md](./ai/PLATFORM-INTELLIGENCE.md) |
 | Opportunity Engine™ | [foundations/OPPORTUNITY-ENGINE.md](./foundations/OPPORTUNITY-ENGINE.md) |
 | Connector Engine · Priority stack / DG15 | [foundations/CONNECTOR-ENGINE.md](./foundations/CONNECTOR-ENGINE.md) · [foundations/CONNECTOR-PRIORITY.md](./foundations/CONNECTOR-PRIORITY.md) |

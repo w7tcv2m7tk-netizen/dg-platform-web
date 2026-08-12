@@ -16,13 +16,14 @@ These documents capture **why** the platform is built the way it is. They are as
 | **[architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md)** | Gen 2 north-star — Core/UO/Connectors/AI constraints + Immediate Priority 1–15 |
 | **[strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md)** | **Canonical GTM / rollout** — Business OS positioning, pre-launch founding mode, Phases 1–12 ([ADR 0013](./adr/0013-gtm-rollout-strategy-adopted.md)) |
 | **[foundations/COMMERCIALLY-READY-V1.md](./foundations/COMMERCIALLY-READY-V1.md)** | **Commercialisation operating target** — 5 founding agencies, pre-launch / founding GTM stance, Gates 1–4, pre-sell checklist |
+| **[foundations/APP-HIERARCHY.md](./foundations/APP-HIERARCHY.md)** | **Canonical App hierarchy** — Core → Infrastructure → Industry → Growth (operating platform with Apps) |
 | [CAPABILITY-MODEL.md](./CAPABILITY-MODEL.md) | Business Capabilities taxonomy + boundary rule |
 | [PRODUCT-VISION.md](./PRODUCT-VISION.md) | Gateway brand, mission, five pillars, positioning |
 | [foundations/GLOBAL-READINESS.md](./foundations/GLOBAL-READINESS.md) | Build globally / sell AU first — Country Packs + GTM stages |
 | [foundations/NETWORK-LAYER.md](./foundations/NETWORK-LAYER.md) | Phase 5 — Community, B2B network, Marketplace (design now) |
 | [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md) | Platform Refer & Earn (Core) vs Reviews + Business referrals (Phase 5+) |
 | [foundations/WEBSITE-BUILDER.md](./foundations/WEBSITE-BUILDER.md) | Phase later — AI Website Studio; structured Next.js Gen 2 model (design now) |
-| [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md) | Core — Domains/DNS/SSL/hosting; Dreamscape V1 |
+| [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md) | Infrastructure layer — Domains/DNS/SSL/hosting; Dreamscape V1 |
 | [foundations/EMAIL-INFRASTRUCTURE.md](./foundations/EMAIL-INFRASTRUCTURE.md) | Core — Email Service (Resend + Dreamscape mailbox; deliverability) |
 | [ROADMAP.md](./ROADMAP.md) | Execution phases and priorities |
 | [WP-DETACH-BACKLOG.md](./WP-DETACH-BACKLOG.md) | Sequenced Gen 2 ↔ WordPress detach tickets (P0–P5) |

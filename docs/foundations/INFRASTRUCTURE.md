@@ -1,12 +1,13 @@
 # DigitalGate Infrastructure
 
-**Core Platform Service — provider-agnostic orchestration (Dreamscape first)**
+**Infrastructure App hierarchy layer — provider-agnostic orchestration (Dreamscape first)**
 
 **Version:** 0.3  
 **Last updated:** August 2026  
 **Status:** **Domains + Email E1 closed beta packaged** — see [INFRASTRUCTURE-BETA-LAUNCH.md](../INFRASTRUCTURE-BETA-LAUNCH.md). Architecture locked · Search/connect/DNS/go-live + Resend auth DNS shipped. Hosting/Deploy/Monitoring Apps stay OUT.  
 **Website Builder:** Closed beta + Make it live — [WEBSITES-BETA-LAUNCH.md](../WEBSITES-BETA-LAUNCH.md)
 
+**Hierarchy:** [APP-HIERARCHY.md](./APP-HIERARCHY.md) — sits after **Core**, before **Industry**.  
 **Related:** [WEBSITE-BUILDER.md](./WEBSITE-BUILDER.md) · [PRODUCT-VISION.md](../PRODUCT-VISION.md) · [ROADMAP.md](../ROADMAP.md) · [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) · [PLATFORM-ARCHITECTURE.md](../PLATFORM-ARCHITECTURE.md) · [infrastructure/INFRASTRUCTURE-ARCHITECTURE.md](../infrastructure/INFRASTRUCTURE-ARCHITECTURE.md) · [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md) (Dreamscape #5 · Cloudflare #15)
 
 ---

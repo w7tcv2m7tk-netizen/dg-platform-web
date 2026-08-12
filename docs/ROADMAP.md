@@ -213,14 +213,20 @@ Operating target + honest gap status: [COMMERCIALLY-READY-V1.md](./foundations/C
 
 **Referrals — two products:** (A) **Platform Refer & Earn** ships with / after Billing (Core) — customers refer DigitalGate. (B) **Business Referral Network** + **Reviews** — foundations scaffold live (`/apps/reviews`, `/dashboard/marketplace`, `/dashboard/network`); depth Phase 5+: [foundations/REVIEWS-AND-REFERRALS.md](./foundations/REVIEWS-AND-REFERRALS.md).
 
-**Website Builder (MVP shipped):** AI Website Studio — Business Profile → structured page/component model → `/sites/[slug]` renderer + forms→CRM. WP migrate via Connector (separate). Domains/Hosting/SSL are **Infrastructure Core**, not Website Builder: [foundations/WEBSITE-BUILDER.md](./foundations/WEBSITE-BUILDER.md) · [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md).
+**Website Builder (MVP shipped):** AI Website Studio — Business Profile → structured page/component model → `/sites/[slug]` renderer + forms→CRM. WP migrate via Connector (separate). Domains/Hosting/SSL are **Infrastructure**, not Website Builder: [foundations/WEBSITE-BUILDER.md](./foundations/WEBSITE-BUILDER.md) · [foundations/INFRASTRUCTURE.md](./foundations/INFRASTRUCTURE.md).
 
-**Infrastructure (Core Platform Service):** Provider-agnostic domains/DNS/hosting/SSL/**email** — **Dreamscape first** for domains/DNS/mailbox; **Resend** for transactional. Customer UX = DigitalGate Domains/Hosting/Email (never provider brand). **Sandbox only** for Dreamscape until automated tests pass. Email architecture: [EMAIL-INFRASTRUCTURE.md](./foundations/EMAIL-INFRASTRUCTURE.md). Domains MVP after Website Builder MVP.
+**Infrastructure (App hierarchy layer):** Provider-agnostic domains/DNS/hosting/SSL/**email** — **Dreamscape first** for domains/DNS/mailbox; **Resend** for transactional. Customer UX = DigitalGate Domains/Hosting/Email (never provider brand). **Sandbox only** for Dreamscape until automated tests pass. Email architecture: [EMAIL-INFRASTRUCTURE.md](./foundations/EMAIL-INFRASTRUCTURE.md). Domains MVP after Website Builder MVP.
+
+**Canonical App hierarchy (locked):** [foundations/APP-HIERARCHY.md](./foundations/APP-HIERARCHY.md)
+
+```
+Core → Infrastructure → Industry → Growth
+```
 
 **Execution priority until Phase 5:**
 
 ```
-Core → CRM → Connectors → AI → Industry Apps → Intelligence → Scale
+Core → Infrastructure → Connectors → AI → Industry Apps → Growth → Scale
 ```
 
 ---

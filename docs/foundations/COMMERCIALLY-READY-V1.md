@@ -12,6 +12,7 @@
 
 | Lock | Path |
 |------|------|
+| App hierarchy | [APP-HIERARCHY.md](./APP-HIERARCHY.md) — **Core → Infrastructure → Industry → Growth** |
 | GTM / positioning | [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) · [ADR 0013](../adr/0013-gtm-rollout-strategy-adopted.md) |
 | Architecture north-star | [GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md) · [ADR 0012](../adr/0012-gen-2-architecture-brief-adopted.md) |
 | Execution roadmap | [ROADMAP.md](../ROADMAP.md) |

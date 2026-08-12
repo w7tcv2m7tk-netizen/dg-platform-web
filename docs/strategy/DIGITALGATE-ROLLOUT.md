@@ -36,7 +36,7 @@ Readiness: [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md) �
 
 Stop leading with “marketing platform,” feature inventories, or “40 things we do.”
 
-Lead with the **outcome**: one place to **run**, **understand**, and **grow** the business. Marketing, CRM, websites, SEO, AI Visibility, Infrastructure, and Industry Apps are **capabilities inside** that platform — not the category story. Public/commercial category order: **Core → Infrastructure → Industry → Growth**.
+Lead with the **outcome**: one place to **run**, **understand**, and **grow** the business. Core, Infrastructure, Industry Apps, and Growth Apps are **capabilities inside** that platform — not the category story. **Canonical App hierarchy:** [APP-HIERARCHY.md](../foundations/APP-HIERARCHY.md) — **Core → Infrastructure → Industry → Growth** (run · power · specialise · grow). Platform capabilities (AI, Automation, Digital Twin, Intelligence, Connectors) operate across — they are not Apps.
 
 | Say | Don’t say (primary) |
 |-----|---------------------|
