@@ -4,28 +4,23 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import {
+  PROPERTY_LISTING_STATUS_OPTIONS,
+  PROPERTY_STATUS_LABELS,
+} from "@dg/platform-core/properties/statuses";
+
 function formatPrice(cents: number | null | undefined) {
   if (cents == null) return "—";
   return `$${(cents / 100).toLocaleString("en-AU")}`;
 }
 
-const STATUS_OPTIONS = [
-  { value: "listed", label: "Listed" },
-  { value: "under_offer", label: "Under offer" },
-  { value: "contract_signed", label: "Contract signed" },
-  { value: "unconditional", label: "Unconditional" },
-  { value: "sold", label: "Sold" },
-  { value: "withdrawn", label: "Withdrawn" },
-];
-
-const STATUS_LABELS: Record<string, string> = {
-  listed: "Listed",
-  under_offer: "Under offer",
-  contract_signed: "Contract signed",
-  unconditional: "Unconditional",
-  sold: "Sold",
-  withdrawn: "Withdrawn",
-};
+function formatPublicPrice(
+  cents: number | null | undefined,
+  metadata?: Record<string, unknown> | null,
+) {
+  if (metadata?.display_as_contact_agent === true) return "Contact Agent";
+  return formatPrice(cents);
+}
 
 export function ListingList({
   properties,
@@ -136,8 +131,9 @@ export function ListingList({
                   {property.suburb} {property.state} {property.postcode}
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  {STATUS_LABELS[property.status] ??
-                    property.status.replace(/_/g, " ")}
+                  {PROPERTY_STATUS_LABELS[
+                    property.status as keyof typeof PROPERTY_STATUS_LABELS
+                  ] ?? property.status.replace(/_/g, " ")}
                   {property.bedrooms != null ? ` · ${property.bedrooms} bed` : ""}
                   {property.bathrooms != null ? ` · ${property.bathrooms} bath` : ""}
                 </p>
@@ -150,10 +146,20 @@ export function ListingList({
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xs uppercase text-slate-500">Guide price</p>
-                <p className="text-xl font-bold text-white">
-                  {formatPrice(property.listingPriceCents)}
+                <p className="text-xs uppercase text-slate-500">
+                  {property.metadata?.display_as_contact_agent === true
+                    ? "Public price"
+                    : "Guide price"}
                 </p>
+                <p className="text-xl font-bold text-white">
+                  {formatPublicPrice(property.listingPriceCents, property.metadata)}
+                </p>
+                {property.metadata?.display_as_contact_agent === true &&
+                property.listingPriceCents != null ? (
+                  <p className="mt-1 text-xs text-slate-500">
+                    Guide {formatPrice(property.listingPriceCents)}
+                  </p>
+                ) : null}
               </div>
             </div>
 
@@ -162,7 +168,7 @@ export function ListingList({
                 Status
                 <select
                   value={
-                    STATUS_OPTIONS.some((o) => o.value === property.status)
+                    PROPERTY_LISTING_STATUS_OPTIONS.some((o) => o.value === property.status)
                       ? property.status
                       : "listed"
                   }
@@ -170,7 +176,7 @@ export function ListingList({
                   onChange={(e) => updateStatus(property.id, e.target.value)}
                   className="mt-1 block rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-white"
                 >
-                  {STATUS_OPTIONS.map((o) => (
+                  {PROPERTY_LISTING_STATUS_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>
                       {o.label}
                     </option>

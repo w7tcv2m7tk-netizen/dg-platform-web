@@ -53,6 +53,7 @@ export async function publishPropertyToWordPress(
 
   const metadata = (property.metadata as Record<string, unknown> | null) ?? {};
   const websiteHidden = metadata.website_hidden === true;
+  const displayAsContactAgent = metadata.display_as_contact_agent === true;
   const refs = (property.externalRefs as Record<string, unknown> | null) ?? {};
   const hasWpListing = Boolean(refs.wp_property_id);
 
@@ -154,8 +155,17 @@ export async function publishPropertyToWordPress(
     land_size: typeof metadata.land_size === "string" ? metadata.land_size : undefined,
     building_size:
       typeof metadata.building_size === "string" ? metadata.building_size : undefined,
-    listing_price_cents: property.listingPriceCents ?? undefined,
-    price: property.listingPriceCents != null ? property.listingPriceCents / 100 : undefined,
+    display_as_contact_agent: displayAsContactAgent,
+    // Public site shows "Contact Agent"; guide stays in Gen 2 listingPriceCents only.
+    // Always include `price` so WP can clear a leftover "Contact Agent" string when toggled off.
+    listing_price_cents: displayAsContactAgent
+      ? undefined
+      : (property.listingPriceCents ?? undefined),
+    price: displayAsContactAgent
+      ? "Contact Agent"
+      : property.listingPriceCents != null
+        ? property.listingPriceCents / 100
+        : null,
     external_id:
       typeof (property.externalRefs as Record<string, unknown> | null)?.rea_id === "string"
         ? ((property.externalRefs as Record<string, unknown>).rea_id as string)

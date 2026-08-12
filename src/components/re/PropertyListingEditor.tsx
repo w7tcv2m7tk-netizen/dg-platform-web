@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 type ListingFields = {
   propertyId: string;
   listingPriceCents?: number | null;
+  displayAsContactAgent?: boolean;
   propertyType?: string | null;
   bedrooms?: number | null;
   bathrooms?: number | null;
@@ -43,6 +44,9 @@ export function PropertyListingEditor(props: ListingFields) {
   const [price, setPrice] = useState(
     props.listingPriceCents != null ? String(props.listingPriceCents / 100) : "",
   );
+  const [displayAsContactAgent, setDisplayAsContactAgent] = useState(
+    props.displayAsContactAgent === true,
+  );
   const [propertyType, setPropertyType] = useState(props.propertyType ?? "");
   const [bedrooms, setBedrooms] = useState(
     props.bedrooms != null ? String(props.bedrooms) : "",
@@ -77,6 +81,7 @@ export function PropertyListingEditor(props: ListingFields) {
     setPrice(
       props.listingPriceCents != null ? String(props.listingPriceCents / 100) : "",
     );
+    setDisplayAsContactAgent(props.displayAsContactAgent === true);
     setPropertyType(props.propertyType ?? "");
     setBedrooms(props.bedrooms != null ? String(props.bedrooms) : "");
     setBathrooms(props.bathrooms != null ? String(props.bathrooms) : "");
@@ -92,6 +97,7 @@ export function PropertyListingEditor(props: ListingFields) {
     setImagesText(imagesKey);
   }, [
     props.listingPriceCents,
+    props.displayAsContactAgent,
     props.propertyType,
     props.bedrooms,
     props.bathrooms,
@@ -207,6 +213,7 @@ export function PropertyListingEditor(props: ListingFields) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         listingPriceCents,
+        displayAsContactAgent,
         propertyType: propertyType.trim() || null,
         bedrooms: bedrooms.trim() ? parseInt(bedrooms, 10) : null,
         bathrooms: bathrooms.trim() ? parseInt(bathrooms, 10) : null,
@@ -247,15 +254,36 @@ export function PropertyListingEditor(props: ListingFields) {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block text-sm">
-          <span className="text-slate-400">Guide price ($)</span>
-          <input
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
-            placeholder="850000"
-          />
-        </label>
+        <div className="space-y-2">
+          <label className="block text-sm">
+            <span className="text-slate-400">
+              {displayAsContactAgent ? "Internal guide price ($)" : "Guide price ($)"}
+            </span>
+            <input
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
+              placeholder="850000"
+            />
+          </label>
+          <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 rounded border-slate-600 bg-slate-900 text-blue-500"
+              checked={displayAsContactAgent}
+              onChange={(e) => setDisplayAsContactAgent(e.target.checked)}
+            />
+            <span>
+              <span className="block text-sm font-medium text-white">
+                Display as Contact Agent
+              </span>
+              <span className="mt-0.5 block text-[11px] text-slate-400">
+                Public website shows “Contact Agent” instead of the dollar amount. Keep an
+                internal guide above for agents if useful.
+              </span>
+            </span>
+          </label>
+        </div>
         <label className="block text-sm">
           <span className="text-slate-400">Property type</span>
           <select

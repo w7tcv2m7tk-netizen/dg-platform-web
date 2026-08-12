@@ -4,20 +4,25 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const STATUS_LABELS: Record<string, string> = {
-  prospect: "Prospect",
-  appraisal: "Appraisal",
-  listed: "Listed",
-  under_offer: "Under offer",
-  contract_signed: "Contract signed",
-  unconditional: "Unconditional",
-  sold: "Sold",
-  withdrawn: "Withdrawn",
-};
+import {
+  PROPERTY_STATUS_LABELS,
+  PROPERTY_STATUS_OPTIONS,
+} from "@dg/platform-core/properties/statuses";
 
 function isHiddenFromWebsite(metadata?: Record<string, unknown> | null) {
   return metadata?.website_hidden === true;
 }
+
+const FILTERS = [
+  "all",
+  "appraisal",
+  "listed",
+  "under_offer",
+  "contract_signed",
+  "unconditional",
+  "sold",
+  "hidden",
+] as const;
 
 export function PropertyList({
   properties,
@@ -59,7 +64,7 @@ export function PropertyList({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {["all", "appraisal", "listed", "under_offer", "contract_signed", "unconditional", "sold", "hidden"].map((status) => (
+        {FILTERS.map((status) => (
           <button
             key={status}
             type="button"
@@ -74,7 +79,9 @@ export function PropertyList({
               ? "All"
               : status === "hidden"
                 ? "Hidden"
-                : (STATUS_LABELS[status] ?? status)}
+                : (PROPERTY_STATUS_LABELS[
+                    status as keyof typeof PROPERTY_STATUS_LABELS
+                  ] ?? status)}
           </button>
         ))}
       </div>
@@ -138,9 +145,9 @@ export function PropertyList({
                   disabled={pending === property.id}
                   onChange={(e) => onStatusChange(property.id, e.target.value)}
                 >
-                  {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
+                  {PROPERTY_STATUS_OPTIONS.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.label}
                     </option>
                   ))}
                 </select>

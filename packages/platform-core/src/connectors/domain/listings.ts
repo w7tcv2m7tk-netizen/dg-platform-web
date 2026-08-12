@@ -151,8 +151,12 @@ export function buildDomainResidentialListingBody(input: {
       : undefined;
 
   const { unitNumber, streetNumber, street } = splitStreetAddress(input.property.addressLine1);
+  const displayAsContactAgent =
+    input.property.metadata?.display_as_contact_agent === true;
   const priceDollars =
-    typeof input.property.listingPriceCents === "number" && input.property.listingPriceCents > 0
+    !displayAsContactAgent &&
+    typeof input.property.listingPriceCents === "number" &&
+    input.property.listingPriceCents > 0
       ? Math.round(input.property.listingPriceCents / 100)
       : undefined;
 
@@ -201,7 +205,12 @@ export function buildDomainResidentialListingBody(input: {
   if (features?.trim()) {
     body.features = features.slice(0, 1000);
   }
-  if (priceDollars) {
+  if (displayAsContactAgent) {
+    // Honest withheld-price mapping — do not invent from/to from the internal guide.
+    body.price = {
+      displayText: "Contact Agent",
+    };
+  } else if (priceDollars) {
     body.price = {
       from: priceDollars,
       to: priceDollars,

@@ -12,6 +12,7 @@ export type WpPropertyListing = {
   state?: string;
   postcode?: string;
   price?: string | number;
+  display_as_contact_agent?: boolean | string | number;
   property_type?: string;
   bedrooms?: string | number;
   bathrooms?: string | number;
@@ -77,6 +78,21 @@ function toPriceCents(value: unknown): number | undefined {
   const n = typeof value === "number" ? value : parseFloat(String(value).replace(/[^0-9.]/g, ""));
   if (!Number.isFinite(n)) return undefined;
   return Math.round(n * 100);
+}
+
+function isWpDisplayAsContactAgent(wp: WpPropertyListing): boolean {
+  const flag = wp.display_as_contact_agent;
+  if (flag === true || flag === 1 || flag === "1" || flag === "true") return true;
+  if (typeof wp.price === "string") {
+    const normalized = wp.price.trim().toLowerCase();
+    return (
+      normalized === "contact agent" ||
+      normalized === "contact for price" ||
+      normalized === "poa" ||
+      normalized === "price on application"
+    );
+  }
+  return false;
 }
 
 function normalizeType(value?: string): string | undefined {
@@ -206,6 +222,7 @@ export async function syncPropertiesFromWordPress(
         land_size: wp.land_size?.trim() || undefined,
         building_size: wp.building_size?.trim() || undefined,
         inspection_times: wp.inspection_times?.trim() || undefined,
+        display_as_contact_agent: isWpDisplayAsContactAgent(wp),
         wp_agent: wp.agent ?? undefined,
         wp_synced_at: new Date().toISOString(),
       };

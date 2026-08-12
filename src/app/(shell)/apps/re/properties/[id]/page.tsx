@@ -15,6 +15,7 @@ import {
   normalizePropertyAgencyAgreement,
   normalizePropertyDisclosureStatement,
 } from "@dg/platform-core";
+import { PROPERTY_STATUS_LABELS } from "@dg/platform-core/properties/statuses";
 
 import { CotalityMatchPanel } from "@/components/re/CotalityMatchPanel";
 import { PropertyAgencyAgreementPanel } from "@/components/re/PropertyAgencyAgreementPanel";
@@ -30,17 +31,6 @@ import { ReaSyndicationPanel } from "@/components/re/ReaSyndicationPanel";
 import { PropertyStatusSelect } from "@/components/re/PropertyStatusSelect";
 import { RefreshAddressButton } from "@/components/re/RefreshAddressButton";
 import { fetchPortalMe } from "@/lib/dg-api";
-
-const STATUS_LABELS: Record<string, string> = {
-  prospect: "Prospect",
-  appraisal: "Appraisal",
-  listed: "Listed",
-  under_offer: "Under offer",
-  contract_signed: "Contract signed",
-  unconditional: "Unconditional",
-  sold: "Sold",
-  withdrawn: "Withdrawn",
-};
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -263,6 +253,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     typeof property.metadata?.inspection_times === "string"
       ? property.metadata.inspection_times
       : null;
+  const displayAsContactAgent = property.metadata?.display_as_contact_agent === true;
   const cotalityPrefillNote =
     cotalityDetails?.prefilledFields?.length && cotalityDetails.fetchedAt
       ? `Prefill from Cotality · ${new Date(cotalityDetails.fetchedAt).toLocaleString("en-AU")} — review before export`
@@ -279,7 +270,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">{property.addressLine1}</h1>
         <p className="text-sm text-slate-400">
-          {STATUS_LABELS[property.status] ?? property.status} · {fullAddress}
+          {PROPERTY_STATUS_LABELS[
+            property.status as keyof typeof PROPERTY_STATUS_LABELS
+          ] ?? property.status}{" "}
+          · {fullAddress}
           {hiddenFromWebsite ? (
             <>
               {" · "}
@@ -302,7 +296,19 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                   currentStatus={property.status}
                 />
               </div>
-              {property.listingPriceCents ? (
+              {displayAsContactAgent ? (
+                <p className="mt-4 text-sm text-slate-300">
+                  Public price:{" "}
+                  <span className="font-medium text-white">Contact Agent</span>
+                  {property.listingPriceCents ? (
+                    <span className="text-slate-500">
+                      {" "}
+                      · Internal guide $
+                      {(property.listingPriceCents / 100).toLocaleString("en-AU")}
+                    </span>
+                  ) : null}
+                </p>
+              ) : property.listingPriceCents ? (
                 <p className="mt-4 text-sm text-slate-300">
                   Guide price: $
                   {(property.listingPriceCents / 100).toLocaleString("en-AU")}
@@ -368,6 +374,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               key={cotalityPrefillRaw?.at ?? `listing-${property.id}`}
               propertyId={property.id}
               listingPriceCents={property.listingPriceCents}
+              displayAsContactAgent={displayAsContactAgent}
               propertyType={property.propertyType}
               bedrooms={property.bedrooms}
               bathrooms={property.bathrooms}

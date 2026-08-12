@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import type { SettlementChecklist } from "@dg/platform-core";
-import { PROPERTY_STATUS_LABELS } from "@dg/platform-core";
+import { PROPERTY_STATUS_LABELS } from "@dg/platform-core/properties/statuses";
 
 const CHECKLIST_ITEMS = [
   { id: "contract_signed", label: "Contract signed" },

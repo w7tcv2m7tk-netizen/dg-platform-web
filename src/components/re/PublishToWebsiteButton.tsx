@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { WEBSITE_PUBLISH_STATUSES } from "@dg/platform-core/properties/statuses";
+
 export function PublishToWebsiteButton({
   propertyId,
   status,
@@ -21,15 +23,7 @@ export function PublishToWebsiteButton({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const liveStatuses = new Set([
-    "listed",
-    "under_offer",
-    "contract_signed",
-    "unconditional",
-    "sold",
-    "withdrawn",
-  ]);
-  const needsForce = !liveStatuses.has(status);
+  const needsForce = !WEBSITE_PUBLISH_STATUSES.has(status);
 
   async function publish() {
     setPending(true);

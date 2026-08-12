@@ -60,53 +60,39 @@ function mergeCotalityIntoPropertyData(
   return { metadata, externalRefs };
 }
 
-export const PROPERTY_STATUSES = [
-  "prospect",
-  "appraisal",
-  "listed",
-  "under_offer",
-  "contract_signed",
-  "unconditional",
-  "sold",
-  "withdrawn",
-] as const;
+export {
+  PROPERTY_STATUSES,
+  PROPERTY_STATUS_LABELS,
+  PROPERTY_LISTING_BOARD_STATUSES,
+  PROPERTY_IN_CONTRACT_STATUSES,
+  PROPERTY_STATUS_OPTIONS,
+  PROPERTY_LISTING_STATUS_OPTIONS,
+  WEBSITE_PUBLISH_STATUSES,
+  type PropertyStatus,
+} from "./statuses";
 
-export type PropertyStatus = (typeof PROPERTY_STATUSES)[number];
-
-/** Human labels for listing status (AU agency flow). */
-export const PROPERTY_STATUS_LABELS: Record<PropertyStatus, string> = {
-  prospect: "Prospect",
-  appraisal: "Appraisal",
-  listed: "Listed",
-  under_offer: "Under offer",
-  contract_signed: "Contract signed",
-  unconditional: "Unconditional",
-  sold: "Sold",
-  withdrawn: "Withdrawn",
-};
-
-/** Statuses that stay on the public website when published (not prospect/appraisal). */
-const WEBSITE_PUBLISH_STATUSES = new Set<string>([
-  "listed",
-  "under_offer",
-  "contract_signed",
-  "unconditional",
-  "sold",
-  "withdrawn",
-]);
-
-/** In-contract / sale-pipeline statuses (before settled sold). */
-export const PROPERTY_IN_CONTRACT_STATUSES = [
-  "under_offer",
-  "contract_signed",
-  "unconditional",
-] as const satisfies readonly PropertyStatus[];
+import {
+  PROPERTY_STATUSES,
+  PROPERTY_STATUS_LABELS,
+  WEBSITE_PUBLISH_STATUSES,
+  type PropertyStatus,
+} from "./statuses";
 
 /** Hidden from the public website (WP / Gen 2 site), still visible in Gen 2 admin. */
 export function isPropertyHiddenFromWebsite(
   metadata?: Record<string, unknown> | null,
 ): boolean {
   return metadata?.website_hidden === true;
+}
+
+/**
+ * Public listing display shows "Contact Agent" instead of the numeric guide price.
+ * Guide price (`listingPriceCents`) can still be kept for agents in Gen 2.
+ */
+export function isDisplayAsContactAgent(
+  metadata?: Record<string, unknown> | null,
+): boolean {
+  return metadata?.display_as_contact_agent === true;
 }
 
 export interface CreatePropertyInput {
@@ -1235,6 +1221,8 @@ export async function updatePropertyListing(
   propertyId: string,
   input: {
     listingPriceCents?: number | null;
+    /** When true, public/display price is "Contact Agent"; guide price can remain. */
+    displayAsContactAgent?: boolean;
     marketing?: Record<string, unknown>;
     propertyType?: string | null;
     bedrooms?: number | null;
@@ -1268,6 +1256,9 @@ export async function updatePropertyListing(
     marketing: nextMarketing,
   };
 
+  if (input.displayAsContactAgent !== undefined) {
+    metadata.display_as_contact_agent = input.displayAsContactAgent === true;
+  }
   if (input.images !== undefined) {
     metadata.images = input.images.filter((u) => typeof u === "string" && u.trim());
     metadata.featured_image = (metadata.images as string[])[0] ?? null;

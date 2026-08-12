@@ -258,8 +258,14 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     return NextResponse.json({ data: property });
   }
 
+  const displayAsContactAgent =
+    typeof body?.displayAsContactAgent === "boolean"
+      ? (body.displayAsContactAgent as boolean)
+      : undefined;
+
   if (
     listingPriceCents !== undefined ||
+    displayAsContactAgent !== undefined ||
     marketing ||
     body?.images ||
     body?.propertyType !== undefined ||
@@ -274,6 +280,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       id,
       {
         listingPriceCents,
+        displayAsContactAgent,
         marketing: marketing ?? (details.marketing as Record<string, unknown> | undefined),
         propertyType:
           (body?.propertyType as string | null | undefined) ??

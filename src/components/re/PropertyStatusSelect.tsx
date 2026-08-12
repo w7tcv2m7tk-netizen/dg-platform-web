@@ -3,16 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const STATUSES = [
-  { id: "prospect", label: "Prospect" },
-  { id: "appraisal", label: "Appraisal" },
-  { id: "listed", label: "Listed" },
-  { id: "under_offer", label: "Under offer" },
-  { id: "contract_signed", label: "Contract signed" },
-  { id: "unconditional", label: "Unconditional" },
-  { id: "sold", label: "Sold" },
-  { id: "withdrawn", label: "Withdrawn" },
-] as const;
+import { PROPERTY_STATUS_OPTIONS } from "@dg/platform-core/properties/statuses";
 
 export function PropertyStatusSelect({
   propertyId,
@@ -42,7 +33,7 @@ export function PropertyStatusSelect({
       disabled={pending}
       onChange={(e) => onChange(e.target.value)}
     >
-      {STATUSES.map((s) => (
+      {PROPERTY_STATUS_OPTIONS.map((s) => (
         <option key={s.id} value={s.id}>
           {s.label}
         </option>
