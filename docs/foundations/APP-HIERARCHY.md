@@ -94,4 +94,5 @@ Do **not** package these as purchasable “Apps” in the public hierarchy. They
 | [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) | Infrastructure layer detail |
 | [WEBSITE-BUILDER.md](./WEBSITE-BUILDER.md) | Website Builder sits under Infrastructure |
 | [strategy/DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) | Public GTM language |
-| Marketing homepage | Public surface for this hierarchy |
+| Marketing homepage + pricing | Public surfaces for this hierarchy (`dg-platform/marketing/pages/`) |
+| [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md) | Platform / Apps / Services / Success / intelligence layer lock |

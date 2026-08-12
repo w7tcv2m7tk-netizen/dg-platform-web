@@ -135,7 +135,8 @@ Command Centre Revenue Intelligence module.
 
 ## Related
 
-- [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) — GTM pricing simplicity (Starter / Pro / Business)  
+- [APP-HIERARCHY.md](./APP-HIERARCHY.md) — canonical Core → Infrastructure → Industry → Growth  
+- [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) — GTM packaging  
 - [APP-MARKETPLACE.md](./APP-MARKETPLACE.md) — App install licensing  
 - [ADR 0007](../adr/0007-feature-registry-permissions.md) — Feature Registry  
 - [PLATFORM-RELEASES.md](./PLATFORM-RELEASES.md) — when billing ships  
