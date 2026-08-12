@@ -15,10 +15,10 @@
 
 | Now | Next commercial milestone | Public launch |
 |-----|---------------------------|---------------|
-| Phase 1 audience / narrative | **5 founding agencies** (scoped outcome, not free trial) | After ~10–20 active (Gate 3) |
+| Phase 1 audience / founder content | **DigitalGate Founding 10** (early access, not beta) | After ~10–20 active (Gate 3) |
 
 Sell a **specific customer outcome** (esp. RE): Website → AI Vis → SEO → Leads → CRM → Automation → Appointments → Opportunities.  
-Readiness + pre-sell checklist: [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md). **Gate 2 is not cleared** until that checklist holds.
+Readiness: [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md) — six reds are **dogfood/verification** blockers (MVPs shipped); Gate 2 opens after Gate 1 P0/P1 punch list. **Prove internally → sell founding programme.** No new major product area.
 
 ---
 
@@ -68,16 +68,16 @@ Lead with the **outcome**: one place to **run**, **understand**, and **grow** th
 
 **Market:** Australian **real estate agencies**.  
 **Proving ground:** Internal dogfood — **DG, Roe, CVH, Aëtherra, Wantd** — then founding RE peers.  
-**Marketing mode:** Build audience / build-in-public narrative. **No** major public acquisition spend yet.  
-**Near-term commercial goal:** path to **5 founding agencies** on a real weekly workflow — not vanity signups, not “launch DigitalGate.”
+**Marketing mode:** Audience / founder LinkedIn / build-in-public. **No** major paid acquisition yet.  
+**Near-term commercial goal:** **DigitalGate Founding 10** (3–5 RE + 2–5 other) on a real weekly workflow — early access to something powerful, not vanity signups, not “beta testing.”
 
 Focus:
 
 1. Platform Core + RE App depth that Roe (and similar) can run daily  
 2. Clear outcome narrative (digital presence → structured vendor acquisition) on every surface  
 3. Outcome evidence from Roe (workflow + scores that are **real**)  
-4. Command Centre Growth Engine / Prospecting Engine for *our* pipeline — staff-facing  
-5. Close Gate 1 + pre-sell checklist before active founding outreach ([COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md))
+4. Command Centre Growth Engine / Prospecting Engine for *our* pipeline — **first sales machine story**  
+5. Close Gate 1 via dogfood + P0/P1 ([COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)) — then Founding 10 outreach
 
 **Hold:** international marketing (NZ / UK / US campaigns); full-scale spend; “complete AI BOS” claims. Architecture stays Country Pack–ready; GTM stays AU RE.
 
@@ -85,20 +85,20 @@ See also: [RE-BETA-LAUNCH.md](../RE-BETA-LAUNCH.md) · [ROADMAP.md](../ROADMAP.m
 
 ---
 
-## Phase 2 — Founding Customer Programme
+## Phase 2 — DigitalGate Founding 10
 
-**Next milestone:** **5 founding agencies** (indicative mix **3–5 RE + 2–3 SME**) under Gate 2 ([COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)). Broader founding seats / ~10–20 active / 50–100+ are later — not this milestone. Not “beta testers.”
+**Next milestone:** **DigitalGate Founding 10** (indicative mix **3–5 RE + 2–5 other**) under Gate 2 ([COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)). Public SaaS / ~10–20 active / 50–100+ are later — not this milestone. Sell as **early access**, not “beta testers.”
 
 | Principle | Detail |
 |-----------|--------|
-| Framing | Founding programme — limited AU businesses shaping the OS with Ben (**not** a free trial) |
-| Value | Founding pricing for feedback + case studies / influence — not unpaid QA |
-| Quality bar | Real agencies (start AU RE); active use of the outcome workflow, not logo collection |
-| Outreach | Prospecting engine path once pre-sell checklist clears |
+| Framing | Founding 10 — limited AU businesses shaping the OS with Ben (**not** a free trial / unpaid QA) |
+| Value | Founding pricing for feedback + case studies / influence |
+| Quality bar | Real businesses (start AU RE); active use of the outcome workflow, not logo collection |
+| Outreach | Founder LinkedIn → outreach → free audit → strategy → Founding 10 → onboard → case study → referral; Command prospecting as sales machine |
 | Exit into | Standard Starter / Pro / Business after founding proof + Gate 3 readiness |
-| Engineering bar | Launch statement in Commercially Ready v1 — Ben not holding it together |
+| Engineering bar | Launch statement in Commercially Ready v1 — Ben not holding it together; REA / Domain Production are enhancements, not prerequisites |
 
-Commercial detail lives in [COMMERCIAL-MODEL.md](../foundations/COMMERCIAL-MODEL.md); readiness gates + pre-sell 6 reds in [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md). This phase locks **naming and intent** only. **Do not claim Gate 2 cleared.**
+Commercial detail lives in [COMMERCIAL-MODEL.md](../foundations/COMMERCIAL-MODEL.md); readiness gates + dogfood journey in [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md). **Do not claim Gate 2 cleared.**
 
 ---
 

@@ -94,7 +94,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "commercially-ready-v1",
     title: "Commercially Ready v1",
     summary:
-      "Pre-launch founding mode — 5 founding agencies, outcome sell, pre-sell checklist, gates.",
+      "Prove → sell Founding 10 — dogfood journey, P0/P1 punch list, six reds as verification.",
     group: "strategy",
     relativePath: "foundations/COMMERCIALLY-READY-V1.md",
   },
