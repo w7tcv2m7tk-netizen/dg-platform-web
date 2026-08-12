@@ -44,7 +44,7 @@ If Ben is still the glue for onboarding, billing, connectors, or support — we 
 |-----|---------|
 | Push the pre-sell MVPs; dogfood ruthlessly | New Industry Apps / Marketplace / Social / Studio depth |
 | Audience + founder content | Paid acquisition at scale |
-| Founding 10 outreach after Gate 1 punch list (P0/P1 only) | Waiting on REA grant or Domain Production as blockers |
+| Founding 10 outreach after Gate 1 punch list (P0/P1 only) | Waiting on Domain Production as blocker (REA partner verified — not a blocker) |
 
 ### Next 7–10 days
 
@@ -153,6 +153,28 @@ They are now **dogfood / verification blockers** — walk the journey, confirm e
 
 ---
 
+## Gate 1 punch list — area status (Aug 2026)
+
+| Area | Status |
+|------|--------|
+| Onboarding | ✅ MVP |
+| Billing E2E | ✅ MVP |
+| Tasks | ✅ |
+| Automation | ✅ MVP |
+| Support / KB | ✅ MVP |
+| Observability | ✅ MVP |
+| REA Partner | ✅ Verified |
+| REA Agency Activation | 🟡 Next |
+| Domain Production | 🟡 |
+| GBP Allowlist | 🟡 |
+| Social | 🔴 |
+| Full Automation Studio | 🔴 |
+| White Label | 🔴 |
+
+**REA internal status (Aug 2026):** Partner verified ✅ · agency activation next · REA publishing integration in progress · **not** live publish until Roe uploader + listings flowing.
+
+---
+
 ## Four gates
 
 | Gate | Who | Intent | Marketing |
@@ -180,9 +202,9 @@ CRM + RE App + Website + AI Visibility + SEO + Command + automation — enough t
 | Item | Gate 2 stance |
 |------|----------------|
 | **Domain.com.au Production** | **Enhancement** — not a Gate 2 prerequisite. Pilots use sandbox; exclude Production honestly. |
-| **REA live publish** | **Enhancement** — fail-closed until partner grant; **not** a Gate 2 prerequisite. Exclude honestly. |
+| **REA live publish** | **Enhancement** — partner **verified**; agency activation + integration **in progress**; **not** a Gate 2 prerequisite. Exclude live publish honestly. |
 
-Do **not** block Founding 10 on REA grant or Domain Production package.
+Do **not** block Founding 10 on REA agency activation or Domain Production package.
 
 ---
 
@@ -218,7 +240,7 @@ Start with Real Estate; deepen as founding customers need them:
 - Industry Apps (**start Real Estate**)  
 - Domain / hosting (DNS + Email E1; hosting progressive)  
 - Portal syndication — Domain sandbox first; Production when package allows (**enhancement**)  
-- REA — partner-grant gated (**enhancement**, fail closed)  
+- REA — partner verified; agency activation next; publishing integration in progress (**enhancement**, not live publish yet)  
 - Cotality / GBP / Email depth  
 
 ### Not required yet (After Validation)
@@ -271,7 +293,7 @@ Park until Gate 3+ / Scale:
 | 19 | SEO (paired with AI Vis) | Fixes + recommendations |
 | 20 | Domain / hosting (Infrastructure) | Domains + DNS + Email E1; hosting progressive |
 | 21 | Portal syndication — Domain | Sandbox for pilots; Production = enhancement |
-| 22 | Portal syndication — REA | Fail closed; enhancement after partner grant |
+| 22 | Portal syndication — REA | Partner verified; integration in progress; not live publish until agency smoke |
 | 23 | Property data — Cotality / GBP / Email depth | Enrich + reputation + deliverability |
 
 ### 🟢 After Validation (24–33) — Gate 3 / Scale
@@ -327,7 +349,7 @@ Evidence is code + beta/connector docs — not roadmap optimism.
 | 19 | SEO | **partial** | Paired with AI Vis audit / fixes |
 | 20 | Domain / hosting | **partial** | Domains + Email E1 beta; hosting/monitoring Apps OUT (placeholders) |
 | 21 | Domain.com.au syndication | **partial** | Sandbox for pilots; Production = enhancement (not Gate 2 blocker) |
-| 22 | REA | **parked** | Fail-closed until partner grant; enhancement, not Gate 2 prerequisite |
+| 22 | REA | **in progress** | Partner verified; agency activation next; publish not live — enhancement, not Gate 2 prerequisite |
 | 23a | Cotality / CoreLogic | **partial** | Sandbox live; production cutover not claimed |
 | 23b | GBP | **partial** | OAuth + sync; Google allowlist/verification = ops gate |
 | 23c | Email E1 | **pass** *(code)* | Prepare → auth DNS → verify via Resend; mailbox later |
@@ -354,7 +376,7 @@ Evidence is code + beta/connector docs — not roadmap optimism.
 
 Internal orgs can run the dogfood journey (CRM incl. Tasks, RE closed beta, Command, Profile, onboarding, billing seat, platform automations, KB stubs, Sentry floor). Treat as alpha to **find ugly stuff**, not as a sales demo of “complete OS.”
 
-Do **not** promise in alpha: REA publish, Domain Production, full Automation Studio, Infra Monitoring product, or deep Feature Registry licensing.
+Do **not** promise in alpha: **live** REA publish, Domain Production, full Automation Studio, Infra Monitoring product, or deep Feature Registry licensing. Partner-enabled REA positioning is OK; live syndication is not.
 
 Operational gates (Stripe / Dreamscape / Resend / Cotality sandbox / Domain `/sandbox` / WP plugin / Sentry DSN) matter as much as code.
 
@@ -371,7 +393,7 @@ A founding RE offer can work **if** scoped to:
 - Commerce payments where relevant  
 - Command / automation **as available** (set expectations)
 
-**Explicitly exclude or “coming” (enhancements, not prerequisites):** REA live publish, Domain Production portal publish, rich Automation Studio, hosting marketplace, fake AI citation ranks.
+**Explicitly exclude or “coming” (enhancements, not prerequisites):** live REA publish, Domain Production portal publish, rich Automation Studio, hosting marketplace, fake AI citation ranks. **Partner-enabled REA integration in progress** is honest public copy.
 
 **Launch statement gap:** Env, WP plugin, and residual support depth may still need Ben during dogfood — Gate 2 **active selling** opens after P0/P1 clear. Audience / founder content runs in parallel **now**.
 
@@ -397,7 +419,7 @@ See table above — walk the journey; confirm ops smoke.
 | 2 | Fix **P0 / P1 only** before Founding 10 outreach | Customer independence |
 | 3 | **WP plugin deploy discipline** on founding sites + dual-write smoke | RE public capture still WP |
 | 4 | **Domain sandbox** confirm on Vercel; document Production as enhancement | Honesty |
-| 5 | **REA** — leave fail-closed; chase grant offline; not a Gate 2 blocker | Don’t fake publish |
+| 5 | **REA** — agency activation + integration in progress; credentials in Vercel env only; not a Gate 2 blocker | Don’t claim live publish |
 | 6 | Cotality / GBP / Email E1 smoke as capacity allows | Progressive RE value |
 | 7 | **Founding 10 scope card** — IN / OUT per offer (RE vs other) | Sales honesty |
 | 8 | **Prospecting engine** continuity in Command — first sales machine story | Founding outreach |
@@ -412,7 +434,7 @@ See table above — walk the journey; confirm ops smoke.
 4. **Founding 10 one-pager** (early access, not beta) + start founder LinkedIn / outreach narrative.  
 5. **Command prospecting** as the sales machine story — Discovery → audit → report → CRM.
 
-Do **not** spend these days on Marketplace, community, white label, new Industry Apps, or waiting on REA/Domain Production. Do **not** claim Gate 2 cleared.
+Do **not** spend these days on Marketplace, community, white label, new Industry Apps, or waiting on Domain Production. Do **not** claim Gate 2 cleared or live REA publishing.
 
 ---
 
@@ -435,4 +457,4 @@ Do **not** spend these days on Marketplace, community, white label, new Industry
 | Owner | Founder & Platform Architect |
 | Consumers | Ben, engineering agents, future team |
 | Change process | Update this file when gate criteria or hierarchy shift; link from foundations README + ROADMAP |
-| Anti-patterns | Fake green status · promising REA/Domain Production as Gate 2 blockers · calling scaffold “done” · claiming Gate 2 cleared · full-scale paid marketing / “complete AI BOS” before launch statement · adding features instead of putting core in Founding 10 hands · treating six reds as build backlog after MVP ship |
+| Anti-patterns | Fake green status · promising **live** REA/Domain Production as Gate 2 blockers · calling scaffold “done” · claiming Gate 2 cleared · claiming live REA publish before Roe listings flow · full-scale paid marketing / “complete AI BOS” before launch statement · adding features instead of putting core in Founding 10 hands · treating six reds as build backlog after MVP ship |

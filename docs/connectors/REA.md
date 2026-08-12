@@ -1,8 +1,12 @@
 # realestate.com.au (REA Group) connector
 
-**Status:** Scaffold · fail closed · **not** production publish  
+**Status:** REA Partner — **verified** ✅ · agency activation **next** · publishing integration **in progress** · **not** live publish yet  
 **Parent:** [PROPERTY-SYNDICATION.md](../foundations/PROPERTY-SYNDICATION.md) · [CONNECTOR-ENGINE.md](../foundations/CONNECTOR-ENGINE.md)  
 **Manifest:** `rea` in Connector Engine planned manifests (`priorityTier` 1 / DigitalGate 15 rank 8)
+
+**Architecture path:** DigitalGate Platform → Real Estate App → REA Connector → realestate.com.au
+
+> **Security:** Partner API credentials (`REA_CLIENT_ID`, `REA_CLIENT_SECRET`, tokens) live in **Vercel / server-side env only** — never in git, marketing, or client bundles. Rotate in REA partner console + Vercel if exposed.
 
 ---
 
@@ -10,10 +14,10 @@
 
 | | **Domain** | **REA** |
 |---|------------|---------|
-| Developer access | Public [developer.domain.com.au](https://developer.domain.com.au) | **Grant-gated** partner / Listing Hub access |
-| First publish path | Listings Management REST (`PUT …/listings/residential`) + sandbox prefix | TBD after partner docs (modern Listing Hub API and/or legacy REAXML feed) |
-| OAuth | Documented authorize + token URLs; Authorization Code for agency context | Endpoints **unknown in-repo** until REA supplies them |
-| Honest MVP today | Org connect + queued upsert (`pending`, not “live”) | Status UI + routes only — **Connect/Publish disabled**; never fake “published” |
+| Developer access | Public [developer.domain.com.au](https://developer.domain.com.au) | **Verified REA Partner** — API credentials issued; agency activation next |
+| First publish path | Listings Management REST (`PUT …/listings/residential`) + sandbox prefix | Partner docs + Listing Hub API and/or REAXML feed — **integration in progress** |
+| OAuth | Documented authorize + token URLs; Authorization Code for agency context | Authorize/token URLs from partner package — wire after agency activation |
+| Honest MVP today | Org connect + queued upsert (`pending`, not “live”) | Partner verified; Connect/Publish remain **disabled until smoke** — never fake “published” |
 | Env prefix | `DOMAIN_*` | `REA_*` |
 
 Same product shape: DigitalGate Property (Listing SoT) → syndication adapter → portal. UI panels sit side-by-side on Property detail.
@@ -24,8 +28,8 @@ Same product shape: DigitalGate Property (Listing SoT) → syndication adapter �
 
 | Env | Purpose |
 |-----|---------|
-| `REA_CLIENT_ID` | Partner OAuth client id — **after access grant** |
-| `REA_CLIENT_SECRET` | Client secret — **Vercel only, never commit** |
+| `REA_CLIENT_ID` | Partner OAuth client id — **Vercel / server env only, never commit** |
+| `REA_CLIENT_SECRET` | Client secret — **Vercel / server env only, never commit** |
 | `REA_REDIRECT_URI` | Default `https://app.digitalgate.com.au/api/connectors/rea/callback` |
 | `REA_API_BASE_URL` | Partner API host (TBD) |
 | `REA_AUTH_AUTHORIZE_URL` | Authorize URL from partner docs (required before Connect) |
@@ -78,25 +82,29 @@ Placement key (when upsert lands): `property.externalRefs.rea` — mirror Domain
 
 ---
 
-## Next steps (when API access is granted)
+## Next steps (partner verified — Aug 2026)
 
-1. Receive partner docs: authorize URL, token URL, API base, listing create/update/withdraw schemas, agency binding, webhooks if any.  
-2. Set Vercel `REA_*` env (including authorize/token URLs).  
-3. Implement `buildReaAuthorizeUrl` + token exchange (copy Domain connect/callback pattern).  
-4. Enable Connect button; store encrypted org tokens via existing `saveOrgReaConnectorTokens`.  
-5. Implement listing upsert in `publish-property.ts` (or feed upload if REAXML is the mandated path).  
-6. Flip status `publishImplemented: true` only after a sandbox/partner smoke returns a real job/id.  
-7. Wire withdraw + status/webhooks; keep Listing Hub UI unchanged.
+1. ~~Receive partner API access~~ — **done** (verified REA Partner; credentials in Vercel env only).  
+2. **Agency activation** — register redirect URI, bind Roe (then founding agencies) per REA partner onboarding.  
+3. Receive partner docs: authorize URL, token URL, API base, listing create/update/withdraw schemas, agency binding, webhooks if any.  
+4. Set / confirm Vercel `REA_*` env (including authorize/token URLs) — **no values in git**.  
+5. Implement `buildReaAuthorizeUrl` + token exchange (copy Domain connect/callback pattern).  
+6. Enable Connect button; store encrypted org tokens via existing `saveOrgReaConnectorTokens`.  
+7. Implement listing upsert in `publish-property.ts` (or feed upload if REAXML is the mandated path).  
+8. Flip status `publishImplemented: true` only after Roe uploader activation + listings flowing (real job/id from REA).  
+9. Wire withdraw + status/webhooks; keep Listing Hub UI unchanged.
 
-### Ben portal smoke (after access)
+**Public / marketing honesty:** say **Realestate.com.au integration — Partner-enabled** or **REA integration in progress** — not “live REA publishing” until step 8.
 
-1. Confirm partner package + redirect URI registered.  
-2. Set env on Vercel / `.env.local`.  
+### Ben portal smoke (after agency activation)
+
+1. Confirm partner package + redirect URI registered for target agency.  
+2. Confirm env on Vercel / `.env.local` (placeholders only in docs).  
 3. Settings → Connectors → REA → Connect (when enabled).  
 4. Property with suburb/state/postcode → REA syndication → Publish.  
-5. Expect **pending** (or explicit error) — not a fake “Published on REA”.
+5. Expect **pending** (or explicit error) until live flow confirmed — not a fake “Published on REA”.
 
-Until then: open Settings → Connectors and Property → REA syndication to confirm honest **Missing / Not implemented** copy.
+Until live publish: Settings → Connectors and Property → REA syndication should show honest **in progress / not live** copy.
 
 ---
 

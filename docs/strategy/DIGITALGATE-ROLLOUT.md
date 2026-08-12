@@ -98,7 +98,7 @@ See also: [RE-BETA-LAUNCH.md](../RE-BETA-LAUNCH.md) · [ROADMAP.md](../ROADMAP.m
 | Quality bar | Real businesses (start AU RE); active use of the outcome workflow, not logo collection |
 | Outreach | Founder LinkedIn → outreach → free audit → strategy → Founding 10 → onboard → case study → referral; Command prospecting as sales machine |
 | Exit into | Standard Starter / Pro / Business after founding proof + Gate 3 readiness |
-| Engineering bar | Launch statement in Commercially Ready v1 — Ben not holding it together; REA / Domain Production are enhancements, not prerequisites |
+| Engineering bar | Launch statement in Commercially Ready v1 — Ben not holding it together; REA partner verified (integration in progress); Domain Production is enhancement, not prerequisite |
 
 Commercial detail lives in [COMMERCIAL-MODEL.md](../foundations/COMMERCIAL-MODEL.md); readiness gates + dogfood journey in [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md). **Do not claim Gate 2 cleared.**
 

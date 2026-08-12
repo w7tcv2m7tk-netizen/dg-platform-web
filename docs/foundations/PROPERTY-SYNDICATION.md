@@ -1,6 +1,6 @@
 # Property Syndication Engine
 
-**Status:** Architecture accepted · Domain OAuth + publish MVP · **REA connector scaffold (fail closed)**  
+**Status:** Architecture accepted · Domain OAuth + publish MVP · **REA Partner verified** · publishing integration **in progress** (not live publish)  
 **App:** Real Estate (capability of RE App — **not** platform-wide RE-only design)  
 **Parent:** [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) — Property & Listing Syndication is a **capability** of the Connector Engine, not a one-off portal integration.  
 **Goal:** DigitalGate Listing Hub is SoT — create once, syndicate to REA / Domain / Website / social / future portals.
@@ -189,7 +189,7 @@ See Core Object Spec § Listing (added with this design).
 | Channel | Example UI |
 |---------|------------|
 | Domain | 🟢 Published · Last synced 10:42am |
-| REA | 🟡 Scaffold / awaiting partner access (Connect & Publish disabled) |
+| REA | 🟡 Partner verified · agency activation next · publishing in progress (Connect & Publish disabled until smoke) |
 | Portal X | 🔴 Error — missing suburb |
 | Website | 🟢 Live |
 
@@ -215,7 +215,7 @@ Ops:
 ```
 
 Domain Stage 1 = Domain adapter over Listings Management API.  
-REA Stage 0 = connector + syndication adapter + status UI scaffold — **fail closed** until partner OAuth + upsert smoke ([REA.md](../connectors/REA.md)).
+REA Stage 0 = connector + syndication adapter + status UI — **partner verified**; Stage 1 = agency activation + OAuth + upsert smoke ([REA.md](../connectors/REA.md)). Public copy: **Realestate.com.au integration — Partner-enabled** until listings flow live.
 
 ---
 
