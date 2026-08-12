@@ -36,7 +36,7 @@ export default async function Page() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Domains</h1>
         <p className="text-sm text-slate-400">
-          Closed beta · Search, connect, DNS, Make it live
+          Founding Customer Early Access · Search, connect, DNS, Make it live
           {session?.organisationName ? ` · ${session.organisationName}` : ""}
           {" · "}
           <Link href="/apps/infrastructure/email" className="text-sky-400 hover:underline">

@@ -35,7 +35,7 @@ export type IndustryAppCatalogItem = {
 
 export type GrowthAppCatalogItem = {
   appId: string;
-  /** Stripe / plan premium key when billed separately; omit for included beta Growth Apps. */
+  /** Stripe / plan premium key when billed separately; omit for included Growth Apps. */
   premiumKey?: PremiumApp;
   label: string;
   icon: string;
@@ -187,7 +187,7 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
     icon: "✨",
     price: "+$99/mo",
     description: "Audience tools, content & creator studio",
-    status: "live",
+    status: "rolling-out",
   },
   {
     appId: "automotive",
@@ -216,7 +216,7 @@ export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
     label: "Reputation",
     icon: "★",
     price: "Included",
-    badge: "Closed beta",
+    badge: "Founding Customer Early Access",
     status: "rolling-out",
     description:
       "Unified review inbox, connector sources, timeline requests & Reputation Score™ when real data exists",
@@ -278,7 +278,7 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
     label: "Commerce",
     icon: "💳",
     price: "Included",
-    badge: "Closed beta",
+    badge: "Founding Customer Early Access",
     description: "Payments, quotes, invoices & checkout",
     status: "rolling-out",
   },
@@ -296,8 +296,8 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
     label: "Infrastructure",
     icon: "⚙",
     price: "Included",
-    badge: "Closed beta",
-    description: "Domains, DNS, email, SSL & hosting — Domains closed beta",
+    badge: "Founding Customer Early Access",
+    description: "Domains, DNS, email, SSL & hosting — available progressively",
     status: "rolling-out",
   },
 ];

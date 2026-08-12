@@ -26,7 +26,7 @@ function statusBadge(status: CatalogStatus) {
     case "live":
       return (
         <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
-          Live
+          Available for Founding Customers
         </span>
       );
     case "soon":
@@ -38,7 +38,7 @@ function statusBadge(status: CatalogStatus) {
     case "rolling-out":
       return (
         <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
-          Closed beta
+          Founding Customer Early Access
         </span>
       );
     case "included":

@@ -33,7 +33,7 @@ export default async function HomePage() {
                   href={AUTH_SIGN_UP_URL}
                   className="rounded-full bg-blue-600 px-4 py-1.5 font-medium text-white hover:bg-blue-500"
                 >
-                  Create account
+                  Start Free Trial
                 </Link>
               </>
             )}
@@ -43,15 +43,14 @@ export default async function HomePage() {
 
       <main className="mx-auto flex max-w-5xl flex-1 flex-col justify-center px-6 py-20">
         <p className="text-sm font-semibold uppercase tracking-widest text-blue-300">
-          DigitalGate
+          DigitalGate Business Platform
         </p>
         <h1 className="mt-4 max-w-2xl text-4xl font-bold leading-tight text-white sm:text-5xl">
-          The Business OS for your digital world.
+          Build your business on DigitalGate.
         </h1>
         <p className="mt-4 max-w-xl text-lg text-slate-300">
-          CRM, industry apps, Website Builder, and infrastructure — one login,
-          one platform. Sign in to manage your workspace, plan, and apps. New
-          clients can create an account and choose what they need.
+          AI-powered Business Operating Platform connecting CRM, website, AI,
+          automation, intelligence and infrastructure — one login, one platform.
         </p>
         <div className="mt-8 flex flex-wrap gap-4">
           {userId ? (
@@ -67,8 +66,14 @@ export default async function HomePage() {
                 href={AUTH_SIGN_UP_URL}
                 className="rounded-full bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-500"
               >
-                Create account
+                Start Free Trial
               </Link>
+              <a
+                href="https://digitalgate.com.au/beta/"
+                className="rounded-full border border-slate-600 px-6 py-3 font-semibold text-slate-200 hover:border-slate-500"
+              >
+                Become a Founding Customer
+              </a>
               <Link
                 href={AUTH_SIGN_IN_URL}
                 className="rounded-full border border-slate-600 px-6 py-3 font-semibold text-slate-200 hover:border-slate-500"

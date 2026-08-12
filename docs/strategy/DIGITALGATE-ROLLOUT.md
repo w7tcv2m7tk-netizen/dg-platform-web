@@ -15,7 +15,7 @@
 
 | Now | Next commercial milestone | Public launch |
 |-----|---------------------------|---------------|
-| Phase 1 audience / founder content | **DigitalGate Founding 10** (early access, not beta) | After ~10–20 active (Gate 3) |
+| Phase 1 audience / founder content | **DigitalGate Founding 10** (early access, not beta) — public: **Founding Customer Programme** | After ~10–20 active (Gate 3) |
 
 Sell a **specific customer outcome** (esp. RE): Website → AI Vis → SEO → Leads → CRM → Automation → Appointments → Opportunities.  
 Readiness: [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md) — six reds are **dogfood/verification** blockers (MVPs shipped); Gate 2 opens after Gate 1 P0/P1 punch list. **Prove internally → sell founding programme.** No new major product area.
@@ -29,6 +29,8 @@ Readiness: [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md) �
 | **Category** | AI-powered **Business Operating Platform** |
 | **Outcome** | **One platform to run, understand and grow your business** |
 | **Brand** | *The Gateway to Your Digital World™* (unchanged) |
+| **Public early commercial** | **DigitalGate Founding Customer Programme** (not “beta”) |
+| **Hero (public site)** | Build your business on DigitalGate. |
 
 ### Immediate positioning change
 

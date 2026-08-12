@@ -33,7 +33,7 @@ export default async function ReputationOverviewPage() {
       </header>
       <main className="dg-page-main space-y-6">
         <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3 text-sm text-slate-400">
-          Closed beta: Acc WordPress and Google Business Profile (locations + reviews when the API
+          Founding Customer Early Access: Acc WordPress and Google Business Profile (locations + reviews when the API
           allows) when connected. Meta, ProductReview, Trustpilot, TripAdvisor, and Yelp arrive
           through the{" "}
           <Link href="/dashboard/settings/connectors" className="text-sky-400 hover:underline">

@@ -77,10 +77,12 @@ If any step dumps, lies, or needs Ben as glue → punch list it.
 **Do** run the marketing machine **now** — audience and content.  
 **Do not** full-scale paid acquisition or claim a “complete AI Business OS.”
 
+**Public website language (locked):** use **DigitalGate Founding Customer Programme** — never “beta,” “pilot,” or “beta testers” on customer-facing surfaces. Free trial = normal acquisition; Founding Customer = early programme with preferred pricing / priority onboarding / product input. Incomplete features: Coming Soon / Early Access / In Development / Available progressively. Internal docs keep Gate / Alpha / closed-beta terminology.
+
 | Do | Don’t |
 |----|-------|
 | Sell a **specific customer outcome** | Sell the whole platform inventory |
-| **DigitalGate Founding 10** (early access, limited AU seats) | Free trial / “beta testers” / open SaaS launch |
+| **DigitalGate Founding 10** (early access, limited AU seats) — public name: **Founding Customer Programme** | Free trial / “beta testers” / open SaaS launch |
 | Build audience + build-in-public now | Wait for “done” before any narrative |
 | Prove internally, then recruit Founding 10 | Chase 50–100 or “launch DigitalGate” |
 | Honest scoped early-access language | Fake scores / complete-OS demos |
@@ -97,7 +99,7 @@ Enough that a RE agency runs a **real** weekly workflow — not a demo tour of e
 
 | Principle | Detail |
 |-----------|--------|
-| Name | **DigitalGate Founding 10** |
+| Name | **DigitalGate Founding 10** (public: **Founding Customer Programme**) |
 | Framing | Early access to something powerful — founding pricing for feedback + case studies + influence (**not** unpaid QA / “beta testing”) |
 | Mix | **3–5 Real Estate** + **2–5 other** (SME / Acc / Services only if Core is stable and packs are honest) |
 | First internal prove | **DG, Roe, CVH, Aëtherra, Wantd** (Gate 1 dogfood) |

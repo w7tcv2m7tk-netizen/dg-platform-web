@@ -71,7 +71,7 @@ export default async function WebsitesHomePage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Website Builder</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · Closed beta · AI-native
+          {session?.organisationName ?? "DigitalGate"} · Founding Customer Early Access · AI-native
           sites from Business Profile
         </p>
       </header>
