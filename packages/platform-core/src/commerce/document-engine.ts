@@ -195,7 +195,11 @@ export async function acceptQuote(
     actorId,
     entityType: "CommerceQuote",
     entityId: quoteId,
-    payload: { invoiceId: invoice.id, totalCents: quote.totalCents },
+    payload: {
+      invoiceId: invoice.id,
+      totalCents: quote.totalCents,
+      quoteNumber: quote.quoteNumber,
+    },
     occurredAt: new Date(),
   });
 
@@ -206,7 +210,11 @@ export async function acceptQuote(
     actorId,
     entityType: "CommerceQuote",
     entityId: quoteId,
-    payload: { invoiceId: invoice.id, totalCents: quote.totalCents },
+    payload: {
+      invoiceId: invoice.id,
+      totalCents: quote.totalCents,
+      quoteNumber: quote.quoteNumber,
+    },
     occurredAt: new Date(),
   });
 

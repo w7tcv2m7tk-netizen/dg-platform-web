@@ -4,7 +4,9 @@ import { currentUser } from "@clerk/nextjs/server";
 import {
   getCommerceFinancialSnapshot,
   listInvoices,
-  listQuotes,} from "@dg/platform-core";
+  listQuotes,
+  scanOverdueCommerceInvoices,
+} from "@dg/platform-core";
 
 import { CommerceStripeSetup } from "@/components/commerce/CommerceStripeSetup";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -49,6 +51,9 @@ export default async function CommerceOverviewPage() {
     );
   }
 
+  // Mark past-due invoices + fire overdue automations (idempotent).
+  await scanOverdueCommerceInvoices(session.organisationId).catch(() => null);
+
   const [snapshot, quotes, invoices] = await Promise.all([
     getCommerceFinancialSnapshot(session.organisationId),
     listQuotes(session.organisationId, 5),
@@ -66,7 +71,7 @@ export default async function CommerceOverviewPage() {
       <main className="dg-page-main space-y-8">
         <CommerceStripeSetup />
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
             <p className="text-xs uppercase tracking-wide text-slate-500">
               Revenue MTD
@@ -99,6 +104,18 @@ export default async function CommerceOverviewPage() {
               {formatMoney(snapshot.overdueArCents)}
             </p>
           </div>
+          <Link
+            href="/apps/commerce/subscriptions"
+            className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 hover:border-slate-600"
+          >
+            <p className="text-xs uppercase tracking-wide text-slate-500">MRR</p>
+            <p className="mt-1 text-2xl font-bold text-emerald-300">
+              {formatMoney(snapshot.mrrCents)}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              {snapshot.activeSubscriptions} active sub(s)
+            </p>
+          </Link>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -183,6 +200,18 @@ export default async function CommerceOverviewPage() {
             className="rounded-full bg-slate-800 px-4 py-2 text-sm text-white hover:bg-slate-700"
           >
             Invoices
+          </Link>
+          <Link
+            href="/apps/commerce/products"
+            className="rounded-full bg-slate-800 px-4 py-2 text-sm text-white hover:bg-slate-700"
+          >
+            Products
+          </Link>
+          <Link
+            href="/apps/commerce/subscriptions"
+            className="rounded-full bg-slate-800 px-4 py-2 text-sm text-white hover:bg-slate-700"
+          >
+            Subscriptions
           </Link>
           <Link
             href="/apps/commerce/reports"

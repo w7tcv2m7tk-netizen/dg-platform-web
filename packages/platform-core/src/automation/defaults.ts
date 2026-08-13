@@ -49,17 +49,19 @@ export function bootDefaultAutomations() {
     handler: handlePaymentCompleted,
   });
 
-  // Keep a quiet log companion for quote accepted (honest, low-noise).
+  // Keep quiet log companion for quote accepted (honest, low-noise).
   registerAutomationRule({
-    id: "commerce.quote.accepted.log",
+    id: "commerce.quote.accepted.notify",
     trigger: "commerce.quote.accepted",
-    action: "log_quote_accepted",
-    handler: async (event) => {
-      console.info("[automation] quote accepted", {
-        organisationId: event.organisationId,
-        payload: event.payload,
-      });
-    },
+    action: "notify_and_task_quote_accepted",
+    handler: handleQuoteAccepted,
+  });
+
+  registerAutomationRule({
+    id: "commerce.invoice.overdue.notify",
+    trigger: "commerce.invoice.overdue",
+    action: "notify_invoice_overdue",
+    handler: handleInvoiceOverdue,
   });
 }
 
@@ -268,4 +270,110 @@ async function handlePaymentCompleted(event: PlatformEvent) {
     organisationId: event.organisationId,
     entityId: event.entityId,
   });
+}
+
+async function handleQuoteAccepted(event: PlatformEvent) {
+  const quoteId = event.entityId;
+  const quoteNumber =
+    typeof event.payload?.quoteNumber === "string"
+      ? event.payload.quoteNumber
+      : quoteId?.slice(0, 8) || "quote";
+
+  await createNotification({
+    organisationId: event.organisationId,
+    type: "automation.quote_accepted",
+    title: "Quote accepted",
+    body: `${quoteNumber} was accepted — convert to invoice or schedule the job.`,
+    href: quoteId ? `/apps/commerce/quotes/${quoteId}` : "/apps/commerce/quotes",
+    entityType: "CommerceQuote",
+    entityId: quoteId,
+    metadata: { automationRuleId: "commerce.quote.accepted.notify" },
+  });
+
+  if (quoteId) {
+    const dueAt = new Date();
+    dueAt.setDate(dueAt.getDate() + 1);
+    await createTask({
+      organisationId: event.organisationId,
+      actorId: event.actorId,
+      title: `Follow up accepted quote ${quoteNumber}`,
+      description: "Auto-created when the quote was accepted.",
+      dueAt,
+      entityType: "CommerceQuote",
+      entityId: quoteId,
+      sourceApp: "automation",
+      priority: "high",
+      metadata: { automationRuleId: "commerce.quote.accepted.notify" },
+      createRelatedActivity: true,
+    });
+  }
+}
+
+async function handleInvoiceOverdue(event: PlatformEvent) {
+  const invoiceId = event.entityId;
+  const invoiceNumber =
+    typeof event.payload?.invoiceNumber === "string"
+      ? event.payload.invoiceNumber
+      : invoiceId?.slice(0, 8) || "invoice";
+
+  await createNotification({
+    organisationId: event.organisationId,
+    type: "automation.invoice_overdue",
+    title: "Invoice overdue",
+    body: `${invoiceNumber} is overdue — send a reminder or follow up.`,
+    href: invoiceId
+      ? `/apps/commerce/invoices/${invoiceId}`
+      : "/apps/commerce/invoices",
+    entityType: "CommerceInvoice",
+    entityId: invoiceId,
+    metadata: { automationRuleId: "commerce.invoice.overdue.notify" },
+  });
+}
+
+/**
+ * Mark past-due open invoices as overdue and emit automation events.
+ * Call from a cron / Command health job — safe to run repeatedly.
+ */
+export async function scanOverdueCommerceInvoices(organisationId?: string) {
+  const { prisma } = await import("@dg/database");
+  const now = new Date();
+  const where = {
+    status: { in: ["sent", "viewed", "partially_paid"] as string[] },
+    dueAt: { lt: now },
+    ...(organisationId ? { organisationId } : {}),
+  };
+
+  const due = await prisma.commerceInvoice.findMany({
+    where,
+    select: {
+      id: true,
+      organisationId: true,
+      invoiceNumber: true,
+      totalCents: true,
+    },
+    take: 100,
+  });
+
+  let marked = 0;
+  for (const invoice of due) {
+    await prisma.commerceInvoice.update({
+      where: { id: invoice.id },
+      data: { status: "overdue" },
+    });
+    marked += 1;
+    const event: PlatformEvent = {
+      type: "commerce.invoice.overdue",
+      organisationId: invoice.organisationId,
+      entityType: "CommerceInvoice",
+      entityId: invoice.id,
+      payload: {
+        invoiceNumber: invoice.invoiceNumber,
+        totalCents: invoice.totalCents,
+      },
+      occurredAt: now,
+    };
+    await runAutomationForEvent(event);
+  }
+
+  return { scanned: due.length, marked };
 }

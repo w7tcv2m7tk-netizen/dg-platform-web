@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type {
   BusinessContext,
@@ -132,10 +132,14 @@ export function BusinessProfileEditor({
   profile: initialProfile,
   context,
   linked,
+  focusBrand = false,
+  brandIntent,
 }: {
   profile: OrganisationBusinessProfile | null;
   context: BusinessContext;
   linked: boolean;
+  focusBrand?: boolean;
+  brandIntent?: string | null;
 }) {
   const router = useRouter();
   const [profile, setProfile] = useState<OrganisationBusinessProfile>(
@@ -144,7 +148,19 @@ export function BusinessProfileEditor({
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [lookingUp, setLookingUp] = useState<"abn" | "acn" | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(
+    focusBrand
+      ? brandIntent === "ai"
+        ? "Brand Studio entry: refine colours/logo here. Full AI brand generation is next — then return to Websites to create your site."
+        : "Upload or confirm logo and colours, Save, then return to Websites → Create."
+      : null,
+  );
+
+  useEffect(() => {
+    if (!focusBrand || typeof document === "undefined") return;
+    const el = document.getElementById("brand-assets");
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [focusBrand]);
 
   function setField<K extends keyof OrganisationBusinessProfile>(
     key: K,
@@ -302,10 +318,27 @@ export function BusinessProfileEditor({
         {message ? <p className="mt-3 text-sm text-emerald-400/90">{message}</p> : null}
       </section>
 
-      <BrandAssetsEditor
-        profile={profile}
-        onChange={(patch) => setProfile((prev) => ({ ...prev, ...patch }))}
-      />
+      <div
+        id="brand-assets"
+        className={
+          focusBrand
+            ? "rounded-xl ring-2 ring-sky-500/50 ring-offset-2 ring-offset-slate-950"
+            : undefined
+        }
+      >
+        <BrandAssetsEditor
+          profile={profile}
+          onChange={(patch) => setProfile((prev) => ({ ...prev, ...patch }))}
+        />
+        {focusBrand ? (
+          <p className="mt-3 text-sm text-slate-400">
+            Done?{" "}
+            <a href="/apps/websites" className="text-sky-400 hover:underline">
+              Return to Websites → Create
+            </a>
+          </p>
+        ) : null}
+      </div>
 
       <section className="dg-card">
         <h3 className="text-lg font-semibold text-white">Identity</h3>

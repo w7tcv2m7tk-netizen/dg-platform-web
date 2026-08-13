@@ -19,7 +19,7 @@ interface RouteParams {
 
 /**
  * POST /api/v1/properties/[id]/syndicate/rea
- * Publish (upsert) this property to REA — scaffold fail-closed until partner API is live.
+ * Upload this property to REA Listing Upload (REAXML) → placement pending.
  */
 export async function POST(req: Request, { params }: RouteParams) {
   const session = await requirePlatformAuth(req);
@@ -69,7 +69,6 @@ export async function POST(req: Request, { params }: RouteParams) {
     );
   }
 
-  // Unreachable until publishPropertyToRea can succeed — kept for Domain parity.
   const updated = await getProperty(session.organisationId, id);
   return NextResponse.json({
     data: {

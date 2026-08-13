@@ -1,67 +1,44 @@
 import {
   bootConnectorEngine,
-  buildReaAuthorizeUrl,
   reaCredentialsConfigured,
-  reaOAuthEndpointsConfigured,
 } from "@dg/platform-core";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { randomBytes } from "crypto";
 
 export const dynamic = "force-dynamic";
 
 bootConnectorEngine();
 
 /**
- * Start REA Authorization Code flow (when partner OAuth is live).
  * GET /api/connectors/rea/connect
  *
- * Scaffold: always returns JSON 503 — no redirect to a fake authorize URL.
+ * REA Partner Platform uses client_credentials (no user OAuth redirect).
+ * Redirect to Connectors with an honest flash so operators bind an agency id.
  */
 export async function GET() {
   const { userId } = await auth();
+  const base =
+    process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://app.digitalgate.com.au";
+
   if (!userId) {
-    return NextResponse.redirect(
-      new URL("/login", process.env.NEXT_PUBLIC_APP_URL || "https://app.digitalgate.com.au"),
-    );
+    return NextResponse.redirect(new URL("/login", base));
   }
+
+  const url = new URL("/dashboard/settings/connectors", base);
 
   if (!reaCredentialsConfigured()) {
-    return NextResponse.json(
-      {
-        error: {
-          code: "rea_not_configured",
-          message:
-            "REA_CLIENT_ID / REA_CLIENT_SECRET missing — partner access required before Connect works",
-        },
-      },
-      { status: 503 },
+    url.searchParams.set("rea", "error");
+    url.searchParams.set(
+      "message",
+      "REA_CLIENT_ID / REA_CLIENT_SECRET missing — set Partner Platform credentials on Vercel",
     );
+    return NextResponse.redirect(url);
   }
 
-  if (!reaOAuthEndpointsConfigured()) {
-    return NextResponse.json(
-      {
-        error: {
-          code: "rea_oauth_endpoints_unknown",
-          message:
-            "REA OAuth authorize/token URLs not set — add REA_AUTH_AUTHORIZE_URL + REA_AUTH_TOKEN_URL from partner docs",
-        },
-      },
-      { status: 503 },
-    );
-  }
-
-  const state = randomBytes(24).toString("hex");
-  const nonce = randomBytes(24).toString("hex");
-  const authUrl = buildReaAuthorizeUrl({ state, nonce });
-  if (!authUrl.ok) {
-    return NextResponse.json(
-      { error: { code: "rea_oauth_not_ready", message: authUrl.message } },
-      { status: 503 },
-    );
-  }
-
-  // Unreachable until buildReaAuthorizeUrl returns a real URL.
-  return NextResponse.redirect(authUrl.url);
+  url.searchParams.set("rea", "error");
+  url.searchParams.set(
+    "message",
+    "REA uses Partner Platform client_credentials (no Connect redirect). Activate an agency id on the REA card after Ignite / Change of Uploader.",
+  );
+  return NextResponse.redirect(url);
 }

@@ -1,11 +1,11 @@
 # Services App closed beta — launch checklist
 
 **Audience:** Ben (DigitalGate) + founding agencies on Services  
-**Status:** Closed-beta **job ops ready** (Aug 2026) — run founding-agency dry-run before invite  
+**Status:** Closed-beta **job ops ready** (Aug 2026) — architecture/strategy locked in [SERVICES-APP.md](./SERVICES-APP.md) (DG OS for service businesses; ServiceM8 = coverage benchmark, not clone) — run founding-agency dry-run before invite  
 **Depends on:** Gen 2 with `DATABASE_URL`; Services App installed; org memberships for assignees  
 **Architecture SSOT:** [SERVICES-APP.md](./SERVICES-APP.md)
 
-This is **launch hygiene**, not a feature build. Product slice (template → job → schedule → stage → notes → day board) is already shipped.
+This is **launch hygiene**, not a feature build. Product slice (template → job → schedule → stage → notes → day board) is already shipped. Full ServiceM8-class depth (calendar, field ops, recurrence, AI assistants) is **post-beta** on the same Universal Objects architecture.
 
 ---
 

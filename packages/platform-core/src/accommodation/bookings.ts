@@ -684,6 +684,102 @@ export async function linkStayBookingExternalWpId(
   return serializeStayBooking(updated);
 }
 
+/**
+ * Soft-cancel StayBooking rows in Neon (status → cancelled).
+ * Resolves by platform id and/or WordPress external id.
+ * Returns cancelled platform ids. Does not call WordPress.
+ */
+export async function cancelStayBookings(
+  organisationId: string,
+  input: { platformIds?: string[]; externalWpIds?: number[] },
+): Promise<{ cancelled: string[]; count: number }> {
+  if (!process.env.DATABASE_URL) {
+    return { cancelled: [], count: 0 };
+  }
+  const { prisma } = await import("@dg/database");
+
+  const platformIds = (input.platformIds ?? [])
+    .map((id) => id.trim())
+    .filter(Boolean);
+  const externalWpIds = (input.externalWpIds ?? []).filter(
+    (id) => Number.isFinite(id) && id > 0,
+  );
+
+  if (!platformIds.length && !externalWpIds.length) {
+    return { cancelled: [], count: 0 };
+  }
+
+  const rows = await prisma.stayBooking.findMany({
+    where: {
+      organisationId,
+      OR: [
+        ...(platformIds.length ? [{ id: { in: platformIds } }] : []),
+        ...(externalWpIds.length ? [{ externalWpId: { in: externalWpIds } }] : []),
+      ],
+    },
+    select: { id: true, status: true },
+  });
+
+  const cancelled: string[] = [];
+  for (const row of rows) {
+    if (row.status === "cancelled") {
+      cancelled.push(row.id);
+      continue;
+    }
+    await prisma.stayBooking.update({
+      where: { id: row.id },
+      data: { status: "cancelled" },
+    });
+    cancelled.push(row.id);
+  }
+
+  return { cancelled, count: cancelled.length };
+}
+
+/**
+ * Hard-delete StayBooking rows from Neon (removes from calendar/iCal permanently
+ * unless re-imported). Prefer cancelStayBookings for OTA history.
+ */
+export async function deleteStayBookings(
+  organisationId: string,
+  input: { platformIds?: string[]; externalWpIds?: number[] },
+): Promise<{ deleted: string[]; count: number }> {
+  if (!process.env.DATABASE_URL) {
+    return { deleted: [], count: 0 };
+  }
+  const { prisma } = await import("@dg/database");
+
+  const platformIds = (input.platformIds ?? [])
+    .map((id) => id.trim())
+    .filter(Boolean);
+  const externalWpIds = (input.externalWpIds ?? []).filter(
+    (id) => Number.isFinite(id) && id > 0,
+  );
+
+  if (!platformIds.length && !externalWpIds.length) {
+    return { deleted: [], count: 0 };
+  }
+
+  const rows = await prisma.stayBooking.findMany({
+    where: {
+      organisationId,
+      OR: [
+        ...(platformIds.length ? [{ id: { in: platformIds } }] : []),
+        ...(externalWpIds.length ? [{ externalWpId: { in: externalWpIds } }] : []),
+      ],
+    },
+    select: { id: true },
+  });
+  const ids = rows.map((r) => r.id);
+  if (!ids.length) return { deleted: [], count: 0 };
+
+  await prisma.stayBooking.deleteMany({
+    where: { organisationId, id: { in: ids } },
+  });
+
+  return { deleted: ids, count: ids.length };
+}
+
 /** Alias for listStayBookings */
 export const listAccBookings = listStayBookings;
 

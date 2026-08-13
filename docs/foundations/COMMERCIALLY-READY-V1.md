@@ -303,7 +303,7 @@ Park until Gate 3+ / Scale:
 | 24 | Social / community | Network Layer Phase 5 |
 | 25 | Marketplace (full third-party) | Scaffold ≠ product |
 | 26 | Accommodation App depth | After RE founding proof |
-| 27 | Services App depth | Templates, not separate trade Apps |
+| 27 | Services App depth | **DG OS for service businesses** (ServiceM8-class coverage on Universal Objects + AI) — not a FSM clone; templates, not separate trade Apps — [SERVICES-APP.md](./SERVICES-APP.md) |
 | 28 | Additional Industry Apps | Finance, Creator, Automotive, Commercial… |
 | 29 | White labelling | Design now; enable later |
 | 30 | Free public audit PLG | After honest audit surfaces solid |
@@ -425,6 +425,9 @@ See table above — walk the journey; confirm ops smoke.
 | 8 | **Prospecting engine** continuity in Command — first sales machine story | Founding outreach |
 
 ---
+
+**In-app ticks:** Command Centre → **Gate 1** (`/command/gate-1`).  
+**Staff doc:** Command Centre → Platform docs → [Gate 1 dogfood](/command/docs/gate-1-dogfood).
 
 ## Suggested next 7–10 days (Ben)
 

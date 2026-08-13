@@ -3,11 +3,10 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 /**
- * REA OAuth callback placeholder.
  * GET /api/connectors/rea/callback
  *
- * No token exchange until partner authorize/token docs are wired.
- * Redirects to Connectors with an honest error flash.
+ * Legacy placeholder — REA Partner Platform does not use Authorization Code.
+ * Redirects to Connectors with an honest message.
  */
 export async function GET(req: Request) {
   const base =
@@ -16,13 +15,12 @@ export async function GET(req: Request) {
   url.searchParams.set("rea", "error");
   url.searchParams.set(
     "message",
-    "REA OAuth callback is scaffolded but token exchange is not implemented — partner API access required",
+    "REA Partner Platform uses client_credentials — there is no OAuth callback. Bind an agency id on the REA connectors card.",
   );
-  // Preserve any provider error for debugging without claiming success.
   const incoming = new URL(req.url);
   const providerError = incoming.searchParams.get("error");
   if (providerError) {
-    url.searchParams.set("message", `REA OAuth error: ${providerError}`);
+    url.searchParams.set("message", `REA callback error: ${providerError}`);
   }
   return NextResponse.redirect(url);
 }

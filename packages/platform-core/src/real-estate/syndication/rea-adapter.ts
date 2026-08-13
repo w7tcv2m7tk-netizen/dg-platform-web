@@ -1,12 +1,11 @@
 /**
- * REA (realestate.com.au) syndication adapter scaffold.
- * Mirrors Domain's SyndicationChannelAdapter; fail closed until partner API is live.
+ * REA (realestate.com.au) syndication adapter.
+ * Partner Platform client_credentials + Listing Upload (REAXML).
  */
 
 import {
   ensureValidOrgReaAccessToken,
   reaCredentialsConfigured,
-  reaOAuthEndpointsConfigured,
 } from "../../connectors/rea/auth";
 import { publishPropertyToRea } from "../../connectors/rea/publish-property";
 import type {
@@ -25,15 +24,7 @@ export const reaSyndicationAdapter: SyndicationChannelAdapter = {
         ok: false,
         status: "error",
         message:
-          "REA OAuth not configured — set REA_CLIENT_ID + REA_CLIENT_SECRET after partner access",
-      };
-    }
-    if (!reaOAuthEndpointsConfigured()) {
-      return {
-        ok: false,
-        status: "error",
-        message:
-          "REA OAuth endpoints unknown — set REA_AUTH_AUTHORIZE_URL + REA_AUTH_TOKEN_URL from partner docs",
+          "REA Partner credentials not configured — set REA_CLIENT_ID + REA_CLIENT_SECRET on Vercel",
       };
     }
     if (!input.listingId || !input.propertyId) {
@@ -63,7 +54,7 @@ export const reaSyndicationAdapter: SyndicationChannelAdapter = {
     return {
       ok: true,
       status: "draft",
-      message: "REA org credentials OK — ready when listing upsert is implemented",
+      message: "REA org agency bound + platform token OK — ready to upload REAXML",
     };
   },
 
@@ -117,7 +108,7 @@ export const reaSyndicationAdapter: SyndicationChannelAdapter = {
       ok: false,
       status: "withdrawn",
       message:
-        "REA withdraw not implemented — use REA agency tools or wait for Listing Hub withdraw wiring",
+        "REA withdraw not wired in UI yet — use Listing Upload with status=withdrawn or REA agency tools",
     };
   },
 
@@ -127,7 +118,8 @@ export const reaSyndicationAdapter: SyndicationChannelAdapter = {
       status: "draft",
       externalId,
       lastSyncedAt: null,
-      lastError: "REA status poll not implemented — prefer webhooks when partner access allows",
+      lastError:
+        "REA status poll by externalId not implemented — use upload report by uploadId on the property placement",
     };
   },
 };

@@ -200,7 +200,7 @@ function buildConnectedSystems(connectors: OverviewConnectorProbes): OverviewCon
           ? ("connected" as const)
           : ("warning" as const);
 
-  return [
+  const systems: OverviewConnectedSystem[] = [
     {
       id: "website",
       label: "Website",
@@ -244,6 +244,10 @@ function buildConnectedSystems(connectors: OverviewConnectorProbes): OverviewCon
       detail: connectors.website?.siteLabel,
     },
   ];
+
+  return systems.sort((a, b) =>
+    a.label.localeCompare(b.label, "en", { sensitivity: "base" }),
+  );
 }
 
 function buildOpportunities(input: {

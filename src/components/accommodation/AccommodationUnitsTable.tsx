@@ -272,21 +272,59 @@ function OtaCalendarsSection({
         </label>
 
         <div className="space-y-1.5">
-          <FieldLabel>DigitalGate export URL</FieldLabel>
-          {u.ical_export_url ? (
+          <FieldLabel>DigitalGate export → Airbnb</FieldLabel>
+          {u.ical_export_airbnb_url || u.ical_export_url ? (
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <TextInput readOnly value={u.ical_export_url} className="text-xs" />
-              <CopyExportButton url={u.ical_export_url} />
+              <TextInput
+                readOnly
+                value={u.ical_export_airbnb_url || u.ical_export_url || ""}
+                className="text-xs"
+              />
+              <CopyExportButton url={u.ical_export_airbnb_url || u.ical_export_url || ""} />
             </div>
           ) : (
             <p className="rounded border border-dashed border-slate-700 px-3 py-2 text-xs text-slate-500">
-              Export URL unavailable — upgrade DG Platform plugin to v10.63.0+ on CVH so WordPress
-              returns <code className="text-slate-400">ical_export_url</code>.
+              Export URL unavailable — Sync units from WordPress (plugin v10.63.0+) so the unit has
+              a slug + calendar token.
             </p>
           )}
           <FieldHint>
-            Copy this into Airbnb and Booking.com as an imported calendar (outbound from
-            DigitalGate). Do not paste one OTA&apos;s calendar into the other.
+            Paste into Airbnb → Availability → Connect calendars → Import. Includes Booking.com /
+            direct / manual blocks from DigitalGate; omits Airbnb&apos;s own rows. Booking.com must
+            be imported into DigitalGate first (Sync Airbnb &amp; Booking.com) — this is not
+            Booking.com→Airbnb direct.
+          </FieldHint>
+        </div>
+
+        <div className="space-y-1.5">
+          <FieldLabel>DigitalGate export → Booking.com</FieldLabel>
+          {u.ical_export_bookingcom_url || u.ical_export_url ? (
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <TextInput
+                readOnly
+                value={u.ical_export_bookingcom_url || u.ical_export_url || ""}
+                className="text-xs"
+              />
+              <CopyExportButton url={u.ical_export_bookingcom_url || u.ical_export_url || ""} />
+            </div>
+          ) : null}
+          <FieldHint>
+            Paste into Booking.com Extranet → Sync calendars → Import calendar. Omits Booking.com
+            sourced rows; keeps Airbnb + direct blocks.
+            {u.ical_export_wp_url ? (
+              <>
+                {" "}
+                · Legacy WP link (often blocked for OTA bots):{" "}
+                <a
+                  href={u.ical_export_wp_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:underline"
+                >
+                  open
+                </a>
+              </>
+            ) : null}
             {u.ical_export_fallback_url ? (
               <>
                 {" "}
@@ -297,7 +335,7 @@ function OtaCalendarsSection({
                   rel="noopener noreferrer"
                   className="text-blue-400 hover:underline"
                 >
-                  Alternate link
+                  Alternate WP link
                 </a>
               </>
             ) : null}

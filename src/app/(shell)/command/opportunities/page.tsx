@@ -2,6 +2,7 @@ import Link from "next/link";
 import { listPlatformOpportunities } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
+import { OpportunityCreateTaskButton } from "@/components/command/OpportunityCreateTaskButton";
 
 function severityClass(severity: string) {
   switch (severity) {
@@ -119,12 +120,22 @@ export default async function CommandOpportunitiesPage() {
                             <p className="mt-1 text-xs text-slate-500">{item.impactLabel}</p>
                           ) : null}
                         </div>
-                        <Link
-                          href={item.href}
-                          className="shrink-0 rounded-full bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-500"
-                        >
-                          Open →
-                        </Link>
+                        <div className="flex shrink-0 flex-col items-end gap-2">
+                          <Link
+                            href={item.href}
+                            className="rounded-full bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-500"
+                          >
+                            Open →
+                          </Link>
+                          {item.executeHints?.includes("task") ? (
+                            <OpportunityCreateTaskButton
+                              organisationId={item.organisationId}
+                              opportunityId={item.id}
+                              title={item.recommendedAction || item.title}
+                              description={`${item.summary}\n\nWhy: ${item.reasons[0] ?? "Opportunity Engine"}`}
+                            />
+                          ) : null}
+                        </div>
                       </div>
                     </li>
                   ))}
@@ -157,9 +168,19 @@ export default async function CommandOpportunitiesPage() {
                           <h3 className="mt-1 font-medium text-white">{item.title}</h3>
                           <p className="mt-1 text-sm text-slate-400">{item.recommendedAction}</p>
                         </div>
-                        <Link href={item.href} className="text-sm text-sky-400 hover:underline">
-                          Open →
-                        </Link>
+                        <div className="flex shrink-0 flex-col items-end gap-2">
+                          <Link href={item.href} className="text-sm text-sky-400 hover:underline">
+                            Open →
+                          </Link>
+                          {item.executeHints?.includes("task") ? (
+                            <OpportunityCreateTaskButton
+                              organisationId={item.organisationId}
+                              opportunityId={item.id}
+                              title={item.recommendedAction || item.title}
+                              description={item.summary}
+                            />
+                          ) : null}
+                        </div>
                       </div>
                     </li>
                   ))}

@@ -439,8 +439,8 @@ export function isPlatformCheckoutSession(session: Stripe.Checkout.Session): boo
   return session.metadata?.dg_platform_checkout === "true";
 }
 
-/** True when subscription metadata marks a DigitalGate platform seat. */
+/** True when subscription metadata marks a DigitalGate platform seat (SaaS). */
 export function isPlatformSubscription(subscription: Stripe.Subscription): boolean {
   const meta = subscription.metadata ?? {};
-  return Boolean(meta.organisation_id || meta.dg_platform_tier);
+  return Boolean(meta.dg_platform_tier || meta.dg_platform_subscription === "true");
 }

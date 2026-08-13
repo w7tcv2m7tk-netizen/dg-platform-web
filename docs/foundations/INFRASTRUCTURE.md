@@ -16,7 +16,7 @@
 
 | Rule | Detail |
 |------|--------|
-| **What it is** | Provider-agnostic **Core Platform Service** for domains, DNS, hosting, SSL, email |
+| **What it is** | Provider-agnostic **Infrastructure** layer for domains, DNS, hosting, SSL, email ([APP-HIERARCHY.md](./APP-HIERARCHY.md)) |
 | **What it is not** | Not an industry App; not bolted onto Website Builder |
 | **First provider** | **Dreamscape** — strong V1 foundation; **keep it; don’t swap providers** |
 | **Customer UX** | DigitalGate Domains / Hosting / Email / DNS / SSL — **never** say “Dreamscape” |

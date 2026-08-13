@@ -9,6 +9,10 @@ type ReaPlacement = {
   status?: string;
   providerAdId?: string;
   reaAgencyId?: string | null;
+  uploadId?: string | null;
+  listingId?: string | null;
+  progress?: string | null;
+  result?: string | null;
   lastSyncedAt?: string | null;
   lastError?: string | null;
   path?: string | null;
@@ -78,17 +82,15 @@ export function ReaSyndicationPanel({
       router.refresh();
       return;
     }
-    // Should not succeed until upsert is implemented — still surface honestly.
-    setMessage(json.data?.publish?.message ?? "REA listing queued");
+    setMessage(json.data?.publish?.message ?? "REA listing queued (pending)");
     router.refresh();
     await loadStatus();
   }
 
   const configured = Boolean(platform?.configured);
-  const endpointsReady = Boolean(platform?.oauthEndpointsReady);
   const connected = Boolean(org?.connected);
   const publishReady = Boolean(platform?.publishImplemented);
-  const canPublish = configured && endpointsReady && connected && publishReady;
+  const canPublish = configured && connected && publishReady;
 
   return (
     <div className="space-y-3">
@@ -97,37 +99,29 @@ export function ReaSyndicationPanel({
           <p>Checking REA connection…</p>
         ) : !configured ? (
           <p>
-            REA partner credentials not on this deployment.{" "}
+            REA Partner credentials not on this deployment.{" "}
             <Link href="/dashboard/settings/connectors" className="text-blue-400 hover:underline">
               Settings → Connectors
             </Link>{" "}
-            shows status. Publish stays disabled until access is granted.
-          </p>
-        ) : !endpointsReady ? (
-          <p>
-            REA client id/secret set, but OAuth endpoints are not configured yet (awaiting partner
-            docs). Connect / Publish remain blocked.
+            shows status.
           </p>
         ) : connected ? (
           <p>
             REA:{" "}
             <span className={org?.probe && !org.probe.ok ? "text-amber-400" : "text-sky-300"}>
-              Tokens stored
+              Agency {org?.reaAgencyId}
             </span>
-            {org?.reaAgencyId ? (
-              <span className="text-slate-500"> · agency {org.reaAgencyId}</span>
-            ) : null}
-            {!publishReady ? (
-              <span className="text-amber-400"> · upsert not implemented</span>
+            {org?.probe && !org.probe.ok ? (
+              <span className="text-amber-400"> · check activation</span>
             ) : null}
           </p>
         ) : (
           <p>
-            REA not connected.{" "}
+            REA agency not activated.{" "}
             <Link href="/dashboard/settings/connectors" className="text-blue-400 hover:underline">
-              Connect REA
+              Bind agency id
             </Link>{" "}
-            when OAuth is live (partner access required).
+            after Ignite / Change of Uploader.
           </p>
         )}
       </div>
@@ -152,6 +146,22 @@ export function ReaSyndicationPanel({
               >
                 {placement.status}
               </span>
+              {placement.progress ? (
+                <span className="text-slate-500"> · {placement.progress}</span>
+              ) : null}
+              {placement.result ? (
+                <span className="text-slate-500"> · {placement.result}</span>
+              ) : null}
+            </li>
+          ) : null}
+          {placement.uploadId ? (
+            <li className="font-mono text-xs text-slate-500">
+              uploadId: {placement.uploadId}
+            </li>
+          ) : null}
+          {placement.listingId ? (
+            <li className="font-mono text-xs text-slate-500">
+              listingId: {placement.listingId}
             </li>
           ) : null}
           {placement.providerAdId ? (
@@ -173,21 +183,20 @@ export function ReaSyndicationPanel({
         title={
           !configured
             ? "REA credentials not configured"
-            : !endpointsReady
-              ? "REA OAuth endpoints unknown"
-              : !connected
-                ? "Connect REA first"
-                : !publishReady
-                  ? "REA listing upsert not implemented yet"
-                  : undefined
+            : !connected
+              ? "Activate REA agency first"
+              : !publishReady
+                ? "REA listing upload not ready"
+                : undefined
         }
       >
         {pending ? "Publishing to REA…" : "Publish to REA"}
       </button>
 
       <p className="text-xs text-slate-500">
-        Listing Hub path mirrors Domain syndication. Until partner API smoke is green, Connect and
-        Publish stay disabled — DigitalGate will not show a fake “published” status.
+        Upload accept sets placement to <span className="text-slate-400">pending</span> — never
+        “published on REA” until a report confirms NEW/PROCESSED (and listings are live for the
+        agency).
       </p>
 
       {message ? <p className="text-sm text-emerald-400">{message}</p> : null}

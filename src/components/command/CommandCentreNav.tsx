@@ -3,6 +3,7 @@ import { COMMAND_CENTRE_ROUTES } from "@dg/platform-core";
 
 const NAV = [
   { href: COMMAND_CENTRE_ROUTES.overview, label: "Priorities", id: "overview" },
+  { href: COMMAND_CENTRE_ROUTES.gate1, label: "Gate 1", id: "gate1" },
   { href: COMMAND_CENTRE_ROUTES.opportunities, label: "Opportunities", id: "opportunities" },
   { href: COMMAND_CENTRE_ROUTES.growthEngine, label: "Prospecting", id: "growth" },
   { href: COMMAND_CENTRE_ROUTES.advisor, label: "Recommended Actions", id: "advisor" },

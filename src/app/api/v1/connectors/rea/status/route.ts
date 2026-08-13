@@ -1,10 +1,12 @@
 import {
   bootConnectorEngine,
   getOrgReaConnectorTokens,
+  getReaOAuthConfig,
   probeOrgReaConnection,
   probeReaConnection,
   reaCredentialsConfigured,
   reaOAuthEndpointsConfigured,
+  reaPublishImplemented,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
@@ -14,15 +16,16 @@ export const dynamic = "force-dynamic";
 
 bootConnectorEngine();
 
-/** GET /api/v1/connectors/rea/status — platform + org REA connection health (honest scaffold). */
+/** GET /api/v1/connectors/rea/status — platform + org REA connection health. */
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const configured = reaCredentialsConfigured();
   const oauthEndpointsReady = reaOAuthEndpointsConfigured();
+  const cfg = getReaOAuthConfig();
   const orgTokens = await getOrgReaConnectorTokens(session.organisationId);
-  const connected = Boolean(orgTokens?.accessToken || orgTokens?.refreshToken);
+  const connected = Boolean(orgTokens?.reaAgencyId?.trim());
 
   let platformProbe: Awaited<ReturnType<typeof probeReaConnection>> | null = null;
   if (configured) {
@@ -39,15 +42,14 @@ export async function GET(req: Request) {
       platform: {
         configured,
         oauthEndpointsReady,
+        authMode: "client_credentials",
         clientIdSet: Boolean(process.env.REA_CLIENT_ID?.trim()),
         secretSet: Boolean(process.env.REA_CLIENT_SECRET?.trim()),
-        redirectUri:
-          process.env.REA_REDIRECT_URI?.trim() ||
-          "https://app.digitalgate.com.au/api/connectors/rea/callback",
-        apiBaseUrl: process.env.REA_API_BASE_URL?.trim() || "",
-        authorizeUrlSet: Boolean(process.env.REA_AUTH_AUTHORIZE_URL?.trim()),
-        tokenUrlSet: Boolean(process.env.REA_AUTH_TOKEN_URL?.trim()),
-        publishImplemented: false,
+        apiBaseUrl: cfg.ok
+          ? cfg.config.apiBaseUrl
+          : process.env.REA_API_BASE_URL?.trim() || "https://api.realestate.com.au",
+        tokenUrlSet: oauthEndpointsReady,
+        publishImplemented: reaPublishImplemented(),
         probe: platformProbe,
       },
       organisation: {

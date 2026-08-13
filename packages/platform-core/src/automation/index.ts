@@ -3,4 +3,4 @@ export {
   listAutomationRules,
   runAutomationForEvent,
 } from "./engine";
-export { bootDefaultAutomations } from "./defaults";
+export { bootDefaultAutomations, scanOverdueCommerceInvoices } from "./defaults";

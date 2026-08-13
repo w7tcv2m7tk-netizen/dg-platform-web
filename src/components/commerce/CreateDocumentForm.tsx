@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type DocKind = "quote" | "invoice";
 
@@ -9,6 +9,16 @@ type LineDraft = {
   description: string;
   quantity: string;
   unitAmount: string;
+  productId?: string;
+};
+
+type CatalogueProduct = {
+  id: string;
+  name: string;
+  description: string | null;
+  unitAmountCents: number;
+  taxRateBps: number | null;
+  active: boolean;
 };
 
 const AU_GST_BPS = 1000;
@@ -86,6 +96,24 @@ export function CreateDocumentForm({
       unitAmount: String(defaultAmountDollars),
     },
   ]);
+  const [catalogue, setCatalogue] = useState<CatalogueProduct[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/v1/commerce/products")
+      .then((res) => res.json())
+      .then((json: { data?: CatalogueProduct[] }) => {
+        if (!cancelled && Array.isArray(json.data)) {
+          setCatalogue(json.data.filter((p) => p.active !== false));
+        }
+      })
+      .catch(() => {
+        /* catalogue optional */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const endpoint = kind === "quote" ? "/api/v1/commerce/quotes" : "/api/v1/commerce/invoices";
   const label = kind === "quote" ? "quote" : "invoice";
@@ -96,6 +124,23 @@ export function CreateDocumentForm({
 
   function updateLine(index: number, patch: Partial<LineDraft>) {
     setLines((prev) => prev.map((l, i) => (i === index ? { ...l, ...patch } : l)));
+  }
+
+  function applyProduct(index: number, productId: string) {
+    if (!productId) {
+      updateLine(index, { productId: undefined });
+      return;
+    }
+    const product = catalogue.find((p) => p.id === productId);
+    if (!product) return;
+    updateLine(index, {
+      productId: product.id,
+      description: product.description?.trim() || product.name,
+      unitAmount: (product.unitAmountCents / 100).toFixed(2),
+    });
+    if (product.taxRateBps != null) {
+      setApplyGst(product.taxRateBps > 0);
+    }
   }
 
   async function submit(e: React.FormEvent) {
@@ -117,6 +162,7 @@ export function CreateDocumentForm({
           unitAmountCents: Math.round(dollars * 100),
           taxCode: applyGst ? "GST" : "GST_FREE",
           taxRateBps: applyGst ? AU_GST_BPS : 0,
+          productId: line.productId,
         };
       })
       .filter(Boolean);
@@ -191,6 +237,27 @@ export function CreateDocumentForm({
             key={index}
             className="grid gap-2 rounded-lg border border-slate-800 bg-slate-950/40 p-3 sm:grid-cols-12"
           >
+            {catalogue.length > 0 ? (
+              <label className="block text-sm sm:col-span-12">
+                <span className="text-slate-400">From catalogue</span>
+                <select
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
+                  value={line.productId ?? ""}
+                  onChange={(e) => applyProduct(index, e.target.value)}
+                >
+                  <option value="">Custom line…</option>
+                  {catalogue.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.name} —{" "}
+                      {(product.unitAmountCents / 100).toLocaleString("en-AU", {
+                        style: "currency",
+                        currency: "AUD",
+                      })}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             <label className="block text-sm sm:col-span-6">
               <span className="text-slate-400">Description</span>
               <input

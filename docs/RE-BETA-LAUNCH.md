@@ -44,7 +44,7 @@ Not for: agencies that need portal syndication, full marketing automation, or Ne
 ## What’s OUT of beta (do not promise)
 
 - **Network Marketplace / Neon Acc SoT** — separate track
-- **Portal syndication** — Domain sandbox MVP; **REA partner verified**, publishing integration in progress (not live publish). Do not promise live REA/Domain Production syndication in founding offers.
+- **Portal syndication** — Domain sandbox MVP; **REA Partner Platform wired** (agency activate + REAXML upload → pending). Do not promise live “published on REA/Domain Production” in founding offers until smoke confirms.
 - **Full marketing campaigns / automation** — Marketing app may appear installed; treat as non-beta
 - **Public capture forms hosted only on Gen 2** — public property reports & enquiries still **WordPress**
 - **Multi-agency franchise / office hierarchy** — single org per agency for now

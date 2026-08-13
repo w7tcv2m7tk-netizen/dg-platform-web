@@ -4,11 +4,13 @@ import {
   handleConnectAccountUpdated,
   handleConnectTransferFailure,
   handlePlatformSubscriptionLifecycle,
+  isCommerceCustomerSubscription,
   isPlatformCheckoutSession,
   isPlatformSubscription,
   processPaymentWebhookEvent,
   provisionFromPlatformCheckout,
   requirePaymentConnector,
+  syncCommerceSubscriptionFromStripe,
 } from "@dg/platform-core";
 import type Stripe from "stripe";
 import { NextResponse } from "next/server";
@@ -44,24 +46,37 @@ export async function POST(req: Request) {
     }
 
     if (
-      (event.type === "subscription.cancelled" ||
+      (event.type === "subscription.created" ||
+        event.type === "subscription.cancelled" ||
         event.type === "subscription.updated") &&
       event.raw
     ) {
       const subscription = event.raw as Stripe.Subscription;
-      // Resolve by subscription metadata or org.billingCustomerId — skip inventing
-      // updates when neither matches (commerce noise returns ok:false).
+      const result: Record<string, unknown> = {};
+
       if (
         isPlatformSubscription(subscription) ||
-        event.organisationId ||
-        event.providerCustomerId
+        (event.organisationId && subscription.metadata?.dg_platform_tier)
       ) {
         const lifecycle = await handlePlatformSubscriptionLifecycle(
           subscription,
           event.type === "subscription.cancelled" ? "deleted" : "updated",
         );
+        result.platform = lifecycle;
         console.info("[stripe webhook] platform subscription:", event.type, lifecycle);
-        return NextResponse.json({ received: true, subscription: lifecycle });
+      }
+
+      if (isCommerceCustomerSubscription(subscription)) {
+        const commerce = await syncCommerceSubscriptionFromStripe({
+          subscription,
+          organisationId: event.organisationId,
+        });
+        result.commerce = commerce;
+        console.info("[stripe webhook] commerce subscription:", event.type, commerce);
+      }
+
+      if (Object.keys(result).length > 0) {
+        return NextResponse.json({ received: true, subscription: result });
       }
     }
 

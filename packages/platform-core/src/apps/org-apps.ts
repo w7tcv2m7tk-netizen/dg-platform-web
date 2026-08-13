@@ -109,8 +109,16 @@ export function resolveEnabledAppIds(
     }
   }
 
-  // Honest Growth slice (incl. Reputation) — available when shipped enabled.
-  for (const id of ["seo", "ai-visibility", "analytics", "reviews"] as const) {
+  // Honest Growth slice — available when shipped enabled in the registry.
+  for (const id of [
+    "seo",
+    "ai-visibility",
+    "analytics",
+    "reviews",
+    "social",
+    "marketing",
+    "ai-communications",
+  ] as const) {
     if (platformApps.get(id)?.enabled && !next.includes(id)) {
       next.push(id);
     }

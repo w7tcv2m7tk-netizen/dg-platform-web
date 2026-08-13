@@ -844,8 +844,14 @@ export type WpAccUnitProp = {
   airbnb_ical_url?: string;
   /** Booking.com calendar import URL. Requires plugin v10.61.0+. */
   bookingcom_ical_url?: string;
-  /** DigitalGate .ics export — paste into OTAs. Requires plugin v10.61.0+. */
+  /** DigitalGate .ics export — paste into OTAs (Gen 2 public URL preferred). */
   ical_export_url?: string;
+  /** Airbnb-optimised export (`?for=airbnb`) — omits Airbnb-sourced blocks. */
+  ical_export_airbnb_url?: string;
+  /** Booking.com-optimised export (`?for=bookingcom`). */
+  ical_export_bookingcom_url?: string;
+  /** Legacy CVH WordPress `/ical/...` URL (ModSecurity may 406 OTA bots). */
+  ical_export_wp_url?: string;
   ical_export_fallback_url?: string;
   airbnb_last_sync?: string | null;
   bookingcom_last_sync?: string | null;

@@ -2,22 +2,31 @@
 
 import { useEffect, useState } from "react";
 
+type ReaIntegration = {
+  ownerId: string;
+  ownerType?: string;
+  scopes: string[];
+  integrationId?: string;
+};
+
 type ReaStatus = {
   platform: {
     configured: boolean;
     oauthEndpointsReady: boolean;
+    authMode?: string;
     clientIdSet: boolean;
     secretSet: boolean;
-    redirectUri: string;
     apiBaseUrl: string;
-    authorizeUrlSet: boolean;
     tokenUrlSet: boolean;
     publishImplemented: boolean;
     probe: {
       ok: boolean;
       configured: boolean;
-      oauthEndpointsReady?: boolean;
+      tokenOk?: boolean;
+      apiOk?: boolean;
+      probePath?: string;
       message: string;
+      integrations?: ReaIntegration[];
     } | null;
   };
   organisation: {
@@ -33,6 +42,7 @@ type ReaStatus = {
       ok: boolean;
       connected: boolean;
       message: string;
+      listingWriteGranted?: boolean;
     } | null;
   } | null;
 };
@@ -48,6 +58,7 @@ export function ReaConnectorPanel({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [agencyId, setAgencyId] = useState("");
 
   async function load() {
     setLoading(true);
@@ -59,7 +70,31 @@ export function ReaConnectorPanel({
       setError(json.error?.message ?? "Could not load REA status");
       return;
     }
-    setStatus(json.data as ReaStatus);
+    const data = json.data as ReaStatus;
+    setStatus(data);
+    if (data.organisation?.reaAgencyId && !agencyId) {
+      setAgencyId(data.organisation.reaAgencyId);
+    }
+  }
+
+  async function activate() {
+    setBusy(true);
+    setError(null);
+    const res = await fetch("/api/v1/connectors/rea/activate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reaAgencyId: agencyId.trim() }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) {
+      setError(json.error?.message ?? "Could not activate REA agency");
+      return;
+    }
+    if (json.data?.warning) {
+      setError(json.data.warning);
+    }
+    await load();
   }
 
   async function disconnect() {
@@ -72,37 +107,39 @@ export function ReaConnectorPanel({
       setError(json.error?.message ?? "Could not disconnect REA");
       return;
     }
+    setAgencyId("");
     await load();
   }
 
   useEffect(() => {
     void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initial load only
   }, []);
 
   const configured = Boolean(status?.platform.configured);
-  const endpointsReady = Boolean(status?.platform.oauthEndpointsReady);
-  const connectTitle = !configured
-    ? "Set REA_CLIENT_ID + REA_CLIENT_SECRET after partner access"
-    : !endpointsReady
-      ? "Set REA_AUTH_AUTHORIZE_URL + REA_AUTH_TOKEN_URL from partner docs"
-      : "OAuth authorize flow not live yet — Connect stays disabled until partner smoke";
+  const connected = Boolean(status?.organisation?.connected);
+  const integrations = status?.platform.probe?.integrations ?? [];
+  const platformProbeOk = Boolean(status?.platform.probe?.ok);
 
   return (
     <div className="dg-card space-y-4">
-      <div>
-        <h2 className="font-semibold text-white">realestate.com.au (REA)</h2>
-        <p className="mt-1 text-sm text-slate-400">
-          Listing Hub syndication scaffold — partner API access required. No fake “connected /
-          published” until OAuth + upsert smoke.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-wide text-slate-500">Property</p>
+          <h2 className="font-semibold text-white">realestate.com.au (REA)</h2>
+          <p className="mt-1 text-sm text-slate-400">
+            Partner Platform · client_credentials · Listing Upload (REAXML). Agency
+            activation is via Ignite / Change of Uploader — not a user OAuth redirect.
+          </p>
+        </div>
       </div>
 
       {flash === "connected" ? (
-        <p className="text-sm text-emerald-400">REA connected.</p>
+        <p className="text-sm text-emerald-400">REA agency activated.</p>
       ) : null}
       {flash === "error" ? (
         <p className="text-sm text-amber-400">
-          {flashMessage || "REA connect failed — see message above."}
+          {flashMessage || "REA connect note — see message above."}
         </p>
       ) : null}
 
@@ -112,63 +149,109 @@ export function ReaConnectorPanel({
         <ul className="space-y-2 text-sm text-slate-400">
           <li>
             Platform credentials:{" "}
-            <span className={configured ? "text-sky-300" : "text-amber-400"}>
-              {configured ? "Set" : "Missing"}
+            <span className={configured ? "text-emerald-400" : "text-amber-400"}>
+              {configured ? "Configured" : "Missing REA_CLIENT_ID / SECRET"}
             </span>
+          </li>
+          <li className="font-mono text-xs text-slate-500">
+            API: {status.platform.apiBaseUrl} · auth:{" "}
+            {status.platform.authMode || "client_credentials"}
           </li>
           <li>
-            OAuth endpoints:{" "}
-            <span className={endpointsReady ? "text-sky-300" : "text-amber-400"}>
-              {endpointsReady ? "Configured" : "Unknown (awaiting partner docs)"}
+            Listing upload:{" "}
+            <span
+              className={
+                status.platform.publishImplemented ? "text-sky-300" : "text-amber-400"
+              }
+            >
+              {status.platform.publishImplemented
+                ? "Wired (accept → pending)"
+                : "Not implemented"}
             </span>
-          </li>
-          <li>
-            Listing upsert:{" "}
-            <span className="text-amber-400">
-              {status.platform.publishImplemented ? "Ready" : "Not implemented"}
-            </span>
-          </li>
-          <li className="font-mono text-xs text-slate-500 break-all">
-            Redirect: {status.platform.redirectUri}
           </li>
           {status.platform.probe ? (
-            <li className="text-amber-400/90">{status.platform.probe.message}</li>
+            <li>
+              Platform probe:{" "}
+              <span className={platformProbeOk ? "text-emerald-400" : "text-amber-400"}>
+                {status.platform.probe.message}
+              </span>
+            </li>
+          ) : null}
+          {integrations.length > 0 ? (
+            <li className="text-xs text-slate-500">
+              Integrations:{" "}
+              {integrations
+                .map((i) =>
+                  i.scopes.length
+                    ? `${i.ownerId} [${i.scopes.join(", ")}]`
+                    : i.ownerId,
+                )
+                .join(" · ")}
+            </li>
           ) : null}
           <li>
-            Organisation:{" "}
-            {status.organisation?.connected ? (
-              <span className="text-sky-300">Tokens stored</span>
+            Organisation ({status.organisation?.name}):{" "}
+            {connected ? (
+              <span className="text-emerald-400">
+                Agency {status.organisation?.reaAgencyId}
+                {status.organisation?.connectedAt
+                  ? ` · ${new Date(status.organisation.connectedAt).toLocaleString("en-AU")}`
+                  : ""}
+              </span>
             ) : (
-              <span className="text-slate-500">Not connected</span>
+              <span className="text-slate-500">Not activated — bind agency id below</span>
             )}
           </li>
           {status.organisation?.probe ? (
-            <li className="text-amber-400/90">{status.organisation.probe.message}</li>
+            <li
+              className={
+                status.organisation.probe.ok ? "text-emerald-400/90" : "text-amber-400/90"
+              }
+            >
+              Org probe: {status.organisation.probe.message}
+            </li>
+          ) : null}
+          {status.organisation?.lastError ? (
+            <li className="text-amber-400">Last note: {status.organisation.lastError}</li>
           ) : null}
         </ul>
       ) : null}
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs text-slate-500">
+          REA agency id (agentID)
+          <input
+            type="text"
+            value={agencyId}
+            onChange={(e) => setAgencyId(e.target.value)}
+            placeholder="e.g. XYZABC"
+            className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            disabled={!configured || busy}
+          />
+        </label>
         <button
           type="button"
-          disabled
-          className="rounded-full bg-slate-700 px-4 py-2 text-sm font-medium text-white opacity-50"
-          title={connectTitle}
+          disabled={!configured || busy || !agencyId.trim()}
+          onClick={() => void activate()}
+          className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+          title={
+            !configured
+              ? "Set REA_CLIENT_ID + REA_CLIENT_SECRET on Vercel"
+              : "Bind this organisation to a REA agency id"
+          }
         >
-          Connect REA account
+          {busy ? "Saving…" : connected ? "Update agency" : "Activate agency"}
         </button>
-
-        {status?.organisation?.connected ? (
+        {connected ? (
           <button
             type="button"
             disabled={busy}
             onClick={() => void disconnect()}
             className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 disabled:opacity-50"
           >
-            {busy ? "Disconnecting…" : "Disconnect"}
+            Disconnect
           </button>
         ) : null}
-
         <button
           type="button"
           disabled={loading}
@@ -182,9 +265,9 @@ export function ReaConnectorPanel({
       {error ? <p className="text-sm text-amber-400">{error}</p> : null}
 
       <p className="text-xs text-slate-500">
-        Differs from Domain: Domain has a public developer portal + Listings Management sandbox;
-        REA is grant-gated. See docs/connectors/REA.md. Route reserved:{" "}
-        <span className="font-mono">/api/connectors/rea/connect</span>.
+        Differs from Domain: Domain uses Authorization Code per agency user; REA uses shared
+        Partner credentials + per-agency Ignite activation. Docs:{" "}
+        <span className="font-mono">docs/connectors/REA.md</span>.
       </p>
     </div>
   );

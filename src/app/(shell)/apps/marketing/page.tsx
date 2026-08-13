@@ -24,11 +24,11 @@ export default async function MarketingOverviewPage() {
       </header>
       <main className="dg-page-main space-y-6">
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-slate-300">
-          <p className="font-medium text-amber-200">Coming later — not a beta Growth loop</p>
+          <p className="font-medium text-amber-200">Preview enabled — campaign engine later</p>
           <p className="mt-1 text-slate-400">
-            Campaigns, channel mix, and agency audits are scaffolded routes only. Use SEO, AI
-            Visibility, Analytics, and Opportunities for growth work in this beta. No decorative
-            Twin score cards here.
+            Marketing is on for founding orgs as an honest redirect hub. Campaigns and channel mix
+            remain scaffolded. Use SEO, AI Visibility, Analytics, and Opportunities for growth work
+            now — no decorative Twin score cards here.
           </p>
         </div>
 

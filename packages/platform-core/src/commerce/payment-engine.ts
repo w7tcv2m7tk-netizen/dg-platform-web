@@ -382,7 +382,7 @@ export async function getCommerceFinancialSnapshot(organisationId: string) {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const yearStart = new Date(now.getFullYear(), 0, 1);
 
-  const [paymentsMtd, paymentsYtd, openInvoices, overdueInvoices, subscriptions] =
+  const [paymentsMtd, paymentsYtd, openInvoices, overdueInvoices, subscriptionAgg] =
     await Promise.all([
       prisma.commercePayment.aggregate({
         where: {
@@ -414,10 +414,20 @@ export async function getCommerceFinancialSnapshot(organisationId: string) {
         },
         _sum: { totalCents: true },
       }),
-      prisma.commerceSubscription.count({
-        where: { organisationId, status: "active" },
+      prisma.commerceSubscription.findMany({
+        where: {
+          organisationId,
+          status: { in: ["trialing", "active", "past_due"] },
+        },
+        select: { amountCents: true, interval: true },
       }),
     ]);
+
+  const { amountToMonthlyMrrCents } = await import("./catalog-engine");
+  const mrrCents = subscriptionAgg.reduce(
+    (sum, row) => sum + amountToMonthlyMrrCents(row.amountCents, row.interval),
+    0,
+  );
 
   return {
     organisationId,
@@ -426,8 +436,8 @@ export async function getCommerceFinancialSnapshot(organisationId: string) {
     revenueYtdCents: paymentsYtd._sum.amountCents ?? 0,
     outstandingArCents: openInvoices._sum.totalCents ?? 0,
     overdueArCents: overdueInvoices._sum.totalCents ?? 0,
-    mrrCents: 0,
-    activeSubscriptions: subscriptions,
+    mrrCents,
+    activeSubscriptions: subscriptionAgg.length,
     failedPayments30d: 0,
     refunds30dCents: 0,
     avgPaymentDays: null,

@@ -9,6 +9,7 @@ import type { Prisma } from "@dg/database";
 import { organisationHasFlag } from "../features/flags";
 import { resolveOrgWordPressConnector } from "../connectors/wordpress/org-connector";
 import { sortAccommodationUnitsByDisplayOrder } from "./display-order";
+import { attachPlatformIcalUrls } from "./ical-export";
 
 export {
   CVH_UNIT_DISPLAY_ORDER,
@@ -206,6 +207,10 @@ function serializeUnit(row: {
 
 /** Shape expected by existing Gen 2 Acc UI (WP property row). */
 export function unitToWpProp(item: AccommodationUnitListItem): Record<string, unknown> {
+  const icalUrls = attachPlatformIcalUrls({
+    slug: item.slug,
+    icalExportUrl: item.icalExportUrl,
+  });
   return {
     id: item.externalWpId ?? 0,
     platform_id: item.id,
@@ -230,7 +235,11 @@ export function unitToWpProp(item: AccommodationUnitListItem): Record<string, un
     gallery_urls: item.galleryUrls,
     airbnb_ical_url: item.airbnbIcalUrl ?? undefined,
     bookingcom_ical_url: item.bookingcomIcalUrl ?? undefined,
-    ical_export_url: item.icalExportUrl ?? undefined,
+    // Prefer Gen 2 public export (bypasses CVH ModSecurity 406 for OTA bots).
+    ical_export_url: icalUrls.ical_export_url ?? item.icalExportUrl ?? undefined,
+    ical_export_airbnb_url: icalUrls.ical_export_airbnb_url,
+    ical_export_bookingcom_url: icalUrls.ical_export_bookingcom_url,
+    ical_export_wp_url: icalUrls.ical_export_wp_url,
     airbnb_id: item.airbnbId ?? undefined,
     bookingcom_id: item.bookingcomId ?? undefined,
     housekeeping_status: item.housekeepingStatus,

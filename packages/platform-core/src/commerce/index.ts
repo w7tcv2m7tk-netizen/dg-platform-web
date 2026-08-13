@@ -27,6 +27,27 @@ export {
   markInvoicePaid,
 } from "./document-engine";
 export {
+  listProducts,
+  getProduct,
+  createProduct,
+  updateProduct,
+  archiveProduct,
+  listSubscriptions,
+  getOrganisationMrr,
+  amountToMonthlyMrrCents,
+  upsertCommerceSubscription,
+} from "./catalog-engine";
+export type {
+  CommerceProductRow,
+  CommerceSubscriptionRow,
+  CreateProductInput,
+  UpdateProductInput,
+} from "./catalog-engine";
+export {
+  syncCommerceSubscriptionFromStripe,
+  isCommerceCustomerSubscription,
+} from "./subscription-sync";
+export {
   parseReportRange,
   getProfitAndLossReport,
   getGstReport,

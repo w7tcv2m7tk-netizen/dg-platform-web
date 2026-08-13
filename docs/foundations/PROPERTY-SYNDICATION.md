@@ -1,6 +1,6 @@
 # Property Syndication Engine
 
-**Status:** Architecture accepted · Domain OAuth + publish MVP · **REA Partner verified** · publishing integration **in progress** (not live publish)  
+**Status:** Architecture accepted · Domain OAuth + publish MVP · **REA Partner verified** · Partner Platform client + Listing Upload **wired** (agency activate + REAXML accept → `pending`; not live “published” until report/listings confirm)  
 **App:** Real Estate (capability of RE App — **not** platform-wide RE-only design)  
 **Parent:** [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) — Property & Listing Syndication is a **capability** of the Connector Engine, not a one-off portal integration.  
 **Goal:** DigitalGate Listing Hub is SoT — create once, syndicate to REA / Domain / Website / social / future portals.
@@ -19,7 +19,7 @@ Parallel pattern: Accommodation OTA channels — [ACC-CHANNEL-CONNECTIVITY.md](.
 
 Universal platform stays industry-agnostic: syndication is an **RE App capability**. Other verticals get their own engines later (vehicles → automotive marketplaces, products → commerce channels, accommodation → OTAs).
 
-**RE connector capability tiers** (REA · Domain · GBP · PropTrack · CoreLogic · PriceFinder · agency PMS) are in [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md). **Platform build order / DigitalGate 15:** [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md). This doc is the Domain MVP + Listing Hub detail. **REA scaffold:** [../connectors/REA.md](../connectors/REA.md).
+**RE connector capability tiers** (REA · Domain · GBP · PropTrack · CoreLogic · PriceFinder · agency PMS) are in [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md). **Platform build order / DigitalGate 15:** [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md). This doc is the Domain MVP + Listing Hub detail. **REA:** [../connectors/REA.md](../connectors/REA.md).
 
 ---
 
@@ -189,7 +189,7 @@ See Core Object Spec § Listing (added with this design).
 | Channel | Example UI |
 |---------|------------|
 | Domain | 🟢 Published · Last synced 10:42am |
-| REA | 🟡 Partner verified · agency activation next · publishing in progress (Connect & Publish disabled until smoke) |
+| REA | 🟡 Partner verified · client_credentials + REAXML upload wired · agency activate per org · pending until report/live confirm |
 | Portal X | 🔴 Error — missing suburb |
 | Website | 🟢 Live |
 
@@ -215,7 +215,7 @@ Ops:
 ```
 
 Domain Stage 1 = Domain adapter over Listings Management API.  
-REA Stage 0 = connector + syndication adapter + status UI — **partner verified**; Stage 1 = agency activation + OAuth + upsert smoke ([REA.md](../connectors/REA.md)). Public copy: **Realestate.com.au integration — Partner-enabled** until listings flow live.
+REA Stage 0–1 = client credentials + integrations probe + agency bind + Listing Upload (REAXML) → `pending` ([REA.md](../connectors/REA.md)). Public copy: **Realestate.com.au integration — Partner-enabled** until Roe listings process cleanly and appear as expected.
 
 ---
 
@@ -279,13 +279,14 @@ packages/platform-core/src/connectors/domain/
   publish-property.ts  # Property → Domain publish
 
 packages/platform-core/src/connectors/rea/
-  auth.ts              # Config + token storage + probes (OAuth TBD)
-  publish-property.ts  # Fail-closed publish scaffold
+  auth.ts              # Client credentials + integrations probe + agency activate
+  listings.ts          # REAXML builder + upload/report
+  publish-property.ts  # Property → Listing Upload → pending
 
 packages/platform-core/src/real-estate/syndication/
   types.ts
   domain-adapter.ts    # SyndicationChannelAdapter
-  rea-adapter.ts       # SyndicationChannelAdapter (scaffold)
+  rea-adapter.ts       # SyndicationChannelAdapter (Listing Upload)
   index.ts
 
 src/app/api/v1/properties/[id]/syndicate/domain/route.ts
@@ -324,4 +325,4 @@ Same idea: **platform core objects + app-owned channel adapters**.
 - [ACC-CHANNEL-CONNECTIVITY.md](./ACC-CHANNEL-CONNECTIVITY.md) — OTA parallel  
 - [RE-BETA-LAUNCH.md](../RE-BETA-LAUNCH.md) — agency beta  
 - Code: `packages/platform-core/src/connectors/domain/` · `packages/platform-core/src/connectors/rea/` · `packages/platform-core/src/real-estate/syndication/`
-- REA scaffold: [../connectors/REA.md](../connectors/REA.md)
+- REA connector: [../connectors/REA.md](../connectors/REA.md)

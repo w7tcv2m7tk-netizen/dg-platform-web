@@ -117,6 +117,6 @@ export async function getServicesOverview(
     nextJobs: nextJobs.items,
     recentJobs: recent.items,
     honestyNote:
-      "Closed beta — jobs, scheduling, stages, and templates are live. Quotes → Commerce, customers → CRM, team → Settings. No AI dispatcher, GPS tracking, or drag-and-drop calendar yet.",
+      "DigitalGate OS for service businesses (not a standalone FSM). Jobs, scheduling, stages, and templates are live. Quotes → Commerce, customers → CRM, team → Settings. Calendar DnD, field ops, recurrence, and AI Job/Quote assistants come next — no fake dispatcher or GPS.",
   };
 }

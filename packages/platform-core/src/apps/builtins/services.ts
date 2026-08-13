@@ -1,20 +1,21 @@
 import type { AppManifest } from "../manifest";
 
 /**
- * Services — one Business App for field / trade operations.
- * Industry (electrician, plumber, cleaner, …) is Service Template configuration — not separate Apps.
+ * Services — DigitalGate OS for service / field businesses (one App).
+ * Industry (electrician, plumber, cleaner, …) = Service Templates — not separate Apps.
+ * Coverage benchmark: ServiceM8-class ops on Universal Objects + Core — not a FSM clone.
  * @see docs/foundations/SERVICES-APP.md
  */
 export const servicesApp: AppManifest = {
   id: "services",
   name: "Services",
   description:
-    "Jobs & scheduling for field/trade ops — quotes live in Commerce, customers in CRM, team in Settings",
+    "DigitalGate OS for service businesses — jobs & scheduling on Core CRM/Commerce/AI (not a standalone FSM)",
   tier: "business",
-  version: "0.3.0",
+  version: "0.3.1",
   icon: "⚙",
   routes: [
-    // Owned surfaces only — Quotes → Commerce, Customers → CRM, Teams → Settings (no duplicate nav).
+    // Owned surfaces only — Quotes → Commerce, Customers → CRM, Teams → Settings (Universal Objects).
     { path: "/apps/services", label: "Overview" },
     { path: "/apps/services/jobs", label: "Jobs" },
     { path: "/apps/services/scheduling", label: "Scheduling" },
@@ -31,7 +32,18 @@ export const servicesApp: AppManifest = {
     "services.scheduling.read",
     "services.templates.read",
   ],
-  entities: ["Contact", "Task", "Activity", "CommerceQuote", "Lead"],
+  entities: [
+    "Contact",
+    "Company",
+    "Lead",
+    "Opportunity",
+    "Task",
+    "Activity",
+    "Document",
+    "CommerceQuote",
+    "CommerceInvoice",
+    "ServiceJob",
+  ],
   automationTriggers: [
     { id: "services.job.completed", label: "Job completed" },
     { id: "services.job.scheduled", label: "Job scheduled" },
@@ -45,8 +57,14 @@ export const servicesApp: AppManifest = {
   aiTools: [
     {
       id: "services.job_brief",
-      label: "Job brief",
-      description: "Generate job brief from client notes and history",
+      label: "AI Job Assistant",
+      description:
+        "From technician notes: update job, draft customer message, suggest follow-up / upsell (human review)",
+    },
+    {
+      id: "services.quote_assist",
+      label: "AI Quote Assistant",
+      description: "Natural language → structured Commerce quote for review",
     },
     {
       id: "services.configure_template",
@@ -58,5 +76,7 @@ export const servicesApp: AppManifest = {
   reports: [
     { id: "services.jobs_report", label: "Jobs report" },
     { id: "services.revenue_by_job_type", label: "Revenue by job type" },
+    { id: "services.quote_conversion", label: "Quote conversion" },
+    { id: "services.technician_performance", label: "Technician performance" },
   ],
 };

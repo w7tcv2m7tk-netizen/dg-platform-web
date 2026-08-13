@@ -14,6 +14,10 @@ const STATUS_OPTIONS = [
   "cancelled",
 ];
 
+function rowKey(row: WpAccBookingRow): string {
+  return row.platform_id || (row.id > 0 ? `wp-${row.id}` : `tmp-${row.ref ?? "row"}`);
+}
+
 export function AccommodationBookingsTable({
   bookings,
   error,
@@ -27,7 +31,7 @@ export function AccommodationBookingsTable({
 }) {
   const router = useRouter();
   const [rows, setRows] = useState(bookings);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -43,8 +47,8 @@ export function AccommodationBookingsTable({
     );
   }
 
-  function patchRow(id: number, patch: Partial<WpAccBookingRow>) {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  function patchRow(key: string, patch: Partial<WpAccBookingRow>) {
+    setRows((prev) => prev.map((r) => (rowKey(r) === key ? { ...r, ...patch } : r)));
   }
 
   async function saveRow(row: WpAccBookingRow) {
@@ -58,7 +62,7 @@ export function AccommodationBookingsTable({
         resource: "bookings",
         updates: [
           {
-            id: row.id,
+            id: row.id > 0 ? row.id : undefined,
             platform_id: row.platform_id,
             guest_name: row.guest_name,
             email: row.email,
@@ -81,24 +85,21 @@ export function AccommodationBookingsTable({
     const json = await res.json().catch(() => ({}));
     setPending(false);
     if (!res.ok) {
-      setSaveError(
-        json.error?.message ??
-          "Could not save booking — deploy DG Platform plugin v10.58.0+ on CVH.",
-      );
+      setSaveError(json.error?.message ?? "Could not save booking.");
       return;
     }
-    setEditingId(null);
-    setMessage(`Saved booking ${row.ref ?? row.id}`);
+    setEditingKey(null);
+    setMessage(`Saved booking ${row.ref ?? row.platform_id ?? row.id}`);
     router.refresh();
   }
 
   async function deleteRow(row: WpAccBookingRow) {
-    const label = row.guest_name || row.ref || `#${row.id}`;
+    const label = row.guest_name || row.ref || row.platform_id || `#${row.id}`;
     const dates =
       row.checkin && row.checkout ? ` (${row.checkin} → ${row.checkout})` : "";
     if (
       !window.confirm(
-        `Cancel booking “${label}”${dates}?\n\nThis soft-deletes the booking (status → cancelled). It will free the dates on the calendar and drop from the iCal export. OTA-sourced rows keep their history so a later sync can restore them if they reappear on Airbnb/Booking.com.`,
+        `Delete booking “${label}”${dates}?\n\nThis cancels the booking in Gen 2 (and WordPress when mirrored). Dates free on the calendar and drop from the iCal export. OTA-sourced rows may come back on the next Airbnb/Booking.com sync if they still exist there.`,
       )
     ) {
       return;
@@ -107,26 +108,39 @@ export function AccommodationBookingsTable({
     setPending(true);
     setMessage(null);
     setSaveError(null);
+
+    const body: {
+      resource: string;
+      platform_ids?: string[];
+      ids?: number[];
+    } = { resource: "bookings" };
+    if (row.platform_id) body.platform_ids = [row.platform_id];
+    if (row.id > 0) body.ids = [row.id];
+
+    if (!body.platform_ids?.length && !body.ids?.length) {
+      setPending(false);
+      setSaveError("Cannot delete — booking has no Gen 2 or WordPress id.");
+      return;
+    }
+
     const res = await fetch("/api/v1/accommodation", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        resource: "bookings",
-        ids: [row.id],
-      }),
+      body: JSON.stringify(body),
     });
     const json = await res.json().catch(() => ({}));
     setPending(false);
     if (!res.ok) {
       setSaveError(
         json.error?.message ??
-          "Could not cancel booking — deploy DG Platform plugin v10.60.0+ on CVH.",
+          "Could not delete booking. If this is a WordPress-mirrored row, deploy DG Platform plugin v10.60.0+ on CVH.",
       );
       return;
     }
-    setEditingId(null);
-    setRows((prev) => prev.filter((r) => r.id !== row.id));
-    setMessage(`Cancelled booking ${row.ref ?? row.id}`);
+    const key = rowKey(row);
+    setEditingKey(null);
+    setRows((prev) => prev.filter((r) => rowKey(r) !== key));
+    setMessage(`Deleted booking ${row.ref ?? row.platform_id ?? row.id}`);
     router.refresh();
   }
 
@@ -182,31 +196,32 @@ export function AccommodationBookingsTable({
             </thead>
             <tbody className="divide-y divide-slate-800">
               {rows.map((b) => {
-                const editing = editingId === b.id;
+                const key = rowKey(b);
+                const editing = editingKey === key;
                 const isCancelled = (b.status ?? "").toLowerCase() === "cancelled";
                 return (
-                  <tr key={b.id} className="hover:bg-slate-900/40 align-top">
+                  <tr key={key} className="hover:bg-slate-900/40 align-top">
                     <td className="px-4 py-3 font-mono text-xs text-slate-400">
-                      {b.ref ?? b.id}
+                      {b.ref ?? (b.id > 0 ? b.id : b.platform_id?.slice(0, 8))}
                     </td>
                     <td className="px-4 py-3">
                       {editing ? (
                         <div className="space-y-1">
                           <input
                             value={b.guest_name ?? ""}
-                            onChange={(e) => patchRow(b.id, { guest_name: e.target.value })}
+                            onChange={(e) => patchRow(key, { guest_name: e.target.value })}
                             placeholder="Guest name"
                             className="w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-white"
                           />
                           <input
                             value={b.email ?? ""}
-                            onChange={(e) => patchRow(b.id, { email: e.target.value })}
+                            onChange={(e) => patchRow(key, { email: e.target.value })}
                             placeholder="Email"
                             className="w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white"
                           />
                           <input
                             value={b.phone ?? ""}
-                            onChange={(e) => patchRow(b.id, { phone: e.target.value })}
+                            onChange={(e) => patchRow(key, { phone: e.target.value })}
                             placeholder="Phone"
                             className="w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white"
                           />
@@ -214,7 +229,9 @@ export function AccommodationBookingsTable({
                       ) : (
                         <>
                           <p className="dg-break-anywhere text-white">{b.guest_name ?? "—"}</p>
-                          <p className="dg-break-anywhere text-xs text-slate-500">{b.email}</p>
+                          {b.email ? (
+                            <p className="dg-break-anywhere text-xs text-slate-500">{b.email}</p>
+                          ) : null}
                           {b.phone ? (
                             <p className="text-xs text-slate-500">{b.phone}</p>
                           ) : null}
@@ -230,11 +247,11 @@ export function AccommodationBookingsTable({
                         <input
                           type="date"
                           value={b.checkin ?? ""}
-                          onChange={(e) => patchRow(b.id, { checkin: e.target.value })}
+                          onChange={(e) => patchRow(key, { checkin: e.target.value })}
                           className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-white"
                         />
                       ) : (
-                        <span className="text-slate-400">{b.checkin ?? "—"}</span>
+                        <span className="text-slate-300">{b.checkin ?? "—"}</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -242,20 +259,21 @@ export function AccommodationBookingsTable({
                         <input
                           type="date"
                           value={b.checkout ?? ""}
-                          onChange={(e) => patchRow(b.id, { checkout: e.target.value })}
+                          onChange={(e) => patchRow(key, { checkout: e.target.value })}
                           className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-white"
                         />
                       ) : (
-                        <span className="text-slate-400">{b.checkout ?? "—"}</span>
+                        <span className="text-slate-300">{b.checkout ?? "—"}</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       {editing ? (
                         <input
                           type="number"
+                          step="0.01"
                           value={b.total ?? ""}
                           onChange={(e) =>
-                            patchRow(b.id, {
+                            patchRow(key, {
                               total: e.target.value === "" ? undefined : Number(e.target.value),
                             })
                           }
@@ -263,42 +281,31 @@ export function AccommodationBookingsTable({
                         />
                       ) : (
                         <span className="text-slate-300">
-                          {b.total != null ? `$${b.total.toLocaleString("en-AU")}` : "—"}
+                          {b.total != null ? `$${Number(b.total).toFixed(2)}` : "—"}
                         </span>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       {editing ? (
                         <select
-                          value={b.paid ?? "no"}
-                          onChange={(e) => patchRow(b.id, { paid: e.target.value })}
+                          value={b.paid ?? ""}
+                          onChange={(e) => patchRow(key, { paid: e.target.value || null })}
                           className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-white"
                         >
-                          <option value="no">Unpaid</option>
-                          <option value="yes">Paid</option>
+                          <option value="">—</option>
+                          <option value="yes">yes</option>
+                          <option value="no">no</option>
                         </select>
                       ) : (
-                        <span
-                          className={
-                            b.paid === "yes"
-                              ? "text-emerald-400"
-                              : b.paid === "no"
-                                ? "text-amber-400"
-                                : "text-slate-500"
-                          }
-                        >
-                          {b.paid === "yes" ? "Paid" : b.paid === "no" ? "Unpaid" : "—"}
-                        </span>
+                        <span className="text-slate-300">{b.paid ?? "—"}</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-xs capitalize text-slate-400">
-                      {b.source ?? "—"}
-                    </td>
+                    <td className="px-4 py-3 text-slate-400">{b.source ?? "—"}</td>
                     <td className="px-4 py-3">
                       {editing ? (
                         <select
                           value={b.status ?? "pending"}
-                          onChange={(e) => patchRow(b.id, { status: e.target.value })}
+                          onChange={(e) => patchRow(key, { status: e.target.value })}
                           className="rounded border border-slate-700 bg-slate-950 px-2 py-1 capitalize text-white"
                         >
                           {STATUS_OPTIONS.map((s) => (
@@ -328,7 +335,7 @@ export function AccommodationBookingsTable({
                             type="button"
                             onClick={() => {
                               setRows(bookings);
-                              setEditingId(null);
+                              setEditingKey(null);
                             }}
                             className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300"
                           >
@@ -339,7 +346,7 @@ export function AccommodationBookingsTable({
                         <div className="flex justify-end gap-2">
                           <button
                             type="button"
-                            onClick={() => setEditingId(b.id)}
+                            onClick={() => setEditingKey(key)}
                             className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300 hover:border-blue-500 hover:text-white"
                           >
                             Edit

@@ -1,7 +1,9 @@
 import {
   ACC_CALENDAR_HORIZON_DAYS,
   buildAvailabilityFromNeon,
+  cancelStayBookings,
   createStayBookingGen2First,
+  deleteStayBookings,
   housekeepingBoardFromUnits,
   linkStayBookingExternalWpId,
   listAccommodationUnits,
@@ -809,39 +811,88 @@ export async function DELETE(req: Request) {
     );
   }
 
-  const ids: number[] = [];
+  const hard = body.hard === true || body.mode === "hard";
+
+  const wpIds: number[] = [];
   if (Array.isArray(body.ids)) {
     for (const raw of body.ids) {
       const id = typeof raw === "number" ? raw : Number(raw);
-      if (Number.isFinite(id) && id > 0) ids.push(id);
+      if (Number.isFinite(id) && id > 0) wpIds.push(id);
     }
   } else if (typeof body.id === "number" && body.id > 0) {
-    ids.push(body.id);
+    wpIds.push(body.id);
   }
 
-  if (!ids.length) {
+  const platformIds: string[] = [];
+  if (Array.isArray(body.platform_ids)) {
+    for (const raw of body.platform_ids) {
+      if (typeof raw === "string" && raw.trim()) platformIds.push(raw.trim());
+    }
+  } else if (typeof body.platform_id === "string" && body.platform_id.trim()) {
+    platformIds.push(body.platform_id.trim());
+  }
+
+  if (!wpIds.length && !platformIds.length) {
     return NextResponse.json(
-      { error: { code: "missing_ids", message: "ids[] is required" } },
+      {
+        error: {
+          code: "missing_ids",
+          message: "Provide platform_id / platform_ids[] and/or WordPress ids[]",
+        },
+      },
       { status: 400 },
     );
   }
 
-  const connector = await accommodationConnectorForSession(session.organisationId);
-  const result = await deleteWpAccommodationBookings(ids, connector);
-  if (!result.ok) {
-    return NextResponse.json(
-      { error: { code: result.code, message: result.message } },
-      { status: 422 },
-    );
+  // Gen 2 Neon first — works for native rows (no WP id) and mirrored rows.
+  let neonIds: string[] = [];
+  let neonCount = 0;
+  if (hard) {
+    const neon = await deleteStayBookings(session.organisationId, {
+      platformIds,
+      externalWpIds: wpIds,
+    });
+    neonIds = neon.deleted;
+    neonCount = neon.count;
+  } else {
+    const neon = await cancelStayBookings(session.organisationId, {
+      platformIds,
+      externalWpIds: wpIds,
+    });
+    neonIds = neon.cancelled;
+    neonCount = neon.count;
   }
 
-  // Mirror soft-cancel into Postgres StayBooking when present.
-  for (const id of ids) {
-    await updateStayBooking(session.organisationId, {
-      externalWpId: id,
-      status: "cancelled",
-    }).catch(() => null);
+  // Also soft-cancel on WordPress when we have WP ids (plugin v10.60.0+).
+  let wordpress: { ok: boolean; count?: number; message?: string } | null = null;
+  if (wpIds.length) {
+    const connector = await accommodationConnectorForSession(session.organisationId);
+    const result = await deleteWpAccommodationBookings(wpIds, connector);
+    if (!result.ok) {
+      // Neon already updated — report WP failure without failing the whole request
+      // when Gen 2-native cancel succeeded.
+      if (!neonCount) {
+        return NextResponse.json(
+          { error: { code: result.code, message: result.message } },
+          { status: 422 },
+        );
+      }
+      wordpress = { ok: false, message: result.message };
+    } else {
+      wordpress = { ok: true, count: result.data?.count ?? wpIds.length };
+      // Ensure any WP-only ids also land as cancelled in Neon
+      if (!hard) {
+        await cancelStayBookings(session.organisationId, { externalWpIds: wpIds });
+      }
+    }
   }
 
-  return NextResponse.json({ data: result.data });
+  return NextResponse.json({
+    data: {
+      ok: true,
+      mode: hard ? "hard" : "cancel",
+      neon: { count: neonCount, ids: neonIds },
+      wordpress,
+    },
+  });
 }

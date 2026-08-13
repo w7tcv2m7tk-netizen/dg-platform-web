@@ -107,6 +107,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "foundations/COMMERCIALLY-READY-V1.md",
   },
   {
+    slug: "gate-1-dogfood",
+    title: "Gate 1 dogfood",
+    summary:
+      "Tickable Internal Alpha close list — Roe + CVH journey, ops smoke, P0/P1 before Founding 10.",
+    group: "strategy",
+    relativePath: "foundations/GATE-1-DOGFOOD.md",
+  },
+  {
     slug: "connector-priority",
     title: "Connector Priority",
     summary: "Which connectors matter first and why.",
@@ -130,7 +138,8 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
   {
     slug: "services-app",
     title: "Services App",
-    summary: "Business Services app foundations and boundaries.",
+    summary:
+      "DG OS for service businesses — ServiceM8-class coverage on Universal Objects; not a FSM clone.",
     group: "apps",
     relativePath: "foundations/SERVICES-APP.md",
   },

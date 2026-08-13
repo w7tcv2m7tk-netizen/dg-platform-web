@@ -63,7 +63,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | 14 | [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) | **A** Platform Refer & Earn (Core/Billing) · **B/C** Business referrals + Reviews (Phase 5+) |
 | 15 | [WEBSITE-BUILDER.md](./WEBSITE-BUILDER.md) | **Phase later** — AI Website Studio; structured Next.js Gen 2 model (not PHP); design now |
 | [BRAND-STUDIO.md](./BRAND-STUDIO.md) | **Core** — AI Brand Studio; Business Profile → identity → presence; Website Builder is a surface |
-| [SERVICES-APP.md](./SERVICES-APP.md) | **Business App** — one Services App; Service Templates (electrician, plumber, …) not separate Apps |
+| [SERVICES-APP.md](./SERVICES-APP.md) | **Business App** — DG OS for service businesses; ServiceM8-class coverage on Universal Objects + Service Templates (not a FSM clone) |
 | [SERVICES-BETA-LAUNCH.md](./SERVICES-BETA-LAUNCH.md) | Services closed-beta launch checklist (founding agencies) |
 | [BUSINESS-APPS-SCAFFOLD.md](./BUSINESS-APPS-SCAFFOLD.md) | Finance · Creator · Commercial · Automotive — honest product-map floor (not closed beta) |
 | 16 | [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) | **Core Platform Service** — Domains/DNS/SSL/hosting/email; Dreamscape V1 adapter; sandbox-first |

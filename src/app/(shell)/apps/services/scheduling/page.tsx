@@ -7,6 +7,7 @@ import {
 } from "@dg/platform-core";
 
 import { ServicesNav } from "@/components/services/ServicesNav";
+import { ScheduleJobQuickForm } from "@/components/services/ScheduleJobQuickForm";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   dayKeyRange,
@@ -145,6 +146,14 @@ export default async function ServicesSchedulingPage() {
                         : " · Unassigned"}
                     </p>
                   </Link>
+                  <ScheduleJobQuickForm
+                    jobId={job.id}
+                    defaultDay={startKey}
+                    members={members.map((m) => ({
+                      clerkUserId: m.clerkUserId,
+                      label: memberLabel(m),
+                    }))}
+                  />
                 </li>
               ))}
             </ul>

@@ -45,11 +45,23 @@ export function CreateWebsiteForm({
   const [template, setTemplate] = useState<WebsiteTemplateId | "auto">(
     suggestedTemplate,
   );
+  const [brandPath, setBrandPath] = useState<"have" | "ai" | "later">("later");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (brandPath === "have") {
+      router.push("/dashboard/business?focus=brand&from=website-create");
+      return;
+    }
+    if (brandPath === "ai") {
+      // Core Brand Studio V1 (AI generate) is still roadmap — route to profile brand editor.
+      router.push("/dashboard/business?focus=brand&intent=ai&from=website-create");
+      return;
+    }
+
     setLoading(true);
     setError("");
     try {
@@ -91,12 +103,53 @@ export function CreateWebsiteForm({
       className="space-y-4 max-w-xl rounded-lg border border-slate-700 bg-slate-900/40 p-5"
     >
       <div>
+        <p className="block text-sm text-slate-300 mb-2">Brand for this site</p>
+        <div className="grid gap-2">
+          {(
+            [
+              {
+                id: "have" as const,
+                label: "I already have a brand",
+                detail: "Upload logo / colours on Business Profile, then come back",
+              },
+              {
+                id: "ai" as const,
+                label: "Create my brand with AI",
+                detail: "Opens Brand Studio entry (profile brand editor — AI pack next)",
+              },
+              {
+                id: "later" as const,
+                label: "I’ll do it later",
+                detail: "Build the site now with temporary identity — never blocked",
+              },
+            ] as const
+          ).map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => setBrandPath(opt.id)}
+              className={`rounded-md border px-3 py-2 text-left transition ${
+                brandPath === opt.id
+                  ? "border-sky-700/70 bg-sky-950/30"
+                  : "border-slate-700 bg-slate-950/40 hover:border-slate-600"
+              }`}
+            >
+              <span className="block text-sm text-white">{opt.label}</span>
+              <span className="block text-[11px] text-slate-500 mt-0.5">
+                {opt.detail}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
         <label className="block text-sm text-slate-300 mb-1">Site name (optional)</label>
         <input
           className="w-full rounded-md border border-slate-600 bg-slate-950 px-3 py-2 text-white"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Uses Business Profile name if blank"
+          disabled={brandPath !== "later"}
         />
       </div>
       <div>
@@ -107,11 +160,12 @@ export function CreateWebsiteForm({
               key={t.id}
               type="button"
               onClick={() => setTemplate(t.id)}
+              disabled={brandPath !== "later"}
               className={`rounded-md border px-3 py-2 text-left transition ${
                 template === t.id
                   ? "border-sky-700/70 bg-sky-950/30"
                   : "border-slate-700 bg-slate-950/40 hover:border-slate-600"
-              }`}
+              } disabled:opacity-50`}
             >
               <span className="block text-sm text-white">{t.label}</span>
               <span className="block text-[11px] text-slate-500 mt-0.5">
@@ -128,6 +182,7 @@ export function CreateWebsiteForm({
           value={brief}
           onChange={(e) => setBrief(e.target.value)}
           placeholder="e.g. Premium Currumbin agency focused on vendor appraisals…"
+          disabled={brandPath !== "later"}
         />
       </div>
       {error ? <p className="text-sm text-rose-400">{error}</p> : null}
@@ -136,14 +191,20 @@ export function CreateWebsiteForm({
         disabled={loading}
         className="rounded-md bg-[var(--org-primary,#1e3a5f)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
       >
-        {loading ? "Generating site…" : "Create from Business Profile"}
+        {loading
+          ? "Generating site…"
+          : brandPath === "later"
+            ? "Create from Business Profile"
+            : brandPath === "have"
+              ? "Continue to brand assets →"
+              : "Open Brand Studio entry →"}
       </button>
       <p className="text-xs text-slate-500">
-        Structured components (not HTML).{" "}
+        Structured components (not HTML). Brand is optional —{" "}
         <Link href="/dashboard/business" className="text-slate-300 underline">
           Edit Business Profile
         </Link>{" "}
-        first for better brand colours and copy.
+        anytime for colours, logo, and copy.
       </p>
     </form>
   );

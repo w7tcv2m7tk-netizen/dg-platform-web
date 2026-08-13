@@ -17,7 +17,12 @@ import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 export default async function BusinessProfilePage({
   searchParams,
 }: {
-  searchParams?: Promise<{ reOnboarding?: string }>;
+  searchParams?: Promise<{
+    reOnboarding?: string;
+    focus?: string;
+    intent?: string;
+    from?: string;
+  }>;
 }) {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
@@ -44,6 +49,8 @@ export default async function BusinessProfilePage({
     : null;
   const params = searchParams ? await searchParams : undefined;
   const reOnboarding = params?.reOnboarding === "1";
+  const focusBrand = params?.focus === "brand";
+  const brandIntent = params?.intent ?? null;
 
   let context = null;
   if (session) {
@@ -143,6 +150,8 @@ export default async function BusinessProfilePage({
             profile={profile}
             context={context}
             linked={portal?.linked ?? false}
+            focusBrand={focusBrand}
+            brandIntent={brandIntent}
           />
         )}
       </main>

@@ -38,4 +38,6 @@ export const COMMAND_CENTRE_ROUTES = {
   /** @deprecated — /command/audit redirects to tenant audit settings */
   audit: "/dashboard/settings/audit",
   growthEngine: `${COMMAND_CENTRE_BASE_PATH}/growth-engine`,
+  /** Internal Alpha — tickable dogfood / P0–P1 close before Founding 10 */
+  gate1: `${COMMAND_CENTRE_BASE_PATH}/gate-1`,
 } as const;

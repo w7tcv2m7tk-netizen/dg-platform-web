@@ -224,6 +224,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           status?: string;
           providerAdId?: string;
           reaAgencyId?: string | null;
+          uploadId?: string | null;
+          listingId?: string | null;
+          progress?: string | null;
+          result?: string | null;
           lastSyncedAt?: string | null;
           lastError?: string | null;
           path?: string | null;
