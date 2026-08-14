@@ -470,7 +470,8 @@ export const websiteRendererCss = `
 }
 
 .wb-site-chrome .dg-header {
-  position: relative !important;
+  position: sticky !important;
+  top: 0 !important;
 }
 
 .wb-post-grid-wrap {
