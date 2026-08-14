@@ -37,10 +37,6 @@ export function AuthShell({
           Contact support
         </a>{" "}
         ·{" "}
-        <a href="tel:+61405227227" className="font-medium text-blue-300 hover:text-white">
-          0405 227 227
-        </a>{" "}
-        ·{" "}
         <a
           href="mailto:hello@digitalgate.com.au"
           className="font-medium text-blue-300 hover:text-white"
