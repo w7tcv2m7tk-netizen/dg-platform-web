@@ -778,6 +778,7 @@ function hasFriendlyFields(type: string): boolean {
     "image",
     "list",
     "html",
+    "post_grid",
   ].includes(type);
 }
 

@@ -5,6 +5,21 @@ import { notFound } from "next/navigation";
 import { WebsitePageRenderer } from "@/components/websites/WebsiteRenderer";
 import { websiteRendererCss } from "@/components/websites/website-renderer-css";
 
+type SiteChrome = {
+  headerHtml?: string;
+  footerHtml?: string;
+  stylesheets?: string[];
+};
+
+function chromeFromSite(
+  metadata: Record<string, unknown> | null | undefined,
+): SiteChrome | null {
+  if (!metadata || typeof metadata !== "object") return null;
+  const chrome = metadata.chrome;
+  if (!chrome || typeof chrome !== "object") return null;
+  return chrome as SiteChrome;
+}
+
 type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ preview?: string }>;
@@ -52,6 +67,9 @@ export default async function PublicSiteHomePage({ params, searchParams }: Props
   if (!home) notFound();
 
   const theme = site.theme ?? {};
+  const chrome = chromeFromSite(
+    site.metadata as Record<string, unknown> | null | undefined,
+  );
   const title = home.seo?.title || site.seo?.title || site.name;
   const description =
     home.seo?.description || site.seo?.description || site.name;
@@ -67,6 +85,9 @@ export default async function PublicSiteHomePage({ params, searchParams }: Props
       <meta property="og:title" content={ogTitle} />
       <meta property="og:description" content={ogDescription} />
       {ogImage ? <meta property="og:image" content={ogImage} /> : null}
+      {(chrome?.stylesheets ?? []).slice(0, 20).map((href) => (
+        <link key={href} rel="stylesheet" href={href} />
+      ))}
       <style dangerouslySetInnerHTML={{ __html: websiteRendererCss }} />
       {allowDraft && site.status !== "published" ? (
         <div
@@ -88,12 +109,7 @@ export default async function PublicSiteHomePage({ params, searchParams }: Props
         basePath={`/sites/${slug}`}
         siteSlug={slug}
         pageSlug={home.slug}
-        chrome={
-          site.metadata && typeof site.metadata === "object"
-            ? ((site.metadata as { chrome?: { headerHtml?: string; footerHtml?: string } })
-                .chrome ?? null)
-            : null
-        }
+        chrome={chrome}
       />
     </>
   );

@@ -64,6 +64,7 @@ export const WEBSITE_COMPONENT_TYPES = [
   "image",
   "list",
   "html",
+  "post_grid",
 ] as const;
 
 export type WebsiteComponentType = (typeof WEBSITE_COMPONENT_TYPES)[number];

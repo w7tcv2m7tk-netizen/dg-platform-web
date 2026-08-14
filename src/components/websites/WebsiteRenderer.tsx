@@ -408,6 +408,68 @@ export function WebsiteComponentView({
         />
       );
     }
+    case "post_grid": {
+      const columns = Math.min(3, Math.max(1, Number(component.props.columns) || 2));
+      const headline = asString(component.props.headline);
+      const postsRaw = Array.isArray(component.props.posts)
+        ? component.props.posts
+        : [];
+      const posts = postsRaw
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const o = item as Record<string, unknown>;
+          const title = asString(o.title);
+          const href = asString(o.href);
+          if (!title || !href) return null;
+          return {
+            title,
+            href,
+            excerpt: asString(o.excerpt),
+            image: asString(o.image),
+            date: asString(o.date),
+          };
+        })
+        .filter((x): x is NonNullable<typeof x> => x !== null);
+      if (posts.length === 0) return null;
+      return (
+        <section className="wb-post-grid-wrap">
+          {headline ? (
+            <h2 className="wb-section-title" style={{ marginBottom: "1.25rem" }}>
+              {headline}
+            </h2>
+          ) : null}
+          <div
+            className="wb-post-grid"
+            style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+          >
+            {posts.map((post) => (
+              <a key={post.href} href={post.href} className="wb-post-card">
+                {post.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    className="wb-post-card-image"
+                    src={post.image}
+                    alt=""
+                  />
+                ) : (
+                  <div className="wb-post-card-image" aria-hidden />
+                )}
+                <div className="wb-post-card-body">
+                  {post.date ? (
+                    <span className="wb-post-card-meta">{post.date}</span>
+                  ) : null}
+                  <h3 className="wb-post-card-title">{post.title}</h3>
+                  {post.excerpt ? (
+                    <p className="wb-post-card-excerpt">{post.excerpt}</p>
+                  ) : null}
+                  <span className="wb-post-card-cta">Read article →</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      );
+    }
     default:
       return null;
   }
@@ -415,16 +477,16 @@ export function WebsiteComponentView({
 
 function isHtmlDominantPage(components: WebsiteComponent[]): boolean {
   if (components.length === 0) return false;
-  const htmlCount = components.filter((c) => c.type === "html").length;
-  const other = components.filter(
-    (c) => c.type !== "html" && c.type !== "footer" && c.type !== "nav",
-  ).length;
-  return htmlCount > 0 && other === 0;
+  const soft = new Set(["html", "footer", "nav", "post_grid"]);
+  const htmlish = components.filter((c) => soft.has(c.type)).length;
+  const other = components.length - htmlish;
+  return htmlish > 0 && other === 0;
 }
 
 export type WebsiteChrome = {
   headerHtml?: string | null;
   footerHtml?: string | null;
+  stylesheets?: string[] | null;
 };
 
 export function WebsitePageRenderer({

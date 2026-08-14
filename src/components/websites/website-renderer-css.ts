@@ -415,31 +415,144 @@ export const websiteRendererCss = `
 }
 
 .wb-html-island {
-  min-height: 100vh;
+  min-height: 0;
   width: 100%;
   box-sizing: border-box;
-  background: #0a0e17;
-  color: #f9fafb;
+  background: transparent;
+  color: inherit;
+}
+
+.wb-html-island.wb-html-island--page {
+  min-height: 60vh;
 }
 
 .wb-site-chrome {
   position: relative;
-  z-index: 5;
+  z-index: 40;
+  width: 100%;
 }
 
 .wb-site-chrome-header {
-  position: relative;
-  z-index: 40;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
 }
 
 .wb-site-chrome-footer {
   margin-top: auto;
+  z-index: 5;
 }
 
-.wb-site-chrome .wb-html-island {
-  min-height: 0;
-  background: transparent;
+/* Never let shared img rules blow up logos/nav icons in chrome */
+.wb-site-chrome img,
+.wb-site-chrome .wb-html-block img {
+  max-width: none;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+}
+
+.wb-site-chrome .dg-gate-icon,
+.wb-site-chrome img.dg-gate-icon {
+  width: 32px !important;
+  height: 32px !important;
+  max-width: 32px !important;
+  object-fit: contain;
+}
+
+.wb-site-chrome .dg-full-logo,
+.wb-site-chrome img.dg-full-logo {
+  height: 28px !important;
+  width: auto !important;
+  max-width: 11rem !important;
+  object-fit: contain;
+}
+
+.wb-site-chrome .dg-header {
+  position: relative !important;
+}
+
+.wb-post-grid-wrap {
+  padding: clamp(2rem, 5vw, 3.5rem) clamp(1.25rem, 4vw, 3rem);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.wb-post-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.35rem;
+}
+
+.wb-post-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--wb-primary) 28%, #334155);
+  background: color-mix(in srgb, var(--wb-bg) 88%, #111827);
   color: inherit;
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wb-post-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--wb-primary) 55%, #64748b);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+.wb-post-card-image {
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  object-fit: cover;
+  background: #0f172a;
+}
+
+.wb-post-card-body {
+  padding: 1.1rem 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1;
+}
+
+.wb-post-card-meta {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.wb-post-card-title {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  font-weight: 750;
+  color: #f8fafc;
+}
+
+.wb-post-card-excerpt {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #cbd5e1;
+}
+
+.wb-post-card-cta {
+  margin-top: auto;
+  padding-top: 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #93c5fd;
+}
+
+@media (max-width: 720px) {
+  .wb-post-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .wb-footer {

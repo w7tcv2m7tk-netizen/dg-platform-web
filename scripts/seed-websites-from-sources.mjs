@@ -115,7 +115,103 @@ function prepareMarketingHtml(raw) {
     .trim();
 
   const styleTag = styles.trim() ? `<style>\n${styles}\n</style>` : "";
-  return `${fontLinks}\n${styleTag}\n<div class="wb-html-island">\n${body}\n</div>`.trim();
+  return `${fontLinks}\n${styleTag}\n<div class="wb-html-island wb-html-island--page">\n${body}\n</div>`.trim();
+}
+
+/** Header/footer chrome — keep local CSS, demote fixed → sticky, no giant-logo traps. */
+function prepareChromeHtml(raw) {
+  let styles = [...raw.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)]
+    .map((m) => m[1])
+    .join("\n");
+
+  styles = styles
+    .replace(/position\s*:\s*fixed/gi, "position:sticky")
+    .replace(/(^|[,}])\s*body\s*(?=[\s,{])/gi, "$1 .wb-chrome-root ")
+    .replace(/(^|[,}])\s*html\s*(?=[\s,{])/gi, "$1 .wb-chrome-root ");
+
+  let body = raw
+    .replace(/<meta\b[^>]*>/gi, "")
+    .replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, "")
+    .replace(/<link\b[^>]*>/gi, "")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/\s+on\w+\s*=\s*(".*?"|'.*?'|[^\s>]+)/gi, "")
+    .trim();
+
+  // Prefer the actual chrome node when present
+  const preferred =
+    body.match(/<header\b[^>]*>[\s\S]*?<\/header>/i)?.[0] ||
+    extractElementByClass(body, "dg-header") ||
+    extractElementByClass(body, "dg-footer") ||
+    body;
+
+  const styleTag = styles.trim()
+    ? `<style>\n${styles}\n.wb-chrome-root img{max-width:none;height:auto}\n.wb-chrome-root .dg-full-logo{height:28px!important;width:auto!important;max-width:11rem!important}\n.wb-chrome-root .dg-gate-icon{width:32px!important;height:32px!important}\n</style>`
+    : `<style>.wb-chrome-root img{max-width:none;height:auto}.wb-chrome-root .dg-full-logo{height:28px!important;width:auto!important;max-width:11rem!important}.wb-chrome-root .dg-gate-icon{width:32px!important;height:32px!important}</style>`;
+
+  return `${styleTag}\n<div class="wb-chrome-root">\n${preferred}\n</div>`.trim();
+}
+
+function extractElementByClass(html, className) {
+  const re = new RegExp(
+    `<([a-zA-Z0-9]+)([^>]*\\bclass=["'][^"']*\\b${className}\\b[^"']*["'][^>]*)>`,
+    "i",
+  );
+  const m = re.exec(html);
+  if (!m) return null;
+  const tag = m[1].toLowerCase();
+  const start = m.index;
+  let i = start + m[0].length;
+  let depth = 1;
+  const open = new RegExp(`<${tag}\\b`, "gi");
+  const close = new RegExp(`</${tag}\\s*>`, "gi");
+  while (i < html.length && depth > 0) {
+    open.lastIndex = i;
+    close.lastIndex = i;
+    const nextOpen = open.exec(html);
+    const nextClose = close.exec(html);
+    if (!nextClose) break;
+    if (nextOpen && nextOpen.index < nextClose.index) {
+      depth += 1;
+      i = nextOpen.index + nextOpen[0].length;
+    } else {
+      depth -= 1;
+      i = nextClose.index + nextClose[0].length;
+      if (depth === 0) {
+        const chunk = html.slice(start, i);
+        if (chunk.length > 120000) return null;
+        return chunk;
+      }
+    }
+  }
+  return null;
+}
+
+function collectStylesheetHrefs(html, baseUrl) {
+  const hrefs = [];
+  for (const m of html.matchAll(
+    /<link\b[^>]*rel=["'][^"']*stylesheet[^"']*["'][^>]*>/gi,
+  )) {
+    const href = m[0].match(/href=["']([^"']+)["']/i)?.[1];
+    if (!href) continue;
+    try {
+      hrefs.push(new URL(href, baseUrl).toString());
+    } catch {
+      /* skip */
+    }
+  }
+  // Oxygen generated CSS
+  for (const m of html.matchAll(
+    /href=["']([^"']*\/oxygen\/css\/[^"']+)["']/gi,
+  )) {
+    try {
+      hrefs.push(new URL(m[1], baseUrl).toString());
+    } catch {
+      /* skip */
+    }
+  }
+  return [...new Set(hrefs)].slice(0, 24);
 }
 
 function htmlComponent(html, note) {
@@ -123,6 +219,18 @@ function htmlComponent(html, note) {
     id: cuidLike(),
     type: "html",
     props: { html, note },
+  };
+}
+
+function postGridComponent(posts, headline = "Latest insights") {
+  return {
+    id: cuidLike(),
+    type: "post_grid",
+    props: {
+      headline,
+      columns: 2,
+      posts,
+    },
   };
 }
 
@@ -308,11 +416,15 @@ async function seedDigitalGate(org) {
   const footerPath = join(MARKETING_DIR, "footer.html");
   const chrome = {
     headerHtml: existsSync(headerPath)
-      ? prepareMarketingHtml(readFileSync(headerPath, "utf8"))
+      ? prepareChromeHtml(readFileSync(headerPath, "utf8"))
       : null,
     footerHtml: existsSync(footerPath)
-      ? prepareMarketingHtml(readFileSync(footerPath, "utf8"))
+      ? prepareChromeHtml(readFileSync(footerPath, "utf8"))
       : null,
+    stylesheets: [
+      "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
+      "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css",
+    ],
   };
   console.log(
     `  chrome header=${chrome.headerHtml ? `${chrome.headerHtml.length}c` : "no"} footer=${chrome.footerHtml ? `${chrome.footerHtml.length}c` : "no"}`,
@@ -321,7 +433,12 @@ async function seedDigitalGate(org) {
   const site = await ensureWebsite(org, brand, chrome);
 
   let n = 0;
+  const postCards = [];
+  const usedSlugs = new Set();
+
   for (const def of DG_PAGES) {
+    // Insights built after posts are fetched
+    if (def.slug === "insights") continue;
     const path = join(MARKETING_DIR, def.file);
     if (!existsSync(path)) {
       console.log(`  ! missing ${def.file}`);
@@ -340,6 +457,7 @@ async function seedDigitalGate(org) {
       description: extractMeta(raw, "description"),
     };
     const action = await upsertPage(site.id, def, components, seo);
+    usedSlugs.add(def.slug);
     console.log(`  ${action.padEnd(7)} /${def.slug}`);
     n += 1;
   }
@@ -347,11 +465,12 @@ async function seedDigitalGate(org) {
   // Blog posts from live WP
   const posts = await fetchWpPosts("https://digitalgate.com.au");
   console.log(`  fetched ${posts.length} posts`);
-  const usedSlugs = new Set(DG_PAGES.map((p) => p.slug));
   let sortBase = 100;
   for (const post of posts) {
     const title = stripTags(post.title?.rendered || post.slug || "Post");
-    let slug = uniqueSlug(post.slug || title, usedSlugs);
+    const slug = uniqueSlug(post.slug || title, usedSlugs);
+    const excerpt = stripTags(post.excerpt?.rendered || "").slice(0, 180);
+    const image = await featuredImageForPost(post, "https://digitalgate.com.au");
     const prepared = prepareWpHtml(
       post.content?.rendered || "",
       brand.theme.backgroundColor,
@@ -369,10 +488,47 @@ async function seedDigitalGate(org) {
       ],
       {
         title,
-        description: stripTags(post.excerpt?.rendered || "").slice(0, 160),
+        description: excerpt,
+        ogImage: image || undefined,
       },
     );
+    postCards.push({
+      title,
+      href: `/sites/${site.slug}/${slug}?preview=1`,
+      excerpt,
+      image: image || "",
+      date: (post.date || "").slice(0, 10),
+    });
     console.log(`  ${action.padEnd(7)} /${slug} (post)`);
+    n += 1;
+  }
+
+  // Insights archive: marketing chrome + two-column post cards
+  const insightsPath = join(MARKETING_DIR, "insights-page.html");
+  if (existsSync(insightsPath)) {
+    const insightsChrome = prepareMarketingHtml(
+      readFileSync(insightsPath, "utf8"),
+    );
+    const action = await upsertPage(
+      site.id,
+      {
+        title: "Insights",
+        slug: "insights",
+        intent: "custom",
+        sortOrder: 9,
+      },
+      [
+        htmlComponent(insightsChrome, "Insights archive chrome"),
+        postGridComponent(postCards, "Latest articles"),
+      ],
+      {
+        title: "Insights | DigitalGate",
+        description:
+          "Practical strategies on AI, search, automation and connected business.",
+      },
+    );
+    usedSlugs.add("insights");
+    console.log(`  ${action.padEnd(7)} /insights (grid ${postCards.length})`);
     n += 1;
   }
 
@@ -485,17 +641,39 @@ function prepareWpHtml(contentHtml, bg) {
     .replace(/\s+on\w+\s*=\s*(".*?"|'.*?'|[^\s>]+)/gi, "")
     .trim();
   const style = `<style>
-.wb-html-island{min-height:60vh;background:${bg};color:#f8fafc;padding:2.5rem clamp(1.25rem,4vw,3rem);font-family:system-ui,sans-serif;line-height:1.6}
-.wb-html-island a{color:#93c5fd}
-.wb-html-island img{max-width:100%;height:auto;border-radius:0.35rem}
-.wb-html-island h1,.wb-html-island h2,.wb-html-island h3{color:#f8fafc;line-height:1.2}
-.wb-html-island p,.wb-html-island li{color:#e2e8f0}
+.wb-html-island--page{min-height:60vh;background:${bg};color:#f8fafc;padding:2.5rem clamp(1.25rem,4vw,3rem);font-family:system-ui,sans-serif;line-height:1.65}
+.wb-html-island--page a{color:#93c5fd}
+.wb-html-island--page img{max-width:100%;height:auto;border-radius:0.35rem}
+.wb-html-island--page h1,.wb-html-island--page h2,.wb-html-island--page h3{color:#f8fafc;line-height:1.25}
+.wb-html-island--page p,.wb-html-island--page li{color:#e2e8f0}
+.wb-html-island--page .ct-section,.wb-html-island--page .oxy-header-wrapper{max-width:100%}
 </style>`;
-  return `${style}\n<div class="wb-html-island">${cleaned || "<p>No content imported.</p>"}</div>`;
+  return `${style}\n<div class="wb-html-island wb-html-island--page">${cleaned || "<p>No content imported.</p>"}</div>`;
+}
+
+async function featuredImageForPost(post, wpRoot) {
+  const mediaId = post.featured_media;
+  if (!mediaId) return null;
+  try {
+    const res = await fetch(`${wpRoot}/wp-json/wp/v2/media/${mediaId}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return (
+      json?.media_details?.sizes?.large?.source_url ||
+      json?.media_details?.sizes?.medium_large?.source_url ||
+      json?.source_url ||
+      null
+    );
+  } catch {
+    return null;
+  }
 }
 
 async function fetchWpPosts(wpRoot) {
-  const indexUrl = `${wpRoot}/wp-json/wp/v2/posts?per_page=100&page=1&status=publish&_fields=id,slug,title&orderby=date&order=desc`;
+  const indexUrl = `${wpRoot}/wp-json/wp/v2/posts?per_page=100&page=1&status=publish&_fields=id,slug,title,featured_media&orderby=date&order=desc`;
   const indexRes = await fetch(indexUrl, {
     headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(45000),
@@ -523,8 +701,7 @@ async function fetchWpPosts(wpRoot) {
 }
 
 /**
- * Best-effort extract of live site header/footer markup (Oxygen/theme).
- * Not perfect — theme CSS rarely travels intact — but better than bare pages.
+ * Best-effort extract of live site header/footer markup + stylesheets.
  */
 async function extractLiveChrome(wpRoot) {
   try {
@@ -535,44 +712,51 @@ async function extractLiveChrome(wpRoot) {
     });
     if (!res.ok) return null;
     const html = await res.text();
+    const stylesheets = collectStylesheetHrefs(html, wpRoot);
 
-    const styles = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)]
-      .map((m) => m[0])
-      .slice(0, 8)
-      .join("\n");
-    const links = [
-      ...html.matchAll(/<link\b[^>]*rel=["']stylesheet["'][^>]*>/gi),
-    ]
-      .map((m) => m[0])
-      .slice(0, 12)
+    const inlineStyles = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)]
+      .map((m) => m[1])
+      .filter((css) => /dg-header|dg-footer|oxy-header|site-header|header/i.test(css))
+      .slice(0, 6)
       .join("\n");
 
-    const header =
+    let header =
+      extractElementByClass(html, "dg-header") ||
       html.match(/<header\b[^>]*>[\s\S]*?<\/header>/i)?.[0] ||
-      html.match(
-        /<div\b[^>]*(?:id|class)=["'][^"']*(?:header|masthead|site-header|dg-header)[^"']*["'][^>]*>[\s\S]*?<\/div>/i,
-      )?.[0] ||
-      null;
-    const footer =
-      html.match(/<footer\b[^>]*>[\s\S]*?<\/footer>/i)?.[0] ||
-      html.match(
-        /<div\b[^>]*(?:id|class)=["'][^"']*(?:footer|site-footer|dg-footer)[^"']*["'][^>]*>[\s\S]*?<\/div>/i,
-      )?.[0] ||
+      extractElementByClass(html, "oxy-header-wrapper") ||
+      extractElementByClass(html, "site-header") ||
       null;
 
-    if (!header && !footer) return null;
+    let footer =
+      extractElementByClass(html, "dg-footer") ||
+      html.match(/<footer\b[^>]*>[\s\S]*?<\/footer>/i)?.[0] ||
+      extractElementByClass(html, "site-footer") ||
+      null;
+
+    // Guard against accidentally capturing huge page chunks
+    if (header && header.length > 60000) header = header.slice(0, 60000);
+    if (footer && footer.length > 80000) footer = footer.slice(0, 80000);
+
+    if (!header && !footer) {
+      return { headerHtml: null, footerHtml: null, stylesheets };
+    }
 
     const wrap = (chunk) => {
       if (!chunk) return null;
       const cleaned = chunk
         .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
-        .replace(/\s+on\w+\s*=\s*(".*?"|'.*?'|[^\s>]+)/gi, "");
-      return `${links}\n${styles}\n<div class="wb-html-island wb-chrome-fragment">${cleaned}</div>`;
+        .replace(/\s+on\w+\s*=\s*(".*?"|'.*?'|[^\s>]+)/gi, "")
+        .replace(/position\s*:\s*fixed/gi, "position:sticky");
+      const style = inlineStyles
+        ? `<style>${inlineStyles.replace(/position\s*:\s*fixed/gi, "position:sticky")}</style>`
+        : "";
+      return `${style}\n<div class="wb-chrome-root">${cleaned}</div>`;
     };
 
     return {
       headerHtml: wrap(header),
       footerHtml: wrap(footer),
+      stylesheets,
     };
   } catch (err) {
     console.log(`  ! chrome extract failed: ${err.message}`);
@@ -695,9 +879,12 @@ async function seedFromWordPress(org, brand) {
   const posts = await fetchWpPosts(brand.wpRoot);
   console.log(`  fetched ${posts.length} posts`);
   let sortBase = plans.length + 10;
+  const postCards = [];
   for (const post of posts) {
     const title = stripTags(post.title?.rendered || post.slug || "Post");
     const slug = uniqueSlug(post.slug || title, used);
+    const excerpt = stripTags(post.excerpt?.rendered || "").slice(0, 180);
+    const image = await featuredImageForPost(post, brand.wpRoot);
     const parts = [];
     if (!hasHeaderChrome) parts.push(navComponent(navLinks));
     parts.push(
@@ -718,12 +905,64 @@ async function seedFromWordPress(org, brand) {
         sortOrder: sortBase++,
         seo: {
           title,
-          description: stripTags(post.excerpt?.rendered || "").slice(0, 160),
+          description: excerpt,
+          ogImage: image || undefined,
         },
         components: parts,
       },
     });
+    postCards.push({
+      title,
+      href: `/sites/${site.slug}/${slug}?preview=1`,
+      excerpt,
+      image: image || "",
+      date: (post.date || "").slice(0, 10),
+    });
     console.log(`  created /${slug} (post)`);
+  }
+
+  if (postCards.length) {
+    const existingInsights = await prisma.websitePage.findFirst({
+      where: { websiteId: site.id, slug: "insights" },
+    });
+    if (existingInsights) {
+      const prior = Array.isArray(existingInsights.components)
+        ? existingInsights.components.filter((c) => c?.type !== "post_grid")
+        : [];
+      await prisma.websitePage.update({
+        where: { id: existingInsights.id },
+        data: {
+          components: [...prior, postGridComponent(postCards, "Latest articles")],
+        },
+      });
+      console.log(`  updated /insights (grid ${postCards.length})`);
+    } else {
+      await prisma.websitePage.create({
+        data: {
+          websiteId: site.id,
+          title: "Insights",
+          slug: "insights",
+          intent: "custom",
+          status: "draft",
+          sortOrder: 20,
+          seo: {
+            title: `Insights | ${org.name}`,
+            description: `Articles and updates from ${org.name}.`,
+          },
+          components: [
+            htmlComponent(
+              prepareWpHtml(
+                `<h1>Insights</h1><p>Articles and updates from ${org.name}.</p>`,
+                brand.theme.backgroundColor,
+              ),
+              "Insights intro",
+            ),
+            postGridComponent(postCards, "Latest articles"),
+          ],
+        },
+      });
+      console.log(`  created /insights (grid ${postCards.length})`);
+    }
   }
 
   console.log(`  → Studio /apps/websites/studio/${site.id}`);
