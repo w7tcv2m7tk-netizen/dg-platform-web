@@ -65,7 +65,7 @@ export default async function CommsInboxPage() {
         ) : (
           <>
         <div className="dg-card border-amber-500/20">
-          <h2 className="font-semibold text-amber-200">Voice AI — deferred</h2>
+          <h2 className="font-semibold text-amber-200">AI Communications — deferred</h2>
           <p className="mt-2 text-sm text-slate-400">
             Inbound voice agents, call centre, and autonomous qualification are not closed-beta
             loops. No AI SDR claims. This inbox only lists outbound message Activity when present.

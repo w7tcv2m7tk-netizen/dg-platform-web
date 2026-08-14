@@ -10,14 +10,16 @@ export interface PlatformToolGroup {
   primaryHref: string;
 }
 
+/**
+ * Settings sub-pages only — Team lives under Business; Refer & Earn under Ecosystem
+ * so the sidebar does not list the same destinations twice.
+ */
 export const SETTINGS_NAV_ROUTES: AppRoute[] = [
   { path: "/dashboard/settings", label: "Overview" },
   { path: "/dashboard/settings/billing", label: "Billing" },
   { path: "/dashboard/settings/connectors", label: "Connectors" },
   { path: "/dashboard/settings/api", label: "API" },
-  { path: "/dashboard/settings/team", label: "Team" },
   { path: "/dashboard/settings/audit", label: "Audit log" },
-  { path: "/dashboard/settings/referrals", label: "Refer & Earn" },
   { path: "/dashboard/settings/roadmap", label: "Roadmap" },
   { path: "/support", label: "Support" },
 ];

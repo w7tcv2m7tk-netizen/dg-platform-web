@@ -97,7 +97,7 @@ function resolveKind(input: {
 }
 
 /**
- * Tenant-facing billing snapshot for Apps & Billing / settings.
+ * Tenant-facing billing snapshot for Apps & Platform / settings.
  * Does not invent MRR or create Stripe customers.
  */
 export async function getOrganisationBillingStatus(

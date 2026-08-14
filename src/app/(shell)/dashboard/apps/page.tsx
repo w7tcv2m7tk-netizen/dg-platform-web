@@ -31,9 +31,9 @@ export default async function AppsPage() {
       <header className="dg-page-header">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">Apps & Billing</h1>
+            <h1 className="text-2xl font-bold text-white">Apps & Platform</h1>
             <p className="text-sm text-slate-400">
-              Plan, installed apps, and billing status for this organisation — same structure as{" "}
+              Plan and installed apps for this organisation — same structure as{" "}
               <a
                 href={`${DIGITALGATE_WEBSITE}/pricing`}
                 target="_blank"
@@ -42,7 +42,7 @@ export default async function AppsPage() {
               >
                 digitalgate.com.au/pricing
               </a>
-              . Discover new apps in Marketplace.
+              . Billing and subscribe live under Settings → Billing. Discover new apps in Marketplace.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

@@ -69,7 +69,7 @@ export const PREMIUM_APPS: { key: PremiumApp; label: string; price: string }[] =
   { key: "automation_pro", label: "Automation", price: "+$49/mo" },
   { key: "analytics_pro", label: "Analytics", price: "+$49/mo" },
   { key: "social_pro", label: "Social", price: "+$79/mo" },
-  { key: "voice_ai", label: "Voice AI", price: "+$99/mo" },
+  { key: "voice_ai", label: "AI Communications", price: "+$99/mo" },
 ];
 
 export const ADDONS: { key: Addon; label: string; price: string }[] = [
@@ -132,7 +132,9 @@ export function recommendPlanFromDiscovery(input: DiscoveryInput): SignupSelecti
     premiumApps.push("automation_pro");
   }
 
-  if (interested.includes("Voice AI")) premiumApps.push("voice_ai");
+  if (interested.includes("Voice AI") || interested.includes("AI Communications")) {
+    premiumApps.push("voice_ai");
+  }
 
   return { platformTier, industryApps, premiumApps, addons: [] };
 }

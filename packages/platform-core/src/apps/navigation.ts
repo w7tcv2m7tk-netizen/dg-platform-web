@@ -119,7 +119,7 @@ const BUSINESS_LINKS: PlatformShellNavItem[] = [
   {
     kind: "shell",
     href: "/dashboard/apps",
-    label: "Apps & Billing",
+    label: "Apps & Platform",
     icon: getSidebarIcon("apps"),
   },
 ];
@@ -148,16 +148,11 @@ const ECOSYSTEM_LINKS: PlatformShellNavItem[] = [
 
 /**
  * INTELLIGENCE — decision surfaces (not a shop of apps).
- * Opportunity Engine UI lives under Grow; Health + Insights seed this section.
+ * Business Health currently shares Overview (/dashboard) — do not duplicate that link here.
+ * Opportunity Engine UI lives under Grow; Insights seeds this section.
  * Customer Advisor / Benchmarks deepen later on existing surfaces.
  */
 const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
-  {
-    kind: "shell",
-    href: "/dashboard",
-    label: "Business Health",
-    icon: getSidebarIcon("overview"),
-  },
   {
     kind: "shell",
     href: "/apps/analytics",
@@ -350,7 +345,7 @@ export function getCategorizedPlatformNavigation(
   };
 }
 
-/** All customer apps grouped by tier — for Apps & Billing page (includes disabled). */
+/** All customer apps grouped by tier — for Apps & Platform page (includes disabled). */
 export function getAllAppsByTierForCatalog(enabledIds: string[]): AppNavTierGroup[] {
   const customerApps = platformApps
     .list()

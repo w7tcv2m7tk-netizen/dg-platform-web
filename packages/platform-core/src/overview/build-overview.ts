@@ -233,7 +233,7 @@ function buildConnectedSystems(connectors: OverviewConnectorProbes): OverviewCon
     },
     {
       id: "voice",
-      label: "Voice AI",
+      label: "AI Communications",
       status: "offline",
       detail: "Coming soon",
     },

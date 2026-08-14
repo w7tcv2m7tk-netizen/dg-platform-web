@@ -218,18 +218,8 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
   },
 ];
 
-/** Mirrors pricing page — Growth & Intelligence Apps */
+/** Mirrors pricing page — Growth Apps (same order as public pricing) */
 export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
-  {
-    appId: "reviews",
-    label: "Reputation",
-    icon: "★",
-    price: "Included",
-    badge: "Founding Customer Early Access",
-    status: "rolling-out",
-    description:
-      "Unified review inbox, connector sources, timeline requests & Reputation Score™ when real data exists",
-  },
   {
     appId: "ai-visibility",
     premiumKey: "ai_visibility_pro",
@@ -271,12 +261,22 @@ export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
     description: "Publish to LinkedIn, Facebook, Instagram, X & Pinterest",
   },
   {
+    appId: "reviews",
+    label: "Reputation",
+    icon: "★",
+    price: "Included",
+    badge: "Founding Customer Early Access",
+    status: "rolling-out",
+    description:
+      "Unified review inbox, connector sources, timeline requests & Reputation Score™ when real data exists",
+  },
+  {
     appId: "ai-communications",
     premiumKey: "voice_ai",
-    label: "Voice AI",
+    label: "AI Communications",
     icon: "🎙️",
     price: "+$99/mo",
-    description: "Inbound calls, qualification & CRM sync",
+    description: "AI-assisted communications — Voice Agents still in development",
   },
 ];
 

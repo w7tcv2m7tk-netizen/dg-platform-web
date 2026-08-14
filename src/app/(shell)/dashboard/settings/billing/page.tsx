@@ -100,7 +100,7 @@ export default async function BillingSettingsPage({
             </p>
             {enabledIds.length === 0 ? (
               <p className="mt-3 text-sm text-slate-500">
-                No apps enabled yet — open Apps & Billing to apply a tier preview.
+                No apps enabled yet — open Apps & Platform to apply a tier preview.
               </p>
             ) : (
               <ul className="mt-3 space-y-1 text-sm text-slate-300">
