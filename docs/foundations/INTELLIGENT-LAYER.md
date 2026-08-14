@@ -285,11 +285,11 @@ Services remains **one App + Service Templates** — never Electrician/Plumber/C
 
 ## Conceptual navigation model (target IA)
 
-**Implemented in Gen 2 shell** (`getCategorizedPlatformNavigation` → sidebar): BUSINESS · OPERATE · GROW · INTELLIGENCE · ECOSYSTEM · Platform (Settings) · Command Centre (staff). Goals / Twin-as-nav-item / customer Advisor deepen later — Overview carries Twin + Health today.
+**Implemented in Gen 2 shell** (`getCategorizedPlatformNavigation` → sidebar):
 
 ```
 BUSINESS
-  Overview (Business Command Centre) · Business Profile · Digital Twin · Goals · Team
+  Overview · Business Profile · Digital Twin · Goals · Team
 
 OPERATE
   CRM · Commerce · Websites · Infrastructure · Industry Apps
@@ -299,13 +299,16 @@ GROW
   Social · Reputation · AI Communications
 
 INTELLIGENCE
-  Business Health · AI Advisor · Insights · Benchmarks · Reports
+  Command Centre (staff) · Business Health · AI Advisor · Insights · Benchmarks · Reports
 
 ECOSYSTEM
   Marketplace · Network · Refer & Earn
+
+PLATFORM
+  Apps & Platform · Settings (Billing, Connectors, …)
 ```
 
-Staff **Command Centre** (`/command`) stays separate — not a customer nav peer.
+Twin / Goals / Advisor / Benchmarks / Reports nav homes exist as thin Intelligence surfaces that deepen over time; Overview still carries live Twin + Health signals today.
 
 ---
 

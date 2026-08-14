@@ -64,8 +64,7 @@ export interface NavIaSection {
 }
 
 /**
- * Operate app order — property ecosystem first, then other Industry Apps.
- * Core operate apps lead the section.
+ * Operate — Core operate apps, then Industry Apps (property ecosystem first).
  */
 const OPERATE_APP_ORDER = [
   "crm",
@@ -82,7 +81,10 @@ const OPERATE_APP_ORDER = [
   "creator",
 ] as const;
 
-/** Grow — Opportunities + Growth Apps (not sold as “intelligence SKUs”) */
+/**
+ * Grow — Opportunities + Growth Apps (Reputation = reviews app).
+ * Marketing is intentionally omitted from this IA.
+ */
 const GROW_APP_ORDER = [
   "opportunities",
   "ai-visibility",
@@ -91,16 +93,18 @@ const GROW_APP_ORDER = [
   "analytics",
   "social",
   "reviews",
-  "marketing",
   "ai-communications",
 ] as const;
+
+/** Hidden from sidebar IA until product placement is decided */
+const SIDEBAR_HIDDEN_APP_IDS = new Set(["marketing"]);
 
 const OPERATE_APP_IDS = new Set<string>(OPERATE_APP_ORDER);
 const GROW_APP_IDS = new Set<string>(GROW_APP_ORDER);
 
 /**
- * BUSINESS — who you are / commercial control.
- * Twin lives on Overview (Business Command); Goals deferred until product exists.
+ * BUSINESS — who you are / identity / team.
+ * Apps & Platform lives under Platform (with Settings / Billing).
  */
 const BUSINESS_LINKS: PlatformShellNavItem[] = [
   { kind: "shell", href: "/dashboard", label: "Overview", icon: getSidebarIcon("overview") },
@@ -112,19 +116,25 @@ const BUSINESS_LINKS: PlatformShellNavItem[] = [
   },
   {
     kind: "shell",
+    href: "/dashboard/twin",
+    label: "Digital Twin",
+    icon: getSidebarIcon("twin"),
+  },
+  {
+    kind: "shell",
+    href: "/dashboard/goals",
+    label: "Goals",
+    icon: getSidebarIcon("goals"),
+  },
+  {
+    kind: "shell",
     href: "/dashboard/settings/team",
     label: "Team",
     icon: getSidebarIcon("team"),
   },
-  {
-    kind: "shell",
-    href: "/dashboard/apps",
-    label: "Apps & Platform",
-    icon: getSidebarIcon("apps"),
-  },
 ];
 
-/** ECOSYSTEM — keep Marketplace ≠ Network ≠ Refer & Earn distinct */
+/** ECOSYSTEM — Marketplace ≠ Network ≠ Refer & Earn */
 const ECOSYSTEM_LINKS: PlatformShellNavItem[] = [
   {
     kind: "shell",
@@ -148,18 +158,47 @@ const ECOSYSTEM_LINKS: PlatformShellNavItem[] = [
 
 /**
  * INTELLIGENCE — decision surfaces (not a shop of apps).
- * Business Health currently shares Overview (/dashboard) — do not duplicate that link here.
- * Opportunity Engine UI lives under Grow; Insights seeds this section.
- * Customer Advisor / Benchmarks deepen later on existing surfaces.
+ * Command Centre (staff) is injected as a collapsible app at the top of this section.
  */
 const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
+  {
+    kind: "shell",
+    href: "/dashboard/health",
+    label: "Business Health",
+    icon: getSidebarIcon("health"),
+  },
+  {
+    kind: "shell",
+    href: "/dashboard/advisor",
+    label: "AI Advisor",
+    icon: getSidebarIcon("advisor"),
+  },
   {
     kind: "shell",
     href: "/apps/analytics",
     label: "Insights",
     icon: getSidebarIcon("analytics"),
   },
+  {
+    kind: "shell",
+    href: "/dashboard/benchmarks",
+    label: "Benchmarks",
+    icon: getSidebarIcon("benchmarks"),
+  },
+  {
+    kind: "shell",
+    href: "/dashboard/reports",
+    label: "Reports",
+    icon: getSidebarIcon("reports"),
+  },
 ];
+
+const APPS_PLATFORM_NAV: PlatformShellNavItem = {
+  kind: "shell",
+  href: "/dashboard/apps",
+  label: "Apps & Platform",
+  icon: getSidebarIcon("apps"),
+};
 
 const SHELL_PLATFORM_NAV: PlatformShellNavItem = {
   kind: "shell",
@@ -175,7 +214,11 @@ const SHELL_WORKSPACE_NAV: PlatformShellNavItem[] = [
   ...ECOSYSTEM_LINKS,
 ];
 
-const SHELL_NAV: PlatformShellNavItem[] = [...SHELL_WORKSPACE_NAV, SHELL_PLATFORM_NAV];
+const SHELL_NAV: PlatformShellNavItem[] = [
+  ...SHELL_WORKSPACE_NAV,
+  APPS_PLATFORM_NAV,
+  SHELL_PLATFORM_NAV,
+];
 
 export const BUSINESS_WORKSPACE_SECTION_LABEL = "Business";
 export const OPERATE_NAV_SECTION_LABEL = "Operate";
@@ -228,10 +271,12 @@ export interface CategorizedPlatformNavigation {
   shell: PlatformShellNavItem[];
   /** Settings / admin — rendered after IA sections */
   platform: PlatformShellNavItem;
+  /** Apps catalog — under Platform with Settings */
+  appsPlatform: PlatformShellNavItem;
   /** @deprecated Prefer `ia.operate` / `ia.grow` */
   tiers: AppNavTierGroup[];
   tools: PlatformToolsNavGroup;
-  /** DigitalGate staff only — Command Centre collapsible section */
+  /** DigitalGate staff only — rendered under Intelligence */
   commandCentre: PlatformToolNavItem | null;
   /** Advisor IA — BUSINESS · OPERATE · GROW · INTELLIGENCE · ECOSYSTEM */
   ia: {
@@ -260,7 +305,7 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
 
 /**
  * Categorized sidebar tree — Intelligent Layer IA.
- * Staff Command Centre stays separate (DigitalGate-runs-DigitalGate).
+ * Staff Command Centre nests under Intelligence (not a sixth top-level section).
  */
 export function getCategorizedPlatformNavigation(
   enabledIds: string[],
@@ -272,6 +317,7 @@ export function getCategorizedPlatformNavigation(
 
   const enabledApps = customerApps
     .filter((a) => isAppEnabled(a.manifest.id, enabledIds))
+    .filter((a) => !SIDEBAR_HIDDEN_APP_IDS.has(a.manifest.id))
     .map((a) => toTreeItem(a, enabledIds));
 
   const operateApps = sortByOrder(
@@ -282,8 +328,7 @@ export function getCategorizedPlatformNavigation(
     enabledApps.filter((a) => GROW_APP_IDS.has(a.id)),
     GROW_APP_ORDER,
   );
-  // Any future customer app not mapped falls into Operate
-  const mapped = new Set([...OPERATE_APP_IDS, ...GROW_APP_IDS]);
+  const mapped = new Set([...OPERATE_APP_IDS, ...GROW_APP_IDS, ...SIDEBAR_HIDDEN_APP_IDS]);
   const unmapped = enabledApps.filter((a) => !mapped.has(a.id));
   if (unmapped.length) {
     operateApps.push(...unmapped);
@@ -304,9 +349,25 @@ export function getCategorizedPlatformNavigation(
     return true;
   });
 
+  const intelligenceApps: AppNavTreeItem[] = commandCentre
+    ? [
+        {
+          kind: "app",
+          id: commandCentre.id,
+          name: commandCentre.name,
+          icon: commandCentre.icon,
+          tier: "internal",
+          enabled: true,
+          routes: commandCentre.routes,
+          primaryHref: commandCentre.primaryHref,
+        },
+      ]
+    : [];
+
   return {
     shell: SHELL_WORKSPACE_NAV,
     platform: SHELL_PLATFORM_NAV,
+    appsPlatform: APPS_PLATFORM_NAV,
     tiers,
     tools: { label: PLATFORM_NAV_SECTION_LABEL, tools: [] },
     commandCentre,
@@ -333,7 +394,7 @@ export function getCategorizedPlatformNavigation(
         id: "intelligence",
         label: INTELLIGENCE_NAV_SECTION_LABEL,
         links: intelligenceLinks,
-        apps: [],
+        apps: intelligenceApps,
       },
       ecosystem: {
         id: "ecosystem",

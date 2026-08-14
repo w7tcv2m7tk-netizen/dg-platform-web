@@ -8,7 +8,6 @@ import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { SidebarIcon } from "@/components/SidebarIcon";
 import { itemHasActiveRoute, routeIsActive } from "@/lib/nav-route-match";
 import {
-  COMMAND_CENTRE_NAV_SECTION_LABEL,
   PLATFORM_NAV_SECTION_LABEL,
   type AppRoute,
   type NavIaSection,
@@ -174,7 +173,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
   useEffect(() => {
     const next: Record<string, boolean> = {};
-    for (const section of [ia.operate, ia.grow]) {
+    for (const section of [ia.operate, ia.grow, ia.intelligence]) {
       for (const app of section.apps) {
         if (itemHasActiveRoute(pathname, app.routes)) next[app.id] = true;
       }
@@ -182,11 +181,8 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     if (nav.platform.routes?.length && itemHasActiveRoute(pathname, nav.platform.routes)) {
       next[`shell-${nav.platform.href}`] = true;
     }
-    if (nav.commandCentre && itemHasActiveRoute(pathname, nav.commandCentre.routes)) {
-      next[nav.commandCentre.id] = true;
-    }
     setExpanded(next);
-  }, [pathname, ia.operate, ia.grow, nav.platform, nav.commandCentre]);
+  }, [pathname, ia.operate, ia.grow, ia.intelligence, nav.platform]);
 
   useEffect(() => {
     if (!nav.commandCentre) {
@@ -212,6 +208,11 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   function toggleItem(id: string) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   }
+
+  const intelligenceAppsForRender = ia.intelligence.apps.map((app) => ({
+    ...app,
+    badge: app.id === "command-centre" ? (ccBadge ?? undefined) : undefined,
+  }));
 
   return (
     <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain">
@@ -240,13 +241,35 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         onNavigate={onNavigate}
       />
 
-      <IaSectionBlock
-        section={ia.intelligence}
-        pathname={pathname}
-        expanded={expanded}
-        onToggle={toggleItem}
-        onNavigate={onNavigate}
-      />
+      <div className="mt-4">
+        <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+          {ia.intelligence.label}
+        </p>
+        {intelligenceAppsForRender.length > 0 ? (
+          <CollapsibleNavSection
+            items={intelligenceAppsForRender}
+            expanded={expanded}
+            onToggle={toggleItem}
+            pathname={pathname}
+            onNavigate={onNavigate}
+          />
+        ) : null}
+        {ia.intelligence.links.map((link) => {
+          const active = shellLinkActive(pathname, link.href, link.routes);
+          return (
+            <Link
+              key={`intelligence-${link.href}-${link.label}`}
+              href={link.href}
+              prefetch
+              onClick={onNavigate}
+              className={`${linkClass(active)} min-h-11 py-2.5`}
+            >
+              <SidebarIcon glyph={link.icon ?? "◈"} />
+              {link.label}
+            </Link>
+          );
+        })}
+      </div>
 
       <IaSectionBlock
         section={ia.ecosystem}
@@ -256,34 +279,19 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         onNavigate={onNavigate}
       />
 
-      {nav.commandCentre ? (
-        <div className="mt-4">
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-            {COMMAND_CENTRE_NAV_SECTION_LABEL}
-          </p>
-          <CollapsibleNavSection
-            items={[
-              {
-                id: nav.commandCentre.id,
-                name: nav.commandCentre.name,
-                icon: nav.commandCentre.icon,
-                routes: nav.commandCentre.routes,
-                primaryHref: nav.commandCentre.primaryHref,
-                badge: ccBadge ?? undefined,
-              },
-            ]}
-            expanded={expanded}
-            onToggle={toggleItem}
-            pathname={pathname}
-            onNavigate={onNavigate}
-          />
-        </div>
-      ) : null}
-
       <div className="mt-4">
         <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
           {PLATFORM_NAV_SECTION_LABEL}
         </p>
+        <Link
+          href={nav.appsPlatform.href}
+          prefetch
+          onClick={onNavigate}
+          className={`${linkClass(shellLinkActive(pathname, nav.appsPlatform.href))} min-h-11 py-2.5`}
+        >
+          <SidebarIcon glyph={nav.appsPlatform.icon ?? "▦"} />
+          {nav.appsPlatform.label}
+        </Link>
         <CollapsibleNavSection
           items={[
             {
