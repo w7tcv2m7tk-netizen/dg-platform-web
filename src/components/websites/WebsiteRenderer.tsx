@@ -417,10 +417,15 @@ function isHtmlDominantPage(components: WebsiteComponent[]): boolean {
   if (components.length === 0) return false;
   const htmlCount = components.filter((c) => c.type === "html").length;
   const other = components.filter(
-    (c) => c.type !== "html" && c.type !== "footer",
+    (c) => c.type !== "html" && c.type !== "footer" && c.type !== "nav",
   ).length;
   return htmlCount > 0 && other === 0;
 }
+
+export type WebsiteChrome = {
+  headerHtml?: string | null;
+  footerHtml?: string | null;
+};
 
 export function WebsitePageRenderer({
   components,
@@ -428,17 +433,22 @@ export function WebsitePageRenderer({
   basePath,
   siteSlug,
   pageSlug,
+  chrome,
 }: {
   components: WebsiteComponent[];
   theme: WebsiteTheme;
   basePath: string;
   siteSlug: string;
   pageSlug?: string;
+  chrome?: WebsiteChrome | null;
 }) {
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
   const bg = theme.backgroundColor || "#0c1222";
-  const htmlPage = isHtmlDominantPage(components);
+  const headerHtml = chrome?.headerHtml?.trim() || "";
+  const footerHtml = chrome?.footerHtml?.trim() || "";
+  const hasChrome = Boolean(headerHtml || footerHtml);
+  const htmlPage = isHtmlDominantPage(components) || hasChrome;
 
   return (
     <div
@@ -451,6 +461,12 @@ export function WebsitePageRenderer({
         } as React.CSSProperties
       }
     >
+      {headerHtml ? (
+        <section
+          className="wb-section wb-html-block wb-site-chrome wb-site-chrome-header"
+          dangerouslySetInnerHTML={{ __html: headerHtml }}
+        />
+      ) : null}
       {components.map((c) => (
         <WebsiteComponentView
           key={c.id}
@@ -461,6 +477,12 @@ export function WebsitePageRenderer({
           pageSlug={pageSlug}
         />
       ))}
+      {footerHtml ? (
+        <section
+          className="wb-section wb-html-block wb-site-chrome wb-site-chrome-footer"
+          dangerouslySetInnerHTML={{ __html: footerHtml }}
+        />
+      ) : null}
     </div>
   );
 }

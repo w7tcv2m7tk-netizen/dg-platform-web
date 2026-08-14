@@ -422,6 +422,26 @@ export const websiteRendererCss = `
   color: #f9fafb;
 }
 
+.wb-site-chrome {
+  position: relative;
+  z-index: 5;
+}
+
+.wb-site-chrome-header {
+  position: relative;
+  z-index: 40;
+}
+
+.wb-site-chrome-footer {
+  margin-top: auto;
+}
+
+.wb-site-chrome .wb-html-island {
+  min-height: 0;
+  background: transparent;
+  color: inherit;
+}
+
 .wb-footer {
   padding: 2.25rem clamp(1.25rem, 4vw, 3rem) 2.75rem;
   border-top: 1px solid color-mix(in srgb, var(--wb-primary) 12%, transparent);

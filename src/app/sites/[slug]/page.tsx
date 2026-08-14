@@ -88,6 +88,12 @@ export default async function PublicSiteHomePage({ params, searchParams }: Props
         basePath={`/sites/${slug}`}
         siteSlug={slug}
         pageSlug={home.slug}
+        chrome={
+          site.metadata && typeof site.metadata === "object"
+            ? ((site.metadata as { chrome?: { headerHtml?: string; footerHtml?: string } })
+                .chrome ?? null)
+            : null
+        }
       />
     </>
   );
