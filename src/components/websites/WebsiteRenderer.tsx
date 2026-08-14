@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import type { WebsiteComponent, WebsiteTheme } from "@dg/platform-core";
 
+import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
+
 function asString(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
 }
@@ -422,6 +424,9 @@ export function WebsiteComponentView({
     case "html": {
       const html = asString(component.props.html);
       if (!html) return null;
+      if (/gallery-grid|gallery-item/i.test(html)) {
+        return <HtmlWithGallery html={html} />;
+      }
       return (
         <section
           className="wb-section wb-html-block"

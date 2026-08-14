@@ -996,4 +996,130 @@ export const websiteRendererCss = `
     padding: 1.1rem;
   }
 }
+
+/* CVH / accommodation gallery — full-bleed hero + lightbox */
+.wb-html-gallery .gallery-hero,
+.wb-html-page .gallery-hero {
+  position: relative !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+  min-height: min(78vh, 720px) !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: scroll !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.wb-html-gallery .gallery-grid .gallery-item,
+.wb-html-page .gallery-grid .gallery-item {
+  cursor: zoom-in;
+}
+
+.wb-html-gallery .gallery-grid .gallery-item img,
+.wb-html-page .gallery-grid .gallery-item img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  border-radius: 0 !important;
+}
+
+.wb-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.94);
+  box-sizing: border-box;
+}
+
+.wb-lightbox-image {
+  max-width: min(1100px, 92vw);
+  max-height: min(78vh, 900px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.wb-lightbox-close,
+.wb-lightbox-nav {
+  position: absolute;
+  border: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.wb-lightbox-close:hover,
+.wb-lightbox-nav:hover {
+  background: rgba(185, 164, 138, 0.35);
+  color: #fff;
+}
+
+.wb-lightbox-close {
+  top: 1rem;
+  right: 1rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.wb-lightbox-nav {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3rem;
+  height: 3rem;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.wb-lightbox-prev {
+  left: 1rem;
+}
+
+.wb-lightbox-next {
+  right: 1rem;
+}
+
+.wb-lightbox-meta {
+  margin: 0;
+  color: #d1d5db;
+  font-size: 0.85rem;
+  text-align: center;
+  max-width: min(720px, 90vw);
+}
+
+@media (max-width: 720px) {
+  .wb-lightbox-nav {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.6rem;
+  }
+  .wb-lightbox-prev {
+    left: 0.5rem;
+  }
+  .wb-lightbox-next {
+    right: 0.5rem;
+  }
+}
 `;
