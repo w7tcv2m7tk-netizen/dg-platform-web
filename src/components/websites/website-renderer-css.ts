@@ -473,52 +473,69 @@ export const websiteRendererCss = `
   border-bottom: 1px solid color-mix(in srgb, var(--wb-primary) 28%, transparent);
 }
 
-/* Overlay header: transparent at top, solid after scroll */
-.wb-root.wb-chrome-overlay {
-  position: relative;
+/* Full transparency at page top; solid bar only after scroll */
+.wb-brand-chrome.wb-brand-chrome-header.is-top,
+.wb-root.wb-chrome-overlay .wb-brand-chrome.wb-brand-chrome-header.is-top,
+.wb-root .wb-brand-chrome.wb-brand-chrome-header--overlay.is-top,
+.wb-root .wb-brand-chrome.wb-brand-chrome-header--fade.is-top {
+  background: transparent !important;
+  background-color: transparent !important;
+  border-bottom-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
-.wb-root.wb-chrome-overlay .wb-brand-chrome-header,
-.wb-root.wb-chrome-overlay .wb-brand-chrome-header--overlay {
+.wb-brand-chrome.wb-brand-chrome-header.is-scrolled,
+.wb-root.wb-chrome-overlay .wb-brand-chrome.wb-brand-chrome-header.is-scrolled,
+.wb-root .wb-brand-chrome.wb-brand-chrome-header--overlay.is-scrolled,
+.wb-root .wb-brand-chrome.wb-brand-chrome-header--fade.is-scrolled {
+  background: rgba(12, 18, 24, 0.94) !important;
+  background-color: rgba(12, 18, 24, 0.94) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.wb-brand-chrome-header--overlay,
+.wb-brand-chrome-header--fade,
+.wb-root.wb-chrome-overlay .wb-brand-chrome-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  background: transparent;
-  border-bottom: 1px solid transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
   transition:
-    background 0.22s ease,
-    border-color 0.22s ease,
-    box-shadow 0.22s ease,
-    backdrop-filter 0.22s ease;
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    backdrop-filter 0.2s ease;
 }
 
-.wb-root.wb-chrome-overlay .wb-brand-chrome-header.is-scrolled,
-.wb-root.wb-chrome-overlay .wb-brand-chrome-header--overlay.is-scrolled {
-  background: rgba(12, 18, 24, 0.92);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+.wb-root.wb-chrome-overlay {
+  position: relative;
 }
 
-.wb-root.wb-chrome-overlay .wb-brand-chrome-header .wb-brand-chrome-nav a {
+.wb-root.wb-chrome-overlay .wb-brand-chrome-header .wb-brand-chrome-nav a,
+.wb-brand-chrome-header--overlay .wb-brand-chrome-nav a,
+.wb-brand-chrome-header--fade .wb-brand-chrome-nav a {
   color: #f8fafc;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
-.wb-root.wb-chrome-overlay .wb-brand-chrome-header.is-scrolled .wb-brand-chrome-nav a {
+.wb-brand-chrome-header.is-scrolled .wb-brand-chrome-nav a {
   text-shadow: none;
 }
 
-.wb-root.wb-chrome-overlay .wb-brand-chrome-header .wb-brand-chrome-nav a:hover {
+.wb-root.wb-chrome-overlay .wb-brand-chrome-header .wb-brand-chrome-nav a:hover,
+.wb-brand-chrome-header--overlay .wb-brand-chrome-nav a:hover,
+.wb-brand-chrome-header--fade .wb-brand-chrome-nav a:hover {
   color: #fff;
 }
 
-.wb-root.wb-chrome-overlay .wb-brand-chrome-header .wb-brand-chrome-logo {
+.wb-root.wb-chrome-overlay .wb-brand-chrome-header .wb-brand-chrome-logo,
+.wb-brand-chrome-header--overlay .wb-brand-chrome-logo,
+.wb-brand-chrome-header--fade .wb-brand-chrome-logo {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
 }
 

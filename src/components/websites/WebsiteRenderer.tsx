@@ -532,22 +532,21 @@ function BrandSiteHeader({
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    if (!overlay) return;
     const onScroll = () => {
-      setScrolled(window.scrollY > 24);
+      setScrolled(window.scrollY > 12);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [overlay]);
+  }, []);
 
   return (
     <header
       className={[
         "wb-brand-chrome",
         "wb-brand-chrome-header",
-        overlay ? "wb-brand-chrome-header--overlay" : "",
-        overlay && scrolled ? "is-scrolled" : "",
+        overlay ? "wb-brand-chrome-header--overlay" : "wb-brand-chrome-header--fade",
+        scrolled ? "is-scrolled" : "is-top",
       ]
         .filter(Boolean)
         .join(" ")}
