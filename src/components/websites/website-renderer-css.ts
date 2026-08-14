@@ -844,6 +844,134 @@ export const websiteRendererCss = `
   width: 100%;
 }
 
+/* Aëtherra WP-style centered header */
+.wb-site-chrome-header .wb-aetherra-header {
+  width: 100%;
+  background: #171513;
+  border-bottom: 1px solid #1d2a24;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .header {
+  padding: 1.2rem 2rem 1rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 0;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .logo img {
+  height: 32px !important;
+  width: auto !important;
+  max-width: 220px !important;
+  object-fit: contain !important;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .logo:hover img {
+  opacity: 0.8;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .header-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .nav-links {
+  display: flex;
+  gap: 2.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .nav-links a {
+  color: #aeb8a6 !important;
+  text-decoration: none;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  transition: color 0.2s ease;
+  position: relative;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .nav-links a::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #b88952;
+  transition: width 0.3s ease;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .nav-links a:hover {
+  color: #c9b38c !important;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .nav-links a:hover::after {
+  width: 100%;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .nav-divider {
+  width: 1px;
+  height: 20px;
+  background: #1d2a24;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .social-icons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .social-icons a {
+  color: #aeb8a6 !important;
+  font-size: 1rem;
+  transition: color 0.2s ease, transform 0.2s ease;
+  text-decoration: none;
+}
+
+.wb-site-chrome-header .wb-aetherra-header .social-icons a:hover {
+  color: #c9b38c !important;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 720px) {
+  .wb-site-chrome-header .wb-aetherra-header .header {
+    padding: 0.8rem 1rem;
+    gap: 0.8rem;
+  }
+  .wb-site-chrome-header .wb-aetherra-header .logo img {
+    height: 28px !important;
+  }
+  .wb-site-chrome-header .wb-aetherra-header .header-bottom {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  .wb-site-chrome-header .wb-aetherra-header .nav-links {
+    gap: 1.2rem;
+  }
+  .wb-site-chrome-header .wb-aetherra-header .nav-divider {
+    width: 30px;
+    height: 1px;
+  }
+}
+
 .wb-site-chrome-footer {
   margin-top: auto;
   z-index: 5;

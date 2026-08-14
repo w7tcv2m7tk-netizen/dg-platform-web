@@ -639,8 +639,9 @@ export function WebsitePageRenderer({
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
   const bg = theme.backgroundColor || "#0c1222";
-  const useBrandHeader = Boolean(theme.logoUrl || theme.iconUrl);
-  const headerHtml = !useBrandHeader ? chrome?.headerHtml?.trim() || "" : "";
+  const headerHtml = chrome?.headerHtml?.trim() || "";
+  const useBrandHeader =
+    !headerHtml && Boolean(theme.logoUrl || theme.iconUrl);
   const footerHtml = chrome?.footerHtml?.trim() || "";
   const useBrandFooter = useBrandHeader && !footerHtml;
   const overlayHeader = Boolean(chrome?.overlayHeader);
