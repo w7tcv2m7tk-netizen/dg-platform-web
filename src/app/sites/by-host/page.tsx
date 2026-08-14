@@ -5,6 +5,24 @@ import { notFound, redirect } from "next/navigation";
 import { WebsitePageRenderer } from "@/components/websites/WebsiteRenderer";
 import { websiteRendererCss } from "@/components/websites/website-renderer-css";
 
+type SiteChrome = {
+  headerHtml?: string;
+  footerHtml?: string;
+  stylesheets?: string[];
+  navLinks?: Array<{ label: string; href: string }>;
+  businessName?: string;
+  overlayHeader?: boolean;
+};
+
+function chromeFromSite(
+  metadata: Record<string, unknown> | null | undefined,
+): SiteChrome | null {
+  if (!metadata || typeof metadata !== "object") return null;
+  const chrome = metadata.chrome;
+  if (!chrome || typeof chrome !== "object") return null;
+  return chrome as SiteChrome;
+}
+
 /**
  * Custom-hostname entry — middleware rewrites unknown hosts here.
  * Resolves InfrastructureDomain → Website and renders the public site at `/`.
@@ -62,6 +80,9 @@ async function renderSite(
   }
 
   const theme = site.theme ?? {};
+  const chrome = chromeFromSite(
+    site.metadata as Record<string, unknown> | null | undefined,
+  );
   const title = page.seo?.title || site.seo?.title || site.name;
 
   return (
@@ -71,6 +92,9 @@ async function renderSite(
         name="description"
         content={page.seo?.description || site.seo?.description || site.name}
       />
+      {(chrome?.stylesheets ?? []).slice(0, 20).map((href) => (
+        <link key={href} rel="stylesheet" href={href} />
+      ))}
       <style dangerouslySetInnerHTML={{ __html: websiteRendererCss }} />
       {allowDraft && site.status !== "published" ? (
         <div
@@ -92,6 +116,7 @@ async function renderSite(
         basePath=""
         siteSlug={slug}
         pageSlug={page.slug}
+        chrome={chrome}
       />
     </>
   );

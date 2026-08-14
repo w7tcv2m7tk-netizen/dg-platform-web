@@ -153,12 +153,26 @@ export async function getOrganisationDomain(
 export async function findDomainByHostname(hostname: string) {
   const { prisma } = await import("@dg/database");
   const name = hostname.toLowerCase().replace(/\.$/, "");
-  const row = await prisma.infrastructureDomain.findFirst({
-    where: { name },
-    include: {
-      website: { select: { id: true, slug: true, status: true, organisationId: true } },
+  const include = {
+    website: {
+      select: { id: true, slug: true, status: true, organisationId: true },
     },
+  } as const;
+
+  // Prefer a row linked to a website when duplicates exist across orgs
+  // (e.g. stale inventory on another organisation).
+  const linked = await prisma.infrastructureDomain.findFirst({
+    where: { name, websiteId: { not: null } },
+    orderBy: { updatedAt: "desc" },
+    include,
   });
+  const row =
+    linked ??
+    (await prisma.infrastructureDomain.findFirst({
+      where: { name },
+      orderBy: { updatedAt: "desc" },
+      include,
+    }));
   if (!row) return null;
   return {
     domain: serialize(row),
