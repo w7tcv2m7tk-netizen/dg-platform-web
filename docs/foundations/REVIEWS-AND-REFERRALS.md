@@ -63,6 +63,21 @@ Core → Universal Objects → CRM → Connectors → AI → Industry Apps → I
 | **Payout form** | **Platform credit by default**; **cash** once accrued balance reaches ~**$100** (threshold configurable) |
 | **What earns** | Qualifying **paid subscription** only (plan / App add-ons per policy) — not Marketplace or B2B referral fees |
 
+### Target referral tiers (architecture lock — remap later)
+
+Canonical commercial progression ([FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md)):
+
+| Cohort | Referral tier name | Rate |
+|--------|--------------------|------|
+| Founding 10 | **Founding Referral** | 30% |
+| Founding 100 | **Partner Referral** | 25% |
+| Founding 1,000 | **Customer Referral** | 20% |
+| Standard | **Customer Referral** | 10% |
+
+Referral rates are **commission**, not an extra subscription discount. **Do not** use “Reseller” as the Founding 10 referral tier name — Reseller Programme stays a separate commercial model.
+
+**Shipped MVP today** still uses Customer 20% / Partner 25% / Reseller 30% labels in product settings. Remap when Founding 10 offers go live; do not rebuild the referral system for this lock alone.
+
 Commission is **single-level only**: the person (or partner org) whose link/code signed up the new paying org. See hard rule below.
 
 ### Hard rule — no multi-level / MLM

@@ -107,8 +107,9 @@ Enough that a RE agency runs a **real** weekly workflow — not a demo tour of e
 | First internal prove | **DG, Roe, CVH, Aëtherra, Wantd** (Gate 1 dogfood) |
 | Quality bar | Active use and outcomes — not logo collection |
 | Exit | Standard tiers after founding proof + Gate 3 readiness |
+| Longer GTM arc | **Founding 10 → Founding 100 → Founding 1,000 → Standard** — design around; **only Founding 10 active now**. See [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md) |
 
-Commercial packaging: [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md). Naming/intent also in [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) Phase 2.
+Commercial packaging: [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md). Naming/intent also in [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) Phase 2. **Do not build** multi-cohort systems until Founding 10 is proven. Exact founding % terms live in the offer/agreement — not the public site.
 
 ### Founder go-to-market motion (now)
 

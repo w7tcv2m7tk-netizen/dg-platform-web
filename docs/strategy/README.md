@@ -7,6 +7,7 @@ Product and go-to-market strategy locks (not architecture constraints).
 | **[ADVISOR-EVIDENCE-STAGE-1.md](./ADVISOR-EVIDENCE-STAGE-1.md)** | Stage 1 product reality — live URLs, homepage/pricing audit, RE journey truth, capture checklist |
 | **[BUSINESS-ADVISOR-BRIEFING.md](./BUSINESS-ADVISOR-BRIEFING.md)** | External advisor pack + **adopted response lock** (Intelligent Layer / Founding discipline) |
 | **[../foundations/INTELLIGENT-LAYER.md](../foundations/INTELLIGENT-LAYER.md)** | Canonical Intelligent Layer north-star (Twin → Intelligence → Action → Learning) |
+| **[FOUNDING-COHORTS.md](./FOUNDING-COHORTS.md)** | Founding 10 / 100 / 1,000 commercial architecture — only Founding 10 active; no multi-cohort build yet |
 | **[DIGITALGATE-ROLLOUT.md](./DIGITALGATE-ROLLOUT.md)** | Canonical rollout / GTM — positioning, Phases 1–12, **pre-launch / founding marketing mode**, metrics ([ADR 0013](../adr/0013-gtm-rollout-strategy-adopted.md)) |
 | **[../foundations/COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)** | Commercially Ready v1 — gates, Founding 10, five-criteria backlog filter, deepen priorities A/B/C |
 

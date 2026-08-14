@@ -18,6 +18,10 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 | **Customer Success** | Ongoing support plans — Standard included; Priority / Success Partner optional |
 | **AI · Twin · Automation · Intelligence** | Intelligence / action layer **across** the platform — not sold as separate Apps |
 
+**Public pricing lock:** Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** + **Apps additional**. Industry and Growth Apps are **not** included in platform tier pricing. Avoid wording such as “1 Industry App included” or “Unlimited Industry Apps.”
+
+**Founding cohorts (GTM):** Only **Founding 10** is commercially active. Arc: Founding 10 → 100 → 1,000 → Standard. Initial-config discount for 24 months (not permanent). Exact % in offer/agreement — not the public site. Canon: [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md).
+
 ---
 
 ## Revenue streams
@@ -32,7 +36,7 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 | **Managed / Professional Services** | Implementation, migration, training, custom — optional | Now |
 | **Customer Success plans** | Priority $199 · Success Partner $499 (Standard included) | 1.5 |
 | **Marketplace revenue** | % of third-party App sales | 3.0 / Phase 5 |
-| **Platform Refer & Earn** | Cost of acquisition — 20% of referred sub × 12 mo (credits default); Partner 25–30%; Reseller custom — [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) §A | With Billing / Core |
+| **Platform Refer & Earn** | Commission system (separate from founding subscription discounts) — target tiers in [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md); shipped MVP detail in [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) §A. **Reseller Programme** is a separate commercial model — do not use “Reseller” as the Founding 10 referral tier name. | With Billing / Core |
 | **Customer Commerce (quotes/invoices)** | Core capability — customer-facing AR, not platform SaaS billing; AU tax documents + reports adjacent to Core | Core / Commerce |
 | **Business referral / transaction fees** | Disclosed Free / Reciprocal / Paid / Commission between DG businesses — [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) §B | Phase 5+ |
 | **Enterprise licensing** | Custom features, SLA, white-label, dedicated support | 2.0 |
@@ -68,10 +72,12 @@ Billing grants **features**, not Apps directly:
 
 | Plan | Features |
 |------|----------|
-| Starter | Platform Core essentials, AI Assistant, Standard support |
-| Growth | + Automation, website integration, advanced AI, reporting, 1 Industry App, Growth capabilities, email/comms |
-| Scale | + Unlimited users, multiple pipelines, unlimited Industry Apps, advanced automation/AI, API, advanced reporting/permissions/BI |
+| Starter | Platform Core essentials, CRM & Dashboard, AI Assistant, Digital Twin snapshot, Standard support |
+| Growth | + Automation & workflows, website integration, advanced AI, reporting, email/SMS, Growth-tier platform capabilities (**Apps still add-ons**) |
+| Scale | + Unlimited users, multiple pipelines, advanced automation/AI, API, advanced reporting/permissions/BI (**Apps still add-ons**) |
 | Enterprise | Custom feature set + integrations + SLA + dedicated support |
+
+Platform tiers grant **platform features**, not free Industry/Growth App seats. Apps attach via add-on licensing.
 
 Apps declare which features they need — install blocked if plan lacks features.
 
@@ -129,12 +135,14 @@ Command Centre Revenue Intelligence module.
 1. **One Stripe customer per Organisation**  
 2. **Plan changes prorated** via Stripe  
 3. **Feature checks at API layer** — not UI-only gating  
-4. **Grandfathering** — org keeps features at signup price until they change plan  
+4. **Grandfathering** — founding discounts apply to **initial Platform + App line items only** for 24 months; later additions bill at then-current published pricing ([FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md))  
+5. **Founding status** persists after the discount window; pricing reverts to then-current standard unless a separate agreement applies  
 
 ---
 
 ## Related
 
+- [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md) — Founding 10 / 100 / 1,000 commercial architecture  
 - [APP-HIERARCHY.md](./APP-HIERARCHY.md) — canonical Core → Infrastructure → Industry → Growth  
 - [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) — GTM packaging  
 - [APP-MARKETPLACE.md](./APP-MARKETPLACE.md) — App install licensing  

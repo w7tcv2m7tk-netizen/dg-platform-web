@@ -84,8 +84,8 @@ export const PLATFORM_TIER_CATALOG: PlatformTierCatalogItem[] = [
       "Everything in Starter",
       "Automation & workflows",
       "Email + SMS",
-      "1 Industry App included",
       "Websites",
+      "Advanced reporting",
     ],
     popular: true,
   },
@@ -99,10 +99,10 @@ export const PLATFORM_TIER_CATALOG: PlatformTierCatalogItem[] = [
     outcome: "For teams running their entire operation.",
     features: [
       "Everything in Growth",
-      "Unlimited Industry Apps",
       "Advanced AI & automation",
       "API access",
       "Multiple pipelines",
+      "Advanced permissions & BI",
     ],
   },
   {
