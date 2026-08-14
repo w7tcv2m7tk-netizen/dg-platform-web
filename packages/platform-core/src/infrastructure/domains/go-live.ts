@@ -8,7 +8,11 @@ import {
   type ProvisioningCheckState,
   type ProvisioningHealthChecklist,
 } from "../core";
-import { getOrganisationDomain, listOrganisationDomains } from "./inventory";
+import {
+  getOrganisationDomain,
+  listOrganisationDomains,
+  resolvePrimaryLinkedDomain,
+} from "./inventory";
 
 function scoreOf(items: ProvisioningCheckItem[]): number {
   if (items.length === 0) return 0;
@@ -100,9 +104,27 @@ export async function buildGoLiveChecklist(input: {
     ? await getOrganisationDomain(input.organisationId, input.domainIdOrName)
     : null;
 
+  let websiteStatus: string | null = null;
+  let websiteSlug: string | null = null;
+  let websiteMeta: Record<string, unknown> | null = null;
+  if (input.websiteId && process.env.DATABASE_URL) {
+    const { prisma } = await import("@dg/database");
+    const site = await prisma.website.findFirst({
+      where: { id: input.websiteId, organisationId: input.organisationId },
+      select: { status: true, slug: true, metadata: true },
+    });
+    websiteStatus = site?.status ?? null;
+    websiteSlug = site?.slug ?? null;
+    websiteMeta = (site?.metadata as Record<string, unknown> | null) ?? null;
+  }
+
   if (!domainRow && input.websiteId) {
     const all = await listOrganisationDomains(input.organisationId);
-    domainRow = all.find((d) => d.websiteId === input.websiteId) ?? null;
+    domainRow =
+      resolvePrimaryLinkedDomain(
+        { id: input.websiteId, metadata: websiteMeta },
+        all,
+      ) ?? null;
   }
 
   if (domainRow?.name) {
@@ -124,18 +146,6 @@ export async function buildGoLiveChecklist(input: {
     } catch {
       /* Vercel token optional — leave stored sslState */
     }
-  }
-
-  let websiteStatus: string | null = null;
-  let websiteSlug: string | null = null;
-  if (input.websiteId && process.env.DATABASE_URL) {
-    const { prisma } = await import("@dg/database");
-    const site = await prisma.website.findFirst({
-      where: { id: input.websiteId, organisationId: input.organisationId },
-      select: { status: true, slug: true },
-    });
-    websiteStatus = site?.status ?? null;
-    websiteSlug = site?.slug ?? null;
   }
 
   base.domain = domainRow?.name;

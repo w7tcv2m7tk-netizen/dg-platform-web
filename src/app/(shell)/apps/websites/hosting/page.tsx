@@ -4,6 +4,7 @@ import {
   listOrganisationDomains,
   listWebsites,
   organisationHasWebsitesBuilder,
+  resolvePrimaryLinkedDomain,
 } from "@dg/platform-core";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
@@ -99,7 +100,7 @@ export default async function HostingStatusPage() {
             <h2 className="text-sm font-semibold text-white">Site hosting status</h2>
             <ul className="space-y-2">
               {sites.map((site) => {
-                const domain = domains.find((d) => d.websiteId === site.id);
+                const domain = resolvePrimaryLinkedDomain(site, domains);
                 return (
                   <li
                     key={site.id}

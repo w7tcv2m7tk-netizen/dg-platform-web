@@ -6,6 +6,7 @@ import {
   getWebsite,
   listOrganisationDomains,
   organisationHasWebsitesBuilder,
+  resolvePrimaryLinkedDomain,
 } from "@dg/platform-core";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
@@ -66,7 +67,7 @@ export default async function WebsiteStudioPage({ params }: Props) {
 
   const domains = await listOrganisationDomains(session.organisationId);
   const linkedDomain =
-    domains.find((d) => d.websiteId === website.id)?.name ?? null;
+    resolvePrimaryLinkedDomain(website, domains)?.name ?? null;
 
   return (
     <>

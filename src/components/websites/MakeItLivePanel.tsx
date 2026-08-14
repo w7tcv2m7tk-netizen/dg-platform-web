@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { SerializedWebsite } from "@dg/platform-core";
+import {
+  resolvePrimaryLinkedDomain,
+  type SerializedWebsite,
+} from "@dg/platform-core";
 
 type ChecklistItem = {
   id: string;
@@ -90,11 +93,11 @@ export function MakeItLivePanel({
       data?: { checklist?: { items?: ChecklistItem[]; score?: number } };
     };
     setDomains(domJson.data ?? []);
-    const linked = (domJson.data ?? []).find((d) => d.websiteId === website.id);
+    const linked = resolvePrimaryLinkedDomain(website, domJson.data ?? []);
     if (linked) setDomainId(linked.id);
     setChecklist(liveJson.data?.checklist?.items ?? []);
     setScore(liveJson.data?.checklist?.score ?? 0);
-  }, [website.id]);
+  }, [website]);
 
   useEffect(() => {
     void refresh();
@@ -102,7 +105,7 @@ export function MakeItLivePanel({
 
   const linkedDomain =
     linkedDomainProp ||
-    domains.find((d) => d.websiteId === website.id)?.name ||
+    resolvePrimaryLinkedDomain(website, domains)?.name ||
     null;
   const isPublished = website.status === "published";
   const previewQs = isPublished ? "" : "?preview=1";
