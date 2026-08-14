@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { SerializedWebsite, WebsiteComponent } from "@dg/platform-core";
 
 import { MakeItLivePanel } from "@/components/websites/MakeItLivePanel";
+import { groupWebsitePages } from "@/components/websites/page-groups";
 import { StudioSeoPanel } from "@/components/websites/StudioSeoPanel";
 import { WordPressImportPanel } from "@/components/websites/WordPressImportPanel";
 
@@ -75,6 +76,28 @@ export function WebsiteStudioClient({
     () => website.pages?.find((p) => p.id === pageId) ?? website.pages?.[0],
     [website, pageId],
   );
+
+  const pageGroups = useMemo(
+    () => groupWebsitePages(website.pages),
+    [website.pages],
+  );
+
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(
+    {},
+  );
+
+  useEffect(() => {
+    // Keep the group that holds the active page expanded
+    if (!page || !pageGroups.length) return;
+    const activeGroup = pageGroups.find((g) =>
+      g.pages.some((p) => p.id === page.id),
+    );
+    if (!activeGroup) return;
+    setCollapsedGroups((prev) => {
+      if (prev[activeGroup.id] === false) return prev;
+      return { ...prev, [activeGroup.id]: false };
+    });
+  }, [page, pageGroups]);
 
   const selected = page?.components.find((c) => c.id === selectedComponentId);
   const isPublished = website.status === "published";
@@ -404,20 +427,30 @@ export function WebsiteStudioClient({
 
       {tab === "seo" ? (
         <div className="space-y-4">
-          <div className="flex flex-wrap gap-1.5">
-            {(website.pages ?? []).map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setPageId(p.id)}
-                className={`rounded-md px-2.5 py-1 text-xs ${
-                  pageId === p.id
-                    ? "bg-slate-800 text-white"
-                    : "border border-slate-700 text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                {p.title}
-              </button>
+          <div className="space-y-3">
+            {pageGroups.map((group) => (
+              <div key={group.id} className="space-y-1.5">
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">
+                  {group.label}{" "}
+                  <span className="text-slate-600">({group.pages.length})</span>
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {group.pages.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setPageId(p.id)}
+                      className={`rounded-md px-2.5 py-1 text-xs ${
+                        pageId === p.id
+                          ? "bg-slate-800 text-white"
+                          : "border border-slate-700 text-slate-400 hover:text-slate-200"
+                      }`}
+                    >
+                      {p.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
           <StudioSeoPanel
@@ -451,70 +484,108 @@ export function WebsiteStudioClient({
       <div className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)_17rem]">
         <aside className="space-y-3">
           <h2 className="text-xs uppercase tracking-wide text-slate-500">Pages</h2>
-          <ul className="space-y-1">
-            {(website.pages ?? []).map((p, index) => (
-              <li key={p.id} className="rounded-md border border-transparent hover:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPageId(p.id);
-                    setSelectedComponentId(null);
-                  }}
-                  className={`w-full text-left rounded-md px-2 py-1.5 text-sm ${
-                    page?.id === p.id
-                      ? "bg-slate-800 text-white"
-                      : "text-slate-300 hover:bg-slate-900"
-                  }`}
-                >
-                  {p.title}
-                  <span className="block text-[11px] text-slate-500">
-                    /{p.slug} · {p.components.length} blocks
-                  </span>
-                </button>
-                <div className="flex flex-wrap gap-1 px-1 pb-1">
+          <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
+            {pageGroups.map((group) => {
+              const collapsed = collapsedGroups[group.id] ?? group.id !== "core";
+              return (
+                <div key={group.id} className="space-y-1">
                   <button
                     type="button"
-                    disabled={busy || index === 0}
-                    onClick={() => void movePage(p.id, -1)}
-                    className="rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:text-slate-300 disabled:opacity-30"
-                    title="Move up"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy || index >= (website.pages?.length ?? 0) - 1}
-                    onClick={() => void movePage(p.id, 1)}
-                    className="rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:text-slate-300 disabled:opacity-30"
-                    title="Move down"
-                  >
-                    ↓
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void duplicatePage(p.id)}
-                    className="rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:text-slate-300 disabled:opacity-30"
-                  >
-                    Duplicate
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy || (website.pages?.length ?? 0) <= 1}
-                    onClick={() => void deletePage(p.id)}
-                    className="rounded px-1.5 py-0.5 text-[10px] text-rose-400/80 hover:text-rose-300 disabled:opacity-30"
-                    title={
-                      (website.pages?.length ?? 0) <= 1
-                        ? "Cannot delete the only page"
-                        : "Delete page"
+                    onClick={() =>
+                      setCollapsedGroups((prev) => ({
+                        ...prev,
+                        [group.id]: !collapsed,
+                      }))
                     }
+                    className="flex w-full items-center justify-between rounded-md px-1.5 py-1 text-left text-[11px] uppercase tracking-wide text-slate-500 hover:text-slate-300"
                   >
-                    Delete
+                    <span>
+                      {group.label}{" "}
+                      <span className="text-slate-600">({group.pages.length})</span>
+                    </span>
+                    <span className="text-slate-600">{collapsed ? "+" : "−"}</span>
                   </button>
+                  {!collapsed ? (
+                    <ul className="space-y-1">
+                      {group.pages.map((p) => {
+                        const index =
+                          website.pages?.findIndex((x) => x.id === p.id) ?? -1;
+                        return (
+                          <li
+                            key={p.id}
+                            className="rounded-md border border-transparent hover:border-slate-800"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPageId(p.id);
+                                setSelectedComponentId(null);
+                              }}
+                              className={`w-full text-left rounded-md px-2 py-1.5 text-sm ${
+                                page?.id === p.id
+                                  ? "bg-slate-800 text-white"
+                                  : "text-slate-300 hover:bg-slate-900"
+                              }`}
+                            >
+                              {p.title}
+                              <span className="block text-[11px] text-slate-500">
+                                /{p.slug} · {p.components.length} blocks
+                              </span>
+                            </button>
+                            <div className="flex flex-wrap gap-1 px-1 pb-1">
+                              <button
+                                type="button"
+                                disabled={busy || index <= 0}
+                                onClick={() => void movePage(p.id, -1)}
+                                className="rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:text-slate-300 disabled:opacity-30"
+                                title="Move up"
+                              >
+                                ↑
+                              </button>
+                              <button
+                                type="button"
+                                disabled={
+                                  busy ||
+                                  index < 0 ||
+                                  index >= (website.pages?.length ?? 0) - 1
+                                }
+                                onClick={() => void movePage(p.id, 1)}
+                                className="rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:text-slate-300 disabled:opacity-30"
+                                title="Move down"
+                              >
+                                ↓
+                              </button>
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() => void duplicatePage(p.id)}
+                                className="rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:text-slate-300 disabled:opacity-30"
+                              >
+                                Duplicate
+                              </button>
+                              <button
+                                type="button"
+                                disabled={busy || (website.pages?.length ?? 0) <= 1}
+                                onClick={() => void deletePage(p.id)}
+                                className="rounded px-1.5 py-0.5 text-[10px] text-rose-400/80 hover:text-rose-300 disabled:opacity-30"
+                                title={
+                                  (website.pages?.length ?? 0) <= 1
+                                    ? "Cannot delete the only page"
+                                    : "Delete page"
+                                }
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : null}
                 </div>
-              </li>
-            ))}
-          </ul>
+              );
+            })}
+          </div>
           <div className="pt-3 space-y-1 border-t border-slate-800">
             <p className="text-xs uppercase tracking-wide text-slate-500">Go live</p>
             <button
