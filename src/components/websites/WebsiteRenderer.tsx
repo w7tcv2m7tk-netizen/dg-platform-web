@@ -7,6 +7,27 @@ function asString(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
 }
 
+/** Decode common HTML entities from WP excerpts/titles for readable cards. */
+function decodeHtmlEntities(input: string): string {
+  return input
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) =>
+      String.fromCharCode(parseInt(hex, 16)),
+    )
+    .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(Number(num)))
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&rsquo;/g, "\u2019")
+    .replace(/&lsquo;/g, "\u2018")
+    .replace(/&rdquo;/g, "\u201D")
+    .replace(/&ldquo;/g, "\u201C")
+    .replace(/&mdash;/g, "\u2014")
+    .replace(/&ndash;/g, "\u2013");
+}
+
 function asLinks(v: unknown): Array<{ label: string; href: string }> {
   if (!Array.isArray(v)) return [];
   return v
@@ -422,9 +443,9 @@ export function WebsiteComponentView({
           const href = asString(o.href);
           if (!title || !href) return null;
           return {
-            title,
+            title: decodeHtmlEntities(title),
             href,
-            excerpt: asString(o.excerpt),
+            excerpt: decodeHtmlEntities(asString(o.excerpt)),
             image: asString(o.image),
             date: asString(o.date),
           };
@@ -598,6 +619,11 @@ export function WebsitePageRenderer({
     headerHtml || footerHtml || useBrandHeader || useBrandFooter,
   );
   const htmlPage = isHtmlDominantPage(components) || hasChrome;
+  const postGridOnly =
+    components.length > 0 &&
+    components.every((c) => c.type === "post_grid");
+  /** Light Insights / listing surfaces for overlay brands (RR / CVH) */
+  const lightSurface = overlayHeader && postGridOnly;
   const businessName = chrome?.businessName?.trim() || siteSlug;
   const rawLinks = Array.isArray(chrome?.navLinks) ? chrome!.navLinks! : [];
   const links = rawLinks
@@ -616,6 +642,7 @@ export function WebsitePageRenderer({
     htmlPage ? "wb-html-page" : "",
     htmlPage ? "wb-full-bleed" : "",
     overlayHeader ? "wb-chrome-overlay" : "",
+    lightSurface ? "wb-surface-light" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -627,7 +654,11 @@ export function WebsitePageRenderer({
         {
           ["--wb-primary"]: primary,
           ["--wb-accent"]: accent,
-          ["--wb-bg"]: htmlPage ? bg || "#0a0e17" : bg,
+          ["--wb-bg"]: lightSurface
+            ? "#f5f2ef"
+            : htmlPage
+              ? bg || "#0a0e17"
+              : bg,
         } as React.CSSProperties
       }
     >

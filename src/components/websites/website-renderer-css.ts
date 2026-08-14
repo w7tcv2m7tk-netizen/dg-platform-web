@@ -473,7 +473,7 @@ export const websiteRendererCss = `
   border-bottom: 1px solid color-mix(in srgb, var(--wb-primary) 28%, transparent);
 }
 
-/* Transparent header over hero (Roe / CVH) — stays visible while scrolling */
+/* Overlay header: fixed + readable over both dark heroes and light sections */
 .wb-root.wb-chrome-overlay {
   position: relative;
 }
@@ -483,19 +483,119 @@ export const websiteRendererCss = `
   top: 0;
   left: 0;
   right: 0;
-  background: transparent;
-  border-bottom: none;
-  box-shadow: none;
-  backdrop-filter: none;
+  background: rgba(12, 18, 24, 0.78);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .wb-root.wb-chrome-overlay .wb-brand-chrome-header .wb-brand-chrome-nav a {
   color: #f8fafc;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  text-shadow: none;
+}
+
+.wb-root.wb-chrome-overlay .wb-brand-chrome-header .wb-brand-chrome-nav a:hover {
+  color: #fff;
 }
 
 .wb-root.wb-chrome-overlay .wb-brand-chrome-header .wb-brand-chrome-logo {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+/* Dark imported pages: force readable titles/links against dark shell */
+.wb-root.wb-html-page .wb-section-title {
+  color: #f8fafc;
+}
+
+.wb-root.wb-html-page .wb-post-grid-wrap .wb-section-title {
+  color: #f8fafc;
+}
+
+/* Light surface pages (Insights / cream property listings) */
+.wb-root.wb-surface-light {
+  background: #f5f2ef;
+  color: #1c2b2a;
+}
+
+.wb-root.wb-surface-light .wb-section-title {
+  color: #1c2b2a;
+}
+
+.wb-root.wb-surface-light .wb-post-grid-wrap {
+  background: transparent;
+}
+
+.wb-root.wb-surface-light .wb-post-card {
+  background: #ffffff;
+  border-color: #e0d6cc;
+  color: #1c2b2a;
+  box-shadow: 0 8px 22px rgba(28, 43, 42, 0.08);
+}
+
+.wb-root.wb-surface-light .wb-post-card:hover {
+  border-color: color-mix(in srgb, var(--wb-primary) 45%, #c9a46c);
+  box-shadow: 0 12px 28px rgba(28, 43, 42, 0.14);
+}
+
+.wb-root.wb-surface-light .wb-post-card-meta {
+  color: #6b7280;
+}
+
+.wb-root.wb-surface-light .wb-post-card-title {
+  color: #1c2b2a;
+}
+
+.wb-root.wb-surface-light .wb-post-card-excerpt {
+  color: #3f4a48;
+}
+
+.wb-root.wb-surface-light .wb-post-card-cta {
+  color: #8a6a3a;
+}
+
+.wb-root.wb-surface-light .wb-post-card-image {
+  background: #e8e2db;
+}
+
+/* Light HTML islands: cream content edge-to-edge (no dark gutters) */
+.wb-html-island.wb-html-island--light,
+.wb-html-page .wb-html-island--page:has(.roe-property-grid),
+.wb-html-page .wb-html-island--page:has(.hero-property) {
+  background: #f5f2ef !important;
+  color: #1c2b2a !important;
+  padding: 0 !important;
+  max-width: none !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-grid {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 2.5rem clamp(1rem, 3vw, 2.5rem) !important;
+  background: #f5f2ef !important;
+  box-sizing: border-box;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-grid .roe-property-card,
+.wb-html-page .wb-html-island--page .roe-property-card {
+  color: #1c2b2a;
+}
+
+.wb-html-page .wb-html-island--light h1,
+.wb-html-page .wb-html-island--light h2,
+.wb-html-page .wb-html-island--light h3,
+.wb-html-page .wb-html-island--page:has(.roe-property-grid) h1,
+.wb-html-page .wb-html-island--page:has(.roe-property-grid) h2,
+.wb-html-page .wb-html-island--page:has(.roe-property-grid) h3 {
+  color: inherit;
+}
+
+.wb-html-page .wb-html-island--light p,
+.wb-html-page .wb-html-island--light li,
+.wb-html-page .wb-html-island--page:has(.roe-property-grid) p,
+.wb-html-page .wb-html-island--page:has(.roe-property-grid) li {
+  color: #2f2f2f;
 }
 
 /* Keep in-page / leftover logos from exploding when island img rules win */
