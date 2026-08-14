@@ -45,6 +45,7 @@ export function WordPressImportPanel({
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [includePosts, setIncludePosts] = useState(false);
+  const [ackContentOnly, setAckContentOnly] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [limitations, setLimitations] = useState<string[]>([]);
@@ -74,6 +75,10 @@ export function WordPressImportPanel({
   }, [wp.limitations]);
 
   async function runImport() {
+    if (!ackContentOnly) {
+      setError("Confirm you understand this is a content import — not a design clone.");
+      return;
+    }
     setBusy(true);
     setError("");
     setStatus("Pulling WordPress pages…");
@@ -112,7 +117,9 @@ export function WordPressImportPanel({
         imp?.posts ? ` + ${imp.posts} post${imp.posts === 1 ? "" : "s"}` : ""
       } via ${imp?.source === "connector_site_content" ? "Connector" : "WP REST"}`;
       if (imp?.limitations?.length) setLimitations(imp.limitations);
-      setStatus(`${summary}. Review pages in Studio (site left as draft).`);
+      setStatus(
+        `${summary}. Site left as draft — review in Studio and restyle. Theme/layout does not transfer.`,
+      );
       onImported?.(json.data.website, summary);
     } catch {
       setError("Network error during import");
@@ -132,19 +139,31 @@ export function WordPressImportPanel({
           <h2 className="text-base font-semibold text-white">
             Import from WordPress
           </h2>
-          <span className="rounded border border-emerald-800/60 bg-emerald-950/40 px-1.5 py-0.5 text-[11px] font-medium text-emerald-200">
-            Content importer v0
+          <span className="rounded border border-amber-700/60 bg-amber-950/40 px-1.5 py-0.5 text-[11px] font-medium text-amber-100">
+            Content only — not design
           </span>
         </div>
         <p className="mt-1 text-sm text-slate-400">
-          Pull pages from your connected WordPress site into this Gen 2 Website
-          as editable Studio blocks.{" "}
-          <strong className="font-medium text-slate-300">
-            Not a theme/pixel clone
-          </strong>
-          — layout, Elementor/Divi, menus, widgets, and plugins are not
-          converted.
+          Pulls page <strong className="font-medium text-slate-300">copy and media URLs</strong>{" "}
+          into Gen 2 Studio blocks. Your WordPress theme, Oxygen/Elementor/Divi layout, menus,
+          and plugin UI stay on WordPress — they are not rebuilt here.
         </p>
+      </div>
+
+      <div className="rounded-md border border-amber-700/40 bg-amber-950/20 px-3 py-3 text-sm text-amber-100/90 space-y-2">
+        <p className="font-semibold text-amber-100">Before you import</p>
+        <ul className="list-disc list-inside space-y-1 text-amber-100/80 text-xs leading-relaxed">
+          <li>
+            Expect text, headings, images (when detectible), CTAs — then restyle in Studio.
+          </li>
+          <li>
+            Pixel-perfect design transfer is not available. Keep WP live until Gen 2 looks right.
+          </li>
+          <li>
+            Re-import <strong className="font-medium text-amber-50">replaces all pages</strong> on
+            this Gen 2 site.
+          </li>
+        </ul>
       </div>
 
       <div className="rounded-md border border-slate-800 bg-slate-900/50 px-3 py-3 space-y-1">
@@ -190,15 +209,19 @@ export function WordPressImportPanel({
         <ul className="list-disc list-inside space-y-1">
           <li>WP pages → Gen 2 pages (home first when set)</li>
           <li>
-            Body HTML → heading, paragraph, image, list, CTA, html blocks
+            Body HTML → heading, paragraph, image, list, CTA, hero (home), html remnant blocks
           </li>
           <li>Titles, slugs, basic SEO title/description</li>
-          <li>Featured / inline image URLs (hotlinked in v0)</li>
+          <li>
+            Featured, inline, lazy-load, and background image URLs when we can detect them
+            (hotlinked)
+          </li>
         </ul>
         <p className="font-medium text-slate-300 pt-1">What doesn’t</p>
         <ul className="list-disc list-inside space-y-1">
-          <li>Theme, Elementor/Divi pixel layouts, menus, widgets, Woo</li>
-          <li>Plugin behaviour / shortcodes (best-effort HTML flatten)</li>
+          <li>Theme, Elementor/Divi/Oxygen pixel layouts, menus, widgets, Woo</li>
+          <li>Global CSS, animations, headers/footers as designed</li>
+          <li>Plugin behaviour / shortcodes (best-effort flatten)</li>
           <li>Media re-host to DG CDN</li>
         </ul>
       </div>
@@ -211,6 +234,23 @@ export function WordPressImportPanel({
           disabled={busy}
         />
         Include recent blog posts (as extra pages)
+      </label>
+
+      <label className="flex items-start gap-2 text-sm text-slate-200 leading-snug">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={ackContentOnly}
+          onChange={(e) => {
+            setAckContentOnly(e.target.checked);
+            if (e.target.checked) setError("");
+          }}
+          disabled={busy}
+        />
+        <span>
+          I understand this imports <strong className="font-semibold">content only</strong> — not
+          my WordPress design — and I will review/restyle pages in Studio.
+        </span>
       </label>
 
       {alreadyImported ? (
@@ -230,15 +270,15 @@ export function WordPressImportPanel({
       <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
-          disabled={busy || !connector?.connectorBaseUrl}
+          disabled={busy || !connector?.connectorBaseUrl || !ackContentOnly}
           onClick={() => void runImport()}
           className="rounded-md bg-[var(--org-primary,#1e3a5f)] px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
         >
           {busy
             ? "Importing…"
             : alreadyImported
-              ? "Re-import from WordPress"
-              : "Import pages from WordPress"}
+              ? "Re-import content from WordPress"
+              : "Import content from WordPress"}
         </button>
         <Link
           href={`/sites/${website.slug}?preview=1`}

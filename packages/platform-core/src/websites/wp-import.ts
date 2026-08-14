@@ -184,9 +184,10 @@ export async function fetchWordPressContentForOrg(input: {
   const perPage = Math.min(100, Math.max(1, input.perPage ?? 40));
   const includePosts = Boolean(input.includePosts);
   const limitations = [
-    "Theme, Elementor/Divi layouts, menus, widgets, and plugins are not converted.",
-    "Body HTML is flattened into Gen 2 Studio blocks (heading, paragraph, image, list, CTA, html).",
-    "Media stays as remote URLs (hotlinked) in v0 — not re-hosted to DG CDN.",
+    "Content import only — WordPress theme, Elementor/Divi/Oxygen layouts, menus, widgets, and plugins are not converted.",
+    "Body HTML is flattened into Gen 2 Studio blocks (heading, paragraph, image, list, CTA, hero, html remnant).",
+    "Lazy-load and background images are detected when possible; media stays hotlinked (not re-hosted to DG CDN).",
+    "Review and restyle in Studio after import. Keep WordPress live until Gen 2 looks right.",
   ];
 
   // 1) Prefer authenticated Connector export
