@@ -362,7 +362,9 @@ async function ensureWebsite(org, brand, chrome = null) {
       ...chrome,
       businessName: fullOrg?.name || org.name,
       headerHtml: null,
-      footerHtml: null,
+      // Keep WP/marketing footer when provided; brand header uses profile logo
+      footerHtml: chrome.footerHtml || null,
+      overlayHeader: brand.key === "roe" || brand.key === "cvh",
     };
   }
 
@@ -406,7 +408,14 @@ async function ensureWebsite(org, brand, chrome = null) {
             ...(chrome || {}),
             businessName: fullOrg?.name || org.name,
             headerHtml: null,
-            footerHtml: null,
+            footerHtml:
+              chrome?.footerHtml != null
+                ? chrome.footerHtml
+                : prevChrome.footerHtml ?? null,
+            overlayHeader:
+              brand.key === "roe" || brand.key === "cvh"
+                ? true
+                : Boolean(prevChrome.overlayHeader),
           },
         },
       },
@@ -535,12 +544,8 @@ async function seedDigitalGate(org) {
     n += 1;
   }
 
-  // Insights archive: marketing chrome + two-column post cards
-  const insightsPath = join(MARKETING_DIR, "insights-page.html");
-  if (existsSync(insightsPath)) {
-    const insightsChrome = prepareMarketingHtml(
-      readFileSync(insightsPath, "utf8"),
-    );
+  // Insights archive: cards only (no marketing hero chrome)
+  {
     const action = await upsertPage(
       site.id,
       {
@@ -549,10 +554,7 @@ async function seedDigitalGate(org) {
         intent: "custom",
         sortOrder: 9,
       },
-      [
-        htmlComponent(insightsChrome, "Insights archive chrome"),
-        postGridComponent(postCards, "Latest articles"),
-      ],
+      [postGridComponent(postCards, "Latest articles")],
       {
         title: "Insights | DigitalGate",
         description:
@@ -667,8 +669,15 @@ function uniqueSlug(base, used) {
   return candidate;
 }
 
+function stripEmbeddedPageHeaders(html) {
+  return String(html || "").replace(
+    /<header\b[^>]*class=["'][^"']*(?:rr-header|cvh-header|site-header|oxy-header)[^"']*["'][^>]*>[\s\S]*?<\/header>/gi,
+    "",
+  );
+}
+
 function prepareWpHtml(contentHtml, bg) {
-  const cleaned = String(contentHtml || "")
+  const cleaned = stripEmbeddedPageHeaders(String(contentHtml || ""))
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
     .replace(/\s+on\w+\s*=\s*(".*?"|'.*?'|[^\s>]+)/gi, "")
     .trim();
@@ -676,6 +685,8 @@ function prepareWpHtml(contentHtml, bg) {
 .wb-html-island--page{min-height:60vh;width:100%;max-width:none;background:${bg};color:#f8fafc;padding:0;margin:0;font-family:system-ui,sans-serif;line-height:1.65}
 .wb-html-island--page a{color:#93c5fd}
 .wb-html-island--page img{max-width:100%;height:auto;border-radius:0.35rem}
+.wb-html-island--page img.rr-logo,.wb-html-island--page .rr-logo,.wb-html-island--page .logo-wrapper img,.wb-html-island--page header img,.wb-html-island--page .rr-icon,.wb-html-island--page .footer-logo img{max-height:56px!important;width:auto!important;max-width:min(240px,55vw)!important;height:auto!important;object-fit:contain!important}
+.wb-html-island--page .nav-cta,.wb-html-island--page .hero-cta,.wb-html-island--page .cta-button,.wb-html-island--page .intro-cta{display:inline-flex!important;align-items:center;width:auto!important;max-width:100%;white-space:nowrap;box-sizing:border-box}
 .wb-html-island--page h1,.wb-html-island--page h2,.wb-html-island--page h3{color:#f8fafc;line-height:1.25}
 .wb-html-island--page p,.wb-html-island--page li{color:#e2e8f0}
 .wb-html-island--page .container,.wb-html-island--page .ct-section-inner-wrap{max-width:min(1400px,100%)!important;width:100%;margin-left:auto;margin-right:auto;padding-left:clamp(1rem,3vw,2rem);padding-right:clamp(1rem,3vw,2rem);box-sizing:border-box}
@@ -958,13 +969,10 @@ async function seedFromWordPress(org, brand) {
       where: { websiteId: site.id, slug: "insights" },
     });
     if (existingInsights) {
-      const prior = Array.isArray(existingInsights.components)
-        ? existingInsights.components.filter((c) => c?.type !== "post_grid")
-        : [];
       await prisma.websitePage.update({
         where: { id: existingInsights.id },
         data: {
-          components: [...prior, postGridComponent(postCards, "Latest articles")],
+          components: [postGridComponent(postCards, "Latest articles")],
         },
       });
       console.log(`  updated /insights (grid ${postCards.length})`);
@@ -981,16 +989,7 @@ async function seedFromWordPress(org, brand) {
             title: `Insights | ${org.name}`,
             description: `Articles and updates from ${org.name}.`,
           },
-          components: [
-            htmlComponent(
-              prepareWpHtml(
-                `<h1>Insights</h1><p>Articles and updates from ${org.name}.</p>`,
-                brand.theme.backgroundColor,
-              ),
-              "Insights intro",
-            ),
-            postGridComponent(postCards, "Latest articles"),
-          ],
+          components: [postGridComponent(postCards, "Latest articles")],
         },
       });
       console.log(`  created /insights (grid ${postCards.length})`);

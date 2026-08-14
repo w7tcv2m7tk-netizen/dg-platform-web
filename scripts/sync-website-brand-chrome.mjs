@@ -107,9 +107,12 @@ async function main() {
           ...prevMeta,
           chrome: {
             ...prevChrome,
-            // Prefer renderer brand chrome driven by theme.logoUrl
+            // Brand header from theme.logoUrl; keep any stored WP footer
             headerHtml: null,
-            footerHtml: null,
+            footerHtml: prevChrome.footerHtml ?? null,
+            overlayHeader:
+              siteSlug === "roe-realty" ||
+              siteSlug === "currumbin-valley-hideaway",
             businessName: site.organisation.name,
             navLinks,
             stylesheets: Array.isArray(prevChrome.stylesheets)

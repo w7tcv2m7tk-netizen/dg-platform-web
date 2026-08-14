@@ -490,6 +490,8 @@ export type WebsiteChrome = {
   /** Prefer profile logo chrome when theme.logoUrl is set */
   navLinks?: Array<{ label: string; href: string }> | null;
   businessName?: string | null;
+  /** Transparent header over hero (Roe / CVH style) */
+  overlayHeader?: boolean | null;
 };
 
 function BrandSiteHeader({
@@ -587,10 +589,14 @@ export function WebsitePageRenderer({
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
   const bg = theme.backgroundColor || "#0c1222";
-  const useBrandChrome = Boolean(theme.logoUrl || theme.iconUrl);
-  const headerHtml = !useBrandChrome ? chrome?.headerHtml?.trim() || "" : "";
-  const footerHtml = !useBrandChrome ? chrome?.footerHtml?.trim() || "" : "";
-  const hasChrome = Boolean(headerHtml || footerHtml || useBrandChrome);
+  const useBrandHeader = Boolean(theme.logoUrl || theme.iconUrl);
+  const headerHtml = !useBrandHeader ? chrome?.headerHtml?.trim() || "" : "";
+  const footerHtml = chrome?.footerHtml?.trim() || "";
+  const useBrandFooter = useBrandHeader && !footerHtml;
+  const overlayHeader = Boolean(chrome?.overlayHeader);
+  const hasChrome = Boolean(
+    headerHtml || footerHtml || useBrandHeader || useBrandFooter,
+  );
   const htmlPage = isHtmlDominantPage(components) || hasChrome;
   const businessName = chrome?.businessName?.trim() || siteSlug;
   const rawLinks = Array.isArray(chrome?.navLinks) ? chrome!.navLinks! : [];
@@ -605,9 +611,18 @@ export function WebsitePageRenderer({
       return { label: l.label, href };
     });
 
+  const rootClass = [
+    "wb-root",
+    htmlPage ? "wb-html-page" : "",
+    htmlPage ? "wb-full-bleed" : "",
+    overlayHeader ? "wb-chrome-overlay" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <div
-      className={htmlPage ? "wb-root wb-html-page wb-full-bleed" : "wb-root"}
+      className={rootClass}
       style={
         {
           ["--wb-primary"]: primary,
@@ -616,7 +631,7 @@ export function WebsitePageRenderer({
         } as React.CSSProperties
       }
     >
-      {useBrandChrome ? (
+      {useBrandHeader ? (
         <BrandSiteHeader
           theme={theme}
           basePath={basePath}
@@ -639,17 +654,17 @@ export function WebsitePageRenderer({
           pageSlug={pageSlug}
         />
       ))}
-      {useBrandChrome ? (
+      {footerHtml ? (
+        <section
+          className="wb-section wb-html-block wb-site-chrome wb-site-chrome-footer"
+          dangerouslySetInnerHTML={{ __html: footerHtml }}
+        />
+      ) : useBrandFooter ? (
         <BrandSiteFooter
           theme={theme}
           basePath={basePath}
           links={links}
           businessName={businessName}
-        />
-      ) : footerHtml ? (
-        <section
-          className="wb-section wb-html-block wb-site-chrome wb-site-chrome-footer"
-          dangerouslySetInnerHTML={{ __html: footerHtml }}
         />
       ) : null}
     </div>

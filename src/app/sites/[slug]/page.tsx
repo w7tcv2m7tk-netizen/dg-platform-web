@@ -11,6 +11,7 @@ type SiteChrome = {
   stylesheets?: string[];
   navLinks?: Array<{ label: string; href: string }>;
   businessName?: string;
+  overlayHeader?: boolean;
 };
 
 function chromeFromSite(

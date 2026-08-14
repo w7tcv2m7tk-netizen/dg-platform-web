@@ -473,6 +473,57 @@ export const websiteRendererCss = `
   border-bottom: 1px solid color-mix(in srgb, var(--wb-primary) 28%, transparent);
 }
 
+/* Transparent header over hero (Roe / CVH) */
+.wb-root.wb-chrome-overlay {
+  position: relative;
+}
+
+.wb-root.wb-chrome-overlay .wb-brand-chrome-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: transparent;
+  border-bottom: none;
+  box-shadow: none;
+}
+
+.wb-root.wb-chrome-overlay .wb-brand-chrome-header .wb-brand-chrome-nav a {
+  color: #f8fafc;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.wb-root.wb-chrome-overlay .wb-brand-chrome-header .wb-brand-chrome-logo {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+/* Keep in-page / leftover logos from exploding when island img rules win */
+.wb-html-page .wb-html-island--page img.rr-logo,
+.wb-html-page .wb-html-island--page .rr-logo,
+.wb-html-page .wb-html-island--page .logo-wrapper img,
+.wb-html-page .wb-html-island--page header img,
+.wb-html-page .wb-html-island--page .rr-icon,
+.wb-html-page .wb-html-island--page .footer-logo img {
+  max-height: 56px !important;
+  width: auto !important;
+  max-width: min(240px, 55vw) !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
+
+.wb-html-page .wb-html-island--page .nav-cta,
+.wb-html-page .wb-html-island--page .hero-cta,
+.wb-html-page .wb-html-island--page .cta-button,
+.wb-html-page .wb-html-island--page .intro-cta,
+.wb-html-page .wb-html-island--page .direct-cta-button-light {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: auto !important;
+  max-width: 100%;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
 .wb-brand-chrome-footer {
   border-bottom: 0;
   border-top: 1px solid color-mix(in srgb, var(--wb-primary) 28%, transparent);
