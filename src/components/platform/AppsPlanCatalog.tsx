@@ -38,7 +38,7 @@ function statusBadge(status: CatalogStatus) {
     case "rolling-out":
       return (
         <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
-          Founding Customer Early Access
+          Early Access
         </span>
       );
     case "included":
@@ -327,7 +327,7 @@ export function AppsPlanCatalog() {
         <SectionHeader
           label="⬡ 2 · Platform Capabilities"
           title="Commerce, Websites & Infrastructure"
-          description="Core operating capabilities — connected to your business, not bolted on. Toggle them into the Core · Platform sidebar group."
+          description="Core operating capabilities — connected to your business. Toggle them into the Operate sidebar group."
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {PLATFORM_CAPABILITY_CATALOG.map((item) => (
@@ -352,7 +352,7 @@ export function AppsPlanCatalog() {
         <SectionHeader
           label="🧩 3 · Apps"
           title="Industry apps"
-          description={`Install vertical apps for your industry. ${enabledIds.length} apps currently on in your sidebar.`}
+          description="Property ecosystem grouped first (Real Estate → Accommodation → PM → Commercial), then Services and other verticals. Install only what you need."
         />
         <div id="industry-apps" className="scroll-mt-24">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -375,9 +375,9 @@ export function AppsPlanCatalog() {
 
       <section id="growth-apps" className="scroll-mt-24">
         <SectionHeader
-          label="📈 4 · Growth & Intelligence Apps"
-          title="Unlock growth on top of the core platform"
-          description="Reputation, SEO, AI visibility, automation, analytics, social, and voice."
+          label="📈 4 · Growth Apps"
+          title="Visibility, acquisition and conversion"
+          description="Reputation, SEO, AI visibility, automation, analytics, social, and communications — on top of the core platform."
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {GROWTH_APP_CATALOG.map((item) => (

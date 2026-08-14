@@ -2,11 +2,30 @@
 
 **Platform Core** capability — proactive intelligence across every DigitalGate tenant and prospect.
 
+**Status:** Elevate — **major founding deepen priority** (Advisor assessment Aug 2026). Bridge between **Digital Twin™ → revenue / attention**. Not a new App; deepen detection + next-best-action on existing surfaces.  
+**North-star:** [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) — Twin → Decision Intelligence → Action → Learning.
+
 **Customer-facing term:** Opportunities  
 **Internal / IP name:** DigitalGate Opportunity Engine™  
 **Core App UI:** `/apps/opportunities` (full ranked list for the org)  
-**Cockpit UI:** Command Centre (`/command/opportunities`) — orchestrates / prioritises  
-**Version:** 0.3 · August 2026
+**Customer home:** Feed Business Command Centre / Decision Intelligence (“what needs attention”)  
+**Cockpit UI:** Command Centre (`/command/opportunities`) — staff orchestrates / prioritises  
+**Version:** 0.4 · August 2026
+
+---
+
+## Why this matters
+
+Opportunity Engine is where DigitalGate starts behaving like **operating intelligence**, not a tool wall:
+
+| Example | Impact | Recommended action |
+|---------|--------|--------------------|
+| Vendor leads not contacted within 15 minutes | High attention | Create follow-up sequence |
+| Visibility strong in one suburb, weak in another | Growth | Guide + landing page + ads |
+| Outstanding invoices | Revenue risk | Payment reminder sequence |
+| CRM + Website, no AI Visibility | Expansion | Recommend Growth capability |
+
+Deepen **useful** detections and honest actions before inventing new Growth Apps.
 
 ---
 

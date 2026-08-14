@@ -10,6 +10,10 @@ const SIDEBAR_ICONS: Record<string, string> = {
   marketplace: "▣",
   network: "◎",
   settings: "⎔",
+  referrals: "⇄",
+  twin: "◉",
+  goals: "◎",
+  intelligence: "✦",
   // Apps
   crm: "◎",
   commerce: "▤",
@@ -19,6 +23,7 @@ const SIDEBAR_ICONS: Record<string, string> = {
   services: "⬡",
   creator: "◈",
   commercial: "▦",
+  "property-management": "⌂",
   automotive: "⬡",
   seo: "⎔",
   "ai-visibility": "◉",

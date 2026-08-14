@@ -142,7 +142,7 @@ export const PLATFORM_ADDON_CATALOG: PlatformAddonCatalogItem[] = [
   },
 ];
 
-/** Mirrors pricing page — Industry Apps grid */
+/** Mirrors pricing page — Industry Apps grid (property ecosystem grouped first) */
 export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
   {
     appId: "real-estate",
@@ -160,7 +160,25 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
     icon: "🏨",
     price: "+$99/mo",
     description: "Bookings, guests, housekeeping & OTA sync",
-    status: "live",
+    status: "rolling-out",
+  },
+  {
+    appId: "property-management",
+    industryKey: "property-management",
+    label: "Property Management",
+    icon: "🔑",
+    price: "+$99/mo",
+    description: "Long-term rentals — owners, tenants, leases & maintenance",
+    status: "soon",
+  },
+  {
+    appId: "commercial",
+    industryKey: "commercial",
+    label: "Commercial Property",
+    icon: "🏢",
+    price: "+$99/mo",
+    description: "Commercial sales, leasing, landlords, tenants & assets",
+    status: "soon",
   },
   {
     appId: "services",
@@ -169,7 +187,7 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
     icon: "🔧",
     price: "+$99/mo",
     description: "One App for trades — jobs, quotes, schedule; industry via Service Templates",
-    status: "live",
+    status: "soon",
   },
   {
     appId: "finance",
@@ -181,15 +199,6 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
     status: "soon",
   },
   {
-    appId: "creator",
-    industryKey: "creator",
-    label: "Creator",
-    icon: "✨",
-    price: "+$99/mo",
-    description: "Audience tools, content & creator studio",
-    status: "rolling-out",
-  },
-  {
     appId: "automotive",
     industryKey: "automotive",
     label: "Automotive",
@@ -199,13 +208,13 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
     status: "soon",
   },
   {
-    appId: "commercial",
-    industryKey: "commercial",
-    label: "Commercial",
-    icon: "🏢",
+    appId: "creator",
+    industryKey: "creator",
+    label: "Creator",
+    icon: "✨",
     price: "+$99/mo",
-    description: "Leases, tenants & commercial property pipelines",
-    status: "soon",
+    description: "Audience tools, content & creator studio",
+    status: "rolling-out",
   },
 ];
 

@@ -3,7 +3,8 @@
 **Status:** Locked · Platform Architect (Ben) · August 2026  
 **Supersedes:** Any Industry-before-Infrastructure public/commercial ordering
 
-> DigitalGate is an **operating platform with Apps** — not an App marketplace.
+> DigitalGate is an **intelligent business operating platform** with Apps as **capabilities underneath** — not an App marketplace, and **not** sold primarily as a collection of apps.  
+> Product story: [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md).
 
 ---
 
@@ -36,6 +37,8 @@ DIGITALGATE PLATFORM
 
 **Across everything (not Apps):** AI · Automation · Event Bus · Digital Twin · Intelligence · Connectors — platform capabilities that power Core and Apps.
 
+**North-star intelligent layer:** [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) — Connect → Centralise → Understand → **Decide** → Act → **Learn** → Grow; moat **Twin → Intelligence → Action → Learning**; Industry Apps as entry points. Target IA: BUSINESS · OPERATE · GROW · INTELLIGENCE · ECOSYSTEM. Real Estate = flagship commercial proof.
+
 ---
 
 ## 1. CORE — every business
@@ -48,7 +51,9 @@ Websites / Website Builder · Domains · DNS · Hosting · Email · SSL · Websi
 
 ## 3. INDUSTRY — specialised
 
-Real Estate · Accommodation · Services · Finance · Commercial · Automotive · Creator · Future industries
+**Property ecosystem (locked):** Real Estate (Sales) · Property Management · Commercial Property · Accommodation · Property Development (future) — see [PROPERTY-ECOSYSTEM.md](./PROPERTY-ECOSYSTEM.md)
+
+Also: Services · Finance · Automotive · Creator · Future industries
 
 Commercial honesty: not every Industry App is fully developed. Real Estate is the flagship; others ship with explicit Early Access / Coming Soon status.
 
@@ -65,11 +70,13 @@ AI Visibility · SEO Engine · Analytics · Social Management · AI Communicatio
 | **AI** | Assist, score, recommend, generate |
 | **Automation** | Workflows across Core and Apps |
 | **Event Bus** | Platform events between modules |
-| **Digital Twin** | Live business context |
-| **Intelligence** | Scoring, briefing, recommendations |
+| **Digital Twin** | Living representation of the business |
+| **Decision Intelligence** | What matters / what next (uses the Twin) |
+| **Opportunity Engine** | Detects and ranks opportunities (customer UI: Opportunities) |
+| **Intelligence / Scoring** | Health, briefing, recommendations |
 | **Connectors** | External systems into Universal Objects |
 
-Do **not** package these as purchasable “Apps” in the public hierarchy. They operate across the platform.
+Do **not** package these as purchasable “Apps” in the public hierarchy. They operate across the platform. Customer story is the Intelligent Layer — not “buy six apps.”
 
 ---
 
@@ -77,10 +84,11 @@ Do **not** package these as purchasable “Apps” in the public hierarchy. They
 
 | Say | Don’t say |
 |-----|-----------|
-| Operating platform with Apps | App marketplace / app store story |
+| Intelligent operating platform; apps are capabilities | App marketplace / “SaaS bundle of tools” |
 | Core → Infrastructure → Industry → Growth | Industry before Infrastructure |
 | Infrastructure powers digital presence | Domains/hosting as a separate product category from the OS |
 | Industry Apps specialise the same foundation | Separate industry products / siloed stacks |
+| Real Estate first commercial proof | Equal build effort across every Industry App |
 | Growth Apps for visibility & conversion | Automation as a Growth App (Automation is platform capability) |
 
 ---
@@ -90,6 +98,7 @@ Do **not** package these as purchasable “Apps” in the public hierarchy. They
 | Doc | Relationship |
 |-----|----------------|
 | [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) | Capability ↔ App packaging; must not contradict this hierarchy |
+| [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) | Twin / BI / Advisor / AI Actions north-star — capabilities across the hierarchy |
 | [COMMERCIALLY-READY-V1.md](./COMMERCIALLY-READY-V1.md) | Commercialisation build order (🔴/🟠/🟢) — orthogonal to App hierarchy |
 | [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) | Infrastructure layer detail |
 | [WEBSITE-BUILDER.md](./WEBSITE-BUILDER.md) | Website Builder sits under Infrastructure |

@@ -7,6 +7,9 @@ export type RoadmapStatus = "done" | "in_progress" | "scaffold" | "planned";
 
 export type RoadmapPriority = "high" | "medium" | "low";
 
+/** Commercially Ready v1 vs full Gen 2 / later backlog */
+export type RoadmapTrack = "cr-v1" | "gen2";
+
 export interface RoadmapItem {
   id: string;
   area: string;
@@ -16,6 +19,11 @@ export interface RoadmapItem {
   priority?: RoadmapPriority;
   href?: string;
   appId?: string;
+  /**
+   * Explicit track override. When omitted, classified by
+   * {@link isCommerciallyReadyV1Item}.
+   */
+  track?: RoadmapTrack;
 }
 
 const STATUS_WEIGHT: Record<RoadmapStatus, number> = {
@@ -24,6 +32,70 @@ const STATUS_WEIGHT: Record<RoadmapStatus, number> = {
   scaffold: 0.35,
   planned: 0.05,
 };
+
+/** Areas that dilute founding readiness — show on Gen 2 bar only */
+const GEN2_LATER_AREAS = new Set([
+  "Finance",
+  "Commercial",
+  "Property Management",
+  "Creator",
+  "Automotive",
+  "Network",
+  "Marketplace",
+  "AI Communications",
+  "Marketing",
+  "Social Management",
+]);
+
+/** Explicit Gen 2 / later tickets even when area is Core-adjacent */
+const GEN2_LATER_IDS = new Set([
+  "core.brand_studio",
+  "core.brand_studio.v1",
+  "core.industry_intelligence",
+  "platform.connector_asic",
+  "platform.connector_google",
+  "platform.connector_meta",
+  "platform.connector_comms",
+  "platform.connector_xero",
+  "platform.connector_shopify",
+  "platform.connector_property_intel",
+  "re.syndication_engine",
+  "re.syndication_domain_prod",
+  "re.syndication_rea",
+  "re.agency_pms_connectors",
+  "services.ai_configure",
+  "services.field_ops",
+  "services.recurrence",
+  "services.quote_job",
+  "services.ai_job_assistant",
+  "services.ai_quote_assistant",
+  "services.ai_scheduling",
+  "services.scheduling_calendar",
+  "analytics.connectors",
+  "infra.hosting",
+  "infra.deployments",
+  "infra.monitoring",
+  "infra.email_mailbox",
+  "command.support",
+  "command.audit",
+  "growth.opportunity_learning",
+  "detach.portal_billing",
+  "detach.support_health",
+  "detach.public_headless",
+  "comms.voice",
+  "comms.agents",
+  "comms.call_centre",
+  "comms.knowledge",
+  "comms.settings",
+]);
+
+export function isCommerciallyReadyV1Item(item: RoadmapItem): boolean {
+  if (item.track === "cr-v1") return true;
+  if (item.track === "gen2") return false;
+  if (GEN2_LATER_AREAS.has(item.area)) return false;
+  if (GEN2_LATER_IDS.has(item.id)) return false;
+  return true;
+}
 
 export const PLATFORM_ROADMAP: RoadmapItem[] = [
   // —— Platform ——
@@ -174,8 +246,8 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Platform",
     label: "Connector Engine",
     description:
-      "Core framework: manifests, auth, sync, health — Property / Business / Marketing categories — docs/foundations/CONNECTOR-ENGINE.md",
-    status: "in_progress",
+      "Core framework shipped: manifests, auth, sync, health — Property / Business / Marketing categories — individual connectors remain separate tickets",
+    status: "done",
     priority: "high",
     href: "/dashboard/settings",
   },
@@ -455,8 +527,9 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "finance.overview",
     area: "Finance",
     label: "Overview",
-    description: "Broker dashboard — pipeline, approvals, and commissions",
+    description: "Broker dashboard — Track C floor started; registry still off",
     status: "scaffold",
+    track: "gen2",
     appId: "finance",
     href: "/apps/finance",
   },
@@ -466,6 +539,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     label: "Pipeline",
     description: "Loan and finance application pipeline",
     status: "scaffold",
+    track: "gen2",
     appId: "finance",
     href: "/apps/finance/pipeline",
   },
@@ -475,6 +549,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     label: "Clients",
     description: "Finance client records and document collection",
     status: "scaffold",
+    track: "gen2",
     appId: "finance",
     href: "/apps/finance/clients",
   },
@@ -482,8 +557,9 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "finance.applications",
     area: "Finance",
     label: "Applications",
-    description: "Application forms, status tracking, and lender submissions",
-    status: "scaffold",
+    description: "FinanceApplication create/list on Neon — Track C floor",
+    status: "in_progress",
+    track: "gen2",
     appId: "finance",
     href: "/apps/finance/applications",
   },
@@ -623,8 +699,18 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Services",
     label: "Scheduling",
     description:
-      "Day board (14 days) + quick schedule/assign from Needs scheduling — full calendar / DnD later",
-    status: "in_progress",
+      "Day board (14 days) + quick schedule/assign from Needs scheduling — full calendar / DnD is a later Gen 2 item",
+    status: "done",
+    appId: "services",
+    href: "/apps/services/scheduling",
+  },
+  {
+    id: "services.scheduling_calendar",
+    area: "Services",
+    label: "Scheduling calendar (DnD)",
+    description: "Full calendar drag-and-drop — after founding Services floor",
+    status: "planned",
+    track: "gen2",
     appId: "services",
     href: "/apps/services/scheduling",
   },
@@ -676,13 +762,14 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     href: "/apps/creator/storefront",
   },
 
-  // —— Commercial ——
+  // —— Commercial Property ——
   {
     id: "commercial.overview",
     area: "Commercial",
     label: "Overview",
-    description: "Commercial portfolio dashboard",
+    description: "Commercial Property portfolio — Track C floor; registry off",
     status: "scaffold",
+    track: "gen2",
     appId: "commercial",
     href: "/apps/commercial",
   },
@@ -690,8 +777,9 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "commercial.properties",
     area: "Commercial",
     label: "Properties",
-    description: "Commercial property register",
-    status: "scaffold",
+    description: "CommercialProperty create/list on Neon — Track C floor",
+    status: "in_progress",
+    track: "gen2",
     appId: "commercial",
     href: "/apps/commercial/properties",
   },
@@ -699,8 +787,9 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "commercial.leases",
     area: "Commercial",
     label: "Leases",
-    description: "Lease terms, renewals, and rent schedules",
+    description: "CommercialLease API shipped; UI board next",
     status: "scaffold",
+    track: "gen2",
     appId: "commercial",
     href: "/apps/commercial/leases",
   },
@@ -710,8 +799,31 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     label: "Tenants",
     description: "Tenant records and communication history",
     status: "scaffold",
+    track: "gen2",
     appId: "commercial",
     href: "/apps/commercial/tenants",
+  },
+
+  // —— Property Management ——
+  {
+    id: "pm.overview",
+    area: "Property Management",
+    label: "Overview",
+    description: "Long-term rentals ops — Track C floor; registry off",
+    status: "scaffold",
+    track: "gen2",
+    appId: "property-management",
+    href: "/apps/property-management",
+  },
+  {
+    id: "pm.leases",
+    area: "Property Management",
+    label: "Leases & tenancies",
+    description: "PmLease create/list on Neon — Track C floor",
+    status: "in_progress",
+    track: "gen2",
+    appId: "property-management",
+    href: "/apps/property-management/leases",
   },
 
   // —— Automotive ——
@@ -816,8 +928,8 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Commerce",
     label: "Subscriptions & MRR",
     description:
-      "Customer subscription ledger + MRR rollup (read-only; PSP sync via upsert)",
-    status: "in_progress",
+      "Customer subscription ledger + MRR rollup (read-only; PSP sync via upsert) — v1 floor shipped",
+    status: "done",
     appId: "commerce",
     href: "/apps/commerce/subscriptions",
   },
@@ -1006,8 +1118,9 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Social Management",
     label: "Overview",
     description:
-      "Profile URL completeness + drafts hub (publish OAuth deferred) — Social Pro later",
-    status: "in_progress",
+      "Profile URL completeness + drafts hub shipped — publish OAuth remains Gen 2 later (Social Pro)",
+    status: "done",
+    track: "gen2",
     appId: "social",
     href: "/apps/social",
   },
@@ -1044,8 +1157,10 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "marketing.overview",
     area: "Marketing",
     label: "Overview",
-    description: "Campaigns, channels, and agency audit workflow",
-    status: "in_progress",
+    description:
+      "Honest product-map overview — campaigns/channels remain scaffold until Marketing Pro",
+    status: "scaffold",
+    track: "gen2",
     appId: "marketing",
     href: "/apps/marketing",
   },
@@ -1082,8 +1197,8 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "reviews.overview",
     area: "Reputation",
     label: "Overview",
-    description: "Reputation dashboard, Acc feed, and theme stub",
-    status: "in_progress",
+    description: "Reputation dashboard + Acc feed — Founding Early Access floor",
+    status: "done",
     appId: "reviews",
     href: "/apps/reviews",
   },
@@ -1091,8 +1206,8 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "reviews.inbox",
     area: "Reputation",
     label: "Review inbox",
-    description: "Unified inbox — Acc dg_reviews live when connector available",
-    status: "in_progress",
+    description: "Unified inbox — Acc dg_reviews when connector available",
+    status: "done",
     appId: "reviews",
     href: "/apps/reviews/inbox",
   },
@@ -1102,6 +1217,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     label: "Review sources",
     description: "Connect / monitor concepts for GBP, Meta, Acc, manual",
     status: "scaffold",
+    track: "gen2",
     appId: "reviews",
     href: "/apps/reviews/sources",
   },
@@ -1110,7 +1226,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Reputation",
     label: "Review requests",
     description: "Queue review requests after completed stay / settlement",
-    status: "in_progress",
+    status: "done",
     appId: "reviews",
     href: "/apps/reviews/requests",
   },
@@ -1118,7 +1234,8 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "reviews.reputation",
     area: "Reputation",
     label: "Reputation score",
-    description: "Reputation Score™ stub from live Acc feed + AI themes",
+    description:
+      "Reputation Score™ from live Acc feed + themes — deeper AI scoring still in progress",
     status: "in_progress",
     appId: "reviews",
     href: "/apps/reviews/reputation",
@@ -1507,8 +1624,8 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Growth Engine",
     label: "Discovery enrichment + Business Score",
     description:
-      "Optional presence audit on import; fuller Visibility/SEO/AI/Conversion breakdown next",
-    status: "in_progress",
+      "Optional presence audit on import shipped — fuller Visibility/SEO/AI/Conversion breakdown is Gen 2 later",
+    status: "done",
     priority: "high",
     appId: "command-centre",
     href: "/command/growth-engine/audits",
@@ -1647,7 +1764,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "WP Detach",
     label: "P1 · Roe RE source of truth",
     description:
-      "Lead create/UI + stage SoT in Gen 2; WP forms dual-write via dg-leads; optional stage write-back",
+      "Founding blocker — Lead create/UI + stage SoT in Gen 2; WP forms dual-write via dg-leads; optional stage write-back",
     status: "in_progress",
     priority: "high",
     appId: "real-estate",
@@ -1732,6 +1849,12 @@ export function getRoadmapForApp(appId: string) {
   return PLATFORM_ROADMAP.filter((item) => item.appId === appId);
 }
 
+export function getRoadmapItems(track: "all" | "cr-v1" | "gen2" = "all"): RoadmapItem[] {
+  if (track === "all") return PLATFORM_ROADMAP;
+  if (track === "cr-v1") return PLATFORM_ROADMAP.filter(isCommerciallyReadyV1Item);
+  return PLATFORM_ROADMAP.filter((item) => !isCommerciallyReadyV1Item(item));
+}
+
 export interface RoadmapSummary {
   total: number;
   done: number;
@@ -1740,17 +1863,25 @@ export interface RoadmapSummary {
   planned: number;
   percentComplete: number;
   label: string;
+  track: "all" | "cr-v1" | "gen2";
 }
 
-export function getRoadmapSummary(): RoadmapSummary {
-  const total = PLATFORM_ROADMAP.length;
-  const done = PLATFORM_ROADMAP.filter((i) => i.status === "done").length;
-  const inProgress = PLATFORM_ROADMAP.filter((i) => i.status === "in_progress").length;
-  const scaffold = PLATFORM_ROADMAP.filter((i) => i.status === "scaffold").length;
-  const planned = PLATFORM_ROADMAP.filter((i) => i.status === "planned").length;
+function summarise(items: RoadmapItem[], track: RoadmapSummary["track"]): RoadmapSummary {
+  const total = items.length;
+  const done = items.filter((i) => i.status === "done").length;
+  const inProgress = items.filter((i) => i.status === "in_progress").length;
+  const scaffold = items.filter((i) => i.status === "scaffold").length;
+  const planned = items.filter((i) => i.status === "planned").length;
 
-  const weighted = PLATFORM_ROADMAP.reduce((sum, item) => sum + STATUS_WEIGHT[item.status], 0);
+  const weighted = items.reduce((sum, item) => sum + STATUS_WEIGHT[item.status], 0);
   const percentComplete = total ? Math.round((weighted / total) * 100) : 0;
+
+  const label =
+    track === "cr-v1"
+      ? `Commercially Ready v1 · ${percentComplete}% complete`
+      : track === "gen2"
+        ? `Gen 2 later · ${percentComplete}% complete`
+        : `Platform Gen 2 · ${percentComplete}% complete`;
 
   return {
     total,
@@ -1759,8 +1890,23 @@ export function getRoadmapSummary(): RoadmapSummary {
     scaffold,
     planned,
     percentComplete,
-    label: `Platform Gen 2 · ${percentComplete}% complete`,
+    label,
+    track,
   };
+}
+
+/** Full Gen 2 bar (includes later Industry Apps / deep backlog). */
+export function getRoadmapSummary(): RoadmapSummary {
+  return summarise(PLATFORM_ROADMAP, "all");
+}
+
+/** Founding / customer-independence bar — excludes Gen 2 later dilution. */
+export function getCommerciallyReadyV1Summary(): RoadmapSummary {
+  return summarise(getRoadmapItems("cr-v1"), "cr-v1");
+}
+
+export function getGen2LaterSummary(): RoadmapSummary {
+  return summarise(getRoadmapItems("gen2"), "gen2");
 }
 
 export function roadmapStatusLabel(status: RoadmapStatus): string {

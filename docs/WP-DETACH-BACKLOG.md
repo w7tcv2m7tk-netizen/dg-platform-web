@@ -120,6 +120,7 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 | **Why** | Neon already creates/updates properties and publishes to WP; inbound sync is for legacy catch-up. |
 | **Touchpoints** | `packages/platform-core/src/properties/index.ts` (`createProperty`, `updatePropertyStatus`, `updatePropertyListing`); `sync-property-publish.ts` (`publishPropertyToWordPress`, `maybeAutoPublishPropertyToWordPress`); `sync-properties-from-wordpress.ts`; `src/app/api/v1/properties/[id]/route.ts` (`publish_to_website`); `src/app/api/v1/re/listings/sync/route.ts`; `PublishToWebsiteButton.tsx`. |
 | **Done means** | Docs + UI label Neon as SoT; WP publish = public mirror; WP→Neon sync flagged “legacy import”; Roe agents stop editing property CPT in wp-admin. |
+| **Status** | ✅ UI SoT copy on Properties page; create/list on Gen 2. |
 | **Effort** | S |
 | **Depends on** | WP-D-000 |
 
@@ -128,8 +129,9 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 | Field | Detail |
 |-------|--------|
 | **Why** | Pages still auto-pull WP every 4h — masks missing Gen 2 create. |
-| **Touchpoints** | `src/lib/wordpress-sync.ts` (`WP_SYNC_INTERVAL_MS`, `autoSyncWordPress*IfNeeded`); callers on `src/app/apps/re/page.tsx`, `vendor-leads/page.tsx`, `buyer-leads/page.tsx`, `bookings/page.tsx`, `src/app/dashboard/page.tsx`. |
+| **Touchpoints** | `src/lib/wordpress-sync.ts` (`WP_SYNC_INTERVAL_MS`, `autoSyncWordPress*IfNeeded`); callers on RE pages. |
 | **Done means** | After WP-D-102/103, auto-sync is optional/manual or webhook-driven; dashboard works offline from WP. |
+| **Status** | ✅ RE auto-sync gated behind `re.wp_auto_sync` (default **off**). Manual Sync buttons remain. Acc pulls unchanged. |
 | **Effort** | M |
 | **Depends on** | WP-D-102, WP-D-103 |
 
@@ -247,7 +249,7 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 
 | Field | Detail |
 |-------|--------|
-| **Status** | 🔶 Dual-write live; Gen 2-first ops create behind `acc.gen2_first_booking` (Neon conflict-check → StayBooking → WP mirror). Public book-now still WP. |
+| **Status** | 🔶 Dual-write live; Gen 2-first ops create **soft-on** (`acc.gen2_first_booking` unset/true) when units SoT; set false for WP-first. Public book-now still WP. |
 | **Why** | Guest booking + Stripe still WP accommodation module. |
 | **Touchpoints** | WP `class-acc-platform-sync.php`; Gen 2 `createStayBookingGen2First`; `src/app/api/v1/accommodation/route.ts` `create_booking`. |
 | **Done means** | New stays created in Gen 2 first; WP calendar is display or retired; CVH guest Stripe keys documented separately from SaaS Stripe. |

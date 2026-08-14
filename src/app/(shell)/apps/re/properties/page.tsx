@@ -61,6 +61,11 @@ export default async function PropertiesPage() {
             <p className="mt-1 text-xs text-slate-500">
               {appraisalCount} in appraisal · {listedCount} listed · {items.length} total
             </p>
+            <p className="mt-2 max-w-xl text-xs text-emerald-400/90">
+              Neon is the source of truth for properties. WordPress is a public mirror —
+              use Publish to website. Auto-pull from WP is off unless{" "}
+              <code className="text-slate-400">re.wp_auto_sync</code> is enabled.
+            </p>
           </div>
           <SyncListingsButton />
         </div>

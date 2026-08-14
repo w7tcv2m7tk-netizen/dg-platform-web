@@ -66,6 +66,10 @@ model Organisation {
   infrastructureDomains         InfrastructureDomain[]
   dreamscapeCustomerLink        DreamscapeCustomerLink?
   serviceJobs                   ServiceJob[]
+  financeApplications           FinanceApplication[]
+  commercialProperties          CommercialProperty[]
+  commercialLeases              CommercialLease[]
+  pmLeases                      PmLease[]
 
   referredBy        Organisation?  @relation("OrgReferral", fields: [referredByOrganisationId], references: [id], onDelete: SetNull)
   referralsMade     Organisation[] @relation("OrgReferral")
@@ -134,6 +138,11 @@ model Contact {
   stayBookings  StayBooking[]
   accommodationGuestProfile AccommodationGuestProfile?
   serviceJobs   ServiceJob[]
+  financeApplicationsAsBorrower FinanceApplication[] @relation("FinanceBorrower")
+  commercialLeasesAsLandlord CommercialLease[] @relation("CommercialLandlord")
+  commercialLeasesAsTenant   CommercialLease[] @relation("CommercialTenant")
+  pmLeasesAsOwner  PmLease[] @relation("PmOwner")
+  pmLeasesAsTenant PmLease[] @relation("PmTenant")
 
   @@index([organisationId, email])
   @@index([organisationId, status])
@@ -1018,4 +1027,107 @@ model WebsitePage {
   @@unique([websiteId, slug])
   @@index([websiteId, sortOrder])
   @@map("website_pages")
+}
+
+/** Finance Industry App — loan / broker applications (Track C floor). */
+model FinanceApplication {
+  id               String    @id @default(cuid())
+  organisationId   String    @map("organisation_id")
+  title            String
+  stage            String    @default("enquiry")
+  status           String    @default("open")
+  contactId        String?   @map("contact_id")
+  loanAmountCents  Int?      @map("loan_amount_cents")
+  lenderName       String?   @map("lender_name")
+  notes            String?
+  metadata         Json?
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  contact      Contact?     @relation("FinanceBorrower", fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, status])
+  @@index([organisationId, stage])
+  @@index([organisationId, contactId])
+  @@map("finance_applications")
+}
+
+/** Commercial Property Industry App — asset register. */
+model CommercialProperty {
+  id             String    @id @default(cuid())
+  organisationId String    @map("organisation_id")
+  name           String
+  addressLine1   String    @map("address_line1")
+  suburb         String
+  state          String
+  postcode       String
+  country        String    @default("AU")
+  status         String    @default("active")
+  propertyType   String?   @map("property_type")
+  metadata       Json?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  leases       CommercialLease[]
+
+  @@index([organisationId, status])
+  @@map("commercial_properties")
+}
+
+/** Commercial Property Industry App — leases / tenancies. */
+model CommercialLease {
+  id                 String    @id @default(cuid())
+  organisationId     String    @map("organisation_id")
+  commercialPropertyId String? @map("commercial_property_id")
+  title              String
+  stage              String    @default("prospect")
+  status             String    @default("active")
+  landlordContactId  String?   @map("landlord_contact_id")
+  tenantContactId    String?   @map("tenant_contact_id")
+  rentCents          Int?      @map("rent_cents")
+  startDate          DateTime? @map("start_date")
+  endDate            DateTime? @map("end_date")
+  notes              String?
+  metadata           Json?
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  organisation       Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  commercialProperty CommercialProperty? @relation(fields: [commercialPropertyId], references: [id], onDelete: SetNull)
+  landlordContact    Contact?           @relation("CommercialLandlord", fields: [landlordContactId], references: [id], onDelete: SetNull)
+  tenantContact      Contact?           @relation("CommercialTenant", fields: [tenantContactId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, status])
+  @@index([organisationId, stage])
+  @@map("commercial_leases")
+}
+
+/** Property Management Industry App — long-term residential leases. */
+model PmLease {
+  id                String    @id @default(cuid())
+  organisationId    String    @map("organisation_id")
+  title             String
+  addressLine1      String?   @map("address_line1")
+  suburb            String?
+  stage             String    @default("application")
+  status            String    @default("active")
+  ownerContactId    String?   @map("owner_contact_id")
+  tenantContactId   String?   @map("tenant_contact_id")
+  rentCents         Int?      @map("rent_cents")
+  startDate         DateTime? @map("start_date")
+  endDate           DateTime? @map("end_date")
+  notes             String?
+  metadata          Json?
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  organisation  Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  ownerContact  Contact?     @relation("PmOwner", fields: [ownerContactId], references: [id], onDelete: SetNull)
+  tenantContact Contact?     @relation("PmTenant", fields: [tenantContactId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, status])
+  @@index([organisationId, stage])
+  @@map("pm_leases")
 }

@@ -8,11 +8,10 @@ import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { SidebarIcon } from "@/components/SidebarIcon";
 import { itemHasActiveRoute, routeIsActive } from "@/lib/nav-route-match";
 import {
-  BUSINESS_WORKSPACE_SECTION_LABEL,
   COMMAND_CENTRE_NAV_SECTION_LABEL,
   PLATFORM_NAV_SECTION_LABEL,
-  type AppNavTierGroup,
   type AppRoute,
+  type NavIaSection,
 } from "@dg/platform-core";
 
 function linkClass(active: boolean) {
@@ -107,31 +106,60 @@ function CollapsibleNavSection({
   );
 }
 
-function TierSection({
-  group,
+function shellLinkActive(pathname: string, href: string, routes?: AppRoute[]): boolean {
+  if (routes?.length) return itemHasActiveRoute(pathname, routes);
+  if (pathname === href) return true;
+  // Overview / Business Health share /dashboard — only exact match
+  if (href === "/dashboard") return pathname === "/dashboard";
+  return pathname.startsWith(`${href}/`);
+}
+
+function IaSectionBlock({
+  section,
+  pathname,
   expanded,
   onToggle,
-  pathname,
   onNavigate,
+  className,
 }: {
-  group: AppNavTierGroup;
+  section: NavIaSection;
+  pathname: string;
   expanded: Record<string, boolean>;
   onToggle: (id: string) => void;
-  pathname: string;
   onNavigate?: () => void;
+  className?: string;
 }) {
+  if (section.links.length === 0 && section.apps.length === 0) return null;
+
   return (
-    <div className="mt-4">
+    <div className={className ?? "mt-4"}>
       <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-        {group.label}
+        {section.label}
       </p>
-      <CollapsibleNavSection
-        items={group.apps}
-        expanded={expanded}
-        onToggle={onToggle}
-        pathname={pathname}
-        onNavigate={onNavigate}
-      />
+      {section.links.map((link) => {
+        const active = shellLinkActive(pathname, link.href, link.routes);
+        return (
+          <Link
+            key={`${section.id}-${link.href}-${link.label}`}
+            href={link.href}
+            prefetch
+            onClick={onNavigate}
+            className={`${linkClass(active)} min-h-11 py-2.5`}
+          >
+            <SidebarIcon glyph={link.icon ?? "◈"} />
+            {link.label}
+          </Link>
+        );
+      })}
+      {section.apps.length > 0 ? (
+        <CollapsibleNavSection
+          items={section.apps}
+          expanded={expanded}
+          onToggle={onToggle}
+          pathname={pathname}
+          onNavigate={onNavigate}
+        />
+      ) : null}
     </div>
   );
 }
@@ -142,16 +170,13 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [ccBadge, setCcBadge] = useState<number | null>(null);
 
+  const ia = nav.ia;
+
   useEffect(() => {
     const next: Record<string, boolean> = {};
-    for (const group of nav.tiers) {
-      for (const app of group.apps) {
+    for (const section of [ia.operate, ia.grow]) {
+      for (const app of section.apps) {
         if (itemHasActiveRoute(pathname, app.routes)) next[app.id] = true;
-      }
-    }
-    for (const link of nav.shell) {
-      if (link.routes?.length && itemHasActiveRoute(pathname, link.routes)) {
-        next[`shell-${link.href}`] = true;
       }
     }
     if (nav.platform.routes?.length && itemHasActiveRoute(pathname, nav.platform.routes)) {
@@ -161,7 +186,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       next[nav.commandCentre.id] = true;
     }
     setExpanded(next);
-  }, [pathname, nav.tiers, nav.shell, nav.platform, nav.commandCentre]);
+  }, [pathname, ia.operate, ia.grow, nav.platform, nav.commandCentre]);
 
   useEffect(() => {
     if (!nav.commandCentre) {
@@ -188,47 +213,48 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
-  function shellLinkActive(href: string, routes?: AppRoute[]): boolean {
-    if (routes?.length) return itemHasActiveRoute(pathname, routes);
-    if (pathname === href) return true;
-    if (href === "/dashboard") return false;
-    return pathname.startsWith(`${href}/`);
-  }
-
-  const coreTier = nav.tiers.find((g) => g.tier === "core");
-  const growthTier = nav.tiers.filter((g) => g.tier === "growth");
-  const businessTiers = nav.tiers.filter((g) => g.tier === "business");
-
   return (
     <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain">
-      <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-        {BUSINESS_WORKSPACE_SECTION_LABEL}
-      </p>
-      {nav.shell.map((link) => {
-        const active = shellLinkActive(link.href);
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            prefetch
-            onClick={onNavigate}
-            className={`${linkClass(active)} min-h-11 py-2.5`}
-          >
-            <SidebarIcon glyph={link.icon ?? "◈"} />
-            {link.label}
-          </Link>
-        );
-      })}
+      <IaSectionBlock
+        section={ia.business}
+        pathname={pathname}
+        expanded={expanded}
+        onToggle={toggleItem}
+        onNavigate={onNavigate}
+        className="mt-0"
+      />
 
-      {coreTier ? (
-        <TierSection
-          group={coreTier}
-          expanded={expanded}
-          onToggle={toggleItem}
-          pathname={pathname}
-          onNavigate={onNavigate}
-        />
-      ) : null}
+      <IaSectionBlock
+        section={ia.operate}
+        pathname={pathname}
+        expanded={expanded}
+        onToggle={toggleItem}
+        onNavigate={onNavigate}
+      />
+
+      <IaSectionBlock
+        section={ia.grow}
+        pathname={pathname}
+        expanded={expanded}
+        onToggle={toggleItem}
+        onNavigate={onNavigate}
+      />
+
+      <IaSectionBlock
+        section={ia.intelligence}
+        pathname={pathname}
+        expanded={expanded}
+        onToggle={toggleItem}
+        onNavigate={onNavigate}
+      />
+
+      <IaSectionBlock
+        section={ia.ecosystem}
+        pathname={pathname}
+        expanded={expanded}
+        onToggle={toggleItem}
+        onNavigate={onNavigate}
+      />
 
       {nav.commandCentre ? (
         <div className="mt-4">
@@ -253,28 +279,6 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           />
         </div>
       ) : null}
-
-      {businessTiers.map((group) => (
-        <TierSection
-          key={group.tier}
-          group={group}
-          expanded={expanded}
-          onToggle={toggleItem}
-          pathname={pathname}
-          onNavigate={onNavigate}
-        />
-      ))}
-
-      {growthTier.map((group) => (
-        <TierSection
-          key={group.tier}
-          group={group}
-          expanded={expanded}
-          onToggle={toggleItem}
-          pathname={pathname}
-          onNavigate={onNavigate}
-        />
-      ))}
 
       <div className="mt-4">
         <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">

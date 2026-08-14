@@ -4,7 +4,10 @@ Product and go-to-market strategy locks (not architecture constraints).
 
 | Document | Purpose |
 |----------|---------|
+| **[ADVISOR-EVIDENCE-STAGE-1.md](./ADVISOR-EVIDENCE-STAGE-1.md)** | Stage 1 product reality — live URLs, homepage/pricing audit, RE journey truth, capture checklist |
+| **[BUSINESS-ADVISOR-BRIEFING.md](./BUSINESS-ADVISOR-BRIEFING.md)** | External advisor pack + **adopted response lock** (Intelligent Layer / Founding discipline) |
+| **[../foundations/INTELLIGENT-LAYER.md](../foundations/INTELLIGENT-LAYER.md)** | Canonical Intelligent Layer north-star (Twin → Intelligence → Action → Learning) |
 | **[DIGITALGATE-ROLLOUT.md](./DIGITALGATE-ROLLOUT.md)** | Canonical rollout / GTM — positioning, Phases 1–12, **pre-launch / founding marketing mode**, metrics ([ADR 0013](../adr/0013-gtm-rollout-strategy-adopted.md)) |
-| **[../foundations/COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)** | Commercially Ready v1 — gates, **5 founding agencies** milestone, pre-sell checklist, NOW backlog |
+| **[../foundations/COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)** | Commercially Ready v1 — gates, Founding 10, five-criteria backlog filter, deepen priorities A/B/C |
 
 Architecture north-star remains [architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md). Execution: [ROADMAP.md](../ROADMAP.md). Brand / pillars: [PRODUCT-VISION.md](../PRODUCT-VISION.md).

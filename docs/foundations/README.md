@@ -6,6 +6,7 @@ Before committing to implementation, these documents define the decisions that a
 
 **Gen 2 north-star (constraints):** [../architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md)  
 **App hierarchy (canonical):** [APP-HIERARCHY.md](./APP-HIERARCHY.md) — **Core → Infrastructure → Industry → Growth**  
+**Intelligent layer (north-star):** [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) — Connect · Centralise · Understand · Automate · Grow + Digital Twin™ centrepiece  
 **GTM / rollout (product–marketing):** [../strategy/DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md)  
 **Commercialisation operating target:** [COMMERCIALLY-READY-V1.md](./COMMERCIALLY-READY-V1.md) — next milestone **5 founding agencies**; pre-launch marketing stance; Gate 1–4; 🔴/🟠/🟢 hierarchy
 
@@ -27,11 +28,13 @@ Before committing to implementation, these documents define the decisions that a
 
 1. Does it help **connect** systems?
 2. Does it **centralise** information?
-3. Does it improve **understanding**?
-4. Does it **automate** work?
-5. Does it help the customer **grow**?
+3. Does it improve **understanding** (Twin)?
+4. Does it **automate** / **act**?
+5. Does it help the customer **grow** — and does the outcome **learn** into the next recommendation?
 
-If **no** to all five → not core to the platform.
+If **no** to all → not core to the platform.
+
+Full north-star loop: [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) — Connect → Centralise → Understand → **Decide** → Act → **Learn** → Grow (Twin → Intelligence → Action → Learning).
 
 ### Execution filter (from [ROADMAP.md](../ROADMAP.md))
 
@@ -44,6 +47,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | # | Document | Covers |
 |---|----------|--------|
 | — | [APP-HIERARCHY.md](./APP-HIERARCHY.md) | **Canonical App hierarchy** — Core → Infrastructure → Industry → Growth; platform capabilities ≠ Apps |
+| — | [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) | **North-star** — Twin centrepiece; BI scores; Advisor; AI Actions; opportunity detection; Marketplace/Agents later |
 | — | [COMMERCIALLY-READY-V1.md](./COMMERCIALLY-READY-V1.md) | **Operating target** — 5 founding agencies, pre-launch GTM stance, Gates 1–4, pre-sell 6 reds, NOW backlog |
 | 1 | [CORE-OBJECT-SPECIFICATION.md](./CORE-OBJECT-SPECIFICATION.md) | **Canonical domain model** — what, fields, relationships, ownership, events |
 | 1b | [CONTACTS-AND-APP-ROLES.md](./CONTACTS-AND-APP-ROLES.md) | **ONE Contact** — forbid duplicate people (Guest/Vendor/Buyer…); Contact → App Role |
@@ -64,6 +68,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | 15 | [WEBSITE-BUILDER.md](./WEBSITE-BUILDER.md) | **Phase later** — AI Website Studio; structured Next.js Gen 2 model (not PHP); design now |
 | [BRAND-STUDIO.md](./BRAND-STUDIO.md) | **Core** — AI Brand Studio; Business Profile → identity → presence; Website Builder is a surface |
 | [SERVICES-APP.md](./SERVICES-APP.md) | **Business App** — DG OS for service businesses; ServiceM8-class coverage on Universal Objects + Service Templates (not a FSM clone) |
+| [PROPERTY-ECOSYSTEM.md](./PROPERTY-ECOSYSTEM.md) | **Industry** — Real Estate Sales · Property Management · Commercial Property · Accommodation · Property Development (future) |
 | [SERVICES-BETA-LAUNCH.md](./SERVICES-BETA-LAUNCH.md) | Services closed-beta launch checklist (founding agencies) |
 | [BUSINESS-APPS-SCAFFOLD.md](./BUSINESS-APPS-SCAFFOLD.md) | Finance · Creator · Commercial · Automotive — honest product-map floor (not closed beta) |
 | 16 | [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) | **Core Platform Service** — Domains/DNS/SSL/hosting/email; Dreamscape V1 adapter; sandbox-first |

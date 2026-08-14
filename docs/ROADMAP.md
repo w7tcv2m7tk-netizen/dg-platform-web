@@ -14,6 +14,8 @@
 > **GTM / rollout:** [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) — Business Operating Platform; AU RE wedge → Founding Customers → Prospecting Engine ([ADR 0013](./adr/0013-gtm-rollout-strategy-adopted.md)). Engineering follows this roadmap; marketing follows that brief.
 >
 > **Commercialisation target:** [foundations/COMMERCIALLY-READY-V1.md](./foundations/COMMERCIALLY-READY-V1.md) — **Commercially Ready v1**; next milestone **5 founding agencies** (pre-launch / founding marketing mode); Gates 1–4; 🔴 Commercial Core → 🟠 First Customer Value → 🟢 After Validation. Not “finish Gen 2.”
+>
+> **Intelligent layer:** [foundations/INTELLIGENT-LAYER.md](./foundations/INTELLIGENT-LAYER.md) — Connect → Centralise → Understand → **Decide** → Act → **Learn** → Grow; moat **Twin → Intelligence → Action → Learning**. Advisor-confirmed Aug 2026. Long-term moat — does **not** expand founding ship list. Next phase: **make DigitalGate feel intelligent**. Danger now is **feature sprawl**, not missing features.
 
 ---
 
@@ -28,6 +30,8 @@ Within minutes the dashboard shows:
 - **17 opportunities** to improve visibility and vendor lead generation
 
 That's the moment people remember. Every sprint should move toward this.
+
+**Promise:** DigitalGate connects your business, understands what’s happening, and helps you act on it — then **learns** from the outcome.
 
 ---
 

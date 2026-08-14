@@ -8,7 +8,8 @@ export type BusinessAppScaffoldId =
   | "finance"
   | "creator"
   | "commercial"
-  | "automotive";
+  | "automotive"
+  | "property-management";
 
 export type BusinessAppNavLink = {
   href: string;
@@ -192,12 +193,12 @@ export const BUSINESS_APP_SCAFFOLDS: Record<
   },
   commercial: {
     id: "commercial",
-    name: "Commercial",
+    name: "Commercial Property",
     icon: "▦",
-    tagline: "Commercial property, leases, and tenants — distinct from residential RE",
-    deferredTitle: "Scaffold floor — not residential Real Estate",
+    tagline: "Commercial sales, leasing, landlords and assets — distinct from RE Sales & PM",
+    deferredTitle: "Domain floor started — registry still off",
     deferredBody:
-      "Commercial is a separate Business App from Real Estate (residential vendor/buyer). No portfolio valuations, occupancy %, or rent-roll MRR are shown until data is real.",
+      "Commercial Property register CRUD is live on /properties. Leases/tenants deepen next. Not residential Real Estate Sales.",
     nav: [
       { href: "/apps/commercial", label: "Overview" },
       { href: "/apps/commercial/properties", label: "Properties" },
@@ -211,52 +212,129 @@ export const BUSINESS_APP_SCAFFOLDS: Record<
         note: "Residential vendor/buyer workflows (separate app)",
       },
       {
-        href: "/apps/crm/contacts",
-        label: "CRM contacts",
-        note: "Tenant and landlord contacts today",
+        href: "/apps/property-management",
+        label: "Property Management",
+        note: "Long-term residential rentals (separate app)",
       },
       {
-        href: "/apps/crm/companies",
-        label: "CRM companies",
-        note: "Corporate tenants and owners",
+        href: "/apps/crm/contacts",
+        label: "CRM contacts",
+        note: "Landlord and tenant contacts",
       },
     ],
     routes: [
       {
         segment: "",
-        title: "Commercial",
+        title: "Commercial Property",
         summary: "Portfolio dashboard for commercial property ops",
-        emptyTitle: "Commercial App scaffold",
+        emptyTitle: "Commercial Property floor",
         emptyBody:
-          "Portfolio KPIs stay empty until leases and properties are modelled. Use RE only for residential.",
+          "Start with Properties CRUD. Sales pipeline and outgoings come later.",
       },
       {
         segment: "properties",
         title: "Properties",
         summary: "Commercial property register",
-        emptyTitle: "No commercial register yet",
-        emptyBody:
-          "Commercial assets are not the same as RE residential listings. Register UI is planned.",
+        emptyTitle: "Use the live register",
+        emptyBody: "Create commercial assets on this route — Neon SoT.",
       },
       {
         segment: "leases",
         title: "Leases",
         summary: "Lease terms, renewals, and rent schedules",
-        emptyTitle: "No leases store yet",
-        emptyBody:
-          "Lease documents and rent schedules are planned — no placeholder rent rolls.",
+        emptyTitle: "Lease CRUD next",
+        emptyBody: "Property register ships first; lease API is available for the next UI pass.",
       },
       {
         segment: "tenants",
         title: "Tenants",
         summary: "Tenant records and communication history",
         emptyTitle: "Tenants → CRM for now",
-        emptyBody:
-          "Use CRM contacts and companies until commercial tenant context ships.",
+        emptyBody: "Use CRM contacts until commercial tenant context deepens.",
       },
     ],
     staffDocSlug: "business-apps-scaffold",
     staffDocLabel: "Business Apps scaffold checklist",
+  },
+  "property-management": {
+    id: "property-management",
+    name: "Property Management",
+    icon: "⌂",
+    tagline: "Long-term rentals — owners, tenants, leases & maintenance",
+    deferredTitle: "Domain floor started — registry still off",
+    deferredBody:
+      "PmLease create/list is live. Not Real Estate sales. Not short-stay Accommodation. Not Commercial Property.",
+    nav: [
+      { href: "/apps/property-management", label: "Overview" },
+      { href: "/apps/property-management/properties", label: "Rental properties" },
+      { href: "/apps/property-management/owners", label: "Owners" },
+      { href: "/apps/property-management/tenants", label: "Tenants" },
+      { href: "/apps/property-management/leases", label: "Leases" },
+      { href: "/apps/property-management/maintenance", label: "Maintenance" },
+    ],
+    coreLinks: [
+      {
+        href: "/apps/property-management/leases",
+        label: "Leases",
+        note: "First CRUD surface — create and list leases",
+      },
+      {
+        href: "/apps/crm/contacts",
+        label: "CRM contacts",
+        note: "Owners and tenants are Contact roles",
+      },
+      {
+        href: "/apps/re",
+        label: "Real Estate",
+        note: "Sales only — keep separate",
+      },
+    ],
+    routes: [
+      {
+        segment: "",
+        title: "Property Management",
+        summary: "Long-term rental operations on Platform Core",
+        emptyTitle: "PM floor",
+        emptyBody: "Open Leases to create the first tenancy record.",
+      },
+      {
+        segment: "properties",
+        title: "Rental properties",
+        summary: "Managed rental stock",
+        emptyTitle: "Property register next",
+        emptyBody: "Leases can carry address for now; dedicated rental property table follows.",
+      },
+      {
+        segment: "owners",
+        title: "Owners",
+        summary: "Property owners",
+        emptyTitle: "Owners → CRM",
+        emptyBody: "Link owner contacts on each lease until an owner board ships.",
+      },
+      {
+        segment: "tenants",
+        title: "Tenants",
+        summary: "Tenants",
+        emptyTitle: "Tenants → CRM",
+        emptyBody: "Link tenant contacts on each lease.",
+      },
+      {
+        segment: "leases",
+        title: "Leases",
+        summary: "Lease and tenancy records",
+        emptyTitle: "Use live leases",
+        emptyBody: "Create/list on this route.",
+      },
+      {
+        segment: "maintenance",
+        title: "Maintenance",
+        summary: "Maintenance requests",
+        emptyTitle: "Maintenance next",
+        emptyBody: "Use Tasks or Services until PM maintenance objects ship.",
+      },
+    ],
+    staffDocSlug: "property-ecosystem",
+    staffDocLabel: "Property ecosystem lock",
   },
   automotive: {
     id: "automotive",

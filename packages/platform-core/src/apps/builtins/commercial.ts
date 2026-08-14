@@ -2,8 +2,9 @@ import type { AppManifest } from "../manifest";
 
 export const commercialApp: AppManifest = {
   id: "commercial",
-  name: "Commercial",
-  description: "Commercial property, leases, tenants, and asset management",
+  name: "Commercial Property",
+  description:
+    "Commercial assets and tenancies — landlords, leases, outgoings, rent reviews (not residential RE sales or long-term PM)",
   tier: "business",
   version: "0.2.0",
   icon: "▦",
@@ -13,7 +14,9 @@ export const commercialApp: AppManifest = {
     { path: "/apps/commercial/leases", label: "Leases" },
     { path: "/apps/commercial/tenants", label: "Tenants" },
   ],
-  navigation: [{ href: "/apps/commercial", label: "Commercial", icon: "▦" }],
+  navigation: [
+    { href: "/apps/commercial", label: "Commercial Property", icon: "▦" },
+  ],
   permissions: [
     { id: "commercial.view", label: "View commercial portfolio" },
     { id: "commercial.manage", label: "Manage leases and tenants" },

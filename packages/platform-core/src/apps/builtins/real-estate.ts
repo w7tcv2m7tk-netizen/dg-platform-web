@@ -4,7 +4,8 @@ import { getSidebarIcon } from "../sidebar-icons";
 export const realEstateApp: AppManifest = {
   id: "real-estate",
   name: "Real Estate",
-  description: "Vendor leads, listings, buyers, and settlements",
+  description:
+    "Sell property — vendors, buyers, listings, appraisals, offers and settlements (not property management)",
   tier: "business",
   version: "1.0.0",
   icon: "🏠",

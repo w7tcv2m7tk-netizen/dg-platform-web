@@ -9,6 +9,7 @@ import {
   listAccommodationUnits,
   listStayBookings,
   organisationHasFlag,
+  getOrganisationFeatureFlags,
   organisationUsesHousekeepingSot,
   organisationUsesUnitSot,
   sortAccommodationUnitsByDisplayOrder,
@@ -363,10 +364,9 @@ export async function POST(req: Request) {
             return rest;
           })();
 
-    const gen2First = await organisationHasFlag(
-      session.organisationId,
-      "acc.gen2_first_booking",
-    );
+    // Soft-on: unset/true = Gen 2-first (founding ops). Explicit false = WP-first.
+    const flags = await getOrganisationFeatureFlags(session.organisationId);
+    const gen2First = flags["acc.gen2_first_booking"] !== false;
     const usesUnits = await organisationUsesUnitSot(session.organisationId);
 
     // WP-D-403: when flag + units SoT, conflict-check Neon and create StayBooking first.

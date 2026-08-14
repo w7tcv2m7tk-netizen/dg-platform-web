@@ -11,6 +11,7 @@ import { servicesApp } from "./builtins/services";
 import { creatorApp } from "./builtins/creator";
 import { commercialApp } from "./builtins/commercial";
 import { automotiveApp } from "./builtins/automotive";
+import { propertyManagementApp } from "./builtins/property-management";
 import { automationApp } from "./builtins/automation-app";
 import { analyticsApp } from "./builtins/analytics";
 import { socialApp } from "./builtins/social";
@@ -34,9 +35,10 @@ const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: realEstateApp, enabled: true },
   { manifest: accommodationApp, enabled: true },
   { manifest: financeApp, enabled: false },
-  { manifest: servicesApp, enabled: true },
+  { manifest: servicesApp, enabled: false },
   { manifest: creatorApp, enabled: false },
   { manifest: commercialApp, enabled: false },
+  { manifest: propertyManagementApp, enabled: false },
   { manifest: automotiveApp, enabled: false },
   { manifest: aiVisibilityApp, enabled: true },
   { manifest: seoApp, enabled: true },

@@ -71,6 +71,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "foundations/APP-HIERARCHY.md",
   },
   {
+    slug: "intelligent-layer",
+    title: "Intelligent Layer",
+    summary:
+      "North-star — Digital Twin centrepiece; BI scores; Advisor; AI Actions; Connect→Grow. Does not expand founding ship list.",
+    group: "architecture",
+    relativePath: "foundations/INTELLIGENT-LAYER.md",
+  },
+  {
     slug: "business-setup",
     title: "Business Setup",
     summary: "Foundations for identifying and configuring a business on the platform.",
@@ -149,6 +157,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     summary: "Closed-beta checklist for founding agencies (smoke path, redirects, OUT list).",
     group: "apps",
     relativePath: "foundations/SERVICES-BETA-LAUNCH.md",
+  },
+  {
+    slug: "property-ecosystem",
+    title: "Property Ecosystem",
+    summary:
+      "Real Estate Sales · Property Management · Commercial Property · Accommodation · Property Development (future).",
+    group: "apps",
+    relativePath: "foundations/PROPERTY-ECOSYSTEM.md",
   },
   {
     slug: "business-apps-scaffold",

@@ -10,7 +10,7 @@ This is DigitalGate's greatest long-term asset — not the CRM, not the dashboar
 
 **Not the same as** [INDUSTRY-INTELLIGENCE.md](./INDUSTRY-INTELLIGENCE.md) — that Core capability covers *external* industry feeds and attributed briefings (Collect → Act). This doc is the *internal network* cohort moat.
 
-**Also not the same as** [PLATFORM-INTELLIGENCE.md](../ai/PLATFORM-INTELLIGENCE.md) — that is Platform AI / Platform Knowledge (docs + live tools + citations for how DigitalGate and a tenant work). Cohort Intelligence aggregates anonymised *outcomes across tenants*; Platform Intelligence answers questions with evidence.
+**Also not the same as** [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) **Decision Intelligence™** — that is the *per-tenant* “what should I do next?” layer (Twin → Health → Advisor → Actions). This doc is the *cross-tenant* cohort moat. Do not collapse the names in engineering docs.
 
 ---
 

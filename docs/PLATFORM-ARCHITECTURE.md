@@ -39,13 +39,19 @@ PostgreSQL
 
 ## Five pillars → architecture mapping
 
-| Pillar | Platform implementation |
-|--------|-------------------------|
+Aligned with [foundations/INTELLIGENT-LAYER.md](./foundations/INTELLIGENT-LAYER.md) (Decide / Learn explicit):
+
+| Stage | Platform implementation |
+|-------|-------------------------|
 | **Connect** | Connectors (WordPress, Shopify, Stripe, Google, …) |
-| **Centralise** | Universal Objects + Universal Timeline + single dashboard |
-| **Understand** | AI Service + Scoring Engine + Reporting |
-| **Automate** | Event Bus + Automation Engine |
-| **Grow** | Growth Apps + intelligence dashboard + recommendations |
+| **Centralise** | Universal Objects + Universal Timeline |
+| **Understand** | Digital Twin™ + Scoring Engine + AI context |
+| **Decide** | Decision Intelligence™ + Opportunity Engine + recommendations |
+| **Act** | Event Bus + Automation Engine + AI Actions |
+| **Learn** | Outcomes → Twin / scores / next recommendation |
+| **Grow** | Growth Apps + commercial outcomes |
+
+Legacy shorthand “Connect → Centralise → Understand → Automate → Grow” still appears in older copy; prefer the full loop above for new docs and GTM.
 
 ---
 

@@ -7,7 +7,8 @@ export type IndustryApp =
   | "services"
   | "creator"
   | "automotive"
-  | "commercial";
+  | "commercial"
+  | "property-management";
 
 export type PremiumApp =
   | "seo_pro"
@@ -54,11 +55,12 @@ export const PLATFORM_TIERS: {
 export const INDUSTRY_APPS: { key: IndustryApp; label: string; price: string }[] = [
   { key: "real-estate", label: "Real Estate", price: "+$99/mo" },
   { key: "accommodation", label: "Accommodation", price: "+$99/mo" },
+  { key: "property-management", label: "Property Management", price: "+$99/mo" },
+  { key: "commercial", label: "Commercial Property", price: "+$99/mo" },
   { key: "services", label: "Services", price: "+$99/mo" },
   { key: "finance", label: "Finance", price: "+$99/mo" },
-  { key: "creator", label: "Creator", price: "+$99/mo" },
   { key: "automotive", label: "Automotive", price: "+$99/mo" },
-  { key: "commercial", label: "Commercial", price: "+$99/mo" },
+  { key: "creator", label: "Creator", price: "+$99/mo" },
 ];
 
 export const PREMIUM_APPS: { key: PremiumApp; label: string; price: string }[] = [
@@ -109,6 +111,7 @@ export function recommendPlanFromDiscovery(input: DiscoveryInput): SignupSelecti
     "Accommodation & Hospitality": "accommodation",
     "Finance & Mortgage Broking": "finance",
     "Professional Services": "services",
+    "Property Management": "property-management",
     "Commercial Property": "commercial",
     "Automotive": "automotive",
     "Creators & Personal Brands": "creator",

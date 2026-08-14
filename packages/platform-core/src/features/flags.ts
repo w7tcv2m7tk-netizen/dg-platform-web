@@ -116,7 +116,13 @@ export const KNOWN_FEATURE_FLAGS = [
     id: "acc.gen2_first_booking",
     label: "Gen 2-first stay create",
     description:
-      "Ops create_booking conflict-checks Neon and creates StayBooking first, then dual-writes WordPress. Public book-now stays WP until cutover.",
+      "Ops create_booking conflict-checks Neon and creates StayBooking first, then dual-writes WordPress. Soft-on (default) for founding ops; set false to force WP-first. Public book-now stays WP until cutover.",
+  },
+  {
+    id: "re.wp_auto_sync",
+    label: "RE WordPress auto-sync",
+    description:
+      "When on, RE pages auto-pull WP leads/properties/bookings every 4h. Default off (WP-D-107) — Gen 2 is SoT; use manual Sync. Legacy catch-up only.",
   },
   {
     id: "re.stage_writeback",

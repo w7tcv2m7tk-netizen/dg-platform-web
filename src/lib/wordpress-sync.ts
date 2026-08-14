@@ -386,6 +386,24 @@ async function autoSyncIfNeeded(
   >,
   intervalMs: number = WP_SYNC_INTERVAL_MS,
 ): Promise<AutoSyncOutcome> {
+  // WP-D-107: RE auto-pull is opt-in. Gen 2 create/list is SoT; manual Sync buttons remain.
+  const reKeys = new Set([
+    "lastVendorLeadSyncAt",
+    "lastBuyerLeadSyncAt",
+    "lastBookingSyncAt",
+    "lastPropertySyncAt",
+  ]);
+  if (reKeys.has(lastAtKey)) {
+    const { organisationHasFlag } = await import("@dg/platform-core");
+    const allowed = await organisationHasFlag(
+      session.organisationId,
+      "re.wp_auto_sync",
+    );
+    if (!allowed) {
+      return { ran: false, reason: "disabled" };
+    }
+  }
+
   if (!(await shouldRunSync(session.organisationId, lastAtKey, intervalMs))) {
     return { ran: false, reason: "too_soon" };
   }

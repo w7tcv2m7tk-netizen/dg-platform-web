@@ -132,11 +132,11 @@ export function isAppEnabled(appId: string, enabledIds: string[]): boolean {
 }
 
 export const APP_TIER_LABELS: Record<AppTier, string> = {
-  core: "Core · Platform",
-  business: "Business Apps",
-  growth: "Growth & Intelligence",
+  core: "Core · Operate",
+  business: "Industry · Operate",
+  growth: "Grow",
   internal: "Internal",
 };
 
-/** Sidebar / catalog order — Core → Business Apps → Growth & Intelligence. */
+/** Catalog order — Core → Industry → Growth (sidebar uses Intelligent Layer IA). */
 export const APP_TIER_ORDER: AppTier[] = ["core", "business", "growth", "internal"];

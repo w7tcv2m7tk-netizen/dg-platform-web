@@ -13,6 +13,7 @@
 | Lock | Path |
 |------|------|
 | App hierarchy | [APP-HIERARCHY.md](./APP-HIERARCHY.md) — **Core → Infrastructure → Industry → Growth** |
+| Intelligent layer | [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) — Twin / BI / Advisor / AI Actions north-star (**does not expand founding ship list**) |
 | GTM / positioning | [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) · [ADR 0013](../adr/0013-gtm-rollout-strategy-adopted.md) |
 | Architecture north-star | [GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md) · [ADR 0012](../adr/0012-gen-2-architecture-brief-adopted.md) |
 | Execution roadmap | [ROADMAP.md](../ROADMAP.md) |
@@ -101,7 +102,7 @@ Enough that a RE agency runs a **real** weekly workflow — not a demo tour of e
 | Principle | Detail |
 |-----------|--------|
 | Name | **DigitalGate Founding 10** (public: **Founding Customer Programme**) |
-| Framing | Early access to something powerful — founding pricing for feedback + case studies + influence (**not** unpaid QA / “beta testing”) |
+| Framing | **Be among the first businesses to operate on DigitalGate** — early access with preferred commercial terms and direct influence over development (**not** “help us test,” unpaid QA, or “beta testing”) |
 | Mix | **3–5 Real Estate** + **2–5 other** (SME / Acc / Services only if Core is stable and packs are honest) |
 | First internal prove | **DG, Roe, CVH, Aëtherra, Wantd** (Gate 1 dogfood) |
 | Quality bar | Active use and outcomes — not logo collection |
@@ -131,6 +132,43 @@ Audience / content first; paid acquisition waits.
 2. **Recruit DigitalGate Founding 10**  
 3. **Prove the core workflow** in their hands  
 4. **Then** accelerate marketing
+
+---
+
+## Next phase (locked) — Make DigitalGate feel intelligent
+
+Advisor assessment (Aug 2026) confirmed: architecture sound; thesis strong; **do not radical-change the platform**. Danger is attention sprawl before commercial proof.
+
+**Not:** “Build more DigitalGate.”  
+**Yes:** Finish what exists so customers feel *DigitalGate understands my business and helps me run it.*
+
+Canon: [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md).
+
+### Founding deepen priorities (existing surfaces only)
+
+| Priority | Capability |
+|----------|------------|
+| **A** | Opportunity Engine — useful detections + next actions |
+| **B** | Customer Decision Intelligence — “what next” home (Business Command Centre) |
+| **C** | Digital Twin visualisation — tangible Twin summary (not a giant graph) |
+
+Commercial proof wedge: **DigitalGate for Real Estate** first; Accommodation / Services prove horizontal Core.
+
+### Backlog filter (five criteria)
+
+Does it help founding customers…
+
+1. Understand their business?  
+2. Get more opportunities?  
+3. Convert opportunities?  
+4. Automate repetitive work?  
+5. Make better decisions?
+
+If not → **wait**.
+
+### Pricing guardrail
+
+Keep **$99 / $249 / $499 + Apps**. Prefer **Scale + relevant apps** over cramming the OS into a casual “$499 platform” phrase. Enterprise/Franchise remains a different model. [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md)
 
 ---
 

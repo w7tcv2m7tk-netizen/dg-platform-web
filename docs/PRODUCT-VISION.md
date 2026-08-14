@@ -97,9 +97,18 @@ DigitalGate is that central hub. The platform does not simply collect data — i
 
 ---
 
-## Five pillars of the platform
+## Platform loop (locked)
 
-Every feature should support one or more pillars.
+Every feature should support the Intelligent Layer loop — [foundations/INTELLIGENT-LAYER.md](./foundations/INTELLIGENT-LAYER.md).
+
+**Customer proposition:** Your business. Connected, understood and automated.  
+**Do not lead** with a collection of apps — apps are capabilities underneath.
+
+```
+CONNECT → CENTRALISE → UNDERSTAND → DECIDE → ACT → LEARN → GROW
+```
+
+Moat: **Digital Twin™ → Decision Intelligence™ → Action → Learning**
 
 ### 1. Connect
 
@@ -113,40 +122,37 @@ DigitalGate acts as the **integration layer** between them.
 
 Bring everything into **one source of truth**.
 
-Every customer · interaction · document · lead · campaign · report — accessible from one dashboard.
+Every customer · interaction · document · lead · campaign · report — accessible from one place.
 
 Implemented through **Universal Objects** and a **Universal Timeline** (see [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md)).
 
 ### 3. Understand
 
-Data without context has limited value. AI transforms connected data into meaningful insights.
+Digital Twin™ + scoring: living representation of the business. Data without context has limited value.
 
-The platform explains:
+### 4. Decide
 
-- **Why** it happened
-- **What** it means
-- **What** should happen next
+Decision Intelligence™ + Opportunity Engine: what happened → why → what matters → what next → can DigitalGate do it?
 
-Implemented through the **AI Service** and **Scoring Engine** (AI Visibility Score™, SEO Score™, Business Growth Score™, etc.).
+### 5. Act
 
-**Industry Intelligence** (Core) extends Understand with attributed industry signal — what happened → why it matters → what to do — without becoming a news reprint product. Spec: [foundations/INDUSTRY-INTELLIGENCE.md](./foundations/INDUSTRY-INTELLIGENCE.md).
+Automation Engine + people + AI Actions (governed). Apps register triggers and actions — they do not build automation silos.
 
-### 4. Automate
+### 6. Learn
 
-Remove repetitive work via the shared **Automation Engine**.
+Measure outcomes and improve the next recommendation.
 
-Lead follow-up · appointment reminders · review requests · campaigns · internal workflows · reporting · notifications · AI-assisted content
+### 7. Grow
 
-Apps register triggers and actions — they do not build their own automation silos.
+Every feature ultimately contributes to commercial growth — visibility, customer experience, efficiency, or decision-making.
 
-### 5. Grow
-
-Every feature ultimately contributes to business growth — through visibility, customer experience, efficiency, or decision-making.
-
-**If a feature does not support Connect, Centralise, Understand, Automate, or Grow — reconsider it.**
+**If a feature does not strengthen this loop — reconsider it.**
 
 ---
 
+## (Legacy) Five-pillar shorthand
+
+Older materials may still say Connect · Centralise · Understand · Automate · Grow. Map Automate → **Act**, and treat **Decide** + **Learn** as explicit stages in all new product/GTM writing.
 ## The dashboard
 
 The dashboard is not simply a CRM view. It is a **Business Intelligence control centre**.
