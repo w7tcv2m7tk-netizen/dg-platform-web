@@ -1,5 +1,6 @@
 import {
   organisationHasWebsitesBuilder,
+  deleteWebsitePage,
   updateWebsitePage,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
@@ -7,6 +8,37 @@ import { NextResponse } from "next/server";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
 type Ctx = { params: Promise<{ id: string; pageId: string }> };
+
+export async function DELETE(_req: Request, ctx: Ctx) {
+  const session = await requirePlatformAuth(_req);
+  if (isNextResponse(session)) return session;
+
+  const { id, pageId } = await ctx.params;
+  const allowed = await organisationHasWebsitesBuilder(session.organisationId);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: { code: "feature_disabled", message: "Website Builder disabled" } },
+      { status: 403 },
+    );
+  }
+
+  const result = await deleteWebsitePage({
+    organisationId: session.organisationId,
+    websiteId: id,
+    pageId,
+    actorId: session.clerkUserId,
+  });
+
+  if (!result.ok) {
+    const status = result.code === "not_found" ? 404 : 400;
+    return NextResponse.json(
+      { error: { code: result.code, message: result.message } },
+      { status },
+    );
+  }
+
+  return NextResponse.json({ data: { deleted: true } });
+}
 
 export async function PATCH(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);

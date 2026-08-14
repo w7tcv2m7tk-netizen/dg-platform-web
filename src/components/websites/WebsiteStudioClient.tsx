@@ -85,11 +85,16 @@ export function WebsiteStudioClient({
     ? `https://${linkedDomain.replace(/^https?:\/\//, "")}`
     : null;
 
-  async function refreshFromServer() {
+  async function refreshFromServer(): Promise<SerializedWebsite | null> {
     const res = await fetch(`/api/v1/websites/${website.id}`);
     const json = (await res.json()) as { data?: SerializedWebsite };
-    if (json.data) setWebsite(json.data);
+    if (json.data) {
+      setWebsite(json.data);
+      router.refresh();
+      return json.data;
+    }
     router.refresh();
+    return null;
   }
 
   async function setPublishStatus(next: "published" | "draft") {
@@ -216,6 +221,45 @@ export function WebsiteStudioClient({
       setSelectedComponentId(null);
     }
     setStatus("Page duplicated");
+    setBusy(false);
+  }
+
+  async function deletePage(targetPageId: string) {
+    const pages = website.pages ?? [];
+    if (pages.length <= 1) {
+      setStatus("Cannot delete the only page — add another first.");
+      return;
+    }
+    const target = pages.find((p) => p.id === targetPageId);
+    if (!target) return;
+    if (
+      !window.confirm(
+        `Delete “${target.title}” (/${target.slug})? This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+    setBusy(true);
+    setStatus("Deleting page…");
+    const res = await fetch(
+      `/api/v1/websites/${website.id}/pages/${targetPageId}`,
+      { method: "DELETE" },
+    );
+    const json = (await res.json()) as {
+      data?: { deleted?: boolean };
+      error?: { message?: string };
+    };
+    if (!res.ok) {
+      setStatus(json.error?.message || "Delete failed");
+      setBusy(false);
+      return;
+    }
+    const next = await refreshFromServer();
+    if (pageId === targetPageId) {
+      setPageId(next?.pages?.[0]?.id ?? "");
+      setSelectedComponentId(null);
+    }
+    setStatus(`Deleted “${target.title}”`);
     setBusy(false);
   }
 
@@ -453,6 +497,19 @@ export function WebsiteStudioClient({
                     className="rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:text-slate-300 disabled:opacity-30"
                   >
                     Duplicate
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy || (website.pages?.length ?? 0) <= 1}
+                    onClick={() => void deletePage(p.id)}
+                    className="rounded px-1.5 py-0.5 text-[10px] text-rose-400/80 hover:text-rose-300 disabled:opacity-30"
+                    title={
+                      (website.pages?.length ?? 0) <= 1
+                        ? "Cannot delete the only page"
+                        : "Delete page"
+                    }
+                  >
+                    Delete
                   </button>
                 </div>
               </li>

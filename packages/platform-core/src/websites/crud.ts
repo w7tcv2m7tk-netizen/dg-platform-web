@@ -452,6 +452,55 @@ export async function updateWebsitePage(input: {
   return serializePage(updated);
 }
 
+/** Delete a page. Refuses if it is the only page on the site. */
+export async function deleteWebsitePage(input: {
+  organisationId: string;
+  websiteId: string;
+  pageId: string;
+  actorId?: string;
+}): Promise<{ ok: true } | { ok: false; code: string; message: string }> {
+  const { prisma } = await import("@dg/database");
+  const site = await prisma.website.findFirst({
+    where: { id: input.websiteId, organisationId: input.organisationId },
+    select: { id: true },
+  });
+  if (!site) {
+    return { ok: false, code: "not_found", message: "Website not found" };
+  }
+
+  const page = await prisma.websitePage.findFirst({
+    where: { id: input.pageId, websiteId: site.id },
+    select: { id: true, title: true, slug: true },
+  });
+  if (!page) {
+    return { ok: false, code: "not_found", message: "Page not found" };
+  }
+
+  const pageCount = await prisma.websitePage.count({
+    where: { websiteId: site.id },
+  });
+  if (pageCount <= 1) {
+    return {
+      ok: false,
+      code: "last_page",
+      message: "Cannot delete the only page on a website. Add another page first.",
+    };
+  }
+
+  await prisma.websitePage.delete({ where: { id: page.id } });
+
+  await writeAuditLog({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    action: "delete",
+    entityType: "WebsitePage",
+    entityId: page.id,
+    changes: { before: { title: page.title, slug: page.slug } },
+  });
+
+  return { ok: true };
+}
+
 export async function createWebsitePage(input: {
   organisationId: string;
   websiteId: string;

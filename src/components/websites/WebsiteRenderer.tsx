@@ -413,6 +413,15 @@ export function WebsiteComponentView({
   }
 }
 
+function isHtmlDominantPage(components: WebsiteComponent[]): boolean {
+  if (components.length === 0) return false;
+  const htmlCount = components.filter((c) => c.type === "html").length;
+  const other = components.filter(
+    (c) => c.type !== "html" && c.type !== "footer",
+  ).length;
+  return htmlCount > 0 && other === 0;
+}
+
 export function WebsitePageRenderer({
   components,
   theme,
@@ -429,15 +438,16 @@ export function WebsitePageRenderer({
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
   const bg = theme.backgroundColor || "#0c1222";
+  const htmlPage = isHtmlDominantPage(components);
 
   return (
     <div
-      className="wb-root"
+      className={htmlPage ? "wb-root wb-html-page" : "wb-root"}
       style={
         {
           ["--wb-primary"]: primary,
           ["--wb-accent"]: accent,
-          ["--wb-bg"]: bg,
+          ["--wb-bg"]: htmlPage ? bg || "#0a0e17" : bg,
         } as React.CSSProperties
       }
     >

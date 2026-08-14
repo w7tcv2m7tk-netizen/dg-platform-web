@@ -382,6 +382,7 @@ export const websiteRendererCss = `
   margin-top: 0.35rem;
 }
 
+/* Default: constrained leftover WP fragments inside structured pages */
 .wb-html-block {
   max-width: 48rem;
   color: var(--wb-muted);
@@ -392,6 +393,33 @@ export const websiteRendererCss = `
   max-width: 100%;
   height: auto;
   border-radius: 0.35rem;
+}
+
+/**
+ * Full imported marketing / Oxygen HTML pages.
+ * body{} rules from source HTML do not apply inside Studio — use .wb-html-island
+ * (rewritten at import) and a dark page shell so cream paper does not bleed through.
+ */
+.wb-root.wb-html-page {
+  background: var(--wb-bg, #0a0e17);
+  color: #f8fafc;
+}
+
+.wb-root.wb-html-page .wb-section.wb-html-block {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  line-height: inherit;
+}
+
+.wb-html-island {
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  background: #0a0e17;
+  color: #f9fafb;
 }
 
 .wb-footer {
