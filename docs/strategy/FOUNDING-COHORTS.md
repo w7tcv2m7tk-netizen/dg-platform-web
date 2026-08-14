@@ -37,20 +37,28 @@ Remove / avoid conflicting public and in-product wording such as:
 - “1 Industry App included”
 - “Unlimited Industry Apps” (as a Scale plan inclusion)
 
-Exact founding discount percentages (**30 / 25 / 20**) live in the **Founding Customer offer / agreement**, not as a public pricing grid. The website continues to communicate **preferred founding terms**, not the exact structure.
+**Surfaces:**
+
+| Surface | What to publish |
+|---------|-----------------|
+| **Founding Customer Programme page** (`/founding-customers/`) | Full **10 → 100 → 1,000** structure, 24-month initial-config rules, cohort comparison — this is the offer surface |
+| **Pricing page** | Public Starter / Growth / Scale + Apps; preferred founding terms / CTA — **not** a second discount grid |
+| **Offer / agreement** | Binding commercial terms (legal-reviewed) |
 
 Canon: [COMMERCIAL-MODEL.md](../foundations/COMMERCIAL-MODEL.md).
 
 ---
 
-## Cohort commercial table (internal)
+## Cohort commercial table
 
-| Cohort | Initial Platform + App discount | Discount period | Referral tier |
+| Cohort | Initial Platform + App discount | Discount period | Referrer tier |
 |--------|----------------------------------|-----------------|---------------|
-| **Founding 10** | **30%** | **24 months** | **Founding Referral — 30%** |
-| **Founding 100** | **25%** | **24 months** | **Partner Referral — 25%** |
-| **Founding 1,000** | **20%** | **24 months** | **Customer Referral — 20%** |
-| **Standard customers** | Public pricing | — | **Customer Referral — 10%** |
+| **Founding 10** | **30%** | **24 months** | **Reseller — 30%** |
+| **Founding 100** | **25%** | **24 months** | **Partner — 25%** |
+| **Founding 1,000** | **20%** | **24 months** | **Customer — 20%** |
+| **Standard customers** | Public pricing | — | **Customer — 10%** |
+
+**Reseller tier (Founding 10)** = 30% referral commission on attributed DigitalGate Platform + App subscriptions. It is **not** an extra discount on the founding customer’s own subscription. A separate **DigitalGate Reseller Programme** (businesses that resell / manage DigitalGate for others) remains a distinct commercial model and is **not** built yet — do not collapse the two.
 
 Public framing (unchanged):
 
@@ -119,18 +127,18 @@ Discounts are **non-stackable** with other promotional discounts.
 
 Founding cohorts are the start of the DigitalGate referral / distribution network.
 
-| Cohort | Referral tier | Rate |
+| Cohort | Referrer tier | Rate |
 |--------|---------------|------|
-| Founding 10 | **Founding Referral** | 30% |
-| Founding 100 | **Partner Referral** | 25% |
-| Founding 1,000 | **Customer Referral** | 20% |
-| Standard | **Customer Referral** | 10% |
+| Founding 10 | **Reseller** | 30% |
+| Founding 100 | **Partner** | 25% |
+| Founding 1,000 | **Customer** | 20% |
+| Standard | **Customer** | 10% |
 
 **Important:**
 
 - Referral percentages are a **separate commission / attribution system**, not an extra customer subscription discount.  
-- **Do not** brand the Founding 10 referral tier as **“Reseller”**. A true **DigitalGate Reseller Programme** remains a **separate** commercial model for businesses that actually resell / manage DigitalGate.  
-- Current shipped Refer & Earn tiers (Customer / Partner / Reseller labels in product) are transitional — eventual rename / remapping follows this table without forcing a rebuild now. See [REVIEWS-AND-REFERRALS.md](../foundations/REVIEWS-AND-REFERRALS.md).
+- Founding 10’s **Reseller** referrer tier is the **30% commission rate** on the founding programme page — **not** automatic enrolment in a full Reseller Programme for third-party resale / managed DigitalGate.  
+- Current shipped Refer & Earn tiers already use Customer / Partner / Reseller labels — remap rates to this table when Founding 10 offers go live. See [REVIEWS-AND-REFERRALS.md](../foundations/REVIEWS-AND-REFERRALS.md).
 
 ---
 
@@ -140,8 +148,8 @@ Founding cohorts are the start of the DigitalGate referral / distribution networ
 |----|--------|
 | **Founding 10** is the **only** active commercial cohort | Build Founding 100 / 1,000 systems yet |
 | Gate 1 → dogfood → P0/P1 → Founding 10 | Distract from Opportunity Engine / Decision Intelligence / Twin |
-| Public site: preferred founding terms | Publish exact 30 / 25 / 20 discount grid on the website |
-| Exact terms in Founding Customer offer / agreement | Open Founding 100 until Founding 10 is proven |
+| Founding page: full cohort structure + 24-month rules | Publish the same discount grid on the general **pricing** page |
+| Exact binding terms in Founding Customer offer / agreement | Open Founding 100 until Founding 10 is proven |
 
 ---
 

@@ -67,14 +67,14 @@ Core → Universal Objects → CRM → Connectors → AI → Industry Apps → I
 
 Canonical commercial progression ([FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md)):
 
-| Cohort | Referral tier name | Rate |
-|--------|--------------------|------|
-| Founding 10 | **Founding Referral** | 30% |
-| Founding 100 | **Partner Referral** | 25% |
-| Founding 1,000 | **Customer Referral** | 20% |
-| Standard | **Customer Referral** | 10% |
+| Cohort | Referrer tier | Rate |
+|--------|---------------|------|
+| Founding 10 | **Reseller** | 30% |
+| Founding 100 | **Partner** | 25% |
+| Founding 1,000 | **Customer** | 20% |
+| Standard | **Customer** | 10% |
 
-Referral rates are **commission**, not an extra subscription discount. **Do not** use “Reseller” as the Founding 10 referral tier name — Reseller Programme stays a separate commercial model.
+Referral rates are **commission**, not an extra subscription discount. Founding 10’s **Reseller** tier is the 30% commission rate on the founding programme — a full **Reseller Programme** (third-party resale / managed DigitalGate) stays a separate commercial model.
 
 **Shipped MVP today** still uses Customer 20% / Partner 25% / Reseller 30% labels in product settings. Remap when Founding 10 offers go live; do not rebuild the referral system for this lock alone.
 
