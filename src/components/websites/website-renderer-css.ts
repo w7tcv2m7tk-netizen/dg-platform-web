@@ -676,20 +676,84 @@ export const websiteRendererCss = `
   color: #8a6a3a !important;
 }
 
-/* Hero / dark bands inside light pages keep light text */
-.wb-html-island--light [class*="hero"] h1,
-.wb-html-island--light [class*="hero"] h2,
-.wb-html-island--light [class*="hero"] h3,
-.wb-html-island--light [class*="hero"] p,
-.wb-html-island--light [class*="hero"] span,
-.wb-html-island--light [class*="hero"] li,
-.wb-html-island--light [class*="hero"] a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]),
+/* Hero / dark bands inside light pages keep light text.
+   Scope tightly — [class*="hero"] alone was bleaching cream body copy. */
+.wb-html-island--light .hero-sell,
+.wb-html-island--light .hero-buy,
+.wb-html-island--light .hero-about,
+.wb-html-island--light .hero-contact,
+.wb-html-island--light .hero-property,
+.wb-html-island--light [class^="hero-"][class*="section"],
+.wb-html-island--light [class*="hero-banner"],
+.wb-html-island--light [class*="fullscreen-hero"] {
+  color: #f8fafc;
+}
+
+.wb-html-island--light .hero-sell h1,
+.wb-html-island--light .hero-sell h2,
+.wb-html-island--light .hero-sell h3,
+.wb-html-island--light .hero-sell p,
+.wb-html-island--light .hero-sell span,
+.wb-html-island--light .hero-sell a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]),
+.wb-html-island--light .hero-buy h1,
+.wb-html-island--light .hero-buy h2,
+.wb-html-island--light .hero-buy h3,
+.wb-html-island--light .hero-buy p,
+.wb-html-island--light .hero-buy span,
+.wb-html-island--light .hero-buy a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]),
+.wb-html-island--light .hero-about h1,
+.wb-html-island--light .hero-about h2,
+.wb-html-island--light .hero-about h3,
+.wb-html-island--light .hero-about p,
+.wb-html-island--light .hero-about span,
+.wb-html-island--light .hero-contact h1,
+.wb-html-island--light .hero-contact h2,
+.wb-html-island--light .hero-contact h3,
+.wb-html-island--light .hero-contact p,
+.wb-html-island--light .hero-contact span,
 .wb-html-island--light .hero-property h1,
 .wb-html-island--light .hero-property h2,
 .wb-html-island--light .hero-property p,
 .wb-html-island--light .hero-property span,
-.wb-html-island--light .hero-property a:not([class*="btn"]):not([class*="cta"]) {
+.wb-html-island--light .hero-property a:not([class*="btn"]):not([class*="cta"]),
+.wb-html-island--light .hero-content h1,
+.wb-html-island--light .hero-content h2,
+.wb-html-island--light .hero-content h3,
+.wb-html-island--light .hero-content p,
+.wb-html-island--light .hero-content span,
+.wb-html-island--light .hero-headline,
+.wb-html-island--light .hero-subheading {
   color: #f8fafc !important;
+}
+
+/* Cream / light body copy: prefer dark ink over washed greys */
+.wb-root.wb-surface-light,
+.wb-html-island--light {
+  color: #1c2b2a;
+}
+
+.wb-html-island--light .exposure-headline,
+.wb-html-island--light .core-headline,
+.wb-html-island--light .cta-headline,
+.wb-html-island--light .intro-headline,
+.wb-html-island--light .contact-heading,
+.wb-html-island--light .benefits-section .section-title,
+.wb-html-island--light .benefits-section h3,
+.wb-html-island--light .exposure-section .section-title {
+  color: #14201f !important;
+}
+
+.wb-html-island--light .exposure-text,
+.wb-html-island--light .core-text,
+.wb-html-island--light .cta-description,
+.wb-html-island--light .intro-description,
+.wb-html-island--light .intro-text,
+.wb-html-island--light .service-text,
+.wb-html-island--light .why-description,
+.wb-html-island--light .ben-experience,
+.wb-html-island--light .ben-title,
+.wb-html-island--light .benefits-section p {
+  color: #243533 !important;
 }
 
 .wb-html-page .wb-html-island--page .roe-property-grid {
@@ -768,9 +832,18 @@ export const websiteRendererCss = `
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.25rem;
+  gap: 1rem;
   flex-wrap: wrap;
   box-sizing: border-box;
+}
+
+.wb-brand-chrome-header .wb-brand-chrome-nav {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.wb-brand-chrome-header .wb-brand-chrome-cta {
+  flex: 0 0 auto;
 }
 
 .wb-brand-chrome-footer .wb-brand-chrome-inner {
@@ -821,6 +894,34 @@ export const websiteRendererCss = `
 
 .wb-brand-chrome-nav a:hover {
   color: #fff;
+}
+
+.wb-brand-chrome-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  background: var(--wb-accent, #c4a35a);
+  color: #0f1716 !important;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.wb-brand-chrome-cta:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  color: #0f1716 !important;
+}
+
+.wb-brand-chrome-header.is-top .wb-brand-chrome-cta {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
 }
 
 .wb-brand-chrome-copy {

@@ -520,7 +520,13 @@ export type WebsiteChrome = {
   overlayHeader?: boolean | null;
   /** Force cream/light page surface + dark ink */
   lightSurface?: boolean | null;
+  /** Primary header CTA (e.g. Get Property Report) */
+  headerCta?: { label: string; href: string } | null;
 };
+
+function homeHref(basePath: string): string {
+  return basePath && basePath !== "/" ? basePath : "/";
+}
 
 function BrandSiteHeader({
   theme,
@@ -528,15 +534,18 @@ function BrandSiteHeader({
   links,
   businessName,
   overlay,
+  headerCta,
 }: {
   theme: WebsiteTheme;
   basePath: string;
   links: Array<{ label: string; href: string }>;
   businessName: string;
   overlay?: boolean;
+  headerCta?: { label: string; href: string } | null;
 }) {
   const logo = theme.logoUrl || theme.iconUrl;
   const [scrolled, setScrolled] = useState(false);
+  const brandHref = homeHref(basePath);
 
   useEffect(() => {
     const onScroll = () => {
@@ -559,7 +568,7 @@ function BrandSiteHeader({
         .join(" ")}
     >
       <div className="wb-brand-chrome-inner">
-        <a href={basePath} className="wb-brand-chrome-brand" aria-label={businessName}>
+        <a href={brandHref} className="wb-brand-chrome-brand" aria-label={businessName}>
           {logo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logo} alt={businessName} className="wb-brand-chrome-logo" />
@@ -575,6 +584,11 @@ function BrandSiteHeader({
               </a>
             ))}
           </nav>
+        ) : null}
+        {headerCta?.label && headerCta.href ? (
+          <a className="wb-brand-chrome-cta" href={headerCta.href}>
+            {headerCta.label}
+          </a>
         ) : null}
       </div>
     </header>
@@ -593,10 +607,11 @@ function BrandSiteFooter({
   businessName: string;
 }) {
   const logo = theme.logoUrl || theme.iconUrl;
+  const brandHref = homeHref(basePath);
   return (
     <footer className="wb-brand-chrome wb-brand-chrome-footer">
       <div className="wb-brand-chrome-inner">
-        <a href={basePath} className="wb-brand-chrome-brand" aria-label={businessName}>
+        <a href={brandHref} className="wb-brand-chrome-brand" aria-label={businessName}>
           {logo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logo} alt={businessName} className="wb-brand-chrome-logo" />
@@ -673,8 +688,23 @@ export function WebsitePageRenderer({
         : l.href.startsWith("/sites/")
           ? l.href
           : `${basePath}${l.href === "/" ? "" : l.href.startsWith("/") ? l.href : `/${l.href}`}`;
-      return { label: l.label, href };
+      return { label: l.label, href: href || "/" };
     });
+  const rawCta = chrome?.headerCta;
+  const headerCta =
+    rawCta &&
+    typeof rawCta.label === "string" &&
+    rawCta.label.trim() &&
+    typeof rawCta.href === "string" &&
+    rawCta.href.trim()
+      ? {
+          label: rawCta.label.trim(),
+          href: rawCta.href.startsWith("http")
+            ? rawCta.href
+            : `${basePath}${rawCta.href.startsWith("/") ? rawCta.href : `/${rawCta.href}`}` ||
+              "/",
+        }
+      : null;
 
   const rootClass = [
     "wb-root",
@@ -708,6 +738,7 @@ export function WebsitePageRenderer({
           links={links}
           businessName={businessName}
           overlay={overlayHeader}
+          headerCta={headerCta}
         />
       ) : headerHtml ? (
         <section

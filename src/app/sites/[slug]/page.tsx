@@ -12,6 +12,8 @@ type SiteChrome = {
   navLinks?: Array<{ label: string; href: string }>;
   businessName?: string;
   overlayHeader?: boolean;
+  lightSurface?: boolean;
+  headerCta?: { label: string; href: string };
 };
 
 function chromeFromSite(

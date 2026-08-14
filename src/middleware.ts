@@ -162,8 +162,9 @@ export default async function middleware(req: NextRequest, event: unknown) {
       !path.startsWith("/sites/")
     ) {
       const url = req.nextUrl.clone();
+      // Full path so nested routes like /property/11-dinjirra-court-tugun resolve
       const pageSlug =
-        path === "/" ? "" : path.replace(/^\//, "").split("/")[0] || "";
+        path === "/" ? "" : path.replace(/^\/+|\/+$/g, "") || "";
       url.pathname = "/sites/by-host";
       if (pageSlug) url.searchParams.set("page", pageSlug);
       const rewrite = NextResponse.rewrite(url);
