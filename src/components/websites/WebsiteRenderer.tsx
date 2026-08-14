@@ -513,6 +513,8 @@ export type WebsiteChrome = {
   businessName?: string | null;
   /** Transparent header over hero (Roe / CVH style) */
   overlayHeader?: boolean | null;
+  /** Force cream/light page surface + dark ink */
+  lightSurface?: boolean | null;
 };
 
 function BrandSiteHeader({
@@ -644,8 +646,17 @@ export function WebsitePageRenderer({
   const postGridOnly =
     components.length > 0 &&
     components.every((c) => c.type === "post_grid");
-  /** Light Insights / listing surfaces for overlay brands (RR / CVH) */
-  const lightSurface = overlayHeader && postGridOnly;
+  const hasLightHtml = components.some(
+    (c) =>
+      c.type === "html" &&
+      typeof c.props?.html === "string" &&
+      /wb-html-island--light|background:\s*#F5F2EF|background:#F5F2EF|roe-property-grid/i.test(
+        c.props.html,
+      ),
+  );
+  /** Light Insights / cream listing pages */
+  const lightSurface =
+    hasLightHtml || (overlayHeader && postGridOnly) || Boolean(chrome?.lightSurface);
   const businessName = chrome?.businessName?.trim() || siteSlug;
   const rawLinks = Array.isArray(chrome?.navLinks) ? chrome!.navLinks! : [];
   const links = rawLinks

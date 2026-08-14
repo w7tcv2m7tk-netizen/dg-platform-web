@@ -395,14 +395,18 @@ export const websiteRendererCss = `
   border-radius: 0.35rem;
 }
 
-/**
- * Full imported marketing / Oxygen HTML pages.
- * body{} rules from source HTML do not apply inside Studio — use .wb-html-island
- * (rewritten at import) and a dark page shell so cream paper does not bleed through.
- */
+/* ============================================================
+   Sitewide contrast system (dark shell + light surfaces)
+   ============================================================ */
 .wb-root.wb-html-page {
-  background: var(--wb-bg, #0a0e17);
-  color: #f8fafc;
+  --wb-fg: #f8fafc;
+  --wb-fg-muted: #d1d5db;
+  --wb-fg-subtle: #9ca3af;
+  --wb-link: #93c5fd;
+  --wb-link-hover: #bfdbfe;
+  --wb-surface-bg: var(--wb-bg, #0a0e17);
+  background: var(--wb-surface-bg);
+  color: var(--wb-fg);
 }
 
 .wb-root.wb-html-page .wb-section.wb-html-block {
@@ -428,7 +432,8 @@ export const websiteRendererCss = `
   max-width: none !important;
   padding: 0 !important;
   margin: 0 !important;
-  background: var(--wb-bg, #0a0e17);
+  background: var(--wb-surface-bg);
+  color: var(--wb-fg);
 }
 
 .wb-root.wb-full-bleed,
@@ -539,23 +544,55 @@ export const websiteRendererCss = `
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
 }
 
-/* Dark imported pages: force readable titles/links against dark shell */
-.wb-root.wb-html-page .wb-section-title {
-  color: #f8fafc;
+/* Dark page defaults: readable type against dark shells */
+.wb-html-island--page:not(.wb-html-island--light) {
+  color: #f8fafc !important;
 }
 
-.wb-root.wb-html-page .wb-post-grid-wrap .wb-section-title {
-  color: #f8fafc;
+.wb-html-island--page:not(.wb-html-island--light) h1,
+.wb-html-island--page:not(.wb-html-island--light) h2,
+.wb-html-island--page:not(.wb-html-island--light) h3,
+.wb-html-island--page:not(.wb-html-island--light) h4,
+.wb-html-island--page:not(.wb-html-island--light) h5,
+.wb-html-island--page:not(.wb-html-island--light) h6 {
+  color: #f8fafc !important;
 }
 
-/* Light surface pages (Insights / cream property listings) */
+.wb-html-island--page:not(.wb-html-island--light) p,
+.wb-html-island--page:not(.wb-html-island--light) li,
+.wb-html-island--page:not(.wb-html-island--light) td,
+.wb-html-island--page:not(.wb-html-island--light) th,
+.wb-html-island--page:not(.wb-html-island--light) label,
+.wb-html-island--page:not(.wb-html-island--light) span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]) {
+  color: #e5e7eb !important;
+}
+
+.wb-html-island--page:not(.wb-html-island--light) a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]) {
+  color: #93c5fd !important;
+}
+
+.wb-html-island--page:not(.wb-html-island--light) a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]):hover {
+  color: #bfdbfe !important;
+}
+
+/* Light surfaces (cream listings, Insights, sell/buy/about) */
 .wb-root.wb-surface-light {
+  --wb-fg: #1c2b2a;
+  --wb-fg-muted: #3f4a48;
+  --wb-fg-subtle: #6b7280;
+  --wb-link: #6b5428;
+  --wb-link-hover: #8a6a3a;
+  --wb-surface-bg: #f5f2ef;
   background: #f5f2ef;
   color: #1c2b2a;
 }
 
 .wb-root.wb-surface-light .wb-section-title {
-  color: #1c2b2a;
+  color: #1c2b2a !important;
+}
+
+.wb-root.wb-html-page .wb-section-title {
+  color: var(--wb-fg);
 }
 
 .wb-root.wb-surface-light .wb-post-grid-wrap {
@@ -594,14 +631,65 @@ export const websiteRendererCss = `
   background: #e8e2db;
 }
 
-/* Light HTML islands: cream content edge-to-edge (no dark gutters) */
+/* Light HTML islands: cream content edge-to-edge + dark ink */
 .wb-html-island.wb-html-island--light,
 .wb-html-page .wb-html-island--page:has(.roe-property-grid),
 .wb-html-page .wb-html-island--page:has(.hero-property) {
+  --wb-fg: #1c2b2a;
+  --wb-fg-muted: #3f4a48;
+  --wb-link: #6b5428;
   background: #f5f2ef !important;
   color: #1c2b2a !important;
   padding: 0 !important;
   max-width: none !important;
+}
+
+.wb-html-island--light h1,
+.wb-html-island--light h2,
+.wb-html-island--light h3,
+.wb-html-island--light h4,
+.wb-html-island--light h5,
+.wb-html-island--light h6,
+.wb-html-page .wb-html-island--page:has(.roe-property-grid) h1,
+.wb-html-page .wb-html-island--page:has(.roe-property-grid) h2,
+.wb-html-page .wb-html-island--page:has(.roe-property-grid) h3 {
+  color: #1c2b2a !important;
+}
+
+.wb-html-island--light p,
+.wb-html-island--light li,
+.wb-html-island--light td,
+.wb-html-island--light th,
+.wb-html-island--light label,
+.wb-html-island--light span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]),
+.wb-html-page .wb-html-island--page:has(.roe-property-grid) p,
+.wb-html-page .wb-html-island--page:has(.roe-property-grid) li {
+  color: #2f2f2f !important;
+}
+
+.wb-html-island--light a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]),
+.wb-html-page .wb-html-island--page:has(.roe-property-grid) a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]) {
+  color: #6b5428 !important;
+}
+
+.wb-html-island--light a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]):hover {
+  color: #8a6a3a !important;
+}
+
+/* Hero / dark bands inside light pages keep light text */
+.wb-html-island--light [class*="hero"] h1,
+.wb-html-island--light [class*="hero"] h2,
+.wb-html-island--light [class*="hero"] h3,
+.wb-html-island--light [class*="hero"] p,
+.wb-html-island--light [class*="hero"] span,
+.wb-html-island--light [class*="hero"] li,
+.wb-html-island--light [class*="hero"] a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]),
+.wb-html-island--light .hero-property h1,
+.wb-html-island--light .hero-property h2,
+.wb-html-island--light .hero-property p,
+.wb-html-island--light .hero-property span,
+.wb-html-island--light .hero-property a:not([class*="btn"]):not([class*="cta"]) {
+  color: #f8fafc !important;
 }
 
 .wb-html-page .wb-html-island--page .roe-property-grid {
@@ -615,23 +703,28 @@ export const websiteRendererCss = `
 
 .wb-html-page .wb-html-island--page .roe-property-grid .roe-property-card,
 .wb-html-page .wb-html-island--page .roe-property-card {
-  color: #1c2b2a;
+  color: #1c2b2a !important;
 }
 
-.wb-html-page .wb-html-island--light h1,
-.wb-html-page .wb-html-island--light h2,
-.wb-html-page .wb-html-island--light h3,
-.wb-html-page .wb-html-island--page:has(.roe-property-grid) h1,
-.wb-html-page .wb-html-island--page:has(.roe-property-grid) h2,
-.wb-html-page .wb-html-island--page:has(.roe-property-grid) h3 {
-  color: inherit;
+.wb-html-page .wb-html-island--page .roe-property-card h3,
+.wb-html-page .wb-html-island--page .roe-property-card p,
+.wb-html-page .wb-html-island--page .roe-property-card span,
+.wb-html-page .wb-html-island--page .roe-property-card a {
+  color: #1c2b2a !important;
 }
 
-.wb-html-page .wb-html-island--light p,
-.wb-html-page .wb-html-island--light li,
-.wb-html-page .wb-html-island--page:has(.roe-property-grid) p,
-.wb-html-page .wb-html-island--page:has(.roe-property-grid) li {
-  color: #2f2f2f;
+/* Footer chrome contrast */
+.wb-site-chrome-footer,
+.wb-site-chrome-footer p,
+.wb-site-chrome-footer li,
+.wb-site-chrome-footer span,
+.wb-site-chrome-footer h4,
+.wb-site-chrome-footer a {
+  color: #e5e7eb;
+}
+
+.wb-site-chrome-footer a:hover {
+  color: #fff;
 }
 
 /* Keep in-page / leftover logos from exploding when island img rules win */

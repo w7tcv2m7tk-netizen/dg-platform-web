@@ -676,22 +676,35 @@ function stripEmbeddedPageHeaders(html) {
   );
 }
 
+function isLightContentHtml(html) {
+  return /background:\s*#(?:F5F2EF|FCF9F5|F8F5F0|FFFFFF|fff)\b|roe-property-grid|hero-property/i.test(
+    String(html || ""),
+  );
+}
+
 function prepareWpHtml(contentHtml, bg) {
   const cleaned = stripEmbeddedPageHeaders(String(contentHtml || ""))
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
     .replace(/\s+on\w+\s*=\s*(".*?"|'.*?'|[^\s>]+)/gi, "")
     .trim();
+  const light = isLightContentHtml(cleaned);
+  const pageBg = light ? "#F5F2EF" : bg;
+  const ink = light ? "#1C2B2A" : "#f8fafc";
+  const muted = light ? "#2F2F2F" : "#e2e8f0";
+  const link = light ? "#6B5428" : "#93c5fd";
+  const lightClass = light ? " wb-html-island--light" : "";
   const style = `<style>
-.wb-html-island--page{min-height:60vh;width:100%;max-width:none;background:${bg};color:#f8fafc;padding:0;margin:0;font-family:system-ui,sans-serif;line-height:1.65}
-.wb-html-island--page a{color:#93c5fd}
+.wb-html-island--page{min-height:60vh;width:100%;max-width:none;background:${pageBg};color:${ink};padding:0;margin:0;font-family:system-ui,sans-serif;line-height:1.65}
+.wb-html-island--page a{color:${link}}
 .wb-html-island--page img{max-width:100%;height:auto;border-radius:0.35rem}
 .wb-html-island--page img.rr-logo,.wb-html-island--page .rr-logo,.wb-html-island--page .logo-wrapper img,.wb-html-island--page header img,.wb-html-island--page .rr-icon,.wb-html-island--page .footer-logo img{max-height:56px!important;width:auto!important;max-width:min(240px,55vw)!important;height:auto!important;object-fit:contain!important}
 .wb-html-island--page .nav-cta,.wb-html-island--page .hero-cta,.wb-html-island--page .cta-button,.wb-html-island--page .intro-cta{display:inline-flex!important;align-items:center;width:auto!important;max-width:100%;white-space:nowrap;box-sizing:border-box}
-.wb-html-island--page h1,.wb-html-island--page h2,.wb-html-island--page h3{color:#f8fafc;line-height:1.25}
-.wb-html-island--page p,.wb-html-island--page li{color:#e2e8f0}
+.wb-html-island--page h1,.wb-html-island--page h2,.wb-html-island--page h3{color:${ink};line-height:1.25}
+.wb-html-island--page p,.wb-html-island--page li{color:${muted}}
 .wb-html-island--page .container,.wb-html-island--page .ct-section-inner-wrap{max-width:min(1400px,100%)!important;width:100%;margin-left:auto;margin-right:auto;padding-left:clamp(1rem,3vw,2rem);padding-right:clamp(1rem,3vw,2rem);box-sizing:border-box}
+.wb-html-island--light [class*="hero"] h1,.wb-html-island--light [class*="hero"] h2,.wb-html-island--light [class*="hero"] p,.wb-html-island--light [class*="hero"] span,.wb-html-island--light .hero-property a:not([class*="btn"]):not([class*="cta"]){color:#f8fafc}
 </style>`;
-  return `${style}\n<div class="wb-html-island wb-html-island--page">${cleaned || "<p>No content imported.</p>"}</div>`;
+  return `${style}\n<div class="wb-html-island wb-html-island--page${lightClass}">${cleaned || "<p>No content imported.</p>"}</div>`;
 }
 
 async function featuredImageForPost(post, wpRoot) {
