@@ -1,5 +1,5 @@
 import { AppFeaturePlaceholder } from "@/components/platform/AppFeaturePlaceholder";
 
 export default function Page() {
-  return <AppFeaturePlaceholder itemId="comms.voice" />;
+  return <AppFeaturePlaceholder itemId="comms.voice" hideRoadmap />;
 }
