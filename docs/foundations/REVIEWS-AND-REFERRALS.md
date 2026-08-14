@@ -57,26 +57,28 @@ Core → Universal Objects → CRM → Connectors → AI → Industry Apps → I
 
 | Rule | Detail |
 |------|--------|
-| **Customer referrer** | **20%** of the referred organisation’s **subscription** revenue for **12 months** |
-| **Partner referrer** | **25–30%** of referred subscription (partner agreement) |
-| **Reseller / White Label** | **Custom** commercial terms (enterprise / WL contracts) |
-| **Payout form** | **Platform credit by default**; **cash** once accrued balance reaches ~**$100** (threshold configurable) |
-| **What earns** | Qualifying **paid subscription** only (plan / App add-ons per policy) — not Marketplace or B2B referral fees |
+| **Customer referrer** | **10%** of referred org’s qualifying subscription for **12 months** (standard / future customers). Founding 1,000 **Founding Customer** tier = **20%** for 12 months — see founding lock |
+| **Founding Partner** | **25%** for **12 months** (Founding 100) |
+| **Founding Reseller** | **30%** for **12 months** (Founding 10) |
+| **Payout form** | **Platform credit by default**; **cash** once accrued balance reaches ~**$100** (threshold configurable); choice of both where policy enables |
+| **What earns** | Qualifying **paid** recurring Platform + App subscription only — excludes Professional Services, Customer Success, usage, taxes, refunds, chargebacks, one-offs, Marketplace / B2B fees, and the referrer’s **own** account |
 
-### Target referral tiers (architecture lock — remap later)
+### Target referral tiers (architecture lock)
 
 Canonical commercial progression ([FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md)):
 
-| Cohort | Referrer tier | Rate |
-|--------|---------------|------|
-| Founding 10 | **Reseller** | 30% |
-| Founding 100 | **Partner** | 25% |
-| Founding 1,000 | **Customer** | 20% |
-| Standard | **Customer** | 10% |
+| Cohort | Referrer tier | Commission |
+|--------|---------------|------------|
+| Founding 10 | **Founding Reseller** | **30%** of referred qualifying subscription for **12 months** |
+| Founding 100 | **Founding Partner** | **25%** for **12 months** |
+| Founding 1,000 | **Founding Customer** | **20%** for **12 months** |
+| Standard / future | **Customer** | **10%** for **12 months** |
 
-Referral rates are **commission**, not an extra subscription discount. Founding 10’s **Reseller** tier is the 30% commission rate on the founding programme — a full **Reseller Programme** (third-party resale / managed DigitalGate) stays a separate commercial model.
+**Two benefits, independent:** own founding acquisition discount (24 months) ≠ referral commission (12 months per referred customer). Referral **status** is **ongoing while eligible** — not “forever.” Do not call commission a “referral discount.”
 
-**Shipped MVP today** still uses Customer 20% / Partner 25% / Reseller 30% labels in product settings. Remap when Founding 10 offers go live; do not rebuild the referral system for this lock alone.
+A full **Reseller Programme** (third-party resale / managed DigitalGate) stays a separate commercial model from **Founding Reseller** status.
+
+**Shipped MVP today** still uses Customer 20% / Partner 25% / Reseller 30% labels in product settings (Customer rate historically 20%). Remap Standard Customer → **10%** and Founding 1,000 Founding Customer → **20%** when Founding 10 offers go live; do not rebuild the referral system for this lock alone.
 
 Commission is **single-level only**: the person (or partner org) whose link/code signed up the new paying org. See hard rule below.
 

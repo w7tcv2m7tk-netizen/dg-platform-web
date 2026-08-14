@@ -4,7 +4,7 @@
 **Active cohort now:** **DigitalGate Founding 10 only**  
 **Does not change:** Gate 1 dogfood · P0/P1 · Stage 1 advisor evidence · [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)
 
-> **Do not build** Founding 100 / 1,000 systems, multi-cohort billing UI, or Reseller Programme yet.  
+> **Do not build** Founding 100 / 1,000 systems, multi-cohort billing UI, or a full third-party Reseller Programme yet.  
 > **Do** keep entitlements / org settings headroom for cohort membership, cohort number, discount period, referral tier, and referral attribution.
 
 ---
@@ -23,6 +23,38 @@ The first ten hold the strongest commercial position because they take the great
 
 ---
 
+## Two separate benefits (non-negotiable)
+
+| Benefit | What it is | Duration |
+|---------|------------|----------|
+| **1. Founding acquisition discount** | Cohort % off **own** initial Platform + Apps | **24 months** from subscription commencement |
+| **2. Founding referral status** | Cohort referrer tier + commission on **others’** qualifying subscriptions | **Ongoing while eligible** (status); **12 months commission per referred customer** |
+
+These benefits are **independent**:
+
+- After 24 months, own subscription → then-current published pricing.  
+- Referral tier / rate remains (e.g. Founding Reseller 30%) while the customer remains an eligible DigitalGate customer / referral partner.  
+- Each newly referred customer still earns commission for **their first 12 months** of qualifying paid subscription — even after the referrer’s own founding discount has ended.
+
+Do **not** publicly promise “forever.” Prefer **“ongoing”** / **“while you remain an eligible DigitalGate customer / referral partner.”**
+
+---
+
+## Locked commercial table
+
+| Cohort | Own pricing discount | Period | Referral tier | Referral commission |
+|--------|----------------------|--------|---------------|---------------------|
+| **Founding 10** | **30%** off initial Platform + Apps | **24 months** | **Founding Reseller** | **30%** of referred customer’s qualifying subscription for **12 months** |
+| **Founding 100** | **25%** | **24 months** | **Founding Partner** | **25%** for **12 months** |
+| **Founding 1,000** | **20%** | **24 months** | **Founding Customer** | **20%** for **12 months** |
+| **Future / Standard** | Published price | — | **Customer** | **10%** for **12 months** |
+
+**Why 12 months commission (not indefinite recurring):** strong acquisition reward without permanent margin drain; each referral creates a finite acquisition cycle; DigitalGate retains the referred customer thereafter.
+
+**Illustrative economics (sales narrative, not a guarantee):** Founding 10 on Growth ($249) → founding price ~$174.30. Three referred Growth customers at 30% for 12 months → ~$2,689 total commission. After the founding discount ends, the referrer still earns 30% × 12 months on **new** referrals under Founding Reseller status.
+
+---
+
 ## Public pricing (unchanged)
 
 | Layer | Model |
@@ -30,115 +62,76 @@ The first ten hold the strongest commercial position because they take the great
 | **Platform** | Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** · Enterprise Custom |
 | **Apps** | **Additional** — Industry and Growth Apps are **not** included in platform tier pricing |
 
-**GTM packaging:** *Start with the platform, add Apps as you grow.*
-
-Remove / avoid conflicting public and in-product wording such as:
-
-- “1 Industry App included”
-- “Unlimited Industry Apps” (as a Scale plan inclusion)
-
 **Surfaces:**
 
 | Surface | What to publish |
 |---------|-----------------|
-| **Founding Customer Programme page** (`/founding-customers/`) | Full **10 → 100 → 1,000** structure, 24-month initial-config rules, cohort comparison — this is the offer surface |
-| **Pricing page** | Public Starter / Growth / Scale + Apps; preferred founding terms / CTA — **not** a second discount grid |
+| **Founding Customer Programme page** | Full **10 → 100 → 1,000** structure, dual benefits, 24-month / 12-month rules |
+| **Pricing page** | Public tiers + Apps; founding CTA — **not** a second discount grid |
 | **Offer / agreement** | Binding commercial terms (legal-reviewed) |
 
 Canon: [COMMERCIAL-MODEL.md](../foundations/COMMERCIAL-MODEL.md).
 
 ---
 
-## Cohort commercial table
+## Critical distinction — initial configuration only (own discount)
 
-| Cohort | Initial Platform + App discount | Discount period | Referrer tier |
-|--------|----------------------------------|-----------------|---------------|
-| **Founding 10** | **30%** | **24 months** | **Reseller — 30%** |
-| **Founding 100** | **25%** | **24 months** | **Partner — 25%** |
-| **Founding 1,000** | **20%** | **24 months** | **Customer — 20%** |
-| **Standard customers** | Public pricing | — | **Customer — 10%** |
+The founding **acquisition** discount applies to the customer’s **initial DigitalGate Platform + App configuration only**.
 
-**Reseller tier (Founding 10)** = 30% referral commission on attributed DigitalGate Platform + App subscriptions. It is **not** an extra discount on the founding customer’s own subscription. A separate **DigitalGate Reseller Programme** (businesses that resell / manage DigitalGate for others) remains a distinct commercial model and is **not** built yet — do not collapse the two.
+**Example (Founding 10):** Growth + Real Estate + AI Visibility + SEO → **30% off those recurring fees for 24 months**.
 
-Public framing (unchanged):
+Later additions (new App, tier upgrade, etc.):
 
-| Cohort | Public framing |
-|--------|----------------|
-| Founding 10 | Founding Customer Programme · Founding Operators |
-| Founding 100 | Early Operators (not “founders” in the Founding 10 sense) |
-| Founding 1,000 | Early DigitalGate network |
-| Standard | Standard DigitalGate commercial |
+- billed at **then-current published pricing**
+- do **not** inherit the founding discount
+
+After 24 months: own subscription → then-current published pricing. **Founding status / recognition / referral tier remain** while eligible.
 
 ---
 
-## Critical distinction — initial configuration only
+## Discount scope (own account)
 
-The founding discount applies to the customer’s **initial DigitalGate Platform + App configuration only**.
+Applies **only** to DigitalGate **recurring Platform + App subscription fees**.
 
-**Example (Founding 10):** Growth + Real Estate + AI Visibility + SEO → **30% off those recurring DigitalGate subscription fees for 24 months**.
-
-If they **later add** another App, Platform tier upgrade, or other qualifying subscription product:
-
-- the **new addition** is charged at the **then-current published pricing**
-- it **does not inherit** the founding discount
-
-This avoids a permanent discount liability while still giving founding customers a substantial 24-month commercial advantage.
-
-After the 24-month founding period, the subscription moves to **then-current standard pricing** unless a separate commercial agreement applies. The customer **keeps founding status / recognition** after the discounted period ends.
-
----
-
-## Discount scope
-
-Cohort discounts apply **only** to:
-
-- DigitalGate **recurring Platform + App subscription fees**
-
-They **do not** apply to:
-
-- Professional Services  
-- Setup / Implementation  
-- Migration  
-- Consulting  
-- Custom Development  
-- Customer Success plans  
-- Third-party costs  
-- Pass-through costs  
-- Usage-based charges (where applicable)  
-- Advertising / media spend  
-- Other external services  
+Does **not** apply to Professional Services, Setup / Implementation, Migration, Consulting, Custom Development, Customer Success plans, third-party / pass-through costs, usage-based charges, advertising/media, or other external services.
 
 Discounts are **non-stackable** with other promotional discounts.
 
 ---
 
-## Why 24 months
+## Referral commission rules (locked)
 
-24 months is the founding commitment window:
+Call it **referral commission** — never “referral discount.”
 
-- Meaningful economic advantage for early customers  
-- Avoids permanent underpricing  
+**Qualifying revenue:** recurring Platform and App subscription fees **actually paid** by the referred customer during their **first 12 months**.
 
-**Principle:** the earlier you join DigitalGate, the greater your **initial** commercial advantage.
+**Excludes:** Professional Services, Customer Success / Support plans, usage charges, taxes, refunds, chargebacks, one-off fees, Marketplace / B2B referral fees, and the referrer’s **own** account.
+
+**Guardrails:**
+
+| Rule | Detail |
+|------|--------|
+| Paid only | Successfully paid subscriptions |
+| Attribution | Direct referral attributable to the referring customer / org |
+| Window | Commission accrues for **12 months** from the referred customer’s first qualifying paid period |
+| Active referred | Accrual continues only while referred customer remains an active paying customer within that window |
+| Single-level | No multi-level / MLM |
+| Abuse | DigitalGate may terminate or modify participation for fraud / abuse |
+| Programme change | Status is **ongoing while eligible** — not an irrevocable forever promise |
+| Payout | Platform credit by default; cash (or choice) where Connect / policy enables |
+
+**Founding Reseller (Founding 10)** is the founding-network referral tier name. A separate **DigitalGate Reseller Programme** for businesses that resell / manage DigitalGate for others remains a **distinct** commercial model — do not collapse the two. See [REVIEWS-AND-REFERRALS.md](../foundations/REVIEWS-AND-REFERRALS.md).
 
 ---
 
-## Referral model (architecture — separate from subscription discount)
+## Public framing
 
-Founding cohorts are the start of the DigitalGate referral / distribution network.
-
-| Cohort | Referrer tier | Rate |
-|--------|---------------|------|
-| Founding 10 | **Reseller** | 30% |
-| Founding 100 | **Partner** | 25% |
-| Founding 1,000 | **Customer** | 20% |
-| Standard | **Customer** | 10% |
-
-**Important:**
-
-- Referral percentages are a **separate commission / attribution system**, not an extra customer subscription discount.  
-- Founding 10’s **Reseller** referrer tier is the **30% commission rate** on the founding programme page — **not** automatic enrolment in a full Reseller Programme for third-party resale / managed DigitalGate.  
-- Current shipped Refer & Earn tiers already use Customer / Partner / Reseller labels — remap rates to this table when Founding 10 offers go live. See [REVIEWS-AND-REFERRALS.md](../foundations/REVIEWS-AND-REFERRALS.md).
+| Cohort | Public framing |
+|--------|----------------|
+| Founding 10 | Founding Operators · **Founding Reseller** |
+| Founding 100 | Early Operators · **Founding Partner** |
+| Founding 1,000 | Early DigitalGate network · **Founding Customer** (tier) |
+| Standard | Standard DigitalGate · Customer referrer |
 
 ---
 
@@ -146,16 +139,14 @@ Founding cohorts are the start of the DigitalGate referral / distribution networ
 
 | Do | Do not |
 |----|--------|
-| **Founding 10** is the **only** active commercial cohort | Build Founding 100 / 1,000 systems yet |
+| **Founding 10** only active cohort | Build Founding 100 / 1,000 systems yet |
 | Gate 1 → dogfood → P0/P1 → Founding 10 | Distract from Opportunity Engine / Decision Intelligence / Twin |
-| Founding page: full cohort structure + 24-month rules | Publish the same discount grid on the general **pricing** page |
-| Exact binding terms in Founding Customer offer / agreement | Open Founding 100 until Founding 10 is proven |
+| Founding page: dual benefits + 24 / 12 month rules | Publish the same grid on the general **pricing** page |
+| Exact binding terms in offer / agreement | Promise “forever” commission or lifetime own discount |
 
 ---
 
 ## Architecture headroom (document only — no schema/UI now)
-
-Reserve future fields (e.g. on `Organisation.settings` or billing entitlements) so we can support without rebuild:
 
 | Field | Purpose |
 |-------|---------|
@@ -164,10 +155,11 @@ Reserve future fields (e.g. on `Organisation.settings` or billing entitlements) 
 | `foundingDiscountPercent` | Locked at join (30 / 25 / 20) |
 | `foundingDiscountEndsAt` | Join + 24 months |
 | `foundingLockedLineItems[]` | Initial Platform + App SKUs that inherit discount |
-| `referralTier` | `founding_referral` \| `partner_referral` \| `customer_referral` |
+| `referralTier` | `founding_reseller` \| `founding_partner` \| `founding_customer` \| `customer` |
+| `referralCommissionMonths` | Default **12** per referred org |
 | `referredBy` / attribution | Existing Refer & Earn linkage |
 
-**Today:** JSON settings + Feature Registry / plan linkage are enough headroom. Do **not** add schema or UI unless an in-flight Founding 10 offer implementation requires it.
+**Today:** JSON settings + Feature Registry / plan linkage are enough headroom. Do **not** add schema or UI unless an in-flight Founding 10 offer requires it.
 
 ---
 
@@ -179,4 +171,5 @@ Reserve future fields (e.g. on `Organisation.settings` or billing entitlements) 
 | [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md) | Gate 1 / Founding 10 operating target |
 | [DIGITALGATE-ROLLOUT.md](./DIGITALGATE-ROLLOUT.md) | GTM phases |
 | [REVIEWS-AND-REFERRALS.md](../foundations/REVIEWS-AND-REFERRALS.md) | Platform Refer & Earn (commission system) |
-| Founding page | Live offer = Founding 10 framing only; preferred terms, not exact % grid |
+| Founding page | Offer surface — dual benefits; links to Founding Customer Terms |
+| Founding Customer Terms | `/founding-customer-terms/` — legal/commercial rules (draft until lawyer review) |
