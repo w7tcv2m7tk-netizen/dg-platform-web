@@ -431,6 +431,22 @@ export const websiteRendererCss = `
   background: var(--wb-bg, #0a0e17);
 }
 
+.wb-root.wb-full-bleed,
+.wb-root.wb-html-page.wb-full-bleed {
+  width: 100%;
+  max-width: none;
+  overflow-x: clip;
+}
+
+.wb-root.wb-full-bleed .wb-section,
+.wb-root.wb-html-page.wb-full-bleed .wb-section.wb-html-block {
+  max-width: none !important;
+  width: 100%;
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .wb-root.wb-full-bleed .wb-html-island--page .container,
 .wb-root.wb-full-bleed .wb-html-island--page .ct-section-inner-wrap,
 .wb-root.wb-full-bleed .wb-html-island--page .oxy-header-container,
@@ -494,10 +510,11 @@ export const websiteRendererCss = `
 
 .wb-brand-chrome-logo {
   display: block;
-  height: 40px;
-  width: auto;
-  max-width: min(220px, 55vw);
-  object-fit: contain;
+  height: 40px !important;
+  width: auto !important;
+  max-height: 40px !important;
+  max-width: min(220px, 55vw) !important;
+  object-fit: contain !important;
   object-position: left center;
 }
 
