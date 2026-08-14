@@ -335,12 +335,36 @@ async function ensureWebsite(org, brand, chrome = null) {
     orderBy: { updatedAt: "desc" },
   });
 
+  const fullOrg = await prisma.organisation.findUnique({
+    where: { id: org.id },
+    select: { settings: true, name: true },
+  });
+  const profile = fullOrg?.settings?.profile ?? {};
+  const logoUrl =
+    typeof profile.logoUrl === "string" ? profile.logoUrl : null;
+  const iconUrl =
+    typeof profile.iconUrl === "string" ? profile.iconUrl : null;
+
+  const theme = {
+    ...brand.theme,
+    ...(logoUrl || iconUrl
+      ? { logoUrl: logoUrl || iconUrl, iconUrl: iconUrl || logoUrl }
+      : {}),
+  };
+
   const metaBase = {
     generatorSource: "seed-websites-from-sources",
     brandKey: brand.key,
     lastSeedAt: new Date().toISOString(),
   };
-  if (chrome) metaBase.chrome = chrome;
+  if (chrome) {
+    metaBase.chrome = {
+      ...chrome,
+      businessName: fullOrg?.name || org.name,
+      headerHtml: null,
+      footerHtml: null,
+    };
+  }
 
   if (!site) {
     let slug = brand.siteSlug;
@@ -355,7 +379,7 @@ async function ensureWebsite(org, brand, chrome = null) {
         slug,
         status: "draft",
         brief: `Imported ${new Date().toISOString().slice(0, 10)}`,
-        theme: brand.theme,
+        theme,
         seo: {
           title: brand.siteName,
           description: `${org.name} — powered by DigitalGate`,
@@ -367,15 +391,23 @@ async function ensureWebsite(org, brand, chrome = null) {
   } else {
     const prev =
       site.metadata && typeof site.metadata === "object" ? site.metadata : {};
+    const prevChrome =
+      prev.chrome && typeof prev.chrome === "object" ? prev.chrome : {};
     site = await prisma.website.update({
       where: { id: site.id },
       data: {
-        theme: brand.theme,
+        theme,
         name: site.name || brand.siteName,
         metadata: {
           ...prev,
           ...metaBase,
-          chrome: chrome || prev.chrome || undefined,
+          chrome: {
+            ...prevChrome,
+            ...(chrome || {}),
+            businessName: fullOrg?.name || org.name,
+            headerHtml: null,
+            footerHtml: null,
+          },
         },
       },
     });
@@ -641,12 +673,12 @@ function prepareWpHtml(contentHtml, bg) {
     .replace(/\s+on\w+\s*=\s*(".*?"|'.*?'|[^\s>]+)/gi, "")
     .trim();
   const style = `<style>
-.wb-html-island--page{min-height:60vh;background:${bg};color:#f8fafc;padding:2.5rem clamp(1.25rem,4vw,3rem);font-family:system-ui,sans-serif;line-height:1.65}
+.wb-html-island--page{min-height:60vh;width:100%;max-width:none;background:${bg};color:#f8fafc;padding:0;margin:0;font-family:system-ui,sans-serif;line-height:1.65}
 .wb-html-island--page a{color:#93c5fd}
 .wb-html-island--page img{max-width:100%;height:auto;border-radius:0.35rem}
 .wb-html-island--page h1,.wb-html-island--page h2,.wb-html-island--page h3{color:#f8fafc;line-height:1.25}
 .wb-html-island--page p,.wb-html-island--page li{color:#e2e8f0}
-.wb-html-island--page .ct-section,.wb-html-island--page .oxy-header-wrapper{max-width:100%}
+.wb-html-island--page .container,.wb-html-island--page .ct-section-inner-wrap{max-width:min(1400px,100%)!important;width:100%;margin-left:auto;margin-right:auto;padding-left:clamp(1rem,3vw,2rem);padding-right:clamp(1rem,3vw,2rem);box-sizing:border-box}
 </style>`;
   return `${style}\n<div class="wb-html-island wb-html-island--page">${cleaned || "<p>No content imported.</p>"}</div>`;
 }

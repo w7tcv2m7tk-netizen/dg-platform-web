@@ -487,7 +487,87 @@ export type WebsiteChrome = {
   headerHtml?: string | null;
   footerHtml?: string | null;
   stylesheets?: string[] | null;
+  /** Prefer profile logo chrome when theme.logoUrl is set */
+  navLinks?: Array<{ label: string; href: string }> | null;
+  businessName?: string | null;
 };
+
+function BrandSiteHeader({
+  theme,
+  basePath,
+  links,
+  businessName,
+}: {
+  theme: WebsiteTheme;
+  basePath: string;
+  links: Array<{ label: string; href: string }>;
+  businessName: string;
+}) {
+  const logo = theme.logoUrl || theme.iconUrl;
+  return (
+    <header className="wb-brand-chrome wb-brand-chrome-header">
+      <div className="wb-brand-chrome-inner">
+        <a href={basePath} className="wb-brand-chrome-brand" aria-label={businessName}>
+          {logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logo} alt={businessName} className="wb-brand-chrome-logo" />
+          ) : (
+            <span className="wb-brand-chrome-name">{businessName}</span>
+          )}
+        </a>
+        {links.length ? (
+          <nav className="wb-brand-chrome-nav" aria-label="Primary">
+            {links.map((link) => (
+              <a key={`${link.href}-${link.label}`} href={link.href}>
+                {link.label}
+              </a>
+            ))}
+          </nav>
+        ) : null}
+      </div>
+    </header>
+  );
+}
+
+function BrandSiteFooter({
+  theme,
+  basePath,
+  links,
+  businessName,
+}: {
+  theme: WebsiteTheme;
+  basePath: string;
+  links: Array<{ label: string; href: string }>;
+  businessName: string;
+}) {
+  const logo = theme.logoUrl || theme.iconUrl;
+  return (
+    <footer className="wb-brand-chrome wb-brand-chrome-footer">
+      <div className="wb-brand-chrome-inner">
+        <a href={basePath} className="wb-brand-chrome-brand" aria-label={businessName}>
+          {logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logo} alt={businessName} className="wb-brand-chrome-logo" />
+          ) : (
+            <span className="wb-brand-chrome-name">{businessName}</span>
+          )}
+        </a>
+        {links.length ? (
+          <nav className="wb-brand-chrome-nav" aria-label="Footer">
+            {links.slice(0, 8).map((link) => (
+              <a key={`f-${link.href}-${link.label}`} href={link.href}>
+                {link.label}
+              </a>
+            ))}
+          </nav>
+        ) : null}
+        <p className="wb-brand-chrome-copy">
+          © {new Date().getFullYear()} {businessName}
+        </p>
+      </div>
+    </footer>
+  );
+}
 
 export function WebsitePageRenderer({
   components,
@@ -507,14 +587,27 @@ export function WebsitePageRenderer({
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
   const bg = theme.backgroundColor || "#0c1222";
-  const headerHtml = chrome?.headerHtml?.trim() || "";
-  const footerHtml = chrome?.footerHtml?.trim() || "";
-  const hasChrome = Boolean(headerHtml || footerHtml);
+  const useBrandChrome = Boolean(theme.logoUrl || theme.iconUrl);
+  const headerHtml = !useBrandChrome ? chrome?.headerHtml?.trim() || "" : "";
+  const footerHtml = !useBrandChrome ? chrome?.footerHtml?.trim() || "" : "";
+  const hasChrome = Boolean(headerHtml || footerHtml || useBrandChrome);
   const htmlPage = isHtmlDominantPage(components) || hasChrome;
+  const businessName = chrome?.businessName?.trim() || siteSlug;
+  const rawLinks = Array.isArray(chrome?.navLinks) ? chrome!.navLinks! : [];
+  const links = rawLinks
+    .filter((l) => l && typeof l.label === "string" && typeof l.href === "string")
+    .map((l) => {
+      const href = l.href.startsWith("http")
+        ? l.href
+        : l.href.startsWith("/sites/")
+          ? l.href
+          : `${basePath}${l.href === "/" ? "" : l.href.startsWith("/") ? l.href : `/${l.href}`}`;
+      return { label: l.label, href };
+    });
 
   return (
     <div
-      className={htmlPage ? "wb-root wb-html-page" : "wb-root"}
+      className={htmlPage ? "wb-root wb-html-page wb-full-bleed" : "wb-root"}
       style={
         {
           ["--wb-primary"]: primary,
@@ -523,7 +616,14 @@ export function WebsitePageRenderer({
         } as React.CSSProperties
       }
     >
-      {headerHtml ? (
+      {useBrandChrome ? (
+        <BrandSiteHeader
+          theme={theme}
+          basePath={basePath}
+          links={links}
+          businessName={businessName}
+        />
+      ) : headerHtml ? (
         <section
           className="wb-section wb-html-block wb-site-chrome wb-site-chrome-header"
           dangerouslySetInnerHTML={{ __html: headerHtml }}
@@ -539,7 +639,14 @@ export function WebsitePageRenderer({
           pageSlug={pageSlug}
         />
       ))}
-      {footerHtml ? (
+      {useBrandChrome ? (
+        <BrandSiteFooter
+          theme={theme}
+          basePath={basePath}
+          links={links}
+          businessName={businessName}
+        />
+      ) : footerHtml ? (
         <section
           className="wb-section wb-html-block wb-site-chrome wb-site-chrome-footer"
           dangerouslySetInnerHTML={{ __html: footerHtml }}

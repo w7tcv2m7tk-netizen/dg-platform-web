@@ -9,6 +9,8 @@ type SiteChrome = {
   headerHtml?: string;
   footerHtml?: string;
   stylesheets?: string[];
+  navLinks?: Array<{ label: string; href: string }>;
+  businessName?: string;
 };
 
 function chromeFromSite(
