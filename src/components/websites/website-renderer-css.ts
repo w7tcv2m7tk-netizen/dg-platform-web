@@ -473,19 +473,20 @@ export const websiteRendererCss = `
   border-bottom: 1px solid color-mix(in srgb, var(--wb-primary) 28%, transparent);
 }
 
-/* Transparent header over hero (Roe / CVH) */
+/* Transparent header over hero (Roe / CVH) — stays visible while scrolling */
 .wb-root.wb-chrome-overlay {
   position: relative;
 }
 
 .wb-root.wb-chrome-overlay .wb-brand-chrome-header {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   background: transparent;
   border-bottom: none;
   box-shadow: none;
+  backdrop-filter: none;
 }
 
 .wb-root.wb-chrome-overlay .wb-brand-chrome-header .wb-brand-chrome-nav a {
