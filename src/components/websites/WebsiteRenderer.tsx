@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { WebsiteComponent, WebsiteTheme } from "@dg/platform-core";
 
 function asString(v: unknown, fallback = ""): string {
@@ -520,15 +520,38 @@ function BrandSiteHeader({
   basePath,
   links,
   businessName,
+  overlay,
 }: {
   theme: WebsiteTheme;
   basePath: string;
   links: Array<{ label: string; href: string }>;
   businessName: string;
+  overlay?: boolean;
 }) {
   const logo = theme.logoUrl || theme.iconUrl;
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    if (!overlay) return;
+    const onScroll = () => {
+      setScrolled(window.scrollY > 24);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [overlay]);
+
   return (
-    <header className="wb-brand-chrome wb-brand-chrome-header">
+    <header
+      className={[
+        "wb-brand-chrome",
+        "wb-brand-chrome-header",
+        overlay ? "wb-brand-chrome-header--overlay" : "",
+        overlay && scrolled ? "is-scrolled" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <div className="wb-brand-chrome-inner">
         <a href={basePath} className="wb-brand-chrome-brand" aria-label={businessName}>
           {logo ? (
@@ -668,6 +691,7 @@ export function WebsitePageRenderer({
           basePath={basePath}
           links={links}
           businessName={businessName}
+          overlay={overlayHeader}
         />
       ) : headerHtml ? (
         <section
