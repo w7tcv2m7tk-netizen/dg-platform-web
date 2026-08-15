@@ -811,8 +811,8 @@ export function WebsitePageRenderer({
       /wb-html-island--light|background:\s*#F5F2EF|background:#F5F2EF|roe-property-grid/i.test(
         c.props.html,
       ) &&
-      /* DigitalGate Founding / legal shells are intentionally dark */
-      !/\b(?:dg-fc|dg-legal)\b/.test(c.props.html),
+      /* DigitalGate navy shells (Founding / About / legal) are intentionally dark */
+      !/\b(?:dg-fc|dg-about|dg-legal)\b/.test(c.props.html),
   );
   /** Light Insights / cream listing pages */
   const lightSurface =

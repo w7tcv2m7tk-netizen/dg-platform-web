@@ -54,6 +54,13 @@ const PAGES = [
     intent: "custom",
     sortOrder: 3,
   },
+  {
+    file: "about-page.html",
+    title: "About",
+    slug: "about",
+    intent: "about",
+    sortOrder: 4,
+  },
 ];
 
 const prisma = new PrismaClient();
@@ -126,7 +133,7 @@ function prepareMarketingHtml(raw) {
 
   const styleTag = styles.trim() ? `<style>\n${styles}\n</style>` : "";
   // Always --page without --light: DigitalGate marketing HTML is a navy shell;
-  // cream light-island ink would bleach Founding / pricing / legal bands.
+  // cream light-island ink would bleach Founding / About / pricing / legal bands.
   return `${fontLinks}\n${styleTag}\n<div class="wb-html-island wb-html-island--page">\n${body}\n</div>`.trim();
 }
 
@@ -297,7 +304,7 @@ async function main() {
     },
     select: { id: true, slug: true, title: true },
   });
-  // Keep about/contact — they may still be useful; only note services as generic leftover
+  // Keep contact — About is seeded above; only note services as generic leftover
   for (const left of leftovers) {
     if (left.slug === "services") {
       await prisma.websitePage.update({

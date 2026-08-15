@@ -1119,6 +1119,114 @@ html:has(.wb-root.wb-html-page) body {
   background: #ffffff !important;
 }
 
+/*
+ * DigitalGate About (.dg-about) — same navy-shell / cream-type pattern as .dg-fc.
+ * Apply with or without wb-html-island--light (live /about/ is often --page only;
+ * Studio / older seeds may still carry --light and cream-island dark ink).
+ * Class names verified from /about/ live markup + marketing/pages/about-page.html.
+ * Scope under .dg-about so CVH .about-hero rules stay untouched.
+ */
+.wb-root .wb-html-island:has(.dg-about),
+.wb-root .wb-html-island .dg-about {
+  background: #0a0e17 !important;
+  color: #f9fafb !important;
+}
+
+.wb-root .wb-html-island .dg-about :is(
+  .about-hero,
+  .about-cta,
+  section,
+  .pillar,
+  .biz-card,
+  .diff-card,
+  .arch-module,
+  .arch-ai-layer,
+  .founder-content,
+  .prose,
+  .sys-chip,
+  .ind-list span,
+  .not-a span
+) {
+  color: #f9fafb !important;
+}
+
+.wb-root .wb-html-island .dg-about :is(
+  .about-hero,
+  .about-cta,
+  section,
+  .pillar,
+  .biz-card,
+  .diff-card,
+  .founder-content
+) :is(h1, h2, h3, h4, h5, h6) {
+  color: #faf8f4 !important;
+}
+
+.wb-root .wb-html-island .dg-about :is(
+  .about-hero,
+  .about-cta,
+  section,
+  .pillar,
+  .biz-card,
+  .diff-card,
+  .arch-module,
+  .arch-ai-layer,
+  .founder-content,
+  .prose
+) :is(
+  p,
+  li,
+  span,
+  small,
+  strong,
+  em,
+  figcaption,
+  .lead,
+  .lead-sm,
+  .tagline,
+  .one-liner,
+  .role,
+  .vision-quote,
+  .arch-across,
+  .arch-module-label
+) {
+  color: #e2e8f0 !important;
+}
+
+.wb-root .wb-html-island .dg-about .about-hero h1 .accent,
+.wb-root .wb-html-island .dg-about .biz-card h4,
+.wb-root .wb-html-island .dg-about .arch-module.highlight {
+  color: #bfdbfe !important;
+}
+
+.wb-root .wb-html-island .dg-about .sub-label,
+.wb-root .wb-html-island .dg-about .about-hero .tagline,
+.wb-root .wb-html-island .dg-about .founder-content .role,
+.wb-root .wb-html-island .dg-about .vision-quote em {
+  color: #93c5fd !important;
+}
+
+.wb-root .wb-html-island .dg-about .is-a {
+  color: #34d399 !important;
+}
+
+.wb-root .wb-html-island .dg-about .sys-chip,
+.wb-root .wb-html-island .dg-about .ind-list span {
+  color: #e2e8f0 !important;
+}
+
+.wb-root .wb-html-island .dg-about .not-a span {
+  color: #fca5a5 !important;
+}
+
+.wb-root .wb-html-island .dg-about a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]) {
+  color: #bfdbfe !important;
+}
+
+.wb-root .wb-html-island .dg-about a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]):hover {
+  color: #eff6ff !important;
+}
+
 .wb-html-page .wb-html-island--page .roe-property-grid {
   max-width: none !important;
   width: 100% !important;
