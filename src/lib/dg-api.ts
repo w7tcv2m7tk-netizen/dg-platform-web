@@ -933,6 +933,8 @@ export type WpAccBookingRow = {
 
 export type WpAccAvailabilityUnit = {
   id: number;
+  /** Neon AccommodationUnit id when Gen 2 is SoT (preferred when WP id is 0). */
+  platform_id?: string;
   title: string;
   listing_status?: string;
   weekday_rate?: number;

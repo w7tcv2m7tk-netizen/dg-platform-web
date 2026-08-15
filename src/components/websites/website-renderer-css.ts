@@ -1228,97 +1228,77 @@ html:has(.wb-root.wb-html-page) body {
 }
 
 /*
- * DigitalGate Contact (.dg-contact) — navy shell + cream type (same pattern as About).
- * Live /contact/ is often wb-html-island--light; cream-island ink bleaches body copy on navy.
- * Keep .form-wrapper (white enquiry card) on dark ink.
+ * DigitalGate Contact (.dg-contact) — navy shell + cream type.
+ * Imported HTML often ships wb-html-island--light; cream-island ink (#2f2f2f)
+ * wins over weaker selectors — mirror Founding (.dg-fc) specificity.
  */
+.wb-root .wb-html-island.wb-html-island--light:has(.dg-contact),
+.wb-root .wb-html-island.wb-html-island--light .dg-contact,
 .wb-root .wb-html-island:has(.dg-contact),
 .wb-root .wb-html-island .dg-contact {
   background: #0a0e17 !important;
   color: #f9fafb !important;
 }
 
-.wb-root .wb-html-island .dg-contact :is(
-  .contact-hero,
-  .contact-cta,
-  .contact-card,
-  .consult-card,
-  .section-header,
-  .step,
-  .diff-callout,
-  .svc-foot,
-  .lead-sm,
-  section,
-  section.alt
-) {
-  color: #f9fafb !important;
-}
-
-.wb-root .wb-html-island .dg-contact :is(
-  .contact-hero,
-  .contact-cta,
-  .contact-card,
-  .consult-card,
-  .section-header,
-  .step,
-  .diff-callout,
-  section,
-  section.alt
-) :is(h1, h2, h3, h4, h5, h6) {
+.wb-root .wb-html-island.wb-html-island--light .dg-contact :is(
+  h1, h2, h3, h4, h5, h6
+),
+.wb-root .wb-html-island .dg-contact :is(h1, h2, h3, h4, h5, h6) {
   color: #faf8f4 !important;
 }
 
+.wb-root .wb-html-island.wb-html-island--light .dg-contact :is(
+  p, li, span, small, strong, em, figcaption, label, td, th, .lead, .lead-sm, .sub-label, .accent
+),
 .wb-root .wb-html-island .dg-contact :is(
-  .contact-hero,
-  .contact-cta,
-  .contact-card,
-  .consult-card,
-  .section-header,
-  .step,
-  .diff-callout,
-  .svc-foot,
-  .lead-sm,
-  section,
-  section.alt
-) :is(p, li, span, small, strong, em, figcaption, .lead, .lead-sm) {
-  color: #e2e8f0 !important;
+  p, li, span, small, strong, em, figcaption, label, td, th, .lead, .lead-sm, .sub-label, .accent
+) {
+  color: #e8e4dc !important;
 }
 
+.wb-root .wb-html-island.wb-html-island--light .dg-contact .sub-label,
 .wb-root .wb-html-island .dg-contact .sub-label {
   color: #93c5fd !important;
 }
 
+.wb-root .wb-html-island.wb-html-island--light .dg-contact .accent,
+.wb-root .wb-html-island .dg-contact .accent {
+  color: #60a5fa !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .dg-contact a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]),
 .wb-root .wb-html-island .dg-contact a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]) {
   color: #bfdbfe !important;
 }
 
+.wb-root .wb-html-island.wb-html-island--light .dg-contact a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]):hover,
 .wb-root .wb-html-island .dg-contact a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]):hover {
   color: #eff6ff !important;
 }
 
 /* White enquiry card stays dark ink */
-.wb-root .wb-html-island .dg-contact .form-wrapper {
+.wb-root .wb-html-island .dg-contact .form-wrapper,
+.wb-root .wb-html-island.wb-html-island--light .dg-contact .form-wrapper {
   color: #1c2b2a !important;
   background: #ffffff !important;
 }
 
-.wb-root .wb-html-island .dg-contact .form-wrapper :is(h1, h2, h3, h4) {
+.wb-root .wb-html-island .dg-contact .form-wrapper :is(h1, h2, h3, h4),
+.wb-root .wb-html-island.wb-html-island--light .dg-contact .form-wrapper :is(h1, h2, h3, h4) {
   color: #0f172a !important;
 }
 
 .wb-root .wb-html-island .dg-contact .form-wrapper :is(
-  p,
-  li,
-  span,
-  small,
-  label,
-  .form-header,
-  .sub-label
+  p, li, span, small, label, .form-header, .sub-label, .accent
+),
+.wb-root .wb-html-island.wb-html-island--light .dg-contact .form-wrapper :is(
+  p, li, span, small, label, .form-header, .sub-label, .accent
 ) {
   color: #243533 !important;
 }
 
-.wb-root .wb-html-island .dg-contact .form-wrapper :is(input, textarea, select) {
+.wb-root .wb-html-island .dg-contact .form-wrapper :is(input, textarea, select),
+.wb-root .wb-html-island.wb-html-island--light .dg-contact .form-wrapper :is(input, textarea, select) {
   color: #0f172a !important;
   background: #ffffff !important;
 }

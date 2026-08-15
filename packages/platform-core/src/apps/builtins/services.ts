@@ -15,10 +15,13 @@ export const servicesApp: AppManifest = {
   version: "0.3.1",
   icon: "⚙",
   routes: [
-    // Owned surfaces only — Quotes → Commerce, Customers → CRM, Teams → Settings (Universal Objects).
+    // Quotes → Commerce, Customers → CRM, Teams → Settings (Universal Objects) — still linked in nav.
     { path: "/apps/services", label: "Overview" },
     { path: "/apps/services/jobs", label: "Jobs" },
     { path: "/apps/services/scheduling", label: "Scheduling" },
+    { path: "/apps/services/quotes", label: "Quotes" },
+    { path: "/apps/services/customers", label: "Customers" },
+    { path: "/apps/services/teams", label: "Teams" },
   ],
   navigation: [{ href: "/apps/services", label: "Services", icon: "⚙" }],
   permissions: [

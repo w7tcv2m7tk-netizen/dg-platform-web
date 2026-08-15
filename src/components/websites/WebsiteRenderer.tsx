@@ -429,8 +429,12 @@ export function WebsiteComponentView({
       );
     }
     case "html": {
-      const html = asString(component.props.html);
+      let html = asString(component.props.html);
       if (!html) return null;
+      // Navy DigitalGate shells must not keep cream-island class from import.
+      if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal)\b/.test(html)) {
+        html = html.replace(/\bwb-html-island--light\b/g, "").replace(/\s{2,}/g, " ");
+      }
       if (/gallery-grid|gallery-item/i.test(html)) {
         return <HtmlWithGallery html={html} />;
       }

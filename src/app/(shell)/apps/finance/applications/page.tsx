@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { listContacts, listFinanceApplications } from "@dg/platform-core";
 
 import { CreateFinanceApplicationForm } from "@/components/finance/CreateFinanceApplicationForm";
+import { FinanceNav } from "@/components/finance/FinanceNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
 export default async function FinanceApplicationsPage() {
@@ -45,20 +45,16 @@ export default async function FinanceApplicationsPage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/apps/finance" className="text-sm text-sky-400 hover:underline">
-          ← Finance
-        </Link>
-        <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Applications</h1>
-            <p className="text-sm text-slate-400">
-              Broker loan applications on Core CRM contacts · Track C floor
-            </p>
-          </div>
-          <CreateFinanceApplicationForm contacts={contactOptions} />
-        </div>
+        <h1 className="text-2xl font-bold text-white">Applications</h1>
+        <p className="text-sm text-slate-400">
+          Broker loan applications on Core CRM contacts
+        </p>
       </header>
       <main className="dg-page-main space-y-4">
+        <FinanceNav active="applications" />
+        <div className="flex justify-end">
+          <CreateFinanceApplicationForm contacts={contactOptions} />
+        </div>
         {items.length === 0 ? (
           <div className="dg-card border-dashed border-slate-700">
             <p className="text-slate-400">No applications yet. Create the first one.</p>
@@ -66,7 +62,10 @@ export default async function FinanceApplicationsPage() {
         ) : (
           <ul className="divide-y divide-slate-800 rounded-xl border border-slate-800">
             {items.map((app) => (
-              <li key={app.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+              <li
+                key={app.id}
+                className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+              >
                 <div>
                   <p className="font-medium text-white">{app.title}</p>
                   <p className="text-xs text-slate-500">

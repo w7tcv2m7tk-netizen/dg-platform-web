@@ -3,7 +3,7 @@ import Link from "next/link";
 export function ServicesNav({
   active,
 }: {
-  active: "overview" | "jobs" | "scheduling";
+  active: "overview" | "jobs" | "scheduling" | "quotes" | "customers" | "teams";
 }) {
   const items = [
     { id: "overview" as const, href: "/apps/services", label: "Overview" },
@@ -13,6 +13,13 @@ export function ServicesNav({
       href: "/apps/services/scheduling",
       label: "Scheduling",
     },
+    { id: "quotes" as const, href: "/apps/services/quotes", label: "Quotes" },
+    {
+      id: "customers" as const,
+      href: "/apps/services/customers",
+      label: "Customers",
+    },
+    { id: "teams" as const, href: "/apps/services/teams", label: "Teams" },
   ];
 
   return (

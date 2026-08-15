@@ -661,6 +661,79 @@ export function WebsiteStudioClient({
           <div className="rounded-md border border-slate-700 bg-slate-950/60 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               <h2 className="text-xs uppercase tracking-wide text-slate-500">
+                Site chrome (header & footer)
+              </h2>
+              {page ? (
+                <Link
+                  href={
+                    page.slug === "home" || page.intent === "home"
+                      ? `${livePath}${previewQs}`
+                      : `${livePath}/${page.slug}${previewQs}`
+                  }
+                  target="_blank"
+                  className="text-[11px] text-sky-400 hover:underline"
+                >
+                  Open live preview
+                </Link>
+              ) : null}
+            </div>
+            {(() => {
+              const chrome =
+                website.metadata &&
+                typeof website.metadata === "object" &&
+                website.metadata.chrome &&
+                typeof website.metadata.chrome === "object"
+                  ? (website.metadata.chrome as {
+                      headerHtml?: string | null;
+                      footerHtml?: string | null;
+                    })
+                  : null;
+              const headerLen = chrome?.headerHtml?.trim()?.length ?? 0;
+              const footerLen = chrome?.footerHtml?.trim()?.length ?? 0;
+              const hasBrand =
+                Boolean(website.theme?.logoUrl || website.theme?.iconUrl);
+              return (
+                <div className="space-y-2 text-sm text-slate-400">
+                  <p>
+                    Header and footer are <span className="text-slate-300">site-wide chrome</span>, not
+                    page components — they only appear on the published/preview site.
+                  </p>
+                  <ul className="space-y-1 text-xs">
+                    <li>
+                      Header HTML:{" "}
+                      <span className={headerLen ? "text-emerald-400" : "text-amber-300"}>
+                        {headerLen ? `${headerLen.toLocaleString()} chars` : "not set"}
+                      </span>
+                    </li>
+                    <li>
+                      Footer HTML:{" "}
+                      <span className={footerLen ? "text-emerald-400" : "text-amber-300"}>
+                        {footerLen ? `${footerLen.toLocaleString()} chars` : "not set"}
+                      </span>
+                    </li>
+                    <li>
+                      Brand fallback:{" "}
+                      <span className={hasBrand ? "text-emerald-400" : "text-slate-500"}>
+                        {hasBrand
+                          ? "theme logo/icon available if HTML chrome is empty"
+                          : "no theme logo — set Business Profile brand"}
+                      </span>
+                    </li>
+                  </ul>
+                  {!headerLen && !footerLen ? (
+                    <p className="text-xs text-amber-200/90">
+                      Re-import chrome from marketing sources or paste header/footer HTML into site
+                      metadata to restore icons and layout.
+                    </p>
+                  ) : null}
+                </div>
+              );
+            })()}
+          </div>
+
+          <div className="rounded-md border border-slate-700 bg-slate-950/60 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <h2 className="text-xs uppercase tracking-wide text-slate-500">
                 Components — {page?.title}
               </h2>
               {page ? (

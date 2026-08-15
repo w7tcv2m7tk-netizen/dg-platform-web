@@ -689,8 +689,21 @@ export async function buildAvailabilityFromNeon(
           platform_id: b.id,
           guest_name: b.guestName,
           accommodation_id: unit.externalWpId ?? undefined,
-          checkin: b.checkin?.toISOString().slice(0, 10),
-          checkout: b.checkout?.toISOString().slice(0, 10),
+          // Prefer metadata calendar strings (avoid UTC shift from Date.toISOString).
+          checkin:
+            (typeof meta.checkin === "string" && /^\d{4}-\d{2}-\d{2}$/.test(meta.checkin)
+              ? meta.checkin
+              : null) ||
+            (b.checkin
+              ? `${b.checkin.getUTCFullYear()}-${String(b.checkin.getUTCMonth() + 1).padStart(2, "0")}-${String(b.checkin.getUTCDate()).padStart(2, "0")}`
+              : undefined),
+          checkout:
+            (typeof meta.checkout === "string" && /^\d{4}-\d{2}-\d{2}$/.test(meta.checkout)
+              ? meta.checkout
+              : null) ||
+            (b.checkout
+              ? `${b.checkout.getUTCFullYear()}-${String(b.checkout.getUTCMonth() + 1).padStart(2, "0")}-${String(b.checkout.getUTCDate()).padStart(2, "0")}`
+              : undefined),
           status: b.status,
           source,
           ref: b.ref ?? undefined,

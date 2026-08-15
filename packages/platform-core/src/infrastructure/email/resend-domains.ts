@@ -187,7 +187,10 @@ export async function ensureResendDomain(
   }
 
   const listed = await listResendDomains();
-  const existing = listed.find((d) => d.name === name);
+  const existing =
+    listed.find((d) => d.name === name) ||
+    listed.find((d) => d.name === `send.${name}`) ||
+    listed.find((d) => d.name.endsWith(`.${name}`));
   if (existing?.id) {
     const full = (await getResendDomain(existing.id)) ?? existing;
     return { domain: full, created: false };
@@ -202,16 +205,28 @@ export async function ensureResendDomain(
 
   // Race: another create may have succeeded
   const again = await listResendDomains();
-  const found = again.find((d) => d.name === name);
+  const found =
+    again.find((d) => d.name === name) ||
+    again.find((d) => d.name === `send.${name}`);
   if (found?.id) {
     const full = (await getResendDomain(found.id)) ?? found;
     return { domain: full, created: false };
   }
 
+  const limitHit = /domain limit|upgrade to add more|plan/i.test(
+    created.error || "",
+  );
+  const existingNames = again.map((d) => d.name).filter(Boolean).slice(0, 12);
+  const hint = limitHit
+    ? existingNames.length
+      ? ` Resend plan is full (${existingNames.length} domain${existingNames.length === 1 ? "" : "s"}: ${existingNames.join(", ")}). Remove an unused domain in Resend, upgrade the plan, or Prepare a domain that already exists.`
+      : " Resend plan domain limit reached — upgrade Resend or delete an unused sending domain, then Prepare again."
+    : "";
+
   return {
     domain: null,
     created: false,
-    error: created.error || "Could not create or find domain at Resend",
+    error: `${created.error || "Could not create or find domain at Resend"}${hint}`,
   };
 }
 

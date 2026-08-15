@@ -329,7 +329,7 @@ export function AccommodationAvailabilityBoard({
   siteLabel?: string;
 }) {
   const router = useRouter();
-  const [view, setView] = useState<CalendarView>("week");
+  const [view, setView] = useState<CalendarView>("month");
   const [channelFilter, setChannelFilter] = useState<BookingChannelFilter>("all");
   /** When true, calendars/list show only the selected unit (all or filtered channels). */
   const [isolateUnit, setIsolateUnit] = useState(false);
@@ -478,6 +478,7 @@ export function AccommodationAvailabilityBoard({
         updates: [
           {
             id: selected.id,
+            platform_id: selected.platform_id,
             weekday_rate: weekday,
             weekend_rate: weekend,
             cleaning_fee: cleaning,
@@ -547,8 +548,16 @@ export function AccommodationAvailabilityBoard({
         resource: "units",
         updates: [
           blocked
-            ? { id: unitId, unblock_dates: [day] }
-            : { id: unitId, block_dates: [day] },
+            ? {
+                id: unitId,
+                platform_id: unit.platform_id,
+                unblock_dates: [day],
+              }
+            : {
+                id: unitId,
+                platform_id: unit.platform_id,
+                block_dates: [day],
+              },
         ],
       }),
     });
@@ -1365,18 +1374,24 @@ function MonthGrid({
   onToggleDay: (unitId: number, day: string) => void;
 }) {
   const showManual = channelFilter === "all";
-  // Pad to Sunday-start weeks
-  const lead = (() => {
-    const d = new Date(`${days[0]}T12:00:00`);
-    return d.getDay(); // 0 Sun … 6 Sat
-  })();
+  // Pad to Sunday-start weeks (empty month → no cells, avoid Invalid Date).
+  const lead =
+    days.length > 0
+      ? new Date(`${days[0]}T12:00:00`).getDay() // 0 Sun … 6 Sat
+      : 0;
   const cells: (string | null)[] = [
-    ...Array.from({ length: lead }, () => null),
+    ...Array.from({ length: Number.isFinite(lead) ? lead : 0 }, () => null),
     ...days,
   ];
   while (cells.length % 7 !== 0) cells.push(null);
 
-  const selected = units.find((u) => u.id === selectedId) ?? units[0] ?? null;
+  const selected =
+    (selectedId != null
+      ? units.find((u) => u.id === selectedId) ??
+        units.find((u) => u.platform_id === String(selectedId))
+      : null) ??
+    units[0] ??
+    null;
 
   // Every occupied night in the stay range (check-in inclusive, check-out exclusive),
   // including stays that started before this month.
@@ -1407,6 +1422,12 @@ function MonthGrid({
   return (
     <div className="space-y-3">
       <h2 className="text-sm font-medium text-slate-300">{title}</h2>
+      {days.length === 0 ? (
+        <div className="dg-card">
+          <p className="text-sm text-slate-500">No days in this month window.</p>
+        </div>
+      ) : (
+        <>
       <p className="text-[11px] text-slate-500">
         Booked nights shown for each stay (check-in inclusive, check-out day free).
         {selected
@@ -1528,6 +1549,8 @@ function MonthGrid({
           );
         })}
       </div>
+        </>
+      )}
     </div>
   );
 }
