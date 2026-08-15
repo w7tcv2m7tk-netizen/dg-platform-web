@@ -742,6 +742,15 @@ function BrandSiteFooter({
 }) {
   const logo = theme.logoUrl || theme.iconUrl;
   const brandHref = homeHref(basePath);
+  const cardHref = resolveHref("/card", basePath);
+  const hasCardLink = links.some(
+    (l) =>
+      /\/card\/?$/i.test(l.href) || /digital business card/i.test(l.label),
+  );
+  // Prefer card early so it survives the nav slice cap.
+  const footerLinks = hasCardLink
+    ? links
+    : [{ label: "Digital Business Card", href: cardHref }, ...links];
   return (
     <footer className="wb-brand-chrome wb-brand-chrome-footer">
       <div className="wb-brand-chrome-inner">
@@ -753,15 +762,13 @@ function BrandSiteFooter({
             <span className="wb-brand-chrome-name">{businessName}</span>
           )}
         </a>
-        {links.length ? (
-          <nav className="wb-brand-chrome-nav" aria-label="Footer">
-            {links.slice(0, 8).map((link) => (
-              <a key={`f-${link.href}-${link.label}`} href={link.href}>
-                {link.label}
-              </a>
-            ))}
-          </nav>
-        ) : null}
+        <nav className="wb-brand-chrome-nav" aria-label="Footer">
+          {footerLinks.slice(0, 8).map((link) => (
+            <a key={`f-${link.href}-${link.label}`} href={link.href}>
+              {link.label}
+            </a>
+          ))}
+        </nav>
         <p className="wb-brand-chrome-copy">
           © {new Date().getFullYear()} {businessName}
         </p>
