@@ -691,8 +691,14 @@ export async function PATCH(req: Request) {
   const connector = await accommodationConnectorForSession(session.organisationId);
 
   if (resource === "units" || resource === "properties") {
-    const { isGen2MarketingApexBaseUrl } = await import("@/lib/dg-api");
-    const apexRetired = isGen2MarketingApexBaseUrl(connector?.baseUrl);
+    const { isGen2MarketingApexBaseUrl, getWpAccommodationSite } = await import(
+      "@/lib/dg-api"
+    );
+    const resolvedBase =
+      connector?.baseUrl || getWpAccommodationSite().baseUrl;
+    const apexRetired =
+      isGen2MarketingApexBaseUrl(connector?.baseUrl) ||
+      isGen2MarketingApexBaseUrl(resolvedBase);
     const usesUnits =
       apexRetired || (await organisationUsesUnitSot(session.organisationId));
     if (usesUnits) {
@@ -707,9 +713,10 @@ export async function PATCH(req: Request) {
             : typeof patch.property_id === "number"
               ? patch.property_id
               : Number(patch.id ?? patch.property_id);
-        if (!Number.isFinite(id)) continue;
+        // Allow platform_id-only patches when WP id is missing (0).
+        if (!Number.isFinite(id) && typeof patch.platform_id !== "string") continue;
         await upsertAccommodationUnitFromWpRow(session.organisationId, {
-          id,
+          id: Number.isFinite(id) ? id : 0,
           platform_id:
             typeof patch.platform_id === "string" ? patch.platform_id : undefined,
           title: typeof patch.title === "string" ? patch.title : undefined,
@@ -776,6 +783,23 @@ export async function PATCH(req: Request) {
 
     const result = await patchWpAccommodationUnits(updates, connector);
     if (!result.ok) {
+      // Neon already updated above — don't fail the save because WP mirror is gone.
+      if (usesUnits) {
+        return NextResponse.json({
+          data: {
+            ok: true,
+            updated: updates,
+            count: updates.length,
+            sot: "neon",
+            writePath: "neon",
+            wpMirror: {
+              ok: false,
+              code: result.code,
+              message: result.message,
+            },
+          },
+        });
+      }
       return NextResponse.json(
         { error: { code: result.code, message: result.message } },
         { status: 422 },
