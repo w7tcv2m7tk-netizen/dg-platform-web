@@ -270,6 +270,14 @@ export async function probeWordPressConnector(
   const kind = detectWpConnectorKind(connector);
 
   if (kind === "accommodation") {
+    if (isGen2MarketingApexBaseUrl(connector?.baseUrl)) {
+      return {
+        ok: true,
+        kind,
+        detail:
+          "Public site is Gen 2 — Acc data lives in Neon (WordPress /wp-json Acc APIs retired on this host)",
+      };
+    }
     const summary = await fetchWpAccommodationSummary(null, 30, connector);
     if (!summary.ok) {
       return {
@@ -403,6 +411,32 @@ function isCvhWpHost(baseUrl: string): boolean {
     return /currumbinvalleyhideaway/i.test(baseUrl);
   }
 }
+
+/**
+ * Public marketing domains now served by Gen 2 Website Studio — `/wp-json` Acc/RE
+ * endpoints are gone. Never treat these hosts as live WordPress connectors.
+ */
+export function isGen2MarketingApexBaseUrl(baseUrl: string | null | undefined): boolean {
+  if (!baseUrl?.trim()) return false;
+  try {
+    const host = new URL(
+      baseUrl.includes("://") ? baseUrl : `https://${baseUrl}`,
+    ).hostname.replace(/^www\./i, "");
+    return (
+      /currumbinvalleyhideaway\.com\.au$/i.test(host) ||
+      /roerealty\.com\.au$/i.test(host) ||
+      /^digitalgate\.com\.au$/i.test(host) ||
+      /aetherra\.com\.au$/i.test(host)
+    );
+  } catch {
+    return /currumbinvalleyhideaway|roerealty|digitalgate\.com\.au|aetherra/i.test(
+      baseUrl,
+    );
+  }
+}
+
+const GEN2_APEX_ACC_RETIRED =
+  "WordPress accommodation APIs are retired on this public domain (Gen 2). Units and bookings live in Neon — open Accommodation → Units. Point the connector at a legacy WP host only if you still need a one-time import.";
 
 /**
  * Resolve a WordPress Dev API key for a specific host.
@@ -582,6 +616,17 @@ async function wpConnectorFetch<T>(
     }
 
     if (res.status === 404) {
+      if (
+        isGen2MarketingApexBaseUrl(baseUrl) &&
+        path.includes("/accommodation/")
+      ) {
+        return {
+          ok: false,
+          code: "not_found",
+          status: res.status,
+          message: GEN2_APEX_ACC_RETIRED,
+        };
+      }
       return {
         ok: false,
         code: "not_found",
@@ -928,11 +973,24 @@ function resolveAccConnector(
   };
 }
 
+function refuseAccWpOnGen2Apex(
+  siteId?: string | null,
+  connector?: WpConnectorOverride,
+):
+  | { ok: false; code: "not_found"; message: string; status?: number }
+  | null {
+  const site = resolveAccConnector(siteId, connector);
+  if (!isGen2MarketingApexBaseUrl(site.baseUrl)) return null;
+  return { ok: false, code: "not_found", message: GEN2_APEX_ACC_RETIRED, status: 404 };
+}
+
 export async function fetchWpAccommodationSummary(
   siteId?: string | null,
   days = 30,
   connector?: WpConnectorOverride,
 ) {
+  const refused = refuseAccWpOnGen2Apex(siteId, connector);
+  if (refused) return refused;
   const site = resolveAccConnector(siteId, connector);
   return wpConnectorFetch<WpAccommodationSummary>(
     `/accommodation/summary?days=${days}`,
@@ -944,6 +1002,8 @@ export async function fetchWpAccommodationUnits(
   siteId?: string | null,
   connector?: WpConnectorOverride,
 ) {
+  const refused = refuseAccWpOnGen2Apex(siteId, connector);
+  if (refused) return refused;
   const site = resolveAccConnector(siteId, connector);
   const result = await wpConnectorFetch<{ properties?: WpAccUnitProp[] }>(
     "/accommodation/properties",
@@ -959,6 +1019,8 @@ export async function fetchWpAccommodationBookings(
   connector?: WpConnectorOverride,
   opts?: { from?: string; to?: string },
 ) {
+  const refused = refuseAccWpOnGen2Apex(siteId, connector);
+  if (refused) return refused;
   const site = resolveAccConnector(siteId, connector);
   const params = new URLSearchParams();
   params.set("limit", String(limit));
@@ -986,6 +1048,8 @@ export async function fetchWpAccommodationAvailability(
     connector?: WpConnectorOverride;
   },
 ) {
+  const refused = refuseAccWpOnGen2Apex(opts?.siteId, opts?.connector);
+  if (refused) return refused;
   const site = resolveAccConnector(opts?.siteId, opts?.connector);
   const params = new URLSearchParams();
   if (opts?.from) params.set("from", opts.from);
@@ -1016,6 +1080,8 @@ export async function syncWpAccommodationOtaCalendars(
   connector?: WpConnectorOverride,
   options?: { propertyId?: number; source?: "all" | "airbnb" | "bookingcom" },
 ) {
+  const refused = refuseAccWpOnGen2Apex(null, connector);
+  if (refused) return refused;
   const site = resolveAccConnector(null, connector);
   return wpConnectorFetch<{
     ok?: boolean;
@@ -1040,6 +1106,8 @@ export async function fetchWpAccommodationHousekeeping(
   siteId?: string | null,
   connector?: WpConnectorOverride,
 ) {
+  const refused = refuseAccWpOnGen2Apex(siteId, connector);
+  if (refused) return refused;
   const site = resolveAccConnector(siteId, connector);
   const result = await wpConnectorFetch<{
     items?: WpAccHousekeepingItem[];
@@ -1069,6 +1137,8 @@ export async function patchWpAccommodationHousekeeping(
   updates: Array<{ property_id: number; status: string; notes?: string }>,
   connector?: WpConnectorOverride,
 ) {
+  const refused = refuseAccWpOnGen2Apex(null, connector);
+  if (refused) return refused;
   const site = resolveAccConnector(null, connector);
   return wpConnectorFetch<{ ok?: boolean; updated?: number[]; count?: number }>(
     "/accommodation/housekeeping",
@@ -1085,6 +1155,8 @@ export async function patchWpAccommodationUnits(
   updates: Array<Record<string, unknown>>,
   connector?: WpConnectorOverride,
 ) {
+  const refused = refuseAccWpOnGen2Apex(null, connector);
+  if (refused) return refused;
   const site = resolveAccConnector(null, connector);
   return wpConnectorFetch<{ ok?: boolean; updated?: unknown[]; count?: number }>(
     "/accommodation/properties",
@@ -1101,6 +1173,8 @@ export async function patchWpAccommodationBookings(
   updates: Array<Record<string, unknown>>,
   connector?: WpConnectorOverride,
 ) {
+  const refused = refuseAccWpOnGen2Apex(null, connector);
+  if (refused) return refused;
   const site = resolveAccConnector(null, connector);
   return wpConnectorFetch<{ ok?: boolean; updated?: unknown[]; count?: number }>(
     "/accommodation/bookings",
@@ -1118,6 +1192,8 @@ export async function createWpAccommodationBookings(
   booking: Record<string, unknown> | Array<Record<string, unknown>>,
   connector?: WpConnectorOverride,
 ) {
+  const refused = refuseAccWpOnGen2Apex(null, connector);
+  if (refused) return refused;
   const site = resolveAccConnector(null, connector);
   const body = Array.isArray(booking) ? { bookings: booking } : { booking };
   return wpConnectorFetch<{
@@ -1138,6 +1214,8 @@ export async function deleteWpAccommodationBookings(
   ids: number[],
   connector?: WpConnectorOverride,
 ) {
+  const refused = refuseAccWpOnGen2Apex(null, connector);
+  if (refused) return refused;
   const site = resolveAccConnector(null, connector);
   return wpConnectorFetch<{ ok?: boolean; cancelled?: unknown[]; count?: number }>(
     "/accommodation/bookings",
@@ -1154,6 +1232,8 @@ export async function patchWpAccommodationGuests(
   updates: Array<Record<string, unknown>>,
   connector?: WpConnectorOverride,
 ) {
+  const refused = refuseAccWpOnGen2Apex(null, connector);
+  if (refused) return refused;
   const site = resolveAccConnector(null, connector);
   return wpConnectorFetch<{ ok?: boolean; updated?: unknown[]; count?: number }>(
     "/accommodation/guests",
@@ -1190,6 +1270,8 @@ export async function fetchWpAccommodationGuests(
   limit = 50,
   connector?: WpConnectorOverride,
 ) {
+  const refused = refuseAccWpOnGen2Apex(siteId, connector);
+  if (refused) return refused;
   const site = resolveAccConnector(siteId, connector);
   const result = await wpConnectorFetch<{ guests?: WpAccGuestRow[]; total?: number }>(
     `/accommodation/guests?limit=${limit}`,
@@ -1224,6 +1306,8 @@ export async function fetchWpAccommodationReviews(
   limit = 40,
   connector?: WpConnectorOverride,
 ) {
+  const refused = refuseAccWpOnGen2Apex(siteId, connector);
+  if (refused) return refused;
   const site = resolveAccConnector(siteId, connector);
   const result = await wpConnectorFetch<{
     reviews?: WpAccReviewRow[];

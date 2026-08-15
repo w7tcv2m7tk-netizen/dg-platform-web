@@ -557,9 +557,12 @@ function BrandSiteHeader({
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const brandHref = homeHref(basePath);
-  const ctaStyle = headerCta?.backgroundColor
-    ? { background: headerCta.backgroundColor }
-    : undefined;
+  const ctaStyle = {
+    color: "#ffffff",
+    ...(headerCta?.backgroundColor
+      ? { background: headerCta.backgroundColor }
+      : {}),
+  };
 
   useEffect(() => {
     const onScroll = () => {

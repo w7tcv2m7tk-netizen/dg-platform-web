@@ -284,8 +284,8 @@ function OtaCalendarsSection({
             </div>
           ) : (
             <p className="rounded border border-dashed border-slate-700 px-3 py-2 text-xs text-slate-500">
-              Export URL unavailable — Sync units from WordPress (plugin v10.63.0+) so the unit has
-              a slug + calendar token.
+              Export URL unavailable — ensure the unit has a slug so Gen 2 can mint a public iCal
+              export link.
             </p>
           )}
           <FieldHint>
@@ -403,8 +403,7 @@ export function AccommodationUnitsTable({
       <div className="dg-card border-amber-500/30">
         <p className="text-amber-300">{error}</p>
         <p className="mt-2 text-sm text-slate-500">
-          Deploy plugin v10.63.0+ on CVH to sync all unit meta (including iCal export URL and full
-          listing fields).
+          Public CVH is Gen 2 — units load from Neon, not WordPress /wp-json.
         </p>
       </div>
     );
@@ -420,7 +419,7 @@ export function AccommodationUnitsTable({
       if (!res.ok) {
         setSaveError(
           json.error?.message ??
-            "Could not sync units — deploy DG Platform plugin v10.63.0+ on CVH.",
+            "Could not load units from Neon. WordPress import is retired on the public Gen 2 site.",
         );
         return;
       }
@@ -436,13 +435,13 @@ export function AccommodationUnitsTable({
         .filter(Boolean)
         .join(", ");
       setMessage(
-        `Synced ${next.length} unit${next.length === 1 ? "" : "s"} from WordPress` +
-          (extras ? ` (${extras})` : " (includes coming soon / drafts when present)") +
+        `Loaded ${next.length} unit${next.length === 1 ? "" : "s"} from platform` +
+          (extras ? ` (${extras})` : "") +
           ".",
       );
       router.refresh();
     } catch {
-      setSaveError("Network error while syncing units from WordPress.");
+      setSaveError("Network error while loading units.");
     } finally {
       setSyncing(false);
     }
@@ -455,16 +454,18 @@ export function AccommodationUnitsTable({
           <h2 className="text-lg font-semibold text-white">Add your first units</h2>
           {siteLabel ? <p className="mt-1 text-sm text-slate-500">Site: {siteLabel}</p> : null}
           <p className="mt-2 text-sm text-slate-500">
-            Sync units from WordPress (plugin v10.63.0+ for full meta + iCal fields). Then paste
-            Airbnb / Booking.com import URLs and copy the DigitalGate export URL into each OTA.
+            Units live in Neon (Gen 2). WordPress import is unavailable on the public marketing
+            site. Refresh to load existing units, or sync once from a legacy WP host if the
+            connector still points there.
           </p>
+          {error ? <p className="mt-2 text-sm text-amber-300">{error}</p> : null}
         </div>
         <button
           type="button"
           onClick={() => void refreshUnits()}
           className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
         >
-          Sync units from WordPress
+          Refresh units
         </button>
       </div>
     );
@@ -486,6 +487,7 @@ export function AccommodationUnitsTable({
         updates: [
           {
             id: row.id,
+            platform_id: row.platform_id,
             title: row.title,
             post_status: row.post_status,
             description: row.description,
@@ -533,7 +535,7 @@ export function AccommodationUnitsTable({
     if (!res.ok) {
       setSaveError(
         json.error?.message ??
-          "Could not save unit — deploy DG Platform plugin v10.63.0+ on CVH (Plugins → Upload dg-platform-build.zip).",
+          "Could not save unit to Neon. Check the unit id and try again.",
       );
       return;
     }
@@ -569,7 +571,7 @@ export function AccommodationUnitsTable({
           onClick={() => void refreshUnits()}
           className="rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-200 hover:border-blue-500 disabled:opacity-50"
         >
-          {syncing ? "Syncing…" : "Sync all units from WordPress"}
+          {syncing ? "Refreshing…" : "Refresh units"}
         </button>
       </div>
       {message ? <p className="text-sm text-emerald-400">{message}</p> : null}

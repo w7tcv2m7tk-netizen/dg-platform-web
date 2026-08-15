@@ -19,6 +19,7 @@ import {
   updateStayBooking,
   updateUnitHousekeeping,
   upsertStayBookingFromWpRow,
+  syncOtaCalendarsFromUnits,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
@@ -56,7 +57,12 @@ export async function GET(req: Request) {
   }
 
   if (resource === "units" || resource === "properties") {
-    if (source !== "wp" && (await organisationUsesUnitSot(session.organisationId))) {
+    const { isGen2MarketingApexBaseUrl } = await import("@/lib/dg-api");
+    const apexRetired = isGen2MarketingApexBaseUrl(connector?.baseUrl);
+    if (
+      source !== "wp" &&
+      (apexRetired || (await organisationUsesUnitSot(session.organisationId)))
+    ) {
       const stored = await listAccommodationUnits(session.organisationId);
       return NextResponse.json({
         data: stored.map(unitToWpProp),
@@ -66,7 +72,9 @@ export async function GET(req: Request) {
           sot: true,
           emptyHint:
             stored.length === 0
-              ? "No AccommodationUnit rows — POST action=sync_units"
+              ? apexRetired
+                ? "No AccommodationUnit rows — WordPress import retired on Gen 2 apex. Add units in Neon or sync from a legacy WP host."
+                : "No AccommodationUnit rows — POST action=sync_units"
               : undefined,
         },
       });
@@ -105,7 +113,20 @@ export async function GET(req: Request) {
       });
     }
 
-    const { fetchWpAccommodationAvailability } = await import("@/lib/dg-api");
+    const { fetchWpAccommodationAvailability, isGen2MarketingApexBaseUrl } = await import(
+      "@/lib/dg-api"
+    );
+    if (isGen2MarketingApexBaseUrl(connector?.baseUrl)) {
+      const avail = await buildAvailabilityFromNeon(session.organisationId, {
+        from,
+        to,
+        propertyId,
+      });
+      return NextResponse.json({
+        data: avail,
+        meta: { source: "postgres", sot: true, apex: true },
+      });
+    }
     const avail = await fetchWpAccommodationAvailability({
       siteId,
       from,
@@ -253,14 +274,91 @@ export async function POST(req: Request) {
   }
 
   if (body.action === "sync_ota") {
+    // Gen 2-native: pull Airbnb/Booking.com iCal URLs from Neon units.
+    // Apex marketing domains no longer host WordPress /wp-json.
+    const gen2 = await syncOtaCalendarsFromUnits({
+      organisationId: session.organisationId,
+      propertyWpId: typeof body.propertyId === "number" ? body.propertyId : undefined,
+      unitId: typeof body.unitId === "string" ? body.unitId : undefined,
+      source: body.source === "airbnb" || body.source === "bookingcom" ? body.source : "all",
+      actorId: session.clerkUserId,
+    });
+
+    const noUrlsConfigured =
+      /No Airbnb\/Booking\.com iCal|No accommodation units/i.test(gen2.message) ||
+      gen2.errors.some((e) =>
+        /No Airbnb\/Booking\.com iCal|No accommodation units/i.test(e),
+      );
+
+    // Any Gen 2 attempt with configured feeds (success or feed errors) — do not hit WP.
+    if (!noUrlsConfigured) {
+      return NextResponse.json({
+        data: {
+          ok: true,
+          imported: gen2.imported,
+          updated: gen2.updated,
+          cancelled: gen2.cancelled,
+          skipped: gen2.skipped,
+          errors: gen2.errors,
+          sources: gen2.sources,
+          writePath: "gen2_ical",
+          message: gen2.message,
+          neon: {
+            created: gen2.imported,
+            updated: gen2.updated,
+            skipped: gen2.skipped,
+            errors: gen2.errors,
+            source: "ical",
+          },
+        },
+      });
+    }
+
+    // Legacy fallback only when units lack iCal URLs and a non-apex WP connector exists.
     const connector = await accommodationConnectorForSession(session.organisationId);
+    const wpBase = connector?.baseUrl?.replace(/\/$/, "") ?? "";
+    let apexIsGen2Host = false;
+    try {
+      const host = new URL(wpBase.includes("://") ? wpBase : `https://${wpBase}`).hostname;
+      apexIsGen2Host =
+        /currumbinvalleyhideaway\.com\.au$/i.test(host) ||
+        /roerealty\.com\.au$/i.test(host) ||
+        /^(www\.)?digitalgate\.com\.au$/i.test(host) ||
+        /aetherra\.com\.au$/i.test(host);
+    } catch {
+      apexIsGen2Host = /currumbinvalleyhideaway|roerealty|digitalgate\.com\.au|aetherra/i.test(
+        wpBase,
+      );
+    }
+
+    if (!wpBase || apexIsGen2Host) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "ota_ical_urls_missing",
+            message:
+              gen2.message ||
+              "Add Airbnb/Booking.com export calendar URLs on each unit (Accommodation → Units), then Sync OTA again. WordPress /wp-json on the public site is retired.",
+          },
+        },
+        { status: 422 },
+      );
+    }
+
     const result = await syncWpAccommodationOtaCalendars(connector, {
       propertyId: typeof body.propertyId === "number" ? body.propertyId : undefined,
       source: body.source === "airbnb" || body.source === "bookingcom" ? body.source : "all",
     });
     if (!result.ok) {
       return NextResponse.json(
-        { error: { code: result.code, message: result.message } },
+        {
+          error: {
+            code: result.code,
+            message:
+              result.message ??
+              "OTA sync failed. Prefer Gen 2: save iCal export URLs on units, or point the WordPress connector at a legacy WP host (not the public marketing domain).",
+          },
+        },
         { status: 422 },
       );
     }
@@ -324,6 +422,7 @@ export async function POST(req: Request) {
         data: {
           ...result.data,
           neon: { created, updated, skipped, errors, from, to, source: "availability" },
+          writePath: "wp_then_neon",
           message: `${result.data?.message ?? "OTA calendars synced"} · ${created} created, ${updated} updated on platform (${from}→${to})`,
         },
       });
@@ -574,7 +673,10 @@ export async function PATCH(req: Request) {
   const connector = await accommodationConnectorForSession(session.organisationId);
 
   if (resource === "units" || resource === "properties") {
-    const usesUnits = await organisationUsesUnitSot(session.organisationId);
+    const { isGen2MarketingApexBaseUrl } = await import("@/lib/dg-api");
+    const apexRetired = isGen2MarketingApexBaseUrl(connector?.baseUrl);
+    const usesUnits =
+      apexRetired || (await organisationUsesUnitSot(session.organisationId));
     if (usesUnits) {
       const { upsertAccommodationUnitFromWpRow } = await import("@dg/platform-core");
       // Persist full unit patches into Neon (incl. OTA URLs + listing IDs), then mirror to WP.
@@ -590,6 +692,8 @@ export async function PATCH(req: Request) {
         if (!Number.isFinite(id)) continue;
         await upsertAccommodationUnitFromWpRow(session.organisationId, {
           id,
+          platform_id:
+            typeof patch.platform_id === "string" ? patch.platform_id : undefined,
           title: typeof patch.title === "string" ? patch.title : undefined,
           listing_status:
             typeof patch.listing_status === "string" ? patch.listing_status : undefined,
@@ -638,6 +742,20 @@ export async function PATCH(req: Request) {
         }).catch(() => null);
       }
     }
+
+    // Gen 2 apex: Neon is the only write path (no /wp-json mirror).
+    if (apexRetired) {
+      return NextResponse.json({
+        data: {
+          ok: true,
+          updated: updates,
+          count: updates.length,
+          sot: "neon",
+          writePath: "neon",
+        },
+      });
+    }
+
     const result = await patchWpAccommodationUnits(updates, connector);
     if (!result.ok) {
       return NextResponse.json(

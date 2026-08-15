@@ -8,7 +8,10 @@ import {
 } from "@dg/platform-core";
 
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
-import { fetchWpAccommodationUnits } from "@/lib/dg-api";
+import {
+  fetchWpAccommodationUnits,
+  isGen2MarketingApexBaseUrl,
+} from "@/lib/dg-api";
 import { autoSyncWordPressAccUnitsIfNeeded } from "@/lib/wordpress-sync";
 
 export type AccUnitsOpsLoad = {
@@ -22,6 +25,7 @@ export type AccUnitsOpsLoad = {
 
 /**
  * WP-D-402: Prefer Neon AccommodationUnit when SoT; seed from WP when empty.
+ * Gen 2 marketing apexes no longer host `/wp-json` — Neon only.
  */
 export async function loadUnitsForOps(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId"> | null,
@@ -32,12 +36,16 @@ export async function loadUnitsForOps(
   }
 
   const connector = await accommodationConnectorForSession(session.organisationId);
-  await autoSyncWordPressAccUnitsIfNeeded(session).catch(() => null);
+  const apexRetired = isGen2MarketingApexBaseUrl(connector?.baseUrl);
+
+  if (!apexRetired) {
+    await autoSyncWordPressAccUnitsIfNeeded(session).catch(() => null);
+  }
 
   let stored = await listAccommodationUnits(session.organisationId);
   let seeded = false;
 
-  if (stored.length === 0) {
+  if (!apexRetired && stored.length === 0) {
     const sync = await syncAccommodationUnitsFromWordPress(session.organisationId);
     if (sync.ok) {
       stored = await listAccommodationUnits(session.organisationId);
@@ -45,13 +53,17 @@ export async function loadUnitsForOps(
     }
   }
 
-  if (await organisationUsesUnitSot(session.organisationId)) {
+  if (apexRetired || (await organisationUsesUnitSot(session.organisationId))) {
     return {
       units: stored.map(unitToWpProp),
       source: "postgres",
       sot: true,
       seeded,
       siteLabel: connector?.label,
+      error:
+        apexRetired && stored.length === 0
+          ? "No units in Neon yet. WordPress import is unavailable on the public Gen 2 site — add units in the platform or point the connector at a legacy WP host for a one-time sync."
+          : undefined,
     };
   }
 

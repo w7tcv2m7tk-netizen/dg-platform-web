@@ -54,6 +54,7 @@ export * from "./accommodation/bookings";
 export * from "./accommodation/guests";
 export * from "./accommodation/units";
 export * from "./accommodation/ical-export";
+export * from "./accommodation/ical-import";
 export * from "./accommodation/beta";
 export * from "./real-estate/offers";
 export * from "./real-estate/agency-agreement";

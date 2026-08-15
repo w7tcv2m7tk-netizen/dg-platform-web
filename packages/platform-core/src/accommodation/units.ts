@@ -23,6 +23,8 @@ export {
 
 export type WpAccUnitPropRow = {
   id: number;
+  /** Neon AccommodationUnit id — preferred lookup when Gen 2 is SoT */
+  platform_id?: string;
   title?: string;
   slug?: string;
   post_status?: string;
@@ -289,7 +291,11 @@ export async function upsertAccommodationUnitFromWpRow(
 ): Promise<"created" | "updated" | "skipped"> {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL not configured");
   const wpId = unit.id;
-  if (!Number.isFinite(wpId) || wpId <= 0) return "skipped";
+  const platformId =
+    typeof unit.platform_id === "string" && unit.platform_id.trim()
+      ? unit.platform_id.trim()
+      : null;
+  if ((!Number.isFinite(wpId) || wpId <= 0) && !platformId) return "skipped";
 
   const { prisma } = await import("@dg/database");
   const hasManualBlocks =
@@ -298,11 +304,19 @@ export async function upsertAccommodationUnitFromWpRow(
     ? asDateList(unit.manual_blocked_dates ?? unit.blocked_dates)
     : null;
 
-  const existing = await prisma.accommodationUnit.findUnique({
-    where: {
-      organisationId_externalWpId: { organisationId, externalWpId: wpId },
-    },
-  });
+  let existing =
+    platformId != null
+      ? await prisma.accommodationUnit.findFirst({
+          where: { id: platformId, organisationId },
+        })
+      : null;
+  if (!existing && Number.isFinite(wpId) && wpId > 0) {
+    existing = await prisma.accommodationUnit.findUnique({
+      where: {
+        organisationId_externalWpId: { organisationId, externalWpId: wpId },
+      },
+    });
+  }
 
   const patch: Prisma.AccommodationUnitUpdateInput = {};
   if (unit.title?.trim()) patch.title = unit.title.trim();
@@ -374,6 +388,8 @@ export async function upsertAccommodationUnitFromWpRow(
     return "updated";
   }
 
+  if (!Number.isFinite(wpId) || wpId <= 0) return "skipped";
+
   await prisma.accommodationUnit.create({
     data: {
       organisationId,
@@ -424,6 +440,29 @@ async function fetchWpUnitsViaConnector(
   if (!connector.baseUrl) {
     return { ok: false, reason: "no_connector", message: "WordPress connector not configured" };
   }
+
+  // Gen 2 marketing apex — no /wp-json Acc APIs.
+  try {
+    const host = new URL(
+      connector.baseUrl.includes("://") ? connector.baseUrl : `https://${connector.baseUrl}`,
+    ).hostname.replace(/^www\./i, "");
+    if (
+      /currumbinvalleyhideaway\.com\.au$/i.test(host) ||
+      /roerealty\.com\.au$/i.test(host) ||
+      /^digitalgate\.com\.au$/i.test(host) ||
+      /aetherra\.com\.au$/i.test(host)
+    ) {
+      return {
+        ok: false,
+        reason: "gen2_apex",
+        message:
+          "WordPress unit import is unavailable on the public Gen 2 site. Units already in Neon remain the source of truth.",
+      };
+    }
+  } catch {
+    /* continue to fetch attempt */
+  }
+
   const apiKey = connector.apiKey?.trim();
   if (!apiKey) {
     return { ok: false, reason: "missing_key", message: "WordPress API key missing" };

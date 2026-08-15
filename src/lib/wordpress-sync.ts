@@ -413,6 +413,17 @@ async function autoSyncIfNeeded(
     return { ran: false, reason: "missing_key" };
   }
 
+  // Acc unit/booking auto-pull against Gen 2 marketing apexes will 404 — skip.
+  if (
+    (lastAtKey === "lastAccUnitSyncAt" || lastAtKey === "lastAccBookingSyncAt") &&
+    connector.baseUrl
+  ) {
+    const { isGen2MarketingApexBaseUrl } = await import("@/lib/dg-api");
+    if (isGen2MarketingApexBaseUrl(connector.baseUrl)) {
+      return { ran: false, reason: "disabled" };
+    }
+  }
+
   const outcome = await run();
   if (!outcome.ok) {
     return { ran: false, reason: "fetch_failed", message: outcome.message };

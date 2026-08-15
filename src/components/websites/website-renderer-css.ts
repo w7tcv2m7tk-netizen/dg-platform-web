@@ -892,8 +892,16 @@ html:has(.wb-root.wb-html-page) body {
 .wb-html-page .btn-primary,
 .wb-html-page a.btn-primary,
 .wb-html-page .wb-brand-chrome-cta,
-.wb-root .wb-brand-chrome-cta {
-  color: #f8fafc !important;
+.wb-root .wb-brand-chrome-cta,
+.wb-brand-chrome-cta,
+.wb-brand-chrome-cta:link,
+.wb-brand-chrome-cta:visited,
+.wb-brand-chrome-cta:active,
+.wb-brand-chrome-cta:focus,
+.wb-brand-chrome-cta--desktop,
+.wb-brand-chrome-cta--mobile,
+a.wb-brand-chrome-cta {
+  color: #ffffff !important;
 }
 
 .wb-html-page .book-btn:hover,
@@ -908,7 +916,10 @@ html:has(.wb-root.wb-html-page) body {
 .wb-html-page .intro-cta:hover,
 .wb-html-page .plan-cta:hover,
 .wb-html-page .btn-primary:hover,
-.wb-root .wb-brand-chrome-cta:hover {
+.wb-root .wb-brand-chrome-cta:hover,
+.wb-brand-chrome-cta:hover,
+.wb-brand-chrome-cta:focus-visible,
+a.wb-brand-chrome-cta:hover {
   color: #ffffff !important;
 }
 
@@ -998,7 +1009,7 @@ html:has(.wb-root.wb-html-page) body {
   padding: 0.55rem 1rem;
   border-radius: 999px;
   background: var(--wb-accent, #c4a35a);
-  color: #f8fafc !important;
+  color: #ffffff !important;
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.02em;

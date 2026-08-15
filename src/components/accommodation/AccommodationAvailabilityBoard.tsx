@@ -157,6 +157,84 @@ function bookingOnDay(
   );
 }
 
+/** Hotel nights between check-in (inclusive) and check-out (exclusive). */
+function stayNightCount(
+  booking: Pick<WpAccBookingRow, "checkin" | "checkout">,
+): number {
+  if (!booking.checkin || !booking.checkout || booking.checkout <= booking.checkin) {
+    return 0;
+  }
+  let n = 0;
+  let cur = booking.checkin;
+  while (cur < booking.checkout) {
+    n += 1;
+    cur = addDays(cur, 1);
+  }
+  return n;
+}
+
+function formatNightsLabel(nights: number) {
+  if (nights <= 0) return "";
+  return nights === 1 ? "1 night" : `${nights} nights`;
+}
+
+type BookingSpan = {
+  booking: WpAccBookingRow;
+  /** Inclusive index into the visible `days` array (first occupied night). */
+  startIdx: number;
+  /** Inclusive index into the visible `days` array (last occupied night). */
+  endIdx: number;
+  continuesBefore: boolean;
+  continuesAfter: boolean;
+  nights: number;
+};
+
+/**
+ * Collapse each stay into one Airbnb-style bar clipped to the visible day range.
+ */
+function bookingSpansForUnit(
+  unit: WpAccAvailabilityUnit,
+  days: string[],
+  filter: BookingChannelFilter,
+): BookingSpan[] {
+  if (!days.length) return [];
+  const rangeStart = days[0]!;
+  const rangeEnd = days[days.length - 1]!;
+  const dayIndex = new Map(days.map((d, i) => [d, i] as const));
+  const seen = new Set<string | number>();
+  const spans: BookingSpan[] = [];
+
+  for (const booking of unit.bookings ?? []) {
+    if (!booking.checkin || !booking.checkout) continue;
+    if (!bookingMatchesChannel(booking, filter)) continue;
+    if (booking.checkout <= rangeStart || booking.checkin > rangeEnd) continue;
+
+    const key = booking.id ?? `${booking.checkin}:${booking.checkout}:${booking.guest_name ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const lastNight = addDays(booking.checkout, -1);
+    const startIso = booking.checkin < rangeStart ? rangeStart : booking.checkin;
+    const endIso = lastNight > rangeEnd ? rangeEnd : lastNight;
+    if (startIso > endIso) continue;
+
+    const startIdx = dayIndex.get(startIso);
+    const endIdx = dayIndex.get(endIso);
+    if (startIdx == null || endIdx == null) continue;
+
+    spans.push({
+      booking,
+      startIdx,
+      endIdx,
+      continuesBefore: booking.checkin < rangeStart,
+      continuesAfter: lastNight > rangeEnd,
+      nights: stayNightCount(booking),
+    });
+  }
+
+  return spans.sort((a, b) => a.startIdx - b.startIdx || a.endIdx - b.endIdx);
+}
+
 /**
  * Month chips must show a unit name even when guest text dominates the cell.
  * Prefer unit.title from the availability payload; fall back to booking.accommodation.
@@ -350,7 +428,10 @@ export function AccommodationAvailabilityBoard({
     const json = await res.json().catch(() => ({}));
     setSyncing(false);
     if (!res.ok) {
-      setSyncMsg(json.error?.message ?? "OTA sync failed — deploy plugin v10.57.0+ on CVH");
+      setSyncMsg(
+        json.error?.message ??
+          "OTA sync failed — add Airbnb/Booking.com export calendar URLs on each unit, then try again",
+      );
       return;
     }
     setSyncMsg(
@@ -896,6 +977,184 @@ function UnitPricingPanel({
   );
 }
 
+function assignSpanLanes(
+  spans: BookingSpan[],
+): Array<BookingSpan & { lane: number }> {
+  const sorted = [...spans].sort(
+    (a, b) => a.startIdx - b.startIdx || a.endIdx - b.endIdx,
+  );
+  const laneEnds: number[] = [];
+  return sorted.map((span) => {
+    let lane = laneEnds.findIndex((end) => end < span.startIdx);
+    if (lane === -1) {
+      lane = laneEnds.length;
+      laneEnds.push(span.endIdx);
+    } else {
+      laneEnds[lane] = span.endIdx;
+    }
+    return { ...span, lane };
+  });
+}
+
+function StaySpanBar({
+  span,
+  dayCount,
+  compact,
+  lane,
+  laneCount,
+}: {
+  span: BookingSpan;
+  dayCount: number;
+  compact?: boolean;
+  lane: number;
+  laneCount: number;
+}) {
+  const guest = span.booking.guest_name?.trim() || "Guest";
+  const channel = span.booking.source || span.booking.status || "";
+  const nightsLabel = formatNightsLabel(span.nights);
+  const leftPct = (span.startIdx / dayCount) * 100;
+  const widthPct = ((span.endIdx - span.startIdx + 1) / dayCount) * 100;
+  const radiusLeft = span.continuesBefore ? "2px" : "999px";
+  const radiusRight = span.continuesAfter ? "2px" : "999px";
+  const barH = compact ? 18 : 32;
+  const gap = 3;
+  const top = lane * (barH + gap) + (compact ? 4 : 8);
+  const title = [
+    guest,
+    channel,
+    nightsLabel,
+    `${span.booking.checkin} → ${span.booking.checkout}`,
+    span.continuesBefore || span.continuesAfter ? "(continues outside this view)" : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <div
+      className={`pointer-events-none absolute z-[1] flex items-center overflow-hidden px-2 text-white shadow-sm ${
+        compact ? "text-[9px]" : "text-[10px]"
+      }`}
+      style={{
+        left: `calc(${leftPct}% + 2px)`,
+        width: `calc(${widthPct}% - 4px)`,
+        top,
+        height: barH,
+        backgroundColor: bookingColor(span.booking),
+        borderRadius: `${radiusLeft} ${radiusRight} ${radiusRight} ${radiusLeft}`,
+      }}
+      title={title}
+      data-lanes={laneCount}
+    >
+      <p className="min-w-0 truncate font-semibold leading-tight">
+        {span.continuesBefore ? "← " : ""}
+        {guest}
+        {nightsLabel ? (
+          <span className="font-medium opacity-90">{` · ${nightsLabel}`}</span>
+        ) : null}
+        {span.continuesAfter ? " →" : ""}
+      </p>
+    </div>
+  );
+}
+
+function UnitDayTimeline({
+  unit,
+  days,
+  pendingBlock,
+  channelFilter,
+  compact,
+  onSelectUnit,
+  onToggleDay,
+}: {
+  unit: WpAccAvailabilityUnit;
+  days: string[];
+  pendingBlock: string | null;
+  channelFilter: BookingChannelFilter;
+  compact?: boolean;
+  onSelectUnit: (id: number) => void;
+  onToggleDay: (unitId: number, day: string) => void;
+}) {
+  const showManual = channelFilter === "all";
+  const spans = assignSpanLanes(bookingSpansForUnit(unit, days, channelFilter));
+  const laneCount = Math.max(1, ...spans.map((s) => s.lane + 1), 1);
+  const barH = compact ? 18 : 32;
+  const gap = 3;
+  const padY = compact ? 4 : 8;
+  const rowMinH = padY * 2 + laneCount * barH + Math.max(0, laneCount - 1) * gap;
+  const bookedNights = new Set<string>();
+  for (const span of spans) {
+    for (let i = span.startIdx; i <= span.endIdx; i += 1) {
+      const day = days[i];
+      if (day) bookedNights.add(day);
+    }
+  }
+
+  return (
+    <div
+      className="relative grid min-w-0"
+      style={{
+        gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))`,
+        minHeight: rowMinH,
+      }}
+    >
+      {days.map((d) => {
+        const booked = bookedNights.has(d);
+        const isBlocked = showManual && isManuallyBlocked(unit, d);
+        const busy = pendingBlock === `${unit.id}:${d}`;
+        if (booked) {
+          return <div key={d} className="min-h-full px-0.5" aria-hidden />;
+        }
+        return (
+          <div key={d} className="flex items-center justify-center px-0.5 py-1">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                onSelectUnit(unit.id);
+                onToggleDay(unit.id, d);
+              }}
+              className={`rounded-md outline-none ring-offset-1 ring-offset-slate-950 transition hover:ring-2 hover:ring-white/40 focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 ${
+                compact
+                  ? `h-6 w-6 rounded-sm ${isBlocked ? "ring-1 ring-slate-400/50" : ""}`
+                  : `flex h-10 w-full items-center justify-center text-[10px] ${
+                      isBlocked ? "font-medium text-slate-200" : "text-slate-500"
+                    }`
+              }`}
+              style={{
+                backgroundColor: isBlocked
+                  ? CHANNEL_COLORS.blocked.bg
+                  : CHANNEL_COLORS.open.bg,
+              }}
+              title={
+                isBlocked
+                  ? "Manual block — click to unblock"
+                  : "Open — click to block"
+              }
+              aria-label={
+                isBlocked
+                  ? `Unblock ${unit.title} on ${d}`
+                  : `Block ${unit.title} on ${d}`
+              }
+            >
+              {compact ? null : busy ? "…" : isBlocked ? "Blocked" : "Open"}
+            </button>
+          </div>
+        );
+      })}
+      {spans.map((span) => (
+        <StaySpanBar
+          key={`${span.booking.id ?? "b"}-${span.startIdx}-${span.endIdx}-${span.lane}`}
+          span={span}
+          dayCount={days.length}
+          compact={compact}
+          lane={span.lane}
+          laneCount={laneCount}
+        />
+      ))}
+    </div>
+  );
+}
+
 function InventoryGrid({
   units,
   days,
@@ -913,7 +1172,6 @@ function InventoryGrid({
   onSelectUnit: (id: number) => void;
   onToggleDay: (unitId: number, day: string) => void;
 }) {
-  const showManual = channelFilter === "all";
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-800">
       <table className="w-full min-w-[900px] border-collapse text-left text-xs">
@@ -953,51 +1211,17 @@ function InventoryGrid({
                     <span className="capitalize">{unit.listing_status ?? "bookable"}</span>
                   </p>
                 </td>
-                {days.map((d) => {
-                  const booking = bookingOnDay(unit, d, channelFilter);
-                  const isBlocked = showManual && isManuallyBlocked(unit, d);
-                  const busy = pendingBlock === `${unit.id}:${d}`;
-                  const bg = booking
-                    ? bookingColor(booking)
-                    : isBlocked
-                      ? CHANNEL_COLORS.blocked.bg
-                      : CHANNEL_COLORS.open.bg;
-                  const title = booking
-                    ? `${booking.guest_name ?? "Guest"} (${booking.source || booking.status})`
-                    : isBlocked
-                      ? "Manual block — click to unblock"
-                      : "Open — click to block";
-                  return (
-                    <td key={d} className="px-1 py-2">
-                      {booking ? (
-                        <div
-                          title={title}
-                          className="mx-auto h-6 w-6 rounded-sm"
-                          style={{ backgroundColor: bg }}
-                        />
-                      ) : (
-                        <button
-                          type="button"
-                          title={title}
-                          disabled={busy}
-                          onClick={() => {
-                            onSelectUnit(unit.id);
-                            onToggleDay(unit.id, d);
-                          }}
-                          className={`mx-auto block h-6 w-6 rounded-sm outline-none ring-offset-1 ring-offset-slate-950 transition hover:ring-2 hover:ring-white/40 focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 ${
-                            isBlocked ? "ring-1 ring-slate-400/50" : ""
-                          }`}
-                          style={{ backgroundColor: bg }}
-                          aria-label={
-                            isBlocked
-                              ? `Unblock ${unit.title} on ${d}`
-                              : `Block ${unit.title} on ${d}`
-                          }
-                        />
-                      )}
-                    </td>
-                  );
-                })}
+                <td colSpan={days.length} className="p-0 align-middle">
+                  <UnitDayTimeline
+                    unit={unit}
+                    days={days}
+                    pendingBlock={pendingBlock}
+                    channelFilter={channelFilter}
+                    compact
+                    onSelectUnit={onSelectUnit}
+                    onToggleDay={onToggleDay}
+                  />
+                </td>
               </tr>
             );
           })}
@@ -1026,26 +1250,37 @@ function WeekGrid({
   onSelectUnit: (id: number) => void;
   onToggleDay: (unitId: number, day: string) => void;
 }) {
-  const showManual = channelFilter === "all";
   return (
     <div className="space-y-3">
       <h2 className="text-sm font-medium text-slate-300">{title}</h2>
+      <p className="text-[11px] text-slate-500">
+        Stays span across nights like Airbnb — label shows guest and length. Open cells toggle
+        manual blocks.
+      </p>
       <div className="overflow-x-auto rounded-xl border border-slate-800">
         <table className="w-full min-w-[900px] table-fixed border-collapse text-left text-xs">
           <colgroup>
             <col className="w-40" />
-            {days.map((d) => (
-              <col key={d} />
-            ))}
+            <col />
           </colgroup>
           <thead className="bg-slate-900/60 text-slate-500">
             <tr>
               <th className="sticky left-0 z-10 bg-slate-950 px-3 py-2">Unit</th>
-              {days.map((d) => (
-                <th key={d} className="px-1.5 py-2 text-center font-normal text-slate-400">
-                  {formatDayLabel(d, "long")}
-                </th>
-              ))}
+              <th className="p-0">
+                <div
+                  className="grid"
+                  style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}
+                >
+                  {days.map((d) => (
+                    <div
+                      key={d}
+                      className="px-1.5 py-2 text-center font-normal text-slate-400"
+                    >
+                      {formatDayLabel(d, "long")}
+                    </div>
+                  ))}
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -1069,55 +1304,16 @@ function WeekGrid({
                       {formatMoney(unit.weekday_rate)} / {formatMoney(unit.weekend_rate)}
                     </p>
                   </td>
-                  {days.map((d) => {
-                    const booking = bookingOnDay(unit, d, channelFilter);
-                    const isBlocked = showManual && isManuallyBlocked(unit, d);
-                    const busy = pendingBlock === `${unit.id}:${d}`;
-                    const cellClass =
-                      "box-border flex h-14 w-full min-w-0 flex-col items-center justify-center overflow-hidden rounded-md px-1.5 text-center text-[10px] leading-tight";
-                    return (
-                      <td key={d} className="px-1.5 py-2 align-middle">
-                        {booking ? (
-                          <div
-                            className={`${cellClass} text-white`}
-                            style={{ backgroundColor: bookingColor(booking) }}
-                            title={`${booking.guest_name ?? "Guest"} · ${booking.source || booking.status}`}
-                          >
-                            <p className="w-full truncate font-medium">
-                              {booking.guest_name ?? "Guest"}
-                            </p>
-                            <p className="w-full truncate opacity-80 capitalize">
-                              {booking.source || booking.status}
-                            </p>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={busy}
-                            onClick={() => {
-                              onSelectUnit(unit.id);
-                              onToggleDay(unit.id, d);
-                            }}
-                            className={`${cellClass} transition hover:brightness-110 disabled:opacity-50 ${
-                              isBlocked ? "font-medium text-slate-200" : "text-slate-500"
-                            }`}
-                            style={{
-                              backgroundColor: isBlocked
-                                ? CHANNEL_COLORS.blocked.bg
-                                : CHANNEL_COLORS.open.bg,
-                            }}
-                            title={
-                              isBlocked
-                                ? "Manual block — click to unblock"
-                                : "Open — click to block"
-                            }
-                          >
-                            {busy ? "…" : isBlocked ? "Blocked" : "Open"}
-                          </button>
-                        )}
-                      </td>
-                    );
-                  })}
+                  <td className="p-0 align-middle">
+                    <UnitDayTimeline
+                      unit={unit}
+                      days={days}
+                      pendingBlock={pendingBlock}
+                      channelFilter={channelFilter}
+                      onSelectUnit={onSelectUnit}
+                      onToggleDay={onToggleDay}
+                    />
+                  </td>
                 </tr>
               );
             })}
@@ -1254,6 +1450,8 @@ function MonthGrid({
                   <div className="mt-1 space-y-1">
                     {entries.slice(0, 3).map(({ unitId, unitLabel, booking, isCheckin }) => {
                       const guest = booking.guest_name?.trim() || "Guest";
+                      const nights = stayNightCount(booking);
+                      const nightsLabel = formatNightsLabel(nights);
                       return (
                         <div
                           key={`${booking.id}-${unitId}-${day}`}
@@ -1261,14 +1459,17 @@ function MonthGrid({
                           style={{
                             backgroundColor: bookingColor(booking),
                             opacity: isCheckin ? 1 : 0.85,
+                            borderRadius: isCheckin ? "6px 2px 2px 6px" : "2px",
                           }}
-                          title={`${unitLabel}: ${guest} · ${booking.checkin} → ${booking.checkout}`}
+                          title={`${unitLabel}: ${guest} · ${nightsLabel} · ${booking.checkin} → ${booking.checkout}`}
                         >
                           <p className="truncate font-semibold">
                             {isCheckin ? unitLabel : `→ ${unitLabel}`}
                           </p>
                           <p className="truncate text-[9px] font-normal opacity-85">
-                            {guest}
+                            {isCheckin
+                              ? `${guest}${nightsLabel ? ` · ${nightsLabel}` : ""}`
+                              : guest}
                           </p>
                         </div>
                       );
@@ -1322,18 +1523,23 @@ function ListView({
             <th className="px-4 py-3">Guest</th>
             <th className="px-4 py-3">Unit</th>
             <th className="px-4 py-3">Dates</th>
+            <th className="px-4 py-3">Length</th>
             <th className="px-4 py-3">Channel</th>
           </tr>
         </thead>
         <tbody>
           {bookings.map((b) => {
             const channel = channelKey(b);
+            const nights = stayNightCount(b);
             return (
               <tr key={b.id} className="border-t border-slate-800">
                 <td className="px-4 py-3 text-white">{b.guest_name ?? b.ref ?? "Guest"}</td>
                 <td className="px-4 py-3 text-slate-300">{b.unitTitle}</td>
                 <td className="px-4 py-3 text-slate-400">
                   {b.checkin} → {b.checkout}
+                </td>
+                <td className="px-4 py-3 text-slate-300">
+                  {formatNightsLabel(nights) || "—"}
                 </td>
                 <td className="px-4 py-3">
                   <span

@@ -38,12 +38,17 @@ async function resolveHostSlug(): Promise<string | null> {
     .toLowerCase();
   if (!host) return null;
 
-  const match = await findDomainByHostname(host);
-  if (match?.website?.slug) return match.website.slug;
+  try {
+    const match = await findDomainByHostname(host);
+    if (match?.website?.slug) return match.website.slug;
 
-  const alt = host.startsWith("www.") ? host.slice(4) : `www.${host}`;
-  const match2 = await findDomainByHostname(alt);
-  return match2?.website?.slug ?? null;
+    const alt = host.startsWith("www.") ? host.slice(4) : `www.${host}`;
+    const match2 = await findDomainByHostname(alt);
+    return match2?.website?.slug ?? null;
+  } catch (err) {
+    console.error("[by-host] domain lookup failed", err);
+    throw new Error("SITE_DATABASE_UNAVAILABLE");
+  }
 }
 
 function resolvePage(
@@ -70,34 +75,38 @@ export async function generateMetadata({
 }: {
   searchParams: Promise<{ preview?: string; page?: string }>;
 }): Promise<Metadata> {
-  const slug = await resolveHostSlug();
-  if (!slug) return { title: "Site" };
-  const search = await searchParams;
-  const site = await getWebsiteBySlug(slug);
-  if (!site) return { title: "Site" };
-  const pageSlug = search.page ? decodeURIComponent(search.page) : undefined;
-  const page = resolvePage(site, pageSlug);
-  const title = page?.seo?.title || site.seo?.title || site.name;
-  const description =
-    page?.seo?.description || site.seo?.description || site.name;
-  const ogTitle = page?.seo?.ogTitle || site.seo?.ogTitle || title;
-  const ogDescription =
-    page?.seo?.ogDescription || site.seo?.ogDescription || description;
-  const ogImage = page?.seo?.ogImage || site.seo?.ogImage;
-  const keywords = page?.seo?.keywords?.length
-    ? page.seo.keywords
-    : site.seo?.keywords;
-  return {
-    title,
-    description,
-    applicationName: site.name,
-    ...(keywords?.length ? { keywords } : {}),
-    openGraph: {
-      title: ogTitle,
-      description: ogDescription,
-      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
-    },
-  };
+  try {
+    const slug = await resolveHostSlug();
+    if (!slug) return { title: "Site" };
+    const search = await searchParams;
+    const site = await getWebsiteBySlug(slug);
+    if (!site) return { title: "Site" };
+    const pageSlug = search.page ? decodeURIComponent(search.page) : undefined;
+    const page = resolvePage(site, pageSlug);
+    const title = page?.seo?.title || site.seo?.title || site.name;
+    const description =
+      page?.seo?.description || site.seo?.description || site.name;
+    const ogTitle = page?.seo?.ogTitle || site.seo?.ogTitle || title;
+    const ogDescription =
+      page?.seo?.ogDescription || site.seo?.ogDescription || description;
+    const ogImage = page?.seo?.ogImage || site.seo?.ogImage;
+    const keywords = page?.seo?.keywords?.length
+      ? page.seo.keywords
+      : site.seo?.keywords;
+    return {
+      title,
+      description,
+      applicationName: site.name,
+      ...(keywords?.length ? { keywords } : {}),
+      openGraph: {
+        title: ogTitle,
+        description: ogDescription,
+        ...(ogImage ? { images: [{ url: ogImage }] } : {}),
+      },
+    };
+  } catch {
+    return { title: "Site temporarily unavailable" };
+  }
 }
 
 /**
@@ -109,9 +118,39 @@ export default async function ByHostSitePage({
 }: {
   searchParams: Promise<{ preview?: string; page?: string }>;
 }) {
-  const slug = await resolveHostSlug();
-  if (!slug) notFound();
-  return renderSite(slug, await searchParams);
+  try {
+    const slug = await resolveHostSlug();
+    if (!slug) notFound();
+    return await renderSite(slug, await searchParams);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    if (message === "SITE_DATABASE_UNAVAILABLE" || /Can't reach database|P1001|P1017/i.test(message)) {
+      return (
+        <main
+          style={{
+            minHeight: "100vh",
+            display: "grid",
+            placeItems: "center",
+            background: "#0b1220",
+            color: "#e2e8f0",
+            fontFamily: "system-ui, sans-serif",
+            padding: "2rem",
+            textAlign: "center",
+          }}
+        >
+          <div>
+            <h1 style={{ fontSize: "1.5rem", marginBottom: "0.75rem" }}>
+              Site temporarily unavailable
+            </h1>
+            <p style={{ color: "#94a3b8", maxWidth: "28rem", margin: "0 auto" }}>
+              We couldn&apos;t reach the website database. Please try again in a minute.
+            </p>
+          </div>
+        </main>
+      );
+    }
+    throw err;
+  }
 }
 
 async function renderSite(
@@ -119,7 +158,13 @@ async function renderSite(
   search: { preview?: string; page?: string },
 ) {
   const allowDraft = search.preview === "1";
-  const site = await getWebsiteBySlug(slug);
+  let site: Awaited<ReturnType<typeof getWebsiteBySlug>>;
+  try {
+    site = await getWebsiteBySlug(slug);
+  } catch (err) {
+    console.error("[by-host] getWebsiteBySlug failed", err);
+    throw new Error("SITE_DATABASE_UNAVAILABLE");
+  }
   if (!site) notFound();
   if (!allowDraft && site.status !== "published") notFound();
 
@@ -157,7 +202,7 @@ async function renderSite(
         </div>
       ) : null}
       <WebsitePageRenderer
-        components={page.components}
+        components={page.components ?? []}
         theme={theme}
         basePath=""
         siteSlug={slug}
