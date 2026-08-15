@@ -51,6 +51,8 @@ type EditableUnit = WpAccUnitProp & {
   video_url: string;
   virtual_tour: string;
   gallery: string;
+  gallery_urls: string[];
+  featured_image_url: string;
   checkin_time: string;
   checkout_time: string;
   peak_season_start: string;
@@ -60,6 +62,13 @@ type EditableUnit = WpAccUnitProp & {
   housekeeping_notes: string;
   features: WpAccUnitFeatures;
 };
+
+function unitRowKey(u: Pick<WpAccUnitProp, "id" | "platform_id">): string {
+  if (typeof u.platform_id === "string" && u.platform_id.trim()) {
+    return u.platform_id.trim();
+  }
+  return `wp-${u.id}`;
+}
 
 function emptyFeatures(labels?: Record<string, string>): WpAccUnitFeatures {
   const out: WpAccUnitFeatures = {};
@@ -82,6 +91,10 @@ function toRows(list: WpAccUnitProp[]): EditableUnit[] {
     video_url: u.video_url ?? "",
     virtual_tour: u.virtual_tour ?? "",
     gallery: u.gallery ?? "",
+    gallery_urls: Array.isArray(u.gallery_urls)
+      ? u.gallery_urls.filter((url): url is string => typeof url === "string" && url.trim() !== "")
+      : [],
+    featured_image_url: u.featured_image_url ?? "",
     checkin_time: u.checkin_time ?? "",
     checkout_time: u.checkout_time ?? "",
     peak_season_start: u.peak_season_start ?? "",
@@ -214,7 +227,7 @@ function OtaCalendarsSection({
 }: {
   u: EditableUnit;
   editing: boolean;
-  patchRow: (id: number, patch: Partial<EditableUnit>) => void;
+  patchRow: (unit: EditableUnit, patch: Partial<EditableUnit>) => void;
 }) {
   const airbnbSync = formatSync(u.airbnb_last_sync);
   const bookingSync = formatSync(u.bookingcom_last_sync);
@@ -230,7 +243,7 @@ function OtaCalendarsSection({
           {editing ? (
             <TextInput
               value={u.airbnb_ical_url}
-              onChange={(v) => patchRow(u.id, { airbnb_ical_url: v })}
+              onChange={(v) => patchRow(u, { airbnb_ical_url: v })}
               placeholder="https://www.airbnb.com/calendar/ical/..."
             />
           ) : (
@@ -252,7 +265,7 @@ function OtaCalendarsSection({
           {editing ? (
             <TextInput
               value={u.bookingcom_ical_url}
-              onChange={(v) => patchRow(u.id, { bookingcom_ical_url: v })}
+              onChange={(v) => patchRow(u, { bookingcom_ical_url: v })}
               placeholder="https://admin.booking.com/.../ical.html?t=..."
             />
           ) : (
@@ -348,7 +361,7 @@ function OtaCalendarsSection({
             {editing ? (
               <TextInput
                 value={u.airbnb_id}
-                onChange={(v) => patchRow(u.id, { airbnb_id: v })}
+                onChange={(v) => patchRow(u, { airbnb_id: v })}
                 placeholder="12345678"
               />
             ) : (
@@ -360,7 +373,7 @@ function OtaCalendarsSection({
             {editing ? (
               <TextInput
                 value={u.bookingcom_id}
-                onChange={(v) => patchRow(u.id, { bookingcom_id: v })}
+                onChange={(v) => patchRow(u, { bookingcom_id: v })}
                 placeholder="123456789"
               />
             ) : (
@@ -389,8 +402,9 @@ export function AccommodationUnitsTable({
 }) {
   const router = useRouter();
   const [rows, setRows] = useState<EditableUnit[]>(() => toRows(units));
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [panelOpenId, setPanelOpenId] = useState<number | null>(null);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const [panelOpenKey, setPanelOpenKey] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -459,7 +473,7 @@ export function AccommodationUnitsTable({
       }
       const next = Array.isArray(json.data) ? (json.data as WpAccUnitProp[]) : [];
       setRows(toRows(next));
-      setEditingId(null);
+      setEditingKey(null);
       const soon = next.filter((u) => u.listing_status === "coming_soon").length;
       const events = next.filter((u) => u.listing_status === "events_future").length;
       const extras = [
@@ -553,8 +567,76 @@ export function AccommodationUnitsTable({
     );
   }
 
-  function patchRow(id: number, patch: Partial<EditableUnit>) {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  function patchRow(unit: EditableUnit, patch: Partial<EditableUnit>) {
+    const key = unitRowKey(unit);
+    setRows((prev) =>
+      prev.map((r) => (unitRowKey(r) === key ? { ...r, ...patch } : r)),
+    );
+  }
+
+  async function uploadUnitImage(unit: EditableUnit, file: File): Promise<string> {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("unitKey", unitRowKey(unit));
+    const res = await fetch("/api/v1/accommodation/media", {
+      method: "POST",
+      body: form,
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new Error(json?.error?.message ?? "Upload failed");
+    }
+    return json.data.url as string;
+  }
+
+  async function onGalleryFilesSelected(unit: EditableUnit, files: FileList | null) {
+    if (!files?.length) return;
+    const key = unitRowKey(unit);
+    setUploadingKey(key);
+    setSaveError(null);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files)) {
+        urls.push(await uploadUnitImage(unit, file));
+      }
+      const next = [...(unit.gallery_urls ?? [])];
+      for (const url of urls) {
+        if (!next.includes(url)) next.push(url);
+      }
+      const featured = unit.featured_image_url?.trim() || next[0] || "";
+      patchRow(unit, {
+        gallery_urls: next,
+        featured_image_url: featured,
+      });
+      setMessage(
+        `Uploaded ${urls.length} image${urls.length === 1 ? "" : "s"} — click Save unit to publish to the stay page.`,
+      );
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploadingKey(null);
+    }
+  }
+
+  async function onFeaturedFileSelected(unit: EditableUnit, file: File | null) {
+    if (!file) return;
+    const key = unitRowKey(unit);
+    setUploadingKey(key);
+    setSaveError(null);
+    try {
+      const url = await uploadUnitImage(unit, file);
+      const gallery = [...(unit.gallery_urls ?? [])];
+      if (!gallery.includes(url)) gallery.unshift(url);
+      patchRow(unit, {
+        featured_image_url: url,
+        gallery_urls: gallery,
+      });
+      setMessage("Featured image uploaded — click Save unit to publish.");
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploadingKey(null);
+    }
   }
 
   async function saveRow(row: EditableUnit) {
@@ -597,6 +679,8 @@ export function AccommodationUnitsTable({
             checkout_time: row.checkout_time,
             features: row.features,
             gallery: row.gallery,
+            gallery_urls: row.gallery_urls ?? [],
+            featured_image_url: row.featured_image_url ?? "",
             video_url: row.video_url,
             virtual_tour: row.virtual_tour,
             featured: row.featured,
@@ -625,15 +709,17 @@ export function AccommodationUnitsTable({
       ? (json.data.updated as WpAccUnitProp[])
       : null;
     if (updated?.length) {
-      const map = new Map(updated.map((u) => [u.id, u]));
+      const map = new Map(
+        updated.map((u) => [unitRowKey(u), u] as const),
+      );
       setRows((prev) =>
         prev.map((r) => {
-          const next = map.get(r.id);
+          const next = map.get(unitRowKey(r));
           return next ? { ...toRows([next])[0]! } : r;
         }),
       );
     }
-    setEditingId(null);
+    setEditingKey(null);
     setMessage(`Saved ${row.title}`);
     router.refresh();
   }
@@ -697,15 +783,17 @@ export function AccommodationUnitsTable({
           </thead>
           <tbody className="divide-y divide-slate-800">
             {rows.map((u) => {
-              const editing = editingId === u.id;
-              const panelOpen = panelOpenId === u.id || editing;
+              const rowKey = unitRowKey(u);
+              const editing = editingKey === rowKey;
+              const panelOpen = panelOpenKey === rowKey || editing;
+              const uploading = uploadingKey === rowKey;
               const listingLabel =
                 LISTING_OPTIONS.find((o) => o.value === (u.listing_status ?? "bookable"))
                   ?.label ?? u.listing_status;
               const featureLabels = u.feature_labels ?? DEFAULT_FEATURE_LABELS;
 
               return (
-                <Fragment key={u.id}>
+                <Fragment key={rowKey}>
                   <tr className="hover:bg-slate-900/40">
                     <td className="px-4 py-3">
                       <div>
@@ -749,7 +837,7 @@ export function AccommodationUnitsTable({
                       <button
                         type="button"
                         onClick={() =>
-                          setPanelOpenId(panelOpen && !editing ? null : u.id)
+                          setPanelOpenKey(panelOpen && !editing ? null : rowKey)
                         }
                         className={`rounded-full border px-2.5 py-1 text-[11px] ${
                           hasOtaConfigured(u)
@@ -779,7 +867,7 @@ export function AccommodationUnitsTable({
                             type="button"
                             onClick={() => {
                               setRows(toRows(units));
-                              setEditingId(null);
+                              setEditingKey(null);
                             }}
                             className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300"
                           >
@@ -790,8 +878,8 @@ export function AccommodationUnitsTable({
                         <button
                           type="button"
                           onClick={() => {
-                            setEditingId(u.id);
-                            setPanelOpenId(u.id);
+                            setEditingKey(rowKey);
+                            setPanelOpenKey(rowKey);
                           }}
                           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300 hover:border-blue-500 hover:text-white"
                         >
@@ -818,7 +906,7 @@ export function AccommodationUnitsTable({
                                     <FieldLabel>Title</FieldLabel>
                                     <TextInput
                                       value={u.title}
-                                      onChange={(v) => patchRow(u.id, { title: v })}
+                                      onChange={(v) => patchRow(u, { title: v })}
                                     />
                                   </label>
                                   <label className="block space-y-1.5 sm:col-span-2">
@@ -826,7 +914,7 @@ export function AccommodationUnitsTable({
                                     <textarea
                                       value={u.description}
                                       onChange={(e) =>
-                                        patchRow(u.id, { description: e.target.value })
+                                        patchRow(u, { description: e.target.value })
                                       }
                                       rows={4}
                                       className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
@@ -837,7 +925,7 @@ export function AccommodationUnitsTable({
                                     <select
                                       value={u.listing_status ?? "bookable"}
                                       onChange={(e) =>
-                                        patchRow(u.id, { listing_status: e.target.value })
+                                        patchRow(u, { listing_status: e.target.value })
                                       }
                                       className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
                                     >
@@ -853,7 +941,7 @@ export function AccommodationUnitsTable({
                                     <select
                                       value={u.post_status ?? "publish"}
                                       onChange={(e) =>
-                                        patchRow(u.id, { post_status: e.target.value })
+                                        patchRow(u, { post_status: e.target.value })
                                       }
                                       className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
                                     >
@@ -869,7 +957,7 @@ export function AccommodationUnitsTable({
                                     <select
                                       value={u.housekeeping_status ?? "unknown"}
                                       onChange={(e) =>
-                                        patchRow(u.id, { housekeeping_status: e.target.value })
+                                        patchRow(u, { housekeeping_status: e.target.value })
                                       }
                                       className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
                                     >
@@ -885,7 +973,7 @@ export function AccommodationUnitsTable({
                                       type="checkbox"
                                       checked={Boolean(u.featured)}
                                       onChange={(e) =>
-                                        patchRow(u.id, { featured: e.target.checked })
+                                        patchRow(u, { featured: e.target.checked })
                                       }
                                       className="rounded border-slate-600"
                                     />
@@ -896,7 +984,7 @@ export function AccommodationUnitsTable({
                                     <TextInput
                                       value={u.housekeeping_notes}
                                       onChange={(v) =>
-                                        patchRow(u.id, { housekeeping_notes: v })
+                                        patchRow(u, { housekeeping_notes: v })
                                       }
                                     />
                                     {u.last_cleaned ? (
@@ -927,7 +1015,7 @@ export function AccommodationUnitsTable({
                                         type="number"
                                         value={numOrEmpty(u[key])}
                                         onChange={(v) =>
-                                          patchRow(u.id, { [key]: parseOptionalNumber(v) })
+                                          patchRow(u, { [key]: parseOptionalNumber(v) })
                                         }
                                       />
                                     </label>
@@ -937,7 +1025,7 @@ export function AccommodationUnitsTable({
                                     <TextInput
                                       value={u.peak_season_start}
                                       onChange={(v) =>
-                                        patchRow(u.id, { peak_season_start: v })
+                                        patchRow(u, { peak_season_start: v })
                                       }
                                       placeholder="12-15"
                                     />
@@ -947,7 +1035,7 @@ export function AccommodationUnitsTable({
                                     <TextInput
                                       value={u.peak_season_end}
                                       onChange={(v) =>
-                                        patchRow(u.id, { peak_season_end: v })
+                                        patchRow(u, { peak_season_end: v })
                                       }
                                       placeholder="01-15"
                                     />
@@ -958,7 +1046,7 @@ export function AccommodationUnitsTable({
                                       type="number"
                                       value={numOrEmpty(u.last_minute_discount)}
                                       onChange={(v) =>
-                                        patchRow(u.id, {
+                                        patchRow(u, {
                                           last_minute_discount: parseOptionalNumber(v),
                                         })
                                       }
@@ -970,7 +1058,7 @@ export function AccommodationUnitsTable({
                                       type="number"
                                       value={numOrEmpty(u.early_bird_discount)}
                                       onChange={(v) =>
-                                        patchRow(u.id, {
+                                        patchRow(u, {
                                           early_bird_discount: parseOptionalNumber(v),
                                         })
                                       }
@@ -997,7 +1085,7 @@ export function AccommodationUnitsTable({
                                         type="number"
                                         value={numOrEmpty(u[key])}
                                         onChange={(v) =>
-                                          patchRow(u.id, { [key]: parseOptionalNumber(v) })
+                                          patchRow(u, { [key]: parseOptionalNumber(v) })
                                         }
                                       />
                                     </label>
@@ -1007,7 +1095,7 @@ export function AccommodationUnitsTable({
                                     <TextInput
                                       type="time"
                                       value={u.checkin_time}
-                                      onChange={(v) => patchRow(u.id, { checkin_time: v })}
+                                      onChange={(v) => patchRow(u, { checkin_time: v })}
                                     />
                                   </label>
                                   <label className="block space-y-1.5">
@@ -1015,7 +1103,7 @@ export function AccommodationUnitsTable({
                                     <TextInput
                                       type="time"
                                       value={u.checkout_time}
-                                      onChange={(v) => patchRow(u.id, { checkout_time: v })}
+                                      onChange={(v) => patchRow(u, { checkout_time: v })}
                                     />
                                   </label>
                                 </div>
@@ -1027,21 +1115,21 @@ export function AccommodationUnitsTable({
                                     <FieldLabel>Address</FieldLabel>
                                     <TextInput
                                       value={u.address}
-                                      onChange={(v) => patchRow(u.id, { address: v })}
+                                      onChange={(v) => patchRow(u, { address: v })}
                                     />
                                   </label>
                                   <label className="block space-y-1.5">
                                     <FieldLabel>Latitude</FieldLabel>
                                     <TextInput
                                       value={u.latitude}
-                                      onChange={(v) => patchRow(u.id, { latitude: v })}
+                                      onChange={(v) => patchRow(u, { latitude: v })}
                                     />
                                   </label>
                                   <label className="block space-y-1.5">
                                     <FieldLabel>Longitude</FieldLabel>
                                     <TextInput
                                       value={u.longitude}
-                                      onChange={(v) => patchRow(u.id, { longitude: v })}
+                                      onChange={(v) => patchRow(u, { longitude: v })}
                                     />
                                   </label>
                                 </div>
@@ -1055,7 +1143,7 @@ export function AccommodationUnitsTable({
                                         type="checkbox"
                                         checked={Boolean(u.features[key])}
                                         onChange={(e) =>
-                                          patchRow(u.id, {
+                                          patchRow(u, {
                                             features: {
                                               ...u.features,
                                               [key]: e.target.checked ? 1 : 0,
@@ -1072,44 +1160,146 @@ export function AccommodationUnitsTable({
 
                               <Section
                                 title="Media"
-                                hint="Gallery uses WordPress attachment IDs (comma-separated). Featured image is managed in WP."
+                                hint="Upload images for the public stay page gallery and lightbox. First image (or featured) is the hero."
                               >
-                                <div className="grid gap-3">
+                                <div className="grid gap-4">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-blue-500">
+                                      <input
+                                        type="file"
+                                        accept="image/png,image/jpeg,image/webp,image/gif"
+                                        multiple
+                                        className="hidden"
+                                        disabled={uploading || pending}
+                                        onChange={(e) => {
+                                          void onGalleryFilesSelected(u, e.target.files);
+                                          e.target.value = "";
+                                        }}
+                                      />
+                                      {uploading ? "Uploading…" : "Upload gallery images"}
+                                    </label>
+                                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-blue-500">
+                                      <input
+                                        type="file"
+                                        accept="image/png,image/jpeg,image/webp,image/gif"
+                                        className="hidden"
+                                        disabled={uploading || pending}
+                                        onChange={(e) => {
+                                          void onFeaturedFileSelected(
+                                            u,
+                                            e.target.files?.[0] ?? null,
+                                          );
+                                          e.target.value = "";
+                                        }}
+                                      />
+                                      Set featured image
+                                    </label>
+                                    <FieldHint>PNG/JPG/WebP up to 5 MB each</FieldHint>
+                                  </div>
+
+                                  {(u.gallery_urls?.length || u.featured_image_url) ? (
+                                    <div className="flex flex-wrap gap-3">
+                                      {(u.gallery_urls?.length
+                                        ? u.gallery_urls
+                                        : u.featured_image_url
+                                          ? [u.featured_image_url]
+                                          : []
+                                      ).map((url) => {
+                                        const isFeatured =
+                                          url === u.featured_image_url ||
+                                          (!u.featured_image_url &&
+                                            url === u.gallery_urls?.[0]);
+                                        return (
+                                          <div
+                                            key={url}
+                                            className="relative overflow-hidden rounded-lg border border-slate-700"
+                                          >
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img
+                                              src={url}
+                                              alt=""
+                                              className="h-24 w-24 object-cover"
+                                            />
+                                            {isFeatured ? (
+                                              <span className="absolute left-1 top-1 rounded bg-blue-600/90 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-white">
+                                                Featured
+                                              </span>
+                                            ) : null}
+                                            <div className="flex gap-1 border-t border-slate-800 bg-slate-950/90 p-1">
+                                              {!isFeatured ? (
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    patchRow(u, {
+                                                      featured_image_url: url,
+                                                    })
+                                                  }
+                                                  className="flex-1 rounded px-1 py-0.5 text-[9px] text-slate-300 hover:bg-slate-800 hover:text-white"
+                                                >
+                                                  Feature
+                                                </button>
+                                              ) : null}
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  const next = (u.gallery_urls ?? []).filter(
+                                                    (x) => x !== url,
+                                                  );
+                                                  patchRow(u, {
+                                                    gallery_urls: next,
+                                                    featured_image_url:
+                                                      u.featured_image_url === url
+                                                        ? next[0] ?? ""
+                                                        : u.featured_image_url,
+                                                  });
+                                                }}
+                                                className="flex-1 rounded px-1 py-0.5 text-[9px] text-amber-300 hover:bg-slate-800"
+                                              >
+                                                Remove
+                                              </button>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-slate-500">
+                                      No gallery images yet — upload photos to show on the unit stay
+                                      page.
+                                    </p>
+                                  )}
+
                                   <label className="block space-y-1.5">
-                                    <FieldLabel>Gallery image IDs</FieldLabel>
+                                    <FieldLabel>Featured image URL</FieldLabel>
                                     <TextInput
-                                      value={u.gallery}
-                                      onChange={(v) => patchRow(u.id, { gallery: v })}
-                                      placeholder="123, 456, 789"
+                                      type="url"
+                                      value={u.featured_image_url}
+                                      onChange={(v) =>
+                                        patchRow(u, { featured_image_url: v })
+                                      }
+                                      placeholder="https://… (or upload above)"
                                     />
                                   </label>
-                                  {u.gallery_urls?.length || u.featured_image_url ? (
-                                    <div className="flex flex-wrap gap-2">
-                                      {u.featured_image_url ? (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img
-                                          src={u.featured_image_url}
-                                          alt=""
-                                          className="h-16 w-16 rounded object-cover"
-                                        />
-                                      ) : null}
-                                      {(u.gallery_urls ?? []).slice(0, 8).map((url) => (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img
-                                          key={url}
-                                          src={url}
-                                          alt=""
-                                          className="h-16 w-16 rounded object-cover"
-                                        />
-                                      ))}
-                                    </div>
-                                  ) : null}
+
+                                  <label className="block space-y-1.5">
+                                    <FieldLabel>Legacy WP gallery IDs</FieldLabel>
+                                    <TextInput
+                                      value={u.gallery}
+                                      onChange={(v) => patchRow(u, { gallery: v })}
+                                      placeholder="Optional — WordPress attachment IDs"
+                                    />
+                                    <FieldHint>
+                                      Prefer uploads above on Gen 2. WP IDs only matter if mirroring
+                                      to WordPress.
+                                    </FieldHint>
+                                  </label>
+
                                   <label className="block space-y-1.5">
                                     <FieldLabel>Video URL</FieldLabel>
                                     <TextInput
                                       type="url"
                                       value={u.video_url}
-                                      onChange={(v) => patchRow(u.id, { video_url: v })}
+                                      onChange={(v) => patchRow(u, { video_url: v })}
                                     />
                                   </label>
                                   <label className="block space-y-1.5">
@@ -1117,7 +1307,7 @@ export function AccommodationUnitsTable({
                                     <TextInput
                                       type="url"
                                       value={u.virtual_tour}
-                                      onChange={(v) => patchRow(u.id, { virtual_tour: v })}
+                                      onChange={(v) => patchRow(u, { virtual_tour: v })}
                                     />
                                   </label>
                                   {(u.checkin_url || u.cleaning_form_url) && (

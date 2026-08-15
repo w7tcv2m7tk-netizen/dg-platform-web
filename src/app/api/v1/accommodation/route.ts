@@ -793,6 +793,12 @@ export async function PATCH(req: Request) {
           gallery_urls: Array.isArray(patch.gallery_urls)
             ? (patch.gallery_urls as string[])
             : undefined,
+          featured_image_url:
+            typeof patch.featured_image_url === "string"
+              ? patch.featured_image_url
+              : patch.featured_image_url === null
+                ? ""
+                : undefined,
         }).catch(() => null);
       }
     }
