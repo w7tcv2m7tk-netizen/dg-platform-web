@@ -50,8 +50,8 @@ export default async function AccommodationPaymentsPage({ searchParams }: PagePr
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Payments</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · StayBooking (Neon) · mark
-          paid syncs to WordPress calendar
+          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · StayBooking (Neon)
+          {site.baseUrl ? " · paid status can mirror to WordPress when connected" : ""}
         </p>
         <Suspense fallback={null}>
           <div className="mt-3">
@@ -64,7 +64,10 @@ export default async function AccommodationPaymentsPage({ searchParams }: PagePr
           <div className="dg-card border-amber-500/30">
             <p className="text-amber-300">{loaded.syncError}</p>
             <p className="mt-2 text-sm text-slate-500">
-              Sync from WordPress on Bookings, or deploy plugin v10.67.0+ for dual-write push.
+              Payments follow StayBooking rows in Neon.
+              {site.baseUrl
+                ? " Sync from WordPress on Bookings when a live Acc host is connected, or rely on dual-write / OTA iCal."
+                : " Use Availability OTA iCal sync and ops bookings — no live WordPress Acc host."}
             </p>
           </div>
         ) : (

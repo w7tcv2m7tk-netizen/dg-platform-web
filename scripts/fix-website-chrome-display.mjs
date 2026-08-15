@@ -10,6 +10,7 @@
  */
 import { config } from "dotenv";
 import { PrismaClient } from "@prisma/client";
+import { stripCvhFooterExploreColumn } from "./lib/strip-cvh-footer-explore.mjs";
 
 config({ path: ".env.local" });
 const prisma = new PrismaClient();
@@ -78,11 +79,14 @@ async function extractFooter(wpRoot) {
   return { footer, stylesheets, inlineStyles };
 }
 
-function wrapFooter(chunk, inlineStyles, logoUrl) {
+function wrapFooter(chunk, inlineStyles, logoUrl, siteSlug) {
   if (!chunk) return null;
   let cleaned = chunk
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
     .replace(/\s+on\w+\s*=\s*(".*?"|'.*?'|[^\s>]+)/gi, "");
+  if (siteSlug === "currumbin-valley-hideaway") {
+    cleaned = stripCvhFooterExploreColumn(cleaned);
+  }
   if (logoUrl) {
     cleaned = cleaned.replace(
       /(<a\b[^>]*class=["'][^"']*footer-logo[^"']*["'][^>]*>\s*<img\b[^>]*src=["'])([^"']+)(["'])/gi,
@@ -142,7 +146,7 @@ async function main() {
     if (brand.wpRoot) {
       try {
         const live = await extractFooter(brand.wpRoot);
-        footerHtml = wrapFooter(live.footer, live.inlineStyles, logoUrl);
+        footerHtml = wrapFooter(live.footer, live.inlineStyles, logoUrl, brand.slug);
         if (live.stylesheets?.length) stylesheets = live.stylesheets;
         console.log(
           `  ${brand.slug}: footer ${footerHtml ? footerHtml.length : 0}c`,
@@ -162,9 +166,22 @@ async function main() {
             headerHtml: null,
             footerHtml,
             overlayHeader: brand.overlay,
+            headerLayout:
+              brand.slug === "currumbin-valley-hideaway"
+                ? "stacked"
+                : prevChrome.headerLayout ?? "bar",
             businessName: site.organisation.name,
             stylesheets,
             navLinks: prevChrome.navLinks || [],
+            ...(brand.slug === "currumbin-valley-hideaway"
+              ? {
+                  headerCta: prevChrome.headerCta ?? {
+                    label: "Book now",
+                    href: "/stay",
+                    backgroundColor: "#B9A48A",
+                  },
+                }
+              : {}),
           },
         },
       },

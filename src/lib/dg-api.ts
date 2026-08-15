@@ -15,6 +15,15 @@ export function isGen2MarketingApexBaseUrl(
   return isGen2MarketingApexBaseUrlCore(baseUrl);
 }
 
+/** True when Acc ops can call a live (non–Gen 2 apex) WordPress Acc host. */
+export function hasLiveAccWordPressHost(
+  connector?: { baseUrl?: string | null } | null,
+): boolean {
+  const base = connector?.baseUrl?.trim();
+  if (!base) return false;
+  return !isGen2MarketingApexBaseUrl(base);
+}
+
 const GEN2_APEX_ACC_RETIRED = GEN2_APEX_WP_RETIRED_MESSAGE;
 
 function isPlaceholderWpUrl(baseUrl: string): boolean {
@@ -760,7 +769,7 @@ export function listWpAccommodationSites(): WpAccommodationSite[] {
   const emptyFallback: WpAccommodationSite[] = [
     {
       id: "gen2",
-      label: "Gen 2 (Neon) — no live WordPress Acc host",
+      label: "Gen 2 (Neon)",
       baseUrl: "",
     },
   ];

@@ -157,6 +157,22 @@ export default async function middleware(req: NextRequest, event: unknown) {
   // Custom domain → public site renderer (multi-tenant host header)
   if (hostname && !isPlatformHost(hostname)) {
     const path = req.nextUrl.pathname;
+
+    if (path === "/robots.txt") {
+      const url = req.nextUrl.clone();
+      url.pathname = "/sites/seo/robots";
+      const rewrite = NextResponse.rewrite(url);
+      rewrite.headers.set("x-dg-custom-host", hostname);
+      return rewrite;
+    }
+    if (path === "/sitemap.xml") {
+      const url = req.nextUrl.clone();
+      url.pathname = "/sites/seo/sitemap";
+      const rewrite = NextResponse.rewrite(url);
+      rewrite.headers.set("x-dg-custom-host", hostname);
+      return rewrite;
+    }
+
     if (
       !path.startsWith("/api") &&
       !path.startsWith("/_next") &&

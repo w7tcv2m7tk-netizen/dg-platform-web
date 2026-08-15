@@ -9,6 +9,7 @@ import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   fetchPortalMe,
   getWpAccommodationSite,
+  hasLiveAccWordPressHost,
   listWpAccommodationSites,
 } from "@/lib/dg-api";
 
@@ -40,6 +41,7 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
   const site = getWpAccommodationSite(siteId);
   const connector = await accommodationConnectorForSession(session?.organisationId);
   const siteLabel = connector?.label ?? site.label;
+  const wpSyncAvailable = hasLiveAccWordPressHost(connector);
 
   const loaded = await loadStayBookingsForOps(session, 150);
   const error =
@@ -66,6 +68,7 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
           error={error}
           siteLabel={siteLabel}
           source="postgres"
+          wpSyncAvailable={wpSyncAvailable}
         />
       </main>
     </>

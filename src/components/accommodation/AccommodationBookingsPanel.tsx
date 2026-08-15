@@ -67,12 +67,15 @@ export function AccommodationBookingsPanel({
   total,
   siteLabel,
   source,
+  wpSyncAvailable = false,
 }: {
   bookings: WpAccBookingRow[];
   error?: string;
   total?: number;
   siteLabel?: string;
   source?: "postgres" | "wordpress";
+  /** Show Sync from WordPress only when a live Acc WP host exists. */
+  wpSyncAvailable?: boolean;
 }) {
   const router = useRouter();
   const [syncing, setSyncing] = useState(false);
@@ -229,19 +232,23 @@ export function AccommodationBookingsPanel({
         >
           {showNew ? "Close" : "New booking"}
         </button>
-        <button
-          type="button"
-          onClick={syncFromWordPress}
-          disabled={syncing}
-          className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
-        >
-          {syncing ? "Syncing…" : "Sync bookings from WordPress"}
-        </button>
+        {wpSyncAvailable ? (
+          <button
+            type="button"
+            onClick={syncFromWordPress}
+            disabled={syncing}
+            className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+          >
+            {syncing ? "Syncing…" : "Sync bookings from WordPress"}
+          </button>
+        ) : null}
         {source ? (
           <p className="text-sm text-slate-500">
             Showing{" "}
             {source === "postgres"
-              ? "StayBooking SoT (Neon) — sync keeps WordPress/OTA in mirror"
+              ? wpSyncAvailable
+                ? "StayBooking SoT (Neon) — optional WordPress sync available"
+                : "StayBooking SoT (Neon) — OTA iCal sync on Availability"
               : "live WordPress (debug probe)"}
           </p>
         ) : null}
@@ -256,8 +263,9 @@ export function AccommodationBookingsPanel({
         >
           <h2 className="font-semibold text-white">New manual / direct booking</h2>
           <p className="text-sm text-slate-500">
-            Writes WordPress calendar first (availability SoT), then dual-writes StayBooking in
-            Neon for Gen 2 reads. Requires plugin v10.65.2+ (v10.67.0+ for public book-now push).
+            {wpSyncAvailable
+              ? "Creates StayBooking in Neon first when units SoT is on, then mirrors to WordPress when a live Acc host is connected."
+              : "Creates StayBooking in Neon (Gen 2 source of truth). No live WordPress Acc host — calendar and OTA sync stay in Platform."}
           </p>
           {unitsError ? <p className="text-sm text-amber-400">{unitsError}</p> : null}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

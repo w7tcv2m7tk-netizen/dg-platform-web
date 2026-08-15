@@ -33,6 +33,7 @@ import {
   listWpAccommodationSites,
   createWpAccommodationBookings,
   deleteWpAccommodationBookings,
+  isGen2MarketingApexBaseUrl,
   patchWpAccommodationBookings,
   patchWpAccommodationGuests,
   patchWpAccommodationHousekeeping,
@@ -535,27 +536,40 @@ export async function POST(req: Request) {
         );
       }
 
-      // Dual-write WP calendar (CVH public/OTA stay safe).
-      const wpResult = await createWpAccommodationBookings(
-        { ...payload, force: true },
-        connector,
-      );
-      let wpMirror: { ok: boolean; wpId?: number; message?: string } = { ok: false };
-      if (wpResult.ok) {
-        const createdRow = wpResult.data.created?.[0];
-        if (createdRow?.id) {
-          await linkStayBookingExternalWpId(
-            session.organisationId,
-            native.booking.id,
-            createdRow.id,
-          );
-          wpMirror = { ok: true, wpId: createdRow.id };
-        }
-      } else {
+      // Dual-write WP calendar only when a live (non–Gen 2 apex) Acc host exists.
+      const skipWpMirror =
+        !connector?.baseUrl?.trim() ||
+        isGen2MarketingApexBaseUrl(connector.baseUrl);
+
+      let wpMirror: { ok: boolean; wpId?: number; message?: string } = {
+        ok: false,
+      };
+      if (skipWpMirror) {
         wpMirror = {
           ok: false,
-          message: wpResult.message ?? "WP mirror failed — StayBooking kept in Neon",
+          message: "WP Acc mirror skipped — Gen 2 Neon-only host",
         };
+      } else {
+        const wpResult = await createWpAccommodationBookings(
+          { ...payload, force: true },
+          connector,
+        );
+        if (wpResult.ok) {
+          const createdRow = wpResult.data.created?.[0];
+          if (createdRow?.id) {
+            await linkStayBookingExternalWpId(
+              session.organisationId,
+              native.booking.id,
+              createdRow.id,
+            );
+            wpMirror = { ok: true, wpId: createdRow.id };
+          }
+        } else {
+          wpMirror = {
+            ok: false,
+            message: wpResult.message ?? "WP mirror failed — StayBooking kept in Neon",
+          };
+        }
       }
 
       return NextResponse.json({
@@ -563,7 +577,7 @@ export async function POST(req: Request) {
           created: [stayBookingToWpRow(native.booking)],
           stayBooking: native.booking,
           wpMirror,
-          writePath: "neon_then_wp",
+          writePath: skipWpMirror ? "neon_only" : "neon_then_wp",
           conflictChecked: native.conflictChecked,
         },
       });

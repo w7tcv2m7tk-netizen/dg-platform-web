@@ -10,6 +10,7 @@ import type {
 import { CvhStayUnitBooking } from "@/components/websites/CvhStayUnitBooking";
 import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
 import { ChromeHeaderHtml } from "@/components/websites/ChromeHeaderHtml";
+import { stripCvhFooterExploreColumn } from "@/lib/strip-cvh-footer-explore";
 
 function asString(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
@@ -789,7 +790,11 @@ export function WebsitePageRenderer({
   const headerHtml = chrome?.headerHtml?.trim() || "";
   const useBrandHeader =
     !headerHtml && Boolean(theme.logoUrl || theme.iconUrl);
-  const footerHtml = chrome?.footerHtml?.trim() || "";
+  const footerHtmlRaw = chrome?.footerHtml?.trim() || "";
+  const footerHtml =
+    /currumbin|hideaway/i.test(siteSlug) && footerHtmlRaw
+      ? stripCvhFooterExploreColumn(footerHtmlRaw)
+      : footerHtmlRaw;
   const useBrandFooter = useBrandHeader && !footerHtml;
   const overlayHeader = Boolean(chrome?.overlayHeader);
   const hasChrome = Boolean(

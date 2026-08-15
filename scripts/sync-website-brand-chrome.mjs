@@ -5,6 +5,7 @@
  */
 import { config } from "dotenv";
 import { PrismaClient } from "@prisma/client";
+import { stripCvhFooterExploreColumn } from "./lib/strip-cvh-footer-explore.mjs";
 
 config({ path: ".env.local" });
 const prisma = new PrismaClient();
@@ -107,6 +108,13 @@ async function main() {
           href: p.slug === "home" || p.intent === "home" ? "/" : `/${p.slug}`,
         }));
 
+    const rawFooter =
+      typeof prevChrome.footerHtml === "string" ? prevChrome.footerHtml : null;
+    const footerHtml =
+      siteSlug === "currumbin-valley-hideaway" && rawFooter
+        ? stripCvhFooterExploreColumn(rawFooter)
+        : rawFooter;
+
     await prisma.website.update({
       where: { id: site.id },
       data: {
@@ -121,7 +129,7 @@ async function main() {
             ...prevChrome,
             // Brand header from theme.logoUrl; keep any stored WP footer
             headerHtml: null,
-            footerHtml: prevChrome.footerHtml ?? null,
+            footerHtml,
             overlayHeader:
               siteSlug === "roe-realty" ||
               siteSlug === "currumbin-valley-hideaway",
