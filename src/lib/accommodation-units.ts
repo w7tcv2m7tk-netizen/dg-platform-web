@@ -21,6 +21,8 @@ export type AccUnitsOpsLoad = {
   seeded: boolean;
   siteLabel?: string;
   error?: string;
+  /** True when org connector points at a live WordPress Acc host (not a Gen 2 marketing apex). */
+  wpImportAvailable: boolean;
 };
 
 /**
@@ -32,20 +34,27 @@ export async function loadUnitsForOps(
   siteId?: string | null,
 ): Promise<AccUnitsOpsLoad> {
   if (!session) {
-    return { units: [], source: "wordpress", sot: false, seeded: false };
+    return {
+      units: [],
+      source: "wordpress",
+      sot: false,
+      seeded: false,
+      wpImportAvailable: false,
+    };
   }
 
   const connector = await accommodationConnectorForSession(session.organisationId);
   const apexRetired = isGen2MarketingApexBaseUrl(connector?.baseUrl);
+  const wpImportAvailable = Boolean(connector?.baseUrl && !apexRetired);
 
-  if (!apexRetired) {
+  if (wpImportAvailable) {
     await autoSyncWordPressAccUnitsIfNeeded(session).catch(() => null);
   }
 
   let stored = await listAccommodationUnits(session.organisationId);
   let seeded = false;
 
-  if (!apexRetired && stored.length === 0) {
+  if (wpImportAvailable && stored.length === 0) {
     const sync = await syncAccommodationUnitsFromWordPress(session.organisationId);
     if (sync.ok) {
       stored = await listAccommodationUnits(session.organisationId);
@@ -60,6 +69,7 @@ export async function loadUnitsForOps(
       sot: true,
       seeded,
       siteLabel: connector?.label,
+      wpImportAvailable,
       error:
         apexRetired && stored.length === 0
           ? "No units in Neon yet. WordPress import is unavailable on the public Gen 2 site — add units in the platform or point the connector at a legacy WP host for a one-time sync."
@@ -76,6 +86,7 @@ export async function loadUnitsForOps(
         sot: true,
         seeded,
         siteLabel: connector?.label,
+        wpImportAvailable,
       };
     }
     return {
@@ -85,6 +96,7 @@ export async function loadUnitsForOps(
       seeded,
       error: live.message,
       siteLabel: connector?.label,
+      wpImportAvailable,
     };
   }
 
@@ -97,5 +109,6 @@ export async function loadUnitsForOps(
     sot: false,
     seeded,
     siteLabel: live.site,
+    wpImportAvailable,
   };
 }

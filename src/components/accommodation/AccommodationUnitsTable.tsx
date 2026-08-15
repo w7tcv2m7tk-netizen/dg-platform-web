@@ -377,10 +377,15 @@ export function AccommodationUnitsTable({
   units,
   error,
   siteLabel,
+  wpImportAvailable = false,
+  source = "postgres",
 }: {
   units: WpAccUnitProp[];
   error?: string;
   siteLabel?: string;
+  /** Show migration Import when connector is a live WordPress Acc host. */
+  wpImportAvailable?: boolean;
+  source?: "postgres" | "wordpress";
 }) {
   const router = useRouter();
   const [rows, setRows] = useState<EditableUnit[]>(() => toRows(units));
@@ -388,6 +393,7 @@ export function AccommodationUnitsTable({
   const [panelOpenId, setPanelOpenId] = useState<number | null>(null);
   const [pending, setPending] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -397,14 +403,42 @@ export function AccommodationUnitsTable({
 
   const comingSoonCount = rows.filter((r) => r.listing_status === "coming_soon").length;
   const eventsCount = rows.filter((r) => r.listing_status === "events_future").length;
+  const sourceHint =
+    source === "postgres"
+      ? "Platform (Neon)"
+      : wpImportAvailable
+        ? "WordPress (live)"
+        : "WordPress";
 
   if (error && !rows.length) {
     return (
-      <div className="dg-card border-amber-500/30">
-        <p className="text-amber-300">{error}</p>
-        <p className="mt-2 text-sm text-slate-500">
-          Public CVH is Gen 2 — units load from Neon, not WordPress /wp-json.
-        </p>
+      <div className="space-y-3">
+        <div className="dg-card border-amber-500/30">
+          <p className="text-amber-300">{error}</p>
+          <p className="mt-2 text-sm text-slate-500">
+            {wpImportAvailable
+              ? "Check the WordPress connector (Settings → Connectors), then try Import from WordPress."
+              : "Units load from Neon on Gen 2 sites. Point the connector at a legacy WP host only if you need a one-time migration import."}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => void refreshUnits()}
+            className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+          >
+            Refresh units
+          </button>
+          {wpImportAvailable ? (
+            <button
+              type="button"
+              onClick={() => void importFromWordPress()}
+              className="rounded-full border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 hover:border-blue-500"
+            >
+              Import from WordPress
+            </button>
+          ) : null}
+        </div>
       </div>
     );
   }
@@ -419,7 +453,7 @@ export function AccommodationUnitsTable({
       if (!res.ok) {
         setSaveError(
           json.error?.message ??
-            "Could not load units from Neon. WordPress import is retired on the public Gen 2 site.",
+            "Could not load units from the platform.",
         );
         return;
       }
@@ -447,6 +481,41 @@ export function AccommodationUnitsTable({
     }
   }
 
+  async function importFromWordPress() {
+    if (!wpImportAvailable) return;
+    setImporting(true);
+    setMessage(null);
+    setSaveError(null);
+    try {
+      const res = await fetch("/api/v1/accommodation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "sync_units" }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSaveError(
+          json.error?.message ??
+            "WordPress import failed — check the connector base URL and API key.",
+        );
+        return;
+      }
+      const created = Number(json.data?.created ?? 0);
+      const updated = Number(json.data?.updated ?? 0);
+      const skipped = Number(json.data?.skipped ?? 0);
+      setMessage(
+        `Imported from WordPress — ${created} created, ${updated} updated` +
+          (skipped ? `, ${skipped} skipped` : "") +
+          ".",
+      );
+      await refreshUnits();
+    } catch {
+      setSaveError("Network error while importing from WordPress.");
+    } finally {
+      setImporting(false);
+    }
+  }
+
   if (!rows.length) {
     return (
       <div className="space-y-3">
@@ -454,19 +523,32 @@ export function AccommodationUnitsTable({
           <h2 className="text-lg font-semibold text-white">Add your first units</h2>
           {siteLabel ? <p className="mt-1 text-sm text-slate-500">Site: {siteLabel}</p> : null}
           <p className="mt-2 text-sm text-slate-500">
-            Units live in Neon (Gen 2). WordPress import is unavailable on the public marketing
-            site. Refresh to load existing units, or sync once from a legacy WP host if the
-            connector still points there.
+            {wpImportAvailable
+              ? "Import listings from your WordPress Acc plugin into Neon (one-time or catch-up), then manage OTA calendar URLs here."
+              : "Units live in Neon on Gen 2. Refresh to reload platform data. For a migrating customer still on WordPress, point Settings → Connectors at their WP host to enable Import."}
           </p>
           {error ? <p className="mt-2 text-sm text-amber-300">{error}</p> : null}
         </div>
-        <button
-          type="button"
-          onClick={() => void refreshUnits()}
-          className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
-        >
-          Refresh units
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={syncing || importing}
+            onClick={() => void refreshUnits()}
+            className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+          >
+            {syncing ? "Refreshing…" : "Refresh units"}
+          </button>
+          {wpImportAvailable ? (
+            <button
+              type="button"
+              disabled={syncing || importing}
+              onClick={() => void importFromWordPress()}
+              className="rounded-full border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 hover:border-blue-500 disabled:opacity-50"
+            >
+              {importing ? "Importing…" : "Import from WordPress"}
+            </button>
+          ) : null}
+        </div>
       </div>
     );
   }
@@ -564,22 +646,39 @@ export function AccommodationUnitsTable({
           {rows.length} unit{rows.length === 1 ? "" : "s"}
           {comingSoonCount ? ` · ${comingSoonCount} coming soon` : ""}
           {eventsCount ? ` · ${eventsCount} events/future` : ""}
+          {` · ${sourceHint}`}
         </div>
-        <button
-          type="button"
-          disabled={syncing}
-          onClick={() => void refreshUnits()}
-          className="rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-200 hover:border-blue-500 disabled:opacity-50"
-        >
-          {syncing ? "Refreshing…" : "Refresh units"}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={syncing || importing}
+            onClick={() => void refreshUnits()}
+            className="rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-200 hover:border-blue-500 disabled:opacity-50"
+          >
+            {syncing ? "Refreshing…" : "Refresh units"}
+          </button>
+          {wpImportAvailable ? (
+            <button
+              type="button"
+              disabled={syncing || importing}
+              onClick={() => void importFromWordPress()}
+              className="rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-200 hover:border-emerald-500 disabled:opacity-50"
+              title="One-time or catch-up import from the WordPress Acc plugin into Neon"
+            >
+              {importing ? "Importing…" : "Import from WordPress"}
+            </button>
+          ) : null}
+        </div>
       </div>
       {message ? <p className="text-sm text-emerald-400">{message}</p> : null}
       {saveError ? <p className="text-sm text-amber-400">{saveError}</p> : null}
       <p className="text-xs text-slate-500">
         Click <span className="text-slate-300">Edit</span> on a unit for full meta +{" "}
         <span className="text-slate-300">OTA calendars</span> (Airbnb / Booking.com import +
-        DigitalGate export URL with Copy). Or use the Calendars column to peek without editing.
+        DigitalGate export URL with Copy).
+        {wpImportAvailable
+          ? " Import from WordPress seeds or refreshes Neon from a live WP Acc connector (migration / catch-up)."
+          : " Gen 2 sites use Neon only — Import appears when the connector points at a legacy WordPress host."}
       </p>
 
       <div className="overflow-x-auto rounded-xl border border-slate-800">

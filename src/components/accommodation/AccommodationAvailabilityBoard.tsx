@@ -596,7 +596,8 @@ export function AccommodationAvailabilityBoard({
         <h2 className="text-lg font-semibold text-white">Add your first units</h2>
         {siteLabel ? <p className="mt-1 text-sm text-slate-500">Site: {siteLabel}</p> : null}
         <p className="mt-2 text-sm text-slate-500">
-          Sync units from WordPress, then use week / month / list views and OTA iCal sync here.
+          Sync units on the Units page (Neon, or Import from WordPress when migrating), then use
+          week / month / list views and OTA iCal sync here.
         </p>
         <a
           href="/apps/accommodation/units"

@@ -136,15 +136,15 @@ export function AccommodationDashboard({
         <div className="dg-card border-dashed border-slate-700">
           <h2 className="text-lg font-semibold text-white">Add your first units</h2>
           <p className="mt-2 max-w-xl text-sm text-slate-400">
-            Sync units from WordPress, confirm Airbnb / Booking.com iCal import + DigitalGate
-            export URLs, then work stays on Bookings and Availability.
+            Open Units to manage Neon listings and OTA calendar URLs. Migrating customers can
+            Import from WordPress when a live WP Acc connector is configured.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
               href="/apps/accommodation/units"
               className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500"
             >
-              Sync units
+              Open units
             </Link>
             <Link
               href="/apps/accommodation/calendar"

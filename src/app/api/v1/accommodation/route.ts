@@ -258,6 +258,20 @@ export async function POST(req: Request) {
   }
 
   if (body.action === "sync_units") {
+    const connector = await accommodationConnectorForSession(session.organisationId);
+    const { isGen2MarketingApexBaseUrl } = await import("@/lib/dg-api");
+    if (isGen2MarketingApexBaseUrl(connector?.baseUrl)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "wp_import_unavailable",
+            message:
+              "WordPress import is unavailable on this public Gen 2 domain. Units live in Neon — use Refresh units, or point the connector at a legacy WP host for a one-time migration import.",
+          },
+        },
+        { status: 422 },
+      );
+    }
     const outcome = await syncWordPressAccUnits(session);
     if (!outcome.ok) {
       // Fall back to direct core sync if helper missing settings write
@@ -268,9 +282,13 @@ export async function POST(req: Request) {
           { status: 422 },
         );
       }
-      return NextResponse.json({ data: direct.result });
+      return NextResponse.json({
+        data: { ...direct.result, writePath: "wordpress_import" },
+      });
     }
-    return NextResponse.json({ data: outcome.result });
+    return NextResponse.json({
+      data: { ...outcome.result, writePath: "wordpress_import" },
+    });
   }
 
   if (body.action === "sync_ota") {

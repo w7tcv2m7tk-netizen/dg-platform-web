@@ -61,6 +61,8 @@ export default async function AccommodationUnitsPage({ searchParams }: PageProps
           units={loaded.units as unknown as WpAccUnitProp[]}
           error={loaded.error}
           siteLabel={siteLabel}
+          wpImportAvailable={loaded.wpImportAvailable}
+          source={loaded.source}
         />
       </main>
     </>
