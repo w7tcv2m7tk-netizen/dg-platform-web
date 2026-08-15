@@ -4,7 +4,8 @@ import { resolveOrgWordPressConnector } from "../connectors/wordpress/org-connec
 import { ensureContactForStayGuest } from "./guests";
 
 export interface WpAccBookingRow {
-  id: number;
+  /** WordPress booking id; omit / undefined for Gen2-native rows with no WP mirror */
+  id?: number;
   /** Neon StayBooking id when row comes from Platform sync */
   platform_id?: string;
   ref?: string;
@@ -390,7 +391,7 @@ export async function upsertStayBookingFromWpRow(
     throw new Error("DATABASE_URL not configured");
   }
   const wpId = booking.id;
-  if (!Number.isFinite(wpId)) {
+  if (typeof wpId !== "number" || !Number.isFinite(wpId) || wpId <= 0) {
     return "skipped";
   }
 

@@ -15,7 +15,8 @@ const STATUS_OPTIONS = [
 ];
 
 function rowKey(row: WpAccBookingRow): string {
-  return row.platform_id || (row.id > 0 ? `wp-${row.id}` : `tmp-${row.ref ?? "row"}`);
+  const wpId = typeof row.id === "number" && row.id > 0 ? row.id : 0;
+  return row.platform_id || (wpId > 0 ? `wp-${wpId}` : `tmp-${row.ref ?? "row"}`);
 }
 
 export function AccommodationBookingsTable({
@@ -62,7 +63,7 @@ export function AccommodationBookingsTable({
         resource: "bookings",
         updates: [
           {
-            id: row.id > 0 ? row.id : undefined,
+            id: typeof row.id === "number" && row.id > 0 ? row.id : undefined,
             platform_id: row.platform_id,
             guest_name: row.guest_name,
             email: row.email,
@@ -115,7 +116,7 @@ export function AccommodationBookingsTable({
       ids?: number[];
     } = { resource: "bookings" };
     if (row.platform_id) body.platform_ids = [row.platform_id];
-    if (row.id > 0) body.ids = [row.id];
+    if (typeof row.id === "number" && row.id > 0) body.ids = [row.id];
 
     if (!body.platform_ids?.length && !body.ids?.length) {
       setPending(false);
@@ -202,7 +203,10 @@ export function AccommodationBookingsTable({
                 return (
                   <tr key={key} className="hover:bg-slate-900/40 align-top">
                     <td className="px-4 py-3 font-mono text-xs text-slate-400">
-                      {b.ref ?? (b.id > 0 ? b.id : b.platform_id?.slice(0, 8))}
+                      {b.ref ??
+                        (typeof b.id === "number" && b.id > 0
+                          ? b.id
+                          : b.platform_id?.slice(0, 8))}
                     </td>
                     <td className="px-4 py-3">
                       {editing ? (

@@ -44,10 +44,15 @@ const METHOD_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 
+function paymentRowKey(row: WpAccBookingRow): string {
+  const wpId = typeof row.id === "number" && row.id > 0 ? row.id : 0;
+  return row.platform_id || (wpId > 0 ? `wp-${wpId}` : `tmp-${row.ref ?? "row"}`);
+}
+
 export function AccommodationPaymentsTable({ bookings }: { bookings: WpAccBookingRow[] }) {
   const router = useRouter();
   const [rows, setRows] = useState(bookings);
-  const [pendingId, setPendingId] = useState<number | null>(null);
+  const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,7 +60,8 @@ export function AccommodationPaymentsTable({ bookings }: { bookings: WpAccBookin
     row: WpAccBookingRow,
     patch: { paid?: string; payment_method?: string },
   ) {
-    setPendingId(row.id);
+    const key = paymentRowKey(row);
+    setPendingKey(key);
     setMessage(null);
     setError(null);
     const res = await fetch("/api/v1/accommodation", {
@@ -65,7 +71,7 @@ export function AccommodationPaymentsTable({ bookings }: { bookings: WpAccBookin
         resource: "bookings",
         updates: [
           {
-            id: row.id,
+            id: typeof row.id === "number" && row.id > 0 ? row.id : undefined,
             platform_id: row.platform_id,
             paid: patch.paid ?? row.paid,
             payment_method: patch.payment_method ?? row.payment_method,
@@ -74,14 +80,14 @@ export function AccommodationPaymentsTable({ bookings }: { bookings: WpAccBookin
       }),
     });
     const json = await res.json().catch(() => ({}));
-    setPendingId(null);
+    setPendingKey(null);
     if (!res.ok) {
       setError(json.error?.message ?? "Could not update payment status");
       return;
     }
     setRows((prev) =>
       prev.map((r) =>
-        r.id === row.id
+        paymentRowKey(r) === key
           ? {
               ...r,
               paid: patch.paid ?? r.paid,
@@ -90,7 +96,7 @@ export function AccommodationPaymentsTable({ bookings }: { bookings: WpAccBookin
           : r,
       ),
     );
-    setMessage(`Updated ${row.ref ?? row.id}`);
+    setMessage(`Updated ${row.ref ?? row.platform_id ?? row.id}`);
     router.refresh();
   }
 
@@ -113,11 +119,15 @@ export function AccommodationPaymentsTable({ bookings }: { bookings: WpAccBookin
           </thead>
           <tbody className="divide-y divide-slate-800">
             {rows.map((b) => {
-              const busy = pendingId === b.id;
+              const key = paymentRowKey(b);
+              const busy = pendingKey === key;
               return (
-                <tr key={b.id} className="hover:bg-slate-900/40">
+                <tr key={key} className="hover:bg-slate-900/40">
                   <td className="px-4 py-3 font-mono text-xs text-slate-400">
-                    {b.ref ?? b.id}
+                    {b.ref ??
+                      (typeof b.id === "number" && b.id > 0
+                        ? b.id
+                        : b.platform_id?.slice(0, 8))}
                   </td>
                   <td className="px-4 py-3 text-white">{b.guest_name ?? "—"}</td>
                   <td className="px-4 py-3 text-slate-300">{b.accommodation ?? "—"}</td>
