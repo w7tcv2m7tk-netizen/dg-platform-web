@@ -19,7 +19,6 @@ const SITE_SLUGS = [
 
 const PRIMARY_NAV = {
   digitalgate: [
-    { label: "Platform", href: "/" },
     { label: "Pricing", href: "/pricing" },
     { label: "Founding", href: "/founding-customers" },
     { label: "Insights", href: "/insights" },
