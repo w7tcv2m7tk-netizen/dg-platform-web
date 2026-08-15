@@ -778,6 +778,21 @@ export async function PATCH(req: Request) {
             patch.features && typeof patch.features === "object"
               ? (patch.features as Record<string, 0 | 1 | boolean>)
               : undefined,
+          last_minute_discount:
+            typeof patch.last_minute_discount === "number"
+              ? patch.last_minute_discount
+              : patch.last_minute_discount === null
+                ? null
+                : undefined,
+          early_bird_discount:
+            typeof patch.early_bird_discount === "number"
+              ? patch.early_bird_discount
+              : patch.early_bird_discount === null
+                ? null
+                : undefined,
+          gallery_urls: Array.isArray(patch.gallery_urls)
+            ? (patch.gallery_urls as string[])
+            : undefined,
         }).catch(() => null);
       }
     }

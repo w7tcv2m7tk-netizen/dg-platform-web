@@ -1227,6 +1227,102 @@ html:has(.wb-root.wb-html-page) body {
   color: #eff6ff !important;
 }
 
+/*
+ * DigitalGate Contact (.dg-contact) — navy shell + cream type (same pattern as About).
+ * Live /contact/ is often wb-html-island--light; cream-island ink bleaches body copy on navy.
+ * Keep .form-wrapper (white enquiry card) on dark ink.
+ */
+.wb-root .wb-html-island:has(.dg-contact),
+.wb-root .wb-html-island .dg-contact {
+  background: #0a0e17 !important;
+  color: #f9fafb !important;
+}
+
+.wb-root .wb-html-island .dg-contact :is(
+  .contact-hero,
+  .contact-cta,
+  .contact-card,
+  .consult-card,
+  .section-header,
+  .step,
+  .diff-callout,
+  .svc-foot,
+  .lead-sm,
+  section,
+  section.alt
+) {
+  color: #f9fafb !important;
+}
+
+.wb-root .wb-html-island .dg-contact :is(
+  .contact-hero,
+  .contact-cta,
+  .contact-card,
+  .consult-card,
+  .section-header,
+  .step,
+  .diff-callout,
+  section,
+  section.alt
+) :is(h1, h2, h3, h4, h5, h6) {
+  color: #faf8f4 !important;
+}
+
+.wb-root .wb-html-island .dg-contact :is(
+  .contact-hero,
+  .contact-cta,
+  .contact-card,
+  .consult-card,
+  .section-header,
+  .step,
+  .diff-callout,
+  .svc-foot,
+  .lead-sm,
+  section,
+  section.alt
+) :is(p, li, span, small, strong, em, figcaption, .lead, .lead-sm) {
+  color: #e2e8f0 !important;
+}
+
+.wb-root .wb-html-island .dg-contact .sub-label {
+  color: #93c5fd !important;
+}
+
+.wb-root .wb-html-island .dg-contact a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]) {
+  color: #bfdbfe !important;
+}
+
+.wb-root .wb-html-island .dg-contact a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]):hover {
+  color: #eff6ff !important;
+}
+
+/* White enquiry card stays dark ink */
+.wb-root .wb-html-island .dg-contact .form-wrapper {
+  color: #1c2b2a !important;
+  background: #ffffff !important;
+}
+
+.wb-root .wb-html-island .dg-contact .form-wrapper :is(h1, h2, h3, h4) {
+  color: #0f172a !important;
+}
+
+.wb-root .wb-html-island .dg-contact .form-wrapper :is(
+  p,
+  li,
+  span,
+  small,
+  label,
+  .form-header,
+  .sub-label
+) {
+  color: #243533 !important;
+}
+
+.wb-root .wb-html-island .dg-contact .form-wrapper :is(input, textarea, select) {
+  color: #0f172a !important;
+  background: #ffffff !important;
+}
+
 .wb-html-page .wb-html-island--page .roe-property-grid {
   max-width: none !important;
   width: 100% !important;
@@ -2558,6 +2654,60 @@ a.wb-brand-chrome-cta:hover {
 .cvh-stay-form button:disabled {
   opacity: 0.7;
   cursor: wait;
+}
+.cvh-stay-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.65rem;
+  margin: 0;
+}
+.cvh-stay-gallery-item {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: zoom-in;
+  border-radius: 0.55rem;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+.cvh-stay-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cvh-stay-discount span,
+.cvh-stay-discount strong {
+  color: #166534 !important;
+}
+.cvh-stay-pay-actions {
+  display: grid;
+  gap: 0.55rem;
+}
+.cvh-stay-form .cvh-btn-payid {
+  background: #1c2b2a;
+}
+.cvh-stay-form .cvh-btn-card {
+  background: #6b5428;
+}
+.cvh-stay-form .cvh-btn-enquire {
+  background: transparent;
+  color: #6b5428 !important;
+  border: 1px solid #d4c4b0;
+}
+.cvh-stay-payid {
+  border: 1px solid #e8dfd3;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  background: #faf7f2;
+  font-size: 0.9rem;
+  color: #1c2b2a;
+}
+.cvh-stay-payid p {
+  margin: 0 0 0.45rem;
+}
+.cvh-stay-payid p:last-child {
+  margin-bottom: 0;
 }
 .cvh-stay-error {
   color: #b91c1c;

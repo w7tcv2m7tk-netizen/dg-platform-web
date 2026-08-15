@@ -1,4 +1,5 @@
 import {
+  createPublicStayCheckout,
   getPublicStayUnitForSite,
   submitPublicStayEnquiry,
 } from "@dg/platform-core";
@@ -32,11 +33,17 @@ export async function GET(req: Request, ctx: Ctx) {
   return NextResponse.json({ data: unit });
 }
 
-/** Public booking enquiry — CRM lead (mirrors WP dg_accommodation_enquiry). */
+/**
+ * Public stay actions:
+ * - default / action=enquire → CRM lead
+ * - action=checkout + method=stripe|payid → Neon StayBooking + payment
+ */
 export async function POST(req: Request, ctx: Ctx) {
   const { unitSlug } = await ctx.params;
   const body = (await req.json().catch(() => null)) as {
     siteSlug?: string;
+    action?: string;
+    method?: string;
     firstName?: string;
     lastName?: string;
     email?: string;
@@ -45,9 +52,65 @@ export async function POST(req: Request, ctx: Ctx) {
     checkout?: string;
     guests?: number;
     message?: string;
+    returnBaseUrl?: string;
   } | null;
 
   const siteSlug = siteSlugFrom(req, body?.siteSlug);
+  const action = (body?.action || "enquire").trim().toLowerCase();
+
+  if (action === "checkout" || action === "pay") {
+    const methodRaw = (body?.method || "").trim().toLowerCase();
+    const method =
+      methodRaw === "stripe" || methodRaw === "card"
+        ? "stripe"
+        : methodRaw === "payid"
+          ? "payid"
+          : null;
+    if (!method) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "validation_error",
+            message: "method must be stripe or payid",
+          },
+        },
+        { status: 422 },
+      );
+    }
+
+    const result = await createPublicStayCheckout({
+      siteSlug,
+      unitSlug,
+      method,
+      firstName: body?.firstName ?? "",
+      lastName: body?.lastName ?? "",
+      email: body?.email ?? "",
+      phone: body?.phone,
+      checkin: body?.checkin ?? "",
+      checkout: body?.checkout ?? "",
+      guests: body?.guests,
+      message: body?.message,
+      returnBaseUrl: body?.returnBaseUrl,
+    });
+
+    if (!result.ok) {
+      const status =
+        result.code === "not_found"
+          ? 404
+          : result.code === "dates_unavailable"
+            ? 409
+            : result.code === "validation_error"
+              ? 422
+              : 500;
+      return NextResponse.json(
+        { error: { code: result.code, message: result.message } },
+        { status },
+      );
+    }
+
+    return NextResponse.json({ data: result }, { status: 201 });
+  }
+
   const result = await submitPublicStayEnquiry({
     siteSlug,
     unitSlug,

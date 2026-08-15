@@ -44,6 +44,8 @@ export type WpAccUnitPropRow = {
   features?: Record<string, 0 | 1 | boolean>;
   featured_image_url?: string;
   gallery_urls?: string[];
+  last_minute_discount?: number | null;
+  early_bird_discount?: number | null;
   airbnb_ical_url?: string;
   bookingcom_ical_url?: string;
   ical_export_url?: string;
@@ -82,6 +84,10 @@ export type AccommodationUnitListItem = {
   features?: Record<string, unknown> | null;
   featuredImageUrl?: string | null;
   galleryUrls?: string[];
+  /** Percent discounts + misc listing meta (WP dg_last_minute_discount etc.) */
+  metadata?: Record<string, unknown> | null;
+  lastMinuteDiscount?: number | null;
+  earlyBirdDiscount?: number | null;
   airbnbIcalUrl?: string | null;
   bookingcomIcalUrl?: string | null;
   icalExportUrl?: string | null;
@@ -152,6 +158,7 @@ function serializeUnit(row: {
   features: unknown;
   featuredImageUrl: string | null;
   galleryUrls: unknown;
+  metadata: unknown;
   airbnbIcalUrl: string | null;
   bookingcomIcalUrl: string | null;
   icalExportUrl: string | null;
@@ -167,6 +174,22 @@ function serializeUnit(row: {
   const gallery = Array.isArray(row.galleryUrls)
     ? row.galleryUrls.filter((u): u is string => typeof u === "string")
     : [];
+  const metadata =
+    row.metadata && typeof row.metadata === "object"
+      ? (row.metadata as Record<string, unknown>)
+      : null;
+  const lastMinute =
+    typeof metadata?.last_minute_discount === "number"
+      ? metadata.last_minute_discount
+      : typeof metadata?.last_minute_discount === "string"
+        ? Number(metadata.last_minute_discount)
+        : null;
+  const earlyBird =
+    typeof metadata?.early_bird_discount === "number"
+      ? metadata.early_bird_discount
+      : typeof metadata?.early_bird_discount === "string"
+        ? Number(metadata.early_bird_discount)
+        : null;
   return {
     id: row.id,
     externalWpId: row.externalWpId,
@@ -193,6 +216,9 @@ function serializeUnit(row: {
         : null,
     featuredImageUrl: row.featuredImageUrl,
     galleryUrls: gallery,
+    metadata,
+    lastMinuteDiscount: Number.isFinite(lastMinute) ? lastMinute : null,
+    earlyBirdDiscount: Number.isFinite(earlyBird) ? earlyBird : null,
     airbnbIcalUrl: row.airbnbIcalUrl,
     bookingcomIcalUrl: row.bookingcomIcalUrl,
     icalExportUrl: row.icalExportUrl,
@@ -235,6 +261,8 @@ export function unitToWpProp(item: AccommodationUnitListItem): Record<string, un
     features: item.features ?? undefined,
     featured_image_url: item.featuredImageUrl ?? undefined,
     gallery_urls: item.galleryUrls,
+    last_minute_discount: item.lastMinuteDiscount ?? undefined,
+    early_bird_discount: item.earlyBirdDiscount ?? undefined,
     airbnb_ical_url: item.airbnbIcalUrl ?? undefined,
     bookingcom_ical_url: item.bookingcomIcalUrl ?? undefined,
     // Prefer Gen 2 public export (bypasses CVH ModSecurity 406 for OTA bots).
@@ -347,6 +375,23 @@ export async function upsertAccommodationUnitFromWpRow(
   if (unit.gallery_urls !== undefined) {
     patch.galleryUrls = (unit.gallery_urls ?? []) as Prisma.InputJsonValue;
   }
+  if (
+    unit.last_minute_discount !== undefined ||
+    unit.early_bird_discount !== undefined
+  ) {
+    const prev =
+      existing?.metadata && typeof existing.metadata === "object"
+        ? (existing.metadata as Record<string, unknown>)
+        : {};
+    const nextMeta = { ...prev };
+    if (unit.last_minute_discount !== undefined) {
+      nextMeta.last_minute_discount = unit.last_minute_discount;
+    }
+    if (unit.early_bird_discount !== undefined) {
+      nextMeta.early_bird_discount = unit.early_bird_discount;
+    }
+    patch.metadata = nextMeta as Prisma.InputJsonValue;
+  }
   if (unit.airbnb_ical_url !== undefined) {
     patch.airbnbIcalUrl = unit.airbnb_ical_url?.trim() || null;
   }
@@ -414,6 +459,14 @@ export async function upsertAccommodationUnitFromWpRow(
       features: (unit.features ?? null) as Prisma.InputJsonValue,
       featuredImageUrl: unit.featured_image_url?.trim() || null,
       galleryUrls: (unit.gallery_urls ?? []) as Prisma.InputJsonValue,
+      metadata: {
+        ...(unit.last_minute_discount !== undefined
+          ? { last_minute_discount: unit.last_minute_discount }
+          : {}),
+        ...(unit.early_bird_discount !== undefined
+          ? { early_bird_discount: unit.early_bird_discount }
+          : {}),
+      } as Prisma.InputJsonValue,
       airbnbIcalUrl: unit.airbnb_ical_url?.trim() || null,
       bookingcomIcalUrl: unit.bookingcom_ical_url?.trim() || null,
       icalExportUrl: unit.ical_export_url?.trim() || null,

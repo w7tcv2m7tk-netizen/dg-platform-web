@@ -554,7 +554,8 @@ export async function createStayBookingGen2First(
     guestName: string;
     email?: string;
     phone?: string;
-    accommodationWpId: number;
+    accommodationWpId?: number;
+    accommodationUnitId?: string;
     checkin: string;
     checkout: string;
     guests?: number;
@@ -582,6 +583,7 @@ export async function createStayBookingGen2First(
   if (!input.force) {
     const availability = await checkStayAvailability(organisationId, {
       accommodationWpId: input.accommodationWpId,
+      accommodationUnitId: input.accommodationUnitId,
       checkin: input.checkin,
       checkout: input.checkout,
     });
@@ -596,14 +598,30 @@ export async function createStayBookingGen2First(
   }
 
   const { prisma } = await import("@dg/database");
-  const unit = await prisma.accommodationUnit.findUnique({
-    where: {
-      organisationId_externalWpId: {
-        organisationId,
-        externalWpId: input.accommodationWpId,
+  let unit =
+    input.accommodationUnitId != null
+      ? await prisma.accommodationUnit.findFirst({
+          where: { id: input.accommodationUnitId, organisationId },
+        })
+      : null;
+  if (!unit && input.accommodationWpId != null) {
+    unit = await prisma.accommodationUnit.findUnique({
+      where: {
+        organisationId_externalWpId: {
+          organisationId,
+          externalWpId: input.accommodationWpId,
+        },
       },
-    },
-  });
+    });
+  }
+
+  if (!unit) {
+    return {
+      ok: false,
+      code: "unit_not_found",
+      message: "Accommodation unit not found",
+    };
+  }
 
   const guestName = input.guestName.trim();
   if (!guestName) {
@@ -615,8 +633,8 @@ export async function createStayBookingGen2First(
     guest_name: guestName,
     email: input.email,
     phone: input.phone,
-    accommodation: unit?.title,
-    accommodation_id: input.accommodationWpId,
+    accommodation: unit.title,
+    accommodation_id: unit.externalWpId ?? input.accommodationWpId ?? undefined,
     checkin: input.checkin,
     checkout: input.checkout,
     guests: input.guests,
@@ -641,7 +659,7 @@ export async function createStayBookingGen2First(
       organisationId,
       externalWpId: null,
       ...fields,
-      accommodationUnitId: unit?.id ?? null,
+      accommodationUnitId: unit.id,
       contactId,
       metadata: {
         ...fields.metadata,

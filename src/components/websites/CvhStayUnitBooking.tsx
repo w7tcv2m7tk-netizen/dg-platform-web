@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import type { PublicStayUnitPayload } from "@dg/platform-core";
 
 type Props = {
@@ -44,10 +44,12 @@ function eachNight(checkin: string, checkout: string) {
   return nights;
 }
 
+/** Match WP / Gen 2 quotePublicStay (last minute 0–3, early bird 3–14). */
 function calcTotal(
   unit: PublicStayUnitPayload,
   checkin: string,
   checkout: string,
+  today: string,
 ) {
   const nights = eachNight(checkin, checkout);
   let subtotal = 0;
@@ -60,10 +62,30 @@ function calcTotal(
     subtotal += rate;
   }
   const cleaning = unit.cleaningFee ?? 0;
+  const daysUntil = Math.floor(
+    (parseLocal(checkin).getTime() - parseLocal(today).getTime()) / 86_400_000,
+  );
+  let discountPercent = 0;
+  let discountType = "";
+  if (daysUntil >= 0 && daysUntil <= 3 && unit.lastMinuteDiscount > 0) {
+    discountPercent = unit.lastMinuteDiscount;
+    discountType = "Last Minute";
+  } else if (daysUntil > 3 && daysUntil <= 14 && unit.earlyBirdDiscount > 0) {
+    discountPercent = unit.earlyBirdDiscount;
+    discountType = "Early Bird";
+  }
+  const discountAmount =
+    discountPercent > 0
+      ? Math.round(subtotal * (discountPercent / 100) * 100) / 100
+      : 0;
   return {
     nights: nights.length,
     subtotal,
-    total: subtotal + cleaning,
+    cleaningFee: cleaning,
+    discountAmount,
+    discountPercent,
+    discountType,
+    total: Math.max(0, subtotal - discountAmount + cleaning),
   };
 }
 
@@ -93,6 +115,12 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
   }, []);
 
   const blocked = useMemo(() => new Set(unit.blockedDates), [unit.blockedDates]);
+  const gallery = unit.galleryImageUrls?.length
+    ? unit.galleryImageUrls
+    : unit.heroImageUrl
+      ? [unit.heroImageUrl]
+      : [];
+
   const [cursor, setCursor] = useState(() => {
     const d = new Date();
     return { y: d.getFullYear(), m: d.getMonth() };
@@ -108,6 +136,43 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [payidInfo, setPayidInfo] = useState<{
+    ref: string;
+    payidEmail: string;
+    total: number;
+  } | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("booking") === "success") {
+      setSuccess(
+        `Payment received${params.get("ref") ? ` — ref ${params.get("ref")}` : ""}. We’ll email confirmation shortly.`,
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxOpen(false);
+      if (e.key === "ArrowRight" && gallery.length) {
+        setLightboxIndex((i) => (i + 1) % gallery.length);
+      }
+      if (e.key === "ArrowLeft" && gallery.length) {
+        setLightboxIndex((i) => (i - 1 + gallery.length) % gallery.length);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [lightboxOpen, gallery.length]);
 
   const priceLabel =
     money(unit.weekdayRate) != null
@@ -115,7 +180,7 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
       : "Enquire";
 
   const summary =
-    checkin && checkout ? calcTotal(unit, checkin, checkout) : null;
+    checkin && checkout ? calcTotal(unit, checkin, checkout, today) : null;
 
   const cells = monthMatrix(cursor.y, cursor.m);
   const monthLabel = new Date(cursor.y, cursor.m, 1).toLocaleDateString(
@@ -164,31 +229,38 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
     setCheckout(date);
   }
 
-  async function onSubmit(e: FormEvent) {
+  async function postStay(body: Record<string, unknown>) {
+    const res = await fetch(`/api/public/accommodation/stay/${unit.slug}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new Error(json?.error?.message || "Request failed");
+    }
+    return json?.data;
+  }
+
+  async function onEnquire(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
     setSuccess(null);
+    setPayidInfo(null);
     try {
-      const res = await fetch(`/api/public/accommodation/stay/${unit.slug}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          siteSlug,
-          firstName,
-          lastName,
-          email,
-          phone,
-          checkin: checkin || undefined,
-          checkout: checkout || undefined,
-          guests,
-          message,
-        }),
+      await postStay({
+        siteSlug,
+        action: "enquire",
+        firstName,
+        lastName,
+        email,
+        phone,
+        checkin: checkin || undefined,
+        checkout: checkout || undefined,
+        guests,
+        message,
       });
-      const json = await res.json().catch(() => null);
-      if (!res.ok) {
-        throw new Error(json?.error?.message || "Could not send enquiry");
-      }
       setSuccess("Thanks — we’ll reply with availability shortly.");
       setMessage("");
     } catch (err) {
@@ -197,6 +269,58 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
       setBusy(false);
     }
   }
+
+  async function onPay(method: "stripe" | "payid") {
+    if (!checkin || !checkout) {
+      setError("Select check-in and check-out dates first.");
+      return;
+    }
+    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+      setError("Please enter your name and email before paying.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setSuccess(null);
+    setPayidInfo(null);
+    try {
+      const data = await postStay({
+        siteSlug,
+        action: "checkout",
+        method,
+        firstName,
+        lastName,
+        email,
+        phone,
+        checkin,
+        checkout,
+        guests,
+        message,
+        returnBaseUrl:
+          typeof window !== "undefined"
+            ? window.location.href.split("?")[0]
+            : undefined,
+      });
+      if (method === "stripe" && data?.checkoutUrl) {
+        window.location.href = data.checkoutUrl as string;
+        return;
+      }
+      if (method === "payid") {
+        setPayidInfo({
+          ref: String(data.ref),
+          payidEmail: String(data.payidEmail || unit.payidEmail),
+          total: Number(data.total ?? summary?.total ?? 0),
+        });
+        setSuccess(null);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Payment could not start");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const lightboxSrc = gallery[lightboxIndex];
 
   return (
     <div className="cvh-stay-unit">
@@ -264,6 +388,34 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
               </div>
             ) : null}
           </section>
+
+          {gallery.length > 0 ? (
+            <section className="cvh-stay-section">
+              <h3>Gallery</h3>
+              <div className="cvh-stay-gallery gallery-grid" role="list">
+                {gallery.map((src, i) => (
+                  <button
+                    key={`${src}-${i}`}
+                    type="button"
+                    className="gallery-item cvh-stay-gallery-item"
+                    role="listitem"
+                    aria-label={`Photo ${i + 1}`}
+                    onClick={() => {
+                      setLightboxIndex(i);
+                      setLightboxOpen(true);
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={src}
+                      alt={`${unit.title} — photo ${i + 1}`}
+                      loading={i < 2 ? "eager" : "lazy"}
+                    />
+                  </button>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <section className="cvh-stay-section">
             <h3>📅 Check availability</h3>
@@ -363,6 +515,18 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
                   <strong>{money(unit.cleaningFee)}</strong>
                 </li>
               ) : null}
+              {unit.lastMinuteDiscount > 0 ? (
+                <li>
+                  <span>⚡ Last minute (0–3 days)</span>
+                  <strong>{unit.lastMinuteDiscount}% off</strong>
+                </li>
+              ) : null}
+              {unit.earlyBirdDiscount > 0 ? (
+                <li>
+                  <span>🐦 Early bird (3–14 days)</span>
+                  <strong>{unit.earlyBirdDiscount}% off</strong>
+                </li>
+              ) : null}
             </ul>
           </div>
 
@@ -397,6 +561,20 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
                   <span>Subtotal</span>
                   <strong>${summary.subtotal.toFixed(2)}</strong>
                 </li>
+                {summary.discountAmount > 0 ? (
+                  <li className="cvh-stay-discount">
+                    <span>
+                      {summary.discountType} (−{summary.discountPercent}%)
+                    </span>
+                    <strong>−${summary.discountAmount.toFixed(2)}</strong>
+                  </li>
+                ) : null}
+                {summary.cleaningFee > 0 ? (
+                  <li>
+                    <span>Cleaning</span>
+                    <strong>${summary.cleaningFee.toFixed(2)}</strong>
+                  </li>
+                ) : null}
                 <li>
                   <span>Estimated total</span>
                   <strong>${summary.total.toFixed(2)}</strong>
@@ -408,8 +586,8 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
           </div>
 
           <div className="cvh-stay-card cvh-stay-form-card">
-            <h3>Enquire to book</h3>
-            <form onSubmit={onSubmit} className="cvh-stay-form">
+            <h3>Book your stay</h3>
+            <form onSubmit={onEnquire} className="cvh-stay-form">
               <div className="cvh-stay-form-row">
                 <label>
                   First name
@@ -465,7 +643,42 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
               </label>
               {error ? <p className="cvh-stay-error">{error}</p> : null}
               {success ? <p className="cvh-stay-success">{success}</p> : null}
-              <button type="submit" disabled={busy}>
+              {payidInfo ? (
+                <div className="cvh-stay-payid">
+                  <p>
+                    <strong>Pay with PayID</strong>
+                  </p>
+                  <p>
+                    Send <strong>${payidInfo.total.toFixed(2)}</strong> to{" "}
+                    <strong>{payidInfo.payidEmail}</strong>
+                  </p>
+                  <p>
+                    Use reference <strong>{payidInfo.ref}</strong> so we can
+                    match your payment.
+                  </p>
+                </div>
+              ) : null}
+              <div className="cvh-stay-pay-actions">
+                <button
+                  type="button"
+                  className="cvh-btn-payid"
+                  disabled={busy || !checkin || !checkout}
+                  onClick={() => onPay("payid")}
+                >
+                  {busy ? "Working…" : "📱 Pay with PayID"}
+                </button>
+                {unit.stripeEnabled ? (
+                  <button
+                    type="button"
+                    className="cvh-btn-card"
+                    disabled={busy || !checkin || !checkout}
+                    onClick={() => onPay("stripe")}
+                  >
+                    {busy ? "Working…" : "💳 Pay with Card"}
+                  </button>
+                ) : null}
+              </div>
+              <button type="submit" className="cvh-btn-enquire" disabled={busy}>
                 {busy ? "Sending…" : "Send booking enquiry"}
               </button>
             </form>
@@ -497,6 +710,63 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
           </p>
         </aside>
       </div>
+
+      {lightboxOpen && lightboxSrc ? (
+        <div
+          className="wb-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image gallery"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            type="button"
+            className="wb-lightbox-close"
+            aria-label="Close"
+            onClick={() => setLightboxOpen(false)}
+          >
+            ×
+          </button>
+          {gallery.length > 1 ? (
+            <>
+              <button
+                type="button"
+                className="wb-lightbox-nav wb-lightbox-prev"
+                aria-label="Previous image"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex(
+                    (i) => (i - 1 + gallery.length) % gallery.length,
+                  );
+                }}
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="wb-lightbox-nav wb-lightbox-next"
+                aria-label="Next image"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((i) => (i + 1) % gallery.length);
+                }}
+              >
+                ›
+              </button>
+            </>
+          ) : null}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className="wb-lightbox-image"
+            src={lightboxSrc}
+            alt={`${unit.title} — photo ${lightboxIndex + 1}`}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <p className="wb-lightbox-meta">
+            {lightboxIndex + 1} / {gallery.length}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

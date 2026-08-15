@@ -43,6 +43,27 @@ export async function POST(req: Request) {
         console.info("[stripe webhook] platform checkout:", platformResult);
         return NextResponse.json({ received: true, platform: platformResult });
       }
+
+      const meta = session.metadata ?? {};
+      if (
+        meta.dg_kind === "stay_booking" &&
+        meta.organisationId &&
+        (meta.stayBookingId || meta.paymentRequestId || event.paymentRequestId)
+      ) {
+        const { markPublicStayPaidFromStripe } = await import("@dg/platform-core");
+        const stayResult = await markPublicStayPaidFromStripe({
+          organisationId: meta.organisationId,
+          stayBookingId:
+            meta.stayBookingId ||
+            meta.paymentRequestId ||
+            event.paymentRequestId ||
+            "",
+          providerPaymentId: event.providerPaymentId,
+          amountCents: event.amountCents,
+        });
+        console.info("[stripe webhook] stay booking checkout:", stayResult);
+        return NextResponse.json({ received: true, stay: stayResult });
+      }
     }
 
     if (
