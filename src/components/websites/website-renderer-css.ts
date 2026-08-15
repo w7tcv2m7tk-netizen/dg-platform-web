@@ -904,7 +904,7 @@ export const websiteRendererCss = `
   padding: 0.55rem 1rem;
   border-radius: 999px;
   background: var(--wb-accent, #c4a35a);
-  color: #0f1716 !important;
+  color: #f8fafc !important;
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -917,7 +917,7 @@ export const websiteRendererCss = `
 .wb-brand-chrome-cta:hover {
   filter: brightness(1.06);
   transform: translateY(-1px);
-  color: #0f1716 !important;
+  color: #ffffff !important;
 }
 
 .wb-brand-chrome-header.is-top .wb-brand-chrome-cta {
