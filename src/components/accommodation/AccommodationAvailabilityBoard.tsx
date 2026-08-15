@@ -1009,9 +1009,9 @@ function UnitPricingPanel({
   );
 }
 
-function assignSpanLanes(
-  spans: BookingSpan[],
-): Array<BookingSpan & { lane: number }> {
+function assignSpanLanes<T extends BookingSpan>(
+  spans: T[],
+): Array<T & { lane: number }> {
   const sorted = [...spans].sort(
     (a, b) => a.startIdx - b.startIdx || a.endIdx - b.endIdx,
   );
@@ -1028,31 +1028,50 @@ function assignSpanLanes(
   });
 }
 
+function guestBarLabel(booking: WpAccBookingRow): string {
+  const guest = booking.guest_name?.trim() || "Guest";
+  const guests = typeof booking.guests === "number" ? booking.guests : null;
+  if (guests != null && guests > 1) return `${guest} + ${guests - 1}`;
+  return guest;
+}
+
+function guestInitial(booking: WpAccBookingRow): string {
+  const guest = booking.guest_name?.trim() || "G";
+  return guest.charAt(0).toUpperCase();
+}
+
 function StaySpanBar({
   span,
   dayCount,
   compact,
   lane,
   laneCount,
+  showAvatar,
+  subtitle,
 }: {
   span: BookingSpan;
   dayCount: number;
   compact?: boolean;
   lane: number;
   laneCount: number;
+  /** Airbnb-style avatar + guest (+N) label */
+  showAvatar?: boolean;
+  subtitle?: string;
 }) {
   const guest = span.booking.guest_name?.trim() || "Guest";
+  const label = showAvatar ? guestBarLabel(span.booking) : guest;
   const channel = span.booking.source || span.booking.status || "";
   const nightsLabel = formatNightsLabel(span.nights);
   const leftPct = (span.startIdx / dayCount) * 100;
   const widthPct = ((span.endIdx - span.startIdx + 1) / dayCount) * 100;
-  const radiusLeft = span.continuesBefore ? "2px" : "999px";
-  const radiusRight = span.continuesAfter ? "2px" : "999px";
-  const barH = compact ? 18 : 32;
+  const radiusLeft = span.continuesBefore ? "4px" : "999px";
+  const radiusRight = span.continuesAfter ? "4px" : "999px";
+  const barH = compact ? 18 : showAvatar ? 26 : 32;
   const gap = 3;
-  const top = lane * (barH + gap) + (compact ? 4 : 8);
+  const top = lane * (barH + gap) + (compact ? 4 : showAvatar ? 28 : 8);
   const title = [
     guest,
+    subtitle,
     channel,
     nightsLabel,
     `${span.booking.checkin} → ${span.booking.checkout}`,
@@ -1063,12 +1082,12 @@ function StaySpanBar({
 
   return (
     <div
-      className={`pointer-events-none absolute z-[1] flex items-center overflow-hidden px-2 text-white shadow-sm ${
-        compact ? "text-[9px]" : "text-[10px]"
+      className={`pointer-events-none absolute z-[1] flex items-center gap-1.5 overflow-hidden text-white shadow-sm ${
+        compact ? "px-1.5 text-[9px]" : showAvatar ? "px-1.5 text-[11px]" : "px-2 text-[10px]"
       }`}
       style={{
-        left: `calc(${leftPct}% + 2px)`,
-        width: `calc(${widthPct}% - 4px)`,
+        left: `calc(${leftPct}% + 3px)`,
+        width: `calc(${widthPct}% - 6px)`,
         top,
         height: barH,
         backgroundColor: bookingColor(span.booking),
@@ -1077,11 +1096,22 @@ function StaySpanBar({
       title={title}
       data-lanes={laneCount}
     >
+      {showAvatar && !span.continuesBefore ? (
+        <span
+          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20 text-[10px] font-bold"
+          aria-hidden
+        >
+          {guestInitial(span.booking)}
+        </span>
+      ) : null}
       <p className="min-w-0 truncate font-semibold leading-tight">
         {span.continuesBefore ? "← " : ""}
-        {guest}
-        {nightsLabel ? (
+        {label}
+        {!showAvatar && nightsLabel ? (
           <span className="font-medium opacity-90">{` · ${nightsLabel}`}</span>
+        ) : null}
+        {subtitle && showAvatar ? (
+          <span className="font-medium opacity-80">{` · ${subtitle}`}</span>
         ) : null}
         {span.continuesAfter ? " →" : ""}
       </p>
@@ -1356,6 +1386,205 @@ function WeekGrid({
   );
 }
 
+type MonthStay = {
+  booking: WpAccBookingRow;
+  unitId: number;
+  unitLabel: string;
+  key: string;
+};
+
+function bookingDedupeKey(booking: WpAccBookingRow, unitId: number): string {
+  return (
+    (typeof booking.platform_id === "string" && booking.platform_id.trim()) ||
+    (typeof booking.id === "number" && booking.id > 0 ? `wp-${booking.id}` : "") ||
+    `${unitId}:${booking.checkin}:${booking.checkout}:${booking.guest_name ?? ""}:${booking.source ?? booking.status ?? ""}`
+  );
+}
+
+/** Unique stays overlapping the month (one bar per stay, not per night). */
+function collectMonthStays(
+  units: WpAccAvailabilityUnit[],
+  days: string[],
+  filter: BookingChannelFilter,
+): MonthStay[] {
+  if (!days.length) return [];
+  const rangeStart = days[0]!;
+  const rangeEnd = days[days.length - 1]!;
+  const seen = new Set<string>();
+  const out: MonthStay[] = [];
+
+  for (const unit of units) {
+    for (const booking of unit.bookings ?? []) {
+      if (!booking.checkin || !booking.checkout) continue;
+      if (!bookingMatchesChannel(booking, filter)) continue;
+      if (booking.checkout <= rangeStart || booking.checkin > rangeEnd) continue;
+      const key = bookingDedupeKey(booking, unit.id);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({
+        booking,
+        unitId: unit.id,
+        unitLabel: resolveUnitLabel(unit, booking),
+        key,
+      });
+    }
+  }
+
+  return out.sort(
+    (a, b) =>
+      (a.booking.checkin ?? "").localeCompare(b.booking.checkin ?? "") ||
+      (a.booking.checkout ?? "").localeCompare(b.booking.checkout ?? ""),
+  );
+}
+
+/** Clip a stay onto one Sunday–Saturday week row (column indices 0–6). */
+function clipStayToWeek(
+  stay: MonthStay,
+  weekCells: (string | null)[],
+): (BookingSpan & { unitLabel: string; unitId: number; key: string }) | null {
+  let startIdx: number | null = null;
+  let endIdx: number | null = null;
+  for (let i = 0; i < weekCells.length; i += 1) {
+    const day = weekCells[i];
+    if (!day || !bookingOccupiesNight(stay.booking, day)) continue;
+    if (startIdx == null) startIdx = i;
+    endIdx = i;
+  }
+  if (startIdx == null || endIdx == null) return null;
+
+  const startDay = weekCells[startIdx]!;
+  const endDay = weekCells[endIdx]!;
+  const lastNight = addDays(stay.booking.checkout!, -1);
+
+  return {
+    booking: stay.booking,
+    unitLabel: stay.unitLabel,
+    unitId: stay.unitId,
+    key: stay.key,
+    startIdx,
+    endIdx,
+    continuesBefore: Boolean(stay.booking.checkin && stay.booking.checkin < startDay),
+    continuesAfter: lastNight > endDay,
+    nights: stayNightCount(stay.booking),
+  };
+}
+
+function MonthWeekRow({
+  weekCells,
+  stays,
+  selected,
+  pendingBlock,
+  showManual,
+  multiUnit,
+  onToggleDay,
+}: {
+  weekCells: (string | null)[];
+  stays: MonthStay[];
+  selected: WpAccAvailabilityUnit | null;
+  pendingBlock: string | null;
+  showManual: boolean;
+  multiUnit: boolean;
+  onToggleDay: (unitId: number, day: string) => void;
+}) {
+  const clipped = stays
+    .map((stay) => clipStayToWeek(stay, weekCells))
+    .filter((s): s is NonNullable<typeof s> => Boolean(s));
+  const spanned = assignSpanLanes(clipped);
+  const laneCount = Math.max(1, ...spanned.map((s) => s.lane + 1), 1);
+  const barH = 26;
+  const gap = 3;
+  const headerH = 28;
+  const padBottom = 8;
+  const rowMinH = headerH + padBottom + laneCount * barH + Math.max(0, laneCount - 1) * gap;
+
+  const bookedBySelected = new Set<string>();
+  if (selected) {
+    for (const stay of stays) {
+      if (stay.unitId !== selected.id) continue;
+      for (const day of weekCells) {
+        if (day && bookingOccupiesNight(stay.booking, day)) bookedBySelected.add(day);
+      }
+    }
+  }
+
+  return (
+    <div className="relative border-t border-slate-800" style={{ minHeight: rowMinH }}>
+      <div className="grid grid-cols-7">
+        {weekCells.map((day, i) => {
+          const selectedBlocked =
+            day && selected && showManual ? isManuallyBlocked(selected, day) : false;
+          const selectedBooked = day ? bookedBySelected.has(day) : false;
+          const busy =
+            day && selected ? pendingBlock === `${selected.id}:${day}` : false;
+          const canToggle = Boolean(day && selected && !selectedBooked);
+          const washStay = clipped.find(
+            (s) => day && s.startIdx <= i && i <= s.endIdx,
+          );
+
+          return (
+            <div
+              key={day ?? `pad-${i}`}
+              className="min-h-full border-r border-slate-800/80 p-1.5 last:border-r-0"
+              style={
+                washStay
+                  ? { backgroundColor: bookingWash(washStay.booking) }
+                  : selectedBlocked
+                    ? { backgroundColor: "rgba(51, 65, 85, 0.45)" }
+                    : undefined
+              }
+            >
+              {day ? (
+                <div className="relative z-[2] flex items-center justify-between gap-1">
+                  <p className="text-[11px] font-medium text-slate-400">{day.slice(8)}</p>
+                  {canToggle && selected ? (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => onToggleDay(selected.id, day)}
+                      className={`rounded px-1.5 py-0.5 text-[9px] font-medium disabled:opacity-50 ${
+                        selectedBlocked
+                          ? "bg-slate-700 text-slate-200 hover:bg-slate-600"
+                          : "bg-emerald-900/60 text-emerald-300 hover:bg-emerald-800/70"
+                      }`}
+                      title={
+                        selectedBlocked
+                          ? `Unblock ${selected.title}`
+                          : `Block ${selected.title}`
+                      }
+                    >
+                      {busy ? "…" : selectedBlocked ? "Unblock" : "Block"}
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+              {day && selectedBlocked && !selectedBooked && selected && !washStay ? (
+                <div
+                  className="relative z-[2] mt-6 rounded-full px-1.5 py-0.5 text-[10px] font-medium text-slate-200"
+                  style={{ backgroundColor: CHANNEL_COLORS.blocked.bg }}
+                  title={`Manual block · ${selected.title}`}
+                >
+                  Blocked
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+      {spanned.map((span) => (
+        <StaySpanBar
+          key={`${span.key}-${span.startIdx}-${span.endIdx}-${span.lane}`}
+          span={span}
+          dayCount={7}
+          lane={span.lane}
+          laneCount={laneCount}
+          showAvatar
+          subtitle={multiUnit ? span.unitLabel : undefined}
+        />
+      ))}
+    </div>
+  );
+}
+
 function MonthGrid({
   units,
   days,
@@ -1374,16 +1603,20 @@ function MonthGrid({
   onToggleDay: (unitId: number, day: string) => void;
 }) {
   const showManual = channelFilter === "all";
-  // Pad to Sunday-start weeks (empty month → no cells, avoid Invalid Date).
   const lead =
     days.length > 0
-      ? new Date(`${days[0]}T12:00:00`).getDay() // 0 Sun … 6 Sat
+      ? new Date(`${days[0]}T12:00:00`).getDay()
       : 0;
   const cells: (string | null)[] = [
     ...Array.from({ length: Number.isFinite(lead) ? lead : 0 }, () => null),
     ...days,
   ];
   while (cells.length % 7 !== 0) cells.push(null);
+
+  const weeks: (string | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) {
+    weeks.push(cells.slice(i, i + 7));
+  }
 
   const selected =
     (selectedId != null
@@ -1393,31 +1626,8 @@ function MonthGrid({
     units[0] ??
     null;
 
-  // Every occupied night in the stay range (check-in inclusive, check-out exclusive),
-  // including stays that started before this month.
-  const byDay = new Map<
-    string,
-    Array<{
-      unitId: number;
-      unitLabel: string;
-      booking: WpAccBookingRow;
-      isCheckin: boolean;
-    }>
-  >();
-  for (const unit of units) {
-    for (const day of days) {
-      for (const booking of bookingsOnDay(unit, day, channelFilter)) {
-        const list = byDay.get(day) ?? [];
-        list.push({
-          unitId: unit.id,
-          unitLabel: resolveUnitLabel(unit, booking),
-          booking,
-          isCheckin: booking.checkin === day,
-        });
-        byDay.set(day, list);
-      }
-    }
-  }
+  const stays = collectMonthStays(units, days, channelFilter);
+  const multiUnit = units.length > 1;
 
   return (
     <div className="space-y-3">
@@ -1428,127 +1638,39 @@ function MonthGrid({
         </div>
       ) : (
         <>
-      <p className="text-[11px] text-slate-500">
-        Booked nights shown for each stay (check-in inclusive, check-out day free).
-        {selected
-          ? ` Click empty days to toggle a manual block on ${selected.title}.`
-          : null}
-        {channelFilter !== "all"
-          ? ` · Filtering to ${CHANNEL_FILTERS.find((f) => f.id === channelFilter)?.label}.`
-          : null}
-      </p>
-      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-xl border border-slate-800 bg-slate-800">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div
-            key={d}
-            className="bg-slate-950 px-2 py-1.5 text-center text-[10px] font-medium uppercase text-slate-500"
-          >
-            {d}
-          </div>
-        ))}
-        {cells.map((day, i) => {
-          const entries = day ? byDay.get(day) ?? [] : [];
-          const primary = entries[0];
-          const selectedBlocked =
-            day && selected && showManual ? isManuallyBlocked(selected, day) : false;
-          const selectedBooked =
-            day && selected ? bookingsOnDay(selected, day).length > 0 : false;
-          const busy =
-            day && selected ? pendingBlock === `${selected.id}:${day}` : false;
-          const canToggle = Boolean(day && selected && !selectedBooked);
-
-          return (
-            <div
-              key={day ?? `pad-${i}`}
-              className="min-h-[100px] bg-slate-950 p-1.5"
-              style={
-                primary
-                  ? { backgroundColor: bookingWash(primary.booking) }
-                  : selectedBlocked
-                    ? { backgroundColor: "rgba(51, 65, 85, 0.45)" }
-                    : undefined
-              }
-            >
-              {day ? (
-                <>
-                  <div className="flex items-center justify-between gap-1">
-                    <p className="text-[11px] text-slate-500">{day.slice(8)}</p>
-                    {canToggle && selected ? (
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => onToggleDay(selected.id, day)}
-                        className={`rounded px-1.5 py-0.5 text-[9px] font-medium disabled:opacity-50 ${
-                          selectedBlocked
-                            ? "bg-slate-700 text-slate-200 hover:bg-slate-600"
-                            : "bg-emerald-900/60 text-emerald-300 hover:bg-emerald-800/70"
-                        }`}
-                        title={
-                          selectedBlocked
-                            ? `Unblock ${selected.title}`
-                            : `Block ${selected.title}`
-                        }
-                      >
-                        {busy ? "…" : selectedBlocked ? "Unblock" : "Block"}
-                      </button>
-                    ) : null}
-                  </div>
-                  <div className="mt-1 space-y-1">
-                    {entries.slice(0, 3).map(({ unitId, unitLabel, booking, isCheckin }) => {
-                      const guest = booking.guest_name?.trim() || "Guest";
-                      const nights = stayNightCount(booking);
-                      const nightsLabel = formatNightsLabel(nights);
-                      const rowKey =
-                        booking.platform_id ||
-                        (booking.id && booking.id > 0
-                          ? `wp-${booking.id}`
-                          : `${booking.checkin}-${booking.checkout}-${guest}`);
-                      return (
-                        <div
-                          key={`${rowKey}-${unitId}-${day}`}
-                          className="rounded px-1 py-0.5 text-[10px] leading-tight text-white"
-                          style={{
-                            backgroundColor: bookingColor(booking),
-                            opacity: isCheckin ? 1 : 0.85,
-                            borderRadius: isCheckin ? "6px 2px 2px 6px" : "2px",
-                          }}
-                          title={`${unitLabel}: ${guest} · ${nightsLabel} · ${booking.checkin} → ${booking.checkout}`}
-                        >
-                          <p className="truncate font-semibold">
-                            {isCheckin ? unitLabel : `→ ${unitLabel}`}
-                          </p>
-                          <p className="truncate text-[9px] font-normal opacity-85">
-                            {isCheckin
-                              ? `${guest}${nightsLabel ? ` · ${nightsLabel}` : ""}`
-                              : guest}
-                          </p>
-                        </div>
-                      );
-                    })}
-                    {entries.length > 3 ? (
-                      <p className="text-[10px] text-slate-500">
-                        +{entries.length - 3} more
-                      </p>
-                    ) : null}
-                    {selectedBlocked && !selectedBooked && selected ? (
-                      <div
-                        className="rounded px-1 py-0.5 text-[10px] leading-tight text-slate-300"
-                        style={{ backgroundColor: CHANNEL_COLORS.blocked.bg }}
-                        title={`Manual block · ${selected.title}`}
-                      >
-                        <p className="truncate font-semibold">
-                          {resolveUnitLabel(selected)}
-                        </p>
-                        <p className="truncate text-[9px] opacity-85">Blocked</p>
-                      </div>
-                    ) : null}
-                  </div>
-                </>
-              ) : null}
+          <p className="text-[11px] text-slate-500">
+            Stays join across nights like Airbnb (check-in inclusive, check-out day free).
+            {selected
+              ? ` Click empty days to toggle a manual block on ${selected.title}.`
+              : null}
+            {channelFilter !== "all"
+              ? ` · Filtering to ${CHANNEL_FILTERS.find((f) => f.id === channelFilter)?.label}.`
+              : null}
+          </p>
+          <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+            <div className="grid grid-cols-7 border-b border-slate-800 bg-slate-950">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                <div
+                  key={d}
+                  className="px-2 py-1.5 text-center text-[10px] font-medium uppercase text-slate-500"
+                >
+                  {d}
+                </div>
+              ))}
             </div>
-          );
-        })}
-      </div>
+            {weeks.map((weekCells, wi) => (
+              <MonthWeekRow
+                key={`week-${wi}-${weekCells.find(Boolean) ?? wi}`}
+                weekCells={weekCells}
+                stays={stays}
+                selected={selected}
+                pendingBlock={pendingBlock}
+                showManual={showManual}
+                multiUnit={multiUnit}
+                onToggleDay={onToggleDay}
+              />
+            ))}
+          </div>
         </>
       )}
     </div>
