@@ -70,9 +70,14 @@ async function renderSite(
   if (!allowDraft && site.status !== "published") notFound();
 
   const pages = site.pages ?? [];
-  const pageSlug = search.page;
+  const pageSlug = search.page ? decodeURIComponent(search.page) : undefined;
   const page = pageSlug
-    ? pages.find((p) => p.slug === pageSlug)
+    ? pages.find((p) => p.slug === pageSlug) ||
+      pages.find((p) => p.slug === pageSlug.replace(/^accommodation\//, "")) ||
+      pages.find((p) => {
+        const leaf = pageSlug.split("/").filter(Boolean).pop();
+        return Boolean(leaf && p.slug === leaf);
+      })
     : pages.find((p) => p.intent === "home" || p.slug === "home") || pages[0];
   if (!page) notFound();
 
