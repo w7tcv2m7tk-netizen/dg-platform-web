@@ -26,6 +26,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/v1/addresses/resolve",
   "/api/v1/websites/public/(.*)",
   "/api/public/accommodation/ical/(.*)",
+  "/api/public/accommodation/stay/(.*)",
   "/api/v1/wantd/(.*)",
   "/api/webhooks/stripe",
   "/api/webhooks/dreamscape",

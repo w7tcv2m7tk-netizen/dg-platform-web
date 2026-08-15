@@ -1,4 +1,4 @@
-import { findDomainByHostname, getWebsiteBySlug } from "@dg/platform-core";
+import { findDomainByHostname, getPublicStayUnit, getWebsiteBySlug, resolveStayUnitSlug } from "@dg/platform-core";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
@@ -13,6 +13,7 @@ type SiteChrome = {
   navLinks?: Array<{ label: string; href: string }>;
   businessName?: string;
   overlayHeader?: boolean;
+  headerLayout?: "bar" | "stacked";
   lightSurface?: boolean;
   headerCta?: { label: string; href: string; backgroundColor?: string };
 };
@@ -180,6 +181,10 @@ async function renderSite(
   const chrome = chromeFromSite(
     site.metadata as Record<string, unknown> | null | undefined,
   );
+  const staySlug = resolveStayUnitSlug(page.slug);
+  const stayUnit = staySlug
+    ? await getPublicStayUnit(site.organisationId, staySlug)
+    : null;
 
   return (
     <>
@@ -208,6 +213,7 @@ async function renderSite(
         siteSlug={slug}
         pageSlug={page.slug}
         chrome={chrome}
+        stayUnit={stayUnit}
       />
     </>
   );

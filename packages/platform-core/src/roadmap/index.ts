@@ -1374,7 +1374,8 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     id: "infra.dns",
     area: "Infrastructure",
     label: "DNS management",
-    description: "Per-domain hosting DNS via Domains console (not a standalone DNS console yet)",
+    description:
+      "DNS console: zone inspect, suggested A/CNAME, Apply website DNS, manual registrar instructions",
     status: "done",
     appId: "infrastructure",
     href: "/apps/infrastructure/dns",

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 type AvailabilityRow = {
@@ -485,7 +486,15 @@ export function DomainsConsole() {
       </section>
 
       <section className="rounded-lg border border-slate-800 bg-slate-950/60 p-5">
-        <h2 className="text-lg font-semibold text-white">Your domains</h2>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <h2 className="text-lg font-semibold text-white">Your domains</h2>
+          <Link
+            href="/apps/infrastructure/dns"
+            className="text-xs text-sky-400 hover:underline"
+          >
+            Open DNS console →
+          </Link>
+        </div>
         {status ? (
           <p className="mt-2 text-xs text-slate-400">{status}</p>
         ) : null}

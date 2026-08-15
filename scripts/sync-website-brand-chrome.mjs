@@ -50,6 +50,18 @@ const PRIMARY_NAV = {
   ],
 };
 
+const HEADER_CTAS = {
+  "currumbin-valley-hideaway": {
+    label: "Book now",
+    href: "/stay",
+    backgroundColor: "#B9A48A",
+  },
+  "roe-realty": {
+    label: "Get Property Report",
+    href: "/sell",
+  },
+};
+
 async function main() {
   for (const siteSlug of SITE_SLUGS) {
     const site = await prisma.website.findUnique({
@@ -113,6 +125,9 @@ async function main() {
             overlayHeader:
               siteSlug === "roe-realty" ||
               siteSlug === "currumbin-valley-hideaway",
+            headerLayout:
+              siteSlug === "currumbin-valley-hideaway" ? "stacked" : "bar",
+            headerCta: HEADER_CTAS[siteSlug] ?? prevChrome.headerCta ?? null,
             businessName: site.organisation.name,
             navLinks,
             stylesheets: Array.isArray(prevChrome.stylesheets)

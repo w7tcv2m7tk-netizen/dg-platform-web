@@ -125,7 +125,9 @@ function prepareMarketingHtml(raw) {
     .trim();
 
   const styleTag = styles.trim() ? `<style>\n${styles}\n</style>` : "";
-  return `${fontLinks}\n${styleTag}\n<div class="wb-html-island">\n${body}\n</div>`.trim();
+  // Always --page without --light: DigitalGate marketing HTML is a navy shell;
+  // cream light-island ink would bleach Founding / pricing / legal bands.
+  return `${fontLinks}\n${styleTag}\n<div class="wb-html-island wb-html-island--page">\n${body}\n</div>`.trim();
 }
 
 function htmlToComponents(html) {

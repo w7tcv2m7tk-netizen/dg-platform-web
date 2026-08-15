@@ -556,6 +556,17 @@ html:has(.wb-root.wb-html-page) body {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
 }
 
+.wb-brand-chrome-header--stacked.wb-brand-chrome-header--overlay.is-top,
+.wb-brand-chrome-header--stacked.wb-brand-chrome-header--fade.is-top,
+.wb-root.wb-chrome-overlay .wb-brand-chrome-header--stacked.is-top {
+  background: linear-gradient(
+    to bottom,
+    rgba(12, 18, 28, 0.55) 0%,
+    rgba(12, 18, 28, 0.2) 70%,
+    transparent 100%
+  );
+}
+
 /* Dark page defaults: readable type against dark shells */
 .wb-html-island--page:not(.wb-html-island--light) {
   color: #e5e7eb !important;
@@ -808,6 +819,306 @@ html:has(.wb-root.wb-html-page) body {
   color: #243533 !important;
 }
 
+/*
+ * CVH charcoal / image bands sit inside pages marked --light (cream body).
+ * Global light-island ink bleaches those sections — force light type.
+ * Use .wb-root + .wb-html-island so we beat embedded page !important rules.
+ */
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .experience-section,
+  .location-section,
+  .policy-section,
+  .activities-section,
+  .attractions-section,
+  .activities-grid-section,
+  .local-experiences,
+  .sanctuary-section,
+  .hideaway-section,
+  .about-sanctuary,
+  .about-story-dark,
+  .region-section,
+  .guest-info-section,
+  .booking-section,
+  .contact-hero,
+  .contact-form-section,
+  .about-hero,
+  .experiences-hero,
+  .gallery-hero,
+  .stay-hero,
+  .cvh-hero-stay,
+  .cta-dark,
+  .dark-section
+) {
+  color: #f4f1ea !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .experience-section,
+  .location-section,
+  .policy-section,
+  .activities-section,
+  .attractions-section,
+  .activities-grid-section,
+  .local-experiences,
+  .sanctuary-section,
+  .hideaway-section,
+  .about-sanctuary,
+  .about-story-dark,
+  .region-section,
+  .guest-info-section,
+  .booking-section,
+  .contact-hero,
+  .contact-form-section,
+  .about-hero,
+  .experiences-hero,
+  .gallery-hero,
+  .stay-hero,
+  .cvh-hero-stay,
+  .cta-dark,
+  .dark-section
+) :is(h1, h2, h3, h4, h5, h6),
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .experience-headline,
+  .policy-headline,
+  .about-hero-headline,
+  .experiences-hero-headline,
+  .contact-hero-headline,
+  .gallery-hero-headline,
+  .hero-headline
+) {
+  color: #faf8f4 !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .experience-section,
+  .location-section,
+  .policy-section,
+  .activities-section,
+  .attractions-section,
+  .activities-grid-section,
+  .local-experiences,
+  .sanctuary-section,
+  .hideaway-section,
+  .about-sanctuary,
+  .about-story-dark,
+  .region-section,
+  .guest-info-section,
+  .booking-section,
+  .contact-hero,
+  .contact-form-section,
+  .about-hero,
+  .experiences-hero,
+  .gallery-hero,
+  .stay-hero,
+  .cvh-hero-stay,
+  .cta-dark,
+  .dark-section
+) :is(p, li, span, small, figcaption, label, .section-subheadline, .hero-subheadline, .hero-subheading),
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .about-hero-subheadline,
+  .experiences-hero-subheadline,
+  .gallery-hero-subheadline,
+  .contact-hero-intro
+) {
+  color: #e8e4dc !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .experience-section,
+  .location-section,
+  .policy-section,
+  .activities-section,
+  .attractions-section,
+  .activities-grid-section,
+  .local-experiences,
+  .sanctuary-section,
+  .hideaway-section,
+  .about-sanctuary,
+  .about-story-dark,
+  .region-section,
+  .guest-info-section,
+  .booking-section,
+  .contact-form-section,
+  .about-hero,
+  .experiences-hero,
+  .cvh-hero-stay
+) .section-label,
+.wb-root .wb-html-island.wb-html-island--light .contact-form-section label {
+  color: #d4b896 !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .contact-form-section :is(input, textarea, select) {
+  color: #1c2b2a !important;
+  background: #faf8f4 !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .experience-section,
+  .location-section,
+  .policy-section,
+  .activities-section,
+  .sanctuary-section,
+  .hideaway-section,
+  .about-sanctuary,
+  .local-experiences,
+  .contact-form-section,
+  .contact-hero
+) a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]) {
+  color: #e8d5b5 !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .experience-section,
+  .location-section,
+  .policy-section,
+  .hideaway-section,
+  .contact-form-section
+) a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]):hover {
+  color: #f5ebd8 !important;
+}
+
+/*
+ * DigitalGate Founding (.dg-fc) is a navy shell that can sit inside
+ * wb-html-island--light (cream island ink). Force light type on dark bands;
+ * keep the white application form dark.
+ * Verified selectors from /founding-customers/ live markup.
+ */
+.wb-root .wb-html-island.wb-html-island--light:has(.dg-fc),
+.wb-root .wb-html-island.wb-html-island--light .dg-fc {
+  background: #0a0e17 !important;
+  color: #f9fafb !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .dg-fc :is(
+  .fc-hero,
+  .fc-cta,
+  section:not(#application),
+  .benefit-card,
+  .cohort-card,
+  .standard-box,
+  .build-item,
+  .step,
+  .scarcity-box,
+  .terms-box,
+  .compare-wrap
+) {
+  color: #f9fafb !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .dg-fc :is(
+  .fc-hero,
+  .fc-cta,
+  section:not(#application),
+  .benefit-card,
+  .cohort-card,
+  .standard-box,
+  .build-item,
+  .step,
+  .scarcity-box,
+  .terms-box
+) :is(h1, h2, h3, h4, h5, h6) {
+  color: #faf8f4 !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .dg-fc :is(
+  .fc-hero,
+  .fc-cta,
+  section:not(#application),
+  .benefit-card,
+  .cohort-card,
+  .standard-box,
+  .build-item,
+  .step,
+  .scarcity-box,
+  .terms-box,
+  .compare-table
+) :is(
+  p,
+  li,
+  td,
+  th,
+  span,
+  small,
+  strong,
+  figcaption,
+  .lead,
+  .programme-line,
+  .cohort-lead,
+  .tier-note,
+  .compare-note,
+  .footnote,
+  .legal-note
+) {
+  color: #e2e8f0 !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .dg-fc .fc-hero h1 .accent,
+.wb-root .wb-html-island.wb-html-island--light .dg-fc .build-item h3,
+.wb-root .wb-html-island.wb-html-island--light .dg-fc .compare-table th {
+  color: #bfdbfe !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .dg-fc .sub-label {
+  color: #93c5fd !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .dg-fc :is(
+  .benefit-card .num,
+  .step-num,
+  .cohort-card .badge
+) {
+  color: #93c5fd !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .dg-fc :is(
+  .open-now,
+  .scarcity-box .status,
+  .cohort-card.featured .badge
+) {
+  color: #34d399 !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .dg-fc a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]) {
+  color: #bfdbfe !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .dg-fc a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]):hover {
+  color: #eff6ff !important;
+}
+
+/* White Founding application card — restore dark ink (with or without --light) */
+.wb-root .wb-html-island .dg-fc .form-wrapper {
+  color: #0f172a !important;
+  background: #ffffff !important;
+}
+
+.wb-root .wb-html-island .dg-fc .form-wrapper :is(h1, h2, h3, h4) {
+  color: #0f172a !important;
+}
+
+.wb-root .wb-html-island .dg-fc .form-wrapper :is(
+  p,
+  li,
+  span,
+  small,
+  label,
+  .checkbox-label,
+  .form-note,
+  .form-header p
+) {
+  color: #334155 !important;
+}
+
+.wb-root .wb-html-island .dg-fc .form-wrapper .sub-label {
+  color: #2563eb !important;
+}
+
+.wb-root .wb-html-island .dg-fc .form-wrapper :is(input, textarea, select) {
+  color: #0f172a !important;
+  background: #ffffff !important;
+}
+
 .wb-html-page .wb-html-island--page .roe-property-grid {
   max-width: none !important;
   width: 100% !important;
@@ -942,6 +1253,11 @@ a.wb-brand-chrome-cta:hover {
   box-sizing: border-box;
 }
 
+/* Bar layout: children sit in one row (logo | nav | CTA) */
+.wb-brand-chrome-below {
+  display: contents;
+}
+
 .wb-brand-chrome-header .wb-brand-chrome-nav {
   flex: 1 1 auto;
   justify-content: center;
@@ -949,6 +1265,61 @@ a.wb-brand-chrome-cta:hover {
 
 .wb-brand-chrome-header .wb-brand-chrome-cta {
   flex: 0 0 auto;
+  color: #ffffff !important;
+}
+
+/* CVH / stacked: logo centered large, pages + CTA underneath */
+.wb-brand-chrome-header--stacked .wb-brand-chrome-inner {
+  position: relative;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  padding-top: 1.15rem;
+  padding-bottom: 1.15rem;
+}
+
+.wb-brand-chrome-header--stacked .wb-brand-chrome-brand {
+  order: 0;
+  justify-content: center;
+}
+
+.wb-brand-chrome-header--stacked .wb-brand-chrome-logo {
+  height: 72px !important;
+  max-height: 72px !important;
+  max-width: min(340px, 78vw) !important;
+  object-position: center center;
+}
+
+.wb-brand-chrome-header--stacked .wb-brand-chrome-name {
+  text-align: center;
+  font-size: 1.35rem;
+}
+
+.wb-brand-chrome-header--stacked .wb-brand-chrome-below {
+  display: flex;
+  order: 1;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.35rem;
+}
+
+.wb-brand-chrome-header--stacked .wb-brand-chrome-nav {
+  flex: 0 1 auto;
+  justify-content: center;
+}
+
+.wb-brand-chrome-header--stacked .wb-brand-chrome-cta {
+  margin-left: 0;
+  color: #ffffff !important;
+}
+
+.wb-brand-chrome-header--stacked .wb-brand-chrome-menu-btn {
+  position: absolute;
+  top: 1rem;
+  right: clamp(0.75rem, 3vw, 1.5rem);
 }
 
 .wb-brand-chrome-footer .wb-brand-chrome-inner {
@@ -1106,6 +1477,24 @@ a.wb-brand-chrome-cta:hover {
     flex-wrap: nowrap;
     gap: 0.75rem;
     padding: 0.7rem 1rem;
+  }
+
+  .wb-brand-chrome-header--stacked .wb-brand-chrome-inner {
+    flex-wrap: nowrap;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1rem;
+  }
+
+  .wb-brand-chrome-header--stacked .wb-brand-chrome-logo {
+    height: 52px !important;
+    max-height: 52px !important;
+    max-width: min(220px, 62vw) !important;
+  }
+
+  .wb-brand-chrome-header--stacked .wb-brand-chrome-below {
+    display: none;
   }
 
   .wb-brand-chrome-logo {
@@ -1748,6 +2137,344 @@ a.wb-brand-chrome-cta:hover {
   }
   .wb-lightbox-next {
     right: 0.5rem;
+  }
+}
+
+/* CVH Gen 2 stay unit booking (replicates WP dg-single / book-now) */
+.cvh-stay-unit {
+  background: #f5f2ef;
+  color: #1c2b2a;
+  font-family: Inter, system-ui, sans-serif;
+}
+.cvh-stay-hero {
+  position: relative;
+  min-height: min(52vh, 520px);
+  background: #2c4137;
+  overflow: hidden;
+}
+.cvh-stay-hero img,
+.cvh-stay-hero-fallback {
+  width: 100%;
+  height: min(52vh, 520px);
+  object-fit: cover;
+  display: block;
+}
+.cvh-stay-hero-fallback {
+  background: linear-gradient(135deg, #2c4137, #1c2b2a);
+}
+.cvh-stay-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 22, 0.15) 0%,
+    rgba(15, 23, 22, 0.72) 100%
+  );
+}
+.cvh-stay-hero-content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 2rem 1.25rem 2.25rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  color: #f8fafc;
+}
+.cvh-stay-badge {
+  display: inline-block;
+  margin: 0 0 0.65rem;
+  padding: 0.25rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(185, 164, 138, 0.22);
+  color: #e8d7b8;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cvh-stay-hero-content h1 {
+  margin: 0 0 0.4rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 600;
+  line-height: 1.1;
+  color: #fff;
+}
+.cvh-stay-price {
+  margin: 0 0 0.85rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f0e2c8;
+}
+.cvh-stay-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.cvh-stay-meta span {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+}
+.cvh-stay-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 1.25rem 1rem 0;
+}
+.cvh-stay-tab {
+  padding: 0.55rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid #e8dfd3;
+  background: #fff;
+  color: #4a5b59;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.cvh-stay-tab.is-active,
+.cvh-stay-tab:hover {
+  background: #b9a48a;
+  border-color: #b9a48a;
+  color: #fff !important;
+}
+.cvh-stay-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem 3.5rem;
+  align-items: start;
+}
+.cvh-stay-section {
+  background: #fff;
+  border: 1px solid #e8dfd3;
+  border-radius: 16px;
+  padding: 1.35rem 1.35rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.cvh-stay-section h2,
+.cvh-stay-section h3,
+.cvh-stay-card h3 {
+  margin: 0 0 0.85rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.35rem;
+  color: #1c2b2a;
+}
+.cvh-stay-copy p {
+  margin: 0 0 0.85rem;
+  color: #2f2f2f;
+  line-height: 1.65;
+}
+.cvh-stay-hint {
+  margin: 0 0 1rem;
+  color: #5a6b67;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.cvh-cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.cvh-cal-nav button {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px solid #e8dfd3;
+  background: #fff;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+.cvh-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.35rem;
+}
+.cvh-cal-head span {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b7280;
+  padding: 0.25rem 0;
+}
+.cvh-cal-day {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: #f7f4ee;
+  color: #1c2b2a;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cvh-cal-day:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.cvh-cal-day.is-empty {
+  background: transparent;
+  border: none;
+}
+.cvh-cal-day.is-past {
+  color: #9ca3af;
+  background: #f3f4f6;
+}
+.cvh-cal-day.is-blocked {
+  background: #efe4e1;
+  color: #9a6b63;
+  text-decoration: line-through;
+}
+.cvh-cal-day.is-saturday {
+  background: #f5f0e4;
+  color: #8a7a55;
+}
+.cvh-cal-day.is-open:hover {
+  border-color: #b9a48a;
+}
+.cvh-cal-day.is-selected,
+.cvh-cal-day.is-in-range {
+  background: #b9a48a;
+  color: #fff;
+}
+.cvh-cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-top: 0.9rem;
+  font-size: 0.75rem;
+  color: #5a6b67;
+}
+.cvh-cal-legend i {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 3px;
+  margin-right: 0.35rem;
+  vertical-align: -1px;
+}
+.cvh-cal-legend .is-open {
+  background: #f7f4ee;
+  border: 1px solid #d7cbb8;
+}
+.cvh-cal-legend .is-blocked {
+  background: #efe4e1;
+}
+.cvh-cal-legend .is-saturday {
+  background: #f5f0e4;
+}
+.cvh-cal-legend .is-selected {
+  background: #b9a48a;
+}
+.cvh-stay-side {
+  display: grid;
+  gap: 1rem;
+}
+.cvh-stay-card {
+  background: #fff;
+  border: 1px solid #e8dfd3;
+  border-radius: 16px;
+  padding: 1.15rem 1.2rem;
+}
+.cvh-stay-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+.cvh-stay-card li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.92rem;
+  color: #2f2f2f;
+}
+.cvh-stay-features li {
+  display: block;
+}
+.cvh-stay-rules {
+  background: #fef8e7;
+  border-left: 4px solid #f39c12;
+  border-radius: 4px;
+  padding: 1rem 1.15rem;
+  font-size: 0.9rem;
+  color: #4a5b59;
+}
+.cvh-stay-rules ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+}
+.cvh-stay-form {
+  display: grid;
+  gap: 0.75rem;
+}
+.cvh-stay-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+.cvh-stay-form label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4a5b59;
+}
+.cvh-stay-form input,
+.cvh-stay-form textarea {
+  border: 1px solid #e8dfd3;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  font: inherit;
+  color: #1c2b2a;
+  background: #fff;
+}
+.cvh-stay-form button {
+  margin-top: 0.25rem;
+  border: none;
+  border-radius: 999px;
+  padding: 0.8rem 1.1rem;
+  background: #b9a48a;
+  color: #fff !important;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cvh-stay-form button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+.cvh-stay-error {
+  color: #b91c1c;
+  font-size: 0.85rem;
+  margin: 0;
+}
+.cvh-stay-success {
+  color: #166534;
+  font-size: 0.85rem;
+  margin: 0;
+}
+.cvh-stay-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin: 0;
+  font-size: 0.85rem;
+}
+.cvh-stay-links a {
+  color: #6b5428;
+  font-weight: 600;
+}
+@media (max-width: 900px) {
+  .cvh-stay-layout {
+    grid-template-columns: 1fr;
   }
 }
 `;

@@ -380,7 +380,9 @@ VERCEL_PROJECT_ID=
 
 Apply website DNS / Make it live writes apex A + www CNAME using the resolved targets above.
 
-**Progressive apply:** Domains → **Inspect DNS** (DomainInfo + NS; `secureparkme` counts as Dreamscape parking NS) → **Apply www only** (safer) → **Apply website DNS** (apex A + www; auto-falls back to www on SOAP HTTP 500). If Vercel stays Invalid after legacy targets, remove/re-add the hostname in Vercel Domains (or set Vercel token so Apply uses recommended records).
+**DNS console:** Infrastructure → **DNS** (`/apps/infrastructure/dns`) — domain picker, zone inspect (NS + live records), suggested hosting table, **Apply www only** / **Apply website DNS**, and manual registrar instructions when the zone isn’t writable.
+
+**Progressive apply:** DNS (or Domains) → **Refresh zone** / **Inspect DNS** (DomainInfo + NS; `secureparkme` counts as Dreamscape parking NS) → **Apply www only** (safer) → **Apply website DNS** (apex A + www; auto-falls back to www on SOAP HTTP 500). If Vercel stays Invalid after legacy targets, remove/re-add the hostname in Vercel Domains (or set Vercel token so Apply uses recommended records).
 
 ### Email auth DNS (E1)
 
@@ -458,5 +460,6 @@ Scaffold: `getDigitalInfrastructureOverview(organisationId)` + checklist types. 
 | DreamscapeDomainProvider | `…/providers/dreamscape/` |
 | Availability API | `src/app/api/v1/infrastructure/domains/availability/route.ts` |
 | Transfer Notification webhook | `src/app/api/webhooks/dreamscape/route.ts` |
-| Domains UX stub | `/apps/infrastructure/domains` |
+| Domains UX | `/apps/infrastructure/domains` |
+| DNS console | `/apps/infrastructure/dns` · `src/components/infrastructure/DnsConsole.tsx` |
 | Overview helper | `getDigitalInfrastructureOverview` |

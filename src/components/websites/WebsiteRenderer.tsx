@@ -1,8 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { WebsiteComponent, WebsiteTheme } from "@dg/platform-core";
+import type {
+  PublicStayUnitPayload,
+  WebsiteComponent,
+  WebsiteTheme,
+} from "@dg/platform-core";
 
+import { CvhStayUnitBooking } from "@/components/websites/CvhStayUnitBooking";
 import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
 import { ChromeHeaderHtml } from "@/components/websites/ChromeHeaderHtml";
 
@@ -519,6 +524,12 @@ export type WebsiteChrome = {
   businessName?: string | null;
   /** Transparent header over hero (Roe / CVH style) */
   overlayHeader?: boolean | null;
+  /**
+   * Brand header composition:
+   * - bar (default): logo | nav | CTA in one row
+   * - stacked: centered logo on top, nav + CTA underneath (CVH)
+   */
+  headerLayout?: "bar" | "stacked" | null;
   /** Force cream/light page surface + dark ink */
   lightSurface?: boolean | null;
   /** Primary header CTA (e.g. Get Property Report) */
@@ -541,6 +552,7 @@ function BrandSiteHeader({
   businessName,
   overlay,
   headerCta,
+  layout = "bar",
 }: {
   theme: WebsiteTheme;
   basePath: string;
@@ -552,11 +564,13 @@ function BrandSiteHeader({
     href: string;
     backgroundColor?: string;
   } | null;
+  layout?: "bar" | "stacked";
 }) {
   const logo = theme.logoUrl || theme.iconUrl;
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const brandHref = homeHref(basePath);
+  const stacked = layout === "stacked";
   const ctaStyle = {
     color: "#ffffff",
     ...(headerCta?.backgroundColor
@@ -608,6 +622,7 @@ function BrandSiteHeader({
       className={[
         "wb-brand-chrome",
         "wb-brand-chrome-header",
+        stacked ? "wb-brand-chrome-header--stacked" : "",
         overlay ? "wb-brand-chrome-header--overlay" : "wb-brand-chrome-header--fade",
         scrolled || menuOpen ? "is-scrolled" : "is-top",
         menuOpen ? "is-menu-open" : "",
@@ -625,25 +640,27 @@ function BrandSiteHeader({
           )}
         </a>
 
-        {links.length ? (
-          <nav className="wb-brand-chrome-nav wb-brand-chrome-nav--desktop" aria-label="Primary">
-            {links.map((link) => (
-              <a key={`${link.href}-${link.label}`} href={link.href}>
-                {link.label}
-              </a>
-            ))}
-          </nav>
-        ) : null}
+        <div className="wb-brand-chrome-below">
+          {links.length ? (
+            <nav className="wb-brand-chrome-nav wb-brand-chrome-nav--desktop" aria-label="Primary">
+              {links.map((link) => (
+                <a key={`${link.href}-${link.label}`} href={link.href}>
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+          ) : null}
 
-        {headerCta?.label && headerCta.href ? (
-          <a
-            className="wb-brand-chrome-cta wb-brand-chrome-cta--desktop"
-            href={headerCta.href}
-            style={ctaStyle}
-          >
-            {headerCta.label}
-          </a>
-        ) : null}
+          {headerCta?.label && headerCta.href ? (
+            <a
+              className="wb-brand-chrome-cta wb-brand-chrome-cta--desktop"
+              href={headerCta.href}
+              style={ctaStyle}
+            >
+              {headerCta.label}
+            </a>
+          ) : null}
+        </div>
 
         {(links.length > 0 || headerCta?.label) && (
           <button
@@ -755,6 +772,7 @@ export function WebsitePageRenderer({
   siteSlug,
   pageSlug,
   chrome,
+  stayUnit,
 }: {
   components: WebsiteComponent[];
   theme: WebsiteTheme;
@@ -762,6 +780,8 @@ export function WebsitePageRenderer({
   siteSlug: string;
   pageSlug?: string;
   chrome?: WebsiteChrome | null;
+  /** Gen 2 bookable stay (Private Studio / Tiny Home) — replaces thin HTML stubs */
+  stayUnit?: PublicStayUnitPayload | null;
 }) {
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
@@ -775,7 +795,7 @@ export function WebsitePageRenderer({
   const hasChrome = Boolean(
     headerHtml || footerHtml || useBrandHeader || useBrandFooter,
   );
-  const htmlPage = isHtmlDominantPage(components) || hasChrome;
+  const htmlPage = isHtmlDominantPage(components) || hasChrome || Boolean(stayUnit);
   const postGridOnly =
     components.length > 0 &&
     components.every((c) => c.type === "post_grid");
@@ -785,11 +805,16 @@ export function WebsitePageRenderer({
       typeof c.props?.html === "string" &&
       /wb-html-island--light|background:\s*#F5F2EF|background:#F5F2EF|roe-property-grid/i.test(
         c.props.html,
-      ),
+      ) &&
+      /* DigitalGate Founding / legal shells are intentionally dark */
+      !/\b(?:dg-fc|dg-legal)\b/.test(c.props.html),
   );
   /** Light Insights / cream listing pages */
   const lightSurface =
-    hasLightHtml || (overlayHeader && postGridOnly) || Boolean(chrome?.lightSurface);
+    hasLightHtml ||
+    (overlayHeader && postGridOnly) ||
+    Boolean(chrome?.lightSurface) ||
+    Boolean(stayUnit);
   const businessName = chrome?.businessName?.trim() || siteSlug;
   const rawLinks = Array.isArray(chrome?.navLinks) ? chrome!.navLinks! : [];
   const links = rawLinks
@@ -821,6 +846,21 @@ export function WebsitePageRenderer({
             : {}),
         }
       : null;
+  const headerLayout: "bar" | "stacked" =
+    chrome?.headerLayout === "stacked" ||
+    /currumbin|hideaway/i.test(siteSlug) ||
+    /currumbin|hideaway/i.test(businessName)
+      ? "stacked"
+      : "bar";
+  const resolvedHeaderCta =
+    headerCta ??
+    (headerLayout === "stacked" && /currumbin|hideaway/i.test(siteSlug)
+      ? {
+          label: "Book now",
+          href: basePath && basePath !== "/" ? `${basePath}/stay` : "/stay",
+          backgroundColor: "#B9A48A",
+        }
+      : null);
 
   const rootClass = [
     "wb-root",
@@ -854,21 +894,30 @@ export function WebsitePageRenderer({
           links={links}
           businessName={businessName}
           overlay={overlayHeader}
-          headerCta={headerCta}
+          headerCta={resolvedHeaderCta}
+          layout={headerLayout}
         />
       ) : headerHtml ? (
         <ChromeHeaderHtml html={headerHtml} />
       ) : null}
-      {components.map((c) => (
-        <WebsiteComponentView
-          key={c.id}
-          component={c}
-          theme={theme}
-          basePath={basePath}
+      {stayUnit ? (
+        <CvhStayUnitBooking
           siteSlug={siteSlug}
-          pageSlug={pageSlug}
+          unit={stayUnit}
+          basePath={basePath}
         />
-      ))}
+      ) : (
+        components.map((c) => (
+          <WebsiteComponentView
+            key={c.id}
+            component={c}
+            theme={theme}
+            basePath={basePath}
+            siteSlug={siteSlug}
+            pageSlug={pageSlug}
+          />
+        ))
+      )}
       {footerHtml ? (
         <section
           className="wb-section wb-html-block wb-site-chrome wb-site-chrome-footer"

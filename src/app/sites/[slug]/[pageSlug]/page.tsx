@@ -1,4 +1,4 @@
-import { getWebsiteBySlug } from "@dg/platform-core";
+import { getPublicStayUnit, getWebsiteBySlug, resolveStayUnitSlug } from "@dg/platform-core";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -78,6 +78,10 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
   const chrome = chromeFromSite(
     site.metadata as Record<string, unknown> | null | undefined,
   );
+  const staySlug = resolveStayUnitSlug(page.slug);
+  const stayUnit = staySlug
+    ? await getPublicStayUnit(site.organisationId, staySlug)
+    : null;
   const title = page.seo?.title || `${page.title} | ${site.name}`;
   const description =
     page.seo?.description || site.seo?.description || site.name;
@@ -104,6 +108,7 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
         siteSlug={slug}
         pageSlug={page.slug}
         chrome={chrome}
+        stayUnit={stayUnit}
       />
     </>
   );

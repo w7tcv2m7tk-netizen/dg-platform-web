@@ -39,6 +39,10 @@ export default async function Page() {
           Founding Customer Early Access · Search, connect, DNS, Make it live
           {session?.organisationName ? ` · ${session.organisationName}` : ""}
           {" · "}
+          <Link href="/apps/infrastructure/dns" className="text-sky-400 hover:underline">
+            DNS
+          </Link>
+          {" · "}
           <Link href="/apps/infrastructure/email" className="text-sky-400 hover:underline">
             Email
           </Link>

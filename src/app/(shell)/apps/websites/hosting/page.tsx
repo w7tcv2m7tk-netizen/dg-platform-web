@@ -92,6 +92,12 @@ export default async function HostingStatusPage() {
             >
               Domains
             </Link>
+            <Link
+              href="/apps/infrastructure/dns"
+              className="text-sm text-sky-400 hover:underline"
+            >
+              DNS
+            </Link>
           </div>
         </section>
 

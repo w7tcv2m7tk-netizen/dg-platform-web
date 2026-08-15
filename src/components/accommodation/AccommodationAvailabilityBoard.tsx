@@ -59,19 +59,6 @@ function bookingColor(booking?: Pick<WpAccBookingRow, "status" | "source"> | nul
     ?? CHANNEL_COLORS.pending.bg;
 }
 
-/** Soft cell wash for month view (keeps chips readable). */
-function bookingWash(booking?: Pick<WpAccBookingRow, "status" | "source"> | null) {
-  const key = channelKey(booking);
-  const washes: Record<string, string> = {
-    confirmed: "rgba(16, 185, 129, 0.18)",
-    pending: "rgba(245, 158, 11, 0.18)",
-    airbnb: "rgba(255, 90, 95, 0.18)",
-    bookingcom: "rgba(0, 53, 128, 0.22)",
-    completed: "rgba(100, 116, 139, 0.2)",
-  };
-  return washes[key] ?? washes.pending;
-}
-
 function daysBetween(from: string, to: string): string[] {
   const out: string[] = [];
   const cur = new Date(`${from}T12:00:00`);
@@ -705,7 +692,6 @@ export function AccommodationAvailabilityBoard({
         onSave={() => void saveRates()}
         message={rateMsg}
         error={rateError}
-        monthHint={view === "month"}
         channelFilter={channelFilter}
         channelCounts={channelCounts}
         onChannelFilterChange={setChannelFilter}
@@ -772,6 +758,7 @@ export function AccommodationAvailabilityBoard({
           selectedId={selectedId}
           pendingBlock={pendingBlock}
           channelFilter={channelFilter}
+          onSelectUnit={setSelectedId}
           onToggleDay={(unitId, day) => void toggleManualBlock(unitId, day)}
         />
       ) : null}
@@ -790,7 +777,6 @@ function UnitPricingPanel({
   onSave,
   message,
   error,
-  monthHint,
   channelFilter,
   channelCounts,
   onChannelFilterChange,
@@ -810,7 +796,6 @@ function UnitPricingPanel({
   onSave: () => void;
   message: string | null;
   error: string | null;
-  monthHint: boolean;
   channelFilter: BookingChannelFilter;
   channelCounts: Record<BookingChannelFilter, number>;
   onChannelFilterChange: (filter: BookingChannelFilter) => void;
@@ -967,9 +952,6 @@ function UnitPricingPanel({
         <p className="mt-2 text-xs text-slate-500">
           Editing <span className="text-slate-300">{selected.title}</span>
           {isolateUnit ? " · calendar shows this unit only (all platforms)" : null}
-          {monthHint
-            ? " · in Month view, clicks toggle blocks for this unit"
-            : null}
         </p>
       ) : null}
       {message ? <p className="mt-1 text-xs text-emerald-400">{message}</p> : null}
@@ -1332,6 +1314,7 @@ function MonthGrid({
   selectedId,
   pendingBlock,
   channelFilter,
+  onSelectUnit,
   onToggleDay,
 }: {
   units: WpAccAvailabilityUnit[];
@@ -1340,164 +1323,82 @@ function MonthGrid({
   selectedId: number | null;
   pendingBlock: string | null;
   channelFilter: BookingChannelFilter;
+  onSelectUnit: (id: number) => void;
   onToggleDay: (unitId: number, day: string) => void;
 }) {
-  const showManual = channelFilter === "all";
-  // Pad to Sunday-start weeks
-  const lead = (() => {
-    const d = new Date(`${days[0]}T12:00:00`);
-    return d.getDay(); // 0 Sun … 6 Sat
-  })();
-  const cells: (string | null)[] = [
-    ...Array.from({ length: lead }, () => null),
-    ...days,
-  ];
-  while (cells.length % 7 !== 0) cells.push(null);
-
-  const selected = units.find((u) => u.id === selectedId) ?? units[0] ?? null;
-
-  // Every occupied night in the stay range (check-in inclusive, check-out exclusive),
-  // including stays that started before this month.
-  const byDay = new Map<
-    string,
-    Array<{
-      unitId: number;
-      unitLabel: string;
-      booking: WpAccBookingRow;
-      isCheckin: boolean;
-    }>
-  >();
-  for (const unit of units) {
-    for (const day of days) {
-      const booking = bookingOnDay(unit, day, channelFilter);
-      if (booking) {
-        const list = byDay.get(day) ?? [];
-        list.push({
-          unitId: unit.id,
-          unitLabel: resolveUnitLabel(unit, booking),
-          booking,
-          isCheckin: booking.checkin === day,
-        });
-        byDay.set(day, list);
-      }
-    }
-  }
-
   return (
     <div className="space-y-3">
       <h2 className="text-sm font-medium text-slate-300">{title}</h2>
       <p className="text-[11px] text-slate-500">
-        Booked nights shown for each stay (check-in inclusive, check-out day free).
-        {selected
-          ? ` Click empty days to toggle a manual block on ${selected.title}.`
-          : null}
-        {channelFilter !== "all"
-          ? ` · Filtering to ${CHANNEL_FILTERS.find((f) => f.id === channelFilter)?.label}.`
-          : null}
+        Same spanning stay bars as Week / Inventory — guest and nights across the month.
+        Open cells toggle manual blocks.
       </p>
-      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-xl border border-slate-800 bg-slate-800">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d} className="bg-slate-950 px-2 py-1.5 text-center text-[10px] font-medium uppercase text-slate-500">
-            {d}
-          </div>
-        ))}
-        {cells.map((day, i) => {
-          const entries = day ? byDay.get(day) ?? [] : [];
-          const primary = entries[0];
-          const selectedBlocked =
-            day && selected && showManual ? isManuallyBlocked(selected, day) : false;
-          const selectedBooked =
-            day && selected ? Boolean(bookingOnDay(selected, day)) : false;
-          const busy =
-            day && selected ? pendingBlock === `${selected.id}:${day}` : false;
-          const canToggle = Boolean(day && selected && !selectedBooked);
-
-          return (
-            <div
-              key={day ?? `pad-${i}`}
-              className="min-h-[100px] bg-slate-950 p-1.5"
-              style={
-                primary
-                  ? { backgroundColor: bookingWash(primary.booking) }
-                  : selectedBlocked
-                    ? { backgroundColor: "rgba(51, 65, 85, 0.45)" }
-                    : undefined
-              }
-            >
-              {day ? (
-                <>
-                  <div className="flex items-center justify-between gap-1">
-                    <p className="text-[11px] text-slate-500">{day.slice(8)}</p>
-                    {canToggle && selected ? (
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => onToggleDay(selected.id, day)}
-                        className={`rounded px-1.5 py-0.5 text-[9px] font-medium disabled:opacity-50 ${
-                          selectedBlocked
-                            ? "bg-slate-700 text-slate-200 hover:bg-slate-600"
-                            : "bg-emerald-900/60 text-emerald-300 hover:bg-emerald-800/70"
-                        }`}
-                        title={
-                          selectedBlocked
-                            ? `Unblock ${selected.title}`
-                            : `Block ${selected.title}`
-                        }
-                      >
-                        {busy ? "…" : selectedBlocked ? "Unblock" : "Block"}
-                      </button>
-                    ) : null}
-                  </div>
-                  <div className="mt-1 space-y-1">
-                    {entries.slice(0, 3).map(({ unitId, unitLabel, booking, isCheckin }) => {
-                      const guest = booking.guest_name?.trim() || "Guest";
-                      const nights = stayNightCount(booking);
-                      const nightsLabel = formatNightsLabel(nights);
-                      return (
-                        <div
-                          key={`${booking.id}-${unitId}-${day}`}
-                          className="rounded px-1 py-0.5 text-[10px] leading-tight text-white"
-                          style={{
-                            backgroundColor: bookingColor(booking),
-                            opacity: isCheckin ? 1 : 0.85,
-                            borderRadius: isCheckin ? "6px 2px 2px 6px" : "2px",
-                          }}
-                          title={`${unitLabel}: ${guest} · ${nightsLabel} · ${booking.checkin} → ${booking.checkout}`}
-                        >
-                          <p className="truncate font-semibold">
-                            {isCheckin ? unitLabel : `→ ${unitLabel}`}
-                          </p>
-                          <p className="truncate text-[9px] font-normal opacity-85">
-                            {isCheckin
-                              ? `${guest}${nightsLabel ? ` · ${nightsLabel}` : ""}`
-                              : guest}
-                          </p>
-                        </div>
-                      );
-                    })}
-                    {entries.length > 3 ? (
-                      <p className="text-[10px] text-slate-500">
-                        +{entries.length - 3} more
-                      </p>
-                    ) : null}
-                    {selectedBlocked && !selectedBooked && selected ? (
-                      <div
-                        className="rounded px-1 py-0.5 text-[10px] leading-tight text-slate-300"
-                        style={{ backgroundColor: CHANNEL_COLORS.blocked.bg }}
-                        title={`Manual block · ${selected.title}`}
-                      >
-                        <p className="truncate font-semibold">
-                          {resolveUnitLabel(selected)}
-                        </p>
-                        <p className="truncate text-[9px] opacity-85">Blocked</p>
-                      </div>
-                    ) : null}
-                  </div>
-                </>
-              ) : null}
-            </div>
-          );
-        })}
+      <div className="overflow-x-auto rounded-xl border border-slate-800">
+        <table className="w-full min-w-[1100px] table-fixed border-collapse text-left text-xs">
+          <colgroup>
+            <col className="w-40" />
+            <col />
+          </colgroup>
+          <thead className="bg-slate-900/60 text-slate-500">
+            <tr>
+              <th className="sticky left-0 z-10 bg-slate-950 px-3 py-2">Unit</th>
+              <th className="p-0">
+                <div
+                  className="grid"
+                  style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}
+                >
+                  {days.map((d) => (
+                    <div
+                      key={d}
+                      className="px-0.5 py-2 text-center font-normal text-slate-400"
+                    >
+                      <span className="block text-[11px]">{d.slice(8)}</span>
+                      <span className="block text-[9px] opacity-60">
+                        {new Date(`${d}T12:00:00`).toLocaleDateString("en-AU", {
+                          weekday: "narrow",
+                        })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {units.map((unit) => (
+              <tr
+                key={unit.id}
+                className={`border-t border-slate-800 ${
+                  selectedId === unit.id ? "bg-slate-900/30" : ""
+                }`}
+              >
+                <td className="sticky left-0 z-10 bg-slate-950 px-3 py-2 font-medium text-white">
+                  <button
+                    type="button"
+                    className="text-left hover:text-blue-300"
+                    onClick={() => onSelectUnit(unit.id)}
+                  >
+                    {unit.title}
+                  </button>
+                  <p className="mt-0.5 text-[10px] text-slate-500">
+                    {formatMoney(unit.weekday_rate)} / {formatMoney(unit.weekend_rate)}
+                  </p>
+                </td>
+                <td className="p-0 align-middle">
+                  <UnitDayTimeline
+                    unit={unit}
+                    days={days}
+                    pendingBlock={pendingBlock}
+                    channelFilter={channelFilter}
+                    compact
+                    onSelectUnit={onSelectUnit}
+                    onToggleDay={onToggleDay}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
