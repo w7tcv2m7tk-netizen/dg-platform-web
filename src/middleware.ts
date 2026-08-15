@@ -158,6 +158,18 @@ export default async function middleware(req: NextRequest, event: unknown) {
   if (hostname && !isPlatformHost(hostname)) {
     const path = req.nextUrl.pathname;
 
+    // Roe Realty WP leftovers: /agent and /agent/{slug} → live Gen2 pages
+    if (
+      /(^|\.)roerealty\.com\.au$/i.test(hostname) &&
+      /^\/agent(\/|$)/i.test(path) &&
+      !/^\/agent-disclaimer/i.test(path)
+    ) {
+      const dest = req.nextUrl.clone();
+      const agentSlug = path.replace(/^\/agent\/?/i, "").replace(/\/+$/, "");
+      dest.pathname = /^ben-roe/i.test(agentSlug) ? "/card" : "/agents";
+      return NextResponse.redirect(dest, 308);
+    }
+
     if (path === "/robots.txt") {
       const url = req.nextUrl.clone();
       url.pathname = "/sites/seo/robots";
