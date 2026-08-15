@@ -4,7 +4,7 @@
  * - Strip embedded page headers (duplicate/giant logos)
  * - Restore live WP footers for RR/CVH/Aëtherra
  * - Transparent overlay headers for RR/CVH
- * - Insights pages = post_grid only
+ * - Keep Insights post_grid (do not strip hero HTML)
  *
  * Usage: node scripts/fix-website-chrome-display.mjs
  */
@@ -184,14 +184,6 @@ async function main() {
         }
         return c;
       });
-
-      if (page.slug === "insights") {
-        const grid = next.filter((c) => c?.type === "post_grid");
-        if (grid.length && grid.length !== next.length) {
-          next = grid;
-          changed = true;
-        }
-      }
 
       if (changed) {
         await prisma.websitePage.update({

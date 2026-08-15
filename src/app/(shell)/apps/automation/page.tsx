@@ -5,7 +5,6 @@ import { getAppSetupHref } from "@dg/platform-core";
 
 import { AutomationBuilderPanel } from "@/components/automation/AutomationBuilderPanel";
 import { AutomationSubnav } from "@/components/automation/AutomationSubnav";
-import { PlatformRoadmapBar } from "@/components/platform/PlatformRoadmapBar";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 export default async function AutomationPage() {
@@ -28,7 +27,6 @@ export default async function AutomationPage() {
 
   return (
     <>
-      <PlatformRoadmapBar />
       <header className="dg-page-header">
         <Link href="/dashboard" className="text-sm text-blue-400 hover:underline">
           ← Overview

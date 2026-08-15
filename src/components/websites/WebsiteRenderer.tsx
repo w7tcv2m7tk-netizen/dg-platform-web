@@ -579,10 +579,17 @@ function BrandSiteHeader({
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prevOverflow;
+      document.body.style.overflow = prevOverflow || "";
       window.removeEventListener("keydown", onKey);
     };
   }, [menuOpen]);
+
+  // Always clear scroll lock on unmount (route changes / remounts)
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
 
   // Close drawer on resize back to desktop
   useEffect(() => {

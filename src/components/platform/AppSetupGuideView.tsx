@@ -2,8 +2,6 @@ import Link from "next/link";
 import type { AppSetupGuide } from "@dg/platform-core";
 import { platformApps } from "@dg/platform-core";
 
-import { PlatformRoadmapBar } from "@/components/platform/PlatformRoadmapBar";
-
 function StepTimeline({ steps }: { steps: AppSetupGuide["steps"] }) {
   return (
     <ol className="relative space-y-0">
@@ -66,7 +64,6 @@ export function AppSetupGuideView({ guide }: { guide: AppSetupGuide }) {
 
   return (
     <>
-      <PlatformRoadmapBar />
       <header className="dg-page-header">
         <Link href="/dashboard/apps" className="text-sm text-blue-400 hover:underline">
           ← Apps & Platform

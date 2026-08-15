@@ -12,7 +12,6 @@ import {
 } from "@dg/platform-core";
 
 import { RoadmapStatusBadge } from "@/components/platform/RoadmapStatusBadge";
-import { PlatformRoadmapBar } from "@/components/platform/PlatformRoadmapBar";
 
 type AppFeaturePlaceholderProps =
   | ({ itemId: string; href?: never; hideRoadmap?: boolean })
@@ -60,7 +59,6 @@ export function AppFeaturePlaceholder(props: AppFeaturePlaceholderProps) {
 
   return (
     <>
-      {hideRoadmap ? null : <PlatformRoadmapBar />}
       <header className="dg-page-header">
         <Link href="/dashboard" className="text-sm text-blue-400 hover:underline">
           ← Overview

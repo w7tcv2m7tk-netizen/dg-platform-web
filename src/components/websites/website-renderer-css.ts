@@ -440,7 +440,19 @@ export const websiteRendererCss = `
 .wb-root.wb-html-page.wb-full-bleed {
   width: 100%;
   max-width: none;
+  /* Do not set overflow-x: clip on the page root — it can create a
+     scroll-containing block and break document scrolling on some browsers. */
+  overflow: visible;
+}
+
+/* Keep marketing custom-domain pages document-scrollable */
+html:has(.wb-root.wb-html-page),
+html:has(.wb-root.wb-html-page) body {
+  height: auto !important;
+  min-height: 100%;
   overflow-x: clip;
+  overflow-y: auto !important;
+  overscroll-behavior-y: auto;
 }
 
 .wb-root.wb-full-bleed .wb-section,
@@ -546,7 +558,7 @@ export const websiteRendererCss = `
 
 /* Dark page defaults: readable type against dark shells */
 .wb-html-island--page:not(.wb-html-island--light) {
-  color: #f8fafc !important;
+  color: #e5e7eb !important;
 }
 
 .wb-html-island--page:not(.wb-html-island--light) h1,
@@ -563,8 +575,26 @@ export const websiteRendererCss = `
 .wb-html-island--page:not(.wb-html-island--light) td,
 .wb-html-island--page:not(.wb-html-island--light) th,
 .wb-html-island--page:not(.wb-html-island--light) label,
-.wb-html-island--page:not(.wb-html-island--light) span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]) {
-  color: #e5e7eb !important;
+.wb-html-island--page:not(.wb-html-island--light) small,
+.wb-html-island--page:not(.wb-html-island--light) figcaption,
+.wb-html-island--page:not(.wb-html-island--light) span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="pill"]):not([class*="chip"]) {
+  color: #e2e8f0 !important;
+}
+
+/* Lift common slate muted tokens that fail AA on dark shells */
+.wb-html-island--page:not(.wb-html-island--light) [style*="color:#94A3B8"],
+.wb-html-island--page:not(.wb-html-island--light) [style*="color: #94A3B8"],
+.wb-html-island--page:not(.wb-html-island--light) [style*="color:#94a3b8"],
+.wb-html-island--page:not(.wb-html-island--light) [style*="color: #94a3b8"],
+.wb-html-island--page:not(.wb-html-island--light) [style*="color:#64748B"],
+.wb-html-island--page:not(.wb-html-island--light) [style*="color: #64748B"],
+.wb-html-island--page:not(.wb-html-island--light) [style*="color:#64748b"],
+.wb-html-island--page:not(.wb-html-island--light) [style*="color: #64748b"],
+.wb-html-island--page:not(.wb-html-island--light) [style*="color:#AEB8A6"],
+.wb-html-island--page:not(.wb-html-island--light) [style*="color: #AEB8A6"],
+.wb-html-island--page:not(.wb-html-island--light) [style*="color:#aeb8a6"],
+.wb-html-island--page:not(.wb-html-island--light) [style*="color: #aeb8a6"] {
+  color: #d1d5db !important;
 }
 
 .wb-html-island--page:not(.wb-html-island--light) a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]) {
@@ -661,10 +691,32 @@ export const websiteRendererCss = `
 .wb-html-island--light td,
 .wb-html-island--light th,
 .wb-html-island--light label,
+.wb-html-island--light small,
+.wb-html-island--light figcaption,
 .wb-html-island--light span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]),
 .wb-html-page .wb-html-island--page:has(.roe-property-grid) p,
 .wb-html-page .wb-html-island--page:has(.roe-property-grid) li {
   color: #2f2f2f !important;
+}
+
+/* Cream pages: darken washed secondary greys for AA */
+.wb-html-island--light [style*="color:#5A6B67"],
+.wb-html-island--light [style*="color: #5A6B67"],
+.wb-html-island--light [style*="color:#5a6b67"],
+.wb-html-island--light [style*="color: #5a6b67"],
+.wb-html-island--light [style*="color:#8A9B98"],
+.wb-html-island--light [style*="color: #8A9B98"],
+.wb-html-island--light [style*="color:#8a9b98"],
+.wb-html-island--light [style*="color: #8a9b98"],
+.wb-html-island--light [style*="color:#8FA3A0"],
+.wb-html-island--light [style*="color: #8FA3A0"],
+.wb-html-island--light [style*="color:#8fa3a0"],
+.wb-html-island--light [style*="color: #8fa3a0"],
+.wb-html-island--light [style*="color:#6B7280"],
+.wb-html-island--light [style*="color: #6B7280"],
+.wb-html-island--light [style*="color:#6b7280"],
+.wb-html-island--light [style*="color: #6b7280"] {
+  color: #3f4a48 !important;
 }
 
 .wb-html-island--light a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]),
@@ -831,6 +883,14 @@ export const websiteRendererCss = `
 .wb-html-page a.hero-btn,
 .wb-html-page a.cta-btn,
 .wb-html-page button.submit-btn,
+.wb-html-page .nav-cta,
+.wb-html-page .hero-cta,
+.wb-html-page .cta-button,
+.wb-html-page .intro-cta,
+.wb-html-page .direct-cta-button-light,
+.wb-html-page .plan-cta,
+.wb-html-page .btn-primary,
+.wb-html-page a.btn-primary,
 .wb-html-page .wb-brand-chrome-cta,
 .wb-root .wb-brand-chrome-cta {
   color: #f8fafc !important;
@@ -842,6 +902,12 @@ export const websiteRendererCss = `
 .wb-html-page .submit-btn:hover,
 .wb-html-page .btn-cvh:hover,
 .wb-html-page .cvh-unit-actions .primary:hover,
+.wb-html-page .nav-cta:hover,
+.wb-html-page .hero-cta:hover,
+.wb-html-page .cta-button:hover,
+.wb-html-page .intro-cta:hover,
+.wb-html-page .plan-cta:hover,
+.wb-html-page .btn-primary:hover,
 .wb-root .wb-brand-chrome-cta:hover {
   color: #ffffff !important;
 }
@@ -1140,7 +1206,7 @@ export const websiteRendererCss = `
 @media (max-width: 900px) {
   .wb-html-page,
   .wb-root.wb-html-page {
-    overflow-x: clip;
+    overflow-x: visible;
   }
 
   .wb-html-island--page,
@@ -1646,6 +1712,18 @@ export const websiteRendererCss = `
   font-size: 0.85rem;
   text-align: center;
   max-width: min(720px, 90vw);
+}
+
+/* Prefer readable text if page CSS leaves fade-ins at opacity 0 */
+@media (prefers-reduced-motion: reduce) {
+  .wb-html-page .hero-badge,
+  .wb-html-page .hero-container > *,
+  .wb-html-page [class*="fade-up"],
+  .wb-html-page [class*="FadeUp"] {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
 }
 
 @media (max-width: 720px) {

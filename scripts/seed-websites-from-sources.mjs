@@ -544,7 +544,7 @@ async function seedDigitalGate(org) {
     n += 1;
   }
 
-  // Insights archive: cards only (no marketing hero chrome)
+  // Insights archive: hero chrome + article cards
   {
     const action = await upsertPage(
       site.id,
