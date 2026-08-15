@@ -1,4 +1,5 @@
 import { findDomainByHostname, getWebsiteBySlug } from "@dg/platform-core";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
@@ -25,15 +26,7 @@ function chromeFromSite(
   return chrome as SiteChrome;
 }
 
-/**
- * Custom-hostname entry — middleware rewrites unknown hosts here.
- * Resolves InfrastructureDomain → Website and renders the public site at `/`.
- */
-export default async function ByHostSitePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ preview?: string; page?: string }>;
-}) {
+async function resolveHostSlug(): Promise<string | null> {
   const hdrs = await headers();
   const host = (
     hdrs.get("x-dg-custom-host") ||
@@ -43,21 +36,69 @@ export default async function ByHostSitePage({
   )
     .split(":")[0]
     .toLowerCase();
-
-  if (!host) notFound();
+  if (!host) return null;
 
   const match = await findDomainByHostname(host);
-  if (!match?.website?.slug) {
-    // Try www-stripped / apex variant
-    const alt = host.startsWith("www.")
-      ? host.slice(4)
-      : `www.${host}`;
-    const match2 = await findDomainByHostname(alt);
-    if (!match2?.website?.slug) notFound();
-    return renderSite(match2.website.slug, await searchParams);
-  }
+  if (match?.website?.slug) return match.website.slug;
 
-  return renderSite(match.website.slug, await searchParams);
+  const alt = host.startsWith("www.") ? host.slice(4) : `www.${host}`;
+  const match2 = await findDomainByHostname(alt);
+  return match2?.website?.slug ?? null;
+}
+
+function resolvePage(
+  site: NonNullable<Awaited<ReturnType<typeof getWebsiteBySlug>>>,
+  pageSlug: string | undefined,
+) {
+  const pages = site.pages ?? [];
+  if (!pageSlug) {
+    return pages.find((p) => p.intent === "home" || p.slug === "home") || pages[0];
+  }
+  return (
+    pages.find((p) => p.slug === pageSlug) ||
+    pages.find((p) => p.slug === pageSlug.replace(/^accommodation\//, "")) ||
+    pages.find((p) => {
+      const leaf = pageSlug.split("/").filter(Boolean).pop();
+      return Boolean(leaf && p.slug === leaf);
+    }) ||
+    null
+  );
+}
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ preview?: string; page?: string }>;
+}): Promise<Metadata> {
+  const slug = await resolveHostSlug();
+  if (!slug) return { title: "Site" };
+  const search = await searchParams;
+  const site = await getWebsiteBySlug(slug);
+  if (!site) return { title: "Site" };
+  const pageSlug = search.page ? decodeURIComponent(search.page) : undefined;
+  const page = resolvePage(site, pageSlug);
+  const title = page?.seo?.title || site.seo?.title || site.name;
+  const description =
+    page?.seo?.description || site.seo?.description || site.name;
+  return {
+    title,
+    description,
+    applicationName: site.name,
+  };
+}
+
+/**
+ * Custom-hostname entry — middleware rewrites unknown hosts here.
+ * Resolves InfrastructureDomain → Website and renders the public site at `/`.
+ */
+export default async function ByHostSitePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ preview?: string; page?: string }>;
+}) {
+  const slug = await resolveHostSlug();
+  if (!slug) notFound();
+  return renderSite(slug, await searchParams);
 }
 
 async function renderSite(
@@ -69,19 +110,10 @@ async function renderSite(
   if (!site) notFound();
   if (!allowDraft && site.status !== "published") notFound();
 
-  const pages = site.pages ?? [];
   const pageSlug = search.page ? decodeURIComponent(search.page) : undefined;
-  const page = pageSlug
-    ? pages.find((p) => p.slug === pageSlug) ||
-      pages.find((p) => p.slug === pageSlug.replace(/^accommodation\//, "")) ||
-      pages.find((p) => {
-        const leaf = pageSlug.split("/").filter(Boolean).pop();
-        return Boolean(leaf && p.slug === leaf);
-      })
-    : pages.find((p) => p.intent === "home" || p.slug === "home") || pages[0];
+  const page = resolvePage(site, pageSlug);
   if (!page) notFound();
 
-  // Keep path-based URLs consistent when opened via custom host deep-links
   if (pageSlug && page.slug === "home") {
     redirect("/");
   }
@@ -90,15 +122,9 @@ async function renderSite(
   const chrome = chromeFromSite(
     site.metadata as Record<string, unknown> | null | undefined,
   );
-  const title = page.seo?.title || site.seo?.title || site.name;
 
   return (
     <>
-      <title>{title}</title>
-      <meta
-        name="description"
-        content={page.seo?.description || site.seo?.description || site.name}
-      />
       {(chrome?.stylesheets ?? []).slice(0, 20).map((href) => (
         <link key={href} rel="stylesheet" href={href} />
       ))}
