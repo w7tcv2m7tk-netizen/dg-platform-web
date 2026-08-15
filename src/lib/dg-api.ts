@@ -909,7 +909,8 @@ export type WpAccUnitProp = {
 };
 
 export type WpAccBookingRow = {
-  id: number;
+  /** WordPress booking id when mirrored; omit / undefined for Gen2-native OTA rows. */
+  id?: number;
   platform_id?: string;
   ref?: string;
   guest_name?: string;

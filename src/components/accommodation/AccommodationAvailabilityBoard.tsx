@@ -196,7 +196,11 @@ function bookingSpansForUnit(
     if (!bookingMatchesChannel(booking, filter)) continue;
     if (booking.checkout <= rangeStart || booking.checkin > rangeEnd) continue;
 
-    const key = booking.id ?? `${booking.checkin}:${booking.checkout}:${booking.guest_name ?? ""}`;
+    // Gen2 OTA rows often have id=0 (no WP id). Prefer platform_id so stays don't collapse.
+    const key =
+      (typeof booking.platform_id === "string" && booking.platform_id.trim()) ||
+      (typeof booking.id === "number" && booking.id > 0 ? String(booking.id) : "") ||
+      `${booking.checkin}:${booking.checkout}:${booking.guest_name ?? ""}:${booking.source ?? booking.status ?? ""}`;
     if (seen.has(key)) continue;
     seen.add(key);
 
@@ -1126,7 +1130,7 @@ function UnitDayTimeline({
       })}
       {spans.map((span) => (
         <StaySpanBar
-          key={`${span.booking.id ?? "b"}-${span.startIdx}-${span.endIdx}-${span.lane}`}
+          key={`${span.booking.platform_id || (span.booking.id && span.booking.id > 0 ? span.booking.id : "b")}-${span.startIdx}-${span.endIdx}-${span.lane}`}
           span={span}
           dayCount={days.length}
           compact={compact}
@@ -1434,7 +1438,13 @@ function ListView({
             const channel = channelKey(b);
             const nights = stayNightCount(b);
             return (
-              <tr key={b.id} className="border-t border-slate-800">
+              <tr
+                key={
+                  b.platform_id ||
+                  (b.id && b.id > 0 ? `wp-${b.id}` : `${b.checkin}-${b.checkout}-${b.guest_name ?? ""}`)
+                }
+                className="border-t border-slate-800"
+              >
                 <td className="px-4 py-3 text-white">{b.guest_name ?? b.ref ?? "Guest"}</td>
                 <td className="px-4 py-3 text-slate-300">{b.unitTitle}</td>
                 <td className="px-4 py-3 text-slate-400">

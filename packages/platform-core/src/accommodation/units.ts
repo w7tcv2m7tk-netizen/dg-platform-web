@@ -631,7 +631,8 @@ export async function buildAvailabilityFromNeon(
             ? meta.source.trim()
             : undefined;
         return {
-          id: b.externalWpId ?? 0,
+          // Prefer real WP id; omit 0 so calendar span keys don't collapse OTA rows.
+          id: b.externalWpId && b.externalWpId > 0 ? b.externalWpId : undefined,
           platform_id: b.id,
           guest_name: b.guestName,
           accommodation_id: unit.externalWpId ?? undefined,

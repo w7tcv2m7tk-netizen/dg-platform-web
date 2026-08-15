@@ -157,7 +157,7 @@ async function resolveGuestContactId(
 /** Map Postgres stay bookings into the WpAccBookingRow shape used by UI tables. */
 export function stayBookingToWpRow(item: StayBookingListItem): WpAccBookingRow {
   return {
-    id: item.externalWpId ?? 0,
+    id: item.externalWpId && item.externalWpId > 0 ? item.externalWpId : undefined,
     platform_id: item.id,
     ref: item.ref ?? undefined,
     guest_name: item.guestName,
