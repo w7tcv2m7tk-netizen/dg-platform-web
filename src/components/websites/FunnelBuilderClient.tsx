@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   FUNNEL_TEMPLATE_OPTIONS,
-  type FunnelTemplateId,
-  type SerializedWebsite,
-} from "@dg/platform-core";
+} from "@dg/platform-core/websites/funnels";
+import type { FunnelTemplateId, SerializedWebsite } from "@dg/platform-core/websites/types";
 
 export function FunnelBuilderClient({
   funnels,

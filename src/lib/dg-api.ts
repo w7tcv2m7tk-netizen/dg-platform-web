@@ -1,8 +1,21 @@
+import {
+  GEN2_APEX_WP_RETIRED_MESSAGE,
+  isGen2MarketingApexBaseUrl as isGen2MarketingApexBaseUrlCore,
+} from "@dg/platform-core";
+
 const DEFAULT_API_BASE = "https://digitalgate.com.au/wp-json/digitalgate/v1";
 
-/** Production CVH site — used when env contains placeholder URLs. */
+/** @deprecated Live CVH /wp-json is retired — migration hint only. */
 export const CVH_WP_REST_BASE =
   "https://currumbinvalleyhideaway.com.au/wp-json/digitalgate/v1";
+
+export function isGen2MarketingApexBaseUrl(
+  baseUrl: string | null | undefined,
+): boolean {
+  return isGen2MarketingApexBaseUrlCore(baseUrl);
+}
+
+const GEN2_APEX_ACC_RETIRED = GEN2_APEX_WP_RETIRED_MESSAGE;
 
 function isPlaceholderWpUrl(baseUrl: string): boolean {
   return /YOUR-CVH-SITE|example\.com|localhost|placeholder/i.test(baseUrl);
@@ -413,32 +426,6 @@ function isCvhWpHost(baseUrl: string): boolean {
 }
 
 /**
- * Public marketing domains now served by Gen 2 Website Studio — `/wp-json` Acc/RE
- * endpoints are gone. Never treat these hosts as live WordPress connectors.
- */
-export function isGen2MarketingApexBaseUrl(baseUrl: string | null | undefined): boolean {
-  if (!baseUrl?.trim()) return false;
-  try {
-    const host = new URL(
-      baseUrl.includes("://") ? baseUrl : `https://${baseUrl}`,
-    ).hostname.replace(/^www\./i, "");
-    return (
-      /currumbinvalleyhideaway\.com\.au$/i.test(host) ||
-      /roerealty\.com\.au$/i.test(host) ||
-      /^digitalgate\.com\.au$/i.test(host) ||
-      /aetherra\.com\.au$/i.test(host)
-    );
-  } catch {
-    return /currumbinvalleyhideaway|roerealty|digitalgate\.com\.au|aetherra/i.test(
-      baseUrl,
-    );
-  }
-}
-
-const GEN2_APEX_ACC_RETIRED =
-  "WordPress accommodation APIs are retired on this public domain (Gen 2). Units and bookings live in Neon — open Accommodation → Units. Point the connector at a legacy WP host only if you still need a one-time import.";
-
-/**
  * Resolve a WordPress Dev API key for a specific host.
  * Never reuse the global Roe/DigitalGate connector key on CVH (or any other host).
  */
@@ -768,13 +755,13 @@ export async function fetchWpReSummary(days = 30, connector?: WpConnectorOverrid
 
 export type WpAccommodationSite = WpHealthSite;
 
-/** Accommodation WordPress sites — JSON in DG_WP_ACCOMMODATION_SITES, else health sites. */
+/** Accommodation WordPress sites — JSON in DG_WP_ACCOMMODATION_SITES (legacy/staging only). */
 export function listWpAccommodationSites(): WpAccommodationSite[] {
-  const cvhFallback: WpAccommodationSite[] = [
+  const emptyFallback: WpAccommodationSite[] = [
     {
-      id: "cvh",
-      label: "Currumbin Valley Hideaway",
-      baseUrl: CVH_WP_REST_BASE,
+      id: "gen2",
+      label: "Gen 2 (Neon) — no live WordPress Acc host",
+      baseUrl: "",
     },
   ];
 
@@ -783,36 +770,42 @@ export function listWpAccommodationSites(): WpAccommodationSite[] {
     try {
       const parsed = JSON.parse(raw) as WpAccommodationSite[];
       if (Array.isArray(parsed) && parsed.length) {
-        return normalizeWpSites(
-          parsed.map((site) => ({
-            id: site.id,
-            label: site.label || siteLabelFromBaseUrl(site.baseUrl),
-            baseUrl: site.baseUrl.replace(/\/$/, ""),
-            apiKey: site.apiKey,
-          })),
-          cvhFallback,
+        const sites = normalizeWpSites(
+          parsed
+            .map((site) => ({
+              id: site.id,
+              label: site.label || siteLabelFromBaseUrl(site.baseUrl),
+              baseUrl: site.baseUrl.replace(/\/$/, ""),
+              apiKey: site.apiKey,
+            }))
+            .filter((site) => !isGen2MarketingApexBaseUrl(site.baseUrl)),
+          emptyFallback,
         );
+        return sites.length ? sites : emptyFallback;
       }
     } catch {
       /* fall through */
     }
   }
 
-  const healthSites = listWpHealthSites();
-  const validHealth = healthSites.filter((site) => !isPlaceholderWpUrl(site.baseUrl));
-  if (validHealth.length) {
-    return validHealth;
+  const healthSites = listWpHealthSites().filter(
+    (site) =>
+      !isPlaceholderWpUrl(site.baseUrl) &&
+      !isGen2MarketingApexBaseUrl(site.baseUrl),
+  );
+  if (healthSites.length) {
+    return healthSites;
   }
 
-  return cvhFallback;
+  return emptyFallback;
 }
 
 export function getWpAccommodationSite(siteId?: string | null): WpAccommodationSite {
   const sites = listWpAccommodationSites();
   if (siteId) {
-    return sites.find((s) => s.id === siteId) ?? sites[0];
+    return sites.find((s) => s.id === siteId) ?? sites[0]!;
   }
-  return sites[0];
+  return sites[0]!;
 }
 
 export type WpAccommodationSummary = {
@@ -839,6 +832,8 @@ export type WpAccUnitFeatures = Record<string, 0 | 1 | boolean>;
 
 export type WpAccUnitProp = {
   id: number;
+  /** Neon AccommodationUnit id when Gen 2 is SoT. */
+  platform_id?: string;
   title: string;
   slug?: string;
   post_status?: string;
@@ -980,8 +975,10 @@ function refuseAccWpOnGen2Apex(
   | { ok: false; code: "not_found"; message: string; status?: number }
   | null {
   const site = resolveAccConnector(siteId, connector);
-  if (!isGen2MarketingApexBaseUrl(site.baseUrl)) return null;
-  return { ok: false, code: "not_found", message: GEN2_APEX_ACC_RETIRED, status: 404 };
+  if (!site.baseUrl?.trim() || isGen2MarketingApexBaseUrl(site.baseUrl)) {
+    return { ok: false, code: "not_found", message: GEN2_APEX_ACC_RETIRED, status: 404 };
+  }
+  return null;
 }
 
 export async function fetchWpAccommodationSummary(

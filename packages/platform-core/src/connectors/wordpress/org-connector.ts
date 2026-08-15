@@ -1,4 +1,8 @@
 import { decryptSecret, encryptSecret, isEncryptedSecret } from "../../crypto/secret-field";
+import {
+  GEN2_APEX_WP_RETIRED_MESSAGE,
+  isGen2MarketingApexBaseUrl,
+} from "./gen2-apex";
 
 export type OrgWordPressConnectorSettings = {
   baseUrl?: string;
@@ -18,12 +22,20 @@ export type OrgWordPressConnectorSettings = {
 };
 
 export type ResolvedWordPressConnector = {
+  /** Empty when the resolved host is a Gen 2 marketing apex (live WP APIs retired). */
   baseUrl: string;
   apiKey: string | undefined;
   label: string;
   source: "org" | "env" | "preset";
+  /** True when public Gen 2 apex would have been used — do not call /wp-json. */
+  apexRetired?: boolean;
+  retiredApexBaseUrl?: string;
 };
 
+/**
+ * Brand presets — apex URLs are kept for migration UI hints only.
+ * `resolveWordPressConnector` nullifies them for live API calls.
+ */
 export const WP_CONNECTOR_PRESETS: Record<
   string,
   { baseUrl: string; label: string }
@@ -154,21 +166,18 @@ export async function updateOrgWordPressConnectorSettings(
   return next;
 }
 
-/** Merge org connector with deployment env defaults. */
+/** Merge org connector with deployment env defaults. Gen 2 apex hosts → no live baseUrl. */
 export function resolveWordPressConnector(
   orgSettings?: OrgWordPressConnectorSettings | null,
   options?: { source?: "org" | "env" | "preset" },
 ): ResolvedWordPressConnector {
-  const baseUrl = (orgSettings?.baseUrl?.trim() || envWpBaseUrl()).replace(/\/$/, "");
-  const apiKey =
-    decryptApiKeyIfNeeded(orgSettings?.apiKey?.trim()) ||
-    envWpApiKeyForBaseUrl(baseUrl);
+  const rawBase = (orgSettings?.baseUrl?.trim() || envWpBaseUrl()).replace(/\/$/, "");
   const label =
     orgSettings?.label?.trim() ||
     (() => {
       try {
         return orgSettings?.baseUrl
-          ? new URL(baseUrl.replace(/\/wp-json.*/, "")).hostname
+          ? new URL(rawBase.replace(/\/wp-json.*/, "")).hostname
           : "WordPress";
       } catch {
         return "WordPress";
@@ -179,8 +188,23 @@ export function resolveWordPressConnector(
     options?.source ??
     (orgSettings?.baseUrl || orgSettings?.apiKey ? "org" : "env");
 
+  if (isGen2MarketingApexBaseUrl(rawBase)) {
+    return {
+      baseUrl: "",
+      apiKey: undefined,
+      label: `${label} (Gen 2)`,
+      source,
+      apexRetired: true,
+      retiredApexBaseUrl: rawBase,
+    };
+  }
+
+  const apiKey =
+    decryptApiKeyIfNeeded(orgSettings?.apiKey?.trim()) ||
+    envWpApiKeyForBaseUrl(rawBase);
+
   return {
-    baseUrl,
+    baseUrl: rawBase,
     apiKey,
     label,
     source,
@@ -235,14 +259,24 @@ export async function resolveOrgWordPressConnector(
 export function seedWordPressConnectorForTemplate(
   template: "real-estate" | "accommodation" | "creator" | "default" | "services",
 ): OrgWordPressConnectorSettings | undefined {
-  if (template === "real-estate") {
-    return { ...WP_CONNECTOR_PRESETS["real-estate"] };
-  }
-  if (template === "accommodation") {
-    return { ...WP_CONNECTOR_PRESETS.accommodation };
-  }
-  if (template === "creator") {
-    return { ...WP_CONNECTOR_PRESETS.creator };
+  // Do not seed Gen 2 cutover brands with retired apex /wp-json URLs.
+  if (
+    template === "real-estate" ||
+    template === "accommodation" ||
+    template === "creator"
+  ) {
+    const key =
+      template === "real-estate"
+        ? "real-estate"
+        : template === "accommodation"
+          ? "accommodation"
+          : "creator";
+    return {
+      label: WP_CONNECTOR_PRESETS[key].label,
+      baseUrl: "",
+    };
   }
   return undefined;
 }
+
+export { GEN2_APEX_WP_RETIRED_MESSAGE, isGen2MarketingApexBaseUrl };

@@ -1,6 +1,4 @@
 import { createHash } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 
 export type StoredBrandAsset = {
   url: string;
@@ -103,6 +101,10 @@ async function storeOnPublicDisk(
   contentType: string,
   keyPrefix?: string,
 ): Promise<StoredBrandAsset> {
+  // Lazy — top-level node:fs breaks Turbopack when @dg/platform-core is imported by clients.
+  const { mkdir, writeFile } = await import("node:fs/promises");
+  const path = await import("node:path");
+
   const key = objectKey(organisationId, contentType, buffer, keyPrefix);
   // key is org-assets/... — strip that for public/ layout
   const relativePath = key.startsWith("org-assets/") ? key : `org-assets/${key}`;

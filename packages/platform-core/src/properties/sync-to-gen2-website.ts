@@ -1,6 +1,5 @@
 import type { Prisma, Property } from "@dg/database";
 
-import { storeOrgFile } from "../assets/org-brand-storage";
 import { WEBSITE_PUBLISH_STATUSES } from "./statuses";
 
 type PropertyRow = Property;
@@ -60,58 +59,20 @@ function featuresToList(features: unknown): string[] {
   return [];
 }
 
-function isEphemeralImageUrl(url: string): boolean {
-  return /images-uat\.corelogic\.asia|signature=|corelogic\.asia\/.*\?/i.test(url);
-}
-
-/**
- * Copy remote listing photos into durable org Blob storage when they look ephemeral
- * (signed Cotality/UAT URLs). Already-blob / stable URLs are left alone.
- */
+/** Lazy — keeps listing Blob mirror off the static client graph via the platform-core barrel. */
 export async function persistPropertyListingImages(
   organisationId: string,
   propertyId: string,
   images: string[],
 ): Promise<string[]> {
-  const out: string[] = [];
-  const seen = new Set<string>();
+  const { persistPropertyListingImages: persist } = await import(
+    "./persist-listing-images"
+  );
+  return persist(organisationId, propertyId, images);
+}
 
-  for (let i = 0; i < images.length; i += 1) {
-    const src = String(images[i] || "").trim();
-    if (!src || seen.has(src)) continue;
-    seen.add(src);
-
-    if (!isEphemeralImageUrl(src) && /blob\.vercel-storage\.com|\/org-assets\//i.test(src)) {
-      out.push(src);
-      continue;
-    }
-
-    try {
-      const res = await fetch(src, {
-        redirect: "follow",
-        headers: { Accept: "image/*,*/*" },
-      });
-      if (!res.ok) continue;
-      const contentType = (res.headers.get("content-type") || "image/jpeg").split(";")[0].trim();
-      if (!contentType.startsWith("image/")) continue;
-      const buffer = Buffer.from(await res.arrayBuffer());
-      if (buffer.length < 1000) continue;
-      const stored = await storeOrgFile({
-        organisationId,
-        buffer,
-        contentType,
-        maxBytes: 8 * 1024 * 1024,
-        sizeLabel: "Listing image",
-        keyPrefix: `listing-images/${propertyId}`,
-      });
-      out.push(stored.url);
-    } catch {
-      // Keep original if mirror fails — better than dropping the gallery entirely.
-      if (!isEphemeralImageUrl(src)) out.push(src);
-    }
-  }
-
-  return out;
+function isEphemeralImageUrl(url: string): boolean {
+  return /images-uat\.corelogic\.asia|signature=|corelogic\.asia\/.*\?/i.test(url);
 }
 
 function buildDetailHtml(property: PropertyRow, pageSlug: string): string {

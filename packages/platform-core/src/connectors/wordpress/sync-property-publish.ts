@@ -76,6 +76,14 @@ export async function publishPropertyToWordPress(
   }
 
   const connector = await resolveOrgWordPressConnector(input.organisationId);
+  if (connector.apexRetired || !connector.baseUrl?.trim()) {
+    return {
+      ok: false,
+      reason: "skipped_status",
+      message:
+        "WordPress property publish skipped — public site is Gen 2 (Neon / Website Studio is SoT).",
+    };
+  }
   if (!connector.apiKey?.trim()) {
     return {
       ok: false,
@@ -276,6 +284,9 @@ export async function maybeAutoPublishPropertyToWordPress(input: {
   actorId?: string;
 }): Promise<PublishPropertyResult | null> {
   if (!AUTO_PUBLISH_STATUSES.has(input.status)) return null;
+  // Gen 2 cutover orgs: never auto-push listings to retired apex /wp-json.
+  const connector = await resolveOrgWordPressConnector(input.organisationId);
+  if (connector.apexRetired || !connector.baseUrl?.trim()) return null;
   return publishPropertyToWordPress({
     organisationId: input.organisationId,
     propertyId: input.propertyId,

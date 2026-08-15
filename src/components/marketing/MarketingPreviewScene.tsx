@@ -1,6 +1,6 @@
 "use client";
 
-import { buildBusinessOverview } from "@dg/platform-core";
+import { buildBusinessOverview } from "@dg/platform-core/overview/build-overview";
 
 import { BusinessOverviewDashboard } from "@/components/overview/BusinessOverviewDashboard";
 import { MarketingPlatformChrome } from "@/components/marketing/MarketingPlatformChrome";
