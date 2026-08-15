@@ -818,6 +818,34 @@ export const websiteRendererCss = `
   box-sizing: border-box;
 }
 
+/* CVH / shared filled CTAs: light label on sandstone/gold fills */
+.wb-html-page .book-btn,
+.wb-html-page .hero-btn,
+.wb-html-page .cta-btn,
+.wb-html-page .submit-btn,
+.wb-html-page .btn-cvh,
+.wb-html-page .coming-soon-badge,
+.wb-html-page .cvh-unit-actions .primary,
+.wb-html-page .cvh-unit-actions a.primary,
+.wb-html-page a.book-btn,
+.wb-html-page a.hero-btn,
+.wb-html-page a.cta-btn,
+.wb-html-page button.submit-btn,
+.wb-html-page .wb-brand-chrome-cta,
+.wb-root .wb-brand-chrome-cta {
+  color: #f8fafc !important;
+}
+
+.wb-html-page .book-btn:hover,
+.wb-html-page .hero-btn:hover,
+.wb-html-page .cta-btn:hover,
+.wb-html-page .submit-btn:hover,
+.wb-html-page .btn-cvh:hover,
+.wb-html-page .cvh-unit-actions .primary:hover,
+.wb-root .wb-brand-chrome-cta:hover {
+  color: #ffffff !important;
+}
+
 .wb-brand-chrome-footer {
   border-bottom: 0;
   border-top: 1px solid color-mix(in srgb, var(--wb-primary) 28%, transparent);
@@ -924,10 +952,248 @@ export const websiteRendererCss = `
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
 }
 
+/* Mobile menu control — hidden on desktop */
+.wb-brand-chrome-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2.6rem;
+  height: 2.6rem;
+  margin-left: auto;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0.7rem;
+  background: rgba(15, 23, 42, 0.35);
+  color: #f8fafc;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wb-brand-chrome-menu-icon {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 1.15rem;
+}
+
+.wb-brand-chrome-menu-icon span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  border-radius: 999px;
+  background: currentColor;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  transform-origin: center;
+}
+
+.wb-brand-chrome-header.is-menu-open .wb-brand-chrome-menu-icon span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.wb-brand-chrome-header.is-menu-open .wb-brand-chrome-menu-icon span:nth-child(2) {
+  opacity: 0;
+}
+
+.wb-brand-chrome-header.is-menu-open .wb-brand-chrome-menu-icon span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.wb-brand-chrome-backdrop {
+  display: none;
+}
+
+.wb-brand-chrome-panel {
+  display: none;
+}
+
+.wb-brand-chrome-cta--mobile {
+  margin-left: 0;
+  width: 100%;
+  white-space: normal;
+  text-align: center;
+  padding: 0.85rem 1.1rem;
+  font-size: 0.92rem;
+  line-height: 1.25;
+}
+
 .wb-brand-chrome-copy {
   margin: 0;
   color: #94a3b8;
   font-size: 0.82rem;
+}
+
+@media (max-width: 900px) {
+  .wb-brand-chrome-header .wb-brand-chrome-inner {
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    padding: 0.7rem 1rem;
+  }
+
+  .wb-brand-chrome-logo {
+    height: 34px !important;
+    max-height: 34px !important;
+    max-width: min(180px, 58vw) !important;
+  }
+
+  .wb-brand-chrome-nav--desktop,
+  .wb-brand-chrome-cta--desktop {
+    display: none !important;
+  }
+
+  .wb-brand-chrome-menu-btn {
+    display: inline-flex;
+  }
+
+  .wb-brand-chrome-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    background: rgba(2, 6, 23, 0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .wb-brand-chrome-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .wb-brand-chrome-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 80;
+    width: min(22rem, 88vw);
+    height: 100dvh;
+    padding: 5rem 1.25rem 1.75rem;
+    box-sizing: border-box;
+    background: #0b1220;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: -18px 0 48px rgba(0, 0, 0, 0.35);
+    transform: translateX(104%);
+    transition: transform 0.22s ease;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .wb-brand-chrome-panel.is-open {
+    transform: translateX(0);
+  }
+
+  .wb-brand-chrome-panel[hidden],
+  .wb-brand-chrome-backdrop[hidden] {
+    display: none !important;
+  }
+
+  .wb-brand-chrome-panel.is-open[hidden],
+  .wb-brand-chrome-backdrop.is-open[hidden] {
+    display: flex !important;
+  }
+
+  .wb-brand-chrome-backdrop.is-open[hidden] {
+    display: block !important;
+  }
+
+  .wb-brand-chrome-nav--mobile {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.15rem;
+    flex-wrap: nowrap;
+  }
+
+  .wb-brand-chrome-nav--mobile a {
+    display: block;
+    padding: 0.85rem 0.35rem;
+    color: #e2e8f0 !important;
+    font-size: 1.05rem;
+    font-weight: 650;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+    text-shadow: none !important;
+  }
+
+  .wb-brand-chrome-nav--mobile a:hover {
+    color: #fff !important;
+  }
+
+  .wb-brand-chrome-footer .wb-brand-chrome-inner {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .wb-brand-chrome-footer .wb-brand-chrome-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem 1rem;
+    width: 100%;
+  }
+}
+
+/* Sitewide mobile content polish */
+@media (max-width: 900px) {
+  .wb-html-page,
+  .wb-root.wb-html-page {
+    overflow-x: clip;
+  }
+
+  .wb-html-island--page,
+  .wb-html-island--light {
+    overflow-x: clip;
+  }
+
+  .wb-html-page img,
+  .wb-html-island img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .wb-html-page table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .wb-html-page iframe,
+  .wb-html-page video {
+    max-width: 100%;
+  }
+
+  .wb-section.wb-html-block {
+    overflow-x: clip;
+  }
+
+  .wb-root .container,
+  .wb-html-island--page .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .roe-prop-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .roe-prop-hero img {
+    height: 42vh !important;
+    min-height: 220px;
+  }
+
+  .roe-prop-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .roe-prop-actions a {
+    justify-content: center;
+  }
 }
 
 .wb-post-grid-wrap {
@@ -945,10 +1211,10 @@ export const websiteRendererCss = `
   width: 100%;
 }
 
-/* Aëtherra WP-style centered header */
+/* Aëtherra WP-style centered header — match site charcoal #0F1419 */
 .wb-site-chrome-header .wb-aetherra-header {
   width: 100%;
-  background: #171513;
+  background: #0f1419;
   border-bottom: 1px solid #1d2a24;
 }
 
@@ -961,6 +1227,7 @@ export const websiteRendererCss = `
   align-items: center;
   gap: 1rem;
   border-bottom: 0;
+  background: #0f1419;
 }
 
 .wb-site-chrome-header .wb-aetherra-header .logo {
@@ -1061,15 +1328,58 @@ export const websiteRendererCss = `
     height: 28px !important;
   }
   .wb-site-chrome-header .wb-aetherra-header .header-bottom {
-    flex-direction: column;
-    gap: 0.8rem;
+    display: none !important;
   }
-  .wb-site-chrome-header .wb-aetherra-header .nav-links {
-    gap: 1.2rem;
+}
+
+/* Custom HTML chrome (Aëtherra): floating hamburger + shared drawer */
+.wb-chrome-html {
+  position: relative;
+  z-index: 60;
+}
+
+.wb-chrome-html-menu-btn {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .wb-chrome-html-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0.7rem;
+    right: 0.85rem;
+    z-index: 90;
+    width: 2.6rem;
+    height: 2.6rem;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 0.7rem;
+    background: rgba(15, 20, 25, 0.72);
+    color: #f8fafc;
+    cursor: pointer;
   }
-  .wb-site-chrome-header .wb-aetherra-header .nav-divider {
-    width: 30px;
-    height: 1px;
+
+  .wb-chrome-html.is-menu-open .wb-brand-chrome-menu-icon span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .wb-chrome-html.is-menu-open .wb-brand-chrome-menu-icon span:nth-child(2) {
+    opacity: 0;
+  }
+  .wb-chrome-html.is-menu-open .wb-brand-chrome-menu-icon span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .wb-site-chrome-header .wb-aetherra-header .header-bottom,
+  .wb-site-chrome-header .header .nav-links {
+    display: none !important;
+  }
+
+  /* Aëtherra mobile drawer matches site charcoal, not blue shell */
+  .wb-chrome-html .wb-brand-chrome-panel {
+    background: #0f1419;
+    border-left: 1px solid #1d2a24;
   }
 }
 

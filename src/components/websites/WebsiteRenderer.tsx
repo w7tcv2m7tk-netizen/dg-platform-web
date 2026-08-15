@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { WebsiteComponent, WebsiteTheme } from "@dg/platform-core";
 
 import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
+import { ChromeHeaderHtml } from "@/components/websites/ChromeHeaderHtml";
 
 function asString(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
@@ -521,7 +522,12 @@ export type WebsiteChrome = {
   /** Force cream/light page surface + dark ink */
   lightSurface?: boolean | null;
   /** Primary header CTA (e.g. Get Property Report) */
-  headerCta?: { label: string; href: string } | null;
+  headerCta?: {
+    label: string;
+    href: string;
+    /** Optional CTA background (defaults to theme accent) */
+    backgroundColor?: string;
+  } | null;
 };
 
 function homeHref(basePath: string): string {
@@ -541,11 +547,19 @@ function BrandSiteHeader({
   links: Array<{ label: string; href: string }>;
   businessName: string;
   overlay?: boolean;
-  headerCta?: { label: string; href: string } | null;
+  headerCta?: {
+    label: string;
+    href: string;
+    backgroundColor?: string;
+  } | null;
 }) {
   const logo = theme.logoUrl || theme.iconUrl;
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const brandHref = homeHref(basePath);
+  const ctaStyle = headerCta?.backgroundColor
+    ? { background: headerCta.backgroundColor }
+    : undefined;
 
   useEffect(() => {
     const onScroll = () => {
@@ -556,13 +570,37 @@ function BrandSiteHeader({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
+
+  // Close drawer on resize back to desktop
+  useEffect(() => {
+    const onResize = () => {
+      if (window.matchMedia("(min-width: 901px)").matches) setMenuOpen(false);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   return (
     <header
       className={[
         "wb-brand-chrome",
         "wb-brand-chrome-header",
         overlay ? "wb-brand-chrome-header--overlay" : "wb-brand-chrome-header--fade",
-        scrolled ? "is-scrolled" : "is-top",
+        scrolled || menuOpen ? "is-scrolled" : "is-top",
+        menuOpen ? "is-menu-open" : "",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -576,8 +614,9 @@ function BrandSiteHeader({
             <span className="wb-brand-chrome-name">{businessName}</span>
           )}
         </a>
+
         {links.length ? (
-          <nav className="wb-brand-chrome-nav" aria-label="Primary">
+          <nav className="wb-brand-chrome-nav wb-brand-chrome-nav--desktop" aria-label="Primary">
             {links.map((link) => (
               <a key={`${link.href}-${link.label}`} href={link.href}>
                 {link.label}
@@ -585,8 +624,71 @@ function BrandSiteHeader({
             ))}
           </nav>
         ) : null}
+
         {headerCta?.label && headerCta.href ? (
-          <a className="wb-brand-chrome-cta" href={headerCta.href}>
+          <a
+            className="wb-brand-chrome-cta wb-brand-chrome-cta--desktop"
+            href={headerCta.href}
+            style={ctaStyle}
+          >
+            {headerCta.label}
+          </a>
+        ) : null}
+
+        {(links.length > 0 || headerCta?.label) && (
+          <button
+            type="button"
+            className="wb-brand-chrome-menu-btn"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            aria-controls="wb-brand-mobile-panel"
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            <span className="wb-brand-chrome-menu-icon" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+          </button>
+        )}
+      </div>
+
+      <div
+        className={["wb-brand-chrome-backdrop", menuOpen ? "is-open" : ""]
+          .filter(Boolean)
+          .join(" ")}
+        hidden={!menuOpen}
+        onClick={() => setMenuOpen(false)}
+      />
+
+      <div
+        id="wb-brand-mobile-panel"
+        className={["wb-brand-chrome-panel", menuOpen ? "is-open" : ""]
+          .filter(Boolean)
+          .join(" ")}
+        hidden={!menuOpen}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Site menu"
+      >
+        <nav className="wb-brand-chrome-nav wb-brand-chrome-nav--mobile" aria-label="Mobile">
+          {links.map((link) => (
+            <a
+              key={`m-${link.href}-${link.label}`}
+              href={link.href}
+              onClick={() => setMenuOpen(false)}
+            >
+              {link.label}
+            </a>
+          ))}
+        </nav>
+        {headerCta?.label && headerCta.href ? (
+          <a
+            className="wb-brand-chrome-cta wb-brand-chrome-cta--mobile"
+            href={headerCta.href}
+            style={ctaStyle}
+            onClick={() => setMenuOpen(false)}
+          >
             {headerCta.label}
           </a>
         ) : null}
@@ -703,6 +805,10 @@ export function WebsitePageRenderer({
             ? rawCta.href
             : `${basePath}${rawCta.href.startsWith("/") ? rawCta.href : `/${rawCta.href}`}` ||
               "/",
+          ...(typeof rawCta.backgroundColor === "string" &&
+          rawCta.backgroundColor.trim()
+            ? { backgroundColor: rawCta.backgroundColor.trim() }
+            : {}),
         }
       : null;
 
@@ -741,10 +847,7 @@ export function WebsitePageRenderer({
           headerCta={headerCta}
         />
       ) : headerHtml ? (
-        <section
-          className="wb-section wb-html-block wb-site-chrome wb-site-chrome-header"
-          dangerouslySetInnerHTML={{ __html: headerHtml }}
-        />
+        <ChromeHeaderHtml html={headerHtml} />
       ) : null}
       {components.map((c) => (
         <WebsiteComponentView

@@ -29,6 +29,16 @@ export { parsePropertyAddress, needsAddressRefinement, resolvePropertyAddress } 
 export type { ParsedPropertyAddress } from "./address";
 export { geocodeAustralianAddress, isGeocodingConfigured } from "./geocode";
 export type { GeocodeResult } from "./geocode";
+export {
+  syncPropertyToGen2Website,
+  syncAllPropertiesToGen2Website,
+  persistPropertyListingImages,
+  defaultPropertyPageSlug,
+} from "./sync-to-gen2-website";
+export type { SyncPropertyToGen2WebsiteResult } from "./sync-to-gen2-website";
+import {
+  syncPropertyToGen2Website,
+} from "./sync-to-gen2-website";
 
 /** Cotality / CoreLogic property id from externalRefs (preferred) or metadata. */
 export function getPropertyCotalityId(property: {
@@ -1026,9 +1036,21 @@ export async function pullCotalityPropertyDetails(
     },
   });
 
+  // Gen 2 public site (not WordPress): mirror Cotality photos to Blob + refresh pages.
+  await syncPropertyToGen2Website({
+    organisationId,
+    propertyId,
+    actorId,
+  }).catch(() => null);
+
+  const latest =
+    (await prisma.property.findFirst({
+      where: { id: propertyId, organisationId, deletedAt: null },
+    })) ?? updated;
+
   return {
     ok: true,
-    property: serializeProperty(updated),
+    property: serializeProperty(latest),
     snapshot: fetched.snapshot,
     prefill: {
       at: fetched.snapshot.fetchedAt,
@@ -1324,6 +1346,11 @@ export async function updatePropertyListing(
       organisationId,
       propertyId,
       status: property.status,
+      actorId,
+    }).catch(() => null);
+    await syncPropertyToGen2Website({
+      organisationId,
+      propertyId,
       actorId,
     }).catch(() => null);
   }

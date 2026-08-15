@@ -13,7 +13,7 @@ type SiteChrome = {
   businessName?: string;
   overlayHeader?: boolean;
   lightSurface?: boolean;
-  headerCta?: { label: string; href: string };
+  headerCta?: { label: string; href: string; backgroundColor?: string };
 };
 
 function chromeFromSite(
@@ -47,10 +47,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ogDescription =
     home?.seo?.ogDescription || site.seo?.ogDescription || description;
   const ogImage = home?.seo?.ogImage || site.seo?.ogImage;
+  const keywords = home?.seo?.keywords?.length
+    ? home.seo.keywords
+    : site.seo?.keywords;
 
   return {
     title,
     description,
+    ...(keywords?.length ? { keywords } : {}),
     openGraph: {
       title: ogTitle,
       description: ogDescription,

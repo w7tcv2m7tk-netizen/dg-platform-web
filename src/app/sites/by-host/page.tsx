@@ -14,7 +14,7 @@ type SiteChrome = {
   businessName?: string;
   overlayHeader?: boolean;
   lightSurface?: boolean;
-  headerCta?: { label: string; href: string };
+  headerCta?: { label: string; href: string; backgroundColor?: string };
 };
 
 function chromeFromSite(
@@ -80,10 +80,23 @@ export async function generateMetadata({
   const title = page?.seo?.title || site.seo?.title || site.name;
   const description =
     page?.seo?.description || site.seo?.description || site.name;
+  const ogTitle = page?.seo?.ogTitle || site.seo?.ogTitle || title;
+  const ogDescription =
+    page?.seo?.ogDescription || site.seo?.ogDescription || description;
+  const ogImage = page?.seo?.ogImage || site.seo?.ogImage;
+  const keywords = page?.seo?.keywords?.length
+    ? page.seo.keywords
+    : site.seo?.keywords;
   return {
     title,
     description,
     applicationName: site.name,
+    ...(keywords?.length ? { keywords } : {}),
+    openGraph: {
+      title: ogTitle,
+      description: ogDescription,
+      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
+    },
   };
 }
 
