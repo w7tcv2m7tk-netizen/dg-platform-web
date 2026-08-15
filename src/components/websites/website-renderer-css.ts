@@ -979,6 +979,174 @@ html:has(.wb-root.wb-html-page) body {
 }
 
 /*
+ * Roe Realty charcoal bands sit inside cream --light islands.
+ * Global light-island ink (#2f2f2f / #1c2b2a) washes dark heroes & sections —
+ * force cream type site-wide (same pattern as CVH / DG navy shells).
+ */
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .hero-section,
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .services-section,
+  .buyer-services,
+  .insight-section,
+  .lead-magnet-section,
+  .faq-section,
+  .final-cta,
+  .negotiation-section,
+  .selling-approach,
+  .values-section-dark,
+  .approach-section
+) {
+  color: #f4f1ea !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .hero-section,
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .services-section,
+  .buyer-services,
+  .insight-section,
+  .lead-magnet-section,
+  .faq-section,
+  .final-cta,
+  .negotiation-section,
+  .selling-approach,
+  .values-section-dark,
+  .approach-section
+) :is(
+  h1, h2, h3, h4, h5, h6,
+  .hero-headline,
+  .hero-subheading,
+  .hero-subheadline,
+  .cta-headline,
+  .section-title,
+  .section-label,
+  .benefits-title
+) {
+  color: #faf8f4 !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .hero-section,
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .services-section,
+  .buyer-services,
+  .insight-section,
+  .lead-magnet-section,
+  .faq-section,
+  .final-cta,
+  .negotiation-section,
+  .selling-approach,
+  .values-section-dark,
+  .approach-section
+) :is(
+  p, li, span, small, figcaption, label, td, th,
+  .cta-description,
+  .cta-label,
+  .section-subheadline,
+  .hero-content,
+  .service-text,
+  .faq-item,
+  .insight-card,
+  .service-card,
+  .approach-card,
+  .value-card,
+  .negotiation-visual
+) {
+  color: #e8e4dc !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .hero-section,
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .services-section,
+  .buyer-services,
+  .insight-section,
+  .lead-magnet-section,
+  .faq-section,
+  .final-cta,
+  .negotiation-section,
+  .selling-approach,
+  .values-section-dark,
+  .approach-section
+) a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]) {
+  color: #e8d5a8 !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .hero-section,
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .services-section,
+  .buyer-services,
+  .insight-section,
+  .lead-magnet-section,
+  .faq-section,
+  .final-cta,
+  .negotiation-section,
+  .selling-approach,
+  .values-section-dark,
+  .approach-section
+) a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]):hover {
+  color: #f5ebd8 !important;
+}
+
+/* Cream Roe body copy stays dark (intro / why / light CTA strips). */
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .intro-section,
+  .why-choose-section,
+  .direct-cta-section-light,
+  .final-cta-section
+) :is(
+  h1, h2, h3, h4,
+  .intro-headline,
+  .section-title,
+  .direct-cta-heading-light,
+  .cta-headline
+) {
+  color: #14201f !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .intro-section,
+  .why-choose-section,
+  .direct-cta-section-light,
+  .final-cta-section
+) :is(
+  p, li, span, small,
+  .intro-description,
+  .why-description,
+  .direct-cta-text-light,
+  .cta-description
+) {
+  color: #243533 !important;
+}
+
+/*
  * DigitalGate Founding (.dg-fc) is a navy shell that can sit inside
  * wb-html-island--light (cream island ink). Force light type on dark bands;
  * keep the white application form dark.
