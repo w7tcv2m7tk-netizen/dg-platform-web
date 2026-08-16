@@ -351,75 +351,23 @@ export function HideawayCircleCapture({ siteSlug, basePath = "" }: Props) {
 export function HideawayCircleHomepageCta({ basePath = "" }: { basePath?: string }) {
   const href = `${joinHref(basePath)}?src=home`;
   return (
-    <section className="cvh-circle-home-cta" style={homeCta}>
-      <div style={homeInner}>
-        <p style={{ ...eyebrow, color: "#6b5c4c" }}>The Hideaway Circle</p>
-        <h2 style={{ ...heading, fontSize: "1.75rem", marginBottom: "0.5rem" }}>
+    <section className="cvh-circle-home-cta" aria-labelledby="cvh-circle-home-heading">
+      <div className="cvh-circle-home-cta__inner">
+        <p className="cvh-circle-home-cta__badge">The Hideaway Circle</p>
+        <h2 id="cvh-circle-home-heading" className="cvh-circle-home-cta__headline">
           Come Back to the Valley
         </h2>
-        <p style={{ ...lead, maxWidth: "36rem", margin: "0 auto 1.25rem" }}>
-          Loved your stay? Join the Hideaway Circle and receive 10% off your next direct booking.
+        <p className="cvh-circle-home-cta__copy">
+          Loved your stay? Join the Hideaway Circle and receive 10% off your next
+          direct booking.
         </p>
-        <a href={href} style={btnStyle}>
-          Join the Hideaway Circle →
+        <a href={href} className="cvh-circle-home-cta__btn">
+          Join the Hideaway Circle <span aria-hidden>→</span>
         </a>
       </div>
     </section>
   );
 }
-
-const eyebrow: CSSProperties = {
-  margin: "0 0 0.5rem",
-  fontSize: "0.72rem",
-  fontWeight: 600,
-  letterSpacing: "0.14em",
-  textTransform: "uppercase",
-  color: "#8a735a",
-};
-
-const heading: CSSProperties = {
-  margin: "0 0 0.65rem",
-  fontSize: "1.55rem",
-  fontWeight: 500,
-  lineHeight: 1.25,
-  color: "#2c241c",
-};
-
-const lead: CSSProperties = {
-  margin: "0 0 1.5rem",
-  fontSize: "0.98rem",
-  lineHeight: 1.55,
-  color: "#5c4f42",
-};
-
-const btnStyle: CSSProperties = {
-  display: "inline-block",
-  marginTop: "1.25rem",
-  padding: "0.85rem 1.35rem",
-  borderRadius: "999px",
-  border: "none",
-  background: "#3d342b",
-  color: "#faf7f2",
-  fontSize: "0.92rem",
-  fontWeight: 600,
-  letterSpacing: "0.03em",
-  textTransform: "uppercase",
-  textDecoration: "none",
-  cursor: "pointer",
-};
-
-const homeCta: CSSProperties = {
-  padding: "3.5rem 1.25rem",
-  background: "linear-gradient(180deg, #ebe4db 0%, #f5f2ef 100%)",
-  borderTop: "1px solid rgba(107, 92, 76, 0.12)",
-};
-
-const homeInner: CSSProperties = {
-  maxWidth: "40rem",
-  margin: "0 auto",
-  textAlign: "center",
-  fontFamily: '"Segoe UI", Georgia, serif',
-};
 
 const printWrap: CSSProperties = {
   maxWidth: "28rem",
