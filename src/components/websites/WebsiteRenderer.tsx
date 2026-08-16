@@ -251,44 +251,91 @@ export function WebsiteContactForm({
 
   if (status === "done") {
     return (
-      <p className="wb-form-success">
+      <p
+        className={[
+          "wb-form-success",
+          /roe|realty/i.test(siteSlug) ? "wb-form-success--roe" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
         {successMessage || "Thanks — we’ll be in touch shortly."}
       </p>
     );
   }
 
+  const isRoe = /roe|realty/i.test(siteSlug);
+
   return (
-    <form id="contact-form" className="wb-form" onSubmit={onSubmit}>
+    <form
+      id="contact-form"
+      className={["wb-form", isRoe ? "wb-form--roe" : ""].filter(Boolean).join(" ")}
+      onSubmit={onSubmit}
+    >
       {headline ? <h2 className="wb-section-title">{headline}</h2> : null}
+      {isRoe ? (
+        <p className="wb-form-sub">
+          Whether you&apos;re buying, selling, or exploring the market — we&apos;d
+          love to hear from you.
+        </p>
+      ) : null}
+      {isRoe ? (
+        <div className="wb-form-row">
+          <label>
+            Full Name *
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              placeholder="Your name"
+            />
+          </label>
+          <label>
+            Phone
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Your phone number"
+            />
+          </label>
+        </div>
+      ) : (
+        <label>
+          Name
+          <input value={name} onChange={(e) => setName(e.target.value)} required />
+        </label>
+      )}
       <label>
-        Name
-        <input value={name} onChange={(e) => setName(e.target.value)} required />
-      </label>
-      <label>
-        Email
+        Email{isRoe ? " *" : ""}
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required={isRoe}
+          placeholder={isRoe ? "you@example.com" : undefined}
         />
       </label>
+      {isRoe ? null : (
+        <label>
+          Phone
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </label>
+      )}
       <label>
-        Phone
-        <input value={phone} onChange={(e) => setPhone(e.target.value)} />
-      </label>
-      <label>
-        Message
+        Message{isRoe ? " *" : ""}
         <textarea
-          rows={4}
+          rows={isRoe ? 5 : 4}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          required={isRoe}
+          placeholder={isRoe ? "How can Roe Realty help you?" : undefined}
         />
       </label>
       {error ? <p className="wb-form-error">{error}</p> : null}
       <button
         type="submit"
         disabled={status === "loading"}
-        style={{ background: primaryColor }}
+        style={isRoe ? undefined : { background: primaryColor }}
       >
         {status === "loading" ? "Sending…" : submitLabel || "Submit"}
       </button>

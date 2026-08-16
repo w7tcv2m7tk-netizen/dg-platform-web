@@ -3590,9 +3590,11 @@ a.wb-brand-chrome-cta:hover {
   color: #c9a46c !important;
 }
 
-/* Roe Realty contact — centre CRM form with brand card styling */
-.wb-html-page.wb-surface-light .wb-section:has(> .wb-form),
-.wb-html-page.wb-surface-light .wb-section:has(.wb-form) {
+/* Roe Realty contact — WP card form (centred, cream fields, gold pill CTA) */
+.wb-root.wb-html-page .wb-section:has(> .wb-form),
+.wb-root.wb-html-page .wb-section:has(.wb-form),
+.wb-root.wb-html-page.wb-surface-light .wb-section:has(> .wb-form),
+.wb-root.wb-html-page.wb-surface-light .wb-section:has(.wb-form) {
   display: flex !important;
   justify-content: center !important;
   padding: 2.5rem clamp(1rem, 3vw, 2rem) 4rem !important;
@@ -3600,61 +3602,135 @@ a.wb-brand-chrome-cta:hover {
   max-width: none !important;
 }
 
-.wb-html-page.wb-surface-light .wb-section .wb-form {
+.wb-root .wb-form.wb-form--roe,
+.wb-root.wb-html-page .wb-section .wb-form,
+.wb-root.wb-html-page.wb-surface-light .wb-section .wb-form {
   width: 100% !important;
   max-width: 640px !important;
   margin: 0 auto !important;
   background: #ffffff !important;
   border: 1px solid #e0d6cc !important;
-  border-radius: 16px !important;
-  padding: 2rem 2.25rem !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  border-radius: 24px !important;
+  padding: 2.5rem !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04) !important;
   color: #1c2b2a !important;
+  gap: 0 !important;
 }
 
-.wb-html-page.wb-surface-light .wb-section .wb-form .wb-section-title {
+.wb-root .wb-form.wb-form--roe .wb-section-title,
+.wb-root.wb-html-page .wb-section .wb-form .wb-section-title {
   text-align: center !important;
   color: #1c2b2a !important;
   font-family: "Sora", "Plus Jakarta Sans", system-ui, sans-serif !important;
-  font-size: 1.75rem !important;
+  font-size: 1.8rem !important;
   font-weight: 700 !important;
-  margin: 0 0 1.25rem !important;
+  letter-spacing: -0.02em !important;
+  margin: 0 0 0.5rem !important;
 }
 
-.wb-html-page.wb-surface-light .wb-section .wb-form label {
+.wb-root .wb-form.wb-form--roe .wb-form-sub {
+  text-align: center !important;
+  color: #4a5b59 !important;
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+  max-width: 500px !important;
+  margin: 0 auto 2rem !important;
+}
+
+.wb-root .wb-form.wb-form--roe .wb-form-row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 1.25rem !important;
+}
+
+.wb-root .wb-form.wb-form--roe label,
+.wb-root.wb-html-page .wb-section .wb-form label {
+  display: grid !important;
+  gap: 0.4rem !important;
   color: #1c2b2a !important;
+  font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif !important;
+  font-size: 0.85rem !important;
   font-weight: 600 !important;
+  margin-bottom: 1.25rem !important;
 }
 
-.wb-html-page.wb-surface-light .wb-section .wb-form input,
-.wb-html-page.wb-surface-light .wb-section .wb-form textarea {
+.wb-root .wb-form.wb-form--roe input,
+.wb-root .wb-form.wb-form--roe textarea,
+.wb-root.wb-html-page .wb-section .wb-form input,
+.wb-root.wb-html-page .wb-section .wb-form textarea {
+  width: 100% !important;
+  box-sizing: border-box !important;
   background: #faf9f7 !important;
   border: 1.5px solid #e0d6cc !important;
   border-radius: 12px !important;
   color: #1c2b2a !important;
+  padding: 12px 16px !important;
+  font-family: Inter, system-ui, sans-serif !important;
+  font-size: 0.95rem !important;
+  font-weight: 400 !important;
 }
 
-.wb-html-page.wb-surface-light .wb-section .wb-form input:focus,
-.wb-html-page.wb-surface-light .wb-section .wb-form textarea:focus {
+.wb-root .wb-form.wb-form--roe input:focus,
+.wb-root .wb-form.wb-form--roe textarea:focus,
+.wb-root.wb-html-page .wb-section .wb-form input:focus,
+.wb-root.wb-html-page .wb-section .wb-form textarea:focus {
   border-color: #c9a46c !important;
   box-shadow: 0 0 0 3px rgba(201, 164, 108, 0.15) !important;
   outline: none !important;
   background: #ffffff !important;
 }
 
-.wb-html-page.wb-surface-light .wb-section .wb-form button {
-  width: 100% !important;
-  justify-self: stretch !important;
-  background: #c9a46c !important;
-  border-radius: 999px !important;
-  font-weight: 600 !important;
-  padding: 0.85rem 1.25rem !important;
+.wb-root .wb-form.wb-form--roe input::placeholder,
+.wb-root .wb-form.wb-form--roe textarea::placeholder {
+  color: #a8b5b3 !important;
 }
 
-.wb-html-page.wb-surface-light .wb-section .wb-form-success {
+.wb-root .wb-form.wb-form--roe button,
+.wb-root.wb-html-page .wb-section .wb-form button {
+  width: 100% !important;
+  justify-self: stretch !important;
+  margin-top: 0.25rem !important;
+  background: #c9a46c !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 999px !important;
+  font-family: "Sora", "Plus Jakarta Sans", system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  padding: 16px 32px !important;
+  cursor: pointer !important;
+  transition: background 0.2s ease, transform 0.2s ease !important;
+}
+
+.wb-root .wb-form.wb-form--roe button:hover,
+.wb-root.wb-html-page .wb-section .wb-form button:hover {
+  background: #b8935a !important;
+  transform: translateY(-2px);
+}
+
+.wb-root .wb-form-success--roe,
+.wb-root.wb-html-page .wb-section .wb-form-success {
   max-width: 640px !important;
   margin: 0 auto !important;
   text-align: center !important;
+  background: #e8f5e9 !important;
+  color: #2e7d32 !important;
+  border-radius: 12px !important;
+  padding: 16px 20px !important;
+}
+
+@media (max-width: 640px) {
+  .wb-root .wb-form.wb-form--roe {
+    padding: 1.5rem !important;
+    border-radius: 16px !important;
+  }
+  .wb-root .wb-form.wb-form--roe .wb-form-row {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+  .wb-root .wb-form.wb-form--roe .wb-section-title {
+    font-size: 1.4rem !important;
+  }
 }
 
 /* CVH home — Hideaway Circle CTA matches site final-cta language */
