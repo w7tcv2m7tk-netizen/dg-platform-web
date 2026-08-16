@@ -3481,4 +3481,86 @@ a.wb-brand-chrome-cta:hover {
   margin: 0 auto !important;
   text-align: center !important;
 }
+
+/* CVH home — Hideaway Circle CTA matches site final-cta language */
+.wb-root .cvh-circle-home-cta {
+  padding: 100px 1.25rem !important;
+  background: linear-gradient(135deg, #f7f4ee 0%, #ede8e0 100%) !important;
+  border-top: 1px solid #e0d6cc !important;
+  border-bottom: 1px solid #e0d6cc !important;
+  text-align: center;
+  color: #2f2f2f !important;
+}
+
+.wb-root .cvh-circle-home-cta__inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.wb-root .cvh-circle-home-cta__badge {
+  display: inline-block !important;
+  margin: 0 0 1rem !important;
+  padding: 0.35rem 0.85rem !important;
+  border-radius: 999px !important;
+  background: rgba(185, 164, 138, 0.18) !important;
+  color: #8a7358 !important;
+  font-family: "Segoe UI", system-ui, sans-serif !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+
+.wb-root .cvh-circle-home-cta__headline {
+  margin: 0 0 1rem !important;
+  font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif !important;
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.02em !important;
+  color: #2f2f2f !important;
+}
+
+.wb-root .cvh-circle-home-cta__copy {
+  margin: 0 auto 2rem !important;
+  max-width: 550px;
+  font-family: "Segoe UI", system-ui, sans-serif !important;
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+  color: #4a5b59 !important;
+}
+
+.wb-root .cvh-circle-home-cta__btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 1rem 2rem !important;
+  border-radius: 56px !important;
+  background: #b9a48a !important;
+  color: #ffffff !important;
+  font-family: "Segoe UI", system-ui, sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  transition: background 0.25s ease, transform 0.25s ease, gap 0.2s ease;
+}
+
+.wb-root .cvh-circle-home-cta__btn:hover {
+  background: #a89377 !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  gap: 16px !important;
+}
+
+@media (max-width: 768px) {
+  .wb-root .cvh-circle-home-cta {
+    padding: 60px 1.25rem !important;
+  }
+  .wb-root .cvh-circle-home-cta__headline {
+    font-size: 1.8rem !important;
+  }
+  .wb-root .cvh-circle-home-cta__copy {
+    font-size: 0.9rem !important;
+  }
+}
 `;
