@@ -1,4 +1,4 @@
-import { findDomainByHostname, funnelTemplateFromMetadata, getPublicStayUnit, getWebsiteBySlug, resolvePageChromeVisibility, resolveStayUnitSlug } from "@dg/platform-core";
+import { findDomainByHostname, getPublicStayUnit, getWebsiteBySlug, resolveFunnelTemplate, resolvePageChromeVisibility, resolveStayUnitSlug } from "@dg/platform-core";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
@@ -27,9 +27,9 @@ function chromeFromSite(
   return chrome as SiteChrome;
 }
 
-async function resolveHostSlug(): Promise<string | null> {
+async function resolveRequestHost(): Promise<string> {
   const hdrs = await headers();
-  const host = (
+  return (
     hdrs.get("x-dg-custom-host") ||
     hdrs.get("x-forwarded-host") ||
     hdrs.get("host") ||
@@ -37,6 +37,10 @@ async function resolveHostSlug(): Promise<string | null> {
   )
     .split(":")[0]
     .toLowerCase();
+}
+
+async function resolveHostSlug(): Promise<string | null> {
+  const host = await resolveRequestHost();
   if (!host) return null;
 
   try {
@@ -180,7 +184,12 @@ async function renderSite(
   const theme = site.theme ?? {};
   const siteMeta = site.metadata as Record<string, unknown> | null | undefined;
   const chrome = chromeFromSite(siteMeta);
-  const funnelTemplate = funnelTemplateFromMetadata(siteMeta);
+  const hostname = await resolveRequestHost();
+  const funnelTemplate = resolveFunnelTemplate({
+    metadata: siteMeta,
+    slug,
+    hostname,
+  });
   const staySlug = resolveStayUnitSlug(page.slug);
   const stayUnit = staySlug
     ? await getPublicStayUnit(site.organisationId, staySlug)

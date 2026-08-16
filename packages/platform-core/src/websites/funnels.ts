@@ -98,9 +98,80 @@ export function isFunnelWebsite(
 export function funnelTemplateFromMetadata(
   metadata: Record<string, unknown> | null | undefined,
 ): FunnelTemplateId | null {
-  if (!metadata || typeof metadata !== "object") return null;
-  const raw = metadata.funnelTemplate;
-  return isFunnelTemplateId(raw) ? raw : null;
+  let meta: Record<string, unknown> | null | undefined = metadata;
+  if (typeof meta === "string") {
+    try {
+      const parsed = JSON.parse(meta) as unknown;
+      meta =
+        parsed && typeof parsed === "object"
+          ? (parsed as Record<string, unknown>)
+          : null;
+    } catch {
+      return null;
+    }
+  }
+  if (!meta || typeof meta !== "object") return null;
+  const raw = meta.funnelTemplate;
+  if (isFunnelTemplateId(raw)) return raw;
+
+  // Product subdomain funnels — recover template when funnelTemplate key is missing
+  // but productHost / customHostname was still written by ensure scripts.
+  const host = [meta.productHost, meta.customHostname]
+    .map((v) => (typeof v === "string" ? v.trim().toLowerCase() : ""))
+    .find(Boolean);
+  if (host === PRODUCT_FUNNEL_HOSTS.business_audit) return "business_audit";
+  if (host === PRODUCT_FUNNEL_HOSTS.property_report) return "property_report";
+  if (meta.kind === "funnel" && meta.capturePath === "gen2_public_business_audit") {
+    return "business_audit";
+  }
+  if (meta.kind === "funnel" && meta.capturePath === "gen2_public_property_report") {
+    return "property_report";
+  }
+  return null;
+}
+
+/** Resolve product funnel template from site slug (dedicated funnel websites). */
+export function funnelTemplateFromSlug(
+  slug: string | null | undefined,
+): FunnelTemplateId | null {
+  const s = (slug || "").trim().toLowerCase();
+  if (!s) return null;
+  if (s === "digitalgate-audit" || s.includes("business-audit")) {
+    return "business_audit";
+  }
+  if (s === "roe-realty-report" || s.includes("property-report")) {
+    return "property_report";
+  }
+  return null;
+}
+
+/** Resolve product funnel template from request hostname. */
+export function funnelTemplateFromHostname(
+  hostname: string | null | undefined,
+): FunnelTemplateId | null {
+  const host = (hostname || "").split(":")[0].trim().toLowerCase();
+  if (!host) return null;
+  if (host === PRODUCT_FUNNEL_HOSTS.business_audit || host.startsWith("audit.")) {
+    return "business_audit";
+  }
+  if (host === PRODUCT_FUNNEL_HOSTS.property_report || host.startsWith("report.")) {
+    return "property_report";
+  }
+  return null;
+}
+
+/** Best-effort product funnel template resolution for public rendering. */
+export function resolveFunnelTemplate(input: {
+  metadata?: Record<string, unknown> | null;
+  slug?: string | null;
+  hostname?: string | null;
+}): FunnelTemplateId | null {
+  return (
+    funnelTemplateFromMetadata(input.metadata) ||
+    funnelTemplateFromHostname(input.hostname) ||
+    funnelTemplateFromSlug(input.slug) ||
+    null
+  );
 }
 
 function funnelCopy(

@@ -1,4 +1,4 @@
-import { funnelTemplateFromMetadata, getWebsiteBySlug, resolvePageChromeVisibility } from "@dg/platform-core";
+import { getWebsiteBySlug, resolveFunnelTemplate, resolvePageChromeVisibility } from "@dg/platform-core";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -78,7 +78,10 @@ export default async function PublicSiteHomePage({ params, searchParams }: Props
   const theme = site.theme ?? {};
   const siteMeta = site.metadata as Record<string, unknown> | null | undefined;
   const chrome = chromeFromSite(siteMeta);
-  const funnelTemplate = funnelTemplateFromMetadata(siteMeta);
+  const funnelTemplate = resolveFunnelTemplate({
+    metadata: siteMeta,
+    slug,
+  });
   const title = home.seo?.title || site.seo?.title || site.name;
   const description =
     home.seo?.description || site.seo?.description || site.name;

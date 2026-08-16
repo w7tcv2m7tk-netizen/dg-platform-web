@@ -818,6 +818,20 @@ export function WebsitePageRenderer({
   /** Product / Funnel Builder template — mounts dedicated capture apps on home. */
   funnelTemplate?: string | null;
 }) {
+  const resolvedFunnelTemplate =
+    funnelTemplate === "property_report" ||
+    funnelTemplate === "business_audit" ||
+    funnelTemplate === "lead_capture" ||
+    funnelTemplate === "appraisal_request" ||
+    funnelTemplate === "booking_enquiry"
+      ? funnelTemplate
+      : siteSlug === "roe-realty-report" ||
+          siteSlug.includes("property-report")
+        ? "property_report"
+        : siteSlug === "digitalgate-audit" ||
+            siteSlug.includes("business-audit")
+          ? "business_audit"
+          : null;
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
   const bg = theme.backgroundColor || "#0c1222";
@@ -973,22 +987,26 @@ export function WebsitePageRenderer({
       ) : (
         <>
           {pageSlug === "property-report" ||
-          funnelTemplate === "property_report" ? (
+          resolvedFunnelTemplate === "property_report" ? (
             <PropertyReportCapture
               siteSlug={siteSlug}
               basePath={basePath}
               variant={
-                funnelTemplate === "property_report" ? "funnel" : "embedded"
+                resolvedFunnelTemplate === "property_report"
+                  ? "funnel"
+                  : "embedded"
               }
             />
           ) : null}
           {pageSlug === "business-audit" ||
-          funnelTemplate === "business_audit" ? (
+          resolvedFunnelTemplate === "business_audit" ? (
             <BusinessAuditCapture
               siteSlug={siteSlug}
               basePath={basePath}
               variant={
-                funnelTemplate === "business_audit" ? "funnel" : "embedded"
+                resolvedFunnelTemplate === "business_audit"
+                  ? "funnel"
+                  : "embedded"
               }
             />
           ) : null}

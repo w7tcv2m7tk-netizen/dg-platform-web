@@ -1,4 +1,4 @@
-import { funnelTemplateFromMetadata, getPublicStayUnit, getWebsiteBySlug, resolvePageChromeVisibility, resolveStayUnitSlug } from "@dg/platform-core";
+import { getPublicStayUnit, getWebsiteBySlug, resolveFunnelTemplate, resolvePageChromeVisibility, resolveStayUnitSlug } from "@dg/platform-core";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -77,7 +77,10 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
   const theme = site.theme ?? {};
   const siteMeta = site.metadata as Record<string, unknown> | null | undefined;
   const chrome = chromeFromSite(siteMeta);
-  const funnelTemplate = funnelTemplateFromMetadata(siteMeta);
+  const funnelTemplate = resolveFunnelTemplate({
+    metadata: siteMeta,
+    slug,
+  });
   const staySlug = resolveStayUnitSlug(page.slug);
   const stayUnit = staySlug
     ? await getPublicStayUnit(site.organisationId, staySlug)
