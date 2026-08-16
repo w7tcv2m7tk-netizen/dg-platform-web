@@ -3060,4 +3060,152 @@ a.wb-brand-chrome-cta:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* CVH Hideaway Circle join page — cream/charcoal site language (no floating card) */
+.wb-root .cvh-circle-page {
+  background: #f5f2ef !important;
+  color: #2c241c !important;
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+}
+.wb-root .cvh-circle-page__hero {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 3.25rem 1.25rem 1.75rem;
+  text-align: center;
+}
+.wb-root .cvh-circle-page__eyebrow {
+  margin: 0 0 0.65rem !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: #6b5c4c !important;
+  font-family: "Segoe UI", system-ui, sans-serif !important;
+}
+.wb-root .cvh-circle-page__title {
+  margin: 0 0 0.85rem !important;
+  font-size: clamp(1.65rem, 3.2vw, 2.35rem) !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  color: #2c241c !important;
+}
+.wb-root .cvh-circle-page__lead {
+  margin: 0 auto 1rem !important;
+  max-width: 34rem;
+  font-size: 1.02rem !important;
+  line-height: 1.6 !important;
+  color: #5c4f42 !important;
+}
+.wb-root .cvh-circle-page__lead--tight {
+  margin-bottom: 0 !important;
+}
+.wb-root .cvh-circle-page__form-wrap {
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: 0 1.25rem 4rem;
+}
+.wb-root .cvh-circle-page__form {
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(107, 92, 76, 0.14);
+}
+.wb-root .cvh-circle-page__section {
+  margin: 1.5rem 0 0.75rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #6b5c4c !important;
+  font-family: "Segoe UI", system-ui, sans-serif !important;
+}
+.wb-root .cvh-circle-page__label {
+  display: block;
+  margin: 0 0 0.35rem !important;
+  font-size: 0.9rem !important;
+  color: #5c4f42 !important;
+  font-family: "Segoe UI", system-ui, sans-serif !important;
+}
+.wb-root .cvh-circle-page__optional {
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: #9a8b7a;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.wb-root .cvh-circle-page__field {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0;
+  border: 1px solid rgba(107, 92, 76, 0.28);
+  background: #faf7f2 !important;
+  color: #2c241c !important;
+  font-size: 1rem;
+  font-family: inherit;
+}
+.wb-root .cvh-circle-page__row {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 560px) {
+  .wb-root .cvh-circle-page__row {
+    grid-template-columns: 1fr;
+  }
+}
+.wb-root .cvh-circle-page__checks {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+.wb-root .cvh-circle-page__check {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.95rem;
+  color: #3d342b !important;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+.wb-root .cvh-circle-page__btn {
+  display: inline-block;
+  margin-top: 1.35rem;
+  padding: 0.9rem 1.5rem;
+  border-radius: 0;
+  border: none;
+  background: #3d342b !important;
+  color: #faf7f2 !important;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+.wb-root .cvh-circle-page__btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+.wb-root .cvh-circle-page__fine {
+  margin: 0.9rem 0 0 !important;
+  font-size: 0.8rem !important;
+  line-height: 1.45 !important;
+  color: #7a6b5c !important;
+  font-family: "Segoe UI", system-ui, sans-serif !important;
+}
+.wb-root .cvh-circle-page__status {
+  margin: 0.75rem 0 0 !important;
+  font-size: 0.9rem !important;
+  color: #3f6212 !important;
+  font-family: "Segoe UI", system-ui, sans-serif !important;
+}
+.wb-root .cvh-circle-page__status--error {
+  color: #9a3412 !important;
+}
+.wb-root .cvh-circle-page__hp {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  height: 0;
+}
 `;

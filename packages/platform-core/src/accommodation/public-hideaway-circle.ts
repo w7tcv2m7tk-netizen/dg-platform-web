@@ -64,9 +64,18 @@ export async function ensureHideawayCircleWebsitePage(input: {
   }
 
   const { prisma } = await import("@dg/database");
+  await ensureHideawayCircleFooterLink(site.id).catch(() => null);
+
   const existing = await prisma.websitePage.findFirst({
     where: { websiteId: site.id, slug: "hideaway-circle" },
   });
+  const seo = {
+    title: "The Hideaway Circle | Currumbin Valley Hideaway",
+    description:
+      "Join The Hideaway Circle for private offers, first access, and 10% off your next direct stay.",
+    showHeader: true,
+    showFooter: true,
+  };
   if (existing) {
     if (existing.status !== "published") {
       await updateWebsitePage({
@@ -75,6 +84,7 @@ export async function ensureHideawayCircleWebsitePage(input: {
         pageId: existing.id,
         status: "published",
         title: "The Hideaway Circle",
+        seo,
       });
     }
     return { ok: true, pageId: existing.id, created: false };
@@ -87,11 +97,7 @@ export async function ensureHideawayCircleWebsitePage(input: {
     slug: "hideaway-circle",
     intent: "custom",
     components: [],
-    seo: {
-      title: "The Hideaway Circle | Currumbin Valley Hideaway",
-      description:
-        "Join The Hideaway Circle for private offers, first access, and 10% off your next direct stay.",
-    },
+    seo,
   });
   if (!page) return { ok: false };
   await updateWebsitePage({
@@ -99,8 +105,57 @@ export async function ensureHideawayCircleWebsitePage(input: {
     websiteId: site.id,
     pageId: page.id,
     status: "published",
+    seo,
   });
   return { ok: true, pageId: page.id, created: true };
+}
+
+/** Add Hideaway Circle to CVH chrome footer Quick Links when missing. */
+export async function ensureHideawayCircleFooterLink(
+  websiteId: string,
+): Promise<{ updated: boolean }> {
+  const { prisma } = await import("@dg/database");
+  const site = await prisma.website.findUnique({
+    where: { id: websiteId },
+    select: { id: true, metadata: true },
+  });
+  if (!site) return { updated: false };
+  const meta =
+    site.metadata && typeof site.metadata === "object" && !Array.isArray(site.metadata)
+      ? ({ ...(site.metadata as Record<string, unknown>) } as Record<string, unknown>)
+      : {};
+  const chrome =
+    meta.chrome && typeof meta.chrome === "object" && !Array.isArray(meta.chrome)
+      ? ({ ...(meta.chrome as Record<string, unknown>) } as Record<string, unknown>)
+      : null;
+  if (!chrome || typeof chrome.footerHtml !== "string") return { updated: false };
+  const before = chrome.footerHtml;
+  if (/hideaway-circle/i.test(before)) return { updated: false };
+
+  const link = `<li><a href="/hideaway-circle/">Hideaway Circle</a></li>`;
+  let after = before;
+  if (/<li><a href="\/contact\/?">Contact<\/a><\/li>/i.test(before)) {
+    after = before.replace(
+      /(<li><a href="\/contact\/?">Contact<\/a><\/li>)/i,
+      `$1\n            ${link}`,
+    );
+  } else if (/<\/ul>\s*<\/div>\s*<!--\s*=====?\s*COLUMN\s*4:\s*Social/i.test(before)) {
+    after = before.replace(
+      /(<\/ul>\s*<\/div>\s*<!--\s*=====?\s*COLUMN\s*4:\s*Social)/i,
+      `            ${link}\n          $1`,
+    );
+  } else {
+    return { updated: false };
+  }
+  if (after === before) return { updated: false };
+
+  chrome.footerHtml = after;
+  meta.chrome = chrome;
+  await prisma.website.update({
+    where: { id: websiteId },
+    data: { metadata: meta as Prisma.InputJsonValue },
+  });
+  return { updated: true };
 }
 
 export async function lookupHideawayCircleReward(input: {

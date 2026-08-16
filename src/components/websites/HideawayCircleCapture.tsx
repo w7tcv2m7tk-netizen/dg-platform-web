@@ -171,15 +171,18 @@ export function HideawayCircleCapture({ siteSlug, basePath = "" }: Props) {
 
   if (done) {
     return (
-      <section id="hideaway-circle-form" className="cvh-circle-capture" style={shell}>
-        <div style={card}>
-          <p style={eyebrow}>The Hideaway Circle</p>
-          <h2 style={heading}>You&apos;re in</h2>
-          <p style={lead}>{doneMessage}</p>
-          <p style={{ ...lead, marginBottom: 0 }}>
+      <section id="hideaway-circle-form" className="cvh-circle-capture cvh-circle-page">
+        <div className="cvh-circle-page__hero">
+          <p className="cvh-circle-page__eyebrow">The Hideaway Circle</p>
+          <h1 className="cvh-circle-page__title">You&apos;re in</h1>
+          <p className="cvh-circle-page__lead">{doneMessage}</p>
+          <p className="cvh-circle-page__lead cvh-circle-page__lead--tight">
             Book your next stay direct — your 10% return-stay reward is permanent.
           </p>
-          <a href={joinHref(basePath).replace("/hideaway-circle", "/stay") || "/stay"} style={btnStyle}>
+          <a
+            className="cvh-circle-page__btn"
+            href={joinHref(basePath).replace("/hideaway-circle", "/stay") || "/stay"}
+          >
             Explore stays
           </a>
         </div>
@@ -188,66 +191,70 @@ export function HideawayCircleCapture({ siteSlug, basePath = "" }: Props) {
   }
 
   return (
-    <section id="hideaway-circle-form" className="cvh-circle-capture" style={shell}>
-      <div style={card}>
-        <p style={eyebrow}>The Hideaway Circle</p>
-        <h1 style={heading}>Private offers · First access · Return-stay rewards</h1>
-        <p style={lead}>
-          Claim 10% off your next <strong>direct</strong> stay at Currumbin Valley Hideaway —
-          and stay connected with the Valley.
+    <section id="hideaway-circle-form" className="cvh-circle-capture cvh-circle-page">
+      <div className="cvh-circle-page__hero">
+        <p className="cvh-circle-page__eyebrow">The Hideaway Circle</p>
+        <h1 className="cvh-circle-page__title">
+          Private offers · First access · Return-stay rewards
+        </h1>
+        <p className="cvh-circle-page__lead">
+          Claim 10% off your next <strong>direct</strong> stay at Currumbin Valley
+          Hideaway — and stay connected with the Valley.
         </p>
+      </div>
 
-        <form onSubmit={(e) => void onSubmit(e)}>
-          <p style={sectionLabel}>Your details</p>
-          <label htmlFor="hcFirst" style={labelStyle}>
+      <div className="cvh-circle-page__form-wrap">
+        <form className="cvh-circle-page__form" onSubmit={(e) => void onSubmit(e)}>
+          <p className="cvh-circle-page__section">Your details</p>
+          <label htmlFor="hcFirst" className="cvh-circle-page__label">
             First name
           </label>
           <input
             id="hcFirst"
+            className="cvh-circle-page__field"
             required
             value={firstName}
             disabled={busy}
             onChange={(e) => setFirstName(e.target.value)}
-            style={fieldStyle}
           />
 
-          <label htmlFor="hcEmail" style={labelStyle}>
+          <label htmlFor="hcEmail" className="cvh-circle-page__label">
             Email
           </label>
           <input
             id="hcEmail"
+            className="cvh-circle-page__field"
             type="email"
             required
             value={email}
             disabled={busy}
             onChange={(e) => setEmail(e.target.value)}
-            style={fieldStyle}
           />
 
-          <label htmlFor="hcPhone" style={labelStyle}>
+          <label htmlFor="hcPhone" className="cvh-circle-page__label">
             Mobile
           </label>
           <input
             id="hcPhone"
+            className="cvh-circle-page__field"
             type="tel"
             required
             value={phone}
             disabled={busy}
             onChange={(e) => setPhone(e.target.value)}
-            style={fieldStyle}
           />
 
-          <div style={{ display: "grid", gap: "0.75rem", gridTemplateColumns: "1fr 1fr" }}>
+          <div className="cvh-circle-page__row">
             <div>
-              <label htmlFor="hcBday" style={labelStyle}>
-                Birthday month <span style={optional}>optional</span>
+              <label htmlFor="hcBday" className="cvh-circle-page__label">
+                Birthday month <span className="cvh-circle-page__optional">optional</span>
               </label>
               <select
                 id="hcBday"
+                className="cvh-circle-page__field"
                 value={birthdayMonth}
                 disabled={busy}
                 onChange={(e) => setBirthdayMonth(e.target.value)}
-                style={fieldStyle}
               >
                 <option value="">—</option>
                 {MONTHS.map((m, i) => (
@@ -258,25 +265,27 @@ export function HideawayCircleCapture({ siteSlug, basePath = "" }: Props) {
               </select>
             </div>
             <div>
-              <label htmlFor="hcAnn" style={labelStyle}>
-                Anniversary <span style={optional}>optional</span>
+              <label htmlFor="hcAnn" className="cvh-circle-page__label">
+                Anniversary <span className="cvh-circle-page__optional">optional</span>
               </label>
               <input
                 id="hcAnn"
+                className="cvh-circle-page__field"
                 type="text"
                 placeholder="MM-DD"
                 value={anniversaryDate}
                 disabled={busy}
                 onChange={(e) => setAnniversaryDate(e.target.value)}
-                style={fieldStyle}
               />
             </div>
           </div>
 
-          <p style={sectionLabel}>Tell us a little about what brings you to the Valley</p>
-          <div style={checkGrid}>
+          <p className="cvh-circle-page__section">
+            Tell us a little about what brings you to the Valley
+          </p>
+          <div className="cvh-circle-page__checks">
             {INTERESTS.map((item) => (
-              <label key={item.id} style={checkLabel}>
+              <label key={item.id} className="cvh-circle-page__check">
                 <input
                   type="checkbox"
                   checked={interests.includes(item.id)}
@@ -288,10 +297,10 @@ export function HideawayCircleCapture({ siteSlug, basePath = "" }: Props) {
             ))}
           </div>
 
-          <p style={sectionLabel}>I&apos;d like to hear about</p>
-          <div style={checkGrid}>
+          <p className="cvh-circle-page__section">I&apos;d like to hear about</p>
+          <div className="cvh-circle-page__checks">
             {TOPICS.map((item) => (
-              <label key={item.id} style={checkLabel}>
+              <label key={item.id} className="cvh-circle-page__check">
                 <input
                   type="checkbox"
                   checked={topics.includes(item.id)}
@@ -311,26 +320,27 @@ export function HideawayCircleCapture({ siteSlug, basePath = "" }: Props) {
             tabIndex={-1}
             autoComplete="off"
             aria-hidden
-            style={{ position: "absolute", left: "-9999px", opacity: 0, height: 0 }}
+            className="cvh-circle-page__hp"
           />
 
           {status ? (
             <p
-              style={{
-                color: status.type === "error" ? "#b45309" : "#3f6212",
-                fontSize: "0.9rem",
-                margin: "0.75rem 0 0",
-              }}
+              className={
+                status.type === "error"
+                  ? "cvh-circle-page__status cvh-circle-page__status--error"
+                  : "cvh-circle-page__status"
+              }
             >
               {status.text}
             </p>
           ) : null}
 
-          <button type="submit" disabled={busy} style={btnStyle}>
+          <button type="submit" disabled={busy} className="cvh-circle-page__btn">
             {busy ? "Joining…" : "Claim my 10% return-stay reward"}
           </button>
-          <p style={finePrint}>
-            Direct bookings only — not valid via Airbnb or Booking.com. Your reward does not expire.
+          <p className="cvh-circle-page__fine">
+            Direct bookings only — not valid via Airbnb or Booking.com. Your reward does
+            not expire.
           </p>
         </form>
       </div>
@@ -358,23 +368,6 @@ export function HideawayCircleHomepageCta({ basePath = "" }: { basePath?: string
   );
 }
 
-const shell: CSSProperties = {
-  padding: "2.5rem 1.25rem 3.5rem",
-  background: "linear-gradient(180deg, #f5f2ef 0%, #ebe4db 100%)",
-};
-
-const card: CSSProperties = {
-  maxWidth: "36rem",
-  margin: "0 auto",
-  background: "#faf7f2",
-  borderRadius: "0.25rem",
-  padding: "2rem 1.5rem",
-  border: "1px solid rgba(107, 92, 76, 0.18)",
-  boxShadow: "0 18px 40px rgba(60, 45, 30, 0.08)",
-  fontFamily: '"Segoe UI", Georgia, serif',
-  color: "#2c241c",
-};
-
 const eyebrow: CSSProperties = {
   margin: "0 0 0.5rem",
   fontSize: "0.72rem",
@@ -399,56 +392,6 @@ const lead: CSSProperties = {
   color: "#5c4f42",
 };
 
-const sectionLabel: CSSProperties = {
-  margin: "1.35rem 0 0.65rem",
-  fontSize: "0.8rem",
-  fontWeight: 600,
-  letterSpacing: "0.04em",
-  textTransform: "uppercase",
-  color: "#6b5c4c",
-};
-
-const labelStyle: CSSProperties = {
-  display: "block",
-  marginBottom: "0.35rem",
-  fontSize: "0.85rem",
-  color: "#5c4f42",
-};
-
-const optional: CSSProperties = {
-  fontWeight: 400,
-  fontSize: "0.75rem",
-  color: "#9a8b7a",
-  textTransform: "none",
-  letterSpacing: 0,
-};
-
-const fieldStyle: CSSProperties = {
-  width: "100%",
-  boxSizing: "border-box",
-  marginBottom: "0.85rem",
-  padding: "0.7rem 0.85rem",
-  borderRadius: "0.2rem",
-  border: "1px solid rgba(107, 92, 76, 0.28)",
-  background: "#fff",
-  color: "#2c241c",
-  fontSize: "1rem",
-};
-
-const checkGrid: CSSProperties = {
-  display: "grid",
-  gap: "0.45rem",
-  marginBottom: "0.5rem",
-};
-
-const checkLabel: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.55rem",
-  fontSize: "0.92rem",
-  color: "#3d342b",
-};
-
 const btnStyle: CSSProperties = {
   display: "inline-block",
   marginTop: "1.25rem",
@@ -463,13 +406,6 @@ const btnStyle: CSSProperties = {
   textTransform: "uppercase",
   textDecoration: "none",
   cursor: "pointer",
-};
-
-const finePrint: CSSProperties = {
-  margin: "0.85rem 0 0",
-  fontSize: "0.78rem",
-  color: "#8a7a68",
-  lineHeight: 1.45,
 };
 
 const homeCta: CSSProperties = {

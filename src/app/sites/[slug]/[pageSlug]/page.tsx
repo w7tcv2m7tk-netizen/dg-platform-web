@@ -1,4 +1,4 @@
-import { getPublicStayUnit, getWebsiteBySlug, resolveFunnelTemplate, resolvePageChromeVisibility, resolveStayUnitSlug } from "@dg/platform-core";
+import { ensureHideawayCircleWebsitePage, getPublicStayUnit, getWebsiteBySlug, resolveFunnelTemplate, resolvePageChromeVisibility, resolveStayUnitSlug } from "@dg/platform-core";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -67,11 +67,18 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
     redirect(allowDraft ? `/sites/${slug}?preview=1` : `/sites/${slug}`);
   }
 
-  const site = await getWebsiteBySlug(slug);
+  let site = await getWebsiteBySlug(slug);
   if (!site) notFound();
   if (!allowDraft && site.status !== "published") notFound();
 
-  const page = (site.pages ?? []).find((p) => p.slug === pageSlug);
+  let page = (site.pages ?? []).find((p) => p.slug === pageSlug);
+  if (!page && pageSlug === "hideaway-circle" && /currumbin|hideaway/i.test(slug)) {
+    const ensured = await ensureHideawayCircleWebsitePage({ siteSlug: slug });
+    if (ensured.ok) {
+      site = (await getWebsiteBySlug(slug)) || site;
+      page = (site.pages ?? []).find((p) => p.slug === pageSlug);
+    }
+  }
   if (!page) notFound();
 
   const theme = site.theme ?? {};

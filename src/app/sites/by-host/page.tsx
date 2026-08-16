@@ -1,4 +1,4 @@
-import { findDomainByHostname, getPublicStayUnit, getWebsiteBySlug, resolveFunnelTemplate, resolvePageChromeVisibility, resolveStayUnitSlug } from "@dg/platform-core";
+import { findDomainByHostname, getPublicStayUnit, getWebsiteBySlug, resolveFunnelTemplate, resolvePageChromeVisibility, resolveStayUnitSlug, ensureHideawayCircleWebsitePage } from "@dg/platform-core";
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
@@ -177,7 +177,18 @@ async function renderSite(
   if (!allowDraft && site.status !== "published") notFound();
 
   const pageSlug = search.page ? decodeURIComponent(search.page) : undefined;
-  const page = resolvePage(site, pageSlug);
+  let page = resolvePage(site, pageSlug);
+  if (
+    !page &&
+    pageSlug === "hideaway-circle" &&
+    /currumbin|hideaway/i.test(slug)
+  ) {
+    const ensured = await ensureHideawayCircleWebsitePage({ siteSlug: slug });
+    if (ensured.ok) {
+      site = (await getWebsiteBySlug(slug)) || site;
+      page = site ? resolvePage(site, pageSlug) : null;
+    }
+  }
   if (!page) notFound();
 
   if (pageSlug && page.slug === "home") {
