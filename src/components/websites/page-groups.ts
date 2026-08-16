@@ -2,6 +2,7 @@ import type { SerializedWebsitePage } from "@dg/platform-core";
 
 export type WebsitePageGroupId =
   | "core"
+  | "property"
   | "location"
   | "seo"
   | "legal"
@@ -15,6 +16,7 @@ export type WebsitePageGroup = {
 
 const GROUP_ORDER: WebsitePageGroupId[] = [
   "core",
+  "property",
   "location",
   "seo",
   "legal",
@@ -23,6 +25,7 @@ const GROUP_ORDER: WebsitePageGroupId[] = [
 
 const GROUP_LABELS: Record<WebsitePageGroupId, string> = {
   core: "Core pages",
+  property: "Property pages",
   location: "Location pages",
   seo: "SEO pages",
   legal: "Legal pages",
@@ -34,7 +37,6 @@ const CORE_INTENTS = new Set([
   "about",
   "contact",
   "services",
-  "listings",
   "stay",
 ]);
 
@@ -44,7 +46,6 @@ const CORE_SLUGS = new Set([
   "buy",
   "about",
   "contact",
-  "property",
   "agents",
   "insights",
   "pricing",
@@ -107,6 +108,12 @@ function slugOf(page: SerializedWebsitePage): string {
   return (page.slug || "").toLowerCase().replace(/^\/+|\/+$/g, "");
 }
 
+/** Listing hub + individual property detail pages (`property`, `property/...`). */
+export function isPropertyListingPage(page: SerializedWebsitePage): boolean {
+  const slug = slugOf(page);
+  return slug === "property" || slug.startsWith("property/");
+}
+
 /** Collect slugs referenced by Insights post grids (treated as Posts). */
 export function collectPostSlugs(
   pages: SerializedWebsitePage[] | undefined | null,
@@ -144,6 +151,8 @@ export function classifyWebsitePage(
   const intent = (page.intent || "").toLowerCase();
 
   if (LEGAL_RE.test(slug)) return "legal";
+
+  if (isPropertyListingPage(page)) return "property";
 
   if (postSlugs?.has(slug)) return "posts";
 
@@ -186,6 +195,7 @@ export function groupWebsitePages(
   const postSlugs = collectPostSlugs(list);
   const buckets: Record<WebsitePageGroupId, SerializedWebsitePage[]> = {
     core: [],
+    property: [],
     location: [],
     seo: [],
     legal: [],
