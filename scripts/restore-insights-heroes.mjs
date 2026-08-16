@@ -88,7 +88,7 @@ const HEROES = {
   <span class="sub">Roe Realty Insights</span>
   <h1>Property insights for Gold Coast sellers &amp; buyers</h1>
   <p class="lead">Local market updates, suburb guides and practical selling advice — written for homeowners who want clearer decisions and stronger outcomes.</p>
-  <a href="/property-report">Get a free property report →</a>
+  <a href="https://report.roerealty.com.au">Get a free property report →</a>
 </section>`,
   },
   cmst2d41i003509gj0nuocwqw: {

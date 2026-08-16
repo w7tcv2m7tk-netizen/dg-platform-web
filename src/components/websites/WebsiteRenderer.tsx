@@ -794,6 +794,7 @@ export function WebsitePageRenderer({
   stayUnit,
   showHeader = true,
   showFooter = true,
+  funnelTemplate = null,
 }: {
   components: WebsiteComponent[];
   theme: WebsiteTheme;
@@ -807,6 +808,8 @@ export function WebsitePageRenderer({
   showHeader?: boolean;
   /** When false, site footer is omitted */
   showFooter?: boolean;
+  /** Product / Funnel Builder template — mounts dedicated capture apps on home. */
+  funnelTemplate?: string | null;
 }) {
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
@@ -950,11 +953,25 @@ export function WebsitePageRenderer({
         />
       ) : (
         <>
-          {pageSlug === "property-report" ? (
-            <PropertyReportCapture siteSlug={siteSlug} basePath={basePath} />
+          {pageSlug === "property-report" ||
+          funnelTemplate === "property_report" ? (
+            <PropertyReportCapture
+              siteSlug={siteSlug}
+              basePath={basePath}
+              variant={
+                funnelTemplate === "property_report" ? "funnel" : "embedded"
+              }
+            />
           ) : null}
-          {pageSlug === "business-audit" ? (
-            <BusinessAuditCapture siteSlug={siteSlug} basePath={basePath} />
+          {pageSlug === "business-audit" ||
+          funnelTemplate === "business_audit" ? (
+            <BusinessAuditCapture
+              siteSlug={siteSlug}
+              basePath={basePath}
+              variant={
+                funnelTemplate === "business_audit" ? "funnel" : "embedded"
+              }
+            />
           ) : null}
           {pageSlug === "hideaway-circle" ? (
             <HideawayCircleCapture siteSlug={siteSlug} basePath={basePath} />

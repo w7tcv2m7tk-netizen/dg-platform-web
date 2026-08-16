@@ -5,6 +5,8 @@ import { useState, type CSSProperties, type FormEvent } from "react";
 type Props = {
   siteSlug: string;
   basePath?: string;
+  /** Dedicated subdomain funnel vs embedded brand-site page. */
+  variant?: "funnel" | "embedded";
 };
 
 type Step = "website" | "preview" | "contact" | "done";
@@ -51,7 +53,12 @@ function scoreColor(n: number) {
   return "#f87171";
 }
 
-export function BusinessAuditCapture({ siteSlug, basePath = "" }: Props) {
+export function BusinessAuditCapture({
+  siteSlug,
+  basePath = "",
+  variant = "embedded",
+}: Props) {
+  const isFunnel = variant === "funnel";
   const [step, setStep] = useState<Step>("website");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [normalisedUrl, setNormalisedUrl] = useState("");
@@ -74,7 +81,8 @@ export function BusinessAuditCapture({ siteSlug, basePath = "" }: Props) {
   const strategyHref =
     basePath && basePath !== "/"
       ? `${basePath}/strategy-session`
-      : "/strategy-session";
+      : "https://digitalgate.com.au/strategy-session";
+  const brandHref = "https://digitalgate.com.au";
 
   async function onWebsiteSubmit(e: FormEvent) {
     e.preventDefault();
@@ -252,14 +260,39 @@ export function BusinessAuditCapture({ siteSlug, basePath = "" }: Props) {
   return (
     <section
       id="business-audit-form"
-      className="dg-business-audit-capture"
+      className={
+        isFunnel
+          ? "dg-business-audit-capture dg-business-audit-funnel"
+          : "dg-business-audit-capture"
+      }
       style={{
+        minHeight: isFunnel ? "100vh" : undefined,
         background: "linear-gradient(180deg, #0b1220 0%, #111827 100%)",
         color: "#e2e8f0",
-        padding: "3.5rem clamp(1rem, 3vw, 2.5rem)",
+        padding: isFunnel
+          ? "2rem clamp(1rem, 3vw, 2.5rem) 3.5rem"
+          : "3.5rem clamp(1rem, 3vw, 2.5rem)",
         fontFamily: "system-ui, sans-serif",
       }}
     >
+      {isFunnel ? (
+        <div style={{ maxWidth: "40rem", margin: "0 auto 1.25rem" }}>
+          <a
+            href={brandHref}
+            style={{
+              display: "inline-block",
+              marginBottom: "1rem",
+              color: "#60A5FA",
+              textDecoration: "none",
+              fontSize: "0.85rem",
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+            }}
+          >
+            DigitalGate
+          </a>
+        </div>
+      ) : null}
       <div
         style={{
           maxWidth: step === "preview" || step === "done" ? "40rem" : "34rem",
@@ -762,6 +795,19 @@ export function BusinessAuditCapture({ siteSlug, basePath = "" }: Props) {
           </p>
         ) : null}
       </div>
+      {isFunnel ? (
+        <p
+          style={{
+            margin: "1.5rem auto 0",
+            maxWidth: "34rem",
+            textAlign: "center",
+            fontSize: "0.8rem",
+            color: "#64748b",
+          }}
+        >
+          DigitalGate Business Audit™ — a DigitalGate acquisition product.
+        </p>
+      ) : null}
     </section>
   );
 }

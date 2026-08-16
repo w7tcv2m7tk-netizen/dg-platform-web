@@ -1,4 +1,4 @@
-import { getPublicStayUnit, getWebsiteBySlug, resolvePageChromeVisibility, resolveStayUnitSlug } from "@dg/platform-core";
+import { funnelTemplateFromMetadata, getPublicStayUnit, getWebsiteBySlug, resolvePageChromeVisibility, resolveStayUnitSlug } from "@dg/platform-core";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -75,17 +75,22 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
   if (!page) notFound();
 
   const theme = site.theme ?? {};
-  const chrome = chromeFromSite(
-    site.metadata as Record<string, unknown> | null | undefined,
-  );
+  const siteMeta = site.metadata as Record<string, unknown> | null | undefined;
+  const chrome = chromeFromSite(siteMeta);
+  const funnelTemplate = funnelTemplateFromMetadata(siteMeta);
   const staySlug = resolveStayUnitSlug(page.slug);
   const stayUnit = staySlug
     ? await getPublicStayUnit(site.organisationId, staySlug)
     : null;
-  const { showHeader, showFooter } = resolvePageChromeVisibility(
-    page.slug,
-    page.seo,
-  );
+  const chromeDefaults = resolvePageChromeVisibility(page.slug, page.seo);
+  const showHeader =
+    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
+      ? false
+      : chromeDefaults.showHeader;
+  const showFooter =
+    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
+      ? false
+      : chromeDefaults.showFooter;
   const title = page.seo?.title || `${page.title} | ${site.name}`;
   const description =
     page.seo?.description || site.seo?.description || site.name;
@@ -115,6 +120,7 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
         stayUnit={stayUnit}
         showHeader={showHeader}
         showFooter={showFooter}
+        funnelTemplate={funnelTemplate}
       />
     </>
   );

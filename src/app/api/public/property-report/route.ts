@@ -39,6 +39,8 @@ export async function POST(req: Request) {
     name?: string;
     email?: string;
     phone?: string;
+    propertyType?: string;
+    timeframe?: string;
     website?: string;
   } | null;
 
@@ -85,6 +87,8 @@ export async function POST(req: Request) {
       fullName: body.fullName?.trim() || body.name?.trim() || "",
       email: body.email,
       phone: body.phone,
+      propertyType: body.propertyType,
+      timeframe: body.timeframe,
       website: body.website,
     });
     if (!result.ok) {

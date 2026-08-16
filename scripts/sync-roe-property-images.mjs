@@ -204,7 +204,7 @@ function buildDetailHtml(property, meta) {
     ${featureHtml}
     ${gallery}
     <div class="roe-prop-actions">
-      <a class="primary" href="/property-report">Get Property Report</a>
+      <a class="primary" href="https://report.roerealty.com.au">Get Property Report</a>
       <a class="ghost" href="/contact">Contact Roe Realty</a>
       <a class="ghost" href="/property">Back to properties</a>
     </div>

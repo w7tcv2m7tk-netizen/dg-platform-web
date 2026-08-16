@@ -1,4 +1,4 @@
-import { getWebsiteBySlug, resolvePageChromeVisibility } from "@dg/platform-core";
+import { funnelTemplateFromMetadata, getWebsiteBySlug, resolvePageChromeVisibility } from "@dg/platform-core";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -76,9 +76,9 @@ export default async function PublicSiteHomePage({ params, searchParams }: Props
   if (!home) notFound();
 
   const theme = site.theme ?? {};
-  const chrome = chromeFromSite(
-    site.metadata as Record<string, unknown> | null | undefined,
-  );
+  const siteMeta = site.metadata as Record<string, unknown> | null | undefined;
+  const chrome = chromeFromSite(siteMeta);
+  const funnelTemplate = funnelTemplateFromMetadata(siteMeta);
   const title = home.seo?.title || site.seo?.title || site.name;
   const description =
     home.seo?.description || site.seo?.description || site.name;
@@ -86,6 +86,15 @@ export default async function PublicSiteHomePage({ params, searchParams }: Props
   const ogDescription =
     home.seo?.ogDescription || site.seo?.ogDescription || description;
   const ogImage = home.seo?.ogImage || site.seo?.ogImage;
+  const chromeDefaults = resolvePageChromeVisibility(home.slug, home.seo);
+  const showHeader =
+    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
+      ? false
+      : chromeDefaults.showHeader;
+  const showFooter =
+    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
+      ? false
+      : chromeDefaults.showFooter;
 
   return (
     <>
@@ -119,7 +128,9 @@ export default async function PublicSiteHomePage({ params, searchParams }: Props
         siteSlug={slug}
         pageSlug={home.slug}
         chrome={chrome}
-        {...resolvePageChromeVisibility(home.slug, home.seo)}
+        showHeader={showHeader}
+        showFooter={showFooter}
+        funnelTemplate={funnelTemplate}
       />
     </>
   );

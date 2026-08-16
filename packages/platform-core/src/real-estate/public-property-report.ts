@@ -125,6 +125,8 @@ export async function submitPublicPropertyReport(input: {
   fullName: string;
   email?: string;
   phone?: string;
+  propertyType?: string;
+  timeframe?: string;
   website?: string;
 }): Promise<PublicPropertyReportSubmitResult> {
   // Honeypot
@@ -143,6 +145,8 @@ export async function submitPublicPropertyReport(input: {
   const email = input.email?.trim() || "";
   const phone = input.phone?.trim() || "";
   const propertyAddress = input.propertyAddress?.trim() || "";
+  const propertyType = input.propertyType?.trim() || "";
+  const timeframe = input.timeframe?.trim() || "";
 
   if (!fullName) {
     return { ok: false, code: "validation_error", message: "Full name is required." };
@@ -192,7 +196,13 @@ export async function submitPublicPropertyReport(input: {
     propertyAddress: formatted,
     source: "property_report",
     stage: "vendor_lead",
-    notes: "Submitted via Gen 2 Property Report form.",
+    notes: [
+      "Submitted via Gen 2 Property Report form.",
+      propertyType ? `Property type: ${propertyType}` : null,
+      timeframe ? `Timeframe: ${timeframe}` : null,
+    ]
+      .filter(Boolean)
+      .join(" "),
   });
 
   if (!leadResult.ok) {
@@ -222,6 +232,8 @@ export async function submitPublicPropertyReport(input: {
           email: email || prev.email,
           phone: phone || prev.phone,
           capture_path: "gen2_public_property_report",
+          property_type: propertyType || undefined,
+          sell_timeframe: timeframe || undefined,
         } as Prisma.InputJsonValue,
         externalRefs: {
           ...((lead.externalRefs as Record<string, unknown> | null) ?? {}),

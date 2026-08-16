@@ -87,11 +87,24 @@ export type WebsitePageIntent =
 /** Starter IA packs for industry-aware generation */
 export type WebsiteTemplateId = "generic" | "real_estate" | "accommodation";
 
-/** Funnel Builder v0 — single-page conversion templates */
+/** Funnel Builder — single-page conversion templates + product lead magnets */
 export type FunnelTemplateId =
   | "lead_capture"
   | "appraisal_request"
-  | "booking_enquiry";
+  | "booking_enquiry"
+  | "business_audit"
+  | "property_report";
+
+/** Canonical product-funnel hostnames (subdomain apps, not full brand sites). */
+export const PRODUCT_FUNNEL_HOSTS = {
+  business_audit: "audit.digitalgate.com.au",
+  property_report: "report.roerealty.com.au",
+} as const;
+
+export const PRODUCT_FUNNEL_URLS = {
+  business_audit: `https://${PRODUCT_FUNNEL_HOSTS.business_audit}`,
+  property_report: `https://${PRODUCT_FUNNEL_HOSTS.property_report}`,
+} as const;
 
 export type WebsiteTheme = {
   primaryColor?: string;

@@ -156,12 +156,36 @@ function keepAuthOnAppOrigin(req: NextRequest, response: Response): Response {
   return rewrite;
 }
 
+/** Brand website paths → dedicated product funnel subdomains. */
+const BRAND_TO_FUNNEL_REDIRECTS: Array<{
+  hostRe: RegExp;
+  pathRe: RegExp;
+  destination: string;
+}> = [
+  {
+    hostRe: /^(www\.)?digitalgate\.com\.au$/i,
+    pathRe: /^\/business-audit\/?$/i,
+    destination: "https://audit.digitalgate.com.au/",
+  },
+  {
+    hostRe: /^(www\.)?roerealty\.com\.au$/i,
+    pathRe: /^\/property-report\/?$/i,
+    destination: "https://report.roerealty.com.au/",
+  },
+];
+
 export default async function middleware(req: NextRequest, event: unknown) {
   const hostname = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
 
   // Custom domain → public site renderer (multi-tenant host header)
   if (hostname && !isPlatformHost(hostname)) {
     const path = req.nextUrl.pathname;
+
+    for (const rule of BRAND_TO_FUNNEL_REDIRECTS) {
+      if (rule.hostRe.test(hostname) && rule.pathRe.test(path)) {
+        return NextResponse.redirect(rule.destination, 308);
+      }
+    }
 
     // Roe Realty WP leftovers: /agent and /agent/{slug} → live Gen2 pages
     if (
