@@ -1181,7 +1181,8 @@ html.wb-menu-scroll-lock body {
   .cvh-circle-home-cta
 ) :is(
   .section-label,
-  .badge
+  .badge,
+  .cta-label
 ) {
   color: #8a7358 !important;
 }
@@ -1201,6 +1202,7 @@ html.wb-menu-scroll-lock body {
   .section-subheadline,
   .direct-cta-text-light,
   .cta-description,
+  .direct-cta,
   .trust-badge
 ) {
   color: #243533 !important;
@@ -1539,24 +1541,139 @@ html.wb-menu-scroll-lock body {
 }
 
 .wb-html-page .wb-html-island--page .roe-property-grid {
-  max-width: none !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+  gap: 30px !important;
+  max-width: 1280px !important;
   width: 100% !important;
-  margin: 0 !important;
-  padding: 2.5rem clamp(1rem, 3vw, 2.5rem) !important;
+  margin: 0 auto !important;
+  padding: 40px 20px !important;
   background: #f5f2ef !important;
   box-sizing: border-box;
 }
 
 .wb-html-page .wb-html-island--page .roe-property-grid .roe-property-card,
 .wb-html-page .wb-html-island--page .roe-property-card {
+  background: #ffffff !important;
+  border: 1px solid #e0d6cc !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
   color: #1c2b2a !important;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-link {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-image {
+  position: relative !important;
+  height: 220px !important;
+  background: #f0edea !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-image img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  border-radius: 0 !important;
+  transition: transform 0.3s ease;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card:hover .card-image img {
+  transform: scale(1.02);
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-status {
+  position: absolute !important;
+  top: 12px !important;
+  left: 12px !important;
+  display: inline-block !important;
+  padding: 4px 14px !important;
+  border-radius: 40px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  color: #ffffff !important;
+  background: #1c2b2a !important;
+  z-index: 2 !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-content {
+  padding: 18px 20px 20px !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .wb-html-page .wb-html-island--page .roe-property-card h3,
+.wb-html-page .wb-html-island--page .roe-property-card .card-title,
 .wb-html-page .wb-html-island--page .roe-property-card p,
 .wb-html-page .wb-html-island--page .roe-property-card span,
 .wb-html-page .wb-html-island--page .roe-property-card a {
   color: #1c2b2a !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-title {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  margin: 0 0 4px !important;
+  font-family: "Sora", "Plus Jakarta Sans", system-ui, sans-serif !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-address {
+  font-size: 0.85rem !important;
+  color: #6b7a78 !important;
+  margin: 0 0 8px !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-price {
+  font-size: 1.3rem !important;
+  font-weight: 700 !important;
+  color: #c9a46c !important;
+  margin: 0 0 12px !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-specs {
+  font-size: 0.85rem !important;
+  color: #4a5b59 !important;
+  border-top: 1px solid #e0d6cc !important;
+  padding-top: 12px !important;
+  margin-top: auto !important;
+}
+
+@media (max-width: 768px) {
+  .wb-html-page .wb-html-island--page .roe-property-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 20px !important;
+    padding: 20px 15px !important;
+  }
+  .wb-html-page .wb-html-island--page .roe-property-card .card-image {
+    height: 180px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .wb-html-page .wb-html-island--page .roe-property-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .wb-html-page .wb-html-island--page .roe-property-card .card-image {
+    height: 200px !important;
+  }
 }
 
 /* Footer chrome contrast */
@@ -3207,5 +3324,140 @@ a.wb-brand-chrome-cta:hover {
   left: -9999px;
   opacity: 0;
   height: 0;
+}
+
+/*
+ * Roe Realty contrast locks — beat cream-island ink / nested-band bleed
+ * (multi-document HTML islands can nest sections after browser repair).
+ */
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section,
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section .lead-content,
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section .report-benefits {
+  color: #f4f1ea !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section .lead-headline,
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section .benefits-title,
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section .benefits-title span,
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section h2 {
+  color: #ffffff !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section .lead-label {
+  color: #c9a46c !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section .lead-description,
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section .benefits-list,
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section .benefits-list li,
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section .benefits-list li span,
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section .badge-item,
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section .report-badge,
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section .report-badge span {
+  color: #ffffff !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light section.final-cta,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta .cta-container,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section .cta-container {
+  color: #1c2b2a !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light section.final-cta .cta-label,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section .cta-label {
+  color: #b8860b !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light section.final-cta .cta-headline,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section .cta-headline,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta h2,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section h2 {
+  color: #1c2b2a !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light section.final-cta .cta-description,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section .cta-description,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta .direct-cta,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section .direct-cta,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta .trust-badge,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section .trust-badge,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta p,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section p,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta span,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section span {
+  color: #243533 !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light section.final-cta .trust-badge i,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section .trust-badge i {
+  color: #c9a46c !important;
+}
+
+/* Roe Realty contact — centre CRM form with brand card styling */
+.wb-html-page.wb-surface-light .wb-section:has(> .wb-form),
+.wb-html-page.wb-surface-light .wb-section:has(.wb-form) {
+  display: flex !important;
+  justify-content: center !important;
+  padding: 2.5rem clamp(1rem, 3vw, 2rem) 4rem !important;
+  background: #f5f2ef !important;
+  max-width: none !important;
+}
+
+.wb-html-page.wb-surface-light .wb-section .wb-form {
+  width: 100% !important;
+  max-width: 640px !important;
+  margin: 0 auto !important;
+  background: #ffffff !important;
+  border: 1px solid #e0d6cc !important;
+  border-radius: 16px !important;
+  padding: 2rem 2.25rem !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  color: #1c2b2a !important;
+}
+
+.wb-html-page.wb-surface-light .wb-section .wb-form .wb-section-title {
+  text-align: center !important;
+  color: #1c2b2a !important;
+  font-family: "Sora", "Plus Jakarta Sans", system-ui, sans-serif !important;
+  font-size: 1.75rem !important;
+  font-weight: 700 !important;
+  margin: 0 0 1.25rem !important;
+}
+
+.wb-html-page.wb-surface-light .wb-section .wb-form label {
+  color: #1c2b2a !important;
+  font-weight: 600 !important;
+}
+
+.wb-html-page.wb-surface-light .wb-section .wb-form input,
+.wb-html-page.wb-surface-light .wb-section .wb-form textarea {
+  background: #faf9f7 !important;
+  border: 1.5px solid #e0d6cc !important;
+  border-radius: 12px !important;
+  color: #1c2b2a !important;
+}
+
+.wb-html-page.wb-surface-light .wb-section .wb-form input:focus,
+.wb-html-page.wb-surface-light .wb-section .wb-form textarea:focus {
+  border-color: #c9a46c !important;
+  box-shadow: 0 0 0 3px rgba(201, 164, 108, 0.15) !important;
+  outline: none !important;
+  background: #ffffff !important;
+}
+
+.wb-html-page.wb-surface-light .wb-section .wb-form button {
+  width: 100% !important;
+  justify-self: stretch !important;
+  background: #c9a46c !important;
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+  padding: 0.85rem 1.25rem !important;
+}
+
+.wb-html-page.wb-surface-light .wb-section .wb-form-success {
+  max-width: 640px !important;
+  margin: 0 auto !important;
+  text-align: center !important;
 }
 `;
