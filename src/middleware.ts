@@ -200,6 +200,20 @@ export default async function middleware(req: NextRequest, event: unknown) {
       return NextResponse.redirect(dest, 308);
     }
 
+    // Roe Realty WP leftovers: free-* booking aliases → live booking apps
+    if (/(^|\.)roerealty\.com\.au$/i.test(hostname)) {
+      if (/^\/free-property-appraisal\/?$/i.test(path)) {
+        const dest = req.nextUrl.clone();
+        dest.pathname = "/property-appraisal";
+        return NextResponse.redirect(dest, 308);
+      }
+      if (/^\/free-buyer-consultation\/?$/i.test(path)) {
+        const dest = req.nextUrl.clone();
+        dest.pathname = "/buyer-consultation";
+        return NextResponse.redirect(dest, 308);
+      }
+    }
+
     if (path === "/robots.txt") {
       const url = req.nextUrl.clone();
       url.pathname = "/sites/seo/robots";

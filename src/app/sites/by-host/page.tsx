@@ -59,6 +59,11 @@ async function resolveHostSlug(): Promise<string | null> {
   }
 }
 
+const PAGE_SLUG_ALIASES: Record<string, string> = {
+  "free-property-appraisal": "property-appraisal",
+  "free-buyer-consultation": "buyer-consultation",
+};
+
 function resolvePage(
   site: NonNullable<Awaited<ReturnType<typeof getWebsiteBySlug>>>,
   pageSlug: string | undefined,
@@ -67,7 +72,9 @@ function resolvePage(
   if (!pageSlug) {
     return pages.find((p) => p.intent === "home" || p.slug === "home") || pages[0];
   }
+  const aliased = PAGE_SLUG_ALIASES[pageSlug] || pageSlug;
   return (
+    pages.find((p) => p.slug === aliased) ||
     pages.find((p) => p.slug === pageSlug) ||
     pages.find((p) => p.slug === pageSlug.replace(/^accommodation\//, "")) ||
     pages.find((p) => {

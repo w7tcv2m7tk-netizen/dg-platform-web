@@ -1830,10 +1830,22 @@ a.wb-brand-chrome-cta:hover {
 }
 
 .wb-brand-chrome-header--stacked .wb-brand-chrome-logo {
-  height: 72px !important;
-  max-height: 72px !important;
-  max-width: min(340px, 78vw) !important;
+  height: 96px !important;
+  max-height: 96px !important;
+  max-width: min(420px, 86vw) !important;
   object-position: center center;
+  /* Warm taupe mark needs lift on cream / photo heroes */
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.55))
+    drop-shadow(0 2px 6px rgba(20, 32, 28, 0.45))
+    drop-shadow(0 8px 18px rgba(20, 32, 28, 0.28));
+}
+
+.wb-root.wb-chrome-overlay .wb-brand-chrome-header--stacked .wb-brand-chrome-logo,
+.wb-brand-chrome-header--stacked.wb-brand-chrome-header--overlay .wb-brand-chrome-logo,
+.wb-brand-chrome-header--stacked.wb-brand-chrome-header--fade .wb-brand-chrome-logo {
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35))
+    drop-shadow(0 2px 8px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 10px 22px rgba(0, 0, 0, 0.35));
 }
 
 .wb-brand-chrome-header--stacked .wb-brand-chrome-name {
@@ -2033,9 +2045,9 @@ a.wb-brand-chrome-cta:hover {
   }
 
   .wb-brand-chrome-header--stacked .wb-brand-chrome-logo {
-    height: 52px !important;
-    max-height: 52px !important;
-    max-width: min(220px, 62vw) !important;
+    height: 64px !important;
+    max-height: 64px !important;
+    max-width: min(260px, 68vw) !important;
   }
 
   .wb-brand-chrome-header--stacked .wb-brand-chrome-below {

@@ -72,6 +72,14 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
   if (!allowDraft && site.status !== "published") notFound();
 
   let page = (site.pages ?? []).find((p) => p.slug === pageSlug);
+  if (!page) {
+    const aliases: Record<string, string> = {
+      "free-property-appraisal": "property-appraisal",
+      "free-buyer-consultation": "buyer-consultation",
+    };
+    const aliased = aliases[pageSlug];
+    if (aliased) page = (site.pages ?? []).find((p) => p.slug === aliased);
+  }
   if (!page && pageSlug === "hideaway-circle" && /currumbin|hideaway/i.test(slug)) {
     const ensured = await ensureHideawayCircleWebsitePage({ siteSlug: slug });
     if (ensured.ok) {
