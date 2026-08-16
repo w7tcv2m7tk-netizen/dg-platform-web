@@ -1549,7 +1549,8 @@ html.wb-menu-scroll-lock body {
   background: #ffffff !important;
 }
 
-.wb-html-page .wb-html-island--page .roe-property-grid {
+.wb-html-page .wb-html-island--page .roe-property-grid,
+.wb-root .wb-html-island .roe-property-grid {
   display: grid !important;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
   gap: 30px !important;
@@ -1558,11 +1559,12 @@ html.wb-menu-scroll-lock body {
   margin: 0 auto !important;
   padding: 40px 20px !important;
   background: #f5f2ef !important;
-  box-sizing: border-box;
+  box-sizing: border-box !important;
 }
 
 .wb-html-page .wb-html-island--page .roe-property-grid .roe-property-card,
-.wb-html-page .wb-html-island--page .roe-property-card {
+.wb-html-page .wb-html-island--page .roe-property-card,
+.wb-root .wb-html-island .roe-property-card {
   background: #ffffff !important;
   border: 1px solid #e0d6cc !important;
   border-radius: 16px !important;
@@ -1573,12 +1575,14 @@ html.wb-menu-scroll-lock body {
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.wb-html-page .wb-html-island--page .roe-property-card:hover {
+.wb-html-page .wb-html-island--page .roe-property-card:hover,
+.wb-root .wb-html-island .roe-property-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
-.wb-html-page .wb-html-island--page .roe-property-card .card-link {
+.wb-html-page .wb-html-island--page .roe-property-card .card-link,
+.wb-root .wb-html-island .roe-property-card .card-link {
   display: flex !important;
   flex-direction: column !important;
   flex: 1 !important;
@@ -1586,7 +1590,8 @@ html.wb-menu-scroll-lock body {
   text-decoration: none !important;
 }
 
-.wb-html-page .wb-html-island--page .roe-property-card .card-image {
+.wb-html-page .wb-html-island--page .roe-property-card .card-image,
+.wb-root .wb-html-island .roe-property-card .card-image {
   position: relative !important;
   height: 220px !important;
   background: #f0edea !important;
@@ -1594,7 +1599,8 @@ html.wb-menu-scroll-lock body {
   flex-shrink: 0 !important;
 }
 
-.wb-html-page .wb-html-island--page .roe-property-card .card-image img {
+.wb-html-page .wb-html-island--page .roe-property-card .card-image img,
+.wb-root .wb-html-island .roe-property-card .card-image img {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
@@ -1603,11 +1609,64 @@ html.wb-menu-scroll-lock body {
   transition: transform 0.3s ease;
 }
 
-.wb-html-page .wb-html-island--page .roe-property-card:hover .card-image img {
+.wb-html-page .wb-html-island--page .roe-property-card:hover .card-image img,
+.wb-root .wb-html-island .roe-property-card:hover .card-image img {
   transform: scale(1.02);
 }
 
-.wb-html-page .wb-html-island--page .roe-property-card .card-status {
+.wb-html-page .wb-html-island--page .roe-property-card .card-content,
+.wb-root .wb-html-island .roe-property-card .card-content {
+  padding: 18px 20px 20px !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card h3,
+.wb-html-page .wb-html-island--page .roe-property-card .card-title,
+.wb-html-page .wb-html-island--page .roe-property-card p,
+.wb-html-page .wb-html-island--page .roe-property-card a,
+.wb-root .wb-html-island .roe-property-card h3,
+.wb-root .wb-html-island .roe-property-card .card-title,
+.wb-root .wb-html-island .roe-property-card p,
+.wb-root .wb-html-island .roe-property-card a {
+  color: #1c2b2a !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-title,
+.wb-root .wb-html-island .roe-property-card .card-title {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  margin: 0 0 4px !important;
+  font-family: "Sora", "Plus Jakarta Sans", system-ui, sans-serif !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-address,
+.wb-root .wb-html-island .roe-property-card .card-address {
+  font-size: 0.85rem !important;
+  color: #6b7a78 !important;
+  margin: 0 0 8px !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-price,
+.wb-root .wb-html-island .roe-property-card .card-price {
+  font-size: 1.3rem !important;
+  font-weight: 700 !important;
+  color: #c9a46c !important;
+  margin: 0 0 12px !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-specs,
+.wb-root .wb-html-island .roe-property-card .card-specs {
+  font-size: 0.85rem !important;
+  color: #4a5b59 !important;
+  border-top: 1px solid #e0d6cc !important;
+  padding-top: 12px !important;
+  margin-top: auto !important;
+}
+
+.wb-html-page .wb-html-island--page .roe-property-card .card-status,
+.wb-root .wb-html-island .roe-property-card .card-status {
   position: absolute !important;
   top: 12px !important;
   left: 12px !important;
@@ -1622,65 +1681,26 @@ html.wb-menu-scroll-lock body {
   z-index: 2 !important;
 }
 
-.wb-html-page .wb-html-island--page .roe-property-card .card-content {
-  padding: 18px 20px 20px !important;
-  flex: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
-
-.wb-html-page .wb-html-island--page .roe-property-card h3,
-.wb-html-page .wb-html-island--page .roe-property-card .card-title,
-.wb-html-page .wb-html-island--page .roe-property-card p,
-.wb-html-page .wb-html-island--page .roe-property-card span,
-.wb-html-page .wb-html-island--page .roe-property-card a {
-  color: #1c2b2a !important;
-}
-
-.wb-html-page .wb-html-island--page .roe-property-card .card-title {
-  font-size: 1.1rem !important;
-  font-weight: 700 !important;
-  margin: 0 0 4px !important;
-  font-family: "Sora", "Plus Jakarta Sans", system-ui, sans-serif !important;
-}
-
-.wb-html-page .wb-html-island--page .roe-property-card .card-address {
-  font-size: 0.85rem !important;
-  color: #6b7a78 !important;
-  margin: 0 0 8px !important;
-}
-
-.wb-html-page .wb-html-island--page .roe-property-card .card-price {
-  font-size: 1.3rem !important;
-  font-weight: 700 !important;
-  color: #c9a46c !important;
-  margin: 0 0 12px !important;
-}
-
-.wb-html-page .wb-html-island--page .roe-property-card .card-specs {
-  font-size: 0.85rem !important;
-  color: #4a5b59 !important;
-  border-top: 1px solid #e0d6cc !important;
-  padding-top: 12px !important;
-  margin-top: auto !important;
-}
-
 @media (max-width: 768px) {
-  .wb-html-page .wb-html-island--page .roe-property-grid {
+  .wb-html-page .wb-html-island--page .roe-property-grid,
+  .wb-root .wb-html-island .roe-property-grid {
     grid-template-columns: 1fr 1fr !important;
     gap: 20px !important;
     padding: 20px 15px !important;
   }
-  .wb-html-page .wb-html-island--page .roe-property-card .card-image {
+  .wb-html-page .wb-html-island--page .roe-property-card .card-image,
+  .wb-root .wb-html-island .roe-property-card .card-image {
     height: 180px !important;
   }
 }
 
 @media (max-width: 480px) {
-  .wb-html-page .wb-html-island--page .roe-property-grid {
+  .wb-html-page .wb-html-island--page .roe-property-grid,
+  .wb-root .wb-html-island .roe-property-grid {
     grid-template-columns: 1fr !important;
   }
-  .wb-html-page .wb-html-island--page .roe-property-card .card-image {
+  .wb-html-page .wb-html-island--page .roe-property-card .card-image,
+  .wb-root .wb-html-island .roe-property-card .card-image {
     height: 200px !important;
   }
 }
