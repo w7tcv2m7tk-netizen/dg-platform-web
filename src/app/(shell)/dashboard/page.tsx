@@ -79,15 +79,15 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <header className="dg-page-header md:py-6">
+      <header className="dg-page-header md:py-6 text-center md:text-left">
         <p className="text-lg text-slate-300">
           {overview.greeting} 👋
         </p>
         <h1 className="mt-1 text-2xl font-bold text-white">
           Welcome back to {overview.organisationName}
         </h1>
-        <div className="mt-3 flex flex-wrap items-center gap-4">
-          <div className="flex items-baseline gap-2">
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-4 md:justify-start">
+          <div className="flex flex-wrap items-baseline justify-center gap-2 md:justify-start">
             <span className="text-sm text-slate-400">Business Health:</span>
             <span className="text-2xl font-bold text-emerald-400">{overview.businessHealth}/100</span>
             <span className={`text-sm ${overview.businessHealthDelta >= 0 ? "text-emerald-400/80" : "text-amber-400/80"}`}>

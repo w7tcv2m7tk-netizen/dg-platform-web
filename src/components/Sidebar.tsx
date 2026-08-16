@@ -46,13 +46,13 @@ export function Sidebar({
     >
       <div className="shrink-0">
         {variant === "drawer" ? (
-          <div className="mb-4 flex items-center justify-between gap-2">
-            <SidebarBrand className="mb-0 min-w-0 flex-1" />
+          <div className="relative mb-4 flex items-center justify-center gap-2 px-1">
+            <SidebarBrand align="center" className="mb-0 min-w-0" />
             <button
               type="button"
               onClick={onClose}
               aria-label="Close menu"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border dg-branded-surface text-slate-300 transition hover:text-white"
+              className="absolute right-0 top-1/2 flex h-10 w-10 shrink-0 -translate-y-1/2 items-center justify-center rounded-lg border dg-branded-surface text-slate-300 transition hover:text-white"
             >
               <CloseIcon />
             </button>

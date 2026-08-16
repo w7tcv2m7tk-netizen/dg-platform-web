@@ -652,6 +652,8 @@ export async function POST(req: Request) {
       contactId,
       {
         vip: typeof body.vip === "boolean" ? body.vip : undefined,
+        hideawayCircle:
+          typeof body.hideawayCircle === "boolean" ? body.hideawayCircle : undefined,
         marketingConsent:
           body.marketingConsent === null
             ? null
@@ -715,8 +717,12 @@ export async function PATCH(req: Request) {
       isGen2MarketingApexBaseUrl(resolvedBase);
     const usesUnits =
       apexRetired || (await organisationUsesUnitSot(session.organisationId));
+    const persistedUpdates: Array<Record<string, unknown>> = [];
     if (usesUnits) {
-      const { upsertAccommodationUnitFromWpRow } = await import("@dg/platform-core");
+      const {
+        upsertAccommodationUnitFromWpRow,
+        patchAccommodationUnitManualBlocks,
+      } = await import("@dg/platform-core");
       // Persist full unit patches into Neon (incl. OTA URLs + listing IDs), then mirror to WP.
       for (const row of updates) {
         if (!row || typeof row !== "object") continue;
@@ -729,10 +735,54 @@ export async function PATCH(req: Request) {
               : Number(patch.id ?? patch.property_id);
         // Allow platform_id-only patches when WP id is missing (0).
         if (!Number.isFinite(id) && typeof patch.platform_id !== "string") continue;
+
+        const platformId =
+          typeof patch.platform_id === "string" ? patch.platform_id : undefined;
+        const wantsBlockPatch =
+          Array.isArray(patch.block_dates) ||
+          Array.isArray(patch.unblock_dates) ||
+          Array.isArray(patch.manual_blocked_dates);
+
+        let manualBlockedDates: string[] | undefined = Array.isArray(
+          patch.manual_blocked_dates,
+        )
+          ? (patch.manual_blocked_dates as string[])
+          : undefined;
+
+        // Calendar day toggles send block_dates / unblock_dates — merge into Neon.
+        if (wantsBlockPatch) {
+          const blockResult = await patchAccommodationUnitManualBlocks(
+            session.organisationId,
+            {
+              id: Number.isFinite(id) ? id : undefined,
+              platform_id: platformId,
+              manual_blocked_dates: manualBlockedDates,
+              block_dates: Array.isArray(patch.block_dates)
+                ? (patch.block_dates as string[])
+                : undefined,
+              unblock_dates: Array.isArray(patch.unblock_dates)
+                ? (patch.unblock_dates as string[])
+                : undefined,
+            },
+          ).catch(() => null);
+          if (!blockResult?.ok) {
+            return NextResponse.json(
+              {
+                error: {
+                  code: "block_persist_failed",
+                  message:
+                    "Could not save blocked dates for this unit. Confirm the unit exists in Neon, then try again.",
+                },
+              },
+              { status: 422 },
+            );
+          }
+          manualBlockedDates = blockResult.manual_blocked_dates;
+        }
+
         await upsertAccommodationUnitFromWpRow(session.organisationId, {
           id: Number.isFinite(id) ? id : 0,
-          platform_id:
-            typeof patch.platform_id === "string" ? patch.platform_id : undefined,
+          platform_id: platformId,
           title: typeof patch.title === "string" ? patch.title : undefined,
           listing_status:
             typeof patch.listing_status === "string" ? patch.listing_status : undefined,
@@ -750,9 +800,8 @@ export async function PATCH(req: Request) {
             typeof patch.housekeeping_notes === "string"
               ? patch.housekeeping_notes
               : undefined,
-          manual_blocked_dates: Array.isArray(patch.manual_blocked_dates)
-            ? (patch.manual_blocked_dates as string[])
-            : undefined,
+          // Prefer dates already merged above; still pass full list as a fallback write.
+          manual_blocked_dates: manualBlockedDates,
           airbnb_ical_url:
             typeof patch.airbnb_ical_url === "string" ? patch.airbnb_ical_url : undefined,
           bookingcom_ical_url:
@@ -800,16 +849,30 @@ export async function PATCH(req: Request) {
                 ? ""
                 : undefined,
         }).catch(() => null);
+
+        persistedUpdates.push({
+          ...patch,
+          id: Number.isFinite(id) ? id : patch.id,
+          platform_id: platformId,
+          ...(manualBlockedDates !== undefined
+            ? {
+                manual_blocked_dates: manualBlockedDates,
+                blocked_dates: manualBlockedDates,
+              }
+            : {}),
+        });
       }
     }
+
+    const responseUpdated = persistedUpdates.length ? persistedUpdates : updates;
 
     // Gen 2 apex: Neon is the only write path (no /wp-json mirror).
     if (apexRetired) {
       return NextResponse.json({
         data: {
           ok: true,
-          updated: updates,
-          count: updates.length,
+          updated: responseUpdated,
+          count: responseUpdated.length,
           sot: "neon",
           writePath: "neon",
         },
@@ -823,8 +886,8 @@ export async function PATCH(req: Request) {
         return NextResponse.json({
           data: {
             ok: true,
-            updated: updates,
-            count: updates.length,
+            updated: responseUpdated,
+            count: responseUpdated.length,
             sot: "neon",
             writePath: "neon",
             wpMirror: {

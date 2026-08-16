@@ -483,6 +483,79 @@ export async function upsertAccommodationUnitFromWpRow(
   return "created";
 }
 
+/**
+ * Merge calendar day blocks into Neon (full replace and/or block/unblock deltas).
+ * Persisted dates are emitted on the unit iCal export so Airbnb/Booking.com can pull them.
+ */
+export async function patchAccommodationUnitManualBlocks(
+  organisationId: string,
+  patch: {
+    id?: number;
+    platform_id?: string;
+    manual_blocked_dates?: string[];
+    block_dates?: string[];
+    unblock_dates?: string[];
+  },
+): Promise<
+  | { ok: true; manual_blocked_dates: string[]; platform_id: string; external_wp_id: number | null }
+  | { ok: false; reason: "not_found" | "empty_patch" }
+> {
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL not configured");
+  const platformId =
+    typeof patch.platform_id === "string" && patch.platform_id.trim()
+      ? patch.platform_id.trim()
+      : null;
+  const wpId =
+    typeof patch.id === "number" && Number.isFinite(patch.id) && patch.id > 0
+      ? patch.id
+      : null;
+
+  const hasFull = Array.isArray(patch.manual_blocked_dates);
+  const blockDates = asDateList(patch.block_dates);
+  const unblockDates = asDateList(patch.unblock_dates);
+  if (!hasFull && !blockDates.length && !unblockDates.length) {
+    return { ok: false, reason: "empty_patch" };
+  }
+
+  const { prisma } = await import("@dg/database");
+  let existing =
+    platformId != null
+      ? await prisma.accommodationUnit.findFirst({
+          where: { id: platformId, organisationId },
+        })
+      : null;
+  if (!existing && wpId != null) {
+    existing = await prisma.accommodationUnit.findUnique({
+      where: {
+        organisationId_externalWpId: { organisationId, externalWpId: wpId },
+      },
+    });
+  }
+  if (!existing) return { ok: false, reason: "not_found" };
+
+  let next = hasFull
+    ? asDateList(patch.manual_blocked_dates)
+    : asDateList(existing.manualBlockedDates);
+  if (blockDates.length || unblockDates.length) {
+    const set = new Set(next);
+    for (const d of blockDates) set.add(d);
+    for (const d of unblockDates) set.delete(d);
+    next = Array.from(set).sort();
+  }
+
+  await prisma.accommodationUnit.update({
+    where: { id: existing.id },
+    data: { manualBlockedDates: next as Prisma.InputJsonValue },
+  });
+
+  return {
+    ok: true,
+    manual_blocked_dates: next,
+    platform_id: existing.id,
+    external_wp_id: existing.externalWpId,
+  };
+}
+
 async function fetchWpUnitsViaConnector(
   organisationId: string,
 ): Promise<

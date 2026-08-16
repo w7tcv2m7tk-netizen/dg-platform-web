@@ -63,7 +63,7 @@ export type PublicStayQuote = {
   cleaningFee: number;
   discountAmount: number;
   discountPercent: number;
-  discountType: "" | "Last Minute" | "Early Bird";
+  discountType: "" | "Last Minute" | "Early Bird" | "Hideaway Circle";
   total: number;
 };
 
@@ -169,21 +169,42 @@ export function calculateStayDiscount(input: {
   subtotal: number;
   lastMinuteDiscount: number;
   earlyBirdDiscount: number;
+  /** Permanent Circle reward % (direct bookings only). Best-of vs timed discounts. */
+  circleRewardPercent?: number;
   today?: string;
-}): { amount: number; percent: number; type: "" | "Last Minute" | "Early Bird" } {
+}): {
+  amount: number;
+  percent: number;
+  type: "" | "Last Minute" | "Early Bird" | "Hideaway Circle";
+} {
   const today = input.today ?? todayYmd();
   const daysUntil = Math.floor(
     (parseLocalDate(input.checkin).getTime() - parseLocalDate(today).getTime()) /
       86_400_000,
   );
-  let percent = 0;
-  let type: "" | "Last Minute" | "Early Bird" = "";
+  const candidates: Array<{
+    percent: number;
+    type: "Last Minute" | "Early Bird" | "Hideaway Circle";
+  }> = [];
   if (daysUntil >= 0 && daysUntil <= 3 && input.lastMinuteDiscount > 0) {
-    percent = input.lastMinuteDiscount;
-    type = "Last Minute";
-  } else if (daysUntil > 3 && daysUntil <= 14 && input.earlyBirdDiscount > 0) {
-    percent = input.earlyBirdDiscount;
-    type = "Early Bird";
+    candidates.push({ percent: input.lastMinuteDiscount, type: "Last Minute" });
+  }
+  if (daysUntil > 3 && daysUntil <= 14 && input.earlyBirdDiscount > 0) {
+    candidates.push({ percent: input.earlyBirdDiscount, type: "Early Bird" });
+  }
+  if (input.circleRewardPercent && input.circleRewardPercent > 0) {
+    candidates.push({
+      percent: input.circleRewardPercent,
+      type: "Hideaway Circle",
+    });
+  }
+  let percent = 0;
+  let type: "" | "Last Minute" | "Early Bird" | "Hideaway Circle" = "";
+  for (const c of candidates) {
+    if (c.percent > percent) {
+      percent = c.percent;
+      type = c.type;
+    }
   }
   const amount =
     percent > 0 ? Math.round(input.subtotal * (percent / 100) * 100) / 100 : 0;
@@ -196,6 +217,7 @@ export function quotePublicStay(input: {
   cleaningFee: number | null;
   lastMinuteDiscount: number;
   earlyBirdDiscount: number;
+  circleRewardPercent?: number;
   checkin: string;
   checkout: string;
   today?: string;
@@ -216,6 +238,7 @@ export function quotePublicStay(input: {
     subtotal,
     lastMinuteDiscount: input.lastMinuteDiscount,
     earlyBirdDiscount: input.earlyBirdDiscount,
+    circleRewardPercent: input.circleRewardPercent,
     today: input.today,
   });
   return {
@@ -466,12 +489,19 @@ export async function createPublicStayCheckout(input: {
     };
   }
 
+  // Permanent Hideaway Circle reward when guest email matches a member (direct only).
+  const { lookupHideawayCircleReward } = await import("./public-hideaway-circle");
+  const circle = await lookupHideawayCircleReward({
+    organisationId: site.organisationId,
+    email,
+  });
   const quote = quotePublicStay({
     weekdayRate: unit.weekdayRate,
     weekendRate: unit.weekendRate,
     cleaningFee: unit.cleaningFee,
     lastMinuteDiscount: unit.lastMinuteDiscount,
     earlyBirdDiscount: unit.earlyBirdDiscount,
+    circleRewardPercent: circle.member ? circle.rewardPercent : 0,
     checkin: input.checkin,
     checkout: input.checkout,
   });

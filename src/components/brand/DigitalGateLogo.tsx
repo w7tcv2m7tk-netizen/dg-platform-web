@@ -17,6 +17,7 @@ type DigitalGateLogoProps = {
   /** Wordmark width in px — height follows aspect ratio */
   logoWidth?: number;
   showTagline?: boolean;
+  align?: "left" | "center";
 };
 
 function BrandIcon({
@@ -52,8 +53,10 @@ export function DigitalGateLogo({
   iconSize = 24,
   logoWidth = 128,
   showTagline = true,
+  align = "left",
 }: DigitalGateLogoProps) {
   const brand = brandAssetsForTheme(theme);
+  const objectAlign = align === "center" ? "object-center" : "object-left";
 
   const icon = (
     <BrandIcon
@@ -69,20 +72,28 @@ export function DigitalGateLogo({
       alt="DigitalGate"
       width={LOGO_WIDTH}
       height={LOGO_HEIGHT}
-      className="block h-auto max-w-full object-contain object-left"
+      className={`block h-auto max-w-full object-contain ${objectAlign}`}
       style={{ width: logoWidth }}
       priority
     />
   );
 
   const tagline = showTagline ? (
-    <p className="text-[11px] font-medium leading-tight tracking-wide text-white/90">
+    <p
+      className={`text-[11px] font-medium leading-tight tracking-wide text-white/90 ${
+        align === "center" ? "text-center" : ""
+      }`}
+    >
       Business Platform
     </p>
   ) : null;
 
   const textBlock = (
-    <div className="flex min-w-0 flex-col justify-center gap-0.5">
+    <div
+      className={`flex min-w-0 flex-col justify-center gap-0.5 ${
+        align === "center" ? "items-center" : ""
+      }`}
+    >
       {wordmark}
       {tagline}
     </div>
@@ -99,13 +110,17 @@ export function DigitalGateLogo({
         <div className="flex flex-col items-center gap-0.5">{wordmark}{tagline}</div>
       </div>
     ) : (
-      <div className="flex items-center gap-2.5">
+      <div
+        className={`flex items-center gap-2.5 ${align === "center" ? "justify-center" : ""}`}
+      >
         {icon}
         {textBlock}
       </div>
     );
 
-  const linkClass = `inline-flex ${variant === "stacked" ? "flex-col items-center" : ""} ${className}`;
+  const linkClass = `inline-flex ${
+    variant === "stacked" || align === "center" ? "flex-col items-center" : ""
+  } ${align === "center" && variant !== "stacked" ? "!flex-row justify-center" : ""} ${className}`;
 
   if (!href) {
     return <div className={className}>{content}</div>;

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { EmailLine } from "@/components/ui/BreakText";
 import { TableScroll } from "@/components/ui/TableScroll";
@@ -18,6 +19,7 @@ export type AccommodationGuestListRow = {
   favouriteUnit?: string | null;
   vip: boolean;
   repeatGuest: boolean;
+  hideawayCircle?: boolean;
 };
 
 function formatSpendAud(cents: number): string {
@@ -31,6 +33,11 @@ function formatSpendAud(cents: number): string {
 function GuestStatusBadges({ g }: { g: AccommodationGuestListRow }) {
   return (
     <div className="flex flex-wrap gap-1">
+      {g.hideawayCircle ? (
+        <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-xs text-sky-300">
+          Circle
+        </span>
+      ) : null}
       {g.repeatGuest ? (
         <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300">
           Repeat Guest
@@ -41,12 +48,14 @@ function GuestStatusBadges({ g }: { g: AccommodationGuestListRow }) {
           VIP
         </span>
       ) : null}
-      {!g.repeatGuest && !g.vip ? (
+      {!g.hideawayCircle && !g.repeatGuest && !g.vip ? (
         <span className="text-slate-500">—</span>
       ) : null}
     </div>
   );
 }
+
+type GuestFilter = "all" | "circle" | "vip" | "repeat";
 
 export function AccommodationGuestsTable({
   guests,
@@ -62,6 +71,14 @@ export function AccommodationGuestsTable({
   sourceLabel?: string;
 }) {
   const router = useRouter();
+  const [filter, setFilter] = useState<GuestFilter>("all");
+
+  const filtered = guests.filter((g) => {
+    if (filter === "circle") return Boolean(g.hideawayCircle);
+    if (filter === "vip") return g.vip;
+    if (filter === "repeat") return g.repeatGuest;
+    return true;
+  });
 
   if (error) {
     return (
@@ -85,6 +102,32 @@ export function AccommodationGuestsTable({
         </p>
       ) : null}
 
+      {guests.length ? (
+        <div className="flex flex-wrap gap-1 rounded-full border border-slate-700 p-0.5 w-fit">
+          {(
+            [
+              ["all", "All"],
+              ["circle", "Circle"],
+              ["vip", "VIP"],
+              ["repeat", "Repeat"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setFilter(id)}
+              className={`rounded-full px-3 py-1 text-xs font-medium ${
+                filter === id
+                  ? "bg-blue-600 text-white"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       {!guests.length ? (
         <div className="dg-card border-dashed border-slate-700">
           <h2 className="text-lg font-semibold text-white">Add your first guests</h2>
@@ -99,11 +142,15 @@ export function AccommodationGuestsTable({
             Open bookings
           </a>
         </div>
+      ) : !filtered.length ? (
+        <div className="dg-card border-dashed border-slate-700">
+          <p className="text-sm text-slate-400">No guests match this filter.</p>
+        </div>
       ) : (
         <>
           {/* Mobile: stacked cards — no horizontal scroll trap */}
           <ul className="space-y-3 md:hidden">
-            {guests.map((g) => (
+            {filtered.map((g) => (
               <li key={g.contactId}>
                 <button
                   type="button"
@@ -139,7 +186,7 @@ export function AccommodationGuestsTable({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
-                  {guests.map((g) => (
+                  {filtered.map((g) => (
                     <tr
                       key={g.contactId}
                       className="cursor-pointer hover:bg-slate-900/40"

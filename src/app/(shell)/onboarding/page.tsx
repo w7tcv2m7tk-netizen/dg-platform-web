@@ -62,14 +62,14 @@ export default async function OnboardingPage() {
 
   return (
     <>
-      <header className="dg-page-header">
+      <header className="dg-page-header text-center md:text-left">
         <p className="text-xs font-semibold uppercase tracking-widest text-sky-300">
           Platform onboarding
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">
           Welcome to DigitalGate
         </h1>
-        <p className="mt-1 max-w-2xl text-sm text-slate-400">
+        <p className="mx-auto mt-1 max-w-2xl text-sm text-slate-400 md:mx-0">
           Let&apos;s get your business connected — self-serve checklist first.
           Professional Services are optional if you want hands-on help.
         </p>
@@ -77,7 +77,7 @@ export default async function OnboardingPage() {
           {session?.organisationName ?? "DigitalGate"} · Sign up → Org → Profile
           → Connect → Digital Twin → Command Centre
         </p>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap justify-center gap-2 md:justify-start">
           <Link
             href="/command"
             className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500"

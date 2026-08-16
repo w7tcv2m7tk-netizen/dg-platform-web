@@ -28,7 +28,7 @@ export function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
 
   return (
     <header
-      className="sticky top-0 z-40 flex items-center gap-3 border-b dg-branded-header px-4 py-3 backdrop-blur md:hidden"
+      className="sticky top-0 z-40 grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-2 border-b dg-branded-header px-3 py-3 backdrop-blur md:hidden"
       style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
     >
       <button
@@ -40,17 +40,21 @@ export function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
         <MenuIcon />
       </button>
 
-      <OrgBrandMark
-        variant="lockup"
-        href="/dashboard"
-        iconSize={22}
-        logoWidth={96}
-        className="min-w-0 flex-1"
-      />
+      <div className="flex min-w-0 items-center justify-center px-1">
+        <OrgBrandMark
+          variant="lockup"
+          href="/dashboard"
+          iconSize={22}
+          logoWidth={110}
+          align="center"
+          className="max-w-full"
+        />
+      </div>
 
-      <NotificationBell />
-
-      <UserButton appearance={clerkAppearanceForBrand(brand)} />
+      <div className="flex shrink-0 items-center justify-end gap-2">
+        <NotificationBell />
+        <UserButton appearance={clerkAppearanceForBrand(brand)} />
+      </div>
     </header>
   );
 }

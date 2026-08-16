@@ -452,7 +452,16 @@ html:has(.wb-root.wb-html-page) body {
   min-height: 100%;
   overflow-x: clip;
   overflow-y: auto !important;
+  overscroll-behavior-x: none;
   overscroll-behavior-y: auto;
+  touch-action: pan-y;
+}
+
+html.wb-menu-scroll-lock,
+html.wb-menu-scroll-lock body {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .wb-root.wb-full-bleed .wb-section,
@@ -1957,13 +1966,16 @@ a.wb-brand-chrome-cta:hover {
 /* Sitewide mobile content polish */
 @media (max-width: 900px) {
   .wb-html-page,
-  .wb-root.wb-html-page {
-    overflow-x: visible;
+  .wb-root.wb-html-page,
+  .wb-root.wb-full-bleed {
+    overflow-x: clip;
+    max-width: 100%;
   }
 
   .wb-html-island--page,
   .wb-html-island--light {
     overflow-x: clip;
+    max-width: 100%;
   }
 
   .wb-html-page img,
@@ -1987,6 +1999,23 @@ a.wb-brand-chrome-cta:hover {
 
   .wb-section.wb-html-block {
     overflow-x: clip;
+    max-width: 100%;
+  }
+
+  /* Prevent long CTA labels from forcing horizontal page pan */
+  .wb-html-page .nav-cta,
+  .wb-html-page .hero-cta,
+  .wb-html-page .cta-button,
+  .wb-html-island .nav-cta,
+  .wb-html-island .hero-cta,
+  .wb-html-island .cta-button {
+    white-space: normal;
+    max-width: 100%;
+  }
+
+  .wb-brand-chrome-panel:not(.is-open) {
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .wb-root .container,
@@ -2358,10 +2387,11 @@ a.wb-brand-chrome-cta:hover {
 .wb-html-gallery .gallery-hero,
 .wb-html-page .gallery-hero {
   position: relative !important;
-  width: 100vw !important;
-  max-width: 100vw !important;
-  margin-left: calc(50% - 50vw) !important;
-  margin-right: calc(50% - 50vw) !important;
+  /* Prefer 100% over 100vw — 100vw + safe-area padding causes horizontal slide on iOS */
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
   min-height: min(78vh, 720px) !important;
   background-size: cover !important;
   background-position: center center !important;
@@ -2856,6 +2886,24 @@ a.wb-brand-chrome-cta:hover {
 }
 .cvh-stay-payid p:last-child {
   margin-bottom: 0;
+}
+.cvh-stay-circle-cta {
+  margin: 0.85rem 0 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid #e8dfd3;
+  border-radius: 12px;
+  background: #f5f2ef;
+  color: #1c2b2a;
+  font-size: 0.9rem;
+}
+.cvh-stay-circle-cta p {
+  margin: 0 0 0.4rem;
+  line-height: 1.45;
+}
+.cvh-stay-circle-cta a.cvh-btn-enquire {
+  display: inline-block;
+  margin-top: 0.55rem;
+  text-decoration: none;
 }
 .cvh-stay-error {
   color: #b91c1c;

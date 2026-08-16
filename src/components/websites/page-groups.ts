@@ -61,6 +61,7 @@ const CORE_SLUGS = new Set([
   "onboarding",
   "card",
   "business-audit",
+  "hideaway-circle",
   "beta",
   "buyer-consultation",
   "property-appraisal",

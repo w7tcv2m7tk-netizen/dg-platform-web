@@ -150,13 +150,13 @@ export function AppShellLayout({
                 </aside>
               </div>
 
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+              <div className="min-h-0 flex-1 overflow-x-clip overflow-y-auto overscroll-y-contain">
                 <ViewTransition
                   default="dg-nav-fade"
                   enter="dg-nav-fade"
                   exit="dg-nav-fade"
                 >
-                  <div className="flex min-h-full flex-col">{children}</div>
+                  <div className="flex min-h-full min-w-0 flex-col">{children}</div>
                 </ViewTransition>
               </div>
             </div>

@@ -9,6 +9,10 @@ import type {
 
 import { CvhStayUnitBooking } from "@/components/websites/CvhStayUnitBooking";
 import { BusinessAuditCapture } from "@/components/websites/BusinessAuditCapture";
+import {
+  HideawayCircleCapture,
+  HideawayCircleHomepageCta,
+} from "@/components/websites/HideawayCircleCapture";
 import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
 import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
 import { ChromeHeaderHtml } from "@/components/websites/ChromeHeaderHtml";
@@ -599,11 +603,11 @@ function BrandSiteHeader({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setMenuOpen(false);
     };
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const html = document.documentElement;
+    html.classList.add("wb-menu-scroll-lock");
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prevOverflow || "";
+      html.classList.remove("wb-menu-scroll-lock");
       window.removeEventListener("keydown", onKey);
     };
   }, [menuOpen]);
@@ -611,6 +615,7 @@ function BrandSiteHeader({
   // Always clear scroll lock on unmount (route changes / remounts)
   useEffect(() => {
     return () => {
+      document.documentElement.classList.remove("wb-menu-scroll-lock");
       document.body.style.overflow = "";
     };
   }, []);
@@ -891,6 +896,14 @@ export function WebsitePageRenderer({
         }
       : null);
 
+  const isCvhHome =
+    (/currumbin|hideaway/i.test(siteSlug) ||
+      /currumbin|hideaway/i.test(businessName)) &&
+    (!pageSlug ||
+      pageSlug === "home" ||
+      pageSlug === "/" ||
+      pageSlug.toLowerCase() === "index");
+
   const rootClass = [
     "wb-root",
     htmlPage ? "wb-html-page" : "",
@@ -943,6 +956,9 @@ export function WebsitePageRenderer({
           {pageSlug === "business-audit" ? (
             <BusinessAuditCapture siteSlug={siteSlug} basePath={basePath} />
           ) : null}
+          {pageSlug === "hideaway-circle" ? (
+            <HideawayCircleCapture siteSlug={siteSlug} basePath={basePath} />
+          ) : null}
           {components.map((c) => (
             <WebsiteComponentView
               key={c.id}
@@ -953,6 +969,7 @@ export function WebsitePageRenderer({
               pageSlug={pageSlug}
             />
           ))}
+          {isCvhHome ? <HideawayCircleHomepageCta basePath={basePath} /> : null}
         </>
       )}
       {footerHtml ? (

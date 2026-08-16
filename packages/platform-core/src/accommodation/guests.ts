@@ -7,6 +7,7 @@
 import type { Prisma } from "@dg/database";
 
 import { ensureContactForLeadFields } from "../contacts";
+import { parseHideawayCircleMeta } from "./hideaway-circle-emails";
 
 const REPEAT_STAY_THRESHOLD = 2;
 const VIP_SPEND_CENTS = 250_000; // $2,500 AUD
@@ -24,6 +25,7 @@ export interface AccommodationGuestListItem {
   favouriteUnit?: string | null;
   vip: boolean;
   repeatGuest: boolean;
+  hideawayCircle: boolean;
   marketingConsent?: boolean | null;
   legacyWpGuestId?: number | null;
 }
@@ -32,6 +34,12 @@ export interface AccommodationGuestDetail extends AccommodationGuestListItem {
   preferences?: string | null;
   specialRequests?: string | null;
   guestNotes?: string | null;
+  hideawayCircleJoinedAt?: string | null;
+  hideawayCircleInterests?: string[];
+  hideawayCircleTopics?: string[];
+  birthdayMonth?: number | null;
+  anniversaryDate?: string | null;
+  hideawayCircleRewardPercent?: number | null;
   bookings: Array<{
     id: string;
     ref?: string | null;
@@ -346,6 +354,7 @@ function buildListItem(input: {
     marketingConsent: boolean | null;
     favouriteUnit: string | null;
     legacyWpGuestId: number | null;
+    metadata?: unknown;
   } | null;
   bookings: Array<{
     checkin: Date | null;
@@ -372,6 +381,7 @@ function buildListItem(input: {
     input.profile?.favouriteUnit ?? favouriteUnitFromBookings(completed);
   const repeatGuest = stayCount >= REPEAT_STAY_THRESHOLD;
   const vip = Boolean(input.profile?.vip) || totalSpendCents >= VIP_SPEND_CENTS || stayCount >= 5;
+  const hideawayCircle = Boolean(parseHideawayCircleMeta(input.profile?.metadata));
 
   return {
     contactId: input.contact.id,
@@ -386,6 +396,7 @@ function buildListItem(input: {
     favouriteUnit,
     vip,
     repeatGuest,
+    hideawayCircle,
     marketingConsent: input.profile?.marketingConsent ?? null,
     legacyWpGuestId: input.profile?.legacyWpGuestId ?? null,
   };
@@ -561,11 +572,19 @@ export async function getAccommodationGuest(
     totalCents: b.totalCents,
   }));
 
+  const circle = parseHideawayCircleMeta(profile?.metadata);
+
   return {
     ...listItem,
     preferences: profile?.preferences ?? null,
     specialRequests: profile?.specialRequests ?? null,
     guestNotes: profile?.guestNotes ?? null,
+    hideawayCircleJoinedAt: circle?.joinedAt ?? null,
+    hideawayCircleInterests: circle?.interests ?? [],
+    hideawayCircleTopics: circle?.topics ?? [],
+    birthdayMonth: circle?.birthdayMonth ?? null,
+    anniversaryDate: circle?.anniversaryDate ?? null,
+    hideawayCircleRewardPercent: circle?.rewardPercent ?? null,
     bookings: mapped,
     upcomingBookings: mapped.filter((b) => {
       if (!b.checkin) return false;
@@ -591,6 +610,12 @@ export async function updateAccommodationGuestProfile(
     specialRequests?: string | null;
     guestNotes?: string | null;
     favouriteUnit?: string | null;
+    /** Staff toggle for Hideaway Circle membership */
+    hideawayCircle?: boolean;
+    birthdayMonth?: number | null;
+    anniversaryDate?: string | null;
+    hideawayCircleInterests?: string[];
+    hideawayCircleTopics?: string[];
     /** Optional Contact identity fields */
     displayName?: string;
     email?: string | null;
@@ -636,6 +661,57 @@ export async function updateAccommodationGuestProfile(
   }
   if (input.favouriteUnit !== undefined) {
     profileData.favouriteUnit = input.favouriteUnit?.trim() || null;
+  }
+
+  const wantsCirclePatch =
+    input.hideawayCircle !== undefined ||
+    input.birthdayMonth !== undefined ||
+    input.anniversaryDate !== undefined ||
+    input.hideawayCircleInterests !== undefined ||
+    input.hideawayCircleTopics !== undefined;
+
+  if (wantsCirclePatch) {
+    const existing = await prisma.accommodationGuestProfile.findUnique({
+      where: { contactId },
+    });
+    const prev =
+      existing?.metadata && typeof existing.metadata === "object"
+        ? (existing.metadata as Record<string, unknown>)
+        : {};
+    const prevCircle = parseHideawayCircleMeta(existing?.metadata);
+    if (input.hideawayCircle === false) {
+      const rest = { ...prev };
+      delete rest.hideawayCircle;
+      profileData.metadata = rest as Prisma.InputJsonValue;
+      if (input.marketingConsent === undefined) {
+        profileData.marketingConsent = existing?.marketingConsent ?? null;
+      }
+    } else {
+      const nextCircle = {
+        joinedAt: prevCircle?.joinedAt ?? new Date().toISOString(),
+        rewardPercent: prevCircle?.rewardPercent ?? 10,
+        permanent: true as const,
+        birthdayMonth:
+          input.birthdayMonth !== undefined
+            ? input.birthdayMonth ?? undefined
+            : prevCircle?.birthdayMonth,
+        anniversaryDate:
+          input.anniversaryDate !== undefined
+            ? input.anniversaryDate ?? undefined
+            : prevCircle?.anniversaryDate,
+        interests:
+          input.hideawayCircleInterests ?? prevCircle?.interests ?? [],
+        topics: input.hideawayCircleTopics ?? prevCircle?.topics ?? [],
+        joinSource: prevCircle?.joinSource ?? "staff",
+      };
+      profileData.metadata = {
+        ...prev,
+        hideawayCircle: nextCircle,
+      } as Prisma.InputJsonValue;
+      if (input.hideawayCircle === true && input.marketingConsent === undefined) {
+        profileData.marketingConsent = true;
+      }
+    }
   }
 
   if (Object.keys(profileData).length > 0) {

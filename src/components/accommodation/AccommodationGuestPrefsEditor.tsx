@@ -17,6 +17,7 @@ export function AccommodationGuestPrefsEditor({
 }) {
   const router = useRouter();
   const [vip, setVip] = useState(Boolean(guest.vip));
+  const [hideawayCircle, setHideawayCircle] = useState(Boolean(guest.hideawayCircle));
   const [marketingConsent, setMarketingConsent] = useState<boolean | null>(
     guest.marketingConsent ?? null,
   );
@@ -39,6 +40,7 @@ export function AccommodationGuestPrefsEditor({
         action: "update_guest_profile",
         contactId: guest.contactId,
         vip,
+        hideawayCircle,
         marketingConsent,
         preferences,
         specialRequests,
@@ -99,6 +101,15 @@ export function AccommodationGuestPrefsEditor({
             className="rounded border-slate-600"
           />
           VIP
+        </label>
+        <label className="flex items-center gap-2 text-slate-300">
+          <input
+            type="checkbox"
+            checked={hideawayCircle}
+            onChange={(e) => setHideawayCircle(e.target.checked)}
+            className="rounded border-slate-600"
+          />
+          Hideaway Circle
         </label>
         <label className="flex items-center gap-2 text-slate-300">
           Marketing consent

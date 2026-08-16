@@ -29,6 +29,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/public/accommodation/stay/(.*)",
   "/api/public/property-report",
   "/api/public/business-audit",
+  "/api/public/hideaway-circle",
   "/api/cron/property-report-followups",
   "/api/cron/lead-followups",
   "/api/v1/wantd/(.*)",

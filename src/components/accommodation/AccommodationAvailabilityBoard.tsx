@@ -315,6 +315,39 @@ function formatMoney(n?: number) {
   return `$${n}`;
 }
 
+/** Stable unit identity — Gen2 rows often share id=0; prefer Neon platform_id. */
+function sameUnit(
+  a: Pick<WpAccAvailabilityUnit, "id" | "platform_id">,
+  b: Pick<WpAccAvailabilityUnit, "id" | "platform_id">,
+): boolean {
+  const ap = a.platform_id?.trim();
+  const bp = b.platform_id?.trim();
+  if (ap && bp) return ap === bp;
+  if (a.id > 0 && b.id > 0) return a.id === b.id;
+  return false;
+}
+
+function findUnitInList(
+  list: WpAccAvailabilityUnit[],
+  unitId: number,
+  platformId?: string | null,
+): WpAccAvailabilityUnit | undefined {
+  const pid = platformId?.trim();
+  if (pid) {
+    const byPlatform = list.find((u) => u.platform_id?.trim() === pid);
+    if (byPlatform) return byPlatform;
+  }
+  if (unitId > 0) return list.find((u) => u.id === unitId);
+  return undefined;
+}
+
+function pendingBlockKey(
+  unit: Pick<WpAccAvailabilityUnit, "id" | "platform_id">,
+  day: string,
+): string {
+  return `${unit.platform_id?.trim() || unit.id}:${day}`;
+}
+
 export function AccommodationAvailabilityBoard({
   from,
   to,
@@ -453,8 +486,8 @@ export function AccommodationAvailabilityBoard({
     setSyncMsg(
       json.data?.message ??
         (json.data?.neon && typeof json.data.neon === "object" && "created" in json.data.neon
-          ? `Calendars synced · ${String((json.data.neon as { created?: number }).created ?? 0)} new on platform`
-          : "Airbnb & Booking.com calendars synced to platform"),
+          ? `Pulled OTA calendars · ${String((json.data.neon as { created?: number }).created ?? 0)} new on platform`
+          : "Pulled Airbnb & Booking.com into DigitalGate (manual blocks go out via each unit’s export calendar)"),
     );
     router.refresh();
   }
@@ -511,34 +544,36 @@ export function AccommodationAvailabilityBoard({
     router.refresh();
   }
 
-  async function toggleManualBlock(unitId: number, day: string) {
-    const unit = units.find((u) => u.id === unitId);
-    if (!unit) return;
-    if (bookingOnDay(unit, day)) {
+  async function toggleManualBlock(unit: WpAccAvailabilityUnit, day: string) {
+    const current = findUnitInList(units, unit.id, unit.platform_id) ?? unit;
+    if (bookingOnDay(current, day)) {
       setBlockError("That night has a booking — cancel or move the stay first.");
       return;
     }
 
-    const blocked = isManuallyBlocked(unit, day);
-    const key = `${unitId}:${day}`;
+    const blocked = isManuallyBlocked(current, day);
+    const key = pendingBlockKey(current, day);
     const snapshot = units;
+    const set = manualBlockedSet(current);
+    if (blocked) set.delete(day);
+    else set.add(day);
+    const next = Array.from(set).sort();
+
     setPendingBlock(key);
     setBlockMsg(null);
     setBlockError(null);
 
     // Optimistic update
     setUnits((prev) =>
-      prev.map((u) => {
-        if (u.id !== unitId) return u;
-        const set = manualBlockedSet(u);
-        if (blocked) set.delete(day);
-        else set.add(day);
-        const next = Array.from(set).sort();
-        return {
-          ...u,
-          manual_blocked_dates: next,
-        };
-      }),
+      prev.map((u) =>
+        sameUnit(u, current)
+          ? {
+              ...u,
+              manual_blocked_dates: next,
+              blocked_dates: next,
+            }
+          : u,
+      ),
     );
 
     const res = await fetch("/api/v1/accommodation", {
@@ -547,17 +582,13 @@ export function AccommodationAvailabilityBoard({
       body: JSON.stringify({
         resource: "units",
         updates: [
-          blocked
-            ? {
-                id: unitId,
-                platform_id: unit.platform_id,
-                unblock_dates: [day],
-              }
-            : {
-                id: unitId,
-                platform_id: unit.platform_id,
-                block_dates: [day],
-              },
+          {
+            id: current.id,
+            platform_id: current.platform_id,
+            // Full list + delta so Neon persists even if one field is ignored.
+            manual_blocked_dates: next,
+            ...(blocked ? { unblock_dates: [day] } : { block_dates: [day] }),
+          },
         ],
       }),
     });
@@ -567,40 +598,46 @@ export function AccommodationAvailabilityBoard({
       setUnits(snapshot);
       setBlockError(
         json.error?.message ??
-          "Could not update block — deploy plugin v10.62.0+ on CVH.",
+          "Could not update block — try again or check unit sync.",
       );
       return;
     }
 
     const updated = Array.isArray(json.data?.updated)
       ? (json.data.updated as Array<{
-          id: number;
+          id?: number;
+          platform_id?: string;
           manual_blocked_dates?: string[];
           blocked_dates?: string[];
         }>)
       : [];
-    const row = updated.find((r) => r.id === unitId);
-    if (row) {
-      setUnits((prev) =>
-        prev.map((u) =>
-          u.id === unitId
-            ? {
-                ...u,
-                manual_blocked_dates: row.manual_blocked_dates ?? u.manual_blocked_dates,
-                blocked_dates: row.blocked_dates ?? u.blocked_dates,
-              }
-            : u,
-        ),
-      );
-    }
+    const row = updated.find(
+      (r) =>
+        (current.platform_id && r.platform_id === current.platform_id) ||
+        (current.id > 0 && r.id === current.id),
+    );
+    const saved =
+      row?.manual_blocked_dates ?? row?.blocked_dates ?? next;
+    setUnits((prev) =>
+      prev.map((u) =>
+        sameUnit(u, current)
+          ? {
+              ...u,
+              manual_blocked_dates: saved,
+              blocked_dates: saved,
+            }
+          : u,
+      ),
+    );
 
     setBlockMsg(
       blocked
-        ? `${unit.title}: ${day} unblocked`
-        : `${unit.title}: ${day} blocked`,
+        ? `${current.title}: ${day} unblocked · live on DigitalGate export calendar`
+        : `${current.title}: ${day} blocked · live on DigitalGate export calendar (Airbnb/Booking.com pull on next sync)`,
     );
-    setSelectedId(unitId);
-    router.refresh();
+    setSelectedId(current.id);
+    // Do not router.refresh() here — it was reloading stale RSC props and wiping
+    // the optimistic/persisted block before Neon re-read settled.
   }
 
   if (error) {
@@ -643,81 +680,14 @@ export function AccommodationAvailabilityBoard({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-sm text-slate-500">
-            {siteLabel ? `${siteLabel} · ` : ""}
-            {from} → {to}
-          </p>
-          {syncMsg ? <p className="mt-1 text-xs text-emerald-400">{syncMsg}</p> : null}
-          {blockMsg ? <p className="mt-1 text-xs text-emerald-400">{blockMsg}</p> : null}
-          {blockError ? <p className="mt-1 text-xs text-amber-400">{blockError}</p> : null}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-full border border-slate-700 p-0.5">
-            {views.map((v) => (
-              <button
-                key={v.id}
-                type="button"
-                onClick={() => setView(v.id)}
-                className={`rounded-full px-3 py-1.5 text-xs font-medium ${
-                  view === v.id
-                    ? "bg-blue-600 text-white"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                {v.label}
-              </button>
-            ))}
-          </div>
-          {(view === "week" || view === "month") && (
-            <div className="flex gap-1">
-              <button
-                type="button"
-                className="rounded-full border border-slate-700 px-3 py-1.5 text-xs text-slate-300"
-                onClick={() => {
-                  if (view === "week") setAnchor(addDays(anchor, -7));
-                  else {
-                    const d = new Date(`${monthStart}T12:00:00`);
-                    d.setMonth(d.getMonth() - 1);
-                    setAnchor(toLocalISODate(d));
-                  }
-                }}
-              >
-                ←
-              </button>
-              <button
-                type="button"
-                className="rounded-full border border-slate-700 px-3 py-1.5 text-xs text-slate-300"
-                onClick={() => setAnchor(todayLocalISO())}
-              >
-                Today
-              </button>
-              <button
-                type="button"
-                className="rounded-full border border-slate-700 px-3 py-1.5 text-xs text-slate-300"
-                onClick={() => {
-                  if (view === "week") setAnchor(addDays(anchor, 7));
-                  else {
-                    const d = new Date(`${monthStart}T12:00:00`);
-                    d.setMonth(d.getMonth() + 1);
-                    setAnchor(toLocalISODate(d));
-                  }
-                }}
-              >
-                →
-              </button>
-            </div>
-          )}
-          <button
-            type="button"
-            disabled={syncing}
-            onClick={() => void syncOta()}
-            className="rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
-          >
-            {syncing ? "Syncing…" : "Sync Airbnb & Booking.com"}
-          </button>
-        </div>
+      <div>
+        <p className="text-sm text-slate-500">
+          {siteLabel ? `${siteLabel} · ` : ""}
+          {from} → {to}
+        </p>
+        {syncMsg ? <p className="mt-1 text-xs text-emerald-400">{syncMsg}</p> : null}
+        {blockMsg ? <p className="mt-1 text-xs text-emerald-400">{blockMsg}</p> : null}
+        {blockError ? <p className="mt-1 text-xs text-amber-400">{blockError}</p> : null}
       </div>
 
       <UnitPricingPanel
@@ -738,75 +708,147 @@ export function AccommodationAvailabilityBoard({
         monthHint={view === "month"}
       />
 
-      <div className="flex flex-wrap gap-3 text-xs text-slate-500">
-        {(
-          [
-            "open",
-            "confirmed",
-            "airbnb",
-            "bookingcom",
-            "pending",
-            "blocked",
-          ] as const
-        ).map((key) => (
-          <span key={key} className="inline-flex items-center gap-1.5">
-            <span
-              className="h-3 w-3 rounded-sm"
-              style={{ backgroundColor: CHANNEL_COLORS[key].bg }}
-            />
-            {CHANNEL_COLORS[key].label}
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-3 text-xs text-slate-500">
+          {(
+            [
+              "open",
+              "confirmed",
+              "airbnb",
+              "bookingcom",
+              "pending",
+              "blocked",
+            ] as const
+          ).map((key) => (
+            <span key={key} className="inline-flex items-center gap-1.5">
+              <span
+                className="h-3 w-3 rounded-sm"
+                style={{ backgroundColor: CHANNEL_COLORS[key].bg }}
+              />
+              {CHANNEL_COLORS[key].label}
+            </span>
+          ))}
+          <span className="text-slate-600">
+            Click an open or blocked cell to toggle a manual block · OTA horizon{" "}
+            {from} → {to}
           </span>
-        ))}
-        <span className="text-slate-600">
-          Click an open or blocked cell to toggle a manual block · OTA horizon{" "}
-          {from} → {to}
-        </span>
-      </div>
+        </div>
 
-      {view === "inventory" ? (
-        <>
-          <p className="text-[11px] text-slate-500">
-            Inventory shows the full OTA horizon ({from} → {to}) — scroll horizontally for later
-            stays. Spanning bars use the same stay list as Bookings.
-          </p>
-          <InventoryGrid
+        {/* Sticky on mobile so Inventory/Week/Month/List + Sync sit on the calendar */}
+        <div className="sticky top-0 z-20 -mx-1 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-950/95 px-3 py-2 backdrop-blur supports-[backdrop-filter]:bg-slate-950/80">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <div className="flex rounded-full border border-slate-700 p-0.5">
+              {views.map((v) => (
+                <button
+                  key={v.id}
+                  type="button"
+                  onClick={() => setView(v.id)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium ${
+                    view === v.id
+                      ? "bg-blue-600 text-white"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {v.label}
+                </button>
+              ))}
+            </div>
+            {(view === "week" || view === "month") && (
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  className="rounded-full border border-slate-700 px-3 py-1.5 text-xs text-slate-300"
+                  onClick={() => {
+                    if (view === "week") setAnchor(addDays(anchor, -7));
+                    else {
+                      const d = new Date(`${monthStart}T12:00:00`);
+                      d.setMonth(d.getMonth() - 1);
+                      setAnchor(toLocalISODate(d));
+                    }
+                  }}
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full border border-slate-700 px-3 py-1.5 text-xs text-slate-300"
+                  onClick={() => setAnchor(todayLocalISO())}
+                >
+                  Today
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full border border-slate-700 px-3 py-1.5 text-xs text-slate-300"
+                  onClick={() => {
+                    if (view === "week") setAnchor(addDays(anchor, 7));
+                    else {
+                      const d = new Date(`${monthStart}T12:00:00`);
+                      d.setMonth(d.getMonth() + 1);
+                      setAnchor(toLocalISODate(d));
+                    }
+                  }}
+                >
+                  →
+                </button>
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            disabled={syncing}
+            title="Pull Airbnb & Booking.com into DigitalGate. Manual blocks go out on each unit’s DigitalGate export calendar URL."
+            onClick={() => void syncOta()}
+            className="shrink-0 rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+          >
+            {syncing ? "Syncing…" : "Sync Airbnb & Booking.com"}
+          </button>
+        </div>
+
+        {view === "inventory" ? (
+          <>
+            <p className="text-[11px] text-slate-500">
+              Inventory shows the full OTA horizon ({from} → {to}) — scroll horizontally for later
+              stays. Spanning bars use the same stay list as Bookings.
+            </p>
+            <InventoryGrid
+              units={displayUnits}
+              days={inventoryDays}
+              selectedId={selectedId}
+              pendingBlock={pendingBlock}
+              channelFilter={channelFilter}
+              onSelectUnit={setSelectedId}
+              onToggleDay={(u, day) => void toggleManualBlock(u, day)}
+            />
+          </>
+        ) : null}
+        {view === "week" ? (
+          <WeekGrid
             units={displayUnits}
-            days={inventoryDays}
+            days={weekDays}
+            title={`${formatDayLabel(weekStart, "long")} – ${formatDayLabel(weekDays[6]!, "long")}`}
             selectedId={selectedId}
             pendingBlock={pendingBlock}
             channelFilter={channelFilter}
             onSelectUnit={setSelectedId}
-            onToggleDay={(unitId, day) => void toggleManualBlock(unitId, day)}
+            onToggleDay={(u, day) => void toggleManualBlock(u, day)}
           />
-        </>
-      ) : null}
-      {view === "week" ? (
-        <WeekGrid
-          units={displayUnits}
-          days={weekDays}
-          title={`${formatDayLabel(weekStart, "long")} – ${formatDayLabel(weekDays[6]!, "long")}`}
-          selectedId={selectedId}
-          pendingBlock={pendingBlock}
-          channelFilter={channelFilter}
-          onSelectUnit={setSelectedId}
-          onToggleDay={(unitId, day) => void toggleManualBlock(unitId, day)}
-        />
-      ) : null}
-      {view === "month" ? (
-        <MonthGrid
-          units={displayUnits}
-          days={monthDays}
-          title={new Date(`${monthStart}T12:00:00`).toLocaleDateString("en-AU", {
-            month: "long",
-            year: "numeric",
-          })}
-          selectedId={selectedId}
-          pendingBlock={pendingBlock}
-          channelFilter={channelFilter}
-          onToggleDay={(unitId, day) => void toggleManualBlock(unitId, day)}
-        />
-      ) : null}
-      {view === "list" ? <ListView bookings={listBookings} /> : null}
+        ) : null}
+        {view === "month" ? (
+          <MonthGrid
+            units={displayUnits}
+            days={monthDays}
+            title={new Date(`${monthStart}T12:00:00`).toLocaleDateString("en-AU", {
+              month: "long",
+              year: "numeric",
+            })}
+            selectedId={selectedId}
+            pendingBlock={pendingBlock}
+            channelFilter={channelFilter}
+            onToggleDay={(u, day) => void toggleManualBlock(u, day)}
+          />
+        ) : null}
+        {view === "list" ? <ListView bookings={listBookings} /> : null}
+      </div>
     </div>
   );
 }
@@ -1134,7 +1176,7 @@ function UnitDayTimeline({
   channelFilter: BookingChannelFilter;
   compact?: boolean;
   onSelectUnit: (id: number) => void;
-  onToggleDay: (unitId: number, day: string) => void;
+  onToggleDay: (unit: WpAccAvailabilityUnit, day: string) => void;
 }) {
   const showManual = channelFilter === "all";
   const spans = assignSpanLanes(bookingSpansForUnit(unit, days, channelFilter));
@@ -1162,7 +1204,7 @@ function UnitDayTimeline({
       {days.map((d) => {
         const booked = bookedNights.has(d);
         const isBlocked = showManual && isManuallyBlocked(unit, d);
-        const busy = pendingBlock === `${unit.id}:${d}`;
+        const busy = pendingBlock === pendingBlockKey(unit, d);
         if (booked) {
           return <div key={d} className="min-h-full px-0.5" aria-hidden />;
         }
@@ -1173,7 +1215,7 @@ function UnitDayTimeline({
               disabled={busy}
               onClick={() => {
                 onSelectUnit(unit.id);
-                onToggleDay(unit.id, d);
+                onToggleDay(unit, d);
               }}
               className={`rounded-md outline-none ring-offset-1 ring-offset-slate-950 transition hover:ring-2 hover:ring-white/40 focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 ${
                 compact
@@ -1232,7 +1274,7 @@ function InventoryGrid({
   pendingBlock: string | null;
   channelFilter: BookingChannelFilter;
   onSelectUnit: (id: number) => void;
-  onToggleDay: (unitId: number, day: string) => void;
+  onToggleDay: (unit: WpAccAvailabilityUnit, day: string) => void;
 }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-800">
@@ -1310,7 +1352,7 @@ function WeekGrid({
   pendingBlock: string | null;
   channelFilter: BookingChannelFilter;
   onSelectUnit: (id: number) => void;
-  onToggleDay: (unitId: number, day: string) => void;
+  onToggleDay: (unit: WpAccAvailabilityUnit, day: string) => void;
 }) {
   return (
     <div className="space-y-3">
@@ -1484,7 +1526,7 @@ function MonthWeekRow({
   pendingBlock: string | null;
   showManual: boolean;
   multiUnit: boolean;
-  onToggleDay: (unitId: number, day: string) => void;
+  onToggleDay: (unit: WpAccAvailabilityUnit, day: string) => void;
 }) {
   const clipped = stays
     .map((stay) => clipStayToWeek(stay, weekCells))
@@ -1515,7 +1557,7 @@ function MonthWeekRow({
             day && selected && showManual ? isManuallyBlocked(selected, day) : false;
           const selectedBooked = day ? bookedBySelected.has(day) : false;
           const busy =
-            day && selected ? pendingBlock === `${selected.id}:${day}` : false;
+            day && selected ? pendingBlock === pendingBlockKey(selected, day) : false;
           const canToggle = Boolean(day && selected && !selectedBooked);
           const washStay = clipped.find(
             (s) => day && s.startIdx <= i && i <= s.endIdx,
@@ -1540,7 +1582,7 @@ function MonthWeekRow({
                     <button
                       type="button"
                       disabled={busy}
-                      onClick={() => onToggleDay(selected.id, day)}
+                      onClick={() => onToggleDay(selected, day)}
                       className={`rounded px-1.5 py-0.5 text-[9px] font-medium disabled:opacity-50 ${
                         selectedBlocked
                           ? "bg-slate-700 text-slate-200 hover:bg-slate-600"
@@ -1600,7 +1642,7 @@ function MonthGrid({
   selectedId: number | null;
   pendingBlock: string | null;
   channelFilter: BookingChannelFilter;
-  onToggleDay: (unitId: number, day: string) => void;
+  onToggleDay: (unit: WpAccAvailabilityUnit, day: string) => void;
 }) {
   const showManual = channelFilter === "all";
   const lead =

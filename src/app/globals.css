@@ -223,6 +223,17 @@ html.dg-shell-scroll-lock body {
     padding: 1rem;
   }
 
+  @media (max-width: 767px) {
+    .dg-page-header {
+      text-align: center;
+    }
+
+    .dg-page-header .flex,
+    .dg-page-header [class*="flex-wrap"] {
+      justify-content: center;
+    }
+  }
+
   @media (min-width: 640px) {
     .dg-page-header {
       padding: 1.25rem 1.5rem;
@@ -233,6 +244,7 @@ html.dg-shell-scroll-lock body {
     .dg-page-header {
       padding-left: 2rem;
       padding-right: 2rem;
+      text-align: left;
     }
   }
 
@@ -240,6 +252,8 @@ html.dg-shell-scroll-lock body {
     flex: 1 1 0%;
     padding: 1rem;
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    max-width: 100%;
+    overflow-x: clip;
   }
 
   @media (min-width: 640px) {
@@ -254,6 +268,19 @@ html.dg-shell-scroll-lock body {
     }
   }
 
+  /* Cards / wide panels shouldn't force the shell sideways on phones */
+  @media (max-width: 767px) {
+    .dg-page-main .dg-card,
+    .dg-page-main .rounded-xl {
+      max-width: 100%;
+    }
+
+    .dg-page-main pre,
+    .dg-page-main code {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+  }
 }
 
 /* Australian tax invoice / quote document (print-friendly) */

@@ -9,6 +9,13 @@ export type AccommodationGuestPanelData = {
   favouriteUnit?: string | null;
   vip: boolean;
   repeatGuest: boolean;
+  hideawayCircle?: boolean;
+  hideawayCircleJoinedAt?: string | null;
+  hideawayCircleInterests?: string[];
+  hideawayCircleTopics?: string[];
+  birthdayMonth?: number | null;
+  anniversaryDate?: string | null;
+  hideawayCircleRewardPercent?: number | null;
   marketingConsent?: boolean | null;
   preferences?: string | null;
   specialRequests?: string | null;
@@ -90,6 +97,11 @@ export function AccommodationGuestPanel({
         <div>
           <dt className="text-slate-500">Status</dt>
           <dd className="flex flex-wrap gap-1 text-white">
+            {guest.hideawayCircle ? (
+              <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-xs text-sky-300">
+                Hideaway Circle
+              </span>
+            ) : null}
             {guest.repeatGuest ? (
               <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300">
                 Repeat Guest
@@ -100,9 +112,51 @@ export function AccommodationGuestPanel({
                 VIP
               </span>
             ) : null}
-            {!guest.repeatGuest && !guest.vip ? "—" : null}
+            {!guest.hideawayCircle && !guest.repeatGuest && !guest.vip ? "—" : null}
           </dd>
         </div>
+        {guest.hideawayCircle ? (
+          <>
+            <div>
+              <dt className="text-slate-500">Circle reward</dt>
+              <dd className="text-white">
+                {guest.hideawayCircleRewardPercent ?? 10}% direct (permanent)
+              </dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">Joined Circle</dt>
+              <dd className="text-white">
+                {guest.hideawayCircleJoinedAt
+                  ? guest.hideawayCircleJoinedAt.slice(0, 10)
+                  : "—"}
+              </dd>
+            </div>
+            {guest.birthdayMonth ? (
+              <div>
+                <dt className="text-slate-500">Birthday month</dt>
+                <dd className="text-white">{guest.birthdayMonth}</dd>
+              </div>
+            ) : null}
+            {guest.anniversaryDate ? (
+              <div>
+                <dt className="text-slate-500">Anniversary</dt>
+                <dd className="text-white">{guest.anniversaryDate}</dd>
+              </div>
+            ) : null}
+            {(guest.hideawayCircleInterests?.length ||
+              guest.hideawayCircleTopics?.length) && (
+              <div className="sm:col-span-2">
+                <dt className="text-slate-500">Interests / topics</dt>
+                <dd className="text-white">
+                  {[
+                    ...(guest.hideawayCircleInterests ?? []),
+                    ...(guest.hideawayCircleTopics ?? []),
+                  ].join(", ") || "—"}
+                </dd>
+              </div>
+            )}
+          </>
+        ) : null}
         <div>
           <dt className="text-slate-500">Marketing consent</dt>
           <dd className="text-white">

@@ -13,6 +13,8 @@ type OrgBrandMarkProps = {
   iconSize?: number;
   logoWidth?: number;
   showBusinessName?: boolean;
+  /** Horizontal alignment of the mark (mobile header uses center). */
+  align?: "left" | "center";
 };
 
 function OrgIcon({
@@ -41,17 +43,19 @@ function OrgWordmark({
   src,
   alt,
   width,
+  align = "left",
 }: {
   src: string;
   alt: string;
   width: number;
+  align?: "left" | "center";
 }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt={alt}
-      className="max-h-11 object-contain object-left"
+      className={`max-h-11 object-contain ${align === "center" ? "object-center mx-auto" : "object-left"}`}
       style={{ width, maxWidth: "100%" }}
     />
   );
@@ -64,6 +68,7 @@ export function OrgBrandMark({
   iconSize = 26,
   logoWidth = 120,
   showBusinessName = false,
+  align = "left",
 }: OrgBrandMarkProps) {
   const brand = useOrgBrand();
 
@@ -74,6 +79,7 @@ export function OrgBrandMark({
         href={href}
         iconSize={iconSize}
         logoWidth={logoWidth}
+        align={align}
         className={className}
       />
     );
@@ -86,7 +92,9 @@ export function OrgBrandMark({
     variant === "icon" && iconSrc ? (
       <OrgIcon src={iconSrc} alt={`${brand.businessName} icon`} size={iconSize} />
     ) : wordmarkSrc ? (
-      <div className="flex min-w-0 items-center gap-2.5">
+      <div
+        className={`flex min-w-0 items-center gap-2.5 ${align === "center" ? "justify-center" : ""}`}
+      >
         {variant === "lockup" && iconSrc && iconSrc !== wordmarkSrc ? (
           <OrgIcon src={iconSrc} alt="" size={iconSize} />
         ) : null}
@@ -94,6 +102,7 @@ export function OrgBrandMark({
           src={wordmarkSrc}
           alt={`${brand.businessName} logo`}
           width={logoWidth}
+          align={align}
         />
       </div>
     ) : (
@@ -113,7 +122,9 @@ export function OrgBrandMark({
 
   const labelled =
     showBusinessName && !wordmarkSrc ? (
-      <div className="flex min-w-0 items-center gap-2.5">
+      <div
+        className={`flex min-w-0 items-center gap-2.5 ${align === "center" ? "justify-center" : ""}`}
+      >
         {content}
         <span className="truncate text-sm font-semibold text-white">{brand.businessName}</span>
       </div>
@@ -126,7 +137,10 @@ export function OrgBrandMark({
   }
 
   return (
-    <Link href={href} className={`block min-w-0 ${className}`}>
+    <Link
+      href={href}
+      className={`block min-w-0 ${align === "center" ? "mx-auto" : ""} ${className}`}
+    >
       {labelled}
     </Link>
   );

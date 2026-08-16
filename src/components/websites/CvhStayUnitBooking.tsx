@@ -44,12 +44,13 @@ function eachNight(checkin: string, checkout: string) {
   return nights;
 }
 
-/** Match WP / Gen 2 quotePublicStay (last minute 0–3, early bird 3–14). */
+/** Match Gen 2 quotePublicStay — best of Last Minute / Early Bird / Hideaway Circle. */
 function calcTotal(
   unit: PublicStayUnitPayload,
   checkin: string,
   checkout: string,
   today: string,
+  circleRewardPercent = 0,
 ) {
   const nights = eachNight(checkin, checkout);
   let subtotal = 0;
@@ -65,14 +66,23 @@ function calcTotal(
   const daysUntil = Math.floor(
     (parseLocal(checkin).getTime() - parseLocal(today).getTime()) / 86_400_000,
   );
+  const candidates: Array<{ percent: number; type: string }> = [];
+  if (daysUntil >= 0 && daysUntil <= 3 && unit.lastMinuteDiscount > 0) {
+    candidates.push({ percent: unit.lastMinuteDiscount, type: "Last Minute" });
+  }
+  if (daysUntil > 3 && daysUntil <= 14 && unit.earlyBirdDiscount > 0) {
+    candidates.push({ percent: unit.earlyBirdDiscount, type: "Early Bird" });
+  }
+  if (circleRewardPercent > 0) {
+    candidates.push({ percent: circleRewardPercent, type: "Hideaway Circle" });
+  }
   let discountPercent = 0;
   let discountType = "";
-  if (daysUntil >= 0 && daysUntil <= 3 && unit.lastMinuteDiscount > 0) {
-    discountPercent = unit.lastMinuteDiscount;
-    discountType = "Last Minute";
-  } else if (daysUntil > 3 && daysUntil <= 14 && unit.earlyBirdDiscount > 0) {
-    discountPercent = unit.earlyBirdDiscount;
-    discountType = "Early Bird";
+  for (const c of candidates) {
+    if (c.percent > discountPercent) {
+      discountPercent = c.percent;
+      discountType = c.type;
+    }
   }
   const discountAmount =
     discountPercent > 0
@@ -136,6 +146,8 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showCircleCta, setShowCircleCta] = useState(false);
+  const [circleRewardPercent, setCircleRewardPercent] = useState(0);
   const [payidInfo, setPayidInfo] = useState<{
     ref: string;
     payidEmail: string;
@@ -151,8 +163,43 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
       setSuccess(
         `Payment received${params.get("ref") ? ` — ref ${params.get("ref")}` : ""}. We’ll email confirmation shortly.`,
       );
+      setShowCircleCta(true);
     }
   }, []);
+
+  useEffect(() => {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed || !trimmed.includes("@")) {
+      setCircleRewardPercent(0);
+      return;
+    }
+    const handle = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const res = await fetch("/api/public/hideaway-circle", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "lookup",
+              siteSlug,
+              email: trimmed,
+            }),
+          });
+          const json = (await res.json().catch(() => null)) as {
+            data?: { member?: boolean; rewardPercent?: number };
+          };
+          if (json?.data?.member && json.data.rewardPercent) {
+            setCircleRewardPercent(json.data.rewardPercent);
+          } else {
+            setCircleRewardPercent(0);
+          }
+        } catch {
+          setCircleRewardPercent(0);
+        }
+      })();
+    }, 400);
+    return () => window.clearTimeout(handle);
+  }, [email, siteSlug]);
 
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -180,7 +227,9 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
       : "Enquire";
 
   const summary =
-    checkin && checkout ? calcTotal(unit, checkin, checkout, today) : null;
+    checkin && checkout
+      ? calcTotal(unit, checkin, checkout, today, circleRewardPercent)
+      : null;
 
   const cells = monthMatrix(cursor.y, cursor.m);
   const monthLabel = new Date(cursor.y, cursor.m, 1).toLocaleDateString(
@@ -312,6 +361,7 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
           total: Number(data.total ?? summary?.total ?? 0),
         });
         setSuccess(null);
+        setShowCircleCta(true);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Payment could not start");
@@ -656,6 +706,23 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
                     Use reference <strong>{payidInfo.ref}</strong> so we can
                     match your payment.
                   </p>
+                </div>
+              ) : null}
+              {showCircleCta ? (
+                <div className="cvh-stay-circle-cta">
+                  <p>
+                    <strong>Join The Hideaway Circle</strong>
+                  </p>
+                  <p>
+                    Claim 10% off your next direct stay — private offers, first
+                    access, and return-stay rewards.
+                  </p>
+                  <a
+                    className="cvh-btn-enquire"
+                    href={`${basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : ""}/hideaway-circle?src=post_booking&email=${encodeURIComponent(email)}&firstName=${encodeURIComponent(firstName)}`}
+                  >
+                    Claim my 10% return-stay reward →
+                  </a>
                 </div>
               ) : null}
               <div className="cvh-stay-pay-actions">

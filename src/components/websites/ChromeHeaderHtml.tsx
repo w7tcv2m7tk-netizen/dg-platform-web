@@ -41,17 +41,18 @@ export function ChromeHeaderHtml({ html }: { html: string }) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const html = document.documentElement;
+    html.classList.add("wb-menu-scroll-lock");
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prev || "";
+      html.classList.remove("wb-menu-scroll-lock");
       window.removeEventListener("keydown", onKey);
     };
   }, [open]);
 
   useEffect(() => {
     return () => {
+      document.documentElement.classList.remove("wb-menu-scroll-lock");
       document.body.style.overflow = "";
     };
   }, []);
