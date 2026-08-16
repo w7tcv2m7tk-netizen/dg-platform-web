@@ -1582,12 +1582,18 @@ html.wb-menu-scroll-lock body {
 }
 
 .wb-html-page .wb-html-island--page .roe-property-card .card-link,
-.wb-root .wb-html-island .roe-property-card .card-link {
+.wb-root .wb-html-island .roe-property-card .card-link,
+.wb-root .wb-html-island .roe-property-card a.card-link {
   display: flex !important;
   flex-direction: column !important;
   flex: 1 !important;
   color: inherit !important;
   text-decoration: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-top: none !important;
+  text-align: left !important;
 }
 
 .wb-html-page .wb-html-island--page .roe-property-card .card-image,
