@@ -6,9 +6,24 @@
  * fails with a generic UI error. Platform export avoids that host.
  */
 
+import { randomBytes } from "node:crypto";
+
+import { resolveCvhUnitDisplaySlug } from "./display-order";
+
 export type IcalForChannel = "all" | "airbnb" | "bookingcom";
 
 const TOKEN_RE = /^[a-zA-Z0-9]{16,64}$/;
+
+function generateIcalExportToken(): string {
+  const alphabet =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const bytes = randomBytes(32);
+  let out = "";
+  for (let i = 0; i < 32; i++) {
+    out += alphabet[bytes[i]! % alphabet.length];
+  }
+  return out;
+}
 
 export function appPublicBaseUrl(): string {
   const raw =
@@ -16,6 +31,35 @@ export function appPublicBaseUrl(): string {
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL.trim()}` : "") ||
     "https://app.digitalgate.com.au";
   return raw.replace(/\/$/, "");
+}
+
+/**
+ * Base URL for OTA-facing iCal export links. Never persist localhost / preview
+ * hosts — Airbnb and Booking.com must pull production.
+ */
+export function appPublicIcalBaseUrl(): string {
+  const candidates = [
+    process.env.NEXT_PUBLIC_ICAL_BASE_URL?.trim(),
+    process.env.NEXT_PUBLIC_APP_URL?.trim(),
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL.trim()}` : "",
+  ].filter(Boolean) as string[];
+  for (const raw of candidates) {
+    try {
+      const u = new URL(raw.includes("://") ? raw : `https://${raw}`);
+      const host = u.hostname.toLowerCase();
+      if (
+        host === "localhost" ||
+        host === "127.0.0.1" ||
+        host.endsWith(".vercel.app")
+      ) {
+        continue;
+      }
+      return `${u.protocol}//${u.host}`.replace(/\/$/, "");
+    } catch {
+      continue;
+    }
+  }
+  return "https://app.digitalgate.com.au";
 }
 
 /** Pull token from WP-style `/ical/{slug}/{token}.ics` or query `dg_ical_token`. */
@@ -57,7 +101,7 @@ export function buildPlatformIcalExportUrl(input: {
 }): string {
   const slug = encodeURIComponent(input.slug.trim());
   const token = encodeURIComponent(input.token.trim());
-  let url = `${appPublicBaseUrl()}/api/public/accommodation/ical/${slug}/${token}.ics`;
+  let url = `${appPublicIcalBaseUrl()}/api/public/accommodation/ical/${slug}/${token}.ics`;
   if (input.forChannel && input.forChannel !== "all") {
     url += `?for=${input.forChannel}`;
   }
@@ -294,11 +338,95 @@ export function attachPlatformIcalUrls(item: {
     token,
     forChannel: "bookingcom",
   });
-  const wp = item.icalExportUrl?.trim() || undefined;
+  const meta =
+    item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata)
+      ? (item.metadata as Record<string, unknown>)
+      : {};
+  const wpStored =
+    typeof meta.icalExportWpUrl === "string" ? meta.icalExportWpUrl.trim() : "";
+  const exportUrl = item.icalExportUrl?.trim() || undefined;
+  const wp =
+    wpStored ||
+    (exportUrl && !exportUrl.includes("/api/public/accommodation/ical/")
+      ? exportUrl
+      : undefined);
   return {
     ical_export_url: platform,
     ical_export_airbnb_url: airbnb,
     ical_export_bookingcom_url: bookingcom,
     ...(wp && wp !== platform ? { ical_export_wp_url: wp } : {}),
   };
+}
+
+/**
+ * Ensure every unit has a stable slug + export token and a DigitalGate public
+ * iCal URL so Acc day-blocks persist onto Airbnb/Booking.com import feeds.
+ * Idempotent — only writes when slug/token/URL are missing or still WP-hosted.
+ */
+export async function ensureOrganisationIcalExports(
+  organisationId: string,
+): Promise<{ updated: number }> {
+  if (!process.env.DATABASE_URL) return { updated: 0 };
+  const { prisma } = await import("@dg/database");
+  const units = await prisma.accommodationUnit.findMany({
+    where: { organisationId },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      icalExportUrl: true,
+      metadata: true,
+    },
+  });
+
+  let updated = 0;
+  for (const unit of units) {
+    const resolvedSlug =
+      resolveCvhUnitDisplaySlug({ slug: unit.slug, title: unit.title }) ||
+      unit.slug?.trim().toLowerCase() ||
+      null;
+    if (!resolvedSlug) continue;
+
+    const prevMeta =
+      unit.metadata && typeof unit.metadata === "object" && !Array.isArray(unit.metadata)
+        ? ({ ...(unit.metadata as Record<string, unknown>) } as Record<string, unknown>)
+        : {};
+
+    const existingToken = resolveUnitIcalToken({
+      icalExportUrl: unit.icalExportUrl,
+      metadata: prevMeta,
+    });
+    const token = existingToken || generateIcalExportToken();
+    const platformUrl = buildPlatformIcalExportUrl({ slug: resolvedSlug, token });
+
+    const prevExport = unit.icalExportUrl?.trim() || "";
+    if (
+      prevExport.includes("currumbinvalleyhideaway.com.au/ical/") ||
+      (prevExport.includes("/ical/") &&
+        !prevExport.includes("/api/public/accommodation/ical/"))
+    ) {
+      if (!prevMeta.icalExportWpUrl) prevMeta.icalExportWpUrl = prevExport;
+    }
+    prevMeta.icalExportToken = token;
+
+    const needsWrite =
+      unit.slug !== resolvedSlug ||
+      prevExport !== platformUrl ||
+      existingToken !== token ||
+      tokenFromUnitMetadata(unit.metadata) !== token;
+
+    if (!needsWrite) continue;
+
+    await prisma.accommodationUnit.update({
+      where: { id: unit.id },
+      data: {
+        slug: resolvedSlug,
+        icalExportUrl: platformUrl,
+        metadata: prevMeta,
+      },
+    });
+    updated += 1;
+  }
+
+  return { updated };
 }

@@ -23,6 +23,7 @@ const ORDER_INDEX = new Map<string, number>(
 /** Title phrases → canonical slug (covers WP titles without matching post_name). */
 const TITLE_TO_SLUG: Array<{ re: RegExp; slug: CvhUnitDisplaySlug }> = [
   { re: /\bprivate\s+studio\b/i, slug: "private-studio" },
+  { re: /\bgarden\s+studio\b/i, slug: "private-studio" },
   { re: /\btiny\s+home\b/i, slug: "tiny-home" },
   { re: /\bsanctuary\s+dome\b/i, slug: "sanctuary-dome" },
   { re: /\brainforest\s+dome\b/i, slug: "rainforest-dome" },

@@ -1109,12 +1109,6 @@ html.wb-menu-scroll-lock body {
   color: #e8e4dc !important;
 }
 
-/* Home hero trust pills — pure white labels (beat cream span + later .trust-item dark rules) */
-.wb-root .wb-html-island.wb-html-island--light .hero-section .trust-badge .trust-item,
-.wb-root .wb-html-island.wb-html-island--light .hero-section .trust-badge .trust-item span {
-  color: #ffffff !important;
-}
-
 .wb-root .wb-html-island.wb-html-island--light :is(
   .hero-section,
   .hero-sell,
@@ -1210,6 +1204,13 @@ html.wb-menu-scroll-lock body {
   .trust-badge
 ) {
   color: #243533 !important;
+}
+
+/* Home hero trust pills — pure white (must follow cream-island / section ink rules above) */
+.wb-root .wb-html-island.wb-html-island--light .hero-section .trust-badge,
+.wb-root .wb-html-island.wb-html-island--light .hero-section .trust-badge .trust-item,
+.wb-root .wb-html-island.wb-html-island--light .hero-section .trust-badge .trust-item span {
+  color: #ffffff !important;
 }
 
 /*

@@ -4,7 +4,7 @@
 **ADR:** [0002 — WordPress as Connector](./adr/0002-wordpress-as-connector.md)  
 **Repos:** Gen 2 `dg-platform-web` (this repo) · Gen 1 plugin `dg-platform`
 
-> **North star:** WordPress becomes a **connector** (forms, public mirror, health probes) — not the source of truth for CRM, billing entitlements, support, or booking ops. Gen 2 owns Clerk, Neon tenancy, CRM, and the commerce shell today; WP still owns Roe capture, CVH bookings, portal/support/health, and public sites.
+> **North star:** WordPress becomes a **connector** (forms, public mirror, health probes) — not the source of truth for CRM, billing entitlements, support, or booking ops. Gen 2 owns Clerk, Neon tenancy, CRM, commerce, **apex marketing sites** (DG / Roe / CVH / Aëtherra), Acc calendars + platform iCal, and most capture funnels. WP remains for portal/support/health and optional RE mirrors until those phases close.
 
 ---
 
@@ -16,18 +16,20 @@
 | CRM contacts / companies / timeline | **Gen 2** | Native | — |
 | Commerce shell (invoices, quotes, Stripe connector) | **Gen 2** | Native | — |
 | Platform SaaS billing (in-app checkout) | **Gen 2** (`platform-stripe`) | Dual with WP Payment Links | **P2** |
-| Roe vendor/buyer **capture** | **Dual-write** — WP forms still create; plugin v10.68+ pushes `/api/webhooks/dg-leads` → Neon `Lead` | Pull-sync backup | **P1** ✅ interim |
-| Roe vendor/buyer **pipeline stages** | **Gen 2** SoT; optional WP write-back via `re.stage_writeback` + PATCH `/leads/vendor|buyer/{id}` | Native ops in Gen 2 | **P1** ✅ |
-| Properties / listings | **Gen 2** Neon + publish mirror to WP | Bidirectional sync | P1 / P5 |
-| RE appraisal bookings | **WP** | Pull into `Lead` (`source: re_booking`) | **P1** (capture) / ops |
+| Apex marketing sites (DG / Roe / CVH / Aëtherra) | **Gen 2** `Website` + custom-domain renderer | Public SoT; WP apex retired | **P5** ✅ |
+| Product funnels (audit / property-report / booking) | **Gen 2** capture APIs + funnel subdomains | Native | **P1** ✅ interim |
+| Roe vendor/buyer **capture** | **Gen 2** public forms + optional WP dual-write | Webhook/pull backup | **P1** ✅ interim |
+| Roe vendor/buyer **pipeline stages** | **Gen 2** SoT; optional WP write-back via `re.stage_writeback` | Native ops in Gen 2 | **P1** ✅ |
+| Properties / listings | **Gen 2** Neon + optional publish mirror to WP | Bidirectional sync legacy | P1 / P5 |
+| RE appraisal / buyer consultation bookings | **Gen 2** public booking capture (`/api/public/re-booking`) | WP pull is backup | **P1** ✅ |
 | Portal purchase + onboarding profile | **WP** (`/portal/me`) | Mirror into `organisation.settings` | **P2** |
 | Support chat | **WP** (`dg_support_*` tables) | Thin proxy | **P3** |
-| Website health | **WP** (`/site/health`) | Read-only UI | **P3** |
-| CVH stays | **Gen 2 StayBooking** (read SoT) + WP dual-write | Ops create WP→Neon; Gen 2-first behind `acc.gen2_first_booking` | **P4** |
-| CVH units / availability / housekeeping | **Gen 2 `AccommodationUnit`** when synced (soft SoT); WP mirror | Flags: `acc.units_sot`, `acc.housekeeping_sot` | **P4** ✅ interim |
-| Public sites / headless CMS | **WP** | Only RE property/agent publish implemented | **P5** |
+| Website health | **WP** (`/site/health`) + Gen 2 native health | Read-only UI | **P3** |
+| CVH stays | **Gen 2 StayBooking** SoT | Ops create in Gen 2; WP dual-write optional | **P4** ✅ interim |
+| CVH units / availability / housekeeping | **Gen 2 `AccommodationUnit`** SoT (apex retired) | Manual blocks → platform iCal for Airbnb/Booking | **P4** ✅ |
+| Public sites / headless CMS | **Gen 2** for brand apex; WP only where still linked | RE property/agent publish optional | **P5** ✅ interim |
 
-**Order by detach value:** Roe ops independence (P1) → portal/billing (P2) → support+health (P3) → CVH booking engine (P4) → public/headless (P5).
+**Order by detach value:** Portal/billing (P2) → support+health (P3) → finish CVH booking engine edges (P4) → drop remaining WP mirrors (P5).
 
 ---
 
@@ -107,8 +109,9 @@ Goal: agents run vendor/buyer pipeline and property ops in Gen 2 **without** ope
 
 | Field | Detail |
 |-------|--------|
-| **Why** | Appraisal bookings still originate on WP; Gen 2 only pulls. |
-| **Touchpoints** | Gen 2: `packages/platform-core/src/real-estate/bookings.ts` (`syncReBookingsFromWordPress`, `listReBookings`, `RE_BOOKING_SOURCE`); `src/app/api/v1/re/bookings/route.ts`; `src/lib/dg-api.ts` (`fetchWpRecentBookings`); `src/components/re/ReBookingsPanel.tsx`. WP: `GET /bookings/recent` in `class-crm-dev-api.php`. |
+| **Status** | ✅ Done (Aug 2026) — Gen 2 public capture at `/api/public/re-booking` + `RoeBookingCapture`; WP pull remains backup |
+| **Why** | Appraisal / buyer consultation bookings should originate on Gen 2. |
+| **Touchpoints** | Gen 2: `packages/platform-core/src/real-estate/public-booking.ts`; `src/components/websites/RoeBookingCapture.tsx`; `src/app/api/public/re-booking/route.ts`. Legacy pull: `syncReBookingsFromWordPress`. |
 | **Done means** | Create/list RE bookings as `Lead` with `source: re_booking` from Gen 2 API/UI; WP calendar form posts to Gen 2 or dual-writes. |
 | **Effort** | L |
 | **Depends on** | WP-D-101 |

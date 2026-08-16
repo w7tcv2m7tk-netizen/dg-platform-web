@@ -9,7 +9,10 @@ import type { Prisma } from "@dg/database";
 import { organisationHasFlag } from "../features/flags";
 import { resolveOrgWordPressConnector } from "../connectors/wordpress/org-connector";
 import { sortAccommodationUnitsByDisplayOrder } from "./display-order";
-import { attachPlatformIcalUrls } from "./ical-export";
+import {
+  attachPlatformIcalUrls,
+  ensureOrganisationIcalExports,
+} from "./ical-export";
 
 export {
   CVH_UNIT_DISPLAY_ORDER,
@@ -238,6 +241,7 @@ export function unitToWpProp(item: AccommodationUnitListItem): Record<string, un
   const icalUrls = attachPlatformIcalUrls({
     slug: item.slug,
     icalExportUrl: item.icalExportUrl,
+    metadata: item.metadata,
   });
   return {
     id: item.externalWpId ?? 0,
@@ -285,6 +289,8 @@ export function unitToWpProp(item: AccommodationUnitListItem): Record<string, un
 
 export async function listAccommodationUnits(organisationId: string) {
   if (!process.env.DATABASE_URL) return [] as AccommodationUnitListItem[];
+  // Platform iCal URLs require slug + token — backfill before serializing for Acc UI.
+  await ensureOrganisationIcalExports(organisationId).catch(() => null);
   const { prisma } = await import("@dg/database");
   const rows = await prisma.accommodationUnit.findMany({
     where: { organisationId },
@@ -416,7 +422,8 @@ export async function upsertAccommodationUnitFromWpRow(
   if (unit.last_cleaned !== undefined) {
     patch.lastCleaned = parseLastCleaned(unit.last_cleaned);
   }
-  if (manualBlockedDates) {
+  // Allow empty array (clear all blocks). Truthy check skipped [] and left stale dates.
+  if (manualBlockedDates !== null) {
     patch.manualBlockedDates = manualBlockedDates as Prisma.InputJsonValue;
   }
   if (unit.checkin_url !== undefined) patch.checkinUrl = unit.checkin_url?.trim() || null;
@@ -547,6 +554,9 @@ export async function patchAccommodationUnitManualBlocks(
     where: { id: existing.id },
     data: { manualBlockedDates: next as Prisma.InputJsonValue },
   });
+
+  // Ensure this unit can emit blocks on the public DigitalGate → OTA feed.
+  await ensureOrganisationIcalExports(organisationId).catch(() => null);
 
   return {
     ok: true,

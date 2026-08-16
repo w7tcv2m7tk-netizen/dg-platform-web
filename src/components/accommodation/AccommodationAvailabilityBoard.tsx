@@ -287,13 +287,31 @@ function manualBlockedSet(unit: WpAccAvailabilityUnit): Set<string> {
   const merged = new Set(unit.blocked_dates ?? []);
   for (const b of unit.bookings ?? []) {
     if (!b.checkin || !b.checkout) continue;
-    let cur = b.checkin;
-    while (cur < b.checkout) {
-      merged.delete(cur);
-      cur = addDays(cur, 1);
+    const start = new Date(`${b.checkin}T00:00:00Z`);
+    const end = new Date(`${b.checkout}T00:00:00Z`);
+    for (let d = new Date(start); d < end; d.setUTCDate(d.getUTCDate() + 1)) {
+      merged.delete(d.toISOString().slice(0, 10));
     }
   }
   return merged;
+}
+
+function bookingNightSet(unit: WpAccAvailabilityUnit): Set<string> {
+  const nights = new Set<string>();
+  for (const b of unit.bookings ?? []) {
+    if (!b.checkin || !b.checkout) continue;
+    const start = new Date(`${b.checkin}T00:00:00Z`);
+    const end = new Date(`${b.checkout}T00:00:00Z`);
+    for (let d = new Date(start); d < end; d.setUTCDate(d.getUTCDate() + 1)) {
+      nights.add(d.toISOString().slice(0, 10));
+    }
+  }
+  return nights;
+}
+
+/** Merged calendar nights = manual blocks ∪ booking nights (matches Neon availability). */
+function mergedBlockedDates(unit: WpAccAvailabilityUnit, manual: string[]): string[] {
+  return Array.from(new Set([...manual, ...bookingNightSet(unit)])).sort();
 }
 
 function isManuallyBlocked(unit: WpAccAvailabilityUnit, day: string) {
@@ -563,14 +581,14 @@ export function AccommodationAvailabilityBoard({
     setBlockMsg(null);
     setBlockError(null);
 
-    // Optimistic update
+    // Optimistic update — keep booking nights in blocked_dates (merged calendar).
     setUnits((prev) =>
       prev.map((u) =>
         sameUnit(u, current)
           ? {
               ...u,
               manual_blocked_dates: next,
-              blocked_dates: next,
+              blocked_dates: mergedBlockedDates(u, next),
             }
           : u,
       ),
@@ -624,7 +642,7 @@ export function AccommodationAvailabilityBoard({
           ? {
               ...u,
               manual_blocked_dates: saved,
-              blocked_dates: saved,
+              blocked_dates: mergedBlockedDates(u, saved),
             }
           : u,
       ),

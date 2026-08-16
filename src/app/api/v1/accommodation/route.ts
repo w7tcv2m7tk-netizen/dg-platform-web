@@ -780,6 +780,50 @@ export async function PATCH(req: Request) {
           manualBlockedDates = blockResult.manual_blocked_dates;
         }
 
+        const hasNonBlockFields = [
+          "title",
+          "listing_status",
+          "weekday_rate",
+          "weekend_rate",
+          "cleaning_fee",
+          "housekeeping_status",
+          "housekeeping_notes",
+          "airbnb_ical_url",
+          "bookingcom_ical_url",
+          "airbnb_id",
+          "bookingcom_id",
+          "description",
+          "address",
+          "sleeps",
+          "bedrooms",
+          "bathrooms",
+          "max_guests",
+          "min_nights",
+          "checkin_time",
+          "checkout_time",
+          "features",
+          "last_minute_discount",
+          "early_bird_discount",
+          "gallery_urls",
+          "featured_image_url",
+        ].some((k) => patch[k] !== undefined);
+
+        // Block-only on Gen 2 apex: skip upsert (already persisted above).
+        if (wantsBlockPatch && apexRetired && !hasNonBlockFields) {
+          persistedUpdates.push({
+            ...patch,
+            id: Number.isFinite(id) ? id : patch.id,
+            platform_id: platformId,
+            ...(manualBlockedDates !== undefined
+              ? {
+                  manual_blocked_dates: manualBlockedDates,
+                  blocked_dates: manualBlockedDates,
+                }
+              : {}),
+          });
+          continue;
+        }
+
         await upsertAccommodationUnitFromWpRow(session.organisationId, {
           id: Number.isFinite(id) ? id : 0,
           platform_id: platformId,
