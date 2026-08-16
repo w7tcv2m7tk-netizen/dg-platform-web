@@ -2,7 +2,6 @@ import { createActivity } from "../activities";
 import { ensureContactForLeadFields } from "../contacts";
 import { platformEvents } from "../events";
 import type { PlatformEvent } from "../events/types";
-import { getTransactionalEmailProvider } from "../infrastructure/email/transactional";
 import { createNotification } from "../notifications";
 import { convertLeadToOpportunity } from "../opportunities";
 import { createTask, listTasks } from "../tasks";
@@ -153,26 +152,50 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
   }
 
   if (contactRowEmail) {
-    const mail = getTransactionalEmailProvider();
+    const { sendMessage } = await import("../communications");
+    const { composeEmailBody } = await import("../communications/email-html");
     const org = await prisma.organisation.findUnique({
       where: { id: event.organisationId },
       select: { name: true },
     });
     const agency = org?.name?.trim() || "our team";
-    const result = await mail.send({
+    const body = [
+      `Hi,`,
+      ``,
+      `Thanks for getting in touch with ${agency}. We've received your enquiry`,
+      lead.title ? `about "${lead.title}"` : "and",
+      `someone from the team will follow up shortly.`,
+      ``,
+      `— ${agency} via DigitalGate`,
+    ].join("\n");
+    const result = await sendMessage({
       organisationId: event.organisationId,
+      channel: "email",
       to: contactRowEmail,
       subject: `Thanks for your enquiry — ${agency}`,
-      text: [
-        `Hi,`,
-        ``,
-        `Thanks for getting in touch with ${agency}. We've received your enquiry`,
-        lead.title ? `about "${lead.title}"` : "and",
-        `someone from the team will follow up shortly.`,
-        ``,
-        `— ${agency} via DigitalGate`,
-      ].join("\n"),
-      tags: ["automation", "lead-ack"],
+      body,
+      bodyHtml: composeEmailBody(
+        [
+          { type: "paragraph", text: "Hi," },
+          {
+            type: "heading",
+            text: `Thanks for getting in touch with ${agency}`,
+            level: 2,
+          },
+          {
+            type: "paragraph",
+            text: lead.title
+              ? `We've received your enquiry about "${lead.title}" and someone from the team will follow up shortly.`
+              : "We've received your enquiry and someone from the team will follow up shortly.",
+          },
+          {
+            type: "signoff",
+            lines: [`— ${agency} via DigitalGate`],
+          },
+        ],
+        { accentColor: "#3B82F6" },
+      ),
+      metadata: { purpose: "automation_lead_ack" },
     });
 
     await createActivity({

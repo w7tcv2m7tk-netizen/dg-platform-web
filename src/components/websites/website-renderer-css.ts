@@ -745,6 +745,12 @@ html.wb-menu-scroll-lock body {
   color: #2f2f2f !important;
 }
 
+/* CVH stay unit cards: price / featured pills sit on photos — keep white */
+.wb-root .wb-html-island.wb-html-island--light .dg-card-image > span,
+.wb-root .wb-html-island.wb-html-island--light .dg-accommodation-card .dg-card-image span {
+  color: #ffffff !important;
+}
+
 /* Cream pages: darken washed secondary greys for AA */
 .wb-html-island--light [style*="color:#5A6B67"],
 .wb-html-island--light [style*="color: #5A6B67"],
@@ -911,7 +917,7 @@ html.wb-menu-scroll-lock body {
   .cvh-hero-stay,
   .cta-dark,
   .dark-section
-) :is(h1, h2, h3, h4, h5, h6),
+) :is(h1, h2, h3, h4, h5, h6, .section-headline, .experience-headline, .section-title),
 .wb-root .wb-html-island.wb-html-island--light :is(
   .experience-headline,
   .policy-headline,
@@ -948,7 +954,7 @@ html.wb-menu-scroll-lock body {
   .cvh-hero-stay,
   .cta-dark,
   .dark-section
-) :is(p, li, span, small, figcaption, label, .section-subheadline, .hero-subheadline, .hero-subheading),
+) :is(p, li, span, small, figcaption, label, .section-subheadline, .experience-subheadline, .hero-subheadline, .hero-subheading),
 .wb-root .wb-html-island.wb-html-island--light :is(
   .about-hero-subheadline,
   .experiences-hero-subheadline,
@@ -1031,7 +1037,6 @@ html.wb-menu-scroll-lock body {
   .insight-section,
   .lead-magnet-section,
   .faq-section,
-  .final-cta,
   .negotiation-section,
   .selling-approach,
   .values-section-dark,
@@ -1053,7 +1058,6 @@ html.wb-menu-scroll-lock body {
   .insight-section,
   .lead-magnet-section,
   .faq-section,
-  .final-cta,
   .negotiation-section,
   .selling-approach,
   .values-section-dark,
@@ -1084,7 +1088,6 @@ html.wb-menu-scroll-lock body {
   .insight-section,
   .lead-magnet-section,
   .faq-section,
-  .final-cta,
   .negotiation-section,
   .selling-approach,
   .values-section-dark,
@@ -1106,6 +1109,12 @@ html.wb-menu-scroll-lock body {
   color: #e8e4dc !important;
 }
 
+/* Home hero trust pills — pure white labels (beat cream span + later .trust-item dark rules) */
+.wb-root .wb-html-island.wb-html-island--light .hero-section .trust-badge .trust-item,
+.wb-root .wb-html-island.wb-html-island--light .hero-section .trust-badge .trust-item span {
+  color: #ffffff !important;
+}
+
 .wb-root .wb-html-island.wb-html-island--light :is(
   .hero-section,
   .hero-sell,
@@ -1119,7 +1128,6 @@ html.wb-menu-scroll-lock body {
   .insight-section,
   .lead-magnet-section,
   .faq-section,
-  .final-cta,
   .negotiation-section,
   .selling-approach,
   .values-section-dark,
@@ -1141,7 +1149,6 @@ html.wb-menu-scroll-lock body {
   .insight-section,
   .lead-magnet-section,
   .faq-section,
-  .final-cta,
   .negotiation-section,
   .selling-approach,
   .values-section-dark,
@@ -1150,16 +1157,20 @@ html.wb-menu-scroll-lock body {
   color: #f5ebd8 !important;
 }
 
-/* Cream Roe body copy stays dark (intro / why / light CTA strips). */
+/* Cream Roe / CVH body copy stays dark (intro / why / light CTA strips / gallery). */
 .wb-root .wb-html-island.wb-html-island--light :is(
   .intro-section,
   .why-choose-section,
   .direct-cta-section-light,
-  .final-cta-section
+  .final-cta-section,
+  .final-cta,
+  .gallery-section,
+  .cvh-circle-home-cta
 ) :is(
   h1, h2, h3, h4,
   .intro-headline,
   .section-title,
+  .section-headline,
   .direct-cta-heading-light,
   .cta-headline
 ) {
@@ -1170,13 +1181,33 @@ html.wb-menu-scroll-lock body {
   .intro-section,
   .why-choose-section,
   .direct-cta-section-light,
-  .final-cta-section
+  .final-cta-section,
+  .final-cta,
+  .gallery-section,
+  .cvh-circle-home-cta
+) :is(
+  .section-label,
+  .badge
+) {
+  color: #8a7358 !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .intro-section,
+  .why-choose-section,
+  .direct-cta-section-light,
+  .final-cta-section,
+  .final-cta,
+  .gallery-section,
+  .cvh-circle-home-cta
 ) :is(
   p, li, span, small,
   .intro-description,
   .why-description,
+  .section-subheadline,
   .direct-cta-text-light,
-  .cta-description
+  .cta-description,
+  .trust-badge
 ) {
   color: #243533 !important;
 }
@@ -2075,6 +2106,77 @@ a.wb-brand-chrome-cta:hover {
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
+}
+
+.wb-post-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 2rem;
+  padding-top: 0.25rem;
+}
+
+.wb-post-pager-status {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+}
+
+.wb-post-pager-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.55);
+  color: #f8fafc !important;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.wb-post-pager-btn:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(148, 163, 184, 0.55);
+  transform: translateY(-1px);
+}
+
+.wb-post-pager-btn.is-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: default;
+}
+
+.wb-root.wb-surface-light .wb-post-pager-btn {
+  background: #ffffff;
+  border-color: rgba(28, 43, 42, 0.18);
+  color: #1c2b2a !important;
+}
+
+.wb-root.wb-surface-light .wb-post-pager-btn:hover {
+  background: #f7f4ee;
+  border-color: rgba(28, 43, 42, 0.32);
+}
+
+.wb-root.wb-surface-light .wb-post-pager-status {
+  color: #243533;
+}
+
+/* CVH Insights: stacked overlay header is tall — drop hero copy below it */
+.wb-root .cvh-insights-hero {
+  padding-top: clamp(10.5rem, 18vw, 13.5rem) !important;
+}
+
+@media (max-width: 900px) {
+  .wb-root .cvh-insights-hero {
+    padding-top: clamp(9.5rem, 28vw, 12rem) !important;
+  }
 }
 
 .wb-site-chrome-header {

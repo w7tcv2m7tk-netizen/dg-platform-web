@@ -3,6 +3,8 @@
  * Welcome is sent immediately; soft_return / been_a_while / birthday via cron.
  */
 
+import { composeEmailBody } from "../communications/email-html";
+
 export const HIDEAWAY_CIRCLE_REWARD_PERCENT = 10;
 
 export const HIDEAWAY_CIRCLE_INTERESTS = [
@@ -74,6 +76,7 @@ export type HideawayCircleEmailVars = {
 
 const BOOK_DEFAULT = "https://currumbinvalleyhideaway.com.au/stay";
 const SIGN_DEFAULT = "Currumbin Valley Hideaway";
+const ACCENT = "#B9A48A";
 
 /** Days after join for nurture steps (welcome is immediate). */
 export const HIDEAWAY_CIRCLE_FOLLOWUP_DELAYS_DAYS = {
@@ -83,12 +86,10 @@ export const HIDEAWAY_CIRCLE_FOLLOWUP_DELAYS_DAYS = {
 
 export function renderHideawayCircleWelcome(
   vars: HideawayCircleEmailVars,
-): { subject: string; body: string } {
+): { subject: string; body: string; bodyHtml: string } {
   const first = vars.firstName || "there";
   const book = vars.bookUrl || BOOK_DEFAULT;
-  return {
-    subject: "Welcome to The Hideaway Circle — 10% off your next direct stay",
-    body: `Hi ${first},
+  const body = `Hi ${first},
 
 Welcome to The Hideaway Circle.
 
@@ -105,21 +106,53 @@ Private offers · First access · Return-stay rewards
 
 See you in the Valley,
 ${SIGN_DEFAULT}
-https://currumbinvalleyhideaway.com.au`,
+https://currumbinvalleyhideaway.com.au`;
+
+  return {
+    subject: "Welcome to The Hideaway Circle — 10% off your next direct stay",
+    body,
+    bodyHtml: composeEmailBody(
+      [
+        { type: "paragraph", text: `Hi ${first},` },
+        { type: "kicker", text: "The Hideaway Circle" },
+        { type: "heading", text: "Welcome — you're in" },
+        {
+          type: "highlight",
+          text: "10% off your next stay when you book direct (not through Airbnb or Booking.com).",
+        },
+        {
+          type: "paragraph",
+          text: "This reward stays with you — no expiry. When you're ready to escape to the Valley again, book direct.",
+        },
+        { type: "button", label: "Book your return stay", href: book },
+        {
+          type: "paragraph",
+          text: "Private offers · First access · Return-stay rewards",
+          muted: true,
+        },
+        {
+          type: "signoff",
+          lines: [
+            "See you in the Valley,",
+            SIGN_DEFAULT,
+            "https://currumbinvalleyhideaway.com.au",
+          ],
+        },
+      ],
+      { accentColor: ACCENT },
+    ),
   };
 }
 
 export function renderHideawayCircleFollowup(
   step: "soft_return" | "been_a_while" | "birthday",
   vars: HideawayCircleEmailVars,
-): { subject: string; body: string } {
+): { subject: string; body: string; bodyHtml: string } {
   const first = vars.firstName || "there";
   const book = vars.bookUrl || BOOK_DEFAULT;
 
   if (step === "soft_return") {
-    return {
-      subject: "Ready for another escape to the Valley?",
-      body: `Hi ${first},
+    const body = `Hi ${first},
 
 It's been a little while since you joined The Hideaway Circle — and your 10% return-stay reward is still waiting.
 
@@ -129,14 +162,39 @@ ${book}
 
 We'd love to welcome you back.
 
-${SIGN_DEFAULT}`,
+${SIGN_DEFAULT}`;
+    return {
+      subject: "Ready for another escape to the Valley?",
+      body,
+      bodyHtml: composeEmailBody(
+        [
+          { type: "paragraph", text: `Hi ${first},` },
+          {
+            type: "heading",
+            text: "Ready for another escape to the Valley?",
+            level: 2,
+          },
+          {
+            type: "paragraph",
+            text: "It's been a little while since you joined The Hideaway Circle — and your 10% return-stay reward is still waiting.",
+          },
+          {
+            type: "button",
+            label: "Claim 10% off — book direct",
+            href: book,
+          },
+          {
+            type: "signoff",
+            lines: ["We'd love to welcome you back.", SIGN_DEFAULT],
+          },
+        ],
+        { accentColor: ACCENT },
+      ),
     };
   }
 
   if (step === "been_a_while") {
-    return {
-      subject: "It's been a while since you escaped to the Valley…",
-      body: `Hi ${first},
+    const body = `Hi ${first},
 
 It's been a while since you escaped to the Valley.
 
@@ -146,13 +204,31 @@ Book your return stay:
 ${book}
 
 See you soon,
-${SIGN_DEFAULT}`,
+${SIGN_DEFAULT}`;
+    return {
+      subject: "It's been a while since you escaped to the Valley…",
+      body,
+      bodyHtml: composeEmailBody(
+        [
+          { type: "paragraph", text: `Hi ${first},` },
+          {
+            type: "heading",
+            text: "It's been a while…",
+            level: 2,
+          },
+          {
+            type: "paragraph",
+            text: "Whenever you're ready, your Hideaway Circle reward still applies — 10% off your next direct booking at Currumbin Valley Hideaway.",
+          },
+          { type: "button", label: "Book your return stay", href: book },
+          { type: "signoff", lines: ["See you soon,", SIGN_DEFAULT] },
+        ],
+        { accentColor: ACCENT },
+      ),
     };
   }
 
-  return {
-    subject: "A birthday note from the Valley",
-    body: `Hi ${first},
+  const body = `Hi ${first},
 
 Happy birthday month from Currumbin Valley Hideaway.
 
@@ -161,7 +237,27 @@ If a rainforest reset sounds right, remember you're in The Hideaway Circle — 1
 ${book}
 
 Celebrate somewhere quiet.
-${SIGN_DEFAULT}`,
+${SIGN_DEFAULT}`;
+
+  return {
+    subject: "A birthday note from the Valley",
+    body,
+    bodyHtml: composeEmailBody(
+      [
+        { type: "paragraph", text: `Hi ${first},` },
+        { type: "heading", text: "Happy birthday month", level: 2 },
+        {
+          type: "paragraph",
+          text: "If a rainforest reset sounds right, remember you're in The Hideaway Circle — 10% off your next direct stay is yours to claim.",
+        },
+        { type: "button", label: "Celebrate in the Valley", href: book },
+        {
+          type: "signoff",
+          lines: ["Celebrate somewhere quiet.", SIGN_DEFAULT],
+        },
+      ],
+      { accentColor: ACCENT },
+    ),
   };
 }
 
@@ -232,7 +328,6 @@ export function dueHideawayCircleFollowupSteps(
     sequence.birthdayMonth <= 12 &&
     now.getMonth() + 1 === sequence.birthdayMonth
   ) {
-    // Only after at least ~30 days in the Circle
     const minMs = 30 * 24 * 60 * 60 * 1000;
     if (now.getTime() >= activated + minMs) due.push("birthday");
   }

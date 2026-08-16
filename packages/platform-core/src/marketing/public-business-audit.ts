@@ -7,9 +7,9 @@
 import type { Prisma } from "@dg/database";
 
 import { sendMessage } from "../communications";
+import { composeEmailBody } from "../communications/email-html";
 import { runPresenceAudit } from "../command-centre/growth-engine/presence-audit";
 import type { PresenceAuditResult } from "../command-centre/growth-engine/presence-audit";
-import { getTransactionalEmailProvider } from "../infrastructure/email/transactional";
 import { findDomainByHostname } from "../infrastructure/domains/inventory";
 import { createLead } from "../leads";
 import { createContact } from "../contacts";
@@ -214,7 +214,7 @@ function renderAuditEmailBody(input: {
   industry?: string;
   audit: PresenceAuditResult;
   preview: PublicBusinessAuditPreview;
-}): { subject: string; body: string; overall: number } {
+}): { subject: string; body: string; bodyHtml: string; overall: number } {
   const { pillars, opportunities, overallScore: overall } = input.preview;
   const findings = opportunities
     .map(
@@ -265,9 +265,88 @@ https://digitalgate.com.au/strategy-session
 — Ben Roe | DigitalGate
 https://digitalgate.com.au`;
 
+  const bodyHtml = composeEmailBody(
+    [
+      { type: "paragraph", text: `Hi ${input.firstName},` },
+      {
+        type: "heading",
+        text: `Your DigitalGate Business Audit™ for ${input.companyName}`,
+      },
+      {
+        type: "paragraph",
+        text: "Your digital presence, visibility & growth report is ready.",
+      },
+      {
+        type: "kv",
+        rows: [
+          { label: "Website", value: input.websiteUrl },
+          ...(input.industry
+            ? [{ label: "Industry", value: input.industry }]
+            : []),
+          ...(input.audit.probes.title
+            ? [{ label: "Homepage title", value: input.audit.probes.title }]
+            : []),
+          {
+            label: "Reachable",
+            value:
+              input.audit.probes.reachable === true
+                ? "Yes"
+                : input.audit.probes.reachable === false
+                  ? "No"
+                  : "Unknown",
+          },
+          { label: "HTTPS", value: input.audit.probes.https ? "Yes" : "No" },
+        ],
+      },
+      {
+        type: "score",
+        title: "DigitalGate Business Health Score™",
+        score: overall,
+        pillars: [
+          { label: "Website Health", score: pillars.websiteHealth },
+          { label: "Search Visibility", score: pillars.searchVisibility },
+          { label: "AI Visibility", score: pillars.aiVisibility },
+          { label: "Reputation & Presence", score: pillars.reputation },
+          { label: "Conversion Readiness", score: pillars.conversionReadiness },
+          { label: "Growth Signals", score: pillars.growthSignals },
+        ],
+      },
+      { type: "kicker", text: "Here's what we'd fix first" },
+      {
+        type: "list",
+        ordered: true,
+        items:
+          opportunities.length > 0
+            ? opportunities.map(
+                (f) =>
+                  `[${f.severity}] ${f.title}${f.detail ? ` — ${f.detail}` : ""}`,
+              )
+            : [
+                "No critical gaps from this probe — we can still deepen the diagnosis on a strategy call.",
+              ],
+      },
+      {
+        type: "paragraph",
+        text: "These scores reflect observable website and presence signals only — we never invent SEO or AI rankings.",
+        muted: true,
+      },
+      {
+        type: "button",
+        label: "Book a free strategy session",
+        href: "https://digitalgate.com.au/strategy-session",
+      },
+      {
+        type: "signoff",
+        lines: ["— Ben Roe | DigitalGate", "https://digitalgate.com.au"],
+      },
+    ],
+    { accentColor: "#3B82F6" },
+  );
+
   return {
     subject: `Your DigitalGate Business Audit™ — ${input.companyName} (${overall}/100)`,
     body,
+    bodyHtml,
     overall,
   };
 }
@@ -422,9 +501,11 @@ export async function submitPublicBusinessAudit(input: {
       to: email,
       subject: report.subject,
       body: report.body,
+      bodyHtml: report.bodyHtml,
       metadata: {
         purpose: "free_audit_report",
         leadId: lead.id,
+        ctaLabel: "Book a free strategy session",
         footerNote:
           "DigitalGate Business Health Score™ from a live website presence probe. Not a formal SEO ranking report.",
       },
@@ -467,7 +548,6 @@ export async function submitPublicBusinessAudit(input: {
     process.env.DG_BUSINESS_AUDIT_ADMIN_EMAIL?.trim() ||
     "hello@digitalgate.com.au";
   try {
-    const mail = getTransactionalEmailProvider();
     const text = [
       "New DigitalGate Business Audit™ request",
       "",
@@ -481,24 +561,41 @@ export async function submitPublicBusinessAudit(input: {
       `Opportunities: ${preview.opportunities.length}`,
       `Audit emailed: ${auditSent ? "yes" : "no"}`,
     ].join("\n");
-    if (mail.isConfigured()) {
-      await mail.send({
-        organisationId,
-        to: adminTo,
-        subject: `Business Audit Request - ${businessName}`,
-        text,
-        tags: ["business-audit", "admin"],
-      });
-    } else {
-      await sendMessage({
-        organisationId,
-        channel: "email",
-        to: adminTo,
-        subject: `Business Audit Request - ${businessName}`,
-        body: text,
-        metadata: { purpose: "free_audit_admin" },
-      });
-    }
+    await sendMessage({
+      organisationId,
+      channel: "email",
+      to: adminTo,
+      subject: `Business Audit Request - ${businessName}`,
+      body: text,
+      bodyHtml: composeEmailBody(
+        [
+          { type: "kicker", text: "New lead" },
+          { type: "heading", text: "Business Audit request" },
+          {
+            type: "kv",
+            rows: [
+              { label: "Business", value: businessName },
+              { label: "Website", value: websiteUrl },
+              { label: "Industry", value: industry || "Not provided" },
+              { label: "Name", value: fullName },
+              { label: "Email", value: email },
+              { label: "Phone", value: phone || "Not provided" },
+              {
+                label: "Business Health Score",
+                value: String(report.overall),
+              },
+              {
+                label: "Opportunities",
+                value: String(preview.opportunities.length),
+              },
+              { label: "Audit emailed", value: auditSent ? "Yes" : "No" },
+            ],
+          },
+        ],
+        { accentColor: "#3B82F6" },
+      ),
+      metadata: { purpose: "free_audit_admin" },
+    });
   } catch (err) {
     console.info("[public-business-audit] admin notify failed", err);
   }
@@ -574,9 +671,11 @@ export async function processFreeAuditFollowups(options?: {
           to: sequence.email,
           subject: rendered.subject,
           body: rendered.body,
+          bodyHtml: rendered.bodyHtml,
           metadata: {
             purpose: `free_audit_followup_${step}`,
             leadId: lead.id,
+            ctaLabel: "Book a free strategy session",
           },
         });
 

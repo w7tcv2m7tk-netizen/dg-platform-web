@@ -13,7 +13,10 @@ type Props = {
   siteSlug: string;
   basePath?: string;
   variant?: "funnel" | "embedded";
+  logoUrl?: string | null;
 };
+
+const DEFAULT_LOGO = "https://app.digitalgate.com.au/brand/roe-logo.png";
 
 type Step = "address" | "contact" | "done";
 
@@ -105,6 +108,14 @@ const FUNNEL_CSS = `
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+.dg-rr-funnel__brand-logo {
+  height: clamp(2.1rem, 4.8vw, 2.9rem);
+  width: auto;
+  max-width: min(260px, 74vw);
+  display: block;
+  object-fit: contain;
+  object-position: left center;
 }
 .dg-rr-funnel__brand-mark {
   width: 1.55rem;
@@ -331,8 +342,10 @@ export function PropertyReportCapture({
   siteSlug,
   basePath = "",
   variant = "embedded",
+  logoUrl,
 }: Props) {
   const isFunnel = variant === "funnel";
+  const brandLogo = (logoUrl || "").trim() || DEFAULT_LOGO;
   const [step, setStep] = useState<Step>("address");
   const [address, setAddress] = useState("");
   const [formatted, setFormatted] = useState("");
@@ -671,11 +684,13 @@ export function PropertyReportCapture({
         <div className="dg-rr-funnel__veil" aria-hidden />
         <div className="dg-rr-funnel__shell">
           <div className="dg-rr-funnel__copy">
-            <a className="dg-rr-funnel__brand" href={brandHref}>
-              <span className="dg-rr-funnel__brand-mark" aria-hidden>
-                R
-              </span>
-              Roe Realty
+            <a className="dg-rr-funnel__brand" href={brandHref} aria-label="Roe Realty">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={brandLogo}
+                alt="Roe Realty"
+                className="dg-rr-funnel__brand-logo"
+              />
             </a>
             <p className="dg-rr-funnel__eyebrow">Free Instant Report</p>
             <h1>Find Out What Buyers Would Pay for Your Property Right Now</h1>

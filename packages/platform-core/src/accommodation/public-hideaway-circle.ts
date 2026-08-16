@@ -344,9 +344,11 @@ export async function submitHideawayCircleJoin(input: {
       to: email,
       subject: welcome.subject,
       body: welcome.body,
+      bodyHtml: welcome.bodyHtml,
       metadata: {
         purpose: "hideaway_circle_welcome",
         contactId: contact.id,
+        ctaLabel: "Book your return stay",
         footerNote: "You're receiving this because you joined The Hideaway Circle.",
       },
     });
@@ -465,9 +467,11 @@ export async function processHideawayCircleFollowups(options?: {
           to: sequence.email,
           subject: rendered.subject,
           body: rendered.body,
+          bodyHtml: rendered.bodyHtml,
           metadata: {
             purpose: `hideaway_circle_${step}`,
             leadId: lead.id,
+            ctaLabel: "Book your return stay",
           },
         });
 

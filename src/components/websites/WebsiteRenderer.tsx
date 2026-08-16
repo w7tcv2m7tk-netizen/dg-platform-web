@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type {
   PublicStayUnitPayload,
   WebsiteComponent,
@@ -57,6 +58,117 @@ function asLinks(v: unknown): Array<{ label: string; href: string }> {
       return { label: o.label, href: o.href };
     })
     .filter((x): x is { label: string; href: string } => x !== null);
+}
+
+type PostGridPost = {
+  title: string;
+  href: string;
+  excerpt: string;
+  image: string;
+  date: string;
+};
+
+function buildPostPageHref(page: number): string {
+  if (typeof window === "undefined") {
+    return page <= 1 ? "?" : `?p=${page}`;
+  }
+  const url = new URL(window.location.href);
+  if (page <= 1) url.searchParams.delete("p");
+  else url.searchParams.set("p", String(page));
+  const q = url.searchParams.toString();
+  return `${url.pathname}${q ? `?${q}` : ""}${url.hash}`;
+}
+
+function PostGridSection({
+  posts,
+  columns,
+  headline,
+  pageSize,
+  page,
+}: {
+  posts: PostGridPost[];
+  columns: number;
+  headline: string;
+  pageSize: number;
+  page: number;
+}) {
+  const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
+  const safePage = Math.min(totalPages, Math.max(1, page));
+  const start = (safePage - 1) * pageSize;
+  const visible = posts.slice(start, start + pageSize);
+  const showPager = totalPages > 1;
+
+  return (
+    <section className="wb-post-grid-wrap">
+      {headline ? (
+        <h2 className="wb-section-title" style={{ marginBottom: "1.25rem" }}>
+          {headline}
+        </h2>
+      ) : null}
+      <div
+        className="wb-post-grid"
+        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+      >
+        {visible.map((post) => (
+          <a key={post.href} href={post.href} className="wb-post-card">
+            {post.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className="wb-post-card-image" src={post.image} alt="" />
+            ) : (
+              <div className="wb-post-card-image" aria-hidden />
+            )}
+            <div className="wb-post-card-body">
+              {post.date ? (
+                <span className="wb-post-card-meta">{post.date}</span>
+              ) : null}
+              <h3 className="wb-post-card-title">{post.title}</h3>
+              {post.excerpt ? (
+                <p className="wb-post-card-excerpt">{post.excerpt}</p>
+              ) : null}
+              <span className="wb-post-card-cta">Read article →</span>
+            </div>
+          </a>
+        ))}
+      </div>
+      {showPager ? (
+        <nav className="wb-post-pager" aria-label="Insights pages">
+          {safePage > 1 ? (
+            <a className="wb-post-pager-btn" href={buildPostPageHref(safePage - 1)}>
+              ← Previous
+            </a>
+          ) : (
+            <span className="wb-post-pager-btn is-disabled" aria-disabled>
+              ← Previous
+            </span>
+          )}
+          <span className="wb-post-pager-status">
+            Page {safePage} of {totalPages}
+          </span>
+          {safePage < totalPages ? (
+            <a className="wb-post-pager-btn" href={buildPostPageHref(safePage + 1)}>
+              Next page →
+            </a>
+          ) : (
+            <span className="wb-post-pager-btn is-disabled" aria-disabled>
+              Next page →
+            </span>
+          )}
+        </nav>
+      ) : null}
+    </section>
+  );
+}
+
+function PostGridSectionWithParams(props: {
+  posts: PostGridPost[];
+  columns: number;
+  headline: string;
+  pageSize: number;
+}) {
+  const searchParams = useSearchParams();
+  const raw = searchParams.get("p");
+  const page = Math.max(1, Number.parseInt(raw || "1", 10) || 1);
+  return <PostGridSection {...props} page={page} />;
 }
 
 function asServiceItems(v: unknown): Array<{ title: string; description: string }> {
@@ -461,6 +573,11 @@ export function WebsiteComponentView({
     case "post_grid": {
       const columns = Math.min(3, Math.max(1, Number(component.props.columns) || 2));
       const headline = asString(component.props.headline);
+      const pageSizeRaw = Number(component.props.pageSize);
+      const pageSize =
+        Number.isFinite(pageSizeRaw) && pageSizeRaw > 0
+          ? Math.min(24, Math.max(2, Math.floor(pageSizeRaw)))
+          : 6;
       const postsRaw = Array.isArray(component.props.posts)
         ? component.props.posts
         : [];
@@ -482,42 +599,24 @@ export function WebsiteComponentView({
         .filter((x): x is NonNullable<typeof x> => x !== null);
       if (posts.length === 0) return null;
       return (
-        <section className="wb-post-grid-wrap">
-          {headline ? (
-            <h2 className="wb-section-title" style={{ marginBottom: "1.25rem" }}>
-              {headline}
-            </h2>
-          ) : null}
-          <div
-            className="wb-post-grid"
-            style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
-          >
-            {posts.map((post) => (
-              <a key={post.href} href={post.href} className="wb-post-card">
-                {post.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    className="wb-post-card-image"
-                    src={post.image}
-                    alt=""
-                  />
-                ) : (
-                  <div className="wb-post-card-image" aria-hidden />
-                )}
-                <div className="wb-post-card-body">
-                  {post.date ? (
-                    <span className="wb-post-card-meta">{post.date}</span>
-                  ) : null}
-                  <h3 className="wb-post-card-title">{post.title}</h3>
-                  {post.excerpt ? (
-                    <p className="wb-post-card-excerpt">{post.excerpt}</p>
-                  ) : null}
-                  <span className="wb-post-card-cta">Read article →</span>
-                </div>
-              </a>
-            ))}
-          </div>
-        </section>
+        <Suspense
+          fallback={
+            <PostGridSection
+              posts={posts}
+              columns={columns}
+              headline={headline}
+              pageSize={pageSize}
+              page={1}
+            />
+          }
+        >
+          <PostGridSectionWithParams
+            posts={posts}
+            columns={columns}
+            headline={headline}
+            pageSize={pageSize}
+          />
+        </Suspense>
       );
     }
     default:
@@ -861,11 +960,15 @@ export function WebsitePageRenderer({
     showHeader && !isProductFunnel
       ? rewriteProductFunnelHtml(headerHtmlRaw)
       : "";
+  const hasBrandChromeMeta =
+    (Array.isArray(chrome?.navLinks) && chrome!.navLinks!.length > 0) ||
+    Boolean(chrome?.headerCta?.label?.trim()) ||
+    Boolean(chrome?.businessName?.trim());
   const useBrandHeader =
     showHeader &&
     !isProductFunnel &&
     !headerHtml &&
-    Boolean(theme.logoUrl || theme.iconUrl);
+    (Boolean(theme.logoUrl || theme.iconUrl) || hasBrandChromeMeta);
   const footerHtmlRaw = chrome?.footerHtml?.trim() || "";
   const footerHtmlPrepared =
     /currumbin|hideaway/i.test(siteSlug) && footerHtmlRaw
@@ -1043,6 +1146,7 @@ export function WebsitePageRenderer({
             <PropertyReportCapture
               siteSlug={siteSlug}
               basePath={basePath}
+              logoUrl={theme.logoUrl || theme.iconUrl}
               variant={
                 resolvedFunnelTemplate === "property_report"
                   ? "funnel"
@@ -1055,6 +1159,7 @@ export function WebsitePageRenderer({
             <BusinessAuditCapture
               siteSlug={siteSlug}
               basePath={basePath}
+              logoUrl={theme.logoUrl || theme.iconUrl}
               variant={
                 resolvedFunnelTemplate === "business_audit"
                   ? "funnel"

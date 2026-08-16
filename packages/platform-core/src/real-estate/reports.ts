@@ -453,6 +453,7 @@ function avmSubjectHint(
 export type PropertyReportPayload = {
   markdown: string;
   plainText: string;
+  htmlBody: string;
   organisationName: string;
   address: string;
   cotalityPropertyId: string | number | null;
@@ -567,9 +568,15 @@ Sections marked unavailable are honest gaps (sandbox/UAT limits or property out 
 _Prepared ${new Date().toLocaleString("en-AU")} · Data source: Cotality where indicated._
 `.trim();
 
+  const { markdownToEmailHtml } = await import("../communications/email-html");
+
   return {
     markdown,
     plainText: markdown.replace(/^#+\s*/gm, "").replace(/\*\*/g, ""),
+    htmlBody: markdownToEmailHtml(markdown, {
+      accentColor: "#C9A46C",
+      ctaLabel: "Book a free appraisal",
+    }),
     organisationName,
     address,
     cotalityPropertyId,
@@ -623,11 +630,13 @@ export async function sendPropertyReportEmail(input: {
     to,
     subject,
     body: report.plainText,
+    bodyHtml: report.htmlBody,
     metadata: {
       purpose: "property_report",
       propertyId: input.propertyId,
       appraisalUrl: report.appraisalUrl,
       avmRangeLabel: report.avmRangeLabel,
+      ctaLabel: "Book a free appraisal",
       footerNote:
         "Cotality IntelliVal where shown. Not a formal valuation or CMA. Book an appraisal for a full market analysis.",
     },

@@ -35,8 +35,18 @@ export {
   resolveEmailBrandAssets,
   resolvePlatformEmailBrandAssets,
   plainTextToEmailHtml,
+  markdownToEmailHtml,
+  composeEmailBody,
+  emailButton,
+  emailHeading,
+  emailScoreCard,
+  emailKeyValueRows,
 } from "./email-brand";
-export type { EmailBrandAssets, WrapTransactionalEmailInput } from "./email-brand";
+export type {
+  EmailBrandAssets,
+  WrapTransactionalEmailInput,
+  EmailBodyBlock,
+} from "./email-brand";
 
 async function persistQueuedEmail(input: {
   organisationId: string;
@@ -180,14 +190,11 @@ export async function sendMessage(
   let businessName: string | undefined;
 
   try {
-    const { renderOrgTransactionalEmail, plainTextToEmailHtml } = await import(
-      "./email-brand"
-    );
-    const bodyHtml =
-      input.bodyHtml?.trim() || plainTextToEmailHtml(input.body);
+    const { renderOrgTransactionalEmail } = await import("./email-brand");
     const { html, brand } = await renderOrgTransactionalEmail({
       organisationId: input.organisationId,
-      bodyHtml,
+      bodyHtml: input.bodyHtml?.trim() || undefined,
+      bodyText: input.body,
       brandMode:
         input.metadata?.purpose === "platform_referral_invite"
           ? "platform"

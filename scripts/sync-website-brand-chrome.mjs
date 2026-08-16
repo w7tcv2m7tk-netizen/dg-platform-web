@@ -86,8 +86,19 @@ async function main() {
     }
 
     const profile = site.organisation.settings?.profile ?? {};
-    const logoUrl = typeof profile.logoUrl === "string" ? profile.logoUrl : null;
-    const iconUrl = typeof profile.iconUrl === "string" ? profile.iconUrl : null;
+    let logoUrl = typeof profile.logoUrl === "string" ? profile.logoUrl : null;
+    let iconUrl = typeof profile.iconUrl === "string" ? profile.iconUrl : null;
+
+    // Gen 2 hosted brand marks when org profile still lacks logos (common after WP cutover)
+    if (siteSlug === "digitalgate" && !logoUrl && !iconUrl) {
+      logoUrl = "https://app.digitalgate.com.au/brand/logo-on-dark.png";
+      iconUrl = "https://app.digitalgate.com.au/brand/icon-light.png";
+    }
+    if (siteSlug === "roe-realty" && !logoUrl && !iconUrl) {
+      logoUrl = "https://app.digitalgate.com.au/brand/roe-logo.png";
+      iconUrl = "https://app.digitalgate.com.au/brand/roe-icon.png";
+    }
+
     if (!logoUrl && !iconUrl) {
       console.log(`! ${site.organisation.name}: no profile logo/icon`);
       continue;

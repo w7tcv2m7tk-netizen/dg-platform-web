@@ -17,6 +17,28 @@ import {
 import { getOrganisationBusinessProfile } from "../org/onboarding-profile";
 import { absoluteBrandAssetUrl, parseBrandColours } from "../org/brand-theme";
 import type { OrganisationBusinessProfile } from "../org/business-profile-types";
+import {
+  escapeHtml,
+  plainTextToEmailHtml,
+} from "./email-html";
+
+export {
+  composeEmailBody,
+  emailButton,
+  emailDivider,
+  emailHeading,
+  emailHighlight,
+  emailKeyValueRows,
+  emailKicker,
+  emailList,
+  emailParagraph,
+  emailScoreCard,
+  emailSignoff,
+  escapeHtml,
+  markdownToEmailHtml,
+  plainTextToEmailHtml,
+  type EmailBodyBlock,
+} from "./email-html";
 
 const DG_FALLBACK_LOGO =
   ORG_BRAND_PRESETS.digitalgate.patch.logoUrl ??
@@ -42,14 +64,6 @@ export type WrapTransactionalEmailInput = {
   bodyHtml: string;
   footerNote?: string;
 };
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
 
 /** DigitalGate product brand — used for platform-owned emails (e.g. Refer & Earn). */
 export function resolvePlatformEmailBrandAssets(): EmailBrandAssets {
@@ -157,6 +171,8 @@ export function wrapTransactionalEmail(input: WrapTransactionalEmailInput): stri
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
 <title>${alt}</title>
 <style type="text/css">
 @media only screen and (max-width:620px){
@@ -166,12 +182,14 @@ export function wrapTransactionalEmail(input: WrapTransactionalEmailInput): stri
   .dg-email-logo{max-width:160px !important;width:160px !important;}
   .dg-email-icon{max-width:40px !important;width:40px !important;}
 }
+a{color:#93C5FD;}
 </style>
 </head>
-<body style="margin:0;padding:0;background:#0A0F1A;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-text-size-adjust:100%;">
-<table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="dg-email-outer" style="background:#0A0F1A;padding:32px 16px;"><tr><td align="center">
-<table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="dg-email-card" style="max-width:600px;width:100%;background:#141B2B;border:1px solid rgba(59,130,246,0.12);border-radius:24px;overflow:hidden;">
-<tr><td class="dg-email-pad" style="padding:32px 32px 24px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);">
+<body style="margin:0;padding:0;background:#070B14;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%;">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="dg-email-outer" style="background:#070B14;padding:32px 16px;"><tr><td align="center">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="dg-email-card" style="max-width:600px;width:100%;background:#121826;border:1px solid rgba(148,163,184,0.14);border-radius:24px;overflow:hidden;">
+<tr><td style="height:4px;line-height:4px;font-size:0;background:${escapeHtml(primary)};">&nbsp;</td></tr>
+<tr><td class="dg-email-pad" style="padding:28px 32px 22px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);">
 <img class="dg-email-logo" src="${escapeHtml(logoUrl!)}" alt="${alt}" width="180" style="max-width:180px;width:180px;height:auto;display:inline-block;margin:0 auto;border:0;outline:none;text-decoration:none;">
 </td></tr>
 <tr><td class="dg-email-pad" style="padding:32px;color:#E2E8F0;font-size:16px;line-height:1.65;">${input.bodyHtml}</td></tr>
@@ -181,23 +199,9 @@ export function wrapTransactionalEmail(input: WrapTransactionalEmailInput): stri
 </td></tr></table>
 <p style="margin:0;font-size:13px;line-height:1.6;color:#64748B;">© ${new Date().getFullYear()} ${alt}</p>
 <p style="margin:12px 0 0;font-size:11px;line-height:1.5;color:#475569;">${escapeHtml(footer)}</p>
-<p style="margin:0;font-size:0;line-height:0;color:${escapeHtml(primary)};">&nbsp;</p>
 </td></tr>
 </table></td></tr></table>
 </body></html>`;
-}
-
-/** Escape plain text and wrap as paragraphs for email body. */
-export function plainTextToEmailHtml(text: string): string {
-  const escaped = escapeHtml(text.trim());
-  if (!escaped) return "";
-  return escaped
-    .split(/\n{2,}/)
-    .map(
-      (block) =>
-        `<p style="margin:0 0 14px;line-height:1.65;color:#E2E8F0;">${block.replace(/\n/g, "<br>")}</p>`,
-    )
-    .join("");
 }
 
 /** Load org profile and render a branded transactional email. */
@@ -264,7 +268,10 @@ export async function renderOrgTransactionalEmail(input: {
 
   const bodyHtml =
     input.bodyHtml?.trim() ||
-    plainTextToEmailHtml(input.bodyText ?? "") ||
+    plainTextToEmailHtml(input.bodyText ?? "", {
+      accentColor: brand.accentColor || brand.primaryColor,
+      ctaLabel: "Open link",
+    }) ||
     '<p style="margin:0;color:#E2E8F0;">&nbsp;</p>';
 
   const html = wrapTransactionalEmail({

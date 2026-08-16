@@ -13,7 +13,11 @@ type Props = {
   siteSlug: string;
   basePath?: string;
   variant?: "funnel" | "embedded";
+  logoUrl?: string | null;
 };
+
+const DEFAULT_LOGO =
+  "https://app.digitalgate.com.au/brand/logo-on-dark.png";
 
 type Step = "website" | "preview" | "contact" | "done";
 
@@ -137,6 +141,14 @@ const FUNNEL_CSS = `
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+.dg-ba-funnel__brand-logo {
+  height: clamp(2rem, 4.5vw, 2.75rem);
+  width: auto;
+  max-width: min(240px, 72vw);
+  display: block;
+  object-fit: contain;
+  object-position: left center;
 }
 .dg-ba-funnel__mark {
   width: 1.55rem;
@@ -427,8 +439,10 @@ export function BusinessAuditCapture({
   siteSlug,
   basePath = "",
   variant = "embedded",
+  logoUrl,
 }: Props) {
   const isFunnel = variant === "funnel";
+  const brandLogo = (logoUrl || "").trim() || DEFAULT_LOGO;
   const [step, setStep] = useState<Step>("website");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [normalisedUrl, setNormalisedUrl] = useState("");
@@ -817,9 +831,13 @@ export function BusinessAuditCapture({
         <div className="dg-ba-funnel__grid" aria-hidden />
         <div className="dg-ba-funnel__shell">
           <div className="dg-ba-funnel__copy">
-            <a className="dg-ba-funnel__brand" href={brandHref}>
-              <span className="dg-ba-funnel__mark" aria-hidden />
-              DigitalGate
+            <a className="dg-ba-funnel__brand" href={brandHref} aria-label="DigitalGate">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={brandLogo}
+                alt="DigitalGate"
+                className="dg-ba-funnel__brand-logo"
+              />
             </a>
             <p className="dg-ba-funnel__eyebrow">Free Business Audit</p>
             <h1>See how your business performs across the digital world</h1>

@@ -423,16 +423,47 @@ export async function createReferralInvite(input: {
     `Your referrer earns platform credit when you become a paying customer (${pct}% of subscription for 12 months) — single-level only, no multi-level schemes.`,
   ].join("\n");
 
+  const { composeEmailBody } = await import("../communications/email-html");
+  const bodyHtml = composeEmailBody(
+    [
+      {
+        type: "paragraph",
+        text: input.name?.trim() ? `Hi ${input.name.trim()},` : "Hi,",
+      },
+      {
+        type: "heading",
+        text: "You're invited to DigitalGate",
+      },
+      {
+        type: "paragraph",
+        text: "You've been invited to try DigitalGate — the AI-powered platform for growing businesses.",
+      },
+      {
+        type: "paragraph",
+        text: "Sign up with this link and we'll attribute your trial to your referrer.",
+      },
+      { type: "button", label: "Accept your invite", href: shareUrl },
+      {
+        type: "paragraph",
+        text: `Your referrer earns platform credit when you become a paying customer (${pct}% of subscription for 12 months) — single-level only, no multi-level schemes.`,
+        muted: true,
+      },
+    ],
+    { accentColor: "#3B82F6" },
+  );
+
   const delivery = await sendMessage({
     organisationId: input.organisationId,
     channel: "email",
     to: email,
     subject: "You're invited to DigitalGate",
     body,
+    bodyHtml,
     metadata: {
       footerNote: "Platform Refer & Earn invite",
       referralId: referral.id,
       purpose: "platform_referral_invite",
+      ctaLabel: "Accept your invite",
       resent,
     },
   });

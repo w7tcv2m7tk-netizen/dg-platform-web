@@ -3,12 +3,17 @@
  * Email 1 is the Cotality report itself (sendPropertyReportEmail).
  */
 
+import { composeEmailBody } from "../communications/email-html";
+
 export type PropertyReportEmailVars = {
   firstName: string;
   fullName: string;
   propertyAddress: string;
   email?: string;
 };
+
+const APPRAISAL_URL = "https://roerealty.com.au/property-appraisal";
+const ACCENT = "#C9A46C";
 
 const FOLLOWUP_TEMPLATES: Record<
   2 | 3 | 4 | 5,
@@ -24,6 +29,8 @@ Most homeowners focus only on the IntelliVal price range — the real next step 
 
 If you'd like, I can walk you through exactly what your report means and prepare a full Comparative Market Analysis in a free appraisal conversation.
 
+${APPRAISAL_URL}
+
 Best regards,
 Ben Roe | Roe Realty`,
   },
@@ -36,6 +43,8 @@ The market around {property_address} doesn't stand still for long.
 New listings, recent sales, and shifting buyer activity can change your property's position within days — not months.
 
 I can quickly update you on what buyers are paying nearby and what that means for your timing.
+
+${APPRAISAL_URL}
 
 Best regards,
 Ben Roe | Roe Realty`,
@@ -50,6 +59,8 @@ Properties often achieve stronger results when they align with peak buyer demand
 
 If you're considering selling in the next 6–12 months, it's worth understanding your timing position now.
 
+${APPRAISAL_URL}
+
 Best regards,
 Ben Roe | Roe Realty`,
   },
@@ -62,6 +73,8 @@ Just checking in on your Property Value & Buyer Demand Report for {property_addr
 Would you like me to keep monitoring your property's market position, or close the file for now?
 
 Either way is fine — just let me know.
+
+${APPRAISAL_URL}
 
 Best regards,
 Ben Roe | Roe Realty`,
@@ -77,24 +90,92 @@ export const PROPERTY_REPORT_FOLLOWUP_DELAYS_DAYS: Record<2 | 3 | 4 | 5, number>
     5: 9,
   };
 
-export function renderPropertyReportFollowup(
-  step: 2 | 3 | 4 | 5,
-  vars: PropertyReportEmailVars,
-): { subject: string; body: string } {
-  const tpl = FOLLOWUP_TEMPLATES[step];
+function fillVars(template: string, vars: PropertyReportEmailVars): string {
   const map: Record<string, string> = {
     "{first_name}": vars.firstName || "there",
     "{full_name}": vars.fullName || vars.firstName || "there",
     "{property_address}": vars.propertyAddress || "your property",
     "{email}": vars.email || "",
   };
-  let subject = tpl.subject;
-  let body = tpl.body;
+  let out = template;
   for (const [k, v] of Object.entries(map)) {
-    subject = subject.split(k).join(v);
-    body = body.split(k).join(v);
+    out = out.split(k).join(v);
   }
-  return { subject, body };
+  return out;
+}
+
+function followupBodyHtml(
+  step: 2 | 3 | 4 | 5,
+  vars: PropertyReportEmailVars,
+): string {
+  const first = vars.firstName || "there";
+  const address = vars.propertyAddress || "your property";
+
+  const copy: Record<2 | 3 | 4 | 5, { heading: string; paras: string[] }> = {
+    2: {
+      heading: "What most homeowners miss",
+      paras: [
+        `I hope you've had a chance to review your Property Value & Buyer Demand Report for ${address}.`,
+        "Most homeowners focus only on the IntelliVal price range — the real next step is understanding buyer demand, recent comparable sales, and how a full CMA would position your property for sale.",
+        "If you'd like, I can walk you through exactly what your report means and prepare a full Comparative Market Analysis in a free appraisal conversation.",
+      ],
+    },
+    3: {
+      heading: "Your property position may have already changed",
+      paras: [
+        `The market around ${address} doesn't stand still for long.`,
+        "New listings, recent sales, and shifting buyer activity can change your property's position within days — not months.",
+        "I can quickly update you on what buyers are paying nearby and what that means for your timing.",
+      ],
+    },
+    4: {
+      heading: "Timing matters more than most people realise",
+      paras: [
+        "One of the biggest factors in selling outcomes isn't just price — it's timing.",
+        "Properties often achieve stronger results when they align with peak buyer demand and low local competition.",
+        "If you're considering selling in the next 6–12 months, it's worth understanding your timing position now.",
+      ],
+    },
+    5: {
+      heading: "Should I keep your file open?",
+      paras: [
+        `Just checking in on your Property Value & Buyer Demand Report for ${address}.`,
+        "Would you like me to keep monitoring your property's market position, or close the file for now?",
+        "Either way is fine — just let me know.",
+      ],
+    },
+  };
+
+  const c = copy[step];
+  return composeEmailBody(
+    [
+      { type: "paragraph", text: `Hi ${first},` },
+      { type: "heading", text: c.heading, level: 2 },
+      ...c.paras.map((text) => ({ type: "paragraph" as const, text })),
+      {
+        type: "button",
+        label: "Book a free appraisal",
+        href: APPRAISAL_URL,
+      },
+      {
+        type: "signoff",
+        lines: ["Best regards,", "Ben Roe | Roe Realty"],
+      },
+    ],
+    { accentColor: ACCENT },
+  );
+}
+
+export function renderPropertyReportFollowup(
+  step: 2 | 3 | 4 | 5,
+  vars: PropertyReportEmailVars,
+): { subject: string; body: string; bodyHtml: string } {
+  const tpl = FOLLOWUP_TEMPLATES[step];
+  return {
+    subject: fillVars(tpl.subject, vars),
+    body: fillVars(tpl.body, vars),
+    bodyHtml: followupBodyHtml(step, vars),
+  };
 }
 
 export function adminPropertyReportNotifyBody(input: {
@@ -103,18 +184,37 @@ export function adminPropertyReportNotifyBody(input: {
   email: string;
   phone: string;
   submittedAt: string;
-}): { subject: string; body: string } {
+}): { subject: string; body: string; bodyHtml: string } {
+  const body = [
+    "New property report request",
+    "",
+    `Name: ${input.fullName}`,
+    `Property: ${input.propertyAddress}`,
+    `Email: ${input.email || "Not provided"}`,
+    `Phone: ${input.phone || "Not provided"}`,
+    `Submitted: ${input.submittedAt}`,
+  ].join("\n");
+
   return {
     subject: `Property Report Request - ${input.fullName}`,
-    body: [
-      "New property report request",
-      "",
-      `Name: ${input.fullName}`,
-      `Property: ${input.propertyAddress}`,
-      `Email: ${input.email || "Not provided"}`,
-      `Phone: ${input.phone || "Not provided"}`,
-      `Submitted: ${input.submittedAt}`,
-    ].join("\n"),
+    body,
+    bodyHtml: composeEmailBody(
+      [
+        { type: "kicker", text: "New lead" },
+        { type: "heading", text: "Property report request" },
+        {
+          type: "kv",
+          rows: [
+            { label: "Name", value: input.fullName },
+            { label: "Property", value: input.propertyAddress },
+            { label: "Email", value: input.email || "Not provided" },
+            { label: "Phone", value: input.phone || "Not provided" },
+            { label: "Submitted", value: input.submittedAt },
+          ],
+        },
+      ],
+      { accentColor: ACCENT },
+    ),
   };
 }
 

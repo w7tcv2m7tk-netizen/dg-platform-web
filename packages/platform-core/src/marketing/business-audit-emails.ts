@@ -3,6 +3,8 @@
  * Email 1 is the instant DigitalGate Business Health Score™ report.
  */
 
+import { composeEmailBody } from "../communications/email-html";
+
 export type FreeAuditEmailVars = {
   firstName: string;
   fullName: string;
@@ -25,11 +27,12 @@ export const FREE_AUDIT_FOLLOWUP_DELAYS_HOURS: Record<2 | 3 | 4 | 5, number> = {
 };
 
 const STRATEGY_DEFAULT = "https://digitalgate.com.au/strategy-session";
+const ACCENT = "#3B82F6";
 
 export function renderFreeAuditFollowup(
   step: 2 | 3 | 4 | 5,
   vars: FreeAuditEmailVars,
-): { subject: string; body: string } {
+): { subject: string; body: string; bodyHtml: string } {
   const first = vars.firstName || "there";
   const company = vars.companyName || "your business";
   const ai = vars.aiScore;
@@ -39,37 +42,75 @@ export function renderFreeAuditFollowup(
   const strategy = vars.strategyUrl || STRATEGY_DEFAULT;
 
   if (step === 2) {
-    return {
-      subject: "Your AI Visibility Score™ — what it means",
-      body: `Hi ${first},
+    const body = `Hi ${first},
 
 Let's break down AI Visibility for ${company}.
 
 Your AI Visibility score is ${ai}/100 ${
-        ai < 50
-          ? "— which means search and AI answer engines may not clearly understand or recommend your business yet."
-          : "— a solid foundation, with room to strengthen how AI systems interpret your business."
-      }
+      ai < 50
+        ? "— which means search and AI answer engines may not clearly understand or recommend your business yet."
+        : "— a solid foundation, with room to strengthen how AI systems interpret your business."
+    }
 
 We analyse structured data, entity clarity, machine-readable business information and other signals that influence how clearly your business can be understood by Google and AI search.
 
 Want DigitalGate to show you how we'd raise this score?
 ${strategy}
 
-— Ben Roe | DigitalGate`,
+— Ben Roe | DigitalGate`;
+
+    return {
+      subject: "Your AI Visibility Score™ — what it means",
+      body,
+      bodyHtml: composeEmailBody(
+        [
+          { type: "paragraph", text: `Hi ${first},` },
+          {
+            type: "heading",
+            text: "Your AI Visibility Score™ — what it means",
+            level: 2,
+          },
+          {
+            type: "paragraph",
+            text: `Let's break down AI Visibility for ${company}.`,
+          },
+          {
+            type: "score",
+            title: "AI Visibility",
+            score: ai,
+          },
+          {
+            type: "paragraph",
+            text:
+              ai < 50
+                ? "Search and AI answer engines may not clearly understand or recommend your business yet."
+                : "A solid foundation, with room to strengthen how AI systems interpret your business.",
+          },
+          {
+            type: "paragraph",
+            text: "We analyse structured data, entity clarity, machine-readable business information and other signals that influence how clearly your business can be understood by Google and AI search.",
+            muted: true,
+          },
+          {
+            type: "button",
+            label: "Book a free strategy session",
+            href: strategy,
+          },
+          { type: "signoff", lines: ["— Ben Roe | DigitalGate"] },
+        ],
+        { accentColor: ACCENT },
+      ),
     };
   }
 
   if (step === 3) {
-    return {
-      subject: "Website Health & Conversion Readiness",
-      body: `Hi ${first},
+    const body = `Hi ${first},
 
 Your Website Health score for ${company} is ${web}/100 ${
-        web < 50
-          ? "— below where we'd want it for trust and lead capture."
-          : "— a workable foundation we can still sharpen."
-      }
+      web < 50
+        ? "— below where we'd want it for trust and lead capture."
+        : "— a workable foundation we can still sharpen."
+    }
 
 Your DigitalGate Business Health Score™ overall sits at ${overall}/100.
 
@@ -78,14 +119,51 @@ We look at HTTPS, mobile readiness, homepage structure, calls to action, contact
 See how we'd improve this on a strategy call:
 ${strategy}
 
-— Ben Roe | DigitalGate`,
+— Ben Roe | DigitalGate`;
+
+    return {
+      subject: "Website Health & Conversion Readiness",
+      body,
+      bodyHtml: composeEmailBody(
+        [
+          { type: "paragraph", text: `Hi ${first},` },
+          {
+            type: "heading",
+            text: "Website Health & Conversion Readiness",
+            level: 2,
+          },
+          {
+            type: "score",
+            title: "Website Health",
+            score: web,
+            pillars: [{ label: "Overall Business Health", score: overall }],
+          },
+          {
+            type: "paragraph",
+            text:
+              web < 50
+                ? "Below where we'd want it for trust and lead capture."
+                : "A workable foundation we can still sharpen.",
+          },
+          {
+            type: "paragraph",
+            text: "We look at HTTPS, mobile readiness, homepage structure, calls to action, contact pathways and whether the site is designed to turn visitors into enquiries.",
+            muted: true,
+          },
+          {
+            type: "button",
+            label: "See how we'd improve this",
+            href: strategy,
+          },
+          { type: "signoff", lines: ["— Ben Roe | DigitalGate"] },
+        ],
+        { accentColor: ACCENT },
+      ),
     };
   }
 
   if (step === 4) {
-    return {
-      subject: `You have ${opps} opportunities — here's what we'd fix first`,
-      body: `Hi ${first},
+    const body = `Hi ${first},
 
 Based on your DigitalGate Business Audit™ for ${company}, the highest-leverage moves usually sit in three places:
 
@@ -98,13 +176,45 @@ Your business has ${opps} significant opportunities. Would you like DigitalGate 
 Book your free strategy session:
 ${strategy}
 
-— Ben Roe | DigitalGate`,
+— Ben Roe | DigitalGate`;
+
+    return {
+      subject: `You have ${opps} opportunities — here's what we'd fix first`,
+      body,
+      bodyHtml: composeEmailBody(
+        [
+          { type: "paragraph", text: `Hi ${first},` },
+          {
+            type: "heading",
+            text: `You have ${opps} opportunities`,
+            level: 2,
+          },
+          {
+            type: "paragraph",
+            text: `Based on your DigitalGate Business Audit™ for ${company}, the highest-leverage moves usually sit in three places:`,
+          },
+          {
+            type: "list",
+            ordered: true,
+            items: [
+              "Technical & conversion foundations — HTTPS, mobile readiness, clear CTAs and enquiry paths",
+              "Search & local presence — titles, descriptions, structured data and Google Business Profile signals",
+              "AI Visibility — entity clarity and machine-readable business information for Google and AI search",
+            ],
+          },
+          {
+            type: "button",
+            label: "Book your free strategy session",
+            href: strategy,
+          },
+          { type: "signoff", lines: ["— Ben Roe | DigitalGate"] },
+        ],
+        { accentColor: ACCENT },
+      ),
     };
   }
 
-  return {
-    subject: "Final step: turn your audit into a DigitalGate plan",
-    body: `Hi ${first},
+  const body = `Hi ${first},
 
 This is the final email in your DigitalGate Business Audit™ series for ${company}.
 
@@ -120,7 +230,48 @@ If you'd like a clear plan tailored to your business, book a free strategy sessi
 ${strategy}
 
 — Ben Roe | DigitalGate
-https://digitalgate.com.au`,
+https://digitalgate.com.au`;
+
+  return {
+    subject: "Final step: turn your audit into a DigitalGate plan",
+    body,
+    bodyHtml: composeEmailBody(
+      [
+        { type: "paragraph", text: `Hi ${first},` },
+        {
+          type: "heading",
+          text: "Turn your audit into a DigitalGate plan",
+          level: 2,
+        },
+        {
+          type: "paragraph",
+          text: `This is the final email in your DigitalGate Business Audit™ series for ${company}.`,
+        },
+        {
+          type: "list",
+          items: [
+            "Your DigitalGate Business Health Score™ and pillar breakdown",
+            "An AI Visibility Score™ explanation",
+            "Website Health & conversion notes",
+            "Prioritised opportunities to improve visibility, trust and lead generation",
+          ],
+        },
+        {
+          type: "highlight",
+          text: "The free audit is the diagnosis. DigitalGate is the system that helps you act on it.",
+        },
+        {
+          type: "button",
+          label: "Book a free strategy session",
+          href: strategy,
+        },
+        {
+          type: "signoff",
+          lines: ["— Ben Roe | DigitalGate", "https://digitalgate.com.au"],
+        },
+      ],
+      { accentColor: ACCENT },
+    ),
   };
 }
 

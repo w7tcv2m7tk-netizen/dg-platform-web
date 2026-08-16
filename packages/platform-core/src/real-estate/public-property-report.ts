@@ -7,7 +7,6 @@ import type { Prisma } from "@dg/database";
 
 import { resolveAddress } from "../addresses";
 import { sendMessage } from "../communications";
-import { getTransactionalEmailProvider } from "../infrastructure/email/transactional";
 import { upsertLeadFromPublicCapture } from "../leads/public-capture";
 import {
   createPropertyFromLead,
@@ -326,25 +325,15 @@ export async function submitPublicPropertyReport(input: {
     submittedAt,
   });
   try {
-    const mail = getTransactionalEmailProvider();
-    if (mail.isConfigured()) {
-      await mail.send({
-        organisationId,
-        to: adminTo,
-        subject: adminMail.subject,
-        text: adminMail.body,
-        tags: ["property-report", "admin"],
-      });
-    } else {
-      await sendMessage({
-        organisationId,
-        channel: "email",
-        to: adminTo,
-        subject: adminMail.subject,
-        body: adminMail.body,
-        metadata: { purpose: "property_report_admin" },
-      });
-    }
+    await sendMessage({
+      organisationId,
+      channel: "email",
+      to: adminTo,
+      subject: adminMail.subject,
+      body: adminMail.body,
+      bodyHtml: adminMail.bodyHtml,
+      metadata: { purpose: "property_report_admin" },
+    });
   } catch (err) {
     console.info("[public-property-report] admin notify failed", err);
   }
@@ -426,9 +415,11 @@ export async function processPropertyReportFollowups(options?: {
           to: sequence.email,
           subject: rendered.subject,
           body: rendered.body,
+          bodyHtml: rendered.bodyHtml,
           metadata: {
             purpose: `property_report_followup_${step}`,
             leadId: lead.id,
+            ctaLabel: "Book a free appraisal",
           },
         });
 
