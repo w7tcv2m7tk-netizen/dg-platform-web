@@ -157,18 +157,22 @@ export async function createReBooking(input: {
   email?: string;
   phone?: string;
   service?: string;
+  bookingType?: string;
   scheduledAt?: string;
   notes?: string;
   vendorLeadId?: string;
 }) {
   const { prisma } = await import("@dg/database");
   const title = input.contactName.trim() || "Appraisal booking";
+  const bookingType =
+    input.bookingType?.trim() ||
+    (/buyer/i.test(input.service || "") ? "buyer_consultation" : "appraisal");
   const metadata: Record<string, unknown> = {
     contact_name: input.contactName.trim() || undefined,
     email: input.email?.trim() || undefined,
     phone: input.phone?.trim() || undefined,
     service: input.service?.trim() || "Appraisal",
-    booking_type: "appraisal",
+    booking_type: bookingType,
     scheduled_at: input.scheduledAt || undefined,
     notes: input.notes?.trim() || undefined,
     vendor_lead_id: input.vendorLeadId || undefined,
@@ -192,7 +196,7 @@ export async function createReBooking(input: {
       await ensureReContactRole({
         organisationId: input.organisationId,
         contactId,
-        role: "vendor",
+        role: bookingType === "buyer_consultation" ? "buyer" : "vendor",
       });
     }
   }
@@ -216,7 +220,10 @@ export async function createReBooking(input: {
       entityType: "Lead",
       entityId: lead.id,
       activityType: "booking_created",
-      title: "Appraisal booking created",
+      title:
+        bookingType === "buyer_consultation"
+          ? "Buyer consultation booked"
+          : "Appraisal booking created",
       body: metadata.scheduled_at
         ? `Scheduled ${String(metadata.scheduled_at)}`
         : title,
@@ -225,8 +232,10 @@ export async function createReBooking(input: {
     },
   });
 
-  const { linkBookingToVendorLead } = await import("./reports");
-  await linkBookingToVendorLead(input.organisationId, lead.id);
+  if (bookingType !== "buyer_consultation") {
+    const { linkBookingToVendorLead } = await import("./reports");
+    await linkBookingToVendorLead(input.organisationId, lead.id);
+  }
 
   return serializeBooking(lead);
 }

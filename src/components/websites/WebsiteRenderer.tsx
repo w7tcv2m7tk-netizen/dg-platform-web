@@ -15,6 +15,7 @@ import {
   HideawayCircleHomepageCta,
 } from "@/components/websites/HideawayCircleCapture";
 import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
+import { RoeBookingCapture } from "@/components/websites/RoeBookingCapture";
 import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
 import { ChromeHeaderHtml } from "@/components/websites/ChromeHeaderHtml";
 import { stripCvhFooterExploreColumn } from "@/lib/strip-cvh-footer-explore";
@@ -950,8 +951,18 @@ export function WebsitePageRenderer({
   const isProductFunnel =
     resolvedFunnelTemplate === "property_report" ||
     resolvedFunnelTemplate === "business_audit";
+  const bookingKind =
+    pageSlug === "property-appraisal"
+      ? ("appraisal" as const)
+      : pageSlug === "buyer-consultation"
+        ? ("buyer_consultation" as const)
+        : null;
   /** Product subdomain funnels are chromeless capture apps — never render Studio HTML stubs. */
-  const renderComponents = isProductFunnel ? [] : components;
+  const renderComponents = isProductFunnel
+    ? []
+    : bookingKind
+      ? components.filter((c) => c.type !== "html" && c.type !== "contact_form")
+      : components;
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
   const bg = theme.backgroundColor || "#0c1222";
@@ -1169,6 +1180,13 @@ export function WebsitePageRenderer({
           ) : null}
           {pageSlug === "hideaway-circle" ? (
             <HideawayCircleCapture siteSlug={siteSlug} basePath={basePath} />
+          ) : null}
+          {bookingKind ? (
+            <RoeBookingCapture
+              siteSlug={siteSlug}
+              kind={bookingKind}
+              logoUrl={theme.logoUrl || theme.iconUrl}
+            />
           ) : null}
           {renderComponents.map((c) => (
             <WebsiteComponentView

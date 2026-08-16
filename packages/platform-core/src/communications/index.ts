@@ -34,6 +34,7 @@ export {
   renderOrgTransactionalEmail,
   resolveEmailBrandAssets,
   resolvePlatformEmailBrandAssets,
+  resolveBrandFromAddress,
   plainTextToEmailHtml,
   markdownToEmailHtml,
   composeEmailBody,
@@ -156,8 +157,23 @@ function defaultFromAddress() {
   return (
     process.env.RESEND_FROM_EMAIL?.trim() ||
     process.env.EMAIL_FROM?.trim() ||
-    "DigitalGate <noreply@digitalgate.com.au>"
+    "DigitalGate <hello@digitalgate.com.au>"
   );
+}
+
+function resolveSendFrom(input: {
+  brandMode?: "org" | "platform";
+  brandFrom?: string;
+  metadataFrom?: unknown;
+}): string {
+  if (typeof input.metadataFrom === "string" && input.metadataFrom.trim()) {
+    return input.metadataFrom.trim();
+  }
+  if (input.brandMode === "platform") {
+    return "DigitalGate <hello@digitalgate.com.au>";
+  }
+  if (input.brandFrom?.trim()) return input.brandFrom.trim();
+  return defaultFromAddress();
 }
 
 /**
@@ -188,6 +204,11 @@ export async function sendMessage(
   let brandedHtml: string | undefined;
   let logoUrl: string | undefined;
   let businessName: string | undefined;
+  let fromAddress: string | undefined;
+  const brandMode =
+    input.metadata?.purpose === "platform_referral_invite"
+      ? ("platform" as const)
+      : undefined;
 
   try {
     const { renderOrgTransactionalEmail } = await import("./email-brand");
@@ -195,10 +216,7 @@ export async function sendMessage(
       organisationId: input.organisationId,
       bodyHtml: input.bodyHtml?.trim() || undefined,
       bodyText: input.body,
-      brandMode:
-        input.metadata?.purpose === "platform_referral_invite"
-          ? "platform"
-          : undefined,
+      brandMode,
       footerNote:
         typeof input.metadata?.footerNote === "string"
           ? input.metadata.footerNote
@@ -207,12 +225,18 @@ export async function sendMessage(
     brandedHtml = html;
     logoUrl = brand.logoUrl;
     businessName = brand.businessName;
+    fromAddress = brand.fromAddress;
   } catch (err) {
     console.warn("[communications] brand wrap failed; using plain body", err);
   }
 
   const subject = input.subject?.trim() || "Message from DigitalGate";
   const html = brandedHtml || `<pre>${input.body}</pre>`;
+  const from = resolveSendFrom({
+    brandMode,
+    brandFrom: fromAddress,
+    metadataFrom: input.metadata?.from,
+  });
 
   if (process.env.RESEND_API_KEY?.trim()) {
     const delivered = await tryResendDelivery({
@@ -220,7 +244,7 @@ export async function sendMessage(
       subject,
       html,
       text: input.body,
-      from: defaultFromAddress(),
+      from,
     });
     if (delivered.ok) {
       const result: SendMessageResult = {
@@ -238,7 +262,7 @@ export async function sendMessage(
         subject,
         body: input.body,
         brandedHtml,
-        metadata: input.metadata,
+        metadata: { ...input.metadata, from },
         messageId: result.id,
         provider: "resend",
         status: "sent",
@@ -246,6 +270,7 @@ export async function sendMessage(
       console.info("[communications] sendMessage (resend)", {
         id: result.id,
         to: input.to,
+        from,
         organisationId: input.organisationId,
       });
       return result;

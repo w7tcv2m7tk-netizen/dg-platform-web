@@ -67,6 +67,7 @@ export * from "./real-estate/property-document";
 export * from "./real-estate/reports";
 export * from "./real-estate/property-report-emails";
 export * from "./real-estate/public-property-report";
+export * from "./real-estate/public-booking";
 export * from "./real-estate/contact-roles";
 export * from "./marketing/business-audit-emails";
 export * from "./marketing/public-business-audit";

@@ -53,7 +53,37 @@ export type EmailBrandAssets = {
   iconUrl: string;
   primaryColor: string;
   accentColor: string;
+  /** Resend `from` — display name + mailbox for this brand. */
+  fromAddress: string;
 };
+
+/** Verified brand mailboxes (Resend domain must match). */
+const BRAND_FROM_MAILBOX: Record<OrgBrandPresetKey, string> = {
+  digitalgate: "hello@digitalgate.com.au",
+  "roe-realty": "hello@roerealty.com.au",
+  cvh: "hello@currumbinvalleyhideaway.com.au",
+  aetherra: "hello@aetherra.com.au",
+  wantd: "hello@wantdproperty.com.au",
+};
+
+const PLATFORM_FROM = "DigitalGate <hello@digitalgate.com.au>";
+
+function formatFromAddress(businessName: string, mailbox: string): string {
+  const name = businessName.replace(/[<>\n\r]/g, "").trim() || "DigitalGate";
+  const email = mailbox.trim().toLowerCase();
+  return `${name} <${email}>`;
+}
+
+export function resolveBrandFromAddress(
+  presetKey: OrgBrandPresetKey | null | undefined,
+  businessName?: string,
+): string {
+  if (!presetKey) return PLATFORM_FROM;
+  const mailbox = BRAND_FROM_MAILBOX[presetKey];
+  const label = businessName?.trim() || ORG_BRAND_PRESETS[presetKey].label;
+  return formatFromAddress(label, mailbox);
+}
+
 
 export type WrapTransactionalEmailInput = {
   businessName: string;
@@ -77,6 +107,7 @@ export function resolvePlatformEmailBrandAssets(): EmailBrandAssets {
       absoluteBrandAssetUrl(preset.patch.iconUrl) || DG_FALLBACK_ICON,
     primaryColor: colours[0] ?? "#3B82F6",
     accentColor: colours[1] ?? colours[0] ?? "#10B981",
+    fromAddress: PLATFORM_FROM,
   };
 }
 
@@ -149,6 +180,10 @@ export function resolveEmailBrandAssets(input: {
     iconUrl: iconUrl!,
     primaryColor: colours[0] ?? "#3B82F6",
     accentColor: colours[1] ?? colours[0] ?? "#10B981",
+    fromAddress: resolveBrandFromAddress(
+      presetKey,
+      profile.tradingName?.trim() || profile.businessName?.trim() || name,
+    ),
   };
 }
 
