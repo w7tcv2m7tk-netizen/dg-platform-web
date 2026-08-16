@@ -739,7 +739,7 @@ html.wb-menu-scroll-lock body {
 .wb-html-island--light label,
 .wb-html-island--light small,
 .wb-html-island--light figcaption,
-.wb-html-island--light span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]),
+.wb-html-island--light span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]),
 .wb-html-page .wb-html-island--page:has(.roe-property-grid) p,
 .wb-html-page .wb-html-island--page:has(.roe-property-grid) li {
   color: #2f2f2f !important;
@@ -748,6 +748,11 @@ html.wb-menu-scroll-lock body {
 /* CVH stay unit cards: price / featured pills sit on photos — keep white */
 .wb-root .wb-html-island.wb-html-island--light .dg-card-image > span,
 .wb-root .wb-html-island.wb-html-island--light .dg-accommodation-card .dg-card-image span {
+  color: #ffffff !important;
+}
+
+/* RR listing status pills sit on photos — keep white */
+.wb-root .wb-html-island.wb-html-island--light .roe-property-card .card-image > span.card-status {
   color: #ffffff !important;
 }
 
