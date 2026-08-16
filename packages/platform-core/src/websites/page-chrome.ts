@@ -18,6 +18,8 @@ export type PageChromeVisibility = {
 export function isDefaultChromelessPage(slug: string | null | undefined): boolean {
   const cleaned = (slug || "").toLowerCase().replace(/^\/+|\/+$/g, "");
   if (!cleaned) return false;
+  // RR property detail pages (not the /properties hub)
+  if (cleaned.startsWith("property/")) return true;
   const leaf = cleaned.split("/").filter(Boolean).pop() ?? cleaned;
   if (STAY_UNIT_LEAF_SLUGS.has(leaf)) return true;
   return CHROMELESS_SLUG_RE.test(cleaned);

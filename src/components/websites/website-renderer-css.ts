@@ -1690,7 +1690,7 @@ html.wb-menu-scroll-lock body {
   font-weight: 600 !important;
   text-transform: uppercase !important;
   color: #ffffff !important;
-  background: #1c2b2a !important;
+  background: #c62828 !important;
   z-index: 2 !important;
 }
 
