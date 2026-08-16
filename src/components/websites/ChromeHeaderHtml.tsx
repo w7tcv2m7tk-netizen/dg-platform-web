@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useState } from "react";
 
+import { rewriteProductFunnelHref } from "@/lib/product-funnel-links";
+
 /**
  * Hydrates imported / custom site chrome headers with a mobile drawer.
  * Works with Aëtherra-style markup (.nav-links) without rewriting page HTML.
@@ -20,7 +22,7 @@ export function ChromeHeaderHtml({ html }: { html: string }) {
       ),
     )
       .map((a) => ({
-        href: a.getAttribute("href") || "",
+        href: rewriteProductFunnelHref(a.getAttribute("href") || ""),
         label: (a.textContent || "").trim(),
       }))
       .filter((l) => l.href && l.label);

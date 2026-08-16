@@ -168,6 +168,11 @@ const BRAND_TO_FUNNEL_REDIRECTS: Array<{
     destination: "https://audit.digitalgate.com.au/",
   },
   {
+    hostRe: /^(www\.)?digitalgate\.com\.au$/i,
+    pathRe: /^\/free-agency-audit\/?$/i,
+    destination: "https://audit.digitalgate.com.au/",
+  },
+  {
     hostRe: /^(www\.)?roerealty\.com\.au$/i,
     pathRe: /^\/property-report\/?$/i,
     destination: "https://report.roerealty.com.au/",

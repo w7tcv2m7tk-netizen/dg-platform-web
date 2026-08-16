@@ -17,6 +17,10 @@ import { PropertyReportCapture } from "@/components/websites/PropertyReportCaptu
 import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
 import { ChromeHeaderHtml } from "@/components/websites/ChromeHeaderHtml";
 import { stripCvhFooterExploreColumn } from "@/lib/strip-cvh-footer-explore";
+import {
+  rewriteProductFunnelHref,
+  rewriteProductFunnelHtml,
+} from "@/lib/product-funnel-links";
 
 function asString(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
@@ -70,6 +74,8 @@ function asServiceItems(v: unknown): Array<{ title: string; description: string 
 }
 
 function resolveHref(href: string, basePath: string): string {
+  const funnel = rewriteProductFunnelHref(href);
+  if (funnel !== href) return funnel;
   if (href.startsWith("http") || href.startsWith("#") || href.startsWith("mailto:")) {
     return href;
   }
@@ -441,6 +447,7 @@ export function WebsiteComponentView({
       if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal)\b/.test(html)) {
         html = html.replace(/\bwb-html-island--light\b/g, "").replace(/\s{2,}/g, " ");
       }
+      html = rewriteProductFunnelHtml(html);
       if (/gallery-grid|gallery-item/i.test(html)) {
         return <HtmlWithGallery html={html} />;
       }
@@ -815,7 +822,9 @@ export function WebsitePageRenderer({
   const accent = theme.accentColor || "#c4a35a";
   const bg = theme.backgroundColor || "#0c1222";
   const headerHtmlRaw = chrome?.headerHtml?.trim() || "";
-  const headerHtml = showHeader ? headerHtmlRaw : "";
+  const headerHtml = showHeader
+    ? rewriteProductFunnelHtml(headerHtmlRaw)
+    : "";
   const useBrandHeader =
     showHeader && !headerHtml && Boolean(theme.logoUrl || theme.iconUrl);
   const footerHtmlRaw = chrome?.footerHtml?.trim() || "";
@@ -823,7 +832,9 @@ export function WebsitePageRenderer({
     /currumbin|hideaway/i.test(siteSlug) && footerHtmlRaw
       ? stripCvhFooterExploreColumn(footerHtmlRaw)
       : footerHtmlRaw;
-  const footerHtml = showFooter ? footerHtmlPrepared : "";
+  const footerHtml = showFooter
+    ? rewriteProductFunnelHtml(footerHtmlPrepared)
+    : "";
   const useBrandFooter =
     showFooter &&
     !footerHtmlPrepared &&
@@ -857,12 +868,16 @@ export function WebsitePageRenderer({
   const links = rawLinks
     .filter((l) => l && typeof l.label === "string" && typeof l.href === "string")
     .map((l) => {
+      const mapped = rewriteProductFunnelHref(l.href);
+      if (mapped !== l.href) {
+        return { label: l.label, href: mapped };
+      }
       const href = l.href.startsWith("http")
         ? l.href
         : l.href.startsWith("/sites/")
           ? l.href
           : `${basePath}${l.href === "/" ? "" : l.href.startsWith("/") ? l.href : `/${l.href}`}`;
-      return { label: l.label, href: href || "/" };
+      return { label: l.label, href: rewriteProductFunnelHref(href) || "/" };
     });
   const rawCta = chrome?.headerCta;
   const headerCta =
@@ -873,10 +888,14 @@ export function WebsitePageRenderer({
     rawCta.href.trim()
       ? {
           label: rawCta.label.trim(),
-          href: rawCta.href.startsWith("http")
-            ? rawCta.href
-            : `${basePath}${rawCta.href.startsWith("/") ? rawCta.href : `/${rawCta.href}`}` ||
-              "/",
+          href: (() => {
+            const mapped = rewriteProductFunnelHref(rawCta.href.trim());
+            if (mapped !== rawCta.href.trim()) return mapped;
+            return rawCta.href.startsWith("http")
+              ? rawCta.href
+              : `${basePath}${rawCta.href.startsWith("/") ? rawCta.href : `/${rawCta.href}`}` ||
+                  "/";
+          })(),
           ...(typeof rawCta.backgroundColor === "string" &&
           rawCta.backgroundColor.trim()
             ? { backgroundColor: rawCta.backgroundColor.trim() }
