@@ -225,12 +225,22 @@ async function renderSite(
         </div>
       ) : null}
       <WebsitePageRenderer
-        components={page.components ?? []}
+        components={
+          funnelTemplate === "business_audit" ||
+          funnelTemplate === "property_report"
+            ? []
+            : (page.components ?? [])
+        }
         theme={theme}
         basePath=""
         siteSlug={slug}
         pageSlug={page.slug}
-        chrome={chrome}
+        chrome={
+          funnelTemplate === "business_audit" ||
+          funnelTemplate === "property_report"
+            ? null
+            : chrome
+        }
         stayUnit={stayUnit}
         showHeader={showHeader}
         showFooter={showFooter}

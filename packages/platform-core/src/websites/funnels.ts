@@ -697,7 +697,7 @@ export async function ensureProductFunnelSubdomains(options?: {
       status: "connected",
       source: "product_funnel",
       websiteId: website.id,
-      managed: true,
+      managed: false,
     });
 
     await attachDomainToWebsite({

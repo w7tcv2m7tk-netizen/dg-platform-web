@@ -50,7 +50,61 @@ import {
  *   DG_WEBSITE_DNS_A_TARGET
  * Legacy anycast: 76.76.21.21 + cname.vercel-dns.com (still work; often Invalid in UI).
  */
-export type WebsiteHostingDnsMode = "full" | "www" | "apex";
+export type WebsiteHostingDnsMode = "full" | "www" | "apex" | "subdomain";
+
+/** Common AU/NZ multi-label public suffixes used for apex vs subdomain checks. */
+const MULTI_PART_PUBLIC_SUFFIXES = [
+  ".com.au",
+  ".net.au",
+  ".org.au",
+  ".asn.au",
+  ".id.au",
+  ".co.nz",
+  ".org.nz",
+  ".net.nz",
+];
+
+/**
+ * Registrable apex for DNS / Dreamscape DomainDNSUpdate.
+ * Dreamscape reseller APIs only accept apex zones (e.g. digitalgate.com.au),
+ * never hostnames like audit.digitalgate.com.au.
+ */
+export function registrableApexHostname(hostname: string): string {
+  const host = hostname.trim().toLowerCase().replace(/\.$/, "");
+  if (!host) return host;
+  for (const suffix of MULTI_PART_PUBLIC_SUFFIXES) {
+    if (!host.endsWith(suffix)) continue;
+    const without = host.slice(0, -suffix.length);
+    const labels = without.split(".").filter(Boolean);
+    if (labels.length <= 1) return host;
+    return `${labels[labels.length - 1]}${suffix}`;
+  }
+  const labels = host.split(".").filter(Boolean);
+  if (labels.length <= 2) return host;
+  return labels.slice(-2).join(".");
+}
+
+/** True when hostname is not the registrable apex (subdomain / product funnel host). */
+export function isSubdomainHostname(hostname: string): boolean {
+  const host = hostname.trim().toLowerCase().replace(/\.$/, "");
+  if (!host) return false;
+  return registrableApexHostname(host) !== host;
+}
+
+/**
+ * Dreamscape DomainDNSUpdate cannot manage these — DNS lives on the apex zone
+ * (often Cloudflare). Go-live should skip SOAP and return manual CNAME guidance.
+ */
+export function shouldSkipDreamscapeDnsApply(input: {
+  hostname: string;
+  source?: string | null;
+}): boolean {
+  const source = (input.source || "").toLowerCase();
+  if (source === "product_funnel" || source === "external" || source === "cloudflare") {
+    return true;
+  }
+  return isSubdomainHostname(input.hostname);
+}
 
 export function websiteHostingDnsRecords(
   domainName: string,
@@ -71,13 +125,27 @@ export function websiteHostingDnsRecords(
     targets?.aTarget?.trim() ||
     process.env.DG_WEBSITE_DNS_A_TARGET?.trim() ||
     LEGACY_VERCEL_A_TARGET;
-  const apex = domainName.toLowerCase();
+  const host = domainName.toLowerCase().replace(/\.$/, "");
+
+  // Product funnel / branded subdomain — CNAME the leaf on the apex zone.
+  if (mode === "subdomain" || isSubdomainHostname(host)) {
+    const apex = registrableApexHostname(host);
+    const leaf = host.slice(0, -(apex.length + 1));
+    return [
+      {
+        type: "CNAME",
+        name: leaf || host,
+        content: cnameTarget,
+        purpose: `${host} → Vercel (set on ${apex} zone — Cloudflare/registrar, not Dreamscape SOAP)`,
+      },
+    ];
+  }
 
   const apexRecord = {
     type: "A",
     name: "@",
     content: aTarget,
-    purpose: `Apex ${apex} → hosting IP (CNAME not allowed on root zone)`,
+    purpose: `Apex ${host} → hosting IP (CNAME not allowed on root zone)`,
   };
   const wwwRecord = {
     type: "CNAME",

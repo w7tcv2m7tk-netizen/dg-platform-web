@@ -20,6 +20,32 @@ export const websiteRendererCss = `
   line-height: 1.5;
 }
 
+/* Product subdomain funnels — edge-to-edge chromeless capture shell */
+.wb-root.wb-product-funnel {
+  min-height: 100dvh;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: var(--wb-bg, #0a0e17);
+  color: #f8fafc;
+  overflow-x: clip;
+}
+.wb-root.wb-product-funnel .dg-property-report-funnel,
+.wb-root.wb-product-funnel .dg-business-audit-funnel {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  box-sizing: border-box;
+}
+html:has(.wb-root.wb-product-funnel),
+html:has(.wb-root.wb-product-funnel) body {
+  height: auto !important;
+  min-height: 100%;
+  margin: 0;
+  background: #0a0e17;
+}
+
 .wb-nav {
   display: flex;
   align-items: center;

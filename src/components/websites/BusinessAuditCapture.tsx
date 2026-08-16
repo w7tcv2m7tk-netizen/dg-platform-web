@@ -266,17 +266,23 @@ export function BusinessAuditCapture({
           : "dg-business-audit-capture"
       }
       style={{
-        minHeight: isFunnel ? "100vh" : undefined,
-        background: "linear-gradient(180deg, #0b1220 0%, #111827 100%)",
+        minHeight: isFunnel ? "100dvh" : undefined,
+        width: isFunnel ? "100%" : undefined,
+        display: isFunnel ? "flex" : undefined,
+        flexDirection: isFunnel ? "column" : undefined,
+        justifyContent: isFunnel ? "center" : undefined,
+        boxSizing: "border-box",
+        background: "linear-gradient(180deg, #0A0E17 0%, #0b1220 55%, #111827 100%)",
         color: "#e2e8f0",
         padding: isFunnel
-          ? "2rem clamp(1rem, 3vw, 2.5rem) 3.5rem"
+          ? "clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2.5rem)"
           : "3.5rem clamp(1rem, 3vw, 2.5rem)",
         fontFamily: "system-ui, sans-serif",
       }}
     >
+      <div style={{ width: "100%", maxWidth: "42rem", margin: "0 auto" }}>
       {isFunnel ? (
-        <div style={{ maxWidth: "40rem", margin: "0 auto 1.25rem" }}>
+        <div style={{ marginBottom: "1.25rem" }}>
           <a
             href={brandHref}
             style={{
@@ -291,12 +297,36 @@ export function BusinessAuditCapture({
           >
             DigitalGate
           </a>
+          <h1
+            style={{
+              margin: "0 0 0.65rem",
+              fontSize: "clamp(1.75rem, 4.5vw, 2.45rem)",
+              lineHeight: 1.15,
+              color: "#fff",
+              fontWeight: 700,
+            }}
+          >
+            See how your business performs across the digital world
+          </h1>
+          <p
+            style={{
+              margin: 0,
+              fontSize: "1.05rem",
+              lineHeight: 1.55,
+              color: "#94a3b8",
+            }}
+          >
+            Instant snapshot of website health, search, AI visibility and
+            conversion readiness — then we email your full DigitalGate Business
+            Audit™.
+          </p>
         </div>
       ) : null}
       <div
         style={{
           maxWidth: step === "preview" || step === "done" ? "40rem" : "34rem",
           margin: "0 auto",
+          width: "100%",
           background: "rgba(15, 23, 42, 0.9)",
           borderRadius: "1rem",
           padding: "1.85rem 1.5rem",
@@ -306,52 +336,67 @@ export function BusinessAuditCapture({
       >
         {step === "website" ? (
           <>
-            <p
-              style={{
-                margin: "0 0 0.5rem",
-                fontSize: "0.75rem",
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "#60A5FA",
-              }}
-            >
-              Free Business Audit
-            </p>
-            <h3
-              style={{
-                margin: "0 0 0.55rem",
-                fontSize: "1.55rem",
-                lineHeight: 1.25,
-                color: "#fff",
-              }}
-            >
-              See how your business is performing online.
-            </h3>
-            <p
-              style={{
-                margin: "0 0 1.1rem",
-                color: "#94a3b8",
-                fontSize: "0.95rem",
-                lineHeight: 1.55,
-              }}
-            >
-              Get a free DigitalGate Business Audit™ and see how your website,
-              search presence, AI visibility and digital foundations are
-              performing — with clear opportunities to improve visibility, trust
-              and lead generation.
-            </p>
-            <p
-              style={{
-                margin: "0 0 1.25rem",
-                fontSize: "0.78rem",
-                color: "#64748b",
-                letterSpacing: "0.01em",
-              }}
-            >
-              Website Health · Search Visibility · AI Visibility · Reputation ·
-              Conversion Readiness
-            </p>
+            {!isFunnel ? (
+              <>
+                <p
+                  style={{
+                    margin: "0 0 0.5rem",
+                    fontSize: "0.75rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: "#60A5FA",
+                  }}
+                >
+                  Free Business Audit
+                </p>
+                <h3
+                  style={{
+                    margin: "0 0 0.55rem",
+                    fontSize: "1.55rem",
+                    lineHeight: 1.25,
+                    color: "#fff",
+                  }}
+                >
+                  See how your business is performing online.
+                </h3>
+                <p
+                  style={{
+                    margin: "0 0 1.1rem",
+                    color: "#94a3b8",
+                    fontSize: "0.95rem",
+                    lineHeight: 1.55,
+                  }}
+                >
+                  Get a free DigitalGate Business Audit™ and see how your website,
+                  search presence, AI visibility and digital foundations are
+                  performing — with clear opportunities to improve visibility, trust
+                  and lead generation.
+                </p>
+                <p
+                  style={{
+                    margin: "0 0 1.25rem",
+                    fontSize: "0.78rem",
+                    color: "#64748b",
+                    letterSpacing: "0.01em",
+                  }}
+                >
+                  Website Health · Search Visibility · AI Visibility · Reputation ·
+                  Conversion Readiness
+                </p>
+              </>
+            ) : (
+              <p
+                style={{
+                  margin: "0 0 1rem",
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
+                  color: "#94a3b8",
+                }}
+              >
+                Enter your website to start
+              </p>
+            )}
             <form onSubmit={(e) => void onWebsiteSubmit(e)}>
               <label htmlFor="dgBaUrl" style={labelStyle}>
                 Website URL
@@ -808,6 +853,7 @@ export function BusinessAuditCapture({
           DigitalGate Business Audit™ — a DigitalGate acquisition product.
         </p>
       ) : null}
+      </div>
     </section>
   );
 }

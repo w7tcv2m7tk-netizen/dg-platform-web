@@ -125,12 +125,22 @@ export default async function PublicSiteHomePage({ params, searchParams }: Props
         </div>
       ) : null}
       <WebsitePageRenderer
-        components={home.components}
+        components={
+          funnelTemplate === "business_audit" ||
+          funnelTemplate === "property_report"
+            ? []
+            : home.components
+        }
         theme={theme}
         basePath={`/sites/${slug}`}
         siteSlug={slug}
         pageSlug={home.slug}
-        chrome={chrome}
+        chrome={
+          funnelTemplate === "business_audit" ||
+          funnelTemplate === "property_report"
+            ? null
+            : chrome
+        }
         showHeader={showHeader}
         showFooter={showFooter}
         funnelTemplate={funnelTemplate}

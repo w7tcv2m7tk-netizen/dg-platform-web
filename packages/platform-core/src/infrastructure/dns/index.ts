@@ -5,6 +5,8 @@ import {
 } from "../core/types";
 import {
   type WebsiteHostingDnsMode,
+  isSubdomainHostname,
+  shouldSkipDreamscapeDnsApply,
   websiteHostingDnsRecords,
 } from "../domains/go-live";
 import {
@@ -178,9 +180,41 @@ export async function applyWebsiteHostingDns(input: {
   mode?: WebsiteHostingDnsMode;
   /** When true (default), retry www-only if full/apex hits soap_http_500 */
   allowWwwFallback?: boolean;
+  /** Inventory source — product_funnel / external skips Dreamscape SOAP */
+  source?: string | null;
 }): Promise<ApplyHostingDnsResult> {
   const modeRequested = input.mode ?? "full";
   const allowWwwFallback = input.allowWwwFallback !== false;
+  const host = input.domainName.toLowerCase();
+
+  // Subdomains / product funnels are not Dreamscape reseller apex zones.
+  if (
+    shouldSkipDreamscapeDnsApply({
+      hostname: host,
+      source: input.source,
+    }) ||
+    isSubdomainHostname(host)
+  ) {
+    const targets = await resolveWebsiteHostingDnsTargets(host);
+    const records = websiteHostingDnsRecords(host, "subdomain", targets).map(
+      (r) => ({
+        type: r.type,
+        name: r.name,
+        content: r.content,
+        priority: r.priority,
+      }),
+    );
+    throw new DreamscapeApiError(
+      422,
+      `${host} is not a Dreamscape reseller apex zone — DomainDNSUpdate cannot manage it`,
+      null,
+      {
+        code: "dns_external_subdomain",
+        hint: `Set CNAME ${records[0]?.name || "host"} → ${targets.cnameTarget} on the apex DNS (Cloudflare/registrar). Vercel attach still works for SSL. Do not use Apply website DNS / Dreamscape SOAP for product funnel hosts.`,
+      },
+    );
+  }
+
   const zone = await inspectDnsZone(input.domainName);
 
   if (!zone.manageable) {

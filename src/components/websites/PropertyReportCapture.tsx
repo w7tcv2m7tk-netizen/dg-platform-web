@@ -497,20 +497,31 @@ export function PropertyReportCapture({
       id="property-report-form"
       className="dg-property-report-capture dg-property-report-funnel"
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        boxSizing: "border-box",
         background:
-          "linear-gradient(165deg, #1C2B2A 0%, #243836 42%, #F5F2EF 42%)",
+          "linear-gradient(165deg, #1C2B2A 0%, #243836 48%, #F5F2EF 48%)",
         color: "#1C2B2A",
-        padding: "2rem clamp(1rem, 3vw, 2.5rem) 3.5rem",
+        padding: "clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2.5rem)",
         fontFamily: "Georgia, 'Times New Roman', serif",
       }}
     >
-      <div style={{ maxWidth: "40rem", margin: "0 auto 2rem" }}>
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "42rem",
+          margin: "0 auto",
+        }}
+      >
         <a
           href={brandHref}
           style={{
             display: "inline-block",
-            marginBottom: "1.5rem",
+            marginBottom: "1.25rem",
             color: "#C9A46C",
             textDecoration: "none",
             fontFamily: "system-ui, sans-serif",
@@ -532,13 +543,13 @@ export function PropertyReportCapture({
             color: "#C9A46C",
           }}
         >
-          ⭐ Free Instant Report
+          Free Instant Report
         </p>
         <h1
           style={{
             margin: "0 0 0.85rem",
-            fontSize: "clamp(1.75rem, 4vw, 2.35rem)",
-            lineHeight: 1.2,
+            fontSize: "clamp(1.85rem, 5vw, 2.6rem)",
+            lineHeight: 1.15,
             color: "#fff",
             fontWeight: 600,
           }}
@@ -559,7 +570,7 @@ export function PropertyReportCapture({
         </p>
         <ul
           style={{
-            margin: "0 0 2rem",
+            margin: "0 0 1.75rem",
             padding: 0,
             listStyle: "none",
             display: "flex",
@@ -581,20 +592,19 @@ export function PropertyReportCapture({
             ),
           )}
         </ul>
+        {card}
+        <p
+          style={{
+            margin: "1.5rem 0 0",
+            textAlign: "center",
+            fontFamily: "system-ui, sans-serif",
+            fontSize: "0.8rem",
+            color: "#5a5a5a",
+          }}
+        >
+          A Roe Realty Property Report™ — powered by DigitalGate.
+        </p>
       </div>
-      {card}
-      <p
-        style={{
-          margin: "1.75rem auto 0",
-          maxWidth: "32rem",
-          textAlign: "center",
-          fontFamily: "system-ui, sans-serif",
-          fontSize: "0.8rem",
-          color: "#5a5a5a",
-        }}
-      >
-        A Roe Realty Property Report™ — powered by DigitalGate.
-      </p>
     </section>
   );
 }

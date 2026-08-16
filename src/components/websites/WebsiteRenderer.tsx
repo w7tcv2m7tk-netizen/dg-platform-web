@@ -832,51 +832,69 @@ export function WebsitePageRenderer({
             siteSlug.includes("business-audit")
           ? "business_audit"
           : null;
+  const isProductFunnel =
+    resolvedFunnelTemplate === "property_report" ||
+    resolvedFunnelTemplate === "business_audit";
+  /** Product subdomain funnels are chromeless capture apps — never render Studio HTML stubs. */
+  const renderComponents = isProductFunnel ? [] : components;
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
   const bg = theme.backgroundColor || "#0c1222";
   const headerHtmlRaw = chrome?.headerHtml?.trim() || "";
-  const headerHtml = showHeader
-    ? rewriteProductFunnelHtml(headerHtmlRaw)
-    : "";
+  const headerHtml =
+    showHeader && !isProductFunnel
+      ? rewriteProductFunnelHtml(headerHtmlRaw)
+      : "";
   const useBrandHeader =
-    showHeader && !headerHtml && Boolean(theme.logoUrl || theme.iconUrl);
+    showHeader &&
+    !isProductFunnel &&
+    !headerHtml &&
+    Boolean(theme.logoUrl || theme.iconUrl);
   const footerHtmlRaw = chrome?.footerHtml?.trim() || "";
   const footerHtmlPrepared =
     /currumbin|hideaway/i.test(siteSlug) && footerHtmlRaw
       ? stripCvhFooterExploreColumn(footerHtmlRaw)
       : footerHtmlRaw;
-  const footerHtml = showFooter
-    ? rewriteProductFunnelHtml(footerHtmlPrepared)
-    : "";
+  const footerHtml =
+    showFooter && !isProductFunnel
+      ? rewriteProductFunnelHtml(footerHtmlPrepared)
+      : "";
   const useBrandFooter =
     showFooter &&
+    !isProductFunnel &&
     !footerHtmlPrepared &&
     Boolean(theme.logoUrl || theme.iconUrl);
   const overlayHeader = showHeader && Boolean(chrome?.overlayHeader);
   const hasChrome = Boolean(
     headerHtml || footerHtml || useBrandHeader || useBrandFooter,
   );
-  const htmlPage = isHtmlDominantPage(components) || hasChrome || Boolean(stayUnit);
+  const htmlPage =
+    (!isProductFunnel && isHtmlDominantPage(components)) ||
+    hasChrome ||
+    Boolean(stayUnit) ||
+    isProductFunnel;
   const postGridOnly =
-    components.length > 0 &&
-    components.every((c) => c.type === "post_grid");
-  const hasLightHtml = components.some(
-    (c) =>
-      c.type === "html" &&
-      typeof c.props?.html === "string" &&
-      /wb-html-island--light|background:\s*#F5F2EF|background:#F5F2EF|roe-property-grid/i.test(
-        c.props.html,
-      ) &&
-      /* DigitalGate navy shells (Founding / About / Contact / legal) are intentionally dark */
-      !/\b(?:dg-fc|dg-about|dg-contact|dg-legal)\b/.test(c.props.html),
-  );
+    renderComponents.length > 0 &&
+    renderComponents.every((c) => c.type === "post_grid");
+  const hasLightHtml =
+    !isProductFunnel &&
+    components.some(
+      (c) =>
+        c.type === "html" &&
+        typeof c.props?.html === "string" &&
+        /wb-html-island--light|background:\s*#F5F2EF|background:#F5F2EF|roe-property-grid/i.test(
+          c.props.html,
+        ) &&
+        /* DigitalGate navy shells (Founding / About / Contact / legal) are intentionally dark */
+        !/\b(?:dg-fc|dg-about|dg-contact|dg-legal)\b/.test(c.props.html),
+    );
   /** Light Insights / cream listing pages */
   const lightSurface =
-    hasLightHtml ||
-    (overlayHeader && postGridOnly) ||
-    Boolean(chrome?.lightSurface) ||
-    Boolean(stayUnit);
+    !isProductFunnel &&
+    (hasLightHtml ||
+      (overlayHeader && postGridOnly) ||
+      Boolean(chrome?.lightSurface) ||
+      Boolean(stayUnit));
   const businessName = chrome?.businessName?.trim() || siteSlug;
   const rawLinks = Array.isArray(chrome?.navLinks) ? chrome!.navLinks! : [];
   const links = rawLinks
@@ -946,6 +964,7 @@ export function WebsitePageRenderer({
     htmlPage ? "wb-full-bleed" : "",
     overlayHeader ? "wb-chrome-overlay" : "",
     lightSurface ? "wb-surface-light" : "",
+    isProductFunnel ? "wb-product-funnel" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -957,11 +976,28 @@ export function WebsitePageRenderer({
         {
           ["--wb-primary"]: primary,
           ["--wb-accent"]: accent,
-          ["--wb-bg"]: lightSurface
-            ? "#f5f2ef"
-            : htmlPage
-              ? bg || "#0a0e17"
-              : bg,
+          ["--wb-bg"]: isProductFunnel
+            ? resolvedFunnelTemplate === "property_report"
+              ? "#1C2B2A"
+              : "#0A0E17"
+            : lightSurface
+              ? "#f5f2ef"
+              : htmlPage
+                ? bg || "#0a0e17"
+                : bg,
+          ...(isProductFunnel
+            ? {
+                minHeight: "100dvh",
+                width: "100%",
+                maxWidth: "none",
+                margin: 0,
+                padding: 0,
+                background:
+                  resolvedFunnelTemplate === "property_report"
+                    ? "#1C2B2A"
+                    : "#0A0E17",
+              }
+            : {}),
         } as React.CSSProperties
       }
     >
@@ -1013,7 +1049,7 @@ export function WebsitePageRenderer({
           {pageSlug === "hideaway-circle" ? (
             <HideawayCircleCapture siteSlug={siteSlug} basePath={basePath} />
           ) : null}
-          {components.map((c) => (
+          {renderComponents.map((c) => (
             <WebsiteComponentView
               key={c.id}
               component={c}
@@ -1023,7 +1059,9 @@ export function WebsitePageRenderer({
               pageSlug={pageSlug}
             />
           ))}
-          {isCvhHome ? <HideawayCircleHomepageCta basePath={basePath} /> : null}
+          {!isProductFunnel && isCvhHome ? (
+            <HideawayCircleHomepageCta basePath={basePath} />
+          ) : null}
         </>
       )}
       {footerHtml ? (

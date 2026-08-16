@@ -7,6 +7,7 @@ import {
   getOrganisationDomain,
   listOrganisationDomains,
   resolveWebsiteHostingDnsTargets,
+  shouldSkipDreamscapeDnsApply,
   updateWebsite,
   upsertInfrastructureDomain,
   websiteHostingDnsRecords,
@@ -107,7 +108,45 @@ export async function POST(req: Request) {
   let dns = null;
   let vercel = null;
   const warnings: string[] = [];
-  if (body.applyDns) {
+  const skipDreamscapeDns = shouldSkipDreamscapeDnsApply({
+    hostname: domainRow.name,
+    source: domainRow.source,
+  });
+
+  if (body.applyDns && skipDreamscapeDns) {
+    const targets = await resolveWebsiteHostingDnsTargets(domainRow.name);
+    const suggested = websiteHostingDnsRecords(
+      domainRow.name,
+      "subdomain",
+      targets,
+    );
+    domainRow = await upsertInfrastructureDomain({
+      organisationId: session.organisationId,
+      name: domainRow.name,
+      managed: false,
+      dnsRecords: suggested,
+      dnsConfiguredAt: new Date().toISOString(),
+      sslState: "pending",
+      metadata: {
+        ...(domainRow.metadata ?? {}),
+        dnsTargets: targets,
+        dnsModeApplied: "external_subdomain",
+        dnsInstructions: `Dreamscape SOAP skipped — ${domainRow.name} is not a reseller apex zone. Set CNAME on the apex DNS (usually Cloudflare) → ${targets.cnameTarget}.`,
+      },
+    });
+    dns = {
+      skipped: true,
+      reason: "external_subdomain",
+      records: suggested,
+      modeApplied: "subdomain",
+      note: `Skipped Dreamscape DNS apply for ${domainRow.name} (subdomain / product funnel). Keep CNAME at Cloudflare/registrar → ${targets.cnameTarget}, then rely on Vercel attach for SSL.`,
+      suggested,
+      targets,
+    };
+    warnings.push(
+      `DNS: Dreamscape skipped for ${domainRow.name} — not a reseller apex. Keep CNAME ${suggested[0]?.name || "host"} → ${targets.cnameTarget} at Cloudflare/registrar.`,
+    );
+  } else if (body.applyDns) {
     try {
       const result = await applyWebsiteHostingDns({
         domainName: domainRow.name,

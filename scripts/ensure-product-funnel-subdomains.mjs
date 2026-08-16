@@ -210,7 +210,7 @@ async function main() {
           websiteId: site.id,
           status: "connected",
           source: "product_funnel",
-          managed: true,
+          managed: false,
         },
       });
     } else {
@@ -221,7 +221,7 @@ async function main() {
           websiteId: site.id,
           status: "connected",
           source: "product_funnel",
-          managed: true,
+          managed: false,
         },
       });
     }

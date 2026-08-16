@@ -202,6 +202,19 @@ export function MakeItLivePanel({
         parts.push(
           `DNS apply failed: ${String((dns as { error?: string }).error || "unknown")}. Fix registrar DNS or retry Apply website DNS under Domains.`,
         );
+      } else if (
+        dns &&
+        typeof dns === "object" &&
+        !Array.isArray(dns) &&
+        "skipped" in dns &&
+        (dns as { skipped?: boolean }).skipped
+      ) {
+        parts.push(
+          String(
+            (dns as { note?: string }).note ||
+              "DNS: Dreamscape skipped for subdomain — keep CNAME at Cloudflare/registrar.",
+          ),
+        );
       }
       const vercel = json.data?.vercel;
       if (vercel) {

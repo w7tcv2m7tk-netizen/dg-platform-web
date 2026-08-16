@@ -144,10 +144,37 @@ export async function attachVercelProjectDomain(
   }
 }
 
-/** Attach apex + www (idempotent). */
+/**
+ * Attach hosting hostnames to the Vercel project (idempotent).
+ * Apex domains → apex + www. Subdomains / product funnels → exact hostname only
+ * (never invent www.audit.example.com.au).
+ */
 export async function attachVercelWebsiteHostnames(
   domainName: string,
 ): Promise<{ apex: VercelDomainAttachResult; www: VercelDomainAttachResult }> {
+  const raw = domainName.trim().toLowerCase().replace(/\.$/, "");
+  const labels = raw.split(".").filter(Boolean);
+  const looksLikeAuNzApex =
+    (raw.endsWith(".com.au") ||
+      raw.endsWith(".net.au") ||
+      raw.endsWith(".org.au") ||
+      raw.endsWith(".co.nz")) &&
+    labels.length === 3;
+  const looksLikeSimpleApex = labels.length === 2;
+  const isApex = looksLikeAuNzApex || looksLikeSimpleApex;
+
+  if (!isApex) {
+    const hostResult = await attachVercelProjectDomain(raw);
+    // www is not applicable for product-funnel / branded subdomains.
+    const wwwSkipped: VercelDomainAttachResult = {
+      ok: true,
+      configured: true,
+      hostname: raw,
+      verified: true,
+    };
+    return { apex: hostResult, www: wwwSkipped };
+  }
+
   const { apex, www } = apexAndWwwHostnames(domainName);
   const [apexResult, wwwResult] = await Promise.all([
     attachVercelProjectDomain(apex),
