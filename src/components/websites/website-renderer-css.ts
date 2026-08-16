@@ -1554,6 +1554,91 @@ html.wb-menu-scroll-lock body {
   background: #ffffff !important;
 }
 
+/* RR Properties hero — WP overlay (text on image, not below) */
+.wb-html-page .wb-html-island--page .hero-property,
+.wb-root .wb-html-island .hero-property {
+  position: relative !important;
+  width: 100% !important;
+  min-height: 75vh !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+}
+
+.wb-html-page .wb-html-island--page .hero-property .hero-bg-img,
+.wb-root .wb-html-island .hero-property .hero-bg-img {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: cover !important;
+  object-position: center top !important;
+  border-radius: 0 !important;
+  z-index: 0 !important;
+}
+
+.wb-html-page .wb-html-island--page .hero-property::before,
+.wb-root .wb-html-island .hero-property::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(
+    105deg,
+    rgba(28, 43, 42, 0.85) 0%,
+    rgba(28, 43, 42, 0.6) 60%,
+    rgba(0, 0, 0, 0.4) 100%
+  ) !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
+.wb-html-page .wb-html-island--page .hero-property .hero-container,
+.wb-root .wb-html-island .hero-property .hero-container {
+  position: relative !important;
+  z-index: 2 !important;
+  max-width: 1280px !important;
+  margin: 0 auto !important;
+  padding: 0 2rem !important;
+  width: 100% !important;
+}
+
+.wb-html-page .wb-html-island--page .hero-property .hero-content,
+.wb-root .wb-html-island .hero-property .hero-content {
+  max-width: 700px !important;
+}
+
+.wb-html-page .wb-html-island--page .hero-property .hero-headline,
+.wb-root .wb-html-island .hero-property .hero-headline {
+  font-family: "Sora", "Inter", system-ui, sans-serif !important;
+  font-size: clamp(2.2rem, 4vw, 3.5rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.02em !important;
+  color: #ffffff !important;
+  margin: 0 0 1.5rem !important;
+}
+
+.wb-html-page .wb-html-island--page .hero-property .hero-subheading,
+.wb-root .wb-html-island .hero-property .hero-subheading {
+  font-size: 1.2rem !important;
+  line-height: 1.5 !important;
+  color: rgba(255, 250, 240, 0.92) !important;
+  margin: 0 0 2rem !important;
+  max-width: 580px !important;
+}
+
+@media (max-width: 768px) {
+  .wb-html-page .wb-html-island--page .hero-property,
+  .wb-root .wb-html-island .hero-property {
+    min-height: 70vh !important;
+  }
+  .wb-html-page .wb-html-island--page .hero-property .hero-container,
+  .wb-root .wb-html-island .hero-property .hero-container {
+    padding: 0 1.5rem !important;
+  }
+}
+
 .wb-html-page .wb-html-island--page .roe-property-grid,
 .wb-root .wb-html-island .roe-property-grid {
   display: grid !important;
