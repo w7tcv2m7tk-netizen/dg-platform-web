@@ -818,20 +818,36 @@ export function WebsitePageRenderer({
   /** Product / Funnel Builder template — mounts dedicated capture apps on home. */
   funnelTemplate?: string | null;
 }) {
-  const resolvedFunnelTemplate =
-    funnelTemplate === "property_report" ||
-    funnelTemplate === "business_audit" ||
-    funnelTemplate === "lead_capture" ||
-    funnelTemplate === "appraisal_request" ||
-    funnelTemplate === "booking_enquiry"
-      ? funnelTemplate
-      : siteSlug === "roe-realty-report" ||
-          siteSlug.includes("property-report")
-        ? "property_report"
-        : siteSlug === "digitalgate-audit" ||
-            siteSlug.includes("business-audit")
-          ? "business_audit"
-          : null;
+  const resolvedFunnelTemplate = (() => {
+    if (
+      funnelTemplate === "property_report" ||
+      funnelTemplate === "business_audit" ||
+      funnelTemplate === "lead_capture" ||
+      funnelTemplate === "appraisal_request" ||
+      funnelTemplate === "booking_enquiry"
+    ) {
+      return funnelTemplate;
+    }
+    const slug = (siteSlug || "").toLowerCase();
+    const page = (pageSlug || "").toLowerCase();
+    if (
+      slug === "roe-realty-report" ||
+      slug.includes("property-report") ||
+      page === "property-report" ||
+      page.includes("property-report")
+    ) {
+      return "property_report";
+    }
+    if (
+      slug === "digitalgate-audit" ||
+      slug.includes("business-audit") ||
+      page === "business-audit" ||
+      page.includes("business-audit")
+    ) {
+      return "business_audit";
+    }
+    return null;
+  })();
   const isProductFunnel =
     resolvedFunnelTemplate === "property_report" ||
     resolvedFunnelTemplate === "business_audit";
