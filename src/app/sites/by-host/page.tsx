@@ -61,6 +61,7 @@ async function resolveHostSlug(): Promise<string | null> {
 
 const PAGE_SLUG_ALIASES: Record<string, string> = {
   "free-property-appraisal": "property-appraisal",
+  "property-appraisal-gold-coast": "property-appraisal",
   "free-buyer-consultation": "buyer-consultation",
 };
 

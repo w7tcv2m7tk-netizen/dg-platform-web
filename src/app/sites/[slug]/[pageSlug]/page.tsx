@@ -75,6 +75,7 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
   if (!page) {
     const aliases: Record<string, string> = {
       "free-property-appraisal": "property-appraisal",
+      "property-appraisal-gold-coast": "property-appraisal",
       "free-buyer-consultation": "buyer-consultation",
     };
     const aliased = aliases[pageSlug];
