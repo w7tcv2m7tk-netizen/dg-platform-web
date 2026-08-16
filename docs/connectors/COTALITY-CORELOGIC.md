@@ -216,13 +216,13 @@ AVM base: `https://api-sbox.corelogic.asia/avm`
 
 ## Property report flow
 
+1. **Public request:** `report.roerealty.com.au` (Gen 2 funnel) → Cotality match/pull → email with **IntelliVal range first**, then sales history + attributes → CRM vendor lead + 5-email follow-up.
 
+2. **Agency work (Gen 2):** Open Property → Cotality panel → Match (if needed) → Pull details → **Generate report** / **Generate & send**.
 
-1. **Public request (unchanged):** Roe WP `/property-report/` → emails + CRM vendor lead (`source: property_report`) + 5-email follow-up. Dual-write can land the lead in Gen 2.
+3. Report markdown **leads with AVM range**, then sales history, then attributes. Ends with a **full CMA upgrade CTA** (free appraisal). No fake buyer-demand scores.
 
-2. **Agency work (Gen 2):** Open Property → Cotality panel → Match (if needed) → Pull details → **Generate report** / **Generate & send** (org-branded email via Communications / Resend).
-
-3. Report markdown includes Cotality attributes, last sale, features, and AVM section with honest empty copy when Cotality has no estimate. No fake buyer-demand scores.
+4. **Full CMA / Cotality PDF Reports** remain a **paid commercial entitlement** — not fabricated in sandbox. Until UAT/prod Reports/CMA APIs are enabled, the appraisal conversation is the delivery path for a full comps pack.
 
 
 
@@ -308,7 +308,7 @@ Sandbox sample that matches + returns Property Details: `42 Marine Parade Coolan
 
 3. **Schools** — Content API disclaimer + schools endpoints.
 
-4. **Cotality PDF Reports / Property Monitor** — only after paid UAT; Gen 2 markdown report is the interim sendable artefact.
+4. **Cotality PDF Reports / CMA / Property Monitor** — commercial upgrade path only after paid UAT. Gen 2 free Property Report leads with IntelliVal range + sales history; full CMA is positioned as the appraisal upgrade (agent-led, Cotality CMA / Digital Property Report APIs when entitled).
 
 5. **Auto-send on WP property_report lead** — optional automation once report quality is signed off.
 

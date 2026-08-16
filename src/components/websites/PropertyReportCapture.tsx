@@ -433,7 +433,9 @@ export function PropertyReportCapture({
               lineHeight: 1.5,
             }}
           >
-            Would you like a detailed appraisal and buyer-demand strategy?
+            Your free report leads with Cotality&apos;s estimated value range
+            and recent sales when available. Want a full CMA and buyer-demand
+            strategy?
           </p>
           <a
             href={appraisalHref}
@@ -447,7 +449,7 @@ export function PropertyReportCapture({
               textDecoration: "none",
             }}
           >
-            Book a free appraisal
+            Book a free appraisal →
           </a>
         </div>
       ) : null}

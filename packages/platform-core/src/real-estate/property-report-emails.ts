@@ -20,11 +20,9 @@ const FOLLOWUP_TEMPLATES: Record<
 
 I hope you've had a chance to review your Property Value & Buyer Demand Report for {property_address}.
 
-Most homeowners focus on the price range — but the real insight is in buyer demand and recent comparable sales.
+Most homeowners focus only on the IntelliVal price range — the real next step is understanding buyer demand, recent comparable sales, and how a full CMA would position your property for sale.
 
-On the Gold Coast right now, we're seeing strong demand in certain price brackets and wider variation depending on buyer competition.
-
-If you'd like, I can walk you through exactly what your report means for your property.
+If you'd like, I can walk you through exactly what your report means and prepare a full Comparative Market Analysis in a free appraisal conversation.
 
 Best regards,
 Ben Roe | Roe Realty`,
