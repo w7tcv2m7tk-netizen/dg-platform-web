@@ -1,11 +1,17 @@
 "use client";
 
-import { useState, type CSSProperties, type FormEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+} from "react";
 
 type Props = {
   siteSlug: string;
   basePath?: string;
-  /** Dedicated subdomain funnel vs embedded brand-site page. */
   variant?: "funnel" | "embedded";
 };
 
@@ -46,12 +52,376 @@ const INDUSTRIES = [
   "Other",
 ];
 
+const SCAN_STAGES = [
+  "Checking website foundations…",
+  "Reading search & indexing signals…",
+  "Scoring AI visibility…",
+  "Reviewing reputation & conversion…",
+];
+
 function scoreColor(n: number) {
-  if (n >= 75) return "#4ade80";
+  if (n >= 75) return "#34d399";
   if (n >= 55) return "#60A5FA";
   if (n >= 40) return "#fbbf24";
   return "#f87171";
 }
+
+const FUNNEL_CSS = `
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&family=Sora:wght@600;700;800&display=swap");
+@keyframes dgBaIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes dgBaScan {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes dgBaRing {
+  from { stroke-dashoffset: 289; }
+  to { stroke-dashoffset: var(--score-offset); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dg-ba-funnel * { animation: none !important; transition: none !important; }
+}
+.dg-ba-funnel {
+  --dg-blue: #3B82F6;
+  --dg-ink: #e8eef8;
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  overflow: clip;
+  color: var(--dg-ink);
+  font-family: "Instrument Sans", system-ui, sans-serif;
+  background: #070b14;
+}
+.dg-ba-funnel__glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 12% 18%, rgba(59,130,246,0.28), transparent 60%),
+    radial-gradient(ellipse 55% 45% at 88% 78%, rgba(16,185,129,0.14), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 70% 10%, rgba(96,165,250,0.12), transparent 50%),
+    #070b14;
+}
+.dg-ba-funnel__grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 65% at 50% 40%, #000 20%, transparent 75%);
+}
+.dg-ba-funnel__shell {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1160px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(1.5rem, 4vw, 3.25rem);
+  align-items: center;
+  box-sizing: border-box;
+}
+.dg-ba-funnel__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #93c5fd;
+  text-decoration: none;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dg-ba-funnel__mark {
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 0.4rem;
+  background: linear-gradient(145deg, #60A5FA, #2563EB);
+  box-shadow: 0 0 0 1px rgba(147,197,253,0.35);
+}
+.dg-ba-funnel__copy { animation: dgBaIn 0.55s ease both; }
+.dg-ba-funnel__eyebrow {
+  margin: 1.35rem 0 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #60A5FA;
+}
+.dg-ba-funnel h1 {
+  margin: 0 0 1rem;
+  font-family: Sora, system-ui, sans-serif;
+  font-size: clamp(2rem, 4.6vw, 3.1rem);
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fff;
+  text-wrap: balance;
+}
+.dg-ba-funnel__lede {
+  margin: 0 0 1.5rem;
+  max-width: 34rem;
+  font-size: clamp(1.02rem, 1.5vw, 1.12rem);
+  line-height: 1.55;
+  color: #9fb0c7;
+}
+.dg-ba-funnel__pillars {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: pillar;
+}
+.dg-ba-funnel__pillars li {
+  counter-increment: pillar;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #d5deea;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.dg-ba-funnel__pillars li::before {
+  content: counter(pillar, decimal-leading-zero);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #60A5FA;
+  width: 1.6rem;
+}
+.dg-ba-funnel__panel {
+  animation: dgBaIn 0.65s ease 0.08s both;
+  background: rgba(10, 16, 28, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 1.25rem;
+  padding: clamp(1.35rem, 3vw, 1.85rem);
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(16px);
+}
+.dg-ba-funnel__steps {
+  display: flex;
+  gap: 0.45rem;
+  margin: 0 0 1.25rem;
+}
+.dg-ba-funnel__step {
+  flex: 1;
+  height: 3px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.dg-ba-funnel__step.is-on { background: #3B82F6; }
+.dg-ba-funnel__panel h2 {
+  margin: 0 0 0.4rem;
+  font-family: Sora, system-ui, sans-serif;
+  font-size: clamp(1.35rem, 2.4vw, 1.6rem);
+  color: #fff;
+  font-weight: 700;
+}
+.dg-ba-funnel__sub {
+  margin: 0 0 1.2rem;
+  color: #94a3b8;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.dg-ba-funnel label {
+  display: block;
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+}
+.dg-ba-funnel input,
+.dg-ba-funnel select {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.65rem;
+  border: 1px solid #334155;
+  background: #0b1220;
+  color: #e2e8f0;
+  font: inherit;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.dg-ba-funnel input:focus,
+.dg-ba-funnel select:focus {
+  border-color: #60A5FA;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+.dg-ba-funnel button[type="submit"],
+.dg-ba-funnel button.dg-ba-primary,
+.dg-ba-funnel a.dg-ba-primary {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.95rem 1.1rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #60A5FA, #3B82F6 55%, #2563EB);
+  color: #fff;
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+.dg-ba-funnel button[type="submit"]:hover,
+.dg-ba-funnel button.dg-ba-primary:hover,
+.dg-ba-funnel a.dg-ba-primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+.dg-ba-funnel button:disabled { cursor: wait; opacity: 0.85; }
+.dg-ba-funnel__note {
+  margin: 0.85rem 0 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+.dg-ba-funnel__status {
+  margin: 0.9rem 0 0;
+  font-size: 0.9rem;
+  min-height: 1.25rem;
+  color: #94a3b8;
+}
+.dg-ba-funnel__status.is-error { color: #fca5a5; }
+.dg-ba-funnel__status.is-ok { color: #86efac; }
+.dg-ba-funnel__scan {
+  margin: 0.85rem 0 0;
+  height: 3px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, transparent, #60A5FA, transparent);
+  background-size: 200% 100%;
+  animation: dgBaScan 1.1s linear infinite;
+}
+.dg-ba-funnel__score {
+  display: grid;
+  place-items: center;
+  margin: 0.25rem 0 1.15rem;
+}
+.dg-ba-funnel__score-ring {
+  position: relative;
+  width: 8.5rem;
+  height: 8.5rem;
+}
+.dg-ba-funnel__score-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.dg-ba-funnel__score-ring circle.track {
+  fill: none;
+  stroke: rgba(148,163,184,0.18);
+  stroke-width: 8;
+}
+.dg-ba-funnel__score-ring circle.value {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 289;
+  animation: dgBaRing 0.9s ease forwards;
+}
+.dg-ba-funnel__score-num {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: Sora, system-ui, sans-serif;
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #fff;
+}
+.dg-ba-funnel__score-num span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+.dg-ba-funnel__bars {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0 0 1.25rem;
+}
+.dg-ba-funnel__bar {
+  display: grid;
+  gap: 0.3rem;
+}
+.dg-ba-funnel__bar-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+  color: #cbd5e1;
+}
+.dg-ba-funnel__bar-track {
+  height: 7px;
+  border-radius: 99px;
+  background: rgba(51, 65, 85, 0.85);
+  overflow: hidden;
+}
+.dg-ba-funnel__bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  width: var(--w);
+  transition: width 0.7s ease;
+}
+.dg-ba-funnel__opps {
+  margin: 0 0 1.2rem;
+  padding-left: 1.15rem;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.dg-ba-funnel__opps li { margin-bottom: 0.45rem; }
+.dg-ba-funnel__meta {
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.65rem;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  color: #bfdbfe;
+  font-size: 0.9rem;
+}
+.dg-ba-funnel__meta button {
+  margin-left: 0.55rem;
+  border: none;
+  background: transparent;
+  color: #93c5fd;
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+}
+.dg-ba-funnel__done { text-align: center; }
+.dg-ba-funnel__done h2 { margin-bottom: 0.65rem; }
+.dg-ba-funnel__done p { margin: 0 0 1.15rem; color: #94a3b8; line-height: 1.55; }
+.dg-ba-funnel__foot {
+  grid-column: 1 / -1;
+  margin: 0;
+  text-align: center;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+@media (max-width: 860px) {
+  .dg-ba-funnel__shell {
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: 1.5rem;
+  }
+}
+`;
 
 export function BusinessAuditCapture({
   siteSlug,
@@ -69,6 +439,7 @@ export function BusinessAuditCapture({
   const [phone, setPhone] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [busy, setBusy] = useState(false);
+  const [scanStage, setScanStage] = useState(0);
   const [status, setStatus] = useState<{
     type: "error" | "ok" | "loading";
     text: string;
@@ -77,12 +448,26 @@ export function BusinessAuditCapture({
   const [overallScore, setOverallScore] = useState<number | null>(null);
   const [pillars, setPillars] = useState<Pillars | null>(null);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const urlRef = useRef<HTMLInputElement>(null);
+  const styleId = useId();
 
   const strategyHref =
     basePath && basePath !== "/"
       ? `${basePath}/strategy-session`
       : "https://digitalgate.com.au/strategy-session";
   const brandHref = "https://digitalgate.com.au";
+
+  useEffect(() => {
+    if (isFunnel && step === "website") urlRef.current?.focus();
+  }, [isFunnel, step]);
+
+  useEffect(() => {
+    if (!busy || status?.type !== "loading") return;
+    const id = window.setInterval(() => {
+      setScanStage((s) => (s + 1) % SCAN_STAGES.length);
+    }, 900);
+    return () => window.clearInterval(id);
+  }, [busy, status?.type]);
 
   async function onWebsiteSubmit(e: FormEvent) {
     e.preventDefault();
@@ -92,9 +477,10 @@ export function BusinessAuditCapture({
       return;
     }
     setBusy(true);
+    setScanStage(0);
     setStatus({
       type: "loading",
-      text: "DigitalGate is scanning your business…",
+      text: SCAN_STAGES[0],
     });
     try {
       const res = await fetch("/api/public/business-audit", {
@@ -248,7 +634,7 @@ export function BusinessAuditCapture({
   const btnStyle: CSSProperties = {
     width: "100%",
     padding: "0.85rem 1rem",
-    borderRadius: "999px",
+    borderRadius: "0.75rem",
     border: "none",
     background: "#3B82F6",
     color: "#fff",
@@ -257,427 +643,118 @@ export function BusinessAuditCapture({
     cursor: busy ? "wait" : "pointer",
   };
 
-  return (
-    <section
-      id="business-audit-form"
-      className={
-        isFunnel
-          ? "dg-business-audit-capture dg-business-audit-funnel"
-          : "dg-business-audit-capture"
-      }
-      style={{
-        minHeight: isFunnel ? "100dvh" : undefined,
-        width: isFunnel ? "100%" : undefined,
-        display: isFunnel ? "flex" : undefined,
-        flexDirection: isFunnel ? "column" : undefined,
-        justifyContent: isFunnel ? "center" : undefined,
-        boxSizing: "border-box",
-        background: "linear-gradient(180deg, #0A0E17 0%, #0b1220 55%, #111827 100%)",
-        color: "#e2e8f0",
-        padding: isFunnel
-          ? "clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2.5rem)"
-          : "3.5rem clamp(1rem, 3vw, 2.5rem)",
-        fontFamily: "system-ui, sans-serif",
-      }}
-    >
-      <div style={{ width: "100%", maxWidth: "42rem", margin: "0 auto" }}>
-      {isFunnel ? (
-        <div style={{ marginBottom: "1.25rem" }}>
-          <a
-            href={brandHref}
-            style={{
-              display: "inline-block",
-              marginBottom: "1rem",
-              color: "#60A5FA",
-              textDecoration: "none",
-              fontSize: "0.85rem",
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-            }}
-          >
-            DigitalGate
-          </a>
-          <h1
-            style={{
-              margin: "0 0 0.65rem",
-              fontSize: "clamp(1.75rem, 4.5vw, 2.45rem)",
-              lineHeight: 1.15,
-              color: "#fff",
-              fontWeight: 700,
-            }}
-          >
-            See how your business performs across the digital world
-          </h1>
-          <p
-            style={{
-              margin: 0,
-              fontSize: "1.05rem",
-              lineHeight: 1.55,
-              color: "#94a3b8",
-            }}
-          >
-            Instant snapshot of website health, search, AI visibility and
-            conversion readiness — then we email your full DigitalGate Business
-            Audit™.
-          </p>
-        </div>
-      ) : null}
-      <div
+  if (!isFunnel) {
+    return (
+      <section
+        id="business-audit-form"
+        className="dg-business-audit-capture"
         style={{
-          maxWidth: step === "preview" || step === "done" ? "40rem" : "34rem",
-          margin: "0 auto",
-          width: "100%",
-          background: "rgba(15, 23, 42, 0.9)",
-          borderRadius: "1rem",
-          padding: "1.85rem 1.5rem",
-          border: "1px solid rgba(148, 163, 184, 0.2)",
-          boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
+          background: "#0A0E17",
+          color: "#e2e8f0",
+          padding: "3.5rem clamp(1rem, 3vw, 2.5rem)",
+          fontFamily: "system-ui, sans-serif",
         }}
       >
-        {step === "website" ? (
-          <>
-            {!isFunnel ? (
-              <>
-                <p
-                  style={{
-                    margin: "0 0 0.5rem",
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "#60A5FA",
-                  }}
-                >
-                  Free Business Audit
-                </p>
-                <h3
-                  style={{
-                    margin: "0 0 0.55rem",
-                    fontSize: "1.55rem",
-                    lineHeight: 1.25,
-                    color: "#fff",
-                  }}
-                >
-                  See how your business is performing online.
-                </h3>
-                <p
-                  style={{
-                    margin: "0 0 1.1rem",
-                    color: "#94a3b8",
-                    fontSize: "0.95rem",
-                    lineHeight: 1.55,
-                  }}
-                >
-                  Get a free DigitalGate Business Audit™ and see how your website,
-                  search presence, AI visibility and digital foundations are
-                  performing — with clear opportunities to improve visibility, trust
-                  and lead generation.
-                </p>
-                <p
-                  style={{
-                    margin: "0 0 1.25rem",
-                    fontSize: "0.78rem",
-                    color: "#64748b",
-                    letterSpacing: "0.01em",
-                  }}
-                >
-                  Website Health · Search Visibility · AI Visibility · Reputation ·
-                  Conversion Readiness
-                </p>
-              </>
-            ) : (
+        <div
+          style={{
+            maxWidth: "34rem",
+            margin: "0 auto",
+            background: "rgba(15, 23, 42, 0.9)",
+            borderRadius: "1rem",
+            padding: "1.85rem 1.5rem",
+            border: "1px solid rgba(148, 163, 184, 0.2)",
+          }}
+        >
+          {step === "website" ? (
+            <>
               <p
                 style={{
-                  margin: "0 0 1rem",
-                  fontSize: "0.85rem",
-                  fontWeight: 600,
-                  color: "#94a3b8",
-                }}
-              >
-                Enter your website to start
-              </p>
-            )}
-            <form onSubmit={(e) => void onWebsiteSubmit(e)}>
-              <label htmlFor="dgBaUrl" style={labelStyle}>
-                Website URL
-              </label>
-              <input
-                id="dgBaUrl"
-                type="text"
-                required
-                value={websiteUrl}
-                disabled={busy}
-                placeholder="e.g. yourbusiness.com.au"
-                onChange={(e) => setWebsiteUrl(e.target.value)}
-                style={fieldStyle}
-              />
-              <button type="submit" disabled={busy} style={btnStyle}>
-                {busy
-                  ? "Scanning your business…"
-                  : "Get My Free Business Audit →"}
-              </button>
-              <p
-                style={{
-                  margin: "0.85rem 0 0",
-                  textAlign: "center",
-                  fontSize: "0.8rem",
-                  color: "#64748b",
-                }}
-              >
-                No credit card required. Takes less than 60 seconds.
-              </p>
-            </form>
-          </>
-        ) : null}
-
-        {step === "preview" ? (
-          <>
-            <p
-              style={{
-                margin: "0 0 0.35rem",
-                fontSize: "0.75rem",
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: "#60A5FA",
-              }}
-            >
-              DigitalGate Business Health Score™
-            </p>
-            <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: "3rem",
+                  margin: "0 0 0.5rem",
+                  fontSize: "0.75rem",
                   fontWeight: 700,
-                  lineHeight: 1,
-                  color: scoreColor(overallScore ?? 0),
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "#60A5FA",
                 }}
               >
-                {overallScore ?? "—"}
-                <span style={{ fontSize: "1.1rem", color: "#94a3b8" }}>
-                  {" "}
-                  / 100
-                </span>
+                Free Business Audit
               </p>
-              <p
-                style={{
-                  margin: "0.65rem 0 0",
-                  fontSize: "0.85rem",
-                  color: "#94a3b8",
-                }}
-              >
-                {normalisedUrl}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep("website");
-                    setStatus(null);
-                  }}
+              <h3 style={{ margin: "0 0 0.55rem", fontSize: "1.55rem", color: "#fff" }}>
+                See how your business is performing online.
+              </h3>
+              <p style={{ margin: "0 0 1.1rem", color: "#94a3b8", fontSize: "0.95rem", lineHeight: 1.55 }}>
+                Get a free DigitalGate Business Audit™ across website, search, AI
+                visibility and conversion readiness.
+              </p>
+              <form onSubmit={(e) => void onWebsiteSubmit(e)}>
+                <label htmlFor="dgBaUrlEmbedded" style={labelStyle}>
+                  Website URL
+                </label>
+                <input
+                  id="dgBaUrlEmbedded"
+                  type="text"
+                  required
+                  value={websiteUrl}
+                  disabled={busy}
+                  placeholder="https://yourbusiness.com.au"
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  style={fieldStyle}
+                />
+                <button type="submit" disabled={busy} style={btnStyle}>
+                  {busy ? "Scanning…" : "Get My Free Business Audit →"}
+                </button>
+              </form>
+            </>
+          ) : null}
+          {step === "preview" && pillars ? (
+            <>
+              <p style={{ margin: "0 0 0.75rem", color: "#60A5FA", fontWeight: 700 }}>
+                Score {overallScore ?? "—"}/100
+              </p>
+              {PILLAR_LABELS.map(({ key, label }) => (
+                <div
+                  key={key}
                   style={{
-                    marginLeft: "0.65rem",
-                    border: "none",
-                    background: "transparent",
-                    color: "#93c5fd",
-                    textDecoration: "underline",
-                    cursor: "pointer",
-                    fontSize: "0.8rem",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "0.45rem",
+                    color: "#cbd5e1",
                   }}
                 >
-                  Change
-                </button>
-              </p>
-            </div>
-
-            {pillars ? (
-              <div
-                style={{
-                  display: "grid",
-                  gap: "0.55rem",
-                  marginBottom: "1.35rem",
-                }}
-              >
-                {PILLAR_LABELS.map(({ key, label }) => {
-                  const value = pillars[key];
-                  return (
-                    <div
-                      key={key}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: "0.75rem",
-                        padding: "0.55rem 0.7rem",
-                        borderRadius: "0.5rem",
-                        background: "rgba(15, 23, 42, 0.75)",
-                        border: "1px solid rgba(51, 65, 85, 0.8)",
-                      }}
-                    >
-                      <span style={{ fontSize: "0.9rem", color: "#cbd5e1" }}>
-                        {label}
-                      </span>
-                      <span
-                        style={{
-                          fontWeight: 700,
-                          fontVariantNumeric: "tabular-nums",
-                          color: scoreColor(value),
-                        }}
-                      >
-                        {value}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : null}
-
-            <h4
-              style={{
-                margin: "0 0 0.65rem",
-                fontSize: "1.05rem",
-                color: "#fff",
-              }}
-            >
-              Here&apos;s what we&apos;d fix first
-            </h4>
-            <ol
-              style={{
-                margin: "0 0 1.35rem",
-                paddingLeft: "1.15rem",
-                color: "#cbd5e1",
-                fontSize: "0.9rem",
-                lineHeight: 1.5,
-              }}
-            >
-              {(opportunities.length
-                ? opportunities
-                : [
-                    {
-                      title: "Deepen your digital foundations",
-                      detail:
-                        "We'll expand this diagnosis once we have your contact details.",
-                      severity: "opportunity" as const,
-                    },
-                  ]
-              ).map((opp) => (
-                <li key={opp.title} style={{ marginBottom: "0.55rem" }}>
-                  <strong style={{ color: "#e2e8f0" }}>{opp.title}</strong>
-                  {opp.detail ? (
-                    <span style={{ color: "#94a3b8" }}> — {opp.detail}</span>
-                  ) : null}
-                </li>
+                  <span>{label}</span>
+                  <strong style={{ color: scoreColor(pillars[key]) }}>
+                    {pillars[key]}
+                  </strong>
+                </div>
               ))}
-            </ol>
-
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => {
-                setStatus(null);
-                setStep("contact");
-              }}
-              style={btnStyle}
-            >
-              Get the full report →
-            </button>
-            <p
-              style={{
-                margin: "0.75rem 0 0",
-                textAlign: "center",
-                fontSize: "0.8rem",
-                color: "#64748b",
-              }}
-            >
-              We&apos;ll email your DigitalGate Business Audit™ with the full
-              breakdown.
-            </p>
-          </>
-        ) : null}
-
-        {step === "contact" ? (
-          <>
-            <h3
-              style={{
-                margin: "0 0 0.4rem",
-                fontSize: "1.35rem",
-                color: "#fff",
-              }}
-            >
-              Get your full DigitalGate Business Audit™
-            </h3>
-            <p
-              style={{
-                margin: "0 0 1rem",
-                padding: "0.65rem 0.75rem",
-                background: "rgba(59, 130, 246, 0.12)",
-                borderRadius: "0.5rem",
-                fontSize: "0.9rem",
-                color: "#bfdbfe",
-              }}
-            >
-              {overallScore != null ? (
-                <>
-                  Score {overallScore}/100
-                  {normalisedUrl ? ` · ${normalisedUrl}` : ""}
-                </>
-              ) : (
-                normalisedUrl
-              )}
               <button
                 type="button"
-                onClick={() => {
-                  setStep("preview");
-                  setStatus(null);
-                }}
-                style={{
-                  marginLeft: "0.75rem",
-                  border: "none",
-                  background: "transparent",
-                  color: "#93c5fd",
-                  textDecoration: "underline",
-                  cursor: "pointer",
-                  fontSize: "0.8rem",
-                }}
+                className="dg-ba-primary"
+                style={{ ...btnStyle, marginTop: "1rem" }}
+                onClick={() => setStep("contact")}
               >
-                Back
+                Get the full report →
               </button>
-            </p>
+            </>
+          ) : null}
+          {step === "contact" ? (
             <form onSubmit={(e) => void onContactSubmit(e)}>
-              <div
-                aria-hidden="true"
-                style={{
-                  position: "absolute",
-                  left: "-9999px",
-                  height: 0,
-                  overflow: "hidden",
-                }}
-              >
-                <input
-                  type="text"
-                  name="website"
-                  tabIndex={-1}
-                  autoComplete="off"
-                  value={honeypot}
-                  onChange={(e) => setHoneypot(e.target.value)}
-                />
-              </div>
-              <label htmlFor="dgBaName" style={labelStyle}>
+              <label htmlFor="dgBaNameE" style={labelStyle}>
                 Full name
               </label>
               <input
-                id="dgBaName"
-                type="text"
+                id="dgBaNameE"
                 required
                 value={fullName}
                 disabled={busy}
                 onChange={(e) => setFullName(e.target.value)}
                 style={fieldStyle}
               />
-              <label htmlFor="dgBaEmail" style={labelStyle}>
+              <label htmlFor="dgBaEmailE" style={labelStyle}>
                 Email
               </label>
               <input
-                id="dgBaEmail"
+                id="dgBaEmailE"
                 type="email"
                 required
                 value={email}
@@ -685,175 +762,394 @@ export function BusinessAuditCapture({
                 onChange={(e) => setEmail(e.target.value)}
                 style={fieldStyle}
               />
-              <label htmlFor="dgBaBiz" style={labelStyle}>
+              <label htmlFor="dgBaBizE" style={labelStyle}>
                 Business
               </label>
               <input
-                id="dgBaBiz"
-                type="text"
+                id="dgBaBizE"
                 required
                 value={businessName}
                 disabled={busy}
                 onChange={(e) => setBusinessName(e.target.value)}
                 style={fieldStyle}
               />
-              <label htmlFor="dgBaPhone" style={labelStyle}>
-                Phone{" "}
-                <span style={{ fontWeight: 400, color: "#64748b" }}>
-                  (optional)
-                </span>
-              </label>
-              <input
-                id="dgBaPhone"
-                type="tel"
-                value={phone}
-                disabled={busy}
-                onChange={(e) => setPhone(e.target.value)}
-                style={fieldStyle}
-              />
-              <label htmlFor="dgBaIndustry" style={labelStyle}>
-                Industry
-              </label>
-              <select
-                id="dgBaIndustry"
-                value={industry}
-                disabled={busy}
-                onChange={(e) => setIndustry(e.target.value)}
-                style={{ ...fieldStyle, marginBottom: "1rem" }}
-              >
-                <option value="">Select industry</option>
-                {INDUSTRIES.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-              <label htmlFor="dgBaWebsiteLocked" style={labelStyle}>
-                Website
-              </label>
-              <input
-                id="dgBaWebsiteLocked"
-                type="text"
-                readOnly
-                value={normalisedUrl || websiteUrl}
-                style={{ ...fieldStyle, opacity: 0.85, marginBottom: "1rem" }}
-              />
               <button type="submit" disabled={busy} style={btnStyle}>
-                {busy ? "Sending your report…" : "Email My Full Report →"}
+                Email My Full Report →
               </button>
             </form>
-          </>
-        ) : null}
+          ) : null}
+          {step === "done" ? (
+            <div style={{ textAlign: "center" }}>
+              <h3 style={{ color: "#fff" }}>You&apos;re all set</h3>
+              <p style={{ color: "#94a3b8" }}>{doneMessage}</p>
+              <a href={strategyHref} style={{ ...btnStyle, display: "inline-flex", textDecoration: "none" }}>
+                Show me how you&apos;d fix this →
+              </a>
+            </div>
+          ) : null}
+          {status ? (
+            <p role="status" style={{ marginTop: "1rem", color: "#94a3b8" }}>
+              {status.text}
+            </p>
+          ) : null}
+        </div>
+      </section>
+    );
+  }
 
-        {step === "done" ? (
-          <div style={{ textAlign: "center" }}>
-            <p
-              style={{
-                margin: "0 0 0.35rem",
-                fontSize: "0.75rem",
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: "#60A5FA",
-              }}
-            >
-              DigitalGate Business Health Score™
-            </p>
-            <h3
-              style={{
-                margin: "0 0 0.75rem",
-                fontSize: "1.35rem",
-                color: "#fff",
-              }}
-            >
-              You&apos;re all set
-            </h3>
-            {overallScore != null ? (
-              <p
-                style={{
-                  margin: "0 0 0.75rem",
-                  fontSize: "2.5rem",
-                  fontWeight: 700,
-                  color: scoreColor(overallScore),
-                }}
-              >
-                {overallScore}
-                <span style={{ fontSize: "1rem", color: "#94a3b8" }}>/100</span>
-              </p>
-            ) : null}
-            <p
-              style={{
-                margin: "0 0 1.25rem",
-                color: "#cbd5e1",
-                lineHeight: 1.55,
-              }}
-            >
-              {doneMessage}
-            </p>
-            {opportunities.length ? (
-              <p
-                style={{
-                  margin: "0 0 1.25rem",
-                  color: "#94a3b8",
-                  fontSize: "0.95rem",
-                  lineHeight: 1.5,
-                }}
-              >
-                Your business has {opportunities.length} significant
-                opportunities. Would you like DigitalGate to show you how
-                we&apos;d address them?
-              </p>
-            ) : null}
-            <a
-              href={strategyHref}
-              style={{
-                display: "inline-flex",
-                padding: "0.75rem 1.25rem",
-                borderRadius: "999px",
-                background: "#3B82F6",
-                color: "#fff",
-                fontWeight: 600,
-                textDecoration: "none",
-              }}
-            >
-              Show me how you&apos;d fix this →
+  const stepIndex =
+    step === "website" ? 0 : step === "preview" ? 1 : step === "contact" ? 2 : 3;
+  const score = overallScore ?? 0;
+  const scoreOffset = 289 - (289 * Math.max(0, Math.min(100, score))) / 100;
+  const loadingText =
+    status?.type === "loading" && step === "website"
+      ? SCAN_STAGES[scanStage]
+      : status?.text;
+
+  return (
+    <>
+      <style id={styleId} dangerouslySetInnerHTML={{ __html: FUNNEL_CSS }} />
+      <section
+        id="business-audit-form"
+        className="dg-business-audit-capture dg-business-audit-funnel dg-ba-funnel"
+      >
+        <div className="dg-ba-funnel__glow" aria-hidden />
+        <div className="dg-ba-funnel__grid" aria-hidden />
+        <div className="dg-ba-funnel__shell">
+          <div className="dg-ba-funnel__copy">
+            <a className="dg-ba-funnel__brand" href={brandHref}>
+              <span className="dg-ba-funnel__mark" aria-hidden />
+              DigitalGate
             </a>
+            <p className="dg-ba-funnel__eyebrow">Free Business Audit</p>
+            <h1>See how your business performs across the digital world</h1>
+            <p className="dg-ba-funnel__lede">
+              Get an instant snapshot of your website, search presence, AI
+              visibility and digital foundations — then discover where you may
+              be losing visibility, enquiries and opportunities.
+            </p>
+            <ol className="dg-ba-funnel__pillars">
+              {PILLAR_LABELS.map(({ label }) => (
+                <li key={label}>{label}</li>
+              ))}
+            </ol>
           </div>
-        ) : null}
 
-        {status ? (
-          <p
-            role="status"
-            aria-live="polite"
-            style={{
-              margin: "1rem 0 0",
-              fontSize: "0.9rem",
-              color:
-                status.type === "error"
-                  ? "#fca5a5"
-                  : status.type === "ok"
-                    ? "#86efac"
-                    : "#94a3b8",
-            }}
-          >
-            {status.text}
+          <div className="dg-ba-funnel__panel">
+            <div className="dg-ba-funnel__steps" aria-hidden>
+              {[0, 1, 2, 3].map((i) => (
+                <span
+                  key={i}
+                  className={`dg-ba-funnel__step${i <= stepIndex ? " is-on" : ""}`}
+                />
+              ))}
+            </div>
+
+            {step === "website" ? (
+              <>
+                <h2>Enter your website to start</h2>
+                <p className="dg-ba-funnel__sub">
+                  We&apos;ll scan your digital presence and show your DigitalGate
+                  Business Health Score™.
+                </p>
+                <form onSubmit={(e) => void onWebsiteSubmit(e)}>
+                  <label htmlFor="dgBaUrl">Website URL</label>
+                  <input
+                    ref={urlRef}
+                    id="dgBaUrl"
+                    type="text"
+                    required
+                    autoComplete="url"
+                    value={websiteUrl}
+                    disabled={busy}
+                    placeholder="https://yourbusiness.com.au"
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                  />
+                  <button type="submit" disabled={busy}>
+                    {busy ? "Scanning…" : "Get My Free Business Audit →"}
+                  </button>
+                  <p className="dg-ba-funnel__note">
+                    No credit card required. Takes less than 60 seconds.
+                  </p>
+                </form>
+                {busy ? <div className="dg-ba-funnel__scan" aria-hidden /> : null}
+              </>
+            ) : null}
+
+            {step === "preview" ? (
+              <>
+                <p
+                  style={{
+                    margin: "0 0 0.35rem",
+                    fontSize: "0.72rem",
+                    fontWeight: 800,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: "#60A5FA",
+                    textAlign: "center",
+                  }}
+                >
+                  DigitalGate Business Health Score™
+                </p>
+                <div className="dg-ba-funnel__score">
+                  <div
+                    className="dg-ba-funnel__score-ring"
+                    style={
+                      {
+                        ["--score-offset" as string]: String(scoreOffset),
+                      } as CSSProperties
+                    }
+                  >
+                    <svg viewBox="0 0 100 100" aria-hidden>
+                      <circle className="track" cx="50" cy="50" r="46" />
+                      <circle
+                        className="value"
+                        cx="50"
+                        cy="50"
+                        r="46"
+                        style={{ stroke: scoreColor(score) }}
+                      />
+                    </svg>
+                    <div className="dg-ba-funnel__score-num">
+                      {overallScore ?? "—"}
+                      <span>/100</span>
+                    </div>
+                  </div>
+                </div>
+                {normalisedUrl ? (
+                  <p className="dg-ba-funnel__meta">
+                    {normalisedUrl}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStep("website");
+                        setStatus(null);
+                      }}
+                    >
+                      Change
+                    </button>
+                  </p>
+                ) : null}
+                {pillars ? (
+                  <div className="dg-ba-funnel__bars">
+                    {PILLAR_LABELS.map(({ key, label }) => (
+                      <div key={key} className="dg-ba-funnel__bar">
+                        <div className="dg-ba-funnel__bar-top">
+                          <span>{label}</span>
+                          <strong style={{ color: scoreColor(pillars[key]) }}>
+                            {pillars[key]}
+                          </strong>
+                        </div>
+                        <div className="dg-ba-funnel__bar-track">
+                          <div
+                            className="dg-ba-funnel__bar-fill"
+                            style={
+                              {
+                                ["--w" as string]: `${pillars[key]}%`,
+                                background: scoreColor(pillars[key]),
+                              } as CSSProperties
+                            }
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <h3
+                  style={{
+                    margin: "0 0 0.55rem",
+                    fontSize: "1.05rem",
+                    color: "#fff",
+                    fontFamily: "Sora, system-ui, sans-serif",
+                  }}
+                >
+                  Here&apos;s what we&apos;d fix first
+                </h3>
+                <ol className="dg-ba-funnel__opps">
+                  {(opportunities.length
+                    ? opportunities
+                    : [
+                        {
+                          title: "Deepen your digital foundations",
+                          detail:
+                            "We'll expand this diagnosis once we have your contact details.",
+                          severity: "opportunity" as const,
+                        },
+                      ]
+                  ).map((opp) => (
+                    <li key={opp.title}>
+                      <strong style={{ color: "#e2e8f0" }}>{opp.title}</strong>
+                      {opp.detail ? (
+                        <span style={{ color: "#94a3b8" }}> — {opp.detail}</span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ol>
+                <button
+                  type="button"
+                  className="dg-ba-primary"
+                  disabled={busy}
+                  onClick={() => {
+                    setStatus(null);
+                    setStep("contact");
+                  }}
+                >
+                  Get the full report →
+                </button>
+              </>
+            ) : null}
+
+            {step === "contact" ? (
+              <>
+                <h2>Get your full DigitalGate Business Audit™</h2>
+                <p className="dg-ba-funnel__sub">
+                  We&apos;ll email the full breakdown and keep your DigitalGate
+                  Business Health Score™ on file.
+                </p>
+                {overallScore != null || normalisedUrl ? (
+                  <p className="dg-ba-funnel__meta">
+                    {overallScore != null ? `Score ${overallScore}/100` : null}
+                    {normalisedUrl
+                      ? `${overallScore != null ? " · " : ""}${normalisedUrl}`
+                      : null}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStep("preview");
+                        setStatus(null);
+                      }}
+                    >
+                      Back
+                    </button>
+                  </p>
+                ) : null}
+                <form onSubmit={(e) => void onContactSubmit(e)}>
+                  <div aria-hidden style={{ position: "absolute", left: "-9999px" }}>
+                    <input
+                      type="text"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={honeypot}
+                      onChange={(e) => setHoneypot(e.target.value)}
+                    />
+                  </div>
+                  <label htmlFor="dgBaName">Full name</label>
+                  <input
+                    id="dgBaName"
+                    required
+                    value={fullName}
+                    disabled={busy}
+                    onChange={(e) => setFullName(e.target.value)}
+                  />
+                  <label htmlFor="dgBaEmail">Email</label>
+                  <input
+                    id="dgBaEmail"
+                    type="email"
+                    required
+                    value={email}
+                    disabled={busy}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <label htmlFor="dgBaBiz">Business</label>
+                  <input
+                    id="dgBaBiz"
+                    required
+                    value={businessName}
+                    disabled={busy}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                  />
+                  <label htmlFor="dgBaPhone">Phone (optional)</label>
+                  <input
+                    id="dgBaPhone"
+                    type="tel"
+                    value={phone}
+                    disabled={busy}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                  <label htmlFor="dgBaInd">Industry</label>
+                  <select
+                    id="dgBaInd"
+                    value={industry}
+                    disabled={busy}
+                    onChange={(e) => setIndustry(e.target.value)}
+                  >
+                    <option value="">Select industry</option>
+                    {INDUSTRIES.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="submit" disabled={busy}>
+                    {busy ? "Sending…" : "Email My Full Report →"}
+                  </button>
+                </form>
+              </>
+            ) : null}
+
+            {step === "done" ? (
+              <div className="dg-ba-funnel__done">
+                <p
+                  style={{
+                    margin: "0 0 0.45rem",
+                    fontSize: "0.72rem",
+                    fontWeight: 800,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: "#60A5FA",
+                  }}
+                >
+                  DigitalGate Business Health Score™
+                </p>
+                {overallScore != null ? (
+                  <p
+                    style={{
+                      margin: "0 0 0.65rem",
+                      fontSize: "2.4rem",
+                      fontWeight: 800,
+                      fontFamily: "Sora, system-ui, sans-serif",
+                      color: scoreColor(overallScore),
+                    }}
+                  >
+                    {overallScore}
+                    <span style={{ fontSize: "1rem", color: "#94a3b8" }}>/100</span>
+                  </p>
+                ) : null}
+                <h2>You&apos;re all set</h2>
+                <p>{doneMessage}</p>
+                {opportunities.length ? (
+                  <p style={{ marginTop: "-0.35rem" }}>
+                    Your business has {opportunities.length} significant
+                    opportunities. Want DigitalGate to show you how we&apos;d
+                    address them?
+                  </p>
+                ) : null}
+                <a className="dg-ba-primary" href={strategyHref}>
+                  Show me how you&apos;d fix this →
+                </a>
+              </div>
+            ) : null}
+
+            {status || busy ? (
+              <p
+                role="status"
+                aria-live="polite"
+                className={`dg-ba-funnel__status${status ? ` is-${status.type}` : ""}`}
+              >
+                {loadingText || status?.text}
+              </p>
+            ) : (
+              <p className="dg-ba-funnel__status" aria-hidden>
+                {" "}
+              </p>
+            )}
+          </div>
+
+          <p className="dg-ba-funnel__foot">
+            DigitalGate Business Audit™ — a DigitalGate acquisition product.
           </p>
-        ) : null}
-      </div>
-      {isFunnel ? (
-        <p
-          style={{
-            margin: "1.5rem auto 0",
-            maxWidth: "34rem",
-            textAlign: "center",
-            fontSize: "0.8rem",
-            color: "#64748b",
-          }}
-        >
-          DigitalGate Business Audit™ — a DigitalGate acquisition product.
-        </p>
-      ) : null}
-      </div>
-    </section>
+        </div>
+      </section>
+    </>
   );
 }
