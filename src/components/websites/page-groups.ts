@@ -2,6 +2,7 @@ import type { SerializedWebsitePage } from "@dg/platform-core";
 
 export type WebsitePageGroupId =
   | "core"
+  | "units"
   | "property"
   | "location"
   | "seo"
@@ -16,6 +17,7 @@ export type WebsitePageGroup = {
 
 const GROUP_ORDER: WebsitePageGroupId[] = [
   "core",
+  "units",
   "property",
   "location",
   "seo",
@@ -25,6 +27,7 @@ const GROUP_ORDER: WebsitePageGroupId[] = [
 
 const GROUP_LABELS: Record<WebsitePageGroupId, string> = {
   core: "Core pages",
+  units: "Units",
   property: "Property pages",
   location: "Location pages",
   seo: "SEO pages",
@@ -50,7 +53,6 @@ const CORE_SLUGS = new Set([
   "insights",
   "pricing",
   "services",
-  "stay",
   "gallery",
   "experiences",
   "music",
@@ -68,7 +70,6 @@ const CORE_SLUGS = new Set([
   "property-appraisal",
   "property-report",
   "book-aetherra",
-  "accommodation",
 ]);
 
 const LEGAL_RE =
@@ -92,8 +93,12 @@ const LOCATION_HUB_SLUGS = new Set([
   "real-estate-agent-gold-coast",
 ]);
 
-const CORE_EXTRA_SLUGS = new Set([
-  "reviews",
+const CORE_EXTRA_SLUGS = new Set(["reviews", "booking-confirmed"]);
+
+/** CVH stay hub + individual unit pages. */
+const UNIT_SLUGS = new Set([
+  "stay",
+  "accommodation",
   "private-studio",
   "tiny-home",
   "sanctuary-dome",
@@ -101,14 +106,23 @@ const CORE_EXTRA_SLUGS = new Set([
   "canopy-dome",
   "starlight-dome",
   "the-shed",
-  "booking-confirmed",
 ]);
 
 function slugOf(page: SerializedWebsitePage): string {
   return (page.slug || "").toLowerCase().replace(/^\/+|\/+$/g, "");
 }
 
-/** Listing hub + individual property detail pages (`properties` / legacy `property`, `property/...`). */
+/** CVH accommodation listings hub + unit detail pages. */
+export function isUnitListingPage(page: SerializedWebsitePage): boolean {
+  const slug = slugOf(page);
+  const intent = (page.intent || "").toLowerCase();
+  if (intent === "redirect") return false;
+  if (slug === "booking-confirmed") return false;
+  if (UNIT_SLUGS.has(slug)) return true;
+  return slug.startsWith("accommodation/") || /-(dome)$/i.test(slug);
+}
+
+/** RR listing hub + individual property detail pages (`properties` / legacy `property`, `property/...`). */
 export function isPropertyListingPage(page: SerializedWebsitePage): boolean {
   const slug = slugOf(page);
   const intent = (page.intent || "").toLowerCase();
@@ -158,6 +172,8 @@ export function classifyWebsitePage(
 
   if (LEGAL_RE.test(slug)) return "legal";
 
+  if (isUnitListingPage(page)) return "units";
+
   if (isPropertyListingPage(page)) return "property";
 
   if (postSlugs?.has(slug)) return "posts";
@@ -201,6 +217,7 @@ export function groupWebsitePages(
   const postSlugs = collectPostSlugs(list);
   const buckets: Record<WebsitePageGroupId, SerializedWebsitePage[]> = {
     core: [],
+    units: [],
     property: [],
     location: [],
     seo: [],

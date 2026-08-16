@@ -531,7 +531,12 @@ export function WebsiteStudioClient({
           <h2 className="text-xs uppercase tracking-wide text-slate-500">Pages</h2>
           <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
             {pageGroups.map((group) => {
-              const collapsed = collapsedGroups[group.id] ?? group.id !== "core";
+              const defaultExpanded =
+                group.id === "core" ||
+                group.id === "units" ||
+                group.id === "property";
+              const collapsed =
+                collapsedGroups[group.id] ?? !defaultExpanded;
               return (
                 <div key={group.id} className="space-y-1">
                   <button
