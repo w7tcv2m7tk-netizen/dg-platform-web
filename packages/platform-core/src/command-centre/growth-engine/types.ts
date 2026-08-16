@@ -60,13 +60,21 @@ export interface Prospect {
 }
 
 export interface ProspectAuditScores {
+  /** DigitalGate Business Health Score™ (composite). */
   businessHealth: number;
   aiVisibility?: number;
+  /** Search Visibility (SEO fundamentals + indexing signals). */
   seo?: number;
   websiteHealth?: number;
   googleBusinessProfile?: number;
   socialPresence?: number;
   digitalIdentity?: number;
+  /** Reputation & Presence (GBP / reviews / consistency signals). */
+  reputation?: number;
+  /** Conversion Readiness (CTAs, contact paths, forms). */
+  conversionReadiness?: number;
+  /** Business Growth Signals (systems that support visibility & leads). */
+  growthSignals?: number;
 }
 
 /** AI Audit Engine output for a prospect business */

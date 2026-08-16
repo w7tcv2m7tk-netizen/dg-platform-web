@@ -1,6 +1,6 @@
 /**
- * Free Business Audit nurture emails 2–5 (ported from WP marketing audit follow-ups).
- * Email 1 is the instant presence audit report.
+ * Free DigitalGate Business Audit™ nurture emails 2–5.
+ * Email 1 is the instant DigitalGate Business Health Score™ report.
  */
 
 export type FreeAuditEmailVars = {
@@ -12,6 +12,7 @@ export type FreeAuditEmailVars = {
   websiteScore: number;
   seoScore: number;
   overallScore: number;
+  opportunityCount?: number;
   strategyUrl?: string;
 };
 
@@ -33,27 +34,26 @@ export function renderFreeAuditFollowup(
   const company = vars.companyName || "your business";
   const ai = vars.aiScore;
   const web = vars.websiteScore;
+  const overall = vars.overallScore;
+  const opps = vars.opportunityCount ?? 3;
   const strategy = vars.strategyUrl || STRATEGY_DEFAULT;
 
   if (step === 2) {
     return {
-      subject: "Your AI Visibility Breakdown & What It Means",
+      subject: "Your AI Visibility Score™ — what it means",
       body: `Hi ${first},
 
-Let's break down your AI Visibility score for ${company}.
+Let's break down AI Visibility for ${company}.
 
-Your AI Visibility score is ${ai}% ${
+Your AI Visibility score is ${ai}/100 ${
         ai < 50
-          ? "— this means AI systems like ChatGPT and Google AI Mode are not currently recommending your business strongly."
-          : "— this is a solid foundation, but there's room to grow."
+          ? "— which means search and AI answer engines may not clearly understand or recommend your business yet."
+          : "— a solid foundation, with room to strengthen how AI systems interpret your business."
       }
 
-Here's how AI visibility works:
-- AI systems scan the web for consistent, trusted information
-- They look for authority signals, reviews, and local citations
-- The more consistent your presence, the higher your AI visibility
+We analyse structured data, entity clarity, machine-readable business information and other signals that influence how clearly your business can be understood by Google and AI search.
 
-Want to talk through your results? Book a free strategy session:
+Want DigitalGate to show you how we'd raise this score?
 ${strategy}
 
 — Ben Roe | DigitalGate`,
@@ -62,23 +62,20 @@ ${strategy}
 
   if (step === 3) {
     return {
-      subject: "Your Website Performance & Lead Generation Potential",
+      subject: "Website Health & Conversion Readiness",
       body: `Hi ${first},
 
-Let's talk about website performance for ${company}.
-
-Your website scored ${web}% on our live presence probe ${
+Your Website Health score for ${company} is ${web}/100 ${
         web < 50
-          ? "— which is below average. Potential customers may leave before enquiring."
-          : "— which is above average, giving you a good foundation."
+          ? "— below where we'd want it for trust and lead capture."
+          : "— a workable foundation we can still sharpen."
       }
 
-Key signals we look for:
-- HTTPS, mobile viewport, clear title and H1
-- Meta description and structured data (JSON-LD)
-- Open Graph tags for share and entity hints
+Your DigitalGate Business Health Score™ overall sits at ${overall}/100.
 
-See how we can improve this on a strategy call:
+We look at HTTPS, mobile readiness, homepage structure, calls to action, contact pathways and whether the site is designed to turn visitors into enquiries.
+
+See how we'd improve this on a strategy call:
 ${strategy}
 
 — Ben Roe | DigitalGate`,
@@ -87,14 +84,16 @@ ${strategy}
 
   if (step === 4) {
     return {
-      subject: "Action Plan: 3 Steps to Improve Your Visibility",
+      subject: `You have ${opps} opportunities — here's what we'd fix first`,
       body: `Hi ${first},
 
-Based on your audit for ${company}, here are the 3 most impactful actions you can take right now:
+Based on your DigitalGate Business Audit™ for ${company}, the highest-leverage moves usually sit in three places:
 
-1. Build local authority content — Create location-specific pages with clear answers to buyer questions
-2. Improve your Google Business Profile — Add photos, posts, and respond to all reviews
-3. Optimize for AI search — Structure content to answer common customer questions
+1. Technical & conversion foundations — HTTPS, mobile readiness, clear CTAs and enquiry paths
+2. Search & local presence — titles, descriptions, structured data and Google Business Profile signals
+3. AI Visibility — entity clarity and machine-readable business information for Google and AI search
+
+Your business has ${opps} significant opportunities. Would you like DigitalGate to show you how we'd address them?
 
 Book your free strategy session:
 ${strategy}
@@ -104,18 +103,20 @@ ${strategy}
   }
 
   return {
-    subject: "Final Step: Let's Build Your Growth Plan",
+    subject: "Final step: turn your audit into a DigitalGate plan",
     body: `Hi ${first},
 
-This is the final email in your Business Audit series for ${company}.
+This is the final email in your DigitalGate Business Audit™ series for ${company}.
 
 You've received:
-- Your presence audit scores and findings
-- An AI visibility breakdown
-- Website performance notes
-- 3 key actions to improve visibility
+- Your DigitalGate Business Health Score™ and pillar breakdown
+- An AI Visibility Score™ explanation
+- Website Health & conversion notes
+- Prioritised opportunities to improve visibility, trust and lead generation
 
-If you'd like a clear growth plan tailored to your business, book a free strategy session:
+The free audit is the diagnosis. DigitalGate is the system that helps you act on it.
+
+If you'd like a clear plan tailored to your business, book a free strategy session:
 ${strategy}
 
 — Ben Roe | DigitalGate
@@ -144,6 +145,7 @@ export type FreeAuditSequenceMeta = {
   websiteScore: number;
   seoScore: number;
   overallScore: number;
+  opportunityCount?: number;
 };
 
 export function buildFreeAuditSequenceStamp(input: {
@@ -156,6 +158,7 @@ export function buildFreeAuditSequenceStamp(input: {
   websiteScore: number;
   seoScore: number;
   overallScore: number;
+  opportunityCount?: number;
   email1Sent: boolean;
 }): FreeAuditSequenceMeta {
   const now = new Date().toISOString();
@@ -176,6 +179,7 @@ export function buildFreeAuditSequenceStamp(input: {
     websiteScore: input.websiteScore,
     seoScore: input.seoScore,
     overallScore: input.overallScore,
+    opportunityCount: input.opportunityCount,
   };
 }
 

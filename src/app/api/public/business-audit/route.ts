@@ -41,6 +41,7 @@ export async function POST(req: Request) {
     name?: string;
     email?: string;
     phone?: string;
+    industry?: string;
     /** honeypot */
     websiteHp?: string;
   } | null;
@@ -86,6 +87,7 @@ export async function POST(req: Request) {
       fullName: body.fullName?.trim() || body.name?.trim() || "",
       email: body.email,
       phone: body.phone,
+      industry: body.industry,
       website: body.websiteHp,
     });
     if (!result.ok) {

@@ -61,7 +61,7 @@ const HEADER_CTAS = {
     href: "/property-report",
   },
   digitalgate: {
-    label: "Get your free Business Audit",
+    label: "Get My Free Business Audit →",
     href: "/business-audit",
     backgroundColor: "#3B82F6",
   },

@@ -1,6 +1,7 @@
 /**
  * Public Gen 2 free Business Audit funnel (DigitalGate):
- * probe website → capture lead → presence audit email → follow-up sequence.
+ * probe website → preview DigitalGate Business Health Score™ → capture lead →
+ * DigitalGate Business Audit™ email → follow-up sequence.
  */
 
 import type { Prisma } from "@dg/database";
@@ -62,6 +63,83 @@ async function resolveDgOrgId(input: {
   return null;
 }
 
+export type PublicBusinessAuditPillars = {
+  websiteHealth: number;
+  searchVisibility: number;
+  aiVisibility: number;
+  reputation: number;
+  conversionReadiness: number;
+  growthSignals: number;
+};
+
+export type PublicBusinessAuditOpportunity = {
+  title: string;
+  detail: string;
+  severity: "critical" | "warning" | "opportunity";
+  recommendedAction?: string;
+};
+
+export type PublicBusinessAuditPreview = {
+  overallScore: number;
+  pillars: PublicBusinessAuditPillars;
+  opportunities: PublicBusinessAuditOpportunity[];
+};
+
+const POSITIVE_FINDING_TITLES = new Set([
+  "structured data present",
+]);
+
+function scorePillars(audit: PresenceAuditResult): PublicBusinessAuditPillars {
+  const s = audit.scores;
+  return {
+    websiteHealth: s.websiteHealth ?? 0,
+    searchVisibility: s.seo ?? 0,
+    aiVisibility: s.aiVisibility ?? 0,
+    reputation: s.reputation ?? s.googleBusinessProfile ?? 0,
+    conversionReadiness: s.conversionReadiness ?? 0,
+    growthSignals: s.growthSignals ?? 0,
+  };
+}
+
+function overallFromPillars(pillars: PublicBusinessAuditPillars): number {
+  return Math.round(
+    pillars.websiteHealth * 0.22 +
+      pillars.searchVisibility * 0.2 +
+      pillars.aiVisibility * 0.2 +
+      pillars.reputation * 0.14 +
+      pillars.conversionReadiness * 0.14 +
+      pillars.growthSignals * 0.1,
+  );
+}
+
+function prioritisedOpportunities(
+  audit: PresenceAuditResult,
+  limit = 5,
+): PublicBusinessAuditOpportunity[] {
+  const severityRank = { critical: 0, warning: 1, opportunity: 2 } as const;
+  return [...(audit.findings || [])]
+    .filter((f) => !POSITIVE_FINDING_TITLES.has(f.title.toLowerCase()))
+    .sort((a, b) => severityRank[a.severity] - severityRank[b.severity])
+    .slice(0, limit)
+    .map((f) => ({
+      title: f.title,
+      detail: f.detail,
+      severity: f.severity,
+      recommendedAction: f.recommendedAction,
+    }));
+}
+
+export function buildPublicBusinessAuditPreview(
+  audit: PresenceAuditResult,
+): PublicBusinessAuditPreview {
+  const pillars = scorePillars(audit);
+  return {
+    overallScore: audit.scores.businessHealth ?? overallFromPillars(pillars),
+    pillars,
+    opportunities: prioritisedOpportunities(audit, 5),
+  };
+}
+
 export type PublicBusinessAuditProbeResult =
   | {
       ok: true;
@@ -69,6 +147,9 @@ export type PublicBusinessAuditProbeResult =
       reachable: boolean | null;
       title: string | null;
       https: boolean | null;
+      overallScore: number;
+      pillars: PublicBusinessAuditPillars;
+      opportunities: PublicBusinessAuditOpportunity[];
     }
   | { ok: false; code: string; message: string };
 
@@ -78,6 +159,8 @@ export type PublicBusinessAuditSubmitResult =
       leadId: string;
       auditSent: boolean;
       overallScore: number;
+      pillars: PublicBusinessAuditPillars;
+      opportunities: PublicBusinessAuditOpportunity[];
       message: string;
     }
   | { ok: false; code: string; message: string };
@@ -92,7 +175,7 @@ export async function probePublicBusinessAuditWebsite(input: {
     return {
       ok: false,
       code: "validation_error",
-      message: "Enter a valid website URL (e.g. youragency.com.au).",
+      message: "Enter a valid website URL (e.g. yourbusiness.com.au).",
     };
   }
 
@@ -108,7 +191,9 @@ export async function probePublicBusinessAuditWebsite(input: {
   const audit = await runPresenceAudit({
     businessName: "Prospect",
     websiteUrl,
+    publicPreview: true,
   });
+  const preview = buildPublicBusinessAuditPreview(audit);
 
   return {
     ok: true,
@@ -116,6 +201,9 @@ export async function probePublicBusinessAuditWebsite(input: {
     reachable: audit.probes.reachable,
     title: audit.probes.title,
     https: audit.probes.https,
+    overallScore: preview.overallScore,
+    pillars: preview.pillars,
+    opportunities: preview.opportunities,
   };
 }
 
@@ -123,35 +211,39 @@ function renderAuditEmailBody(input: {
   firstName: string;
   companyName: string;
   websiteUrl: string;
+  industry?: string;
   audit: PresenceAuditResult;
+  preview: PublicBusinessAuditPreview;
 }): { subject: string; body: string; overall: number } {
-  const scores = input.audit.scores;
-  const overall = Math.round(
-    (scores.businessHealth ?? 0) * 0.4 +
-      (scores.websiteHealth ?? 0) * 0.25 +
-      (scores.seo ?? 0) * 0.2 +
-      (scores.aiVisibility ?? 0) * 0.15,
-  );
-  const findings = (input.audit.findings || [])
-    .slice(0, 8)
+  const { pillars, opportunities, overallScore: overall } = input.preview;
+  const findings = opportunities
     .map(
-      (f) =>
-        `- [${f.severity}] ${f.title}${f.detail ? ` — ${f.detail}` : ""}`,
+      (f, i) =>
+        `${i + 1}. [${f.severity}] ${f.title}${f.detail ? ` — ${f.detail}` : ""}${
+          f.recommendedAction ? ` → ${f.recommendedAction}` : ""
+        }`,
     )
     .join("\n");
 
   const body = `Hi ${input.firstName},
 
-Your free Business Audit for ${input.companyName} is ready.
+Your DigitalGate Business Audit™ for ${input.companyName} is ready.
 
-Website: ${input.websiteUrl}
+Your digital presence, visibility & growth report
+Website: ${input.websiteUrl}${
+    input.industry ? `\nIndustry: ${input.industry}` : ""
+  }
 
-SCORES (live presence probe)
-- Overall: ${overall}/100
-- Digital Business Health: ${scores.businessHealth ?? "—"}/100
-- Website Health: ${scores.websiteHealth ?? "—"}/100
-- SEO signals: ${scores.seo ?? "—"}/100
-- AI visibility signals: ${scores.aiVisibility ?? "—"}/100
+DIGITALGATE BUSINESS HEALTH SCORE™
+${overall}/100
+
+Pillar scores
+- Website Health: ${pillars.websiteHealth}/100
+- Search Visibility: ${pillars.searchVisibility}/100
+- AI Visibility: ${pillars.aiVisibility}/100
+- Reputation & Presence: ${pillars.reputation}/100
+- Conversion Readiness: ${pillars.conversionReadiness}/100
+- Business Growth Signals: ${pillars.growthSignals}/100
 
 ${
   input.audit.probes.title
@@ -160,19 +252,21 @@ ${
 }Reachable: ${input.audit.probes.reachable === true ? "Yes" : input.audit.probes.reachable === false ? "No" : "Unknown"}
 HTTPS: ${input.audit.probes.https ? "Yes" : "No"}
 
-KEY FINDINGS
-${findings || "- No critical findings from this probe."}
+HERE'S WHAT WE'D FIX FIRST
+${findings || "1. No critical gaps from this probe — we can still deepen the diagnosis on a strategy call."}
 
-These scores reflect observable website signals only — we never invent SEO or AI rankings.
+These scores reflect observable website and presence signals only — we never invent SEO or AI rankings.
 
-I'll send a short series of follow-ups with breakdowns and next steps. Or book a free strategy session anytime:
+Your business has ${opportunities.length || "a few"} significant opportunities. Would you like DigitalGate to show you how we'd address them?
+
+Book a free strategy session:
 https://digitalgate.com.au/strategy-session
 
 — Ben Roe | DigitalGate
 https://digitalgate.com.au`;
 
   return {
-    subject: `Your Business Audit Results — ${input.companyName}`,
+    subject: `Your DigitalGate Business Audit™ — ${input.companyName} (${overall}/100)`,
     body,
     overall,
   };
@@ -186,6 +280,7 @@ export async function submitPublicBusinessAudit(input: {
   fullName: string;
   email?: string;
   phone?: string;
+  industry?: string;
   website?: string;
 }): Promise<PublicBusinessAuditSubmitResult> {
   if (input.website?.trim()) {
@@ -194,6 +289,15 @@ export async function submitPublicBusinessAudit(input: {
       leadId: "honeypot",
       auditSent: false,
       overallScore: 0,
+      pillars: {
+        websiteHealth: 0,
+        searchVisibility: 0,
+        aiVisibility: 0,
+        reputation: 0,
+        conversionReadiness: 0,
+        growthSignals: 0,
+      },
+      opportunities: [],
       message: "Audit request received.",
     };
   }
@@ -202,6 +306,7 @@ export async function submitPublicBusinessAudit(input: {
   const businessName = input.businessName?.trim() || "";
   const email = input.email?.trim() || "";
   const phone = input.phone?.trim() || "";
+  const industry = input.industry?.trim() || "";
   const websiteUrl = normaliseWebsiteUrl(input.websiteUrl);
 
   if (!websiteUrl) {
@@ -225,11 +330,11 @@ export async function submitPublicBusinessAudit(input: {
       message: "Full name is required.",
     };
   }
-  if (!email && !phone) {
+  if (!email) {
     return {
       ok: false,
       code: "validation_error",
-      message: "Please provide either an email or mobile number.",
+      message: "Email is required to send your full DigitalGate Business Audit™.",
     };
   }
 
@@ -246,55 +351,63 @@ export async function submitPublicBusinessAudit(input: {
   const parts = fullName.split(/\s+/);
 
   let contactId: string | undefined;
-  if (email || phone) {
-    try {
-      const contact = await createContact({
-        organisationId,
-        firstName: parts[0] ?? fullName,
-        lastName: parts.slice(1).join(" ") || undefined,
-        email: email || undefined,
-        phone: phone || undefined,
-        source: "free_audit",
-      });
-      contactId = contact.id;
-    } catch (err) {
-      console.info("[public-business-audit] contact create", err);
-    }
+  try {
+    const contact = await createContact({
+      organisationId,
+      firstName: parts[0] ?? fullName,
+      lastName: parts.slice(1).join(" ") || undefined,
+      email,
+      phone: phone || undefined,
+      source: "free_audit",
+    });
+    contactId = contact.id;
+  } catch (err) {
+    console.info("[public-business-audit] contact create", err);
   }
 
   const audit = await runPresenceAudit({
     businessName,
     websiteUrl,
-    contactEmail: email || null,
+    industry: industry || null,
+    contactEmail: email,
     contactPhone: phone || null,
+    publicPreview: false,
   });
+  const preview = buildPublicBusinessAuditPreview(audit);
 
   const report = renderAuditEmailBody({
     firstName,
     companyName: businessName,
     websiteUrl,
+    industry: industry || undefined,
     audit,
+    preview,
   });
 
   const lead = await createLead({
     organisationId,
     source: "free_audit",
-    title: `Business Audit — ${businessName}`,
+    title: `DigitalGate Business Audit™ — ${businessName}`,
     description: websiteUrl,
     contactId,
     status: "new",
     metadata: {
       lead_type: "marketing",
       capture_path: "gen2_public_business_audit",
+      product: "digitalgate_business_audit",
       website_url: websiteUrl,
       business_name: businessName,
       contact_name: fullName,
-      email: email || undefined,
+      email,
       phone: phone || undefined,
+      industry: industry || undefined,
       audit_scores: audit.scores,
+      audit_pillars: preview.pillars,
       audit_findings: audit.findings,
+      audit_opportunities: preview.opportunities,
       audit_probes: audit.probes,
       overall_score: report.overall,
+      business_health_score: report.overall,
     },
     externalRefs: {
       capture_path: "gen2_public_business_audit",
@@ -302,70 +415,70 @@ export async function submitPublicBusinessAudit(input: {
   });
 
   let auditSent = false;
-  if (email) {
-    try {
-      const delivery = await sendMessage({
-        organisationId,
-        channel: "email",
-        to: email,
-        subject: report.subject,
-        body: report.body,
-        metadata: {
-          purpose: "free_audit_report",
-          leadId: lead.id,
-          footerNote:
-            "Scores from a live website presence probe. Not a formal SEO ranking report.",
-        },
-      });
-      auditSent = delivery.status === "sent" || delivery.status === "queued";
-    } catch (err) {
-      console.info("[public-business-audit] report email failed", err);
-    }
-
-    const sequence = buildFreeAuditSequenceStamp({
-      firstName,
-      fullName,
-      companyName: businessName,
-      websiteUrl,
-      email,
-      aiScore: audit.scores.aiVisibility ?? 0,
-      websiteScore: audit.scores.websiteHealth ?? 0,
-      seoScore: audit.scores.seo ?? 0,
-      overallScore: report.overall,
-      email1Sent: auditSent,
+  try {
+    const delivery = await sendMessage({
+      organisationId,
+      channel: "email",
+      to: email,
+      subject: report.subject,
+      body: report.body,
+      metadata: {
+        purpose: "free_audit_report",
+        leadId: lead.id,
+        footerNote:
+          "DigitalGate Business Health Score™ from a live website presence probe. Not a formal SEO ranking report.",
+      },
     });
-
-    const { prisma } = await import("@dg/database");
-    const current = await prisma.lead.findFirst({ where: { id: lead.id } });
-    if (current) {
-      const prev = (current.metadata as Record<string, unknown> | null) ?? {};
-      await prisma.lead.update({
-        where: { id: lead.id },
-        data: {
-          metadata: {
-            ...prev,
-            free_audit_sequence: sequence,
-          } as Prisma.InputJsonValue,
-        },
-      });
-    }
+    auditSent = delivery.status === "sent" || delivery.status === "queued";
+  } catch (err) {
+    console.info("[public-business-audit] report email failed", err);
   }
 
-  // Admin notify
+  const sequence = buildFreeAuditSequenceStamp({
+    firstName,
+    fullName,
+    companyName: businessName,
+    websiteUrl,
+    email,
+    aiScore: preview.pillars.aiVisibility,
+    websiteScore: preview.pillars.websiteHealth,
+    seoScore: preview.pillars.searchVisibility,
+    overallScore: report.overall,
+    opportunityCount: preview.opportunities.length,
+    email1Sent: auditSent,
+  });
+
+  const { prisma } = await import("@dg/database");
+  const current = await prisma.lead.findFirst({ where: { id: lead.id } });
+  if (current) {
+    const prev = (current.metadata as Record<string, unknown> | null) ?? {};
+    await prisma.lead.update({
+      where: { id: lead.id },
+      data: {
+        metadata: {
+          ...prev,
+          free_audit_sequence: sequence,
+        } as Prisma.InputJsonValue,
+      },
+    });
+  }
+
   const adminTo =
     process.env.DG_BUSINESS_AUDIT_ADMIN_EMAIL?.trim() ||
     "hello@digitalgate.com.au";
   try {
     const mail = getTransactionalEmailProvider();
     const text = [
-      "New free Business Audit request",
+      "New DigitalGate Business Audit™ request",
       "",
       `Business: ${businessName}`,
       `Website: ${websiteUrl}`,
+      `Industry: ${industry || "Not provided"}`,
       `Name: ${fullName}`,
-      `Email: ${email || "Not provided"}`,
+      `Email: ${email}`,
       `Phone: ${phone || "Not provided"}`,
-      `Overall score: ${report.overall}`,
+      `Business Health Score: ${report.overall}`,
+      `Opportunities: ${preview.opportunities.length}`,
       `Audit emailed: ${auditSent ? "yes" : "no"}`,
     ].join("\n");
     if (mail.isConfigured()) {
@@ -395,8 +508,10 @@ export async function submitPublicBusinessAudit(input: {
     leadId: lead.id,
     auditSent,
     overallScore: report.overall,
+    pillars: preview.pillars,
+    opportunities: preview.opportunities,
     message: auditSent
-      ? "Your Business Audit is on its way — check your inbox shortly."
+      ? "Your DigitalGate Business Audit™ is on its way — check your inbox shortly."
       : "Audit request received! We'll be in touch shortly.",
   };
 }
@@ -449,6 +564,7 @@ export async function processFreeAuditFollowups(options?: {
         websiteScore: sequence.websiteScore,
         seoScore: sequence.seoScore,
         overallScore: sequence.overallScore,
+        opportunityCount: sequence.opportunityCount,
       });
 
       try {
