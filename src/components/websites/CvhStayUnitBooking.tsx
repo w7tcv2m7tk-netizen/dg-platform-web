@@ -771,11 +771,20 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
           </div>
 
           <p className="cvh-stay-links">
-            <a href={unitHref(basePath, "stay")}>All stays</a>
+            <a href={unitHref(basePath, "stay")}>Return to Units</a>
             <a href={unitHref(basePath, "gallery")}>Gallery</a>
             <a href={unitHref(basePath, "contact")}>Contact</a>
           </p>
         </aside>
+      </div>
+
+      <div className="cvh-stay-return">
+        <a
+          className="cvh-stay-return-btn"
+          href={unitHref(basePath, "stay")}
+        >
+          ← Return to Units
+        </a>
       </div>
 
       {lightboxOpen && lightboxSrc ? (

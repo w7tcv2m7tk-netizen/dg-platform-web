@@ -3311,6 +3311,63 @@ a.wb-brand-chrome-cta:hover {
   color: #6b5428;
   font-weight: 600;
 }
+.cvh-stay-return {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 1.25rem 2.75rem;
+  background: #f5f2ef;
+}
+.cvh-stay-return-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.75rem 1.6rem;
+  border-radius: 999px;
+  background: #b9a48a;
+  color: #ffffff !important;
+  font-family: Georgia, "Iowan Old Style", Palatino, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.cvh-stay-return-btn:hover {
+  background: #a89278;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+/* HTML unit detail pages (domes / shed stubs) */
+.wb-html-page .cvh-unit-return,
+.wb-root .wb-html-island .cvh-unit-return {
+  display: flex;
+  justify-content: center;
+  padding: 1.75rem 1.25rem 2.5rem;
+}
+.wb-html-page .cvh-unit-return-btn,
+.wb-root .wb-html-island .cvh-unit-return-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.75rem 1.6rem;
+  border-radius: 999px;
+  background: #b9a48a !important;
+  color: #ffffff !important;
+  font-family: Georgia, "Iowan Old Style", Palatino, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none !important;
+}
+.wb-html-page .cvh-unit-return-btn:hover,
+.wb-root .wb-html-island .cvh-unit-return-btn:hover {
+  background: #a89278 !important;
+  color: #ffffff !important;
+}
+
 @media (max-width: 900px) {
   .cvh-stay-layout {
     grid-template-columns: 1fr;
