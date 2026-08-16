@@ -111,6 +111,8 @@ function slugOf(page: SerializedWebsitePage): string {
 /** Listing hub + individual property detail pages (`properties` / legacy `property`, `property/...`). */
 export function isPropertyListingPage(page: SerializedWebsitePage): boolean {
   const slug = slugOf(page);
+  const intent = (page.intent || "").toLowerCase();
+  if (intent === "redirect") return false;
   return (
     slug === "properties" ||
     slug === "property" ||
