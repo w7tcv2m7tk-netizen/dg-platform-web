@@ -202,6 +202,11 @@ export default async function middleware(req: NextRequest, event: unknown) {
 
     // Roe Realty WP leftovers: booking aliases → live booking apps
     if (/(^|\.)roerealty\.com\.au$/i.test(hostname)) {
+      if (/^\/property\/?$/i.test(path)) {
+        const dest = req.nextUrl.clone();
+        dest.pathname = "/properties";
+        return NextResponse.redirect(dest, 308);
+      }
       if (
         /^\/free-property-appraisal\/?$/i.test(path) ||
         /^\/property-appraisal-gold-coast\/?$/i.test(path)

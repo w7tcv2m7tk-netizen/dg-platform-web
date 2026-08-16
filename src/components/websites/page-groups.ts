@@ -108,10 +108,14 @@ function slugOf(page: SerializedWebsitePage): string {
   return (page.slug || "").toLowerCase().replace(/^\/+|\/+$/g, "");
 }
 
-/** Listing hub + individual property detail pages (`property`, `property/...`). */
+/** Listing hub + individual property detail pages (`properties` / legacy `property`, `property/...`). */
 export function isPropertyListingPage(page: SerializedWebsitePage): boolean {
   const slug = slugOf(page);
-  return slug === "property" || slug.startsWith("property/");
+  return (
+    slug === "properties" ||
+    slug === "property" ||
+    slug.startsWith("property/")
+  );
 }
 
 /** Collect slugs referenced by Insights post grids (treated as Posts). */
