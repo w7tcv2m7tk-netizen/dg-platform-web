@@ -1,4 +1,4 @@
-import { getPublicStayUnit, getWebsiteBySlug, resolveStayUnitSlug } from "@dg/platform-core";
+import { getPublicStayUnit, getWebsiteBySlug, resolvePageChromeVisibility, resolveStayUnitSlug } from "@dg/platform-core";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -82,6 +82,10 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
   const stayUnit = staySlug
     ? await getPublicStayUnit(site.organisationId, staySlug)
     : null;
+  const { showHeader, showFooter } = resolvePageChromeVisibility(
+    page.slug,
+    page.seo,
+  );
   const title = page.seo?.title || `${page.title} | ${site.name}`;
   const description =
     page.seo?.description || site.seo?.description || site.name;
@@ -109,6 +113,8 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
         pageSlug={page.slug}
         chrome={chrome}
         stayUnit={stayUnit}
+        showHeader={showHeader}
+        showFooter={showFooter}
       />
     </>
   );

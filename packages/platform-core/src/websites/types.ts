@@ -112,6 +112,16 @@ export type WebsiteSeo = {
   ogTitle?: string;
   ogDescription?: string;
   ogImage?: string;
+  /**
+   * Site header/nav on this page. When omitted, auto-hides for card, legal,
+   * privacy, terms, onboarding, and booking application/confirmation pages.
+   */
+  showHeader?: boolean;
+  /**
+   * Site footer on this page. When omitted, follows the same auto-hide rules
+   * as showHeader.
+   */
+  showFooter?: boolean;
 };
 
 export type WebsiteStatus = "draft" | "published" | "archived";

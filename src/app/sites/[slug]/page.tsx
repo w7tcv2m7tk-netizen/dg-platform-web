@@ -1,4 +1,4 @@
-import { getWebsiteBySlug } from "@dg/platform-core";
+import { getWebsiteBySlug, resolvePageChromeVisibility } from "@dg/platform-core";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -119,6 +119,7 @@ export default async function PublicSiteHomePage({ params, searchParams }: Props
         siteSlug={slug}
         pageSlug={home.slug}
         chrome={chrome}
+        {...resolvePageChromeVisibility(home.slug, home.seo)}
       />
     </>
   );

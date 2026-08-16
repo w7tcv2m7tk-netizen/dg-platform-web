@@ -5,6 +5,7 @@ export * from "./templates";
 export * from "./funnels";
 export * from "./generate";
 export * from "./crud";
+export * from "./page-chrome";
 export * from "./assist";
 export * from "./form-capture";
 export * from "./native-health";

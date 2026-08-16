@@ -8,6 +8,8 @@ import type {
 } from "@dg/platform-core";
 
 import { CvhStayUnitBooking } from "@/components/websites/CvhStayUnitBooking";
+import { BusinessAuditCapture } from "@/components/websites/BusinessAuditCapture";
+import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
 import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
 import { ChromeHeaderHtml } from "@/components/websites/ChromeHeaderHtml";
 import { stripCvhFooterExploreColumn } from "@/lib/strip-cvh-footer-explore";
@@ -785,6 +787,8 @@ export function WebsitePageRenderer({
   pageSlug,
   chrome,
   stayUnit,
+  showHeader = true,
+  showFooter = true,
 }: {
   components: WebsiteComponent[];
   theme: WebsiteTheme;
@@ -794,20 +798,29 @@ export function WebsitePageRenderer({
   chrome?: WebsiteChrome | null;
   /** Gen 2 bookable stay (Private Studio / Tiny Home) — replaces thin HTML stubs */
   stayUnit?: PublicStayUnitPayload | null;
+  /** When false, site header/nav is omitted (card, legal, Studio override, …) */
+  showHeader?: boolean;
+  /** When false, site footer is omitted */
+  showFooter?: boolean;
 }) {
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
   const bg = theme.backgroundColor || "#0c1222";
-  const headerHtml = chrome?.headerHtml?.trim() || "";
+  const headerHtmlRaw = chrome?.headerHtml?.trim() || "";
+  const headerHtml = showHeader ? headerHtmlRaw : "";
   const useBrandHeader =
-    !headerHtml && Boolean(theme.logoUrl || theme.iconUrl);
+    showHeader && !headerHtml && Boolean(theme.logoUrl || theme.iconUrl);
   const footerHtmlRaw = chrome?.footerHtml?.trim() || "";
-  const footerHtml =
+  const footerHtmlPrepared =
     /currumbin|hideaway/i.test(siteSlug) && footerHtmlRaw
       ? stripCvhFooterExploreColumn(footerHtmlRaw)
       : footerHtmlRaw;
-  const useBrandFooter = useBrandHeader && !footerHtml;
-  const overlayHeader = Boolean(chrome?.overlayHeader);
+  const footerHtml = showFooter ? footerHtmlPrepared : "";
+  const useBrandFooter =
+    showFooter &&
+    !footerHtmlPrepared &&
+    Boolean(theme.logoUrl || theme.iconUrl);
+  const overlayHeader = showHeader && Boolean(chrome?.overlayHeader);
   const hasChrome = Boolean(
     headerHtml || footerHtml || useBrandHeader || useBrandFooter,
   );
@@ -923,16 +936,24 @@ export function WebsitePageRenderer({
           basePath={basePath}
         />
       ) : (
-        components.map((c) => (
-          <WebsiteComponentView
-            key={c.id}
-            component={c}
-            theme={theme}
-            basePath={basePath}
-            siteSlug={siteSlug}
-            pageSlug={pageSlug}
-          />
-        ))
+        <>
+          {pageSlug === "property-report" ? (
+            <PropertyReportCapture siteSlug={siteSlug} basePath={basePath} />
+          ) : null}
+          {pageSlug === "business-audit" ? (
+            <BusinessAuditCapture siteSlug={siteSlug} basePath={basePath} />
+          ) : null}
+          {components.map((c) => (
+            <WebsiteComponentView
+              key={c.id}
+              component={c}
+              theme={theme}
+              basePath={basePath}
+              siteSlug={siteSlug}
+              pageSlug={pageSlug}
+            />
+          ))}
+        </>
       )}
       {footerHtml ? (
         <section

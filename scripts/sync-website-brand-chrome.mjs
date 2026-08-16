@@ -58,7 +58,12 @@ const HEADER_CTAS = {
   },
   "roe-realty": {
     label: "Get Property Report",
-    href: "/sell",
+    href: "/property-report",
+  },
+  digitalgate: {
+    label: "Get your free Business Audit",
+    href: "/business-audit",
+    backgroundColor: "#3B82F6",
   },
 };
 

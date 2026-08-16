@@ -1,4 +1,4 @@
-import { findDomainByHostname, getPublicStayUnit, getWebsiteBySlug, resolveStayUnitSlug } from "@dg/platform-core";
+import { findDomainByHostname, getPublicStayUnit, getWebsiteBySlug, resolvePageChromeVisibility, resolveStayUnitSlug } from "@dg/platform-core";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
@@ -185,6 +185,10 @@ async function renderSite(
   const stayUnit = staySlug
     ? await getPublicStayUnit(site.organisationId, staySlug)
     : null;
+  const { showHeader, showFooter } = resolvePageChromeVisibility(
+    page.slug,
+    page.seo,
+  );
 
   return (
     <>
@@ -214,6 +218,8 @@ async function renderSite(
         pageSlug={page.slug}
         chrome={chrome}
         stayUnit={stayUnit}
+        showHeader={showHeader}
+        showFooter={showFooter}
       />
     </>
   );

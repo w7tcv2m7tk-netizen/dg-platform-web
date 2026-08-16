@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import type { SerializedWebsite, WebsiteSeo } from "@dg/platform-core";
+import {
+  isDefaultChromelessPage,
+  resolvePageChromeVisibility,
+} from "@dg/platform-core";
 
 function Field({
   label,
@@ -245,6 +249,62 @@ export function StudioSeoPanel({
             disabled={disabled || busy}
             onChange={setPageSeo}
           />
+          <div className="rounded-md border border-slate-800 bg-slate-900/40 p-3 space-y-2">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">
+              Header & footer
+            </p>
+            {(() => {
+              const visibility = resolvePageChromeVisibility(
+                pageSlug || page.slug,
+                pageSeo,
+              );
+              return (
+                <>
+                  <label className="flex items-center gap-2 text-sm text-slate-300">
+                    <input
+                      type="checkbox"
+                      className="rounded border-slate-600 bg-slate-900"
+                      checked={visibility.showHeader}
+                      disabled={disabled || busy}
+                      onChange={(e) =>
+                        setPageSeo({
+                          ...pageSeo,
+                          showHeader: e.target.checked,
+                        })
+                      }
+                    />
+                    Show site header
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-slate-300">
+                    <input
+                      type="checkbox"
+                      className="rounded border-slate-600 bg-slate-900"
+                      checked={visibility.showFooter}
+                      disabled={disabled || busy}
+                      onChange={(e) =>
+                        setPageSeo({
+                          ...pageSeo,
+                          showFooter: e.target.checked,
+                        })
+                      }
+                    />
+                    Show site footer
+                  </label>
+                  {isDefaultChromelessPage(pageSlug || page.slug) ? (
+                    <p className="text-[11px] text-slate-500">
+                      Auto-hidden for card / legal / privacy / terms /
+                      onboarding / booking pages unless you turn them back on.
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-slate-500">
+                      Uncheck to hide chrome on this page only. Saved with page
+                      SEO.
+                    </p>
+                  )}
+                </>
+              );
+            })()}
+          </div>
           <button
             type="button"
             disabled={disabled || busy}

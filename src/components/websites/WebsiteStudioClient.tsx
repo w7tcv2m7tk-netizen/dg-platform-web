@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import type { SerializedWebsite, WebsiteComponent } from "@dg/platform-core";
+import type {
+  SerializedWebsite,
+  WebsiteComponent,
+} from "@dg/platform-core";
+import {
+  isDefaultChromelessPage,
+  resolvePageChromeVisibility,
+} from "@dg/platform-core";
 
 import { MakeItLivePanel } from "@/components/websites/MakeItLivePanel";
 import { groupWebsitePages } from "@/components/websites/page-groups";
@@ -218,6 +225,44 @@ export function WebsiteStudioClient({
     }
     await refreshFromServer();
     setStatus("Component saved");
+    setBusy(false);
+  }
+
+  async function savePageChrome(next: {
+    showHeader: boolean;
+    showFooter: boolean;
+  }) {
+    if (!page) return;
+    setBusy(true);
+    const res = await fetch(
+      `/api/v1/websites/${website.id}/pages/${page.id}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          seo: {
+            ...(page.seo ?? {}),
+            showHeader: next.showHeader,
+            showFooter: next.showFooter,
+          },
+        }),
+      },
+    );
+    const json = (await res.json()) as {
+      data?: { id: string };
+      error?: { message?: string };
+    };
+    if (!res.ok) {
+      setStatus(json.error?.message || "Could not save page chrome");
+      setBusy(false);
+      return;
+    }
+    await refreshFromServer();
+    setStatus(
+      next.showHeader || next.showFooter
+        ? "Page header/footer updated"
+        : "Header and footer hidden on this page",
+    );
     setBusy(false);
   }
 
@@ -692,12 +737,64 @@ export function WebsiteStudioClient({
               const footerLen = chrome?.footerHtml?.trim()?.length ?? 0;
               const hasBrand =
                 Boolean(website.theme?.logoUrl || website.theme?.iconUrl);
+              const visibility = page
+                ? resolvePageChromeVisibility(page.slug, page.seo)
+                : { showHeader: true, showFooter: true };
+              const autoHidden = page
+                ? isDefaultChromelessPage(page.slug)
+                : false;
               return (
-                <div className="space-y-2 text-sm text-slate-400">
+                <div className="space-y-3 text-sm text-slate-400">
                   <p>
-                    Header and footer are <span className="text-slate-300">site-wide chrome</span>, not
-                    page components — they only appear on the published/preview site.
+                    Header and footer are{" "}
+                    <span className="text-slate-300">site-wide chrome</span>.
+                    Toggle them per page below — card, legal, privacy, terms,
+                    onboarding, and booking confirmation pages hide them by
+                    default.
                   </p>
+                  {page ? (
+                    <div className="space-y-2 rounded-md border border-slate-800 bg-slate-900/50 p-2.5">
+                      <p className="text-[11px] uppercase tracking-wide text-slate-500">
+                        This page — /{page.slug}
+                      </p>
+                      <label className="flex items-center gap-2 text-sm text-slate-300">
+                        <input
+                          type="checkbox"
+                          className="rounded border-slate-600 bg-slate-900"
+                          checked={visibility.showHeader}
+                          disabled={busy}
+                          onChange={(e) =>
+                            void savePageChrome({
+                              showHeader: e.target.checked,
+                              showFooter: visibility.showFooter,
+                            })
+                          }
+                        />
+                        Show site header
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-slate-300">
+                        <input
+                          type="checkbox"
+                          className="rounded border-slate-600 bg-slate-900"
+                          checked={visibility.showFooter}
+                          disabled={busy}
+                          onChange={(e) =>
+                            void savePageChrome({
+                              showHeader: visibility.showHeader,
+                              showFooter: e.target.checked,
+                            })
+                          }
+                        />
+                        Show site footer
+                      </label>
+                      {autoHidden ? (
+                        <p className="text-[11px] text-slate-500">
+                          Auto-hidden for this page type. Turn on if you want
+                          nav back.
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <ul className="space-y-1 text-xs">
                     <li>
                       Header HTML:{" "}
