@@ -1,7 +1,10 @@
 import { getWebsiteBySlug, resolveFunnelTemplate, resolvePageChromeVisibility } from "@dg/platform-core";
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { BusinessAuditCapture } from "@/components/websites/BusinessAuditCapture";
+import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
 import { WebsitePageRenderer } from "@/components/websites/WebsiteRenderer";
 import { websiteRendererCss } from "@/components/websites/website-renderer-css";
 
@@ -43,30 +46,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = home?.seo?.title || site.seo?.title || site.name;
   const description =
     home?.seo?.description || site.seo?.description || site.name;
-  const ogTitle = home?.seo?.ogTitle || site.seo?.ogTitle || title;
-  const ogDescription =
-    home?.seo?.ogDescription || site.seo?.ogDescription || description;
-  const ogImage = home?.seo?.ogImage || site.seo?.ogImage;
-  const keywords = home?.seo?.keywords?.length
-    ? home.seo.keywords
-    : site.seo?.keywords;
-
-  return {
-    title,
-    description,
-    ...(keywords?.length ? { keywords } : {}),
-    openGraph: {
-      title: ogTitle,
-      description: ogDescription,
-      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
-    },
-  };
+  return { title, description, applicationName: site.name };
 }
 
-export default async function PublicSiteHomePage({ params, searchParams }: Props) {
+export default async function PublicSiteHomePage({
+  params,
+  searchParams,
+}: Props) {
   const { slug } = await params;
-  const { preview } = await searchParams;
-  const allowDraft = preview === "1";
+  const search = await searchParams;
+  const allowDraft = search.preview === "1";
 
   const site = await getWebsiteBySlug(slug);
   if (!site) notFound();
@@ -78,10 +67,16 @@ export default async function PublicSiteHomePage({ params, searchParams }: Props
   const theme = site.theme ?? {};
   const siteMeta = site.metadata as Record<string, unknown> | null | undefined;
   const chrome = chromeFromSite(siteMeta);
-  const funnelTemplate = resolveFunnelTemplate({
-    metadata: siteMeta,
-    slug,
-  });
+  const funnelTemplate =
+    resolveFunnelTemplate({
+      metadata: siteMeta,
+      slug,
+    }) ||
+    (slug === "roe-realty-report" || home.slug === "property-report"
+      ? "property_report"
+      : slug === "digitalgate-audit" || home.slug === "business-audit"
+        ? "business_audit"
+        : null);
   const title = home.seo?.title || site.seo?.title || site.name;
   const description =
     home.seo?.description || site.seo?.description || site.name;
@@ -124,27 +119,63 @@ export default async function PublicSiteHomePage({ params, searchParams }: Props
           Preview · draft — not published
         </div>
       ) : null}
-      <WebsitePageRenderer
-        components={
-          funnelTemplate === "business_audit" ||
-          funnelTemplate === "property_report"
-            ? []
-            : home.components
-        }
-        theme={theme}
-        basePath={`/sites/${slug}`}
-        siteSlug={slug}
-        pageSlug={home.slug}
-        chrome={
-          funnelTemplate === "business_audit" ||
-          funnelTemplate === "property_report"
-            ? null
-            : chrome
-        }
-        showHeader={showHeader}
-        showFooter={showFooter}
-        funnelTemplate={funnelTemplate}
-      />
+      {funnelTemplate === "property_report" ? (
+        <div
+          className="wb-root wb-html-page wb-full-bleed wb-product-funnel"
+          style={
+            {
+              ["--wb-primary"]: theme.primaryColor || "#C9A46C",
+              ["--wb-accent"]: theme.accentColor || "#1C2B2A",
+              ["--wb-bg"]: theme.backgroundColor || "#1C2B2A",
+              minHeight: "100dvh",
+              width: "100%",
+              margin: 0,
+              padding: 0,
+              background: "#1C2B2A",
+            } as CSSProperties
+          }
+        >
+          <PropertyReportCapture
+            siteSlug={slug}
+            basePath={`/sites/${slug}`}
+            variant="funnel"
+          />
+        </div>
+      ) : funnelTemplate === "business_audit" ? (
+        <div
+          className="wb-root wb-html-page wb-full-bleed wb-product-funnel"
+          style={
+            {
+              ["--wb-primary"]: theme.primaryColor || "#3B82F6",
+              ["--wb-accent"]: theme.accentColor || "#10B981",
+              ["--wb-bg"]: theme.backgroundColor || "#0A0E17",
+              minHeight: "100dvh",
+              width: "100%",
+              margin: 0,
+              padding: 0,
+              background: "#0A0E17",
+            } as CSSProperties
+          }
+        >
+          <BusinessAuditCapture
+            siteSlug={slug}
+            basePath={`/sites/${slug}`}
+            variant="funnel"
+          />
+        </div>
+      ) : (
+        <WebsitePageRenderer
+          components={home.components}
+          theme={theme}
+          basePath={`/sites/${slug}`}
+          siteSlug={slug}
+          pageSlug={home.slug}
+          chrome={chrome}
+          showHeader={showHeader}
+          showFooter={showFooter}
+          funnelTemplate={funnelTemplate}
+        />
+      )}
     </>
   );
 }

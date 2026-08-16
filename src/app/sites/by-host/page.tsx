@@ -1,8 +1,11 @@
 import { findDomainByHostname, getPublicStayUnit, getWebsiteBySlug, resolveFunnelTemplate, resolvePageChromeVisibility, resolveStayUnitSlug } from "@dg/platform-core";
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
+import { BusinessAuditCapture } from "@/components/websites/BusinessAuditCapture";
+import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
 import { WebsitePageRenderer } from "@/components/websites/WebsiteRenderer";
 import { websiteRendererCss } from "@/components/websites/website-renderer-css";
 
@@ -185,11 +188,17 @@ async function renderSite(
   const siteMeta = site.metadata as Record<string, unknown> | null | undefined;
   const chrome = chromeFromSite(siteMeta);
   const hostname = await resolveRequestHost();
-  const funnelTemplate = resolveFunnelTemplate({
-    metadata: siteMeta,
-    slug,
-    hostname,
-  });
+  const funnelTemplate =
+    resolveFunnelTemplate({
+      metadata: siteMeta,
+      slug,
+      hostname,
+    }) ||
+    (slug === "roe-realty-report" || page.slug === "property-report"
+      ? "property_report"
+      : slug === "digitalgate-audit" || page.slug === "business-audit"
+        ? "business_audit"
+        : null);
   const staySlug = resolveStayUnitSlug(page.slug);
   const stayUnit = staySlug
     ? await getPublicStayUnit(site.organisationId, staySlug)
@@ -224,28 +233,64 @@ async function renderSite(
           Preview · draft — not published
         </div>
       ) : null}
-      <WebsitePageRenderer
-        components={
-          funnelTemplate === "business_audit" ||
-          funnelTemplate === "property_report"
-            ? []
-            : (page.components ?? [])
-        }
-        theme={theme}
-        basePath=""
-        siteSlug={slug}
-        pageSlug={page.slug}
-        chrome={
-          funnelTemplate === "business_audit" ||
-          funnelTemplate === "property_report"
-            ? null
-            : chrome
-        }
-        stayUnit={stayUnit}
-        showHeader={showHeader}
-        showFooter={showFooter}
-        funnelTemplate={funnelTemplate}
-      />
+      {funnelTemplate === "property_report" ? (
+        <div
+          className="wb-root wb-html-page wb-full-bleed wb-product-funnel"
+          style={
+            {
+              ["--wb-primary"]: theme.primaryColor || "#C9A46C",
+              ["--wb-accent"]: theme.accentColor || "#1C2B2A",
+              ["--wb-bg"]: theme.backgroundColor || "#1C2B2A",
+              minHeight: "100dvh",
+              width: "100%",
+              margin: 0,
+              padding: 0,
+              background: "#1C2B2A",
+            } as CSSProperties
+          }
+        >
+          <PropertyReportCapture
+            siteSlug={slug}
+            basePath=""
+            variant="funnel"
+          />
+        </div>
+      ) : funnelTemplate === "business_audit" ? (
+        <div
+          className="wb-root wb-html-page wb-full-bleed wb-product-funnel"
+          style={
+            {
+              ["--wb-primary"]: theme.primaryColor || "#3B82F6",
+              ["--wb-accent"]: theme.accentColor || "#10B981",
+              ["--wb-bg"]: theme.backgroundColor || "#0A0E17",
+              minHeight: "100dvh",
+              width: "100%",
+              margin: 0,
+              padding: 0,
+              background: "#0A0E17",
+            } as CSSProperties
+          }
+        >
+          <BusinessAuditCapture
+            siteSlug={slug}
+            basePath=""
+            variant="funnel"
+          />
+        </div>
+      ) : (
+        <WebsitePageRenderer
+          components={page.components ?? []}
+          theme={theme}
+          basePath=""
+          siteSlug={slug}
+          pageSlug={page.slug}
+          chrome={chrome}
+          stayUnit={stayUnit}
+          showHeader={showHeader}
+          showFooter={showFooter}
+          funnelTemplate={funnelTemplate}
+        />
+      )}
     </>
   );
 }
