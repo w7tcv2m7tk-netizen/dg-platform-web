@@ -227,202 +227,470 @@ function aud(amount: number | undefined | null): string | null {
   return `$${amount.toLocaleString("en-AU")}`;
 }
 
-function sectionNote(
-  status: string | undefined,
-  emptyCopy: string,
-): string {
-  if (status === "ok") return "";
-  if (status === "unavailable") {
-    return `_Not available from Cotality for this property (${emptyCopy})._`;
+function formatReportDate(value?: string | null): string | null {
+  if (!value?.trim()) return null;
+  const d = new Date(value);
+  if (!Number.isNaN(d.getTime())) {
+    return d.toLocaleDateString("en-AU", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
   }
-  if (status === "error") {
-    return `_Cotality returned an error for this section (${emptyCopy})._`;
-  }
-  if (status === "empty") {
-    return `_No data returned by Cotality (${emptyCopy})._`;
-  }
-  return `_Section not loaded yet — pull Cotality details first._`;
+  return value.trim();
 }
 
-function renderAvmLead(
+function pickRecentRecordedSale(
   snapshot: CoreLogicPropertyDetailsSnapshot | null,
-): string {
-  const lines: string[] = [];
-  lines.push(`## Estimated market value range`);
-  if (!snapshot) {
-    lines.push(
-      `_No Cotality Property Details on file yet — match the address, then pull details to load IntelliVal._`,
-    );
-    return lines.join("\n");
-  }
-  const avm = snapshot.avm;
-  if (avm?.available) {
-    if (avm.lowEstimate != null || avm.highEstimate != null) {
-      lines.push(
-        `**${aud(avm.lowEstimate) ?? "—"} – ${aud(avm.highEstimate) ?? "—"}**`,
-      );
-    }
-    if (avm.estimate != null) {
-      lines.push(`- **Indicative estimate:** ${aud(avm.estimate)}`);
-    }
-    if (avm.confidence != null) lines.push(`- **Confidence:** ${avm.confidence}`);
-    if (avm.valuationDate) lines.push(`- **As at:** ${avm.valuationDate}`);
-    lines.push(
-      `_Source: Cotality IntelliVal AVM. This is an automated estimate — not a formal appraisal or CMA._`,
-    );
-  } else {
-    lines.push(
-      `_${avm?.message || "No IntelliVal estimate from Cotality for this property yet."}_`,
-    );
-    lines.push(
-      `_We never invent valuations. When Cotality returns a range it will appear here first._`,
-    );
-  }
-  return lines.join("\n");
+): CoreLogicPropertyDetailsSnapshot["lastSale"] | null {
+  if (!snapshot) return null;
+  if (snapshot.lastSale) return snapshot.lastSale;
+  const first = snapshot.salesHistory?.[0];
+  return first || null;
 }
 
-function renderSalesLead(
-  snapshot: CoreLogicPropertyDetailsSnapshot | null,
-): string {
-  const lines: string[] = [];
-  lines.push(`## Recent sales history`);
-  if (!snapshot) {
-    lines.push(`_Sales history appears after Cotality details are pulled._`);
-    return lines.join("\n");
-  }
-  const lastSale = snapshot.lastSale;
-  const salesRows =
-    snapshot.salesHistory?.length
-      ? snapshot.salesHistory
-      : lastSale
-        ? [lastSale]
-        : [];
-  if (salesRows.length) {
-    for (const sale of salesRows.slice(0, 8)) {
-      const bits: string[] = [];
-      if (sale.price != null && !sale.isPriceWithheld) bits.push(aud(sale.price) ?? "");
-      else if (sale.isPriceWithheld) bits.push("price withheld");
-      if (sale.contractDate) bits.push(`contract ${sale.contractDate}`);
-      if (sale.settlementDate) bits.push(`settlement ${sale.settlementDate}`);
-      if (sale.type) bits.push(sale.type);
-      lines.push(
-        `- ${bits.filter(Boolean).join(" · ") || "Sale record (no price/date returned)"}`,
-      );
-    }
-    if (
-      snapshot.sections.salesHistory === "unavailable" ||
-      snapshot.sections.salesHistory === "error"
-    ) {
-      lines.push(
-        `_Full \`/sales\` history unavailable — showing last sale only when Cotality returned it._`,
-      );
-    }
-  } else {
-    lines.push(
-      sectionNote(
-        snapshot.sections.salesHistory ?? snapshot.sections.lastSale,
-        "sales",
-      ) || `_No sale records returned by Cotality for this property._`,
-    );
-  }
-  return lines.join("\n");
-}
-
-function renderCotalityDetailSections(
-  snapshot: CoreLogicPropertyDetailsSnapshot | null,
-): string {
-  if (!snapshot) {
-    return `## Property attributes
-_No Cotality Property Details on file. Match the address, then pull details._`;
-  }
-
-  const core = snapshot.core;
-  const additional = snapshot.additional;
-  const site = snapshot.site;
-  const lines: string[] = [];
-
-  lines.push(`## Property attributes (Cotality)`);
-  lines.push(
-    `_Fetched ${new Date(snapshot.fetchedAt).toLocaleString("en-AU")} · Cotality id ${String(snapshot.propertyId)}_`,
-  );
-  lines.push("");
-  if (snapshot.sections.core === "ok" && core) {
-    if (core.propertyType) {
-      lines.push(`- **Type:** ${core.propertySubType || core.propertyType}`);
-    }
-    if (core.beds != null) lines.push(`- **Bedrooms:** ${core.beds}`);
-    if (core.baths != null) lines.push(`- **Bathrooms:** ${core.baths}`);
-    if (core.carSpaces != null) lines.push(`- **Car spaces:** ${core.carSpaces}`);
-    if (core.landArea != null) {
-      lines.push(
-        `- **Land area:** ${core.landArea} m²${core.landAreaSource ? ` (${core.landAreaSource})` : ""}`,
-      );
-    }
-  } else {
-    lines.push(sectionNote(snapshot.sections.core, "attributes/core"));
-  }
-
-  lines.push("");
-  lines.push(`## Additional attributes`);
-  if (snapshot.sections.additional === "ok" && additional) {
-    if (additional.floorArea != null) {
-      lines.push(`- **Floor area:** ${additional.floorArea} m²`);
-    }
-    if (additional.yearBuilt != null) {
-      lines.push(`- **Year built:** ${additional.yearBuilt}`);
-    }
-  } else {
-    lines.push(sectionNote(snapshot.sections.additional, "attributes/additional"));
-  }
-
-  lines.push("");
-  lines.push(`## Site / zoning`);
-  if (snapshot.sections.site === "ok" && site) {
-    if (site.landUsePrimary) lines.push(`- **Land use:** ${site.landUsePrimary}`);
-    if (site.zoneDescriptionLocal || site.zoneCodeLocal) {
-      lines.push(
-        `- **Zone:** ${site.zoneDescriptionLocal || site.zoneCodeLocal}${site.zoneCodeLocal && site.zoneDescriptionLocal ? ` (${site.zoneCodeLocal})` : ""}`,
-      );
-    }
-  } else {
-    lines.push(sectionNote(snapshot.sections.site, "site"));
-  }
-
-  lines.push("");
-  lines.push(`## Features`);
-  if (snapshot.sections.features === "ok") {
-    if (snapshot.features?.length) {
-      for (const f of snapshot.features) lines.push(`- ${f}`);
-    }
-    if (snapshot.featureAttributes?.length) {
-      for (const fa of snapshot.featureAttributes) {
-        lines.push(`- **${fa.name}:** ${fa.value}`);
-      }
-    }
-    if (!snapshot.features?.length && !snapshot.featureAttributes?.length) {
-      lines.push(sectionNote("empty", "features"));
-    }
-  } else {
-    lines.push(sectionNote(snapshot.sections.features, "features"));
-  }
-
-  return lines.join("\n");
-}
-
-function renderCmaUpgradeCta(input: {
-  organisationName: string;
-  appraisalUrl: string;
+function headlineSummary(input: {
+  beds?: number | null;
+  baths?: number | null;
+  cars?: number | null;
+  landArea?: number | null;
 }): string {
-  return `## Want a full CMA and buyer-demand strategy?
+  const bits = [
+    input.beds != null ? `${input.beds} bedrooms` : null,
+    input.baths != null ? `${input.baths} bathrooms` : null,
+    input.cars != null ? `${input.cars} car spaces` : null,
+    input.landArea != null
+      ? `${input.landArea.toLocaleString("en-AU")} m²`
+      : null,
+  ].filter(Boolean);
+  return bits.join(" · ");
+}
 
-This free report uses Cotality IntelliVal + property details held in DigitalGate.
+function buildPropertyAttributeRows(
+  property: {
+    bedrooms?: number | null;
+    bathrooms?: number | null;
+    propertyType?: string | null;
+  },
+  snapshot: CoreLogicPropertyDetailsSnapshot | null,
+  meta: Record<string, unknown>,
+): Array<{ label: string; value: string }> {
+  const core = snapshot?.core;
+  const additional = snapshot?.additional;
+  const site = snapshot?.site;
+  const cars =
+    core?.carSpaces ??
+    (typeof meta.car_spaces === "number" ? meta.car_spaces : null);
+  const land =
+    core?.landArea ??
+    (typeof property === "object" &&
+    typeof (meta as { land_area?: number }).land_area === "number"
+      ? (meta as { land_area: number }).land_area
+      : null);
 
-A **full Comparative Market Analysis (CMA)** — branded comps pack, deeper market positioning, and listing strategy — is available as the next step with ${input.organisationName}. Cotality’s commercial CMA / Digital Property Report APIs power that upgrade once entitled; until then your agent prepares the CMA from live Cotality data in a free appraisal conversation.
+  const buildingArea =
+    snapshot?.featureAttributes?.find((f) =>
+      /building\s*area/i.test(f.name),
+    )?.value || null;
 
-**Book a free appraisal & buyer-demand strategy:**
-${input.appraisalUrl}
+  const rows: Array<{ label: string; value: string }> = [];
+  const type =
+    core?.propertySubType ||
+    core?.propertyType ||
+    property.propertyType ||
+    null;
+  if (type) rows.push({ label: "Property type", value: String(type) });
+  const beds = core?.beds ?? property.bedrooms;
+  if (beds != null) rows.push({ label: "Bedrooms", value: String(beds) });
+  const baths = core?.baths ?? property.bathrooms;
+  if (baths != null) rows.push({ label: "Bathrooms", value: String(baths) });
+  if (cars != null) rows.push({ label: "Car spaces", value: String(cars) });
+  if (land != null) {
+    rows.push({
+      label: "Land",
+      value: `${Number(land).toLocaleString("en-AU")} m²`,
+    });
+  }
+  if (additional?.floorArea != null) {
+    rows.push({
+      label: "Floor area",
+      value: `${additional.floorArea.toLocaleString("en-AU")} m²`,
+    });
+  }
+  if (buildingArea) {
+    rows.push({ label: "Building area", value: String(buildingArea) });
+  }
+  if (additional?.yearBuilt != null) {
+    rows.push({ label: "Year built", value: String(additional.yearBuilt) });
+  }
+  if (site?.landUsePrimary) {
+    rows.push({ label: "Land use", value: site.landUsePrimary });
+  }
+  if (site?.zoneDescriptionLocal || site?.zoneCodeLocal) {
+    rows.push({
+      label: "Zoning",
+      value:
+        site.zoneDescriptionLocal ||
+        site.zoneCodeLocal ||
+        "",
+    });
+  }
+  return rows;
+}
 
-_No obligation. We’ll walk through what the range means for your timing and sale outcome._`;
+function buildVendorReportCopy(input: {
+  organisationName: string;
+  address: string;
+  appraisalUrl: string;
+  snapshot: CoreLogicPropertyDetailsSnapshot | null;
+  property: {
+    bedrooms?: number | null;
+    bathrooms?: number | null;
+    propertyType?: string | null;
+  };
+  meta: Record<string, unknown>;
+}): {
+  plainText: string;
+  blocks: import("../communications/email-html").EmailBodyBlock[];
+  avmRangeLabel: string | null;
+} {
+  const snapshot = input.snapshot;
+  const avm = snapshot?.avm;
+  const avmLive =
+    avm && avm.available === true
+      ? avm
+      : null;
+  const avmRangeLabel = avmSubjectHint(snapshot);
+  const recentSale = pickRecentRecordedSale(snapshot);
+  const core = snapshot?.core;
+  const cars =
+    core?.carSpaces ??
+    (typeof input.meta.car_spaces === "number" ? input.meta.car_spaces : null);
+  const land = core?.landArea ?? null;
+  const summary = headlineSummary({
+    beds: core?.beds ?? input.property.bedrooms,
+    baths: core?.baths ?? input.property.bathrooms,
+    cars,
+    landArea: land,
+  });
+  const attrRows = buildPropertyAttributeRows(
+    input.property,
+    snapshot,
+    input.meta,
+  );
+
+  const blocks: import("../communications/email-html").EmailBodyBlock[] = [
+    { type: "kicker", text: input.organisationName },
+    {
+      type: "heading",
+      text: "Your Property Value & Buyer Demand Report",
+      level: 1,
+    },
+    { type: "paragraph", text: input.address },
+  ];
+  if (summary) {
+    blocks.push({ type: "paragraph", text: summary, muted: true });
+  }
+  blocks.push({ type: "divider" });
+
+  blocks.push({ type: "heading", text: "Your property at a glance", level: 2 });
+
+  if (avmLive) {
+    const range =
+      avmLive.lowEstimate != null || avmLive.highEstimate != null
+        ? `${aud(avmLive.lowEstimate) ?? "—"} – ${aud(avmLive.highEstimate) ?? "—"}`
+        : aud(avmLive.estimate) || "Available";
+    blocks.push({
+      type: "highlight",
+      text: `Automated market estimate: ${range}`,
+    });
+    if (avmLive.confidence != null) {
+      blocks.push({
+        type: "paragraph",
+        text: `Assessment confidence: ${avmLive.confidence}`,
+        muted: true,
+      });
+    }
+    blocks.push({
+      type: "paragraph",
+      text: "This automated estimate is a useful starting point. A local appraisal can refine it with comparable sales, current buyer demand and your property’s individual characteristics.",
+    });
+  } else {
+    blocks.push({
+      type: "paragraph",
+      text: "This property sits outside the range where an automated valuation can be provided confidently.",
+    });
+    blocks.push({
+      type: "paragraph",
+      text: "That doesn’t mean the property can’t be valued.",
+    });
+    blocks.push({
+      type: "paragraph",
+      text: "Its landholding, zoning and property characteristics make an agent-led assessment particularly important.",
+    });
+    blocks.push({
+      type: "paragraph",
+      text: `Rather than give you an unreliable automated figure, ${input.organisationName} recommends a complimentary market appraisal based on comparable sales, current buyer demand and the property’s individual characteristics.`,
+    });
+  }
+
+  if (recentSale) {
+    blocks.push({ type: "divider" });
+    blocks.push({ type: "heading", text: "Recent recorded sale", level: 2 });
+    const price =
+      recentSale.price != null && !recentSale.isPriceWithheld
+        ? aud(recentSale.price)
+        : recentSale.isPriceWithheld
+          ? "Price withheld"
+          : null;
+    if (price) {
+      blocks.push({ type: "highlight", text: price });
+    }
+    const saleRows: Array<{ label: string; value: string }> = [];
+    const contract = formatReportDate(recentSale.contractDate);
+    const settlement = formatReportDate(recentSale.settlementDate);
+    if (contract) saleRows.push({ label: "Contract", value: contract });
+    if (settlement) saleRows.push({ label: "Settlement", value: settlement });
+    if (recentSale.type) saleRows.push({ label: "Sale type", value: recentSale.type });
+    if (saleRows.length) blocks.push({ type: "kv", rows: saleRows });
+    blocks.push({
+      type: "paragraph",
+      text: "This is an important reference point — a known recent market result for this property.",
+      muted: true,
+    });
+  }
+
+  if (attrRows.length) {
+    blocks.push({ type: "divider" });
+    blocks.push({
+      type: "heading",
+      text: "What we know about your property",
+      level: 2,
+    });
+    blocks.push({ type: "kv", rows: attrRows });
+    blocks.push({
+      type: "paragraph",
+      text: "Data supplied by Cotality and property information held within DigitalGate.",
+      muted: true,
+    });
+  }
+
+  blocks.push({ type: "divider" });
+  blocks.push({
+    type: "heading",
+    text: "Your Market Opportunity",
+    level: 2,
+  });
+  const opportunityRows: Array<{ label: string; value: string }> = [];
+  if (recentSale?.price != null && !recentSale.isPriceWithheld) {
+    opportunityRows.push({
+      label: "Recent sale",
+      value: aud(recentSale.price) || "—",
+    });
+  }
+  opportunityRows.push({
+    label: "Automated estimate",
+    value: avmRangeLabel || "Not available",
+  });
+  opportunityRows.push({
+    label: "Assessment confidence",
+    value: avmLive
+      ? avmLive.confidence != null
+        ? String(avmLive.confidence)
+        : "Automated estimate available"
+      : "Agent review recommended",
+  });
+  blocks.push({ type: "kv", rows: opportunityRows });
+
+  if (!avmLive) {
+    blocks.push({
+      type: "heading",
+      text: "Why an agent assessment matters",
+      level: 2,
+    });
+    blocks.push({
+      type: "paragraph",
+      text: land != null
+        ? `Your property’s combination of ${land.toLocaleString("en-AU")} m² of land, zoning and its individual characteristics means automated models may have limited confidence.`
+        : "Your property’s landholding, zoning and individual characteristics mean automated models may have limited confidence.",
+    });
+    blocks.push({
+      type: "paragraph",
+      text: "A local assessment can account for factors that automated systems cannot fully understand.",
+    });
+  }
+
+  blocks.push({ type: "divider" });
+  blocks.push({
+    type: "heading",
+    text: "What the automated report can’t tell you",
+    level: 2,
+  });
+  blocks.push({
+    type: "paragraph",
+    text: "Automated valuation models work well when there is sufficient comparable data and a property fits within established market patterns.",
+  });
+  blocks.push({
+    type: "paragraph",
+    text: "Large, rural or highly individual properties can require considerably more context.",
+  });
+  blocks.push({
+    type: "paragraph",
+    text: "That’s where a Comparative Market Analysis prepared by a local agent becomes more valuable.",
+  });
+  blocks.push({
+    type: "list",
+    items: [
+      "Comparable Sales — Review relevant recent sales and determine which properties are genuinely comparable.",
+      "Buyer Demand — Assess what buyers are currently looking for and how your property may position against competing stock.",
+      "Sale Strategy — Determine the likely price positioning, campaign strategy and opportunities to maximise the result.",
+    ],
+  });
+
+  blocks.push({ type: "divider" });
+  blocks.push({ type: "heading", text: "Your next step", level: 2 });
+  blocks.push({
+    type: "paragraph",
+    text: "Find out what your property could realistically achieve in today’s market.",
+  });
+  blocks.push({
+    type: "paragraph",
+    text: `Book your complimentary ${input.organisationName} Property Appraisal & Buyer-Demand Strategy.`,
+  });
+  blocks.push({
+    type: "paragraph",
+    text: "We’ll review:",
+  });
+  blocks.push({
+    type: "list",
+    items: [
+      "Recent comparable sales",
+      "Current competing properties",
+      "Buyer demand",
+      "Your property’s unique characteristics",
+      "Recommended price positioning",
+      "Potential sale strategy",
+    ],
+  });
+  blocks.push({
+    type: "button",
+    label: "Book my free appraisal →",
+    href: input.appraisalUrl,
+  });
+  blocks.push({
+    type: "paragraph",
+    text: "No obligation. No pressure. Just a proper conversation about your property and the market.",
+    muted: true,
+  });
+
+  blocks.push({ type: "divider" });
+  blocks.push({ type: "heading", text: "About this report", level: 2 });
+  blocks.push({
+    type: "paragraph",
+    text: "This report combines property information and market data supplied by Cotality with information held within DigitalGate.",
+  });
+  blocks.push({
+    type: "paragraph",
+    text: "Automated estimates are provided only where sufficient data is available to produce a meaningful result. Where an automated estimate cannot be provided confidently, we do not manufacture or infer a value.",
+  });
+  blocks.push({
+    type: "paragraph",
+    text: "For properties requiring a more detailed assessment, we recommend a complimentary agent-led appraisal and Comparative Market Analysis.",
+  });
+  blocks.push({
+    type: "paragraph",
+    text: "Cotality data and automated estimates are provided for indicative purposes only and are not a formal valuation. Market values can vary according to property condition, improvements, location, buyer demand and other factors.",
+    muted: true,
+  });
+
+  // Plain text twin (no markdown underscores)
+  const plain: string[] = [
+    input.organisationName,
+    "Your Property Value & Buyer Demand Report",
+    "",
+    input.address,
+  ];
+  if (summary) plain.push(summary);
+  plain.push("", "Your property at a glance", "");
+  if (avmLive) {
+    plain.push(
+      `Automated market estimate: ${avmRangeLabel}`,
+      "This automated estimate is a useful starting point. A local appraisal can refine it with comparable sales, current buyer demand and your property’s individual characteristics.",
+    );
+  } else {
+    plain.push(
+      "This property sits outside the range where an automated valuation can be provided confidently.",
+      "",
+      "That doesn’t mean the property can’t be valued.",
+      "",
+      "Its landholding, zoning and property characteristics make an agent-led assessment particularly important.",
+      "",
+      `Rather than give you an unreliable automated figure, ${input.organisationName} recommends a complimentary market appraisal based on comparable sales, current buyer demand and the property’s individual characteristics.`,
+    );
+  }
+  if (recentSale) {
+    plain.push("", "Recent recorded sale");
+    if (recentSale.price != null && !recentSale.isPriceWithheld) {
+      plain.push(aud(recentSale.price) || "");
+    }
+    if (recentSale.contractDate) {
+      plain.push(`Contract: ${formatReportDate(recentSale.contractDate)}`);
+    }
+    if (recentSale.settlementDate) {
+      plain.push(`Settlement: ${formatReportDate(recentSale.settlementDate)}`);
+    }
+    if (recentSale.type) plain.push(`Sale type: ${recentSale.type}`);
+  }
+  if (attrRows.length) {
+    plain.push("", "What we know about your property");
+    for (const row of attrRows) plain.push(`${row.label}: ${row.value}`);
+    plain.push(
+      "",
+      "Data supplied by Cotality and property information held within DigitalGate.",
+    );
+  }
+  plain.push(
+    "",
+    "Your Market Opportunity",
+    ...opportunityRows.map((r) => `${r.label}: ${r.value}`),
+    "",
+    "What the automated report can’t tell you",
+    "",
+    "Automated valuation models work well when there is sufficient comparable data and a property fits within established market patterns.",
+    "",
+    "Large, rural or highly individual properties can require considerably more context.",
+    "",
+    "That’s where a Comparative Market Analysis prepared by a local agent becomes more valuable.",
+    "",
+    "• Comparable Sales — Review relevant recent sales and determine which properties are genuinely comparable.",
+    "• Buyer Demand — Assess what buyers are currently looking for and how your property may position against competing stock.",
+    "• Sale Strategy — Determine the likely price positioning, campaign strategy and opportunities to maximise the result.",
+    "",
+    "Your next step",
+    "",
+    "Find out what your property could realistically achieve in today’s market.",
+    "",
+    `Book your complimentary ${input.organisationName} Property Appraisal & Buyer-Demand Strategy.`,
+    input.appraisalUrl,
+    "",
+    "No obligation. No pressure. Just a proper conversation about your property and the market.",
+    "",
+    "About this report",
+    "",
+    "This report combines property information and market data supplied by Cotality with information held within DigitalGate.",
+    "",
+    "Automated estimates are provided only where sufficient data is available to produce a meaningful result. Where an automated estimate cannot be provided confidently, we do not manufacture or infer a value.",
+    "",
+    "For properties requiring a more detailed assessment, we recommend a complimentary agent-led appraisal and Comparative Market Analysis.",
+    "",
+    "Cotality data and automated estimates are provided for indicative purposes only and are not a formal valuation. Market values can vary according to property condition, improvements, location, buyer demand and other factors.",
+  );
+
+  return {
+    plainText: plain.filter((l) => l != null && l !== "").join("\n").replace(/\n{3,}/g, "\n\n"),
+    blocks,
+    avmRangeLabel,
+  };
 }
 
 function resolveAppraisalUrl(websiteUrl?: string | null): string {
@@ -466,10 +734,9 @@ export type PropertyReportPayload = {
 };
 
 /**
- * Vendor-facing property report for request follow-up.
- * Leads with IntelliVal range + sales history, then attributes.
- * Positions full CMA as the appraisal upgrade (Cotality commercial Reports API).
- * Does not invent buyer demand scores or fake comparable citations.
+ * Vendor-facing Property Value & Buyer Demand Report.
+ * Positions Cotality data as useful context, turns AVM gaps into appraisal CTA,
+ * and never invents valuations or comparable sales lists.
  */
 export async function generatePropertyReport(
   organisationId: string,
@@ -530,60 +797,39 @@ export async function generatePropertyReport(
     externalRefs: property.externalRefs as Record<string, unknown> | null,
   });
   const address = formatPropertyAddress(property);
-  const avmRangeLabel = avmSubjectHint(snapshot);
 
   const partial =
     !snapshot ||
     Object.values(snapshot.sections).some((s) => s !== "ok") ||
     (snapshot.avm && !snapshot.avm.available);
 
-  const contactBits = [
-    property.bedrooms != null ? `${property.bedrooms} bed` : null,
-    property.bathrooms != null ? `${property.bathrooms} bath` : null,
-    typeof meta.car_spaces === "number" ? `${meta.car_spaces} car` : null,
-  ].filter(Boolean);
+  const copy = buildVendorReportCopy({
+    organisationName,
+    address,
+    appraisalUrl,
+    snapshot,
+    property: {
+      bedrooms: property.bedrooms,
+      bathrooms: property.bathrooms,
+      propertyType: property.propertyType,
+    },
+    meta,
+  });
 
-  const markdown = `# Property Value & Buyer Demand Report
-
-**${organisationName}**
-**${address}**
-
-${contactBits.length ? contactBits.join(" · ") : "_Dwelling attributes shown when Cotality or listing data is available._"}
-
-${renderAvmLead(snapshot)}
-
-${renderSalesLead(snapshot)}
-
-${renderCotalityDetailSections(snapshot)}
-
-${renderCmaUpgradeCta({ organisationName, appraisalUrl })}
-
-## About this report
-This free report summarises **Cotality (CoreLogic) property data** held in DigitalGate for ${address}.
-It leads with IntelliVal’s estimated value range and recent sales when Cotality returns them.
-A full **CMA (Comparative Market Analysis)** is a separate, agent-led upgrade — powered commercially by Cotality’s CMA / Digital Property Report products once entitled, delivered through your free appraisal conversation.
-
-Sections marked unavailable are honest gaps (sandbox/UAT limits or property out of scope) — values are never fabricated.
-
-_Prepared ${new Date().toLocaleString("en-AU")} · Data source: Cotality where indicated._
-`.trim();
-
-  const { markdownToEmailHtml } = await import("../communications/email-html");
+  const { composeEmailBody } = await import("../communications/email-html");
+  const htmlBody = composeEmailBody(copy.blocks, { accentColor: "#C9A46C" });
 
   return {
-    markdown,
-    plainText: markdown.replace(/^#+\s*/gm, "").replace(/\*\*/g, ""),
-    htmlBody: markdownToEmailHtml(markdown, {
-      accentColor: "#C9A46C",
-      ctaLabel: "Book a free appraisal",
-    }),
+    markdown: copy.plainText,
+    plainText: copy.plainText,
+    htmlBody,
     organisationName,
     address,
     cotalityPropertyId,
     detailsFetchedAt: snapshot?.fetchedAt ?? null,
     sections: snapshot?.sections ?? null,
     partial: Boolean(partial),
-    avmRangeLabel,
+    avmRangeLabel: copy.avmRangeLabel,
     appraisalUrl,
   };
 }
@@ -620,8 +866,8 @@ export async function sendPropertyReportEmail(input: {
   }
 
   const subject = report.avmRangeLabel
-    ? `Your property value range ${report.avmRangeLabel} — ${report.address}`
-    : `Your Property Value Report — ${report.address}`;
+    ? `Your Property Value & Buyer Demand Report ${report.avmRangeLabel} — ${report.address}`
+    : `Your Property Value & Buyer Demand Report — ${report.address}`;
 
   const { sendMessage } = await import("../communications");
   const delivery = await sendMessage({
@@ -636,9 +882,9 @@ export async function sendPropertyReportEmail(input: {
       propertyId: input.propertyId,
       appraisalUrl: report.appraisalUrl,
       avmRangeLabel: report.avmRangeLabel,
-      ctaLabel: "Book a free appraisal",
+      ctaLabel: "Book my free appraisal →",
       footerNote:
-        "Cotality IntelliVal where shown. Not a formal valuation or CMA. Book an appraisal for a full market analysis.",
+        "Cotality data and automated estimates are indicative only and are not a formal valuation.",
     },
   });
 

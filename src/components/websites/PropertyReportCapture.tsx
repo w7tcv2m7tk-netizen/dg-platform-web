@@ -437,7 +437,7 @@ export function PropertyReportCapture({
     setBusy(true);
     setStatus({
       type: "loading",
-      text: "Building your Cotality property report…",
+      text: "Building your Property Value & Buyer Demand Report…",
     });
     try {
       const res = await fetch("/api/public/property-report", {
@@ -469,7 +469,7 @@ export function PropertyReportCapture({
       }
       setDoneMessage(
         json?.data?.message ||
-          "Your property report is on its way — check your inbox shortly.",
+          "Your Property Value & Buyer Demand Report is on its way — check your inbox shortly.",
       );
       setStatus(null);
       setStep("done");

@@ -340,8 +340,8 @@ export async function submitPublicPropertyReport(input: {
 
   const message = reportSent
     ? reportPartial
-      ? "Your property report is on its way (some market sections may be limited). We'll follow up with more insights."
-      : "Your property report is on its way — check your inbox shortly."
+      ? "Your Property Value & Buyer Demand Report is on its way. We'll follow up with next steps."
+      : "Your Property Value & Buyer Demand Report is on its way — check your inbox shortly."
     : email
       ? "Report request received! We'll be in touch within 2 hours."
       : "Report request received! We'll be in touch within 2 hours.";
