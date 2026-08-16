@@ -292,7 +292,7 @@ export function StudioSeoPanel({
                   </label>
                   {isDefaultChromelessPage(pageSlug || page.slug) ? (
                     <p className="text-[11px] text-slate-500">
-                      Auto-hidden for card / legal / privacy / terms /
+                      Auto-hidden for unit / card / legal / privacy / terms /
                       onboarding / booking pages unless you turn them back on.
                     </p>
                   ) : (

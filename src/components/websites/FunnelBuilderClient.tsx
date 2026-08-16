@@ -18,6 +18,7 @@ export function FunnelBuilderClient({
   const [name, setName] = useState("");
   const [offer, setOffer] = useState("");
   const [busy, setBusy] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   async function onCreate(e: React.FormEvent) {
@@ -56,6 +57,32 @@ export function FunnelBuilderClient({
       setError("Network error");
     }
     setBusy(false);
+  }
+
+  async function onDelete(funnel: SerializedWebsite) {
+    const ok = window.confirm(
+      `Delete funnel “${funnel.name}”? This cannot be undone. Linked domains stay in Domains but will be detached.`,
+    );
+    if (!ok) return;
+    setDeletingId(funnel.id);
+    setError("");
+    try {
+      const res = await fetch(`/api/v1/websites/${funnel.id}`, {
+        method: "DELETE",
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        error?: { message?: string };
+      };
+      if (!res.ok) {
+        setError(json.error?.message || "Could not delete funnel");
+        setDeletingId(null);
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError("Network error while deleting");
+    }
+    setDeletingId(null);
   }
 
   return (
@@ -133,7 +160,7 @@ export function FunnelBuilderClient({
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || Boolean(deletingId)}
             className="rounded-md bg-[var(--org-primary,#1e3a5f)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
           >
             {busy ? "Creating funnel…" : "Create funnel → Studio"}
@@ -161,6 +188,7 @@ export function FunnelBuilderClient({
                 typeof f.metadata?.funnelTemplate === "string"
                   ? f.metadata.funnelTemplate.replace(/_/g, " ")
                   : "funnel";
+              const deleting = deletingId === f.id;
               return (
                 <li
                   key={f.id}
@@ -189,6 +217,14 @@ export function FunnelBuilderClient({
                     >
                       Studio
                     </Link>
+                    <button
+                      type="button"
+                      disabled={busy || Boolean(deletingId)}
+                      onClick={() => void onDelete(f)}
+                      className="rounded-md border border-rose-900/70 px-2.5 py-1 text-xs text-rose-300 hover:bg-rose-950/40 disabled:opacity-50"
+                    >
+                      {deleting ? "Deleting…" : "Delete"}
+                    </button>
                   </div>
                 </li>
               );

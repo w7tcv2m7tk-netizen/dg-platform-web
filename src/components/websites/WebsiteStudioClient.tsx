@@ -671,6 +671,73 @@ export function WebsiteStudioClient({
             />
           ) : null}
 
+          {page ? (
+            <div className="rounded-md border border-amber-800/50 bg-amber-950/20 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-amber-200/90">
+                  Header &amp; footer — /{page.slug}
+                </h2>
+                <Link
+                  href={
+                    page.slug === "home" || page.intent === "home"
+                      ? `${livePath}${previewQs}`
+                      : `${livePath}/${page.slug}${previewQs}`
+                  }
+                  target="_blank"
+                  className="text-[11px] text-sky-400 hover:underline"
+                >
+                  Open live preview
+                </Link>
+              </div>
+              {(() => {
+                const visibility = resolvePageChromeVisibility(
+                  page.slug,
+                  page.seo,
+                );
+                const autoHidden = isDefaultChromelessPage(page.slug);
+                return (
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2.5 text-sm text-slate-100">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-slate-500 bg-slate-900 accent-amber-500"
+                        checked={visibility.showHeader}
+                        disabled={busy}
+                        onChange={(e) =>
+                          void savePageChrome({
+                            showHeader: e.target.checked,
+                            showFooter: visibility.showFooter,
+                          })
+                        }
+                      />
+                      Show site header
+                    </label>
+                    <label className="flex items-center gap-2.5 text-sm text-slate-100">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-slate-500 bg-slate-900 accent-amber-500"
+                        checked={visibility.showFooter}
+                        disabled={busy}
+                        onChange={(e) =>
+                          void savePageChrome({
+                            showHeader: visibility.showHeader,
+                            showFooter: e.target.checked,
+                          })
+                        }
+                      />
+                      Show site footer
+                    </label>
+                    <p className="text-[11px] text-slate-400">
+                      {autoHidden
+                        ? "Auto-hidden for this page type (units, legal, booking). Uncheck stays off; check to bring nav back."
+                        : "Uncheck both to remove header and footer on this page only."}
+                    </p>
+                  </div>
+                );
+              })()}
+            </div>
+          ) : null}
+
           <div className="space-y-2">
             <form onSubmit={(e) => void runAssist(e)} className="flex gap-2">
               <input
@@ -706,21 +773,8 @@ export function WebsiteStudioClient({
           <div className="rounded-md border border-slate-700 bg-slate-950/60 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               <h2 className="text-xs uppercase tracking-wide text-slate-500">
-                Site chrome (header & footer)
+                Site chrome status
               </h2>
-              {page ? (
-                <Link
-                  href={
-                    page.slug === "home" || page.intent === "home"
-                      ? `${livePath}${previewQs}`
-                      : `${livePath}/${page.slug}${previewQs}`
-                  }
-                  target="_blank"
-                  className="text-[11px] text-sky-400 hover:underline"
-                >
-                  Open live preview
-                </Link>
-              ) : null}
             </div>
             {(() => {
               const chrome =
@@ -737,64 +791,13 @@ export function WebsiteStudioClient({
               const footerLen = chrome?.footerHtml?.trim()?.length ?? 0;
               const hasBrand =
                 Boolean(website.theme?.logoUrl || website.theme?.iconUrl);
-              const visibility = page
-                ? resolvePageChromeVisibility(page.slug, page.seo)
-                : { showHeader: true, showFooter: true };
-              const autoHidden = page
-                ? isDefaultChromelessPage(page.slug)
-                : false;
               return (
                 <div className="space-y-3 text-sm text-slate-400">
-                  <p>
-                    Header and footer are{" "}
-                    <span className="text-slate-300">site-wide chrome</span>.
-                    Toggle them per page below — card, legal, privacy, terms,
-                    onboarding, and booking confirmation pages hide them by
-                    default.
+                  <p className="text-xs">
+                    Per-page show/hide controls are in the{" "}
+                    <span className="text-amber-200/90">Header &amp; footer</span>{" "}
+                    panel above (and on the SEO tab).
                   </p>
-                  {page ? (
-                    <div className="space-y-2 rounded-md border border-slate-800 bg-slate-900/50 p-2.5">
-                      <p className="text-[11px] uppercase tracking-wide text-slate-500">
-                        This page — /{page.slug}
-                      </p>
-                      <label className="flex items-center gap-2 text-sm text-slate-300">
-                        <input
-                          type="checkbox"
-                          className="rounded border-slate-600 bg-slate-900"
-                          checked={visibility.showHeader}
-                          disabled={busy}
-                          onChange={(e) =>
-                            void savePageChrome({
-                              showHeader: e.target.checked,
-                              showFooter: visibility.showFooter,
-                            })
-                          }
-                        />
-                        Show site header
-                      </label>
-                      <label className="flex items-center gap-2 text-sm text-slate-300">
-                        <input
-                          type="checkbox"
-                          className="rounded border-slate-600 bg-slate-900"
-                          checked={visibility.showFooter}
-                          disabled={busy}
-                          onChange={(e) =>
-                            void savePageChrome({
-                              showHeader: visibility.showHeader,
-                              showFooter: e.target.checked,
-                            })
-                          }
-                        />
-                        Show site footer
-                      </label>
-                      {autoHidden ? (
-                        <p className="text-[11px] text-slate-500">
-                          Auto-hidden for this page type. Turn on if you want
-                          nav back.
-                        </p>
-                      ) : null}
-                    </div>
-                  ) : null}
                   <ul className="space-y-1 text-xs">
                     <li>
                       Header HTML:{" "}

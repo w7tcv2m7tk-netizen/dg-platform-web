@@ -1,4 +1,5 @@
 import {
+  deleteWebsite,
   getWebsite,
   organisationHasWebsitesBuilder,
   regenerateWebsitePages,
@@ -95,4 +96,31 @@ export async function PATCH(req: Request, ctx: Ctx) {
     );
   }
   return NextResponse.json({ data: updated });
+}
+
+export async function DELETE(req: Request, ctx: Ctx) {
+  const session = await requirePlatformAuth(req);
+  if (isNextResponse(session)) return session;
+
+  const { id } = await ctx.params;
+  const allowed = await organisationHasWebsitesBuilder(session.organisationId);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: { code: "feature_disabled", message: "Website Builder disabled" } },
+      { status: 403 },
+    );
+  }
+
+  const result = await deleteWebsite({
+    organisationId: session.organisationId,
+    websiteId: id,
+    actorId: session.clerkUserId,
+  });
+  if (!result.ok) {
+    return NextResponse.json(
+      { error: { code: result.code, message: result.message } },
+      { status: result.code === "not_found" ? 404 : 400 },
+    );
+  }
+  return NextResponse.json({ data: { deleted: true } });
 }

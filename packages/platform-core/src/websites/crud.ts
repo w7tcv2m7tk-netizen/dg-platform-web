@@ -452,6 +452,38 @@ export async function updateWebsitePage(input: {
   return serializePage(updated);
 }
 
+/**
+ * Permanently delete a website (and cascaded pages).
+ * Linked infrastructure domains are detached (websiteId set null).
+ */
+export async function deleteWebsite(input: {
+  organisationId: string;
+  websiteId: string;
+  actorId?: string;
+}): Promise<{ ok: true } | { ok: false; code: string; message: string }> {
+  const { prisma } = await import("@dg/database");
+  const existing = await prisma.website.findFirst({
+    where: { id: input.websiteId, organisationId: input.organisationId },
+    select: { id: true, name: true, slug: true },
+  });
+  if (!existing) {
+    return { ok: false, code: "not_found", message: "Website not found" };
+  }
+
+  await prisma.website.delete({ where: { id: existing.id } });
+
+  await writeAuditLog({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    action: "delete",
+    entityType: "Website",
+    entityId: existing.id,
+    changes: { before: { name: existing.name, slug: existing.slug } },
+  });
+
+  return { ok: true };
+}
+
 /** Delete a page. Refuses if it is the only page on the site. */
 export async function deleteWebsitePage(input: {
   organisationId: string;
