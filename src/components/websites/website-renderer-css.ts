@@ -1666,7 +1666,9 @@ html.wb-menu-scroll-lock body {
 }
 
 .wb-html-page .wb-html-island--page .roe-property-card .card-status,
-.wb-root .wb-html-island .roe-property-card .card-status {
+.wb-html-page .wb-html-island--page .roe-property-card span.card-status,
+.wb-root .wb-html-island .roe-property-card .card-status,
+.wb-root .wb-html-island.wb-html-island--light .roe-property-card span.card-status {
   position: absolute !important;
   top: 12px !important;
   left: 12px !important;
