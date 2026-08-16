@@ -116,6 +116,40 @@ export function emailHighlight(text: string, accentColor = "#C9A46C"): string {
 </table>`;
 }
 
+/** Diagnostic opportunity card — observed signal + interpretation + recommendation. */
+export function emailOpportunityCard(input: {
+  index: number;
+  severityLabel: string;
+  category: string;
+  title: string;
+  observed?: string;
+  interpretation: string;
+  recommendation?: string;
+  accentColor?: string;
+}): string {
+  const accent = input.accentColor || "#3B82F6";
+  const idx = String(input.index).padStart(2, "0");
+  const observed = (input.observed || input.title).trim();
+  const rec = input.recommendation?.trim();
+  return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 18px;border-collapse:collapse;background:rgba(15,23,42,0.55);border:1px solid rgba(148,163,184,0.18);border-radius:14px;overflow:hidden;">
+<tr><td style="padding:16px 18px 6px;">
+<p style="margin:0 0 6px;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;color:#93C5FD;">${escapeHtml(idx)} · ${escapeHtml(input.severityLabel)} — ${escapeHtml(input.category)}</p>
+<p style="margin:0 0 10px;font-size:16px;font-weight:700;color:#F8FAFC;line-height:1.35;">${escapeHtml(input.title)}</p>
+<p style="margin:0 0 4px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:#94A3B8;">Observed</p>
+<p style="margin:0 0 12px;font-size:14px;line-height:1.55;color:#CBD5E1;">${inlineFormat(observed)}</p>
+<p style="margin:0 0 4px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:#94A3B8;">Interpretation</p>
+<p style="margin:0 0 ${rec ? "12" : "4"}px;font-size:14px;line-height:1.6;color:#E2E8F0;">${inlineFormat(input.interpretation)}</p>
+${
+  rec
+    ? `<p style="margin:0 0 4px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:#94A3B8;">Recommendation</p>
+<p style="margin:0;font-size:14px;line-height:1.6;color:#F8FAFC;font-weight:600;">${inlineFormat(rec)}</p>`
+    : ""
+}
+</td></tr>
+<tr><td style="height:4px;background:${escapeHtml(accent)};font-size:0;line-height:0;">&nbsp;</td></tr>
+</table>`;
+}
+
 export function emailSignoff(lines: string[]): string {
   const html = lines
     .map(
@@ -155,6 +189,16 @@ export type EmailBodyBlock =
       pillars?: Array<{ label: string; score: number }>;
     }
   | { type: "highlight"; text: string }
+  | {
+      type: "opportunity";
+      index: number;
+      severityLabel: string;
+      category: string;
+      title: string;
+      observed?: string;
+      interpretation: string;
+      recommendation?: string;
+    }
   | { type: "signoff"; lines: string[] }
   | { type: "html"; html: string };
 
@@ -184,6 +228,8 @@ export function composeEmailBody(
           return emailScoreCard({ ...block, accentColor: accent });
         case "highlight":
           return emailHighlight(block.text, accent);
+        case "opportunity":
+          return emailOpportunityCard({ ...block, accentColor: accent });
         case "signoff":
           return emailSignoff(block.lines);
         case "html":

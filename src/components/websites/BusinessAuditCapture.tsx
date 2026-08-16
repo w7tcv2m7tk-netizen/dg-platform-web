@@ -35,6 +35,9 @@ type Opportunity = {
   detail: string;
   severity: "critical" | "warning" | "opportunity";
   recommendedAction?: string;
+  category?: string;
+  observed?: string;
+  interpretation?: string;
 };
 
 const PILLAR_LABELS: { key: keyof Pillars; label: string }[] = [
@@ -59,7 +62,7 @@ const INDUSTRIES = [
 const SCAN_STAGES = [
   "Checking website foundations…",
   "Reading search & indexing signals…",
-  "Scoring AI visibility…",
+  "Checking structured data & entity signals…",
   "Reviewing reputation & conversion…",
 ];
 
@@ -981,7 +984,7 @@ export function BusinessAuditCapture({
                     fontFamily: "Sora, system-ui, sans-serif",
                   }}
                 >
-                  Here&apos;s what we&apos;d fix first
+                  The opportunities we&apos;d prioritise
                 </h3>
                 <ol className="dg-ba-funnel__opps">
                   {(opportunities.length
@@ -997,8 +1000,11 @@ export function BusinessAuditCapture({
                   ).map((opp) => (
                     <li key={opp.title}>
                       <strong style={{ color: "#e2e8f0" }}>{opp.title}</strong>
-                      {opp.detail ? (
-                        <span style={{ color: "#94a3b8" }}> — {opp.detail}</span>
+                      {opp.interpretation || opp.detail ? (
+                        <span style={{ color: "#94a3b8" }}>
+                          {" "}
+                          — {opp.interpretation || opp.detail}
+                        </span>
                       ) : null}
                     </li>
                   ))}

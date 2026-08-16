@@ -77,6 +77,10 @@ export type PublicBusinessAuditOpportunity = {
   detail: string;
   severity: "critical" | "warning" | "opportunity";
   recommendedAction?: string;
+  domain?: string;
+  category?: string;
+  observed?: string;
+  interpretation?: string;
 };
 
 export type PublicBusinessAuditPreview = {
@@ -85,9 +89,7 @@ export type PublicBusinessAuditPreview = {
   opportunities: PublicBusinessAuditOpportunity[];
 };
 
-const POSITIVE_FINDING_TITLES = new Set([
-  "structured data present",
-]);
+const POSITIVE_FINDING_TITLES = new Set(["structured data present"]);
 
 function scorePillars(audit: PresenceAuditResult): PublicBusinessAuditPillars {
   const s = audit.scores;
@@ -112,9 +114,51 @@ function overallFromPillars(pillars: PublicBusinessAuditPillars): number {
   );
 }
 
+function opportunityCategory(f: {
+  domain?: string;
+  category?: string;
+  title: string;
+}): string {
+  if (f.category?.trim()) return f.category.trim();
+  const title = f.title.toLowerCase();
+  if (/analytics|tracking|measurement/i.test(title)) return "Measurement";
+  if (/form|enquiry|conversion|cta|contact pathway/i.test(title)) {
+    return "Conversion";
+  }
+  if (/location|local|gbp|google|review|reputation/i.test(title)) {
+    return "Local & Regional Visibility";
+  }
+  switch (f.domain) {
+    case "ai_visibility":
+      return "AI & Search Visibility";
+    case "seo":
+      return "Search Visibility";
+    case "gbp":
+      return "Local & Regional Visibility";
+    case "social":
+      return "Presence";
+    default:
+      return "Website";
+  }
+}
+
+function severityLabel(severity: PublicBusinessAuditOpportunity["severity"]): string {
+  if (severity === "critical") return "Critical";
+  if (severity === "warning") return "Important";
+  return "Opportunity";
+}
+
+function displayHostname(websiteUrl: string): string {
+  try {
+    return new URL(websiteUrl).hostname.replace(/^www\./i, "");
+  } catch {
+    return websiteUrl.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+  }
+}
+
 function prioritisedOpportunities(
   audit: PresenceAuditResult,
-  limit = 5,
+  limit = 4,
 ): PublicBusinessAuditOpportunity[] {
   const severityRank = { critical: 0, warning: 1, opportunity: 2 } as const;
   return [...(audit.findings || [])]
@@ -126,6 +170,10 @@ function prioritisedOpportunities(
       detail: f.detail,
       severity: f.severity,
       recommendedAction: f.recommendedAction,
+      domain: f.domain,
+      category: opportunityCategory(f),
+      observed: f.observed || f.title,
+      interpretation: f.interpretation || f.detail,
     }));
 }
 
@@ -136,7 +184,7 @@ export function buildPublicBusinessAuditPreview(
   return {
     overallScore: audit.scores.businessHealth ?? overallFromPillars(pillars),
     pillars,
-    opportunities: prioritisedOpportunities(audit, 5),
+    opportunities: prioritisedOpportunities(audit, 4),
   };
 }
 
@@ -216,28 +264,51 @@ function renderAuditEmailBody(input: {
   preview: PublicBusinessAuditPreview;
 }): { subject: string; body: string; bodyHtml: string; overall: number } {
   const { pillars, opportunities, overallScore: overall } = input.preview;
-  const findings = opportunities
-    .map(
-      (f, i) =>
-        `${i + 1}. [${f.severity}] ${f.title}${f.detail ? ` — ${f.detail}` : ""}${
-          f.recommendedAction ? ` → ${f.recommendedAction}` : ""
-        }`,
-    )
-    .join("\n");
+  const host = displayHostname(input.websiteUrl);
+  const strategyUrl = "https://digitalgate.com.au/strategy-session";
+  const opportunityCount = opportunities.length;
+
+  const positives: string[] = [];
+  if (input.audit.probes.reachable === true) positives.push("Homepage is reachable");
+  if (input.audit.probes.https) positives.push("HTTPS is active");
+  if (input.audit.probes.title) positives.push("Homepage title is present");
+  if (input.audit.probes.hasViewport) positives.push("Mobile viewport is present");
+
+  const findingsPlain = opportunities
+    .map((f, i) => {
+      const n = String(i + 1).padStart(2, "0");
+      const cat = f.category || opportunityCategory(f);
+      const observed = f.observed || f.title;
+      const interpretation = f.interpretation || f.detail;
+      return [
+        `${n} · ${severityLabel(f.severity)} — ${cat}`,
+        f.title,
+        "",
+        `Observed: ${observed}`,
+        "",
+        interpretation,
+        f.recommendedAction ? `\nRecommendation: ${f.recommendedAction}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+    })
+    .join("\n\n⸻\n\n");
 
   const body = `Hi ${input.firstName},
 
 Your DigitalGate Business Audit™ for ${input.companyName} is ready.
 
 Your digital presence, visibility & growth report
-Website: ${input.websiteUrl}${
-    input.industry ? `\nIndustry: ${input.industry}` : ""
-  }
+
+Website: ${host}${input.industry ? `\nIndustry: ${input.industry}` : ""}
 
 DIGITALGATE BUSINESS HEALTH SCORE™
-${overall}/100
 
-Pillar scores
+${overall} / 100
+
+Your audit identified several opportunities to improve how your business is found, understood and converted online.
+
+Your pillar scores:
 - Website Health: ${pillars.websiteHealth}/100
 - Search Visibility: ${pillars.searchVisibility}/100
 - AI Visibility: ${pillars.aiVisibility}/100
@@ -245,57 +316,91 @@ Pillar scores
 - Conversion Readiness: ${pillars.conversionReadiness}/100
 - Business Growth Signals: ${pillars.growthSignals}/100
 
+What we found
+
+Website
 ${
-  input.audit.probes.title
-    ? `Homepage title: ${input.audit.probes.title}\n`
-    : ""
-}Reachable: ${input.audit.probes.reachable === true ? "Yes" : input.audit.probes.reachable === false ? "No" : "Unknown"}
-HTTPS: ${input.audit.probes.https ? "Yes" : "No"}
+  positives.length
+    ? positives.map((p) => `✓ ${p}`).join("\n")
+    : "• Live probe completed — see opportunities below"
+}
 
-HERE'S WHAT WE'D FIX FIRST
-${findings || "1. No critical gaps from this probe — we can still deepen the diagnosis on a strategy call."}
+The ${opportunityCount || 4} opportunities we’d prioritise
 
-These scores reflect observable website and presence signals only — we never invent SEO or AI rankings.
+${
+  findingsPlain ||
+  "No critical gaps from this probe — we can still deepen the diagnosis on a strategy call."
+}
 
-Your business has ${opportunities.length || "a few"} significant opportunities. Would you like DigitalGate to show you how we'd address them?
+What this means
 
-Book a free strategy session:
-https://digitalgate.com.au/strategy-session
+Your website is healthy enough to build on, but there are clear opportunities to improve how effectively DigitalGate can help your business:
 
-— Ben Roe | DigitalGate
+Get found → Get understood → Build trust → Convert visitors → Generate business
+
+Your next opportunity
+
+${opportunityCount} significant opportunities were identified in your audit.
+
+Would you like to see how DigitalGate could address them?
+
+Book a free DigitalGate strategy session →
+${strategyUrl}
+
+We’ll review the findings with you and identify the highest-value improvements for your business.
+
+No obligation. No pressure. Just a practical discussion about where the biggest opportunities are.
+
+⸻
+
+DigitalGate Business Audit™
+Your digital presence, visibility & growth report.
+
+— Ben Roe
+DigitalGate
 https://digitalgate.com.au`;
+
+  const opportunityBlocks = opportunities.length
+    ? opportunities.flatMap((f, i) => [
+        {
+          type: "opportunity" as const,
+          index: i + 1,
+          severityLabel: severityLabel(f.severity),
+          category: f.category || opportunityCategory(f),
+          title: f.title,
+          observed: f.observed || f.title,
+          interpretation: f.interpretation || f.detail,
+          recommendation: f.recommendedAction,
+        },
+        ...(i < opportunities.length - 1
+          ? [{ type: "divider" as const }]
+          : []),
+      ])
+    : [
+        {
+          type: "paragraph" as const,
+          text: "No critical gaps from this probe — we can still deepen the diagnosis on a strategy call.",
+        },
+      ];
 
   const bodyHtml = composeEmailBody(
     [
       { type: "paragraph", text: `Hi ${input.firstName},` },
       {
-        type: "heading",
-        text: `Your DigitalGate Business Audit™ for ${input.companyName}`,
+        type: "paragraph",
+        text: `Your DigitalGate Business Audit™ for **${input.companyName}** is ready.`,
       },
       {
-        type: "paragraph",
-        text: "Your digital presence, visibility & growth report is ready.",
+        type: "kicker",
+        text: "Your digital presence, visibility & growth report",
       },
       {
         type: "kv",
         rows: [
-          { label: "Website", value: input.websiteUrl },
+          { label: "Website", value: host },
           ...(input.industry
             ? [{ label: "Industry", value: input.industry }]
             : []),
-          ...(input.audit.probes.title
-            ? [{ label: "Homepage title", value: input.audit.probes.title }]
-            : []),
-          {
-            label: "Reachable",
-            value:
-              input.audit.probes.reachable === true
-                ? "Yes"
-                : input.audit.probes.reachable === false
-                  ? "No"
-                  : "Unknown",
-          },
-          { label: "HTTPS", value: input.audit.probes.https ? "Yes" : "No" },
         ],
       },
       {
@@ -308,43 +413,81 @@ https://digitalgate.com.au`;
           { label: "AI Visibility", score: pillars.aiVisibility },
           { label: "Reputation & Presence", score: pillars.reputation },
           { label: "Conversion Readiness", score: pillars.conversionReadiness },
-          { label: "Growth Signals", score: pillars.growthSignals },
+          {
+            label: "Business Growth Signals",
+            score: pillars.growthSignals,
+          },
         ],
-      },
-      { type: "kicker", text: "Here's what we'd fix first" },
-      {
-        type: "list",
-        ordered: true,
-        items:
-          opportunities.length > 0
-            ? opportunities.map(
-                (f) =>
-                  `[${f.severity}] ${f.title}${f.detail ? ` — ${f.detail}` : ""}`,
-              )
-            : [
-                "No critical gaps from this probe — we can still deepen the diagnosis on a strategy call.",
-              ],
       },
       {
         type: "paragraph",
-        text: "These scores reflect observable website and presence signals only — we never invent SEO or AI rankings.",
-        muted: true,
+        text: "Your audit identified several opportunities to improve how your business is found, understood and converted online.",
+      },
+      { type: "kicker", text: "What we found" },
+      { type: "heading", text: "Website", level: 2 },
+      {
+        type: "list",
+        items:
+          positives.length > 0
+            ? positives.map((p) => `✓ ${p}`)
+            : ["Live probe completed — see opportunities below"],
+      },
+      {
+        type: "heading",
+        text: `The ${opportunityCount || 4} opportunities we’d prioritise`,
+        level: 2,
+      },
+      ...opportunityBlocks,
+      { type: "divider" },
+      { type: "heading", text: "What this means", level: 2 },
+      {
+        type: "paragraph",
+        text: "Your website is healthy enough to build on, but there are clear opportunities to improve how effectively DigitalGate can help your business:",
+      },
+      {
+        type: "highlight",
+        text: "Get found → Get understood → Build trust → Convert visitors → Generate business",
+      },
+      { type: "heading", text: "Your next opportunity", level: 2 },
+      {
+        type: "paragraph",
+        text: `**${opportunityCount} significant opportunities** were identified in your audit.`,
+      },
+      {
+        type: "paragraph",
+        text: "Would you like to see how DigitalGate could address them?",
       },
       {
         type: "button",
-        label: "Book a free strategy session",
-        href: "https://digitalgate.com.au/strategy-session",
+        label: "Book a free DigitalGate strategy session →",
+        href: strategyUrl,
+      },
+      {
+        type: "paragraph",
+        text: "We’ll review the findings with you and identify the highest-value improvements for your business.",
+      },
+      {
+        type: "paragraph",
+        text: "No obligation. No pressure. Just a practical discussion about where the biggest opportunities are.",
+        muted: true,
+      },
+      { type: "divider" },
+      { type: "kicker", text: "DigitalGate Business Audit™" },
+      {
+        type: "paragraph",
+        text: "Your digital presence, visibility & growth report.",
+        muted: true,
       },
       {
         type: "signoff",
-        lines: ["— Ben Roe | DigitalGate", "https://digitalgate.com.au"],
+        lines: ["— Ben Roe", "DigitalGate", "https://digitalgate.com.au"],
       },
     ],
     { accentColor: "#3B82F6" },
   );
 
   return {
-    subject: `Your DigitalGate Business Audit™ — ${input.companyName} (${overall}/100)`,
+    subject: `Your DigitalGate Business Audit™ is ready — ${input.companyName}`,
     body,
     bodyHtml,
     overall,
@@ -505,9 +648,9 @@ export async function submitPublicBusinessAudit(input: {
       metadata: {
         purpose: "free_audit_report",
         leadId: lead.id,
-        ctaLabel: "Book a free strategy session",
+        ctaLabel: "Book a free DigitalGate strategy session →",
         footerNote:
-          "DigitalGate Business Health Score™ from a live website presence probe. Not a formal SEO ranking report.",
+          "DigitalGate Business Audit™ — diagnostic sales report from observable website presence signals. Not a formal SEO ranking or AI citation report.",
       },
     });
     auditSent = delivery.status === "sent" || delivery.status === "queued";

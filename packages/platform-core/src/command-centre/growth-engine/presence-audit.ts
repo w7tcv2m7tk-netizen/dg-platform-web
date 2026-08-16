@@ -49,6 +49,75 @@ function clampScore(n: number) {
   return Math.max(0, Math.min(100, Math.round(n)));
 }
 
+export type PresenceIndustryPack =
+  | "accommodation"
+  | "real_estate"
+  | "trades"
+  | "general";
+
+export function resolvePresenceIndustryPack(
+  industry?: string | null,
+): PresenceIndustryPack {
+  const s = (industry || "").toLowerCase();
+  if (
+    /hospitality|tourism|accommodation|hotel|motel|resort|retreat|lodge|bnb|airbnb|glamping|stay|eco/.test(
+      s,
+    )
+  ) {
+    return "accommodation";
+  }
+  if (/real\s*estate|property|agency|realtor|sales agent/.test(s)) {
+    return "real_estate";
+  }
+  if (
+    /trad|plumb|electr|build|hvac|landscap|paint|roof|carpenter|handyman|cleaner|service area/.test(
+      s,
+    )
+  ) {
+    return "trades";
+  }
+  return "general";
+}
+
+function schemaRecommendation(pack: PresenceIndustryPack): string {
+  switch (pack) {
+    case "accommodation":
+      return "Implement appropriate Organisation / LocalBusiness / accommodation schema and strengthen your machine-readable business information.";
+    case "real_estate":
+      return "Implement Organisation / RealEstateAgent (or LocalBusiness) schema and strengthen agent, suburb and listing entity signals.";
+    case "trades":
+      return "Implement LocalBusiness / Service schema with clear service-area signals and machine-readable contact details.";
+    default:
+      return "Implement appropriate Organisation / LocalBusiness schema and strengthen your machine-readable business information.";
+  }
+}
+
+function conversionRecommendation(pack: PresenceIndustryPack): string {
+  switch (pack) {
+    case "accommodation":
+      return "Introduce a prominent enquiry or booking pathway, particularly around high-intent sections of the homepage.";
+    case "real_estate":
+      return "Make appraisal and buyer-enquiry pathways unmistakable on high-intent pages.";
+    case "trades":
+      return "Make call, quote and enquiry pathways unmistakable above the fold and on service pages.";
+    default:
+      return "Introduce a prominent enquiry pathway, particularly around high-intent sections of the homepage.";
+  }
+}
+
+function localRecommendation(pack: PresenceIndustryPack): string {
+  switch (pack) {
+    case "accommodation":
+      return "Strengthen your location/entity signals across the website and relevant business profiles.";
+    case "real_estate":
+      return "Strengthen suburb coverage, Google Business Profile and local entity signals across the website.";
+    case "trades":
+      return "Strengthen service-area pages, Google Business Profile and local entity signals.";
+    default:
+      return "Strengthen location/entity signals across the website and relevant business profiles.";
+  }
+}
+
 function normaliseUrl(raw: string | null | undefined): string | null {
   const trimmed = raw?.trim();
   if (!trimmed) return null;
@@ -76,7 +145,7 @@ function extractSignals(html: string) {
   const hasMailto = /href=["']mailto:/i.test(html);
   const hasForm = /<form[\s>]/i.test(html);
   const hasCtaLanguage =
-    /\b(contact us|get in touch|book (a |an )?(call|demo|session)|request (a )?quote|get a quote|enquire|inquire|free (audit|consult)|start (today|now)|talk to us)\b/i.test(
+    /\b(contact us|get in touch|book (a |an )?(call|demo|session|stay|now)?|book now|check availability|reserve|request (a )?quote|get a quote|enquire|inquire|free (audit|consult)|start (today|now)|talk to us|get a (free )?appraisal)\b/i.test(
       html,
     );
   const hasMapsOrGbpHint =
@@ -114,6 +183,7 @@ export async function runPresenceAudit(
 ): Promise<PresenceAuditResult> {
   const findings: ProspectAuditFinding[] = [];
   const websiteUrl = normaliseUrl(input.websiteUrl);
+  const pack = resolvePresenceIndustryPack(input.industry);
 
   const probes: PresenceAuditResult["probes"] = {
     websiteUrl,
@@ -293,19 +363,26 @@ export async function runPresenceAudit(
             findings.push({
               domain: "ai_visibility",
               severity: "opportunity",
+              category: "AI & Search Visibility",
               title: "Structured data present",
+              observed: "JSON-LD or schema.org references detected on the homepage.",
+              interpretation:
+                "This is a helpful signal that search engines and other systems have machine-readable business information to work with.",
               detail:
-                "JSON-LD or schema.org references detected — a positive AI Visibility signal.",
+                "JSON-LD or schema.org references detected — a helpful structured-data signal.",
             });
           } else {
             findings.push({
               domain: "ai_visibility",
               severity: "critical",
+              category: "AI & Search Visibility",
               title: "No structured data detected",
+              observed: "No structured data detected",
+              interpretation:
+                "Your homepage doesn’t currently appear to expose JSON-LD / Schema.org structured data. This can make it harder for search engines and AI systems to clearly understand your business, location, services and entity relationships.",
               detail:
-                "Homepage lacks JSON-LD / schema.org markup — weak entity clarity for AI answer engines.",
-              recommendedAction:
-                "Prioritise LocalBusiness / Organisation schema and machine-readable business information.",
+                "Your homepage doesn’t currently appear to expose JSON-LD / Schema.org structured data. This can make it harder for search engines and AI systems to clearly understand your business, location, services and entity relationships.",
+              recommendedAction: schemaRecommendation(pack),
             });
             aiVisibility += 5;
           }
@@ -318,10 +395,14 @@ export async function runPresenceAudit(
             findings.push({
               domain: "website",
               severity: "opportunity",
-              title: "No enquiry form detected on homepage",
+              category: "Conversion",
+              title: "No enquiry form detected on the homepage",
+              observed: "No enquiry form detected on the homepage",
+              interpretation:
+                "Visitors need a clear path to take the next step. Your website should make it obvious what someone can do after deciding they’re interested — whether that is an enquiry form, booking pathway, phone CTA or another conversion mechanism.",
               detail:
-                "We did not find a form — visitors may struggle to convert into leads.",
-              recommendedAction: "Add a clear enquiry path above the fold.",
+                "Visitors need a clear path to take the next step. Your website should make it obvious what someone can do after deciding they’re interested — whether that is an enquiry form, booking pathway, phone CTA or another conversion mechanism.",
+              recommendedAction: conversionRecommendation(pack),
             });
           }
           if (signals.hasTelLink) conversionReadiness += 15;
@@ -332,7 +413,11 @@ export async function runPresenceAudit(
             findings.push({
               domain: "website",
               severity: "opportunity",
+              category: "Conversion",
               title: "Weak call-to-action language",
+              observed: "Clear call-to-action language was not obvious on the homepage.",
+              interpretation:
+                "Homepage copy may not clearly invite the next step — contact, booking or enquiry.",
               detail:
                 "Homepage copy may not clearly invite contact, booking or enquiry.",
               recommendedAction: "Strengthen primary CTAs and contact pathways.",
@@ -342,7 +427,12 @@ export async function runPresenceAudit(
             findings.push({
               domain: "website",
               severity: "warning",
+              category: "Conversion",
               title: "Limited contact pathways",
+              observed:
+                "No obvious phone, email or form path detected on the homepage.",
+              interpretation:
+                "Without a clear next step, interested visitors may leave before converting.",
               detail: "No obvious phone, email or form path detected on the homepage.",
               recommendedAction: "Make contact options unmistakable.",
             });
@@ -357,11 +447,21 @@ export async function runPresenceAudit(
             findings.push({
               domain: "gbp",
               severity: "opportunity",
-              title: "Google / local presence signals weak",
+              category: "Local & Regional Visibility",
+              title: "Location information could not be fully established",
+              observed:
+                "No clear Google Maps / Business Profile / LocalBusiness hints were detected on the homepage.",
+              interpretation:
+                pack === "accommodation"
+                  ? "Location is particularly important for an accommodation business competing for searches in its region."
+                  : pack === "real_estate"
+                    ? "Local and suburb signals matter for how buyers and vendors discover an agency online."
+                    : "Local entity signals help searchers and AI systems understand where you operate.",
               detail:
-                "No clear Google Maps / Business Profile / LocalBusiness hints on the homepage.",
-              recommendedAction:
-                "Strengthen Google Business Profile links and local entity markup.",
+                pack === "accommodation"
+                  ? "Location is particularly important for an accommodation business competing for searches in its region."
+                  : "Local entity signals help searchers and AI systems understand where you operate.",
+              recommendedAction: localRecommendation(pack),
             });
           }
           if (signals.hasReviewHint) {
@@ -370,10 +470,16 @@ export async function runPresenceAudit(
             findings.push({
               domain: "gbp",
               severity: "opportunity",
+              category: "Reputation",
               title: "Review / reputation signals not obvious",
+              observed:
+                "Homepage does not clearly surface reviews, ratings or testimonials.",
+              interpretation:
+                "Social proof helps visitors build trust before they enquire or book.",
               detail:
                 "Homepage does not clearly surface reviews, ratings or testimonials.",
-              recommendedAction: "Feature recent reviews and rating schema where appropriate.",
+              recommendedAction:
+                "Feature recent reviews and rating schema where appropriate.",
             });
           }
 
@@ -383,10 +489,15 @@ export async function runPresenceAudit(
             findings.push({
               domain: "website",
               severity: "opportunity",
+              category: "Measurement",
               title: "Analytics / tracking not detected",
+              observed: "Analytics / tracking not detected",
+              interpretation:
+                "We couldn’t identify common analytics or tracking signals during the audit.",
               detail:
-                "We did not observe common analytics tags — measurement of visibility and leads may be incomplete.",
-              recommendedAction: "Confirm analytics and conversion tracking is installed.",
+                "We couldn’t identify common analytics or tracking signals during the audit.",
+              recommendedAction:
+                "Confirm analytics, Search Console and conversion tracking are correctly implemented so you can measure traffic, enquiries and bookings.",
             });
           }
         } else {
@@ -432,9 +543,14 @@ export async function runPresenceAudit(
       findings.push({
         domain: "gbp",
         severity: "opportunity",
-        title: "Location not recorded",
-        detail: "Without a location we cannot prioritise GBP / local SEO angles yet.",
-        recommendedAction: "Add suburb/city so the opportunity report can localise recommendations.",
+        category: "Local & Regional Visibility",
+        title: "Location information could not be fully established",
+        observed: "No location was recorded on the prospect record.",
+        interpretation:
+          "Without a location we cannot fully prioritise Google Business Profile and local search angles yet.",
+        detail:
+          "Without a location we cannot fully prioritise Google Business Profile and local search angles yet.",
+        recommendedAction: localRecommendation(pack),
       });
     }
   }

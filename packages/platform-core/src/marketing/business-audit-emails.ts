@@ -46,15 +46,17 @@ export function renderFreeAuditFollowup(
 
 Let's break down AI Visibility for ${company}.
 
-Your AI Visibility score is ${ai}/100 ${
-      ai < 50
-        ? "— which means search and AI answer engines may not clearly understand or recommend your business yet."
-        : "— a solid foundation, with room to strengthen how AI systems interpret your business."
-    }
+Your AI Visibility score is ${ai}/100.
 
-We analyse structured data, entity clarity, machine-readable business information and other signals that influence how clearly your business can be understood by Google and AI search.
+Important distinction: this score is based on observable homepage signals (such as structured data and entity markup) — not invented AI citation rankings.
 
-Want DigitalGate to show you how we'd raise this score?
+Observed signal
+Missing or weak structured data on a homepage.
+
+Interpretation
+That can make it harder for search engines and AI systems to clearly understand the business. It does not automatically mean you are invisible in AI answers.
+
+Want DigitalGate to show you how we'd strengthen these signals?
 ${strategy}
 
 — Ben Roe | DigitalGate`;
@@ -81,22 +83,34 @@ ${strategy}
           },
           {
             type: "paragraph",
-            text:
-              ai < 50
-                ? "Search and AI answer engines may not clearly understand or recommend your business yet."
-                : "A solid foundation, with room to strengthen how AI systems interpret your business.",
+            text: "Important distinction: this score is based on **observable homepage signals** (such as structured data and entity markup) — not invented AI citation rankings.",
+          },
+          {
+            type: "opportunity",
+            index: 1,
+            severityLabel: "Signal",
+            category: "AI & Search Visibility",
+            title: "Structured data & entity clarity",
+            observed:
+              "Missing or weak structured data on a homepage (when detected).",
+            interpretation:
+              "That can make it harder for search engines and AI systems to clearly understand the business. It does not automatically mean you are invisible in AI answers.",
+            recommendation:
+              "Strengthen Organisation / LocalBusiness (and industry-specific) schema where appropriate.",
           },
           {
             type: "paragraph",
-            text: "We analyse structured data, entity clarity, machine-readable business information and other signals that influence how clearly your business can be understood by Google and AI search.",
-            muted: true,
+            text: "Want DigitalGate to show you how we'd strengthen these signals?",
           },
           {
             type: "button",
-            label: "Book a free strategy session",
+            label: "Book a free DigitalGate strategy session →",
             href: strategy,
           },
-          { type: "signoff", lines: ["— Ben Roe | DigitalGate"] },
+          {
+            type: "signoff",
+            lines: ["— Ben Roe | DigitalGate"],
+          },
         ],
         { accentColor: ACCENT },
       ),

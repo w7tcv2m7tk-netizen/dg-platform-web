@@ -91,8 +91,15 @@ export interface ProspectAuditFinding {
   domain: "website" | "seo" | "ai_visibility" | "gbp" | "social" | "identity";
   severity: "critical" | "warning" | "opportunity";
   title: string;
+  /** Human-readable finding summary (kept for existing consumers). */
   detail: string;
   recommendedAction?: string;
+  /** Measurable probe result — what we observed. */
+  observed?: string;
+  /** Defensible inference from the observed signal — not a ranking claim. */
+  interpretation?: string;
+  /** Email / report section label (e.g. Conversion, Measurement). */
+  category?: string;
 }
 
 /** Interactive branded report shared with prospect */
