@@ -88,7 +88,6 @@ const LOCATION_SLUGS = new Set([
 /** Hub pages that look location-ish but belong in core. */
 const LOCATION_HUB_SLUGS = new Set([
   "property-appraisal",
-  "property-appraisal-gold-coast",
   "real-estate-agent-gold-coast",
 ]);
 
