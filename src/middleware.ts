@@ -217,6 +217,18 @@ export default async function middleware(req: NextRequest, event: unknown) {
       }
     }
 
+    // CVH: /accommodation/{unit} duplicates → canonical /{unit} booking pages
+    if (/(^|\.)currumbinvalleyhideaway\.com\.au$/i.test(hostname)) {
+      const unitMatch = path.match(
+        /^\/accommodation\/(tiny-home|private-studio|sanctuary-dome|rainforest-dome|canopy-dome|starlight-dome|the-shed)\/?$/i,
+      );
+      if (unitMatch) {
+        const dest = req.nextUrl.clone();
+        dest.pathname = `/${unitMatch[1].toLowerCase()}`;
+        return NextResponse.redirect(dest, 308);
+      }
+    }
+
     if (path === "/robots.txt") {
       const url = req.nextUrl.clone();
       url.pathname = "/sites/seo/robots";
