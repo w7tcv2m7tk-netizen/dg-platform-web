@@ -881,7 +881,6 @@ html.wb-menu-scroll-lock body {
   .guest-info-section,
   .booking-section,
   .contact-hero,
-  .contact-form-section,
   .about-hero,
   .experiences-hero,
   .gallery-hero,
@@ -909,7 +908,6 @@ html.wb-menu-scroll-lock body {
   .guest-info-section,
   .booking-section,
   .contact-hero,
-  .contact-form-section,
   .about-hero,
   .experiences-hero,
   .gallery-hero,
@@ -946,7 +944,6 @@ html.wb-menu-scroll-lock body {
   .guest-info-section,
   .booking-section,
   .contact-hero,
-  .contact-form-section,
   .about-hero,
   .experiences-hero,
   .gallery-hero,
@@ -979,19 +976,33 @@ html.wb-menu-scroll-lock body {
   .region-section,
   .guest-info-section,
   .booking-section,
-  .contact-form-section,
   .about-hero,
   .experiences-hero,
   .cvh-hero-stay
-) .section-label,
-.wb-root .wb-html-island.wb-html-island--light .contact-form-section label {
+) .section-label {
   color: #d4b896 !important;
 }
 
-.wb-root .wb-html-island.wb-html-island--light .contact-form-section :is(input, textarea, select) {
+/*
+ * CVH contact form sits on a charcoal band but the card itself is cream —
+ * do not inherit dark-band light type into .form-card.
+ */
+.wb-root .wb-html-island.wb-html-island--light .contact-form-section .form-card,
+.wb-root .wb-html-island.wb-html-island--light .contact-form-section .form-card :is(
+  h1, h2, h3, h4, p, li, span, small, label, .required-note
+) {
+  color: #2f2f2f !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .contact-form-section .form-card p,
+.wb-root .wb-html-island.wb-html-island--light .contact-form-section .form-card .required-note {
+  color: #4a5b59 !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .contact-form-section .form-card :is(input, textarea, select) {
   color: #1c2b2a !important;
-  background: #faf8f4 !important;
-  border-color: rgba(255, 255, 255, 0.25) !important;
+  background: #faf9f7 !important;
+  border-color: #e0d6cc !important;
 }
 
 .wb-root .wb-html-island.wb-html-island--light :is(
@@ -1003,7 +1014,6 @@ html.wb-menu-scroll-lock body {
   .hideaway-section,
   .about-sanctuary,
   .local-experiences,
-  .contact-form-section,
   .contact-hero
 ) a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]) {
   color: #e8d5b5 !important;
@@ -1013,8 +1023,7 @@ html.wb-menu-scroll-lock body {
   .experience-section,
   .location-section,
   .policy-section,
-  .hideaway-section,
-  .contact-form-section
+  .hideaway-section
 ) a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]):hover {
   color: #f5ebd8 !important;
 }
