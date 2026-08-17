@@ -143,13 +143,27 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
   const contactEmail =
     typeof metadata.email === "string" ? metadata.email.trim() : "";
   let contactRowEmail = contactEmail;
-  if (!contactRowEmail && contactId) {
+  let contactFirstName = "";
+  if (contactId) {
     const contact = await prisma.contact.findFirst({
       where: { id: contactId, organisationId: event.organisationId },
       select: { email: true, firstName: true },
     });
-    contactRowEmail = contact?.email?.trim() ?? "";
+    if (!contactRowEmail) {
+      contactRowEmail = contact?.email?.trim() ?? "";
+    }
+    contactFirstName = contact?.firstName?.trim() ?? "";
   }
+  if (!contactFirstName) {
+    const rawName =
+      (typeof metadata.contact_name === "string" && metadata.contact_name) ||
+      (typeof metadata.wp_name === "string" && metadata.wp_name) ||
+      (typeof metadata.first_name === "string" && metadata.first_name) ||
+      (typeof metadata.firstName === "string" && metadata.firstName) ||
+      "";
+    contactFirstName = rawName.trim().split(/\s+/)[0] || "";
+  }
+  const greetingName = contactFirstName || "there";
 
   if (contactRowEmail) {
     const { sendMessage } = await import("../communications");
@@ -160,7 +174,7 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
     });
     const agency = org?.name?.trim() || "our team";
     const body = [
-      `Hi,`,
+      `Hi ${greetingName},`,
       ``,
       `Thanks for getting in touch with ${agency}. We've received your enquiry`,
       lead.title ? `about "${lead.title}"` : "and",
@@ -176,7 +190,7 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
       body,
       bodyHtml: composeEmailBody(
         [
-          { type: "paragraph", text: "Hi," },
+          { type: "paragraph", text: `Hi ${greetingName},` },
           {
             type: "heading",
             text: `Thanks for getting in touch with ${agency}`,
