@@ -89,38 +89,193 @@ const FUNNEL_CSS = `
   from { stroke-dashoffset: 289; }
   to { stroke-dashoffset: var(--score-offset); }
 }
+@keyframes dgBaMeshDrift {
+  0% { filter: hue-rotate(0deg) saturate(1); }
+  50% { filter: hue-rotate(8deg) saturate(1.08); }
+  100% { filter: hue-rotate(0deg) saturate(1); }
+}
+@keyframes dgBaAuroraSpin {
+  0% { transform: translate3d(calc(var(--hx) * 18px), calc(var(--hy) * 12px), 0) rotate(0deg) scale(1); }
+  100% { transform: translate3d(calc(var(--hx) * 18px), calc(var(--hy) * 12px), 0) rotate(28deg) scale(1.06); }
+}
+@keyframes dgBaOrbBreathe {
+  0%, 100% { opacity: 0.45; transform: translate3d(calc(var(--hx) * var(--px, 8px)), calc(var(--hy) * var(--py, 6px)), 0) scale(1); }
+  50% { opacity: 0.72; transform: translate3d(calc(var(--hx) * var(--px, 8px)), calc(var(--hy) * var(--py, 6px)), 0) scale(1.1); }
+}
+@keyframes dgBaGridPan {
+  0% { background-position: 0 0; }
+  100% { background-position: 56px 56px; }
+}
+@keyframes dgBaNetworkPulse {
+  0%, 100% { opacity: 0.38; }
+  50% { opacity: 0.68; }
+}
+@keyframes dgBaLineDraw {
+  0% { stroke-dashoffset: 24; opacity: 0.25; }
+  50% { stroke-dashoffset: 0; opacity: 0.85; }
+  100% { stroke-dashoffset: -24; opacity: 0.25; }
+}
+@keyframes dgBaNodeTwinkle {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.35); }
+}
+@keyframes dgBaHorizonGlow {
+  0%, 100% { opacity: 0.4; transform: translateX(-50%) scaleX(0.92); }
+  50% { opacity: 0.82; transform: translateX(-50%) scaleX(1.05); }
+}
 @media (prefers-reduced-motion: reduce) {
   .dg-ba-funnel * { animation: none !important; transition: none !important; }
+  .dg-ba-funnel { --hx: 0 !important; --hy: 0 !important; }
 }
 .dg-ba-funnel {
+  --hx: 0;
+  --hy: 0;
   --dg-blue: #3B82F6;
   --dg-ink: #e8eef8;
   position: relative;
   width: 100%;
   min-height: 100dvh;
   overflow: clip;
+  isolation: isolate;
   color: var(--dg-ink);
   font-family: "Instrument Sans", system-ui, sans-serif;
-  background: #070b14 !important;
+  background: #03050A !important;
 }
-.dg-ba-funnel__glow {
+.dg-ba-funnel__atmosphere {
   position: absolute;
   inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.dg-ba-funnel__mesh {
+  position: absolute;
+  inset: -8%;
   background:
-    radial-gradient(ellipse 70% 55% at 12% 18%, rgba(59,130,246,0.22), transparent 60%),
-    radial-gradient(ellipse 40% 30% at 78% 12%, rgba(96,165,250,0.12), transparent 50%),
-    #070b14 !important;
+    radial-gradient(ellipse 70% 55% at 50% -5%, rgba(59,130,246,0.28), transparent 58%),
+    radial-gradient(ellipse 45% 40% at 12% 70%, rgba(14,165,233,0.12), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 88% 55%, rgba(45,212,191,0.14), transparent 55%),
+    radial-gradient(ellipse 60% 50% at 50% 100%, rgba(37,99,235,0.1), transparent 50%),
+    linear-gradient(180deg, #05070D 0%, #03050A 55%, #070B14 100%);
+  transform: translate3d(calc(var(--hx) * 12px), calc(var(--hy) * 8px), 0);
+  will-change: transform;
+}
+.dg-ba-funnel__aurora {
+  position: absolute;
+  inset: -20%;
+  background: conic-gradient(from 210deg at 50% 40%,
+    transparent 0deg,
+    rgba(59,130,246,0.07) 55deg,
+    transparent 110deg,
+    rgba(45,212,191,0.06) 180deg,
+    transparent 240deg,
+    rgba(96,165,250,0.08) 300deg,
+    transparent 360deg);
+  filter: blur(40px);
+  opacity: 0.85;
+  transform: translate3d(calc(var(--hx) * 18px), calc(var(--hy) * 12px), 0);
+  will-change: transform;
+}
+.dg-ba-funnel__orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(48px);
+  opacity: 0.55;
+  transform: translate3d(calc(var(--hx) * var(--px, 8px)), calc(var(--hy) * var(--py, 6px)), 0);
+  will-change: transform;
+}
+.dg-ba-funnel__orb-a {
+  --px: 22px; --py: 14px;
+  width: min(52vw, 560px); height: min(52vw, 560px);
+  top: 4%; left: 50%; margin-left: calc(min(52vw, 560px) / -2);
+  background: radial-gradient(circle, rgba(59,130,246,0.35) 0%, rgba(14,165,233,0.12) 40%, transparent 70%);
+}
+.dg-ba-funnel__orb-b {
+  --px: -16px; --py: 10px;
+  width: min(38vw, 420px); height: min(38vw, 420px);
+  bottom: 8%; right: -6%;
+  background: radial-gradient(circle, rgba(45,212,191,0.22) 0%, transparent 68%);
+}
+.dg-ba-funnel__orb-c {
+  --px: 10px; --py: -12px;
+  width: min(28vw, 300px); height: min(28vw, 300px);
+  top: 35%; left: -4%;
+  background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%);
+}
+.dg-ba-funnel__network {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+  transform: translate3d(calc(var(--hx) * 6px), calc(var(--hy) * 4px), 0) scale(1.02);
+  will-change: transform;
+}
+.dg-ba-funnel__network .n-line { stroke: rgba(147,197,253,0.28); stroke-width: 1; fill: none; }
+.dg-ba-funnel__network .n-line-soft { stroke: rgba(45,212,191,0.18); stroke-width: 1; fill: none; }
+.dg-ba-funnel__network .n-node { fill: rgba(191,219,254,0.75); }
+.dg-ba-funnel__network .n-node-core {
+  fill: #60A5FA;
+  filter: drop-shadow(0 0 6px rgba(59,130,246,0.55));
 }
 .dg-ba-funnel__grid {
   position: absolute;
   inset: 0;
-  opacity: 0.18;
+  opacity: 0.05;
   background-image:
-    linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 70% 65% at 50% 40%, #000 20%, transparent 75%);
-  pointer-events: none;
+    linear-gradient(rgba(255,255,255,0.55) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.55) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 72% 62% at 50% 42%, #000 15%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 72% 62% at 50% 42%, #000 15%, transparent 78%);
+}
+.dg-ba-funnel__horizon {
+  position: absolute;
+  left: 50%;
+  bottom: 10%;
+  width: min(90vw, 920px);
+  height: 2px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(96,165,250,0.35), rgba(45,212,191,0.25), transparent);
+  filter: blur(0.5px);
+  opacity: 0.7;
+}
+.dg-ba-funnel__vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 50% at 50% 42%, transparent 30%, rgba(3,5,10,0.5) 100%),
+    linear-gradient(180deg, rgba(3,5,10,0.28) 0%, transparent 22%, transparent 72%, rgba(3,5,10,0.7) 100%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dg-ba-funnel__mesh { animation: dgBaMeshDrift 16s ease-in-out infinite; }
+  .dg-ba-funnel__aurora { animation: dgBaAuroraSpin 28s linear infinite alternate; }
+  .dg-ba-funnel__orb-a { animation: dgBaOrbBreathe 9s ease-in-out infinite; }
+  .dg-ba-funnel__orb-b { animation: dgBaOrbBreathe 11s ease-in-out infinite 1.2s; }
+  .dg-ba-funnel__orb-c { animation: dgBaOrbBreathe 13s ease-in-out infinite 0.6s; }
+  .dg-ba-funnel__grid { animation: dgBaGridPan 32s linear infinite; }
+  .dg-ba-funnel__network { animation: dgBaNetworkPulse 7s ease-in-out infinite; }
+  .dg-ba-funnel__network .n-line,
+  .dg-ba-funnel__network .n-line-soft {
+    stroke-dasharray: 6 10;
+    animation: dgBaLineDraw 5.5s ease-in-out infinite;
+  }
+  .dg-ba-funnel__network .n-line:nth-child(odd) { animation-delay: 0.8s; }
+  .dg-ba-funnel__network .n-line-soft { animation-duration: 7s; animation-delay: 1.4s; }
+  .dg-ba-funnel__network .n-node,
+  .dg-ba-funnel__network .n-node-core {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: dgBaNodeTwinkle 4.2s ease-in-out infinite;
+  }
+  .dg-ba-funnel__network .n-node:nth-child(3n) { animation-delay: 0.7s; }
+  .dg-ba-funnel__network .n-node:nth-child(4n) { animation-delay: 1.5s; }
+  .dg-ba-funnel__network .n-node-core { animation-duration: 5.2s; }
+  .dg-ba-funnel__horizon { animation: dgBaHorizonGlow 8s ease-in-out infinite; }
+}
+@media (max-width: 640px) {
+  .dg-ba-funnel__network { opacity: 0.35; }
+  .dg-ba-funnel__orb-c { display: none; }
 }
 .dg-ba-funnel__shell {
   position: relative;
@@ -496,6 +651,7 @@ export function BusinessAuditCapture({
   const [pillars, setPillars] = useState<Pillars | null>(null);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const urlRef = useRef<HTMLInputElement>(null);
+  const funnelRef = useRef<HTMLElement>(null);
   const styleId = useId();
 
   const strategyHref =
@@ -507,6 +663,45 @@ export function BusinessAuditCapture({
   useEffect(() => {
     if (isFunnel && step === "website") urlRef.current?.focus();
   }, [isFunnel, step]);
+
+  useEffect(() => {
+    if (!isFunnel) return;
+    const root = funnelRef.current;
+    if (!root) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
+    let raf = 0;
+    let tx = 0;
+    let ty = 0;
+    let cx = 0;
+    let cy = 0;
+
+    const enabled = () => !reduce.matches && fine.matches;
+    const tick = () => {
+      cx += (tx - cx) * 0.08;
+      cy += (ty - cy) * 0.08;
+      root.style.setProperty("--hx", cx.toFixed(3));
+      root.style.setProperty("--hy", cy.toFixed(3));
+      if (Math.abs(tx - cx) > 0.002 || Math.abs(ty - cy) > 0.002) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        raf = 0;
+      }
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!enabled()) return;
+      const r = root.getBoundingClientRect();
+      tx = ((e.clientX - r.left) / r.width - 0.5) * 2;
+      ty = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+
+    root.addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      root.removeEventListener("pointermove", onMove);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [isFunnel]);
 
   useEffect(() => {
     if (!busy || status?.type !== "loading") return;
@@ -857,11 +1052,60 @@ export function BusinessAuditCapture({
     <>
       <style id={styleId} dangerouslySetInnerHTML={{ __html: FUNNEL_CSS }} />
       <section
+        ref={funnelRef}
         id="business-audit-form"
         className="dg-business-audit-capture dg-business-audit-funnel dg-ba-funnel"
       >
-        <div className="dg-ba-funnel__glow" aria-hidden />
-        <div className="dg-ba-funnel__grid" aria-hidden />
+        <div className="dg-ba-funnel__atmosphere" aria-hidden>
+          <div className="dg-ba-funnel__mesh" />
+          <div className="dg-ba-funnel__aurora" />
+          <div className="dg-ba-funnel__orb dg-ba-funnel__orb-a" />
+          <div className="dg-ba-funnel__orb dg-ba-funnel__orb-b" />
+          <div className="dg-ba-funnel__orb dg-ba-funnel__orb-c" />
+          <svg
+            className="dg-ba-funnel__network"
+            viewBox="0 0 1200 700"
+            preserveAspectRatio="xMidYMid slice"
+            focusable="false"
+          >
+            <g className="n-links">
+              <line className="n-line" x1="180" y1="140" x2="360" y2="220" />
+              <line className="n-line" x1="360" y1="220" x2="520" y2="160" />
+              <line className="n-line" x1="520" y1="160" x2="640" y2="280" />
+              <line className="n-line" x1="640" y1="280" x2="820" y2="200" />
+              <line className="n-line" x1="820" y1="200" x2="980" y2="260" />
+              <line className="n-line-soft" x1="260" y1="420" x2="420" y2="340" />
+              <line className="n-line-soft" x1="420" y1="340" x2="640" y2="280" />
+              <line className="n-line-soft" x1="640" y1="280" x2="780" y2="400" />
+              <line className="n-line" x1="780" y1="400" x2="960" y2="460" />
+              <line className="n-line" x1="420" y1="340" x2="300" y2="520" />
+              <line className="n-line-soft" x1="520" y1="160" x2="480" y2="80" />
+              <line className="n-line" x1="820" y1="200" x2="900" y2="100" />
+              <line className="n-line-soft" x1="180" y1="140" x2="120" y2="280" />
+              <line className="n-line" x1="980" y1="260" x2="1080" y2="380" />
+            </g>
+            <g className="n-nodes">
+              <circle className="n-node" cx="180" cy="140" r="2.2" />
+              <circle className="n-node" cx="360" cy="220" r="2.4" />
+              <circle className="n-node" cx="520" cy="160" r="2.2" />
+              <circle className="n-node-core" cx="640" cy="280" r="3.4" />
+              <circle className="n-node" cx="820" cy="200" r="2.3" />
+              <circle className="n-node" cx="980" cy="260" r="2.1" />
+              <circle className="n-node" cx="260" cy="420" r="2" />
+              <circle className="n-node" cx="420" cy="340" r="2.3" />
+              <circle className="n-node" cx="780" cy="400" r="2.2" />
+              <circle className="n-node" cx="960" cy="460" r="2" />
+              <circle className="n-node" cx="300" cy="520" r="2" />
+              <circle className="n-node" cx="480" cy="80" r="1.8" />
+              <circle className="n-node" cx="900" cy="100" r="1.9" />
+              <circle className="n-node" cx="120" cy="280" r="1.8" />
+              <circle className="n-node" cx="1080" cy="380" r="2" />
+            </g>
+          </svg>
+          <div className="dg-ba-funnel__grid" />
+          <div className="dg-ba-funnel__horizon" />
+          <div className="dg-ba-funnel__vignette" />
+        </div>
         <div className="dg-ba-funnel__shell">
           <div className="dg-ba-funnel__copy">
             <a className="dg-ba-funnel__brand" href={brandHref} aria-label="DigitalGate">

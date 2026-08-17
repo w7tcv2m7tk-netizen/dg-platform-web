@@ -41,17 +41,11 @@ export const websiteRendererCss = `
   margin: 0;
   box-sizing: border-box;
 }
-/* DigitalGate audit only — never inherit a photo backdrop */
+/* DigitalGate audit — solid base only; atmosphere layers live inside the funnel */
 .wb-root.wb-product-funnel .dg-ba-funnel,
 .wb-root.wb-product-funnel .dg-business-audit-funnel {
-  background-color: #070b14 !important;
+  background-color: #03050A !important;
   background-image: none !important;
-}
-.wb-root.wb-product-funnel .dg-ba-funnel .dg-ba-funnel__glow {
-  background-image:
-    radial-gradient(ellipse 70% 55% at 12% 18%, rgba(59,130,246,0.22), transparent 60%),
-    radial-gradient(ellipse 40% 30% at 78% 12%, rgba(96,165,250,0.12), transparent 50%) !important;
-  background-color: #070b14 !important;
 }
 html:has(.wb-root.wb-product-funnel),
 html:has(.wb-root.wb-product-funnel) body {
