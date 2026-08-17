@@ -93,17 +93,20 @@ export type FunnelTemplateId =
   | "appraisal_request"
   | "booking_enquiry"
   | "business_audit"
-  | "property_report";
+  | "property_report"
+  | "hideaway_circle";
 
 /** Canonical product-funnel hostnames (subdomain apps, not full brand sites). */
 export const PRODUCT_FUNNEL_HOSTS = {
   business_audit: "audit.digitalgate.com.au",
   property_report: "report.roerealty.com.au",
+  hideaway_circle: "circle.currumbinvalleyhideaway.com.au",
 } as const;
 
 export const PRODUCT_FUNNEL_URLS = {
   business_audit: `https://${PRODUCT_FUNNEL_HOSTS.business_audit}`,
   property_report: `https://${PRODUCT_FUNNEL_HOSTS.property_report}`,
+  hideaway_circle: `https://${PRODUCT_FUNNEL_HOSTS.hideaway_circle}`,
 } as const;
 
 export type WebsiteTheme = {

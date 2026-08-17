@@ -108,7 +108,9 @@ export function applyPublicLegacyResponse(
   if (resolved.kind === "gone") return goneResponse();
 
   if (/^https?:\/\//i.test(resolved.location)) {
-    return NextResponse.redirect(resolved.location, resolved.status);
+    const dest = new URL(resolved.location);
+    if (!dest.search && req.nextUrl.search) dest.search = req.nextUrl.search;
+    return NextResponse.redirect(dest, resolved.status);
   }
 
   const dest = req.nextUrl.clone();

@@ -28,6 +28,28 @@ function asString(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
 }
 
+/** Cream article / marketing pages that should use dark island ink. */
+const CREAM_PAGE_BG_RE =
+  /background(?:-color)?:\s*#(?:F7F4EE|F7F4EF|F5F2EF|FCF9F5|F8F5F0)\b/i;
+
+/**
+ * CVH posts use body { background: #F7F4EE } which missed the seed light
+ * detector (it only listed #F5F2EF). Without --light, dark-shell type paints
+ * article copy white on cream. Do not apply to DigitalGate navy shells.
+ */
+function ensureCreamHtmlIsland(html: string): string {
+  if (!html || /\bwb-html-island--light\b/.test(html)) return html;
+  if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal)\b/.test(html)) return html;
+  if (!CREAM_PAGE_BG_RE.test(html)) return html;
+  return html.replace(
+    /class="([^"]*\bwb-html-island\b[^"]*)"/g,
+    (full, cls: string) =>
+      /\bwb-html-island--light\b/.test(cls)
+        ? full
+        : `class="${cls.trim()} wb-html-island--light"`,
+  );
+}
+
 /** Decode common HTML entities from WP excerpts/titles for readable cards. */
 function decodeHtmlEntities(input: string): string {
   return input
@@ -606,6 +628,8 @@ export function WebsiteComponentView({
       // Navy DigitalGate shells must not keep cream-island class from import.
       if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal)\b/.test(html)) {
         html = html.replace(/\bwb-html-island--light\b/g, "").replace(/\s{2,}/g, " ");
+      } else {
+        html = ensureCreamHtmlIsland(html);
       }
       html = rewriteProductFunnelHtml(html);
       if (/gallery-grid|gallery-item/i.test(html)) {
@@ -785,15 +809,18 @@ function BrandLockup({
   theme,
   businessName,
   stacked = false,
+  showIcon = false,
 }: {
   theme: WebsiteTheme;
   businessName: string;
   stacked?: boolean;
+  showIcon?: boolean;
 }) {
   const icon = (theme.iconUrl || "").trim();
   const wordmark = (theme.logoUrl || "").trim();
   const single = wordmark || icon;
-  const lockup = !stacked && Boolean(icon && wordmark && icon !== wordmark);
+  const lockup =
+    showIcon && !stacked && Boolean(icon && wordmark && icon !== wordmark);
 
   if (lockup) {
     return (
@@ -824,6 +851,7 @@ function BrandSiteHeader({
   overlay,
   headerCta,
   layout = "bar",
+  showIcon = false,
 }: {
   theme: WebsiteTheme;
   basePath: string;
@@ -836,6 +864,7 @@ function BrandSiteHeader({
     backgroundColor?: string;
   } | null;
   layout?: "bar" | "stacked";
+  showIcon?: boolean;
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -894,6 +923,7 @@ function BrandSiteHeader({
         "wb-brand-chrome",
         "wb-brand-chrome-header",
         stacked ? "wb-brand-chrome-header--stacked" : "",
+        showIcon ? "wb-brand-chrome-header--lockup" : "",
         overlay ? "wb-brand-chrome-header--overlay" : "wb-brand-chrome-header--fade",
         scrolled || menuOpen ? "is-scrolled" : "is-top",
         menuOpen ? "is-menu-open" : "",
@@ -903,7 +933,12 @@ function BrandSiteHeader({
     >
       <div className="wb-brand-chrome-inner">
         <a href={brandHref} className="wb-brand-chrome-brand" aria-label={businessName}>
-          <BrandLockup theme={theme} businessName={businessName} stacked={stacked} />
+          <BrandLockup
+            theme={theme}
+            businessName={businessName}
+            stacked={stacked}
+            showIcon={showIcon}
+          />
         </a>
 
         <div className="wb-brand-chrome-below">
@@ -1069,6 +1104,7 @@ export function WebsitePageRenderer({
     if (
       funnelTemplate === "property_report" ||
       funnelTemplate === "business_audit" ||
+      funnelTemplate === "hideaway_circle" ||
       funnelTemplate === "lead_capture" ||
       funnelTemplate === "appraisal_request" ||
       funnelTemplate === "booking_enquiry"
@@ -1093,11 +1129,19 @@ export function WebsitePageRenderer({
     ) {
       return "business_audit";
     }
+    if (
+      slug === "currumbin-valley-hideaway-circle" ||
+      slug.endsWith("-hideaway-circle") ||
+      page === "hideaway-circle"
+    ) {
+      return "hideaway_circle";
+    }
     return null;
   })();
   const isProductFunnel =
     resolvedFunnelTemplate === "property_report" ||
-    resolvedFunnelTemplate === "business_audit";
+    resolvedFunnelTemplate === "business_audit" ||
+    resolvedFunnelTemplate === "hideaway_circle";
   const bookingKind =
     pageSlug === "property-appraisal"
       ? ("appraisal" as const)
@@ -1167,7 +1211,7 @@ export function WebsitePageRenderer({
       (c) =>
         c.type === "html" &&
         typeof c.props?.html === "string" &&
-        /wb-html-island--light|background:\s*#F5F2EF|background:#F5F2EF|roe-property-grid/i.test(
+        /wb-html-island--light|background(?:-color)?:\s*#(?:F5F2EF|F7F4EE|F7F4EF|FCF9F5|F8F5F0)|roe-property-grid/i.test(
           c.props.html,
         ) &&
         /* DigitalGate navy shells (Founding / About / Contact / legal) are intentionally dark */
@@ -1236,8 +1280,10 @@ export function WebsitePageRenderer({
       : null);
 
   const isCvhHome =
+    !isProductFunnel &&
     (/currumbin|hideaway/i.test(siteSlug) ||
       /currumbin|hideaway/i.test(businessName)) &&
+    !/hideaway-circle/i.test(siteSlug) &&
     (!pageSlug ||
       pageSlug === "home" ||
       pageSlug === "/" ||
@@ -1264,7 +1310,8 @@ export function WebsitePageRenderer({
           ["--wb-bg"]: isProductFunnel
             ? resolvedFunnelTemplate === "property_report"
               ? "#1C2B2A"
-              : pageSlug === "hideaway-circle"
+              : resolvedFunnelTemplate === "hideaway_circle" ||
+                  pageSlug === "hideaway-circle"
                 ? "#0c1612"
                 : "#0A0E17"
             : lightSurface
@@ -1282,7 +1329,8 @@ export function WebsitePageRenderer({
                 background:
                   resolvedFunnelTemplate === "property_report"
                     ? "#1C2B2A"
-                    : pageSlug === "hideaway-circle"
+                    : resolvedFunnelTemplate === "hideaway_circle" ||
+                        pageSlug === "hideaway-circle"
                       ? "#0c1612"
                       : "#0A0E17",
               }
@@ -1299,6 +1347,7 @@ export function WebsitePageRenderer({
           overlay={overlayHeader}
           headerCta={resolvedHeaderCta}
           layout={headerLayout}
+          showIcon={/digitalgate/i.test(siteSlug)}
         />
       ) : headerHtml ? (
         <ChromeHeaderHtml html={headerHtml} />
@@ -1337,12 +1386,13 @@ export function WebsitePageRenderer({
               }
             />
           ) : null}
-          {pageSlug === "hideaway-circle" ? (
+          {pageSlug === "hideaway-circle" ||
+          resolvedFunnelTemplate === "hideaway_circle" ? (
             <HideawayCircleCapture
               siteSlug={siteSlug}
               basePath={basePath}
               logoUrl={theme.logoUrl || theme.iconUrl}
-              variant="embedded"
+              variant="funnel"
             />
           ) : null}
           {bookingKind ? (

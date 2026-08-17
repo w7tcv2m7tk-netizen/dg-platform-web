@@ -1,6 +1,7 @@
 /**
  * Funnel Builder — single landing page → CRM, plus product subdomain funnels
- * (DigitalGate Business Audit™, Roe Realty Property Report™).
+ * (DigitalGate Business Audit™, Roe Realty Property Report™,
+ * Hideaway Circle).
  */
 
 import type { Prisma } from "@dg/database";
@@ -69,6 +70,14 @@ export const FUNNEL_TEMPLATE_OPTIONS: Array<{
     defaultBrief:
       "Dedicated vendor acquisition funnel — value range, buyer demand and comparable sales.",
   },
+  {
+    id: "hideaway_circle",
+    label: "Hideaway Circle",
+    detail: "CVH guest programme — join → CRM + 10% direct-stay reward",
+    cta: "Join the Hideaway Circle",
+    defaultBrief:
+      "Dedicated Hideaway Circle capture — guest CRM, welcome email, 10% off the next direct stay.",
+  },
 ];
 
 export function isFunnelTemplateId(v: unknown): v is FunnelTemplateId {
@@ -77,14 +86,19 @@ export function isFunnelTemplateId(v: unknown): v is FunnelTemplateId {
     v === "appraisal_request" ||
     v === "booking_enquiry" ||
     v === "business_audit" ||
-    v === "property_report"
+    v === "property_report" ||
+    v === "hideaway_circle"
   );
 }
 
 export function isProductFunnelTemplate(
   v: unknown,
-): v is "business_audit" | "property_report" {
-  return v === "business_audit" || v === "property_report";
+): v is "business_audit" | "property_report" | "hideaway_circle" {
+  return (
+    v === "business_audit" ||
+    v === "property_report" ||
+    v === "hideaway_circle"
+  );
 }
 
 export function isFunnelWebsite(
@@ -93,6 +107,212 @@ export function isFunnelWebsite(
   const meta = website?.metadata;
   if (!meta || typeof meta !== "object") return false;
   return meta.kind === "funnel" || typeof meta.funnelTemplate === "string";
+}
+
+/**
+ * Capture pages that live on a brand website (not a dedicated funnel site).
+ * Hideaway Circle / stay booking stay on currumbinvalleyhideaway.com.au.
+ */
+export const BRAND_SITE_CAPTURE_FUNNELS: Array<{
+  pageSlug: string;
+  template: FunnelTemplateId;
+  displayName: string;
+  /** When set, only these brand-site slugs. Omit for globally unique page slugs. */
+  websiteSlugs?: readonly string[];
+}> = [
+  {
+    pageSlug: "stay",
+    template: "booking_enquiry",
+    displayName: "Stay booking",
+    websiteSlugs: ["currumbin-valley-hideaway"],
+  },
+];
+
+export type FunnelBuilderItem = {
+  id: string;
+  websiteId: string;
+  name: string;
+  slug: string;
+  pageSlug: string | null;
+  status: string;
+  template: FunnelTemplateId | null;
+  templateLabel: string;
+  href: string;
+  studioHref: string;
+  deletable: boolean;
+  pageCount?: number;
+};
+
+export type FunnelBuilderSiteInput = {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+  metadata: Record<string, unknown> | null;
+  pageCount?: number;
+  pages?: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    status: string;
+  }>;
+};
+
+function funnelTemplateLabel(template: FunnelTemplateId | null): string {
+  if (!template) return "funnel";
+  return (
+    FUNNEL_TEMPLATE_OPTIONS.find((t) => t.id === template)?.label ??
+    template.replace(/_/g, " ")
+  );
+}
+
+function previewHref(
+  siteSlug: string,
+  pageSlug: string | null,
+  published: boolean,
+): string {
+  const path = pageSlug
+    ? `/sites/${siteSlug}/${pageSlug}`
+    : `/sites/${siteSlug}`;
+  return published ? path : `${path}?preview=1`;
+}
+
+function publicPageHref(
+  hostname: string | null | undefined,
+  pageSlug: string,
+  published: boolean,
+  fallback: string,
+): string {
+  if (!published || !hostname) return fallback;
+  const host = hostname.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  if (!host) return fallback;
+  return `https://${host}/${pageSlug}`;
+}
+
+function domainNameForSite(
+  site: Pick<FunnelBuilderSiteInput, "id" | "metadata">,
+  domains: Array<{ name: string; websiteId: string | null }>,
+): string | null {
+  const meta = site.metadata ?? {};
+  const custom =
+    typeof meta.customHostname === "string" ? meta.customHostname.trim() : "";
+  if (custom) return custom.replace(/^https?:\/\//, "");
+  const product =
+    typeof meta.productHost === "string" ? meta.productHost.trim() : "";
+  if (product) return product.replace(/^https?:\/\//, "");
+  return domains.find((d) => d.websiteId === site.id)?.name ?? null;
+}
+
+function matchesBrandCapture(
+  site: FunnelBuilderSiteInput,
+  pageSlug: string,
+  spec: (typeof BRAND_SITE_CAPTURE_FUNNELS)[number],
+): boolean {
+  if (pageSlug !== spec.pageSlug) return false;
+  if (!spec.websiteSlugs?.length) return true;
+  return spec.websiteSlugs.includes(site.slug);
+}
+
+/** Dedicated funnel websites plus known capture pages on brand sites. */
+export function collectFunnelBuilderItems(
+  sites: FunnelBuilderSiteInput[],
+  domains: Array<{ name: string; websiteId: string | null }> = [],
+): FunnelBuilderItem[] {
+  const items: FunnelBuilderItem[] = [];
+  const seen = new Set<string>();
+
+  for (const site of sites) {
+    if (!isFunnelWebsite(site)) continue;
+    const template =
+      funnelTemplateFromMetadata(site.metadata) ||
+      funnelTemplateFromSlug(site.slug);
+    const published = site.status === "published";
+    items.push({
+      id: site.id,
+      websiteId: site.id,
+      name: site.name,
+      slug: site.slug,
+      pageSlug: null,
+      status: site.status,
+      template,
+      templateLabel: funnelTemplateLabel(template),
+      href: previewHref(site.slug, null, published),
+      studioHref: `/apps/websites/studio/${site.id}?live=1`,
+      deletable: !isProductFunnelTemplate(template),
+      pageCount: site.pageCount,
+    });
+    seen.add(site.id);
+  }
+
+  for (const site of sites) {
+    if (isFunnelWebsite(site)) continue;
+    const host = domainNameForSite(site, domains);
+    for (const spec of BRAND_SITE_CAPTURE_FUNNELS) {
+      const page = (site.pages ?? []).find((p) =>
+        matchesBrandCapture(site, p.slug, spec),
+      );
+      if (!page) continue;
+      const id = `${site.id}:${page.slug}`;
+      if (seen.has(id)) continue;
+      const published =
+        site.status === "published" && page.status === "published";
+      const fallback = previewHref(site.slug, page.slug, published);
+      items.push({
+        id,
+        websiteId: site.id,
+        name: spec.displayName || page.title,
+        slug: site.slug,
+        pageSlug: page.slug,
+        status: published ? "published" : page.status,
+        template: spec.template,
+        templateLabel: funnelTemplateLabel(spec.template),
+        href: publicPageHref(host, page.slug, published, fallback),
+        studioHref: `/apps/websites/studio/${site.id}?page=${encodeURIComponent(page.slug)}&live=1`,
+        deletable: false,
+        pageCount: 1,
+      });
+      seen.add(id);
+    }
+  }
+
+  return items;
+}
+
+export async function listFunnelBuilderItems(
+  organisationId: string,
+): Promise<FunnelBuilderItem[]> {
+  const { prisma } = await import("@dg/database");
+  const captureSlugs = BRAND_SITE_CAPTURE_FUNNELS.map((s) => s.pageSlug);
+  const [sites, domains] = await Promise.all([
+    prisma.website.findMany({
+      where: { organisationId },
+      orderBy: { updatedAt: "desc" },
+      include: {
+        _count: { select: { pages: true } },
+        pages: {
+          where: { slug: { in: captureSlugs } },
+          select: { id: true, slug: true, title: true, status: true },
+        },
+      },
+    }),
+    prisma.infrastructureDomain.findMany({
+      where: { organisationId },
+      select: { name: true, websiteId: true },
+    }),
+  ]);
+
+  return collectFunnelBuilderItems(
+    sites.map((site) => ({
+      id: site.id,
+      name: site.name,
+      slug: site.slug,
+      status: site.status,
+      metadata: (site.metadata as Record<string, unknown> | null) ?? null,
+      pageCount: site._count.pages,
+      pages: site.pages,
+    })),
+    domains,
+  );
 }
 
 export function funnelTemplateFromMetadata(
@@ -121,11 +341,15 @@ export function funnelTemplateFromMetadata(
     .find(Boolean);
   if (host === PRODUCT_FUNNEL_HOSTS.business_audit) return "business_audit";
   if (host === PRODUCT_FUNNEL_HOSTS.property_report) return "property_report";
+  if (host === PRODUCT_FUNNEL_HOSTS.hideaway_circle) return "hideaway_circle";
   if (meta.kind === "funnel" && meta.capturePath === "gen2_public_business_audit") {
     return "business_audit";
   }
   if (meta.kind === "funnel" && meta.capturePath === "gen2_public_property_report") {
     return "property_report";
+  }
+  if (meta.kind === "funnel" && meta.capturePath === "gen2_hideaway_circle") {
+    return "hideaway_circle";
   }
   return null;
 }
@@ -142,6 +366,12 @@ export function funnelTemplateFromSlug(
   if (s === "roe-realty-report" || s.includes("property-report")) {
     return "property_report";
   }
+  if (
+    s === "currumbin-valley-hideaway-circle" ||
+    s.endsWith("-hideaway-circle")
+  ) {
+    return "hideaway_circle";
+  }
   return null;
 }
 
@@ -156,6 +386,12 @@ export function funnelTemplateFromHostname(
   }
   if (host === PRODUCT_FUNNEL_HOSTS.property_report || host.startsWith("report.")) {
     return "property_report";
+  }
+  if (
+    host === PRODUCT_FUNNEL_HOSTS.hideaway_circle ||
+    host.startsWith("circle.currumbinvalleyhideaway.")
+  ) {
+    return "hideaway_circle";
   }
   return null;
 }
@@ -264,6 +500,22 @@ function funnelCopy(
       cta: "Check availability",
     };
   }
+  if (template === "hideaway_circle") {
+    return {
+      title: "The Hideaway Circle",
+      headline: "Come Back to the Valley",
+      subheadline:
+        "Join the Hideaway Circle and receive 10% off your next direct stay — plus first word on seasonal escapes.",
+      trust: ["10% off direct stays", "Guest-only offers", "No spam"],
+      formHeadline: "Join the Hideaway Circle",
+      submitLabel: "Join the Hideaway Circle",
+      successMessage: "Welcome to the Circle — check your inbox for your member details.",
+      seoTitle: "The Hideaway Circle | Currumbin Valley Hideaway",
+      seoDescription:
+        "Join the Hideaway Circle for 10% off your next direct stay at Currumbin Valley Hideaway.",
+      cta: "Join the Hideaway Circle",
+    };
+  }
   return {
     title: "Get in touch",
     headline: `Ready to talk to ${name}?`,
@@ -294,6 +546,14 @@ function productFunnelCrm(template: FunnelTemplateId) {
       createsLead: true,
       leadSource: "property_report",
       capturePath: "gen2_public_property_report",
+    };
+  }
+  if (template === "hideaway_circle") {
+    return {
+      createsContact: true,
+      createsLead: true,
+      leadSource: "hideaway_circle",
+      capturePath: "gen2_hideaway_circle",
     };
   }
   return {
@@ -618,7 +878,7 @@ export async function createFunnelWebsite(input: {
 }
 
 export type ProductFunnelEnsureResult = {
-  template: "business_audit" | "property_report";
+  template: "business_audit" | "property_report" | "hideaway_circle";
   websiteSlug: string;
   websiteId: string;
   hostname: string;
@@ -628,7 +888,8 @@ export type ProductFunnelEnsureResult = {
 
 /**
  * Ensure dedicated product funnel websites + InfrastructureDomain rows exist
- * for audit.digitalgate.com.au and report.roerealty.com.au.
+ * for audit.digitalgate.com.au, report.roerealty.com.au, and
+ * circle.currumbinvalleyhideaway.com.au.
  */
 export async function ensureProductFunnelSubdomains(options?: {
   attachVercel?: boolean;
@@ -637,8 +898,8 @@ export async function ensureProductFunnelSubdomains(options?: {
   const { resolveOrgBrandPresetKey } = await import("../org/brand-presets");
 
   const specs: Array<{
-    template: "business_audit" | "property_report";
-    brandPreset: "digitalgate" | "roe-realty";
+    template: "business_audit" | "property_report" | "hideaway_circle";
+    brandPreset: "digitalgate" | "roe-realty" | "cvh";
     preferredSlug: string;
     displayName: string;
     hostname: string;
@@ -656,6 +917,13 @@ export async function ensureProductFunnelSubdomains(options?: {
       preferredSlug: "roe-realty-report",
       displayName: "Roe Realty",
       hostname: PRODUCT_FUNNEL_HOSTS.property_report,
+    },
+    {
+      template: "hideaway_circle",
+      brandPreset: "cvh",
+      preferredSlug: "currumbin-valley-hideaway-circle",
+      displayName: "Currumbin Valley Hideaway",
+      hostname: PRODUCT_FUNNEL_HOSTS.hideaway_circle,
     },
   ];
 

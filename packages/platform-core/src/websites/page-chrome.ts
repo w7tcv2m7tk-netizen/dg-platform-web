@@ -9,6 +9,7 @@ const CHROMELESS_SLUG_RE =
 
 /** CVH / stay bookable unit pages — chromeless by default (booking app surface). */
 const STAY_UNIT_LEAF_SLUGS = new Set(["garden-studio", "private-studio", "tiny-home"]);
+const PRODUCT_FUNNEL_PAGE_SLUGS = new Set(["hideaway-circle"]);
 
 export type PageChromeVisibility = {
   showHeader: boolean;
@@ -22,6 +23,7 @@ export function isDefaultChromelessPage(slug: string | null | undefined): boolea
   if (cleaned.startsWith("property/")) return true;
   const leaf = cleaned.split("/").filter(Boolean).pop() ?? cleaned;
   if (STAY_UNIT_LEAF_SLUGS.has(leaf)) return true;
+  if (PRODUCT_FUNNEL_PAGE_SLUGS.has(leaf)) return true;
   return CHROMELESS_SLUG_RE.test(cleaned);
 }
 

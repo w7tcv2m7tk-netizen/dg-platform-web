@@ -2,9 +2,11 @@
  * Currumbin Valley Hideaway Gen 2 cutover — WP / Woo / MotoPress leftovers.
  * Used by middleware (410 + 308) and the public by-host renderer (aliases).
  * Keep this file Edge-safe (no Prisma / Node-only imports).
+ * Host scope: apex + www only (not circle.currumbinvalleyhideaway.com.au).
  */
 
-export const CVH_HOST_RE = /(^|\.)currumbinvalleyhideaway\.com\.au$/i;
+export const CVH_HOST_RE = /^(www\.)?currumbinvalleyhideaway\.com\.au$/i;
+export const CVH_CIRCLE_URL = "https://circle.currumbinvalleyhideaway.com.au/";
 
 const CVH_UNIT_LEAVES = new Set([
   "tiny-home",
@@ -34,6 +36,7 @@ export const CVH_LEGACY_REDIRECTS: Record<string, string> = {
   "/currumbin-valley-guide/cougal-cascades": "/cougal-cascades",
   "/private-studio": "/garden-studio",
   "/accommodation/private-studio": "/garden-studio",
+  "/hideaway-circle": CVH_CIRCLE_URL,
 };
 
 /** Woo / plugin / transactional URLs that should disappear from the index. */
@@ -103,10 +106,12 @@ export function resolveCvhLegacyRequest(
   return null;
 }
 
-/** by-host page query aliases (no leading slash). */
+/** by-host page query aliases (no leading slash; same-host only). */
 export const CVH_PAGE_ALIASES: Record<string, string> = Object.fromEntries(
-  Object.entries(CVH_LEGACY_REDIRECTS).map(([from, to]) => [
-    from.replace(/^\/+/, ""),
-    to.replace(/^\/+/, ""),
-  ]),
+  Object.entries(CVH_LEGACY_REDIRECTS)
+    .filter(([, to]) => to.startsWith("/"))
+    .map(([from, to]) => [
+      from.replace(/^\/+/, ""),
+      to.replace(/^\/+/, ""),
+    ]),
 );

@@ -180,6 +180,11 @@ const BRAND_TO_FUNNEL_REDIRECTS: Array<{
     pathRe: /^\/property-report\/?$/i,
     destination: "https://report.roerealty.com.au/",
   },
+  {
+    hostRe: /^(www\.)?currumbinvalleyhideaway\.com\.au$/i,
+    pathRe: /^\/hideaway-circle\/?$/i,
+    destination: "https://circle.currumbinvalleyhideaway.com.au/",
+  },
 ];
 
 export default async function middleware(req: NextRequest, event: unknown) {
@@ -213,7 +218,9 @@ export default async function middleware(req: NextRequest, event: unknown) {
 
     for (const rule of BRAND_TO_FUNNEL_REDIRECTS) {
       if (rule.hostRe.test(hostname) && rule.pathRe.test(path)) {
-        return NextResponse.redirect(rule.destination, 308);
+        const dest = new URL(rule.destination);
+        if (req.nextUrl.search) dest.search = req.nextUrl.search;
+        return NextResponse.redirect(dest, 308);
       }
     }
 

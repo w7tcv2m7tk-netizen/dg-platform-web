@@ -1287,6 +1287,44 @@ html.wb-menu-scroll-lock body {
   padding-top: clamp(10.5rem, 18vw, 13.5rem) !important;
 }
 
+/*
+ * Cream article bodies (.blog-content) stay charcoal.
+ * CVH posts use #F7F4EE and were imported without --light, so dark-shell
+ * type (#e2e8f0 / #f8fafc) painted the cream article. Scope to light
+ * surfaces so DigitalGate navy posts stay light-on-dark.
+ * Do not target .cvh-insights-hero — listing photo hero stays as-is.
+ */
+.wb-root.wb-surface-light .wb-html-island .blog-content,
+.wb-root .wb-html-island.wb-html-island--light .blog-content {
+  color: #1c2b2a !important;
+}
+
+.wb-root.wb-surface-light .wb-html-island .blog-content :is(h1, h2, h3, h4, h5, h6),
+.wb-root .wb-html-island.wb-html-island--light .blog-content :is(h1, h2, h3, h4, h5, h6) {
+  color: #1c2b2a !important;
+}
+
+.wb-root.wb-surface-light .wb-html-island .blog-content :is(
+  p, li, span, small, figcaption, strong, em, td, th, label
+),
+.wb-root .wb-html-island.wb-html-island--light .blog-content :is(
+  p, li, span, small, figcaption, strong, em, td, th, label
+) {
+  color: #2f2f2f !important;
+}
+
+.wb-root.wb-surface-light .wb-html-island .blog-content a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]),
+.wb-root .wb-html-island.wb-html-island--light .blog-content a:not([class*="btn"]):not([class*="cta"]):not([class*="button"]) {
+  color: #6b5428 !important;
+}
+
+.wb-root.wb-surface-light .wb-html-island .blog-footer,
+.wb-root .wb-html-island.wb-html-island--light .blog-footer,
+.wb-root.wb-surface-light .wb-html-island .blog-footer p,
+.wb-root .wb-html-island.wb-html-island--light .blog-footer p {
+  color: #3f4a48 !important;
+}
+
 /* Cream Roe / CVH body copy stays dark (intro / why / light CTA strips / gallery).
    RR .final-cta / .final-cta-section are cream bands — dark type, gold pills. */
 .wb-root .wb-html-island.wb-html-island--light :is(
@@ -2440,6 +2478,10 @@ a.wb-brand-chrome-cta:hover {
   flex-shrink: 0;
 }
 
+.wb-brand-chrome-header:not(.wb-brand-chrome-header--lockup) .wb-brand-chrome-icon {
+  display: none !important;
+}
+
 .wb-brand-chrome-icon {
   display: block;
   width: 32px !important;
@@ -2885,9 +2927,15 @@ a.wb-brand-chrome-cta:hover {
   color: #243533;
 }
 
-/* CVH Insights: stacked overlay header is tall — drop hero copy below it */
+/* CVH Insights: stacked overlay header is tall — drop hero copy below it.
+   Pin the original forest-road photo (not the home canopy, not a solid fill). */
 .wb-root .cvh-insights-hero {
   padding-top: clamp(10.5rem, 18vw, 13.5rem) !important;
+  background-image: url("https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1mggj0000ib04kvavtx4p/wp-migrate/acf9f0d6bc6def1e.jpeg") !important;
+  background-size: cover !important;
+  background-position: center 45% !important;
+  background-repeat: no-repeat !important;
+  background-color: #2c4137 !important;
 }
 
 @media (max-width: 900px) {
@@ -3230,7 +3278,9 @@ a.wb-brand-chrome-cta:hover {
 
 /* CVH / accommodation gallery — full-bleed hero + lightbox */
 .wb-html-gallery .gallery-hero,
-.wb-html-page .gallery-hero {
+.wb-html-page .gallery-hero,
+.wb-html-page .cvh-insights-hero,
+.wb-root .cvh-insights-hero {
   position: relative !important;
   /* Prefer 100% over 100vw — 100vw + safe-area padding causes horizontal slide on iOS */
   width: 100% !important;
@@ -3239,13 +3289,17 @@ a.wb-brand-chrome-cta:hover {
   margin-right: 0 !important;
   min-height: min(78vh, 720px) !important;
   background-size: cover !important;
-  background-position: center center !important;
   background-repeat: no-repeat !important;
   background-attachment: scroll !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   text-align: center !important;
+}
+
+.wb-html-gallery .gallery-hero,
+.wb-html-page .gallery-hero {
+  background-position: center center !important;
 }
 
 .wb-html-gallery .gallery-grid .gallery-item,

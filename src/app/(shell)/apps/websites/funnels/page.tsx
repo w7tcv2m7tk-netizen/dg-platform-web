@@ -1,8 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import {
-  isFunnelWebsite,
-  listWebsites,
+  listFunnelBuilderItems,
   organisationHasWebsitesBuilder,
 } from "@dg/platform-core";
 
@@ -33,9 +32,10 @@ export default async function FunnelsPage() {
     ? await organisationHasWebsitesBuilder(session.organisationId)
     : false;
 
-  const sites =
-    session && allowed ? await listWebsites(session.organisationId) : [];
-  const funnels = sites.filter((s) => isFunnelWebsite(s));
+  const funnels =
+    session && allowed
+      ? await listFunnelBuilderItems(session.organisationId)
+      : [];
 
   return (
     <>

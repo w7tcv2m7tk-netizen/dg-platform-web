@@ -2,6 +2,8 @@
 
 import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 
+import { PRODUCT_FUNNEL_URLS } from "@/lib/product-funnel-links";
+
 type Props = {
   siteSlug: string;
   basePath?: string;
@@ -46,7 +48,7 @@ const DEFAULT_LOGO =
 const CVH_ICON = DEFAULT_LOGO;
 
 const HERO_IMAGE =
-  "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1mggj0000ib04kvavtx4p/wp-migrate/f887cae9510f748f.jpeg";
+  "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1mggj0000ib04kvavtx4p/wp-migrate/8ca24aeaa88d4225.jpeg";
 
 const FUNNEL_CSS = `
 @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@560;700&family=Manrope:wght@500;600;700;800&display=swap");
@@ -59,7 +61,7 @@ const FUNNEL_CSS = `
 }
 .dg-cvh-funnel {
   --cvh-ink: #f7f4ef;
-  --cvh-gold: #C9A46C;
+  --cvh-gold: #B9A48A;
   --cvh-deep: #1a2a24;
   --cvh-panel: rgba(14, 24, 20, 0.78);
   position: relative;
@@ -77,7 +79,7 @@ const FUNNEL_CSS = `
   inset: 0;
   background-image: var(--cvh-hero);
   background-size: cover;
-  background-position: center 40%;
+  background-position: center 58%;
   transform: scale(1.04);
 }
 .dg-cvh-funnel__veil {
@@ -113,9 +115,9 @@ const FUNNEL_CSS = `
   text-transform: uppercase;
 }
 .dg-cvh-funnel__brand-logo {
-  height: clamp(2.4rem, 5vw, 3.2rem);
+  height: clamp(2.1rem, 4.8vw, 2.9rem);
   width: auto;
-  max-width: min(280px, 74vw);
+  max-width: min(260px, 74vw);
   display: block;
   object-fit: contain;
   object-position: left center;
@@ -371,7 +373,6 @@ const FUNNEL_CSS = `
     grid-template-columns: 1fr;
     align-content: center;
     gap: 1.5rem;
-    padding-top: 2.25rem;
     padding-bottom: 2.25rem;
   }
   .dg-cvh-funnel__trust {
@@ -386,9 +387,8 @@ const FUNNEL_CSS = `
 }
 `;
 
-function joinHref(basePath: string) {
-  const base = basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : "";
-  return `${base}/hideaway-circle`;
+function joinHref(_basePath: string) {
+  return PRODUCT_FUNNEL_URLS.hideawayCircle;
 }
 
 function stayHref(basePath: string) {
@@ -440,10 +440,7 @@ export function HideawayCircleCapture({
     setPrintMode(prefill.print);
   }, []);
 
-  const circleUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}${joinHref(basePath)}?src=qr`
-      : `https://currumbinvalleyhideaway.com.au/hideaway-circle?src=qr`;
+  const circleUrl = `${PRODUCT_FUNNEL_URLS.hideawayCircle}?src=qr`;
 
   const brandLogo = logoUrl?.trim() || DEFAULT_LOGO;
   const isFunnel = variant === "funnel";

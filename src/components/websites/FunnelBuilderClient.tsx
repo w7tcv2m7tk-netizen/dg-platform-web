@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   FUNNEL_TEMPLATE_OPTIONS,
+  type FunnelBuilderItem,
 } from "@dg/platform-core/websites/funnels";
-import type { FunnelTemplateId, SerializedWebsite } from "@dg/platform-core/websites/types";
+import type { FunnelTemplateId } from "@dg/platform-core/websites/types";
 
 export function FunnelBuilderClient({
   funnels,
 }: {
-  funnels: Array<SerializedWebsite & { pageCount?: number }>;
+  funnels: FunnelBuilderItem[];
 }) {
   const router = useRouter();
   const [template, setTemplate] = useState<FunnelTemplateId>("lead_capture");
@@ -59,15 +60,16 @@ export function FunnelBuilderClient({
     setBusy(false);
   }
 
-  async function onDelete(funnel: SerializedWebsite) {
+  async function onDelete(funnel: FunnelBuilderItem) {
+    if (!funnel.deletable) return;
     const ok = window.confirm(
       `Delete funnel “${funnel.name}”? This cannot be undone. Linked domains stay in Domains but will be detached.`,
     );
     if (!ok) return;
-    setDeletingId(funnel.id);
+    setDeletingId(funnel.websiteId);
     setError("");
     try {
-      const res = await fetch(`/api/v1/websites/${funnel.id}`, {
+      const res = await fetch(`/api/v1/websites/${funnel.websiteId}`, {
         method: "DELETE",
       });
       const json = (await res.json().catch(() => ({}))) as {
@@ -184,11 +186,10 @@ export function FunnelBuilderClient({
         ) : (
           <ul className="divide-y divide-slate-800 rounded-lg border border-slate-700 overflow-hidden">
             {funnels.map((f) => {
-              const tmpl =
-                typeof f.metadata?.funnelTemplate === "string"
-                  ? f.metadata.funnelTemplate.replace(/_/g, " ")
-                  : "funnel";
-              const deleting = deletingId === f.id;
+              const deleting = deletingId === f.websiteId;
+              const pathLabel = f.pageSlug
+                ? `/${f.pageSlug}`
+                : `/sites/${f.slug}`;
               return (
                 <li
                   key={f.id}
@@ -197,7 +198,7 @@ export function FunnelBuilderClient({
                   <div className="min-w-0">
                     <p className="text-sm text-white truncate">{f.name}</p>
                     <p className="text-[11px] text-slate-500">
-                      {tmpl} · /sites/{f.slug} · {f.status}
+                      {f.templateLabel} · {pathLabel} · {f.status}
                       {typeof f.pageCount === "number"
                         ? ` · ${f.pageCount} page${f.pageCount === 1 ? "" : "s"}`
                         : ""}
@@ -205,26 +206,28 @@ export function FunnelBuilderClient({
                   </div>
                   <div className="flex flex-wrap gap-2 shrink-0">
                     <Link
-                      href={`/sites/${f.slug}${f.status === "published" ? "" : "?preview=1"}`}
+                      href={f.href}
                       target="_blank"
                       className="rounded-md border border-slate-600 px-2.5 py-1 text-xs text-slate-300 hover:bg-slate-800"
                     >
                       {f.status === "published" ? "Open live" : "Preview"}
                     </Link>
                     <Link
-                      href={`/apps/websites/studio/${f.id}?live=1`}
+                      href={f.studioHref}
                       className="rounded-md bg-slate-800 px-2.5 py-1 text-xs text-white hover:bg-slate-700"
                     >
                       Studio
                     </Link>
-                    <button
-                      type="button"
-                      disabled={busy || Boolean(deletingId)}
-                      onClick={() => void onDelete(f)}
-                      className="rounded-md border border-rose-900/70 px-2.5 py-1 text-xs text-rose-300 hover:bg-rose-950/40 disabled:opacity-50"
-                    >
-                      {deleting ? "Deleting…" : "Delete"}
-                    </button>
+                    {f.deletable ? (
+                      <button
+                        type="button"
+                        disabled={busy || Boolean(deletingId)}
+                        onClick={() => void onDelete(f)}
+                        className="rounded-md border border-rose-900/70 px-2.5 py-1 text-xs text-rose-300 hover:bg-rose-950/40 disabled:opacity-50"
+                      >
+                        {deleting ? "Deleting…" : "Delete"}
+                      </button>
+                    ) : null}
                   </div>
                 </li>
               );

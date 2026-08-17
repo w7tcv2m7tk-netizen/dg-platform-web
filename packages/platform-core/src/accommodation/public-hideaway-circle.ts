@@ -10,6 +10,7 @@ import { ensureContactForLeadFields } from "../contacts";
 import { findDomainByHostname } from "../infrastructure/domains/inventory";
 import { createLead } from "../leads";
 import { getWebsiteBySlug, createWebsitePage, updateWebsitePage } from "../websites/crud";
+import { PRODUCT_FUNNEL_URLS } from "../websites/types";
 import {
   buildHideawayCircleSequenceStamp,
   dueHideawayCircleFollowupSteps,
@@ -52,6 +53,9 @@ export async function ensureHideawayCircleWebsitePage(input: {
   organisationId?: string;
 }): Promise<{ ok: true; pageId: string; created: boolean } | { ok: false }> {
   const slug = input.siteSlug?.trim() || "currumbin-valley-hideaway";
+  if (slug !== "currumbin-valley-hideaway") {
+    return { ok: false };
+  }
   const site =
     (await getWebsiteBySlug(slug, { publishedOnly: true })) ||
     (await getWebsiteBySlug(slug));
@@ -73,13 +77,13 @@ export async function ensureHideawayCircleWebsitePage(input: {
     title: "The Hideaway Circle | Currumbin Valley Hideaway",
     description:
       "Join The Hideaway Circle for private offers, first access, and 10% off your next direct stay.",
-    showHeader: true,
-    showFooter: true,
+    showHeader: false,
+    showFooter: false,
   };
   if (existing) {
     const prevSeo = (existing.seo as Record<string, unknown> | null) ?? {};
     const needsChromeFix =
-      prevSeo.showHeader === false || prevSeo.showFooter === false;
+      prevSeo.showHeader === true || prevSeo.showFooter === true;
     if (existing.status !== "published" || needsChromeFix) {
       await updateWebsitePage({
         organisationId: site.organisationId,
@@ -135,7 +139,7 @@ export async function ensureHideawayCircleFooterLink(
   const before = chrome.footerHtml;
   if (/hideaway-circle/i.test(before)) return { updated: false };
 
-  const link = `<li><a href="/hideaway-circle/">Hideaway Circle</a></li>`;
+  const link = `<li><a href="${PRODUCT_FUNNEL_URLS.hideaway_circle}">Hideaway Circle</a></li>`;
   let after = before;
   if (/<li><a href="\/contact\/?">Contact<\/a><\/li>/i.test(before)) {
     after = before.replace(

@@ -3,6 +3,7 @@
  * Ensure dedicated product funnel subdomains:
  *   audit.digitalgate.com.au  → DigitalGate Business Audit™
  *   report.roerealty.com.au   → Roe Realty Property Report™
+ *   circle.currumbinvalleyhideaway.com.au → Hideaway Circle
  *
  * Usage:
  *   node --env-file=.env.local scripts/ensure-product-funnel-subdomains.mjs
@@ -68,6 +69,33 @@ const FUNNELS = [
     pageTitle: "Free Instant Property Report",
     capturePath: "gen2_public_property_report",
     leadSource: "property_report",
+  },
+  {
+    template: "hideaway_circle",
+    preferredSlug: "currumbin-valley-hideaway-circle",
+    hostname: "circle.currumbinvalleyhideaway.com.au",
+    displayName: "Currumbin Valley Hideaway",
+    match: (hay) =>
+      hay.includes("currumbin") ||
+      hay.includes("hideaway") ||
+      hay.includes("cvh"),
+    theme: {
+      primaryColor: "#B9A48A",
+      accentColor: "#2C4137",
+      backgroundColor: "#0c1612",
+      businessName: "Currumbin Valley Hideaway",
+    },
+    seo: {
+      title: "The Hideaway Circle | Currumbin Valley Hideaway",
+      description:
+        "Join the Hideaway Circle for 10% off your next direct stay at Currumbin Valley Hideaway.",
+      ogTitle: "Come Back to the Valley",
+      ogDescription:
+        "Join the Hideaway Circle and receive 10% off your next direct stay.",
+    },
+    pageTitle: "The Hideaway Circle",
+    capturePath: "gen2_hideaway_circle",
+    leadSource: "hideaway_circle",
   },
 ];
 
@@ -250,7 +278,7 @@ async function main() {
   }
 
   console.log(
-    "\nDNS: CNAME audit.digitalgate.com.au + report.roerealty.com.au → cname.vercel-dns.com",
+    "\nDNS: CNAME audit.digitalgate.com.au + report.roerealty.com.au + circle.currumbinvalleyhideaway.com.au → cname.vercel-dns.com",
   );
 }
 

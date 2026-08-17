@@ -1,7 +1,9 @@
 import { ensureHideawayCircleWebsitePage, getPublicStayUnit, getWebsiteBySlug, resolveFunnelTemplate, resolvePageChromeVisibility, resolveStayUnitSlug } from "@dg/platform-core";
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
+import { HideawayCircleCapture } from "@/components/websites/HideawayCircleCapture";
 import { WebsitePageRenderer } from "@/components/websites/WebsiteRenderer";
 import { websiteRendererCss } from "@/components/websites/website-renderer-css";
 
@@ -91,7 +93,7 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
     const aliased = aliases[pageSlug];
     if (aliased) page = (site.pages ?? []).find((p) => p.slug === aliased);
   }
-  if (!page && pageSlug === "hideaway-circle" && /currumbin|hideaway/i.test(slug)) {
+  if (!page && pageSlug === "hideaway-circle" && slug === "currumbin-valley-hideaway") {
     const ensured = await ensureHideawayCircleWebsitePage({ siteSlug: slug });
     if (ensured.ok) {
       site = (await getWebsiteBySlug(slug)) || site;
@@ -103,27 +105,31 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
   const theme = site.theme ?? {};
   const siteMeta = site.metadata as Record<string, unknown> | null | undefined;
   const chrome = chromeFromSite(siteMeta);
-  const funnelTemplate = resolveFunnelTemplate({
-    metadata: siteMeta,
-    slug,
-  });
+  const funnelTemplate =
+    resolveFunnelTemplate({
+      metadata: siteMeta,
+      slug,
+    }) ||
+    (page.slug === "hideaway-circle" || slug === "currumbin-valley-hideaway-circle"
+      ? "hideaway_circle"
+      : null);
   const staySlug = resolveStayUnitSlug(page.slug);
   const stayUnit = staySlug
     ? await getPublicStayUnit(site.organisationId, staySlug)
     : null;
   const chromeDefaults = resolvePageChromeVisibility(page.slug, page.seo);
   const showHeader =
-    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
+    funnelTemplate === "business_audit" ||
+    funnelTemplate === "property_report" ||
+    funnelTemplate === "hideaway_circle"
       ? false
-      : page.slug === "hideaway-circle"
-        ? true
-        : chromeDefaults.showHeader;
+      : chromeDefaults.showHeader;
   const showFooter =
-    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
+    funnelTemplate === "business_audit" ||
+    funnelTemplate === "property_report" ||
+    funnelTemplate === "hideaway_circle"
       ? false
-      : page.slug === "hideaway-circle"
-        ? true
-        : chromeDefaults.showFooter;
+      : chromeDefaults.showFooter;
   const title = page.seo?.title || `${page.title} | ${site.name}`;
   const description =
     page.seo?.description || site.seo?.description || site.name;
@@ -139,22 +145,51 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
       <meta property="og:title" content={ogTitle} />
       <meta property="og:description" content={ogDescription} />
       {ogImage ? <meta property="og:image" content={ogImage} /> : null}
-      {(chrome?.stylesheets ?? []).slice(0, 20).map((href) => (
-        <link key={href} rel="stylesheet" href={href} />
-      ))}
+      {(funnelTemplate === "hideaway_circle"
+        ? []
+        : chrome?.stylesheets ?? []
+      )
+        .slice(0, 20)
+        .map((href) => (
+          <link key={href} rel="stylesheet" href={href} />
+        ))}
       <style dangerouslySetInnerHTML={{ __html: websiteRendererCss }} />
-      <WebsitePageRenderer
-        components={page.components}
-        theme={theme}
-        basePath={`/sites/${slug}`}
-        siteSlug={slug}
-        pageSlug={page.slug}
-        chrome={chrome}
-        stayUnit={stayUnit}
-        showHeader={showHeader}
-        showFooter={showFooter}
-        funnelTemplate={funnelTemplate}
-      />
+      {funnelTemplate === "hideaway_circle" ? (
+        <div
+          className="wb-root wb-html-page wb-full-bleed wb-product-funnel"
+          style={
+            {
+              ["--wb-primary"]: theme.primaryColor || "#B9A48A",
+              ["--wb-accent"]: theme.accentColor || "#2C4137",
+              ["--wb-bg"]: theme.backgroundColor || "#0c1612",
+              minHeight: "100dvh",
+              width: "100%",
+              margin: 0,
+              padding: 0,
+              background: "#0c1612",
+            } as CSSProperties
+          }
+        >
+          <HideawayCircleCapture
+            siteSlug={slug}
+            basePath=""
+            variant="funnel"
+          />
+        </div>
+      ) : (
+        <WebsitePageRenderer
+          components={page.components}
+          theme={theme}
+          basePath={`/sites/${slug}`}
+          siteSlug={slug}
+          pageSlug={page.slug}
+          chrome={chrome}
+          stayUnit={stayUnit}
+          showHeader={showHeader}
+          showFooter={showFooter}
+          funnelTemplate={funnelTemplate}
+        />
+      )}
     </>
   );
 }

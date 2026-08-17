@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { BusinessAuditCapture } from "@/components/websites/BusinessAuditCapture";
+import { HideawayCircleCapture } from "@/components/websites/HideawayCircleCapture";
 import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
 import { WebsitePageRenderer } from "@/components/websites/WebsiteRenderer";
 import { websiteRendererCss } from "@/components/websites/website-renderer-css";
@@ -77,7 +78,10 @@ export default async function PublicSiteHomePage({
       ? "property_report"
       : slug === "digitalgate-audit" || home.slug === "business-audit"
         ? "business_audit"
-        : null);
+        : slug === "currumbin-valley-hideaway-circle" ||
+            home.slug === "hideaway-circle"
+          ? "hideaway_circle"
+          : null);
   const title = home.seo?.title || site.seo?.title || site.name;
   const description =
     home.seo?.description || site.seo?.description || site.name;
@@ -87,11 +91,15 @@ export default async function PublicSiteHomePage({
   const ogImage = home.seo?.ogImage || site.seo?.ogImage;
   const chromeDefaults = resolvePageChromeVisibility(home.slug, home.seo);
   const showHeader =
-    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
+    funnelTemplate === "business_audit" ||
+    funnelTemplate === "property_report" ||
+    funnelTemplate === "hideaway_circle"
       ? false
       : chromeDefaults.showHeader;
   const showFooter =
-    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
+    funnelTemplate === "business_audit" ||
+    funnelTemplate === "property_report" ||
+    funnelTemplate === "hideaway_circle"
       ? false
       : chromeDefaults.showFooter;
 
@@ -102,9 +110,14 @@ export default async function PublicSiteHomePage({
       <meta property="og:title" content={ogTitle} />
       <meta property="og:description" content={ogDescription} />
       {ogImage ? <meta property="og:image" content={ogImage} /> : null}
-      {(chrome?.stylesheets ?? []).slice(0, 20).map((href) => (
-        <link key={href} rel="stylesheet" href={href} />
-      ))}
+      {(funnelTemplate === "hideaway_circle"
+        ? []
+        : chrome?.stylesheets ?? []
+      )
+        .slice(0, 20)
+        .map((href) => (
+          <link key={href} rel="stylesheet" href={href} />
+        ))}
       <style dangerouslySetInnerHTML={{ __html: websiteRendererCss }} />
       {allowDraft && site.status !== "published" ? (
         <div
@@ -161,6 +174,28 @@ export default async function PublicSiteHomePage({
           <BusinessAuditCapture
             siteSlug={slug}
             basePath={`/sites/${slug}`}
+            variant="funnel"
+          />
+        </div>
+      ) : funnelTemplate === "hideaway_circle" ? (
+        <div
+          className="wb-root wb-html-page wb-full-bleed wb-product-funnel"
+          style={
+            {
+              ["--wb-primary"]: theme.primaryColor || "#B9A48A",
+              ["--wb-accent"]: theme.accentColor || "#2C4137",
+              ["--wb-bg"]: theme.backgroundColor || "#0c1612",
+              minHeight: "100dvh",
+              width: "100%",
+              margin: 0,
+              padding: 0,
+              background: "#0c1612",
+            } as CSSProperties
+          }
+        >
+          <HideawayCircleCapture
+            siteSlug={slug}
+            basePath=""
             variant="funnel"
           />
         </div>

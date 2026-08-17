@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import type { PublicStayUnitPayload } from "@dg/platform-core";
 import { MosaicLightboxGallery } from "@/components/websites/MosaicLightboxGallery";
+import { PRODUCT_FUNNEL_URLS } from "@/lib/product-funnel-links";
 
 type Props = {
   siteSlug: string;
@@ -708,7 +709,7 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
                   </p>
                   <a
                     className="cvh-btn-enquire"
-                    href={`${basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : ""}/hideaway-circle?src=post_booking&email=${encodeURIComponent(email)}&firstName=${encodeURIComponent(firstName)}`}
+                    href={`${PRODUCT_FUNNEL_URLS.hideawayCircle}?src=post_booking&email=${encodeURIComponent(email)}&firstName=${encodeURIComponent(firstName)}`}
                   >
                     Claim my 10% return-stay reward →
                   </a>

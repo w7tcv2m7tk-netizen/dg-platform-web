@@ -89,14 +89,15 @@ const HEROES = {
   },
   cmst2d41i003509gj0nuocwqw: {
     brand: "CVH",
-    html: `<style>
-.cvh-insights-hero{font-family:Georgia,"Times New Roman",serif;background:linear-gradient(160deg,rgba(44,65,55,.94),rgba(28,43,42,.9)),#2C4137;color:#F8FAFC;text-align:center;padding:clamp(10.5rem,18vw,13.5rem) clamp(1rem,4vw,2.5rem) 3.5rem;box-sizing:border-box}
-.cvh-insights-hero *{box-sizing:border-box}
+    html: `<style id="cvh-insights-hero-photo">
+.cvh-insights-hero{position:relative;width:100%;min-height:min(78vh,720px);font-family:Georgia,"Times New Roman",serif;background-image:url("https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1mggj0000ib04kvavtx4p/wp-migrate/acf9f0d6bc6def1e.jpeg");background-size:cover;background-position:center 45%;background-repeat:no-repeat;background-color:#2C4137;color:#F8FAFC;text-align:center;padding:clamp(10.5rem,18vw,13.5rem) clamp(1rem,4vw,2.5rem) 3.5rem;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+.cvh-insights-hero::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(160deg,rgba(28,43,42,.72) 0%,rgba(28,43,42,.5) 55%,rgba(0,0,0,.35) 100%)}
+.cvh-insights-hero>*{position:relative;z-index:2;box-sizing:border-box}
 .cvh-insights-hero .sub{display:inline-block;font-family:"Source Sans 3",system-ui,sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#B9A48A;margin-bottom:.85rem}
 .cvh-insights-hero h1{margin:0 auto .9rem;max-width:18ch;font-size:clamp(2.1rem,5vw,3.1rem);font-weight:700;line-height:1.12;color:#F8FAFC}
 .cvh-insights-hero .lead{margin:0 auto 1.5rem;max-width:640px;font-family:"Source Sans 3",system-ui,sans-serif;font-size:1.05rem;line-height:1.7;color:#E8EDEC}
 .cvh-insights-hero a{display:inline-flex;align-items:center;font-family:"Source Sans 3",system-ui,sans-serif;background:#B9A48A;color:#F8FAFC!important;font-weight:700;text-decoration:none;padding:.85rem 1.6rem;border-radius:40px}
-@media(max-width:900px){.cvh-insights-hero{padding-top:clamp(9.5rem,28vw,12rem)}}
+@media(max-width:900px){.cvh-insights-hero{padding-top:clamp(9.5rem,28vw,12rem);background-attachment:scroll}}
 @media(max-width:640px){.cvh-insights-hero{padding-top:clamp(8.75rem,32vw,11rem)}}
 </style>
 <section class="cvh-insights-hero">

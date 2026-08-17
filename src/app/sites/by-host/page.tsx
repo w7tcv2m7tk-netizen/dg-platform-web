@@ -10,6 +10,7 @@ import { DG_PAGE_ALIASES, isDgPublicHost } from "@/lib/dg-legacy-urls";
 import { ROE_PAGE_ALIASES, isRoePublicHost } from "@/lib/roe-legacy-urls";
 
 import { BusinessAuditCapture } from "@/components/websites/BusinessAuditCapture";
+import { HideawayCircleCapture } from "@/components/websites/HideawayCircleCapture";
 import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
 import { WebsitePageRenderer } from "@/components/websites/WebsiteRenderer";
 import { websiteRendererCss } from "@/components/websites/website-renderer-css";
@@ -265,7 +266,7 @@ async function renderSite(
   if (
     !page &&
     pageSlug === "hideaway-circle" &&
-    /currumbin|hideaway/i.test(slug)
+    slug === "currumbin-valley-hideaway"
   ) {
     const ensured = await ensureHideawayCircleWebsitePage({ siteSlug: slug });
     if (ensured.ok) {
@@ -294,30 +295,40 @@ async function renderSite(
       ? "property_report"
       : slug === "digitalgate-audit" || page.slug === "business-audit"
         ? "business_audit"
-        : null);
+        : slug === "currumbin-valley-hideaway-circle" ||
+            page.slug === "hideaway-circle"
+          ? "hideaway_circle"
+          : null);
   const staySlug = resolveStayUnitSlug(page.slug);
   const stayUnit = staySlug
     ? await getPublicStayUnit(site.organisationId, staySlug)
     : null;
   const chromeDefaults = resolvePageChromeVisibility(page.slug, page.seo);
   const showHeader =
-    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
+    funnelTemplate === "business_audit" ||
+    funnelTemplate === "property_report" ||
+    funnelTemplate === "hideaway_circle" ||
+    page.slug === "hideaway-circle"
       ? false
-      : page.slug === "hideaway-circle"
-        ? true
-        : chromeDefaults.showHeader;
+      : chromeDefaults.showHeader;
   const showFooter =
-    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
+    funnelTemplate === "business_audit" ||
+    funnelTemplate === "property_report" ||
+    funnelTemplate === "hideaway_circle" ||
+    page.slug === "hideaway-circle"
       ? false
-      : page.slug === "hideaway-circle"
-        ? true
-        : chromeDefaults.showFooter;
+      : chromeDefaults.showFooter;
 
   return (
     <>
-      {(chrome?.stylesheets ?? []).slice(0, 20).map((href) => (
-        <link key={href} rel="stylesheet" href={href} />
-      ))}
+      {(funnelTemplate === "hideaway_circle"
+        ? []
+        : chrome?.stylesheets ?? []
+      )
+        .slice(0, 20)
+        .map((href) => (
+          <link key={href} rel="stylesheet" href={href} />
+        ))}
       <style dangerouslySetInnerHTML={{ __html: websiteRendererCss }} />
       {allowDraft && site.status !== "published" ? (
         <div
@@ -372,6 +383,28 @@ async function renderSite(
           }
         >
           <BusinessAuditCapture
+            siteSlug={slug}
+            basePath=""
+            variant="funnel"
+          />
+        </div>
+      ) : funnelTemplate === "hideaway_circle" ? (
+        <div
+          className="wb-root wb-html-page wb-full-bleed wb-product-funnel"
+          style={
+            {
+              ["--wb-primary"]: theme.primaryColor || "#B9A48A",
+              ["--wb-accent"]: theme.accentColor || "#2C4137",
+              ["--wb-bg"]: theme.backgroundColor || "#0c1612",
+              minHeight: "100dvh",
+              width: "100%",
+              margin: 0,
+              padding: 0,
+              background: "#0c1612",
+            } as CSSProperties
+          }
+        >
+          <HideawayCircleCapture
             siteSlug={slug}
             basePath=""
             variant="funnel"

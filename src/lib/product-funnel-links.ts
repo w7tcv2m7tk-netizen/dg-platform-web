@@ -6,6 +6,7 @@
 export const PRODUCT_FUNNEL_URLS = {
   businessAudit: "https://audit.digitalgate.com.au",
   propertyReport: "https://report.roerealty.com.au",
+  hideawayCircle: "https://circle.currumbinvalleyhideaway.com.au",
 } as const;
 
 const PATH_MAP: Array<{ re: RegExp; url: string }> = [
@@ -16,6 +17,10 @@ const PATH_MAP: Array<{ re: RegExp; url: string }> = [
   {
     re: /^(?:https?:\/\/(?:www\.)?roerealty\.com\.au)?\/?property-report\/?(?:[?#].*)?$/i,
     url: PRODUCT_FUNNEL_URLS.propertyReport,
+  },
+  {
+    re: /^(?:https?:\/\/(?:www\.)?currumbinvalleyhideaway\.com\.au)?\/?hideaway-circle\/?(?:[?#].*)?$/i,
+    url: PRODUCT_FUNNEL_URLS.hideawayCircle,
   },
 ];
 
@@ -33,12 +38,18 @@ export function rewriteProductFunnelHref(href: string | null | undefined): strin
   if (/\/property-report\/?$/i.test(raw)) {
     return PRODUCT_FUNNEL_URLS.propertyReport;
   }
+  if (/\/hideaway-circle\/?$/i.test(raw)) {
+    return PRODUCT_FUNNEL_URLS.hideawayCircle;
+  }
   return raw;
 }
 
 /** Rewrite href attributes inside HTML blobs (page components / chrome). */
 export function rewriteProductFunnelHtml(html: string): string {
-  if (!html || !/business-audit|free-agency-audit|property-report/i.test(html)) {
+  if (
+    !html ||
+    !/business-audit|free-agency-audit|property-report|hideaway-circle/i.test(html)
+  ) {
     return html;
   }
   return html.replace(

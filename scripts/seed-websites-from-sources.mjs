@@ -677,7 +677,7 @@ function stripEmbeddedPageHeaders(html) {
 }
 
 function isLightContentHtml(html) {
-  return /background:\s*#(?:F5F2EF|FCF9F5|F8F5F0|FFFFFF|fff)\b|roe-property-grid|hero-property/i.test(
+  return /background(?:-color)?:\s*#(?:F5F2EF|FCF9F5|F8F5F0|F7F4EE|F7F4EF|FFFFFF|fff)\b|roe-property-grid|hero-property/i.test(
     String(html || ""),
   );
 }
