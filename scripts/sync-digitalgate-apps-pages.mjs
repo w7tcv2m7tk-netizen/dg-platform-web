@@ -18,6 +18,15 @@ const MARKETING_APPS = existsSync(join(MARKETING_APPS_IN_REPO, "catalog.mjs"))
   : MARKETING_APPS_SIBLING;
 const HTML_ROOT = join(MARKETING_APPS, "html");
 
+const FOOTER_IN_REPO = join(REPO, "marketing", "pages", "footer.html");
+const FOOTER_SIBLING = join(REPO, "..", "dg-platform", "marketing", "pages", "footer.html");
+const FOOTER_SOURCE = existsSync(FOOTER_IN_REPO)
+  ? FOOTER_IN_REPO
+  : FOOTER_SIBLING;
+
+const FOOTER_ICON = "https://app.digitalgate.com.au/brand/icon-light.png";
+const FOOTER_LOGO = "https://app.digitalgate.com.au/brand/logo-on-dark.png";
+
 const SITE_SLUG = "digitalgate";
 const ORG_ID = process.env.DG_APPS_ORG_ID || "cmsfkd6n50000ju046to0po60";
 const WEBSITE_ID = process.env.DG_APPS_WEBSITE_ID || "cmskwz6zv0001l404cfi1wal4";
@@ -240,59 +249,51 @@ function patchPricingAppsSection(html) {
   return out;
 }
 
-function patchFooterHtml(html) {
-  const appsCol = `      <!-- Apps — Core → Infrastructure → Industry → Growth -->
-      <div class="dg-footer-col">
-        <h4>Apps</h4>
-        <ul class="dg-footer-links">
-          <li><a href="/apps/">All Apps</a></li>
-          <li><a href="/apps/core/"><strong style="color:#64748B;font-weight:600;">Core</strong></a></li>
-          <li><a href="/apps/core/crm/">CRM</a></li>
-          <li><a href="/apps/core/opportunities/">Opportunities</a></li>
-          <li><a href="/apps/infrastructure/"><strong style="color:#64748B;font-weight:600;">Infrastructure</strong></a></li>
-          <li><a href="/apps/infrastructure/website/">Website · Domains · Email</a></li>
-          <li><a href="/apps/industry/"><strong style="color:#64748B;font-weight:600;">Industry</strong></a></li>
-          <li><a href="/apps/industry/real-estate/">Real Estate</a></li>
-          <li><a href="/apps/industry/accommodation/">Accommodation</a></li>
-          <li><a href="/apps/growth/"><strong style="color:#64748B;font-weight:600;">Growth</strong></a></li>
-          <li><a href="/apps/growth/prospecting/">Prospecting &amp; Opportunity Engine</a></li>
-          <li><a href="/apps/growth/ai-visibility/">AI Visibility</a></li>
-          <li><a href="/apps/growth/seo/">SEO</a></li>
-          <li><a href="/apps/growth/automation/">Automation</a></li>
-          <li><a href="https://audit.digitalgate.com.au">Business Audit</a></li>
-          <li><a href="/pricing#apps">Apps &amp; pricing</a></li>
-        </ul>
-      </div>`;
-
-  const industriesCol = `      <!-- Industries — property ecosystem grouped first -->
-      <div class="dg-footer-col">
-        <h4>Industries</h4>
-        <ul class="dg-footer-links">
-          <li><a href="/apps/industry/real-estate/">Real Estate</a></li>
-          <li><a href="/apps/industry/accommodation/">Accommodation</a></li>
-          <li><a href="/apps/industry/property-management/">Property Management</a></li>
-          <li><a href="/apps/industry/commercial-property/">Commercial Property</a></li>
-          <li><a href="/apps/industry/property-development/">Property Development</a></li>
-          <li><a href="/apps/industry/services/">Services &amp; Trades</a></li>
-          <li><a href="/apps/industry/finance/">Finance</a></li>
-          <li><a href="/apps/industry/automotive/">Automotive</a></li>
-          <li><a href="/apps/industry/creator/">Creator</a></li>
-        </ul>
-      </div>`;
-
-  let out = html.replace(
-    /      <!-- Apps — Core → Infrastructure → Industry → Growth -->[\s\S]*?      <!-- Industries — property ecosystem grouped first -->/,
-    `${appsCol}\n\n${industriesCol}`,
-  );
-
-  if (out === html) {
-    out = html.replace(
-      /      <!-- Industries — property ecosystem grouped first -->[\s\S]*?      <!-- Company -->/,
-      `${industriesCol}\n\n      <!-- Company -->`,
+function prepareFooterChrome(html) {
+  let out = String(html || "");
+  out = out
+    .replace(/<!DOCTYPE[\s\S]*?<body[^>]*>/i, "")
+    .replace(/<\/body>[\s\S]*$/i, "")
+    .replace(/<\/?html[^>]*>/gi, "")
+    .replace(/<\/?head[^>]*>/gi, "");
+  out = out
+    .replace(
+      /https?:\/\/digitalgate\.com\.au\/wp-content\/uploads\/[^"'>\s]*Gate-Icon[^"'>\s]*/gi,
+      FOOTER_ICON,
+    )
+    .replace(
+      /https?:\/\/digitalgate\.com\.au\/wp-content\/uploads\/[^"'>\s]*DigitalGate-Banner[^"'>\s]*/gi,
+      FOOTER_LOGO,
+    )
+    .replace(
+      /https?:\/\/digitalgate\.com\.au\/wp-content\/uploads\/[^"'>\s]*Banner-Light[^"'>\s]*/gi,
+      FOOTER_LOGO,
     );
-  }
 
-  return out;
+  const styles = [];
+  out = out.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (_, css) => {
+    styles.push(
+      String(css)
+        .replace(/(^|[,}])\s*body\s*(?=[\s,{])/gi, "$1 .wb-chrome-root ")
+        .replace(/(^|[,}])\s*html\s*(?=[\s,{])/gi, "$1 .wb-chrome-root "),
+    );
+    return "";
+  });
+
+  const styleTag = `<style>
+${styles.join("\n")}
+.wb-chrome-root img{max-width:none;height:auto}
+.wb-chrome-root .dg-full-logo,.wb-chrome-root img.dg-full-logo{height:28px!important;width:auto!important;max-width:11rem!important;object-fit:contain}
+.wb-chrome-root .dg-gate-icon,.wb-chrome-root img.dg-gate-icon{width:32px!important;height:32px!important;object-fit:contain}
+.wb-chrome-root .dg-logo-fallback{display:none}
+</style>`;
+
+  return `${styleTag}\n<div class="wb-chrome-root">\n${out.trim()}\n</div>`.trim();
+}
+
+function loadFooterFromMarketing() {
+  if (!existsSync(FOOTER_SOURCE)) return null;
+  return prepareFooterChrome(readFileSync(FOOTER_SOURCE, "utf8"));
 }
 
 function patchHeaderNavLinks(navLinks) {
@@ -460,8 +461,10 @@ async function main() {
   const metadata = (site.metadata && typeof site.metadata === "object" ? site.metadata : {}) || {};
   const chrome = (metadata.chrome && typeof metadata.chrome === "object" ? metadata.chrome : {}) || {};
   const navLinks = patchHeaderNavLinks(Array.isArray(chrome.navLinks) ? chrome.navLinks : []);
-  let footerHtml = typeof chrome.footerHtml === "string" ? chrome.footerHtml : "";
-  if (footerHtml) footerHtml = patchFooterHtml(footerHtml);
+  const loadedFooter = loadFooterFromMarketing();
+  let footerHtml =
+    loadedFooter ||
+    (typeof chrome.footerHtml === "string" ? chrome.footerHtml : "");
 
   await prisma.website.update({
     where: { id: site.id },
