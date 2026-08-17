@@ -27,17 +27,31 @@ export const websiteRendererCss = `
   max-width: none;
   margin: 0;
   padding: 0;
-  background: var(--wb-bg, #0a0e17);
+  background: var(--wb-bg, #0a0e17) !important;
+  background-image: none !important;
   color: #f8fafc;
   overflow-x: clip;
 }
 .wb-root.wb-product-funnel .dg-property-report-funnel,
 .wb-root.wb-product-funnel .dg-business-audit-funnel,
-.wb-root.wb-product-funnel .dg-cvh-funnel {
+.wb-root.wb-product-funnel .dg-cvh-funnel,
+.wb-root.wb-product-funnel .dg-ba-funnel {
   width: 100%;
   max-width: none;
   margin: 0;
   box-sizing: border-box;
+}
+/* DigitalGate audit only — never inherit a photo backdrop */
+.wb-root.wb-product-funnel .dg-ba-funnel,
+.wb-root.wb-product-funnel .dg-business-audit-funnel {
+  background-color: #070b14 !important;
+  background-image: none !important;
+}
+.wb-root.wb-product-funnel .dg-ba-funnel .dg-ba-funnel__glow {
+  background-image:
+    radial-gradient(ellipse 70% 55% at 12% 18%, rgba(59,130,246,0.22), transparent 60%),
+    radial-gradient(ellipse 40% 30% at 78% 12%, rgba(96,165,250,0.12), transparent 50%) !important;
+  background-color: #070b14 !important;
 }
 html:has(.wb-root.wb-product-funnel),
 html:has(.wb-root.wb-product-funnel) body {
@@ -852,8 +866,15 @@ html.wb-menu-scroll-lock body {
 .wb-html-island--light .property-hero .price-row .price,
 .wb-html-island--light .roe-prop-detail .property-hero .price-row .price,
 .wb-root .wb-html-island.wb-html-island--light .property-hero .price,
-.wb-root .wb-html-island.wb-html-island--light .roe-prop-detail .price-row .price {
+.wb-root .wb-html-island.wb-html-island--light .roe-prop-detail .price-row .price,
+.wb-root .wb-html-island.wb-html-island--light .property-hero .price-row span.price:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]),
+.wb-root .wb-html-island.wb-html-island--light .roe-prop-detail .property-hero .price-row span.price:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]) {
   color: #c9a46c !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light .property-hero .price-row span.status:not([class*="btn"]),
+.wb-root .wb-html-island.wb-html-island--light .roe-prop-detail .property-hero .price-row span.status:not([class*="btn"]) {
+  color: #ffffff !important;
 }
 
 /* Cream / light body copy: prefer dark ink over washed greys */
@@ -1665,16 +1686,21 @@ html.wb-menu-scroll-lock body {
   color: #f8fafc !important;
 }
 
-/* Home heroes — true full viewport (RR + CVH). */
+/* Home heroes — true full viewport (RR + CVH). Use svh to avoid mobile UI chrome gap. */
 .wb-root .wb-html-island .hero-section,
 .wb-root .wb-html-island section.hero,
 .wb-root .wb-html-island .hero:not([class*="hero-"]),
 .wb-html-page .wb-html-island .hero-section,
 .wb-html-page .wb-html-island section.hero,
-.wb-html-page .wb-html-island .hero:not([class*="hero-"]) {
+.wb-html-page .wb-html-island .hero:not([class*="hero-"]),
+.wb-root.wb-chrome-overlay .wb-html-island .hero-section,
+.wb-root.wb-chrome-overlay .wb-html-island section.hero,
+.wb-root.wb-chrome-overlay .wb-html-island .hero:not([class*="hero-"]) {
   position: relative !important;
   width: 100% !important;
+  min-height: 100svh !important;
   min-height: 100dvh !important;
+  height: 100svh !important;
   height: 100dvh !important;
   max-height: none !important;
   display: flex !important;
@@ -1682,6 +1708,7 @@ html.wb-menu-scroll-lock body {
   justify-content: center !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
+  margin: 0 !important;
 }
 
 .wb-html-page .wb-html-island--page :is(
@@ -3204,7 +3231,8 @@ a.wb-brand-chrome-cta:hover {
 .wb-mosaic-grid .gallery-main,
 .dg-acc-gallery .gallery-main,
 .property-gallery .gallery-main {
-  grid-row: span 2;
+  grid-column: 1 !important;
+  grid-row: 1 / span 2 !important;
   min-height: 400px;
   max-height: 500px;
 }
@@ -3212,7 +3240,7 @@ a.wb-brand-chrome-cta:hover {
 .wb-mosaic-grid:has(.gallery-thumbs > :only-child) .gallery-main,
 .dg-acc-gallery:has(.gallery-thumbs > :only-child) .gallery-main,
 .property-gallery:has(.gallery-thumbs > :only-child) .gallery-main {
-  grid-row: span 1;
+  grid-row: 1 / span 1 !important;
 }
 
 .wb-mosaic-grid .gallery-main img,
@@ -3231,21 +3259,23 @@ a.wb-brand-chrome-cta:hover {
 .wb-mosaic-grid .gallery-thumbs,
 .dg-acc-gallery .gallery-thumbs,
 .property-gallery .gallery-thumbs {
-  display: grid;
-  grid-template-rows: 1fr 1fr;
+  display: grid !important;
+  grid-column: 2 !important;
+  grid-row: 1 / span 2 !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: 1fr 1fr !important;
   gap: 2px;
   background: #000;
   min-height: 0;
   height: 100%;
   align-self: stretch;
-  grid-row: 1 / span 2;
 }
 
 .wb-mosaic-grid .gallery-thumbs:has(> :only-child),
 .dg-acc-gallery .gallery-thumbs:has(> :only-child),
 .property-gallery .gallery-thumbs:has(> :only-child) {
-  grid-template-rows: 1fr;
-  grid-row: 1 / span 1;
+  grid-template-rows: 1fr !important;
+  grid-row: 1 / span 1 !important;
 }
 
 .wb-mosaic-grid .gallery-thumb,
@@ -3326,8 +3356,8 @@ a.wb-brand-chrome-cta:hover {
   .wb-mosaic-grid .gallery-main,
   .dg-acc-gallery .gallery-main,
   .property-gallery .gallery-main {
-    grid-column: span 2;
-    grid-row: span 1;
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
     min-height: 250px;
     max-height: 350px;
   }
@@ -3342,10 +3372,10 @@ a.wb-brand-chrome-cta:hover {
   .wb-mosaic-grid .gallery-thumbs,
   .dg-acc-gallery .gallery-thumbs,
   .property-gallery .gallery-thumbs {
-    grid-column: span 2;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto;
-    grid-row: auto;
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: auto !important;
   }
 
   .wb-mosaic-grid .gallery-thumb,

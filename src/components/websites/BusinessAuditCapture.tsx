@@ -101,26 +101,26 @@ const FUNNEL_CSS = `
   overflow: clip;
   color: var(--dg-ink);
   font-family: "Instrument Sans", system-ui, sans-serif;
-  background: #070b14;
+  background: #070b14 !important;
 }
 .dg-ba-funnel__glow {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 70% 55% at 12% 18%, rgba(59,130,246,0.28), transparent 60%),
-    radial-gradient(ellipse 55% 45% at 88% 78%, rgba(16,185,129,0.14), transparent 55%),
-    radial-gradient(ellipse 40% 30% at 70% 10%, rgba(96,165,250,0.12), transparent 50%),
-    #070b14;
+    radial-gradient(ellipse 70% 55% at 12% 18%, rgba(59,130,246,0.22), transparent 60%),
+    radial-gradient(ellipse 40% 30% at 78% 12%, rgba(96,165,250,0.12), transparent 50%),
+    #070b14 !important;
 }
 .dg-ba-funnel__grid {
   position: absolute;
   inset: 0;
-  opacity: 0.22;
+  opacity: 0.18;
   background-image:
     linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px);
   background-size: 48px 48px;
   mask-image: radial-gradient(ellipse 70% 65% at 50% 40%, #000 20%, transparent 75%);
+  pointer-events: none;
 }
 .dg-ba-funnel__shell {
   position: relative;
