@@ -1275,7 +1275,7 @@ export function WebsitePageRenderer({
     /currumbin|hideaway/i.test(siteSlug) &&
     !/hideaway-circle/i.test(siteSlug)
       ? {
-          label: headerCta?.label?.trim() || "Book now",
+          label: "Join the Circle",
           href: PRODUCT_FUNNEL_URLS.hideawayCircle,
           backgroundColor: headerCta?.backgroundColor || "#B9A48A",
         }

@@ -14,6 +14,7 @@ import { PRODUCT_FUNNEL_URLS } from "../websites/types";
 import {
   buildHideawayCircleSequenceStamp,
   dueHideawayCircleFollowupSteps,
+  hideawayCircleFollowupFlag,
   HIDEAWAY_CIRCLE_REWARD_PERCENT,
   parseHideawayCircleMeta,
   renderHideawayCircleFollowup,
@@ -230,6 +231,7 @@ export type SubmitHideawayCircleResult =
       contactId: string;
       leadId: string;
       welcomeSent: boolean;
+      stage: "email" | "complete";
       message: string;
     }
   | { ok: false; code: string; message: string };
@@ -237,14 +239,16 @@ export type SubmitHideawayCircleResult =
 export async function submitHideawayCircleJoin(input: {
   siteSlug?: string;
   hostname?: string;
-  firstName: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
-  phone: string;
+  phone?: string;
   birthdayMonth?: number | null;
   anniversaryDate?: string | null;
   interests?: string[];
   topics?: string[];
   joinSource?: string;
+  stage?: "email" | "complete";
   /** honeypot */
   website?: string;
 }): Promise<SubmitHideawayCircleResult> {
@@ -254,20 +258,18 @@ export async function submitHideawayCircleJoin(input: {
       contactId: "honeypot",
       leadId: "honeypot",
       welcomeSent: false,
+      stage: input.stage === "email" ? "email" : "complete",
       message: "Welcome to The Hideaway Circle.",
     };
   }
 
   const firstName = input.firstName?.trim() || "";
+  const lastName = input.lastName?.trim() || "";
   const email = input.email?.trim().toLowerCase() || "";
   const phone = input.phone?.trim() || "";
-  if (!firstName) {
-    return {
-      ok: false,
-      code: "validation_error",
-      message: "First name is required.",
-    };
-  }
+  const stage: "email" | "complete" =
+    input.stage === "email" || (!firstName && !phone) ? "email" : "complete";
+
   if (!email || !email.includes("@")) {
     return {
       ok: false,
@@ -275,12 +277,21 @@ export async function submitHideawayCircleJoin(input: {
       message: "A valid email is required.",
     };
   }
-  if (!phone) {
-    return {
-      ok: false,
-      code: "validation_error",
-      message: "Mobile number is required.",
-    };
+  if (stage === "complete") {
+    if (!firstName) {
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "First name is required.",
+      };
+    }
+    if (!phone) {
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "Mobile number is required.",
+      };
+    }
   }
 
   const birthdayMonth =
@@ -313,9 +324,10 @@ export async function submitHideawayCircleJoin(input: {
     organisationId,
   }).catch(() => null);
 
+  const displayName = [firstName, lastName].filter(Boolean).join(" ");
   const ensured = await ensureContactForLeadFields({
     organisationId,
-    name: firstName,
+    name: displayName || email.split("@")[0] || "Guest",
     email,
     phone,
     source: "hideaway_circle",
@@ -346,12 +358,74 @@ export async function submitHideawayCircleJoin(input: {
       tags: appendTag(contact.tags, "hideaway-circle"),
       phone: phone || contact.phone,
       firstName: firstName || contact.firstName,
+      lastName: lastName || contact.lastName,
       source: contact.source || "hideaway_circle",
     },
   });
 
+  const existingLead = await prisma.lead.findFirst({
+    where: {
+      organisationId,
+      contactId: contact.id,
+      source: "hideaway_circle",
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  const prevLeadMeta =
+    existingLead?.metadata && typeof existingLead.metadata === "object"
+      ? (existingLead.metadata as Record<string, unknown>)
+      : {};
+  const prevSequence = prevLeadMeta.hideaway_circle_sequence as
+    | HideawayCircleSequenceMeta
+    | undefined;
+
+  if (stage === "email") {
+    const leadMeta = {
+      ...prevLeadMeta,
+      lead_type: "accommodation",
+      capture_path: "gen2_hideaway_circle",
+      capture_stage: "email",
+      contact_name: displayName || email,
+      email,
+      phone: phone || prevLeadMeta.phone || "",
+    };
+    let leadId = existingLead?.id;
+    if (existingLead) {
+      await prisma.lead.update({
+        where: { id: existingLead.id },
+        data: {
+          title: existingLead.title || `Hideaway Circle — ${email}`,
+          description: email,
+          metadata: leadMeta as Prisma.InputJsonValue,
+        },
+      });
+    } else {
+      const lead = await createLead({
+        organisationId,
+        source: "hideaway_circle",
+        title: `Hideaway Circle — ${email}`,
+        description: email,
+        contactId: contact.id,
+        status: "new",
+        metadata: leadMeta,
+        externalRefs: { capture_path: "gen2_hideaway_circle" },
+      });
+      leadId = lead.id;
+    }
+    return {
+      ok: true,
+      contactId: contact.id,
+      leadId: leadId || "pending",
+      welcomeSent: false,
+      stage: "email",
+      message: "Continue to finish joining The Hideaway Circle.",
+    };
+  }
+
   const circle: HideawayCircleMeta = {
-    joinedAt: new Date().toISOString(),
+    joinedAt:
+      (prevLeadMeta.hideaway_circle as HideawayCircleMeta | undefined)?.joinedAt ||
+      new Date().toISOString(),
     rewardPercent: HIDEAWAY_CIRCLE_REWARD_PERCENT,
     permanent: true,
     birthdayMonth,
@@ -392,35 +466,38 @@ export async function submitHideawayCircleJoin(input: {
   }
 
   const bookUrl = "https://currumbinvalleyhideaway.com.au/stay";
-  const welcome = renderHideawayCircleWelcome({
-    firstName,
-    email,
-    bookUrl,
-  });
-
-  let welcomeSent = false;
-  try {
-    const delivery = await sendMessage({
-      organisationId,
-      channel: "email",
-      to: email,
-      subject: welcome.subject,
-      body: welcome.body,
-      bodyHtml: welcome.bodyHtml,
-      metadata: {
-        purpose: "hideaway_circle_welcome",
-        contactId: contact.id,
-        ctaLabel: "Book your return stay",
-        footerNote: "You're receiving this because you joined The Hideaway Circle.",
-      },
+  const alreadyWelcomed = Boolean(prevSequence?.welcome_sent);
+  let welcomeSent = alreadyWelcomed;
+  if (!alreadyWelcomed) {
+    const welcome = renderHideawayCircleWelcome({
+      firstName,
+      email,
+      bookUrl,
     });
-    welcomeSent = delivery.status === "sent" || delivery.status === "queued";
-  } catch (err) {
-    console.info("[hideaway-circle] welcome email failed", err);
+    try {
+      const delivery = await sendMessage({
+        organisationId,
+        channel: "email",
+        to: email,
+        subject: welcome.subject,
+        body: welcome.body,
+        bodyHtml: welcome.bodyHtml,
+        metadata: {
+          purpose: "hideaway_circle_welcome",
+          contactId: contact.id,
+          ctaLabel: "Book your return stay",
+          footerNote: "You're receiving this because you joined The Hideaway Circle.",
+        },
+      });
+      welcomeSent = delivery.status === "sent" || delivery.status === "queued";
+    } catch (err) {
+      console.info("[hideaway-circle] welcome email failed", err);
+    }
   }
 
   const sequence = buildHideawayCircleSequenceStamp({
     firstName,
+    lastName,
     email,
     birthdayMonth: birthdayMonth ?? null,
     bookUrl,
@@ -428,32 +505,48 @@ export async function submitHideawayCircleJoin(input: {
     marketingConsent,
   });
 
-  const lead = await createLead({
-    organisationId,
-    source: "hideaway_circle",
-    title: `Hideaway Circle — ${firstName}`,
-    description: email,
-    contactId: contact.id,
-    status: "new",
-    metadata: {
-      lead_type: "accommodation",
-      capture_path: "gen2_hideaway_circle",
-      contact_name: firstName,
-      email,
-      phone,
-      hideaway_circle: circle,
-      hideaway_circle_sequence: sequence,
-    },
-    externalRefs: {
-      capture_path: "gen2_hideaway_circle",
-    },
-  });
+  const leadMeta = {
+    ...prevLeadMeta,
+    lead_type: "accommodation",
+    capture_path: "gen2_hideaway_circle",
+    capture_stage: "complete",
+    contact_name: displayName,
+    email,
+    phone,
+    hideaway_circle: circle,
+    hideaway_circle_sequence: sequence,
+  };
+
+  let leadId = existingLead?.id;
+  if (existingLead) {
+    await prisma.lead.update({
+      where: { id: existingLead.id },
+      data: {
+        title: `Hideaway Circle — ${displayName || firstName}`,
+        description: email,
+        metadata: leadMeta as Prisma.InputJsonValue,
+      },
+    });
+  } else {
+    const lead = await createLead({
+      organisationId,
+      source: "hideaway_circle",
+      title: `Hideaway Circle — ${displayName || firstName}`,
+      description: email,
+      contactId: contact.id,
+      status: "new",
+      metadata: leadMeta,
+      externalRefs: { capture_path: "gen2_hideaway_circle" },
+    });
+    leadId = lead.id;
+  }
 
   return {
     ok: true,
     contactId: contact.id,
-    leadId: lead.id,
+    leadId: leadId || contact.id,
     welcomeSent,
+    stage: "complete",
     message: welcomeSent
       ? "You're in The Hideaway Circle — check your inbox for your 10% return-stay reward."
       : "You're in The Hideaway Circle. Your 10% return-stay reward applies on your next direct booking.",
@@ -495,6 +588,7 @@ export async function processHideawayCircleFollowups(options?: {
       | undefined;
     if (!sequence?.email || !sequence.activatedAt) continue;
     if (!sequence.marketingConsent) continue;
+    if (!sequence.welcome_sent) continue;
 
     // Skip nurture if they have a future stay booked
     if (lead.contactId) {
@@ -537,10 +631,11 @@ export async function processHideawayCircleFollowups(options?: {
           },
         });
 
+        const flags = hideawayCircleFollowupFlag(step);
         const nextSeq = {
           ...sequence,
-          [`${step}_sent`]: true,
-          [`${step}_sent_at`]: new Date().toISOString(),
+          [flags.sent]: true,
+          [flags.sentAt]: new Date().toISOString(),
         } as HideawayCircleSequenceMeta;
 
         await prisma.lead.update({

@@ -23,6 +23,7 @@ const dryRun = process.argv.includes("--dry-run");
 
 const AUDIT = "https://audit.digitalgate.com.au";
 const REPORT = "https://report.roerealty.com.au";
+const CIRCLE = "https://circle.currumbinvalleyhideaway.com.au";
 
 const REPLACEMENTS = [
   // Absolute brand paths
@@ -175,6 +176,21 @@ async function main() {
             ...(chrome.headerCta || {}),
             label: "Get Property Report",
             href: REPORT,
+          };
+          force = true;
+        }
+      }
+      if (site.slug === "currumbin-valley-hideaway") {
+        if (
+          !chrome.headerCta ||
+          chrome.headerCta.href !== CIRCLE ||
+          !/Join the Circle/i.test(chrome.headerCta.label || "")
+        ) {
+          chrome.headerCta = {
+            ...(chrome.headerCta || {}),
+            label: "Join the Circle",
+            href: CIRCLE,
+            backgroundColor: chrome.headerCta?.backgroundColor || "#B9A48A",
           };
           force = true;
         }

@@ -176,8 +176,8 @@ async function main() {
             ...(brand.slug === "currumbin-valley-hideaway"
               ? {
                   headerCta: prevChrome.headerCta ?? {
-                    label: "Book now",
-                    href: "/stay",
+                    label: "Join the Circle",
+                    href: "https://circle.currumbinvalleyhideaway.com.au",
                     backgroundColor: "#B9A48A",
                   },
                 }

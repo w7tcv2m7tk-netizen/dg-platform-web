@@ -52,8 +52,8 @@ const PRIMARY_NAV = {
 
 const HEADER_CTAS = {
   "currumbin-valley-hideaway": {
-    label: "Book now",
-    href: "/stay",
+    label: "Join the Circle",
+    href: "https://circle.currumbinvalleyhideaway.com.au",
     backgroundColor: "#B9A48A",
   },
   "roe-realty": {

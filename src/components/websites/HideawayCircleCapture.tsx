@@ -42,10 +42,9 @@ const MONTHS = [
   "December",
 ];
 
-const DEFAULT_LOGO =
-  "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1mggj0000ib04kvavtx4p/cfcf6c1c3eba0e66-1dYcEBoRCte8kCa2PnbEeJ1Z8GRWzf.png";
-
-const CVH_ICON = DEFAULT_LOGO;
+const CVH_HOME = "https://currumbinvalleyhideaway.com.au";
+const DEFAULT_LOGO = "https://app.digitalgate.com.au/brand/cvh-logo.png";
+const CVH_ICON = "https://app.digitalgate.com.au/brand/cvh-icon.png";
 
 const HERO_IMAGE =
   "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1mggj0000ib04kvavtx4p/wp-migrate/8ca24aeaa88d4225.jpeg";
@@ -98,8 +97,10 @@ const FUNNEL_CSS = `
   padding: clamp(1.5rem, 4vw, 3rem);
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
+  grid-template-rows: 1fr auto;
   gap: clamp(1.5rem, 4vw, 3.5rem);
   align-items: center;
+  align-content: stretch;
   min-height: 100dvh;
   box-sizing: border-box;
 }
@@ -200,6 +201,18 @@ const FUNNEL_CSS = `
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.dg-cvh-funnel__steps {
+  display: flex;
+  gap: 0.45rem;
+  margin: 0 0 1.25rem;
+}
+.dg-cvh-funnel__step {
+  flex: 1;
+  height: 3px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.dg-cvh-funnel__step.is-on { background: var(--cvh-gold); }
 .dg-cvh-funnel__panel h2 {
   margin: 0 0 0.4rem;
   font-family: "Cormorant Garamond", Georgia, serif;
@@ -336,9 +349,31 @@ const FUNNEL_CSS = `
 .dg-cvh-funnel__done h2 { margin-bottom: 0.75rem; }
 .dg-cvh-funnel__done p { margin: 0 0 1.35rem; color: rgba(247,244,239,0.8); line-height: 1.55; }
 .dg-cvh-funnel__done a.dg-cvh-cta { text-decoration: none; }
+.dg-cvh-funnel__email {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.65rem;
+  background: rgba(185, 164, 138, 0.1);
+  border: 1px solid rgba(185, 164, 138, 0.25);
+  color: #fff;
+  font-size: 0.92rem;
+}
+.dg-cvh-funnel__email button {
+  margin-left: 0.65rem;
+  border: none;
+  background: transparent;
+  color: var(--cvh-gold);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+}
 .dg-cvh-funnel__foot {
   grid-column: 1 / -1;
+  grid-row: 2;
+  align-self: end;
   margin: 0;
+  padding-top: 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -371,9 +406,13 @@ const FUNNEL_CSS = `
 @media (max-width: 860px) {
   .dg-cvh-funnel__shell {
     grid-template-columns: 1fr;
-    align-content: center;
+    grid-template-rows: auto auto 1fr;
+    align-content: stretch;
     gap: 1.5rem;
-    padding-bottom: 2.25rem;
+    padding-bottom: 1.25rem;
+  }
+  .dg-cvh-funnel__foot {
+    grid-row: auto;
   }
   .dg-cvh-funnel__trust {
     display: flex;
@@ -391,9 +430,8 @@ function joinHref(_basePath: string) {
   return PRODUCT_FUNNEL_URLS.hideawayCircle;
 }
 
-function stayHref(basePath: string) {
-  const base = basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : "";
-  return `${base}/stay` || "/stay";
+function stayHref(_basePath?: string) {
+  return `${CVH_HOME}/stay`;
 }
 
 function readQueryPrefill() {
@@ -404,19 +442,23 @@ function readQueryPrefill() {
   return {
     src: params.get("src")?.trim() || "website",
     firstName: params.get("firstName")?.trim() || params.get("name")?.trim() || "",
+    lastName: params.get("lastName")?.trim() || "",
     email: params.get("email")?.trim() || "",
     print: params.get("print") === "1",
   };
 }
 
+type Step = "email" | "details" | "done";
+
 export function HideawayCircleCapture({
   siteSlug,
   basePath = "",
   variant = "embedded",
-  logoUrl,
 }: Props) {
+  const [step, setStep] = useState<Step>("email");
   const [joinSource, setJoinSource] = useState("website");
   const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [birthdayMonth, setBirthdayMonth] = useState<string>("");
@@ -425,7 +467,6 @@ export function HideawayCircleCapture({
   const [topics, setTopics] = useState<string[]>([]);
   const [honeypot, setHoneypot] = useState("");
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(false);
   const [doneMessage, setDoneMessage] = useState("");
   const [printMode, setPrintMode] = useState(false);
   const [status, setStatus] = useState<{ type: "error" | "ok"; text: string } | null>(
@@ -436,27 +477,74 @@ export function HideawayCircleCapture({
     const prefill = readQueryPrefill();
     setJoinSource(prefill.src);
     if (prefill.firstName) setFirstName(prefill.firstName);
+    if (prefill.lastName) setLastName(prefill.lastName);
     if (prefill.email) setEmail(prefill.email);
     setPrintMode(prefill.print);
   }, []);
 
   const circleUrl = `${PRODUCT_FUNNEL_URLS.hideawayCircle}?src=qr`;
 
-  const brandLogo = logoUrl?.trim() || DEFAULT_LOGO;
   const isFunnel = variant === "funnel";
+  const brandLogo = DEFAULT_LOGO;
+  const stepIndex = step === "email" ? 0 : step === "details" ? 1 : 2;
 
   function toggle(list: string[], id: string, set: (n: string[]) => void) {
     set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
   }
 
-  async function onSubmit(e: FormEvent) {
+  async function postJoin(payload: Record<string, unknown>) {
+    const res = await fetch("/api/public/hideaway-circle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "submit",
+        siteSlug,
+        websiteHp: honeypot,
+        ...payload,
+      }),
+    });
+    const json = (await res.json().catch(() => null)) as {
+      data?: { message?: string };
+      error?: { message?: string };
+    };
+    if (!res.ok) {
+      throw new Error(json?.error?.message || "Could not join just now — please try again.");
+    }
+    return json?.data;
+  }
+
+  async function onEmailSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!email.trim() || !email.includes("@")) {
+      setStatus({ type: "error", text: "Please enter a valid email." });
+      return;
+    }
+    setBusy(true);
+    setStatus(null);
+    try {
+      await postJoin({
+        stage: "email",
+        email: email.trim(),
+        joinSource,
+      });
+      setStep("details");
+    } catch (err) {
+      setStatus({
+        type: "error",
+        text: err instanceof Error ? err.message : "Network error. Please try again.",
+      });
+    }
+    setBusy(false);
+  }
+
+  async function onDetailsSubmit(e: FormEvent) {
     e.preventDefault();
     if (!firstName.trim()) {
       setStatus({ type: "error", text: "Please enter your first name." });
       return;
     }
-    if (!email.trim() || !email.includes("@")) {
-      setStatus({ type: "error", text: "Please enter a valid email." });
+    if (!lastName.trim()) {
+      setStatus({ type: "error", text: "Please enter your last name." });
       return;
     }
     if (!phone.trim()) {
@@ -466,42 +554,28 @@ export function HideawayCircleCapture({
     setBusy(true);
     setStatus(null);
     try {
-      const res = await fetch("/api/public/hideaway-circle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "submit",
-          siteSlug,
-          firstName: firstName.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
-          birthdayMonth: birthdayMonth ? Number(birthdayMonth) : null,
-          anniversaryDate: anniversaryDate.trim() || null,
-          interests,
-          topics,
-          joinSource,
-          websiteHp: honeypot,
-        }),
+      const data = await postJoin({
+        stage: "complete",
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        birthdayMonth: birthdayMonth ? Number(birthdayMonth) : null,
+        anniversaryDate: anniversaryDate.trim() || null,
+        interests,
+        topics,
+        joinSource,
       });
-      const json = (await res.json().catch(() => null)) as {
-        data?: { message?: string };
-        error?: { message?: string };
-      };
-      if (!res.ok) {
-        setStatus({
-          type: "error",
-          text: json?.error?.message || "Could not join just now — please try again.",
-        });
-        setBusy(false);
-        return;
-      }
       setDoneMessage(
-        json?.data?.message ||
+        data?.message ||
           "You're in The Hideaway Circle. Your 10% applies on your next direct booking.",
       );
-      setDone(true);
-    } catch {
-      setStatus({ type: "error", text: "Network error. Please try again." });
+      setStep("done");
+    } catch (err) {
+      setStatus({
+        type: "error",
+        text: err instanceof Error ? err.message : "Network error. Please try again.",
+      });
     }
     setBusy(false);
   }
@@ -527,144 +601,190 @@ export function HideawayCircleCapture({
     );
   }
 
-  const formBody = done ? (
-    <div className="dg-cvh-funnel__done">
-      <span className="dg-cvh-funnel__badge">The Hideaway Circle</span>
-      <h2>You&apos;re in</h2>
-      <p>{doneMessage}</p>
-      <p>Book your next stay direct — your 10% return-stay reward is permanent.</p>
-      <a className="dg-cvh-cta" href={stayHref(basePath)}>
-        Explore stays
-      </a>
-    </div>
+  const statusLine = status ? (
+    <p
+      className={`dg-cvh-funnel__status${status.type === "error" ? " is-error" : ""}`}
+      role="status"
+    >
+      {status.text}
+    </p>
   ) : (
-    <form onSubmit={(e) => void onSubmit(e)}>
-      <span className="dg-cvh-funnel__badge">Member join</span>
-      <h2>Claim your 10%</h2>
-      <p className="dg-cvh-funnel__sub">
-        Direct bookings only — not valid via Airbnb or Booking.com.
-      </p>
-
-      <label htmlFor="hcFirst">First name</label>
-      <input
-        id="hcFirst"
-        required
-        value={firstName}
-        disabled={busy}
-        onChange={(e) => setFirstName(e.target.value)}
-      />
-
-      <label htmlFor="hcEmail">Email</label>
-      <input
-        id="hcEmail"
-        type="email"
-        required
-        value={email}
-        disabled={busy}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-
-      <label htmlFor="hcPhone">Mobile</label>
-      <input
-        id="hcPhone"
-        type="tel"
-        required
-        value={phone}
-        disabled={busy}
-        onChange={(e) => setPhone(e.target.value)}
-      />
-
-      <div className="dg-cvh-funnel__row">
-        <div>
-          <label htmlFor="hcBday">Birthday month</label>
-          <select
-            id="hcBday"
-            value={birthdayMonth}
-            disabled={busy}
-            onChange={(e) => setBirthdayMonth(e.target.value)}
-          >
-            <option value="">Optional</option>
-            {MONTHS.map((m, i) => (
-              <option key={m} value={String(i + 1)}>
-                {m}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="hcAnniv">Anniversary</label>
-          <input
-            id="hcAnniv"
-            type="date"
-            value={anniversaryDate}
-            disabled={busy}
-            onChange={(e) => setAnniversaryDate(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <p className="dg-cvh-funnel__section">What brings you to the Valley</p>
-      <div className="dg-cvh-funnel__checks">
-        {INTERESTS.map((item) => (
-          <label key={item.id} className="dg-cvh-funnel__check">
-            <input
-              type="checkbox"
-              checked={interests.includes(item.id)}
-              disabled={busy}
-              onChange={() => toggle(interests, item.id, setInterests)}
-            />
-            {item.label}
-          </label>
-        ))}
-      </div>
-
-      <p className="dg-cvh-funnel__section">I&apos;d like to hear about</p>
-      <div className="dg-cvh-funnel__checks">
-        {TOPICS.map((item) => (
-          <label key={item.id} className="dg-cvh-funnel__check">
-            <input
-              type="checkbox"
-              checked={topics.includes(item.id)}
-              disabled={busy}
-              onChange={() => toggle(topics, item.id, setTopics)}
-            />
-            {item.label}
-          </label>
-        ))}
-      </div>
-
-      <input
-        type="text"
-        name="website"
-        value={honeypot}
-        onChange={(e) => setHoneypot(e.target.value)}
-        tabIndex={-1}
-        autoComplete="off"
-        aria-hidden
-        className="dg-cvh-funnel__hp"
-      />
-
-      {status ? (
-        <p
-          className={`dg-cvh-funnel__status${status.type === "error" ? " is-error" : ""}`}
-          role="status"
-        >
-          {status.text}
-        </p>
-      ) : (
-        <p className="dg-cvh-funnel__status" aria-hidden>
-          {" "}
-        </p>
-      )}
-
-      <button type="submit" disabled={busy}>
-        {busy ? "Joining…" : "Claim my 10% return-stay reward"}
-      </button>
-      <p className="dg-cvh-funnel__fine">
-        Your reward does not expire. Book direct to redeem.
-      </p>
-    </form>
+    <p className="dg-cvh-funnel__status" aria-hidden>
+      {" "}
+    </p>
   );
+
+  const honeypotField = (
+    <input
+      type="text"
+      name="website"
+      value={honeypot}
+      onChange={(e) => setHoneypot(e.target.value)}
+      tabIndex={-1}
+      autoComplete="off"
+      aria-hidden
+      className="dg-cvh-funnel__hp"
+    />
+  );
+
+  const formBody =
+    step === "done" ? (
+      <div className="dg-cvh-funnel__done">
+        <span className="dg-cvh-funnel__badge">The Hideaway Circle</span>
+        <h2>You&apos;re in</h2>
+        <p>{doneMessage}</p>
+        <p>Book your next stay direct — your 10% return-stay reward is permanent.</p>
+        <a className="dg-cvh-cta" href={stayHref(basePath)}>
+          Explore stays
+        </a>
+      </div>
+    ) : step === "email" ? (
+      <form onSubmit={(e) => void onEmailSubmit(e)}>
+        <span className="dg-cvh-funnel__badge">Member join</span>
+        <h2>Claim your 10%</h2>
+        <p className="dg-cvh-funnel__sub">
+          Enter your email to join The Hideaway Circle. Direct bookings only — not
+          valid via Airbnb or Booking.com.
+        </p>
+        {honeypotField}
+        <label htmlFor="hcEmail">Email</label>
+        <input
+          id="hcEmail"
+          type="email"
+          required
+          autoComplete="email"
+          value={email}
+          disabled={busy}
+          placeholder="you@email.com"
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        {statusLine}
+        <button type="submit" disabled={busy}>
+          {busy ? "Continuing…" : "Continue →"}
+        </button>
+        <p className="dg-cvh-funnel__fine">
+          Takes under a minute. Your reward does not expire.
+        </p>
+      </form>
+    ) : (
+      <form onSubmit={(e) => void onDetailsSubmit(e)}>
+        <span className="dg-cvh-funnel__badge">Almost there</span>
+        <h2>A few details</h2>
+        <p className="dg-cvh-funnel__sub">
+          We&apos;ll personalise your Circle rewards and send your 10% confirmation.
+        </p>
+        <p className="dg-cvh-funnel__email">
+          {email}
+          <button
+            type="button"
+            onClick={() => {
+              setStep("email");
+              setStatus(null);
+            }}
+          >
+            Change
+          </button>
+        </p>
+        {honeypotField}
+        <div className="dg-cvh-funnel__row">
+          <div>
+            <label htmlFor="hcFirst">First name</label>
+            <input
+              id="hcFirst"
+              required
+              autoComplete="given-name"
+              value={firstName}
+              disabled={busy}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="hcLast">Last name</label>
+            <input
+              id="hcLast"
+              required
+              autoComplete="family-name"
+              value={lastName}
+              disabled={busy}
+              onChange={(e) => setLastName(e.target.value)}
+            />
+          </div>
+        </div>
+        <label htmlFor="hcPhone">Mobile</label>
+        <input
+          id="hcPhone"
+          type="tel"
+          required
+          autoComplete="tel"
+          value={phone}
+          disabled={busy}
+          onChange={(e) => setPhone(e.target.value)}
+        />
+        <div className="dg-cvh-funnel__row">
+          <div>
+            <label htmlFor="hcBday">Birthday month</label>
+            <select
+              id="hcBday"
+              value={birthdayMonth}
+              disabled={busy}
+              onChange={(e) => setBirthdayMonth(e.target.value)}
+            >
+              <option value="">Optional</option>
+              {MONTHS.map((m, i) => (
+                <option key={m} value={String(i + 1)}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="hcAnniv">Anniversary</label>
+            <input
+              id="hcAnniv"
+              type="date"
+              value={anniversaryDate}
+              disabled={busy}
+              onChange={(e) => setAnniversaryDate(e.target.value)}
+            />
+          </div>
+        </div>
+        <p className="dg-cvh-funnel__section">What brings you to the Valley</p>
+        <div className="dg-cvh-funnel__checks">
+          {INTERESTS.map((item) => (
+            <label key={item.id} className="dg-cvh-funnel__check">
+              <input
+                type="checkbox"
+                checked={interests.includes(item.id)}
+                disabled={busy}
+                onChange={() => toggle(interests, item.id, setInterests)}
+              />
+              {item.label}
+            </label>
+          ))}
+        </div>
+        <p className="dg-cvh-funnel__section">I&apos;d like to hear about</p>
+        <div className="dg-cvh-funnel__checks">
+          {TOPICS.map((item) => (
+            <label key={item.id} className="dg-cvh-funnel__check">
+              <input
+                type="checkbox"
+                checked={topics.includes(item.id)}
+                disabled={busy}
+                onChange={() => toggle(topics, item.id, setTopics)}
+              />
+              {item.label}
+            </label>
+          ))}
+        </div>
+        {statusLine}
+        <button type="submit" disabled={busy}>
+          {busy ? "Joining…" : "Claim my 10% return-stay reward"}
+        </button>
+        <p className="dg-cvh-funnel__fine">
+          Your reward does not expire. Book direct to redeem.
+        </p>
+      </form>
+    );
 
   if (!isFunnel) {
     return (
@@ -696,7 +816,7 @@ export function HideawayCircleCapture({
         <div className="dg-cvh-funnel__veil" aria-hidden />
         <div className="dg-cvh-funnel__shell">
           <div className="dg-cvh-funnel__copy">
-            <a className="dg-cvh-funnel__brand" href={stayHref(basePath) || "/"}>
+            <a className="dg-cvh-funnel__brand" href={CVH_HOME} aria-label="Currumbin Valley Hideaway">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 className="dg-cvh-funnel__brand-logo"
@@ -723,15 +843,21 @@ export function HideawayCircleCapture({
             </ul>
           </div>
 
-          <div className="dg-cvh-funnel__panel">{formBody}</div>
+          <div className="dg-cvh-funnel__panel">
+            <div className="dg-cvh-funnel__steps" aria-hidden>
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className={`dg-cvh-funnel__step${i <= stepIndex ? " is-on" : ""}`}
+                />
+              ))}
+            </div>
+            {formBody}
+          </div>
 
           <div className="dg-cvh-funnel__foot">
             <div className="dg-cvh-funnel__brand-icons" aria-label="Currumbin Valley Hideaway">
-              <a
-                href="https://currumbinvalleyhideaway.com.au"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href={CVH_HOME}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={CVH_ICON} alt="Currumbin Valley Hideaway" width={48} height={48} />
               </a>

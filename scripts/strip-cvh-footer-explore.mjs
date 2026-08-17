@@ -53,8 +53,8 @@ async function main() {
           headerLayout: "stacked",
           overlayHeader: true,
           headerCta: prevChrome.headerCta ?? {
-            label: "Book now",
-            href: "/stay",
+            label: "Join the Circle",
+            href: "https://circle.currumbinvalleyhideaway.com.au",
             backgroundColor: "#B9A48A",
           },
         },
