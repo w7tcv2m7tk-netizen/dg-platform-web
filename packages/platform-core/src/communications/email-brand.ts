@@ -55,10 +55,22 @@ export type EmailBrandAssets = {
   accentColor: string;
   /** Resend `from` — display name + mailbox for this brand. */
   fromAddress: string;
+  /** Human inbox for replies (apex hello@, not the Resend send subdomain). */
+  replyTo: string;
 };
 
-/** Verified brand mailboxes (Resend domain must match). */
+/** Verified Resend sending mailboxes (must match a verified Resend domain). */
 const BRAND_FROM_MAILBOX: Record<OrgBrandPresetKey, string> = {
+  // Only mail.digitalgate.com.au is verified on the current Resend plan.
+  digitalgate: "hello@mail.digitalgate.com.au",
+  "roe-realty": "hello@mail.digitalgate.com.au",
+  cvh: "hello@mail.digitalgate.com.au",
+  aetherra: "hello@mail.digitalgate.com.au",
+  wantd: "hello@mail.digitalgate.com.au",
+};
+
+/** Human inboxes for Reply-To (MX on normal mailbox host — not Resend). */
+const BRAND_REPLY_TO_MAILBOX: Record<OrgBrandPresetKey, string> = {
   digitalgate: "hello@digitalgate.com.au",
   "roe-realty": "hello@roerealty.com.au",
   cvh: "hello@currumbinvalleyhideaway.com.au",
@@ -66,7 +78,8 @@ const BRAND_FROM_MAILBOX: Record<OrgBrandPresetKey, string> = {
   wantd: "hello@wantdproperty.com.au",
 };
 
-const PLATFORM_FROM = "DigitalGate <hello@digitalgate.com.au>";
+const PLATFORM_FROM = "DigitalGate <hello@mail.digitalgate.com.au>";
+const PLATFORM_REPLY_TO = "hello@digitalgate.com.au";
 
 function formatFromAddress(businessName: string, mailbox: string): string {
   const name = businessName.replace(/[<>\n\r]/g, "").trim() || "DigitalGate";
@@ -82,6 +95,31 @@ export function resolveBrandFromAddress(
   const mailbox = BRAND_FROM_MAILBOX[presetKey];
   const label = businessName?.trim() || ORG_BRAND_PRESETS[presetKey].label;
   return formatFromAddress(label, mailbox);
+}
+
+/** Extract bare mailbox from `Name <a@b>` or `a@b`. */
+export function parseMailbox(fromAddress: string): string | null {
+  const raw = fromAddress.trim();
+  if (!raw) return null;
+  const angled = raw.match(/<([^>\s]+@[^>\s]+)>/);
+  const candidate = (angled?.[1] || raw).trim().toLowerCase();
+  return candidate.includes("@") ? candidate : null;
+}
+
+/** Reply-To for branded sends — brand inbox even when From is mail.digitalgate.com.au. */
+export function brandReplyTo(
+  fromAddress: string,
+  presetKey?: OrgBrandPresetKey | null,
+): string | null {
+  if (presetKey && BRAND_REPLY_TO_MAILBOX[presetKey]) {
+    return BRAND_REPLY_TO_MAILBOX[presetKey];
+  }
+  const mailbox = parseMailbox(fromAddress);
+  if (!mailbox) return PLATFORM_REPLY_TO;
+  if (mailbox.endsWith("@mail.digitalgate.com.au")) {
+    return PLATFORM_REPLY_TO;
+  }
+  return mailbox;
 }
 
 
@@ -108,6 +146,7 @@ export function resolvePlatformEmailBrandAssets(): EmailBrandAssets {
     primaryColor: colours[0] ?? "#3B82F6",
     accentColor: colours[1] ?? colours[0] ?? "#10B981",
     fromAddress: PLATFORM_FROM,
+    replyTo: PLATFORM_REPLY_TO,
   };
 }
 
@@ -184,6 +223,14 @@ export function resolveEmailBrandAssets(input: {
       presetKey,
       profile.tradingName?.trim() || profile.businessName?.trim() || name,
     ),
+    replyTo:
+      brandReplyTo(
+        resolveBrandFromAddress(
+          presetKey,
+          profile.tradingName?.trim() || profile.businessName?.trim() || name,
+        ),
+        presetKey,
+      ) || PLATFORM_REPLY_TO,
   };
 }
 

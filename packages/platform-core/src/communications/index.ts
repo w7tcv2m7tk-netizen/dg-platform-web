@@ -35,6 +35,8 @@ export {
   resolveEmailBrandAssets,
   resolvePlatformEmailBrandAssets,
   resolveBrandFromAddress,
+  parseMailbox,
+  brandReplyTo,
   plainTextToEmailHtml,
   markdownToEmailHtml,
   composeEmailBody,
@@ -100,6 +102,18 @@ async function persistQueuedEmail(input: {
               : undefined,
           hasBrandedHtml: Boolean(input.brandedHtml),
           brandedHtmlPreview: input.brandedHtml?.slice(0, 500),
+          from:
+            typeof input.metadata?.from === "string"
+              ? input.metadata.from
+              : undefined,
+          replyTo:
+            typeof input.metadata?.replyTo === "string"
+              ? input.metadata.replyTo
+              : undefined,
+          fromMode:
+            typeof input.metadata?.fromMode === "string"
+              ? input.metadata.fromMode
+              : undefined,
         },
       },
     });
@@ -114,24 +128,29 @@ async function tryResendDelivery(input: {
   html: string;
   text: string;
   from: string;
+  replyTo?: string | null;
 }): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) return { ok: false, error: "RESEND_API_KEY not configured" };
 
   try {
+    const payload: Record<string, unknown> = {
+      from: input.from,
+      to: [input.to],
+      subject: input.subject,
+      html: input.html,
+      text: input.text,
+    };
+    const replyTo = input.replyTo?.trim();
+    if (replyTo) payload.reply_to = replyTo;
+
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        from: input.from,
-        to: [input.to],
-        subject: input.subject,
-        html: input.html,
-        text: input.text,
-      }),
+      body: JSON.stringify(payload),
     });
     const json = (await res.json().catch(() => ({}))) as {
       id?: string;
@@ -157,7 +176,7 @@ function defaultFromAddress() {
   return (
     process.env.RESEND_FROM_EMAIL?.trim() ||
     process.env.EMAIL_FROM?.trim() ||
-    "DigitalGate <hello@digitalgate.com.au>"
+    "DigitalGate <hello@mail.digitalgate.com.au>"
   );
 }
 
@@ -170,10 +189,23 @@ function resolveSendFrom(input: {
     return input.metadataFrom.trim();
   }
   if (input.brandMode === "platform") {
-    return "DigitalGate <hello@digitalgate.com.au>";
+    return "DigitalGate <hello@mail.digitalgate.com.au>";
   }
   if (input.brandFrom?.trim()) return input.brandFrom.trim();
   return defaultFromAddress();
+}
+
+/** Resend errors that usually mean From domain is not verified on this account. */
+function isResendDomainFromError(error: string): boolean {
+  return /domain|not verified|unverified|invalid.*from|from.*address|own a domain|verify.*domain/i.test(
+    error,
+  );
+}
+
+function mailboxKey(from: string): string {
+  const raw = from.trim();
+  const angled = raw.match(/<([^>\s]+@[^>\s]+)>/);
+  return (angled?.[1] || raw).trim().toLowerCase();
 }
 
 /**
@@ -205,6 +237,7 @@ export async function sendMessage(
   let logoUrl: string | undefined;
   let businessName: string | undefined;
   let fromAddress: string | undefined;
+  let brandReplyToAddress: string | undefined;
   const brandMode =
     input.metadata?.purpose === "platform_referral_invite"
       ? ("platform" as const)
@@ -226,6 +259,7 @@ export async function sendMessage(
     logoUrl = brand.logoUrl;
     businessName = brand.businessName;
     fromAddress = brand.fromAddress;
+    brandReplyToAddress = brand.replyTo;
   } catch (err) {
     console.warn("[communications] brand wrap failed; using plain body", err);
   }
@@ -238,14 +272,51 @@ export async function sendMessage(
     metadataFrom: input.metadata?.from,
   });
 
+  const { brandReplyTo: resolveReplyTo } = await import("./email-brand");
+  const replyTo =
+    (typeof input.metadata?.replyTo === "string" &&
+      input.metadata.replyTo.trim()) ||
+    brandReplyToAddress ||
+    resolveReplyTo(from) ||
+    resolveReplyTo(fromAddress || "") ||
+    "hello@digitalgate.com.au";
+
   if (process.env.RESEND_API_KEY?.trim()) {
-    const delivered = await tryResendDelivery({
+    let delivered = await tryResendDelivery({
       to: input.to,
       subject,
       html,
       text: input.body,
       from,
+      replyTo,
     });
+    let usedFrom = from;
+    let fromMode: "brand" | "platform_fallback" = "brand";
+
+    const platformFrom = defaultFromAddress();
+    if (
+      !delivered.ok &&
+      isResendDomainFromError(delivered.error) &&
+      mailboxKey(from) !== mailboxKey(platformFrom)
+    ) {
+      console.warn("[communications] Resend domain/from failed — retry platform From", {
+        error: delivered.error,
+        from,
+        platformFrom,
+        replyTo,
+      });
+      delivered = await tryResendDelivery({
+        to: input.to,
+        subject,
+        html,
+        text: input.body,
+        from: platformFrom,
+        replyTo,
+      });
+      usedFrom = platformFrom;
+      fromMode = "platform_fallback";
+    }
+
     if (delivered.ok) {
       const result: SendMessageResult = {
         id: delivered.id,
@@ -262,7 +333,12 @@ export async function sendMessage(
         subject,
         body: input.body,
         brandedHtml,
-        metadata: { ...input.metadata, from },
+        metadata: {
+          ...input.metadata,
+          from: usedFrom,
+          replyTo,
+          fromMode,
+        },
         messageId: result.id,
         provider: "resend",
         status: "sent",
@@ -270,7 +346,9 @@ export async function sendMessage(
       console.info("[communications] sendMessage (resend)", {
         id: result.id,
         to: input.to,
-        from,
+        from: usedFrom,
+        replyTo,
+        fromMode,
         organisationId: input.organisationId,
       });
       return result;
@@ -281,7 +359,12 @@ export async function sendMessage(
       subject,
       body: input.body,
       brandedHtml,
-      metadata: input.metadata,
+      metadata: {
+        ...input.metadata,
+        from,
+        replyTo,
+        fromMode: "brand",
+      },
       messageId: id,
       provider: "resend",
       status: "failed",
@@ -290,6 +373,8 @@ export async function sendMessage(
     console.warn("[communications] Resend failed — queued branded email", {
       id,
       error: delivered.error,
+      from,
+      replyTo,
     });
     return {
       ...base,

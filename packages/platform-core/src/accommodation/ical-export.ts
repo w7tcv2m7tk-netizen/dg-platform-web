@@ -8,6 +8,7 @@
 
 import { randomBytes } from "node:crypto";
 
+import type { Prisma } from "@dg/database";
 import { resolveCvhUnitDisplaySlug } from "./display-order";
 
 export type IcalForChannel = "all" | "airbnb" | "bookingcom";
@@ -422,7 +423,7 @@ export async function ensureOrganisationIcalExports(
       data: {
         slug: resolvedSlug,
         icalExportUrl: platformUrl,
-        metadata: prevMeta,
+        metadata: prevMeta as Prisma.InputJsonValue,
       },
     });
     updated += 1;

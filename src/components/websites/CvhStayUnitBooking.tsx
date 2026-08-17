@@ -421,7 +421,7 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
                   : "cvh-stay-tab"
               }
             >
-              {slug === "garden-studio" || slug === "private-studio"
+              {/garden|private.?studio/i.test(String(slug))
                 ? "Garden Studio"
                 : "Tiny Home"}
             </a>
