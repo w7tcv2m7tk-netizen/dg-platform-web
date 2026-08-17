@@ -19,6 +19,21 @@ import type {
   WebsiteTheme,
 } from "./types";
 
+/** Nested public paths (`apps/core/crm`) — slashes allowed, no leading/trailing slash. */
+export function normalizePageSlug(raw: string): string {
+  return raw
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9/-]/g, "-")
+    .replace(/\/{2,}/g, "/")
+    .replace(/-{2,}/g, "-")
+    .replace(/\/-/g, "/")
+    .replace(/-\//g, "/")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 96);
+}
+
 function serializePage(page: WebsitePage): SerializedWebsitePage {
   return {
     id: page.id,
@@ -402,14 +417,9 @@ export async function updateWebsitePage(input: {
 
   let nextSlug: string | undefined;
   if (input.slug !== undefined) {
-    const cleaned = input.slug
-      .replace(/^\/+/, "")
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 64);
+    const cleaned = normalizePageSlug(input.slug);
     if (!cleaned) {
-      throw new Error("Page slug must use letters, numbers, or hyphens");
+      throw new Error("Page slug must use letters, numbers, hyphens, or slashes");
     }
     if (cleaned !== page.slug) {
       const clash = await prisma.websitePage.findFirst({
@@ -555,7 +565,7 @@ export async function createWebsitePage(input: {
     data: {
       websiteId: site.id,
       title: input.title.trim(),
-      slug: input.slug.replace(/^\/+/, "").toLowerCase(),
+      slug: normalizePageSlug(input.slug),
       intent: input.intent ?? "custom",
       status: "draft",
       sortOrder,

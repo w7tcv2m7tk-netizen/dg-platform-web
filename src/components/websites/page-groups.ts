@@ -2,6 +2,11 @@ import type { SerializedWebsitePage } from "@dg/platform-core";
 
 export type WebsitePageGroupId =
   | "core"
+  | "apps"
+  | "apps-core"
+  | "apps-infrastructure"
+  | "apps-industry"
+  | "apps-growth"
   | "units"
   | "property"
   | "location"
@@ -17,6 +22,11 @@ export type WebsitePageGroup = {
 
 const GROUP_ORDER: WebsitePageGroupId[] = [
   "core",
+  "apps",
+  "apps-core",
+  "apps-infrastructure",
+  "apps-industry",
+  "apps-growth",
   "units",
   "property",
   "location",
@@ -27,6 +37,11 @@ const GROUP_ORDER: WebsitePageGroupId[] = [
 
 const GROUP_LABELS: Record<WebsitePageGroupId, string> = {
   core: "Core pages",
+  apps: "Apps hub",
+  "apps-core": "Core Apps",
+  "apps-infrastructure": "Infrastructure Apps",
+  "apps-industry": "Industry Apps",
+  "apps-growth": "Growth Apps",
   units: "Units",
   property: "Property pages",
   location: "Location pages",
@@ -173,6 +188,12 @@ export function classifyWebsitePage(
 
   if (LEGAL_RE.test(slug)) return "legal";
 
+  if (slug === "apps") return "apps";
+  if (slug.startsWith("apps/core")) return "apps-core";
+  if (slug.startsWith("apps/infrastructure")) return "apps-infrastructure";
+  if (slug.startsWith("apps/industry")) return "apps-industry";
+  if (slug.startsWith("apps/growth")) return "apps-growth";
+
   if (isUnitListingPage(page)) return "units";
 
   if (isPropertyListingPage(page)) return "property";
@@ -218,6 +239,11 @@ export function groupWebsitePages(
   const postSlugs = collectPostSlugs(list);
   const buckets: Record<WebsitePageGroupId, SerializedWebsitePage[]> = {
     core: [],
+    apps: [],
+    "apps-core": [],
+    "apps-infrastructure": [],
+    "apps-industry": [],
+    "apps-growth": [],
     units: [],
     property: [],
     location: [],

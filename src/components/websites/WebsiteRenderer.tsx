@@ -40,7 +40,7 @@ const CREAM_PAGE_BG_RE =
  */
 function ensureCreamHtmlIsland(html: string): string {
   if (!html || /\bwb-html-island--light\b/.test(html)) return html;
-  if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal)\b/.test(html)) return html;
+  if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app)\b/.test(html)) return html;
   if (!CREAM_PAGE_BG_RE.test(html)) return html;
   return html.replace(
     /class="([^"]*\bwb-html-island\b[^"]*)"/g,
@@ -627,7 +627,7 @@ export function WebsiteComponentView({
       let html = asString(component.props.html);
       if (!html) return null;
       // Navy DigitalGate shells must not keep cream-island class from import.
-      if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal)\b/.test(html)) {
+      if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app)\b/.test(html)) {
         html = html.replace(/\bwb-html-island--light\b/g, "").replace(/\s{2,}/g, " ");
       } else {
         html = ensureCreamHtmlIsland(html);
@@ -1216,7 +1216,7 @@ export function WebsitePageRenderer({
           c.props.html,
         ) &&
         /* DigitalGate navy shells (Founding / About / Contact / legal) are intentionally dark */
-        !/\b(?:dg-fc|dg-about|dg-contact|dg-legal)\b/.test(c.props.html),
+        !/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app)\b/.test(c.props.html),
     );
   /** Light Insights / cream listing pages */
   const lightSurface =

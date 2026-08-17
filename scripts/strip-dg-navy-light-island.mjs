@@ -20,7 +20,7 @@ const NAVY_SLUGS = new Set([
   "terms",
 ]);
 
-const NAVY_MARKERS = /\b(?:dg-fc|dg-about|dg-contact|dg-legal)\b/;
+const NAVY_MARKERS = /\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app)\b/;
 
 async function main() {
   if (!process.env.DATABASE_URL) {

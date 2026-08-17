@@ -93,6 +93,21 @@ function SeoFields({
         hint="Absolute HTTPS URL preferred"
         onChange={(v) => onChange({ ...value, ogImage: v })}
       />
+      <Field
+        label="Keywords"
+        value={(value.keywords ?? []).join(", ")}
+        disabled={disabled}
+        hint="Comma-separated. Emitted as the meta keywords tag."
+        onChange={(v) =>
+          onChange({
+            ...value,
+            keywords: v
+              .split(",")
+              .map((k) => k.trim())
+              .filter(Boolean),
+          })
+        }
+      />
     </div>
   );
 }
@@ -240,7 +255,7 @@ export function StudioSeoPanel({
             hint={
               page.intent === "home"
                 ? "Home stays at /sites/[site-slug]"
-                : `/sites/${website.slug}/[slug]`
+                : `Public path /${pageSlug || page.slug} — nested slugs allowed (apps/core/crm)`
             }
             onChange={setPageSlug}
           />

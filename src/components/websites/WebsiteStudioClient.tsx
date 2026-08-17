@@ -533,6 +533,10 @@ export function WebsiteStudioClient({
             {pageGroups.map((group) => {
               const defaultExpanded =
                 group.id === "core" ||
+                group.id === "apps" ||
+                group.id === "apps-core" ||
+                group.id === "apps-industry" ||
+                group.id === "apps-growth" ||
                 group.id === "units" ||
                 group.id === "property";
               const collapsed =
