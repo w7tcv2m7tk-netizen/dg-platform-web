@@ -290,7 +290,7 @@ https://digitalgate.com.au`;
 }
 
 export type FreeAuditSequenceMeta = {
-  activatedAt: string;
+  activatedAt?: string | null;
   email_1_sent: boolean;
   email_1_sent_at?: string;
   email_2_sent: boolean;
@@ -328,7 +328,7 @@ export function buildFreeAuditSequenceStamp(input: {
 }): FreeAuditSequenceMeta {
   const now = new Date().toISOString();
   return {
-    activatedAt: now,
+    activatedAt: input.email1Sent ? now : null,
     email_1_sent: input.email1Sent,
     email_1_sent_at: input.email1Sent ? now : undefined,
     email_2_sent: false,
@@ -352,6 +352,8 @@ export function dueFreeAuditFollowupSteps(
   sequence: FreeAuditSequenceMeta,
   now = new Date(),
 ): Array<2 | 3 | 4 | 5> {
+  if (!sequence.email_1_sent) return [];
+  if (!sequence.activatedAt) return [];
   const activated = new Date(sequence.activatedAt).getTime();
   if (!Number.isFinite(activated)) return [];
   const due: Array<2 | 3 | 4 | 5> = [];

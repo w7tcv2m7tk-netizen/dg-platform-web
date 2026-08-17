@@ -5,6 +5,8 @@ Product and go-to-market strategy locks (not architecture constraints).
 | Document | Purpose |
 |----------|---------|
 | **[CEO-PLAN-2026-08-17.md](./CEO-PLAN-2026-08-17.md)** | **Active operating lock** — Email P0 → Stage 1 → P0/P1 → Founding 10 → Founding 100 gates |
+| **[FOUNDING-10-ACQUISITION.md](./FOUNDING-10-ACQUISITION.md)** | **Founding 10 sales machine** — acquisition loop, CEO 7-day plan, developer P0/P1 order |
+| **[DISCOVERY-SCORING-SPEC.md](./DISCOVERY-SCORING-SPEC.md)** | Prospect Opportunity Score spec — Fit × Need × Reachability × Commercial × Weakness |
 | **[ADVISOR-EVIDENCE-STAGE-1.md](./ADVISOR-EVIDENCE-STAGE-1.md)** | Stage 1 product reality — live URLs, homepage/pricing audit, RE journey truth, capture checklist |
 | **[BUSINESS-ADVISOR-BRIEFING.md](./BUSINESS-ADVISOR-BRIEFING.md)** | External advisor pack + **adopted response lock** (Intelligent Layer / Founding discipline) |
 | **[BUSINESS-ADVISOR-UPDATE-2026-08-17.md](./BUSINESS-ADVISOR-UPDATE-2026-08-17.md)** | Delta since 14 Aug — Gen 2 site cutover, funnels, open blockers |

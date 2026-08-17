@@ -28,12 +28,20 @@ export interface CreateLeadInput {
   organisationId: string;
   actorId?: string;
   source: string;
+  /** Activity timeline sourceApp — defaults from source when omitted */
+  sourceApp?: string;
   title?: string;
   description?: string;
   contactId?: string;
   status?: string;
   metadata?: Record<string, unknown>;
   externalRefs?: Record<string, unknown>;
+}
+
+function defaultSourceApp(source: string): string {
+  if (source === "free_audit" || source.startsWith("marketing")) return "marketing";
+  if (source === "vendor" || source === "buyer") return "real-estate";
+  return "platform";
 }
 
 export interface ListLeadsOptions {
@@ -136,7 +144,7 @@ export async function createLead(input: CreateLeadInput) {
       activityType: "created",
       title: "Lead created",
       body: input.title ?? input.source,
-      sourceApp: "real-estate",
+      sourceApp: input.sourceApp ?? defaultSourceApp(input.source),
       createdBy: input.actorId,
     },
   });

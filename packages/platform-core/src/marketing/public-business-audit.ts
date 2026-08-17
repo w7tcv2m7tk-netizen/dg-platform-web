@@ -607,6 +607,7 @@ export async function submitPublicBusinessAudit(input: {
   });
 
   const lead = await createLead({
+    sourceApp: "marketing",
     organisationId,
     source: "free_audit",
     title: `DigitalGate Business Audit™ — ${businessName}`,
@@ -637,6 +638,7 @@ export async function submitPublicBusinessAudit(input: {
   });
 
   let auditSent = false;
+  let auditSendError: string | undefined;
   try {
     const delivery = await sendMessage({
       organisationId,
@@ -653,8 +655,10 @@ export async function submitPublicBusinessAudit(input: {
           "DigitalGate Business Audit™ — diagnostic sales report from observable website presence signals. Not a formal SEO ranking or AI citation report.",
       },
     });
-    auditSent = delivery.status === "sent" || delivery.status === "queued";
+    auditSent = delivery.status === "sent";
+    if (!auditSent && delivery.error) auditSendError = delivery.error;
   } catch (err) {
+    auditSendError = err instanceof Error ? err.message : String(err);
     console.info("[public-business-audit] report email failed", err);
   }
 
@@ -703,7 +707,10 @@ export async function submitPublicBusinessAudit(input: {
       `Business Health Score: ${report.overall}`,
       `Opportunities: ${preview.opportunities.length}`,
       `Audit emailed: ${auditSent ? "yes" : "no"}`,
-    ].join("\n");
+      auditSendError ? `Send error: ${auditSendError}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
     await sendMessage({
       organisationId,
       channel: "email",
@@ -732,6 +739,9 @@ export async function submitPublicBusinessAudit(input: {
                 value: String(preview.opportunities.length),
               },
               { label: "Audit emailed", value: auditSent ? "Yes" : "No" },
+              ...(auditSendError
+                ? [{ label: "Send error", value: auditSendError }]
+                : []),
             ],
           },
         ],
@@ -787,7 +797,7 @@ export async function processFreeAuditFollowups(options?: {
     if (processed >= limit) break;
     const meta = (lead.metadata as Record<string, unknown> | null) ?? {};
     const sequence = meta.free_audit_sequence as FreeAuditSequenceMeta | undefined;
-    if (!sequence?.email || !sequence.activatedAt) continue;
+    if (!sequence?.email || !sequence.email_1_sent || !sequence.activatedAt) continue;
 
     const due = dueFreeAuditFollowupSteps(sequence, now);
     if (!due.length) continue;
@@ -822,6 +832,17 @@ export async function processFreeAuditFollowups(options?: {
           },
         });
 
+        if (delivery.status !== "sent") {
+          failed += 1;
+          console.warn("[free-audit-followups] not sent", {
+            leadId: lead.id,
+            step,
+            status: delivery.status,
+            error: delivery.error,
+          });
+          continue;
+        }
+
         const nextSeq = {
           ...sequence,
           [`email_${step}_sent`]: true,
@@ -843,8 +864,7 @@ export async function processFreeAuditFollowups(options?: {
             organisationId: lead.organisationId,
             entityType: "Lead",
             entityId: lead.id,
-            activityType:
-              delivery.status === "sent" ? "email_sent" : "email_queued",
+            activityType: "email_sent",
             title: `Business audit follow-up ${step}`,
             body: `${sequence.email} · ${rendered.subject}`,
             sourceApp: "marketing",
@@ -856,8 +876,7 @@ export async function processFreeAuditFollowups(options?: {
           },
         });
 
-        if (delivery.status === "failed") failed += 1;
-        else sent += 1;
+        sent += 1;
         Object.assign(sequence, nextSeq);
       } catch (err) {
         failed += 1;
