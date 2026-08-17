@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import type { PublicStayUnitPayload } from "@dg/platform-core";
 import { MosaicLightboxGallery } from "@/components/websites/MosaicLightboxGallery";
 
@@ -775,62 +776,65 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
         </a>
       </div>
 
-      {lightboxOpen && lightboxSrc ? (
-        <div
-          className="wb-lightbox"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Image gallery"
-          onClick={() => setLightboxOpen(false)}
-        >
-          <button
-            type="button"
-            className="wb-lightbox-close"
-            aria-label="Close"
-            onClick={() => setLightboxOpen(false)}
-          >
-            ×
-          </button>
-          {gallery.length > 1 ? (
-            <>
+      {lightboxOpen && lightboxSrc && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className="wb-lightbox"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Image gallery"
+              onClick={() => setLightboxOpen(false)}
+            >
               <button
                 type="button"
-                className="wb-lightbox-nav wb-lightbox-prev"
-                aria-label="Previous image"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLightboxIndex(
-                    (i) => (i - 1 + gallery.length) % gallery.length,
-                  );
-                }}
+                className="wb-lightbox-close"
+                aria-label="Close"
+                onClick={() => setLightboxOpen(false)}
               >
-                ‹
+                ×
               </button>
-              <button
-                type="button"
-                className="wb-lightbox-nav wb-lightbox-next"
-                aria-label="Next image"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLightboxIndex((i) => (i + 1) % gallery.length);
-                }}
-              >
-                ›
-              </button>
-            </>
-          ) : null}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className="wb-lightbox-image"
-            src={lightboxSrc}
-            alt={`${unit.title} — photo ${lightboxIndex + 1}`}
-            onClick={(e) => e.stopPropagation()}
-          />
-          <p className="wb-lightbox-meta">
-            {lightboxIndex + 1} / {gallery.length}
-          </p>
-        </div>
-      ) : null}
+              {gallery.length > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    className="wb-lightbox-nav wb-lightbox-prev"
+                    aria-label="Previous image"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLightboxIndex(
+                        (i) => (i - 1 + gallery.length) % gallery.length,
+                      );
+                    }}
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    className="wb-lightbox-nav wb-lightbox-next"
+                    aria-label="Next image"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLightboxIndex((i) => (i + 1) % gallery.length);
+                    }}
+                  >
+                    ›
+                  </button>
+                </>
+              ) : null}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="wb-lightbox-image"
+                src={lightboxSrc}
+                alt={`${unit.title} — photo ${lightboxIndex + 1}`}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <p className="wb-lightbox-meta">
+                {lightboxIndex + 1} / {gallery.length}
+              </p>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

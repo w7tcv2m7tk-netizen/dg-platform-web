@@ -44,8 +44,6 @@ const HERO_IMAGE =
 const RR_ICON =
   "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1k71w0000jr04ljsf91z2/5b626ea3954a4f5c-ZJYwG92fbIcGghl5uO25wNvSbJrQbx.png";
 
-const DG_ICON = "https://app.digitalgate.com.au/brand/icon-light.png";
-
 const FUNNEL_CSS = `
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&family=Manrope:wght@500;600;700;800&display=swap");
 @keyframes dgRrIn {
@@ -907,14 +905,10 @@ export function PropertyReportCapture({
           </div>
 
           <div className="dg-rr-funnel__foot">
-            <div className="dg-rr-funnel__brand-icons" aria-label="Roe Realty and DigitalGate">
+            <div className="dg-rr-funnel__brand-icons" aria-label="Roe Realty">
               <a href="https://roerealty.com.au" target="_blank" rel="noopener noreferrer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={RR_ICON} alt="Roe Realty" width={48} height={48} />
-              </a>
-              <a href="https://digitalgate.com.au" target="_blank" rel="noopener noreferrer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={DG_ICON} alt="DigitalGate" width={48} height={48} />
               </a>
             </div>
             <p>

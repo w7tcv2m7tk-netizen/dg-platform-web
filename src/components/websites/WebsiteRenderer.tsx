@@ -722,36 +722,52 @@ function escapeFooterText(value: string): string {
 
 /**
  * Ensure the business slogan sits directly under the footer icon/logo.
- * Replaces an existing slogan/description when present.
+ * Strips every existing slogan/description node, then injects once.
  */
 export function ensureFooterSlogan(html: string, slogan: string | null | undefined): string {
   const text = typeof slogan === "string" ? slogan.trim() : "";
   if (!html || !text) return html;
   const block = `<p class="wb-footer-slogan">${escapeFooterText(text)}</p>`;
+  const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  let out = html.replace(
-    /<(?:p|div)\b[^>]*class=["'][^"']*(?:wb-footer-slogan|footer-description)[^"']*["'][^>]*>[\s\S]*?<\/(?:p|div)>/i,
-    block,
+  // Remove all prior slogan / description nodes (avoids duplicates across brands).
+  let cleaned = html.replace(
+    /<(?:p|div)\b[^>]*class=["'][^"']*(?:wb-footer-slogan|footer-description|footer-tagline|footer-slogan)[^"']*["'][^>]*>[\s\S]*?<\/(?:p|div)>/gi,
+    "",
   );
-  if (out !== html) return out;
+  // Drop plain paragraphs that already carry the exact slogan text.
+  cleaned = cleaned.replace(
+    new RegExp(
+      `<(?:p|div)\\b[^>]*>\\s*${escaped}\\s*<\\/(?:p|div)>`,
+      "gi",
+    ),
+    "",
+  );
 
-  // Aëtherra-style brand column: logo then a short <p>
-  out = html.replace(
-    /(<div\b[^>]*class=["'][^"']*footer-brand[^"']*["'][^>]*>[\s\S]*?<\/a>\s*)<p\b[^>]*>[\s\S]*?<\/p>/i,
-    `$1${block}`,
+  // Aëtherra-style brand column: logo then inject slogan
+  let out = cleaned.replace(
+    /(<div\b[^>]*class=["'][^"']*footer-brand[^"']*["'][^>]*>[\s\S]*?<\/a>)/i,
+    `$1\n        ${block}`,
   );
-  if (out !== html) return out;
+  if (out !== cleaned) return out;
 
   // Primary logo anchors (RR / CVH / DG)
-  out = html.replace(
+  out = cleaned.replace(
     /(<(?:a)\b[^>]*class=["'][^"']*(?:footer-logo|dg-footer-logo)[^"']*["'][^>]*>[\s\S]*?<\/a>)/i,
     `$1\n        ${block}`,
   );
-  if (out !== html) return out;
+  if (out !== cleaned) return out;
 
   // Fallback: first footer icon image
-  out = html.replace(
+  out = cleaned.replace(
     /(<img\b[^>]*class=["'][^"']*(?:rr-icon|footer-profile-icon|dg-gate-icon|footer-logo)[^"']*["'][^>]*>)/i,
+    `$1\n        ${block}`,
+  );
+  if (out !== cleaned) return out;
+
+  // Last resort: first footer column
+  out = cleaned.replace(
+    /(<div\b[^>]*class=["'][^"']*footer-col[^"']*["'][^>]*>)/i,
     `$1\n        ${block}`,
   );
   return out;
@@ -1058,7 +1074,8 @@ export function WebsitePageRenderer({
   })();
   const isProductFunnel =
     resolvedFunnelTemplate === "property_report" ||
-    resolvedFunnelTemplate === "business_audit";
+    resolvedFunnelTemplate === "business_audit" ||
+    pageSlug === "hideaway-circle";
   const bookingKind =
     pageSlug === "property-appraisal"
       ? ("appraisal" as const)
@@ -1225,7 +1242,9 @@ export function WebsitePageRenderer({
           ["--wb-bg"]: isProductFunnel
             ? resolvedFunnelTemplate === "property_report"
               ? "#1C2B2A"
-              : "#0A0E17"
+              : pageSlug === "hideaway-circle"
+                ? "#0c1612"
+                : "#0A0E17"
             : lightSurface
               ? "#f5f2ef"
               : htmlPage
@@ -1241,7 +1260,9 @@ export function WebsitePageRenderer({
                 background:
                   resolvedFunnelTemplate === "property_report"
                     ? "#1C2B2A"
-                    : "#0A0E17",
+                    : pageSlug === "hideaway-circle"
+                      ? "#0c1612"
+                      : "#0A0E17",
               }
             : {}),
         } as React.CSSProperties
@@ -1295,7 +1316,12 @@ export function WebsitePageRenderer({
             />
           ) : null}
           {pageSlug === "hideaway-circle" ? (
-            <HideawayCircleCapture siteSlug={siteSlug} basePath={basePath} />
+            <HideawayCircleCapture
+              siteSlug={siteSlug}
+              basePath={basePath}
+              logoUrl={theme.logoUrl || theme.iconUrl}
+              variant="funnel"
+            />
           ) : null}
           {bookingKind ? (
             <RoeBookingCapture

@@ -21,9 +21,6 @@ const DEFAULT_LOGO =
 
 const DG_ICON = "https://app.digitalgate.com.au/brand/icon-light.png";
 
-const RR_ICON =
-  "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1k71w0000jr04ljsf91z2/5b626ea3954a4f5c-ZJYwG92fbIcGghl5uO25wNvSbJrQbx.png";
-
 /** Atmospheric product backdrop for the Business Audit funnel. */
 const HERO_IMAGE =
   "https://app.digitalgate.com.au/marketing/screenshots/dashboard-overview.png";
@@ -1218,14 +1215,10 @@ export function BusinessAuditCapture({
           </div>
 
           <div className="dg-ba-funnel__foot">
-            <div className="dg-ba-funnel__brand-icons" aria-label="DigitalGate and Roe Realty">
+            <div className="dg-ba-funnel__brand-icons" aria-label="DigitalGate">
               <a href="https://digitalgate.com.au" target="_blank" rel="noopener noreferrer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={DG_ICON} alt="DigitalGate" width={48} height={48} />
-              </a>
-              <a href="https://roerealty.com.au" target="_blank" rel="noopener noreferrer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={RR_ICON} alt="Roe Realty" width={48} height={48} />
               </a>
             </div>
             <p>

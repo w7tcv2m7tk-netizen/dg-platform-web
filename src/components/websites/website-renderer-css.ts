@@ -32,7 +32,8 @@ export const websiteRendererCss = `
   overflow-x: clip;
 }
 .wb-root.wb-product-funnel .dg-property-report-funnel,
-.wb-root.wb-product-funnel .dg-business-audit-funnel {
+.wb-root.wb-product-funnel .dg-business-audit-funnel,
+.wb-root.wb-product-funnel .dg-cvh-funnel {
   width: 100%;
   max-width: none;
   margin: 0;
@@ -794,6 +795,8 @@ html.wb-menu-scroll-lock body {
 .wb-html-island--light .hero-property,
 .wb-html-island--light .hero-agents,
 .wb-html-island--light .rr-insights-hero,
+.wb-html-island--light .property-hero,
+.wb-html-island--light .roe-prop-detail .property-hero,
 .wb-html-island--light [class^="hero-"][class*="section"],
 .wb-html-island--light [class*="hero-banner"],
 .wb-html-island--light [class*="fullscreen-hero"] {
@@ -833,7 +836,15 @@ html.wb-menu-scroll-lock body {
 .wb-html-island--light .hero-content p,
 .wb-html-island--light .hero-content span,
 .wb-html-island--light .hero-headline,
-.wb-html-island--light .hero-subheading {
+.wb-html-island--light .hero-subheading,
+.wb-html-island--light .property-hero h1,
+.wb-html-island--light .property-hero h2,
+.wb-html-island--light .property-hero .price-row,
+.wb-html-island--light .property-hero .price-row .price,
+.wb-html-island--light .property-hero .address-sub,
+.wb-html-island--light .roe-prop-detail .property-hero h1,
+.wb-html-island--light .roe-prop-detail .property-hero .price,
+.wb-html-island--light .roe-prop-detail .property-hero .address-sub {
   color: #f8fafc !important;
 }
 
@@ -958,7 +969,31 @@ html.wb-menu-scroll-lock body {
   .cvh-hero-stay,
   .cta-dark,
   .dark-section
-) :is(p, li, span, small, figcaption, label, .section-subheadline, .experience-subheadline, .hero-subheadline, .hero-subheading),
+) :is(p, li, small, figcaption, label, .section-subheadline, .experience-subheadline, .hero-subheadline, .hero-subheading),
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .experience-section,
+  .location-section,
+  .policy-section,
+  .activities-section,
+  .attractions-section,
+  .activities-grid-section,
+  .local-experiences,
+  .sanctuary-section,
+  .hideaway-section,
+  .about-sanctuary,
+  .about-story-dark,
+  .region-section,
+  .guest-info-section,
+  .booking-section,
+  .contact-hero,
+  .about-hero,
+  .experiences-hero,
+  .gallery-hero,
+  .stay-hero,
+  .cvh-hero-stay,
+  .cta-dark,
+  .dark-section
+) span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]),
 .wb-root .wb-html-island.wb-html-island--light :is(
   .about-hero-subheadline,
   .experiences-hero-subheadline,
@@ -1172,13 +1207,12 @@ html.wb-menu-scroll-lock body {
   color: #f5ebd8 !important;
 }
 
-/* Cream Roe / CVH body copy stays dark (intro / why / light CTA strips / gallery). */
+/* Cream Roe / CVH body copy stays dark (intro / why / light CTA strips / gallery).
+   final-cta is a dark band — light text handled separately below. */
 .wb-root .wb-html-island.wb-html-island--light :is(
   .intro-section,
   .why-choose-section,
   .direct-cta-section-light,
-  .final-cta-section,
-  .final-cta,
   .gallery-section,
   .cvh-circle-home-cta
 ) :is(
@@ -1196,8 +1230,6 @@ html.wb-menu-scroll-lock body {
   .intro-section,
   .why-choose-section,
   .direct-cta-section-light,
-  .final-cta-section,
-  .final-cta,
   .gallery-section,
   .cvh-circle-home-cta
 ) :is(
@@ -1212,8 +1244,6 @@ html.wb-menu-scroll-lock body {
   .intro-section,
   .why-choose-section,
   .direct-cta-section-light,
-  .final-cta-section,
-  .final-cta,
   .gallery-section,
   .cvh-circle-home-cta
 ) :is(
@@ -1227,6 +1257,36 @@ html.wb-menu-scroll-lock body {
   .trust-badge
 ) {
   color: #243533 !important;
+}
+
+/* Dark charcoal / photo CTAs — light type (beats blanket span:not(…) ink). */
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .final-cta,
+  .final-cta-section,
+  .location-section,
+  .experience-section,
+  .policy-section,
+  .hero-section
+) span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]),
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .final-cta,
+  .final-cta-section
+) :is(h1, h2, h3, h4, p, li, small, .cta-headline, .cta-description, .cta-label, .direct-cta, .trust-badge) {
+  color: #e8e4dc !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .final-cta,
+  .final-cta-section
+) :is(h1, h2, h3, .cta-headline) {
+  color: #faf8f4 !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light :is(
+  .final-cta,
+  .final-cta-section
+) :is(.cta-label, .section-label) {
+  color: #c9a46c !important;
 }
 
 /* Home hero trust pills — pure white (must follow cream-island / section ink rules above) */
@@ -2186,15 +2246,16 @@ a.wb-brand-chrome-cta:hover {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 118%;
-  height: 118%;
+  width: 132%;
+  height: 132%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(6, 12, 18, 0.55) 0%,
-    rgba(6, 12, 18, 0.28) 42%,
-    transparent 72%
+    rgba(8, 14, 20, 0.42) 0%,
+    rgba(8, 14, 20, 0.22) 38%,
+    rgba(8, 14, 20, 0.08) 58%,
+    transparent 74%
   );
   z-index: -1;
   pointer-events: none;
@@ -2263,23 +2324,21 @@ a.wb-brand-chrome-cta:hover {
 
 /* Stacked logo size/contrast must follow base logo rules (same !important cascade) */
 .wb-brand-chrome-header--stacked .wb-brand-chrome-logo {
-  height: 140px !important;
-  max-height: 140px !important;
-  max-width: min(520px, 90vw) !important;
+  height: 104px !important;
+  max-height: 104px !important;
+  max-width: min(380px, 78vw) !important;
   object-position: center center !important;
-  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.75))
-    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55))
-    drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55))
-    drop-shadow(0 18px 36px rgba(0, 0, 0, 0.4)) !important;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.55))
+    drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 10px 22px rgba(0, 0, 0, 0.35)) !important;
 }
 
 .wb-root.wb-chrome-overlay .wb-brand-chrome-header--stacked .wb-brand-chrome-logo,
 .wb-brand-chrome-header--stacked.wb-brand-chrome-header--overlay .wb-brand-chrome-logo,
 .wb-brand-chrome-header--stacked.wb-brand-chrome-header--fade .wb-brand-chrome-logo {
-  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.45))
-    drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7))
-    drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55))
-    drop-shadow(0 16px 36px rgba(0, 0, 0, 0.4)) !important;
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.35))
+    drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 8px 18px rgba(0, 0, 0, 0.4)) !important;
 }
 
 .wb-brand-chrome-name {
@@ -2422,9 +2481,9 @@ a.wb-brand-chrome-cta:hover {
   }
 
   .wb-brand-chrome-header--stacked .wb-brand-chrome-logo {
-    height: 88px !important;
-    max-height: 88px !important;
-    max-width: min(320px, 72vw) !important;
+    height: 72px !important;
+    max-height: 72px !important;
+    max-width: min(260px, 68vw) !important;
   }
 
   .wb-brand-chrome-header--stacked .wb-brand-chrome-below {
@@ -3156,6 +3215,9 @@ a.wb-brand-chrome-cta:hover {
   gap: 2px;
   background: #000;
   min-height: 0;
+  height: 100%;
+  align-self: stretch;
+  grid-row: 1 / -1;
 }
 
 .wb-mosaic-grid .gallery-thumbs:has(> :only-child),
@@ -3174,6 +3236,7 @@ a.wb-brand-chrome-cta:hover {
 .dg-acc-gallery .gallery-thumb,
 .property-gallery .gallery-thumb {
   min-height: 0;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -4024,19 +4087,19 @@ a.wb-brand-chrome-cta:hover {
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta .cta-container,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section .cta-container {
-  color: #1c2b2a !important;
+  color: #f4f1ea !important;
 }
 
 .wb-root .wb-html-island.wb-html-island--light section.final-cta .cta-label,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section .cta-label {
-  color: #b8860b !important;
+  color: #c9a46c !important;
 }
 
 .wb-root .wb-html-island.wb-html-island--light section.final-cta .cta-headline,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section .cta-headline,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta h2,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section h2 {
-  color: #1c2b2a !important;
+  color: #faf8f4 !important;
 }
 
 .wb-root .wb-html-island.wb-html-island--light section.final-cta .cta-description,
@@ -4047,9 +4110,9 @@ a.wb-brand-chrome-cta:hover {
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section .trust-badge,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta p,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section p,
-.wb-root .wb-html-island.wb-html-island--light section.final-cta span,
-.wb-root .wb-html-island.wb-html-island--light section.final-cta-section span {
-  color: #243533 !important;
+.wb-root .wb-html-island.wb-html-island--light section.final-cta span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]),
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]) {
+  color: #e8e4dc !important;
 }
 
 .wb-root .wb-html-island.wb-html-island--light section.final-cta .trust-badge i,

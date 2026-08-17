@@ -235,11 +235,15 @@ async function renderSite(
     : null;
   const chromeDefaults = resolvePageChromeVisibility(page.slug, page.seo);
   const showHeader =
-    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
+    funnelTemplate === "business_audit" ||
+    funnelTemplate === "property_report" ||
+    page.slug === "hideaway-circle"
       ? false
       : chromeDefaults.showHeader;
   const showFooter =
-    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
+    funnelTemplate === "business_audit" ||
+    funnelTemplate === "property_report" ||
+    page.slug === "hideaway-circle"
       ? false
       : chromeDefaults.showFooter;
 
