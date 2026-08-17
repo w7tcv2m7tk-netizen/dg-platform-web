@@ -412,7 +412,7 @@ function readQueryPrefill() {
 export function HideawayCircleCapture({
   siteSlug,
   basePath = "",
-  variant = "funnel",
+  variant = "embedded",
   logoUrl,
 }: Props) {
   const [joinSource, setJoinSource] = useState("website");

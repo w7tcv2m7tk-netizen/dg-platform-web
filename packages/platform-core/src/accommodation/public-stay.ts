@@ -6,6 +6,7 @@ import { bootPaymentConnectors, requirePaymentConnector } from "../commerce/conn
 import { captureWebsiteFormSubmission } from "../websites/form-capture";
 import { getWebsiteBySlug } from "../websites/crud";
 import { createStayBookingGen2First } from "./bookings";
+import { sendStayEnquiryHostNotification } from "./stay-enquiry-emails";
 import { buildAvailabilityFromNeon, listAccommodationUnits } from "./units";
 
 export const CVH_BOOKABLE_UNIT_SLUGS = ["garden-studio", "tiny-home"] as const;
@@ -400,7 +401,14 @@ export async function submitPublicStayEnquiry(input: {
   | { ok: true; contactId: string; leadId: string }
   | { ok: false; code: string; message: string }
 > {
-  const unit = await getPublicStayUnitForSite(input.siteSlug, input.unitSlug);
+  const site =
+    (await getWebsiteBySlug(input.siteSlug, { publishedOnly: true })) ||
+    (await getWebsiteBySlug(input.siteSlug));
+  if (!site) {
+    return { ok: false, code: "not_found", message: "Stay not found" };
+  }
+
+  const unit = await getPublicStayUnit(site.organisationId, input.unitSlug);
   if (!unit) {
     return { ok: false, code: "not_found", message: "Stay not found" };
   }
@@ -415,7 +423,7 @@ export async function submitPublicStayEnquiry(input: {
     input.message?.trim() || null,
   ].filter(Boolean);
 
-  return captureWebsiteFormSubmission({
+  const captured = await captureWebsiteFormSubmission({
     siteSlug: input.siteSlug,
     name,
     email: input.email,
@@ -423,6 +431,28 @@ export async function submitPublicStayEnquiry(input: {
     message: lines.join("\n"),
     pageSlug: unit.slug,
   });
+
+  if (captured.ok) {
+    try {
+      await sendStayEnquiryHostNotification({
+        organisationId: site.organisationId,
+        leadId: captured.leadId,
+        unitTitle: unit.title,
+        unitSlug: unit.slug,
+        guestName: name,
+        guestEmail: input.email,
+        guestPhone: input.phone,
+        checkin: input.checkin,
+        checkout: input.checkout,
+        guests: input.guests,
+        message: input.message,
+      });
+    } catch (err) {
+      console.info("[public-stay] host enquiry notify failed", err);
+    }
+  }
+
+  return captured;
 }
 
 function safeReturnBase(url: string | undefined | null): string | null {

@@ -276,16 +276,6 @@ function pickSlug(property, pages) {
   return wanted;
 }
 
-function replaceGrid(html, cardsHtml) {
-  if (/class="roe-property-grid"/.test(html)) {
-    return html.replace(
-      /<div class="roe-property-grid"[\s\S]*?<\/div>(?=\s*(?:<\/div>|<\/section>|<\/main>|$))/i,
-      `<div class="roe-property-grid">${cardsHtml}</div>`,
-    );
-  }
-  return `${html}\n<div class="roe-property-grid">${cardsHtml}</div>`;
-}
-
 async function main() {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     throw new Error("BLOB_READ_WRITE_TOKEN missing");
@@ -370,38 +360,14 @@ async function main() {
     });
   }
 
-  // Rebuild listing grid from refreshed metadata
-  const refreshed = await prisma.property.findMany({
-    where: { organisationId: ORG, deletedAt: null, status: { in: [...PUBLISH] } },
-    orderBy: { updatedAt: "desc" },
+  const { ensureRoeListingHub, rebuildRoeListingHub } = await import("./roe-listing-hub.mjs");
+  await ensureRoeListingHub(prisma, SITE);
+  const hub = await rebuildRoeListingHub(prisma, {
+    websiteId: SITE,
+    organisationId: ORG,
   });
-  const cards = refreshed
-    .filter((p) => (p.metadata || {}).website_hidden !== true)
-    .map((p) => {
-      const meta = p.metadata || {};
-      const slug = meta.gen2_website_slug || defaultSlug(p);
-      return buildCard(p, meta, slug);
-    })
-    .join("\n");
 
-  const listing = await prisma.websitePage.findFirst({
-    where: { websiteId: SITE, slug: "property" },
-  });
-  if (listing) {
-    const components = Array.isArray(listing.components) ? [...listing.components] : [];
-    const idx = components.findIndex((c) => c.type === "html");
-    if (idx >= 0) {
-      const props = { ...(components[idx].props || {}) };
-      props.html = replaceGrid(String(props.html || ""), cards);
-      components[idx] = { ...components[idx], props };
-      await prisma.websitePage.update({
-        where: { id: listing.id },
-        data: { status: "published", components },
-      });
-    }
-  }
-
-  console.log(JSON.stringify({ summary, listingUpdated: Boolean(listing) }, null, 2));
+  console.log(JSON.stringify({ summary, listingUpdated: hub.ok, listingHub: hub }, null, 2));
 }
 
 main()

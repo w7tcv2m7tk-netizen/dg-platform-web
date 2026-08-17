@@ -306,6 +306,67 @@ function buildPageComponents(item: WpImportSourceItem, nav: WebsiteComponent): W
   ];
 }
 
+const ROE_PROPERTY_HUB_REDIRECT_HTML =
+  `<meta http-equiv="refresh" content="0;url=/properties"><link rel="canonical" href="https://roerealty.com.au/properties"><script>location.replace("/properties");</script><p>Moved to <a href="/properties">Properties</a>.</p>`;
+
+async function ensureRoeListingHubPages(
+  prisma: Awaited<typeof import("@dg/database")>["prisma"],
+  websiteId: string,
+) {
+  const propertyPage = await prisma.websitePage.findFirst({
+    where: { websiteId, slug: "property" },
+  });
+  const propertiesPage = await prisma.websitePage.findFirst({
+    where: { websiteId, slug: "properties" },
+  });
+  if (!propertiesPage && propertyPage && propertyPage.intent !== "redirect") {
+    await prisma.websitePage.update({
+      where: { id: propertyPage.id },
+      data: { slug: "properties", intent: "listings" },
+    });
+  }
+  const leftover = await prisma.websitePage.findFirst({
+    where: { websiteId, slug: "property" },
+  });
+  const redirectSeo = {
+    title: "Properties | Roe Realty Listings",
+    description: "Browse Roe Realty property listings.",
+    canonicalPath: "/properties",
+  };
+  const redirectComponents = [
+    { id: "redirect-html", type: "html", props: { html: ROE_PROPERTY_HUB_REDIRECT_HTML } },
+  ];
+  if (!leftover) {
+    const maxSort = await prisma.websitePage.aggregate({
+      where: { websiteId },
+      _max: { sortOrder: true },
+    });
+    await prisma.websitePage.create({
+      data: {
+        websiteId,
+        title: "Property (redirect)",
+        slug: "property",
+        intent: "redirect",
+        status: "published",
+        sortOrder: (maxSort._max.sortOrder ?? 0) + 1,
+        seo: redirectSeo as Prisma.InputJsonValue,
+        components: redirectComponents as Prisma.InputJsonValue,
+      },
+    });
+    return;
+  }
+  await prisma.websitePage.update({
+    where: { id: leftover.id },
+    data: {
+      intent: "redirect",
+      title: "Property (redirect)",
+      status: "published",
+      seo: redirectSeo as Prisma.InputJsonValue,
+      components: redirectComponents as Prisma.InputJsonValue,
+    },
+  });
+}
+
 /**
  * Import WP pages/posts into an existing Gen 2 Website (replaces pages).
  */
@@ -354,11 +415,17 @@ export async function importWebsiteFromWordPress(input: {
   });
 
   const usedSlugs = new Set<string>();
-  const pagePlans = items.map((item, index) => {
+  const skipWpPropertySlug = items.some((i) => i.slug === "properties");
+  const pagePlans = items
+    .filter((item) => !(skipWpPropertySlug && item.slug === "property"))
+    .map((item, index) => {
     const isFront = Boolean(item.is_front_page) || index === 0;
-    const slug = isFront
-      ? uniquePageSlug("home", usedSlugs)
-      : uniquePageSlug(item.slug || item.title || `page-${item.id}`, usedSlugs);
+    const rawSlug = isFront
+      ? "home"
+      : item.slug === "property"
+        ? "properties"
+        : item.slug || item.title || `page-${item.id}`;
+    const slug = uniquePageSlug(rawSlug, usedSlugs);
     const intent = intentForSlug(slug, isFront);
     const seo: WebsiteSeo = {
       title: item.seo?.title || item.title,
@@ -414,6 +481,19 @@ export async function importWebsiteFromWordPress(input: {
       };
     }),
   });
+
+  const org = await prisma.organisation.findUnique({
+    where: { id: input.organisationId },
+    select: { slug: true, name: true },
+  });
+  if (org && (org.slug === "roe-realty" || /roe realty/i.test(org.name || ""))) {
+    await ensureRoeListingHubPages(prisma, existing.id);
+    const { syncAllPropertiesToGen2Website } = await import("../properties/sync-to-gen2-website");
+    await syncAllPropertiesToGen2Website({
+      organisationId: input.organisationId,
+      actorId: input.actorId,
+    }).catch(() => null);
+  }
 
   const pageCount = pagePlans.filter((p) => p.item.type !== "post").length;
   const postCount = pagePlans.filter((p) => p.item.type === "post").length;

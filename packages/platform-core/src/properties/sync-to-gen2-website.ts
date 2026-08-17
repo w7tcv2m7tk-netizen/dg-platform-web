@@ -319,6 +319,115 @@ function replacePropertyGrid(html: string, cardsHtml: string): string {
   return `${html}\n<div class="roe-property-grid">${cardsHtml}</div>`;
 }
 
+function pageHtml(page: { components?: unknown }): string {
+  const components = Array.isArray(page.components)
+    ? (page.components as Array<Record<string, unknown>>)
+    : [];
+  const htmlComp = components.find((c) => c.type === "html");
+  const props = (htmlComp?.props as Record<string, unknown> | undefined) ?? {};
+  return typeof props.html === "string" ? props.html : "";
+}
+
+/** WP leftover `/property` is a redirect; the live hub is `/properties`. */
+function isListingHubRedirect(page: {
+  slug: string;
+  intent?: string | null;
+  components?: unknown;
+}): boolean {
+  if ((page.intent || "").toLowerCase() === "redirect") return true;
+  const html = pageHtml(page);
+  return (
+    page.slug === "property" &&
+    (/http-equiv=["']refresh["']/i.test(html) || /location\.replace\(["']\/properties["']\)/i.test(html))
+  );
+}
+
+/**
+ * Live RR hub is `/properties`. `/property` is a WP leftover redirect (middleware 308).
+ * Never write the listing grid onto the redirect stub.
+ */
+function findListingHubPage<
+  T extends { slug: string; intent?: string | null; components?: unknown },
+>(pages: T[]): T | undefined {
+  const hubs = pages.filter(
+    (p) => (p.slug === "properties" || p.slug === "property") && !isListingHubRedirect(p),
+  );
+  return hubs.find((p) => p.slug === "properties") ?? hubs[0];
+}
+
+async function refreshListingHub(input: {
+  organisationId: string;
+  websiteId: string;
+  pages: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    intent?: string | null;
+    components: unknown;
+  }>;
+}): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const listingPage = findListingHubPage(input.pages);
+  if (!listingPage) return;
+
+  const visible = await prisma.property.findMany({
+    where: {
+      organisationId: input.organisationId,
+      deletedAt: null,
+      status: { in: [...WEBSITE_PUBLISH_STATUSES] },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+  const cards = visible
+    .filter((p) => {
+      const m = (p.metadata as Record<string, unknown> | null) ?? {};
+      return m.website_hidden !== true;
+    })
+    .map((p) => {
+      const m = (p.metadata as Record<string, unknown> | null) ?? {};
+      const slug =
+        (typeof m.gen2_website_slug === "string" && m.gen2_website_slug) ||
+        pickExistingSlug(p, input.pages) ||
+        defaultPropertyPageSlug(p);
+      return buildCardHtml(p, slug);
+    })
+    .join("\n");
+
+  const components = Array.isArray(listingPage.components)
+    ? [...(listingPage.components as Array<Record<string, unknown>>)]
+    : [];
+  const htmlIdx = components.findIndex((c) => c.type === "html");
+  if (htmlIdx < 0) return;
+
+  const props = { ...((components[htmlIdx].props as Record<string, unknown>) || {}) };
+  const prevHtml = typeof props.html === "string" ? props.html : "";
+  props.html = replacePropertyGrid(prevHtml, cards);
+  components[htmlIdx] = { ...components[htmlIdx], props };
+  await prisma.websitePage.update({
+    where: { id: listingPage.id },
+    data: {
+      status: "published",
+      components: components as Prisma.InputJsonValue,
+    },
+  });
+}
+
+async function loadWebsitePages(websiteId: string) {
+  const { prisma } = await import("@dg/database");
+  return prisma.websitePage.findMany({
+    where: { websiteId },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      intent: true,
+      components: true,
+      seo: true,
+      status: true,
+    },
+  });
+}
+
 async function resolveWebsiteId(organisationId: string): Promise<string | null> {
   const { prisma } = await import("@dg/database");
   const published = await prisma.website.findFirst({
@@ -379,7 +488,7 @@ export type SyncPropertyToGen2WebsiteResult =
 
 /**
  * Persist durable listing images and push this property onto the org Gen 2 website
- * (detail page + /property grid). WordPress sync remains separate.
+ * (detail page + /properties grid). WordPress sync remains separate.
  */
 export async function syncPropertyToGen2Website(input: {
   organisationId: string;
@@ -402,24 +511,35 @@ export async function syncPropertyToGen2Website(input: {
   }
 
   const meta = { ...((property.metadata as Record<string, unknown> | null) ?? {}) };
-  if (meta.website_hidden === true && !input.force) {
-    return {
-      ok: false,
-      reason: "hidden",
-      message: "Listing is hidden from the website",
-    };
+
+  const websiteId = await resolveWebsiteId(input.organisationId);
+  if (!websiteId) {
+    return { ok: false, reason: "no_website", message: "No Gen 2 website for organisation" };
   }
-  if (!input.force && !WEBSITE_PUBLISH_STATUSES.has(property.status)) {
+  const pages = await loadWebsitePages(websiteId);
+
+  const skipDetail =
+    !input.force &&
+    (meta.website_hidden === true || !WEBSITE_PUBLISH_STATUSES.has(property.status));
+  if (skipDetail) {
+    // Still refresh /properties so hide / status changes drop stale cards.
+    await refreshListingHub({
+      organisationId: input.organisationId,
+      websiteId,
+      pages,
+    });
+    if (meta.website_hidden === true) {
+      return {
+        ok: false,
+        reason: "hidden",
+        message: "Listing is hidden from the website",
+      };
+    }
     return {
       ok: false,
       reason: "skipped_status",
       message: `Status "${property.status}" is not published to the website`,
     };
-  }
-
-  const websiteId = await resolveWebsiteId(input.organisationId);
-  if (!websiteId) {
-    return { ok: false, reason: "no_website", message: "No Gen 2 website for organisation" };
   }
 
   const rawImages = (Array.isArray(meta.images) ? meta.images : [])
@@ -436,11 +556,6 @@ export async function syncPropertyToGen2Website(input: {
     meta.featured_image = durableImages[0];
     meta.listing_images_mirrored_at = new Date().toISOString();
   }
-
-  const pages = await prisma.websitePage.findMany({
-    where: { websiteId },
-    select: { id: true, slug: true, title: true, components: true, seo: true, status: true },
-  });
 
   const pageSlug =
     pickExistingSlug(property, pages) || defaultPropertyPageSlug(property);
@@ -510,50 +625,12 @@ export async function syncPropertyToGen2Website(input: {
     });
   }
 
-  // Refresh listing grid (/property)
-  const listingPage = pages.find((p) => p.slug === "property");
-  if (listingPage) {
-    const visible = await prisma.property.findMany({
-      where: {
-        organisationId: input.organisationId,
-        deletedAt: null,
-        status: { in: [...WEBSITE_PUBLISH_STATUSES] },
-      },
-      orderBy: { updatedAt: "desc" },
-    });
-    const cards = visible
-      .filter((p) => {
-        const m = (p.metadata as Record<string, unknown> | null) ?? {};
-        return m.website_hidden !== true;
-      })
-      .map((p) => {
-        const m = (p.metadata as Record<string, unknown> | null) ?? {};
-        const slug =
-          (typeof m.gen2_website_slug === "string" && m.gen2_website_slug) ||
-          pickExistingSlug(p, pages) ||
-          defaultPropertyPageSlug(p);
-        return buildCardHtml(p, slug);
-      })
-      .join("\n");
-
-    const components = Array.isArray(listingPage.components)
-      ? [...(listingPage.components as Array<Record<string, unknown>>)]
-      : [];
-    const htmlIdx = components.findIndex((c) => c.type === "html");
-    if (htmlIdx >= 0) {
-      const props = { ...((components[htmlIdx].props as Record<string, unknown>) || {}) };
-      const prevHtml = typeof props.html === "string" ? props.html : "";
-      props.html = replacePropertyGrid(prevHtml, cards);
-      components[htmlIdx] = { ...components[htmlIdx], props };
-      await prisma.websitePage.update({
-        where: { id: listingPage.id },
-        data: {
-          status: "published",
-          components: components as Prisma.InputJsonValue,
-        },
-      });
-    }
-  }
+  // Refresh listing grid (/properties; never the /property redirect stub)
+  await refreshListingHub({
+    organisationId: input.organisationId,
+    websiteId,
+    pages,
+  });
 
   return {
     ok: true,

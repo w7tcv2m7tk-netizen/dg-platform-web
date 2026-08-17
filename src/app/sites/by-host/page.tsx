@@ -2,7 +2,12 @@ import { findDomainByHostname, getPublicStayUnit, getWebsiteBySlug, resolveFunne
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { notFound, redirect, unstable_rethrow } from "next/navigation";
+
+import { isAetherraPublicHost } from "@/lib/aetherra-legacy-urls";
+import { CVH_PAGE_ALIASES } from "@/lib/cvh-legacy-urls";
+import { DG_PAGE_ALIASES, isDgPublicHost } from "@/lib/dg-legacy-urls";
+import { ROE_PAGE_ALIASES, isRoePublicHost } from "@/lib/roe-legacy-urls";
 
 import { BusinessAuditCapture } from "@/components/websites/BusinessAuditCapture";
 import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
@@ -69,6 +74,31 @@ const PAGE_SLUG_ALIASES: Record<string, string> = {
   "accommodation/private-studio": "garden-studio",
 };
 
+function isCvhSiteSlug(slug: string): boolean {
+  return /currumbin|hideaway/i.test(slug);
+}
+
+function isDgSiteSlug(slug: string): boolean {
+  return slug === "digitalgate";
+}
+
+function isRoeSiteSlug(slug: string): boolean {
+  return slug === "roe-realty";
+}
+
+function isAetherraSiteSlug(slug: string): boolean {
+  return slug === "aetheriel-com-au" || /aetherra/i.test(slug);
+}
+
+function decodePageSlug(raw?: string): string | undefined {
+  if (!raw) return undefined;
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 function resolvePage(
   site: NonNullable<Awaited<ReturnType<typeof getWebsiteBySlug>>>,
   pageSlug: string | undefined,
@@ -77,10 +107,32 @@ function resolvePage(
   if (!pageSlug) {
     return pages.find((p) => p.intent === "home" || p.slug === "home") || pages[0];
   }
-  const aliased = PAGE_SLUG_ALIASES[pageSlug] || pageSlug;
-  return (
+  const aliases = isCvhSiteSlug(site.slug)
+    ? { ...PAGE_SLUG_ALIASES, ...CVH_PAGE_ALIASES }
+    : isDgSiteSlug(site.slug)
+      ? { ...PAGE_SLUG_ALIASES, ...DG_PAGE_ALIASES }
+      : isRoeSiteSlug(site.slug)
+        ? { ...PAGE_SLUG_ALIASES, ...ROE_PAGE_ALIASES }
+        : isAetherraSiteSlug(site.slug)
+          ? {}
+          : PAGE_SLUG_ALIASES;
+  const dateLeaf =
+    isDgSiteSlug(site.slug) || isAetherraSiteSlug(site.slug)
+      ? undefined
+      : pageSlug.match(/^\d{4}\/\d{2}\/\d{2}\/([^/]+)$/)?.[1];
+  const aliased = aliases[pageSlug] || dateLeaf || pageSlug;
+  const exact =
     pages.find((p) => p.slug === aliased) ||
     pages.find((p) => p.slug === pageSlug) ||
+    null;
+  if (
+    exact ||
+    isDgSiteSlug(site.slug) ||
+    isAetherraSiteSlug(site.slug)
+  ) {
+    return exact;
+  }
+  return (
     pages.find((p) => p.slug === pageSlug.replace(/^accommodation\//, "")) ||
     pages.find((p) => {
       const leaf = pageSlug.split("/").filter(Boolean).pop();
@@ -88,6 +140,11 @@ function resolvePage(
     }) ||
     null
   );
+}
+
+function publicPagePath(page: { slug: string; intent?: string | null }): string {
+  if (!page.slug || page.slug === "home" || page.intent === "home") return "/";
+  return `/${page.slug.replace(/^\/+/, "")}`;
 }
 
 export async function generateMetadata({
@@ -101,7 +158,7 @@ export async function generateMetadata({
     const search = await searchParams;
     const site = await getWebsiteBySlug(slug);
     if (!site) return { title: "Site" };
-    const pageSlug = search.page ? decodeURIComponent(search.page) : undefined;
+    const pageSlug = decodePageSlug(search.page);
     const page = resolvePage(site, pageSlug);
     const title = page?.seo?.title || site.seo?.title || site.name;
     const description =
@@ -113,18 +170,30 @@ export async function generateMetadata({
     const keywords = page?.seo?.keywords?.length
       ? page.seo.keywords
       : site.seo?.keywords;
+    const host = await resolveRequestHost();
+    const canonicalHost =
+      isDgPublicHost(host) || isRoePublicHost(host) || isAetherraPublicHost(host)
+        ? host.replace(/^www\./, "")
+        : host;
+    const canonical =
+      canonicalHost && page
+        ? `https://${canonicalHost}${publicPagePath(page)}`
+        : undefined;
     return {
       title,
       description,
       applicationName: site.name,
       ...(keywords?.length ? { keywords } : {}),
+      ...(canonical ? { alternates: { canonical } } : {}),
       openGraph: {
         title: ogTitle,
         description: ogDescription,
+        ...(canonical ? { url: canonical } : {}),
         ...(ogImage ? { images: [{ url: ogImage }] } : {}),
       },
     };
-  } catch {
+  } catch (err) {
+    unstable_rethrow(err);
     return { title: "Site temporarily unavailable" };
   }
 }
@@ -143,6 +212,7 @@ export default async function ByHostSitePage({
     if (!slug) notFound();
     return await renderSite(slug, await searchParams);
   } catch (err) {
+    unstable_rethrow(err);
     const message = err instanceof Error ? err.message : "";
     if (message === "SITE_DATABASE_UNAVAILABLE" || /Can't reach database|P1001|P1017/i.test(message)) {
       return (
@@ -169,7 +239,8 @@ export default async function ByHostSitePage({
         </main>
       );
     }
-    throw err;
+    console.error("[by-host] unexpected render error", err);
+    notFound();
   }
 }
 
@@ -182,13 +253,14 @@ async function renderSite(
   try {
     site = await getWebsiteBySlug(slug);
   } catch (err) {
+    unstable_rethrow(err);
     console.error("[by-host] getWebsiteBySlug failed", err);
     throw new Error("SITE_DATABASE_UNAVAILABLE");
   }
   if (!site) notFound();
   if (!allowDraft && site.status !== "published") notFound();
 
-  const pageSlug = search.page ? decodeURIComponent(search.page) : undefined;
+  const pageSlug = decodePageSlug(search.page);
   let page = resolvePage(site, pageSlug);
   if (
     !page &&
@@ -203,15 +275,9 @@ async function renderSite(
   }
   if (!page) notFound();
 
-  if (
-    pageSlug === "private-studio" ||
-    pageSlug === "accommodation/private-studio"
-  ) {
-    redirect("/garden-studio");
-  }
-
-  if (pageSlug && page.slug === "home") {
-    redirect("/");
+  if (pageSlug && page.slug !== pageSlug) {
+    const dest = publicPagePath(page);
+    redirect(allowDraft ? `${dest === "/" ? "/" : dest}?preview=1` : dest);
   }
 
   const theme = site.theme ?? {};
@@ -235,17 +301,17 @@ async function renderSite(
     : null;
   const chromeDefaults = resolvePageChromeVisibility(page.slug, page.seo);
   const showHeader =
-    funnelTemplate === "business_audit" ||
-    funnelTemplate === "property_report" ||
-    page.slug === "hideaway-circle"
+    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
       ? false
-      : chromeDefaults.showHeader;
+      : page.slug === "hideaway-circle"
+        ? true
+        : chromeDefaults.showHeader;
   const showFooter =
-    funnelTemplate === "business_audit" ||
-    funnelTemplate === "property_report" ||
-    page.slug === "hideaway-circle"
+    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
       ? false
-      : chromeDefaults.showFooter;
+      : page.slug === "hideaway-circle"
+        ? true
+        : chromeDefaults.showFooter;
 
   return (
     <>

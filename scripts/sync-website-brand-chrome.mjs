@@ -118,8 +118,10 @@ async function main() {
     let logoUrl = typeof profile.logoUrl === "string" ? profile.logoUrl : null;
     let iconUrl = typeof profile.iconUrl === "string" ? profile.iconUrl : null;
 
-    // Gen 2 hosted brand marks when org profile still lacks logos (common after WP cutover)
-    if (siteSlug === "digitalgate" && !logoUrl && !iconUrl) {
+    // Gen 2 hosted brand marks when org profile still lacks logos (common after WP cutover).
+    // DigitalGate org uploads are uncropped banner/icon exports — pin marketing chrome
+    // to the on-dark lockup so the header keeps the door + wordmark.
+    if (siteSlug === "digitalgate") {
       logoUrl = "https://app.digitalgate.com.au/brand/logo-on-dark.png";
       iconUrl = "https://app.digitalgate.com.au/brand/icon-light.png";
     }

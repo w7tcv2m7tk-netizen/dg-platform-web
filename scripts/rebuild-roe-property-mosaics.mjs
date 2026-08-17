@@ -246,22 +246,46 @@ async function main() {
   });
 
   let updated = 0;
-  for (const property of props) {
+  // Prefer publishable / WP-linked listings when several share an address
+  // (avoids appraisal duplicates overwriting the live property page).
+  const publishable = new Set([
+    "listed",
+    "under_offer",
+    "contract_signed",
+    "unconditional",
+    "sold",
+    "withdrawn",
+  ]);
+  const ranked = [...props].sort((a, b) => {
+    const aWp = a.externalRefs?.wp_property_id ? 1 : 0;
+    const bWp = b.externalRefs?.wp_property_id ? 1 : 0;
+    if (aWp !== bWp) return bWp - aWp;
+    const aPub = publishable.has(a.status) ? 1 : 0;
+    const bPub = publishable.has(b.status) ? 1 : 0;
+    if (aPub !== bPub) return bPub - aPub;
+    return new Date(b.updatedAt) - new Date(a.updatedAt);
+  });
+  const claimedPages = new Set();
+
+  for (const property of ranked) {
     const meta = { ...(property.metadata || {}) };
     const pageSlug =
       (typeof meta.gen2_website_slug === "string" && meta.gen2_website_slug.trim()) ||
       null;
     const page =
-      (pageSlug && pages.find((p) => p.slug === pageSlug)) ||
-      pages.find((p) =>
-        String(p.title || "")
-          .toLowerCase()
-          .includes(String(property.addressLine1 || "").toLowerCase()),
+      (pageSlug && pages.find((p) => p.slug === pageSlug && !claimedPages.has(p.id))) ||
+      pages.find(
+        (p) =>
+          !claimedPages.has(p.id) &&
+          String(p.title || "")
+            .toLowerCase()
+            .includes(String(property.addressLine1 || "").toLowerCase()),
       );
     if (!page) {
-      console.warn("skip (no page)", property.addressLine1);
+      console.warn("skip (no page)", property.addressLine1, property.status);
       continue;
     }
+    claimedPages.add(page.id);
 
     const detailHtml = buildDetailHtml(property, meta);
     const components = Array.isArray(page.components) ? [...page.components] : [];
@@ -287,6 +311,17 @@ async function main() {
     console.log("updated", page.slug);
   }
 
+  const { ensureRoeListingHub, rebuildRoeListingHub } = await import("./roe-listing-hub.mjs");
+  await ensureRoeListingHub(prisma, SITE);
+  const hub = await rebuildRoeListingHub(prisma, {
+    websiteId: SITE,
+    organisationId: ORG,
+  });
+  console.log(
+    hub.ok
+      ? `listing hub rebuilt /${hub.slug} (${hub.cards} cards)`
+      : `listing hub skip (${hub.reason})`,
+  );
   console.log(`Done. Updated ${updated} property pages`);
 }
 

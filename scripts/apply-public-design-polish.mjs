@@ -29,8 +29,9 @@ function polishRoe(html) {
       const text = label.replace(/<[^>]+>/g, "").trim();
       if (!/property report/i.test(text)) return full;
       seen += 1;
-      // Keep hero + one mid-page magnet; drop further repeats (header CTA is chrome)
+      // Keep hero + mid-page magnet + closing section pills (.cta-button).
       if (seen <= 2) return full;
+      if (/class=["'][^"']*cta-button/.test(full)) return full;
       notes.push(`removed body report CTA #${seen}`);
       return "";
     },

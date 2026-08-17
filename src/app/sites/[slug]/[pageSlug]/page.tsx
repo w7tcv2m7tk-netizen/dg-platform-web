@@ -113,17 +113,17 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
     : null;
   const chromeDefaults = resolvePageChromeVisibility(page.slug, page.seo);
   const showHeader =
-    funnelTemplate === "business_audit" ||
-    funnelTemplate === "property_report" ||
-    page.slug === "hideaway-circle"
+    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
       ? false
-      : chromeDefaults.showHeader;
+      : page.slug === "hideaway-circle"
+        ? true
+        : chromeDefaults.showHeader;
   const showFooter =
-    funnelTemplate === "business_audit" ||
-    funnelTemplate === "property_report" ||
-    page.slug === "hideaway-circle"
+    funnelTemplate === "business_audit" || funnelTemplate === "property_report"
       ? false
-      : chromeDefaults.showFooter;
+      : page.slug === "hideaway-circle"
+        ? true
+        : chromeDefaults.showFooter;
   const title = page.seo?.title || `${page.title} | ${site.name}`;
   const description =
     page.seo?.description || site.seo?.description || site.name;

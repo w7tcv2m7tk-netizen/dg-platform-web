@@ -703,6 +703,10 @@ function prepareWpHtml(contentHtml, bg) {
 .wb-html-island--page p,.wb-html-island--page li{color:${muted}}
 .wb-html-island--page .container,.wb-html-island--page .ct-section-inner-wrap{max-width:min(1400px,100%)!important;width:100%;margin-left:auto;margin-right:auto;padding-left:clamp(1rem,3vw,2rem);padding-right:clamp(1rem,3vw,2rem);box-sizing:border-box}
 .wb-html-island--light [class*="hero"] h1,.wb-html-island--light [class*="hero"] h2,.wb-html-island--light [class*="hero"] p,.wb-html-island--light [class*="hero"] span,.wb-html-island--light .hero-property a:not([class*="btn"]):not([class*="cta"]){color:#f8fafc}
+.wb-html-island--light .blog-hero,.wb-html-island--light .blog-hero :is(h1,h2,p,span,small,.breadcrumb,.meta){color:#f4f1ea!important}
+.wb-html-island--light .blog-hero h1{color:#ffffff!important;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.wb-html-island--light .blog-hero span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]){color:#e8e4dc!important}
+.wb-html-island--light .blog-hero span.accent:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]),.wb-html-island--light .blog-hero .breadcrumb a{color:#e8d5a8!important}
 </style>`;
   return `${style}\n<div class="wb-html-island wb-html-island--page${lightClass}">${cleaned || "<p>No content imported.</p>"}</div>`;
 }
@@ -843,11 +847,17 @@ async function seedFromWordPress(org, brand) {
     items.find((p) => p.slug === "home" || p.slug === "front-page") || items[0];
 
   const used = new Set();
-  const plans = items.map((item, index) => {
+  const skipWpPropertySlug = items.some((p) => p.slug === "properties");
+  const plans = items
+    .filter((item) => !(skipWpPropertySlug && item.slug === "property"))
+    .map((item, index) => {
     const isFront = item.id === front.id;
-    const slug = isFront
-      ? uniqueSlug("home", used)
-      : uniqueSlug(item.slug || item.title?.rendered || `page-${item.id}`, used);
+    const rawSlug = isFront
+      ? "home"
+      : item.slug === "property"
+        ? "properties"
+        : item.slug || item.title?.rendered || `page-${item.id}`;
+    const slug = uniqueSlug(rawSlug, used);
     const title = stripTags(item.title?.rendered || item.slug || "Page");
     const content = item.content?.rendered || "";
     const excerpt = stripTags(item.excerpt?.rendered || "").slice(0, 160);
@@ -1007,6 +1017,20 @@ async function seedFromWordPress(org, brand) {
       });
       console.log(`  created /insights (grid ${postCards.length})`);
     }
+  }
+
+  if (brand.key === "roe") {
+    const { ensureRoeListingHub, rebuildRoeListingHub } = await import(
+      "./roe-listing-hub.mjs"
+    );
+    await ensureRoeListingHub(prisma, site.id);
+    const hub = await rebuildRoeListingHub(prisma, {
+      websiteId: site.id,
+      organisationId: org.id,
+    });
+    console.log(
+      `  RR listing hub ${hub.ok ? `rebuilt /${hub.slug} (${hub.cards} cards)` : `skip (${hub.reason})`}`,
+    );
   }
 
   console.log(`  → Studio /apps/websites/studio/${site.id}`);

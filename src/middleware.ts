@@ -8,6 +8,13 @@ import {
   isOffAppClerkNavigationUrl,
   shouldEnableClerkFrontendApiProxy,
 } from "@/lib/clerk-proxy";
+import {
+  applyPublicLegacyResponse,
+  canonicalPublicHostRedirect,
+} from "@/lib/public-site-legacy";
+import { isAetherraPublicHost } from "@/lib/aetherra-legacy-urls";
+import { isDgPublicHost } from "@/lib/dg-legacy-urls";
+import { isRoePublicHost } from "@/lib/roe-legacy-urls";
 
 const isPublicRoute = createRouteMatcher([
   "/",
@@ -182,65 +189,31 @@ export default async function middleware(req: NextRequest, event: unknown) {
   if (hostname && !isPlatformHost(hostname)) {
     const path = req.nextUrl.pathname;
 
-    for (const rule of BRAND_TO_FUNNEL_REDIRECTS) {
-      if (rule.hostRe.test(hostname) && rule.pathRe.test(path)) {
-        return NextResponse.redirect(rule.destination, 308);
-      }
-    }
+    // 410 junk before www/http canonicalization so leftover paths like
+    // /cgi-bin never hop through a rewrite that can 5xx.
+    const legacy = applyPublicLegacyResponse(req, hostname);
+    if (legacy) return legacy;
 
-    // Roe Realty WP leftovers: /agent and /agent/{slug} → live Gen2 pages
     if (
-      /(^|\.)roerealty\.com\.au$/i.test(hostname) &&
-      /^\/agent(\/|$)/i.test(path) &&
-      !/^\/agent-disclaimer/i.test(path)
+      (isDgPublicHost(hostname) ||
+        isRoePublicHost(hostname) ||
+        isAetherraPublicHost(hostname)) &&
+      path.length > 1 &&
+      path.endsWith("/")
     ) {
       const dest = req.nextUrl.clone();
-      const agentSlug = path.replace(/^\/agent\/?/i, "").replace(/\/+$/, "");
-      dest.pathname = /^ben-roe/i.test(agentSlug) ? "/card" : "/agents";
+      dest.pathname = path.replace(/\/+$/, "") || "/";
+      dest.protocol = "https:";
+      if (hostname.startsWith("www.")) dest.hostname = hostname.replace(/^www\./, "");
       return NextResponse.redirect(dest, 308);
     }
 
-    // Roe Realty WP leftovers: booking aliases → live booking apps
-    if (/(^|\.)roerealty\.com\.au$/i.test(hostname)) {
-      if (/^\/property\/?$/i.test(path)) {
-        const dest = req.nextUrl.clone();
-        dest.pathname = "/properties";
-        return NextResponse.redirect(dest, 308);
-      }
-      if (
-        /^\/free-property-appraisal\/?$/i.test(path) ||
-        /^\/property-appraisal-gold-coast\/?$/i.test(path)
-      ) {
-        const dest = req.nextUrl.clone();
-        dest.pathname = "/property-appraisal";
-        return NextResponse.redirect(dest, 308);
-      }
-      if (/^\/free-buyer-consultation\/?$/i.test(path)) {
-        const dest = req.nextUrl.clone();
-        dest.pathname = "/buyer-consultation";
-        return NextResponse.redirect(dest, 308);
-      }
-    }
+    const canonical = canonicalPublicHostRedirect(req, hostname);
+    if (canonical) return canonical;
 
-    // CVH: /accommodation/{unit} duplicates → canonical /{unit} booking pages
-    // Legacy Private Studio slug → Garden Studio
-    if (/(^|\.)currumbinvalleyhideaway\.com\.au$/i.test(hostname)) {
-      if (
-        /^\/private-studio\/?$/i.test(path) ||
-        /^\/accommodation\/private-studio\/?$/i.test(path)
-      ) {
-        const dest = req.nextUrl.clone();
-        dest.pathname = "/garden-studio";
-        return NextResponse.redirect(dest, 308);
-      }
-      const unitMatch = path.match(
-        /^\/accommodation\/(tiny-home|garden-studio|private-studio|sanctuary-dome|rainforest-dome|canopy-dome|starlight-dome|the-shed)\/?$/i,
-      );
-      if (unitMatch) {
-        const leaf = unitMatch[1].toLowerCase();
-        const dest = req.nextUrl.clone();
-        dest.pathname = `/${leaf === "private-studio" ? "garden-studio" : leaf}`;
-        return NextResponse.redirect(dest, 308);
+    for (const rule of BRAND_TO_FUNNEL_REDIRECTS) {
+      if (rule.hostRe.test(hostname) && rule.pathRe.test(path)) {
+        return NextResponse.redirect(rule.destination, 308);
       }
     }
 
@@ -288,5 +261,10 @@ export const config = {
     "/(api|trpc)(.*)",
     // Clerk FAPI proxy — must be a static string for Next matcher parsing
     "/__clerk/(.*)",
+    // WP leftovers with static extensions must still hit 410 (matcher above skips images)
+    "/wp-content/:path*",
+    "/wp-includes/:path*",
+    "/edd-api/:path*",
+    "/cgi-bin/:path*",
   ],
 };

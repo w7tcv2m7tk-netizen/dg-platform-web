@@ -319,5 +319,13 @@ export async function syncPropertiesFromWordPress(
     }
   }
 
+  if (result.created + result.updated > 0) {
+    const { syncAllPropertiesToGen2Website } = await import("../../properties/sync-to-gen2-website");
+    await syncAllPropertiesToGen2Website({
+      organisationId: input.organisationId,
+      actorId: input.actorId,
+    }).catch(() => null);
+  }
+
   return result;
 }

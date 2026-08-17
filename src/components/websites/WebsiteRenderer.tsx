@@ -781,6 +781,41 @@ const FOOTER_SLOGAN_BY_SLUG: Record<string, string> = {
   aetherra: "Where Earth Meets Sky Through Sound",
 };
 
+function BrandLockup({
+  theme,
+  businessName,
+  stacked = false,
+}: {
+  theme: WebsiteTheme;
+  businessName: string;
+  stacked?: boolean;
+}) {
+  const icon = (theme.iconUrl || "").trim();
+  const wordmark = (theme.logoUrl || "").trim();
+  const single = wordmark || icon;
+  const lockup = !stacked && Boolean(icon && wordmark && icon !== wordmark);
+
+  if (lockup) {
+    return (
+      <>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={icon} alt="" className="wb-brand-chrome-icon" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={wordmark} alt={businessName} className="wb-brand-chrome-logo" />
+      </>
+    );
+  }
+
+  if (single) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={single} alt={businessName} className="wb-brand-chrome-logo" />
+    );
+  }
+
+  return <span className="wb-brand-chrome-name">{businessName}</span>;
+}
+
 function BrandSiteHeader({
   theme,
   basePath,
@@ -802,7 +837,6 @@ function BrandSiteHeader({
   } | null;
   layout?: "bar" | "stacked";
 }) {
-  const logo = theme.logoUrl || theme.iconUrl;
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const brandHref = homeHref(basePath);
@@ -869,12 +903,7 @@ function BrandSiteHeader({
     >
       <div className="wb-brand-chrome-inner">
         <a href={brandHref} className="wb-brand-chrome-brand" aria-label={businessName}>
-          {logo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logo} alt={businessName} className="wb-brand-chrome-logo" />
-          ) : (
-            <span className="wb-brand-chrome-name">{businessName}</span>
-          )}
+          <BrandLockup theme={theme} businessName={businessName} stacked={stacked} />
         </a>
 
         <div className="wb-brand-chrome-below">
@@ -974,7 +1003,6 @@ function BrandSiteFooter({
   businessName: string;
   tagline?: string | null;
 }) {
-  const logo = theme.iconUrl || theme.logoUrl;
   const brandHref = homeHref(basePath);
   const cardHref = resolveHref("/card", basePath);
   const slogan = (tagline || "").trim();
@@ -991,12 +1019,7 @@ function BrandSiteFooter({
       <div className="wb-brand-chrome-inner">
         <div className="wb-brand-chrome-brand-block">
           <a href={brandHref} className="wb-brand-chrome-brand" aria-label={businessName}>
-            {logo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={logo} alt={businessName} className="wb-brand-chrome-logo" />
-            ) : (
-              <span className="wb-brand-chrome-name">{businessName}</span>
-            )}
+            <BrandLockup theme={theme} businessName={businessName} />
           </a>
           {slogan ? <p className="wb-footer-slogan">{slogan}</p> : null}
         </div>
@@ -1074,8 +1097,7 @@ export function WebsitePageRenderer({
   })();
   const isProductFunnel =
     resolvedFunnelTemplate === "property_report" ||
-    resolvedFunnelTemplate === "business_audit" ||
-    pageSlug === "hideaway-circle";
+    resolvedFunnelTemplate === "business_audit";
   const bookingKind =
     pageSlug === "property-appraisal"
       ? ("appraisal" as const)
@@ -1320,7 +1342,7 @@ export function WebsitePageRenderer({
               siteSlug={siteSlug}
               basePath={basePath}
               logoUrl={theme.logoUrl || theme.iconUrl}
-              variant="funnel"
+              variant="embedded"
             />
           ) : null}
           {bookingKind ? (

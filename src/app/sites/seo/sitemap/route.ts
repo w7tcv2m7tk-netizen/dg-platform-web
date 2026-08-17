@@ -2,6 +2,10 @@ import { findDomainByHostname, getWebsiteBySlug } from "@dg/platform-core";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { isAetherraPublicHost } from "@/lib/aetherra-legacy-urls";
+import { isDgPublicHost } from "@/lib/dg-legacy-urls";
+import { isRoePublicHost } from "@/lib/roe-legacy-urls";
+
 async function resolveHostSlug(): Promise<string | null> {
   const hdrs = await headers();
   const host = (
@@ -60,9 +64,25 @@ export async function GET() {
     );
   }
 
-  const origin = `https://${host}`;
+  const originHost =
+    isDgPublicHost(host) || isRoePublicHost(host) || isAetherraPublicHost(host)
+      ? host.replace(/^www\./, "")
+      : host;
+  const origin = `https://${originHost}`;
+  const isDg = isDgPublicHost(host);
+  const isRoe = isRoePublicHost(host);
   const urls = (site.pages ?? [])
     .filter((p) => p.status !== "archived")
+    .filter((p) => (p.intent || "").toLowerCase() !== "redirect")
+    .filter((p) => {
+      if (isDg) {
+        if (p.status !== "published") return false;
+        if (p.slug === "business-audit") return false;
+        return true;
+      }
+      if (isRoe && p.slug === "property-report") return false;
+      return true;
+    })
     .map((p) => {
       const loc = `${origin}${pagePath(p.slug, p.intent)}`;
       const lastmod = p.updatedAt

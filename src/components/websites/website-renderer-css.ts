@@ -809,6 +809,7 @@ html.wb-menu-scroll-lock body {
 .wb-html-island--light .hero-property,
 .wb-html-island--light .hero-agents,
 .wb-html-island--light .rr-insights-hero,
+.wb-html-island--light .blog-hero,
 .wb-html-island--light .property-hero,
 .wb-html-island--light .roe-prop-detail .property-hero,
 .wb-html-island--light [class^="hero-"][class*="section"],
@@ -849,6 +850,11 @@ html.wb-menu-scroll-lock body {
 .wb-html-island--light .hero-content h3,
 .wb-html-island--light .hero-content p,
 .wb-html-island--light .hero-content span,
+.wb-html-island--light .blog-hero h1,
+.wb-html-island--light .blog-hero h2,
+.wb-html-island--light .blog-hero p,
+.wb-html-island--light .blog-hero span,
+.wb-html-island--light .blog-hero a:not([class*="btn"]):not([class*="cta"]),
 .wb-html-island--light .hero-headline,
 .wb-html-island--light .hero-subheading,
 .wb-html-island--light .property-hero h1,
@@ -1236,14 +1242,61 @@ html.wb-menu-scroll-lock body {
   color: #f5ebd8 !important;
 }
 
+/*
+ * Post / insight article heroes (.blog-hero) are charcoal bands.
+ * RR posts sit in cream --light islands, so global light-island ink
+ * (#1c2b2a) was painting the title onto the dark hero.
+ */
+.wb-root .wb-html-island .blog-hero,
+.wb-root .wb-html-island.wb-html-island--light .blog-hero {
+  color: #f4f1ea !important;
+}
+
+.wb-root .wb-html-island .blog-hero h1,
+.wb-root .wb-html-island.wb-html-island--light .blog-hero h1 {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.wb-root .wb-html-island .blog-hero :is(.breadcrumb, .meta, p, small),
+.wb-root .wb-html-island.wb-html-island--light .blog-hero :is(.breadcrumb, .meta, p, small),
+.wb-root .wb-html-island .blog-hero span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]),
+.wb-root .wb-html-island.wb-html-island--light .blog-hero span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]) {
+  color: #e8e4dc !important;
+}
+
+.wb-root .wb-html-island .blog-hero .breadcrumb a,
+.wb-root .wb-html-island.wb-html-island--light .blog-hero .breadcrumb a,
+.wb-root .wb-html-island .blog-hero span.accent:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]),
+.wb-root .wb-html-island.wb-html-island--light .blog-hero span.accent:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]),
+.wb-root .wb-html-island .blog-hero .meta .accent,
+.wb-root .wb-html-island.wb-html-island--light .blog-hero .meta .accent {
+  color: #e8d5a8 !important;
+}
+
+.wb-root .wb-html-island .blog-hero .breadcrumb a:hover,
+.wb-root .wb-html-island.wb-html-island--light .blog-hero .breadcrumb a:hover {
+  color: #f5ebd8 !important;
+}
+
+.wb-root.wb-chrome-overlay .blog-hero {
+  padding-top: clamp(6.75rem, 12vw, 8.25rem) !important;
+}
+
+.wb-root.wb-chrome-overlay:has(.wb-brand-chrome-header--stacked) .blog-hero {
+  padding-top: clamp(10.5rem, 18vw, 13.5rem) !important;
+}
+
 /* Cream Roe / CVH body copy stays dark (intro / why / light CTA strips / gallery).
-   final-cta is a dark band — light text handled separately below. */
+   RR .final-cta / .final-cta-section are cream bands — dark type, gold pills. */
 .wb-root .wb-html-island.wb-html-island--light :is(
   .intro-section,
   .why-choose-section,
   .direct-cta-section-light,
   .gallery-section,
-  .cvh-circle-home-cta
+  .cvh-circle-home-cta,
+  .final-cta,
+  .final-cta-section
 ) :is(
   h1, h2, h3, h4,
   .intro-headline,
@@ -1260,7 +1313,9 @@ html.wb-menu-scroll-lock body {
   .why-choose-section,
   .direct-cta-section-light,
   .gallery-section,
-  .cvh-circle-home-cta
+  .cvh-circle-home-cta,
+  .final-cta,
+  .final-cta-section
 ) :is(
   .section-label,
   .badge,
@@ -1274,7 +1329,9 @@ html.wb-menu-scroll-lock body {
   .why-choose-section,
   .direct-cta-section-light,
   .gallery-section,
-  .cvh-circle-home-cta
+  .cvh-circle-home-cta,
+  .final-cta,
+  .final-cta-section
 ) :is(
   p, li, span, small,
   .intro-description,
@@ -1283,39 +1340,21 @@ html.wb-menu-scroll-lock body {
   .direct-cta-text-light,
   .cta-description,
   .direct-cta,
-  .trust-badge
+  .trust-badge,
+  .trust-item
 ) {
   color: #243533 !important;
 }
 
-/* Dark charcoal / photo CTAs — light type (beats blanket span:not(…) ink). */
+/* Dark charcoal / photo bands — light type (beats blanket span:not(…) ink). */
 .wb-root .wb-html-island.wb-html-island--light :is(
-  .final-cta,
-  .final-cta-section,
   .location-section,
   .experience-section,
   .policy-section,
-  .hero-section
-) span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]),
-.wb-root .wb-html-island.wb-html-island--light :is(
-  .final-cta,
-  .final-cta-section
-) :is(h1, h2, h3, h4, p, li, small, .cta-headline, .cta-description, .cta-label, .direct-cta, .trust-badge) {
+  .hero-section,
+  .blog-hero
+) span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]) {
   color: #e8e4dc !important;
-}
-
-.wb-root .wb-html-island.wb-html-island--light :is(
-  .final-cta,
-  .final-cta-section
-) :is(h1, h2, h3, .cta-headline) {
-  color: #faf8f4 !important;
-}
-
-.wb-root .wb-html-island.wb-html-island--light :is(
-  .final-cta,
-  .final-cta-section
-) :is(.cta-label, .section-label) {
-  color: #c9a46c !important;
 }
 
 /* Home hero trust pills — pure white (must follow cream-island / section ink rules above) */
@@ -1686,14 +1725,17 @@ html.wb-menu-scroll-lock body {
   color: #f8fafc !important;
 }
 
-/* Home heroes — true full viewport (RR + CVH). Use svh to avoid mobile UI chrome gap. */
+/* Home heroes — true full viewport (DG .hero-home, RR/CVH .hero-section). */
 .wb-root .wb-html-island .hero-section,
+.wb-root .wb-html-island .hero-home,
 .wb-root .wb-html-island section.hero,
 .wb-root .wb-html-island .hero:not([class*="hero-"]),
 .wb-html-page .wb-html-island .hero-section,
+.wb-html-page .wb-html-island .hero-home,
 .wb-html-page .wb-html-island section.hero,
 .wb-html-page .wb-html-island .hero:not([class*="hero-"]),
 .wb-root.wb-chrome-overlay .wb-html-island .hero-section,
+.wb-root.wb-chrome-overlay .wb-html-island .hero-home,
 .wb-root.wb-chrome-overlay .wb-html-island section.hero,
 .wb-root.wb-chrome-overlay .wb-html-island .hero:not([class*="hero-"]) {
   position: relative !important;
@@ -2205,6 +2247,7 @@ html.wb-menu-scroll-lock body {
 .wb-html-page .nav-cta,
 .wb-html-page .hero-cta,
 .wb-html-page .cta-button,
+.wb-html-page a.cta-button,
 .wb-html-page .intro-cta,
 .wb-html-page .direct-cta-button-light,
 .wb-html-page .plan-cta,
@@ -2220,6 +2263,36 @@ html.wb-menu-scroll-lock body {
 .wb-brand-chrome-cta--desktop,
 .wb-brand-chrome-cta--mobile,
 a.wb-brand-chrome-cta {
+  color: #ffffff !important;
+}
+
+/* RR gold pills — fill must survive cream-island ink (white label on #C9A46C). */
+.wb-root .wb-html-island.wb-html-island--light a.cta-button,
+.wb-root .wb-html-island.wb-html-island--light .cta-button,
+.wb-root .wb-html-island.wb-html-island--light a.hero-cta,
+.wb-root .wb-html-island.wb-html-island--light a.intro-cta,
+.wb-root .wb-html-island.wb-html-island--light a.direct-cta-button-light,
+.wb-html-page a.cta-button,
+.wb-html-page .cta-button {
+  background: #c9a46c !important;
+  color: #ffffff !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light a.cta-button:hover,
+.wb-root .wb-html-island.wb-html-island--light .cta-button:hover,
+.wb-root .wb-html-island.wb-html-island--light a.hero-cta:hover,
+.wb-root .wb-html-island.wb-html-island--light a.intro-cta:hover,
+.wb-root .wb-html-island.wb-html-island--light a.direct-cta-button-light:hover,
+.wb-html-page a.cta-button:hover,
+.wb-html-page .cta-button:hover {
+  background: #b48b56 !important;
+  color: #ffffff !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light a.cta-button i,
+.wb-root .wb-html-island.wb-html-island--light .cta-button i,
+.wb-html-page a.cta-button i,
+.wb-html-page .cta-button i {
   color: #ffffff !important;
 }
 
@@ -2361,26 +2434,39 @@ a.wb-brand-chrome-cta:hover {
 .wb-brand-chrome-brand {
   display: inline-flex;
   align-items: center;
+  gap: 10px;
   text-decoration: none;
   color: #f8fafc;
   flex-shrink: 0;
 }
 
+.wb-brand-chrome-icon {
+  display: block;
+  width: 32px !important;
+  height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  object-fit: contain !important;
+  flex-shrink: 0;
+  border-radius: 4px;
+  background: #fff;
+}
+
 .wb-brand-chrome-logo {
   display: block;
-  height: 40px !important;
+  height: 28px !important;
   width: auto !important;
-  max-height: 40px !important;
-  max-width: min(220px, 55vw) !important;
+  max-height: 28px !important;
+  max-width: min(280px, 48vw) !important;
   object-fit: contain !important;
   object-position: left center;
 }
 
 /* Stacked logo size/contrast must follow base logo rules (same !important cascade) */
 .wb-brand-chrome-header--stacked .wb-brand-chrome-logo {
-  height: 104px !important;
-  max-height: 104px !important;
-  max-width: min(380px, 78vw) !important;
+  height: 88px !important;
+  max-height: 88px !important;
+  max-width: min(320px, 72vw) !important;
   object-position: center center !important;
   filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.55))
     drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45))
@@ -2535,19 +2621,26 @@ a.wb-brand-chrome-cta:hover {
   }
 
   .wb-brand-chrome-header--stacked .wb-brand-chrome-logo {
-    height: 72px !important;
-    max-height: 72px !important;
-    max-width: min(260px, 68vw) !important;
+    height: 60px !important;
+    max-height: 60px !important;
+    max-width: min(220px, 62vw) !important;
   }
 
   .wb-brand-chrome-header--stacked .wb-brand-chrome-below {
     display: none;
   }
 
+  .wb-brand-chrome-icon {
+    width: 28px !important;
+    height: 28px !important;
+    max-width: 28px !important;
+    max-height: 28px !important;
+  }
+
   .wb-brand-chrome-logo {
-    height: 34px !important;
-    max-height: 34px !important;
-    max-width: min(180px, 58vw) !important;
+    height: 24px !important;
+    max-height: 24px !important;
+    max-width: min(180px, 52vw) !important;
   }
 
   .wb-brand-chrome-nav--desktop,
@@ -3186,8 +3279,10 @@ a.wb-brand-chrome-cta:hover {
 .property-gallery .gallery-grid {
   display: grid !important;
   grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
   gap: 2px;
   background: #000;
+  height: 500px;
   max-height: 500px;
   overflow: hidden;
   margin: 0 !important;
@@ -3259,11 +3354,10 @@ a.wb-brand-chrome-cta:hover {
 .wb-mosaic-grid .gallery-thumbs,
 .dg-acc-gallery .gallery-thumbs,
 .property-gallery .gallery-thumbs {
-  display: grid !important;
+  display: flex !important;
+  flex-direction: column;
   grid-column: 2 !important;
   grid-row: 1 / span 2 !important;
-  grid-template-columns: 1fr !important;
-  grid-template-rows: 1fr 1fr !important;
   gap: 2px;
   background: #000;
   min-height: 0;
@@ -3274,23 +3368,29 @@ a.wb-brand-chrome-cta:hover {
 .wb-mosaic-grid .gallery-thumbs:has(> :only-child),
 .dg-acc-gallery .gallery-thumbs:has(> :only-child),
 .property-gallery .gallery-thumbs:has(> :only-child) {
-  grid-template-rows: 1fr !important;
   grid-row: 1 / span 1 !important;
 }
 
 .wb-mosaic-grid .gallery-thumb,
 .dg-acc-gallery .gallery-thumb,
 .property-gallery .gallery-thumb {
+  flex: 1 1 0;
   min-height: 0;
-  height: 100%;
+  height: auto;
   overflow: hidden;
+  display: block;
+  position: relative;
 }
 
 .wb-mosaic-grid .gallery-thumb img,
 .dg-acc-gallery .gallery-thumb img,
 .property-gallery .gallery-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
   min-height: 0;
-  height: 100%;
+  object-fit: cover !important;
 }
 
 .wb-mosaic-grid .gallery-more .more-overlay,
@@ -3374,18 +3474,23 @@ a.wb-brand-chrome-cta:hover {
   .property-gallery .gallery-thumbs {
     grid-column: 1 / -1 !important;
     grid-row: auto !important;
-    grid-template-columns: 1fr 1fr !important;
-    grid-template-rows: auto !important;
+    flex-direction: row;
+    height: 160px;
   }
 
   .wb-mosaic-grid .gallery-thumb,
-  .wb-mosaic-grid .gallery-thumb img,
   .dg-acc-gallery .gallery-thumb,
+  .property-gallery .gallery-thumb {
+    flex: 1 1 0;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .wb-mosaic-grid .gallery-thumb img,
   .dg-acc-gallery .gallery-thumb img,
-  .property-gallery .gallery-thumb,
   .property-gallery .gallery-thumb img {
-    min-height: 120px;
-    max-height: 180px;
+    min-height: 0;
+    max-height: none;
   }
 
   .wb-mosaic-grid .gallery-more .more-overlay,
@@ -3988,6 +4093,112 @@ a.wb-brand-chrome-cta:hover {
   margin: 0 auto;
   padding: 0 1.25rem 4rem;
 }
+.wb-root .cvh-circle-page__form-wrap form {
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(107, 92, 76, 0.14);
+}
+.wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__badge,
+.wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__sub,
+.wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__section,
+.wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__fine,
+.wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__status {
+  color: #5c4f42;
+}
+.wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__badge {
+  display: inline-block;
+  margin-bottom: 0.65rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(185, 164, 138, 0.18);
+  color: #6b5c4c;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+.wb-root .cvh-circle-page__form-wrap h2 {
+  margin: 0 0 0.5rem;
+  color: #2c241c;
+  font-size: 1.55rem;
+  font-weight: 500;
+}
+.wb-root .cvh-circle-page__form-wrap label {
+  display: block;
+  margin: 0.85rem 0 0.35rem;
+  color: #5c4f42;
+  font-size: 0.9rem;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+.wb-root .cvh-circle-page__form-wrap input:not([type="checkbox"]),
+.wb-root .cvh-circle-page__form-wrap select {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 0.15rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(107, 92, 76, 0.28);
+  border-radius: 10px;
+  background: #fff;
+  color: #2c241c;
+  font: inherit;
+}
+.wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem 0.85rem;
+}
+.wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__check {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  color: #5c4f42;
+  font-size: 0.92rem;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+.wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__check input {
+  width: auto;
+  margin: 0;
+}
+.wb-root .cvh-circle-page__form-wrap button[type="submit"],
+.wb-root .cvh-circle-page__form-wrap .dg-cvh-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.9rem 1.2rem;
+  border: 0;
+  border-radius: 999px;
+  background: #b9a48a;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+.wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__hp {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  height: 0;
+  width: 0;
+}
+.wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__done {
+  text-align: center;
+  padding: 1rem 0 2rem;
+}
+@media (max-width: 640px) {
+  .wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__row,
+  .wb-root .cvh-circle-page__form-wrap .dg-cvh-funnel__checks {
+    grid-template-columns: 1fr;
+  }
+}
 .wb-root .cvh-circle-page__form {
   padding-top: 0.5rem;
   border-top: 1px solid rgba(107, 92, 76, 0.14);
@@ -4125,22 +4336,29 @@ a.wb-brand-chrome-cta:hover {
 }
 
 .wb-root .wb-html-island.wb-html-island--light section.final-cta,
-.wb-root .wb-html-island.wb-html-island--light section.final-cta-section,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section {
+  background: linear-gradient(135deg, #f5f2ef 0%, #ede8e0 100%) !important;
+  color: #1c2b2a !important;
+  border-top: 1px solid #e0d6cc !important;
+  border-bottom: 1px solid #e0d6cc !important;
+}
+
 .wb-root .wb-html-island.wb-html-island--light section.final-cta .cta-container,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section .cta-container {
-  color: #f4f1ea !important;
+  color: #1c2b2a !important;
+  background: transparent !important;
 }
 
 .wb-root .wb-html-island.wb-html-island--light section.final-cta .cta-label,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section .cta-label {
-  color: #c9a46c !important;
+  color: #8a7358 !important;
 }
 
 .wb-root .wb-html-island.wb-html-island--light section.final-cta .cta-headline,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section .cta-headline,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta h2,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section h2 {
-  color: #faf8f4 !important;
+  color: #14201f !important;
 }
 
 .wb-root .wb-html-island.wb-html-island--light section.final-cta .cta-description,
@@ -4149,16 +4367,36 @@ a.wb-brand-chrome-cta:hover {
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section .direct-cta,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta .trust-badge,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section .trust-badge,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta .trust-item,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section .trust-item,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta p,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section p,
 .wb-root .wb-html-island.wb-html-island--light section.final-cta span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]),
 .wb-root .wb-html-island.wb-html-island--light section.final-cta-section span:not([class*="btn"]):not([class*="badge"]):not([class*="tag"]):not([class*="sold"]):not([class*="status"]) {
-  color: #e8e4dc !important;
+  color: #243533 !important;
 }
 
 .wb-root .wb-html-island.wb-html-island--light section.final-cta .trust-badge i,
-.wb-root .wb-html-island.wb-html-island--light section.final-cta-section .trust-badge i {
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section .trust-badge i,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta .trust-item i,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section .trust-item i {
   color: #c9a46c !important;
+}
+
+.wb-root .wb-html-island.wb-html-island--light section.final-cta a.cta-button,
+.wb-root .wb-html-island.wb-html-island--light section.final-cta-section a.cta-button,
+.wb-root .wb-html-island.wb-html-island--light section.lead-magnet-section a.cta-button {
+  background: #c9a46c !important;
+  color: #ffffff !important;
+}
+
+/* Roe Realty contact — Contact Details card (not full content width) */
+.wb-root .wb-html-island .contact-details-section .details-card,
+.wb-root .wb-html-island.wb-html-island--light .contact-details-section .details-card {
+  max-width: 520px !important;
+  width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 /* Roe Realty contact — WP card form (centred, cream fields, gold pill CTA) */

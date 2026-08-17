@@ -77,7 +77,10 @@ export async function ensureHideawayCircleWebsitePage(input: {
     showFooter: true,
   };
   if (existing) {
-    if (existing.status !== "published") {
+    const prevSeo = (existing.seo as Record<string, unknown> | null) ?? {};
+    const needsChromeFix =
+      prevSeo.showHeader === false || prevSeo.showFooter === false;
+    if (existing.status !== "published" || needsChromeFix) {
       await updateWebsitePage({
         organisationId: site.organisationId,
         websiteId: site.id,

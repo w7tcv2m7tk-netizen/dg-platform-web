@@ -398,14 +398,14 @@ export async function createPropertyFromLead(input: CreatePropertyFromLeadInput)
   });
   if (!lead) return null;
 
-  const existing = await prisma.property.findFirst({
+  const existingByLead = await prisma.property.findFirst({
     where: {
       organisationId: input.organisationId,
       leadId: input.leadId,
       deletedAt: null,
     },
   });
-  if (existing) return serializeProperty(existing);
+  if (existingByLead) return serializeProperty(existingByLead);
 
   const metadata = (lead.metadata as Record<string, unknown> | null) ?? {};
   const rawAddress =
@@ -429,25 +429,88 @@ export async function createPropertyFromLead(input: CreatePropertyFromLeadInput)
       metadata.corelogic_source ?? "lead_address_match";
   }
 
+  // Reuse an existing listing for the same CoreLogic id or address so
+  // property-report / lead conversion cannot spawn duplicate appraisals
+  // (the 11 Kianga Court race).
+  const cotalityId = leadCotality.corelogic_property_id;
+  if (cotalityId != null && cotalityId !== "") {
+    const byCotality = await prisma.property.findFirst({
+      where: {
+        organisationId: input.organisationId,
+        deletedAt: null,
+        OR: [
+          { externalRefs: { path: ["corelogic_property_id"], equals: cotalityId } },
+          {
+            externalRefs: {
+              path: ["corelogic_property_id"],
+              equals: String(cotalityId),
+            },
+          },
+          { metadata: { path: ["corelogic_property_id"], equals: cotalityId } },
+          {
+            metadata: {
+              path: ["corelogic_property_id"],
+              equals: String(cotalityId),
+            },
+          },
+        ],
+      },
+      orderBy: { createdAt: "asc" },
+    });
+    if (byCotality) {
+      if (!byCotality.leadId) {
+        await prisma.property.update({
+          where: { id: byCotality.id },
+          data: { leadId: lead.id },
+        });
+      }
+      return serializeProperty({ ...byCotality, leadId: byCotality.leadId ?? lead.id });
+    }
+  }
+
+  const suburb =
+    input.suburb ??
+    (metadata.suburb as string | undefined) ??
+    (metadata.property_suburb as string | undefined) ??
+    parsed.suburb;
+  const postcode =
+    input.postcode ??
+    (metadata.postcode as string | undefined) ??
+    (metadata.property_postcode as string | undefined) ??
+    parsed.postcode;
+  if (parsed.addressLine1?.trim() && suburb?.trim()) {
+    const byAddress = await prisma.property.findFirst({
+      where: {
+        organisationId: input.organisationId,
+        deletedAt: null,
+        addressLine1: { equals: parsed.addressLine1.trim(), mode: "insensitive" },
+        suburb: { equals: suburb.trim(), mode: "insensitive" },
+        ...(postcode?.trim() ? { postcode: postcode.trim() } : {}),
+      },
+      orderBy: { createdAt: "asc" },
+    });
+    if (byAddress) {
+      if (!byAddress.leadId) {
+        await prisma.property.update({
+          where: { id: byAddress.id },
+          data: { leadId: lead.id },
+        });
+      }
+      return serializeProperty({ ...byAddress, leadId: byAddress.leadId ?? lead.id });
+    }
+  }
+
   const property = await createProperty({
     organisationId: input.organisationId,
     actorId: input.actorId,
     addressLine1: parsed.addressLine1,
-    suburb:
-      input.suburb ??
-      (metadata.suburb as string | undefined) ??
-      (metadata.property_suburb as string | undefined) ??
-      parsed.suburb,
+    suburb,
     state:
       input.state ??
       (metadata.state as string | undefined) ??
       (metadata.property_state as string | undefined) ??
       parsed.state,
-    postcode:
-      input.postcode ??
-      (metadata.postcode as string | undefined) ??
-      (metadata.property_postcode as string | undefined) ??
-      parsed.postcode,
+    postcode,
     status: "appraisal",
     ownerContactId: lead.contactId ?? undefined,
     leadId: lead.id,
@@ -1157,6 +1220,11 @@ export async function updatePropertyStatus(
     status,
     actorId,
   }).catch(() => null);
+  await syncPropertyToGen2Website({
+    organisationId,
+    propertyId,
+    actorId,
+  }).catch(() => null);
 
   return serializeProperty(
     (await prisma.property.findFirst({
@@ -1230,6 +1298,12 @@ export async function setPropertyWebsiteHidden(
       actorId,
     }).catch(() => null);
   }
+
+  await syncPropertyToGen2Website({
+    organisationId,
+    propertyId,
+    actorId,
+  }).catch(() => null);
 
   return serializeProperty(
     (await prisma.property.findFirst({
