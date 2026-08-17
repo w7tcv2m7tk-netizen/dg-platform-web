@@ -1,6 +1,7 @@
 import { resolveAbrGuid } from "../../connectors/abr/client";
 import { allBlocks, stripNs, textBetween } from "../../connectors/abr/xml";
 import { resolveIndustryPack } from "../industry-packs";
+import { stateCodeFromLocation } from "../localities";
 import type { DiscoveryCandidate } from "../types";
 import { candidateKey, type BusinessDataProvider, type ProviderSearchContext } from "./types";
 
@@ -31,22 +32,41 @@ function stateFromContext(ctx: ProviderSearchContext): string | undefined {
   if (ctx.stateCode && ABR_STATES.includes(ctx.stateCode as (typeof ABR_STATES)[number])) {
     return ctx.stateCode;
   }
-  const hay = (ctx.location ?? "").toUpperCase();
-  if (/QUEENSLAND|\bQLD\b/.test(hay)) return "QLD";
-  if (/NEW SOUTH WALES|\bNSW\b/.test(hay)) return "NSW";
-  if (/\bVICTORIA\b|\bVIC\b/.test(hay)) return "VIC";
-  if (/SOUTH AUSTRALIA|\bSA\b/.test(hay)) return "SA";
-  if (/WESTERN AUSTRALIA|\bWA\b/.test(hay)) return "WA";
-  if (/\bTASMANIA\b|\bTAS\b/.test(hay)) return "TAS";
-  if (/NORTHERN TERRITORY|\bNT\b/.test(hay)) return "NT";
-  if (/AUSTRALIAN CAPITAL|\bACT\b/.test(hay)) return "ACT";
-  return undefined;
+  return stateCodeFromLocation(ctx.location);
 }
 
+/** ABR postcode is an exact match — only send digits the user typed, not a suburb guess. */
 function postcodeFromContext(ctx: ProviderSearchContext): string {
-  if (ctx.postcode && /^\d{4}$/.test(ctx.postcode)) return ctx.postcode;
   const m = ctx.location?.match(/\b(\d{4})\b/);
   return m?.[1] ?? "";
+}
+
+const ABR_NAME_SEARCH =
+  "https://abr.business.gov.au/abrxmlsearch/AbrXmlSearch.asmx/ABRSearchByNameAdvancedSimpleProtocol2017";
+
+async function abrNameSearchRequest(params: Record<string, string>): Promise<Response> {
+  const body = new URLSearchParams(params);
+  const post = await fetch(ABR_NAME_SEARCH, {
+    method: "POST",
+    signal: AbortSignal.timeout(15_000),
+    headers: {
+      Accept: "text/xml",
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: body.toString(),
+  });
+  if (post.ok || post.status !== 500) return post;
+
+  // GET empty `postcode=` is sometimes stripped by proxies → ABR HTTP 500 "Missing parameter".
+  const url = new URL(ABR_NAME_SEARCH);
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value);
+  }
+  return fetch(url.toString(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+    headers: { Accept: "text/xml" },
+  });
 }
 
 export const abnLookupProvider: BusinessDataProvider = {
@@ -68,29 +88,23 @@ export const abnLookupProvider: BusinessDataProvider = {
 
     const state = stateFromContext(ctx);
     const postcode = postcodeFromContext(ctx);
-
-    const url = new URL(
-      "https://abr.business.gov.au/abrxmlsearch/AbrXmlSearch.asmx/ABRSearchByNameAdvancedSimpleProtocol2017",
-    );
-    url.searchParams.set("name", name);
-    url.searchParams.set("postcode", postcode);
-    url.searchParams.set("legalName", "Y");
-    url.searchParams.set("tradingName", "Y");
-    url.searchParams.set("businessName", "Y");
-    url.searchParams.set("activeABNsOnly", "Y");
+    const params: Record<string, string> = {
+      name,
+      postcode,
+      legalName: "Y",
+      tradingName: "Y",
+      businessName: "Y",
+      activeABNsOnly: "Y",
+      authenticationGuid: guid,
+      searchWidth: "typical",
+      minimumScore: "50",
+      maxSearchResults: String(Math.min(Math.max(ctx.limit, 1), 50)),
+    };
     for (const code of ABR_STATES) {
-      url.searchParams.set(code, !state || state === code ? "Y" : "N");
+      params[code] = !state || state === code ? "Y" : "N";
     }
-    url.searchParams.set("authenticationGuid", guid);
-    url.searchParams.set("searchWidth", "Typical");
-    url.searchParams.set("minimumScore", "50");
-    url.searchParams.set("maxSearchResults", String(Math.min(Math.max(ctx.limit, 1), 50)));
 
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      signal: AbortSignal.timeout(15_000),
-      headers: { Accept: "text/xml" },
-    });
+    const res = await abrNameSearchRequest(params);
     if (!res.ok) {
       const snippet = (await res.text().catch(() => ""))
         .replace(/authenticationGuid=[^&\s"']+/gi, "authenticationGuid=redacted")

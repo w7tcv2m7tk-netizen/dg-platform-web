@@ -1,4 +1,5 @@
 import type { ParsedPropertyAddress } from "./address";
+import { resolveKnownLocality } from "../business-discovery/localities";
 
 export type GeocodeResult =
   | {
@@ -94,8 +95,26 @@ function parseNominatimResult(result: NominatimResult): Extract<GeocodeResult, {
   const addressLine1 = [addr.house_number, addr.road].filter(Boolean).join(" ").trim();
   const suburb =
     addr.suburb ?? addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? "Gold Coast";
-  const stateMatch = addr.state?.match(/\b(QLD|NSW|VIC|SA|WA|TAS|NT|ACT)\b/i);
-  const state = stateMatch?.[1]?.toUpperCase() ?? "QLD";
+  const stateName = addr.state ?? "";
+  const stateMatch = stateName.match(/\b(QLD|NSW|VIC|SA|WA|TAS|NT|ACT)\b/i);
+  const stateFromName = /queensland/i.test(stateName)
+    ? "QLD"
+    : /new south wales/i.test(stateName)
+      ? "NSW"
+      : /victoria/i.test(stateName)
+        ? "VIC"
+        : /south australia/i.test(stateName)
+          ? "SA"
+          : /western australia/i.test(stateName)
+            ? "WA"
+            : /tasmania/i.test(stateName)
+              ? "TAS"
+              : /northern territory/i.test(stateName)
+                ? "NT"
+                : /capital territory/i.test(stateName)
+                  ? "ACT"
+                  : undefined;
+  const state = (stateMatch?.[1] ?? stateFromName ?? "QLD").toUpperCase();
 
   return {
     addressLine1: addressLine1 || result.display_name?.split(",")[0]?.trim() || "Address TBC",
@@ -166,11 +185,13 @@ async function geocodeWithNominatim(
   freeText.searchParams.set("addressdetails", "1");
   freeText.searchParams.set("countrycodes", "au");
   freeText.searchParams.set("limit", "1");
-  if (regionUsesGoldCoastBias(regionBias)) {
-    freeText.searchParams.set("viewbox", GOLD_COAST_VIEWBOX);
-    freeText.searchParams.set("bounded", "1");
-  }
   attempts.push(freeText);
+
+  if (regionUsesGoldCoastBias(regionBias)) {
+    const biased = new URL(freeText);
+    biased.searchParams.set("viewbox", GOLD_COAST_VIEWBOX);
+    attempts.push(biased);
+  }
 
   if (!raw.includes(",") && regionBias) {
     const city = regionBias.split(",")[0]?.trim() ?? "Gold Coast";
@@ -238,6 +259,29 @@ export async function geocodeAustralianAddress(
   const query = buildGeocodeQuery(raw, regionBias);
   if (!query) {
     return { ok: false, code: "missing_query", message: "Address query is empty" };
+  }
+
+  const known = resolveKnownLocality(raw);
+  const looksLikeStreet =
+    /^\d/.test(raw.trim()) ||
+    /\b(st|street|rd|road|ave|avenue|ct|court|dr|drive|ln|lane|pde|parade|pl|place|way|blvd|crescent|cres|hwy|highway|tce|terrace)\b/i.test(
+      raw,
+    );
+  if (known && !looksLikeStreet) {
+    return {
+      ok: true,
+      address: {
+        addressLine1: known.suburb,
+        suburb: known.suburb,
+        state: known.state,
+        postcode: known.postcode,
+        confidence: "geocoded",
+        latitude: known.latitude,
+        longitude: known.longitude,
+        formattedAddress: `${known.suburb} ${known.state} ${known.postcode}, Australia`,
+        geocodeSource: "nominatim",
+      },
+    };
   }
 
   if (process.env.GOOGLE_GEOCODING_API_KEY?.trim()) {

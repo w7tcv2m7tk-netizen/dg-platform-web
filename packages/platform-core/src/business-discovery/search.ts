@@ -1,5 +1,10 @@
 import { geocodeAustralianAddress } from "../properties/geocode";
 import { buildDiscoveryTextQuery } from "./industry-packs";
+import {
+  postcodeFromLocation,
+  resolveKnownLocality,
+  stateCodeFromLocation,
+} from "./localities";
 import { abnLookupProvider } from "./providers/abn-lookup";
 import { googlePlacesProvider } from "./providers/google-places";
 import type { BusinessDataProvider } from "./providers/types";
@@ -110,12 +115,21 @@ export async function searchBusinessDiscovery(
   let longitude: number | undefined;
   let postcode: string | undefined;
   let stateCode: string | undefined;
-  if (input.location?.trim() && input.radiusKm) {
+
+  const known = resolveKnownLocality(input.location);
+  if (known) {
+    latitude = known.latitude;
+    longitude = known.longitude;
+    postcode = known.postcode;
+    stateCode = known.state;
+  } else if (input.location?.trim() && input.radiusKm) {
     const geo = await geocodeAustralianAddress(input.location.trim());
     if (geo.ok && geo.address.latitude != null && geo.address.longitude != null) {
       latitude = geo.address.latitude;
       longitude = geo.address.longitude;
-      if (/^\d{4}$/.test(geo.address.postcode)) postcode = geo.address.postcode;
+      if (/^\d{4}$/.test(geo.address.postcode) && geo.address.postcode !== "0000") {
+        postcode = geo.address.postcode;
+      }
       if (/^(QLD|NSW|VIC|SA|WA|TAS|NT|ACT)$/i.test(geo.address.state)) {
         stateCode = geo.address.state.toUpperCase();
       }
@@ -123,6 +137,9 @@ export async function searchBusinessDiscovery(
       warnings.push("Could not geocode location for radius bias — searching by text only.");
     }
   }
+
+  if (!stateCode) stateCode = stateCodeFromLocation(input.location);
+  if (!postcode) postcode = postcodeFromLocation(input.location);
 
   const ctx = {
     textQuery,
