@@ -60,6 +60,8 @@ export * from "./accommodation/ical-export";
 export * from "./accommodation/ical-import";
 export * from "./accommodation/beta";
 export * from "./accommodation/hideaway-circle-emails";
+export * from "./accommodation/guest-journey-emails";
+export * from "./accommodation/sequence-email-previews";
 export * from "./accommodation/public-hideaway-circle";
 export * from "./real-estate/offers";
 export * from "./real-estate/agency-agreement";
