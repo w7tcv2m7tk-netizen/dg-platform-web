@@ -243,21 +243,52 @@ function patchFooterHtml(html) {
         <ul class="dg-footer-links">
           <li><a href="/apps/">All Apps</a></li>
           <li><a href="/apps/core/"><strong style="color:#64748B;font-weight:600;">Core</strong></a></li>
-          <li><a href="/apps/core/crm/">CRM · Opportunities · Tasks</a></li>
+          <li><a href="/apps/core/crm/">CRM</a></li>
+          <li><a href="/apps/core/opportunities/">Opportunities</a></li>
           <li><a href="/apps/infrastructure/"><strong style="color:#64748B;font-weight:600;">Infrastructure</strong></a></li>
           <li><a href="/apps/infrastructure/website/">Website · Domains · Email</a></li>
           <li><a href="/apps/industry/"><strong style="color:#64748B;font-weight:600;">Industry</strong></a></li>
-          <li><a href="/apps/industry/real-estate/">Real Estate · Accommodation</a></li>
+          <li><a href="/apps/industry/real-estate/">Real Estate</a></li>
+          <li><a href="/apps/industry/accommodation/">Accommodation</a></li>
           <li><a href="/apps/growth/"><strong style="color:#64748B;font-weight:600;">Growth</strong></a></li>
           <li><a href="/apps/growth/prospecting/">Prospecting &amp; Opportunity Engine</a></li>
-          <li><a href="/apps/growth/ai-visibility/">AI Visibility · SEO · Automation</a></li>
+          <li><a href="/apps/growth/ai-visibility/">AI Visibility</a></li>
+          <li><a href="/apps/growth/seo/">SEO</a></li>
+          <li><a href="/apps/growth/automation/">Automation</a></li>
+          <li><a href="https://audit.digitalgate.com.au">Business Audit</a></li>
           <li><a href="/pricing#apps">Apps &amp; pricing</a></li>
         </ul>
       </div>`;
-  return html.replace(
+
+  const industriesCol = `      <!-- Industries — property ecosystem grouped first -->
+      <div class="dg-footer-col">
+        <h4>Industries</h4>
+        <ul class="dg-footer-links">
+          <li><a href="/apps/industry/real-estate/">Real Estate</a></li>
+          <li><a href="/apps/industry/accommodation/">Accommodation</a></li>
+          <li><a href="/apps/industry/property-management/">Property Management</a></li>
+          <li><a href="/apps/industry/commercial-property/">Commercial Property</a></li>
+          <li><a href="/apps/industry/property-development/">Property Development</a></li>
+          <li><a href="/apps/industry/services/">Services &amp; Trades</a></li>
+          <li><a href="/apps/industry/finance/">Finance</a></li>
+          <li><a href="/apps/industry/automotive/">Automotive</a></li>
+          <li><a href="/apps/industry/creator/">Creator</a></li>
+        </ul>
+      </div>`;
+
+  let out = html.replace(
     /      <!-- Apps — Core → Infrastructure → Industry → Growth -->[\s\S]*?      <!-- Industries — property ecosystem grouped first -->/,
-    `${appsCol}\n\n      <!-- Industries — property ecosystem grouped first -->`,
+    `${appsCol}\n\n${industriesCol}`,
   );
+
+  if (out === html) {
+    out = html.replace(
+      /      <!-- Industries — property ecosystem grouped first -->[\s\S]*?      <!-- Company -->/,
+      `${industriesCol}\n\n      <!-- Company -->`,
+    );
+  }
+
+  return out;
 }
 
 function patchHeaderNavLinks(navLinks) {
@@ -426,7 +457,7 @@ async function main() {
   const chrome = (metadata.chrome && typeof metadata.chrome === "object" ? metadata.chrome : {}) || {};
   const navLinks = patchHeaderNavLinks(Array.isArray(chrome.navLinks) ? chrome.navLinks : []);
   let footerHtml = typeof chrome.footerHtml === "string" ? chrome.footerHtml : "";
-  if (footerHtml.includes("pricing#core-apps")) footerHtml = patchFooterHtml(footerHtml);
+  if (footerHtml) footerHtml = patchFooterHtml(footerHtml);
 
   await prisma.website.update({
     where: { id: site.id },
