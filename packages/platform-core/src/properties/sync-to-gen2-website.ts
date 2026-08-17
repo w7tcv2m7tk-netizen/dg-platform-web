@@ -75,6 +75,15 @@ function isEphemeralImageUrl(url: string): boolean {
   return /images-uat\.corelogic\.asia|signature=|corelogic\.asia\/.*\?/i.test(url);
 }
 
+function statusColor(status: string): string {
+  const label = statusLabel(status);
+  if (label === "Sold") return "#C62828";
+  if (label === "Under Offer") return "#F57C00";
+  if (label === "For Sale") return "#2E7D32";
+  if (label === "Withdrawn") return "#666666";
+  return "#666666";
+}
+
 /** WP-style mosaic: large hero + 2–3 side thumbs; full set in data-wb-gallery for lightbox. */
 function buildMosaicGalleryHtml(images: string[], title: string): string {
   const list = images.filter((u) => u.startsWith("http"));
@@ -94,7 +103,7 @@ function buildMosaicGalleryHtml(images: string[], title: string): string {
     .join("");
 
   const moreButton = moreSrc
-    ? `<button type="button" class="gallery-item gallery-thumb gallery-more" role="listitem" aria-label="View ${remainingAfterTwo} more photos" data-index="3"><img src="${esc(moreSrc)}" alt="${esc(title)} — more photos" loading="lazy" /><span class="more-overlay">+${remainingAfterTwo}</span></button>`
+    ? `<button type="button" class="gallery-item gallery-thumb gallery-more" role="listitem" aria-label="View ${remainingAfterTwo} more photos" data-index="3"><img src="${esc(moreSrc)}" alt="${esc(title)} — more photos" loading="lazy" /><span class="more-overlay">+ ${remainingAfterTwo}</span></button>`
     : "";
 
   const thumbs =
@@ -102,7 +111,16 @@ function buildMosaicGalleryHtml(images: string[], title: string): string {
       ? `<div class="gallery-thumbs">${thumbButtons}${moreButton}</div>`
       : "";
 
-  return `<div class="wb-mosaic-gallery property-gallery roe-prop-mosaic" data-wb-gallery="${esc(JSON.stringify(list))}"><div class="gallery-grid wb-mosaic-grid" role="list"><button type="button" class="gallery-item gallery-main" role="listitem" aria-label="Photo 1" data-index="0"><img src="${esc(main)}" alt="${esc(title)}" loading="eager" /></button>${thumbs}</div></div>`;
+  // Hidden remainder so lightbox can walk the full set (indexes 4+)
+  const hidden = list
+    .slice(4)
+    .map(
+      (src, i) =>
+        `<button type="button" class="gallery-item gallery-hidden" data-index="${i + 4}" tabindex="-1" aria-hidden="true"><img src="${esc(src)}" alt="" /></button>`,
+    )
+    .join("");
+
+  return `<div class="property-gallery wb-mosaic-gallery" data-wb-gallery="${esc(JSON.stringify(list))}"><div class="gallery-grid wb-mosaic-grid" role="list"><button type="button" class="gallery-item gallery-main" role="listitem" aria-label="Photo 1" data-index="0"><img src="${esc(main)}" alt="${esc(title)}" loading="eager" /></button>${thumbs}</div>${hidden ? `<div class="gallery-hidden" aria-hidden="true">${hidden}</div>` : ""}</div>`;
 }
 
 function buildDetailHtml(property: PropertyRow, _pageSlug: string): string {
@@ -111,7 +129,7 @@ function buildDetailHtml(property: PropertyRow, _pageSlug: string): string {
   const images = (Array.isArray(meta.images) ? meta.images : [])
     .map(String)
     .filter((u) => u.startsWith("http"));
-  const title =
+  const listingTitle =
     (typeof marketing.headline === "string" && marketing.headline.trim()) ||
     `${property.addressLine1}, ${property.suburb}`;
   const address = [
@@ -132,55 +150,93 @@ function buildDetailHtml(property: PropertyRow, _pageSlug: string): string {
   const cars = typeof meta.car_spaces === "number" ? meta.car_spaces : null;
   const land = typeof meta.land_size === "string" ? meta.land_size : null;
   const building = typeof meta.building_size === "string" ? meta.building_size : null;
-  const specs = [
-    beds != null ? `${beds} bed` : null,
-    baths != null ? `${baths} bath` : null,
-    cars != null ? `${cars} car` : null,
-    land ? `Land ${land}` : null,
-    building ? `Building ${building}` : null,
-    property.propertyType || null,
-  ].filter(Boolean);
-
-  const mosaic = buildMosaicGalleryHtml(images, title);
+  const status = statusLabel(property.status);
+  const color = statusColor(property.status);
+  const price = formatPrice(property, meta);
+  const mosaic = buildMosaicGalleryHtml(images, listingTitle);
 
   const featureHtml = features.length
-    ? `<ul class="roe-prop-features">${features.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>`
+    ? `<div class="features-list"><h3>Features &amp; Highlights</h3><ul>${features.map((f) => `<li>${esc(f)}</li>`).join("")}</ul></div>`
     : "";
+
+  const specItems = [
+    beds != null ? `<div class="feature-item"><span class="icon">🛏</span><span class="value">${beds}</span><span class="label">Bed</span></div>` : "",
+    baths != null ? `<div class="feature-item"><span class="icon">🛁</span><span class="value">${baths}</span><span class="label">Bath</span></div>` : "",
+    cars != null ? `<div class="feature-item"><span class="icon">🚗</span><span class="value">${cars}</span><span class="label">Car</span></div>` : "",
+    land ? `<div class="feature-item"><span class="icon">📐</span><span class="value">${esc(land)}</span><span class="label">Land</span></div>` : "",
+    building ? `<div class="feature-item"><span class="icon">🏠</span><span class="value">${esc(building)}</span><span class="label">Building</span></div>` : "",
+    property.propertyType
+      ? `<div class="feature-item"><span class="icon">🏷</span><span class="value">${esc(property.propertyType)}</span><span class="label">Type</span></div>`
+      : "",
+  ].filter(Boolean);
 
   return `<style>
 .wb-html-island--page{color:#1C2B2A}
 .roe-prop-detail{background:#F5F2EF;color:#1C2B2A;min-height:70vh}
-.roe-prop-mosaic{position:relative;background:#0a0a0a}
-.roe-prop-badge{position:absolute;top:1.25rem;left:1.25rem;z-index:2;background:#C62828;color:#fff;padding:.35rem .75rem;border-radius:999px;font-size:.75rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-.roe-prop-body{max-width:920px;margin:0 auto;padding:2.5rem 1.25rem 3.5rem}
-.roe-prop-body h1{font-size:clamp(1.6rem,3vw,2.4rem);line-height:1.15;margin:0 0 .5rem;color:#14201f}
-.roe-prop-address{color:#3f4a48;margin:0 0 1rem}
-.roe-prop-price{font-size:1.35rem;font-weight:700;color:#6b5428;margin:0 0 1rem}
-.roe-prop-specs{display:flex;gap:1rem;flex-wrap:wrap;color:#243533;margin:0 0 1.75rem}
-.roe-prop-desc{color:#2f2f2f;line-height:1.7;margin:0 0 1.75rem;white-space:pre-wrap}
-.roe-prop-features{margin:0 0 2rem;padding-left:1.1rem;color:#243533;line-height:1.55}
-.roe-prop-features li{margin:.35rem 0}
-.roe-prop-actions{display:flex;gap:1rem;flex-wrap:wrap}
-.roe-prop-actions a{display:inline-flex;align-items:center;padding:.7rem 1.1rem;border-radius:999px;text-decoration:none;font-weight:700;font-size:.85rem}
-.roe-prop-actions .primary{background:#C9A46C;color:#f8fafc}
-.roe-prop-actions .ghost{border:1px solid #c9b8a4;color:#1c2b2a;background:#fff}
+.roe-prop-detail .property-hero{background:#1C2B2A;padding:clamp(5.5rem,12vw,7.5rem) 1.25rem 1.75rem;color:#fff}
+.roe-prop-detail .property-hero .container{max-width:1280px;margin:0 auto}
+.roe-prop-detail .property-hero h1{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;margin:0 0 .35rem;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.35)}
+.roe-prop-detail .price-row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.35rem}
+.roe-prop-detail .price-row .status{display:inline-block;background:${color};color:#fff;padding:.25rem 1rem;border-radius:40px;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.roe-prop-detail .price-row .price{color:#C9A46C;font-size:clamp(1.4rem,2.5vw,2rem);font-weight:700}
+.roe-prop-detail .address-sub{color:#B8C5C2;font-size:1rem;margin-top:.15rem;font-weight:300}
+.roe-prop-detail .property-gallery{margin:0;background:#000;border-radius:0}
+.roe-prop-detail .property-content{padding:2.5rem 1.25rem 3.75rem;background:#F5F2EF}
+.roe-prop-detail .property-content .container{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,.9fr);gap:clamp(1.5rem,4vw,3.1rem)}
+.roe-prop-detail .property-description{color:#4A5B59;line-height:1.8}
+.roe-prop-detail .property-description h2{color:#1C2B2A;font-size:1.6rem;margin:0 0 1rem}
+.roe-prop-detail .property-description p{margin:0 0 1rem;white-space:pre-wrap}
+.roe-prop-detail .features-list{background:#fff;border:1px solid #E0D6CC;padding:1.5rem;margin:1.5rem 0;border-radius:16px}
+.roe-prop-detail .features-list h3{color:#1C2B2A;font-size:1.2rem;margin:0 0 .75rem}
+.roe-prop-detail .features-list ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:.4rem 1.25rem}
+.roe-prop-detail .features-list li{color:#4A5B59;font-size:.9rem;padding-left:1.5rem;position:relative}
+.roe-prop-detail .features-list li::before{content:"✓";color:#C9A46C;position:absolute;left:0;font-weight:700}
+.roe-prop-detail .property-sidebar{display:flex;flex-direction:column;gap:1.5rem}
+.roe-prop-detail .feature-box{background:#fff;border:1px solid #E0D6CC;padding:1.25rem;border-radius:16px}
+.roe-prop-detail .feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+.roe-prop-detail .feature-item{display:flex;flex-direction:column;align-items:center;text-align:center;padding:.5rem .25rem;border-radius:8px;background:#F9F7F5}
+.roe-prop-detail .feature-item .icon{color:#C9A46C;font-size:1.25rem;margin-bottom:.15rem}
+.roe-prop-detail .feature-item .value{font-weight:700;color:#1C2B2A;font-size:1.05rem}
+.roe-prop-detail .feature-item .label{color:#4A5B59;font-size:.75rem}
+.roe-prop-detail .roe-prop-actions{display:flex;flex-direction:column;gap:.65rem}
+.roe-prop-detail .roe-prop-actions a{display:inline-flex;align-items:center;justify-content:center;padding:.75rem 1.1rem;border-radius:999px;text-decoration:none;font-weight:700;font-size:.85rem}
+.roe-prop-detail .roe-prop-actions .primary{background:#C9A46C;color:#f8fafc}
+.roe-prop-detail .roe-prop-actions .ghost{border:1px solid #c9b8a4;color:#1c2b2a;background:#fff}
+@media (max-width:900px){
+  .roe-prop-detail .property-content .container{grid-template-columns:1fr}
+  .roe-prop-detail .features-list ul{grid-template-columns:1fr}
+  .roe-prop-detail .feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 </style>
-<div class="wb-html-island wb-html-island--page wb-html-island--light"><div class="roe-prop-detail">
-  <div class="roe-prop-hero-wrap">
-    ${mosaic || `<div class="roe-prop-mosaic wb-mosaic-gallery"><div class="gallery-grid wb-mosaic-grid"><div class="gallery-item gallery-main gallery-main--empty"></div></div></div>`}
-    <span class="roe-prop-badge">${esc(statusLabel(property.status))}</span>
+<div class="wb-html-island wb-html-island--page wb-html-island--light"><div class="roe-prop-detail property-page">
+  <div class="property-hero">
+    <div class="container">
+      <h1>${esc(listingTitle)}</h1>
+      <div class="price-row">
+        <span class="status">${esc(status)}</span>
+        <span class="price">${esc(price)}</span>
+      </div>
+      <div class="address-sub">${esc(address)}</div>
+    </div>
   </div>
-  <div class="roe-prop-body">
-    <h1>${esc(title)}</h1>
-    <p class="roe-prop-address">${esc(address)}</p>
-    <p class="roe-prop-price">${esc(formatPrice(property, meta))}</p>
-    ${specs.length ? `<div class="roe-prop-specs"><span>${esc(specs.join(" · "))}</span></div>` : ""}
-    <p class="roe-prop-desc">${esc(description)}</p>
-    ${featureHtml}
-    <div class="roe-prop-actions">
-      <a class="primary" href="https://report.roerealty.com.au">Get Property Report</a>
-      <a class="ghost" href="/contact">Contact Roe Realty</a>
-      <a class="ghost" href="/property">Back to properties</a>
+  ${mosaic || ""}
+  <div class="property-content">
+    <div class="container">
+      <div>
+        <div class="property-description">
+          <h2>${esc(listingTitle)}</h2>
+          <p>${esc(description)}</p>
+        </div>
+        ${featureHtml}
+      </div>
+      <aside class="property-sidebar">
+        ${specItems.length ? `<div class="feature-box"><div class="feature-grid">${specItems.join("")}</div></div>` : ""}
+        <div class="roe-prop-actions">
+          <a class="primary" href="https://report.roerealty.com.au">Get Property Report</a>
+          <a class="ghost" href="/contact">Contact Roe Realty</a>
+          <a class="ghost" href="/properties">Back to properties</a>
+        </div>
+      </aside>
     </div>
   </div>
 </div></div>`;

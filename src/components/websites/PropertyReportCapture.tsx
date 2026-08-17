@@ -349,10 +349,11 @@ const FUNNEL_CSS = `
   transform: translateY(-1px);
 }
 .dg-rr-funnel__brand-icons img {
-  width: 2.15rem;
-  height: 2.15rem;
+  width: 3rem;
+  height: 3rem;
   object-fit: contain;
-  border-radius: 0.4rem;
+  border-radius: 0.45rem;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.45));
 }
 @media (max-width: 860px) {
   .dg-rr-funnel__shell {
@@ -909,11 +910,11 @@ export function PropertyReportCapture({
             <div className="dg-rr-funnel__brand-icons" aria-label="Roe Realty and DigitalGate">
               <a href="https://roerealty.com.au" target="_blank" rel="noopener noreferrer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={RR_ICON} alt="Roe Realty" width={34} height={34} />
+                <img src={RR_ICON} alt="Roe Realty" width={48} height={48} />
               </a>
               <a href="https://digitalgate.com.au" target="_blank" rel="noopener noreferrer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={DG_ICON} alt="DigitalGate" width={34} height={34} />
+                <img src={DG_ICON} alt="DigitalGate" width={48} height={48} />
               </a>
             </div>
             <p>

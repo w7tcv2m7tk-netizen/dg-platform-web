@@ -2263,14 +2263,14 @@ a.wb-brand-chrome-cta:hover {
 
 /* Stacked logo size/contrast must follow base logo rules (same !important cascade) */
 .wb-brand-chrome-header--stacked .wb-brand-chrome-logo {
-  height: 120px !important;
-  max-height: 120px !important;
-  max-width: min(460px, 88vw) !important;
+  height: 140px !important;
+  max-height: 140px !important;
+  max-width: min(520px, 90vw) !important;
   object-position: center center !important;
-  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.65))
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.75))
     drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55))
-    drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5))
-    drop-shadow(0 14px 28px rgba(0, 0, 0, 0.35)) !important;
+    drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 18px 36px rgba(0, 0, 0, 0.4)) !important;
 }
 
 .wb-root.wb-chrome-overlay .wb-brand-chrome-header--stacked .wb-brand-chrome-logo,
@@ -2422,9 +2422,9 @@ a.wb-brand-chrome-cta:hover {
   }
 
   .wb-brand-chrome-header--stacked .wb-brand-chrome-logo {
-    height: 72px !important;
-    max-height: 72px !important;
-    max-width: min(280px, 70vw) !important;
+    height: 88px !important;
+    max-height: 88px !important;
+    max-width: min(320px, 72vw) !important;
   }
 
   .wb-brand-chrome-header--stacked .wb-brand-chrome-below {

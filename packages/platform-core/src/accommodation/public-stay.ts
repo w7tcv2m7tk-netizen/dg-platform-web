@@ -284,7 +284,20 @@ export async function getPublicStayUnit(
   if (!resolved) return null;
 
   const units = await listAccommodationUnits(organisationId);
-  const unit = units.find((u) => (u.slug || "").toLowerCase() === resolved);
+  const unit =
+    units.find((u) => {
+      const raw = (u.slug || "").toLowerCase();
+      return raw === resolved || resolveStayUnitSlug(raw) === resolved;
+    }) ||
+    units.find((u) => {
+      if (resolved === "garden-studio") {
+        return /\b(garden|private)\s+studio\b/i.test(u.title || "");
+      }
+      if (resolved === "tiny-home") {
+        return /\btiny\s+home\b/i.test(u.title || "");
+      }
+      return false;
+    });
   if (!unit) return null;
 
   const from = new Date().toISOString().slice(0, 10);
@@ -304,19 +317,29 @@ export async function getPublicStayUnit(
     );
 
   const bookableSiblingSlugs = CVH_BOOKABLE_UNIT_SLUGS.filter((slug) =>
-    units.some(
-      (u) =>
-        (u.slug || "").toLowerCase() === slug &&
-        (u.listingStatus === "bookable" || !u.listingStatus),
-    ),
+    units.some((u) => {
+      const raw = (u.slug || "").toLowerCase();
+      const mapped = resolveStayUnitSlug(raw) ?? raw;
+      return (
+        mapped === slug &&
+        (u.listingStatus === "bookable" || !u.listingStatus)
+      );
+    }),
   );
 
   const meta = (unit.metadata ?? null) as Record<string, unknown> | null;
 
+  const displayTitle =
+    resolved === "garden-studio"
+      ? "Garden Studio"
+      : resolved === "tiny-home"
+        ? "Tiny Home"
+        : unit.title;
+
   return {
     id: unit.id,
     slug: resolved,
-    title: unit.title,
+    title: displayTitle,
     description: unit.description ?? null,
     listingStatus: unit.listingStatus,
     weekdayRate: unit.weekdayRate ?? null,

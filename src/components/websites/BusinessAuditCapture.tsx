@@ -24,6 +24,10 @@ const DG_ICON = "https://app.digitalgate.com.au/brand/icon-light.png";
 const RR_ICON =
   "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1k71w0000jr04ljsf91z2/5b626ea3954a4f5c-ZJYwG92fbIcGghl5uO25wNvSbJrQbx.png";
 
+/** Atmospheric product backdrop for the Business Audit funnel. */
+const HERO_IMAGE =
+  "https://app.digitalgate.com.au/marketing/screenshots/dashboard-overview.png";
+
 type Step = "website" | "preview" | "contact" | "done";
 
 type Pillars = {
@@ -106,14 +110,23 @@ const FUNNEL_CSS = `
   font-family: "Instrument Sans", system-ui, sans-serif;
   background: #070b14;
 }
+.dg-ba-funnel__bg {
+  position: absolute;
+  inset: 0;
+  background-image: var(--dg-hero);
+  background-size: cover;
+  background-position: center 28%;
+  transform: scale(1.06);
+  filter: saturate(0.85) brightness(0.55);
+}
 .dg-ba-funnel__glow {
   position: absolute;
   inset: 0;
   background:
+    linear-gradient(105deg, rgba(7, 11, 20, 0.94) 0%, rgba(7, 11, 20, 0.78) 46%, rgba(7, 11, 20, 0.55) 100%),
+    linear-gradient(0deg, rgba(7, 11, 20, 0.7) 0%, transparent 42%),
     radial-gradient(ellipse 70% 55% at 12% 18%, rgba(59,130,246,0.28), transparent 60%),
-    radial-gradient(ellipse 55% 45% at 88% 78%, rgba(16,185,129,0.14), transparent 55%),
-    radial-gradient(ellipse 40% 30% at 70% 10%, rgba(96,165,250,0.12), transparent 50%),
-    #070b14;
+    radial-gradient(ellipse 55% 45% at 88% 78%, rgba(16,185,129,0.14), transparent 55%);
 }
 .dg-ba-funnel__grid {
   position: absolute;
@@ -456,10 +469,11 @@ const FUNNEL_CSS = `
   transform: translateY(-1px);
 }
 .dg-ba-funnel__brand-icons img {
-  width: 2.15rem;
-  height: 2.15rem;
+  width: 3rem;
+  height: 3rem;
   object-fit: contain;
-  border-radius: 0.4rem;
+  border-radius: 0.45rem;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.45));
 }
 @media (max-width: 860px) {
   .dg-ba-funnel__shell {
@@ -861,7 +875,9 @@ export function BusinessAuditCapture({
       <section
         id="business-audit-form"
         className="dg-business-audit-capture dg-business-audit-funnel dg-ba-funnel"
+        style={{ ["--dg-hero" as string]: `url(${HERO_IMAGE})` }}
       >
+        <div className="dg-ba-funnel__bg" aria-hidden />
         <div className="dg-ba-funnel__glow" aria-hidden />
         <div className="dg-ba-funnel__grid" aria-hidden />
         <div className="dg-ba-funnel__shell">
@@ -1205,11 +1221,11 @@ export function BusinessAuditCapture({
             <div className="dg-ba-funnel__brand-icons" aria-label="DigitalGate and Roe Realty">
               <a href="https://digitalgate.com.au" target="_blank" rel="noopener noreferrer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={DG_ICON} alt="DigitalGate" width={34} height={34} />
+                <img src={DG_ICON} alt="DigitalGate" width={48} height={48} />
               </a>
               <a href="https://roerealty.com.au" target="_blank" rel="noopener noreferrer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={RR_ICON} alt="Roe Realty" width={34} height={34} />
+                <img src={RR_ICON} alt="Roe Realty" width={48} height={48} />
               </a>
             </div>
             <p>

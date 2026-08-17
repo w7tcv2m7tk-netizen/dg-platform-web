@@ -76,7 +76,7 @@ const HEROES = {
   cmst2cykf000r09gj6rhixvii: {
     brand: "Roe Realty",
     html: `<section class="rr-insights-hero">
-  <img class="hero-bg-img" src="https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1k71w0000jr04ljsf91z2/wp-migrate/9af4f80dd612fd38.jpeg" alt="Gold Coast property insights" decoding="async" fetchpriority="high">
+  <img class="hero-bg-img" src="https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1k71w0000jr04ljsf91z2/wp-migrate/6fc55b10cd7113ba.jpeg" alt="Gold Coast property insights" decoding="async" fetchpriority="high">
   <div class="hero-container">
     <div class="hero-content">
       <span class="sub">Roe Realty Insights</span>

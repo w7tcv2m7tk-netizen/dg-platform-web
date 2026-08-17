@@ -67,6 +67,35 @@ const HEADER_CTAS = {
   },
 };
 
+const AETHERRA_LOGO_FALLBACK =
+  "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi9968q0000l104t8x1rabm/7a0dd8791fadcb42-mZ6bZoLlAGLMEHRIXKcmLjlgH6ar6u.png";
+
+/** WP-style centered Aëtherra header (logo over nav + socials). */
+function buildAetherraHeaderHtml(logoUrl) {
+  const logo = logoUrl || AETHERRA_LOGO_FALLBACK;
+  return `<div class="wb-chrome-root wb-aetherra-header">
+  <header class="header">
+    <a href="/" class="logo" aria-label="Aëtherra">
+      <img src="${logo}" alt="Aëtherra" />
+    </a>
+    <div class="header-bottom">
+      <ul class="nav-links">
+        <li><a href="/music">Music</a></li>
+        <li><a href="/mixes">Mixes</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/contact">Contact</a></li>
+      </ul>
+      <div class="nav-divider" aria-hidden="true"></div>
+      <div class="social-icons">
+        <a href="https://soundcloud.com/aetherraau" target="_blank" rel="noopener noreferrer" aria-label="SoundCloud"><i class="fab fa-soundcloud"></i></a>
+        <a href="https://www.instagram.com/aetherraau/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="https://www.youtube.com/channel/UCHhUAZysFNfOkdUMzsr6JOA" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+  </header>
+</div>`;
+}
+
 async function main() {
   for (const siteSlug of SITE_SLUGS) {
     const site = await prisma.website.findUnique({
@@ -97,6 +126,10 @@ async function main() {
     if (siteSlug === "roe-realty" && !logoUrl && !iconUrl) {
       logoUrl = "https://app.digitalgate.com.au/brand/roe-logo.png";
       iconUrl = "https://app.digitalgate.com.au/brand/roe-icon.png";
+    }
+    if (siteSlug === "aetheriel-com-au" && !logoUrl && !iconUrl) {
+      logoUrl = AETHERRA_LOGO_FALLBACK;
+      iconUrl = AETHERRA_LOGO_FALLBACK;
     }
 
     if (!logoUrl && !iconUrl) {
@@ -130,20 +163,37 @@ async function main() {
         ? stripCvhFooterExploreColumn(rawFooter)
         : rawFooter;
 
+    const resolvedLogo = logoUrl || iconUrl;
+    const aetherraHeader =
+      siteSlug === "aetheriel-com-au"
+        ? buildAetherraHeaderHtml(resolvedLogo)
+        : null;
+    const stylesheets = Array.isArray(prevChrome.stylesheets)
+      ? [...prevChrome.stylesheets]
+      : [];
+    if (
+      siteSlug === "aetheriel-com-au" &&
+      !stylesheets.some((s) => /font-awesome/i.test(String(s)))
+    ) {
+      stylesheets.push(
+        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css",
+      );
+    }
+
     await prisma.website.update({
       where: { id: site.id },
       data: {
         theme: {
           ...prevTheme,
-          logoUrl: logoUrl || iconUrl,
+          logoUrl: resolvedLogo,
           iconUrl: iconUrl || logoUrl,
         },
         metadata: {
           ...prevMeta,
           chrome: {
             ...prevChrome,
-            // Brand header from theme.logoUrl; keep any stored WP footer
-            headerHtml: null,
+            // Aëtherra keeps WP-style centered HTML header; other brands use theme chrome
+            headerHtml: aetherraHeader,
             footerHtml,
             overlayHeader:
               siteSlug === "roe-realty" ||
@@ -153,9 +203,7 @@ async function main() {
             headerCta: HEADER_CTAS[siteSlug] ?? prevChrome.headerCta ?? null,
             businessName: site.organisation.name,
             navLinks,
-            stylesheets: Array.isArray(prevChrome.stylesheets)
-              ? prevChrome.stylesheets
-              : [],
+            stylesheets,
           },
         },
       },
