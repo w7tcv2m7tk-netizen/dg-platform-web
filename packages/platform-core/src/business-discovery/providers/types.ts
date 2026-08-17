@@ -6,6 +6,10 @@ export type ProviderSearchContext = {
   radiusKm?: number;
   latitude?: number;
   longitude?: number;
+  postcode?: string;
+  stateCode?: string;
+  industry?: string;
+  businessType?: string;
   limit: number;
 };
 

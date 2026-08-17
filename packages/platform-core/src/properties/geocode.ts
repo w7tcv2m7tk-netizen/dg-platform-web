@@ -47,6 +47,9 @@ function buildGeocodeQuery(raw: string, regionBias = "Gold Coast, QLD, Australia
   const trimmed = raw.trim();
   if (!trimmed) return "";
   if (/australia/i.test(trimmed)) return trimmed;
+  if (/\b(QLD|NSW|VIC|SA|WA|TAS|NT|ACT|Queensland|New South Wales)\b/i.test(trimmed)) {
+    return `${trimmed}, Australia`;
+  }
   return `${trimmed}, ${regionBias}`;
 }
 
@@ -198,10 +201,25 @@ async function geocodeWithNominatim(
       if (!data.length) continue;
 
       const parsed = parseNominatimResult(data[0]);
-      if (regionUsesGoldCoastBias(regionBias) && parsed.postcode.startsWith("4")) {
+      const hasCoords =
+        parsed.latitude != null &&
+        parsed.longitude != null &&
+        Number.isFinite(parsed.latitude) &&
+        Number.isFinite(parsed.longitude);
+      if (!hasCoords) continue;
+      // Suburb lookups often omit postcode (e.g. Currumbin). Accept coords.
+      if (!regionUsesGoldCoastBias(regionBias)) {
         return { ok: true, address: parsed };
       }
-      if (!regionUsesGoldCoastBias(regionBias)) {
+      if (parsed.postcode.startsWith("4") || parsed.state === "QLD") {
+        return { ok: true, address: parsed };
+      }
+      if (
+        parsed.latitude! <= -27.7 &&
+        parsed.latitude! >= -28.4 &&
+        parsed.longitude! >= 153.1 &&
+        parsed.longitude! <= 153.6
+      ) {
         return { ok: true, address: parsed };
       }
     } catch {

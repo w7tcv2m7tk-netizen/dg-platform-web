@@ -21,6 +21,7 @@ function placesApiKey(): string | undefined {
   return (
     process.env.GOOGLE_PLACES_API_KEY?.trim() ||
     process.env.GOOGLE_GEOCODING_API_KEY?.trim() ||
+    process.env.GOOGLE_MAPS_API_KEY?.trim() ||
     undefined
   );
 }
@@ -37,7 +38,7 @@ export const googlePlacesProvider: BusinessDataProvider = {
   },
   unavailableReason() {
     if (placesApiKey()) return undefined;
-    return "Set GOOGLE_PLACES_API_KEY (or GOOGLE_GEOCODING_API_KEY with Places API enabled)";
+    return "Set GOOGLE_PLACES_API_KEY (Places API New) — or GOOGLE_GEOCODING_API_KEY / GOOGLE_MAPS_API_KEY with Places enabled";
   },
   async search(ctx: ProviderSearchContext): Promise<DiscoveryCandidate[]> {
     const apiKey = placesApiKey();

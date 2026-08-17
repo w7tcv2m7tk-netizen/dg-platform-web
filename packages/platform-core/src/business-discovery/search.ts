@@ -108,11 +108,17 @@ export async function searchBusinessDiscovery(
 
   let latitude: number | undefined;
   let longitude: number | undefined;
+  let postcode: string | undefined;
+  let stateCode: string | undefined;
   if (input.location?.trim() && input.radiusKm) {
     const geo = await geocodeAustralianAddress(input.location.trim());
     if (geo.ok && geo.address.latitude != null && geo.address.longitude != null) {
       latitude = geo.address.latitude;
       longitude = geo.address.longitude;
+      if (/^\d{4}$/.test(geo.address.postcode)) postcode = geo.address.postcode;
+      if (/^(QLD|NSW|VIC|SA|WA|TAS|NT|ACT)$/i.test(geo.address.state)) {
+        stateCode = geo.address.state.toUpperCase();
+      }
     } else {
       warnings.push("Could not geocode location for radius bias — searching by text only.");
     }
@@ -124,6 +130,10 @@ export async function searchBusinessDiscovery(
     radiusKm: input.radiusKm,
     latitude,
     longitude,
+    postcode,
+    stateCode,
+    industry: input.industry?.trim(),
+    businessType: input.businessType?.trim(),
     limit,
   };
 
