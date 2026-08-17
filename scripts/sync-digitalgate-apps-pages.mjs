@@ -11,7 +11,11 @@ import { PrismaClient } from "@prisma/client";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const REPO = join(ROOT, "..");
-const MARKETING_APPS = join(REPO, "..", "dg-platform", "marketing", "pages", "apps");
+const MARKETING_APPS_IN_REPO = join(REPO, "marketing", "pages", "apps");
+const MARKETING_APPS_SIBLING = join(REPO, "..", "dg-platform", "marketing", "pages", "apps");
+const MARKETING_APPS = existsSync(join(MARKETING_APPS_IN_REPO, "catalog.mjs"))
+  ? MARKETING_APPS_IN_REPO
+  : MARKETING_APPS_SIBLING;
 const HTML_ROOT = join(MARKETING_APPS, "html");
 
 const SITE_SLUG = "digitalgate";
