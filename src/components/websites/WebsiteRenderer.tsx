@@ -20,6 +20,7 @@ import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
 import { ChromeHeaderHtml } from "@/components/websites/ChromeHeaderHtml";
 import { stripCvhFooterExploreColumn } from "@/lib/strip-cvh-footer-explore";
 import {
+  PRODUCT_FUNNEL_URLS,
   rewriteProductFunnelHref,
   rewriteProductFunnelHtml,
 } from "@/lib/product-funnel-links";
@@ -1270,14 +1271,15 @@ export function WebsitePageRenderer({
       ? "stacked"
       : "bar";
   const resolvedHeaderCta =
-    headerCta ??
-    (headerLayout === "stacked" && /currumbin|hideaway/i.test(siteSlug)
+    headerLayout === "stacked" &&
+    /currumbin|hideaway/i.test(siteSlug) &&
+    !/hideaway-circle/i.test(siteSlug)
       ? {
-          label: "Book now",
-          href: basePath && basePath !== "/" ? `${basePath}/stay` : "/stay",
-          backgroundColor: "#B9A48A",
+          label: headerCta?.label?.trim() || "Book now",
+          href: PRODUCT_FUNNEL_URLS.hideawayCircle,
+          backgroundColor: headerCta?.backgroundColor || "#B9A48A",
         }
-      : null);
+      : headerCta;
 
   const isCvhHome =
     !isProductFunnel &&

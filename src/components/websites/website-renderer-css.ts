@@ -2431,27 +2431,26 @@ a.wb-brand-chrome-cta:hover {
   font-size: 1.35rem;
 }
 
-/* True center: nav in middle column; CTA balances in the right rail */
+/* Logo centered; nav + CTA stacked and centered underneath */
 .wb-brand-chrome-header--stacked .wb-brand-chrome-below {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   order: 1;
   width: 100%;
-  align-items: center;
-  column-gap: 1rem;
-  row-gap: 0.65rem;
+  gap: 0.75rem;
 }
 
 .wb-brand-chrome-header--stacked .wb-brand-chrome-nav {
-  grid-column: 2;
-  justify-self: center;
   justify-content: center;
+  justify-self: center;
 }
 
 .wb-brand-chrome-header--stacked .wb-brand-chrome-cta {
-  grid-column: 3;
-  justify-self: end;
+  justify-self: center;
   margin-left: 0;
+  margin-right: 0;
   color: #ffffff !important;
 }
 
