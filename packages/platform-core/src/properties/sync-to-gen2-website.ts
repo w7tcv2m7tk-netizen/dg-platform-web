@@ -84,39 +84,33 @@ function statusColor(status: string): string {
   return "#666666";
 }
 
-/** WP-style mosaic: large hero + 2–3 side thumbs; full set in data-wb-gallery for lightbox. */
+/** WP-style mosaic: large hero + exactly 2 equal side thumbs; full set in data-wb-gallery for lightbox. */
 function buildMosaicGalleryHtml(images: string[], title: string): string {
   const list = images.filter((u) => u.startsWith("http"));
   if (!list.length) return "";
 
   const main = list[0]!;
-  const rest = list.slice(1);
-  const sideThumbs = rest.slice(0, 2);
-  const remainingAfterTwo = rest.length - 2;
-  const moreSrc = remainingAfterTwo > 0 ? rest[2] : null;
+  const thumbA = list[1] ?? null;
+  const thumbB = list[2] ?? null;
+  const extraCount = Math.max(0, list.length - 3);
 
-  const thumbButtons = sideThumbs
-    .map((src, i) => {
-      const index = i + 1;
-      return `<button type="button" class="gallery-item gallery-thumb" role="listitem" aria-label="Photo ${index + 1}" data-index="${index}"><img src="${esc(src)}" alt="${esc(title)} — photo ${index + 1}" loading="${index < 2 ? "eager" : "lazy"}" /></button>`;
-    })
-    .join("");
-
-  const moreButton = moreSrc
-    ? `<button type="button" class="gallery-item gallery-thumb gallery-more" role="listitem" aria-label="View ${remainingAfterTwo} more photos" data-index="3"><img src="${esc(moreSrc)}" alt="${esc(title)} — more photos" loading="lazy" /><span class="more-overlay">+ ${remainingAfterTwo}</span></button>`
+  const thumbs = thumbA
+    ? `<div class="gallery-thumbs">
+        <button type="button" class="gallery-item gallery-thumb" role="listitem" aria-label="Photo 2" data-index="1"><img src="${esc(thumbA)}" alt="${esc(title)} — photo 2" loading="eager" /></button>
+        ${
+          thumbB
+            ? `<button type="button" class="gallery-item gallery-thumb${extraCount > 0 ? " gallery-more" : ""}" role="listitem" aria-label="${extraCount > 0 ? `View ${extraCount + 1} more photos` : "Photo 3"}" data-index="2"><img src="${esc(thumbB)}" alt="${esc(title)} — photo 3" loading="lazy" />${extraCount > 0 ? `<span class="more-overlay">+${extraCount + 1}</span>` : ""}</button>`
+            : ""
+        }
+      </div>`
     : "";
 
-  const thumbs =
-    sideThumbs.length || moreSrc
-      ? `<div class="gallery-thumbs">${thumbButtons}${moreButton}</div>`
-      : "";
-
-  // Hidden remainder so lightbox can walk the full set (indexes 4+)
+  // Hidden remainder so lightbox can walk the full set (indexes 3+)
   const hidden = list
-    .slice(4)
+    .slice(3)
     .map(
       (src, i) =>
-        `<button type="button" class="gallery-item gallery-hidden" data-index="${i + 4}" tabindex="-1" aria-hidden="true"><img src="${esc(src)}" alt="" /></button>`,
+        `<button type="button" class="gallery-item gallery-hidden" data-index="${i + 3}" tabindex="-1" aria-hidden="true"><img src="${esc(src)}" alt="" /></button>`,
     )
     .join("");
 
@@ -154,10 +148,24 @@ function buildDetailHtml(property: PropertyRow, _pageSlug: string): string {
   const color = statusColor(property.status);
   const price = formatPrice(property, meta);
   const mosaic = buildMosaicGalleryHtml(images, listingTitle);
+  const inspectionRaw =
+    (typeof meta.inspection_times === "string" && meta.inspection_times.trim()) ||
+    (typeof meta.inspectionTimes === "string" && meta.inspectionTimes.trim()) ||
+    "";
+  const inspectionLines = inspectionRaw
+    ? inspectionRaw
+        .split(/\n+/)
+        .map((l) => l.trim())
+        .filter(Boolean)
+    : [];
 
   const featureHtml = features.length
     ? `<div class="features-list"><h3>Features &amp; Highlights</h3><ul>${features.map((f) => `<li>${esc(f)}</li>`).join("")}</ul></div>`
     : "";
+
+  const inspectionHtml = inspectionLines.length
+    ? `<div class="inspection-times"><h3>Inspection Times</h3><ul>${inspectionLines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul></div>`
+    : `<div class="inspection-times"><h3>Inspection Times</h3><p>Contact Roe Realty to arrange a private inspection.</p></div>`;
 
   const specItems = [
     beds != null ? `<div class="feature-item"><span class="icon">🛏</span><span class="value">${beds}</span><span class="label">Bed</span></div>` : "",
@@ -175,22 +183,24 @@ function buildDetailHtml(property: PropertyRow, _pageSlug: string): string {
 .roe-prop-detail{background:#F5F2EF;color:#1C2B2A;min-height:70vh}
 .roe-prop-detail .property-hero{background:#1C2B2A;padding:clamp(5.5rem,12vw,7.5rem) 1.25rem 1.75rem;color:#fff}
 .roe-prop-detail .property-hero .container{max-width:1280px;margin:0 auto}
-.roe-prop-detail .property-hero h1{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;margin:0 0 .35rem;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.35)}
+.roe-prop-detail .property-hero h1{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;margin:0 0 .35rem;color:#fff!important;text-shadow:0 2px 10px rgba(0,0,0,.35)}
 .roe-prop-detail .price-row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.35rem}
-.roe-prop-detail .price-row .status{display:inline-block;background:${color};color:#fff;padding:.25rem 1rem;border-radius:40px;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-.roe-prop-detail .price-row .price{color:#C9A46C;font-size:clamp(1.4rem,2.5vw,2rem);font-weight:700}
-.roe-prop-detail .address-sub{color:#B8C5C2;font-size:1rem;margin-top:.15rem;font-weight:300}
+.roe-prop-detail .price-row .status{display:inline-block;background:${color};color:#fff!important;padding:.25rem 1rem;border-radius:40px;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.roe-prop-detail .price-row .price{color:#C9A46C!important;font-size:clamp(1.4rem,2.5vw,2rem);font-weight:700}
+.roe-prop-detail .address-sub{color:#B8C5C2!important;font-size:1rem;margin-top:.15rem;font-weight:300}
 .roe-prop-detail .property-gallery{margin:0;background:#000;border-radius:0}
 .roe-prop-detail .property-content{padding:2.5rem 1.25rem 3.75rem;background:#F5F2EF}
 .roe-prop-detail .property-content .container{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,.9fr);gap:clamp(1.5rem,4vw,3.1rem)}
 .roe-prop-detail .property-description{color:#4A5B59;line-height:1.8}
 .roe-prop-detail .property-description h2{color:#1C2B2A;font-size:1.6rem;margin:0 0 1rem}
 .roe-prop-detail .property-description p{margin:0 0 1rem;white-space:pre-wrap}
-.roe-prop-detail .features-list{background:#fff;border:1px solid #E0D6CC;padding:1.5rem;margin:1.5rem 0;border-radius:16px}
-.roe-prop-detail .features-list h3{color:#1C2B2A;font-size:1.2rem;margin:0 0 .75rem}
-.roe-prop-detail .features-list ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:.4rem 1.25rem}
-.roe-prop-detail .features-list li{color:#4A5B59;font-size:.9rem;padding-left:1.5rem;position:relative}
-.roe-prop-detail .features-list li::before{content:"✓";color:#C9A46C;position:absolute;left:0;font-weight:700}
+.roe-prop-detail .features-list,.roe-prop-detail .inspection-times{background:#fff;border:1px solid #E0D6CC;padding:1.5rem;margin:1.5rem 0;border-radius:16px}
+.roe-prop-detail .features-list h3,.roe-prop-detail .inspection-times h3{color:#1C2B2A;font-size:1.2rem;margin:0 0 .75rem}
+.roe-prop-detail .features-list ul,.roe-prop-detail .inspection-times ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:.4rem 1.25rem}
+.roe-prop-detail .inspection-times ul{grid-template-columns:1fr}
+.roe-prop-detail .features-list li,.roe-prop-detail .inspection-times li,.roe-prop-detail .inspection-times p{color:#4A5B59;font-size:.9rem;padding-left:1.5rem;position:relative;margin:0}
+.roe-prop-detail .features-list li::before,.roe-prop-detail .inspection-times li::before{content:"✓";color:#C9A46C;position:absolute;left:0;font-weight:700}
+.roe-prop-detail .inspection-times p{padding-left:0}
 .roe-prop-detail .property-sidebar{display:flex;flex-direction:column;gap:1.5rem}
 .roe-prop-detail .feature-box{background:#fff;border:1px solid #E0D6CC;padding:1.25rem;border-radius:16px}
 .roe-prop-detail .feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
@@ -202,6 +212,8 @@ function buildDetailHtml(property: PropertyRow, _pageSlug: string): string {
 .roe-prop-detail .roe-prop-actions a{display:inline-flex;align-items:center;justify-content:center;padding:.75rem 1.1rem;border-radius:999px;text-decoration:none;font-weight:700;font-size:.85rem}
 .roe-prop-detail .roe-prop-actions .primary{background:#C9A46C;color:#f8fafc}
 .roe-prop-detail .roe-prop-actions .ghost{border:1px solid #c9b8a4;color:#1c2b2a;background:#fff}
+.roe-prop-detail .roe-prop-return{padding:0 1.25rem 3rem;background:#F5F2EF;text-align:center}
+.roe-prop-detail .roe-prop-return a{display:inline-flex;align-items:center;justify-content:center;padding:.85rem 1.5rem;border-radius:999px;border:1px solid #c9b8a4;background:#fff;color:#1c2b2a;font-weight:700;text-decoration:none}
 @media (max-width:900px){
   .roe-prop-detail .property-content .container{grid-template-columns:1fr}
   .roe-prop-detail .features-list ul{grid-template-columns:1fr}
@@ -228,6 +240,7 @@ function buildDetailHtml(property: PropertyRow, _pageSlug: string): string {
           <p>${esc(description)}</p>
         </div>
         ${featureHtml}
+        ${inspectionHtml}
       </div>
       <aside class="property-sidebar">
         ${specItems.length ? `<div class="feature-box"><div class="feature-grid">${specItems.join("")}</div></div>` : ""}
@@ -238,6 +251,9 @@ function buildDetailHtml(property: PropertyRow, _pageSlug: string): string {
         </div>
       </aside>
     </div>
+  </div>
+  <div class="roe-prop-return">
+    <a href="/properties">← Return to properties</a>
   </div>
 </div></div>`;
 }

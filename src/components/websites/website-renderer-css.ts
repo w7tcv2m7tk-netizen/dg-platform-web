@@ -841,11 +841,19 @@ html.wb-menu-scroll-lock body {
 .wb-html-island--light .property-hero h2,
 .wb-html-island--light .property-hero .price-row,
 .wb-html-island--light .property-hero .price-row .price,
+.wb-html-island--light .property-hero .price-row .status,
 .wb-html-island--light .property-hero .address-sub,
 .wb-html-island--light .roe-prop-detail .property-hero h1,
 .wb-html-island--light .roe-prop-detail .property-hero .price,
 .wb-html-island--light .roe-prop-detail .property-hero .address-sub {
   color: #f8fafc !important;
+}
+
+.wb-html-island--light .property-hero .price-row .price,
+.wb-html-island--light .roe-prop-detail .property-hero .price-row .price,
+.wb-root .wb-html-island.wb-html-island--light .property-hero .price,
+.wb-root .wb-html-island.wb-html-island--light .roe-prop-detail .price-row .price {
+  color: #c9a46c !important;
 }
 
 /* Cream / light body copy: prefer dark ink over washed greys */
@@ -1623,7 +1631,7 @@ html.wb-menu-scroll-lock body {
 
 /*
  * RR inner-page heroes — uniform overlay shell.
- * Home (.hero-section) stays full-viewport and is intentionally excluded.
+ * Home (.hero-section / .hero) stays full-viewport and is intentionally excluded.
  */
 .wb-html-page .wb-html-island--page :is(
   .hero-sell,
@@ -1655,6 +1663,25 @@ html.wb-menu-scroll-lock body {
   padding: 5.5rem 0 3rem !important;
   background: #1c2b2a !important;
   color: #f8fafc !important;
+}
+
+/* Home heroes — true full viewport (RR + CVH). */
+.wb-root .wb-html-island .hero-section,
+.wb-root .wb-html-island section.hero,
+.wb-root .wb-html-island .hero:not([class*="hero-"]),
+.wb-html-page .wb-html-island .hero-section,
+.wb-html-page .wb-html-island section.hero,
+.wb-html-page .wb-html-island .hero:not([class*="hero-"]) {
+  position: relative !important;
+  width: 100% !important;
+  min-height: 100dvh !important;
+  height: 100dvh !important;
+  max-height: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
 }
 
 .wb-html-page .wb-html-island--page :is(
@@ -3188,12 +3215,6 @@ a.wb-brand-chrome-cta:hover {
   grid-row: span 1;
 }
 
-.wb-mosaic-grid:has(.gallery-thumbs > :nth-child(3)) .gallery-main,
-.dg-acc-gallery:has(.gallery-thumbs > :nth-child(3)) .gallery-main,
-.property-gallery:has(.gallery-thumbs > :nth-child(3)) .gallery-main {
-  grid-row: span 3;
-}
-
 .wb-mosaic-grid .gallery-main img,
 .dg-acc-gallery .gallery-main img,
 .property-gallery .gallery-main img {
@@ -3217,19 +3238,14 @@ a.wb-brand-chrome-cta:hover {
   min-height: 0;
   height: 100%;
   align-self: stretch;
-  grid-row: 1 / -1;
+  grid-row: 1 / span 2;
 }
 
 .wb-mosaic-grid .gallery-thumbs:has(> :only-child),
 .dg-acc-gallery .gallery-thumbs:has(> :only-child),
 .property-gallery .gallery-thumbs:has(> :only-child) {
   grid-template-rows: 1fr;
-}
-
-.wb-mosaic-grid .gallery-thumbs:has(> :nth-child(3)),
-.dg-acc-gallery .gallery-thumbs:has(> :nth-child(3)),
-.property-gallery .gallery-thumbs:has(> :nth-child(3)) {
-  grid-template-rows: 1fr 1fr 1fr;
+  grid-row: 1 / span 1;
 }
 
 .wb-mosaic-grid .gallery-thumb,
@@ -3329,12 +3345,7 @@ a.wb-brand-chrome-cta:hover {
     grid-column: span 2;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto;
-  }
-
-  .wb-mosaic-grid .gallery-thumbs:has(> :nth-child(3)),
-  .dg-acc-gallery .gallery-thumbs:has(> :nth-child(3)),
-  .property-gallery .gallery-thumbs:has(> :nth-child(3)) {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-row: auto;
   }
 
   .wb-mosaic-grid .gallery-thumb,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type GalleryItem = { src: string; alt: string };
 
@@ -114,61 +115,64 @@ export function HtmlWithGallery({ html }: { html: string }) {
         className="wb-section wb-html-block wb-html-gallery"
         dangerouslySetInnerHTML={{ __html: html }}
       />
-      {open && current ? (
-        <div
-          className="wb-lightbox"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Image gallery"
-          onClick={() => setOpen(false)}
-        >
-          <button
-            type="button"
-            className="wb-lightbox-close"
-            aria-label="Close"
-            onClick={() => setOpen(false)}
-          >
-            ×
-          </button>
-          {items.length > 1 ? (
-            <>
+      {open && current && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className="wb-lightbox"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Image gallery"
+              onClick={() => setOpen(false)}
+            >
               <button
                 type="button"
-                className="wb-lightbox-nav wb-lightbox-prev"
-                aria-label="Previous image"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIndex((i) => (i - 1 + items.length) % items.length);
-                }}
+                className="wb-lightbox-close"
+                aria-label="Close"
+                onClick={() => setOpen(false)}
               >
-                ‹
+                ×
               </button>
-              <button
-                type="button"
-                className="wb-lightbox-nav wb-lightbox-next"
-                aria-label="Next image"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIndex((i) => (i + 1) % items.length);
-                }}
-              >
-                ›
-              </button>
-            </>
-          ) : null}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className="wb-lightbox-image"
-            src={current.src}
-            alt={current.alt}
-            onClick={(e) => e.stopPropagation()}
-          />
-          <p className="wb-lightbox-meta">
-            {index + 1} / {items.length}
-            {current.alt ? ` · ${current.alt}` : ""}
-          </p>
-        </div>
-      ) : null}
+              {items.length > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    className="wb-lightbox-nav wb-lightbox-prev"
+                    aria-label="Previous image"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIndex((i) => (i - 1 + items.length) % items.length);
+                    }}
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    className="wb-lightbox-nav wb-lightbox-next"
+                    aria-label="Next image"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIndex((i) => (i + 1) % items.length);
+                    }}
+                  >
+                    ›
+                  </button>
+                </>
+              ) : null}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="wb-lightbox-image"
+                src={current.src}
+                alt={current.alt}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <p className="wb-lightbox-meta">
+                {index + 1} / {items.length}
+                {current.alt ? ` · ${current.alt}` : ""}
+              </p>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

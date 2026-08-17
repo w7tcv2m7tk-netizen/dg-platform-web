@@ -28,7 +28,7 @@ const PRIMARY_NAV = {
   "roe-realty": [
     { label: "Sell", href: "/sell" },
     { label: "Buy", href: "/buy" },
-    { label: "Property", href: "/property" },
+    { label: "Properties", href: "/properties" },
     { label: "Insights", href: "/insights" },
     { label: "About", href: "/about" },
     { label: "Contact", href: "/contact" },

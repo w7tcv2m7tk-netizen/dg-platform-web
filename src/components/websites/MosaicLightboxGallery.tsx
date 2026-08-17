@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Original WP-style mosaic: one large image + 2–3 thumbs on the right.
- * Click opens a lightbox that can scroll through the full image set.
+ * WP-style mosaic: one large image + exactly two equal thumbs on the right.
+ * Extra photos open via lightbox (+N on the second thumb when needed).
  */
 export function MosaicLightboxGallery({
   images,
@@ -18,10 +18,9 @@ export function MosaicLightboxGallery({
   if (!images.length) return null;
 
   const main = images[0]!;
-  const rest = images.slice(1);
-  const sideThumbs = rest.slice(0, 2);
-  const remainingAfterTwo = rest.length - 2;
-  const moreSrc = remainingAfterTwo > 0 ? rest[2] : null;
+  const thumbA = images[1] ?? null;
+  const thumbB = images[2] ?? null;
+  const extraCount = Math.max(0, images.length - 3);
 
   return (
     <div
@@ -43,41 +42,41 @@ export function MosaicLightboxGallery({
           <img src={main} alt={`${alt} — photo 1`} loading="eager" />
         </button>
 
-        {sideThumbs.length > 0 || moreSrc ? (
+        {thumbA ? (
           <div className="gallery-thumbs">
-            {sideThumbs.map((src, i) => {
-              const index = i + 1;
-              return (
-                <button
-                  key={`${src}-${index}`}
-                  type="button"
-                  className="gallery-item gallery-thumb"
-                  role="listitem"
-                  aria-label={`${alt} — photo ${index + 1}`}
-                  data-index={index}
-                  onClick={() => onOpen(index)}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={src}
-                    alt={`${alt} — photo ${index + 1}`}
-                    loading={index < 2 ? "eager" : "lazy"}
-                  />
-                </button>
-              );
-            })}
-            {moreSrc ? (
+            <button
+              type="button"
+              className="gallery-item gallery-thumb"
+              role="listitem"
+              aria-label={`${alt} — photo 2`}
+              data-index={1}
+              onClick={() => onOpen(1)}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={thumbA} alt={`${alt} — photo 2`} loading="eager" />
+            </button>
+            {thumbB ? (
               <button
                 type="button"
-                className="gallery-item gallery-thumb gallery-more"
+                className={`gallery-item gallery-thumb${extraCount > 0 ? " gallery-more" : ""}`}
                 role="listitem"
-                aria-label={`View ${remainingAfterTwo} more photos`}
-                data-index={3}
-                onClick={() => onOpen(3)}
+                aria-label={
+                  extraCount > 0
+                    ? `View ${extraCount + 1} more photos`
+                    : `${alt} — photo 3`
+                }
+                data-index={2}
+                onClick={() => onOpen(2)}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={moreSrc} alt={`${alt} — more photos`} loading="lazy" />
-                <span className="more-overlay">+{remainingAfterTwo}</span>
+                <img
+                  src={thumbB}
+                  alt={`${alt} — photo 3`}
+                  loading="lazy"
+                />
+                {extraCount > 0 ? (
+                  <span className="more-overlay">+{extraCount + 1}</span>
+                ) : null}
               </button>
             ) : null}
           </div>

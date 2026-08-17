@@ -2,9 +2,11 @@
 
 **Status:** Strategy locked · Platform Architect (Ben) · August 2026  
 **Active cohort now:** **DigitalGate Founding 10 only**  
+**Operating plan:** [CEO-PLAN-2026-08-17.md](./CEO-PLAN-2026-08-17.md)  
 **Does not change:** Gate 1 dogfood · P0/P1 · Stage 1 advisor evidence · [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)
 
 > **Do not build** Founding 100 / 1,000 systems, multi-cohort billing UI, or a full third-party Reseller Programme yet.  
+> **Do not publicly advertise Founding 100** until Founding 10 is operating — public message is Founding 10 only.  
 > **Do** keep entitlements / org settings headroom for cohort membership, cohort number, discount period, referral tier, and referral attribution.
 
 ---
@@ -47,7 +49,7 @@ Do **not** publicly promise “forever.” Prefer **“ongoing”** / **“while
 | **Founding 10** | **30%** off initial Platform + Apps | **24 months** | **Founding Reseller** | **30%** of referred customer’s qualifying subscription for **12 months** |
 | **Founding 100** | **25%** | **24 months** | **Founding Partner** | **25%** for **12 months** |
 | **Founding 1,000** | **20%** | **24 months** | **Founding Customer** | **20%** for **12 months** |
-| **Future / Standard** | Published price | — | **Customer** | **10%** for **12 months** |
+| **Future / Standard** | Published price | — | **Advocate** (internal: Customer) | **10%** for **12 months** |
 
 **Why 12 months commission (not indefinite recurring):** strong acquisition reward without permanent margin drain; each referral creates a finite acquisition cycle; DigitalGate retains the referred customer thereafter.
 
