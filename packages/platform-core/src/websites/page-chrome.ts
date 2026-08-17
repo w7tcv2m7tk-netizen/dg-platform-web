@@ -8,7 +8,7 @@ const CHROMELESS_SLUG_RE =
   /^(card|onboarding|booking-confirmed|booking-application|book-application|application|privacy|privacy-policy|terms|terms-conditions|terms-of-service|legal|legal-notice|agent-disclaimer|artist-disclaimer|copyright-notice|cookie|cookies|disclaimer|founding-customer-terms)(-|$)/i;
 
 /** CVH / stay bookable unit pages — chromeless by default (booking app surface). */
-const STAY_UNIT_LEAF_SLUGS = new Set(["private-studio", "tiny-home"]);
+const STAY_UNIT_LEAF_SLUGS = new Set(["garden-studio", "private-studio", "tiny-home"]);
 
 export type PageChromeVisibility = {
   showHeader: boolean;

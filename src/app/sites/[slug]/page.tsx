@@ -14,6 +14,7 @@ type SiteChrome = {
   stylesheets?: string[];
   navLinks?: Array<{ label: string; href: string }>;
   businessName?: string;
+  tagline?: string;
   overlayHeader?: boolean;
   lightSurface?: boolean;
   headerCta?: { label: string; href: string; backgroundColor?: string };

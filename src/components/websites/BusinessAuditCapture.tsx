@@ -19,6 +19,11 @@ type Props = {
 const DEFAULT_LOGO =
   "https://app.digitalgate.com.au/brand/logo-on-dark.png";
 
+const DG_ICON = "https://app.digitalgate.com.au/brand/icon-light.png";
+
+const RR_ICON =
+  "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1k71w0000jr04ljsf91z2/5b626ea3954a4f5c-ZJYwG92fbIcGghl5uO25wNvSbJrQbx.png";
+
 type Step = "website" | "preview" | "contact" | "done";
 
 type Pillars = {
@@ -425,9 +430,36 @@ const FUNNEL_CSS = `
 .dg-ba-funnel__foot {
   grid-column: 1 / -1;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
   text-align: center;
   font-size: 0.78rem;
   color: #64748b;
+}
+.dg-ba-funnel__brand-icons {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+}
+.dg-ba-funnel__brand-icons a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.92;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.dg-ba-funnel__brand-icons a:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+.dg-ba-funnel__brand-icons img {
+  width: 2.15rem;
+  height: 2.15rem;
+  object-fit: contain;
+  border-radius: 0.4rem;
 }
 @media (max-width: 860px) {
   .dg-ba-funnel__shell {
@@ -1169,9 +1201,21 @@ export function BusinessAuditCapture({
             )}
           </div>
 
-          <p className="dg-ba-funnel__foot">
-            DigitalGate Business Audit™ — a DigitalGate acquisition product.
-          </p>
+          <div className="dg-ba-funnel__foot">
+            <div className="dg-ba-funnel__brand-icons" aria-label="DigitalGate and Roe Realty">
+              <a href="https://digitalgate.com.au" target="_blank" rel="noopener noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={DG_ICON} alt="DigitalGate" width={34} height={34} />
+              </a>
+              <a href="https://roerealty.com.au" target="_blank" rel="noopener noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={RR_ICON} alt="Roe Realty" width={34} height={34} />
+              </a>
+            </div>
+            <p>
+              DigitalGate Business Audit™ — a DigitalGate acquisition product.
+            </p>
+          </div>
         </div>
       </section>
     </>

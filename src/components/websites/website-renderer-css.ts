@@ -585,9 +585,9 @@ html.wb-menu-scroll-lock body {
   color: #fff;
 }
 
-.wb-root.wb-chrome-overlay .wb-brand-chrome-header .wb-brand-chrome-logo,
-.wb-brand-chrome-header--overlay .wb-brand-chrome-logo,
-.wb-brand-chrome-header--fade .wb-brand-chrome-logo {
+.wb-root.wb-chrome-overlay .wb-brand-chrome-header:not(.wb-brand-chrome-header--stacked) .wb-brand-chrome-logo,
+.wb-brand-chrome-header--overlay:not(.wb-brand-chrome-header--stacked) .wb-brand-chrome-logo,
+.wb-brand-chrome-header--fade:not(.wb-brand-chrome-header--stacked) .wb-brand-chrome-logo {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
 }
 
@@ -596,8 +596,8 @@ html.wb-menu-scroll-lock body {
 .wb-root.wb-chrome-overlay .wb-brand-chrome-header--stacked.is-top {
   background: linear-gradient(
     to bottom,
-    rgba(12, 18, 28, 0.55) 0%,
-    rgba(12, 18, 28, 0.2) 70%,
+    rgba(8, 14, 20, 0.72) 0%,
+    rgba(8, 14, 20, 0.35) 55%,
     transparent 100%
   );
 }
@@ -792,6 +792,8 @@ html.wb-menu-scroll-lock body {
 .wb-html-island--light .hero-about,
 .wb-html-island--light .hero-contact,
 .wb-html-island--light .hero-property,
+.wb-html-island--light .hero-agents,
+.wb-html-island--light .rr-insights-hero,
 .wb-html-island--light [class^="hero-"][class*="section"],
 .wb-html-island--light [class*="hero-banner"],
 .wb-html-island--light [class*="fullscreen-hero"] {
@@ -1046,6 +1048,7 @@ html.wb-menu-scroll-lock body {
   .hero-contact,
   .hero-property,
   .hero-agents,
+  .rr-insights-hero,
   .services-section,
   .buyer-services,
   .insight-section,
@@ -1067,6 +1070,7 @@ html.wb-menu-scroll-lock body {
   .hero-contact,
   .hero-property,
   .hero-agents,
+  .rr-insights-hero,
   .services-section,
   .buyer-services,
   .insight-section,
@@ -1097,6 +1101,7 @@ html.wb-menu-scroll-lock body {
   .hero-contact,
   .hero-property,
   .hero-agents,
+  .rr-insights-hero,
   .services-section,
   .buyer-services,
   .insight-section,
@@ -1131,6 +1136,7 @@ html.wb-menu-scroll-lock body {
   .hero-contact,
   .hero-property,
   .hero-agents,
+  .rr-insights-hero,
   .services-section,
   .buyer-services,
   .insight-section,
@@ -1152,6 +1158,7 @@ html.wb-menu-scroll-lock body {
   .hero-contact,
   .hero-property,
   .hero-agents,
+  .rr-insights-hero,
   .services-section,
   .buyer-services,
   .insight-section,
@@ -1554,62 +1561,168 @@ html.wb-menu-scroll-lock body {
   background: #ffffff !important;
 }
 
-/* RR Properties hero — WP overlay (text on image, not below) */
-.wb-html-page .wb-html-island--page .hero-property,
-.wb-root .wb-html-island .hero-property {
+/*
+ * RR inner-page heroes — uniform overlay shell.
+ * Home (.hero-section) stays full-viewport and is intentionally excluded.
+ */
+.wb-html-page .wb-html-island--page :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+),
+.wb-root .wb-html-island :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+) {
   position: relative !important;
   width: 100% !important;
   min-height: 75vh !important;
   display: flex !important;
   align-items: center !important;
+  justify-content: flex-start !important;
   overflow: hidden !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
+  padding: 5.5rem 0 3rem !important;
+  background: #1c2b2a !important;
+  color: #f8fafc !important;
 }
 
-.wb-html-page .wb-html-island--page .hero-property .hero-bg-img,
-.wb-root .wb-html-island .hero-property .hero-bg-img {
+.wb-html-page .wb-html-island--page :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+) .hero-bg-img,
+.wb-root .wb-html-island :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+) .hero-bg-img {
   position: absolute !important;
   inset: 0 !important;
   width: 100% !important;
   height: 100% !important;
   max-width: none !important;
   object-fit: cover !important;
-  object-position: center top !important;
+  object-position: center 55% !important;
   border-radius: 0 !important;
   z-index: 0 !important;
 }
 
-.wb-html-page .wb-html-island--page .hero-property::before,
-.wb-root .wb-html-island .hero-property::before {
+.wb-html-page .wb-html-island--page :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+)::before,
+.wb-root .wb-html-island :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+)::before {
   content: "" !important;
   position: absolute !important;
   inset: 0 !important;
   background: linear-gradient(
     105deg,
-    rgba(28, 43, 42, 0.85) 0%,
-    rgba(28, 43, 42, 0.6) 60%,
-    rgba(0, 0, 0, 0.4) 100%
+    rgba(28, 43, 42, 0.68) 0%,
+    rgba(28, 43, 42, 0.45) 55%,
+    rgba(0, 0, 0, 0.25) 100%
   ) !important;
   z-index: 1 !important;
   pointer-events: none !important;
 }
 
-.wb-html-page .wb-html-island--page .hero-property .hero-container,
-.wb-root .wb-html-island .hero-property .hero-container {
+.wb-html-page .wb-html-island--page :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+) :is(.hero-container, .rr-insights-hero-inner),
+.wb-root .wb-html-island :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+) :is(.hero-container, .rr-insights-hero-inner) {
   position: relative !important;
   z-index: 2 !important;
   max-width: 1280px !important;
   margin: 0 auto !important;
   padding: 0 2rem !important;
   width: 100% !important;
+  box-sizing: border-box !important;
 }
 
-.wb-html-page .wb-html-island--page .hero-property .hero-content,
-.wb-root .wb-html-island .hero-property .hero-content {
+.wb-html-page .wb-html-island--page :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+) .hero-content,
+.wb-root .wb-html-island :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+) .hero-content {
   max-width: 700px !important;
 }
 
-.wb-html-page .wb-html-island--page .hero-property .hero-headline,
-.wb-root .wb-html-island .hero-property .hero-headline {
+.wb-html-page .wb-html-island--page :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+) :is(.hero-headline, h1),
+.wb-root .wb-html-island :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+) :is(.hero-headline, h1) {
   font-family: "Sora", "Inter", system-ui, sans-serif !important;
   font-size: clamp(2.2rem, 4vw, 3.5rem) !important;
   font-weight: 700 !important;
@@ -1617,24 +1730,121 @@ html.wb-menu-scroll-lock body {
   letter-spacing: -0.02em !important;
   color: #ffffff !important;
   margin: 0 0 1.5rem !important;
+  max-width: none !important;
+  text-align: left !important;
 }
 
-.wb-html-page .wb-html-island--page .hero-property .hero-subheading,
-.wb-root .wb-html-island .hero-property .hero-subheading {
+.wb-html-page .wb-html-island--page :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+) :is(.hero-subheading, .lead),
+.wb-root .wb-html-island :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+) :is(.hero-subheading, .lead) {
+  font-family: "Inter", "Source Sans 3", system-ui, sans-serif !important;
   font-size: 1.2rem !important;
   line-height: 1.5 !important;
   color: rgba(255, 250, 240, 0.92) !important;
   margin: 0 0 2rem !important;
   max-width: 580px !important;
+  text-align: left !important;
+}
+
+.wb-html-page .wb-html-island--page :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+) :is(.hero-cta, a.hero-cta),
+.wb-root .wb-html-island :is(
+  .hero-sell,
+  .hero-buy,
+  .hero-about,
+  .hero-contact,
+  .hero-property,
+  .hero-agents,
+  .rr-insights-hero
+) :is(.hero-cta, a.hero-cta) {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  background: #c9a46c !important;
+  color: #ffffff !important;
+  font-family: "Inter", "Source Sans 3", system-ui, sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  padding: 1rem 2rem !important;
+  border-radius: 56px !important;
+  text-decoration: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.wb-html-page .wb-html-island--page .rr-insights-hero .sub,
+.wb-root .wb-html-island .rr-insights-hero .sub {
+  display: inline-block !important;
+  font-family: "Source Sans 3", system-ui, sans-serif !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: #c9a46c !important;
+  margin: 0 0 0.85rem !important;
 }
 
 @media (max-width: 768px) {
-  .wb-html-page .wb-html-island--page .hero-property,
-  .wb-root .wb-html-island .hero-property {
+  .wb-html-page .wb-html-island--page :is(
+    .hero-sell,
+    .hero-buy,
+    .hero-about,
+    .hero-contact,
+    .hero-property,
+    .hero-agents,
+    .rr-insights-hero
+  ),
+  .wb-root .wb-html-island :is(
+    .hero-sell,
+    .hero-buy,
+    .hero-about,
+    .hero-contact,
+    .hero-property,
+    .hero-agents,
+    .rr-insights-hero
+  ) {
     min-height: 70vh !important;
+    padding: 4.75rem 0 2.5rem !important;
   }
-  .wb-html-page .wb-html-island--page .hero-property .hero-container,
-  .wb-root .wb-html-island .hero-property .hero-container {
+  .wb-html-page .wb-html-island--page :is(
+    .hero-sell,
+    .hero-buy,
+    .hero-about,
+    .hero-contact,
+    .hero-property,
+    .hero-agents,
+    .rr-insights-hero
+  ) :is(.hero-container, .rr-insights-hero-inner),
+  .wb-root .wb-html-island :is(
+    .hero-sell,
+    .hero-buy,
+    .hero-about,
+    .hero-contact,
+    .hero-property,
+    .hero-agents,
+    .rr-insights-hero
+  ) :is(.hero-container, .rr-insights-hero-inner) {
     padding: 0 1.5rem !important;
   }
 }
@@ -1817,6 +2027,27 @@ html.wb-menu-scroll-lock body {
   color: #fff;
 }
 
+/* Business slogan directly under footer icon/logo */
+.wb-site-chrome-footer .wb-footer-slogan,
+.wb-site-chrome-footer .footer-description,
+.wb-brand-chrome-footer .wb-footer-slogan {
+  display: block !important;
+  margin: 0.55rem 0 0.85rem !important;
+  max-width: 22rem !important;
+  font-size: 0.92rem !important;
+  line-height: 1.45 !important;
+  font-weight: 500 !important;
+  color: #d6d3d1 !important;
+}
+
+.wb-brand-chrome-brand-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
 /* Keep in-page / leftover logos from exploding when island img rules win */
 .wb-html-page .wb-html-island--page img.rr-logo,
 .wb-html-page .wb-html-island--page .rr-logo,
@@ -1937,33 +2168,36 @@ a.wb-brand-chrome-cta:hover {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.9rem;
-  padding-top: 1.15rem;
-  padding-bottom: 1.15rem;
+  gap: 0.75rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1.1rem;
 }
 
 .wb-brand-chrome-header--stacked .wb-brand-chrome-brand {
+  position: relative;
   order: 0;
   justify-content: center;
+  isolation: isolate;
 }
 
-.wb-brand-chrome-header--stacked .wb-brand-chrome-logo {
-  height: 96px !important;
-  max-height: 96px !important;
-  max-width: min(420px, 86vw) !important;
-  object-position: center center;
-  /* Warm taupe mark needs lift on cream / photo heroes */
-  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.55))
-    drop-shadow(0 2px 6px rgba(20, 32, 28, 0.45))
-    drop-shadow(0 8px 18px rgba(20, 32, 28, 0.28));
-}
-
-.wb-root.wb-chrome-overlay .wb-brand-chrome-header--stacked .wb-brand-chrome-logo,
-.wb-brand-chrome-header--stacked.wb-brand-chrome-header--overlay .wb-brand-chrome-logo,
-.wb-brand-chrome-header--stacked.wb-brand-chrome-header--fade .wb-brand-chrome-logo {
-  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35))
-    drop-shadow(0 2px 8px rgba(0, 0, 0, 0.55))
-    drop-shadow(0 10px 22px rgba(0, 0, 0, 0.35));
+/* Soft disc so the gold mark reads on bright canopy / sky */
+.wb-brand-chrome-header--stacked.is-top .wb-brand-chrome-brand::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 118%;
+  height: 118%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(6, 12, 18, 0.55) 0%,
+    rgba(6, 12, 18, 0.28) 42%,
+    transparent 72%
+  );
+  z-index: -1;
+  pointer-events: none;
 }
 
 .wb-brand-chrome-header--stacked .wb-brand-chrome-name {
@@ -1971,22 +2205,26 @@ a.wb-brand-chrome-cta:hover {
   font-size: 1.35rem;
 }
 
+/* True center: nav in middle column; CTA balances in the right rail */
 .wb-brand-chrome-header--stacked .wb-brand-chrome-below {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   order: 1;
   width: 100%;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.35rem;
+  column-gap: 1rem;
+  row-gap: 0.65rem;
 }
 
 .wb-brand-chrome-header--stacked .wb-brand-chrome-nav {
-  flex: 0 1 auto;
+  grid-column: 2;
+  justify-self: center;
   justify-content: center;
 }
 
 .wb-brand-chrome-header--stacked .wb-brand-chrome-cta {
+  grid-column: 3;
+  justify-self: end;
   margin-left: 0;
   color: #ffffff !important;
 }
@@ -2021,6 +2259,27 @@ a.wb-brand-chrome-cta:hover {
   max-width: min(220px, 55vw) !important;
   object-fit: contain !important;
   object-position: left center;
+}
+
+/* Stacked logo size/contrast must follow base logo rules (same !important cascade) */
+.wb-brand-chrome-header--stacked .wb-brand-chrome-logo {
+  height: 120px !important;
+  max-height: 120px !important;
+  max-width: min(460px, 88vw) !important;
+  object-position: center center !important;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.65))
+    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 14px 28px rgba(0, 0, 0, 0.35)) !important;
+}
+
+.wb-root.wb-chrome-overlay .wb-brand-chrome-header--stacked .wb-brand-chrome-logo,
+.wb-brand-chrome-header--stacked.wb-brand-chrome-header--overlay .wb-brand-chrome-logo,
+.wb-brand-chrome-header--stacked.wb-brand-chrome-header--fade .wb-brand-chrome-logo {
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.45))
+    drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7))
+    drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 16px 36px rgba(0, 0, 0, 0.4)) !important;
 }
 
 .wb-brand-chrome-name {
@@ -2163,9 +2422,9 @@ a.wb-brand-chrome-cta:hover {
   }
 
   .wb-brand-chrome-header--stacked .wb-brand-chrome-logo {
-    height: 64px !important;
-    max-height: 64px !important;
-    max-width: min(260px, 68vw) !important;
+    height: 72px !important;
+    max-height: 72px !important;
+    max-width: min(280px, 70vw) !important;
   }
 
   .wb-brand-chrome-header--stacked .wb-brand-chrome-below {
@@ -2338,13 +2597,8 @@ a.wb-brand-chrome-cta:hover {
     padding-right: 1rem !important;
   }
 
-  .roe-prop-gallery {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-
-  .roe-prop-hero img {
-    height: 42vh !important;
-    min-height: 220px;
+  .roe-prop-hero-wrap .wb-mosaic-grid {
+    min-height: 0;
   }
 
   .roe-prop-actions {
@@ -2803,6 +3057,240 @@ a.wb-brand-chrome-cta:hover {
   border-radius: 0 !important;
 }
 
+/* WP-style mosaic: 1 large + 2–3 thumbs (CVH units + RR properties) */
+.wb-mosaic-gallery,
+.dg-acc-gallery,
+.property-gallery.wb-mosaic-gallery {
+  margin: 0 0 1.5rem;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.wb-mosaic-grid,
+.dg-acc-gallery .gallery-grid,
+.property-gallery .gallery-grid {
+  display: grid !important;
+  grid-template-columns: 2fr 1fr;
+  gap: 2px;
+  background: #000;
+  max-height: 500px;
+  overflow: hidden;
+  margin: 0 !important;
+}
+
+.wb-mosaic-grid:not(:has(.gallery-thumbs)) {
+  grid-template-columns: 1fr;
+}
+
+.wb-mosaic-grid .gallery-item,
+.dg-acc-gallery .gallery-item,
+.property-gallery .gallery-item {
+  display: block;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: #1a1a1a;
+  cursor: zoom-in;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.wb-mosaic-grid .gallery-item img,
+.dg-acc-gallery .gallery-item img,
+.property-gallery .gallery-item img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.wb-mosaic-grid .gallery-item:hover img,
+.dg-acc-gallery .gallery-item:hover img,
+.property-gallery .gallery-item:hover img {
+  transform: scale(1.02);
+}
+
+.wb-mosaic-grid .gallery-main,
+.dg-acc-gallery .gallery-main,
+.property-gallery .gallery-main {
+  grid-row: span 2;
+  min-height: 400px;
+  max-height: 500px;
+}
+
+.wb-mosaic-grid:has(.gallery-thumbs > :only-child) .gallery-main,
+.dg-acc-gallery:has(.gallery-thumbs > :only-child) .gallery-main,
+.property-gallery:has(.gallery-thumbs > :only-child) .gallery-main {
+  grid-row: span 1;
+}
+
+.wb-mosaic-grid:has(.gallery-thumbs > :nth-child(3)) .gallery-main,
+.dg-acc-gallery:has(.gallery-thumbs > :nth-child(3)) .gallery-main,
+.property-gallery:has(.gallery-thumbs > :nth-child(3)) .gallery-main {
+  grid-row: span 3;
+}
+
+.wb-mosaic-grid .gallery-main img,
+.dg-acc-gallery .gallery-main img,
+.property-gallery .gallery-main img {
+  min-height: 400px;
+  max-height: 500px;
+}
+
+.wb-mosaic-grid .gallery-main--empty {
+  min-height: 400px;
+  background: #1a2e2b;
+  cursor: default;
+}
+
+.wb-mosaic-grid .gallery-thumbs,
+.dg-acc-gallery .gallery-thumbs,
+.property-gallery .gallery-thumbs {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  background: #000;
+  min-height: 0;
+}
+
+.wb-mosaic-grid .gallery-thumbs:has(> :only-child),
+.dg-acc-gallery .gallery-thumbs:has(> :only-child),
+.property-gallery .gallery-thumbs:has(> :only-child) {
+  grid-template-rows: 1fr;
+}
+
+.wb-mosaic-grid .gallery-thumbs:has(> :nth-child(3)),
+.dg-acc-gallery .gallery-thumbs:has(> :nth-child(3)),
+.property-gallery .gallery-thumbs:has(> :nth-child(3)) {
+  grid-template-rows: 1fr 1fr 1fr;
+}
+
+.wb-mosaic-grid .gallery-thumb,
+.dg-acc-gallery .gallery-thumb,
+.property-gallery .gallery-thumb {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wb-mosaic-grid .gallery-thumb img,
+.dg-acc-gallery .gallery-thumb img,
+.property-gallery .gallery-thumb img {
+  min-height: 0;
+  height: 100%;
+}
+
+.wb-mosaic-grid .gallery-more .more-overlay,
+.dg-acc-gallery .gallery-more .more-overlay,
+.property-gallery .gallery-more .more-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-family: Georgia, "Times New Roman", serif;
+  pointer-events: none;
+}
+
+.gallery-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.roe-prop-hero-wrap {
+  position: relative;
+  background: #000;
+  border-radius: 0;
+  margin: 0;
+}
+
+.roe-prop-hero-wrap .wb-mosaic-gallery,
+.roe-prop-hero-wrap .property-gallery {
+  margin: 0;
+  border-radius: 0;
+}
+
+.roe-prop-hero-wrap .roe-prop-badge {
+  position: absolute;
+  top: 1.25rem;
+  left: 1.25rem;
+  z-index: 2;
+}
+
+.cvh-stay-mosaic-wrap {
+  margin-bottom: 0.5rem;
+}
+
+.cvh-stay-mosaic-wrap .wb-mosaic-gallery {
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .wb-mosaic-grid,
+  .dg-acc-gallery .gallery-grid,
+  .property-gallery .gallery-grid {
+    grid-template-columns: 1fr 1fr;
+    max-height: none;
+  }
+
+  .wb-mosaic-grid .gallery-main,
+  .dg-acc-gallery .gallery-main,
+  .property-gallery .gallery-main {
+    grid-column: span 2;
+    grid-row: span 1;
+    min-height: 250px;
+    max-height: 350px;
+  }
+
+  .wb-mosaic-grid .gallery-main img,
+  .dg-acc-gallery .gallery-main img,
+  .property-gallery .gallery-main img {
+    min-height: 250px;
+    max-height: 350px;
+  }
+
+  .wb-mosaic-grid .gallery-thumbs,
+  .dg-acc-gallery .gallery-thumbs,
+  .property-gallery .gallery-thumbs {
+    grid-column: span 2;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+  }
+
+  .wb-mosaic-grid .gallery-thumbs:has(> :nth-child(3)),
+  .dg-acc-gallery .gallery-thumbs:has(> :nth-child(3)),
+  .property-gallery .gallery-thumbs:has(> :nth-child(3)) {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .wb-mosaic-grid .gallery-thumb,
+  .wb-mosaic-grid .gallery-thumb img,
+  .dg-acc-gallery .gallery-thumb,
+  .dg-acc-gallery .gallery-thumb img,
+  .property-gallery .gallery-thumb,
+  .property-gallery .gallery-thumb img {
+    min-height: 120px;
+    max-height: 180px;
+  }
+
+  .wb-mosaic-grid .gallery-more .more-overlay,
+  .dg-acc-gallery .gallery-more .more-overlay,
+  .property-gallery .gallery-more .more-overlay {
+    font-size: 1.75rem;
+  }
+}
+
 .wb-lightbox {
   position: fixed;
   inset: 0;
@@ -3217,27 +3705,6 @@ a.wb-brand-chrome-cta:hover {
 .cvh-stay-form button:disabled {
   opacity: 0.7;
   cursor: wait;
-}
-.cvh-stay-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.65rem;
-  margin: 0;
-}
-.cvh-stay-gallery-item {
-  border: 0;
-  padding: 0;
-  background: transparent;
-  cursor: zoom-in;
-  border-radius: 0.55rem;
-  overflow: hidden;
-  aspect-ratio: 4 / 3;
-}
-.cvh-stay-gallery-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
 }
 .cvh-stay-discount span,
 .cvh-stay-discount strong {

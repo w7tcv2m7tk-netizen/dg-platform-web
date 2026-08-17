@@ -99,6 +99,7 @@ const CORE_EXTRA_SLUGS = new Set(["reviews", "booking-confirmed"]);
 const UNIT_SLUGS = new Set([
   "stay",
   "accommodation",
+  "garden-studio",
   "private-studio",
   "tiny-home",
   "sanctuary-dome",

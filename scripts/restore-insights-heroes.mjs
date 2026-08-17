@@ -75,20 +75,16 @@ const HEROES = {
   },
   cmst2cykf000r09gj6rhixvii: {
     brand: "Roe Realty",
-    html: `<style>
-.rr-insights-hero{font-family:Georgia,"Times New Roman",serif;background:linear-gradient(105deg,rgba(28,43,42,.92),rgba(15,26,24,.88)),#1C2B2A;color:#F8FAFC;text-align:center;padding:6.75rem clamp(1rem,4vw,2.5rem) 3.5rem;box-sizing:border-box}
-.rr-insights-hero *{box-sizing:border-box}
-.rr-insights-hero .sub{display:inline-block;font-family:"Source Sans 3",system-ui,sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#C9A46C;margin-bottom:.85rem}
-.rr-insights-hero h1{margin:0 auto .9rem;max-width:18ch;font-size:clamp(2.1rem,5vw,3.2rem);font-weight:700;line-height:1.12;color:#F8FAFC}
-.rr-insights-hero .lead{margin:0 auto 1.5rem;max-width:640px;font-family:"Source Sans 3",system-ui,sans-serif;font-size:1.05rem;line-height:1.7;color:#E8EDEC}
-.rr-insights-hero a{display:inline-flex;align-items:center;font-family:"Source Sans 3",system-ui,sans-serif;background:#C9A46C;color:#F8FAFC!important;font-weight:700;text-decoration:none;padding:.85rem 1.6rem;border-radius:40px}
-@media(max-width:640px){.rr-insights-hero{padding-top:5.5rem}}
-</style>
-<section class="rr-insights-hero">
-  <span class="sub">Roe Realty Insights</span>
-  <h1>Property insights for Gold Coast sellers &amp; buyers</h1>
-  <p class="lead">Local market updates, suburb guides and practical selling advice — written for homeowners who want clearer decisions and stronger outcomes.</p>
-  <a href="https://report.roerealty.com.au">Get a free property report →</a>
+    html: `<section class="rr-insights-hero">
+  <img class="hero-bg-img" src="https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1k71w0000jr04ljsf91z2/wp-migrate/9af4f80dd612fd38.jpeg" alt="Gold Coast property insights" decoding="async" fetchpriority="high">
+  <div class="hero-container">
+    <div class="hero-content">
+      <span class="sub">Roe Realty Insights</span>
+      <h1 class="hero-headline">Property insights for Gold Coast sellers &amp; buyers</h1>
+      <p class="hero-subheading">Local market updates, suburb guides and practical selling advice — written for homeowners who want clearer decisions and stronger outcomes.</p>
+      <a class="hero-cta" href="https://report.roerealty.com.au">Get a free property report →</a>
+    </div>
+  </div>
 </section>`,
   },
   cmst2d41i003509gj0nuocwqw: {

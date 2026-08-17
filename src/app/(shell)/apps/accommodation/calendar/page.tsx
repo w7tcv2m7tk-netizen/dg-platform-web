@@ -80,7 +80,9 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
     const neon = await buildAvailabilityFromNeon(session.organisationId, { from, to });
     availFrom = neon.from;
     availTo = neon.to;
-    units = neon.units as unknown as WpAccAvailabilityUnit[];
+    units = sortAccommodationUnitsByDisplayOrder(
+      neon.units as unknown as WpAccAvailabilityUnit[],
+    );
     sotLabel = "Neon (units + StayBooking)";
   } else {
     const availability = await fetchWpAccommodationAvailability({

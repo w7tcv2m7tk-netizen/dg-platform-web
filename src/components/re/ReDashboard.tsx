@@ -1,9 +1,7 @@
 import Link from "next/link";
 
-import type { ReBetaReadiness, ReDashboardStats } from "@dg/platform-core";
+import type { ReDashboardStats } from "@dg/platform-core";
 import type { WpRePipelineSummary } from "@/lib/dg-api";
-
-import { ReBetaChecklist } from "@/components/re/ReBetaChecklist";
 
 function StatCard({
   label,
@@ -48,22 +46,16 @@ export function ReDashboard({
   stats,
   wpSummary,
   wpError,
-  readiness,
 }: {
   stats: ReDashboardStats;
   wpSummary?: WpRePipelineSummary;
   wpError?: string;
-  readiness?: ReBetaReadiness;
 }) {
   const isEmpty =
     stats.vendorLeads === 0 && stats.buyerLeads === 0 && stats.properties === 0;
 
   return (
     <div className="space-y-8">
-      {readiness && readiness.completedCount < readiness.totalCount ? (
-        <ReBetaChecklist readiness={readiness} />
-      ) : null}
-
       {isEmpty ? (
         <div className="dg-card border-dashed border-slate-700">
           <h2 className="text-lg font-semibold text-white">
@@ -184,10 +176,6 @@ export function ReDashboard({
             <StatCard label="Site" value={wpSummary.site ?? "Connected"} />
           </div>
         </div>
-      ) : null}
-
-      {readiness && readiness.completedCount >= readiness.totalCount ? (
-        <ReBetaChecklist readiness={readiness} />
       ) : null}
 
       <div className="flex flex-wrap gap-3">

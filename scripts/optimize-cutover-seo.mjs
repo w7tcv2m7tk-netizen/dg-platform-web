@@ -201,7 +201,7 @@ const SITES = {
       stay: seoPack({
         title: "Stay | Domes & Studios at the Hideaway",
         description:
-          "Choose your Currumbin Valley stay — Starlight Dome, Rainforest Dome, Private Studio, Tiny Home and more.",
+          "Choose your Currumbin Valley stay — Starlight Dome, Rainforest Dome, Garden Studio, Tiny Home and more.",
         keywords: [
           "Currumbin Valley accommodation",
           "book stay",
@@ -434,6 +434,7 @@ function generatePageSeo(siteKey, page) {
   // CVH unit pages
   if (
     [
+      "garden-studio",
       "private-studio",
       "tiny-home",
       "the-shed",

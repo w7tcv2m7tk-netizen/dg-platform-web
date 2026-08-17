@@ -687,6 +687,8 @@ export type WebsiteChrome = {
   /** Prefer profile logo chrome when theme.logoUrl is set */
   navLinks?: Array<{ label: string; href: string }> | null;
   businessName?: string | null;
+  /** Brand slogan shown under the footer icon/logo */
+  tagline?: string | null;
   /** Transparent header over hero (Roe / CVH style) */
   overlayHeader?: boolean | null;
   /**
@@ -709,6 +711,59 @@ export type WebsiteChrome = {
 function homeHref(basePath: string): string {
   return basePath && basePath !== "/" ? basePath : "/";
 }
+
+function escapeFooterText(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Ensure the business slogan sits directly under the footer icon/logo.
+ * Replaces an existing slogan/description when present.
+ */
+export function ensureFooterSlogan(html: string, slogan: string | null | undefined): string {
+  const text = typeof slogan === "string" ? slogan.trim() : "";
+  if (!html || !text) return html;
+  const block = `<p class="wb-footer-slogan">${escapeFooterText(text)}</p>`;
+
+  let out = html.replace(
+    /<(?:p|div)\b[^>]*class=["'][^"']*(?:wb-footer-slogan|footer-description)[^"']*["'][^>]*>[\s\S]*?<\/(?:p|div)>/i,
+    block,
+  );
+  if (out !== html) return out;
+
+  // Aëtherra-style brand column: logo then a short <p>
+  out = html.replace(
+    /(<div\b[^>]*class=["'][^"']*footer-brand[^"']*["'][^>]*>[\s\S]*?<\/a>\s*)<p\b[^>]*>[\s\S]*?<\/p>/i,
+    `$1${block}`,
+  );
+  if (out !== html) return out;
+
+  // Primary logo anchors (RR / CVH / DG)
+  out = html.replace(
+    /(<(?:a)\b[^>]*class=["'][^"']*(?:footer-logo|dg-footer-logo)[^"']*["'][^>]*>[\s\S]*?<\/a>)/i,
+    `$1\n        ${block}`,
+  );
+  if (out !== html) return out;
+
+  // Fallback: first footer icon image
+  out = html.replace(
+    /(<img\b[^>]*class=["'][^"']*(?:rr-icon|footer-profile-icon|dg-gate-icon|footer-logo)[^"']*["'][^>]*>)/i,
+    `$1\n        ${block}`,
+  );
+  return out;
+}
+
+const FOOTER_SLOGAN_BY_SLUG: Record<string, string> = {
+  "roe-realty": "More Buyer Demand. Better Sale Outcomes. Stronger Results.",
+  "currumbin-valley-hideaway": "Retreat Into The Rainforest",
+  digitalgate: "The Gateway to Your Digital World™",
+  "aetheriel-com-au": "Where Earth Meets Sky Through Sound",
+  aetherra: "Where Earth Meets Sky Through Sound",
+};
 
 function BrandSiteHeader({
   theme,
@@ -895,15 +950,18 @@ function BrandSiteFooter({
   basePath,
   links,
   businessName,
+  tagline,
 }: {
   theme: WebsiteTheme;
   basePath: string;
   links: Array<{ label: string; href: string }>;
   businessName: string;
+  tagline?: string | null;
 }) {
-  const logo = theme.logoUrl || theme.iconUrl;
+  const logo = theme.iconUrl || theme.logoUrl;
   const brandHref = homeHref(basePath);
   const cardHref = resolveHref("/card", basePath);
+  const slogan = (tagline || "").trim();
   const hasCardLink = links.some(
     (l) =>
       /\/card\/?$/i.test(l.href) || /digital business card/i.test(l.label),
@@ -915,14 +973,17 @@ function BrandSiteFooter({
   return (
     <footer className="wb-brand-chrome wb-brand-chrome-footer">
       <div className="wb-brand-chrome-inner">
-        <a href={brandHref} className="wb-brand-chrome-brand" aria-label={businessName}>
-          {logo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logo} alt={businessName} className="wb-brand-chrome-logo" />
-          ) : (
-            <span className="wb-brand-chrome-name">{businessName}</span>
-          )}
-        </a>
+        <div className="wb-brand-chrome-brand-block">
+          <a href={brandHref} className="wb-brand-chrome-brand" aria-label={businessName}>
+            {logo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logo} alt={businessName} className="wb-brand-chrome-logo" />
+            ) : (
+              <span className="wb-brand-chrome-name">{businessName}</span>
+            )}
+          </a>
+          {slogan ? <p className="wb-footer-slogan">{slogan}</p> : null}
+        </div>
         <nav className="wb-brand-chrome-nav" aria-label="Footer">
           {footerLinks.slice(0, 8).map((link) => (
             <a key={`f-${link.href}-${link.label}`} href={link.href}>
@@ -956,7 +1017,7 @@ export function WebsitePageRenderer({
   siteSlug: string;
   pageSlug?: string;
   chrome?: WebsiteChrome | null;
-  /** Gen 2 bookable stay (Private Studio / Tiny Home) — replaces thin HTML stubs */
+  /** Gen 2 bookable stay (Garden Studio / Tiny Home) — replaces thin HTML stubs */
   stayUnit?: PublicStayUnitPayload | null;
   /** When false, site header/nav is omitted (card, legal, Studio override, …) */
   showHeader?: boolean;
@@ -1032,9 +1093,17 @@ export function WebsitePageRenderer({
     /currumbin|hideaway/i.test(siteSlug) && footerHtmlRaw
       ? stripCvhFooterExploreColumn(footerHtmlRaw)
       : footerHtmlRaw;
+  const footerSlogan =
+    (typeof chrome?.tagline === "string" && chrome.tagline.trim()) ||
+    FOOTER_SLOGAN_BY_SLUG[siteSlug] ||
+    "";
+  const footerHtmlWithSlogan = ensureFooterSlogan(
+    footerHtmlPrepared,
+    footerSlogan,
+  );
   const footerHtml =
     showFooter && !isProductFunnel
-      ? rewriteProductFunnelHtml(footerHtmlPrepared)
+      ? rewriteProductFunnelHtml(footerHtmlWithSlogan)
       : "";
   const useBrandFooter =
     showFooter &&
@@ -1261,6 +1330,7 @@ export function WebsitePageRenderer({
           basePath={basePath}
           links={links}
           businessName={businessName}
+          tagline={footerSlogan}
         />
       ) : null}
     </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import type { PublicStayUnitPayload } from "@dg/platform-core";
+import { MosaicLightboxGallery } from "@/components/websites/MosaicLightboxGallery";
 
 type Props = {
   siteSlug: string;
@@ -420,7 +421,9 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
                   : "cvh-stay-tab"
               }
             >
-              {slug === "private-studio" ? "Garden Studio" : "Tiny Home"}
+              {slug === "garden-studio" || slug === "private-studio"
+                ? "Garden Studio"
+                : "Tiny Home"}
             </a>
           ))}
         </div>
@@ -428,6 +431,19 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
 
       <div className="cvh-stay-layout">
         <div className="cvh-stay-main">
+          {gallery.length > 0 ? (
+            <div className="cvh-stay-section cvh-stay-mosaic-wrap">
+              <MosaicLightboxGallery
+                images={gallery}
+                alt={unit.title}
+                onOpen={(i) => {
+                  setLightboxIndex(i);
+                  setLightboxOpen(true);
+                }}
+              />
+            </div>
+          ) : null}
+
           <section className="cvh-stay-section">
             <h2>About this accommodation</h2>
             {unit.description ? (
@@ -438,34 +454,6 @@ export function CvhStayUnitBooking({ siteSlug, unit, basePath = "" }: Props) {
               </div>
             ) : null}
           </section>
-
-          {gallery.length > 0 ? (
-            <section className="cvh-stay-section">
-              <h3>Gallery</h3>
-              <div className="cvh-stay-gallery gallery-grid" role="list">
-                {gallery.map((src, i) => (
-                  <button
-                    key={`${src}-${i}`}
-                    type="button"
-                    className="gallery-item cvh-stay-gallery-item"
-                    role="listitem"
-                    aria-label={`Photo ${i + 1}`}
-                    onClick={() => {
-                      setLightboxIndex(i);
-                      setLightboxOpen(true);
-                    }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={src}
-                      alt={`${unit.title} — photo ${i + 1}`}
-                      loading={i < 2 ? "eager" : "lazy"}
-                    />
-                  </button>
-                ))}
-              </div>
-            </section>
-          ) : null}
 
           <section className="cvh-stay-section">
             <h3>📅 Check availability</h3>

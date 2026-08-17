@@ -1,5 +1,4 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { getAccBetaReadiness } from "@dg/platform-core";
 import { Suspense } from "react";
 
 import { AccommodationDashboard } from "@/components/accommodation/AccommodationDashboard";
@@ -42,9 +41,6 @@ export default async function AccommodationOverviewPage({ searchParams }: PagePr
   const connector = await accommodationConnectorForSession(session?.organisationId);
   const summaryResult = await fetchWpAccommodationSummary(site.id, 30, connector);
   const siteLabel = connector?.label ?? site.label;
-  const readiness = session
-    ? await getAccBetaReadiness(session.organisationId)
-    : undefined;
 
   return (
     <>
@@ -64,7 +60,6 @@ export default async function AccommodationOverviewPage({ searchParams }: PagePr
           summary={summaryResult.ok ? summaryResult.data : undefined}
           error={summaryResult.ok ? undefined : summaryResult.message}
           siteLabel={siteLabel}
-          readiness={readiness}
         />
       </main>
     </>

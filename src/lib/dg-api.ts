@@ -936,6 +936,8 @@ export type WpAccAvailabilityUnit = {
   /** Neon AccommodationUnit id when Gen 2 is SoT (preferred when WP id is 0). */
   platform_id?: string;
   title: string;
+  /** Unit slug when available (Neon SoT) — used for CVH display order. */
+  slug?: string;
   listing_status?: string;
   weekday_rate?: number;
   weekend_rate?: number;

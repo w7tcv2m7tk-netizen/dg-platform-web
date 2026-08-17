@@ -296,7 +296,7 @@ export async function listAccommodationUnits(organisationId: string) {
     where: { organisationId },
     orderBy: { title: "asc" },
   });
-  // CVH canonical order (Private Studio → … → The Shed); unknowns after, A–Z.
+  // CVH canonical order (Garden Studio → … → The Shed); unknowns after, A–Z.
   return sortAccommodationUnitsByDisplayOrder(rows.map(serializeUnit));
 }
 
@@ -809,6 +809,7 @@ export async function buildAvailabilityFromNeon(
       id: unit.externalWpId ?? 0,
       platform_id: unit.id,
       title: unit.title,
+      slug: unit.slug ?? undefined,
       listing_status: unit.listingStatus,
       weekday_rate: unit.weekdayRate ?? undefined,
       weekend_rate: unit.weekendRate ?? undefined,
@@ -819,7 +820,12 @@ export async function buildAvailabilityFromNeon(
     };
   });
 
-  return { from, to, units: unitRows, total: unitRows.length };
+  return {
+    from,
+    to,
+    units: sortAccommodationUnitsByDisplayOrder(unitRows),
+    total: unitRows.length,
+  };
 }
 
 export type StayConflictCheck = {

@@ -1,13 +1,11 @@
-import { getInfraDomainsBetaReadiness } from "@dg/platform-core";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 
 import { DomainsConsole } from "@/components/infrastructure/DomainsConsole";
-import { InfraDomainsBetaChecklist } from "@/components/infrastructure/InfraDomainsBetaChecklist";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
 
-/** DigitalGate Domains — search, register (gated), connect, DNS + beta checklist. */
+/** DigitalGate Domains — search, register (gated), connect, DNS. */
 export default async function Page() {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
@@ -25,11 +23,6 @@ export default async function Page() {
         orgName: portal?.org_name,
       })
     : null;
-
-  const readiness =
-    session && process.env.DATABASE_URL
-      ? await getInfraDomainsBetaReadiness(session.organisationId)
-      : null;
 
   return (
     <>
@@ -49,7 +42,6 @@ export default async function Page() {
         </p>
       </header>
       <main className="dg-page-main">
-        {readiness ? <InfraDomainsBetaChecklist readiness={readiness} /> : null}
         <DomainsConsole />
       </main>
     </>

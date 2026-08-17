@@ -223,13 +223,23 @@ export default async function middleware(req: NextRequest, event: unknown) {
     }
 
     // CVH: /accommodation/{unit} duplicates → canonical /{unit} booking pages
+    // Legacy Private Studio slug → Garden Studio
     if (/(^|\.)currumbinvalleyhideaway\.com\.au$/i.test(hostname)) {
+      if (
+        /^\/private-studio\/?$/i.test(path) ||
+        /^\/accommodation\/private-studio\/?$/i.test(path)
+      ) {
+        const dest = req.nextUrl.clone();
+        dest.pathname = "/garden-studio";
+        return NextResponse.redirect(dest, 308);
+      }
       const unitMatch = path.match(
-        /^\/accommodation\/(tiny-home|private-studio|sanctuary-dome|rainforest-dome|canopy-dome|starlight-dome|the-shed)\/?$/i,
+        /^\/accommodation\/(tiny-home|garden-studio|private-studio|sanctuary-dome|rainforest-dome|canopy-dome|starlight-dome|the-shed)\/?$/i,
       );
       if (unitMatch) {
+        const leaf = unitMatch[1].toLowerCase();
         const dest = req.nextUrl.clone();
-        dest.pathname = `/${unitMatch[1].toLowerCase()}`;
+        dest.pathname = `/${leaf === "private-studio" ? "garden-studio" : leaf}`;
         return NextResponse.redirect(dest, 308);
       }
     }

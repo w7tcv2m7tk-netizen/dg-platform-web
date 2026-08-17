@@ -14,6 +14,7 @@ type SiteChrome = {
   footerHtml?: string;
   stylesheets?: string[];
   navLinks?: Array<{ label: string; href: string }>;
+  tagline?: string;
   businessName?: string;
   overlayHeader?: boolean;
   headerLayout?: "bar" | "stacked";
@@ -64,6 +65,8 @@ const PAGE_SLUG_ALIASES: Record<string, string> = {
   "free-property-appraisal": "property-appraisal",
   "property-appraisal-gold-coast": "property-appraisal",
   "free-buyer-consultation": "buyer-consultation",
+  "private-studio": "garden-studio",
+  "accommodation/private-studio": "garden-studio",
 };
 
 function resolvePage(
@@ -199,6 +202,13 @@ async function renderSite(
     }
   }
   if (!page) notFound();
+
+  if (
+    pageSlug === "private-studio" ||
+    pageSlug === "accommodation/private-studio"
+  ) {
+    redirect("/garden-studio");
+  }
 
   if (pageSlug && page.slug === "home") {
     redirect("/");

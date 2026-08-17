@@ -380,7 +380,7 @@ const PLANS = {
         .replace(/-/g, " ")
         .replace(/\b\w/g, (c) => c.toUpperCase());
       if (
-        /dome|studio|tiny-home|the-shed|private-studio|canopy|rainforest|sanctuary|starlight/.test(
+        /dome|studio|tiny-home|the-shed|garden-studio|private-studio|canopy|rainforest|sanctuary|starlight/.test(
           slug,
         )
       ) {

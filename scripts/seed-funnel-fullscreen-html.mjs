@@ -10,7 +10,10 @@ config({ path: ".env.local" });
 const prisma = new PrismaClient();
 
 const RR_HERO =
-  "https://roerealty.com.au/wp-content/uploads/2026/05/IMG_9317-scaled.jpeg";
+  "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1k71w0000jr04ljsf91z2/wp-migrate/67bf3ec978a33bc9.jpeg";
+const RR_ICON =
+  "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1k71w0000jr04ljsf91z2/5b626ea3954a4f5c-ZJYwG92fbIcGghl5uO25wNvSbJrQbx.png";
+const DG_ICON = "https://app.digitalgate.com.au/brand/icon-light.png";
 
 const RR_HTML = `<link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&family=Manrope:wght@500;600;700;800&display=swap" />
@@ -45,7 +48,10 @@ html,body{margin:0!important;padding:0!important;background:#0b1413!important}
 .dg-funnel-rr .note{margin:.85rem 0 0;text-align:center;font-size:.8rem;color:rgba(247,244,239,.62)}
 .dg-funnel-rr .status{margin:.95rem 0 0;font-size:.9rem;min-height:1.25rem}
 .dg-funnel-rr .addr{margin:0 0 1rem;padding:.75rem .9rem;border-radius:.65rem;background:rgba(201,164,108,.1);border:1px solid rgba(201,164,108,.25);color:#fff;font-size:.92rem}
-.dg-funnel-rr .foot{grid-column:1/-1;margin:0;text-align:center;font-size:.78rem;color:rgba(247,244,239,.55)}
+.dg-funnel-rr .foot{grid-column:1/-1;margin:0;display:flex;flex-direction:column;align-items:center;gap:.75rem;text-align:center;font-size:.78rem;color:rgba(247,244,239,.55)}
+.dg-funnel-rr .brand-icons{display:inline-flex;align-items:center;gap:.85rem}
+.dg-funnel-rr .brand-icons a{display:inline-flex;opacity:.92}
+.dg-funnel-rr .brand-icons img{width:2.15rem;height:2.15rem;object-fit:contain;border-radius:.4rem}
 .dg-funnel-rr .hidden{display:none!important}
 .dg-funnel-rr a.cta{display:inline-flex;width:100%;box-sizing:border-box;justify-content:center;padding:1rem 1.15rem;border-radius:.75rem;background:linear-gradient(135deg,#d4b57a,#C9A46C 50%,#a07d45);color:#1C2B2A;font-weight:800;text-decoration:none}
 @media(max-width:860px){.dg-funnel-rr__shell{grid-template-columns:1fr;align-content:center}.dg-funnel-rr .trust{display:flex;flex-wrap:wrap;gap:.55rem 1rem}}
@@ -104,7 +110,13 @@ html,body{margin:0!important;padding:0!important;background:#0b1413!important}
       </div>
       <p id="rr-status" class="status" role="status"></p>
     </div>
-    <p class="foot">A Roe Realty Property Report™ — powered by DigitalGate.</p>
+    <div class="foot">
+      <div class="brand-icons" aria-label="Roe Realty and DigitalGate">
+        <a href="https://roerealty.com.au" target="_blank" rel="noopener noreferrer"><img src="${RR_ICON}" alt="Roe Realty" width="34" height="34" /></a>
+        <a href="https://digitalgate.com.au" target="_blank" rel="noopener noreferrer"><img src="${DG_ICON}" alt="DigitalGate" width="34" height="34" /></a>
+      </div>
+      <p>A Roe Realty Property Report™ — powered by DigitalGate.</p>
+    </div>
   </div>
 </section>
 <script>
@@ -188,7 +200,10 @@ html,body{margin:0!important;padding:0!important;background:#070b14!important}
 .dg-funnel-dg .track{height:7px;border-radius:99px;background:rgba(51,65,85,.85);overflow:hidden}
 .dg-funnel-dg .fill{height:100%;border-radius:99px}
 .dg-funnel-dg .meta{margin:0 0 1rem;padding:.7rem .85rem;border-radius:.65rem;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);color:#bfdbfe;font-size:.9rem}
-.dg-funnel-dg .foot{grid-column:1/-1;margin:0;text-align:center;font-size:.78rem;color:#64748b}
+.dg-funnel-dg .foot{grid-column:1/-1;margin:0;display:flex;flex-direction:column;align-items:center;gap:.75rem;text-align:center;font-size:.78rem;color:#64748b}
+.dg-funnel-dg .brand-icons{display:inline-flex;align-items:center;gap:.85rem}
+.dg-funnel-dg .brand-icons a{display:inline-flex;opacity:.92}
+.dg-funnel-dg .brand-icons img{width:2.15rem;height:2.15rem;object-fit:contain;border-radius:.4rem}
 .dg-funnel-dg .hidden{display:none!important}
 @media(max-width:860px){.dg-funnel-dg__shell{grid-template-columns:1fr;align-content:center}}
 </style>
@@ -255,7 +270,13 @@ html,body{margin:0!important;padding:0!important;background:#070b14!important}
       </div>
       <p id="dg-status" class="status" role="status"></p>
     </div>
-    <p class="foot">DigitalGate Business Audit™ — a DigitalGate acquisition product.</p>
+    <div class="foot">
+      <div class="brand-icons" aria-label="DigitalGate and Roe Realty">
+        <a href="https://digitalgate.com.au" target="_blank" rel="noopener noreferrer"><img src="${DG_ICON}" alt="DigitalGate" width="34" height="34" /></a>
+        <a href="https://roerealty.com.au" target="_blank" rel="noopener noreferrer"><img src="${RR_ICON}" alt="Roe Realty" width="34" height="34" /></a>
+      </div>
+      <p>DigitalGate Business Audit™ — a DigitalGate acquisition product.</p>
+    </div>
   </div>
 </section>
 <script>

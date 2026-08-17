@@ -1,8 +1,5 @@
 import Link from "next/link";
 
-import type { AccBetaReadiness } from "@dg/platform-core";
-
-import { AccBetaChecklist } from "@/components/accommodation/AccBetaChecklist";
 import type { WpAccommodationSummary } from "@/lib/dg-api";
 
 function StatCard({
@@ -53,22 +50,14 @@ export function AccommodationDashboard({
   summary,
   error,
   siteLabel,
-  readiness,
 }: {
   summary?: WpAccommodationSummary;
   error?: string;
   siteLabel?: string;
-  readiness?: AccBetaReadiness;
 }) {
-  const checklist =
-    readiness && readiness.completedCount < readiness.totalCount ? (
-      <AccBetaChecklist readiness={readiness} />
-    ) : null;
-
   if (error) {
     return (
       <div className="space-y-6">
-        {checklist}
         <div className="dg-card border-amber-500/30">
           <p className="text-amber-300">{error}</p>
           <p className="mt-2 text-sm text-slate-500">
@@ -86,7 +75,6 @@ export function AccommodationDashboard({
   if (!summary) {
     return (
       <div className="space-y-6">
-        {checklist}
         <div className="dg-card border-dashed border-slate-700">
           <h2 className="text-lg font-semibold text-white">Add your first units</h2>
           <p className="mt-2 max-w-xl text-sm text-slate-400">
@@ -130,8 +118,6 @@ export function AccommodationDashboard({
 
   return (
     <div className="space-y-6">
-      {checklist}
-
       {isEmpty ? (
         <div className="dg-card border-dashed border-slate-700">
           <h2 className="text-lg font-semibold text-white">Add your first units</h2>

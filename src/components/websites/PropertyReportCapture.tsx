@@ -39,7 +39,12 @@ const TIMEFRAMES = [
 ];
 
 const HERO_IMAGE =
-  "https://roerealty.com.au/wp-content/uploads/2026/05/IMG_9317-scaled.jpeg";
+  "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1k71w0000jr04ljsf91z2/wp-migrate/67bf3ec978a33bc9.jpeg";
+
+const RR_ICON =
+  "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1k71w0000jr04ljsf91z2/5b626ea3954a4f5c-ZJYwG92fbIcGghl5uO25wNvSbJrQbx.png";
+
+const DG_ICON = "https://app.digitalgate.com.au/brand/icon-light.png";
 
 const FUNNEL_CSS = `
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&family=Manrope:wght@500;600;700;800&display=swap");
@@ -318,9 +323,36 @@ const FUNNEL_CSS = `
 .dg-rr-funnel__foot {
   grid-column: 1 / -1;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
   text-align: center;
   font-size: 0.78rem;
   color: rgba(247, 244, 239, 0.55);
+}
+.dg-rr-funnel__brand-icons {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+}
+.dg-rr-funnel__brand-icons a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.92;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.dg-rr-funnel__brand-icons a:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+.dg-rr-funnel__brand-icons img {
+  width: 2.15rem;
+  height: 2.15rem;
+  object-fit: contain;
+  border-radius: 0.4rem;
 }
 @media (max-width: 860px) {
   .dg-rr-funnel__shell {
@@ -873,9 +905,21 @@ export function PropertyReportCapture({
             )}
           </div>
 
-          <p className="dg-rr-funnel__foot">
-            A Roe Realty Property Report™ — powered by DigitalGate.
-          </p>
+          <div className="dg-rr-funnel__foot">
+            <div className="dg-rr-funnel__brand-icons" aria-label="Roe Realty and DigitalGate">
+              <a href="https://roerealty.com.au" target="_blank" rel="noopener noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={RR_ICON} alt="Roe Realty" width={34} height={34} />
+              </a>
+              <a href="https://digitalgate.com.au" target="_blank" rel="noopener noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={DG_ICON} alt="DigitalGate" width={34} height={34} />
+              </a>
+            </div>
+            <p>
+              A Roe Realty Property Report™ — powered by DigitalGate.
+            </p>
+          </div>
         </div>
       </section>
     </>

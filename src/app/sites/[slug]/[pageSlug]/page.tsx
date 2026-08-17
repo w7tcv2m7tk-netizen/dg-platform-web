@@ -11,6 +11,7 @@ type SiteChrome = {
   stylesheets?: string[];
   navLinks?: Array<{ label: string; href: string }>;
   businessName?: string;
+  tagline?: string;
   overlayHeader?: boolean;
   lightSurface?: boolean;
   headerCta?: { label: string; href: string; backgroundColor?: string };
@@ -67,6 +68,14 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
     redirect(allowDraft ? `/sites/${slug}?preview=1` : `/sites/${slug}`);
   }
 
+  if (pageSlug === "private-studio") {
+    redirect(
+      allowDraft
+        ? `/sites/${slug}/garden-studio?preview=1`
+        : `/sites/${slug}/garden-studio`,
+    );
+  }
+
   let site = await getWebsiteBySlug(slug);
   if (!site) notFound();
   if (!allowDraft && site.status !== "published") notFound();
@@ -77,6 +86,7 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
       "free-property-appraisal": "property-appraisal",
       "property-appraisal-gold-coast": "property-appraisal",
       "free-buyer-consultation": "buyer-consultation",
+      "private-studio": "garden-studio",
     };
     const aliased = aliases[pageSlug];
     if (aliased) page = (site.pages ?? []).find((p) => p.slug === aliased);

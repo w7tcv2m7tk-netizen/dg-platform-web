@@ -8,13 +8,20 @@ import { getWebsiteBySlug } from "../websites/crud";
 import { createStayBookingGen2First } from "./bookings";
 import { buildAvailabilityFromNeon, listAccommodationUnits } from "./units";
 
-export const CVH_BOOKABLE_UNIT_SLUGS = ["private-studio", "tiny-home"] as const;
+export const CVH_BOOKABLE_UNIT_SLUGS = ["garden-studio", "tiny-home"] as const;
 
 export type CvhBookableUnitSlug = (typeof CVH_BOOKABLE_UNIT_SLUGS)[number];
 
+/** Legacy / alternate slugs → canonical bookable unit slug. */
+const STAY_UNIT_SLUG_ALIASES: Record<string, CvhBookableUnitSlug> = {
+  "garden-studio": "garden-studio",
+  "private-studio": "garden-studio",
+  "tiny-home": "tiny-home",
+};
+
 /** Blob heroes when WP media URLs are offline after apex cutover. */
 export const CVH_UNIT_HERO_FALLBACK: Record<CvhBookableUnitSlug, string> = {
-  "private-studio":
+  "garden-studio":
     "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1mggj0000ib04kvavtx4p/wp-migrate/11c7bd22c7360673.avif",
   "tiny-home":
     "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi1mggj0000ib04kvavtx4p/wp-migrate/981600a136c4da1f.avif",
@@ -25,7 +32,7 @@ export const CVH_UNIT_DISCOUNT_DEFAULTS: Record<
   CvhBookableUnitSlug,
   { lastMinute: number; earlyBird: number }
 > = {
-  "private-studio": { lastMinute: 10, earlyBird: 5 },
+  "garden-studio": { lastMinute: 10, earlyBird: 5 },
   "tiny-home": { lastMinute: 10, earlyBird: 5 },
 };
 
@@ -51,10 +58,7 @@ export function resolveStayUnitSlug(
 ): CvhBookableUnitSlug | null {
   if (!pageSlug) return null;
   const leaf = pageSlug.split("/").filter(Boolean).pop()?.toLowerCase() ?? "";
-  if ((CVH_BOOKABLE_UNIT_SLUGS as readonly string[]).includes(leaf)) {
-    return leaf as CvhBookableUnitSlug;
-  }
-  return null;
+  return STAY_UNIT_SLUG_ALIASES[leaf] ?? null;
 }
 
 export type PublicStayQuote = {

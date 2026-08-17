@@ -10,7 +10,7 @@ config({ path: ".env.local" });
 const prisma = new PrismaClient();
 
 const TITLE_MAP = [
-  [/garden\s+studio|private\s+studio/i, "private-studio"],
+  [/garden\s+studio|private\s+studio/i, "garden-studio"],
   [/tiny\s+home/i, "tiny-home"],
   [/sanctuary\s+dome/i, "sanctuary-dome"],
   [/rainforest\s+dome/i, "rainforest-dome"],

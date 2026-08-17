@@ -5,7 +5,7 @@
  */
 
 export const CVH_UNIT_DISPLAY_ORDER = [
-  "private-studio",
+  "garden-studio",
   "tiny-home",
   "sanctuary-dome",
   "rainforest-dome",
@@ -22,8 +22,8 @@ const ORDER_INDEX = new Map<string, number>(
 
 /** Title phrases → canonical slug (covers WP titles without matching post_name). */
 const TITLE_TO_SLUG: Array<{ re: RegExp; slug: CvhUnitDisplaySlug }> = [
-  { re: /\bprivate\s+studio\b/i, slug: "private-studio" },
-  { re: /\bgarden\s+studio\b/i, slug: "private-studio" },
+  { re: /\bgarden\s+studio\b/i, slug: "garden-studio" },
+  { re: /\bprivate\s+studio\b/i, slug: "garden-studio" },
   { re: /\btiny\s+home\b/i, slug: "tiny-home" },
   { re: /\bsanctuary\s+dome\b/i, slug: "sanctuary-dome" },
   { re: /\brainforest\s+dome\b/i, slug: "rainforest-dome" },
@@ -57,9 +57,11 @@ export function resolveCvhUnitDisplaySlug(input: {
 }): CvhUnitDisplaySlug | null {
   const slugRaw = input.slug?.trim().toLowerCase();
   if (slugRaw) {
+    if (slugRaw === "private-studio") return "garden-studio";
     const direct = ORDER_INDEX.has(slugRaw) ? (slugRaw as CvhUnitDisplaySlug) : null;
     if (direct) return direct;
     const slugified = slugifySegment(slugRaw);
+    if (slugified === "private-studio") return "garden-studio";
     if (ORDER_INDEX.has(slugified)) return slugified as CvhUnitDisplaySlug;
   }
 

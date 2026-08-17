@@ -109,7 +109,10 @@ export async function GET(req: Request) {
         propertyId,
       });
       return NextResponse.json({
-        data: avail,
+        data: {
+          ...avail,
+          units: sortAccommodationUnitsByDisplayOrder(avail.units),
+        },
         meta: { source: "postgres", sot: true },
       });
     }
@@ -124,7 +127,10 @@ export async function GET(req: Request) {
         propertyId,
       });
       return NextResponse.json({
-        data: avail,
+        data: {
+          ...avail,
+          units: sortAccommodationUnitsByDisplayOrder(avail.units),
+        },
         meta: { source: "postgres", sot: true, apex: true },
       });
     }

@@ -2,7 +2,6 @@ import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import {
   getOrganisationBusinessProfile,
-  getWebsitesBetaReadiness,
   listOrganisationDomains,
   listWebsites,
   organisationHasWebsitesBuilder,
@@ -12,7 +11,6 @@ import {
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { CreateWebsiteForm } from "@/components/websites/CreateWebsiteForm";
-import { WebsitesBetaChecklist } from "@/components/websites/WebsitesBetaChecklist";
 import { WebsitesSubnav } from "@/components/websites/WebsitesSubnav";
 
 function statusBadge(status: string) {
@@ -61,10 +59,6 @@ export default async function WebsitesHomePage() {
       ? await getOrganisationBusinessProfile(session.organisationId)
       : null;
   const suggestedTemplate = suggestTemplateFromProfile(profile);
-  const readiness =
-    session && allowed
-      ? await getWebsitesBetaReadiness(session.organisationId)
-      : null;
 
   return (
     <>
@@ -98,8 +92,6 @@ export default async function WebsitesHomePage() {
           </div>
         ) : (
           <div className="space-y-10">
-            {readiness ? <WebsitesBetaChecklist readiness={readiness} /> : null}
-
             <div className="flex flex-wrap gap-2 text-xs text-slate-500">
               <span className="rounded-full border border-slate-700 px-2.5 py-1">
                 1. Create from profile
