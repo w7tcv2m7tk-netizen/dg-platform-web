@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -39,40 +40,6 @@ function Field({
 
 const inputClass =
   "w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
-
-function TwinPanel({ context }: { context: BusinessContext }) {
-  const { twin } = context;
-  const items = [
-    { label: "Website health", value: twin.websiteHealth, suffix: "/100" },
-    { label: "AI Visibility", value: twin.aiVisibility, suffix: "/100" },
-    { label: "SEO", value: twin.seo, suffix: "/100" },
-    { label: "Contacts", value: twin.contactCount },
-    { label: "Active leads", value: twin.activeLeads },
-    { label: "Connected systems", value: twin.connectedSystems.length },
-  ].filter((i) => i.value != null && i.value !== 0);
-
-  if (!items.length) {
-    return (
-      <p className="text-sm text-slate-500">
-        Digital Twin signals appear here as apps and connectors gather data.
-      </p>
-    );
-  }
-
-  return (
-    <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map((item) => (
-        <div key={item.label} className="rounded-lg border border-slate-800 bg-slate-900/40 p-3">
-          <dt className="text-xs text-slate-500">{item.label}</dt>
-          <dd className="mt-1 text-lg font-semibold text-white">
-            {item.value}
-            {item.suffix ?? ""}
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
 
 function AiQuickActions() {
   const [loading, setLoading] = useState<string | null>(null);
@@ -776,13 +743,17 @@ export function BusinessProfileEditor({
       </section>
 
       <section className="dg-card">
-        <h3 className="text-lg font-semibold text-white">Digital Twin™ — live signals</h3>
+        <h3 className="text-lg font-semibold text-white">Digital Twin™</h3>
         <p className="mt-1 text-sm text-slate-400">
-          Read-only metrics aggregated from apps and connectors. Updates as your business operates.
+          Live signals — contacts, pipeline, consultations, health scores — live on Digital Twin.
+          This page is the identity the Twin reads.
         </p>
-        <div className="mt-4">
-          <TwinPanel context={context} />
-        </div>
+        <Link
+          href="/dashboard/twin"
+          className="mt-4 inline-block text-sm text-sky-400 hover:underline"
+        >
+          Open Digital Twin →
+        </Link>
       </section>
 
       <section className="dg-card">

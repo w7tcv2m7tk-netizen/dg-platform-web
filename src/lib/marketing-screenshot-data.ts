@@ -40,6 +40,9 @@ export const marketingOverviewInput: BuildBusinessOverviewInput = {
     outstandingArCents: 1_200_000,
     overdueArCents: 0,
     activeSubscriptions: 2,
+    openOpportunityCount: 19,
+    openLeadCount: 22,
+    consultationCount: 0,
   },
   connectorProbes: {
     wordpress: {

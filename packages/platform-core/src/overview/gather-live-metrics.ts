@@ -20,6 +20,9 @@ export interface OverviewLiveMetrics {
   outstandingArCents: number;
   overdueArCents: number;
   activeSubscriptions: number;
+  openOpportunityCount: number;
+  openLeadCount: number;
+  consultationCount: number;
 }
 
 function startOfWeek() {
@@ -56,6 +59,9 @@ export async function gatherOverviewLiveMetrics(
     listedProperties,
     pipelineAgg,
     openTasksDue,
+    openOpportunityCount,
+    openLeadCount,
+    consultationCount,
   ] = await Promise.all([
     getPlatformSetupStatus(organisationId),
     getCommerceFinancialSnapshot(organisationId),
@@ -95,6 +101,22 @@ export async function gatherOverviewLiveMetrics(
         dueAt: { lte: todayEnd },
       },
     }),
+    prisma.opportunity.count({
+      where: { organisationId, status: "open" },
+    }),
+    prisma.lead.count({
+      where: {
+        organisationId,
+        status: { notIn: ["converted", "lost", "closed", "junk"] },
+      },
+    }),
+    prisma.opportunity.count({
+      where: {
+        organisationId,
+        status: "open",
+        pipelineId: "platform_consultation",
+      },
+    }),
   ]);
 
   return {
@@ -114,5 +136,8 @@ export async function gatherOverviewLiveMetrics(
     outstandingArCents: financial.outstandingArCents,
     overdueArCents: financial.overdueArCents,
     activeSubscriptions: financial.activeSubscriptions,
+    openOpportunityCount,
+    openLeadCount,
+    consultationCount,
   };
 }

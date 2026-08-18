@@ -13,6 +13,7 @@ export interface CaptureTwinSnapshotInput {
     tradingName?: string;
     logoUrl?: string;
     brandColours?: string;
+    websiteUrl?: string;
     brandVoice?: { tagline?: string };
   } | null;
 }
@@ -33,21 +34,25 @@ export function captureDigitalTwinSnapshot(
     : undefined;
 
   const connected: string[] = [];
-  if (connectors.website?.ok) connected.push("website");
+  if (enabledAppIds.includes("crm")) connected.push("crm");
+  if (connectors.website?.ok || enabledAppIds.includes("websites")) {
+    connected.push("website");
+  }
   if (connectors.wordpress?.ok) connected.push("wordpress");
   if (connectors.stripeOk) connected.push("stripe");
   if (enabledAppIds.includes("real-estate")) connected.push("real-estate");
   if (enabledAppIds.includes("accommodation")) connected.push("accommodation");
   if (enabledAppIds.includes("commerce")) connected.push("commerce");
+  if (enabledAppIds.includes("automation")) connected.push("automation");
 
   const websiteScore = connectors.website?.score;
+  const hasRe = enabledAppIds.includes("real-estate");
   const rePipeline =
-    connectors.reSummary?.vendorPipelineTotal ??
-    metrics.vendorLeadCount;
+    connectors.reSummary?.vendorPipelineTotal ?? metrics.vendorLeadCount;
   const pipelineValue =
     metrics.pipelineValueCents > 0
       ? metrics.pipelineValueCents / 100
-      : rePipeline > 0
+      : hasRe && rePipeline > 0
         ? rePipeline * 450_000
         : undefined;
 
@@ -67,7 +72,9 @@ export function captureDigitalTwinSnapshot(
     },
     metrics: {
       contactCount: metrics.contactCount,
-      activeLeads: metrics.vendorLeadCount + metrics.buyerLeadCount,
+      activeLeads:
+        metrics.openLeadCount ??
+        metrics.vendorLeadCount + metrics.buyerLeadCount,
       pipelineValue,
       openTasks: metrics.openTasksDue,
       connectedConnectors: connected.length,
@@ -75,9 +82,16 @@ export function captureDigitalTwinSnapshot(
       outstandingArCents: metrics.outstandingArCents,
       overdueArCents: metrics.overdueArCents,
       mrrCents: metrics.activeSubscriptions > 0 ? metrics.revenueMtdCents : 0,
+      openOpportunities: metrics.openOpportunityCount,
+      consultations: metrics.consultationCount,
+      newEnquiriesThisWeek: metrics.newLeadsThisWeek,
     },
     connectors: connected,
     domains: [],
-    websites: connectors.website?.siteLabel ? [connectors.website.siteLabel] : [],
+    websites: connectors.website?.siteLabel
+      ? [connectors.website.siteLabel]
+      : profile?.websiteUrl
+        ? [profile.websiteUrl]
+        : [],
   };
 }

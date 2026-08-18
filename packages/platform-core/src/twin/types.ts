@@ -38,6 +38,9 @@ export interface DigitalTwinSnapshot {
     connectedConnectors?: number;
     pendingAutomations?: number;
     unrepliedReviews?: number;
+    openOpportunities?: number;
+    consultations?: number;
+    newEnquiriesThisWeek?: number;
     /** Commerce / Financial Health (Digital Twin™) */
     revenueMtdCents?: number;
     outstandingArCents?: number;
