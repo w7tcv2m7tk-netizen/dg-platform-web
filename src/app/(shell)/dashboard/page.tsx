@@ -4,6 +4,7 @@ import {
   buildBusinessOverview,
   gatherOverviewLiveMetrics,
   getOrganisationBusinessProfile,
+  getOrganisationGoals,
   getPlatformSetupStatus,
   healthDeltaFromHistory,
   healthTrendFromHistory,
@@ -45,8 +46,12 @@ export default async function DashboardPage() {
   }
 
   let businessProfile = null;
+  let goals = undefined as Awaited<ReturnType<typeof getOrganisationGoals>> | undefined;
   if (platformSession) {
-    businessProfile = await getOrganisationBusinessProfile(platformSession.organisationId);
+    [businessProfile, goals] = await Promise.all([
+      getOrganisationBusinessProfile(platformSession.organisationId),
+      getOrganisationGoals(platformSession.organisationId),
+    ]);
   }
 
   let overview = buildBusinessOverview({
@@ -60,6 +65,7 @@ export default async function DashboardPage() {
     liveMetrics,
     connectorProbes,
     healthHistory,
+    goals,
   });
 
   if (platformSession && liveMetrics && overview.scoresLive) {

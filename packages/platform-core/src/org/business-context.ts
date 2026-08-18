@@ -2,6 +2,7 @@ import type { DigitalTwinSnapshot } from "../twin/types";
 import type { OrganisationBusinessProfile } from "./business-profile-types";
 import { absoluteBrandAssetUrl, parseBrandColours } from "./brand-theme";
 import { getOrganisationBusinessProfile } from "./onboarding-profile";
+import { getOrganisationGoals, type OrganisationGoal } from "./goals";
 
 export type BusinessContextIdentity = {
   businessName: string;
@@ -61,6 +62,7 @@ export type BusinessContext = {
   brandVoice: BusinessContextBrandVoice;
   twin: BusinessContextTwinSummary;
   profile: OrganisationBusinessProfile | null;
+  goals: OrganisationGoal[];
   capturedAt: string;
 };
 
@@ -177,16 +179,21 @@ export type GetBusinessContextInput = {
   enabledAppIds?: string[];
   twinSnapshot?: DigitalTwinSnapshot | null;
   profileOverride?: OrganisationBusinessProfile | null;
+  goalsOverride?: OrganisationGoal[] | null;
 };
 
 /** Single read path for apps and AI — Business Profile + Twin summary */
 export async function getBusinessContext(
   input: GetBusinessContextInput,
 ): Promise<BusinessContext> {
-  const profile =
+  const [profile, goals] = await Promise.all([
     input.profileOverride !== undefined
-      ? input.profileOverride
-      : await getOrganisationBusinessProfile(input.organisationId);
+      ? Promise.resolve(input.profileOverride)
+      : getOrganisationBusinessProfile(input.organisationId),
+    input.goalsOverride !== undefined
+      ? Promise.resolve(input.goalsOverride ?? [])
+      : getOrganisationGoals(input.organisationId),
+  ]);
 
   const orgMeta = {
     name: input.organisationName,
@@ -211,6 +218,7 @@ export async function getBusinessContext(
     },
     twin: snapshotToTwinSummary(input.twinSnapshot),
     profile,
+    goals,
     capturedAt: new Date().toISOString(),
   };
 }
@@ -271,6 +279,17 @@ export function buildAiSystemPrompt(context: BusinessContext): string {
       lines.push(`AI Visibility: ${context.twin.aiVisibility}/100`);
     }
     if (context.twin.seo != null) lines.push(`SEO score: ${context.twin.seo}/100`);
+  }
+
+  const activeGoals = context.goals.filter((goal) => goal.status === "active");
+  if (activeGoals.length) {
+    lines.push("", "## Goals");
+    for (const goal of activeGoals) {
+      lines.push(
+        `- ${goal.title} (target ${goal.target} ${goal.metric}, ${goal.horizon}${goal.dueAt ? `, due ${goal.dueAt}` : ""})`,
+      );
+    }
+    lines.push("Prioritise actions that move these goals.");
   }
 
   if (context.enabledAppIds.length) {
@@ -359,7 +378,8 @@ export function generateFromBusinessContext(
       ]
         .filter(Boolean)
         .join("\n");
-    case "briefing":
+    case "briefing": {
+      const activeGoals = context.goals.filter((goal) => goal.status === "active");
       return [
         `Daily briefing for ${name}`,
         "",
@@ -373,11 +393,17 @@ export function generateFromBusinessContext(
         context.twin.websiteHealth != null
           ? `Website health: ${context.twin.websiteHealth}/100`
           : "",
+        activeGoals.length
+          ? `Goals: ${activeGoals.map((goal) => goal.title).join("; ")}`
+          : "No goals set yet.",
         "",
-        `Focus today: follow up on open opportunities and strengthen ${industry} pipeline.`,
+        activeGoals.length
+          ? `Focus today: move the goals above using open opportunities and follow-up.`
+          : `Focus today: set business goals, then follow up on open opportunities.`,
       ]
         .filter(Boolean)
         .join("\n");
+    }
     case "lead_follow_up":
     case "opportunity_follow_up":
     case "contact_follow_up":

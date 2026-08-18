@@ -10,9 +10,14 @@ import { healthDeltaFromHistory, healthTrendFromHistory } from "./health-history
 import { buildSetupProgress } from "./setup-progress";
 import { buildGrowthOpportunities } from "./growth-opportunities";
 import { enquiryInboxHref, hasRealEstateWorkspace } from "../leads/inbox-href";
+import {
+  evaluateOrganisationGoals,
+  type OrganisationGoal,
+} from "../org/goals";
 import type {
   BusinessOverview,
   OverviewConnectedSystem,
+  OverviewGoalProgress,
   OverviewSetupProgress,
   OverviewSnapshotKpi,
   OverviewTimelineEntry,
@@ -45,6 +50,8 @@ export interface BuildBusinessOverviewInput {
   connectorProbes?: OverviewConnectorProbes;
   /** Stored monthly Business Health scores */
   healthHistory?: HealthHistoryEntry[];
+  /** Organisation goals — Twin progress + Advisor ranking */
+  goals?: OrganisationGoal[];
 }
 
 function greetingForHour(hour: number, name: string) {
@@ -262,6 +269,26 @@ function buildOpportunities(input: {
   return buildGrowthOpportunities(input);
 }
 
+function overviewGoalsFrom(
+  goals: OrganisationGoal[] | undefined,
+  snapshot: import("../twin/types").DigitalTwinSnapshot | null,
+  enabledAppIds: string[],
+): OverviewGoalProgress[] {
+  return evaluateOrganisationGoals(
+    (goals ?? []).filter((goal) => goal.status === "active" || goal.status === "paused"),
+    snapshot,
+    enabledAppIds,
+  ).map((item) => ({
+    id: item.goal.id,
+    title: item.goal.title,
+    percent: item.percent,
+    currentLabel: item.currentLabel,
+    targetLabel: item.targetLabel,
+    href: item.href,
+    status: item.goal.status,
+  }));
+}
+
 /** Build CEO dashboard payload from live Twin → Scoring → BI pipeline. */
 export function buildBusinessOverview(input: BuildBusinessOverviewInput): BusinessOverview {
   const {
@@ -338,6 +365,7 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
     connectors: connectorProbes,
     snapshot,
     scores,
+    goals: input.goals,
   });
 
   const businessHealth = scores.businessHealth;
@@ -408,6 +436,7 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
       { id: "web", label: "Website Audit", href: "/apps/websites/health" },
     ],
     teamActivity: [],
+    goals: overviewGoalsFrom(input.goals, snapshot, enabledAppIds),
     visibleWidgets: widgetsForApps(enabledAppIds),
     setupIncomplete,
     setupProgress,
@@ -487,6 +516,7 @@ function buildPreviewOverview(
     growthOpportunityCount: opportunities.totalCount,
     recentReports: [{ id: "web", label: "Website Audit", href: "/apps/websites/health" }],
     teamActivity: [],
+    goals: overviewGoalsFrom(input.goals, null, enabledAppIds),
     visibleWidgets: widgetsForApps(enabledAppIds),
     setupIncomplete,
     setupProgress,

@@ -44,6 +44,42 @@ function HealthTrendChart({ values }: { values: number[] }) {
   );
 }
 
+function GoalRow({
+  goal,
+}: {
+  goal: {
+    id: string;
+    title: string;
+    percent: number;
+    currentLabel: string;
+    targetLabel: string;
+    href?: string;
+  };
+}) {
+  const bar = (
+    <>
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <span className="text-slate-200">{goal.title}</span>
+        <span className="text-slate-400">
+          {goal.currentLabel} / {goal.targetLabel}
+        </span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800">
+        <div
+          className="h-full rounded-full bg-sky-500"
+          style={{ width: `${Math.max(0, Math.min(100, goal.percent))}%` }}
+        />
+      </div>
+    </>
+  );
+  if (!goal.href) return <div>{bar}</div>;
+  return (
+    <Link href={goal.href} className="block hover:opacity-90">
+      {bar}
+    </Link>
+  );
+}
+
 export function BusinessOverviewDashboard({ overview }: { overview: BusinessOverview }) {
   const { openSupportChat } = useChatWidget();
 
@@ -77,6 +113,24 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
           {overview.dailyBriefing}
         </p>
       </section>
+
+      {overview.goals.length ? (
+        <section className="dg-card">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-semibold text-white">Goals</h2>
+            <Link href="/dashboard/goals" className="text-xs text-sky-400 hover:underline">
+              Manage →
+            </Link>
+          </div>
+          <ul className="mt-4 space-y-3">
+            {overview.goals.slice(0, 4).map((goal) => (
+              <li key={goal.id}>
+                <GoalRow goal={goal} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {/* Priorities — largest card */}
       <section className="dg-card lg:col-span-2 border-emerald-500/15 bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/20">

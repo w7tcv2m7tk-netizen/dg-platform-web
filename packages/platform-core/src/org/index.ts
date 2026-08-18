@@ -6,6 +6,7 @@ export * from "./setup-status";
 export * from "./onboarding-profile";
 export * from "./business-profile-types";
 export * from "./business-context";
+export * from "./goals";
 export * from "./brand-theme";
 export * from "./brand-presets";
 export * from "../crypto/secret-field";

@@ -84,6 +84,16 @@ export interface OverviewTeamMember {
   summary: string;
 }
 
+export interface OverviewGoalProgress {
+  id: string;
+  title: string;
+  percent: number;
+  currentLabel: string;
+  targetLabel: string;
+  href?: string;
+  status: string;
+}
+
 export interface OverviewAiPrompt {
   id: string;
   label: string;
@@ -130,6 +140,7 @@ export interface BusinessOverview {
   growthOpportunityCount: number;
   recentReports: OverviewReportLink[];
   teamActivity: OverviewTeamMember[];
+  goals: OverviewGoalProgress[];
   visibleWidgets: OverviewWidgetId[];
   setupIncomplete: boolean;
   setupProgress: OverviewSetupProgress;

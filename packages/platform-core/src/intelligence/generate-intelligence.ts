@@ -9,6 +9,10 @@ import type {
   OverviewRecommendedAction,
 } from "../overview/types";
 import { enquiryInboxHref, hasRealEstateWorkspace } from "../leads/inbox-href";
+import {
+  evaluateOrganisationGoals,
+  type OrganisationGoal,
+} from "../org/goals";
 
 export interface GenerateIntelligenceInput {
   organisationName: string;
@@ -18,6 +22,7 @@ export interface GenerateIntelligenceInput {
   connectors: OverviewConnectorProbes;
   snapshot: DigitalTwinSnapshot;
   scores: OrgScoresResult;
+  goals?: OrganisationGoal[];
 }
 
 export interface GeneratedIntelligence {
@@ -48,7 +53,7 @@ function formatPipeline(value?: number) {
 export function generateBusinessIntelligence(
   input: GenerateIntelligenceInput,
 ): GeneratedIntelligence {
-  const { userDisplayName, enabledAppIds, metrics, connectors, snapshot, scores } = input;
+  const { userDisplayName, enabledAppIds, metrics, connectors, snapshot, scores, goals = [] } = input;
   const firstName = userDisplayName.split(" ")[0] || userDisplayName;
   const enquiryHref = enquiryInboxHref(enabledAppIds);
   const reWorkspace = hasRealEstateWorkspace(enabledAppIds);
@@ -104,8 +109,27 @@ export function generateBusinessIntelligence(
     );
   }
 
+  const goalProgress = evaluateOrganisationGoals(
+    goals.filter((goal) => goal.status === "active"),
+    snapshot,
+    enabledAppIds,
+  );
+  const laggingGoal = goalProgress.find((item) => item.percent < 70);
+  if (laggingGoal) {
+    briefingParts.push(
+      `${laggingGoal.goal.title} is at ${laggingGoal.percent}% of target (${laggingGoal.currentLabel} of ${laggingGoal.targetLabel}).`,
+    );
+  }
+
   const priorities: OverviewPriority[] = [];
   let rank = 1;
+
+  if (laggingGoal) {
+    priorities.push({
+      rank: rank++,
+      text: `Move ${laggingGoal.goal.title} — currently ${laggingGoal.currentLabel} of ${laggingGoal.targetLabel}.`,
+    });
+  }
 
   if (metrics.overdueFollowUps > 0) {
     priorities.push({
@@ -220,6 +244,14 @@ export function generateBusinessIntelligence(
     });
   }
 
+  if (goalProgress.length) {
+    const onTrack = goalProgress.filter((item) => item.percent >= 70).length;
+    insights.push({
+      text: `${onTrack} of ${goalProgress.length} active goal${goalProgress.length === 1 ? "" : "s"} on track.`,
+      tone: laggingGoal ? "warning" : "positive",
+    });
+  }
+
   if (insights.length === 0) {
     insights.push({
       text: "Connect your website and CRM to unlock live business intelligence.",
@@ -228,6 +260,24 @@ export function generateBusinessIntelligence(
   }
 
   const recommendedActions: OverviewRecommendedAction[] = [];
+
+  if (laggingGoal) {
+    recommendedActions.push({
+      id: `goal-${laggingGoal.goal.id}`,
+      label: `Push toward ${laggingGoal.goal.title}`,
+      impact: `${laggingGoal.percent}% of target`,
+      href: laggingGoal.href ?? "/dashboard/goals",
+      buttonLabel: "Review goal",
+    });
+  } else if (!goalProgress.length) {
+    recommendedActions.push({
+      id: "set-goals",
+      label: "Set business goals",
+      impact: "Give Advisor a target",
+      href: "/dashboard/goals",
+      buttonLabel: "Set goals",
+    });
+  }
 
   if (metrics.overdueFollowUps > 0) {
     recommendedActions.push({
