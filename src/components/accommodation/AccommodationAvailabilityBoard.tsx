@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ACC_CALENDAR_HORIZON_DAYS } from "@dg/platform-core";
 
 import type { WpAccAvailabilityUnit, WpAccBookingRow } from "@/lib/dg-api";
 
@@ -372,12 +371,15 @@ export function AccommodationAvailabilityBoard({
   units: initialUnits,
   error,
   siteLabel,
+  horizonDays = 730,
 }: {
   from: string;
   to: string;
   units: WpAccAvailabilityUnit[];
   error?: string;
   siteLabel?: string;
+  /** How far ahead OTA sync pulls — passed from the server so this client file stays off the platform-core barrel. */
+  horizonDays?: number;
 }) {
   const router = useRouter();
   const [view, setView] = useState<CalendarView>("month");
@@ -481,7 +483,7 @@ export function AccommodationAvailabilityBoard({
     setSyncing(true);
     setSyncMsg(null);
     // Pull the same 2-year horizon the calendar page loads.
-    const syncTo = addDays(todayLocalISO(), ACC_CALENDAR_HORIZON_DAYS);
+    const syncTo = addDays(todayLocalISO(), horizonDays);
     const res = await fetch("/api/v1/accommodation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -123,6 +123,7 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
           units={units}
           error={error}
           siteLabel={siteLabel}
+          horizonDays={ACC_CALENDAR_HORIZON_DAYS}
         />
       </main>
     </>
