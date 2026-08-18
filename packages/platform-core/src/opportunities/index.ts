@@ -196,6 +196,8 @@ export async function convertLeadToOpportunity(input: {
   stage?: string;
   title?: string;
   valueCents?: number;
+  pipelineId?: string;
+  metadata?: Record<string, unknown>;
 }) {
   const { prisma } = await import("@dg/database");
 
@@ -220,7 +222,7 @@ export async function convertLeadToOpportunity(input: {
   const stage =
     input.stage ??
     (typeof metadata.stage === "string" ? metadata.stage : null) ??
-    (leadType === "buyer" ? "qualified" : "appraisal");
+    (leadType === "consultation" ? "booked" : leadType === "buyer" ? "qualified" : "appraisal");
 
   let contactId = lead.contactId;
   if (!contactId) {
@@ -268,10 +270,17 @@ export async function convertLeadToOpportunity(input: {
     leadId: lead.id,
     propertyId: property?.id,
     valueCents: input.valueCents,
-    pipelineId: leadType === "buyer" ? "buyer" : "vendor",
+    pipelineId:
+      input.pipelineId ??
+      (leadType === "consultation"
+        ? "platform_consultation"
+        : leadType === "buyer"
+          ? "buyer"
+          : "vendor"),
     metadata: {
       lead_type: leadType,
       converted_from_lead: true,
+      ...(input.metadata ?? {}),
     },
   });
 

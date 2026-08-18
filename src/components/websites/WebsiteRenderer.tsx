@@ -17,6 +17,7 @@ import {
 import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
 import { RoeBookingCapture } from "@/components/websites/RoeBookingCapture";
 import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
+import { HtmlWithDgForms } from "@/components/websites/HtmlWithDgForms";
 import { ChromeHeaderHtml } from "@/components/websites/ChromeHeaderHtml";
 import { stripCvhFooterExploreColumn } from "@/lib/strip-cvh-footer-explore";
 import {
@@ -40,7 +41,7 @@ const CREAM_PAGE_BG_RE =
  */
 function ensureCreamHtmlIsland(html: string): string {
   if (!html || /\bwb-html-island--light\b/.test(html)) return html;
-  if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app)\b/.test(html)) return html;
+  if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app|dg-insights|dg-aiv|dg-ams|dg-lpf|dg-vvs|dg-dbc)\b/.test(html)) return html;
   if (!CREAM_PAGE_BG_RE.test(html)) return html;
   return html.replace(
     /class="([^"]*\bwb-html-island\b[^"]*)"/g,
@@ -627,7 +628,7 @@ export function WebsiteComponentView({
       let html = asString(component.props.html);
       if (!html) return null;
       // Navy DigitalGate shells must not keep cream-island class from import.
-      if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app)\b/.test(html)) {
+      if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app|dg-insights|dg-aiv|dg-ams|dg-lpf|dg-vvs|dg-dbc)\b/.test(html)) {
         html = html.replace(/\bwb-html-island--light\b/g, "").replace(/\s{2,}/g, " ");
       } else {
         html = ensureCreamHtmlIsland(html);
@@ -635,6 +636,9 @@ export function WebsiteComponentView({
       html = rewriteProductFunnelHtml(html);
       if (/gallery-grid|gallery-item/i.test(html)) {
         return <HtmlWithGallery html={html} />;
+      }
+      if (/id=["'](?:dgContactForm|dgFoundingForm|dgBookingForm)["']/i.test(html)) {
+        return <HtmlWithDgForms html={html} />;
       }
       return (
         <section
@@ -1216,7 +1220,7 @@ export function WebsitePageRenderer({
           c.props.html,
         ) &&
         /* DigitalGate navy shells (Founding / About / Contact / legal) are intentionally dark */
-        !/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app)\b/.test(c.props.html),
+        !/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app|dg-insights|dg-aiv|dg-ams|dg-lpf|dg-vvs|dg-dbc)\b/.test(c.props.html),
     );
   /** Light Insights / cream listing pages */
   const lightSurface =
@@ -1349,7 +1353,7 @@ export function WebsitePageRenderer({
           overlay={overlayHeader}
           headerCta={resolvedHeaderCta}
           layout={headerLayout}
-          showIcon={/digitalgate/i.test(siteSlug)}
+          showIcon={false}
         />
       ) : headerHtml ? (
         <ChromeHeaderHtml html={headerHtml} />

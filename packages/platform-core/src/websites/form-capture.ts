@@ -4,6 +4,7 @@
 
 import { createContact } from "../contacts";
 import { createLead } from "../leads";
+import { parseConsultationAppointment } from "../marketing/consultation-emails";
 import { getWebsiteBySlug } from "./crud";
 
 export type WebsiteFormCaptureInput = {
@@ -87,9 +88,12 @@ async function captureForWebsite(
     typeof siteMeta?.funnelTemplate === "string"
       ? siteMeta.funnelTemplate
       : null;
-  const leadTitle = isFunnel
-    ? `Funnel enquiry${funnelTemplate ? ` (${funnelTemplate.replace(/_/g, " ")})` : ""} — ${input.name.trim()}`
-    : `Website enquiry — ${input.name.trim()}`;
+  const isConsultation = input.pageSlug === "strategy-session";
+  const leadTitle = isConsultation
+    ? `Platform Consultation — ${input.name.trim()}`
+    : isFunnel
+      ? `Funnel enquiry${funnelTemplate ? ` (${funnelTemplate.replace(/_/g, " ")})` : ""} — ${input.name.trim()}`
+      : `Website enquiry — ${input.name.trim()}`;
 
   let contactId: string | undefined;
   if (email) {
@@ -120,8 +124,12 @@ async function captureForWebsite(
     contactId,
     status: "new",
     metadata: {
-      lead_type: isFunnel ? "funnel_enquiry" : "enquiry",
-      stage: "new",
+      lead_type: isConsultation
+        ? "consultation"
+        : isFunnel
+          ? "funnel_enquiry"
+          : "enquiry",
+      stage: isConsultation ? "booked" : "new",
       website_id: websiteId,
       site_slug: siteSlug,
       page_slug: input.pageSlug ?? null,
@@ -131,10 +139,26 @@ async function captureForWebsite(
       capture_path: isFunnel ? "website_builder_funnel" : "website_builder_form",
       funnel: isFunnel,
       funnel_template: funnelTemplate,
+      ...consultationMetaFromMessage(input.message, isConsultation),
     },
   });
 
   return { ok: true, contactId, leadId: lead.id };
+}
+
+function consultationMetaFromMessage(
+  message: string | undefined,
+  isConsultation: boolean,
+): Record<string, unknown> {
+  if (!isConsultation) return {};
+  const appointment = parseConsultationAppointment({ description: message });
+  if (!appointment) return {};
+  return {
+    requested_date: appointment.date,
+    requested_time: appointment.time,
+    meeting_link: appointment.meetingLink,
+    appointment_starts_at: appointment.startsAt,
+  };
 }
 
 function nameParts(name: string): { firstName: string; lastName?: string } {

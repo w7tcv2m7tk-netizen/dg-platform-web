@@ -94,6 +94,9 @@ export default async function CrmOpportunitiesPage() {
                       </p>
                       <p className="text-sm text-slate-400">
                         {want ? "Demand · " : ""}
+                        {opp.pipelineId === "platform_consultation"
+                          ? "Platform Consultation · "
+                          : ""}
                         {opp.stage.replace(/_/g, " ")} · {opp.status}
                         {opp.leadId ? " · from lead" : ""}
                       </p>

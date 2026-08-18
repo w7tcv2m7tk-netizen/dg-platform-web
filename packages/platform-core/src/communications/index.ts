@@ -15,6 +15,11 @@ export interface SendMessageInput {
   /** Pre-built HTML body; when omitted for email, plain `body` is wrapped with org branding. */
   bodyHtml?: string;
   metadata?: Record<string, unknown>;
+  attachments?: Array<{
+    filename: string;
+    content: string;
+    contentType?: string;
+  }>;
 }
 
 export interface SendMessageResult {
@@ -129,6 +134,11 @@ async function tryResendDelivery(input: {
   text: string;
   from: string;
   replyTo?: string | null;
+  attachments?: Array<{
+    filename: string;
+    content: string;
+    contentType?: string;
+  }>;
 }): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) return { ok: false, error: "RESEND_API_KEY not configured" };
@@ -143,6 +153,13 @@ async function tryResendDelivery(input: {
     };
     const replyTo = input.replyTo?.trim();
     if (replyTo) payload.reply_to = replyTo;
+    if (input.attachments?.length) {
+      payload.attachments = input.attachments.map((file) => ({
+        filename: file.filename,
+        content: Buffer.from(file.content, "utf8").toString("base64"),
+        content_type: file.contentType || "application/octet-stream",
+      }));
+    }
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -172,12 +189,37 @@ async function tryResendDelivery(input: {
   }
 }
 
+function mailboxKey(from: string): string {
+  const raw = from.trim();
+  const angled = raw.match(/<([^>\s]+@[^>\s]+)>/);
+  return (angled?.[1] || raw).trim().toLowerCase();
+}
+
+/** Only verified Resend send domain on current account (see diagnose-resend-domains.mjs). */
+const VERIFIED_RESEND_SEND_DOMAIN = "mail.digitalgate.com.au";
+
+/**
+ * Normalise legacy apex From addresses to the verified Resend subdomain.
+ * hello@digitalgate.com.au → hello@mail.digitalgate.com.au
+ */
+function normaliseResendFromAddress(from: string): string {
+  const trimmed = from.trim();
+  if (!trimmed) return trimmed;
+  const mailbox = mailboxKey(trimmed);
+  if (!mailbox.endsWith("@digitalgate.com.au")) return trimmed;
+  if (mailbox.endsWith(`@${VERIFIED_RESEND_SEND_DOMAIN}`)) return trimmed;
+  const local = mailbox.split("@")[0] || "hello";
+  const normalised = `${local}@${VERIFIED_RESEND_SEND_DOMAIN}`;
+  const display = trimmed.match(/^([^<]+)</)?.[1]?.trim() || "DigitalGate";
+  return `${display} <${normalised}>`;
+}
+
 function defaultFromAddress() {
-  return (
+  const raw =
     process.env.RESEND_FROM_EMAIL?.trim() ||
     process.env.EMAIL_FROM?.trim() ||
-    "DigitalGate <hello@mail.digitalgate.com.au>"
-  );
+    "DigitalGate <hello@mail.digitalgate.com.au>";
+  return normaliseResendFromAddress(raw);
 }
 
 function resolveSendFrom(input: {
@@ -186,12 +228,14 @@ function resolveSendFrom(input: {
   metadataFrom?: unknown;
 }): string {
   if (typeof input.metadataFrom === "string" && input.metadataFrom.trim()) {
-    return input.metadataFrom.trim();
+    return normaliseResendFromAddress(input.metadataFrom.trim());
   }
   if (input.brandMode === "platform") {
     return "DigitalGate <hello@mail.digitalgate.com.au>";
   }
-  if (input.brandFrom?.trim()) return input.brandFrom.trim();
+  if (input.brandFrom?.trim()) {
+    return normaliseResendFromAddress(input.brandFrom.trim());
+  }
   return defaultFromAddress();
 }
 
@@ -200,12 +244,6 @@ function isResendDomainFromError(error: string): boolean {
   return /domain|not verified|unverified|invalid.*from|from.*address|own a domain|verify.*domain/i.test(
     error,
   );
-}
-
-function mailboxKey(from: string): string {
-  const raw = from.trim();
-  const angled = raw.match(/<([^>\s]+@[^>\s]+)>/);
-  return (angled?.[1] || raw).trim().toLowerCase();
 }
 
 /**
@@ -289,6 +327,7 @@ export async function sendMessage(
       text: input.body,
       from,
       replyTo,
+      attachments: input.attachments,
     });
     let usedFrom = from;
     let fromMode: "brand" | "platform_fallback" = "brand";
@@ -312,6 +351,7 @@ export async function sendMessage(
         text: input.body,
         from: platformFrom,
         replyTo,
+        attachments: input.attachments,
       });
       usedFrom = platformFrom;
       fromMode = "platform_fallback";

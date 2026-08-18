@@ -99,6 +99,17 @@ export function applyPublicLegacyResponse(
   req: NextRequest,
   hostname: string,
 ): NextResponse | null {
+  const path = (req.nextUrl.pathname.replace(/\/+$/, "") || "/").toLowerCase();
+  if (
+    req.method === "POST" &&
+    isDgPublicHost(hostname) &&
+    path === "/inc/send-dg-enquiry.php"
+  ) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/api/public/dg-enquiry";
+    return NextResponse.rewrite(url);
+  }
+
   const resolved = resolvePublicSiteLegacy(
     hostname,
     req.nextUrl.pathname,

@@ -4,8 +4,9 @@
  */
 
 import { processHideawayCircleFollowups } from "../accommodation/public-hideaway-circle";
-import { processPropertyReportFollowups } from "../real-estate/public-property-report";
+import { processConsultationReminders } from "../marketing/consultation-automation";
 import { processFreeAuditFollowups } from "../marketing/public-business-audit";
+import { processPropertyReportFollowups } from "../real-estate/public-property-report";
 
 export type FollowupProcessResult = {
   processed: number;
@@ -15,6 +16,7 @@ export type FollowupProcessResult = {
     property_report: { processed: number; sent: number; failed: number };
     free_audit: { processed: number; sent: number; failed: number };
     hideaway_circle: { processed: number; sent: number; failed: number };
+    consultation: { processed: number; sent: number; failed: number };
   };
 };
 
@@ -22,26 +24,30 @@ export type FollowupProcessResult = {
 export async function processDueFollowupEmails(options?: {
   limit?: number;
 }): Promise<FollowupProcessResult> {
-  const limit = options?.limit ?? 60;
-  const third = Math.max(1, Math.floor(limit / 3));
+  const limit = options?.limit ?? 80;
+  const quarter = Math.max(1, Math.floor(limit / 4));
 
-  const property_report = await processPropertyReportFollowups({ limit: third });
-  const free_audit = await processFreeAuditFollowups({ limit: third });
-  const remaining = Math.max(
-    1,
-    limit - property_report.processed - free_audit.processed,
-  );
-  const hideaway_circle = await processHideawayCircleFollowups({
-    limit: remaining,
-  });
+  const property_report = await processPropertyReportFollowups({ limit: quarter });
+  const free_audit = await processFreeAuditFollowups({ limit: quarter });
+  const hideaway_circle = await processHideawayCircleFollowups({ limit: quarter });
+  const consultation = await processConsultationReminders({ limit: quarter });
 
   return {
     processed:
       property_report.processed +
       free_audit.processed +
-      hideaway_circle.processed,
-    sent: property_report.sent + free_audit.sent + hideaway_circle.sent,
-    failed: property_report.failed + free_audit.failed + hideaway_circle.failed,
-    byFunnel: { property_report, free_audit, hideaway_circle },
+      hideaway_circle.processed +
+      consultation.processed,
+    sent:
+      property_report.sent +
+      free_audit.sent +
+      hideaway_circle.sent +
+      consultation.sent,
+    failed:
+      property_report.failed +
+      free_audit.failed +
+      hideaway_circle.failed +
+      consultation.failed,
+    byFunnel: { property_report, free_audit, hideaway_circle, consultation },
   };
 }

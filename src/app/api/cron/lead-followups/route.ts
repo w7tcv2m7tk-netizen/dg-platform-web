@@ -17,7 +17,8 @@ function authorizeCron(req: Request): boolean {
 }
 
 /**
- * Hourly cron — property-report + free-audit follow-up emails when due.
+ * Hourly cron — property-report, free-audit, hideaway-circle, and
+ * Platform Consultation reminder emails when due.
  * Secure with CRON_SECRET (Authorization: Bearer …).
  */
 export async function GET(req: Request) {

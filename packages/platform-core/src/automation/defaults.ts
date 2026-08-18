@@ -2,6 +2,7 @@ import { createActivity } from "../activities";
 import { ensureContactForLeadFields } from "../contacts";
 import { platformEvents } from "../events";
 import type { PlatformEvent } from "../events/types";
+import { handlePlatformConsultationIntake } from "../marketing/consultation-automation";
 import { createNotification } from "../notifications";
 import { convertLeadToOpportunity } from "../opportunities";
 import { createTask, listTasks } from "../tasks";
@@ -67,6 +68,13 @@ export function bootDefaultAutomations() {
 async function handleVendorEnquiryIntake(event: PlatformEvent) {
   const leadId = event.entityId;
   if (!leadId) return;
+
+  const handled = await handlePlatformConsultationIntake({
+    organisationId: event.organisationId,
+    leadId,
+    actorId: event.actorId,
+  });
+  if (handled) return;
 
   const { prisma } = await import("@dg/database");
   const lead = await prisma.lead.findFirst({
