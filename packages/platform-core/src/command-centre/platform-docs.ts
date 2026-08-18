@@ -166,6 +166,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "strategy/BUSINESS-ADVISOR-BRIEFING.md",
   },
   {
+    slug: "business-advisor-update-2026-08-19",
+    title: "Business advisor update (19 Aug)",
+    summary:
+      "Commercial lock, conversion path live, outreach starts — Twin/Goals shipped; website frozen.",
+    group: "strategy",
+    relativePath: "strategy/BUSINESS-ADVISOR-UPDATE-2026-08-19.md",
+  },
+  {
     slug: "commercially-ready-v1",
     title: "Commercially Ready v1",
     summary:
