@@ -3,6 +3,12 @@ import { ensureContactForLeadFields } from "../contacts";
 import { platformEvents } from "../events";
 import type { PlatformEvent } from "../events/types";
 import { handlePlatformConsultationIntake } from "../marketing/consultation-automation";
+import {
+  humanEnquiryTopic,
+  isDigitalGateGeneralEnquiry,
+  renderDgContactEnquiryAck,
+} from "../marketing/contact-enquiry-emails";
+import { resolveOrgBrandPresetKey } from "../org/brand-presets";
 import { createNotification } from "../notifications";
 import { convertLeadToOpportunity } from "../opportunities";
 import { createTask, listTasks } from "../tasks";
@@ -136,7 +142,11 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
       title:
         leadType === "buyer"
           ? "Follow up buyer enquiry"
-          : "Follow up vendor enquiry",
+          : leadType === "founding_10"
+            ? "Follow up Founding 10 application"
+            : leadType === "contact" || leadType === "enquiry"
+              ? "Follow up contact enquiry"
+              : "Follow up vendor enquiry",
       description: `Auto-created from lead ${lead.title ?? lead.id}. Contact within 24 hours.`,
       dueAt,
       entityType: opportunity ? "Opportunity" : "Lead",
@@ -178,46 +188,63 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
     const { composeEmailBody } = await import("../communications/email-html");
     const org = await prisma.organisation.findUnique({
       where: { id: event.organisationId },
-      select: { name: true },
+      select: { id: true, name: true, slug: true, industry: true, settings: true },
     });
     const agency = org?.name?.trim() || "our team";
-    const body = [
-      `Hi ${greetingName},`,
-      ``,
-      `Thanks for getting in touch with ${agency}. We've received your enquiry`,
-      lead.title ? `about "${lead.title}"` : "and",
-      `someone from the team will follow up shortly.`,
-      ``,
-      `— ${agency} via DigitalGate`,
-    ].join("\n");
+    const orgBrandKey = org ? resolveOrgBrandPresetKey(org) : null;
+    const useDgContactAck = isDigitalGateGeneralEnquiry({
+      leadType,
+      metadata,
+      orgBrandKey,
+    });
+
+    const ack = useDgContactAck
+      ? renderDgContactEnquiryAck({
+          firstName: greetingName,
+          topic: humanEnquiryTopic(metadata),
+        })
+      : {
+          subject: `Thanks for your enquiry — ${agency}`,
+          body: [
+            `Hi ${greetingName},`,
+            ``,
+            `Thanks for getting in touch with ${agency}. We've received your enquiry and someone from the team will follow up shortly.`,
+            ``,
+            `— ${agency} via DigitalGate`,
+          ].join("\n"),
+          bodyHtml: composeEmailBody(
+            [
+              { type: "paragraph", text: `Hi ${greetingName},` },
+              {
+                type: "heading",
+                text: `Thanks for getting in touch with ${agency}`,
+                level: 2,
+              },
+              {
+                type: "paragraph",
+                text: "We've received your enquiry and someone from the team will follow up shortly.",
+              },
+              {
+                type: "signoff",
+                lines: [`— ${agency} via DigitalGate`],
+              },
+            ],
+            { accentColor: "#3B82F6" },
+          ),
+          footerNote: undefined as string | undefined,
+        };
+
     const result = await sendMessage({
       organisationId: event.organisationId,
       channel: "email",
       to: contactRowEmail,
-      subject: `Thanks for your enquiry — ${agency}`,
-      body,
-      bodyHtml: composeEmailBody(
-        [
-          { type: "paragraph", text: `Hi ${greetingName},` },
-          {
-            type: "heading",
-            text: `Thanks for getting in touch with ${agency}`,
-            level: 2,
-          },
-          {
-            type: "paragraph",
-            text: lead.title
-              ? `We've received your enquiry about "${lead.title}" and someone from the team will follow up shortly.`
-              : "We've received your enquiry and someone from the team will follow up shortly.",
-          },
-          {
-            type: "signoff",
-            lines: [`— ${agency} via DigitalGate`],
-          },
-        ],
-        { accentColor: "#3B82F6" },
-      ),
-      metadata: { purpose: "automation_lead_ack" },
+      subject: ack.subject,
+      body: ack.body,
+      bodyHtml: ack.bodyHtml,
+      metadata: {
+        purpose: "automation_lead_ack",
+        ...(ack.footerNote ? { footerNote: ack.footerNote } : {}),
+      },
     });
 
     await createActivity({
@@ -243,7 +270,12 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
   await createNotification({
     organisationId: event.organisationId,
     type: "automation.lead_intake",
-    title: leadType === "buyer" ? "Buyer enquiry intake ran" : "Vendor enquiry intake ran",
+    title:
+      leadType === "buyer"
+        ? "Buyer enquiry intake ran"
+        : leadType === "contact" || leadType === "enquiry" || leadType === "founding_10"
+          ? "Contact enquiry intake ran"
+          : "Vendor enquiry intake ran",
     body: opportunity
       ? `Contact + opportunity + follow-up task ready for ${lead.title ?? "lead"}.`
       : `Contact + follow-up task ready for ${lead.title ?? "lead"}.`,
