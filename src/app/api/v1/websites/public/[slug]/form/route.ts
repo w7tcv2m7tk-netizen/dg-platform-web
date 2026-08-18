@@ -29,7 +29,9 @@ export async function POST(req: Request, ctx: Ctx) {
         ? 404
         : result.code === "validation_error"
           ? 422
-          : 500;
+          : result.code === "slot_unavailable"
+            ? 409
+            : 500;
     return NextResponse.json(
       { error: { code: result.code, message: result.message } },
       { status },

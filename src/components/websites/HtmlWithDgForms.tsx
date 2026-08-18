@@ -231,45 +231,6 @@ function brisbaneTodayIso(): string {
   }).format(new Date());
 }
 
-function brisbaneWeekday(dateIso: string): number {
-  const noonUtc = new Date(`${dateIso}T02:00:00Z`);
-  const wd = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Australia/Brisbane",
-    weekday: "short",
-  }).format(noonUtc);
-  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(wd);
-}
-
-function slotsForDate(dateIso: string): string[] {
-  if (!dateIso) return [];
-  const dow = brisbaneWeekday(dateIso);
-  if (dow === 0) return [];
-  const endHour = dow === 6 ? 12 : 17;
-  const slots: string[] = [];
-  for (let h = 9; h < endHour; h++) {
-    for (const min of [0, 30]) {
-      if (h === 16 && min === 30) continue;
-      if (h === 11 && min === 30 && endHour === 12) continue;
-      slots.push(`${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`);
-    }
-  }
-  const today = brisbaneTodayIso();
-  if (dateIso !== today) return slots;
-  const parts = new Intl.DateTimeFormat("en-AU", {
-    timeZone: "Australia/Brisbane",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).formatToParts(new Date());
-  const hh = Number(parts.find((p) => p.type === "hour")?.value || "0");
-  const mm = Number(parts.find((p) => p.type === "minute")?.value || "0");
-  const cutoff = hh * 60 + mm + 45;
-  return slots.filter((t) => {
-    const [h, m] = t.split(":").map(Number);
-    return h * 60 + m >= cutoff;
-  });
-}
-
 function formatSlot(t: string) {
   const [hh, mm] = t.split(":").map(Number);
   const ampm = hh >= 12 ? "PM" : "AM";
@@ -277,7 +238,33 @@ function formatSlot(t: string) {
   return `${h12}:${String(mm).padStart(2, "0")} ${ampm}`;
 }
 
-function renderConsultationSlots(form: HTMLFormElement, dateIso: string) {
+async function loadConsultationSlots(
+  dateIso: string,
+  signal?: AbortSignal,
+): Promise<{ slots: string[]; closed: boolean; ok: boolean }> {
+  try {
+    const res = await fetch(
+      `/api/public/consultation-slots?date=${encodeURIComponent(dateIso)}&site=digitalgate`,
+      { signal },
+    );
+    const json = (await res.json().catch(() => ({}))) as {
+      data?: { slots?: string[]; closed?: boolean };
+    };
+    if (!res.ok) return { slots: [], closed: false, ok: false };
+    return {
+      slots: Array.isArray(json.data?.slots) ? json.data.slots : [],
+      closed: Boolean(json.data?.closed),
+      ok: true,
+    };
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      return { slots: [], closed: false, ok: true };
+    }
+    return { slots: [], closed: false, ok: false };
+  }
+}
+
+function renderConsultationSlots(form: HTMLFormElement, dateIso: string, signal?: AbortSignal) {
   const container = form.querySelector<HTMLElement>("#timeSlotsContainer");
   const hidden = form.querySelector<HTMLInputElement>("#booking_time");
   if (!container || !hidden) return;
@@ -287,36 +274,59 @@ function renderConsultationSlots(form: HTMLFormElement, dateIso: string) {
       '<div class="slot-placeholder">Select a date to see available times</div>';
     return;
   }
-  const slots = slotsForDate(dateIso);
-  if (!slots.length) {
-    container.innerHTML =
-      '<div class="slot-placeholder">No times available that day — try a weekday.</div>';
-    return;
-  }
-  container.innerHTML = "";
-  for (const slot of slots) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "time-slot";
-    btn.textContent = formatSlot(slot);
-    btn.dataset.time = slot;
-    btn.addEventListener("click", () => {
-      hidden.value = slot;
-      container.querySelectorAll(".time-slot").forEach((el) => el.classList.remove("selected"));
-      btn.classList.add("selected");
-    });
-    container.appendChild(btn);
-  }
+  container.innerHTML = '<div class="slot-placeholder">Loading times…</div>';
+  void loadConsultationSlots(dateIso, signal).then((result) => {
+    if (signal?.aborted) return;
+    if (!result.ok) {
+      container.innerHTML =
+        '<div class="slot-placeholder">Couldn’t load times — pick the date again.</div>';
+      return;
+    }
+    if (result.closed) {
+      container.innerHTML =
+        '<div class="slot-placeholder">Consultations aren’t available on Sundays — try a weekday.</div>';
+      return;
+    }
+    if (!result.slots.length) {
+      container.innerHTML =
+        '<div class="slot-placeholder">No times left that day — try another weekday.</div>';
+      return;
+    }
+    container.innerHTML = "";
+    for (const slot of result.slots) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "time-slot";
+      btn.textContent = formatSlot(slot);
+      btn.dataset.time = slot;
+      btn.addEventListener("click", () => {
+        hidden.value = slot;
+        container.querySelectorAll(".time-slot").forEach((el) => el.classList.remove("selected"));
+        btn.classList.add("selected");
+      });
+      container.appendChild(btn);
+    }
+  });
 }
 
 function bindConsultationSlots(form: HTMLFormElement) {
   const dateInput = form.querySelector<HTMLInputElement>("#booking_date, [name='date']");
   if (!dateInput) return () => undefined;
+  dateInput.removeAttribute("onchange");
+  dateInput.onchange = null;
   dateInput.min = brisbaneTodayIso();
-  const onChange = () => renderConsultationSlots(form, dateInput.value);
+  let abort: AbortController | null = null;
+  const onChange = () => {
+    abort?.abort();
+    abort = new AbortController();
+    renderConsultationSlots(form, dateInput.value, abort.signal);
+  };
   dateInput.addEventListener("change", onChange);
-  renderConsultationSlots(form, dateInput.value);
-  return () => dateInput.removeEventListener("change", onChange);
+  onChange();
+  return () => {
+    abort?.abort();
+    dateInput.removeEventListener("change", onChange);
+  };
 }
 
 function ensureZoomNote(form: HTMLFormElement) {
@@ -381,6 +391,9 @@ async function postEnquiry(
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const rich = await post("/api/public/dg-enquiry", body);
   if (rich.ok) return rich;
+  if (rich.status && rich.status >= 400 && rich.status < 500 && rich.status !== 404) {
+    return rich;
+  }
   const fallback = await post(`/api/v1/websites/public/digitalgate/form`, {
     name: String(body.name || ""),
     email: String(body.email || ""),
@@ -394,7 +407,7 @@ async function postEnquiry(
 async function post(
   url: string,
   body: Record<string, unknown>,
-): Promise<{ ok: true } | { ok: false; message: string }> {
+): Promise<{ ok: true } | { ok: false; message: string; status?: number }> {
   try {
     const res = await fetch(url, {
       method: "POST",
@@ -405,7 +418,11 @@ async function post(
       error?: { message?: string };
     };
     if (!res.ok) {
-      return { ok: false, message: json.error?.message || `Error ${res.status}` };
+      return {
+        ok: false,
+        status: res.status,
+        message: json.error?.message || `Error ${res.status}`,
+      };
     }
     return { ok: true };
   } catch {

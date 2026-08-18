@@ -14,6 +14,7 @@ import { createLead } from "../leads";
 import { sendMessage, composeEmailBody, type EmailBodyBlock } from "../communications";
 import { getWebsiteBySlug } from "../websites/crud";
 import { DG_CONSULT_ZOOM_URL } from "./consultation-emails";
+import { assertConsultationSlotAvailable } from "./consultation-availability";
 
 export type DgEnquiryType = "contact" | "founding_10" | "consultation";
 
@@ -113,6 +114,16 @@ export async function captureDgEnquiry(
   const organisationId = await resolveOrgId(siteSlug);
   if (!organisationId) {
     return { ok: false, code: "not_found", message: "DigitalGate organisation not found" };
+  }
+
+  if (input.type === "consultation") {
+    const slot = await assertConsultationSlotAvailable({
+      organisationId,
+      dateIso: input.date,
+      time: input.time,
+      description: descriptionFor(input),
+    });
+    if (!slot.ok) return slot;
   }
 
   const { prisma } = await import("@dg/database");

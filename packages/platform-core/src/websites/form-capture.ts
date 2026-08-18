@@ -5,6 +5,7 @@
 import { createContact } from "../contacts";
 import { createLead } from "../leads";
 import { parseConsultationAppointment } from "../marketing/consultation-emails";
+import { assertConsultationSlotAvailable } from "../marketing/consultation-availability";
 import { getWebsiteBySlug } from "./crud";
 
 export type WebsiteFormCaptureInput = {
@@ -89,6 +90,13 @@ async function captureForWebsite(
       ? siteMeta.funnelTemplate
       : null;
   const isConsultation = input.pageSlug === "strategy-session";
+  if (isConsultation) {
+    const slot = await assertConsultationSlotAvailable({
+      organisationId,
+      description: input.message,
+    });
+    if (!slot.ok) return slot;
+  }
   const leadTitle = isConsultation
     ? `Platform Consultation — ${input.name.trim()}`
     : isFunnel

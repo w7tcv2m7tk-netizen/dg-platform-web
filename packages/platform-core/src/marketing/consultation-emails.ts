@@ -80,15 +80,25 @@ export function parseConsultationAppointment(input: {
 }): ConsultationAppointment | null {
   const meta = input.metadata ?? {};
   const desc = input.description || "";
+  const nested =
+    meta.appointment && typeof meta.appointment === "object"
+      ? (meta.appointment as Record<string, unknown>)
+      : null;
   const date =
+    (typeof nested?.date === "string" && nested.date) ||
     (typeof meta.requested_date === "string" && meta.requested_date) ||
     desc.match(/Requested slot:\s*(\d{4}-\d{2}-\d{2})/i)?.[1] ||
+    desc.match(/(\d{4}-\d{2}-\d{2})\s+[0-9]/)?.[1] ||
     "";
   const timeRaw =
+    (typeof nested?.time === "string" && nested.time) ||
+    (typeof nested?.timeLabel === "string" && nested.timeLabel) ||
     (typeof meta.requested_time === "string" && meta.requested_time) ||
     desc.match(/Requested slot:\s*\d{4}-\d{2}-\d{2}\s+([0-9:.apm\s]+?)(?:\s+AEST)?(?:\n|$)/i)?.[1] ||
+    desc.match(/\d{4}-\d{2}-\d{2}\s+([0-9:.apm\s]+?)(?:\s+AEST)/i)?.[1] ||
     "";
   const meetingLink =
+    (typeof nested?.meetingLink === "string" && nested.meetingLink) ||
     (typeof meta.meeting_link === "string" && meta.meeting_link) ||
     desc.match(/Zoom:\s*(\S+)/i)?.[1] ||
     DG_CONSULT_ZOOM_URL;
