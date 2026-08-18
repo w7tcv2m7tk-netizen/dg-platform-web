@@ -32,6 +32,7 @@ export interface ListOpportunitiesOptions {
   status?: string;
   stage?: string;
   leadId?: string;
+  pipelineId?: string;
   limit?: number;
   offset?: number;
 }
@@ -71,6 +72,7 @@ export async function listOpportunities(options: ListOpportunitiesOptions) {
   if (options.status) where.status = options.status;
   if (options.stage) where.stage = options.stage;
   if (options.leadId) where.leadId = options.leadId;
+  if (options.pipelineId) where.pipelineId = options.pipelineId;
 
   const [items, total] = await Promise.all([
     prisma.opportunity.findMany({

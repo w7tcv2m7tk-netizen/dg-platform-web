@@ -12,12 +12,14 @@ import { convertLeadToOpportunity } from "../opportunities";
 import { createTask, listTasks } from "../tasks";
 import {
   DG_CONSULT_PIPELINE,
+  consultationEmailCc,
   buildConsultationSequence,
   dueConsultationReminderSteps,
   isConsultationLead,
   parseConsultationAppointment,
   renderConsultationConfirmation,
   renderConsultationReminder,
+  type ConsultationAppointment,
   type ConsultationSequenceMeta,
 } from "./consultation-emails";
 
@@ -122,6 +124,7 @@ export async function handlePlatformConsultationIntake(input: {
       organisationId: input.organisationId,
       channel: "email",
       to: email,
+      cc: consultationEmailCc(email),
       subject: rendered.subject,
       body: rendered.body,
       bodyHtml: rendered.bodyHtml,
@@ -248,6 +251,7 @@ export async function processConsultationReminders(options?: {
           organisationId: lead.organisationId,
           channel: "email",
           to: sequence.email,
+          cc: consultationEmailCc(sequence.email),
           subject: rendered.subject,
           body: rendered.body,
           bodyHtml: rendered.bodyHtml,
@@ -286,4 +290,113 @@ export async function processConsultationReminders(options?: {
   }
 
   return { processed, sent, failed };
+}
+
+export type ConsultationAgendaItem = {
+  opportunityId: string;
+  title: string;
+  stage: string;
+  status: string;
+  contactId: string | null;
+  contactName: string;
+  contactEmail: string | null;
+  appointment: ConsultationAppointment | null;
+  startsAt: string | null;
+  meetingLink: string | null;
+};
+
+function appointmentFromOpportunityMetadata(
+  metadata: Record<string, unknown> | null,
+): ConsultationAppointment | null {
+  const nested = metadata?.appointment;
+  if (nested && typeof nested === "object" && nested !== null) {
+    const a = nested as Record<string, unknown>;
+    if (typeof a.startsAt === "string" && typeof a.date === "string") {
+      return {
+        date: a.date,
+        time: typeof a.time === "string" ? a.time : "",
+        timeLabel: typeof a.timeLabel === "string" ? a.timeLabel : "",
+        timezone: typeof a.timezone === "string" ? a.timezone : "AEST",
+        meetingLink:
+          (typeof a.meetingLink === "string" && a.meetingLink) ||
+          (typeof metadata?.meeting_link === "string" && metadata.meeting_link) ||
+          "",
+        startsAt: a.startsAt,
+        endsAt: typeof a.endsAt === "string" ? a.endsAt : a.startsAt,
+      };
+    }
+  }
+  return parseConsultationAppointment({ metadata });
+}
+
+export async function listConsultationAgenda(options: {
+  organisationId: string;
+  limit?: number;
+}): Promise<{
+  upcoming: ConsultationAgendaItem[];
+  past: ConsultationAgendaItem[];
+  unscheduled: ConsultationAgendaItem[];
+}> {
+  const { prisma } = await import("@dg/database");
+  const limit = Math.min(options.limit ?? 150, 200);
+  const rows = await prisma.opportunity.findMany({
+    where: {
+      organisationId: options.organisationId,
+      pipelineId: DG_CONSULT_PIPELINE,
+    },
+    include: {
+      contact: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: limit,
+  });
+
+  const items: ConsultationAgendaItem[] = rows.map((row) => {
+    const metadata = (row.metadata as Record<string, unknown> | null) ?? {};
+    const appointment = appointmentFromOpportunityMetadata(metadata);
+    const contactName = [row.contact?.firstName, row.contact?.lastName]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+    return {
+      opportunityId: row.id,
+      title: row.title,
+      stage: row.stage,
+      status: row.status,
+      contactId: row.contactId,
+      contactName: contactName || row.title.replace(/^Platform Consultation — /i, ""),
+      contactEmail: row.contact?.email ?? null,
+      appointment,
+      startsAt: appointment?.startsAt ?? null,
+      meetingLink:
+        appointment?.meetingLink ||
+        (typeof metadata.meeting_link === "string" ? metadata.meeting_link : null),
+    };
+  });
+
+  const now = Date.now();
+  const upcoming: ConsultationAgendaItem[] = [];
+  const past: ConsultationAgendaItem[] = [];
+  const unscheduled: ConsultationAgendaItem[] = [];
+
+  for (const item of items) {
+    if (!item.startsAt) {
+      unscheduled.push(item);
+      continue;
+    }
+    const startMs = new Date(item.startsAt).getTime();
+    if (Number.isNaN(startMs)) {
+      unscheduled.push(item);
+      continue;
+    }
+    if (startMs >= now) upcoming.push(item);
+    else past.push(item);
+  }
+
+  upcoming.sort((a, b) => (a.startsAt || "").localeCompare(b.startsAt || ""));
+  past.sort((a, b) => (b.startsAt || "").localeCompare(a.startsAt || ""));
+
+  return { upcoming, past, unscheduled };
 }

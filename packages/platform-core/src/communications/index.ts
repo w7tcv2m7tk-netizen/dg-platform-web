@@ -10,6 +10,8 @@ export interface SendMessageInput {
   channel: CommsChannel;
   contactId?: string;
   to: string;
+  /** Optional CC recipients (Resend). Duplicates of `to` are dropped. */
+  cc?: string | string[];
   subject?: string;
   body: string;
   /** Pre-built HTML body; when omitted for email, plain `body` is wrapped with org branding. */
@@ -127,8 +129,24 @@ async function persistQueuedEmail(input: {
   }
 }
 
+function normalizeCc(to: string, cc?: string | string[]): string[] {
+  const toKey = to.trim().toLowerCase();
+  const raw = Array.isArray(cc) ? cc : cc ? [cc] : [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const item of raw) {
+    const email = item.trim();
+    const key = email.toLowerCase();
+    if (!email.includes("@") || key === toKey || seen.has(key)) continue;
+    seen.add(key);
+    out.push(email);
+  }
+  return out;
+}
+
 async function tryResendDelivery(input: {
   to: string;
+  cc?: string[];
   subject: string;
   html: string;
   text: string;
@@ -151,6 +169,7 @@ async function tryResendDelivery(input: {
       html: input.html,
       text: input.text,
     };
+    if (input.cc?.length) payload.cc = input.cc;
     const replyTo = input.replyTo?.trim();
     if (replyTo) payload.reply_to = replyTo;
     if (input.attachments?.length) {
@@ -319,9 +338,12 @@ export async function sendMessage(
     resolveReplyTo(fromAddress || "") ||
     "hello@digitalgate.com.au";
 
+  const cc = normalizeCc(input.to, input.cc);
+
   if (process.env.RESEND_API_KEY?.trim()) {
     let delivered = await tryResendDelivery({
       to: input.to,
+      cc,
       subject,
       html,
       text: input.body,
@@ -346,6 +368,7 @@ export async function sendMessage(
       });
       delivered = await tryResendDelivery({
         to: input.to,
+        cc,
         subject,
         html,
         text: input.body,
@@ -378,6 +401,7 @@ export async function sendMessage(
           from: usedFrom,
           replyTo,
           fromMode,
+          ...(cc.length ? { cc } : {}),
         },
         messageId: result.id,
         provider: "resend",
@@ -386,6 +410,7 @@ export async function sendMessage(
       console.info("[communications] sendMessage (resend)", {
         id: result.id,
         to: input.to,
+        cc: cc.length ? cc : undefined,
         from: usedFrom,
         replyTo,
         fromMode,

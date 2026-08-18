@@ -13,6 +13,13 @@ export const DG_CONSULT_RESCHEDULE_URL =
 
 export const DG_CONSULT_PIPELINE = "platform_consultation";
 
+export const DG_CONSULT_CC_EMAIL = "consultations@digitalgate.com.au";
+
+export function consultationEmailCc(to: string): string[] {
+  if (to.trim().toLowerCase() === DG_CONSULT_CC_EMAIL.toLowerCase()) return [];
+  return [DG_CONSULT_CC_EMAIL];
+}
+
 export type ConsultationAppointment = {
   date: string;
   time: string;
