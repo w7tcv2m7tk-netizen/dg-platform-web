@@ -1,9 +1,10 @@
 /**
- * DigitalGate general contact / Founding 10 enquiry acknowledgement.
- * Consultation bookings use consultation-emails.ts instead.
+ * DigitalGate general contact enquiry acknowledgement.
+ * Founding 10 uses founding-10-emails.ts. Consultations use consultation-emails.ts.
  */
 
 import { composeEmailBody, type EmailBodyBlock } from "../communications/email-html";
+import { isFounding10Application } from "./founding-10-emails";
 
 const ACCENT = "#3B82F6";
 
@@ -78,6 +79,7 @@ export function isDigitalGateGeneralEnquiry(input: {
 }): boolean {
   const leadType = (input.leadType || "").trim().toLowerCase();
   if (leadType === "consultation") return false;
+  if (isFounding10Application(input)) return false;
 
   const meta = input.metadata ?? {};
   const siteSlug =
@@ -91,7 +93,6 @@ export function isDigitalGateGeneralEnquiry(input: {
 
   if (
     leadType === "contact" ||
-    leadType === "founding_10" ||
     leadType === "enquiry" ||
     leadType === "funnel_enquiry"
   ) {
@@ -103,7 +104,7 @@ export function isDigitalGateGeneralEnquiry(input: {
   if (siteSlug === "digitalgate") return true;
   if (brand === "digitalgate") return true;
   if (slug.includes("digitalgate") || name.includes("digitalgate")) return true;
-  if (/^(contact enquiry|founding 10|website enquiry)\b/i.test(title)) return true;
+  if (/^(contact enquiry|website enquiry)\b/i.test(title)) return true;
   return false;
 }
 

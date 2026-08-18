@@ -4,6 +4,7 @@
  */
 
 import { composeEmailBody, type EmailBodyBlock } from "../communications/email-html";
+import { isFounding10Application } from "./founding-10-emails";
 
 export const DG_CONSULT_ZOOM_URL =
   "https://us05web.zoom.us/j/9537192432?pwd=lqAE7buBTaal4XeBoAqVa7X9FboTcN.1";
@@ -63,6 +64,13 @@ export function isConsultationLead(input: {
   metadata?: Record<string, unknown> | null;
 }): boolean {
   const meta = input.metadata ?? {};
+  if (isFounding10Application({
+    leadType: typeof meta.lead_type === "string" ? meta.lead_type : null,
+    leadTitle: input.title,
+    metadata: meta,
+  })) {
+    return false;
+  }
   const leadType = typeof meta.lead_type === "string" ? meta.lead_type : "";
   const pageSlug = typeof meta.page_slug === "string" ? meta.page_slug : "";
   const desc = input.description || "";

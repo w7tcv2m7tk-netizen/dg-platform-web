@@ -8,6 +8,10 @@ import {
   isDigitalGateGeneralEnquiry,
   renderDgContactEnquiryAck,
 } from "../marketing/contact-enquiry-emails";
+import {
+  founding10AckFromLeadMetadata,
+  isFounding10Application,
+} from "../marketing/founding-10-emails";
 import { resolveOrgBrandPresetKey } from "../org/brand-presets";
 import { createNotification } from "../notifications";
 import { convertLeadToOpportunity } from "../opportunities";
@@ -193,22 +197,34 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
     });
     const agency = org?.name?.trim() || "our team";
     const orgBrandKey = org ? resolveOrgBrandPresetKey(org) : null;
-    const useDgContactAck = isDigitalGateGeneralEnquiry({
-      leadType: typeof metadata.lead_type === "string" ? metadata.lead_type : "",
+    const detectedLeadType =
+      typeof metadata.lead_type === "string" ? metadata.lead_type : leadType;
+    const useFounding10Ack = isFounding10Application({
+      leadType: detectedLeadType,
       leadTitle: lead.title,
       metadata,
-      orgBrandKey,
-      orgSlug: org?.slug,
-      orgName: org?.name,
     });
+    const useDgContactAck =
+      !useFounding10Ack &&
+      isDigitalGateGeneralEnquiry({
+        leadType: detectedLeadType,
+        leadTitle: lead.title,
+        metadata,
+        orgBrandKey,
+        orgSlug: org?.slug,
+        orgName: org?.name,
+      });
     console.info("[automation] lead ack template", {
+      useFounding10Ack,
       useDgContactAck,
-      leadType: typeof metadata.lead_type === "string" ? metadata.lead_type : "",
+      leadType: detectedLeadType,
       leadId: lead.id,
       organisationId: event.organisationId,
     });
 
-    const ack = useDgContactAck
+    const ack = useFounding10Ack
+      ? founding10AckFromLeadMetadata(greetingName, metadata)
+      : useDgContactAck
       ? renderDgContactEnquiryAck({
           firstName: greetingName,
           topic: humanEnquiryTopic(metadata),
@@ -252,7 +268,9 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
       body: ack.body,
       bodyHtml: ack.bodyHtml,
       metadata: {
-        purpose: "automation_lead_ack",
+        purpose: useFounding10Ack
+          ? "founding_10_application_ack"
+          : "automation_lead_ack",
         ...(ack.footerNote ? { footerNote: ack.footerNote } : {}),
       },
     });
@@ -264,8 +282,12 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
       activityType: result.status === "sent" ? "email_sent" : "email_queued",
       title:
         result.status === "sent"
-          ? "Acknowledgement email sent"
-          : "Acknowledgement email queued",
+          ? useFounding10Ack
+            ? "Founding 10 acknowledgement sent"
+            : "Acknowledgement email sent"
+          : useFounding10Ack
+            ? "Founding 10 acknowledgement queued"
+            : "Acknowledgement email queued",
       body: `${contactRowEmail} · ${result.provider}${result.error ? ` · ${result.error}` : ""}`,
       sourceApp: "automation",
       actorId: event.actorId,
@@ -283,9 +305,11 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
     title:
       leadType === "buyer"
         ? "Buyer enquiry intake ran"
-        : leadType === "contact" || leadType === "enquiry" || leadType === "founding_10"
-          ? "Contact enquiry intake ran"
-          : "Vendor enquiry intake ran",
+        : leadType === "founding_10"
+          ? "Founding 10 application intake ran"
+          : leadType === "contact" || leadType === "enquiry"
+            ? "Contact enquiry intake ran"
+            : "Vendor enquiry intake ran",
     body: opportunity
       ? `Contact + opportunity + follow-up task ready for ${lead.title ?? "lead"}.`
       : `Contact + follow-up task ready for ${lead.title ?? "lead"}.`,

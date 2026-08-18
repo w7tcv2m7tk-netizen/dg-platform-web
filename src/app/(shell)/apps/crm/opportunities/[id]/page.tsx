@@ -86,6 +86,16 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
         <h1 className="mt-2 text-2xl font-bold text-white">{opportunity.title}</h1>
         <p className="text-sm text-slate-400">
           {want ? "Demand / Want · " : ""}
+          {leadType === "founding_10" || opportunity.pipelineId === "founding_10"
+            ? "Founding 10 · "
+            : leadType === "consultation" ||
+                opportunity.pipelineId === "platform_consultation"
+              ? "Platform Consultation · "
+              : leadType === "contact" ||
+                  leadType === "enquiry" ||
+                  opportunity.pipelineId === "platform_enquiry"
+                ? "Contact enquiry · "
+                : ""}
           {opportunity.stage.replace(/_/g, " ")} · {opportunity.status}
         </p>
       </header>

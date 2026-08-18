@@ -77,6 +77,7 @@ export function HtmlWithDgForms({ html }: { html: string }) {
     const foundingForm = root.querySelector<HTMLFormElement>("#dgFoundingForm");
     if (foundingForm) {
       disarmLegacyAction(foundingForm);
+      relaxWebsiteFields(foundingForm);
       const status = getOrCreateStatus(foundingForm, "dgFoundingStatusMsg");
       const handler = async (e: Event) => {
         e.preventDefault();
@@ -97,6 +98,8 @@ export function HtmlWithDgForms({ html }: { html: string }) {
 
         const result = await postEnquiry("founding-customers", {
           type: "founding_10",
+          form_type: "founding_customer_application",
+          page_slug: "founding-customers",
           name: val(foundingForm, "#fc_full_name"),
           email: val(foundingForm, "#fc_email"),
           phone: val(foundingForm, "#fc_phone"),
@@ -208,7 +211,7 @@ export function HtmlWithDgForms({ html }: { html: string }) {
     <section
       ref={rootRef}
       className="wb-section wb-html-block"
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={{ __html: relaxWebsiteFieldHtml(html) }}
     />
   );
 }
@@ -220,6 +223,41 @@ function disarmLegacyAction(form: HTMLFormElement) {
   form.removeAttribute("onsubmit");
   form.action = "";
   form.onsubmit = null;
+}
+
+/** Accept domain-only websites — browsers reject type=url without http://. */
+function isHoneypotWebsiteField(tagOrName: string, id = ""): boolean {
+  return /website_hp/i.test(tagOrName) || /\bhp\b/i.test(id);
+}
+
+function relaxWebsiteFieldHtml(html: string): string {
+  return html.replace(/<input\b[^>]*>/gi, (tag) => {
+    if (isHoneypotWebsiteField(tag)) return tag;
+    if (!/\btype=["']url["']/i.test(tag)) return tag;
+    let next = tag.replace(/\btype=["']url["']/i, 'type="text"');
+    next = next.replace(/\bpattern=["'][^"']*["']/i, "");
+    if (/\bplaceholder=["']https?:\/\//i.test(next)) {
+      next = next.replace(
+        /\bplaceholder=["'][^"']*["']/i,
+        'placeholder="yourwebsite.com.au"',
+      );
+    }
+    return next;
+  });
+}
+
+function relaxWebsiteFields(form: HTMLFormElement) {
+  const fields = form.querySelectorAll<HTMLInputElement>(
+    "#fc_website, input[name='business_website'], input[type='url']",
+  );
+  for (const field of fields) {
+    if (isHoneypotWebsiteField(field.name, field.id)) continue;
+    field.type = "text";
+    field.removeAttribute("pattern");
+    if (/^https?:\/\//i.test(field.placeholder)) {
+      field.placeholder = "yourwebsite.com.au";
+    }
+  }
 }
 
 function brisbaneTodayIso(): string {
@@ -392,6 +430,11 @@ async function postEnquiry(
   const rich = await post("/api/public/dg-enquiry", body);
   if (rich.ok) return rich;
   if (rich.status && rich.status >= 400 && rich.status < 500 && rich.status !== 404) {
+    return rich;
+  }
+  // Founding 10 / consultation must not fall back to the generic website form —
+  // that path stores them as a contact enquiry and sends the wrong ack.
+  if (body.type === "founding_10" || body.type === "consultation") {
     return rich;
   }
   const fallback = await post(`/api/v1/websites/public/digitalgate/form`, {

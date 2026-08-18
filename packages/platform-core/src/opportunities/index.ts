@@ -224,7 +224,15 @@ export async function convertLeadToOpportunity(input: {
   const stage =
     input.stage ??
     (typeof metadata.stage === "string" ? metadata.stage : null) ??
-    (leadType === "consultation" ? "booked" : leadType === "buyer" ? "qualified" : "appraisal");
+    (leadType === "consultation"
+      ? "booked"
+      : leadType === "founding_10"
+        ? "application"
+        : leadType === "contact" || leadType === "enquiry"
+          ? "new"
+          : leadType === "buyer"
+            ? "qualified"
+            : "appraisal");
 
   let contactId = lead.contactId;
   if (!contactId) {
@@ -276,9 +284,13 @@ export async function convertLeadToOpportunity(input: {
       input.pipelineId ??
       (leadType === "consultation"
         ? "platform_consultation"
-        : leadType === "buyer"
-          ? "buyer"
-          : "vendor"),
+        : leadType === "founding_10"
+          ? "founding_10"
+          : leadType === "contact" || leadType === "enquiry" || leadType === "funnel_enquiry"
+            ? "platform_enquiry"
+            : leadType === "buyer"
+              ? "buyer"
+              : "vendor"),
     metadata: {
       lead_type: leadType,
       converted_from_lead: true,

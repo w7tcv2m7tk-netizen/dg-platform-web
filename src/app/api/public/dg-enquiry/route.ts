@@ -32,6 +32,8 @@ type EnquiryBody = {
   time?: string;
   notes?: string;
   form_type?: string;
+  pageSlug?: string;
+  page_slug?: string;
   honeypot?: string;
   website_hp?: string;
   websiteHp?: string;
@@ -52,8 +54,11 @@ function inferType(body: EnquiryBody): DgEnquiryType {
   if (raw === "contact" || raw === "founding_10" || raw === "consultation") {
     return raw;
   }
+  const pageSlug = (body.page_slug || body.pageSlug || "").trim().toLowerCase();
   if (
     body.form_type === "founding_customer_application" ||
+    pageSlug === "founding-customers" ||
+    pageSlug === "founding" ||
     body.agree_founding_terms === "yes" ||
     Boolean(body.want_to_solve || body.wantToSolve)
   ) {

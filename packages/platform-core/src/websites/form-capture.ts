@@ -90,6 +90,10 @@ async function captureForWebsite(
       ? siteMeta.funnelTemplate
       : null;
   const isConsultation = input.pageSlug === "strategy-session";
+  const isFounding =
+    input.pageSlug === "founding-customers" ||
+    input.pageSlug === "founding" ||
+    /founding 10 application/i.test(input.message || "");
   if (isConsultation) {
     const slot = await assertConsultationSlotAvailable({
       organisationId,
@@ -99,9 +103,11 @@ async function captureForWebsite(
   }
   const leadTitle = isConsultation
     ? `Platform Consultation — ${input.name.trim()}`
-    : isFunnel
-      ? `Funnel enquiry${funnelTemplate ? ` (${funnelTemplate.replace(/_/g, " ")})` : ""} — ${input.name.trim()}`
-      : `Website enquiry — ${input.name.trim()}`;
+    : isFounding
+      ? `Founding 10 application — ${input.name.trim()}`
+      : isFunnel
+        ? `Funnel enquiry${funnelTemplate ? ` (${funnelTemplate.replace(/_/g, " ")})` : ""} — ${input.name.trim()}`
+        : `Website enquiry — ${input.name.trim()}`;
 
   let contactId: string | undefined;
   if (email) {
@@ -134,9 +140,11 @@ async function captureForWebsite(
     metadata: {
       lead_type: isConsultation
         ? "consultation"
-        : isFunnel
-          ? "funnel_enquiry"
-          : "enquiry",
+        : isFounding
+          ? "founding_10"
+          : isFunnel
+            ? "funnel_enquiry"
+            : "enquiry",
       stage: isConsultation ? "booked" : "new",
       website_id: websiteId,
       site_slug: siteSlug,

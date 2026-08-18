@@ -161,6 +161,12 @@ export async function captureDgEnquiry(
       stage: "new",
       capture_path: "gen2_dg_enquiry",
       site_slug: siteSlug,
+      page_slug:
+        input.type === "founding_10"
+          ? "founding-customers"
+          : input.type === "consultation"
+            ? "strategy-session"
+            : "contact",
       contact_name: name,
       email,
       phone: input.phone?.trim() || undefined,

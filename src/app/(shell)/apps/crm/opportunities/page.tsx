@@ -99,7 +99,11 @@ export default async function CrmOpportunitiesPage() {
                         {want ? "Demand · " : ""}
                         {opp.pipelineId === "platform_consultation"
                           ? "Platform Consultation · "
-                          : ""}
+                          : opp.pipelineId === "founding_10"
+                            ? "Founding 10 · "
+                            : opp.pipelineId === "platform_enquiry"
+                              ? "Contact enquiry · "
+                              : ""}
                         {opp.stage.replace(/_/g, " ")} · {opp.status}
                         {opp.leadId ? " · from lead" : ""}
                       </p>
