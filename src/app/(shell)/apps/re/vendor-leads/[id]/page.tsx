@@ -10,6 +10,7 @@ import {
   listInvoicesForEntity,
   listLeadActivities,
   listQuotesForEntity,
+  formatTimelineDateTime,
 } from "@dg/platform-core";
 
 import { ConvertToOpportunityButton } from "@/components/re/ConvertToOpportunityButton";
@@ -279,7 +280,7 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
                     ) : null}
                     <p className="mt-1 text-xs text-slate-500">
                       {activity.activityType} ·{" "}
-                      {new Date(activity.createdAt).toLocaleString("en-AU")}
+                      {formatTimelineDateTime(activity.createdAt)}
                     </p>
                   </li>
                 ))}

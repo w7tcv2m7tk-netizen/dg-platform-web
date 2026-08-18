@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import {
+  formatTimelineDateTime,
   getAccommodationGuest,
   getContact,
   listContactActivities,
@@ -107,7 +108,7 @@ export default async function AccommodationGuestDetailPage({ params }: PageProps
                   <p className="mt-1 text-xs text-slate-500">
                     {activity.activityType}
                     {activity.sourceApp ? ` · ${activity.sourceApp}` : ""} ·{" "}
-                    {new Date(activity.createdAt).toLocaleString("en-AU")}
+                    {formatTimelineDateTime(activity.createdAt)}
                   </p>
                 </li>
               ))}

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import {
   BUSINESS_REFERRAL_COMPLIANCE_NOTE,
+  formatTimelineDateTime,
   getContact,
   getContactAccommodationGuestPanel,
   listBusinessReferralsForContact,
@@ -162,7 +163,7 @@ export default async function ContactDetailPage({ params }: PageProps) {
                     ) : null}
                     <p className="mt-1 text-xs text-slate-500">
                       {activity.activityType} · {activity.sourceApp ?? "platform"} ·{" "}
-                      {new Date(activity.createdAt).toLocaleString("en-AU")}
+                      {formatTimelineDateTime(activity.createdAt)}
                     </p>
                   </li>
                 ))}

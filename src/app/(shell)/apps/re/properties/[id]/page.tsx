@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import {
   formatPropertyAddress,
+  formatTimelineDateTime,
   getContact,
   getLead,
   getProperty,
@@ -481,7 +482,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                     ) : null}
                     <p className="mt-1 text-xs text-slate-500">
                       {activity.activityType} ·{" "}
-                      {new Date(activity.createdAt).toLocaleString("en-AU")}
+                      {formatTimelineDateTime(activity.createdAt)}
                     </p>
                   </li>
                 ))}

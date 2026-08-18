@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
-import { listOrganisationActivities,} from "@dg/platform-core";
+import { formatTimelineDateTime, listOrganisationActivities } from "@dg/platform-core";
 
 function entityHref(entityType: string, entityId: string) {
   if (entityType === "Contact") return `/apps/crm/contacts/${entityId}`;
@@ -87,7 +87,7 @@ export default async function CrmTimelinePage() {
                         </>
                       ) : null}
                       {" · "}
-                      {new Date(activity.createdAt).toLocaleString("en-AU")}
+                      {formatTimelineDateTime(activity.createdAt)}
                     </p>
                   </li>
                 );

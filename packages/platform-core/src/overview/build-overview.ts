@@ -11,6 +11,11 @@ import { buildSetupProgress } from "./setup-progress";
 import { buildGrowthOpportunities } from "./growth-opportunities";
 import { enquiryInboxHref, hasRealEstateWorkspace } from "../leads/inbox-href";
 import {
+  formatRelativeTimelineLabel,
+  formatTimelineTime,
+  hourInTimeZone,
+} from "../time/display";
+import {
   evaluateOrganisationGoals,
   type OrganisationGoal,
 } from "../org/goals";
@@ -61,23 +66,7 @@ function greetingForHour(hour: number, name: string) {
 }
 
 function formatTimeLabel(iso: string) {
-  const d = new Date(iso);
-  const now = new Date();
-  const isToday =
-    d.getDate() === now.getDate() &&
-    d.getMonth() === now.getMonth() &&
-    d.getFullYear() === now.getFullYear();
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const isYesterday =
-    d.getDate() === yesterday.getDate() &&
-    d.getMonth() === yesterday.getMonth() &&
-    d.getFullYear() === yesterday.getFullYear();
-
-  const time = d.toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit" });
-  if (isToday) return time;
-  if (isYesterday) return "Yesterday";
-  return d.toLocaleDateString("en-AU", { month: "short", day: "numeric" });
+  return formatRelativeTimelineLabel(iso);
 }
 
 function formatAud(cents: number) {
@@ -302,7 +291,7 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
     healthHistory = [],
   } = input;
 
-  const hour = new Date().getHours();
+  const hour = hourInTimeZone();
   const firstName = userDisplayName.split(" ")[0] || userDisplayName;
   const setupIncomplete = !setupStatus?.hasContacts;
   const scoresLive = Boolean(liveMetrics);
@@ -392,10 +381,7 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
     businessHealth,
     businessHealthDelta: healthDelta,
     businessHealthDeltaLabel: `${healthDelta >= 0 ? "+" : ""}${healthDelta} this month`,
-    lastUpdatedLabel: new Date().toLocaleTimeString("en-AU", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    lastUpdatedLabel: formatTimelineTime(new Date().toISOString()),
     scoresLive,
     dailyBriefing: intelligence.dailyBriefing,
     priorities: intelligence.priorities,
@@ -468,10 +454,7 @@ function buildPreviewOverview(
     businessHealth: 0,
     businessHealthDelta: 0,
     businessHealthDeltaLabel: "Connect database for live scores",
-    lastUpdatedLabel: new Date().toLocaleTimeString("en-AU", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    lastUpdatedLabel: formatTimelineTime(new Date().toISOString()),
     scoresLive: false,
     dailyBriefing: `Good morning ${firstName}. Connect your database and WordPress site to unlock live Business Health scores and AI briefings.`,
     priorities: [

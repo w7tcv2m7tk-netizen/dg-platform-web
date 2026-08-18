@@ -6,7 +6,9 @@ import {
   getContact,
   getLead,
   getOpportunityForLead,
-  listLeadActivities,} from "@dg/platform-core";
+  listLeadActivities,
+  formatTimelineDateTime,
+} from "@dg/platform-core";
 
 import { BuyerLeadStageSelect } from "@/components/re/BuyerLeadStageSelect";
 import { ConvertToOpportunityButton } from "@/components/re/ConvertToOpportunityButton";
@@ -196,7 +198,7 @@ export default async function BuyerLeadDetailPage({ params }: PageProps) {
                     ) : null}
                     <p className="mt-1 text-xs text-slate-500">
                       {activity.activityType} ·{" "}
-                      {new Date(activity.createdAt).toLocaleString("en-AU")}
+                      {formatTimelineDateTime(activity.createdAt)}
                     </p>
                   </li>
                 ))}
