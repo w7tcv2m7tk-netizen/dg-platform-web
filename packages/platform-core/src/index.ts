@@ -34,6 +34,7 @@ export * from "./companies";
 export * from "./leads";
 export * from "./leads/public-capture";
 export * from "./leads/followup-sequence";
+export * from "./leads/inbox-href";
 export * from "./opportunities";
 export * from "./tasks";
 export * from "./referrals";

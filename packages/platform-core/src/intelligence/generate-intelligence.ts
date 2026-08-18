@@ -8,6 +8,7 @@ import type {
   OverviewPriority,
   OverviewRecommendedAction,
 } from "../overview/types";
+import { enquiryInboxHref, hasRealEstateWorkspace } from "../leads/inbox-href";
 
 export interface GenerateIntelligenceInput {
   organisationName: string;
@@ -49,6 +50,8 @@ export function generateBusinessIntelligence(
 ): GeneratedIntelligence {
   const { userDisplayName, enabledAppIds, metrics, connectors, snapshot, scores } = input;
   const firstName = userDisplayName.split(" ")[0] || userDisplayName;
+  const enquiryHref = enquiryInboxHref(enabledAppIds);
+  const reWorkspace = hasRealEstateWorkspace(enabledAppIds);
   const health = scores.businessHealth;
   const deltaLabel =
     scores.businessHealthDelta >= 0
@@ -130,7 +133,7 @@ export function generateBusinessIntelligence(
     });
   }
 
-  if (enabledAppIds.includes("real-estate") && metrics.vendorLeadCount > 0) {
+  if (reWorkspace && metrics.vendorLeadCount > 0) {
     priorities.push({
       rank: rank++,
       text: `Work ${metrics.vendorLeadCount} vendor lead${metrics.vendorLeadCount === 1 ? "" : "s"} in your pipeline.`,
@@ -231,7 +234,7 @@ export function generateBusinessIntelligence(
       id: "overdue-leads",
       label: `Follow up ${metrics.overdueFollowUps} overdue lead${metrics.overdueFollowUps === 1 ? "" : "s"}`,
       impact: "Protect conversion rate",
-      href: "/apps/re/vendor-leads",
+      href: enquiryHref,
       buttonLabel: "View leads",
     });
   }
@@ -253,8 +256,8 @@ export function generateBusinessIntelligence(
       id: "new-leads",
       label: `Respond to ${metrics.newLeadsThisWeek} new enquir${metrics.newLeadsThisWeek === 1 ? "y" : "ies"}`,
       impact: "Faster response improves conversion",
-      href: "/apps/re/vendor-leads",
-      buttonLabel: "Open leads",
+      href: enquiryHref,
+      buttonLabel: reWorkspace ? "Open leads" : "Open enquiries",
     });
   }
 

@@ -157,13 +157,19 @@ export async function createLead(input: CreateLeadInput) {
     entityId: lead.id,
   });
 
+  const meta = (input.metadata as Record<string, unknown> | undefined) ?? {};
   await platformEvents.publish({
     type: "lead.created",
     organisationId: input.organisationId,
     actorId: input.actorId,
     entityType: "Lead",
     entityId: lead.id,
-    payload: { source: lead.source, title: lead.title },
+    payload: {
+      source: lead.source,
+      title: lead.title,
+      leadType: typeof meta.lead_type === "string" ? meta.lead_type : undefined,
+      contactId: lead.contactId,
+    },
     occurredAt: new Date(),
   });
 

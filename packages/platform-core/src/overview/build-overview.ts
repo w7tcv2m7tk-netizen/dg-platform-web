@@ -9,6 +9,7 @@ import type { HealthHistoryEntry } from "./health-history";
 import { healthDeltaFromHistory, healthTrendFromHistory } from "./health-history";
 import { buildSetupProgress } from "./setup-progress";
 import { buildGrowthOpportunities } from "./growth-opportunities";
+import { enquiryInboxHref, hasRealEstateWorkspace } from "../leads/inbox-href";
 import type {
   BusinessOverview,
   OverviewConnectedSystem,
@@ -126,12 +127,13 @@ function buildSnapshotKpis(
   enabledAppIds: string[],
   connectors: OverviewConnectorProbes,
 ): OverviewSnapshotKpi[] {
+  const enquiryHref = enquiryInboxHref(enabledAppIds);
   const kpis: OverviewSnapshotKpi[] = [
     {
       id: "leads",
       label: "New Leads",
       value: metrics.newLeadsThisWeek > 0 ? String(metrics.newLeadsThisWeek) : "—",
-      href: "/apps/re/vendor-leads",
+      href: enquiryHref,
     },
     {
       id: "tasks",
@@ -141,7 +143,7 @@ function buildSnapshotKpis(
     },
   ];
 
-  if (enabledAppIds.includes("real-estate")) {
+  if (hasRealEstateWorkspace(enabledAppIds)) {
     kpis.push({
       id: "appointments",
       label: "Bookings",
@@ -375,7 +377,7 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
       { id: "seo", label: "SEO", value: getScoreValue(scores.scores, "seo"), href: "/apps/seo" },
       { id: "website", label: "Website", value: getScoreValue(scores.scores, "website_health"), href: "/apps/websites/health" },
       { id: "marketing", label: "Marketing", value: getScoreValue(scores.scores, "business_growth"), href: "/apps/marketing" },
-      { id: "sales", label: "Sales", value: getScoreValue(scores.scores, "conversion"), href: "/apps/re/vendor-leads" },
+      { id: "sales", label: "Sales", value: getScoreValue(scores.scores, "conversion"), href: enquiryInboxHref(enabledAppIds) },
       { id: "cx", label: "Customer Experience", value: getScoreValue(scores.scores, "reputation"), href: "/apps/reviews" },
       { id: "automation", label: "Automation", value: getScoreValue(scores.scores, "automation"), href: "/apps/automation" },
       { id: "finance", label: "Finance", value: scores.financeScore, href: "/apps/commerce" },
@@ -453,7 +455,7 @@ function buildPreviewOverview(
       { id: "seo", label: "SEO", value: 0, href: "/apps/seo" },
       { id: "website", label: "Website", value: 0, href: "/apps/websites/health" },
       { id: "marketing", label: "Marketing", value: 0, href: "/apps/marketing" },
-      { id: "sales", label: "Sales", value: 0, href: "/apps/re/vendor-leads" },
+      { id: "sales", label: "Sales", value: 0, href: enquiryInboxHref(enabledAppIds) },
       { id: "cx", label: "Customer Experience", value: 0, href: "/apps/reviews" },
       { id: "automation", label: "Automation", value: 0, href: "/apps/automation" },
       { id: "finance", label: "Finance", value: 0, href: "/apps/commerce" },

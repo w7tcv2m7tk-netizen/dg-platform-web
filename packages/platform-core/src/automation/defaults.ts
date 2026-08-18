@@ -12,6 +12,7 @@ import { resolveOrgBrandPresetKey } from "../org/brand-presets";
 import { createNotification } from "../notifications";
 import { convertLeadToOpportunity } from "../opportunities";
 import { createTask, listTasks } from "../tasks";
+import { enquiryRecordHref } from "../leads/inbox-href";
 import { registerAutomationRule, runAutomationForEvent } from "./engine";
 
 /** Wire default cross-app automations (real founding-path actions, not console stubs). */
@@ -279,9 +280,12 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
     body: opportunity
       ? `Contact + opportunity + follow-up task ready for ${lead.title ?? "lead"}.`
       : `Contact + follow-up task ready for ${lead.title ?? "lead"}.`,
-    href: opportunity
-      ? `/apps/crm/opportunities/${opportunity.id}`
-      : `/apps/re/vendor-leads/${lead.id}`,
+    href: enquiryRecordHref({
+      opportunityId: opportunity?.id,
+      leadId: lead.id,
+      leadType,
+      contactId: contactId,
+    }),
     entityType: "Lead",
     entityId: lead.id,
     metadata: { automationRuleId: "re.vendor_enquiry.intake" },

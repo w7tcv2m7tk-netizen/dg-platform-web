@@ -52,7 +52,7 @@ export default async function CrmOpportunitiesPage() {
           {meta.total === 1 ? "y" : "ies"}
           {isWantd
             ? " · Wants from wantdproperty.com.au"
-            : " · convert from vendor/buyer leads"}
+            : " · website and platform enquiries land here"}
         </p>
       </header>
       <main className="dg-page-main">
@@ -67,9 +67,12 @@ export default async function CrmOpportunitiesPage() {
             </p>
           ) : (
             <p className="text-sm text-slate-400">
-              Smoke path: Add lead on RE pipeline → open lead →{" "}
-              <strong className="text-slate-200">Convert to opportunity</strong> → appears here
-              with linked contact.
+              Contact, Founding 10, and other platform enquiries appear here after capture — no
+              Real Estate app required. Platform Consultations also show under{" "}
+              <Link href="/apps/crm/consultations" className="text-sky-400 hover:underline">
+                Consultations
+              </Link>
+              .
             </p>
           )}
           {items.length === 0 ? (

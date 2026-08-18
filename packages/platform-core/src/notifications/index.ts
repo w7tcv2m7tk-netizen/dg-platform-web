@@ -2,6 +2,7 @@ import type { Prisma } from "@dg/database";
 
 import { platformEvents } from "../events";
 import type { PlatformEvent, PlatformEventType } from "../events/types";
+import { enquiryRecordHref } from "../leads/inbox-href";
 
 export type NotificationDto = {
   id: string;
@@ -54,10 +55,18 @@ function hrefForEvent(event: PlatformEvent): string | null {
     case "Company":
       return `/apps/crm/companies/${id}`;
     case "Lead":
-      return event.type === "lead.converted" &&
-        typeof event.payload.opportunityId === "string"
-        ? `/apps/crm/opportunities/${event.payload.opportunityId}`
-        : `/apps/re/vendor-leads/${id}`;
+      return enquiryRecordHref({
+        opportunityId:
+          event.type === "lead.converted" &&
+          typeof event.payload.opportunityId === "string"
+            ? event.payload.opportunityId
+            : null,
+        leadId: id,
+        leadType:
+          typeof event.payload.leadType === "string" ? event.payload.leadType : null,
+        contactId:
+          typeof event.payload.contactId === "string" ? event.payload.contactId : null,
+      });
     case "Opportunity":
       return `/apps/crm/opportunities/${id}`;
     case "PlatformReferral":
