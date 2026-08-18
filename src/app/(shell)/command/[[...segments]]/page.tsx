@@ -1,17 +1,22 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCommandCentreOpsHome } from "@dg/platform-core";
+import { connection } from "next/server";
+import { getCommandCentreOpsHome, resolveSalesWeekPrompt } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
 import { CommandOpsHome } from "@/components/command/CommandOpsHome";
 import { Gate1DogfoodChecklist } from "@/components/command/Gate1DogfoodChecklist";
+import { SalesWeekNowBanner } from "@/components/command/SalesWeekNowBanner";
 import { AppFeaturePlaceholder } from "@/components/platform/AppFeaturePlaceholder";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 interface PageProps {
   params: Promise<{ segments?: string[] }>;
 }
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 /** Placeholder Command routes that must not show fake UI — redirect to real surfaces. */
 const VAPOR_REDIRECTS: Record<string, string> = {
@@ -20,8 +25,10 @@ const VAPOR_REDIRECTS: Record<string, string> = {
 };
 
 async function CommandOverviewPage() {
+  await connection();
   const { session } = await getPlatformPageContext();
   const data = process.env.DATABASE_URL ? await getCommandCentreOpsHome() : null;
+  const salesPrompt = resolveSalesWeekPrompt();
 
   return (
     <>
@@ -51,6 +58,8 @@ async function CommandOverviewPage() {
       </header>
       <main className="dg-page-main space-y-8">
         <CommandCentreNav active="overview" />
+
+        <SalesWeekNowBanner prompt={salesPrompt} compact />
 
         <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-50">
           <span className="font-medium text-white">Staff closed beta.</span> Core loop lives in{" "}

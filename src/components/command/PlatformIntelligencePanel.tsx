@@ -24,7 +24,7 @@ type IntelligenceResult = {
     href: string;
     excerpt: string;
   }>;
-  source: "llm" | "empty_retrieval" | "no_llm";
+  source: "llm" | "empty_retrieval" | "no_llm" | "llm_error";
   provider?: string;
   model?: string;
   latencyMs?: number;

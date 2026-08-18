@@ -11,6 +11,7 @@ export * from "./benchmarks";
 export * from "./flags-admin";
 export * from "./revenue";
 export * from "./platform-docs";
+export * from "./sales-week";
 
 /** Clerk role / org claim used to gate Command Centre routes */
 export const COMMAND_CENTRE_STAFF_ROLE = "dg:staff";
@@ -40,4 +41,6 @@ export const COMMAND_CENTRE_ROUTES = {
   growthEngine: `${COMMAND_CENTRE_BASE_PATH}/growth-engine`,
   /** Internal Alpha — tickable dogfood / P0–P1 close before Founding 10 */
   gate1: `${COMMAND_CENTRE_BASE_PATH}/gate-1`,
+  /** Commercial Engine 90-day sales week (Brisbane) */
+  salesWeek: `${COMMAND_CENTRE_BASE_PATH}/sales-week`,
 } as const;

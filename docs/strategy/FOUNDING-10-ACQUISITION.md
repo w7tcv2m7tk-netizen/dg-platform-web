@@ -1,9 +1,11 @@
 # Founding 10 — Acquisition Operating Lock
 
-**Status:** Active (Aug 2026)  
+**Status:** Active (Aug 2026) · weekly execution: [COMMERCIAL-ENGINE.md](./COMMERCIAL-ENGINE.md)  
 **Objective (30 days):** Get the first 10 suitable businesses operating successfully on DigitalGate, document results, use evidence to sell Founding 100.
 
-**Not in scope:** More Apps, bigger website, speculative AI features, Founding 100 infrastructure.
+**Not in scope:** More Apps, public website redesign, speculative AI features, partner portal, Founding 100 infrastructure.
+
+**Operating lock (18 Aug 2026):** Public site is sufficient for outreach. Shift from building the proposition to proving the commercial engine.
 
 ---
 
@@ -158,6 +160,10 @@ Growth prospect stages (already in platform):
 
 ## Sales conversation (front door)
 
+**People Ben already knows:** [FOUNDING-10-OUTREACH.md](./FOUNDING-10-OUTREACH.md) — personal update, not a campaign.
+
+**Cold / Discovery prospects** stay Audit-led:
+
 **Don't say:** “I'd like to sell you DigitalGate.”
 
 **Do say:** “I ran a DigitalGate Business Audit on your business and found areas that may be costing you visibility and enquiries.”
@@ -197,6 +203,7 @@ Growth hub should answer:
 
 ## Related docs
 
+- [COMMERCIAL-ENGINE.md](./COMMERCIAL-ENGINE.md) — Weekly sales engine + Founding Reseller qualification
 - [CEO-PLAN-2026-08-17.md](./CEO-PLAN-2026-08-17.md) — Email P0 → Stage 1 gates
 - [FOUNDING-COHORTS.md](./FOUNDING-COHORTS.md) — Commercial architecture
 - [DISCOVERY-SCORING-SPEC.md](./DISCOVERY-SCORING-SPEC.md) — Scoring model

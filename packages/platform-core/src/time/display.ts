@@ -21,19 +21,48 @@ function addCalendarDays(isoDay: string, days: number): string {
   return dt.toISOString().slice(0, 10);
 }
 
+export function minutesInTimeZone(
+  date: Date = new Date(),
+  timeZone: string = PLATFORM_DEFAULT_TZ,
+): number {
+  const parts = new Intl.DateTimeFormat("en-AU", {
+    timeZone,
+    hour: "numeric",
+    minute: "numeric",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const hourRaw = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  const hour = hourRaw === 24 ? 0 : hourRaw;
+  return hour * 60 + minute;
+}
+
+/** JS weekday: 0 Sunday … 6 Saturday, in `timeZone`. */
+export function weekdayInTimeZone(
+  date: Date = new Date(),
+  timeZone: string = PLATFORM_DEFAULT_TZ,
+): number {
+  const weekday = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "short",
+  }).format(date);
+  const map: Record<string, number> = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  };
+  return map[weekday] ?? 0;
+}
+
 export function hourInTimeZone(
   date: Date = new Date(),
   timeZone: string = PLATFORM_DEFAULT_TZ,
 ): number {
-  const hour = new Intl.DateTimeFormat("en-AU", {
-    timeZone,
-    hour: "numeric",
-    hourCycle: "h23",
-  })
-    .formatToParts(date)
-    .find((p) => p.type === "hour")?.value;
-  const n = Number(hour ?? "0");
-  return n === 24 ? 0 : n;
+  return Math.floor(minutesInTimeZone(date, timeZone) / 60);
 }
 
 export function formatTimelineTime(

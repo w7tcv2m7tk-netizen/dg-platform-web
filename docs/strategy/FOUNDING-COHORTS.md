@@ -122,7 +122,18 @@ Call it **referral commission** — never “referral discount.”
 | Programme change | Status is **ongoing while eligible** — not an irrevocable forever promise |
 | Payout | Platform credit by default; cash (or choice) where Connect / policy enables |
 
-**Founding Reseller (Founding 10)** is the founding-network referral tier name. A separate **DigitalGate Reseller Programme** for businesses that resell / manage DigitalGate for others remains a **distinct** commercial model — do not collapse the two. See [REVIEWS-AND-REFERRALS.md](../foundations/REVIEWS-AND-REFERRALS.md).
+**Founding Reseller** is used in two ways — keep them distinct:
+
+| Sense | Meaning |
+|-------|---------|
+| **Referral entitlement (Founding 10 customers)** | Cohort commercial table: 30% commission × 12 months on qualifying referred subscriptions. Lives in the Founding Customer offer. |
+| **Qualified partner channel** | Application/approval. People who already work with SME owners and **actively introduce** DigitalGate. Ben recruits 3–5 from an A-list; they introduce, Ben closes. Not an open affiliate programme. |
+
+A Founding Customer primarily **uses** DigitalGate. A Founding Reseller primarily **opens doors**. Someone can be both; most customers will not be active partners.
+
+Do **not** advertise for resellers until the first 3–5 are proven. Do **not** build a partner portal this month. Operating plan: [COMMERCIAL-ENGINE.md](./COMMERCIAL-ENGINE.md).
+
+A separate **managed-resale / white-label Reseller Programme** remains later architecture — do not collapse it into either sense above. See [REVIEWS-AND-REFERRALS.md](../foundations/REVIEWS-AND-REFERRALS.md).
 
 ---
 

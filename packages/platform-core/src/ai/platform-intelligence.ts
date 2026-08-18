@@ -52,7 +52,7 @@ export type PlatformIntelligenceAnswer = {
     href: string;
     excerpt: string;
   }>;
-  source: "llm" | "empty_retrieval" | "no_llm";
+  source: "llm" | "empty_retrieval" | "no_llm" | "llm_error";
   provider?: string;
   model?: string;
   latencyMs?: number;
@@ -546,7 +546,7 @@ export async function askPlatformIntelligence(input: {
     return unknownAnswer({
       question,
       answer: `Model Router failed (${message}). Retrieved sources are listed below — open them directly. I will not invent an answer.`,
-      source: "no_llm",
+      source: "llm_error",
       retrieved,
     });
   }

@@ -1,12 +1,16 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { llmConfigured } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { PlatformIntelligencePanel } from "@/components/command/PlatformIntelligencePanel";
 
-export default function CommandIntelligencePage() {
-  const modelReady = llmConfigured();
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
+export default async function CommandIntelligencePage() {
+  await connection();
+  const modelReady = llmConfigured();
   return (
     <>
       <header className="dg-page-header">

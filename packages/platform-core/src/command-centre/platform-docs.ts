@@ -107,6 +107,65 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "ROADMAP.md",
   },
   {
+    slug: "founding-10-outreach",
+    title: "Founding 10 outreach copy",
+    summary:
+      "Personal update, not a SaaS campaign — customer and Founding Reseller scripts, follow-ups, discovery questions.",
+    group: "strategy",
+    relativePath: "strategy/FOUNDING-10-OUTREACH.md",
+  },
+  {
+    slug: "commercial-engine",
+    title: "Commercial Engine",
+    summary:
+      "18 Aug lock — freeze website redesign; fill Founding 10 via network, RE prospecting, and qualified Founding Resellers.",
+    group: "strategy",
+    relativePath: "strategy/COMMERCIAL-ENGINE.md",
+  },
+  {
+    slug: "founding-10-acquisition",
+    title: "Founding 10 acquisition",
+    summary: "Founding 10 sales machine — acquisition loop and developer P0/P1 order.",
+    group: "strategy",
+    relativePath: "strategy/FOUNDING-10-ACQUISITION.md",
+  },
+  {
+    slug: "founding-cohorts",
+    title: "Founding cohorts",
+    summary:
+      "Founding 10 / 100 / 1,000 commercial architecture — customer discount ≠ referral commission.",
+    group: "strategy",
+    relativePath: "strategy/FOUNDING-COHORTS.md",
+  },
+  {
+    slug: "ceo-plan-2026-08-17",
+    title: "CEO plan (17 Aug)",
+    summary: "Gates — Email P0 → Stage 1 → P0/P1 → Founding 10 → Founding 100.",
+    group: "strategy",
+    relativePath: "strategy/CEO-PLAN-2026-08-17.md",
+  },
+  {
+    slug: "discovery-scoring-spec",
+    title: "Discovery scoring spec",
+    summary: "Prospect Opportunity Score — Fit × Need × Reachability × Commercial × Weakness.",
+    group: "strategy",
+    relativePath: "strategy/DISCOVERY-SCORING-SPEC.md",
+  },
+  {
+    slug: "advisor-evidence-stage-1",
+    title: "Advisor evidence — Stage 1",
+    summary: "Stage 1 product reality — live URLs, homepage/pricing audit, RE journey truth.",
+    group: "strategy",
+    relativePath: "strategy/ADVISOR-EVIDENCE-STAGE-1.md",
+  },
+  {
+    slug: "business-advisor-briefing",
+    title: "Business advisor briefing",
+    summary: "External advisor pack + adopted response lock (Intelligent Layer / Founding discipline).",
+    group: "strategy",
+    relativePath: "strategy/BUSINESS-ADVISOR-BRIEFING.md",
+  },
+  {
     slug: "commercially-ready-v1",
     title: "Commercially Ready v1",
     summary:

@@ -17,6 +17,7 @@ export const commandCentreApp: AppManifest = {
   icon: "◈",
   routes: [
     { path: "/command", label: "Priorities" },
+    { path: "/command/sales-week", label: "Sales week" },
     { path: "/command/opportunities", label: "Opportunities" },
     { path: "/command/opportunities/expansion", label: "Expansion" },
     { path: "/command/growth-engine", label: "Prospecting" },
@@ -46,6 +47,7 @@ export const commandCentreApp: AppManifest = {
    */
   navigation: [
     { href: "/command", label: "Priorities", icon: "◈" },
+    { href: "/command/sales-week", label: "Sales week", icon: "◷" },
     { href: "/command/opportunities", label: "Opportunities", icon: "✦" },
     { href: "/command/growth-engine", label: "Prospecting", icon: "◎" },
     { href: "/command/advisor", label: "Recommended Actions", icon: "✓" },

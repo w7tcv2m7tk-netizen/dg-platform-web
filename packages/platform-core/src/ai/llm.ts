@@ -18,12 +18,23 @@ export type LlmGenerateResult = {
   latencyMs: number;
 };
 
+/**
+ * Bracket lookup so Next/Turbopack cannot replace this with an empty string
+ * at build time (static `process.env.OPENAI_API_KEY` is inlined during
+ * `next build`, which is why Platform Intelligence returned `no_llm` on
+ * Vercel even when the Production secret existed).
+ */
+function envTrim(name: string): string {
+  const bag = process.env as Record<string, string | undefined>;
+  return (bag[name] ?? "").trim();
+}
+
 function openaiKey() {
-  return process.env.OPENAI_API_KEY?.trim() || "";
+  return envTrim("OPENAI_API_KEY");
 }
 
 function anthropicKey() {
-  return process.env.ANTHROPIC_API_KEY?.trim() || "";
+  return envTrim("ANTHROPIC_API_KEY");
 }
 
 export function resolveLlmProvider(): {
@@ -31,38 +42,24 @@ export function resolveLlmProvider(): {
   model: string;
   apiKey: string;
 } | null {
-  const preferred = (process.env.DG_LLM_PROVIDER || "").trim().toLowerCase();
+  const preferred = envTrim("DG_LLM_PROVIDER").toLowerCase();
   const openai = openaiKey();
   const anthropic = anthropicKey();
+  const openaiModel = envTrim("OPENAI_MODEL") || "gpt-4o-mini";
+  const anthropicModel = envTrim("ANTHROPIC_MODEL") || "claude-sonnet-4-20250514";
 
   if (preferred === "openai" && openai) {
-    return {
-      provider: "openai",
-      model: process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini",
-      apiKey: openai,
-    };
+    return { provider: "openai", model: openaiModel, apiKey: openai };
   }
   if (preferred === "anthropic" && anthropic) {
-    return {
-      provider: "anthropic",
-      model: process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-20250514",
-      apiKey: anthropic,
-    };
+    return { provider: "anthropic", model: anthropicModel, apiKey: anthropic };
   }
   // Prefer Anthropic when both set (DG default); else whichever exists.
   if (anthropic) {
-    return {
-      provider: "anthropic",
-      model: process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-20250514",
-      apiKey: anthropic,
-    };
+    return { provider: "anthropic", model: anthropicModel, apiKey: anthropic };
   }
   if (openai) {
-    return {
-      provider: "openai",
-      model: process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini",
-      apiKey: openai,
-    };
+    return { provider: "openai", model: openaiModel, apiKey: openai };
   }
   return null;
 }

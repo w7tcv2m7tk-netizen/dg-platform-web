@@ -4,8 +4,10 @@ Product and go-to-market strategy locks (not architecture constraints).
 
 | Document | Purpose |
 |----------|---------|
-| **[CEO-PLAN-2026-08-17.md](./CEO-PLAN-2026-08-17.md)** | **Active operating lock** — Email P0 → Stage 1 → P0/P1 → Founding 10 → Founding 100 gates |
-| **[FOUNDING-10-ACQUISITION.md](./FOUNDING-10-ACQUISITION.md)** | **Founding 10 sales machine** — acquisition loop, CEO 7-day plan, developer P0/P1 order |
+| **[FOUNDING-10-OUTREACH.md](./FOUNDING-10-OUTREACH.md)** | Outreach copy — personal update, not a SaaS campaign; customer vs reseller scripts |
+| **[COMMERCIAL-ENGINE.md](./COMMERCIAL-ENGINE.md)** | **Active operating lock (18 Aug)** — freeze website redesign; fill Founding 10; network + RE prospecting + qualified Founding Resellers |
+| **[CEO-PLAN-2026-08-17.md](./CEO-PLAN-2026-08-17.md)** | Gates — Email P0 → Stage 1 → P0/P1 → Founding 10 → Founding 100 |
+| **[FOUNDING-10-ACQUISITION.md](./FOUNDING-10-ACQUISITION.md)** | Founding 10 sales machine — acquisition loop, developer P0/P1 order |
 | **[DISCOVERY-SCORING-SPEC.md](./DISCOVERY-SCORING-SPEC.md)** | Prospect Opportunity Score spec — Fit × Need × Reachability × Commercial × Weakness |
 | **[ADVISOR-EVIDENCE-STAGE-1.md](./ADVISOR-EVIDENCE-STAGE-1.md)** | Stage 1 product reality — live URLs, homepage/pricing audit, RE journey truth, capture checklist |
 | **[BUSINESS-ADVISOR-BRIEFING.md](./BUSINESS-ADVISOR-BRIEFING.md)** | External advisor pack + **adopted response lock** (Intelligent Layer / Founding discipline) |
