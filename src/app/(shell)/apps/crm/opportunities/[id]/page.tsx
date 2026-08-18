@@ -8,6 +8,8 @@ import {
   getLead,
   getOpportunity,
   isWantOpportunityMetadata,
+  organisationHasReBeta,
+  sourceLeadHref,
 } from "@dg/platform-core";
 
 import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
@@ -42,21 +44,35 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
     ? opportunity.metadata
     : null;
 
-  const [contact, lead] = await Promise.all([
+  const [contact, lead, hasReBeta] = await Promise.all([
     opportunity.contactId
       ? getContact(session.organisationId, opportunity.contactId)
       : Promise.resolve(null),
     opportunity.leadId
       ? getLead(session.organisationId, opportunity.leadId)
       : Promise.resolve(null),
+    organisationHasReBeta(session.organisationId),
   ]);
 
-  const leadHref =
-    lead?.source === "buyer_enquiry"
-      ? `/apps/re/buyer-leads/${lead.id}`
-      : lead
-        ? `/apps/re/vendor-leads/${lead.id}`
-        : null;
+  const leadType =
+    lead && typeof lead.metadata?.lead_type === "string"
+      ? lead.metadata.lead_type
+      : null;
+  const leadHref = lead
+    ? sourceLeadHref({
+        leadId: lead.id,
+        leadType,
+        leadSource: lead.source,
+        hasReBeta,
+      })
+    : null;
+  const enquiryMessage =
+    (typeof lead?.metadata?.message === "string" && lead.metadata.message.trim()) ||
+    lead?.description?.trim() ||
+    "";
+  const interestedIn = Array.isArray(lead?.metadata?.interested_in)
+    ? lead.metadata.interested_in.map(String).filter(Boolean)
+    : [];
 
   return (
     <>
@@ -132,6 +148,36 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
               ) : null}
             </ul>
           </div>
+
+          {lead ? (
+            <div className="dg-card lg:col-span-2">
+              <h2 className="font-semibold text-white">Enquiry</h2>
+              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                <div>
+                  <dt className="text-slate-500">Type</dt>
+                  <dd className="capitalize text-white">
+                    {(leadType || lead.source || "enquiry").replace(/_/g, " ")}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Source</dt>
+                  <dd className="text-white">{lead.source.replace(/_/g, " ")}</dd>
+                </div>
+                {interestedIn.length > 0 ? (
+                  <div className="sm:col-span-2">
+                    <dt className="text-slate-500">Interested in</dt>
+                    <dd className="text-white">{interestedIn.join(", ")}</dd>
+                  </div>
+                ) : null}
+                {enquiryMessage ? (
+                  <div className="sm:col-span-2">
+                    <dt className="text-slate-500">Message</dt>
+                    <dd className="whitespace-pre-wrap text-white">{enquiryMessage}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            </div>
+          ) : null}
 
           {want ? (
             <div className="dg-card lg:col-span-2">
