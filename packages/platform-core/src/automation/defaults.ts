@@ -194,9 +194,18 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
     const agency = org?.name?.trim() || "our team";
     const orgBrandKey = org ? resolveOrgBrandPresetKey(org) : null;
     const useDgContactAck = isDigitalGateGeneralEnquiry({
-      leadType,
+      leadType: typeof metadata.lead_type === "string" ? metadata.lead_type : "",
+      leadTitle: lead.title,
       metadata,
       orgBrandKey,
+      orgSlug: org?.slug,
+      orgName: org?.name,
+    });
+    console.info("[automation] lead ack template", {
+      useDgContactAck,
+      leadType: typeof metadata.lead_type === "string" ? metadata.lead_type : "",
+      leadId: lead.id,
+      organisationId: event.organisationId,
     });
 
     const ack = useDgContactAck

@@ -44,41 +44,67 @@ export function formatEnquiryInterest(values: unknown): string | null {
 }
 
 /** Customer-facing topic — never the internal CRM lead title. */
-export function humanEnquiryTopic(metadata?: Record<string, unknown> | null): string {
+export function humanEnquiryTopic(
+  metadata?: Record<string, unknown> | null,
+): string {
   const meta = metadata ?? {};
-  return (
+  const topic =
     formatEnquiryInterest(meta.interested_in) ||
     formatEnquiryInterest(meta.apps_interest) ||
-    "DigitalGate"
-  );
+    "DigitalGate";
+  return sanitizeEnquiryTopic(topic);
+}
+
+export function sanitizeEnquiryTopic(topic: string): string {
+  const value = topic.trim();
+  if (!value) return "DigitalGate";
+  if (
+    /^(contact enquiry|website enquiry|founding 10|platform consultation|funnel enquiry)\b/i.test(
+      value,
+    )
+  ) {
+    return "DigitalGate";
+  }
+  return value;
 }
 
 export function isDigitalGateGeneralEnquiry(input: {
   leadType?: string | null;
+  leadTitle?: string | null;
   metadata?: Record<string, unknown> | null;
   orgBrandKey?: string | null;
+  orgSlug?: string | null;
+  orgName?: string | null;
 }): boolean {
   const leadType = (input.leadType || "").trim().toLowerCase();
-  if (
-    leadType === "consultation" ||
-    leadType === "vendor" ||
-    leadType === "buyer" ||
-    leadType === "booking" ||
-    leadType === "accommodation" ||
-    leadType === "marketing"
-  ) {
-    return false;
-  }
+  if (leadType === "consultation") return false;
+
   const meta = input.metadata ?? {};
-  const siteSlug = typeof meta.site_slug === "string" ? meta.site_slug.trim() : "";
+  const siteSlug =
+    typeof meta.site_slug === "string" ? meta.site_slug.trim().toLowerCase() : "";
   const capturePath =
     typeof meta.capture_path === "string" ? meta.capture_path.trim() : "";
   const brand = (input.orgBrandKey || "").trim();
-  return (
-    brand === "digitalgate" ||
-    siteSlug === "digitalgate" ||
-    capturePath === "gen2_dg_enquiry"
-  );
+  const slug = (input.orgSlug || "").trim().toLowerCase();
+  const name = (input.orgName || "").trim().toLowerCase();
+  const title = (input.leadTitle || "").trim();
+
+  if (
+    leadType === "contact" ||
+    leadType === "founding_10" ||
+    leadType === "enquiry" ||
+    leadType === "funnel_enquiry"
+  ) {
+    return true;
+  }
+  if (capturePath === "gen2_dg_enquiry" || capturePath === "website_builder_form") {
+    return siteSlug === "digitalgate" || brand === "digitalgate" || slug.includes("digitalgate");
+  }
+  if (siteSlug === "digitalgate") return true;
+  if (brand === "digitalgate") return true;
+  if (slug.includes("digitalgate") || name.includes("digitalgate")) return true;
+  if (/^(contact enquiry|founding 10|website enquiry)\b/i.test(title)) return true;
+  return false;
 }
 
 export function renderDgContactEnquiryAck(input: {
@@ -86,7 +112,7 @@ export function renderDgContactEnquiryAck(input: {
   topic?: string;
 }): { subject: string; body: string; bodyHtml: string; footerNote: string } {
   const name = input.firstName?.trim() || "there";
-  const topic = input.topic?.trim() || "DigitalGate";
+  const topic = sanitizeEnquiryTopic(input.topic?.trim() || "DigitalGate");
   const subject = "We've received your enquiry — DigitalGate";
   const body = [
     `Hi ${name},`,
