@@ -26,15 +26,17 @@ export default async function SocialOverviewPage() {
           ← Overview
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Social</h1>
-        <p className="text-sm text-slate-400">Profile links + local drafts — publishing deferred</p>
+        <p className="text-sm text-slate-400">
+          Profile links, local drafts, LinkedIn connect
+        </p>
         <SocialSubnav active="/apps/social" />
       </header>
       <main className="dg-page-main space-y-6">
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-slate-300">
           <p className="font-medium text-amber-200">Honestly deferred for closed beta</p>
           <p className="mt-1 text-slate-400">
-            Multi-network publish (LinkedIn, Facebook, Instagram, X, Pinterest) is not ready. This
-            surface tracks Business Profile social URLs and local drafts only — no fake engagement
+            Publishing to networks is not live yet. LinkedIn can be connected under Accounts.
+            This surface still tracks Business Profile URLs and local drafts — no fake engagement
             charts.
           </p>
         </div>
@@ -94,7 +96,7 @@ export default async function SocialOverviewPage() {
               <Link href="/apps/social/accounts" className="text-sky-400 hover:underline">
                 Accounts
               </Link>{" "}
-              — connector placeholders only
+              — Connect LinkedIn; Meta still pending
             </li>
             <li>
               <Link href="/dashboard/business" className="text-sky-400 hover:underline">

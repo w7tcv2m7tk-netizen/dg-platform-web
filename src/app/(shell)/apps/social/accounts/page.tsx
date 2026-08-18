@@ -1,11 +1,20 @@
 import Link from "next/link";
 import { getOrganisationBusinessProfile } from "@dg/platform-core";
 
+import { LinkedInConnectorPanel } from "@/components/settings/LinkedInConnectorPanel";
 import { SocialSubnav } from "@/components/social/SocialSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 import { getSocialUrl, SOCIAL_PROFILE_FIELDS } from "@/lib/social-profile-fields";
 
-export default async function SocialAccountsPage() {
+interface PageProps {
+  searchParams: Promise<{
+    linkedin?: string;
+    message?: string;
+  }>;
+}
+
+export default async function SocialAccountsPage({ searchParams }: PageProps) {
+  const { linkedin: linkedinFlash, message: flashMessage } = await searchParams;
   const { session: platformSession } = await getPlatformPageContext();
   const profile = platformSession
     ? await getOrganisationBusinessProfile(platformSession.organisationId)
@@ -19,12 +28,25 @@ export default async function SocialAccountsPage() {
           ← Social overview
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Accounts</h1>
-        <p className="text-sm text-slate-400">Linked URLs from Business Profile</p>
+        <p className="text-sm text-slate-400">
+          LinkedIn OAuth + profile URLs from Business Profile
+        </p>
         <SocialSubnav active="/apps/social/accounts" />
       </header>
       <main className="dg-page-main space-y-6">
+        <LinkedInConnectorPanel
+          flash={
+            linkedinFlash === "connected"
+              ? "connected"
+              : linkedinFlash === "error"
+                ? "error"
+                : null
+          }
+          flashMessage={linkedinFlash ? flashMessage ?? null : null}
+        />
+
         <section className="dg-card">
-          <h2 className="font-semibold text-white">Social channels</h2>
+          <h2 className="font-semibold text-white">Profile URLs</h2>
           <ul className="mt-4 space-y-3">
             {SOCIAL_PROFILE_FIELDS.map((field) => {
               const url = getSocialUrl(social, field.key);
@@ -69,10 +91,10 @@ export default async function SocialAccountsPage() {
         </section>
 
         <section className="dg-card border-amber-500/20">
-          <h2 className="font-semibold text-white">OAuth publishing</h2>
+          <h2 className="font-semibold text-white">Still deferred</h2>
           <p className="mt-2 text-sm text-slate-300">
-            Meta and LinkedIn OAuth for direct publishing is not connected yet. URLs above are
-            profile links only — use Compose to save drafts until publish connectors ship.
+            Meta (Facebook / Instagram) and X OAuth are not connected. LinkedIn posting from
+            Compose is next after this connect step.
           </p>
           <p className="mt-3 text-sm">
             <Link href="/dashboard/business" className="text-blue-400 hover:underline">

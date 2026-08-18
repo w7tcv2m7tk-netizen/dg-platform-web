@@ -25,6 +25,7 @@ export * from "./connectors/framework";
 export * from "./connectors/domain";
 export * from "./connectors/rea";
 export * from "./connectors/google";
+export * from "./connectors/linkedin";
 export * from "./connectors/corelogic";
 export * from "./connectors/abr";
 export * from "./connectors/asic";

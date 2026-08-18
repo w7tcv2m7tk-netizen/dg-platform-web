@@ -29,6 +29,11 @@ function platformConfigured(connectorId: string): boolean {
       return Boolean(
         process.env.GOOGLE_CLIENT_ID?.trim() && process.env.GOOGLE_CLIENT_SECRET?.trim(),
       );
+    case "linkedin":
+      return Boolean(
+        process.env.LINKEDIN_CLIENT_ID?.trim() &&
+          process.env.LINKEDIN_CLIENT_SECRET?.trim(),
+      );
     case "stripe":
       return Boolean(process.env.STRIPE_SECRET_KEY?.trim());
     case "wordpress":
@@ -67,7 +72,7 @@ function statusFromBlob(
     };
   }
 
-  if (connectorId === "google-gbp") {
+  if (connectorId === "google-gbp" || connectorId === "linkedin") {
     const accessToken = typeof blob.accessToken === "string" ? blob.accessToken : "";
     const refreshToken = typeof blob.refreshToken === "string" ? blob.refreshToken : "";
     const connected = Boolean(accessToken || refreshToken);

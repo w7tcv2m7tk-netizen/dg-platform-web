@@ -213,6 +213,23 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     dg15Rank: 10,
   },
   {
+    id: "linkedin",
+    name: "LinkedIn",
+    category: "marketing",
+    auth: "oauth",
+    syncObjects: ["Activity", "Organisation"],
+    capabilities: ["profile.read", "listing.publish"],
+    appIds: ["social"],
+    oauthScopes: [
+      "openid",
+      "profile",
+      "email",
+      "w_organization_social",
+      "r_organization_social",
+    ],
+    priorityTier: 1,
+  },
+  {
     id: "xero",
     name: "Xero",
     category: "commerce",

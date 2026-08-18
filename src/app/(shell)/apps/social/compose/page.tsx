@@ -24,7 +24,9 @@ export default async function SocialComposePage() {
           ← Social overview
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Compose</h1>
-        <p className="text-sm text-slate-400">Save local drafts — publish later when OAuth is live</p>
+        <p className="text-sm text-slate-400">
+          Save local drafts — LinkedIn publish from Compose is next
+        </p>
         <SocialSubnav active="/apps/social/compose" />
       </header>
       <main className="dg-page-main space-y-6">

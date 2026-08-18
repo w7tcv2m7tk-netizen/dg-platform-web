@@ -10,6 +10,7 @@ import {
 import { ConnectorEngineCatalog } from "@/components/settings/ConnectorEngineCatalog";
 import { DomainConnectorPanel } from "@/components/settings/DomainConnectorPanel";
 import { GoogleGbpConnectorPanel } from "@/components/settings/GoogleGbpConnectorPanel";
+import { LinkedInConnectorPanel } from "@/components/settings/LinkedInConnectorPanel";
 import { ReaConnectorPanel } from "@/components/settings/ReaConnectorPanel";
 import { WordPressConnectorPanel } from "@/components/settings/WordPressConnectorPanel";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -32,6 +33,7 @@ interface PageProps {
   searchParams: Promise<{
     domain?: string;
     google?: string;
+    linkedin?: string;
     rea?: string;
     message?: string;
   }>;
@@ -41,6 +43,7 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
   const {
     domain: domainFlash,
     google: googleFlash,
+    linkedin: linkedinFlash,
     rea: reaFlash,
     message: flashMessage,
   } = await searchParams;
@@ -85,6 +88,8 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
     reaSecret: Boolean(process.env.REA_CLIENT_SECRET?.trim()),
     googleClient: Boolean(process.env.GOOGLE_CLIENT_ID?.trim()),
     googleSecret: Boolean(process.env.GOOGLE_CLIENT_SECRET?.trim()),
+    linkedinClient: Boolean(process.env.LINKEDIN_CLIENT_ID?.trim()),
+    linkedinSecret: Boolean(process.env.LINKEDIN_CLIENT_SECRET?.trim()),
   };
 
   return (
@@ -128,6 +133,17 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
                 : null
           }
           flashMessage={googleFlash ? flashMessage ?? null : null}
+        />
+
+        <LinkedInConnectorPanel
+          flash={
+            linkedinFlash === "connected"
+              ? "connected"
+              : linkedinFlash === "error"
+                ? "error"
+                : null
+          }
+          flashMessage={linkedinFlash ? flashMessage ?? null : null}
         />
 
         {session && wpResolved ? (
@@ -211,6 +227,8 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
               <EnvStatus name="REA_CLIENT_SECRET" configured={envFlags.reaSecret} />
               <EnvStatus name="GOOGLE_CLIENT_ID" configured={envFlags.googleClient} />
               <EnvStatus name="GOOGLE_CLIENT_SECRET" configured={envFlags.googleSecret} />
+              <EnvStatus name="LINKEDIN_CLIENT_ID" configured={envFlags.linkedinClient} />
+              <EnvStatus name="LINKEDIN_CLIENT_SECRET" configured={envFlags.linkedinSecret} />
               <EnvStatus name="RESEND_API_KEY" configured={envFlags.resend} />
               <EnvStatus name="OPENAI_API_KEY" configured={envFlags.openai} />
               <EnvStatus name="ANTHROPIC_API_KEY" configured={envFlags.anthropic} />
