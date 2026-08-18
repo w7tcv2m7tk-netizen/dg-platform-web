@@ -97,6 +97,7 @@ export * from "./services";
 export * from "./finance";
 export * from "./commercial";
 export * from "./property-management";
+export * from "./founding";
 export * from "./roadmap";
 export * from "./app-guides";
 export * from "./help";

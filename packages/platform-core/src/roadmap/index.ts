@@ -148,6 +148,35 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     href: "/dashboard",
   },
   {
+    id: "founding.pipeline",
+    area: "Platform",
+    label: "Founding 10 customer pipeline",
+    description:
+      "Accepted → Agreement → Onboarding → Implementation → Go-live → 30-day review with next actions",
+    status: "done",
+    track: "cr-v1",
+    href: "/command/founding",
+  },
+  {
+    id: "founding.onboarding",
+    area: "Platform",
+    label: "Founding Customer onboarding (Gen 2)",
+    description:
+      "Signed-in progressive wizard; public /onboarding/ form retired — docs/strategy/FOUNDING-CUSTOMER-ONBOARDING.md",
+    status: "done",
+    track: "cr-v1",
+    href: "/onboarding",
+  },
+  {
+    id: "founding.implementation",
+    area: "Platform",
+    label: "Founding implementation plan",
+    description: "Setup plan, implementation tasks, and 30-day success journey after onboarding submit",
+    status: "done",
+    track: "cr-v1",
+    href: "/implementation",
+  },
+  {
     id: "platform.api",
     area: "Platform",
     label: "Platform API v1",

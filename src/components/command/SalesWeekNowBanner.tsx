@@ -55,6 +55,12 @@ export function SalesWeekNowBanner({
         >
           Outreach copy
         </Link>
+        <Link
+          href="/command/founding"
+          className="rounded-full border border-emerald-700/80 px-4 py-1.5 text-sm text-emerald-100 hover:border-emerald-500"
+        >
+          Founding pipeline
+        </Link>
         {compact ? null : (
           <Link
             href="/apps/crm/opportunities"

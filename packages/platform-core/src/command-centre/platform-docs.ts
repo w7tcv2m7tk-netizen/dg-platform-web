@@ -123,6 +123,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "strategy/COMMERCIAL-ENGINE.md",
   },
   {
+    slug: "founding-customer-onboarding",
+    title: "Founding Customer onboarding",
+    summary:
+      "Accepted → Agreement → signed-in onboarding → implementation plan → go-live. Do not use the retired public 12-section form.",
+    group: "strategy",
+    relativePath: "strategy/FOUNDING-CUSTOMER-ONBOARDING.md",
+  },
+  {
     slug: "founding-10-acquisition",
     title: "Founding 10 acquisition",
     summary: "Founding 10 sales machine — acquisition loop and developer P0/P1 order.",

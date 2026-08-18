@@ -6,6 +6,10 @@ import { notFound, redirect } from "next/navigation";
 import { HideawayCircleCapture } from "@/components/websites/HideawayCircleCapture";
 import { WebsitePageRenderer } from "@/components/websites/WebsiteRenderer";
 import { websiteRendererCss } from "@/components/websites/website-renderer-css";
+import {
+  isRetiredPublicOnboarding,
+  PublicOnboardingRetired,
+} from "@/components/founding/PublicOnboardingRetired";
 
 type SiteChrome = {
   headerHtml?: string;
@@ -175,6 +179,13 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
             basePath=""
             variant="funnel"
           />
+        </div>
+      ) : isRetiredPublicOnboarding(slug, page.slug) ? (
+        <div
+          className="wb-root wb-html-page"
+          style={{ minHeight: "100dvh", background: "#0A0E17" }}
+        >
+          <PublicOnboardingRetired />
         </div>
       ) : (
         <WebsitePageRenderer

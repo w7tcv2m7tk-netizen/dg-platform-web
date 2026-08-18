@@ -68,7 +68,11 @@ export default async function CrmOpportunitiesPage() {
           ) : (
             <p className="text-sm text-slate-400">
               Contact, Founding 10, and other platform enquiries appear here after capture — no
-              Real Estate app required. Platform Consultations also show under{" "}
+              Real Estate app required. Founding Customer pipeline:{" "}
+              <Link href="/command/founding" className="text-sky-400 hover:underline">
+                Command → Founding 10
+              </Link>
+              . Platform Consultations also show under{" "}
               <Link href="/apps/crm/consultations" className="text-sky-400 hover:underline">
                 Consultations
               </Link>

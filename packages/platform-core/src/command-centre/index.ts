@@ -43,4 +43,6 @@ export const COMMAND_CENTRE_ROUTES = {
   gate1: `${COMMAND_CENTRE_BASE_PATH}/gate-1`,
   /** Commercial Engine 90-day sales week (Brisbane) */
   salesWeek: `${COMMAND_CENTRE_BASE_PATH}/sales-week`,
+  /** Founding 10 customer pipeline (accept → agreement → onboard → go-live) */
+  founding: `${COMMAND_CENTRE_BASE_PATH}/founding`,
 } as const;

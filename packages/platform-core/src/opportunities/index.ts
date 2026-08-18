@@ -227,7 +227,7 @@ export async function convertLeadToOpportunity(input: {
     (leadType === "consultation"
       ? "booked"
       : leadType === "founding_10"
-        ? "application"
+        ? "application_received"
         : leadType === "contact" || leadType === "enquiry"
           ? "new"
           : leadType === "buyer"
@@ -339,6 +339,17 @@ export async function updateOpportunityStage(
     where: { id: opportunityId },
     data: { stage },
   });
+
+  if (existing.pipelineId === "founding_10") {
+    const { applyFoundingStageSideEffects } = await import("../founding/stage-actions");
+    await applyFoundingStageSideEffects({
+      organisationId,
+      opportunityId,
+      previousStage: existing.stage,
+      stage,
+      actorId,
+    });
+  }
 
   await prisma.activity.create({
     data: {

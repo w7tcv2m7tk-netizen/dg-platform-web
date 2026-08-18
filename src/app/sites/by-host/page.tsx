@@ -14,6 +14,10 @@ import { HideawayCircleCapture } from "@/components/websites/HideawayCircleCaptu
 import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
 import { WebsitePageRenderer } from "@/components/websites/WebsiteRenderer";
 import { websiteRendererCss } from "@/components/websites/website-renderer-css";
+import {
+  isRetiredPublicOnboarding,
+  PublicOnboardingRetired,
+} from "@/components/founding/PublicOnboardingRetired";
 
 type SiteChrome = {
   headerHtml?: string;
@@ -409,6 +413,13 @@ async function renderSite(
             basePath=""
             variant="funnel"
           />
+        </div>
+      ) : isRetiredPublicOnboarding(slug, page.slug) ? (
+        <div
+          className="wb-root wb-html-page"
+          style={{ minHeight: "100dvh", background: "#0A0E17" }}
+        >
+          <PublicOnboardingRetired />
         </div>
       ) : (
         <WebsitePageRenderer

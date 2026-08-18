@@ -295,8 +295,10 @@ export async function sendMessage(
   let businessName: string | undefined;
   let fromAddress: string | undefined;
   let brandReplyToAddress: string | undefined;
+  const purpose =
+    typeof input.metadata?.purpose === "string" ? input.metadata.purpose : "";
   const brandMode =
-    input.metadata?.purpose === "platform_referral_invite"
+    purpose === "platform_referral_invite" || purpose.startsWith("founding_10_")
       ? ("platform" as const)
       : undefined;
 

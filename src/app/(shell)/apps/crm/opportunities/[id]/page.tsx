@@ -7,12 +7,14 @@ import {
   getContact,
   getLead,
   getOpportunity,
+  isFoundingPipeline,
   isWantOpportunityMetadata,
   organisationHasReBeta,
   sourceLeadHref,
 } from "@dg/platform-core";
 
 import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
+import { FoundingStageActions } from "@/components/founding/FoundingStageActions";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -57,6 +59,12 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
   const leadType =
     lead && typeof lead.metadata?.lead_type === "string"
       ? lead.metadata.lead_type
+      : null;
+  const founding = isFoundingPipeline(opportunity.pipelineId, leadType);
+  const inviteToken =
+    opportunity.metadata &&
+    typeof opportunity.metadata.founding_invite_token === "string"
+      ? opportunity.metadata.founding_invite_token
       : null;
   const leadHref = lead
     ? sourceLeadHref({
@@ -158,6 +166,14 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
               ) : null}
             </ul>
           </div>
+
+          {founding ? (
+            <FoundingStageActions
+              opportunityId={opportunity.id}
+              stage={opportunity.stage}
+              inviteToken={inviteToken}
+            />
+          ) : null}
 
           {lead ? (
             <div className="dg-card lg:col-span-2">

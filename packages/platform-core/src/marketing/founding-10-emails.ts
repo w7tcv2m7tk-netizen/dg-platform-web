@@ -22,7 +22,7 @@ const FOUNDING_STEPS: Array<{ title: string; body: string }> = [
   },
   {
     title: "Onboarding",
-    body: "Once accepted, you'll complete the detailed DigitalGate onboarding process before moving into platform setup and implementation.",
+    body: "Once accepted, you'll complete a signed-in DigitalGate onboarding to configure your environment — not a public 12-section form.",
   },
 ];
 
