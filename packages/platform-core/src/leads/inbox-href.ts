@@ -14,6 +14,28 @@ export function enquiryInboxHref(enabledAppIds: readonly string[] = []): string 
     : "/apps/crm/opportunities";
 }
 
+/** Deep link for a single enquiry (notification / automation href). */
+export function enquiryRecordHref(input: {
+  opportunityId?: string | null;
+  leadId?: string | null;
+  leadType?: string | null;
+  contactId?: string | null;
+}): string {
+  if (input.opportunityId) {
+    return `/apps/crm/opportunities/${input.opportunityId}`;
+  }
+  const type = (input.leadType || "").trim().toLowerCase();
+  if (type === "consultation") return "/apps/crm/consultations";
+  if (type === "buyer" && input.leadId) {
+    return `/apps/re/buyer-leads/${input.leadId}`;
+  }
+  if (type === "vendor" && input.leadId) {
+    return `/apps/re/vendor-leads/${input.leadId}`;
+  }
+  if (input.contactId) return `/apps/crm/contacts/${input.contactId}`;
+  return "/apps/crm/opportunities";
+}
+
 export function isRealEstatePipelineLead(input: {
   leadType?: string | null;
   leadSource?: string | null;

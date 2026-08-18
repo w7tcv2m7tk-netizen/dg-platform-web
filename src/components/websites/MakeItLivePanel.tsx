@@ -2,10 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  resolvePrimaryLinkedDomain,
-  type SerializedWebsite,
-} from "@dg/platform-core";
+import type { SerializedWebsite } from "@dg/platform-core";
+import { resolvePrimaryLinkedDomain } from "@dg/platform-core/infrastructure/domains/primary-linked";
 
 type ChecklistItem = {
   id: string;

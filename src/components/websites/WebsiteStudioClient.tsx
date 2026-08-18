@@ -10,7 +10,7 @@ import type {
 import {
   isDefaultChromelessPage,
   resolvePageChromeVisibility,
-} from "@dg/platform-core";
+} from "@dg/platform-core/websites/page-chrome";
 
 import { MakeItLivePanel } from "@/components/websites/MakeItLivePanel";
 import { groupWebsitePages } from "@/components/websites/page-groups";

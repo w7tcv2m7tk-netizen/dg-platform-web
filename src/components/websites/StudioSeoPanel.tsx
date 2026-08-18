@@ -5,7 +5,7 @@ import type { SerializedWebsite, WebsiteSeo } from "@dg/platform-core";
 import {
   isDefaultChromelessPage,
   resolvePageChromeVisibility,
-} from "@dg/platform-core";
+} from "@dg/platform-core/websites/page-chrome";
 
 function Field({
   label,
