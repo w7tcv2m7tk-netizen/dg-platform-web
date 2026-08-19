@@ -134,41 +134,35 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
       <main className="dg-page-main space-y-8">
         <WebsitesSubnav active="health" />
 
-        <div className="flex flex-wrap gap-2 text-sm">
-          <Link
-            href="/apps/websites/health"
-            className={`rounded-md px-3 py-1.5 ${
-              !showWp
-                ? "bg-slate-800 text-white"
-                : "text-slate-400 hover:bg-slate-900"
-            }`}
-          >
-            Gen 2 sites
-          </Link>
-          <Link
-            href="/apps/websites/health?view=wordpress"
-            className={`rounded-md px-3 py-1.5 ${
-              showWp
-                ? "bg-slate-800 text-white"
-                : "text-slate-400 hover:bg-slate-900"
-            }`}
-          >
-            WordPress connector
-          </Link>
-        </div>
+        {showWp ? (
+          <p className="text-sm text-slate-500">
+            <Link href="/apps/websites/health" className="text-sky-400 hover:underline">
+              ← Gen 2 Health Centre
+            </Link>
+          </p>
+        ) : (
+          <p className="text-xs text-slate-500">
+            Still running a WordPress site?{" "}
+            <Link
+              href="/apps/websites/health?view=wordpress"
+              className="text-slate-400 hover:text-slate-200 underline"
+            >
+              Connector health
+            </Link>
+          </p>
+        )}
 
         {!showWp ? (
           !allowed ? (
             <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-xl">
               <p className="text-sm text-amber-100/90">
-                Enable Website Builder for native site health, or open the{" "}
+                Design Studio isn&apos;t enabled for this business yet.{" "}
                 <Link
-                  href="/apps/websites/health?view=wordpress"
+                  href="/apps/websites"
                   className="underline"
                 >
-                  WordPress connector
-                </Link>{" "}
-                view.
+                  Back to Design Studio
+                </Link>
               </p>
             </div>
           ) : sites.length === 0 ? (

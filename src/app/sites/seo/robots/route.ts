@@ -50,6 +50,8 @@ export async function GET() {
   const lines = [
     "User-agent: *",
     site ? "Allow: /" : "Disallow: /",
+    "User-agent: Googlebot",
+    site ? "Allow: /" : "Disallow: /",
     ...(site && isCvh
       ? [
           "Disallow: /wc-api/",

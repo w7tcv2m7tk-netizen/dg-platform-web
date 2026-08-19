@@ -25,6 +25,7 @@ import {
   rewriteProductFunnelHref,
   rewriteProductFunnelHtml,
 } from "@/lib/product-funnel-links";
+import { stripImportedDocumentChrome } from "@/lib/public-html";
 
 function asString(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
@@ -625,7 +626,7 @@ export function WebsiteComponentView({
       );
     }
     case "html": {
-      let html = asString(component.props.html);
+      let html = stripImportedDocumentChrome(asString(component.props.html));
       if (!html) return null;
       // Navy DigitalGate shells must not keep cream-island class from import.
       if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app|dg-insights|dg-aiv|dg-ams|dg-lpf|dg-vvs|dg-dbc)\b/.test(html)) {

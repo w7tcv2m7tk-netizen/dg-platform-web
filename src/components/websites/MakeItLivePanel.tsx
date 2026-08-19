@@ -323,16 +323,16 @@ export function MakeItLivePanel({
             </Link>
           )}
           <Link
-            href="/apps/infrastructure/hosting"
+            href="/apps/infrastructure/domains"
             className="text-slate-500 hover:underline"
           >
-            Hosting status
+            Domains
           </Link>
         </div>
         <p className="text-[11px] text-slate-500">
           {customLiveUrl
             ? isPublished
-              ? "Platform URL is live now. Custom host works after DNS propagates (check Hosting / Domains)."
+              ? "Platform URL is live now. Custom host works after DNS propagates (check Domains)."
               : "Publish below (or Publish in Studio), then use Open live. Custom domain follows DNS."
             : "1) Select/connect domain · 2) Connect & go live · 3) Open live on /sites/[slug] · 4) Custom host after DNS"}
         </p>

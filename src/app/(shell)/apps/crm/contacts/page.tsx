@@ -33,12 +33,7 @@ export default async function CrmContactsPage() {
         <main className="dg-page-main">
           <div className="dg-card max-w-2xl">
             <p className="text-slate-300">
-              Connect{" "}
-              <code className="text-blue-300">DATABASE_URL</code> to enable
-              Platform 1.0 CRM. Add your Neon Postgres URL to{" "}
-              <code className="text-blue-300">.env.local</code>, run{" "}
-              <code className="text-blue-300">npm run db:push</code>, then
-              refresh.
+              Sign in to view contacts for this business.
             </p>
             <Link
               href="/dashboard"

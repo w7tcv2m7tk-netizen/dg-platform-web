@@ -168,10 +168,14 @@ export async function generateMetadata({
     const title = page?.seo?.title || site.seo?.title || site.name;
     const description =
       page?.seo?.description || site.seo?.description || site.name;
-    const ogTitle = page?.seo?.ogTitle || site.seo?.ogTitle || title;
+    const ogTitle = page?.seo?.ogTitle || title;
     const ogDescription =
-      page?.seo?.ogDescription || site.seo?.ogDescription || description;
-    const ogImage = page?.seo?.ogImage || site.seo?.ogImage;
+      page?.seo?.ogDescription || description;
+    const ogImage =
+      page?.seo?.ogImage ||
+      site.seo?.ogImage ||
+      site.theme?.logoUrl ||
+      "https://app.digitalgate.com.au/brand/logo-on-dark.png";
     const keywords = page?.seo?.keywords?.length
       ? page.seo.keywords
       : site.seo?.keywords;
@@ -188,13 +192,23 @@ export async function generateMetadata({
       title,
       description,
       applicationName: site.name,
+      robots: { index: true, follow: true },
       ...(keywords?.length ? { keywords } : {}),
       ...(canonical ? { alternates: { canonical } } : {}),
       openGraph: {
+        type: "website",
+        locale: "en_AU",
+        siteName: site.name,
         title: ogTitle,
         description: ogDescription,
         ...(canonical ? { url: canonical } : {}),
-        ...(ogImage ? { images: [{ url: ogImage }] } : {}),
+        images: [{ url: ogImage }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: ogTitle,
+        description: ogDescription,
+        images: [ogImage],
       },
     };
   } catch (err) {
@@ -365,6 +379,30 @@ async function renderSite(
           <link key={href} rel="stylesheet" href={href} />
         ))}
       <style dangerouslySetInnerHTML={{ __html: websiteRendererCss }} />
+      {isDgSiteSlug(slug) ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "DigitalGate",
+              url: "https://digitalgate.com.au",
+              logo: "https://app.digitalgate.com.au/brand/logo-on-dark.png",
+              description:
+                "AI-powered Business Operating Platform for modern businesses.",
+              telephone: "0405227227",
+              email: "hello@digitalgate.com.au",
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: "Gold Coast",
+                addressRegion: "QLD",
+                addressCountry: "AU",
+              },
+            }),
+          }}
+        />
+      ) : null}
       {allowDraft && site.status !== "published" ? (
         <div
           style={{

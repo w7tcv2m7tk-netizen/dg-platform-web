@@ -118,8 +118,7 @@ export default async function DashboardPage() {
         {!platformSession ? (
           <div className="dg-card mb-6 border-amber-500/30">
             <p className="text-amber-300">
-              Set <code className="text-amber-200">DATABASE_URL</code> and run{" "}
-              <code className="text-amber-200">npm run db:push</code> to enable live KPIs and timeline.
+              Sign in to load your workspace overview.
             </p>
           </div>
         ) : null}

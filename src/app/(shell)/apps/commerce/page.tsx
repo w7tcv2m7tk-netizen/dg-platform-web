@@ -8,7 +8,6 @@ import {
   scanOverdueCommerceInvoices,
 } from "@dg/platform-core";
 
-import { CommerceStripeSetup } from "@/components/commerce/CommerceStripeSetup";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 function formatMoney(cents: number) {
@@ -69,8 +68,6 @@ export default async function CommerceOverviewPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommerceStripeSetup />
-
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
             <p className="text-xs uppercase tracking-wide text-slate-500">

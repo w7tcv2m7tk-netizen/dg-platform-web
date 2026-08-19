@@ -655,12 +655,6 @@ export function WebsiteStudioClient({
             >
               Domains
             </Link>
-            <Link
-              href="/apps/infrastructure/hosting"
-              className="block text-sm text-slate-400 hover:text-slate-200"
-            >
-              Hosting status
-            </Link>
             <button
               type="button"
               onClick={() => setTab("seo")}

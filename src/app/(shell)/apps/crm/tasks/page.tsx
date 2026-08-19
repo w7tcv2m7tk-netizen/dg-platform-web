@@ -31,7 +31,7 @@ export default async function CrmTasksPage() {
         </header>
         <main className="dg-page-main">
           <div className="dg-card max-w-2xl">
-            <p className="text-slate-300">Sign in with DATABASE_URL configured.</p>
+            <p className="text-slate-300">Sign in to view tasks.</p>
           </div>
         </main>
       </>

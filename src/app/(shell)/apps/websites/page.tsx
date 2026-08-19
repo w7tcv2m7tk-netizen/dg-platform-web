@@ -5,6 +5,7 @@ import {
   listOrganisationDomains,
   listWebsites,
   organisationHasWebsitesBuilder,
+  resolvePrimaryLinkedDomain,
   suggestTemplateFromProfile,
 } from "@dg/platform-core";
 
@@ -51,9 +52,6 @@ export default async function WebsitesHomePage() {
     session && allowed
       ? await listOrganisationDomains(session.organisationId)
       : [];
-  const domainByWebsite = new Map(
-    domains.filter((d) => d.websiteId).map((d) => [d.websiteId!, d]),
-  );
   const profile =
     session && allowed
       ? await getOrganisationBusinessProfile(session.organisationId)
@@ -74,16 +72,11 @@ export default async function WebsitesHomePage() {
         {!allowed ? (
           <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-2xl space-y-3">
             <h2 className="text-lg font-semibold text-amber-100">
-              Enable Design Studio
+              Design Studio isn&apos;t enabled for this business yet
             </h2>
             <p className="text-sm text-amber-100/80">
-              Native builder is gated by feature flag{" "}
-              <code className="text-amber-50">websites.builder</code>. Turn it on
-              in Command Centre → Flags, or set{" "}
-              <code className="text-amber-50">DG_WEBSITES_BUILDER=1</code> locally.
-            </p>
-            <p className="text-sm text-slate-400">
-              Health Centre stays available without this flag.{" "}
+              Ask DigitalGate to turn on Design Studio for your organisation.
+              Health Centre stays available in the meantime.{" "}
               <Link href="/apps/websites/health" className="underline text-slate-300">
                 Open Health
               </Link>
@@ -91,6 +84,7 @@ export default async function WebsitesHomePage() {
           </div>
         ) : (
           <div className="space-y-10">
+            {sites.length === 0 ? (
             <div className="flex flex-wrap gap-2 text-xs text-slate-500">
               <span className="rounded-full border border-slate-700 px-2.5 py-1">
                 1. Create from profile
@@ -105,6 +99,7 @@ export default async function WebsitesHomePage() {
                 4. Domains → Make it live
               </span>
             </div>
+            ) : null}
 
             <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
               <section className="space-y-4">
@@ -141,7 +136,7 @@ export default async function WebsitesHomePage() {
                 ) : (
                   <ul className="space-y-3">
                     {sites.map((site) => {
-                      const domain = domainByWebsite.get(site.id);
+                      const domain = resolvePrimaryLinkedDomain(site, domains);
                       const previewHref = `/sites/${site.slug}${
                         site.status === "published" ? "" : "?preview=1"
                       }`;
@@ -209,18 +204,6 @@ export default async function WebsitesHomePage() {
                               className="text-slate-400 hover:text-slate-200"
                             >
                               Domains
-                            </Link>
-                            <Link
-                              href="/apps/infrastructure/hosting"
-                              className="text-slate-400 hover:text-slate-200"
-                            >
-                              Hosting
-                            </Link>
-                            <Link
-                              href={`/apps/websites/studio/${site.id}?tab=import`}
-                              className="text-slate-400 hover:text-slate-200"
-                            >
-                              Import from WordPress
                             </Link>
                           </div>
                         </li>

@@ -68,9 +68,9 @@ export function buildSetupProgress(input: BuildSetupProgressInput): OverviewSetu
     },
     {
       id: "connectors",
-      label: "Website or WordPress connected",
+      label: "Website published",
       done: connectorsLinked(connectorProbes),
-      href: "/dashboard/settings/connectors",
+      href: "/apps/websites",
     },
     {
       id: "team",

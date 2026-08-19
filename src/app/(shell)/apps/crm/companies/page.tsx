@@ -26,7 +26,7 @@ export default async function CrmCompaniesPage() {
         </header>
         <main className="dg-page-main">
           <div className="dg-card max-w-2xl">
-            <p className="text-slate-300">Configure DATABASE_URL to enable Companies.</p>
+            <p className="text-slate-300">Sign in to view companies.</p>
           </div>
         </main>
       </>

@@ -79,7 +79,7 @@ export async function GET() {
       const lastmod = p.updatedAt
         ? new Date(p.updatedAt).toISOString().slice(0, 10)
         : undefined;
-      return { loc, lastmod };
+      return { loc, lastmod, home: pagePath(p.slug, p.intent) === "/" };
     });
 
   // Dedupe home
@@ -95,7 +95,10 @@ export async function GET() {
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
     ...unique.map((u) => {
       const last = u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : "";
-      return `  <url>\n    <loc>${u.loc}</loc>${last}\n  </url>`;
+      const pri = u.home
+        ? `\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>`
+        : `\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>`;
+      return `  <url>\n    <loc>${u.loc}</loc>${last}${pri}\n  </url>`;
     }),
     `</urlset>`,
     "",

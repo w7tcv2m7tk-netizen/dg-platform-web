@@ -95,7 +95,9 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
         </div>
       ) : null}
 
-      <SetupProgressBar progress={overview.setupProgress} />
+      {overview.setupProgress.complete ? null : (
+        <SetupProgressBar progress={overview.setupProgress} />
+      )}
 
       {overview.setupIncomplete ? (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100">

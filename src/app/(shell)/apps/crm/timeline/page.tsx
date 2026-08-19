@@ -29,7 +29,7 @@ export default async function CrmTimelinePage() {
         </header>
         <main className="dg-page-main">
           <div className="dg-card">
-            <p className="text-slate-300">Configure DATABASE_URL to view the activity timeline.</p>
+            <p className="text-slate-300">Sign in to view the activity timeline.</p>
           </div>
         </main>
       </>

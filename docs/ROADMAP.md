@@ -237,13 +237,15 @@ Core → Infrastructure → Connectors → AI → Industry Apps → Growth → S
 
 ## Tomorrow morning (ordered)
 
-1. **Provision Neon Postgres** — `DATABASE_URL` on Vercel + local  
-2. **`npm run db:push`** — deploy schema  
-3. **Clerk webhook live** — org + membership on signup  
-4. **Platform API v0** — `POST/GET /api/contacts` (org-scoped, audited, emits `contact.created`)  
-5. **CRM contacts UI** — list + create against Platform API (not WP)  
+These five are **done** (Neon live, Clerk webhook, contacts API, CRM UI). Do not re-run as a bootstrap:
 
-Do not start RE App port or AI Visibility until steps 1–4 are done.
+1. ~~Provision Neon Postgres~~ ✅  
+2. ~~`npm run db:push`~~ ✅  
+3. ~~Clerk webhook live~~ ✅  
+4. ~~Platform API v0 contacts~~ ✅  
+5. ~~CRM contacts UI on Platform API~~ ✅  
+
+Current daily work: Founding 10 commercial lock, public sites, Design Studio / Infrastructure, Command Centre dogfood.
 
 ---
 

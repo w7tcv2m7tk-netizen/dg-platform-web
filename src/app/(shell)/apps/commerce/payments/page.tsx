@@ -4,7 +4,6 @@ import { currentUser } from "@clerk/nextjs/server";
 import { listOrganisationPaymentRequests } from "@dg/platform-core";
 
 import { CommercePaymentsList } from "@/components/commerce/CommercePaymentsList";
-import { CommerceStripeSetup } from "@/components/commerce/CommerceStripeSetup";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 export default async function CommercePaymentsPage() {
@@ -44,7 +43,6 @@ export default async function CommercePaymentsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommerceStripeSetup />
         <CommercePaymentsList items={payments} />
         {session ? (
           <Link
