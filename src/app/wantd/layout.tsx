@@ -1,15 +1,18 @@
-import { Fraunces, Source_Sans_3 } from "next/font/google";
+import { Outfit, Syne } from "next/font/google";
 import Link from "next/link";
+
+import { WantdIcon, WantdWordmark } from "@/components/websites/WantdPublicArt";
 
 import "./wantd.css";
 
-const wantdDisplay = Fraunces({
+const wantdDisplay = Syne({
   subsets: ["latin"],
   variable: "--font-wantd-display",
   display: "swap",
+  weight: ["700", "800"],
 });
 
-const wantdSans = Source_Sans_3({
+const wantdSans = Outfit({
   subsets: ["latin"],
   variable: "--font-wantd-sans",
   display: "swap",
@@ -21,33 +24,27 @@ export default function WantdLayout({ children }: { children: React.ReactNode })
       className={`wantd-root wantd-theme-light ${wantdDisplay.variable} ${wantdSans.variable}`}
     >
       <header className="wantd-header">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4">
-          <Link
-            href="/wantd"
-            className="wantd-display text-xl font-semibold tracking-[0.18em] text-[var(--wantd-cream)]"
-          >
-            WANTD
+        <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-4 py-6">
+          <Link href="/wantd" aria-label="wantd">
+            <WantdWordmark className="wantd-wordmark" />
           </Link>
-          <nav className="flex flex-wrap items-center gap-5" aria-label="Wantd">
-            <Link href="/wantd?intent=buy" className="wantd-nav-link">
-              Buy
+          <nav className="flex flex-wrap items-center justify-center gap-5" aria-label="Wantd">
+            <Link href="/wantd/property" className="wantd-nav-link">
+              Tell us what you want
             </Link>
-            <Link href="/wantd?intent=sell" className="wantd-nav-link">
-              Sell
-            </Link>
-            <Link href="/wantd?intent=find" className="wantd-nav-link">
-              Find
-            </Link>
-            <Link
-              href="/wantd/property"
-              className="wantd-btn-wanted rounded-md px-3.5 py-2 text-xs"
-            >
-              Wanted
+            <Link href="/wantd/property" className="wantd-nav-link">
+              Property
             </Link>
           </nav>
         </div>
       </header>
       {children}
+      <footer className="wantd-footer">
+        <Link href="/wantd" className="wantd-footer-icon" aria-label="wantd">
+          <WantdIcon />
+        </Link>
+        <p className="wantd-muted text-xs">© {new Date().getFullYear()} Wantd</p>
+      </footer>
     </div>
   );
 }

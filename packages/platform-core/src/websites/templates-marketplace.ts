@@ -1,10 +1,16 @@
 /**
  * Wantd / demand-first marketplace starter site.
- * Fun, easy, younger-first copy — still clear for any age.
+ * Clean, editorial, property-first — designed to expand beyond real estate.
  * @see docs/WANTD.md
  */
 
-import { WANTD_CATEGORIES, WANTD_COLOURS, WANTD_TAGLINE } from "../wantd/brand";
+import {
+  WANTD_CATEGORIES,
+  WANTD_COLOURS,
+  WANTD_NAV,
+  WANTD_SUPPORTING,
+  WANTD_TAGLINE,
+} from "../wantd/brand";
 import { component } from "./schema";
 import type {
   GeneratedSiteModel,
@@ -31,11 +37,7 @@ function navLinks(): WebsiteComponent {
   return component("nav", {
     links: [
       { label: "Home", href: "/" },
-      { label: "How it works", href: "/how-it-works" },
-      { label: "Post a Want", href: "/post-a-want" },
-      { label: "About", href: "/about" },
-      { label: "FAQ", href: "/faq" },
-      { label: "Contact", href: "/contact" },
+      ...WANTD_NAV,
     ],
   });
 }
@@ -52,9 +54,9 @@ function siteFooter(email?: string): WebsiteComponent {
 }
 
 const TRUST = [
-  "Post what you want in minutes",
-  "A real person matches you — not a spam feed",
-  "Free to tell the market what you’re after",
+  "Tell us once",
+  "We match supply to your Want",
+  "Property is live — more categories next",
 ];
 
 export function wantdWebsiteTheme(input?: {
@@ -62,12 +64,12 @@ export function wantdWebsiteTheme(input?: {
   iconUrl?: string;
 }): WebsiteTheme {
   return {
-    primaryColor: WANTD_COLOURS.westernRed,
-    accentColor: WANTD_COLOURS.brassGold,
+    primaryColor: WANTD_COLOURS.accent,
+    accentColor: WANTD_COLOURS.ink,
     backgroundColor: WANTD_COLOURS.cream,
     businessName: "Wantd",
-    fontHeading: "Fraunces",
-    fontBody: "Source Sans 3",
+    fontHeading: "Syne",
+    fontBody: "Outfit",
     logoUrl: input?.logoUrl,
     iconUrl: input?.iconUrl,
   };
@@ -88,7 +90,7 @@ export function buildMarketplaceSiteModel(input: {
   const theme = input.theme ?? wantdWebsiteTheme();
   const about =
     input.about?.trim() ||
-    "Wantd flips the usual marketplace. You don’t scroll forever hoping the right thing appears. You say what you WANT — a first home, a car, a side-hustle gig — and we hunt the match. Built for people who’d rather keep it simple: young buyers, first-timers, and anyone who’s tired of noisy listings.";
+    "Wantd reverses the usual marketplace. You don’t browse thousands of listings. You say what you want — a home, a car, a stay, a specialist — and we find the match. Property is first. The rest of life follows.";
 
   const categories = WANTD_CATEGORIES.map((cat) => ({
     title: cat.label,
@@ -136,24 +138,16 @@ export function buildMarketplaceSiteModel(input: {
         components: [
           nav,
           component("hero", {
-            headline: "What are you looking for?",
-            subheadline: `${tagline} Post it once. We do the hunting.`,
-            ctaLabel: "Post a Want",
+            headline: "What do you want?",
+            subheadline: `Looking for property? Start with what you want. ${WANTD_SUPPORTING}`,
+            ctaLabel: "Tell us what you want",
             ctaHref: "/post-a-want",
           }),
           component("trust", { items: TRUST }),
-          component("services", {
-            headline: "Start wherever you are",
-            items: categories,
-          }),
-          component("about", {
-            headline: "Made to feel easy",
-            body: "Wantd is for first homes and fifth homes, first cars and curious browsers. Short form. Plain language. A human on the other side. Property is live today — more categories are rolling out.",
-          }),
           component("cta", {
-            headline: "Got a Want in your head?",
-            body: "Dump it here. We’ll take it from there.",
-            buttonLabel: "Post a Want",
+            headline: "Stop searching. Start wanting.",
+            body: "Property Wants are live. Tell us once — we take it from there.",
+            buttonLabel: "Tell us what you want",
             buttonHref: "/post-a-want",
           }),
           footer,
@@ -172,34 +166,34 @@ export function buildMarketplaceSiteModel(input: {
           nav,
           component("hero", {
             headline: "How it works",
-            subheadline: "Three steps. Zero scroll-fatigue.",
-            ctaLabel: "Post a Want",
+            subheadline: "Tell us what you want. We’ll find it.",
+            ctaLabel: "Tell us what you want",
             ctaHref: "/post-a-want",
           }),
           component("services", {
             headline: "That’s it",
             items: [
               {
-                title: "1. Spill the Want",
+                title: "1. Tell us",
                 description:
-                  "What, where, budget-ish, timeline. Phone or email is enough. Takes a couple of minutes.",
+                  "Say it in your own words — or answer a few short questions. Under a minute.",
               },
               {
-                title: "2. We hunt",
+                title: "2. We look",
                 description:
-                  "A person reviews your Want and matches relevant supply. Not a bot blasting your inbox.",
+                  "Wantd matches relevant supply to your Want. You don’t scroll a feed.",
               },
               {
-                title: "3. You decide",
+                title: "3. We find it",
                 description:
-                  "If something fits, we intro. Inspect, negotiate, or pass — you’re in control.",
+                  "When something fits, we show you why. You decide the next move.",
               },
             ],
           }),
           component("cta", {
             headline: "Ready when you are",
-            body: "Property Wants are live. Other categories are warming up.",
-            buttonLabel: "Post a property Want",
+            body: "Property is live. Other categories are next.",
+            buttonLabel: "Tell us what you want",
             buttonHref: "/post-a-want",
           }),
           footer,
@@ -210,34 +204,51 @@ export function buildMarketplaceSiteModel(input: {
         slug: "post-a-want",
         intent: "custom",
         seo: seo(
-          "Post a Want | Wantd NZ & Australia",
-          "Tell Wantd what you’re looking for. Property Wants are live — homes to buy, rent, or invest. Free to post. Easy form. Human matching.",
+          "Tell us what you want | Wantd",
+          "Tell Wantd what you’re looking for. Property is live — buy, rent, or invest. We’ll take it from there.",
           [
+            "tell us what you want",
             "post a want",
-            "property want nz",
-            "buy house australia",
-            "first home want",
+            "property want",
             "wantd property",
           ],
         ),
         components: [
           nav,
           component("hero", {
-            headline: "Post what you WANT",
+            headline: "Tell us what you want",
             subheadline:
-              "Property is live. Drop the must-haves — suburbs, budget, vibe — and we’ll start matching.",
-            ctaLabel: "Jump to the form",
-            ctaHref: "#contact-form",
-          }),
-          component("about", {
-            headline: "Keep it casual",
-            body: "Don’t write an essay. “Two-bed in Tauranga under 800k, sunny, near a bus” is a great Want. We’ll ask if we need more.",
+              "Property is live. Say it naturally — we’ll start matching.",
           }),
           component("contact_form", {
             headline: "Your Want",
-            submitLabel: "Send my Want",
-            successMessage:
-              "Got it — thanks. A human will review and start matching. We’ll be in touch.",
+            submitLabel: "Find it",
+            successMessage: "Got it. We’re on it.",
+          }),
+          footer,
+        ],
+      },
+      {
+        title: "For agents",
+        slug: "for-agents",
+        intent: "custom",
+        seo: seo(
+          "For agents | Wantd",
+          "Buyers tell Wantd what they want. If you have something that matches, say so.",
+          ["wantd for agents", "property demand", "wantd suppliers"],
+        ),
+        components: [
+          nav,
+          component("hero", {
+            headline: "New Wantd",
+            subheadline:
+              "Buyers speak first. If you have something that matches, tell us.",
+            ctaLabel: "I have something that matches",
+            ctaHref: "/contact",
+          }),
+          component("about", {
+            headline: "The reverse of advertising",
+            body: "Instead of hoping the right buyer finds your listing, Wantd brings you people who already know what they want — suburb, budget, timing. Property is live now.",
           }),
           footer,
         ],

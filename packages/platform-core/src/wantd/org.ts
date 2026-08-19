@@ -23,14 +23,13 @@ export const WANTD_ENABLED_APPS = [
 ] as const;
 
 /**
- * Org Business Profile brand — primary = Western Red CTA, accent = Brass Gold,
- * background = Wantd Black (letterhead / dark surfaces).
+ * Org Business Profile brand — accent for CTAs, ink, warm paper.
  */
 export const WANTD_BRAND_PATCH = {
   brandColours: serializeBrandColours(
-    WANTD_COLOURS.westernRed,
-    WANTD_COLOURS.brassGold,
-    WANTD_COLOURS.black,
+    WANTD_COLOURS.accent,
+    WANTD_COLOURS.ink,
+    WANTD_COLOURS.cream,
   ),
   websiteUrl: WANTD_WEBSITE,
   businessName: WANTD_ORG_NAME,

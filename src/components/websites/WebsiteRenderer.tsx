@@ -28,6 +28,11 @@ import {
   rewriteProductFunnelHtml,
 } from "@/lib/product-funnel-links";
 import { stripImportedDocumentChrome } from "@/lib/public-html";
+import { WantdPropertyWantForm } from "@/components/wantd/WantdPropertyWantForm";
+import { WantdSiteFooter, WantdSiteHeader } from "@/components/websites/WantdSiteChrome";
+import { WantdWantInput } from "@/components/websites/WantdWantInput";
+import { WantdIcon, WantdWordmark } from "@/components/websites/WantdPublicArt";
+import { wantdPublicSiteCss } from "@/components/websites/wantd-public-site-css";
 
 function asString(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
@@ -223,6 +228,13 @@ function isLightHex(hex?: string | null): boolean {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62;
 }
 
+function isWantdSite(siteSlug: string, businessName?: string | null): boolean {
+  return (
+    siteSlug.toLowerCase() === "wantd" ||
+    /^wantd$/i.test((businessName || "").trim())
+  );
+}
+
 function resolveHref(href: string, basePath: string): string {
   const funnel = rewriteProductFunnelHref(href);
   if (funnel !== href) return funnel;
@@ -396,6 +408,7 @@ export function WebsiteComponentView({
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
   const name = theme.businessName || "Business";
+  const wantd = isWantdSite(siteSlug, name);
 
   switch (component.type) {
     case "nav": {
@@ -403,7 +416,9 @@ export function WebsiteComponentView({
       return (
         <nav className="wb-nav">
           <a className="wb-nav-brand" href={basePath}>
-            {theme.logoUrl ? (
+            {wantd ? (
+              <WantdWordmark className="wb-wantd-wordmark" />
+            ) : theme.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={theme.logoUrl} alt={name} className="wb-nav-logo" />
             ) : (
@@ -420,12 +435,43 @@ export function WebsiteComponentView({
         </nav>
       );
     }
-    case "hero":
+    case "hero": {
+      const isHome =
+        !pageSlug ||
+        pageSlug === "home" ||
+        pageSlug === "/" ||
+        pageSlug.toLowerCase() === "index";
+      if (wantd && isHome) {
+        return (
+          <section className="wb-hero">
+            <div className="wb-hero-inner">
+              <h1>What do you want?</h1>
+              <p>Looking for property? Start with what you want.</p>
+              <WantdWantInput actionHref={resolveHref("/post-a-want", basePath)} />
+              <p className="wb-wantd-hero-secondary">
+                <a href={resolveHref("/how-it-works", basePath)}>See how it works</a>
+              </p>
+            </div>
+          </section>
+        );
+      }
+      const wantdHeadline =
+        wantd && pageSlug === "how-it-works"
+          ? "How it works"
+          : wantd && pageSlug === "post-a-want"
+            ? "Tell us what you want"
+            : asString(component.props.headline, name);
+      const wantdSub =
+        wantd && pageSlug === "how-it-works"
+          ? "Tell us what you want. We’ll find it."
+          : wantd && pageSlug === "post-a-want"
+            ? "Property is live. Say it naturally — we’ll start matching."
+            : asString(component.props.subheadline);
       return (
         <section className="wb-hero" style={{ ["--wb-primary" as string]: primary }}>
           <div className="wb-hero-inner">
-            <h1>{asString(component.props.headline, name)}</h1>
-            <p>{asString(component.props.subheadline)}</p>
+            <h1>{wantdHeadline}</h1>
+            <p>{wantdSub}</p>
             {component.props.ctaLabel ? (
               <a
                 className="wb-btn"
@@ -438,6 +484,7 @@ export function WebsiteComponentView({
           </div>
         </section>
       );
+    }
     case "trust": {
       const items = Array.isArray(component.props.items)
         ? component.props.items.map((x) => String(x))
@@ -538,6 +585,13 @@ export function WebsiteComponentView({
       );
     }
     case "contact_form":
+      if (wantd && (pageSlug === "post-a-want" || pageSlug === "tell-us-what-you-want")) {
+        return (
+          <section className="wb-section">
+            <WantdPropertyWantForm />
+          </section>
+        );
+      }
       return (
         <section className="wb-section">
           <WebsiteContactForm
@@ -555,6 +609,16 @@ export function WebsiteComponentView({
       const email = asString(component.props.email);
       return (
         <footer className="wb-footer">
+          {wantd ? (
+            <a href={basePath} className="wb-wantd-footer-icon" aria-label={name}>
+              {theme.iconUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={theme.iconUrl} alt="" />
+              ) : (
+                <WantdIcon />
+              )}
+            </a>
+          ) : null}
           <p>
             <strong style={{ color: "var(--wb-ink)" }}>
               {asString(component.props.businessName, name)}
@@ -1190,6 +1254,25 @@ export function WebsitePageRenderer({
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
   const bg = theme.backgroundColor || "#0c1222";
+  const isWantd = isWantdSite(
+    siteSlug,
+    chrome?.businessName || theme.businessName || siteSlug,
+  );
+  const isWantdHome =
+    isWantd &&
+    (!pageSlug ||
+      pageSlug === "home" ||
+      pageSlug === "/" ||
+      pageSlug.toLowerCase() === "index");
+  const wantdComponents = isWantd
+    ? renderComponents.filter((c) => {
+        if (c.type === "nav" || c.type === "footer") return false;
+        if (isWantdHome && (c.type === "services" || c.type === "about" || c.type === "cta")) {
+          return false;
+        }
+        return true;
+      })
+    : renderComponents;
   const headerHtmlRaw = chrome?.headerHtml?.trim() || "";
   const headerHtml =
     showHeader && !isProductFunnel
@@ -1228,7 +1311,7 @@ export function WebsitePageRenderer({
     Boolean(theme.logoUrl || theme.iconUrl);
   const overlayHeader = showHeader && Boolean(chrome?.overlayHeader);
   const hasChrome = Boolean(
-    headerHtml || footerHtml || useBrandHeader || useBrandFooter,
+    headerHtml || footerHtml || useBrandHeader || useBrandFooter || isWantd,
   );
   const htmlPage =
     (!isProductFunnel && isHtmlDominantPage(components)) ||
@@ -1331,6 +1414,7 @@ export function WebsitePageRenderer({
     overlayHeader ? "wb-chrome-overlay" : "",
     lightSurface ? "wb-surface-light" : "",
     isProductFunnel ? "wb-product-funnel" : "",
+    isWantd ? "wb-wantd" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -1343,6 +1427,7 @@ export function WebsitePageRenderer({
           ["--wb-primary"]: primary,
           ["--wb-accent"]: accent,
           ...(isLightHex(bg) ? { ["--wb-paper"]: bg } : {}),
+          ...(isWantd ? { ["--wb-paper"]: "#F7F5F1", ["--wb-ink"]: "#121212" } : {}),
           ["--wb-bg"]: isProductFunnel
             ? resolvedFunnelTemplate === "property_report"
               ? "#1C2B2A"
@@ -1350,11 +1435,13 @@ export function WebsitePageRenderer({
                   pageSlug === "hideaway-circle"
                 ? "#0c1612"
                 : "#0A0E17"
-            : lightSurface
-              ? "#f5f2ef"
-              : htmlPage
-                ? bg || "#0a0e17"
-                : bg,
+            : isWantd
+              ? "#F7F5F1"
+              : lightSurface
+                ? "#f5f2ef"
+                : htmlPage
+                  ? bg || "#0a0e17"
+                  : bg,
           ...(isProductFunnel
             ? {
                 minHeight: "100dvh",
@@ -1374,7 +1461,15 @@ export function WebsitePageRenderer({
         } as React.CSSProperties
       }
     >
-      {useBrandHeader ? (
+      {isWantd ? (
+        <style
+          id="wb-wantd-css"
+          dangerouslySetInnerHTML={{ __html: wantdPublicSiteCss }}
+        />
+      ) : null}
+      {isWantd && showHeader && !isProductFunnel ? (
+        <WantdSiteHeader theme={theme} basePath={basePath} />
+      ) : useBrandHeader ? (
         <BrandSiteHeader
           theme={theme}
           basePath={basePath}
@@ -1438,7 +1533,7 @@ export function WebsitePageRenderer({
               logoUrl={theme.logoUrl || theme.iconUrl}
             />
           ) : null}
-          {renderComponents.map((c) => (
+          {wantdComponents.map((c) => (
             <WebsiteComponentView
               key={c.id}
               component={c}
@@ -1453,7 +1548,9 @@ export function WebsitePageRenderer({
           ) : null}
         </>
       )}
-      {footerHtml ? (
+      {isWantd && showFooter && !isProductFunnel ? (
+        <WantdSiteFooter theme={theme} basePath={basePath} />
+      ) : footerHtml ? (
         <ChromeFooterHtml html={extractStyleBlocks(footerHtml).html} />
       ) : useBrandFooter ? (
         <BrandSiteFooter

@@ -154,7 +154,7 @@ export async function generateSiteModel(input: {
       : template === "accommodation"
         ? "Include pages: home, stay (units), about, contact. Contact must include contact_form. CTAs should favour Check availability / Enquire to book."
         : template === "marketplace"
-          ? "Include pages: home, how-it-works, post-a-want (with contact_form), categories, about, faq, contact (contact_form), privacy, terms. Tone: fun, easy, younger-first but not exclusive. Australian/NZ English. CTAs: Post a Want. Cream + western red + gold — no blue/purple SaaS copy."
+          ? "Include pages: home, how-it-works, post-a-want (with contact_form), for-agents, about, faq, contact (contact_form), privacy, terms. Tone: short, human, confident. CTAs: Tell us what you want / Find it. Warm paper + charcoal + lime accent. Not a cowboy theme, not a classifieds portal."
           : "Include pages: home, services, about, contact. Contact page must include contact_form.";
 
   try {

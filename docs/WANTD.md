@@ -116,33 +116,26 @@ Optional env: `DG_WANTD_ORGANISATION_ID`.
 
 ---
 
-## Brand (locked)
+## Brand
 
-Western heritage, **modern digital marketplace** — not a themed “old Western” site. Personality comes from the logo/wordmark; UI stays contemporary.
+Demand-first, modern, and editorial. Inspired by the idea of **WANTED** — not a cowboy website.
+
+Wordmark is lowercase **wantd**. The missing “e” is the identity. Header uses the wordmark (or uploaded logo) once, centred. Footer uses the mark (`d` stamp), not the full logo.
 
 ### Palette
 
 | Colour | Hex | Use |
 |--------|-----|-----|
-| Wantd Black | `#171513` | Main text, header, dark sections |
-| Charcoal | `#292622` | Cards, navigation, dark UI |
-| Warm Cream | `#F5EBDD` | Main background (~60%) |
-| Antique White | `#FFF9EF` | Cards / clean backgrounds |
-| Saddle Tan | `#B88952` | Secondary accents, borders (~10% with gold) |
-| Brass Gold | `#C49A5A` | Premium highlights, icons |
-| Western Red | `#8E3028` | Primary CTA / Wanted (~5%) |
-| Dusty Red | `#B94A3D` | Hover / secondary accent |
-| Muted Sage | `#69705C` | Optional category/status |
+| Ink | `#121212` | Text, header wordmark, dark sections |
+| Warm paper | `#F7F5F1` | Main background |
+| White | `#FFFFFF` | Cards / input surface |
+| Muted | `#6B6762` | Secondary text |
+| Line | `#E8E4DC` | Borders |
+| Accent | `#C6F04A` | Primary CTA only |
 
-**Ratio:** ~60% cream · 20% black/charcoal · 10% tan/gold · 5% western red · 5% supporting.
+**Do not** use cowboy cream/gold/western-red, SaaS gradients, or classifieds-portal navy.
 
-**Do not** use blue/purple SaaS gradients for Wantd identity.
-
-**Dark mode:** `#171513` background · `#F5EBDD` text · `#C49A5A` gold · `#8E3028` red (listings / app).
-
-Org Business Profile brand colours: primary Western Red, accent Brass Gold, background Wantd Black (`WANTD_BRAND_PATCH` in `packages/platform-core/src/wantd/`). Tokens: `packages/platform-core/src/wantd/brand.ts` · CSS: `src/app/wantd/wantd.css`.
-
-Re-apply org brand: `node scripts/ensure-wantd-org.mjs` (updates `brandColours` + tagline).
+Tokens: `packages/platform-core/src/wantd/brand.ts` · CSS: `src/app/wantd/wantd.css` and `src/components/websites/wantd-public-site-css.ts`.
 
 ---
 

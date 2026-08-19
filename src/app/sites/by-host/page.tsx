@@ -309,6 +309,47 @@ async function renderSite(
       page = site ? resolvePage(site, pageSlug) : null;
     }
   }
+  if (
+    !page &&
+    slug === "wantd" &&
+    (pageSlug === "for-agents" || pageSlug === "for-agent")
+  ) {
+    const home = resolvePage(site, undefined);
+    if (home) {
+      page = {
+        ...home,
+        slug: "for-agents",
+        title: "For agents",
+        intent: "custom",
+        seo: {
+          title: "For agents | Wantd",
+          description:
+            "Buyers tell Wantd what they want. If you have something that matches, say so.",
+        },
+        components: [
+          {
+            id: "wantd-agents-hero",
+            type: "hero",
+            props: {
+              headline: "New Wantd",
+              subheadline:
+                "Buyers speak first. If you have something that matches, tell us.",
+              ctaLabel: "I have something that matches",
+              ctaHref: "/contact",
+            },
+          },
+          {
+            id: "wantd-agents-about",
+            type: "about",
+            props: {
+              headline: "The reverse of advertising",
+              body: "Instead of hoping the right buyer finds your listing, Wantd brings you people who already know what they want — suburb, budget, timing. Property is live now. You respond to demand.",
+            },
+          },
+        ],
+      };
+    }
+  }
   if (!page) notFound();
 
   if (pageSlug && page.slug !== pageSlug) {
