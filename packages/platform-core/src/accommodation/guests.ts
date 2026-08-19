@@ -8,6 +8,7 @@ import type { Prisma } from "@dg/database";
 
 import { ensureContactForLeadFields } from "../contacts";
 import { parseHideawayCircleMeta } from "./hideaway-circle-emails";
+import { shouldCreateGuestContactFromStay } from "./guest-identity";
 
 const REPEAT_STAY_THRESHOLD = 2;
 const VIP_SPEND_CENTS = 250_000; // $2,500 AUD
@@ -174,6 +175,23 @@ export async function linkStayBookingToContact(
   });
   if (!booking) return null;
 
+  const meta =
+    booking.metadata && typeof booking.metadata === "object"
+      ? (booking.metadata as Record<string, unknown>)
+      : {};
+  if (
+    !shouldCreateGuestContactFromStay({
+      email: booking.email,
+      phone: booking.phone,
+      guestName: booking.guestName,
+      status: booking.status,
+      source: typeof meta.source === "string" ? meta.source : booking.status,
+      ref: booking.ref,
+    })
+  ) {
+    return null;
+  }
+
   if (booking.contactId) {
     await ensureGuestProfile({
       organisationId,
@@ -250,6 +268,17 @@ export async function upsertGuestFromWpRow(
 ): Promise<AccommodationGuestListItem | null> {
   const { prisma } = await import("@dg/database");
 
+  if (
+    !shouldCreateGuestContactFromStay({
+      email: guest.email,
+      phone: guest.phone,
+      guestName: guest.name,
+      source: guest.source,
+    })
+  ) {
+    return null;
+  }
+
   let contactId: string | null = null;
   if (guest.contact_id?.trim()) {
     const existing = await prisma.contact.findFirst({
@@ -271,6 +300,16 @@ export async function upsertGuestFromWpRow(
   }
 
   if (!contactId) {
+    if (
+      !shouldCreateGuestContactFromStay({
+        email: guest.email,
+        phone: guest.phone,
+        guestName: guest.name,
+        source: guest.source,
+      })
+    ) {
+      return null;
+    }
     contactId = await ensureContactForStayGuest({
       organisationId,
       actorId: options?.actorId,

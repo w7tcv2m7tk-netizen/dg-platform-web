@@ -1,11 +1,10 @@
 /**
- * Gen 2 OTA iCal import — pulls Airbnb / Booking.com export feeds into StayBooking.
- * Replaces WordPress `/accommodation/ota-sync` now that marketing apexes are Gen 2.
+ * Gen 2 OTA iCal import — pulls Airbnb / Booking.com export feeds into StayBooking
+ * for calendar availability only. iCal does not include real guest identity, so
+ * these rows must not create CRM Guests until an OTA API is integrated.
  */
 
 import type { Prisma } from "@dg/database";
-
-import { ensureContactForStayGuest } from "./guests";
 
 export type OtaIcalSource = "airbnb" | "bookingcom";
 
@@ -226,21 +225,11 @@ async function upsertOtaStayBooking(input: {
         checkin,
         checkout,
         status,
+        contactId: null,
         metadata,
       },
     });
     return "updated";
-  }
-
-  let contactId: string | null = null;
-  try {
-    contactId = await ensureContactForStayGuest({
-      organisationId: input.organisationId,
-      guestName,
-      actorId: input.actorId,
-    });
-  } catch {
-    /* optional */
   }
 
   await prisma.stayBooking.create({
@@ -248,7 +237,7 @@ async function upsertOtaStayBooking(input: {
       organisationId: input.organisationId,
       externalWpId: null,
       ref: `ota:${input.source}:${icalUid.slice(0, 40)}`,
-      contactId,
+      contactId: null,
       guestName,
       accommodationName: input.unitTitle,
       accommodationWpId: input.accommodationWpId,

@@ -2,6 +2,7 @@ import type { Prisma } from "@dg/database";
 
 import { resolveOrgWordPressConnector } from "../connectors/wordpress/org-connector";
 import { ensureContactForStayGuest } from "./guests";
+import { shouldCreateGuestContactFromStay } from "./guest-identity";
 
 export interface WpAccBookingRow {
   /** WordPress booking id; omit / undefined for Gen2-native rows with no WP mirror */
@@ -140,11 +141,26 @@ async function resolveGuestContactId(
     email: string | null;
     phone: string | null;
     accommodationName: string | null;
+    status?: string | null;
+    source?: string | null;
+    ref?: string | null;
   },
   actorId?: string,
   existingContactId?: string | null,
 ): Promise<string | null> {
   if (existingContactId) return existingContactId;
+  if (
+    !shouldCreateGuestContactFromStay({
+      email: fields.email,
+      phone: fields.phone,
+      guestName: fields.guestName,
+      status: fields.status,
+      source: fields.source,
+      ref: fields.ref,
+    })
+  ) {
+    return null;
+  }
   return ensureContactForStayGuest({
     organisationId,
     actorId,
@@ -408,7 +424,13 @@ export async function upsertStayBookingFromWpRow(
 
   const contactId = await resolveGuestContactId(
     organisationId,
-    fields,
+    {
+      ...fields,
+      source:
+        typeof fields.metadata.source === "string"
+          ? fields.metadata.source
+          : fields.status,
+    },
     options?.actorId,
     existing?.contactId,
   );
@@ -651,7 +673,13 @@ export async function createStayBookingGen2First(
 
   const contactId = await resolveGuestContactId(
     organisationId,
-    fields,
+    {
+      ...fields,
+      source:
+        typeof fields.metadata.source === "string"
+          ? fields.metadata.source
+          : fields.status,
+    },
     input.actorId,
   );
 
