@@ -118,8 +118,8 @@ export function BusinessProfileEditor({
   const [message, setMessage] = useState<string | null>(
     focusBrand
       ? brandIntent === "ai"
-        ? "Logos: refine colours/logo here. Full AI brand generation is next — then return to Design Studio → Websites to create your site."
-        : "Upload or confirm logo and colours, Save, then return to Design Studio → Websites → Create."
+        ? "Brand: set logo and colours here, then return to Design Studio → Websites to create your site."
+        : "Upload or confirm logo and colours, save, then return to Design Studio → Websites → Create."
       : null,
   );
 
@@ -296,6 +296,7 @@ export function BusinessProfileEditor({
         <BrandAssetsEditor
           profile={profile}
           onChange={(patch) => setProfile((prev) => ({ ...prev, ...patch }))}
+          colourSaveLabel="Save profile"
         />
         {focusBrand ? (
           <p className="mt-3 text-sm text-slate-400">

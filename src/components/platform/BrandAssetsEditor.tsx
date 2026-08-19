@@ -15,41 +15,12 @@ import {
 type BrandAssetsEditorProps = {
   profile: OrganisationBusinessProfile;
   onChange: (patch: Partial<OrganisationBusinessProfile>) => void;
+  /** Label of the parent save action for colours — default Save brand */
+  colourSaveLabel?: string;
 };
 
 const inputClass =
   "w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
-
-function AssetPreview({
-  label,
-  src,
-  fallbackLetter,
-  accent,
-}: {
-  label: string;
-  src?: string;
-  fallbackLetter?: string;
-  accent: string;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl border border-slate-700 bg-slate-900">
-        {src ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={src} alt={label} className="max-h-full max-w-full object-contain p-2" />
-        ) : (
-          <span
-            className="flex h-full w-full items-center justify-center text-2xl font-semibold text-white"
-            style={{ backgroundColor: accent }}
-          >
-            {fallbackLetter ?? "?"}
-          </span>
-        )}
-      </div>
-      <span className="text-xs text-slate-500">{label}</span>
-    </div>
-  );
-}
 
 async function uploadBrandAsset(file: File): Promise<string> {
   const form = new FormData();
@@ -74,7 +45,11 @@ async function persistBrandPatch(patch: Partial<OrganisationBusinessProfile>) {
   }
 }
 
-export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps) {
+export function BrandAssetsEditor({
+  profile,
+  onChange,
+  colourSaveLabel = "Save brand",
+}: BrandAssetsEditorProps) {
   const iconInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState<"icon" | "logo" | null>(null);
@@ -94,6 +69,18 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
     });
   }
 
+  async function persistUrls() {
+    try {
+      await persistBrandPatch({
+        iconUrl: profile.iconUrl,
+        logoUrl: profile.logoUrl,
+      });
+      setSavedNote("URL saved to Business Profile.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save URL");
+    }
+  }
+
   async function handleFile(kind: "icon" | "logo", file: File) {
     setUploading(kind);
     setError(null);
@@ -105,8 +92,8 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
       await persistBrandPatch(patch);
       setSavedNote(
         kind === "icon"
-          ? "Icon uploaded and saved — used in the sidebar and compact UI."
-          : "Logo uploaded and saved — it will appear on invoices and quotes.",
+          ? "Icon saved — sidebar and compact UI."
+          : "Logo saved — invoices, quotes, email, and websites.",
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
@@ -117,97 +104,119 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
 
   return (
     <section className="dg-card">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-semibold text-white">Brand appearance</h3>
-          <p className="mt-1 text-sm text-slate-400">
-            Logo and background colour brand tax invoices and quotes. Icon is for the
-            sidebar and compact UI only. Uploads save immediately; colour and URL edits
-            still need <span className="text-slate-300">Save profile</span>.
-          </p>
-        </div>
-        <div className="flex gap-4">
-          <AssetPreview
-            label="Icon"
-            src={profile.iconUrl ?? profile.logoUrl}
-            fallbackLetter={businessInitial}
-            accent={primary}
-          />
-          <AssetPreview
-            label="Logo"
-            src={profile.logoUrl}
-            fallbackLetter={businessInitial}
-            accent={accent}
-          />
-        </div>
+      <div>
+        <h3 className="text-lg font-semibold text-white">Brand appearance</h3>
+        <p className="mt-1 text-sm text-slate-400">
+          One identity for this organisation. Uploads and pasted URLs save immediately.
+          Colours save when you click {colourSaveLabel}.
+        </p>
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            Icon (square mark)
-          </span>
-          <div className="mt-1 flex gap-2">
-            <input
-              className={inputClass}
-              placeholder="https://… or upload below"
-              value={profile.iconUrl ?? ""}
-              onChange={(e) => onChange({ iconUrl: e.target.value || undefined })}
-            />
-            <button
-              type="button"
-              onClick={() => iconInputRef.current?.click()}
-              disabled={uploading === "icon"}
-              className="shrink-0 rounded-lg border border-slate-600 px-3 py-2 text-xs text-slate-200 hover:border-blue-500 disabled:opacity-50"
-            >
-              {uploading === "icon" ? "…" : "Upload"}
-            </button>
-            <input
-              ref={iconInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void handleFile("icon", file);
-                e.target.value = "";
-              }}
-            />
+        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+          <div className="flex items-start gap-4">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-700 bg-slate-900">
+              {profile.iconUrl || profile.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profile.iconUrl || profile.logoUrl}
+                  alt=""
+                  className="max-h-full max-w-full object-contain p-2"
+                />
+              ) : (
+                <span
+                  className="flex h-full w-full items-center justify-center text-2xl font-semibold text-white"
+                  style={{ backgroundColor: primary }}
+                >
+                  {businessInitial}
+                </span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-white">Icon</p>
+              <p className="mt-0.5 text-xs text-slate-500">
+                Square mark for the sidebar and compact UI only.
+              </p>
+              <button
+                type="button"
+                onClick={() => iconInputRef.current?.click()}
+                disabled={uploading === "icon"}
+                className="mt-3 rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-200 hover:border-blue-500 disabled:opacity-50"
+              >
+                {uploading === "icon" ? "Uploading…" : "Upload icon"}
+              </button>
+              <input
+                ref={iconInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleFile("icon", file);
+                  e.target.value = "";
+                }}
+              />
+            </div>
           </div>
-        </label>
+          <input
+            className={`${inputClass} mt-3`}
+            placeholder="Or paste an icon URL"
+            value={profile.iconUrl ?? ""}
+            onChange={(e) => onChange({ iconUrl: e.target.value || undefined })}
+            onBlur={() => void persistUrls()}
+          />
+        </div>
 
-        <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            Logo (wordmark)
-          </span>
-          <div className="mt-1 flex gap-2">
-            <input
-              className={inputClass}
-              placeholder="https://… or upload below"
-              value={profile.logoUrl ?? ""}
-              onChange={(e) => onChange({ logoUrl: e.target.value || undefined })}
-            />
-            <button
-              type="button"
-              onClick={() => logoInputRef.current?.click()}
-              disabled={uploading === "logo"}
-              className="shrink-0 rounded-lg border border-slate-600 px-3 py-2 text-xs text-slate-200 hover:border-blue-500 disabled:opacity-50"
-            >
-              {uploading === "logo" ? "…" : "Upload"}
-            </button>
-            <input
-              ref={logoInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void handleFile("logo", file);
-                e.target.value = "";
-              }}
-            />
+        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+          <div className="flex items-start gap-4">
+            <div className="flex h-20 min-w-[8rem] max-w-[11rem] flex-1 items-center justify-center overflow-hidden rounded-xl border border-slate-700 bg-slate-900 px-3">
+              {profile.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profile.logoUrl}
+                  alt=""
+                  className="max-h-16 max-w-full object-contain"
+                />
+              ) : (
+                <span className="text-sm font-semibold text-white">
+                  {profile.businessName || profile.tradingName || "Logo"}
+                </span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-white">Logo</p>
+              <p className="mt-0.5 text-xs text-slate-500">
+                Wordmark for invoices, quotes, email, and websites.
+              </p>
+              <button
+                type="button"
+                onClick={() => logoInputRef.current?.click()}
+                disabled={uploading === "logo"}
+                className="mt-3 rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-200 hover:border-blue-500 disabled:opacity-50"
+              >
+                {uploading === "logo" ? "Uploading…" : "Upload logo"}
+              </button>
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleFile("logo", file);
+                  e.target.value = "";
+                }}
+              />
+            </div>
           </div>
-        </label>
+          <input
+            className={`${inputClass} mt-3`}
+            placeholder="Or paste a logo URL"
+            value={profile.logoUrl ?? ""}
+            onChange={(e) => onChange({ logoUrl: e.target.value || undefined })}
+            onBlur={() => void persistUrls()}
+          />
+        </div>
 
         <label className="block">
           <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
@@ -260,7 +269,7 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
             Background colour
           </span>
           <p className="mt-0.5 text-xs text-slate-500">
-            Used as the header band on invoices and quotes. Defaults to navy if unset.
+            Header band on invoices and quotes. Defaults to navy if unset.
           </p>
           <div className="mt-1 flex items-center gap-3">
             <input
@@ -288,13 +297,13 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
           style={{ backgroundColor: background }}
         >
           <span className="text-xs uppercase tracking-wide text-slate-400">
-            Document header preview
+            Invoice / quote header
           </span>
           {profile.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={profile.logoUrl}
-              alt="Logo preview"
+              alt=""
               className="max-h-10 max-w-[180px] object-contain"
             />
           ) : (
@@ -309,7 +318,7 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
             background: `linear-gradient(135deg, color-mix(in srgb, ${primary} 18%, #0f172a), #0f172a 55%, color-mix(in srgb, ${accent} 12%, #0f172a))`,
           }}
         >
-          <p className="text-xs uppercase tracking-wide text-slate-500">UI accents</p>
+          <p className="text-xs uppercase tracking-wide text-slate-500">Platform UI</p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <span
               className="rounded-full px-4 py-2 text-sm font-medium text-white"
@@ -318,7 +327,7 @@ export function BrandAssetsEditor({ profile, onChange }: BrandAssetsEditorProps)
               Primary button
             </span>
             <span
-              className="rounded-full border px-4 py-2 text-sm font-medium text-white"
+              className="rounded-full border px-4 py-2 text-sm font-medium"
               style={{ borderColor: accent, color: accent }}
             >
               Accent outline

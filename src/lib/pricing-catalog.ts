@@ -297,7 +297,7 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
     icon: "🌐",
     price: "Included",
     badge: "Included on Growth+",
-    description: "Websites, funnels, logos, content, and Health Centre",
+    description: "Websites, funnels, brand, content, and Health Centre",
     status: "included",
   },
   {

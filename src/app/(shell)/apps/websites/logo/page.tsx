@@ -37,10 +37,10 @@ export default async function LogoDesignStudioPage({
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Logos</h1>
+        <h1 className="text-2xl font-bold text-white">Brand</h1>
         <p className="text-sm text-slate-400">
-          Logo, icon, and colours for {session?.organisationName ?? "your business"} —
-          saved on Business Profile so websites, invoices, and email all match
+          Logo, icon, and colours for {session?.organisationName ?? "this organisation"} —
+          one identity for the sidebar, websites, invoices, and email.
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -60,11 +60,11 @@ export default async function LogoDesignStudioPage({
               </p>
             ) : (
               <p className="text-sm text-slate-500">
-                Full identity lives on{" "}
+                Same record as{" "}
                 <Link href="/dashboard/business" className="text-slate-300 underline">
                   Business Profile
                 </Link>
-                . AI logo concepts come next.
+                .
               </p>
             )}
           </>

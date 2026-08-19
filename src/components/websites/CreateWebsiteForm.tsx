@@ -109,12 +109,12 @@ export function CreateWebsiteForm({
               {
                 id: "have" as const,
                 label: "I already have a brand",
-                detail: "Upload logo / colours in Logos, then come back",
+                detail: "Upload logo and colours on Brand, then come back",
               },
               {
                 id: "ai" as const,
-                label: "Create my brand with AI",
-                detail: "Opens Logos — upload now; AI concepts next",
+                label: "Set brand first",
+                detail: "Opens Brand — upload logo and colours (AI generation is not shipped)",
               },
               {
                 id: "later" as const,
@@ -195,15 +195,15 @@ export function CreateWebsiteForm({
           : brandPath === "later"
             ? "Create from Business Profile"
             : brandPath === "have"
-              ? "Continue to Logos →"
-              : "Open Logos →"}
+              ? "Continue to Brand →"
+              : "Open Brand →"}
       </button>
       <p className="text-xs text-slate-500">
         Structured components (not HTML). Brand is optional —{" "}
         <Link href="/apps/websites/logo" className="text-slate-300 underline">
-          Logos
+          Brand
         </Link>{" "}
-        anytime for colours, logo, and mark.
+        anytime for colours, logo, and icon.
       </p>
     </form>
   );
