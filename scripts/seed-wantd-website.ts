@@ -111,7 +111,7 @@ async function main() {
     site = await prisma.website.create({
       data: {
         organisationId: org.id,
-        name: model.name,
+        name: model.name ?? "Wantd Website",
         slug: SITE_SLUG,
         status: "published",
         publishedAt,
@@ -126,7 +126,7 @@ async function main() {
     await prisma.website.update({
       where: { id: site.id },
       data: {
-        name: model.name,
+        name: model.name ?? "Wantd Website",
         slug: SITE_SLUG,
         status: "published",
         publishedAt: site.publishedAt ?? publishedAt,
