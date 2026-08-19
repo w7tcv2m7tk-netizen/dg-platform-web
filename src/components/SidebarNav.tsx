@@ -171,7 +171,10 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
   const ia = nav.ia;
   const staffChannelFirst =
-    Boolean(nav.commandCentre) || ia.partners.links.length > 0 || ia.partner.links.length > 0;
+    Boolean(nav.commandCentre) ||
+    ia.partners.links.length > 0 ||
+    ia.partners.apps.length > 0 ||
+    ia.partner.links.length > 0;
 
   useEffect(() => {
     const next: Record<string, boolean> = {};

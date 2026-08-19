@@ -209,6 +209,7 @@ export type SerializedPartnerCommission = {
   approvedAt: string | null;
   paidAt: string | null;
   notes: string | null;
+  partnerName: string | null;
   createdAt: string;
 };
 

@@ -24,15 +24,18 @@ export default async function CommandPlatformDocsPage() {
           ← Command Centre
         </Link>
         <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400">
-          Platform · Architecture
+          Platform · Docs
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Platform docs</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
-          Curated DigitalGate documentation for staff review. Ask the allowlist via{" "}
+          Source of truth for what DigitalGate is, how it is designed, why decisions were made, and
+          how DigitalGate operates. Curated for staff review — not CRM, not the product UI, and not
+          every file under <code className="text-slate-300">docs/</code>. Ask this allowlist via{" "}
           <Link href="/command/intelligence" className="text-sky-400 hover:underline">
             Platform Intelligence
           </Link>{" "}
-          (Phase 1 RAG with citations) — not live org tools, and not the floating support chat.
+          (retrieval and reasoning with citations). Not live org tools, and not the floating support
+          chat.
         </p>
       </header>
       <main className="dg-page-main space-y-8">

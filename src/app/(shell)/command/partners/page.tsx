@@ -1,22 +1,24 @@
 import Link from "next/link";
-import { countPartnerSeats, listPartners, PARTNER_COMMISSION_CONFIG } from "@dg/platform-core";
+import {
+  countPartnerSeats,
+  listAllCommissions,
+  listAllReferrals,
+  listPartners,
+  PARTNER_COMMISSION_CONFIG,
+} from "@dg/platform-core";
 import { PartnersAdminNav } from "@/components/command/PartnersAdminNav";
 
-const TIER_LABEL: Record<string, string> = {
-  FOUNDING_RESELLER: "Founding Reseller",
-  FOUNDING_PARTNER: "Founding Partner",
-  FOUNDING_CUSTOMER: "Founding Customer",
-  CUSTOMER_REFERRER: "Customer Referrer",
-};
+function centsToDisplay(cents: number): string {
+  return (cents / 100).toLocaleString("en-AU", {
+    style: "currency",
+    currency: "AUD",
+    maximumFractionDigits: 0,
+  });
+}
 
-const STATUS_COLOR: Record<string, string> = {
-  active: "bg-emerald-900/40 text-emerald-300",
-  pending: "bg-amber-900/40 text-amber-300",
-  suspended: "bg-red-900/30 text-red-400",
-  inactive: "bg-slate-700 text-slate-500",
-};
+const CUSTOMER_STATUSES = new Set(["CUSTOMER", "ACTIVE", "ACCEPTED", "COMMISSIONING"]);
 
-export default async function AdminPartnersPage() {
+export default async function PartnerProgrammeDashboardPage() {
   let partners: Awaited<ReturnType<typeof listPartners>>["partners"] = [];
   let total = 0;
   let seats = (Object.keys(PARTNER_COMMISSION_CONFIG) as Array<
@@ -29,43 +31,69 @@ export default async function AdminPartnersPage() {
     },
     {} as Awaited<ReturnType<typeof countPartnerSeats>>,
   );
+  let referralTotal = 0;
+  let customerCount = 0;
+  let pendingCents = 0;
+  let paidCents = 0;
+
   try {
-    const [listed, counted] = await Promise.all([listPartners(), countPartnerSeats()]);
+    const [listed, counted, referrals, commissions] = await Promise.all([
+      listPartners({ limit: 100 }),
+      countPartnerSeats(),
+      listAllReferrals({ limit: 200 }),
+      listAllCommissions({ limit: 200 }),
+    ]);
     partners = listed.partners;
     total = listed.total;
     seats = counted;
+    referralTotal = referrals.total;
+    customerCount = referrals.referrals.filter((r) => CUSTOMER_STATUSES.has(r.status)).length;
+    pendingCents = commissions.commissions
+      .filter((c) => ["CALCULATED", "PENDING", "APPROVED"].includes(c.status))
+      .reduce((sum, c) => sum + c.commissionAmountCents, 0);
+    paidCents = commissions.commissions
+      .filter((c) => c.status === "PAID")
+      .reduce((sum, c) => sum + c.commissionAmountCents, 0);
   } catch {
     /* tables not migrated yet */
   }
+
+  const active = partners.filter((p) => p.status === "active").length;
+  const pending = partners.filter((p) => p.status === "pending").length;
   const reseller = seats.FOUNDING_RESELLER;
+
+  const ranking = partners.slice(0, 12);
 
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Partners</h1>
+        <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">Partners</p>
+        <h1 className="mt-1 text-2xl font-bold text-white">Reseller programme</h1>
         <p className="mt-1 text-sm text-slate-400">
-          DigitalGate Partner Programme — {total} partner{total !== 1 ? "s" : ""}. Founding
-          Reseller seats: {reseller.used} of {reseller.cap} used
-          {reseller.remaining != null ? ` · ${reseller.remaining} remaining` : ""}.
+          Channel performance for DigitalGate introducers — not DigitalGate’s own Prospecting
+          pipeline. Founding Reseller seats {reseller.used} of {reseller.cap}.
         </p>
       </header>
 
       <main className="dg-page-main">
         <div className="max-w-5xl space-y-6">
-          <PartnersAdminNav active="overview" />
-          <div className="grid gap-3 sm:grid-cols-3">
+          <PartnersAdminNav active="dashboard" />
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
+              { label: "Active resellers", value: String(active) },
+              { label: "Pending applications", value: String(pending) },
+              { label: "Referrals", value: String(referralTotal) },
+              { label: "Customers referred", value: String(customerCount) },
+              { label: "Commission owing", value: centsToDisplay(pendingCents) },
+              { label: "Commission paid", value: centsToDisplay(paidCents) },
               {
-                label: "Founding 10 · Reseller 30%",
+                label: "Founding Reseller seats",
                 value: `${seats.FOUNDING_RESELLER.used} / ${seats.FOUNDING_RESELLER.cap}`,
               },
               {
-                label: "Founding 100 · Partner 25%",
-                value: `${seats.FOUNDING_PARTNER.used} / ${seats.FOUNDING_PARTNER.cap}`,
-              },
-              {
-                label: "Founding 1,000 · Customer 20%",
-                value: `${seats.FOUNDING_CUSTOMER.used} / ${seats.FOUNDING_CUSTOMER.cap}`,
+                label: "Partners on file",
+                value: String(total),
               },
             ].map((card) => (
               <div
@@ -77,72 +105,51 @@ export default async function AdminPartnersPage() {
               </div>
             ))}
           </div>
-          {partners.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-700 px-6 py-14 text-center text-sm text-slate-400">
-              No partners registered yet. Founding Reseller is invitation only — recruit 3–5
-              excellent introducers first. The 30% tier is not an open affiliate programme.
+
+          <section className="overflow-hidden rounded-xl border border-slate-700/60 bg-slate-800/40">
+            <div className="flex items-center justify-between border-b border-slate-700/60 px-4 py-3">
+              <h2 className="text-sm font-semibold text-white">Resellers</h2>
+              <Link
+                href="/command/partners/resellers"
+                className="text-xs text-sky-400 hover:underline"
+              >
+                All resellers →
+              </Link>
             </div>
-          ) : (
-            <div className="overflow-hidden rounded-xl border border-slate-700/60 bg-slate-800/40">
+            {ranking.length === 0 ? (
+              <p className="px-4 py-10 text-center text-sm text-slate-400">
+                No partners registered yet. Founding Reseller is invitation only.
+              </p>
+            ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-700/60 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                    <th className="px-4 py-3">Partner</th>
+                    <th className="px-4 py-3">Reseller</th>
                     <th className="px-4 py-3">Tier</th>
-                    <th className="px-4 py-3">Commission</th>
-                    <th className="px-4 py-3">Code</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Joined</th>
-                    <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/40">
-                  {partners.map((p) => (
+                  {ranking.map((p) => (
                     <tr key={p.id} className="hover:bg-slate-700/20">
                       <td className="px-4 py-3">
-                        <p className="font-medium text-white">{p.displayName ?? "—"}</p>
-                        {p.businessName && (
-                          <p className="text-xs text-slate-500">{p.businessName}</p>
-                        )}
-                        {p.email && (
-                          <p className="text-xs text-slate-500">{p.email}</p>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-slate-300">
-                        {TIER_LABEL[p.partnerType] ?? p.partnerType}
-                      </td>
-                      <td className="px-4 py-3 text-slate-300">
-                        {p.commissionPercent}% × {p.commissionDurationMonths}mo
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs text-slate-400">
-                        {p.referralCode}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_COLOR[p.status] ?? "bg-slate-700 text-slate-400"}`}
-                        >
-                          {p.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-400">
-                        {p.joinedAt
-                          ? new Date(p.joinedAt).toLocaleDateString("en-AU")
-                          : "—"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Link
-                          href={`/command/partners/${p.id}`}
-                          className="text-sky-400 hover:underline text-xs"
-                        >
-                          View →
+                        <Link href={`/command/partners/${p.id}`} className="font-medium text-white hover:text-sky-300">
+                          {p.displayName ?? p.businessName ?? "—"}
                         </Link>
+                        {p.email ? <p className="text-xs text-slate-500">{p.email}</p> : null}
+                      </td>
+                      <td className="px-4 py-3 text-slate-300">{p.partnerTypeLabel}</td>
+                      <td className="px-4 py-3 capitalize text-slate-300">{p.status}</td>
+                      <td className="px-4 py-3 text-slate-400">
+                        {p.joinedAt ? new Date(p.joinedAt).toLocaleDateString("en-AU") : "—"}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-          )}
+            )}
+          </section>
         </div>
       </main>
     </>

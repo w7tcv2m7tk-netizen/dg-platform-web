@@ -187,23 +187,31 @@ function buildSnapshotKpis(
   return kpis;
 }
 
-function buildConnectedSystems(connectors: OverviewConnectorProbes): OverviewConnectedSystem[] {
-  const websiteStatus = !connectors.website
-    ? ("offline" as const)
-    : !connectors.website.ok
-      ? ("offline" as const)
-      : (connectors.website.score ?? 0) >= 85
-        ? ("healthy" as const)
-        : (connectors.website.score ?? 0) >= 70
-          ? ("connected" as const)
-          : ("warning" as const);
+function buildConnectedSystems(
+  connectors: OverviewConnectorProbes,
+  websiteUrl?: string | null,
+): OverviewConnectedSystem[] {
+  const publicSite = Boolean(websiteUrl?.trim());
+  const websiteStatus = connectors.website?.ok
+    ? (connectors.website.score ?? 0) >= 85
+      ? ("healthy" as const)
+      : (connectors.website.score ?? 0) >= 70
+        ? ("connected" as const)
+        : ("warning" as const)
+    : publicSite
+      ? ("connected" as const)
+      : ("offline" as const);
 
   const systems: OverviewConnectedSystem[] = [
     {
       id: "website",
       label: "Website",
       status: websiteStatus,
-      detail: connectors.website?.score ? `${connectors.website.score}/100` : undefined,
+      detail: connectors.website?.score
+        ? `${connectors.website.score}/100`
+        : publicSite
+          ? websiteUrl
+          : undefined,
     },
     ...(connectors.wordpress?.configured
       ? [
@@ -408,7 +416,10 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
       ? timeline
       : [{ id: "empty", timeLabel: "—", title: "No activity yet — actions across your apps will appear here." }],
     healthTrend,
-    connectedSystems: buildConnectedSystems(connectorProbes),
+    connectedSystems: buildConnectedSystems(
+      connectorProbes,
+      input.businessProfile?.websiteUrl,
+    ),
     aiPrompts: [
       { id: "pipeline", label: "Summarise my pipeline", prompt: "Summarise my sales pipeline and highlight priorities for today." },
       { id: "newsletter", label: "Write a newsletter", prompt: "Draft a client newsletter for this month." },
@@ -496,7 +507,10 @@ function buildPreviewOverview(
       ? timelineFromActivities(activities)
       : [{ id: "empty", timeLabel: "—", title: "No activity recorded yet." }],
     healthTrend: [],
-    connectedSystems: buildConnectedSystems(input.connectorProbes ?? {}),
+    connectedSystems: buildConnectedSystems(
+      input.connectorProbes ?? {},
+      input.businessProfile?.websiteUrl,
+    ),
     aiPrompts: [
       { id: "pipeline", label: "Summarise my pipeline", prompt: "Summarise my sales pipeline." },
     ],

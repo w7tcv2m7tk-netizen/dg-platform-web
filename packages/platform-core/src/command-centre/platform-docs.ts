@@ -1,11 +1,15 @@
 /**
- * Staff-only Platform / Architecture docs library (Command Centre).
- * Curated allowlist under repo `docs/` — Phase 0/1 SSOT for later RAG; readable first.
+ * Staff-only Platform docs library (Command Centre).
+ * Curated allowlist under repo `docs/` — SSOT for Platform Intelligence RAG.
+ * Product UI and CRM are not substitutes for this corpus.
  */
 
 export type PlatformDocGroup =
   | "architecture"
   | "strategy"
+  | "commercial"
+  | "partners"
+  | "operations"
   | "connectors"
   | "ai"
   | "apps"
@@ -14,6 +18,9 @@ export type PlatformDocGroup =
 export const PLATFORM_DOC_GROUP_LABELS: Record<PlatformDocGroup, string> = {
   architecture: "Architecture",
   strategy: "Strategy",
+  commercial: "Commercial",
+  partners: "Partners",
+  operations: "Operations",
   connectors: "Connectors",
   ai: "AI",
   apps: "Apps",
@@ -24,6 +31,9 @@ export const PLATFORM_DOC_GROUP_LABELS: Record<PlatformDocGroup, string> = {
 export const PLATFORM_DOC_GROUP_ORDER: PlatformDocGroup[] = [
   "architecture",
   "strategy",
+  "commercial",
+  "partners",
+  "operations",
   "connectors",
   "ai",
   "apps",
@@ -79,13 +89,6 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "foundations/INTELLIGENT-LAYER.md",
   },
   {
-    slug: "business-setup",
-    title: "Business Setup",
-    summary: "Foundations for identifying and configuring a business on the platform.",
-    group: "architecture",
-    relativePath: "foundations/BUSINESS-SETUP.md",
-  },
-  {
     slug: "product-vision",
     title: "Product Vision",
     summary: "What DigitalGate is building and why.",
@@ -107,43 +110,11 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "ROADMAP.md",
   },
   {
-    slug: "founding-10-outreach",
-    title: "Founding 10 outreach copy",
-    summary:
-      "Personal update, not a SaaS campaign — customer and Founding Reseller scripts, follow-ups, discovery questions.",
+    slug: "industry-strategy",
+    title: "Industry Strategy",
+    summary: "Country packs and industry expansion constraints — AU first; do not internationalise GTM early.",
     group: "strategy",
-    relativePath: "strategy/FOUNDING-10-OUTREACH.md",
-  },
-  {
-    slug: "commercial-engine",
-    title: "Commercial Engine",
-    summary:
-      "18 Aug lock — freeze website redesign; fill Founding 10 via network, RE prospecting, and qualified Founding Resellers.",
-    group: "strategy",
-    relativePath: "strategy/COMMERCIAL-ENGINE.md",
-  },
-  {
-    slug: "founding-customer-onboarding",
-    title: "Founding Customer onboarding",
-    summary:
-      "Accepted → Agreement → signed-in onboarding → implementation plan → go-live. Do not use the retired public 12-section form.",
-    group: "strategy",
-    relativePath: "strategy/FOUNDING-CUSTOMER-ONBOARDING.md",
-  },
-  {
-    slug: "founding-10-acquisition",
-    title: "Founding 10 acquisition",
-    summary: "Founding 10 sales machine — acquisition loop and developer P0/P1 order.",
-    group: "strategy",
-    relativePath: "strategy/FOUNDING-10-ACQUISITION.md",
-  },
-  {
-    slug: "founding-cohorts",
-    title: "Founding cohorts",
-    summary:
-      "Founding 10 / 100 / 1,000 commercial architecture — customer discount ≠ referral commission.",
-    group: "strategy",
-    relativePath: "strategy/FOUNDING-COHORTS.md",
+    relativePath: "foundations/GLOBAL-READINESS.md",
   },
   {
     slug: "ceo-plan-2026-08-17",
@@ -151,13 +122,6 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     summary: "Gates — Email P0 → Stage 1 → P0/P1 → Founding 10 → Founding 100.",
     group: "strategy",
     relativePath: "strategy/CEO-PLAN-2026-08-17.md",
-  },
-  {
-    slug: "discovery-scoring-spec",
-    title: "Discovery scoring spec",
-    summary: "Prospect Opportunity Score — Fit × Need × Reachability × Commercial × Weakness.",
-    group: "strategy",
-    relativePath: "strategy/DISCOVERY-SCORING-SPEC.md",
   },
   {
     slug: "advisor-evidence-stage-1",
@@ -182,20 +146,165 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "strategy/BUSINESS-ADVISOR-UPDATE-2026-08-19.md",
   },
   {
-    slug: "commercially-ready-v1",
-    title: "Commercially Ready v1",
+    slug: "commercial-engine",
+    title: "Commercial Engine",
     summary:
-      "Prove → sell Founding 10 — dogfood journey, P0/P1 punch list, six reds as verification.",
-    group: "strategy",
+      "18 Aug lock — freeze website redesign; fill Founding 10 via network, RE prospecting, and qualified Founding Resellers.",
+    group: "commercial",
+    relativePath: "strategy/COMMERCIAL-ENGINE.md",
+  },
+  {
+    slug: "founding-10-acquisition",
+    title: "Founding 10 Acquisition",
+    summary: "Founding 10 sales machine — acquisition loop and developer P0/P1 order.",
+    group: "commercial",
+    relativePath: "strategy/FOUNDING-10-ACQUISITION.md",
+  },
+  {
+    slug: "founding-10-outreach",
+    title: "Founding 10 Outreach",
+    summary:
+      "Personal update, not a SaaS campaign — customer and Founding Reseller scripts, follow-ups, discovery questions.",
+    group: "commercial",
+    relativePath: "strategy/FOUNDING-10-OUTREACH.md",
+  },
+  {
+    slug: "founding-cohorts",
+    title: "Founding Cohorts",
+    summary:
+      "Founding 10 / 100 / 1,000 commercial architecture — customer discount ≠ referral commission.",
+    group: "commercial",
+    relativePath: "strategy/FOUNDING-COHORTS.md",
+  },
+  {
+    slug: "founding-customer-onboarding",
+    title: "Founding Customer Onboarding",
+    summary:
+      "Accepted → Agreement → signed-in onboarding → implementation plan → go-live. Do not use the retired public 12-section form.",
+    group: "commercial",
+    relativePath: "strategy/FOUNDING-CUSTOMER-ONBOARDING.md",
+  },
+  {
+    slug: "discovery-scoring-spec",
+    title: "Discovery Scoring",
+    summary: "Prospect Opportunity Score — Fit × Need × Reachability × Commercial × Weakness.",
+    group: "commercial",
+    relativePath: "strategy/DISCOVERY-SCORING-SPEC.md",
+  },
+  {
+    slug: "pricing-and-packaging",
+    title: "Pricing & Packaging",
+    summary: "Platform tiers, Apps, founding discount vs reseller commission, public pricing lock.",
+    group: "commercial",
+    relativePath: "commercial/PRICING-AND-PACKAGING.md",
+  },
+  {
+    slug: "sales-process",
+    title: "Sales Process",
+    summary: "How DigitalGate sells Founding 10 — intro, discovery, consult, accept, agreement.",
+    group: "commercial",
+    relativePath: "commercial/SALES-PROCESS.md",
+  },
+  {
+    slug: "commercially-ready-v1",
+    title: "Customer Acceptance Criteria",
+    summary:
+      "Commercially Ready v1 — prove → sell Founding 10; punch list and verification before a seat is live.",
+    group: "commercial",
     relativePath: "foundations/COMMERCIALLY-READY-V1.md",
   },
   {
-    slug: "gate-1-dogfood",
-    title: "Gate 1 dogfood",
+    slug: "reseller-programme",
+    title: "Reseller Programme",
     summary:
-      "Tickable Internal Alpha close list — Roe + CVH journey, ops smoke, P0/P1 before Founding 10.",
-    group: "strategy",
-    relativePath: "foundations/GATE-1-DOGFOOD.md",
+      "Invitation-only Founding Reseller Programme — introducer model, not an affiliate programme.",
+    group: "partners",
+    relativePath: "partners/RESELLER-PROGRAMME.md",
+  },
+  {
+    slug: "reseller-terms",
+    title: "Reseller Terms",
+    summary: "Where partners accept programme rules; solicitor review required before binding legal terms.",
+    group: "partners",
+    relativePath: "partners/RESELLER-TERMS.md",
+  },
+  {
+    slug: "partner-qualification",
+    title: "Partner Qualification",
+    summary: "Who may be invited; first-wave cap; what resellers must not claim.",
+    group: "partners",
+    relativePath: "partners/PARTNER-QUALIFICATION.md",
+  },
+  {
+    slug: "partner-onboarding",
+    title: "Partner Onboarding",
+    summary: "Invite → terms → demo org → referral workflow. DigitalGate still sells and implements.",
+    group: "partners",
+    relativePath: "partners/PARTNER-ONBOARDING.md",
+  },
+  {
+    slug: "referral-and-commission-rules",
+    title: "Referral & Commission Rules",
+    summary:
+      "30% of qualifying collected Platform + App fees for 12 months — not list price, not perpetual.",
+    group: "partners",
+    relativePath: "partners/REFERRAL-AND-COMMISSION-RULES.md",
+  },
+  {
+    slug: "partner-resources",
+    title: "Partner Resources",
+    summary: "Approved messaging, demo account, and where partners work in product vs CRM.",
+    group: "partners",
+    relativePath: "partners/PARTNER-RESOURCES.md",
+  },
+  {
+    slug: "business-setup",
+    title: "Business Setup",
+    summary: "Identify and configure a business on the platform (Core Business Services, not a Growth App).",
+    group: "operations",
+    relativePath: "foundations/BUSINESS-SETUP.md",
+  },
+  {
+    slug: "customer-onboarding-ops",
+    title: "Customer Onboarding",
+    summary: "Operational path after commercial acceptance — agreement, guided setup, implementation.",
+    group: "operations",
+    relativePath: "operations/CUSTOMER-ONBOARDING.md",
+  },
+  {
+    slug: "implementation",
+    title: "Implementation",
+    summary: "Staff implementation plan after onboarding — configure Apps, connectors, go-live readiness.",
+    group: "operations",
+    relativePath: "operations/IMPLEMENTATION.md",
+  },
+  {
+    slug: "go-live",
+    title: "Go-Live",
+    summary: "Checklist before a Founding customer is treated as live on DigitalGate.",
+    group: "operations",
+    relativePath: "operations/GO-LIVE.md",
+  },
+  {
+    slug: "customer-success",
+    title: "Customer Success",
+    summary: "Success Score, adoption, and in-product success — not a separate support App.",
+    group: "operations",
+    relativePath: "foundations/CUSTOMER-SUCCESS.md",
+  },
+  {
+    slug: "support",
+    title: "Support",
+    summary: "How staff support customers vs Platform Intelligence and in-product chat.",
+    group: "operations",
+    relativePath: "operations/SUPPORT.md",
+  },
+  {
+    slug: "internal-sops",
+    title: "Internal SOPs",
+    summary: "Where operating procedures live; do not dump every runbook into Platform Docs.",
+    group: "operations",
+    relativePath: "operations/INTERNAL-SOPS.md",
   },
   {
     slug: "connector-priority",

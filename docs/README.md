@@ -63,6 +63,8 @@ Target folders for the Knowledge Layer (map gradually — see [ai/PLATFORM-INTEL
 
 Today’s layout (`foundations/`, `catalogues/`, `standards/`, …) remains authoritative until folders are promoted; do not mass-move without an ADR.
 
+**Command Centre Platform Docs** (`/command/docs`) is a **curated allowlist**, not this entire tree. Staff RAG uses that allowlist only. Product UI and CRM are not substitutes for those documents.
+
 ---
 
 ## Domain & data

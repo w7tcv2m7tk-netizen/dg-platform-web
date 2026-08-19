@@ -231,10 +231,6 @@ export function Gate1DogfoodChecklist({ compact = false }: { compact?: boolean }
         <p className="mt-6 text-xs text-slate-500">
           Do not block Founding 10 on live REA publish or Domain Production. Audience / LinkedIn
           can run now. Active selling waits until P0/P1 are gone.{" "}
-          <Link href="/command/docs/gate-1-dogfood" className="text-sky-400 hover:underline">
-            Platform docs
-          </Link>{" "}
-          ·{" "}
           <Link href="/command/docs/commercially-ready-v1" className="text-sky-400 hover:underline">
             Commercially Ready v1
           </Link>

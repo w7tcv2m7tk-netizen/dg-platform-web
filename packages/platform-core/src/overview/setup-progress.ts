@@ -29,8 +29,14 @@ function planConfigured(
   return (enabledAppIds?.length ?? 0) >= 3;
 }
 
-function connectorsLinked(probes?: OverviewConnectorProbes): boolean {
-  return Boolean(probes?.website?.ok || probes?.wordpress?.ok);
+function websitePublished(
+  profile?: OrganisationBusinessProfile | null,
+  probes?: OverviewConnectorProbes,
+  setupStatus?: PlatformSetupStatus | null,
+): boolean {
+  if (probes?.website?.ok || probes?.wordpress?.ok) return true;
+  if (setupStatus?.hasPublishedWebsite) return true;
+  return Boolean(profile?.websiteUrl?.trim());
 }
 
 /** Compute platform setup progress for Overview. */
@@ -69,7 +75,7 @@ export function buildSetupProgress(input: BuildSetupProgressInput): OverviewSetu
     {
       id: "connectors",
       label: "Website published",
-      done: connectorsLinked(connectorProbes),
+      done: websitePublished(businessProfile, connectorProbes, setupStatus),
       href: "/apps/websites",
     },
     {

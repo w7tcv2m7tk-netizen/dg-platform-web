@@ -1,7 +1,7 @@
 export async function getPlatformSetupStatus(organisationId: string) {
   const { prisma } = await import("@dg/database");
 
-  const [contactCount, activityCount, membershipCount] = await Promise.all([
+  const [contactCount, activityCount, membershipCount, publishedWebsiteCount] = await Promise.all([
     prisma.contact.count({
       where: { organisationId, deletedAt: null },
     }),
@@ -11,6 +11,9 @@ export async function getPlatformSetupStatus(organisationId: string) {
     prisma.membership.count({
       where: { organisationId },
     }),
+    prisma.website.count({
+      where: { organisationId, status: "published" },
+    }),
   ]);
 
   return {
@@ -18,6 +21,7 @@ export async function getPlatformSetupStatus(organisationId: string) {
     hasTeamMember: membershipCount > 0,
     hasContacts: contactCount > 0,
     hasTimelineActivity: activityCount > 0,
+    hasPublishedWebsite: publishedWebsiteCount > 0,
     contactCount,
     activityCount,
   };

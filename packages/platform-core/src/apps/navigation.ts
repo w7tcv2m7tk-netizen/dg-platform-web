@@ -214,6 +214,12 @@ const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
     label: "Benchmarks",
     icon: getSidebarIcon("benchmarks"),
   },
+  {
+    kind: "shell",
+    href: "/apps/analytics/reports",
+    label: "Reports",
+    icon: getSidebarIcon("reports"),
+  },
 ];
 
 const APPS_PLATFORM_NAV: PlatformShellNavItem = {
@@ -320,26 +326,26 @@ export interface CategorizedPlatformNavigation {
   };
 }
 
-const PARTNERS_ADMIN_LINKS: PlatformShellNavItem[] = [
-  {
-    kind: "shell",
-    href: "/command/partners",
-    label: "Resellers",
-    icon: getSidebarIcon("partner-portal"),
-  },
-  {
-    kind: "shell",
-    href: "/command/referrals",
-    label: "Referrals",
-    icon: getSidebarIcon("referrals"),
-  },
-  {
-    kind: "shell",
-    href: "/command/commissions",
-    label: "Commissions",
-    icon: getSidebarIcon("commerce"),
-  },
+const RESELLER_ADMIN_ROUTES: AppRoute[] = [
+  { path: "/command/partners", label: "Dashboard" },
+  { path: "/command/partners/resellers", label: "Resellers" },
+  { path: "/command/referrals", label: "Referrals" },
+  { path: "/command/commissions", label: "Commissions" },
+  { path: "/command/partners/payouts", label: "Payouts" },
 ];
+
+function getResellerAdminNavItem(): AppNavTreeItem {
+  return {
+    kind: "app",
+    id: "reseller-admin",
+    name: "Resellers",
+    icon: getSidebarIcon("partner-portal"),
+    tier: "internal",
+    enabled: true,
+    routes: RESELLER_ADMIN_ROUTES,
+    primaryHref: "/command/partners",
+  };
+}
 
 const PARTNER_WORKSPACE_LINKS: PlatformShellNavItem[] = [
   {
@@ -386,34 +392,20 @@ function getStaffProspectingNavItem(): AppNavTreeItem {
   };
 }
 
-function getCommandCentreNavItem(analyticsEnabled: boolean): PlatformToolNavItem {
-  const routes: AppRoute[] = [
-    { path: "/command", label: "Priorities" },
-    { path: "/command/advisor", label: "Recommended Actions" },
-    { path: "/command/platform-health", label: "Alerts" },
-    { path: "/command/sales-week", label: "Sales Week" },
-    { path: "/command/founding", label: "Founding 10" },
-    { path: "/dashboard/advisor", label: "AI Advisor" },
-    { path: "/dashboard/health", label: "Business Health" },
-  ];
-  if (analyticsEnabled) {
-    routes.push({ path: "/apps/analytics", label: "Insights" });
-  }
-  routes.push(
-    { path: "/dashboard/benchmarks", label: "Benchmarks" },
-    {
-      path: analyticsEnabled ? "/apps/analytics/reports" : "/dashboard/reports",
-      label: "Reports",
-    },
-  );
-
+function getCommandCentreNavItem(): PlatformToolNavItem {
   return {
     kind: "tool",
     id: commandCentreApp.id,
     name: commandCentreApp.name,
     icon: getSidebarIcon(commandCentreApp.id, commandCentreApp.icon),
     primaryHref: "/command",
-    routes,
+    routes: [
+      { path: "/command", label: "Priorities" },
+      { path: "/command/advisor", label: "Recommended Actions" },
+      { path: "/command/platform-health", label: "Alerts" },
+      { path: "/command/sales-week", label: "Sales Week" },
+      { path: "/command/founding", label: "Founding 10" },
+    ],
   };
 }
 
@@ -475,16 +467,14 @@ export function getCategorizedPlatformNavigation(
       .map((a) => toTreeItem(a, enabledIds)),
   })).filter((g) => g.apps.length > 0);
 
-  const commandCentre = options?.showCommandCentre
-    ? getCommandCentreNavItem(analyticsEnabled)
-    : null;
+  const commandCentre = options?.showCommandCentre ? getCommandCentreNavItem() : null;
 
-  const intelligenceLinks = commandCentre
-    ? []
-    : INTELLIGENCE_LINKS.filter((link) => {
-        if (link.href === "/apps/analytics") return analyticsEnabled;
-        return true;
-      });
+  const intelligenceLinks = INTELLIGENCE_LINKS.filter((link) => {
+    if (link.href === "/apps/analytics" || link.href === "/apps/analytics/reports") {
+      return analyticsEnabled;
+    }
+    return true;
+  });
 
   const intelligenceApps: AppNavTreeItem[] = commandCentre
     ? [
@@ -552,8 +542,8 @@ export function getCategorizedPlatformNavigation(
       partners: {
         id: "partners",
         label: PARTNERS_NAV_SECTION_LABEL,
-        links: options?.showResellerAdmin ? PARTNERS_ADMIN_LINKS : [],
-        apps: [],
+        links: [],
+        apps: options?.showResellerAdmin ? [getResellerAdminNavItem()] : [],
       },
       partner: {
         id: "partner",

@@ -25,6 +25,13 @@ It is **not** a dumb RAG-over-markdown chatbot. Answers must combine **documenta
 
 **Do not confuse with:**
 
+| Layer | What it is |
+|-------|------------|
+| **Platform Docs** (`/command/docs`) | Approved source of truth — what DigitalGate is, how it is designed, why decisions were made, how DigitalGate operates |
+| **Product UI** | What customers and staff actually do |
+| **CRM** | What is happening with real customers, prospects, and partners |
+| **This layer** | Retrieval and reasoning over the **docs allowlist** (later: live platform + tools) — not a second SSOT |
+
 | Document | What it covers |
 |----------|----------------|
 | [DIGITALGATE-INTELLIGENCE.md](../foundations/DIGITALGATE-INTELLIGENCE.md) | Cohort / network moat — anonymised cross-tenant benchmarks |
@@ -236,7 +243,7 @@ RAG citations should surface path + date (+ ADR id when applicable).
 | Item | Detail |
 |------|--------|
 | **Surface** | Staff Command Centre [`/command/intelligence`](../../src/app/(shell)/command/intelligence/page.tsx) + `POST /api/v1/command/intelligence` |
-| **Corpus** | Curated allowlist only — [`platform-docs.ts`](../../packages/platform-core/src/command-centre/platform-docs.ts) / `/command/docs` (not a dump of all `docs/**`) |
+| **Corpus** | Curated allowlist only — [`platform-docs.ts`](../../packages/platform-core/src/command-centre/platform-docs.ts) / `/command/docs`. Groups: Architecture, Strategy, Commercial, Partners, Operations, Connectors, AI, Apps, Decisions. Docs are SSOT; this layer retrieves and reasons. Not a dump of all `docs/**`. |
 | **Retrieval** | In-process markdown chunking (heading-aware) + **keyword / token similarity** — no vector DB, no embeddings infra |
 | **Answer** | Model Router (`llmChat`) with forced `CONFIDENCE` / `ANSWER` / `CITATIONS` format; citations clamped to retrieved paths |
 | **Empty retrieval** | 🔴 Unknown — never invent |

@@ -465,8 +465,8 @@ See table above — walk the journey; confirm ops smoke.
 
 ---
 
-**In-app ticks:** Command Centre → **Gate 1** (`/command/gate-1`).  
-**Staff doc:** Command Centre → Platform docs → [Gate 1 dogfood](/command/docs/gate-1-dogfood).
+**In-app ticks:** Gate 1 UI closed (`/command/gate-1` redirects to Command Centre).  
+**Historical close list:** [GATE-1-DOGFOOD.md](./GATE-1-DOGFOOD.md) — not in the Platform Docs catalogue (internal alpha, not a customer SOP).
 
 ## Suggested next 7–10 days (Ben)
 

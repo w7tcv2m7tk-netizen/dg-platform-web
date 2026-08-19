@@ -75,13 +75,17 @@ function serializeReferral(
 function serializeCommission(
   row: Awaited<
     ReturnType<typeof prisma.partnerCommission.findUniqueOrThrow>
-  > & { referral?: { businessName: string } | null },
+  > & {
+    referral?: { businessName: string } | null;
+    partner?: { displayName: string | null; businessName: string | null; email: string | null } | null;
+  },
 ): SerializedPartnerCommission {
   return {
     id: row.id,
     partnerId: row.partnerId,
     referralId: row.referralId,
-    businessName: (row as { referral?: { businessName?: string } | null }).referral?.businessName ?? null,
+    businessName: row.referral?.businessName ?? null,
+    partnerName: row.partner?.displayName ?? row.partner?.businessName ?? row.partner?.email ?? null,
     customerOrganisationId: row.customerOrganisationId ?? null,
     subscriptionId: row.subscriptionId ?? null,
     commissionBps: row.commissionBps,
@@ -484,7 +488,10 @@ export async function listAllCommissions(opts?: {
   const [rows, total] = await Promise.all([
     prisma.partnerCommission.findMany({
       where,
-      include: { referral: { select: { businessName: true } } },
+      include: {
+        referral: { select: { businessName: true } },
+        partner: { select: { displayName: true, businessName: true, email: true } },
+      },
       orderBy: { createdAt: "desc" },
       take: opts?.limit ?? 50,
       skip: opts?.offset ?? 0,

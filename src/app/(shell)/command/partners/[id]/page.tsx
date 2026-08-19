@@ -45,8 +45,8 @@ export default async function AdminPartnerDetailPage({
       <header className="dg-page-header">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <Link href="/command/partners" className="text-xs text-slate-500 hover:text-slate-300">
-              ← Partners
+            <Link href="/command/partners/resellers" className="text-xs text-slate-500 hover:text-slate-300">
+              ← Resellers
             </Link>
             <h1 className="mt-2 text-2xl font-bold text-white">
               {partner.displayName ?? "Partner"}

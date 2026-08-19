@@ -22,10 +22,10 @@ export default async function CommandIntelligencePage() {
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Platform Intelligence</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
-          Staff RAG over the curated Platform docs allowlist. Answers cite{" "}
-          <code className="text-slate-300">docs/</code> paths with explicit confidence —
-          Confirmed / Likely / Unknown. Not live org tools yet; floating support chat is
-          unchanged.
+          Retrieval and reasoning over the curated Platform docs allowlist — docs stay the source
+          of truth; this layer cites{" "}
+          <code className="text-slate-300">docs/</code> paths with explicit confidence (Confirmed /
+          Likely / Unknown). Not live org tools yet; floating support chat is unchanged.
         </p>
       </header>
       <main className="dg-page-main space-y-8">

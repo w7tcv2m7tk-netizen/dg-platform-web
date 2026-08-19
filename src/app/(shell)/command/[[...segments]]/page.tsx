@@ -6,7 +6,6 @@ import { getCommandCentreOpsHome, resolveSalesWeekPrompt } from "@dg/platform-co
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
 import { CommandOpsHome } from "@/components/command/CommandOpsHome";
-import { Gate1DogfoodChecklist } from "@/components/command/Gate1DogfoodChecklist";
 import { SalesWeekNowBanner } from "@/components/command/SalesWeekNowBanner";
 import { AppFeaturePlaceholder } from "@/components/platform/AppFeaturePlaceholder";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
@@ -72,8 +71,6 @@ async function CommandOverviewPage() {
         </div>
 
         <CommandHonestyBanner />
-
-        <Gate1DogfoodChecklist compact />
 
         <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3 text-xs text-slate-400">
           Deferred Command modules (redirect only):{" "}

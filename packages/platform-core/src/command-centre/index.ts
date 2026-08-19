@@ -46,6 +46,8 @@ export const COMMAND_CENTRE_ROUTES = {
   /** Founding 10 customer pipeline (accept → agreement → onboard → go-live) */
   founding: `${COMMAND_CENTRE_BASE_PATH}/founding`,
   partners: `${COMMAND_CENTRE_BASE_PATH}/partners`,
+  partnerResellers: `${COMMAND_CENTRE_BASE_PATH}/partners/resellers`,
+  partnerPayouts: `${COMMAND_CENTRE_BASE_PATH}/partners/payouts`,
   partnerReferrals: `${COMMAND_CENTRE_BASE_PATH}/referrals`,
   partnerCommissions: `${COMMAND_CENTRE_BASE_PATH}/commissions`,
 } as const;
