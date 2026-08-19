@@ -2,28 +2,37 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type FormStatus = "idle" | "submitting" | "success" | "error";
+import { shouldCaptureHtmlForm } from "@/lib/legacy-wp-form-post";
 
 /** Ben's standing Zoom room (same host as Roe consultations). */
 const DG_CONSULT_ZOOM_URL =
   "https://us05web.zoom.us/j/9537192432?pwd=lqAE7buBTaal4XeBoAqVa7X9FboTcN.1";
 
+const SPECIAL_FORM_IDS = new Set([
+  "dgcontactform",
+  "dgfoundingform",
+  "dgbookingform",
+  "dgdiscoveryform",
+]);
+
+export type PublicHtmlFormContext = {
+  siteSlug: string;
+  pageSlug?: string;
+};
+
 /**
- * Intercepts the three legacy DigitalGate forms (Contact, Founding 10,
- * Platform Consultation) and wires them to the Gen 2 API endpoint instead of
- * the defunct PHP handlers.
- *
- * Rendered HTML is unchanged — only the submit event is intercepted.
+ * Intercepts leftover public-site HTML forms and posts them to Gen 2
+ * instead of WordPress / PHP. Rendered markup is unchanged.
  */
-export function HtmlWithDgForms({ html }: { html: string }) {
-  const rootRef = useRef<HTMLElement | null>(null);
-  const [_tick, setTick] = useState(0); // re-render trigger for status updates
-
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-
-    const cleanups: (() => void)[] = [];
+export function hydratePublicHtmlForms(
+  root: HTMLElement,
+  ctx: PublicHtmlFormContext,
+  onStatus?: () => void,
+): () => void {
+  const cleanups: (() => void)[] = [];
+  const siteSlug = ctx.siteSlug || "digitalgate";
+  const pageSlug = ctx.pageSlug || "";
+  const ping = () => onStatus?.();
 
     // ----- Contact form -----
     const contactForm = root.querySelector<HTMLFormElement>("#dgContactForm");
@@ -41,7 +50,7 @@ export function HtmlWithDgForms({ html }: { html: string }) {
         const interested = checked(contactForm, "[name='interested_in']:checked");
         const achieve = checked(contactForm, "[name='achieve']:checked");
 
-        const result = await postEnquiry("contact", {
+        const result = await postEnquiry(siteSlug, "contact", {
           type: "contact",
           name: val(contactForm, "#full_name"),
           email: val(contactForm, "#email"),
@@ -67,7 +76,7 @@ export function HtmlWithDgForms({ html }: { html: string }) {
           setError(status, result.message || "Something went wrong — please try again.");
           if (btn) { btn.disabled = false; btn.textContent = prevLabel; }
         }
-        setTick((t) => t + 1);
+        ping();
       };
       contactForm.addEventListener("submit", handler);
       cleanups.push(() => contactForm.removeEventListener("submit", handler));
@@ -92,11 +101,11 @@ export function HtmlWithDgForms({ html }: { html: string }) {
           // Honeypot — silently succeed
           setSuccess(status, "Application received! We'll be in touch shortly.");
           if (btn) btn.textContent = prevLabel;
-          setTick((t) => t + 1);
+          ping();
           return;
         }
 
-        const result = await postEnquiry("founding-customers", {
+        const result = await postEnquiry(siteSlug, "founding-customers", {
           type: "founding_10",
           form_type: "founding_customer_application",
           page_slug: "founding-customers",
@@ -125,7 +134,7 @@ export function HtmlWithDgForms({ html }: { html: string }) {
           setError(status, result.message || "Something went wrong — please try again.");
           if (btn) { btn.disabled = false; btn.textContent = prevLabel; }
         }
-        setTick((t) => t + 1);
+        ping();
       };
       foundingForm.addEventListener("submit", handler);
       cleanups.push(() => foundingForm.removeEventListener("submit", handler));
@@ -156,12 +165,12 @@ export function HtmlWithDgForms({ html }: { html: string }) {
 
         if (!nameVal.trim() || !emailVal.trim()) {
           setError(existingStatus, "Please fill in your name and email.");
-          setTick((t) => t + 1);
+          ping();
           return;
         }
         if (!dateVal || !timeVal) {
           setError(existingStatus, "Please select a date and time.");
-          setTick((t) => t + 1);
+          ping();
           return;
         }
 
@@ -175,7 +184,7 @@ export function HtmlWithDgForms({ html }: { html: string }) {
           .filter(Boolean)
           .join("\n");
 
-        const result = await postEnquiry("strategy-session", {
+        const result = await postEnquiry(siteSlug, "strategy-session", {
           type: "consultation",
           name: nameVal,
           email: emailVal,
@@ -198,14 +207,152 @@ export function HtmlWithDgForms({ html }: { html: string }) {
           setError(existingStatus, result.message || "Something went wrong — please try again.");
           if (btn) { btn.disabled = false; btn.textContent = prevLabel; }
         }
-        setTick((t) => t + 1);
+        ping();
       };
       bookingForm.addEventListener("submit", handler);
       cleanups.push(() => bookingForm.removeEventListener("submit", handler));
     }
 
+    // ----- DigitalGate /discover (was WP admin-ajax / dg_submit_discovery) -----
+    const discoveryForm = root.querySelector<HTMLFormElement>("#dgDiscoveryForm");
+    if (discoveryForm) {
+      disarmLegacyAction(discoveryForm);
+      cleanups.push(bindDiscoveryWizard(discoveryForm));
+      const status = getOrCreateStatus(discoveryForm, "dgDiscoveryStatusMsg");
+      const handler = async (e: Event) => {
+        e.preventDefault();
+        const hp = val(discoveryForm, "[name='website']");
+        if (hp) {
+          setSuccess(status, "Thanks — we'll be in touch shortly.");
+          ping();
+          return;
+        }
+        const btn =
+          discoveryForm.querySelector<HTMLButtonElement>("#discoverySubmit") ||
+          discoveryForm.querySelector<HTMLButtonElement>("[type='submit']");
+        const prevLabel = btn?.textContent ?? "Get My Recommendations →";
+        setSubmitting(btn, status, "Sending…");
+
+        const result = await postEnquiry(siteSlug, pageSlug || "discover", {
+          type: "contact",
+          form_type: "platform_discovery",
+          page_slug: pageSlug || "discover",
+          siteSlug,
+          name: val(discoveryForm, "[name='full_name']") || val(discoveryForm, "#full_name"),
+          email: val(discoveryForm, "[name='email']") || val(discoveryForm, "#email"),
+          phone: val(discoveryForm, "[name='phone']") || val(discoveryForm, "#phone"),
+          business_name:
+            val(discoveryForm, "[name='business_name']") ||
+            val(discoveryForm, "#business_name"),
+          industry: val(discoveryForm, "[name='industry']") || val(discoveryForm, "#industry"),
+          team_size:
+            val(discoveryForm, "[name='team_size']") || val(discoveryForm, "#team_size"),
+          message: [
+            val(discoveryForm, "[name='goals_message']"),
+            val(discoveryForm, "[name='business_type']")
+              ? `Business type: ${val(discoveryForm, "[name='business_type']")}`
+              : "",
+          ]
+            .filter(Boolean)
+            .join("\n\n"),
+        });
+
+        if (result.ok) {
+          setSuccess(
+            status,
+            "Thanks — we'll review your details and send recommendations shortly.",
+          );
+          discoveryForm.reset();
+          if (btn) btn.textContent = prevLabel;
+        } else {
+          setError(status, result.message || "Something went wrong — please try again.");
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = prevLabel;
+          }
+        }
+        ping();
+      };
+      discoveryForm.addEventListener("submit", handler);
+      cleanups.push(() => discoveryForm.removeEventListener("submit", handler));
+    }
+
+    // ----- Any remaining HTML forms (CVH, Aëtherra, generic WP leftovers) -----
+    for (const form of Array.from(root.querySelectorAll("form"))) {
+      const id = (form.id || "").toLowerCase();
+      if (SPECIAL_FORM_IDS.has(id)) continue;
+      if (
+        !shouldCaptureHtmlForm({
+          method: form.getAttribute("method"),
+          action: form.getAttribute("action"),
+          formId: form.id,
+        })
+      ) {
+        continue;
+      }
+      disarmLegacyAction(form);
+      const status = getOrCreateStatus(form, `${form.id || "wb"}StatusMsg`);
+      const handler = async (e: Event) => {
+        e.preventDefault();
+        if (honeypotValue(form)) {
+          setSuccess(status, "Thanks! We'll be in touch shortly.");
+          ping();
+          return;
+        }
+        const btn = form.querySelector<HTMLButtonElement>("[type='submit']");
+        const prevLabel = btn?.textContent ?? "Send";
+        setSubmitting(btn, status, "Sending…");
+        const fields = collectFormFields(form);
+        const result = await post(
+          `/api/v1/websites/public/${encodeURIComponent(siteSlug)}/form`,
+          {
+            ...fields,
+            pageSlug: pageSlug || undefined,
+          },
+        );
+        if (result.ok) {
+          setSuccess(status, "Thanks! We'll be in touch shortly.");
+          form.reset();
+          if (btn) btn.textContent = prevLabel;
+        } else {
+          setError(status, result.message || "Something went wrong — please try again.");
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = prevLabel;
+          }
+        }
+        ping();
+      };
+      form.addEventListener("submit", handler);
+      cleanups.push(() => form.removeEventListener("submit", handler));
+    }
+
     return () => cleanups.forEach((fn) => fn());
-  }, [html]);
+}
+
+/**
+ * Intercepts leftover public HTML forms (Contact, Founding 10, Consultation,
+ * Discovery, plus generic WP/PHP forms) and posts them to Gen 2.
+ */
+export function HtmlWithDgForms({
+  html,
+  siteSlug = "digitalgate",
+  pageSlug,
+}: {
+  html: string;
+  siteSlug?: string;
+  pageSlug?: string;
+}) {
+  const rootRef = useRef<HTMLElement | null>(null);
+  const [_tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    return hydratePublicHtmlForms(root, { siteSlug, pageSlug }, () =>
+      setTick((t) => t + 1),
+    );
+  }, [html, siteSlug, pageSlug]);
 
   return (
     <section
@@ -424,10 +571,11 @@ function setError(status: HTMLElement, msg: string) {
 }
 
 async function postEnquiry(
+  siteSlug: string,
   pageSlug: string,
   body: Record<string, unknown>,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  const rich = await post("/api/public/dg-enquiry", body);
+  const rich = await post("/api/public/dg-enquiry", { ...body, siteSlug });
   if (rich.ok) return rich;
   if (rich.status && rich.status >= 400 && rich.status < 500 && rich.status !== 404) {
     return rich;
@@ -437,14 +585,110 @@ async function postEnquiry(
   if (body.type === "founding_10" || body.type === "consultation") {
     return rich;
   }
-  const fallback = await post(`/api/v1/websites/public/digitalgate/form`, {
-    name: String(body.name || ""),
-    email: String(body.email || ""),
-    phone: String(body.phone || ""),
-    message: String(body.message || body.notes || ""),
-    pageSlug,
-  });
+  const fallback = await post(
+    `/api/v1/websites/public/${encodeURIComponent(siteSlug || "digitalgate")}/form`,
+    {
+      name: String(body.name || ""),
+      email: String(body.email || ""),
+      phone: String(body.phone || ""),
+      message: String(body.message || body.notes || ""),
+      pageSlug,
+    },
+  );
   return fallback.ok ? fallback : rich;
+}
+
+function honeypotValue(form: HTMLFormElement): string {
+  return (
+    val(form, "[name='website_hp']") ||
+    val(form, "[name='honeypot']") ||
+    val(form, "input[name='website'][tabindex='-1']")
+  );
+}
+
+function collectFormFields(form: HTMLFormElement): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  const controls = form.querySelectorAll<
+    HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+  >("input, select, textarea");
+  for (const el of Array.from(controls)) {
+    const type = "type" in el ? String(el.type || "").toLowerCase() : "";
+    if (type === "submit" || type === "button" || type === "file" || type === "reset") {
+      continue;
+    }
+    const key = (el.getAttribute("name") || el.id || "").trim();
+    if (!key) continue;
+    if (type === "checkbox" || type === "radio") {
+      const input = el as HTMLInputElement;
+      if (!input.checked) continue;
+      const existing = out[key];
+      if (existing == null) out[key] = input.value || "on";
+      else if (Array.isArray(existing)) existing.push(input.value || "on");
+      else out[key] = [String(existing), input.value || "on"];
+      continue;
+    }
+    const value = el.value?.trim() || "";
+    if (!value) continue;
+    out[key] = value;
+  }
+  return out;
+}
+
+function bindDiscoveryWizard(form: HTMLFormElement): () => void {
+  const steps = Array.from(form.querySelectorAll<HTMLElement>(".discovery-step"));
+  if (steps.length < 2) return () => undefined;
+  const nextBtn = form.querySelector<HTMLButtonElement>("#discoveryNext");
+  const prevBtn = form.querySelector<HTMLButtonElement>("#discoveryPrev");
+  const submitBtn = form.querySelector<HTMLButtonElement>("#discoverySubmit");
+  let index = 0;
+
+  const paint = () => {
+    steps.forEach((step, i) => {
+      const active = i === index;
+      step.style.display = active ? "" : "none";
+      step.classList.toggle("is-active", active);
+    });
+    if (prevBtn) prevBtn.style.display = index === 0 ? "none" : "";
+    if (nextBtn) nextBtn.style.display = index >= steps.length - 1 ? "none" : "";
+    if (submitBtn) {
+      submitBtn.style.display = index >= steps.length - 1 ? "" : "none";
+    }
+  };
+
+  const currentInvalid = () => {
+    const step = steps[index];
+    if (!step) return false;
+    const required = Array.from(
+      step.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+        "[required]",
+      ),
+    );
+    for (const field of required) {
+      if (!field.value?.trim()) {
+        field.reportValidity?.();
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const onNext = () => {
+    if (currentInvalid()) return;
+    index = Math.min(steps.length - 1, index + 1);
+    paint();
+  };
+  const onPrev = () => {
+    index = Math.max(0, index - 1);
+    paint();
+  };
+
+  nextBtn?.addEventListener("click", onNext);
+  prevBtn?.addEventListener("click", onPrev);
+  paint();
+  return () => {
+    nextBtn?.removeEventListener("click", onNext);
+    prevBtn?.removeEventListener("click", onPrev);
+  };
 }
 
 async function post(

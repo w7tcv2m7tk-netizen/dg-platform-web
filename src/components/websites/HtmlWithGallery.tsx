@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { hydratePublicHtmlForms } from "@/components/websites/HtmlWithDgForms";
+
 type GalleryItem = { src: string; alt: string };
 
 function collectGalleryItems(root: HTMLElement): GalleryItem[] {
@@ -40,7 +42,15 @@ function collectGalleryItems(root: HTMLElement): GalleryItem[] {
 /**
  * Hydrates gallery grids / mosaics: click-to-open lightbox with prev/next.
  */
-export function HtmlWithGallery({ html }: { html: string }) {
+export function HtmlWithGallery({
+  html,
+  siteSlug,
+  pageSlug,
+}: {
+  html: string;
+  siteSlug?: string;
+  pageSlug?: string;
+}) {
   const rootRef = useRef<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
@@ -81,8 +91,15 @@ export function HtmlWithGallery({ html }: { html: string }) {
     };
 
     root.addEventListener("click", onClick);
-    return () => root.removeEventListener("click", onClick);
-  }, [html]);
+    const unbindForms =
+      siteSlug && /<form[\s>]/i.test(html)
+        ? hydratePublicHtmlForms(root, { siteSlug, pageSlug })
+        : undefined;
+    return () => {
+      root.removeEventListener("click", onClick);
+      unbindForms?.();
+    };
+  }, [html, siteSlug, pageSlug]);
 
   useEffect(() => {
     if (!open) return;

@@ -21,6 +21,7 @@ import {
   isRoePublicHost,
   resolveRoeLegacyRequest,
 } from "@/lib/roe-legacy-urls";
+import { isLegacyWordpressFormPath } from "@/lib/legacy-wp-form-post";
 
 export type PublicLegacyResolution =
   | { kind: "gone" }
@@ -95,20 +96,29 @@ export function canonicalPublicHostRedirect(
   return NextResponse.redirect(dest, 308);
 }
 
+function rewriteLegacyWordpressFormPost(
+  req: NextRequest,
+  hostname: string,
+): NextResponse | null {
+  if (req.method !== "POST") return null;
+  const path = (req.nextUrl.pathname.replace(/\/+$/, "") || "/").toLowerCase();
+  if (!isLegacyWordpressFormPath(path)) return null;
+
+  const url = req.nextUrl.clone();
+  url.pathname = isDgPublicHost(hostname)
+    ? "/api/public/dg-enquiry"
+    : "/api/public/website-form";
+  const rewrite = NextResponse.rewrite(url);
+  rewrite.headers.set("x-dg-custom-host", hostname);
+  return rewrite;
+}
+
 export function applyPublicLegacyResponse(
   req: NextRequest,
   hostname: string,
 ): NextResponse | null {
-  const path = (req.nextUrl.pathname.replace(/\/+$/, "") || "/").toLowerCase();
-  if (
-    req.method === "POST" &&
-    isDgPublicHost(hostname) &&
-    path === "/inc/send-dg-enquiry.php"
-  ) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/api/public/dg-enquiry";
-    return NextResponse.rewrite(url);
-  }
+  const wpForm = rewriteLegacyWordpressFormPost(req, hostname);
+  if (wpForm) return wpForm;
 
   const resolved = resolvePublicSiteLegacy(
     hostname,

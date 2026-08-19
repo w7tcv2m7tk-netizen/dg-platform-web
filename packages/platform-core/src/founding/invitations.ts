@@ -352,7 +352,7 @@ export async function sendFoundingInvitation(input: {
       error: "The contact needs an email address before the invitation can be sent.",
     };
   }
-  const firstName = contact.firstName?.trim() || "there";
+  const firstName = contact?.firstName?.trim() || "there";
   const businessName =
     meta.business_name?.trim() ||
     row.title.replace(/^Founding 10\s+(invitation|application)\s+[—-]\s+/i, "");

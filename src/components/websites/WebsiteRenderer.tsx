@@ -634,11 +634,16 @@ export function WebsiteComponentView({
         html = ensureCreamHtmlIsland(html);
       }
       html = rewriteProductFunnelHtml(html);
+      const hasForm = /<form[\s>]/i.test(html);
       if (/gallery-grid|gallery-item/i.test(html)) {
-        return <HtmlWithGallery html={html} />;
+        return (
+          <HtmlWithGallery html={html} siteSlug={siteSlug} pageSlug={pageSlug} />
+        );
       }
-      if (/id=["'](?:dgContactForm|dgFoundingForm|dgBookingForm)["']/i.test(html)) {
-        return <HtmlWithDgForms html={html} />;
+      if (hasForm) {
+        return (
+          <HtmlWithDgForms html={html} siteSlug={siteSlug} pageSlug={pageSlug} />
+        );
       }
       return (
         <section
