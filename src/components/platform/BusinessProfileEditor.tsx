@@ -118,8 +118,8 @@ export function BusinessProfileEditor({
   const [message, setMessage] = useState<string | null>(
     focusBrand
       ? brandIntent === "ai"
-        ? "Brand Studio entry: refine colours/logo here. Full AI brand generation is next — then return to Websites to create your site."
-        : "Upload or confirm logo and colours, Save, then return to Websites → Create."
+        ? "Logos: refine colours/logo here. Full AI brand generation is next — then return to Design Studio → Websites to create your site."
+        : "Upload or confirm logo and colours, Save, then return to Design Studio → Websites → Create."
       : null,
   );
 
@@ -301,7 +301,7 @@ export function BusinessProfileEditor({
           <p className="mt-3 text-sm text-slate-400">
             Done?{" "}
             <a href="/apps/websites" className="text-sky-400 hover:underline">
-              Return to Websites → Create
+              Return to Design Studio → Websites
             </a>
           </p>
         ) : null}

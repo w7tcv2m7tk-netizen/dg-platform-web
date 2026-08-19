@@ -6,6 +6,8 @@ import {
   type ConsultationAgendaItem,
 } from "@dg/platform-core";
 
+import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
+
 const BRISBANE = "Australia/Brisbane";
 
 function dayKey(iso: string): string {
@@ -54,35 +56,45 @@ function groupByDay(items: ConsultationAgendaItem[]) {
 function ConsultationRow({ item }: { item: ConsultationAgendaItem }) {
   return (
     <li className="py-3">
-      <Link
-        href={`/apps/crm/opportunities/${item.opportunityId}`}
-        className="block hover:opacity-90"
-      >
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="font-medium text-white">
-            <span className="mr-2 tabular-nums text-sky-300">{timeLabel(item)}</span>
-            {item.contactName}
-          </p>
-          <p className="text-xs uppercase tracking-wide text-slate-500">
-            {item.stage.replace(/_/g, " ")} · {item.status}
-          </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <Link
+            href={`/apps/crm/opportunities/${item.opportunityId}`}
+            className="block hover:opacity-90"
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="font-medium text-white">
+                <span className="mr-2 tabular-nums text-sky-300">{timeLabel(item)}</span>
+                {item.contactName}
+              </p>
+              <p className="text-xs uppercase tracking-wide text-slate-500">
+                {item.stage.replace(/_/g, " ")} · {item.status}
+              </p>
+            </div>
+            <p className="mt-1 text-sm text-slate-400">
+              {item.contactEmail ? `${item.contactEmail} · ` : ""}
+              {item.appointment?.timezone || "AEST"}
+              {item.meetingLink ? " · Zoom" : ""}
+            </p>
+          </Link>
+          {item.meetingLink ? (
+            <a
+              href={item.meetingLink}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-1 inline-block text-sm text-sky-400 hover:underline"
+            >
+              Open Zoom
+            </a>
+          ) : null}
         </div>
-        <p className="mt-1 text-sm text-slate-400">
-          {item.contactEmail ? `${item.contactEmail} · ` : ""}
-          {item.appointment?.timezone || "AEST"}
-          {item.meetingLink ? " · Zoom" : ""}
-        </p>
-      </Link>
-      {item.meetingLink ? (
-        <a
-          href={item.meetingLink}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-1 inline-block text-sm text-sky-400 hover:underline"
-        >
-          Open Zoom
-        </a>
-      ) : null}
+        <CrmDeleteButton
+          resource="opportunities"
+          id={item.opportunityId}
+          name={item.contactName || item.title || "this consultation"}
+          compact
+        />
+      </div>
     </li>
   );
 }

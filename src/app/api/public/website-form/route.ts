@@ -6,21 +6,7 @@ import {
   readPublicFormRecord,
 } from "@/lib/public-website-form-fields";
 
-const KNOWN_HOST_SLUGS: Record<string, string> = {
-  "digitalgate.com.au": "digitalgate",
-  "www.digitalgate.com.au": "digitalgate",
-  "roerealty.com.au": "roe-realty",
-  "www.roerealty.com.au": "roe-realty",
-  "report.roerealty.com.au": "roe-realty-report",
-  "currumbinvalleyhideaway.com.au": "currumbin-valley-hideaway",
-  "www.currumbinvalleyhideaway.com.au": "currumbin-valley-hideaway",
-  "circle.currumbinvalleyhideaway.com.au": "currumbin-valley-hideaway-circle",
-  "aetherra.com.au": "aetheriel-com-au",
-  "www.aetherra.com.au": "aetheriel-com-au",
-  "aetheriel.com.au": "aetheriel-com-au",
-  "www.aetheriel.com.au": "aetheriel-com-au",
-  "audit.digitalgate.com.au": "digitalgate-audit",
-};
+import { knownSlugForPublicHost } from "@/lib/public-host-slugs";
 
 function hostnameFrom(req: Request): string {
   return (
@@ -38,15 +24,16 @@ async function resolveSiteSlug(
   if (bodySlug?.trim()) return bodySlug.trim();
   const host = hostnameFrom(req);
   if (!host) return null;
-  if (KNOWN_HOST_SLUGS[host]) return KNOWN_HOST_SLUGS[host];
+  const known = knownSlugForPublicHost(host);
+  if (known) return known;
   try {
     const match = await findDomainByHostname(host);
     if (match?.website?.slug) return match.website.slug;
     const alt = host.startsWith("www.") ? host.slice(4) : `www.${host}`;
     const match2 = await findDomainByHostname(alt);
-    return match2?.website?.slug ?? null;
+    return match2?.website?.slug ?? knownSlugForPublicHost(alt);
   } catch {
-    return KNOWN_HOST_SLUGS[host] ?? null;
+    return knownSlugForPublicHost(host);
   }
 }
 

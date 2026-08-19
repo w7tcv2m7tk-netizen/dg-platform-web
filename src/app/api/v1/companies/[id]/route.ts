@@ -1,4 +1,5 @@
 import {
+  deleteCompany,
   getCompany,
   listCompanyContacts,
   updateCompany,
@@ -75,4 +76,28 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   }
 
   return NextResponse.json({ data: updated });
+}
+
+export async function DELETE(req: Request, { params }: RouteParams) {
+  const session = await requirePlatformAuth(req);
+  if (isNextResponse(session)) return session;
+
+  const denied = requireFeature(session, "crm.companies.write");
+  if (denied) return denied;
+
+  const { id } = await params;
+  const deleted = await deleteCompany({
+    organisationId: session.organisationId,
+    companyId: id,
+    actorId: session.clerkUserId,
+  });
+
+  if (!deleted) {
+    return NextResponse.json(
+      { error: { code: "company_not_found", message: "Company not found" } },
+      { status: 404 },
+    );
+  }
+
+  return NextResponse.json({ data: { id: deleted.id, deleted: true } });
 }

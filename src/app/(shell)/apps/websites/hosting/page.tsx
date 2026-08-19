@@ -53,7 +53,7 @@ export default async function HostingStatusPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <WebsitesSubnav active="hosting" />
+        <WebsitesSubnav active="websites" />
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl">
           <Stat label="Published sites" value={String(published.length)} />
@@ -84,7 +84,7 @@ export default async function HostingStatusPage() {
               href="/apps/websites"
               className="text-sm text-sky-400 hover:underline"
             >
-              ← Sites
+              ← Websites
             </Link>
             <Link
               href="/apps/infrastructure/domains"

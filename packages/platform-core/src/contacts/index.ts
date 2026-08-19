@@ -318,6 +318,62 @@ export async function updateContact(input: UpdateContactInput) {
   return serializeContact(contact);
 }
 
+export async function deleteContact(input: {
+  organisationId: string;
+  contactId: string;
+  actorId?: string;
+}) {
+  const { prisma } = await import("@dg/database");
+
+  const existing = await prisma.contact.findFirst({
+    where: {
+      id: input.contactId,
+      organisationId: input.organisationId,
+      deletedAt: null,
+    },
+  });
+  if (!existing) return null;
+
+  const contact = await prisma.contact.update({
+    where: { id: input.contactId },
+    data: { deletedAt: new Date() },
+  });
+
+  await prisma.property.updateMany({
+    where: {
+      organisationId: input.organisationId,
+      ownerContactId: input.contactId,
+    },
+    data: { ownerContactId: null },
+  });
+
+  const displayName = [existing.firstName, existing.lastName].filter(Boolean).join(" ");
+
+  await prisma.activity.create({
+    data: {
+      organisationId: input.organisationId,
+      entityType: "Contact",
+      entityId: contact.id,
+      activityType: "deleted",
+      title: "Contact deleted",
+      body: displayName || existing.email,
+      sourceApp: "crm",
+      createdBy: input.actorId,
+    },
+  });
+
+  await writeAuditLog({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    action: "delete",
+    entityType: "Contact",
+    entityId: contact.id,
+    changes: { before: serializeContact(existing) } as unknown as Prisma.InputJsonValue,
+  });
+
+  return serializeContact(contact);
+}
+
 export async function listContactActivities(organisationId: string, contactId: string) {
   const { prisma } = await import("@dg/database");
 

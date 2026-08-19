@@ -48,13 +48,13 @@ export default async function WebsiteStudioPage({ params }: Props) {
     return (
       <>
         <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">AI Website Studio</h1>
+          <h1 className="text-2xl font-bold text-white">Websites</h1>
         </header>
         <main className="dg-page-main">
           <p className="text-slate-400">
-            Enable <code>websites.builder</code> to open Studio.{" "}
+            Enable <code>websites.builder</code> to edit a site.{" "}
             <Link href="/apps/websites" className="underline">
-              Back to Sites
+              Back to Websites
             </Link>
           </p>
         </main>
@@ -74,12 +74,12 @@ export default async function WebsiteStudioPage({ params }: Props) {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">{website.name}</h1>
         <p className="text-sm text-slate-400">
-          Studio · structured model · {session.organisationName}
+          Design Studio · Websites · {session.organisationName}
           {linkedDomain ? ` · ${linkedDomain}` : ""}
         </p>
       </header>
       <main className="dg-page-main">
-        <WebsitesSubnav active="sites" />
+        <WebsitesSubnav active="websites" />
         <Suspense
           fallback={
             <p className="text-sm text-slate-500">Loading studio…</p>

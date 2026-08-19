@@ -40,7 +40,7 @@ export default async function FunnelsPage() {
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Funnel Builder</h1>
+        <h1 className="text-2xl font-bold text-white">Funnels</h1>
         <p className="text-sm text-slate-400">
           Landing page → form → CRM · Gen 2 structured sites
         </p>
@@ -51,9 +51,9 @@ export default async function FunnelsPage() {
         {!allowed ? (
           <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-xl">
             <p className="text-sm text-amber-100/90">
-              Enable Website Builder to create funnels.{" "}
+              Enable Design Studio to create funnels.{" "}
               <Link href="/apps/websites" className="underline">
-                Sites
+                Websites
               </Link>
             </p>
           </div>

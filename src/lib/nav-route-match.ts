@@ -8,6 +8,15 @@ import type { AppRoute } from "@dg/platform-core";
 export function routeIsActive(pathname: string, routePath: string, routes: AppRoute[]): boolean {
   if (pathname === routePath) return true;
 
+  const route = routes.find((r) => r.path === routePath);
+  if (
+    route?.matchAlso?.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    )
+  ) {
+    return true;
+  }
+
   const hasSiblingUnderPrefix = routes.some(
     (r) => r.path !== routePath && r.path.startsWith(`${routePath}/`),
   );

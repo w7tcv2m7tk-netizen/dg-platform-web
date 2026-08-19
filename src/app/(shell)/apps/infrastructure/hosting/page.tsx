@@ -7,7 +7,7 @@ export default function Page() {
       <h1 className="text-xl font-semibold text-white">Hosting</h1>
       <p className="text-slate-400">
         Infrastructure Hosting console is coming later. Website hosting and
-        custom domains are managed in Websites today.
+        custom domains are managed in Design Studio today.
       </p>
       <p>
         Use{" "}
@@ -15,7 +15,7 @@ export default function Page() {
           href="/apps/websites/hosting"
           className="text-sky-400 hover:underline"
         >
-          Websites → Hosting
+          Design Studio → Hosting
         </Link>{" "}
         and{" "}
         <Link

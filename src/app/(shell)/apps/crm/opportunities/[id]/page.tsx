@@ -18,6 +18,7 @@ import {
 } from "@dg/platform-core";
 
 import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
+import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
 import { FoundingStageActions } from "@/components/founding/FoundingStageActions";
 import { InviteToFounding10Form } from "@/components/founding/InviteToFounding10Form";
 
@@ -127,6 +128,12 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
                 : ""}
           {opportunity.stage.replace(/_/g, " ")} · {opportunity.status}
         </p>
+        <CrmDeleteButton
+          resource="opportunities"
+          id={opportunity.id}
+          name={opportunity.title}
+          redirectTo="/apps/crm/opportunities"
+        />
       </header>
       <main className="dg-page-main">
         <div className="grid gap-6 lg:grid-cols-2">

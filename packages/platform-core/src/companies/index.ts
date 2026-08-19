@@ -244,3 +244,57 @@ export async function updateCompany(input: UpdateCompanyInput) {
 
   return serializeCompany(company);
 }
+
+export async function deleteCompany(input: {
+  organisationId: string;
+  companyId: string;
+  actorId?: string;
+}) {
+  const { prisma } = await import("@dg/database");
+
+  const existing = await prisma.company.findFirst({
+    where: {
+      id: input.companyId,
+      organisationId: input.organisationId,
+      deletedAt: null,
+    },
+  });
+  if (!existing) return null;
+
+  await prisma.contact.updateMany({
+    where: {
+      organisationId: input.organisationId,
+      companyId: input.companyId,
+    },
+    data: { companyId: null },
+  });
+
+  const company = await prisma.company.update({
+    where: { id: input.companyId },
+    data: { deletedAt: new Date() },
+  });
+
+  await prisma.activity.create({
+    data: {
+      organisationId: input.organisationId,
+      entityType: "Company",
+      entityId: company.id,
+      activityType: "deleted",
+      title: "Company deleted",
+      body: existing.name,
+      sourceApp: "crm",
+      createdBy: input.actorId,
+    },
+  });
+
+  await writeAuditLog({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    action: "delete",
+    entityType: "Company",
+    entityId: company.id,
+    changes: { before: serializeCompany(existing) } as unknown as Prisma.InputJsonValue,
+  });
+
+  return serializeCompany(company);
+}

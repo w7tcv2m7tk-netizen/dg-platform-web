@@ -385,3 +385,57 @@ export async function updateOpportunityStage(
 
   return serializeOpportunity(updated);
 }
+
+export async function deleteOpportunity(input: {
+  organisationId: string;
+  opportunityId: string;
+  actorId?: string;
+}) {
+  const { prisma } = await import("@dg/database");
+
+  const existing = await prisma.opportunity.findFirst({
+    where: { id: input.opportunityId, organisationId: input.organisationId },
+  });
+  if (!existing) return null;
+
+  const leadId = existing.leadId;
+
+  await prisma.opportunity.delete({
+    where: { id: input.opportunityId },
+  });
+
+  if (leadId) {
+    await prisma.property.updateMany({
+      where: { organisationId: input.organisationId, leadId },
+      data: { leadId: null },
+    });
+    await prisma.lead.deleteMany({
+      where: { id: leadId, organisationId: input.organisationId },
+    });
+  }
+
+  await prisma.activity.create({
+    data: {
+      organisationId: input.organisationId,
+      entityType: "Opportunity",
+      entityId: input.opportunityId,
+      activityType: "deleted",
+      title: "Opportunity deleted",
+      body: existing.title,
+      sourceApp: "crm",
+      createdBy: input.actorId,
+      metadata: leadId ? { leadId } : undefined,
+    },
+  });
+
+  await writeAuditLog({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    action: "delete",
+    entityType: "Opportunity",
+    entityId: input.opportunityId,
+    changes: { before: serializeOpportunity(existing) } as unknown as Prisma.InputJsonValue,
+  });
+
+  return serializeOpportunity(existing);
+}

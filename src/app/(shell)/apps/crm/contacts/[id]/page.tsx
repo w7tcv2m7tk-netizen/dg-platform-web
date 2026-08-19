@@ -17,6 +17,7 @@ import { AccommodationGuestPanel } from "@/components/accommodation/Accommodatio
 import { AddContactNoteForm } from "@/components/crm/AddContactNoteForm";
 import { CreateTaskForm } from "@/components/crm/CreateTaskForm";
 import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
+import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
 import { EditContactForm } from "@/components/crm/EditContactForm";
 import { BusinessReferralPanel } from "@/components/network/BusinessReferralPanel";
 import { InviteToFounding10Form } from "@/components/founding/InviteToFounding10Form";
@@ -115,6 +116,12 @@ export default async function ContactDetailPage({ params }: PageProps) {
             <div className="mt-4">
               <EditContactForm contact={contact} companies={companies} />
             </div>
+            <CrmDeleteButton
+              resource="contacts"
+              id={contact.id}
+              name={displayName || contact.email || "this contact"}
+              redirectTo="/apps/crm/contacts"
+            />
             <dl className="mt-6 space-y-3 border-t border-slate-800 pt-4 text-sm">
               <div>
                 <dt className="text-slate-500">Status</dt>

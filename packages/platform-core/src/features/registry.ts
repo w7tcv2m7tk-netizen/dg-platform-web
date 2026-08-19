@@ -97,18 +97,18 @@ export const AI_COMMUNICATIONS_FEATURES: FeatureGroup = {
 
 export const WEBSITES_FEATURES: FeatureGroup = {
   appId: "websites",
-  label: "Websites",
+  label: "Design Studio",
   features: [
     { id: "websites.health.read", appId: "websites", label: "View Website Health Centre" },
     {
       id: "websites.builder.use",
       appId: "websites",
-      label: "Use native Website Builder",
+      label: "Use Design Studio",
     },
     {
       id: "websites.studio.use",
       appId: "websites",
-      label: "Use AI Website Studio",
+      label: "Use Website editor",
       tier: "premium",
     },
     { id: "websites.content.draft", appId: "websites", label: "Draft content" },

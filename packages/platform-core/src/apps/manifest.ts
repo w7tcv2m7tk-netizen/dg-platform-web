@@ -10,6 +10,8 @@ export type AppVisibility = "customer" | "internal";
 export interface AppRoute {
   path: string;
   label: string;
+  /** Extra prefixes that keep this nav item active (e.g. per-site studio). */
+  matchAlso?: string[];
 }
 
 export interface AppNavItem {

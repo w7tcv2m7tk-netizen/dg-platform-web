@@ -125,7 +125,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Website Health Centre</h1>
+        <h1 className="text-2xl font-bold text-white">Health Centre</h1>
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} ·{" "}
           {showWp

@@ -7,6 +7,7 @@ import { notFound, redirect, unstable_rethrow } from "next/navigation";
 import { isAetherraPublicHost } from "@/lib/aetherra-legacy-urls";
 import { CVH_PAGE_ALIASES } from "@/lib/cvh-legacy-urls";
 import { DG_PAGE_ALIASES, isDgPublicHost } from "@/lib/dg-legacy-urls";
+import { knownSlugForPublicHost } from "@/lib/public-host-slugs";
 import { ROE_PAGE_ALIASES, isRoePublicHost } from "@/lib/roe-legacy-urls";
 
 import { BusinessAuditCapture } from "@/components/websites/BusinessAuditCapture";
@@ -62,15 +63,19 @@ async function resolveHostSlug(): Promise<string | null> {
   const host = await resolveRequestHost();
   if (!host) return null;
 
+  const known = knownSlugForPublicHost(host);
+  if (known) return known;
+
   try {
     const match = await findDomainByHostname(host);
     if (match?.website?.slug) return match.website.slug;
 
     const alt = host.startsWith("www.") ? host.slice(4) : `www.${host}`;
     const match2 = await findDomainByHostname(alt);
-    return match2?.website?.slug ?? null;
+    return match2?.website?.slug ?? knownSlugForPublicHost(alt);
   } catch (err) {
     console.error("[by-host] domain lookup failed", err);
+    if (knownSlugForPublicHost(host)) return knownSlugForPublicHost(host);
     throw new Error("SITE_DATABASE_UNAVAILABLE");
   }
 }

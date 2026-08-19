@@ -63,19 +63,18 @@ export default async function WebsitesHomePage() {
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Website Builder</h1>
+        <h1 className="text-2xl font-bold text-white">Websites</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · Founding Customer Early Access · AI-native
-          sites from Business Profile
+          {session?.organisationName ?? "DigitalGate"} · Generate and edit sites from Business Profile
         </p>
       </header>
       <main className="dg-page-main">
-        <WebsitesSubnav active="sites" />
+        <WebsitesSubnav active="websites" />
 
         {!allowed ? (
           <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-2xl space-y-3">
             <h2 className="text-lg font-semibold text-amber-100">
-              Enable Website Builder
+              Enable Design Studio
             </h2>
             <p className="text-sm text-amber-100/80">
               Native builder is gated by feature flag{" "}

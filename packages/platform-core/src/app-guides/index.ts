@@ -254,9 +254,9 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
   },
   {
     appId: "websites",
-    headline: "Website Builder closed beta",
+    headline: "Design Studio closed beta",
     summary:
-      "Enrol with websites.builder, generate a Gen 2 site from Business Profile, edit in Studio, publish, then Domains go-live. Optional WP content import (plugin 10.70+). See docs/WEBSITES-BETA-LAUNCH.md.",
+      "Enrol with websites.builder, generate a Gen 2 site from Business Profile, edit under Websites, publish, then Domains go-live. Optional WP content import (plugin 10.70+). See docs/WEBSITES-BETA-LAUNCH.md.",
     estimatedMinutes: 20,
     prerequisites: [
       "websites.builder enabled (Command Centre → Enable Websites beta)",
@@ -273,19 +273,19 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
       },
       {
         id: "web-1",
-        title: "Open Websites checklist",
+        title: "Open Design Studio",
         description:
           "Create a site from profile (or import WordPress pages), then finish the closed-beta checklist.",
         href: "/apps/websites",
-        hrefLabel: "Website Builder",
+        hrefLabel: "Websites",
       },
       {
         id: "web-2",
-        title: "Edit in Studio and publish",
+        title: "Edit and publish",
         description:
           "Polish blocks/SEO, Preview, then Publish to /sites/[slug].",
         href: "/apps/websites",
-        hrefLabel: "Sites",
+        hrefLabel: "Websites",
       },
       {
         id: "web-3",

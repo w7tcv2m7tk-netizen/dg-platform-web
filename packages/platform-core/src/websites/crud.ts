@@ -136,6 +136,43 @@ export async function getWebsiteBySlug(
   return serializeWebsite(site, site.pages);
 }
 
+/** Public host render — load the site plus only the requested page (not the full tree). */
+export async function getWebsiteForPublicRender(
+  slug: string,
+  pageSlug?: string,
+): Promise<SerializedWebsite | null> {
+  const { prisma } = await import("@dg/database");
+  const site = await prisma.website.findUnique({
+    where: { slug },
+  });
+  if (!site) return null;
+
+  const pages = pageSlug
+    ? await prisma.websitePage.findMany({
+        where: { websiteId: site.id, slug: pageSlug },
+        take: 1,
+      })
+    : await prisma.websitePage.findMany({
+        where: {
+          websiteId: site.id,
+          OR: [{ intent: "home" }, { slug: "home" }],
+        },
+        orderBy: { sortOrder: "asc" },
+        take: 2,
+      });
+
+  if (!pageSlug && pages.length === 0) {
+    const fallback = await prisma.websitePage.findMany({
+      where: { websiteId: site.id },
+      orderBy: { sortOrder: "asc" },
+      take: 1,
+    });
+    return serializeWebsite(site, fallback);
+  }
+
+  return serializeWebsite(site, pages);
+}
+
 export async function createWebsite(input: {
   organisationId: string;
   organisationName: string;

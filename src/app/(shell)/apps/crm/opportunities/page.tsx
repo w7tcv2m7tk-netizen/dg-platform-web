@@ -3,6 +3,8 @@ import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
 import { isWantOpportunityMetadata, listOpportunities } from "@dg/platform-core";
 
+import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
+
 export default async function CrmOpportunitiesPage() {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
@@ -86,10 +88,10 @@ export default async function CrmOpportunitiesPage() {
               {items.map((opp) => {
                 const want = isWantOpportunityMetadata(opp.metadata);
                 return (
-                  <li key={opp.id} className="py-3">
+                  <li key={opp.id} className="flex items-start justify-between gap-3 py-3">
                     <Link
                       href={`/apps/crm/opportunities/${opp.id}`}
-                      className="block hover:opacity-90"
+                      className="min-w-0 flex-1 block hover:opacity-90"
                     >
                       <p className="font-medium text-white">
                         {want ? (
@@ -112,6 +114,12 @@ export default async function CrmOpportunitiesPage() {
                         {opp.leadId ? " · from lead" : ""}
                       </p>
                     </Link>
+                    <CrmDeleteButton
+                      resource="opportunities"
+                      id={opp.id}
+                      name={opp.title}
+                      compact
+                    />
                   </li>
                 );
               })}

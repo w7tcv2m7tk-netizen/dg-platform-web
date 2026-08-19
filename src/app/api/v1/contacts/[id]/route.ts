@@ -1,4 +1,9 @@
-import { getContact, listContactActivities, updateContact } from "@dg/platform-core";
+import {
+  deleteContact,
+  getContact,
+  listContactActivities,
+  updateContact,
+} from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
@@ -75,4 +80,28 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   }
 
   return NextResponse.json({ data: updated });
+}
+
+export async function DELETE(req: Request, { params }: RouteParams) {
+  const session = await requirePlatformAuth(req);
+  if (isNextResponse(session)) return session;
+
+  const denied = requireFeature(session, "crm.contacts.write");
+  if (denied) return denied;
+
+  const { id } = await params;
+  const deleted = await deleteContact({
+    organisationId: session.organisationId,
+    contactId: id,
+    actorId: session.clerkUserId,
+  });
+
+  if (!deleted) {
+    return NextResponse.json(
+      { error: { code: "contact_not_found", message: "Contact not found" } },
+      { status: 404 },
+    );
+  }
+
+  return NextResponse.json({ data: { id: deleted.id, deleted: true } });
 }

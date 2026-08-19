@@ -8,7 +8,7 @@ import { enquiryInboxHref, hasRealEstateWorkspace } from "@dg/platform-core";
 
 const SYSTEM_LABELS: Record<string, string> = {
   website: "Website",
-  websites: "Websites",
+  websites: "Design Studio",
   wordpress: "WordPress",
   stripe: "Stripe",
   crm: "CRM",

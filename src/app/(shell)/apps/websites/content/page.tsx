@@ -41,7 +41,7 @@ export default async function ContentOverviewPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Content</h1>
         <p className="text-sm text-slate-400">
-          Live page map for Gen 2 sites — open Studio to edit components and SEO
+          Live page map — open a site under Websites to edit components and SEO
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -50,14 +50,13 @@ export default async function ContentOverviewPage() {
         {!allowed ? (
           <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-xl">
             <p className="text-sm text-amber-100/90">
-              Enable Website Builder to manage structured content.
+              Enable Design Studio to manage structured content.
             </p>
           </div>
         ) : sites.length === 0 ? (
           <div className="rounded-lg border border-dashed border-slate-600 bg-slate-950/40 p-6 max-w-xl space-y-3">
             <p className="text-sm text-slate-300">
-              No sites yet — create one from Business Profile, then edit pages
-              here via Studio.
+              No sites yet — create one under Websites, then edit pages here.
             </p>
             <Link
               href="/apps/websites"

@@ -4,6 +4,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { listCompanies,} from "@dg/platform-core";
 
 import { CreateCompanyForm } from "@/components/crm/CreateCompanyForm";
+import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
 
 export default async function CrmCompaniesPage() {
   const user = await currentUser();
@@ -64,10 +65,10 @@ export default async function CrmCompaniesPage() {
             ) : (
               <ul className="mt-4 divide-y divide-slate-800">
                 {items.map((company) => (
-                  <li key={company.id} className="py-3">
+                  <li key={company.id} className="flex items-start justify-between gap-3 py-3">
                     <Link
                       href={`/apps/crm/companies/${company.id}`}
-                      className="block hover:opacity-90"
+                      className="min-w-0 flex-1 block hover:opacity-90"
                     >
                       <p className="font-medium text-white">{company.name}</p>
                       <p className="text-sm text-slate-400">
@@ -79,6 +80,12 @@ export default async function CrmCompaniesPage() {
                         {company.contactCount} contact{company.contactCount === 1 ? "" : "s"}
                       </p>
                     </Link>
+                    <CrmDeleteButton
+                      resource="companies"
+                      id={company.id}
+                      name={company.name}
+                      compact
+                    />
                   </li>
                 ))}
               </ul>

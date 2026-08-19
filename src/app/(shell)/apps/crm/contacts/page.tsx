@@ -5,6 +5,7 @@ import { listContacts, listCompanies,} from "@dg/platform-core";
 
 import { CreateContactForm } from "@/components/crm/CreateContactForm";
 import { ContactImportExport } from "@/components/crm/ContactImportExport";
+import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
 
 export default async function CrmContactsPage() {
   const user = await currentUser();
@@ -91,17 +92,19 @@ export default async function CrmContactsPage() {
               </p>
             ) : (
               <ul className="mt-4 divide-y divide-slate-800">
-                {items.map((contact) => (
-                  <li key={contact.id} className="min-w-0 py-3">
+                {items.map((contact) => {
+                  const displayName = [contact.firstName, contact.lastName]
+                    .filter(Boolean)
+                    .join(" ");
+                  return (
+                  <li key={contact.id} className="flex items-start justify-between gap-3 py-3">
                     <Link
                       href={`/apps/crm/contacts/${contact.id}`}
-                      className="dg-list-row block hover:opacity-90"
+                      className="dg-list-row min-w-0 flex-1 block hover:opacity-90"
                       prefetch
                     >
                       <p className="dg-break-anywhere font-medium text-white">
-                        {[contact.firstName, contact.lastName]
-                          .filter(Boolean)
-                          .join(" ")}
+                        {displayName}
                       </p>
                       <p className="dg-break-anywhere text-sm text-slate-400">
                         {[contact.email, contact.phone, contact.source]
@@ -113,8 +116,15 @@ export default async function CrmContactsPage() {
                         {new Date(contact.updatedAt).toLocaleDateString("en-AU")}
                       </p>
                     </Link>
+                    <CrmDeleteButton
+                      resource="contacts"
+                      id={contact.id}
+                      name={displayName || contact.email || "this contact"}
+                      compact
+                    />
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
           </div>

@@ -53,12 +53,11 @@ export function CreateWebsiteForm({
     e.preventDefault();
 
     if (brandPath === "have") {
-      router.push("/dashboard/business?focus=brand&from=website-create");
+      router.push("/apps/websites/logo?from=website-create");
       return;
     }
     if (brandPath === "ai") {
-      // Core Brand Studio V1 (AI generate) is still roadmap — route to profile brand editor.
-      router.push("/dashboard/business?focus=brand&intent=ai&from=website-create");
+      router.push("/apps/websites/logo?intent=ai&from=website-create");
       return;
     }
 
@@ -110,12 +109,12 @@ export function CreateWebsiteForm({
               {
                 id: "have" as const,
                 label: "I already have a brand",
-                detail: "Upload logo / colours on Business Profile, then come back",
+                detail: "Upload logo / colours in Logos, then come back",
               },
               {
                 id: "ai" as const,
                 label: "Create my brand with AI",
-                detail: "Opens Brand Studio entry (profile brand editor — AI pack next)",
+                detail: "Opens Logos — upload now; AI concepts next",
               },
               {
                 id: "later" as const,
@@ -196,15 +195,15 @@ export function CreateWebsiteForm({
           : brandPath === "later"
             ? "Create from Business Profile"
             : brandPath === "have"
-              ? "Continue to brand assets →"
-              : "Open Brand Studio entry →"}
+              ? "Continue to Logos →"
+              : "Open Logos →"}
       </button>
       <p className="text-xs text-slate-500">
         Structured components (not HTML). Brand is optional —{" "}
-        <Link href="/dashboard/business" className="text-slate-300 underline">
-          Edit Business Profile
+        <Link href="/apps/websites/logo" className="text-slate-300 underline">
+          Logos
         </Link>{" "}
-        anytime for colours, logo, and copy.
+        anytime for colours, logo, and mark.
       </p>
     </form>
   );

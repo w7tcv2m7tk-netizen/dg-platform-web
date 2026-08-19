@@ -293,11 +293,11 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
   },
   {
     appId: "websites",
-    label: "Websites",
+    label: "Design Studio",
     icon: "🌐",
     price: "Included",
     badge: "Included on Growth+",
-    description: "Templates, AI content, publish & manage from the platform",
+    description: "Websites, funnels, logos, content, and Health Centre",
     status: "included",
   },
   {

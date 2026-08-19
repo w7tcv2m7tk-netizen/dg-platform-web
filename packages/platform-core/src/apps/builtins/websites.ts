@@ -2,22 +2,25 @@ import type { AppManifest } from "../manifest";
 
 export const websitesApp: AppManifest = {
   id: "websites",
-  name: "Websites",
+  name: "Design Studio",
   description:
-    "AI Website Studio, health monitoring, content studio, funnels, and proactive site management",
+    "Websites, funnels, logos, content, and Health Centre",
   tier: "core",
   version: "0.1.0",
   icon: "🌐",
   routes: [
-    { path: "/apps/websites", label: "Sites" },
-    { path: "/apps/websites/studio", label: "AI Website Studio" },
+    {
+      path: "/apps/websites",
+      label: "Websites",
+      matchAlso: ["/apps/websites/studio"],
+    },
+    { path: "/apps/websites/funnels", label: "Funnels" },
+    { path: "/apps/websites/logo", label: "Logos" },
+    { path: "/apps/websites/content", label: "Content" },
     { path: "/apps/websites/health", label: "Health Centre" },
-    { path: "/apps/websites/content", label: "Content Studio" },
-    { path: "/apps/websites/funnels", label: "Funnel Builder" },
-    { path: "/apps/websites/hosting", label: "Hosting" },
   ],
   navigation: [
-    { href: "/apps/websites", label: "Websites", icon: "◫" },
+    { href: "/apps/websites", label: "Design Studio", icon: "◫" },
   ],
   permissions: [
     { id: "websites.view", label: "View websites" },
@@ -53,7 +56,7 @@ export const websitesApp: AppManifest = {
     {
       id: "websites.generate_site",
       label: "Generate website",
-      description: "AI Website Studio — architecture, pages, copy, SEO",
+      description: "Design Studio — architecture, pages, copy, SEO",
     },
     {
       id: "websites.generate_content",

@@ -2,10 +2,9 @@ import Link from "next/link";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
-import {
-  getCompany,
-  listCompanyContacts,} from "@dg/platform-core";
+import { getCompany, listCompanyContacts } from "@dg/platform-core";
 
+import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
 import { EditCompanyForm } from "@/components/crm/EditCompanyForm";
 
 interface PageProps {
@@ -50,6 +49,12 @@ export default async function CompanyDetailPage({ params }: PageProps) {
             <div className="mt-4">
               <EditCompanyForm company={company} />
             </div>
+            <CrmDeleteButton
+              resource="companies"
+              id={company.id}
+              name={company.name}
+              redirectTo="/apps/crm/companies"
+            />
           </div>
 
           <div className="dg-card">
