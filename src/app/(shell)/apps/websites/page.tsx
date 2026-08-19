@@ -63,9 +63,9 @@ export default async function WebsitesHomePage() {
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Websites</h1>
+        <h1 className="text-2xl font-bold text-white">Design Studio</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · Generate and edit sites from Business Profile
+          {session?.organisationName ?? "DigitalGate"} · Websites, funnels, logos, content, and Health Centre
         </p>
       </header>
       <main className="dg-page-main">
@@ -211,7 +211,7 @@ export default async function WebsitesHomePage() {
                               Domains
                             </Link>
                             <Link
-                              href="/apps/websites/hosting"
+                              href="/apps/infrastructure/hosting"
                               className="text-slate-400 hover:text-slate-200"
                             >
                               Hosting

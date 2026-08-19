@@ -11,9 +11,10 @@ export const infrastructureApp: AppManifest = {
   routes: [
     { path: "/apps/infrastructure/domains", label: "Domains" },
     { path: "/apps/infrastructure/dns", label: "DNS" },
+    { path: "/apps/infrastructure/hosting", label: "Hosting" },
     { path: "/apps/infrastructure/email", label: "Email" },
-    // Hosting / Deployments / Monitoring: routes exist as “coming later”
-    // pages but are hidden from nav so the AU pilot doesn’t show empty Apps.
+    // Deployments / Monitoring: routes exist as “coming later” pages but
+    // stay hidden so the AU pilot doesn’t show empty Apps.
   ],
   navigation: [
     { href: "/apps/infrastructure/domains", label: "Infrastructure", icon: "⚙" },

@@ -323,7 +323,7 @@ export function MakeItLivePanel({
             </Link>
           )}
           <Link
-            href="/apps/websites/hosting"
+            href="/apps/infrastructure/hosting"
             className="text-slate-500 hover:underline"
           >
             Hosting status

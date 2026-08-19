@@ -36,6 +36,10 @@ export default async function Page() {
             DNS
           </Link>
           {" · "}
+          <Link href="/apps/infrastructure/hosting" className="text-sky-400 hover:underline">
+            Hosting
+          </Link>
+          {" · "}
           <Link href="/apps/infrastructure/email" className="text-sky-400 hover:underline">
             Email
           </Link>

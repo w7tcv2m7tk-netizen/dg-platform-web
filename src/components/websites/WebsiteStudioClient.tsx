@@ -656,7 +656,7 @@ export function WebsiteStudioClient({
               Domains
             </Link>
             <Link
-              href="/apps/websites/hosting"
+              href="/apps/infrastructure/hosting"
               className="block text-sm text-slate-400 hover:text-slate-200"
             >
               Hosting status

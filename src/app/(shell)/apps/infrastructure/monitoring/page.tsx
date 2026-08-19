@@ -27,10 +27,10 @@ export default function Page() {
       <p>
         For live sites, check{" "}
         <Link
-          href="/apps/websites/hosting"
+          href="/apps/infrastructure/hosting"
           className="text-sky-400 hover:underline"
         >
-          Websites → Hosting
+          Hosting
         </Link>{" "}
         and domain SSL status under{" "}
         <Link

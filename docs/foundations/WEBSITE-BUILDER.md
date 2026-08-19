@@ -350,8 +350,9 @@ Studio **Import from WordPress** (v0) pulls real pages via Connector `GET /site/
 | `/apps/websites` | List sites · create from Business Profile + brief |
 | `/apps/websites/studio/[id]` | Pages list · edit component props · NL assist |
 | `/apps/websites` | Hub — site cards, create flow, Studio / Preview / Domains / Hosting links |
-| `/apps/websites/domains` | DigitalGate Domains (shared with Infrastructure) |
-| `/apps/websites/hosting` | Hosting status — published sites, linked domains, DNS/SSL summary |
+| `/apps/websites/domains` | Redirect → Infrastructure Domains |
+| `/apps/infrastructure/hosting` | Hosting status — published sites, linked domains, DNS/SSL summary |
+| `/apps/websites/hosting` | Redirect → Infrastructure Hosting |
 | `/apps/websites/funnels` | Funnel Builder v0 — landing → form → CRM |
 | `/apps/websites/studio/[id]` | Studio — NL assist, field editors, publish/unpublish, **Make it live**, page reorder/duplicate |
 | `/sites/[slug]` | Public (or `?preview=1` draft) renderer |

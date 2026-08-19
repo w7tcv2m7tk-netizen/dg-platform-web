@@ -30,6 +30,13 @@ export default async function EmailInfrastructurePage() {
           >
             DNS
           </Link>
+          {" · "}
+          <Link
+            href="/apps/infrastructure/hosting"
+            className="text-sky-400 hover:underline"
+          >
+            Hosting
+          </Link>
         </p>
       </header>
       <main className="dg-page-main max-w-2xl">

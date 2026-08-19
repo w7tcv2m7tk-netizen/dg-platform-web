@@ -48,13 +48,13 @@ export default async function WebsiteStudioPage({ params }: Props) {
     return (
       <>
         <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Websites</h1>
+          <h1 className="text-2xl font-bold text-white">Design Studio</h1>
         </header>
         <main className="dg-page-main">
           <p className="text-slate-400">
             Enable <code>websites.builder</code> to edit a site.{" "}
             <Link href="/apps/websites" className="underline">
-              Back to Websites
+              Back to Design Studio
             </Link>
           </p>
         </main>

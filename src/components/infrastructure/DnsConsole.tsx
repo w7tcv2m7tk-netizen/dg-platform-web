@@ -551,10 +551,10 @@ export function DnsConsole() {
           </li>
           <li>
             <Link
-              href="/apps/websites/hosting"
+              href="/apps/infrastructure/hosting"
               className="text-sky-400 hover:underline"
             >
-              Websites → Hosting
+              Hosting
             </Link>{" "}
             — publish status + Make it live
           </li>

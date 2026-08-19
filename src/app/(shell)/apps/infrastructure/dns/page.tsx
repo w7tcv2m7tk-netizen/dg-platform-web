@@ -22,6 +22,13 @@ export default function DnsInfrastructurePage() {
           </Link>
           {" · "}
           <Link
+            href="/apps/infrastructure/hosting"
+            className="text-sky-400 hover:underline"
+          >
+            Hosting
+          </Link>
+          {" · "}
+          <Link
             href="/apps/infrastructure/email"
             className="text-sky-400 hover:underline"
           >
