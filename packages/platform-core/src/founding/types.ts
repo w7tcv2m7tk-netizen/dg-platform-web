@@ -157,11 +157,68 @@ export type FoundingStageAction =
   | "send_agreement"
   | "mark_signed"
   | "invite_onboarding"
-  | "advance";
+  | "advance"
+  | "send_invitation"
+  | "resend_invitation"
+  | "mark_invitation_accepted"
+  | "withdraw_invitation";
+
+export const FOUNDING_SOURCES = [
+  "public_application",
+  "direct_invitation",
+  "referral",
+  "existing_contact",
+  "partner_reseller",
+] as const;
+
+export type FoundingSource = (typeof FOUNDING_SOURCES)[number];
+
+export const FOUNDING_ENTRY_TYPES = ["application", "personal_invitation"] as const;
+export type FoundingEntryType = (typeof FOUNDING_ENTRY_TYPES)[number];
+
+export const FOUNDING_INVITATION_STATUSES = [
+  "draft",
+  "sent",
+  "accepted",
+  "withdrawn",
+] as const;
+export type FoundingInvitationStatus = (typeof FOUNDING_INVITATION_STATUSES)[number];
+
+export const FOUNDING_SOURCE_LABELS: Record<FoundingSource, string> = {
+  public_application: "Public Application",
+  direct_invitation: "Direct Invitation",
+  referral: "Referral",
+  existing_contact: "Existing Contact",
+  partner_reseller: "Partner/Reseller",
+};
+
+export const FOUNDING_ENTRY_TYPE_LABELS: Record<FoundingEntryType, string> = {
+  application: "Application",
+  personal_invitation: "Personal Invitation",
+};
+
+export const FOUNDING_PERSONAL_INVITE_BENEFITS = [
+  "30% off your initial DigitalGate Platform + Apps for 24 months",
+  "Founding Reseller status — 30% referral commission × 12 months on qualifying customers you directly refer",
+  "Priority onboarding",
+  "Early access to selected Apps",
+  "Direct access to me as the founder",
+  "Input into product and roadmap priorities",
+  "Preferential Professional Services terms where applicable",
+];
 
 export type FoundingOpportunityMeta = {
   founding_invite_token?: string;
   founding_customer_organisation_id?: string;
+  founding_entry_type?: FoundingEntryType;
+  founding_source?: FoundingSource;
+  founding_invitation_status?: FoundingInvitationStatus;
+  founding_invitation_sent_at?: string;
+  founding_invitation_accepted_at?: string;
+  founding_invitation_withdrawn_at?: string;
+  founding_invited_by?: string;
+  founding_invited_by_name?: string;
+  business_name?: string;
   acceptance_email_sent_at?: string;
   agreement_email_sent_at?: string;
   onboarding_invite_sent_at?: string;

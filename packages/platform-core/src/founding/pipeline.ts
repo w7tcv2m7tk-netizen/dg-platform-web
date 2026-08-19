@@ -1,11 +1,18 @@
 /**
- * Founding 10 customer pipeline — post-application commercial workflow.
- * Application qualifies. Onboarding configures. Implementation goes live.
+ * Founding 10 customer pipeline.
+ * Two entries into the same cohort: public application, or personal invitation.
+ * Invitation ≠ a seat. A seat is counted only from `accepted` onward.
  */
 
 export const FOUNDING_PIPELINE_ID = "founding_10" as const;
+export const FOUNDING_COHORT_LIMIT = 10;
 
 export const FOUNDING_STAGES = [
+  "identified",
+  "contacted",
+  "conversation",
+  "invited",
+  "invitation_accepted",
   "application_received",
   "discovery_booked",
   "discovery_completed",
@@ -19,6 +26,14 @@ export const FOUNDING_STAGES = [
   "implementation",
   "go_live",
   "thirty_day_review",
+] as const;
+
+export const FOUNDING_INVITATION_STAGES = [
+  "identified",
+  "contacted",
+  "conversation",
+  "invited",
+  "invitation_accepted",
 ] as const;
 
 export type FoundingStage = (typeof FOUNDING_STAGES)[number];
@@ -47,6 +62,11 @@ export function normaliseFoundingStage(stage: string | null | undefined): Foundi
 }
 
 export const FOUNDING_STAGE_LABELS: Record<FoundingStage, string> = {
+  identified: "Identified",
+  contacted: "Contacted",
+  conversation: "Conversation",
+  invited: "Invited",
+  invitation_accepted: "Invitation accepted",
   application_received: "Application received",
   discovery_booked: "Discovery booked",
   discovery_completed: "Discovery completed",
@@ -63,6 +83,11 @@ export const FOUNDING_STAGE_LABELS: Record<FoundingStage, string> = {
 };
 
 export const FOUNDING_STAGE_NEXT_ACTION: Record<FoundingStage, string> = {
+  identified: "Have the conversation, then send a personal Founding 10 invitation.",
+  contacted: "Follow up. Do not send the generic application form as the next step.",
+  conversation: "If they are a strong fit, send a personal Founding 10 invitation.",
+  invited: "Wait for them to accept the invitation, or resend / withdraw.",
+  invitation_accepted: "Book the Platform Consultation. They are not yet one of the 10.",
   application_received: "Review the application and book a discovery / platform consultation.",
   discovery_booked: "Run discovery. Learn how they run the business before demoing.",
   discovery_completed: "Accept into Founding 10, or decline with a clear reason.",
@@ -95,4 +120,16 @@ export function isFoundingPipeline(
 ): boolean {
   if (pipelineId === FOUNDING_PIPELINE_ID) return true;
   return (leadType || "").trim().toLowerCase() === "founding_10";
+}
+
+/** Seat in the 10 — not merely invited. Lost / withdrawn rows do not count. */
+export function isFoundingCohortSeat(stage: string, status?: string | null): boolean {
+  if ((status || "").toLowerCase() === "lost") return false;
+  return foundingStageIndex(stage) >= foundingStageIndex("accepted");
+}
+
+export function isFoundingInvitationStage(stage: string): boolean {
+  return (FOUNDING_INVITATION_STAGES as readonly string[]).includes(
+    normaliseFoundingStage(stage),
+  );
 }

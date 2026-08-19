@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import {
   BUSINESS_REFERRAL_COMPLIANCE_NOTE,
+  canAccessCommandCentre,
   formatTimelineDateTime,
   getContact,
   getContactAccommodationGuestPanel,
@@ -18,6 +19,7 @@ import { CreateTaskForm } from "@/components/crm/CreateTaskForm";
 import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
 import { EditContactForm } from "@/components/crm/EditContactForm";
 import { BusinessReferralPanel } from "@/components/network/BusinessReferralPanel";
+import { InviteToFounding10Form } from "@/components/founding/InviteToFounding10Form";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -63,6 +65,12 @@ export default async function ContactDetailPage({ params }: PageProps) {
   );
 
   const displayName = [contact.firstName, contact.lastName].filter(Boolean).join(" ");
+  const staff = canAccessCommandCentre({
+    organisationId: session.organisationId,
+    organisationName: session.organisationName,
+    organisationSlug: session.organisationSlug,
+    role: session.role,
+  });
 
   return (
     <>
@@ -136,6 +144,16 @@ export default async function ContactDetailPage({ params }: PageProps) {
               />
             </div>
           </div>
+
+          {staff ? (
+            <InviteToFounding10Form
+              contactId={contact.id}
+              defaultName={displayName}
+              defaultEmail={contact.email ?? undefined}
+              defaultPhone={contact.phone ?? undefined}
+              defaultBusinessName={company?.name}
+            />
+          ) : null}
 
           <CrmAiAssistPanel contactId={contact.id} variant="contact" />
 

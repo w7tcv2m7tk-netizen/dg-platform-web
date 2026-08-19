@@ -6,4 +6,5 @@ export * from "./onboarding";
 export * from "./implementation";
 export * from "./analysis";
 export * from "./stage-actions";
+export * from "./invitations";
 export * from "./submit";

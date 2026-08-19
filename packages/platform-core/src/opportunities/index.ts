@@ -294,6 +294,14 @@ export async function convertLeadToOpportunity(input: {
     metadata: {
       lead_type: leadType,
       converted_from_lead: true,
+      ...(leadType === "founding_10"
+        ? {
+            founding_entry_type: "application",
+            founding_source: "public_application",
+            business_name:
+              typeof metadata.business_name === "string" ? metadata.business_name : undefined,
+          }
+        : {}),
       ...(input.metadata ?? {}),
     },
   });

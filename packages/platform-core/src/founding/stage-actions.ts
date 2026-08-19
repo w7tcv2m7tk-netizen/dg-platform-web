@@ -34,25 +34,37 @@ export function newFoundingInviteToken(): string {
   return crypto.randomUUID().replace(/-/g, "");
 }
 
+export async function findFoundingOpportunityByInviteToken(token: string) {
+  const trimmed = token.trim();
+  if (!trimmed || !process.env.DATABASE_URL) return null;
+  const { prisma } = await import("@dg/database");
+  try {
+    const byPath = await prisma.opportunity.findFirst({
+      where: {
+        pipelineId: FOUNDING_PIPELINE_ID,
+        metadata: { path: ["founding_invite_token"], equals: trimmed },
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+    if (byPath) return byPath;
+  } catch (err) {
+    console.warn("[founding] invite token json path lookup failed", err);
+  }
+  const rows = await prisma.opportunity.findMany({
+    where: { pipelineId: FOUNDING_PIPELINE_ID },
+    orderBy: { updatedAt: "desc" },
+    take: 200,
+  });
+  return (
+    rows.find((row) => asMeta(row.metadata).founding_invite_token === trimmed) ?? null
+  );
+}
+
 async function loadOpportunity(organisationId: string, opportunityId: string) {
   const { prisma } = await import("@dg/database");
   return prisma.opportunity.findFirst({
     where: { id: opportunityId, organisationId },
   });
-}
-
-export async function findFoundingOpportunityByInviteToken(token: string) {
-  const trimmed = token.trim();
-  if (!trimmed || !process.env.DATABASE_URL) return null;
-  const { prisma } = await import("@dg/database");
-  const rows = await prisma.opportunity.findMany({
-    where: { pipelineId: FOUNDING_PIPELINE_ID },
-    orderBy: { updatedAt: "desc" },
-    take: 80,
-  });
-  return (
-    rows.find((row) => asMeta(row.metadata).founding_invite_token === trimmed) ?? null
-  );
 }
 
 async function persistMeta(
@@ -109,7 +121,7 @@ async function resolveRecipient(organisationId: string, contactId: string | null
   };
 }
 
-async function sendFoundingMail(input: {
+export async function sendFoundingMail(input: {
   organisationId: string;
   to: string;
   subject: string;
@@ -210,6 +222,7 @@ export async function runFoundingStaffAction(input: {
   if (input.action === "send_agreement") target = "agreement_sent";
   if (input.action === "mark_signed") target = "agreement_signed";
   if (input.action === "invite_onboarding") target = "onboarding_invited";
+  if (input.action === "mark_invitation_accepted") target = "invitation_accepted";
   if (input.action === "advance") {
     target = input.stage ?? nextFoundingStage(row.stage) ?? target;
   }

@@ -4,20 +4,29 @@
 **Audience:** Ben + staff implementing the first Founding 10 customers  
 **Related:** [COMMERCIAL-ENGINE.md](./COMMERCIAL-ENGINE.md) · [FOUNDING-COHORTS.md](./FOUNDING-COHORTS.md)
 
-The Founding application **qualifies** the business. Onboarding **configures** the business.
+The Founding application **qualifies** the business. Onboarding **configures** the business. A personal invitation is a second entry into the **same** Founding 10 cohort — not a separate programme.
 
 ```
-APPLICATION → DISCOVERY → ACCEPTED → AGREEMENT → ONBOARDING → CONFIGURATION → IMPLEMENTATION → GO LIVE → 30-DAY SUCCESS
+PUBLIC APPLICATION → DISCOVERY → ACCEPTED → AGREEMENT → ONBOARDING → …
+PERSONAL INVITATION → CONSULTATION → ACCEPTED → AGREEMENT → ONBOARDING → …
 ```
 
 Do **not** wire the retired public 12-section form at `digitalgate.com.au/onboarding/`. That URL now explains the Gen 2 path.
+
+## Two ways in
+
+1. **Public application** — `/founding-customers/` → review → consult → accept/reject.
+2. **Direct invitation** — conversation first → CRM **Invite to Founding 10** → personal email → they accept the invitation → consultation → you accept them into the 10.
+
+Inviting someone does **not** count as a seat. `Founding 10: 7 / 10` only includes opportunities at `accepted` or later. Command Centre shows Invited / Accepted / Remaining.
 
 ## Surfaces
 
 | Step | Where |
 |------|--------|
 | Apply | `https://digitalgate.com.au/founding-customers/` |
-| Staff pipeline | `/command/founding` and CRM opportunity |
+| Personal invite | `https://digitalgate.com.au/founding-customers/invite/[token]` |
+| Staff pipeline | `/command/founding` and CRM opportunity / contact |
 | Accept / emails | Opportunity → Accept & send welcome |
 | Agreement | `/founding/agreement` (signed-in) |
 | Guided onboarding | `/onboarding` (Founding journey) |
@@ -30,10 +39,11 @@ Setup link in the acceptance email: `/founding/setup?invite=…` (agreement firs
 
 On a Founding 10 opportunity:
 
-1. **Accept & send welcome** — CRM stage `accepted`, acceptance email, invite token, next-action task.
-2. **Send agreement** — legal stays separate from the wizard.
-3. **Mark signed + invite onboarding** — or the customer confirms terms themselves.
-4. Advance remaining stages as configuration and go-live actually happen.
+1. **Invite to Founding 10** (optional) — from a CRM contact or Command. Creates an invitation record. Send / resend / copy link / withdraw. They are not yet one of the 10.
+2. **Accept & send welcome** — CRM stage `accepted`, acceptance email, invite token, next-action task. **This** is a seat.
+3. **Send agreement** — legal stays separate from the wizard.
+4. **Mark signed + invite onboarding** — or the customer confirms terms themselves.
+5. Advance remaining stages as configuration and go-live actually happen.
 
 Every stage has a next action (task on the opportunity).
 

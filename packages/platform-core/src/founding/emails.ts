@@ -3,7 +3,9 @@
  * Application ack stays in founding-10-emails.ts and must never imply acceptance.
  */
 
-import { composeEmailBody, type EmailBodyBlock } from "../communications/email-html";
+import type { EmailBodyBlock } from "../communications/email-html";
+import { composeEmailBody } from "../communications/email-html";
+import { FOUNDING_PERSONAL_INVITE_BENEFITS } from "./types";
 
 const ACCENT = "#3B82F6";
 
@@ -41,6 +43,18 @@ export function foundingOnboardingUrl(inviteToken?: string | null): string {
 
 export function foundingImplementationUrl(): string {
   return `${appOrigin()}/implementation`;
+}
+
+function publicSiteOrigin(): string {
+  const raw =
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://digitalgate.com.au";
+  return raw.replace(/\/$/, "");
+}
+
+/** Personal invitation — public site, not the generic application form. */
+export function foundingPersonalInviteUrl(inviteToken: string): string {
+  const token = encodeURIComponent(inviteToken.trim());
+  return `${publicSiteOrigin()}/founding-customers/invite/${token}`;
 }
 
 function signoffBlocks(): EmailBodyBlock[] {
@@ -323,5 +337,92 @@ export function renderFoundingSetupPlanEmail(input: {
     body,
     bodyHtml: composeEmailBody(blocks, { accentColor: ACCENT }),
     footerNote: "Sent because you submitted DigitalGate Founding Customer onboarding.",
+  };
+}
+
+export function renderFoundingPersonalInvitationEmail(input: {
+  firstName: string;
+  businessName?: string | null;
+  inviteToken: string;
+}): { subject: string; body: string; bodyHtml: string; footerNote: string } {
+  const name = input.firstName?.trim() || "there";
+  const business = input.businessName?.trim() || "your business";
+  const inviteUrl = foundingPersonalInviteUrl(input.inviteToken);
+  const subject = "I'd like to invite you to join DigitalGate's Founding 10";
+
+  const body = [
+    `Hi ${name},`,
+    ``,
+    `It was great speaking with you about ${business}.`,
+    ``,
+    `As I mentioned, I'm currently opening the first 10 businesses into the DigitalGate Founding Customer Programme, and after our conversation I think ${business} would be a strong fit for the first cohort.`,
+    ``,
+    `I'd therefore like to personally invite you to participate in the Founding 10.`,
+    ``,
+    `As a Founding 10 business, you'll receive:`,
+    ``,
+    ...FOUNDING_PERSONAL_INVITE_BENEFITS.map((item) => `• ${item}`),
+    ``,
+    `The idea isn't simply to give you discounted software. I'm looking for a small group of businesses who are prepared to actually operate on DigitalGate and help shape the platform through real-world use.`,
+    ``,
+    `If you're interested, the next step is a short Platform Consultation where we'll look at your current systems, how the business operates and where DigitalGate could fit.`,
+    ``,
+    `Accept Your Founding 10 Invitation: ${inviteUrl}`,
+    ``,
+    `Once you've accepted the invitation, we'll take you through the consultation and formal onboarding process.`,
+    ``,
+    `I'd be very pleased to have ${business} among the first 10.`,
+    ``,
+    `Regards,`,
+    `Ben Roe`,
+    `Founder & Platform Architect`,
+    `DigitalGate`,
+    `The Gateway to Your Digital World™`,
+  ].join("\n");
+
+  const bodyHtml = composeEmailBody(
+    [
+      { type: "kicker", text: "Personal invitation" },
+      { type: "heading", text: "Join DigitalGate's Founding 10" },
+      { type: "paragraph", text: `Hi ${name},` },
+      { type: "paragraph", text: `It was great speaking with you about ${business}.` },
+      {
+        type: "paragraph",
+        text: `As I mentioned, I'm currently opening the first 10 businesses into the DigitalGate Founding Customer Programme, and after our conversation I think ${business} would be a strong fit for the first cohort.`,
+      },
+      {
+        type: "paragraph",
+        text: `I'd therefore like to personally invite you to participate in the Founding 10.`,
+      },
+      { type: "heading", text: "As a Founding 10 business, you'll receive", level: 2 },
+      { type: "list", items: FOUNDING_PERSONAL_INVITE_BENEFITS },
+      {
+        type: "paragraph",
+        text: `The idea isn't simply to give you discounted software. I'm looking for a small group of businesses who are prepared to actually operate on DigitalGate and help shape the platform through real-world use.`,
+      },
+      {
+        type: "paragraph",
+        text: `If you're interested, the next step is a short Platform Consultation where we'll look at your current systems, how the business operates and where DigitalGate could fit.`,
+      },
+      { type: "button", label: "Accept Your Founding 10 Invitation →", href: inviteUrl },
+      {
+        type: "paragraph",
+        text: `Once you've accepted the invitation, we'll take you through the consultation and formal onboarding process.`,
+      },
+      {
+        type: "paragraph",
+        text: `I'd be very pleased to have ${business} among the first 10.`,
+      },
+      ...signoffBlocks(),
+    ],
+    { accentColor: ACCENT },
+  );
+
+  return {
+    subject,
+    body,
+    bodyHtml,
+    footerNote:
+      "You're receiving this because Ben Roe personally invited you to DigitalGate's Founding 10. This is not automatic acceptance into the programme.",
   };
 }

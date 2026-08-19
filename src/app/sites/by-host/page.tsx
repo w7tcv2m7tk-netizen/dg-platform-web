@@ -18,6 +18,11 @@ import {
   isRetiredPublicOnboarding,
   PublicOnboardingRetired,
 } from "@/components/founding/PublicOnboardingRetired";
+import {
+  parseFoundingInvitePageSlug,
+  PublicFoundingInviteAccept,
+} from "@/components/founding/PublicFoundingInviteAccept";
+import { getPublicFoundingInvitation } from "@dg/platform-core";
 
 type SiteChrome = {
   headerHtml?: string;
@@ -164,6 +169,15 @@ export async function generateMetadata({
     const site = await getWebsiteBySlug(slug);
     if (!site) return { title: "Site" };
     const pageSlug = decodePageSlug(search.page);
+    const inviteToken = isDgSiteSlug(slug) ? parseFoundingInvitePageSlug(pageSlug) : null;
+    if (inviteToken) {
+      return {
+        title: "Founding 10 invitation | DigitalGate",
+        description:
+          "You've been personally invited to join DigitalGate's Founding 10.",
+        robots: { index: false, follow: false },
+      };
+    }
     const page = resolvePage(site, pageSlug);
     const title = page?.seo?.title || site.seo?.title || site.name;
     const description =
@@ -266,6 +280,37 @@ async function renderSite(
   if (!allowDraft && site.status !== "published") notFound();
 
   const pageSlug = decodePageSlug(search.page);
+  const inviteToken = isDgSiteSlug(slug) ? parseFoundingInvitePageSlug(pageSlug) : null;
+  if (inviteToken) {
+    const invitation = await getPublicFoundingInvitation(inviteToken);
+    return (
+      <div
+        className="wb-root wb-html-page"
+        style={{ minHeight: "100dvh", background: "#0A0E17" }}
+      >
+        {invitation ? (
+          <PublicFoundingInviteAccept
+            token={inviteToken}
+            firstName={invitation.firstName}
+            businessName={invitation.businessName}
+            invitedByName={invitation.invitedByName}
+            withdrawn={invitation.withdrawn}
+            alreadyAccepted={invitation.status === "accepted"}
+            alreadyInProgramme={invitation.alreadyInProgramme}
+          />
+        ) : (
+          <div className="mx-auto max-w-2xl px-6 py-16 text-slate-200">
+            <h1 className="text-3xl font-bold text-white">Invitation not found</h1>
+            <p className="mt-4 text-slate-300">
+              This Founding 10 invitation link is invalid or has expired. If you
+              were expecting an invitation, contact Ben Roe at hello@digitalgate.com.au.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   let page = resolvePage(site, pageSlug);
   if (
     !page &&

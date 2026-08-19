@@ -152,7 +152,17 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     area: "Platform",
     label: "Founding 10 customer pipeline",
     description:
-      "Accepted → Agreement → Onboarding → Implementation → Go-live → 30-day review with next actions",
+      "Public apply or personal invitation into the same cohort. Seats count only from Accepted. Invitation path + agreement + onboarding + 30-day review.",
+    status: "done",
+    track: "cr-v1",
+    href: "/command/founding",
+  },
+  {
+    id: "founding.invitation",
+    area: "Platform",
+    label: "Founding 10 personal invitation",
+    description:
+      "Second entry into the same cohort: CRM invite, personal email, public /founding-customers/invite/[token]. Seats count only from Accepted.",
     status: "done",
     track: "cr-v1",
     href: "/command/founding",

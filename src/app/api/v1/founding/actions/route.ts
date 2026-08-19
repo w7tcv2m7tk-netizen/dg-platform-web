@@ -3,7 +3,10 @@ import {
   canAccessCommandCentre,
   FOUNDING_STAGES,
   isFoundingStage,
+  markFoundingInvitationAccepted,
   runFoundingStaffAction,
+  sendFoundingInvitation,
+  withdrawFoundingInvitation,
   type FoundingStageAction,
 } from "@dg/platform-core";
 
@@ -15,6 +18,10 @@ const ACTIONS = new Set<FoundingStageAction>([
   "mark_signed",
   "invite_onboarding",
   "advance",
+  "send_invitation",
+  "resend_invitation",
+  "mark_invitation_accepted",
+  "withdraw_invitation",
 ]);
 
 export async function POST(req: Request) {
@@ -60,6 +67,46 @@ export async function POST(req: Request) {
       { error: { code: "validation_error", message: "Invalid stage" } },
       { status: 422 },
     );
+  }
+
+  if (action === "send_invitation" || action === "resend_invitation") {
+    const result = await sendFoundingInvitation({
+      organisationId: session.organisationId,
+      opportunityId,
+      actorId: session.clerkUserId,
+      resend: action === "resend_invitation",
+    });
+    if (result.error) {
+      return NextResponse.json(
+        { error: { code: "invitation_error", message: result.error } },
+        { status: 422 },
+      );
+    }
+    return NextResponse.json({ data: result });
+  }
+
+  if (action === "withdraw_invitation") {
+    const result = await withdrawFoundingInvitation({
+      organisationId: session.organisationId,
+      opportunityId,
+      actorId: session.clerkUserId,
+    });
+    return NextResponse.json({ data: result });
+  }
+
+  if (action === "mark_invitation_accepted") {
+    const result = await markFoundingInvitationAccepted({
+      organisationId: session.organisationId,
+      opportunityId,
+      actorId: session.clerkUserId,
+    });
+    if (result.error) {
+      return NextResponse.json(
+        { error: { code: "invitation_error", message: result.error } },
+        { status: 422 },
+      );
+    }
+    return NextResponse.json({ data: result });
   }
 
   const result = await runFoundingStaffAction({

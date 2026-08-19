@@ -3,6 +3,7 @@ import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import {
+  canAccessCommandCentre,
   formatWantBudget,
   getContact,
   getLead,
@@ -11,10 +12,14 @@ import {
   isWantOpportunityMetadata,
   organisationHasReBeta,
   sourceLeadHref,
+  type FoundingEntryType,
+  type FoundingInvitationStatus,
+  type FoundingSource,
 } from "@dg/platform-core";
 
 import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
 import { FoundingStageActions } from "@/components/founding/FoundingStageActions";
+import { InviteToFounding10Form } from "@/components/founding/InviteToFounding10Form";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -61,11 +66,27 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
       ? lead.metadata.lead_type
       : null;
   const founding = isFoundingPipeline(opportunity.pipelineId, leadType);
+  const meta = (opportunity.metadata ?? {}) as Record<string, unknown>;
   const inviteToken =
-    opportunity.metadata &&
-    typeof opportunity.metadata.founding_invite_token === "string"
-      ? opportunity.metadata.founding_invite_token
+    typeof meta.founding_invite_token === "string" ? meta.founding_invite_token : null;
+  const entryType =
+    meta.founding_entry_type === "application" || meta.founding_entry_type === "personal_invitation"
+      ? (meta.founding_entry_type as FoundingEntryType)
       : null;
+  const foundingSource =
+    typeof meta.founding_source === "string" ? (meta.founding_source as FoundingSource) : null;
+  const invitationStatus =
+    typeof meta.founding_invitation_status === "string"
+      ? (meta.founding_invitation_status as FoundingInvitationStatus)
+      : null;
+  const invitationSentAt =
+    typeof meta.founding_invitation_sent_at === "string" ? meta.founding_invitation_sent_at : null;
+  const staff = canAccessCommandCentre({
+    organisationId: session.organisationId,
+    organisationName: session.organisationName,
+    organisationSlug: session.organisationSlug,
+    role: session.role,
+  });
   const leadHref = lead
     ? sourceLeadHref({
         leadId: lead.id,
@@ -172,6 +193,21 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
               opportunityId={opportunity.id}
               stage={opportunity.stage}
               inviteToken={inviteToken}
+              entryType={entryType}
+              source={foundingSource}
+              invitationStatus={invitationStatus}
+              invitationSentAt={invitationSentAt}
+            />
+          ) : staff && opportunity.contactId ? (
+            <InviteToFounding10Form
+              contactId={opportunity.contactId}
+              defaultName={
+                contact
+                  ? [contact.firstName, contact.lastName].filter(Boolean).join(" ")
+                  : opportunity.title
+              }
+              defaultEmail={contact?.email ?? undefined}
+              defaultPhone={contact?.phone ?? undefined}
             />
           ) : null}
 
