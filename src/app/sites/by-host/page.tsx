@@ -20,9 +20,9 @@ import {
   PublicOnboardingRetired,
 } from "@/components/founding/PublicOnboardingRetired";
 import {
-  parseFoundingInvitePageSlug,
   PublicFoundingInviteAccept,
 } from "@/components/founding/PublicFoundingInviteAccept";
+import { parseFoundingInvitePageSlug } from "@/lib/founding-invite-page-slug";
 import { getPublicFoundingInvitation } from "@dg/platform-core";
 
 type SiteChrome = {

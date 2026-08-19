@@ -3,15 +3,7 @@
 import { useState } from "react";
 import { FOUNDING_PERSONAL_INVITE_BENEFITS } from "@dg/platform-core";
 
-export function parseFoundingInvitePageSlug(pageSlug?: string): string | null {
-  const match = (pageSlug || "").trim().match(/^founding-customers\/invite\/([^/]+)$/i);
-  if (!match?.[1]) return null;
-  try {
-    return decodeURIComponent(match[1]);
-  } catch {
-    return match[1];
-  }
-}
+export { parseFoundingInvitePageSlug } from "@/lib/founding-invite-page-slug";
 
 export function PublicFoundingInviteAccept({
   token,
