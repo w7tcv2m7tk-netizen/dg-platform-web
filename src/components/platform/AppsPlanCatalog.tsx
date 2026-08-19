@@ -92,7 +92,7 @@ function CatalogAppCard({
   align?: "left" | "center";
 }) {
   const setupGuide = getAppSetupGuide(appId);
-  const canToggle = status !== "soon" && platformApps.get(appId);
+  const canToggle = Boolean(platformApps.get(appId));
   const isLeft = align === "left";
 
   return (
@@ -103,21 +103,18 @@ function CatalogAppCard({
         <span className="text-2xl" aria-hidden>
           {icon}
         </span>
-        {canToggle ? (
-          <AppInstallToggle appId={appId} installed={enabled} />
-        ) : status ? (
-          statusBadge(status)
-        ) : null}
+        <div className={`flex flex-wrap items-center gap-2 ${isLeft ? "justify-end" : ""}`}>
+          {status && status !== "included" ? statusBadge(status) : null}
+          {canToggle ? (
+            <AppInstallToggle appId={appId} installed={enabled} />
+          ) : null}
+        </div>
       </div>
       {badge ? (
         <div className={`mt-2 flex ${isLeft ? "justify-start" : "justify-center"}`}>
           <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-300">
             {badge}
           </span>
-        </div>
-      ) : !canToggle && status && status !== "included" ? (
-        <div className={`mt-2 flex ${isLeft ? "justify-start" : "justify-center"}`}>
-          {statusBadge(status)}
         </div>
       ) : null}
       <h3 className="mt-2 font-semibold text-white">{label}</h3>
@@ -352,7 +349,7 @@ export function AppsPlanCatalog() {
         <SectionHeader
           label="🧩 3 · Apps"
           title="Industry apps"
-          description="Property ecosystem grouped first (Real Estate → Accommodation → PM → Commercial), then Services and other verticals. Install only what you need."
+          description="Turn each vertical on or off as you develop or sell it — including Coming soon apps. Only enabled apps appear in the Industry sidebar."
         />
         <div id="industry-apps" className="scroll-mt-24">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

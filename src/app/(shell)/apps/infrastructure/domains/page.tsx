@@ -1,7 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
-import Link from "next/link";
 
 import { DomainsConsole } from "@/components/infrastructure/DomainsConsole";
+import { InfrastructureNav } from "@/components/infrastructure/InfrastructureNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
 
@@ -31,21 +31,10 @@ export default async function Page() {
         <p className="text-sm text-slate-400">
           Founding Customer Early Access · Search, connect, DNS, Make it live
           {session?.organisationName ? ` · ${session.organisationName}` : ""}
-          {" · "}
-          <Link href="/apps/infrastructure/dns" className="text-sky-400 hover:underline">
-            DNS
-          </Link>
-          {" · "}
-          <Link href="/apps/infrastructure/hosting" className="text-sky-400 hover:underline">
-            Hosting
-          </Link>
-          {" · "}
-          <Link href="/apps/infrastructure/email" className="text-sky-400 hover:underline">
-            Email
-          </Link>
         </p>
       </header>
       <main className="dg-page-main">
+        <InfrastructureNav active="domains" />
         <DomainsConsole />
       </main>
     </>

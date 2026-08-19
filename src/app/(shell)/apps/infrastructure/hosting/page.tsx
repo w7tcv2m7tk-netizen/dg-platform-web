@@ -6,6 +6,7 @@ import {
   resolvePrimaryLinkedDomain,
 } from "@dg/platform-core";
 
+import { InfrastructureNav } from "@/components/infrastructure/InfrastructureNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
 
@@ -43,30 +44,10 @@ export default async function HostingStatusPage() {
         <h1 className="text-2xl font-bold text-white">Hosting</h1>
         <p className="text-sm text-slate-400">
           Infrastructure service · platform hosting · auto SSL · custom domains
-          {" · "}
-          <Link
-            href="/apps/infrastructure/domains"
-            className="text-sky-400 hover:underline"
-          >
-            Domains
-          </Link>
-          {" · "}
-          <Link
-            href="/apps/infrastructure/dns"
-            className="text-sky-400 hover:underline"
-          >
-            DNS
-          </Link>
-          {" · "}
-          <Link
-            href="/apps/infrastructure/email"
-            className="text-sky-400 hover:underline"
-          >
-            Email
-          </Link>
         </p>
       </header>
       <main className="dg-page-main space-y-6">
+        <InfrastructureNav active="hosting" />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl">
           <Stat label="Published sites" value={String(published.length)} />
           <Stat label="Linked domains" value={String(linkedDomains.length)} />

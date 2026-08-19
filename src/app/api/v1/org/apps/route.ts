@@ -66,7 +66,7 @@ export async function PATCH(req: Request) {
   });
 
   const settings = (org?.settings as OrgSettings | null) ?? {};
-  let enabled = settings.apps?.enabled ?? getDefaultEnabledAppIds();
+  let enabled = resolveEnabledAppIds(settings);
 
   if (body.action === "apply_plan" && body.plan) {
     enabled = appIdsFromPlanSelection(body.plan);

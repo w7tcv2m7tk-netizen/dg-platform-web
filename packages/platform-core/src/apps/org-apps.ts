@@ -1,10 +1,14 @@
 import type { AppTier } from "./manifest";
 import { platformApps } from "./registry";
 
-/** Default installed apps — registry `enabled: true` customer apps */
+/**
+ * Default installed apps — Core + Growth that are shipped enabled.
+ * Industry apps are opt-in per organisation so verticals can be developed one at a time.
+ */
 export function getDefaultEnabledAppIds(): string[] {
   return platformApps
     .customerApps()
+    .filter((a) => a.manifest.tier !== "business")
     .map((a) => a.manifest.id);
 }
 

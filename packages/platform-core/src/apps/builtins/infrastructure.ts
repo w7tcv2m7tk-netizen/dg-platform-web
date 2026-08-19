@@ -4,17 +4,18 @@ export const infrastructureApp: AppManifest = {
   id: "infrastructure",
   name: "Infrastructure",
   description:
-    "DigitalGate Domains, DNS, SSL, hosting, and email — Core Platform Service (provider adapters; Dreamscape V1)",
+    "DigitalGate Domains, DNS, SSL, hosting, email, backup, and Cloudflare — Core Platform Service",
   tier: "core",
-  version: "0.2.0",
+  version: "0.3.0",
   icon: "⚙",
   routes: [
     { path: "/apps/infrastructure/domains", label: "Domains" },
     { path: "/apps/infrastructure/dns", label: "DNS" },
+    { path: "/apps/infrastructure/ssl", label: "SSL" },
     { path: "/apps/infrastructure/hosting", label: "Hosting" },
     { path: "/apps/infrastructure/email", label: "Email" },
-    // Deployments / Monitoring: routes exist as “coming later” pages but
-    // stay hidden so the AU pilot doesn’t show empty Apps.
+    { path: "/apps/infrastructure/backup", label: "Backup" },
+    { path: "/apps/infrastructure/cloudflare", label: "Cloudflare" },
   ],
   navigation: [
     { href: "/apps/infrastructure/domains", label: "Infrastructure", icon: "⚙" },
@@ -25,6 +26,7 @@ export const infrastructureApp: AppManifest = {
     { id: "infra.dns.manage", label: "Manage DNS" },
     { id: "infra.email.manage", label: "Manage email infrastructure" },
     { id: "infra.hosting.manage", label: "Manage hosting" },
+    { id: "infra.backups.manage", label: "Export backups" },
     { id: "infra.deploy", label: "Deploy sites" },
   ],
   features: [

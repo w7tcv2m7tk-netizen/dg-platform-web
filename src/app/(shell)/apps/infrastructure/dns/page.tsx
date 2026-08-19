@@ -1,6 +1,5 @@
-import Link from "next/link";
-
 import { DnsConsole } from "@/components/infrastructure/DnsConsole";
+import { InfrastructureNav } from "@/components/infrastructure/InfrastructureNav";
 
 /**
  * DNS Infrastructure — zone inspect, suggested hosting records, Apply website DNS.
@@ -13,30 +12,10 @@ export default function DnsInfrastructurePage() {
         <h1 className="text-2xl font-bold text-white">DNS</h1>
         <p className="text-sm text-slate-400">
           Infrastructure service · website hosting records + zone status
-          {" · "}
-          <Link
-            href="/apps/infrastructure/domains"
-            className="text-sky-400 hover:underline"
-          >
-            Domains
-          </Link>
-          {" · "}
-          <Link
-            href="/apps/infrastructure/hosting"
-            className="text-sky-400 hover:underline"
-          >
-            Hosting
-          </Link>
-          {" · "}
-          <Link
-            href="/apps/infrastructure/email"
-            className="text-sky-400 hover:underline"
-          >
-            Email
-          </Link>
         </p>
       </header>
       <main className="dg-page-main">
+        <InfrastructureNav active="dns" />
         <DnsConsole />
       </main>
     </>

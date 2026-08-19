@@ -132,6 +132,17 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   social: { name: "Social" },
   "ai-communications": { name: "AI Communications" },
   reviews: { name: "Reputation" },
+  infrastructure: {
+    routes: [
+      { path: "/apps/infrastructure/domains", label: "Domains" },
+      { path: "/apps/infrastructure/dns", label: "DNS" },
+      { path: "/apps/infrastructure/ssl", label: "SSL" },
+      { path: "/apps/infrastructure/hosting", label: "Hosting" },
+      { path: "/apps/infrastructure/email", label: "Email" },
+      { path: "/apps/infrastructure/backup", label: "Backup" },
+      { path: "/apps/infrastructure/cloudflare", label: "Cloudflare" },
+    ],
+  },
 };
 
 /** BUSINESS — who you are. */
