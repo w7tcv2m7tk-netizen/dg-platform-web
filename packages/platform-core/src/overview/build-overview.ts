@@ -209,9 +209,7 @@ function buildConnectedSystems(
       status: websiteStatus,
       detail: connectors.website?.score
         ? `${connectors.website.score}/100`
-        : publicSite
-          ? websiteUrl
-          : undefined,
+        : websiteUrl?.trim() || undefined,
     },
     ...(connectors.wordpress?.configured
       ? [
@@ -252,7 +250,7 @@ function buildConnectedSystems(
       id: "domains",
       label: "Domains",
       status: connectors.website?.ok ? "healthy" : "offline",
-      detail: connectors.website?.siteLabel,
+      detail: connectors.website?.siteLabel || undefined,
     },
   ];
 
