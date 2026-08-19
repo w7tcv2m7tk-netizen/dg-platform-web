@@ -20,6 +20,7 @@ export const marketingOverviewInput: BuildBusinessOverviewInput = {
     hasTeamMember: true,
     hasContacts: true,
     hasTimelineActivity: true,
+    hasPublishedWebsite: true,
     contactCount: 248,
     activityCount: 1204,
   },

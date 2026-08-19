@@ -35,13 +35,7 @@ export interface BuildBusinessOverviewInput {
   userDisplayName: string;
   enabledAppIds: string[];
   setupStatus?: PlatformSetupStatus | null;
-  businessProfile?: {
-    businessName?: string;
-    tradingName?: string;
-    logoUrl?: string;
-    brandColours?: string;
-    brandVoice?: { tagline?: string };
-  } | null;
+  businessProfile?: OrganisationBusinessProfile | null;
   activities?: Array<{
     id: string;
     title: string;
