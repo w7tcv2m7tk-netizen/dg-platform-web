@@ -7,6 +7,7 @@ import {
   listWebsitesWithPages,
   normalizeSiteHealthSnapshot,
   organisationHasWebsitesBuilder,
+  resolvePrimaryLinkedDomain,
 } from "@dg/platform-core";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
@@ -60,7 +61,7 @@ function healthActionHref(
     case "dns":
     case "ssl":
       return {
-        href: `/apps/websites/studio/${siteId}?live=1`,
+        href: "/apps/infrastructure/hosting",
         label: "Fix go-live checklist",
       };
     case "form_crm":
@@ -113,9 +114,6 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
   const domains = session
     ? await listOrganisationDomains(session.organisationId)
     : [];
-  const domainByWebsite = new Map(
-    domains.filter((d) => d.websiteId).map((d) => [d.websiteId!, d]),
-  );
 
   const showWp = view === "wordpress";
   const wpSites = listWpHealthSites();
@@ -189,7 +187,8 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
           ) : (
             <ul className="space-y-6 max-w-4xl">
               {sites.map((site) => {
-                const domain = domainByWebsite.get(site.id);
+                const linked = domains.filter((d) => d.websiteId === site.id);
+                const domain = resolvePrimaryLinkedDomain(site, linked);
                 const snapshot = buildNativeWebsiteHealth({
                   website: site,
                   domain: domain
@@ -198,6 +197,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
                         status: domain.status,
                         dnsConfiguredAt: domain.dnsConfiguredAt,
                         sslState: domain.sslState,
+                        aliases: linked.map((d) => d.name),
                       }
                     : null,
                 });

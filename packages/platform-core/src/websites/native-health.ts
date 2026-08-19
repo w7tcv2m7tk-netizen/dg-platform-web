@@ -6,6 +6,7 @@ import type {
   HealthCheck,
   SerializedWebsite,
   SiteHealthSnapshot,
+  WebsiteComponent,
 } from "./types";
 
 export type NativeHealthDomain = {
@@ -13,12 +14,66 @@ export type NativeHealthDomain = {
   status?: string | null;
   dnsConfiguredAt?: string | Date | null;
   sslState?: string | null;
+  /** Extra hostnames linked to the same website (aliases). */
+  aliases?: string[];
 } | null;
 
-function hasContactForm(site: SerializedWebsite): boolean {
+const HTML_FORM_MARKERS = [
+  "<form",
+  "dgcontactform",
+  "dgfoundingform",
+  "dgbookingform",
+  "dgdiscoveryform",
+  "/api/public/website-form",
+  "/api/public/dg-enquiry",
+];
+
+function htmlHasPublicForm(html: unknown): boolean {
+  if (typeof html !== "string" || !html) return false;
+  const haystack = html.toLowerCase();
+  return HTML_FORM_MARKERS.some((marker) => haystack.includes(marker));
+}
+
+function componentCapturesToCrm(component: WebsiteComponent): boolean {
+  if (component.type === "contact_form") return true;
+  if (component.type === "html") return htmlHasPublicForm(component.props.html);
+  return false;
+}
+
+function funnelCapturesToCrm(site: SerializedWebsite): boolean {
+  const meta = site.metadata;
+  if (!meta || typeof meta !== "object") return false;
+  if (meta.kind === "funnel") return true;
+  if (typeof meta.capturePath === "string" && meta.capturePath.trim()) {
+    return true;
+  }
+  if (typeof meta.funnelTemplate === "string" && meta.funnelTemplate.trim()) {
+    return true;
+  }
+  return false;
+}
+
+function hasCrmCapture(site: SerializedWebsite): boolean {
+  if (funnelCapturesToCrm(site)) return true;
   return (site.pages ?? []).some((p) =>
-    p.components.some((c) => c.type === "contact_form"),
+    p.components.some(componentCapturesToCrm),
   );
+}
+
+function crmCaptureDetail(site: SerializedWebsite, ok: boolean): string {
+  if (!ok) {
+    return "No CRM capture — add a contact form in Studio, or a public HTML / funnel form";
+  }
+  if (funnelCapturesToCrm(site)) {
+    return "Product funnel capture posts to CRM";
+  }
+  const html = (site.pages ?? []).some((p) =>
+    p.components.some(
+      (c) => c.type === "html" && htmlHasPublicForm(c.props.html),
+    ),
+  );
+  if (html) return "Public HTML form posts to CRM";
+  return "Contact form present on at least one page";
 }
 
 function pageSeoCoverage(site: SerializedWebsite): {
@@ -46,15 +101,23 @@ export function buildNativeWebsiteHealth(input: {
   const seo = pageSeoCoverage(website);
   const published = website.status === "published";
   const hasDomain = Boolean(domain?.name);
-  const dnsOk = Boolean(domain?.dnsConfiguredAt);
   const sslOk = (domain?.sslState || "").toLowerCase() === "active";
-  const formOk = hasContactForm(website);
+  const dnsOk = Boolean(domain?.dnsConfiguredAt) || sslOk;
+  const formOk = hasCrmCapture(website);
   const siteTitleOk = Boolean(website.seo?.title?.trim());
   const siteDescOk = Boolean(website.seo?.description?.trim());
   const pagesSeoTitleOk =
     seo.total === 0 ? false : seo.withTitle === seo.total;
   const pagesSeoDescOk =
     seo.total === 0 ? false : seo.withDescription === seo.total;
+  const aliases = (domain?.aliases ?? []).filter(
+    (name) => name.toLowerCase() !== domain?.name.toLowerCase(),
+  );
+  const domainDetail = hasDomain
+    ? aliases.length > 0
+      ? `${domain!.name} · aliases: ${aliases.join(", ")}`
+      : domain!.name
+    : "No domain linked — connect via Domains / Make it live";
 
   const checks: HealthCheck[] = [
     {
@@ -69,9 +132,7 @@ export function buildNativeWebsiteHealth(input: {
       id: "custom_domain",
       label: "Custom domain",
       status: hasDomain ? "pass" : "warn",
-      detail: hasDomain
-        ? domain!.name
-        : "No domain linked — connect via Domains / Make it live",
+      detail: domainDetail,
     },
     {
       id: "dns",
@@ -79,9 +140,11 @@ export function buildNativeWebsiteHealth(input: {
       status: !hasDomain ? "warn" : dnsOk ? "pass" : "fail",
       detail: !hasDomain
         ? "Connect a domain first"
-        : dnsOk
+        : domain?.dnsConfiguredAt
           ? "Hosting DNS applied"
-          : "DNS not applied yet — run Make it live",
+          : sslOk
+            ? "HTTPS live — DNS is resolving"
+            : "DNS not applied yet — run Make it live",
     },
     {
       id: "ssl",
@@ -97,9 +160,7 @@ export function buildNativeWebsiteHealth(input: {
       id: "form_crm",
       label: "Form → CRM",
       status: formOk ? "pass" : "fail",
-      detail: formOk
-        ? "Contact form present on at least one page"
-        : "No contact_form component — add via Studio or regenerate",
+      detail: crmCaptureDetail(website, formOk),
     },
     {
       id: "seo_title",
