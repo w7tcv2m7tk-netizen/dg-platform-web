@@ -120,4 +120,14 @@ describe("buildNativeWebsiteHealth", () => {
     assert.equal(snapshot.checks.find((c) => c.id === "ssl")?.status, "pass");
     assert.equal(snapshot.fail, 0);
   });
+
+  it("prefers a published site for the health probe", async () => {
+    const { pickWebsiteForHealthProbe } = await load();
+    const picked = pickWebsiteForHealthProbe([
+      { status: "draft", slug: "draft" },
+      { status: "published", slug: "live" },
+    ]);
+    assert.equal(picked?.slug, "live");
+    assert.equal(pickWebsiteForHealthProbe([]), null);
+  });
 });

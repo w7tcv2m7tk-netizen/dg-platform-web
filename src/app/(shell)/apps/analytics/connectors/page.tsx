@@ -101,6 +101,13 @@ export default async function AnalyticsConnectorsPage() {
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-slate-400">{source.detail}</p>
+                {source.id === "website" ? (
+                  <p className="mt-2 text-sm">
+                    <Link href="/apps/websites/health" className="text-blue-400 hover:underline">
+                      {source.ok ? "View website health →" : "Open Health Centre →"}
+                    </Link>
+                  </p>
+                ) : null}
               </li>
             ))}
           </ul>

@@ -94,6 +94,13 @@ function pageSeoCoverage(site: SerializedWebsite): {
   return { withTitle, withDescription, total: pages.length };
 }
 
+export function pickWebsiteForHealthProbe<T extends { status: string }>(
+  sites: T[],
+): T | null {
+  if (!sites.length) return null;
+  return sites.find((s) => s.status === "published") ?? sites[0] ?? null;
+}
+
 export function buildNativeWebsiteHealth(input: {
   website: SerializedWebsite;
   domain?: NativeHealthDomain;

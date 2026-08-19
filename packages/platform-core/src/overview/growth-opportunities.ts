@@ -60,7 +60,7 @@ export function buildGrowthOpportunities(input: BuildOpportunitiesInput): {
       label: "Connect website health probe",
       status: "Not connected",
       impact: "Unlock live scores",
-      href: "/dashboard/settings/connectors",
+      href: "/apps/websites/health",
     });
   }
 

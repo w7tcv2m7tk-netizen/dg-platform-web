@@ -1,4 +1,14 @@
-import { getStripeSetupStatus, organisationHasWordPressConnector, type OverviewConnectorProbes } from "@dg/platform-core";
+import {
+  buildNativeWebsiteHealth,
+  getStripeSetupStatus,
+  listOrganisationDomains,
+  listWebsitesWithPages,
+  organisationHasWordPressConnector,
+  pickWebsiteForHealthProbe,
+  resolvePrimaryLinkedDomain,
+  type OverviewConnectorProbes,
+  type WebsiteProbe,
+} from "@dg/platform-core";
 
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
 import {
@@ -17,7 +27,44 @@ function sumPipelineCounts(
   return total > 0 ? total : undefined;
 }
 
-/** Probe WordPress, Stripe, and site health for Business Overview. */
+async function probeNativeWebsite(
+  organisationId: string,
+): Promise<WebsiteProbe | null> {
+  try {
+    const [sites, domains] = await Promise.all([
+      listWebsitesWithPages(organisationId),
+      listOrganisationDomains(organisationId),
+    ]);
+    const site = pickWebsiteForHealthProbe(sites);
+    if (!site) return null;
+    const linked = domains.filter((d) => d.websiteId === site.id);
+    const domain = resolvePrimaryLinkedDomain(site, linked);
+    const snapshot = buildNativeWebsiteHealth({
+      website: site,
+      domain: domain
+        ? {
+            name: domain.name,
+            status: domain.status,
+            dnsConfiguredAt: domain.dnsConfiguredAt,
+            sslState: domain.sslState,
+            aliases: linked.map((d) => d.name),
+          }
+        : null,
+    });
+    return {
+      ok: true,
+      score: snapshot.score,
+      pass: snapshot.pass,
+      warn: snapshot.warn,
+      fail: snapshot.fail,
+      siteLabel: domain?.name ?? snapshot.site,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Probe Design Studio, WordPress, Stripe, and site health for Business Overview. */
 export async function fetchOverviewConnectorProbes(
   enabledAppIds: string[],
   organisationId: string,
@@ -28,14 +75,15 @@ export async function fetchOverviewConnectorProbes(
   const orgConnector = await wpConnectorForOrg(organisationId);
   const accConnector = await accommodationConnectorForSession(organisationId);
 
-  const [siteHealth, reSummary, accSummary] = await Promise.all([
-    fetchWpSiteHealth(),
+  const [siteHealth, reSummary, accSummary, nativeWebsite] = await Promise.all([
+    wpConfigured ? fetchWpSiteHealth() : Promise.resolve({ ok: false as const }),
     enabledAppIds.includes("real-estate")
       ? fetchWpReSummary(30, orgConnector)
       : Promise.resolve(null),
     enabledAppIds.includes("accommodation")
       ? fetchWpAccommodationSummary(null, 30, accConnector)
       : Promise.resolve(null),
+    probeNativeWebsite(organisationId),
   ]);
 
   const hasWpKey =
@@ -48,7 +96,9 @@ export async function fetchOverviewConnectorProbes(
     stripeMode: stripe.mode,
   };
 
-  if (siteHealth.ok) {
+  if (nativeWebsite) {
+    probes.website = nativeWebsite;
+  } else if (siteHealth.ok) {
     probes.website = {
       ok: true,
       score: siteHealth.payload.score,
