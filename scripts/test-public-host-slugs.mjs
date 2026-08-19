@@ -23,6 +23,13 @@ describe("knownSlugForPublicHost", () => {
     );
   });
 
+  it("maps Wantd hosts to the published website slug", async () => {
+    const { knownSlugForPublicHost } = await load();
+    assert.equal(knownSlugForPublicHost("wantd.co.nz"), "wantd");
+    assert.equal(knownSlugForPublicHost("www.wantd.co.nz"), "wantd");
+    assert.equal(knownSlugForPublicHost("wantdproperty.com.au"), "wantd");
+  });
+
   it("returns null for unknown hosts so DB lookup can run", async () => {
     const { knownSlugForPublicHost } = await load();
     assert.equal(knownSlugForPublicHost("example.com"), null);

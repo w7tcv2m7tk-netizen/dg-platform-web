@@ -66,8 +66,8 @@ export const ORG_BRAND_PRESETS: Record<OrgBrandPresetKey, OrgBrandPreset> = {
     key: "wantd",
     label: "Wantd",
     patch: {
-      brandColours: serializeBrandColours("#E8A838", "#2DD4BF", "#0B1220"),
-      websiteUrl: "https://wantdproperty.com.au",
+      brandColours: serializeBrandColours("#8E3028", "#C49A5A", "#171513"),
+      websiteUrl: "https://wantd.co.nz",
     },
   },
 };

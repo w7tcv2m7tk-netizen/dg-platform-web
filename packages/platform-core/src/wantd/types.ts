@@ -6,7 +6,8 @@
 
 export const WANTD_ORG_SLUG = "wantd";
 export const WANTD_ORG_NAME = "Wantd";
-export const WANTD_WEBSITE = "https://wantdproperty.com.au";
+export const WANTD_WEBSITE = "https://wantd.co.nz";
+export const WANTD_WEBSITE_AU = "https://wantdproperty.com.au";
 export const WANTD_VERTICAL = "Wantd Property";
 
 /** Marks Opportunity.metadata as a Want (future Demand object migration key). */

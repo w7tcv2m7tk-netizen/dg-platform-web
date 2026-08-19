@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     name?: string;
     brief?: string;
     generate?: boolean;
-    template?: "generic" | "real_estate" | "accommodation" | "auto";
+    template?: "generic" | "real_estate" | "accommodation" | "marketplace" | "auto";
     kind?: "site" | "funnel";
     funnelTemplate?: string;
     offer?: string;

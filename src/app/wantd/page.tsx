@@ -59,10 +59,10 @@ export default function WantdHomePage() {
       <p className="wantd-muted mt-16 text-center text-xs">
         Property Wants live today · more categories rolling out ·{" "}
         <a
-          href="https://wantdproperty.com.au"
+          href="https://wantd.co.nz"
           className="text-[var(--wantd-tan)] hover:text-[var(--wantd-gold)]"
         >
-          wantdproperty.com.au
+          wantd.co.nz
         </a>
       </p>
     </main>

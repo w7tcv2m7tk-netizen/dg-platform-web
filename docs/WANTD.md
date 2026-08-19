@@ -2,7 +2,7 @@
 
 **Status:** MVP validation · August 2026  
 **Organisation:** Wantd (`wantd`)  
-**Vertical:** Wantd Property · [wantdproperty.com.au](https://wantdproperty.com.au)  
+**Vertical:** Wantd Property · [wantd.co.nz](https://wantd.co.nz) ([AU alias](https://wantdproperty.com.au))  
 **Classification:** Business / Organisation — **not** a DigitalGate App
 
 ---

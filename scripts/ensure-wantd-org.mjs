@@ -12,7 +12,7 @@ config({ path: ".env.local" });
 
 const WANTD_ORG_SLUG = "wantd";
 const WANTD_ORG_NAME = "Wantd";
-const WANTD_WEBSITE = "https://wantdproperty.com.au";
+const WANTD_WEBSITE = "https://wantd.co.nz";
 const WANTD_ENABLED_APPS = [
   "crm",
   "commerce",

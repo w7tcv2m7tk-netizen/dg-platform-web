@@ -53,7 +53,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     status?: string;
     slug?: string;
     regenerate?: boolean;
-    template?: "generic" | "real_estate" | "accommodation" | "auto";
+    template?: "generic" | "real_estate" | "accommodation" | "marketplace" | "auto";
     theme?: Record<string, unknown>;
     seo?: Record<string, unknown>;
     metadata?: Record<string, unknown>;

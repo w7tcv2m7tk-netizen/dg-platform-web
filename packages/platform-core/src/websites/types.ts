@@ -85,7 +85,18 @@ export type WebsitePageIntent =
   | "custom";
 
 /** Starter IA packs for industry-aware generation */
-export type WebsiteTemplateId = "generic" | "real_estate" | "accommodation";
+export const WEBSITE_TEMPLATE_IDS = [
+  "generic",
+  "real_estate",
+  "accommodation",
+  "marketplace",
+] as const;
+
+export type WebsiteTemplateId = (typeof WEBSITE_TEMPLATE_IDS)[number];
+
+export function isWebsiteTemplateId(value: string): value is WebsiteTemplateId {
+  return (WEBSITE_TEMPLATE_IDS as readonly string[]).includes(value);
+}
 
 /** Funnel Builder — single-page conversion templates + product lead magnets */
 export type FunnelTemplateId =

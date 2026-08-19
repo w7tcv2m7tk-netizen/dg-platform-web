@@ -4,12 +4,18 @@
 
 import type { OrganisationBusinessProfile } from "../org/business-profile-types";
 import { component } from "./schema";
+import { buildMarketplaceSiteModel } from "./templates-marketplace";
 import type {
   GeneratedSiteModel,
   WebsiteComponent,
   WebsiteTemplateId,
   WebsiteTheme,
 } from "./types";
+
+export {
+  buildMarketplaceSiteModel,
+  wantdWebsiteTheme,
+} from "./templates-marketplace";
 
 export function resolveWebsiteTemplateId(input: {
   explicit?: WebsiteTemplateId | "auto" | null;
@@ -20,6 +26,10 @@ export function resolveWebsiteTemplateId(input: {
 
   const vertical = (input.industryVertical || "").toLowerCase().replace(/-/g, "_");
   const apps = new Set(input.enabledAppIds ?? []);
+
+  if (vertical.includes("marketplace") || vertical.includes("wantd")) {
+    return "marketplace";
+  }
 
   if (
     vertical.includes("accommodation") ||
@@ -69,6 +79,17 @@ export function buildIndustrySiteModel(input: {
 }): GeneratedSiteModel {
   const { name, tagline, about, services, phone, email, theme, template } =
     input;
+
+  if (template === "marketplace") {
+    return buildMarketplaceSiteModel({
+      name,
+      tagline,
+      about,
+      phone,
+      email,
+      theme,
+    });
+  }
 
   if (template === "real_estate") {
     const cta = "Book a free appraisal";

@@ -13,6 +13,10 @@ import {
   preparePublicChrome,
 } from "@/lib/public-chrome";
 import {
+  publicPageMetadata,
+  publicSiteJsonLd,
+} from "@/lib/public-website-seo";
+import {
   isRetiredPublicOnboarding,
   PublicOnboardingRetired,
 } from "@/components/founding/PublicOnboardingRetired";
@@ -28,33 +32,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!site) return { title: "Site" };
   const page = (site.pages ?? []).find((p) => p.slug === pageSlug);
   if (!page) return { title: site.name };
-  const title = decodeHtmlEntities(
-    page.seo?.title || `${page.title} | ${site.name}`,
-  );
-  const description =
-    page.seo?.description || site.seo?.description || site.name;
-  const ogTitle = decodeHtmlEntities(
-    page.seo?.ogTitle || site.seo?.ogTitle || title,
-  );
-  const ogDescription =
-    page.seo?.ogDescription || site.seo?.ogDescription || description;
-  const ogImage = publicOgImageForSlug(
-    slug,
-    page.seo?.ogImage || site.seo?.ogImage,
-  );
-  const keywords = page.seo?.keywords?.length
-    ? page.seo.keywords
-    : site.seo?.keywords;
-  return {
-    title,
-    description,
-    ...(keywords?.length ? { keywords } : {}),
-    openGraph: {
-      title: ogTitle,
-      description: ogDescription,
-      images: [{ url: ogImage }],
-    },
-  };
+  return publicPageMetadata({
+    siteSlug: slug,
+    siteName: site.name,
+    pageSlug,
+    title: page.seo?.title || `${page.title} | ${site.name}`,
+    description: page.seo?.description || site.seo?.description || site.name,
+    ogTitle: page.seo?.ogTitle || site.seo?.ogTitle,
+    ogDescription: page.seo?.ogDescription || site.seo?.ogDescription,
+    ogImage: page.seo?.ogImage || site.seo?.ogImage,
+    keywords: page.seo?.keywords?.length
+      ? page.seo.keywords
+      : site.seo?.keywords,
+  });
 }
 
 export default async function PublicSitePage({ params, searchParams }: Props) {
@@ -148,6 +138,23 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
       <meta property="og:title" content={ogTitle} />
       <meta property="og:description" content={ogDescription} />
       <meta property="og:image" content={ogImage} />
+      {(page.seo?.keywords?.length || site.seo?.keywords?.length) ? (
+        <meta
+          name="keywords"
+          content={(page.seo?.keywords?.length
+            ? page.seo.keywords
+            : site.seo?.keywords ?? []
+          ).join(", ")}
+        />
+      ) : null}
+      {publicSiteJsonLd(slug) ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(publicSiteJsonLd(slug)),
+          }}
+        />
+      ) : null}
       {(funnelTemplate === "hideaway_circle"
         ? []
         : chrome?.stylesheets ?? []

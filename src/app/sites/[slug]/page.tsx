@@ -14,6 +14,10 @@ import {
   decodeHtmlEntities,
   preparePublicChrome,
 } from "@/lib/public-chrome";
+import {
+  publicPageMetadata,
+  publicSiteJsonLd,
+} from "@/lib/public-website-seo";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -30,21 +34,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const site = await getWebsiteBySlug(slug);
   if (!site) return { title: "Site" };
   const home = resolveHome(site);
-  const title = decodeHtmlEntities(
-    home?.seo?.title || site.seo?.title || site.name,
-  );
-  const description =
-    home?.seo?.description || site.seo?.description || site.name;
-  const ogImage = publicOgImageForSlug(
-    slug,
-    home?.seo?.ogImage || site.seo?.ogImage,
-  );
-  return {
-    title,
-    description,
-    applicationName: site.name,
-    openGraph: { title, description, images: [{ url: ogImage }] },
-  };
+  return publicPageMetadata({
+    siteSlug: slug,
+    siteName: site.name,
+    pageSlug: "home",
+    title: home?.seo?.title || site.seo?.title || site.name,
+    description: home?.seo?.description || site.seo?.description || site.name,
+    ogTitle: home?.seo?.ogTitle || site.seo?.ogTitle,
+    ogDescription: home?.seo?.ogDescription || site.seo?.ogDescription,
+    ogImage: home?.seo?.ogImage || site.seo?.ogImage,
+    keywords: home?.seo?.keywords?.length
+      ? home.seo.keywords
+      : site.seo?.keywords,
+  });
 }
 
 export default async function PublicSiteHomePage({
@@ -113,6 +115,23 @@ export default async function PublicSiteHomePage({
       <meta property="og:title" content={ogTitle} />
       <meta property="og:description" content={ogDescription} />
       {ogImage ? <meta property="og:image" content={ogImage} /> : null}
+      {home.seo?.keywords?.length || site.seo?.keywords?.length ? (
+        <meta
+          name="keywords"
+          content={(home.seo?.keywords?.length
+            ? home.seo.keywords
+            : site.seo?.keywords ?? []
+          ).join(", ")}
+        />
+      ) : null}
+      {publicSiteJsonLd(slug) ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(publicSiteJsonLd(slug)),
+          }}
+        />
+      ) : null}
       {(funnelTemplate === "hideaway_circle"
         ? []
         : chrome?.stylesheets ?? []

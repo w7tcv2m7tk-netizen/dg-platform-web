@@ -10,6 +10,7 @@ import { parseGeneratedSiteModel } from "./schema";
 import {
   buildIndustrySiteModel,
   resolveWebsiteTemplateId,
+  wantdWebsiteTheme,
 } from "./templates";
 import type {
   GeneratedSiteModel,
@@ -81,12 +82,22 @@ export function buildTemplateSiteModel(input: {
     input.profile?.businessPhone || input.profile?.contactPhone || undefined;
   const email =
     input.profile?.businessEmail || input.profile?.contactEmail || undefined;
-  const theme = themeFromProfile(input.profile, input.organisationName);
   const template = resolveWebsiteTemplateId({
     explicit: input.template ?? "auto",
     industryVertical: input.profile?.industryVertical,
     enabledAppIds: input.enabledAppIds,
   });
+  const profileTheme = themeFromProfile(input.profile, input.organisationName);
+  const theme =
+    template === "marketplace"
+      ? {
+          ...wantdWebsiteTheme({
+            logoUrl: profileTheme.logoUrl,
+            iconUrl: profileTheme.iconUrl,
+          }),
+          businessName: profileTheme.businessName || "Wantd",
+        }
+      : profileTheme;
 
   return buildIndustrySiteModel({
     name,
@@ -125,14 +136,26 @@ export async function generateSiteModel(input: {
 
   const name = displayName(input.profile, input.organisationName);
   const services = servicesList(input.profile);
-  const theme = themeFromProfile(input.profile, input.organisationName);
+  const profileTheme = themeFromProfile(input.profile, input.organisationName);
+  const theme =
+    template === "marketplace"
+      ? {
+          ...wantdWebsiteTheme({
+            logoUrl: profileTheme.logoUrl,
+            iconUrl: profileTheme.iconUrl,
+          }),
+          businessName: profileTheme.businessName || "Wantd",
+        }
+      : profileTheme;
 
   const pageHint =
     template === "real_estate"
       ? "Include pages: home, listings (appraisals CTA), about, contact. Contact must include contact_form. CTAs should favour Book an appraisal."
       : template === "accommodation"
         ? "Include pages: home, stay (units), about, contact. Contact must include contact_form. CTAs should favour Check availability / Enquire to book."
-        : "Include pages: home, services, about, contact. Contact page must include contact_form.";
+        : template === "marketplace"
+          ? "Include pages: home, how-it-works, post-a-want (with contact_form), categories, about, faq, contact (contact_form), privacy, terms. Tone: fun, easy, younger-first but not exclusive. Australian/NZ English. CTAs: Post a Want. Cream + western red + gold — no blue/purple SaaS copy."
+          : "Include pages: home, services, about, contact. Contact page must include contact_form.";
 
   try {
     const result = await llmChat({

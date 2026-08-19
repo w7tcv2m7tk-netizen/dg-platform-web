@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     "Demand-first property matching — describe what you want and Wantd finds relevant supply.",
 };
 
-/** Public MVP capture surface for wantdproperty.com.au (hosted on DigitalGate until DNS cutover). */
+/** Public MVP capture — also available on wantd.co.nz /post-a-want. */
 export default function WantdPropertyWantPage() {
   return (
     <main className="mx-auto max-w-xl px-4 py-12 sm:py-16">
@@ -33,10 +33,10 @@ export default function WantdPropertyWantPage() {
         {" · "}
         Powered by DigitalGate ·{" "}
         <a
-          href="https://wantdproperty.com.au"
+          href="https://wantd.co.nz"
           className="text-[var(--wantd-tan)] hover:text-[var(--wantd-gold)]"
         >
-          wantdproperty.com.au
+          wantd.co.nz
         </a>
       </p>
     </main>

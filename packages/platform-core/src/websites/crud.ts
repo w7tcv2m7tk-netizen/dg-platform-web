@@ -18,6 +18,7 @@ import type {
   WebsiteTemplateId,
   WebsiteTheme,
 } from "./types";
+import { isWebsiteTemplateId } from "./types";
 
 function decodeHtmlEntities(value: string): string {
   if (!value || !/[&]/.test(value)) return value;
@@ -305,6 +306,7 @@ export async function createWebsite(input: {
         industryHooks: {
           realEstate: template === "real_estate",
           accommodation: template === "accommodation",
+          marketplace: template === "marketplace",
         },
         wpImport: {
           status: "not_started",
@@ -372,9 +374,7 @@ export async function regenerateWebsitePages(input: {
   const template = resolveWebsiteTemplateId({
     explicit:
       input.template ??
-      (priorTemplate === "real_estate" ||
-      priorTemplate === "accommodation" ||
-      priorTemplate === "generic"
+      (priorTemplate && isWebsiteTemplateId(priorTemplate)
         ? priorTemplate
         : "auto"),
     industryVertical: profile?.industryVertical,
@@ -404,6 +404,7 @@ export async function regenerateWebsitePages(input: {
         industryHooks: {
           realEstate: generated.template === "real_estate",
           accommodation: generated.template === "accommodation",
+          marketplace: generated.template === "marketplace",
         },
         regeneratedAt: new Date().toISOString(),
       } as Prisma.InputJsonValue,

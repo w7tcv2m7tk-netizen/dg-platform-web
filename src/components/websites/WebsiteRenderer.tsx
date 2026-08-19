@@ -213,6 +213,16 @@ function asServiceItems(v: unknown): Array<{ title: string; description: string 
     .filter((x): x is { title: string; description: string } => x !== null);
 }
 
+function isLightHex(hex?: string | null): boolean {
+  const m = hex?.trim().match(/^#([0-9a-f]{6})$/i);
+  if (!m) return false;
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62;
+}
+
 function resolveHref(href: string, basePath: string): string {
   const funnel = rewriteProductFunnelHref(href);
   if (funnel !== href) return funnel;
@@ -565,6 +575,16 @@ export function WebsiteComponentView({
           <p className="wb-footer-meta" style={{ color: accent }}>
             Powered by DigitalGate
           </p>
+          {asLinks(component.props.links).length ? (
+            <p className="wb-footer-meta">
+              {asLinks(component.props.links).map((l, i) => (
+                <span key={`${l.href}-${i}`}>
+                  {i > 0 ? " · " : null}
+                  <a href={resolveHref(l.href, basePath)}>{l.label}</a>
+                </span>
+              ))}
+            </p>
+          ) : null}
         </footer>
       );
     }
@@ -1236,7 +1256,8 @@ export function WebsitePageRenderer({
     (hasLightHtml ||
       (overlayHeader && postGridOnly) ||
       Boolean(chrome?.lightSurface) ||
-      Boolean(stayUnit));
+      Boolean(stayUnit) ||
+      isLightHex(bg));
   const businessName = chrome?.businessName?.trim() || siteSlug;
   const rawLinks = Array.isArray(chrome?.navLinks) ? chrome!.navLinks! : [];
   const links = rawLinks
@@ -1321,6 +1342,7 @@ export function WebsitePageRenderer({
         {
           ["--wb-primary"]: primary,
           ["--wb-accent"]: accent,
+          ...(isLightHex(bg) ? { ["--wb-paper"]: bg } : {}),
           ["--wb-bg"]: isProductFunnel
             ? resolvedFunnelTemplate === "property_report"
               ? "#1C2B2A"

@@ -26,6 +26,11 @@ const TEMPLATES: Array<{
     detail: "Home · Stay/Units · About · Contact",
   },
   {
+    id: "marketplace",
+    label: "Marketplace (Wantd)",
+    detail: "Home · How it works · Post a Want · About · FAQ · Contact",
+  },
+  {
     id: "generic",
     label: "Services / generic",
     detail: "Home · Services · About · Contact",
