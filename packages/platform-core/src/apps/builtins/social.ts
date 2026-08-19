@@ -2,7 +2,7 @@ import type { AppManifest } from "../manifest";
 
 export const socialApp: AppManifest = {
   id: "social",
-  name: "Social Management",
+  name: "Social",
   description:
     "Compose, schedule, and publish to LinkedIn, Facebook, Instagram, X, and Pinterest — Social Pro on Gen 2",
   tier: "growth",

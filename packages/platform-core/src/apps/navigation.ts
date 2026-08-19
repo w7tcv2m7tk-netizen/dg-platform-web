@@ -46,8 +46,11 @@ export interface PlatformToolNavItem {
 export type NavIaSectionId =
   | "business"
   | "operate"
+  | "industry"
   | "grow"
   | "intelligence"
+  | "partners"
+  | "partner"
   | "ecosystem";
 
 export interface NavIaShellLink extends PlatformShellNavItem {
@@ -64,13 +67,14 @@ export interface NavIaSection {
 }
 
 /**
- * Operate — Core operate apps, then Industry Apps (property ecosystem first).
+ * Operate — run the business. Industry Apps are a separate section.
  */
-const OPERATE_APP_ORDER = [
-  "crm",
-  "commerce",
-  "websites",
-  "infrastructure",
+const OPERATE_APP_ORDER = ["crm", "commerce", "websites", "infrastructure"] as const;
+
+/**
+ * Industry — specialised Apps, only when the org has them enabled.
+ */
+const INDUSTRY_APP_ORDER = [
   "real-estate",
   "accommodation",
   "property-management",
@@ -82,11 +86,10 @@ const OPERATE_APP_ORDER = [
 ] as const;
 
 /**
- * Grow — Opportunities + Growth Apps (Reputation = reviews app).
- * Marketing is intentionally omitted from this IA.
+ * Grow — demand Apps. CRM Opportunities is the canonical pipeline object;
+ * the Opportunity Engine App is not a second Opportunities destination.
  */
 const GROW_APP_ORDER = [
-  "opportunities",
   "ai-visibility",
   "seo",
   "automation",
@@ -96,16 +99,42 @@ const GROW_APP_ORDER = [
   "ai-communications",
 ] as const;
 
-/** Hidden from sidebar IA until product placement is decided */
-const SIDEBAR_HIDDEN_APP_IDS = new Set(["marketing"]);
+/** Hidden from sidebar IA — marketing undecided; opportunities live in CRM */
+const SIDEBAR_HIDDEN_APP_IDS = new Set(["marketing", "opportunities"]);
 
 const OPERATE_APP_IDS = new Set<string>(OPERATE_APP_ORDER);
+const INDUSTRY_APP_IDS = new Set<string>(INDUSTRY_APP_ORDER);
 const GROW_APP_IDS = new Set<string>(GROW_APP_ORDER);
 
-/**
- * BUSINESS — who you are / identity / team.
- * Apps & Platform lives under Platform (with Settings / Billing).
- */
+/** Sidebar display overlays — canonical homes without inventing new routes. */
+const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }> = {
+  websites: {
+    name: "Design Studio",
+    routes: [
+      { path: "/apps/websites", label: "Websites", matchAlso: ["/apps/websites/studio"] },
+      { path: "/apps/websites/funnels", label: "Funnels" },
+      { path: "/apps/websites/content", label: "Content" },
+      { path: "/apps/websites/logo", label: "Brand" },
+      { path: "/apps/websites/health", label: "Health" },
+    ],
+  },
+  commerce: {
+    routes: [
+      { path: "/apps/commerce", label: "Overview" },
+      { path: "/apps/commerce/invoices", label: "Invoices" },
+      { path: "/apps/commerce/quotes", label: "Quotes" },
+      { path: "/apps/commerce/products", label: "Products" },
+      { path: "/apps/commerce/subscriptions", label: "Subscriptions" },
+      { path: "/apps/commerce/payments", label: "Payments" },
+    ],
+  },
+  seo: { name: "SEO" },
+  social: { name: "Social" },
+  "ai-communications": { name: "AI Communications" },
+  reviews: { name: "Reputation" },
+};
+
+/** BUSINESS — who you are. */
 const BUSINESS_LINKS: PlatformShellNavItem[] = [
   { kind: "shell", href: "/dashboard", label: "Overview", icon: getSidebarIcon("overview") },
   {
@@ -134,8 +163,14 @@ const BUSINESS_LINKS: PlatformShellNavItem[] = [
   },
 ];
 
-/** ECOSYSTEM — Marketplace ≠ Network ≠ Refer & Earn */
+/** ECOSYSTEM — what you can activate / add. Partner is not an ecosystem App. */
 const ECOSYSTEM_LINKS: PlatformShellNavItem[] = [
+  {
+    kind: "shell",
+    href: "/dashboard/apps",
+    label: "Apps",
+    icon: getSidebarIcon("apps"),
+  },
   {
     kind: "shell",
     href: "/dashboard/marketplace",
@@ -147,12 +182,6 @@ const ECOSYSTEM_LINKS: PlatformShellNavItem[] = [
     href: "/dashboard/network",
     label: "Network",
     icon: getSidebarIcon("network"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/settings/referrals",
-    label: "Refer & Earn",
-    icon: getSidebarIcon("referrals"),
   },
 ];
 
@@ -185,18 +214,12 @@ const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
     label: "Benchmarks",
     icon: getSidebarIcon("benchmarks"),
   },
-  {
-    kind: "shell",
-    href: "/dashboard/reports",
-    label: "Reports",
-    icon: getSidebarIcon("reports"),
-  },
 ];
 
 const APPS_PLATFORM_NAV: PlatformShellNavItem = {
   kind: "shell",
   href: "/dashboard/apps",
-  label: "Apps & Platform",
+  label: "Apps",
   icon: getSidebarIcon("apps"),
 };
 
@@ -224,8 +247,11 @@ export const BUSINESS_WORKSPACE_SECTION_LABEL = "Business";
 export const OPERATE_NAV_SECTION_LABEL = "Operate";
 export const GROW_NAV_SECTION_LABEL = "Grow";
 export const INTELLIGENCE_NAV_SECTION_LABEL = "Intelligence";
+export const INDUSTRY_NAV_SECTION_LABEL = "Industry";
 export const ECOSYSTEM_NAV_SECTION_LABEL = "Ecosystem";
 export const PLATFORM_NAV_SECTION_LABEL = "Platform";
+export const PARTNERS_NAV_SECTION_LABEL = "Partners";
+export const PARTNER_NAV_SECTION_LABEL = "Partner";
 export const COMMAND_CENTRE_NAV_SECTION_LABEL = "Command Centre";
 
 export function getPlatformShellNavigation(): PlatformShellNavItem[] {
@@ -242,16 +268,18 @@ export function getPlatformNavigation(): AppNavItem[] {
 
 function toTreeItem(app: RegisteredApp, enabledIds: string[]): AppNavTreeItem {
   const { manifest } = app;
-  const primaryHref = manifest.routes[0]?.path ?? manifest.navigation[0]?.href ?? "/dashboard";
+  const overlay = SIDEBAR_APP_DISPLAY[manifest.id];
+  const routes = overlay?.routes ?? manifest.routes;
+  const primaryHref = routes[0]?.path ?? manifest.navigation[0]?.href ?? "/dashboard";
 
   return {
     kind: "app",
     id: manifest.id,
-    name: manifest.name,
+    name: overlay?.name ?? manifest.name,
     icon: getSidebarIcon(manifest.id, manifest.navigation[0]?.icon),
     tier: manifest.tier,
     enabled: isAppEnabled(manifest.id, enabledIds),
-    routes: manifest.routes,
+    routes,
     primaryHref,
   };
 }
@@ -272,34 +300,120 @@ export interface CategorizedPlatformNavigation {
   /** Settings / admin — rendered after IA sections */
   platform: PlatformShellNavItem;
   /** Apps catalog — under Platform with Settings */
+  /** Apps catalog — under Ecosystem */
   appsPlatform: PlatformShellNavItem;
   /** @deprecated Prefer `ia.operate` / `ia.grow` */
   tiers: AppNavTierGroup[];
   tools: PlatformToolsNavGroup;
   /** DigitalGate staff only — rendered under Intelligence */
   commandCentre: PlatformToolNavItem | null;
-  /** Advisor IA — BUSINESS · OPERATE · GROW · INTELLIGENCE · ECOSYSTEM */
+  /** Advisor IA — BUSINESS · OPERATE · INDUSTRY · GROW · INTELLIGENCE · PARTNERS · PARTNER · ECOSYSTEM */
   ia: {
     business: NavIaSection;
     operate: NavIaSection;
+    industry: NavIaSection;
     grow: NavIaSection;
     intelligence: NavIaSection;
+    partners: NavIaSection;
+    partner: NavIaSection;
     ecosystem: NavIaSection;
   };
 }
 
-function getCommandCentreNavItem(): PlatformToolNavItem {
-  const manifest = commandCentreApp;
+const PARTNERS_ADMIN_LINKS: PlatformShellNavItem[] = [
+  {
+    kind: "shell",
+    href: "/command/partners",
+    label: "Resellers",
+    icon: getSidebarIcon("partner-portal"),
+  },
+  {
+    kind: "shell",
+    href: "/command/referrals",
+    label: "Referrals",
+    icon: getSidebarIcon("referrals"),
+  },
+  {
+    kind: "shell",
+    href: "/command/commissions",
+    label: "Commissions",
+    icon: getSidebarIcon("commerce"),
+  },
+];
+
+const PARTNER_WORKSPACE_LINKS: PlatformShellNavItem[] = [
+  {
+    kind: "shell",
+    href: "/partner/dashboard",
+    label: "Partner Dashboard",
+    icon: getSidebarIcon("partner-portal"),
+  },
+  {
+    kind: "shell",
+    href: "/partner/referrals",
+    label: "Referrals",
+    icon: getSidebarIcon("referrals"),
+  },
+  {
+    kind: "shell",
+    href: "/partner/commissions",
+    label: "Commissions",
+    icon: getSidebarIcon("commerce"),
+  },
+  {
+    kind: "shell",
+    href: "/partner/demo",
+    label: "Demo",
+    icon: getSidebarIcon("overview"),
+  },
+];
+
+function getStaffProspectingNavItem(): AppNavTreeItem {
+  return {
+    kind: "app",
+    id: "prospecting",
+    name: "Prospecting",
+    icon: "◎",
+    tier: "internal",
+    enabled: true,
+    routes: [
+      { path: "/command/growth-engine", label: "Prospects" },
+      { path: "/command/growth-engine/pipeline", label: "Pipeline" },
+      { path: "/command/growth-engine/discovery", label: "Discovery" },
+      { path: "/command/growth-engine/follow-ups", label: "Activity" },
+    ],
+    primaryHref: "/command/growth-engine",
+  };
+}
+
+function getCommandCentreNavItem(analyticsEnabled: boolean): PlatformToolNavItem {
+  const routes: AppRoute[] = [
+    { path: "/command", label: "Priorities" },
+    { path: "/command/advisor", label: "Recommended Actions" },
+    { path: "/command/platform-health", label: "Alerts" },
+    { path: "/command/sales-week", label: "Sales Week" },
+    { path: "/command/founding", label: "Founding 10" },
+    { path: "/dashboard/advisor", label: "AI Advisor" },
+    { path: "/dashboard/health", label: "Business Health" },
+  ];
+  if (analyticsEnabled) {
+    routes.push({ path: "/apps/analytics", label: "Insights" });
+  }
+  routes.push(
+    { path: "/dashboard/benchmarks", label: "Benchmarks" },
+    {
+      path: analyticsEnabled ? "/apps/analytics/reports" : "/dashboard/reports",
+      label: "Reports",
+    },
+  );
+
   return {
     kind: "tool",
-    id: manifest.id,
-    name: manifest.name,
-    icon: getSidebarIcon(manifest.id, manifest.icon),
+    id: commandCentreApp.id,
+    name: commandCentreApp.name,
+    icon: getSidebarIcon(commandCentreApp.id, commandCentreApp.icon),
     primaryHref: "/command",
-    routes: manifest.navigation.map((item) => ({
-      path: item.href,
-      label: item.label,
-    })),
+    routes,
   };
 }
 
@@ -309,7 +423,11 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
  */
 export function getCategorizedPlatformNavigation(
   enabledIds: string[],
-  options?: { showCommandCentre?: boolean },
+  options?: {
+    showCommandCentre?: boolean;
+    showPartnerPortal?: boolean;
+    showResellerAdmin?: boolean;
+  },
 ): CategorizedPlatformNavigation {
   const customerApps = platformApps
     .list()
@@ -320,18 +438,33 @@ export function getCategorizedPlatformNavigation(
     .filter((a) => !SIDEBAR_HIDDEN_APP_IDS.has(a.manifest.id))
     .map((a) => toTreeItem(a, enabledIds));
 
+  const analyticsEnabled = isAppEnabled("analytics", enabledIds);
+
   const operateApps = sortByOrder(
     enabledApps.filter((a) => OPERATE_APP_IDS.has(a.id)),
     OPERATE_APP_ORDER,
+  );
+  const industryApps = sortByOrder(
+    enabledApps.filter((a) => INDUSTRY_APP_IDS.has(a.id)),
+    INDUSTRY_APP_ORDER,
   );
   const growApps = sortByOrder(
     enabledApps.filter((a) => GROW_APP_IDS.has(a.id)),
     GROW_APP_ORDER,
   );
-  const mapped = new Set([...OPERATE_APP_IDS, ...GROW_APP_IDS, ...SIDEBAR_HIDDEN_APP_IDS]);
+  if (options?.showCommandCentre) {
+    growApps.unshift(getStaffProspectingNavItem());
+  }
+
+  const mapped = new Set([
+    ...OPERATE_APP_IDS,
+    ...INDUSTRY_APP_IDS,
+    ...GROW_APP_IDS,
+    ...SIDEBAR_HIDDEN_APP_IDS,
+  ]);
   const unmapped = enabledApps.filter((a) => !mapped.has(a.id));
   if (unmapped.length) {
-    operateApps.push(...unmapped);
+    industryApps.push(...unmapped);
   }
 
   const tiers: AppNavTierGroup[] = APP_TIER_ORDER.map((tier) => ({
@@ -342,12 +475,16 @@ export function getCategorizedPlatformNavigation(
       .map((a) => toTreeItem(a, enabledIds)),
   })).filter((g) => g.apps.length > 0);
 
-  const commandCentre = options?.showCommandCentre ? getCommandCentreNavItem() : null;
+  const commandCentre = options?.showCommandCentre
+    ? getCommandCentreNavItem(analyticsEnabled)
+    : null;
 
-  const intelligenceLinks = INTELLIGENCE_LINKS.filter((link) => {
-    if (link.href === "/apps/analytics") return isAppEnabled("analytics", enabledIds);
-    return true;
-  });
+  const intelligenceLinks = commandCentre
+    ? []
+    : INTELLIGENCE_LINKS.filter((link) => {
+        if (link.href === "/apps/analytics") return analyticsEnabled;
+        return true;
+      });
 
   const intelligenceApps: AppNavTreeItem[] = commandCentre
     ? [
@@ -364,9 +501,19 @@ export function getCategorizedPlatformNavigation(
       ]
     : [];
 
+  const settingsNav: PlatformShellNavItem = {
+    ...SHELL_PLATFORM_NAV,
+    routes: [
+      ...(SHELL_PLATFORM_NAV.routes ?? []),
+      ...(options?.showCommandCentre
+        ? [{ path: "/command/docs", label: "Platform docs" }]
+        : []),
+    ],
+  };
+
   return {
     shell: SHELL_WORKSPACE_NAV,
-    platform: SHELL_PLATFORM_NAV,
+    platform: settingsNav,
     appsPlatform: APPS_PLATFORM_NAV,
     tiers,
     tools: { label: PLATFORM_NAV_SECTION_LABEL, tools: [] },
@@ -384,6 +531,12 @@ export function getCategorizedPlatformNavigation(
         links: [],
         apps: operateApps,
       },
+      industry: {
+        id: "industry",
+        label: INDUSTRY_NAV_SECTION_LABEL,
+        links: [],
+        apps: industryApps,
+      },
       grow: {
         id: "grow",
         label: GROW_NAV_SECTION_LABEL,
@@ -395,6 +548,18 @@ export function getCategorizedPlatformNavigation(
         label: INTELLIGENCE_NAV_SECTION_LABEL,
         links: intelligenceLinks,
         apps: intelligenceApps,
+      },
+      partners: {
+        id: "partners",
+        label: PARTNERS_NAV_SECTION_LABEL,
+        links: options?.showResellerAdmin ? PARTNERS_ADMIN_LINKS : [],
+        apps: [],
+      },
+      partner: {
+        id: "partner",
+        label: PARTNER_NAV_SECTION_LABEL,
+        links: options?.showPartnerPortal ? PARTNER_WORKSPACE_LINKS : [],
+        apps: [],
       },
       ecosystem: {
         id: "ecosystem",

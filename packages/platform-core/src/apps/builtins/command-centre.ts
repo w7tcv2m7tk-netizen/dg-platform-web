@@ -24,6 +24,9 @@ export const commandCentreApp: AppManifest = {
     { path: "/command/growth-engine", label: "Prospecting" },
     { path: "/command/advisor", label: "Recommended Actions" },
     { path: "/command/platform-health", label: "Alerts" },
+    { path: "/command/partners", label: "Resellers" },
+    { path: "/command/referrals", label: "Reseller referrals" },
+    { path: "/command/commissions", label: "Reseller commissions" },
     { path: "/command/clients", label: "Clients" },
     { path: "/command/clients/[orgId]", label: "Client Detail" },
     { path: "/command/growth-engine/discovery", label: "Business Discovery" },
@@ -48,16 +51,10 @@ export const commandCentreApp: AppManifest = {
    */
   navigation: [
     { href: "/command", label: "Priorities", icon: "◈" },
-    { href: "/command/sales-week", label: "Sales week", icon: "◷" },
-    { href: "/command/founding", label: "Founding 10", icon: "✦" },
-    { href: "/command/opportunities", label: "Opportunities", icon: "✦" },
-    { href: "/command/growth-engine", label: "Prospecting", icon: "◎" },
     { href: "/command/advisor", label: "Recommended Actions", icon: "✓" },
     { href: "/command/platform-health", label: "Alerts", icon: "◉" },
-    { href: "/command/clients", label: "Clients", icon: "☷" },
-    { href: "/command/reports", label: "Reports", icon: "▥" },
-    { href: "/command/docs", label: "Platform docs", icon: "▤" },
-    { href: "/command/intelligence", label: "Intelligence", icon: "⬡" },
+    { href: "/command/sales-week", label: "Sales Week", icon: "◷" },
+    { href: "/command/founding", label: "Founding 10", icon: "✦" },
   ],
   permissions: [
     { id: "command.view", label: "View Command Centre" },

@@ -5,11 +5,12 @@ import { getPlatformPageContext } from "@/lib/platform-page-context";
 import { getPartnerByClerkUserId } from "@dg/platform-core";
 
 const NAV = [
-  { href: "/partner/dashboard", label: "Dashboard" },
+  { href: "/partner/dashboard", label: "Overview" },
   { href: "/partner/referrals", label: "Referrals" },
   { href: "/partner/commissions", label: "Commissions" },
+  { href: "/partner/demo", label: "Demo" },
   { href: "/partner/resources", label: "Resources" },
-  { href: "/partner/profile", label: "Profile" },
+  { href: "/partner/terms", label: "Terms" },
 ];
 
 export default async function PartnerLayout({
@@ -83,15 +84,15 @@ export default async function PartnerLayout({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">
-              DigitalGate Partner Portal
+              DigitalGate Partner Programme
             </p>
             <h1 className="mt-1 text-2xl font-bold text-white">
               Welcome, {partner.displayName?.split(" ")[0] ?? "Partner"}
             </h1>
             <p className="mt-1 text-sm text-slate-400">
-              {partner.partnerTypeLabel} &middot;{" "}
-              {partner.commissionPercent}% commission &middot; first{" "}
-              {partner.commissionDurationMonths} months
+              {partner.programme} · {partner.partnerTypeLabel} · {partner.commissionPercent}%
+              commission on qualifying Platform + App fees · first{" "}
+              {partner.commissionDurationMonths} months per referred customer
             </p>
           </div>
           {partner.status === "pending" && (

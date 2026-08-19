@@ -64,10 +64,14 @@ async function persistReset() {
 export function EnabledAppsProvider({
   initialEnabledIds,
   showCommandCentre = false,
+  showPartnerPortal = false,
+  showResellerAdmin = false,
   children,
 }: {
   initialEnabledIds: string[];
   showCommandCentre?: boolean;
+  showPartnerPortal?: boolean;
+  showResellerAdmin?: boolean;
   children: React.ReactNode;
 }) {
   const [enabledIds, setEnabledIdsState] = useState(initialEnabledIds);
@@ -139,8 +143,13 @@ export function EnabledAppsProvider({
   }, [setEnabledIds]);
 
   const nav = useMemo(
-    () => getCategorizedPlatformNavigation(enabledIds, { showCommandCentre }),
-    [enabledIds, showCommandCentre],
+    () =>
+      getCategorizedPlatformNavigation(enabledIds, {
+        showCommandCentre,
+        showPartnerPortal,
+        showResellerAdmin,
+      }),
+    [enabledIds, showCommandCentre, showPartnerPortal, showResellerAdmin],
   );
 
   const value = useMemo(

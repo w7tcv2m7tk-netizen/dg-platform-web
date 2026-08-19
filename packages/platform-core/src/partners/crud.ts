@@ -28,6 +28,8 @@ function serializePartner(
     organisationId: row.organisationId ?? null,
     partnerType: row.partnerType as PartnerType,
     partnerTypeLabel: config.label,
+    programme: config.programme,
+    seatCap: config.seatCap,
     cohort: row.cohort ?? null,
     commissionBps: row.commissionBps,
     commissionPercent: bpsToPercent(row.commissionBps),
@@ -183,6 +185,33 @@ export async function listPartners(opts?: {
   return { partners: rows.map((r) => serializePartner(r)), total };
 }
 
+export async function countPartnerSeats(): Promise<
+  Record<PartnerType, { used: number; cap: number | null; remaining: number | null }>
+> {
+  const rows = await prisma.partner.groupBy({
+    by: ["partnerType"],
+    where: { status: { in: ["active", "pending"] } },
+    _count: { _all: true },
+  });
+  const usedByType = Object.fromEntries(
+    rows.map((r) => [r.partnerType, r._count._all]),
+  ) as Partial<Record<PartnerType, number>>;
+
+  return (Object.keys(PARTNER_COMMISSION_CONFIG) as PartnerType[]).reduce(
+    (acc, type) => {
+      const cap = PARTNER_COMMISSION_CONFIG[type].seatCap;
+      const used = usedByType[type] ?? 0;
+      acc[type] = {
+        used,
+        cap,
+        remaining: cap == null ? null : Math.max(0, cap - used),
+      };
+      return acc;
+    },
+    {} as Record<PartnerType, { used: number; cap: number | null; remaining: number | null }>,
+  );
+}
+
 export async function updatePartner(
   id: string,
   data: Partial<{
@@ -234,6 +263,27 @@ export async function createPartnerReferral(input: {
   notes?: string;
   source: "link" | "warm_introduction";
 }): Promise<SerializedPartnerReferral> {
+  const email = input.email?.trim().toLowerCase() || null;
+  if (email) {
+    const partner = await prisma.partner.findUnique({ where: { id: input.partnerId } });
+    if (partner?.email && partner.email.trim().toLowerCase() === email) {
+      throw new Error(
+        "You cannot refer yourself or a business you control unless DigitalGate approves it in writing.",
+      );
+    }
+    const duplicate = await prisma.partnerReferral.findFirst({
+      where: {
+        email: { equals: email, mode: "insensitive" },
+        status: { notIn: ["DECLINED", "CANCELLED", "CLOSED"] },
+      },
+    });
+    if (duplicate) {
+      throw new Error(
+        "This business is already recorded. DigitalGate will determine attribution if more than one introducer is involved.",
+      );
+    }
+  }
+
   const row = await prisma.partnerReferral.create({
     data: {
       partnerId: input.partnerId,
@@ -246,7 +296,7 @@ export async function createPartnerReferral(input: {
       industry: input.industry ?? null,
       notes: input.notes ?? null,
       source: input.source,
-      status: "REFERRED",
+      status: "INTRODUCED",
     },
   });
   return serializeReferral(row);
@@ -368,7 +418,7 @@ export async function attributePartnerReferralByCode(input: {
       businessName: input.businessName ?? "Unknown",
       email: input.email ?? null,
       source: "link",
-      status: input.organisationId ? "ACTIVE" : "REFERRED",
+      status: input.organisationId ? "ACTIVE" : "INTRODUCED",
       referredOrganisationId: input.organisationId ?? null,
       convertedAt: input.organisationId ? new Date() : null,
     },
@@ -539,10 +589,12 @@ export async function getPartnerDashboardMetrics(partnerId: string): Promise<{
   return {
     businessesReferred: referrals.length,
     consultations: referrals.filter((r) =>
-      ["CONSULTATION", "ACCEPTED", "ONBOARDING", "ACTIVE", "COMMISSIONING"].includes(r.status),
+      ["CONSULTATION", "APPLICATION", "ONBOARDING", "ACCEPTED", "CUSTOMER", "ACTIVE", "COMMISSIONING"].includes(
+        r.status,
+      ),
     ).length,
     activeCustomers: referrals.filter((r) =>
-      ["ACTIVE", "COMMISSIONING"].includes(r.status),
+      ["CUSTOMER", "ACTIVE", "COMMISSIONING"].includes(r.status),
     ).length,
     commissionEarnedCents: commissionSummary.totalEarnedCents,
     commissionPendingCents: commissionSummary.pendingCents,

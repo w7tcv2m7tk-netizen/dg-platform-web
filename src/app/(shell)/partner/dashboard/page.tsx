@@ -6,6 +6,7 @@ import {
   getPartnerByClerkUserId,
   getPartnerDashboardMetrics,
   listPartnerReferrals,
+  PARTNER_REFERRAL_STATUS_LABELS,
 } from "@dg/platform-core";
 
 function centsToDisplay(cents: number): string {
@@ -15,19 +16,6 @@ function centsToDisplay(cents: number): string {
     maximumFractionDigits: 0,
   });
 }
-
-const STATUS_LABEL: Record<string, string> = {
-  INVITED: "Invited",
-  REFERRED: "Referred",
-  CONTACTED: "Contacted",
-  CONSULTATION: "Consultation",
-  ACCEPTED: "Accepted",
-  ONBOARDING: "Onboarding",
-  ACTIVE: "Active Customer",
-  COMMISSIONING: "Commissioning",
-  CLOSED: "Closed",
-  DECLINED: "Declined",
-};
 
 const STATUS_COLOR: Record<string, string> = {
   INVITED: "text-slate-400",
@@ -86,6 +74,12 @@ export default async function PartnerDashboardPage() {
           + Refer a Business
         </Link>
         <Link
+          href="/partner/demo"
+          className="rounded-full border border-slate-600 px-5 py-2.5 text-sm font-medium text-slate-300 hover:border-sky-400 hover:text-white"
+        >
+          Open Demo
+        </Link>
+        <Link
           href="/partner/profile"
           className="rounded-full border border-slate-600 px-5 py-2.5 text-sm font-medium text-slate-300 hover:border-sky-400 hover:text-white"
         >
@@ -122,7 +116,7 @@ export default async function PartnerDashboardPage() {
                     <tr key={r.id} className="hover:bg-slate-700/20">
                       <td className="px-4 py-3 font-medium text-white">{r.businessName}</td>
                       <td className={`px-4 py-3 ${STATUS_COLOR[r.status] ?? "text-slate-400"}`}>
-                        {STATUS_LABEL[r.status] ?? r.status}
+                        {PARTNER_REFERRAL_STATUS_LABELS[r.status] ?? r.status}
                       </td>
                       <td className="px-4 py-3 text-slate-400">
                         {new Date(r.referredAt).toLocaleDateString("en-AU")}

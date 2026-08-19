@@ -1,21 +1,8 @@
 import { redirect } from "next/navigation";
 
 import { getPlatformPageContext } from "@/lib/platform-page-context";
-import { getPartnerByClerkUserId, listPartnerReferrals } from "@dg/platform-core";
+import { getPartnerByClerkUserId, listPartnerReferrals, PARTNER_REFERRAL_STATUS_LABELS } from "@dg/platform-core";
 import { ReferBusinessPanel } from "@/components/partner/ReferBusinessPanel";
-
-const STATUS_LABEL: Record<string, string> = {
-  INVITED: "Invited",
-  REFERRED: "Referred",
-  CONTACTED: "Contacted",
-  CONSULTATION: "Consultation",
-  ACCEPTED: "Accepted",
-  ONBOARDING: "Onboarding",
-  ACTIVE: "Active Customer",
-  COMMISSIONING: "Commissioning",
-  CLOSED: "Closed",
-  DECLINED: "Declined",
-};
 
 const STATUS_COLOR: Record<string, string> = {
   INVITED: "bg-slate-700 text-slate-300",
@@ -113,7 +100,7 @@ export default async function PartnerReferralsPage({
                     <span
                       className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLOR[r.status] ?? "bg-slate-700 text-slate-300"}`}
                     >
-                      {STATUS_LABEL[r.status] ?? r.status}
+                      {PARTNER_REFERRAL_STATUS_LABELS[r.status] ?? r.status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-slate-400">

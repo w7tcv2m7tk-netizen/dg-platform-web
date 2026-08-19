@@ -5,6 +5,7 @@ import {
   listPartnerReferrals,
   listPartnerCommissions,
   getPartnerCommissionSummary,
+  PARTNER_REFERRAL_STATUS_LABELS,
 } from "@dg/platform-core";
 import { PartnerAdminActions } from "@/components/partner/PartnerAdminActions";
 
@@ -15,12 +16,6 @@ function centsToDisplay(cents: number): string {
     maximumFractionDigits: 2,
   });
 }
-
-const REFERRAL_STATUS_LABEL: Record<string, string> = {
-  INVITED: "Invited", REFERRED: "Referred", CONTACTED: "Contacted",
-  CONSULTATION: "Consultation", ACCEPTED: "Accepted", ONBOARDING: "Onboarding",
-  ACTIVE: "Active", COMMISSIONING: "Commissioning", CLOSED: "Closed", DECLINED: "Declined",
-};
 
 const COMMISSION_STATUS_COLOR: Record<string, string> = {
   CALCULATED: "bg-slate-700 text-slate-300",
@@ -130,7 +125,7 @@ export default async function AdminPartnerDetailPage({
                         {r.source === "warm_introduction" ? "Warm intro" : "Link"}
                       </td>
                       <td className="px-4 py-3 text-slate-300">
-                        {REFERRAL_STATUS_LABEL[r.status] ?? r.status}
+                        {PARTNER_REFERRAL_STATUS_LABELS[r.status] ?? r.status}
                       </td>
                       <td className="px-4 py-3 text-slate-400">
                         {new Date(r.referredAt).toLocaleDateString("en-AU")}

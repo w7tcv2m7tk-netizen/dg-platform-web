@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { listPartners } from "@dg/platform-core";
+import { countPartnerSeats, listPartners, PARTNER_COMMISSION_CONFIG } from "@dg/platform-core";
+import { PartnersAdminNav } from "@/components/command/PartnersAdminNav";
 
 const TIER_LABEL: Record<string, string> = {
   FOUNDING_RESELLER: "Founding Reseller",
@@ -16,35 +17,70 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 export default async function AdminPartnersPage() {
-  const { partners, total } = await listPartners();
+  let partners: Awaited<ReturnType<typeof listPartners>>["partners"] = [];
+  let total = 0;
+  let seats = (Object.keys(PARTNER_COMMISSION_CONFIG) as Array<
+    keyof typeof PARTNER_COMMISSION_CONFIG
+  >).reduce(
+    (acc, type) => {
+      const cap = PARTNER_COMMISSION_CONFIG[type].seatCap;
+      acc[type] = { used: 0, cap, remaining: cap };
+      return acc;
+    },
+    {} as Awaited<ReturnType<typeof countPartnerSeats>>,
+  );
+  try {
+    const [listed, counted] = await Promise.all([listPartners(), countPartnerSeats()]);
+    partners = listed.partners;
+    total = listed.total;
+    seats = counted;
+  } catch {
+    /* tables not migrated yet */
+  }
+  const reseller = seats.FOUNDING_RESELLER;
 
   return (
     <>
       <header className="dg-page-header">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Partners</h1>
-            <p className="mt-1 text-sm text-slate-400">
-              DigitalGate Partner Programme — {total} partner{total !== 1 ? "s" : ""}
-            </p>
-          </div>
-          <Link
-            href="/command/partners/new"
-            className="rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500"
-          >
-            + New Partner
-          </Link>
-        </div>
+        <h1 className="text-2xl font-bold text-white">Partners</h1>
+        <p className="mt-1 text-sm text-slate-400">
+          DigitalGate Partner Programme — {total} partner{total !== 1 ? "s" : ""}. Founding
+          Reseller seats: {reseller.used} of {reseller.cap} used
+          {reseller.remaining != null ? ` · ${reseller.remaining} remaining` : ""}.
+        </p>
       </header>
 
       <main className="dg-page-main">
-        <div className="max-w-5xl">
+        <div className="max-w-5xl space-y-6">
+          <PartnersAdminNav active="overview" />
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              {
+                label: "Founding 10 · Reseller 30%",
+                value: `${seats.FOUNDING_RESELLER.used} / ${seats.FOUNDING_RESELLER.cap}`,
+              },
+              {
+                label: "Founding 100 · Partner 25%",
+                value: `${seats.FOUNDING_PARTNER.used} / ${seats.FOUNDING_PARTNER.cap}`,
+              },
+              {
+                label: "Founding 1,000 · Customer 20%",
+                value: `${seats.FOUNDING_CUSTOMER.used} / ${seats.FOUNDING_CUSTOMER.cap}`,
+              },
+            ].map((card) => (
+              <div
+                key={card.label}
+                className="rounded-xl border border-slate-700/60 bg-slate-800/40 px-4 py-3"
+              >
+                <p className="text-xs text-slate-400">{card.label}</p>
+                <p className="mt-1 text-lg font-semibold text-white">{card.value}</p>
+              </div>
+            ))}
+          </div>
           {partners.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-700 px-6 py-14 text-center text-sm text-slate-400">
-              No partners registered yet.{" "}
-              <Link href="/command/partners/new" className="text-sky-400 hover:underline">
-                Create the first partner →
-              </Link>
+              No partners registered yet. Founding Reseller is invitation only — recruit 3–5
+              excellent introducers first. The 30% tier is not an open affiliate programme.
             </div>
           ) : (
             <div className="overflow-hidden rounded-xl border border-slate-700/60 bg-slate-800/40">

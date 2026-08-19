@@ -307,6 +307,10 @@ export async function claimFoundingInvite(input: {
   const { saveFoundingOnboarding } = await import("./onboarding");
   const opportunity = await findFoundingOpportunityByInviteToken(input.inviteToken);
   if (!opportunity) return null;
+  const { isDemoOrganisationId } = await import("../demo/access");
+  if (await isDemoOrganisationId(input.customerOrganisationId)) {
+    throw new Error("The demonstration organisation cannot become a customer organisation.");
+  }
   const meta = asMeta(opportunity.metadata);
   await persistMeta(opportunity.id, {
     ...meta,

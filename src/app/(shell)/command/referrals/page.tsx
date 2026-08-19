@@ -1,10 +1,5 @@
-import { listAllReferrals } from "@dg/platform-core";
-
-const STATUS_LABEL: Record<string, string> = {
-  INVITED: "Invited", REFERRED: "Referred", CONTACTED: "Contacted",
-  CONSULTATION: "Consultation", ACCEPTED: "Accepted", ONBOARDING: "Onboarding",
-  ACTIVE: "Active Customer", COMMISSIONING: "Commissioning", CLOSED: "Closed", DECLINED: "Declined",
-};
+import { listAllReferrals, PARTNER_REFERRAL_STATUS_LABELS } from "@dg/platform-core";
+import { PartnersAdminNav } from "@/components/command/PartnersAdminNav";
 
 export default async function AdminReferralsPage() {
   const { referrals, total } = await listAllReferrals({ limit: 100 });
@@ -19,7 +14,8 @@ export default async function AdminReferralsPage() {
       </header>
 
       <main className="dg-page-main">
-        <div className="max-w-5xl">
+        <div className="max-w-5xl space-y-6">
+          <PartnersAdminNav active="referrals" />
           {referrals.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-700 px-6 py-14 text-center text-sm text-slate-400">
               No referrals yet.
@@ -53,7 +49,7 @@ export default async function AdminReferralsPage() {
                         {r.source === "warm_introduction" ? "Warm intro" : "Link"}
                       </td>
                       <td className="px-4 py-3 text-slate-300">
-                        {STATUS_LABEL[r.status] ?? r.status}
+                        {PARTNER_REFERRAL_STATUS_LABELS[r.status] ?? r.status}
                       </td>
                       <td className="px-4 py-3 text-slate-400">
                         {new Date(r.referredAt).toLocaleDateString("en-AU")}

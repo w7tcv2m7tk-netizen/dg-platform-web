@@ -41,6 +41,7 @@ const SIDEBAR_ICONS: Record<string, string> = {
   infrastructure: "⬡",
   opportunities: "✦",
   "command-centre": "◈",
+  "partner-portal": "⇄",
   "platform-tools": "⎔",
 };
 

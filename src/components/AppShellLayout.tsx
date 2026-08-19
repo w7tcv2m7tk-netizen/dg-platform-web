@@ -10,7 +10,7 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 
-import { MobileHeader } from "@/components/MobileHeader";
+import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { OrgBrandHead } from "@/components/brand/OrgBrandHead";
 import { OrgBrandProvider, orgBrandStyle } from "@/components/brand/OrgBrandProvider";
 import { ChatWidgetProvider } from "@/components/platform/ChatWidgetProvider";
@@ -39,6 +39,7 @@ export function AppShellLayout({
   brandTheme = DEFAULT_ORG_BRAND_THEME,
   chatUserName,
   showFloatingChat = true,
+  isDemo = false,
 }: {
   children: ReactNode;
   activeOrganisationId?: string;
@@ -47,6 +48,7 @@ export function AppShellLayout({
   brandTheme?: OrgBrandTheme;
   chatUserName?: string;
   showFloatingChat?: boolean;
+  isDemo?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -119,6 +121,7 @@ export function AppShellLayout({
 
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <div className="shrink-0 print:hidden">
+                {isDemo ? <DemoModeBanner canReset /> : null}
                 <MobileHeader onMenuClick={() => setOpen(true)} />
               </div>
 

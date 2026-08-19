@@ -53,7 +53,7 @@ Do **not** publicly promise “forever.” Prefer **“ongoing”** / **“while
 
 **Why 12 months commission (not indefinite recurring):** strong acquisition reward without permanent margin drain; each referral creates a finite acquisition cycle; DigitalGate retains the referred customer thereafter.
 
-**Illustrative economics (sales narrative, not a guarantee):** Founding 10 on Growth ($249) → founding price ~$174.30. Three referred Growth customers at 30% for 12 months → ~$2,689 total commission. After the founding discount ends, the referrer still earns 30% × 12 months on **new** referrals under Founding Reseller status.
+**Illustrative economics (not a guarantee / not an earnings claim):** At $500/month average subscription, 30% = $150/month per customer, or $1,800 over 12 months. Two customers per week builds a commission stream as the referred base grows. End-of-year **annualised run-rate** is not the same as **year-one cash**. Do not market “make $180k a year.”
 
 ---
 
@@ -127,11 +127,13 @@ Call it **referral commission** — never “referral discount.”
 | Sense | Meaning |
 |-------|---------|
 | **Referral entitlement (Founding 10 customers)** | Cohort commercial table: 30% commission × 12 months on qualifying referred subscriptions. Lives in the Founding Customer offer. |
-| **Qualified partner channel** | Application/approval. People who already work with SME owners and **actively introduce** DigitalGate. Ben recruits 3–5 from an A-list; they introduce, Ben closes. Not an open affiliate programme. |
+| **Qualified partner channel** | Invitation / acceptance only. People who already work with SME owners and **introduce** DigitalGate. Operating target: **3–5 excellent introducers**; Founding 10 cap is 10 seats. Then Founding 100 Founding Partner (25%), Founding 1,000 Founding Customer (20%). They introduce; DigitalGate qualifies, demonstrates, contracts, bills. Not an affiliate programme. |
 
 A Founding Customer primarily **uses** DigitalGate. A Founding Reseller primarily **opens doors**. Someone can be both; most customers will not be active partners.
 
-Do **not** advertise for resellers until the first 3–5 are proven. Do **not** build a partner portal this month. Operating plan: [COMMERCIAL-ENGINE.md](./COMMERCIAL-ENGINE.md).
+Do **not** advertise Founding Reseller as an affiliate programme. Status is **invitation only** — not automatic with Founding 10 customer membership. Operating target is **3–5** excellent introducers. Commission is on **qualifying fees actually received** after founding discount, not list price.
+
+**Qualifying fees** (partner commission): recurring Platform + App fees **actually paid**. Excludes Professional Services, refunds, chargebacks, credits, failed payments, discounts (commission on paid amount), usage/pass-through, taxes, the partner's own account, and customers already known to DigitalGate.
 
 A separate **managed-resale / white-label Reseller Programme** remains later architecture — do not collapse it into either sense above. See [REVIEWS-AND-REFERRALS.md](../foundations/REVIEWS-AND-REFERRALS.md).
 

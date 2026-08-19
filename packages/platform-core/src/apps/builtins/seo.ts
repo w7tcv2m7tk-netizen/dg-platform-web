@@ -2,7 +2,7 @@ import type { AppManifest } from "../manifest";
 
 export const seoApp: AppManifest = {
   id: "seo",
-  name: "SEO Engine",
+  name: "SEO",
   description: "Live HTML presence probes + Studio on-page checks — shared with AI Visibility",
   tier: "growth",
   version: "1.1.0",
@@ -11,7 +11,7 @@ export const seoApp: AppManifest = {
     { path: "/apps/seo", label: "Overview" },
     { path: "/apps/seo/audit", label: "Page audit" },
   ],
-  navigation: [{ href: "/apps/seo", label: "SEO Engine", icon: "⎔" }],
+  navigation: [{ href: "/apps/seo", label: "SEO", icon: "⎔" }],
   permissions: [{ id: "seo.view_audit", label: "View SEO audits" }],
   features: ["seo.audit.read", "seo.audit.run", "seo.score.read"],
   entities: ["Document", "Activity"],

@@ -19,7 +19,7 @@ export const aiCommunicationsApp: AppManifest = {
   navigation: [
     {
       href: "/apps/ai-communications/inbox",
-      label: "Communications",
+      label: "AI Communications",
       icon: "📡",
     },
   ],

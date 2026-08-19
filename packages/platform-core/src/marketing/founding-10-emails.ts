@@ -28,11 +28,11 @@ const FOUNDING_STEPS: Array<{ title: string; body: string }> = [
 
 const FOUNDING_ADVANTAGES = [
   "30% off initial Platform + Apps for 24 months",
-  "Founding Reseller status — 30% referral commission × 12 months",
   "Priority onboarding",
   "Early access to selected Apps",
   "Direct roadmap input",
   "Founding recognition",
+  "Selected members may be invited into the Founding Reseller Programme (not automatic)",
 ];
 
 function metaString(

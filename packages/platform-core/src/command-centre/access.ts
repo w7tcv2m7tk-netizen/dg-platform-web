@@ -5,6 +5,12 @@ export type CommandCentreAccessInput = {
   role?: string;
 };
 
+/** True when the signed-in user is DigitalGate staff, independent of the active tenant. */
+export function isDigitalGateStaffEmail(email?: string | null): boolean {
+  const normalised = email?.trim().toLowerCase() ?? "";
+  return normalised.endsWith("@digitalgate.com.au");
+}
+
 /** True when the *active* tenant may see Command Centre (DigitalGate operator org only). */
 export function canAccessCommandCentre(input: CommandCentreAccessInput): boolean {
   const allowlist = process.env.DG_COMMAND_CENTRE_ORG_IDS?.split(",")

@@ -9,25 +9,33 @@ export function PlatformShell({
   enabledIds,
   userName,
   showCommandCentre = false,
+  showPartnerPortal = false,
+  showResellerAdmin = false,
   activeOrganisationId,
   activeOrganisationName,
   organisations = [],
   brandTheme = DEFAULT_ORG_BRAND_THEME,
+  isDemo = false,
 }: {
   children: React.ReactNode;
   showFloatingChat?: boolean;
   enabledIds: string[];
   userName?: string;
   showCommandCentre?: boolean;
+  showPartnerPortal?: boolean;
+  showResellerAdmin?: boolean;
   activeOrganisationId?: string;
   activeOrganisationName?: string;
   organisations?: UserOrganisationSummary[];
   brandTheme?: OrgBrandTheme;
+  isDemo?: boolean;
 }) {
   return (
     <EnabledAppsProvider
       initialEnabledIds={enabledIds}
       showCommandCentre={showCommandCentre}
+      showPartnerPortal={showPartnerPortal}
+      showResellerAdmin={showResellerAdmin}
     >
       <AppShellLayout
         activeOrganisationId={activeOrganisationId}
@@ -36,6 +44,7 @@ export function PlatformShell({
         brandTheme={brandTheme}
         chatUserName={userName}
         showFloatingChat={showFloatingChat}
+        isDemo={isDemo}
       >
         {children}
       </AppShellLayout>

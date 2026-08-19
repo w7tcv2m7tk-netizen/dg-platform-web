@@ -11,12 +11,12 @@ const ACCENT = "#3B82F6";
 
 const FOUNDING_BENEFITS = [
   "30% off your initial Platform + Apps for 24 months",
-  "Founding Reseller status — 30% commission on qualifying referrals for their first 12 months",
   "Priority onboarding",
   "Early access to selected Apps",
   "Direct input into product development",
   "Direct relationship with the DigitalGate team",
   "Founding recognition, with your permission",
+  "Selected members may be invited into the DigitalGate Founding Reseller Programme (invitation only)",
 ];
 
 function appOrigin(): string {

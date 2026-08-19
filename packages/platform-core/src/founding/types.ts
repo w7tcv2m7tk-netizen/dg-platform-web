@@ -199,12 +199,12 @@ export const FOUNDING_ENTRY_TYPE_LABELS: Record<FoundingEntryType, string> = {
 
 export const FOUNDING_PERSONAL_INVITE_BENEFITS = [
   "30% off your initial DigitalGate Platform + Apps for 24 months",
-  "Founding Reseller status — 30% referral commission × 12 months on qualifying customers you directly refer",
   "Priority onboarding",
   "Early access to selected Apps",
   "Direct access to me as the founder",
   "Input into product and roadmap priorities",
   "Preferential Professional Services terms where applicable",
+  "Selected members may be invited into the DigitalGate Founding Reseller Programme (not automatic)",
 ];
 
 export type FoundingOpportunityMeta = {

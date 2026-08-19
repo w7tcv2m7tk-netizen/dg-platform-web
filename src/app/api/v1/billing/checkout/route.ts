@@ -1,11 +1,13 @@
 import { createPlatformCheckoutSession } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, rejectDemoLiveAction, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const blocked = await rejectDemoLiveAction(session);
+  if (blocked) return blocked;
 
   const body = await req.json().catch(() => ({}));
   const platformTier = (body.platformTier as string | undefined) ?? "professional";

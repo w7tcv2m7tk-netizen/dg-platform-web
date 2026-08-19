@@ -43,18 +43,25 @@ export async function POST(req: Request) {
     );
   }
 
-  const referral = await createPartnerReferral({
-    partnerId: partner.id,
-    referralCode: partner.referralCode,
-    businessName: body.businessName.trim(),
-    contactName: body.contactName?.trim() || undefined,
-    email: body.email?.trim() || undefined,
-    phone: body.phone?.trim() || undefined,
-    website: body.website?.trim() || undefined,
-    industry: body.industry?.trim() || undefined,
-    notes: body.notes?.trim() || undefined,
-    source: "warm_introduction",
-  });
-
-  return NextResponse.json({ data: referral }, { status: 201 });
+  try {
+    const referral = await createPartnerReferral({
+      partnerId: partner.id,
+      referralCode: partner.referralCode,
+      businessName: body.businessName.trim(),
+      contactName: body.contactName?.trim() || undefined,
+      email: body.email?.trim() || undefined,
+      phone: body.phone?.trim() || undefined,
+      website: body.website?.trim() || undefined,
+      industry: body.industry?.trim() || undefined,
+      notes: body.notes?.trim() || undefined,
+      source: "warm_introduction",
+    });
+    return NextResponse.json({ data: referral }, { status: 201 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Could not record this referral.";
+    return NextResponse.json(
+      { error: { code: "referral_rejected", message } },
+      { status: 409 },
+    );
+  }
 }

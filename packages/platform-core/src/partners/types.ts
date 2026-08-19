@@ -9,16 +9,22 @@ export type PartnerType =
 export type PartnerStatus = "pending" | "active" | "suspended" | "inactive";
 
 export type PartnerReferralStatus =
-  | "INVITED"
-  | "REFERRED"
+  | "PROSPECT"
+  | "INTRODUCED"
   | "CONTACTED"
   | "CONSULTATION"
+  | "APPLICATION"
   | "ACCEPTED"
-  | "ONBOARDING"
+  | "CUSTOMER"
   | "ACTIVE"
+  | "CANCELLED"
+  | "DECLINED"
+  /** @deprecated — mapped to INTRODUCED / PROSPECT / APPLICATION / ACTIVE / CANCELLED */
+  | "INVITED"
+  | "REFERRED"
+  | "ONBOARDING"
   | "COMMISSIONING"
-  | "CLOSED"
-  | "DECLINED";
+  | "CLOSED";
 
 export type CommissionStatus = "CALCULATED" | "PENDING" | "APPROVED" | "PAID";
 
@@ -30,30 +36,45 @@ export type CommissionEventType =
   | "credit_applied"
   | "manual_adjustment";
 
-// Commission rates by partner type (basis points)
-export const PARTNER_COMMISSION_CONFIG: Record<
-  PartnerType,
-  { commissionBps: number; durationMonths: number; label: string }
-> = {
+export type PartnerTierConfig = {
+  commissionBps: number;
+  durationMonths: number;
+  label: string;
+  /** Public programme name — Founding 10 / 100 / 1,000 */
+  programme: string;
+  /** Seat cap for this partner channel; null = unlimited */
+  seatCap: number | null;
+};
+
+// Commission rates by partner type (basis points) — do not hard-code elsewhere
+export const PARTNER_COMMISSION_CONFIG: Record<PartnerType, PartnerTierConfig> = {
   FOUNDING_RESELLER: {
     commissionBps: 3000,
     durationMonths: 12,
     label: "Founding Reseller",
+    programme: "Founding 10",
+    seatCap: 10,
   },
   FOUNDING_PARTNER: {
     commissionBps: 2500,
     durationMonths: 12,
     label: "Founding Partner",
+    programme: "Founding 100",
+    seatCap: 100,
   },
   FOUNDING_CUSTOMER: {
     commissionBps: 2000,
     durationMonths: 12,
     label: "Founding Customer",
+    programme: "Founding 1,000",
+    seatCap: 1000,
   },
   CUSTOMER_REFERRER: {
     commissionBps: 1000,
     durationMonths: 12,
     label: "Customer Referrer",
+    programme: "Standard",
+    seatCap: null,
   },
 };
 
@@ -68,12 +89,71 @@ export function commissionFromRevenue(
   return Math.round((qualifyingRevenueCents * commissionBps) / 10000);
 }
 
+/**
+ * Illustrative calculator only — not an earnings claim or guarantee.
+ * Uses a monthly close (4 weeks) so 2 customers/week = 8 new customers/month.
+ */
+export function illustratePartnerCommission(input: {
+  monthlySubscriptionCents: number;
+  newCustomersPerWeek: number;
+  commissionBps: number;
+  durationMonths?: number;
+}): {
+  commissionPerCustomerMonthCents: number;
+  commissionPerCustomerYearCents: number;
+  snapshots: { month: number; newCustomers: number; active: number; monthlyCommissionCents: number }[];
+  firstYearCashCents: number;
+  month12RunRateCents: number;
+  referredMrrCents: number;
+  digitalgateRetainedYearCents: number;
+} {
+  const durationMonths = input.durationMonths ?? 12;
+  const newPerMonth = Math.round(input.newCustomersPerWeek * 4);
+  const perCustomerMonth = commissionFromRevenue(
+    input.monthlySubscriptionCents,
+    input.commissionBps,
+  );
+  const snapshots: {
+    month: number;
+    newCustomers: number;
+    active: number;
+    monthlyCommissionCents: number;
+  }[] = [];
+  let firstYearCashCents = 0;
+  let active = 0;
+  for (let month = 1; month <= durationMonths; month++) {
+    active += newPerMonth;
+    const monthlyCommissionCents = active * perCustomerMonth;
+    firstYearCashCents += monthlyCommissionCents;
+    snapshots.push({
+      month,
+      newCustomers: active,
+      active,
+      monthlyCommissionCents,
+    });
+  }
+  const month12 = snapshots[durationMonths - 1];
+  const referredMrrCents = (month12?.active ?? 0) * input.monthlySubscriptionCents;
+  const partnerYearRunRate = (month12?.monthlyCommissionCents ?? 0) * 12;
+  return {
+    commissionPerCustomerMonthCents: perCustomerMonth,
+    commissionPerCustomerYearCents: perCustomerMonth * durationMonths,
+    snapshots,
+    firstYearCashCents,
+    month12RunRateCents: partnerYearRunRate,
+    referredMrrCents,
+    digitalgateRetainedYearCents: referredMrrCents * 12 - partnerYearRunRate,
+  };
+}
+
 export type SerializedPartner = {
   id: string;
   clerkUserId: string;
   organisationId: string | null;
   partnerType: PartnerType;
   partnerTypeLabel: string;
+  programme: string;
+  seatCap: number | null;
   cohort: string | null;
   commissionBps: number;
   commissionPercent: number;

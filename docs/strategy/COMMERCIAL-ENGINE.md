@@ -115,13 +115,13 @@ Ideal partner:
 1. List ~30 people from the career network who have sales/business relationships.
 2. Rank: **A** — trust to represent DigitalGate · **B** — potential · **C** — introduction source only.
 3. Personally approach the **A list**.
-4. Aim for **3–5 genuinely capable Founding Resellers**, not 50 people who never refer.
+4. Aim for **up to 10 selected Founding Resellers** (Founding 10 seats). After those: Founding Partner 25% (Founding 100), then Founding Customer 20% (Founding 1,000). Do not give 30% away broadly.
 
-### Partner assets (later — not a portal this month)
+### Partner assets
 
-Partner profile · unique referral attribution · presentation · platform overview · pricing sheet · Industry App overview · Founding Customer offer · demo environment · referral process · email templates · LinkedIn messaging · prospect qualification guide · partner FAQ · commission dashboard **eventually**.
+Partner Portal (`/partner`) for approved partners: dashboard, referral link, warm introduction, commission ledger, resources, illustrative calculator. Command Centre: `/command/partners`.
 
-Until then: a conversation, a one-pager, and Ben on the close.
+They **identify and introduce**; **Ben handles discovery, demonstration, and closing**.
 
 ---
 

@@ -2,6 +2,8 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import {
   apiKeyToPlatformSession,
   bootConnectorEngine,
+  isDemoOrganisationId,
+  DEMO_RESTRICTED_MESSAGE,
   registerNotificationEventHandlers,
   sessionHasFeature,
   verifyPlatformApiKey,
@@ -116,6 +118,18 @@ async function resolveClerkSession(): Promise<PlatformSession | NextResponse> {
 
 export function isNextResponse(value: unknown): value is NextResponse {
   return value instanceof NextResponse;
+}
+
+/** Block live side-effects (email, billing, connectors, team invites) in the demo org. */
+export async function rejectDemoLiveAction(
+  session: PlatformSession,
+): Promise<NextResponse | null> {
+  const demo = await isDemoOrganisationId(session.organisationId);
+  if (!demo) return null;
+  return NextResponse.json(
+    { error: { code: "demo_restricted", message: DEMO_RESTRICTED_MESSAGE } },
+    { status: 403 },
+  );
 }
 
 /** Enforce feature access for the current session (Platform 1.0 role gate). */

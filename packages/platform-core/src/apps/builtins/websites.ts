@@ -15,9 +15,9 @@ export const websitesApp: AppManifest = {
       matchAlso: ["/apps/websites/studio"],
     },
     { path: "/apps/websites/funnels", label: "Funnels" },
-    { path: "/apps/websites/logo", label: "Logos" },
+    { path: "/apps/websites/logo", label: "Brand" },
     { path: "/apps/websites/content", label: "Content" },
-    { path: "/apps/websites/health", label: "Health Centre" },
+    { path: "/apps/websites/health", label: "Health" },
   ],
   navigation: [
     { href: "/apps/websites", label: "Design Studio", icon: "◫" },

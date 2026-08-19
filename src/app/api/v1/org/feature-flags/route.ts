@@ -5,7 +5,7 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, rejectDemoLiveAction, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -23,6 +23,8 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const blocked = await rejectDemoLiveAction(session);
+  if (blocked) return blocked;
 
   if (session.role !== "owner" && session.role !== "admin") {
     return NextResponse.json(

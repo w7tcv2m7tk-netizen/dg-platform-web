@@ -119,15 +119,25 @@ export default async function PartnerCommissionsPage() {
         )}
       </div>
 
-      <div className="rounded-lg border border-slate-700/40 bg-slate-800/30 px-5 py-4 text-xs text-slate-400">
-        Commission is calculated on qualifying customer payments and becomes payable per your{" "}
-        {partner.partnerTypeLabel} agreement ({partner.commissionPercent}% ×{" "}
-        {partner.commissionDurationMonths} months). Payments are issued manually by DigitalGate.
-        Contact{" "}
-        <a href="mailto:hello@digitalgate.com.au" className="text-sky-400 hover:underline">
-          hello@digitalgate.com.au
-        </a>{" "}
-        with questions.
+      <div className="rounded-lg border border-slate-700/40 bg-slate-800/30 px-5 py-4 text-xs text-slate-400 space-y-2">
+        <p>
+          Commission is calculated on qualifying Platform + App subscription fees actually paid —
+          not list price, and not Professional Services. Refunds, failed payments, credits, and
+          customers already known to DigitalGate do not qualify. Your {partner.partnerTypeLabel}{" "}
+          rate is {partner.commissionPercent}% for the first {partner.commissionDurationMonths}{" "}
+          months of each referred customer.
+        </p>
+        <p>
+          The customer&apos;s Founding discount (if any) is a separate benefit and is never combined
+          with partner commission. See Resources for the full qualifying-fees definition.
+        </p>
+        <p>
+          Payments are issued manually by DigitalGate. Contact{" "}
+          <a href="mailto:hello@digitalgate.com.au" className="text-sky-400 hover:underline">
+            hello@digitalgate.com.au
+          </a>{" "}
+          with questions.
+        </p>
       </div>
     </div>
   );
