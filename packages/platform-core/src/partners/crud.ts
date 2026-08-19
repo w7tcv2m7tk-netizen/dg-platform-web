@@ -12,6 +12,29 @@ import {
   type SerializedPartnerReferral,
 } from "./types";
 
+function isMissingRelationError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const code = "code" in err ? String((err as { code?: unknown }).code ?? "") : "";
+  const message =
+    "message" in err ? String((err as { message?: unknown }).message ?? "") : "";
+  return (
+    code === "P2021" ||
+    code === "P2022" ||
+    code === "42P01" ||
+    /relation ["'].*["'] does not exist/i.test(message) ||
+    /does not exist in the current database/i.test(message)
+  );
+}
+
+async function emptyIfUnmigrated<T>(run: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await run();
+  } catch (err) {
+    if (isMissingRelationError(err)) return fallback;
+    throw err;
+  }
+}
+
 // ─── Serializers ──────────────────────────────────────────────────────────────
 
 function serializePartner(
@@ -147,28 +170,34 @@ export async function createPartner(input: {
 export async function getPartnerByClerkUserId(
   clerkUserId: string,
 ): Promise<SerializedPartner | null> {
-  const row = await prisma.partner.findFirst({
-    where: { clerkUserId, status: { not: "inactive" } },
-    orderBy: { createdAt: "asc" },
-  });
-  if (!row) return null;
-  return serializePartner(row);
+  return emptyIfUnmigrated(async () => {
+    const row = await prisma.partner.findFirst({
+      where: { clerkUserId, status: { not: "inactive" } },
+      orderBy: { createdAt: "asc" },
+    });
+    if (!row) return null;
+    return serializePartner(row);
+  }, null);
 }
 
 export async function getPartnerById(
   id: string,
 ): Promise<SerializedPartner | null> {
-  const row = await prisma.partner.findUnique({ where: { id } });
-  if (!row) return null;
-  return serializePartner(row);
+  return emptyIfUnmigrated(async () => {
+    const row = await prisma.partner.findUnique({ where: { id } });
+    if (!row) return null;
+    return serializePartner(row);
+  }, null);
 }
 
 export async function getPartnerByReferralCode(
   referralCode: string,
 ): Promise<SerializedPartner | null> {
-  const row = await prisma.partner.findUnique({ where: { referralCode } });
-  if (!row || row.status !== "active") return null;
-  return serializePartner(row);
+  return emptyIfUnmigrated(async () => {
+    const row = await prisma.partner.findUnique({ where: { referralCode } });
+    if (!row || row.status !== "active") return null;
+    return serializePartner(row);
+  }, null);
 }
 
 export async function listPartners(opts?: {
@@ -176,44 +205,61 @@ export async function listPartners(opts?: {
   limit?: number;
   offset?: number;
 }): Promise<{ partners: SerializedPartner[]; total: number }> {
-  const where = opts?.status ? { status: opts.status } : {};
-  const [rows, total] = await Promise.all([
-    prisma.partner.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      take: opts?.limit ?? 50,
-      skip: opts?.offset ?? 0,
-    }),
-    prisma.partner.count({ where }),
-  ]);
-  return { partners: rows.map((r) => serializePartner(r)), total };
+  return emptyIfUnmigrated(async () => {
+    const where = opts?.status ? { status: opts.status } : {};
+    const [rows, total] = await Promise.all([
+      prisma.partner.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        take: opts?.limit ?? 50,
+        skip: opts?.offset ?? 0,
+      }),
+      prisma.partner.count({ where }),
+    ]);
+    return { partners: rows.map((r) => serializePartner(r)), total };
+  }, { partners: [], total: 0 });
 }
 
 export async function countPartnerSeats(): Promise<
   Record<PartnerType, { used: number; cap: number | null; remaining: number | null }>
 > {
-  const rows = await prisma.partner.groupBy({
-    by: ["partnerType"],
-    where: { status: { in: ["active", "pending"] } },
-    _count: { _all: true },
-  });
-  const usedByType = Object.fromEntries(
-    rows.map((r) => [r.partnerType, r._count._all]),
-  ) as Partial<Record<PartnerType, number>>;
-
-  return (Object.keys(PARTNER_COMMISSION_CONFIG) as PartnerType[]).reduce(
+  const empty = (Object.keys(PARTNER_COMMISSION_CONFIG) as PartnerType[]).reduce(
     (acc, type) => {
       const cap = PARTNER_COMMISSION_CONFIG[type].seatCap;
-      const used = usedByType[type] ?? 0;
       acc[type] = {
-        used,
+        used: 0,
         cap,
-        remaining: cap == null ? null : Math.max(0, cap - used),
+        remaining: cap == null ? null : cap,
       };
       return acc;
     },
     {} as Record<PartnerType, { used: number; cap: number | null; remaining: number | null }>,
   );
+
+  return emptyIfUnmigrated(async () => {
+    const rows = await prisma.partner.groupBy({
+      by: ["partnerType"],
+      where: { status: { in: ["active", "pending"] } },
+      _count: { _all: true },
+    });
+    const usedByType = Object.fromEntries(
+      rows.map((r) => [r.partnerType, r._count._all]),
+    ) as Partial<Record<PartnerType, number>>;
+
+    return (Object.keys(PARTNER_COMMISSION_CONFIG) as PartnerType[]).reduce(
+      (acc, type) => {
+        const cap = PARTNER_COMMISSION_CONFIG[type].seatCap;
+        const used = usedByType[type] ?? 0;
+        acc[type] = {
+          used,
+          cap,
+          remaining: cap == null ? null : Math.max(0, cap - used),
+        };
+        return acc;
+      },
+      {} as Record<PartnerType, { used: number; cap: number | null; remaining: number | null }>,
+    );
+  }, empty);
 }
 
 export async function updatePartner(
@@ -309,11 +355,13 @@ export async function createPartnerReferral(input: {
 export async function listPartnerReferrals(
   partnerId: string,
 ): Promise<SerializedPartnerReferral[]> {
-  const rows = await prisma.partnerReferral.findMany({
-    where: { partnerId },
-    orderBy: { referredAt: "desc" },
-  });
-  return rows.map(serializeReferral);
+  return emptyIfUnmigrated(async () => {
+    const rows = await prisma.partnerReferral.findMany({
+      where: { partnerId },
+      orderBy: { referredAt: "desc" },
+    });
+    return rows.map(serializeReferral);
+  }, []);
 }
 
 export async function listAllReferrals(opts?: {
@@ -324,24 +372,26 @@ export async function listAllReferrals(opts?: {
   referrals: (SerializedPartnerReferral & { partnerName: string | null })[];
   total: number;
 }> {
-  const where = opts?.status ? { status: opts.status } : {};
-  const [rows, total] = await Promise.all([
-    prisma.partnerReferral.findMany({
-      where,
-      include: { partner: { select: { displayName: true, email: true } } },
-      orderBy: { referredAt: "desc" },
-      take: opts?.limit ?? 50,
-      skip: opts?.offset ?? 0,
-    }),
-    prisma.partnerReferral.count({ where }),
-  ]);
-  return {
-    referrals: rows.map((r) => ({
-      ...serializeReferral(r),
-      partnerName: r.partner.displayName ?? r.partner.email ?? null,
-    })),
-    total,
-  };
+  return emptyIfUnmigrated(async () => {
+    const where = opts?.status ? { status: opts.status } : {};
+    const [rows, total] = await Promise.all([
+      prisma.partnerReferral.findMany({
+        where,
+        include: { partner: { select: { displayName: true, email: true } } },
+        orderBy: { referredAt: "desc" },
+        take: opts?.limit ?? 50,
+        skip: opts?.offset ?? 0,
+      }),
+      prisma.partnerReferral.count({ where }),
+    ]);
+    return {
+      referrals: rows.map((r) => ({
+        ...serializeReferral(r),
+        partnerName: r.partner.displayName ?? r.partner.email ?? null,
+      })),
+      total,
+    };
+  }, { referrals: [], total: 0 });
 }
 
 export async function getPartnerReferralById(
@@ -471,12 +521,14 @@ export async function createPartnerCommission(input: {
 export async function listPartnerCommissions(
   partnerId: string,
 ): Promise<SerializedPartnerCommission[]> {
-  const rows = await prisma.partnerCommission.findMany({
-    where: { partnerId },
-    include: { referral: { select: { businessName: true } } },
-    orderBy: { createdAt: "desc" },
-  });
-  return rows.map(serializeCommission);
+  return emptyIfUnmigrated(async () => {
+    const rows = await prisma.partnerCommission.findMany({
+      where: { partnerId },
+      include: { referral: { select: { businessName: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+    return rows.map(serializeCommission);
+  }, []);
 }
 
 export async function listAllCommissions(opts?: {
@@ -484,21 +536,23 @@ export async function listAllCommissions(opts?: {
   limit?: number;
   offset?: number;
 }): Promise<{ commissions: SerializedPartnerCommission[]; total: number }> {
-  const where = opts?.status ? { status: opts.status } : {};
-  const [rows, total] = await Promise.all([
-    prisma.partnerCommission.findMany({
-      where,
-      include: {
-        referral: { select: { businessName: true } },
-        partner: { select: { displayName: true, businessName: true, email: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: opts?.limit ?? 50,
-      skip: opts?.offset ?? 0,
-    }),
-    prisma.partnerCommission.count({ where }),
-  ]);
-  return { commissions: rows.map(serializeCommission), total };
+  return emptyIfUnmigrated(async () => {
+    const where = opts?.status ? { status: opts.status } : {};
+    const [rows, total] = await Promise.all([
+      prisma.partnerCommission.findMany({
+        where,
+        include: {
+          referral: { select: { businessName: true } },
+          partner: { select: { displayName: true, businessName: true, email: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: opts?.limit ?? 50,
+        skip: opts?.offset ?? 0,
+      }),
+      prisma.partnerCommission.count({ where }),
+    ]);
+    return { commissions: rows.map(serializeCommission), total };
+  }, { commissions: [], total: 0 });
 }
 
 export async function updateCommissionStatus(
@@ -523,22 +577,24 @@ export async function getPartnerCommissionSummary(partnerId: string): Promise<{
   paidCents: number;
   currency: string;
 }> {
-  const rows = await prisma.partnerCommission.findMany({
-    where: { partnerId },
-    select: { status: true, commissionAmountCents: true, currency: true },
-  });
+  return emptyIfUnmigrated(async () => {
+    const rows = await prisma.partnerCommission.findMany({
+      where: { partnerId },
+      select: { status: true, commissionAmountCents: true, currency: true },
+    });
 
-  let totalEarnedCents = 0;
-  let pendingCents = 0;
-  let paidCents = 0;
+    let totalEarnedCents = 0;
+    let pendingCents = 0;
+    let paidCents = 0;
 
-  for (const row of rows) {
-    totalEarnedCents += row.commissionAmountCents;
-    if (row.status === "PAID") paidCents += row.commissionAmountCents;
-    else pendingCents += row.commissionAmountCents;
-  }
+    for (const row of rows) {
+      totalEarnedCents += row.commissionAmountCents;
+      if (row.status === "PAID") paidCents += row.commissionAmountCents;
+      else pendingCents += row.commissionAmountCents;
+    }
 
-  return { totalEarnedCents, pendingCents, paidCents, currency: "AUD" };
+    return { totalEarnedCents, pendingCents, paidCents, currency: "AUD" };
+  }, { totalEarnedCents: 0, pendingCents: 0, paidCents: 0, currency: "AUD" });
 }
 
 // ─── Commission Event Logging ─────────────────────────────────────────────────
@@ -585,28 +641,37 @@ export async function getPartnerDashboardMetrics(partnerId: string): Promise<{
   commissionPendingCents: number;
   commissionPaidCents: number;
 }> {
-  const [referrals, commissionSummary] = await Promise.all([
-    prisma.partnerReferral.findMany({
-      where: { partnerId },
-      select: { status: true },
-    }),
-    getPartnerCommissionSummary(partnerId),
-  ]);
+  return emptyIfUnmigrated(async () => {
+    const [referrals, commissionSummary] = await Promise.all([
+      prisma.partnerReferral.findMany({
+        where: { partnerId },
+        select: { status: true },
+      }),
+      getPartnerCommissionSummary(partnerId),
+    ]);
 
-  return {
-    businessesReferred: referrals.length,
-    consultations: referrals.filter((r) =>
-      ["CONSULTATION", "APPLICATION", "ONBOARDING", "ACCEPTED", "CUSTOMER", "ACTIVE", "COMMISSIONING"].includes(
-        r.status,
-      ),
-    ).length,
-    activeCustomers: referrals.filter((r) =>
-      ["CUSTOMER", "ACTIVE", "COMMISSIONING"].includes(r.status),
-    ).length,
-    commissionEarnedCents: commissionSummary.totalEarnedCents,
-    commissionPendingCents: commissionSummary.pendingCents,
-    commissionPaidCents: commissionSummary.paidCents,
-  };
+    return {
+      businessesReferred: referrals.length,
+      consultations: referrals.filter((r) =>
+        ["CONSULTATION", "APPLICATION", "ONBOARDING", "ACCEPTED", "CUSTOMER", "ACTIVE", "COMMISSIONING"].includes(
+          r.status,
+        ),
+      ).length,
+      activeCustomers: referrals.filter((r) =>
+        ["CUSTOMER", "ACTIVE", "COMMISSIONING"].includes(r.status),
+      ).length,
+      commissionEarnedCents: commissionSummary.totalEarnedCents,
+      commissionPendingCents: commissionSummary.pendingCents,
+      commissionPaidCents: commissionSummary.paidCents,
+    };
+  }, {
+    businessesReferred: 0,
+    consultations: 0,
+    activeCustomers: 0,
+    commissionEarnedCents: 0,
+    commissionPendingCents: 0,
+    commissionPaidCents: 0,
+  });
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
