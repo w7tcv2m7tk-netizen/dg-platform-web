@@ -46,10 +46,12 @@ export function ReDashboard({
   stats,
   wpSummary,
   wpError,
+  showWordPress = false,
 }: {
   stats: ReDashboardStats;
   wpSummary?: WpRePipelineSummary;
   wpError?: string;
+  showWordPress?: boolean;
 }) {
   const isEmpty =
     stats.vendorLeads === 0 && stats.buyerLeads === 0 && stats.properties === 0;
@@ -63,7 +65,10 @@ export function ReDashboard({
           </h2>
           <p className="mt-2 max-w-xl text-sm text-slate-400">
             Start with a vendor lead, book an appraisal, then progress through listing → offer →
-            settlement. Or sync leads from your WordPress site once the connector is live.
+            settlement.
+            {showWordPress
+              ? " Or sync leads from WordPress once the connector is live."
+              : " Add contacts and pipeline stages directly in DigitalGate."}
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
@@ -72,12 +77,14 @@ export function ReDashboard({
             >
               Add vendor lead
             </Link>
-            <Link
-              href="/dashboard/settings/connectors"
-              className="rounded-full border border-slate-600 px-5 py-2 text-sm text-slate-300 hover:bg-slate-900"
-            >
-              Connect WordPress
-            </Link>
+            {showWordPress ? (
+              <Link
+                href="/dashboard/settings/connectors"
+                className="rounded-full border border-slate-600 px-5 py-2 text-sm text-slate-300 hover:bg-slate-900"
+              >
+                Connect WordPress
+              </Link>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -141,7 +148,8 @@ export function ReDashboard({
             ))}
             {!Object.keys(stats.buyerByStage).length ? (
               <li className="text-slate-500">
-                No buyer leads yet — sync from WordPress or add manually
+                No buyer leads yet
+                {showWordPress ? " — sync from WordPress or add manually" : " — add manually"}
               </li>
             ) : null}
           </ul>
@@ -154,7 +162,7 @@ export function ReDashboard({
         </div>
       </div>
 
-      {wpError ? (
+      {showWordPress && wpError ? (
         <div className="dg-card border-amber-500/30">
           <p className="text-sm text-amber-300">WordPress summary unavailable: {wpError}</p>
           <Link
@@ -164,7 +172,7 @@ export function ReDashboard({
             Fix WordPress connector →
           </Link>
         </div>
-      ) : wpSummary ? (
+      ) : showWordPress && wpSummary ? (
         <div className="dg-card">
           <h2 className="font-semibold text-white">WordPress site — last 30 days</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">

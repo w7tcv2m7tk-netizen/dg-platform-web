@@ -9,6 +9,7 @@ export * from "./page-chrome";
 export * from "./assist";
 export * from "./form-capture";
 export * from "./native-health";
+export * from "./pagespeed";
 export * from "./html-to-components";
 export * from "./wp-import";
 export * from "./beta";

@@ -6,6 +6,7 @@ import {
   getWebsite,
   listOrganisationDomains,
   organisationHasWebsitesBuilder,
+  organisationHasWordPressConnector,
   resolvePrimaryLinkedDomain,
 } from "@dg/platform-core";
 
@@ -65,7 +66,10 @@ export default async function WebsiteStudioPage({ params }: Props) {
   const website = await getWebsite(session.organisationId, id);
   if (!website) notFound();
 
-  const domains = await listOrganisationDomains(session.organisationId);
+  const [domains, showWordPressImport] = await Promise.all([
+    listOrganisationDomains(session.organisationId),
+    organisationHasWordPressConnector(session.organisationId),
+  ]);
   const linkedDomain =
     resolvePrimaryLinkedDomain(website, domains)?.name ?? null;
 
@@ -88,6 +92,7 @@ export default async function WebsiteStudioPage({ params }: Props) {
           <WebsiteStudioClient
             initial={website}
             linkedDomain={linkedDomain}
+            showWordPressImport={showWordPressImport}
           />
         </Suspense>
       </main>

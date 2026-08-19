@@ -62,7 +62,7 @@ export default async function OpportunitiesAppPage() {
           </div>
         ) : !data ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
-            Database not configured — opportunities unavailable.
+            Database not connected — opportunities unavailable.
           </div>
         ) : (
           <>

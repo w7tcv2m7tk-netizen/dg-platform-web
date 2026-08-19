@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { Suspense } from "react";
+import { organisationHasWordPressConnector } from "@dg/platform-core";
 
 import { AccommodationDashboard } from "@/components/accommodation/AccommodationDashboard";
 import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
@@ -39,7 +40,12 @@ export default async function AccommodationOverviewPage({ searchParams }: PagePr
   const sites = listWpAccommodationSites();
   const site = getWpAccommodationSite(siteId);
   const connector = await accommodationConnectorForSession(session?.organisationId);
-  const summaryResult = await fetchWpAccommodationSummary(site.id, 30, connector);
+  const [summaryResult, showWordPress] = await Promise.all([
+    fetchWpAccommodationSummary(site.id, 30, connector),
+    session?.organisationId
+      ? organisationHasWordPressConnector(session.organisationId)
+      : Promise.resolve(false),
+  ]);
   const siteLabel = connector?.label ?? site.label;
 
   return (
@@ -60,6 +66,7 @@ export default async function AccommodationOverviewPage({ searchParams }: PagePr
           summary={summaryResult.ok ? summaryResult.data : undefined}
           error={summaryResult.ok ? undefined : summaryResult.message}
           siteLabel={siteLabel}
+          showWordPress={showWordPress}
         />
       </main>
     </>

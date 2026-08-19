@@ -11,6 +11,8 @@ export interface WebsiteProbe {
 
 export interface WordPressProbe {
   ok: boolean;
+  /** Org explicitly configured a WP connector (not env/preset fallback). */
+  configured?: boolean;
   lastSyncAt?: string;
   vendorLeadCount?: number;
 }

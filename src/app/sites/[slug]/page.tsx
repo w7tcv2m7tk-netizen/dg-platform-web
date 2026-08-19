@@ -8,27 +8,12 @@ import { HideawayCircleCapture } from "@/components/websites/HideawayCircleCaptu
 import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
 import { WebsitePageRenderer } from "@/components/websites/WebsiteRenderer";
 import { websiteRendererCss } from "@/components/websites/website-renderer-css";
-
-type SiteChrome = {
-  headerHtml?: string;
-  footerHtml?: string;
-  stylesheets?: string[];
-  navLinks?: Array<{ label: string; href: string }>;
-  businessName?: string;
-  tagline?: string;
-  overlayHeader?: boolean;
-  lightSurface?: boolean;
-  headerCta?: { label: string; href: string; backgroundColor?: string };
-};
-
-function chromeFromSite(
-  metadata: Record<string, unknown> | null | undefined,
-): SiteChrome | null {
-  if (!metadata || typeof metadata !== "object") return null;
-  const chrome = metadata.chrome;
-  if (!chrome || typeof chrome !== "object") return null;
-  return chrome as SiteChrome;
-}
+import { publicOgImageForSlug } from "@/lib/brand";
+import {
+  chromeFromSiteMetadata,
+  decodeHtmlEntities,
+  preparePublicChrome,
+} from "@/lib/public-chrome";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -45,10 +30,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const site = await getWebsiteBySlug(slug);
   if (!site) return { title: "Site" };
   const home = resolveHome(site);
-  const title = home?.seo?.title || site.seo?.title || site.name;
+  const title = decodeHtmlEntities(
+    home?.seo?.title || site.seo?.title || site.name,
+  );
   const description =
     home?.seo?.description || site.seo?.description || site.name;
-  return { title, description, applicationName: site.name };
+  const ogImage = publicOgImageForSlug(
+    slug,
+    home?.seo?.ogImage || site.seo?.ogImage,
+  );
+  return {
+    title,
+    description,
+    applicationName: site.name,
+    openGraph: { title, description, images: [{ url: ogImage }] },
+  };
 }
 
 export default async function PublicSiteHomePage({
@@ -68,7 +64,11 @@ export default async function PublicSiteHomePage({
 
   const theme = site.theme ?? {};
   const siteMeta = site.metadata as Record<string, unknown> | null | undefined;
-  const chrome = chromeFromSite(siteMeta);
+  const preparedChrome = preparePublicChrome(chromeFromSiteMetadata(siteMeta));
+  const chromeCss = preparedChrome?.chromeCss;
+  const chrome = preparedChrome
+    ? { ...preparedChrome, chromeCss: undefined }
+    : null;
   const funnelTemplate =
     resolveFunnelTemplate({
       metadata: siteMeta,
@@ -82,13 +82,16 @@ export default async function PublicSiteHomePage({
             home.slug === "hideaway-circle"
           ? "hideaway_circle"
           : null);
-  const title = home.seo?.title || site.seo?.title || site.name;
+  const title = decodeHtmlEntities(home.seo?.title || site.seo?.title || site.name);
   const description =
     home.seo?.description || site.seo?.description || site.name;
-  const ogTitle = home.seo?.ogTitle || site.seo?.ogTitle || title;
+  const ogTitle = decodeHtmlEntities(home.seo?.ogTitle || site.seo?.ogTitle || title);
   const ogDescription =
     home.seo?.ogDescription || site.seo?.ogDescription || description;
-  const ogImage = home.seo?.ogImage || site.seo?.ogImage;
+  const ogImage = publicOgImageForSlug(
+    slug,
+    home.seo?.ogImage || site.seo?.ogImage,
+  );
   const chromeDefaults = resolvePageChromeVisibility(home.slug, home.seo);
   const showHeader =
     funnelTemplate === "business_audit" ||
@@ -119,6 +122,9 @@ export default async function PublicSiteHomePage({
           <link key={href} rel="stylesheet" href={href} />
         ))}
       <style dangerouslySetInnerHTML={{ __html: websiteRendererCss }} />
+      {chromeCss ? (
+        <style id="wb-chrome-css" dangerouslySetInnerHTML={{ __html: chromeCss }} />
+      ) : null}
       {allowDraft && site.status !== "published" ? (
         <div
           style={{

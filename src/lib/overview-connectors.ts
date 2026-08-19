@@ -1,7 +1,4 @@
-import {
-  getStripeSetupStatus,
-  type OverviewConnectorProbes,
-} from "@dg/platform-core";
+import { getStripeSetupStatus, organisationHasWordPressConnector, type OverviewConnectorProbes } from "@dg/platform-core";
 
 import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
 import {
@@ -27,6 +24,7 @@ export async function fetchOverviewConnectorProbes(
 ): Promise<OverviewConnectorProbes> {
   const stripe = getStripeSetupStatus();
   const wpSync = await getLastWordPressSync(organisationId);
+  const wpConfigured = await organisationHasWordPressConnector(organisationId);
   const orgConnector = await wpConnectorForOrg(organisationId);
   const accConnector = await accommodationConnectorForSession(organisationId);
 
@@ -69,13 +67,16 @@ export async function fetchOverviewConnectorProbes(
     accSummary?.ok === true ||
     (hasWpKey && siteHealth.ok);
 
-  probes.wordpress = {
-    ok: wpConnected,
-    lastSyncAt: wpSync?.lastVendorLeadSyncAt,
-    vendorLeadCount: reSummary?.ok
-      ? sumPipelineCounts(reSummary.data.vendor_pipeline)
-      : undefined,
-  };
+  if (wpConfigured) {
+    probes.wordpress = {
+      ok: wpConnected,
+      configured: true,
+      lastSyncAt: wpSync?.lastVendorLeadSyncAt,
+      vendorLeadCount: reSummary?.ok
+        ? sumPipelineCounts(reSummary.data.vendor_pipeline)
+        : undefined,
+    };
+  }
 
   if (reSummary?.ok) {
     const data = reSummary.data;

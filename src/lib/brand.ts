@@ -14,6 +14,28 @@ export const BRAND_EMAIL_ICON =
 export const BRAND_EMAIL_LOGO =
   "https://app.digitalgate.com.au/brand/logo-on-dark.png";
 
+const OG_BASE = "https://app.digitalgate.com.au/og";
+
+/** Dedicated 1200×630 share images (not the wordmark). */
+export const PUBLIC_OG_IMAGES: Record<string, string> = {
+  digitalgate: `${OG_BASE}/digitalgate.png`,
+  "digitalgate-audit": `${OG_BASE}/digitalgate.png`,
+  "roe-realty": `${OG_BASE}/roe-realty.png`,
+  "roe-realty-report": `${OG_BASE}/roe-realty.png`,
+  "currumbin-valley-hideaway": `${OG_BASE}/cvh.png`,
+  "currumbin-valley-hideaway-circle": `${OG_BASE}/cvh.png`,
+};
+
+export const DEFAULT_PUBLIC_OG_IMAGE = PUBLIC_OG_IMAGES.digitalgate;
+
+export function publicOgImageForSlug(
+  slug: string,
+  explicit?: string | null,
+): string {
+  if (explicit?.trim()) return explicit.trim();
+  return PUBLIC_OG_IMAGES[slug] || DEFAULT_PUBLIC_OG_IMAGE;
+}
+
 export const BRAND_ASSETS = {
   "on-dark": {
     /** Icon Light Door — canonical mark (black frame, white door) */

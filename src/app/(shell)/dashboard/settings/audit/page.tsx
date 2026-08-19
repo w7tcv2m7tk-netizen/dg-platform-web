@@ -33,7 +33,7 @@ export default async function AuditLogPage() {
       <main className="dg-page-main">
         <div className="dg-card overflow-x-auto">
           {!session || !logs ? (
-            <p className="text-sm text-slate-400">Sign in with DATABASE_URL configured to view audit logs.</p>
+            <p className="text-sm text-slate-400">Sign in to view your organisation audit log.</p>
           ) : logs.items.length === 0 ? (
             <p className="text-sm text-slate-400">No audit entries yet.</p>
           ) : (

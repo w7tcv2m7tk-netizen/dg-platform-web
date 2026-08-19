@@ -275,7 +275,7 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
         id: "web-1",
         title: "Open Design Studio",
         description:
-          "Create a site from profile (or import WordPress pages), then finish the closed-beta checklist.",
+          "Create a site from your Business Profile in Design Studio, then finish the go-live checklist.",
         href: "/apps/websites",
         hrefLabel: "Websites",
       },

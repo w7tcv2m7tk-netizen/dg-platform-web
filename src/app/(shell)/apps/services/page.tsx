@@ -34,7 +34,7 @@ export default async function ServicesOverviewPage() {
           <h1 className="text-2xl font-bold text-white">Services</h1>
         </header>
         <main className="dg-page-main">
-          <p className="text-slate-400">Sign in with DATABASE_URL configured.</p>
+          <p className="text-slate-400">Sign in to manage services for your business.</p>
         </main>
       </>
     );

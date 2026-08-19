@@ -8,6 +8,7 @@ import type {
   SiteHealthSnapshot,
   WebsiteComponent,
 } from "./types";
+import { pagespeedFromMetadata } from "./pagespeed";
 
 export type NativeHealthDomain = {
   name: string;
@@ -217,7 +218,7 @@ export function buildNativeWebsiteHealth(input: {
     warn,
     fail,
     checks,
-    pagespeed: { mobile: null, desktop: null, checkedAt: null },
+    pagespeed: pagespeedFromMetadata(website.metadata),
     ssl: { enabled: sslOk || (!hasDomain && published) },
   };
 }

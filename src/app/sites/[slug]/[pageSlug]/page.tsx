@@ -6,31 +6,16 @@ import { notFound, redirect } from "next/navigation";
 import { HideawayCircleCapture } from "@/components/websites/HideawayCircleCapture";
 import { WebsitePageRenderer } from "@/components/websites/WebsiteRenderer";
 import { websiteRendererCss } from "@/components/websites/website-renderer-css";
+import { publicOgImageForSlug } from "@/lib/brand";
+import {
+  chromeFromSiteMetadata,
+  decodeHtmlEntities,
+  preparePublicChrome,
+} from "@/lib/public-chrome";
 import {
   isRetiredPublicOnboarding,
   PublicOnboardingRetired,
 } from "@/components/founding/PublicOnboardingRetired";
-
-type SiteChrome = {
-  headerHtml?: string;
-  footerHtml?: string;
-  stylesheets?: string[];
-  navLinks?: Array<{ label: string; href: string }>;
-  businessName?: string;
-  tagline?: string;
-  overlayHeader?: boolean;
-  lightSurface?: boolean;
-  headerCta?: { label: string; href: string; backgroundColor?: string };
-};
-
-function chromeFromSite(
-  metadata: Record<string, unknown> | null | undefined,
-): SiteChrome | null {
-  if (!metadata || typeof metadata !== "object") return null;
-  const chrome = metadata.chrome;
-  if (!chrome || typeof chrome !== "object") return null;
-  return chrome as SiteChrome;
-}
 
 type Props = {
   params: Promise<{ slug: string; pageSlug: string }>;
@@ -43,13 +28,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!site) return { title: "Site" };
   const page = (site.pages ?? []).find((p) => p.slug === pageSlug);
   if (!page) return { title: site.name };
-  const title = page.seo?.title || `${page.title} | ${site.name}`;
+  const title = decodeHtmlEntities(
+    page.seo?.title || `${page.title} | ${site.name}`,
+  );
   const description =
     page.seo?.description || site.seo?.description || site.name;
-  const ogTitle = page.seo?.ogTitle || site.seo?.ogTitle || title;
+  const ogTitle = decodeHtmlEntities(
+    page.seo?.ogTitle || site.seo?.ogTitle || title,
+  );
   const ogDescription =
     page.seo?.ogDescription || site.seo?.ogDescription || description;
-  const ogImage = page.seo?.ogImage || site.seo?.ogImage;
+  const ogImage = publicOgImageForSlug(
+    slug,
+    page.seo?.ogImage || site.seo?.ogImage,
+  );
   const keywords = page.seo?.keywords?.length
     ? page.seo.keywords
     : site.seo?.keywords;
@@ -60,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: ogTitle,
       description: ogDescription,
-      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
+      images: [{ url: ogImage }],
     },
   };
 }
@@ -108,7 +100,11 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
 
   const theme = site.theme ?? {};
   const siteMeta = site.metadata as Record<string, unknown> | null | undefined;
-  const chrome = chromeFromSite(siteMeta);
+  const preparedChrome = preparePublicChrome(chromeFromSiteMetadata(siteMeta));
+  const chromeCss = preparedChrome?.chromeCss;
+  const chrome = preparedChrome
+    ? { ...preparedChrome, chromeCss: undefined }
+    : null;
   const funnelTemplate =
     resolveFunnelTemplate({
       metadata: siteMeta,
@@ -134,13 +130,16 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
     funnelTemplate === "hideaway_circle"
       ? false
       : chromeDefaults.showFooter;
-  const title = page.seo?.title || `${page.title} | ${site.name}`;
+  const title = decodeHtmlEntities(page.seo?.title || `${page.title} | ${site.name}`);
   const description =
     page.seo?.description || site.seo?.description || site.name;
-  const ogTitle = page.seo?.ogTitle || site.seo?.ogTitle || title;
+  const ogTitle = decodeHtmlEntities(page.seo?.ogTitle || site.seo?.ogTitle || title);
   const ogDescription =
     page.seo?.ogDescription || site.seo?.ogDescription || description;
-  const ogImage = page.seo?.ogImage || site.seo?.ogImage;
+  const ogImage = publicOgImageForSlug(
+    slug,
+    page.seo?.ogImage || site.seo?.ogImage,
+  );
 
   return (
     <>
@@ -148,7 +147,7 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
       <meta name="description" content={description} />
       <meta property="og:title" content={ogTitle} />
       <meta property="og:description" content={ogDescription} />
-      {ogImage ? <meta property="og:image" content={ogImage} /> : null}
+      <meta property="og:image" content={ogImage} />
       {(funnelTemplate === "hideaway_circle"
         ? []
         : chrome?.stylesheets ?? []
@@ -158,6 +157,9 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
           <link key={href} rel="stylesheet" href={href} />
         ))}
       <style dangerouslySetInnerHTML={{ __html: websiteRendererCss }} />
+      {chromeCss ? (
+        <style id="wb-chrome-css" dangerouslySetInnerHTML={{ __html: chromeCss }} />
+      ) : null}
       {funnelTemplate === "hideaway_circle" ? (
         <div
           className="wb-root wb-html-page wb-full-bleed wb-product-funnel"

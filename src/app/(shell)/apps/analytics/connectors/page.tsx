@@ -32,7 +32,7 @@ export default async function AnalyticsConnectorsPage() {
       status: metrics ? "Live" : "Unavailable",
       detail: metrics
         ? "CRM, leads, commerce, tasks, and activity counts"
-        : "DATABASE_URL not configured",
+        : "Platform database unavailable",
       ok: Boolean(metrics),
     },
     {
@@ -41,18 +41,22 @@ export default async function AnalyticsConnectorsPage() {
       status: connectors.website?.ok ? "Connected" : "Not connected",
       detail: connectors.website?.ok
         ? `Score ${connectors.website.score ?? "—"}/100${connectors.website.siteLabel ? ` · ${connectors.website.siteLabel}` : ""}`
-        : "Add WordPress connector or site health endpoint",
+        : "Add a live website or enable Design Studio health checks",
       ok: connectors.website?.ok ?? false,
     },
-    {
-      id: "wordpress",
-      label: "WordPress sync",
-      status: connectors.wordpress?.ok ? "Connected" : "Not connected",
-      detail: connectors.wordpress?.lastSyncAt
-        ? `Last sync ${new Date(connectors.wordpress.lastSyncAt).toLocaleString("en-AU")}`
-        : "Pipeline and listing data when RE / accommodation apps enabled",
-      ok: connectors.wordpress?.ok ?? false,
-    },
+    ...(connectors.wordpress?.configured
+      ? [
+          {
+            id: "wordpress",
+            label: "WordPress sync",
+            status: connectors.wordpress?.ok ? "Connected" : "Not connected",
+            detail: connectors.wordpress?.lastSyncAt
+              ? `Last sync ${new Date(connectors.wordpress.lastSyncAt).toLocaleString("en-AU")}`
+              : "Pipeline and listing data when RE / accommodation apps enabled",
+            ok: connectors.wordpress?.ok ?? false,
+          },
+        ]
+      : []),
     {
       id: "stripe",
       label: "Stripe billing",

@@ -50,23 +50,31 @@ export function AccommodationDashboard({
   summary,
   error,
   siteLabel,
+  showWordPress = false,
 }: {
   summary?: WpAccommodationSummary;
   error?: string;
   siteLabel?: string;
+  showWordPress?: boolean;
 }) {
   if (error) {
     return (
       <div className="space-y-6">
         <div className="dg-card border-amber-500/30">
           <p className="text-amber-300">{error}</p>
-          <p className="mt-2 text-sm text-slate-500">
-            Open Settings → Connectors while on this property org → paste the Dev API key from that
-            site’s WordPress → DG Platform → API Settings → Save (do not leave the key blank). Use
-            the property’s own key only — never paste Roe/DigitalGate keys onto another host.
-            Optional Vercel fallback for the CVH pilot:{" "}
-            <code className="text-slate-400">DG_WP_ACCOMMODATION_API_KEY</code>.
-          </p>
+          {showWordPress ? (
+            <p className="mt-2 text-sm text-slate-500">
+              Open Settings → Connectors while on this property org → paste the Dev API key from
+              that site’s WordPress → DG Platform → API Settings → Save (do not leave the key
+              blank). Use the property’s own key only — never paste Roe/DigitalGate keys onto
+              another host.
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-slate-500">
+              Add units in Accommodation → Units, then open Availability and Bookings. WordPress
+              import is optional for legacy migrations only.
+            </p>
+          )}
         </div>
       </div>
     );
@@ -78,8 +86,10 @@ export function AccommodationDashboard({
         <div className="dg-card border-dashed border-slate-700">
           <h2 className="text-lg font-semibold text-white">Add your first units</h2>
           <p className="mt-2 max-w-xl text-sm text-slate-400">
-            Connect WordPress, sync units, then open Availability and Bookings. Public book-now
-            stays on the website for this beta.
+            Add units in DigitalGate, set OTA calendar URLs, then open Availability and Bookings.
+            {showWordPress
+              ? " Migrating from WordPress? Connect the legacy connector in Settings."
+              : ""}
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
@@ -88,12 +98,21 @@ export function AccommodationDashboard({
             >
               Open units
             </Link>
-            <Link
-              href="/dashboard/settings/connectors"
-              className="rounded-full border border-slate-600 px-5 py-2 text-sm text-slate-300 hover:bg-slate-900"
-            >
-              Connect WordPress
-            </Link>
+            {showWordPress ? (
+              <Link
+                href="/dashboard/settings/connectors"
+                className="rounded-full border border-slate-600 px-5 py-2 text-sm text-slate-300 hover:bg-slate-900"
+              >
+                Connect WordPress
+              </Link>
+            ) : (
+              <Link
+                href="/apps/accommodation/calendar"
+                className="rounded-full border border-slate-600 px-5 py-2 text-sm text-slate-300 hover:bg-slate-900"
+              >
+                Open availability
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -122,8 +141,10 @@ export function AccommodationDashboard({
         <div className="dg-card border-dashed border-slate-700">
           <h2 className="text-lg font-semibold text-white">Add your first units</h2>
           <p className="mt-2 max-w-xl text-sm text-slate-400">
-            Open Units to manage Neon listings and OTA calendar URLs. Migrating customers can
-            Import from WordPress when a live WP Acc connector is configured.
+            Open Units to manage listings and OTA calendar URLs.
+            {showWordPress
+              ? " Migrating customers can import from WordPress when a live connector is configured."
+              : ""}
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link

@@ -83,7 +83,7 @@ export default async function PlatformSettingsPage() {
               </dl>
             ) : (
               <p className="mt-3 text-sm text-slate-400">
-                Sign in with DATABASE_URL configured to view organisation details.
+                Sign in to view organisation details.
               </p>
             )}
           </div>

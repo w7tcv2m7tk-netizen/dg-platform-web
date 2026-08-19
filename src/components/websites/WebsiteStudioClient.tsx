@@ -31,9 +31,11 @@ const SUGGESTED_PROMPTS = [
 export function WebsiteStudioClient({
   initial,
   linkedDomain,
+  showWordPressImport = false,
 }: {
   initial: SerializedWebsite;
   linkedDomain?: string | null;
+  showWordPressImport?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,13 +61,15 @@ export function WebsiteStudioClient({
   );
   const [tab, setTab] = useState<StudioTab>(() => {
     const t = searchParams.get("tab");
-    if (t === "seo" || t === "import" || t === "edit") return t;
+    if (t === "seo" || t === "edit") return t;
+    if (t === "import" && showWordPressImport) return t;
     return "edit";
   });
 
   useEffect(() => {
     const t = searchParams.get("tab");
-    if (t === "seo" || t === "import" || t === "edit") setTab(t);
+    if (t === "seo" || t === "edit") setTab(t);
+    if (t === "import" && showWordPressImport) setTab(t);
     if (searchParams.get("live") === "1") {
       setShowLivePanel(true);
       if (t !== "seo" && t !== "import") setTab("edit");
@@ -77,7 +81,7 @@ export function WebsiteStudioClient({
       );
       if (match) setPageId(match.id);
     }
-  }, [searchParams, website.pages]);
+  }, [searchParams, website.pages, showWordPressImport]);
 
   const page = useMemo(
     () => website.pages?.find((p) => p.id === pageId) ?? website.pages?.[0],
@@ -452,7 +456,9 @@ export function WebsiteStudioClient({
           [
             { id: "edit" as const, label: "Edit" },
             { id: "seo" as const, label: "SEO" },
-            { id: "import" as const, label: "WordPress" },
+            ...(showWordPressImport
+              ? [{ id: "import" as const, label: "WordPress" }]
+              : []),
           ] as const
         ).map((t) => (
           <button
@@ -511,7 +517,7 @@ export function WebsiteStudioClient({
         </div>
       ) : null}
 
-      {tab === "import" ? (
+      {tab === "import" && showWordPressImport ? (
         <WordPressImportPanel
           website={website}
           onImported={(next, summary) => {

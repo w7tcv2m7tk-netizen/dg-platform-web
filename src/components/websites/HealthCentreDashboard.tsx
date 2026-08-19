@@ -69,7 +69,7 @@ export function HealthCentreDashboard({
             <div>
               <h2 className="font-semibold text-white">Health checks</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Platform checks from connected WordPress site · {generated}
+                Platform checks from your live site · {generated}
               </p>
             </div>
             <p className={`text-3xl font-bold ${scoreColor(snapshot.score)}`}>
@@ -102,7 +102,7 @@ export function HealthCentreDashboard({
           <div className="dg-card">
             <h2 className="font-semibold text-white">PageSpeed</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Google PageSpeed scores cached on Roe
+              Google PageSpeed Insights (cached on this site)
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <StatCard
@@ -121,7 +121,7 @@ export function HealthCentreDashboard({
               </p>
             ) : (
               <p className="mt-3 text-xs text-slate-500">
-                Refresh scores in Roe wp-admin → Site Tools → Analytics
+                Refresh scores from Health Centre, or wait for the overnight probe
               </p>
             )}
           </div>

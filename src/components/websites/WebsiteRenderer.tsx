@@ -19,6 +19,8 @@ import { RoeBookingCapture } from "@/components/websites/RoeBookingCapture";
 import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
 import { HtmlWithDgForms } from "@/components/websites/HtmlWithDgForms";
 import { ChromeHeaderHtml } from "@/components/websites/ChromeHeaderHtml";
+import { ChromeFooterHtml } from "@/components/websites/ChromeFooterHtml";
+import { extractStyleBlocks } from "@/lib/public-chrome";
 import { stripCvhFooterExploreColumn } from "@/lib/strip-cvh-footer-explore";
 import {
   PRODUCT_FUNNEL_URLS,
@@ -1362,7 +1364,7 @@ export function WebsitePageRenderer({
           showIcon={false}
         />
       ) : headerHtml ? (
-        <ChromeHeaderHtml html={headerHtml} />
+        <ChromeHeaderHtml html={extractStyleBlocks(headerHtml).html} />
       ) : null}
       {stayUnit ? (
         <CvhStayUnitBooking
@@ -1430,10 +1432,7 @@ export function WebsitePageRenderer({
         </>
       )}
       {footerHtml ? (
-        <section
-          className="wb-section wb-html-block wb-site-chrome wb-site-chrome-footer"
-          dangerouslySetInnerHTML={{ __html: footerHtml }}
-        />
+        <ChromeFooterHtml html={extractStyleBlocks(footerHtml).html} />
       ) : useBrandFooter ? (
         <BrandSiteFooter
           theme={theme}

@@ -24,28 +24,12 @@ import {
 } from "@/components/founding/PublicFoundingInviteAccept";
 import { parseFoundingInvitePageSlug } from "@/lib/founding-invite-page-slug";
 import { getPublicFoundingInvitation } from "@dg/platform-core";
-
-type SiteChrome = {
-  headerHtml?: string;
-  footerHtml?: string;
-  stylesheets?: string[];
-  navLinks?: Array<{ label: string; href: string }>;
-  tagline?: string;
-  businessName?: string;
-  overlayHeader?: boolean;
-  headerLayout?: "bar" | "stacked";
-  lightSurface?: boolean;
-  headerCta?: { label: string; href: string; backgroundColor?: string };
-};
-
-function chromeFromSite(
-  metadata: Record<string, unknown> | null | undefined,
-): SiteChrome | null {
-  if (!metadata || typeof metadata !== "object") return null;
-  const chrome = metadata.chrome;
-  if (!chrome || typeof chrome !== "object") return null;
-  return chrome as SiteChrome;
-}
+import { publicOgImageForSlug } from "@/lib/brand";
+import {
+  chromeFromSiteMetadata,
+  decodeHtmlEntities,
+  preparePublicChrome,
+} from "@/lib/public-chrome";
 
 async function resolveRequestHost(): Promise<string> {
   const hdrs = await headers();
@@ -165,17 +149,18 @@ export async function generateMetadata({
       };
     }
     const page = resolvePage(site, pageSlug);
-    const title = page?.seo?.title || site.seo?.title || site.name;
+    const title = decodeHtmlEntities(
+      page?.seo?.title || site.seo?.title || site.name,
+    );
     const description =
       page?.seo?.description || site.seo?.description || site.name;
-    const ogTitle = page?.seo?.ogTitle || title;
+    const ogTitle = decodeHtmlEntities(page?.seo?.ogTitle || title);
     const ogDescription =
       page?.seo?.ogDescription || description;
-    const ogImage =
-      page?.seo?.ogImage ||
-      site.seo?.ogImage ||
-      site.theme?.logoUrl ||
-      "https://app.digitalgate.com.au/brand/logo-on-dark.png";
+    const ogImage = publicOgImageForSlug(
+      site.slug,
+      page?.seo?.ogImage || site.seo?.ogImage,
+    );
     const keywords = page?.seo?.keywords?.length
       ? page.seo.keywords
       : site.seo?.keywords;
@@ -332,7 +317,11 @@ async function renderSite(
 
   const theme = site.theme ?? {};
   const siteMeta = site.metadata as Record<string, unknown> | null | undefined;
-  const chrome = chromeFromSite(siteMeta);
+  const preparedChrome = preparePublicChrome(chromeFromSiteMetadata(siteMeta));
+  const chromeCss = preparedChrome?.chromeCss;
+  const chrome = preparedChrome
+    ? { ...preparedChrome, chromeCss: undefined }
+    : null;
   const hostname = await resolveRequestHost();
   const funnelTemplate =
     resolveFunnelTemplate({
@@ -379,6 +368,9 @@ async function renderSite(
           <link key={href} rel="stylesheet" href={href} />
         ))}
       <style dangerouslySetInnerHTML={{ __html: websiteRendererCss }} />
+      {chromeCss ? (
+        <style id="wb-chrome-css" dangerouslySetInnerHTML={{ __html: chromeCss }} />
+      ) : null}
       {isDgSiteSlug(slug) ? (
         <script
           type="application/ld+json"

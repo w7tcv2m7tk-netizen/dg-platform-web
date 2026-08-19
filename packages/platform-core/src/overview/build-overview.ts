@@ -205,14 +205,18 @@ function buildConnectedSystems(connectors: OverviewConnectorProbes): OverviewCon
       status: websiteStatus,
       detail: connectors.website?.score ? `${connectors.website.score}/100` : undefined,
     },
-    {
-      id: "wordpress",
-      label: "WordPress",
-      status: connectors.wordpress?.ok ? "connected" : "offline",
-      detail: connectors.wordpress?.lastSyncAt
-        ? `Synced ${formatTimeLabel(connectors.wordpress.lastSyncAt)}`
-        : undefined,
-    },
+    ...(connectors.wordpress?.configured
+      ? [
+          {
+            id: "wordpress" as const,
+            label: "WordPress",
+            status: connectors.wordpress.ok ? ("connected" as const) : ("offline" as const),
+            detail: connectors.wordpress.lastSyncAt
+              ? `Synced ${formatTimeLabel(connectors.wordpress.lastSyncAt)}`
+              : undefined,
+          },
+        ]
+      : []),
     {
       id: "stripe",
       label: "Stripe",
@@ -227,7 +231,8 @@ function buildConnectedSystems(connectors: OverviewConnectorProbes): OverviewCon
     {
       id: "crm",
       label: "CRM",
-      status: connectors.wordpress?.ok ? "connected" : "warning",
+      status: "connected",
+      detail: "Contacts, companies, and pipeline in DigitalGate",
     },
     {
       id: "voice",

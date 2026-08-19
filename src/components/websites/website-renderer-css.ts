@@ -3120,6 +3120,12 @@ a.wb-brand-chrome-cta:hover {
 .wb-site-chrome-footer {
   margin-top: auto;
   z-index: 5;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 22rem;
+}
+
+.wb-site-chrome-footer-slot {
+  min-height: 12rem;
 }
 
 /* Never let shared img rules blow up logos/nav icons in chrome */

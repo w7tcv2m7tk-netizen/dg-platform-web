@@ -1,6 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { getReDashboardStats } from "@dg/platform-core";
+import { getReDashboardStats, organisationHasWordPressConnector } from "@dg/platform-core";
 
 import { ReDashboard } from "@/components/re/ReDashboard";
 import { fetchPortalMe, fetchWpReSummary } from "@/lib/dg-api";
@@ -38,7 +38,7 @@ export default async function RealEstateOverviewPage() {
         </header>
         <main className="dg-page-main">
           <div className="dg-card">
-            <p className="text-slate-300">Database not configured.</p>
+            <p className="text-slate-300">Sign in to open Real Estate.</p>
           </div>
         </main>
       </>
@@ -51,11 +51,12 @@ export default async function RealEstateOverviewPage() {
     autoSyncWordPressBookingsIfNeeded(session),
   ]);
 
-  const [stats, wpSummary] = await Promise.all([
+  const [stats, wpSummary, wpConfigured] = await Promise.all([
     getReDashboardStats(session.organisationId),
     wpConnectorForOrg(session.organisationId).then((connector) =>
       fetchWpReSummary(30, connector),
     ),
+    organisationHasWordPressConnector(session.organisationId),
   ]);
 
   return (
@@ -71,6 +72,7 @@ export default async function RealEstateOverviewPage() {
           stats={stats}
           wpSummary={wpSummary.ok ? wpSummary.data : undefined}
           wpError={wpSummary.ok ? undefined : wpSummary.message}
+          showWordPress={wpConfigured}
         />
       </main>
     </>

@@ -143,7 +143,11 @@ export function buildGrowthOpportunities(input: BuildOpportunitiesInput): {
     });
   }
 
-  if (!connectorProbes?.wordpress?.ok && enabledAppIds.includes("real-estate")) {
+  if (
+    connectorProbes?.wordpress?.configured &&
+    !connectorProbes.wordpress.ok &&
+    enabledAppIds.includes("real-estate")
+  ) {
     items.push({
       id: "wp-sync",
       label: "Sync WordPress vendor leads",

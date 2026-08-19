@@ -109,6 +109,15 @@ function decryptApiKeyIfNeeded(apiKey: string | undefined): string | undefined {
   return decryptSecret(apiKey.trim());
 }
 
+/** True when this org saved a WordPress host or API key (not env/preset defaults). */
+export async function organisationHasWordPressConnector(
+  organisationId: string,
+): Promise<boolean> {
+  const settings = await getOrgWordPressConnectorSettings(organisationId);
+  if (!settings) return false;
+  return Boolean(settings.baseUrl?.trim() || settings.apiKey?.trim());
+}
+
 export async function getOrgWordPressConnectorSettings(
   organisationId: string,
 ): Promise<OrgWordPressConnectorSettings | null> {

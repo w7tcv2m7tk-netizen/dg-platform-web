@@ -19,6 +19,36 @@ import type {
   WebsiteTheme,
 } from "./types";
 
+function decodeHtmlEntities(value: string): string {
+  if (!value || !/[&]/.test(value)) return value;
+  return value
+    .replace(/&#8211;/g, "–")
+    .replace(/&#8212;/g, "—")
+    .replace(/&#038;|&amp;/g, "&")
+    .replace(/&#039;|&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&nbsp;/g, " ")
+    .replace(/&#(\d+);/g, (_, n: string) => {
+      const code = Number(n);
+      return Number.isFinite(code) ? String.fromCharCode(code) : _;
+    })
+    .replace(/&#x([0-9a-f]+);/gi, (_, h: string) => {
+      const code = parseInt(h, 16);
+      return Number.isFinite(code) ? String.fromCharCode(code) : _;
+    });
+}
+
+function decodeSeo(seo: WebsiteSeo | null): WebsiteSeo | null {
+  if (!seo) return null;
+  return {
+    ...seo,
+    ...(typeof seo.title === "string" ? { title: decodeHtmlEntities(seo.title) } : {}),
+    ...(typeof seo.ogTitle === "string"
+      ? { ogTitle: decodeHtmlEntities(seo.ogTitle) }
+      : {}),
+  };
+}
+
 /** Nested public paths (`apps/core/crm`) — slashes allowed, no leading/trailing slash. */
 export function normalizePageSlug(raw: string): string {
   return raw
@@ -38,12 +68,12 @@ function serializePage(page: WebsitePage): SerializedWebsitePage {
   return {
     id: page.id,
     websiteId: page.websiteId,
-    title: page.title,
+    title: decodeHtmlEntities(page.title),
     slug: page.slug,
     intent: page.intent,
     status: page.status,
     sortOrder: page.sortOrder,
-    seo: (page.seo as WebsiteSeo | null) ?? null,
+    seo: decodeSeo((page.seo as WebsiteSeo | null) ?? null),
     components: normalizeComponents(page.components),
     createdAt: page.createdAt.toISOString(),
     updatedAt: page.updatedAt.toISOString(),
@@ -62,7 +92,7 @@ function serializeWebsite(
     status: site.status,
     brief: site.brief,
     theme: (site.theme as WebsiteTheme | null) ?? null,
-    seo: (site.seo as WebsiteSeo | null) ?? null,
+    seo: decodeSeo((site.seo as WebsiteSeo | null) ?? null),
     metadata: (site.metadata as Record<string, unknown> | null) ?? null,
     publishedAt: site.publishedAt?.toISOString() ?? null,
     createdAt: site.createdAt.toISOString(),

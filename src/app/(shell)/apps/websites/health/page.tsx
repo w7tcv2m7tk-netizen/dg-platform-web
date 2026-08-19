@@ -7,6 +7,7 @@ import {
   listWebsitesWithPages,
   normalizeSiteHealthSnapshot,
   organisationHasWebsitesBuilder,
+  organisationHasWordPressConnector,
   resolvePrimaryLinkedDomain,
 } from "@dg/platform-core";
 
@@ -22,6 +23,7 @@ import {
   HealthCentreError,
 } from "@/components/websites/HealthCentreDashboard";
 import { HealthSitePicker } from "@/components/websites/HealthSitePicker";
+import { PageSpeedRefreshButton } from "@/components/websites/PageSpeedRefreshButton";
 import { WebsitesSubnav } from "@/components/websites/WebsitesSubnav";
 
 interface PageProps {
@@ -115,7 +117,9 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
     ? await listOrganisationDomains(session.organisationId)
     : [];
 
-  const showWp = view === "wordpress";
+  const showWpConnector =
+    session && (await organisationHasWordPressConnector(session.organisationId));
+  const showWp = view === "wordpress" && Boolean(showWpConnector);
   const wpSites = listWpHealthSites();
   const wpSite = getWpHealthSite(siteId);
   const healthResult = showWp ? await fetchWpSiteHealth(wpSite.id) : null;
@@ -140,7 +144,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
               ← Gen 2 Health Centre
             </Link>
           </p>
-        ) : (
+        ) : showWpConnector ? (
           <p className="text-xs text-slate-500">
             Still running a WordPress site?{" "}
             <Link
@@ -150,7 +154,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
               Connector health
             </Link>
           </p>
-        )}
+        ) : null}
 
         {!showWp ? (
           !allowed ? (
@@ -266,6 +270,21 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
                           })}
                         </tbody>
                       </table>
+                    </div>
+                    <div className="flex flex-wrap items-end justify-between gap-3 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-slate-500">
+                          PageSpeed
+                        </p>
+                        <p className="mt-1 text-sm text-slate-300">
+                          Mobile {snapshot.pagespeed.mobile ?? "—"} · Desktop{" "}
+                          {snapshot.pagespeed.desktop ?? "—"}
+                          {snapshot.pagespeed.checkedAt
+                            ? ` · ${new Date(snapshot.pagespeed.checkedAt).toLocaleString("en-AU")}`
+                            : " · not measured yet"}
+                        </p>
+                      </div>
+                      <PageSpeedRefreshButton websiteId={site.id} />
                     </div>
                   </li>
                 );
