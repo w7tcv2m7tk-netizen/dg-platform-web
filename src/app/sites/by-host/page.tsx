@@ -127,13 +127,7 @@ function resolvePage(
     pages.find((p) => p.slug === aliased) ||
     pages.find((p) => p.slug === pageSlug) ||
     null;
-  if (
-    exact ||
-    isDgSiteSlug(site.slug) ||
-    isAetherraSiteSlug(site.slug)
-  ) {
-    return exact;
-  }
+  if (exact) return exact;
   return (
     pages.find((p) => p.slug === pageSlug.replace(/^accommodation\//, "")) ||
     pages.find((p) => {

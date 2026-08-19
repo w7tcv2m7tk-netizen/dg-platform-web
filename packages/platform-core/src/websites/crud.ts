@@ -183,7 +183,34 @@ export async function getWebsiteForPublicRender(
     });
   }
 
-  return serializeWebsite(site, pages);
+  if (pages.length > 0) {
+    return serializeWebsite(site, pages);
+  }
+
+  // Fallback — some brand sites (e.g. digitalgate) missed the targeted query in prod;
+  // reuse the full-tree loader and trim to the requested page.
+  const full = await getWebsiteBySlug(slug);
+  if (!full) return null;
+  const allPages = full.pages ?? [];
+  if (allPages.length === 0) return serializeWebsite(site, pages);
+
+  if (!pageSlug) {
+    const home =
+      allPages.find((p) => p.intent === "home" || p.slug === "home") ||
+      allPages[0];
+    return { ...full, pages: home ? [home] : [] };
+  }
+
+  const match =
+    allPages.find((p) => p.slug === pageSlug) ||
+    allPages.find((p) => p.slug === pageSlug.replace(/^accommodation\//, "")) ||
+    allPages.find((p) => {
+      const leaf = pageSlug.split("/").filter(Boolean).pop();
+      return Boolean(leaf && p.slug === leaf);
+    }) ||
+    null;
+
+  return { ...full, pages: match ? [match] : allPages };
 }
 
 export async function createWebsite(input: {
