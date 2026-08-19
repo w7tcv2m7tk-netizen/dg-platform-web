@@ -1,10 +1,11 @@
-import { findDomainByHostname, getWebsiteBySlug } from "@dg/platform-core";
+import { getWebsiteBySlug } from "@dg/platform-core";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { isAetherraPublicHost } from "@/lib/aetherra-legacy-urls";
 import { isCvhPublicHost } from "@/lib/cvh-legacy-urls";
 import { isDgPublicHost } from "@/lib/dg-legacy-urls";
+import { resolvePublicHostSlug } from "@/lib/resolve-public-host-slug";
 import { isRoePublicHost } from "@/lib/roe-legacy-urls";
 
 async function resolveHostSlug(): Promise<string | null> {
@@ -17,17 +18,7 @@ async function resolveHostSlug(): Promise<string | null> {
   )
     .split(":")[0]
     .toLowerCase();
-  if (!host) return null;
-
-  try {
-    const match = await findDomainByHostname(host);
-    if (match?.website?.slug) return match.website.slug;
-    const alt = host.startsWith("www.") ? host.slice(4) : `www.${host}`;
-    const match2 = await findDomainByHostname(alt);
-    return match2?.website?.slug ?? null;
-  } catch {
-    return null;
-  }
+  return resolvePublicHostSlug(host);
 }
 
 /**

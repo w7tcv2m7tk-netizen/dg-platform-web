@@ -1,4 +1,4 @@
-import { findDomainByHostname, getPublicStayUnit, getWebsiteBySlug, resolveFunnelTemplate, resolvePageChromeVisibility, resolveStayUnitSlug, ensureHideawayCircleWebsitePage } from "@dg/platform-core";
+import { getPublicStayUnit, getWebsiteForPublicRender, resolveFunnelTemplate, resolvePageChromeVisibility, resolveStayUnitSlug, ensureHideawayCircleWebsitePage } from "@dg/platform-core";
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
@@ -7,7 +7,7 @@ import { notFound, redirect, unstable_rethrow } from "next/navigation";
 import { isAetherraPublicHost } from "@/lib/aetherra-legacy-urls";
 import { CVH_PAGE_ALIASES } from "@/lib/cvh-legacy-urls";
 import { DG_PAGE_ALIASES, isDgPublicHost } from "@/lib/dg-legacy-urls";
-import { knownSlugForPublicHost } from "@/lib/public-host-slugs";
+import { resolvePublicHostSlug } from "@/lib/resolve-public-host-slug";
 import { ROE_PAGE_ALIASES, isRoePublicHost } from "@/lib/roe-legacy-urls";
 
 import { BusinessAuditCapture } from "@/components/websites/BusinessAuditCapture";
@@ -60,24 +60,7 @@ async function resolveRequestHost(): Promise<string> {
 }
 
 async function resolveHostSlug(): Promise<string | null> {
-  const host = await resolveRequestHost();
-  if (!host) return null;
-
-  const known = knownSlugForPublicHost(host);
-  if (known) return known;
-
-  try {
-    const match = await findDomainByHostname(host);
-    if (match?.website?.slug) return match.website.slug;
-
-    const alt = host.startsWith("www.") ? host.slice(4) : `www.${host}`;
-    const match2 = await findDomainByHostname(alt);
-    return match2?.website?.slug ?? knownSlugForPublicHost(alt);
-  } catch (err) {
-    console.error("[by-host] domain lookup failed", err);
-    if (knownSlugForPublicHost(host)) return knownSlugForPublicHost(host);
-    throw new Error("SITE_DATABASE_UNAVAILABLE");
-  }
+  return resolvePublicHostSlug(await resolveRequestHost());
 }
 
 const PAGE_SLUG_ALIASES: Record<string, string> = {
@@ -114,28 +97,32 @@ function decodePageSlug(raw?: string): string | undefined {
   }
 }
 
+function pageAliasMap(siteSlug: string): Record<string, string> {
+  if (isCvhSiteSlug(siteSlug)) return { ...PAGE_SLUG_ALIASES, ...CVH_PAGE_ALIASES };
+  if (isDgSiteSlug(siteSlug)) return { ...PAGE_SLUG_ALIASES, ...DG_PAGE_ALIASES };
+  if (isRoeSiteSlug(siteSlug)) return { ...PAGE_SLUG_ALIASES, ...ROE_PAGE_ALIASES };
+  if (isAetherraSiteSlug(siteSlug)) return {};
+  return PAGE_SLUG_ALIASES;
+}
+
+function queryPageSlug(siteSlug: string, pageSlug?: string): string | undefined {
+  if (!pageSlug) return undefined;
+  const dateLeaf =
+    isDgSiteSlug(siteSlug) || isAetherraSiteSlug(siteSlug)
+      ? undefined
+      : pageSlug.match(/^\d{4}\/\d{2}\/\d{2}\/([^/]+)$/)?.[1];
+  return pageAliasMap(siteSlug)[pageSlug] || dateLeaf || pageSlug;
+}
+
 function resolvePage(
-  site: NonNullable<Awaited<ReturnType<typeof getWebsiteBySlug>>>,
+  site: NonNullable<Awaited<ReturnType<typeof getWebsiteForPublicRender>>>,
   pageSlug: string | undefined,
 ) {
   const pages = site.pages ?? [];
   if (!pageSlug) {
     return pages.find((p) => p.intent === "home" || p.slug === "home") || pages[0];
   }
-  const aliases = isCvhSiteSlug(site.slug)
-    ? { ...PAGE_SLUG_ALIASES, ...CVH_PAGE_ALIASES }
-    : isDgSiteSlug(site.slug)
-      ? { ...PAGE_SLUG_ALIASES, ...DG_PAGE_ALIASES }
-      : isRoeSiteSlug(site.slug)
-        ? { ...PAGE_SLUG_ALIASES, ...ROE_PAGE_ALIASES }
-        : isAetherraSiteSlug(site.slug)
-          ? {}
-          : PAGE_SLUG_ALIASES;
-  const dateLeaf =
-    isDgSiteSlug(site.slug) || isAetherraSiteSlug(site.slug)
-      ? undefined
-      : pageSlug.match(/^\d{4}\/\d{2}\/\d{2}\/([^/]+)$/)?.[1];
-  const aliased = aliases[pageSlug] || dateLeaf || pageSlug;
+  const aliased = queryPageSlug(site.slug, pageSlug) || pageSlug;
   const exact =
     pages.find((p) => p.slug === aliased) ||
     pages.find((p) => p.slug === pageSlug) ||
@@ -171,9 +158,9 @@ export async function generateMetadata({
     const slug = await resolveHostSlug();
     if (!slug) return { title: "Site" };
     const search = await searchParams;
-    const site = await getWebsiteBySlug(slug);
-    if (!site) return { title: "Site" };
     const pageSlug = decodePageSlug(search.page);
+    const site = await getWebsiteForPublicRender(slug, queryPageSlug(slug, pageSlug));
+    if (!site) return { title: "Site" };
     const inviteToken = isDgSiteSlug(slug) ? parseFoundingInvitePageSlug(pageSlug) : null;
     if (inviteToken) {
       return {
@@ -273,18 +260,18 @@ async function renderSite(
   search: { preview?: string; page?: string },
 ) {
   const allowDraft = search.preview === "1";
-  let site: Awaited<ReturnType<typeof getWebsiteBySlug>>;
+  const pageSlug = decodePageSlug(search.page);
+  let site: Awaited<ReturnType<typeof getWebsiteForPublicRender>>;
   try {
-    site = await getWebsiteBySlug(slug);
+    site = await getWebsiteForPublicRender(slug, queryPageSlug(slug, pageSlug));
   } catch (err) {
     unstable_rethrow(err);
-    console.error("[by-host] getWebsiteBySlug failed", err);
+    console.error("[by-host] getWebsiteForPublicRender failed", err);
     throw new Error("SITE_DATABASE_UNAVAILABLE");
   }
   if (!site) notFound();
   if (!allowDraft && site.status !== "published") notFound();
 
-  const pageSlug = decodePageSlug(search.page);
   const inviteToken = isDgSiteSlug(slug) ? parseFoundingInvitePageSlug(pageSlug) : null;
   if (inviteToken) {
     const invitation = await getPublicFoundingInvitation(inviteToken);
@@ -324,7 +311,7 @@ async function renderSite(
   ) {
     const ensured = await ensureHideawayCircleWebsitePage({ siteSlug: slug });
     if (ensured.ok) {
-      site = (await getWebsiteBySlug(slug)) || site;
+      site = (await getWebsiteForPublicRender(slug, pageSlug)) || site;
       page = site ? resolvePage(site, pageSlug) : null;
     }
   }

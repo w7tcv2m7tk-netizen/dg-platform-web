@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:unit": "node --experimental-strip-types --test scripts/test-dreamscape-auth.mjs scripts/test-rea-reaxml.mjs scripts/test-legacy-wp-form-post.mjs scripts/test-public-website-form-fields.mjs scripts/test-guest-identity.mjs",
+    "test:unit": "node --experimental-strip-types --test scripts/test-dreamscape-auth.mjs scripts/test-rea-reaxml.mjs scripts/test-legacy-wp-form-post.mjs scripts/test-public-website-form-fields.mjs scripts/test-guest-identity.mjs scripts/test-public-host-slugs.mjs",
     "db:generate": "prisma generate --schema=packages/database/prisma/schema.prisma",
     "db:push": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma/schema.prisma",
     "db:studio": "dotenv -e .env.local -- prisma studio --schema=packages/database/prisma/schema.prisma",

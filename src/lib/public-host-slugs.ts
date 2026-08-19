@@ -7,6 +7,8 @@
 export const KNOWN_PUBLIC_HOST_SLUGS: Record<string, string> = {
   "digitalgate.com.au": "digitalgate",
   "www.digitalgate.com.au": "digitalgate",
+  "digitalgate.co.nz": "digitalgate",
+  "www.digitalgate.co.nz": "digitalgate",
   "audit.digitalgate.com.au": "digitalgate-audit",
   "roerealty.com.au": "roe-realty",
   "www.roerealty.com.au": "roe-realty",

@@ -147,7 +147,7 @@ export async function getWebsiteForPublicRender(
   });
   if (!site) return null;
 
-  const pages = pageSlug
+  let pages = pageSlug
     ? await prisma.websitePage.findMany({
         where: { websiteId: site.id, slug: pageSlug },
         take: 1,
@@ -161,13 +161,26 @@ export async function getWebsiteForPublicRender(
         take: 2,
       });
 
+  if (pageSlug && pages.length === 0) {
+    const leaf = pageSlug.split("/").filter(Boolean).pop();
+    const stripped = pageSlug.replace(/^accommodation\//, "");
+    const alts = [leaf, stripped].filter(
+      (value): value is string => Boolean(value) && value !== pageSlug,
+    );
+    if (alts.length > 0) {
+      pages = await prisma.websitePage.findMany({
+        where: { websiteId: site.id, slug: { in: alts } },
+        take: 1,
+      });
+    }
+  }
+
   if (!pageSlug && pages.length === 0) {
-    const fallback = await prisma.websitePage.findMany({
+    pages = await prisma.websitePage.findMany({
       where: { websiteId: site.id },
       orderBy: { sortOrder: "asc" },
       take: 1,
     });
-    return serializeWebsite(site, fallback);
   }
 
   return serializeWebsite(site, pages);
