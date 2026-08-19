@@ -116,6 +116,14 @@ function parseImplementation(value: unknown): FoundingImplementationRecord | nul
     recommendedIndustry: Array.isArray(raw.recommendedIndustry)
       ? raw.recommendedIndustry.map(String)
       : [],
+    analysis: typeof raw.analysis === "string" ? raw.analysis : undefined,
+    firstAutomation: typeof raw.firstAutomation === "string" ? raw.firstAutomation : undefined,
+    analysisSource:
+      raw.analysisSource === "llm" || raw.analysisSource === "rules"
+        ? raw.analysisSource
+        : undefined,
+    analysisProvider: typeof raw.analysisProvider === "string" ? raw.analysisProvider : undefined,
+    analysisModel: typeof raw.analysisModel === "string" ? raw.analysisModel : undefined,
     status: allowed.includes(status as (typeof allowed)[number])
       ? (status as FoundingImplementationRecord["status"])
       : "received",

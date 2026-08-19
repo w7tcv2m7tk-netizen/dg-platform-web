@@ -283,6 +283,7 @@ export async function generateClientAdvisorInsight(input: {
         { role: "user", content: user },
       ],
       maxTokens: 1400,
+      tier: "reasoning",
     });
 
     const parsed = parseAdvisorJson(result.text, ctx.organisationId);

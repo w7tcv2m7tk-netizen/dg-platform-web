@@ -1,5 +1,6 @@
 import { createActivity } from "../activities";
 import { getOrganisationBusinessProfile } from "../org/onboarding-profile";
+import { enrichImplementationPlanWithLlm } from "./analysis";
 import {
   applyOnboardingToProfileAndGoals,
   buildImplementationPlan,
@@ -32,11 +33,15 @@ export async function submitFoundingOnboarding(input: {
       : [...record.completedSteps, "go_live"],
   });
 
-  const plan = buildImplementationPlan(
+  const draft = buildImplementationPlan(
     submitted.answers,
     input.organisationId,
     submitted.opportunityId,
   );
+  const plan = await enrichImplementationPlanWithLlm({
+    plan: draft,
+    answers: submitted.answers,
+  });
   await saveFoundingImplementation(input.organisationId, plan);
   await applyOnboardingToProfileAndGoals({
     organisationId: input.organisationId,

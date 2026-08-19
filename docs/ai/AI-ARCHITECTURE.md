@@ -23,10 +23,16 @@ AI Service (Platform Core)
   ├── Tool Registry
   │     ├── App-declared aiTools in manifest
   │     └── Knowledge Tool Registry (platform/ops — design)
-  └── Model Router (OpenAI, Anthropic, Gemini)
+  └── Model Router
+       ├── Vercel AI Gateway (openai/gpt-5.4-mini · openai/gpt-5.6-sol)
+       ├── Direct OpenAI
+       ├── Anthropic
+       └── template fallback in callers
        ↓
-Provider APIs
+Provider APIs / Gateway
 ```
+
+**Code:** `packages/platform-core/src/ai/llm.ts` — Gateway Chat Completions (`openai/gpt-5.4-mini` standard, `openai/gpt-5.6-sol` reasoning) with direct OpenAI / Anthropic failover. Auth: `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN`.
 
 Full stack for platform Q&A / ops:
 
@@ -70,6 +76,8 @@ Platform registers tools; AI Service dispatches with org-scoped context.
 2. All prompts versioned and auditable  
 3. PII scoped to organisation; no cross-tenant context  
 4. Human review for high-risk outputs (contracts, legal) — Phase 2  
+5. AI Gateway is a **transport**, not the only path. Direct OpenAI / Anthropic stay as failover. Do not send `OPENAI_API_KEY` to Gateway (BYOK; Sol promo does not apply).  
+6. Task tiers: `standard` (CRM assist, reviews, websites) vs `reasoning` (Advisor, Platform Intelligence, Founding onboarding analysis → `openai/gpt-5.6-sol` via Gateway when keyed).
 
 ---
 

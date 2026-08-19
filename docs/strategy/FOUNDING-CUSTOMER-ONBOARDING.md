@@ -46,6 +46,7 @@ Progressive 12-step wizard (save and return). Submission:
 - Generates implementation tasks and the 30-day success journey
 - Emails the setup plan
 - Moves the Founding opportunity to `onboarding_complete` → `configuration`
+- Optionally overlays an LLM implementation recommendation (Gateway `openai/gpt-5.6-sol` when keyed). Submit **never** waits on a working model — the rule-based plan is the floor.
 
 ## Honesty
 

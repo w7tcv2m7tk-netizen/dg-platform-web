@@ -171,6 +171,7 @@ export async function draftReviewReply(input: {
   try {
     const result = await llmChat({
       maxTokens: 280,
+      tier: "standard",
       messages: [
         {
           role: "system",
@@ -310,6 +311,7 @@ export async function extractReviewThemes(
   try {
     const result = await llmChat({
       maxTokens: 900,
+      tier: "standard",
       messages: [
         {
           role: "system",

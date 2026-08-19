@@ -141,6 +141,12 @@ export type FoundingImplementationRecord = {
   recommendedCore: string[];
   recommendedGrowth: string[];
   recommendedIndustry: string[];
+  /** Optional LLM overlay — never required for submit. */
+  analysis?: string;
+  firstAutomation?: string;
+  analysisSource?: "llm" | "rules";
+  analysisProvider?: string;
+  analysisModel?: string;
   status: FoundingImplementationStatus;
   submittedAt: string;
   updatedAt: string;

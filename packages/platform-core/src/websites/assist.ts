@@ -641,6 +641,7 @@ export async function applyWebsiteAssistPrompt(input: {
     try {
       const result = await llmChat({
         maxTokens: 3000,
+        tier: "standard",
         messages: [
           {
             role: "system",

@@ -4,6 +4,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import {
   bootConnectorEngine,
   getOrgWordPressConnectorSettings,
+  llmConfiguredTransports,
   resolveOrgWordPressConnector,
 } from "@dg/platform-core";
 
@@ -72,6 +73,7 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
       ])
     : [null, null];
 
+  const llmTransports = llmConfiguredTransports();
   const envFlags = {
     database: Boolean(process.env.DATABASE_URL),
     wpConnectorKey: Boolean(process.env.DG_WP_CONNECTOR_API_KEY?.trim()),
@@ -80,8 +82,9 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
     wpAccommodationSites: Boolean(process.env.DG_WP_ACCOMMODATION_SITES?.trim()),
     stripe: Boolean(process.env.STRIPE_SECRET_KEY?.trim()),
     resend: Boolean(process.env.RESEND_API_KEY?.trim()),
-    openai: Boolean(process.env.OPENAI_API_KEY?.trim()),
-    anthropic: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),
+    openai: llmTransports.includes("openai"),
+    anthropic: llmTransports.includes("anthropic"),
+    gateway: llmTransports.includes("gateway"),
     domainClient: Boolean(process.env.DOMAIN_CLIENT_ID?.trim()),
     domainSecret: Boolean(process.env.DOMAIN_CLIENT_SECRET?.trim()),
     reaClient: Boolean(process.env.REA_CLIENT_ID?.trim()),
@@ -230,6 +233,10 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
               <EnvStatus name="LINKEDIN_CLIENT_ID" configured={envFlags.linkedinClient} />
               <EnvStatus name="LINKEDIN_CLIENT_SECRET" configured={envFlags.linkedinSecret} />
               <EnvStatus name="RESEND_API_KEY" configured={envFlags.resend} />
+              <EnvStatus
+                name="AI_GATEWAY_API_KEY / VERCEL_OIDC_TOKEN"
+                configured={envFlags.gateway}
+              />
               <EnvStatus name="OPENAI_API_KEY" configured={envFlags.openai} />
               <EnvStatus name="ANTHROPIC_API_KEY" configured={envFlags.anthropic} />
             </ul>

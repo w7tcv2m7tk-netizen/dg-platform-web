@@ -60,7 +60,7 @@ This was not sprawl for its own sake. It was the conversion path and the Intelli
 
 **Transactional email:** Contact, Founding, and consultation acks send from `hello@mail.digitalgate.com.au` (Resend). 17 Aug deliverability panic is **no longer the blocker** for starting conversations. Still worth a 20-minute inbox pass after any form Ben has not tested since the 18 Aug rewire.
 
-**AI:** Model Router (OpenAI / Anthropic) is wired behind assist + Platform Intelligence, with template fallback. Production has `OPENAI_API_KEY`. Ben’s OpenAI **account quota/billing** is not yet funded — Intelligence returns a billed-quota error, not a missing-key `no_llm`. Non-blocking for outreach. Overview briefing remains rule-based (Twin/Goals), not an LLM.
+**AI:** Model Router now has three transports: Vercel AI Gateway (preferred when `AI_GATEWAY_API_KEY` or OIDC is present), then Anthropic, then direct OpenAI. Template fallback is unchanged. Production still has `OPENAI_API_KEY`; the OpenAI **account quota** is unfunded — route high-value calls through Gateway (`openai/gpt-5.6-sol`) so they bill on Vercel, not BYOK. Overview briefing remains rule-based (Twin/Goals), not an LLM.
 
 **Website:** Last homepage/footer pass was 17 Aug. **No further public-site work** unless conversion is broken.
 

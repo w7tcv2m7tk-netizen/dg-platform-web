@@ -458,7 +458,7 @@ export async function askPlatformIntelligence(input: {
     return unknownAnswer({
       question,
       answer:
-        "Relevant docs were retrieved, but Model Router is not configured (set OPENAI_API_KEY or ANTHROPIC_API_KEY). Open the cited sources below — I will not synthesise without a model.",
+        "Relevant docs were retrieved, but Model Router is not configured (set AI_GATEWAY_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY). Open the cited sources below — I will not synthesise without a model.",
       source: "no_llm",
       retrieved,
     });
@@ -500,6 +500,7 @@ export async function askPlatformIntelligence(input: {
         { role: "user", content: user },
       ],
       maxTokens: 1200,
+      tier: "reasoning",
     });
 
     const parsed = parseLlmResponse(result.text, retrieved);

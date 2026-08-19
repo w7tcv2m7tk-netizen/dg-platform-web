@@ -38,7 +38,7 @@ export default async function CommandIntelligencePage() {
             <span className="ml-1 text-emerald-300">Model Router configured.</span>
           ) : (
             <span className="ml-1 text-amber-200">
-              Set OPENAI_API_KEY or ANTHROPIC_API_KEY to synthesise answers.
+              Set AI_GATEWAY_API_KEY (or Vercel OIDC), OPENAI_API_KEY, or ANTHROPIC_API_KEY to synthesise answers.
             </span>
           )}{" "}
           Browse sources in{" "}

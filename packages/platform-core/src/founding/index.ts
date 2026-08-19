@@ -4,5 +4,6 @@ export * from "./catalog";
 export * from "./emails";
 export * from "./onboarding";
 export * from "./implementation";
+export * from "./analysis";
 export * from "./stage-actions";
 export * from "./submit";

@@ -261,6 +261,15 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     dg15Rank: 5,
   },
   {
+    id: "vercel-ai-gateway",
+    name: "Vercel AI Gateway (via Model Router)",
+    category: "ops",
+    auth: "api_key",
+    syncObjects: [],
+    capabilities: ["ai.inference"],
+    priorityTier: 1,
+  },
+  {
     id: "openai",
     name: "OpenAI (via Model Router)",
     category: "ops",

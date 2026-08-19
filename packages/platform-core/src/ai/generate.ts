@@ -124,6 +124,7 @@ export async function generateAiAssist(input: {
         },
       ],
       maxTokens: 1200,
+      tier: "standard",
     });
 
     return {

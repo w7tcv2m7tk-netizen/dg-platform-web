@@ -76,17 +76,17 @@ Must exist for Gen 2 Platform Core to feel real.
 | **Domain** | AU listing syndication |
 | **REA** | AU listing syndication |
 | **Meta** | High priority — social + Lead Ads |
-| **OpenAI** | Primary LLM via Model Router |
+| **OpenAI** | Primary LLM via Model Router (direct key or AI Gateway) |
 
 ### Tier 2 — Google family + Model Router
 
 | Surface | Role |
 |---------|------|
 | **GBP, GSC, GA, Ads, Reviews, Maps/Places, Gmail, Calendar, YouTube** | Google as a family — one auth/strategy mindset, multiple capabilities |
-| **Model Router** | OpenAI primary · Anthropic · Gemini |
+| **Model Router** | AI Gateway transport · OpenAI · Anthropic · Gemini later |
 
 ```
-DigitalGate → Model Router → Provider (OpenAI | Anthropic | Gemini)
+DigitalGate → Model Router → (AI Gateway | OpenAI | Anthropic)
 ```
 
 Apps never call providers directly. Spec: [AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) · [AI-GOVERNANCE.md](./AI-GOVERNANCE.md).
@@ -151,7 +151,7 @@ The fifteen connectors / provider seats that define Gen 2 focus. Rank = programm
 | 8 | **REA** | 2 / 5 | Partner verified · client_credentials + REAXML upload wired · agency activation next ([REA.md](../connectors/REA.md)) |
 | 9 | **RP Data / CoreLogic** | 5 | Cotality sandbox (OAuth + Address Match) |
 | 10 | **Meta** | 1 / 9 | Planned (high) — not full connector yet |
-| 11 | **OpenAI** | 1 / 2 | **Live** via Model Router when `OPENAI_API_KEY` set |
+| 11 | **OpenAI** | 1 / 2 | **Live** via Model Router — Vercel AI Gateway when `AI_GATEWAY_API_KEY` / OIDC is set (preferred), else `OPENAI_API_KEY` |
 | 12 | **ElevenLabs** | 3 | Planned under AI Communications |
 | 13 | **Xero** | 6 | Manifest planned — adapter not built |
 | 14 | **Twilio / comms** | 3 | Planned — Resend transactional email already in path |

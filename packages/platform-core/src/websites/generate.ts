@@ -137,6 +137,7 @@ export async function generateSiteModel(input: {
   try {
     const result = await llmChat({
       maxTokens: 4000,
+      tier: "standard",
       messages: [
         {
           role: "system",

@@ -1,10 +1,14 @@
 /**
- * Model router — OpenAI / Anthropic via fetch.
+ * Model router — Vercel AI Gateway, direct OpenAI, and Anthropic via fetch.
  * Apps never call providers directly; AI Service uses this.
- * Graceful: returns null when no API key is configured.
+ * Gateway is a transport, not a replacement: OpenAI / Anthropic stay as fallbacks.
+ * Template fallback lives in callers (generate.ts, advisor, etc.).
  */
 
-export type LlmProvider = "openai" | "anthropic";
+export type LlmProvider = "gateway" | "openai" | "anthropic";
+
+/** Cheap extraction / assist vs high-value reasoning (Sol via Gateway when available). */
+export type LlmTaskTier = "standard" | "reasoning";
 
 export type LlmChatMessage = {
   role: "system" | "user" | "assistant";
@@ -17,6 +21,18 @@ export type LlmGenerateResult = {
   model: string;
   latencyMs: number;
 };
+
+type LlmTransport = {
+  provider: LlmProvider;
+  model: string;
+  apiKey: string;
+};
+
+const GATEWAY_CHAT_URL = "https://ai-gateway.vercel.sh/v1/chat/completions";
+const DEFAULT_GATEWAY_STANDARD_MODEL = "openai/gpt-5.4-mini";
+const DEFAULT_GATEWAY_REASONING_MODEL = "openai/gpt-5.6-sol";
+const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
+const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
 
 /**
  * Bracket lookup so Next/Turbopack cannot replace this with an empty string
@@ -37,35 +53,134 @@ function anthropicKey() {
   return envTrim("ANTHROPIC_API_KEY");
 }
 
-export function resolveLlmProvider(): {
-  provider: LlmProvider;
-  model: string;
-  apiKey: string;
-} | null {
+/** AI Gateway API key, or Vercel OIDC on deployments. Never send OPENAI_API_KEY here (BYOK / misses Sol promo). */
+function gatewayToken() {
+  return envTrim("AI_GATEWAY_API_KEY") || envTrim("VERCEL_OIDC_TOKEN");
+}
+
+function preferredProvider(): LlmProvider | "" {
   const preferred = envTrim("DG_LLM_PROVIDER").toLowerCase();
+  if (preferred === "gateway" || preferred === "openai" || preferred === "anthropic") {
+    return preferred;
+  }
+  return "";
+}
+
+function gatewayModelForTier(tier: LlmTaskTier): string {
+  if (tier === "reasoning") {
+    return envTrim("DG_LLM_GATEWAY_REASONING_MODEL") || DEFAULT_GATEWAY_REASONING_MODEL;
+  }
+  return envTrim("DG_LLM_GATEWAY_MODEL") || DEFAULT_GATEWAY_STANDARD_MODEL;
+}
+
+function openaiModel(): string {
+  return envTrim("OPENAI_MODEL") || DEFAULT_OPENAI_MODEL;
+}
+
+function anthropicModel(): string {
+  return envTrim("ANTHROPIC_MODEL") || DEFAULT_ANTHROPIC_MODEL;
+}
+
+function configuredTransports(tier: LlmTaskTier): LlmTransport[] {
+  const gateway = gatewayToken();
   const openai = openaiKey();
   const anthropic = anthropicKey();
-  const openaiModel = envTrim("OPENAI_MODEL") || "gpt-4o-mini";
-  const anthropicModel = envTrim("ANTHROPIC_MODEL") || "claude-sonnet-4-20250514";
-
-  if (preferred === "openai" && openai) {
-    return { provider: "openai", model: openaiModel, apiKey: openai };
+  const available: LlmTransport[] = [];
+  if (gateway) {
+    available.push({
+      provider: "gateway",
+      model: gatewayModelForTier(tier),
+      apiKey: gateway,
+    });
   }
-  if (preferred === "anthropic" && anthropic) {
-    return { provider: "anthropic", model: anthropicModel, apiKey: anthropic };
-  }
-  // Prefer Anthropic when both set (DG default); else whichever exists.
   if (anthropic) {
-    return { provider: "anthropic", model: anthropicModel, apiKey: anthropic };
+    available.push({
+      provider: "anthropic",
+      model: anthropicModel(),
+      apiKey: anthropic,
+    });
   }
   if (openai) {
-    return { provider: "openai", model: openaiModel, apiKey: openai };
+    available.push({
+      provider: "openai",
+      model: openaiModel(),
+      apiKey: openai,
+    });
   }
-  return null;
+  return available;
+}
+
+/**
+ * Order: explicit DG_LLM_PROVIDER first when that transport is keyed,
+ * else Gateway when keyed (promo + Vercel billing), else Anthropic, else OpenAI.
+ * Remaining keyed transports stay as failover.
+ */
+export function resolveLlmTransports(tier: LlmTaskTier = "standard"): LlmTransport[] {
+  const available = configuredTransports(tier);
+  const preferred = preferredProvider();
+  if (!preferred) return available;
+  const head = available.filter((t) => t.provider === preferred);
+  const rest = available.filter((t) => t.provider !== preferred);
+  return [...head, ...rest];
+}
+
+/** First transport in the failover chain (legacy helper). */
+export function resolveLlmProvider(): LlmTransport | null {
+  return resolveLlmTransports("standard")[0] ?? null;
 }
 
 export function llmConfigured(): boolean {
-  return resolveLlmProvider() !== null;
+  return configuredTransports("standard").length > 0;
+}
+
+export function llmConfiguredTransports(): LlmProvider[] {
+  return configuredTransports("standard").map((t) => t.provider);
+}
+
+function isGpt5Family(model: string): boolean {
+  return /gpt-5/i.test(model);
+}
+
+async function callOpenAiCompatible(input: {
+  url: string;
+  apiKey: string;
+  model: string;
+  messages: LlmChatMessage[];
+  maxTokens: number;
+  label: "OpenAI" | "AI Gateway";
+  signal?: AbortSignal;
+}): Promise<string> {
+  const gpt5 = isGpt5Family(input.model);
+  const body: Record<string, unknown> = {
+    model: input.model,
+    messages: input.messages,
+  };
+  if (gpt5) {
+    body.max_completion_tokens = input.maxTokens;
+  } else {
+    body.temperature = 0.6;
+    body.max_tokens = input.maxTokens;
+  }
+
+  const res = await fetch(input.url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${input.apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+    signal: input.signal,
+  });
+  const json = (await res.json().catch(() => ({}))) as {
+    choices?: Array<{ message?: { content?: string } }>;
+    error?: { message?: string };
+  };
+  if (!res.ok) {
+    throw new Error(json.error?.message || `${input.label} HTTP ${res.status}`);
+  }
+  const text = json.choices?.[0]?.message?.content?.trim();
+  if (!text) throw new Error(`${input.label} returned empty content`);
+  return text;
 }
 
 async function callOpenAi(input: {
@@ -73,30 +188,35 @@ async function callOpenAi(input: {
   model: string;
   messages: LlmChatMessage[];
   maxTokens: number;
+  signal?: AbortSignal;
 }): Promise<string> {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${input.apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: input.model,
-      messages: input.messages,
-      temperature: 0.6,
-      max_tokens: input.maxTokens,
-    }),
+  return callOpenAiCompatible({
+    url: "https://api.openai.com/v1/chat/completions",
+    apiKey: input.apiKey,
+    model: input.model,
+    messages: input.messages,
+    maxTokens: input.maxTokens,
+    label: "OpenAI",
+    signal: input.signal,
   });
-  const json = (await res.json().catch(() => ({}))) as {
-    choices?: Array<{ message?: { content?: string } }>;
-    error?: { message?: string };
-  };
-  if (!res.ok) {
-    throw new Error(json.error?.message || `OpenAI HTTP ${res.status}`);
-  }
-  const text = json.choices?.[0]?.message?.content?.trim();
-  if (!text) throw new Error("OpenAI returned empty content");
-  return text;
+}
+
+async function callGateway(input: {
+  apiKey: string;
+  model: string;
+  messages: LlmChatMessage[];
+  maxTokens: number;
+  signal?: AbortSignal;
+}): Promise<string> {
+  return callOpenAiCompatible({
+    url: GATEWAY_CHAT_URL,
+    apiKey: input.apiKey,
+    model: input.model,
+    messages: input.messages,
+    maxTokens: input.maxTokens,
+    label: "AI Gateway",
+    signal: input.signal,
+  });
 }
 
 async function callAnthropic(input: {
@@ -104,6 +224,7 @@ async function callAnthropic(input: {
   model: string;
   messages: LlmChatMessage[];
   maxTokens: number;
+  signal?: AbortSignal;
 }): Promise<string> {
   const system = input.messages
     .filter((m) => m.role === "system")
@@ -132,6 +253,7 @@ async function callAnthropic(input: {
           ? messages
           : [{ role: "user", content: "Respond briefly." }],
     }),
+    signal: input.signal,
   });
   const json = (await res.json().catch(() => ({}))) as {
     content?: Array<{ type?: string; text?: string }>;
@@ -149,37 +271,80 @@ async function callAnthropic(input: {
   return text;
 }
 
-/** Call configured LLM. Throws on provider errors. */
+async function callTransport(
+  transport: LlmTransport,
+  messages: LlmChatMessage[],
+  maxTokens: number,
+  signal?: AbortSignal,
+): Promise<string> {
+  if (transport.provider === "gateway") {
+    return callGateway({
+      apiKey: transport.apiKey,
+      model: transport.model,
+      messages,
+      maxTokens,
+      signal,
+    });
+  }
+  if (transport.provider === "openai") {
+    return callOpenAi({
+      apiKey: transport.apiKey,
+      model: transport.model,
+      messages,
+      maxTokens,
+      signal,
+    });
+  }
+  return callAnthropic({
+    apiKey: transport.apiKey,
+    model: transport.model,
+    messages,
+    maxTokens,
+    signal,
+  });
+}
+
+/** Call configured LLM. Tries Gateway → remaining keyed transports. Throws on total failure. */
 export async function llmChat(input: {
   messages: LlmChatMessage[];
   maxTokens?: number;
+  tier?: LlmTaskTier;
+  signal?: AbortSignal;
 }): Promise<LlmGenerateResult> {
-  const resolved = resolveLlmProvider();
-  if (!resolved) {
-    throw new Error("No LLM API key configured (OPENAI_API_KEY or ANTHROPIC_API_KEY)");
+  const chain = resolveLlmTransports(input.tier ?? "standard");
+  if (chain.length === 0) {
+    throw new Error(
+      "No LLM configured (AI_GATEWAY_API_KEY / VERCEL_OIDC_TOKEN, OPENAI_API_KEY, or ANTHROPIC_API_KEY)",
+    );
   }
 
   const started = Date.now();
   const maxTokens = input.maxTokens ?? 1200;
-  const text =
-    resolved.provider === "openai"
-      ? await callOpenAi({
-          apiKey: resolved.apiKey,
-          model: resolved.model,
-          messages: input.messages,
-          maxTokens,
-        })
-      : await callAnthropic({
-          apiKey: resolved.apiKey,
-          model: resolved.model,
-          messages: input.messages,
-          maxTokens,
-        });
+  let lastError: unknown;
 
-  return {
-    text,
-    provider: resolved.provider,
-    model: resolved.model,
-    latencyMs: Date.now() - started,
-  };
+  for (const transport of chain) {
+    if (input.signal?.aborted) break;
+    try {
+      const text = await callTransport(
+        transport,
+        input.messages,
+        maxTokens,
+        input.signal,
+      );
+      return {
+        text,
+        provider: transport.provider,
+        model: transport.model,
+        latencyMs: Date.now() - started,
+      };
+    } catch (err) {
+      lastError = err;
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(`[ai] ${transport.provider} failed — trying next transport`, message);
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("All LLM transports failed");
 }

@@ -87,10 +87,24 @@ export default async function ImplementationPage() {
               <p className="text-sm text-slate-300">
                 Industry: {plan.recommendedIndustry.join(" · ") || "—"}
               </p>
+              {plan.firstAutomation ? (
+                <p className="text-sm text-slate-300">
+                  First automation: {plan.firstAutomation}
+                </p>
+              ) : null}
             </section>
 
+            {plan.analysis ? (
+              <section className="dg-card space-y-2">
+                <h2 className="font-semibold text-white">Implementation recommendation</h2>
+                <p className="whitespace-pre-wrap text-sm leading-6 text-slate-300">
+                  {plan.analysis}
+                </p>
+              </section>
+            ) : null}
+
             <section className="dg-card">
-              <h2 className="font-semibold text-white">Your first three priorities</h2>
+              <h2 className="font-semibold text-white">Your first priorities</h2>
               <ol className="mt-3 list-decimal space-y-2 pl-5 text-slate-300">
                 {plan.priorities.map((item) => (
                   <li key={item}>{item}</li>
