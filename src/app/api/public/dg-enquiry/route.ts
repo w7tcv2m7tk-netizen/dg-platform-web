@@ -38,6 +38,8 @@ type EnquiryBody = {
   website_hp?: string;
   websiteHp?: string;
   siteSlug?: string;
+  /** Partner referral code from ?ref= query param */
+  ref?: string;
 };
 
 function asList(value: unknown): string[] | undefined {
@@ -143,6 +145,7 @@ export async function POST(req: Request) {
       body.websiteHp?.trim() ||
       undefined,
     siteSlug: body.siteSlug?.trim() || undefined,
+    partnerReferralCode: body.ref?.trim() || undefined,
   });
 
   if (!result.ok) {

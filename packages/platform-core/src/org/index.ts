@@ -1,5 +1,6 @@
 export * from "./provision";
 export * from "./memberships";
+export * from "./team-invites";
 export * from "./client-org";
 export * from "./membership-profile";
 export * from "./setup-status";

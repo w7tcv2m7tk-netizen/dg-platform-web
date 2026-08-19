@@ -1,3 +1,8 @@
+import {
+  activateTeamInviteSeat,
+  ensurePendingTeamInvite,
+  normalizeTeamInviteRole,
+} from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
@@ -17,7 +22,7 @@ export async function POST(req: Request) {
   const email = String(body.email ?? "")
     .trim()
     .toLowerCase();
-  const role = body.role === "admin" ? "admin" : "member";
+  const role = normalizeTeamInviteRole(body.role);
 
   if (!email || !email.includes("@")) {
     return NextResponse.json(
@@ -29,50 +34,76 @@ export async function POST(req: Request) {
   try {
     const { clerkClient } = await import("@clerk/nextjs/server");
     const client = await clerkClient();
+    const existingUsers = await client.users.getUserList({
+      emailAddress: [email],
+      limit: 1,
+    });
+    const existingUser = existingUsers.data[0] ?? null;
+
+    if (existingUser) {
+      const seat = await activateTeamInviteSeat({
+        organisationId: session.organisationId,
+        clerkUserId: existingUser.id,
+        email,
+        name:
+          [existingUser.firstName, existingUser.lastName].filter(Boolean).join(" ") ||
+          email,
+        role,
+      });
+      if (!seat) {
+        return NextResponse.json(
+          { error: { code: "invite_failed", message: "Could not add this user to the team" } },
+          { status: 422 },
+        );
+      }
+      return NextResponse.json({
+        data: {
+          email,
+          role: seat.role,
+          status: "active",
+          joinedImmediately: true,
+        },
+      });
+    }
+
+    const pending = await ensurePendingTeamInvite({
+      organisationId: session.organisationId,
+      email,
+      role,
+    });
+
     const appUrl =
       process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://app.digitalgate.com.au");
 
-    const invitation = await client.invitations.createInvitation({
-      emailAddress: email,
-      redirectUrl: `${appUrl}/dashboard`,
-      publicMetadata: {
-        dgOrganisationId: session.organisationId,
-        dgRole: role,
-        dgOrgName: session.organisationName,
-      },
-    });
-
-    // Pending membership placeholder until they accept and sign in.
-    if (process.env.DATABASE_URL) {
-      const { prisma } = await import("@dg/database");
-      const placeholderId = `invite:${email}`;
-      const existing = await prisma.membership.findFirst({
-        where: {
-          organisationId: session.organisationId,
-          OR: [{ email }, { clerkUserId: placeholderId }],
+    let invitationId: string | null = null;
+    let inviteStatus = "pending";
+    try {
+      const invitation = await client.invitations.createInvitation({
+        emailAddress: email,
+        redirectUrl: `${appUrl}/dashboard`,
+        publicMetadata: {
+          dgOrganisationId: session.organisationId,
+          dgRole: role,
+          dgOrgName: session.organisationName,
         },
       });
-      if (!existing) {
-        await prisma.membership.create({
-          data: {
-            organisationId: session.organisationId,
-            clerkUserId: placeholderId,
-            email,
-            role,
-            status: "invited",
-            displayName: email.split("@")[0] ?? email,
-          },
-        });
+      invitationId = invitation.id;
+      inviteStatus = invitation.status;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (!/already exists|already invited/i.test(message)) {
+        throw err;
       }
     }
 
     return NextResponse.json({
       data: {
-        invitationId: invitation.id,
+        invitationId,
         email,
         role,
-        status: invitation.status,
+        status: inviteStatus,
+        membershipId: pending.membershipId,
       },
     });
   } catch (err) {

@@ -121,8 +121,10 @@ export default async function TeamSettingsPage() {
         <div className="dg-card max-w-xl">
           <h2 className="font-semibold text-white">Invite teammates</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Send a Clerk invite email. When they accept and sign in, they join this organisation
-            and can edit their own team profile.
+            Owners and admins can invite Member or Admin. If they already have a
+            DigitalGate login, they join this business immediately. New people get
+            a Clerk email and land in this organisation at the chosen role when
+            they first sign in.
           </p>
           <TeamInviteForm canInvite={Boolean(isOwner)} />
         </div>

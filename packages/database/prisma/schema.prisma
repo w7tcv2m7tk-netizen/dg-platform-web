@@ -1104,6 +1104,167 @@ model CommercialLease {
   @@map("commercial_leases")
 }
 
+// ─── Partner Programme ────────────────────────────────────────────────────────
+
+/**
+ * A qualified DigitalGate Partner — Founding Reseller, Founding Partner, etc.
+ * Separate from the Refer & Earn PlatformReferral model (self-service customer credits).
+ * Partners are human-curated; commissions are cash, not SaaS credits.
+ */
+model Partner {
+  id                       String    @id @default(cuid())
+  /** Clerk user ID for this partner's login */
+  clerkUserId              String    @map("clerk_user_id")
+  /** Optional link to a DigitalGate customer org (partner may also be a customer) */
+  organisationId           String?   @map("organisation_id")
+  /** FOUNDING_RESELLER | FOUNDING_PARTNER | FOUNDING_CUSTOMER | CUSTOMER_REFERRER */
+  partnerType              String    @map("partner_type")
+  /** Programme cohort label e.g. "founding_10" */
+  cohort                   String?
+  /** Commission rate in basis points (3000 = 30%) */
+  commissionBps            Int       @default(2000) @map("commission_bps")
+  /** Number of months commission is payable per referred customer */
+  commissionDurationMonths Int       @default(12) @map("commission_duration_months")
+  /** active | pending | suspended | inactive */
+  status                   String    @default("pending")
+  /** Unique referral code — used in referral URLs /r/{code} */
+  referralCode             String    @unique @map("referral_code")
+  /** Partner's display name (cached from Clerk; refreshed on login) */
+  displayName              String?   @map("display_name")
+  email                    String?
+  phone                    String?
+  businessName             String?   @map("business_name")
+  notes                    String?   @db.Text
+  joinedAt                 DateTime? @map("joined_at")
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
+
+  referrals   PartnerReferral[]
+  commissions PartnerCommission[]
+
+  @@index([clerkUserId])
+  @@index([status])
+  @@index([referralCode])
+  @@map("partners")
+}
+
+/**
+ * A referral submitted by a Partner — either via link attribution or warm introduction.
+ * Must NOT expose private customer data back to the partner.
+ */
+model PartnerReferral {
+  id                      String    @id @default(cuid())
+  partnerId               String    @map("partner_id")
+  referralCode            String    @map("referral_code")
+  /** Business being referred */
+  businessName            String    @map("business_name")
+  contactName             String?   @map("contact_name")
+  email                   String?
+  phone                   String?
+  website                 String?
+  industry                String?
+  notes                   String?   @db.Text
+  /** link | warm_introduction */
+  source                  String    @default("link")
+  /**
+   * INVITED | REFERRED | CONTACTED | CONSULTATION | ACCEPTED
+   * | ONBOARDING | ACTIVE | COMMISSIONING | CLOSED | DECLINED
+   */
+  status                  String    @default("REFERRED")
+  /** Link to DigitalGate CRM contact when one was created */
+  referredContactId       String?   @map("referred_contact_id")
+  /** Link to converted customer org — set only when customer signed up */
+  referredOrganisationId  String?   @map("referred_organisation_id")
+  referredAt              DateTime  @default(now()) @map("referred_at")
+  contactedAt             DateTime? @map("contacted_at")
+  consultationAt          DateTime? @map("consultation_at")
+  acceptedAt              DateTime? @map("accepted_at")
+  convertedAt             DateTime? @map("converted_at")
+  metadata                Json?
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  partner     Partner             @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  commissions PartnerCommission[]
+
+  @@index([partnerId, status])
+  @@index([referralCode])
+  @@index([email])
+  @@index([referredOrganisationId])
+  @@map("partner_referrals")
+}
+
+/**
+ * Commission ledger entry for a Partner — one per billing period per referred customer.
+ * Separate from PlatformReferralLedger (customer refer-a-friend credits).
+ */
+model PartnerCommission {
+  id                      String    @id @default(cuid())
+  partnerId               String    @map("partner_id")
+  referralId              String    @map("referral_id")
+  /** The DigitalGate organisation (customer) generating the qualifying revenue */
+  customerOrganisationId  String?   @map("customer_organisation_id")
+  /** Stripe subscription id if applicable */
+  subscriptionId          String?   @map("subscription_id")
+  commissionBps           Int       @map("commission_bps")
+  qualifyingRevenueCents  Int       @map("qualifying_revenue_cents")
+  commissionAmountCents   Int       @map("commission_amount_cents")
+  currency                String    @default("AUD")
+  periodStart             DateTime? @map("period_start")
+  periodEnd               DateTime? @map("period_end")
+  /** CALCULATED | PENDING | APPROVED | PAID */
+  status                  String    @default("CALCULATED")
+  approvedAt              DateTime? @map("approved_at")
+  paidAt                  DateTime? @map("paid_at")
+  notes                   String?
+  metadata                Json?
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  partner  Partner         @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  referral PartnerReferral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  events   PartnerCommissionEvent[]
+
+  @@index([partnerId, status])
+  @@index([referralId])
+  @@index([customerOrganisationId])
+  @@map("partner_commissions")
+}
+
+/**
+ * Immutable audit trail for commission calculation events.
+ * Handles payments, refunds, credits, cancellations, etc.
+ */
+model PartnerCommissionEvent {
+  id               String   @id @default(cuid())
+  partnerId        String   @map("partner_id")
+  referralId       String   @map("referral_id")
+  commissionId     String?  @map("commission_id")
+  subscriptionId   String?  @map("subscription_id")
+  /** Stripe invoice id when triggered by a payment */
+  invoiceId        String?  @map("invoice_id")
+  /**
+   * invoice_paid | invoice_refunded | subscription_cancelled
+   * | subscription_changed | credit_applied | manual_adjustment
+   */
+  eventType        String   @map("event_type")
+  qualifyingAmountCents Int  @map("qualifying_amount_cents")
+  commissionBps    Int      @map("commission_bps")
+  commissionAmountCents Int  @map("commission_amount_cents")
+  currency         String   @default("AUD")
+  period           String?
+  metadata         Json?
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  commission PartnerCommission? @relation(fields: [commissionId], references: [id], onDelete: SetNull)
+
+  @@index([partnerId])
+  @@index([referralId])
+  @@index([commissionId])
+  @@index([invoiceId])
+  @@map("partner_commission_events")
+}
+
 /** Property Management Industry App — long-term residential leases. */
 model PmLease {
   id                String    @id @default(cuid())

@@ -35,7 +35,11 @@ export function TeamInviteForm({ canInvite }: { canInvite: boolean }) {
       setError(json.error?.message ?? "Could not send invite");
       return;
     }
-    setMessage(`Invite sent to ${email.trim()}`);
+    setMessage(
+      json.data?.joinedImmediately
+        ? `${email.trim()} is now on this team`
+        : `Invite sent to ${email.trim()}`,
+    );
     setEmail("");
     router.refresh();
   }

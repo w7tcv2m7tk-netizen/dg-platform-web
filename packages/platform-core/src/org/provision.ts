@@ -11,6 +11,9 @@ export interface ProvisionOrganisationInput {
   orgName?: string;
   /** Platform Refer & Earn code from /r/{code} cookie or query */
   referralCode?: string | null;
+  /** Clerk invitation publicMetadata — join this org instead of creating one. */
+  inviteOrganisationId?: string;
+  inviteRole?: string;
 }
 
 export interface ProvisionOrganisationResult {
@@ -18,6 +21,7 @@ export interface ProvisionOrganisationResult {
   membershipId: string;
   slug: string;
   created: boolean;
+  joinedViaInvite?: boolean;
 }
 
 function slugify(name: string): string {
@@ -68,11 +72,35 @@ export async function provisionOrganisation(
   }
 
   const { prisma } = await import("@dg/database");
+  const { claimTeamInvitesForUser, normalizeTeamInviteRole } = await import(
+    "./team-invites"
+  );
+
+  const joined = await claimTeamInvitesForUser({
+    clerkUserId: input.clerkUserId,
+    email: input.email,
+    name: input.name,
+    organisationId: input.inviteOrganisationId,
+    role: input.inviteRole
+      ? normalizeTeamInviteRole(input.inviteRole)
+      : undefined,
+  });
 
   const existing = await prisma.membership.findFirst({
-    where: { clerkUserId: input.clerkUserId },
+    where: { clerkUserId: input.clerkUserId, status: "active" },
     include: { organisation: true },
+    orderBy: { createdAt: "asc" },
   });
+
+  if (joined) {
+    return {
+      organisationId: joined.organisationId,
+      membershipId: joined.membershipId,
+      slug: joined.slug,
+      created: false,
+      joinedViaInvite: true,
+    };
+  }
 
   if (existing) {
     if (

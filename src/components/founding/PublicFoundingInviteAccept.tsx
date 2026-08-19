@@ -53,7 +53,7 @@ export function PublicFoundingInviteAccept({
         Founding 10 invitation
       </p>
       <h1 className="mt-3 text-3xl font-bold text-white">
-        You&apos;ve been personally invited by {invitedByName} to join DigitalGate&apos;s Founding 10.
+        You&apos;ve been personally invited by {invitedByName}{" "}to join DigitalGate&apos;s Founding 10.
       </h1>
       {withdrawn ? (
         <p className="mt-4 text-amber-200">This invitation is no longer active.</p>

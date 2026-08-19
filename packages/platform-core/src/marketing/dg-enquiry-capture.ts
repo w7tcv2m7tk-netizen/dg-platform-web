@@ -46,6 +46,8 @@ export interface DgEnquiryInput {
   /** Honeypot — reject if set */
   honeypot?: string;
   siteSlug?: string;
+  /** Partner referral code from ?ref= — persisted for attribution */
+  partnerReferralCode?: string;
 }
 
 export type DgEnquiryResult =
@@ -186,8 +188,23 @@ export async function captureDgEnquiry(
       meeting_link:
         input.type === "consultation" ? DG_CONSULT_ZOOM_URL : undefined,
       message: input.message?.trim() || undefined,
+      partner_referral_code: input.partnerReferralCode?.trim() || undefined,
     },
   });
+
+  // Partner referral attribution — non-fatal
+  if (input.partnerReferralCode?.trim()) {
+    try {
+      const { attributePartnerReferralByCode } = await import("../partners/crud");
+      await attributePartnerReferralByCode({
+        referralCode: input.partnerReferralCode.trim().toUpperCase(),
+        email,
+        businessName: input.businessName?.trim() || name,
+      });
+    } catch {
+      // non-fatal
+    }
+  }
 
   // Admin notification email to Ben
   const adminTo =

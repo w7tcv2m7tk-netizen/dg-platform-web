@@ -61,7 +61,8 @@ export async function resolvePlatformSession(
 
   const membership = await resolveUserMembership(
     input.clerkUserId,
-    input.activeOrganisationId,
+    input.activeOrganisationId ||
+      (provisioned.joinedViaInvite ? provisioned.organisationId : undefined),
   );
 
   if (!membership) return null;

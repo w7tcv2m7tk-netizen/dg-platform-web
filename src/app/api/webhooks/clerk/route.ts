@@ -1,5 +1,5 @@
 import { verifyWebhook } from "@clerk/backend/webhooks";
-import { provisionOrganisation } from "@dg/platform-core";
+import { parseTeamInviteMetadata, provisionOrganisation } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 function userDisplayName(data: {
@@ -39,6 +39,10 @@ export async function POST(req: Request) {
     const clerkUserId = data.id;
     const email = data.email_addresses?.[0]?.email_address ?? "";
     const name = userDisplayName(data);
+    const invite = parseTeamInviteMetadata({
+      ...((data.public_metadata as Record<string, unknown> | undefined) ?? {}),
+      ...((data.unsafe_metadata as Record<string, unknown> | undefined) ?? {}),
+    });
 
     if (!clerkUserId || !email) {
       return NextResponse.json({ ok: true, skipped: true });
@@ -48,6 +52,8 @@ export async function POST(req: Request) {
       clerkUserId,
       email,
       name,
+      inviteOrganisationId: invite.organisationId,
+      inviteRole: invite.role,
     });
 
     console.info("[Clerk webhook] user.created provisioned", {

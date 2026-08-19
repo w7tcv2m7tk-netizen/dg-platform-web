@@ -98,6 +98,7 @@ export * from "./finance";
 export * from "./commercial";
 export * from "./property-management";
 export * from "./founding";
+export * from "./partners";
 export * from "./roadmap";
 export * from "./app-guides";
 export * from "./help";
