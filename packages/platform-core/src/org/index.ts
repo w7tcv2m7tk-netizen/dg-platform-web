@@ -11,4 +11,5 @@ export * from "./business-context";
 export * from "./goals";
 export * from "./brand-theme";
 export * from "./brand-presets";
+export * from "./platform-org-sanitize";
 export * from "../crypto/secret-field";

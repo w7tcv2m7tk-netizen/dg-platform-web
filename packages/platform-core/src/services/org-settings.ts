@@ -46,9 +46,16 @@ export async function applyServiceTemplate(input: {
   const template = getServiceTemplate(input.templateKey);
   const org = await prisma.organisation.findUnique({
     where: { id: input.organisationId },
-    select: { id: true, settings: true, industry: true },
+    select: { id: true, slug: true, settings: true, industry: true },
   });
   if (!org) throw new Error("Organisation not found");
+
+  const { isPlatformOperatorOrgSlug } = await import("../org/platform-org-sanitize");
+  if (isPlatformOperatorOrgSlug(org.slug)) {
+    throw new Error(
+      "Service Templates cannot be applied to the DigitalGate platform operator organisation",
+    );
+  }
 
   const settings = (org.settings as Record<string, unknown> | null) ?? {};
   const apps = (settings.apps as { enabled?: string[] } | undefined) ?? {};
