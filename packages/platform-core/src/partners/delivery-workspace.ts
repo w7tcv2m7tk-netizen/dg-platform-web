@@ -14,15 +14,21 @@ export type DeliveryTaskStatus = "pending" | "in_progress" | "complete" | "cance
 export type DeliveryBlockerStatus = "open" | "resolved";
 
 export const DIGITALGATE_USER_TYPES = {
-  staff: [
-    "Founder / Admin",
-    "Sales",
-    "Customer Success",
-    "Support",
-    "Platform / Technical",
+  platform: [
+    "DigitalGate Owner",
+    "DigitalGate Admin",
+    "DigitalGate Member",
   ],
-  partners: ["Reseller", "Delivery Partner"],
-  customer: ["Owner / Admin", "Manager", "Staff"],
+  partners: [
+    "Reseller",
+    "Delivery / Implementation Partner",
+    "Success / Support Partner",
+  ],
+  customer: [
+    "Organisation Owner",
+    "Organisation Admin",
+    "Organisation Member",
+  ],
 } as const;
 
 export const DELIVERY_PARTNER_CAN_SEE = [

@@ -47,6 +47,8 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | # | Document | Covers |
 |---|----------|--------|
 | — | [APP-HIERARCHY.md](./APP-HIERARCHY.md) | **Canonical App hierarchy** — Core → Infrastructure → Industry → Growth; platform capabilities ≠ Apps |
+| — | [INDUSTRY-PLATFORM.md](./INDUSTRY-PLATFORM.md) | **Twelve Industry Apps → Templates** — public readiness lanes; Accommodation under Hospitality |
+| — | [ROLES-PERMISSIONS-SIDEBAR.md](./ROLES-PERMISSIONS-SIDEBAR.md) | **Locked** — user types, org roles, granular permissions, side panel, partners, pricing |
 | — | [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) | **North-star** — Twin centrepiece; BI scores; Advisor; AI Actions; opportunity detection; Marketplace/Agents later |
 | — | [BUSINESS-BRAIN.md](./BUSINESS-BRAIN.md) | Customer knowledge corpus — seven dimensions; distinct from Digital Twin |
 | — | [COMMERCIALLY-READY-V1.md](./COMMERCIALLY-READY-V1.md) | **Operating target** — 5 founding agencies, pre-launch GTM stance, Gates 1–4, pre-sell 6 reds, NOW backlog |

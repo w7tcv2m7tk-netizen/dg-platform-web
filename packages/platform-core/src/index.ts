@@ -3,6 +3,7 @@ export * from "./events";
 export * from "./objects";
 export * from "./scoring";
 export * from "./org";
+export * from "./access";
 export * from "./overview";
 export * from "./features";
 export * from "./graph";

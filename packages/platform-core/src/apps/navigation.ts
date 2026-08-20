@@ -72,15 +72,16 @@ export interface NavIaSection {
 const OPERATE_APP_ORDER = ["crm", "commerce", "websites", "infrastructure"] as const;
 
 /**
- * Industry — specialised modules (map to Industry Platform → Specialisation).
- * Commercial packaging: Property / Finance / Services / Commerce / Automotive / Creator.
+ * Industry — Industry Apps (activate Templates). Module ids map into Industry Platforms.
+ * Accommodation → Hospitality & Accommodation (not Property).
  * @see packages/platform-core/src/industry/platform.ts
+ * @see docs/foundations/ROLES-PERMISSIONS-SIDEBAR.md
  */
 const INDUSTRY_APP_ORDER = [
   "real-estate",
-  "accommodation",
   "property-management",
   "commercial",
+  "accommodation",
   "services",
   "finance",
   "automotive",
@@ -123,11 +124,12 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   commerce: {
     routes: [
       { path: "/apps/commerce", label: "Overview" },
-      { path: "/apps/commerce/invoices", label: "Invoices" },
-      { path: "/apps/commerce/quotes", label: "Quotes" },
       { path: "/apps/commerce/products", label: "Products" },
-      { path: "/apps/commerce/subscriptions", label: "Subscriptions" },
+      { path: "/apps/commerce/quotes", label: "Quotes" },
+      { path: "/apps/commerce/invoices", label: "Invoices" },
       { path: "/apps/commerce/payments", label: "Payments" },
+      { path: "/apps/commerce/subscriptions", label: "Subscriptions" },
+      { path: "/apps/commerce/reports", label: "Reports" },
     ],
   },
   seo: { name: "SEO" },
@@ -147,7 +149,7 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   },
 };
 
-/** BUSINESS — who you are. */
+/** BUSINESS — who you are. Business Brain is intelligence infra — not a hero Business item. */
 const BUSINESS_LINKS: PlatformShellNavItem[] = [
   { kind: "shell", href: "/dashboard", label: "Overview", icon: getSidebarIcon("overview") },
   {
@@ -161,12 +163,6 @@ const BUSINESS_LINKS: PlatformShellNavItem[] = [
     href: "/dashboard/twin",
     label: "Digital Twin",
     icon: getSidebarIcon("twin"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/brain",
-    label: "Business Brain",
-    icon: getSidebarIcon("brain"),
   },
   {
     kind: "shell",
@@ -220,6 +216,12 @@ const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
     href: "/dashboard/advisor",
     label: "AI Advisor",
     icon: getSidebarIcon("advisor"),
+  },
+  {
+    kind: "shell",
+    href: "/dashboard/brain",
+    label: "Knowledge Base",
+    icon: getSidebarIcon("brain"),
   },
   {
     kind: "shell",

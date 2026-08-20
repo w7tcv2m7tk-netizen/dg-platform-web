@@ -2,7 +2,7 @@
 
 **Status:** Locked · Platform Architect (Ben) · August 2026  
 **Supersedes:** Treating every vertical as a separate top-level Industry App SKU; Accommodation under Property  
-**Related:** [APP-HIERARCHY.md](./APP-HIERARCHY.md) · [PROPERTY-ECOSYSTEM.md](./PROPERTY-ECOSYSTEM.md) · [SERVICES-APP.md](./SERVICES-APP.md) · [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md)  
+**Related:** [APP-HIERARCHY.md](./APP-HIERARCHY.md) · [PROPERTY-ECOSYSTEM.md](./PROPERTY-ECOSYSTEM.md) · [SERVICES-APP.md](./SERVICES-APP.md) · [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md) · [ROLES-PERMISSIONS-SIDEBAR.md](./ROLES-PERMISSIONS-SIDEBAR.md)  
 **Code:** `packages/platform-core/src/industry/platform.ts`
 
 ---

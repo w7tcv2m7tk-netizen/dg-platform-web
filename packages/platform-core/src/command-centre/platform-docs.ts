@@ -84,9 +84,17 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "industry-platform",
     title: "Industry Platform",
     summary:
-      "Industry App → Specialisation → Template. Property / Services / Finance / Professional Services / Commerce commercial lock ($99 + $29 expansion).",
+      "Twelve Industry Apps → Templates. Accommodation under Hospitality & Accommodation. Public lanes: Available / Early Access / Coming / Reserved.",
     group: "architecture",
     relativePath: "foundations/INDUSTRY-PLATFORM.md",
+  },
+  {
+    slug: "roles-permissions-sidebar",
+    title: "Roles, Permissions & Side Panel",
+    summary:
+      "Locked access model — DigitalGate Owner/Admin/Member, Organisation Owner/Admin/Member, partners, granular permissions, dynamic side panel, pricing.",
+    group: "architecture",
+    relativePath: "foundations/ROLES-PERMISSIONS-SIDEBAR.md",
   },
   {
     slug: "intelligent-layer",
