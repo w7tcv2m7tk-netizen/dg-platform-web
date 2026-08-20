@@ -17,7 +17,10 @@ export async function POST(req: Request) {
 
   const result = await processElevenLabsToolCall(payload, { agentId, tool });
   if (!result.ok) {
-    return NextResponse.json({ error: result.error ?? "tool failed", data: result }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error ?? "tool failed", tool: result.tool, data: result },
+      { status: 400 },
+    );
   }
   // ElevenLabs expects a JSON body the LLM can read as the tool result
   return NextResponse.json({

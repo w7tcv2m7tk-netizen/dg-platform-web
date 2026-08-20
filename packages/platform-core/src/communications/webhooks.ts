@@ -1,7 +1,7 @@
 import { findAgentByProviderId, getCommunicationAgent } from "./agents";
 import { ingestProviderConversation } from "./orchestrator";
 import { verifyElevenLabsWebhookSignature } from "./providers/elevenlabs";
-import { executeAgentTool } from "./tools";
+import { executeAgentTool, type ToolResult } from "./tools";
 import { upsertCommunicationSession } from "./sessions";
 import type { AgentBuilderConfig, ProviderConversation } from "./providers/types";
 
@@ -135,7 +135,7 @@ export function verifyAgentToolRequest(req: Request): boolean {
 export async function processElevenLabsToolCall(
   payload: Record<string, unknown>,
   opts?: { agentId?: string | null; tool?: string | null },
-) {
+): Promise<ToolResult> {
   const tool =
     pickString(
       opts?.tool,
@@ -175,7 +175,7 @@ export async function processElevenLabsToolCall(
   const args = Object.keys(nestedParams).length ? nestedParams : flatArgs;
 
   if (!tool) {
-    return { ok: false, error: "tool is required" };
+    return { ok: false, tool: "unknown", error: "tool is required" };
   }
 
   let agent =
@@ -194,7 +194,7 @@ export async function processElevenLabsToolCall(
     agent = await findAgentByProviderId("elevenlabs", agentProviderId);
   }
 
-  if (!agent) return { ok: false, error: "unknown_agent" };
+  if (!agent) return { ok: false, tool, error: "unknown_agent" };
 
   const config = agent.config as AgentBuilderConfig;
   const enabledTools = config.enabledTools?.length
