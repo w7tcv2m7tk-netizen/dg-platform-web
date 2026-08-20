@@ -8,3 +8,15 @@ export function parseFoundingInvitePageSlug(pageSlug?: string): string | null {
     return match[1];
   }
 }
+
+export function parseFoundingResellerInvitePageSlug(pageSlug?: string): string | null {
+  const match = (pageSlug || "")
+    .trim()
+    .match(/^founding-resellers\/invite\/([^/]+)$/i);
+  if (!match?.[1]) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+}

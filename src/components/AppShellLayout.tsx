@@ -127,13 +127,13 @@ export function AppShellLayout({
               </div>
 
               <div
-                className={`fixed inset-0 z-50 md:hidden ${open ? "pointer-events-auto" : "pointer-events-none"}`}
+                className={`fixed inset-0 z-50 md:hidden ${open ? "" : "pointer-events-none"}`}
                 aria-hidden={!open}
               >
                 <button
                   type="button"
                   className={`absolute inset-0 dg-branded-overlay backdrop-blur-sm transition-opacity duration-200 ${
-                    open ? "opacity-100" : "opacity-0"
+                    open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
                   }`}
                   aria-label="Close menu"
                   tabIndex={open ? 0 : -1}
@@ -141,7 +141,9 @@ export function AppShellLayout({
                 />
                 <aside
                   className={`dg-branded-sidebar absolute inset-y-0 left-0 flex h-full w-[min(18rem,88vw)] flex-col overflow-hidden border-r border-slate-800 px-4 py-5 shadow-2xl transition-transform duration-200 ease-out ${
-                    open ? "translate-x-0" : "-translate-x-full"
+                    open
+                      ? "pointer-events-auto translate-x-0"
+                      : "pointer-events-none -translate-x-full"
                   }`}
                   style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}
                 >

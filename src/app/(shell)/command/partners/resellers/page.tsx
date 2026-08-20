@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listPartners } from "@dg/platform-core";
 import { PartnersAdminNav } from "@/components/command/PartnersAdminNav";
+import { InviteFoundingResellerForm } from "@/components/founding/InviteFoundingResellerForm";
 
 const TIER_LABEL: Record<string, string> = {
   FOUNDING_RESELLER: "Founding Reseller",
@@ -40,6 +41,7 @@ export default async function AdminResellersPage() {
       <main className="dg-page-main">
         <div className="max-w-5xl space-y-6">
           <PartnersAdminNav active="resellers" />
+          <InviteFoundingResellerForm />
           {partners.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-700 px-6 py-14 text-center text-sm text-slate-400">
               No partners registered yet. Founding Reseller is invitation only — recruit 3–5
@@ -55,6 +57,7 @@ export default async function AdminResellersPage() {
                     <th className="px-4 py-3">Commission</th>
                     <th className="px-4 py-3">Code</th>
                     <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Invite</th>
                     <th className="px-4 py-3">Joined</th>
                     <th className="px-4 py-3"></th>
                   </tr>
@@ -84,6 +87,9 @@ export default async function AdminResellersPage() {
                         >
                           {p.status}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-xs capitalize text-slate-400">
+                        {p.invitationStatus ?? "—"}
                       </td>
                       <td className="px-4 py-3 text-slate-400">
                         {p.joinedAt ? new Date(p.joinedAt).toLocaleDateString("en-AU") : "—"}

@@ -36,6 +36,50 @@ export function publicOgImageForSlug(
   return PUBLIC_OG_IMAGES[slug] || DEFAULT_PUBLIC_OG_IMAGE;
 }
 
+/** Per-site tab icons. Unlisted slugs keep the DigitalGate root favicon. */
+export const PUBLIC_SITE_ICONS: Record<
+  string,
+  { icon: string; favicon32: string; apple: string }
+> = {
+  wantd: {
+    icon: "/brand/wantd-icon.png",
+    favicon32: "/brand/wantd-favicon-32.png",
+    apple: "/brand/wantd-apple-touch.png",
+  },
+};
+
+export function publicSiteIcons(
+  slug: string,
+  explicit?: string | null,
+):
+  | {
+      icon: Array<{ url: string; type?: string; sizes?: string }>;
+      apple: Array<{ url: string; type?: string; sizes?: string }>;
+    }
+  | undefined {
+  const mapped = PUBLIC_SITE_ICONS[slug];
+  if (mapped) {
+    return {
+      icon: [
+        { url: mapped.favicon32, type: "image/png", sizes: "32x32" },
+        { url: mapped.icon, type: "image/png" },
+      ],
+      apple: [{ url: mapped.apple, type: "image/png", sizes: "180x180" }],
+    };
+  }
+  const custom = explicit?.trim();
+  if (!custom) return undefined;
+  return {
+    icon: [
+      {
+        url: custom,
+        type: custom.endsWith(".svg") ? "image/svg+xml" : "image/png",
+      },
+    ],
+    apple: [{ url: custom, type: "image/png", sizes: "180x180" }],
+  };
+}
+
 export const BRAND_ASSETS = {
   "on-dark": {
     /** Icon Light Door — canonical mark (black frame, white door) */

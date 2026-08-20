@@ -20,12 +20,14 @@ import {
   isRetiredPublicOnboarding,
   PublicOnboardingRetired,
 } from "@/components/founding/PublicOnboardingRetired";
+import { PublicFoundingInviteAccept } from "@/components/founding/PublicFoundingInviteAccept";
+import { PublicFoundingResellerInviteAccept } from "@/components/founding/PublicFoundingResellerInviteAccept";
 import {
-  PublicFoundingInviteAccept,
-} from "@/components/founding/PublicFoundingInviteAccept";
-import { parseFoundingInvitePageSlug } from "@/lib/founding-invite-page-slug";
-import { getPublicFoundingInvitation } from "@dg/platform-core";
-import { publicOgImageForSlug } from "@/lib/brand";
+  parseFoundingInvitePageSlug,
+  parseFoundingResellerInvitePageSlug,
+} from "@/lib/founding-invite-page-slug";
+import { getPublicFoundingInvitation, getPublicFoundingResellerInvitation } from "@dg/platform-core";
+import { publicOgImageForSlug, publicSiteIcons } from "@/lib/brand";
 import {
   chromeFromSiteMetadata,
   decodeHtmlEntities,
@@ -149,6 +151,17 @@ export async function generateMetadata({
         robots: { index: false, follow: false },
       };
     }
+    const resellerInviteToken = isDgSiteSlug(slug)
+      ? parseFoundingResellerInvitePageSlug(pageSlug)
+      : null;
+    if (resellerInviteToken) {
+      return {
+        title: "Founding Reseller invitation | DigitalGate",
+        description:
+          "You've been personally invited to join DigitalGate's Founding Reseller Programme.",
+        robots: { index: false, follow: false },
+      };
+    }
     const page = resolvePage(site, pageSlug);
     const title = decodeHtmlEntities(
       page?.seo?.title || site.seo?.title || site.name,
@@ -174,6 +187,8 @@ export async function generateMetadata({
       canonicalHost && page
         ? `https://${canonicalHost}${publicPagePath(page)}`
         : undefined;
+    const theme = site.theme as { iconUrl?: string } | null | undefined;
+    const icons = publicSiteIcons(site.slug, theme?.iconUrl);
     return {
       title,
       description,
@@ -181,6 +196,7 @@ export async function generateMetadata({
       robots: { index: true, follow: true },
       ...(keywords?.length ? { keywords } : {}),
       ...(canonical ? { alternates: { canonical } } : {}),
+      ...(icons ? { icons } : {}),
       openGraph: {
         type: "website",
         locale: "en_AU",
@@ -289,6 +305,38 @@ async function renderSite(
             <h1 className="text-3xl font-bold text-white">Invitation not found</h1>
             <p className="mt-4 text-slate-300">
               This Founding 10 invitation link is invalid or has expired. If you
+              were expecting an invitation, contact Ben Roe at hello@digitalgate.com.au.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const resellerInviteToken = isDgSiteSlug(slug)
+    ? parseFoundingResellerInvitePageSlug(pageSlug)
+    : null;
+  if (resellerInviteToken) {
+    const invitation = await getPublicFoundingResellerInvitation(resellerInviteToken);
+    return (
+      <div
+        className="wb-root wb-html-page"
+        style={{ minHeight: "100dvh", background: "#0A0E17" }}
+      >
+        {invitation ? (
+          <PublicFoundingResellerInviteAccept
+            token={resellerInviteToken}
+            firstName={invitation.firstName}
+            businessName={invitation.businessName}
+            invitedByName={invitation.invitedByName}
+            withdrawn={invitation.withdrawn}
+            alreadyAccepted={invitation.alreadyAccepted}
+          />
+        ) : (
+          <div className="mx-auto max-w-2xl px-6 py-16 text-slate-200">
+            <h1 className="text-3xl font-bold text-white">Invitation not found</h1>
+            <p className="mt-4 text-slate-300">
+              This Founding Reseller invitation link is invalid or has expired. If you
               were expecting an invitation, contact Ben Roe at hello@digitalgate.com.au.
             </p>
           </div>

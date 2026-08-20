@@ -1,9 +1,11 @@
 import { prisma } from "@dg/database";
+import { isPendingPartnerInviteClerkId, parsePartnerInviteClerkId } from "./invite-state";
 import {
   bpsToPercent,
   PARTNER_COMMISSION_CONFIG,
   partnerReferralUrl,
   type CommissionStatus,
+  type PartnerInvitationStatus,
   type PartnerStatus,
   type PartnerType,
   type PartnerReferralStatus,
@@ -45,9 +47,15 @@ function serializePartner(
     PARTNER_COMMISSION_CONFIG[row.partnerType as PartnerType] ??
     PARTNER_COMMISSION_CONFIG.CUSTOMER_REFERRER;
 
+  const invite = parsePartnerInviteClerkId(row.clerkUserId);
+  const invitationStatus: PartnerInvitationStatus | null =
+    row.status === "inactive" && invite.token
+      ? "withdrawn"
+      : invite.invitationStatus;
+
   return {
     id: row.id,
-    clerkUserId: row.clerkUserId,
+    clerkUserId: isPendingPartnerInviteClerkId(row.clerkUserId) ? null : row.clerkUserId,
     organisationId: row.organisationId ?? null,
     partnerType: row.partnerType as PartnerType,
     partnerTypeLabel: config.label,
@@ -58,6 +66,11 @@ function serializePartner(
     commissionPercent: bpsToPercent(row.commissionBps),
     commissionDurationMonths: row.commissionDurationMonths,
     status: row.status as PartnerStatus,
+    invitationStatus,
+    inviteToken: invite.token,
+    invitedAt: null,
+    invitedByName: invite.token ? "Ben Roe" : null,
+    invitationAcceptedAt: null,
     referralCode: row.referralCode,
     referralUrl: partnerReferralUrl(row.referralCode),
     displayName: row.displayName ?? null,
@@ -167,6 +180,56 @@ export async function createPartner(input: {
   return serializePartner(row);
 }
 
+export async function getPartnerByInviteToken(
+  token: string,
+): Promise<SerializedPartner | null> {
+  const trimmed = token.trim();
+  if (!trimmed) return null;
+  return emptyIfUnmigrated(async () => {
+    const row = await prisma.partner.findFirst({
+      where: {
+        OR: [
+          { clerkUserId: `invite-draft:${trimmed}` },
+          { clerkUserId: `invite:${trimmed}` },
+          { clerkUserId: `invite-accepted:${trimmed}` },
+        ],
+      },
+    });
+    if (!row) return null;
+    return serializePartner(row);
+  }, null);
+}
+
+export async function claimPartnerInvitation(input: {
+  clerkUserId: string;
+  email?: string | null;
+}): Promise<SerializedPartner | null> {
+  return emptyIfUnmigrated(async () => {
+    const existing = await prisma.partner.findFirst({
+      where: { clerkUserId: input.clerkUserId, status: { not: "inactive" } },
+      orderBy: { createdAt: "asc" },
+    });
+    if (existing) return serializePartner(existing);
+
+    const email = input.email?.trim().toLowerCase();
+    if (!email) return null;
+    const invited = await prisma.partner.findFirst({
+      where: {
+        email: { equals: email, mode: "insensitive" },
+        clerkUserId: { startsWith: "invite" },
+        status: { not: "inactive" },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!invited) return null;
+    const row = await prisma.partner.update({
+      where: { id: invited.id },
+      data: { clerkUserId: input.clerkUserId },
+    });
+    return serializePartner(row);
+  }, null);
+}
+
 export async function getPartnerByClerkUserId(
   clerkUserId: string,
 ): Promise<SerializedPartner | null> {
@@ -239,7 +302,7 @@ export async function countPartnerSeats(): Promise<
   return emptyIfUnmigrated(async () => {
     const rows = await prisma.partner.groupBy({
       by: ["partnerType"],
-      where: { status: { in: ["active", "pending"] } },
+      where: { status: "active" },
       _count: { _all: true },
     });
     const usedByType = Object.fromEntries(
@@ -277,6 +340,7 @@ export async function updatePartner(
     notes: string;
     joinedAt: Date;
     organisationId: string;
+    clerkUserId: string;
   }>,
 ): Promise<SerializedPartner> {
   const row = await prisma.partner.update({ where: { id }, data });

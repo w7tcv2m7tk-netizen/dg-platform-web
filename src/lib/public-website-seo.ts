@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { publicOgImageForSlug } from "@/lib/brand";
+import { publicOgImageForSlug, publicSiteIcons } from "@/lib/brand";
 import { decodeHtmlEntities } from "@/lib/public-chrome";
 
 const CANONICAL_ORIGIN_BY_SLUG: Record<string, string> = {
@@ -51,6 +51,7 @@ export function publicPageMetadata(input: {
   ogTitle?: string | null;
   ogDescription?: string | null;
   ogImage?: string | null;
+  iconUrl?: string | null;
   keywords?: string[] | null;
 }): Metadata {
   const title = decodeHtmlEntities(input.title || input.siteName);
@@ -58,6 +59,7 @@ export function publicPageMetadata(input: {
   const ogTitle = decodeHtmlEntities(input.ogTitle || title);
   const ogDescription = input.ogDescription || description;
   const ogImage = publicOgImageForSlug(input.siteSlug, input.ogImage);
+  const icons = publicSiteIcons(input.siteSlug, input.iconUrl);
   const keywords = input.keywords?.filter(Boolean);
   const canonical = publicSiteCanonical(input.siteSlug, input.pageSlug);
 
@@ -67,6 +69,7 @@ export function publicPageMetadata(input: {
     applicationName: input.siteName,
     ...(keywords?.length ? { keywords } : {}),
     ...(canonical ? { alternates: { canonical } } : {}),
+    ...(icons ? { icons } : {}),
     robots: { index: true, follow: true },
     openGraph: {
       type: "website",

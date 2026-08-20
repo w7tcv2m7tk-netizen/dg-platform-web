@@ -1,7 +1,9 @@
 import { Outfit, Syne } from "next/font/google";
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { WantdIcon, WantdWordmark } from "@/components/websites/WantdPublicArt";
+import { publicSiteIcons } from "@/lib/brand";
 
 import "./wantd.css";
 
@@ -17,6 +19,12 @@ const wantdSans = Outfit({
   variable: "--font-wantd-sans",
   display: "swap",
 });
+
+export const metadata: Metadata = {
+  title: "Wantd",
+  applicationName: "Wantd",
+  icons: publicSiteIcons("wantd"),
+};
 
 export default function WantdLayout({ children }: { children: React.ReactNode }) {
   return (

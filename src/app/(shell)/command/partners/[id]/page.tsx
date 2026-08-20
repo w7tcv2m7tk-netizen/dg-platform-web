@@ -56,7 +56,11 @@ export default async function AdminPartnerDetailPage({
               {partner.commissionDurationMonths} months
             </p>
           </div>
-          <PartnerAdminActions partnerId={partner.id} currentStatus={partner.status} />
+          <PartnerAdminActions
+            partnerId={partner.id}
+            currentStatus={partner.status}
+            invitationStatus={partner.invitationStatus}
+          />
         </div>
       </header>
 
@@ -73,6 +77,7 @@ export default async function AdminPartnerDetailPage({
                 ["Referral Code", partner.referralCode],
                 ["Referral URL", partner.referralUrl],
                 ["Status", partner.status],
+                ["Invitation", partner.invitationStatus ?? "—"],
                 ["Tier", partner.partnerTypeLabel],
                 ["Commission", `${partner.commissionPercent}% for ${partner.commissionDurationMonths} months`],
                 ["Cohort", partner.cohort ?? "—"],

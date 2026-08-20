@@ -71,7 +71,7 @@ export function wantdWebsiteTheme(input?: {
     fontHeading: "Syne",
     fontBody: "Outfit",
     logoUrl: input?.logoUrl,
-    iconUrl: input?.iconUrl,
+    iconUrl: input?.iconUrl || "/brand/wantd-icon.png",
   };
 }
 

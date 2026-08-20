@@ -43,6 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ogTitle: home?.seo?.ogTitle || site.seo?.ogTitle,
     ogDescription: home?.seo?.ogDescription || site.seo?.ogDescription,
     ogImage: home?.seo?.ogImage || site.seo?.ogImage,
+    iconUrl: (site.theme as { iconUrl?: string } | null | undefined)?.iconUrl,
     keywords: home?.seo?.keywords?.length
       ? home.seo.keywords
       : site.seo?.keywords,

@@ -146,9 +146,17 @@ export function illustratePartnerCommission(input: {
   };
 }
 
+export const PARTNER_INVITATION_STATUSES = [
+  "draft",
+  "sent",
+  "accepted",
+  "withdrawn",
+] as const;
+export type PartnerInvitationStatus = (typeof PARTNER_INVITATION_STATUSES)[number];
+
 export type SerializedPartner = {
   id: string;
-  clerkUserId: string;
+  clerkUserId: string | null;
   organisationId: string | null;
   partnerType: PartnerType;
   partnerTypeLabel: string;
@@ -159,6 +167,11 @@ export type SerializedPartner = {
   commissionPercent: number;
   commissionDurationMonths: number;
   status: PartnerStatus;
+  invitationStatus: PartnerInvitationStatus | null;
+  inviteToken: string | null;
+  invitedAt: string | null;
+  invitedByName: string | null;
+  invitationAcceptedAt: string | null;
   referralCode: string;
   referralUrl: string;
   displayName: string | null;

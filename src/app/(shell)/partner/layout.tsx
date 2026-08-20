@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getPlatformPageContext } from "@/lib/platform-page-context";
-import { getPartnerByClerkUserId } from "@dg/platform-core";
+import { claimPartnerInvitation, getPartnerByClerkUserId } from "@dg/platform-core";
 
 const NAV = [
   { href: "/partner/dashboard", label: "Overview" },
@@ -18,7 +18,7 @@ export default async function PartnerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { clerkUserId } = await getPlatformPageContext();
+  const { clerkUserId, email } = await getPlatformPageContext();
 
   if (!clerkUserId) redirect("/login");
 
@@ -33,7 +33,9 @@ export default async function PartnerLayout({
     );
   }
 
-  const partner = await getPartnerByClerkUserId(clerkUserId);
+  const partner =
+    (await getPartnerByClerkUserId(clerkUserId)) ||
+    (await claimPartnerInvitation({ clerkUserId, email }));
 
   if (!partner) {
     return (

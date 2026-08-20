@@ -70,6 +70,9 @@ model Organisation {
   commercialProperties          CommercialProperty[]
   commercialLeases              CommercialLease[]
   pmLeases                      PmLease[]
+  communicationAgents           CommunicationAgent[]
+  communicationSessions         CommunicationSession[]
+  communicationUsages           CommunicationUsage[]
 
   referredBy        Organisation?  @relation("OrgReferral", fields: [referredByOrganisationId], references: [id], onDelete: SetNull)
   referralsMade     Organisation[] @relation("OrgReferral")
@@ -1291,4 +1294,150 @@ model PmLease {
   @@index([organisationId, status])
   @@index([organisationId, stage])
   @@map("pm_leases")
+}
+
+// ─── AI Communications (provider-agnostic orchestration) ───────────────────
+
+model CommunicationAgent {
+  id               String    @id @default(cuid())
+  organisationId   String    @map("organisation_id")
+  name             String
+  description      String?
+  /** receptionist | sales | support | booking | qualification | follow_up | custom */
+  type             String    @default("custom")
+  /** draft | published | disabled */
+  status           String    @default("draft")
+  provider         String    @default("elevenlabs")
+  providerAgentId  String?   @map("provider_agent_id")
+  voiceId          String?   @map("voice_id")
+  model            String?
+  systemPrompt     String?   @map("system_prompt") @db.Text
+  greeting         String?
+  language         String    @default("en-AU")
+  timezone         String    @default("Australia/Brisbane")
+  businessHours    Json?     @map("business_hours")
+  enabledChannels  Json?     @map("enabled_channels")
+  knowledgeBaseId  String?   @map("knowledge_base_id")
+  routingRules     Json?     @map("routing_rules")
+  transferRules    Json?     @map("transfer_rules")
+  escalationRules  Json?     @map("escalation_rules")
+  /** Structured Agent Builder config (identity, purpose, behaviour, tools, compliance) */
+  config           Json?
+  publishedAt      DateTime? @map("published_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation            @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  sessions     CommunicationSession[]
+
+  @@index([organisationId, status])
+  @@index([organisationId, provider])
+  @@index([providerAgentId])
+  @@map("communication_agents")
+}
+
+model CommunicationSession {
+  id                 String    @id @default(cuid())
+  organisationId     String    @map("organisation_id")
+  agentId            String?   @map("agent_id")
+  contactId          String?   @map("contact_id")
+  companyId          String?   @map("company_id")
+  opportunityId      String?   @map("opportunity_id")
+  /** voice | sms | email | chat | whatsapp */
+  channel            String    @default("voice")
+  /** inbound | outbound */
+  direction          String    @default("inbound")
+  provider           String    @default("elevenlabs")
+  providerSessionId  String?   @map("provider_session_id")
+  /** ringing | in_progress | completed | missed | failed | transferred */
+  status             String    @default("in_progress")
+  startedAt          DateTime? @map("started_at")
+  endedAt            DateTime? @map("ended_at")
+  durationSeconds    Int?      @map("duration_seconds")
+  transcript         String?   @db.Text
+  summary            String?   @db.Text
+  sentiment          String?
+  outcome            String?
+  recordingUrl       String?   @map("recording_url")
+  costCents          Int?      @map("cost_cents")
+  usageUnits         Decimal?  @map("usage_units") @db.Decimal(12, 4)
+  callerPhone        String?   @map("caller_phone")
+  metadata           Json?
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  agent        CommunicationAgent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  messages     CommunicationMessage[]
+  actions      AgentAction[]
+
+  @@unique([organisationId, provider, providerSessionId])
+  @@index([organisationId, startedAt])
+  @@index([organisationId, status])
+  @@index([organisationId, contactId])
+  @@index([agentId])
+  @@map("communication_sessions")
+}
+
+model CommunicationMessage {
+  id                 String   @id @default(cuid())
+  organisationId     String   @map("organisation_id")
+  sessionId          String   @map("session_id")
+  sender             String
+  recipient          String?
+  direction          String
+  channel            String   @default("voice")
+  content            String   @db.Text
+  timestamp          DateTime @default(now())
+  providerMessageId  String?  @map("provider_message_id")
+  status             String   @default("delivered")
+  metadata           Json?
+
+  session CommunicationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, timestamp])
+  @@index([organisationId])
+  @@map("communication_messages")
+}
+
+model AgentAction {
+  id              String   @id @default(cuid())
+  organisationId  String   @map("organisation_id")
+  sessionId       String?  @map("session_id")
+  agentId         String?  @map("agent_id")
+  tool            String
+  status          String   @default("ok")
+  input           Json?
+  output          Json?
+  entityType      String?  @map("entity_type")
+  entityId        String?  @map("entity_id")
+  error           String?
+  actorType       String   @default("agent") @map("actor_type")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  session CommunicationSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, createdAt])
+  @@index([sessionId])
+  @@map("agent_actions")
+}
+
+model CommunicationUsage {
+  id              String   @id @default(cuid())
+  organisationId  String   @map("organisation_id")
+  agentId         String?  @map("agent_id")
+  sessionId       String?  @map("session_id")
+  provider        String
+  metric          String
+  units           Decimal  @db.Decimal(12, 4)
+  providerCostCents Int?   @map("provider_cost_cents")
+  platformFeeCents  Int?   @map("platform_fee_cents")
+  occurredAt      DateTime @default(now()) @map("occurred_at")
+  metadata        Json?
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, occurredAt])
+  @@index([organisationId, provider])
+  @@map("communication_usages")
 }
