@@ -180,12 +180,6 @@ const BUSINESS_LINKS: PlatformShellNavItem[] = [
     label: "Team",
     icon: getSidebarIcon("team"),
   },
-  {
-    kind: "shell",
-    href: "/dashboard/implementation",
-    label: "Implementation",
-    icon: getSidebarIcon("partner-portal"),
-  },
 ];
 
 /** ECOSYSTEM — what you can activate / add. Partner is not an ecosystem App. */
