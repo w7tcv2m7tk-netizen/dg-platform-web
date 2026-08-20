@@ -89,7 +89,7 @@ function conversationConfig(input: UpsertAgentInput) {
     },
     tts: {
       voice_id: input.voiceId || undefined,
-      model_id: "eleven_flash_v2_5",
+      model_id: "eleven_flash_v2",
     },
   };
 }

@@ -178,7 +178,7 @@ function conversationConfig(agentId) {
       },
     },
     tts: {
-      model_id: "eleven_flash_v2_5",
+      model_id: "eleven_flash_v2",
     },
   };
 }

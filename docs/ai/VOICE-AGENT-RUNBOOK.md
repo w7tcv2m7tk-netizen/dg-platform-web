@@ -15,36 +15,48 @@ Set on Vercel (Production + Preview) and local `.env.local`:
 | Variable | Purpose |
 |----------|---------|
 | `ELEVENLABS_API_KEY` | ConvAI + voices API |
-| `ELEVENLABS_WEBHOOK_SECRET` | HMAC verify for post-call webhook |
-| `ELEVENLABS_TOOL_SECRET` | Bearer token ElevenLabs sends to tool webhooks |
-| `NEXT_PUBLIC_APP_URL` | Public origin ElevenLabs can reach (e.g. `https://app.digitalgate.com.au`) |
+| `ELEVENLABS_WEBHOOK_SECRET` | HMAC for post-call webhook — **must be the `wsec_…` secret ElevenLabs returns when the workspace webhook is created** (not a homemade random string) |
+| `ELEVENLABS_TOOL_SECRET` | Bearer token registered on tool webhooks at publish time |
+| `NEXT_PUBLIC_APP_URL` | Public origin ElevenLabs can reach — production must be `https://app.digitalgate.com.au` |
 
 Never use `NEXT_PUBLIC_` for secrets. Redeploy after changing Vercel env.
 
 Confirm in **Apps → AI Communications → Settings**: API key Configured, Connection Reachable.
 
-Smoke test: `GET /api/v1/communications/voices` returns real voices (not stub).
+```bash
+node --env-file=.env.local scripts/voice-agent-health.mjs --smoke-tools
+```
+
+Expect: voices > 0, `convaiSettings.postCallWebhookId` set, `toolSmoke.ok: true`.
 
 ---
 
 ## 2. Create & publish the receptionist
 
-1. Open **Agent Builder** (`/apps/ai-communications/agents`).
-2. Click **Inbound receptionist** template (tools include Contact + Opportunity + Task).
-3. Pick a voice from the live list.
-4. **Save & publish** — DigitalGate creates/updates the ElevenLabs agent and registers tool URLs:
+1. Open **Agent Builder** (`/apps/ai-communications/agents`) or run:
+   `node --env-file=.env.local scripts/seed-voice-receptionist.mjs --publish`
+   (uses production tool URLs when `NEXT_PUBLIC_APP_URL=https://app.digitalgate.com.au`)
+2. Template: **Inbound receptionist** (Contact + Opportunity + Task tools).
+3. Pick a voice from the live list (UI) or accept provider default (seed).
+4. **Save & publish** registers tool URLs:
    `{APP_URL}/api/webhooks/elevenlabs/tools?agentId=<dgAgentId>&tool=<toolName>`
+
+English agents must use TTS `eleven_flash_v2` or turbo v2 (not v2.5).
 
 ---
 
-## 3. ElevenLabs dashboard
+## 3. ElevenLabs dashboard / API
 
-1. Open the published agent in ElevenLabs ConvAI.
-2. Set **post-call webhook** to:
-   `{APP_URL}/api/webhooks/elevenlabs`
-   using the same `ELEVENLABS_WEBHOOK_SECRET`.
-3. Use the **test widget** for the first proof (phone number optional).
-4. Confirm `providerAgentId` on the DigitalGate agent matches the ElevenLabs agent id (shown after publish / in Voice list).
+Workspace post-call webhook should point at:
+
+`https://app.digitalgate.com.au/api/webhooks/elevenlabs`
+
+Attach it under ConvAI settings (`post_call_webhook_id`) with events `["transcript"]`.
+
+Then:
+
+1. Open the published agent in ElevenLabs → **test widget** (phone optional).
+2. Confirm DigitalGate `providerAgentId` matches the ElevenLabs agent id.
 
 ---
 
@@ -55,8 +67,8 @@ Smoke test: `GET /api/v1/communications/voices` returns real voices (not stub).
 - [ ] **Call Centre** shows session with transcript/summary
 - [ ] Settings usage / overview increments
 
-If tools 401: check `ELEVENLABS_TOOL_SECRET` matches what was registered at publish (re-publish after rotating).  
-If post-call 401: check `ELEVENLABS_WEBHOOK_SECRET` and signature header.  
+If tools **401**: Vercel `ELEVENLABS_TOOL_SECRET` must match the value used at publish (re-publish after rotating).  
+If post-call **401**: Vercel `ELEVENLABS_WEBHOOK_SECRET` must be the ElevenLabs `wsec_…` secret.  
 If session ignored: agent `providerAgentId` must match webhook `agent_id`.
 
 ---
@@ -64,11 +76,13 @@ If session ignored: agent `providerAgentId` must match webhook `agent_id`.
 ## 5. Ops scripts
 
 ```bash
-# Health + voices (requires ELEVENLABS_API_KEY)
+# Health + voices (+ optional production tool smoke)
 node --env-file=.env.local scripts/voice-agent-health.mjs
+node --env-file=.env.local scripts/voice-agent-health.mjs --smoke-tools
 
-# Create + publish receptionist for DigitalGate org (optional --publish)
-node --env-file=.env.local scripts/seed-voice-receptionist.mjs --publish
+# Create + publish receptionist (production tool URLs)
+NEXT_PUBLIC_APP_URL=https://app.digitalgate.com.au \
+  node --env-file=.env.local scripts/seed-voice-receptionist.mjs --publish
 ```
 
 ---

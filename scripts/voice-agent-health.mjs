@@ -1,12 +1,15 @@
 /**
  * Smoke-check ElevenLabs voice configuration.
- * Usage: node --env-file=.env.local scripts/voice-agent-health.mjs
+ * Usage:
+ *   node --env-file=.env.local scripts/voice-agent-health.mjs
+ *   node --env-file=.env.local scripts/voice-agent-health.mjs --smoke-tools
  */
 import { config } from "dotenv";
 import { PrismaClient } from "@prisma/client";
 
 config({ path: ".env.local" });
 
+const smokeTools = process.argv.includes("--smoke-tools");
 const key = process.env.ELEVENLABS_API_KEY?.trim();
 const webhookSecret = process.env.ELEVENLABS_WEBHOOK_SECRET?.trim();
 const toolSecret =
@@ -15,15 +18,17 @@ const origin = (process.env.NEXT_PUBLIC_APP_URL || "https://app.digitalgate.com.
   /\/$/,
   "",
 );
+const prodOrigin = "https://app.digitalgate.com.au";
 
 const report = {
   ELEVENLABS_API_KEY: Boolean(key),
   ELEVENLABS_WEBHOOK_SECRET: Boolean(webhookSecret),
   ELEVENLABS_TOOL_SECRET: Boolean(toolSecret),
   NEXT_PUBLIC_APP_URL: origin,
-  postCallWebhook: `${origin}/api/webhooks/elevenlabs`,
+  postCallWebhook: `${prodOrigin}/api/webhooks/elevenlabs`,
   voices: null,
   subscription: null,
+  toolSmoke: null,
   error: null,
 };
 
@@ -57,10 +62,45 @@ async function main() {
     status: subRes.status,
   };
 
+  const settingsRes = await fetch("https://api.elevenlabs.io/v1/convai/settings", { headers });
+  const settings = await settingsRes.json().catch(() => ({}));
+  report.convaiSettings = {
+    ok: settingsRes.ok,
+    postCallWebhookId: settings?.webhooks?.post_call_webhook_id ?? null,
+    events: settings?.webhooks?.events ?? [],
+  };
+
   const prisma = new PrismaClient();
   try {
-    const agents = await prisma.communicationAgent.count();
+    const agents = await prisma.communicationAgent.findMany({
+      select: { id: true, name: true, status: true, providerAgentId: true },
+      orderBy: { updatedAt: "desc" },
+      take: 5,
+    });
     report.dbAgents = agents;
+
+    if (smokeTools && toolSecret) {
+      const agent =
+        agents.find((a) => a.status === "published" && a.providerAgentId) || agents[0];
+      if (agent) {
+        const url = `${prodOrigin}/api/webhooks/elevenlabs/tools?agentId=${encodeURIComponent(agent.id)}&tool=get_business_profile`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${toolSecret}`,
+            "Content-Type": "application/json",
+          },
+          body: "{}",
+        });
+        const text = await res.text();
+        report.toolSmoke = {
+          status: res.status,
+          ok: res.ok,
+          agentId: agent.id,
+          bodyPreview: text.slice(0, 400),
+        };
+      }
+    }
   } catch (err) {
     report.dbAgents = `error: ${err.message}`;
   } finally {
@@ -68,6 +108,7 @@ async function main() {
   }
 
   console.log(JSON.stringify(report, null, 2));
+  if (smokeTools && report.toolSmoke && !report.toolSmoke.ok) process.exit(1);
 }
 
 main().catch((err) => {
