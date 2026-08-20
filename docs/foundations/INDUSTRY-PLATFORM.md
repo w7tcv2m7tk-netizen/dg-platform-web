@@ -80,7 +80,24 @@ Do **not** present twelve finished products. Show readiness lanes:
 - **Coming Soon** — Professional · Health & Wellness · Automotive · Retail & Commerce · Transport · Education  
 - **Architecture Reserved** — Agriculture  
 
-Commercial: **$99/mo** Industry · **1 Template included** · **+$29/mo** each additional Template.
+Commercial packaging (canonical):
+
+| Item | Price |
+|------|-------|
+| **Industry App** | **$99/mo** — major vertical capability and infrastructure |
+| **Primary Industry Template** | **Included** (customer chooses one primary business model) |
+| **Additional Industry Templates** | **+$29/mo each** |
+
+Terminology:
+
+- **Industry App** = the commercial boundary (Property, Services, Finance, …)
+- **Industry Template** = specialised workflow configuration within that App (Real Estate, Cleaning, Accounting, Legal, …)
+
+Example — Property: $99 includes Real Estate; add Property Management → **$128/mo**.  
+Example — Services: $99 includes Cleaning; add Maintenance → **$128/mo**.  
+Example — Founding 10: Starter $99 + Property $99 + PM Template $29 = **$227** → 30% = **$158.90/mo**.
+
+Code lock: `INDUSTRY_COMMERCIAL_LOCK` · `industryCheckoutLines()` in `packages/platform-core/src/industry/platform.ts`.
 
 ### Explicit exclusions
 
@@ -106,5 +123,6 @@ Commercial: **$99/mo** Industry · **1 Template included** · **+$29/mo** each a
 |--------|------|
 | `INDUSTRY_PLATFORMS` | Canonical twelve |
 | `INDUSTRY_PUBLIC_GROUPS` | Available / Early Access / Coming / Reserved |
-| `INDUSTRY_COMMERCIAL_LOCK` | Price + wording lock |
+| `INDUSTRY_COMMERCIAL_LOCK` | Price + terminology + founding example lock |
+| `industryCheckoutLines()` | Billing: $99 Industry + +$29 extra Templates |
 | `INDUSTRY_CLASSIFICATION_RULES` | Classification helpers |

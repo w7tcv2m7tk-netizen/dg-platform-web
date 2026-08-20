@@ -350,7 +350,7 @@ export function AppsPlanCatalog() {
         <SectionHeader
           label="🧩 3 · Industry Apps"
           title="Built around how your business operates"
-          description="Choose an Industry Platform ($99/mo), activate one specialisation, then add more as you grow (+$29/mo). Templates configure objects, pipelines, workflows and AI — not just the dashboard label. One platform. One source of truth."
+          description="Choose an Industry App ($99/mo), activate one Template included, then add more as you grow (+$29/mo each). Templates configure objects, pipelines, workflows and AI — not just the dashboard label. One platform. One source of truth."
         />
         <div id="industry-apps" className="scroll-mt-24 space-y-6">
           {INDUSTRY_PLATFORM_CATALOG.map((platform) => (

@@ -29,7 +29,7 @@ The first ten hold the strongest commercial position because they take the great
 
 | Benefit | What it is | Duration |
 |---------|------------|----------|
-| **1. Founding acquisition discount** | Cohort % off **own** initial Platform + Apps | **24 months** from subscription commencement |
+| **1. Founding acquisition discount** | Cohort % off **own** initial Platform + Industry Apps + additional Industry Templates (and other qualifying Apps in the offer) | **24 months** from subscription commencement |
 | **2. Founding referral status** | Cohort referrer tier + commission on **others’** qualifying subscriptions | **Ongoing while eligible** (status); **12 months commission per referred customer** |
 
 These benefits are **independent**:
@@ -46,7 +46,7 @@ Do **not** publicly promise “forever.” Prefer **“ongoing”** / **“while
 
 | Cohort | Own pricing discount | Period | Referral tier | Referral commission |
 |--------|----------------------|--------|---------------|---------------------|
-| **Founding 10** | **30%** off initial Platform + Apps | **24 months** | **Founding Reseller** | **30%** of referred customer’s qualifying subscription for **12 months** |
+| **Founding 10** | **30%** off initial Platform + Industry Apps + Templates | **24 months** | **Founding Reseller** | **30%** of referred customer’s qualifying subscription for **12 months** |
 | **Founding 100** | **25%** | **24 months** | **Founding Partner** | **25%** for **12 months** |
 | **Founding 1,000** | **20%** | **24 months** | **Founding Customer** | **20%** for **12 months** |
 | **Future / Standard** | Published price | — | **Advocate** (internal: Customer) | **10%** for **12 months** |
@@ -80,7 +80,9 @@ Canon: [COMMERCIAL-MODEL.md](../foundations/COMMERCIAL-MODEL.md).
 
 The founding **acquisition** discount applies to the customer’s **initial DigitalGate Platform + App configuration only**.
 
-**Example (Founding 10):** Growth + Real Estate + AI Visibility + SEO → **30% off those recurring fees for 24 months**.
+**Example (Founding 10):** Starter $99 + Property Industry $99 (Real Estate included) + Property Management Template $29 = **$227** → **30% off = $158.90/mo for 24 months**. Items added after onboarding are at published pricing.
+
+**Industry commercial lock:** Industry App $99/mo · 1 Template included · +$29/mo each additional. See [INDUSTRY-PLATFORM.md](../foundations/INDUSTRY-PLATFORM.md) · `INDUSTRY_COMMERCIAL_LOCK`.
 
 Later additions (new App, tier upgrade, etc.):
 

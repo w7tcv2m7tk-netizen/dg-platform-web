@@ -186,7 +186,9 @@ export const FOUNDING_RESELLER_INVITE_LINE =
 export const QUALIFYING_COMMISSION_FEES = {
   includes: [
     "Recurring DigitalGate Platform subscription fees actually received",
-    "Recurring DigitalGate App subscription fees actually received",
+    "Recurring DigitalGate Industry App subscription fees actually received ($99/mo)",
+    "Recurring additional Industry Template fees actually received (+$29/mo each)",
+    "Other recurring DigitalGate App subscription fees actually received (Growth Apps, etc.)",
     "Qualifying recurring subscription upgrades during the original 12-month commission period",
   ],
   excludes: [

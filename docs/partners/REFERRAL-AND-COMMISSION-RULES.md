@@ -8,7 +8,9 @@ Commission is **30% of qualifying recurring Platform + App subscription fees act
 ## Includes
 
 - Recurring Platform subscription fees actually received
-- Recurring App subscription fees actually received
+- Recurring **Industry App** subscription fees actually received ($99/mo verticals)
+- Recurring **additional Industry Template** fees actually received (+$29/mo each)
+- Other recurring App subscription fees actually received (Growth Apps, etc.)
 - Qualifying recurring upgrades during the original 12-month window
 
 ## Excludes

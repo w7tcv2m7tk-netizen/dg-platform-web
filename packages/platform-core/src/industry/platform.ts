@@ -49,20 +49,52 @@ export type IndustryPlatform = {
 export const INDUSTRY_ARCHITECTURE_POSITIONING =
   "Industry Apps specialise DigitalGate around how your business operates. Choose an Industry, activate a Template, and DigitalGate configures workflows, objects and AI context. New business types become Templates — not new top-level Apps.";
 
+/**
+ * Canonical Industry commercial rule (lock — August 2026).
+ *
+ * Industry App = major vertical capability / infrastructure ($99/mo).
+ * Industry Template = specialised workflow configuration within that App.
+ * One primary Template is included with each Industry App; extras are +$29/mo.
+ */
 export const INDUSTRY_COMMERCIAL_LOCK = {
   industryPrice: "$99/mo",
+  industryPriceCents: 9900,
+  includedTemplates: 1,
+  /** @deprecated Prefer includedTemplates — same meaning as specialisations */
   includedSpecialisations: 1,
+  additionalTemplatePrice: "+$29/mo",
+  additionalTemplatePriceCents: 2900,
+  /** @deprecated Prefer additionalTemplatePrice */
   additionalSpecialisationPrice: "+$29/mo",
+  terminology: {
+    industryApp:
+      "The major vertical capability and infrastructure the customer buys.",
+    industryTemplate:
+      "A specialised workflow configuration within that Industry App.",
+    primaryTemplateRule:
+      "Each Industry App includes exactly one primary Template. Additional Templates are optional paid expansions.",
+  },
+  foundingDiscount: {
+    rule:
+      "Founding acquisition discount applies to qualifying Platform + Industry App subscription fees and any additional Industry Templates purchased as part of the qualifying Founding subscription at initial onboarding.",
+    exampleListCents: 99_00 + 99_00 + 29_00, // Starter + Property + PM Template
+    exampleFounding10Cents: Math.round((99_00 + 99_00 + 29_00) * 0.7), // $158.90
+    exampleNarrative:
+      "Starter $99 + Property $99 (Real Estate included) + Property Management $29 = $227 → Founding 10 30% = $158.90/mo for 24 months.",
+  },
   avoidWording: [
     "Get Real Estate, Property Management, Accommodation… for $99",
     "1 Industry App included in Starter",
     "Unlimited Industry Apps",
     "Twelve finished Industry products",
+    "Buy Real Estate as a separate Industry App",
+    "Buy Accommodation as a separate Industry App",
   ],
   say: [
     "Industry App — $99/mo — one connected vertical operating platform",
-    "Activate the Template relevant to your business",
-    "Add additional Templates as your business evolves",
+    "Includes 1 Industry Template — customer chooses their primary business model",
+    "Additional Templates — +$29/mo each",
+    "Industry App is the commercial boundary; Templates are the expansion layer",
     "Architecture can be broad; public pricing stays honest about readiness",
   ],
 } as const;
@@ -935,3 +967,99 @@ export const PROFESSIONAL_SERVICES_TEMPLATES = [
     configures: ["Projects", "Site jobs", "Plans", "Scheduling", "Invoicing"],
   },
 ];
+
+/** Map a Gen 2 module / Template id to its parent Industry Platform id. */
+export function industryIdForAppOrTemplate(id: string): string | null {
+  const direct = INDUSTRY_PLATFORMS.find((p) => p.id === id);
+  if (direct) return direct.id;
+  for (const platform of INDUSTRY_PLATFORMS) {
+    if (
+      platform.specialisations.some(
+        (s) => s.id === id || s.appId === id || s.templateId === id,
+      )
+    ) {
+      return platform.id;
+    }
+  }
+  return null;
+}
+
+export type IndustryCheckoutLine = {
+  kind: "industry" | "template";
+  industryId: string;
+  industryLabel: string;
+  templateId?: string;
+  templateLabel?: string;
+  amountCents: number;
+  name: string;
+};
+
+/**
+ * Build Stripe-ready line items from selected Industry / Template ids.
+ * First Template per Industry is included in the $99 Industry fee;
+ * each additional Template under the same Industry is +$29/mo.
+ */
+export function industryCheckoutLines(
+  selectedIds: string[],
+): IndustryCheckoutLine[] {
+  const byIndustry = new Map<
+    string,
+    { platform: IndustryPlatform; templateIds: string[] }
+  >();
+
+  for (const raw of selectedIds) {
+    const id = raw.trim();
+    if (!id) continue;
+    const industryId = industryIdForAppOrTemplate(id);
+    if (!industryId) continue;
+    const platform = INDUSTRY_PLATFORMS.find((p) => p.id === industryId);
+    if (!platform) continue;
+
+    const entry = byIndustry.get(industryId) ?? {
+      platform,
+      templateIds: [] as string[],
+    };
+    const isIndustryOnly = platform.id === id;
+    if (!isIndustryOnly) {
+      const spec =
+        platform.specialisations.find(
+          (s) => s.id === id || s.appId === id || s.templateId === id,
+        ) ?? null;
+      const tid = spec?.id ?? id;
+      if (!entry.templateIds.includes(tid)) entry.templateIds.push(tid);
+    }
+    byIndustry.set(industryId, entry);
+  }
+
+  const lines: IndustryCheckoutLine[] = [];
+  for (const { platform, templateIds } of byIndustry.values()) {
+    lines.push({
+      kind: "industry",
+      industryId: platform.id,
+      industryLabel: platform.label,
+      amountCents: INDUSTRY_COMMERCIAL_LOCK.industryPriceCents,
+      name: `DigitalGate ${platform.label} Industry App`,
+    });
+    for (let i = 1; i < templateIds.length; i++) {
+      const tid = templateIds[i]!;
+      const spec = platform.specialisations.find((s) => s.id === tid);
+      lines.push({
+        kind: "template",
+        industryId: platform.id,
+        industryLabel: platform.label,
+        templateId: tid,
+        templateLabel: spec?.label ?? tid,
+        amountCents: INDUSTRY_COMMERCIAL_LOCK.additionalTemplatePriceCents,
+        name: `DigitalGate ${platform.label} Template — ${spec?.label ?? tid}`,
+      });
+    }
+  }
+  return lines;
+}
+
+export function industryCheckoutTotalCents(selectedIds: string[]): number {
+  return industryCheckoutLines(selectedIds).reduce(
+    (sum, line) => sum + line.amountCents,
+    0,
+  );
+}

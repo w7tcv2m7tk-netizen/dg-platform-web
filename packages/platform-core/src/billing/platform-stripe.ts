@@ -3,6 +3,7 @@ import Stripe from "stripe";
 
 import { appIdsFromPlanSelection } from "../apps/org-apps";
 import type { PlanSelectionInput } from "../apps/org-apps";
+import { industryCheckoutLines } from "../industry/platform";
 import { applyBrandPresetToProfile } from "../org/brand-presets";
 import type { OrganisationBusinessProfile } from "../org/business-profile-types";
 
@@ -90,6 +91,19 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
           },
         },
       ];
+
+  // Industry App ($99) + additional Templates (+$29) — canonical commercial lock
+  for (const line of industryCheckoutLines(input.industryApps ?? [])) {
+    lineItems.push({
+      quantity: 1,
+      price_data: {
+        currency: "aud",
+        unit_amount: line.amountCents,
+        recurring: { interval: "month" },
+        product_data: { name: line.name },
+      },
+    });
+  }
 
   const base = appBaseUrl();
   const sessionParams: Stripe.Checkout.SessionCreateParams = {

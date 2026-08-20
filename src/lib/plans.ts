@@ -53,8 +53,8 @@ export const PLATFORM_TIERS: {
 ];
 
 /**
- * Industry Platforms customers buy ($99/mo). Selecting a platform activates a
- * default specialisation module until billing migrates to a single Property SKU.
+ * Industry Apps ($99/mo · 1 Template included · +$29/mo each additional).
+ * Selecting a platform activates a default Template module.
  * @see @dg/platform-core industry/platform.ts
  */
 export type IndustryPlatformKey =
@@ -167,15 +167,15 @@ export const INDUSTRY_PLATFORMS: {
 
 /** @deprecated Prefer INDUSTRY_PLATFORMS — kept for Stripe / enabled-app toggles */
 export const INDUSTRY_APPS: { key: IndustryApp; label: string; price: string; under: string }[] = [
-  { key: "real-estate", label: "Real Estate", price: "Property · included*", under: "property" },
+  { key: "real-estate", label: "Real Estate", price: "Included w/ Property", under: "property" },
   {
     key: "accommodation",
     label: "Accommodation",
-    price: "Hospitality & Accommodation · included*",
+    price: "Included w/ Hospitality",
     under: "hospitality-accommodation",
   },
-  { key: "property-management", label: "Property Management", price: "Property · +$29*", under: "property" },
-  { key: "commercial", label: "Commercial Property", price: "Property · +$29*", under: "property" },
+  { key: "property-management", label: "Property Management", price: "+$29/mo Template", under: "property" },
+  { key: "commercial", label: "Commercial Property", price: "+$29/mo Template", under: "property" },
   { key: "services", label: "Services", price: "+$99/mo", under: "services" },
   { key: "finance", label: "Finance", price: "+$99/mo", under: "finance" },
   { key: "automotive", label: "Automotive", price: "+$99/mo", under: "automotive" },

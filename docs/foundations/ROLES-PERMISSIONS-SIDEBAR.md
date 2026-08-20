@@ -134,14 +134,14 @@ DigitalGate staff **Partners** section: Resellers · Referrals · Commissions ·
 | Layer | Model |
 |-------|--------|
 | **Platform** | Starter $99 · Growth $249 · Scale $499 · Enterprise custom |
-| **Industry App** | +$99/mo per Industry App — **not** per Template |
-| **Templates** | Specialisations inside an Industry App (activate relevant ones) |
+| **Industry App** | +$99/mo — major vertical capability (commercial boundary) |
+| **Industry Template** | 1 included with each Industry App · **+$29/mo** each additional |
 | **Growth Apps** | AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · AI Communications $99 |
-| **Founding** | 30% off qualifying Platform + Apps for 24 months (independent of reseller commission) |
+| **Founding** | 30% off qualifying Platform + Industry Apps + additional Templates at onboarding for 24 months (independent of reseller commission) |
 | **Professional Services** | Optional people work — never required |
 | **Customer Success** | Standard included · Priority $199 · Success Partner $499 · Enterprise custom |
 
-Do **not** charge per Template as if each were an Industry App.
+Do **not** sell Templates as separate Industry Apps at $99. The Industry App is the commercial boundary; Templates are the expansion layer.
 
 ---
 
