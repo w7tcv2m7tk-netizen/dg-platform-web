@@ -34,7 +34,7 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 | **Growth Apps** | AI Visibility $99, SEO $99, Analytics $49, Social $79, AI Comms $99 | 1.5 |
 | **Infrastructure** | Connect/manage digital infra — priced progressively as commercially ready | 1.5–2.0 |
 | **AI usage tiers** | Included tokens + overage | 1.5 |
-| **Managed / Professional Services** | Implementation, migration, training, custom — optional | Now |
+| **Managed / Professional Services** | Implementation, migration, training, **Website Build (From $1,997 one-time public)**, custom — optional; one-off, not subscription | Now |
 | **Customer Success plans** | Priority $199 · Success Partner $499 (Standard included) | 1.5 |
 | **Marketplace revenue** | % of third-party App sales | 3.0 / Phase 5 |
 | **Platform Refer & Earn** | Commission system (separate from founding subscription discounts) — target tiers in [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md); shipped MVP detail in [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) §A. **Reseller Programme** is a separate commercial model — do not use “Reseller” as the Founding 10 referral tier name. | With Billing / Core |

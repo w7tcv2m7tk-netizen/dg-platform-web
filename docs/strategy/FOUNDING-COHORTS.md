@@ -97,7 +97,7 @@ After 24 months: own subscription → then-current published pricing. **Founding
 
 Applies **only** to DigitalGate **recurring Platform + App subscription fees**.
 
-Does **not** apply to Professional Services, Setup / Implementation, Migration, Consulting, Custom Development, Customer Success plans, third-party / pass-through costs, usage-based charges, advertising/media, or other external services.
+Does **not** apply to Professional Services (including **Website Builds**), Setup / Implementation, Migration, Consulting, Custom Development, Customer Success plans, third-party / pass-through costs, usage-based charges, advertising/media, or other external services — unless expressly included in the Founding offer.
 
 Discounts are **non-stackable** with other promotional discounts.
 
