@@ -81,6 +81,19 @@ export default async function PartnerProgrammeDashboardPage() {
           <PartnersAdminNav active="dashboard" />
           <InviteFoundingResellerForm />
 
+          <div className="rounded-xl border border-sky-700/30 bg-sky-900/10 px-5 py-4">
+            <p className="text-sm font-medium text-white">Monday partner briefing</p>
+            <p className="mt-1 text-sm text-slate-400">
+              Full Founding Reseller meeting run-sheet — agenda, discussion prompts and outcomes.
+            </p>
+            <Link
+              href="/command/partners/briefing"
+              className="mt-3 inline-block text-sm font-medium text-sky-400 hover:underline"
+            >
+              Open briefing →
+            </Link>
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { label: "Active resellers", value: String(active) },

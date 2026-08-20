@@ -251,6 +251,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "partners/REFERRAL-AND-COMMISSION-RULES.md",
   },
   {
+    slug: "founding-reseller-meeting",
+    title: "Founding Reseller Meeting",
+    summary:
+      "Monday partner briefing run-sheet — agenda, discussion prompts, outcomes checklist for first-wave Founding Resellers.",
+    group: "partners",
+    relativePath: "partners/FOUNDING-RESELLER-MEETING.md",
+  },
+  {
     slug: "founding-reseller-playbook",
     title: "Founding Reseller Playbook",
     summary:

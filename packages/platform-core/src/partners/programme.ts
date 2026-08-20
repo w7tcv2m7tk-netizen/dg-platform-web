@@ -34,7 +34,7 @@ export const RESELLER_PROCESS_FLOW = {
 } as const;
 
 export const FOUNDING_RESELLER_ONE_LINER =
-  "I've been working with Ben, who's built a platform that connects the different systems a business uses — CRM, website, marketing, AI, automation and more — into one operating platform. I thought it might be worth you having a conversation with him.";
+  "I've been working with Ben on a new platform called DigitalGate. It's designed to connect the different systems a business uses — CRM, website, marketing, AI, automation and more — into one operating platform. I've seen what they're building and thought it might be relevant to your business. Would you be open to having a conversation with him?";
 
 export const FOUNDING_RESELLER_ROLE = {
   principle:

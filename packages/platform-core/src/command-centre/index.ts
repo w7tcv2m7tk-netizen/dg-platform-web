@@ -47,6 +47,7 @@ export const COMMAND_CENTRE_ROUTES = {
   founding: `${COMMAND_CENTRE_BASE_PATH}/founding`,
   partners: `${COMMAND_CENTRE_BASE_PATH}/partners`,
   partnerResellers: `${COMMAND_CENTRE_BASE_PATH}/partners/resellers`,
+  partnerBriefing: `${COMMAND_CENTRE_BASE_PATH}/partners/briefing`,
   partnerPayouts: `${COMMAND_CENTRE_BASE_PATH}/partners/payouts`,
   partnerReferrals: `${COMMAND_CENTRE_BASE_PATH}/referrals`,
   partnerCommissions: `${COMMAND_CENTRE_BASE_PATH}/commissions`,
