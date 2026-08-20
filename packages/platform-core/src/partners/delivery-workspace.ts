@@ -139,6 +139,7 @@ export const STAFF_PARTNERS_NAV = {
     label: "Delivery",
     routes: [
       { path: "/command/delivery", label: "Dashboard" },
+      { path: "/command/delivery/invitations", label: "Invitations" },
       { path: "/command/delivery/onboarding", label: "Onboarding" },
       { path: "/command/delivery/projects", label: "Active Projects" },
       { path: "/command/delivery/tasks", label: "My Tasks" },

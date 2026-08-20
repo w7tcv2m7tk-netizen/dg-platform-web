@@ -28,6 +28,8 @@ Build **one Services App**. Industry is **configuration** (Service Templates). T
 
 > The industry is configuration; the operating system remains the same.
 
+**Boundary:** Knowledge firms (legal, surveying, engineering, consulting) belong under the **Professional Services** Industry App — not Services. See [INDUSTRY-PLATFORM.md](./INDUSTRY-PLATFORM.md).
+
 That scales internationally better than dozens of industry Apps — same pattern as Real Estate, Accommodation, Finance, Commercial.
 
 ```

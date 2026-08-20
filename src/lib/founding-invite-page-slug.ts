@@ -20,3 +20,15 @@ export function parseFoundingResellerInvitePageSlug(pageSlug?: string): string |
     return match[1];
   }
 }
+
+export function parseDeliveryPartnerInvitePageSlug(pageSlug?: string): string | null {
+  const match = (pageSlug || "")
+    .trim()
+    .match(/^delivery-partners\/invite\/([^/]+)$/i);
+  if (!match?.[1]) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+}

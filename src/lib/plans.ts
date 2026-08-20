@@ -59,8 +59,9 @@ export const PLATFORM_TIERS: {
  */
 export type IndustryPlatformKey =
   | "property"
-  | "finance"
   | "services"
+  | "finance"
+  | "professional-services"
   | "commerce"
   | "automotive"
   | "creator";
@@ -81,6 +82,13 @@ export const INDUSTRY_PLATFORMS: {
     defaultApp: "real-estate",
   },
   {
+    key: "services",
+    label: "Services",
+    price: "+$99/mo",
+    specialisations: "Trades · Cleaning · Maintenance · Construction · Field",
+    defaultApp: "services",
+  },
+  {
     key: "finance",
     label: "Finance",
     price: "+$99/mo",
@@ -88,11 +96,11 @@ export const INDUSTRY_PLATFORMS: {
     defaultApp: "finance",
   },
   {
-    key: "services",
-    label: "Services",
+    key: "professional-services",
+    label: "Professional Services",
     price: "+$99/mo",
-    specialisations: "Trades · Cleaning · Maintenance · Construction · Field",
-    defaultApp: "services",
+    specialisations: "Legal · Surveying · Engineering · Architecture · Consulting · Agencies · IT",
+    defaultApp: null,
   },
   {
     key: "commerce",
@@ -176,10 +184,10 @@ export function recommendPlanFromDiscovery(input: DiscoveryInput): SignupSelecti
     "Real Estate": "real-estate",
     "Accommodation & Hospitality": "accommodation",
     "Finance & Mortgage Broking": "finance",
-    "Professional Services": "services",
+    // Knowledge firms → Professional Services Industry (Coming); do not map to trades Services
     "Property Management": "property-management",
     "Commercial Property": "commercial",
-    "Automotive": "automotive",
+    Automotive: "automotive",
     "Creators & Personal Brands": "creator",
   };
   const industryApps: IndustryApp[] = [];

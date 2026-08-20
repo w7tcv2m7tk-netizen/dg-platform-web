@@ -32,16 +32,33 @@ Create Business → Select Industry → Select Specialisation → Apply Template
 
 ---
 
+## Classification rule
+
+| If the business primarily… | Industry App |
+|----------------------------|--------------|
+| Sells or manages property / stays | **Property** |
+| Manages physical / field service work | **Services** |
+| Manages money / financial relationships | **Finance** |
+| Sells expertise, time or professional projects | **Professional Services** |
+| Sells products | **Commerce** |
+| Sells or services vehicles | **Automotive** |
+| Creates intellectual / media output | **Creator** |
+
+Examples: surveyors and lawyers → **Professional Services** (Surveying / Legal templates). Accountants → **Finance** (Accounting & Bookkeeping), not Professional Services.
+
+---
+
 ## Industry map
 
 | Industry App | Specialisations | Roadmap |
 |--------------|-----------------|---------|
-| **Property** | Real Estate · Property Management · Accommodation · Commercial Property · Property Development | Founding / Live (RE, Acc, PM first) |
-| **Finance** | Accounting & Bookkeeping (first) · Financial Planning · Mortgage & Finance Broking · Insurance · Lending · Business Advisory · Wealth · Super | Founding / Coming |
-| **Services** | Trades · Cleaning · Maintenance · Construction · Landscaping · Field Services | Founding / Coming |
+| **Property** | Real Estate · Property Management · Accommodation · Commercial Property · Development | Founding / Live (RE, Acc, PM first) |
+| **Services** | Trades · Cleaning · Maintenance · Construction · Field Services | Founding / Coming |
+| **Finance** | Accounting · Bookkeeping · Finance Broking · Financial Planning · Insurance · Business Advisory | Founding / Coming |
+| **Professional Services** | Legal · Surveying · Engineering · Architecture · Consulting · Agencies · IT & Technology | Coming Soon |
 | **Commerce** | Retail · E-commerce · Wholesale · Distribution | Coming Soon |
-| **Automotive** | Dealerships · Automotive Services · Mechanical · Detailing | Coming |
-| **Creator** | Creators · Music & Media · Artists | Coming |
+| **Automotive** | Dealerships · Mechanical · Automotive Services · Detailing | Coming |
+| **Creator** | Music · Media · Creators · Artists | Coming |
 | **Healthcare** | Medical · Allied Health · Dental · Clinics | Future |
 | **Education** | Training · Providers · Coaching · Schools | Future |
 | **Hospitality** | Restaurants · Cafés · Venues · Groups | Future — **not** Accommodation |
@@ -51,10 +68,15 @@ Create Business → Select Industry → Select Specialisation → Apply Template
 | Do not | Why |
 |--------|-----|
 | Call Finance “Accounting” | Excludes brokers, advisers, insurance, etc. |
+| Build a Legal App or Surveying App | Use **Professional Services** → Legal / Surveying templates |
+| Squeeze knowledge firms into Services | Services = physical/field work; Professional Services = expertise/time/projects |
+| Put accountants primarily under Professional Services | Prefer **Finance** → Accounting & Bookkeeping |
 | Make “Commercial” a top-level Industry | Segment, not industry — Commercial Property is a Property specialisation |
 | Put Accommodation under Hospitality | Accommodation = Property + Booking + Guest |
 | Create a separate Retail App | Use **Commerce** with Retail / E-commerce / Wholesale templates |
 | Market “all Property apps for $99” | One Industry platform + activate specialisations |
+
+**Naming note:** Industry App **Professional Services** ≠ DigitalGate’s own **Professional Services** revenue stream (implementation / people work in [COMMERCIAL-MODEL.md](./COMMERCIAL-MODEL.md)).
 
 ---
 
@@ -89,9 +111,19 @@ Same pattern as Services App:
 Industry App → Industry Templates → Workflows + Objects + Fields + Automations + Documents + Dashboards
 ```
 
-Selecting **Finance → Accounting & Bookkeeping** configures navigation, objects, pipelines, automations, AI and dashboards — not just a different homepage label.
+Selecting **Finance → Accounting & Bookkeeping** or **Professional Services → Legal** configures navigation, objects, pipelines, automations, AI and dashboards — not just a different homepage label.
 
 Future: Template Marketplace (DigitalGate + partner templates).
+
+---
+
+## Professional Services templates (target)
+
+| Template | Configures (examples) |
+|----------|------------------------|
+| **Legal Practice** | Matters, stages, deadlines, documents, time, billing, conflict checks, AI document intelligence |
+| **Surveying** | Clients, projects, site jobs, quotes, scheduling, field teams, plans/files, milestones, invoicing, compliance |
+| Engineering · Architecture · Consulting · Agencies · IT | Project/engagement operating models on the same Core |
 
 ---
 
@@ -107,6 +139,8 @@ Accounting & Bookkeeping is the **first Finance specialisation** because practic
 |--------|---------|
 | `INDUSTRY_PLATFORMS` | Canonical map |
 | `INDUSTRY_COMMERCIAL_LOCK` | Pricing / wording |
+| `INDUSTRY_CLASSIFICATION_RULES` | Property / Services / Finance / Professional Services / … |
 | `FINANCE_TEMPLATES` | Finance template keys |
+| `PROFESSIONAL_SERVICES_TEMPLATES` | Legal, Surveying, Engineering, … |
 | `resolveIndustryFromAppId` | Map Gen 2 app → platform + specialisation |
 | `BILLABLE_INDUSTRY_PLATFORMS` | Founding + Coming (exclude Future-only SKUs from sell sheet) |

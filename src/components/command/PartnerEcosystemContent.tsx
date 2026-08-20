@@ -146,13 +146,13 @@ export function PartnerEcosystemOverview() {
         </div>
         <p className="mt-3 text-sm text-slate-400">
           Next recruitment: 2 Founding Resellers → {FOUNDING_IMPLEMENTATION_TARGET} Founding
-          Implementation Partners → then document and certify the model.
+          Delivery Partners → then document and certify the model.
         </p>
       </section>
 
       <p className="text-sm text-slate-400">
-        <Link href="/command/partners/implementation" className="text-sky-400 hover:underline">
-          Implementation Partner programme →
+        <Link href="/command/delivery/invitations" className="text-sky-400 hover:underline">
+          Delivery Partner programme →
         </Link>{" "}
         ·{" "}
         <Link href="/command/partners/onboarding" className="text-sky-400 hover:underline">
@@ -290,7 +290,7 @@ export function CustomerOnboardingWorkflow() {
     <div className="mx-auto max-w-3xl space-y-8">
       <p className="text-sm text-slate-400">
         Standard 15-stage DigitalGate implementation SOP. Resellers sit at the start of acquisition —
-        they do not run this workflow unless they are also a Certified Implementation Partner.
+        they do not run this workflow unless they are also a Certified Delivery Partner.
       </p>
       <ol className="space-y-3">
         {CUSTOMER_ONBOARDING_STAGES.map((stage) => (
@@ -477,8 +477,8 @@ export function DeliveryOperatingModel() {
           Customer onboarding SOP →
         </Link>{" "}
         ·{" "}
-        <Link href="/command/partners/implementation" className="text-sky-400 hover:underline">
-          Implementation Partner programme →
+        <Link href="/command/delivery/invitations" className="text-sky-400 hover:underline">
+          Delivery Partner programme →
         </Link>
       </p>
     </div>

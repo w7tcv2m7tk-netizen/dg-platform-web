@@ -22,11 +22,17 @@ import {
 } from "@/components/founding/PublicOnboardingRetired";
 import { PublicFoundingInviteAccept } from "@/components/founding/PublicFoundingInviteAccept";
 import { PublicFoundingResellerInviteAccept } from "@/components/founding/PublicFoundingResellerInviteAccept";
+import { PublicDeliveryPartnerInviteAccept } from "@/components/delivery/PublicDeliveryPartnerInviteAccept";
 import {
+  parseDeliveryPartnerInvitePageSlug,
   parseFoundingInvitePageSlug,
   parseFoundingResellerInvitePageSlug,
 } from "@/lib/founding-invite-page-slug";
-import { getPublicFoundingInvitation, getPublicFoundingResellerInvitation } from "@dg/platform-core";
+import {
+  getPublicDeliveryPartnerInvitation,
+  getPublicFoundingInvitation,
+  getPublicFoundingResellerInvitation,
+} from "@dg/platform-core";
 import { publicOgImageForSlug, publicSiteIcons } from "@/lib/brand";
 import {
   chromeFromSiteMetadata,
@@ -346,6 +352,39 @@ async function renderSite(
             <h1 className="text-3xl font-bold text-white">Invitation not found</h1>
             <p className="mt-4 text-slate-300">
               This Founding Reseller invitation link is invalid or has expired. If you
+              were expecting an invitation, contact Ben Roe at hello@digitalgate.com.au.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const deliveryInviteToken = isDgSiteSlug(slug)
+    ? parseDeliveryPartnerInvitePageSlug(pageSlug)
+    : null;
+  if (deliveryInviteToken) {
+    const invitation = await getPublicDeliveryPartnerInvitation(deliveryInviteToken);
+    return (
+      <div
+        className="wb-root wb-html-page"
+        style={{ minHeight: "100dvh", background: "#0A0E17" }}
+      >
+        {invitation ? (
+          <PublicDeliveryPartnerInviteAccept
+            token={deliveryInviteToken}
+            firstName={invitation.firstName}
+            businessName={invitation.businessName}
+            invitedByName={invitation.invitedByName}
+            deliveryRole={invitation.deliveryRole}
+            withdrawn={invitation.withdrawn}
+            alreadyAccepted={invitation.alreadyAccepted}
+          />
+        ) : (
+          <div className="mx-auto max-w-2xl px-6 py-16 text-slate-200">
+            <h1 className="text-3xl font-bold text-white">Invitation not found</h1>
+            <p className="mt-4 text-slate-300">
+              This Delivery Partner invitation link is invalid or has expired. If you
               were expecting an invitation, contact Ben Roe at hello@digitalgate.com.au.
             </p>
           </div>

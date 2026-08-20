@@ -49,9 +49,12 @@ export const COMMAND_CENTRE_ROUTES = {
   partnerResellers: `${COMMAND_CENTRE_BASE_PATH}/partners/resellers`,
   partnerBriefing: `${COMMAND_CENTRE_BASE_PATH}/partners/briefing`,
   partnerEcosystem: `${COMMAND_CENTRE_BASE_PATH}/partners/ecosystem`,
+  /** @deprecated Use deliveryInvitations — kept for old bookmarks */
   partnerImplementation: `${COMMAND_CENTRE_BASE_PATH}/partners/implementation`,
   partnerOnboarding: `${COMMAND_CENTRE_BASE_PATH}/partners/onboarding`,
   partnerDelivery: `${COMMAND_CENTRE_BASE_PATH}/partners/delivery`,
+  deliveryWorkspace: `${COMMAND_CENTRE_BASE_PATH}/delivery`,
+  deliveryInvitations: `${COMMAND_CENTRE_BASE_PATH}/delivery/invitations`,
   partnerPayouts: `${COMMAND_CENTRE_BASE_PATH}/partners/payouts`,
   partnerReferrals: `${COMMAND_CENTRE_BASE_PATH}/referrals`,
   partnerCommissions: `${COMMAND_CENTRE_BASE_PATH}/commissions`,

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const STAFF_NAV = [
   { href: "/command/delivery", label: "Dashboard", id: "dashboard" },
+  { href: "/command/delivery/invitations", label: "Invitations", id: "invitations" },
   { href: "/command/delivery/onboarding", label: "Onboarding", id: "onboarding" },
   { href: "/command/delivery/projects", label: "Active Projects", id: "projects" },
   { href: "/command/delivery/tasks", label: "My Tasks", id: "tasks" },

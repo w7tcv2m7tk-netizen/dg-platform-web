@@ -30,6 +30,15 @@ export function foundingResellerPortalUrl(): string {
   return `${appOrigin()}/partner`;
 }
 
+export function deliveryPartnerInviteUrl(inviteToken: string): string {
+  const token = encodeURIComponent(inviteToken.trim());
+  return `${publicSiteOrigin()}/delivery-partners/invite/${token}`;
+}
+
+export function deliveryPartnerPortalUrl(): string {
+  return `${appOrigin()}/partner/delivery`;
+}
+
 function signoffBlocks(): EmailBodyBlock[] {
   return [
     {
@@ -134,5 +143,86 @@ export function renderFoundingResellerInvitationEmail(input: {
     bodyHtml,
     footerNote:
       "You're receiving this because Ben Roe personally invited you into the DigitalGate Founding Reseller Programme. This is not automatic acceptance, and it is not an affiliate programme.",
+  };
+}
+
+export const DELIVERY_PARTNER_INVITE_POINTS = [
+  "You help DigitalGate deliver customer onboarding — configuration, migration support, training and go-live",
+  "You work on customers assigned to you (or all delivery work if you are a Delivery Manager)",
+  "DigitalGate owns the customer relationship, platform, billing and quality standard",
+  "Head of Implementation / Delivery Managers allocate work and run QA",
+  "Invitation only. Not a reseller commission role. Not a public marketplace listing",
+] as const;
+
+export function renderDeliveryPartnerInvitationEmail(input: {
+  firstName: string;
+  businessName?: string | null;
+  inviteToken: string;
+  deliveryRole: "lead" | "member";
+}): { subject: string; body: string; bodyHtml: string; footerNote: string } {
+  const name = input.firstName?.trim() || "there";
+  const business = input.businessName?.trim() || "your practice";
+  const inviteUrl = deliveryPartnerInviteUrl(input.inviteToken);
+  const roleLabel = input.deliveryRole === "lead" ? "Delivery Manager" : "Delivery Partner";
+  const subject = `I'd like to invite you as a DigitalGate ${roleLabel}`;
+
+  const body = [
+    `Hi ${name},`,
+    ``,
+    `I'm building DigitalGate's Delivery capability — the team that onboards founding customers onto the platform — and I'd like to personally invite you as a ${roleLabel}.`,
+    ``,
+    `Delivery Partners help configure DigitalGate for each customer, support migration, train teams, and take implementations through QA to go-live. Resellers introduce; Delivery delivers.`,
+    ``,
+    `As a ${roleLabel} you will:`,
+    ``,
+    ...DELIVERY_PARTNER_INVITE_POINTS.map((item) => `• ${item}`),
+    ``,
+    `Accepting this invitation starts partner setup. DigitalGate still approves you into the Delivery programme.`,
+    ``,
+    `Accept Your Delivery Partner Invitation: ${inviteUrl}`,
+    ``,
+    `I'd be pleased to have ${business} on the founding Delivery team.`,
+    ``,
+    `Regards,`,
+    `Ben Roe`,
+    `Founder & Platform Architect`,
+    `DigitalGate`,
+  ].join("\n");
+
+  const bodyHtml = composeEmailBody(
+    [
+      { type: "kicker", text: "Personal invitation" },
+      { type: "heading", text: `Join DigitalGate as a ${roleLabel}` },
+      { type: "paragraph", text: `Hi ${name},` },
+      {
+        type: "paragraph",
+        text: `I'm building DigitalGate's Delivery capability — the team that onboards founding customers onto the platform — and I'd like to personally invite you as a ${roleLabel}.`,
+      },
+      {
+        type: "paragraph",
+        text: "Delivery Partners help configure DigitalGate for each customer, support migration, train teams, and take implementations through QA to go-live. Resellers introduce; Delivery delivers.",
+      },
+      { type: "heading", text: "How Delivery Partners work", level: 2 },
+      { type: "list", items: [...DELIVERY_PARTNER_INVITE_POINTS] },
+      {
+        type: "paragraph",
+        text: "Accepting this invitation does not activate Delivery access automatically. DigitalGate still approves you into the programme.",
+      },
+      { type: "button", label: "Accept Delivery Partner Invitation →", href: inviteUrl },
+      {
+        type: "paragraph",
+        text: `I'd be pleased to have ${business} on the founding Delivery team.`,
+      },
+      ...signoffBlocks(),
+    ],
+    { accentColor: "#10B981" },
+  );
+
+  return {
+    subject,
+    body,
+    bodyHtml,
+    footerNote:
+      "You're receiving this because Ben Roe personally invited you into DigitalGate Delivery. This is not a reseller invitation, and it is not automatic acceptance.",
   };
 }

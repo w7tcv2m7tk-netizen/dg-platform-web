@@ -66,8 +66,9 @@ Customer-facing: **Industry Apps**. Internally: **Industry → Specialisation �
 | Industry App | Example specialisations | Roadmap |
 |--------------|-------------------------|---------|
 | **Property** | Real Estate · PM · Accommodation · Commercial · Development | Founding |
-| **Finance** | Accounting & Bookkeeping (first) · Planning · Broking · Insurance · Advisory | Founding / Coming |
 | **Services** | Trades · Cleaning · Maintenance · Construction · Field Services | Founding |
+| **Finance** | Accounting & Bookkeeping (first) · Planning · Broking · Insurance · Advisory | Founding / Coming |
+| **Professional Services** | Legal · Surveying · Engineering · Architecture · Consulting · Agencies · IT | Coming Soon |
 | **Commerce** | Retail · E-commerce · Wholesale · Distribution | Coming Soon |
 | **Automotive** | Dealerships · Mechanical · Auto Services · Detailing | Coming |
 | **Creator** | Creators · Music · Media · Artists | Coming |
@@ -75,7 +76,7 @@ Customer-facing: **Industry Apps**. Internally: **Industry → Specialisation �
 
 Commercial honesty: not every Industry or specialisation is fully developed. Real Estate is the flagship proof under Property.
 
-**Do not** treat Commercial (enterprise segment) as an Industry App. **Do not** put Accommodation under Hospitality.
+**Do not** treat Commercial (enterprise segment) as an Industry App. **Do not** put Accommodation under Hospitality. **Do not** build Legal or Surveying as standalone Industry Apps — they are Professional Services templates. **Do not** confuse Industry App Professional Services with DigitalGate’s own delivery Professional Services.
 
 ## 4. GROWTH — visibility / acquisition / conversion
 
@@ -113,7 +114,7 @@ Do **not** package these as purchasable “Apps” in the public hierarchy. They
 | Core → Infrastructure → Industry → Growth → Intelligence | Industry before Infrastructure |
 | Industry App → Specialisation → Template | 17 separate Industry Apps as equal products |
 | Property $99 with specialised templates | “All Property apps for $99” / five independent Property SKUs |
-| Finance (Accounting first) | “Accounting App” as the whole vertical |
+| Finance (Accounting first); Professional Services (Legal / Surveying templates) | “Accounting App” / “Legal App” / “Surveying App” as whole verticals |
 | Infrastructure powers digital presence | Domains/hosting as a separate product category from the OS |
 | Real Estate first commercial proof under Property | Equal build effort across every specialisation |
 | Growth Apps for visibility & conversion | Automation as a Growth App (Automation is platform capability) |

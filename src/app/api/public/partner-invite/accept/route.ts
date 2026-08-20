@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { acceptFoundingResellerInvitationByToken } from "@dg/platform-core";
+import { acceptPartnerInvitationByToken } from "@dg/platform-core";
 
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as { token?: string } | null;
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const result = await acceptFoundingResellerInvitationByToken(token);
+  const result = await acceptPartnerInvitationByToken(token);
   if (!result.ok) {
     return NextResponse.json(
       {

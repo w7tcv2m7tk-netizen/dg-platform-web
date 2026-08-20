@@ -432,9 +432,9 @@ export function AppsPlanCatalog() {
             </div>
           ))}
           <p className="text-xs text-slate-500">
-            Future industries (Healthcare, Education, Hospitality) are on the roadmap — see Command
-            Centre → Platform docs → Industry Platform. Accommodation stays under Property, not
-            Hospitality.
+            Professional Services (Legal, Surveying, Engineering, …) is Coming Soon — distinct from
+            trades Services. Future industries: Healthcare, Education, Hospitality. Accommodation
+            stays under Property. Accountants prefer Finance, not Professional Services.
           </p>
         </div>
       </section>

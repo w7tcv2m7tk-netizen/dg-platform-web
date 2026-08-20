@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   canAccessCommandCentre,
+  createDeliveryPartnerInvitation,
   createFoundingResellerInvitation,
 } from "@dg/platform-core";
 
@@ -24,22 +25,38 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json().catch(() => null)) as {
+    kind?: "founding_reseller" | "delivery_partner";
     name?: string;
     email?: string;
     phone?: string;
     businessName?: string;
+    deliveryRole?: "lead" | "member";
     send?: boolean;
   } | null;
 
-  const result = await createFoundingResellerInvitation({
-    organisationId: session.organisationId,
-    actorName: session.name,
-    name: body?.name,
-    email: body?.email,
-    phone: body?.phone,
-    businessName: body?.businessName,
-    send: Boolean(body?.send),
-  });
+  const kind = body?.kind === "delivery_partner" ? "delivery_partner" : "founding_reseller";
+
+  const result =
+    kind === "delivery_partner"
+      ? await createDeliveryPartnerInvitation({
+          organisationId: session.organisationId,
+          actorName: session.name,
+          name: body?.name,
+          email: body?.email,
+          phone: body?.phone,
+          businessName: body?.businessName,
+          deliveryRole: body?.deliveryRole,
+          send: Boolean(body?.send),
+        })
+      : await createFoundingResellerInvitation({
+          organisationId: session.organisationId,
+          actorName: session.name,
+          name: body?.name,
+          email: body?.email,
+          phone: body?.phone,
+          businessName: body?.businessName,
+          send: Boolean(body?.send),
+        });
 
   if (result.error && !result.partnerId) {
     return NextResponse.json(

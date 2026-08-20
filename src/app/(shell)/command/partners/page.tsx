@@ -97,7 +97,7 @@ export default async function PartnerProgrammeDashboardPage() {
             <div className="rounded-xl border border-violet-700/30 bg-violet-900/10 px-5 py-4">
               <p className="text-sm font-medium text-white">Partner Ecosystem</p>
               <p className="mt-1 text-sm text-slate-400">
-                Implementation Partners next — onboarding is not a reseller job.
+                Delivery Partners next — onboarding is not a reseller job.
               </p>
               <Link
                 href="/command/partners/ecosystem"

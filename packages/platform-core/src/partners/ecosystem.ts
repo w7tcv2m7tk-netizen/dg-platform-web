@@ -19,7 +19,7 @@ export const PARTNER_ECOSYSTEM_LAYERS = [
   {
     id: "implementation",
     title: "Implementation",
-    role: "Certified Implementation Partners",
+    role: "Certified Delivery Partners",
     body: "Get customers live — configuration, migration, training.",
   },
   {
@@ -55,7 +55,7 @@ export const PARTNER_ECOSYSTEM_ROLES = [
   },
   {
     type: "IMPLEMENTATION_PARTNER",
-    label: "Implementation Partner",
+    label: "Delivery Partner",
     primaryRole: "Setup & onboarding",
     acquisition: false,
     onboarding: true,
@@ -86,7 +86,7 @@ export const PARTNER_ECOSYSTEM_ROLES = [
 ] as const;
 
 export const IMPLEMENTATION_PARTNER_PROPOSITION =
-  "DigitalGate provides the platform. Certified Implementation Partners help businesses implement it.";
+  "DigitalGate provides the platform. Certified Delivery Partners help businesses implement it.";
 
 export const IMPLEMENTATION_SCOPE = {
   businessSetup: [
@@ -167,7 +167,7 @@ export const DELIVERY_LAYERS = [
     body: "Platform + architecture + support + product",
   },
   {
-    owner: "Implementation Partner",
+    owner: "Delivery Partner",
     body: "Configuration + migration + training + implementation",
   },
   {
@@ -177,7 +177,7 @@ export const DELIVERY_LAYERS = [
 ] as const;
 
 export const IMPLEMENTATION_CERTIFICATION_NAME =
-  "DigitalGate Certified Implementation Partner";
+  "DigitalGate Certified Delivery Partner";
 
 export const IMPLEMENTATION_CERT_MODULES = [
   "DigitalGate architecture",
@@ -283,7 +283,7 @@ export const PARTNER_ECOSYSTEM_PHASES = [
   },
   {
     phase: 2,
-    title: "Founding Implementation Partners",
+    title: "Founding Delivery Partners",
     body: "Recruit 2–3 excellent people — not 20. Certification is meaningful.",
     now: true,
   },
@@ -310,4 +310,4 @@ export const PARTNER_ECOSYSTEM_PHASES = [
 export const FOUNDING_IMPLEMENTATION_TARGET = 3;
 
 export const RESELLER_DOES_NOT_ONBOARD =
-  "Founding Resellers are not responsible for customer onboarding unless they separately become a Certified Implementation Partner. DigitalGate (or an Implementation Partner) delivers the customer experience.";
+  "Founding Resellers are not responsible for customer onboarding unless they separately become a Certified Delivery Partner. DigitalGate (or an Delivery Partner) delivers the customer experience.";

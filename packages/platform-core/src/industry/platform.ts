@@ -62,7 +62,11 @@ export const INDUSTRY_COMMERCIAL_LOCK = {
 export const INDUSTRY_LAYER_STACK = [
   { id: "core", label: "Core", body: "Universal operating infrastructure" },
   { id: "infrastructure", label: "Infrastructure", body: "Websites, domains, hosting, connectors, identity" },
-  { id: "industry", label: "Industry", body: "Property · Finance · Services · Commerce · Automotive · Creator (+ future)" },
+  {
+    id: "industry",
+    label: "Industry",
+    body: "Property · Services · Finance · Professional Services · Commerce · Automotive · Creator (+ future)",
+  },
   { id: "specialisation", label: "Specialisation", body: "Business type within an Industry" },
   { id: "template", label: "Template", body: "Objects, fields, pipelines, workflows, automations, dashboards, AI context" },
   { id: "growth", label: "Growth", body: "Prospecting, AI Visibility, SEO, Reputation, Social, Analytics, AI Communications" },
@@ -262,7 +266,71 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
         appId: "services",
         templateId: "general",
         status: "soon",
-        summary: "Professional field services",
+        summary: "Physical / field service work — not knowledge-firm Professional Services",
+      },
+    ],
+  },
+  {
+    id: "professional-services",
+    label: "Professional Services",
+    icon: "📎",
+    price: "$99/mo",
+    includedSpecialisations: 1,
+    additionalSpecialisationPrice: "+$29/mo",
+    roadmap: "coming",
+    summary:
+      "Expertise, time and project firms — legal, surveying, engineering, architecture, consulting, agencies and IT. Not trades Services; accountants prefer Finance.",
+    proposition:
+      "Do not build Legal App or Surveying App. Professional Services → Legal / Surveying templates. Distinct from DigitalGate’s own delivery Professional Services revenue stream.",
+    specialisations: [
+      {
+        id: "legal",
+        label: "Legal",
+        templateId: "legal-practice",
+        status: "soon",
+        summary: "Matters, deadlines, documents, time, billing, conflict checks",
+      },
+      {
+        id: "surveying",
+        label: "Surveying",
+        templateId: "surveying",
+        status: "soon",
+        summary: "Clients, projects, site jobs, plans, schedules, field teams",
+      },
+      {
+        id: "engineering",
+        label: "Engineering",
+        templateId: "engineering",
+        status: "soon",
+        summary: "Project-based engineering engagements",
+      },
+      {
+        id: "architecture",
+        label: "Architecture",
+        templateId: "architecture",
+        status: "soon",
+        summary: "Architecture practices and project delivery",
+      },
+      {
+        id: "consulting",
+        label: "Consulting",
+        templateId: "consulting",
+        status: "soon",
+        summary: "Consulting engagements, deliverables and retainers",
+      },
+      {
+        id: "agencies",
+        label: "Agencies",
+        templateId: "agencies",
+        status: "soon",
+        summary: "Marketing and creative agencies",
+      },
+      {
+        id: "it-technology",
+        label: "IT & Technology",
+        templateId: "it-technology",
+        status: "soon",
+        summary: "IT and technology professional firms",
       },
     ],
   },
@@ -539,6 +607,92 @@ export const FINANCE_TEMPLATES: Array<{
     configures: ["SMSF admin", "Compliance", "Documents"],
   },
 ];
+
+export type ProfessionalServicesTemplateKey =
+  | "legal-practice"
+  | "surveying"
+  | "engineering"
+  | "architecture"
+  | "consulting"
+  | "agencies"
+  | "it-technology";
+
+export const PROFESSIONAL_SERVICES_TEMPLATES: Array<{
+  key: ProfessionalServicesTemplateKey;
+  label: string;
+  configures: string[];
+}> = [
+  {
+    key: "legal-practice",
+    label: "Legal Practice",
+    configures: [
+      "Matters",
+      "Clients & contacts",
+      "Matter stages",
+      "Tasks & deadlines",
+      "Documents",
+      "Appointments",
+      "Time tracking",
+      "Billing",
+      "Client communications",
+      "Conflict checks",
+      "AI document intelligence",
+    ],
+  },
+  {
+    key: "surveying",
+    label: "Surveying",
+    configures: [
+      "Clients",
+      "Projects",
+      "Site jobs",
+      "Quotes",
+      "Scheduling",
+      "Field teams",
+      "Documents & plans",
+      "Milestones",
+      "Invoicing",
+      "Compliance",
+      "Recurring workflows",
+    ],
+  },
+  {
+    key: "engineering",
+    label: "Engineering",
+    configures: ["Projects", "Engagements", "Deliverables", "Documents", "Milestones", "Billing"],
+  },
+  {
+    key: "architecture",
+    label: "Architecture",
+    configures: ["Projects", "Clients", "Drawings/files", "Milestones", "Approvals", "Billing"],
+  },
+  {
+    key: "consulting",
+    label: "Consulting",
+    configures: ["Engagements", "Projects", "Deliverables", "Retainers", "Time", "Reporting"],
+  },
+  {
+    key: "agencies",
+    label: "Agencies",
+    configures: ["Clients", "Campaigns/projects", "Retainers", "Deliverables", "Billing"],
+  },
+  {
+    key: "it-technology",
+    label: "IT & Technology",
+    configures: ["Clients", "Projects", "Tickets/engagements", "Documents", "Retainers", "Billing"],
+  },
+];
+
+/** Classify a business into an Industry Platform — product rule of thumb. */
+export const INDUSTRY_CLASSIFICATION_RULES = [
+  { primarily: "Selling or managing property / stays", industryId: "property" },
+  { primarily: "Managing physical or field service work", industryId: "services" },
+  { primarily: "Managing money / financial relationships", industryId: "finance" },
+  { primarily: "Selling expertise, time or professional projects", industryId: "professional-services" },
+  { primarily: "Selling products", industryId: "commerce" },
+  { primarily: "Selling or servicing vehicles", industryId: "automotive" },
+  { primarily: "Creating intellectual / media output", industryId: "creator" },
+] as const;
 
 export const TEMPLATE_CONFIGURES = [
   "Navigation",

@@ -84,7 +84,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "industry-platform",
     title: "Industry Platform",
     summary:
-      "Industry App → Specialisation → Template. Property / Finance / Services / Commerce commercial lock ($99 + $29 expansion).",
+      "Industry App → Specialisation → Template. Property / Services / Finance / Professional Services / Commerce commercial lock ($99 + $29 expansion).",
     group: "architecture",
     relativePath: "foundations/INDUSTRY-PLATFORM.md",
   },

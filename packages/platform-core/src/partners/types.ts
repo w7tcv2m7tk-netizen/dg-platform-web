@@ -84,7 +84,7 @@ export const PARTNER_COMMISSION_CONFIG: Record<PartnerType, PartnerTierConfig> =
     commissionBps: 0,
     durationMonths: 0,
     label: "Delivery Partner",
-    programme: "Founding Implementation",
+    programme: "DigitalGate Delivery",
     seatCap: 3,
   },
   TECHNOLOGY_PARTNER: {

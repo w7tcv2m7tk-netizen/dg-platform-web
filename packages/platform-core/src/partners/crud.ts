@@ -156,6 +156,8 @@ export async function createPartner(input: {
   /** Override; defaults from partnerType config */
   commissionBps?: number;
   commissionDurationMonths?: number;
+  /** Delivery Partner only: lead | member */
+  deliveryRole?: "lead" | "member";
 }): Promise<SerializedPartner> {
   const config = PARTNER_COMMISSION_CONFIG[input.partnerType];
   const referralCode = generateReferralCode();
@@ -176,6 +178,10 @@ export async function createPartner(input: {
       phone: input.phone ?? null,
       businessName: input.businessName ?? null,
       notes: input.notes ?? null,
+      deliveryRole:
+        input.partnerType === "IMPLEMENTATION_PARTNER"
+          ? (input.deliveryRole ?? "member")
+          : null,
     },
   });
 
@@ -267,11 +273,14 @@ export async function getPartnerByReferralCode(
 
 export async function listPartners(opts?: {
   status?: PartnerStatus;
+  partnerType?: PartnerType;
   limit?: number;
   offset?: number;
 }): Promise<{ partners: SerializedPartner[]; total: number }> {
   return emptyIfUnmigrated(async () => {
-    const where = opts?.status ? { status: opts.status } : {};
+    const where: { status?: string; partnerType?: string } = {};
+    if (opts?.status) where.status = opts.status;
+    if (opts?.partnerType) where.partnerType = opts.partnerType;
     const [rows, total] = await Promise.all([
       prisma.partner.findMany({
         where,
@@ -343,6 +352,7 @@ export async function updatePartner(
     joinedAt: Date;
     organisationId: string;
     clerkUserId: string;
+    deliveryRole: "lead" | "member" | null;
   }>,
 ): Promise<SerializedPartner> {
   const row = await prisma.partner.update({ where: { id }, data });

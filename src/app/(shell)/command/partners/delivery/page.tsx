@@ -13,7 +13,7 @@ export default function PartnerDeliveryPage() {
           DigitalGate.
         </p>
       </header>
-      <PartnersAdminNav active="delivery" />
+      <PartnersAdminNav active="operating-model" />
       <DeliveryOperatingModel />
     </div>
   );
