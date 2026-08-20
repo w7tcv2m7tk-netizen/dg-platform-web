@@ -1,3 +1,4 @@
+import type { Prisma } from "@dg/database";
 import { createContact, listContacts, updateContact } from "../contacts";
 import { createOpportunity, listOpportunities } from "../opportunities";
 import { createTask } from "../tasks";
@@ -61,8 +62,8 @@ async function logAction(input: {
         agentId: input.agentId ?? null,
         tool: input.tool,
         status: input.status,
-        input: input.args,
-        output: input.output ?? undefined,
+        input: input.args as Prisma.InputJsonValue,
+        output: (input.output ?? undefined) as Prisma.InputJsonValue | undefined,
         entityType: input.entityType ?? null,
         entityId: input.entityId ?? null,
         error: input.error ?? null,
@@ -140,6 +141,7 @@ async function executeNamedTool(
         email: str(args.email) || undefined,
         phone: str(args.phone) || undefined,
       });
+      if (!contact) return { ok: false, tool, error: "Contact not found" };
       return { ok: true, tool, result: { contactId: contact.id } };
     }
     case "search_opportunity": {
@@ -205,6 +207,7 @@ async function executeNamedTool(
       const to = str(args.to) || str(args.phone);
       const body = str(args.body) || str(args.message);
       if (!to || !body) return { ok: false, tool, error: "to and body are required" };
+      const { sendMessage } = await import("./index");
       const sent = await sendMessage({
         organisationId: ctx.organisationId,
         channel: "sms",
@@ -218,6 +221,7 @@ async function executeNamedTool(
       const to = str(args.to) || str(args.email);
       const body = str(args.body) || str(args.message);
       if (!to || !body) return { ok: false, tool, error: "to and body are required" };
+      const { sendMessage } = await import("./index");
       const sent = await sendMessage({
         organisationId: ctx.organisationId,
         channel: "email",
@@ -250,7 +254,7 @@ export async function executeAgentTool(input: {
   const tool = input.tool.trim();
   const args = input.args && typeof input.args === "object" ? input.args : {};
 
-  if (!input.ctx.enabledTools.includes(tool)) {
+  if (!input.ctx.enabledTools.includes(tool as AgentToolName)) {
     const denied: ToolResult = { ok: false, tool, error: "Tool is not enabled for this agent" };
     await logAction({ ...input.ctx, tool, status: "denied", args, error: denied.error });
     return denied;

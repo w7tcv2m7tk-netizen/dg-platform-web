@@ -6,12 +6,13 @@ import { compileAgentSystemPrompt, getAuthorisedAgentContext } from "./context";
 import { defaultVoiceProviderId, getCommunicationProvider } from "./providers/router";
 import type {
   AgentBuilderConfig,
+  AgentToolName,
   BusinessHours,
   CommunicationAgentStatus,
   SerializedCommunicationAgent,
 } from "./providers/types";
 
-const DEFAULT_TOOLS: AgentBuilderConfig["enabledTools"] = [
+const DEFAULT_TOOLS: AgentToolName[] = [
   "get_business_profile",
   "get_business_hours",
   "search_contact",
