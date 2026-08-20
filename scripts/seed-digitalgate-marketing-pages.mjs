@@ -27,43 +27,67 @@ const publish = process.argv.includes("--publish");
 const MAX_HTML_CHUNK = 80_000;
 
 const PAGES = [
-  {
-    file: "homepage.html",
-    title: "Home",
-    slug: "home",
-    intent: "home",
-    sortOrder: 0,
-  },
-  {
-    file: "pricing-page.html",
-    title: "Pricing",
-    slug: "pricing",
-    intent: "custom",
-    sortOrder: 1,
-  },
-  {
-    file: "founding-customers-page.html",
-    title: "Founding Customer Programme",
-    slug: "founding-customers",
-    intent: "custom",
-    sortOrder: 2,
-  },
-  {
-    file: "founding-customer-terms.html",
-    title: "Founding Customer Terms & Conditions",
-    slug: "founding-customer-terms",
-    intent: "custom",
-    sortOrder: 3,
-  },
-  {
-    file: "about-page.html",
-    title: "About",
-    slug: "about",
-    intent: "about",
-    sortOrder: 4,
-  },
+  { file: "homepage.html", title: "Home", slug: "home", intent: "home", sortOrder: 0 },
+  { file: "pricing-page.html", title: "Pricing", slug: "pricing", intent: "custom", sortOrder: 1 },
+  { file: "founding-customers-page.html", title: "Founding Customer Programme", slug: "founding-customers", intent: "custom", sortOrder: 2 },
+  { file: "founding-customer-terms.html", title: "Founding Customer Terms & Conditions", slug: "founding-customer-terms", intent: "custom", sortOrder: 3 },
+  { file: "about-page.html", title: "About", slug: "about", intent: "about", sortOrder: 4 },
+  { file: "contact-page.html", title: "Contact", slug: "contact", intent: "contact", sortOrder: 5 },
+  { file: "strategy-session-page.html", title: "Platform Consultation", slug: "strategy-session", intent: "custom", sortOrder: 6 },
+  { file: "insights-page.html", title: "Insights", slug: "insights", intent: "custom", sortOrder: 7 },
+  { file: "digital-business-card.html", title: "Digital Business Card", slug: "card", intent: "custom", sortOrder: 8 },
+  { file: "privacy-policy.html", title: "Privacy Policy", slug: "privacy-policy", intent: "custom", sortOrder: 9 },
+  { file: "terms-page.html", title: "Terms & Conditions", slug: "terms-conditions", intent: "custom", sortOrder: 10 },
+  { file: "legal-notice.html", title: "Legal Notice", slug: "legal-notice", intent: "custom", sortOrder: 11 },
+  { file: "ai-visibility-framework.html", title: "AI Visibility Framework", slug: "ai-visibility-framework", intent: "custom", sortOrder: 12 },
+  { file: "appraisal-magnet-system.html", title: "Appraisal Magnet System", slug: "appraisal-magnet-system", intent: "custom", sortOrder: 13 },
+  { file: "listing-pipeline-framework-page.html", title: "Listing Pipeline Framework", slug: "listing-pipeline-framework", intent: "custom", sortOrder: 14 },
+  { file: "vendor-velocity-system.html", title: "Vendor Velocity System", slug: "vendor-velocity-system", intent: "custom", sortOrder: 15 },
 ];
 
+const ICON =
+  "https://app.digitalgate.com.au/brand/icon-light.png";
+const LOGO =
+  "https://app.digitalgate.com.au/brand/logo-on-dark.png";
+
+function prepareChromeHtml(html) {
+  let out = String(html || "");
+  out = out
+    .replace(/<!DOCTYPE[\s\S]*?<body[^>]*>/i, "")
+    .replace(/<\/body>[\s\S]*$/i, "")
+    .replace(/<\/?html[^>]*>/gi, "")
+    .replace(/<\/?head[^>]*>/gi, "");
+  out = out
+    .replace(
+      /https?:\/\/digitalgate\.com\.au\/wp-content\/uploads\/[^"'>\s]*Gate-Icon[^"'>\s]*/gi,
+      ICON,
+    )
+    .replace(
+      /https?:\/\/digitalgate\.com\.au\/wp-content\/uploads\/[^"'>\s]*DigitalGate-Banner[^"'>\s]*/gi,
+      LOGO,
+    )
+    .replace(
+      /https?:\/\/digitalgate\.com\.au\/wp-content\/uploads\/[^"'>\s]*Banner-Light[^"'>\s]*/gi,
+      LOGO,
+    );
+  const styles = [];
+  out = out.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (_, css) => {
+    styles.push(
+      String(css)
+        .replace(/(^|[,}])\s*body\s*(?=[\s,{])/gi, "$1 .wb-chrome-root ")
+        .replace(/(^|[,}])\s*html\s*(?=[\s,{])/gi, "$1 .wb-chrome-root "),
+    );
+    return "";
+  });
+  const styleTag = `<style>
+${styles.join("\n")}
+.wb-chrome-root img{max-width:none;height:auto}
+.wb-chrome-root .dg-full-logo,.wb-chrome-root img.dg-full-logo{height:28px!important;width:auto!important;max-width:11rem!important;object-fit:contain}
+.wb-chrome-root .dg-gate-icon,.wb-chrome-root img.dg-gate-icon{width:32px!important;height:32px!important;object-fit:contain}
+.wb-chrome-root .dg-logo-fallback{display:none}
+</style>`;
+  return `${styleTag}\n<div class="wb-chrome-root">\n${out.trim()}\n</div>`.trim();
+}
 const prisma = new PrismaClient();
 
 function cuidLike() {
@@ -197,7 +221,7 @@ async function resolveSite() {
         slug: "digitalgate",
         status: publish ? "published" : "draft",
         publishedAt: publish ? new Date() : null,
-        brief: "DigitalGate marketing site — seeded from Oxygen HTML sources",
+        brief: "DigitalGate marketing site — Gen 2 Website Studio SoT",
         theme: darkTheme,
         seo: {
           title: "DigitalGate | Business Operating Platform",
@@ -280,6 +304,40 @@ async function main() {
   console.log(`Org: ${org.name} (${org.slug})`);
   console.log(`Site: ${site.name} /sites/${site.slug}`);
 
+  // Site chrome (header / footer) — Gen 2 SoT, not WordPress
+  const headerPath = join(MARKETING_DIR, "header.html");
+  const footerPath = join(MARKETING_DIR, "footer.html");
+  const prevMeta =
+    site.metadata && typeof site.metadata === "object" ? site.metadata : {};
+  const prevChrome =
+    prevMeta.chrome && typeof prevMeta.chrome === "object" ? prevMeta.chrome : {};
+  const headerHtml = existsSync(headerPath)
+    ? prepareChromeHtml(readFileSync(headerPath, "utf8"))
+    : prevChrome.headerHtml ?? null;
+  const footerHtml = existsSync(footerPath)
+    ? prepareChromeHtml(readFileSync(footerPath, "utf8"))
+    : prevChrome.footerHtml ?? null;
+  await prisma.website.update({
+    where: { id: site.id },
+    data: {
+      metadata: {
+        ...prevMeta,
+        chrome: {
+          ...prevChrome,
+          headerHtml,
+          footerHtml,
+          stylesheets: [
+            "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
+            "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css",
+          ],
+        },
+      },
+    },
+  });
+  console.log(
+    `Chrome header=${headerHtml ? `${headerHtml.length}c` : "no"} footer=${footerHtml ? `${footerHtml.length}c` : "no"}`,
+  );
+
   const results = [];
   for (const def of PAGES) {
     const path = join(MARKETING_DIR, def.file);
@@ -296,16 +354,13 @@ async function main() {
   }
 
   // Soft-archive leftover starter pages that collide with marketing IA
-  const keep = new Set(PAGES.map((p) => p.slug));
   const leftovers = await prisma.websitePage.findMany({
     where: {
       websiteId: site.id,
       slug: { in: ["services"] },
-      NOT: { slug: { in: [...keep] } },
     },
     select: { id: true, slug: true, title: true },
   });
-  // Keep contact — About is seeded above; only note services as generic leftover
   for (const left of leftovers) {
     if (left.slug === "services") {
       await prisma.websitePage.update({
