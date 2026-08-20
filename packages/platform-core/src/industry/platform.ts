@@ -1,22 +1,30 @@
 /**
- * DigitalGate Industry Platform — Gen 2 lock.
+ * DigitalGate Industry Platform — Gen 2 lock (August 2026).
  *
- * Industry App (commercial product)
- *   → Specialisation (business type)
- *   → Template (configuration: objects, pipelines, workflows, AI context)
+ * Industry App = broad commercial vertical ($99/mo)
+ * Template = specialised business model within that vertical
  *
- * Implementation apps (real-estate, accommodation, …) remain installable modules
- * that map to specialisations. Do not sell five Property SKUs as five products.
+ * Do not add new top-level Industry Apps for every business type —
+ * add a Template under one of these twelve verticals.
  */
 
-export type IndustryRoadmapLane = "founding" | "coming" | "future";
+export type IndustryRoadmapLane =
+  | "available"
+  | "early-access"
+  | "coming"
+  | "reserved";
 
-export type IndustrySpecialisationStatus = "live" | "rolling-out" | "soon" | "future";
+export type IndustrySpecialisationStatus =
+  | "live"
+  | "rolling-out"
+  | "soon"
+  | "future"
+  | "reserved";
 
 export type IndustrySpecialisation = {
   id: string;
   label: string;
-  /** Existing Gen 2 app id when a module already exists */
+  /** Existing Gen 2 module id when one exists */
   appId?: string;
   templateId: string;
   status: IndustrySpecialisationStatus;
@@ -27,69 +35,111 @@ export type IndustryPlatform = {
   id: string;
   label: string;
   icon: string;
-  /** Commercial Industry subscription — public lock */
   price: string;
-  /** One specialisation included in Industry subscription */
   includedSpecialisations: number;
-  /** Optional expansion specialisations */
   additionalSpecialisationPrice: string;
   roadmap: IndustryRoadmapLane;
+  /** Public pricing / marketing prominence */
+  publicSurface: boolean;
   summary: string;
   proposition: string;
   specialisations: IndustrySpecialisation[];
 };
 
 export const INDUSTRY_ARCHITECTURE_POSITIONING =
-  "Industry Apps specialise DigitalGate around how the business operates. Choose an Industry, activate a specialisation, and DigitalGate configures workflows, objects, and AI context. One platform. One source of truth.";
+  "Industry Apps specialise DigitalGate around how your business operates. Choose an Industry, activate a Template, and DigitalGate configures workflows, objects and AI context. New business types become Templates — not new top-level Apps.";
 
 export const INDUSTRY_COMMERCIAL_LOCK = {
   industryPrice: "$99/mo",
   includedSpecialisations: 1,
   additionalSpecialisationPrice: "+$29/mo",
-  /** Do not market as “all Property apps for $99” */
   avoidWording: [
     "Get Real Estate, Property Management, Accommodation… for $99",
     "1 Industry App included in Starter",
     "Unlimited Industry Apps",
+    "Twelve finished Industry products",
   ],
   say: [
-    "Property Industry App — $99/mo — one connected property operating platform",
-    "Activate the specialisation relevant to your business",
-    "Add additional specialisations as your business evolves",
+    "Industry App — $99/mo — one connected vertical operating platform",
+    "Activate the Template relevant to your business",
+    "Add additional Templates as your business evolves",
+    "Architecture can be broad; public pricing stays honest about readiness",
   ],
 } as const;
 
+export const INDUSTRY_PUBLIC_GROUPS = [
+  {
+    id: "available",
+    label: "Available",
+    industryIds: ["property", "services"],
+  },
+  {
+    id: "early-access",
+    label: "Early Access",
+    industryIds: ["hospitality-accommodation", "finance", "creator-media"],
+  },
+  {
+    id: "coming",
+    label: "Coming Soon",
+    industryIds: [
+      "professional",
+      "health-wellness",
+      "automotive",
+      "retail-commerce",
+      "transport-logistics",
+      "education-organisations",
+    ],
+  },
+  {
+    id: "reserved",
+    label: "Architecture Reserved",
+    industryIds: ["agriculture-primary"],
+  },
+] as const;
+
 export const INDUSTRY_LAYER_STACK = [
   { id: "core", label: "Core", body: "Universal operating infrastructure" },
-  { id: "infrastructure", label: "Infrastructure", body: "Websites, domains, hosting, connectors, identity" },
+  {
+    id: "infrastructure",
+    label: "Infrastructure",
+    body: "Websites, domains, hosting, connectors, identity",
+  },
   {
     id: "industry",
     label: "Industry",
-    body: "Property · Services · Finance · Professional Services · Commerce · Automotive · Creator (+ future)",
+    body: "Twelve verticals — Property · Hospitality & Accommodation · Services · Finance · Professional · Health & Wellness · Automotive · Retail & Commerce · Creator & Media · Transport & Logistics · Agriculture · Education & Organisations",
   },
-  { id: "specialisation", label: "Specialisation", body: "Business type within an Industry" },
-  { id: "template", label: "Template", body: "Objects, fields, pipelines, workflows, automations, dashboards, AI context" },
-  { id: "growth", label: "Growth", body: "Prospecting, AI Visibility, SEO, Reputation, Social, Analytics, AI Communications" },
-  { id: "intelligence", label: "Intelligence", body: "Twin, Business Brain, Advisor, Health, Insights, Command Centre" },
+  { id: "template", label: "Template", body: "Specialised business model within an Industry" },
+  {
+    id: "growth",
+    label: "Growth",
+    body: "Prospecting, AI Visibility, SEO, Reputation, Social, Analytics, AI Communications",
+  },
+  {
+    id: "intelligence",
+    label: "Intelligence",
+    body: "Twin, Business Brain, Advisor, Health, Insights, Command Centre",
+  },
 ] as const;
 
-/** Canonical Industry Platforms — commercial packaging. */
+/** Canonical twelve Industry Platforms. */
 export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
   {
     id: "property",
     label: "Property",
-    icon: "🏢",
+    icon: "🏠",
     price: "$99/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
-    roadmap: "founding",
+    roadmap: "available",
+    publicSurface: true,
     summary:
-      "One connected property operating platform for agencies, managers, hosts and developers.",
+      "Property transactions, ownership and development — not short-stay hospitality.",
     proposition:
-      "Activate Real Estate, Property Management, Accommodation, Commercial Property or Development as your business evolves.",
+      "Real Estate is the founding Template. PM, Commercial, Development and Buyers Agency follow.",
     specialisations: [
       {
-        id: "residential-real-estate",
+        id: "real-estate",
         label: "Real Estate",
         appId: "real-estate",
         templateId: "real-estate-agency",
@@ -103,14 +153,6 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
         templateId: "property-manager",
         status: "soon",
         summary: "Long-term rentals — owners, tenants, leases, maintenance",
-      },
-      {
-        id: "accommodation",
-        label: "Accommodation",
-        appId: "accommodation",
-        templateId: "short-stay",
-        status: "rolling-out",
-        summary: "Short-stay — bookings, guests, availability, revenue",
       },
       {
         id: "commercial-property",
@@ -128,97 +170,122 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
         status: "future",
         summary: "Projects, stages, lots, buyers and settlements",
       },
+      {
+        id: "buyers-agency",
+        label: "Buyers Agency",
+        templateId: "buyers-agency",
+        status: "soon",
+        summary: "Buyer representation and search workflows",
+      },
+      {
+        id: "valuation-property-advisory",
+        label: "Valuation / Property Advisory",
+        templateId: "valuation-advisory",
+        status: "future",
+        summary: "Valuation and property advisory engagements",
+      },
     ],
   },
   {
-    id: "finance",
-    label: "Finance",
-    icon: "💰",
+    id: "hospitality-accommodation",
+    label: "Hospitality & Accommodation",
+    icon: "🏨",
     price: "$99/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
-    roadmap: "founding",
+    roadmap: "early-access",
+    publicSurface: true,
     summary:
-      "Professional finance ecosystem — accounting first, then broking, planning, insurance and advisory.",
+      "Stays, venues and hospitality groups — Accommodation belongs here (not under Property).",
     proposition:
-      "Do not call this Accounting. Finance is the Industry; Accounting & Bookkeeping is the first specialisation.",
+      "Short-stay and holiday rentals early access; hotels, restaurants and venues on the roadmap.",
     specialisations: [
       {
-        id: "accounting-bookkeeping",
-        label: "Accounting & Bookkeeping",
-        appId: "finance",
-        templateId: "accounting-practice",
-        status: "soon",
-        summary: "Clients, entities, tax/compliance, engagements, deadlines, document collection",
+        id: "short-stay",
+        label: "Short-Stay Accommodation",
+        appId: "accommodation",
+        templateId: "short-stay",
+        status: "rolling-out",
+        summary: "Bookings, guests, availability and revenue",
       },
       {
-        id: "financial-planning",
-        label: "Financial Planning",
-        appId: "finance",
-        templateId: "financial-planning",
-        status: "soon",
-        summary: "Onboarding, discovery, advice, reviews and client tasks",
+        id: "holiday-rentals",
+        label: "Holiday Rentals",
+        appId: "accommodation",
+        templateId: "holiday-rentals",
+        status: "rolling-out",
+        summary: "Holiday rental operations",
       },
       {
-        id: "mortgage-finance-broking",
-        label: "Mortgage & Finance Broking",
-        appId: "finance",
-        templateId: "mortgage-broking",
+        id: "hotels",
+        label: "Hotels",
+        templateId: "hotels",
         status: "soon",
-        summary: "Lead → application → approval → settlement; lenders and documents",
+        summary: "Hotel operations",
       },
       {
-        id: "insurance",
-        label: "Insurance",
-        appId: "finance",
-        templateId: "insurance",
+        id: "motels",
+        label: "Motels",
+        templateId: "motels",
         status: "soon",
-        summary: "Fact find → quote → policy; renewals and reviews",
+        summary: "Motel operations",
       },
       {
-        id: "lending-credit",
-        label: "Lending & Credit",
-        appId: "finance",
-        templateId: "lending-credit",
+        id: "resorts",
+        label: "Resorts",
+        templateId: "resorts",
+        status: "soon",
+        summary: "Resort operations",
+      },
+      {
+        id: "boutique-accommodation",
+        label: "Boutique Accommodation",
+        templateId: "boutique-accommodation",
+        status: "soon",
+        summary: "Boutique stays",
+      },
+      {
+        id: "caravan-holiday-parks",
+        label: "Caravan & Holiday Parks",
+        templateId: "caravan-parks",
         status: "future",
-        summary: "Credit applications, underwriting support and portfolio tracking",
+        summary: "Parks and powered sites",
       },
       {
-        id: "business-advisory",
-        label: "Business Advisory",
-        appId: "finance",
-        templateId: "business-advisory",
-        status: "soon",
-        summary: "Advisory engagements, reviews, reporting and recurring cycles",
-      },
-      {
-        id: "wealth-investment",
-        label: "Wealth & Investment",
-        appId: "finance",
-        templateId: "wealth-investment",
+        id: "restaurants-cafes",
+        label: "Restaurants & Cafés",
+        templateId: "restaurants-cafes",
         status: "future",
-        summary: "Portfolio and investment client workflows",
+        summary: "Food and beverage venues",
       },
       {
-        id: "superannuation",
-        label: "Superannuation",
-        appId: "finance",
-        templateId: "superannuation",
+        id: "bars-venues",
+        label: "Bars & Venues",
+        templateId: "bars-venues",
         status: "future",
-        summary: "SMSF and super administration workflows",
+        summary: "Bars and event venues",
+      },
+      {
+        id: "hospitality-groups",
+        label: "Hospitality Groups",
+        templateId: "hospitality-groups",
+        status: "future",
+        summary: "Multi-venue hospitality groups",
       },
     ],
   },
   {
     id: "services",
     label: "Services",
-    icon: "🛠️",
+    icon: "🔧",
     price: "$99/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
-    roadmap: "founding",
-    summary: "One Services App — specialise with Service Templates (trades, cleaning, field services).",
-    proposition: "Never Electrician App / Plumber App — one App + templates.",
+    roadmap: "available",
+    publicSurface: true,
+    summary:
+      "Physical and field service work — jobs, quotes, schedule. Templates customise trades.",
+    proposition: "One Services App + Templates — never Electrician App / Plumber App.",
     specialisations: [
       {
         id: "trades",
@@ -226,7 +293,31 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
         appId: "services",
         templateId: "general",
         status: "soon",
-        summary: "Jobs, quotes, schedule — Electrical, Plumbing, HVAC and more via templates",
+        summary: "General trades jobs and quotes",
+      },
+      {
+        id: "electrical",
+        label: "Electrical",
+        appId: "services",
+        templateId: "electrician",
+        status: "soon",
+        summary: "Electrical contractor workflows",
+      },
+      {
+        id: "plumbing",
+        label: "Plumbing",
+        appId: "services",
+        templateId: "plumber",
+        status: "soon",
+        summary: "Plumbing contractor workflows",
+      },
+      {
+        id: "hvac",
+        label: "HVAC",
+        appId: "services",
+        templateId: "hvac",
+        status: "soon",
+        summary: "HVAC service workflows",
       },
       {
         id: "cleaning",
@@ -234,7 +325,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
         appId: "services",
         templateId: "cleaner",
         status: "soon",
-        summary: "Commercial and residential cleaning workflows",
+        summary: "Commercial and residential cleaning",
       },
       {
         id: "maintenance",
@@ -242,15 +333,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
         appId: "services",
         templateId: "handyman",
         status: "soon",
-        summary: "Maintenance and handyman jobs",
-      },
-      {
-        id: "construction",
-        label: "Construction",
-        appId: "services",
-        templateId: "builder",
-        status: "soon",
-        summary: "Builder / construction job workflows",
+        summary: "Maintenance and facilities",
       },
       {
         id: "landscaping",
@@ -261,118 +344,230 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
         summary: "Landscaping and outdoor services",
       },
       {
+        id: "construction-services",
+        label: "Construction Services",
+        appId: "services",
+        templateId: "builder",
+        status: "soon",
+        summary: "Builder / construction jobs",
+      },
+      {
+        id: "pest-control",
+        label: "Pest Control",
+        appId: "services",
+        templateId: "pest_control",
+        status: "soon",
+        summary: "Pest control jobs",
+      },
+      {
         id: "field-services",
         label: "Field Services",
         appId: "services",
         templateId: "general",
         status: "soon",
-        summary: "Physical / field service work — not knowledge-firm Professional Services",
+        summary: "Professional field services",
+      },
+      {
+        id: "facilities-management",
+        label: "Facilities Management",
+        templateId: "facilities",
+        status: "future",
+        summary: "Facilities and site services",
+      },
+      {
+        id: "security",
+        label: "Security",
+        templateId: "security",
+        status: "future",
+        summary: "Security services",
       },
     ],
   },
   {
-    id: "professional-services",
-    label: "Professional Services",
-    icon: "📎",
+    id: "finance",
+    label: "Finance",
+    icon: "💰",
+    price: "$99/mo",
+    includedSpecialisations: 1,
+    additionalSpecialisationPrice: "+$29/mo",
+    roadmap: "early-access",
+    publicSurface: true,
+    summary:
+      "Money and financial relationships — Accounting first. Not an “Accounting App”.",
+    proposition:
+      "Accounting · Bookkeeping · Broking · Planning · Insurance · Lending on one Finance platform.",
+    specialisations: [
+      {
+        id: "accounting",
+        label: "Accounting",
+        appId: "finance",
+        templateId: "accounting-practice",
+        status: "soon",
+        summary: "Clients, entities, engagements, compliance, deadlines",
+      },
+      {
+        id: "bookkeeping",
+        label: "Bookkeeping",
+        appId: "finance",
+        templateId: "bookkeeping",
+        status: "soon",
+        summary: "Bookkeeping and BAS workflows",
+      },
+      {
+        id: "mortgage-broking",
+        label: "Mortgage Broking",
+        appId: "finance",
+        templateId: "mortgage-broking",
+        status: "soon",
+        summary: "Application → approval → settlement",
+      },
+      {
+        id: "finance-broking",
+        label: "Finance Broking",
+        appId: "finance",
+        templateId: "finance-broking",
+        status: "soon",
+        summary: "Commercial and asset finance broking",
+      },
+      {
+        id: "lending",
+        label: "Lending",
+        templateId: "lending",
+        status: "future",
+        summary: "Credit and lending workflows",
+      },
+      {
+        id: "financial-planning",
+        label: "Financial Planning",
+        templateId: "financial-planning",
+        status: "soon",
+        summary: "Advice, reviews and client tasks",
+      },
+      {
+        id: "wealth-management",
+        label: "Wealth Management",
+        templateId: "wealth-management",
+        status: "future",
+        summary: "Wealth and investment clients",
+      },
+      {
+        id: "insurance-broking",
+        label: "Insurance Broking",
+        templateId: "insurance-broking",
+        status: "soon",
+        summary: "Quotes, policies and renewals",
+      },
+      {
+        id: "tax-advisory",
+        label: "Tax Advisory",
+        templateId: "tax-advisory",
+        status: "soon",
+        summary: "Tax advisory engagements",
+      },
+    ],
+  },
+  {
+    id: "professional",
+    label: "Professional",
+    icon: "⚖️",
     price: "$99/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "coming",
+    publicSurface: true,
     summary:
-      "Expertise, time and project firms — legal, surveying, engineering, architecture, consulting, agencies and IT. Not trades Services; accountants prefer Finance.",
+      "Knowledge firms — clients → matters/projects → documents → tasks → billing. Lawyers and surveyors live here.",
     proposition:
-      "Do not build Legal App or Surveying App. Professional Services → Legal / Surveying templates. Distinct from DigitalGate’s own delivery Professional Services revenue stream.",
+      "Legal and Surveying are Templates — not separate Industry Apps. Accountants prefer Finance.",
     specialisations: [
       {
         id: "legal",
         label: "Legal",
         templateId: "legal-practice",
         status: "soon",
-        summary: "Matters, deadlines, documents, time, billing, conflict checks",
+        summary: "Matters, deadlines, documents, time, billing",
       },
       {
         id: "surveying",
         label: "Surveying",
         templateId: "surveying",
         status: "soon",
-        summary: "Clients, projects, site jobs, plans, schedules, field teams",
+        summary: "Projects, site jobs, plans, field teams",
       },
       {
         id: "engineering",
         label: "Engineering",
         templateId: "engineering",
         status: "soon",
-        summary: "Project-based engineering engagements",
+        summary: "Engineering project engagements",
       },
       {
         id: "architecture",
         label: "Architecture",
         templateId: "architecture",
         status: "soon",
-        summary: "Architecture practices and project delivery",
+        summary: "Architecture practices",
       },
       {
         id: "consulting",
         label: "Consulting",
         templateId: "consulting",
         status: "soon",
-        summary: "Consulting engagements, deliverables and retainers",
+        summary: "Consulting and advisory",
       },
       {
-        id: "agencies",
-        label: "Agencies",
-        templateId: "agencies",
-        status: "soon",
-        summary: "Marketing and creative agencies",
+        id: "recruitment",
+        label: "Recruitment",
+        templateId: "recruitment",
+        status: "future",
+        summary: "Recruitment firms",
       },
       {
-        id: "it-technology",
-        label: "IT & Technology",
-        templateId: "it-technology",
+        id: "hr",
+        label: "HR",
+        templateId: "hr",
+        status: "future",
+        summary: "HR professional services",
+      },
+      {
+        id: "business-consulting",
+        label: "Business Consulting",
+        templateId: "business-consulting",
         status: "soon",
-        summary: "IT and technology professional firms",
+        summary: "Business consulting engagements",
+      },
+      {
+        id: "education-training-ps",
+        label: "Education & Training",
+        templateId: "education-training",
+        status: "future",
+        summary: "Professional training providers (also see Education & Organisations)",
       },
     ],
   },
   {
-    id: "commerce",
-    label: "Commerce",
-    icon: "🛒",
+    id: "health-wellness",
+    label: "Health & Wellness",
+    icon: "🏥",
     price: "$99/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "coming",
-    summary: "Product businesses — retail, e-commerce, wholesale and distribution. Not a separate Retail App.",
-    proposition: "Product → Customer → Order → Payment → Fulfilment → Review → Repeat.",
+    publicSurface: true,
+    summary:
+      "Clinical and wellness practices — significant privacy/compliance considerations. Architecture, not production-ready.",
+    proposition: "Coming Soon — do not imply clinical readiness.",
     specialisations: [
-      {
-        id: "retail",
-        label: "Retail",
-        templateId: "retail",
-        status: "soon",
-        summary: "Storefront and multi-location retail",
-      },
-      {
-        id: "ecommerce",
-        label: "E-commerce",
-        templateId: "ecommerce",
-        status: "soon",
-        summary: "Online commerce and fulfilment",
-      },
-      {
-        id: "wholesale",
-        label: "Wholesale",
-        templateId: "wholesale",
-        status: "soon",
-        summary: "B2B wholesale ordering",
-      },
-      {
-        id: "distribution",
-        label: "Distribution",
-        templateId: "distribution",
-        status: "future",
-        summary: "Distribution and logistics-oriented commerce",
-      },
+      { id: "medical", label: "Medical Practices", templateId: "medical", status: "future", summary: "Medical practices" },
+      { id: "gp", label: "General Practice", templateId: "gp", status: "future", summary: "GP clinics" },
+      { id: "allied-health", label: "Allied Health", templateId: "allied-health", status: "future", summary: "Allied health" },
+      { id: "physiotherapy", label: "Physiotherapy", templateId: "physiotherapy", status: "future", summary: "Physio clinics" },
+      { id: "psychology", label: "Psychology", templateId: "psychology", status: "future", summary: "Psychology practices" },
+      { id: "chiropractic", label: "Chiropractic", templateId: "chiropractic", status: "future", summary: "Chiropractic" },
+      { id: "dental", label: "Dental", templateId: "dental", status: "future", summary: "Dental practices" },
+      { id: "optometry", label: "Optometry", templateId: "optometry", status: "future", summary: "Optometry" },
+      { id: "veterinary", label: "Veterinary", templateId: "veterinary", status: "future", summary: "Veterinary practices" },
+      { id: "health-wellness-general", label: "Health & Wellness", templateId: "health-wellness", status: "future", summary: "Wellness businesses" },
     ],
   },
   {
@@ -383,53 +578,94 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "coming",
-    summary: "Dealerships, vehicle sales, mechanical and detailing.",
-    proposition: "CRM, inventory, quoting, servicing and follow-up on Core.",
+    publicSurface: true,
+    summary: "Vehicle sales and workshop services.",
+    proposition: "Dealerships, mechanics and auto services on Core.",
     specialisations: [
       {
         id: "dealerships",
-        label: "Dealerships",
+        label: "Car Dealerships",
         appId: "automotive",
         templateId: "dealership",
         status: "soon",
-        summary: "Vehicle sales and dealership pipelines",
+        summary: "New and used vehicle sales",
       },
       {
-        id: "automotive-services",
-        label: "Automotive Services",
+        id: "used-car-dealers",
+        label: "Used Car Dealers",
         appId: "automotive",
-        templateId: "automotive-services",
+        templateId: "used-car",
         status: "soon",
-        summary: "Service and workshop workflows",
+        summary: "Used vehicle sales",
       },
       {
-        id: "mechanical",
-        label: "Mechanical",
-        appId: "automotive",
+        id: "workshops",
+        label: "Automotive Workshops",
+        templateId: "workshop",
+        status: "soon",
+        summary: "Workshop jobs",
+      },
+      {
+        id: "mechanics",
+        label: "Mechanics",
         templateId: "mechanical",
         status: "soon",
-        summary: "Mechanical workshop jobs",
+        summary: "Mechanical services",
       },
       {
-        id: "detailing",
-        label: "Detailing",
-        appId: "automotive",
-        templateId: "detailing",
+        id: "auto-electrical",
+        label: "Auto Electrical",
+        templateId: "auto-electrical",
         status: "soon",
-        summary: "Detailing and presentation services",
+        summary: "Auto electrical",
+      },
+      {
+        id: "tyres-parts",
+        label: "Tyres & Parts",
+        templateId: "tyres-parts",
+        status: "future",
+        summary: "Tyres and parts retail/service",
+      },
+      {
+        id: "vehicle-services",
+        label: "Vehicle Services",
+        templateId: "vehicle-services",
+        status: "soon",
+        summary: "General vehicle services",
       },
     ],
   },
   {
-    id: "creator",
-    label: "Creator",
-    icon: "🎨",
+    id: "retail-commerce",
+    label: "Retail & Commerce",
+    icon: "🛍️",
     price: "$99/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "coming",
-    summary: "Creators, music, media and artists — lighter operational depth than Services or Finance.",
-    proposition: "Audience, content, storefront and memberships.",
+    publicSurface: true,
+    summary: "Product businesses — retail, e-commerce, wholesale. Leverages Core Commerce.",
+    proposition: "Not a separate Retail App — Retail & Commerce Industry + Templates.",
+    specialisations: [
+      { id: "retail", label: "Retail", templateId: "retail", status: "soon", summary: "Storefront retail" },
+      { id: "ecommerce", label: "E-commerce", templateId: "ecommerce", status: "soon", summary: "Online commerce" },
+      { id: "wholesale", label: "Wholesale", templateId: "wholesale", status: "soon", summary: "B2B wholesale" },
+      { id: "multi-location-retail", label: "Multi-location Retail", templateId: "multi-location-retail", status: "future", summary: "Multi-store retail" },
+      { id: "franchises", label: "Franchises", templateId: "franchises", status: "future", summary: "Franchise networks" },
+      { id: "consumer-products", label: "Consumer Products", templateId: "consumer-products", status: "future", summary: "CPG / consumer brands" },
+    ],
+  },
+  {
+    id: "creator-media",
+    label: "Creator & Media",
+    icon: "🎨",
+    price: "$99/mo",
+    includedSpecialisations: 1,
+    additionalSpecialisationPrice: "+$29/mo",
+    roadmap: "early-access",
+    publicSurface: true,
+    summary: "Creators, artists, music, media and personal brands.",
+    proposition: "Aëtherra and creator businesses sit naturally here.",
     specialisations: [
       {
         id: "creators",
@@ -440,72 +676,112 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
         summary: "Creator businesses and influencers",
       },
       {
-        id: "music-media",
-        label: "Music & Media",
-        appId: "creator",
-        templateId: "music-media",
-        status: "soon",
-        summary: "Musicians, DJs, media businesses",
-      },
-      {
         id: "artists",
         label: "Artists",
         appId: "creator",
         templateId: "artists",
         status: "soon",
-        summary: "Artists and creative practices",
+        summary: "Artists and creatives",
+      },
+      {
+        id: "musicians",
+        label: "Musicians",
+        appId: "creator",
+        templateId: "musicians",
+        status: "soon",
+        summary: "Musicians and DJs",
+      },
+      {
+        id: "agencies-media",
+        label: "Agencies",
+        templateId: "media-agencies",
+        status: "soon",
+        summary: "Creative and media agencies",
+      },
+      {
+        id: "production-media",
+        label: "Production & Media",
+        templateId: "production-media",
+        status: "soon",
+        summary: "Production and media businesses",
+      },
+      {
+        id: "personal-brands",
+        label: "Personal Brands",
+        templateId: "personal-brands",
+        status: "soon",
+        summary: "Personal brand businesses",
+      },
+      {
+        id: "digital-products",
+        label: "Digital Products",
+        templateId: "digital-products",
+        status: "soon",
+        summary: "Digital product sellers",
       },
     ],
   },
   {
-    id: "healthcare",
-    label: "Healthcare",
-    icon: "🩺",
+    id: "transport-logistics",
+    label: "Transport & Logistics",
+    icon: "🚚",
     price: "$99/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
-    roadmap: "future",
-    summary: "Medical, allied health, dental and clinics — roadmap only.",
-    proposition: "Coming later. No delivery commitment yet.",
+    roadmap: "coming",
+    publicSurface: true,
+    summary: "Transport, courier, freight, warehousing and fleet.",
+    proposition: "Reserved vertical — Coming Soon.",
     specialisations: [
-      { id: "medical", label: "Medical", templateId: "medical", status: "future", summary: "Medical practices" },
-      { id: "allied-health", label: "Allied Health", templateId: "allied-health", status: "future", summary: "Allied health clinics" },
-      { id: "dental", label: "Dental", templateId: "dental", status: "future", summary: "Dental practices" },
-      { id: "clinics", label: "Clinics", templateId: "clinics", status: "future", summary: "Multi-practitioner clinics" },
+      { id: "transport", label: "Transport", templateId: "transport", status: "soon", summary: "Transport operators" },
+      { id: "courier", label: "Courier", templateId: "courier", status: "soon", summary: "Courier businesses" },
+      { id: "logistics", label: "Logistics", templateId: "logistics", status: "soon", summary: "Logistics providers" },
+      { id: "freight", label: "Freight", templateId: "freight", status: "soon", summary: "Freight" },
+      { id: "removalists", label: "Removalists", templateId: "removalists", status: "soon", summary: "Removals" },
+      { id: "warehousing", label: "Warehousing", templateId: "warehousing", status: "future", summary: "Warehousing" },
+      { id: "fleet", label: "Fleet Operations", templateId: "fleet", status: "future", summary: "Fleet ops" },
     ],
   },
   {
-    id: "education",
-    label: "Education",
-    icon: "📚",
+    id: "agriculture-primary",
+    label: "Agriculture & Primary Industries",
+    icon: "🌾",
     price: "$99/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
-    roadmap: "future",
-    summary: "Training, education providers, coaching and schools — roadmap only.",
-    proposition: "Coming later. No delivery commitment yet.",
+    roadmap: "reserved",
+    publicSurface: false,
+    summary: "Farming, horticulture, rural and primary production — architecture reserved.",
+    proposition: "Not on public pricing as an active sell — reserve the slot.",
     specialisations: [
-      { id: "training", label: "Training", templateId: "training", status: "future", summary: "Training providers" },
-      { id: "education-providers", label: "Education Providers", templateId: "education-providers", status: "future", summary: "Education organisations" },
-      { id: "coaching", label: "Coaching", templateId: "coaching", status: "future", summary: "Coaching businesses" },
-      { id: "schools", label: "Schools", templateId: "schools", status: "future", summary: "Schools and campuses" },
+      { id: "agriculture", label: "Agriculture", templateId: "agriculture", status: "reserved", summary: "Agriculture" },
+      { id: "farming", label: "Farming", templateId: "farming", status: "reserved", summary: "Farming" },
+      { id: "horticulture", label: "Horticulture", templateId: "horticulture", status: "reserved", summary: "Horticulture" },
+      { id: "rural-services", label: "Rural Services", templateId: "rural-services", status: "reserved", summary: "Rural services" },
+      { id: "primary-production", label: "Primary Production", templateId: "primary-production", status: "reserved", summary: "Primary production" },
     ],
   },
   {
-    id: "hospitality",
-    label: "Hospitality",
-    icon: "🍽️",
+    id: "education-organisations",
+    label: "Education & Organisations",
+    icon: "🏛️",
     price: "$99/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
-    roadmap: "future",
-    summary: "Restaurants, cafés, bars and venues — Accommodation stays under Property.",
-    proposition: "Do not put Accommodation here. Property owns short-stay.",
+    roadmap: "coming",
+    publicSurface: true,
+    summary:
+      "Education, training, schools, childcare, memberships, associations, clubs and non-profits.",
+    proposition: "Broader than a Schools App — one Industry for community and education orgs.",
     specialisations: [
-      { id: "restaurants", label: "Restaurants", templateId: "restaurants", status: "future", summary: "Restaurant operations" },
-      { id: "cafes", label: "Cafés", templateId: "cafes", status: "future", summary: "Café operations" },
-      { id: "venues", label: "Venues", templateId: "venues", status: "future", summary: "Venues and events spaces" },
-      { id: "hospitality-groups", label: "Hospitality Groups", templateId: "hospitality-groups", status: "future", summary: "Multi-venue groups" },
+      { id: "education", label: "Education", templateId: "education", status: "soon", summary: "Education providers" },
+      { id: "training", label: "Training", templateId: "training", status: "soon", summary: "Training organisations" },
+      { id: "schools", label: "Schools", templateId: "schools", status: "future", summary: "Schools" },
+      { id: "childcare", label: "Childcare", templateId: "childcare", status: "future", summary: "Childcare" },
+      { id: "membership", label: "Membership Organisations", templateId: "membership", status: "soon", summary: "Memberships" },
+      { id: "associations", label: "Associations", templateId: "associations", status: "soon", summary: "Associations" },
+      { id: "clubs", label: "Clubs", templateId: "clubs", status: "soon", summary: "Clubs" },
+      { id: "nonprofits", label: "Non-profits", templateId: "nonprofits", status: "soon", summary: "Non-profits" },
     ],
   },
 ];
@@ -518,7 +794,11 @@ export function getIndustryPlatformsByRoadmap(lane: IndustryRoadmapLane): Indust
   return INDUSTRY_PLATFORMS.filter((p) => p.roadmap === lane);
 }
 
-/** Map a Gen 2 app install id → Industry Platform + specialisation. */
+export function getPublicIndustryPlatforms(): IndustryPlatform[] {
+  return INDUSTRY_PLATFORMS.filter((p) => p.publicSurface);
+}
+
+/** Map Gen 2 app install id → Industry + Template. */
 export function resolveIndustryFromAppId(appId: string): {
   platform: IndustryPlatform;
   specialisation: IndustrySpecialisation;
@@ -530,168 +810,24 @@ export function resolveIndustryFromAppId(appId: string): {
   return null;
 }
 
-/** Billing / plan picker: Industry Platforms customers purchase (not every specialisation SKU). */
+/** Industry Platforms shown on sell sheets (not Architecture Reserved). */
 export const BILLABLE_INDUSTRY_PLATFORMS = INDUSTRY_PLATFORMS.filter(
-  (p) => p.roadmap === "founding" || p.roadmap === "coming",
+  (p) => p.roadmap !== "reserved",
 );
 
-export type FinanceTemplateKey =
-  | "accounting-practice"
-  | "financial-planning"
-  | "mortgage-broking"
-  | "insurance"
-  | "lending-credit"
-  | "business-advisory"
-  | "wealth-investment"
-  | "superannuation";
-
-export const FINANCE_TEMPLATES: Array<{
-  key: FinanceTemplateKey;
-  label: string;
-  configures: string[];
-}> = [
-  {
-    key: "accounting-practice",
-    label: "Accounting & Bookkeeping",
-    configures: [
-      "Clients",
-      "Entities",
-      "Engagements",
-      "Compliance",
-      "Financial periods",
-      "Document requests",
-      "Deadlines",
-      "Staff workflows",
-      "Client portal",
-    ],
-  },
-  {
-    key: "financial-planning",
-    label: "Financial Planning",
-    configures: ["Onboarding", "Discovery", "Advice", "Reviews", "Documents", "Client tasks"],
-  },
-  {
-    key: "mortgage-broking",
-    label: "Mortgage & Finance Broking",
-    configures: [
-      "Lead → Settlement pipeline",
-      "Lenders",
-      "Document collection",
-      "Referrals",
-      "Follow-up",
-    ],
-  },
-  {
-    key: "insurance",
-    label: "Insurance",
-    configures: ["Fact find", "Quotes", "Policies", "Renewals", "Reviews"],
-  },
-  {
-    key: "business-advisory",
-    label: "Business Advisory",
-    configures: ["Engagements", "Projects", "Reviews", "Reporting", "Recurring advisory"],
-  },
-  {
-    key: "lending-credit",
-    label: "Lending & Credit",
-    configures: ["Applications", "Underwriting support", "Portfolio"],
-  },
-  {
-    key: "wealth-investment",
-    label: "Wealth & Investment",
-    configures: ["Portfolios", "Reviews", "Client communications"],
-  },
-  {
-    key: "superannuation",
-    label: "Superannuation",
-    configures: ["SMSF admin", "Compliance", "Documents"],
-  },
-];
-
-export type ProfessionalServicesTemplateKey =
-  | "legal-practice"
-  | "surveying"
-  | "engineering"
-  | "architecture"
-  | "consulting"
-  | "agencies"
-  | "it-technology";
-
-export const PROFESSIONAL_SERVICES_TEMPLATES: Array<{
-  key: ProfessionalServicesTemplateKey;
-  label: string;
-  configures: string[];
-}> = [
-  {
-    key: "legal-practice",
-    label: "Legal Practice",
-    configures: [
-      "Matters",
-      "Clients & contacts",
-      "Matter stages",
-      "Tasks & deadlines",
-      "Documents",
-      "Appointments",
-      "Time tracking",
-      "Billing",
-      "Client communications",
-      "Conflict checks",
-      "AI document intelligence",
-    ],
-  },
-  {
-    key: "surveying",
-    label: "Surveying",
-    configures: [
-      "Clients",
-      "Projects",
-      "Site jobs",
-      "Quotes",
-      "Scheduling",
-      "Field teams",
-      "Documents & plans",
-      "Milestones",
-      "Invoicing",
-      "Compliance",
-      "Recurring workflows",
-    ],
-  },
-  {
-    key: "engineering",
-    label: "Engineering",
-    configures: ["Projects", "Engagements", "Deliverables", "Documents", "Milestones", "Billing"],
-  },
-  {
-    key: "architecture",
-    label: "Architecture",
-    configures: ["Projects", "Clients", "Drawings/files", "Milestones", "Approvals", "Billing"],
-  },
-  {
-    key: "consulting",
-    label: "Consulting",
-    configures: ["Engagements", "Projects", "Deliverables", "Retainers", "Time", "Reporting"],
-  },
-  {
-    key: "agencies",
-    label: "Agencies",
-    configures: ["Clients", "Campaigns/projects", "Retainers", "Deliverables", "Billing"],
-  },
-  {
-    key: "it-technology",
-    label: "IT & Technology",
-    configures: ["Clients", "Projects", "Tickets/engagements", "Documents", "Retainers", "Billing"],
-  },
-];
-
-/** Classify a business into an Industry Platform — product rule of thumb. */
 export const INDUSTRY_CLASSIFICATION_RULES = [
-  { primarily: "Selling or managing property / stays", industryId: "property" },
-  { primarily: "Managing physical or field service work", industryId: "services" },
-  { primarily: "Managing money / financial relationships", industryId: "finance" },
-  { primarily: "Selling expertise, time or professional projects", industryId: "professional-services" },
-  { primarily: "Selling products", industryId: "commerce" },
-  { primarily: "Selling or servicing vehicles", industryId: "automotive" },
-  { primarily: "Creating intellectual / media output", industryId: "creator" },
+  { primarily: "Property transactions, ownership or development", industryId: "property" },
+  { primarily: "Stays, venues or hospitality", industryId: "hospitality-accommodation" },
+  { primarily: "Physical / field service work", industryId: "services" },
+  { primarily: "Money / financial relationships", industryId: "finance" },
+  { primarily: "Expertise, matters, projects and professional billing", industryId: "professional" },
+  { primarily: "Clinical or wellness practice", industryId: "health-wellness" },
+  { primarily: "Vehicles — sales or workshop", industryId: "automotive" },
+  { primarily: "Selling products", industryId: "retail-commerce" },
+  { primarily: "Creating intellectual / media output", industryId: "creator-media" },
+  { primarily: "Transport, courier, freight or fleet", industryId: "transport-logistics" },
+  { primarily: "Farming or primary production", industryId: "agriculture-primary" },
+  { primarily: "Education, membership or community organisations", industryId: "education-organisations" },
 ] as const;
 
 export const TEMPLATE_CONFIGURES = [
@@ -707,3 +843,95 @@ export const TEMPLATE_CONFIGURES = [
   "Permissions",
   "Reporting",
 ] as const;
+
+/** @deprecated Use IndustryPlatforms — kept for Finance template tooling */
+export type FinanceTemplateKey =
+  | "accounting-practice"
+  | "bookkeeping"
+  | "mortgage-broking"
+  | "finance-broking"
+  | "financial-planning"
+  | "insurance-broking"
+  | "tax-advisory"
+  | "lending"
+  | "wealth-management";
+
+export const FINANCE_TEMPLATES: Array<{
+  key: FinanceTemplateKey;
+  label: string;
+  configures: string[];
+}> = [
+  {
+    key: "accounting-practice",
+    label: "Accounting",
+    configures: [
+      "Clients",
+      "Entities",
+      "Engagements",
+      "Compliance",
+      "Deadlines",
+      "Document requests",
+    ],
+  },
+  {
+    key: "bookkeeping",
+    label: "Bookkeeping",
+    configures: ["Clients", "BAS", "Reconciliations", "Documents"],
+  },
+  {
+    key: "mortgage-broking",
+    label: "Mortgage Broking",
+    configures: ["Lead → Settlement", "Lenders", "Documents"],
+  },
+  {
+    key: "finance-broking",
+    label: "Finance Broking",
+    configures: ["Applications", "Lenders", "Documents"],
+  },
+  {
+    key: "financial-planning",
+    label: "Financial Planning",
+    configures: ["Onboarding", "Advice", "Reviews"],
+  },
+  {
+    key: "insurance-broking",
+    label: "Insurance Broking",
+    configures: ["Quotes", "Policies", "Renewals"],
+  },
+  {
+    key: "tax-advisory",
+    label: "Tax Advisory",
+    configures: ["Engagements", "Deadlines", "Documents"],
+  },
+  {
+    key: "lending",
+    label: "Lending",
+    configures: ["Applications", "Underwriting", "Portfolio"],
+  },
+  {
+    key: "wealth-management",
+    label: "Wealth Management",
+    configures: ["Portfolios", "Reviews", "Communications"],
+  },
+];
+
+export type ProfessionalTemplateKey =
+  | "legal-practice"
+  | "surveying"
+  | "engineering"
+  | "architecture"
+  | "consulting";
+
+/** @deprecated Prefer PROFESSIONAL under INDUSTRY_PLATFORMS */
+export const PROFESSIONAL_SERVICES_TEMPLATES = [
+  {
+    key: "legal-practice" as const,
+    label: "Legal",
+    configures: ["Matters", "Deadlines", "Documents", "Time", "Billing"],
+  },
+  {
+    key: "surveying" as const,
+    label: "Surveying",
+    configures: ["Projects", "Site jobs", "Plans", "Scheduling", "Invoicing"],
+  },
+];
