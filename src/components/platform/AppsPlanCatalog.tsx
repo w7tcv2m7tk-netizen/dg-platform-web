@@ -402,7 +402,7 @@ export function AppsPlanCatalog() {
                       <p className="mt-1 flex-1 text-xs text-slate-400">{spec.summary}</p>
                       {canToggle && appId ? (
                         <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <AppInstallToggle appId={appId} enabled={enabled} />
+                          <AppInstallToggle appId={appId} installed={enabled} />
                           {href ? (
                             <Link
                               href={href}
