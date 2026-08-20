@@ -113,6 +113,10 @@ export default async function DigitalTwinPage() {
             Business Profile
           </Link>
           {" · "}
+          <Link href="/dashboard/brain" className="text-sky-400 hover:underline">
+            Business Brain
+          </Link>
+          {" · "}
           <Link href="/dashboard/advisor" className="text-sky-400 hover:underline">
             Advisor
           </Link>

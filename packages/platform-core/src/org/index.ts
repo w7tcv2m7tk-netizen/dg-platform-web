@@ -5,6 +5,7 @@ export * from "./client-org";
 export * from "./membership-profile";
 export * from "./setup-status";
 export * from "./onboarding-profile";
+export * from "./public-site-brand";
 export * from "./business-profile-types";
 export * from "./business-context";
 export * from "./goals";

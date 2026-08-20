@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { WantdIcon, WantdWordmark } from "@/components/websites/WantdPublicArt";
 import { publicSiteIcons } from "@/lib/brand";
+import { getPublicSiteBrand } from "@dg/platform-core";
 
 import "./wantd.css";
 
@@ -20,16 +21,19 @@ const wantdSans = Outfit({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Wantd",
-  applicationName: "Wantd",
-  appleWebApp: {
-    capable: true,
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getPublicSiteBrand("wantd");
+  return {
     title: "Wantd",
-    statusBarStyle: "default",
-  },
-  icons: publicSiteIcons("wantd"),
-};
+    applicationName: "Wantd",
+    appleWebApp: {
+      capable: true,
+      title: "Wantd",
+      statusBarStyle: "default",
+    },
+    icons: publicSiteIcons("wantd", brand?.iconUrl),
+  };
+}
 
 export default function WantdLayout({ children }: { children: React.ReactNode }) {
   return (

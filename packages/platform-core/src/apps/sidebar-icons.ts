@@ -12,6 +12,7 @@ const SIDEBAR_ICONS: Record<string, string> = {
   settings: "⎔",
   referrals: "⇄",
   twin: "◉",
+  brain: "◈",
   goals: "◎",
   health: "◍",
   advisor: "✦",

@@ -48,6 +48,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 |---|----------|--------|
 | — | [APP-HIERARCHY.md](./APP-HIERARCHY.md) | **Canonical App hierarchy** — Core → Infrastructure → Industry → Growth; platform capabilities ≠ Apps |
 | — | [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) | **North-star** — Twin centrepiece; BI scores; Advisor; AI Actions; opportunity detection; Marketplace/Agents later |
+| — | [BUSINESS-BRAIN.md](./BUSINESS-BRAIN.md) | Customer knowledge corpus — seven dimensions; distinct from Digital Twin |
 | — | [COMMERCIALLY-READY-V1.md](./COMMERCIALLY-READY-V1.md) | **Operating target** — 5 founding agencies, pre-launch GTM stance, Gates 1–4, pre-sell 6 reds, NOW backlog |
 | 1 | [CORE-OBJECT-SPECIFICATION.md](./CORE-OBJECT-SPECIFICATION.md) | **Canonical domain model** — what, fields, relationships, ownership, events |
 | 1b | [CONTACTS-AND-APP-ROLES.md](./CONTACTS-AND-APP-ROLES.md) | **ONE Contact** — forbid duplicate people (Guest/Vendor/Buyer…); Contact → App Role |

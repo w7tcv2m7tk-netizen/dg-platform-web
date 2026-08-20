@@ -58,7 +58,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
           purpose: "any",
         },
         {
-          src: "/brand/wantd-favicon-32.png",
+          src: "/icon",
           sizes: "32x32",
           type: "image/png",
           purpose: "any",

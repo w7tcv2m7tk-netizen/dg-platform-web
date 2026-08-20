@@ -89,6 +89,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "foundations/INTELLIGENT-LAYER.md",
   },
   {
+    slug: "business-brain",
+    title: "Business Brain",
+    summary:
+      "Customer knowledge corpus — seven dimensions that feed Advisor, Communications, CRM and Automation. Distinct from Digital Twin.",
+    group: "architecture",
+    relativePath: "foundations/BUSINESS-BRAIN.md",
+  },
+  {
     slug: "product-vision",
     title: "Product Vision",
     summary: "What DigitalGate is building and why.",

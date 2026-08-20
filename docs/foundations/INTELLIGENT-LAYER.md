@@ -241,7 +241,7 @@ Lead → Prospect → Customer → Active → Repeat → Advocate
 
 ## 10. Documents & knowledge → Twin + AI
 
-Later as “Business Brain™” corpus — **not** a founding blocker. Powers Advisor, Communications, Website, proposals, support, automation with [AI-GOVERNANCE.md](./AI-GOVERNANCE.md).
+**Business Brain™** (`/dashboard/brain`) is the customer knowledge corpus — seven dimensions (Business, People, Operations, Commercial, Knowledge, Technology, AI). Twin remains live operating state. Brain powers Advisor, Communications, Website, proposals, support and automation with [AI-GOVERNANCE.md](./AI-GOVERNANCE.md). Spec: [BUSINESS-BRAIN.md](./BUSINESS-BRAIN.md).
 
 ---
 
@@ -289,7 +289,7 @@ Services remains **one App + Service Templates** — never Electrician/Plumber/C
 
 ```
 BUSINESS
-  Overview · Business Profile · Digital Twin · Goals · Team
+  Overview · Business Profile · Digital Twin · Business Brain · Goals · Team
 
 OPERATE
   CRM · Commerce · Websites · Infrastructure · Industry Apps

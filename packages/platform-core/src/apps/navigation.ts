@@ -162,6 +162,12 @@ const BUSINESS_LINKS: PlatformShellNavItem[] = [
   },
   {
     kind: "shell",
+    href: "/dashboard/brain",
+    label: "Business Brain",
+    icon: getSidebarIcon("brain"),
+  },
+  {
+    kind: "shell",
     href: "/dashboard/goals",
     label: "Goals",
     icon: getSidebarIcon("goals"),
