@@ -3206,9 +3206,18 @@ a.wb-brand-chrome-cta:hover {
     box-shadow: 0 20px 30px rgba(0, 0, 0, 0.35) !important;
   }
 
-  /* Hide Aëtherra fallback hamburger when DigitalGate native btn is present */
+  /* Hide Aëtherra fallback hamburger when DigitalGate native btn is present
+     AND successfully hydratable — keep native btn clickable above chrome */
   .wb-chrome-html:has(#dgMobileBtn) .wb-chrome-html-menu-btn {
     display: none !important;
+  }
+
+  .wb-site-chrome .dg-header {
+    overflow: visible !important;
+  }
+
+  .wb-site-chrome .dg-header-container {
+    z-index: 121 !important;
   }
 }
 

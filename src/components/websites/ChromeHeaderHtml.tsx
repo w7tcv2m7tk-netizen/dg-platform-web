@@ -42,8 +42,10 @@ function hydrateDigitalGateHeader(root: HTMLElement): (() => void) | null {
   if (!mobileBtn || !navMenu) return null;
 
   const body = document.body;
+  const chromeRoot = root.querySelector<HTMLElement>(".wb-chrome-root") || root;
   const toggles = Array.from(root.querySelectorAll<HTMLElement>(".dg-dropdown-toggle"));
   body.classList.add("dg-has-fixed-header");
+  chromeRoot.classList.add("dg-has-fixed-header");
 
   const closeAllDropdowns = () => {
     root.querySelectorAll(".dg-dropdown").forEach((dd) => dd.classList.remove("open"));
@@ -53,6 +55,7 @@ function hydrateDigitalGateHeader(root: HTMLElement): (() => void) | null {
   const setMenuOpen = (isOpen: boolean) => {
     navMenu.classList.toggle("open", isOpen);
     body.classList.toggle("menu-open", isOpen);
+    chromeRoot.classList.toggle("menu-open", isOpen);
     mobileBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
     const icon = mobileBtn.querySelector("i");
     if (icon) {
@@ -64,16 +67,23 @@ function hydrateDigitalGateHeader(root: HTMLElement): (() => void) | null {
 
   const closeMobileMenu = () => setMenuOpen(false);
 
+  let lastToggleAt = 0;
   const onMenuClick = (e: Event) => {
     e.preventDefault();
     e.stopPropagation();
+    const now = Date.now();
+    if (now - lastToggleAt < 350) return;
+    lastToggleAt = now;
     setMenuOpen(!navMenu.classList.contains("open"));
   };
 
-  // Capture phase so nothing in the sticky chrome shell swallows the tap
+  // Capture + pointerdown: sticky chrome / iOS often swallows bubbled click
+  mobileBtn.addEventListener("pointerdown", onMenuClick, true);
   mobileBtn.addEventListener("click", onMenuClick, true);
   mobileBtn.style.pointerEvents = "auto";
   mobileBtn.style.cursor = "pointer";
+  mobileBtn.style.position = "relative";
+  mobileBtn.style.zIndex = "130";
 
   const toggleCleanups = toggles.map((toggle) => {
     const dropdownId = toggle.getAttribute("data-dg-dropdown");
@@ -85,6 +95,9 @@ function hydrateDigitalGateHeader(root: HTMLElement): (() => void) | null {
       if (window.innerWidth > DG_MOBILE_MAX) return;
       e.preventDefault();
       e.stopPropagation();
+      const now = Date.now();
+      if (now - lastToggleAt < 350) return;
+      lastToggleAt = now;
       const isOpen = dropdown.classList.contains("open");
       closeAllDropdowns();
       if (!isOpen) {
@@ -92,8 +105,12 @@ function hydrateDigitalGateHeader(root: HTMLElement): (() => void) | null {
         toggle.classList.add("open");
       }
     };
+    toggle.addEventListener("pointerdown", onToggle, true);
     toggle.addEventListener("click", onToggle, true);
-    return () => toggle.removeEventListener("click", onToggle, true);
+    return () => {
+      toggle.removeEventListener("pointerdown", onToggle, true);
+      toggle.removeEventListener("click", onToggle, true);
+    };
   });
 
   const navLinks = Array.from(root.querySelectorAll<HTMLAnchorElement>(".dg-nav-links a"));
@@ -119,6 +136,7 @@ function hydrateDigitalGateHeader(root: HTMLElement): (() => void) | null {
   window.addEventListener("keydown", onKey);
 
   return () => {
+    mobileBtn.removeEventListener("pointerdown", onMenuClick, true);
     mobileBtn.removeEventListener("click", onMenuClick, true);
     toggleCleanups.forEach((fn) => fn());
     linkCleanups.forEach((fn) => fn());
@@ -126,6 +144,7 @@ function hydrateDigitalGateHeader(root: HTMLElement): (() => void) | null {
     window.removeEventListener("keydown", onKey);
     closeMobileMenu();
     body.classList.remove("dg-has-fixed-header");
+    chromeRoot.classList.remove("dg-has-fixed-header");
   };
 }
 

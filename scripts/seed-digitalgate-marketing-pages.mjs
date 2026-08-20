@@ -70,11 +70,18 @@ function prepareChromeHtml(html) {
       /https?:\/\/digitalgate\.com\.au\/wp-content\/uploads\/[^"'>\s]*Banner-Light[^"'>\s]*/gi,
       LOGO,
     );
+  out = out
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/\s+on\w+\s*=\s*(".*?"|'.*?'|[^\s>]+)/gi, "");
   const styles = [];
   out = out.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (_, css) => {
     styles.push(
       String(css)
-        .replace(/(^|[,}])\s*body\s*(?=[\s,{])/gi, "$1 .wb-chrome-root ")
+        // Keep document-level menu lock / header offset on real body
+        .replace(
+          /(^|[,}])\s*body(?!\.(?:menu-open|dg-has-fixed-header))\s*(?=[\s,{])/gi,
+          "$1 .wb-chrome-root ",
+        )
         .replace(/(^|[,}])\s*html\s*(?=[\s,{])/gi, "$1 .wb-chrome-root "),
     );
     return "";
@@ -111,6 +118,18 @@ function extractMeta(html, attr) {
 function extractTitle(html) {
   const m = html.match(/<title[^>]*>([^<]*)<\/title>/i);
   return m?.[1]?.trim() || null;
+}
+
+function clipSeo(s, max) {
+  const t = String(s || "")
+    .replace(/&amp;/g, "&")
+    .replace(/&#8217;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!t || t.length <= max) return t || null;
+  const cut = t.slice(0, max - 1);
+  const sp = cut.lastIndexOf(" ");
+  return `${(sp > 40 ? cut.slice(0, sp) : cut).trim()}…`;
 }
 
 /**
@@ -271,8 +290,8 @@ async function upsertPage(siteId, def, rawHtml) {
     status,
     sortOrder: def.sortOrder,
     seo: {
-      title: seoTitle,
-      description: seoDescription,
+      title: clipSeo(seoTitle, 60),
+      description: clipSeo(seoDescription, 155),
     },
     components,
   };

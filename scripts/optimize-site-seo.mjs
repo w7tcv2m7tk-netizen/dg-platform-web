@@ -495,10 +495,25 @@ const PLANS = {
         "Platform from $99/mo. Industry Apps $99 with 1 Template included; extra Templates +$29. Website Build from $1,997.",
         ["digitalgate pricing", "industry app pricing", "website build"],
       ),
+      insights: seo(
+        "Insights | DigitalGate",
+        "Practical thinking on AI visibility, search, lead generation and connected business from DigitalGate.",
+        ["digitalgate insights", "ai visibility blog"],
+      ),
       about: seo(
         "About DigitalGate | Ben Roe, Founder",
         "DigitalGate is an AI-powered Business Operating Platform founded by Ben Roe — connecting websites, CRM, AI and industry systems.",
         ["about digitalgate", "ben roe digitalgate"],
+      ),
+      "privacy-policy": seo(
+        "Privacy Policy | DigitalGate",
+        "How DigitalGate collects, uses and protects personal information for visitors, Platform users and Professional Services.",
+        ["digitalgate privacy"],
+      ),
+      "terms-conditions": seo(
+        "Terms & Conditions | DigitalGate",
+        "Terms for DigitalGate Platform subscriptions, Apps, Founding Customer Programme and Professional Services.",
+        ["digitalgate terms"],
       ),
       contact: seo(
         "Contact DigitalGate | Founding Customers",
@@ -585,21 +600,6 @@ const PLANS = {
         "DigitalGate client onboarding — get your organisation, apps and website studio set up for launch.",
         ["digitalgate onboarding"],
       ),
-      insights: seo(
-        "Insights | AI Visibility & Growth",
-        "DigitalGate insights on AI search, local SEO, real estate lead generation and modern business platforms.",
-        ["digitalgate insights", "ai visibility blog"],
-      ),
-      "privacy-policy": seo(
-        "Privacy Policy | DigitalGate",
-        "How DigitalGate collects, uses and protects personal information across the platform and websites.",
-        ["digitalgate privacy"],
-      ),
-      "terms-conditions": seo(
-        "Terms & Conditions | DigitalGate",
-        "Terms and conditions for DigitalGate platform services and websites.",
-        ["digitalgate terms"],
-      ),
       "founding-customer-terms": seo(
         "Founding Customer Terms | DigitalGate",
         "Terms and conditions for the DigitalGate Founding Customer Programme.",
@@ -614,26 +614,6 @@ const PLANS = {
         "Digital Business Card | DigitalGate",
         "DigitalGate digital business card and contact details.",
         ["digitalgate contact card"],
-      ),
-      "ai-visibility-framework": seo(
-        "AI Visibility Framework | DigitalGate",
-        "A practical AI visibility framework to help businesses get recommended in ChatGPT, Gemini and AI search.",
-        ["ai visibility framework", "ai seo"],
-      ),
-      "appraisal-magnet-system": seo(
-        "Appraisal Magnet System | DigitalGate",
-        "DigitalGate Appraisal Magnet System — attract vendor appraisal enquiries for real estate agencies.",
-        ["appraisal magnet", "vendor lead system"],
-      ),
-      "listing-pipeline-framework": seo(
-        "Listing Pipeline Framework | DigitalGate",
-        "Build a predictable listing pipeline for real estate with DigitalGate frameworks and automation.",
-        ["listing pipeline", "real estate pipeline"],
-      ),
-      "vendor-velocity-system": seo(
-        "Vendor Velocity System | DigitalGate",
-        "Speed up vendor conversion with DigitalGate’s Vendor Velocity System for real estate agencies.",
-        ["vendor velocity", "vendor leads"],
       ),
     },
     fallback(slug, title) {
