@@ -214,6 +214,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "foundations/COMMERCIALLY-READY-V1.md",
   },
   {
+    slug: "partner-ecosystem",
+    title: "Partner Ecosystem",
+    summary:
+      "Reseller vs Implementation vs Technology vs Strategic — DigitalGate owns the platform; certified partners extend delivery. Resellers do not onboard.",
+    group: "partners",
+    relativePath: "partners/PARTNER-ECOSYSTEM.md",
+  },
+  {
     slug: "reseller-programme",
     title: "Reseller Programme",
     summary:

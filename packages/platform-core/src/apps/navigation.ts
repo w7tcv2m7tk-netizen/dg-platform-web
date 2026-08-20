@@ -339,7 +339,10 @@ export interface CategorizedPlatformNavigation {
 
 const RESELLER_ADMIN_ROUTES: AppRoute[] = [
   { path: "/command/partners", label: "Dashboard" },
+  { path: "/command/partners/ecosystem", label: "Ecosystem" },
   { path: "/command/partners/resellers", label: "Resellers" },
+  { path: "/command/partners/implementation", label: "Implementation" },
+  { path: "/command/partners/onboarding", label: "Onboarding" },
   { path: "/command/referrals", label: "Referrals" },
   { path: "/command/commissions", label: "Commissions" },
   { path: "/command/partners/payouts", label: "Payouts" },

@@ -7,7 +7,10 @@ const TIER_LABEL: Record<string, string> = {
   FOUNDING_RESELLER: "Founding Reseller",
   FOUNDING_PARTNER: "Founding Partner",
   FOUNDING_CUSTOMER: "Founding Customer",
-  CUSTOMER_REFERRER: "Customer Referrer",
+  IMPLEMENTATION_PARTNER: "Implementation Partner",
+  TECHNOLOGY_PARTNER: "Technology Partner",
+  STRATEGIC_PARTNER: "Strategic Partner",
+  SUCCESS_PARTNER: "Customer Success Partner",
 };
 
 const STATUS_COLOR: Record<string, string> = {

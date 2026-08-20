@@ -13,6 +13,7 @@ import {
   IF_YOU_DONT_KNOW,
   INTRODUCTION_SCRIPT,
   QUALITY_OVER_VOLUME,
+  RESELLER_DOES_NOT_ONBOARD,
   RESELLER_JOURNEY_LINE,
   RESELLER_MUST_NOT_CLAIM,
   RESELLER_MUST_NOT_DO,
@@ -120,6 +121,18 @@ export function PartnerPlaybookContent() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section>
+        <h2 className="text-base font-semibold text-white">Onboarding is not your job</h2>
+        <p className="mt-2 text-sm text-slate-300">
+          {RESELLER_DOES_NOT_ONBOARD}
+        </p>
+        <p className="mt-2 text-sm text-slate-400">
+          Some partners later become Certified Implementation Partners — a separate role, training
+          and commercial arrangement. Until then, Ben / DigitalGate delivers setup, migration and
+          training.
+        </p>
       </section>
 
       <section>

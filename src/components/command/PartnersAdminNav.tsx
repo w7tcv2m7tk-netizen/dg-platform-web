@@ -3,8 +3,11 @@ import { COMMAND_CENTRE_ROUTES } from "@dg/platform-core";
 
 const NAV = [
   { href: COMMAND_CENTRE_ROUTES.partners, label: "Dashboard", id: "dashboard" },
-  { href: COMMAND_CENTRE_ROUTES.partnerBriefing, label: "Briefing", id: "briefing" },
+  { href: COMMAND_CENTRE_ROUTES.partnerEcosystem, label: "Ecosystem", id: "ecosystem" },
+  { href: COMMAND_CENTRE_ROUTES.partnerBriefing, label: "Reseller briefing", id: "briefing" },
   { href: COMMAND_CENTRE_ROUTES.partnerResellers, label: "Resellers", id: "resellers" },
+  { href: COMMAND_CENTRE_ROUTES.partnerImplementation, label: "Implementation", id: "implementation" },
+  { href: COMMAND_CENTRE_ROUTES.partnerOnboarding, label: "Onboarding", id: "onboarding" },
   { href: COMMAND_CENTRE_ROUTES.partnerReferrals, label: "Referrals", id: "referrals" },
   { href: COMMAND_CENTRE_ROUTES.partnerCommissions, label: "Commissions", id: "commissions" },
   { href: COMMAND_CENTRE_ROUTES.partnerPayouts, label: "Payouts", id: "payouts" },

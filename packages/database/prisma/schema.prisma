@@ -1120,7 +1120,7 @@ model Partner {
   clerkUserId              String    @map("clerk_user_id")
   /** Optional link to a DigitalGate customer org (partner may also be a customer) */
   organisationId           String?   @map("organisation_id")
-  /** FOUNDING_RESELLER | FOUNDING_PARTNER | FOUNDING_CUSTOMER | CUSTOMER_REFERRER */
+  /** FOUNDING_RESELLER | IMPLEMENTATION_PARTNER | TECHNOLOGY_PARTNER | STRATEGIC_PARTNER | … */
   partnerType              String    @map("partner_type")
   /** Programme cohort label e.g. "founding_10" */
   cohort                   String?

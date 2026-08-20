@@ -4,7 +4,11 @@ export type PartnerType =
   | "FOUNDING_RESELLER"
   | "FOUNDING_PARTNER"
   | "FOUNDING_CUSTOMER"
-  | "CUSTOMER_REFERRER";
+  | "CUSTOMER_REFERRER"
+  | "IMPLEMENTATION_PARTNER"
+  | "TECHNOLOGY_PARTNER"
+  | "STRATEGIC_PARTNER"
+  | "SUCCESS_PARTNER";
 
 export type PartnerStatus = "pending" | "active" | "suspended" | "inactive";
 
@@ -74,6 +78,34 @@ export const PARTNER_COMMISSION_CONFIG: Record<PartnerType, PartnerTierConfig> =
     durationMonths: 12,
     label: "Customer Referrer",
     programme: "Standard",
+    seatCap: null,
+  },
+  IMPLEMENTATION_PARTNER: {
+    commissionBps: 0,
+    durationMonths: 0,
+    label: "Implementation Partner",
+    programme: "Founding Implementation",
+    seatCap: 3,
+  },
+  TECHNOLOGY_PARTNER: {
+    commissionBps: 0,
+    durationMonths: 0,
+    label: "Technology Partner",
+    programme: "Partner Ecosystem",
+    seatCap: null,
+  },
+  STRATEGIC_PARTNER: {
+    commissionBps: 0,
+    durationMonths: 0,
+    label: "Strategic Partner",
+    programme: "Partner Ecosystem",
+    seatCap: null,
+  },
+  SUCCESS_PARTNER: {
+    commissionBps: 0,
+    durationMonths: 0,
+    label: "Customer Success Partner",
+    programme: "Partner Ecosystem",
     seatCap: null,
   },
 };
