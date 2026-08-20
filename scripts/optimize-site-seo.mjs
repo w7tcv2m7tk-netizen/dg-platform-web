@@ -492,8 +492,8 @@ const PLANS = {
       ),
       pricing: seo(
         "Pricing | DigitalGate Business Platform",
-        "DigitalGate platform pricing from $99/mo. Modular industry apps for real estate, accommodation and growing service businesses.",
-        ["digitalgate pricing", "business platform pricing"],
+        "Platform from $99/mo. Industry Apps $99 with 1 Template included; extra Templates +$29. Website Build from $1,997.",
+        ["digitalgate pricing", "industry app pricing", "website build"],
       ),
       about: seo(
         "About DigitalGate | Ben Roe, Founder",
@@ -506,9 +506,64 @@ const PLANS = {
         ["contact digitalgate", "founding customers"],
       ),
       "founding-customers": seo(
-        "Founding Customer Programme | DigitalGate",
-        "Founding 10 → 100 → 1,000. Founding cohort advantages including pricing and referral tiers for early DigitalGate customers.",
+        "Founding 10 Programme | DigitalGate",
+        "30% off qualifying Platform + Industry Apps + Templates for 24 months. Founding 10 is open now.",
         ["digitalgate founding customers", "founding 10"],
+      ),
+      apps: seo(
+        "DigitalGate Apps | Core, Infrastructure, Industry, Growth",
+        "Apps on an operating system — Core, Infrastructure, Industry Apps with Templates, and Growth. Not a tool catalogue.",
+        ["digitalgate apps", "industry apps", "property industry app"],
+      ),
+      "apps/industry": seo(
+        "Industry Apps | DigitalGate",
+        "Twelve Industry Apps. Property and Services available. Templates specialise each vertical — 1 included, +$29 each extra.",
+        ["industry apps", "property app", "hospitality accommodation"],
+      ),
+      "apps/industry/property": seo(
+        "Property Industry App | DigitalGate",
+        "One Property Industry App ($99/mo). Real Estate Template included. Add PM, Commercial and more at +$29/mo each.",
+        ["property industry app", "real estate template", "digitalgate property"],
+      ),
+      "apps/industry/hospitality-accommodation": seo(
+        "Hospitality & Accommodation | DigitalGate",
+        "Hospitality & Accommodation Industry App — short-stay and venues. Accommodation is a Template here, not under Property.",
+        ["hospitality app", "accommodation template", "short stay crm"],
+      ),
+      "apps/industry/real-estate": seo(
+        "Real Estate Template | Property | DigitalGate",
+        "Real Estate Template under the Property Industry App — vendors, buyers, appraisals and listings on DigitalGate.",
+        ["real estate template", "property crm", "vendor pipeline"],
+      ),
+      "apps/industry/services": seo(
+        "Services Industry App | DigitalGate",
+        "Services Industry App for trades and field work — one App with Templates like Cleaning, Electrical and Maintenance.",
+        ["services industry app", "trades crm", "digitalgate services"],
+      ),
+      "apps/industry/accommodation": seo(
+        "Accommodation Template | Hospitality | DigitalGate",
+        "Short-Stay / Accommodation Template under Hospitality & Accommodation — bookings, guests and operations.",
+        ["accommodation template", "short stay", "hospitality crm"],
+      ),
+      "appraisal-magnet-system": seo(
+        "Appraisal Magnet System™ | DigitalGate",
+        "Vendor acquisition system on the DigitalGate Property Industry App — appraisal magnets that feed your pipeline.",
+        ["appraisal magnet", "vendor leads", "real estate acquisition"],
+      ),
+      "listing-pipeline-framework": seo(
+        "Listing Pipeline Framework™ | DigitalGate",
+        "Listing conversion methodology on the Property Industry App — from appraisal to listing inside DigitalGate.",
+        ["listing pipeline", "real estate listing", "digitalgate framework"],
+      ),
+      "vendor-velocity-system": seo(
+        "Vendor Velocity System™ | DigitalGate",
+        "Improve response time and pipeline movement for vendor opportunities inside the Property Industry App.",
+        ["vendor velocity", "real estate follow up", "pipeline speed"],
+      ),
+      "ai-visibility-framework": seo(
+        "AI Visibility Framework™ | DigitalGate",
+        "How businesses get found and recommended in Google and AI search — the DigitalGate AI Visibility Framework™.",
+        ["ai visibility framework", "ai search", "digitalgate"],
       ),
       "strategy-session": seo(
         "Platform Consultation | DigitalGate",

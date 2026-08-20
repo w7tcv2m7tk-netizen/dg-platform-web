@@ -3156,6 +3156,60 @@ a.wb-brand-chrome-cta:hover {
 .wb-site-chrome .dg-header {
   position: sticky !important;
   top: 0 !important;
+  left: auto !important;
+  width: 100% !important;
+  z-index: 100 !important;
+}
+
+.wb-site-chrome-header {
+  overflow: visible !important;
+}
+
+.wb-chrome-html:has(#dgMobileBtn),
+.wb-chrome-html:has(.dg-mobile-menu-btn) {
+  overflow: visible !important;
+}
+
+.wb-site-chrome .dg-header-container {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+/* Gen 2: ensure DG mobile drawer can expand (chrome CSS is hoisted; scripts are stripped) */
+@media (max-width: 880px) {
+  .wb-site-chrome .dg-mobile-menu-btn {
+    display: flex !important;
+    pointer-events: auto !important;
+    z-index: 120 !important;
+  }
+
+  .wb-site-chrome .dg-nav-links {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #0b1120 !important;
+    z-index: 200 !important;
+    pointer-events: none;
+  }
+
+  .wb-site-chrome .dg-nav-links.open {
+    max-height: min(85vh, 720px) !important;
+    overflow-y: auto !important;
+    padding: 20px 16px 24px !important;
+    pointer-events: auto !important;
+    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  /* Hide Aëtherra fallback hamburger when DigitalGate native btn is present */
+  .wb-chrome-html:has(#dgMobileBtn) .wb-chrome-html-menu-btn {
+    display: none !important;
+  }
 }
 
 .wb-post-grid {

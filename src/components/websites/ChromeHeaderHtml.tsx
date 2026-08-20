@@ -70,7 +70,10 @@ function hydrateDigitalGateHeader(root: HTMLElement): (() => void) | null {
     setMenuOpen(!navMenu.classList.contains("open"));
   };
 
-  mobileBtn.addEventListener("click", onMenuClick);
+  // Capture phase so nothing in the sticky chrome shell swallows the tap
+  mobileBtn.addEventListener("click", onMenuClick, true);
+  mobileBtn.style.pointerEvents = "auto";
+  mobileBtn.style.cursor = "pointer";
 
   const toggleCleanups = toggles.map((toggle) => {
     const dropdownId = toggle.getAttribute("data-dg-dropdown");
@@ -89,8 +92,8 @@ function hydrateDigitalGateHeader(root: HTMLElement): (() => void) | null {
         toggle.classList.add("open");
       }
     };
-    toggle.addEventListener("click", onToggle);
-    return () => toggle.removeEventListener("click", onToggle);
+    toggle.addEventListener("click", onToggle, true);
+    return () => toggle.removeEventListener("click", onToggle, true);
   });
 
   const navLinks = Array.from(root.querySelectorAll<HTMLAnchorElement>(".dg-nav-links a"));
@@ -116,7 +119,7 @@ function hydrateDigitalGateHeader(root: HTMLElement): (() => void) | null {
   window.addEventListener("keydown", onKey);
 
   return () => {
-    mobileBtn.removeEventListener("click", onMenuClick);
+    mobileBtn.removeEventListener("click", onMenuClick, true);
     toggleCleanups.forEach((fn) => fn());
     linkCleanups.forEach((fn) => fn());
     window.removeEventListener("resize", onResize);
