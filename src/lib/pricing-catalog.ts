@@ -142,15 +142,262 @@ export const PLATFORM_ADDON_CATALOG: PlatformAddonCatalogItem[] = [
   },
 ];
 
-/** Mirrors pricing page — Industry Apps grid (property ecosystem grouped first) */
+export type IndustryPlatformCatalogItem = {
+  platformId: string;
+  label: string;
+  icon: string;
+  price: string;
+  expansion: string;
+  description: string;
+  proposition: string;
+  roadmap: "founding" | "coming" | "future";
+  specialisations: Array<{
+    id: string;
+    label: string;
+    appId?: string;
+    status: CatalogStatus | "future";
+    summary: string;
+  }>;
+};
+
+/**
+ * Industry Platforms — commercial catalog (Gen 2 lock).
+ * Specialisation modules remain toggleable where appId exists.
+ */
+export const INDUSTRY_PLATFORM_CATALOG: IndustryPlatformCatalogItem[] = [
+  {
+    platformId: "property",
+    label: "Property",
+    icon: "🏢",
+    price: "+$99/mo",
+    expansion: "1 specialisation included · +$29/mo each additional",
+    description:
+      "One connected property operating platform — not five separate products.",
+    proposition:
+      "Activate Real Estate, Property Management, Accommodation, Commercial or Development as you grow.",
+    roadmap: "founding",
+    specialisations: [
+      {
+        id: "residential-real-estate",
+        label: "Real Estate",
+        appId: "real-estate",
+        status: "live",
+        summary: "Vendors, buyers, listings & appraisals",
+      },
+      {
+        id: "property-management",
+        label: "Property Management",
+        appId: "property-management",
+        status: "soon",
+        summary: "Owners, tenants, leases & maintenance",
+      },
+      {
+        id: "accommodation",
+        label: "Accommodation",
+        appId: "accommodation",
+        status: "rolling-out",
+        summary: "Bookings, guests, availability & revenue",
+      },
+      {
+        id: "commercial-property",
+        label: "Commercial Property",
+        appId: "commercial",
+        status: "soon",
+        summary: "Commercial sales, leasing & assets",
+      },
+      {
+        id: "property-development",
+        label: "Property Development",
+        status: "future",
+        summary: "Projects, lots & settlements",
+      },
+    ],
+  },
+  {
+    platformId: "finance",
+    label: "Finance",
+    icon: "💰",
+    price: "+$99/mo",
+    expansion: "1 specialisation included · +$29/mo each additional",
+    description:
+      "Professional finance ecosystem — Accounting & Bookkeeping first. Not an “Accounting App”.",
+    proposition:
+      "Accounting · Planning · Broking · Insurance · Lending · Advisory on one Finance platform.",
+    roadmap: "founding",
+    specialisations: [
+      {
+        id: "accounting-bookkeeping",
+        label: "Accounting & Bookkeeping",
+        appId: "finance",
+        status: "soon",
+        summary: "Clients, engagements, compliance & deadlines",
+      },
+      {
+        id: "financial-planning",
+        label: "Financial Planning",
+        status: "soon",
+        summary: "Advice workflows & annual reviews",
+      },
+      {
+        id: "mortgage-finance-broking",
+        label: "Mortgage & Finance Broking",
+        status: "soon",
+        summary: "Application → approval → settlement",
+      },
+      {
+        id: "insurance",
+        label: "Insurance",
+        status: "soon",
+        summary: "Quotes, policies & renewals",
+      },
+      {
+        id: "business-advisory",
+        label: "Business Advisory",
+        status: "soon",
+        summary: "Engagements, reviews & reporting",
+      },
+    ],
+  },
+  {
+    platformId: "services",
+    label: "Services",
+    icon: "🛠️",
+    price: "+$99/mo",
+    expansion: "1 specialisation included · templates configure trades",
+    description:
+      "One Services App — Electrical, Cleaning, HVAC etc. via Service Templates.",
+    proposition: "Never Electrician App / Plumber App — Industry + Template.",
+    roadmap: "founding",
+    specialisations: [
+      {
+        id: "trades",
+        label: "Trades",
+        appId: "services",
+        status: "soon",
+        summary: "Jobs, quotes & schedule",
+      },
+      {
+        id: "cleaning",
+        label: "Cleaning",
+        status: "soon",
+        summary: "Commercial & residential cleaning",
+      },
+      {
+        id: "maintenance",
+        label: "Maintenance",
+        status: "soon",
+        summary: "Maintenance & handyman",
+      },
+      {
+        id: "construction",
+        label: "Construction",
+        status: "soon",
+        summary: "Builder workflows",
+      },
+      {
+        id: "field-services",
+        label: "Field Services",
+        status: "soon",
+        summary: "Professional field services",
+      },
+    ],
+  },
+  {
+    platformId: "commerce",
+    label: "Commerce",
+    icon: "🛒",
+    price: "+$99/mo",
+    expansion: "Coming soon — Retail · E-commerce · Wholesale",
+    description:
+      "Product businesses — not a separate Retail App. Order → Payment → Fulfilment.",
+    proposition: "Retail, e-commerce, wholesale and distribution templates.",
+    roadmap: "coming",
+    specialisations: [
+      { id: "retail", label: "Retail", status: "soon", summary: "Storefront & multi-location" },
+      { id: "ecommerce", label: "E-commerce", status: "soon", summary: "Online commerce" },
+      { id: "wholesale", label: "Wholesale", status: "soon", summary: "B2B wholesale" },
+      { id: "distribution", label: "Distribution", status: "future", summary: "Distribution" },
+    ],
+  },
+  {
+    platformId: "automotive",
+    label: "Automotive",
+    icon: "🚗",
+    price: "+$99/mo",
+    expansion: "1 specialisation included · +$29/mo each additional",
+    description: "Dealerships, mechanical, auto services and detailing.",
+    proposition: "Inventory, quoting, servicing and follow-up on Core.",
+    roadmap: "coming",
+    specialisations: [
+      {
+        id: "dealerships",
+        label: "Dealerships",
+        appId: "automotive",
+        status: "soon",
+        summary: "Vehicle sales pipelines",
+      },
+      {
+        id: "mechanical",
+        label: "Mechanical",
+        status: "soon",
+        summary: "Workshop jobs",
+      },
+      {
+        id: "automotive-services",
+        label: "Automotive Services",
+        status: "soon",
+        summary: "Service workflows",
+      },
+      {
+        id: "detailing",
+        label: "Detailing",
+        status: "soon",
+        summary: "Detailing services",
+      },
+    ],
+  },
+  {
+    platformId: "creator",
+    label: "Creator",
+    icon: "🎨",
+    price: "+$99/mo",
+    expansion: "1 specialisation included · +$29/mo each additional",
+    description: "Creators, music, media and artists.",
+    proposition: "Audience, content and memberships — lighter ops than Services.",
+    roadmap: "coming",
+    specialisations: [
+      {
+        id: "creators",
+        label: "Creators",
+        appId: "creator",
+        status: "rolling-out",
+        summary: "Creator businesses",
+      },
+      {
+        id: "music-media",
+        label: "Music & Media",
+        status: "soon",
+        summary: "Music and media businesses",
+      },
+      {
+        id: "artists",
+        label: "Artists",
+        status: "soon",
+        summary: "Artists and creatives",
+      },
+    ],
+  },
+];
+
+/** @deprecated Prefer INDUSTRY_PLATFORM_CATALOG — flat module list for toggles */
 export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
   {
     appId: "real-estate",
     industryKey: "real-estate",
     label: "Real Estate",
     icon: "🏠",
-    price: "+$99/mo",
-    description: "Vendor leads, appraisals, listings & buyer pipelines",
+    price: "Property",
+    description: "Property specialisation — vendors, appraisals, listings & buyers",
     status: "live",
   },
   {
@@ -158,8 +405,8 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
     industryKey: "accommodation",
     label: "Accommodation",
     icon: "🏨",
-    price: "+$99/mo",
-    description: "Bookings, guests, housekeeping & OTA sync",
+    price: "Property",
+    description: "Property specialisation — bookings, guests & short-stay",
     status: "rolling-out",
   },
   {
@@ -167,8 +414,8 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
     industryKey: "property-management",
     label: "Property Management",
     icon: "🔑",
-    price: "+$99/mo",
-    description: "Long-term rentals — owners, tenants, leases & maintenance",
+    price: "Property",
+    description: "Property specialisation — owners, tenants, leases",
     status: "soon",
   },
   {
@@ -176,8 +423,8 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
     industryKey: "commercial",
     label: "Commercial Property",
     icon: "🏢",
-    price: "+$99/mo",
-    description: "Commercial sales, leasing, landlords, tenants & assets",
+    price: "Property",
+    description: "Property specialisation — commercial sales & leasing",
     status: "soon",
   },
   {
@@ -186,7 +433,7 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
     label: "Services",
     icon: "🔧",
     price: "+$99/mo",
-    description: "One App for trades — jobs, quotes, schedule; industry via Service Templates",
+    description: "Services Industry — jobs & quotes; trades via Service Templates",
     status: "soon",
   },
   {
@@ -195,7 +442,7 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
     label: "Finance",
     icon: "💰",
     price: "+$99/mo",
-    description: "Loans, lenders, borrowers & finance pipeline",
+    description: "Finance Industry — Accounting first; broking, planning, insurance templates",
     status: "soon",
   },
   {
@@ -204,7 +451,7 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
     label: "Automotive",
     icon: "🚗",
     price: "+$99/mo",
-    description: "Inventory, test drives & dealership pipelines",
+    description: "Automotive Industry — dealerships, mechanical & detailing",
     status: "soon",
   },
   {
@@ -213,7 +460,7 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
     label: "Creator",
     icon: "✨",
     price: "+$99/mo",
-    description: "Audience tools, content & creator studio",
+    description: "Creator Industry — audience, content & studio",
     status: "rolling-out",
   },
 ];

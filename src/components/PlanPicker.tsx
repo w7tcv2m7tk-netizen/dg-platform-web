@@ -3,11 +3,12 @@
 import { useMemo, useState } from "react";
 import {
   ADDONS,
-  INDUSTRY_APPS,
+  INDUSTRY_PLATFORMS,
   PLATFORM_TIERS,
   PREMIUM_APPS,
   type Addon,
   type IndustryApp,
+  type IndustryPlatformKey,
   type PlatformTier,
   type PremiumApp,
   type SignupSelection,
@@ -26,9 +27,20 @@ function toggle<T extends string>(list: T[], value: T): T[] {
 
 export function PlanPicker({ onContinue, continueLabel = "Continue to checkout" }: PlanPickerProps) {
   const [platformTier, setPlatformTier] = useState<PlatformTier | "">("");
-  const [industryApps, setIndustryApps] = useState<IndustryApp[]>([]);
+  const [industryPlatforms, setIndustryPlatforms] = useState<IndustryPlatformKey[]>([]);
   const [premiumApps, setPremiumApps] = useState<PremiumApp[]>([]);
   const [addons, setAddons] = useState<Addon[]>([]);
+
+  const industryApps = useMemo<IndustryApp[]>(() => {
+    const apps: IndustryApp[] = [];
+    for (const key of industryPlatforms) {
+      const platform = INDUSTRY_PLATFORMS.find((p) => p.key === key);
+      if (platform?.defaultApp && !apps.includes(platform.defaultApp)) {
+        apps.push(platform.defaultApp);
+      }
+    }
+    return apps;
+  }, [industryPlatforms]);
 
   const selection = useMemo<SignupSelection>(
     () => ({ platformTier, industryApps, premiumApps, addons }),
@@ -66,23 +78,30 @@ export function PlanPicker({ onContinue, continueLabel = "Continue to checkout" 
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold text-white">Industry apps</h2>
-        <div className="flex flex-wrap gap-2">
-          {INDUSTRY_APPS.map((app) => (
+        <h2 className="mb-1 text-lg font-semibold text-white">Industry Apps</h2>
+        <p className="mb-3 text-sm text-slate-500">
+          $99/mo each — one specialisation included. Additional specialisations +$29/mo. Not “five
+          Property apps for $99.”
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {INDUSTRY_PLATFORMS.map((platform) => (
             <button
-              key={app.key}
+              key={platform.key}
               type="button"
               onClick={() =>
-                setIndustryApps((prev) => toggle(prev, app.key))
+                setIndustryPlatforms((prev) => toggle(prev, platform.key))
               }
-              className={`rounded-full border px-4 py-2 text-sm transition ${
-                industryApps.includes(app.key)
-                  ? "border-blue-500 bg-blue-500/20 text-white"
-                  : "border-slate-700 text-slate-300 hover:border-slate-500"
+              className={`rounded-xl border p-4 text-left transition ${
+                industryPlatforms.includes(platform.key)
+                  ? "border-blue-500 bg-blue-500/10"
+                  : "border-slate-700 bg-slate-900 hover:border-slate-600"
               }`}
             >
-              {app.label}{" "}
-              <span className="text-slate-500">{app.price}</span>
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="font-semibold text-white">{platform.label}</span>
+                <span className="text-sm text-blue-400">{platform.price}</span>
+              </div>
+              <p className="mt-1 text-xs text-slate-400">{platform.specialisations}</p>
             </button>
           ))}
         </div>

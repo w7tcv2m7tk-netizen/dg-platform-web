@@ -3,7 +3,7 @@ import type { AppManifest } from "../manifest";
 export const financeApp: AppManifest = {
   id: "finance",
   name: "Finance",
-  description: "Loan pipeline, client applications, and broker workflow",
+  description: "Finance Industry — Accounting & Bookkeeping first; broking, planning, insurance and advisory templates",
   tier: "business",
   version: "0.2.0",
   icon: "◫",

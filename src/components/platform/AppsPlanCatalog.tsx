@@ -14,6 +14,7 @@ import type { PlatformTier } from "@/lib/plans";
 import {
   GROWTH_APP_CATALOG,
   INDUSTRY_APP_CATALOG,
+  INDUSTRY_PLATFORM_CATALOG,
   PLATFORM_ADDON_CATALOG,
   PLATFORM_CAPABILITY_CATALOG,
   PLATFORM_TIER_CATALOG,
@@ -347,26 +348,94 @@ export function AppsPlanCatalog() {
 
       <section id="apps" className="scroll-mt-24">
         <SectionHeader
-          label="🧩 3 · Apps"
-          title="Industry apps"
-          description="Turn each vertical on or off as you develop or sell it — including Coming soon apps. Only enabled apps appear in the Industry sidebar."
+          label="🧩 3 · Industry Apps"
+          title="Built around how your business operates"
+          description="Choose an Industry Platform ($99/mo), activate one specialisation, then add more as you grow (+$29/mo). Templates configure objects, pipelines, workflows and AI — not just the dashboard label. One platform. One source of truth."
         />
-        <div id="industry-apps" className="scroll-mt-24">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {INDUSTRY_APP_CATALOG.map((item) => (
-              <CatalogAppCard
-                key={item.appId}
-                appId={item.appId}
-                icon={item.icon}
-                label={item.label}
-                price={item.price}
-                description={item.description}
-                status={item.status}
-                enabled={enabledIds.includes(item.appId)}
-                primaryHref={appHref(item.appId)}
-              />
-            ))}
-          </div>
+        <div id="industry-apps" className="scroll-mt-24 space-y-6">
+          {INDUSTRY_PLATFORM_CATALOG.map((platform) => (
+            <div
+              key={platform.platformId}
+              className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span aria-hidden className="text-xl">
+                      {platform.icon}
+                    </span>
+                    <h3 className="text-lg font-bold text-white">{platform.label}</h3>
+                    <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-300">
+                      {platform.roadmap === "founding"
+                        ? "Founding"
+                        : platform.roadmap === "coming"
+                          ? "Coming soon"
+                          : "Future"}
+                    </span>
+                  </div>
+                  <p className="mt-1 max-w-2xl text-sm text-slate-400">{platform.description}</p>
+                  <p className="mt-1 text-xs text-slate-500">{platform.proposition}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-white">{platform.price}</p>
+                  <p className="text-[11px] text-slate-500">{platform.expansion}</p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {platform.specialisations.map((spec) => {
+                  const appId = spec.appId;
+                  const canToggle = Boolean(appId && platformApps.get(appId));
+                  const enabled = appId ? enabledIds.includes(appId) : false;
+                  const setupGuide = appId ? getAppSetupGuide(appId) : undefined;
+                  const href = appId ? appHref(appId) : undefined;
+                  return (
+                    <div
+                      key={spec.id}
+                      className="flex flex-col rounded-xl border border-slate-800 bg-slate-950/60 p-4 text-left"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-semibold text-white">{spec.label}</h4>
+                        {statusBadge(
+                          spec.status === "future" ? "soon" : (spec.status as CatalogStatus),
+                        )}
+                      </div>
+                      <p className="mt-1 flex-1 text-xs text-slate-400">{spec.summary}</p>
+                      {canToggle && appId ? (
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <AppInstallToggle appId={appId} enabled={enabled} />
+                          {href ? (
+                            <Link
+                              href={href}
+                              className="text-xs font-medium text-blue-400 hover:text-blue-300"
+                            >
+                              Open →
+                            </Link>
+                          ) : null}
+                          {setupGuide ? (
+                            <Link
+                              href={getAppSetupHref(appId)}
+                              className="text-xs text-slate-500 hover:text-slate-300"
+                            >
+                              Setup
+                            </Link>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-[11px] text-slate-600">
+                          Template planned — activate with Industry subscription
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          <p className="text-xs text-slate-500">
+            Future industries (Healthcare, Education, Hospitality) are on the roadmap — see Command
+            Centre → Platform docs → Industry Platform. Accommodation stays under Property, not
+            Hospitality.
+          </p>
         </div>
       </section>
 

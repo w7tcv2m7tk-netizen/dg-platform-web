@@ -72,7 +72,9 @@ export interface NavIaSection {
 const OPERATE_APP_ORDER = ["crm", "commerce", "websites", "infrastructure"] as const;
 
 /**
- * Industry — specialised Apps, only when the org has them enabled.
+ * Industry — specialised modules (map to Industry Platform → Specialisation).
+ * Commercial packaging: Property / Finance / Services / Commerce / Automotive / Creator.
+ * @see packages/platform-core/src/industry/platform.ts
  */
 const INDUSTRY_APP_ORDER = [
   "real-estate",

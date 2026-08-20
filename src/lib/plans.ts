@@ -52,15 +52,81 @@ export const PLATFORM_TIERS: {
   },
 ];
 
-export const INDUSTRY_APPS: { key: IndustryApp; label: string; price: string }[] = [
-  { key: "real-estate", label: "Real Estate", price: "+$99/mo" },
-  { key: "accommodation", label: "Accommodation", price: "+$99/mo" },
-  { key: "property-management", label: "Property Management", price: "+$99/mo" },
-  { key: "commercial", label: "Commercial Property", price: "+$99/mo" },
-  { key: "services", label: "Services", price: "+$99/mo" },
-  { key: "finance", label: "Finance", price: "+$99/mo" },
-  { key: "automotive", label: "Automotive", price: "+$99/mo" },
-  { key: "creator", label: "Creator", price: "+$99/mo" },
+/**
+ * Industry Platforms customers buy ($99/mo). Selecting a platform activates a
+ * default specialisation module until billing migrates to a single Property SKU.
+ * @see @dg/platform-core industry/platform.ts
+ */
+export type IndustryPlatformKey =
+  | "property"
+  | "finance"
+  | "services"
+  | "commerce"
+  | "automotive"
+  | "creator";
+
+export const INDUSTRY_PLATFORMS: {
+  key: IndustryPlatformKey;
+  label: string;
+  price: string;
+  specialisations: string;
+  /** Default Gen 2 module enabled when this Industry is selected at signup */
+  defaultApp: IndustryApp | null;
+}[] = [
+  {
+    key: "property",
+    label: "Property",
+    price: "+$99/mo",
+    specialisations: "Real Estate · PM · Accommodation · Commercial · Development",
+    defaultApp: "real-estate",
+  },
+  {
+    key: "finance",
+    label: "Finance",
+    price: "+$99/mo",
+    specialisations: "Accounting · Planning · Broking · Insurance · Advisory",
+    defaultApp: "finance",
+  },
+  {
+    key: "services",
+    label: "Services",
+    price: "+$99/mo",
+    specialisations: "Trades · Cleaning · Maintenance · Construction · Field",
+    defaultApp: "services",
+  },
+  {
+    key: "commerce",
+    label: "Commerce",
+    price: "+$99/mo",
+    specialisations: "Retail · E-commerce · Wholesale · Distribution",
+    defaultApp: null,
+  },
+  {
+    key: "automotive",
+    label: "Automotive",
+    price: "+$99/mo",
+    specialisations: "Dealerships · Mechanical · Auto Services · Detailing",
+    defaultApp: "automotive",
+  },
+  {
+    key: "creator",
+    label: "Creator",
+    price: "+$99/mo",
+    specialisations: "Creators · Music · Media · Artists",
+    defaultApp: "creator",
+  },
+];
+
+/** @deprecated Prefer INDUSTRY_PLATFORMS — kept for Stripe / enabled-app toggles */
+export const INDUSTRY_APPS: { key: IndustryApp; label: string; price: string; under: string }[] = [
+  { key: "real-estate", label: "Real Estate", price: "Property · included*", under: "property" },
+  { key: "accommodation", label: "Accommodation", price: "Property · +$29*", under: "property" },
+  { key: "property-management", label: "Property Management", price: "Property · +$29*", under: "property" },
+  { key: "commercial", label: "Commercial Property", price: "Property · +$29*", under: "property" },
+  { key: "services", label: "Services", price: "+$99/mo", under: "services" },
+  { key: "finance", label: "Finance", price: "+$99/mo", under: "finance" },
+  { key: "automotive", label: "Automotive", price: "+$99/mo", under: "automotive" },
+  { key: "creator", label: "Creator", price: "+$99/mo", under: "creator" },
 ];
 
 export const PREMIUM_APPS: { key: PremiumApp; label: string; price: string }[] = [

@@ -4,7 +4,7 @@
 **Classification:** **One Business App** with **Service Templates** — not separate Apps per trade; **not** a standalone ServiceM8 clone  
 **App id:** `services`  
 **Benchmark:** ServiceM8-class operational coverage (AU field service) — use as a **capability checklist**, not a product clone  
-**Related:** [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) · [COMMERCE-SPECIFICATION.md](../commerce/COMMERCE-SPECIFICATION.md) · [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) · [APP-HIERARCHY.md](./APP-HIERARCHY.md) · [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) · [SERVICES-BETA-LAUNCH.md](./SERVICES-BETA-LAUNCH.md)
+**Related:** [INDUSTRY-PLATFORM.md](./INDUSTRY-PLATFORM.md) · [CAPABILITY-MODEL.md](../CAPABILITY-MODEL.md) · [COMMERCE-SPECIFICATION.md](../commerce/COMMERCE-SPECIFICATION.md) · [BUSINESS-PROFILE.md](./BUSINESS-PROFILE.md) · [APP-HIERARCHY.md](./APP-HIERARCHY.md) · [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) · [SERVICES-BETA-LAUNCH.md](./SERVICES-BETA-LAUNCH.md)
 
 ---
 

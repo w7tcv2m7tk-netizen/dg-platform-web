@@ -76,9 +76,17 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "app-hierarchy",
     title: "App Hierarchy",
     summary:
-      "Canonical public order: Core → Infrastructure → Industry → Growth (platform capabilities across).",
+      "Canonical order: Core → Infrastructure → Industry → Specialisation → Template → Growth → Intelligence.",
     group: "architecture",
     relativePath: "foundations/APP-HIERARCHY.md",
+  },
+  {
+    slug: "industry-platform",
+    title: "Industry Platform",
+    summary:
+      "Industry App → Specialisation → Template. Property / Finance / Services / Commerce commercial lock ($99 + $29 expansion).",
+    group: "architecture",
+    relativePath: "foundations/INDUSTRY-PLATFORM.md",
   },
   {
     slug: "intelligent-layer",
@@ -386,7 +394,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "property-ecosystem",
     title: "Property Ecosystem",
     summary:
-      "Real Estate Sales · Property Management · Commercial Property · Accommodation · Property Development (future).",
+      "Property Industry App — specialisations: Real Estate · PM · Accommodation · Commercial · Development. Commercial packaging $99 + $29 expansion.",
     group: "apps",
     relativePath: "foundations/PROPERTY-ECOSYSTEM.md",
   },

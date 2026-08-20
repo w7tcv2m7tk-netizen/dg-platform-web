@@ -101,6 +101,7 @@ export * from "./founding";
 export * from "./partners";
 export * from "./delivery";
 export * from "./brain";
+export * from "./industry";
 export * from "./demo";
 export * from "./roadmap";
 export * from "./app-guides";

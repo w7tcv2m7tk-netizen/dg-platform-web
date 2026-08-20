@@ -12,12 +12,13 @@ This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI
 | Layer | Rule |
 |-------|------|
 | **Platform** | Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** · Enterprise custom |
-| **Apps** | Additional. Industry and Growth Apps are **not** included in platform tier pricing |
+| **Industry Apps** | Industry Platform **$99/mo** (Property, Finance, Services, Commerce, …) — **one specialisation included**; additional specialisations **+$29/mo**. See [INDUSTRY-PLATFORM.md](../foundations/INDUSTRY-PLATFORM.md) |
+| **Growth Apps** | Additional. Not included in platform tier pricing |
 | **Professional Services** | Optional people work — never required to use the platform |
 | **Customer Success plans** | Standard included; Priority / Success Partner optional |
 | **AI / Twin / Intelligence** | Across the platform — not sold as separate Apps |
 
-Do not publish “1 Industry App included” or “Unlimited Industry Apps.”
+Do not publish “1 Industry App included” in the **platform** tier, “Unlimited Industry Apps,” or “all Property apps for $99.”
 
 ## Founding 10 (active cohort)
 
