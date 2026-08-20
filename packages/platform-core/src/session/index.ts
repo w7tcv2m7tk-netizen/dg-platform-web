@@ -7,6 +7,8 @@ export interface PlatformSession {
   organisationSlug: string;
   membershipId: string;
   role: string;
+  /** Optional granular grants from membership.permissions */
+  permissionGrants?: unknown;
   dbConfigured: boolean;
   organisations: import("../org/memberships").UserOrganisationSummary[];
 }
@@ -88,6 +90,10 @@ export async function resolvePlatformSession(
     organisationSlug: membership.organisation.slug,
     membershipId: membership.id,
     role: membership.role,
+    permissionGrants:
+      (membership as { permissions?: unknown }).permissions ??
+      ((membership.externalRefs as { permissionGrants?: unknown } | null)?.permissionGrants ??
+        undefined),
     dbConfigured: true,
     organisations,
   };

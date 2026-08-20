@@ -165,6 +165,22 @@ Do **not** hard-code a role for every job title.
 
 ---
 
+## Implementation status
+
+| Layer | Status |
+|-------|--------|
+| Locked docs + types | Done — `access/roles.ts`, this document |
+| Role defaults + evaluator | Done — `access/defaults.ts`, `access/evaluate.ts` |
+| DB role bridge (`owner`/`admin`/`member`) | Done — `access/membership-role.ts` |
+| Membership `permissions` JSON grants | Done — schema + migration |
+| Side panel filter by role | Done — `access/nav-filter.ts` → `EnabledAppsProvider` |
+| API `requirePermission` / feature bridge | Done — `src/lib/platform-api.ts`, `features/access.ts` |
+| Team role assign (Admin/Member) | Done — Team settings + `PATCH /api/v1/org/team` |
+| Record-scope enforcement (own/assigned) on every CRM query | Progressive — use `assignedUserId` filters where APIs already support; expand per module |
+| Custom named roles (Salesperson, …) | Architecture ready via grants — UI for grant editor next |
+
+---
+
 ## Code map
 
 | Surface | Path |
@@ -174,3 +190,6 @@ Do **not** hard-code a role for every job title.
 | Industry map | `packages/platform-core/src/industry/platform.ts` |
 | Delivery / reseller nav | `packages/platform-core/src/partners/delivery-workspace.ts` |
 | Command Centre access | `packages/platform-core/src/command-centre/access.ts` |
+| API guards | `src/lib/platform-api.ts` → `requirePermission` / `requireFeature` |
+| Team roles UI | `src/components/platform/TeamRoleSelect.tsx` |
+

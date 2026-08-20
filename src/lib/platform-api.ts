@@ -2,11 +2,16 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import {
   apiKeyToPlatformSession,
   bootConnectorEngine,
+  buildAccessContext,
+  hasPermission,
   isDemoOrganisationId,
   DEMO_RESTRICTED_MESSAGE,
   registerNotificationEventHandlers,
   sessionHasFeature,
   verifyPlatformApiKey,
+  type PermissionAction,
+  type PermissionModule,
+  type PermissionScope,
   type PlatformSession,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
@@ -151,6 +156,37 @@ export function requireFeature(
   return null;
 }
 
+/** Enforce locked permission model (module + action + scope). */
+export function requirePermission(
+  session: PlatformSession,
+  check: {
+    module: PermissionModule;
+    action: PermissionAction;
+    scope?: PermissionScope;
+    subModule?: string;
+  },
+): NextResponse | null {
+  const ctx = buildAccessContext({
+    role: session.role,
+    organisationSlug: session.organisationSlug,
+    email: session.email,
+    enabledAppIds: [],
+    grants: session.permissionGrants,
+  });
+  if (!hasPermission(ctx, check)) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "forbidden",
+          message: `Insufficient permissions for ${check.module}.${check.action}`,
+        },
+      },
+      { status: 403 },
+    );
+  }
+  return null;
+}
+
 export type PlatformAuthContext =
   | { mode: "session"; session: PlatformSession }
   | { mode: "connector" };
@@ -192,12 +228,11 @@ export function requireOrgAdmin(session: PlatformSession): NextResponse | null {
     );
   }
 
-  if (!["owner", "admin"].includes(session.role)) {
-    return NextResponse.json(
-      { error: { code: "forbidden", message: "Organisation admin required" } },
-      { status: 403 },
-    );
-  }
+  if (["owner", "admin"].includes(session.role)) return null;
 
-  return null;
+  return requirePermission(session, {
+    module: "team",
+    action: "manage",
+    scope: "organisation",
+  });
 }

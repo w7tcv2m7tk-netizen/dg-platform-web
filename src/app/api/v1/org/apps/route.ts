@@ -5,7 +5,7 @@ import {
   resolveEnabledAppIds,
 } from "@dg/platform-core";
 
-import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
+import { isNextResponse, requirePermission, requirePlatformSession } from "@/lib/platform-api";
 
 type OrgSettings = {
   apps?: {
@@ -69,8 +69,20 @@ export async function PATCH(req: Request) {
   let enabled = resolveEnabledAppIds(settings);
 
   if (body.action === "apply_plan" && body.plan) {
+    const denied = requirePermission(session, {
+      module: "settings",
+      action: "manage",
+      scope: "organisation",
+    });
+    if (denied && session.role !== "owner" && session.role !== "admin") return denied;
     enabled = appIdsFromPlanSelection(body.plan);
   } else if (body.action === "toggle" && typeof body.appId === "string") {
+    const denied = requirePermission(session, {
+      module: "settings",
+      action: "manage",
+      scope: "organisation",
+    });
+    if (denied && session.role !== "owner" && session.role !== "admin") return denied;
     const set = new Set(enabled);
     if (body.enabled === true) set.add(body.appId);
     else if (body.enabled === false) set.delete(body.appId);

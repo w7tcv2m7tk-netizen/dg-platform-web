@@ -107,6 +107,11 @@ model Membership {
   avatarUrl      String?  @map("avatar_url")
   /** WordPress agent post ID when synced */
   externalRefs   Json?    @map("external_refs")
+  /**
+   * Granular permission grants (PermissionGrant[]) — overrides role defaults.
+   * @see packages/platform-core/src/access/
+   */
+  permissions    Json?
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 

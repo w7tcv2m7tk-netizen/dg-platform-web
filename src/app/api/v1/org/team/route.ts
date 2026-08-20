@@ -4,6 +4,7 @@ import {
   publishMembershipToWordPressAgent,
   removeOrganisationMember,
   updateMembershipProfile,
+  updateMembershipRole,
 } from "@dg/platform-core";
 import { pushMembershipProfileToClerk } from "@dg/platform-core/org/membership-profile-clerk";
 import { NextResponse } from "next/server";
@@ -39,6 +40,29 @@ export async function PATCH(req: Request) {
       { error: { code: "not_found", message: "Team member not found" } },
       { status: 404 },
     );
+  }
+
+  if (typeof body.role === "string" && (body.role === "admin" || body.role === "member")) {
+    if (session.role !== "owner" && session.role !== "admin") {
+      return NextResponse.json(
+        { error: { code: "forbidden", message: "Organisation admin required" } },
+        { status: 403 },
+      );
+    }
+    const result = await updateMembershipRole({
+      organisationId: session.organisationId,
+      membershipId,
+      role: body.role,
+      actorRole: session.role,
+      actorMembershipId: session.membershipId,
+    });
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: { code: result.code, message: result.message } },
+        { status: result.code === "not_found" ? 404 : 403 },
+      );
+    }
+    return NextResponse.json({ data: { member: result.member } });
   }
 
   const isSelf = target.clerkUserId === session.clerkUserId;

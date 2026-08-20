@@ -18,6 +18,8 @@ export type MembershipProfile = {
   /** Clerk account image when available (may differ from avatarUrl override). */
   clerkImageUrl?: string | null;
   externalRefs: Record<string, unknown> | null;
+  /** Granular permission grants */
+  permissions: unknown;
   createdAt: string;
   updatedAt: string;
 };
@@ -57,6 +59,7 @@ function serializeMembership(m: {
   phone: string | null;
   avatarUrl: string | null;
   externalRefs: unknown;
+  permissions?: unknown;
   createdAt: Date;
   updatedAt: Date;
 }): MembershipProfile {
@@ -74,6 +77,7 @@ function serializeMembership(m: {
     phone: m.phone,
     avatarUrl: m.avatarUrl,
     externalRefs: (m.externalRefs as Record<string, unknown> | null) ?? null,
+    permissions: m.permissions ?? null,
     createdAt: m.createdAt.toISOString(),
     updatedAt: m.updatedAt.toISOString(),
   };
@@ -242,6 +246,62 @@ export type RemoveOrganisationMemberResult =
         | "db_unavailable";
       message: string;
     };
+
+/**
+ * Change a teammate’s organisation role (admin | member). Owners are fixed.
+ */
+export async function updateMembershipRole(input: {
+  organisationId: string;
+  membershipId: string;
+  role: "admin" | "member";
+  actorRole: string;
+  actorMembershipId: string;
+}): Promise<
+  | { ok: true; member: MembershipProfile }
+  | { ok: false; code: string; message: string }
+> {
+  if (!process.env.DATABASE_URL) {
+    return { ok: false, code: "db_unavailable", message: "Database not configured" };
+  }
+
+  const { prisma } = await import("@dg/database");
+  const target = await prisma.membership.findFirst({
+    where: { id: input.membershipId, organisationId: input.organisationId },
+  });
+  if (!target) {
+    return { ok: false, code: "not_found", message: "Team member not found" };
+  }
+  if (target.role === "owner") {
+    return {
+      ok: false,
+      code: "forbidden_owner",
+      message: "Cannot change the Organisation Owner role here",
+    };
+  }
+  if (input.actorMembershipId === target.id && input.actorRole !== "owner") {
+    return {
+      ok: false,
+      code: "forbidden_self",
+      message: "You cannot change your own role",
+    };
+  }
+  if (input.actorRole !== "owner" && input.actorRole !== "admin") {
+    return {
+      ok: false,
+      code: "forbidden",
+      message: "Only owners and admins can change roles",
+    };
+  }
+  if (input.actorRole === "admin" && input.role === "admin" && target.role === "member") {
+    // admins may promote to admin
+  }
+
+  const updated = await prisma.membership.update({
+    where: { id: target.id },
+    data: { role: input.role },
+  });
+  return { ok: true, member: serializeMembership(updated) };
+}
 
 /**
  * Soft-remove a teammate from this organisation (status → removed).

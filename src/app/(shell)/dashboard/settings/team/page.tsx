@@ -8,6 +8,7 @@ import { enrichMembersWithClerkAccount } from "@dg/platform-core/org/membership-
 
 import { TeamInviteForm } from "@/components/platform/TeamInviteForm";
 import { TeamProfileEditor } from "@/components/platform/TeamProfileEditor";
+import { TeamRoleSelect } from "@/components/platform/TeamRoleSelect";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
 
@@ -63,14 +64,22 @@ export default async function TeamSettingsPage() {
           <h2 className="font-semibold text-white">Role clarity</h2>
           <ul className="mt-3 space-y-2 text-sm text-slate-400">
             <li>
-              <span className="font-medium text-slate-200">Owner / Admin:</span> billing,
-              invites, connectors, and most writes.
+              <span className="font-medium text-slate-200">Organisation Owner:</span> full
+              organisation — billing, users, Apps, security. Not platform admin.
             </li>
             <li>
-              <span className="font-medium text-slate-200">Member:</span> primarily read —
-              ask an owner for billing, invites, connector, or privileged changes.
+              <span className="font-medium text-slate-200">Organisation Admin:</span>{" "}
+              operational management — CRM, Apps, team invites; no ownership transfer.
+            </li>
+            <li>
+              <span className="font-medium text-slate-200">Organisation Member:</span>{" "}
+              assigned records and enabled Apps — no billing or user administration by
+              default. Granular grants can extend access.
             </li>
           </ul>
+          <p className="mt-3 text-xs text-slate-500">
+            Permissions are enforced in the API, not only by hiding sidebar items.
+          </p>
         </div>
 
         <div className="dg-card max-w-2xl">
@@ -88,27 +97,36 @@ export default async function TeamSettingsPage() {
             {members.map((member) => {
               const isMe = member.clerkUserId === session.clerkUserId;
               return (
-                <TeamProfileEditor
-                  key={member.id}
-                  canEdit={isMe || isOwner}
-                  canRemove={isOwner && !isMe}
-                  member={{
-                    id: member.id,
-                    displayName: member.displayName,
-                    email: member.email,
-                    publicEmail: member.publicEmail,
-                    role: member.role,
-                    bio: member.bio,
-                    jobTitle: member.jobTitle,
-                    phone: member.phone,
-                    avatarUrl: member.avatarUrl,
-                    clerkImageUrl: member.clerkImageUrl ?? (isMe ? user?.imageUrl : null),
-                    isMe,
-                    wpAgentPermalink: member.externalRefs?.wp_agent_permalink as
-                      | string
-                      | undefined,
-                  }}
-                />
+                <div key={member.id} className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 px-1">
+                    <span className="text-xs text-slate-500">Role</span>
+                    <TeamRoleSelect
+                      membershipId={member.id}
+                      role={member.role}
+                      disabled={!isOwner || isMe || member.role === "owner"}
+                    />
+                  </div>
+                  <TeamProfileEditor
+                    canEdit={isMe || isOwner}
+                    canRemove={isOwner && !isMe}
+                    member={{
+                      id: member.id,
+                      displayName: member.displayName,
+                      email: member.email,
+                      publicEmail: member.publicEmail,
+                      role: member.role,
+                      bio: member.bio,
+                      jobTitle: member.jobTitle,
+                      phone: member.phone,
+                      avatarUrl: member.avatarUrl,
+                      clerkImageUrl: member.clerkImageUrl ?? (isMe ? user?.imageUrl : null),
+                      isMe,
+                      wpAgentPermalink: member.externalRefs?.wp_agent_permalink as
+                        | string
+                        | undefined,
+                    }}
+                  />
+                </div>
               );
             })}
           </div>

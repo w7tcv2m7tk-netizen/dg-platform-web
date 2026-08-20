@@ -2,6 +2,8 @@
 
 import {
   appIdsFromPlanSelection,
+  buildAccessContext,
+  filterNavigationByAccess,
   getCategorizedPlatformNavigation,
   getDefaultEnabledAppIds,
   getPartnerWorkspaceShellLinks,
@@ -39,14 +41,6 @@ async function persistToggle(appId: string, enabled: boolean) {
   });
 }
 
-async function persistSet(enabled: string[]) {
-  await fetch("/api/v1/org/apps", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "set", enabled }),
-  });
-}
-
 async function persistPlan(plan: PlanSelectionInput) {
   await fetch("/api/v1/org/apps", {
     method: "PATCH",
@@ -69,6 +63,10 @@ export function EnabledAppsProvider({
   showPartnerPortal = false,
   showResellerAdmin = false,
   partnerType = null,
+  membershipRole = "member",
+  organisationSlug,
+  userEmail,
+  permissionGrants,
   children,
 }: {
   initialEnabledIds: string[];
@@ -76,6 +74,10 @@ export function EnabledAppsProvider({
   showPartnerPortal?: boolean;
   showResellerAdmin?: boolean;
   partnerType?: PartnerType | null;
+  membershipRole?: string;
+  organisationSlug?: string;
+  userEmail?: string;
+  permissionGrants?: unknown;
   children: React.ReactNode;
 }) {
   const [enabledIds, setEnabledIdsState] = useState(initialEnabledIds);
@@ -146,16 +148,32 @@ export function EnabledAppsProvider({
     setSyncing(false);
   }, [setEnabledIds]);
 
-  const nav = useMemo(
-    () =>
-      getCategorizedPlatformNavigation(enabledIds, {
-        showCommandCentre,
-        showPartnerPortal,
-        showResellerAdmin,
-        partnerType,
-      }),
-    [enabledIds, showCommandCentre, showPartnerPortal, showResellerAdmin, partnerType],
-  );
+  const nav = useMemo(() => {
+    const base = getCategorizedPlatformNavigation(enabledIds, {
+      showCommandCentre,
+      showPartnerPortal,
+      showResellerAdmin,
+      partnerType,
+    });
+    const ctx = buildAccessContext({
+      role: membershipRole,
+      organisationSlug,
+      email: userEmail,
+      enabledAppIds: enabledIds,
+      grants: permissionGrants,
+    });
+    return filterNavigationByAccess(base, ctx);
+  }, [
+    enabledIds,
+    showCommandCentre,
+    showPartnerPortal,
+    showResellerAdmin,
+    partnerType,
+    membershipRole,
+    organisationSlug,
+    userEmail,
+    permissionGrants,
+  ]);
 
   const value = useMemo(
     () => ({
@@ -177,13 +195,15 @@ export function EnabledAppsProvider({
 
 export function useEnabledApps() {
   const ctx = useContext(EnabledAppsContext);
-  if (!ctx) {
-    throw new Error("useEnabledApps must be used within EnabledAppsProvider");
-  }
+  if (!ctx) throw new Error("useEnabledApps must be used within EnabledAppsProvider");
   return ctx;
 }
 
-/** Optional hook for components outside provider (falls back to defaults). */
 export function useEnabledAppsOptional() {
   return useContext(EnabledAppsContext);
+}
+
+/** Partner shell links helper kept for callers */
+export function usePartnerShellLinks(partnerType?: PartnerType | null) {
+  return getPartnerWorkspaceShellLinks(partnerType);
 }

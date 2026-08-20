@@ -39,7 +39,17 @@ export function canAccessCommandCentre(input: CommandCentreAccessInput): boolean
 }
 
 /** Industry apps hidden from DigitalGate operator org navigation. */
-export const OPERATOR_ORG_HIDDEN_APP_IDS = ["real-estate", "accommodation"] as const;
+export const OPERATOR_ORG_HIDDEN_APP_IDS = [
+  "real-estate",
+  "accommodation",
+  "property-management",
+  "commercial",
+  "property-development",
+  "services",
+  "finance",
+  "automotive",
+  "creator",
+] as const;
 
 export function filterEnabledAppsForOperatorOrg(
   enabledIds: string[],
