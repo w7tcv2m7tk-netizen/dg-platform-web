@@ -46,7 +46,7 @@ SEO (title, description, keywords, OG) is set on each page in Studio via sync â€
 
 - **Studio:** [DigitalGate Website Studio](https://app.digitalgate.com.au/apps/websites/studio/cmskwz6zv0001l404cfi1wal4)
 - **Hub:** https://digitalgate.com.au/apps/
-- **Tier 1 examples:** `/apps/core/crm/`, `/apps/industry/real-estate/`, `/apps/growth/prospecting/`
+- **Tier 1 examples:** `/apps/core/crm/`, `/apps/industry/property/` (Industry), `/apps/industry/real-estate/` (Property Template), `/apps/growth/prospecting/`
 
 Re-run `npm run sync:dg-apps` after editing `catalog.mjs` or `build.mjs`.
 

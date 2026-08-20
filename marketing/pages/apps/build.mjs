@@ -52,6 +52,15 @@ const CSS = `
 .dg-app .badge.full { border-color: rgba(59,130,246,0.45); color: #BFDBFE; background: rgba(59,130,246,0.12); }
 .dg-app .badge.lite { border-color: rgba(45,212,191,0.35); color: #99F6E4; }
 .dg-app .badge.soon { color: #94A3B8; }
+.dg-app .templates-list { display: grid; gap: 0.65rem; margin-top: 1rem; }
+.dg-app .templates-list a {
+  display: flex; justify-content: space-between; gap: 1rem; align-items: center;
+  padding: 0.75rem 1rem; border: 1px solid #1E293B; border-radius: 12px; background: #0F172A;
+}
+.dg-app .templates-list a:hover { border-color: #3B82F6; }
+.dg-app .templates-list .t-name { font-weight: 700; color: #E2E8F0; }
+.dg-app .templates-list .t-status { font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.04em; }
+.dg-app .parent-note { color: #93C5FD; font-size: 0.9rem; margin-bottom: 0.75rem; }
 .dg-app h1 {
   font-size: clamp(1.85rem, 4vw, 2.75rem); font-weight: 800; line-height: 1.15;
   letter-spacing: -0.02em; margin-bottom: 0.75rem; max-width: 18ch;
@@ -292,12 +301,29 @@ function appPage(app) {
   const isFull = app.depth === "full";
   const isSoon = app.depth === "soon";
   const canonical = `https://digitalgate.com.au${hrefFor(app)}`;
-  const title = `${app.name} | DigitalGate ${layer.name} App`;
+  const isTemplate = app.kind === "template";
+  const isIndustryApp = app.kind === "industry-app" || (!app.kind && app.layer === "industry" && !isTemplate);
+  const title = isTemplate
+    ? `${app.name} Template | ${app.parentIndustryLabel || "Industry"} | DigitalGate`
+    : isIndustryApp
+      ? `${app.name} Industry App | DigitalGate`
+      : `${app.name} | DigitalGate ${layer.name} App`;
   const description = app.subhead || app.headline || app.what;
 
   const heroBadge = app.commercialStatus
     ? `<span class="badge commercial full">${esc(app.commercialStatus)}</span>`
-    : `<span class="badge ${app.depth}">${esc(layer.name)} · ${esc(app.badge)}</span>`;
+    : `<span class="badge ${app.depth}">${esc(isTemplate ? "Template" : layer.name)} · ${esc(app.badge)}</span>`;
+
+  const parentNote = isTemplate && app.parentIndustryLabel
+    ? `<p class="parent-note">Template under <a href="/apps/industry/${esc(app.parentIndustry)}/" style="color:#BFDBFE;font-weight:700;">${esc(app.parentIndustryLabel)}</a> Industry App — not a separate Industry product.</p>`
+    : "";
+
+  const templatesBody = Array.isArray(app.templates) && app.templates.length
+    ? `<p class="section-body">Activate the Template that matches your business. One Industry App subscription — Templates specialise workflows.</p>
+      <div class="templates-list">${app.templates.map((t) =>
+        `<a href="${esc(t.href || "#")}"><span class="t-name">${esc(t.name)}</span><span class="t-status">${esc(t.status || "")}</span></a>`
+      ).join("")}</div>`
+    : "";
 
   const builtForBody = app.builtFor?.length
     ? `${bulletsHtml(app.builtFor)}${app.builtForNote ? `<p class="section-note">${esc(app.builtForNote)}</p>` : ""}`
@@ -325,8 +351,16 @@ function appPage(app) {
           label: "What it does",
           body: whatBody,
         }),
+        templatesBody
+          ? sectionBlock({
+              alt: true,
+              label: "Templates",
+              title: "Specialisations in this Industry App",
+              body: templatesBody,
+            })
+          : "",
         sectionBlock({
-          alt: true,
+          alt: !templatesBody,
           label: "Built for",
           title: "Who it’s for",
           body: builtForBody,
@@ -369,6 +403,7 @@ function appPage(app) {
       <div class="card"><h3>Current status</h3><p>${esc(app.status)}</p></div>
     </div>
   </section>
+  ${templatesBody ? sectionBlock({ label: "Templates", title: "Specialisations in this Industry App", body: templatesBody }) : ""}
   ${
     builtForBody
       ? sectionBlock({ label: "Built for", title: "Who it’s for", body: builtForBody })
@@ -379,8 +414,9 @@ function appPage(app) {
   const inner = `
   <section class="hero">
     <div class="wrap">
-      <p class="crumbs"><a href="${HUB}">Apps</a> · <a href="/apps/${app.layer}/">${esc(layer.name)}</a> · ${esc(app.name)}</p>
+      <p class="crumbs"><a href="${HUB}">Apps</a> · <a href="/apps/${app.layer}/">${esc(layer.name)}</a>${isTemplate && app.parentIndustry ? ` · <a href="/apps/industry/${esc(app.parentIndustry)}/">${esc(app.parentIndustryLabel || "Industry")}</a>` : ""} · ${esc(app.name)}</p>
       ${heroBadge}
+      ${parentNote}
       <h1>${esc(app.headline)}</h1>
       <p class="lead">${esc(app.subhead || app.what)}</p>
       <p class="status">${esc(app.status)}</p>
@@ -418,16 +454,29 @@ function appPage(app) {
 }
 
 function tile(app) {
+  const meta =
+    app.kind === "template"
+      ? `${esc(app.badge)}${app.parentIndustryLabel ? ` · under ${esc(app.parentIndustryLabel)}` : ""}`
+      : `${esc(app.badge)}${app.depth === "full" ? " · Demo-ready" : ""}`;
   return `<a class="app-tile" href="${hrefFor(app)}">
             <div class="name">${esc(app.name)}</div>
-            <div class="meta">${esc(app.badge)}${app.depth === "full" ? " · Demo-ready" : ""}</div>
+            <div class="meta">${meta}</div>
             <div class="blurb">${esc(app.headline)}</div>
           </a>`;
 }
 
+function industryAppsOnly(apps) {
+  return apps.filter((a) => a.kind !== "template");
+}
+
+function templatesOnly(apps) {
+  return apps.filter((a) => a.kind === "template");
+}
+
 function hubPage() {
   const layersHtml = LAYERS.map((layer) => {
-    const apps = appsInLayer(layer.id);
+    const all = appsInLayer(layer.id);
+    const apps = layer.id === "industry" ? industryAppsOnly(all) : all;
     return `<div class="apps-block">
         <div class="layer-head">
           <p class="sub">${esc(layer.name)} — ${esc(layer.verb)}</p>
@@ -488,7 +537,18 @@ function hubPage() {
 }
 
 function layerPage(layer) {
-  const apps = appsInLayer(layer.id);
+  const all = appsInLayer(layer.id);
+  const isIndustry = layer.id === "industry";
+  const apps = isIndustry ? industryAppsOnly(all) : all;
+  const templates = isIndustry ? templatesOnly(all) : [];
+  const templatesBlock = templates.length
+    ? `<div style="margin-top:2.5rem;">
+        <p class="sub">Templates</p>
+        <h2 style="font-size:1.35rem;margin-bottom:0.5rem;">Specialisations under Industry Apps</h2>
+        <p style="color:#94A3B8;margin-bottom:1.25rem;max-width:40rem;">Templates are not separate Industry products. Buy the Industry App, then activate the Template that matches your business.</p>
+        <div class="app-grid">${templates.map(tile).join("")}</div>
+      </div>`
+    : "";
   const inner = `
   <section class="hero">
     <div class="wrap">
@@ -501,7 +561,9 @@ function layerPage(layer) {
   </section>
   <section class="alt">
     <div class="wrap">
+      ${isIndustry ? `<p class="sub" style="margin-bottom:1rem;">Industry Apps</p>` : ""}
       <div class="app-grid">${apps.map(tile).join("")}</div>
+      ${templatesBlock}
       <p style="margin-top:1.5rem;"><a href="${HUB}" class="btn btn-secondary">← All Apps</a></p>
     </div>
   </section>`;

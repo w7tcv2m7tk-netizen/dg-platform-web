@@ -115,19 +115,19 @@ function patchHomepageAppsSection(html) {
     ],
     [
       /<span class="app-chip">Real Estate — Founding Customers<\/span>/g,
-      `<a class="app-chip" href="/apps/industry/real-estate/">Property — Available</a>`,
+      `<a class="app-chip" href="/apps/industry/property/">Property — Available</a>`,
     ],
     [
       /<span class="app-chip">Property — Available<\/span>/g,
-      `<a class="app-chip" href="/apps/industry/real-estate/">Property — Available</a>`,
+      `<a class="app-chip" href="/apps/industry/property/">Property — Available</a>`,
     ],
     [
       /<span class="app-chip">Accommodation — Early Access<\/span>/g,
-      `<a class="app-chip" href="/apps/industry/accommodation/">Hospitality &amp; Accommodation — Early Access</a>`,
+      `<a class="app-chip" href="/apps/industry/hospitality-accommodation/">Hospitality &amp; Accommodation — Early Access</a>`,
     ],
     [
       /<span class="app-chip">Hospitality &amp; Accommodation — Early Access<\/span>/g,
-      `<a class="app-chip" href="/apps/industry/accommodation/">Hospitality &amp; Accommodation — Early Access</a>`,
+      `<a class="app-chip" href="/apps/industry/hospitality-accommodation/">Hospitality &amp; Accommodation — Early Access</a>`,
     ],
     [
       /<span class="app-chip soon">Property Management — Coming Soon<\/span>/g,
@@ -233,8 +233,8 @@ function patchPricingAppsSection(html) {
     ["SSL", "/apps/infrastructure/ssl/"],
     ["Backups", "/apps/infrastructure/backups/"],
     ["Cloudflare", "/apps/infrastructure/cloudflare/"],
-    ["Property", "/apps/industry/real-estate/"],
-    ["Hospitality &amp; Accommodation", "/apps/industry/accommodation/"],
+    ["Property", "/apps/industry/property/"],
+    ["Hospitality &amp; Accommodation", "/apps/industry/hospitality-accommodation/"],
     ["Real Estate", "/apps/industry/real-estate/"],
     ["Accommodation", "/apps/industry/accommodation/"],
     ["Services", "/apps/industry/services/"],
