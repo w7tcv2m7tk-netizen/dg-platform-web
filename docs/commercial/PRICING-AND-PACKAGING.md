@@ -17,7 +17,7 @@ This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI
 | **Industry App** | **$99/mo** — major vertical capability and infrastructure |
 | **Industry Template** | **1 included** with each Industry App (primary business model); **+$29/mo** each additional |
 | **Growth Apps** | Additional. Not included in platform tier pricing |
-| **Professional Services** | Optional people work — never required. Includes **Website Build** (public: **From $1,997 one-time**). One-off charges, separate from recurring Platform / Apps / Templates / Success |
+| **Professional Services** | Optional people work — never required. Includes **Website Migration & DigitalGate Setup** (From $1,497) and **Website Build** (From $1,997). One-off charges, separate from recurring Platform / Apps / Templates / Success |
 | **Customer Success plans** | Standard included; Priority / Success Partner optional |
 | **AI / Twin / Intelligence** | Across the platform — not sold as separate Apps |
 
@@ -42,34 +42,39 @@ A customer has **one primary Template included** with each Industry App. Additio
 
 Do not publish “1 Industry App included” in the **platform** tier, “Unlimited Industry Apps,” “all Property apps for $99,” or Real Estate / Accommodation as separate Industry SKUs.
 
-## Website Build (Professional Services — public)
+## Website services (Professional Services + platform capability)
 
-Public pricing only:
+| Requirement | What you buy | Public from-price |
+|-------------|--------------|-------------------|
+| I already have a website and want it on DigitalGate | **Website Migration & DigitalGate Setup** — existing site ends up running/managed on DigitalGate Infrastructure | **From $1,497 one-time** |
+| I want a new website built | **Website Build** — new design/build on DigitalGate | **From $1,997 one-time** |
+| I want to build/manage it myself | **Website Builder** — platform software capability (by tier) | Included progressively with Platform / Infrastructure |
+| I want ongoing improvement | Professional Services / Success Plans / Growth Apps | Separate |
 
-| Item | Public price |
-|------|----------------|
-| **Website Build** | **From $1,997 one-time** |
+### Website Migration & DigitalGate Setup
 
-Do **not** publish Launch / Growth / Business / Custom package prices on the website. Quote from consultation using internal bands below.
+End result: the customer’s **existing** website is connected to and running within DigitalGate Infrastructure (files/content, structure, media, DNS, domain, hosting, SSL, forms, basic integrations, redirects, testing, launch).
 
-Positioning (three distinct concepts):
+**Does not include** redesign or redevelopment. Quote Website Build for a new site.
 
-1. **Platform Core** — website connection & management  
-2. **Website Builder** — advanced creation / AI / publishing — progressive by tier  
-3. **Website Build (Professional Services)** — optional one-off professionally built site connected to DigitalGate  
+### Website Build
 
-Not a standalone DigitalGate product. Hierarchy remains Platform → Apps → Professional Services → Customer Success.
+Public: **From $1,997 one-time** only — do **not** publish Launch / Growth / Business / Custom package tables.
 
-### Internal quoting bands (staff only — not public)
+### Website Builder
+
+Software capability inside DigitalGate (create/manage by platform tier) — not a Professional Service product.
+
+### Internal Website Build quoting bands (staff only — not public)
 
 | Band | From | Use when |
 |------|------|----------|
 | Entry | $1,997+ | Straightforward SME site |
 | Growth | $3,497+ | Default lead-gen site connected to DigitalGate |
 | Business | $5,497+ | Larger conversion architecture, more content / integrations |
-| Custom | $7,500+ | Complex builds, migrations, bespoke requirements |
+| Custom | $7,500+ | Complex builds, migrations of content into a new design, bespoke requirements |
 
-Founding 30% on Platform + Apps **does not** automatically include Website Build unless expressly written into the Founding offer.
+Founding 30% on Platform + Apps **does not** automatically include Website Migration or Website Build unless expressly written into the Founding offer.
 
 ## Founding 10 (active cohort)
 
