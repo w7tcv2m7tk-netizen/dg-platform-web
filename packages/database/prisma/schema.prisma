@@ -73,6 +73,7 @@ model Organisation {
   communicationAgents           CommunicationAgent[]
   communicationSessions         CommunicationSession[]
   communicationUsages           CommunicationUsage[]
+  deliveryProjects              DeliveryProject[]
 
   referredBy        Organisation?  @relation("OrgReferral", fields: [referredByOrganisationId], references: [id], onDelete: SetNull)
   referralsMade     Organisation[] @relation("OrgReferral")
@@ -1137,13 +1138,18 @@ model Partner {
   email                    String?
   phone                    String?
   businessName             String?   @map("business_name")
+  /** Delivery Partner division role: lead | member — only for IMPLEMENTATION_PARTNER */
+  deliveryRole             String?   @map("delivery_role")
   notes                    String?   @db.Text
   joinedAt                 DateTime? @map("joined_at")
   createdAt                DateTime  @default(now()) @map("created_at")
   updatedAt                DateTime  @updatedAt @map("updated_at")
 
-  referrals   PartnerReferral[]
-  commissions PartnerCommission[]
+  referrals                PartnerReferral[]
+  commissions              PartnerCommission[]
+  ownedDeliveryProjects    DeliveryProject[] @relation("DeliveryProjectOwner")
+  leadDeliveryProjects     DeliveryProject[] @relation("DeliveryProjectLead")
+  assignedDeliveryTasks    DeliveryTask[]    @relation("DeliveryTaskAssignee")
 
   @@index([clerkUserId])
   @@index([status])
@@ -1266,6 +1272,100 @@ model PartnerCommissionEvent {
   @@index([commissionId])
   @@index([invoiceId])
   @@map("partner_commission_events")
+}
+
+// ─── Delivery workspace ───────────────────────────────────────────────────────
+
+/** Customer implementation record — one per onboarded customer. */
+model DeliveryProject {
+  id                     String    @id @default(cuid())
+  referenceCode          String    @unique @map("reference_code")
+  customerOrganisationId String    @map("customer_organisation_id")
+  /** Current pipeline stage id — see DELIVERY_PIPELINE_STAGES */
+  status                 String    @default("accepted")
+  /** on_track | at_risk | blocked */
+  health                 String    @default("on_track")
+  /** launch | growth | enterprise */
+  plan                   String    @default("launch")
+  ownerPartnerId         String?   @map("owner_partner_id")
+  deliveryLeadPartnerId  String?   @map("delivery_lead_partner_id")
+  targetGoLiveAt         DateTime? @map("target_go_live_at")
+  apps                   Json?
+  nextAction             String?   @map("next_action") @db.Text
+  nextActionDueAt        DateTime? @map("next_action_due_at")
+  opportunityId          String?   @map("opportunity_id")
+  metadata               Json?
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  customerOrganisation Organisation @relation(fields: [customerOrganisationId], references: [id], onDelete: Cascade)
+  ownerPartner         Partner?     @relation("DeliveryProjectOwner", fields: [ownerPartnerId], references: [id], onDelete: SetNull)
+  deliveryLeadPartner  Partner?     @relation("DeliveryProjectLead", fields: [deliveryLeadPartnerId], references: [id], onDelete: SetNull)
+  milestones           DeliveryMilestone[]
+  tasks                DeliveryTask[]
+  blockers             DeliveryBlocker[]
+
+  @@index([customerOrganisationId])
+  @@index([status])
+  @@index([health])
+  @@index([ownerPartnerId])
+  @@index([deliveryLeadPartnerId])
+  @@map("delivery_projects")
+}
+
+model DeliveryMilestone {
+  id          String    @id @default(cuid())
+  projectId   String    @map("project_id")
+  stageId     String    @map("stage_id")
+  title       String
+  sortOrder   Int       @map("sort_order")
+  /** pending | in_progress | complete | skipped */
+  status      String    @default("pending")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  project DeliveryProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, sortOrder])
+  @@map("delivery_milestones")
+}
+
+model DeliveryTask {
+  id                String    @id @default(cuid())
+  projectId         String    @map("project_id")
+  title             String
+  description       String?   @db.Text
+  /** pending | in_progress | complete | cancelled */
+  status            String    @default("pending")
+  dueAt             DateTime? @map("due_at")
+  assigneePartnerId String?   @map("assignee_partner_id")
+  sortOrder         Int       @default(0) @map("sort_order")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  project         DeliveryProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assigneePartner Partner?        @relation("DeliveryTaskAssignee", fields: [assigneePartnerId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, status])
+  @@index([assigneePartnerId, dueAt])
+  @@map("delivery_tasks")
+}
+
+model DeliveryBlocker {
+  id          String    @id @default(cuid())
+  projectId   String    @map("project_id")
+  description String    @db.Text
+  /** open | resolved */
+  status      String    @default("open")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  resolvedAt  DateTime? @map("resolved_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  project DeliveryProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, status])
+  @@map("delivery_blockers")
 }
 
 /** Property Management Industry App — long-term residential leases. */

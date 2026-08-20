@@ -2,18 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getPlatformPageContext } from "@/lib/platform-page-context";
-import { claimPartnerInvitation, getPartnerByClerkUserId } from "@dg/platform-core";
-
-const NAV = [
-  { href: "/partner/dashboard", label: "Overview" },
-  { href: "/partner/playbook", label: "Playbook" },
-  { href: "/partner/referrals", label: "Referrals" },
-  { href: "/partner/commissions", label: "Commissions" },
-  { href: "/partner/demo", label: "Demo" },
-  { href: "/partner/resources", label: "Resources" },
-  { href: "/partner/terms", label: "Terms" },
-];
-
+import { claimPartnerInvitation, getPartnerByClerkUserId, getPartnerWorkspaceShellLinks } from "@dg/platform-core";
 export default async function PartnerLayout({
   children,
 }: {
@@ -93,9 +82,18 @@ export default async function PartnerLayout({
               Welcome, {partner.displayName?.split(" ")[0] ?? "Partner"}
             </h1>
             <p className="mt-1 text-sm text-slate-400">
-              {partner.programme} · {partner.partnerTypeLabel} · {partner.commissionPercent}%
-              commission on qualifying Platform + App fees · first{" "}
-              {partner.commissionDurationMonths} months per referred customer
+              {partner.partnerType === "IMPLEMENTATION_PARTNER" ? (
+                <>
+                  {partner.programme} · {partner.partnerTypeLabel}
+                  {partner.deliveryRole === "lead" ? " · Delivery Manager" : ""}
+                </>
+              ) : (
+                <>
+                  {partner.programme} · {partner.partnerTypeLabel} · {partner.commissionPercent}%
+                  commission on qualifying Platform + App fees · first{" "}
+                  {partner.commissionDurationMonths} months per referred customer
+                </>
+              )}
             </p>
           </div>
           {partner.status === "pending" && (
@@ -104,8 +102,18 @@ export default async function PartnerLayout({
             </span>
           )}
         </div>
-        <nav className="mt-5 flex gap-1 border-t border-slate-700/60 pt-4">
-          {NAV.map(({ href, label }) => (
+        <nav className="mt-5 flex flex-wrap gap-1 border-t border-slate-700/60 pt-4">
+          {[
+            ...getPartnerWorkspaceShellLinks(partner.partnerType),
+            ...(partner.partnerType === "IMPLEMENTATION_PARTNER"
+              ? []
+              : [
+                  { href: "/partner/demo", label: "Demo" },
+                  { href: "/partner/resources", label: "Resources" },
+                  { href: "/partner/terms", label: "Terms" },
+                ]),
+            { href: "/partner/profile", label: "Profile" },
+          ].map(({ href, label }) => (
             <Link
               key={href}
               href={href}

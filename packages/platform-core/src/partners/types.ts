@@ -83,7 +83,7 @@ export const PARTNER_COMMISSION_CONFIG: Record<PartnerType, PartnerTierConfig> =
   IMPLEMENTATION_PARTNER: {
     commissionBps: 0,
     durationMonths: 0,
-    label: "Implementation Partner",
+    label: "Delivery Partner",
     programme: "Founding Implementation",
     seatCap: 3,
   },
@@ -210,6 +210,8 @@ export type SerializedPartner = {
   email: string | null;
   phone: string | null;
   businessName: string | null;
+  /** Delivery division role — lead (manager) or member */
+  deliveryRole: "lead" | "member" | null;
   notes: string | null;
   joinedAt: string | null;
   createdAt: string;

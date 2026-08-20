@@ -4,6 +4,8 @@ import {
   appIdsFromPlanSelection,
   getCategorizedPlatformNavigation,
   getDefaultEnabledAppIds,
+  getPartnerWorkspaceShellLinks,
+  type PartnerType,
   type PlanSelectionInput,
 } from "@dg/platform-core";
 import {
@@ -66,12 +68,14 @@ export function EnabledAppsProvider({
   showCommandCentre = false,
   showPartnerPortal = false,
   showResellerAdmin = false,
+  partnerType = null,
   children,
 }: {
   initialEnabledIds: string[];
   showCommandCentre?: boolean;
   showPartnerPortal?: boolean;
   showResellerAdmin?: boolean;
+  partnerType?: PartnerType | null;
   children: React.ReactNode;
 }) {
   const [enabledIds, setEnabledIdsState] = useState(initialEnabledIds);
@@ -148,8 +152,9 @@ export function EnabledAppsProvider({
         showCommandCentre,
         showPartnerPortal,
         showResellerAdmin,
+        partnerType,
       }),
-    [enabledIds, showCommandCentre, showPartnerPortal, showResellerAdmin],
+    [enabledIds, showCommandCentre, showPartnerPortal, showResellerAdmin, partnerType],
   );
 
   const value = useMemo(

@@ -11,6 +11,7 @@ export function PlatformShell({
   showCommandCentre = false,
   showPartnerPortal = false,
   showResellerAdmin = false,
+  partnerType = null,
   activeOrganisationId,
   activeOrganisationName,
   organisations = [],
@@ -24,6 +25,7 @@ export function PlatformShell({
   showCommandCentre?: boolean;
   showPartnerPortal?: boolean;
   showResellerAdmin?: boolean;
+  partnerType?: import("@dg/platform-core").PartnerType | null;
   activeOrganisationId?: string;
   activeOrganisationName?: string;
   organisations?: UserOrganisationSummary[];
@@ -36,6 +38,7 @@ export function PlatformShell({
       showCommandCentre={showCommandCentre}
       showPartnerPortal={showPartnerPortal}
       showResellerAdmin={showResellerAdmin}
+      partnerType={partnerType}
     >
       <AppShellLayout
         activeOrganisationId={activeOrganisationId}

@@ -71,7 +71,7 @@ export const AGENT_TOOLS = [
 ] as const;
 export type AgentToolName = (typeof AGENT_TOOLS)[number];
 
-export type BusinessHours = {
+export type CommunicationBusinessHours = {
   timezone?: string;
   days?: Array<{
     day: "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
@@ -112,7 +112,7 @@ export type SerializedCommunicationAgent = {
   greeting: string | null;
   language: string;
   timezone: string;
-  businessHours: BusinessHours | null;
+  businessHours: CommunicationBusinessHours | null;
   enabledChannels: string[];
   knowledgeBaseId: string | null;
   routingRules: Record<string, unknown> | null;

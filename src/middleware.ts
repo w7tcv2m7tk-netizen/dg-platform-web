@@ -39,6 +39,8 @@ const isPublicRoute = createRouteMatcher([
   "/api/cron/lead-followups",
   "/api/v1/wantd/(.*)",
   "/api/webhooks/stripe",
+  "/api/webhooks/elevenlabs",
+  "/api/webhooks/elevenlabs/(.*)",
   "/api/webhooks/dreamscape",
   "/api/webhooks/dg-onboarding-sync",
   "/api/webhooks/dg-discovery",

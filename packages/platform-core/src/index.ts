@@ -99,6 +99,7 @@ export * from "./commercial";
 export * from "./property-management";
 export * from "./founding";
 export * from "./partners";
+export * from "./delivery";
 export * from "./demo";
 export * from "./roadmap";
 export * from "./app-guides";

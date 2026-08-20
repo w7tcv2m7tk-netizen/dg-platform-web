@@ -6,6 +6,7 @@ import {
   getPartnerByClerkUserId,
   isDemoOrganisationId,
   isDigitalGateStaffEmail,
+  type PartnerType,
 } from "@dg/platform-core";
 
 import { PlatformShell } from "@/components/PlatformShell";
@@ -71,10 +72,12 @@ export async function PlatformShellLoader({
   const showCommandCentreNav = showCommandCentre && !isDemo;
 
   let showPartnerPortal = false;
+  let partnerType: PartnerType | null = null;
   if (clerkUserId && process.env.DATABASE_URL) {
     try {
       const partner = await getPartnerByClerkUserId(clerkUserId);
       showPartnerPortal = canAccessPartnerPortal(partner);
+      partnerType = partner?.partnerType ?? null;
     } catch {
       showPartnerPortal = false;
     }
@@ -93,6 +96,7 @@ export async function PlatformShellLoader({
       showCommandCentre={showCommandCentreNav}
       showPartnerPortal={showPartnerPortal}
       showResellerAdmin={showResellerAdmin}
+      partnerType={partnerType}
       activeOrganisationId={session?.organisationId}
       activeOrganisationName={session?.organisationName}
       organisations={session?.organisations ?? []}

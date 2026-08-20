@@ -172,6 +172,12 @@ const BUSINESS_LINKS: PlatformShellNavItem[] = [
     label: "Team",
     icon: getSidebarIcon("team"),
   },
+  {
+    kind: "shell",
+    href: "/dashboard/implementation",
+    label: "Implementation",
+    icon: getSidebarIcon("partner-portal"),
+  },
 ];
 
 /** ECOSYSTEM — what you can activate / add. Partner is not an ecosystem App. */
@@ -337,63 +343,58 @@ export interface CategorizedPlatformNavigation {
   };
 }
 
-const RESELLER_ADMIN_ROUTES: AppRoute[] = [
-  { path: "/command/partners", label: "Dashboard" },
-  { path: "/command/partners/ecosystem", label: "Ecosystem" },
-  { path: "/command/partners/resellers", label: "Resellers" },
-  { path: "/command/partners/implementation", label: "Implementation" },
-  { path: "/command/partners/onboarding", label: "Onboarding" },
-  { path: "/command/partners/delivery", label: "Delivery" },
-  { path: "/command/referrals", label: "Referrals" },
-  { path: "/command/commissions", label: "Commissions" },
-  { path: "/command/partners/payouts", label: "Payouts" },
-];
+import type { PartnerType } from "../partners/types";
+import {
+  DELIVERY_PARTNER_NAV,
+  RESELLER_PARTNER_NAV,
+  STAFF_PARTNERS_NAV,
+} from "../partners/delivery-workspace";
 
-function getResellerAdminNavItem(): AppNavTreeItem {
-  return {
-    kind: "app",
-    id: "reseller-admin",
-    name: "Resellers",
-    icon: getSidebarIcon("partner-portal"),
-    tier: "internal",
+function getStaffPartnersNavItems(): AppNavTreeItem[] {
+  const sections = [
+    { id: "partners-resellers", section: STAFF_PARTNERS_NAV.resellers, icon: "⇄" },
+    { id: "partners-referrals", section: STAFF_PARTNERS_NAV.referrals, icon: "⇄" },
+    { id: "partners-commissions", section: STAFF_PARTNERS_NAV.commissions, icon: "▤" },
+    { id: "partners-delivery", section: STAFF_PARTNERS_NAV.delivery, icon: "⚙" },
+  ] as const;
+
+  return sections.map(({ id, section, icon }) => ({
+    kind: "app" as const,
+    id,
+    name: section.label,
+    icon,
+    tier: "internal" as const,
     enabled: true,
-    routes: RESELLER_ADMIN_ROUTES,
-    primaryHref: "/command/partners",
-  };
+    routes: [...section.routes],
+    primaryHref: section.primaryHref,
+  }));
 }
 
-const PARTNER_WORKSPACE_LINKS: PlatformShellNavItem[] = [
-  {
-    kind: "shell",
-    href: "/partner/dashboard",
-    label: "Partner Dashboard",
-    icon: getSidebarIcon("partner-portal"),
-  },
-  {
-    kind: "shell",
-    href: "/partner/playbook",
-    label: "Playbook",
-    icon: getSidebarIcon("help"),
-  },
-  {
-    kind: "shell",
-    href: "/partner/referrals",
-    label: "Referrals",
-    icon: getSidebarIcon("referrals"),
-  },
-  {
-    kind: "shell",
-    href: "/partner/commissions",
-    label: "Commissions",
-    icon: getSidebarIcon("commerce"),
-  },
-  {
-    kind: "shell",
-    href: "/partner/demo",
-    label: "Demo",
-    icon: getSidebarIcon("overview"),
-  },
-];
+export function getPartnerWorkspaceShellLinks(partnerType?: PartnerType | null): PlatformShellNavItem[] {
+  if (partnerType === "IMPLEMENTATION_PARTNER") {
+    return DELIVERY_PARTNER_NAV.delivery.routes.map((route) => ({
+      kind: "shell" as const,
+      href: route.path,
+      label: route.label,
+      icon: getSidebarIcon("partner-portal"),
+    }));
+  }
+
+  return [
+    ...RESELLER_PARTNER_NAV.resellers.routes.map((route) => ({
+      kind: "shell" as const,
+      href: route.path,
+      label: route.label,
+      icon: getSidebarIcon(
+        route.path.includes("referral")
+          ? "referrals"
+          : route.path.includes("commission")
+            ? "commerce"
+            : "partner-portal",
+      ),
+    })),
+  ];
+}
 
 function getStaffProspectingNavItem(): AppNavTreeItem {
   return {
@@ -440,6 +441,7 @@ export function getCategorizedPlatformNavigation(
     showCommandCentre?: boolean;
     showPartnerPortal?: boolean;
     showResellerAdmin?: boolean;
+    partnerType?: PartnerType | null;
   },
 ): CategorizedPlatformNavigation {
   const customerApps = platformApps
@@ -564,12 +566,14 @@ export function getCategorizedPlatformNavigation(
         id: "partners",
         label: PARTNERS_NAV_SECTION_LABEL,
         links: [],
-        apps: options?.showResellerAdmin ? [getResellerAdminNavItem()] : [],
+        apps: options?.showResellerAdmin ? getStaffPartnersNavItems() : [],
       },
       partner: {
         id: "partner",
         label: PARTNER_NAV_SECTION_LABEL,
-        links: options?.showPartnerPortal ? PARTNER_WORKSPACE_LINKS : [],
+        links: options?.showPartnerPortal
+          ? getPartnerWorkspaceShellLinks(options.partnerType)
+          : [],
         apps: [],
       },
       ecosystem: {

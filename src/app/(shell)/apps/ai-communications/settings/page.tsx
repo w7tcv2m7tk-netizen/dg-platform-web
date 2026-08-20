@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { communicationsHealthCheck } from "@dg/platform-core";
+import {
+  communicationsHealthCheck,
+  getCommunicationsOverview,
+  getVoiceProviderStatus,
+} from "@dg/platform-core";
 
 import { CommsSubnav } from "@/components/ai-communications/CommsSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
@@ -8,6 +12,8 @@ function providerLabel(value: string) {
   switch (value) {
     case "resend":
       return { label: "Resend", tone: "text-emerald-400" };
+    case "elevenlabs":
+      return { label: "ElevenLabs (voice provider)", tone: "text-emerald-400" };
     case "stub_queue":
       return { label: "Stub queue (dev)", tone: "text-amber-400" };
     case "not_configured":
@@ -20,9 +26,9 @@ function providerLabel(value: string) {
 export default async function CommsSettingsPage() {
   const { session } = await getPlatformPageContext();
 
-  const health = session
-    ? await communicationsHealthCheck(session.organisationId)
-    : null;
+  const health = session ? await communicationsHealthCheck(session.organisationId) : null;
+  const voice = session ? await getVoiceProviderStatus() : null;
+  const overview = session ? await getCommunicationsOverview(session.organisationId) : null;
 
   const channels = health
     ? [
@@ -37,7 +43,7 @@ export default async function CommsSettingsPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Communications settings</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · provider status and channel readiness
+          {session?.organisationName ?? "DigitalGate"} · provider status, defaults, and usage
         </p>
         <CommsSubnav active="/apps/ai-communications/settings" />
       </header>
@@ -49,12 +55,33 @@ export default async function CommsSettingsPage() {
         ) : (
           <>
             <div className="dg-card">
-              <h2 className="font-semibold text-white">Provider matrix</h2>
+              <h2 className="font-semibold text-white">Voice provider</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Honest status — email sends via Resend when{" "}
-                <code className="text-slate-300">RESEND_API_KEY</code> is set; otherwise messages
-                queue in stub mode without delivery.
+                Connection uses a server-side API key. It is never stored on the organisation
+                record or sent to the browser.
               </p>
+              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                <div>
+                  <dt className="text-slate-500">Provider</dt>
+                  <dd className="text-white">{voice?.provider ?? "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">API key</dt>
+                  <dd className={voice?.configured ? "text-emerald-400" : "text-amber-400"}>
+                    {voice?.configured ? "Configured" : "Missing ELEVENLABS_API_KEY"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Connection</dt>
+                  <dd className={voice?.connected ? "text-emerald-400" : "text-slate-400"}>
+                    {voice?.connected ? "Reachable" : "Not connected"}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">Channel matrix</h2>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -76,22 +103,33 @@ export default async function CommsSettingsPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="mt-4 text-xs text-slate-500">
-                SMS and voice are not wired — no Twilio or telephony integration in this build.
+            </div>
+
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">Usage</h2>
+              <p className="mt-2 text-sm text-slate-400">
+                Provider cost is stored per session. DigitalGate fees and markup are configured
+                separately later — this is not hard-coded to ElevenLabs pricing.
+              </p>
+              <p className="mt-3 text-sm text-white">
+                Estimated provider cost: $
+                {(((overview?.estimatedCostCents ?? 0) as number) / 100).toFixed(2)} ·{" "}
+                {overview?.conversations ?? 0} conversations
               </p>
             </div>
 
             <div className="dg-card">
-              <h2 className="font-semibold text-white">Send via API</h2>
+              <h2 className="font-semibold text-white">Compliance defaults</h2>
               <p className="mt-2 text-sm text-slate-400">
-                Outbound messages are queued through the Platform API. Use your organisation API key
-                with the communications endpoints when they ship.
+                Recording disclosure, Australian privacy handling, and human fallback are set per
+                agent in Agent Builder. Webhook URL for post-call events:{" "}
+                <code className="text-slate-300">/api/webhooks/elevenlabs</code>
               </p>
               <Link
-                href="/dashboard/settings/api"
-                className="mt-3 inline-block text-sm text-blue-400 hover:underline"
+                href="/apps/ai-communications/agents"
+                className="mt-3 inline-block text-sm text-sky-400 hover:underline"
               >
-                API keys & docs →
+                Open Agent Builder →
               </Link>
             </div>
           </>

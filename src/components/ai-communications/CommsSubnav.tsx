@@ -2,15 +2,20 @@ import Link from "next/link";
 
 const LINKS = [
   { href: "/apps/ai-communications/inbox", label: "Inbox" },
-  { href: "/apps/ai-communications/knowledge", label: "Knowledge" },
+  { href: "/apps/ai-communications/voice", label: "Voice Agents" },
+  { href: "/apps/ai-communications/call-centre", label: "Call Centre" },
+  { href: "/apps/ai-communications/agents", label: "Agent Builder" },
+  { href: "/apps/ai-communications/knowledge", label: "Knowledge Base" },
   { href: "/apps/ai-communications/settings", label: "Settings" },
 ] as const;
 
-export function CommsSubnav({ active }: { active: (typeof LINKS)[number]["href"] }) {
+export function CommsSubnav({ active }: { active: string }) {
   return (
     <nav className="mt-4 flex flex-wrap gap-2">
       {LINKS.map((link) => {
-        const isActive = link.href === active;
+        const isActive =
+          link.href === active ||
+          (link.href !== "/apps/ai-communications/inbox" && active.startsWith(link.href));
         return (
           <Link
             key={link.href}
@@ -25,9 +30,6 @@ export function CommsSubnav({ active }: { active: (typeof LINKS)[number]["href"]
           </Link>
         );
       })}
-      <span className="self-center px-2 text-xs text-slate-600">
-        Voice · Agents · Call centre — planned
-      </span>
     </nav>
   );
 }

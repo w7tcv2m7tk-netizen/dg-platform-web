@@ -178,6 +178,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     orgRows,
     recentActivities,
     intelligence,
+    deliveryAlerts,
   ] = await Promise.all([
     prisma.organisation.count(),
     prisma.membership.count({ where: { status: "active" } }),
@@ -275,6 +276,9 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       },
     }),
     getClientIntelligence(),
+    import("../delivery/metrics")
+      .then((m) => m.getCommandCentreDeliveryAlerts())
+      .catch(() => [] as Awaited<ReturnType<typeof import("../delivery/metrics").getCommandCentreDeliveryAlerts>>),
   ]);
 
   const stripe = getStripeSetupStatus();
@@ -486,5 +490,6 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       createdAt: a.createdAt.toISOString(),
     })),
     deepLinks: CORE_DEEP_LINKS,
+    deliveryAlerts,
   };
 }

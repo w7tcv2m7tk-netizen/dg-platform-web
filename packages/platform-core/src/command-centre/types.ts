@@ -159,6 +159,12 @@ export interface CommandCentreOpsHome {
   };
   recentActivity: CommandRecentActivity[];
   deepLinks: CommandDeepLink[];
+  deliveryAlerts?: Array<{
+    id: string;
+    severity: "critical" | "warning" | "success" | "info";
+    message: string;
+    href: string;
+  }>;
 }
 
 /** Per-client view in Command Centre (richer than customer dashboard) */

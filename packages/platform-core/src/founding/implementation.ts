@@ -260,6 +260,30 @@ export async function createFoundingImplementationWork(input: {
   opportunityId?: string;
   plan: FoundingImplementationRecord;
 }): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const { ensureDeliveryProjectForCustomer } = await import("../delivery/projects");
+
+  const org = await prisma.organisation.findUnique({
+    where: { id: input.organisationId },
+    select: { name: true },
+  });
+
+  const planId =
+    input.plan.migration.length > 2 || input.plan.apps.length > 8
+      ? "growth"
+      : input.plan.risks.some((r) => /complex|large|custom/i.test(r))
+        ? "enterprise"
+        : "launch";
+
+  await ensureDeliveryProjectForCustomer({
+    customerOrganisationId: input.organisationId,
+    customerName: org?.name ?? "Customer",
+    plan: planId as "launch" | "growth" | "enterprise",
+    apps: input.plan.apps,
+    opportunityId: input.opportunityId,
+    targetGoLiveAt: input.plan.targetGoLive ? new Date(input.plan.targetGoLive) : undefined,
+  }).catch(() => null);
+
   for (const task of IMPLEMENTATION_TASKS) {
     if (task.title === "Connect WordPress" && !input.plan.connectors.includes("WordPress")) {
       continue;

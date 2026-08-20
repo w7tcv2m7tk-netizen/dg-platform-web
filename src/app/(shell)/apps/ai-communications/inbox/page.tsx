@@ -1,123 +1,132 @@
 import Link from "next/link";
-import { listOrganisationActivities } from "@dg/platform-core";
+import {
+  getCommunicationsOverview,
+  listCommunicationAgents,
+  listCommunicationSessions,
+} from "@dg/platform-core";
 
 import { CommsSubnav } from "@/components/ai-communications/CommsSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
-function isCommsActivity(item: { sourceApp: string | null; activityType: string }) {
-  return (
-    item.sourceApp === "communications" ||
-    item.activityType.startsWith("email_") ||
-    item.activityType.startsWith("message")
-  );
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+function formatDate(iso: string | null) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
 export default async function CommsInboxPage() {
   const { session } = await getPlatformPageContext();
 
-  let items: Awaited<ReturnType<typeof listOrganisationActivities>>["items"] = [];
+  const overview = session
+    ? await getCommunicationsOverview(session.organisationId)
+    : null;
+  const recent = session
+    ? await listCommunicationSessions({ organisationId: session.organisationId, limit: 8 })
+    : { items: [] };
+  const agents = session ? await listCommunicationAgents(session.organisationId) : [];
 
-  if (session) {
-    const [general, commsSource] = await Promise.all([
-      listOrganisationActivities({
-        organisationId: session.organisationId,
-        limit: 100,
-      }),
-      listOrganisationActivities({
-        organisationId: session.organisationId,
-        sourceApp: "communications",
-        limit: 50,
-      }),
-    ]);
-
-    const seen = new Set<string>();
-    for (const item of [...commsSource.items, ...general.items]) {
-      if (isCommsActivity(item) && !seen.has(item.id)) {
-        seen.add(item.id);
-        items.push(item);
-      }
-    }
-    items.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    items = items.slice(0, 50);
-  }
+  const cards = overview
+    ? [
+        ["Calls today", String(overview.callsToday)],
+        ["Conversations", String(overview.conversations)],
+        ["Leads generated", String(overview.leadsGenerated)],
+        ["Appointments booked", String(overview.appointmentsBooked)],
+        ["AI resolution", `${overview.aiResolutionRate}%`],
+        ["Est. cost", `$${((overview.estimatedCostCents || 0) / 100).toFixed(2)}`],
+      ]
+    : [];
 
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Communications inbox</h1>
+        <h1 className="text-2xl font-bold text-white">AI Communications</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · outbound message activity
+          {session?.organisationName ?? "DigitalGate"} · DigitalGate owns the intelligence;
+          the voice provider is underneath.
         </p>
         <CommsSubnav active="/apps/ai-communications/inbox" />
       </header>
       <main className="dg-page-main space-y-6">
         {!session ? (
           <div className="dg-card">
-            <p className="text-sm text-slate-400">Sign in to view communications activity.</p>
+            <p className="text-sm text-slate-400">Sign in to view AI Communications.</p>
           </div>
         ) : (
           <>
-        <div className="dg-card border-amber-500/20">
-          <h2 className="font-semibold text-amber-200">AI Communications — deferred</h2>
-          <p className="mt-2 text-sm text-slate-400">
-            Inbound voice agents, call centre, and autonomous qualification are not closed-beta
-            loops. No AI SDR claims. This inbox only lists outbound message Activity when present.
-          </p>
-          <Link
-            href="/apps/ai-communications/voice"
-            className="mt-3 inline-block text-sm text-sky-400 hover:underline"
-          >
-            Voice roadmap placeholder →
-          </Link>
-        </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {cards.map(([label, value]) => (
+                <div key={label} className="dg-card">
+                  <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+                  <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
+                </div>
+              ))}
+            </div>
+
+            {overview?.alerts.length ? (
+              <div className="dg-card border-amber-500/30">
+                <h2 className="font-semibold text-amber-200">Alerts</h2>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-300">
+                  {overview.alerts.map((alert) => (
+                    <li key={alert}>{alert}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
             <div className="dg-card">
-              <h2 className="font-semibold text-white">Activity feed</h2>
-              {!items.length ? (
-                <p className="mt-3 text-sm text-slate-500">
-                  Outbound email activity will appear here when messages are sent.
-                </p>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="font-semibold text-white">Agents</h2>
+                <Link href="/apps/ai-communications/agents" className="text-sm text-sky-400 hover:underline">
+                  Agent builder →
+                </Link>
+              </div>
+              {!agents.length ? (
+                <p className="mt-3 text-sm text-slate-500">No voice agents yet.</p>
               ) : (
-                <ul className="mt-4 space-y-2">
-                  {items.map((item) => (
-                    <li
-                      key={item.id}
-                      className="rounded-lg border border-slate-800 px-3 py-2 text-sm"
-                    >
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <p className="font-medium text-white">{item.title}</p>
-                        <time className="text-xs text-slate-500">{formatDate(item.createdAt)}</time>
-                      </div>
-                      {item.body ? <p className="mt-1 text-slate-400">{item.body}</p> : null}
-                      <p className="mt-1 text-xs text-slate-600">
-                        {item.sourceApp ?? "platform"} · {item.activityType}
-                      </p>
+                <ul className="mt-3 space-y-2 text-sm">
+                  {agents.slice(0, 6).map((agent) => (
+                    <li key={agent.id} className="flex justify-between gap-2 border-b border-slate-800/60 py-2">
+                      <span className="text-white">{agent.name}</span>
+                      <span className="text-slate-500">{agent.status}</span>
                     </li>
                   ))}
                 </ul>
               )}
             </div>
 
-            <div className="dg-card border-blue-500/20">
-              <h2 className="font-semibold text-white">Compose</h2>
-              <p className="mt-2 text-sm text-slate-400">
-                Compose UI is planned. Send outbound email via the Platform API{" "}
-                <code className="text-slate-300">POST /api/v1/communications/messages</code> when
-                wired, or trigger sends from automations.
-              </p>
-              <Link
-                href="/dashboard/settings/api"
-                className="mt-3 inline-block text-sm text-blue-400 hover:underline"
-              >
-                View API settings →
-              </Link>
+            <div className="dg-card">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="font-semibold text-white">Recent activity</h2>
+                <Link href="/apps/ai-communications/call-centre" className="text-sm text-sky-400 hover:underline">
+                  Call centre →
+                </Link>
+              </div>
+              {!recent.items.length ? (
+                <p className="mt-3 text-sm text-slate-500">
+                  Calls and messages appear here after the first conversation is recorded.
+                </p>
+              ) : (
+                <ul className="mt-3 space-y-2">
+                  {recent.items.map((item) => (
+                    <li key={item.id}>
+                      <Link
+                        href={`/apps/ai-communications/call-centre/${item.id}`}
+                        className="block rounded-lg border border-slate-800 px-3 py-2 text-sm hover:border-slate-700"
+                      >
+                        <div className="flex justify-between gap-2">
+                          <span className="text-white">
+                            {item.agentName ?? "Agent"} · {item.direction} {item.channel}
+                          </span>
+                          <span className="text-slate-500">{formatDate(item.startedAt)}</span>
+                        </div>
+                        <p className="mt-1 text-slate-400">
+                          {item.outcome ?? item.status}
+                          {item.summary ? ` — ${item.summary.slice(0, 120)}` : ""}
+                        </p>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </>
         )}

@@ -77,6 +77,8 @@ function serializePartner(
     email: row.email ?? null,
     phone: row.phone ?? null,
     businessName: row.businessName ?? null,
+    deliveryRole:
+      row.deliveryRole === "lead" || row.deliveryRole === "member" ? row.deliveryRole : null,
     notes: row.notes ?? null,
     joinedAt: row.joinedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),

@@ -48,9 +48,58 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
     topScore: null,
   };
   const attentionClients = clients.filter((c) => c.needsAttention).slice(0, 5);
+  const deliveryAlerts = data.deliveryAlerts ?? [];
 
   return (
     <div className="space-y-10">
+      {deliveryAlerts.length > 0 ? (
+        <section className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-5 py-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-400">
+                Delivery
+              </p>
+              <h2 className="mt-2 text-lg font-semibold text-white">Implementation status</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Operational delivery feed — click through to the implementation record.
+              </p>
+            </div>
+            <Link href="/command/delivery" className="text-sm text-emerald-300 hover:underline">
+              Open Delivery Dashboard →
+            </Link>
+          </div>
+          <ul className="mt-4 space-y-2">
+            {deliveryAlerts.map((alert) => (
+              <li key={alert.id}>
+                <Link
+                  href={alert.href}
+                  className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm transition hover:bg-slate-900/40 ${
+                    alert.severity === "critical"
+                      ? "border-rose-500/40 text-rose-100"
+                      : alert.severity === "warning"
+                        ? "border-amber-500/35 text-amber-100"
+                        : alert.severity === "success"
+                          ? "border-emerald-500/35 text-emerald-100"
+                          : "border-slate-600 text-slate-200"
+                  }`}
+                >
+                  <span aria-hidden>
+                    {alert.severity === "critical"
+                      ? "🔴"
+                      : alert.severity === "warning"
+                        ? "🟠"
+                        : alert.severity === "success"
+                          ? "🟢"
+                          : "⚡"}
+                  </span>
+                  {alert.message}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {/* Opportunity Engine — Today's Prospecting */}
       <section className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-5 py-5">
         <div className="flex flex-wrap items-end justify-between gap-3">

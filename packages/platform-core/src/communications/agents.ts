@@ -7,7 +7,7 @@ import { defaultVoiceProviderId, getCommunicationProvider } from "./providers/ro
 import type {
   AgentBuilderConfig,
   AgentToolName,
-  BusinessHours,
+  CommunicationBusinessHours,
   CommunicationAgentStatus,
   SerializedCommunicationAgent,
 } from "./providers/types";
@@ -24,8 +24,8 @@ function asConfig(value: unknown): AgentBuilderConfig {
   return value && typeof value === "object" ? (value as AgentBuilderConfig) : {};
 }
 
-function asHours(value: unknown): BusinessHours | null {
-  return value && typeof value === "object" ? (value as BusinessHours) : null;
+function asHours(value: unknown): CommunicationBusinessHours | null {
+  return value && typeof value === "object" ? (value as CommunicationBusinessHours) : null;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -136,7 +136,7 @@ export type UpsertCommunicationAgentInput = {
   language?: string;
   timezone?: string;
   systemPrompt?: string | null;
-  businessHours?: BusinessHours | null;
+  businessHours?: CommunicationBusinessHours | null;
   enabledChannels?: string[];
   knowledgeBaseId?: string | null;
   routingRules?: Record<string, unknown> | null;
