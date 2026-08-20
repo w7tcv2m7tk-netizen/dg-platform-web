@@ -85,11 +85,14 @@ export const INFRA_APP_OPTIONS = [
   "Hosting",
 ] as const;
 
+/** Industry Apps (commercial verticals). Templates like Real Estate sit under these. */
 export const INDUSTRY_APP_OPTIONS = [
-  "Real Estate",
-  "Accommodation",
+  "Property",
+  "Hospitality & Accommodation",
   "Services",
   "Finance",
+  "Creator & Media",
+  "Professional",
   "Other",
 ] as const;
 

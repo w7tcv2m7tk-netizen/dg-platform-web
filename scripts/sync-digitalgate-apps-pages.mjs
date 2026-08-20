@@ -115,31 +115,39 @@ function patchHomepageAppsSection(html) {
     ],
     [
       /<span class="app-chip">Real Estate — Founding Customers<\/span>/g,
-      `<a class="app-chip" href="/apps/industry/real-estate/">Real Estate — Founding Customers</a>`,
+      `<a class="app-chip" href="/apps/industry/real-estate/">Property — Available</a>`,
+    ],
+    [
+      /<span class="app-chip">Property — Available<\/span>/g,
+      `<a class="app-chip" href="/apps/industry/real-estate/">Property — Available</a>`,
     ],
     [
       /<span class="app-chip">Accommodation — Early Access<\/span>/g,
-      `<a class="app-chip" href="/apps/industry/accommodation/">Accommodation — Early Access</a>`,
+      `<a class="app-chip" href="/apps/industry/accommodation/">Hospitality &amp; Accommodation — Early Access</a>`,
+    ],
+    [
+      /<span class="app-chip">Hospitality &amp; Accommodation — Early Access<\/span>/g,
+      `<a class="app-chip" href="/apps/industry/accommodation/">Hospitality &amp; Accommodation — Early Access</a>`,
     ],
     [
       /<span class="app-chip soon">Property Management — Coming Soon<\/span>/g,
-      `<a class="app-chip soon" href="/apps/industry/property-management/">Property Management — Coming Soon</a>`,
-    ],
-    [
-      /<span class="app-chip soon">Commercial Property — Coming Soon<\/span>/g,
-      `<a class="app-chip soon" href="/apps/industry/commercial-property/">Commercial Property — Coming Soon</a>`,
-    ],
-    [
-      /<span class="app-chip soon">Property Development — Later<\/span>/g,
-      `<a class="app-chip soon" href="/apps/industry/property-development/">Property Development — Later</a>`,
+      `<a class="app-chip soon" href="/apps/industry/services/">Services — Available</a>`,
     ],
     [
       /<span class="app-chip soon">Services — Coming Soon<\/span>/g,
-      `<a class="app-chip soon" href="/apps/industry/services/">Services — Coming Soon</a>`,
+      `<a class="app-chip" href="/apps/industry/services/">Services — Available</a>`,
+    ],
+    [
+      /<span class="app-chip soon">Services — Available<\/span>/g,
+      `<a class="app-chip" href="/apps/industry/services/">Services — Available</a>`,
     ],
     [
       /<span class="app-chip soon">Finance — Coming Soon<\/span>/g,
-      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Coming Soon</a>`,
+      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Early Access</a>`,
+    ],
+    [
+      /<span class="app-chip soon">Finance — Early Access<\/span>/g,
+      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Early Access</a>`,
     ],
     [
       /<span class="app-chip soon">Automotive — Coming Soon<\/span>/g,
@@ -147,7 +155,11 @@ function patchHomepageAppsSection(html) {
     ],
     [
       /<span class="app-chip soon">Creator — Coming \/ Founding<\/span>/g,
-      `<a class="app-chip soon" href="/apps/industry/creator/">Creator — Coming / Founding</a>`,
+      `<a class="app-chip soon" href="/apps/industry/creator/">Creator &amp; Media — Early Access</a>`,
+    ],
+    [
+      /<span class="app-chip soon">Creator &amp; Media — Early Access<\/span>/g,
+      `<a class="app-chip soon" href="/apps/industry/creator/">Creator &amp; Media — Early Access</a>`,
     ],
     [
       /<span class="app-chip">AI Visibility<\/span>/g,
@@ -221,14 +233,14 @@ function patchPricingAppsSection(html) {
     ["SSL", "/apps/infrastructure/ssl/"],
     ["Backups", "/apps/infrastructure/backups/"],
     ["Cloudflare", "/apps/infrastructure/cloudflare/"],
+    ["Property", "/apps/industry/real-estate/"],
+    ["Hospitality &amp; Accommodation", "/apps/industry/accommodation/"],
     ["Real Estate", "/apps/industry/real-estate/"],
     ["Accommodation", "/apps/industry/accommodation/"],
-    ["Property Management", "/apps/industry/property-management/"],
-    ["Commercial Property", "/apps/industry/commercial-property/"],
-    ["Property Development", "/apps/industry/property-development/"],
     ["Services", "/apps/industry/services/"],
     ["Finance", "/apps/industry/finance/"],
     ["Automotive", "/apps/industry/automotive/"],
+    ["Creator &amp; Media", "/apps/industry/creator/"],
     ["Creator", "/apps/industry/creator/"],
     ["Prospecting &amp; Opportunity Engine", "/apps/growth/prospecting/"],
     ["AI Visibility", "/apps/growth/ai-visibility/"],
