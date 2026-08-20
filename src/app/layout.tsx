@@ -9,7 +9,6 @@ import {
   AUTH_SIGN_IN_URL,
   AUTH_SIGN_UP_URL,
 } from "@/lib/auth-routes";
-import { BRAND_DEFAULT } from "@/lib/brand";
 import { clerkProxyUrl } from "@/lib/clerk-proxy";
 import { ClerkPwaNavigationGuard } from "@/components/platform/ClerkPwaNavigationGuard";
 import { ServiceWorkerRegistration } from "@/components/platform/ServiceWorkerRegistration";
@@ -56,10 +55,7 @@ export const metadata: Metadata = {
     "mobile-web-app-capable": "yes",
   },
   manifest: "/manifest.webmanifest",
-  icons: {
-    icon: [{ url: BRAND_DEFAULT.icon, type: "image/png" }],
-    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
-  },
+  // Tab / Dock icons: src/app/icon.tsx + apple-icon.tsx (host-aware for Wantd).
 };
 
 export default function RootLayout({

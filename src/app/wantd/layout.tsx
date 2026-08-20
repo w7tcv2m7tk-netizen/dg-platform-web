@@ -23,6 +23,11 @@ const wantdSans = Outfit({
 export const metadata: Metadata = {
   title: "Wantd",
   applicationName: "Wantd",
+  appleWebApp: {
+    capable: true,
+    title: "Wantd",
+    statusBarStyle: "default",
+  },
   icons: publicSiteIcons("wantd"),
 };
 

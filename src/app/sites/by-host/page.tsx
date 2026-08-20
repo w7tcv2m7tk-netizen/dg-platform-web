@@ -192,15 +192,24 @@ export async function generateMetadata({
     return {
       title,
       description,
-      applicationName: site.name,
+      applicationName: site.slug === "wantd" ? "Wantd" : site.name,
+      ...(site.slug === "wantd"
+        ? {
+            appleWebApp: {
+              capable: true,
+              title: "Wantd",
+              statusBarStyle: "default" as const,
+            },
+          }
+        : {}),
       robots: { index: true, follow: true },
       ...(keywords?.length ? { keywords } : {}),
       ...(canonical ? { alternates: { canonical } } : {}),
       ...(icons ? { icons } : {}),
       openGraph: {
         type: "website",
-        locale: "en_AU",
-        siteName: site.name,
+        locale: site.slug === "wantd" ? "en_NZ" : "en_AU",
+        siteName: site.slug === "wantd" ? "Wantd" : site.name,
         title: ogTitle,
         description: ogDescription,
         ...(canonical ? { url: canonical } : {}),

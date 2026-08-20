@@ -243,6 +243,19 @@ export default async function middleware(req: NextRequest, event: unknown) {
     }
 
     if (
+      path === "/apple-icon" ||
+      path.startsWith("/apple-icon/") ||
+      path === "/icon" ||
+      path.startsWith("/icon/") ||
+      path === "/favicon.ico" ||
+      path === "/manifest.webmanifest"
+    ) {
+      const passthrough = NextResponse.next();
+      passthrough.headers.set("x-dg-custom-host", hostname);
+      return passthrough;
+    }
+
+    if (
       !path.startsWith("/api") &&
       !path.startsWith("/_next") &&
       !path.startsWith("/__clerk") &&

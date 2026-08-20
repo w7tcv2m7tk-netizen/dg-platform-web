@@ -24,6 +24,7 @@ export const PUBLIC_OG_IMAGES: Record<string, string> = {
   "roe-realty-report": `${OG_BASE}/roe-realty.png`,
   "currumbin-valley-hideaway": `${OG_BASE}/cvh.png`,
   "currumbin-valley-hideaway-circle": `${OG_BASE}/cvh.png`,
+  wantd: "https://wantd.co.nz/brand/wantd-icon.png",
 };
 
 export const DEFAULT_PUBLIC_OG_IMAGE = PUBLIC_OG_IMAGES.digitalgate;
