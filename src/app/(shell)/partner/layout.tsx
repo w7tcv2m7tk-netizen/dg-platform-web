@@ -6,6 +6,7 @@ import { claimPartnerInvitation, getPartnerByClerkUserId } from "@dg/platform-co
 
 const NAV = [
   { href: "/partner/dashboard", label: "Overview" },
+  { href: "/partner/playbook", label: "Playbook" },
   { href: "/partner/referrals", label: "Referrals" },
   { href: "/partner/commissions", label: "Commissions" },
   { href: "/partner/demo", label: "Demo" },

@@ -4,6 +4,7 @@ import {
   QUALIFYING_COMMISSION_FEES,
   RESELLER_MAY,
   RESELLER_MODEL,
+  RESELLER_MODEL_LEGACY,
   RESELLER_MUST_NOT_CLAIM,
   RESELLER_NEED_NOT,
   SOLICITOR_REVIEW_NOTE,
@@ -15,6 +16,7 @@ export default function PartnerTermsPage() {
       <div>
         <h2 className="text-lg font-semibold text-white">{FOUNDING_RESELLER_PROGRAMME_NAME}</h2>
         <p className="mt-2">{RESELLER_MODEL}</p>
+        <p className="mt-2 text-sm text-slate-400">{RESELLER_MODEL_LEGACY}</p>
         <p className="mt-2 text-slate-400">{APPROVED_PARTNER_MESSAGING.notAffiliate}</p>
       </div>
 

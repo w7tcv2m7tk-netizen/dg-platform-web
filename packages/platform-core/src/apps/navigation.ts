@@ -367,6 +367,12 @@ const PARTNER_WORKSPACE_LINKS: PlatformShellNavItem[] = [
   },
   {
     kind: "shell",
+    href: "/partner/playbook",
+    label: "Playbook",
+    icon: getSidebarIcon("help"),
+  },
+  {
+    kind: "shell",
     href: "/partner/referrals",
     label: "Referrals",
     icon: getSidebarIcon("referrals"),

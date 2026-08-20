@@ -8,6 +8,159 @@ export const FOUNDING_RESELLER_PROGRAMME_NAME =
   "DigitalGate Founding Reseller Programme";
 
 export const RESELLER_MODEL =
+  "Resellers introduce and qualify. Ben closes. DigitalGate delivers.";
+
+export const RESELLER_PROCESS_FLOW = {
+  reseller: [
+    "Identify prospect",
+    "Initial conversation",
+    "Qualify basic fit",
+    "Warm introduction",
+  ],
+  digitalgate: [
+    "Discovery",
+    "Platform consultation",
+    "Demonstration",
+    "Solution / pricing",
+    "Founding Customer application",
+    "Acceptance",
+    "Agreement",
+    "Onboarding",
+    "Implementation",
+    "Go-live",
+    "Ongoing customer relationship",
+  ],
+  resellerAfter: ["Receives commission", "Continues introducing opportunities"],
+} as const;
+
+export const FOUNDING_RESELLER_ONE_LINER =
+  "I've been working with Ben, who's built a platform that connects the different systems a business uses — CRM, website, marketing, AI, automation and more — into one operating platform. I thought it might be worth you having a conversation with him.";
+
+export const FOUNDING_RESELLER_ROLE = {
+  principle:
+    "Founding Reseller = Introducer + Relationship Partner — not merely an affiliate.",
+  expectations: [
+    {
+      title: "Identify potential businesses",
+      body: "Use your existing network to spot businesses that could benefit from DigitalGate. You don't need to know every feature — recognise a good opportunity.",
+      example:
+        "I've been working with Ben on a new business platform called DigitalGate. I think it could be relevant to your business. Would you be open to having a conversation with him?",
+    },
+    {
+      title: "Make the introduction",
+      body: "Your most important job is a warm introduction — not just handing over a name.",
+      example:
+        "Ben, meet Sarah. Sarah runs XYZ and I thought the DigitalGate platform might be very relevant to what they're doing. Sarah, Ben is the founder and platform architect.",
+    },
+    {
+      title: "Provide basic context",
+      body: "Before or during the introduction, share who the business is, what they do, why DigitalGate might fit, any obvious problem or opportunity, and your relationship with them. No technical discovery required.",
+    },
+    {
+      title: "Help maintain the relationship",
+      body: "Occasionally reinforce the conversation if you have a strong relationship — that's more powerful than another cold follow-up from Ben.",
+      example:
+        "Have you had a chance to speak with Ben about DigitalGate? / I think you should seriously have a look at what they're building.",
+    },
+  ],
+} as const;
+
+export const RESELLER_PARTNER_LEVELS = [
+  {
+    level: "Level 1 — Introducer",
+    summary: "Identify and introduce prospects. Minimum expectation: warm introductions.",
+    startHere: true,
+  },
+  {
+    level: "Level 2 — DigitalGate Partner",
+    summary:
+      "Understand the proposition well enough to discuss the problem DigitalGate solves, core platform, Industry Apps, AI, automation, Digital Twin, Business Brain, and relevant frameworks. Still no demo or configuration.",
+    startHere: true,
+  },
+  {
+    level: "Level 3 — Strategic Reseller",
+    summary:
+      "Selected partners may eventually conduct initial discovery, run basic demonstrations, identify platform opportunities, and specialise in an industry. First Founding Resellers start at Level 1/2 — not Level 3.",
+    startHere: false,
+  },
+] as const;
+
+export const RESELLER_MUST_NOT_DO = [
+  "Conduct platform demonstrations",
+  "Configure DigitalGate",
+  "Onboard customers",
+  "Provide technical support",
+  "Build websites",
+  "Configure CRM",
+  "Set up AI",
+  "Manage accounts",
+  "Close deals",
+  "Negotiate pricing",
+  "Explain the entire architecture",
+  "Promise functionality",
+  "Make technical commitments",
+  "Manage customer implementation",
+] as const;
+
+export const GOOD_PROSPECT_SIGNALS = [
+  "Disconnected systems — CRM, website, marketing, and operations don't talk to each other",
+  "Data and workflows scattered across multiple tools",
+  "Owner or decision-maker open to a structured business conversation",
+  "Follow-up, lead handling, or customer communication feels manual or inconsistent",
+  "Growing complexity where AI and automation could help — but nothing is joined up",
+  "Real estate, accommodation, services, or other businesses running on spreadsheets and ad-hoc tools",
+] as const;
+
+export const PARTNER_BRIEFING_OUTLINE = [
+  { minutes: 10, title: "Why DigitalGate exists", body: "The disconnected-business problem." },
+  { minutes: 10, title: "What DigitalGate actually is", body: "A Business Operating Platform." },
+  {
+    minutes: 10,
+    title: "Who it's for",
+    body: "Businesses where disconnected systems, data, AI and workflows are creating complexity.",
+  },
+  {
+    minutes: 10,
+    title: "What makes a good prospect",
+    body: "The most important section — who to introduce and why.",
+  },
+  {
+    minutes: 10,
+    title: "How the reseller process works",
+    body: "Prospect → introduction → Ben → consultation → close → onboarding → commission.",
+  },
+  {
+    minutes: 10,
+    title: "How they make money",
+    body: "Referrals and recurring commission on qualifying subscription fees.",
+  },
+  {
+    minutes: 10,
+    title: "Role play",
+    body: "Practice opening conversations — real estate agency, five different systems, follow-up struggles.",
+  },
+] as const;
+
+export const PARTNER_ROLE_PLAY_SCENARIOS = [
+  {
+    scenario: "I know a real estate agency…",
+    opener:
+      "I've been working with Ben on DigitalGate — it connects CRM, listings, marketing and follow-up in one platform. Would you be open to a short conversation with him?",
+  },
+  {
+    scenario: "I know a business owner using five different systems…",
+    opener:
+      "Ben has built a platform that brings CRM, website, marketing, AI and automation together. I thought it might be relevant given how many tools you're juggling.",
+  },
+  {
+    scenario: "I've got a client struggling with follow-up…",
+    opener:
+      "DigitalGate might help — it's designed to connect customer communication, CRM and automation so follow-up isn't lost between systems. Worth a conversation with Ben?",
+  },
+] as const;
+
+/** Legacy model string for terms / backward-compatible copy */
+export const RESELLER_MODEL_LEGACY =
   "Reseller introduces → DigitalGate qualifies → Ben / DigitalGate demonstrates → Customer applies → DigitalGate accepts → Customer subscribes → Reseller earns commission";
 
 export const RESELLER_OPERATING_TARGET = {
@@ -91,6 +244,7 @@ export const APPROVED_PARTNER_MESSAGING = {
   headline: "Build a valuable referral revenue stream",
   body: "Selected Founding 10 members may be invited to become DigitalGate Founding Resellers. Founding Resellers can earn 30% commission on qualifying Platform + App subscription fees for the first 12 months of every new customer they directly refer.",
   close: "DigitalGate handles qualification, demonstration, contracting, onboarding and customer billing. You make the introduction. We do the selling. They build their business on DigitalGate.",
+  oneLiner: FOUNDING_RESELLER_ONE_LINER,
   example:
     "Example: A customer paying an average of $500/month in qualifying subscription fees could generate up to $1,800 in referral commission during their first 12 months.",
   examplePaid:

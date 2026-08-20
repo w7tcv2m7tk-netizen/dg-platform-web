@@ -251,6 +251,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "partners/REFERRAL-AND-COMMISSION-RULES.md",
   },
   {
+    slug: "founding-reseller-playbook",
+    title: "Founding Reseller Playbook",
+    summary:
+      "Introducer model — role, one-liner, journey, partner levels, good prospects, and briefing outline for first-wave resellers.",
+    group: "partners",
+    relativePath: "partners/FOUNDING-RESELLER-PLAYBOOK.md",
+  },
+  {
     slug: "partner-resources",
     title: "Partner Resources",
     summary: "Approved messaging, demo account, and where partners work in product vs CRM.",

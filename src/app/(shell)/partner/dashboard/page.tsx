@@ -66,12 +66,18 @@ export default async function PartnerDashboardPage() {
       </div>
 
       {/* Quick action */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Link
           href="/partner/referrals?action=new"
           className="rounded-full bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-500"
         >
           + Refer a Business
+        </Link>
+        <Link
+          href="/partner/playbook"
+          className="rounded-full border border-sky-600/50 bg-sky-900/20 px-5 py-2.5 text-sm font-medium text-sky-200 hover:border-sky-400 hover:text-white"
+        >
+          Read playbook
         </Link>
         <Link
           href="/partner/demo"

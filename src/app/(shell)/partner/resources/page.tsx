@@ -1,37 +1,10 @@
+import Link from "next/link";
 import {
   APPROVED_PARTNER_MESSAGING,
+  FOUNDING_RESELLER_ONE_LINER,
   QUALIFYING_COMMISSION_FEES,
 } from "@dg/platform-core";
 import { CommissionIllustrator } from "@/components/partner/CommissionIllustrator";
-
-const RESOURCES = [
-  {
-    section: "Platform Overview",
-    items: [
-      { title: "DigitalGate Platform Overview", description: "What the platform does and who it's for." },
-      { title: "Founding Customer Programme", description: "The Founding 10 commercial terms and programme structure." },
-      { title: "Who DigitalGate Is For", description: "Target customers, industries, and use cases." },
-    ],
-  },
-  {
-    section: "Industry Guides",
-    items: [
-      { title: "Real Estate", description: "How DigitalGate works for real estate agencies and agents." },
-      { title: "Accommodation", description: "Hospitality businesses — short stays, property management." },
-      { title: "AI Visibility", description: "The AI Visibility App and what it does for businesses." },
-      { title: "Appraisal Magnet System", description: "How the Appraisal Magnet drives vendor lead generation." },
-    ],
-  },
-  {
-    section: "Referral Resources",
-    items: [
-      { title: "Referral Messaging", description: "How to introduce DigitalGate to a business contact." },
-      { title: "Email Template", description: "A ready-to-send introduction email for warm referrals." },
-      { title: "Social Post / Template", description: "Social media copy for sharing your referral link." },
-      { title: "Demo environment", description: "Walk a prospect through Harbour & Co (Demo) — sample data, not a live customer." },
-    ],
-  },
-];
 
 export default function PartnerResourcesPage() {
   return (
@@ -40,6 +13,15 @@ export default function PartnerResourcesPage() {
         <p className="text-sm font-medium text-white">{APPROVED_PARTNER_MESSAGING.headline}</p>
         <p className="mt-2 text-sm text-slate-300">{APPROVED_PARTNER_MESSAGING.body}</p>
         <p className="mt-2 text-sm text-slate-400">{APPROVED_PARTNER_MESSAGING.close}</p>
+        <p className="mt-4 rounded-lg bg-slate-900/50 px-4 py-3 text-sm italic text-slate-300">
+          &ldquo;{FOUNDING_RESELLER_ONE_LINER}&rdquo;
+        </p>
+        <Link
+          href="/partner/playbook"
+          className="mt-4 inline-block text-sm font-medium text-sky-400 hover:underline"
+        >
+          Full Founding Reseller playbook →
+        </Link>
         <p className="mt-2 text-sm text-slate-400">{APPROVED_PARTNER_MESSAGING.example}</p>
         <p className="mt-2 text-sm text-slate-400">{APPROVED_PARTNER_MESSAGING.examplePaid}</p>
         <p className="mt-3 text-xs text-slate-500">{APPROVED_PARTNER_MESSAGING.disclaimer}</p>
@@ -90,23 +72,42 @@ export default function PartnerResourcesPage() {
         .
       </p>
 
-      {RESOURCES.map((section) => (
-        <div key={section.section}>
-          <h2 className="mb-4 text-base font-semibold text-white">{section.section}</h2>
-          <div className="space-y-3">
-            {section.items.map((item) => (
-              <div
-                key={item.title}
-                className="rounded-xl border border-slate-700/60 bg-slate-800/40 px-5 py-4"
-              >
-                <p className="font-medium text-white">{item.title}</p>
-                <p className="mt-0.5 text-sm text-slate-400">{item.description}</p>
-                <p className="mt-2 text-xs text-slate-600">Coming soon — contact Ben for a copy.</p>
-              </div>
-            ))}
-          </div>
+      <section>
+        <h2 className="mb-4 text-base font-semibold text-white">Partner guides</h2>
+        <div className="space-y-3">
+          <Link
+            href="/partner/playbook"
+            className="block rounded-xl border border-sky-700/40 bg-sky-900/10 px-5 py-4 hover:border-sky-500/50"
+          >
+            <p className="font-medium text-white">Founding Reseller playbook</p>
+            <p className="mt-0.5 text-sm text-slate-400">
+              Your role, one-liner, journey, partner levels, good prospects, and role-play scenarios.
+            </p>
+          </Link>
+          <Link
+            href="/partner/demo"
+            className="block rounded-xl border border-slate-700/60 bg-slate-800/40 px-5 py-4 hover:border-slate-600"
+          >
+            <p className="font-medium text-white">Demo environment</p>
+            <p className="mt-0.5 text-sm text-slate-400">
+              Explore Harbour &amp; Co (Demo) — sample data for your own learning, not for prospect demos.
+            </p>
+          </Link>
+          <Link
+            href="/partner/terms"
+            className="block rounded-xl border border-slate-700/60 bg-slate-800/40 px-5 py-4 hover:border-slate-600"
+          >
+            <p className="font-medium text-white">Programme terms</p>
+            <p className="mt-0.5 text-sm text-slate-400">
+              What you may, need not, and must not claim — plus qualifying commission rules.
+            </p>
+          </Link>
         </div>
-      ))}
+        <p className="mt-4 text-xs text-slate-500">
+          Industry-specific guides and email templates are coming. Use the playbook for introductions
+          today.
+        </p>
+      </section>
     </div>
   );
 }
