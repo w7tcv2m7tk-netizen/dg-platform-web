@@ -1,4 +1,9 @@
-import { getCommunicationAgent } from "@dg/platform-core";
+import {
+  AGENT_STARTER_TEMPLATES,
+  getCommunicationAgent,
+  postCallWebhookUrl,
+  publicAppOrigin,
+} from "@dg/platform-core";
 
 import { AgentBuilderForm } from "@/components/ai-communications/AgentBuilderForm";
 import { CommsSubnav } from "@/components/ai-communications/CommsSubnav";
@@ -30,8 +35,29 @@ export default async function AgentBuilderPage({
             <p className="text-sm text-slate-400">Sign in to build agents.</p>
           </div>
         ) : (
-          <AgentBuilderForm agent={agent} />
+          <AgentBuilderForm
+            agent={agent}
+            templates={AGENT_STARTER_TEMPLATES.map((t) => ({
+              id: t.id,
+              label: t.label,
+              description: t.description,
+              type: t.type,
+              name: t.name,
+              greeting: t.greeting,
+              language: t.language,
+              timezone: t.timezone,
+              systemPrompt: t.systemPrompt,
+              config: t.config,
+            }))}
+          />
         )}
+        {session ? (
+          <p className="text-xs text-slate-500">
+            After publish, point ElevenLabs post-call webhook at{" "}
+            <code className="text-slate-400">{postCallWebhookUrl()}</code> (origin{" "}
+            <code className="text-slate-400">{publicAppOrigin()}</code>).
+          </p>
+        ) : null}
       </main>
     </>
   );

@@ -504,6 +504,8 @@ export * from "./context";
 export * from "./agents";
 export * from "./sessions";
 export * from "./tools";
+export * from "./tool-schemas";
+export * from "./templates";
 export * from "./orchestrator";
 export * from "./webhooks";
 export * from "./metrics";

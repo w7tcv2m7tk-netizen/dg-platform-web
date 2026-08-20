@@ -202,6 +202,12 @@ export type UpsertAgentInput = {
     description: string;
     url: string;
     method?: "POST" | "GET";
+    requestBodySchema?: {
+      type: "object";
+      description: string;
+      properties: Record<string, { type: string; description: string }>;
+      required?: string[];
+    };
   }>;
 };
 

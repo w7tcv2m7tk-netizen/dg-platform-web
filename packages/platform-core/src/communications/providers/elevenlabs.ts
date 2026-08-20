@@ -46,19 +46,36 @@ async function elevenJson<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 function conversationConfig(input: UpsertAgentInput) {
-  const tools = (input.tools ?? []).map((tool) => ({
-    type: "webhook",
-    name: tool.name,
-    description: tool.description,
-    api_schema: {
-      url: tool.url,
-      method: tool.method ?? "POST",
-      request_headers: {
-        Authorization: `Bearer ${process.env.ELEVENLABS_TOOL_SECRET?.trim() || apiKey()}`,
-        "Content-Type": "application/json",
+  const tools = (input.tools ?? []).map((tool) => {
+    const properties = tool.requestBodySchema?.properties ?? {};
+    const bodyProperties: Record<string, Record<string, unknown>> = {};
+    for (const [key, prop] of Object.entries(properties)) {
+      bodyProperties[key] = {
+        type: prop.type || "string",
+        description: prop.description || key,
+      };
+    }
+    return {
+      type: "webhook",
+      name: tool.name,
+      description: tool.description,
+      api_schema: {
+        url: tool.url,
+        method: tool.method ?? "POST",
+        content_type: "application/json",
+        request_headers: {
+          Authorization: `Bearer ${process.env.ELEVENLABS_TOOL_SECRET?.trim() || apiKey()}`,
+          "Content-Type": "application/json",
+        },
+        request_body_schema: {
+          type: "object",
+          description: tool.requestBodySchema?.description || `Parameters for ${tool.name}`,
+          properties: bodyProperties,
+          required: tool.requestBodySchema?.required ?? [],
+        },
       },
-    },
-  }));
+    };
+  });
 
   return {
     agent: {
@@ -257,6 +274,7 @@ export function verifyElevenLabsWebhookSignature(input: {
 }): boolean {
   const secret = input.secret?.trim() || process.env.ELEVENLABS_WEBHOOK_SECRET?.trim();
   const header = input.signatureHeader?.trim();
+  // Dev-only: allow unsigned when no secret configured
   if (!secret) return !header;
   if (!header) return false;
 
@@ -267,7 +285,8 @@ export function verifyElevenLabsWebhookSignature(input: {
     }),
   );
   const timestamp = parts.t;
-  const signature = parts.v0;
+  // ElevenLabs may send v0=hex or multiple signatures
+  const signature = parts.v0 || parts.v1;
   if (!timestamp || !signature) return false;
 
   const ageMs = Math.abs(Date.now() - Number(timestamp) * 1000);
@@ -276,8 +295,17 @@ export function verifyElevenLabsWebhookSignature(input: {
   const expected = createHmac("sha256", secret)
     .update(`${timestamp}.${input.rawBody}`)
     .digest("hex");
-  const a = Buffer.from(signature);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
+
+  try {
+    const a = Buffer.from(signature, "hex");
+    const b = Buffer.from(expected, "hex");
+    if (a.length !== b.length) return false;
+    return timingSafeEqual(a, b);
+  } catch {
+    // Fall back to utf8 compare if signature is not hex-encoded
+    const a = Buffer.from(signature);
+    const b = Buffer.from(expected);
+    if (a.length !== b.length) return false;
+    return timingSafeEqual(a, b);
+  }
 }

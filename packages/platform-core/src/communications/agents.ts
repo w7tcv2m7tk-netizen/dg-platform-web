@@ -4,6 +4,8 @@ import { writeAuditLog } from "../audit";
 import { emptyIfUnmigrated } from "./db";
 import { compileAgentSystemPrompt, getAuthorisedAgentContext } from "./context";
 import { defaultVoiceProviderId, getCommunicationProvider } from "./providers/router";
+import { getAgentToolDefinition } from "./tool-schemas";
+import { receptionistDefaultTools } from "./templates";
 import type {
   AgentBuilderConfig,
   AgentToolName,
@@ -12,13 +14,7 @@ import type {
   SerializedCommunicationAgent,
 } from "./providers/types";
 
-const DEFAULT_TOOLS: AgentToolName[] = [
-  "get_business_profile",
-  "get_business_hours",
-  "search_contact",
-  "create_contact",
-  "create_task",
-];
+const DEFAULT_TOOLS: AgentToolName[] = receptionistDefaultTools();
 
 function asConfig(value: unknown): AgentBuilderConfig {
   return value && typeof value === "object" ? (value as AgentBuilderConfig) : {};
@@ -317,11 +313,28 @@ export async function deleteCommunicationAgent(input: {
   return true;
 }
 
-export function toolWebhookUrl(): string {
-  const origin = (
+export function publicAppOrigin(): string {
+  return (
     process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://app.digitalgate.com.au"
   ).replace(/\/$/, "");
-  return `${origin}/api/webhooks/elevenlabs/tools`;
+}
+
+/** Post-call / conversation webhook ElevenLabs should call. */
+export function postCallWebhookUrl(): string {
+  return `${publicAppOrigin()}/api/webhooks/elevenlabs`;
+}
+
+/**
+ * Tool webhook URL. Encodes DigitalGate agent id + tool name so the request
+ * body can be pure LLM arguments from ElevenLabs.
+ */
+export function toolWebhookUrl(agentId: string, toolName: string): string {
+  const origin = publicAppOrigin();
+  const params = new URLSearchParams({
+    agentId,
+    tool: toolName,
+  });
+  return `${origin}/api/webhooks/elevenlabs/tools?${params.toString()}`;
 }
 
 export async function publishCommunicationAgent(input: {
@@ -351,12 +364,16 @@ export async function publishCommunicationAgent(input: {
 
   const provider = getCommunicationProvider(existing.provider);
   const toolNames = config.enabledTools?.length ? config.enabledTools : DEFAULT_TOOLS;
-  const tools = toolNames.map((name) => ({
-    name,
-    description: `DigitalGate tool: ${name.replace(/_/g, " ")}`,
-    url: toolWebhookUrl(),
-    method: "POST" as const,
-  }));
+  const tools = toolNames.map((name) => {
+    const def = getAgentToolDefinition(name);
+    return {
+      name,
+      description: def?.description || `DigitalGate tool: ${name.replace(/_/g, " ")}`,
+      url: toolWebhookUrl(existing.id, name),
+      method: "POST" as const,
+      requestBodySchema: def?.requestBodySchema,
+    };
+  });
 
   const payload = {
     name: existing.name,
