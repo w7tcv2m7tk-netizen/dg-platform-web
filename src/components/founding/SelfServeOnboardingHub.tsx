@@ -354,7 +354,7 @@ export async function SelfServeOnboardingHub() {
               href="/apps/re"
               className="rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:border-sky-500/40"
             >
-              Real Estate app
+              Property · Real Estate
             </Link>
             <Link
               href="/command"

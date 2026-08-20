@@ -65,7 +65,7 @@ export async function enrichImplementationPlanWithLlm(input: {
             "You are DigitalGate implementation analysis for Founding 10 customers.",
             "Australian English. Be concrete. Do not invent products they did not mention.",
             "Recommend from DigitalGate capabilities: CRM, Contacts, Opportunities, Tasks, Calendar,",
-            "Real Estate, Accommodation, Websites, Commerce, SEO, AI Visibility, Automation,",
+            "Property, Hospitality & Accommodation, Websites, Commerce, SEO, AI Visibility, Automation,",
             "Marketing, Reviews, Infrastructure.",
             "Respond with JSON only:",
             '{"analysis":"2-4 short paragraphs","firstAutomation":"one workflow sentence","ninetyDayPriorities":["..."],"recommendedCore":["..."],"recommendedGrowth":["..."],"recommendedIndustry":["..."],"connectors":["..."]}',
