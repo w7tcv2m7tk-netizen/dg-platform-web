@@ -59,12 +59,17 @@ export const PLATFORM_TIERS: {
  */
 export type IndustryPlatformKey =
   | "property"
+  | "hospitality-accommodation"
   | "services"
   | "finance"
-  | "professional-services"
-  | "commerce"
+  | "professional"
+  | "health-wellness"
   | "automotive"
-  | "creator";
+  | "retail-commerce"
+  | "creator-media"
+  | "transport-logistics"
+  | "agriculture-primary"
+  | "education-organisations";
 
 export const INDUSTRY_PLATFORMS: {
   key: IndustryPlatformKey;
@@ -78,8 +83,15 @@ export const INDUSTRY_PLATFORMS: {
     key: "property",
     label: "Property",
     price: "+$99/mo",
-    specialisations: "Real Estate · PM · Accommodation · Commercial · Development",
+    specialisations: "Real Estate · PM · Commercial · Development · Buyers Agency",
     defaultApp: "real-estate",
+  },
+  {
+    key: "hospitality-accommodation",
+    label: "Hospitality & Accommodation",
+    price: "+$99/mo",
+    specialisations: "Short-Stay · Holiday Rentals · Hotels · F&B · Venues",
+    defaultApp: "accommodation",
   },
   {
     key: "services",
@@ -96,17 +108,17 @@ export const INDUSTRY_PLATFORMS: {
     defaultApp: "finance",
   },
   {
-    key: "professional-services",
-    label: "Professional Services",
+    key: "professional",
+    label: "Professional",
     price: "+$99/mo",
-    specialisations: "Legal · Surveying · Engineering · Architecture · Consulting · Agencies · IT",
+    specialisations: "Legal · Surveying · Engineering · Architecture · Consulting",
     defaultApp: null,
   },
   {
-    key: "commerce",
-    label: "Commerce",
+    key: "health-wellness",
+    label: "Health & Wellness",
     price: "+$99/mo",
-    specialisations: "Retail · E-commerce · Wholesale · Distribution",
+    specialisations: "Medical · Allied · Dental · Vet",
     defaultApp: null,
   },
   {
@@ -117,24 +129,57 @@ export const INDUSTRY_PLATFORMS: {
     defaultApp: "automotive",
   },
   {
-    key: "creator",
-    label: "Creator",
+    key: "retail-commerce",
+    label: "Retail & Commerce",
+    price: "+$99/mo",
+    specialisations: "Retail · E-commerce · Wholesale · Distribution",
+    defaultApp: null,
+  },
+  {
+    key: "creator-media",
+    label: "Creator & Media",
     price: "+$99/mo",
     specialisations: "Creators · Music · Media · Artists",
     defaultApp: "creator",
+  },
+  {
+    key: "transport-logistics",
+    label: "Transport & Logistics",
+    price: "+$99/mo",
+    specialisations: "Transport · Logistics · Courier",
+    defaultApp: null,
+  },
+  {
+    key: "agriculture-primary",
+    label: "Agriculture & Primary Industries",
+    price: "+$99/mo",
+    specialisations: "Architecture reserved",
+    defaultApp: null,
+  },
+  {
+    key: "education-organisations",
+    label: "Education & Organisations",
+    price: "+$99/mo",
+    specialisations: "Education · Training · Associations",
+    defaultApp: null,
   },
 ];
 
 /** @deprecated Prefer INDUSTRY_PLATFORMS — kept for Stripe / enabled-app toggles */
 export const INDUSTRY_APPS: { key: IndustryApp; label: string; price: string; under: string }[] = [
   { key: "real-estate", label: "Real Estate", price: "Property · included*", under: "property" },
-  { key: "accommodation", label: "Accommodation", price: "Property · +$29*", under: "property" },
+  {
+    key: "accommodation",
+    label: "Accommodation",
+    price: "Hospitality & Accommodation · included*",
+    under: "hospitality-accommodation",
+  },
   { key: "property-management", label: "Property Management", price: "Property · +$29*", under: "property" },
   { key: "commercial", label: "Commercial Property", price: "Property · +$29*", under: "property" },
   { key: "services", label: "Services", price: "+$99/mo", under: "services" },
   { key: "finance", label: "Finance", price: "+$99/mo", under: "finance" },
   { key: "automotive", label: "Automotive", price: "+$99/mo", under: "automotive" },
-  { key: "creator", label: "Creator", price: "+$99/mo", under: "creator" },
+  { key: "creator", label: "Creator", price: "+$99/mo", under: "creator-media" },
 ];
 
 export const PREMIUM_APPS: { key: PremiumApp; label: string; price: string }[] = [
@@ -183,12 +228,14 @@ export function recommendPlanFromDiscovery(input: DiscoveryInput): SignupSelecti
   const industryMap: Record<string, IndustryApp> = {
     "Real Estate": "real-estate",
     "Accommodation & Hospitality": "accommodation",
+    "Hospitality & Accommodation": "accommodation",
     "Finance & Mortgage Broking": "finance",
-    // Knowledge firms → Professional Services Industry (Coming); do not map to trades Services
+    // Knowledge firms → Professional Industry (Coming); do not map to trades Services
     "Property Management": "property-management",
     "Commercial Property": "commercial",
     Automotive: "automotive",
     "Creators & Personal Brands": "creator",
+    "Creator & Media": "creator",
   };
   const industryApps: IndustryApp[] = [];
   const mapped = input.industry ? industryMap[input.industry] : undefined;

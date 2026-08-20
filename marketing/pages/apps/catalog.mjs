@@ -26,7 +26,7 @@ export const LAYERS = [
     verb: "specialise",
     tagline: "vertical workflows",
     intro:
-      "The same Core, specialised for how your industry actually works. Real Estate is the flagship. Other verticals ship with honest status.",
+      "Twelve Industry Apps specialise DigitalGate around how your business operates. Property and Services are Available; Hospitality & Accommodation, Finance and Creator & Media are Early Access. New business types become Templates — not new top-level Apps.",
   },
   {
     id: "growth",
@@ -386,13 +386,13 @@ export const APPS = [
     layer: "industry",
     name: "Real Estate",
     depth: "full",
-    badge: "Founding",
-    commercialStatus: "FOUNDING 10 · AVAILABLE NOW",
+    badge: "Available",
+    commercialStatus: "AVAILABLE · FOUNDING CUSTOMERS",
     status:
-      "Flagship Industry App. Currently operating in production on Roe Realty and available to selected Founding Customers.",
+      "Flagship Template under the Property Industry App. Currently operating in production on Roe Realty and available to selected Founding Customers.",
     headline: "Turn your property pipeline into an operating system.",
     subhead:
-      "Vendor work, buyer work, appraisals and listings are not a CRM template. They are a specialised loop on DigitalGate Core.",
+      "Vendor work, buyer work, appraisals and listings are not a CRM template. They are the Real Estate Template on the Property Industry App.",
     what: "The vertical operating workflow for sales agencies: vendors, buyers, appraisals, listings and settlements — on the same Contacts and Opportunities every other App uses.",
     connects:
       "Every listing, lead and appraisal writes Core objects. Growth Apps (AI Visibility, SEO, Prospecting) and Automation then see the same pipeline.",
@@ -442,10 +442,10 @@ export const APPS = [
     builtForNote: "Designed for Australian real estate operations.",
     productionProof: {
       intro:
-        "The Real Estate App is already operating on DigitalGate through Roe Realty, providing the production reference for the Founding Customer programme.",
+        "The Real Estate Template is already operating on DigitalGate through Roe Realty, providing the production reference for the Founding Customer programme.",
       reference: {
         name: "Roe Realty",
-        label: "Real Estate · Production Reference",
+        label: "Property · Real Estate · Production Reference",
       },
       items: [
         { name: "Vendor Pipeline", status: "Live" },
@@ -454,7 +454,7 @@ export const APPS = [
       ],
     },
     pricing:
-      "Industry App add-on from $99/mo · Platform subscription required. Founding Customer terms on Pricing.",
+      "Property Industry from $99/mo · 1 Template included · Platform subscription required. Founding Customer terms on Pricing.",
     keywords: [
       "real estate CRM",
       "property pipeline",
@@ -470,14 +470,17 @@ export const APPS = [
     name: "Accommodation",
     depth: "full",
     badge: "Early Access",
-    status: "Early Access — bookings, units, calendar and housekeeping in use with founding properties.",
+    status:
+      "Template under Hospitality & Accommodation Industry — bookings, units, calendar and housekeeping in use with founding properties.",
     headline: "Direct stays on the same operating system as the rest of the business.",
     subhead:
-      "Guests, units, availability and turnover are Industry workflow — not a channel manager pretending to be a PMS.",
+      "Guests, units, availability and turnover are Hospitality & Accommodation workflow — not Property sales, and not a channel manager pretending to be a PMS.",
     what: "Units, availability, stay bookings, guests, housekeeping and payments — specialised for short-stay without a second guest database.",
     connects:
       "Guests are Contacts. Stays create operational work. Reviews and Growth Apps see the same property. Website and calendar connect to Core.",
-    who: "Founding accommodation operators (including Currumbin Valley Hideaway) who want direct bookings and operations on DigitalGate.",
+    who: "Founding hospitality operators (including Currumbin Valley Hideaway) who want direct bookings and operations on DigitalGate.",
+    pricing:
+      "Hospitality & Accommodation Industry from $99/mo · 1 Template included · Platform subscription required.",
     highlight: ["Connect", "Centralise", "Act", "Learn", "Grow"],
     flow: [
       "Enquiry",

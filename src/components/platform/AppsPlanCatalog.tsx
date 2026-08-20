@@ -366,11 +366,13 @@ export function AppsPlanCatalog() {
                     </span>
                     <h3 className="text-lg font-bold text-white">{platform.label}</h3>
                     <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-300">
-                      {platform.roadmap === "founding"
-                        ? "Founding"
-                        : platform.roadmap === "coming"
-                          ? "Coming soon"
-                          : "Future"}
+                      {platform.roadmap === "available"
+                        ? "Available"
+                        : platform.roadmap === "early-access"
+                          ? "Early Access"
+                          : platform.roadmap === "coming"
+                            ? "Coming Soon"
+                            : "Architecture Reserved"}
                     </span>
                   </div>
                   <p className="mt-1 max-w-2xl text-sm text-slate-400">{platform.description}</p>
@@ -396,7 +398,9 @@ export function AppsPlanCatalog() {
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="font-semibold text-white">{spec.label}</h4>
                         {statusBadge(
-                          spec.status === "future" ? "soon" : (spec.status as CatalogStatus),
+                          spec.status === "future" || spec.status === "reserved"
+                            ? "soon"
+                            : (spec.status as CatalogStatus),
                         )}
                       </div>
                       <p className="mt-1 flex-1 text-xs text-slate-400">{spec.summary}</p>
@@ -432,9 +436,11 @@ export function AppsPlanCatalog() {
             </div>
           ))}
           <p className="text-xs text-slate-500">
-            Professional Services (Legal, Surveying, Engineering, …) is Coming Soon — distinct from
-            trades Services. Future industries: Healthcare, Education, Hospitality. Accommodation
-            stays under Property. Accountants prefer Finance, not Professional Services.
+            Available: Property · Services. Early Access: Hospitality &amp; Accommodation · Finance ·
+            Creator &amp; Media. Coming Soon: Professional · Health &amp; Wellness · Automotive ·
+            Retail &amp; Commerce · Transport · Education. Architecture Reserved: Agriculture.
+            Accommodation sits under Hospitality &amp; Accommodation — not Property. Accountants
+            prefer Finance, not Professional.
           </p>
         </div>
       </section>

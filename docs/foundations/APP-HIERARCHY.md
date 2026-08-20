@@ -61,22 +61,23 @@ Websites / Website Builder · Domains · DNS · Hosting · Email · SSL · Websi
 
 ## 3. INDUSTRY — Industry Platforms
 
-Customer-facing: **Industry Apps**. Internally: **Industry → Specialisation → Template**.
+Customer-facing: **Industry Apps**. Internally: **Industry → Template**.
 
-| Industry App | Example specialisations | Roadmap |
-|--------------|-------------------------|---------|
-| **Property** | Real Estate · PM · Accommodation · Commercial · Development | Founding |
-| **Services** | Trades · Cleaning · Maintenance · Construction · Field Services | Founding |
-| **Finance** | Accounting & Bookkeeping (first) · Planning · Broking · Insurance · Advisory | Founding / Coming |
-| **Professional Services** | Legal · Surveying · Engineering · Architecture · Consulting · Agencies · IT | Coming Soon |
-| **Commerce** | Retail · E-commerce · Wholesale · Distribution | Coming Soon |
-| **Automotive** | Dealerships · Mechanical · Auto Services · Detailing | Coming |
-| **Creator** | Creators · Music · Media · Artists | Coming |
-| Healthcare · Education · Hospitality | See [INDUSTRY-PLATFORM.md](./INDUSTRY-PLATFORM.md) | Future |
+| Industry App | Example Templates | Public lane |
+|--------------|-------------------|-------------|
+| **Property** | Real Estate · PM · Commercial · Development · Buyers Agency | Available |
+| **Hospitality & Accommodation** | Short-Stay · Holiday Rentals · Hotels · F&B · Venues | Early Access |
+| **Services** | Trades · Cleaning · Maintenance · Construction · Field | Available |
+| **Finance** | Accounting (first) · Planning · Broking · Insurance · Advisory | Early Access |
+| **Professional** | Legal · Surveying · Engineering · Architecture · Consulting | Coming Soon |
+| **Retail & Commerce** | Retail · E-commerce · Wholesale · Distribution | Coming Soon |
+| **Automotive** | Dealerships · Mechanical · Auto Services · Detailing | Coming Soon |
+| **Creator & Media** | Creators · Music · Media · Artists | Early Access |
+| Health & Wellness · Transport · Education · Agriculture | See [INDUSTRY-PLATFORM.md](./INDUSTRY-PLATFORM.md) | Coming / Reserved |
 
-Commercial honesty: not every Industry or specialisation is fully developed. Real Estate is the flagship proof under Property.
+Commercial honesty: not every Industry or Template is fully developed. Real Estate is the flagship proof under Property. Accommodation lives under **Hospitality & Accommodation**.
 
-**Do not** treat Commercial (enterprise segment) as an Industry App. **Do not** put Accommodation under Hospitality. **Do not** build Legal or Surveying as standalone Industry Apps — they are Professional Services templates. **Do not** confuse Industry App Professional Services with DigitalGate’s own delivery Professional Services.
+**Do not** treat Commercial (enterprise segment) as an Industry App. **Do not** put Accommodation under Property. **Do not** build Legal or Surveying as standalone Industry Apps — they are Professional templates. **Do not** confuse Industry App Professional with DigitalGate’s own delivery Professional Services.
 
 ## 4. GROWTH — visibility / acquisition / conversion
 
@@ -112,11 +113,12 @@ Do **not** package these as purchasable “Apps” in the public hierarchy. They
 |-----|-----------|
 | Intelligent operating platform; apps are capabilities | App marketplace / “SaaS bundle of tools” |
 | Core → Infrastructure → Industry → Growth → Intelligence | Industry before Infrastructure |
-| Industry App → Specialisation → Template | 17 separate Industry Apps as equal products |
+| Industry App → Template | 17 separate Industry Apps as equal products |
 | Property $99 with specialised templates | “All Property apps for $99” / five independent Property SKUs |
-| Finance (Accounting first); Professional Services (Legal / Surveying templates) | “Accounting App” / “Legal App” / “Surveying App” as whole verticals |
+| Finance (Accounting first); Professional (Legal / Surveying templates) | “Accounting App” / “Legal App” / “Surveying App” as whole verticals |
+| Accommodation under Hospitality & Accommodation | Accommodation under Property |
 | Infrastructure powers digital presence | Domains/hosting as a separate product category from the OS |
-| Real Estate first commercial proof under Property | Equal build effort across every specialisation |
+| Real Estate first commercial proof under Property | Equal build effort across every Template |
 | Growth Apps for visibility & conversion | Automation as a Growth App (Automation is platform capability) |
 
 ---
