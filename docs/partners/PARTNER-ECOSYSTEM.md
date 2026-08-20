@@ -27,6 +27,6 @@ Customer = business decisions + information + adoption
 4. Partner operations dashboard
 5. Partner Marketplace (later)
 
-**Surfaces:** `/command/partners/ecosystem` · `/command/partners/implementation` · `/command/partners/onboarding`
+**Surfaces:** `/command/partners/ecosystem` · `/command/partners/delivery` · `/command/partners/implementation` · `/command/partners/onboarding`
 
-Lock: `packages/platform-core/src/partners/ecosystem.ts`
+Lock: `packages/platform-core/src/partners/ecosystem.ts` · `packages/platform-core/src/partners/delivery-model.ts`

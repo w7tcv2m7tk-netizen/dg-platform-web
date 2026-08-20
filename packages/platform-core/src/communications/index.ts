@@ -485,12 +485,25 @@ export async function sendMessage(
 
 export async function communicationsHealthCheck(_organisationId: string) {
   const resend = Boolean(process.env.RESEND_API_KEY?.trim());
+  const elevenlabs = Boolean(process.env.ELEVENLABS_API_KEY?.trim());
   return {
     ok: true,
     providers: {
       email: resend ? "resend" : "stub_queue",
       sms: "not_configured",
-      voice: "not_configured",
+      voice: elevenlabs ? "elevenlabs" : "not_configured",
     },
   };
 }
+
+export * from "./providers/types";
+export * from "./providers/router";
+export * from "./providers/elevenlabs";
+export { StubVoiceProvider } from "./providers/stub";
+export * from "./context";
+export * from "./agents";
+export * from "./sessions";
+export * from "./tools";
+export * from "./orchestrator";
+export * from "./webhooks";
+export * from "./metrics";

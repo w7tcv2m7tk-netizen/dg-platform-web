@@ -81,6 +81,18 @@ export const AI_COMMUNICATIONS_FEATURES: FeatureGroup = {
     },
     { id: "comms.call_centre.read", appId: "ai-communications", label: "View call centre" },
     {
+      id: "comms.voice.recording",
+      appId: "ai-communications",
+      label: "View call recordings and transcripts",
+      tier: "premium",
+    },
+    {
+      id: "comms.billing.read",
+      appId: "ai-communications",
+      label: "View communications usage and billing",
+      tier: "standard",
+    },
+    {
       id: "comms.analytics.read",
       appId: "ai-communications",
       label: "View communications analytics",

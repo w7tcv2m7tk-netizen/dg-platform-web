@@ -4,6 +4,8 @@
  * Do not collapse these into a generic “reseller” role.
  */
 
+import { IMPLEMENTATION_SOP_STAGES } from "./delivery-model";
+
 export const PARTNER_ECOSYSTEM_POSITIONING =
   "DigitalGate owns the platform, methodology, standards and customer relationship. Certified partners extend DigitalGate's ability to deliver that platform.";
 
@@ -197,92 +199,31 @@ export const IMPLEMENTATION_CERT_MODULES = [
 export const IMPLEMENTATION_CERT_STATUS = ["certified", "approved", "active"] as const;
 export type ImplementationCertStatus = (typeof IMPLEMENTATION_CERT_STATUS)[number];
 
-export const CUSTOMER_ONBOARDING_STAGES = [
-  {
-    id: "accepted",
-    n: "01",
-    title: "Accepted",
-    body: "Customer accepted into Founding 10 / DigitalGate.",
-  },
-  {
-    id: "agreement",
-    n: "02",
-    title: "Agreement",
-    body: "Agreement signed.",
-  },
-  {
-    id: "kickoff",
-    n: "03",
-    title: "Kick-off",
-    body: "Implementation Partner + DigitalGate + customer.",
-  },
-  {
-    id: "discovery",
-    n: "04",
-    title: "Discovery",
-    body: "Business, team, existing systems, goals, pain points, data, integrations, priorities.",
-  },
-  {
-    id: "plan",
-    n: "05",
-    title: "Implementation plan",
-    body: "What gets migrated, connected, configured, built, trained — and what is deferred.",
-  },
-  {
-    id: "foundation",
-    n: "06",
-    title: "Foundation",
-    body: "Organisation, Business Profile, team, permissions, Digital Twin, goals.",
-  },
-  {
-    id: "data",
-    n: "07",
-    title: "Data",
-    body: "Migration and validation.",
-  },
-  {
-    id: "connections",
-    n: "08",
-    title: "Connections",
-    body: "Website, domains, email, Google, Stripe, Xero, social and other systems.",
-  },
-  {
-    id: "apps",
-    n: "09",
-    title: "Apps",
-    body: "Activate only what the customer actually needs.",
-  },
-  {
-    id: "intelligence",
-    n: "10",
-    title: "Automation & AI",
-    body: "Configure the intelligent layer.",
-  },
-  {
-    id: "training",
-    n: "11",
-    title: "Training",
-    body: "Train administrators and staff.",
-  },
-  {
-    id: "go_live",
-    n: "12",
-    title: "Go-live",
-    body: "Customer begins operating through DigitalGate.",
-  },
-  {
-    id: "review_30",
-    n: "13",
-    title: "30-day review",
-    body: "Adoption, usage, problems, opportunities, additional Apps, automation.",
-  },
-  {
-    id: "handover",
-    n: "14",
-    title: "Handover / Success",
-    body: "Move into normal DigitalGate support and ongoing optimisation.",
-  },
+const ONBOARDING_STAGE_IDS = [
+  "accepted",
+  "agreement",
+  "kickoff",
+  "discovery",
+  "business_setup",
+  "data_migration",
+  "connector_setup",
+  "app_config",
+  "business_brain",
+  "automation",
+  "testing",
+  "training",
+  "go_live",
+  "review_30",
+  "handover",
 ] as const;
+
+/** Standard 15-stage implementation SOP — single source: delivery-model.ts */
+export const CUSTOMER_ONBOARDING_STAGES = IMPLEMENTATION_SOP_STAGES.map((stage, i) => ({
+  id: ONBOARDING_STAGE_IDS[i]!,
+  n: stage.n,
+  title: stage.title,
+  body: stage.body,
+}));
 
 export const IMPLEMENTATION_FEE_BANDS = [
   {

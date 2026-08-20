@@ -222,6 +222,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "partners/PARTNER-ECOSYSTEM.md",
   },
   {
+    slug: "delivery-operating-model",
+    title: "Delivery Operating Model",
+    summary:
+      "Hub-and-spoke delivery — resellers introduce, DigitalGate closes, Head of Implementation owns the SOP, Delivery Team scales capacity. Powered by DigitalGate.",
+    group: "partners",
+    relativePath: "partners/DELIVERY-OPERATING-MODEL.md",
+  },
+  {
     slug: "reseller-programme",
     title: "Reseller Programme",
     summary:

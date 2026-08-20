@@ -2,6 +2,7 @@ export * from "./types";
 export * from "./programme";
 export * from "./briefing";
 export * from "./ecosystem";
+export * from "./delivery-model";
 export * from "./crud";
 export * from "./emails";
 export * from "./invite-state";

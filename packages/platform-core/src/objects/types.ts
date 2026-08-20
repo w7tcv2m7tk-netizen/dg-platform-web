@@ -10,7 +10,17 @@
 export const UNIVERSAL_OBJECTS = {
   identity: ["Contact", "Company", "User", "Organisation"],
   commercial: ["Lead", "Opportunity", "Deal", "Quote", "Invoice", "Subscription"],
-  operational: ["Task", "Activity", "Note", "Document", "Event"],
+  operational: [
+    "Task",
+    "Activity",
+    "Note",
+    "Document",
+    "Event",
+    "CommunicationAgent",
+    "CommunicationSession",
+    "CommunicationMessage",
+    "AgentAction",
+  ],
   assets: ["Property", "Accommodation", "Vehicle", "Product", "Service"],
 } as const;
 

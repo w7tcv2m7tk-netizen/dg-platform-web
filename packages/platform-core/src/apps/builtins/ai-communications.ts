@@ -29,6 +29,8 @@ export const aiCommunicationsApp: AppManifest = {
     { id: "comms.manage_agents", label: "Configure AI agents" },
     { id: "comms.manage_knowledge", label: "Manage knowledge base" },
     { id: "comms.send_messages", label: "Send messages to clients" },
+    { id: "comms.view_recordings", label: "View recordings and transcripts" },
+    { id: "comms.view_billing", label: "View communications billing" },
   ],
   features: [
     "comms.inbox.read",
@@ -41,6 +43,8 @@ export const aiCommunicationsApp: AppManifest = {
     "comms.knowledge.read",
     "comms.knowledge.write",
     "comms.call_centre.read",
+    "comms.voice.recording",
+    "comms.billing.read",
     "comms.analytics.read",
     "comms.ai.coaching.read",
   ],
@@ -51,6 +55,10 @@ export const aiCommunicationsApp: AppManifest = {
     "Activity",
     "Task",
     "Document",
+    "CommunicationAgent",
+    "CommunicationSession",
+    "CommunicationMessage",
+    "AgentAction",
   ],
   automationTriggers: [
     {

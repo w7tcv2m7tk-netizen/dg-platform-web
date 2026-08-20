@@ -51,6 +51,7 @@ export const COMMAND_CENTRE_ROUTES = {
   partnerEcosystem: `${COMMAND_CENTRE_BASE_PATH}/partners/ecosystem`,
   partnerImplementation: `${COMMAND_CENTRE_BASE_PATH}/partners/implementation`,
   partnerOnboarding: `${COMMAND_CENTRE_BASE_PATH}/partners/onboarding`,
+  partnerDelivery: `${COMMAND_CENTRE_BASE_PATH}/partners/delivery`,
   partnerPayouts: `${COMMAND_CENTRE_BASE_PATH}/partners/payouts`,
   partnerReferrals: `${COMMAND_CENTRE_BASE_PATH}/referrals`,
   partnerCommissions: `${COMMAND_CENTRE_BASE_PATH}/commissions`,
