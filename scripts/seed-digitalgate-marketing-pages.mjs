@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /**
- * Seed DigitalGate marketing HTML (Oxygen paste sources) into Gen 2 Website Studio.
+ * Seed DigitalGate marketing HTML into Gen 2 Website Studio (canonical SoT).
+ * WordPress / Oxygen paste is retired for digitalgate.com.au apex marketing.
  *
  * Usage:
- *   node scripts/seed-digitalgate-marketing-pages.mjs
- *   node scripts/seed-digitalgate-marketing-pages.mjs --publish
+ *   node --env-file=.env.local scripts/seed-digitalgate-marketing-pages.mjs
+ *   node --env-file=.env.local scripts/seed-digitalgate-marketing-pages.mjs --publish
  *
  * Reads from sibling repo: ../dg-platform/marketing/pages/
- * Upserts pages on the DigitalGate org website (slug: digitalgate).
+ * Upserts + publishes pages on the DigitalGate org website (slug: digitalgate).
  */
 import { config } from "dotenv";
 import { readFileSync, existsSync } from "node:fs";
@@ -159,7 +160,7 @@ function htmlToComponents(html) {
       html: chunk,
       note:
         i === 0
-          ? "Imported from dg-platform/marketing/pages (Oxygen paste source). Scripts stripped; body CSS remapped to .wb-html-island."
+          ? "Imported from dg-platform/marketing/pages (Gen 2 marketing SoT). Scripts stripped; body CSS remapped to .wb-html-island."
           : `Continued HTML chunk ${i + 1}`,
     },
   }));
