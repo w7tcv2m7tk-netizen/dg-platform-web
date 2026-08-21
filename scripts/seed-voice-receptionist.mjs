@@ -177,9 +177,9 @@ const TOOL_META = {
     description: "Update an existing CRM contact with details gathered on the call.",
     properties: {
       contactId: { type: "string", description: "Contact id" },
-      phone: { type: "string" },
-      email: { type: "string" },
-      notes: { type: "string" },
+      phone: { type: "string", description: "Updated phone number" },
+      email: { type: "string", description: "Updated email address" },
+      notes: { type: "string", description: "Notes from the call" },
     },
     required: ["contactId"],
   },
@@ -212,8 +212,8 @@ const TOOL_META = {
     description: "Send an email via DigitalGate (when configured).",
     properties: {
       to: { type: "string", description: "Email address" },
-      subject: { type: "string" },
-      body: { type: "string" },
+      subject: { type: "string", description: "Email subject" },
+      body: { type: "string", description: "Email body" },
     },
     required: ["to", "subject", "body"],
   },
