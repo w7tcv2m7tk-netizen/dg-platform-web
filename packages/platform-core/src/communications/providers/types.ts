@@ -83,6 +83,8 @@ export type CommunicationBusinessHours = {
 export type AgentBuilderConfig = {
   personality?: string;
   tone?: string;
+  /** Display role, e.g. AI Business Receptionist */
+  roleTitle?: string;
   primaryObjective?: string;
   secondaryObjectives?: string[];
   successCriteria?: string;
@@ -93,8 +95,12 @@ export type AgentBuilderConfig = {
   knowledgeSourceIds?: string[];
   recordingConsent?: boolean;
   disclosure?: string;
+  /** Out-of-hours behaviour mode (UI + prompt). */
+  outOfHoursMode?: "take_message" | "inform_and_follow_up" | "transfer_on_call";
   outOfHoursMessage?: string;
   fallback?: "transfer" | "voicemail" | "message";
+  /** Spoken line before transfer / task handoff */
+  humanFallbackMessage?: string;
 };
 
 export type SerializedCommunicationAgent = {

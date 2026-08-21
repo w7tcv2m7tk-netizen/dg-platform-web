@@ -3,10 +3,12 @@
 **DigitalGate as the orchestration layer for AI voice, chat, email, and messaging**
 
 **Version:** 0.1  
-**Status:** Live slice — ElevenLabs ConvAI + Agent Builder + Call Centre (see [VOICE-AGENT-RUNBOOK.md](./VOICE-AGENT-RUNBOOK.md))  
+**Status:** Live slice — ElevenLabs ConvAI + Agent Builder + Call Centre  
+**Architecture lock:** [VOICE-AGENT-ARCHITECTURE.md](./VOICE-AGENT-ARCHITECTURE.md) — *ElevenLabs provides the voice intelligence; DigitalGate remains the system of record.*  
+**Ops:** [VOICE-AGENT-RUNBOOK.md](./VOICE-AGENT-RUNBOOK.md)  
 **Last updated:** August 2026  
 
-**Related:** [AI-ARCHITECTURE.md](./AI-ARCHITECTURE.md) · [VOICE-AGENT-RUNBOOK.md](./VOICE-AGENT-RUNBOOK.md) · [AI-GOVERNANCE.md](../foundations/AI-GOVERNANCE.md) · [CONNECTOR-SPECIFICATION.md](../connectors/CONNECTOR-SPECIFICATION.md)
+**Related:** [AI-ARCHITECTURE.md](./AI-ARCHITECTURE.md) · [VOICE-AGENT-ARCHITECTURE.md](./VOICE-AGENT-ARCHITECTURE.md) · [VOICE-AGENT-RUNBOOK.md](./VOICE-AGENT-RUNBOOK.md) · [AI-GOVERNANCE.md](../foundations/AI-GOVERNANCE.md) · [BUSINESS-BRAIN.md](../foundations/BUSINESS-BRAIN.md) · [CONNECTOR-SPECIFICATION.md](../connectors/CONNECTOR-SPECIFICATION.md)
 
 ---
 

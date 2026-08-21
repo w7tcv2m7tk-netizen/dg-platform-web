@@ -153,6 +153,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "foundations/CONNECTED-BUSINESS.md",
   },
   {
+    slug: "digitalgate-master-business-plan",
+    title: "Master Business Plan & Business Brain Context",
+    summary:
+      "Authoritative DG business context for Brain/Advisor/Command Centre — Live vs Vision, Founding 10 lock, commercial model, product philosophy. Prefer this for strategy; live data for ops; Platform Docs for tech.",
+    group: "strategy",
+    relativePath: "strategy/DIGITALGATE-MASTER-BUSINESS-PLAN.md",
+  },
+  {
     slug: "product-vision",
     title: "Product Vision",
     summary: "What DigitalGate is building and why.",
@@ -415,6 +423,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     summary: "Docs SSOT → live truth → tools; Phase 0/1 knowledge layer (not full AI yet).",
     group: "ai",
     relativePath: "ai/PLATFORM-INTELLIGENCE.md",
+  },
+  {
+    slug: "voice-agent-architecture",
+    title: "Voice Agent Architecture",
+    summary:
+      "ElevenLabs voice intelligence · DigitalGate system of record · Inbound Receptionist template · Business Brain context.",
+    group: "ai",
+    relativePath: "ai/VOICE-AGENT-ARCHITECTURE.md",
   },
   {
     slug: "industry-intelligence",

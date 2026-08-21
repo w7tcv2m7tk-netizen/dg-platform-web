@@ -5,7 +5,7 @@ import { emptyIfUnmigrated } from "./db";
 import { compileAgentSystemPrompt, getAuthorisedAgentContext } from "./context";
 import { defaultVoiceProviderId, getCommunicationProvider } from "./providers/router";
 import { getAgentToolDefinition } from "./tool-schemas";
-import { receptionistDefaultTools } from "./templates";
+import { receptionistDefaultTools, resolveAgentGreeting } from "./templates";
 import type {
   AgentBuilderConfig,
   AgentToolName,
@@ -350,13 +350,18 @@ export async function publishCommunicationAgent(input: {
 
   const config = asConfig(existing.config);
   const businessContext = await getAuthorisedAgentContext(input.organisationId);
+  const greeting = resolveAgentGreeting({
+    template: existing.greeting || "Thanks for calling {{business_name}}. How can I help you today?",
+    businessName: businessContext.tradingName || businessContext.businessName,
+    agentName: existing.name,
+  });
   const systemPrompt = compileAgentSystemPrompt({
     name: existing.name,
     type: existing.type,
     description: existing.description,
-    greeting: existing.greeting,
+    greeting,
     language: existing.language,
-    timezone: existing.timezone,
+    timezone: businessContext.timezone || existing.timezone,
     config,
     businessContext,
     extraPrompt: existing.systemPrompt,
@@ -378,12 +383,12 @@ export async function publishCommunicationAgent(input: {
   const payload = {
     name: existing.name,
     description: existing.description,
-    greeting: existing.greeting,
+    greeting,
     systemPrompt,
     language: existing.language,
     voiceId: existing.voiceId,
     model: existing.model,
-    timezone: existing.timezone,
+    timezone: businessContext.timezone || existing.timezone,
     tools,
   };
 

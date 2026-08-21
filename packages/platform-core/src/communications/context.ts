@@ -72,9 +72,20 @@ export function compileAgentSystemPrompt(input: {
   extraPrompt?: string | null;
 }): string {
   const cfg = input.config;
+  const outOfHoursModeLabel =
+    cfg.outOfHoursMode === "inform_and_follow_up"
+      ? "Provide approved information and create a follow-up"
+      : cfg.outOfHoursMode === "transfer_on_call"
+        ? "Transfer to emergency / on-call number when configured"
+        : "Take a message (default)";
+
   const sections = [
-    `You are ${input.name}, a DigitalGate AI ${input.type} agent.`,
-    input.description ? `Role: ${input.description}` : null,
+    `You are ${input.name}${cfg.roleTitle ? `, ${cfg.roleTitle}` : `, a DigitalGate AI ${input.type} agent`}.`,
+    input.description ? `Role description: ${input.description}` : null,
+    "## Architecture",
+    "ElevenLabs provides the voice conversation. DigitalGate is the system of record. Use DigitalGate tools for every retrieve or write. Never invent CRM ids or claim database writes outside tools.",
+    "## Business Brain context",
+    "Use only the authorised business context below (and tool results). It is shaped by the organisation’s Business Profile and, over time, Business Brain. Do not invent business facts.",
     cfg.personality ? `Personality: ${cfg.personality}` : null,
     cfg.tone ? `Tone: ${cfg.tone}` : null,
     cfg.primaryObjective ? `Primary objective: ${cfg.primaryObjective}` : null,
@@ -83,11 +94,11 @@ export function compileAgentSystemPrompt(input: {
       : null,
     cfg.successCriteria ? `Success criteria: ${cfg.successCriteria}` : null,
     `Language: ${input.language}. Timezone: ${input.timezone}.`,
-    input.greeting ? `Opening greeting: ${input.greeting}` : null,
+    input.greeting ? `Opening greeting (adapt naturally): ${input.greeting}` : null,
     "## Authorised business context",
     formatAgentContextBlock(input.businessContext) || "(No business profile yet.)",
     cfg.qualificationQuestions?.length
-      ? `## Qualification questions\n- ${cfg.qualificationQuestions.join("\n- ")}`
+      ? `## Qualification questions (ask conversationally — only when relevant)\n- ${cfg.qualificationQuestions.join("\n- ")}`
       : null,
     cfg.mayProvide?.length ? `## You may provide\n- ${cfg.mayProvide.join("\n- ")}` : null,
     cfg.mustNotProvide?.length
@@ -96,16 +107,21 @@ export function compileAgentSystemPrompt(input: {
     cfg.enabledTools?.length
       ? `## Authorised DigitalGate tools\nOnly use these tools: ${cfg.enabledTools.join(", ")}.`
       : "Do not take CRM actions unless a tool is explicitly available.",
-    cfg.disclosure
-      ? `## Compliance\n${cfg.disclosure}`
-      : "If recording, disclose that the call may be recorded where required under Australian law.",
+    "## Compliance",
     cfg.recordingConsent === false
       ? "Do not claim the call is recorded unless the caller has consented."
+      : cfg.disclosure ||
+        "If recording, disclose that the call may be recorded where required under applicable law.",
+    `Out of hours mode: ${outOfHoursModeLabel}.`,
+    cfg.outOfHoursMessage ? `Out of hours guidance: ${cfg.outOfHoursMessage}` : null,
+    cfg.humanFallbackMessage
+      ? `Human fallback line: ${cfg.humanFallbackMessage}`
       : null,
-    cfg.outOfHoursMessage ? `Out of hours: ${cfg.outOfHoursMessage}` : null,
-    cfg.fallback ? `Human fallback: ${cfg.fallback}` : null,
-    "Never invent prices, legal advice, or confidential customer data.",
+    cfg.fallback ? `Human fallback action: ${cfg.fallback}` : null,
+    "Never invent prices, legal/medical/financial advice, or confidential customer data.",
     "Never expose internal IDs, API keys, or unrestricted organisation data.",
+    "Always search Contact before create; search Opportunity before create when the enquiry is sales/service.",
+    "Meaningful enquiries must end with a recorded next action (Task, Opportunity update, transfer, or approved message).",
     input.extraPrompt?.trim() || null,
   ].filter(Boolean);
 

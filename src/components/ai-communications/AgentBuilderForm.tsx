@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  AGENT_STARTER_TEMPLATES,
+  AGENT_TOOL_GROUPS,
+  type AgentBuilderConfig,
+} from "@dg/platform-core";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -15,20 +20,6 @@ const AGENT_TYPES = [
   "custom",
 ] as const;
 
-const TOOLS = [
-  ["get_business_profile", "Get business profile"],
-  ["get_business_hours", "Get business hours"],
-  ["search_contact", "Search contact"],
-  ["create_contact", "Create contact"],
-  ["update_contact", "Update contact"],
-  ["search_opportunity", "Search opportunity"],
-  ["create_opportunity", "Create opportunity"],
-  ["create_task", "Create task"],
-  ["send_sms", "Send SMS"],
-  ["send_email", "Send email"],
-  ["transfer_to_human", "Transfer to human"],
-] as const;
-
 type VoiceOption = { id: string; name: string };
 type AgentRecord = {
   id: string;
@@ -42,21 +33,7 @@ type AgentRecord = {
   language: string;
   timezone: string;
   systemPrompt: string | null;
-  config: {
-    personality?: string;
-    tone?: string;
-    primaryObjective?: string;
-    secondaryObjectives?: string[];
-    successCriteria?: string;
-    qualificationQuestions?: string[];
-    mayProvide?: string[];
-    mustNotProvide?: string[];
-    enabledTools?: string[];
-    recordingConsent?: boolean;
-    disclosure?: string;
-    outOfHoursMessage?: string;
-    fallback?: string;
-  };
+  config: AgentBuilderConfig;
 };
 
 type StarterTemplate = {
@@ -69,66 +46,11 @@ type StarterTemplate = {
   language: string;
   timezone: string;
   systemPrompt?: string;
-  config: AgentRecord["config"];
+  config: AgentBuilderConfig;
 };
 
-const RECEPTIONIST_FALLBACK: StarterTemplate = {
-  id: "receptionist",
-  label: "Inbound receptionist",
-  description:
-    "Answer inbound calls, qualify the enquiry, create a Contact + Opportunity, and leave a follow-up task.",
-  type: "receptionist",
-  name: "Inbound Receptionist",
-  greeting:
-    "Hello, thanks for calling. This call may be recorded for quality. How can I help you today?",
-  language: "en-AU",
-  timezone: "Australia/Brisbane",
-  systemPrompt:
-    "You are the DigitalGate inbound receptionist. Prefer short spoken sentences. Use tools to look up or create CRM records — never invent CRM ids. If unsure, create a follow-up task.",
-  config: {
-    personality: "Warm, professional, concise",
-    tone: "Australian English, calm and clear",
-    primaryObjective:
-      "Answer inbound enquiries, capture caller details, and qualify whether this is a lead.",
-    secondaryObjectives: [
-      "Confirm name, phone, and email when possible",
-      "Summarise what they need in plain language",
-      "Create a CRM contact and opportunity when they are a prospect",
-      "Create a follow-up task for the team",
-    ],
-    successCriteria:
-      "Caller feels heard; CRM has accurate contact details; team has a clear next step.",
-    qualificationQuestions: [
-      "What can I help you with today?",
-      "Is this for your business or personal?",
-      "What is the best phone or email to reach you on?",
-      "Would you like someone from the team to follow up?",
-    ],
-    mayProvide: [
-      "Business hours and general location",
-      "High-level product / service overview from the business profile",
-      "How the team will follow up",
-    ],
-    mustNotProvide: [
-      "Confidential customer records",
-      "Unpublished pricing or discounts",
-      "Legal, medical, or financial advice",
-    ],
-    enabledTools: [
-      "get_business_profile",
-      "get_business_hours",
-      "search_contact",
-      "create_contact",
-      "create_opportunity",
-      "create_task",
-    ],
-    recordingConsent: true,
-    disclosure:
-      "This call may be recorded for quality and training. Handle personal information under the Australian Privacy Act.",
-    outOfHoursMessage: "Take a message, capture contact details, and offer a callback.",
-    fallback: "message",
-  },
-};
+const RECEPTIONIST_FALLBACK: StarterTemplate =
+  AGENT_STARTER_TEMPLATES.find((t) => t.id === "receptionist") ?? AGENT_STARTER_TEMPLATES[0];
 
 function lines(value?: string[] | string | null) {
   if (Array.isArray(value)) return value.join("\n");
@@ -149,8 +71,8 @@ export function AgentBuilderForm({
   const [draft, setDraft] = useState<Partial<AgentRecord> | null>(agent ?? null);
   const [enabledTools, setEnabledTools] = useState<string[]>(
     agent?.config.enabledTools?.length
-      ? agent.config.enabledTools
-      : RECEPTIONIST_FALLBACK.config.enabledTools ?? [],
+      ? [...agent.config.enabledTools]
+      : [...(RECEPTIONIST_FALLBACK.config.enabledTools ?? [])],
   );
 
   const active = useMemo(() => draft ?? agent ?? null, [draft, agent]);
@@ -209,17 +131,26 @@ export function AgentBuilderForm({
       config: {
         personality: String(data.get("personality") || "").trim() || undefined,
         tone: String(data.get("tone") || "").trim() || undefined,
+        roleTitle: String(data.get("roleTitle") || "").trim() || undefined,
         primaryObjective: String(data.get("primaryObjective") || "").trim() || undefined,
         secondaryObjectives: split("secondaryObjectives"),
         successCriteria: String(data.get("successCriteria") || "").trim() || undefined,
         qualificationQuestions: split("qualificationQuestions"),
         mayProvide: split("mayProvide"),
         mustNotProvide: split("mustNotProvide"),
-        enabledTools,
+        enabledTools: enabledTools as AgentBuilderConfig["enabledTools"],
         recordingConsent: data.get("recordingConsent") === "on",
         disclosure: String(data.get("disclosure") || "").trim() || undefined,
+        outOfHoursMode: String(data.get("outOfHoursMode") || "take_message") as
+          | "take_message"
+          | "inform_and_follow_up"
+          | "transfer_on_call",
         outOfHoursMessage: String(data.get("outOfHoursMessage") || "").trim() || undefined,
-        fallback: String(data.get("fallback") || "transfer"),
+        fallback: String(data.get("fallback") || "transfer") as
+          | "transfer"
+          | "voicemail"
+          | "message",
+        humanFallbackMessage: String(data.get("humanFallbackMessage") || "").trim() || undefined,
       },
     };
 
@@ -275,7 +206,8 @@ export function AgentBuilderForm({
         <section className="dg-card space-y-3">
           <h2 className="font-semibold text-white">Start from template</h2>
           <p className="text-sm text-slate-400">
-            Pre-fills identity, tools, and compliance for a working inbound receptionist.
+            Pre-fills identity, Business Brain–aware behaviour, DigitalGate tools, and compliance.
+            ElevenLabs speaks; DigitalGate remains the system of record.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             {templates.map((template) => (
@@ -323,18 +255,29 @@ export function AgentBuilderForm({
             />
           </label>
           <label className="block">
-            <span className="text-sm text-slate-400">Personality</span>
+            <span className="text-sm text-slate-400">Role title</span>
             <input
-              name="personality"
-              defaultValue={cfg.personality ?? "Warm, professional, concise"}
+              name="roleTitle"
+              defaultValue={cfg.roleTitle ?? "AI Business Receptionist"}
               className="dg-input mt-1"
             />
           </label>
           <label className="block">
+            <span className="text-sm text-slate-400">Personality</span>
+            <input
+              name="personality"
+              defaultValue={
+                cfg.personality ??
+                "Professional, warm, helpful, confident and conversational"
+              }
+              className="dg-input mt-1"
+            />
+          </label>
+          <label className="block sm:col-span-2">
             <span className="text-sm text-slate-400">Tone</span>
             <input
               name="tone"
-              defaultValue={cfg.tone ?? "Australian English, calm"}
+              defaultValue={cfg.tone ?? "Natural, concise and friendly"}
               className="dg-input mt-1"
             />
           </label>
@@ -349,7 +292,7 @@ export function AgentBuilderForm({
             name="primaryObjective"
             defaultValue={
               cfg.primaryObjective ??
-              "Answer inbound enquiries and qualify prospects."
+              "Understand the reason for the call and ensure the enquiry is properly captured and routed."
             }
             className="dg-input mt-1"
           />
@@ -425,10 +368,15 @@ export function AgentBuilderForm({
             <input
               name="greeting"
               defaultValue={
-                active?.greeting ?? "Hello, thanks for calling. How can I help you today?"
+                active?.greeting ??
+                "Thanks for calling {{business_name}}, you’re speaking with {{agent_name}}. How can I help you today?"
               }
               className="dg-input mt-1"
             />
+            <p className="mt-1 text-xs text-slate-500">
+              Use {"{{business_name}}"} and {"{{agent_name}}"} — resolved from Business Profile on
+              publish.
+            </p>
           </label>
         </div>
       </section>
@@ -436,12 +384,14 @@ export function AgentBuilderForm({
       <section className="dg-card space-y-4">
         <h2 className="font-semibold text-white">Behaviour</h2>
         <label className="block">
-          <span className="text-sm text-slate-400">Qualification questions (one per line)</span>
+          <span className="text-sm text-slate-400">
+            Qualification questions (one per line — ask only when relevant)
+          </span>
           <textarea
             name="qualificationQuestions"
             defaultValue={
               lines(cfg.qualificationQuestions) ||
-              "What can I help you with today?\nIs this for buying, selling, or something else?"
+              lines(RECEPTIONIST_FALLBACK.config.qualificationQuestions)
             }
             className="dg-input mt-1 min-h-24"
           />
@@ -450,7 +400,7 @@ export function AgentBuilderForm({
           <span className="text-sm text-slate-400">Information the agent may provide</span>
           <textarea
             name="mayProvide"
-            defaultValue={lines(cfg.mayProvide)}
+            defaultValue={lines(cfg.mayProvide) || lines(RECEPTIONIST_FALLBACK.config.mayProvide)}
             className="dg-input mt-1 min-h-20"
           />
         </label>
@@ -459,8 +409,7 @@ export function AgentBuilderForm({
           <textarea
             name="mustNotProvide"
             defaultValue={
-              lines(cfg.mustNotProvide) ||
-              "Confidential customer records\nUnpublished pricing"
+              lines(cfg.mustNotProvide) || lines(RECEPTIONIST_FALLBACK.config.mustNotProvide)
             }
             className="dg-input mt-1 min-h-20"
           />
@@ -469,8 +418,8 @@ export function AgentBuilderForm({
           <span className="text-sm text-slate-400">Extra prompt notes</span>
           <textarea
             name="systemPrompt"
-            defaultValue={active?.systemPrompt ?? ""}
-            className="dg-input mt-1 min-h-20"
+            defaultValue={active?.systemPrompt ?? RECEPTIONIST_FALLBACK.systemPrompt ?? ""}
+            className="dg-input mt-1 min-h-28"
           />
         </label>
       </section>
@@ -478,23 +427,36 @@ export function AgentBuilderForm({
       <section className="dg-card space-y-4">
         <h2 className="font-semibold text-white">DigitalGate tools</h2>
         <p className="text-sm text-slate-400">
-          The voice provider never writes to your database. Tools run on DigitalGate, with
-          permission checks and an audit trail.
+          DigitalGate is the system of record. ElevenLabs provides the conversational voice
+          experience. The voice agent never writes directly to your database. All business actions
+          run through DigitalGate’s permission-controlled tools, with an audit trail.
         </p>
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {TOOLS.map(([id, label]) => (
-            <li key={id}>
-              <label className="flex items-center gap-2 text-sm text-slate-200">
-                <input
-                  type="checkbox"
-                  checked={enabledTools.includes(id)}
-                  onChange={() => toggleTool(id)}
-                />
-                {label}
-              </label>
-            </li>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {AGENT_TOOL_GROUPS.map((group) => (
+            <div
+              key={group.id}
+              className="rounded-xl border border-slate-700/70 bg-slate-950/40 px-4 py-3"
+            >
+              <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">
+                {group.label}
+              </p>
+              <ul className="mt-2 space-y-2">
+                {group.tools.map((tool) => (
+                  <li key={tool.id}>
+                    <label className="flex items-center gap-2 text-sm text-slate-200">
+                      <input
+                        type="checkbox"
+                        checked={enabledTools.includes(tool.id)}
+                        onChange={() => toggleTool(tool.id)}
+                      />
+                      {tool.label}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       </section>
 
       <section className="dg-card space-y-4">
@@ -513,23 +475,50 @@ export function AgentBuilderForm({
             name="disclosure"
             defaultValue={
               cfg.disclosure ??
-              "This call may be recorded for quality and training. Handle personal information under the Australian Privacy Act."
+              "Just letting you know, this call may be recorded to help us improve our service."
             }
             className="dg-input mt-1 min-h-20"
           />
+          <p className="mt-1 text-xs text-slate-500">
+            Configurable by jurisdiction — do not assume recording is always lawful to announce.
+          </p>
         </label>
         <label className="block">
-          <span className="text-sm text-slate-400">Out of hours</span>
+          <span className="text-sm text-slate-400">Out of hours behaviour</span>
+          <select
+            name="outOfHoursMode"
+            defaultValue={cfg.outOfHoursMode ?? "take_message"}
+            className="dg-input mt-1"
+          >
+            <option value="take_message">Take message (default)</option>
+            <option value="inform_and_follow_up">Provide information and create follow-up</option>
+            <option value="transfer_on_call">Transfer to emergency / on-call (when configured)</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="text-sm text-slate-400">Out of hours guidance</span>
           <input
             name="outOfHoursMessage"
             defaultValue={
-              cfg.outOfHoursMessage ?? "Take a message and offer a callback."
+              cfg.outOfHoursMessage ??
+              "Take a message, capture contact details, create a follow-up Task, and offer a callback."
             }
             className="dg-input mt-1"
           />
         </label>
         <label className="block">
-          <span className="text-sm text-slate-400">Human fallback</span>
+          <span className="text-sm text-slate-400">Human fallback line</span>
+          <input
+            name="humanFallbackMessage"
+            defaultValue={
+              cfg.humanFallbackMessage ??
+              "I want to make sure you get the right help with this. I’ll pass this through to someone from the team."
+            }
+            className="dg-input mt-1"
+          />
+        </label>
+        <label className="block">
+          <span className="text-sm text-slate-400">Human fallback action</span>
           <select
             name="fallback"
             defaultValue={cfg.fallback ?? "transfer"}
@@ -537,7 +526,7 @@ export function AgentBuilderForm({
           >
             <option value="transfer">Transfer to human</option>
             <option value="voicemail">Voicemail / message</option>
-            <option value="message">Take a message</option>
+            <option value="message">Take a message / create Task</option>
           </select>
         </label>
       </section>

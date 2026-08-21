@@ -2,7 +2,10 @@
 
 **App:** AI Communications (`voice_ai` addon)  
 **Provider:** ElevenLabs Conversational AI  
+**Architecture:** [VOICE-AGENT-ARCHITECTURE.md](./VOICE-AGENT-ARCHITECTURE.md)  
 **Last updated:** August 2026
+
+**Principle:** ElevenLabs provides the voice intelligence; DigitalGate remains the system of record.
 
 Related: [COMMUNICATIONS-ARCHITECTURE.md](./COMMUNICATIONS-ARCHITECTURE.md)
 
@@ -36,9 +39,10 @@ Expect: voices > 0, `convaiSettings.postCallWebhookId` set, `toolSmoke.ok: true`
 1. Open **Agent Builder** (`/apps/ai-communications/agents`) or run:
    `node --env-file=.env.local scripts/seed-voice-receptionist.mjs --publish`
    (uses production tool URLs when `NEXT_PUBLIC_APP_URL=https://app.digitalgate.com.au`)
-2. Template: **Inbound receptionist** (Contact + Opportunity + Task tools).
+2. Template: **Inbound Receptionist** — Contact / Opportunity / Task / SMS / Email / Transfer tools (grouped Understand · Record · Communicate · Escalate).
 3. Pick a voice from the live list (UI) or accept provider default (seed).
-4. **Save & publish** registers tool URLs:
+4. Greeting supports `{{business_name}}` / `{{agent_name}}` — resolved from Business Profile on publish.
+5. **Save & publish** registers tool URLs:
    `{APP_URL}/api/webhooks/elevenlabs/tools?agentId=<dgAgentId>&tool=<toolName>`
 
 English agents must use TTS `eleven_flash_v2` or turbo v2 (not v2.5).
@@ -63,7 +67,7 @@ Then:
 ## 4. End-to-end checklist
 
 - [ ] Test call / widget conversation completes
-- [ ] Mid-call tools create Contact / Opportunity / Task in CRM
+- [ ] Mid-call tools create/update Contact / Opportunity / Task in CRM (search before create)
 - [ ] **Call Centre** shows session with transcript/summary
 - [ ] Settings usage / overview increments
 
@@ -89,7 +93,8 @@ NEXT_PUBLIC_APP_URL=https://app.digitalgate.com.au \
 
 ## Out of scope (this slice)
 
-- Twilio number buy / SMS
+- Twilio number buy / SMS delivery path end-to-end
 - Real telephony transfer
 - Calendar booking tools
+- Full Business Brain document retrieval (authorised Profile context is Live; deeper Brain is Direction)
 - Property Industry vendor-lead template

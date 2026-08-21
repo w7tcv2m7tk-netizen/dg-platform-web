@@ -24,8 +24,8 @@ export default async function AgentBuilderPage({
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Agent Builder</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · configure identity, purpose, tools, and
-          compliance — not a raw provider prompt
+          {session?.organisationName ?? "DigitalGate"} · Identity → Behaviour → Business Brain
+          context → DigitalGate tools — ElevenLabs speaks; DigitalGate records
         </p>
         <CommsSubnav active="/apps/ai-communications/agents" />
       </header>

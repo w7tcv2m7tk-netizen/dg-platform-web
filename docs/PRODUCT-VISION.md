@@ -12,6 +12,8 @@
 
 **Connected Business philosophy (locked):** [foundations/CONNECTED-BUSINESS.md](./foundations/CONNECTED-BUSINESS.md) — *Connect your business. Give it a brain.* Sell coherence of a living system, not a feature checklist.
 
+**Master Business Plan / Business Brain context:** [strategy/DIGITALGATE-MASTER-BUSINESS-PLAN.md](./strategy/DIGITALGATE-MASTER-BUSINESS-PLAN.md) — what DigitalGate is, sells, how it operates; Live vs Vision for AI
+
 **GTM / rollout (canonical):** [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) — Business Operating Platform; *One platform to run, understand and grow your business* ([ADR 0013](./adr/0013-gtm-rollout-strategy-adopted.md))
 
 ---

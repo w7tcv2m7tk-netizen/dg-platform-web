@@ -10,6 +10,7 @@ Before committing to implementation, these documents define the decisions that a
 **Sidebar / nav (locked):** [SIDEBAR-NAVIGATION.md](./SIDEBAR-NAVIGATION.md) — capability-aware CORE → … → PLATFORM ADMIN  
 **Connected Business (locked):** [CONNECTED-BUSINESS.md](./CONNECTED-BUSINESS.md) — *Connect your business. Give it a brain.* Philosophy & positioning  
 **Connected Business implementation:** [CONNECTED-BUSINESS-IMPLEMENTATION.md](./CONNECTED-BUSINESS-IMPLEMENTATION.md) — P0–P2 ship brief · marketing · knowledge layers  
+**Master Business Plan (Business Brain context):** [../strategy/DIGITALGATE-MASTER-BUSINESS-PLAN.md](../strategy/DIGITALGATE-MASTER-BUSINESS-PLAN.md) — what DigitalGate is, sells, how it operates; Live vs Vision for AI  
 **Business Body™ (locked):** [BUSINESS-BODY.md](./BUSINESS-BODY.md) — human-readable living-organisation model for education & onboarding (not UI chrome)  
 **Intelligent layer (north-star):** [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) — Connect · Centralise · Understand · Automate · Grow + Digital Twin™ centrepiece  
 **GTM / rollout (product–marketing):** [../strategy/DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md)  
@@ -61,6 +62,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | — | [ROLES-PERMISSIONS-SIDEBAR.md](./ROLES-PERMISSIONS-SIDEBAR.md) | **Locked** — user types, org roles, granular permissions, side panel, partners, pricing |
 | — | [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) | **North-star** — Twin centrepiece; BI scores; Advisor; AI Actions; opportunity detection; Marketplace/Agents later |
 | — | [BUSINESS-BRAIN.md](./BUSINESS-BRAIN.md) | Customer knowledge corpus — seven dimensions; DNA; distinct from Digital Twin; Body framework |
+| — | [../strategy/DIGITALGATE-MASTER-BUSINESS-PLAN.md](../strategy/DIGITALGATE-MASTER-BUSINESS-PLAN.md) | **Business Brain master** — DG strategy, commercial model, Live vs Vision instructions for AI |
 | — | [COMMERCIALLY-READY-V1.md](./COMMERCIALLY-READY-V1.md) | **Operating target** — 5 founding agencies, pre-launch GTM stance, Gates 1–4, pre-sell 6 reds, NOW backlog |
 | 1 | [CORE-OBJECT-SPECIFICATION.md](./CORE-OBJECT-SPECIFICATION.md) | **Canonical domain model** — what, fields, relationships, ownership, events |
 | 1b | [CONTACTS-AND-APP-ROLES.md](./CONTACTS-AND-APP-ROLES.md) | **ONE Contact** — forbid duplicate people (Guest/Vendor/Buyer…); Contact → App Role |
