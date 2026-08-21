@@ -285,7 +285,7 @@ function conversationConfig(agentId, businessName) {
       language: "en",
       prompt: {
         prompt,
-        llm: "gemini-2.0-flash",
+        llm: "gemini-2.5-flash",
         tools,
       },
     },
@@ -326,17 +326,30 @@ async function main() {
   const org = await resolveOrg();
   console.log(`Org: ${org.name} (${org.id})`);
 
-  let agent = await prisma.communicationAgent.findFirst({
-    where: {
-      organisationId: org.id,
-      OR: [
-        { name: RECEPTIONIST.name },
-        { name: "Inbound Receptionist" },
-        { type: "receptionist" },
-      ],
-    },
-    orderBy: { updatedAt: "desc" },
-  });
+  let agent =
+    (await prisma.communicationAgent.findFirst({
+      where: {
+        organisationId: org.id,
+        providerAgentId: { not: null },
+        OR: [
+          { name: RECEPTIONIST.name },
+          { name: "Inbound Receptionist" },
+          { type: "receptionist" },
+        ],
+      },
+      orderBy: { updatedAt: "desc" },
+    })) ||
+    (await prisma.communicationAgent.findFirst({
+      where: {
+        organisationId: org.id,
+        OR: [
+          { name: RECEPTIONIST.name },
+          { name: "Inbound Receptionist" },
+          { type: "receptionist" },
+        ],
+      },
+      orderBy: { updatedAt: "desc" },
+    }));
 
   const data = {
     name: RECEPTIONIST.name,
@@ -346,6 +359,7 @@ async function main() {
     language: RECEPTIONIST.language,
     timezone: RECEPTIONIST.timezone,
     systemPrompt: RECEPTIONIST.systemPrompt,
+    model: "gemini-2.5-flash",
     config: RECEPTIONIST.config,
     provider: process.env.ELEVENLABS_API_KEY?.trim() ? "elevenlabs" : "stub",
   };

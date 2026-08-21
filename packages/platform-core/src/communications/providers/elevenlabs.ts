@@ -11,6 +11,39 @@ import type {
 
 const BASE = "https://api.elevenlabs.io";
 
+/** Conversation LLMs accepted by ElevenLabs ConvAI (not TTS model ids). */
+export const ELEVENLABS_CONVAI_LLMS = [
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-lite",
+  "gpt-4o-mini",
+  "gpt-4o",
+  "gpt-4.1-mini",
+  "gpt-4.1",
+  "gpt-5-mini",
+  "gpt-5-nano",
+  "claude-haiku-4-5",
+  "claude-sonnet-4-5",
+] as const;
+
+export type ElevenLabsConvaiLlm = (typeof ELEVENLABS_CONVAI_LLMS)[number];
+
+const DEFAULT_CONVAI_LLM: ElevenLabsConvaiLlm = "gemini-2.5-flash";
+
+const ALLOWED_LLM = new Set<string>(ELEVENLABS_CONVAI_LLMS);
+
+/** Map Agent Builder model field → valid ConvAI llm (never pass TTS ids). */
+export function resolveElevenLabsConvaiLlm(model?: string | null): ElevenLabsConvaiLlm {
+  const raw = model?.trim() || "";
+  if (!raw) return DEFAULT_CONVAI_LLM;
+  if (raw.startsWith("eleven_")) return DEFAULT_CONVAI_LLM;
+  if (ALLOWED_LLM.has(raw)) return raw as ElevenLabsConvaiLlm;
+  const lower = raw.toLowerCase();
+  const match = ELEVENLABS_CONVAI_LLMS.find((id) => id === lower);
+  return match ?? DEFAULT_CONVAI_LLM;
+}
+
 function apiKey(): string {
   return process.env.ELEVENLABS_API_KEY?.trim() || "";
 }
@@ -83,7 +116,7 @@ function conversationConfig(input: UpsertAgentInput) {
       language: (input.language || "en-AU").split("-")[0] || "en",
       prompt: {
         prompt: input.systemPrompt,
-        llm: input.model || "gemini-2.0-flash",
+        llm: resolveElevenLabsConvaiLlm(input.model),
         ...(tools.length ? { tools } : {}),
       },
     },

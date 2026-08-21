@@ -3,6 +3,7 @@
 import {
   AGENT_STARTER_TEMPLATES,
   AGENT_TOOL_GROUPS,
+  ELEVENLABS_CONVAI_LLMS,
   type AgentBuilderConfig,
 } from "@dg/platform-core";
 import { useRouter } from "next/navigation";
@@ -355,13 +356,21 @@ export function AgentBuilderForm({
             />
           </label>
           <label className="block">
-            <span className="text-sm text-slate-400">Model</span>
-            <input
+            <span className="text-sm text-slate-400">Conversation LLM</span>
+            <select
               name="model"
-              defaultValue={active?.model ?? ""}
-              placeholder="Provider default"
+              defaultValue={active?.model ?? "gemini-2.5-flash"}
               className="dg-input mt-1"
-            />
+            >
+              {ELEVENLABS_CONVAI_LLMS.map((id) => (
+                <option key={id} value={id}>
+                  {id}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-500">
+              ElevenLabs conversation model — not a TTS voice model.
+            </p>
           </label>
           <label className="block sm:col-span-2">
             <span className="text-sm text-slate-400">Greeting</span>
