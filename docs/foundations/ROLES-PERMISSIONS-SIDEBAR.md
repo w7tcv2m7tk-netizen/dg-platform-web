@@ -93,7 +93,7 @@ DIGITALGATE
 ```
 
 ### CORE
-CRM · Commerce · Design Studio · Business (Overview · Business Profile · Goals · Team)
+Business · CRM · Commerce · Design Studio (Overview · Business Profile · Goals · Team)
 
 ### INFRASTRUCTURE
 Domains · DNS · SSL · Hosting · Email · Backups · Cloudflare

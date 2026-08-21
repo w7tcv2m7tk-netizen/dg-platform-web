@@ -6,7 +6,7 @@ export const CUSTOMER_SIDE_PANEL_SECTIONS = [
   {
     id: "core",
     label: "Core",
-    items: ["CRM", "Commerce", "Design Studio", "Business"],
+    items: ["Business", "CRM", "Commerce", "Design Studio"],
   },
   {
     id: "infrastructure",

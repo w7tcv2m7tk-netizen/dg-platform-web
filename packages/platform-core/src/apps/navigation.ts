@@ -683,11 +683,11 @@ export function getCategorizedPlatformNavigation(
   const analyticsEnabled = isAppEnabled("analytics", enabledIds);
 
   const coreApps = [
+    BUSINESS_NAV_ITEM,
     ...sortByOrder(
       enabledApps.filter((a) => CORE_APP_IDS.has(a.id)),
       CORE_APP_ORDER,
     ),
-    BUSINESS_NAV_ITEM,
   ];
   const infrastructureApps = sortByOrder(
     enabledApps.filter((a) => INFRASTRUCTURE_APP_IDS.has(a.id)),

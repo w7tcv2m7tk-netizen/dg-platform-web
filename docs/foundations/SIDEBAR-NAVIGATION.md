@@ -34,7 +34,7 @@ DigitalGate Owner/Admin may expose the full operating environment. Customer user
 
 ```
 CORE
-  CRM · Commerce · Design Studio · Business
+  Business · CRM · Commerce · Design Studio
 
 INFRASTRUCTURE
   Infrastructure (Domains, DNS, SSL, Hosting, Email, Backups, Cloudflare)
@@ -59,9 +59,9 @@ PLATFORM ADMIN
 
 ### CORE order
 
-CRM → Commerce → Design Studio → **Business** (Overview · Business Profile · Goals · Team).
+**Business** (Overview · Business Profile · Goals · Team) → CRM → Commerce → Design Studio.
 
-Business sits inside CORE — not between Design Studio and Infrastructure as orphaned links.
+Business leads CORE — who you are — then operating apps.
 
 ### INDUSTRY (dynamic)
 
