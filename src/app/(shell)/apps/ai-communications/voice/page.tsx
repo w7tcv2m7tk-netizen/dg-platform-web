@@ -13,8 +13,8 @@ export default async function VoiceAgentsPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Voice Agents</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · DigitalGate agents, published to a voice
-          provider
+          {session?.organisationName ?? "DigitalGate"} · AI employees for your business — voice
+          provider underneath, DigitalGate intelligence on top
         </p>
         <CommsSubnav active="/apps/ai-communications/voice" />
       </header>

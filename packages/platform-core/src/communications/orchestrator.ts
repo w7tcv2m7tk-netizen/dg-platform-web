@@ -1,7 +1,14 @@
 import { createContact, listContacts } from "../contacts";
 import { platformEvents } from "../events";
 import type { PlatformEventType } from "../events";
+import { createOpportunity, listOpportunities } from "../opportunities";
 import { findAgentByProviderId } from "./agents";
+import {
+  buildOpportunityIntelligenceFromConversation,
+  formatOpportunityIntelligenceBlock,
+  shouldGenerateSalesIntelligence,
+  type OpportunityIntelligence,
+} from "./sales-intelligence";
 import {
   auditCommunication,
   logSessionActivity,
@@ -120,12 +127,44 @@ export async function ingestProviderConversation(input: {
     phone: input.conversation.callerPhone,
   });
 
+  const agentType = agent?.type ?? null;
+
+  let salesIntelligence: OpportunityIntelligence | null = null;
+  let opportunityId: string | null = null;
+
+  if (
+    shouldGenerateSalesIntelligence({
+      agentType,
+      outcome,
+      transcript: input.conversation.transcript,
+      summary,
+    })
+  ) {
+    salesIntelligence = buildOpportunityIntelligenceFromConversation({
+      transcript: input.conversation.transcript,
+      summary,
+      agentType,
+    });
+
+    opportunityId = await attachSalesIntelligenceToOpportunity({
+      organisationId,
+      contactId: caller.contactId,
+      intelligence: salesIntelligence,
+      summary,
+    });
+    salesIntelligence = {
+      ...salesIntelligence,
+      sessionId: undefined,
+    };
+  }
+
   const session = await upsertCommunicationSession({
     organisationId,
     agentId,
     provider: input.provider,
     providerSessionId,
     contactId: caller.contactId,
+    opportunityId,
     channel: "voice",
     direction: "inbound",
     status,
@@ -142,8 +181,34 @@ export async function ingestProviderConversation(input: {
     metadata: {
       providerRaw: Boolean(input.conversation.raw),
       contactCreated: caller.created,
+      ...(salesIntelligence
+        ? {
+            salesIntelligence: {
+              ...salesIntelligence,
+              sessionId: undefined,
+              source: "voice_post_call" as const,
+            },
+            opportunityIntelligenceText: formatOpportunityIntelligenceBlock({
+              ...salesIntelligence,
+              source: "voice_post_call",
+            }),
+          }
+        : {}),
     },
   });
+
+  if (salesIntelligence) {
+    salesIntelligence = { ...salesIntelligence, sessionId: session.id, source: "voice_post_call" };
+    // Re-stamp session id onto opportunity metadata for traceability
+    if (opportunityId) {
+      await stampIntelligenceSessionId({
+        organisationId,
+        opportunityId,
+        sessionId: session.id,
+        intelligence: salesIntelligence,
+      });
+    }
+  }
 
   if (input.conversation.messages?.length) {
     await replaceSessionMessages({
@@ -170,8 +235,12 @@ export async function ingestProviderConversation(input: {
     organisationId,
     sessionId: session.id,
     contactId: caller.contactId,
-    title: `AI ${status === "in_progress" ? "call in progress" : "call recorded"}`,
-    body: summary || input.conversation.transcript?.slice(0, 500) || undefined,
+    title: salesIntelligence
+      ? `Sales Intelligence · score ${salesIntelligence.opportunityScore}/100`
+      : `AI ${status === "in_progress" ? "call in progress" : "call recorded"}`,
+    body: salesIntelligence
+      ? formatOpportunityIntelligenceBlock(salesIntelligence)
+      : summary || input.conversation.transcript?.slice(0, 500) || undefined,
   });
 
   await auditCommunication({
@@ -207,16 +276,115 @@ export async function ingestProviderConversation(input: {
     occurredAt: new Date(),
   });
 
-  if (outcome === "lead") {
+  if (outcome === "lead" || salesIntelligence) {
     await platformEvents.publish({
       type: "lead.qualified",
       organisationId,
       entityType: "CommunicationSession",
       entityId: session.id,
-      payload: { contactId: caller.contactId, agentId },
+      payload: {
+        contactId: caller.contactId,
+        agentId,
+        opportunityId,
+        opportunityScore: salesIntelligence?.opportunityScore ?? null,
+      },
       occurredAt: new Date(),
     });
   }
 
   return { sessionId: session.id, organisationId };
+}
+
+async function attachSalesIntelligenceToOpportunity(input: {
+  organisationId: string;
+  contactId: string | null;
+  intelligence: OpportunityIntelligence;
+  summary?: string | null;
+}): Promise<string | null> {
+  const { prisma } = await import("@dg/database");
+  const title =
+    input.intelligence.primaryProblem
+      ? `Voice opportunity · ${input.intelligence.primaryProblem.slice(0, 60)}`
+      : "Voice sales opportunity";
+
+  let opportunityId: string | null = null;
+  if (input.contactId) {
+    const existing = await listOpportunities({
+      organisationId: input.organisationId,
+      status: "open",
+      limit: 5,
+    });
+    const match = existing.items.find((item) => item.contactId === input.contactId);
+    if (match) opportunityId = match.id;
+  }
+
+  const metadata = {
+    salesIntelligence: {
+      ...input.intelligence,
+      source: "voice_post_call",
+    },
+    opportunityScore: input.intelligence.opportunityScore,
+    recommendedNextStep: input.intelligence.recommendedNextStep,
+  };
+
+  if (opportunityId) {
+    const row = await prisma.opportunity.findFirst({
+      where: { id: opportunityId, organisationId: input.organisationId },
+    });
+    if (!row) return null;
+    const prev = (row.metadata as Record<string, unknown> | null) ?? {};
+    await prisma.opportunity.update({
+      where: { id: opportunityId },
+      data: {
+        probability: input.intelligence.opportunityScore,
+        metadata: { ...prev, ...metadata } as object,
+      },
+    });
+    return opportunityId;
+  }
+
+  const created = await createOpportunity({
+    organisationId: input.organisationId,
+    title,
+    stage: input.intelligence.opportunityScore >= 75 ? "qualified" : "new",
+    contactId: input.contactId ?? undefined,
+    metadata: {
+      ...metadata,
+      source: "ai_voice",
+      summary: input.summary ?? null,
+    },
+  });
+  return created.id;
+}
+
+async function stampIntelligenceSessionId(input: {
+  organisationId: string;
+  opportunityId: string;
+  sessionId: string;
+  intelligence: OpportunityIntelligence;
+}) {
+  const { prisma } = await import("@dg/database");
+  const row = await prisma.opportunity.findFirst({
+    where: { id: input.opportunityId, organisationId: input.organisationId },
+  });
+  if (!row) return;
+  const prev = (row.metadata as Record<string, unknown> | null) ?? {};
+  const prevIntel =
+    prev.salesIntelligence && typeof prev.salesIntelligence === "object"
+      ? (prev.salesIntelligence as Record<string, unknown>)
+      : {};
+  await prisma.opportunity.update({
+    where: { id: input.opportunityId },
+    data: {
+      metadata: {
+        ...prev,
+        salesIntelligence: {
+          ...prevIntel,
+          ...input.intelligence,
+          sessionId: input.sessionId,
+          source: "voice_post_call",
+        },
+      } as object,
+    },
+  });
 }

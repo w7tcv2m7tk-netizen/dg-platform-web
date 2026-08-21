@@ -2,9 +2,9 @@
 
 **DigitalGate as the orchestration layer for AI voice, chat, email, and messaging**
 
-**Version:** 0.1  
-**Status:** Live slice — ElevenLabs ConvAI + Agent Builder + Call Centre  
-**Architecture lock:** [VOICE-AGENT-ARCHITECTURE.md](./VOICE-AGENT-ARCHITECTURE.md) — *ElevenLabs provides the voice intelligence; DigitalGate remains the system of record.*  
+**Version:** 0.2  
+**Status:** Live slice — ElevenLabs as initial Voice Provider + Agent Builder + Call Centre  
+**Architecture lock:** [VOICE-AGENT-ARCHITECTURE.md](./VOICE-AGENT-ARCHITECTURE.md) — *Voice is a replaceable provider; DigitalGate owns intelligence and is the system of record.*  
 **Ops:** [VOICE-AGENT-RUNBOOK.md](./VOICE-AGENT-RUNBOOK.md)  
 **Last updated:** August 2026  
 
@@ -14,22 +14,28 @@
 
 ## Strategic intent
 
-DigitalGate does **not** compete with speech synthesis or recognition vendors. It owns the **orchestration layer**:
+DigitalGate does **not** compete with speech vendors and does **not** position AI Communications as “ElevenLabs inside DigitalGate.”
 
-| DigitalGate owns | Providers own |
-|------------------|---------------|
-| Agent configuration | Speech-to-text |
-| Prompt management | Text-to-speech |
-| Business knowledge | Real-time audio streaming |
-| Voice selection | Telephony infrastructure |
-| Call routing | Conversational voice models |
-| CRM integration | |
-| Reporting & analytics | |
-| Automations | |
-| Industry-specific context | |
-| User experience | |
+**Customer position:** *AI employees connected to your business.*
 
-**Principle:** Build provider adapters behind a stable interface. ElevenLabs is the v1 voice provider; Vapi may serve as a migration adapter — not a permanent dependency.
+Customers choose agent roles (Receptionist, Sales, Qualifier, …). DigitalGate supplies personality, Business Brain, knowledge, permissions, tools, CRM, automation and audit. The **voice provider** is how that agent speaks — ElevenLabs today, OpenAI Realtime (and others) tomorrow.
+
+| DigitalGate owns | Voice providers own |
+|------------------|---------------------|
+| Agent identity, purpose, behaviour | Speech-to-text / TTS / realtime audio |
+| Business Brain + Knowledge context | Provider conversational voice models |
+| Model Router (reasoning) + tools | Telephony / streaming (as configured) |
+| CRM / Opportunity Intelligence | |
+| Permissions, audit, automations | |
+| Call Centre UX | |
+
+**Principle:** Build provider adapters behind a stable interface. Persist `provider` on every agent. ElevenLabs is the **Live** v1 Voice Provider — not the underlying AI architecture.
+
+```
+Business Brain → AI Service / Model Router → Agent + DigitalGate Tools
+        → Voice Provider (ElevenLabs | OpenAI Realtime | …)
+        → Phone / Web voice / SMS / Email / WhatsApp
+```
 
 ---
 

@@ -285,7 +285,7 @@ function conversationConfig(agentId, businessName) {
       language: "en",
       prompt: {
         prompt,
-        llm: "gemini-2.5-flash",
+        llm: "gemini-2.5-flash-lite",
         tools,
       },
     },

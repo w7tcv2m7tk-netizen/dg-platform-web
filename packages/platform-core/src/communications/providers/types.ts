@@ -10,6 +10,24 @@ export const COMMUNICATION_PROVIDERS = [
 ] as const;
 export type CommunicationProviderId = (typeof COMMUNICATION_PROVIDERS)[number];
 
+/** Voice providers that can drive Conversational Agents (Live + Direction). */
+export const VOICE_PROVIDER_OPTIONS = [
+  {
+    id: "elevenlabs" as const,
+    label: "ElevenLabs",
+    status: "live" as const,
+    description: "Initial Voice Provider — ConvAI / ElevenAgents (premium naturalness).",
+  },
+  {
+    id: "openai_voice" as const,
+    label: "OpenAI Realtime",
+    status: "direction" as const,
+    description: "Direction — realtime voice with reasoning; adapter not Live yet.",
+  },
+] as const;
+
+export type VoiceProviderId = (typeof VOICE_PROVIDER_OPTIONS)[number]["id"];
+
 export const AGENT_TYPES = [
   "receptionist",
   "sales",

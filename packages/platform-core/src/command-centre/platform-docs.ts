@@ -433,6 +433,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "ai/VOICE-AGENT-ARCHITECTURE.md",
   },
   {
+    slug: "opportunity-engine",
+    title: "Opportunity Engine",
+    summary:
+      "Core detection + scoring + next-best-action — including Sales Intelligence from voice conversations.",
+    group: "architecture",
+    relativePath: "foundations/OPPORTUNITY-ENGINE.md",
+  },
+  {
     slug: "industry-intelligence",
     title: "Industry Intelligence",
     summary: "External industry feeds → attributed briefings.",

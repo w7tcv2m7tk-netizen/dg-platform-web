@@ -5,7 +5,7 @@
 **Architecture:** [VOICE-AGENT-ARCHITECTURE.md](./VOICE-AGENT-ARCHITECTURE.md)  
 **Last updated:** August 2026
 
-**Principle:** ElevenLabs provides the voice intelligence; DigitalGate remains the system of record.
+**Principle:** ElevenLabs is the initial Voice Provider; DigitalGate remains the system of record and owns agent intelligence.
 
 Related: [COMMUNICATIONS-ARCHITECTURE.md](./COMMUNICATIONS-ARCHITECTURE.md)
 

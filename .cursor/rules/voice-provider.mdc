@@ -1,0 +1,15 @@
+---
+description: AI Communications — voice is a provider, DigitalGate owns intelligence
+globs: docs/ai/**/*,packages/platform-core/src/communications/**/*,src/components/ai-communications/**/*,src/app/**/ai-communications/**
+alwaysApply: false
+---
+
+# Voice Provider principle
+
+Canonical: `docs/ai/VOICE-AGENT-ARCHITECTURE.md`
+
+- **ElevenLabs** = initial **Voice Provider** (Live). Not the DigitalGate intelligence layer.
+- **DigitalGate** owns Business Brain, Model Router, tools, CRM, Opportunity Intelligence, permissions, audit.
+- Persist `provider` on every `CommunicationAgent` (`elevenlabs` | `openai_voice` | …).
+- Customer position: **AI employees connected to your business** — not “ElevenLabs voice agents inside DigitalGate.”
+- Do not hard-wire architecture to a single voice vendor; OpenAI Realtime is Direction behind the same adapter.

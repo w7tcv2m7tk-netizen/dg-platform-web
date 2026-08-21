@@ -82,6 +82,89 @@ export default async function CallDetailPage({
           ) : null}
         </div>
 
+        {(() => {
+          const intel = row.metadata?.salesIntelligence as
+            | {
+                fit?: string;
+                need?: string;
+                urgency?: string;
+                commercialPotential?: string;
+                decisionMaker?: string;
+                currentSolution?: string | null;
+                primaryProblem?: string | null;
+                desiredOutcome?: string | null;
+                recommendedNextStep?: string | null;
+                opportunityScore?: number;
+                recommendation?: string;
+              }
+            | undefined;
+          if (!intel) return null;
+          const dm =
+            intel.decisionMaker === "identified"
+              ? "Identified"
+              : intel.decisionMaker === "not_identified"
+                ? "Not identified"
+                : "Unknown";
+          const cap = (v?: string) =>
+            !v || v === "unknown" ? "Unknown" : v.charAt(0).toUpperCase() + v.slice(1);
+          return (
+            <div className="dg-card space-y-3">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="font-semibold text-white">Opportunity Intelligence</h2>
+                {typeof intel.opportunityScore === "number" ? (
+                  <p className="text-sm text-sky-300">
+                    Opportunity score: {intel.opportunityScore}/100
+                  </p>
+                ) : null}
+              </div>
+              <dl className="grid gap-2 text-sm sm:grid-cols-2">
+                <div>
+                  <dt className="text-slate-500">Fit</dt>
+                  <dd className="text-white">{cap(intel.fit)}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Need</dt>
+                  <dd className="text-white">{cap(intel.need)}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Urgency</dt>
+                  <dd className="text-white">{cap(intel.urgency)}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Commercial potential</dt>
+                  <dd className="text-white">{cap(intel.commercialPotential)}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Decision-maker</dt>
+                  <dd className="text-white">{dm}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Current solution</dt>
+                  <dd className="text-white">{intel.currentSolution ?? "—"}</dd>
+                </div>
+                <div className="sm:col-span-2">
+                  <dt className="text-slate-500">Primary problem</dt>
+                  <dd className="text-white">{intel.primaryProblem ?? "—"}</dd>
+                </div>
+                <div className="sm:col-span-2">
+                  <dt className="text-slate-500">Desired outcome</dt>
+                  <dd className="text-white">{intel.desiredOutcome ?? "—"}</dd>
+                </div>
+                <div className="sm:col-span-2">
+                  <dt className="text-slate-500">Recommended next step</dt>
+                  <dd className="text-white">{intel.recommendedNextStep ?? "—"}</dd>
+                </div>
+              </dl>
+              {intel.recommendation ? (
+                <p className="rounded-lg border border-slate-700/70 bg-slate-950/50 px-3 py-2 text-sm text-slate-200">
+                  <span className="font-medium text-sky-300">AI recommendation: </span>
+                  {intel.recommendation}
+                </p>
+              ) : null}
+            </div>
+          );
+        })()}
+
         <div className="dg-card">
           <h2 className="font-semibold text-white">Summary</h2>
           <p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">

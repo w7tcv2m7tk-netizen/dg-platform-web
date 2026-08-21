@@ -24,8 +24,8 @@ export default async function AgentBuilderPage({
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Agent Builder</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · Identity → Behaviour → Business Brain
-          context → DigitalGate tools — ElevenLabs speaks; DigitalGate records
+          {session?.organisationName ?? "DigitalGate"} · AI employee builder — Provider → Identity →
+          Behaviour → Business Brain → DigitalGate tools
         </p>
         <CommsSubnav active="/apps/ai-communications/agents" />
       </header>
@@ -46,6 +46,7 @@ export default async function AgentBuilderPage({
               greeting: t.greeting,
               language: t.language,
               timezone: t.timezone,
+              voiceId: t.voiceId,
               systemPrompt: t.systemPrompt,
               config: t.config,
             }))}

@@ -13,10 +13,10 @@ const BASE = "https://api.elevenlabs.io";
 
 /** Conversation LLMs accepted by ElevenLabs ConvAI (not TTS model ids). */
 export const ELEVENLABS_CONVAI_LLMS = [
-  "gemini-2.5-flash",
   "gemini-2.5-flash-lite",
-  "gemini-2.0-flash",
+  "gemini-2.5-flash",
   "gemini-2.0-flash-lite",
+  "gemini-2.0-flash",
   "gpt-4o-mini",
   "gpt-4o",
   "gpt-4.1-mini",
@@ -29,7 +29,7 @@ export const ELEVENLABS_CONVAI_LLMS = [
 
 export type ElevenLabsConvaiLlm = (typeof ELEVENLABS_CONVAI_LLMS)[number];
 
-const DEFAULT_CONVAI_LLM: ElevenLabsConvaiLlm = "gemini-2.5-flash";
+const DEFAULT_CONVAI_LLM: ElevenLabsConvaiLlm = "gemini-2.5-flash-lite";
 
 const ALLOWED_LLM = new Set<string>(ELEVENLABS_CONVAI_LLMS);
 
@@ -117,12 +117,29 @@ function conversationConfig(input: UpsertAgentInput) {
       prompt: {
         prompt: input.systemPrompt,
         llm: resolveElevenLabsConvaiLlm(input.model),
+        temperature: 0.3,
         ...(tools.length ? { tools } : {}),
       },
     },
     tts: {
       voice_id: input.voiceId || undefined,
       model_id: "eleven_flash_v2",
+      /** Slightly brisker speech without sounding rushed */
+      speed: 1.05,
+    },
+    turn: {
+      /** Respond sooner after the caller finishes speaking */
+      turn_eagerness: "eager",
+      turn_timeout: 4,
+      /** Start drafting the reply during end-of-turn silence */
+      speculative_turn: true,
+      soft_timeout_config: {
+        timeout_seconds: 1.5,
+        message: "Mhm…",
+        additional_soft_timeout_messages: ["Sure…", "Right…"],
+        max_soft_timeouts_per_generation: 2,
+        randomize_fillers: true,
+      },
     },
   };
 }

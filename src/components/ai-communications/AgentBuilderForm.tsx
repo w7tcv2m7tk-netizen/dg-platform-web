@@ -4,6 +4,7 @@ import {
   AGENT_STARTER_TEMPLATES,
   AGENT_TOOL_GROUPS,
   ELEVENLABS_CONVAI_LLMS,
+  VOICE_PROVIDER_OPTIONS,
   type AgentBuilderConfig,
 } from "@dg/platform-core";
 import { useRouter } from "next/navigation";
@@ -28,6 +29,7 @@ type AgentRecord = {
   description: string | null;
   type: string;
   status: string;
+  provider?: string;
   voiceId: string | null;
   model: string | null;
   greeting: string | null;
@@ -46,6 +48,7 @@ type StarterTemplate = {
   greeting: string;
   language: string;
   timezone: string;
+  voiceId?: string;
   systemPrompt?: string;
   config: AgentBuilderConfig;
 };
@@ -96,6 +99,7 @@ export function AgentBuilderForm({
       greeting: template.greeting,
       language: template.language,
       timezone: template.timezone,
+      voiceId: template.voiceId ?? null,
       systemPrompt: template.systemPrompt ?? null,
       config: template.config,
     });
@@ -123,6 +127,7 @@ export function AgentBuilderForm({
       name: String(data.get("name") || "").trim(),
       description: String(data.get("description") || "").trim() || null,
       type: String(data.get("type") || "receptionist"),
+      provider: String(data.get("provider") || "elevenlabs").trim() || "elevenlabs",
       voiceId: String(data.get("voiceId") || "") || null,
       model: String(data.get("model") || "") || null,
       greeting: String(data.get("greeting") || "").trim() || null,
@@ -318,12 +323,39 @@ export function AgentBuilderForm({
 
       <section className="dg-card space-y-4">
         <h2 className="font-semibold text-white">Voice & language</h2>
+        <p className="text-sm text-slate-400">
+          Voice is a replaceable provider. DigitalGate owns Business Brain, tools and CRM — the
+          provider only speaks.
+        </p>
         <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-sm text-slate-400">Voice provider</span>
+            <select
+              name="provider"
+              defaultValue={active?.provider ?? "elevenlabs"}
+              className="dg-input mt-1"
+            >
+              {VOICE_PROVIDER_OPTIONS.map((option) => (
+                <option
+                  key={option.id}
+                  value={option.id}
+                  disabled={option.status !== "live"}
+                >
+                  {option.label}
+                  {option.status === "direction" ? " (coming soon)" : ""}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-500">
+              ElevenLabs is Live. OpenAI Realtime is Direction — field is stored for provider
+              independence.
+            </p>
+          </label>
           <label className="block">
             <span className="text-sm text-slate-400">Voice</span>
             <select
               name="voiceId"
-              defaultValue={active?.voiceId ?? ""}
+              defaultValue={active?.voiceId ?? "bnr31VMIPcsgqWJQh7Fs"}
               className="dg-input mt-1"
             >
               <option value="">Provider default</option>
@@ -359,7 +391,7 @@ export function AgentBuilderForm({
             <span className="text-sm text-slate-400">Conversation LLM</span>
             <select
               name="model"
-              defaultValue={active?.model ?? "gemini-2.5-flash"}
+              defaultValue={active?.model ?? "gemini-2.5-flash-lite"}
               className="dg-input mt-1"
             >
               {ELEVENLABS_CONVAI_LLMS.map((id) => (

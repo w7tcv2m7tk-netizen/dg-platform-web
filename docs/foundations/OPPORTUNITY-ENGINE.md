@@ -79,6 +79,19 @@ Prospecting workflows live under Command Centre. Prospect / Opportunity **scorin
 
 ---
 
+## Sales Intelligence (voice → Opportunity Engine)
+
+Voice Sales / Lead Qualifier agents produce **Opportunity Intelligence** after the call:
+
+Conversation → structured fields (fit, need, urgency, commercial potential, decision-maker, current solution, primary problem, desired outcome, recommended next step) → **score 0–100** → CRM Opportunity + Call Centre → Command Centre (Direction).
+
+Implementation: `packages/platform-core/src/communications/sales-intelligence.ts`  
+Architecture: [VOICE-AGENT-ARCHITECTURE.md](../ai/VOICE-AGENT-ARCHITECTURE.md)
+
+This is a primary bridge from AI Communications into Opportunity Engine scoring and human next-best-action.
+
+---
+
 ## Opportunity shape (V1)
 
 ```typescript

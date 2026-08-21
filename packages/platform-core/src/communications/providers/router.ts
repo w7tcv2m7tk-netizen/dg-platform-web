@@ -4,6 +4,11 @@ import type { CommunicationProvider, CommunicationProviderId } from "./types";
 
 const cache = new Map<string, CommunicationProvider>();
 
+/**
+ * Resolve a Voice Provider adapter.
+ * ElevenLabs is Live; openai_voice and others fall through to stub until implemented.
+ * Never treat the voice vendor as DigitalGate’s intelligence layer.
+ */
 export function getCommunicationProvider(
   id: CommunicationProviderId | string = "elevenlabs",
 ): CommunicationProvider {
@@ -15,6 +20,10 @@ export function getCommunicationProvider(
   switch (key) {
     case "elevenlabs":
       provider = new ElevenLabsProvider();
+      break;
+    case "openai_voice":
+      // Direction: OpenAI Realtime adapter — stub until Live.
+      provider = new StubVoiceProvider();
       break;
     default:
       provider = new StubVoiceProvider();

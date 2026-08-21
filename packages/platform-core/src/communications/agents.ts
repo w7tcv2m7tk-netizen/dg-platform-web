@@ -208,6 +208,7 @@ export async function updateCommunicationAgent(
       name: input.name?.trim() ?? undefined,
       description: input.description === undefined ? undefined : input.description?.trim() || null,
       type: input.type?.trim() ?? undefined,
+      provider: input.provider?.trim() ?? undefined,
       voiceId: input.voiceId === undefined ? undefined : input.voiceId,
       model: input.model === undefined ? undefined : input.model,
       greeting: input.greeting === undefined ? undefined : input.greeting?.trim() || null,
