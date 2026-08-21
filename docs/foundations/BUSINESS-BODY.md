@@ -2,7 +2,7 @@
 
 **Status:** Locked · Platform Architect (Ben) · August 2026  
 **Use as:** Mental model for onboarding, education, demos, marketing, AI explanations, Customer Success, and help — **not** as primary UI chrome  
-**Related:** [BUSINESS-BRAIN.md](./BUSINESS-BRAIN.md) · [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) · [OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.md) · [APP-HIERARCHY.md](./APP-HIERARCHY.md)
+**Related:** [BUSINESS-BRAIN.md](./BUSINESS-BRAIN.md) · [CONNECTED-BUSINESS.md](./CONNECTED-BUSINESS.md) · [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) · [OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.md) · [APP-HIERARCHY.md](./APP-HIERARCHY.md)
 
 ---
 
@@ -11,6 +11,8 @@
 DigitalGate may become extremely sophisticated. A business owner should not need to understand software architecture to understand their business.
 
 The **Business Body™** is the human-readable model sitting above the technical architecture. It maps platform capabilities to recognisable functions of a living organisation.
+
+**Deeper philosophy** (why connection matters at all): [CONNECTED-BUSINESS.md](./CONNECTED-BUSINESS.md) — *A healthy business, like a healthy body, depends on its systems being connected and working together.*
 
 ---
 

@@ -42,13 +42,13 @@ function dimension(
 }
 
 const SURFACES: BusinessBrainSnapshot["surfaces"] = [
-  { label: "Overview", href: "/dashboard", uses: "Daily briefing from Twin + Brain" },
-  { label: "Advisor", href: "/dashboard/advisor", uses: "Recommended actions with business context" },
-  { label: "Business Health", href: "/dashboard/health", uses: "Scores grounded in identity and operations" },
-  { label: "AI Communications", href: "/apps/ai-communications", uses: "Authorised agent knowledge and tone" },
-  { label: "CRM", href: "/apps/crm", uses: "People, companies, and commercial process" },
-  { label: "Automation", href: "/apps/automation", uses: "Workflows from operations knowledge" },
-  { label: "Digital Twin", href: "/dashboard/twin", uses: "Live operating snapshot" },
+  { label: "Command Centre", href: "/dashboard", uses: "What matters now — Brain does the thinking" },
+  { label: "AI Advisor", href: "/dashboard/advisor", uses: "Context-aware recommendations and explanations" },
+  { label: "Business Health", href: "/dashboard/health", uses: "Measures health; Brain supplies understanding" },
+  { label: "Digital Twin", href: "/dashboard/twin", uses: "Live operating awareness feeding the Brain" },
+  { label: "AI Communications", href: "/apps/ai-communications", uses: "Authorised knowledge, tone and context" },
+  { label: "CRM", href: "/apps/crm", uses: "Relationships and commercial memory" },
+  { label: "Automation", href: "/apps/automation", uses: "Turn decisions into action" },
 ];
 
 export function buildBusinessBrain(input: {

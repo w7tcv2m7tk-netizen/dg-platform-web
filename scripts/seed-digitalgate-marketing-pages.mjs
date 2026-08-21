@@ -43,6 +43,14 @@ const PAGES = [
   { file: "appraisal-magnet-system.html", title: "Appraisal Magnet System", slug: "appraisal-magnet-system", intent: "custom", sortOrder: 13 },
   { file: "listing-pipeline-framework-page.html", title: "Listing Pipeline Framework", slug: "listing-pipeline-framework", intent: "custom", sortOrder: 14 },
   { file: "vendor-velocity-system.html", title: "Vendor Velocity System", slug: "vendor-velocity-system", intent: "custom", sortOrder: 15 },
+  { file: "business-brain-page.html", title: "Business Brain", slug: "business-brain", intent: "custom", sortOrder: 16 },
+  {
+    file: "from-dumb-businesses-to-smart-businesses.html",
+    title: "From Dumb Businesses to Smart Businesses",
+    slug: "from-dumb-businesses-to-smart-businesses",
+    intent: "custom",
+    sortOrder: 17,
+  },
 ];
 
 const ICON =

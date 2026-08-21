@@ -112,6 +112,12 @@ export default async function DashboardPage() {
               {overview.growthOpportunityCount === 1 ? "y" : "ies"}
             </Link>
           ) : null}
+          <Link
+            href="/dashboard/brain"
+            className="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300 hover:border-sky-400/50"
+          >
+            Business Brain →
+          </Link>
         </div>
       </header>
       <main className="dg-page-main">

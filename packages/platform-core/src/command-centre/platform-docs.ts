@@ -124,9 +124,17 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "business-brain",
     title: "Business Brain",
     summary:
-      "Customer knowledge corpus — seven dimensions that feed Advisor, Communications, CRM and Automation. Distinct from Digital Twin. Body/DNA framing in Business Body.",
+      "Intelligence layer on connected business context — seven dimensions, knowledge layers, readiness. Feeds Command Centre, Advisor, Communications. Distinct from Digital Twin.",
     group: "architecture",
     relativePath: "foundations/BUSINESS-BRAIN.md",
+  },
+  {
+    slug: "connected-business-implementation",
+    title: "Connected Business Implementation",
+    summary:
+      "P0–P2 ship brief for Connected Business / Business Brain positioning, marketing surfaces and knowledge architecture.",
+    group: "architecture",
+    relativePath: "foundations/CONNECTED-BUSINESS-IMPLEMENTATION.md",
   },
   {
     slug: "business-body",
@@ -135,6 +143,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
       "Locked mental model — living organisation (Brain, Eyes, Ears, Heart, Nervous System…) for onboarding/education/AI copy. Not organ sidebar UI.",
     group: "architecture",
     relativePath: "foundations/BUSINESS-BODY.md",
+  },
+  {
+    slug: "connected-business",
+    title: "Connected Business",
+    summary:
+      "Locked philosophy — Connect your business. Give it a brain. Coherence vs silos; Disconnected→Connected→Intelligent→Autonomous; Business Health meaning.",
+    group: "architecture",
+    relativePath: "foundations/CONNECTED-BUSINESS.md",
   },
   {
     slug: "product-vision",

@@ -5,10 +5,10 @@ export default function AiAdvisorPage() {
     <IntelligenceSurfacePage
       eyebrow="Intelligence · AI Advisor"
       title="AI Advisor"
-      summary="Customer-facing “what should I do next?” — Recommended Actions grounded in your Twin and Goals."
-      body="Advisor reads live Twin signals, Goals, and Business Brain context. Overview remains the daily home for briefing and recommended actions while this surface deepens."
+      summary="Turn Business Brain context into decisions — what should I do next?"
+      body="Advisor reads live Twin signals, Goals, and Business Brain context. Command Centre remains the daily home for briefing and recommended actions while this surface deepens explanation."
       primaryHref="/dashboard"
-      primaryLabel="Open Overview →"
+      primaryLabel="Open Command Centre →"
       secondaryHref="/dashboard/brain"
       secondaryLabel="Open Business Brain"
     />

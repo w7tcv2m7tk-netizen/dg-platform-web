@@ -2,13 +2,15 @@
 
 **The Gateway to Your Digital World**
 
-**Version:** 1.4  
+**Version:** 1.5  
 **Last updated:** August 2026  
 **Status:** Living document — evolves with the platform
 
 **Architecture north-star:** [architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md) (§§1–36 + Immediate Priority 1–15 — constraints, not a build-all list)
 
 **Operator experience (locked):** [foundations/OPERATOR-EXPERIENCE.md](./foundations/OPERATOR-EXPERIENCE.md) — *Simple for the operator. Powerful for the business. Intelligent underneath.*
+
+**Connected Business philosophy (locked):** [foundations/CONNECTED-BUSINESS.md](./foundations/CONNECTED-BUSINESS.md) — *Connect your business. Give it a brain.* Sell coherence of a living system, not a feature checklist.
 
 **GTM / rollout (canonical):** [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) — Business Operating Platform; *One platform to run, understand and grow your business* ([ADR 0013](./adr/0013-gtm-rollout-strategy-adopted.md))
 

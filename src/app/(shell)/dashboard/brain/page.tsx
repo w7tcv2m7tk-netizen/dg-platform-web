@@ -68,11 +68,12 @@ export default async function BusinessBrainPage() {
     <>
       <header className="dg-page-header">
         <p className="text-xs font-medium uppercase tracking-widest text-sky-400">
-          Business · Business Brain
+          Intelligence · Business Brain
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Business Brain</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          The knowledge DigitalGate uses across Overview, Advisor, Communications and automation.
+          Connect your business. Give it a brain — what DigitalGate understands about your
+          organisation, and what it still needs to learn.
         </p>
       </header>
       <main className="dg-page-main">

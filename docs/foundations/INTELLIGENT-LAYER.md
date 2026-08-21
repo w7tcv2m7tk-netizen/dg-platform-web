@@ -38,6 +38,8 @@ Not “Build more DigitalGate.” → **Make DigitalGate feel intelligent.**
 
 **Education / onboarding mental model (locked):** [BUSINESS-BODY.md](./BUSINESS-BODY.md) — Business Body™ maps capabilities to a living organisation (Brain, Eyes, Ears, Heart…) for humans — **not** as sidebar chrome.
 
+**Foundational philosophy (locked):** [CONNECTED-BUSINESS.md](./CONNECTED-BUSINESS.md) — *Connect your business. Give it a brain.* Coherence of a living system; Disconnected → Connected → Intelligent → Autonomous.
+
 ---
 
 ## The ultimate loop (locked)
