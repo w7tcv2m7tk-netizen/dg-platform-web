@@ -1,0 +1,24 @@
+---
+description: Business Body™ mental model — education only, never gimmick UI
+alwaysApply: true
+---
+
+# Business Body™ framework
+
+Canonical lock: `docs/foundations/BUSINESS-BODY.md`
+
+**Business Brain™** = intelligence (what the business knows).  
+**Business Body™** = human-readable model of how DigitalGate connects everything.  
+**Business DNA** = identity & knowledge that make this business unique.
+
+## Use for
+
+Onboarding, demos, marketing, help, Customer Success, and AI explanations (See → Think → Decide → Act → Communicate → Learn → Grow).
+
+## Do not
+
+- Do **not** turn the sidebar or primary shell into organ/emoji navigation (Brain / Eyes / Heart / Lungs…).
+- Do **not** force every module into an organ; stop when the analogy stops helping.
+- Do **not** replace the DigitalGate Principle operator home (Overview · Priorities · Opportunities · AI Advisor · Apps).
+
+When teaching architecture without jargon: Lungs = connectors, Nervous system = Event Bus + Automation + signals, Skeleton = Infrastructure, Arms = action.

@@ -2,7 +2,7 @@
 
 **Status:** Locked · Platform Architect (Ben) · August 2026  
 **Code / UX must follow this** — architecture may grow; the operator surface must not.  
-**Related:** [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) · [ROLES-PERMISSIONS-SIDEBAR.md](./ROLES-PERMISSIONS-SIDEBAR.md) · [APP-HIERARCHY.md](./APP-HIERARCHY.md) · [BUSINESS-BRAIN.md](./BUSINESS-BRAIN.md)
+**Related:** [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) · [ROLES-PERMISSIONS-SIDEBAR.md](./ROLES-PERMISSIONS-SIDEBAR.md) · [APP-HIERARCHY.md](./APP-HIERARCHY.md) · [BUSINESS-BRAIN.md](./BUSINESS-BRAIN.md) · [BUSINESS-BODY.md](./BUSINESS-BODY.md)
 
 ---
 
@@ -144,6 +144,7 @@ The platform demonstrates intelligence over time — not “here are 47 modules.
 | [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) | North-star loop (Connect → … → Learn). This doc is the **operator UX contract** for that loop. |
 | [APP-HIERARCHY.md](./APP-HIERARCHY.md) | Commercial / capability stack. Operators feel Industry workspaces; hierarchy stays underneath. |
 | [ROLES-PERMISSIONS-SIDEBAR.md](./ROLES-PERMISSIONS-SIDEBAR.md) | Access chain that enforces “why am I seeing this?” |
+| [BUSINESS-BRAIN.md](./BUSINESS-BRAIN.md) / [BUSINESS-BODY.md](./BUSINESS-BODY.md) | Education & onboarding mental model. Body analogy must not become default shell chrome. |
 | Side panel IA | Navigation labels (Core → … → Platform Admin) serve discovery; they must not replace the five operator centres as the primary mental model. |
 
 ---

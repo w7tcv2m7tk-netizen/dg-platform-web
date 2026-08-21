@@ -116,9 +116,17 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "business-brain",
     title: "Business Brain",
     summary:
-      "Customer knowledge corpus — seven dimensions that feed Advisor, Communications, CRM and Automation. Distinct from Digital Twin.",
+      "Customer knowledge corpus — seven dimensions that feed Advisor, Communications, CRM and Automation. Distinct from Digital Twin. Body/DNA framing in Business Body.",
     group: "architecture",
     relativePath: "foundations/BUSINESS-BRAIN.md",
+  },
+  {
+    slug: "business-body",
+    title: "Business Body™",
+    summary:
+      "Locked mental model — living organisation (Brain, Eyes, Ears, Heart, Nervous System…) for onboarding/education/AI copy. Not organ sidebar UI.",
+    group: "architecture",
+    relativePath: "foundations/BUSINESS-BODY.md",
   },
   {
     slug: "product-vision",

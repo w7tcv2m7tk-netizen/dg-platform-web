@@ -36,6 +36,8 @@ Not “Build more DigitalGate.” → **Make DigitalGate feel intelligent.**
 
 **Operator UX contract (locked):** [OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.md) — *Simple for the operator. Powerful for the business. Intelligent underneath.* Complexity stays underneath; the operator home is Overview · Priorities · Opportunities · AI Advisor · Apps.
 
+**Education / onboarding mental model (locked):** [BUSINESS-BODY.md](./BUSINESS-BODY.md) — Business Body™ maps capabilities to a living organisation (Brain, Eyes, Ears, Heart…) for humans — **not** as sidebar chrome.
+
 ---
 
 ## The ultimate loop (locked)
