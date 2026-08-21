@@ -142,7 +142,7 @@ export const STAFF_PARTNERS_NAV = {
     primaryHref: "/command/commissions",
   },
   delivery: {
-    label: "Delivery",
+    label: "Delivery / Implementation",
     routes: [
       { path: "/command/delivery", label: "Dashboard" },
       { path: "/command/delivery/invitations", label: "Invitations" },

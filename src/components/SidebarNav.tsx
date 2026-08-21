@@ -7,11 +7,7 @@ import { useEffect, useState } from "react";
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { SidebarIcon } from "@/components/SidebarIcon";
 import { itemHasActiveRoute, routeIsActive } from "@/lib/nav-route-match";
-import {
-  PLATFORM_NAV_SECTION_LABEL,
-  type AppRoute,
-  type NavIaSection,
-} from "@dg/platform-core";
+import type { AppRoute, NavIaSection } from "@dg/platform-core";
 
 function linkClass(active: boolean) {
   return `flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
@@ -110,6 +106,9 @@ function shellLinkActive(pathname: string, href: string, routes?: AppRoute[]): b
   if (pathname === href) return true;
   // Overview / Business Health share /dashboard — only exact match
   if (href === "/dashboard") return pathname === "/dashboard";
+  if (href === "/dashboard/settings") {
+    return pathname === "/dashboard/settings";
+  }
   return pathname.startsWith(`${href}/`);
 }
 
@@ -170,41 +169,34 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const [ccBadge, setCcBadge] = useState<number | null>(null);
 
   const ia = nav.ia;
-  const staffChannelFirst =
-    Boolean(nav.commandCentre) ||
-    ia.partners.links.length > 0 ||
-    ia.partners.apps.length > 0 ||
-    ia.partner.links.length > 0;
 
   useEffect(() => {
     const next: Record<string, boolean> = {};
     for (const section of [
-      ia.operate,
+      ia.core,
+      ia.infrastructure,
       ia.industry,
       ia.grow,
       ia.intelligence,
       ia.partners,
       ia.partner,
-      ia.ecosystem,
+      ia.platformAdmin,
     ]) {
       for (const app of section.apps) {
         if (itemHasActiveRoute(pathname, app.routes)) next[app.id] = true;
       }
     }
-    if (nav.platform.routes?.length && itemHasActiveRoute(pathname, nav.platform.routes)) {
-      next[`shell-${nav.platform.href}`] = true;
-    }
     setExpanded(next);
   }, [
     pathname,
-    ia.operate,
+    ia.core,
+    ia.infrastructure,
     ia.industry,
     ia.grow,
     ia.intelligence,
     ia.partners,
     ia.partner,
-    ia.ecosystem,
-    nav.platform,
+    ia.platformAdmin,
   ]);
 
   useEffect(() => {
@@ -273,7 +265,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain">
       <IaSectionBlock
-        section={ia.business}
+        section={ia.core}
         pathname={pathname}
         expanded={expanded}
         onToggle={toggleItem}
@@ -282,7 +274,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       />
 
       <IaSectionBlock
-        section={ia.operate}
+        section={ia.infrastructure}
         pathname={pathname}
         expanded={expanded}
         onToggle={toggleItem}
@@ -297,26 +289,6 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         onNavigate={onNavigate}
       />
 
-      {staffChannelFirst ? (
-        <>
-          {intelligenceSection}
-          <IaSectionBlock
-            section={ia.partners}
-            pathname={pathname}
-            expanded={expanded}
-            onToggle={toggleItem}
-            onNavigate={onNavigate}
-          />
-          <IaSectionBlock
-            section={ia.partner}
-            pathname={pathname}
-            expanded={expanded}
-            onToggle={toggleItem}
-            onNavigate={onNavigate}
-          />
-        </>
-      ) : null}
-
       <IaSectionBlock
         section={ia.grow}
         pathname={pathname}
@@ -325,54 +297,31 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         onNavigate={onNavigate}
       />
 
-      {staffChannelFirst ? null : (
-        <>
-          {intelligenceSection}
-          <IaSectionBlock
-            section={ia.partners}
-            pathname={pathname}
-            expanded={expanded}
-            onToggle={toggleItem}
-            onNavigate={onNavigate}
-          />
-          <IaSectionBlock
-            section={ia.partner}
-            pathname={pathname}
-            expanded={expanded}
-            onToggle={toggleItem}
-            onNavigate={onNavigate}
-          />
-        </>
-      )}
+      {intelligenceSection}
 
       <IaSectionBlock
-        section={ia.ecosystem}
+        section={ia.partners}
         pathname={pathname}
         expanded={expanded}
         onToggle={toggleItem}
         onNavigate={onNavigate}
       />
 
-      <div className="mt-4">
-        <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-          {PLATFORM_NAV_SECTION_LABEL}
-        </p>
-        <CollapsibleNavSection
-          items={[
-            {
-              id: `shell-${nav.platform.href}`,
-              name: nav.platform.label,
-              icon: nav.platform.icon ?? "⎔",
-              routes: nav.platform.routes ?? [],
-              primaryHref: nav.platform.href,
-            },
-          ]}
-          expanded={expanded}
-          onToggle={toggleItem}
-          pathname={pathname}
-          onNavigate={onNavigate}
-        />
-      </div>
+      <IaSectionBlock
+        section={ia.partner}
+        pathname={pathname}
+        expanded={expanded}
+        onToggle={toggleItem}
+        onNavigate={onNavigate}
+      />
+
+      <IaSectionBlock
+        section={ia.platformAdmin}
+        pathname={pathname}
+        expanded={expanded}
+        onToggle={toggleItem}
+        onNavigate={onNavigate}
+      />
     </nav>
   );
 }

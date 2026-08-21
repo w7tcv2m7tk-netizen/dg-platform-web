@@ -71,29 +71,41 @@ Custom job titles (Salesperson, Sales Manager, Accountant, …) are **permission
 
 ## Customer side panel (canonical)
 
-### BUSINESS
-Overview · Business Profile · Digital Twin · Goals · Team  
+Order (locked):
 
-Business Brain is **intelligence infrastructure** (powers AI). Prefer a **Knowledge Base / Business Knowledge** surface for customers — not a hero Business nav item.
+```
+DIGITALGATE
+├── CORE
+├── INFRASTRUCTURE
+├── INDUSTRY
+├── GROWTH
+├── INTELLIGENCE
+├── PARTNERS
+└── PLATFORM ADMIN
+```
 
-### OPERATE
-CRM · Commerce · Design Studio · Infrastructure  
+### CORE
+Overview · Business Profile · Goals · Team · CRM · Commerce · Design Studio  
+
+### INFRASTRUCTURE
+Domains · DNS · SSL · Hosting · Email · Backup · Cloudflare  
 
 ### INDUSTRY
-Only when an Industry App is activated. **Industry App ≠ Template.** One Industry App → many Templates.
+Only when an Industry App is activated. **Industry App ≠ Template.** One Industry App → many Templates.  
+Property · Hospitality & Accommodation · Services · Finance · Professional · Health & Wellness · Automotive · Retail & Commerce · Creator & Media · Transport & Logistics · Agriculture & Primary Industries · Education & Organisations  
 
-### GROW
+### GROWTH
 Prospecting · AI Visibility · SEO · Automation · Analytics · Social · Reputation · AI Communications  
 
 ### INTELLIGENCE
-Command Centre (Priorities, Recommended Actions, Alerts, Sales Week, AI Advisor, Business Health, Insights, Benchmarks, Reports).  
+Command Centre · Digital Twin · AI Advisor · Business Health · Insights · Benchmarks · Business Brain  
 Founding 10 / staff Prospecting / Sales Week only where commercially relevant (DigitalGate staff + founding orgs).
 
-### ECOSYSTEM
-Apps · Marketplace · Network · Refer & Earn  
+### PARTNERS (staff)
+Resellers · Referrals · Commissions · Delivery / Implementation  
 
-### SETTINGS
-Overview · Billing · Connectors · API · Audit · Users/permissions — gated by permission.
+### PLATFORM ADMIN
+Apps · Marketplace · Network · Settings · Billing · Connectors · API · Audit Log · Roadmap · Support · Platform Docs — gated by permission.
 
 ---
 

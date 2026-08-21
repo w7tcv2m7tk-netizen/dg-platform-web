@@ -6,6 +6,7 @@ import {
 } from "@dg/platform-core";
 
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
+import { EditProspectForm } from "@/components/command/EditProspectForm";
 import {
   ArchiveProspectButton,
   ConvertProspectToOrgButton,
@@ -173,6 +174,7 @@ export default async function GrowthPipelinePage({ searchParams }: PageProps) {
                               stage={prospect.stage}
                               stages={stages}
                             />
+                            <EditProspectForm prospect={prospect} compact />
                             {CONVERT_STAGES.has(prospect.stage) ||
                             prospect.convertedOrganisationId ? (
                               <ConvertProspectToOrgButton
@@ -221,6 +223,7 @@ export default async function GrowthPipelinePage({ searchParams }: PageProps) {
                           stage={prospect.stage}
                           stages={stages}
                         />
+                        <EditProspectForm prospect={prospect} compact />
                         {CONVERT_STAGES.has(prospect.stage) ||
                         prospect.convertedOrganisationId ? (
                           <ConvertProspectToOrgButton

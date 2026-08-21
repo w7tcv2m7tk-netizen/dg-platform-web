@@ -4,6 +4,7 @@ import { SETTINGS_NAV_ROUTES } from "./platform-tools";
 import { APP_TIER_LABELS, APP_TIER_ORDER, isAppEnabled } from "./org-apps";
 import { platformApps } from "./registry";
 import { getSidebarIcon } from "./sidebar-icons";
+import { INDUSTRY_PLATFORMS, resolveIndustryFromAppId } from "../industry/platform";
 
 export interface PlatformShellNavItem extends AppNavItem {
   kind: "shell";
@@ -42,15 +43,21 @@ export interface PlatformToolNavItem {
   primaryHref: string;
 }
 
-/** Advisor IA section ids — docs/foundations/INTELLIGENT-LAYER.md */
+/** Advisor IA section ids — Core · Infrastructure · Industry · Growth · Intelligence · Partners · Platform Admin */
 export type NavIaSectionId =
-  | "business"
-  | "operate"
+  | "core"
+  | "infrastructure"
   | "industry"
   | "grow"
   | "intelligence"
   | "partners"
   | "partner"
+  | "platformAdmin"
+  /** @deprecated Prefer core */
+  | "business"
+  /** @deprecated Prefer core */
+  | "operate"
+  /** @deprecated Prefer platformAdmin */
   | "ecosystem";
 
 export interface NavIaShellLink extends PlatformShellNavItem {
@@ -67,15 +74,14 @@ export interface NavIaSection {
 }
 
 /**
- * Operate — run the business. Industry Apps are a separate section.
+ * Core — universal operating layer (profile + CRM / Commerce / Design Studio).
+ * Infrastructure is its own top-level section.
  */
-const OPERATE_APP_ORDER = ["crm", "commerce", "websites", "infrastructure"] as const;
+const CORE_APP_ORDER = ["crm", "commerce", "websites"] as const;
 
 /**
  * Industry — Industry Apps (activate Templates). Module ids map into Industry Platforms.
- * Accommodation → Hospitality & Accommodation (not Property).
  * @see packages/platform-core/src/industry/platform.ts
- * @see docs/foundations/ROLES-PERMISSIONS-SIDEBAR.md
  */
 const INDUSTRY_APP_ORDER = [
   "real-estate",
@@ -89,7 +95,7 @@ const INDUSTRY_APP_ORDER = [
 ] as const;
 
 /**
- * Grow — demand Apps. CRM Opportunities is the canonical pipeline object;
+ * Growth — demand Apps. CRM Opportunities is the canonical pipeline object;
  * the Opportunity Engine App is not a second Opportunities destination.
  */
 const GROW_APP_ORDER = [
@@ -105,9 +111,10 @@ const GROW_APP_ORDER = [
 /** Hidden from sidebar IA — marketing undecided; opportunities live in CRM */
 const SIDEBAR_HIDDEN_APP_IDS = new Set(["marketing", "opportunities"]);
 
-const OPERATE_APP_IDS = new Set<string>(OPERATE_APP_ORDER);
+const CORE_APP_IDS = new Set<string>(CORE_APP_ORDER);
 const INDUSTRY_APP_IDS = new Set<string>(INDUSTRY_APP_ORDER);
 const GROW_APP_IDS = new Set<string>(GROW_APP_ORDER);
+const INFRASTRUCTURE_APP_IDS = new Set<string>(["infrastructure"]);
 
 /** Sidebar display overlays — canonical homes without inventing new routes. */
 const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }> = {
@@ -137,6 +144,7 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   "ai-communications": { name: "AI Communications" },
   reviews: { name: "Reputation" },
   infrastructure: {
+    name: "Infrastructure",
     routes: [
       { path: "/apps/infrastructure/domains", label: "Domains" },
       { path: "/apps/infrastructure/dns", label: "DNS" },
@@ -149,20 +157,14 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   },
 };
 
-/** BUSINESS — who you are. Business Brain is intelligence infra — not a hero Business item. */
-const BUSINESS_LINKS: PlatformShellNavItem[] = [
+/** CORE — who you are + universal ops (Twin lives under Intelligence). */
+const CORE_LINKS: PlatformShellNavItem[] = [
   { kind: "shell", href: "/dashboard", label: "Overview", icon: getSidebarIcon("overview") },
   {
     kind: "shell",
     href: "/dashboard/business",
     label: "Business Profile",
     icon: getSidebarIcon("business-profile"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/twin",
-    label: "Digital Twin",
-    icon: getSidebarIcon("twin"),
   },
   {
     kind: "shell",
@@ -178,28 +180,6 @@ const BUSINESS_LINKS: PlatformShellNavItem[] = [
   },
 ];
 
-/** ECOSYSTEM — what you can activate / add. Partner is not an ecosystem App. */
-const ECOSYSTEM_LINKS: PlatformShellNavItem[] = [
-  {
-    kind: "shell",
-    href: "/dashboard/apps",
-    label: "Apps",
-    icon: getSidebarIcon("apps"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/marketplace",
-    label: "Marketplace",
-    icon: getSidebarIcon("marketplace"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/network",
-    label: "Network",
-    icon: getSidebarIcon("network"),
-  },
-];
-
 /**
  * INTELLIGENCE — decision surfaces (not a shop of apps).
  * Command Centre (staff) is injected as a collapsible app at the top of this section.
@@ -207,9 +187,9 @@ const ECOSYSTEM_LINKS: PlatformShellNavItem[] = [
 const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
   {
     kind: "shell",
-    href: "/dashboard/health",
-    label: "Business Health",
-    icon: getSidebarIcon("health"),
+    href: "/dashboard/twin",
+    label: "Digital Twin",
+    icon: getSidebarIcon("twin"),
   },
   {
     kind: "shell",
@@ -219,9 +199,9 @@ const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
   },
   {
     kind: "shell",
-    href: "/dashboard/brain",
-    label: "Knowledge Base",
-    icon: getSidebarIcon("brain"),
+    href: "/dashboard/health",
+    label: "Business Health",
+    icon: getSidebarIcon("health"),
   },
   {
     kind: "shell",
@@ -237,11 +217,88 @@ const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
   },
   {
     kind: "shell",
-    href: "/apps/analytics/reports",
-    label: "Reports",
-    icon: getSidebarIcon("reports"),
+    href: "/dashboard/brain",
+    label: "Business Brain",
+    icon: getSidebarIcon("brain"),
   },
 ];
+
+/** PLATFORM ADMIN — activate / configure the platform (flat). */
+function getPlatformAdminLinks(options?: { showCommandCentre?: boolean }): PlatformShellNavItem[] {
+  const links: PlatformShellNavItem[] = [
+    {
+      kind: "shell",
+      href: "/dashboard/apps",
+      label: "Apps",
+      icon: getSidebarIcon("apps"),
+    },
+    {
+      kind: "shell",
+      href: "/dashboard/marketplace",
+      label: "Marketplace",
+      icon: getSidebarIcon("marketplace"),
+    },
+    {
+      kind: "shell",
+      href: "/dashboard/network",
+      label: "Network",
+      icon: getSidebarIcon("network"),
+    },
+    {
+      kind: "shell",
+      href: "/dashboard/settings",
+      label: "Settings",
+      icon: getSidebarIcon("settings"),
+    },
+    {
+      kind: "shell",
+      href: "/dashboard/settings/billing",
+      label: "Billing",
+      icon: getSidebarIcon("settings"),
+    },
+    {
+      kind: "shell",
+      href: "/dashboard/settings/connectors",
+      label: "Connectors",
+      icon: getSidebarIcon("settings"),
+    },
+    {
+      kind: "shell",
+      href: "/dashboard/settings/api",
+      label: "API",
+      icon: getSidebarIcon("settings"),
+    },
+    {
+      kind: "shell",
+      href: "/dashboard/settings/audit",
+      label: "Audit Log",
+      icon: getSidebarIcon("settings"),
+    },
+    {
+      kind: "shell",
+      href: "/dashboard/settings/roadmap",
+      label: "Roadmap",
+      icon: getSidebarIcon("reports"),
+    },
+    {
+      kind: "shell",
+      href: "/support",
+      label: "Support",
+      icon: getSidebarIcon("advisor"),
+    },
+  ];
+
+  if (options?.showCommandCentre) {
+    links.push({
+      kind: "shell",
+      href: "/command/docs",
+      label: "Platform Docs",
+      icon: getSidebarIcon("reports"),
+    });
+  }
+
+  return links;
+}
 
 const APPS_PLATFORM_NAV: PlatformShellNavItem = {
   kind: "shell",
@@ -259,10 +316,7 @@ const SHELL_PLATFORM_NAV: PlatformShellNavItem = {
 };
 
 /** @deprecated Prefer IA sections — flat workspace list for legacy consumers */
-const SHELL_WORKSPACE_NAV: PlatformShellNavItem[] = [
-  ...BUSINESS_LINKS,
-  ...ECOSYSTEM_LINKS,
-];
+const SHELL_WORKSPACE_NAV: PlatformShellNavItem[] = [...CORE_LINKS];
 
 const SHELL_NAV: PlatformShellNavItem[] = [
   ...SHELL_WORKSPACE_NAV,
@@ -270,16 +324,24 @@ const SHELL_NAV: PlatformShellNavItem[] = [
   SHELL_PLATFORM_NAV,
 ];
 
-export const BUSINESS_WORKSPACE_SECTION_LABEL = "Business";
-export const OPERATE_NAV_SECTION_LABEL = "Operate";
-export const GROW_NAV_SECTION_LABEL = "Grow";
+export const CORE_NAV_SECTION_LABEL = "Core";
+export const INFRASTRUCTURE_NAV_SECTION_LABEL = "Infrastructure";
+export const GROW_NAV_SECTION_LABEL = "Growth";
 export const INTELLIGENCE_NAV_SECTION_LABEL = "Intelligence";
 export const INDUSTRY_NAV_SECTION_LABEL = "Industry";
-export const ECOSYSTEM_NAV_SECTION_LABEL = "Ecosystem";
-export const PLATFORM_NAV_SECTION_LABEL = "Platform";
+export const PLATFORM_ADMIN_NAV_SECTION_LABEL = "Platform Admin";
 export const PARTNERS_NAV_SECTION_LABEL = "Partners";
 export const PARTNER_NAV_SECTION_LABEL = "Partner";
 export const COMMAND_CENTRE_NAV_SECTION_LABEL = "Command Centre";
+
+/** @deprecated Prefer CORE_NAV_SECTION_LABEL */
+export const BUSINESS_WORKSPACE_SECTION_LABEL = CORE_NAV_SECTION_LABEL;
+/** @deprecated Prefer CORE_NAV_SECTION_LABEL */
+export const OPERATE_NAV_SECTION_LABEL = CORE_NAV_SECTION_LABEL;
+/** @deprecated Prefer PLATFORM_ADMIN_NAV_SECTION_LABEL */
+export const ECOSYSTEM_NAV_SECTION_LABEL = PLATFORM_ADMIN_NAV_SECTION_LABEL;
+/** @deprecated Prefer PLATFORM_ADMIN_NAV_SECTION_LABEL */
+export const PLATFORM_NAV_SECTION_LABEL = PLATFORM_ADMIN_NAV_SECTION_LABEL;
 
 export function getPlatformShellNavigation(): PlatformShellNavItem[] {
   return SHELL_NAV;
@@ -321,28 +383,94 @@ function sortByOrder(apps: AppNavTreeItem[], order: readonly string[]): AppNavTr
   });
 }
 
+/**
+ * Group enabled industry modules under the twelve Industry Platform labels,
+ * ordered to match INDUSTRY_PLATFORMS.
+ */
+function buildIndustryNavApps(enabledIndustryApps: AppNavTreeItem[]): AppNavTreeItem[] {
+  const byPlatform = new Map<string, AppNavTreeItem[]>();
+
+  for (const app of enabledIndustryApps) {
+    const resolved = resolveIndustryFromAppId(app.id);
+    const platformId = resolved?.platform.id ?? `unmapped-${app.id}`;
+    const list = byPlatform.get(platformId) ?? [];
+    list.push(app);
+    byPlatform.set(platformId, list);
+  }
+
+  const grouped: AppNavTreeItem[] = [];
+
+  for (const platform of INDUSTRY_PLATFORMS) {
+    const apps = byPlatform.get(platform.id);
+    if (!apps?.length) continue;
+
+    if (apps.length === 1) {
+      grouped.push({
+        ...apps[0],
+        name: platform.label,
+        icon: platform.icon || apps[0].icon,
+      });
+      continue;
+    }
+
+    const routes: AppRoute[] = apps.flatMap((app) =>
+      app.routes.map((route) => ({
+        ...route,
+        label: `${app.name} · ${route.label}`,
+      })),
+    );
+
+    grouped.push({
+      kind: "app",
+      id: `industry-${platform.id}`,
+      name: platform.label,
+      icon: platform.icon || apps[0].icon,
+      tier: apps[0].tier,
+      enabled: true,
+      routes,
+      primaryHref: apps[0].primaryHref,
+    });
+  }
+
+  // Any modules that did not resolve to a platform (defensive)
+  for (const [platformId, apps] of byPlatform) {
+    if (INDUSTRY_PLATFORMS.some((p) => p.id === platformId)) continue;
+    grouped.push(...sortByOrder(apps, INDUSTRY_APP_ORDER));
+  }
+
+  return grouped;
+}
+
 export interface CategorizedPlatformNavigation {
-  /** @deprecated Prefer `ia.business` — kept for EnabledAppsProvider compatibility */
+  /** @deprecated Prefer `ia.core` — kept for EnabledAppsProvider compatibility */
   shell: PlatformShellNavItem[];
-  /** Settings / admin — rendered after IA sections */
+  /** @deprecated Prefer `ia.platformAdmin` — Settings routes still filtered here */
   platform: PlatformShellNavItem;
-  /** Apps catalog — under Platform with Settings */
-  /** Apps catalog — under Ecosystem */
+  /** Apps catalog — under Platform Admin */
   appsPlatform: PlatformShellNavItem;
-  /** @deprecated Prefer `ia.operate` / `ia.grow` */
+  /** @deprecated Prefer `ia.core` / `ia.grow` */
   tiers: AppNavTierGroup[];
   tools: PlatformToolsNavGroup;
   /** DigitalGate staff only — rendered under Intelligence */
   commandCentre: PlatformToolNavItem | null;
-  /** Advisor IA — BUSINESS · OPERATE · INDUSTRY · GROW · INTELLIGENCE · PARTNERS · PARTNER · ECOSYSTEM */
+  /**
+   * Advisor IA —
+   * CORE · INFRASTRUCTURE · INDUSTRY · GROWTH · INTELLIGENCE · PARTNERS · PARTNER · PLATFORM ADMIN
+   */
   ia: {
-    business: NavIaSection;
-    operate: NavIaSection;
+    core: NavIaSection;
+    infrastructure: NavIaSection;
     industry: NavIaSection;
     grow: NavIaSection;
     intelligence: NavIaSection;
     partners: NavIaSection;
     partner: NavIaSection;
+    platformAdmin: NavIaSection;
+    /** @deprecated Alias of core */
+    business: NavIaSection;
+    /** @deprecated Empty — merged into core */
+    operate: NavIaSection;
+    /** @deprecated Alias of platformAdmin */
     ecosystem: NavIaSection;
   };
 }
@@ -459,11 +587,15 @@ export function getCategorizedPlatformNavigation(
 
   const analyticsEnabled = isAppEnabled("analytics", enabledIds);
 
-  const operateApps = sortByOrder(
-    enabledApps.filter((a) => OPERATE_APP_IDS.has(a.id)),
-    OPERATE_APP_ORDER,
+  const coreApps = sortByOrder(
+    enabledApps.filter((a) => CORE_APP_IDS.has(a.id)),
+    CORE_APP_ORDER,
   );
-  const industryApps = sortByOrder(
+  const infrastructureApps = sortByOrder(
+    enabledApps.filter((a) => INFRASTRUCTURE_APP_IDS.has(a.id)),
+    ["infrastructure"],
+  );
+  const industryModuleApps = sortByOrder(
     enabledApps.filter((a) => INDUSTRY_APP_IDS.has(a.id)),
     INDUSTRY_APP_ORDER,
   );
@@ -476,15 +608,18 @@ export function getCategorizedPlatformNavigation(
   }
 
   const mapped = new Set([
-    ...OPERATE_APP_IDS,
+    ...CORE_APP_IDS,
+    ...INFRASTRUCTURE_APP_IDS,
     ...INDUSTRY_APP_IDS,
     ...GROW_APP_IDS,
     ...SIDEBAR_HIDDEN_APP_IDS,
   ]);
   const unmapped = enabledApps.filter((a) => !mapped.has(a.id));
   if (unmapped.length) {
-    industryApps.push(...unmapped);
+    industryModuleApps.push(...unmapped);
   }
+
+  const industryApps = buildIndustryNavApps(industryModuleApps);
 
   const tiers: AppNavTierGroup[] = APP_TIER_ORDER.map((tier) => ({
     tier,
@@ -497,7 +632,7 @@ export function getCategorizedPlatformNavigation(
   const commandCentre = options?.showCommandCentre ? getCommandCentreNavItem() : null;
 
   const intelligenceLinks = INTELLIGENCE_LINKS.filter((link) => {
-    if (link.href === "/apps/analytics" || link.href === "/apps/analytics/reports") {
+    if (link.href === "/apps/analytics") {
       return analyticsEnabled;
     }
     return true;
@@ -523,9 +658,34 @@ export function getCategorizedPlatformNavigation(
     routes: [
       ...(SHELL_PLATFORM_NAV.routes ?? []),
       ...(options?.showCommandCentre
-        ? [{ path: "/command/docs", label: "Platform docs" }]
+        ? [{ path: "/command/docs", label: "Platform Docs" }]
         : []),
     ],
+  };
+
+  const platformAdminLinks = getPlatformAdminLinks({
+    showCommandCentre: options?.showCommandCentre,
+  });
+
+  const coreSection: NavIaSection = {
+    id: "core",
+    label: CORE_NAV_SECTION_LABEL,
+    links: CORE_LINKS,
+    apps: coreApps,
+  };
+
+  const emptyOperate: NavIaSection = {
+    id: "operate",
+    label: CORE_NAV_SECTION_LABEL,
+    links: [],
+    apps: [],
+  };
+
+  const platformAdminSection: NavIaSection = {
+    id: "platformAdmin",
+    label: PLATFORM_ADMIN_NAV_SECTION_LABEL,
+    links: platformAdminLinks,
+    apps: [],
   };
 
   return {
@@ -533,20 +693,15 @@ export function getCategorizedPlatformNavigation(
     platform: settingsNav,
     appsPlatform: APPS_PLATFORM_NAV,
     tiers,
-    tools: { label: PLATFORM_NAV_SECTION_LABEL, tools: [] },
+    tools: { label: PLATFORM_ADMIN_NAV_SECTION_LABEL, tools: [] },
     commandCentre,
     ia: {
-      business: {
-        id: "business",
-        label: BUSINESS_WORKSPACE_SECTION_LABEL,
-        links: BUSINESS_LINKS,
-        apps: [],
-      },
-      operate: {
-        id: "operate",
-        label: OPERATE_NAV_SECTION_LABEL,
+      core: coreSection,
+      infrastructure: {
+        id: "infrastructure",
+        label: INFRASTRUCTURE_NAV_SECTION_LABEL,
         links: [],
-        apps: operateApps,
+        apps: infrastructureApps,
       },
       industry: {
         id: "industry",
@@ -580,12 +735,10 @@ export function getCategorizedPlatformNavigation(
           : [],
         apps: [],
       },
-      ecosystem: {
-        id: "ecosystem",
-        label: ECOSYSTEM_NAV_SECTION_LABEL,
-        links: ECOSYSTEM_LINKS,
-        apps: [],
-      },
+      platformAdmin: platformAdminSection,
+      business: coreSection,
+      operate: emptyOperate,
+      ecosystem: platformAdminSection,
     },
   };
 }

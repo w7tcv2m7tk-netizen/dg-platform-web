@@ -8,6 +8,7 @@ import {
 import { BusinessDiscoverySearch } from "@/components/command/BusinessDiscoverySearch";
 import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { CreateProspectForm } from "@/components/command/CreateProspectForm";
+import { EditProspectForm } from "@/components/command/EditProspectForm";
 import {
   ArchiveProspectButton,
   RunProspectAuditButton,
@@ -288,36 +289,48 @@ export default async function GrowthDiscoveryPage({ searchParams }: PageProps) {
                 {filtered.map((prospect) => (
                   <li
                     key={prospect.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3"
+                    className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3"
                   >
-                    <div>
-                      <p className="font-medium text-white">{prospect.businessName}</p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {GROWTH_ENGINE_STAGE_LABELS[prospect.stage] ?? prospect.stage}
-                        {[prospect.industry, prospect.location]
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-white">{prospect.businessName}</p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {GROWTH_ENGINE_STAGE_LABELS[prospect.stage] ?? prospect.stage}
+                          {[prospect.industry, prospect.location]
+                            .filter(Boolean)
+                            .map((v) => ` · ${v}`)
+                            .join("")}
+                          {prospect.archivedAt ? " · Archived" : ""}
+                        </p>
+                        {[prospect.contactName, prospect.contactEmail, prospect.contactPhone]
                           .filter(Boolean)
-                          .map((v) => ` · ${v}`)
-                          .join("")}
-                        {prospect.archivedAt ? " · Archived" : ""}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {!showArchived ? (
-                        <>
-                          <Link
-                            href="/command/growth-engine/pipeline"
-                            className="text-xs text-sky-400 hover:underline"
-                          >
-                            Pipeline
-                          </Link>
-                          <RunProspectAuditButton prospectId={prospect.id} label="Audit" />
-                        </>
-                      ) : null}
-                      <ArchiveProspectButton
-                        prospectId={prospect.id}
-                        businessName={prospect.businessName}
-                        archived={showArchived}
-                      />
+                          .length > 0 ? (
+                          <p className="mt-1 text-xs text-slate-600">
+                            {[prospect.contactName, prospect.contactEmail, prospect.contactPhone]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {!showArchived ? (
+                          <>
+                            <EditProspectForm prospect={prospect} />
+                            <Link
+                              href="/command/growth-engine/pipeline"
+                              className="text-xs text-sky-400 hover:underline"
+                            >
+                              Pipeline
+                            </Link>
+                            <RunProspectAuditButton prospectId={prospect.id} label="Audit" />
+                          </>
+                        ) : null}
+                        <ArchiveProspectButton
+                          prospectId={prospect.id}
+                          businessName={prospect.businessName}
+                          archived={showArchived}
+                        />
+                      </div>
                     </div>
                   </li>
                 ))}

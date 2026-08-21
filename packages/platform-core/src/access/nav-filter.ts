@@ -41,14 +41,10 @@ function filterSettingsRoutes(
   });
 }
 
-/**
- * Apply role/permission filters to categorized navigation.
- * Apps already filtered by enabledIds; this gates Business/Settings/Partners by role.
- */
-export function filterNavigationByAccess(
-  nav: CategorizedPlatformNavigation,
+function filterPlatformAdminLinks(
+  links: PlatformShellNavItem[],
   ctx: AccessContext,
-): CategorizedPlatformNavigation {
+): PlatformShellNavItem[] {
   const canBilling = hasPermission(ctx, {
     module: "billing",
     action: "view",
@@ -59,13 +55,50 @@ export function filterNavigationByAccess(
     action: "manage",
     scope: "organisation",
   });
+  const canSettings = canView(ctx, "settings");
+  const canManageSettings =
+    hasPermission(ctx, { module: "settings", action: "manage", scope: "organisation" }) ||
+    hasPermission(ctx, { module: "platform_admin", action: "view", scope: "organisation" });
+
+  return links.filter((link) => {
+    const href = link.href;
+    if (href.includes("/apps") || href.includes("/marketplace") || href.includes("/network")) {
+      return canTeamManage || canBilling || canSettings;
+    }
+    if (href.includes("/billing")) return canBilling;
+    if (href.includes("/api")) return canManageSettings;
+    if (href.includes("/audit")) {
+      return canManageSettings || canSettings;
+    }
+    if (href.includes("/connectors")) {
+      return (
+        hasPermission(ctx, { module: "settings", action: "edit", scope: "organisation" }) ||
+        hasPermission(ctx, { module: "settings", action: "manage", scope: "organisation" })
+      );
+    }
+    if (href.includes("/command/docs")) {
+      return Boolean(ctx.platformUserType);
+    }
+    return canSettings;
+  });
+}
+
+/**
+ * Apply role/permission filters to categorized navigation.
+ * Apps already filtered by enabledIds; this gates Core/Platform Admin/Partners by role.
+ */
+export function filterNavigationByAccess(
+  nav: CategorizedPlatformNavigation,
+  ctx: AccessContext,
+): CategorizedPlatformNavigation {
   const canPartners = canView(ctx, "partners") || Boolean(ctx.platformUserType);
   const canIntelligence = canView(ctx, "intelligence");
-  const canOperate = canView(ctx, "crm") || canView(ctx, "commerce") || canView(ctx, "websites");
+  const canCore = canView(ctx, "crm") || canView(ctx, "commerce") || canView(ctx, "websites");
+  const canInfrastructure = canView(ctx, "websites") || canCore;
   const canIndustry = canView(ctx, "industry");
   const canGrowth = canView(ctx, "growth");
 
-  const businessLinks = nav.ia.business.links.filter((link) => {
+  const coreLinks = nav.ia.core.links.filter((link) => {
     if (link.href.includes("/settings/team")) {
       return canView(ctx, "team");
     }
@@ -73,14 +106,18 @@ export function filterNavigationByAccess(
   });
 
   const settingsRoutes = filterSettingsRoutes(nav.platform.routes, ctx);
+  const platformAdminLinks = filterPlatformAdminLinks(nav.ia.platformAdmin.links, ctx);
 
-  const ecosystemLinks = nav.ia.ecosystem.links.filter((link) => {
-    if (link.href.includes("/apps")) {
-      // Apps catalogue — owners/admins manage; members can view activated only via sidebar apps
-      return canTeamManage || canBilling || canView(ctx, "settings");
-    }
-    return true;
-  });
+  const coreSection = {
+    ...nav.ia.core,
+    links: coreLinks,
+    apps: canCore ? nav.ia.core.apps : [],
+  };
+
+  const platformAdminSection = {
+    ...nav.ia.platformAdmin,
+    links: platformAdminLinks,
+  };
 
   return {
     ...nav,
@@ -90,14 +127,17 @@ export function filterNavigationByAccess(
     },
     ia: {
       ...nav.ia,
-      business: {
-        ...nav.ia.business,
-        links: businessLinks,
-      },
+      core: coreSection,
+      business: coreSection,
       operate: {
         ...nav.ia.operate,
-        apps: canOperate ? nav.ia.operate.apps : [],
-        links: canOperate ? nav.ia.operate.links : [],
+        apps: [],
+        links: [],
+      },
+      infrastructure: {
+        ...nav.ia.infrastructure,
+        apps: canInfrastructure ? nav.ia.infrastructure.apps : [],
+        links: canInfrastructure ? nav.ia.infrastructure.links : [],
       },
       industry: {
         ...nav.ia.industry,
@@ -119,10 +159,8 @@ export function filterNavigationByAccess(
         apps: canPartners ? nav.ia.partners.apps : [],
         links: canPartners ? nav.ia.partners.links : [],
       },
-      ecosystem: {
-        ...nav.ia.ecosystem,
-        links: ecosystemLinks,
-      },
+      platformAdmin: platformAdminSection,
+      ecosystem: platformAdminSection,
     },
   };
 }

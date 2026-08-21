@@ -3,23 +3,36 @@
  */
 export const CUSTOMER_SIDE_PANEL_SECTIONS = [
   {
-    id: "business",
-    label: "Business",
-    items: ["Overview", "Business Profile", "Digital Twin", "Goals", "Team"],
+    id: "core",
+    label: "Core",
+    items: ["Overview", "Business Profile", "Goals", "Team", "CRM", "Commerce", "Design Studio"],
   },
   {
-    id: "operate",
-    label: "Operate",
-    items: ["CRM", "Commerce", "Design Studio", "Infrastructure"],
+    id: "infrastructure",
+    label: "Infrastructure",
+    items: ["Domains", "DNS", "SSL", "Hosting", "Email", "Backup", "Cloudflare"],
   },
   {
     id: "industry",
     label: "Industry",
-    items: ["Activated Industry Apps → Templates"],
+    items: [
+      "Property",
+      "Hospitality & Accommodation",
+      "Services",
+      "Finance",
+      "Professional",
+      "Health & Wellness",
+      "Automotive",
+      "Retail & Commerce",
+      "Creator & Media",
+      "Transport & Logistics",
+      "Agriculture & Primary Industries",
+      "Education & Organisations",
+    ],
   },
   {
     id: "grow",
-    label: "Grow",
+    label: "Growth",
     items: [
       "Prospecting",
       "AI Visibility",
@@ -36,32 +49,41 @@ export const CUSTOMER_SIDE_PANEL_SECTIONS = [
     label: "Intelligence",
     items: [
       "Command Centre",
-      "Priorities",
-      "Recommended Actions",
-      "Alerts",
-      "Sales Week",
+      "Digital Twin",
       "AI Advisor",
       "Business Health",
       "Insights",
       "Benchmarks",
-      "Reports",
+      "Business Brain",
     ],
   },
   {
-    id: "ecosystem",
-    label: "Ecosystem",
-    items: ["Apps", "Marketplace", "Network", "Refer & Earn"],
+    id: "partners",
+    label: "Partners",
+    items: ["Resellers", "Referrals", "Commissions", "Delivery / Implementation"],
   },
   {
-    id: "settings",
-    label: "Settings",
-    items: ["Overview", "Billing", "Connectors", "API", "Audit Log", "Users"],
+    id: "platformAdmin",
+    label: "Platform Admin",
+    items: [
+      "Apps",
+      "Marketplace",
+      "Network",
+      "Settings",
+      "Billing",
+      "Connectors",
+      "API",
+      "Audit Log",
+      "Roadmap",
+      "Support",
+      "Platform Docs",
+    ],
   },
 ] as const;
 
-/** Business Brain is infrastructure — not a hero Business nav item. */
+/** Business Brain is intelligence infrastructure — listed under Intelligence, not Core. */
 export const BUSINESS_BRAIN_NAV_POLICY =
-  "Business Brain powers AI context. Prefer Knowledge Base / Business Knowledge for customer-facing nav; do not treat Brain as a primary Business destination." as const;
+  "Business Brain powers AI context and sits under Intelligence. Do not treat Brain as a primary Core destination." as const;
 
 export const FEATURE_LIFECYCLE_STATUSES = [
   "planned",
