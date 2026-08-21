@@ -73,41 +73,47 @@ Custom job titles (Salesperson, Sales Manager, Accountant, …) are **permission
 
 ## Customer side panel (canonical)
 
+**Full lock:** [SIDEBAR-NAVIGATION.md](./SIDEBAR-NAVIGATION.md)
+
 Order (locked):
 
 ```
 DIGITALGATE
 ├── CORE
+│   ├── CRM
+│   ├── Commerce
+│   ├── Design Studio
+│   └── Business
 ├── INFRASTRUCTURE
-├── INDUSTRY
+├── INDUSTRY          ← activated Apps/Templates only
 ├── GROWTH
 ├── INTELLIGENCE
-├── PARTNERS
+├── PARTNERS          ← DigitalGate staff
 └── PLATFORM ADMIN
 ```
 
 ### CORE
-Overview · Business Profile · Goals · Team · CRM · Commerce · Design Studio  
+CRM · Commerce · Design Studio · Business (Overview · Business Profile · Goals · Team)
 
 ### INFRASTRUCTURE
-Domains · DNS · SSL · Hosting · Email · Backup · Cloudflare  
+Domains · DNS · SSL · Hosting · Email · Backups · Cloudflare
 
 ### INDUSTRY
-Only when an Industry App is activated. **Industry App ≠ Template.** One Industry App → many Templates.  
-Property · Hospitality & Accommodation · Services · Finance · Professional · Health & Wellness · Automotive · Retail & Commerce · Creator & Media · Transport & Logistics · Agriculture & Primary Industries · Education & Organisations  
+Only when an Industry App is activated. **Industry App ≠ Template.** One Industry App ($99) → one Template included; additional Templates +$29.  
+Do not show the full Industry catalogue to every customer.
 
 ### GROWTH
-Prospecting · AI Visibility · SEO · Automation · Analytics · Social · Reputation · AI Communications  
+Prospecting · AI Visibility · SEO · Automation · Analytics · Social · Reputation · AI Communications
 
 ### INTELLIGENCE
-Command Centre · Digital Twin · AI Advisor · Business Health · Insights · Benchmarks · Business Brain  
-Founding 10 / staff Prospecting / Sales Week only where commercially relevant (DigitalGate staff + founding orgs).
+Command Centre · Digital Twin · AI Advisor · Business Health · Insights · Benchmarks · Business Brain
 
-### PARTNERS (staff)
-Resellers · Referrals · Commissions · Delivery / Implementation  
+### PARTNERS (DigitalGate staff)
+Resellers · Referrals · Commissions · Delivery / Implementation
 
 ### PLATFORM ADMIN
-Apps · Marketplace · Network · Settings · Billing · Connectors · API · Audit Log · Roadmap · Support · Platform Docs — gated by permission.
+Apps · Marketplace · Network · Settings (Overview · Billing · Connectors · API · Audit Log) · Roadmap* · Support · Platform Docs*  
+\* Roadmap / Platform Docs = DigitalGate-internal by default.
 
 ---
 

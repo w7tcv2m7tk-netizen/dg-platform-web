@@ -127,13 +127,35 @@ function IaSectionBlock({
   onNavigate?: () => void;
   className?: string;
 }) {
-  if (section.links.length === 0 && section.apps.length === 0) return null;
+  const trailing = section.trailingLinks ?? [];
+  if (section.links.length === 0 && section.apps.length === 0 && trailing.length === 0) {
+    return null;
+  }
+
+  function renderShellLinks(links: NavIaSection["links"]) {
+    return links.map((link) => {
+      const active = shellLinkActive(pathname, link.href, link.routes);
+      return (
+        <Link
+          key={`${section.id}-${link.href}-${link.label}`}
+          href={link.href}
+          prefetch
+          onClick={onNavigate}
+          className={`${linkClass(active)} min-h-11 py-2.5`}
+        >
+          <SidebarIcon glyph={link.icon ?? "◈"} />
+          {link.label}
+        </Link>
+      );
+    });
+  }
 
   return (
     <div className={className ?? "mt-4"}>
       <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
         {section.label}
       </p>
+      {renderShellLinks(section.links)}
       {section.apps.length > 0 ? (
         <CollapsibleNavSection
           items={section.apps}
@@ -143,21 +165,7 @@ function IaSectionBlock({
           onNavigate={onNavigate}
         />
       ) : null}
-      {section.links.map((link) => {
-        const active = shellLinkActive(pathname, link.href, link.routes);
-        return (
-          <Link
-            key={`${section.id}-${link.href}-${link.label}`}
-            href={link.href}
-            prefetch
-            onClick={onNavigate}
-            className={`${linkClass(active)} min-h-11 py-2.5`}
-          >
-            <SidebarIcon glyph={link.icon ?? "◈"} />
-            {link.label}
-          </Link>
-        );
-      })}
+      {renderShellLinks(trailing)}
     </div>
   );
 }

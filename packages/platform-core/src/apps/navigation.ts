@@ -71,6 +71,8 @@ export interface NavIaSection {
   links: PlatformShellNavItem[];
   /** Collapsible installed apps in this section */
   apps: AppNavTreeItem[];
+  /** Optional links rendered after apps (e.g. Platform Admin: Settings then Roadmap/Support/Docs) */
+  trailingLinks?: PlatformShellNavItem[];
 }
 
 /**
@@ -139,10 +141,73 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
       { path: "/apps/commerce/reports", label: "Reports" },
     ],
   },
-  seo: { name: "SEO" },
-  social: { name: "Social" },
-  "ai-communications": { name: "AI Communications" },
-  reviews: { name: "Reputation" },
+  "real-estate": {
+    name: "Real Estate",
+    routes: [
+      { path: "/apps/re", label: "Overview" },
+      { path: "/apps/re/vendor-leads", label: "Vendors" },
+      { path: "/apps/re/buyer-leads", label: "Buyers" },
+      { path: "/apps/re/properties", label: "Properties" },
+      { path: "/apps/re/listings", label: "Listings" },
+      { path: "/apps/re/bookings", label: "Appraisals" },
+      { path: "/apps/re/settlements", label: "Settlements" },
+    ],
+  },
+  seo: {
+    name: "SEO",
+    routes: [
+      { path: "/apps/seo", label: "Overview" },
+      { path: "/apps/seo/audit", label: "Page Audit" },
+    ],
+  },
+  social: {
+    name: "Social",
+    routes: [
+      { path: "/apps/social", label: "Overview" },
+      { path: "/apps/social/compose", label: "Compose" },
+      { path: "/apps/social/calendar", label: "Content Calendar" },
+      { path: "/apps/social/accounts", label: "Connected Accounts" },
+    ],
+  },
+  automation: {
+    name: "Automation",
+    routes: [
+      { path: "/apps/automation", label: "Builder" },
+      { path: "/apps/automation/rules", label: "Rules" },
+      { path: "/apps/automation/logs", label: "Run Log" },
+    ],
+  },
+  analytics: {
+    name: "Analytics",
+    routes: [
+      { path: "/apps/analytics", label: "Overview" },
+      { path: "/apps/analytics/dashboard", label: "Dashboard" },
+      { path: "/apps/analytics/reports", label: "Reports" },
+      { path: "/apps/analytics/connectors", label: "Data Sources" },
+    ],
+  },
+  reviews: {
+    name: "Reputation",
+    routes: [
+      { path: "/apps/reviews", label: "Overview" },
+      { path: "/apps/reviews/inbox", label: "Review Inbox" },
+      { path: "/apps/reviews/sources", label: "Sources" },
+      { path: "/apps/reviews/requests", label: "Review Requests" },
+      { path: "/apps/reviews/reputation", label: "Reputation Score™" },
+    ],
+  },
+  "ai-communications": {
+    name: "AI Communications",
+    routes: [
+      { path: "/apps/ai-communications/inbox", label: "Inbox" },
+      { path: "/apps/ai-communications/voice", label: "Voice Agents" },
+      { path: "/apps/ai-communications/call-centre", label: "Call Centre" },
+      { path: "/apps/ai-communications/agents", label: "Agent Builder" },
+      { path: "/apps/ai-communications/knowledge", label: "Knowledge Base" },
+      { path: "/apps/ai-communications/settings", label: "Settings" },
+    ],
+  },
+  "ai-visibility": { name: "AI Visibility" },
   infrastructure: {
     name: "Infrastructure",
     routes: [
@@ -151,34 +216,44 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
       { path: "/apps/infrastructure/ssl", label: "SSL" },
       { path: "/apps/infrastructure/hosting", label: "Hosting" },
       { path: "/apps/infrastructure/email", label: "Email" },
-      { path: "/apps/infrastructure/backup", label: "Backup" },
+      { path: "/apps/infrastructure/backup", label: "Backups" },
       { path: "/apps/infrastructure/cloudflare", label: "Cloudflare" },
     ],
   },
 };
 
-/** CORE — who you are + universal ops (Twin lives under Intelligence). */
-const CORE_LINKS: PlatformShellNavItem[] = [
-  { kind: "shell", href: "/dashboard", label: "Overview", icon: getSidebarIcon("overview") },
-  {
-    kind: "shell",
-    href: "/dashboard/business",
-    label: "Business Profile",
-    icon: getSidebarIcon("business-profile"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/goals",
-    label: "Goals",
-    icon: getSidebarIcon("goals"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/settings/team",
-    label: "Team",
-    icon: getSidebarIcon("team"),
-  },
-];
+/** CORE · Business — who you are (Twin lives under Intelligence). */
+const BUSINESS_NAV_ITEM: AppNavTreeItem = {
+  kind: "app",
+  id: "business",
+  name: "Business",
+  icon: getSidebarIcon("business-profile"),
+  tier: "core",
+  enabled: true,
+  routes: [
+    { path: "/dashboard", label: "Overview" },
+    { path: "/dashboard/business", label: "Business Profile" },
+    { path: "/dashboard/goals", label: "Goals" },
+    { path: "/dashboard/settings/team", label: "Team" },
+  ],
+  primaryHref: "/dashboard",
+};
+
+/** @deprecated Prefer BUSINESS_NAV_ITEM under Core apps */
+const CORE_LINKS: PlatformShellNavItem[] = BUSINESS_NAV_ITEM.routes.map((route) => ({
+  kind: "shell" as const,
+  href: route.path,
+  label: route.label,
+  icon: getSidebarIcon(
+    route.path.includes("business")
+      ? "business-profile"
+      : route.path.includes("goals")
+        ? "goals"
+        : route.path.includes("team")
+          ? "team"
+          : "overview",
+  ),
+}));
 
 /**
  * INTELLIGENCE — decision surfaces (not a shop of apps).
@@ -223,8 +298,27 @@ const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
   },
 ];
 
-/** PLATFORM ADMIN — activate / configure the platform (flat). */
-function getPlatformAdminLinks(options?: { showCommandCentre?: boolean }): PlatformShellNavItem[] {
+/** PLATFORM ADMIN — customer org config + staff-only internals. */
+function getPlatformAdminSection(options?: {
+  showCommandCentre?: boolean;
+}): NavIaSection {
+  const settingsItem: AppNavTreeItem = {
+    kind: "app",
+    id: "platform-settings",
+    name: "Settings",
+    icon: getSidebarIcon("settings"),
+    tier: "internal",
+    enabled: true,
+    routes: [
+      { path: "/dashboard/settings", label: "Overview" },
+      { path: "/dashboard/settings/billing", label: "Billing" },
+      { path: "/dashboard/settings/connectors", label: "Connectors" },
+      { path: "/dashboard/settings/api", label: "API" },
+      { path: "/dashboard/settings/audit", label: "Audit Log" },
+    ],
+    primaryHref: "/dashboard/settings",
+  };
+
   const links: PlatformShellNavItem[] = [
     {
       kind: "shell",
@@ -244,60 +338,45 @@ function getPlatformAdminLinks(options?: { showCommandCentre?: boolean }): Platf
       label: "Network",
       icon: getSidebarIcon("network"),
     },
-    {
-      kind: "shell",
-      href: "/dashboard/settings",
-      label: "Settings",
-      icon: getSidebarIcon("settings"),
-    },
-    {
-      kind: "shell",
-      href: "/dashboard/settings/billing",
-      label: "Billing",
-      icon: getSidebarIcon("settings"),
-    },
-    {
-      kind: "shell",
-      href: "/dashboard/settings/connectors",
-      label: "Connectors",
-      icon: getSidebarIcon("settings"),
-    },
-    {
-      kind: "shell",
-      href: "/dashboard/settings/api",
-      label: "API",
-      icon: getSidebarIcon("settings"),
-    },
-    {
-      kind: "shell",
-      href: "/dashboard/settings/audit",
-      label: "Audit Log",
-      icon: getSidebarIcon("settings"),
-    },
-    {
-      kind: "shell",
-      href: "/dashboard/settings/roadmap",
-      label: "Roadmap",
-      icon: getSidebarIcon("reports"),
-    },
-    {
-      kind: "shell",
-      href: "/support",
-      label: "Support",
-      icon: getSidebarIcon("advisor"),
-    },
   ];
 
-  if (options?.showCommandCentre) {
-    links.push({
-      kind: "shell",
-      href: "/command/docs",
-      label: "Platform Docs",
-      icon: getSidebarIcon("reports"),
-    });
-  }
+  const trailingLinks: PlatformShellNavItem[] = options?.showCommandCentre
+    ? [
+        {
+          kind: "shell",
+          href: "/dashboard/settings/roadmap",
+          label: "Roadmap",
+          icon: getSidebarIcon("reports"),
+        },
+        {
+          kind: "shell",
+          href: "/support",
+          label: "Support",
+          icon: getSidebarIcon("advisor"),
+        },
+        {
+          kind: "shell",
+          href: "/command/docs",
+          label: "Platform Docs",
+          icon: getSidebarIcon("reports"),
+        },
+      ]
+    : [
+        {
+          kind: "shell",
+          href: "/support",
+          label: "Support",
+          icon: getSidebarIcon("advisor"),
+        },
+      ];
 
-  return links;
+  return {
+    id: "platformAdmin",
+    label: "Platform Admin",
+    links,
+    apps: [settingsItem],
+    trailingLinks,
+  };
 }
 
 const APPS_PLATFORM_NAV: PlatformShellNavItem = {
@@ -384,8 +463,9 @@ function sortByOrder(apps: AppNavTreeItem[], order: readonly string[]): AppNavTr
 }
 
 /**
- * Group enabled industry modules under the twelve Industry Platform labels,
- * ordered to match INDUSTRY_PLATFORMS.
+ * Group enabled industry modules under Industry Apps (activated only).
+ * One Industry App ($99) may expose multiple Templates (+$29 each).
+ * Single template → specialisation label. Multiple → Industry Platform label with template-prefixed routes.
  */
 function buildIndustryNavApps(enabledIndustryApps: AppNavTreeItem[]): AppNavTreeItem[] {
   const byPlatform = new Map<string, AppNavTreeItem[]>();
@@ -405,20 +485,36 @@ function buildIndustryNavApps(enabledIndustryApps: AppNavTreeItem[]): AppNavTree
     if (!apps?.length) continue;
 
     if (apps.length === 1) {
+      const only = apps[0];
+      const resolved = resolveIndustryFromAppId(only.id);
       grouped.push({
-        ...apps[0],
-        name: platform.label,
-        icon: platform.icon || apps[0].icon,
+        ...only,
+        name: resolved?.specialisation.label ?? platform.label,
+        icon: platform.icon || only.icon,
       });
       continue;
     }
 
-    const routes: AppRoute[] = apps.flatMap((app) =>
-      app.routes.map((route) => ({
-        ...route,
-        label: `${app.name} · ${route.label}`,
-      })),
-    );
+    const routes: AppRoute[] = apps.flatMap((app) => {
+      const resolved = resolveIndustryFromAppId(app.id);
+      const templateLabel = resolved?.specialisation.label ?? app.name;
+      return [
+        { path: app.primaryHref, label: templateLabel },
+        ...app.routes.map((route) => ({
+          ...route,
+          label: `${templateLabel} · ${route.label}`,
+        })),
+      ];
+    });
+
+    // Dedupe primaryHref entries that duplicate first overview
+    const seen = new Set<string>();
+    const deduped = routes.filter((route) => {
+      const key = `${route.path}::${route.label}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
     grouped.push({
       kind: "app",
@@ -427,12 +523,11 @@ function buildIndustryNavApps(enabledIndustryApps: AppNavTreeItem[]): AppNavTree
       icon: platform.icon || apps[0].icon,
       tier: apps[0].tier,
       enabled: true,
-      routes,
+      routes: deduped,
       primaryHref: apps[0].primaryHref,
     });
   }
 
-  // Any modules that did not resolve to a platform (defensive)
   for (const [platformId, apps] of byPlatform) {
     if (INDUSTRY_PLATFORMS.some((p) => p.id === platformId)) continue;
     grouped.push(...sortByOrder(apps, INDUSTRY_APP_ORDER));
@@ -587,10 +682,13 @@ export function getCategorizedPlatformNavigation(
 
   const analyticsEnabled = isAppEnabled("analytics", enabledIds);
 
-  const coreApps = sortByOrder(
-    enabledApps.filter((a) => CORE_APP_IDS.has(a.id)),
-    CORE_APP_ORDER,
-  );
+  const coreApps = [
+    ...sortByOrder(
+      enabledApps.filter((a) => CORE_APP_IDS.has(a.id)),
+      CORE_APP_ORDER,
+    ),
+    BUSINESS_NAV_ITEM,
+  ];
   const infrastructureApps = sortByOrder(
     enabledApps.filter((a) => INFRASTRUCTURE_APP_IDS.has(a.id)),
     ["infrastructure"],
@@ -663,14 +761,14 @@ export function getCategorizedPlatformNavigation(
     ],
   };
 
-  const platformAdminLinks = getPlatformAdminLinks({
+  const platformAdminSection = getPlatformAdminSection({
     showCommandCentre: options?.showCommandCentre,
   });
 
   const coreSection: NavIaSection = {
     id: "core",
     label: CORE_NAV_SECTION_LABEL,
-    links: CORE_LINKS,
+    links: [],
     apps: coreApps,
   };
 
@@ -678,13 +776,6 @@ export function getCategorizedPlatformNavigation(
     id: "operate",
     label: CORE_NAV_SECTION_LABEL,
     links: [],
-    apps: [],
-  };
-
-  const platformAdminSection: NavIaSection = {
-    id: "platformAdmin",
-    label: PLATFORM_ADMIN_NAV_SECTION_LABEL,
-    links: platformAdminLinks,
     apps: [],
   };
 

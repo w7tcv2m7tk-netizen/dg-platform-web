@@ -113,6 +113,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "foundations/OPERATOR-EXPERIENCE.md",
   },
   {
+    slug: "sidebar-navigation",
+    title: "Sidebar / Navigation",
+    summary:
+      "Locked final UX + access model — capability-aware CORE→PLATFORM ADMIN, dynamic Industry, role defaults, progressive disclosure.",
+    group: "architecture",
+    relativePath: "foundations/SIDEBAR-NAVIGATION.md",
+  },
+  {
     slug: "business-brain",
     title: "Business Brain",
     summary:

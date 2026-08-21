@@ -1,34 +1,22 @@
 /**
  * Side-panel visibility rules — locked with ROLES-PERMISSIONS-SIDEBAR.md
+ * and SIDEBAR-NAVIGATION.md
  */
 export const CUSTOMER_SIDE_PANEL_SECTIONS = [
   {
     id: "core",
     label: "Core",
-    items: ["Overview", "Business Profile", "Goals", "Team", "CRM", "Commerce", "Design Studio"],
+    items: ["CRM", "Commerce", "Design Studio", "Business"],
   },
   {
     id: "infrastructure",
     label: "Infrastructure",
-    items: ["Domains", "DNS", "SSL", "Hosting", "Email", "Backup", "Cloudflare"],
+    items: ["Domains", "DNS", "SSL", "Hosting", "Email", "Backups", "Cloudflare"],
   },
   {
     id: "industry",
     label: "Industry",
-    items: [
-      "Property",
-      "Hospitality & Accommodation",
-      "Services",
-      "Finance",
-      "Professional",
-      "Health & Wellness",
-      "Automotive",
-      "Retail & Commerce",
-      "Creator & Media",
-      "Transport & Logistics",
-      "Agriculture & Primary Industries",
-      "Education & Organisations",
-    ],
+    items: ["Activated Industry Apps → Templates only"],
   },
   {
     id: "grow",
@@ -70,10 +58,6 @@ export const CUSTOMER_SIDE_PANEL_SECTIONS = [
       "Marketplace",
       "Network",
       "Settings",
-      "Billing",
-      "Connectors",
-      "API",
-      "Audit Log",
       "Roadmap",
       "Support",
       "Platform Docs",

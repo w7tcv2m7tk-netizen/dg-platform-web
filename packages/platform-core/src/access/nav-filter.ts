@@ -1,15 +1,40 @@
 /**
  * Filter side-panel sections by AccessContext.
+ *
+ * Visibility chain:
+ * Platform capability → Org config → Activated Apps → Industry/Templates
+ * → User role → Permissions → Visible navigation
+ *
+ * @see docs/foundations/ROLES-PERMISSIONS-SIDEBAR.md
+ * @see docs/foundations/OPERATOR-EXPERIENCE.md
  */
 
-import type { CategorizedPlatformNavigation, PlatformShellNavItem } from "../apps/navigation";
+import type {
+  AppNavTreeItem,
+  CategorizedPlatformNavigation,
+  NavIaSection,
+  PlatformShellNavItem,
+} from "../apps/navigation";
 import { hasPermission, type PermissionCheck } from "./evaluate";
 import type { AccessContext } from "./roles";
 
 function canView(ctx: AccessContext, module: PermissionCheck["module"]): boolean {
-  return hasPermission(ctx, { module, action: "view", scope: "own" }) ||
+  return (
+    hasPermission(ctx, { module, action: "view", scope: "own" }) ||
     hasPermission(ctx, { module, action: "view", scope: "assigned" }) ||
-    hasPermission(ctx, { module, action: "view", scope: "organisation" });
+    hasPermission(ctx, { module, action: "view", scope: "organisation" })
+  );
+}
+
+function isPlatformStaff(ctx: AccessContext): boolean {
+  return Boolean(ctx.platformUserType);
+}
+
+function isOrgMemberOnly(ctx: AccessContext): boolean {
+  return (
+    !isPlatformStaff(ctx) &&
+    (ctx.organisationRole === "organisation_member" || !ctx.organisationRole)
+  );
 }
 
 function filterSettingsRoutes(
@@ -26,16 +51,26 @@ function filterSettingsRoutes(
       return canView(ctx, "team");
     }
     if (path.includes("/api") || path.includes("api-keys")) {
-      return hasPermission(ctx, { module: "settings", action: "manage", scope: "organisation" }) ||
-        hasPermission(ctx, { module: "platform_admin", action: "view", scope: "organisation" });
+      return (
+        hasPermission(ctx, { module: "settings", action: "manage", scope: "organisation" }) ||
+        hasPermission(ctx, { module: "platform_admin", action: "view", scope: "organisation" })
+      );
     }
     if (path.includes("/audit")) {
-      return hasPermission(ctx, { module: "settings", action: "manage", scope: "organisation" }) ||
-        hasPermission(ctx, { module: "settings", action: "view", scope: "organisation" });
+      // Customer members: hide audit. Org admins/owners and DG staff may see.
+      if (isOrgMemberOnly(ctx)) return false;
+      return (
+        hasPermission(ctx, { module: "settings", action: "manage", scope: "organisation" }) ||
+        hasPermission(ctx, { module: "settings", action: "view", scope: "organisation" }) ||
+        isPlatformStaff(ctx)
+      );
     }
     if (path.includes("/connectors")) {
-      return hasPermission(ctx, { module: "settings", action: "edit", scope: "organisation" }) ||
-        hasPermission(ctx, { module: "settings", action: "manage", scope: "organisation" });
+      if (isOrgMemberOnly(ctx)) return false;
+      return (
+        hasPermission(ctx, { module: "settings", action: "edit", scope: "organisation" }) ||
+        hasPermission(ctx, { module: "settings", action: "manage", scope: "organisation" })
+      );
     }
     return canView(ctx, "settings");
   });
@@ -56,31 +91,97 @@ function filterPlatformAdminLinks(
     scope: "organisation",
   });
   const canSettings = canView(ctx, "settings");
-  const canManageSettings =
-    hasPermission(ctx, { module: "settings", action: "manage", scope: "organisation" }) ||
-    hasPermission(ctx, { module: "platform_admin", action: "view", scope: "organisation" });
+  const staff = isPlatformStaff(ctx);
 
   return links.filter((link) => {
     const href = link.href;
+    if (href.includes("/command/docs") || href.includes("/roadmap")) {
+      return staff;
+    }
     if (href.includes("/apps") || href.includes("/marketplace") || href.includes("/network")) {
-      return canTeamManage || canBilling || canSettings;
+      // Members: hide catalog management; admins/owners and staff see it
+      if (isOrgMemberOnly(ctx)) return false;
+      return canTeamManage || canBilling || canSettings || staff;
     }
-    if (href.includes("/billing")) return canBilling;
-    if (href.includes("/api")) return canManageSettings;
-    if (href.includes("/audit")) {
-      return canManageSettings || canSettings;
+    if (href === "/support") {
+      return true;
     }
-    if (href.includes("/connectors")) {
-      return (
-        hasPermission(ctx, { module: "settings", action: "edit", scope: "organisation" }) ||
-        hasPermission(ctx, { module: "settings", action: "manage", scope: "organisation" })
-      );
-    }
-    if (href.includes("/command/docs")) {
-      return Boolean(ctx.platformUserType);
-    }
-    return canSettings;
+    return canSettings || staff;
   });
+}
+
+/** Progressive disclosure — strip config-heavy routes for ordinary members. */
+function filterAppRoutesForMember(app: AppNavTreeItem, ctx: AccessContext): AppNavTreeItem | null {
+  if (!isOrgMemberOnly(ctx)) return app;
+
+  if (app.id === "infrastructure") {
+    // Members: no DNS/Cloudflare/admin infra unless explicitly granted manage
+    if (!hasPermission(ctx, { module: "infrastructure", action: "manage", scope: "organisation" })) {
+      return null;
+    }
+  }
+
+  if (app.id === "automation") {
+    const routes = app.routes.filter((r) => !r.path.endsWith("/apps/automation") || r.label !== "Builder");
+    // Hide builder path specifically
+    const filtered = app.routes.filter((r) => r.path !== "/apps/automation");
+    if (!filtered.length) return null;
+    return { ...app, routes: filtered.length ? filtered : routes, primaryHref: filtered[0]?.path ?? app.primaryHref };
+  }
+
+  if (app.id === "ai-communications") {
+    const filtered = app.routes.filter(
+      (r) => !r.path.includes("/agents") && !r.path.includes("/settings"),
+    );
+    if (!filtered.length) return null;
+    return { ...app, routes: filtered, primaryHref: filtered[0]?.path ?? app.primaryHref };
+  }
+
+  if (app.id === "platform-settings") {
+    const routes = filterSettingsRoutes(app.routes, ctx);
+    if (!routes.length) return null;
+    return { ...app, routes, primaryHref: routes[0]?.path ?? app.primaryHref };
+  }
+
+  if (app.id === "business") {
+    const routes = app.routes.filter((r) => {
+      if (r.path.includes("/settings/team")) return canView(ctx, "team");
+      return true;
+    });
+    return { ...app, routes };
+  }
+
+  return app;
+}
+
+function filterSectionApps(apps: AppNavTreeItem[], ctx: AccessContext): AppNavTreeItem[] {
+  return apps
+    .map((app) => filterAppRoutesForMember(app, ctx))
+    .filter((app): app is AppNavTreeItem => Boolean(app));
+}
+
+function filterPlatformAdminSection(section: NavIaSection, ctx: AccessContext): NavIaSection {
+  const links = filterPlatformAdminLinks(section.links, ctx);
+  const trailingLinks = filterPlatformAdminLinks(section.trailingLinks ?? [], ctx);
+  const apps = section.apps
+    .map((app) => {
+      if (app.id === "platform-settings") {
+        const routes = filterSettingsRoutes(app.routes, ctx);
+        if (!routes.length) return null;
+        return { ...app, routes, primaryHref: routes[0]?.path ?? app.primaryHref };
+      }
+      return filterAppRoutesForMember(app, ctx);
+    })
+    .filter((app): app is AppNavTreeItem => Boolean(app));
+
+  // Members with no remaining platform admin surface: hide section
+  if (isOrgMemberOnly(ctx) && links.length === 0 && apps.length === 0 && trailingLinks.length <= 1) {
+    // Keep Support only if present
+    const supportOnly = trailingLinks.filter((l) => l.href === "/support");
+    return { ...section, links: [], apps: [], trailingLinks: supportOnly };
+  }
+
+  return { ...section, links, apps, trailingLinks };
 }
 
 /**
@@ -91,32 +192,27 @@ export function filterNavigationByAccess(
   nav: CategorizedPlatformNavigation,
   ctx: AccessContext,
 ): CategorizedPlatformNavigation {
-  const canPartners = canView(ctx, "partners") || Boolean(ctx.platformUserType);
+  const staff = isPlatformStaff(ctx);
+  // Partners section is DigitalGate internal — not customer org partners portal
+  const canPartners = staff;
   const canIntelligence = canView(ctx, "intelligence");
-  const canCore = canView(ctx, "crm") || canView(ctx, "commerce") || canView(ctx, "websites");
-  const canInfrastructure = canView(ctx, "websites") || canCore;
+  const canCore =
+    canView(ctx, "crm") || canView(ctx, "commerce") || canView(ctx, "websites") || canView(ctx, "team");
+  const canInfrastructure =
+    canView(ctx, "infrastructure") ||
+    hasPermission(ctx, { module: "infrastructure", action: "manage", scope: "organisation" }) ||
+    (!isOrgMemberOnly(ctx) && (canView(ctx, "websites") || canCore));
   const canIndustry = canView(ctx, "industry");
   const canGrowth = canView(ctx, "growth");
 
-  const coreLinks = nav.ia.core.links.filter((link) => {
-    if (link.href.includes("/settings/team")) {
-      return canView(ctx, "team");
-    }
-    return true;
-  });
-
   const settingsRoutes = filterSettingsRoutes(nav.platform.routes, ctx);
-  const platformAdminLinks = filterPlatformAdminLinks(nav.ia.platformAdmin.links, ctx);
+  const platformAdminSection = filterPlatformAdminSection(nav.ia.platformAdmin, ctx);
 
-  const coreSection = {
+  const coreApps = canCore ? filterSectionApps(nav.ia.core.apps, ctx) : [];
+  const coreSection: NavIaSection = {
     ...nav.ia.core,
-    links: coreLinks,
-    apps: canCore ? nav.ia.core.apps : [],
-  };
-
-  const platformAdminSection = {
-    ...nav.ia.platformAdmin,
-    links: platformAdminLinks,
+    links: [],
+    apps: coreApps,
   };
 
   return {
@@ -136,23 +232,30 @@ export function filterNavigationByAccess(
       },
       infrastructure: {
         ...nav.ia.infrastructure,
-        apps: canInfrastructure ? nav.ia.infrastructure.apps : [],
+        apps: canInfrastructure ? filterSectionApps(nav.ia.infrastructure.apps, ctx) : [],
         links: canInfrastructure ? nav.ia.infrastructure.links : [],
       },
       industry: {
         ...nav.ia.industry,
-        apps: canIndustry ? nav.ia.industry.apps : [],
+        apps: canIndustry ? filterSectionApps(nav.ia.industry.apps, ctx) : [],
         links: canIndustry ? nav.ia.industry.links : [],
       },
       grow: {
         ...nav.ia.grow,
-        apps: canGrowth ? nav.ia.grow.apps : [],
+        apps: canGrowth ? filterSectionApps(nav.ia.grow.apps, ctx) : [],
         links: canGrowth ? nav.ia.grow.links : [],
       },
       intelligence: {
         ...nav.ia.intelligence,
         apps: canIntelligence ? nav.ia.intelligence.apps : [],
-        links: canIntelligence ? nav.ia.intelligence.links : [],
+        // Members: Twin + Advisor + Health + Brain; Insights needs analytics
+        links: canIntelligence
+          ? nav.ia.intelligence.links.filter((link) => {
+              if (isOrgMemberOnly(ctx) && link.href === "/apps/analytics") return false;
+              if (isOrgMemberOnly(ctx) && link.href === "/dashboard/benchmarks") return false;
+              return true;
+            })
+          : [],
       },
       partners: {
         ...nav.ia.partners,
