@@ -8,6 +8,8 @@
 
 **Architecture north-star:** [architecture/GEN-2-ARCHITECTURE-BRIEF.md](./architecture/GEN-2-ARCHITECTURE-BRIEF.md) (§§1–36 + Immediate Priority 1–15 — constraints, not a build-all list)
 
+**Operator experience (locked):** [foundations/OPERATOR-EXPERIENCE.md](./foundations/OPERATOR-EXPERIENCE.md) — *Simple for the operator. Powerful for the business. Intelligent underneath.*
+
 **GTM / rollout (canonical):** [strategy/DIGITALGATE-ROLLOUT.md](./strategy/DIGITALGATE-ROLLOUT.md) — Business Operating Platform; *One platform to run, understand and grow your business* ([ADR 0013](./adr/0013-gtm-rollout-strategy-adopted.md))
 
 ---

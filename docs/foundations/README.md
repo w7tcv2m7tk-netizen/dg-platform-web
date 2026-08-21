@@ -6,6 +6,7 @@ Before committing to implementation, these documents define the decisions that a
 
 **Gen 2 north-star (constraints):** [../architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md)  
 **App hierarchy (canonical):** [APP-HIERARCHY.md](./APP-HIERARCHY.md) — **Core → Infrastructure → Industry → Growth**  
+**Operator experience (locked):** [OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.md) — *Simple for the operator. Powerful for the business. Intelligent underneath.*  
 **Intelligent layer (north-star):** [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) — Connect · Centralise · Understand · Automate · Grow + Digital Twin™ centrepiece  
 **GTM / rollout (product–marketing):** [../strategy/DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md)  
 **Commercialisation operating target:** [COMMERCIALLY-READY-V1.md](./COMMERCIALLY-READY-V1.md) — next milestone **5 founding agencies**; pre-launch marketing stance; Gate 1–4; 🔴/🟠/🟢 hierarchy
@@ -46,6 +47,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 
 | # | Document | Covers |
 |---|----------|--------|
+| — | [OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.md) | **Locked** — DigitalGate Principle: simple for the operator; Operator vs Admin; Simple → Advanced |
 | — | [APP-HIERARCHY.md](./APP-HIERARCHY.md) | **Canonical App hierarchy** — Core → Infrastructure → Industry → Growth; platform capabilities ≠ Apps |
 | — | [INDUSTRY-PLATFORM.md](./INDUSTRY-PLATFORM.md) | **Twelve Industry Apps → Templates** — public readiness lanes; Accommodation under Hospitality |
 | — | [ROLES-PERMISSIONS-SIDEBAR.md](./ROLES-PERMISSIONS-SIDEBAR.md) | **Locked** — user types, org roles, granular permissions, side panel, partners, pricing |

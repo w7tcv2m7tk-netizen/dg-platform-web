@@ -30,6 +30,8 @@ User → Organisation → Role → Permissions → Subscription → Activated Ap
 
 Do **not** hard-code one universal side panel for every user.
 
+**Operator UX:** Side panel IA supports discovery; the primary product experience is outcome-based (Overview · Priorities · Opportunities · AI Advisor · Apps). See [OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.md) — Operator vs Administrator mode, Simple → Advanced, “Why am I seeing this?”
+
 ---
 
 ## Platform user types (DigitalGate internal)

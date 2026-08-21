@@ -1,0 +1,27 @@
+---
+description: DigitalGate Principle — simple for the operator, powerful underneath
+alwaysApply: true
+---
+
+# The DigitalGate Principle
+
+**Simple for the operator. Powerful for the business. Intelligent underneath.**
+
+Complexity underneath. Simplicity on top. Do not expose platform architecture to operators.
+
+Canonical lock: `docs/foundations/OPERATOR-EXPERIENCE.md`
+
+## When building UI / IA
+
+- Prefer **Overview · Priorities · Opportunities · AI Advisor · Apps** as the primary operator home — not module trees (Contacts, Run Logs, Webhooks, DNS) as the first impression.
+- Support **Operator vs Administrator** modes: hide configuration from normal operators; reveal Advanced / Admin for people who run the platform.
+- Use **Simple → Advanced**: outcome presets first; engines second.
+- Sidebar is **navigation**, not the product. Workspaces should answer “what matters now?”
+- Apply **“Why am I seeing this?”** — inactive apps, wrong industry, and missing permissions must not clutter the default experience.
+- Prefer **Recommended Actions** (Do it / Show me how / Dismiss) over another dashboard.
+
+## Ultimate test
+
+If a user must understand Universal Objects, Event Bus, connectors, RAG, or webhooks to use a capability, the UX is not finished.
+
+Sell: *DigitalGate knows my business and helps me run it* — not a bundle of apps.

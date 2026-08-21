@@ -105,6 +105,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "foundations/INTELLIGENT-LAYER.md",
   },
   {
+    slug: "operator-experience",
+    title: "Operator Experience (DigitalGate Principle)",
+    summary:
+      "Locked — Simple for the operator. Powerful for the business. Intelligent underneath. Operator vs Admin, Simple→Advanced, five operator centres.",
+    group: "architecture",
+    relativePath: "foundations/OPERATOR-EXPERIENCE.md",
+  },
+  {
     slug: "business-brain",
     title: "Business Brain",
     summary:
