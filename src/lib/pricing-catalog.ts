@@ -285,8 +285,18 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
   },
 ];
 
-/** Mirrors pricing page — Growth Apps (same order as public pricing) */
+/** Mirrors pricing page — Growth Apps (optional; same order as public pricing) */
 export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
+  {
+    appId: "prospecting",
+    premiumKey: "prospecting_pro",
+    label: "Prospecting & Opportunity Engine",
+    icon: "◎",
+    price: "+$99/mo",
+    description:
+      "Find businesses → discovery → opportunity score → pipeline → CRM — optional Growth App billed separately",
+    status: "live",
+  },
   {
     appId: "ai-visibility",
     premiumKey: "ai_visibility_pro",
@@ -328,22 +338,22 @@ export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
     description: "Publish to LinkedIn, Facebook, Instagram, X & Pinterest",
   },
   {
-    appId: "reviews",
-    label: "Reputation",
-    icon: "★",
-    price: "Included",
-    badge: "Founding Customer Early Access",
-    status: "rolling-out",
-    description:
-      "Unified review inbox, connector sources, timeline requests & Reputation Score™ when real data exists",
-  },
-  {
     appId: "ai-communications",
     premiumKey: "voice_ai",
     label: "AI Communications",
     icon: "🎙️",
     price: "+$99/mo",
     description: "AI-assisted communications — Voice Agents still in development",
+  },
+  {
+    appId: "reviews",
+    label: "Reputation",
+    icon: "★",
+    price: "Free",
+    badge: "Included · Early Access",
+    status: "rolling-out",
+    description:
+      "Unified review inbox, connector sources, timeline requests & Reputation Score™ when real data exists — no Growth App charge",
   },
 ];
 

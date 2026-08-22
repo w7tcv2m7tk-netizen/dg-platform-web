@@ -2,15 +2,39 @@
 
 **Platform Core** capability — proactive intelligence across every DigitalGate tenant and prospect.
 
-**Status:** Elevate — **major founding deepen priority** (Advisor assessment Aug 2026). Bridge between **Digital Twin™ → revenue / attention**. Not a new App; deepen detection + next-best-action on existing surfaces.  
+**Status:** Elevate — **major founding deepen priority**. Core detection + next-best-action on connected-business surfaces; **Prospecting & Opportunity Engine** is the commercial Growth App ($99/mo) for acquisition.  
 **North-star:** [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) — Twin → Decision Intelligence → Action → Learning.
 
 **Customer-facing term:** Opportunities  
 **Internal / IP name:** DigitalGate Opportunity Engine™  
-**Core App UI:** `/apps/opportunities` (full ranked list for the org)  
+**Core App UI:** `/apps/opportunities` (ranked operating opportunities for the connected business)  
+**Growth App (commercial):** **Prospecting & Opportunity Engine** — `$99/mo` · `/apps/prospecting`  
 **Customer home:** Feed Business Command Centre / Decision Intelligence (“what needs attention”)  
-**Cockpit UI:** Command Centre (`/command/opportunities`) — staff orchestrates / prioritises  
-**Version:** 0.4 · August 2026
+**Cockpit UI:** Command Centre (`/command/opportunities`, `/command/growth-engine`) — staff orchestrates / prioritises  
+**Version:** 0.5 · August 2026
+
+---
+
+## Commercial lock — Prospecting & Opportunity Engine ($99/mo)
+
+One **Growth App**, one price. Do **not** bill Prospecting, Discovery or Opportunity Engine as separate SKUs.
+
+| Capability | In the App |
+|------------|------------|
+| Prospecting | Find and organise target businesses |
+| Discovery | Structured discovery of current situation |
+| Opportunity scoring | Fit × Need × Reachability × Commercial × Weakness |
+| Pipeline | Track prospects through the sales process |
+| Activity | Calls, notes, tasks, follow-ups |
+| AI recommendations | Who to contact and what to do next |
+| Digital Presence | Website, SEO, AI Visibility and related signals |
+| CRM integration | Qualified prospects → Contacts, Companies, Opportunities |
+
+**Demo journey:** Prospect → Discovery → Opportunity Score → CRM → Pipeline → AI Recommendation → Follow-up → Conversion
+
+**Distinction:** The Core Opportunities surface ranks *operating* opportunities inside a connected tenant. The Growth App is the *acquisition* OS that finds and qualifies external prospects, then hands them into CRM.
+
+Manifest: `packages/platform-core/src/apps/builtins/prospecting.ts` · Premium key: `prospecting_pro`
 
 ---
 

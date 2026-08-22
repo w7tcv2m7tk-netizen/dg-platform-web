@@ -23,6 +23,7 @@ export type OrgAppsSettings = {
 };
 
 const PREMIUM_APP_MAP: Record<string, string[]> = {
+  prospecting_pro: ["prospecting"],
   ai_visibility_pro: ["ai-visibility"],
   seo_pro: ["seo"],
   automation_pro: ["automation"],
@@ -47,7 +48,6 @@ const TIER_BASE_APPS: Record<string, string[]> = {
     "infrastructure",
     "opportunities",
     "reviews",
-    "automation",
   ],
   business: [
     "crm",
@@ -56,7 +56,6 @@ const TIER_BASE_APPS: Record<string, string[]> = {
     "infrastructure",
     "opportunities",
     "reviews",
-    "automation",
   ],
   enterprise: [
     "crm",
@@ -65,7 +64,6 @@ const TIER_BASE_APPS: Record<string, string[]> = {
     "infrastructure",
     "opportunities",
     "reviews",
-    "automation",
   ],
 };
 

@@ -20,6 +20,7 @@ import { reviewsApp } from "./builtins/reviews";
 import { seoApp, aiVisibilityApp } from "./builtins/seo";
 import { websitesApp } from "./builtins/websites";
 import { opportunitiesApp } from "./builtins/opportunities-app";
+import { prospectingApp } from "./builtins/prospecting";
 
 function appVisibility(manifest: RegisteredApp["manifest"]): AppVisibility {
   return manifest.visibility ?? "customer";
@@ -47,6 +48,7 @@ const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: socialApp, enabled: true },
   { manifest: marketingApp, enabled: true },
   { manifest: reviewsApp, enabled: true },
+  { manifest: prospectingApp, enabled: true },
   { manifest: aiCommunicationsApp, enabled: true },
   { manifest: commandCentreApp, enabled: true },
 ];

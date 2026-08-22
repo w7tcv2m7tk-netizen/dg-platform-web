@@ -16,7 +16,8 @@ export type PremiumApp =
   | "analytics_pro"
   | "ai_visibility_pro"
   | "automation_pro"
-  | "voice_ai";
+  | "voice_ai"
+  | "prospecting_pro";
 
 export type Addon = "white_label" | "extra_users";
 
@@ -183,6 +184,7 @@ export const INDUSTRY_APPS: { key: IndustryApp; label: string; price: string; un
 ];
 
 export const PREMIUM_APPS: { key: PremiumApp; label: string; price: string }[] = [
+  { key: "prospecting_pro", label: "Prospecting & Opportunity Engine", price: "+$99/mo" },
   { key: "ai_visibility_pro", label: "AI Visibility", price: "+$99/mo" },
   { key: "seo_pro", label: "SEO", price: "+$99/mo" },
   { key: "automation_pro", label: "Automation", price: "+$49/mo" },
@@ -255,6 +257,14 @@ export function recommendPlanFromDiscovery(input: DiscoveryInput): SignupSelecti
 
   if (interested.includes("Voice AI") || interested.includes("AI Communications")) {
     premiumApps.push("voice_ai");
+  }
+  if (
+    interested.includes("Prospecting") ||
+    interested.includes("Prospecting & Opportunity Engine") ||
+    challenges.includes("lead-generation") ||
+    challenges.includes("pipeline")
+  ) {
+    premiumApps.push("prospecting_pro");
   }
 
   return { platformTier, industryApps, premiumApps, addons: [] };

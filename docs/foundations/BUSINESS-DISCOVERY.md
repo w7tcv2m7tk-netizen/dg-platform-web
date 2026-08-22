@@ -23,7 +23,9 @@ A **Business Intelligence + Prospecting Engine** for DigitalGate staff:
 
 **Not** a Real Estate-only feature. Industry packs tune queries and audit focus; the engine is universal.
 
-**Not** tenant-facing in V1 (no client “market scan” product yet).
+**Tenant product:** Packaged as **Prospecting & Opportunity Engine** Growth App (`/apps/prospecting`, `$99/mo`) — one App including Discovery, scoring, pipeline and CRM handoff.
+
+**Staff GTM:** Command Centre `/command/growth-engine` remains DigitalGate’s operating surface for Founding 10 / network prospecting.
 
 **Not** CRM Companies on import — only Growth prospects until explicit promote / client transition.
 

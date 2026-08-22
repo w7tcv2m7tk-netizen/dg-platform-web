@@ -24,6 +24,14 @@ const FOOTER_SOURCE = existsSync(FOOTER_IN_REPO)
   ? FOOTER_IN_REPO
   : FOOTER_SIBLING;
 
+const PRICING_IN_REPO = join(REPO, "marketing", "pages", "pricing-page.html");
+const PRICING_SIBLING = join(REPO, "..", "dg-platform", "marketing", "pages", "pricing-page.html");
+const PRICING_SOURCE = existsSync(PRICING_IN_REPO)
+  ? PRICING_IN_REPO
+  : existsSync(PRICING_SIBLING)
+    ? PRICING_SIBLING
+    : null;
+
 const FOOTER_ICON = "https://app.digitalgate.com.au/brand/icon-light.png";
 const FOOTER_LOGO = "https://app.digitalgate.com.au/brand/logo-on-dark.png";
 
@@ -185,7 +193,15 @@ function patchHomepageAppsSection(html) {
     ],
     [
       /<span class="app-chip soon">Prospecting \/ Opportunity Engine — Early Access<\/span>/g,
-      `<a class="app-chip soon" href="/apps/growth/prospecting/">Prospecting &amp; Opportunity Engine — Early Access</a>`,
+      `<a class="app-chip" href="/apps/growth/prospecting/">Prospecting &amp; Opportunity Engine</a>`,
+    ],
+    [
+      /<a class="app-chip soon" href="\/apps\/growth\/prospecting\/">Prospecting &amp; Opportunity Engine — Early Access<\/a>/g,
+      `<a class="app-chip" href="/apps/growth/prospecting/">Prospecting &amp; Opportunity Engine</a>`,
+    ],
+    [
+      /<span class="app-chip">Prospecting &amp; Opportunity Engine<\/span>/g,
+      `<a class="app-chip" href="/apps/growth/prospecting/">Prospecting &amp; Opportunity Engine</a>`,
     ],
   ];
   if (!out.includes('href="/apps/core/crm/"')) {
@@ -202,6 +218,34 @@ function patchHomepageAppsSection(html) {
 
 function patchPricingAppsSection(html) {
   let out = html;
+
+  // Lock: Prospecting & Opportunity Engine = +$99/mo Growth App (not Early Access-only).
+  const prospectingCard =
+    /<div class="dg-app-card"[^>]*>\s*(?:<span class="app-badge[^"]*">Early Access<\/span>\s*)?<div class="app-icon">[^<]*<\/div>\s*<div class="app-name">(?:<a[^>]*>)?Prospecting &amp; Opportunity Engine(?:<\/a>)?<\/div>\s*<div class="app-price">[^<]*<\/div>[\s\S]*?<\/div>\s*(?=<div class="dg-app-card"|<\/div>\s*<\/div>\s*<\/div>\s*<\/section>)/;
+
+  const prospectingReplacement = `<div class="dg-app-card" data-dg-stripe="premium-prospecting">
+            <div class="app-icon">◎</div>
+            <div class="app-name"><a href="/apps/growth/prospecting/">Prospecting &amp; Opportunity Engine</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Find businesses → discovery → opportunity score → pipeline → CRM — one Growth App</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
+          </div>
+          `;
+
+  if (prospectingCard.test(out)) {
+    out = out.replace(prospectingCard, prospectingReplacement);
+  } else {
+    // Fallback: price line only
+    out = out.replace(
+      /(Prospecting &amp; Opportunity Engine(?:<\/a>)?<\/div>\s*<div class="app-price">)Early Access(<\/div>)/,
+      "$1+$99<span>/mo</span>$2",
+    );
+    out = out.replace(
+      /(<div class="dg-app-card"[^>]*>\s*)<span class="app-badge[^"]*">Early Access<\/span>(\s*<div class="app-icon">[^<]*<\/div>\s*<div class="app-name">(?:<a[^>]*>)?Prospecting)/,
+      "$1$2",
+    );
+  }
+
   if (!out.includes("Explore the Apps hub")) {
     out = out.replace(
       /<p>An operating platform with Apps — not an App marketplace\. Add only what you need\.<\/p>/,
@@ -458,15 +502,23 @@ async function main() {
     const comps = Array.isArray(pricing.components) ? [...pricing.components] : [];
     const htmlIdx = comps.findIndex((c) => c.type === "html");
     if (htmlIdx >= 0 && typeof comps[htmlIdx].props?.html === "string") {
+      const nextHtml = PRICING_SOURCE
+        ? readFileSync(PRICING_SOURCE, "utf8")
+        : patchPricingAppsSection(comps[htmlIdx].props.html);
       comps[htmlIdx] = {
         ...comps[htmlIdx],
-        props: { html: patchPricingAppsSection(comps[htmlIdx].props.html) },
+        props: { html: patchPricingAppsSection(nextHtml) },
       };
       await prisma.websitePage.update({
         where: { id: pricing.id },
         data: { components: comps },
       });
       updated++;
+      console.log(
+        PRICING_SOURCE
+          ? `pricing: replaced from ${PRICING_SOURCE}`
+          : "pricing: patched in place (no canonical pricing-page.html)",
+      );
     }
   }
 

@@ -34,7 +34,7 @@ export const LAYERS = [
     verb: "grow",
     tagline: "visibility, acquisition, conversion",
     intro:
-      "Find demand, understand what to do next, and act. Growth Apps sit on Core — they are not a second CRM.",
+      "Optional Growth Apps, billed separately: Prospecting & Opportunity Engine $99 · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · AI Communications $99 · Reputation Free.",
   },
 ];
 
@@ -789,25 +789,26 @@ export const APPS = [
     layer: "growth",
     name: "Prospecting & Opportunity Engine",
     depth: "full",
-    badge: "Early Access",
-    status: "Early Access — Business Discovery plus ranked next actions. One of the strongest commercial Growth products.",
+    badge: "Available",
+    status:
+      "Available as a Growth App (+$99/mo). One App — Prospecting, Discovery, Opportunity scoring, Pipeline, Activity, AI recommendations, Digital Presence and CRM handoff. Not separate SKUs.",
     headline: "Find the opportunities your business should act on next.",
     subhead:
       "This is the Understand → Decide → Act product. Discovery finds businesses. Presence and platform signals score them. The Opportunity Engine ranks what to do. Automation can act. That is not a CRM feature list — it is the DigitalGate thesis.",
-    what: "Prospect discovery (Places + ABN when configured), digital presence signals, scoring, recommended actions and a path into CRM / outreach — staff-operated today, productised as a Growth App.",
+    what: "Prospect discovery (Places + ABN when configured), digital presence signals, Fit × Need × Reachability × Commercial × Weakness scoring, pipeline, activity, AI next-best-action and CRM conversion — one Growth App.",
     connects:
-      "Combines prospect discovery, website and Google signals, AI Visibility, CRM history, lead and opportunity scoring, recommended actions and automated outreach as those pieces are ready. Imports land as Growth prospects — not a silent CRM dump.",
-    who: "DigitalGate and Founding operators who need a pipeline of who to speak to next — starting with agency and local-service prospecting on the Gold Coast and beyond.",
+      "Combines prospect discovery, website and Google signals, AI Visibility, CRM history, lead and opportunity scoring, recommended actions and automated outreach as those pieces are ready. Qualified prospects become Contacts, Companies and Opportunities — not a silent CRM dump.",
+    who: "Commercial lending, agency and local-service operators who need a pipeline of who to speak to next — then follow through inside the same CRM + Opportunity + AI ecosystem.",
     highlight: ["Understand", "Decide", "Act", "Learn", "Grow"],
     flow: [
-      "Discover",
-      "Select",
-      "Import prospect",
-      "Presence audit",
-      "Score",
-      "Recommend",
-      "Act",
-      "Learn",
+      "Prospect",
+      "Discovery",
+      "Opportunity score",
+      "CRM",
+      "Pipeline",
+      "AI recommendation",
+      "Follow-up",
+      "Conversion",
     ],
     objects: [
       "Discovery candidate",
@@ -817,6 +818,8 @@ export const APPS = [
       "Recommended action",
       "Task",
     ],
+    pricing:
+      "Prospecting & Opportunity Engine +$99/mo — optional Growth App, billed separately (Prospecting, Discovery and Opportunity Engine included in this one App).",
     notThis:
       "Not “we have a CRM, so we prospect.” CRM stores the relationship. This App decides who deserves attention — then the rest of DigitalGate can Act and Learn.",
     keywords: [
@@ -863,12 +866,13 @@ export const APPS = [
     layer: "growth",
     name: "Reputation",
     depth: "lite",
-    badge: "Early Access",
-    status: "Early Access — review inbox and requests. Score only when real data exists.",
+    badge: "Free",
+    status: "Free Growth App — review inbox and requests. Score only when real data exists. No separate charge.",
     headline: "What customers say, on the record.",
-    what: "Reviews and reputation as a Growth App on Core review plumbing — no invented scores.",
+    what: "Reviews and reputation as a Free Growth App on Core review plumbing — no invented scores.",
     connects: "Accommodation stays, Real Estate settlements, Contacts and AI Visibility context.",
     who: "Operators who already collect reviews and want them inside DigitalGate.",
+    pricing: "Reputation is Free — included with the platform; no Growth App charge.",
     highlight: ["Learn", "Grow"],
     related: ["accommodation", "ai-communications", "analytics"],
   }),

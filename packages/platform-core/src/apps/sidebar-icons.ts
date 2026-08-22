@@ -40,6 +40,7 @@ const SIDEBAR_ICONS: Record<string, string> = {
   reviews: "★",
   websites: "◫",
   infrastructure: "⬡",
+  prospecting: "◎",
   opportunities: "✦",
   "command-centre": "◈",
   "partner-portal": "⇄",

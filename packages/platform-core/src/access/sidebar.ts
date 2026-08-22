@@ -22,14 +22,14 @@ export const CUSTOMER_SIDE_PANEL_SECTIONS = [
     id: "grow",
     label: "Growth",
     items: [
-      "Prospecting",
+      "Prospecting & Opportunity Engine",
       "AI Visibility",
       "SEO",
       "Automation",
       "Analytics",
       "Social",
-      "Reputation",
       "AI Communications",
+      "Reputation",
     ],
   },
   {

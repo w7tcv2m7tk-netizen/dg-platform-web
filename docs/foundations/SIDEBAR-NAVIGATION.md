@@ -43,7 +43,7 @@ INDUSTRY
   (dynamic — activated Industry Apps / Templates only)
 
 GROWTH
-  Prospecting · AI Visibility · SEO · Automation · Analytics · Social · Reputation · AI Communications
+  Prospecting & Opportunity Engine ($99) · AI Visibility ($99) · SEO ($99) · Automation ($49) · Analytics ($49) · Social ($79) · AI Communications ($99) · Reputation (Free)
 
 INTELLIGENCE
   Command Centre · Digital Twin · AI Advisor · Business Health · Insights · Benchmarks · Business Brain
@@ -72,7 +72,7 @@ Business leads CORE — who you are — then operating apps.
 
 ### GROWTH / INTELLIGENCE / PARTNERS / PLATFORM ADMIN
 
-Module trees follow the product surfaces already registered in App manifests (Inbox, Voice Agents, Builder, Run Log, Reputation Score™, etc.). Prospecting and staff Partners remain DigitalGate operating surfaces.
+Module trees follow the product surfaces already registered in App manifests (Inbox, Voice Agents, Builder, Run Log, Reputation Score™, etc.). **Prospecting & Opportunity Engine** is the $99 Growth App (`/apps/prospecting`); DigitalGate staff GTM continues to use Command Centre Prospecting (`/command/growth-engine`).
 
 ---
 

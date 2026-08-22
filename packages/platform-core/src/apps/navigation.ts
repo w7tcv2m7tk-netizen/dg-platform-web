@@ -97,17 +97,22 @@ const INDUSTRY_APP_ORDER = [
 ] as const;
 
 /**
- * Growth — demand Apps. CRM Opportunities is the canonical pipeline object;
- * the Opportunity Engine App is not a second Opportunities destination.
+ * Growth — optional paid Apps (except Reputation = Free).
+ * Order matches public pricing: Prospecting $99 · AI Visibility $99 · SEO $99 ·
+ * Automation $49 · Analytics $49 · Social $79 · AI Communications $99 · Reputation Free.
+ * Prospecting & Opportunity Engine is one $99 SKU (not separate Prospecting/Discovery/OE charges).
+ * CRM Opportunities remains the canonical deal object; Core Opportunities App is
+ * operating-intelligence rankings (not a second pipeline).
  */
 const GROW_APP_ORDER = [
+  "prospecting",
   "ai-visibility",
   "seo",
   "automation",
   "analytics",
   "social",
-  "reviews",
   "ai-communications",
+  "reviews",
 ] as const;
 
 /** Hidden from sidebar IA — marketing undecided; opportunities live in CRM */
@@ -627,7 +632,7 @@ function getStaffProspectingNavItem(): AppNavTreeItem {
   return {
     kind: "app",
     id: "prospecting",
-    name: "Prospecting",
+    name: "Prospecting & Opportunity Engine",
     icon: "◎",
     tier: "internal",
     enabled: true,
@@ -702,6 +707,9 @@ export function getCategorizedPlatformNavigation(
     GROW_APP_ORDER,
   );
   if (options?.showCommandCentre) {
+    // Staff GTM uses Command Centre Prospecting; avoid duplicating the tenant Growth App.
+    const customerProspectingIdx = growApps.findIndex((a) => a.id === "prospecting");
+    if (customerProspectingIdx >= 0) growApps.splice(customerProspectingIdx, 1);
     growApps.unshift(getStaffProspectingNavItem());
   }
 

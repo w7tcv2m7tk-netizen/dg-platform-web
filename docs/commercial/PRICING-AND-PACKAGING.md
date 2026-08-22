@@ -16,10 +16,25 @@ This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI
 | **Platform** | Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** · Enterprise custom |
 | **Industry App** | **$99/mo** — major vertical capability and infrastructure |
 | **Industry Template** | **1 included** with each Industry App (primary business model); **+$29/mo** each additional |
-| **Growth Apps** | Additional. Not included in platform tier pricing |
+| **Growth Apps** | Optional · billed separately. **Prospecting & Opportunity Engine $99** · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · AI Communications $99 · **Reputation Free** |
 | **Professional Services** | Optional people work — never required. Includes **Website Migration & DigitalGate Setup** (From $1,497) and **Website Build** (From $1,997). One-off charges, separate from recurring Platform / Apps / Templates / Success |
 | **Customer Success plans** | Standard included; Priority / Success Partner optional |
 | **AI / Twin / Intelligence** | Across the platform — not sold as separate Apps |
+
+### Growth Apps (optional · billed separately)
+
+| App | Price |
+|-----|-------|
+| Prospecting & Opportunity Engine | **$99/mo** |
+| AI Visibility | **$99/mo** |
+| SEO | **$99/mo** |
+| Automation | **$49/mo** |
+| Analytics | **$49/mo** |
+| Social | **$79/mo** |
+| AI Communications | **$99/mo** |
+| Reputation | **Free** |
+
+Not included in platform tier pricing unless an agreement says otherwise. Prospecting & Opportunity Engine is one App (Discovery / scoring / pipeline are capabilities inside it — not separate SKUs).
 
 ### Terminology (explicit)
 
