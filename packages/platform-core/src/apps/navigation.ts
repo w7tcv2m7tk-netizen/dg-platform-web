@@ -274,9 +274,9 @@ const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
   },
   {
     kind: "shell",
-    href: "/dashboard/advisor",
-    label: "AI Advisor",
-    icon: getSidebarIcon("advisor"),
+    href: "/dashboard/brain",
+    label: "Business Brain",
+    icon: getSidebarIcon("brain"),
   },
   {
     kind: "shell",
@@ -286,27 +286,27 @@ const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
   },
   {
     kind: "shell",
-    href: "/dashboard/insights",
-    label: "Insights",
-    icon: getSidebarIcon("analytics"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/reports",
-    label: "Reports",
-    icon: getSidebarIcon("reports"),
-  },
-  {
-    kind: "shell",
     href: "/dashboard/benchmarks",
     label: "Benchmarks",
     icon: getSidebarIcon("benchmarks"),
   },
   {
     kind: "shell",
-    href: "/dashboard/brain",
-    label: "Business Brain",
-    icon: getSidebarIcon("brain"),
+    href: "/dashboard/insights",
+    label: "Insights",
+    icon: getSidebarIcon("analytics"),
+  },
+  {
+    kind: "shell",
+    href: "/dashboard/advisor",
+    label: "AI Advisor",
+    icon: getSidebarIcon("advisor"),
+  },
+  {
+    kind: "shell",
+    href: "/dashboard/reports",
+    label: "Reports",
+    icon: getSidebarIcon("reports"),
   },
 ];
 
