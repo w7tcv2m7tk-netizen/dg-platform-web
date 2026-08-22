@@ -4,6 +4,8 @@ import { currentUser } from "@clerk/nextjs/server";
 import {
   bootConnectorEngine,
   getOrgWordPressConnectorSettings,
+  isCloudflareConfigured,
+  isConnectorPlatformConfigured,
   llmConfiguredTransports,
   resolveOrgWordPressConnector,
 } from "@dg/platform-core";
@@ -93,6 +95,8 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
     googleSecret: Boolean(process.env.GOOGLE_CLIENT_SECRET?.trim()),
     linkedinClient: Boolean(process.env.LINKEDIN_CLIENT_ID?.trim()),
     linkedinSecret: Boolean(process.env.LINKEDIN_CLIENT_SECRET?.trim()),
+    cloudflare: isCloudflareConfigured(),
+    elevenlabs: isConnectorPlatformConfigured("elevenlabs"),
   };
 
   return (
@@ -232,6 +236,8 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
               <EnvStatus name="GOOGLE_CLIENT_SECRET" configured={envFlags.googleSecret} />
               <EnvStatus name="LINKEDIN_CLIENT_ID" configured={envFlags.linkedinClient} />
               <EnvStatus name="LINKEDIN_CLIENT_SECRET" configured={envFlags.linkedinSecret} />
+              <EnvStatus name="CLOUDFLARE_API_TOKEN + ZONE_ID" configured={envFlags.cloudflare} />
+              <EnvStatus name="ELEVENLABS_API_KEY" configured={envFlags.elevenlabs} />
               <EnvStatus name="RESEND_API_KEY" configured={envFlags.resend} />
               <EnvStatus
                 name="AI_GATEWAY_API_KEY / VERCEL_OIDC_TOKEN"

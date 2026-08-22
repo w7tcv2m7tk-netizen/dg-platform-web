@@ -10,12 +10,36 @@ type CatalogRow = {
     auth: string;
   };
   platformConfigured: boolean;
+  connectionScope: "platform" | "organisation";
   organisation: {
     status: string;
+    label?: string | null;
   };
 };
 
 const CATEGORY_ORDER = ["property", "business", "ops", "commerce", "marketing"] as const;
+
+function orgStatusLabel(item: CatalogRow): string {
+  if (item.connectionScope === "platform") {
+    return item.platformConfigured ? "Platform shared" : "Awaiting platform config";
+  }
+  if (item.organisation.status === "pending_auth") {
+    return "Org: activation required";
+  }
+  return `Org: ${item.organisation.status}`;
+}
+
+function orgStatusClass(item: CatalogRow): string {
+  if (item.connectionScope === "platform") {
+    return item.platformConfigured ? "text-emerald-400" : "text-slate-500";
+  }
+  if (item.organisation.status === "connected") return "text-emerald-400";
+  if (item.organisation.status === "degraded" || item.organisation.status === "pending_auth") {
+    return "text-amber-400";
+  }
+  if (item.organisation.status === "error") return "text-red-400";
+  return "text-slate-500";
+}
 
 export function ConnectorEngineCatalog() {
   const [rows, setRows] = useState<CatalogRow[]>([]);
@@ -71,15 +95,9 @@ export function ConnectorEngineCatalog() {
                       {item.platformConfigured ? "Platform ready" : "Platform pending"}
                     </span>
                     <span
-                      className={
-                        item.organisation.status === "connected"
-                          ? "text-emerald-400"
-                          : item.organisation.status === "degraded"
-                            ? "text-amber-400"
-                            : "text-slate-500"
-                      }
+                      className={orgStatusClass(item)}
                     >
-                      Org: {item.organisation.status}
+                      {orgStatusLabel(item)}
                     </span>
                   </div>
                 </li>
