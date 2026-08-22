@@ -474,7 +474,7 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/command/commercial/subscriptions", label: "Subscriptions" },
         { path: "/command/opportunities/expansion", label: "Expansion" },
       ]),
-      operatorApp("dg-product", "Product", "flags", "/command/flags", [
+      operatorApp("dg-product", "Product", "flags", "/command/product/overview", [
         { path: "/command/product/overview", label: "Overview" },
         { path: "/command/flags", label: "Feature flags" },
         { path: "/command/product/roadmap", label: "Roadmap" },
