@@ -11,6 +11,7 @@ export * from "./twin";
 export * from "./memory";
 export * from "./intelligence";
 export * from "./benchmarks";
+export * from "./business-health";
 export * from "./ai";
 export * from "./identity";
 export * from "./workspace";

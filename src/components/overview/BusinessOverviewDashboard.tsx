@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useChatWidget } from "@/components/platform/ChatWidgetProvider";
 import { SetupProgressBar } from "@/components/overview/SetupProgressBar";
@@ -168,12 +167,19 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Business Health */}
         <section className="dg-card lg:col-span-1">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Business Health™</p>
-          <div className="mt-2 flex items-end gap-2">
-            <span className="text-5xl font-bold text-white">{overview.businessHealth}</span>
-            <span className="pb-2 text-lg text-slate-500">/ 100</span>
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Business Health™</p>
+            <Link href="/dashboard/health" className="text-xs text-sky-400 hover:underline">
+              Open Business Health →
+            </Link>
           </div>
-          <p className="mt-1 text-sm text-emerald-400">↑ {overview.businessHealthDeltaLabel}</p>
+          <Link href="/dashboard/health" className="mt-2 block hover:opacity-95">
+            <div className="flex items-end gap-2">
+              <span className="text-5xl font-bold text-white">{overview.businessHealth}</span>
+              <span className="pb-2 text-lg text-slate-500">/ 100</span>
+            </div>
+            <p className="mt-1 text-sm text-emerald-400">↑ {overview.businessHealthDeltaLabel}</p>
+          </Link>
           <ul className="mt-4 space-y-2">
             {overview.scoreBreakdown.map((s) => (
               <li key={s.id}>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { BenchmarkCohortSelector } from "@/components/intelligence/BenchmarkCohortSelector";
+import { IntelligenceHierarchy } from "@/components/intelligence/IntelligenceHierarchy";
 import type { BusinessBenchmarksBundle } from "@dg/platform-core";
 
 function scoreTone(score: number | null | undefined) {
@@ -301,14 +302,7 @@ export function BusinessBenchmarksDashboard({ data }: { data: BusinessBenchmarks
         </section>
       ) : null}
 
-      <div className="rounded-xl border border-slate-800/80 bg-slate-950/20 px-4 py-3 text-xs text-slate-500">
-        Business Brain understands your business · Digital Twin represents it · Benchmarks add
-        external context ·{" "}
-        <Link href="/dashboard/advisor" className="text-sky-400 hover:underline">
-          AI Advisor
-        </Link>{" "}
-        turns gaps into recommended actions.
-      </div>
+      <IntelligenceHierarchy active="benchmarks" />
     </div>
   );
 }

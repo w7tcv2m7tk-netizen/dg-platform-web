@@ -95,10 +95,12 @@ export default async function DashboardPage() {
         <div className="mt-3 flex flex-wrap items-center justify-center gap-4 md:justify-start">
           <div className="flex flex-wrap items-baseline justify-center gap-2 md:justify-start">
             <span className="text-sm text-slate-400">Business Health:</span>
-            <span className="text-2xl font-bold text-emerald-400">{overview.businessHealth}/100</span>
-            <span className={`text-sm ${overview.businessHealthDelta >= 0 ? "text-emerald-400/80" : "text-amber-400/80"}`}>
-              {overview.businessHealthDelta >= 0 ? "↑" : "↓"} {overview.businessHealthDeltaLabel}
-            </span>
+            <Link href="/dashboard/health" className="inline-flex flex-wrap items-baseline gap-2 hover:opacity-90">
+              <span className="text-2xl font-bold text-emerald-400">{overview.businessHealth}/100</span>
+              <span className={`text-sm ${overview.businessHealthDelta >= 0 ? "text-emerald-400/80" : "text-amber-400/80"}`}>
+                {overview.businessHealthDelta >= 0 ? "↑" : "↓"} {overview.businessHealthDeltaLabel}
+              </span>
+            </Link>
           </div>
           <span className="text-xs text-slate-500">
             Last updated: {overview.lastUpdatedLabel}
