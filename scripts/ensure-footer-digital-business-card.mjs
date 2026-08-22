@@ -26,8 +26,7 @@ function prepareDgChrome(html) {
   out = out
     .replace(/<!DOCTYPE[\s\S]*?<body[^>]*>/i, "")
     .replace(/<\/body>[\s\S]*$/i, "")
-    .replace(/<\/?html[^>]*>/gi, "")
-    .replace(/<\/?head[^>]*>/gi, "");
+    .replace(/<\/?(?:html|head|body)\b[^>]*>/gi, "");
   out = out
     .replace(
       /https?:\/\/digitalgate\.com\.au\/wp-content\/uploads\/[^"'>\s]*Gate-Icon[^"'>\s]*/gi,

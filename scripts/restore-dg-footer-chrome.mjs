@@ -26,8 +26,7 @@ function prepareChrome(html) {
   out = out
     .replace(/<!DOCTYPE[\s\S]*?<body[^>]*>/i, "")
     .replace(/<\/body>[\s\S]*$/i, "")
-    .replace(/<\/?html[^>]*>/gi, "")
-    .replace(/<\/?head[^>]*>/gi, "");
+    .replace(/<\/?(?:html|head|body)\b[^>]*>/gi, "");
   // Replace retired WP media with Gen 2 brand assets
   out = out
     .replace(
