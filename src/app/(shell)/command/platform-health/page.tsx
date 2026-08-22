@@ -211,8 +211,10 @@ export default async function CommandPlatformHealthPage() {
                 <p className="mt-1 text-3xl font-semibold text-white">{data.pulse.openTasksDue}</p>
               </div>
               <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-                <p className="text-xs uppercase tracking-wide text-slate-500">Check-ins today</p>
-                <p className="mt-1 text-3xl font-semibold text-white">{data.pulse.checkinsToday}</p>
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  Delivery blocked
+                </p>
+                <p className="mt-1 text-3xl font-semibold text-white">{data.delivery.blocked}</p>
               </div>
             </div>
           </section>

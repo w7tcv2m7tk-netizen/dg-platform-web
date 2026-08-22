@@ -9,14 +9,24 @@ import type {
   CommandClientRow,
   CommandCentreOpsHome,
   CommandConnectorOrgStatus,
-  CommandDeepLink,
+  CommandDeliverySummary,
+  CommandOrganisationHealthSummary,
+  CommandPartnerPulse,
+  CommandPlatformOperationsGroup,
   CommandPlatformPulse,
   CommandReferEarnSnapshot,
 } from "./types";
+import {
+  buildTodaySummary,
+  humanizePlatformActivity,
+} from "./presentation";
 import { getStripeSetupStatus } from "../commerce/stripe-setup";
 import { getGrowthEngineSummary } from "./growth-engine/prospects";
 import { getDailyOpportunityBriefing } from "./growth-engine/opportunity-engine";
 import { getClientIntelligence } from "./client-intelligence";
+import { listAllCommissions, listAllReferrals, listPartners } from "../partners/crud";
+import { getDeliveryDashboardMetrics } from "../delivery/metrics";
+import { listDeliveryProjects } from "../delivery/projects";
 import type { OrgWordPressConnectorSettings } from "../connectors/wordpress/org-connector";
 
 function startOfToday() {
@@ -53,6 +63,82 @@ function formatAud(cents: number): string {
   }).format(cents / 100);
 }
 
+function buildDeliverySummary(
+  projects: Awaited<ReturnType<typeof listDeliveryProjects>>,
+  metrics: Awaited<ReturnType<typeof getDeliveryDashboardMetrics>>,
+): CommandDeliverySummary {
+  const active = projects.filter((p) => p.status !== "customer_success");
+  return {
+    activeImplementations: metrics.activeImplementations,
+    awaitingCustomerInfo: metrics.customersAwaitingInformation,
+    blocked: active.filter((p) => p.health === "blocked").length,
+    inTraining: active.filter((p) => p.status === "training").length,
+    inQa: active.filter((p) => p.status === "qa").length,
+    readyForGoLive: active.filter((p) => p.status === "go_live").length,
+  };
+}
+
+async function buildPartnerPulse(): Promise<CommandPartnerPulse> {
+  const [resellers, referrals, pendingCommissions] = await Promise.all([
+    listPartners({ partnerType: "FOUNDING_RESELLER", status: "active" }),
+    listAllReferrals({ limit: 500 }),
+    listAllCommissions({ status: "PENDING", limit: 500 }),
+  ]);
+
+  const activeProspectStatuses = new Set([
+    "PROSPECT",
+    "INTRODUCED",
+    "CONTACTED",
+    "CONSULTATION",
+    "APPLICATION",
+    "INVITED",
+    "REFERRED",
+  ]);
+  const referredStatuses = new Set(["CUSTOMER", "ACTIVE", "COMMISSIONING"]);
+  const onboardingStatuses = new Set(["ONBOARDING", "ACCEPTED"]);
+
+  const activeProspects = referrals.referrals.filter((r) =>
+    activeProspectStatuses.has(r.status),
+  ).length;
+  const referredCustomers = referrals.referrals.filter((r) =>
+    referredStatuses.has(r.status),
+  ).length;
+  const onboardingCount = referrals.referrals.filter((r) =>
+    onboardingStatuses.has(r.status),
+  ).length;
+  const pendingCommissionsCents = pendingCommissions.commissions.reduce(
+    (sum, c) => sum + c.commissionAmountCents,
+    0,
+  );
+
+  return {
+    foundingResellers: resellers.total,
+    activeProspects,
+    referredCustomers,
+    onboardingCount,
+    pendingCommissionsCents,
+  };
+}
+
+function buildOrganisationHealthSummary(
+  totalOrganisations: number,
+  clients: CommandClientRow[],
+): CommandOrganisationHealthSummary {
+  const scored = clients.filter((c) => !c.scoreProvisional && c.successScore != null);
+  const averageHealth =
+    scored.length === 0
+      ? null
+      : Math.round(scored.reduce((sum, c) => sum + (c.successScore ?? 0), 0) / scored.length);
+
+  return {
+    totalOrganisations,
+    organisationsWithSufficientData: scored.length,
+    averageHealth,
+    averageHealthLabel: averageHealth == null ? "—" : `${averageHealth}/100`,
+    needsAttentionCount: clients.filter((c) => c.needsAttention).length,
+  };
+}
+
 type OrgSettings = {
   connectors?: { wordpress?: OrgWordPressConnectorSettings };
   featureFlags?: Record<string, boolean>;
@@ -74,72 +160,102 @@ function wpLastSync(settings: unknown): string | null {
   );
 }
 
-const CORE_DEEP_LINKS: CommandDeepLink[] = [
+const PLATFORM_OPERATIONS: CommandPlatformOperationsGroup[] = [
   {
-    id: "crm",
-    label: "CRM",
-    href: "/apps/crm/contacts",
-    description: "Contacts, opportunities, timeline",
+    id: "customers",
+    label: "Customers",
+    links: [
+      {
+        id: "client-intelligence",
+        label: "Client Intelligence",
+        href: "/command/clients",
+        description: "Organisation health, blockers and intervention queue",
+      },
+    ],
   },
   {
-    id: "re",
-    label: "Real Estate",
-    href: "/apps/re",
-    description: "Vendor pipeline, listings, bookings",
+    id: "sales",
+    label: "Sales",
+    links: [
+      {
+        id: "growth-engine",
+        label: "Growth Engine",
+        href: "/command/growth-engine",
+        description: "Acquisition pipeline and daily prospecting",
+      },
+      {
+        id: "founding",
+        label: "Founding 10",
+        href: "/command/founding",
+        description: "Founding customer pipeline",
+      },
+    ],
   },
   {
-    id: "acc",
-    label: "Accommodation",
-    href: "/apps/accommodation",
-    description: "Bookings, check-ins, units",
+    id: "delivery",
+    label: "Delivery",
+    links: [
+      {
+        id: "implementations",
+        label: "Implementation",
+        href: "/command/delivery",
+        description: "Onboarding, QA and go-live projects",
+      },
+    ],
   },
   {
-    id: "commerce",
-    label: "Commerce",
-    href: "/apps/commerce",
-    description: "Invoices, quotes, reports",
+    id: "partners",
+    label: "Partners",
+    links: [
+      {
+        id: "resellers",
+        label: "Resellers / Referrals",
+        href: "/command/partners",
+        description: "Founding resellers, referrals and commissions",
+      },
+    ],
   },
   {
-    id: "connectors",
-    label: "Connectors",
-    href: "/dashboard/settings/connectors",
-    description: "WordPress and Stripe setup",
+    id: "revenue",
+    label: "Revenue",
+    links: [
+      {
+        id: "billing",
+        label: "Billing / MRR",
+        href: "/command/revenue",
+        description: "Subscriptions, invoices and expansion",
+      },
+    ],
   },
   {
-    id: "referrals",
-    label: "Refer & Earn",
-    href: "/dashboard/settings/referrals",
-    description: "Platform SaaS referral dashboard",
+    id: "platform",
+    label: "Platform",
+    links: [
+      {
+        id: "connectors",
+        label: "Connectors / Health",
+        href: "/command/platform-health",
+        description: "Connector health, Stripe and infrastructure",
+      },
+    ],
   },
   {
-    id: "billing",
-    label: "Billing",
-    href: "/dashboard/settings/billing",
-    description: "Stripe checkout and portal",
-  },
-  {
-    id: "growth",
-    label: "Growth Engine",
-    href: "/command/growth-engine",
-    description: "Acquisition pipeline",
-  },
-  {
-    id: "reports",
-    label: "Growth Reports",
-    href: "/command/reports",
-    description: "Period client reports",
-  },
-  {
-    id: "advisor",
-    label: "AI Advisor",
-    href: "/command/advisor",
-    description: "Org-level staff insights",
-  },
-  {
-    id: "opportunities",
-    label: "Expansion",
-    href: "/command/opportunities",
-    description: "Upsell opportunities",
+    id: "intelligence",
+    label: "Intelligence",
+    links: [
+      {
+        id: "advisor",
+        label: "AI Advisor",
+        href: "/command/advisor",
+        description: "What should the DigitalGate team focus on?",
+      },
+      {
+        id: "benchmarks",
+        label: "Benchmarks",
+        href: "/command/benchmarks",
+        description: "Cohort comparisons across the customer base",
+      },
+    ],
   },
 ];
 
@@ -147,7 +263,6 @@ const CORE_DEEP_LINKS: CommandDeepLink[] = [
 export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
   const { prisma } = await import("@dg/database");
 
-  const todayStart = startOfToday();
   const todayEnd = endOfToday();
   const weekStart = startOfWeek();
   const monthStart = startOfMonth();
@@ -159,11 +274,6 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     leads,
     leadsThisWeek,
     opportunities,
-    properties,
-    listedProperties,
-    stayBookings,
-    stayBookingsActive,
-    checkinsToday,
     openTasksDue,
     overdueLeadResponses,
     orgsWithBilling,
@@ -179,24 +289,15 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     recentActivities,
     intelligence,
     deliveryAlerts,
+    deliveryMetrics,
+    deliveryProjects,
+    partnerPulse,
   ] = await Promise.all([
     prisma.organisation.count(),
     prisma.membership.count({ where: { status: "active" } }),
     prisma.lead.count(),
     prisma.lead.count({ where: { createdAt: { gte: weekStart } } }),
     prisma.opportunity.count({ where: { status: "open" } }),
-    prisma.property.count(),
-    prisma.property.count({ where: { status: "listed" } }),
-    prisma.stayBooking.count(),
-    prisma.stayBooking.count({
-      where: { status: { in: ["confirmed", "airbnb", "bookingcom", "pending"] } },
-    }),
-    prisma.stayBooking.count({
-      where: {
-        checkin: { gte: todayStart, lte: todayEnd },
-        status: { notIn: ["cancelled"] },
-      },
-    }),
     prisma.task.count({
       where: { status: "open", dueAt: { lte: todayEnd } },
     }),
@@ -279,9 +380,30 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     import("../delivery/metrics")
       .then((m) => m.getCommandCentreDeliveryAlerts())
       .catch(() => [] as Awaited<ReturnType<typeof import("../delivery/metrics").getCommandCentreDeliveryAlerts>>),
+    getDeliveryDashboardMetrics({ managerView: true }).catch(() => ({
+      activeImplementations: 0,
+      onTrack: 0,
+      atRisk: 0,
+      blocked: 0,
+      goLivesThisMonth: 0,
+      averageImplementationDays: null,
+      overdueTasks: 0,
+      customersAwaitingInformation: 0,
+      tasksDueToday: 0,
+    })),
+    listDeliveryProjects({ limit: 200 }).catch(() => []),
+    buildPartnerPulse().catch(() => ({
+      foundingResellers: 0,
+      activeProspects: 0,
+      referredCustomers: 0,
+      onboardingCount: 0,
+      pendingCommissionsCents: 0,
+    })),
   ]);
 
   const stripe = getStripeSetupStatus();
+
+  const estimatedMrrCents = subscriptionMrr._sum.amountCents ?? 0;
 
   const pulse: CommandPlatformPulse = {
     organisations,
@@ -289,18 +411,15 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     leads,
     leadsThisWeek,
     openOpportunities: opportunities,
-    properties,
-    listedProperties,
-    stayBookings,
-    stayBookingsActive,
-    checkinsToday,
     growthProspects: growth.totalProspects,
     growthInPipeline:
       growth.totalProspects -
       (growth.byStage.won ?? 0) -
       (growth.byStage.lost ?? 0),
+    growthEngagementsThisWeek: growth.engagementsThisWeek,
     openTasksDue,
     overdueLeadResponses,
+    estimatedMrrCents,
   };
 
   const referralStatusMap = Object.fromEntries(
@@ -361,10 +480,21 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     createdAt: c.createdAt,
     updatedAt: c.updatedAt,
     successScore: c.successScore,
+    organisationHealth: c.scoreProvisional ? undefined : c.successScore,
     healthTier: c.healthTier,
     rank: c.rank,
     scoreProvisional: c.scoreProvisional,
   }));
+
+  const organisationHealth = buildOrganisationHealthSummary(organisations, clients);
+  const delivery = buildDeliverySummary(deliveryProjects, deliveryMetrics);
+  const followUpProspects =
+    (growth.byStage.follow_up_due ?? 0) + (growth.byStage.report_sent ?? 0);
+  const today = buildTodaySummary({
+    openTasksDue,
+    prospectFollowUps: followUpProspects,
+    organisationsNeedingAttention: organisationHealth.needsAttentionCount,
+  });
 
   const actions: CommandActionItem[] = [];
 
@@ -373,8 +503,8 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       id: "overdue-leads",
       severity: "urgent",
       title: `${overdueLeadResponses} overdue lead response${overdueLeadResponses === 1 ? "" : "s"}`,
-      detail: "Across tenants — agents need to reply before SLA slips further.",
-      href: "/apps/re/vendor-leads",
+      detail: "Across customer organisations — review in Client Intelligence.",
+      href: "/command/clients",
     });
   }
 
@@ -384,22 +514,10 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       severity: "today",
       title: `${openTasksDue} open task${openTasksDue === 1 ? "" : "s"} due today`,
       detail: "Platform-wide tasks with due dates on or before today.",
-      href: "/dashboard",
+      href: "/command/delivery/tasks",
     });
   }
 
-  if (checkinsToday > 0) {
-    actions.push({
-      id: "checkins",
-      severity: "today",
-      title: `${checkinsToday} accommodation check-in${checkinsToday === 1 ? "" : "s"} today`,
-      detail: "Confirm housekeeping and guest arrival readiness.",
-      href: "/apps/accommodation/check-ins",
-    });
-  }
-
-  const followUpProspects =
-    (growth.byStage.follow_up_due ?? 0) + (growth.byStage.report_sent ?? 0);
   if (followUpProspects > 0) {
     actions.push({
       id: "growth-followups",
@@ -420,34 +538,23 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     });
   }
 
-  const needsAttentionClients = clients.filter((c) => c.needsAttention).length;
+  const needsAttentionClients = organisationHealth.needsAttentionCount;
   if (needsAttentionClients > 0) {
     actions.push({
       id: "clients-attention",
       severity: "watch",
-      title: `${needsAttentionClients} client${needsAttentionClients === 1 ? "" : "s"} need attention`,
-      detail: "Observed blockers (connectors, overdue leads, billing) — open Client Intelligence.",
+      title: `${needsAttentionClients} organisation${needsAttentionClients === 1 ? "" : "s"} need attention`,
+      detail: "Observed blockers only — open Client Intelligence for intervention queue.",
       href: "/command/clients",
     });
   }
 
-  const briefingParts = [
-    `${organisations} organisation${organisations === 1 ? "" : "s"}`,
-    `avg Success Score ${intelligence.averageSuccessScore}`,
-    `${leadsThisWeek} new lead${leadsThisWeek === 1 ? "" : "s"} this week`,
-    `${listedProperties} live listing${listedProperties === 1 ? "" : "s"}`,
-    stayBookingsActive > 0
-      ? `${stayBookingsActive} active stay${stayBookingsActive === 1 ? "" : "s"}`
-      : null,
-    growth.totalProspects > 0
-      ? `${growth.totalProspects} Growth Engine prospect${growth.totalProspects === 1 ? "" : "s"}`
-      : null,
-  ].filter(Boolean);
-
   return {
     generatedAt: now.toISOString(),
-    briefing: `DigitalGate pulse — ${briefingParts.join(" · ")}.`,
+    briefing: "DigitalGate Platform Operations — run DigitalGate, not customer industry ops.",
     pulse,
+    today,
+    organisationHealth,
     actions,
     clients,
     connectors: {
@@ -460,16 +567,26 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     },
     billing: {
       activeSubscriptions,
-      estimatedMrrCents: subscriptionMrr._sum.amountCents ?? 0,
+      estimatedMrrCents,
       invoicePaidMtdCents: invoicePaidMtd._sum.totalCents ?? 0,
       orgsWithBillingCustomer: orgsWithBilling,
       stripeOk: stripe.ok,
       stripeMode: stripe.mode,
-      estimatedMrrLabel: formatAud(subscriptionMrr._sum.amountCents ?? 0),
+      estimatedMrrLabel: formatAud(estimatedMrrCents),
       invoicePaidMtdLabel: formatAud(invoicePaidMtd._sum.totalCents ?? 0),
     },
     referEarn,
     growth,
+    growthEngine: {
+      prospects: growth.totalProspects,
+      engagementsThisWeek: growth.engagementsThisWeek,
+      activePipeline: pulse.growthInPipeline,
+      topPriorityLabel: prospectingBriefing?.top?.businessName ?? null,
+      topPriorityScore: prospectingBriefing?.top?.score ?? null,
+      href: "/command/growth-engine",
+    },
+    delivery,
+    partnerPulse,
     prospectingToday: {
       recommendedCount: prospectingBriefing?.recommendedCount ?? 0,
       contactedToday: prospectingBriefing?.contactedToday ?? 0,
@@ -480,16 +597,20 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       topBusinessName: prospectingBriefing?.top?.businessName ?? null,
       topScore: prospectingBriefing?.top?.score ?? null,
     },
-    recentActivity: recentActivities.map((a) => ({
-      id: a.id,
-      title: a.title,
-      activityType: a.activityType,
-      sourceApp: a.sourceApp,
-      organisationName: a.organisation.name,
-      organisationSlug: a.organisation.slug,
-      createdAt: a.createdAt.toISOString(),
-    })),
-    deepLinks: CORE_DEEP_LINKS,
+    recentActivity: recentActivities.map((a) => {
+      const base = {
+        id: a.id,
+        title: a.title,
+        activityType: a.activityType,
+        sourceApp: a.sourceApp,
+        organisationName: a.organisation.name,
+        organisationSlug: a.organisation.slug,
+        createdAt: a.createdAt.toISOString(),
+      };
+      const human = humanizePlatformActivity(base);
+      return { ...base, ...human };
+    }),
+    platformOperations: PLATFORM_OPERATIONS,
     deliveryAlerts,
   };
 }

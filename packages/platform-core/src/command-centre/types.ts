@@ -18,22 +18,76 @@ export interface PlatformOverview {
   generatedAt: Date;
 }
 
-/** Live ops pulse — what staff see on /command today */
+/** Live ops pulse — platform-owner metrics only (not tenant industry ops). */
 export interface CommandPlatformPulse {
   organisations: number;
   users: number;
   leads: number;
   leadsThisWeek: number;
   openOpportunities: number;
-  properties: number;
-  listedProperties: number;
-  stayBookings: number;
-  stayBookingsActive: number;
-  checkinsToday: number;
   growthProspects: number;
   growthInPipeline: number;
+  growthEngagementsThisWeek: number;
   openTasksDue: number;
   overdueLeadResponses: number;
+  estimatedMrrCents: number;
+  /** @deprecated Tenant industry metrics — kept for internal queries only, not shown in owner UI */
+  properties?: number;
+  listedProperties?: number;
+  stayBookings?: number;
+  stayBookingsActive?: number;
+  checkinsToday?: number;
+}
+
+export interface CommandTodayItem {
+  id: string;
+  label: string;
+  href: string;
+}
+
+export interface CommandOrganisationHealthSummary {
+  totalOrganisations: number;
+  organisationsWithSufficientData: number;
+  averageHealth: number | null;
+  averageHealthLabel: string;
+  needsAttentionCount: number;
+}
+
+export interface CommandDeliverySummary {
+  activeImplementations: number;
+  awaitingCustomerInfo: number;
+  blocked: number;
+  inTraining: number;
+  inQa: number;
+  readyForGoLive: number;
+}
+
+export interface CommandPartnerPulse {
+  foundingResellers: number;
+  activeProspects: number;
+  referredCustomers: number;
+  onboardingCount: number;
+  pendingCommissionsCents: number;
+}
+
+export interface CommandGrowthEngineCard {
+  prospects: number;
+  engagementsThisWeek: number;
+  activePipeline: number;
+  topPriorityLabel: string | null;
+  topPriorityScore: number | null;
+  href: string;
+}
+
+export interface CommandPlatformOperationsGroup {
+  id: string;
+  label: string;
+  links: CommandDeepLink[];
+}
+
+export interface CommandRecentActivityHuman extends CommandRecentActivity {
+  humanTitle: string;
+  technicalTitle: string;
 }
 
 export type CommandActionSeverity = "urgent" | "today" | "watch";
@@ -74,6 +128,8 @@ export interface CommandClientRow {
   updatedAt: string;
   /** Success Score™ 0–100 when Client Intelligence has computed it */
   successScore?: number;
+  /** Display as Organisation Health in platform-owner UI */
+  organisationHealth?: number;
   healthTier?: AgencyHealthTier;
   rank?: number;
   /** True when score is early — don't invent gaps from it */
@@ -115,11 +171,14 @@ export interface CommandRecentActivity {
   createdAt: string;
 }
 
-/** Full ops home payload for /command */
+/** Full ops home payload for /command — DigitalGate platform-owner operating console. */
 export interface CommandCentreOpsHome {
   generatedAt: string;
+  /** Short subtitle for header; detailed metrics live in pulse strip */
   briefing: string;
   pulse: CommandPlatformPulse;
+  today: CommandTodayItem[];
+  organisationHealth: CommandOrganisationHealthSummary;
   actions: CommandActionItem[];
   clients: CommandClientRow[];
   connectors: {
@@ -146,6 +205,9 @@ export interface CommandCentreOpsHome {
     byStage: Record<string, number>;
     engagementsThisWeek: number;
   };
+  growthEngine: CommandGrowthEngineCard;
+  delivery: CommandDeliverySummary;
+  partnerPulse: CommandPartnerPulse;
   /** Opportunity Engine Daily Briefing summary for Command home */
   prospectingToday?: {
     recommendedCount: number;
@@ -157,14 +219,16 @@ export interface CommandCentreOpsHome {
     topBusinessName: string | null;
     topScore: number | null;
   };
-  recentActivity: CommandRecentActivity[];
-  deepLinks: CommandDeepLink[];
+  recentActivity: CommandRecentActivityHuman[];
+  platformOperations: CommandPlatformOperationsGroup[];
   deliveryAlerts?: Array<{
     id: string;
     severity: "critical" | "warning" | "success" | "info";
     message: string;
     href: string;
   }>;
+  /** @deprecated Use platformOperations */
+  deepLinks?: CommandDeepLink[];
 }
 
 /** Per-client view in Command Centre (richer than customer dashboard) */

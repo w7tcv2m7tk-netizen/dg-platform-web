@@ -49,9 +49,12 @@ async function CommandOverviewPage() {
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Command Centre
           </h1>
+          <p className="mt-1 text-sm font-medium text-sky-200/90">
+            DigitalGate Platform Operations
+          </p>
           <p className="mt-2 max-w-2xl text-sm text-slate-400">
             {data?.briefing ??
-              `Internal OS for DigitalGate${session ? ` · ${session.organisationName}` : ""}`}
+              `Run DigitalGate — platform business and customer ecosystem health${session ? ` · ${session.organisationName}` : ""}.`}
           </p>
         </div>
       </header>
