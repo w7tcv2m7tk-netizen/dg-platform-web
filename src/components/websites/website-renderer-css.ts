@@ -3153,17 +3153,20 @@ a.wb-brand-chrome-cta:hover {
   object-fit: contain;
 }
 
-.wb-site-chrome .dg-header {
-  position: sticky !important;
-  top: 0 !important;
-  left: auto !important;
-  width: 100% !important;
-  z-index: 100 !important;
-}
+  /* Keep drawer above page content; header element required for mobile layout */
+  .wb-site-chrome .dg-header {
+    position: sticky !important;
+    top: 0 !important;
+    left: auto !important;
+    width: 100% !important;
+    z-index: 120 !important;
+    overflow: visible !important;
+  }
 
-.wb-site-chrome-header {
-  overflow: visible !important;
-}
+  .wb-site-chrome-header {
+    overflow: visible !important;
+    z-index: 120 !important;
+  }
 
 .wb-chrome-html:has(#dgMobileBtn),
 .wb-chrome-html:has(.dg-mobile-menu-btn) {
@@ -3206,10 +3209,20 @@ a.wb-brand-chrome-cta:hover {
     box-shadow: 0 20px 30px rgba(0, 0, 0, 0.35) !important;
   }
 
-  /* Hide Aëtherra fallback hamburger when DigitalGate native btn is present
-     AND successfully hydratable — keep native btn clickable above chrome */
-  .wb-chrome-html:has(#dgMobileBtn) .wb-chrome-html-menu-btn {
+  /* DigitalGate: native btn scripts never run in injected HTML — use React drawer like RR/CVH */
+  .wb-chrome-html:has(#dgMobileBtn) .dg-mobile-menu-btn,
+  .wb-chrome-html:has(.dg-mobile-menu-btn) .dg-mobile-menu-btn {
     display: none !important;
+  }
+
+  .wb-chrome-html:has(#dgMobileBtn) .dg-nav-links,
+  .wb-chrome-html:has(.dg-mobile-menu-btn) .dg-nav-links {
+    display: none !important;
+  }
+
+  .wb-chrome-html:has(#dgMobileBtn) .wb-chrome-html-menu-btn,
+  .wb-chrome-html:has(.dg-mobile-menu-btn) .wb-chrome-html-menu-btn {
+    display: inline-flex !important;
   }
 
   .wb-site-chrome .dg-header {

@@ -1,26 +1,20 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 
 import { rewriteProductFunnelHref } from "@/lib/product-funnel-links";
-
-const DG_MOBILE_MAX = 880;
-
-function hasDigitalGateMenu(html: string) {
-  return /id=["']dgMobileBtn["']|dg-mobile-menu-btn/.test(html);
-}
 
 function collectNavLinks(html: string): Array<{ href: string; label: string }> {
   const root = document.createElement("div");
   root.innerHTML = html;
   const collected = Array.from(
     root.querySelectorAll<HTMLAnchorElement>(
-      ".nav-links a, .wb-aetherra-header .nav-links a, .dg-nav-links > li > a, nav a",
+      ".dg-nav-links a, .nav-links a, .wb-aetherra-header .nav-links a, nav a",
     ),
   )
     .map((a) => ({
       href: rewriteProductFunnelHref(a.getAttribute("href") || ""),
-      label: (a.textContent || "").trim(),
+      label: (a.textContent || "").replace(/\s+/g, " ").trim(),
     }))
     .filter((l) => l.href && l.label && l.href !== "#");
   const seen = new Set<string>();
@@ -34,146 +28,25 @@ function collectNavLinks(html: string): Array<{ href: string; label: string }> {
 
 /**
  * Header HTML is injected without executing inline <script>.
- * DigitalGate’s #dgMobileBtn therefore does nothing until we re-bind it.
- */
-function hydrateDigitalGateHeader(root: HTMLElement): (() => void) | null {
-  const mobileBtn = root.querySelector<HTMLElement>("#dgMobileBtn, .dg-mobile-menu-btn");
-  const navMenu = root.querySelector<HTMLElement>("#dgNavLinks, .dg-nav-links");
-  if (!mobileBtn || !navMenu) return null;
-
-  const body = document.body;
-  const chromeRoot = root.querySelector<HTMLElement>(".wb-chrome-root") || root;
-  const toggles = Array.from(root.querySelectorAll<HTMLElement>(".dg-dropdown-toggle"));
-  body.classList.add("dg-has-fixed-header");
-  chromeRoot.classList.add("dg-has-fixed-header");
-
-  const closeAllDropdowns = () => {
-    root.querySelectorAll(".dg-dropdown").forEach((dd) => dd.classList.remove("open"));
-    toggles.forEach((t) => t.classList.remove("open"));
-  };
-
-  const setMenuOpen = (isOpen: boolean) => {
-    navMenu.classList.toggle("open", isOpen);
-    body.classList.toggle("menu-open", isOpen);
-    chromeRoot.classList.toggle("menu-open", isOpen);
-    mobileBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-    const icon = mobileBtn.querySelector("i");
-    if (icon) {
-      icon.classList.toggle("fa-times", isOpen);
-      icon.classList.toggle("fa-bars", !isOpen);
-    }
-    if (!isOpen) closeAllDropdowns();
-  };
-
-  const closeMobileMenu = () => setMenuOpen(false);
-
-  let lastToggleAt = 0;
-  const onMenuClick = (e: Event) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const now = Date.now();
-    if (now - lastToggleAt < 350) return;
-    lastToggleAt = now;
-    setMenuOpen(!navMenu.classList.contains("open"));
-  };
-
-  // Capture + pointerdown: sticky chrome / iOS often swallows bubbled click
-  mobileBtn.addEventListener("pointerdown", onMenuClick, true);
-  mobileBtn.addEventListener("click", onMenuClick, true);
-  mobileBtn.style.pointerEvents = "auto";
-  mobileBtn.style.cursor = "pointer";
-  mobileBtn.style.position = "relative";
-  mobileBtn.style.zIndex = "130";
-
-  const toggleCleanups = toggles.map((toggle) => {
-    const dropdownId = toggle.getAttribute("data-dg-dropdown");
-    const dropdown = dropdownId
-      ? root.querySelector<HTMLElement>(`#${CSS.escape(dropdownId)}`)
-      : null;
-    if (!dropdown) return () => {};
-    const onToggle = (e: Event) => {
-      if (window.innerWidth > DG_MOBILE_MAX) return;
-      e.preventDefault();
-      e.stopPropagation();
-      const now = Date.now();
-      if (now - lastToggleAt < 350) return;
-      lastToggleAt = now;
-      const isOpen = dropdown.classList.contains("open");
-      closeAllDropdowns();
-      if (!isOpen) {
-        dropdown.classList.add("open");
-        toggle.classList.add("open");
-      }
-    };
-    toggle.addEventListener("pointerdown", onToggle, true);
-    toggle.addEventListener("click", onToggle, true);
-    return () => {
-      toggle.removeEventListener("pointerdown", onToggle, true);
-      toggle.removeEventListener("click", onToggle, true);
-    };
-  });
-
-  const navLinks = Array.from(root.querySelectorAll<HTMLAnchorElement>(".dg-nav-links a"));
-  const linkCleanups = navLinks.map((link) => {
-    const onLink = () => {
-      if (window.innerWidth > DG_MOBILE_MAX) return;
-      const isToggle = link.classList.contains("dg-dropdown-toggle");
-      const isInDropdown = Boolean(link.closest(".dg-dropdown"));
-      if (!isToggle && !isInDropdown) closeMobileMenu();
-    };
-    link.addEventListener("click", onLink);
-    return () => link.removeEventListener("click", onLink);
-  });
-
-  const onResize = () => {
-    if (window.innerWidth > DG_MOBILE_MAX) closeMobileMenu();
-  };
-  window.addEventListener("resize", onResize);
-
-  const onKey = (e: KeyboardEvent) => {
-    if (e.key === "Escape") closeMobileMenu();
-  };
-  window.addEventListener("keydown", onKey);
-
-  return () => {
-    mobileBtn.removeEventListener("pointerdown", onMenuClick, true);
-    mobileBtn.removeEventListener("click", onMenuClick, true);
-    toggleCleanups.forEach((fn) => fn());
-    linkCleanups.forEach((fn) => fn());
-    window.removeEventListener("resize", onResize);
-    window.removeEventListener("keydown", onKey);
-    closeMobileMenu();
-    body.classList.remove("dg-has-fixed-header");
-    chromeRoot.classList.remove("dg-has-fixed-header");
-  };
-}
-
-/**
- * Hydrates imported / custom site chrome headers with a mobile drawer.
- * Works with Aëtherra-style markup (.nav-links) without rewriting page HTML.
- * DigitalGate chrome uses its own #dgMobileBtn — bind that instead of a second hamburger.
+ * Use the same React mobile drawer as BrandSiteHeader (RR, CVH, …) — not DOM hydration.
  */
 export function ChromeHeaderHtml({ html }: { html: string }) {
   const panelId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [links, setLinks] = useState<Array<{ href: string; label: string }>>([]);
-  const [nativeDgMenu, setNativeDgMenu] = useState(() => hasDigitalGateMenu(html));
 
   useEffect(() => {
     setLinks(collectNavLinks(html));
   }, [html]);
 
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-    const unbind = hydrateDigitalGateHeader(root);
-    setNativeDgMenu(Boolean(unbind));
-    return () => unbind?.();
-  }, [html]);
+  useLayoutEffect(() => {
+    document.body.classList.add("dg-has-fixed-header");
+    return () => document.body.classList.remove("dg-has-fixed-header");
+  }, []);
 
   useEffect(() => {
-    if (!open || nativeDgMenu) return;
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
@@ -184,13 +57,12 @@ export function ChromeHeaderHtml({ html }: { html: string }) {
       htmlEl.classList.remove("wb-menu-scroll-lock");
       window.removeEventListener("keydown", onKey);
     };
-  }, [open, nativeDgMenu]);
+  }, [open]);
 
   useEffect(() => {
     return () => {
       document.documentElement.classList.remove("wb-menu-scroll-lock");
       document.body.style.overflow = "";
-      document.body.classList.remove("menu-open");
     };
   }, []);
 
@@ -202,7 +74,7 @@ export function ChromeHeaderHtml({ html }: { html: string }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const showFallbackDrawer = !nativeDgMenu && links.length > 0;
+  const showDrawer = links.length > 0;
 
   return (
     <div
@@ -213,7 +85,7 @@ export function ChromeHeaderHtml({ html }: { html: string }) {
         className="wb-section wb-html-block wb-site-chrome wb-site-chrome-header"
         dangerouslySetInnerHTML={{ __html: html }}
       />
-      {showFallbackDrawer ? (
+      {showDrawer ? (
         <>
           <button
             type="button"
