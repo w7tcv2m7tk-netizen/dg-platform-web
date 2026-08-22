@@ -1,7 +1,10 @@
 /**
  * Command Centre ops home — cross-tenant aggregates for DigitalGate staff.
- * Prefer counts / light client rows over Twin/Scoring until those land.
- * @see docs/COMMAND-CENTRE.md
+ *
+ * Hard rule: platform-owner view monitors the DigitalGate business and customer
+ * ecosystem health — it does not display customer industry operational data
+ * (accommodation, RE listings, etc.) unless viewing a specific org context.
+ * @see docs/foundations/OPERATOR-OS.md
  */
 
 import type {

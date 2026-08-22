@@ -257,6 +257,11 @@ export function filterNavigationByAccess(
             })
           : [],
       },
+      digitalgate: {
+        ...nav.ia.digitalgate,
+        apps: staff ? nav.ia.digitalgate.apps : [],
+        links: staff ? nav.ia.digitalgate.links : [],
+      },
       partners: {
         ...nav.ia.partners,
         apps: canPartners ? nav.ia.partners.apps : [],

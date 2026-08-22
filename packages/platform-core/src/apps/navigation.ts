@@ -43,13 +43,14 @@ export interface PlatformToolNavItem {
   primaryHref: string;
 }
 
-/** Advisor IA section ids — Core · Infrastructure · Industry · Growth · Intelligence · Partners · Platform Admin */
+/** Advisor IA section ids — Core · Infrastructure · Industry · Growth · Intelligence · DigitalGate · Platform */
 export type NavIaSectionId =
   | "core"
   | "infrastructure"
   | "industry"
   | "grow"
   | "intelligence"
+  | "digitalgate"
   | "partners"
   | "partner"
   | "platformAdmin"
@@ -309,7 +310,7 @@ const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
   },
 ];
 
-/** PLATFORM ADMIN — customer org config + staff-only internals. */
+/** PLATFORM ADMIN — customer org config. Staff use PLATFORM_CONFIG + DIGITALGATE operator sections. */
 function getPlatformAdminSection(options?: {
   showCommandCentre?: boolean;
 }): NavIaSection {
@@ -361,12 +362,6 @@ function getPlatformAdminSection(options?: {
         },
         {
           kind: "shell",
-          href: "/support",
-          label: "Support",
-          icon: getSidebarIcon("advisor"),
-        },
-        {
-          kind: "shell",
           href: "/command/docs",
           label: "Platform Docs",
           icon: getSidebarIcon("reports"),
@@ -383,10 +378,92 @@ function getPlatformAdminSection(options?: {
 
   return {
     id: "platformAdmin",
-    label: "Platform Admin",
+    label: options?.showCommandCentre
+      ? PLATFORM_CONFIG_NAV_SECTION_LABEL
+      : PLATFORM_ADMIN_NAV_SECTION_LABEL,
     links,
     apps: [settingsItem],
     trailingLinks,
+  };
+}
+
+/** DigitalGate staff — Operator OS (run DigitalGate, not customer industry ops). */
+function getDigitalGateOperatorSection(): NavIaSection {
+  const operatorApp = (
+    id: string,
+    name: string,
+    iconKey: string,
+    primaryHref: string,
+    routes: AppRoute[],
+  ): AppNavTreeItem => ({
+    kind: "app",
+    id,
+    name,
+    icon: getSidebarIcon(iconKey),
+    tier: "internal",
+    enabled: true,
+    routes,
+    primaryHref,
+  });
+
+  const commandCentre = getCommandCentreNavItem();
+
+  return {
+    id: "digitalgate",
+    label: DIGITALGATE_OPERATOR_NAV_SECTION_LABEL,
+    links: [],
+    apps: [
+      {
+        kind: "app",
+        id: commandCentre.id,
+        name: "Command Centre",
+        icon: commandCentre.icon,
+        tier: "internal",
+        enabled: true,
+        routes: commandCentre.routes,
+        primaryHref: commandCentre.primaryHref,
+      },
+      operatorApp("dg-organisations", "Organisations", "team", "/command/clients", [
+        { path: "/command/clients", label: "All organisations" },
+      ]),
+      operatorApp("dg-sales", "Sales", "prospecting", "/command/growth-engine", [
+        { path: "/command/growth-engine", label: "Growth Engine" },
+        { path: "/command/founding", label: "Founding 10" },
+        { path: "/command/sales-week", label: "Sales Week" },
+        { path: "/command/opportunities", label: "Opportunities" },
+      ]),
+      operatorApp("dg-partners", "Partners", "partner-portal", "/command/partners", [
+        { path: "/command/partners", label: "Resellers" },
+        { path: "/command/referrals", label: "Referrals" },
+        { path: "/command/commissions", label: "Commissions" },
+      ]),
+      operatorApp("dg-delivery", "Delivery", "partner-portal", "/command/delivery", [
+        { path: "/command/delivery", label: "Implementation" },
+        { path: "/command/delivery/projects", label: "Projects" },
+        { path: "/command/delivery/tasks", label: "Tasks" },
+      ]),
+      operatorApp("dg-customer-intelligence", "Customer Intelligence", "brain", "/command/clients", [
+        { path: "/command/clients", label: "Organisation health" },
+        { path: "/command/advisor", label: "AI Advisor" },
+        { path: "/command/benchmarks", label: "Benchmarks" },
+      ]),
+      operatorApp("dg-platform-intelligence", "Platform Intelligence", "advisor", "/command/intelligence", [
+        { path: "/command/intelligence", label: "Platform Intelligence" },
+        { path: "/command/platform-health", label: "Platform health" },
+      ]),
+      operatorApp("dg-commercial", "Commercial", "commerce", "/command/revenue", [
+        { path: "/command/revenue", label: "Revenue / MRR" },
+        { path: "/command/opportunities/expansion", label: "Expansion" },
+      ]),
+      operatorApp("dg-product", "Product", "flags", "/command/flags", [
+        { path: "/command/flags", label: "Feature flags" },
+        { path: "/dashboard/settings/roadmap", label: "Roadmap" },
+      ]),
+      operatorApp("dg-support", "Support", "advisor", "/support", [
+        { path: "/support", label: "Support centre" },
+        { path: "/support/help", label: "Knowledge base" },
+      ]),
+    ],
   };
 }
 
@@ -420,6 +497,10 @@ export const GROW_NAV_SECTION_LABEL = "Growth";
 export const INTELLIGENCE_NAV_SECTION_LABEL = "Intelligence";
 export const INDUSTRY_NAV_SECTION_LABEL = "Industry";
 export const PLATFORM_ADMIN_NAV_SECTION_LABEL = "Platform Admin";
+/** Staff operator OS — DigitalGate runs DigitalGate (not a customer tenant). */
+export const DIGITALGATE_OPERATOR_NAV_SECTION_LABEL = "DigitalGate";
+/** Staff tenant platform config — Apps, Settings, Billing, etc. */
+export const PLATFORM_CONFIG_NAV_SECTION_LABEL = "Platform";
 export const PARTNERS_NAV_SECTION_LABEL = "Partners";
 export const PARTNER_NAV_SECTION_LABEL = "Partner";
 export const COMMAND_CENTRE_NAV_SECTION_LABEL = "Command Centre";
@@ -557,11 +638,11 @@ export interface CategorizedPlatformNavigation {
   /** @deprecated Prefer `ia.core` / `ia.grow` */
   tiers: AppNavTierGroup[];
   tools: PlatformToolsNavGroup;
-  /** DigitalGate staff only — rendered under Intelligence */
+  /** DigitalGate staff only — rendered under DigitalGate operator section */
   commandCentre: PlatformToolNavItem | null;
   /**
    * Advisor IA —
-   * CORE · INFRASTRUCTURE · INDUSTRY · GROWTH · INTELLIGENCE · PARTNERS · PARTNER · PLATFORM ADMIN
+   * CORE · INFRASTRUCTURE · INDUSTRY · GROWTH · INTELLIGENCE · DIGITALGATE · PARTNER · PLATFORM
    */
   ia: {
     core: NavIaSection;
@@ -569,6 +650,8 @@ export interface CategorizedPlatformNavigation {
     industry: NavIaSection;
     grow: NavIaSection;
     intelligence: NavIaSection;
+    /** Staff operator OS — Command Centre and platform operations */
+    digitalgate: NavIaSection;
     partners: NavIaSection;
     partner: NavIaSection;
     platformAdmin: NavIaSection;
@@ -740,6 +823,9 @@ export function getCategorizedPlatformNavigation(
   })).filter((g) => g.apps.length > 0);
 
   const commandCentre = options?.showCommandCentre ? getCommandCentreNavItem() : null;
+  const digitalgateSection = options?.showCommandCentre
+    ? getDigitalGateOperatorSection()
+    : { id: "digitalgate" as const, label: DIGITALGATE_OPERATOR_NAV_SECTION_LABEL, links: [], apps: [] };
 
   const intelligenceLinks = INTELLIGENCE_LINKS.filter((link) => {
     if (link.href === "/dashboard/insights" || link.href === "/dashboard/reports") {
@@ -748,20 +834,8 @@ export function getCategorizedPlatformNavigation(
     return true;
   });
 
-  const intelligenceApps: AppNavTreeItem[] = commandCentre
-    ? [
-        {
-          kind: "app",
-          id: commandCentre.id,
-          name: commandCentre.name,
-          icon: commandCentre.icon,
-          tier: "internal",
-          enabled: true,
-          routes: commandCentre.routes,
-          primaryHref: commandCentre.primaryHref,
-        },
-      ]
-    : [];
+  /** Staff: Command Centre lives in DigitalGate operator section, not Intelligence. */
+  const intelligenceApps: AppNavTreeItem[] = [];
 
   const settingsNav: PlatformShellNavItem = {
     ...SHELL_PLATFORM_NAV,
@@ -824,11 +898,12 @@ export function getCategorizedPlatformNavigation(
         links: intelligenceLinks,
         apps: intelligenceApps,
       },
+      digitalgate: digitalgateSection,
       partners: {
         id: "partners",
         label: PARTNERS_NAV_SECTION_LABEL,
         links: [],
-        apps: options?.showResellerAdmin ? getStaffPartnersNavItems() : [],
+        apps: options?.showResellerAdmin && !options?.showCommandCentre ? getStaffPartnersNavItems() : [],
       },
       partner: {
         id: "partner",

@@ -181,6 +181,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   useEffect(() => {
     const next: Record<string, boolean> = {};
     for (const section of [
+      ia.digitalgate,
       ia.core,
       ia.infrastructure,
       ia.industry,
@@ -197,6 +198,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     setExpanded(next);
   }, [
     pathname,
+    ia.digitalgate,
     ia.core,
     ia.infrastructure,
     ia.industry,
@@ -233,6 +235,11 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   const intelligenceAppsForRender = ia.intelligence.apps.map((app) => ({
+    ...app,
+    badge: undefined,
+  }));
+
+  const digitalgateAppsForRender = ia.digitalgate.apps.map((app) => ({
     ...app,
     badge: app.id === "command-centre" ? (ccBadge ?? undefined) : undefined,
   }));
@@ -272,13 +279,24 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain">
+      {ia.digitalgate.apps.length > 0 ? (
+        <IaSectionBlock
+          section={{ ...ia.digitalgate, apps: digitalgateAppsForRender }}
+          pathname={pathname}
+          expanded={expanded}
+          onToggle={toggleItem}
+          onNavigate={onNavigate}
+          className="mt-0"
+        />
+      ) : null}
+
       <IaSectionBlock
         section={ia.core}
         pathname={pathname}
         expanded={expanded}
         onToggle={toggleItem}
         onNavigate={onNavigate}
-        className="mt-0"
+        className={ia.digitalgate.apps.length > 0 ? undefined : "mt-0"}
       />
 
       <IaSectionBlock

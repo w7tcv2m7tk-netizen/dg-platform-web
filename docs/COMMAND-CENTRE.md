@@ -1,16 +1,18 @@
 # DigitalGate Command Centre
 
-**The operating system DigitalGate uses to run DigitalGate**
+**The Operator OS DigitalGate uses to run DigitalGate**
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Last updated:** August 2026  
 **Status:** **Closed beta ready (staff)** — Ops home, Clients/Flags, Growth Engine core loop (discover → audit → report send → follow-ups → propose → convert), Health/Revenue live. Support/Audit Command modules intentionally vapor (redirect). See [COMMAND-CENTRE-BETA.md](./COMMAND-CENTRE-BETA.md).
+
+**Architecture:** DigitalGate is the platform operator, not a customer tenant. See [foundations/OPERATOR-OS.md](./foundations/OPERATOR-OS.md).
 
 ---
 
 ## What it is
 
-The **DigitalGate Command Centre** is an **internal-only App** — not a super-admin panel bolted onto the product. It is the intelligence layer that powers how DigitalGate operates as a company:
+The **DigitalGate Command Centre** is an **internal-only Operator OS** — not a super-admin panel bolted onto the product, and not a customer pretending to run Industry Apps to operate the company. It is the control plane for the DigitalGate ecosystem:
 
 - How account managers know who needs help
 - How leadership tracks MRR, churn, and platform health

@@ -2,7 +2,7 @@
 
 **Status:** Locked · Platform Architect (Ben) · August 2026  
 **Code:** `packages/platform-core/src/apps/navigation.ts` · `packages/platform-core/src/access/nav-filter.ts` · `src/components/SidebarNav.tsx`  
-**Related:** [OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.md) · [ROLES-PERMISSIONS-SIDEBAR.md](./ROLES-PERMISSIONS-SIDEBAR.md) · [APP-HIERARCHY.md](./APP-HIERARCHY.md) · [INDUSTRY-PLATFORM.md](./INDUSTRY-PLATFORM.md)
+**Related:** [OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.md) · [OPERATOR-OS.md](./OPERATOR-OS.md) · [ROLES-PERMISSIONS-SIDEBAR.md](./ROLES-PERMISSIONS-SIDEBAR.md) · [APP-HIERARCHY.md](./APP-HIERARCHY.md) · [INDUSTRY-PLATFORM.md](./INDUSTRY-PLATFORM.md)
 
 ---
 
@@ -46,13 +46,14 @@ GROWTH
   Prospecting & Opportunity Engine ($99) · AI Visibility ($99) · SEO ($99) · Automation ($49) · Analytics ($49) · Social ($79) · AI Communications ($99) · Reputation (Free)
 
 INTELLIGENCE
-  Command Centre · Digital Twin · AI Advisor · Business Health · Insights · Benchmarks · Business Brain
+  Digital Twin · AI Advisor · Business Health · Insights · Benchmarks · Business Brain
 
-PARTNERS
-  (DigitalGate staff) Resellers · Referrals · Commissions · Delivery / Implementation
+DIGITALGATE (staff only)
+  Command Centre · Organisations · Sales · Partners · Delivery · Customer Intelligence · Platform Intelligence · Commercial · Product · Support
 
-PLATFORM ADMIN
-  Apps · Marketplace · Network · Settings · Roadmap* · Support · Platform Docs*
+PLATFORM (staff) / PLATFORM ADMIN (customers)
+  Apps · Marketplace · Network · Settings · Roadmap* · Platform Docs*
+  Customers also see Support under Platform Admin.
 ```
 
 \* Roadmap and Platform Docs are DigitalGate-internal by default.
