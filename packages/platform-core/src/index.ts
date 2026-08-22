@@ -10,6 +10,7 @@ export * from "./graph";
 export * from "./twin";
 export * from "./memory";
 export * from "./intelligence";
+export * from "./benchmarks";
 export * from "./ai";
 export * from "./identity";
 export * from "./workspace";

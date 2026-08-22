@@ -1,16 +1,63 @@
-import { IntelligenceSurfacePage } from "@/components/platform/IntelligenceSurfacePage";
+import Link from "next/link";
+import { Suspense } from "react";
 
-export default function BenchmarksPage() {
+import { BusinessBenchmarksDashboard } from "@/components/intelligence/BusinessBenchmarksDashboard";
+import { loadBusinessBenchmarksPageData } from "@/lib/benchmarks-page-data";
+import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
+
+export default async function BenchmarksPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ group?: string }>;
+}) {
+  await ensureOrganisationOnboardingSync();
+  const { group } = await searchParams;
+  const data = await loadBusinessBenchmarksPageData(group);
+
+  if (!data) {
+    return (
+      <>
+        <header className="dg-page-header">
+          <p className="text-xs font-medium uppercase tracking-widest text-sky-400">
+            Intelligence · Benchmarks
+          </p>
+          <h1 className="mt-2 text-2xl font-bold text-white">Business Benchmarks</h1>
+        </header>
+        <main className="dg-page-main">
+          <p className="text-sm text-slate-400">Sign in to see how your business compares.</p>
+        </main>
+      </>
+    );
+  }
+
   return (
-    <IntelligenceSurfacePage
-      eyebrow="Intelligence · Benchmarks"
-      title="Benchmarks"
-      summary="Compare your business against relevant cohorts when enough anonymised network data exists."
-      body="Benchmarks belong under Intelligence, not Marketplace. Cohort comparisons ship when privacy floors and sample sizes allow — until then this is the reserved nav home."
-      primaryHref="/dashboard"
-      primaryLabel="Back to Overview →"
-      secondaryHref="/apps/analytics"
-      secondaryLabel="Open Analytics"
-    />
+    <>
+      <header className="dg-page-header">
+        <p className="text-xs font-medium uppercase tracking-widest text-sky-400">
+          Intelligence · Benchmarks
+        </p>
+        <h1 className="mt-2 text-2xl font-bold text-white">Business Benchmarks</h1>
+        <p className="mt-2 max-w-2xl text-sm text-slate-400">
+          See how your business compares with similar businesses — and discover where your biggest
+          opportunities are.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3 text-sm">
+          <Link href="/dashboard/advisor" className="text-sky-400 hover:underline">
+            AI Advisor →
+          </Link>
+          <Link href="/dashboard/brain" className="text-sky-400 hover:underline">
+            Business Brain →
+          </Link>
+          <Link href="/dashboard/health" className="text-sky-400 hover:underline">
+            Business Health →
+          </Link>
+        </div>
+      </header>
+      <main className="dg-page-main">
+        <Suspense fallback={null}>
+          <BusinessBenchmarksDashboard data={data} />
+        </Suspense>
+      </main>
+    </>
   );
 }
