@@ -5,6 +5,7 @@ import {
   listWebsitesWithPages,
   organisationHasWordPressConnector,
   pickWebsiteForHealthProbe,
+  probeCommsConnector,
   resolvePrimaryLinkedDomain,
   type OverviewConnectorProbes,
   type WebsiteProbe,
@@ -75,7 +76,7 @@ export async function fetchOverviewConnectorProbes(
   const orgConnector = await wpConnectorForOrg(organisationId);
   const accConnector = await accommodationConnectorForSession(organisationId);
 
-  const [siteHealth, reSummary, accSummary, nativeWebsite] = await Promise.all([
+  const [siteHealth, reSummary, accSummary, nativeWebsite, comms] = await Promise.all([
     wpConfigured ? fetchWpSiteHealth() : Promise.resolve({ ok: false as const }),
     enabledAppIds.includes("real-estate")
       ? fetchWpReSummary(30, orgConnector)
@@ -84,6 +85,7 @@ export async function fetchOverviewConnectorProbes(
       ? fetchWpAccommodationSummary(null, 30, accConnector)
       : Promise.resolve(null),
     probeNativeWebsite(organisationId),
+    probeCommsConnector(organisationId, enabledAppIds),
   ]);
 
   const hasWpKey =
@@ -94,6 +96,7 @@ export async function fetchOverviewConnectorProbes(
   const probes: OverviewConnectorProbes = {
     stripeOk: stripe.ok,
     stripeMode: stripe.mode,
+    comms,
   };
 
   if (nativeWebsite) {

@@ -181,6 +181,42 @@ function buildSnapshotKpis(
   return kpis;
 }
 
+function buildCommsSystem(connectors: OverviewConnectorProbes): OverviewConnectedSystem {
+  const comms = connectors.comms;
+  if (comms?.ok) {
+    const detail =
+      (comms.publishedAgentCount ?? 0) > 0
+        ? `${comms.publishedAgentCount} agent${comms.publishedAgentCount === 1 ? "" : "s"} live`
+        : comms.voiceProvider === "elevenlabs"
+          ? "ElevenLabs connected"
+          : comms.emailProvider === "resend"
+            ? "Email connected"
+            : "Live";
+    return {
+      id: "ai-communications",
+      label: "AI Communications",
+      status: (comms.publishedAgentCount ?? 0) > 0 ? "healthy" : "connected",
+      detail,
+    };
+  }
+
+  if (comms?.appEnabled) {
+    return {
+      id: "ai-communications",
+      label: "AI Communications",
+      status: "warning",
+      detail: "Configure voice provider",
+    };
+  }
+
+  return {
+    id: "ai-communications",
+    label: "AI Communications",
+    status: "offline",
+    detail: "Coming soon",
+  };
+}
+
 function buildConnectedSystems(
   connectors: OverviewConnectorProbes,
   websiteUrl?: string | null,
@@ -234,12 +270,7 @@ function buildConnectedSystems(
       status: "connected",
       detail: "Contacts, companies, and pipeline in DigitalGate",
     },
-    {
-      id: "voice",
-      label: "AI Communications",
-      status: "offline",
-      detail: "Coming soon",
-    },
+    buildCommsSystem(connectors),
     {
       id: "domains",
       label: "Domains",

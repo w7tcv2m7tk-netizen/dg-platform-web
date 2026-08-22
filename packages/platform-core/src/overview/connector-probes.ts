@@ -32,6 +32,15 @@ export interface AccommodationProbe {
   checkinsTomorrow?: number;
 }
 
+export interface CommsProbe {
+  ok: boolean;
+  appEnabled?: boolean;
+  voiceProvider?: string;
+  emailProvider?: string;
+  agentCount?: number;
+  publishedAgentCount?: number;
+}
+
 export interface OverviewConnectorProbes {
   website?: WebsiteProbe;
   wordpress?: WordPressProbe;
@@ -39,4 +48,5 @@ export interface OverviewConnectorProbes {
   stripeMode?: string;
   reSummary?: ReSummaryProbe;
   accommodation?: AccommodationProbe;
+  comms?: CommsProbe;
 }

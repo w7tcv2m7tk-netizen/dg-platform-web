@@ -44,6 +44,9 @@ export function captureDigitalTwinSnapshot(
   if (enabledAppIds.includes("accommodation")) connected.push("accommodation");
   if (enabledAppIds.includes("commerce")) connected.push("commerce");
   if (enabledAppIds.includes("automation")) connected.push("automation");
+  if (connectors.comms?.ok || enabledAppIds.includes("ai-communications")) {
+    connected.push("ai-communications");
+  }
 
   const websiteScore = connectors.website?.score;
   const hasRe = enabledAppIds.includes("real-estate");
