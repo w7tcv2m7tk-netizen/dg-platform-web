@@ -34,6 +34,7 @@ export * from "./hosting";
 export * from "./ssl";
 export * from "./email";
 export * from "./providers/dreamscape";
+export * from "./providers/cloudflare";
 export * from "./beta";
 export * from "./backup";
 export * from "./nav";
