@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 
-import { fetchSupportConversation } from "@/lib/support-chat";
+import { fetchSupportConversationFromSession } from "@/lib/support-chat";
 import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
 
 export async function GET() {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
 
-  const result = await fetchSupportConversation(session.email, session.clerkUserId);
+  const result = await fetchSupportConversationFromSession(session);
+
   if (!result.ok) {
     return NextResponse.json(
       { error: { code: result.code, message: result.message } },

@@ -48,6 +48,7 @@ export * from "./websites";
 export * from "./infrastructure";
 export * from "./commerce";
 export * from "./session";
+export * from "./support";
 export * from "./api-keys";
 export * from "./api";
 export * from "./real-estate/pipeline";
