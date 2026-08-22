@@ -3,6 +3,8 @@ export * from "./presentation";
 export * from "./growth-engine";
 export * from "./access";
 export * from "./overview";
+export * from "./platform-alerts-types";
+export * from "./platform-alerts";
 export * from "./success-score";
 export * from "./client-intelligence";
 export * from "./advisor";

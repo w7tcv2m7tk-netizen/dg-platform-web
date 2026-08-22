@@ -449,7 +449,7 @@ function getDigitalGateOperatorSection(): NavIaSection {
       ]),
       operatorApp("dg-platform-intelligence", "Platform Intelligence", "advisor", "/command/intelligence", [
         { path: "/command/intelligence", label: "Platform Intelligence" },
-        { path: "/command/platform-health", label: "Platform health" },
+        { path: "/command/platform-health", label: "Platform Alerts" },
       ]),
       operatorApp("dg-commercial", "Commercial", "commerce", "/command/revenue", [
         { path: "/command/revenue", label: "Revenue / MRR" },
@@ -745,7 +745,7 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
     routes: [
       { path: "/command", label: "Priorities" },
       { path: "/command/advisor", label: "AI Advisor" },
-      { path: "/command/platform-health", label: "Alerts" },
+      { path: "/command/platform-health", label: "Platform Alerts" },
       { path: "/command/sales-week", label: "Sales Week" },
       { path: "/command/founding", label: "Founding 10" },
     ],

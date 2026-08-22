@@ -49,7 +49,7 @@ DigitalGate staff only:
 | **Platform Overview** | Orgs, users, leads, AI actions, automations, platform health |
 | **Client Intelligence** | Per-tenant scores, growth, conversion, ROI, usage, satisfaction |
 | **Growth Engine™** | **Acquisition OS** — discover → audit → report → pipeline → proposal → client ([spec](./GROWTH-ENGINE.md)) |
-| **Platform Health** | Infra, API/AI usage, email/SMS volume |
+| **Platform Alerts** | Operator alerts centre — infra, billing, connectors, operational load ([spec](./foundations/PLATFORM-ALERTS.md)) |
 | **Revenue Intelligence** | Stripe MRR, ARR, churn, trial conversion |
 | **Client Expansion** | Upsell apps/services on **live tenants** (estimated additional MRR) |
 | **Benchmarking** | Anonymous cohort comparison (customer + prospect reports) |

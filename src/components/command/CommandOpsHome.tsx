@@ -254,10 +254,10 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
           </ul>
         </section>
 
-        {/* Platform Health */}
+        {/* Platform Alerts */}
         <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
-            Platform health
+            Platform alerts
           </p>
           <div className="mt-4 space-y-3 text-sm text-slate-300">
             <p>
@@ -279,7 +279,7 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
             href="/command/platform-health"
             className="mt-4 inline-block text-sm text-sky-400 hover:underline"
           >
-            Open Platform Health →
+            Open Platform Alerts →
           </Link>
         </section>
       </div>
