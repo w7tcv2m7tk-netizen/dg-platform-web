@@ -5,6 +5,7 @@ import {
   mapWebsiteFormFields,
   readPublicFormRecord,
 } from "@/lib/public-website-form-fields";
+import { spamGuardResponse } from "@/lib/public-form-spam-response";
 
 import { knownSlugForPublicHost } from "@/lib/public-host-slugs";
 
@@ -58,11 +59,14 @@ export async function POST(req: Request) {
   }
 
   const mapped = mapWebsiteFormFields(raw);
-  if (mapped.honeypot) {
-    return NextResponse.json({ data: { ok: true } }, { status: 201 });
-  }
-
   const siteSlug = await resolveSiteSlug(req, mapped.siteSlug);
+  const blocked = spamGuardResponse(
+    req,
+    mapped,
+    siteSlug ?? mapped.siteSlug ?? (hostnameFrom(req) || "website-form"),
+  );
+  if (blocked) return blocked;
+
   if (!siteSlug) {
     return NextResponse.json(
       { error: { code: "not_found", message: "Website not found for this host" } },

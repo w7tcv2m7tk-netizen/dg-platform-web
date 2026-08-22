@@ -1,6 +1,8 @@
 import { captureDgEnquiry, type DgEnquiryType } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
+import { spamGuardResponse } from "@/lib/public-form-spam-response";
+
 type EnquiryBody = {
   type?: string;
   name?: string;
@@ -117,10 +119,32 @@ export async function POST(req: Request) {
   }
 
   const type = inferType(body);
+  const siteSlug = body.siteSlug?.trim() || "digitalgate";
+  const honeypot =
+    body.honeypot?.trim() ||
+    body.website_hp?.trim() ||
+    body.websiteHp?.trim() ||
+    undefined;
+  const name = body.name?.trim() || body.full_name?.trim() || "";
+  const email = body.email?.trim() || "";
+  const message =
+    body.message?.trim() ||
+    body.notes?.trim() ||
+    body.want_to_solve?.trim() ||
+    body.wantToSolve?.trim() ||
+    undefined;
+
+  const blocked = spamGuardResponse(
+    req,
+    { honeypot, name, email, phone: body.phone?.trim(), message },
+    `dg-enquiry:${siteSlug}:${type}`,
+  );
+  if (blocked) return blocked;
+
   const result = await captureDgEnquiry({
     type,
-    name: body.name?.trim() || body.full_name?.trim() || "",
-    email: body.email?.trim() || "",
+    name,
+    email,
     phone: body.phone?.trim() || undefined,
     businessName: body.businessName?.trim() || body.business_name?.trim() || undefined,
     website: body.website?.trim() || body.business_website?.trim() || undefined,
@@ -139,12 +163,8 @@ export async function POST(req: Request) {
     date: body.date?.trim() || undefined,
     time: body.time?.trim() || undefined,
     notes: body.notes?.trim() || undefined,
-    honeypot:
-      body.honeypot?.trim() ||
-      body.website_hp?.trim() ||
-      body.websiteHp?.trim() ||
-      undefined,
-    siteSlug: body.siteSlug?.trim() || undefined,
+    honeypot,
+    siteSlug,
     partnerReferralCode: body.ref?.trim() || undefined,
   });
 

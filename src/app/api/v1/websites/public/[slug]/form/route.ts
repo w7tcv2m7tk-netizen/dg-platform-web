@@ -5,6 +5,7 @@ import {
   mapWebsiteFormFields,
   readPublicFormRecord,
 } from "@/lib/public-website-form-fields";
+import { spamGuardResponse } from "@/lib/public-form-spam-response";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
@@ -27,9 +28,8 @@ export async function POST(req: Request, ctx: Ctx) {
   }
 
   const mapped = mapWebsiteFormFields(raw);
-  if (mapped.honeypot) {
-    return NextResponse.json({ data: { ok: true } }, { status: 201 });
-  }
+  const blocked = spamGuardResponse(req, mapped, slug);
+  if (blocked) return blocked;
 
   const result = await captureWebsiteFormSubmission({
     siteSlug: slug,

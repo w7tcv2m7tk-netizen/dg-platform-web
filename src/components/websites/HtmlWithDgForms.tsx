@@ -49,6 +49,17 @@ export function hydratePublicHtmlForms(
 
         const interested = checked(contactForm, "[name='interested_in']:checked");
         const achieve = checked(contactForm, "[name='achieve']:checked");
+        const hp = val(contactForm, "[name='website_hp']");
+        if (hp) {
+          setSuccess(
+            status,
+            "Thanks! We'll review your enquiry and be in touch within one business day.",
+          );
+          contactForm.reset();
+          if (btn) btn.textContent = prevLabel;
+          ping();
+          return;
+        }
 
         const result = await postEnquiry(siteSlug, "contact", {
           type: "contact",
@@ -63,6 +74,7 @@ export function hydratePublicHtmlForms(
           achieve,
           heard_about: val(contactForm, "#heard_about"),
           message: val(contactForm, "#message"),
+          website_hp: hp,
         });
 
         if (result.ok) {

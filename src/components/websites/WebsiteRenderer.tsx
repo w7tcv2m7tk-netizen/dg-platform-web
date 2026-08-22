@@ -266,6 +266,7 @@ export function WebsiteContactForm({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [error, setError] = useState("");
 
@@ -277,7 +278,7 @@ export function WebsiteContactForm({
       const res = await fetch(`/api/v1/websites/public/${siteSlug}/form`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, message, pageSlug }),
+        body: JSON.stringify({ name, email, phone, message, pageSlug, website_hp: honeypot }),
       });
       const json = (await res.json().catch(() => ({}))) as {
         error?: { message?: string };
@@ -322,6 +323,15 @@ export function WebsiteContactForm({
       onSubmit={onSubmit}
     >
       {headline ? <h2 className="wb-section-title">{headline}</h2> : null}
+      <div aria-hidden style={{ position: "absolute", left: "-9999px" }}>
+        <input
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+        />
+      </div>
       {isRoe ? (
         <p className="wb-form-sub">
           Whether you&apos;re buying, selling, or exploring the market — we&apos;d

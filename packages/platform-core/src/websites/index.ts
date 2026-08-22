@@ -8,6 +8,7 @@ export * from "./crud";
 export * from "./page-chrome";
 export * from "./assist";
 export * from "./form-capture";
+export * from "./form-spam-guard";
 export * from "./native-health";
 export * from "./pagespeed";
 export * from "./html-to-components";

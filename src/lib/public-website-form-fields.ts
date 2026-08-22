@@ -71,7 +71,7 @@ function first(
 export function mapWebsiteFormFields(
   raw: Record<string, unknown>,
 ): WebsiteFormFields {
-  const honeypot = first(raw, ["honeypot", "website_hp", "websiteHp"]);
+  const honeypot = first(raw, ["honeypot", "website_hp", "websiteHp", "website"]);
   const name = first(raw, [
     "name",
     "full_name",
