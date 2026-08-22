@@ -3,45 +3,43 @@ import Link from "next/link";
 const ITEMS = [
   {
     label: "Digital Twin",
-    question: "What is happening in my business?",
+    question: "What does DigitalGate currently know?",
     href: "/dashboard/twin",
-    active: false,
   },
   {
     label: "Business Brain",
-    question: "What does DigitalGate know about my business?",
+    question: "What does DigitalGate understand about my business?",
     href: "/dashboard/brain",
-    active: false,
   },
   {
     label: "Business Health",
     question: "How healthy is my business?",
     href: "/dashboard/health",
-    active: false,
   },
   {
     label: "Benchmarks",
-    question: "How am I performing compared with others?",
+    question: "How do we compare?",
     href: "/dashboard/benchmarks",
-    active: false,
   },
   {
     label: "Insights",
-    question: "What is happening and why?",
-    href: "/dashboard/reports",
-    active: false,
+    question: "What is DigitalGate noticing?",
+    href: "/dashboard/insights",
   },
   {
     label: "AI Advisor",
-    question: "What should I do about it?",
+    question: "What should we do?",
     href: "/dashboard/advisor",
-    active: false,
+  },
+  {
+    label: "Reports",
+    question: "What do we need to communicate or export?",
+    href: "/dashboard/reports",
   },
   {
     label: "Command Centre",
     question: "What needs to happen next?",
     href: "/dashboard",
-    active: false,
   },
 ] as const;
 
@@ -52,6 +50,7 @@ export type IntelligenceHierarchyActive =
   | "benchmarks"
   | "insights"
   | "advisor"
+  | "reports"
   | "command";
 
 const ACTIVE_MAP: Record<IntelligenceHierarchyActive, string> = {
@@ -61,6 +60,7 @@ const ACTIVE_MAP: Record<IntelligenceHierarchyActive, string> = {
   benchmarks: "Benchmarks",
   insights: "Insights",
   advisor: "AI Advisor",
+  reports: "Reports",
   command: "Command Centre",
 };
 
@@ -96,6 +96,12 @@ export function IntelligenceHierarchy({
           );
         })}
       </ul>
+      <p className="mt-4 border-t border-slate-800 pt-3 text-xs text-slate-500">
+        Analytics → What do the numbers show?{" "}
+        <Link href="/apps/analytics" className="text-sky-400 hover:underline">
+          Open Analytics
+        </Link>
+      </p>
     </div>
   );
 }

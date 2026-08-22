@@ -1,114 +1,73 @@
-import Link from "next/link";
-
-import { AnalyticsKpiGrid } from "@/components/analytics/AnalyticsKpiGrid";
+import { AnalyticsEvidenceGrid } from "@/components/analytics/AnalyticsEvidenceGrid";
+import {
+  AnalyticsHealthReference,
+  AnalyticsPageIntro,
+  AnalyticsPhilosophyNote,
+} from "@/components/analytics/AnalyticsPageIntro";
+import { AnalyticsKeyMetricsGrid } from "@/components/analytics/AnalyticsKeyMetricsGrid";
 import { AnalyticsSubnav } from "@/components/analytics/AnalyticsSubnav";
-import { formatAudMoney, loadAnalyticsPageData } from "@/lib/analytics-page-data";
-
-const SCORE_CARDS = [
-  { id: "ai_visibility", label: "AI Visibility", key: "aiVisibility" as const, href: "/apps/ai-visibility" },
-  { id: "seo", label: "SEO", key: "seo" as const, href: "/apps/seo" },
-  { id: "website_health", label: "Website Health", key: "websiteHealth" as const, href: "/apps/websites/health" },
-  { id: "reputation", label: "Reputation", key: "reputation" as const, href: "/apps/reviews" },
-];
+import { AnalyticsTrendChart } from "@/components/analytics/AnalyticsTrendChart";
+import { loadAnalyticsPageData } from "@/lib/analytics-page-data";
+import Link from "next/link";
 
 export default async function AnalyticsOverviewPage() {
   const data = await loadAnalyticsPageData();
-  const { metrics, twinScores } = data;
-  const totalLeads = metrics
-    ? metrics.vendorLeadCount + metrics.buyerLeadCount
-    : null;
-
-  const kpis = [
-    {
-      id: "leads",
-      label: "Total leads",
-      value: totalLeads != null ? String(totalLeads) : "—",
-      href: "/apps/crm/contacts",
-    },
-    {
-      id: "pipeline",
-      label: "Pipeline value",
-      value: metrics ? formatAudMoney(metrics.pipelineValueCents) : "—",
-      href: "/apps/crm/opportunities",
-    },
-    {
-      id: "revenue",
-      label: "Revenue MTD",
-      value: metrics ? formatAudMoney(metrics.revenueMtdCents) : "—",
-      href: "/apps/commerce/invoices",
-    },
-    {
-      id: "contacts",
-      label: "Contacts",
-      value: metrics ? String(metrics.contactCount) : "—",
-      href: "/apps/crm/contacts",
-    },
-  ];
+  const { bundle } = data;
 
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/dashboard" className="text-sm text-sky-400 hover:underline">
-          ← Overview
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Analytics</h1>
-        <p className="text-sm text-slate-400">
-          Live Neon KPIs for {data.organisationName} — closed beta
-        </p>
+        <AnalyticsPageIntro organisationName={bundle.organisationName} active="/apps/analytics" />
         <AnalyticsSubnav active="/apps/analytics" />
       </header>
       <main className="dg-page-main space-y-6">
-        <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3 text-sm text-slate-400">
-          Beta floor: CRM/commerce counts from Neon. Twin score strip is provisional unless a
-          presence audit or review feed supplies real inputs. Growth MRR / Stripe attribution stays
-          out of scope here.
-        </div>
+        <AnalyticsPhilosophyNote />
 
-        {!metrics ? (
-          <div className="dg-card border-amber-500/30">
-            <p className="text-amber-300">
-              Sign in with a Neon-backed organisation to load live KPIs. Nothing below invents demo
-              charts.
-            </p>
+        {!data.metrics ? (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100/90">
+            Connect CRM, commerce, and website systems to load live metrics. Analytics never invents
+            numbers — only connected data appears here.
           </div>
         ) : null}
 
         <section className="dg-card">
           <h2 className="font-semibold text-white">Key metrics</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            High-level KPIs with context — inspect the evidence behind Intelligence surfaces.
+          </p>
           <div className="mt-4">
-            <AnalyticsKpiGrid items={kpis} />
+            <AnalyticsKeyMetricsGrid items={bundle.keyMetrics} />
+          </div>
+        </section>
+
+        <AnalyticsHealthReference score={bundle.businessHealth} />
+
+        <section className="dg-card">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="font-semibold text-white">Leads</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Inspect lead volume over time, then drill into source, status and opportunity value
+                in CRM.
+              </p>
+            </div>
+            <Link href="/apps/crm/leads" className="text-sm text-sky-400 hover:underline">
+              Drill down →
+            </Link>
+          </div>
+          <div className="mt-4">
+            <AnalyticsTrendChart points={bundle.leadTrend} note={bundle.leadTrendNote} />
           </div>
         </section>
 
         <section className="dg-card">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="font-semibold text-white">Score strip</h2>
-              <p className="mt-1 text-xs text-slate-500">
-                Business Health: {metrics ? `${twinScores.businessHealth}/100` : "—"} (provisional
-                Twin blend)
-              </p>
-            </div>
-            <Link href="/apps/analytics/dashboard" className="text-sm text-sky-400 hover:underline">
-              Open dashboard →
-            </Link>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {SCORE_CARDS.map((card) => {
-              const raw = twinScores[card.key];
-              const empty = !metrics || (card.id === "reputation" && raw === 0);
-              return (
-                <Link
-                  key={card.id}
-                  href={card.href}
-                  className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 hover:border-slate-700"
-                >
-                  <p className="text-xs text-slate-500">{card.label}</p>
-                  <p className="mt-1 text-3xl font-bold text-white">{empty ? "—" : raw}</p>
-                  {!empty ? <p className="text-xs text-slate-500">/ 100</p> : null}
-                </Link>
-              );
-            })}
+          <h2 className="font-semibold text-white">Digital evidence</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Scores and counts from connected systems. Missing data shows how to connect — never fake
+            metrics.
+          </p>
+          <div className="mt-4">
+            <AnalyticsEvidenceGrid items={bundle.evidenceMetrics} />
           </div>
         </section>
 
@@ -119,19 +78,25 @@ export default async function AnalyticsOverviewPage() {
               <Link href="/apps/analytics/dashboard" className="text-sky-400 hover:underline">
                 Dashboard
               </Link>{" "}
-              — KPI cards and health history when recorded
+              — predefined executive, sales, marketing and operations views
             </li>
             <li>
               <Link href="/apps/analytics/reports" className="text-sky-400 hover:underline">
                 Reports
               </Link>{" "}
-              — export a JSON snapshot of current metrics
+              — formal business performance reports with AI commentary
             </li>
             <li>
               <Link href="/apps/analytics/connectors" className="text-sky-400 hover:underline">
                 Data sources
               </Link>{" "}
-              — Neon live vs planned OAuth connectors (no fake GA/Meta)
+              — connected systems feeding Analytics and your Digital Twin
+            </li>
+            <li>
+              <Link href="/dashboard/insights" className="text-sky-400 hover:underline">
+                Insights
+              </Link>{" "}
+              — what DigitalGate is noticing (Intelligence interpretation)
             </li>
           </ul>
         </section>

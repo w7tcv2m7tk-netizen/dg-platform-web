@@ -1,4 +1,5 @@
 import {
+  buildAnalyticsBundle,
   buildLiveTwinWithScores,
   computeReputationScore,
   gatherOverviewLiveMetrics,
@@ -7,6 +8,7 @@ import {
   healthTrendFromHistory,
   loadHealthHistory,
   metricsContextFromLiveMetrics,
+  type AnalyticsBundle,
   type OrganisationBusinessProfile,
   type OverviewConnectorProbes,
   type OverviewLiveMetrics,
@@ -17,9 +19,7 @@ import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { getOrgEnabledAppIds, getPlatformPageContext } from "@/lib/org-apps";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
-export function formatAudMoney(cents: number): string {
-  return (cents / 100).toLocaleString("en-AU", { style: "currency", currency: "AUD" });
-}
+export { formatAnalyticsAud as formatAudMoney } from "@dg/platform-core";
 
 export type AnalyticsTwinScores = {
   seo: number;
@@ -30,7 +30,7 @@ export type AnalyticsTwinScores = {
 };
 
 export type AnalyticsPageData = {
-  organisationName: string;
+  bundle: AnalyticsBundle;
   metrics: OverviewLiveMetrics | null;
   scoreResults: ScoreResult[];
   twinScores: AnalyticsTwinScores;
@@ -52,8 +52,9 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
   const organisationName = platformSession?.organisationName ?? "Your business";
 
   if (!platformSession) {
+    const bundle = buildAnalyticsBundle({ organisationName });
     return {
-      organisationName,
+      bundle,
       metrics: null,
       scoreResults: [],
       twinScores: DEFAULT_TWIN_SCORES,
@@ -74,6 +75,7 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
 
   let scoreResults: ScoreResult[] = [];
   let twinScores = DEFAULT_TWIN_SCORES;
+  let twinScoresResult = null;
   const reputationFromFeed = computeReputationScore(reviewsBundle.feed);
 
   if (metrics) {
@@ -88,6 +90,7 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
       reputationOverride: reputationFromFeed.score,
     });
 
+    twinScoresResult = scores;
     scoreResults = scores.scores;
     twinScores = {
       seo: getScoreValue(scores.scores, "seo"),
@@ -99,9 +102,17 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
   }
 
   const healthTrend = healthTrendFromHistory(healthHistory, twinScores.businessHealth);
+  const bundle = buildAnalyticsBundle({
+    organisationName,
+    metrics,
+    connectors,
+    scores: twinScoresResult,
+    reputationScore: reputationFromFeed.score,
+    profile,
+  });
 
   return {
-    organisationName,
+    bundle,
     metrics,
     scoreResults,
     twinScores,

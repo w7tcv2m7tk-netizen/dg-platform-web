@@ -285,9 +285,15 @@ const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
   },
   {
     kind: "shell",
-    href: "/apps/analytics",
+    href: "/dashboard/insights",
     label: "Insights",
     icon: getSidebarIcon("analytics"),
+  },
+  {
+    kind: "shell",
+    href: "/dashboard/reports",
+    label: "Reports",
+    icon: getSidebarIcon("reports"),
   },
   {
     kind: "shell",
@@ -685,8 +691,6 @@ export function getCategorizedPlatformNavigation(
     .filter((a) => !SIDEBAR_HIDDEN_APP_IDS.has(a.manifest.id))
     .map((a) => toTreeItem(a, enabledIds));
 
-  const analyticsEnabled = isAppEnabled("analytics", enabledIds);
-
   const coreApps = [
     BUSINESS_NAV_ITEM,
     ...sortByOrder(
@@ -738,8 +742,8 @@ export function getCategorizedPlatformNavigation(
   const commandCentre = options?.showCommandCentre ? getCommandCentreNavItem() : null;
 
   const intelligenceLinks = INTELLIGENCE_LINKS.filter((link) => {
-    if (link.href === "/apps/analytics") {
-      return analyticsEnabled;
+    if (link.href === "/dashboard/insights" || link.href === "/dashboard/reports") {
+      return true;
     }
     return true;
   });

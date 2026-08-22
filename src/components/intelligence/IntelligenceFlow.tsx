@@ -3,12 +3,12 @@ import Link from "next/link";
 const FLOW = [
   {
     label: "Digital Twin",
-    question: "What is happening in my business?",
+    question: "What does DigitalGate currently know?",
     href: "/dashboard/twin",
   },
   {
     label: "Business Brain",
-    question: "What does DigitalGate know about my business?",
+    question: "What does DigitalGate understand about my business?",
     href: "/dashboard/brain",
   },
   {
@@ -18,18 +18,23 @@ const FLOW = [
   },
   {
     label: "Benchmarks",
-    question: "How do I compare?",
+    question: "How do we compare?",
     href: "/dashboard/benchmarks",
   },
   {
     label: "Insights",
-    question: "What is happening and why?",
-    href: "/dashboard/reports",
+    question: "What is DigitalGate noticing?",
+    href: "/dashboard/insights",
   },
   {
     label: "AI Advisor",
-    question: "What should I do?",
+    question: "What should we do?",
     href: "/dashboard/advisor",
+  },
+  {
+    label: "Reports",
+    question: "What do we need to communicate or export?",
+    href: "/dashboard/reports",
   },
   {
     label: "Command Centre",
@@ -69,6 +74,13 @@ export function IntelligenceFlow({ active = "AI Advisor" }: { active?: string })
           );
         })}
       </ol>
+      <p className="mt-4 border-t border-slate-800 pt-3 text-xs text-slate-500">
+        Analytics ({` `}
+        <Link href="/apps/analytics" className="text-sky-400 hover:underline">
+          Growth App
+        </Link>
+        ) answers: What do the numbers show?
+      </p>
     </div>
   );
 }

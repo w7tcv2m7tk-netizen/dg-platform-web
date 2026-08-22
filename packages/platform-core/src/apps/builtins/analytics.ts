@@ -4,7 +4,7 @@ export const analyticsApp: AppManifest = {
   id: "analytics",
   name: "Analytics",
   description:
-    "Cross-channel KPIs, trend reports, and connector-fed metrics — Analytics Pro on Gen 2",
+    "Explore the numbers behind your business — KPIs, dashboards, reports and connected data sources.",
   tier: "growth",
   version: "0.1.0",
   icon: "▥",

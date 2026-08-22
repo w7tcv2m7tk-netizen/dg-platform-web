@@ -1,134 +1,158 @@
 import Link from "next/link";
 
-import { AnalyticsKpiGrid } from "@/components/analytics/AnalyticsKpiGrid";
+import { AnalyticsKeyMetricsGrid } from "@/components/analytics/AnalyticsKeyMetricsGrid";
+import { AnalyticsPageIntro } from "@/components/analytics/AnalyticsPageIntro";
 import { AnalyticsSubnav } from "@/components/analytics/AnalyticsSubnav";
 import { formatAudMoney, loadAnalyticsPageData } from "@/lib/analytics-page-data";
 
-function HealthTrendChart({ values }: { values: number[] }) {
-  if (values.length < 2) {
-    return (
-      <p className="text-sm text-slate-500">
-        Health trend appears after multiple snapshots are recorded.
-      </p>
-    );
-  }
+const DASHBOARD_COPY: Record<
+  string,
+  { title: string; description: string; metricIds: string[] }
+> = {
+  executive: {
+    title: "Executive dashboard",
+    description: "Revenue, leads, pipeline, conversion, health and growth at a glance.",
+    metricIds: ["revenue", "leads", "pipeline", "conversion", "contacts", "tasks"],
+  },
+  sales: {
+    title: "Sales dashboard",
+    description: "Leads, opportunities, pipeline value, conversion and sales activity.",
+    metricIds: ["leads", "pipeline", "conversion", "contacts", "tasks"],
+  },
+  marketing: {
+    title: "Marketing dashboard",
+    description: "Lead flow, digital presence, SEO, AI Visibility and reputation signals.",
+    metricIds: ["leads", "contacts", "conversion"],
+  },
+  operations: {
+    title: "Operations dashboard",
+    description: "Tasks, customers, follow-ups, automation and team activity.",
+    metricIds: ["tasks", "contacts", "leads", "pipeline"],
+  },
+};
 
-  const max = Math.max(...values, 1);
-  const min = Math.min(...values, 0);
-  const range = max - min || 1;
-  const w = 280;
-  const h = 80;
-  const points = values
-    .map((v, i) => {
-      const x = (i / (values.length - 1)) * w;
-      const y = h - ((v - min) / range) * (h - 8) - 4;
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-20 w-full text-blue-400" aria-hidden>
-      <polyline
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-        points={points}
-      />
-    </svg>
-  );
-}
-
-const SCORE_STRIP = [
-  { id: "ai_visibility", label: "AI Visibility", key: "aiVisibility" as const },
-  { id: "seo", label: "SEO", key: "seo" as const },
-  { id: "website_health", label: "Website", key: "websiteHealth" as const },
-  { id: "reputation", label: "Reputation", key: "reputation" as const },
-];
-
-export default async function AnalyticsDashboardPage() {
+export default async function AnalyticsDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ dashboard?: string }>;
+}) {
+  const params = await searchParams;
+  const dashboardId = params.dashboard ?? "executive";
   const data = await loadAnalyticsPageData();
-  const { metrics, twinScores, healthTrend } = data;
+  const { bundle, metrics, twinScores } = data;
+  const view = DASHBOARD_COPY[dashboardId] ?? DASHBOARD_COPY.executive;
 
-  const kpis = [
+  const filteredMetrics = bundle.keyMetrics.filter((metric) =>
+    view.metricIds.includes(metric.id),
+  );
+
+  const supplemental = [
     {
-      id: "new_leads",
-      label: "New leads this week",
-      value: metrics ? String(metrics.newLeadsThisWeek) : "—",
+      id: "revenue_ytd",
+      label: "Revenue YTD",
+      value: metrics ? formatAudMoney(metrics.revenueYtdCents) : "—",
+      context: "Year to date",
+      status: "live" as const,
+      href: "/apps/commerce/invoices",
     },
     {
       id: "overdue",
       label: "Overdue follow-ups",
       value: metrics ? String(metrics.overdueFollowUps) : "—",
+      context: metrics && metrics.overdueFollowUps > 0 ? "Needs attention" : "Queue clear",
+      status: "live" as const,
       href: "/apps/crm/tasks",
-    },
-    {
-      id: "tasks",
-      label: "Open tasks due",
-      value: metrics ? String(metrics.openTasksDue) : "—",
-      href: "/apps/crm/tasks",
-    },
-    {
-      id: "revenue_ytd",
-      label: "Revenue YTD",
-      value: metrics ? formatAudMoney(metrics.revenueYtdCents) : "—",
     },
     {
       id: "outstanding_ar",
       label: "Outstanding AR",
       value: metrics ? formatAudMoney(metrics.outstandingArCents) : "—",
-    },
-    {
-      id: "listed",
-      label: "Listed properties",
-      value: metrics ? String(metrics.listedPropertyCount) : "—",
-      href: "/apps/re/listings",
+      context: "Receivables",
+      status: "live" as const,
+      href: "/apps/commerce/invoices",
     },
   ];
 
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/apps/analytics" className="text-sm text-blue-400 hover:underline">
-          ← Analytics overview
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Analytics dashboard</h1>
-        <p className="text-sm text-slate-400">{data.organisationName}</p>
+        <AnalyticsPageIntro organisationName={bundle.organisationName} active="/apps/analytics/dashboard" />
         <AnalyticsSubnav active="/apps/analytics/dashboard" />
       </header>
       <main className="dg-page-main space-y-6">
         <section className="dg-card">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-slate-500">Business Health</p>
-              <p className="mt-1 text-4xl font-bold text-emerald-400">
-                {twinScores.businessHealth}
-                <span className="text-lg text-slate-500">/100</span>
-              </p>
-            </div>
-            <div className="min-w-[200px] flex-1">
-              <p className="mb-2 text-xs text-slate-500">Health trend</p>
-              <HealthTrendChart values={healthTrend} />
-            </div>
+          <h2 className="font-semibold text-white">Predefined dashboards</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Start with curated views. Custom dashboard builder comes later.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {bundle.predefinedDashboards.map((dashboard) => {
+              const active = dashboard.id === dashboardId;
+              return (
+                <Link
+                  key={dashboard.id}
+                  href={dashboard.href}
+                  className={
+                    active
+                      ? "rounded-xl border border-sky-500/40 bg-sky-500/10 px-4 py-4"
+                      : "rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4 hover:border-slate-700"
+                  }
+                >
+                  <p className="font-medium text-white">{dashboard.label}</p>
+                  <p className="mt-1 text-xs text-slate-400">{dashboard.description}</p>
+                </Link>
+              );
+            })}
           </div>
-          <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {SCORE_STRIP.map((s) => (
-              <li
-                key={s.id}
-                className="flex items-center justify-between rounded-lg border border-slate-800 px-3 py-2 text-sm"
-              >
-                <span className="text-slate-400">{s.label}</span>
-                <span className="font-semibold text-white">{twinScores[s.key]}</span>
-              </li>
-            ))}
-          </ul>
         </section>
 
         <section className="dg-card">
-          <h2 className="font-semibold text-white">Operational KPIs</h2>
+          <h2 className="font-semibold text-white">{view.title}</h2>
+          <p className="mt-1 text-sm text-slate-500">{view.description}</p>
           <div className="mt-4">
-            <AnalyticsKpiGrid items={kpis} />
+            <AnalyticsKeyMetricsGrid items={filteredMetrics} />
           </div>
+        </section>
+
+        {(dashboardId === "executive" || dashboardId === "sales" || dashboardId === "operations") && (
+          <section className="dg-card">
+            <h2 className="font-semibold text-white">Supporting metrics</h2>
+            <div className="mt-4">
+              <AnalyticsKeyMetricsGrid items={supplemental} />
+            </div>
+          </section>
+        )}
+
+        {dashboardId === "marketing" ? (
+          <section className="dg-card">
+            <h2 className="font-semibold text-white">Digital presence</h2>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: "SEO", value: twinScores.seo, href: "/apps/seo" },
+                { label: "AI Visibility", value: twinScores.aiVisibility, href: "/apps/ai-visibility" },
+                { label: "Website", value: twinScores.websiteHealth, href: "/apps/websites/health" },
+                { label: "Reputation", value: twinScores.reputation, href: "/apps/reviews" },
+              ].map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 hover:border-slate-700"
+                >
+                  <p className="text-xs text-slate-500">{item.label}</p>
+                  <p className="mt-1 text-2xl font-bold text-white">
+                    {item.value > 0 ? `${item.value}/100` : "—"}
+                  </p>
+                  {item.value <= 0 ? (
+                    <p className="mt-1 text-xs text-amber-200/80">Not enough connected data</p>
+                  ) : null}
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="rounded-xl border border-dashed border-slate-700 px-4 py-4 text-sm text-slate-500">
+          Create dashboard — coming soon. Predefined views use live connected data only.
         </section>
       </main>
     </>
