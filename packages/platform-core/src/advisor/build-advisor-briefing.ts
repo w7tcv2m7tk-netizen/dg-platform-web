@@ -269,7 +269,7 @@ function answerForQuestion(
         id,
         question: "What should I automate?",
         summary:
-          health?.operationalInsight ??
+          benchmarks?.operationalInsight ??
           "Start with first-response, follow-up reminders, and repetitive admin tasks tied to CRM enquiries.",
         recommendations: withFallback(
           recommendations.filter(

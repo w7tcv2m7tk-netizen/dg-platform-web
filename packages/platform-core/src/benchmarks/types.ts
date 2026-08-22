@@ -1,3 +1,5 @@
+import type { BenchmarkCohortId, BenchmarkCohortOption } from "./cohorts";
+
 export type BenchmarkDataSource = "network" | "industry_reference";
 
 export type BenchmarkCategoryId =
@@ -44,20 +46,6 @@ export type BenchmarkOpportunity = {
 export type BenchmarkTrendPoint = {
   label: string;
   percentile: number;
-};
-
-export type BenchmarkCohortId =
-  | "similar"
-  | "industry"
-  | "local"
-  | "size"
-  | "digital_maturity"
-  | "top_performers";
-
-export type BenchmarkCohortOption = {
-  id: BenchmarkCohortId;
-  label: string;
-  description: string;
 };
 
 export type BusinessBenchmarksBundle = {
