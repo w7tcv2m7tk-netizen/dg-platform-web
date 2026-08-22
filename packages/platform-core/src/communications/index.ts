@@ -509,3 +509,4 @@ export * from "./sales-intelligence";
 export * from "./orchestrator";
 export * from "./webhooks";
 export * from "./metrics";
+export * from "./templates";
