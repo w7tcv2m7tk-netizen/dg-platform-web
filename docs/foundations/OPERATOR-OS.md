@@ -106,15 +106,32 @@ Implementation: `packages/platform-core/src/command-centre/overview.ts` — plat
 
 When `showCommandCentre` is true, the side panel separates:
 
-### DIGITALGATE
+### DIGITALGATE · Platform Operator
 
-Operator OS — Command Centre, Organisations, Sales, Partners, Delivery, Customer Intelligence, Platform Intelligence, Commercial, Product, Support.
+Operator OS — not a customer tenant. Industry Apps are **never** shown here.
+
+| Section | Question it answers |
+|---------|---------------------|
+| **Command Centre** | What should DigitalGate do today? (Priorities · Alerts · Sales Week · Founding 10) |
+| **Organisations** | Who are our customers? |
+| **Sales** | How is acquisition performing? (Prospecting & Opportunity Engine · Founding 10 · Sales Week · Opportunities) |
+| **Partners** | How are resellers performing? |
+| **Delivery** | How are implementations progressing? (full Delivery OS) |
+| **Customer Intelligence** | How are our **customers** doing? |
+| **Platform Intelligence** | How is **DigitalGate** performing? |
+| **Commercial** | Revenue, subscriptions, expansion |
+| **Product** | Flags, roadmap, releases, feedback |
+| **Support** | Operator support centre (not auto-exposed to every customer) |
+
+**Command Centre surfaces Advisor recommendations — it does not duplicate the Advisor nav item.** AI Advisor lives under **Intelligence** only.
+
+### CORE · INFRASTRUCTURE · GROWTH · INTELLIGENCE
+
+DigitalGate’s own business capabilities (same Core/Growth/Intelligence stack customers use — without Industry Apps).
 
 ### PLATFORM
 
-Tenant platform configuration — Apps, Marketplace, Network, Settings (Billing, Connectors, API, Audit), Roadmap, Platform Docs.
-
-Customers continue to see **Platform Admin** (not DigitalGate Operator OS).
+Tenant platform configuration — Apps · Marketplace · Network · Settings · Platform Docs. **Roadmap lives under Product**, not Platform.
 
 ---
 

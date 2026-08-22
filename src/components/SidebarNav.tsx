@@ -80,7 +80,7 @@ function CollapsibleNavSection({
                 {item.routes.map((route) => {
                   const active = routeIsActive(pathname, route.path, item.routes);
                   return (
-                    <li key={route.path}>
+                    <li key={`${item.id}-${route.path}-${route.label}`}>
                       <Link
                         href={route.path}
                         prefetch
@@ -155,6 +155,9 @@ function IaSectionBlock({
       <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
         {section.label}
       </p>
+      {section.sublabel ? (
+        <p className="mb-2 px-3 text-[10px] tracking-wide text-slate-500">{section.sublabel}</p>
+      ) : null}
       {renderShellLinks(section.links)}
       {section.apps.length > 0 ? (
         <CollapsibleNavSection

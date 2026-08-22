@@ -51,8 +51,7 @@ export const commandCentreApp: AppManifest = {
    */
   navigation: [
     { href: "/command", label: "Priorities", icon: "◈" },
-    { href: "/command/advisor", label: "Recommended Actions", icon: "✓" },
-    { href: "/command/platform-health", label: "Platform Alerts", icon: "◉" },
+    { href: "/command/platform-health", label: "Alerts", icon: "◉" },
     { href: "/command/sales-week", label: "Sales Week", icon: "◷" },
     { href: "/command/founding", label: "Founding 10", icon: "✦" },
   ],

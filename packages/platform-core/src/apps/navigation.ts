@@ -68,6 +68,8 @@ export interface NavIaShellLink extends PlatformShellNavItem {
 export interface NavIaSection {
   id: NavIaSectionId;
   label: string;
+  /** Optional muted line under the section label (e.g. Platform Operator). */
+  sublabel?: string;
   /** Flat shell links in this section */
   links: PlatformShellNavItem[];
   /** Collapsible installed apps in this section */
@@ -356,12 +358,6 @@ function getPlatformAdminSection(options?: {
     ? [
         {
           kind: "shell",
-          href: "/dashboard/settings/roadmap",
-          label: "Roadmap",
-          icon: getSidebarIcon("reports"),
-        },
-        {
-          kind: "shell",
           href: "/command/docs",
           label: "Platform Docs",
           icon: getSidebarIcon("reports"),
@@ -411,6 +407,7 @@ function getDigitalGateOperatorSection(): NavIaSection {
   return {
     id: "digitalgate",
     label: DIGITALGATE_OPERATOR_NAV_SECTION_LABEL,
+    sublabel: DIGITALGATE_OPERATOR_SUBLABEL,
     links: [],
     apps: [
       {
@@ -427,7 +424,10 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/command/clients", label: "All organisations" },
       ]),
       operatorApp("dg-sales", "Sales", "prospecting", "/command/growth-engine", [
-        { path: "/command/growth-engine", label: "Growth Engine" },
+        { path: "/command/growth-engine", label: "Prospecting & Opportunity Engine" },
+        { path: "/command/growth-engine/discovery", label: "Discovery" },
+        { path: "/command/growth-engine/pipeline", label: "Pipeline" },
+        { path: "/command/growth-engine/follow-ups", label: "Activity" },
         { path: "/command/founding", label: "Founding 10" },
         { path: "/command/sales-week", label: "Sales Week" },
         { path: "/command/opportunities", label: "Opportunities" },
@@ -438,30 +438,55 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/command/commissions", label: "Commissions" },
       ]),
       operatorApp("dg-delivery", "Delivery", "partner-portal", "/command/delivery", [
+        { path: "/command/delivery", label: "Dashboard" },
+        { path: "/command/delivery/onboarding", label: "Onboarding" },
         { path: "/command/delivery", label: "Implementation" },
         { path: "/command/delivery/projects", label: "Projects" },
         { path: "/command/delivery/tasks", label: "Tasks" },
+        { path: "/command/delivery/customers", label: "Customers" },
+        { path: "/command/delivery/plans", label: "Implementation plans" },
+        { path: "/command/delivery/training", label: "Training" },
+        { path: "/command/delivery/qa", label: "QA & Go-Live" },
+        { path: "/command/delivery/team", label: "Team" },
+        { path: "/command/delivery/activity", label: "Activity" },
+        { path: "/command/delivery/documents", label: "Documents" },
+        { path: "/command/delivery/reports", label: "Reports" },
       ]),
       operatorApp("dg-customer-intelligence", "Customer Intelligence", "brain", "/command/clients", [
-        { path: "/command/clients", label: "Organisation health" },
-        { path: "/command/advisor", label: "AI Advisor" },
-        { path: "/command/benchmarks", label: "Benchmarks" },
+        { path: "/command/customer-intelligence/overview", label: "Overview" },
+        { path: "/command/customer-intelligence/health", label: "Customer health" },
+        { path: "/command/customer-intelligence/adoption", label: "Adoption" },
+        { path: "/command/customer-intelligence/engagement", label: "Engagement" },
+        { path: "/command/customer-intelligence/at-risk", label: "At risk" },
+        { path: "/command/customer-intelligence/expansion", label: "Expansion" },
       ]),
       operatorApp("dg-platform-intelligence", "Platform Intelligence", "advisor", "/command/intelligence", [
-        { path: "/command/intelligence", label: "Platform Intelligence" },
-        { path: "/command/platform-health", label: "Platform Alerts" },
+        { path: "/command/platform-intelligence/overview", label: "Overview" },
+        { path: "/command/platform-intelligence/health", label: "Platform health" },
+        { path: "/command/platform-intelligence/connectors", label: "Connector health" },
+        { path: "/command/platform-intelligence/automation", label: "Automation health" },
+        { path: "/command/platform-intelligence/ai-usage", label: "AI usage" },
+        { path: "/command/platform-intelligence/activity", label: "System activity" },
+        { path: "/command/platform-intelligence/diagnostics", label: "Diagnostics" },
       ]),
       operatorApp("dg-commercial", "Commercial", "commerce", "/command/revenue", [
         { path: "/command/revenue", label: "Revenue / MRR" },
+        { path: "/command/commercial/subscriptions", label: "Subscriptions" },
         { path: "/command/opportunities/expansion", label: "Expansion" },
       ]),
       operatorApp("dg-product", "Product", "flags", "/command/flags", [
+        { path: "/command/product/overview", label: "Overview" },
         { path: "/command/flags", label: "Feature flags" },
-        { path: "/dashboard/settings/roadmap", label: "Roadmap" },
+        { path: "/command/product/roadmap", label: "Roadmap" },
+        { path: "/command/product/releases", label: "Releases" },
+        { path: "/command/product/feedback", label: "Feedback" },
       ]),
       operatorApp("dg-support", "Support", "advisor", "/support", [
         { path: "/support", label: "Support centre" },
+        { path: "/support/tickets", label: "Tickets" },
+        { path: "/support/escalations", label: "Escalations" },
         { path: "/support/help", label: "Knowledge base" },
+        { path: "/command/platform-intelligence/service-status", label: "Service status" },
       ]),
     ],
   };
@@ -499,6 +524,7 @@ export const INDUSTRY_NAV_SECTION_LABEL = "Industry";
 export const PLATFORM_ADMIN_NAV_SECTION_LABEL = "Platform Admin";
 /** Staff operator OS — DigitalGate runs DigitalGate (not a customer tenant). */
 export const DIGITALGATE_OPERATOR_NAV_SECTION_LABEL = "DigitalGate";
+export const DIGITALGATE_OPERATOR_SUBLABEL = "Platform Operator";
 /** Staff tenant platform config — Apps, Settings, Billing, etc. */
 export const PLATFORM_CONFIG_NAV_SECTION_LABEL = "Platform";
 export const PARTNERS_NAV_SECTION_LABEL = "Partners";
@@ -744,8 +770,7 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
     primaryHref: "/command",
     routes: [
       { path: "/command", label: "Priorities" },
-      { path: "/command/advisor", label: "AI Advisor" },
-      { path: "/command/platform-health", label: "Platform Alerts" },
+      { path: "/command/platform-health", label: "Alerts" },
       { path: "/command/sales-week", label: "Sales Week" },
       { path: "/command/founding", label: "Founding 10" },
     ],

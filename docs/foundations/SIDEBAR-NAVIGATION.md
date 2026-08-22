@@ -50,15 +50,21 @@ INTELLIGENCE
   (Reasoning: Twin → Brain → Health/Benchmarks/Insights → Advisor → Command Centre; Reports branches as output)
   Analytics is a related evidence surface — not in this hierarchy.
 
-DIGITALGATE (staff only)
+DIGITALGATE · Platform Operator (staff only)
   Command Centre · Organisations · Sales · Partners · Delivery · Customer Intelligence · Platform Intelligence · Commercial · Product · Support
 
-PLATFORM (staff) / PLATFORM ADMIN (customers)
-  Apps · Marketplace · Network · Settings · Roadmap* · Platform Docs*
-  Customers also see Support under Platform Admin.
-```
+  Command Centre: Priorities · Alerts · Sales Week · Founding 10 (no AI Advisor — Advisor lives under Intelligence)
 
-\* Roadmap and Platform Docs are DigitalGate-internal by default.
+  Customer Intelligence: customer ecosystem health
+  Platform Intelligence: DigitalGate ecosystem health (distinct from customer alerts)
+
+CORE · INFRASTRUCTURE · GROWTH · INTELLIGENCE
+  (DigitalGate org capabilities — no Industry section)
+
+PLATFORM (staff) / PLATFORM ADMIN (customers)
+  Apps · Marketplace · Network · Settings · Platform Docs
+  Roadmap is under Product (staff) — not duplicated in Platform.
+```
 
 ### CORE order
 
@@ -94,7 +100,7 @@ Individual module permissions **override** defaults. Nav hide ≠ security — e
 
 ## Command Centre
 
-Primary **“what matters now?”** experience — Priorities, Recommended Actions, Alerts, Sales Week, Founding 10 (staff). Ideal loop: Command Centre → Recommended Action → Action → Outcome.
+Primary **“what matters now?”** experience — Priorities, Alerts, Sales Week, Founding 10 (staff). Surfaces Advisor recommendations without duplicating the Advisor nav item. Ideal loop: Command Centre → Recommended Action → Action → Outcome.
 
 Staff Command Centre remains gated to the DigitalGate operator org. Customer “what next” landing deepens via Overview / Advisor / Health under the DigitalGate Principle.
 
