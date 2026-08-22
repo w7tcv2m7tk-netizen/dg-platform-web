@@ -58,6 +58,13 @@ export const INTELLIGENCE_ACTION: IntelligenceSurface[] = [
     href: "/dashboard/advisor",
   },
   {
+    id: "actions",
+    label: "Recommended Actions",
+    question: "What matters most right now?",
+    detail: "Prioritised next steps from Advisor reasoning.",
+    href: "/dashboard/advisor",
+  },
+  {
     id: "command",
     label: "Command Centre",
     question: "What needs to happen next?",

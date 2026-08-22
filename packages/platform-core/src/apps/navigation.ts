@@ -744,7 +744,7 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
     primaryHref: "/command",
     routes: [
       { path: "/command", label: "Priorities" },
-      { path: "/command/advisor", label: "Recommended Actions" },
+      { path: "/command/advisor", label: "AI Advisor" },
       { path: "/command/platform-health", label: "Alerts" },
       { path: "/command/sales-week", label: "Sales Week" },
       { path: "/command/founding", label: "Founding 10" },

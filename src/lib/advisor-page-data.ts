@@ -111,6 +111,7 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
 
   return buildAdvisorBriefing({
     userDisplayName,
+    organisationName: session.organisationName,
     enabledAppIds,
     metrics,
     scores: twinScores,

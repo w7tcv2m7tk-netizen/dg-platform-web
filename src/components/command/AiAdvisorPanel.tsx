@@ -7,6 +7,8 @@ type OrgOption = {
   organisationId: string;
   organisationName: string;
   successScore: number;
+  scoreProvisional?: boolean;
+  needsAttention?: boolean;
 };
 
 type AdvisorResult = {
@@ -30,6 +32,13 @@ type AdvisorResult = {
   generatedAt: string;
 };
 
+const STAFF_EXAMPLES = [
+  "What should I focus on for this organisation today?",
+  "Where are the biggest risks?",
+  "Give me a summary for the account owner.",
+  "What should we intervene on this week?",
+];
+
 export function AiAdvisorPanel({
   orgs,
   initialOrgId,
@@ -49,6 +58,7 @@ export function AiAdvisorPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AdvisorResult | null>(null);
+  const [showTechnical, setShowTechnical] = useState(false);
 
   async function runAdvisor() {
     if (!organisationId) return;
@@ -83,47 +93,69 @@ export function AiAdvisorPanel({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-4">
-        <div className="grid gap-4 md:grid-cols-[1fr_2fr_auto]">
+      <section className="rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-slate-950/50 to-slate-950/40 px-6 py-6">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300/90">
+          Ask your Advisor
+        </p>
+        <h2 className="mt-2 text-lg font-semibold text-white">What would you like help with?</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Reason across Customer Intelligence, Organisation Health, connectors and live signals —
+          then decide what DigitalGate should do next.
+        </p>
+
+        <div className="mt-5 grid gap-4 md:grid-cols-[1fr_2fr]">
           <label className="block text-sm">
-            <span className="text-slate-400">Client organisation</span>
+            <span className="text-slate-400">Organisation</span>
             <select
               value={organisationId}
               onChange={(e) => setOrganisationId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-white"
             >
               {orgs.map((org) => (
                 <option key={org.organisationId} value={org.organisationId}>
-                  {org.organisationName} ({org.successScore})
+                  {org.organisationName}
+                  {org.scoreProvisional ? " · insufficient data" : ` · health ${org.successScore}`}
                 </option>
               ))}
             </select>
           </label>
           <label className="block text-sm">
-            <span className="text-slate-400">Question (optional)</span>
-            <input
+            <span className="text-slate-400">Question</span>
+            <textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="How is this client performing?"
+              rows={2}
+              placeholder="Ask a question or describe a problem..."
               className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white placeholder:text-slate-600"
             />
           </label>
-          <div className="flex items-end">
-            <button
-              type="button"
-              onClick={() => void runAdvisor()}
-              disabled={loading || !organisationId}
-              className="w-full rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50 md:w-auto"
-            >
-              {loading ? "Analysing…" : "Ask advisor"}
-            </button>
-          </div>
         </div>
-        <p className="mt-3 text-xs text-slate-500">
-          Uses the platform LLM assist router when configured; otherwise a deterministic
-          template from Success Score signals.
-        </p>
-      </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => void runAdvisor()}
+            disabled={loading || !organisationId}
+            className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-violet-500 disabled:opacity-50"
+          >
+            {loading ? "Thinking…" : "Ask Advisor →"}
+          </button>
+        </div>
+
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {STAFF_EXAMPLES.map((example) => (
+            <li key={example}>
+              <button
+                type="button"
+                onClick={() => setQuestion(example)}
+                className="rounded-full border border-slate-700 bg-slate-950/50 px-3 py-1.5 text-left text-xs text-slate-300 hover:border-violet-500/50 hover:text-white"
+              >
+                “{example}”
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {error ? (
         <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 px-4 py-3 text-sm text-rose-100">
@@ -142,8 +174,8 @@ export function AiAdvisorPanel({
                 <h2 className="mt-1 text-lg font-semibold text-white">Advisor insight</h2>
               </div>
               <p className="text-xs text-slate-500">
-                Score {result.successScore} · {result.source}
-                {result.provider ? ` · ${result.provider}` : ""}
+                Organisation health {result.successScore}/100
+                {result.healthTier ? ` · ${result.healthTier.replace(/_/g, " ")}` : ""}
               </p>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-slate-200">{result.summary}</p>
@@ -171,15 +203,20 @@ export function AiAdvisorPanel({
           </div>
 
           <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-4">
-            <h3 className="text-sm font-semibold text-white">Recommendations</h3>
+            <h3 className="text-sm font-semibold text-white">Recommended Actions</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              What DigitalGate thinks the team should do next for this organisation.
+            </p>
             <ul className="mt-3 space-y-3">
-              {result.recommendations.map((rec) => (
+              {result.recommendations.map((rec, index) => (
                 <li
                   key={rec.id}
                   className="flex items-start justify-between gap-4 border-b border-slate-800/80 pb-3 last:border-0 last:pb-0"
                 >
                   <div>
-                    <p className="font-medium text-white">{rec.label}</p>
+                    <p className="font-medium text-white">
+                      {index + 1}. {rec.label}
+                    </p>
                     {rec.description ? (
                       <p className="mt-1 text-sm text-slate-400">{rec.description}</p>
                     ) : null}
@@ -193,6 +230,22 @@ export function AiAdvisorPanel({
               ))}
             </ul>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setShowTechnical((v) => !v)}
+            className="text-xs text-slate-500 hover:text-slate-300"
+          >
+            {showTechnical ? "Hide technical details" : "View technical details →"}
+          </button>
+          {showTechnical ? (
+            <p className="text-xs text-slate-600">
+              Generated {new Date(result.generatedAt).toLocaleString("en-AU")}
+              {result.source ? ` · ${result.source}` : ""}
+              {result.provider ? ` · ${result.provider}` : ""}
+              {result.model ? ` · ${result.model}` : ""}
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>

@@ -5,11 +5,49 @@ export type AdvisorQuestionId =
   | "losing_opportunities"
   | "automate"
   | "compare"
-  | "revenue_impact";
+  | "revenue_impact"
+  | "business_health"
+  | "owner_summary";
+
+export type AdvisorActionPriority = "high" | "medium" | "low";
+
+export type AdvisorActionCategory =
+  | "Sales"
+  | "Customers"
+  | "Marketing"
+  | "Website"
+  | "SEO"
+  | "AI Visibility"
+  | "Reputation"
+  | "Operations"
+  | "Finance"
+  | "Automation"
+  | "Health"
+  | "Growth"
+  | "Platform";
+
+/** Ask-about domains — only surfaces the org has access to. */
+export type AdvisorContextId =
+  | "entire_business"
+  | "sales"
+  | "customers"
+  | "marketing"
+  | "website"
+  | "seo"
+  | "ai_visibility"
+  | "reputation"
+  | "operations"
+  | "finance"
+  | "automation"
+  | "contact"
+  | "opportunity";
 
 export type AdvisorRecommendation = {
   id: string;
   priority: number;
+  priorityLevel: AdvisorActionPriority;
+  category: AdvisorActionCategory;
+  title: string;
   whatISee: string;
   whyItMatters: string;
   whatIRecommend: string;
@@ -25,10 +63,16 @@ export type AdvisorQuestionAnswer = {
   recommendations: AdvisorRecommendation[];
 };
 
+export type AdvisorContextOption = {
+  id: AdvisorContextId;
+  label: string;
+};
+
 export type BusinessAdvisorBundle = {
   generatedAt: string;
   scoresLive: boolean;
   userDisplayName: string;
+  organisationName: string;
   brainCompleteness: number;
   businessHealth: number | null;
   benchmarkScore: number | null;
@@ -36,5 +80,7 @@ export type BusinessAdvisorBundle = {
   todaySummary: string;
   topRecommendations: AdvisorRecommendation[];
   suggestedQuestions: Array<{ id: AdvisorQuestionId; label: string }>;
+  askExamples: string[];
+  availableContexts: AdvisorContextOption[];
   questionAnswers: AdvisorQuestionAnswer[];
 };

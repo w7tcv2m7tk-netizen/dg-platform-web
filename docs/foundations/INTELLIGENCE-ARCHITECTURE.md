@@ -37,10 +37,22 @@ INTELLIGENCE
                AI ADVISOR
         What should the business do?
                     ↓
+          RECOMMENDED ACTIONS
+        What matters most right now?
+                    ↓
              COMMAND CENTRE
         What needs to happen next?
 ```
 
+**Separation:**
+
+| Surface | Role | Question |
+|---------|------|----------|
+| AI Advisor | Reasoning | What should I do? |
+| Recommended Actions | Prioritisation | What matters most? |
+| Command Centre | Execution | What needs to happen now? |
+
+Customer UI should not expose LLM vs deterministic implementation details. Behind the scenes: Business Brain → Context Builder → AI Service → Model Router → Tools → Permission checks → Audit trail, with deterministic fallbacks where appropriate.
 ---
 
 ## Output layer (branch)
@@ -78,6 +90,7 @@ Explore the underlying performance data behind DigitalGate intelligence — dist
 | Benchmarks | How does the business compare? |
 | Insights | What is DigitalGate noticing? |
 | AI Advisor | What should the business do? |
+| Recommended Actions | What matters most right now? |
 | Command Centre | What needs to happen next? |
 | Reports | What needs to be communicated or exported? |
 | Analytics | What do the numbers show? |
