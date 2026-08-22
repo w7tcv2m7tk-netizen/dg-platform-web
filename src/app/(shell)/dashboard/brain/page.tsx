@@ -1,83 +1,55 @@
-import {
-  buildBusinessBrain,
-  buildLiveTwinWithScores,
-  gatherOverviewLiveMetrics,
-  getBusinessContext,
-  getOrganisationBusinessProfile,
-  getPlatformSetupStatus,
-  metricsContextFromLiveMetrics,
-} from "@dg/platform-core";
+import Link from "next/link";
 
-import { BusinessBrainView } from "@/components/platform/BusinessBrainView";
-import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
+import { BusinessBrainDashboard } from "@/components/intelligence/BusinessBrainDashboard";
+import { loadBusinessBrainPageData } from "@/lib/brain-page-data";
 import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
-import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 
 export default async function BusinessBrainPage() {
-  const { session } = await getPlatformPageContext();
   await ensureOrganisationOnboardingSync();
+  const data = await loadBusinessBrainPageData();
 
-  if (!session) {
+  if (!data) {
     return (
       <>
         <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Business Brain</h1>
+          <p className="text-xs font-medium uppercase tracking-widest text-sky-400/90">
+            Intelligence · Business Brain
+          </p>
+          <h1 className="mt-2 text-2xl font-bold text-white">Business Brain</h1>
         </header>
         <main className="dg-page-main">
-          <p className="text-sm text-slate-400">Sign in to view your Digital Business Brain.</p>
+          <p className="text-sm text-slate-400">Sign in to view your Business Brain.</p>
         </main>
       </>
     );
   }
 
-  const enabledAppIds = await getOrgEnabledAppIdsCached();
-  const [profile, metrics, connectors, setupStatus] = await Promise.all([
-    getOrganisationBusinessProfile(session.organisationId),
-    gatherOverviewLiveMetrics(session.organisationId),
-    fetchOverviewConnectorProbes(enabledAppIds, session.organisationId),
-    getPlatformSetupStatus(session.organisationId),
-  ]);
-
-  const snapshot = metrics
-    ? buildLiveTwinWithScores({
-        organisationId: session.organisationId,
-        organisationName: session.organisationName,
-        enabledAppIds,
-        metrics,
-        connectors,
-        profile,
-        metricsContext: metricsContextFromLiveMetrics(metrics),
-      }).snapshot
-    : null;
-
-  const context = await getBusinessContext({
-    organisationId: session.organisationId,
-    organisationName: session.organisationName,
-    enabledAppIds,
-    twinSnapshot: snapshot,
-    profileOverride: profile,
-  });
-
-  const brain = buildBusinessBrain({
-    context,
-    setup: setupStatus,
-    connectorCount: context.twin.connectedSystems.length,
-  });
-
   return (
     <>
       <header className="dg-page-header">
-        <p className="text-xs font-medium uppercase tracking-widest text-sky-400">
+        <p className="text-xs font-medium uppercase tracking-widest text-sky-400/90">
           Intelligence · Business Brain
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Business Brain</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Connect your business. Give it a brain — what DigitalGate understands about your
-          organisation, and what it still needs to learn.
+          What does DigitalGate understand about your business? The interpreted context behind
+          Advisor, Insights, Health and AI — built from your profile, apps, connectors and live Twin
+          data.
         </p>
+        <div className="mt-4 flex flex-wrap gap-3 text-sm">
+          <Link href="/dashboard/twin" className="text-sky-400 hover:underline">
+            Digital Twin →
+          </Link>
+          <Link href="/dashboard/business" className="text-sky-400 hover:underline">
+            Business Profile →
+          </Link>
+          <Link href="/dashboard/advisor" className="text-sky-400 hover:underline">
+            AI Advisor →
+          </Link>
+        </div>
       </header>
       <main className="dg-page-main">
-        <BusinessBrainView brain={brain} />
+        <BusinessBrainDashboard data={data} />
       </main>
     </>
   );

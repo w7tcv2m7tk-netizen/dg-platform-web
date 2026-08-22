@@ -12,12 +12,17 @@ function field(
   present: boolean,
   href: string,
   value?: string,
+  partial = false,
 ): BusinessBrainField {
+  let status: BusinessBrainField["status"] = "missing";
+  if (present) status = "ready";
+  else if (partial) status = "partial";
+
   return {
     id,
     label,
-    status: present ? "ready" : "missing",
-    value: present ? value : undefined,
+    status,
+    value: present || partial ? value : undefined,
     href,
   };
 }
@@ -30,6 +35,10 @@ function dimension(
 ): BusinessBrainDimension {
   const readyCount = fields.filter((f) => f.status === "ready").length;
   const totalCount = fields.length;
+  const weighted = fields.reduce(
+    (sum, f) => sum + (f.status === "ready" ? 1 : f.status === "partial" ? 0.5 : 0),
+    0,
+  );
   return {
     id,
     name,
@@ -37,18 +46,51 @@ function dimension(
     fields,
     readyCount,
     totalCount,
-    percent: totalCount ? Math.round((readyCount / totalCount) * 100) : 0,
+    percent: totalCount ? Math.round((weighted / totalCount) * 100) : 0,
   };
 }
 
 const SURFACES: BusinessBrainSnapshot["surfaces"] = [
-  { label: "Command Centre", href: "/dashboard", uses: "What matters now — Brain does the thinking" },
-  { label: "AI Advisor", href: "/dashboard/advisor", uses: "Context-aware recommendations and explanations" },
-  { label: "Business Health", href: "/dashboard/health", uses: "Measures health; Brain supplies understanding" },
-  { label: "Digital Twin", href: "/dashboard/twin", uses: "Live operating awareness feeding the Brain" },
-  { label: "AI Communications", href: "/apps/ai-communications", uses: "Authorised knowledge, tone and context" },
-  { label: "CRM", href: "/apps/crm", uses: "Relationships and commercial memory" },
-  { label: "Automation", href: "/apps/automation", uses: "Turn decisions into action" },
+  {
+    label: "Digital Twin",
+    href: "/dashboard/twin",
+    uses: "Live operating state the Brain interprets",
+  },
+  {
+    label: "Business Health",
+    href: "/dashboard/health",
+    uses: "Vital signs derived from Twin data and Brain context",
+  },
+  {
+    label: "Benchmarks",
+    href: "/dashboard/benchmarks",
+    uses: "External comparison context for decisions",
+  },
+  {
+    label: "Insights",
+    href: "/dashboard/insights",
+    uses: "What DigitalGate is noticing from your connected business",
+  },
+  {
+    label: "AI Advisor",
+    href: "/dashboard/advisor",
+    uses: "Recommendations grounded in Brain understanding",
+  },
+  {
+    label: "Analytics",
+    href: "/apps/analytics",
+    uses: "Underlying numbers and evidence behind interpretation",
+  },
+  {
+    label: "Command Centre",
+    href: "/dashboard",
+    uses: "Priorities and actions from Brain-backed intelligence",
+  },
+  {
+    label: "AI Communications",
+    href: "/apps/ai-communications",
+    uses: "Authorised knowledge, tone and business context",
+  },
 ];
 
 export function buildBusinessBrain(input: {
@@ -61,7 +103,6 @@ export function buildBusinessBrain(input: {
   const contact = context.contact;
   const voice = context.brandVoice;
   const profile = context.profile;
-  const socialCount = Object.keys(contact.social).length;
   const connectorCount = input.connectorCount ?? context.twin.connectedSystems.length;
   const commsEnabled = context.enabledAppIds.includes("ai-communications");
   const automationEnabled = context.enabledAppIds.includes("automation");
@@ -74,8 +115,8 @@ export function buildBusinessBrain(input: {
       "Plan, identity, brand, strategy and goals.",
       [
         field("name", "Company information", Boolean(identity.businessName), "/dashboard/business", identity.businessName),
-        field("brand", "Brand", Boolean(identity.iconUrl || identity.logoUrl || identity.brandColours?.length), "/dashboard/business", identity.brandColours?.join(" · ")),
-        field("strategy", "Strategy", Boolean(voice.tagline || voice.tone), "/dashboard/business", voice.tagline || voice.tone),
+        field("brand", "Brand", Boolean(identity.iconUrl || identity.logoUrl), "/dashboard/business", identity.brandColours?.join(" · "), Boolean(identity.brandColours?.length)),
+        field("strategy", "Strategy", Boolean(voice.tagline && voice.tone), "/dashboard/business", voice.tagline || voice.tone, Boolean(voice.tagline || voice.tone)),
         field("goals", "Goals", context.goals.length > 0, "/dashboard/goals", `${context.goals.length} goal${context.goals.length === 1 ? "" : "s"}`),
         field("industry", "Industry", Boolean(identity.industry), "/dashboard/business", identity.industry),
       ],
@@ -87,7 +128,7 @@ export function buildBusinessBrain(input: {
       [
         field("team", "Team", Boolean(setup?.hasTeamMember), "/dashboard/settings/team", setup?.hasTeamMember ? "Team members on platform" : undefined),
         field("primary", "Primary contact", Boolean(contact.primaryName || contact.primaryEmail), "/dashboard/business", contact.primaryName || contact.primaryEmail),
-        field("contacts", "CRM contacts", Boolean(setup?.hasContacts), "/apps/crm/contacts", setup?.contactCount ? `${setup.contactCount} contacts` : undefined),
+        field("contacts", "CRM contacts", Boolean(setup?.hasContacts && (setup.contactCount ?? 0) >= 5), "/apps/crm/contacts", setup?.contactCount ? `${setup.contactCount} contacts` : undefined, Boolean(setup?.hasContacts)),
         field("roles", "Roles", Boolean(contact.primaryName), "/dashboard/settings/team", contact.primaryName),
       ],
     ),
@@ -107,7 +148,7 @@ export function buildBusinessBrain(input: {
       "Commercial",
       "Products, services, pricing and sales process.",
       [
-        field("services", "Products / services", Boolean(voice.services), "/dashboard/business", voice.services?.slice(0, 80)),
+        field("services", "Products / services", Boolean(voice.services && voice.services.length > 20), "/dashboard/business", voice.services?.slice(0, 80), Boolean(voice.services)),
         field("audience", "Target audience", Boolean(voice.targetAudience), "/dashboard/business", voice.targetAudience),
         field("crm", "Sales process (CRM)", crmEnabled, "/apps/crm", crmEnabled ? "CRM enabled" : undefined),
         field("website", "Public offer", Boolean(identity.website || setup?.hasPublishedWebsite), identity.website || "/apps/websites", identity.website),
@@ -146,13 +187,25 @@ export function buildBusinessBrain(input: {
     ),
   ];
 
-  const readyCount = dimensions.reduce((sum, d) => sum + d.readyCount, 0);
+  const readyCount = dimensions.reduce(
+    (sum, d) => sum + d.fields.filter((f) => f.status === "ready").length,
+    0,
+  );
   const totalCount = dimensions.reduce((sum, d) => sum + d.totalCount, 0);
+  const weighted = dimensions.reduce(
+    (sum, d) =>
+      sum +
+      d.fields.reduce(
+        (fieldSum, f) => fieldSum + (f.status === "ready" ? 1 : f.status === "partial" ? 0.5 : 0),
+        0,
+      ),
+    0,
+  );
 
   return {
     organisationId: context.organisationId,
     organisationName: identity.businessName || context.organisationName,
-    percent: totalCount ? Math.round((readyCount / totalCount) * 100) : 0,
+    percent: totalCount ? Math.round((weighted / totalCount) * 100) : 0,
     readyCount,
     totalCount,
     dimensions,
