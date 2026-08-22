@@ -2,6 +2,11 @@ import Link from "next/link";
 
 const FLOW = [
   {
+    label: "Digital Twin",
+    question: "What is happening in my business?",
+    href: "/dashboard/twin",
+  },
+  {
     label: "Business Brain",
     question: "What does DigitalGate know about my business?",
     href: "/dashboard/brain",

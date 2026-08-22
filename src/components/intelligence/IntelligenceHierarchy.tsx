@@ -2,6 +2,18 @@ import Link from "next/link";
 
 const ITEMS = [
   {
+    label: "Digital Twin",
+    question: "What is happening in my business?",
+    href: "/dashboard/twin",
+    active: false,
+  },
+  {
+    label: "Business Brain",
+    question: "What does DigitalGate know about my business?",
+    href: "/dashboard/brain",
+    active: false,
+  },
+  {
     label: "Business Health",
     question: "How healthy is my business?",
     href: "/dashboard/health",
@@ -26,12 +38,6 @@ const ITEMS = [
     active: false,
   },
   {
-    label: "Business Brain",
-    question: "What does DigitalGate know about my business?",
-    href: "/dashboard/brain",
-    active: false,
-  },
-  {
     label: "Command Centre",
     question: "What needs to happen next?",
     href: "/dashboard",
@@ -40,19 +46,21 @@ const ITEMS = [
 ] as const;
 
 export type IntelligenceHierarchyActive =
+  | "twin"
+  | "brain"
   | "health"
   | "benchmarks"
   | "insights"
   | "advisor"
-  | "brain"
   | "command";
 
 const ACTIVE_MAP: Record<IntelligenceHierarchyActive, string> = {
+  twin: "Digital Twin",
+  brain: "Business Brain",
   health: "Business Health",
   benchmarks: "Benchmarks",
   insights: "Insights",
   advisor: "AI Advisor",
-  brain: "Business Brain",
   command: "Command Centre",
 };
 
