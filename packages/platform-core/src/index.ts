@@ -12,6 +12,7 @@ export * from "./memory";
 export * from "./intelligence";
 export * from "./benchmarks";
 export * from "./business-health";
+export * from "./advisor";
 export * from "./ai";
 export * from "./identity";
 export * from "./workspace";
