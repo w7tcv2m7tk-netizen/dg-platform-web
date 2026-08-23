@@ -51,6 +51,10 @@ export type EnrichedCommandClient = CommandClientRow & {
   rank: number;
   scoreProvisional: boolean;
   dataCoverage: "sparse" | "partial" | "rich";
+  /** Engagement signals already computed for Success Score™ */
+  leadsThisMonth: number;
+  activitiesThisMonth: number;
+  openOpportunities: number;
 };
 
 export type ClientIntelligenceBundle = {
@@ -259,6 +263,9 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       highlights: result.highlights,
       scoreProvisional: result.provisional,
       dataCoverage: result.dataCoverage,
+      leadsThisMonth: scoreInput.leadsThisMonth,
+      activitiesThisMonth: scoreInput.activitiesThisMonth,
+      openOpportunities: scoreInput.openOpportunities,
     };
     return row;
   });

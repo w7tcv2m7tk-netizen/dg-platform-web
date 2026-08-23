@@ -161,3 +161,63 @@ export async function postSupportClientMessage(
     };
   }
 }
+
+export type StaffSupportConversationRow = {
+  id: string;
+  clerkUserId: string;
+  organisationId: string | null;
+  organisationName: string | null;
+  status: string;
+  aiPaused: boolean;
+  lastMessageAt: string;
+  createdAt: string;
+  messageCount: number;
+};
+
+/** Staff inbox — open support conversations across organisations (not a full ITSM). */
+export async function listOpenSupportConversations(input?: {
+  limit?: number;
+  aiPausedOnly?: boolean;
+}): Promise<StaffSupportConversationRow[]> {
+  if (!process.env.DATABASE_URL) return [];
+  const { prisma } = await import("@dg/database");
+  const limit = input?.limit ?? 50;
+
+  const rows = await prisma.supportConversation.findMany({
+    where: {
+      status: "open",
+      ...(input?.aiPausedOnly ? { aiPaused: true } : {}),
+    },
+    orderBy: { lastMessageAt: "desc" },
+    take: limit,
+    include: {
+      _count: { select: { messages: true } },
+    },
+  });
+
+  const orgIds = [
+    ...new Set(rows.map((r) => r.organisationId).filter(Boolean) as string[]),
+  ];
+  const orgs =
+    orgIds.length > 0
+      ? await prisma.organisation.findMany({
+          where: { id: { in: orgIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+  const orgName = new Map(orgs.map((o) => [o.id, o.name]));
+
+  return rows.map((r) => ({
+    id: r.id,
+    clerkUserId: r.clerkUserId,
+    organisationId: r.organisationId,
+    organisationName: r.organisationId
+      ? (orgName.get(r.organisationId) ?? null)
+      : null,
+    status: r.status,
+    aiPaused: r.aiPaused,
+    lastMessageAt: r.lastMessageAt.toISOString(),
+    createdAt: r.createdAt.toISOString(),
+    messageCount: r._count.messages,
+  }));
+}

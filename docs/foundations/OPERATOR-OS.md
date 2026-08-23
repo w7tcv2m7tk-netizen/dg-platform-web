@@ -116,12 +116,12 @@ Operator OS — not a customer tenant. Industry Apps are **never** shown here.
 | **Organisations** | Who are our customers? |
 | **Sales** | How is acquisition performing? (Prospecting & Opportunity Engine · Founding 10 · Sales Week · Opportunities) |
 | **Partners** | How are resellers performing? |
-| **Delivery** | How are implementations progressing? (full Delivery OS) |
-| **Customer Intelligence** | How are our **customers** doing? |
-| **Platform Intelligence** | How is **DigitalGate** performing? |
-| **Commercial** | Revenue, subscriptions, expansion |
-| **Product** | Flags, roadmap, releases, feedback |
-| **Support** | Operator support centre (not auto-exposed to every customer) |
+| **Delivery** | How are implementations progressing? (full Delivery OS — live project hubs, not placeholders) |
+| **Customer Intelligence** | How are our **customers** doing? (health · adoption · engagement · at-risk — Success Score™) |
+| **Platform Intelligence** | How is **DigitalGate** performing? (activity · service status · alerts; AI usage honest until telemetry) |
+| **Commercial** | Revenue, subscriptions, expansion (live Commerce attribution) |
+| **Product** | Flags, roadmap, releases (docs + flags), feedback |
+| **Support** | Operator support centre — conversation queue + escalations (staff-only) |
 
 **Command Centre surfaces Advisor recommendations — it does not duplicate the Advisor nav item.** AI Advisor lives under **Intelligence** only.
 

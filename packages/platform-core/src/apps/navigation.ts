@@ -433,7 +433,7 @@ function getDigitalGateOperatorSection(): NavIaSection {
       operatorApp("dg-delivery", "Delivery", "partner-portal", "/command/delivery", [
         { path: "/command/delivery", label: "Dashboard" },
         { path: "/command/delivery/onboarding", label: "Onboarding" },
-        { path: "/command/delivery", label: "Implementation" },
+        { path: "/command/delivery/invitations", label: "Invitations" },
         { path: "/command/delivery/projects", label: "Projects" },
         { path: "/command/delivery/tasks", label: "Tasks" },
         { path: "/command/delivery/customers", label: "Customers" },
