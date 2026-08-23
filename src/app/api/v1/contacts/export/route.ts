@@ -1,13 +1,19 @@
 import { exportContactsCsv } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
-  const denied = requireFeature(session, "crm.contacts.export");
+  const denied =
+    requireFeature(session, "crm.contacts.export") ??
+    requirePermission(session, {
+      module: "crm",
+      action: "export",
+      scope: "organisation",
+    });
   if (denied) return denied;
 
   const csv = await exportContactsCsv(session.organisationId);

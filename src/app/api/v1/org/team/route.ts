@@ -9,11 +9,18 @@ import {
 import { pushMembershipProfileToClerk } from "@dg/platform-core/org/membership-profile-clerk";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const denied = requirePermission(session, {
+    module: "team",
+    action: "view",
+    scope: "organisation",
+  });
+  if (denied) return denied;
 
   const members = await listOrganisationMembers(session.organisationId);
   const me = members.find((m) => m.clerkUserId === session.clerkUserId) ?? null;
@@ -43,12 +50,12 @@ export async function PATCH(req: Request) {
   }
 
   if (typeof body.role === "string" && (body.role === "admin" || body.role === "member")) {
-    if (session.role !== "owner" && session.role !== "admin") {
-      return NextResponse.json(
-        { error: { code: "forbidden", message: "Organisation admin required" } },
-        { status: 403 },
-      );
-    }
+    const denied = requirePermission(session, {
+      module: "team",
+      action: "manage",
+      scope: "organisation",
+    });
+    if (denied) return denied;
     const result = await updateMembershipRole({
       organisationId: session.organisationId,
       membershipId,
@@ -66,12 +73,13 @@ export async function PATCH(req: Request) {
   }
 
   const isSelf = target.clerkUserId === session.clerkUserId;
-  const isOwner = session.role === "owner" || session.role === "admin";
-  if (!isSelf && !isOwner) {
-    return NextResponse.json(
-      { error: { code: "forbidden", message: "You can only edit your own profile" } },
-      { status: 403 },
-    );
+  if (!isSelf) {
+    const denied = requirePermission(session, {
+      module: "team",
+      action: "edit",
+      scope: "organisation",
+    });
+    if (denied) return denied;
   }
 
   const updated = await updateMembershipProfile(session.organisationId, membershipId, {
@@ -125,12 +133,12 @@ export async function DELETE(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
-  if (session.role !== "owner" && session.role !== "admin") {
-    return NextResponse.json(
-      { error: { code: "forbidden", message: "Only owners and admins can remove team members" } },
-      { status: 403 },
-    );
-  }
+  const denied = requirePermission(session, {
+    module: "team",
+    action: "manage",
+    scope: "organisation",
+  });
+  if (denied) return denied;
 
   const body = await req.json().catch(() => ({}));
   const membershipId = String(body.membershipId ?? "").trim();

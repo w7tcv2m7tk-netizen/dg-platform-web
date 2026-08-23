@@ -1,13 +1,17 @@
 import { getServiceJob, updateServiceJob } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requireIndustryAppBeta, requirePlatformAuth } from "@/lib/platform-api";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  {
+    const betaDenied = await requireIndustryAppBeta(session, "services");
+    if (betaDenied) return betaDenied;
+  }
   const denied = requireFeature(session, "services.jobs.read");
   if (denied) return denied;
 
@@ -25,6 +29,10 @@ export async function GET(req: Request, ctx: Ctx) {
 export async function PATCH(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  {
+    const betaDenied = await requireIndustryAppBeta(session, "services");
+    if (betaDenied) return betaDenied;
+  }
   const denied = requireFeature(session, "services.jobs.write");
   if (denied) return denied;
 

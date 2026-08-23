@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
 
 export default function ProspectingActivityPage() {
@@ -17,15 +15,6 @@ export default function ProspectingActivityPage() {
           <p className="text-sm text-slate-300">
             Activity stays attached to the prospect and carries into CRM when you convert — so
             follow-up history is never trapped in a separate tool.
-          </p>
-          <p className="text-sm text-slate-500">
-            Staff activity:{" "}
-            <Link
-              href="/command/growth-engine/follow-ups"
-              className="text-sky-400 hover:underline"
-            >
-              Command Centre · Activity
-            </Link>
           </p>
         </div>
       </main>

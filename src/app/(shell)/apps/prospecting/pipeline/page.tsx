@@ -19,14 +19,7 @@ export default function ProspectingPipelinePage() {
             ecosystem, not a siloed prospecting database.
           </p>
           <p className="text-sm text-slate-500">
-            Staff pipeline:{" "}
-            <Link
-              href="/command/growth-engine/pipeline"
-              className="text-sky-400 hover:underline"
-            >
-              Command Centre · Pipeline
-            </Link>
-            {" · "}
+            Qualified deals:{" "}
             <Link href="/apps/crm/opportunities" className="text-sky-400 hover:underline">
               CRM Opportunities
             </Link>

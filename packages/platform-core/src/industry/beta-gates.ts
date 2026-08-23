@@ -15,6 +15,14 @@ const GATED_APPS: Array<{ appId: string; flag: string }> = [
   { appId: "finance", flag: FINANCE_BETA_FLAG },
 ];
 
+export function industryBetaFlagForAppId(appId: string): string | null {
+  return GATED_APPS.find((g) => g.appId === appId)?.flag ?? null;
+}
+
+export function isIndustryBetaGatedApp(appId: string): boolean {
+  return GATED_APPS.some((g) => g.appId === appId);
+}
+
 /**
  * Filter enabled app IDs so Industry floors only appear when their beta flag is on.
  * Call after Acc / RE beta filters.

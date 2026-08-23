@@ -2,14 +2,21 @@ import type { AppTier } from "./manifest";
 import { platformApps } from "./registry";
 
 /**
- * Default installed apps — Core + Growth that are shipped enabled.
- * Industry apps are opt-in per organisation so verticals can be developed one at a time.
+ * Founding Mode defaults — Core operate apps only.
+ * Growth / Industry are progressive (purchase, beta enrol, or Apps toggle by admin).
  */
+export const FOUNDING_MODE_CORE_APP_IDS = [
+  "crm",
+  "commerce",
+  "websites",
+  "opportunities",
+] as const;
+
+/** Default installed apps for new orgs — Founding Mode slim set. */
 export function getDefaultEnabledAppIds(): string[] {
-  return platformApps
-    .customerApps()
-    .filter((a) => a.manifest.tier !== "business")
-    .map((a) => a.manifest.id);
+  return FOUNDING_MODE_CORE_APP_IDS.filter((id) =>
+    Boolean(platformApps.get(id)?.enabled),
+  );
 }
 
 export type OrgAppsSettings = {
@@ -93,6 +100,10 @@ export function appIdsFromPlanSelection(selection: PlanSelectionInput): string[]
   return [...ids].filter((id) => Boolean(platformApps.get(id)));
 }
 
+/**
+ * Resolve enabled apps for an org.
+ * Does not auto-inject Growth apps — progressive disclosure / purchase.
+ */
 export function resolveEnabledAppIds(
   orgSettings?: { apps?: OrgAppsSettings } | null,
 ): string[] {
@@ -104,23 +115,7 @@ export function resolveEnabledAppIds(
 
   const next = [...ids];
 
-  // Core platform capabilities — always available when shipped enabled.
   for (const id of ["opportunities"] as const) {
-    if (platformApps.get(id)?.enabled && !next.includes(id)) {
-      next.push(id);
-    }
-  }
-
-  // Honest Growth slice — available when shipped enabled in the registry.
-  for (const id of [
-    "seo",
-    "ai-visibility",
-    "analytics",
-    "reviews",
-    "social",
-    "marketing",
-    "ai-communications",
-  ] as const) {
     if (platformApps.get(id)?.enabled && !next.includes(id)) {
       next.push(id);
     }

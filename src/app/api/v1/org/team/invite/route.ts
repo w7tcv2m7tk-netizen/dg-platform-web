@@ -5,7 +5,7 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, rejectDemoLiveAction, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, rejectDemoLiveAction, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -13,12 +13,12 @@ export async function POST(req: Request) {
   const blocked = await rejectDemoLiveAction(session);
   if (blocked) return blocked;
 
-  if (session.role !== "owner" && session.role !== "admin") {
-    return NextResponse.json(
-      { error: { code: "forbidden", message: "Only owners and admins can invite" } },
-      { status: 403 },
-    );
-  }
+  const denied = requirePermission(session, {
+    module: "team",
+    action: "manage",
+    scope: "organisation",
+  });
+  if (denied) return denied;
 
   const body = await req.json().catch(() => ({}));
   const email = String(body.email ?? "")

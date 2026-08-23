@@ -7,7 +7,7 @@ import {
 import { NextResponse } from "next/server";
 
 import { probeWordPressConnector } from "@/lib/dg-api";
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -68,6 +68,13 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requirePermission(session, {
+    module: "settings",
+    action: "manage",
+    scope: "organisation",
+  });
+  if (denied) return denied;
+
 
   const body = await req.json().catch(() => ({}));
   const preset = body.preset as keyof typeof WP_CONNECTOR_PRESETS | undefined;

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import {
   appIdsFromPlanSelection,
   getDefaultEnabledAppIds,
+  isIndustryBetaGatedApp,
+  organisationHasIndustryAppBeta,
   resolveEnabledAppIds,
 } from "@dg/platform-core";
 
@@ -75,7 +77,26 @@ export async function PATCH(req: Request) {
       scope: "organisation",
     });
     if (denied && session.role !== "owner" && session.role !== "admin") return denied;
-    enabled = appIdsFromPlanSelection(body.plan);
+    const next = appIdsFromPlanSelection(body.plan);
+    for (const appId of next) {
+      if (!isIndustryBetaGatedApp(appId)) continue;
+      const enrolled = await organisationHasIndustryAppBeta(
+        session.organisationId,
+        appId,
+      );
+      if (!enrolled) {
+        return NextResponse.json(
+          {
+            error: {
+              code: "beta_required",
+              message: `${appId} requires beta enrolment before it can be enabled`,
+            },
+          },
+          { status: 403 },
+        );
+      }
+    }
+    enabled = next;
   } else if (body.action === "toggle" && typeof body.appId === "string") {
     const denied = requirePermission(session, {
       module: "settings",
@@ -84,13 +105,52 @@ export async function PATCH(req: Request) {
     });
     if (denied && session.role !== "owner" && session.role !== "admin") return denied;
     const set = new Set(enabled);
+    const enabling =
+      body.enabled === true ||
+      (body.enabled !== false && !set.has(body.appId));
+    if (enabling && isIndustryBetaGatedApp(body.appId)) {
+      const enrolled = await organisationHasIndustryAppBeta(
+        session.organisationId,
+        body.appId,
+      );
+      if (!enrolled) {
+        return NextResponse.json(
+          {
+            error: {
+              code: "beta_required",
+              message: `${body.appId} requires beta enrolment before it can be enabled`,
+            },
+          },
+          { status: 403 },
+        );
+      }
+    }
     if (body.enabled === true) set.add(body.appId);
     else if (body.enabled === false) set.delete(body.appId);
     else if (set.has(body.appId)) set.delete(body.appId);
     else set.add(body.appId);
     enabled = [...set];
   } else if (body.action === "set" && Array.isArray(body.enabled)) {
-    enabled = body.enabled.filter((id: unknown) => typeof id === "string");
+    const next = body.enabled.filter((id: unknown) => typeof id === "string") as string[];
+    for (const appId of next) {
+      if (!isIndustryBetaGatedApp(appId)) continue;
+      const enrolled = await organisationHasIndustryAppBeta(
+        session.organisationId,
+        appId,
+      );
+      if (!enrolled) {
+        return NextResponse.json(
+          {
+            error: {
+              code: "beta_required",
+              message: `${appId} requires beta enrolment before it can be enabled`,
+            },
+          },
+          { status: 403 },
+        );
+      }
+    }
+    enabled = next;
   } else if (body.action === "reset") {
     enabled = getDefaultEnabledAppIds();
   } else {

@@ -187,6 +187,32 @@ export function requirePermission(
   return null;
 }
 
+/**
+ * Industry closed-beta gate for routes/APIs (same flag as nav filter).
+ * Returns 403 when the org is not enrolled.
+ */
+export async function requireIndustryAppBeta(
+  session: PlatformSession,
+  appId: string,
+): Promise<NextResponse | null> {
+  const { organisationHasIndustryAppBeta, INDUSTRY_APP_BETA_FLAGS } = await import(
+    "@dg/platform-core"
+  );
+  const flag = INDUSTRY_APP_BETA_FLAGS[appId];
+  if (!flag) return null;
+  const ok = await organisationHasIndustryAppBeta(session.organisationId, appId);
+  if (ok) return null;
+  return NextResponse.json(
+    {
+      error: {
+        code: "beta_required",
+        message: `${appId} requires ${flag} enrolment for this organisation`,
+      },
+    },
+    { status: 403 },
+  );
+}
+
 export type PlatformAuthContext =
   | { mode: "session"; session: PlatformSession }
   | { mode: "connector" };

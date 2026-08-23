@@ -75,14 +75,14 @@ export async function SelfServeOnboardingHub() {
         </p>
         <p className="mt-2 text-sm text-slate-500">
           {session?.organisationName ?? "DigitalGate"} · Sign up → Org → Profile
-          → Connect → Digital Twin → Command Centre
+          → Connect → Digital Twin → Priorities
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-2 md:justify-start">
           <Link
-            href="/command"
+            href="/dashboard"
             className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500"
           >
-            Go to Command Centre
+            Go to Priorities
           </Link>
           <Link
             href="/dashboard/business"
@@ -110,16 +110,16 @@ export async function SelfServeOnboardingHub() {
             </p>
             <div className="mt-3 flex flex-wrap gap-3">
               <Link
-                href="/command"
+                href="/dashboard"
                 className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500"
               >
-                Open Command Centre
+                Open Priorities
               </Link>
               <Link
-                href="/dashboard"
+                href="/dashboard/twin"
                 className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:border-slate-500"
               >
-                Overview
+                Digital Twin
               </Link>
               <Link
                 href="/dashboard/business-setup"
@@ -357,10 +357,10 @@ export async function SelfServeOnboardingHub() {
               Property · Real Estate
             </Link>
             <Link
-              href="/command"
+              href="/dashboard"
               className="rounded-lg border border-emerald-500/40 px-3 py-2 text-sm font-medium text-emerald-200 hover:border-emerald-400"
             >
-              Command Centre
+              Priorities
             </Link>
           </div>
         </section>
@@ -375,8 +375,8 @@ export async function SelfServeOnboardingHub() {
             /onboarding?journey=founding
           </Link>{" "}
           · skip to{" "}
-          <Link href="/command" className="text-sky-400 hover:underline">
-            Command Centre
+          <Link href="/dashboard" className="text-sky-400 hover:underline">
+            Priorities
           </Link>
         </p>
       </main>

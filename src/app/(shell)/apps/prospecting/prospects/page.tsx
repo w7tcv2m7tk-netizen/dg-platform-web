@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
 
 export default function ProspectingProspectsPage() {
@@ -17,12 +15,6 @@ export default function ProspectingProspectsPage() {
           <p className="text-sm text-slate-300">
             Prospect lists and enrichment live in the Prospecting & Opportunity Engine. Import
             from Discovery, score, then convert into Contacts and Opportunities.
-          </p>
-          <p className="text-sm text-slate-500">
-            DigitalGate staff GTM list:{" "}
-            <Link href="/command/growth-engine" className="text-sky-400 hover:underline">
-              Command Centre · Prospecting
-            </Link>
           </p>
         </div>
       </main>

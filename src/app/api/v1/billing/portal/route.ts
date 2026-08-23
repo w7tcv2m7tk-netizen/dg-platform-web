@@ -1,13 +1,20 @@
 import { createBillingPortalSession } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, rejectDemoLiveAction, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, rejectDemoLiveAction, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
   const blocked = await rejectDemoLiveAction(session);
   if (blocked) return blocked;
+
+  const denied = requirePermission(session, {
+    module: "billing",
+    action: "manage",
+    scope: "organisation",
+  });
+  if (denied) return denied;
 
   const body = await req.json().catch(() => ({}));
 

@@ -1,11 +1,15 @@
 import { createPmLease, listPmLeases } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireIndustryAppBeta, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  {
+    const betaDenied = await requireIndustryAppBeta(session, "property-management");
+    if (betaDenied) return betaDenied;
+  }
   const result = await listPmLeases(session.organisationId);
   return NextResponse.json({ data: result.items, meta: result.meta });
 }
@@ -13,6 +17,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  {
+    const betaDenied = await requireIndustryAppBeta(session, "property-management");
+    if (betaDenied) return betaDenied;
+  }
 
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body || typeof body.title !== "string" || !body.title.trim()) {

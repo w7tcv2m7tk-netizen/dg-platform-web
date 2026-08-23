@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
 
 export default function ProspectingDiscoveryPage() {
@@ -17,15 +15,6 @@ export default function ProspectingDiscoveryPage() {
           <p className="text-sm text-slate-300">
             Capture what they use today, primary problems, decision process and desired outcomes —
             the inputs Opportunity scoring needs.
-          </p>
-          <p className="text-sm text-slate-500">
-            Staff discovery workspace:{" "}
-            <Link
-              href="/command/growth-engine/discovery"
-              className="text-sky-400 hover:underline"
-            >
-              Command Centre · Discovery
-            </Link>
           </p>
         </div>
       </main>

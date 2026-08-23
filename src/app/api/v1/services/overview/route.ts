@@ -1,11 +1,15 @@
 import { getServicesOverview } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requireIndustryAppBeta, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  {
+    const betaDenied = await requireIndustryAppBeta(session, "services");
+    if (betaDenied) return betaDenied;
+  }
   const denied = requireFeature(session, "services.jobs.read");
   if (denied) return denied;
 

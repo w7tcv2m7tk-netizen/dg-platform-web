@@ -4,6 +4,13 @@ import {
   featureIdToPermissionCheck,
   hasPermission,
 } from "../access/evaluate";
+import {
+  COMMERCIAL_BETA_FLAG,
+  FINANCE_BETA_FLAG,
+  PM_BETA_FLAG,
+  SERVICES_BETA_FLAG,
+} from "../industry/beta-gates";
+import { organisationHasFlag } from "./flags";
 
 const ADMIN_ROLES = new Set(["owner", "admin"]);
 
@@ -13,7 +20,6 @@ export function sessionHasFeature(
   featureId: string,
 ): boolean {
   if (ADMIN_ROLES.has(session.role) || session.role === "dg:staff") {
-    // Admins still go through hard denies for platform_admin on customer orgs
     const check = featureIdToPermissionCheck(featureId);
     if (!check) return true;
     const ctx = buildAccessContext({
@@ -28,7 +34,6 @@ export function sessionHasFeature(
 
   const check = featureIdToPermissionCheck(featureId);
   if (!check) {
-    // Unknown feature — members only get *.read
     return featureId.endsWith(".read") || featureId === "crm.timeline.read";
   }
 
@@ -49,4 +54,21 @@ export function sessionHasFeature(
 
 export function featureDeniedMessage(featureId: string) {
   return `Your role does not allow this action (${featureId}). Ask an organisation owner.`;
+}
+
+/** Industry app id → beta feature flag. */
+export const INDUSTRY_APP_BETA_FLAGS: Record<string, string> = {
+  "property-management": PM_BETA_FLAG,
+  commercial: COMMERCIAL_BETA_FLAG,
+  services: SERVICES_BETA_FLAG,
+  finance: FINANCE_BETA_FLAG,
+};
+
+export async function organisationHasIndustryAppBeta(
+  organisationId: string,
+  appId: string,
+): Promise<boolean> {
+  const flag = INDUSTRY_APP_BETA_FLAGS[appId];
+  if (!flag) return true;
+  return organisationHasFlag(organisationId, flag);
 }
