@@ -261,6 +261,7 @@ export function filterNavigationByAccess(
         ...nav.ia.digitalgate,
         apps: staff ? nav.ia.digitalgate.apps : [],
         links: staff ? nav.ia.digitalgate.links : [],
+        trailingLinks: staff ? (nav.ia.digitalgate.trailingLinks ?? []) : [],
       },
       partners: {
         ...nav.ia.partners,

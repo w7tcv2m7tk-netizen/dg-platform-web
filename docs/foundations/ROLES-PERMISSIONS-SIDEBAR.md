@@ -112,8 +112,9 @@ Command Centre · Digital Twin · AI Advisor · Business Health · Insights · B
 Resellers · Referrals · Commissions · Delivery / Implementation
 
 ### PLATFORM ADMIN
-Apps · Marketplace · Network · Settings (Overview · Billing · Connectors · API · Audit Log) · Roadmap* · Support · Platform Docs*  
-\* Roadmap / Platform Docs = DigitalGate-internal by default.
+Apps · Marketplace · Network · Settings (Overview · Billing · Connectors · API · Audit Log) · Support  
+
+Platform Docs = DIGITALGATE staff only (trailing link under Platform Operator), not customer Platform Admin. Roadmap = Product (staff). See [KNOWLEDGE-LAYERS.md](./KNOWLEDGE-LAYERS.md).
 
 ---
 

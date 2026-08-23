@@ -192,6 +192,29 @@ export function BusinessBrainDashboard({ data }: { data: BusinessBrainDashboardB
         </div>
       </section>
 
+      <section className="rounded-xl border border-violet-500/20 bg-violet-500/5 px-5 py-5">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-violet-200/90">
+          Business Knowledge
+        </h2>
+        <p className="mt-1 text-sm text-slate-400">
+          How your business works — plans, SOPs, brand guidelines, policies and approved documents.
+          This is private to your organisation and distinct from DigitalGate&apos;s Platform Docs.
+        </p>
+        <div className="mt-4 rounded-lg border border-dashed border-slate-700 bg-slate-950/40 px-4 py-6 text-center">
+          <p className="text-sm font-medium text-white">Your business documents</p>
+          <p className="mt-2 text-xs text-slate-500">
+            Upload business plans, procedures, handbooks and SOPs so Advisor, Communications and
+            Automation understand how you operate.
+          </p>
+          <Link
+            href="/dashboard/business"
+            className="mt-4 inline-block text-sm text-sky-400 hover:underline"
+          >
+            Start from Business Profile →
+          </Link>
+        </div>
+      </section>
+
       <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
           Knowledge layers

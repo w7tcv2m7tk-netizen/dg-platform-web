@@ -7,17 +7,19 @@ export const BUSINESS_BRAIN_KNOWLEDGE_LAYERS = [
   {
     id: "platform",
     label: "Platform Knowledge",
-    summary: "DigitalGate docs, capabilities, policies, implementation and troubleshooting.",
+    summary:
+      "How DigitalGate works — official product docs (staff: Platform Docs). Not the customer’s business knowledge.",
   },
   {
     id: "business",
     label: "Business Knowledge",
-    summary: "This organisation’s plans, SOPs, brand, pricing, strategy and internal documents.",
+    summary:
+      "How this organisation works — plans, SOPs, brand, pricing, policies and uploaded documents.",
   },
   {
     id: "live",
     label: "Live Business Context",
-    summary: "Operational data — contacts, opportunities, website, revenue, tasks, reviews, analytics.",
+    summary: "What is happening now — contacts, pipeline, revenue, tasks, reviews and Twin signals.",
   },
   {
     id: "external",
@@ -25,6 +27,13 @@ export const BUSINESS_BRAIN_KNOWLEDGE_LAYERS = [
     summary: "Industry, market, search, AI visibility and connected external sources where authorised.",
   },
 ] as const;
+
+/** Future layer — personal/team preferences and role-specific instructions (not built yet). */
+export const BUSINESS_BRAIN_PERSONAL_KNOWLEDGE_LAYER = {
+  id: "personal",
+  label: "Personal / team knowledge",
+  summary: "User preferences, role responsibilities and team-specific procedures — reserved for later.",
+} as const;
 
 export type BusinessBrainKnowledgeLayerId =
   (typeof BUSINESS_BRAIN_KNOWLEDGE_LAYERS)[number]["id"];

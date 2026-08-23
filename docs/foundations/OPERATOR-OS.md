@@ -131,7 +131,9 @@ DigitalGate’s own business capabilities (same Core/Growth/Intelligence stack c
 
 ### PLATFORM
 
-Tenant platform configuration — Apps · Marketplace · Network · Settings · Platform Docs. **Roadmap lives under Product**, not Platform.
+Tenant platform configuration — Apps · Marketplace · Network · Settings (Billing · Connectors · API · Audit Log). **Roadmap lives under Product**, not Platform.
+
+**Platform Docs** live under **DIGITALGATE** (trailing link) — not in the customer Platform workspace. See [KNOWLEDGE-LAYERS.md](./KNOWLEDGE-LAYERS.md).
 
 ---
 

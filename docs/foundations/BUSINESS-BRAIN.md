@@ -31,12 +31,16 @@ It combines Business DNA (what the business is), Digital Twin (what is happening
 
 ## Knowledge layers
 
-| Layer | Contents |
-|-------|----------|
-| Platform Knowledge | DigitalGate docs, capabilities, policies |
-| Business Knowledge | Customer plans, SOPs, brand, pricing, internal docs |
-| Live Business Context | Contacts, opportunities, website, revenue, tasks, reviews |
-| External Intelligence | Industry, market, search, AI visibility, connectors |
+See [KNOWLEDGE-LAYERS.md](./KNOWLEDGE-LAYERS.md) for the locked Platform vs Business vs Twin vs Advisor distinction.
+
+| Layer | Role |
+|-------|------|
+| **Platform Knowledge** | How DigitalGate works — Platform Docs (`/command/docs`, staff only) |
+| **Business Knowledge** | How this organisation works — documents, SOPs, brand, pricing (Business Brain) |
+| **Live Business Context** | What is happening now — Twin signals |
+| **External Intelligence** | Industry, market, connectors where authorised |
+
+**Personal / team knowledge** is reserved for a future controlled layer above Business Brain.
 
 Permissions are organisation- and user-aware. AI may only use what the current user is authorised to access. Metadata contract: `packages/platform-core/src/brain/knowledge-layers.ts`.
 

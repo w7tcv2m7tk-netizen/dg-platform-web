@@ -355,14 +355,7 @@ function getPlatformAdminSection(options?: {
   ];
 
   const trailingLinks: PlatformShellNavItem[] = options?.showCommandCentre
-    ? [
-        {
-          kind: "shell",
-          href: "/command/docs",
-          label: "Platform Docs",
-          icon: getSidebarIcon("reports"),
-        },
-      ]
+    ? []
     : [
         {
           kind: "shell",
@@ -488,6 +481,14 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/support/help", label: "Knowledge base" },
         { path: "/command/platform-intelligence/service-status", label: "Service status" },
       ]),
+    ],
+    trailingLinks: [
+      {
+        kind: "shell",
+        href: "/command/docs",
+        label: "Platform Docs",
+        icon: getSidebarIcon("reports"),
+      },
     ],
   };
 }
@@ -864,12 +865,7 @@ export function getCategorizedPlatformNavigation(
 
   const settingsNav: PlatformShellNavItem = {
     ...SHELL_PLATFORM_NAV,
-    routes: [
-      ...(SHELL_PLATFORM_NAV.routes ?? []),
-      ...(options?.showCommandCentre
-        ? [{ path: "/command/docs", label: "Platform Docs" }]
-        : []),
-    ],
+    routes: [...(SHELL_PLATFORM_NAV.routes ?? [])],
   };
 
   const platformAdminSection = getPlatformAdminSection({

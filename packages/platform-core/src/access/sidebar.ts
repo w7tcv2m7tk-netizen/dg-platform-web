@@ -58,12 +58,14 @@ export const CUSTOMER_SIDE_PANEL_SECTIONS = [
       "Marketplace",
       "Network",
       "Settings",
-      "Roadmap",
       "Support",
-      "Platform Docs",
     ],
   },
 ] as const;
+
+/** Platform Docs = how DigitalGate works — staff DigitalGate section only, not customer Platform Admin. */
+export const PLATFORM_DOCS_NAV_POLICY =
+  "Platform Docs live under DIGITALGATE (Platform Operator), not customer Platform Admin. Business Knowledge lives under Business Brain." as const;
 
 /** Business Brain is intelligence infrastructure — listed under Intelligence, not Core. */
 export const BUSINESS_BRAIN_NAV_POLICY =

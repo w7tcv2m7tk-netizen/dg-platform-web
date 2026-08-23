@@ -32,9 +32,8 @@ export default async function BusinessBrainPage() {
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Business Brain</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          What does DigitalGate understand about your business? The interpreted context behind
-          Advisor, Insights, Health and AI — built from your profile, apps, connectors and live Twin
-          data.
+          How does your business work? Business Brain interprets your profile, Business Knowledge,
+          connectors and live Twin data — distinct from DigitalGate&apos;s Platform Docs.
         </p>
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
           <Link href="/dashboard/twin" className="text-sky-400 hover:underline">

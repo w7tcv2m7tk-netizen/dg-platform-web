@@ -52,6 +52,7 @@ INTELLIGENCE
 
 DIGITALGATE · Platform Operator (staff only)
   Command Centre · Organisations · Sales · Partners · Delivery · Customer Intelligence · Platform Intelligence · Commercial · Product · Support
+  Platform Docs (trailing — how DigitalGate works; not customer Business Knowledge)
 
   Command Centre: Priorities · Alerts · Sales Week · Founding 10 (no AI Advisor — Advisor lives under Intelligence)
 
@@ -60,9 +61,10 @@ DIGITALGATE · Platform Operator (staff only)
 
 CORE · INFRASTRUCTURE · GROWTH · INTELLIGENCE
   (DigitalGate org capabilities — no Industry section)
+  Business Knowledge lives inside Business Brain — not Platform Docs
 
 PLATFORM (staff) / PLATFORM ADMIN (customers)
-  Apps · Marketplace · Network · Settings · Platform Docs
+  Apps · Marketplace · Network · Settings
   Roadmap is under Product (staff) — not duplicated in Platform.
 ```
 
@@ -110,7 +112,7 @@ Visible under Intelligence. Knowledge/context layer for AI — not a normal tech
 
 ## Platform Docs
 
-DigitalGate **internal** knowledge. Separate from Organisation Business Knowledge. Do not expose internal docs to normal customers.
+DigitalGate **internal** product knowledge — how DigitalGate works. Lives under **DIGITALGATE → Platform Docs** for staff, not customer Platform Admin. Separate from each organisation’s **Business Knowledge** in Business Brain. See [KNOWLEDGE-LAYERS.md](./KNOWLEDGE-LAYERS.md).
 
 ## Progressive disclosure
 
