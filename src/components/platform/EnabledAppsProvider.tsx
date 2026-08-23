@@ -59,6 +59,7 @@ async function persistReset() {
 
 export function EnabledAppsProvider({
   initialEnabledIds,
+  industrySelectionIds = [],
   showCommandCentre = false,
   showPartnerPortal = false,
   showResellerAdmin = false,
@@ -70,6 +71,7 @@ export function EnabledAppsProvider({
   children,
 }: {
   initialEnabledIds: string[];
+  industrySelectionIds?: string[];
   showCommandCentre?: boolean;
   showPartnerPortal?: boolean;
   showResellerAdmin?: boolean;
@@ -154,6 +156,7 @@ export function EnabledAppsProvider({
       showPartnerPortal,
       showResellerAdmin,
       partnerType,
+      industrySelectionIds,
     });
     const ctx = buildAccessContext({
       role: membershipRole,
@@ -165,6 +168,7 @@ export function EnabledAppsProvider({
     return filterNavigationByAccess(base, ctx);
   }, [
     enabledIds,
+    industrySelectionIds,
     showCommandCentre,
     showPartnerPortal,
     showResellerAdmin,

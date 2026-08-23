@@ -830,7 +830,23 @@ export function getPublicIndustryPlatforms(): IndustryPlatform[] {
   return INDUSTRY_PLATFORMS.filter((p) => p.publicSurface);
 }
 
-/** Map Gen 2 app install id → Industry + Template. */
+/** Map specialisation / template / app id → Industry + Template. */
+export function resolveIndustrySpecialisation(id: string): {
+  platform: IndustryPlatform;
+  specialisation: IndustrySpecialisation;
+} | null {
+  const key = id.trim();
+  if (!key) return null;
+  for (const platform of INDUSTRY_PLATFORMS) {
+    const specialisation = platform.specialisations.find(
+      (s) => s.id === key || s.appId === key || s.templateId === key,
+    );
+    if (specialisation) return { platform, specialisation };
+  }
+  return null;
+}
+
+/** Map Gen 2 app install id → Industry + Template (first match when appId is shared). */
 export function resolveIndustryFromAppId(appId: string): {
   platform: IndustryPlatform;
   specialisation: IndustrySpecialisation;

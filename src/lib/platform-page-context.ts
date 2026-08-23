@@ -2,6 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import {
   getDefaultEnabledAppIds,
   resolveEnabledAppIds,
+  collectIndustrySelectionIds,
   type PlatformSession,
 } from "@dg/platform-core";
 import { cache } from "react";
@@ -59,10 +60,7 @@ export const getOrgEnabledAppIdsCached = cache(async (): Promise<string[]> => {
     select: { settings: true },
   });
 
-  const settings = org?.settings as {
-    apps?: { enabled?: string[] };
-    featureFlags?: Record<string, boolean>;
-  } | null;
+  const settings = org?.settings as OrgNavSettings | null;
   const enabled = resolveEnabledAppIds(settings ?? undefined);
   return filterAppsForIndustryBetas(
     filterAppsForAccBeta(
@@ -71,4 +69,37 @@ export const getOrgEnabledAppIdsCached = cache(async (): Promise<string[]> => {
     ),
     settings?.featureFlags,
   );
+});
+
+export type OrgNavSettings = {
+  apps?: {
+    enabled?: string[];
+    planPreview?: { industryApps?: string[] };
+  };
+  profile?: { purchasedApps?: string[] };
+  services?: { templateKey?: string };
+  featureFlags?: Record<string, boolean>;
+};
+
+function readOrgNavSettings(
+  settings: OrgNavSettings | null | undefined,
+): OrgNavSettings | null {
+  return settings ?? null;
+}
+
+/** Purchased Industry templates — separate sidebar app per add-on (Electrician, Cleaning, PM, …). */
+export const getOrgIndustrySelectionIdsCached = cache(async (): Promise<string[]> => {
+  const { session } = await getPlatformPageContext();
+
+  if (!session || !process.env.DATABASE_URL) {
+    return [];
+  }
+
+  const { prisma } = await import("@dg/database");
+  const org = await prisma.organisation.findUnique({
+    where: { id: session.organisationId },
+    select: { settings: true },
+  });
+
+  return collectIndustrySelectionIds(readOrgNavSettings(org?.settings as OrgNavSettings));
 });

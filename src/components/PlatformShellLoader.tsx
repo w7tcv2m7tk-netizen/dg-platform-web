@@ -10,7 +10,7 @@ import {
 } from "@dg/platform-core";
 
 import { PlatformShell } from "@/components/PlatformShell";
-import { getOrgEnabledAppIdsCached } from "@/lib/org-apps";
+import { getOrgEnabledAppIdsCached, getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
 import { getOrgBrandThemeCached } from "@/lib/org-brand-theme";
 import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
@@ -28,9 +28,11 @@ export async function PlatformShellLoader({
     void ensureOrganisationOnboardingSync().catch(() => null);
   });
 
-  const [{ user, session, clerkUserId, email }, enabledIds, brandTheme] = await Promise.all([
+  const [{ user, session, clerkUserId, email }, enabledIds, industrySelectionIds, brandTheme] =
+    await Promise.all([
     getPlatformPageContext(),
     getOrgEnabledAppIdsCached(),
+    getOrgIndustrySelectionIdsCached(),
     getOrgBrandThemeCached(),
   ]);
 
@@ -91,6 +93,7 @@ export async function PlatformShellLoader({
   return (
     <PlatformShell
       enabledIds={navEnabledIds}
+      industrySelectionIds={industrySelectionIds}
       userName={userName ?? undefined}
       showFloatingChat={showFloatingChat && !isDemo}
       showCommandCentre={showCommandCentreNav}

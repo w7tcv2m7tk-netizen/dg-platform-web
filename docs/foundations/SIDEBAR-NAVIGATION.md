@@ -78,8 +78,8 @@ Business leads CORE — who you are — then operating apps.
 
 - Only **activated** Industry Apps / Templates for the organisation.
 - Industry App = **$99/mo** with **one** Template included; additional Templates **+$29/mo**.
-- Do **not** invent separate $99 Apps per Template under the same Industry.
-- Multiple Templates under one Industry App appear under that Industry label.
+- Each Industry module or Template add-on is its **own sidebar app** under **INDUSTRY** (e.g. Real Estate and Property Management are separate; Services Electrician and Cleaning are separate).
+- Do **not** merge multiple Industry modules or Template add-ons into one combined app label.
 
 ### GROWTH / INTELLIGENCE / PARTNERS / PLATFORM ADMIN
 

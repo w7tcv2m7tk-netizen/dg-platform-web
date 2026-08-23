@@ -38,18 +38,26 @@ const INDUSTRY_HREF: Record<string, string> = {
   "real-estate": "/apps/re",
 };
 
-function industryBusinessLink(enabledAppIds: string[]) {
+function industryBusinessLinks(enabledAppIds: string[]) {
+  const links: Array<{
+    id: string;
+    name: string;
+    href: string;
+    description: string;
+  }> = [];
+
   for (const id of enabledAppIds) {
     if (!INDUSTRY_APP_IDS.has(id)) continue;
     const resolved = resolveIndustryFromAppId(id);
-    return {
+    links.push({
       id,
       name: resolved?.specialisation.label ?? resolved?.platform.label ?? "Industry App",
       href: INDUSTRY_HREF[id] ?? `/apps/${id}`,
       description: "Your industry workspace",
-    };
+    });
   }
-  return null;
+
+  return links;
 }
 
 export function FoundingOperatorHome({
@@ -63,10 +71,10 @@ export function FoundingOperatorHome({
 }) {
   const opportunityAttention =
     openOpportunityCount > 0 ? openOpportunityCount : overview.growthOpportunityCount;
-  const industryLink = industryBusinessLink(enabledAppIds);
+  const industryLinks = industryBusinessLinks(enabledAppIds);
   const businessApps = [
     ...CORE_BUSINESS_APPS.filter((app) => enabledAppIds.includes(app.id)),
-    ...(industryLink ? [industryLink] : []),
+    ...industryLinks,
   ];
 
   return (

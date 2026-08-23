@@ -5,4 +5,4 @@ export async function getOrgEnabledAppIds(): Promise<string[]> {
   return getOrgEnabledAppIdsCached();
 }
 
-export { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/platform-page-context";
+export { getOrgEnabledAppIdsCached, getOrgIndustrySelectionIdsCached, getPlatformPageContext } from "@/lib/platform-page-context";

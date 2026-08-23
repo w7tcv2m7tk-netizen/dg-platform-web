@@ -7,6 +7,7 @@ export function PlatformShell({
   children,
   showFloatingChat = true,
   enabledIds,
+  industrySelectionIds = [],
   userName,
   showCommandCentre = false,
   showPartnerPortal = false,
@@ -25,6 +26,7 @@ export function PlatformShell({
   children: React.ReactNode;
   showFloatingChat?: boolean;
   enabledIds: string[];
+  industrySelectionIds?: string[];
   userName?: string;
   showCommandCentre?: boolean;
   showPartnerPortal?: boolean;
@@ -43,6 +45,7 @@ export function PlatformShell({
   return (
     <EnabledAppsProvider
       initialEnabledIds={enabledIds}
+      industrySelectionIds={industrySelectionIds}
       showCommandCentre={showCommandCentre}
       showPartnerPortal={showPartnerPortal}
       showResellerAdmin={showResellerAdmin}

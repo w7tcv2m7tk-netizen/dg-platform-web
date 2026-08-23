@@ -173,6 +173,35 @@ export function isAppEnabled(appId: string, enabledIds: string[]): boolean {
   return enabledIds.includes(appId);
 }
 
+/** Purchased / applied Industry templates — drives separate sidebar apps per add-on. */
+export function collectIndustrySelectionIds(
+  settings?: {
+    apps?: { planPreview?: { industryApps?: string[] } };
+    profile?: { purchasedApps?: string[] };
+    services?: { templateKey?: string };
+  } | null,
+): string[] {
+  const ids = new Set<string>();
+
+  for (const id of settings?.profile?.purchasedApps ?? []) {
+    if (typeof id === "string" && id.trim()) ids.add(id.trim());
+  }
+
+  const preview = settings?.apps?.planPreview?.industryApps;
+  if (Array.isArray(preview)) {
+    for (const id of preview) {
+      if (typeof id === "string" && id.trim()) ids.add(id.trim());
+    }
+  }
+
+  const templateKey = settings?.services?.templateKey;
+  if (typeof templateKey === "string" && templateKey.trim()) {
+    ids.add(templateKey.trim());
+  }
+
+  return [...ids];
+}
+
 export const APP_TIER_LABELS: Record<AppTier, string> = {
   core: "Core · Operate",
   business: "Industry · Operate",
