@@ -94,6 +94,10 @@ export type AccommodationUnitListItem = {
   airbnbIcalUrl?: string | null;
   bookingcomIcalUrl?: string | null;
   icalExportUrl?: string | null;
+  airbnbLastSyncAt?: string | null;
+  airbnbLastError?: string | null;
+  bookingcomLastSyncAt?: string | null;
+  bookingcomLastError?: string | null;
   airbnbId?: string | null;
   bookingcomId?: string | null;
   housekeepingStatus: string;
@@ -165,6 +169,10 @@ function serializeUnit(row: {
   airbnbIcalUrl: string | null;
   bookingcomIcalUrl: string | null;
   icalExportUrl: string | null;
+  airbnbLastSyncAt: Date | null;
+  airbnbLastError: string | null;
+  bookingcomLastSyncAt: Date | null;
+  bookingcomLastError: string | null;
   airbnbId: string | null;
   bookingcomId: string | null;
   housekeepingStatus: string;
@@ -225,6 +233,12 @@ function serializeUnit(row: {
     airbnbIcalUrl: row.airbnbIcalUrl,
     bookingcomIcalUrl: row.bookingcomIcalUrl,
     icalExportUrl: row.icalExportUrl,
+    airbnbLastSyncAt: row.airbnbLastSyncAt ? row.airbnbLastSyncAt.toISOString() : null,
+    airbnbLastError: row.airbnbLastError,
+    bookingcomLastSyncAt: row.bookingcomLastSyncAt
+      ? row.bookingcomLastSyncAt.toISOString()
+      : null,
+    bookingcomLastError: row.bookingcomLastError,
     airbnbId: row.airbnbId,
     bookingcomId: row.bookingcomId,
     housekeepingStatus: row.housekeepingStatus || "unknown",
@@ -274,6 +288,10 @@ export function unitToWpProp(item: AccommodationUnitListItem): Record<string, un
     ical_export_airbnb_url: icalUrls.ical_export_airbnb_url,
     ical_export_bookingcom_url: icalUrls.ical_export_bookingcom_url,
     ical_export_wp_url: icalUrls.ical_export_wp_url,
+    airbnb_last_sync: item.airbnbLastSyncAt ?? undefined,
+    airbnb_last_error: item.airbnbLastError ?? undefined,
+    bookingcom_last_sync: item.bookingcomLastSyncAt ?? undefined,
+    bookingcom_last_error: item.bookingcomLastError ?? undefined,
     airbnb_id: item.airbnbId ?? undefined,
     bookingcom_id: item.bookingcomId ?? undefined,
     housekeeping_status: item.housekeepingStatus,

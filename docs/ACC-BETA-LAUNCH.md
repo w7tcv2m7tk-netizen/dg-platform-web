@@ -153,7 +153,7 @@ Run as the property owner (or staff switched into their org).
 | “Accommodation beta” gate page | Same — enrol org via Clients → Enable Acc beta |
 | Sync fails / summary error | Connector base URL + API key; plugin ≥ 10.63.0; property key only (never Roe/DG keys on another host) |
 | No units | Sync from WordPress; Accommodation module enabled on WP |
-| OTA gaps / double-book risk | Import vs export direction; never OTA↔OTA; run Availability sync |
+| OTA gaps / double-book risk | Confirm import+export URLs; never OTA↔OTA; cron pulls every 15m — still check Units “Last synced”; native APIs needed for real-time |
 | Bookings empty | Sync StayBookings / wait for WP dual-write webhook |
 | Public book-now broken | Still WP — not a Gen 2 beta regression; check WP Stripe guest keys |
 

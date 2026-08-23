@@ -24,11 +24,13 @@ CVH Platform (Neon StayBooking + AccommodationUnit)
    Booking.com · Airbnb
 ```
 
-- **Import:** OTA export URL → unit fields → WP iCal sync → Gen 2 StayBooking  
-- **Export:** DigitalGate `.ics` → paste into each OTA (never OTA↔OTA)  
+- **Import:** OTA export URL → unit fields → Gen 2 iCal sync → StayBooking  
+- **Import cadence:** Vercel cron `/api/cron/ota-ical-sync` every **15 minutes** + manual **Sync Airbnb & Booking.com** on Availability  
+- **Last sync:** stored on each unit (`airbnb_last_sync_at` / `bookingcom_last_sync_at`) — shown on Units  
+- **Export:** DigitalGate `.ics` → paste into each OTA (never OTA↔OTA); OTAs poll on their own schedule (often hours)  
 - **Public book-now:** WordPress until Gen 2-first cutover flags
 
-Gets the central calendar working immediately while partner programmes progress.
+Gets the central calendar working immediately while partner programmes progress. **iCal still has a race window** — cron reduces doubles but native APIs (Stage 2) are required for near-real-time.
 
 ---
 

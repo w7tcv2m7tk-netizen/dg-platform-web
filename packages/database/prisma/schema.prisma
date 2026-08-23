@@ -402,6 +402,11 @@ model AccommodationUnit {
   airbnbIcalUrl        String?   @map("airbnb_ical_url")
   bookingcomIcalUrl    String?   @map("bookingcom_ical_url")
   icalExportUrl        String?   @map("ical_export_url")
+  /** Last successful Gen 2 iCal pull from Airbnb / Booking.com */
+  airbnbLastSyncAt     DateTime? @map("airbnb_last_sync_at")
+  airbnbLastError      String?   @map("airbnb_last_error") @db.Text
+  bookingcomLastSyncAt DateTime? @map("bookingcom_last_sync_at")
+  bookingcomLastError  String?   @map("bookingcom_last_error") @db.Text
   /** OTA listing identifiers (reviews / deep links) */
   airbnbId             String?   @map("airbnb_id")
   bookingcomId         String?   @map("bookingcom_id")

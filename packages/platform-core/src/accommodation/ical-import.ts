@@ -29,6 +29,16 @@ export type SyncOtaCalendarsResult = {
   message: string;
 };
 
+export type SyncAllOrgsOtaResult = {
+  organisations: number;
+  imported: number;
+  updated: number;
+  cancelled: number;
+  skipped: number;
+  errors: string[];
+  message: string;
+};
+
 function unfoldIcs(ics: string): string {
   return ics.replace(/\r\n[ \t]/g, "").replace(/\n[ \t]/g, "");
 }
@@ -304,6 +314,31 @@ async function cancelStaleOtaBookings(input: {
   return cancelled;
 }
 
+async function recordUnitFeedSync(input: {
+  unitId: string;
+  source: OtaIcalSource;
+  ok: boolean;
+  error?: string;
+}): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const now = new Date();
+  if (input.source === "airbnb") {
+    await prisma.accommodationUnit.update({
+      where: { id: input.unitId },
+      data: input.ok
+        ? { airbnbLastSyncAt: now, airbnbLastError: null }
+        : { airbnbLastError: (input.error ?? "Sync failed").slice(0, 2000) },
+    });
+    return;
+  }
+  await prisma.accommodationUnit.update({
+    where: { id: input.unitId },
+    data: input.ok
+      ? { bookingcomLastSyncAt: now, bookingcomLastError: null }
+      : { bookingcomLastError: (input.error ?? "Sync failed").slice(0, 2000) },
+  });
+}
+
 /**
  * Sync Airbnb / Booking.com iCal feeds from Neon AccommodationUnit URLs into StayBooking.
  */
@@ -375,6 +410,12 @@ export async function syncOtaCalendarsFromUnits(input: {
       const fetched = await fetchIcalFeed(url);
       if (!fetched.ok) {
         result.errors.push(`${unit.title} (${feed.source}): ${fetched.message}`);
+        await recordUnitFeedSync({
+          unitId: unit.id,
+          source: feed.source,
+          ok: false,
+          error: fetched.message,
+        });
         continue;
       }
 
@@ -416,6 +457,12 @@ export async function syncOtaCalendarsFromUnits(input: {
         seenUids: seen,
       });
 
+      await recordUnitFeedSync({
+        unitId: unit.id,
+        source: feed.source,
+        ok: true,
+      });
+
       result.imported += imported;
       result.updated += updated;
       result.cancelled += cancelled;
@@ -444,4 +491,79 @@ export async function syncOtaCalendarsFromUnits(input: {
     result.message += ` · ${result.errors.length} feed warning(s)`;
   }
   return result;
+}
+
+/**
+ * Cron entry — sync every org that has at least one Airbnb or Booking.com iCal URL.
+ */
+export async function syncAllOrganisationsOtaCalendars(options?: {
+  limitOrgs?: number;
+}): Promise<SyncAllOrgsOtaResult> {
+  if (!process.env.DATABASE_URL) {
+    return {
+      organisations: 0,
+      imported: 0,
+      updated: 0,
+      cancelled: 0,
+      skipped: 0,
+      errors: ["DATABASE_URL not set"],
+      message: "Database not configured",
+    };
+  }
+
+  const { prisma } = await import("@dg/database");
+  const limit = Math.max(1, Math.min(options?.limitOrgs ?? 50, 100));
+
+  const units = await prisma.accommodationUnit.findMany({
+    where: {
+      OR: [
+        { airbnbIcalUrl: { not: null } },
+        { bookingcomIcalUrl: { not: null } },
+      ],
+    },
+    select: { organisationId: true },
+    distinct: ["organisationId"],
+    take: limit,
+  });
+
+  const orgIds = units.map((u) => u.organisationId);
+  const aggregate: SyncAllOrgsOtaResult = {
+    organisations: orgIds.length,
+    imported: 0,
+    updated: 0,
+    cancelled: 0,
+    skipped: 0,
+    errors: [],
+    message: "",
+  };
+
+  for (const organisationId of orgIds) {
+    try {
+      const result = await syncOtaCalendarsFromUnits({
+        organisationId,
+        source: "all",
+        actorId: "cron:ota-ical-sync",
+      });
+      aggregate.imported += result.imported;
+      aggregate.updated += result.updated;
+      aggregate.cancelled += result.cancelled;
+      aggregate.skipped += result.skipped;
+      for (const err of result.errors) {
+        aggregate.errors.push(`${organisationId}: ${err}`);
+      }
+    } catch (err) {
+      aggregate.errors.push(
+        `${organisationId}: ${err instanceof Error ? err.message : "sync failed"}`,
+      );
+    }
+  }
+
+  aggregate.message =
+    orgIds.length === 0
+      ? "No organisations with OTA iCal URLs configured."
+      : `OTA cron synced ${orgIds.length} organisation(s) — ${aggregate.imported} imported, ${aggregate.updated} updated, ${aggregate.cancelled} cancelled`;
+  if (aggregate.errors.length) {
+    aggregate.message += ` · ${aggregate.errors.length} warning(s)`;
+  }
+  return aggregate;
 }

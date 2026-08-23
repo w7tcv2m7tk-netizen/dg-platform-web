@@ -816,7 +816,7 @@ export function AccommodationAvailabilityBoard({
           <button
             type="button"
             disabled={syncing}
-            title="Pull Airbnb & Booking.com into DigitalGate. Manual blocks go out on each unit’s DigitalGate export calendar URL."
+            title="Pull Airbnb & Booking.com into DigitalGate now. Auto-sync also runs every 15 minutes. Manual blocks go out on each unit’s DigitalGate export calendar URL."
             onClick={() => void syncOta()}
             className="shrink-0 rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
           >
