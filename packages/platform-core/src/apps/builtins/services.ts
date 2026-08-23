@@ -23,7 +23,11 @@ export const servicesApp: AppManifest = {
     { path: "/apps/services/customers", label: "Customers" },
     { path: "/apps/services/teams", label: "Teams" },
   ],
-  navigation: [{ href: "/apps/services", label: "Services", icon: "⚙" }],
+  navigation: [
+    { href: "/apps/services", label: "Overview", icon: "⚙" },
+    { href: "/apps/services/jobs", label: "Jobs", icon: "⚙" },
+    { href: "/apps/services/scheduling", label: "Scheduling", icon: "⚙" },
+  ],
   permissions: [
     { id: "services.view", label: "View jobs and schedule" },
     { id: "services.manage", label: "Manage jobs and quotes" },

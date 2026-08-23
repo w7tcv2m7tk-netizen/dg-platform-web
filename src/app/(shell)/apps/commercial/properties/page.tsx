@@ -2,6 +2,7 @@ import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { listCommercialProperties } from "@dg/platform-core";
 
+import { CommercialNav } from "@/components/commercial/CommercialNav";
 import { CreateCommercialPropertyForm } from "@/components/commercial/CreateCommercialPropertyForm";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
@@ -48,6 +49,7 @@ export default async function CommercialPropertiesPage() {
         </div>
       </header>
       <main className="dg-page-main space-y-4">
+        <CommercialNav active="properties" />
         {items.length === 0 ? (
           <div className="dg-card border-dashed border-slate-700">
             <p className="text-slate-400">No commercial properties yet.</p>

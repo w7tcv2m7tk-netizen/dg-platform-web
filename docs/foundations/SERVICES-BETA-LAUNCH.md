@@ -1,11 +1,11 @@
 # Services App closed beta — launch checklist
 
 **Audience:** Ben (DigitalGate) + founding agencies on Services  
-**Status:** Closed-beta **job ops ready** (Aug 2026) — architecture/strategy locked in [SERVICES-APP.md](./SERVICES-APP.md) (DG OS for service businesses; ServiceM8 = coverage benchmark, not clone) — run founding-agency dry-run before invite  
-**Depends on:** Gen 2 with `DATABASE_URL`; Services App installed; org memberships for assignees  
+**Status:** Closed-beta **job ops + checklists ready** (Aug 2026) — architecture locked in [SERVICES-APP.md](./SERVICES-APP.md). Enrol via **`services.beta`** (Command Centre → Flags) + install Services App — not open to every org by default.  
+**Depends on:** Gen 2 with `DATABASE_URL`; `services.beta` on; Services App installed; org memberships for assignees  
 **Architecture SSOT:** [SERVICES-APP.md](./SERVICES-APP.md)
 
-This is **launch hygiene**, not a feature build. Product slice (template → job → schedule → stage → notes → day board) is already shipped. Full ServiceM8-class depth (calendar, field ops, recurrence, AI assistants) is **post-beta** on the same Universal Objects architecture.
+This is **launch hygiene**. Product slice: template → job → schedule → stage → notes → checklist/photos → day board. Full ServiceM8-class depth (DnD calendar, GPS, AI dispatcher) stays **post-beta**.
 
 ---
 
@@ -25,7 +25,8 @@ Not for: promising drag-drop calendars, GPS field tracking, or an AI dispatcher.
 ## Prerequisites
 
 - [ ] Gen 2 env has `DATABASE_URL`; schema includes Services job tables
-- [ ] Target org has **Services** App installed (App registry / enable path as used for other Business Apps)
+- [ ] Staff enable **`services.beta`** for the target org (Command Centre → Flags)
+- [ ] Target org has **Services** App installed
 - [ ] At least one org member in **Settings → Team** (needed to assign jobs)
 - [ ] Optional: Business Profile / org settings ready so template apply is meaningful
 - [ ] Staff can open `/command/docs/services-beta-launch` (this doc in Command docs library)
@@ -43,11 +44,12 @@ Not for: promising drag-drop calendars, GPS field tracking, or an AI dispatcher.
 | Assignees | Pick from org memberships |
 | Stages | Update stage on job detail |
 | Notes | Activity notes on job detail |
+| Checklist + photos | Structured checklist + photo URLs on job detail (`ServiceJob.metadata`) |
 | Day board | Scheduling view (next ~14 days) |
 | Soft Commerce | Quote links on job detail → Commerce |
 | Redirects | `/apps/services/quotes` → Commerce; `customers` → CRM; `teams` → Settings |
 
-**Beta core path:** Template → Job → Schedule → Stage → Notes → Board.
+**Beta core path:** Template → Job → Schedule → Stage → Checklist/Photos → Notes → Board.
 
 ---
 
@@ -56,7 +58,8 @@ Not for: promising drag-drop calendars, GPS field tracking, or an AI dispatcher.
 - **Drag-and-drop calendar** — day board is list/column style; no DnD reschedule
 - **GPS / live field tracking** — not shipped
 - **AI dispatcher** — template AI tools may be declared; no autonomous dispatch
-- **Full calendar / recurrence / checklists product** — next after closed beta
+- **Native photo upload / media library** — paste image URLs on job metadata for now
+- **Full calendar / recurrence product** — post closed beta
 - **Invoice auto-create from job** — soft quote links only
 - **Separate Apps per trade** — never; industry stays configuration
 
@@ -75,8 +78,9 @@ Run on a **sandbox or founding-agency dogfood org** (not a random live client wi
 5. **Assign** — Pick an assignee from org members → save.
 6. **Stage** — Advance stage via stage control → confirm list/pipeline reflect it.
 7. **Notes** — Add a job note → confirm it appears on the activity timeline.
-8. **Board** — `/apps/services/scheduling` → confirm the job appears on the day board for the scheduled day.
-9. **Redirects** (quick):
+8. **Checklist / photos** — On job detail, add a checklist item, tick it, paste a photo URL → confirm it persists after refresh.
+9. **Board** — `/apps/services/scheduling` → confirm the job appears on the day board for the scheduled day.
+10. **Redirects** (quick):
    - `/apps/services/quotes` → `/apps/commerce/quotes`
    - `/apps/services/customers` → `/apps/crm/contacts`
    - `/apps/services/teams` → `/dashboard/settings/team`

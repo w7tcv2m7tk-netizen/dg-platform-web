@@ -5,8 +5,10 @@ import { useState } from "react";
 
 export function CreatePmLeaseForm({
   contacts,
+  properties = [],
 }: {
   contacts: { id: string; label: string }[];
+  properties?: { id: string; label: string }[];
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -24,6 +26,7 @@ export function CreatePmLeaseForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: String(fd.get("title") ?? ""),
+        propertyId: String(fd.get("propertyId") ?? "") || undefined,
         addressLine1: String(fd.get("addressLine1") ?? "") || undefined,
         suburb: String(fd.get("suburb") ?? "") || undefined,
         stage: String(fd.get("stage") ?? "") || undefined,
@@ -65,6 +68,20 @@ export function CreatePmLeaseForm({
         placeholder="Lease title (e.g. 12 Smith St — Unit 2)"
         className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
       />
+      {properties.length > 0 ? (
+        <select
+          name="propertyId"
+          defaultValue=""
+          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+        >
+          <option value="">Link property (optional)</option>
+          {properties.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+      ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <input
           name="addressLine1"

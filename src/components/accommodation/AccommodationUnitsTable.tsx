@@ -235,7 +235,7 @@ function OtaCalendarsSection({
   return (
     <Section
       title="OTA calendars"
-      hint="Import URLs pull bookings from Airbnb / Booking.com into DigitalGate. Paste the DigitalGate export URL into each OTA — not between OTAs."
+      hint="Import URLs pull bookings from Airbnb / Booking.com into DigitalGate. Paste the DigitalGate export URL into each OTA — not between OTAs. Auto-sync cron (every 15 min) needs Vercel Pro+; Hobby plans can still Sync OTA manually from Availability / Units."
     >
       <div className="grid gap-4">
         <label className="block space-y-1.5">

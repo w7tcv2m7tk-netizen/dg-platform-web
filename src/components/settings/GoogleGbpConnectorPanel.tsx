@@ -127,8 +127,9 @@ export function GoogleGbpConnectorPanel({
           <p className="text-xs uppercase tracking-wide text-slate-500">Business</p>
           <h2 className="font-semibold text-white">Google Business Profile</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Accounts, locations, and profile fields for Reputation + visibility — reviews when the
-            My Business API allows
+            Accounts, locations, and profile fields sync when connected. Reviews are{" "}
+            <span className="text-slate-300">best-effort / limited</span> — if Google denies the
+            Reviews API we keep location metadata and surface the block reason (no fake scores).
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -227,11 +228,15 @@ export function GoogleGbpConnectorPanel({
               ) : null}
               {org.reviewsBlockedReason ? (
                 <li className="text-amber-400/90">
-                  Reviews: {org.reviewsBlockedReason}
+                  Reviews limited: {org.reviewsBlockedReason}
                 </li>
               ) : org.reviewsAvailable ? (
                 <li className="text-emerald-400">
                   Reviews cached: {org.reviewsCached} (feeds Reputation when present)
+                </li>
+              ) : org.connected ? (
+                <li className="text-slate-500">
+                  Reviews: not synced yet — Sync locations may still return limited reviews
                 </li>
               ) : null}
             </>

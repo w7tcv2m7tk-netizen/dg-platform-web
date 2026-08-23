@@ -12,6 +12,7 @@ import {
 
 import { AddServiceJobNoteForm } from "@/components/services/AddServiceJobNoteForm";
 import { EditServiceJobForm } from "@/components/services/EditServiceJobForm";
+import { JobChecklistPhotosPanel } from "@/components/services/JobChecklistPhotosPanel";
 import { ServicesNav } from "@/components/services/ServicesNav";
 import { UpdateJobStageForm } from "@/components/services/UpdateJobStageForm";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
@@ -160,6 +161,7 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
           customerLabel={template.terminology.customer}
           quoteLabel={template.terminology.quote}
         />
+        <JobChecklistPhotosPanel jobId={job.id} metadata={job.metadata} />
         <section className="dg-card">
           <h2 className="font-semibold text-white">Activity</h2>
           {!activitiesResult.items.length ? (

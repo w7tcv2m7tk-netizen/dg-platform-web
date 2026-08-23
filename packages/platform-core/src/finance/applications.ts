@@ -6,6 +6,7 @@ import type {
   FinanceApplicationRecord,
   FinanceApplicationStatus,
   ListFinanceApplicationsOptions,
+  UpdateFinanceApplicationInput,
 } from "./types";
 
 function serialize(row: FinanceApplication): FinanceApplicationRecord {
@@ -81,4 +82,57 @@ export async function createFinanceApplication(input: CreateFinanceApplicationIn
   });
 
   return serialize(row);
+}
+
+export async function updateFinanceApplication(input: UpdateFinanceApplicationInput) {
+  const { prisma } = await import("@dg/database");
+  const existing = await prisma.financeApplication.findFirst({
+    where: { id: input.applicationId, organisationId: input.organisationId },
+  });
+  if (!existing) return null;
+
+  const data: Prisma.FinanceApplicationUpdateInput = {};
+  if (input.title !== undefined) data.title = input.title.trim();
+  if (input.stage !== undefined) data.stage = input.stage.trim();
+  if (input.status !== undefined) data.status = input.status;
+  if (input.contactId !== undefined) {
+    data.contact = input.contactId
+      ? { connect: { id: input.contactId } }
+      : { disconnect: true };
+  }
+  if (input.loanAmountCents !== undefined) data.loanAmountCents = input.loanAmountCents;
+  if (input.lenderName !== undefined) {
+    data.lenderName = input.lenderName?.trim() || null;
+  }
+  if (input.notes !== undefined) data.notes = input.notes;
+  if (input.metadata !== undefined) {
+    data.metadata = (input.metadata ?? undefined) as Prisma.InputJsonValue | undefined;
+  }
+
+  const row = await prisma.financeApplication.update({
+    where: { id: existing.id },
+    data,
+  });
+
+  await writeAuditLog({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    action: "update",
+    entityType: "FinanceApplication",
+    entityId: row.id,
+    changes: { after: { stage: row.stage, status: row.status } },
+  });
+
+  return serialize(row);
+}
+
+export async function getFinanceApplication(
+  organisationId: string,
+  applicationId: string,
+) {
+  const { prisma } = await import("@dg/database");
+  const row = await prisma.financeApplication.findFirst({
+    where: { id: applicationId, organisationId },
+  });
+  return row ? serialize(row) : null;
 }

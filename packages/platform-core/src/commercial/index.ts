@@ -116,3 +116,72 @@ export async function createCommercialLease(input: CreateCommercialLeaseInput) {
   });
   return serializeLease(row);
 }
+
+export async function getCommercialOverviewCounts(organisationId: string) {
+  const { prisma } = await import("@dg/database");
+  const [properties, leases, activeLeases] = await Promise.all([
+    prisma.commercialProperty.count({ where: { organisationId } }),
+    prisma.commercialLease.count({ where: { organisationId } }),
+    prisma.commercialLease.count({ where: { organisationId, status: "active" } }),
+  ]);
+  return { properties, leases, activeLeases };
+}
+
+/** Distinct CRM contacts linked as tenants on commercial leases. */
+export async function listCommercialTenantContacts(organisationId: string) {
+  const { prisma } = await import("@dg/database");
+  const leases = await prisma.commercialLease.findMany({
+    where: { organisationId, tenantContactId: { not: null } },
+    select: {
+      id: true,
+      title: true,
+      tenantContactId: true,
+      status: true,
+    },
+    take: 200,
+  });
+
+  const contactIds = [
+    ...new Set(
+      leases
+        .map((l) => l.tenantContactId)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  if (contactIds.length === 0) {
+    return {
+      items: [] as Array<{
+        contactId: string;
+        firstName: string;
+        lastName: string | null;
+        email: string | null;
+        phone: string | null;
+        leaseCount: number;
+        leases: Array<{ id: string; title: string; status: string }>;
+      }>,
+    };
+  }
+
+  const contacts = await prisma.contact.findMany({
+    where: { organisationId, id: { in: contactIds }, deletedAt: null },
+  });
+
+  return {
+    items: contacts.map((c) => {
+      const linked = leases.filter((l) => l.tenantContactId === c.id);
+      return {
+        contactId: c.id,
+        firstName: c.firstName,
+        lastName: c.lastName,
+        email: c.email,
+        phone: c.phone,
+        leaseCount: linked.length,
+        leases: linked.map((l) => ({
+          id: l.id,
+          title: l.title,
+          status: l.status,
+        })),
+      };
+    }),
+  };
+}

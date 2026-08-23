@@ -27,6 +27,20 @@ export type CreateFinanceApplicationInput = {
   metadata?: Record<string, unknown>;
 };
 
+export type UpdateFinanceApplicationInput = {
+  organisationId: string;
+  applicationId: string;
+  actorId?: string;
+  title?: string;
+  stage?: string;
+  status?: FinanceApplicationStatus;
+  contactId?: string | null;
+  loanAmountCents?: number | null;
+  lenderName?: string | null;
+  notes?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
 export type ListFinanceApplicationsOptions = {
   organisationId: string;
   status?: string;

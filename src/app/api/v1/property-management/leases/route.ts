@@ -34,6 +34,7 @@ export async function POST(req: Request) {
     organisationId: session.organisationId,
     actorId: session.clerkUserId,
     title: body.title,
+    propertyId: typeof body.propertyId === "string" ? body.propertyId : undefined,
     addressLine1: typeof body.addressLine1 === "string" ? body.addressLine1 : undefined,
     suburb: typeof body.suburb === "string" ? body.suburb : undefined,
     stage: typeof body.stage === "string" ? body.stage : undefined,

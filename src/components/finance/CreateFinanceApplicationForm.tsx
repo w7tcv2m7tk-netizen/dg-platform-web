@@ -3,10 +3,30 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+const DEFAULT_STAGES = [
+  { id: "enquiry", label: "Enquiry" },
+  { id: "fact_find", label: "Fact find" },
+  { id: "submitted", label: "Submitted" },
+  { id: "conditional", label: "Conditional" },
+  { id: "unconditional", label: "Unconditional" },
+  { id: "settled", label: "Settled" },
+  { id: "declined", label: "Declined" },
+];
+
+const APPLICATION_TYPES = [
+  { id: "home_loan", label: "Home loan" },
+  { id: "refinance", label: "Refinance" },
+  { id: "investment", label: "Investment loan" },
+  { id: "business", label: "Business loan" },
+  { id: "other", label: "Other" },
+];
+
 export function CreateFinanceApplicationForm({
   contacts,
+  stages = DEFAULT_STAGES,
 }: {
   contacts: { id: string; label: string }[];
+  stages?: { id: string; label: string }[];
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -19,6 +39,7 @@ export function CreateFinanceApplicationForm({
     setError(null);
     const fd = new FormData(e.currentTarget);
     const amount = String(fd.get("loanAmount") ?? "").trim();
+    const applicationType = String(fd.get("applicationType") ?? "") || undefined;
     const res = await fetch("/api/v1/finance/applications", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -31,6 +52,7 @@ export function CreateFinanceApplicationForm({
         loanAmountCents: amount
           ? Math.round(Number.parseFloat(amount) * 100)
           : undefined,
+        metadata: applicationType ? { applicationType } : undefined,
       }),
     });
     const json = await res.json().catch(() => ({}));
@@ -69,13 +91,24 @@ export function CreateFinanceApplicationForm({
         <select
           name="stage"
           className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
-          defaultValue="enquiry"
+          defaultValue={stages[0]?.id ?? "enquiry"}
         >
-          <option value="enquiry">Enquiry</option>
-          <option value="pre_approval">Pre-approval</option>
-          <option value="submitted">Submitted</option>
-          <option value="approved">Approved</option>
-          <option value="settled">Settled</option>
+          {stages.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+        <select
+          name="applicationType"
+          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          defaultValue="home_loan"
+        >
+          {APPLICATION_TYPES.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.label}
+            </option>
+          ))}
         </select>
         <select
           name="contactId"

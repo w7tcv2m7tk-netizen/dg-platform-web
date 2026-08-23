@@ -128,8 +128,10 @@ export function ReaConnectorPanel({
           <p className="text-xs uppercase tracking-wide text-slate-500">Property</p>
           <h2 className="font-semibold text-white">realestate.com.au (REA)</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Partner Platform · client_credentials · Listing Upload (REAXML). Agency
-            activation is via Ignite / Change of Uploader — not a user OAuth redirect.
+            Partner Platform · client_credentials · Listing Upload (REAXML). Agency activation is
+            via Ignite / Change of Uploader — not a user OAuth redirect. Upload accept means{" "}
+            <span className="text-slate-300">pending</span> in DigitalGate — not “live published”
+            on realestate.com.au until REA report + agency listings confirm it.
           </p>
         </div>
       </div>

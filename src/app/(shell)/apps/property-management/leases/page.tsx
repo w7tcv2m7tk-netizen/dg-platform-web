@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
-import { listContacts, listPmLeases } from "@dg/platform-core";
+import { listContacts, listPmLeases, listPmProperties } from "@dg/platform-core";
 
 import { CreatePmLeaseForm } from "@/components/property-management/CreatePmLeaseForm";
+import { PmNav } from "@/components/property-management/PmNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
 export default async function PmLeasesPage() {
@@ -29,9 +30,10 @@ export default async function PmLeasesPage() {
     );
   }
 
-  const [{ items }, contacts] = await Promise.all([
+  const [{ items }, contacts, properties] = await Promise.all([
     listPmLeases(session.organisationId),
     listContacts({ organisationId: session.organisationId, limit: 100 }),
+    listPmProperties(session.organisationId),
   ]);
 
   const contactOptions = contacts.items.map((c) => ({
@@ -40,6 +42,11 @@ export default async function PmLeasesPage() {
       [c.firstName, c.lastName].filter(Boolean).join(" ").trim() ||
       c.email ||
       c.id.slice(0, 8),
+  }));
+
+  const propertyOptions = properties.items.map((p) => ({
+    id: p.id,
+    label: `${p.name} — ${p.suburb}`,
   }));
 
   return (
@@ -58,10 +65,11 @@ export default async function PmLeasesPage() {
               Long-term rentals — owners &amp; tenants on Core CRM
             </p>
           </div>
-          <CreatePmLeaseForm contacts={contactOptions} />
+          <CreatePmLeaseForm contacts={contactOptions} properties={propertyOptions} />
         </div>
       </header>
       <main className="dg-page-main space-y-4">
+        <PmNav active="leases" />
         {items.length === 0 ? (
           <div className="dg-card border-dashed border-slate-700">
             <p className="text-slate-400">No leases yet. Create the first PM lease.</p>

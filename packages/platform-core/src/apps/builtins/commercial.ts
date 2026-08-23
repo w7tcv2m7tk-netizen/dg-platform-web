@@ -15,7 +15,10 @@ export const commercialApp: AppManifest = {
     { path: "/apps/commercial/tenants", label: "Tenants" },
   ],
   navigation: [
-    { href: "/apps/commercial", label: "Commercial Property", icon: "▦" },
+    { href: "/apps/commercial", label: "Overview", icon: "▦" },
+    { href: "/apps/commercial/properties", label: "Properties", icon: "▦" },
+    { href: "/apps/commercial/leases", label: "Leases", icon: "▦" },
+    { href: "/apps/commercial/tenants", label: "Tenants", icon: "▦" },
   ],
   permissions: [
     { id: "commercial.view", label: "View commercial portfolio" },

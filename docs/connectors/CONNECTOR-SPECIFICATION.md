@@ -21,10 +21,19 @@ Every connector must cover: identity, auth, sync modes, object mapping, health, 
 |-----------|--------|
 | **WordPress** | Gen 1 plugin → Gen 2 slim connector; leads, properties, Acc stays |
 | **Stripe** | Platform billing + Commerce Payment Engine |
-| **Domain** | OAuth + status / connect (Listing Hub path) |
-| **REA** | Scaffold — status UI + fail-closed publish; partner OAuth/upsert pending ([REA.md](./REA.md)) |
-| **Google GBP** | OAuth + accounts/locations sync · reviews when My Business API allows |
-| **Cotality (CoreLogic)** | Sandbox OAuth + Address Match → address resolve + Property `externalRefs.corelogic_property_id` |
+| **Domain** | OAuth + Listings Management · **sandbox vs prod** via `DOMAIN_API_PATH_PREFIX` (`/sandbox` vs Primary `/v1`) — see UI + [Domain docs in Connector Engine](../foundations/CONNECTOR-ENGINE.md) |
+| **REA** | Partner client_credentials + agency bind · upload accept → **pending** (not live published until report) — [REA.md](./REA.md) |
+| **Google GBP** | OAuth + accounts/locations sync · **reviews limited** when My Business API denies — [GOOGLE-GBP.md](./GOOGLE-GBP.md) |
+| **Cotality (CoreLogic)** | **Sandbox by default** (`api-sbox`) · Address Match + Property Details — [COTALITY-CORELOGIC.md](./COTALITY-CORELOGIC.md) |
+
+## Explicitly parked (this programme)
+
+| Connector | Status |
+|-----------|--------|
+| **Xero** | Parked — accounting template label-only until adapter ships |
+| **Google Search Console (GSC)** | Parked as a connector product; DigitalGate marketing 404s use legacy redirects only |
+| **Meta Ads** | Parked — no adapter chase in Industry floors programme |
+| **OTA native APIs** (Airbnb / Booking.com) | Parked — iCal import + cron (Pro+) only |
 
 ## Business Services connectors (honest)
 

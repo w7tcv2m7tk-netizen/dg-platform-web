@@ -17,8 +17,10 @@ export const DG_APP_LOGIN_URL = "https://app.digitalgate.com.au/login";
 /** Exact path (no trailing slash) → same-host path or absolute URL. */
 export const DG_LEGACY_REDIRECTS: Record<string, string> = {
   "/real-estate-marketing-automation": "/insights",
+  "/real-estate-facebook-ads": "/insights",
   "/real-estate-vendor-leads": "/vendor-velocity-system",
   "/real-estate-lead-generation": "/vendor-velocity-system",
+  "/listing-acquisition-websites": "/vendor-velocity-system",
   "/property-appraisal-lead-generation": "/appraisal-magnet-system",
   "/google-ads-for-real-estate-agents": "/insights",
   "/website-design-lead-generation": "/pricing",
@@ -30,6 +32,7 @@ export const DG_LEGACY_REDIRECTS: Record<string, string> = {
   "/business-audit": DG_AUDIT_URL,
   "/solutions": "/pricing",
   "/automation": "/pricing",
+  "/privacy": "/privacy-policy",
   "/privacy-and-cookies-policy": "/privacy-policy",
   "/contact-us": "/contact",
   "/sitemap": "/sitemap.xml",

@@ -1,89 +1,38 @@
-# Business Apps scaffold floor — Finance · Creator · Commercial · Automotive
+# Business Apps floors — Finance · Creator · Commercial · Automotive · PM · Services
 
-**Audience:** Ben (DigitalGate) + staff reviewing product map  
-**Status:** Scaffold floor (Aug 2026) — **not** closed beta  
-**Depends on:** Gen 2 shell; manifests in `platform-core`; routes under `/apps/{finance|creator|commercial|automotive}`  
-**Pattern peers:** Marketing / Social honest deferred surfaces (not RE / Acc / Services betas)
-
-This is **product-map hygiene**, not a feature build. Registry stays **`enabled: false`** until a vertical earns a real pilot (like Services / Acc).
+**Audience:** Ben + agents shipping Industry Apps  
+**Status:** Finance / Commercial / Property Management / Services = **closed-beta floors** (enrol via feature flags). Creator + Automotive remain scaffold.  
+**Depends on:** Gen 2 shell; manifests in `platform-core`; beta flags `finance.beta`, `commercial.beta`, `pm.beta`, `services.beta`
 
 ---
 
-## Who it’s for
+## Honesty rules
 
-Staff and agencies who need to:
-
-- See Finance / Creator / Commercial / Automotive on the Gen 2 product map
-- Understand what Core to use **today** (CRM, Commerce, RE residential)
-- Avoid promising broker pipelines, creator MRR, commercial rent rolls, or dealer inventory on Gen 2
-
-Not for: licensing these Apps to clients, fake KPIs, or treating scaffolds as closed-beta product.
+- Beta-gated Apps install when the flag is on — **not** open to every org by default
+- No fake KPIs or ServiceM8 / full PMS parity claims
+- Accounting / Xero stays label-only until a connector exists
 
 ---
 
-## Current state (honest)
+## Registry + flags (Aug 2026)
 
-| App | Registry | UI | Gen 1 WP |
-|-----|----------|----|----------|
-| **Finance** | `enabled: false` | Overview + pipeline / clients / applications scaffolds | Finance module may still be live |
-| **Creator** | `enabled: false` | Overview + content / memberships / storefront scaffolds | Creator module may still be live |
-| **Commercial** | `enabled: false` | Overview + properties / leases / tenants scaffolds | — (distinct from residential RE) |
-| **Automotive** | `enabled: false` | Overview + inventory / leads / test-drives scaffolds | Dealership module remains ops SoT |
-
-Roadmap items for these routes are marked **`scaffold`**.
-
----
-
-## What’s IN this floor
-
-| Area | Included |
-|------|----------|
-| Manifests | Routes, permissions, automation/AI declarations (unchanged intent) |
-| Shell routes | Dedicated pages (not catch-all placeholders) with subnav |
-| Honesty | Amber deferred banner; empty states; no fake scores / citations / MRR |
-| Core links | CRM / Commerce / RE pointers from overviews |
-| App guides | Setup guide steps pointing at scaffolds + Core |
-| Staff doc | This checklist in Command → Platform docs |
+| App | Registry | Gate | Floor |
+|-----|----------|------|-------|
+| **Finance** | `enabled: true` | `finance.beta` | Broking pipeline + applications + clients |
+| **Services** | `enabled: true` | `services.beta` | Jobs + scheduling + checklist/photos |
+| **Commercial** | `enabled: true` | `commercial.beta` | Properties + leases + tenants (CRM) |
+| **Property Management** | `enabled: true` | `pm.beta` | Properties + leases + owners/tenants + maintenance |
+| **Creator** | `enabled: false` | — | Scaffold only |
+| **Automotive** | `enabled: false` | — | Scaffold only |
 
 ---
 
-## What’s OUT (do not promise)
+## Smoke (beta floors)
 
-- Closed-beta flags / provision buttons (unlike `acc.beta` / `re.beta`)
-- Neon domain tables for loans, leases, vehicles, creator content
-- Lender integrations, OTA-style inventory sync, membership billing product
-- Enabling Apps in the default registry for all orgs
-- Opportunity Engine™ customer-facing scores on these surfaces
+1. Enable the relevant `*.beta` flag for a pilot org → install App
+2. Open Overview — real KPI counts (not scaffold copy)
+3. Create/list core records; link CRM Contacts where relevant
+4. Finance: move application stage on Pipeline
+5. Services: add checklist item + photo URL on a job
 
----
-
-## Smoke path (5–10 min)
-
-Direct URLs work even while Apps are registry-disabled (same as Marketing).
-
-1. `/apps/finance` — deferred banner, Core links, subnav.
-2. `/apps/finance/pipeline` · `/clients` · `/applications` — honest empties.
-3. `/apps/creator` → memberships / storefront — Commerce pointers.
-4. `/apps/commercial` → properties / leases / tenants — “not residential RE” copy.
-5. `/apps/automotive` → inventory / leads / test-drives — Gen 1 dealer note.
-6. Staff: `/command/docs/business-apps-scaffold` — this doc.
-7. Setup guides: `/dashboard/apps/{finance|creator|commercial|automotive}/setup` (or org setup href).
-
----
-
-## Next increments (when a vertical is chosen)
-
-1. Pick **one** App for a real pilot (likely Finance or Automotive if Gen 1 clients pull).
-2. Add domain module + beta flag (mirror Acc / Services — not all four at once).
-3. Enable registry + AppInstallation for pilot orgs only.
-4. Thin MVP on Core objects (CRM leads/contacts; Commerce for creator billing).
-
-Until then: keep scaffolds honest and registry off.
-
----
-
-## Architecture locks
-
-- Core → Infrastructure → Industry → Growth — Commercial ≠ Commerce App; Commercial ≠ residential RE. See [APP-HIERARCHY.md](./APP-HIERARCHY.md).
-- Opportunity Engine™ is internal IP — soft language only on customer surfaces.
-- Honesty holds: no fake scores, citations, or MRR.
+Staff doc library: `/command/docs/business-apps-scaffold`

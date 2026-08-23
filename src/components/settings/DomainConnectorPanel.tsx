@@ -97,8 +97,13 @@ export function DomainConnectorPanel({
           <p className="text-xs uppercase tracking-wide text-slate-500">Property</p>
           <h2 className="font-semibold text-white">Domain</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Property syndication (Listings Management) · OAuth client on{" "}
-            <span className="text-slate-300">app.digitalgate.com.au</span>
+            Property syndication (Listings Management) · OAuth on{" "}
+            <span className="text-slate-300">app.digitalgate.com.au</span>. Sandbox vs production
+            is controlled by{" "}
+            <code className="text-slate-300">DOMAIN_API_PATH_PREFIX</code> (
+            <code className="text-slate-300">/sandbox</code> vs Primary{" "}
+            <code className="text-slate-300">/v1</code>) — never assume listings are live on
+            Domain.com.au until the prefix and agency token match production.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

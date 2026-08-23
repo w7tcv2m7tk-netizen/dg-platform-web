@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
-import { listContacts, listFinanceApplications } from "@dg/platform-core";
+import {
+  getFinanceTemplate,
+  listFinanceApplications,
+} from "@dg/platform-core";
 
 import { FinanceNav } from "@/components/finance/FinanceNav";
+import { UpdateFinanceApplicationStageForm } from "@/components/finance/UpdateFinanceApplicationStageForm";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
 export default async function FinancePipelinePage() {
@@ -29,29 +33,22 @@ export default async function FinancePipelinePage() {
     );
   }
 
+  const template = getFinanceTemplate("mortgage_broking");
+  const stages = template.stages.map((s) => s.id);
+
   const { items } = await listFinanceApplications({
     organisationId: session.organisationId,
     limit: 100,
   });
 
-  const stages = [
-    "enquiry",
-    "fact_find",
-    "submitted",
-    "conditional",
-    "unconditional",
-    "settled",
-    "declined",
-  ];
   const grouped = new Map<string, typeof items>();
   for (const stage of stages) grouped.set(stage, []);
   for (const app of items) {
-    const stage = stages.includes(app.stage) ? app.stage : "enquiry";
+    const stage = stages.includes(app.stage) ? app.stage : stages[0] ?? "enquiry";
     const list = grouped.get(stage) ?? [];
     list.push(app);
     grouped.set(stage, list);
   }
-  // Include any unknown stages
   for (const app of items) {
     if (!stages.includes(app.stage)) {
       const list = grouped.get(app.stage) ?? [];
@@ -62,12 +59,14 @@ export default async function FinancePipelinePage() {
     }
   }
 
+  const stageMeta = new Map(template.stages.map((s) => [s.id, s.label]));
+
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Pipeline</h1>
         <p className="text-sm text-slate-400">
-          {session.organisationName} · Applications by stage
+          {session.organisationName} · {template.label} stages
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -76,8 +75,8 @@ export default async function FinancePipelinePage() {
           {[...grouped.entries()].map(([stage, apps]) => (
             <section key={stage} className="dg-card min-h-[12rem]">
               <div className="flex items-center justify-between gap-2">
-                <h2 className="text-sm font-semibold capitalize text-white">
-                  {stage.replace(/_/g, " ")}
+                <h2 className="text-sm font-semibold text-white">
+                  {stageMeta.get(stage) ?? stage.replace(/_/g, " ")}
                 </h2>
                 <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-300">
                   {apps.length}
@@ -100,6 +99,13 @@ export default async function FinancePipelinePage() {
                           ? ` · $${(app.loanAmountCents / 100).toLocaleString("en-AU")}`
                           : ""}
                       </p>
+                      <div className="mt-2">
+                        <UpdateFinanceApplicationStageForm
+                          applicationId={app.id}
+                          currentStage={app.stage}
+                          stages={template.stages}
+                        />
+                      </div>
                     </li>
                   ))}
                 </ul>

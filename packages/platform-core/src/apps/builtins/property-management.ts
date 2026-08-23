@@ -17,7 +17,12 @@ export const propertyManagementApp: AppManifest = {
     { path: "/apps/property-management/maintenance", label: "Maintenance" },
   ],
   navigation: [
-    { href: "/apps/property-management", label: "Property Management", icon: "⌂" },
+    { href: "/apps/property-management", label: "Overview", icon: "⌂" },
+    { href: "/apps/property-management/properties", label: "Properties", icon: "⌂" },
+    { href: "/apps/property-management/leases", label: "Leases", icon: "⌂" },
+    { href: "/apps/property-management/owners", label: "Owners", icon: "⌂" },
+    { href: "/apps/property-management/tenants", label: "Tenants", icon: "⌂" },
+    { href: "/apps/property-management/maintenance", label: "Maintenance", icon: "⌂" },
   ],
   permissions: [
     { id: "pm.view", label: "View property management portfolio" },

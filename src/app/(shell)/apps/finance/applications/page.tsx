@@ -1,8 +1,13 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { listContacts, listFinanceApplications } from "@dg/platform-core";
+import {
+  getFinanceTemplate,
+  listContacts,
+  listFinanceApplications,
+} from "@dg/platform-core";
 
 import { CreateFinanceApplicationForm } from "@/components/finance/CreateFinanceApplicationForm";
 import { FinanceNav } from "@/components/finance/FinanceNav";
+import { UpdateFinanceApplicationStageForm } from "@/components/finance/UpdateFinanceApplicationStageForm";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
 export default async function FinanceApplicationsPage() {
@@ -29,6 +34,7 @@ export default async function FinanceApplicationsPage() {
     );
   }
 
+  const template = getFinanceTemplate("mortgage_broking");
   const [{ items }, contacts] = await Promise.all([
     listFinanceApplications({ organisationId: session.organisationId }),
     listContacts({ organisationId: session.organisationId, limit: 100 }),
@@ -47,13 +53,16 @@ export default async function FinanceApplicationsPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Applications</h1>
         <p className="text-sm text-slate-400">
-          Broker loan applications on Core CRM contacts
+          {template.label} — Core CRM contacts
         </p>
       </header>
       <main className="dg-page-main space-y-4">
         <FinanceNav active="applications" />
         <div className="flex justify-end">
-          <CreateFinanceApplicationForm contacts={contactOptions} />
+          <CreateFinanceApplicationForm
+            contacts={contactOptions}
+            stages={template.stages}
+          />
         </div>
         {items.length === 0 ? (
           <div className="dg-card border-dashed border-slate-700">
@@ -64,18 +73,26 @@ export default async function FinanceApplicationsPage() {
             {items.map((app) => (
               <li
                 key={app.id}
-                className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
               >
                 <div>
                   <p className="font-medium text-white">{app.title}</p>
                   <p className="text-xs text-slate-500">
-                    {app.stage} · {app.status}
+                    {app.status}
                     {app.lenderName ? ` · ${app.lenderName}` : ""}
                     {app.loanAmountCents != null
                       ? ` · $${(app.loanAmountCents / 100).toLocaleString("en-AU")}`
                       : ""}
+                    {typeof app.metadata?.applicationType === "string"
+                      ? ` · ${String(app.metadata.applicationType).replace(/_/g, " ")}`
+                      : ""}
                   </p>
                 </div>
+                <UpdateFinanceApplicationStageForm
+                  applicationId={app.id}
+                  currentStage={app.stage}
+                  stages={template.stages}
+                />
               </li>
             ))}
           </ul>

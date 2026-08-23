@@ -3,18 +3,23 @@ import type { AppManifest } from "../manifest";
 export const financeApp: AppManifest = {
   id: "finance",
   name: "Finance",
-  description: "Finance Industry — Accounting & Bookkeeping first; broking, planning, insurance and advisory templates",
+  description:
+    "Finance broking — mortgage/loan pipeline on Core CRM (accounting label-only until Xero)",
   tier: "business",
-  version: "0.2.0",
+  version: "0.3.0",
   icon: "◫",
   routes: [
     { path: "/apps/finance", label: "Overview" },
     { path: "/apps/finance/pipeline", label: "Pipeline" },
-    { path: "/apps/finance/clients", label: "Clients" },
     { path: "/apps/finance/applications", label: "Applications" },
+    { path: "/apps/finance/clients", label: "Clients" },
   ],
-  // Registry remains disabled — single nav item until closed beta (Marketing pattern).
-  navigation: [{ href: "/apps/finance", label: "Finance", icon: "▣" }],
+  navigation: [
+    { href: "/apps/finance", label: "Overview", icon: "▣" },
+    { href: "/apps/finance/pipeline", label: "Pipeline", icon: "▣" },
+    { href: "/apps/finance/applications", label: "Applications", icon: "▣" },
+    { href: "/apps/finance/clients", label: "Clients", icon: "▣" },
+  ],
   permissions: [
     { id: "finance.view", label: "View finance pipeline" },
     { id: "finance.manage", label: "Manage applications" },

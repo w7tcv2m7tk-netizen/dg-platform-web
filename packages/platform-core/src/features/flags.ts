@@ -148,4 +148,28 @@ export const KNOWN_FEATURE_FLAGS = [
     description:
       "Allows DigitalGate Domains registration via Dreamscape SOAP/REST. Keep off until ready — production charges the reseller account. Also requires typed domain confirm (+ confirmProduction on live).",
   },
+  {
+    id: "pm.beta",
+    label: "Property Management beta",
+    description:
+      "Gates the Property Management Industry App for pilot agencies. Enable via Command Centre → Flags.",
+  },
+  {
+    id: "commercial.beta",
+    label: "Commercial Property beta",
+    description:
+      "Gates the Commercial Property Industry App for pilot agencies. Enable via Command Centre → Flags.",
+  },
+  {
+    id: "services.beta",
+    label: "Services beta",
+    description:
+      "Gates the Services Industry App (job ops) for pilot trades/field businesses. Enable via Command Centre → Flags.",
+  },
+  {
+    id: "finance.beta",
+    label: "Finance broking beta",
+    description:
+      "Gates the Finance Industry App (mortgage/finance broking floor) for pilots. Enable via Command Centre → Flags.",
+  },
 ] as const;

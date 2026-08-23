@@ -595,41 +595,56 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
   },
   {
     appId: "finance",
-    headline: "Finance & broker workflow",
+    headline: "Finance broking pipeline",
     summary:
-      "Loan pipeline, client applications, and broker CRM — scaffold floor only until a Finance pilot ships.",
-    estimatedMinutes: 5,
-    prerequisites: ["CRM for clients today", "Gen 1 Finance module if already live"],
+      "Mortgage / finance broking floor — applications, stage pipeline, CRM borrowers. Gated by finance.beta. Accounting stays label-only until Xero.",
+    estimatedMinutes: 10,
+    prerequisites: ["finance.beta enabled", "CRM Contacts for borrowers"],
     steps: [
       {
         id: "fin-1",
-        title: "Preview the scaffold floor",
-        description:
-          "Overview and route map are honest empties — no fake pipeline or commission metrics.",
+        title: "Open Finance overview",
+        description: "Confirm KPI counts, then open Pipeline for stage board.",
         href: "/apps/finance",
         hrefLabel: "Open Finance App",
       },
       {
         id: "fin-2",
-        title: "Use CRM for clients",
-        description: "Client records live in Core CRM until Finance applications ship.",
-        href: "/apps/crm/contacts",
-        hrefLabel: "Open CRM contacts",
+        title: "Create an application",
+        description: "Attach a CRM borrower, set stage / type / loan amount.",
+        href: "/apps/finance/applications",
+        hrefLabel: "Applications",
+      },
+      {
+        id: "fin-3",
+        title: "Move stages on the pipeline",
+        description: "Update application stage from Pipeline or Applications list.",
+        href: "/apps/finance/pipeline",
+        hrefLabel: "Pipeline",
       },
     ],
   },
   {
     appId: "services",
     headline: "Field service & trades",
-    summary: "Jobs, scheduling, and quotes for service businesses — linked to Commerce for invoicing.",
-    estimatedMinutes: 5,
+    summary:
+      "Jobs, scheduling, checklists/photos — gated by services.beta. Quotes → Commerce, customers → CRM.",
+    estimatedMinutes: 10,
+    prerequisites: ["services.beta enabled", "Services App installed"],
     steps: [
       {
         id: "svc-1",
-        title: "Preview App routes",
-        description: "Jobs, scheduling, and quotes routes show the planned workflow.",
+        title: "Open Services overview",
+        description: "Confirm counts and apply a Service Template.",
         href: "/apps/services",
-        hrefLabel: "Preview Services App",
+        hrefLabel: "Open Services App",
+      },
+      {
+        id: "svc-2",
+        title: "Job → checklist / photos",
+        description: "Create a job, then add checklist items and photo URLs on the detail page.",
+        href: "/apps/services/jobs",
+        hrefLabel: "Jobs",
       },
     ],
   },
@@ -660,26 +675,35 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
   },
   {
     appId: "commercial",
-    headline: "Commercial property management",
+    headline: "Commercial assets & tenancies",
     summary:
-      "Leases, tenants, and commercial portfolio — distinct from residential Real Estate; scaffold only.",
-    estimatedMinutes: 5,
-    prerequisites: ["Do not confuse with Real Estate (residential)"],
+      "Commercial property register, leases, and tenants on Core CRM — gated by commercial.beta.",
+    estimatedMinutes: 10,
+    prerequisites: ["commercial.beta enabled", "CRM Contacts for landlords/tenants"],
     steps: [
       {
         id: "com-1",
-        title: "Preview Commercial scaffold",
+        title: "Open Commercial overview",
         description:
-          "Properties, leases, and tenants are product-map routes — no rent-roll theatre.",
+          "Confirm KPI counts and install the Commercial Property app for the pilot org.",
         href: "/apps/commercial",
         hrefLabel: "Open Commercial App",
       },
       {
         id: "com-2",
-        title: "Use CRM for tenants",
-        description: "Tenant and landlord contacts live in CRM until commercial context ships.",
-        href: "/apps/crm/contacts",
-        hrefLabel: "Open CRM contacts",
+        title: "Add a property and lease",
+        description:
+          "Create a commercial property, then a lease linked to CRM landlord/tenant contacts.",
+        href: "/apps/commercial/properties",
+        hrefLabel: "Properties",
+      },
+      {
+        id: "com-3",
+        title: "Review tenants board",
+        description:
+          "Tenants are derived from lease → CRM Contact — not a separate people table.",
+        href: "/apps/commercial/tenants",
+        hrefLabel: "Tenants",
       },
     ],
   },

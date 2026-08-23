@@ -34,17 +34,16 @@ export default async function FinanceClientsPage() {
     listContacts({ organisationId: session.organisationId, limit: 100 }),
   ]);
 
-  const appCountByContact = new Map<string, number>();
+  const appsByContact = new Map<string, typeof applications>();
   for (const app of applications) {
     if (!app.contactId) continue;
-    appCountByContact.set(
-      app.contactId,
-      (appCountByContact.get(app.contactId) ?? 0) + 1,
-    );
+    const list = appsByContact.get(app.contactId) ?? [];
+    list.push(app);
+    appsByContact.set(app.contactId, list);
   }
 
-  const borrowers = contacts.items.filter((c) => appCountByContact.has(c.id));
-  const others = contacts.items.filter((c) => !appCountByContact.has(c.id));
+  const borrowers = contacts.items.filter((c) => appsByContact.has(c.id));
+  const others = contacts.items.filter((c) => !appsByContact.has(c.id));
 
   return (
     <>
@@ -76,6 +75,8 @@ export default async function FinanceClientsPage() {
                   [c.firstName, c.lastName].filter(Boolean).join(" ").trim() ||
                   c.email ||
                   c.id.slice(0, 8);
+                const linked = appsByContact.get(c.id) ?? [];
+                const primary = linked[0];
                 return (
                   <li
                     key={c.id}
@@ -86,12 +87,24 @@ export default async function FinanceClientsPage() {
                       <p className="text-xs text-slate-500">
                         {c.email || "No email"}
                         {c.phone ? ` · ${c.phone}` : ""}
+                        {primary
+                          ? ` · ${primary.stage} · ${primary.title}`
+                          : ""}
                       </p>
                     </div>
-                    <span className="text-xs text-slate-400">
-                      {appCountByContact.get(c.id)} application
-                      {(appCountByContact.get(c.id) ?? 0) === 1 ? "" : "s"}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-slate-400">
+                        {linked.length} application{linked.length === 1 ? "" : "s"}
+                      </span>
+                      {primary ? (
+                        <Link
+                          href="/apps/finance/applications"
+                          className="rounded-lg border border-slate-700 px-2.5 py-1 text-xs text-sky-300 hover:border-sky-600"
+                        >
+                          Open application
+                        </Link>
+                      ) : null}
+                    </div>
                   </li>
                 );
               })}

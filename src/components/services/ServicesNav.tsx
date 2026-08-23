@@ -13,13 +13,6 @@ export function ServicesNav({
       href: "/apps/services/scheduling",
       label: "Scheduling",
     },
-    { id: "quotes" as const, href: "/apps/services/quotes", label: "Quotes" },
-    {
-      id: "customers" as const,
-      href: "/apps/services/customers",
-      label: "Customers",
-    },
-    { id: "teams" as const, href: "/apps/services/teams", label: "Teams" },
   ];
 
   return (

@@ -69,7 +69,9 @@ model Organisation {
   financeApplications           FinanceApplication[]
   commercialProperties          CommercialProperty[]
   commercialLeases              CommercialLease[]
+  pmProperties                  PmProperty[]
   pmLeases                      PmLease[]
+  pmMaintenanceRequests         PmMaintenanceRequest[]
   communicationAgents           CommunicationAgent[]
   communicationSessions         CommunicationSession[]
   communicationUsages           CommunicationUsage[]
@@ -152,6 +154,7 @@ model Contact {
   commercialLeasesAsTenant   CommercialLease[] @relation("CommercialTenant")
   pmLeasesAsOwner  PmLease[] @relation("PmOwner")
   pmLeasesAsTenant PmLease[] @relation("PmTenant")
+  pmMaintenanceRequests PmMaintenanceRequest[]
 
   @@index([organisationId, email])
   @@index([organisationId, status])
@@ -1378,10 +1381,35 @@ model DeliveryBlocker {
   @@map("delivery_blockers")
 }
 
+/** Property Management Industry App — rental properties. */
+model PmProperty {
+  id             String    @id @default(cuid())
+  organisationId String    @map("organisation_id")
+  name           String
+  addressLine1   String    @map("address_line1")
+  suburb         String
+  state          String    @default("QLD")
+  postcode       String    @default("")
+  country        String    @default("AU")
+  status         String    @default("active")
+  propertyType   String?   @map("property_type")
+  metadata       Json?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation          @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  leases       PmLease[]
+  maintenance  PmMaintenanceRequest[]
+
+  @@index([organisationId, status])
+  @@map("pm_properties")
+}
+
 /** Property Management Industry App — long-term residential leases. */
 model PmLease {
   id                String    @id @default(cuid())
   organisationId    String    @map("organisation_id")
+  propertyId        String?   @map("property_id")
   title             String
   addressLine1      String?   @map("address_line1")
   suburb            String?
@@ -1398,12 +1426,37 @@ model PmLease {
   updatedAt         DateTime  @updatedAt @map("updated_at")
 
   organisation  Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  property      PmProperty?  @relation(fields: [propertyId], references: [id], onDelete: SetNull)
   ownerContact  Contact?     @relation("PmOwner", fields: [ownerContactId], references: [id], onDelete: SetNull)
   tenantContact Contact?     @relation("PmTenant", fields: [tenantContactId], references: [id], onDelete: SetNull)
 
   @@index([organisationId, status])
   @@index([organisationId, stage])
+  @@index([organisationId, propertyId])
   @@map("pm_leases")
+}
+
+/** Property Management Industry App — maintenance requests. */
+model PmMaintenanceRequest {
+  id             String    @id @default(cuid())
+  organisationId String    @map("organisation_id")
+  propertyId     String?   @map("property_id")
+  contactId      String?   @map("contact_id")
+  title          String
+  status         String    @default("open")
+  priority       String    @default("normal")
+  notes          String?
+  metadata       Json?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  property     PmProperty?  @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  contact      Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, status])
+  @@index([organisationId, propertyId])
+  @@map("pm_maintenance_requests")
 }
 
 // ─── AI Communications (provider-agnostic orchestration) ───────────────────
