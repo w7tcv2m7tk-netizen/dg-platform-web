@@ -4,155 +4,162 @@
 
 **Related:** [FOUNDING-10-RELEASE-GATE.md](./FOUNDING-10-RELEASE-GATE.md) · [GATE-1-DOGFOOD.md](../foundations/GATE-1-DOGFOOD.md) · [OPERATOR-EXPERIENCE.md](../foundations/OPERATOR-EXPERIENCE.md)
 
-**Sequence:** SECURE → VERIFY → SIMPLIFY → ONBOARD → LEARN
+**Locked priority order:**
+
+1. Security verification  
+2. Billing verification  
+3. Customer 30-second UX  
+4. Six-persona walkthrough  
+5. One vertical outcome  
+6. Founding 10 launch  
+7. Entitlement read model (`resolveEntitlements(org)`) — **P1, not P0**  
+8. Learn from real customers  
+
+**Rule:** Any **FAIL** in sections 01–05 blocks Founding 10. When all five pass — **stop building** and bring in Founding 10.
 
 ---
 
-## Phase 1 — Security verification (1–2 days)
+## 01 — Security
 
-### API permission matrix
+Pass/fail matrix by **persona × domain**. Each cell: **PASS** / **FAIL** / **N/A**. Any **FAIL** blocks Founding 10.
 
-Test each action as the persona listed. **Pass** = expected 403 or hidden UI; **Fail** = data leak or mutate succeeds.
+| Persona | CRM | Billing | Team | Export | Command | Cross-org |
+|---------|-----|---------|------|--------|---------|-----------|
+| DG Owner | | | | | | |
+| DG Staff | | | | | | |
+| Customer Owner | | | | | | |
+| Customer Admin | | | | | | |
+| Customer Member | | | | | | |
+| Delivery Partner | | | | | | |
+| API Key | | | | | | |
 
-| Action / route | Member | Admin | Owner | DG staff | API key |
-|----------------|--------|-------|-------|----------|---------|
-| `GET /api/v1/org/team` | view only | manage | manage | — | deny |
-| `POST /api/v1/org/team/invite` | 403 | OK | OK | — | deny |
-| `PATCH /api/v1/billing/checkout` | 403 | OK | OK | — | deny |
-| `POST /api/v1/billing/portal` | 403 | OK | OK | — | deny |
-| `GET /api/v1/contacts/export` | 403 | OK | OK | — | scoped |
-| Connector mutate (WP, REA, Google, …) | 403 | OK | OK | — | deny |
-| `PATCH /api/v1/org/apps` | 403 | OK | OK | — | deny |
-| Industry API (PM, services, …) without beta | 403 | 403 | 403* | — | deny |
-| `/api/v1/command/*` | 403 | 403 | 403 | OK | deny |
-| Cross-org record by ID | 403/404 | 403/404 | own org | staff rules | deny |
+### Domain definitions
 
-\*Owner may still need beta flag for gated industry apps.
+| Domain | What to verify |
+|--------|----------------|
+| **CRM** | Read/write scoped to org; member cannot mutate admin-only records; industry beta gates enforced |
+| **Billing** | Checkout, portal, subscription status — owner/admin only; members get 403 |
+| **Team** | Invite, role change, remove — admin/owner only |
+| **Export** | Contact/data export — admin/owner only; API key scoped or denied |
+| **Command** | `/command/*` and `/api/v1/command/*` — staff only; customer org blocked at layout |
+| **Cross-org** | User A cannot read or mutate Organisation B records by ID |
 
-### Tenant isolation
+### Additional checks
 
-- [ ] User A cannot read or mutate Organisation B records by ID (contacts, leads, opportunities, properties, …).
-- [ ] Switching org in UI loads only that org’s data.
-- [ ] Member cannot access another member’s private records where `own` scope applies (document gaps — progressive enforcement).
+- [ ] Customer UI: no links to `/command/*` (onboarding, CRM, prospecting)
+- [ ] `/support/tickets` and `/support/escalations` redirect non-staff to `/support`
+- [ ] Industry API without beta enrolment returns 403
+- [ ] Document any route still allowing org-wide read when product expects `own` / `assigned`
 
-### Staff vs customer
-
-- [ ] Customer org: `/command/*` blocked at layout (switch-to-DigitalGate message).
-- [ ] Customer-facing pages: no links to `/command/*` (onboarding, CRM, prospecting).
-- [ ] `/support/tickets` and `/support/escalations` redirect non-staff to `/support`.
-
-### Record-scope honesty
-
-- [ ] Document any route that still allows org-wide read for members when product expects `own` / `assigned` only.
-- [ ] No high-risk mutate without `requirePermission` or `requireFeature`.
-
-**Phase 1 sign-off:** _______________ Date: ___________
+**01 sign-off:** _______________ Date: ___________
 
 ---
 
-## Phase 2 — Commercial verification (1–2 days)
+## 02 — Commercial
 
-Run on **Roe Realty** or dedicated test org — not a live Founding customer until green.
+Run one **actual** end-to-end chain on Roe Realty or a dedicated test org — not a live Founding customer until green.
 
-### Checkout paths
+```
+Checkout → Stripe → Webhook → Entitlement → App appears → Template appears
+    → Billing portal → Cancellation → Access removed
+```
 
-| Scenario | Expected | Pass? |
-|----------|----------|-------|
-| Starter ($99) checkout | Subscription row + billing UI updates | |
-| + Industry App ($99) | App appears in enabled set / nav when entitled | |
-| + additional Template ($29) | Template visible under Industry | |
-| + Growth App (e.g. SEO $99) | Growth section appears after purchase | |
-| Founding discount (e.g. $227 → $158.90) | Stripe + UI match offer | |
-| Customer portal | Opens from settings; plan/status honest | |
+| Step | Expected | Pass? |
+|------|----------|-------|
+| Checkout (Starter / Industry / Growth as sold) | Stripe session completes | |
+| Webhook: `checkout.session.completed` | Org billing row updates | |
+| Entitlement | Enabled apps match purchase — not full catalogue | |
+| App appears | Sidebar / Apps catalogue reflects entitlement | |
+| Template appears | Industry template visible when Industry + template purchased | |
+| Billing portal | Opens from settings; plan/status honest | |
 | Cancel / downgrade | Status updates; no dead end | |
-| Webhook: `customer.subscription.updated` | Org billing flags update | |
-| Webhook: `customer.subscription.deleted` | Entitlement suspended / honest messaging | |
+| Webhook: `customer.subscription.deleted` | Access removed or suspended with honest messaging | |
 | Member billing API | 403 on checkout and portal | |
 
-### After payment — customer sees
+This proves the **commercial model**, not merely that Stripe works.
 
-- [ ] Enabled apps match what was sold (not full catalogue).
-- [ ] Billing page reflects subscription (not placeholder).
-- [ ] No staff-only surfaces exposed.
-
-**Phase 2 sign-off:** _______________ Date: ___________
+**02 sign-off:** _______________ Date: ___________
 
 ---
 
-## Phase 3 — Six-persona walkthrough
+## 03 — Six-persona walkthrough
 
-No guided tours. Cold click-through; note friction and lies.
+**Test jobs, not screens.** No guided tours. Cold click-through; note friction and lies.
 
-| Persona | Org / account | Golden path | Pass? |
-|---------|---------------|-------------|-------|
-| DigitalGate Owner | DigitalGate | Command Centre → Clients → Delivery | |
-| DigitalGate Staff | DigitalGate | Sales / Founding 10 / Platform health | |
-| Customer Owner | Roe or test | Signup → Priorities → profile → CRM → billing | |
-| Customer Admin | Invited admin | Team invite → connectors → apps toggle | |
-| Customer Member | Invited member | Assigned CRM work; blocked billing/settings | |
-| Reseller | Partner account | Referral → attribution visible | |
-| Delivery Partner | Delivery workspace | Project → milestones → Brain stage → QA | |
+| Persona | Job to prove | Pass? |
+|---------|--------------|-------|
+| **DG Owner** | Can I run DigitalGate? (Command Centre → Clients → Delivery) | |
+| **DG Staff** | Can I manage customers? (Sales / Founding 10 / Platform health) | |
+| **Customer Owner** | Can I understand my business? (Overview → priorities → CRM → billing) | |
+| **Customer Admin** | Can I manage my team? (Invite → connectors → apps toggle) | |
+| **Customer Member** | Can I perform my job without seeing things I shouldn't? | |
+| **Reseller / Delivery** | Can I bring a customer in and get them operational? | |
 
-**Phase 3 sign-off:** _______________ Date: ___________
+**03 sign-off:** _______________ Date: ___________
 
 ---
 
-## Phase 4 — 30-second UX test
+## 04 — 30-second test
 
-Give a **new** user login credentials. Do not explain the product.
+**The most important UX test.**
 
-**Ask:** *“What do you think DigitalGate wants you to do?”*
+Give a new person a **fresh customer account**. Say nothing. Watch.
 
-| Outcome | Verdict |
-|---------|---------|
-| Opens CRM → SEO → Analytics → Automation hunting | **Fail** — tighten Priorities / Founding Mode |
-| Says “it’s telling me what needs attention” / lands on Priorities | **Pass** |
+### PASS
 
-Founding Mode Day 1 sidebar (customer): **Business** (Priorities) · **CRM** · **Commerce** · **Design Studio** · **Intelligence** (Twin, Brain, Health, Advisor) · **Apps** (catalogue).
+They immediately understand:
+
+> DigitalGate is telling me what matters in my business.
+
+They land on **Overview** (Intelligence-led home): Business Health, today's priorities, Advisor, opportunities — not app-hunting.
+
+### FAIL
+
+They start asking:
+
+- "What's CRM?"
+- "What's AI Visibility?"
+- "Do I need SEO?"
+- "What's Digital Twin?"
+- "Which App am I supposed to open?"
+
+If they need an explanation before seeing value, the UX still needs work.
+
+**Founding Mode Day 1 sidebar (customer):** Core only — **Overview** · **CRM** · **Commerce** · **Design Studio** · **Apps** (catalogue). Intelligence is **experienced on Overview**, not listed in the sidebar. Marketplace / Network hidden until Industry / Growth / Infra apps are added.
 
 - [ ] Test completed with at least one external participant
 - [ ] Notes captured
 
-**Phase 4 sign-off:** _______________ Date: ___________
+**04 sign-off:** _______________ Date: ___________
 
 ---
 
-## Phase 5 — One vertical outcome (Real Estate proof)
+## 05 — Vertical outcome
 
-Demonstrate one connected chain — not the full registry:
+For the first **Real Estate** customer, demonstrate the connected business body — not "27 Apps":
 
 ```
-Website → AI Visibility → SEO → Lead → CRM → Automation → Appointment
-→ Opportunity → Listing → Revenue
+Business → Website → Visibility → Prospect → Discovery → CRM → Automation
+    → Consultation → Appraisal → Listing → Buyer → Deal → Revenue
 ```
 
-| Step | Live in Roe/test? | Pass? |
-|------|-------------------|-------|
+| Step | Live in Roe / test? | Pass? |
+|------|---------------------|-------|
 | Public site / capture | | |
 | Lead in CRM | | |
 | Opportunity created | | |
 | Automation or task fired | | |
-| Honest AI assist on record | | |
+| Consultation / appraisal booked | | |
+| Listing published | | |
+| Revenue recorded | | |
 
-**Phase 5 sign-off:** _______________ Date: ___________
-
----
-
-## Golden-path automation (recommended)
-
-Add Playwright (or manual script) for these five before scale:
-
-1. **Customer Owner** — signup → onboarding → profile → CRM opportunity → billing portal
-2. **Customer Admin** — invite → team → permission boundary
-3. **Customer Member** — assigned work; restricted billing/export
-4. **Reseller** — referral → attribution
-5. **Delivery** — accept customer → project → milestones → go-live checklist
+**05 sign-off:** _______________ Date: ___________
 
 ---
 
-## P1 — Entitlement resolver (during early onboarding)
+## P1 — Entitlement read model (after Founding 10 launch)
 
-Do **not** rebuild billing. Add one read model:
+Do **not** block Founding 10 on this. Add one read model when learning from customers:
 
 ```
 Org → Plan → Purchased Apps → Templates → Features → Permissions
@@ -164,8 +171,10 @@ Until then, document which source wins for: sidebar apps, API `requireFeature`, 
 
 ## Gate close
 
-- [ ] Phases 1–5 signed off
+- [ ] Sections 01–05 signed off (no FAIL cells)
 - [ ] [FOUNDING-10-RELEASE-GATE.md](./FOUNDING-10-RELEASE-GATE.md) P0-5 / P0-6 ops ticks complete
 - [ ] Only then send Founding 10 invites
 
 **Do not** open Industry depth, Graph, or Marketplace until this gate is green.
+
+**Then stop building** — the first ten customers will tell you what no amount of repository architecture can.

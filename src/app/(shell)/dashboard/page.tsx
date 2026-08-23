@@ -15,7 +15,7 @@ import {
 } from "@dg/platform-core";
 
 import { BusinessOverviewDashboard } from "@/components/overview/BusinessOverviewDashboard";
-import { FoundingPrioritiesBanner } from "@/components/overview/FoundingPrioritiesBanner";
+import { FoundingOperatorHome } from "@/components/overview/FoundingOperatorHome";
 import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { autoSyncWordPressVendorLeadsIfNeeded } from "@/lib/wordpress-sync";
@@ -94,37 +94,45 @@ export default async function DashboardPage() {
           {overview.greeting} 👋
         </p>
         <h1 className="mt-1 text-2xl font-bold text-white">
-          Welcome back to {overview.organisationName}
+          {foundingCustomerMode
+            ? "Here's what matters"
+            : `Welcome back to ${overview.organisationName}`}
         </h1>
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-4 md:justify-start">
-          <div className="flex flex-wrap items-baseline justify-center gap-2 md:justify-start">
-            <span className="text-sm text-slate-400">Business Health:</span>
-            <Link href="/dashboard/health" className="inline-flex flex-wrap items-baseline gap-2 hover:opacity-90">
-              <span className="text-2xl font-bold text-emerald-400">{overview.businessHealth}/100</span>
-              <span className={`text-sm ${overview.businessHealthDelta >= 0 ? "text-emerald-400/80" : "text-amber-400/80"}`}>
-                {overview.businessHealthDelta >= 0 ? "↑" : "↓"} {overview.businessHealthDeltaLabel}
-              </span>
+        {!foundingCustomerMode ? (
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-4 md:justify-start">
+            <div className="flex flex-wrap items-baseline justify-center gap-2 md:justify-start">
+              <span className="text-sm text-slate-400">Business Health:</span>
+              <Link href="/dashboard/health" className="inline-flex flex-wrap items-baseline gap-2 hover:opacity-90">
+                <span className="text-2xl font-bold text-emerald-400">{overview.businessHealth}/100</span>
+                <span className={`text-sm ${overview.businessHealthDelta >= 0 ? "text-emerald-400/80" : "text-amber-400/80"}`}>
+                  {overview.businessHealthDelta >= 0 ? "↑" : "↓"} {overview.businessHealthDeltaLabel}
+                </span>
+              </Link>
+            </div>
+            <span className="text-xs text-slate-500">
+              Last updated: {overview.lastUpdatedLabel}
+            </span>
+            {overview.growthOpportunityCount > 0 ? (
+              <Link
+                href="#growth-opportunities"
+                className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300 hover:border-emerald-400/50"
+              >
+                {overview.growthOpportunityCount} growth opportunit
+                {overview.growthOpportunityCount === 1 ? "y" : "ies"}
+              </Link>
+            ) : null}
+            <Link
+              href="/dashboard/brain"
+              className="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300 hover:border-sky-400/50"
+            >
+              Business Brain →
             </Link>
           </div>
-          <span className="text-xs text-slate-500">
-            Last updated: {overview.lastUpdatedLabel}
-          </span>
-          {overview.growthOpportunityCount > 0 ? (
-            <Link
-              href="#growth-opportunities"
-              className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300 hover:border-emerald-400/50"
-            >
-              {overview.growthOpportunityCount} growth opportunit
-              {overview.growthOpportunityCount === 1 ? "y" : "ies"}
-            </Link>
-          ) : null}
-          <Link
-            href="/dashboard/brain"
-            className="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300 hover:border-sky-400/50"
-          >
-            Business Brain →
-          </Link>
-        </div>
+        ) : (
+          <p className="mt-2 text-sm text-slate-400">
+            {overview.organisationName} · Updated {overview.lastUpdatedLabel}
+          </p>
+        )}
       </header>
       <main className="dg-page-main">
         {!platformSession ? (
@@ -135,11 +143,14 @@ export default async function DashboardPage() {
           </div>
         ) : null}
         {foundingCustomerMode ? (
-          <div className="mb-6">
-            <FoundingPrioritiesBanner />
-          </div>
-        ) : null}
-        <BusinessOverviewDashboard overview={overview} />
+          <FoundingOperatorHome
+            overview={overview}
+            enabledAppIds={enabledAppIds}
+            openOpportunityCount={liveMetrics?.openOpportunityCount ?? 0}
+          />
+        ) : (
+          <BusinessOverviewDashboard overview={overview} />
+        )}
       </main>
     </>
   );

@@ -12,14 +12,6 @@ export const FOUNDING_MODE_CORE_APP_IDS = [
   "opportunities",
 ] as const;
 
-/** Intelligence surfaces shown on Day 1 — progressive reveal adds the rest. */
-export const FOUNDING_MODE_INTELLIGENCE_HREFS = [
-  "/dashboard/twin",
-  "/dashboard/brain",
-  "/dashboard/health",
-  "/dashboard/advisor",
-] as const;
-
 const GROWTH_APP_IDS_FOR_MODE = [
   "prospecting",
   "ai-visibility",

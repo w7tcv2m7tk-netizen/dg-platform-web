@@ -4,7 +4,6 @@ import { SETTINGS_NAV_ROUTES } from "./platform-tools";
 import {
   APP_TIER_LABELS,
   APP_TIER_ORDER,
-  FOUNDING_MODE_INTELLIGENCE_HREFS,
   isAppEnabled,
   isFoundingCustomerMode,
 } from "./org-apps";
@@ -245,7 +244,7 @@ function businessNavItem(foundingCustomerMode: boolean): AppNavTreeItem {
     tier: "core",
     enabled: true,
     routes: [
-      { path: "/dashboard", label: foundingCustomerMode ? "Priorities" : "Overview" },
+      { path: "/dashboard", label: "Overview" },
       { path: "/dashboard/business", label: "Business Profile" },
       { path: "/dashboard/goals", label: "Goals" },
       { path: "/dashboard/settings/team", label: "Team" },
@@ -813,7 +812,6 @@ export function getCategorizedPlatformNavigation(
 ): CategorizedPlatformNavigation {
   const foundingCustomerMode =
     !options?.showCommandCentre && isFoundingCustomerMode(enabledIds);
-  const foundingIntelligence = new Set<string>(FOUNDING_MODE_INTELLIGENCE_HREFS);
 
   const customerApps = platformApps
     .list()
@@ -877,12 +875,8 @@ export function getCategorizedPlatformNavigation(
     ? getDigitalGateOperatorSection()
     : { id: "digitalgate" as const, label: DIGITALGATE_OPERATOR_NAV_SECTION_LABEL, links: [], apps: [] };
 
-  const intelligenceLinks = INTELLIGENCE_LINKS.filter((link) => {
-    if (foundingCustomerMode) {
-      return foundingIntelligence.has(link.href);
-    }
-    return true;
-  });
+  /** Founding customers experience Intelligence on Overview — not via sidebar navigation. */
+  const intelligenceLinks = foundingCustomerMode ? [] : INTELLIGENCE_LINKS;
 
   /** Staff: Command Centre lives in DigitalGate operator section, not Intelligence. */
   const intelligenceApps: AppNavTreeItem[] = [];

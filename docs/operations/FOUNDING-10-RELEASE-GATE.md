@@ -2,7 +2,7 @@
 
 **Code P0s (1–4)** ship in the product. **P0-5 / P0-6** are ops dogfood — tick here before invites.
 
-See also: [FOUNDING-10-VERIFICATION.md](./FOUNDING-10-VERIFICATION.md) (Phases 1–5 + API matrix) · [GATE-1-DOGFOOD.md](../foundations/GATE-1-DOGFOOD.md)
+See also: [FOUNDING-10-VERIFICATION.md](./FOUNDING-10-VERIFICATION.md) (sections 01–05 + persona matrix) · [GATE-1-DOGFOOD.md](../foundations/GATE-1-DOGFOOD.md)
 
 ---
 
