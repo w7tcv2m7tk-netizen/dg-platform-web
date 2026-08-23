@@ -123,6 +123,8 @@ Operator OS — not a customer tenant. Industry Apps are **never** shown here.
 | **Product** | Flags, roadmap, releases (docs + flags), feedback |
 | **Support** | Operator support centre — conversation queue + escalations (staff-only) |
 
+**Founding Customer Day 1** (code): Core apps only + Intelligence slim set (Twin · Brain · Health · Advisor); Marketplace/Network hidden until Industry/Growth/Infra apps are added. See `isFoundingCustomerMode` in `org-apps.ts`.
+
 **Command Centre surfaces Advisor recommendations — it does not duplicate the Advisor nav item.** AI Advisor lives under **Intelligence** only.
 
 ### CORE · INFRASTRUCTURE · GROWTH · INTELLIGENCE

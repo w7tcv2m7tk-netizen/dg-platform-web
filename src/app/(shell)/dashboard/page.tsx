@@ -8,12 +8,14 @@ import {
   getPlatformSetupStatus,
   healthDeltaFromHistory,
   healthTrendFromHistory,
+  isFoundingCustomerMode,
   listOrganisationActivities,
   loadHealthHistory,
   persistHealthSnapshot,
 } from "@dg/platform-core";
 
 import { BusinessOverviewDashboard } from "@/components/overview/BusinessOverviewDashboard";
+import { FoundingPrioritiesBanner } from "@/components/overview/FoundingPrioritiesBanner";
 import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { autoSyncWordPressVendorLeadsIfNeeded } from "@/lib/wordpress-sync";
@@ -21,6 +23,8 @@ import { autoSyncWordPressVendorLeadsIfNeeded } from "@/lib/wordpress-sync";
 export default async function DashboardPage() {
   const { user, name, portal, session: platformSession } = await getPlatformPageContext();
   const enabledAppIds = await getOrgEnabledAppIdsCached();
+  const foundingCustomerMode =
+    Boolean(platformSession) && isFoundingCustomerMode(enabledAppIds);
 
   let liveMetrics = null;
   let connectorProbes = {};
@@ -128,6 +132,11 @@ export default async function DashboardPage() {
             <p className="text-amber-300">
               Sign in to load your workspace overview.
             </p>
+          </div>
+        ) : null}
+        {foundingCustomerMode ? (
+          <div className="mb-6">
+            <FoundingPrioritiesBanner />
           </div>
         ) : null}
         <BusinessOverviewDashboard overview={overview} />

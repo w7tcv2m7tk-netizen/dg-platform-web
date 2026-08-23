@@ -1,7 +1,13 @@
 import type { AppNavItem, AppRoute, AppTier, RegisteredApp } from "./manifest";
 import { commandCentreApp } from "./builtins/command-centre";
 import { SETTINGS_NAV_ROUTES } from "./platform-tools";
-import { APP_TIER_LABELS, APP_TIER_ORDER, isAppEnabled } from "./org-apps";
+import {
+  APP_TIER_LABELS,
+  APP_TIER_ORDER,
+  FOUNDING_MODE_INTELLIGENCE_HREFS,
+  isAppEnabled,
+  isFoundingCustomerMode,
+} from "./org-apps";
 import { platformApps } from "./registry";
 import { getSidebarIcon } from "./sidebar-icons";
 import { INDUSTRY_PLATFORMS, resolveIndustryFromAppId } from "../industry/platform";
@@ -230,22 +236,26 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   },
 };
 
+function businessNavItem(foundingCustomerMode: boolean): AppNavTreeItem {
+  return {
+    kind: "app",
+    id: "business",
+    name: "Business",
+    icon: getSidebarIcon("business-profile"),
+    tier: "core",
+    enabled: true,
+    routes: [
+      { path: "/dashboard", label: foundingCustomerMode ? "Priorities" : "Overview" },
+      { path: "/dashboard/business", label: "Business Profile" },
+      { path: "/dashboard/goals", label: "Goals" },
+      { path: "/dashboard/settings/team", label: "Team" },
+    ],
+    primaryHref: "/dashboard",
+  };
+}
+
 /** CORE · Business — who you are (Twin lives under Intelligence). */
-const BUSINESS_NAV_ITEM: AppNavTreeItem = {
-  kind: "app",
-  id: "business",
-  name: "Business",
-  icon: getSidebarIcon("business-profile"),
-  tier: "core",
-  enabled: true,
-  routes: [
-    { path: "/dashboard", label: "Overview" },
-    { path: "/dashboard/business", label: "Business Profile" },
-    { path: "/dashboard/goals", label: "Goals" },
-    { path: "/dashboard/settings/team", label: "Team" },
-  ],
-  primaryHref: "/dashboard",
-};
+const BUSINESS_NAV_ITEM = businessNavItem(false);
 
 /** @deprecated Prefer BUSINESS_NAV_ITEM under Core apps */
 const CORE_LINKS: PlatformShellNavItem[] = BUSINESS_NAV_ITEM.routes.map((route) => ({
@@ -315,6 +325,7 @@ const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
 /** PLATFORM ADMIN — customer org config. Staff use PLATFORM_CONFIG + DIGITALGATE operator sections. */
 function getPlatformAdminSection(options?: {
   showCommandCentre?: boolean;
+  foundingCustomerMode?: boolean;
 }): NavIaSection {
   const settingsItem: AppNavTreeItem = {
     kind: "app",
@@ -333,26 +344,35 @@ function getPlatformAdminSection(options?: {
     primaryHref: "/dashboard/settings",
   };
 
-  const links: PlatformShellNavItem[] = [
-    {
-      kind: "shell",
-      href: "/dashboard/apps",
-      label: "Apps",
-      icon: getSidebarIcon("apps"),
-    },
-    {
-      kind: "shell",
-      href: "/dashboard/marketplace",
-      label: "Marketplace",
-      icon: getSidebarIcon("marketplace"),
-    },
-    {
-      kind: "shell",
-      href: "/dashboard/network",
-      label: "Network",
-      icon: getSidebarIcon("network"),
-    },
-  ];
+  const links: PlatformShellNavItem[] = options?.foundingCustomerMode
+    ? [
+        {
+          kind: "shell",
+          href: "/dashboard/apps",
+          label: "Apps",
+          icon: getSidebarIcon("apps"),
+        },
+      ]
+    : [
+        {
+          kind: "shell",
+          href: "/dashboard/apps",
+          label: "Apps",
+          icon: getSidebarIcon("apps"),
+        },
+        {
+          kind: "shell",
+          href: "/dashboard/marketplace",
+          label: "Marketplace",
+          icon: getSidebarIcon("marketplace"),
+        },
+        {
+          kind: "shell",
+          href: "/dashboard/network",
+          label: "Network",
+          icon: getSidebarIcon("network"),
+        },
+      ];
 
   const trailingLinks: PlatformShellNavItem[] = options?.showCommandCentre
     ? []
@@ -791,6 +811,10 @@ export function getCategorizedPlatformNavigation(
     partnerType?: PartnerType | null;
   },
 ): CategorizedPlatformNavigation {
+  const foundingCustomerMode =
+    !options?.showCommandCentre && isFoundingCustomerMode(enabledIds);
+  const foundingIntelligence = new Set<string>(FOUNDING_MODE_INTELLIGENCE_HREFS);
+
   const customerApps = platformApps
     .list()
     .filter((a) => (a.manifest.visibility ?? "customer") === "customer");
@@ -801,7 +825,7 @@ export function getCategorizedPlatformNavigation(
     .map((a) => toTreeItem(a, enabledIds));
 
   const coreApps = [
-    BUSINESS_NAV_ITEM,
+    businessNavItem(foundingCustomerMode),
     ...sortByOrder(
       enabledApps.filter((a) => CORE_APP_IDS.has(a.id)),
       CORE_APP_ORDER,
@@ -854,8 +878,8 @@ export function getCategorizedPlatformNavigation(
     : { id: "digitalgate" as const, label: DIGITALGATE_OPERATOR_NAV_SECTION_LABEL, links: [], apps: [] };
 
   const intelligenceLinks = INTELLIGENCE_LINKS.filter((link) => {
-    if (link.href === "/dashboard/insights" || link.href === "/dashboard/reports") {
-      return true;
+    if (foundingCustomerMode) {
+      return foundingIntelligence.has(link.href);
     }
     return true;
   });
@@ -870,6 +894,7 @@ export function getCategorizedPlatformNavigation(
 
   const platformAdminSection = getPlatformAdminSection({
     showCommandCentre: options?.showCommandCentre,
+    foundingCustomerMode,
   });
 
   const coreSection: NavIaSection = {

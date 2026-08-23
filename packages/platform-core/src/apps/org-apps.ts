@@ -12,6 +12,59 @@ export const FOUNDING_MODE_CORE_APP_IDS = [
   "opportunities",
 ] as const;
 
+/** Intelligence surfaces shown on Day 1 — progressive reveal adds the rest. */
+export const FOUNDING_MODE_INTELLIGENCE_HREFS = [
+  "/dashboard/twin",
+  "/dashboard/brain",
+  "/dashboard/health",
+  "/dashboard/advisor",
+] as const;
+
+const GROWTH_APP_IDS_FOR_MODE = [
+  "prospecting",
+  "ai-visibility",
+  "seo",
+  "automation",
+  "analytics",
+  "social",
+  "ai-communications",
+  "reviews",
+] as const;
+
+const INDUSTRY_APP_IDS_FOR_MODE = [
+  "real-estate",
+  "property-management",
+  "commercial",
+  "accommodation",
+  "services",
+  "finance",
+  "automotive",
+  "creator",
+] as const;
+
+/**
+ * True when the org is still on the Founding Customer slim app set (no Industry / Growth / Infra).
+ * Used for progressive sidebar disclosure — graduates automatically when apps are added.
+ */
+export function isFoundingCustomerMode(enabledIds: string[]): boolean {
+  const allowed = new Set<string>(FOUNDING_MODE_CORE_APP_IDS);
+  for (const id of enabledIds) {
+    if (allowed.has(id)) continue;
+    return false;
+  }
+  return true;
+}
+
+/** Apps that exit Founding Mode when present in enabled list. */
+export function hasProgressiveRevealApps(enabledIds: string[]): boolean {
+  const set = new Set(enabledIds);
+  if (set.has("infrastructure")) return true;
+  return (
+    GROWTH_APP_IDS_FOR_MODE.some((id) => set.has(id)) ||
+    INDUSTRY_APP_IDS_FOR_MODE.some((id) => set.has(id))
+  );
+}
+
 /** Default installed apps for new orgs — Founding Mode slim set. */
 export function getDefaultEnabledAppIds(): string[] {
   return FOUNDING_MODE_CORE_APP_IDS.filter((id) =>
