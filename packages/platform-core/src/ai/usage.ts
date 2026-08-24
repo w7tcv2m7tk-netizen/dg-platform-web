@@ -4,6 +4,8 @@
  * @see docs/ai/AI-ARCHITECTURE.md
  */
 
+import type { Prisma } from "@dg/database";
+
 import { createActivity } from "../activities";
 import { writeAuditLog } from "../audit";
 
@@ -70,7 +72,7 @@ export async function recordAiLedgerEvent(input: RecordAiLedgerEventInput) {
       : "create",
     entityType: "AiInteraction",
     entityId: input.correlationId,
-    changes: metadata,
+    changes: metadata as Prisma.InputJsonValue,
   });
 
   return activity;

@@ -3,7 +3,7 @@
  * @see docs/ai/AI-ARCHITECTURE.md
  */
 
-import { createTask } from "../tasks";
+import { createTask } from "../../tasks";
 import { getAiTool, type AiToolDefinition } from "./registry";
 import { recordAiLedgerEvent } from "../usage";
 
