@@ -8,6 +8,7 @@ import { DEMO_ORG_NAME, DEMO_ORG_SLUG, DEMO_SEED_VERSION } from "./types";
 const DEMO_APPS = [
   "crm",
   "commerce",
+  "documents",
   "websites",
   "opportunities",
   "real-estate",

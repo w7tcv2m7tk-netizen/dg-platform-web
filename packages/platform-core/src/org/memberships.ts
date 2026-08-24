@@ -24,6 +24,7 @@ const ORG_TEMPLATE_APPS: Record<OrgTemplate, string[]> = {
   "real-estate": [
     "crm",
     "commerce",
+    "documents",
     "websites",
     "real-estate",
     "reviews",
@@ -35,6 +36,7 @@ const ORG_TEMPLATE_APPS: Record<OrgTemplate, string[]> = {
   accommodation: [
     "crm",
     "commerce",
+    "documents",
     "websites",
     "accommodation",
     "reviews",
@@ -44,6 +46,7 @@ const ORG_TEMPLATE_APPS: Record<OrgTemplate, string[]> = {
   creator: [
     "crm",
     "commerce",
+    "documents",
     "websites",
     "creator",
     "reviews",
@@ -53,6 +56,7 @@ const ORG_TEMPLATE_APPS: Record<OrgTemplate, string[]> = {
   services: [
     "crm",
     "commerce",
+    "documents",
     "websites",
     "services",
     "reviews",

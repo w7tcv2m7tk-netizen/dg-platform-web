@@ -43,6 +43,7 @@ export type PermissionScope =
 export type PermissionModule =
   | "crm"
   | "commerce"
+  | "documents"
   | "websites"
   | "infrastructure"
   | "industry"

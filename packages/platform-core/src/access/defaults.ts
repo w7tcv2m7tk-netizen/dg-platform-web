@@ -26,6 +26,7 @@ const ALL_ACTIONS: PermissionAction[] = [
 const OPERATIONAL_MODULES: PermissionModule[] = [
   "crm",
   "commerce",
+  "documents",
   "websites",
   "infrastructure",
   "industry",
@@ -69,11 +70,11 @@ export function defaultGrantsForOrganisationRole(
   // Member — operational on assigned records; no billing / team admin / settings manage
   return [
     ...grants(
-      ["crm", "industry", "growth", "intelligence", "websites"],
+      ["crm", "industry", "growth", "intelligence", "websites", "documents"],
       ["view", "create", "edit"],
       "assigned",
     ),
-    ...grants(["crm", "industry", "growth", "intelligence"], ["view"], "organisation"),
+    ...grants(["crm", "industry", "growth", "intelligence", "documents"], ["view"], "organisation"),
     ...grants(["commerce"], ["view", "create"], "assigned"),
     ...grants(["settings"], ["view"], "own"),
     ...grants(["team"], ["view"], "organisation"),

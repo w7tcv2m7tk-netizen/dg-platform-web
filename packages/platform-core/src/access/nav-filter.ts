@@ -197,7 +197,11 @@ export function filterNavigationByAccess(
   const canPartners = staff;
   const canIntelligence = canView(ctx, "intelligence");
   const canCore =
-    canView(ctx, "crm") || canView(ctx, "commerce") || canView(ctx, "websites") || canView(ctx, "team");
+    canView(ctx, "crm") ||
+    canView(ctx, "commerce") ||
+    canView(ctx, "websites") ||
+    canView(ctx, "documents") ||
+    canView(ctx, "team");
   const canInfrastructure =
     canView(ctx, "infrastructure") ||
     hasPermission(ctx, { module: "infrastructure", action: "manage", scope: "organisation" }) ||

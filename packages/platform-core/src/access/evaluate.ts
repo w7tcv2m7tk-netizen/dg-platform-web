@@ -173,6 +173,7 @@ export function featureIdToPermissionCheck(featureId: string): PermissionCheck |
   const moduleMap: Record<string, PermissionModule> = {
     crm: "crm",
     commerce: "commerce",
+    documents: "documents",
     websites: "websites",
     infrastructure: "infrastructure",
     services: "industry",

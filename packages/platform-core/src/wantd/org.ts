@@ -14,6 +14,7 @@ import {
 export const WANTD_ENABLED_APPS = [
   "crm",
   "commerce",
+  "documents",
   "websites",
   "infrastructure",
   "opportunities",
