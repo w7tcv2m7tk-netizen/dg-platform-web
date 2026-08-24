@@ -369,6 +369,15 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
     status: "rolling-out",
   },
   {
+    appId: "documents",
+    label: "Documents & Signing",
+    icon: "📄",
+    price: "Included",
+    badge: "Core",
+    description: "Agreements, disclosures, contracts — org document library",
+    status: "included",
+  },
+  {
     appId: "websites",
     label: "Design Studio",
     icon: "🌐",

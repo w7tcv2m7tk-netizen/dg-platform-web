@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -29,6 +30,7 @@ export function PropertyAgencyAgreementPanel({
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const libraryHref = `/apps/documents/library?entityType=property&entityId=${encodeURIComponent(propertyId)}&kind=agency_agreement`;
 
   async function upload(file: File) {
     setPending(true);
@@ -71,13 +73,14 @@ export function PropertyAgencyAgreementPanel({
     <div className="dg-card">
       <h2 className="font-semibold text-white">Agency agreement</h2>
       <p className="mt-1 text-sm text-slate-400">
-        Property Documents view — upload an existing signed agency / listing authority PDF.
-        Create-from-template and send-for-signature land via Core Documents & Signing.
+        Contextual view of Core Documents — upload an authority PDF on this property. Create
+        from template and send for signature come next.
       </p>
 
       {agreement ? (
         <div className="mt-4 rounded-lg border border-slate-700 bg-slate-900/60 p-3">
-          <p className="text-sm text-white">{agreement.fileName}</p>
+          <p className="text-xs uppercase tracking-wide text-emerald-400/90">Completed · on file</p>
+          <p className="mt-1 text-sm text-white">{agreement.fileName}</p>
           <p className="mt-1 text-xs text-slate-500">
             Saved {new Date(agreement.uploadedAt).toLocaleString("en-AU")}
             {agreement.sizeBytes ? ` · ${formatBytes(agreement.sizeBytes)}` : ""}
@@ -91,6 +94,12 @@ export function PropertyAgencyAgreementPanel({
             >
               View / download
             </a>
+            <Link
+              href={libraryHref}
+              className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-sky-500"
+            >
+              Open in Documents
+            </Link>
             <button
               type="button"
               disabled={pending}
@@ -118,8 +127,13 @@ export function PropertyAgencyAgreementPanel({
             onClick={() => inputRef.current?.click()}
             className="mt-3 rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
           >
-            {pending ? "Uploading…" : "Upload signed agreement"}
+            {pending ? "Uploading…" : "Upload agreement"}
           </button>
+          <p className="mt-2">
+            <Link href={libraryHref} className="text-xs text-sky-400 hover:underline">
+              Open in Documents
+            </Link>
+          </p>
         </div>
       )}
 

@@ -77,6 +77,7 @@ model Organisation {
   communicationSessions         CommunicationSession[]
   communicationUsages           CommunicationUsage[]
   deliveryProjects              DeliveryProject[]
+  orgDocuments                  OrgDocument[]
 
   referredBy        Organisation?  @relation("OrgReferral", fields: [referredByOrganisationId], references: [id], onDelete: SetNull)
   referralsMade     Organisation[] @relation("OrgReferral")
@@ -372,6 +373,46 @@ model Property {
   @@index([organisationId, status])
   @@index([organisationId, leadId])
   @@map("properties")
+}
+
+/**
+ * Core Documents & Signing — org-scoped document record.
+ * Binary in Blob/public; metadata here. Signing provider adapters hang off signingStatus / metadata.signing.
+ * @see docs/foundations/DOCUMENTS-AND-SIGNING.md
+ */
+model OrgDocument {
+  id               String    @id @default(cuid())
+  organisationId   String    @map("organisation_id")
+  name             String
+  kind             String
+  mimeType         String    @map("mime_type")
+  sizeBytes        Int       @default(0) @map("size_bytes")
+  storageKey       String    @map("storage_key")
+  url              String?
+  storage          String    @default("blob")
+  version          Int       @default(1)
+  /** Document record lifecycle: draft | active | archived */
+  documentStatus   String    @default("active") @map("document_status")
+  /** Signing lifecycle: not_required | ready | sent | viewed | completed | declined | expired */
+  signingStatus    String    @default("not_required") @map("signing_status")
+  signingProvider  String    @default("none") @map("signing_provider")
+  sourceApp        String?   @map("source_app")
+  entityType       String?   @map("entity_type")
+  entityId         String?   @map("entity_id")
+  templateId       String?   @map("template_id")
+  metadata         Json?
+  deletedAt        DateTime? @map("deleted_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, entityType, entityId])
+  @@index([organisationId, kind])
+  @@index([organisationId, documentStatus])
+  @@index([organisationId, signingStatus])
+  @@map("org_documents")
 }
 
 /**

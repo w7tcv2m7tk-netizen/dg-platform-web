@@ -321,7 +321,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               ) : null}
             </div>
 
-            {/* 1b–1c. Property Documents view into Core Documents & Signing */}
+            {/* 1b–1c. Property Documents — contextual views of Core Documents */}
             <PropertyAgencyAgreementPanel
               propertyId={property.id}
               agreement={agencyAgreement}

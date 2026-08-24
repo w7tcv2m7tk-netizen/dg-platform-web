@@ -324,7 +324,7 @@ export function AppsPlanCatalog() {
       <section id="platform-apps" className="scroll-mt-24">
         <SectionHeader
           label="⬡ 2 · Platform Capabilities"
-          title="Commerce, Design Studio & Infrastructure"
+          title="Commerce, Documents, Design Studio & Infrastructure"
           description="Core operating capabilities — connected to your business. Toggle them into the Operate sidebar group."
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

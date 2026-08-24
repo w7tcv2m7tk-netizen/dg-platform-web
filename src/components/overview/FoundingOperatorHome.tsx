@@ -16,6 +16,12 @@ const CORE_BUSINESS_APPS = [
     description: "Quotes, invoices, and payments",
   },
   {
+    id: "documents",
+    name: "Documents",
+    href: "/apps/documents",
+    description: "Documents & Signing — agreements, disclosures, contracts",
+  },
+  {
     id: "websites",
     name: "Design Studio",
     href: "/apps/websites",

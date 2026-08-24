@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -29,6 +30,7 @@ export function PropertyDisclosureStatementPanel({
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const libraryHref = `/apps/documents/library?entityType=property&entityId=${encodeURIComponent(propertyId)}&kind=disclosure_statement`;
 
   async function upload(file: File) {
     setPending(true);
@@ -71,13 +73,13 @@ export function PropertyDisclosureStatementPanel({
     <div className="dg-card">
       <h2 className="font-semibold text-white">Disclosure statement</h2>
       <p className="mt-1 text-sm text-slate-400">
-        Property Documents view — upload an existing disclosure PDF or scan. Create-from-template
-        and send-for-signature land via Core Documents & Signing.
+        Contextual view of Core Documents — upload a disclosure PDF or scan on this property.
       </p>
 
       {disclosureStatement ? (
         <div className="mt-4 rounded-lg border border-slate-700 bg-slate-900/60 p-3">
-          <p className="text-sm text-white">{disclosureStatement.fileName}</p>
+          <p className="text-xs uppercase tracking-wide text-emerald-400/90">Completed · on file</p>
+          <p className="mt-1 text-sm text-white">{disclosureStatement.fileName}</p>
           <p className="mt-1 text-xs text-slate-500">
             Saved {new Date(disclosureStatement.uploadedAt).toLocaleString("en-AU")}
             {disclosureStatement.sizeBytes
@@ -93,6 +95,12 @@ export function PropertyDisclosureStatementPanel({
             >
               View / download
             </a>
+            <Link
+              href={libraryHref}
+              className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-sky-500"
+            >
+              Open in Documents
+            </Link>
             <button
               type="button"
               disabled={pending}
@@ -122,6 +130,11 @@ export function PropertyDisclosureStatementPanel({
           >
             {pending ? "Uploading…" : "Upload disclosure statement"}
           </button>
+          <p className="mt-2">
+            <Link href={libraryHref} className="text-xs text-sky-400 hover:underline">
+              Open in Documents
+            </Link>
+          </p>
         </div>
       )}
 

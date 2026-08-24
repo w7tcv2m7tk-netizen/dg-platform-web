@@ -93,7 +93,7 @@ export interface NavIaSection {
  * Core — universal operating layer (profile + CRM / Commerce / Design Studio).
  * Infrastructure is its own top-level section.
  */
-const CORE_APP_ORDER = ["crm", "commerce", "websites"] as const;
+const CORE_APP_ORDER = ["crm", "commerce", "documents", "websites"] as const;
 
 /**
  * Industry — Industry Apps (activate Templates). Module ids map into Industry Platforms.
@@ -158,6 +158,14 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
       { path: "/apps/commerce/payments", label: "Payments" },
       { path: "/apps/commerce/subscriptions", label: "Subscriptions" },
       { path: "/apps/commerce/reports", label: "Reports" },
+    ],
+  },
+  documents: {
+    name: "Documents",
+    routes: [
+      { path: "/apps/documents", label: "Overview" },
+      { path: "/apps/documents/library", label: "Library" },
+      { path: "/apps/documents/templates", label: "Templates" },
     ],
   },
   "real-estate": {

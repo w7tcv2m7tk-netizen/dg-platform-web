@@ -1,9 +1,14 @@
 /**
  * Documents & Signing — Core platform contracts.
  *
- * Document Engine + Signing Engine live in Core.
- * Industry Apps supply templates; Automation owns post-sign workflow.
- * E-sign providers are modular adapters — DigitalGate owns the business record.
+ * Documents is a Core business capability, not an Industry App.
+ * Industry Apps (RE, PM, Legal, Finance, Services) create, associate and surface
+ * documents in their workflows — they do not own the document system.
+ *
+ * Real Estate is the first consumer of Core Documents, not the owner.
+ *
+ * Manual upload is MVP implementation only — not the product definition.
+ * Product surface: Upload · Create · Send for signature · Track · Complete
  *
  * @see docs/foundations/DOCUMENTS-AND-SIGNING.md
  */
@@ -19,19 +24,25 @@ export type DocumentKind =
   | "service_agreement"
   | "other";
 
+/** Document lifecycle (record state) — separate from signing. */
+export type DocumentStatus = "draft" | "active" | "archived";
+
+/**
+ * Signing lifecycle.
+ * MVP often jumps Upload → Completed; statuses exist so providers plug in later.
+ */
 export type DocumentSigningStatus =
-  | "draft"
+  | "not_required"
   | "ready"
   | "sent"
   | "viewed"
-  | "partially_signed"
   | "completed"
   | "declined"
-  | "expired"
-  | "void";
+  | "expired";
 
 /** Modular e-sign provider — never hard-code a single vendor into Industry Apps. */
 export type SigningProviderId =
+  | "none"
   | "manual_upload"
   | "dropbox_sign"
   | "docusign"
@@ -44,8 +55,8 @@ export type DocumentEntityLink = {
 };
 
 /**
- * Directional Core Document record (metadata). Binary storage remains via Asset/Blob service.
- * Existing property agency/disclosure uploads are early property-scoped views of this model.
+ * Core Document record (metadata). Binary storage via Asset/Blob service.
+ * Property agency/disclosure panels are contextual views into this model.
  */
 export type PlatformDocument = {
   id: string;
@@ -57,7 +68,9 @@ export type PlatformDocument = {
   storageKey: string;
   url?: string;
   version: number;
+  documentStatus: DocumentStatus;
   signingStatus: DocumentSigningStatus;
+  signingProvider: SigningProviderId;
   sourceApp?: string;
   links: DocumentEntityLink[];
   templateId?: string;
@@ -86,18 +99,34 @@ export type SigningRequest = {
   auditNote?: string;
 };
 
+/**
+ * Document events for Automation → Advisor → Brain → Timeline → Notifications.
+ * Emit as the platform event bus matures; catalogue is locked now.
+ */
+export const DOCUMENT_EVENT_IDS = [
+  "document.created",
+  "document.uploaded",
+  "document.updated",
+  "document.archived",
+  "document.replaced",
+  "document.signing_requested",
+  "document.viewed",
+  "document.signed",
+  "document.completed",
+] as const;
+
+export type DocumentEventId = (typeof DOCUMENT_EVENT_IDS)[number];
+
 export type IndustryDocumentTemplate = {
   id: string;
   industryAppId: string;
   kind: DocumentKind;
   label: string;
-  /** CRM / Property field keys used to populate the template. */
   populateFrom: string[];
-  /** Suggested Automation triggers after signing completes. */
   onCompletedWorkflowHints: string[];
 };
 
-/** Real Estate templates that Industry App will own (direction). */
+/** Real Estate templates — Industry App owns templates; Core owns the document record. */
 export const REAL_ESTATE_DOCUMENT_TEMPLATES: IndustryDocumentTemplate[] = [
   {
     id: "re.agency_agreement",
@@ -117,7 +146,10 @@ export const REAL_ESTATE_DOCUMENT_TEMPLATES: IndustryDocumentTemplate[] = [
     kind: "disclosure_statement",
     label: "Disclosure statement",
     populateFrom: ["property", "organisation"],
-    onCompletedWorkflowHints: ["store_signed_document_on_property", "rea_soi_attachment_when_applicable"],
+    onCompletedWorkflowHints: [
+      "store_signed_document_on_property",
+      "rea_soi_attachment_when_applicable",
+    ],
   },
   {
     id: "re.contract",
@@ -125,14 +157,13 @@ export const REAL_ESTATE_DOCUMENT_TEMPLATES: IndustryDocumentTemplate[] = [
     kind: "contract",
     label: "Sale / purchase contract",
     populateFrom: ["property", "contact", "opportunity"],
-    onCompletedWorkflowHints: ["opportunity.stage_update", "store_signed_document_on_property"],
+    onCompletedWorkflowHints: [
+      "opportunity.stage_update",
+      "store_signed_document_on_property",
+    ],
   },
 ];
 
-/**
- * Target RE operating path — Documents & Signing connected to CRM.
- * Not fully implemented; guides product and Automation design.
- */
 export const REAL_ESTATE_AGENCY_AGREEMENT_WORKFLOW = [
   "vendor_prospect",
   "appraisal",

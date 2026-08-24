@@ -1,5 +1,11 @@
 import type { Prisma } from "@dg/database";
 
+import {
+  archiveOrgDocumentsForEntity,
+  createOrgDocument,
+  documentKindFromPropertyMetadataKey,
+} from "../documents-signing/service";
+
 /**
  * Generic property document (agency agreement, disclosure statement, etc.).
  * Honesty: presence of `url` means a real file was uploaded — never a bare signed flag.
@@ -87,6 +93,42 @@ export function normalizePropertyDocument(
   };
 }
 
+async function dualWriteOrgDocument(input: {
+  organisationId: string;
+  propertyId: string;
+  kind: PropertyDocumentKind;
+  document: PropertyDocument;
+}) {
+  const coreKind = documentKindFromPropertyMetadataKey(input.kind.metadataKey);
+  if (!coreKind) return;
+  try {
+    await createOrgDocument({
+      organisationId: input.organisationId,
+      name: input.document.fileName,
+      kind: coreKind,
+      mimeType: input.document.contentType,
+      sizeBytes: input.document.sizeBytes,
+      storageKey: input.document.url,
+      url: input.document.url,
+      storage: input.document.storage,
+      documentStatus: "active",
+      signingStatus: "completed",
+      signingProvider: "manual_upload",
+      sourceApp: "real-estate",
+      entityType: "property",
+      entityId: input.propertyId,
+      upsertForEntity: true,
+      metadata: {
+        uploadedAt: input.document.uploadedAt,
+        uploadedBy: input.document.uploadedBy,
+        propertyMetadataKey: input.kind.metadataKey,
+      },
+    });
+  } catch (err) {
+    console.warn("[documents] dual-write OrgDocument failed", err);
+  }
+}
+
 export async function savePropertyDocument(
   organisationId: string,
   propertyId: string,
@@ -143,6 +185,8 @@ export async function savePropertyDocument(
     },
   });
 
+  await dualWriteOrgDocument({ organisationId, propertyId, kind, document });
+
   return updated;
 }
 
@@ -197,6 +241,20 @@ export async function clearPropertyDocument(
       createdBy: actorId,
     },
   });
+
+  const coreKind = documentKindFromPropertyMetadataKey(kind.metadataKey);
+  if (coreKind) {
+    try {
+      await archiveOrgDocumentsForEntity({
+        organisationId,
+        entityType: "property",
+        entityId: propertyId,
+        kind: coreKind,
+      });
+    } catch (err) {
+      console.warn("[documents] archive OrgDocument on property clear failed", err);
+    }
+  }
 
   return updated;
 }

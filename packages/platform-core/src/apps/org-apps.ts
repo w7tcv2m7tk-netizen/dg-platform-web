@@ -8,6 +8,7 @@ import { platformApps } from "./registry";
 export const FOUNDING_MODE_CORE_APP_IDS = [
   "crm",
   "commerce",
+  "documents",
   "websites",
   "opportunities",
 ] as const;
@@ -88,6 +89,7 @@ const TIER_BASE_APPS: Record<string, string[]> = {
   starter: [
     "crm",
     "commerce",
+    "documents",
     "websites",
     "infrastructure",
     "opportunities",
@@ -96,6 +98,7 @@ const TIER_BASE_APPS: Record<string, string[]> = {
   professional: [
     "crm",
     "commerce",
+    "documents",
     "websites",
     "infrastructure",
     "opportunities",
@@ -104,6 +107,7 @@ const TIER_BASE_APPS: Record<string, string[]> = {
   business: [
     "crm",
     "commerce",
+    "documents",
     "websites",
     "infrastructure",
     "opportunities",
@@ -112,6 +116,7 @@ const TIER_BASE_APPS: Record<string, string[]> = {
   enterprise: [
     "crm",
     "commerce",
+    "documents",
     "websites",
     "infrastructure",
     "opportunities",

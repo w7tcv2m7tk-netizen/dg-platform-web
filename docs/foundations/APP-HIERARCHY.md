@@ -53,9 +53,9 @@ DIGITALGATE PLATFORM
 
 ## 1. CORE — every business
 
-CRM · Contacts · Opportunities · Tasks · Calendar · **Documents & Signing** · Communications · Commerce · Billing · Team · Permissions · Reporting
+CRM · Contacts · Opportunities · Tasks · Calendar · **Documents** (Documents & Signing) · Communications · Commerce · Billing · Team · Permissions · Reporting
 
-Documents & Signing is **Core** (Document Engine + Signing Engine). Industry Apps consume it with templates; do **not** place e-sign under Infrastructure. See [DOCUMENTS-AND-SIGNING.md](./DOCUMENTS-AND-SIGNING.md).
+**Documents** is the Core nav app; **Documents & Signing** is the capability (Document Engine + Signing Engine). Industry Apps consume it with templates; do **not** place e-sign under Infrastructure. See [DOCUMENTS-AND-SIGNING.md](./DOCUMENTS-AND-SIGNING.md).
 
 ## 2. INFRASTRUCTURE — operate digitally
 
