@@ -112,7 +112,7 @@ Operator OS — not a customer tenant. Industry Apps are **never** shown here.
 
 | Section | Question it answers |
 |---------|---------------------|
-| **Command Centre** | What should DigitalGate do today? (Priorities · Alerts · Sales Week · Founding 10) |
+| **Command Centre** | What should DigitalGate do today? (Priorities · Alerts) |
 | **Organisations** | Who are our customers? |
 | **Sales** | How is acquisition performing? (Prospecting & Opportunity Engine · Founding 10 · Sales Week · Opportunities) |
 | **Partners** | How are resellers performing? |

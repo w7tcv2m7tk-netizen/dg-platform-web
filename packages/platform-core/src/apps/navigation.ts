@@ -806,8 +806,6 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
     routes: [
       { path: "/command", label: "Priorities" },
       { path: "/command/platform-health", label: "Alerts" },
-      { path: "/command/sales-week", label: "Sales Week" },
-      { path: "/command/founding", label: "Founding 10" },
     ],
   };
 }

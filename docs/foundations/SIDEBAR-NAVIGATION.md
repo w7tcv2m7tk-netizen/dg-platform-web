@@ -54,7 +54,7 @@ DIGITALGATE · Platform Operator (staff only)
   Command Centre · Organisations · Sales · Partners · Delivery · Customer Intelligence · Platform Intelligence · Commercial · Product · Support
   Platform Docs (trailing — how DigitalGate works; not customer Business Knowledge)
 
-  Command Centre: Priorities · Alerts · Sales Week · Founding 10 (no AI Advisor — Advisor lives under Intelligence)
+  Command Centre: Priorities · Alerts (no AI Advisor — Advisor lives under Intelligence; Sales Week / Founding 10 live under Sales)
 
   Customer Intelligence: customer ecosystem health
   Platform Intelligence: DigitalGate ecosystem health (distinct from customer alerts)
@@ -102,7 +102,7 @@ Individual module permissions **override** defaults. Nav hide ≠ security — e
 
 ## Command Centre
 
-Primary **“what matters now?”** experience — Priorities, Alerts, Sales Week, Founding 10 (staff). Surfaces Advisor recommendations without duplicating the Advisor nav item. Ideal loop: Command Centre → Recommended Action → Action → Outcome.
+Primary **“what matters now?”** experience — Priorities and Alerts (staff). Sales Week and Founding 10 live under **Sales**. Surfaces Advisor recommendations without duplicating the Advisor nav item. Ideal loop: Command Centre → Recommended Action → Action → Outcome.
 
 Staff Command Centre remains gated to the DigitalGate operator org. Customer “what next” landing deepens via Overview / Advisor / Health under the DigitalGate Principle.
 
