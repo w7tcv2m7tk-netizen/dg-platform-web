@@ -285,6 +285,12 @@ const CORE_LINKS: PlatformShellNavItem[] = BUSINESS_NAV_ITEM.routes.map((route) 
 const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
   {
     kind: "shell",
+    href: "/dashboard/advisor",
+    label: "AI Advisor",
+    icon: getSidebarIcon("advisor"),
+  },
+  {
+    kind: "shell",
     href: "/dashboard/twin",
     label: "Digital Twin",
     icon: getSidebarIcon("twin"),
@@ -312,12 +318,6 @@ const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
     href: "/dashboard/insights",
     label: "Insights",
     icon: getSidebarIcon("analytics"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/advisor",
-    label: "AI Advisor",
-    icon: getSidebarIcon("advisor"),
   },
   {
     kind: "shell",

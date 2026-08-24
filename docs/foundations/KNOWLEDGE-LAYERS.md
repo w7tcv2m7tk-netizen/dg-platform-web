@@ -111,7 +111,7 @@ PLATFORM
 
 ```
 INTELLIGENCE
-  Digital Twin · Business Brain · Business Health · Benchmarks · Insights · AI Advisor · Reports
+  AI Advisor · Digital Twin · Business Brain · Business Health · Benchmarks · Insights · Reports
 ```
 
 Business Knowledge is **inside** Business Brain — not a top-level “Platform Docs” entry.
