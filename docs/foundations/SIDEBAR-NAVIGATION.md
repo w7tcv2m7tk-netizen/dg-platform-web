@@ -46,8 +46,8 @@ GROWTH
   Prospecting & Opportunity Engine ($99) · AI Visibility ($99) · SEO ($99) · Automation ($49) · Analytics ($49) · Social ($79) · AI Communications ($99) · Reputation (Free)
 
 INTELLIGENCE
-  Digital Twin · Business Brain · Business Health · Benchmarks · Insights · AI Advisor · Reports
-  (Reasoning: Twin → Brain → Health/Benchmarks/Insights → Advisor → Command Centre; Reports branches as output)
+  AI Advisor · Digital Twin · Business Brain · Business Health · Benchmarks · Insights · Reports
+  (Nav lead: Advisor first. Reasoning chain: Twin → Brain → Health/Benchmarks/Insights → Advisor → Command Centre; Reports branches as output)
   Analytics is a related evidence surface — not in this hierarchy.
 
 DIGITALGATE · Platform Operator (staff only)
