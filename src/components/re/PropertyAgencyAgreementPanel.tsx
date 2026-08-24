@@ -71,8 +71,8 @@ export function PropertyAgencyAgreementPanel({
     <div className="dg-card">
       <h2 className="font-semibold text-white">Agency agreement</h2>
       <p className="mt-1 text-sm text-slate-400">
-        Upload the signed agency / listing authority PDF for this property. A file is required —
-        there is no signed flag without a document.
+        Property Documents view — upload an existing signed agency / listing authority PDF.
+        Create-from-template and send-for-signature land via Core Documents & Signing.
       </p>
 
       {agreement ? (

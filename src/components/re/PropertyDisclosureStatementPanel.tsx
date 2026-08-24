@@ -71,8 +71,8 @@ export function PropertyDisclosureStatementPanel({
     <div className="dg-card">
       <h2 className="font-semibold text-white">Disclosure statement</h2>
       <p className="mt-1 text-sm text-slate-400">
-        Upload the property disclosure statement PDF or scan for this listing. A file
-        is required — there is no on-file flag without a document.
+        Property Documents view — upload an existing disclosure PDF or scan. Create-from-template
+        and send-for-signature land via Core Documents & Signing.
       </p>
 
       {disclosureStatement ? (

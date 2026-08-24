@@ -427,7 +427,11 @@ A **file reference** — contract, appraisal PDF, brand asset upload, listing co
 
 ### Ownership
 
-**Platform Core** (Asset/Document service) — Apps tag documents with `sourceApp`.
+**Platform Core** — **Documents & Signing** (Document Engine + Signing Engine).  
+Apps tag documents with `sourceApp`. Industry Apps supply templates; Automation owns post-sign workflow.  
+**Not** Infrastructure. Spec: [DOCUMENTS-AND-SIGNING.md](./DOCUMENTS-AND-SIGNING.md).
+
+Existing Real Estate property panels (agency agreement / disclosure upload) are **property-scoped views** into this Core capability — evolve toward template → send → track → store → update Opportunity.
 
 ### Events
 

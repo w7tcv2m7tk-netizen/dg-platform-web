@@ -321,13 +321,12 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               ) : null}
             </div>
 
-            {/* 1b. Signed agency / listing authority (mirrors WP Property Files) */}
+            {/* 1b–1c. Property Documents view into Core Documents & Signing */}
             <PropertyAgencyAgreementPanel
               propertyId={property.id}
               agreement={agencyAgreement}
             />
 
-            {/* 1c. Disclosure statement (same storage pattern as agency agreement) */}
             <PropertyDisclosureStatementPanel
               propertyId={property.id}
               disclosureStatement={disclosureStatement}
