@@ -4,7 +4,7 @@
 **Related:** [INDUSTRY-PLATFORM.md](./INDUSTRY-PLATFORM.md) · [APP-HIERARCHY.md](./APP-HIERARCHY.md) · [COMMERCIALLY-READY-V1.md](./COMMERCIALLY-READY-V1.md) · [PROPERTY-SYNDICATION.md](./PROPERTY-SYNDICATION.md)
 
 > **Commercial packaging:** Property is **one Industry App** ($99/mo) with Templates.  
-> **Hospitality:** Short-stay / holiday rentals live under **Hospitality & Accommodation**, not Property.  
+> **Hospitality:** Short-Stay Accommodation lives under **Hospitality & Accommodation**, not Property.  
 > **Implementation:** Templates may still ship as Gen 2 modules (`real-estate`, `property-management`, …) under Property.
 
 ---
@@ -40,7 +40,7 @@ Platform Core (CRM · Contacts · Companies · Documents · Comms · Tasks · Ca
   → Property Industry
        → Real Estate | Property Management | Commercial Property | Development | Buyers Agency
   → Hospitality & Accommodation Industry
-       → Short-Stay | Holiday Rentals | Hotels | F&B | Venues
+       → Short-Stay Accommodation | Hotels | F&B | Venues
 ```
 
 Major product build for PM / Commercial: **Track C floor started** (Neon models + create/list APIs + UI) — registry remains **disabled** until a pilot org.

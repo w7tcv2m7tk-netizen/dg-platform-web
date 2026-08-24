@@ -422,13 +422,12 @@ export const APPS = [
       "Hospitality & Accommodation Industry App — stays, venues and hospitality groups. Accommodation belongs here, not under Property.",
     headline: "Stays and hospitality on the same operating system.",
     subhead:
-      "One Industry App (+$99/mo). Short-Stay, Holiday Rentals, Hotels, F&B and Venues are Templates — not separate products.",
+      "One Industry App (+$99/mo). Short-Stay Accommodation, Hotels, F&B and Venues are Templates — not separate products.",
     what: "Bookings, guests, availability, housekeeping and hospitality operations on Core Contacts and Calendar.",
     connects: "Guests are Contacts. Stays create work. Reviews, Website and Growth Apps see the same business.",
-    who: "Short-stay and hospitality operators (including Currumbin Valley Hideaway) — Accommodation Template in early access.",
+    who: "Short-stay operators (including Currumbin Valley Hideaway) — Short-Stay Accommodation Template in early access.",
     templates: [
-      { name: "Short-Stay / Accommodation", status: "Early Access", href: "/apps/industry/accommodation/" },
-      { name: "Holiday Rentals", status: "Early Access", href: "/apps/industry/accommodation/" },
+      { name: "Short-Stay Accommodation", status: "Early Access", href: "/apps/industry/accommodation/" },
       { name: "Hotels · Motels · Resorts", status: "Coming Soon", href: "/apps/industry/hospitality-accommodation/" },
       { name: "Restaurants & Cafés", status: "Future", href: "/apps/industry/hospitality-accommodation/" },
       { name: "Bars & Venues", status: "Future", href: "/apps/industry/hospitality-accommodation/" },

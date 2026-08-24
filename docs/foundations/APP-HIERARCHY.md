@@ -66,7 +66,7 @@ Customer-facing: **Industry Apps**. Internally: **Industry → Template**.
 | Industry App | Example Templates | Public lane |
 |--------------|-------------------|-------------|
 | **Property** | Real Estate · PM · Commercial · Development · Buyers Agency | Available |
-| **Hospitality & Accommodation** | Short-Stay · Holiday Rentals · Hotels · F&B · Venues | Early Access |
+| **Hospitality & Accommodation** | Short-Stay Accommodation · Hotels · F&B · Venues | Early Access |
 | **Services** | Trades · Cleaning · Maintenance · Construction · Field | Available |
 | **Finance** | Accounting (first) · Planning · Broking · Insurance · Advisory | Early Access |
 | **Professional** | Legal · Surveying · Engineering · Architecture · Consulting | Coming Soon |

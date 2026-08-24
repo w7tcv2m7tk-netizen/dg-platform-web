@@ -91,7 +91,7 @@ export const INDUSTRY_PLATFORMS: {
     key: "hospitality-accommodation",
     label: "Hospitality & Accommodation",
     price: "+$99/mo",
-    specialisations: "Short-Stay · Holiday Rentals · Hotels · F&B · Venues",
+    specialisations: "Short-Stay Accommodation · Hotels · F&B · Venues",
     defaultApp: "accommodation",
   },
   {

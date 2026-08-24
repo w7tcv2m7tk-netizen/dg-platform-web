@@ -50,7 +50,7 @@ Create Business → Select Industry → Activate Template → Configure → Go l
 | Primary production | **Agriculture & Primary Industries** |
 | Educates or organises members | **Education & Organisations** |
 
-Examples: surveyors and lawyers → **Professional** (Surveying / Legal templates). Accountants → **Finance**, not Professional. Short-stay and holiday rentals → **Hospitality & Accommodation**, not Property. CVH homes under Hospitality & Accommodation.
+Examples: surveyors and lawyers → **Professional** (Surveying / Legal templates). Accountants → **Finance**, not Professional. Short-stay stays → **Hospitality & Accommodation**, not Property. CVH homes under Hospitality & Accommodation.
 
 ---
 
@@ -59,7 +59,7 @@ Examples: surveyors and lawyers → **Professional** (Surveying / Legal template
 | Industry App | Example Templates | Public lane |
 |--------------|-------------------|-------------|
 | **Property** | Real Estate · PM · Commercial · Development · Buyers Agency · Valuation | Available |
-| **Hospitality & Accommodation** | Short-Stay · Holiday Rentals · Hotels · Motels · Resorts · F&B · Venues | Early Access |
+| **Hospitality & Accommodation** | Short-Stay Accommodation · Hotels · Motels · Resorts · F&B · Venues | Early Access |
 | **Services** | Trades · Cleaning · Maintenance · Construction · Field | Available |
 | **Finance** | Accounting · Broking · Planning · Insurance · Advisory | Early Access |
 | **Professional** | Legal · Surveying · Engineering · Architecture · Consulting | Coming Soon |

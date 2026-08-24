@@ -230,7 +230,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     summary:
       "Stays, venues and hospitality groups — Accommodation belongs here (not under Property).",
     proposition:
-      "Short-stay and holiday rentals early access; hotels, restaurants and venues on the roadmap.",
+      "Short-Stay Accommodation early access; hotels, restaurants and venues on the roadmap.",
     specialisations: [
       {
         id: "short-stay",
@@ -239,14 +239,6 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
         templateId: "short-stay",
         status: "rolling-out",
         summary: "Bookings, guests, availability and revenue",
-      },
-      {
-        id: "holiday-rentals",
-        label: "Holiday Rentals",
-        appId: "accommodation",
-        templateId: "holiday-rentals",
-        status: "rolling-out",
-        summary: "Holiday rental operations",
       },
       {
         id: "hotels",
@@ -837,9 +829,11 @@ export function resolveIndustrySpecialisation(id: string): {
 } | null {
   const key = id.trim();
   if (!key) return null;
+  // Legacy alias — Holiday Rentals collapsed into Short-Stay Accommodation.
+  const normalised = key === "holiday-rentals" ? "short-stay" : key;
   for (const platform of INDUSTRY_PLATFORMS) {
     const specialisation = platform.specialisations.find(
-      (s) => s.id === key || s.appId === key || s.templateId === key,
+      (s) => s.id === normalised || s.appId === normalised || s.templateId === normalised,
     );
     if (specialisation) return { platform, specialisation };
   }
@@ -986,12 +980,15 @@ export const PROFESSIONAL_SERVICES_TEMPLATES = [
 
 /** Map a Gen 2 module / Template id to its parent Industry Platform id. */
 export function industryIdForAppOrTemplate(id: string): string | null {
-  const direct = INDUSTRY_PLATFORMS.find((p) => p.id === id);
+  const normalised = id.trim() === "holiday-rentals" ? "short-stay" : id.trim();
+  if (!normalised) return null;
+  const direct = INDUSTRY_PLATFORMS.find((p) => p.id === normalised);
   if (direct) return direct.id;
   for (const platform of INDUSTRY_PLATFORMS) {
     if (
       platform.specialisations.some(
-        (s) => s.id === id || s.appId === id || s.templateId === id,
+        (s) =>
+          s.id === normalised || s.appId === normalised || s.templateId === normalised,
       )
     ) {
       return platform.id;
