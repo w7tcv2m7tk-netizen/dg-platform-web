@@ -29,7 +29,7 @@ export const commandCentreApp: AppManifest = {
     { path: "/command/commissions", label: "Reseller commissions" },
     { path: "/command/clients", label: "Clients" },
     { path: "/command/clients/[orgId]", label: "Client Detail" },
-    { path: "/command/growth-engine/discovery", label: "Business Discovery" },
+    { path: "/apps/prospecting/discovery", label: "Business Discovery" },
     { path: "/command/growth-engine/pipeline", label: "Prospect Pipeline" },
     { path: "/command/growth-engine/audits", label: "AI Audits" },
     { path: "/command/growth-engine/reports", label: "Prospect Reports" },

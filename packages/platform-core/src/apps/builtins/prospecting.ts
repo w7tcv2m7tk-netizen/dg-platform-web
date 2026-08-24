@@ -3,25 +3,28 @@ import type { AppManifest } from "../manifest";
 /**
  * Prospecting & Opportunity Engine — Growth App ($99/mo).
  *
- * One App: Prospecting · Discovery · Opportunity scoring · Pipeline · Activity ·
- * AI recommendations · Digital Presence signals · CRM handoff.
+ * Growth App surface = Business (B2B) Discovery + pipeline/scoring.
+ * Consumer / property modes (Vendor, Buyer, …) use Industry App front ends
+ * on the same underlying engine — see PROSPECTING-ENGINE.md.
+ *
  * Do not bill Prospecting / Discovery / Opportunity Engine as separate SKUs.
  *
- * @see docs/foundations/OPPORTUNITY-ENGINE.md
+ * @see docs/foundations/PROSPECTING-ENGINE.md
  * @see docs/foundations/BUSINESS-DISCOVERY.md
+ * @see docs/foundations/OPPORTUNITY-ENGINE.md
  */
 export const prospectingApp: AppManifest = {
   id: "prospecting",
   name: "Prospecting & Opportunity Engine",
   description:
-    "Find the right businesses, understand their situation, score the opportunity, run pipeline and follow-ups — then hand qualified prospects into CRM",
+    "Business Discovery — find the right businesses, score opportunities, run pipeline and follow-ups, then hand qualified prospects into CRM",
   tier: "growth",
   version: "0.1.0",
   icon: "◎",
   routes: [
     { path: "/apps/prospecting", label: "Overview" },
     { path: "/apps/prospecting/prospects", label: "Prospects" },
-    { path: "/apps/prospecting/discovery", label: "Discovery" },
+    { path: "/apps/prospecting/discovery", label: "Business Discovery" },
     { path: "/apps/prospecting/pipeline", label: "Pipeline" },
     { path: "/apps/prospecting/activity", label: "Activity" },
     { path: "/apps/prospecting/scores", label: "Opportunity scores" },

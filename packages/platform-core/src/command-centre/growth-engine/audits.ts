@@ -40,6 +40,18 @@ function serializeAudit(row: {
 export async function createGrowthProspectAudit(input: CreateGrowthProspectAuditInput) {
   const { prisma } = await import("@dg/database");
 
+  const prospect = await prisma.growthProspect.findUnique({
+    where: { id: input.prospectId },
+    select: { id: true, organisationId: true, archivedAt: true },
+  });
+  if (!prospect || prospect.archivedAt) return null;
+
+  const organisationId =
+    prospect.organisationId ?? input.operatorOrganisationId ?? undefined;
+  if (!organisationId) {
+    throw new Error("organisationId is required to audit a growth prospect");
+  }
+
   const audit = await prisma.growthProspectAudit.create({
     data: {
       prospectId: input.prospectId,
@@ -54,9 +66,10 @@ export async function createGrowthProspectAudit(input: CreateGrowthProspectAudit
 
   await updateGrowthProspect({
     prospectId: input.prospectId,
+    organisationId,
     stage: "audit_created",
     actorId: input.actorId,
-    operatorOrganisationId: input.operatorOrganisationId,
+    operatorOrganisationId: organisationId,
   });
 
   await prisma.growthProspectEngagement.create({
@@ -103,8 +116,10 @@ export async function runGrowthProspectAudit(input: {
     },
     auditVersion: "presence-1.0",
     actorId: input.actorId,
-    operatorOrganisationId: input.operatorOrganisationId,
+    operatorOrganisationId:
+      input.operatorOrganisationId ?? prospect.organisationId ?? undefined,
   });
+  if (!audit) return null;
 
   return {
     ...audit,
@@ -120,12 +135,22 @@ export async function runGrowthProspectAudit(input: {
   };
 }
 
-export async function listGrowthProspectAudits(options?: { limit?: number }) {
+export async function listGrowthProspectAudits(options?: {
+  organisationId?: string;
+  limit?: number;
+}) {
   const { prisma } = await import("@dg/database");
   const limit = Math.min(options?.limit ?? 50, 100);
 
   const rows = await prisma.growthProspectAudit.findMany({
-    where: { prospect: { archivedAt: null } },
+    where: {
+      prospect: {
+        archivedAt: null,
+        ...(options?.organisationId
+          ? { organisationId: options.organisationId }
+          : {}),
+      },
+    },
     orderBy: { auditedAt: "desc" },
     take: limit,
     include: {
@@ -148,13 +173,19 @@ export async function listGrowthProspectAudits(options?: { limit?: number }) {
   }));
 }
 
-export async function listProspectsNeedingAudit(options?: { limit?: number }) {
+export async function listProspectsNeedingAudit(options?: {
+  organisationId?: string;
+  limit?: number;
+}) {
   const { prisma } = await import("@dg/database");
   const limit = Math.min(options?.limit ?? 40, 100);
 
   const rows = await prisma.growthProspect.findMany({
     where: {
       archivedAt: null,
+      ...(options?.organisationId
+        ? { organisationId: options.organisationId }
+        : {}),
       stage: { in: ["prospect", "audit_created"] },
       audits: { none: {} },
     },

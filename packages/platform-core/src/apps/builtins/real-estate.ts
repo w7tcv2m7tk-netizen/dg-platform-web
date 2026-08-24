@@ -11,6 +11,7 @@ export const realEstateApp: AppManifest = {
   icon: "🏠",
   routes: [
     { path: "/apps/re", label: "Overview" },
+    { path: "/apps/re/vendor-prospecting", label: "Vendor Prospecting" },
     { path: "/apps/re/vendor-leads", label: "Vendor leads" },
     { path: "/apps/re/buyer-leads", label: "Buyer leads" },
     { path: "/apps/re/properties", label: "Properties & appraisals" },
@@ -20,6 +21,7 @@ export const realEstateApp: AppManifest = {
   ],
   navigation: [
     { href: "/apps/re", label: "Overview", icon: getSidebarIcon("overview") },
+    { href: "/apps/re/vendor-prospecting", label: "Vendor Prospecting", icon: "◎" },
     { href: "/apps/re/vendor-leads", label: "Vendor leads", icon: "◈" },
     { href: "/apps/re/buyer-leads", label: "Buyer leads", icon: "◎" },
     { href: "/apps/re/properties", label: "Properties", icon: getSidebarIcon("real-estate") },

@@ -1635,7 +1635,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     description: "Manual create / filter / archive GrowthProspects in Command Centre",
     status: "done",
     appId: "command-centre",
-    href: "/command/growth-engine/discovery",
+    href: "/apps/prospecting/discovery",
   },
   {
     id: "growth.discovery.providers",
@@ -1646,7 +1646,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     status: "done",
     priority: "high",
     appId: "command-centre",
-    href: "/command/growth-engine/discovery",
+    href: "/apps/prospecting/discovery",
   },
   {
     id: "growth.discovery.search",
@@ -1657,7 +1657,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
     status: "done",
     priority: "high",
     appId: "command-centre",
-    href: "/command/growth-engine/discovery",
+    href: "/apps/prospecting/discovery",
   },
   {
     id: "growth.discovery.enrich",
@@ -1678,7 +1678,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
       "Universal packs (RE/finance/trades/professional/accommodation/automotive) for query + audit focus",
     status: "done",
     appId: "command-centre",
-    href: "/command/growth-engine/discovery",
+    href: "/apps/prospecting/discovery",
   },
   {
     id: "growth.audit",
@@ -1757,7 +1757,7 @@ export const PLATFORM_ROADMAP: RoadmapItem[] = [
       "Daily / location / industry / problem / AI visibility / high-value chips; Hot planned",
     status: "done",
     appId: "command-centre",
-    href: "/command/growth-engine/discovery",
+    href: "/apps/prospecting/discovery",
   },
   {
     id: "growth.opportunity_learning",

@@ -5,31 +5,30 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse } from "@/lib/platform-api";
+import { requireProspectingEngine } from "@/lib/prospecting-api";
 
 export async function GET(req: Request) {
-  const session = await requirePlatformAuth(req);
+  const session = await requireProspectingEngine(req, "command.growth.read");
   if (isNextResponse(session)) return session;
-
-  const denied = requireFeature(session, "command.growth.read");
-  if (denied) return denied;
 
   const { searchParams } = new URL(req.url);
   if (searchParams.get("needsAudit") === "1") {
-    const needs = await listProspectsNeedingAudit();
+    const needs = await listProspectsNeedingAudit({
+      organisationId: session.organisationId,
+    });
     return NextResponse.json({ data: needs });
   }
 
-  const audits = await listGrowthProspectAudits();
+  const audits = await listGrowthProspectAudits({
+    organisationId: session.organisationId,
+  });
   return NextResponse.json({ data: audits });
 }
 
 export async function POST(req: Request) {
-  const session = await requirePlatformAuth(req);
+  const session = await requireProspectingEngine(req, "command.growth.manage");
   if (isNextResponse(session)) return session;
-
-  const denied = requireFeature(session, "command.growth.manage");
-  if (denied) return denied;
 
   const body = await req.json().catch(() => null);
   const prospectId = typeof body?.prospectId === "string" ? body.prospectId.trim() : "";
@@ -40,18 +39,18 @@ export async function POST(req: Request) {
     );
   }
 
-  const result = await runGrowthProspectAudit({
+  const audit = await runGrowthProspectAudit({
     prospectId,
     actorId: session.clerkUserId,
     operatorOrganisationId: session.organisationId,
   });
 
-  if (!result) {
+  if (!audit) {
     return NextResponse.json(
       { error: { code: "not_found", message: "Prospect not found" } },
       { status: 404 },
     );
   }
 
-  return NextResponse.json({ data: result }, { status: 201 });
+  return NextResponse.json({ data: audit }, { status: 201 });
 }

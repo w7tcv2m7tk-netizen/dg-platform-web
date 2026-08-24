@@ -1,7 +1,3 @@
-import {
-  createGrowthProspect,
-  createGrowthProspectAudit,
-} from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -60,9 +56,28 @@ export async function POST(req: Request) {
     );
   }
 
+  /** Prefer explicit body org, then membership org (tenant), else operator env. */
+  const organisationId =
+    (typeof body?.organisationId === "string" && body.organisationId.trim()) ||
+    membership.organisationId ||
+    process.env.DG_OPERATOR_ORG_ID?.trim() ||
+    null;
+
+  if (!organisationId) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "validation_error",
+          message: "organisationId or DG_OPERATOR_ORG_ID is required",
+        },
+      },
+      { status: 422 },
+    );
+  }
+
   const portal = await fetchPortalMe(email, membership.clerkUserId);
   const result = await syncOrganisationFromPortal({
-    organisationId: membership.organisationId,
+    organisationId,
     organisationName: membership.organisation.name,
     portal,
     force: true,

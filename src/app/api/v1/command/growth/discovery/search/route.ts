@@ -4,25 +4,20 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse } from "@/lib/platform-api";
+import { requireProspectingEngine } from "@/lib/prospecting-api";
 
 export async function GET(req: Request) {
-  const session = await requirePlatformAuth(req);
+  const session = await requireProspectingEngine(req, "command.growth.read");
   if (isNextResponse(session)) return session;
-
-  const denied = requireFeature(session, "command.growth.read");
-  if (denied) return denied;
 
   return NextResponse.json({ data: { providers: listDiscoveryProviderStatuses() } });
 }
 
 /** Search business-data providers — returns ephemeral candidates (not CRM). */
 export async function POST(req: Request) {
-  const session = await requirePlatformAuth(req);
+  const session = await requireProspectingEngine(req, "command.growth.manage");
   if (isNextResponse(session)) return session;
-
-  const denied = requireFeature(session, "command.growth.manage");
-  if (denied) return denied;
 
   const body = await req.json().catch(() => null);
   if (!body || typeof body !== "object") {

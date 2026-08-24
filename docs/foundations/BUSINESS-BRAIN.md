@@ -56,6 +56,8 @@ Permissions are organisation- and user-aware. AI may only use what the current u
 
 Coverage is scored from live Business Profile, Goals, Team, CRM, Apps, connectors and Communications — not a separate wiki until those sources exist. The Brain screen answers: **What does DigitalGate know about my business?**
 
+For Real Estate (and other consumer/property modes), the Brain should eventually express prospecting intelligence such as: *“37 potential vendor opportunities in your target suburbs, 8 with strong market signals, 3 worth contacting today”* — fed by the shared Prospecting Engine, not a flat contact count. See [PROSPECTING-ENGINE.md](./PROSPECTING-ENGINE.md).
+
 ## Voice Agents (consumer)
 
 Voice Agents are shaped by **Business Brain → Agent → DigitalGate Tools**, not a generic phone script. ElevenLabs provides the conversational voice; DigitalGate remains the system of record for Contact, Opportunity, Task, SMS, email and transfer.

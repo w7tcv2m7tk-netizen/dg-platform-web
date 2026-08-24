@@ -18,6 +18,13 @@ function verifyWebhookSecret(req: Request): boolean {
   return provided === secret;
 }
 
+function resolveOperatorOrganisationId(body: Record<string, unknown>): string | null {
+  const fromBody =
+    typeof body.organisationId === "string" ? body.organisationId.trim() : "";
+  const fromEnv = process.env.DG_OPERATOR_ORG_ID?.trim() ?? "";
+  return fromBody || fromEnv || null;
+}
+
 /** WordPress discovery form → Growth Engine prospect + audit. */
 export async function POST(req: Request) {
   if (!verifyWebhookSecret(req)) {
@@ -35,7 +42,21 @@ export async function POST(req: Request) {
     );
   }
 
+  const organisationId = resolveOperatorOrganisationId(body as Record<string, unknown>);
+  if (!organisationId) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "validation_error",
+          message: "organisationId or DG_OPERATOR_ORG_ID is required",
+        },
+      },
+      { status: 422 },
+    );
+  }
+
   const prospect = await createGrowthProspect({
+    organisationId,
     businessName: body.businessName,
     contactName: body.contactName,
     contactEmail: body.contactEmail,
@@ -43,7 +64,7 @@ export async function POST(req: Request) {
     industry: body.industry,
     websiteUrl: body.websiteUrl,
     actorId: "wp:discovery",
-    operatorOrganisationId: process.env.DG_OPERATOR_ORG_ID ?? "platform",
+    operatorOrganisationId: organisationId,
   });
 
   let audit = null;
@@ -64,7 +85,7 @@ export async function POST(req: Request) {
         wpOrganisationId: body.wpOrganisationId,
       },
       actorId: "wp:discovery",
-      operatorOrganisationId: process.env.DG_OPERATOR_ORG_ID ?? "platform",
+      operatorOrganisationId: organisationId,
     });
   }
 

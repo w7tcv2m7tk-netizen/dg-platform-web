@@ -88,9 +88,10 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | [BUSINESS-APPS-SCAFFOLD.md](./BUSINESS-APPS-SCAFFOLD.md) | Finance · Creator · Commercial · Automotive — honest product-map floor (not closed beta) |
 | 16 | [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) | **Core Platform Service** — Domains/DNS/SSL/hosting/email; Dreamscape V1 adapter; sandbox-first |
 | 16b | [EMAIL-INFRASTRUCTURE.md](./EMAIL-INFRASTRUCTURE.md) | **Email Service** — transactional (Resend), mailbox (Dreamscape), deliverability; no mail server |
-| [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) | Core — Business Discovery Engine (Command Centre prospecting) |
-| [BUSINESS-SETUP.md](./BUSINESS-SETUP.md) | **Core · Business Services** — Start Your Business; ABR + ASIC DSP (hold) + Dreamscape via Connectors |
+| [PROSPECTING-ENGINE.md](./PROSPECTING-ENGINE.md) | Growth — shared Prospecting Engine · Business vs Vendor/Buyer discovery |
+| [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) | Growth — Business (B2B) Discovery only |
 | [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md) | Core — Opportunity Engine Daily Briefing |
+| [BUSINESS-SETUP.md](./BUSINESS-SETUP.md) | **Core · Business Services** — Start Your Business; ABR + ASIC DSP (hold) + Dreamscape via Connectors |
 | [INDUSTRY-INTELLIGENCE.md](./INDUSTRY-INTELLIGENCE.md) | **Core** — Industry Intelligence (feeds → briefing → Act; not “News”) |
 | [ACC-CHANNEL-CONNECTIVITY.md](./ACC-CHANNEL-CONNECTIVITY.md) | Acc — OTA channels (iCal → Booking.com / Airbnb APIs) |
 | [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) | **Core** — Connector Framework; Property / Business / Marketing; Listing Hub parent |

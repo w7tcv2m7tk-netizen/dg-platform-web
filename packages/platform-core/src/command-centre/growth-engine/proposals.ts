@@ -324,6 +324,7 @@ export async function createGrowthProposalQuote(input: {
 
   await updateGrowthProspect({
     prospectId: draft.prospectId,
+    organisationId: input.organisationId,
     stage: "proposal_sent",
     actorId: input.actorId,
     operatorOrganisationId: input.organisationId,

@@ -1,25 +1,39 @@
-import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
-import { redirectStaffProspectingIfNeeded } from "@/lib/prospecting-command-redirect";
+import { ProspectingDiscoverySurface } from "@/components/prospecting/ProspectingDiscoverySurface";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
-export default async function ProspectingDiscoveryPage() {
-  await redirectStaffProspectingIfNeeded("/apps/prospecting/discovery");
+interface PageProps {
+  searchParams: Promise<{
+    q?: string;
+    industry?: string;
+    location?: string;
+    archived?: string;
+    mode?: string;
+  }>;
+}
+
+export default async function ProspectingDiscoveryPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const { session } = await getPlatformPageContext();
+
+  if (!session?.organisationId) {
+    return (
+      <>
+        <header className="dg-page-header">
+          <h1 className="text-2xl font-bold text-white">Discovery</h1>
+          <p className="text-sm text-slate-400">Sign in to run Business Discovery.</p>
+        </header>
+        <main className="dg-page-main">
+          <p className="text-sm text-slate-500">No active organisation session.</p>
+        </main>
+      </>
+    );
+  }
+
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Discovery</h1>
-        <p className="text-sm text-slate-400">
-          Structured discovery of the prospect’s current situation and systems.
-        </p>
-        <ProspectingSubnav active="/apps/prospecting/discovery" />
-      </header>
-      <main className="dg-page-main">
-        <div className="dg-card space-y-3">
-          <p className="text-sm text-slate-300">
-            Capture what they use today, primary problems, decision process and desired outcomes —
-            the inputs Opportunity scoring needs.
-          </p>
-        </div>
-      </main>
-    </>
+    <ProspectingDiscoverySurface
+      organisationId={session.organisationId}
+      searchParams={params}
+      variant="apps"
+    />
   );
 }

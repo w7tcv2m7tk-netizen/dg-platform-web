@@ -58,6 +58,7 @@ model Organisation {
   commerceRefunds            CommerceRefund[]
   paymentConnectorInstallations PaymentConnectorInstallation[]
   convertedGrowthProspects      GrowthProspect[] @relation("ConvertedProspect")
+  growthProspects               GrowthProspect[] @relation("OrgGrowthProspects")
   platformApiKeys               PlatformApiKey[]
   stayBookings                  StayBooking[]
   accommodationGuestProfiles    AccommodationGuestProfile[]
@@ -533,10 +534,12 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-// ─── Growth Engine (Command Centre — internal acquisition) ─────────────────
+// ─── Growth Engine (Prospecting & Opportunity Engine — per-organisation) ─────
 
 model GrowthProspect {
   id                      String    @id @default(cuid())
+  /** Owning tenant — each org has its own prospect book. */
+  organisationId          String?   @map("organisation_id")
   businessName            String    @map("business_name")
   contactName             String?   @map("contact_name")
   contactEmail            String?   @map("contact_email")
@@ -552,11 +555,14 @@ model GrowthProspect {
   createdAt               DateTime  @default(now()) @map("created_at")
   updatedAt               DateTime  @updatedAt @map("updated_at")
 
+  organisation          Organisation?            @relation("OrgGrowthProspects", fields: [organisationId], references: [id], onDelete: Cascade)
   convertedOrganisation Organisation?            @relation("ConvertedProspect", fields: [convertedOrganisationId], references: [id], onDelete: SetNull)
   audits                GrowthProspectAudit[]
   reports               GrowthProspectReport[]
   engagements           GrowthProspectEngagement[]
 
+  @@index([organisationId, stage])
+  @@index([organisationId, archivedAt])
   @@index([stage])
   @@index([ownerClerkUserId])
   @@index([archivedAt])

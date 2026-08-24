@@ -151,11 +151,15 @@ export async function createGrowthProspectReport(input: {
   });
 
   if (sentAt) {
+    if (!prospect.organisationId) {
+      throw new Error("organisationId is required to advance prospect stage");
+    }
     await updateGrowthProspect({
       prospectId: prospect.id,
+      organisationId: prospect.organisationId,
       stage: "report_sent",
       actorId: input.actorId,
-      operatorOrganisationId: input.operatorOrganisationId,
+      operatorOrganisationId: input.operatorOrganisationId ?? prospect.organisationId,
     });
   }
 
@@ -198,7 +202,7 @@ export async function markGrowthReportSent(input: {
   const existing = await prisma.growthProspectReport.findUnique({
     where: { id: input.reportId },
     include: {
-      prospect: { select: { stage: true, archivedAt: true } },
+      prospect: { select: { stage: true, archivedAt: true, organisationId: true } },
     },
   });
   if (!existing || existing.prospect.archivedAt) return null;
@@ -230,11 +234,17 @@ export async function markGrowthReportSent(input: {
   // Don't rewind later funnel stages when marking sent.
   const mayAdvance = new Set(["prospect", "audit_created", "email_opened"]);
   if (mayAdvance.has(existing.prospect.stage)) {
+    const organisationId =
+      existing.prospect.organisationId ?? input.operatorOrganisationId;
+    if (!organisationId) {
+      throw new Error("organisationId is required to advance prospect stage");
+    }
     await updateGrowthProspect({
       prospectId: report.prospectId,
+      organisationId,
       stage: "report_sent",
       actorId: input.actorId,
-      operatorOrganisationId: input.operatorOrganisationId,
+      operatorOrganisationId: organisationId,
     });
   }
 
@@ -275,6 +285,7 @@ export async function getPublicGrowthOpportunityReport(
       prospect: {
         select: {
           id: true,
+          organisationId: true,
           businessName: true,
           websiteUrl: true,
           industry: true,
@@ -323,10 +334,13 @@ export async function getPublicGrowthOpportunityReport(
     });
 
     if (VIEW_STAGE_ADVANCE_FROM.has(report.prospect.stage)) {
-      await updateGrowthProspect({
-        prospectId: report.prospectId,
-        stage: "report_viewed",
-      });
+      if (report.prospect.organisationId) {
+        await updateGrowthProspect({
+          prospectId: report.prospectId,
+          organisationId: report.prospect.organisationId,
+          stage: "report_viewed",
+        });
+      }
     }
   }
 

@@ -112,7 +112,7 @@ See [DISCOVERY-SCORING-SPEC.md](./DISCOVERY-SCORING-SPEC.md).
 - Daily Recommended queue
 - Audit → Send → Propose → Pipeline workflow
 
-**UI:** `/command/growth-engine/discovery`  
+**UI:** `/apps/prospecting/discovery`  
 **Docs:** [BUSINESS-DISCOVERY.md](../foundations/BUSINESS-DISCOVERY.md)
 
 ### 5. P1 — Founding 10 pipeline

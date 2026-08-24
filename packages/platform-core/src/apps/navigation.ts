@@ -164,6 +164,7 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
     name: "Real Estate",
     routes: [
       { path: "/apps/re", label: "Overview" },
+      { path: "/apps/re/vendor-prospecting", label: "Vendor Prospecting" },
       { path: "/apps/re/vendor-leads", label: "Vendors" },
       { path: "/apps/re/buyer-leads", label: "Buyers" },
       { path: "/apps/re/properties", label: "Properties" },
@@ -441,11 +442,11 @@ function getDigitalGateOperatorSection(): NavIaSection {
       operatorApp("dg-organisations", "Organisations", "team", "/command/clients", [
         { path: "/command/clients", label: "All organisations" },
       ]),
-      operatorApp("dg-sales", "Sales", "prospecting", "/command/growth-engine", [
-        { path: "/command/growth-engine", label: "Prospecting & Opportunity Engine" },
-        { path: "/command/growth-engine/discovery", label: "Discovery" },
-        { path: "/command/growth-engine/pipeline", label: "Pipeline" },
-        { path: "/command/growth-engine/follow-ups", label: "Activity" },
+      operatorApp("dg-sales", "Sales", "prospecting", "/apps/prospecting", [
+        { path: "/apps/prospecting", label: "Prospecting & Opportunity Engine" },
+        { path: "/apps/prospecting/discovery", label: "Business Discovery" },
+        { path: "/apps/prospecting/pipeline", label: "Pipeline" },
+        { path: "/apps/prospecting/activity", label: "Activity" },
         { path: "/command/founding", label: "Founding 10" },
         { path: "/command/sales-week", label: "Sales Week" },
         { path: "/command/opportunities", label: "Opportunities" },
@@ -792,30 +793,10 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
   };
 }
 
-/** DigitalGate staff — Growth sidebar when Prospecting app is activated (Command Centre routes). */
-function getStaffProspectingNavItem(): AppNavTreeItem {
-  return {
-    kind: "app",
-    id: "prospecting",
-    name: "Prospecting & Opportunity Engine",
-    icon: getSidebarIcon("prospecting"),
-    tier: "internal",
-    enabled: true,
-    routes: [
-      { path: "/command/growth-engine", label: "Daily Briefing" },
-      { path: "/command/growth-engine/discovery", label: "Discovery" },
-      { path: "/command/growth-engine/pipeline", label: "Pipeline" },
-      { path: "/command/growth-engine/follow-ups", label: "Activity" },
-      { path: "/command/growth-engine/audits", label: "Audits" },
-      { path: "/command/growth-engine/reports", label: "Reports" },
-    ],
-    primaryHref: "/command/growth-engine",
-  };
-}
-
 /**
  * Categorized sidebar tree — Intelligent Layer IA.
  * Staff Command Centre nests under Intelligence (not a sixth top-level section).
+ * Growth Apps (including Prospecting) use the same /apps/prospecting/* routes for all orgs.
  */
 export function getCategorizedPlatformNavigation(
   enabledIds: string[],
@@ -859,14 +840,6 @@ export function getCategorizedPlatformNavigation(
     enabledApps.filter((a) => GROW_APP_IDS.has(a.id)),
     GROW_APP_ORDER,
   );
-  if (options?.showCommandCentre) {
-    // Tenant Growth route — staff use Command Centre paths when the app is activated.
-    const customerProspectingIdx = growApps.findIndex((a) => a.id === "prospecting");
-    if (customerProspectingIdx >= 0) growApps.splice(customerProspectingIdx, 1);
-    if (isAppEnabled("prospecting", enabledIds)) {
-      growApps.unshift(getStaffProspectingNavItem());
-    }
-  }
 
   const mapped = new Set([
     ...CORE_APP_IDS,

@@ -23,6 +23,7 @@ export * from "./activities";
 export * from "./notifications";
 export * from "./command-centre";
 export * from "./business-discovery";
+export * from "./prospecting-engine";
 export * from "./business-setup";
 export * from "./business-identity";
 export * from "./connectors/wordpress";

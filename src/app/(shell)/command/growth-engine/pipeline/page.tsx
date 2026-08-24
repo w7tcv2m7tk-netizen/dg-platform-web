@@ -13,6 +13,7 @@ import {
 } from "@/components/command/GrowthEngineActions";
 import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 import { ProspectStageSelect } from "@/components/command/ProspectStageSelect";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding"]);
 
@@ -35,11 +36,16 @@ export default async function GrowthPipelinePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const showArchived = params.archived === "1";
   const stages = growthPipelineStages();
-  const prospects = process.env.DATABASE_URL
-    ? await listGrowthProspects(
-        showArchived ? { archivedOnly: true, limit: 200 } : undefined,
-      )
-    : [];
+  const { session } = await getPlatformPageContext();
+  const organisationId = session?.organisationId;
+  const prospects =
+    process.env.DATABASE_URL && organisationId
+      ? await listGrowthProspects({
+          organisationId,
+          limit: 200,
+          ...(showArchived ? { archivedOnly: true } : {}),
+        })
+      : [];
 
   const columns = BOARD_STAGES.map((stage) => ({
     stage,
@@ -95,7 +101,7 @@ export default async function GrowthPipelinePage({ searchParams }: PageProps) {
             </p>
             {!showArchived ? (
               <Link
-                href="/command/growth-engine/discovery"
+                  href="/apps/prospecting/discovery"
                 className="mt-3 inline-block text-sm text-sky-400 hover:underline"
               >
                 Add your first prospect →

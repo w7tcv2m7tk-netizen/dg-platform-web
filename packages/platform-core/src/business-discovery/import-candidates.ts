@@ -5,6 +5,8 @@ import type { DiscoveryCandidate } from "./types";
 
 export type ImportDiscoveryCandidateInput = {
   candidates: DiscoveryCandidate[];
+  /** Required — import into this organisation's prospect book only. */
+  organisationId: string;
   industry?: string;
   location?: string;
   businessType?: string;
@@ -42,8 +44,17 @@ function normalizeWebsite(url?: string): string | null {
 export async function importDiscoveryCandidates(
   input: ImportDiscoveryCandidateInput,
 ): Promise<ImportDiscoveryResult> {
+  const organisationId = input.organisationId || input.operatorOrganisationId;
+  if (!organisationId) {
+    throw new Error("organisationId is required to import discovery candidates");
+  }
+
   const pack = resolveIndustryPack(input.industry, input.businessType);
-  const existing = await listGrowthProspects({ limit: 200, includeArchived: true });
+  const existing = await listGrowthProspects({
+    organisationId,
+    limit: 200,
+    includeArchived: true,
+  });
   const byPlace = new Set<string>();
   const byAbn = new Set<string>();
   const byWebsite = new Set<string>();
@@ -95,6 +106,7 @@ export async function importDiscoveryCandidates(
     }
 
     const prospect = await createGrowthProspect({
+      organisationId,
       businessName: name,
       contactPhone: candidate.phone,
       industry: input.industry?.trim() || pack.label,
@@ -102,7 +114,7 @@ export async function importDiscoveryCandidates(
       websiteUrl: candidate.websiteUrl,
       ownerClerkUserId: input.ownerClerkUserId,
       actorId: input.actorId,
-      operatorOrganisationId: input.operatorOrganisationId,
+      operatorOrganisationId: organisationId,
       metadata: {
         discoverySource: "business-discovery",
         industryPackId: pack.id,

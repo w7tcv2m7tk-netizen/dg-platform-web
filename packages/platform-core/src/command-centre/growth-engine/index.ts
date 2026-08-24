@@ -13,9 +13,10 @@ export * from "./opportunity-engine";
 /** Route prefix for Growth Engine modules inside Command Centre */
 export const GROWTH_ENGINE_BASE_PATH = "/command/growth-engine";
 
+/** Discovery capability lives on the Growth App; CC hub stays the action layer. */
 export const GROWTH_ENGINE_ROUTES = {
   hub: GROWTH_ENGINE_BASE_PATH,
-  discovery: `${GROWTH_ENGINE_BASE_PATH}/discovery`,
+  discovery: "/apps/prospecting/discovery",
   audits: `${GROWTH_ENGINE_BASE_PATH}/audits`,
   reports: `${GROWTH_ENGINE_BASE_PATH}/reports`,
   pipeline: `${GROWTH_ENGINE_BASE_PATH}/pipeline`,

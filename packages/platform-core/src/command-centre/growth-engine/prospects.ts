@@ -5,6 +5,8 @@ import { writeAuditLog } from "../../audit";
 import { platformEvents } from "../../events";
 
 export interface CreateGrowthProspectInput {
+  /** Required — each organisation owns its own prospect book. */
+  organisationId: string;
   businessName: string;
   contactName?: string;
   contactEmail?: string;
@@ -14,6 +16,7 @@ export interface CreateGrowthProspectInput {
   websiteUrl?: string;
   ownerClerkUserId?: string;
   actorId?: string;
+  /** @deprecated Prefer organisationId — kept for audit/event callers. */
   operatorOrganisationId?: string;
   /** Opaque discovery / enrichment payload (providerRefs, ratings, pack id). */
   metadata?: Record<string, unknown>;
@@ -21,6 +24,7 @@ export interface CreateGrowthProspectInput {
 
 export interface UpdateGrowthProspectInput {
   prospectId: string;
+  organisationId: string;
   businessName?: string;
   contactName?: string;
   contactEmail?: string;
@@ -51,6 +55,7 @@ const PIPELINE_STAGES: ProspectPipelineStage[] = [
 function serializeProspect(row: GrowthProspect) {
   return {
     id: row.id,
+    organisationId: row.organisationId,
     businessName: row.businessName,
     contactName: row.contactName,
     contactEmail: row.contactEmail,
@@ -77,7 +82,8 @@ export function growthPipelineStages(): ProspectPipelineStage[] {
   return PIPELINE_STAGES;
 }
 
-export async function listGrowthProspects(options?: {
+export async function listGrowthProspects(options: {
+  organisationId: string;
   stage?: ProspectPipelineStage;
   ownerClerkUserId?: string;
   limit?: number;
@@ -87,19 +93,20 @@ export async function listGrowthProspects(options?: {
   archivedOnly?: boolean;
 }) {
   const { prisma } = await import("@dg/database");
-  const limit = Math.min(options?.limit ?? 100, 200);
+  const limit = Math.min(options.limit ?? 100, 200);
 
-  const archivedFilter = options?.archivedOnly
+  const archivedFilter = options.archivedOnly
     ? { archivedAt: { not: null } }
-    : options?.includeArchived
+    : options.includeArchived
       ? {}
       : { archivedAt: null };
 
   const rows = await prisma.growthProspect.findMany({
     where: {
+      organisationId: options.organisationId,
       ...archivedFilter,
-      ...(options?.stage ? { stage: options.stage } : {}),
-      ...(options?.ownerClerkUserId ? { ownerClerkUserId: options.ownerClerkUserId } : {}),
+      ...(options.stage ? { stage: options.stage } : {}),
+      ...(options.ownerClerkUserId ? { ownerClerkUserId: options.ownerClerkUserId } : {}),
     },
     orderBy: { updatedAt: "desc" },
     take: limit,
@@ -108,17 +115,27 @@ export async function listGrowthProspects(options?: {
   return rows.map(serializeProspect);
 }
 
-export async function getGrowthProspect(prospectId: string) {
+export async function getGrowthProspect(
+  prospectId: string,
+  organisationId?: string,
+) {
   const { prisma } = await import("@dg/database");
   const row = await prisma.growthProspect.findUnique({ where: { id: prospectId } });
-  return row ? serializeProspect(row) : null;
+  if (!row) return null;
+  if (organisationId && row.organisationId !== organisationId) return null;
+  return serializeProspect(row);
 }
 
 export async function createGrowthProspect(input: CreateGrowthProspectInput) {
   const { prisma } = await import("@dg/database");
+  const organisationId = input.organisationId || input.operatorOrganisationId;
+  if (!organisationId) {
+    throw new Error("organisationId is required to create a growth prospect");
+  }
 
   const row = await prisma.growthProspect.create({
     data: {
+      organisationId,
       businessName: input.businessName.trim(),
       contactName: input.contactName?.trim() || null,
       contactEmail: input.contactEmail?.trim().toLowerCase() || null,
@@ -143,20 +160,18 @@ export async function createGrowthProspect(input: CreateGrowthProspectInput) {
     },
   });
 
-  if (input.operatorOrganisationId) {
-    await writeAuditLog({
-      organisationId: input.operatorOrganisationId,
-      actorId: input.actorId,
-      action: "create",
-      entityType: "GrowthProspect",
-      entityId: row.id,
-      changes: { businessName: row.businessName },
-    });
-  }
+  await writeAuditLog({
+    organisationId,
+    actorId: input.actorId,
+    action: "create",
+    entityType: "GrowthProspect",
+    entityId: row.id,
+    changes: { businessName: row.businessName },
+  });
 
   await platformEvents.publish({
     type: "prospect.created",
-    organisationId: input.operatorOrganisationId ?? "platform",
+    organisationId,
     actorId: input.actorId,
     entityType: "GrowthProspect",
     entityId: row.id,
@@ -170,8 +185,8 @@ export async function createGrowthProspect(input: CreateGrowthProspectInput) {
 export async function updateGrowthProspect(input: UpdateGrowthProspectInput) {
   const { prisma } = await import("@dg/database");
 
-  const existing = await prisma.growthProspect.findUnique({
-    where: { id: input.prospectId },
+  const existing = await prisma.growthProspect.findFirst({
+    where: { id: input.prospectId, organisationId: input.organisationId },
   });
   if (!existing) return null;
 
@@ -203,33 +218,32 @@ export async function updateGrowthProspect(input: UpdateGrowthProspectInput) {
     });
   }
 
-  if (input.operatorOrganisationId) {
-    await writeAuditLog({
-      organisationId: input.operatorOrganisationId,
-      actorId: input.actorId,
-      action: "update",
-      entityType: "GrowthProspect",
-      entityId: row.id,
-      changes: { stage: input.stage ?? existing.stage },
-    });
-  }
+  await writeAuditLog({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    action: "update",
+    entityType: "GrowthProspect",
+    entityId: row.id,
+    changes: { stage: input.stage ?? existing.stage },
+  });
 
   return serializeProspect(row);
 }
 
 /**
- * Soft-archive a prospect for Command Centre demo cleanup.
+ * Soft-archive a prospect for demo cleanup.
  * Keeps audits/reports/engagements; hides from default lists and disables public share.
  */
 export async function archiveGrowthProspect(input: {
   prospectId: string;
+  organisationId: string;
   actorId?: string;
   operatorOrganisationId?: string;
 }) {
   const { prisma } = await import("@dg/database");
 
-  const existing = await prisma.growthProspect.findUnique({
-    where: { id: input.prospectId },
+  const existing = await prisma.growthProspect.findFirst({
+    where: { id: input.prospectId, organisationId: input.organisationId },
   });
   if (!existing) return null;
   if (existing.archivedAt) return serializeProspect(existing);
@@ -247,20 +261,18 @@ export async function archiveGrowthProspect(input: {
     },
   });
 
-  if (input.operatorOrganisationId) {
-    await writeAuditLog({
-      organisationId: input.operatorOrganisationId,
-      actorId: input.actorId,
-      action: "archive",
-      entityType: "GrowthProspect",
-      entityId: row.id,
-      changes: { archivedAt: row.archivedAt?.toISOString() },
-    });
-  }
+  await writeAuditLog({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    action: "archive",
+    entityType: "GrowthProspect",
+    entityId: row.id,
+    changes: { archivedAt: row.archivedAt?.toISOString() },
+  });
 
   await platformEvents.publish({
     type: "prospect.archived",
-    organisationId: input.operatorOrganisationId ?? "platform",
+    organisationId: input.organisationId,
     actorId: input.actorId,
     entityType: "GrowthProspect",
     entityId: row.id,
@@ -273,13 +285,14 @@ export async function archiveGrowthProspect(input: {
 
 export async function restoreGrowthProspect(input: {
   prospectId: string;
+  organisationId: string;
   actorId?: string;
   operatorOrganisationId?: string;
 }) {
   const { prisma } = await import("@dg/database");
 
-  const existing = await prisma.growthProspect.findUnique({
-    where: { id: input.prospectId },
+  const existing = await prisma.growthProspect.findFirst({
+    where: { id: input.prospectId, organisationId: input.organisationId },
   });
   if (!existing) return null;
   if (!existing.archivedAt) return serializeProspect(existing);
@@ -297,20 +310,18 @@ export async function restoreGrowthProspect(input: {
     },
   });
 
-  if (input.operatorOrganisationId) {
-    await writeAuditLog({
-      organisationId: input.operatorOrganisationId,
-      actorId: input.actorId,
-      action: "restore",
-      entityType: "GrowthProspect",
-      entityId: row.id,
-      changes: { archivedAt: null },
-    });
-  }
+  await writeAuditLog({
+    organisationId: input.organisationId,
+    actorId: input.actorId,
+    action: "restore",
+    entityType: "GrowthProspect",
+    entityId: row.id,
+    changes: { archivedAt: null },
+  });
 
   await platformEvents.publish({
     type: "prospect.restored",
-    organisationId: input.operatorOrganisationId ?? "platform",
+    organisationId: input.organisationId,
     actorId: input.actorId,
     entityType: "GrowthProspect",
     entityId: row.id,
@@ -321,20 +332,22 @@ export async function restoreGrowthProspect(input: {
   return serializeProspect(row);
 }
 
-export async function getGrowthEngineSummary() {
+export async function getGrowthEngineSummary(organisationId: string) {
   const { prisma } = await import("@dg/database");
 
   const [total, byStage, recentEngagements] = await Promise.all([
-    prisma.growthProspect.count({ where: { archivedAt: null } }),
+    prisma.growthProspect.count({
+      where: { organisationId, archivedAt: null },
+    }),
     prisma.growthProspect.groupBy({
       by: ["stage"],
-      where: { archivedAt: null },
+      where: { organisationId, archivedAt: null },
       _count: { id: true },
     }),
     prisma.growthProspectEngagement.count({
       where: {
         occurredAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-        prospect: { archivedAt: null },
+        prospect: { organisationId, archivedAt: null },
       },
     }),
   ]);
@@ -344,4 +357,19 @@ export async function getGrowthEngineSummary() {
     byStage: Object.fromEntries(byStage.map((s) => [s.stage, s._count.id])),
     engagementsThisWeek: recentEngagements,
   };
+}
+
+/**
+ * One-time / ops helper — attach orphan prospects (null organisationId) to an org.
+ * Used to backfill the pre-multi-tenant DigitalGate book.
+ */
+export async function backfillGrowthProspectOrganisation(
+  organisationId: string,
+): Promise<number> {
+  const { prisma } = await import("@dg/database");
+  const result = await prisma.growthProspect.updateMany({
+    where: { organisationId: null },
+    data: { organisationId },
+  });
+  return result.count;
 }

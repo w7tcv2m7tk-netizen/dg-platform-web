@@ -5,7 +5,7 @@ import Link from "next/link";
 const LINKS = [
   { href: "/apps/prospecting", label: "Overview" },
   { href: "/apps/prospecting/prospects", label: "Prospects" },
-  { href: "/apps/prospecting/discovery", label: "Discovery" },
+  { href: "/apps/prospecting/discovery", label: "Business Discovery" },
   { href: "/apps/prospecting/pipeline", label: "Pipeline" },
   { href: "/apps/prospecting/activity", label: "Activity" },
   { href: "/apps/prospecting/scores", label: "Scores" },

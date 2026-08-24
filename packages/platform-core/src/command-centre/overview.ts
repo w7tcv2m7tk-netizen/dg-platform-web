@@ -271,6 +271,32 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
   const monthStart = startOfMonth();
   const now = new Date();
 
+  const operatorOrgIdFromEnv =
+    process.env.DG_OPERATOR_ORG_ID?.trim() ||
+    process.env.DG_COMMAND_CENTRE_ORG_IDS?.split(",")
+      .map((id) => id.trim())
+      .filter(Boolean)[0] ||
+    null;
+
+  const operatorOrg =
+    (operatorOrgIdFromEnv
+      ? await prisma.organisation.findUnique({
+          where: { id: operatorOrgIdFromEnv },
+          select: { id: true },
+        })
+      : null) ??
+    (await prisma.organisation.findFirst({
+      where: {
+        OR: [
+          { slug: "digitalgate" },
+          { slug: { startsWith: "digitalgate-" } },
+        ],
+      },
+      select: { id: true },
+    }));
+
+  const operatorOrganisationId = operatorOrg?.id ?? operatorOrgIdFromEnv;
+
   const [
     organisations,
     users,
@@ -336,8 +362,17 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       },
       _sum: { amountCents: true },
     }),
-    getGrowthEngineSummary(),
-    getDailyOpportunityBriefing({ limit: 20 }).catch(() => null),
+    operatorOrganisationId
+      ? getGrowthEngineSummary(operatorOrganisationId)
+      : Promise.resolve({
+          totalProspects: 0,
+          byStage: {} as Record<string, number>,
+          engagementsThisWeek: 0,
+        }),
+    getDailyOpportunityBriefing({
+      organisationId: operatorOrganisationId ?? undefined,
+      limit: 20,
+    }).catch(() => null),
     prisma.organisation.findMany({
       orderBy: { updatedAt: "desc" },
       take: 40,

@@ -7,21 +7,19 @@ import {
 import type { ProspectPipelineStage } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse } from "@/lib/platform-api";
+import { requireProspectingEngine } from "@/lib/prospecting-api";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
 export async function GET(req: Request, { params }: RouteParams) {
-  const session = await requirePlatformAuth(req);
+  const session = await requireProspectingEngine(req, "command.growth.read");
   if (isNextResponse(session)) return session;
 
-  const denied = requireFeature(session, "command.growth.read");
-  if (denied) return denied;
-
   const { id } = await params;
-  const prospect = await getGrowthProspect(id);
+  const prospect = await getGrowthProspect(id, session.organisationId);
   if (!prospect) {
     return NextResponse.json(
       { error: { code: "not_found", message: "Prospect not found" } },
@@ -33,17 +31,15 @@ export async function GET(req: Request, { params }: RouteParams) {
 }
 
 export async function PATCH(req: Request, { params }: RouteParams) {
-  const session = await requirePlatformAuth(req);
+  const session = await requireProspectingEngine(req, "command.growth.manage");
   if (isNextResponse(session)) return session;
-
-  const denied = requireFeature(session, "command.growth.manage");
-  if (denied) return denied;
 
   const { id } = await params;
   const body = await req.json().catch(() => null);
 
   const updated = await updateGrowthProspect({
     prospectId: id,
+    organisationId: session.organisationId,
     businessName: body?.businessName,
     contactName: body?.contactName,
     contactEmail: body?.contactEmail,
@@ -68,15 +64,13 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
 /** Soft-archive prospect (demo cleanup). Audits/reports remain; hidden from default lists. */
 export async function DELETE(req: Request, { params }: RouteParams) {
-  const session = await requirePlatformAuth(req);
+  const session = await requireProspectingEngine(req, "command.growth.manage");
   if (isNextResponse(session)) return session;
-
-  const denied = requireFeature(session, "command.growth.manage");
-  if (denied) return denied;
 
   const { id } = await params;
   const archived = await archiveGrowthProspect({
     prospectId: id,
+    organisationId: session.organisationId,
     actorId: session.clerkUserId,
     operatorOrganisationId: session.organisationId,
   });
@@ -93,11 +87,8 @@ export async function DELETE(req: Request, { params }: RouteParams) {
 
 /** Restore a soft-archived prospect (`{ "action": "restore" }`). */
 export async function POST(req: Request, { params }: RouteParams) {
-  const session = await requirePlatformAuth(req);
+  const session = await requireProspectingEngine(req, "command.growth.manage");
   if (isNextResponse(session)) return session;
-
-  const denied = requireFeature(session, "command.growth.manage");
-  if (denied) return denied;
 
   const { id } = await params;
   const body = await req.json().catch(() => null);
@@ -110,6 +101,7 @@ export async function POST(req: Request, { params }: RouteParams) {
 
   const restored = await restoreGrowthProspect({
     prospectId: id,
+    organisationId: session.organisationId,
     actorId: session.clerkUserId,
     operatorOrganisationId: session.organisationId,
   });

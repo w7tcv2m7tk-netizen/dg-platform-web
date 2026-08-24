@@ -87,7 +87,7 @@ Middleware returns non-staff users away from `/command` (no “access denied” 
 Run as staff with `DATABASE_URL` live.
 
 1. **Ops home** — `/command` → confirm pulse numbers move with real orgs/leads (not zeros-only sandbox if production has data).
-2. **Discovery** — `/command/growth-engine/discovery` → add a sandbox prospect (real website URL preferred).
+2. **Discovery** — `/apps/prospecting/discovery` → add a sandbox prospect (real website URL preferred).
 3. **Audit** — Run presence audit → confirm scores cite reachable signals (not invented SEO/AI).
 4. **Report** — Generate opportunity report → **Copy share link** → open `/opportunity/<token>` in a private window.
 5. **Mark sent** — Reports list → Mark report sent → stage moves.
@@ -122,7 +122,7 @@ Run as staff with `DATABASE_URL` live.
 | `/command/flags` | Cross-tenant flags |
 | `/command/advisor` | AI Advisor |
 | `/command/growth-engine` | Hub + Call today |
-| `/command/growth-engine/discovery` | Prospects |
+| `/apps/prospecting/discovery` | Prospects |
 | `/command/growth-engine/audits` | Presence audits |
 | `/command/growth-engine/reports` | Opportunity reports + send |
 | `/command/growth-engine/pipeline` | Kanban |

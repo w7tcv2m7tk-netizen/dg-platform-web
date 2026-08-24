@@ -88,7 +88,8 @@ Search filters:
 
 **Example:** *Real estate agencies in Burleigh Waters* → select → Import → GrowthProspect (not CRM).
 
-**Route:** `/command/growth-engine/discovery`  
+**Route:** `/apps/prospecting/discovery` (Business Discovery · Growth App)  
+**Vendor / residential:** `/apps/re/vendor-prospecting` — see [foundations/PROSPECTING-ENGINE.md](./foundations/PROSPECTING-ENGINE.md)  
 **APIs:** `POST /api/v1/command/growth/discovery/search` · `POST …/import`
 
 ---

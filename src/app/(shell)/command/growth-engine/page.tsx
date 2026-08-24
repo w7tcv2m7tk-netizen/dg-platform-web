@@ -16,6 +16,7 @@ import {
   GrowthEngineModuleGrid,
   GrowthEngineNav,
 } from "@/components/command/GrowthEngineNav";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 function formatAudCents(cents: number) {
   return new Intl.NumberFormat("en-AU", {
@@ -27,13 +28,18 @@ function formatAudCents(cents: number) {
 
 export default async function GrowthEngineHubPage() {
   const db = Boolean(process.env.DATABASE_URL);
+  const { session } = await getPlatformPageContext();
   let summary: Awaited<ReturnType<typeof getGrowthEngineSummary>> | null = null;
   let briefing: Awaited<ReturnType<typeof getDailyOpportunityBriefing>> | null = null;
-  if (db) {
+  if (db && session?.organisationId) {
     try {
       [summary, briefing] = await Promise.all([
-        getGrowthEngineSummary(),
-        getDailyOpportunityBriefing({ limit: 20, staffName: "Ben" }),
+        getGrowthEngineSummary(session.organisationId),
+        getDailyOpportunityBriefing({
+          organisationId: session.organisationId,
+          limit: 20,
+          staffName: "Ben",
+        }),
       ]);
     } catch {
       summary = null;

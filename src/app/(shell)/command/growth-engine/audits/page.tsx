@@ -54,7 +54,7 @@ export default async function GrowthAuditsPage() {
                   </p>
                 </div>
                 <Link
-                  href="/command/growth-engine/discovery"
+                  href="/apps/prospecting/discovery"
                   className="text-sm text-sky-400 hover:underline"
                 >
                   Add prospect →

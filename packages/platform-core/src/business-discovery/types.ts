@@ -1,5 +1,6 @@
 /**
- * Business Discovery Engine — Core Platform capability (Command Centre first).
+ * Business Discovery Engine — capability owned by the Growth App
+ * (Prospecting & Opportunity Engine). Command Centre surfaces actions only.
  * @see docs/foundations/BUSINESS-DISCOVERY.md
  */
 
@@ -71,6 +72,8 @@ export type DiscoveryScoreBreakdown = {
 export type IndustryPackId =
   | "real_estate"
   | "finance"
+  | "services"
+  | "digitalgate"
   | "trades"
   | "professional"
   | "accommodation"
@@ -83,4 +86,8 @@ export type IndustryPack = {
   /** Phrases used to build Places / ABR text queries. */
   searchTerms: string[];
   auditFocus: string[];
+  /** Operator-facing discovery framing for this Industry App. */
+  targetHints: string[];
+  defaultBusinessType: string;
+  defaultLocationHint: string;
 };

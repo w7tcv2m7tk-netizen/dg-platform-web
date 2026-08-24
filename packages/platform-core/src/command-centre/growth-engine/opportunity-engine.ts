@@ -248,6 +248,7 @@ function greetingLine(hour = new Date().getHours()): string {
 
 /** Ranked Daily Briefing for Command Centre / Growth hub. */
 export async function getDailyOpportunityBriefing(options?: {
+  organisationId?: string;
   limit?: number;
   staffName?: string;
 }): Promise<DailyOpportunityBriefing> {
@@ -261,6 +262,9 @@ export async function getDailyOpportunityBriefing(options?: {
       archivedAt: null,
       convertedOrganisationId: null,
       stage: { in: ACTIVE_STAGES },
+      ...(options?.organisationId
+        ? { organisationId: options.organisationId }
+        : {}),
     },
     orderBy: { updatedAt: "desc" },
     take: 120,
@@ -426,10 +430,12 @@ export async function getDailyOpportunityBriefing(options?: {
  * Prefer getDailyOpportunityBriefing for the Daily Briefing UX.
  */
 export async function getSalesCallRecommendations(options?: {
+  organisationId?: string;
   limit?: number;
   idleDays?: number;
 }): Promise<SalesCallRecommendation[]> {
   const briefing = await getDailyOpportunityBriefing({
+    organisationId: options?.organisationId,
     limit: options?.limit ?? 12,
   });
   const idleMin = options?.idleDays ?? 0;

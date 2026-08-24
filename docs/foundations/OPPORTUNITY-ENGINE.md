@@ -86,7 +86,9 @@ COMMAND CENTRE  ← cockpit (staff) — does not compete with Core Opportunities
 
 **Core owns Opportunities · Command Centre orchestrates · Apps generate data · AI prioritises · Automation acts.**
 
-Prospecting workflows live under Command Centre. Prospect / Opportunity **scoring and objects** live in Core so every future industry reuses the same engine.
+**Prospecting & Opportunity Engine** (Growth App + Industry front ends) owns discovery capability — see [PROSPECTING-ENGINE.md](./PROSPECTING-ENGINE.md).  
+Business Discovery ≠ Vendor / property discovery. Different front ends; one opportunity engine and one business record.  
+Command Centre surfaces next actions — it is not the long-term home of full Discovery.
 
 ---
 

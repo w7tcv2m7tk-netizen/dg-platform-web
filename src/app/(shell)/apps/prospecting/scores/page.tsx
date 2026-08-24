@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
-import { redirectStaffProspectingIfNeeded } from "@/lib/prospecting-command-redirect";
 
 const DIMENSIONS = [
   "Fit",
@@ -12,7 +11,6 @@ const DIMENSIONS = [
 ] as const;
 
 export default async function ProspectingScoresPage() {
-  await redirectStaffProspectingIfNeeded("/apps/prospecting/scores");
   return (
     <>
       <header className="dg-page-header">

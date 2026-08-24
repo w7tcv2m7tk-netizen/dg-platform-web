@@ -3,7 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function CreateProspectForm() {
+export function CreateProspectForm({
+  pipelineHref = "/apps/prospecting/pipeline",
+}: {
+  pipelineHref?: string;
+} = {}) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +43,7 @@ export function CreateProspectForm() {
     }
 
     form.reset();
-    router.push("/command/growth-engine/pipeline");
+    router.push(pipelineHref);
     router.refresh();
   }
 

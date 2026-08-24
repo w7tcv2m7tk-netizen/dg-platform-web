@@ -1,7 +1,8 @@
 import { importDiscoveryCandidates, type DiscoveryCandidate } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse } from "@/lib/platform-api";
+import { requireProspectingEngine } from "@/lib/prospecting-api";
 
 function isCandidate(value: unknown): value is DiscoveryCandidate {
   if (!value || typeof value !== "object") return false;
@@ -18,11 +19,8 @@ function isCandidate(value: unknown): value is DiscoveryCandidate {
 
 /** Selective import of discovery candidates → GrowthProspect (not CRM Company). */
 export async function POST(req: Request) {
-  const session = await requirePlatformAuth(req);
+  const session = await requireProspectingEngine(req, "command.growth.manage");
   if (isNextResponse(session)) return session;
-
-  const denied = requireFeature(session, "command.growth.manage");
-  if (denied) return denied;
 
   const body = await req.json().catch(() => null);
   if (!body || typeof body !== "object") {
@@ -55,6 +53,7 @@ export async function POST(req: Request) {
   }
 
   const result = await importDiscoveryCandidates({
+    organisationId: session.organisationId,
     candidates,
     industry: typeof body.industry === "string" ? body.industry : undefined,
     location: typeof body.location === "string" ? body.location : undefined,

@@ -214,8 +214,12 @@ export async function detectExpansionOpportunities(): Promise<PlatformOpportunit
 /** Growth prospect Daily Briefing rows → platform opportunities. */
 export async function detectProspectOpportunities(
   limit = 15,
+  organisationId?: string,
 ): Promise<PlatformOpportunity[]> {
-  const briefing = await getDailyOpportunityBriefing({ limit }).catch(() => null);
+  const briefing = await getDailyOpportunityBriefing({
+    limit,
+    organisationId,
+  }).catch(() => null);
   if (!briefing) return [];
 
   return briefing.rows.map((row) => {

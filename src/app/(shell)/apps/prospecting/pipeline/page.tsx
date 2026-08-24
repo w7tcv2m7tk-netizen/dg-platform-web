@@ -1,33 +1,32 @@
-import Link from "next/link";
+import { ProspectingPipelineSurface } from "@/components/prospecting/ProspectingPipelineSurface";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
-import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
-import { redirectStaffProspectingIfNeeded } from "@/lib/prospecting-command-redirect";
+interface PageProps {
+  searchParams: Promise<{ archived?: string }>;
+}
 
-export default async function ProspectingPipelinePage() {
-  await redirectStaffProspectingIfNeeded("/apps/prospecting/pipeline");
+export default async function ProspectingPipelinePage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const { session } = await getPlatformPageContext();
+
+  if (!session?.organisationId) {
+    return (
+      <>
+        <header className="dg-page-header">
+          <h1 className="text-2xl font-bold text-white">Pipeline</h1>
+        </header>
+        <main className="dg-page-main">
+          <p className="text-sm text-slate-500">Sign in with an organisation to use Pipeline.</p>
+        </main>
+      </>
+    );
+  }
+
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Pipeline</h1>
-        <p className="text-sm text-slate-400">
-          Track prospects through the sales process before and after CRM conversion.
-        </p>
-        <ProspectingSubnav active="/apps/prospecting/pipeline" />
-      </header>
-      <main className="dg-page-main">
-        <div className="dg-card space-y-3">
-          <p className="text-sm text-slate-300">
-            Prospecting pipeline stages feed qualified deals into CRM Opportunities — one
-            ecosystem, not a siloed prospecting database.
-          </p>
-          <p className="text-sm text-slate-500">
-            Qualified deals:{" "}
-            <Link href="/apps/crm/opportunities" className="text-sky-400 hover:underline">
-              CRM Opportunities
-            </Link>
-          </p>
-        </div>
-      </main>
-    </>
+    <ProspectingPipelineSurface
+      organisationId={session.organisationId}
+      showArchived={params.archived === "1"}
+      variant="apps"
+    />
   );
 }
