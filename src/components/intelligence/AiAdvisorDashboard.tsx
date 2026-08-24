@@ -140,6 +140,8 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
     model?: string | null;
     llmError?: string;
     transportsAvailable?: string[];
+    transportSelected?: string | null;
+    transportPlan?: Array<{ provider: string; model: string }>;
     recommendations: AdvisorRecommendation[];
   } | null>(null);
 
@@ -215,6 +217,8 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
         model?: string | null;
         llmError?: string;
         transportsAvailable?: string[];
+        transportSelected?: string | null;
+        transportPlan?: Array<{ provider: string; model: string }>;
         recommendations?: AdvisorRecommendation[];
       };
 
@@ -225,6 +229,8 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
         model: payload.model,
         llmError: payload.llmError,
         transportsAvailable: payload.transportsAvailable,
+        transportSelected: payload.transportSelected,
+        transportPlan: payload.transportPlan,
         recommendations: payload.recommendations?.length
           ? payload.recommendations
           : data.topRecommendations.slice(0, 3),
@@ -353,13 +359,24 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
             </p>
             <p className="mt-3 text-xs text-slate-500">
               {liveAnswer.source === "llm"
-                ? `Answered by Model Router${liveAnswer.model ? ` · ${liveAnswer.model}` : ""}`
+                ? `Answered by Model Router · Transport selected: ${
+                    liveAnswer.transportSelected ??
+                    (liveAnswer.model ? `openai · ${liveAnswer.model}` : "unknown")
+                  }`
                 : liveAnswer.source === "no_llm"
                   ? liveAnswer.transportsAvailable?.length
-                    ? `Briefing fallback — Model Router unavailable (${liveAnswer.transportsAvailable.join(", ")})`
+                    ? `Briefing fallback — Model Router unavailable (${liveAnswer.transportsAvailable.join(", ")})${
+                        liveAnswer.transportSelected
+                          ? ` · Transport selected: ${liveAnswer.transportSelected}`
+                          : ""
+                      }`
                     : "Briefing fallback — Model Router not configured (check AI_GATEWAY_API_KEY / OPENAI / ANTHROPIC on Vercel)"
                   : liveAnswer.source === "llm_error"
-                    ? `Model Router error${liveAnswer.llmError ? `: ${liveAnswer.llmError}` : ""}`
+                    ? `Model Router error${liveAnswer.llmError ? `: ${liveAnswer.llmError}` : ""}${
+                        liveAnswer.transportSelected
+                          ? ` · Transport selected: ${liveAnswer.transportSelected}`
+                          : ""
+                      }`
                     : liveAnswer.source === "error"
                       ? "Request failed"
                       : "Briefing fallback"}

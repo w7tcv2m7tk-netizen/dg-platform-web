@@ -22,6 +22,29 @@ export type LlmGenerateResult = {
   latencyMs: number;
 };
 
+/** Safe transport descriptor — never includes API keys. */
+export type LlmTransportPlanEntry = {
+  provider: LlmProvider;
+  model: string;
+};
+
+export type LlmTransportAttempt = LlmTransportPlanEntry & {
+  ok: boolean;
+  error?: string;
+};
+
+export class LlmChatError extends Error {
+  readonly attempts: LlmTransportAttempt[];
+  readonly transportPlan: LlmTransportPlanEntry[];
+
+  constructor(message: string, attempts: LlmTransportAttempt[], transportPlan: LlmTransportPlanEntry[]) {
+    super(message);
+    this.name = "LlmChatError";
+    this.attempts = attempts;
+    this.transportPlan = transportPlan;
+  }
+}
+
 type LlmTransport = {
   provider: LlmProvider;
   model: string;
@@ -135,6 +158,16 @@ export function llmConfigured(): boolean {
 
 export function llmConfiguredTransports(): LlmProvider[] {
   return configuredTransports("standard").map((t) => t.provider);
+}
+
+/** Ordered failover plan for a tier — provider + model only (no secrets). */
+export function describeLlmTransportPlan(
+  tier: LlmTaskTier = "standard",
+): LlmTransportPlanEntry[] {
+  return resolveLlmTransports(tier).map((t) => ({
+    provider: t.provider,
+    model: t.model,
+  }));
 }
 
 function isGpt5Family(model: string): boolean {
@@ -311,15 +344,24 @@ export async function llmChat(input: {
   tier?: LlmTaskTier;
   signal?: AbortSignal;
 }): Promise<LlmGenerateResult> {
-  const chain = resolveLlmTransports(input.tier ?? "standard");
+  const tier = input.tier ?? "standard";
+  const chain = resolveLlmTransports(tier);
+  const transportPlan = chain.map((t) => ({
+    provider: t.provider,
+    model: t.model,
+  }));
+
   if (chain.length === 0) {
-    throw new Error(
+    throw new LlmChatError(
       "No LLM configured (AI_GATEWAY_API_KEY / VERCEL_OIDC_TOKEN, OPENAI_API_KEY, or ANTHROPIC_API_KEY)",
+      [],
+      [],
     );
   }
 
   const started = Date.now();
   const maxTokens = input.maxTokens ?? 1200;
+  const attempts: LlmTransportAttempt[] = [];
   let lastError: unknown;
 
   for (const transport of chain) {
@@ -331,6 +373,11 @@ export async function llmChat(input: {
         maxTokens,
         input.signal,
       );
+      attempts.push({
+        provider: transport.provider,
+        model: transport.model,
+        ok: true,
+      });
       return {
         text,
         provider: transport.provider,
@@ -340,11 +387,25 @@ export async function llmChat(input: {
     } catch (err) {
       lastError = err;
       const message = err instanceof Error ? err.message : String(err);
+      attempts.push({
+        provider: transport.provider,
+        model: transport.model,
+        ok: false,
+        error: message,
+      });
       console.warn(`[ai] ${transport.provider} failed — trying next transport`, message);
     }
   }
 
-  throw lastError instanceof Error
-    ? lastError
-    : new Error("All LLM transports failed");
+  const lastMessage =
+    lastError instanceof Error ? lastError.message : "All LLM transports failed";
+  const attemptSummary = attempts
+    .map((a) => `${a.provider}/${a.model}${a.ok ? "" : `: ${a.error ?? "failed"}`}`)
+    .join(" → ");
+
+  throw new LlmChatError(
+    `${lastMessage} [tried: ${attemptSummary}]`,
+    attempts,
+    transportPlan,
+  );
 }
