@@ -38,7 +38,7 @@ export function FoundingStageActions({
 }) {
   const router = useRouter();
   const current = normaliseFoundingStage(stage);
-  const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
   const personal = entryType === "personal_invitation" || isFoundingInvitationStage(current);
   const inviteUrl = inviteToken ? foundingPersonalInviteUrl(inviteToken) : null;
@@ -58,7 +58,17 @@ export function FoundingStageActions({
       setMessage(json.error?.message || "Action failed");
       return;
     }
-    setStatus("idle");
+    if (action === "send_invitation" || action === "resend_invitation") {
+      setStatus("success");
+      setMessage(
+        action === "resend_invitation"
+          ? "Invitation email resent — ask the prospect to check their inbox."
+          : "Invitation email sent.",
+      );
+    } else {
+      setStatus("success");
+      setMessage("Saved.");
+    }
     router.refresh();
   }
 
@@ -216,7 +226,16 @@ export function FoundingStageActions({
           </a>
         </p>
       ) : null}
-      {message ? <p className="text-sm text-amber-300">{message}</p> : null}
+      {message ? (
+        <p
+          className={`text-sm ${
+            status === "error" ? "text-amber-300" : "text-emerald-300"
+          }`}
+          role="status"
+        >
+          {message}
+        </p>
+      ) : null}
     </div>
   );
 }

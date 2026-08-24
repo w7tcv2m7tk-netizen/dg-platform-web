@@ -373,6 +373,30 @@ export async function sendFoundingInvitation(input: {
       : "Founding 10 invitation sent",
   });
 
+  const emailSent = result.status === "sent";
+  const emailError = emailSent
+    ? undefined
+    : result.error
+      ? `Email could not be delivered (${result.error}). Copy the invitation link below.`
+      : process.env.RESEND_API_KEY?.trim()
+        ? "Email could not be delivered. Copy the invitation link below."
+        : "Email provider is not configured — copy the invitation link below.";
+
+  const currentStage = normaliseFoundingStage(row.stage);
+  if (input.resend) {
+    const nextMeta: FoundingOpportunityMeta = {
+      ...meta,
+      founding_invite_token: inviteToken,
+      founding_invitation_sent_at: new Date().toISOString(),
+    };
+    await persistMeta(row.id, nextMeta);
+    return {
+      stage: currentStage,
+      emailSent,
+      error: emailError,
+    };
+  }
+
   const nextMeta: FoundingOpportunityMeta = {
     ...meta,
     founding_invite_token: inviteToken,
@@ -386,7 +410,8 @@ export async function sendFoundingInvitation(input: {
   await updateOpportunityStage(input.organisationId, row.id, "invited", input.actorId);
   return {
     stage: "invited",
-    emailSent: result.status === "sent" || result.status === "queued",
+    emailSent,
+    error: emailError,
   };
 }
 
