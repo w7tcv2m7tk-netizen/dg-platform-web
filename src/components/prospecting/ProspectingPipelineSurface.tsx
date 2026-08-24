@@ -1,7 +1,9 @@
 import Link from "next/link";
 import {
   GROWTH_ENGINE_STAGE_LABELS,
+  growthPipelineStages,
   listGrowthProspects,
+  type ProspectPipelineStage,
 } from "@dg/platform-core";
 
 import { EditProspectForm } from "@/components/command/EditProspectForm";
@@ -14,7 +16,7 @@ import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
 
 const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding"]);
 
-const BOARD_STAGES = [
+const BOARD_STAGES: ProspectPipelineStage[] = [
   "prospect",
   "audit_created",
   "report_sent",
@@ -23,7 +25,9 @@ const BOARD_STAGES = [
   "proposal_sent",
   "won",
   "lost",
-] as const;
+];
+
+const STAGES = growthPipelineStages();
 
 export async function ProspectingPipelineSurface({
   organisationId,
@@ -129,6 +133,7 @@ export async function ProspectingPipelineSurface({
                           <ProspectStageSelect
                             prospectId={prospect.id}
                             stage={prospect.stage}
+                            stages={STAGES}
                           />
                           <EditProspectForm prospect={prospect} />
                           {CONVERT_STAGES.has(prospect.stage) ? (
