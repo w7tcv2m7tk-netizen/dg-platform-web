@@ -153,6 +153,8 @@ export function appIdsFromPlanSelection(selection: PlanSelectionInput): string[]
 /**
  * Resolve enabled apps for an org.
  * Does not auto-inject Growth apps — progressive disclosure / purchase.
+ * Always ensures Founding Core apps (CRM, Commerce, Documents, …) are present
+ * so existing orgs pick up new Core capabilities without a settings migration.
  */
 export function resolveEnabledAppIds(
   orgSettings?: { apps?: OrgAppsSettings } | null,
@@ -165,7 +167,7 @@ export function resolveEnabledAppIds(
 
   const next = [...ids];
 
-  for (const id of ["opportunities"] as const) {
+  for (const id of FOUNDING_MODE_CORE_APP_IDS) {
     if (platformApps.get(id)?.enabled && !next.includes(id)) {
       next.push(id);
     }
