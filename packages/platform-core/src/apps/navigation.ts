@@ -470,27 +470,28 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/command/delivery/documents", label: "Documents" },
         { path: "/command/delivery/reports", label: "Reports" },
       ]),
-      operatorApp("dg-customer-intelligence", "Customer Intelligence", "brain", "/command/clients", [
+      operatorApp("dg-customer-intelligence", "Customer Intelligence", "brain", "/command/customer-intelligence/overview", [
         { path: "/command/customer-intelligence/overview", label: "Overview" },
         { path: "/command/customer-intelligence/health", label: "Customer health" },
         { path: "/command/customer-intelligence/adoption", label: "Adoption" },
         { path: "/command/customer-intelligence/engagement", label: "Engagement" },
         { path: "/command/customer-intelligence/at-risk", label: "At risk" },
-        { path: "/command/customer-intelligence/expansion", label: "Expansion" },
+        { path: "/command/customer-intelligence/expansion", label: "Expansion signals" },
       ]),
-      operatorApp("dg-platform-intelligence", "Platform Intelligence", "advisor", "/command/intelligence", [
+      operatorApp("dg-platform-intelligence", "Platform Intelligence", "advisor", "/command/platform-intelligence/overview", [
         { path: "/command/platform-intelligence/overview", label: "Overview" },
         { path: "/command/platform-intelligence/health", label: "Platform health" },
         { path: "/command/platform-intelligence/connectors", label: "Connector health" },
         { path: "/command/platform-intelligence/automation", label: "Automation health" },
         { path: "/command/platform-intelligence/ai-usage", label: "AI usage" },
         { path: "/command/platform-intelligence/activity", label: "System activity" },
+        { path: "/command/platform-intelligence/service-status", label: "Service status" },
         { path: "/command/platform-intelligence/diagnostics", label: "Diagnostics" },
       ]),
       operatorApp("dg-commercial", "Commercial", "commerce", "/command/revenue", [
         { path: "/command/revenue", label: "Revenue / MRR" },
         { path: "/command/commercial/subscriptions", label: "Subscriptions" },
-        { path: "/command/opportunities/expansion", label: "Expansion" },
+        { path: "/command/opportunities/expansion", label: "Expansion opportunities" },
       ]),
       operatorApp("dg-product", "Product", "flags", "/command/product/overview", [
         { path: "/command/product/overview", label: "Overview" },
@@ -504,7 +505,6 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/support/tickets", label: "Tickets" },
         { path: "/support/escalations", label: "Escalations" },
         { path: "/support/help", label: "Knowledge base" },
-        { path: "/command/platform-intelligence/service-status", label: "Service status" },
       ]),
     ],
     trailingLinks: [
@@ -778,24 +778,6 @@ export function getPartnerWorkspaceShellLinks(partnerType?: PartnerType | null):
   ];
 }
 
-function getStaffProspectingNavItem(): AppNavTreeItem {
-  return {
-    kind: "app",
-    id: "prospecting",
-    name: "Prospecting & Opportunity Engine",
-    icon: "◎",
-    tier: "internal",
-    enabled: true,
-    routes: [
-      { path: "/command/growth-engine", label: "Prospects" },
-      { path: "/command/growth-engine/pipeline", label: "Pipeline" },
-      { path: "/command/growth-engine/discovery", label: "Discovery" },
-      { path: "/command/growth-engine/follow-ups", label: "Activity" },
-    ],
-    primaryHref: "/command/growth-engine",
-  };
-}
-
 function getCommandCentreNavItem(): PlatformToolNavItem {
   return {
     kind: "tool",
@@ -857,10 +839,9 @@ export function getCategorizedPlatformNavigation(
     GROW_APP_ORDER,
   );
   if (options?.showCommandCentre) {
-    // Staff GTM uses Command Centre Prospecting; avoid duplicating the tenant Growth App.
+    // Staff GTM lives under DigitalGate → Sales only — do not inject into Growth.
     const customerProspectingIdx = growApps.findIndex((a) => a.id === "prospecting");
     if (customerProspectingIdx >= 0) growApps.splice(customerProspectingIdx, 1);
-    growApps.unshift(getStaffProspectingNavItem());
   }
 
   const mapped = new Set([

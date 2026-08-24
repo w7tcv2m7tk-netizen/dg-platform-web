@@ -83,7 +83,7 @@ Business leads CORE — who you are — then operating apps.
 
 ### GROWTH / INTELLIGENCE / PARTNERS / PLATFORM ADMIN
 
-Module trees follow the product surfaces already registered in App manifests (Inbox, Voice Agents, Builder, Run Log, Reputation Score™, etc.). **Prospecting & Opportunity Engine** is the $99 Growth App (`/apps/prospecting`); DigitalGate staff GTM continues to use Command Centre Prospecting (`/command/growth-engine`).
+Module trees follow the product surfaces already registered in App manifests (Inbox, Voice Agents, Builder, Run Log, Reputation Score™, etc.). **Prospecting & Opportunity Engine** is the $99 Growth App (`/apps/prospecting`) for customers. DigitalGate staff GTM uses **Sales** under Operator OS (`/command/growth-engine`) — not a second Growth inject.
 
 ---
 

@@ -121,7 +121,7 @@ Operator OS — not a customer tenant. Industry Apps are **never** shown here.
 | **Platform Intelligence** | How is **DigitalGate** performing? (activity · service status · alerts; AI usage honest until telemetry) |
 | **Commercial** | Revenue, subscriptions, expansion (live Commerce attribution) |
 | **Product** | Flags, roadmap, releases (docs + flags), feedback |
-| **Support** | Operator support centre — conversation queue + escalations (staff-only) |
+| **Support** | Operator support centre — conversation queue + escalations (staff-only; service status lives under Platform Intelligence) |
 
 **Founding Customer Day 1** (code): Intelligence is **experienced on Overview** (Business Health, priorities, Advisor, opportunities) — not navigated via a large Intelligence sidebar. Core apps in sidebar: CRM · Commerce · Design Studio; **Apps** catalogue for progressive reveal; Marketplace/Network hidden until Industry/Growth/Infra apps are added. Deep Intelligence (Twin → Brain → Health → Benchmarks → Insights → Advisor → Reports) remains available via links from Overview for operators who go deeper. See `isFoundingCustomerMode` in `org-apps.ts`.
 

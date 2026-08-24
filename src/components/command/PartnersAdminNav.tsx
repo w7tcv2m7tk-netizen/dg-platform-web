@@ -6,8 +6,6 @@ const NAV = [
   { href: COMMAND_CENTRE_ROUTES.partnerEcosystem, label: "Ecosystem", id: "ecosystem" },
   { href: COMMAND_CENTRE_ROUTES.partnerBriefing, label: "Reseller briefing", id: "briefing" },
   { href: COMMAND_CENTRE_ROUTES.partnerResellers, label: "Resellers", id: "resellers" },
-  { href: COMMAND_CENTRE_ROUTES.deliveryWorkspace, label: "Delivery", id: "delivery" },
-  { href: COMMAND_CENTRE_ROUTES.deliveryInvitations, label: "Delivery Partners", id: "delivery-partners" },
   { href: COMMAND_CENTRE_ROUTES.partnerOnboarding, label: "Onboarding SOP", id: "onboarding" },
   { href: COMMAND_CENTRE_ROUTES.partnerDelivery, label: "Operating Model", id: "operating-model" },
   { href: COMMAND_CENTRE_ROUTES.partnerReferrals, label: "Referrals", id: "referrals" },
