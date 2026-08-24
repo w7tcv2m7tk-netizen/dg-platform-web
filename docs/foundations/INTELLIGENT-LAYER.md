@@ -32,7 +32,8 @@ Industry Apps are **vertical entry points**. The moat is **Twin → Intelligence
 | Frameworks sit **above** the platform | Methodology IP delivered *through* DigitalGate — not competing products |
 
 **Next phase slogan (locked):**  
-Not “Build more DigitalGate.” → **Make DigitalGate feel intelligent.**
+Not “Build more DigitalGate.” → **Make DigitalGate feel intelligent.**  
+**AI milestone (locked 24 Aug):** Not “Build more AI.” → **Finish the AI loop** (KNOW → UNDERSTAND → ADVISE → ACT → RECORD → LEARN). Prioritise **ACT** over Ask. Detail: [BUSINESS-ADVISOR-AI-INTEGRATION.md](../strategy/BUSINESS-ADVISOR-AI-INTEGRATION.md).
 
 **Operator UX contract (locked):** [OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.md) — *Simple for the operator. Powerful for the business. Intelligent underneath.* Complexity stays underneath; the operator home is Overview · Priorities · Opportunities · AI Advisor · Apps.
 

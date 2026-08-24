@@ -1,122 +1,190 @@
-# DigitalGate — Advisor brief: completing AI integration
+# DigitalGate — AI integration lock (Advisor decision)
 
-**Audience:** External Business Advisor  
-**From:** Ben (Platform Architect)  
+**Audience:** Product / engineering / Founding operating rhythm  
+**From:** Ben (Platform Architect) · External Business Advisor recommendation **adopted**  
 **Date:** 24 August 2026  
-**Status:** For discussion — not a build-everything mandate  
-**Architecture canon:** [AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) · [AI-GOVERNANCE.md](../foundations/AI-GOVERNANCE.md) · [INTELLIGENT-LAYER.md](../foundations/INTELLIGENT-LAYER.md)
+**Status:** **Locked** — strategic product milestone, not a feature-completion exercise  
+**Canon:** [AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) · [AI-GOVERNANCE.md](../foundations/AI-GOVERNANCE.md) · [INTELLIGENT-LAYER.md](../foundations/INTELLIGENT-LAYER.md)
 
 ---
 
-## 1. One-line verdict
+## Verdict (locked)
 
-**Model Router is live.** That is not the same as “AI is finished everywhere.” Completing AI integration means finishing the **Brain → Advise → Act → Learn** loop across Core surfaces — with DigitalGate owning data and tools — not adding chatbots to every screen.
+DigitalGate is an **AI-native Business Operating Platform**, not an “AI platform.”
 
----
+**Do not** treat “complete AI integration” as wallpapering chat onto every screen.  
+**Do** finish the operating loop:
 
-## 2. What is already true (Live)
+```
+KNOW → UNDERSTAND → ADVISE → ACT → RECORD → LEARN
+```
 
-| Layer | Live today |
-|-------|------------|
-| **Hosting** | Vercel runs the app; Vercel is **not** the AI product |
-| **Model Router** | Gateway → (failover) Anthropic / OpenAI; Sol when paid credits allow; free-tier falls back to Gateway standard model |
-| **AI Advisor Ask** | Free-text questions synthesised from Brain / Twin / Goals evidence |
-| **AI Assist** | Draft help in CRM, listings, social, profile (`/api/v1/ai/assist`) |
-| **Support Assist** | Floating support chat can auto-reply via the same router |
-| **Tool path (thin)** | Permissioned tool execute + usage ledger started (Advisor “Do it” vertical slice) |
-| **Honesty floor** | Template / briefing fallback when the model fails — never invent |
+**Next 30 days capacity split (locked):**
 
-**Locked principle:** AI never owns business data. DigitalGate owns records; AI interprets and acts **through** DigitalGate tools.
+| Share | Focus |
+|-------|--------|
+| **70%** | **ACT** — tools that turn a recommendation into an outcome |
+| **20%** | **Context Builder** — reliable shared context for Advisor / Assist / Industry |
+| **10%** | **ASK** — only enough to keep recommendations grounded |
 
----
+> A mediocre recommendation that can **safely execute** is commercially more valuable than a brilliant answer that does nothing.
 
-## 3. What “complete” means (definition of done)
-
-AI is “integrated throughout the platform” when an operator can, on any major Core surface:
-
-1. **See** what matters (Twin / Overview / Command Centre)  
-2. **Ask** why / what next (Advisor, grounded in Brain + Twin)  
-3. **Act** with one click where safe (tool → CRM / Task / Automation)  
-4. **Audit** what AI recommended, who approved, what ran  
-5. **Learn** outcomes back into Twin / Brain (not a dead-end chat)
-
-It does **not** mean a generic chatbot on every page.
+**Slogan:** Don’t build more AI. **Finish the AI loop.**
 
 ---
 
-## 4. Gap map — what still needs doing
+## Intelligence hierarchy (do not add concepts)
 
-### A. Product / experience (highest leverage)
+| Layer | Role |
+|-------|------|
+| **Digital Twin** | What DigitalGate **knows** |
+| **Business Brain** | What DigitalGate **understands** |
+| **Business Health** | How the business is **performing** |
+| **Insights** | What DigitalGate **notices** |
+| **AI Advisor** | What the business **should do** |
+| **Tools** | How DigitalGate **acts** |
+| **Audit** | What **actually happened** |
+| **Learning** | What DigitalGate **learns** from the outcome |
 
-| Gap | Why it matters | Suggested outcome |
-|-----|----------------|-------------------|
-| **Advisor “Do it” dogfood** | Vertical slice exists; not yet the default operator habit | One recommendation → approve → tool → CRM/Task → audit, used daily by DigitalGate + 1 founding customer |
-| **Overview / Command Centre ↔ Advisor** | Briefings are strong; live LLM synthesis still uneven across cockpits | Same Ask / Do-it pattern on Overview priorities and CC daily briefing |
-| **Context depth** | Some answers thin if Brain / Goals / CRM sparse | Founding orgs complete Profile, Goals, CRM floor so Advisor has something to reason over |
-| **Industry surfaces** | RE / Services / Finance mostly rule + Assist drafts | Industry Apps consume Core AI Service — no per-app model keys or parallel chatbots |
-| **Prospecting / Documents AI** | Engines locked; AI scoring & template population still early | Score / recommend / draft via Core router; e-sign stays provider-backed |
-
-### B. Platform / engineering
-
-| Gap | Why it matters | Suggested outcome |
-|-----|----------------|-------------------|
-| **Context Builder v1** | Prompts still assembled per-caller | One Context Builder: Profile · Twin · Goals · Opportunities · Tasks · visibility signals · (staff) Platform Knowledge |
-| **Tool catalogue expansion** | Few tools vs App manifests’ `aiTools` | CRM follow-up, task create, lead assign, opportunity stage — all permission-gated |
-| **Usage & cost observability** | Ledger started; operator/staff dashboards thin | Per-org tokens / cost / failure reasons visible to staff |
-| **Billing for AI** | Sol needs paid Gateway credits; OpenAI BYOK quota separate | Clear commercial rule: customer AI usage on DigitalGate plan vs platform dogfood credits |
-| **Embeddings / retrieval** | Brain retrieval deeper than “Live” in places | Controlled RAG only where docs exist; never invent |
-
-### C. Governance / commercial
-
-| Gap | Why it matters | Suggested outcome |
-|-----|----------------|-------------------|
-| **Auto-execute off by default** | Already policy | Keep; expand only with explicit org rules |
-| **Client-facing drafts** | Email / web / proposals | Always draft → human send/publish |
-| **Packaging** | What AI is included in Core vs paid AI tier | Advisor + Assist in platform story; heavy Agents / Voice later as Growth or add-on |
-| **Support chat vs Advisor** | Two different jobs | Support = help with DigitalGate; Advisor = run *this* business — keep distinct |
-
-### D. Explicitly later (do not confuse with “AI integration”)
-
-- Full Voice Agents / AI Communications product  
-- Autonomous multi-step agents without approval  
-- Building our own e-sign / DocuSign competitor  
-- Per-Industry “AI Apps” with separate providers  
-
-Architecture already says: dogfood **Brain → Advisor → Tool → Action → Audit** before those.
+No new intelligence brands. These are enough.
 
 ---
 
-## 5. Recommended sequence (for advisor challenge)
+## Where intelligence belongs
 
-**Phase 1 — Prove the loop (2–4 weeks)**  
-Dogfood Advisor Ask + Do-it on DigitalGate org and one founding RE customer. Fix context gaps (Goals, CRM, tasks). Meter Gateway credits so Sol or standard models stay reliable.
+Put AI where a **decision** is being made — not an AI button on every page.
 
-**Phase 2 — Same loop on Core cockpits**  
-Overview + Command Centre priorities use the same Ask / evidence / Do-it pattern. Expand 3–5 high-value tools (task, follow-up, assign, stage).
+**Pattern (CRM example):**
 
-**Phase 3 — Industry consumption**  
-RE Vendor / listing Assist and Documents templates call Core AI Service. No new AI silos.
+```
+Opportunity stalled
+  → Insight: no contact for 8 days
+  → Advisor: follow up today
+  → Act: draft follow-up → approve → send
+  → Learn: outcome on opportunity timeline
+```
 
-**Phase 4 — Agents & channels**  
-Voice / outbound agents only after Phase 1–2 are habit and audited.
-
----
-
-## 6. Questions for the advisor
-
-1. Should “complete AI” be a **Founding 10 dogfood milestone**, or wait until after 10 are operating?  
-2. Is the commercial story **“Connected Business with an Advisor”** (recommended) or **“AI platform with chat everywhere”** (we advise against)?  
-3. How much **AI usage cost** should DigitalGate absorb for founding customers vs include in subscription?  
-4. Priority of **Act (tools)** vs **Ask (better answers)** if we can only fund one in the next 30 days?  
-5. Any governance red lines beyond: no auto CRM writes, no auto client send, no cross-tenant context?
+Same pattern for Overview / Command Centre “three things today,” Prospecting (“who to speak to next”), and Documents (“prepare agency agreement…”).
 
 ---
 
-## 7. Bottom line for the conversation
+## Definition of done (redefined)
 
-We have the **pipe** (Model Router + Gateway).  
-We do not yet have the full **operating system loop** on every Core surface.
+**Do not promise:** “AI is fully integrated across DigitalGate.”
 
-Finishing AI integration = **one shared AI Service**, deep context, Advisor that can act through DigitalGate tools, audit/learn — Industry Apps as consumers. Not a chatbot wallpaper.
+**Internal / Founding 10 promise:**
 
-Happy to adjust sequence based on your commercial and risk view.
+> Every Founding 10 organisation should experience the core **Brain → Advisor → Action** loop.
+
+**Operator proof (DigitalGate first):**
+
+Open platform → see what matters → ask why → grounded recommendation → approve → DigitalGate executes → result recorded on the timeline.
+
+Then: DigitalGate org → one founding customer → another → DG / RE / Finance / Services — **one** AI Service, no separate AI systems.
+
+---
+
+## Trust ladder (no autonomous agents yet)
+
+| Level | Behaviour |
+|-------|-----------|
+| **1 Recommend** | “I think you should follow up.” |
+| **2 Prepare** | “I’ve prepared the follow-up.” |
+| **3 Approve** | “Send it?” |
+| **4 Execute** | “Done.” |
+| **5 Governed automation** | Org has authorised this task type to run automatically |
+
+**Firm bans for now:** autonomous SDR · autonomous CRM modification · autonomous client email · autonomous legal/document decisions · autonomous financial decisions.
+
+---
+
+## Context Builder (architectural insist)
+
+One hub — callers must not each invent custom prompt stacks:
+
+```
+                    BUSINESS BRAIN
+                          │
+                    CONTEXT BUILDER
+                          │
+               ┌──────────┼──────────┐
+               ↓          ↓          ↓
+            Advisor     Assist     Industry
+               │          │          │
+               └──────────┼──────────┘
+                          ↓
+                    MODEL ROUTER
+                          ↓
+                   DIGITALGATE TOOLS
+                          ↓
+                     AUDIT / EVENTS
+                          ↓
+                  TWIN / BRAIN UPDATE
+```
+
+Context package (minimum): Profile · Goals · Contacts · Opportunities · Tasks · Activities · Business Health · relevant app data · Business Knowledge.
+
+---
+
+## Demo priorities (operating workflows)
+
+| Surface | Killer line | Next AI step |
+|---------|-------------|--------------|
+| **Prospecting** | “Who should you speak to next?” | Why this prospect → what to say → prepare follow-up |
+| **Documents & Signing** | Core Document Engine; AI on top | Prepare from template → CRM populate → approve → sign → store → update Opportunity |
+| **Advisor daily** | “Three things to do today” | Why → Do it → timeline |
+
+Documents are **not** an “AI project” — Core Documents & Signing; AI prepares and drives workflow. See [DOCUMENTS-AND-SIGNING.md](../foundations/DOCUMENTS-AND-SIGNING.md) · [PROSPECTING-ENGINE.md](../foundations/PROSPECTING-ENGINE.md).
+
+---
+
+## Commercial principles (locked)
+
+1. Customers buy **DigitalGate capability**, not tokens or models. Model Router is internal infrastructure.  
+2. Customer experiences **DigitalGate Intelligence** — not OpenAI / Anthropic / Sol / Gateway.  
+3. Founding 10: include a sensible floor of Brain · Advisor · Assist · recommendations · basic generation — **do not** meter every micro-action yet.  
+4. Monetise later (once usage is observed): **AI Communications** (voice, call/outbound agents, large-scale generation) and optionally **Advanced Intelligence** (deeper prospect/document analysis, higher usage).
+
+---
+
+## ACT backlog (70% — next major milestone)
+
+Permission-gated tools (human approve by default):
+
+- Create / assign task  
+- Update opportunity stage  
+- Schedule follow-up  
+- Create contact / opportunity  
+- Trigger **approved** automation  
+- Draft communication  
+- Eventually: send **approved** communication  
+
+---
+
+## Founding 10 learning goals
+
+By customer #10, know:
+
+- Which recommendations are useful vs ignored  
+- Which actions customers trust AI to perform  
+- Where context is missing  
+- Which tools need approval  
+- Which AI functions create commercial value  
+- How much AI usage costs DigitalGate  
+
+That is what Founding 10 is for.
+
+---
+
+## Live baseline (unchanged facts)
+
+Model Router live (Gateway + failover). Advisor Ask + Assist + thin tool/ledger path exist. Honesty floor / template fallback remain. Support chat ≠ Advisor.
+
+---
+
+## Bottom line
+
+Infrastructure is sufficient to stop “building more AI.”  
+The milestone is: **see → why → recommend → approve → execute → record → learn** — beautifully — for DigitalGate and the Founding 10.
+
+That is the beginning of: *a connected business with a brain that can help run it.*

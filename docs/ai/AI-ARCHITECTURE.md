@@ -87,21 +87,31 @@ Gateway auth: `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN`. Do not send `OPENAI_A
 
 ## Vertical slice (build this first)
 
+**Advisor lock (24 Aug 2026):** Prioritise **ACT** over more sophisticated ASK.  
+Capacity: **70% Act · 20% Context Builder · 10% Ask**.  
+Full decision: [BUSINESS-ADVISOR-AI-INTEGRATION.md](../strategy/BUSINESS-ADVISOR-AI-INTEGRATION.md).
+
 Before more agents, one complete path:
 
 ```
-Business Brain → AI Advisor → Model → Tool → Action → Audit
+KNOW → UNDERSTAND → ADVISE → ACT → RECORD → LEARN
+```
+
+```
+Business Brain → Context Builder → AI Advisor → Model Router → Tool → Action → Audit → Twin/Brain update
 ```
 
 **Example:** “What should I do today?”
 
-1. DigitalGate gathers Brain, Twin, Goals, open opportunities, enquiries, tasks, visibility signals.
+1. Context Builder gathers Brain, Twin, Goals, opportunities, enquiries, tasks, health, knowledge.
 2. Advisor returns: Priority · Why · Evidence · Recommended action · **Do it**.
-3. User clicks **Do it**.
+3. User approves (**trust ladder**: Recommend → Prepare → Approve → Execute → Governed automation).
 4. **DigitalGate** (not the model) executes via a permission-controlled tool.
-5. Platform records: recommendation → approval → tool call → result → audit event.
+5. Platform records: recommendation → approval → tool call → result → audit → learning.
 
-Do **not** ship Voice Agents, AI Communications, Prospecting AI, or AI Visibility agents until this slice is dogfooded.
+Do **not** ship Voice Agents, autonomous SDR/CRM/email, or per-App AI silos until this slice is dogfooded on DigitalGate + Founding 10.
+
+**Founding 10 AI milestone (redefined):** every founding org experiences Brain → Advisor → Action — not “AI everywhere.”
 
 ---
 
@@ -160,8 +170,10 @@ Apps never call provider APIs directly.
 
 | Phase | Deliverable |
 |-------|-------------|
-| **Now** | Vertical slice: Advisor recommendation → tool execute → audit |
-| Next | Expand tool registry (CRM follow-ups, tasks, drafts); usage in Platform Intelligence |
-| Later | Assist + Advisor share one context package; Voice / Comms / Visibility on the same executor |
+| **Now (70% Act)** | Expand tools: task create/assign, opportunity stage, follow-up, contact/opportunity create, draft comms; Advisor Do-it dogfood on DigitalGate org |
+| **Now (20% Context)** | Shared Context Builder consumed by Advisor, Assist, Industry |
+| **Now (10% Ask)** | Keep Ask grounded; do not chase cleverness |
+| **Founding 10** | Every founding org feels Brain → Advisor → Action; measure trust, ignores, cost |
+| **Later** | Prospecting “who next” + Documents prepare-from-template on same loop; Voice / Agents only after trust ladder Level 4–5 |
 
-Legacy planning notes (context builder, memory, RE narratives) remain valid but **do not** override the vertical-slice priority above.
+Legacy planning notes remain valid but **do not** override Act-first / Context Builder priority above.
