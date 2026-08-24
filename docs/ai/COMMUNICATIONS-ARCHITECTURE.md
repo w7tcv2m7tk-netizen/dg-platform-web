@@ -8,7 +8,7 @@
 **Ops:** [VOICE-AGENT-RUNBOOK.md](./VOICE-AGENT-RUNBOOK.md)  
 **Last updated:** August 2026  
 
-**Related:** [AI-ARCHITECTURE.md](./AI-ARCHITECTURE.md) · [VOICE-AGENT-ARCHITECTURE.md](./VOICE-AGENT-ARCHITECTURE.md) · [VOICE-AGENT-RUNBOOK.md](./VOICE-AGENT-RUNBOOK.md) · [AI-GOVERNANCE.md](../foundations/AI-GOVERNANCE.md) · [BUSINESS-BRAIN.md](../foundations/BUSINESS-BRAIN.md) · [CONNECTOR-SPECIFICATION.md](../connectors/CONNECTOR-SPECIFICATION.md)
+**Related:** [foundations/COMMUNICATIONS.md](../foundations/COMMUNICATIONS.md) · [AI-ARCHITECTURE.md](./AI-ARCHITECTURE.md) · [VOICE-AGENT-ARCHITECTURE.md](./VOICE-AGENT-ARCHITECTURE.md) · [VOICE-AGENT-RUNBOOK.md](./VOICE-AGENT-RUNBOOK.md) · [AI-GOVERNANCE.md](../foundations/AI-GOVERNANCE.md) · [BUSINESS-BRAIN.md](../foundations/BUSINESS-BRAIN.md) · [CONNECTOR-SPECIFICATION.md](../connectors/CONNECTOR-SPECIFICATION.md)
 
 ---
 
@@ -277,24 +277,23 @@ Types stubbed in `packages/platform-core/src/command-centre/types.ts` (`emailVol
 
 ---
 
-## Future: Communications Hub
+## Core Communications (architecture lock)
 
-All channels converge on one timeline:
+**Canonical lock:** [foundations/COMMUNICATIONS.md](../foundations/COMMUNICATIONS.md)
+
+Do **not** build a standalone “Email App.” Core owns the **Communication Record** (Message · Channel · Thread · Activity · Source · delivery · audit). Google/Microsoft remain mailbox SoT; DigitalGate orchestrates association, history, automation and AI Assist.
+
+**AI Communications (this Growth app)** remains voice agents, Call Centre, Agent Builder and monetised AI depth — channels (voice, SMS, email, WhatsApp, …) should progressively emit into the **same Core Communication model** so the operator sees one communication layer, not four products.
 
 ```
-Communications Hub
-├── Phone / AI Voice
+Core Communications (History + Record)
+├── Email (Google / Microsoft OAuth)
 ├── SMS
-├── Email
+├── Phone / AI Voice   ← AI Communications Growth modules feed here
 ├── WhatsApp
-├── Messenger
-├── Web Chat
-├── Instagram
-├── Google Business Messages
+├── Web Chat / Messenger / …
 └── Future channels
 ```
-
-AI Communications App is the Growth App container; Voice Agents is one module within it.
 
 ---
 

@@ -53,13 +53,17 @@ DIGITALGATE PLATFORM
 
 ## 1. CORE — every business
 
-CRM · Contacts · Opportunities · Tasks · Calendar · **Documents** (Documents & Signing) · Communications · Commerce · Billing · Team · Permissions · Reporting
+CRM · Contacts · Opportunities · Tasks · Calendar · **Documents** (Documents & Signing) · **Communications** · Commerce · Billing · Team · Permissions · Reporting
 
 **Documents** is the Core nav app; **Documents & Signing** is the capability (Document Engine + Signing Engine). Industry Apps consume it with templates; do **not** place e-sign under Infrastructure. See [DOCUMENTS-AND-SIGNING.md](./DOCUMENTS-AND-SIGNING.md).
+
+**Communications** is the Core nav app for the business communication layer (Communication Record · History · mailbox orchestration). Do **not** build a Gmail/Outlook clone; Google/Microsoft remain authoritative mailboxes. Do **not** confuse Core Communications with Infrastructure Email (hosting/DNS/mailbox provisioning) or Growth **AI Communications** (voice / AI employees). See [COMMUNICATIONS.md](./COMMUNICATIONS.md).
 
 ## 2. INFRASTRUCTURE — operate digitally
 
 Websites / Website Builder · Domains · DNS · Hosting · Email · SSL · Website Management · Backups · Cloudflare · Connectors · Data · Identity
+
+Infrastructure **Email** = digital presence / mailbox provisioning — not CRM email history or AI Assist.
 
 ## 3. INDUSTRY — Industry Platforms
 
