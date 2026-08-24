@@ -132,6 +132,14 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
   const [question, setQuestion] = useState("");
   const [selectedQuestion, setSelectedQuestion] = useState<AdvisorQuestionId>("today");
   const [pending, startTransition] = useTransition();
+  const [askStatus, setAskStatus] = useState<"idle" | "asking" | "done" | "error">("idle");
+  const [liveAnswer, setLiveAnswer] = useState<{
+    question: string;
+    answer: string;
+    source: string;
+    model?: string | null;
+    recommendations: AdvisorRecommendation[];
+  } | null>(null);
 
   const activeAnswer =
     data.questionAnswers.find((answer) => answer.id === selectedQuestion) ??
@@ -139,14 +147,17 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
     data.questionAnswers[0];
 
   const visibleRecommendations =
-    activeAnswer?.recommendations.length > 0
-      ? activeAnswer.recommendations
-      : data.topRecommendations;
+    liveAnswer?.recommendations.length
+      ? liveAnswer.recommendations
+      : activeAnswer?.recommendations.length
+        ? activeAnswer.recommendations
+        : data.topRecommendations;
 
   function matchExample(example: string) {
     const exact = data.suggestedQuestions.find(
       (q) => q.label.toLowerCase() === example.toLowerCase(),
     );
+    setLiveAnswer(null);
     startTransition(() => {
       setQuestion(example);
       if (exact) {
@@ -163,29 +174,65 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
     });
   }
 
-  function askAdvisor() {
+  async function askAdvisor() {
     const trimmed = question.trim();
     if (!trimmed) {
       setSelectedQuestion("today");
+      setLiveAnswer(null);
       return;
     }
-    const lower = trimmed.toLowerCase();
-    const matched = data.suggestedQuestions.find((q) =>
-      lower.includes(q.label.toLowerCase().slice(0, 18)),
-    );
-    if (matched) {
-      setSelectedQuestion(matched.id);
-      return;
+
+    setAskStatus("asking");
+    setLiveAnswer(null);
+
+    const contextLabel =
+      data.availableContexts.find((c) => c.id === contextId)?.label ?? "Entire Business";
+
+    try {
+      const res = await fetch("/api/v1/ai/advisor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: trimmed, contextLabel }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAskStatus("error");
+        setLiveAnswer({
+          question: trimmed,
+          answer: json.error?.message || "Advisor could not answer right now. Try again.",
+          source: "error",
+          recommendations: data.topRecommendations.slice(0, 3),
+        });
+        return;
+      }
+
+      const payload = json.data as {
+        question: string;
+        answer: string;
+        source: string;
+        model?: string | null;
+        recommendations?: AdvisorRecommendation[];
+      };
+
+      setLiveAnswer({
+        question: payload.question || trimmed,
+        answer: payload.answer,
+        source: payload.source,
+        model: payload.model,
+        recommendations: payload.recommendations?.length
+          ? payload.recommendations
+          : data.topRecommendations.slice(0, 3),
+      });
+      setAskStatus("done");
+    } catch {
+      setAskStatus("error");
+      setLiveAnswer({
+        question: trimmed,
+        answer: "Could not reach Advisor. Check your connection and try again.",
+        source: "error",
+        recommendations: data.topRecommendations.slice(0, 3),
+      });
     }
-    if (lower.includes("lead")) setSelectedQuestion("leads_dropped");
-    else if (lower.includes("health")) setSelectedQuestion("business_health");
-    else if (lower.includes("automat")) setSelectedQuestion("automate");
-    else if (lower.includes("opportunit")) setSelectedQuestion("losing_opportunities");
-    else if (lower.includes("summary") || lower.includes("owner"))
-      setSelectedQuestion("owner_summary");
-    else if (lower.includes("focus") || lower.includes("today"))
-      setSelectedQuestion("focus_this_week");
-    else setSelectedQuestion("today");
   }
 
   return (
@@ -261,11 +308,11 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onClick={() => startTransition(() => askAdvisor())}
-            disabled={pending}
+            onClick={() => void askAdvisor()}
+            disabled={askStatus === "asking" || pending}
             className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-violet-500 disabled:opacity-60"
           >
-            Ask Advisor →
+            {askStatus === "asking" ? "Thinking…" : "Ask Advisor →"}
           </button>
           <p className="text-xs text-slate-500">
             Context:{" "}
@@ -290,12 +337,33 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
           </ul>
         </div>
 
-        {activeAnswer ? (
+        {liveAnswer ? (
+          <div className="mt-6 rounded-xl border border-violet-500/20 bg-violet-500/5 px-4 py-4">
+            <p className="text-xs font-medium uppercase tracking-widest text-violet-300/80">
+              {liveAnswer.question}
+            </p>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">
+              {liveAnswer.answer}
+            </p>
+            <p className="mt-3 text-xs text-slate-500">
+              {liveAnswer.source === "llm"
+                ? `Answered by Model Router${liveAnswer.model ? ` · ${liveAnswer.model}` : ""}`
+                : liveAnswer.source === "no_llm"
+                  ? "Briefing fallback — Model Router not configured"
+                  : liveAnswer.source === "error"
+                    ? "Request failed"
+                    : "Briefing fallback"}
+            </p>
+          </div>
+        ) : activeAnswer ? (
           <div className="mt-6 rounded-xl border border-violet-500/20 bg-violet-500/5 px-4 py-4">
             <p className="text-xs font-medium uppercase tracking-widest text-violet-300/80">
               {activeAnswer.question}
             </p>
             <p className="mt-2 text-sm leading-relaxed text-slate-200">{activeAnswer.summary}</p>
+            <p className="mt-3 text-xs text-slate-500">
+              Pre-built briefing — type a question and click Ask Advisor for a live answer.
+            </p>
           </div>
         ) : null}
       </section>
