@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
+import { DeliveryCommandPage } from "@/components/delivery/DeliveryCommandPage";
 import { DeliveryProjectRecordView } from "@/components/delivery/DeliveryProjectRecordView";
-import { DeliveryWorkspaceNav } from "@/components/delivery/DeliveryWorkspaceNav";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 import { getDeliveryProject } from "@dg/platform-core";
 
@@ -23,9 +23,14 @@ export default async function StaffDeliveryProjectPage({
   if (!project) notFound();
 
   return (
-    <div className="space-y-6">
-      <DeliveryWorkspaceNav active="projects" scope="staff" />
-      <DeliveryProjectRecordView project={project} scope="staff" />
-    </div>
+    <DeliveryCommandPage
+      title={project.customerName}
+      description={`Implementation #${project.referenceCode}`}
+      navActive="projects"
+      backHref="/command/delivery/projects"
+      backLabel="Active projects"
+    >
+      <DeliveryProjectRecordView project={project} scope="staff" hideChrome />
+    </DeliveryCommandPage>
   );
 }

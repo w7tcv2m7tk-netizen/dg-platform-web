@@ -21,9 +21,12 @@ function formatDate(iso: string | null): string {
 export function DeliveryProjectRecordView({
   project,
   scope,
+  hideChrome = false,
 }: {
   project: DeliveryProjectDetail;
   scope: "staff" | "partner" | "customer";
+  /** When parent page already renders Command Centre header/back link */
+  hideChrome?: boolean;
 }) {
   const backHref =
     scope === "customer"
@@ -33,8 +36,8 @@ export function DeliveryProjectRecordView({
         : "/partner/delivery/projects";
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      {scope !== "customer" ? (
+    <div className={`space-y-8${hideChrome ? "" : " mx-auto max-w-4xl"}`}>
+      {scope !== "customer" && !hideChrome ? (
         <Link href={backHref} className="text-sm text-emerald-400 hover:underline">
           ← Back to projects
         </Link>
@@ -44,9 +47,15 @@ export function DeliveryProjectRecordView({
         <p className="text-xs font-semibold uppercase tracking-widest text-emerald-300">
           {scope === "customer" ? "Your DigitalGate Implementation" : "Implementation Record"}
         </p>
-        <h1 className="mt-2 text-2xl font-bold text-white">{project.customerName}</h1>
-        {scope !== "customer" ? (
-          <p className="mt-1 font-mono text-sm text-emerald-200">Implementation #{project.referenceCode}</p>
+        {!hideChrome ? (
+          <>
+            <h1 className="mt-2 text-2xl font-bold text-white">{project.customerName}</h1>
+            {scope !== "customer" ? (
+              <p className="mt-1 font-mono text-sm text-emerald-200">
+                Implementation #{project.referenceCode}
+              </p>
+            ) : null}
+          </>
         ) : null}
         <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
           <p className="text-slate-300">

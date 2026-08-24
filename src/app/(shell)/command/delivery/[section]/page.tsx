@@ -8,7 +8,8 @@ import {
   type DeliveryProjectRecord,
 } from "@dg/platform-core";
 
-import { DeliveryWorkspaceNav, type DeliveryNavId } from "@/components/delivery/DeliveryWorkspaceNav";
+import { DeliveryCommandPage } from "@/components/delivery/DeliveryCommandPage";
+import type { DeliveryNavId } from "@/components/delivery/DeliveryWorkspaceNav";
 import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
@@ -130,15 +131,7 @@ export default async function StaffDeliverySectionPage({
   };
 
   return (
-    <div className="space-y-6">
-      <header>
-        <p className="text-xs font-semibold uppercase tracking-widest text-emerald-300">
-          Partners · Delivery
-        </p>
-        <h1 className="mt-1 text-2xl font-bold text-white">{titles[section]}</h1>
-      </header>
-      <DeliveryWorkspaceNav active={navId} scope="staff" />
-
+    <DeliveryCommandPage title={titles[section]} navActive={navId}>
       {section === "customers" ? (
         <>
           <OperatorMetricStrip
@@ -317,6 +310,6 @@ export default async function StaffDeliverySectionPage({
           Delivery metrics unavailable — database or migrations may be missing.
         </p>
       ) : null}
-    </div>
+    </DeliveryCommandPage>
   );
 }
