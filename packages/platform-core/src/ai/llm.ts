@@ -137,14 +137,49 @@ function configuredTransports(tier: LlmTaskTier): LlmTransport[] {
  * Order: explicit DG_LLM_PROVIDER first when that transport is keyed,
  * else Gateway when keyed (promo + Vercel billing), else Anthropic, else OpenAI.
  * Remaining keyed transports stay as failover.
+ *
+ * Reasoning tier: after the preferred Gateway model (e.g. Sol), also queue the
+ * standard Gateway model so free-tier / access errors don't fall straight to
+ * a dead OpenAI BYOK quota.
  */
 export function resolveLlmTransports(tier: LlmTaskTier = "standard"): LlmTransport[] {
-  const available = configuredTransports(tier);
+  const available = expandGatewayModelFailover(configuredTransports(tier), tier);
   const preferred = preferredProvider();
   if (!preferred) return available;
   const head = available.filter((t) => t.provider === preferred);
   const rest = available.filter((t) => t.provider !== preferred);
   return [...head, ...rest];
+}
+
+/** After Sol (or other reasoning model), keep a Gateway standard model in-chain. */
+function expandGatewayModelFailover(
+  transports: LlmTransport[],
+  tier: LlmTaskTier,
+): LlmTransport[] {
+  if (tier !== "reasoning") return transports;
+  const gateway = transports.find((t) => t.provider === "gateway");
+  if (!gateway) return transports;
+
+  const standardModel = gatewayModelForTier("standard");
+  if (!standardModel || gateway.model === standardModel) return transports;
+  if (transports.some((t) => t.provider === "gateway" && t.model === standardModel)) {
+    return transports;
+  }
+
+  const out: LlmTransport[] = [];
+  let inserted = false;
+  for (const t of transports) {
+    out.push(t);
+    if (!inserted && t.provider === "gateway" && t.model === gateway.model) {
+      out.push({
+        provider: "gateway",
+        model: standardModel,
+        apiKey: t.apiKey,
+      });
+      inserted = true;
+    }
+  }
+  return out;
 }
 
 /** First transport in the failover chain (legacy helper). */
