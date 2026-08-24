@@ -22,6 +22,7 @@ import { websitesApp } from "./builtins/websites";
 import { opportunitiesApp } from "./builtins/opportunities-app";
 import { prospectingApp } from "./builtins/prospecting";
 import { documentsApp } from "./builtins/documents";
+import { communicationsApp } from "./builtins/communications";
 
 function appVisibility(manifest: RegisteredApp["manifest"]): AppVisibility {
   return manifest.visibility ?? "customer";
@@ -32,6 +33,7 @@ const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: crmApp, enabled: true },
   { manifest: commerceApp, enabled: true },
   { manifest: documentsApp, enabled: true },
+  { manifest: communicationsApp, enabled: true },
   { manifest: websitesApp, enabled: true },
   { manifest: infrastructureApp, enabled: true },
   { manifest: opportunitiesApp, enabled: true },

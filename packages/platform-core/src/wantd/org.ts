@@ -15,6 +15,7 @@ export const WANTD_ENABLED_APPS = [
   "crm",
   "commerce",
   "documents",
+  "communications",
   "websites",
   "infrastructure",
   "opportunities",

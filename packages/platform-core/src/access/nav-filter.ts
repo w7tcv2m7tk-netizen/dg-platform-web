@@ -201,6 +201,7 @@ export function filterNavigationByAccess(
     canView(ctx, "commerce") ||
     canView(ctx, "websites") ||
     canView(ctx, "documents") ||
+    canView(ctx, "communications") ||
     canView(ctx, "team");
   const canInfrastructure =
     canView(ctx, "infrastructure") ||

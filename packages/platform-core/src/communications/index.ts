@@ -69,6 +69,11 @@ async function persistQueuedEmail(input: {
   provider: string;
   status: "queued" | "sent" | "failed";
   error?: string;
+  contactId?: string;
+  opportunityId?: string;
+  companyId?: string;
+  sentBy?: string;
+  fromAddress?: string;
 }) {
   try {
     const { prisma } = await import("@dg/database");
@@ -121,11 +126,48 @@ async function persistQueuedEmail(input: {
             typeof input.metadata?.fromMode === "string"
               ? input.metadata.fromMode
               : undefined,
+          contactId: input.contactId,
         },
       },
     });
   } catch (err) {
     console.warn("[communications] failed to persist outbound email activity", err);
+  }
+
+  try {
+    const { recordOutboundEmail } = await import("../core-communications");
+    await recordOutboundEmail({
+      organisationId: input.organisationId,
+      to: input.to,
+      subject: input.subject,
+      body: input.body,
+      status: input.status,
+      messageId: input.messageId,
+      provider: input.provider,
+      contactId: input.contactId,
+      opportunityId: input.opportunityId,
+      companyId: input.companyId,
+      sentBy: input.sentBy,
+      fromAddress: input.fromAddress,
+      source:
+        typeof input.metadata?.source === "string"
+          ? (input.metadata.source as
+              | "manual"
+              | "automation"
+              | "ai_assist"
+              | "prospecting"
+              | "agent"
+              | "system")
+          : "manual",
+      whySent:
+        typeof input.metadata?.whySent === "string"
+          ? input.metadata.whySent
+          : undefined,
+      aiGenerated: input.metadata?.aiGenerated === true,
+      metadata: input.metadata,
+    });
+  } catch (err) {
+    console.warn("[communications] Core Communication record failed", err);
   }
 }
 
@@ -382,6 +424,23 @@ export async function sendMessage(
       fromMode = "platform_fallback";
     }
 
+    const linkFields = {
+      contactId: input.contactId,
+      opportunityId:
+        typeof input.metadata?.opportunityId === "string"
+          ? input.metadata.opportunityId
+          : undefined,
+      companyId:
+        typeof input.metadata?.companyId === "string"
+          ? input.metadata.companyId
+          : undefined,
+      sentBy:
+        typeof input.metadata?.sentBy === "string"
+          ? input.metadata.sentBy
+          : undefined,
+      fromAddress: usedFrom,
+    };
+
     if (delivered.ok) {
       const result: SendMessageResult = {
         id: delivered.id,
@@ -408,6 +467,7 @@ export async function sendMessage(
         messageId: result.id,
         provider: "resend",
         status: "sent",
+        ...linkFields,
       });
       console.info("[communications] sendMessage (resend)", {
         id: result.id,
@@ -436,6 +496,8 @@ export async function sendMessage(
       provider: "resend",
       status: "failed",
       error: delivered.error,
+      ...linkFields,
+      fromAddress: from,
     });
     console.warn("[communications] Resend failed — queued branded email", {
       id,
@@ -464,6 +526,20 @@ export async function sendMessage(
     messageId: id,
     provider: "stub",
     status: "queued",
+    contactId: input.contactId,
+    opportunityId:
+      typeof input.metadata?.opportunityId === "string"
+        ? input.metadata.opportunityId
+        : undefined,
+    companyId:
+      typeof input.metadata?.companyId === "string"
+        ? input.metadata.companyId
+        : undefined,
+    sentBy:
+      typeof input.metadata?.sentBy === "string"
+        ? input.metadata.sentBy
+        : undefined,
+    fromAddress: from,
   });
 
   console.info("[communications] sendMessage (queued stub, branded)", {

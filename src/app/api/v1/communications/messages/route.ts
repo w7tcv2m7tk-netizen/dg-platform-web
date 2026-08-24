@@ -47,7 +47,12 @@ export async function POST(req: Request) {
     to: to.trim(),
     subject: body?.subject,
     body: messageBody.trim(),
-    metadata: body?.metadata,
+    metadata: {
+      ...(body?.metadata && typeof body.metadata === "object" ? body.metadata : {}),
+      sentBy: session.clerkUserId,
+      source:
+        typeof body?.metadata?.source === "string" ? body.metadata.source : "manual",
+    },
   });
 
   return NextResponse.json({ data: result }, { status: 202 });

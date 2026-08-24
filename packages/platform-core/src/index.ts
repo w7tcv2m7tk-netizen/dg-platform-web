@@ -25,6 +25,7 @@ export * from "./command-centre";
 export * from "./business-discovery";
 export * from "./prospecting-engine";
 export * from "./documents-signing";
+export * from "./core-communications";
 export * from "./business-setup";
 export * from "./business-identity";
 export * from "./connectors/wordpress";

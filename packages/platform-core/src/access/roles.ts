@@ -44,6 +44,7 @@ export type PermissionModule =
   | "crm"
   | "commerce"
   | "documents"
+  | "communications"
   | "websites"
   | "infrastructure"
   | "industry"

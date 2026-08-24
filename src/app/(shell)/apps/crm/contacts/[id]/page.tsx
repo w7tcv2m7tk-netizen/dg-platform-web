@@ -83,6 +83,29 @@ export default async function ContactDetailPage({ params }: PageProps) {
           ← Contacts
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">{displayName}</h1>
+        <p className="mt-2 flex flex-wrap gap-3 text-sm">
+          {contact.email ? (
+            <Link
+              href={`/apps/communications/compose?contactId=${encodeURIComponent(contact.id)}&to=${encodeURIComponent(contact.email)}`}
+              className="text-sky-400 hover:underline"
+            >
+              Email contact
+            </Link>
+          ) : (
+            <Link
+              href={`/apps/communications/compose?contactId=${encodeURIComponent(contact.id)}`}
+              className="text-sky-400 hover:underline"
+            >
+              Email contact
+            </Link>
+          )}
+          <Link
+            href={`/apps/communications/history?contactId=${encodeURIComponent(contact.id)}`}
+            className="text-slate-400 hover:underline"
+          >
+            Communication history
+          </Link>
+        </p>
         <p className="text-sm text-slate-400">
           {[contact.email, contact.phone, contact.source].filter(Boolean).join(" · ")}
           {company ? (

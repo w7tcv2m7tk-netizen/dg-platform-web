@@ -174,6 +174,7 @@ export function featureIdToPermissionCheck(featureId: string): PermissionCheck |
     crm: "crm",
     commerce: "commerce",
     documents: "documents",
+    communications: "communications",
     websites: "websites",
     infrastructure: "infrastructure",
     services: "industry",

@@ -378,6 +378,15 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
     status: "included",
   },
   {
+    appId: "communications",
+    label: "Communications",
+    icon: "✉",
+    price: "Included",
+    badge: "Core",
+    description: "Business email history, compose, CRM-linked communication records",
+    status: "included",
+  },
+  {
     appId: "websites",
     label: "Design Studio",
     icon: "🌐",

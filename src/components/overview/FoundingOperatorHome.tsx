@@ -22,6 +22,12 @@ const CORE_BUSINESS_APPS = [
     description: "Documents & Signing — agreements, disclosures, contracts",
   },
   {
+    id: "communications",
+    name: "Communications",
+    href: "/apps/communications",
+    description: "Email history, compose, CRM-linked communication records",
+  },
+  {
     id: "websites",
     name: "Design Studio",
     href: "/apps/websites",

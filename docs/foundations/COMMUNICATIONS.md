@@ -253,16 +253,33 @@ Communications is a primary way the business interacts with the outside world.
 
 ## Build progression
 
-### Core — Communications Email v1 (recommended first slice)
+### Live — Core Communications Email v1 (August 2026)
 
-- Communication / Message / Thread model (email channel)  
-- OAuth Google + Microsoft (connect, sync, send)  
-- Manual compose with CRM context  
-- Global History (email first)  
-- Activity association (Contact / Opportunity)  
-- Delivery status fields (even if partial)  
-- Provenance fields for automation (even if few automations)  
-- AI Assist **draft-only** behind governance (optional in same slice or immediately after)
+| Surface | Path | Status |
+|---------|------|--------|
+| **Core Communications app** | `/apps/communications` · History · Compose · Mailboxes | **Live** |
+| **Send API** | `/api/v1/communications/messages` | **Live** — Resend + OrgCommunication record |
+| **CRM** | Contact → Email contact / History | **Live** |
+| **Persistence** | Prisma `OrgCommunication` (`org_communications`) | **Live** after `prisma db push` |
+
+**Deploy:**
+
+```bash
+cd packages/database && npx prisma db push
+# or from repo root:
+npm run db:push
+```
+
+Uploads/sends need `RESEND_API_KEY` on Vercel (existing transactional path).
+
+**v1 scope shipped:** Organisation-scoped communication records · manual compose · History filters · Contact association · delivery status fields · provenance (`whySent`) · Resend provider · Mailboxes UI placeholder for Google/Microsoft.
+
+**Not yet:** Gmail/Outlook OAuth sync · inbox pull · AI Assist drafts · SMS/WhatsApp · unsupervised agent send.
+
+### Core — Communications Email v1 (remaining)
+
+- OAuth Google + Microsoft (connect, sync, send as mailbox identity)  
+- AI Assist **draft-only** behind governance  
 
 ### Later
 

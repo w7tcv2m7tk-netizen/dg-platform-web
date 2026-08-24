@@ -9,6 +9,7 @@ const DEMO_APPS = [
   "crm",
   "commerce",
   "documents",
+  "communications",
   "websites",
   "opportunities",
   "real-estate",

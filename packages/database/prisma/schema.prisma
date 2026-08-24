@@ -78,6 +78,7 @@ model Organisation {
   communicationUsages           CommunicationUsage[]
   deliveryProjects              DeliveryProject[]
   orgDocuments                  OrgDocument[]
+  orgCommunications             OrgCommunication[]
 
   referredBy        Organisation?  @relation("OrgReferral", fields: [referredByOrganisationId], references: [id], onDelete: SetNull)
   referralsMade     Organisation[] @relation("OrgReferral")
@@ -413,6 +414,57 @@ model OrgDocument {
   @@index([organisationId, documentStatus])
   @@index([organisationId, signingStatus])
   @@map("org_documents")
+}
+
+/**
+ * Core Communications — business communication record (Email v1).
+ * Google/Microsoft remain mailbox SoT; DigitalGate owns association, history, provenance.
+ * @see docs/foundations/COMMUNICATIONS.md
+ */
+model OrgCommunication {
+  id               String    @id @default(cuid())
+  organisationId   String    @map("organisation_id")
+  /** email | sms | voice | whatsapp | chat */
+  channel          String    @default("email")
+  /** outbound | inbound */
+  direction        String    @default("outbound")
+  /** manual | automation | ai_assist | prospecting | agent | system */
+  source           String    @default("manual")
+  /** draft | scheduled | sent | delivered | bounced | opened | replied | failed */
+  status           String    @default("draft")
+  subject          String?
+  bodyPreview      String?   @map("body_preview") @db.Text
+  bodyHtml         String?   @map("body_html") @db.Text
+  fromAddress      String?   @map("from_address")
+  toAddresses      String[]  @default([]) @map("to_addresses")
+  ccAddresses      String[]  @default([]) @map("cc_addresses")
+  contactId        String?   @map("contact_id")
+  companyId        String?   @map("company_id")
+  opportunityId    String?   @map("opportunity_id")
+  taskId           String?   @map("task_id")
+  threadKey        String?   @map("thread_key")
+  provider         String    @default("resend")
+  externalId       String?   @map("external_id")
+  /** Why this was sent — provenance for automated / AI */
+  whySent          String?   @map("why_sent") @db.Text
+  triggerRule      String?   @map("trigger_rule")
+  approvedBy       String?   @map("approved_by")
+  sentBy           String?   @map("sent_by")
+  aiGenerated      Boolean   @default(false) @map("ai_generated")
+  metadata         Json?
+  sentAt           DateTime? @map("sent_at")
+  deletedAt        DateTime? @map("deleted_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, deletedAt, sentAt])
+  @@index([organisationId, channel])
+  @@index([organisationId, contactId])
+  @@index([organisationId, status])
+  @@index([organisationId, source])
+  @@map("org_communications")
 }
 
 /**
