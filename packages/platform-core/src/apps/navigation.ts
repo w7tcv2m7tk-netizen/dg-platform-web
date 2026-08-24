@@ -792,6 +792,27 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
   };
 }
 
+/** DigitalGate staff — Growth sidebar when Prospecting app is activated (Command Centre routes). */
+function getStaffProspectingNavItem(): AppNavTreeItem {
+  return {
+    kind: "app",
+    id: "prospecting",
+    name: "Prospecting & Opportunity Engine",
+    icon: getSidebarIcon("prospecting"),
+    tier: "internal",
+    enabled: true,
+    routes: [
+      { path: "/command/growth-engine", label: "Daily Briefing" },
+      { path: "/command/growth-engine/discovery", label: "Discovery" },
+      { path: "/command/growth-engine/pipeline", label: "Pipeline" },
+      { path: "/command/growth-engine/follow-ups", label: "Activity" },
+      { path: "/command/growth-engine/audits", label: "Audits" },
+      { path: "/command/growth-engine/reports", label: "Reports" },
+    ],
+    primaryHref: "/command/growth-engine",
+  };
+}
+
 /**
  * Categorized sidebar tree — Intelligent Layer IA.
  * Staff Command Centre nests under Intelligence (not a sixth top-level section).
@@ -839,9 +860,12 @@ export function getCategorizedPlatformNavigation(
     GROW_APP_ORDER,
   );
   if (options?.showCommandCentre) {
-    // Staff GTM lives under DigitalGate → Sales only — do not inject into Growth.
+    // Tenant Growth route — staff use Command Centre paths when the app is activated.
     const customerProspectingIdx = growApps.findIndex((a) => a.id === "prospecting");
     if (customerProspectingIdx >= 0) growApps.splice(customerProspectingIdx, 1);
+    if (isAppEnabled("prospecting", enabledIds)) {
+      growApps.unshift(getStaffProspectingNavItem());
+    }
   }
 
   const mapped = new Set([

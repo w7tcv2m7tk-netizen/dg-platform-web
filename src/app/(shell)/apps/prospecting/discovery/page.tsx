@@ -1,6 +1,8 @@
 import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
+import { redirectStaffProspectingIfNeeded } from "@/lib/prospecting-command-redirect";
 
-export default function ProspectingDiscoveryPage() {
+export default async function ProspectingDiscoveryPage() {
+  await redirectStaffProspectingIfNeeded("/apps/prospecting/discovery");
   return (
     <>
       <header className="dg-page-header">

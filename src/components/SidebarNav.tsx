@@ -182,7 +182,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const ia = nav.ia;
 
   useEffect(() => {
-    const next: Record<string, boolean> = {};
+    let activeId: string | null = null;
     for (const section of [
       ia.digitalgate,
       ia.core,
@@ -195,10 +195,14 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       ia.platformAdmin,
     ]) {
       for (const app of section.apps) {
-        if (itemHasActiveRoute(pathname, app.routes)) next[app.id] = true;
+        if (itemHasActiveRoute(pathname, app.routes)) {
+          activeId = app.id;
+          break;
+        }
       }
+      if (activeId) break;
     }
-    setExpanded(next);
+    setExpanded(activeId ? { [activeId]: true } : {});
   }, [
     pathname,
     ia.digitalgate,
@@ -234,7 +238,11 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   }, [nav.commandCentre]);
 
   function toggleItem(id: string) {
-    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+    setExpanded((prev) => {
+      const isOpen = prev[id] ?? false;
+      if (isOpen) return { ...prev, [id]: false };
+      return { [id]: true };
+    });
   }
 
   const intelligenceAppsForRender = ia.intelligence.apps.map((app) => ({

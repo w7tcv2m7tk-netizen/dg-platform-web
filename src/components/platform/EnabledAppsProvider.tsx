@@ -10,6 +10,7 @@ import {
   type PartnerType,
   type PlanSelectionInput,
 } from "@dg/platform-core";
+import { useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -33,28 +34,19 @@ type EnabledAppsContextValue = {
 
 const EnabledAppsContext = createContext<EnabledAppsContextValue | null>(null);
 
-async function persistToggle(appId: string, enabled: boolean) {
-  await fetch("/api/v1/org/apps", {
+async function persistOrgApps(body: Record<string, unknown>) {
+  const res = await fetch("/api/v1/org/apps", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "toggle", appId, enabled }),
+    body: JSON.stringify(body),
   });
-}
-
-async function persistPlan(plan: PlanSelectionInput) {
-  await fetch("/api/v1/org/apps", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "apply_plan", plan }),
-  });
-}
-
-async function persistReset() {
-  await fetch("/api/v1/org/apps", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "reset" }),
-  });
+  if (!res.ok) {
+    const json = await res.json().catch(() => null);
+    const message =
+      json?.error?.message ?? `Failed to save app settings (${res.status})`;
+    throw new Error(message);
+  }
+  return res.json();
 }
 
 export function EnabledAppsProvider({
@@ -82,6 +74,7 @@ export function EnabledAppsProvider({
   permissionGrants?: unknown;
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const [enabledIds, setEnabledIdsState] = useState(initialEnabledIds);
   const [syncing, setSyncing] = useState(false);
 
@@ -107,6 +100,7 @@ export function EnabledAppsProvider({
   const toggleApp = useCallback(
     async (appId: string, enabled?: boolean) => {
       setSyncing(true);
+      const previous = enabledIds;
       const next = new Set(enabledIds);
       const turnOn = enabled ?? !next.has(appId);
       if (turnOn) next.add(appId);
@@ -114,41 +108,46 @@ export function EnabledAppsProvider({
       const ids = [...next];
       setEnabledIds(ids);
       try {
-        await persistToggle(appId, turnOn);
+        await persistOrgApps({ action: "toggle", appId, enabled: turnOn });
+        router.refresh();
       } catch {
-        /* keep local state for preview */
+        setEnabledIds(previous);
       }
       setSyncing(false);
     },
-    [enabledIds, setEnabledIds],
+    [enabledIds, router, setEnabledIds],
   );
 
   const applyPlan = useCallback(
     async (plan: PlanSelectionInput) => {
       setSyncing(true);
+      const previous = enabledIds;
       const ids = appIdsFromPlanSelection(plan);
       setEnabledIds(ids);
       try {
-        await persistPlan(plan);
+        await persistOrgApps({ action: "apply_plan", plan });
+        router.refresh();
       } catch {
-        /* preview still works locally */
+        setEnabledIds(previous);
       }
       setSyncing(false);
     },
-    [setEnabledIds],
+    [enabledIds, router, setEnabledIds],
   );
 
   const resetApps = useCallback(async () => {
     setSyncing(true);
+    const previous = enabledIds;
     const ids = getDefaultEnabledAppIds();
     setEnabledIds(ids);
     try {
-      await persistReset();
+      await persistOrgApps({ action: "reset" });
+      router.refresh();
     } catch {
-      /* ignore */
+      setEnabledIds(previous);
     }
     setSyncing(false);
-  }, [setEnabledIds]);
+  }, [enabledIds, router, setEnabledIds]);
 
   const nav = useMemo(() => {
     const base = getCategorizedPlatformNavigation(enabledIds, {

@@ -1,8 +1,10 @@
 import Link from "next/link";
 
 import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
+import { redirectStaffProspectingIfNeeded } from "@/lib/prospecting-command-redirect";
 
-export default function ProspectingPipelinePage() {
+export default async function ProspectingPipelinePage() {
+  await redirectStaffProspectingIfNeeded("/apps/prospecting/pipeline");
   return (
     <>
       <header className="dg-page-header">

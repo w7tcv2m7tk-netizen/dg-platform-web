@@ -76,7 +76,7 @@ export async function PATCH(req: Request) {
       action: "manage",
       scope: "organisation",
     });
-    if (denied && session.role !== "owner" && session.role !== "admin") return denied;
+    if (denied && session.role !== "owner" && session.role !== "admin" && session.role !== "dg:staff") return denied;
     const next = appIdsFromPlanSelection(body.plan);
     for (const appId of next) {
       if (!isIndustryBetaGatedApp(appId)) continue;
@@ -103,7 +103,7 @@ export async function PATCH(req: Request) {
       action: "manage",
       scope: "organisation",
     });
-    if (denied && session.role !== "owner" && session.role !== "admin") return denied;
+    if (denied && session.role !== "owner" && session.role !== "admin" && session.role !== "dg:staff") return denied;
     const set = new Set(enabled);
     const enabling =
       body.enabled === true ||

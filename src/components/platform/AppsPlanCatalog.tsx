@@ -144,7 +144,8 @@ function CatalogAppCard({
 }
 
 export function AppsPlanCatalog() {
-  const { enabledIds, applyPlan, resetApps, syncing } = useEnabledApps();
+  const { enabledIds, applyPlan, resetApps, syncing, nav } = useEnabledApps();
+  const isOperatorOrg = nav.ia.digitalgate.apps.length > 0;
   const [activeTier, setActiveTier] = useState<PlatformTier>("professional");
 
   const selectionFromEnabled = useMemo(
@@ -170,6 +171,9 @@ export function AppsPlanCatalog() {
   };
 
   const appHref = (appId: string) => {
+    if (isOperatorOrg && appId === "prospecting") {
+      return "/command/growth-engine";
+    }
     const manifest = platformApps.get(appId)?.manifest;
     if (!manifest) return undefined;
     return (

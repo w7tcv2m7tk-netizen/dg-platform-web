@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
+import { redirectStaffProspectingIfNeeded } from "@/lib/prospecting-command-redirect";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 const JOURNEY = [
@@ -82,6 +83,7 @@ const CAPABILITIES = [
 ] as const;
 
 export default async function ProspectingOverviewPage() {
+  await redirectStaffProspectingIfNeeded("/apps/prospecting");
   const { session } = await getPlatformPageContext();
 
   return (
