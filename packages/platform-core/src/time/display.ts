@@ -65,6 +65,18 @@ export function hourInTimeZone(
   return Math.floor(minutesInTimeZone(date, timeZone) / 60);
 }
 
+/** Time-of-day greeting in the org's local timezone (Australia/Brisbane by default). */
+export function greetingForName(
+  name: string,
+  date: Date = new Date(),
+  timeZone: string = PLATFORM_DEFAULT_TZ,
+): string {
+  const hour = hourInTimeZone(date, timeZone);
+  if (hour < 12) return `Good morning ${name}`;
+  if (hour < 17) return `Good afternoon ${name}`;
+  return `Good evening ${name}`;
+}
+
 export function formatTimelineTime(
   iso: string,
   timeZone: string = PLATFORM_DEFAULT_TZ,

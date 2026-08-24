@@ -5,6 +5,7 @@ import type { GeneratedIntelligence } from "../intelligence/generate-intelligenc
 import type { OverviewLiveMetrics } from "../overview/gather-live-metrics";
 import type { OrgScoresResult } from "../scoring/calculate-scores";
 import { getScoreValue } from "../scoring/calculate-scores";
+import { greetingForName } from "../time/display";
 import type {
   AdvisorActionCategory,
   AdvisorActionPriority,
@@ -386,7 +387,7 @@ function answerForQuestion(
         question: "What should I know about my business today?",
         summary:
           intelligence?.dailyBriefing ??
-          `Good morning ${firstName}. Connect your business systems so Advisor can reason from live signals.`,
+          `${greetingForName(firstName)}. Connect your business systems so Advisor can reason from live signals.`,
         recommendations: withFallback(recommendations.slice(0, 3), recommendations, 3),
       };
     case "focus_this_week":

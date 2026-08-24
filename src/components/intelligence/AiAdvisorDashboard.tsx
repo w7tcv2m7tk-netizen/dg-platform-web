@@ -138,6 +138,8 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
     answer: string;
     source: string;
     model?: string | null;
+    llmError?: string;
+    transportsAvailable?: string[];
     recommendations: AdvisorRecommendation[];
   } | null>(null);
 
@@ -211,6 +213,8 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
         answer: string;
         source: string;
         model?: string | null;
+        llmError?: string;
+        transportsAvailable?: string[];
         recommendations?: AdvisorRecommendation[];
       };
 
@@ -219,6 +223,8 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
         answer: payload.answer,
         source: payload.source,
         model: payload.model,
+        llmError: payload.llmError,
+        transportsAvailable: payload.transportsAvailable,
         recommendations: payload.recommendations?.length
           ? payload.recommendations
           : data.topRecommendations.slice(0, 3),
@@ -349,10 +355,14 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
               {liveAnswer.source === "llm"
                 ? `Answered by Model Router${liveAnswer.model ? ` · ${liveAnswer.model}` : ""}`
                 : liveAnswer.source === "no_llm"
-                  ? "Briefing fallback — Model Router not configured"
-                  : liveAnswer.source === "error"
-                    ? "Request failed"
-                    : "Briefing fallback"}
+                  ? liveAnswer.transportsAvailable?.length
+                    ? `Briefing fallback — Model Router unavailable (${liveAnswer.transportsAvailable.join(", ")})`
+                    : "Briefing fallback — Model Router not configured (check AI_GATEWAY_API_KEY / OPENAI / ANTHROPIC on Vercel)"
+                  : liveAnswer.source === "llm_error"
+                    ? `Model Router error${liveAnswer.llmError ? `: ${liveAnswer.llmError}` : ""}`
+                    : liveAnswer.source === "error"
+                      ? "Request failed"
+                      : "Briefing fallback"}
             </p>
           </div>
         ) : activeAnswer ? (

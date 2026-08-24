@@ -9,6 +9,7 @@ import type {
   OverviewRecommendedAction,
 } from "../overview/types";
 import { enquiryInboxHref, hasRealEstateWorkspace } from "../leads/inbox-href";
+import { greetingForName } from "../time/display";
 import {
   evaluateOrganisationGoals,
   type OrganisationGoal,
@@ -68,7 +69,7 @@ export function generateBusinessIntelligence(
   const websiteScore = connectors.website?.score;
 
   const briefingParts: string[] = [
-    `Good morning ${firstName}. Your Business Health has ${deltaLabel} this week.`,
+    `${greetingForName(firstName)}. Your Business Health has ${deltaLabel} this week.`,
   ];
 
   if (websiteScore && websiteScore >= 80) {
