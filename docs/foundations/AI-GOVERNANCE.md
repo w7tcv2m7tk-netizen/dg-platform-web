@@ -121,6 +121,8 @@ Disclose in Terms + in-product:
 
 ## Related
 
-- [ai/AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) — technical architecture  
+- [ai/AI-ARCHITECTURE.md](../ai/AI-ARCHITECTURE.md) — technical architecture, vertical slice, dogfood checklist  
 - [DATA-GOVERNANCE.md](./DATA-GOVERNANCE.md) — data ownership  
 - [OBSERVABILITY.md](./OBSERVABILITY.md) — AiUsageLog  
+
+**Ledger (slice v0):** `recordAiLedgerEvent` writes `Activity` (`sourceApp: ai`) + `AuditLog` for `ai.recommendation` → `ai.approved` → `ai.tool_executed` / `ai.tool_failed`. 

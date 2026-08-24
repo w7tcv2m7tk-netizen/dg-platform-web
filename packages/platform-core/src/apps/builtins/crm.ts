@@ -63,6 +63,12 @@ export const crmApp: AppManifest = {
       label: "Summarise contact",
       description: "AI summary of contact history and next actions",
     },
+    {
+      id: "crm.create_follow_up_task",
+      label: "Create follow-up task",
+      description:
+        "Create an open CRM task from an Advisor recommendation (permission-gated; human approval required)",
+    },
   ],
   reports: [{ id: "crm.pipeline_summary", label: "Pipeline summary" }],
 };

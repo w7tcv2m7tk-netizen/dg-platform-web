@@ -115,6 +115,9 @@ function rec(input: {
   whatDigitalGateCanDo: string;
   actionLabel: string;
   href: string;
+  toolId?: string;
+  toolParams?: AdvisorRecommendation["toolParams"];
+  requiresApproval?: boolean;
 }): AdvisorRecommendation {
   return {
     ...input,
@@ -150,10 +153,21 @@ function buildRecommendations(input: BuildAdvisorBriefingInput): AdvisorRecommen
           : "Unresolved follow-up usually precedes conversion drop-off.",
         whatIRecommend: "Contact overdue prospects today, then automate first-response for new enquiries.",
         whatDigitalGateCanDo: enabled.includes("ai-communications")
-          ? "Configure an AI Communications agent and create the required follow-up workflow."
-          : "Enable AI Communications and wire automated first-response plus CRM follow-up tasks.",
+          ? "Create a follow-up task now, then configure an AI Communications agent for first-response."
+          : "Create a follow-up task now so the work is tracked — DigitalGate executes the tool after you confirm.",
         actionLabel: "Open Opportunities →",
         href: "/apps/crm/opportunities",
+        toolId: "crm.create_follow_up_task",
+        requiresApproval: true,
+        toolParams: {
+          title:
+            metrics.overdueFollowUps === 1
+              ? "Respond to 1 overdue enquiry"
+              : `Respond to ${metrics.overdueFollowUps} overdue enquiries`,
+          description:
+            "Created from AI Advisor (What should I do today?). Contact overdue prospects, then consider automating first-response.",
+          priority: "high",
+        },
       }),
     );
   }

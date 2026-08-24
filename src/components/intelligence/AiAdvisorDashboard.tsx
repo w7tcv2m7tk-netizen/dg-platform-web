@@ -32,6 +32,37 @@ function RecommendedActionCard({
   item: AdvisorRecommendation;
   index: number;
 }) {
+  const [status, setStatus] = useState<"idle" | "saving" | "done" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  async function doIt() {
+    if (!item.toolId || status === "saving" || status === "done") return;
+    setStatus("saving");
+    setMessage("");
+    const res = await fetch("/api/v1/ai/tools/execute", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        toolId: item.toolId,
+        confirmed: true,
+        recommendationId: item.id,
+        params: item.toolParams,
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setStatus("error");
+      setMessage(json.error?.message || "Action failed");
+      return;
+    }
+    setStatus("done");
+    setMessage(
+      typeof json.data?.result?.title === "string"
+        ? `Done — task created: ${json.data.result.title}`
+        : "Done — DigitalGate executed the action.",
+    );
+  }
+
   return (
     <article
       className={`rounded-xl border bg-slate-950/50 px-5 py-5 ${priorityClass(item.priorityLevel)}`}
@@ -46,14 +77,52 @@ function RecommendedActionCard({
       </p>
       <p className="mt-3 text-sm leading-relaxed text-slate-200">{item.whatISee}</p>
       <p className="mt-2 text-sm text-slate-400">
+        <span className="text-slate-300">Why it matters:</span> {item.whyItMatters}
+      </p>
+      <p className="mt-2 text-sm text-slate-400">
         <span className="text-slate-300">Recommended action:</span> {item.whatIRecommend}
       </p>
-      <Link
-        href={item.href}
-        className="mt-4 inline-block rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500"
-      >
-        {item.actionLabel}
-      </Link>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {item.toolId ? (
+          <button
+            type="button"
+            onClick={() => void doIt()}
+            disabled={status === "saving" || status === "done"}
+            className="rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500 disabled:opacity-60"
+          >
+            {status === "saving"
+              ? "Working…"
+              : status === "done"
+                ? "Done"
+                : item.requiresApproval
+                  ? "Do it"
+                  : "Do it"}
+          </button>
+        ) : null}
+        <Link
+          href={item.href}
+          className={`inline-block rounded-full px-4 py-2 text-sm font-semibold ${
+            item.toolId
+              ? "border border-slate-600 text-slate-200 hover:border-slate-400"
+              : "bg-violet-600 text-white hover:bg-violet-500"
+          }`}
+        >
+          {item.actionLabel}
+        </Link>
+      </div>
+      {message ? (
+        <p
+          className={`mt-3 text-sm ${status === "error" ? "text-amber-300" : "text-emerald-300"}`}
+          role="status"
+        >
+          {message}
+        </p>
+      ) : item.toolId ? (
+        <p className="mt-3 text-xs text-slate-500">
+          DigitalGate executes this action — not the model. Approval is recorded in the AI audit
+          ledger.
+        </p>
+      ) : null}
     </article>
   );
 }

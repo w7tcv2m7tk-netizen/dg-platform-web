@@ -2,90 +2,157 @@
 
 **AI Native — shared service, not per-App chatbots**
 
-**Related (foundational):** [PLATFORM-INTELLIGENCE.md](./PLATFORM-INTELLIGENCE.md) — Platform Knowledge Layer, live tools, confidence levels, Super Admin AI. Distinct from app-level assist and from [DIGITALGATE-INTELLIGENCE.md](../foundations/DIGITALGATE-INTELLIGENCE.md) (cohort moat).  
-**Gen 2 north-star (§5–6, §27, §31–32):** [../architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md)
+**Related:** [AI-GOVERNANCE.md](../foundations/AI-GOVERNANCE.md) · [PLATFORM-INTELLIGENCE.md](./PLATFORM-INTELLIGENCE.md) · [BUSINESS-BRAIN.md](../foundations/BUSINESS-BRAIN.md) · [DIGITALGATE-INTELLIGENCE.md](../foundations/DIGITALGATE-INTELLIGENCE.md)
 
 ---
 
-## Layers
+## Locked principle
+
+> **The AI never owns the business data.** DigitalGate owns the business data; AI interprets it and acts **through** DigitalGate.
+
+Vercel hosts the application. Vercel is **not** the AI architecture.
 
 ```
-App UI ("Summarise this contact")
+DigitalGate → Vercel → AI Service → Model Router → OpenAI / Anthropic / Gemini
+```
+
+| Layer | Role |
+|-------|------|
+| **Vercel** | Next.js app, API routes, cron, AI-facing server functions, env, observability |
+| **DigitalGate AI Service** | Provider-agnostic abstraction in Platform Core (`packages/platform-core/src/ai/`) |
+| **Model Router** | Chooses model per job (`llm.ts`) — Gateway / OpenAI / Anthropic failover |
+| **OpenAI** | Primary provider initially |
+| **Anthropic / Gemini** | Available via router when quality or economics win |
+| **Business Brain + Digital Twin** | Supply context — what the business is and what is happening |
+| **Tool Registry** | Controlled access to CRM, Commerce, Analytics, Automation, etc. |
+| **Audit / AI usage ledger** | Records recommendations, approvals, tool calls, and outcomes |
+
+---
+
+## Product stack (not “AI integration”)
+
+| Capability | Role |
+|------------|------|
+| **Business Brain** | Understands the business |
+| **Digital Twin** | Represents current state |
+| **AI Advisor** | Interprets state → prioritised recommendations |
+| **AI Agents** | Communicate and perform work (via tools) |
+| **Automation Engine** | Executes repeatable processes |
+| **Command Centre** | Tells the operator what matters now |
+
+---
+
+## Runtime layers
+
+```
+App UI ("What should I do today?" / "Summarise this contact")
        ↓
 AI Service (Platform Core)
   ├── Prompt Templates (per app, per action)
   ├── Context Builder
-  │     ├── Universal Objects
-  │     ├── Knowledge Graph
+  │     ├── Business Profile / Brain
   │     ├── Digital Twin snapshot
-  │     ├── Business Memory
-  │     └── Platform Knowledge Layer (docs + live tools — see PLATFORM-INTELLIGENCE)
-  ├── Tool Registry
+  │     ├── Goals, opportunities, enquiries, tasks
+  │     ├── Website / SEO / AI Visibility signals
+  │     └── Platform Knowledge Layer (staff)
+  ├── Tool Registry + Executor
   │     ├── App-declared aiTools in manifest
-  │     └── Knowledge Tool Registry (platform/ops — design)
-  └── Model Router
-       ├── Vercel AI Gateway (openai/gpt-5.4-mini · openai/gpt-5.6-sol)
-       ├── Direct OpenAI
-       ├── Anthropic
-       └── template fallback in callers
+  │     ├── Permission-gated execution (DigitalGate owns writes)
+  │     └── Human approval for consequential actions
+  ├── Model Router
+  │     ├── Vercel AI Gateway (transport)
+  │     ├── Direct OpenAI
+  │     ├── Anthropic
+  │     └── template fallback in callers
+  └── Usage / Audit ledger
        ↓
 Provider APIs / Gateway
 ```
 
-**Code:** `packages/platform-core/src/ai/llm.ts` — Gateway Chat Completions (`openai/gpt-5.4-mini` standard, `openai/gpt-5.6-sol` reasoning) with direct OpenAI / Anthropic failover. Auth: `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN`.
+**Code:**
 
-Full stack for platform Q&A / ops:
+| Concern | Path |
+|---------|------|
+| Model router | `packages/platform-core/src/ai/llm.ts` |
+| Assist generation | `packages/platform-core/src/ai/generate.ts` |
+| Tool registry + executor | `packages/platform-core/src/ai/tools/` |
+| Usage ledger | `packages/platform-core/src/ai/usage.ts` |
+| Advisor briefing | `packages/platform-core/src/advisor/` |
+| Context | `getBusinessContext()` · Twin · Brain |
+| HTTP surface | `/api/v1/ai/assist` · `/api/v1/ai/tools/execute` |
 
-```
-DIGITALGATE AI
-  → PLATFORM KNOWLEDGE LAYER (Documentation | Live Platform | Connectors)
-  → CONTEXT / RAG ENGINE
-  → MODEL ROUTER
-  → ANSWER + ACTION ENGINE
-```
-
----
-
-## Business Memory
-
-Structured organisational memory — **not chat history**.
-
-Categories: interactions, writing style, terminology, reports, campaigns, AI content, decisions, preferences, prompts.
-
-**Code:** `packages/platform-core/src/memory/`
-
-Apps read/write memory only through AI Service — not directly.
+Gateway auth: `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN`. Do not send `OPENAI_API_KEY` to Gateway (BYOK; Sol promo does not apply).
 
 ---
 
-## App integration
+## Vertical slice (build this first)
 
-Each App manifest declares `aiTools[]`:
+Before more agents, one complete path:
 
-```typescript
-{ id: "crm.summarise_contact", label: "Summarise contact", description: "…" }
+```
+Business Brain → AI Advisor → Model → Tool → Action → Audit
 ```
 
-Platform registers tools; AI Service dispatches with org-scoped context.
+**Example:** “What should I do today?”
+
+1. DigitalGate gathers Brain, Twin, Goals, open opportunities, enquiries, tasks, visibility signals.
+2. Advisor returns: Priority · Why · Evidence · Recommended action · **Do it**.
+3. User clicks **Do it**.
+4. **DigitalGate** (not the model) executes via a permission-controlled tool.
+5. Platform records: recommendation → approval → tool call → result → audit event.
+
+Do **not** ship Voice Agents, AI Communications, Prospecting AI, or AI Visibility agents until this slice is dogfooded.
+
+---
+
+## Monorepo layout (keep in-tree)
+
+No separate AI microservice at this stage.
+
+```
+src/app/api/v1/ai/
+  assist/
+  tools/execute/
+  (advisor / communications / visibility as they mature)
+
+packages/platform-core/src/ai/
+  llm.ts              # model router
+  generate.ts         # assist prompts
+  tools/              # registry + executor
+  usage.ts            # AI usage ledger
+  platform-intelligence.ts
+```
+
+Apps never call provider APIs directly.
 
 ---
 
 ## Rules
 
-1. Apps never call LLM APIs directly  
-2. All prompts versioned and auditable  
-3. PII scoped to organisation; no cross-tenant context  
-4. Human review for high-risk outputs (contracts, legal) — Phase 2  
-5. AI Gateway is a **transport**, not the only path. Direct OpenAI / Anthropic stay as failover. Do not send `OPENAI_API_KEY` to Gateway (BYOK; Sol promo does not apply).  
-6. Task tiers: `standard` (CRM assist, reviews, websites) vs `reasoning` (Advisor, Platform Intelligence, Founding onboarding analysis → `openai/gpt-5.6-sol` via Gateway when keyed).
+1. Apps never call LLM APIs directly
+2. All prompts versioned and auditable
+3. PII scoped to organisation; no cross-tenant context
+4. Consequential actions require human approval (default)
+5. AI Gateway is a **transport**, not the architecture
+6. Task tiers: `standard` vs `reasoning` (`openai/gpt-5.6-sol` via Gateway when keyed)
+7. Tool writes go through Platform Core with the same permissions as the user
 
 ---
 
-## Scoring + BI
+## Dogfood checklist (AI Test org)
 
-AI Visibility Score™ and BI insights feed from Twin + Graph — AI Service generates **narratives** and **recommended actions**, not just numbers.
-
-**Related:** [GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md) — Gen 2 north-star · [PLATFORM-INTELLIGENCE.md](./PLATFORM-INTELLIGENCE.md) — Platform AI / Knowledge Layer · [PLATFORM-ARCHITECTURE.md](../PLATFORM-ARCHITECTURE.md) — BI Engine, Scoring Engine · [COMMUNICATIONS-ARCHITECTURE.md](./COMMUNICATIONS-ARCHITECTURE.md) — voice & messaging orchestration · [CONNECTOR-PRIORITY.md](../foundations/CONNECTOR-PRIORITY.md) — Model Router / OpenAI in DigitalGate 15 · [INDUSTRY-INTELLIGENCE.md](../foundations/INDUSTRY-INTELLIGENCE.md) — Core industry feed Understand layer (summarise / personalise; not article reprint)
+| # | Test | Pass when |
+|---|------|-----------|
+| 1 | Context accuracy | Advisor reflects real Brain / Twin / CRM state |
+| 2 | Hallucination resistance | Refuses to invent contacts, numbers, or connectors |
+| 3 | Tool permissions | Tool fails if the user lacks the permission |
+| 4 | Action accuracy | Correct tool + params for the recommendation |
+| 5 | Human approval | Consequential tools require explicit confirm |
+| 6 | Auditability | Ledger shows recommendation → approval → tool → result |
+| 7 | Cost | Tokens / model / latency per interaction recorded |
+| 8 | Latency | Advisor + Do it feel interactive on production |
+| 9 | Consistency | Same question yields sensible, stable priorities |
+| 10 | Failure handling | Model / API / tool failure degrades without data corruption |
 
 ---
 
@@ -93,6 +160,8 @@ AI Visibility Score™ and BI insights feed from Twin + Graph — AI Service gen
 
 | Phase | Deliverable |
 |-------|-------------|
-| Q3 2026 | Context builder stub; contact summary |
-| Q4 2026 | Business Memory persistence; prompt templates |
-| Q1 2027 | Tool registry live; RE appraisal narrative |
+| **Now** | Vertical slice: Advisor recommendation → tool execute → audit |
+| Next | Expand tool registry (CRM follow-ups, tasks, drafts); usage in Platform Intelligence |
+| Later | Assist + Advisor share one context package; Voice / Comms / Visibility on the same executor |
+
+Legacy planning notes (context builder, memory, RE narratives) remain valid but **do not** override the vertical-slice priority above.

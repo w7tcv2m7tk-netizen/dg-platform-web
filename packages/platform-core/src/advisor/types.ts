@@ -54,6 +54,20 @@ export type AdvisorRecommendation = {
   whatDigitalGateCanDo: string;
   actionLabel: string;
   href: string;
+  /**
+   * When set, Advisor can offer Do it — DigitalGate executes via Tool Registry
+   * after human approval (AI never writes data directly).
+   */
+  toolId?: string;
+  toolParams?: {
+    title?: string;
+    description?: string;
+    priority?: string;
+    dueAt?: string | null;
+    entityType?: string;
+    entityId?: string;
+  };
+  requiresApproval?: boolean;
 };
 
 export type AdvisorQuestionAnswer = {
