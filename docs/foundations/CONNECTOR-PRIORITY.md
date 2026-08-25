@@ -97,7 +97,7 @@ Apps never call providers directly. Spec: [AI-ARCHITECTURE.md](../ai/AI-ARCHITEC
 
 | Channel | Adapters |
 |---------|----------|
-| Email | Google / Microsoft (mailbox SoT) · **Resend** (transactional today) |
+| Email | Google (live) · **Microsoft 365 next** · Apple iCloud after · **Resend** (transactional / platform) |
 | SMS / programmable voice / numbers | **TelephonyProvider** — **Twilio first** · **Telnyx evaluate** · MessageMedia later |
 | WhatsApp | Meta (later) |
 | Voice synthesis / ConvAI | ElevenLabs (Voice Provider — not the telephony layer) |

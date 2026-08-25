@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { CommunicationsSubnav } from "@/components/communications/CommunicationsList";
 import { GmailMailboxPanel } from "@/components/communications/GmailMailboxPanel";
+import { MicrosoftMailboxPanel } from "@/components/communications/MicrosoftMailboxPanel";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function CommunicationsMailboxesPage({
@@ -12,8 +13,15 @@ export default async function CommunicationsMailboxesPage({
   const { session } = await getPlatformPageContext();
   const params = (await searchParams) ?? {};
   const gmailRaw = typeof params.gmail === "string" ? params.gmail : null;
-  const flash =
+  const microsoftRaw = typeof params.microsoft === "string" ? params.microsoft : null;
+  const gmailFlash =
     gmailRaw === "connected" ? "connected" : gmailRaw === "error" ? "error" : null;
+  const microsoftFlash =
+    microsoftRaw === "connected"
+      ? "connected"
+      : microsoftRaw === "error"
+        ? "error"
+        : null;
   const flashMessage =
     typeof params.message === "string" ? params.message : null;
 
@@ -38,27 +46,31 @@ export default async function CommunicationsMailboxesPage({
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Mailboxes</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Connect Google Workspace / Microsoft 365 so DigitalGate can sync and associate mail —
-          without becoming the mailbox provider.
+          Connect Google Workspace, Microsoft 365, then Apple iCloud so DigitalGate can sync and
+          associate mail — without becoming the mailbox provider.
         </p>
       </header>
       <main className="dg-page-main space-y-6">
         <CommunicationsSubnav active="email" />
-        <GmailMailboxPanel flash={flash} flashMessage={flashMessage} />
+        <GmailMailboxPanel flash={gmailFlash} flashMessage={gmailFlash ? flashMessage : null} />
+        <MicrosoftMailboxPanel
+          flash={microsoftFlash}
+          flashMessage={microsoftFlash ? flashMessage : null}
+        />
         <section className="max-w-lg space-y-3 rounded-lg border border-slate-800 p-4">
-          <h2 className="text-sm font-medium text-white">Microsoft 365 / Outlook</h2>
+          <h2 className="text-sm font-medium text-white">Apple iCloud Mail</h2>
           <p className="text-sm text-slate-400">
-            Same pattern via Microsoft Graph. Prioritised after Google.
+            Business iCloud mailbox via app-specific password (IMAP) — after Microsoft Graph is
+            live in production.
           </p>
-          <p className="text-xs text-amber-400/90">Coming next</p>
+          <p className="text-xs text-amber-400/90">Coming after Microsoft 365</p>
         </section>
         <p className="max-w-lg text-xs text-slate-500">
-          Infrastructure → Email remains domain / DNS / mailbox provisioning. This screen is Core
-          Communications — business mail orchestration. After Gmail connect, open{" "}
+          Sequence: Google (live) → Microsoft 365 (OAuth) → Apple iCloud. After connect, open{" "}
           <Link href="/apps/communications" className="text-sky-400 hover:underline">
             Inbox
           </Link>{" "}
-          for synced inbound messages.
+          for synced messages.
         </p>
       </main>
     </>

@@ -48,6 +48,11 @@ export function isConnectorPlatformConfigured(connectorId: string): boolean {
       return Boolean(envTrim("GOOGLE_CLIENT_ID") && envTrim("GOOGLE_CLIENT_SECRET"));
     case "google-gmail":
       return Boolean(envTrim("GOOGLE_CLIENT_ID") && envTrim("GOOGLE_CLIENT_SECRET"));
+    case "microsoft-365":
+      return Boolean(envTrim("MICROSOFT_CLIENT_ID") && envTrim("MICROSOFT_CLIENT_SECRET"));
+    case "apple-icloud":
+      // IMAP / app-specific password — not platform-configured until connector ships
+      return false;
     case "linkedin":
       return Boolean(envTrim("LINKEDIN_CLIENT_ID") && envTrim("LINKEDIN_CLIENT_SECRET"));
     case "stripe":
@@ -179,6 +184,7 @@ function statusFromBlob(
   if (
     connectorId === "google-gbp" ||
     connectorId === "google-gmail" ||
+    connectorId === "microsoft-365" ||
     connectorId === "linkedin" ||
     connectorId === "domain"
   ) {

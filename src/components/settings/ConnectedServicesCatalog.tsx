@@ -139,20 +139,30 @@ export function ConnectedServicesCatalog() {
     async function load() {
       setError(null);
       try {
-        const [gmailRes, gbpRes] = await Promise.all([
+        const [gmailRes, gbpRes, microsoftRes] = await Promise.all([
           fetch("/api/v1/connectors/google-gmail/status"),
           fetch("/api/v1/connectors/google/status"),
+          fetch("/api/v1/connectors/microsoft-365/status"),
         ]);
         const gmailJson = await gmailRes.json().catch(() => ({}));
         const gbpJson = await gbpRes.json().catch(() => ({}));
+        const microsoftJson = await microsoftRes.json().catch(() => ({}));
 
         const gmailOrg = gmailJson?.data?.organisation;
         const gbpOrg = gbpJson?.data?.organisation;
+        const microsoftOrg = microsoftJson?.data?.organisation;
+        const microsoftPlatform = microsoftJson?.data?.platform;
         const gmailConnected = Boolean(gmailOrg?.connected);
         const gbpConnected = Boolean(gbpOrg?.connected);
+        const microsoftConnected = Boolean(microsoftOrg?.connected);
         const gmailEmail = gmailOrg?.email as string | null | undefined;
         const gmailLastSync = gmailOrg?.health?.lastSyncAt as string | null | undefined;
         const gbpLastSync = gbpOrg?.health?.lastSyncAt as string | null | undefined;
+        const microsoftEmail = microsoftOrg?.email as string | null | undefined;
+        const microsoftLastSync = microsoftOrg?.health?.lastSyncAt as
+          | string
+          | null
+          | undefined;
 
         const next: ServiceGroup[] = [
           {
@@ -185,10 +195,45 @@ export function ConnectedServicesCatalog() {
               {
                 id: "microsoft-365",
                 name: "Microsoft 365 / Outlook",
-                description: "Business mailbox, calendar, and contacts — same pattern as Google.",
+                description: "Business mailbox via Microsoft Graph — same pattern as Google.",
+                status: microsoftConnected
+                  ? "connected"
+                  : microsoftPlatform?.configured
+                    ? "not_connected"
+                    : "coming_next",
+                detail: microsoftConnected
+                  ? [
+                      microsoftEmail,
+                      microsoftLastSync
+                        ? `Last synced ${new Date(microsoftLastSync).toLocaleString("en-AU")}`
+                        : "Connected — run Sync on Mailboxes if inbox is empty",
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")
+                  : microsoftPlatform?.configured
+                    ? "Ready to connect on Mailboxes."
+                    : "Next after Google — add MICROSOFT_CLIENT_ID / SECRET to enable Connect.",
+                enables: "Inbox · Compose context · Timeline",
+                primaryHref: microsoftConnected
+                  ? "/apps/communications/mailboxes"
+                  : microsoftPlatform?.configured
+                    ? "/api/connectors/microsoft-365/connect"
+                    : "/apps/communications/mailboxes",
+                primaryLabel: microsoftConnected
+                  ? "Manage mailbox"
+                  : microsoftPlatform?.configured
+                    ? "Connect"
+                    : "Open Mailboxes",
+                secondaryHref: microsoftConnected ? "/apps/communications" : undefined,
+                secondaryLabel: microsoftConnected ? "Open Inbox" : undefined,
+              },
+              {
+                id: "apple-icloud",
+                name: "Apple iCloud Mail",
+                description: "Business iCloud mailbox — after Microsoft 365.",
                 status: "coming_next",
-                detail: "Prioritised after Google Workspace.",
-                enables: "Inbox · Calendar · Contacts",
+                detail: "App-specific password path (no public OAuth for third parties).",
+                enables: "Inbox · Timeline",
               },
               {
                 id: "business-phone",

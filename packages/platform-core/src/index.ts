@@ -33,6 +33,7 @@ export * from "./connectors/framework";
 export * from "./connectors/domain";
 export * from "./connectors/rea";
 export * from "./connectors/google";
+export * from "./connectors/microsoft";
 export * from "./connectors/linkedin";
 export * from "./connectors/corelogic";
 export * from "./connectors/abr";
