@@ -93,14 +93,16 @@ Apps never call providers directly. Spec: [AI-ARCHITECTURE.md](../ai/AI-ARCHITEC
 
 ### Tier 3 — Communications (provider-neutral)
 
-**AI Communications Core** owns the experience; providers are swappable.
+**Core Communications** owns the experience and records; providers are swappable adapters.
 
-| Channel | Providers (examples) |
-|---------|----------------------|
-| Email | SES · SendGrid · Postmark · **Resend** (transactional today) |
-| SMS | Twilio · MessageMedia |
-| WhatsApp | Meta |
-| Voice | ElevenLabs · Twilio |
+| Channel | Adapters |
+|---------|----------|
+| Email | Google / Microsoft (mailbox SoT) · **Resend** (transactional today) |
+| SMS / programmable voice / numbers | **TelephonyProvider** — **Twilio first** · **Telnyx evaluate** · MessageMedia later |
+| WhatsApp | Meta (later) |
+| Voice synthesis / ConvAI | ElevenLabs (Voice Provider — not the telephony layer) |
+
+Customer never sees CPaaS names — Connected Services: “Connect business phone” / “Connect SMS”.
 
 ### Tier 4 — Payments / Commerce
 

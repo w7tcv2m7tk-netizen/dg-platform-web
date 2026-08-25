@@ -1,0 +1,16 @@
+---
+description: Telephony/SMS is provider-agnostic — Twilio first, Telnyx evaluate; customers never see CPaaS names
+globs: docs/foundations/COMMUNICATIONS.md,docs/ai/COMMUNICATIONS-ARCHITECTURE.md,packages/platform-core/src/communications/providers/telephony/**/*,src/app/**/communications/**/*,src/components/settings/ConnectedServicesCatalog.tsx
+alwaysApply: false
+---
+
+# Telephony provider principle
+
+Canonical: `docs/foundations/COMMUNICATIONS.md` (Provider-agnostic telephony)
+
+- **TelephonyProvider** adapter owns SMS · programmable voice · numbers — not Core Communication records.
+- **Twilio** = first production adapter. **Telnyx** = evaluate before volume. Do not hard-wire Communications to one CPaaS.
+- **ElevenLabs** = Voice Provider (synthesis / ConvAI) — separate from telephony.
+- Customer copy: **Connect business phone** / **Connect SMS** — never “Connect Twilio” or Messaging API jargon.
+- Apps never call carrier APIs directly — Communication Service → `getTelephonyProvider()`.
+- AU ACMA sender-ID rules apply regardless of provider — enforce in DigitalGate.

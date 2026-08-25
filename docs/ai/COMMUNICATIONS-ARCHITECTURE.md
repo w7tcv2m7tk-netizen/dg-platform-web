@@ -184,8 +184,8 @@ interface CommunicationsOrchestrator {
 }
 ```
 
-**v1 default:** ElevenLabs for voice synthesis + conversational model; Twilio for telephony if required.  
-**Migration path:** Vapi adapter implements `VoiceProvider` — swap without changing app UI or CRM integration.
+**v1 default:** ElevenLabs for voice synthesis + conversational model; **Twilio** as first **TelephonyProvider** for SMS/programmable voice when required — not a hard lock. **Telnyx** is registered to evaluate before volume.  
+**Migration path:** New telephony adapters implement `TelephonyProvider`; Voice Provider adapters implement the ConvAI interface — swap without changing Communications UI or CRM.
 
 ---
 

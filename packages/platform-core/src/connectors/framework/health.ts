@@ -77,6 +77,8 @@ export function isConnectorPlatformConfigured(connectorId: string): boolean {
       return isCloudflareConfigured();
     case "twilio":
       return Boolean(envTrim("TWILIO_ACCOUNT_SID") && envTrim("TWILIO_AUTH_TOKEN"));
+    case "telnyx":
+      return Boolean(envTrim("TELNYX_API_KEY"));
     case "meta":
       return Boolean(envTrim("META_APP_ID") && envTrim("META_APP_SECRET"));
     case "xero":

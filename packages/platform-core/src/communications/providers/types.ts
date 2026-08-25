@@ -5,6 +5,7 @@ export const COMMUNICATION_PROVIDERS = [
   "openai_voice",
   "anthropic",
   "twilio",
+  "telnyx",
   "resend",
   "stub",
 ] as const;

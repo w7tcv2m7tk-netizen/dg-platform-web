@@ -325,6 +325,25 @@ export async function sendMessage(
     provider: "stub",
   };
 
+  if (input.channel === "sms") {
+    const { getTelephonyProvider } = await import("./providers/telephony");
+    const telephony = getTelephonyProvider();
+    const sms = await telephony.sendSms({
+      organisationId: input.organisationId,
+      to: input.to,
+      body: input.body,
+      contactId: input.contactId,
+      metadata: input.metadata,
+    });
+    return {
+      id: sms.providerMessageId || id,
+      channel: "sms",
+      status: sms.status === "sent" ? "sent" : sms.status === "failed" ? "failed" : "queued",
+      provider: sms.provider,
+      error: sms.error,
+    };
+  }
+
   if (input.channel !== "email") {
     console.info("[communications] sendMessage (stub)", {
       id,
@@ -565,12 +584,21 @@ export async function sendMessage(
 export async function communicationsHealthCheck(_organisationId: string) {
   const resend = Boolean(process.env.RESEND_API_KEY?.trim());
   const elevenlabs = Boolean(process.env.ELEVENLABS_API_KEY?.trim());
+  const { defaultTelephonyProviderId, getTelephonyProvider } = await import(
+    "./providers/telephony"
+  );
+  const telephonyId = defaultTelephonyProviderId();
+  const telephonyHealth = await getTelephonyProvider(telephonyId).health();
   return {
     ok: true,
     providers: {
       email: resend ? "resend" : "stub_queue",
-      sms: "not_configured",
+      /** Carrier adapter id — not a customer-facing label */
+      sms: telephonyHealth.connected ? telephonyId : "not_configured",
+      /** @deprecated Prefer voice_synthesis — kept for existing probes */
       voice: elevenlabs ? "elevenlabs" : "not_configured",
+      voice_synthesis: elevenlabs ? "elevenlabs" : "not_configured",
+      telephony: telephonyHealth.connected ? telephonyId : "not_configured",
     },
   };
 }
@@ -579,6 +607,7 @@ export * from "./providers/types";
 export * from "./providers/router";
 export * from "./providers/elevenlabs";
 export { StubVoiceProvider } from "./providers/stub";
+export * from "./providers/telephony";
 export * from "./context";
 export * from "./agents";
 export * from "./sessions";

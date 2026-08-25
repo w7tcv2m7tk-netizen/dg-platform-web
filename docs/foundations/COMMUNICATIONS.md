@@ -276,11 +276,13 @@ COMMUNICATIONS
 ## Communication Service (runtime stack)
 
 ```
-Communication Service
-  → Gmail (OAuth)
-  → Microsoft 365 (OAuth)
-  → DigitalGate Email (Resend / transactional until mailbox send)
-  → SMS / Voice / WhatsApp (later)
+DigitalGate Communications (Core App)
+  → Communication Service (orchestrator · records · audit)
+       → Provider adapters (swappable)
+            Email: Google / Microsoft / Resend (transactional)
+            SMS / Voice / Numbers: TelephonyProvider (Twilio first · Telnyx evaluate)
+            Voice synthesis / ConvAI: ElevenLabs (Voice Provider — separate from telephony)
+            WhatsApp: later (Meta / carrier)
   → Automation Engine
   → AI Service (Assist + classification)
   → Universal Objects (Contact · Company · Opportunity · …)
@@ -288,7 +290,35 @@ Communication Service
   → Audit Log / provenance
 ```
 
-Design the connectors and `OrgCommunication` (→ richer Communication model) for Gmail + Microsoft **now**, even while shipping history / composer / schedule / provenance first.
+### Provider-agnostic telephony (locked)
+
+**Do not** architect Communications around Twilio (or any single CPaaS).
+
+```
+Communication Service
+        │
+  TelephonyProvider adapter
+        │
+   ┌────┴────┐
+Twilio    Telnyx · future
+(first)   (evaluate)
+```
+
+**DigitalGate owns:** Contacts · Conversations · Messages · Calls · Phone numbers (as Universal Objects) · Delivery status · Recording references · Transcripts · Opt-outs · Communication history · AI drafts · Automation · Audit trail.
+
+**Provider owns:** Telecommunications — SMS segments, PSTN/SIP minutes, number inventory, carrier routing, webhook delivery.
+
+| Decision | Lock |
+|----------|------|
+| First production telephony adapter | **Twilio** (mature SMS + programmable voice; documented AU pricing) |
+| Evaluate before volume / number scale | **Telnyx** (AI-voice stack positioning; AU ACMA sender-ID docs from 1 Jul 2026) |
+| Customer Connected Services copy | **Connect business phone** / **Connect SMS** — never “Connect Twilio” / “Configure Messaging API” |
+| Voice synthesis (ElevenLabs) | Separate **Voice Provider** from telephony — agents speak via ElevenLabs; calls may still terminate via telephony adapter |
+| AU compliance | Sender-ID / ACMA requirements apply **regardless of provider** — enforce in Communication Service |
+
+Code: `packages/platform-core/src/communications/providers/telephony/` (`TelephonyProvider` · Twilio · Telnyx · stub).
+
+Apps and UI **never** call Twilio/Telnyx APIs directly.
 
 ---
 
@@ -341,7 +371,7 @@ Gmail OAuth needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and redirect URI `
 
 **v1 scope shipped:** Organisation-scoped communication records · Communications home · manual compose · Send later / Scheduled · Sent + History · Signature Studio · Founding / referral provenance · Automations catalogue · **Gmail connect + sync into Inbox/History** · Connected Services customer page · Resend provider · Microsoft Mailboxes / Connected Services placeholder.
 
-**Not yet:** Microsoft Graph OAuth · send-as-Gmail identity · AI Assist drafts · SMS/WhatsApp · Communication Health score · unsupervised agent send · multi-step drip sequencer UI · open/reply webhooks · classification → Priorities.
+**Not yet:** Microsoft Graph OAuth · send-as-Gmail identity · AI Assist drafts · SMS/WhatsApp Live (TelephonyProvider scaffold: Twilio first · Telnyx evaluate) · Communication Health score · unsupervised agent send · multi-step drip sequencer UI · open/reply webhooks · classification → Priorities.
 
 ### Core — Communications Email v1 (remaining)
 

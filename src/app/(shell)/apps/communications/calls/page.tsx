@@ -5,10 +5,10 @@ export default function CommunicationsCallsPage() {
     <CommunicationsChannelPlaceholder
       active="calls"
       title="Calls"
-      summary="Call history and recordings belong in Communications — not a separate AI silo."
-      detail="Voice agents may still run as Growth capacity, but every call should land as a Communication on CRM Timeline. Use voice tooling below while call history consolidates here."
-      primaryHref="/apps/ai-communications/voice"
-      primaryLabel="Voice agents"
+      summary="Call history and recordings belong in Communications — not a separate silo."
+      detail="Connect your business phone under Connected Services when Calls go live. Voice agents may use synthesis providers underneath; telephony is a swappable adapter. History and association stay DigitalGate."
+      primaryHref="/dashboard/settings/connected-services"
+      primaryLabel="Connected Services"
       secondaryHref="/apps/crm/timeline"
       secondaryLabel="CRM Timeline"
     />
