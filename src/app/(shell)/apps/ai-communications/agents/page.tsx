@@ -6,7 +6,7 @@ import {
 } from "@dg/platform-core";
 
 import { AgentBuilderForm } from "@/components/ai-communications/AgentBuilderForm";
-import { CommsSubnav } from "@/components/ai-communications/CommsSubnav";
+import { AiConversationsSubnav } from "@/components/ai-communications/AiConversationsSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 export default async function AgentBuilderPage({
@@ -27,7 +27,7 @@ export default async function AgentBuilderPage({
           {session?.organisationName ?? "DigitalGate"} · AI employee builder — Provider → Identity →
           Behaviour → Business Brain → DigitalGate tools
         </p>
-        <CommsSubnav active="/apps/ai-communications/agents" />
+              <AiConversationsSubnav active="/apps/ai-communications/agents" />
       </header>
       <main className="dg-page-main space-y-6">
         {!session ? (

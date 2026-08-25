@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getAppSetupHref, listOrganisationActivities } from "@dg/platform-core";
 
-import { AutomationSubnav } from "@/components/automation/AutomationSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 function formatDate(iso: string) {
@@ -45,7 +44,6 @@ export default async function AutomationLogsPage() {
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · execution history when rules fire
         </p>
-        <AutomationSubnav active="/apps/automation/logs" />
       </header>
       <main className="dg-page-main">
         <div className="dg-card">

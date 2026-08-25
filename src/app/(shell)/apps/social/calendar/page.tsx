@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { listOrganisationActivities } from "@dg/platform-core";
 
-import { SocialSubnav } from "@/components/social/SocialSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 export default async function SocialCalendarPage() {
@@ -24,7 +23,6 @@ export default async function SocialCalendarPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Calendar</h1>
         <p className="text-sm text-slate-400">Local drafts (publish later)</p>
-        <SocialSubnav active="/apps/social/calendar" />
       </header>
       <main className="dg-page-main space-y-6">
         <section className="dg-card border-blue-500/20">

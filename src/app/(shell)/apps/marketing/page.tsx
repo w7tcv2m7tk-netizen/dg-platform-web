@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { MarketingSubnav } from "@/components/marketing/MarketingSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 /**
@@ -20,7 +19,6 @@ export default async function MarketingOverviewPage() {
         <p className="text-sm text-slate-400">
           {platformSession?.organisationName ?? "DigitalGate"} · deferred for closed beta
         </p>
-        <MarketingSubnav active="/apps/marketing" />
       </header>
       <main className="dg-page-main space-y-6">
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-slate-300">

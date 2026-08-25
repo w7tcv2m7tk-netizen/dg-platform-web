@@ -1,4 +1,3 @@
-import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
 
 export default async function ProspectingActivityPage() {
   return (
@@ -8,7 +7,6 @@ export default async function ProspectingActivityPage() {
         <p className="text-sm text-slate-400">
           Calls, notes, tasks and follow-ups against each prospect.
         </p>
-        <ProspectingSubnav active="/apps/prospecting/activity" />
       </header>
       <main className="dg-page-main">
         <div className="dg-card space-y-3">

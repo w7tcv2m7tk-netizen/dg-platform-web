@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getOrganisationBusinessProfile } from "@dg/platform-core";
 
-import { SocialSubnav } from "@/components/social/SocialSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 import {
   getSocialUrl,
@@ -29,7 +28,6 @@ export default async function SocialOverviewPage() {
         <p className="text-sm text-slate-400">
           Profile links, local drafts, LinkedIn connect
         </p>
-        <SocialSubnav active="/apps/social" />
       </header>
       <main className="dg-page-main space-y-6">
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-slate-300">

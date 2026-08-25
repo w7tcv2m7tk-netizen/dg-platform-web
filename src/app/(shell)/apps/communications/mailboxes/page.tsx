@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { CommunicationsSubnav } from "@/components/communications/CommunicationsList";
 import { GmailMailboxPanel } from "@/components/communications/GmailMailboxPanel";
 import { IcloudMailboxPanel } from "@/components/communications/IcloudMailboxPanel";
 import { MicrosoftMailboxPanel } from "@/components/communications/MicrosoftMailboxPanel";
@@ -52,7 +51,6 @@ export default async function CommunicationsMailboxesPage({
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active="email" />
         <GmailMailboxPanel flash={gmailFlash} flashMessage={gmailFlash ? flashMessage : null} />
         <MicrosoftMailboxPanel
           flash={microsoftFlash}

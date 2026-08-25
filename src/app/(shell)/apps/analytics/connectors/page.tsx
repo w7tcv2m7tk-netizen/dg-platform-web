@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { AnalyticsDataSourcesList } from "@/components/analytics/AnalyticsDataSourcesList";
 import { AnalyticsPageIntro } from "@/components/analytics/AnalyticsPageIntro";
-import { AnalyticsSubnav } from "@/components/analytics/AnalyticsSubnav";
 import { loadAnalyticsPageData } from "@/lib/analytics-page-data";
 
 export default async function AnalyticsConnectorsPage() {
@@ -13,7 +12,6 @@ export default async function AnalyticsConnectorsPage() {
     <>
       <header className="dg-page-header">
         <AnalyticsPageIntro organisationName={bundle.organisationName} active="/apps/analytics/connectors" />
-        <AnalyticsSubnav active="/apps/analytics/connectors" />
       </header>
       <main className="dg-page-main space-y-6">
         <section className="dg-card">

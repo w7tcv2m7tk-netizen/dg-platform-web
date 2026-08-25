@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { CommunicationsSubnav } from "@/components/communications/CommunicationsList";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 const CATALOGUE = [
@@ -62,7 +61,6 @@ export default async function CommunicationsAutomationsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active="email" />
         <ul className="space-y-3">
           {CATALOGUE.map((item) => (
             <li

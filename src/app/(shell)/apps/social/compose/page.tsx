@@ -2,7 +2,6 @@ import Link from "next/link";
 import { listOrganisationActivities } from "@dg/platform-core";
 
 import { SocialComposeForm } from "@/components/social/SocialComposeForm";
-import { SocialSubnav } from "@/components/social/SocialSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 export default async function SocialComposePage() {
@@ -27,7 +26,6 @@ export default async function SocialComposePage() {
         <p className="text-sm text-slate-400">
           Save local drafts — LinkedIn publish from Compose is next
         </p>
-        <SocialSubnav active="/apps/social/compose" />
       </header>
       <main className="dg-page-main space-y-6">
         <section className="dg-card">

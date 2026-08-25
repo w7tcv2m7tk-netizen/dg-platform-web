@@ -1,6 +1,6 @@
 import {
   getOrgAppleIcloudConnectorCredentials,
-} from "@dg/platform-core";
+} from "@dg/platform-core/connectors/apple-icloud";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";

@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { ReviewFeedList } from "@/components/reviews/ReviewFeedList";
 import { ReviewsEmptyState } from "@/components/reviews/ReviewsEmptyState";
-import { ReviewsSubnav } from "@/components/reviews/ReviewsSubnav";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
 export default async function ReviewsInboxPage() {
@@ -28,7 +27,6 @@ export default async function ReviewsInboxPage() {
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · Reputation — unified monitor
         </p>
-        <ReviewsSubnav active="/apps/reviews/inbox" />
       </header>
       <main className="dg-page-main space-y-6">
         {!session ? (

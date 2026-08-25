@@ -2,6 +2,8 @@
  * Sync recent iCloud Mail messages into OrgCommunication via IMAP.
  */
 
+import "server-only";
+
 import type { Prisma } from "@dg/database";
 import type { ImapFlow } from "imapflow";
 

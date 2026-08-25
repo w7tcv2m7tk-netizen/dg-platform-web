@@ -7,7 +7,6 @@ import {
 
 import { ReviewThemesPanel } from "@/components/reviews/ReviewThemesPanel";
 import { ReviewsEmptyState } from "@/components/reviews/ReviewsEmptyState";
-import { ReviewsSubnav } from "@/components/reviews/ReviewsSubnav";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
 export default async function ReputationOverviewPage() {
@@ -29,7 +28,6 @@ export default async function ReputationOverviewPage() {
           {session?.organisationName ?? "DigitalGate"} · Growth App — monitor connected reviews,
           queue requests, score only from real data
         </p>
-        <ReviewsSubnav active="/apps/reviews" />
       </header>
       <main className="dg-page-main space-y-6">
         <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3 text-sm text-slate-400">

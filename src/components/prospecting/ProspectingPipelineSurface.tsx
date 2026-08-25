@@ -12,7 +12,6 @@ import {
   ConvertProspectToOrgButton,
 } from "@/components/command/GrowthEngineActions";
 import { ProspectStageSelect } from "@/components/command/ProspectStageSelect";
-import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
 
 const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding"]);
 
@@ -70,9 +69,6 @@ export async function ProspectingPipelineSurface({
           {prospects.length} {showArchived ? "archived" : "active"} prospect
           {prospects.length === 1 ? "" : "s"}
         </p>
-        {variant === "apps" ? (
-          <ProspectingSubnav active="/apps/prospecting/pipeline" />
-        ) : null}
         <p className="mt-2 text-xs">
           {showArchived ? (
             <Link href={pipelinePath} className="text-sky-400 hover:underline">

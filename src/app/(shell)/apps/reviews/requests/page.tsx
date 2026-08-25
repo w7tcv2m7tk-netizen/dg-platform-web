@@ -2,7 +2,6 @@ import Link from "next/link";
 import { listReviewRequestCandidates } from "@dg/platform-core";
 
 import { QueueReviewRequestButton } from "@/components/reviews/QueueReviewRequestButton";
-import { ReviewsSubnav } from "@/components/reviews/ReviewsSubnav";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
 export default async function ReviewsRequestsPage() {
@@ -19,7 +18,6 @@ export default async function ReviewsRequestsPage() {
           After completed stays, RE settlements, or Services jobs — queue Activity on the Contact
           timeline (email/SMS delivery later)
         </p>
-        <ReviewsSubnav active="/apps/reviews/requests" />
       </header>
       <main className="dg-page-main space-y-6">
         {!session ? (

@@ -6,7 +6,6 @@ import {
 } from "@dg/platform-core";
 
 import { CommunicationsComposeForm } from "@/components/communications/CommunicationsComposeForm";
-import { CommunicationsSubnav } from "@/components/communications/CommunicationsList";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 interface PageProps {
@@ -61,7 +60,6 @@ export default async function CommunicationsComposePage({ searchParams }: PagePr
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active="email" />
         <CommunicationsComposeForm
           defaultTo={params.to?.trim() || contact?.email || ""}
           defaultSubject={params.subject?.trim() || ""}

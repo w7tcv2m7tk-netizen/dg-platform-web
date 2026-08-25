@@ -24,7 +24,6 @@ import {
 } from "@/components/websites/HealthCentreDashboard";
 import { HealthSitePicker } from "@/components/websites/HealthSitePicker";
 import { PageSpeedRefreshButton } from "@/components/websites/PageSpeedRefreshButton";
-import { WebsitesSubnav } from "@/components/websites/WebsitesSubnav";
 
 interface PageProps {
   searchParams: Promise<{ site?: string; view?: string }>;
@@ -136,8 +135,6 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <WebsitesSubnav active="health" />
-
         {showWp ? (
           <p className="text-sm text-slate-500">
             <Link href="/apps/websites/health" className="text-sky-400 hover:underline">

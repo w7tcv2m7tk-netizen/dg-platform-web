@@ -8,7 +8,6 @@ import {
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { FunnelBuilderClient } from "@/components/websites/FunnelBuilderClient";
-import { WebsitesSubnav } from "@/components/websites/WebsitesSubnav";
 
 export default async function FunnelsPage() {
   const user = await currentUser();
@@ -46,8 +45,6 @@ export default async function FunnelsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-4">
-        <WebsitesSubnav active="funnels" />
-
         {!allowed ? (
           <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-xl">
             <p className="text-sm text-amber-100/90">

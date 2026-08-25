@@ -3,7 +3,6 @@ import { REVIEW_SOURCE_CONCEPTS } from "@dg/platform-core";
 
 import { GbpReviewSourceCard } from "@/components/reviews/GbpReviewSourceCard";
 import { ReviewsEmptyState } from "@/components/reviews/ReviewsEmptyState";
-import { ReviewsSubnav } from "@/components/reviews/ReviewsSubnav";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
 export default async function ReviewsSourcesPage() {
@@ -17,7 +16,6 @@ export default async function ReviewsSourcesPage() {
         <p className="text-sm text-slate-400">
           Connector Framework slots — Acc + GBP when connected; other providers planned
         </p>
-        <ReviewsSubnav active="/apps/reviews/sources" />
       </header>
       <main className="dg-page-main space-y-4">
         {session && liveCount === 0 ? (

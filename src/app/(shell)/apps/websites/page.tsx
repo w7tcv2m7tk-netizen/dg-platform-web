@@ -12,7 +12,6 @@ import {
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { CreateWebsiteForm } from "@/components/websites/CreateWebsiteForm";
-import { WebsitesSubnav } from "@/components/websites/WebsitesSubnav";
 
 function statusBadge(status: string) {
   if (status === "published") {
@@ -67,8 +66,6 @@ export default async function WebsitesHomePage() {
         </p>
       </header>
       <main className="dg-page-main">
-        <WebsitesSubnav active="websites" />
-
         {!allowed ? (
           <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-2xl space-y-3">
             <h2 className="text-lg font-semibold text-amber-100">

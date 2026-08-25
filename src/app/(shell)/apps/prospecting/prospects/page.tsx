@@ -1,4 +1,3 @@
-import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
 
 export default async function ProspectingProspectsPage() {
   return (
@@ -8,7 +7,6 @@ export default async function ProspectingProspectsPage() {
         <p className="text-sm text-slate-400">
           Target businesses organised for outreach — promote to CRM when qualified.
         </p>
-        <ProspectingSubnav active="/apps/prospecting/prospects" />
       </header>
       <main className="dg-page-main">
         <div className="dg-card space-y-3">

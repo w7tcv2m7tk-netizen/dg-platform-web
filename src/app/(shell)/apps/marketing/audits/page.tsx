@@ -2,7 +2,6 @@ import Link from "next/link";
 import { listOrgSeoAudits } from "@dg/platform-core";
 
 import { MarketingSeoAuditPanel } from "@/components/marketing/MarketingSeoAuditPanel";
-import { MarketingSubnav } from "@/components/marketing/MarketingSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 import { runMarketingSeoAuditAction } from "./actions";
@@ -21,7 +20,6 @@ export default async function MarketingAuditsPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">SEO audits</h1>
         <p className="text-sm text-slate-400">Run presence + Studio SEO checks</p>
-        <MarketingSubnav active="/apps/marketing/audits" />
       </header>
       <main className="dg-page-main space-y-6">
         <section className="dg-card">

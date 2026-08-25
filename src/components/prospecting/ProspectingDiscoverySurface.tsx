@@ -14,7 +14,6 @@ import {
   RunProspectAuditButton,
 } from "@/components/command/GrowthEngineActions";
 import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
-import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
 
 export type ProspectingDiscoverySearchParams = {
   q?: string;
@@ -186,9 +185,6 @@ export async function ProspectingDiscoverySurface({
           Find businesses that may need your product or service. Residential vendors live in Real
           Estate → Vendor Prospecting — not this prospect book.
         </p>
-        {variant === "apps" ? (
-          <ProspectingSubnav active="/apps/prospecting/discovery" />
-        ) : null}
         <p className="mt-2 text-xs">
           {showArchived ? (
             <Link href={filterHref(false)} className="text-sky-400 hover:underline">

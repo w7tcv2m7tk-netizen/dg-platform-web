@@ -8,7 +8,6 @@ import {
   scoresFromLatestSeoAudit,
 } from "@dg/platform-core";
 
-import { SeoSubnav } from "@/components/seo/SeoSubnav";
 import { WebsiteSignalsPanel } from "@/components/seo/WebsiteSignalsPanel";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { getOrgEnabledAppIds, getPlatformPageContext } from "@/lib/org-apps";
@@ -77,7 +76,6 @@ export default async function SeoOverviewPage() {
           {platformSession?.organisationName ?? "DigitalGate"} · on-page and technical SEO from
           live HTML probes (+ Studio checks when available)
         </p>
-        <SeoSubnav active="/apps/seo" />
       </header>
       <main className="dg-page-main space-y-6">
         {!platformSession ? (

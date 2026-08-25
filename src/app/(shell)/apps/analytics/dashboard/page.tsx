@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { AnalyticsKeyMetricsGrid } from "@/components/analytics/AnalyticsKeyMetricsGrid";
 import { AnalyticsPageIntro } from "@/components/analytics/AnalyticsPageIntro";
-import { AnalyticsSubnav } from "@/components/analytics/AnalyticsSubnav";
 import { formatAudMoney, loadAnalyticsPageData } from "@/lib/analytics-page-data";
 
 const DASHBOARD_COPY: Record<
@@ -77,7 +76,6 @@ export default async function AnalyticsDashboardPage({
     <>
       <header className="dg-page-header">
         <AnalyticsPageIntro organisationName={bundle.organisationName} active="/apps/analytics/dashboard" />
-        <AnalyticsSubnav active="/apps/analytics/dashboard" />
       </header>
       <main className="dg-page-main space-y-6">
         <section className="dg-card">

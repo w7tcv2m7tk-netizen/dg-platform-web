@@ -4,7 +4,6 @@ import {
 } from "@dg/platform-core";
 
 import { SeoAuditPanel } from "@/components/seo/SeoAuditPanel";
-import { SeoSubnav } from "@/components/seo/SeoSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 export default async function SeoAuditPage() {
@@ -29,7 +28,6 @@ export default async function SeoAuditPage() {
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · live website probes and findings
         </p>
-        <SeoSubnav active="/apps/seo/audit" />
       </header>
       <main className="dg-page-main">
         {!session ? (

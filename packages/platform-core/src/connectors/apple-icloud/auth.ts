@@ -5,6 +5,8 @@
  * Hosts: imap.mail.me.com:993 (SSL) · smtp.mail.me.com:587 (send later).
  */
 
+import "server-only";
+
 import { ImapFlow } from "imapflow";
 
 import { decryptSecret, encryptSecret } from "../../crypto/secret-field";

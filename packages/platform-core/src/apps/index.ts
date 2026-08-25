@@ -1,5 +1,6 @@
 export * from "./manifest";
 export * from "./route-tree";
+export * from "./active-nav";
 export * from "./registry";
 export * from "./org-apps";
 export * from "./navigation";

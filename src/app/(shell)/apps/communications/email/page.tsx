@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { CommunicationsSubnav } from "@/components/communications/CommunicationsList";
 
 /**
  * Email channel hub — send/manage email (not the Inbox attention surface).
@@ -20,7 +19,6 @@ export default function CommunicationsEmailPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active="email" />
         <div className="flex flex-wrap gap-2">
           <Link
             href="/apps/communications"

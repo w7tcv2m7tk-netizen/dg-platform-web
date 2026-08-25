@@ -166,6 +166,7 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   },
   crm: {
     routes: [
+      { path: "/apps/crm", label: "Overview" },
       { path: "/apps/crm/contacts", label: "Contacts" },
       { path: "/apps/crm/companies", label: "Companies" },
       { path: "/apps/crm/opportunities", label: "Opportunities" },
@@ -177,9 +178,10 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   documents: {
     name: "Documents",
     routes: [
+      { path: "/apps/documents", label: "Overview" },
       { path: "/apps/documents/library", label: "Library" },
-      { path: "/apps/documents/signing", label: "Signing" },
       { path: "/apps/documents/templates", label: "Templates" },
+      { path: "/apps/documents/signing", label: "Signing" },
     ],
   },
   communications: {

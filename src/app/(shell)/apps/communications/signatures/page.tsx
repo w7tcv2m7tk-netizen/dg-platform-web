@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { listCommunicationSignatures } from "@dg/platform-core";
 
-import { CommunicationsSubnav } from "@/components/communications/CommunicationsList";
 import { SignatureStudio } from "@/components/communications/SignatureStudio";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
@@ -38,7 +37,6 @@ export default async function CommunicationsSignaturesPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active="signatures" />
         <SignatureStudio initial={signatures} />
       </main>
     </>

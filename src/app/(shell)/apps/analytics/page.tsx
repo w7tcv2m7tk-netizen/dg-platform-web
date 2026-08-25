@@ -5,7 +5,6 @@ import {
   AnalyticsPhilosophyNote,
 } from "@/components/analytics/AnalyticsPageIntro";
 import { AnalyticsKeyMetricsGrid } from "@/components/analytics/AnalyticsKeyMetricsGrid";
-import { AnalyticsSubnav } from "@/components/analytics/AnalyticsSubnav";
 import { AnalyticsTrendChart } from "@/components/analytics/AnalyticsTrendChart";
 import { loadAnalyticsPageData } from "@/lib/analytics-page-data";
 import Link from "next/link";
@@ -18,7 +17,6 @@ export default async function AnalyticsOverviewPage() {
     <>
       <header className="dg-page-header">
         <AnalyticsPageIntro organisationName={bundle.organisationName} active="/apps/analytics" />
-        <AnalyticsSubnav active="/apps/analytics" />
       </header>
       <main className="dg-page-main space-y-6">
         <AnalyticsPhilosophyNote />

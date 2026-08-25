@@ -5,7 +5,6 @@ import {
 
 import { ReviewThemesPanel } from "@/components/reviews/ReviewThemesPanel";
 import { ReviewsEmptyState } from "@/components/reviews/ReviewsEmptyState";
-import { ReviewsSubnav } from "@/components/reviews/ReviewsSubnav";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
 export default async function ReputationScorePage() {
@@ -20,7 +19,6 @@ export default async function ReputationScorePage() {
         <p className="text-sm text-slate-400">
           Score from connected review feeds only — empty until rated reviews exist
         </p>
-        <ReviewsSubnav active="/apps/reviews/reputation" />
       </header>
       <main className="dg-page-main space-y-6">
         {!session ? (

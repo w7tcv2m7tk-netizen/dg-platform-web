@@ -5,7 +5,6 @@ import { getOrganisationBusinessProfile } from "@dg/platform-core";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { LogoDesignStudioClient } from "@/components/websites/LogoDesignStudioClient";
-import { WebsitesSubnav } from "@/components/websites/WebsitesSubnav";
 
 export default async function LogoDesignStudioPage({
   searchParams,
@@ -44,8 +43,6 @@ export default async function LogoDesignStudioPage({
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <WebsitesSubnav active="logo" />
-
         {!session || !profile ? (
           <p className="text-sm text-slate-400">Sign in to edit brand assets.</p>
         ) : (

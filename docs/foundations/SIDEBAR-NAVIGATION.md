@@ -119,6 +119,27 @@ DigitalGate **internal** product knowledge — how DigitalGate works. Lives unde
 
 Simple path first; Advanced for control (Automation, AI Communications, Infrastructure). See [OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.md).
 
+## Two-level navigation (August 2026)
+
+The sidebar shows **sections and applications only** — no expandable route trees or ▾ toggles.
+
+When you open an application, a **contextual horizontal sub-navigation** appears above the page content (wired globally via `AppContextNav` in `AppShellLayout`). Routes come from app manifests and `SIDEBAR_APP_DISPLAY` in `navigation.ts`, resolved by `resolveActiveAppNavigation()` in `active-nav.ts`.
+
+```
+Sidebar: CRM (single link)
+Page top:  CORE / CRM / Contacts
+           CRM
+           Overview · Contacts · Companies · Opportunities · …
+```
+
+**Exceptions**
+
+- **AI Conversations** (`/apps/ai-communications/*`): Communications top nav stays canonical (Inbox · Email · … · AI Conversations). Voice Agents, Call Centre, Agent Builder, Knowledge, and AI Settings render as a **secondary** hub nav on those pages only (`AiConversationsSubnav`).
+- **Command Centre** and **Intelligence** decision surfaces use the same horizontal pattern where multiple routes exist; Command Centre is a control surface, not a conventional app tree.
+- Overflow: when an app has more than eight top-level routes, extras collapse under **More ▾** (exception, not the default pattern).
+
+**Code:** `src/components/navigation/AppContextNav.tsx` · `AppHorizontalSubnav.tsx` · `src/components/SidebarNav.tsx` (flat app links)
+
 ## Sidebar principle
 
 The sidebar is **navigation**, not the product. The workspace answers “What matters to me?” The sidebar answers “Where can I go?”

@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 const JOURNEY = [
@@ -92,7 +91,6 @@ export default async function ProspectingOverviewPage() {
           {session?.organisationName ?? "DigitalGate"} · Find → understand → score → pipeline →
           CRM · $99/mo Growth App
         </p>
-        <ProspectingSubnav active="/apps/prospecting" />
       </header>
       <main className="dg-page-main space-y-8">
         <section className="dg-card space-y-3">

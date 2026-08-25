@@ -4,7 +4,6 @@ import { currentUser } from "@clerk/nextjs/server";
 import { getAppSetupHref } from "@dg/platform-core";
 
 import { AutomationBuilderPanel } from "@/components/automation/AutomationBuilderPanel";
-import { AutomationSubnav } from "@/components/automation/AutomationSubnav";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 export default async function AutomationPage() {
@@ -43,7 +42,6 @@ export default async function AutomationPage() {
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · triggers & actions registry — closed beta
         </p>
-        <AutomationSubnav active="/apps/automation" />
       </header>
       <main className="dg-page-main space-y-4">
         <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-4 py-3 text-sm text-slate-400">

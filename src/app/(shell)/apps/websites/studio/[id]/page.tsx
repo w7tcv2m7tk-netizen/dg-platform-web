@@ -13,7 +13,6 @@ import {
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { WebsiteStudioClient } from "@/components/websites/WebsiteStudioClient";
-import { WebsitesSubnav } from "@/components/websites/WebsitesSubnav";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -83,7 +82,6 @@ export default async function WebsiteStudioPage({ params }: Props) {
         </p>
       </header>
       <main className="dg-page-main">
-        <WebsitesSubnav active="websites" />
         <Suspense
           fallback={
             <p className="text-sm text-slate-500">Loading studio…</p>

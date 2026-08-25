@@ -2,7 +2,6 @@ import Link from "next/link";
 import { listOrganisationActivities } from "@dg/platform-core";
 
 import { MarketingCampaignForm } from "@/components/marketing/MarketingCampaignForm";
-import { MarketingSubnav } from "@/components/marketing/MarketingSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 export default async function MarketingCampaignsPage() {
@@ -25,7 +24,6 @@ export default async function MarketingCampaignsPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Campaigns</h1>
         <p className="text-sm text-slate-400">Document-free campaign briefs stored as activities</p>
-        <MarketingSubnav active="/apps/marketing/campaigns" />
       </header>
       <main className="dg-page-main space-y-6">
         {campaigns.length === 0 ? (

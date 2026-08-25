@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { AnalyticsReportExport } from "@/components/analytics/AnalyticsReportExport";
 import { AnalyticsPageIntro } from "@/components/analytics/AnalyticsPageIntro";
-import { AnalyticsSubnav } from "@/components/analytics/AnalyticsSubnav";
 import { formatAudMoney, loadAnalyticsPageData } from "@/lib/analytics-page-data";
 
 export default async function AnalyticsReportsPage() {
@@ -56,7 +55,6 @@ export default async function AnalyticsReportsPage() {
     <>
       <header className="dg-page-header">
         <AnalyticsPageIntro organisationName={bundle.organisationName} active="/apps/analytics/reports" />
-        <AnalyticsSubnav active="/apps/analytics/reports" />
       </header>
       <main className="dg-page-main space-y-6">
         {report ? (

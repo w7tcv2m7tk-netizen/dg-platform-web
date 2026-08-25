@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getOrganisationBusinessProfile } from "@dg/platform-core";
 
 import { LinkedInConnectorPanel } from "@/components/settings/LinkedInConnectorPanel";
-import { SocialSubnav } from "@/components/social/SocialSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 import { getSocialUrl, SOCIAL_PROFILE_FIELDS } from "@/lib/social-profile-fields";
 
@@ -31,7 +30,6 @@ export default async function SocialAccountsPage({ searchParams }: PageProps) {
         <p className="text-sm text-slate-400">
           LinkedIn OAuth + profile URLs from Business Profile
         </p>
-        <SocialSubnav active="/apps/social/accounts" />
       </header>
       <main className="dg-page-main space-y-6">
         <LinkedInConnectorPanel

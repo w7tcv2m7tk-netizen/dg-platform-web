@@ -5,7 +5,7 @@ import {
   listCommunicationSessions,
 } from "@dg/platform-core";
 
-import { CommsSubnav } from "@/components/ai-communications/CommsSubnav";
+import { AiConversationsSubnav } from "@/components/ai-communications/AiConversationsSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 function formatDate(iso: string | null) {
@@ -43,7 +43,7 @@ export default async function CommsInboxPage() {
           {session?.organisationName ?? "DigitalGate"} · DigitalGate owns the intelligence;
           the voice provider is underneath.
         </p>
-        <CommsSubnav active="/apps/ai-communications/inbox" />
+              <AiConversationsSubnav active="/apps/ai-communications/inbox" />
       </header>
       <main className="dg-page-main space-y-6">
         {!session ? (

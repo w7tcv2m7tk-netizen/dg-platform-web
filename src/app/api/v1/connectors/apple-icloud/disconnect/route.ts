@@ -1,4 +1,4 @@
-import { clearOrgAppleIcloudConnectorCredentials } from "@dg/platform-core";
+import { clearOrgAppleIcloudConnectorCredentials } from "@dg/platform-core/connectors/apple-icloud";
 import { NextResponse } from "next/server";
 
 import {

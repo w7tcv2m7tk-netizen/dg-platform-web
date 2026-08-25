@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { ProspectingSubnav } from "@/components/prospecting/ProspectingSubnav";
 
 const DIMENSIONS = [
   "Fit",
@@ -18,7 +17,6 @@ export default async function ProspectingScoresPage() {
         <p className="text-sm text-slate-400">
           Fit × Need × Reachability × Commercial × Weakness — who to contact and why.
         </p>
-        <ProspectingSubnav active="/apps/prospecting/scores" />
       </header>
       <main className="dg-page-main space-y-6">
         <div className="dg-card space-y-3">

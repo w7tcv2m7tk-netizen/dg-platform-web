@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { listOrgCommunications } from "@dg/platform-core";
 
-import {
-  CommunicationsList,
-  CommunicationsSubnav,
-} from "@/components/communications/CommunicationsList";
+import { CommunicationsList } from "@/components/communications/CommunicationsList";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 interface PageProps {
@@ -74,7 +71,6 @@ export default async function CommunicationsHistoryPage({ searchParams }: PagePr
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active="inbox" />
         <div className="flex flex-wrap gap-2 text-xs">
           {FILTERS.map((f) => {
             const active = filter === f.id;

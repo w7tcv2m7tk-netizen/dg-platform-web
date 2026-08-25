@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getOrganisationBusinessProfile } from "@dg/platform-core";
 
-import { MarketingSubnav } from "@/components/marketing/MarketingSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 import { getSocialUrl, SOCIAL_PROFILE_FIELDS } from "@/lib/social-profile-fields";
 
@@ -25,7 +24,6 @@ export default async function MarketingChannelsPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Channels</h1>
         <p className="text-sm text-slate-400">Website and social completeness from Business Profile</p>
-        <MarketingSubnav active="/apps/marketing/channels" />
       </header>
       <main className="dg-page-main space-y-6">
         <section className="dg-card">

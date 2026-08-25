@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getAppSetupHref } from "@dg/platform-core";
 
 import { AutomationRulesList } from "@/components/automation/AutomationRulesList";
-import { AutomationSubnav } from "@/components/automation/AutomationSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 export default async function AutomationRulesPage() {
@@ -26,7 +25,6 @@ export default async function AutomationRulesPage() {
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · registered trigger → action rules
         </p>
-        <AutomationSubnav active="/apps/automation/rules" />
       </header>
       <main className="dg-page-main">
         <AutomationRulesList />

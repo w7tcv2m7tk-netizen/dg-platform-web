@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { CommunicationsSubnav } from "@/components/communications/CommunicationsList";
 
 export function CommunicationsChannelPlaceholder({
   active,
@@ -31,7 +30,6 @@ export function CommunicationsChannelPlaceholder({
         <p className="mt-1 text-sm text-slate-400">{summary}</p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active={active} />
         <div className="max-w-xl rounded-lg border border-slate-700/70 bg-slate-950/40 px-4 py-5">
           <p className="text-sm text-slate-300">{detail}</p>
           <div className="mt-4 flex flex-wrap gap-3">

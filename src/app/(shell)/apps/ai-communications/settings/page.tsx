@@ -7,7 +7,7 @@ import {
   publicAppOrigin,
 } from "@dg/platform-core";
 
-import { CommsSubnav } from "@/components/ai-communications/CommsSubnav";
+import { AiConversationsSubnav } from "@/components/ai-communications/AiConversationsSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 function providerLabel(value: string) {
@@ -56,7 +56,7 @@ export default async function CommsSettingsPage() {
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · provider status, defaults, and usage
         </p>
-        <CommsSubnav active="/apps/ai-communications/settings" />
+              <AiConversationsSubnav active="/apps/ai-communications/settings" />
       </header>
       <main className="dg-page-main space-y-6">
         {!session ? (

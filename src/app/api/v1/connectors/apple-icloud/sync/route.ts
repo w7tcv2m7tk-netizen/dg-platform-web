@@ -1,4 +1,4 @@
-import { syncOrgAppleIcloudMailbox } from "@dg/platform-core";
+import { syncOrgAppleIcloudMailbox } from "@dg/platform-core/connectors/apple-icloud";
 import { NextResponse } from "next/server";
 
 import {

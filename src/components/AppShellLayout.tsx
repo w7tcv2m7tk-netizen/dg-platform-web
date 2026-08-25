@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { MobileHeader } from "@/components/MobileHeader";
+import { AppContextNav } from "@/components/navigation/AppContextNav";
 import { OrgBrandHead } from "@/components/brand/OrgBrandHead";
 import { OrgBrandProvider, orgBrandStyle } from "@/components/brand/OrgBrandProvider";
 import { ChatWidgetProvider } from "@/components/platform/ChatWidgetProvider";
@@ -188,7 +189,10 @@ export function AppShellLayout({
                   enter="dg-nav-fade"
                   exit="dg-nav-fade"
                 >
-                  <div className="flex min-h-full min-w-0 flex-col">{children}</div>
+                  <div className="flex min-h-full min-w-0 flex-col">
+                    <AppContextNav />
+                    {children}
+                  </div>
                 </ViewTransition>
               </div>
             </div>

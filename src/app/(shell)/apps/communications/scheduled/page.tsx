@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { listOrgCommunications, processDueScheduledEmails } from "@dg/platform-core";
 
-import {
-  CommunicationsList,
-  CommunicationsSubnav,
-} from "@/components/communications/CommunicationsList";
+import { CommunicationsList } from "@/components/communications/CommunicationsList";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function CommunicationsScheduledPage() {
@@ -52,7 +49,6 @@ export default async function CommunicationsScheduledPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active="email" />
         <CommunicationsList
           rows={rows}
           showScheduledAt

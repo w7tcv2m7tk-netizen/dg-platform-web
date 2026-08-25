@@ -7,7 +7,7 @@ import {
   sessionHasFeature,
 } from "@dg/platform-core";
 
-import { CommsSubnav } from "@/components/ai-communications/CommsSubnav";
+import { AiConversationsSubnav } from "@/components/ai-communications/AiConversationsSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 function formatDate(iso: string | null) {
@@ -27,8 +27,8 @@ export default async function CallDetailPage({
       <>
         <header className="dg-page-header">
           <h1 className="text-2xl font-bold text-white">Conversation</h1>
-          <CommsSubnav active="/apps/ai-communications/call-centre" />
-        </header>
+                <AiConversationsSubnav active="/apps/ai-communications/call-centre" />
+      </header>
         <main className="dg-page-main">
           <div className="dg-card">
             <p className="text-sm text-slate-400">Sign in to view this conversation.</p>
@@ -54,7 +54,7 @@ export default async function CallDetailPage({
         <p className="text-sm text-slate-400">
           {row.agentName ?? "Agent"} · {row.direction} {row.channel}
         </p>
-        <CommsSubnav active="/apps/ai-communications/call-centre" />
+        <AiConversationsSubnav active="/apps/ai-communications/call-centre" />
       </header>
       <main className="dg-page-main space-y-6">
         <div className="dg-card grid gap-3 text-sm sm:grid-cols-2">

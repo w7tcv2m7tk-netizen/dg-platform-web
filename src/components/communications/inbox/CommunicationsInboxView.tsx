@@ -9,7 +9,6 @@ import {
   type InboxFolderId,
 } from "@dg/platform-core";
 
-import { CommunicationsSubnav } from "@/components/communications/CommunicationsList";
 import {
   CommunicationsInboxWorkspace,
   type InboxContactContext,
@@ -167,7 +166,6 @@ export async function CommunicationsInboxView({
         </p>
       </header>
       <main className="dg-page-main flex min-h-0 flex-col gap-4">
-        <CommunicationsSubnav active="inbox" />
         <Suspense
           fallback={
             <div className="rounded-xl border border-slate-800 px-6 py-12 text-sm text-slate-500">
