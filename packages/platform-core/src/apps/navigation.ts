@@ -386,6 +386,7 @@ function getPlatformAdminSection(options?: {
     enabled: true,
     routes: [
       { path: "/dashboard/settings", label: "Overview" },
+      { path: "/dashboard/settings/appearance", label: "Appearance" },
       { path: "/dashboard/settings/billing", label: "Billing" },
       { path: "/dashboard/settings/connected-services", label: "Connected Services" },
       { path: "/dashboard/settings/connectors", label: "Connectors" },

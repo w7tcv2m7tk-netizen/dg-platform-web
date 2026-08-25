@@ -84,9 +84,28 @@ export function AppShellLayout({
     const vars = orgBrandCssVariables(brandTheme);
     const previousBackground = document.body.style.background;
     const previousColor = document.body.style.color;
-    document.body.style.background = vars["--org-shell-gradient"] ?? vars["--org-bg-base"] ?? "";
-    document.body.style.color = "#f1f5f9";
+
+    const applyBodyChrome = () => {
+      const theme = document.documentElement.getAttribute("data-theme");
+      if (theme === "light") {
+        document.body.style.background =
+          "linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)";
+        document.body.style.color = "#0f172a";
+        return;
+      }
+      document.body.style.background =
+        vars["--org-shell-gradient"] ?? vars["--org-bg-base"] ?? "";
+      document.body.style.color = "#f1f5f9";
+    };
+
+    applyBodyChrome();
+    const observer = new MutationObserver(applyBodyChrome);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
     return () => {
+      observer.disconnect();
       document.body.style.background = previousBackground;
       document.body.style.color = previousColor;
     };

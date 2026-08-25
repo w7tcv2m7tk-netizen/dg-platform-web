@@ -10,8 +10,11 @@ import {
   AUTH_SIGN_UP_URL,
 } from "@/lib/auth-routes";
 import { clerkProxyUrl } from "@/lib/clerk-proxy";
+import Script from "next/script";
 import { ClerkPwaNavigationGuard } from "@/components/platform/ClerkPwaNavigationGuard";
 import { ServiceWorkerRegistration } from "@/components/platform/ServiceWorkerRegistration";
+import { PlatformThemeProvider } from "@/components/theme/PlatformThemeProvider";
+import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 import "./clerk-overrides.css";
 
@@ -31,9 +34,9 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#020617" },
-    { media: "(prefers-color-scheme: light)", color: "#020617" },
+    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
   ],
-  colorScheme: "dark",
+  colorScheme: "dark light",
 };
 
 export const metadata: Metadata = {
@@ -80,11 +83,18 @@ export default function RootLayout({
         "reset-password": AUTH_SIGN_IN_URL,
       }}
     >
-      <html lang="en" className={`${inter.variable} h-full`}>
+      <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
         <body className="min-h-full bg-slate-950 font-sans text-slate-100 antialiased">
-          {children}
-          <ClerkPwaNavigationGuard />
-          <ServiceWorkerRegistration />
+          <Script
+            id="dg-theme-boot"
+            strategy="beforeInteractive"
+            dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }}
+          />
+          <PlatformThemeProvider>
+            {children}
+            <ClerkPwaNavigationGuard />
+            <ServiceWorkerRegistration />
+          </PlatformThemeProvider>
         </body>
       </html>
     </ClerkProvider>

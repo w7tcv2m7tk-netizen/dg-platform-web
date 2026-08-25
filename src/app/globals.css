@@ -7,6 +7,122 @@
   --org-accent: #10b981;
 }
 
+/* Platform appearance — Settings → Appearance (local preference). Default remains dark. */
+html[data-theme="light"] {
+  color-scheme: light;
+  /* Flip Tailwind slate scale so bg-slate-950 / text-slate-300 read as light chrome */
+  --color-slate-50: #020617;
+  --color-slate-100: #0f172a;
+  --color-slate-200: #1e293b;
+  --color-slate-300: #334155;
+  --color-slate-400: #475569;
+  --color-slate-500: #64748b;
+  --color-slate-600: #94a3b8;
+  --color-slate-700: #cbd5e1;
+  --color-slate-800: #e2e8f0;
+  --color-slate-900: #f1f5f9;
+  --color-slate-950: #f8fafc;
+}
+
+html[data-theme="light"] body {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+html[data-theme="light"] .dg-branded-shell {
+  --org-bg-base: #f1f5f9;
+  --org-bg-elevated: #ffffff;
+  --org-bg-surface: #ffffff;
+  --org-bg-surface-hover: #f1f5f9;
+  --org-bg-inset: #f8fafc;
+  --org-border: #cbd5e1;
+  --org-border-subtle: #e2e8f0;
+  --org-text-muted: #64748b;
+  --org-shell-gradient: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  background: var(--org-shell-gradient);
+  color: #0f172a;
+}
+
+html[data-theme="light"] .dg-branded-sidebar {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+html[data-theme="light"] .dg-branded-header {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: #e2e8f0;
+}
+
+html[data-theme="light"] .dg-branded-overlay {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+html[data-theme="light"] .dg-branded-surface {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+html[data-theme="light"] .dg-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+html[data-theme="light"] .dg-plan-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+}
+
+html[data-theme="light"] .dg-plan-card:hover {
+  border-color: #cbd5e1 !important;
+}
+
+html[data-theme="light"] .dg-input {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+html[data-theme="light"] .dg-input::placeholder {
+  color: #94a3b8;
+}
+
+html[data-theme="light"] .dg-page-header {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: #e2e8f0;
+}
+
+/* Headings / emphasis that used text-white on dark chrome */
+html[data-theme="light"] .text-white {
+  color: #0f172a;
+}
+
+/* Keep white labels on solid brand / action fills */
+html[data-theme="light"] .bg-sky-600.text-white,
+html[data-theme="light"] .bg-sky-500.text-white,
+html[data-theme="light"] .bg-blue-600.text-white,
+html[data-theme="light"] .bg-blue-500.text-white,
+html[data-theme="light"] .bg-emerald-600.text-white,
+html[data-theme="light"] .bg-emerald-500.text-white,
+html[data-theme="light"] .bg-rose-600.text-white,
+html[data-theme="light"] .bg-rose-500.text-white,
+html[data-theme="light"] .dg-btn-primary {
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .hover\:text-white:hover {
+  color: #0f172a;
+}
+
+html[data-theme="light"] .bg-sky-600:hover,
+html[data-theme="light"] .bg-sky-500:hover,
+html[data-theme="light"] .bg-blue-600:hover,
+html[data-theme="light"] .hover\:bg-sky-500:hover,
+html[data-theme="light"] .hover\:bg-sky-600:hover {
+  color: #ffffff;
+}
+
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --color-blue-300: color-mix(in srgb, var(--org-primary) 70%, white);
@@ -133,6 +249,10 @@ body {
 .dg-branded-shell {
   background: var(--org-shell-gradient, var(--org-bg-base, #020617));
   color: #f1f5f9;
+}
+
+html[data-theme="light"] .dg-branded-shell {
+  color: #0f172a;
 }
 
 /* Authenticated shell: document never scrolls — panes own overflow. */
