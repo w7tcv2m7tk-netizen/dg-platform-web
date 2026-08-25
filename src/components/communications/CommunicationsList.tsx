@@ -63,9 +63,15 @@ export function CommunicationsSubnav({ active }: { active: string }) {
     { id: "email", href: "/apps/communications/email", label: "Email" },
     { id: "sms", href: "/apps/communications/sms", label: "SMS" },
     { id: "calls", href: "/apps/communications/calls", label: "Calls" },
+    { id: "voice", href: "/apps/ai-communications/voice", label: "Voice Agents" },
+    { id: "call-centre", href: "/apps/ai-communications/call-centre", label: "Call Centre" },
+    { id: "agents", href: "/apps/ai-communications/agents", label: "Agent Builder" },
+    { id: "knowledge", href: "/apps/ai-communications/knowledge", label: "Knowledge" },
+    { id: "ai-inbox", href: "/apps/ai-communications/inbox", label: "AI Inbox" },
     { id: "outreach", href: "/apps/communications/outreach", label: "Outreach" },
     { id: "templates", href: "/apps/communications/templates", label: "Templates" },
     { id: "signatures", href: "/apps/communications/signatures", label: "Signatures" },
+    { id: "ai-settings", href: "/apps/ai-communications/settings", label: "AI Settings" },
   ] as const;
 
   return (
