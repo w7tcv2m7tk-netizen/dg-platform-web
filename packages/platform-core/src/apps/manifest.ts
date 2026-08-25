@@ -12,6 +12,11 @@ export interface AppRoute {
   label: string;
   /** Extra prefixes that keep this nav item active (e.g. per-site studio). */
   matchAlso?: string[];
+  /**
+   * Nested routes under this item (e.g. Communications → AI → Voice Agents).
+   * When set, the sidebar renders a nested group; `path` is the group landing href.
+   */
+  children?: AppRoute[];
 }
 
 export interface AppNavItem {

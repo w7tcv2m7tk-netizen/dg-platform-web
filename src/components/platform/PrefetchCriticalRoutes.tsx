@@ -1,6 +1,7 @@
 "use client";
 
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
+import { flattenAppRoutes } from "@dg/platform-core";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 
@@ -11,6 +12,7 @@ const BASE_ROUTES = [
   "/dashboard/settings",
   "/apps/crm/contacts",
   "/apps/commerce",
+  "/apps/communications/inbox",
 ] as const;
 
 /**
@@ -37,12 +39,12 @@ export function PrefetchCriticalRoutes() {
       }
       for (const app of section.apps) {
         if (app.primaryHref) set.add(app.primaryHref);
-        for (const route of app.routes.slice(0, 3)) {
+        for (const route of flattenAppRoutes(app.routes).slice(0, 8)) {
           if (route.path) set.add(route.path);
         }
       }
     }
-    return [...set].slice(0, 28);
+    return [...set].slice(0, 32);
   }, [nav.ia]);
 
   useEffect(() => {

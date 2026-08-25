@@ -129,7 +129,7 @@ const GROW_APP_ORDER = [
   "reviews",
 ] as const;
 
-/** Hidden from sidebar IA — marketing undecided; opportunities live in CRM; AI Communications routes live under Core Communications */
+/** Hidden from sidebar IA — marketing undecided; opportunities live in CRM; AI Communications nests under Core Communications → AI */
 const SIDEBAR_HIDDEN_APP_IDS = new Set([
   "marketing",
   "opportunities",
@@ -177,15 +177,15 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   documents: {
     name: "Documents",
     routes: [
-      { path: "/apps/documents", label: "Overview" },
       { path: "/apps/documents/library", label: "Library" },
+      { path: "/apps/documents/signing", label: "Signing" },
       { path: "/apps/documents/templates", label: "Templates" },
     ],
   },
   communications: {
     name: "Communications",
     routes: [
-      // Inbox = attention; Email = channel. History stays CRM Timeline (no Activity duplicate).
+      // Channels first · AI nested · no separate Growth AI Communications silo.
       { path: "/apps/communications/inbox", label: "Inbox" },
       {
         path: "/apps/communications/email",
@@ -199,15 +199,24 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
       },
       { path: "/apps/communications/sms", label: "SMS" },
       { path: "/apps/communications/calls", label: "Calls" },
-      { path: "/apps/ai-communications/voice", label: "Voice Agents" },
-      { path: "/apps/ai-communications/call-centre", label: "Call Centre" },
-      { path: "/apps/ai-communications/agents", label: "Agent Builder" },
-      { path: "/apps/ai-communications/knowledge", label: "Knowledge" },
-      { path: "/apps/ai-communications/inbox", label: "AI Inbox" },
+      {
+        path: "/apps/ai-communications/inbox",
+        label: "AI Conversations",
+      },
       { path: "/apps/communications/outreach", label: "Outreach" },
       { path: "/apps/communications/templates", label: "Templates" },
       { path: "/apps/communications/signatures", label: "Signatures" },
-      { path: "/apps/ai-communications/settings", label: "AI Settings" },
+      {
+        path: "/apps/communications/ai",
+        label: "AI",
+        children: [
+          { path: "/apps/ai-communications/voice", label: "Voice Agents" },
+          { path: "/apps/ai-communications/call-centre", label: "Call Centre" },
+          { path: "/apps/ai-communications/agents", label: "Agent Builder" },
+          { path: "/apps/ai-communications/knowledge", label: "Knowledge" },
+          { path: "/apps/ai-communications/settings", label: "AI Settings" },
+        ],
+      },
     ],
   },
   "real-estate": {

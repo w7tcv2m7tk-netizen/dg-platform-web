@@ -18,7 +18,7 @@ Industry Apps, Prospecting, Automation, Advisor and Command Centre may create, s
 
 **Google Workspace / Microsoft 365 remain the authoritative mailboxes.** DigitalGate is the **business intelligence and orchestration layer** around the mailbox — association, history, automation, AI draft, next action — not the mailbox provider.
 
-**Do not ship a second customer “AI Communications” silo.** Voice agents / Call Centre may stay a **Growth commercial add-on** (capacity / monetisation), but Calls and AI Assist live under **Core Communications** IA, and every voice/SMS/email row must land in the same Communication History.
+**Do not ship a second customer “AI Communications” silo.** Voice agents / Call Centre remain a **Growth commercial add-on** for capacity / monetisation where needed, but operator IA lives under **Core Communications → AI**. Every voice/SMS/email row must land in the same Communication History / Universal Objects graph.
 
 ---
 
@@ -27,23 +27,34 @@ Industry Apps, Prospecting, Automation, Advisor and Command Centre may create, s
 ```
 CORE
   CRM
-  Communications          ← nav (before Documents — Know → Communicate → Document → Transact)
+  Communications          ← communication operating system (Know → Communicate → Document → Transact)
   Documents
   Commerce
   Design Studio
         │
-        └── DigitalGate Communications   ← capability
+        └── DigitalGate Communications
               │
-              ├── Inbox · Email · SMS · Calls · Outreach · Automations
-              ├── Templates · Signatures (Signature Studio) · AI (Assist)
+              ├── Inbox · Email · SMS · Calls · AI Conversations
+              ├── Outreach · Templates · Signatures
+              ├── AI → Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings
               ├── Channels: Email · SMS · Voice · WhatsApp · …
               ├── Sources: Manual · Automation · AI Assist · Prospecting · Agent · System · Mailbox
               └── Linked to: Organisation · Contact · Company · Opportunity · Task ·
                              Customer · Property · Document · Campaign · Automation · Agent
 ```
 
+**Mental model**
+
+- **Email · SMS · Calls** — how the business communicates (channels).
+- **AI** — how DigitalGate helps the business communicate (Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings).
+- **Inbox** — universal attention surface (direction: all conversations, not a mailbox clone).
+- **AI Conversations** — AI-managed / AI-assisted conversation surface (not the same as Inbox).
+- **Outreach** — communication execution for acquisition (Prospect → Email → SMS → Call → follow-up → CRM / Opportunity) — not a siloed marketing campaign tool.
+- **Knowledge** — what DigitalGate may use when communicating; **Business Brain** is what DigitalGate understands. Knowledge is not the source of truth.
+- **Signatures** — Signature Studio; generated from Business Profile + User Profile + Brand (not free-floating HTML).
+
 **Do not** build an “Email App.”  
-**Do** build a **Communication Record** inside Core — a Universal Object activity source.
+**Do** build a **Communication Record** inside Core — a Universal Object activity source. Every email, SMS and call relates to Contact → Company → Opportunity → Task → Consultation → Document → User → Campaign where known.
 
 Primary operator question (every surface should serve this):
 
@@ -51,23 +62,25 @@ Primary operator question (every surface should serve this):
 
 **Home (direction):** greeting · Needs attention · Inbox preview · Quick actions (+ Email · + SMS · ✦ Write with AI · Schedule · Start outreach) · Recent activity — not SMTP/provider mechanics.
 
-Secondary nav (modules — not separate products; **locked August 2026**):
+Secondary nav (**locked August 2026**):
 
 | Surface | Role |
 |---------|------|
-| **Inbox** | Conversations that need attention (not synonymous with Email) |
+| **Inbox** | Universal conversations that need attention (filters: All · Email · SMS · Calls · AI · Unread · Waiting · Assigned) |
 | **Email** | Send/manage email channel (Compose · Sent · Scheduled · Mailboxes) |
 | **SMS** | Messaging channel (same Communication Record) |
-| **Calls** | Call history / recordings — voice capacity tooling may deep-link; history is Core |
-| **Outreach** | Campaigns / sequences that emit Communication records |
+| **Calls** | Call history / recordings — AI voice tooling under **AI** |
+| **AI Conversations** | AI-assisted conversation surface (not a second mailbox) |
+| **Outreach** | Sequences / acquisition execution emitting Communication records |
 | **Templates** | Reusable copy / structure |
-| **Signatures** | **Signature Studio** |
+| **Signatures** | Signature Studio |
+| **AI** | Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings |
 
 **Do not** put Email or Email history under CRM. CRM → Timeline is the universal cross-business history; Communications does **not** duplicate a second “Activity / Communication History” nav item.
 
-**Do not** surface Growth **AI Communications** in customer navigation. AI Assist is **Write with AI** inside Communications (shared AI Service).
+**Do not** surface Growth **AI Communications** as a separate customer sidebar app. Soft-hidden (`SIDEBAR_HIDDEN_APP_IDS`); routes nest under Communications → AI.
 
-**Documents** stay a separate Core app (files · agreements · signing) — related to, not inside, Communications.
+**Documents** stay a separate Core app (Library · Signing · Templates) — related to, not inside, Communications.
 
 ---
 
@@ -345,7 +358,7 @@ Communications is a primary way the business interacts with the outside world.
 | Surface | Path | Status |
 |---------|------|--------|
 | **Core Communications home** | `/apps/communications` — Needs attention · Inbox preview · Quick actions · Recent activity | **Live** |
-| **Core Communications nav** | Inbox · Email · SMS · Calls · Outreach · Templates · Signatures | **Live** (SMS/Calls/Outreach/Templates placeholders) |
+| **Core Communications nav** | Inbox · Email · SMS · Calls · AI Conversations · Outreach · Templates · Signatures · **AI** (Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings) | **Live** (SMS/Calls/Outreach/Templates placeholders; AI nested) |
 | **Email channel** | `/apps/communications/email` → Compose · Sent · Scheduled · Mailboxes | **Live** |
 | **Signature Studio v1** | `/apps/communications/signatures` · `organisation.settings.communications.signatures` · default appended on Compose | **Live** |
 | **Connected Services (customer)** | `/dashboard/settings/connected-services` — human cards (Gmail · GBP · Microsoft coming next · Stripe · WordPress) | **Live** |
@@ -356,7 +369,7 @@ Communications is a primary way the business interacts with the outside world.
 | **CRM** | Contact → Email contact (Compose) · Timeline (universal history) — **no Email module under CRM** | **Live** |
 | **Persistence** | Prisma `OrgCommunication` (`org_communications`, `scheduled_at`) | **Live** after `prisma db push` |
 
-**IA lock:** Growth **AI Communications** soft-hidden from sidebar (`SIDEBAR_HIDDEN_APP_IDS`); Calls deep-links to voice tooling; history association is Core + CRM Timeline. Founding Mode still slims Growth via `org-apps.ts`.
+**IA lock:** Growth **AI Communications** soft-hidden from sidebar (`SIDEBAR_HIDDEN_APP_IDS`); operator surfaces nest under **Communications → AI**. History association is Core + CRM Timeline + Universal Objects. Founding Mode still slims Growth via `org-apps.ts`.
 
 **Deploy:**
 

@@ -15,9 +15,10 @@ export const documentsApp: AppManifest = {
   version: "0.1.0",
   icon: getSidebarIcon("documents"),
   routes: [
-    { path: "/apps/documents", label: "Overview" },
     { path: "/apps/documents/library", label: "Library" },
+    { path: "/apps/documents/signing", label: "Signing" },
     { path: "/apps/documents/templates", label: "Templates" },
+    { path: "/apps/documents", label: "Overview" },
   ],
   navigation: [
     { href: "/apps/documents", label: "Documents", icon: getSidebarIcon("documents") },

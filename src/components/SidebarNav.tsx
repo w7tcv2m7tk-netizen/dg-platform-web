@@ -29,6 +29,16 @@ function childLinkClass(active: boolean, pending = false) {
   }`;
 }
 
+function nestedChildLinkClass(active: boolean, pending = false) {
+  return `block min-h-9 rounded-md py-1.5 pl-12 pr-2 text-[13px] transition ${
+    active
+      ? "border-l-2 border-[var(--org-primary)] text-white"
+      : pending
+        ? "border-l-2 border-slate-600 text-slate-200"
+        : "text-slate-500 hover:text-slate-300"
+  }`;
+}
+
 type CollapsibleItem = {
   id: string;
   name: string;
@@ -97,6 +107,66 @@ function CollapsibleNavSection({
             {isOpen ? (
               <ul className="mb-1 mt-0.5 space-y-0.5">
                 {item.routes.map((route) => {
+                  if (route.children?.length) {
+                    const nestKey = `${item.id}::${route.path}`;
+                    const nestActive = itemHasActiveRoute(pathname, route.children);
+                    const nestOpen = expanded[nestKey] ?? nestActive;
+                    return (
+                      <li key={`${item.id}-${route.path}-${route.label}`}>
+                        <div className="flex items-stretch">
+                          <div className="min-w-0 flex-1">
+                            <ShellNavLink
+                              href={route.path}
+                              onClick={onNavigate}
+                              className={(pending) =>
+                                childLinkClass(
+                                  nestActive || pathname === route.path,
+                                  pending,
+                                )
+                              }
+                            >
+                              {route.label}
+                            </ShellNavLink>
+                          </div>
+                          <button
+                            type="button"
+                            aria-label={
+                              nestOpen ? `Collapse ${route.label}` : `Expand ${route.label}`
+                            }
+                            onClick={() => onToggle(nestKey)}
+                            className="shrink-0 px-2 text-[10px] text-slate-500 hover:text-slate-300"
+                          >
+                            <span aria-hidden>{nestOpen ? "▾" : "▸"}</span>
+                          </button>
+                        </div>
+                        {nestOpen ? (
+                          <ul className="mt-0.5 space-y-0.5">
+                            {route.children.map((child) => {
+                              const active = routeIsActive(
+                                pathname,
+                                child.path,
+                                route.children!,
+                              );
+                              return (
+                                <li key={`${item.id}-${child.path}-${child.label}`}>
+                                  <ShellNavLink
+                                    href={child.path}
+                                    onClick={onNavigate}
+                                    className={(pending) =>
+                                      nestedChildLinkClass(active, pending)
+                                    }
+                                  >
+                                    {child.label}
+                                  </ShellNavLink>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        ) : null}
+                      </li>
+                    );
+                  }
+
                   const active = routeIsActive(pathname, route.path, item.routes);
                   return (
                     <li key={`${item.id}-${route.path}-${route.label}`}>

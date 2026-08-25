@@ -1,12 +1,13 @@
 import Link from "next/link";
 
 const LINKS = [
-  { href: "/apps/communications/inbox", label: "Communications" },
-  { href: "/apps/ai-communications/inbox", label: "AI Inbox" },
+  { href: "/apps/communications/inbox", label: "Inbox" },
+  { href: "/apps/communications/ai", label: "AI" },
+  { href: "/apps/ai-communications/inbox", label: "AI Conversations" },
   { href: "/apps/ai-communications/voice", label: "Voice Agents" },
   { href: "/apps/ai-communications/call-centre", label: "Call Centre" },
   { href: "/apps/ai-communications/agents", label: "Agent Builder" },
-  { href: "/apps/ai-communications/knowledge", label: "Knowledge Base" },
+  { href: "/apps/ai-communications/knowledge", label: "Knowledge" },
   { href: "/apps/ai-communications/settings", label: "AI Settings" },
 ] as const;
 
@@ -18,6 +19,7 @@ export function CommsSubnav({ active }: { active: string }) {
           link.href === active ||
           (link.href !== "/apps/ai-communications/inbox" &&
             link.href !== "/apps/communications/inbox" &&
+            link.href !== "/apps/communications/ai" &&
             active.startsWith(link.href));
         return (
           <Link
