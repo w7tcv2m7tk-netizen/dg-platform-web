@@ -40,6 +40,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/cron/lead-followups",
   "/api/cron/pagespeed",
   "/api/cron/ota-ical-sync",
+  "/api/cron/scheduled-emails",
   "/api/v1/wantd/(.*)",
   "/api/webhooks/stripe",
   "/api/webhooks/elevenlabs",

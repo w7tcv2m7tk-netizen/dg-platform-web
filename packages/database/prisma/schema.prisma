@@ -453,6 +453,7 @@ model OrgCommunication {
   aiGenerated      Boolean   @default(false) @map("ai_generated")
   metadata         Json?
   sentAt           DateTime? @map("sent_at")
+  scheduledAt      DateTime? @map("scheduled_at")
   deletedAt        DateTime? @map("deleted_at")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
@@ -460,6 +461,7 @@ model OrgCommunication {
   organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
 
   @@index([organisationId, deletedAt, sentAt])
+  @@index([organisationId, deletedAt, scheduledAt])
   @@index([organisationId, channel])
   @@index([organisationId, contactId])
   @@index([organisationId, status])

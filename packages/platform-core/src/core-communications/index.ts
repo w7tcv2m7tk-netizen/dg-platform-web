@@ -11,6 +11,8 @@ export {
   createOrgCommunication,
   summarizeOrgCommunications,
   recordOutboundEmail,
+  scheduleOutboundEmail,
+  processDueScheduledEmails,
   toPlatformCommunication,
 } from "./service";
 export type {

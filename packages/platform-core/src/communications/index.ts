@@ -136,6 +136,9 @@ async function persistQueuedEmail(input: {
 
   try {
     const { recordOutboundEmail } = await import("../core-communications");
+    if (input.metadata?.skipOrgCommunicationRecord === true) {
+      return;
+    }
     await recordOutboundEmail({
       organisationId: input.organisationId,
       to: input.to,

@@ -465,6 +465,11 @@ export async function createReferralInvite(input: {
       purpose: "platform_referral_invite",
       ctaLabel: "Accept your invite",
       resent,
+      source: "system",
+      whySent: resent
+        ? "Platform referral invite resent"
+        : "Platform referral invite",
+      sentBy: input.actorId,
     },
   });
 

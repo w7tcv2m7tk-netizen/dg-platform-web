@@ -47,6 +47,7 @@ export type PlatformCommunication = {
   sentBy?: string;
   aiGenerated: boolean;
   sentAt?: string;
+  scheduledAt?: string;
   createdAt: string;
   updatedAt: string;
 };

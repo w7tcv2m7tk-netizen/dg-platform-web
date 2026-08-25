@@ -144,6 +144,10 @@ export async function sendFoundingMail(input: {
       purpose: input.purpose,
       footerNote: input.footerNote,
       replyTo: "hello@digitalgate.com.au",
+      source: "system",
+      whySent: `Founding programme email (${input.purpose})`,
+      opportunityId: input.opportunityId,
+      sentBy: input.actorId,
     },
   });
   await createActivity({

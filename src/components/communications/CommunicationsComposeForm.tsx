@@ -22,6 +22,8 @@ export function CommunicationsComposeForm({
   const [to, setTo] = useState(defaultTo);
   const [subject, setSubject] = useState(defaultSubject);
   const [body, setBody] = useState("");
+  const [sendLater, setSendLater] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
@@ -31,24 +33,36 @@ export function CommunicationsComposeForm({
     setPending(true);
     setError(null);
     setOk(null);
+
+    const payload: Record<string, unknown> = {
+      channel: "email",
+      to: to.trim(),
+      subject: subject.trim() || undefined,
+      body: body.trim(),
+      contactId: contactId || undefined,
+      metadata: {
+        source: "manual",
+        whySent: contactName
+          ? `Manual email to ${contactName} from Communications`
+          : "Manual email from Communications",
+        opportunityId: opportunityId || undefined,
+        companyId: companyId || undefined,
+      },
+    };
+
+    if (sendLater) {
+      if (!scheduledAt.trim()) {
+        setPending(false);
+        setError("Pick a date and time to send later.");
+        return;
+      }
+      payload.scheduledAt = new Date(scheduledAt).toISOString();
+    }
+
     const res = await fetch("/api/v1/communications/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        channel: "email",
-        to: to.trim(),
-        subject: subject.trim() || undefined,
-        body: body.trim(),
-        contactId: contactId || undefined,
-        metadata: {
-          source: "manual",
-          whySent: contactName
-            ? `Manual email to ${contactName} from Communications`
-            : "Manual email from Communications",
-          opportunityId: opportunityId || undefined,
-          companyId: companyId || undefined,
-        },
-      }),
+      body: JSON.stringify(payload),
     });
     const json = await res.json().catch(() => ({}));
     setPending(false);
@@ -57,9 +71,16 @@ export function CommunicationsComposeForm({
       return;
     }
     const status = json?.data?.status as string | undefined;
+    if (status === "scheduled") {
+      setOk("Email scheduled. It appears under Scheduled until send time.");
+      setBody("");
+      router.push("/apps/communications/scheduled");
+      router.refresh();
+      return;
+    }
     setOk(
       status === "sent"
-        ? "Email sent. It appears in History and on the contact timeline."
+        ? "Email sent. It appears in Sent and History."
         : status === "queued"
           ? "Email queued (delivery provider not configured or deferred)."
           : "Email recorded.",
@@ -106,6 +127,27 @@ export function CommunicationsComposeForm({
           placeholder="Write the email…"
         />
       </label>
+      <label className="flex items-center gap-2 text-sm text-slate-300">
+        <input
+          type="checkbox"
+          checked={sendLater}
+          onChange={(e) => setSendLater(e.target.checked)}
+          className="rounded border-slate-600"
+        />
+        Send later
+      </label>
+      {sendLater ? (
+        <label className="block space-y-1">
+          <span className="text-xs text-slate-500">Send at</span>
+          <input
+            type="datetime-local"
+            required={sendLater}
+            value={scheduledAt}
+            onChange={(e) => setScheduledAt(e.target.value)}
+            className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          />
+        </label>
+      ) : null}
       {error ? <p className="text-sm text-rose-400">{error}</p> : null}
       {ok ? <p className="text-sm text-emerald-400">{ok}</p> : null}
       <button
@@ -113,7 +155,7 @@ export function CommunicationsComposeForm({
         disabled={pending}
         className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
       >
-        {pending ? "Sending…" : "Send email"}
+        {pending ? "Working…" : sendLater ? "Schedule email" : "Send email"}
       </button>
       <p className="text-xs text-slate-500">
         Sent via DigitalGate (Resend). Google / Microsoft mailbox send comes next — they remain

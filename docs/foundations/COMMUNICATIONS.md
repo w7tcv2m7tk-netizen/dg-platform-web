@@ -257,10 +257,11 @@ Communications is a primary way the business interacts with the outside world.
 
 | Surface | Path | Status |
 |---------|------|--------|
-| **Core Communications app** | `/apps/communications` · History · Compose · Mailboxes | **Live** |
-| **Send API** | `/api/v1/communications/messages` | **Live** — Resend + OrgCommunication record |
+| **Core Communications app** | `/apps/communications` · Compose · Inbox · Sent · Scheduled · Automations · History · Mailboxes | **Live** |
+| **Send API** | `/api/v1/communications/messages` | **Live** — Resend + OrgCommunication; optional `scheduledAt` |
+| **Scheduled flush** | `/api/cron/scheduled-emails` | **Live** — every 15m |
 | **CRM** | Contact → Email contact / History | **Live** |
-| **Persistence** | Prisma `OrgCommunication` (`org_communications`) | **Live** after `prisma db push` |
+| **Persistence** | Prisma `OrgCommunication` (`org_communications`, `scheduled_at`) | **Live** after `prisma db push` |
 
 **Deploy:**
 
@@ -272,9 +273,9 @@ npm run db:push
 
 Uploads/sends need `RESEND_API_KEY` on Vercel (existing transactional path).
 
-**v1 scope shipped:** Organisation-scoped communication records · manual compose · History filters · Contact association · delivery status fields · provenance (`whySent`) · Resend provider · Mailboxes UI placeholder for Google/Microsoft.
+**v1 scope shipped:** Organisation-scoped communication records · manual compose · Send later / Scheduled · Sent + History filters (incl. System) · Founding / referral invite provenance · Automations catalogue · Inbox placeholder (mailbox OAuth not connected) · Resend provider · Mailboxes UI placeholder for Google/Microsoft.
 
-**Not yet:** Gmail/Outlook OAuth sync · inbox pull · AI Assist drafts · SMS/WhatsApp · unsupervised agent send.
+**Not yet:** Gmail/Outlook OAuth sync · real inbox pull · AI Assist drafts · SMS/WhatsApp · unsupervised agent send · multi-step drip sequencer UI.
 
 ### Core — Communications Email v1 (remaining)
 
@@ -284,7 +285,7 @@ Uploads/sends need `RESEND_API_KEY` on Vercel (existing transactional path).
 ### Later
 
 - SMS / WhatsApp as channels  
-- Full Automations + Outreach UI  
+- Full drip / Outreach sequencer UI (Prospecting emits Communication records)  
 - Deep open/reply intelligence + classification → Priorities  
 - Merge voice/Call Centre timelines into History  
 - AI Agent–proposed sends (#4) under governance  

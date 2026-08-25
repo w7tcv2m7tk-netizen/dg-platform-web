@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getContact } from "@dg/platform-core";
 
 import { CommunicationsComposeForm } from "@/components/communications/CommunicationsComposeForm";
+import { CommunicationsSubnav } from "@/components/communications/CommunicationsList";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 interface PageProps {
@@ -47,10 +48,11 @@ export default async function CommunicationsComposePage({ searchParams }: PagePr
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Compose email</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Manual send with CRM context. AI Assist drafts come next — human reviews, human sends.
+          Manual send with CRM context. Use Send later for Scheduled. AI Assist drafts come next.
         </p>
       </header>
-      <main className="dg-page-main">
+      <main className="dg-page-main space-y-6">
+        <CommunicationsSubnav active="compose" />
         <CommunicationsComposeForm
           defaultTo={params.to?.trim() || contact?.email || ""}
           defaultSubject={params.subject?.trim() || ""}

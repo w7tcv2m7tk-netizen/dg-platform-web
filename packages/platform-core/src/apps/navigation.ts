@@ -185,9 +185,13 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
     name: "Communications",
     routes: [
       { path: "/apps/communications/compose", label: "Compose email" },
-      { path: "/apps/communications/history", label: "Sent & history" },
-      { path: "/apps/communications", label: "Overview" },
+      { path: "/apps/communications/inbox", label: "Inbox" },
+      { path: "/apps/communications/sent", label: "Sent" },
+      { path: "/apps/communications/scheduled", label: "Scheduled" },
+      { path: "/apps/communications/automations", label: "Automations" },
+      { path: "/apps/communications/history", label: "History" },
       { path: "/apps/communications/mailboxes", label: "Mailboxes" },
+      { path: "/apps/communications", label: "Overview" },
     ],
   },
   "real-estate": {

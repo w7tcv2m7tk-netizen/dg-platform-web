@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { listOrgCommunications } from "@dg/platform-core";
 
+import {
+  CommunicationsList,
+  CommunicationsSubnav,
+} from "@/components/communications/CommunicationsList";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 interface PageProps {
@@ -16,6 +20,7 @@ const FILTERS = [
   { id: "sms", label: "SMS" },
   { id: "voice", label: "Voice" },
   { id: "automated", label: "Automated" },
+  { id: "system", label: "System" },
   { id: "ai", label: "AI" },
   { id: "outreach", label: "Outreach" },
 ] as const;
@@ -29,6 +34,7 @@ export default async function CommunicationsHistoryPage({ searchParams }: PagePr
     | "sms"
     | "voice"
     | "automated"
+    | "system"
     | "ai"
     | "outreach";
 
@@ -62,10 +68,11 @@ export default async function CommunicationsHistoryPage({ searchParams }: PagePr
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">History</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Who · what · why · status — across channels.
+          Who · what · why · status — across channels recorded by DigitalGate.
         </p>
       </header>
       <main className="dg-page-main space-y-6">
+        <CommunicationsSubnav active="history" />
         <div className="flex flex-wrap gap-2 text-xs">
           {FILTERS.map((f) => {
             const active = filter === f.id;
@@ -89,52 +96,28 @@ export default async function CommunicationsHistoryPage({ searchParams }: PagePr
           })}
         </div>
 
-        <div className="flex flex-wrap gap-4 text-sm">
-          <Link href="/apps/communications/compose" className="text-sky-400 hover:underline">
-            Compose email
-          </Link>
-        </div>
-
-        {rows.length === 0 ? (
-          <p className="text-sm text-slate-500">No communications match this filter.</p>
-        ) : (
-          <ul className="divide-y divide-slate-800 border-t border-slate-800">
-            {rows.map((row) => (
-              <li key={row.id} className="py-4">
-                <p className="text-sm font-medium text-white">
-                  {row.channel === "email" ? "Email" : row.channel}{" "}
-                  {row.direction === "outbound" ? "sent" : "received"}
-                  {row.aiGenerated ? " · AI-assisted" : ""}
-                  {row.source === "automation" ? " · automated" : ""}
-                </p>
-                <p className="mt-1 text-sm text-slate-300">
-                  {row.subject || "(no subject)"}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  To {row.toAddresses.join(", ") || "—"}
-                  {row.sentBy ? ` · Sent by ${row.sentBy}` : ""}
-                  {row.sentAt
-                    ? ` · ${new Date(row.sentAt).toLocaleString("en-AU")}`
-                    : ` · ${new Date(row.createdAt).toLocaleString("en-AU")}`}
-                  {" · "}
-                  {row.status}
-                  {row.provider ? ` · ${row.provider}` : ""}
-                </p>
-                {row.whySent ? (
-                  <p className="mt-2 text-xs text-slate-400">Why: {row.whySent}</p>
-                ) : null}
-                {row.contactId ? (
-                  <Link
-                    href={`/apps/crm/contacts/${row.contactId}`}
-                    className="mt-2 inline-block text-xs text-sky-400 hover:underline"
-                  >
-                    Open contact
-                  </Link>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
+        <CommunicationsList
+          rows={rows}
+          empty={
+            <>
+              No communications match this filter for {session.organisationName}.
+              <span className="mt-2 block">
+                History only shows emails DigitalGate recorded (Compose, Founding invites,
+                referrals). Gmail/Outlook mail appears after you{" "}
+                <Link href="/apps/communications/mailboxes" className="text-sky-400 hover:underline">
+                  connect a mailbox
+                </Link>
+                .
+              </span>
+              <span className="mt-2 block">
+                <Link href="/apps/communications/compose" className="text-sky-400 hover:underline">
+                  Compose an email
+                </Link>{" "}
+                to create the first record.
+              </span>
+            </>
+          }
+        />
       </main>
     </>
   );

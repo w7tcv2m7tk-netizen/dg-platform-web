@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/ota-ical-sync",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/scheduled-emails",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

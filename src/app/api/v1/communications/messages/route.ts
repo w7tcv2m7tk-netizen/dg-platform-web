@@ -1,5 +1,6 @@
 import {
   communicationsHealthCheck,
+  scheduleOutboundEmail,
   sendMessage,
   type CommsChannel,
 } from "@dg/platform-core";
@@ -40,6 +41,82 @@ export async function POST(req: Request) {
     );
   }
 
+  const metadata =
+    body?.metadata && typeof body.metadata === "object"
+      ? (body.metadata as Record<string, unknown>)
+      : {};
+
+  const scheduledRaw =
+    typeof body?.scheduledAt === "string" ? body.scheduledAt.trim() : "";
+  if (scheduledRaw) {
+    if (channel !== "email") {
+      return NextResponse.json(
+        {
+          error: {
+            code: "validation_error",
+            message: "Scheduling is only supported for email",
+          },
+        },
+        { status: 422 },
+      );
+    }
+    const scheduledAt = new Date(scheduledRaw);
+    if (Number.isNaN(scheduledAt.getTime()) || scheduledAt.getTime() <= Date.now()) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "validation_error",
+            message: "scheduledAt must be a future datetime",
+          },
+        },
+        { status: 422 },
+      );
+    }
+
+    try {
+      const record = await scheduleOutboundEmail({
+        organisationId: session.organisationId,
+        to: to.trim(),
+        subject: typeof body?.subject === "string" ? body.subject : undefined,
+        body: messageBody.trim(),
+        scheduledAt,
+        contactId: typeof body?.contactId === "string" ? body.contactId : undefined,
+        opportunityId:
+          typeof metadata.opportunityId === "string" ? metadata.opportunityId : undefined,
+        companyId: typeof metadata.companyId === "string" ? metadata.companyId : undefined,
+        sentBy: session.clerkUserId,
+        source: "manual",
+        whySent:
+          typeof metadata.whySent === "string"
+            ? metadata.whySent
+            : "Scheduled send from Communications",
+        metadata,
+      });
+      return NextResponse.json(
+        {
+          data: {
+            id: record?.id ?? `sched_${Date.now()}`,
+            channel: "email",
+            status: "scheduled",
+            provider: "resend",
+            scheduledAt: scheduledAt.toISOString(),
+          },
+        },
+        { status: 202 },
+      );
+    } catch (err) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "validation_error",
+            message: err instanceof Error ? err.message : "Could not schedule email",
+          },
+        },
+        { status: 422 },
+      );
+    }
+  }
+
   const result = await sendMessage({
     organisationId: session.organisationId,
     channel,
@@ -48,10 +125,9 @@ export async function POST(req: Request) {
     subject: body?.subject,
     body: messageBody.trim(),
     metadata: {
-      ...(body?.metadata && typeof body.metadata === "object" ? body.metadata : {}),
+      ...metadata,
       sentBy: session.clerkUserId,
-      source:
-        typeof body?.metadata?.source === "string" ? body.metadata.source : "manual",
+      source: typeof metadata.source === "string" ? metadata.source : "manual",
     },
   });
 

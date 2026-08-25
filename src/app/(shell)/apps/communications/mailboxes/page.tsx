@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CommunicationsSubnav } from "@/components/communications/CommunicationsList";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function CommunicationsMailboxesPage() {
@@ -31,11 +32,11 @@ export default async function CommunicationsMailboxesPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
+        <CommunicationsSubnav active="mailboxes" />
         <section className="max-w-lg space-y-3 rounded-lg border border-slate-800 p-4">
           <h2 className="text-sm font-medium text-white">Google Workspace / Gmail</h2>
           <p className="text-sm text-slate-400">
-            OAuth connect for read inbox, send, sync sent, and associate with Contacts. Next slice
-            after Email v1 History + Compose.
+            OAuth connect for read inbox, send, sync sent, and associate with Contacts.
           </p>
           <p className="text-xs text-amber-400/90">Coming next — use Compose (Resend) for now.</p>
         </section>
@@ -48,7 +49,11 @@ export default async function CommunicationsMailboxesPage() {
         </section>
         <p className="max-w-lg text-xs text-slate-500">
           Infrastructure → Email remains domain / DNS / mailbox provisioning. This screen is Core
-          Communications — business mail orchestration.
+          Communications — business mail orchestration. Until OAuth is live,{" "}
+          <Link href="/apps/communications/inbox" className="text-sky-400 hover:underline">
+            Inbox
+          </Link>{" "}
+          stays empty by design.
         </p>
       </main>
     </>

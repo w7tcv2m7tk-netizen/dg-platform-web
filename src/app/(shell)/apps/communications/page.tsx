@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { summarizeOrgCommunications } from "@dg/platform-core";
 
+import { CommunicationsSubnav } from "@/components/communications/CommunicationsList";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function CommunicationsOverviewPage() {
@@ -38,17 +39,7 @@ export default async function CommunicationsOverviewPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <div className="flex flex-wrap gap-4 text-sm">
-          <Link href="/apps/communications/history" className="text-sky-400 hover:underline">
-            History
-          </Link>
-          <Link href="/apps/communications/compose" className="text-sky-400 hover:underline">
-            Compose
-          </Link>
-          <Link href="/apps/communications/mailboxes" className="text-slate-500 hover:underline">
-            Mailboxes
-          </Link>
-        </div>
+        <CommunicationsSubnav active="history" />
 
         <section className="max-w-xl space-y-2">
           <p className="text-3xl font-semibold tabular-nums text-white">{summary.total}</p>
@@ -69,10 +60,21 @@ export default async function CommunicationsOverviewPage() {
                   </li>
                 ))}
               </ul>
+              <ul className="space-y-1">
+                {Object.entries(summary.bySource).map(([k, n]) => (
+                  <li key={`src-${k}`}>
+                    Source · {k}: {n}
+                  </li>
+                ))}
+              </ul>
             </div>
           ) : (
             <p className="mt-4 text-sm text-slate-500">
-              No communications yet. Compose an email, or email a contact from CRM.
+              No communications yet.{" "}
+              <Link href="/apps/communications/compose" className="text-sky-400 hover:underline">
+                Compose an email
+              </Link>{" "}
+              or send a Founding / referral invite. Inbox sync needs Mailboxes.
             </p>
           )}
         </section>
