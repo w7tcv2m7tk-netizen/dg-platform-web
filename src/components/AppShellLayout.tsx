@@ -17,6 +17,7 @@ import { OrgBrandProvider, orgBrandStyle } from "@/components/brand/OrgBrandProv
 import { ChatWidgetProvider } from "@/components/platform/ChatWidgetProvider";
 import { PrefetchCriticalRoutes } from "@/components/platform/PrefetchCriticalRoutes";
 import { Sidebar } from "@/components/Sidebar";
+import { useIsDesktopShell } from "@/hooks/useIsDesktopShell";
 import type { OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
 import { DEFAULT_ORG_BRAND_THEME, orgBrandCssVariables } from "@/lib/brand-client";
 
@@ -53,6 +54,7 @@ export function AppShellLayout({
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const isDesktop = useIsDesktopShell();
 
   useEffect(() => {
     setOpen(false);
@@ -66,7 +68,6 @@ export function AppShellLayout({
       htmlOverflow: html.style.overflow,
       bodyOverflow: body.style.overflow,
       bodyHeight: body.style.height,
-      htmlClass: html.classList.contains("dg-shell-scroll-lock"),
     };
     html.classList.add("dg-shell-scroll-lock");
     html.style.overflow = "hidden";
@@ -130,50 +131,56 @@ export function AppShellLayout({
           className="dg-branded-shell fixed inset-0 z-0 flex overflow-hidden print:static print:inset-auto print:h-auto print:min-h-0 print:overflow-visible"
           style={orgBrandStyle(brandTheme)}
         >
-          {/* Chat mounts inside branded shell so --org-primary applies to the floating widget. */}
           <ChatWidgetProvider
             userName={chatUserName}
             showFloatingChat={showFloatingChat}
           >
-            <div className="hidden h-full min-h-0 w-56 shrink-0 flex-col print:hidden md:flex">
-              <Sidebar {...sidebarProps} />
-            </div>
+            {/* Mount only one Sidebar — desktop OR open mobile drawer — to avoid duplicate fetches. */}
+            {isDesktop ? (
+              <div className="flex h-full min-h-0 w-56 shrink-0 flex-col print:hidden">
+                <Sidebar {...sidebarProps} />
+              </div>
+            ) : null}
 
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <div className="shrink-0 print:hidden">
                 {isDemo ? <DemoModeBanner canReset /> : null}
-                <MobileHeader onMenuClick={() => setOpen(true)} />
+                {!isDesktop ? <MobileHeader onMenuClick={() => setOpen(true)} /> : null}
               </div>
 
-              <div
-                className={`fixed inset-0 z-50 md:hidden ${open ? "" : "pointer-events-none"}`}
-                aria-hidden={!open}
-              >
-                <button
-                  type="button"
-                  className={`absolute inset-0 dg-branded-overlay backdrop-blur-sm transition-opacity duration-200 ${
-                    open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
-                  }`}
-                  aria-label="Close menu"
-                  tabIndex={open ? 0 : -1}
-                  onClick={close}
-                />
-                <aside
-                  className={`dg-branded-sidebar absolute inset-y-0 left-0 flex h-full w-[min(18rem,88vw)] flex-col overflow-hidden border-r border-slate-800 px-4 py-5 shadow-2xl transition-transform duration-200 ease-out ${
-                    open
-                      ? "pointer-events-auto translate-x-0"
-                      : "pointer-events-none -translate-x-full"
-                  }`}
-                  style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}
+              {!isDesktop ? (
+                <div
+                  className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`}
+                  aria-hidden={!open}
                 >
-                  <Sidebar
-                    variant="drawer"
-                    onNavigate={close}
-                    onClose={close}
-                    {...sidebarProps}
+                  <button
+                    type="button"
+                    className={`absolute inset-0 dg-branded-overlay backdrop-blur-sm transition-opacity duration-200 ${
+                      open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+                    }`}
+                    aria-label="Close menu"
+                    tabIndex={open ? 0 : -1}
+                    onClick={close}
                   />
-                </aside>
-              </div>
+                  <aside
+                    className={`dg-branded-sidebar absolute inset-y-0 left-0 flex h-full w-[min(18rem,88vw)] flex-col overflow-hidden border-r border-slate-800 px-4 py-5 shadow-2xl transition-transform duration-200 ease-out ${
+                      open
+                        ? "pointer-events-auto translate-x-0"
+                        : "pointer-events-none -translate-x-full"
+                    }`}
+                    style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}
+                  >
+                    {open ? (
+                      <Sidebar
+                        variant="drawer"
+                        onNavigate={close}
+                        onClose={close}
+                        {...sidebarProps}
+                      />
+                    ) : null}
+                  </aside>
+                </div>
+              ) : null}
 
               <div className="min-h-0 flex-1 overflow-x-clip overflow-y-auto overscroll-y-contain">
                 <ViewTransition

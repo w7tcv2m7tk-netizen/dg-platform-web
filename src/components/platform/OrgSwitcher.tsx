@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 import type { UserOrganisationSummary } from "@dg/platform-core";
 
@@ -15,6 +16,7 @@ export function OrgSwitcher({
 }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
+  const [pendingLabel, setPendingLabel] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newTemplate, setNewTemplate] = useState<
@@ -27,8 +29,11 @@ export function OrgSwitcher({
       setOpen(false);
       return;
     }
+    const target = organisations.find((o) => o.organisationId === organisationId);
     setPending(true);
+    setPendingLabel(target?.organisationName ?? "business");
     setError(null);
+    setOpen(false);
     const res = await fetch("/api/v1/org/switch", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -37,6 +42,7 @@ export function OrgSwitcher({
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
       setPending(false);
+      setPendingLabel(null);
       setError(json.error?.message ?? "Could not switch organisation");
       return;
     }
@@ -48,7 +54,10 @@ export function OrgSwitcher({
     e.preventDefault();
     if (!newName.trim()) return;
     setCreating(true);
+    setPending(true);
+    setPendingLabel(newName.trim());
     setError(null);
+    setOpen(false);
     const res = await fetch("/api/v1/org/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -57,10 +66,11 @@ export function OrgSwitcher({
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
       setCreating(false);
+      setPending(false);
+      setPendingLabel(null);
       setError(json.error?.message ?? "Could not create organisation");
       return;
     }
-    // RE beta onboarding path: Business Profile → connector → team → /apps/re
     if (newTemplate === "real-estate") {
       window.location.assign("/dashboard/business?reOnboarding=1");
       return;
@@ -75,41 +85,45 @@ export function OrgSwitcher({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        disabled={ pending}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-2.5 text-left transition hover:border-slate-600 hover:bg-slate-900"
-        aria-expanded={ open}
+        disabled={pending}
+        className="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-2.5 text-left transition hover:border-slate-600 hover:bg-slate-900 disabled:opacity-70"
+        aria-expanded={open}
         aria-haspopup="listbox"
       >
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-white">{ activeOrganisationName}</p>
+          <p className="truncate text-sm font-semibold text-white">{activeOrganisationName}</p>
           <p className="text-xs text-slate-500">
-            { hasMultiple ? `${ organisations.length} businesses` : "Active business"}
+            {pending
+              ? "Switching…"
+              : hasMultiple
+                ? `${organisations.length} businesses`
+                : "Active business"}
           </p>
         </div>
         <span className="shrink-0 text-slate-500" aria-hidden>
-          { open ? "▴" : "▾"}
+          {open ? "▴" : "▾"}
         </span>
       </button>
 
-      { open ? (
+      {open ? (
         <div className="absolute left-0 right-0 z-50 mt-1 rounded-xl border border-slate-700 bg-slate-950 py-1 shadow-xl">
           <ul className="max-h-48 overflow-y-auto" role="listbox">
-            { organisations.map((org) => (
-              <li key={ org.organisationId}>
+            {organisations.map((org) => (
+              <li key={org.organisationId}>
                 <button
                   type="button"
                   role="option"
-                  aria-selected={ org.organisationId === activeOrganisationId}
+                  aria-selected={org.organisationId === activeOrganisationId}
                   onClick={() => switchOrg(org.organisationId)}
-                  disabled={ pending}
-                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-800/80 ${
+                  disabled={pending}
+                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-800/80 disabled:opacity-50 ${
                     org.organisationId === activeOrganisationId
                       ? "bg-blue-500/10 text-blue-200"
                       : "text-slate-200"
                   }`}
                 >
-                  <span className="truncate">{ org.organisationName}</span>
-                  { org.organisationId === activeOrganisationId ? (
+                  <span className="truncate">{org.organisationName}</span>
+                  {org.organisationId === activeOrganisationId ? (
                     <span className="text-xs text-blue-400">Active</span>
                   ) : null}
                 </button>
@@ -121,16 +135,16 @@ export function OrgSwitcher({
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
               Add business
             </p>
-            <form onSubmit={ createOrg} className="space-y-2">
+            <form onSubmit={createOrg} className="space-y-2">
               <input
                 type="text"
-                value={ newName}
+                value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="e.g. Roe Realty"
                 className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-sm text-white placeholder:text-slate-600"
               />
               <select
-                value={ newTemplate}
+                value={newTemplate}
                 onChange={(e) =>
                   setNewTemplate(
                     e.target.value as
@@ -151,17 +165,38 @@ export function OrgSwitcher({
               </select>
               <button
                 type="submit"
-                disabled={ creating || !newName.trim()}
+                disabled={creating || pending || !newName.trim()}
                 className="w-full rounded-lg bg-blue-600 py-1.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
               >
-                { creating ? "Creating…" : "Create & switch"}
+                {creating ? "Creating…" : "Create & switch"}
               </button>
             </form>
           </div>
         </div>
       ) : null}
 
-      { error ? <p className="mt-1 text-xs text-amber-400">{ error}</p> : null}
+      {error ? <p className="mt-1 text-xs text-amber-400">{error}</p> : null}
+
+      {pending && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 px-6 backdrop-blur-sm"
+              role="status"
+              aria-live="polite"
+            >
+              <div className="max-w-sm rounded-2xl border border-slate-700 bg-slate-900 px-6 py-5 text-center shadow-2xl">
+                <p className="text-sm font-medium text-white">Switching business</p>
+                <p className="mt-1 text-sm text-slate-400 truncate">
+                  {pendingLabel ? `Loading ${pendingLabel}…` : "Loading…"}
+                </p>
+                <div className="mx-auto mt-4 h-1 w-32 overflow-hidden rounded-full bg-slate-800">
+                  <div className="h-full w-1/2 animate-pulse rounded-full bg-sky-500" />
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

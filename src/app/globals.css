@@ -210,7 +210,7 @@ body {
 /* Soft route transitions (experimental.viewTransition) — respect reduced motion. */
 ::view-transition-old(.dg-nav-fade),
 ::view-transition-new(.dg-nav-fade) {
-  animation-duration: 160ms;
+  animation-duration: 120ms;
   animation-timing-function: ease-out;
 }
 

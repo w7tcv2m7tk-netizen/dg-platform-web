@@ -1,27 +1,31 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
+import { ShellNavLink } from "@/components/ShellNavLink";
 import { SidebarIcon } from "@/components/SidebarIcon";
 import { itemHasActiveRoute, routeIsActive } from "@/lib/nav-route-match";
 import type { AppRoute, NavIaSection } from "@dg/platform-core";
 
-function linkClass(active: boolean) {
+function linkClass(active: boolean, pending = false) {
   return `flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
     active
       ? "bg-[color-mix(in_srgb,var(--org-primary)_14%,transparent)] text-white ring-1 ring-[color-mix(in_srgb,var(--org-primary)_35%,transparent)]"
-      : "text-slate-300 hover:bg-[var(--org-bg-surface-hover)] hover:text-white"
+      : pending
+        ? "bg-[var(--org-bg-surface-hover)] text-white"
+        : "text-slate-300 hover:bg-[var(--org-bg-surface-hover)] hover:text-white"
   }`;
 }
 
-function childLinkClass(active: boolean) {
+function childLinkClass(active: boolean, pending = false) {
   return `block min-h-10 rounded-md py-2 pl-9 pr-2 text-sm transition ${
     active
       ? "border-l-2 border-[var(--org-primary)] text-white"
-      : "text-slate-400 hover:text-slate-200"
+      : pending
+        ? "border-l-2 border-slate-600 text-slate-200"
+        : "text-slate-400 hover:text-slate-200"
   }`;
 }
 
@@ -52,34 +56,40 @@ function CollapsibleNavSection({
       {items.map((item) => {
         const isOpen = expanded[item.id] ?? false;
         const itemActive = itemHasActiveRoute(pathname, item.routes);
-        const rowClass = `flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition ${
-          itemActive
-            ? "bg-[color-mix(in_srgb,var(--org-primary)_14%,transparent)] text-white ring-1 ring-[color-mix(in_srgb,var(--org-primary)_35%,transparent)]"
-            : "text-slate-300 hover:bg-[var(--org-bg-surface-hover)] hover:text-white"
-        }`;
+        const rowClass = (pending: boolean) =>
+          `flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition ${
+            itemActive
+              ? "bg-[color-mix(in_srgb,var(--org-primary)_14%,transparent)] text-white ring-1 ring-[color-mix(in_srgb,var(--org-primary)_35%,transparent)]"
+              : pending
+                ? "bg-[var(--org-bg-surface-hover)] text-white"
+                : "text-slate-300 hover:bg-[var(--org-bg-surface-hover)] hover:text-white"
+          }`;
 
         return (
           <div key={item.id}>
-            <div className={rowClass}>
-              <Link
-                href={item.primaryHref}
-                prefetch
-                onClick={onNavigate}
-                className="flex min-w-0 flex-1 items-center gap-2"
-              >
-                <SidebarIcon glyph={item.icon} />
-                <span className="truncate">{item.name}</span>
-                {item.badge != null && item.badge > 0 ? (
-                  <span className="rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-amber-200">
-                    {item.badge > 99 ? "99+" : item.badge}
+            <div className="flex min-h-11 w-full items-stretch gap-0">
+              <div className="min-w-0 flex-1">
+                <ShellNavLink
+                  href={item.primaryHref}
+                  onClick={onNavigate}
+                  className={(pending) => rowClass(pending)}
+                >
+                  <span className="flex min-w-0 flex-1 items-center gap-2">
+                    <SidebarIcon glyph={item.icon} />
+                    <span className="truncate">{item.name}</span>
+                    {item.badge != null && item.badge > 0 ? (
+                      <span className="rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-amber-200">
+                        {item.badge > 99 ? "99+" : item.badge}
+                      </span>
+                    ) : null}
                   </span>
-                ) : null}
-              </Link>
+                </ShellNavLink>
+              </div>
               <button
                 type="button"
                 aria-label={isOpen ? `Collapse ${item.name}` : `Expand ${item.name}`}
                 onClick={() => onToggle(item.id)}
-                className="shrink-0 px-1 text-xs text-slate-500 hover:text-slate-300"
+                className="shrink-0 rounded-lg px-2 text-xs text-slate-500 hover:bg-[var(--org-bg-surface-hover)] hover:text-slate-300"
               >
                 <span aria-hidden>{isOpen ? "▾" : "▸"}</span>
               </button>
@@ -90,14 +100,13 @@ function CollapsibleNavSection({
                   const active = routeIsActive(pathname, route.path, item.routes);
                   return (
                     <li key={`${item.id}-${route.path}-${route.label}`}>
-                      <Link
+                      <ShellNavLink
                         href={route.path}
-                        prefetch
                         onClick={onNavigate}
-                        className={childLinkClass(active)}
+                        className={(pending) => childLinkClass(active, pending)}
                       >
                         {route.label}
-                      </Link>
+                      </ShellNavLink>
                     </li>
                   );
                 })}
@@ -113,7 +122,6 @@ function CollapsibleNavSection({
 function shellLinkActive(pathname: string, href: string, routes?: AppRoute[]): boolean {
   if (routes?.length) return itemHasActiveRoute(pathname, routes);
   if (pathname === href) return true;
-  // Overview / Business Health share /dashboard — only exact match
   if (href === "/dashboard") return pathname === "/dashboard";
   if (href === "/dashboard/settings") {
     return pathname === "/dashboard/settings";
@@ -145,16 +153,15 @@ function IaSectionBlock({
     return links.map((link) => {
       const active = shellLinkActive(pathname, link.href, link.routes);
       return (
-        <Link
+        <ShellNavLink
           key={`${section.id}-${link.href}-${link.label}`}
           href={link.href}
-          prefetch
           onClick={onNavigate}
-          className={`${linkClass(active)} min-h-11 py-2.5`}
+          className={(pending) => `${linkClass(active, pending)} min-h-11 py-2.5`}
         >
           <SidebarIcon glyph={link.icon ?? "◈"} />
           {link.label}
-        </Link>
+        </ShellNavLink>
       );
     });
   }
@@ -190,6 +197,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
   const ia = nav.ia;
 
+  // Keep the active app open; do not collapse other sections the user opened.
   useEffect(() => {
     let activeId: string | null = null;
     for (const section of [
@@ -211,7 +219,8 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       }
       if (activeId) break;
     }
-    setExpanded(activeId ? { [activeId]: true } : {});
+    if (!activeId) return;
+    setExpanded((prev) => (prev[activeId!] ? prev : { ...prev, [activeId!]: true }));
   }, [
     pathname,
     ia.digitalgate,
@@ -247,11 +256,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   }, [nav.commandCentre]);
 
   function toggleItem(id: string) {
-    setExpanded((prev) => {
-      const isOpen = prev[id] ?? false;
-      if (isOpen) return { ...prev, [id]: false };
-      return { [id]: true };
-    });
+    setExpanded((prev) => ({ ...prev, [id]: !(prev[id] ?? false) }));
   }
 
   const intelligenceAppsForRender = ia.intelligence.apps.map((app) => ({
@@ -282,16 +287,15 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         {ia.intelligence.links.map((link) => {
           const active = shellLinkActive(pathname, link.href, link.routes);
           return (
-            <Link
+            <ShellNavLink
               key={`intelligence-${link.href}-${link.label}`}
               href={link.href}
-              prefetch
               onClick={onNavigate}
-              className={`${linkClass(active)} min-h-11 py-2.5`}
+              className={(pending) => `${linkClass(active, pending)} min-h-11 py-2.5`}
             >
               <SidebarIcon glyph={link.icon ?? "◈"} />
               {link.label}
-            </Link>
+            </ShellNavLink>
           );
         })}
       </div>

@@ -17,7 +17,10 @@ export function SidebarUser() {
           <p className="truncate text-xs font-medium text-slate-300">Account</p>
           <p className="text-[10px] text-slate-500">Manage profile & sign out</p>
         </div>
-        <NotificationBell />
+        {/* Mobile uses MobileHeader bell — avoid a second 60s poll on small screens. */}
+        <div className="hidden md:block">
+          <NotificationBell />
+        </div>
       </div>
     </div>
   );
