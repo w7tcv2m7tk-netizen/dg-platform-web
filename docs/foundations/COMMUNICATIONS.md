@@ -189,8 +189,8 @@ Trust and auditability > clever send volume.
 **Mailbox sequence (organisation connectors):**
 
 1. **Google Workspace / Gmail** — live (OAuth)  
-2. **Microsoft 365 / Outlook** — Microsoft Graph OAuth + sync (env: `MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET` / redirect `…/api/connectors/microsoft-365/callback`)  
-3. **Apple iCloud Mail** — after Microsoft; app-specific password + IMAP (no public third-party OAuth)
+2. **Microsoft 365 / Outlook** — Microsoft Graph OAuth + sync (env: `MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET`)  
+3. **Apple iCloud Mail** — live (IMAP + Apple app-specific password; no public third-party OAuth)
 
 Google / Microsoft / iCloud remain the **authoritative mailboxes**. DigitalGate syncs into `OrgCommunication` and owns association, history, and next action — not the mailbox product.
 
@@ -371,7 +371,7 @@ Communications is a primary way the business interacts with the outside world.
 | **Connected Services (customer)** | `/dashboard/settings/connected-services` — human cards (Gmail · GBP · Microsoft coming next · Stripe · WordPress) | **Live** |
 | **Gmail OAuth** | `/api/connectors/google-gmail/*` · Mailboxes Connect / Sync / Disconnect | **Live** |
 | **Microsoft 365 OAuth** | `/api/connectors/microsoft-365/*` · Graph sync into Inbox | **Live** (needs Azure app + env on deploy) |
-| **Apple iCloud** | Connected Services + Mailboxes card | **Queued** after Microsoft (IMAP / app-specific password) |
+| **Apple iCloud** | `/api/v1/connectors/apple-icloud/*` · IMAP + app-specific password · Mailboxes panel | **Live** |
 | **Gmail sync** | Manual Sync + post-connect → `OrgCommunication` (provider `gmail`, source `mailbox`) · Contact match by email | **Live** |
 | **Send API** | `/api/v1/communications/messages` | **Live** — Resend + OrgCommunication; optional `scheduledAt` |
 | **Scheduled flush** | `/api/cron/scheduled-emails` (daily) + flush on Scheduled page open | **Live** |
@@ -393,11 +393,10 @@ Gmail OAuth needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and redirect URI `
 
 **v1 scope shipped:** Organisation-scoped communication records · **three-column Inbox** (conversation grouping by `threadKey` / contact / message) · manual compose · Reply → Compose · Send later / Scheduled · Sent + History · Signature Studio · Founding / referral provenance · Automations catalogue · **Gmail connect + sync into Inbox** · Connected Services customer page · Resend provider · Microsoft Mailboxes / Connected Services placeholder.
 
-**Not yet (Phases 2–6):** Apple iCloud mailbox · send-as-Gmail/Microsoft identity · full mailbox body fetch-on-open · AI Assist drafts / summaries · SMS/WhatsApp Live · Outreach sequencer · starred / snoozed / assigned · Communication Health score · unsupervised agent send · open/reply webhooks · classification → Priorities.
+**Not yet (Phases 2–6):** send-as-Gmail/Microsoft/iCloud identity · full mailbox body fetch-on-open · AI Assist drafts / summaries · SMS/WhatsApp Live · Outreach sequencer · starred / snoozed / assigned · Communication Health score · unsupervised agent send · open/reply webhooks · classification → Priorities.
 
 ### Core — Communications Email v1 (remaining)
 
-- Apple iCloud Mail (after Microsoft is production-validated)  
 - Send as connected mailbox identity  
 - AI Assist **draft-only** behind governance  
 

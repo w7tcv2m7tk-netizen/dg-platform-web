@@ -139,22 +139,26 @@ export function ConnectedServicesCatalog() {
     async function load() {
       setError(null);
       try {
-        const [gmailRes, gbpRes, microsoftRes] = await Promise.all([
+        const [gmailRes, gbpRes, microsoftRes, icloudRes] = await Promise.all([
           fetch("/api/v1/connectors/google-gmail/status"),
           fetch("/api/v1/connectors/google/status"),
           fetch("/api/v1/connectors/microsoft-365/status"),
+          fetch("/api/v1/connectors/apple-icloud/status"),
         ]);
         const gmailJson = await gmailRes.json().catch(() => ({}));
         const gbpJson = await gbpRes.json().catch(() => ({}));
         const microsoftJson = await microsoftRes.json().catch(() => ({}));
+        const icloudJson = await icloudRes.json().catch(() => ({}));
 
         const gmailOrg = gmailJson?.data?.organisation;
         const gbpOrg = gbpJson?.data?.organisation;
         const microsoftOrg = microsoftJson?.data?.organisation;
         const microsoftPlatform = microsoftJson?.data?.platform;
+        const icloudOrg = icloudJson?.data?.organisation;
         const gmailConnected = Boolean(gmailOrg?.connected);
         const gbpConnected = Boolean(gbpOrg?.connected);
         const microsoftConnected = Boolean(microsoftOrg?.connected);
+        const icloudConnected = Boolean(icloudOrg?.connected);
         const gmailEmail = gmailOrg?.email as string | null | undefined;
         const gmailLastSync = gmailOrg?.health?.lastSyncAt as string | null | undefined;
         const gbpLastSync = gbpOrg?.health?.lastSyncAt as string | null | undefined;
@@ -163,6 +167,8 @@ export function ConnectedServicesCatalog() {
           | string
           | null
           | undefined;
+        const icloudEmail = icloudOrg?.email as string | null | undefined;
+        const icloudLastSync = icloudOrg?.health?.lastSyncAt as string | null | undefined;
 
         const next: ServiceGroup[] = [
           {
@@ -230,10 +236,23 @@ export function ConnectedServicesCatalog() {
               {
                 id: "apple-icloud",
                 name: "Apple iCloud Mail",
-                description: "Business iCloud mailbox — after Microsoft 365.",
-                status: "coming_next",
-                detail: "App-specific password path (no public OAuth for third parties).",
+                description: "Business iCloud mailbox via app-specific password.",
+                status: icloudConnected ? "connected" : "not_connected",
+                detail: icloudConnected
+                  ? [
+                      icloudEmail,
+                      icloudLastSync
+                        ? `Last synced ${new Date(icloudLastSync).toLocaleString("en-AU")}`
+                        : "Connected — run Sync on Mailboxes if inbox is empty",
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")
+                  : "Generate an app-specific password at appleid.apple.com, then connect on Mailboxes.",
                 enables: "Inbox · Timeline",
+                primaryHref: "/apps/communications/mailboxes",
+                primaryLabel: icloudConnected ? "Manage mailbox" : "Connect",
+                secondaryHref: icloudConnected ? "/apps/communications" : undefined,
+                secondaryLabel: icloudConnected ? "Open Inbox" : undefined,
               },
               {
                 id: "business-phone",

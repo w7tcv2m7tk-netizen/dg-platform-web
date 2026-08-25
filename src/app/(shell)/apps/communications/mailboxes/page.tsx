@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { CommunicationsSubnav } from "@/components/communications/CommunicationsList";
 import { GmailMailboxPanel } from "@/components/communications/GmailMailboxPanel";
+import { IcloudMailboxPanel } from "@/components/communications/IcloudMailboxPanel";
 import { MicrosoftMailboxPanel } from "@/components/communications/MicrosoftMailboxPanel";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
@@ -57,16 +58,9 @@ export default async function CommunicationsMailboxesPage({
           flash={microsoftFlash}
           flashMessage={microsoftFlash ? flashMessage : null}
         />
-        <section className="max-w-lg space-y-3 rounded-lg border border-slate-800 p-4">
-          <h2 className="text-sm font-medium text-white">Apple iCloud Mail</h2>
-          <p className="text-sm text-slate-400">
-            Business iCloud mailbox via app-specific password (IMAP) — after Microsoft Graph is
-            live in production.
-          </p>
-          <p className="text-xs text-amber-400/90">Coming after Microsoft 365</p>
-        </section>
+        <IcloudMailboxPanel />
         <p className="max-w-lg text-xs text-slate-500">
-          Sequence: Google (live) → Microsoft 365 (OAuth) → Apple iCloud. After connect, open{" "}
+          Sequence: Google · Microsoft 365 · Apple iCloud. After connect, open{" "}
           <Link href="/apps/communications" className="text-sky-400 hover:underline">
             Inbox
           </Link>{" "}

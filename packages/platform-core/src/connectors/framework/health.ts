@@ -51,8 +51,8 @@ export function isConnectorPlatformConfigured(connectorId: string): boolean {
     case "microsoft-365":
       return Boolean(envTrim("MICROSOFT_CLIENT_ID") && envTrim("MICROSOFT_CLIENT_SECRET"));
     case "apple-icloud":
-      // IMAP / app-specific password — not platform-configured until connector ships
-      return false;
+      // Org-owned app-specific password — always available as a connect path
+      return true;
     case "linkedin":
       return Boolean(envTrim("LINKEDIN_CLIENT_ID") && envTrim("LINKEDIN_CLIENT_SECRET"));
     case "stripe":
@@ -189,6 +189,35 @@ function statusFromBlob(
     connectorId === "domain"
   ) {
     return oauthOrgStatusFromBlob(blob);
+  }
+
+  if (connectorId === "apple-icloud") {
+    const email = typeof blob.email === "string" ? blob.email : "";
+    const appPassword =
+      typeof blob.appPassword === "string" ? blob.appPassword : "";
+    const connected = Boolean(email && appPassword);
+    const health =
+      blob.health && typeof blob.health === "object"
+        ? (blob.health as {
+            status?: ConnectorConnectionStatus;
+            lastSyncAt?: string | null;
+            lastError?: string | null;
+          })
+        : null;
+    const lastError =
+      (typeof health?.lastError === "string" ? health.lastError : null) ||
+      (typeof blob.lastError === "string" ? blob.lastError : null);
+    let status: ConnectorConnectionStatus = connected ? "connected" : "disconnected";
+    if (health?.status) status = health.status;
+    else if (connected && lastError) status = "degraded";
+    return {
+      status,
+      connectedAt: typeof blob.connectedAt === "string" ? blob.connectedAt : null,
+      expiresAt: null,
+      label: typeof blob.label === "string" ? blob.label : email || null,
+      lastError,
+      lastSyncAt: typeof health?.lastSyncAt === "string" ? health.lastSyncAt : null,
+    };
   }
 
   const accessToken = typeof blob.accessToken === "string" ? blob.accessToken : "";
