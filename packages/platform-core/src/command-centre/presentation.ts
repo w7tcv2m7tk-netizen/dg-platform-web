@@ -97,7 +97,7 @@ export function buildTodaySummary(input: {
   if (input.openTasksDue > 0) {
     items.push({
       id: "tasks-due",
-      label: `${input.openTasksDue} CRM task${input.openTasksDue === 1 ? "" : "s"} due`,
+      label: `${input.openTasksDue} DigitalGate CRM task${input.openTasksDue === 1 ? "" : "s"} due`,
       href: "/command/tasks",
     });
   }

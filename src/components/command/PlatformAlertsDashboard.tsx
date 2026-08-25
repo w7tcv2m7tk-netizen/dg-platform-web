@@ -94,7 +94,11 @@ export function PlatformAlertsDashboard({ data }: { data: PlatformAlertsCentre }
           Operational load
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <LoadStat label="Tasks due today" value={operationalLoad.tasksDueToday} href="/command/tasks" />
+          <LoadStat
+            label="DigitalGate CRM tasks due"
+            value={operationalLoad.tasksDueToday}
+            href="/command/tasks"
+          />
           <LoadStat label="Overdue responses" value={operationalLoad.overdueResponses} href="/command/clients" />
           <LoadStat label="Delivery blocked" value={operationalLoad.deliveryBlocked} href="/command/delivery" />
           <LoadStat label="Failed onboarding" value={operationalLoad.failedOnboarding} href="/command/delivery" />

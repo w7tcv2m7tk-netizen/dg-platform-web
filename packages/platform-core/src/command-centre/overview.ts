@@ -271,31 +271,8 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
   const monthStart = startOfMonth();
   const now = new Date();
 
-  const operatorOrgIdFromEnv =
-    process.env.DG_OPERATOR_ORG_ID?.trim() ||
-    process.env.DG_COMMAND_CENTRE_ORG_IDS?.split(",")
-      .map((id) => id.trim())
-      .filter(Boolean)[0] ||
-    null;
-
-  const operatorOrg =
-    (operatorOrgIdFromEnv
-      ? await prisma.organisation.findUnique({
-          where: { id: operatorOrgIdFromEnv },
-          select: { id: true },
-        })
-      : null) ??
-    (await prisma.organisation.findFirst({
-      where: {
-        OR: [
-          { slug: "digitalgate" },
-          { slug: { startsWith: "digitalgate-" } },
-        ],
-      },
-      select: { id: true },
-    }));
-
-  const operatorOrganisationId = operatorOrg?.id ?? operatorOrgIdFromEnv;
+  const { resolveDigitalGateOperatorOrganisationId } = await import("../tasks");
+  const operatorOrganisationId = await resolveDigitalGateOperatorOrganisationId();
 
   const [
     organisations,
@@ -327,9 +304,15 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     prisma.lead.count(),
     prisma.lead.count({ where: { createdAt: { gte: weekStart } } }),
     prisma.opportunity.count({ where: { status: "open" } }),
-    prisma.task.count({
-      where: { status: "open", dueAt: { lte: todayEnd } },
-    }),
+    operatorOrganisationId
+      ? prisma.task.count({
+          where: {
+            organisationId: operatorOrganisationId,
+            status: "open",
+            dueAt: { lte: todayEnd },
+          },
+        })
+      : Promise.resolve(0),
     prisma.lead.count({
       where: {
         responseDueAt: { lt: now },
@@ -550,8 +533,9 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     actions.push({
       id: "tasks-due",
       severity: "today",
-      title: `${openTasksDue} open CRM task${openTasksDue === 1 ? "" : "s"} due today or overdue`,
-      detail: "Customer org follow-up tasks (CRM) with due dates on or before today — not Delivery implementation tasks.",
+      title: `${openTasksDue} DigitalGate CRM task${openTasksDue === 1 ? "" : "s"} due today or overdue`,
+      detail:
+        "DigitalGate operator CRM only — customer org tasks (e.g. Currumbin Valley Hideaway) stay in that workspace's CRM Tasks.",
       href: "/command/tasks",
     });
   }

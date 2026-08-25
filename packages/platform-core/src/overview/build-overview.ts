@@ -129,7 +129,7 @@ function buildSnapshotKpis(
       id: "tasks",
       label: "Tasks Due",
       value: metrics.openTasksDue > 0 ? String(metrics.openTasksDue) : "—",
-      href: "/apps/automation",
+      href: "/apps/crm/tasks",
     },
   ];
 

@@ -114,7 +114,39 @@ export async function listTasks(options: ListTasksOptions) {
   };
 }
 
-/** Command Centre — CRM tasks open with due date on or before end of today (platform-wide). */
+/** Resolve DigitalGate operator organisation id (Command Centre home org). */
+export async function resolveDigitalGateOperatorOrganisationId(): Promise<
+  string | null
+> {
+  const { prisma } = await import("@dg/database");
+  const fromEnv =
+    process.env.DG_OPERATOR_ORG_ID?.trim() ||
+    process.env.DG_COMMAND_CENTRE_ORG_IDS?.split(",")
+      .map((id) => id.trim())
+      .filter(Boolean)[0] ||
+    null;
+
+  const operatorOrg =
+    (fromEnv
+      ? await prisma.organisation.findUnique({
+          where: { id: fromEnv },
+          select: { id: true },
+        })
+      : null) ??
+    (await prisma.organisation.findFirst({
+      where: {
+        OR: [
+          { slug: "digitalgate" },
+          { slug: { startsWith: "digitalgate-" } },
+        ],
+      },
+      select: { id: true },
+    }));
+
+  return operatorOrg?.id ?? fromEnv;
+}
+
+/** Command Centre — DigitalGate operator CRM tasks due today / overdue (not customer orgs). */
 export type CommandCentreOpenTaskDue = ReturnType<typeof serializeTask> & {
   organisationName: string;
   organisationSlug: string;
@@ -123,6 +155,8 @@ export type CommandCentreOpenTaskDue = ReturnType<typeof serializeTask> & {
 
 export async function listCommandCentreOpenTasksDue(options?: {
   limit?: number;
+  /** Defaults to DigitalGate operator org — customer tenant tasks stay in that org's CRM. */
+  organisationId?: string | null;
 }): Promise<{ items: CommandCentreOpenTaskDue[]; total: number }> {
   const { prisma } = await import("@dg/database");
   const limit = Math.min(options?.limit ?? 100, 200);
@@ -130,7 +164,17 @@ export async function listCommandCentreOpenTasksDue(options?: {
   todayEnd.setHours(23, 59, 59, 999);
   const now = Date.now();
 
+  const organisationId =
+    options?.organisationId !== undefined
+      ? options.organisationId
+      : await resolveDigitalGateOperatorOrganisationId();
+
+  if (!organisationId) {
+    return { items: [], total: 0 };
+  }
+
   const where: Prisma.TaskWhereInput = {
+    organisationId,
     status: "open",
     dueAt: { lte: todayEnd },
   };
