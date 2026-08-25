@@ -67,7 +67,6 @@ export function CommunicationsSubnav({ active }: { active: string }) {
     { id: "outreach", href: "/apps/communications/outreach", label: "Outreach" },
     { id: "templates", href: "/apps/communications/templates", label: "Templates" },
     { id: "signatures", href: "/apps/communications/signatures", label: "Signatures" },
-    { id: "ai", href: "/apps/communications/ai", label: "AI" },
   ] as const;
 
   return (

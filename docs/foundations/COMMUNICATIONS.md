@@ -36,7 +36,8 @@ CORE
               │
               ├── Inbox · Email · SMS · Calls · AI Conversations
               ├── Outreach · Templates · Signatures
-              ├── AI → Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings
+              ├── AI tooling (Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings)
+              │     → reached from AI Conversations top nav — not duplicate sidebar items
               ├── Channels: Email · SMS · Voice · WhatsApp · …
               ├── Sources: Manual · Automation · AI Assist · Prospecting · Agent · System · Mailbox
               └── Linked to: Organisation · Contact · Company · Opportunity · Task ·
@@ -46,7 +47,7 @@ CORE
 **Mental model**
 
 - **Email · SMS · Calls** — how the business communicates (channels).
-- **AI** — how DigitalGate helps the business communicate (Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings).
+- **AI** — how DigitalGate helps the business communicate. Tooling (Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings) lives under **AI Conversations** top buttons — not a nested sidebar group.
 - **Inbox** — universal attention surface (direction: all conversations, not a mailbox clone).
 - **AI Conversations** — AI-managed / AI-assisted conversation surface (not the same as Inbox).
 - **Outreach** — communication execution for acquisition (Prospect → Email → SMS → Call → follow-up → CRM / Opportunity) — not a siloed marketing campaign tool.
@@ -70,15 +71,14 @@ Secondary nav (**locked August 2026**):
 | **Email** | Send/manage email channel (Compose · Sent · Scheduled · Mailboxes) |
 | **SMS** | Messaging channel (same Communication Record) |
 | **Calls** | Call history / recordings — AI voice tooling under **AI** |
-| **AI Conversations** | AI-assisted conversation surface (not a second mailbox) |
+| **AI Conversations** | AI-assisted conversation surface + entry to Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings |
 | **Outreach** | Sequences / acquisition execution emitting Communication records |
 | **Templates** | Reusable copy / structure |
 | **Signatures** | Signature Studio |
-| **AI** | Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings |
 
 **Do not** put Email or Email history under CRM. CRM → Timeline is the universal cross-business history; Communications does **not** duplicate a second “Activity / Communication History” nav item.
 
-**Do not** surface Growth **AI Communications** as a separate customer sidebar app. Soft-hidden (`SIDEBAR_HIDDEN_APP_IDS`); routes nest under Communications → AI.
+**Do not** surface Growth **AI Communications** as a separate customer sidebar app. Soft-hidden (`SIDEBAR_HIDDEN_APP_IDS`). Do **not** nest Voice Agents / Call Centre / Agent Builder / Knowledge / AI Settings as sidebar children — they appear on AI Conversations.
 
 **Documents** stay a separate Core app (Library · Signing · Templates) — related to, not inside, Communications.
 
@@ -358,7 +358,7 @@ Communications is a primary way the business interacts with the outside world.
 | Surface | Path | Status |
 |---------|------|--------|
 | **Core Communications home** | `/apps/communications` — Needs attention · Inbox preview · Quick actions · Recent activity | **Live** |
-| **Core Communications nav** | Inbox · Email · SMS · Calls · AI Conversations · Outreach · Templates · Signatures · **AI** (Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings) | **Live** (SMS/Calls/Outreach/Templates placeholders; AI nested) |
+| **Core Communications nav** | Inbox · Email · SMS · Calls · AI Conversations · Outreach · Templates · Signatures | **Live** (SMS/Calls/Outreach/Templates placeholders; AI tooling via AI Conversations) |
 | **Email channel** | `/apps/communications/email` → Compose · Sent · Scheduled · Mailboxes | **Live** |
 | **Signature Studio v1** | `/apps/communications/signatures` · `organisation.settings.communications.signatures` · default appended on Compose | **Live** |
 | **Connected Services (customer)** | `/dashboard/settings/connected-services` — human cards (Gmail · GBP · Microsoft coming next · Stripe · WordPress) | **Live** |
@@ -369,7 +369,7 @@ Communications is a primary way the business interacts with the outside world.
 | **CRM** | Contact → Email contact (Compose) · Timeline (universal history) — **no Email module under CRM** | **Live** |
 | **Persistence** | Prisma `OrgCommunication` (`org_communications`, `scheduled_at`) | **Live** after `prisma db push` |
 
-**IA lock:** Growth **AI Communications** soft-hidden from sidebar (`SIDEBAR_HIDDEN_APP_IDS`); operator surfaces nest under **Communications → AI**. History association is Core + CRM Timeline + Universal Objects. Founding Mode still slims Growth via `org-apps.ts`.
+**IA lock:** Growth **AI Communications** soft-hidden from sidebar (`SIDEBAR_HIDDEN_APP_IDS`); AI tooling is reached from **AI Conversations**, not a nested sidebar group. History association is Core + CRM Timeline + Universal Objects. Founding Mode still slims Growth via `org-apps.ts`.
 
 **Deploy:**
 

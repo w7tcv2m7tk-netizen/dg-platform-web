@@ -21,21 +21,21 @@ export const communicationsApp: AppManifest = {
     { path: "/apps/communications/email", label: "Email" },
     { path: "/apps/communications/sms", label: "SMS" },
     { path: "/apps/communications/calls", label: "Calls" },
-    { path: "/apps/ai-communications/inbox", label: "AI Conversations" },
+    {
+      path: "/apps/ai-communications/inbox",
+      label: "AI Conversations",
+      matchAlso: [
+        "/apps/communications/ai",
+        "/apps/ai-communications/voice",
+        "/apps/ai-communications/call-centre",
+        "/apps/ai-communications/agents",
+        "/apps/ai-communications/knowledge",
+        "/apps/ai-communications/settings",
+      ],
+    },
     { path: "/apps/communications/outreach", label: "Outreach" },
     { path: "/apps/communications/templates", label: "Templates" },
     { path: "/apps/communications/signatures", label: "Signatures" },
-    {
-      path: "/apps/communications/ai",
-      label: "AI",
-      children: [
-        { path: "/apps/ai-communications/voice", label: "Voice Agents" },
-        { path: "/apps/ai-communications/call-centre", label: "Call Centre" },
-        { path: "/apps/ai-communications/agents", label: "Agent Builder" },
-        { path: "/apps/ai-communications/knowledge", label: "Knowledge" },
-        { path: "/apps/ai-communications/settings", label: "AI Settings" },
-      ],
-    },
     { path: "/apps/communications", label: "Overview" },
   ],
   navigation: [

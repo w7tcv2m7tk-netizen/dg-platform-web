@@ -1,0 +1,24 @@
+---
+description: DigitalGate deploy conventions — Git auto-deploy only; never alias Wantd
+alwaysApply: true
+---
+
+# Deploy & Vercel project boundaries
+
+## DigitalGate (`dg-platform-web`)
+
+- **Production app:** `https://app.digitalgate.com.au`
+- **Vercel project:** `dg-platform-web` (`prj_RzOMts2AdqpKtbAgZ72GLKs55AJ2`)
+- **Ship path:** `c & p` = commit + push to `main` → **Git-connected Vercel auto-deploys production**. That is enough.
+- **Do not** run `vercel deploy --prod` after `c & p` unless Ben explicitly asks for a CLI hotfix deploy. Manual CLI deploys duplicate Git auto-deploys and have aliased the wrong domain.
+- When Ben says **deploy** alone after a push: confirm Git auto-deploy is the intended path; do not start a second CLI production deploy.
+
+## Wantd is separate
+
+- **`wantd.co.nz` must not** be a production alias / domain on the DigitalGate Vercel project.
+- Wantd and DigitalGate are **separate products/projects** operationally. Do not treat CLI “Aliased https://wantd.co.nz” as a successful DigitalGate ship signal.
+- If a CLI deploy output shows `wantd.co.nz`, stop and fix Vercel domain assignment before continuing.
+
+## Domains that belong on DigitalGate
+
+Prefer confirming production via `app.digitalgate.com.au` (and related DigitalGate hostnames), never Wantd.

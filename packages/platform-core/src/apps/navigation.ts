@@ -185,7 +185,7 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   communications: {
     name: "Communications",
     routes: [
-      // Channels first · AI nested · no separate Growth AI Communications silo.
+      // Channels first · AI Conversations hub · no separate Growth AI Communications silo.
       { path: "/apps/communications/inbox", label: "Inbox" },
       {
         path: "/apps/communications/email",
@@ -202,21 +202,18 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
       {
         path: "/apps/ai-communications/inbox",
         label: "AI Conversations",
+        matchAlso: [
+          "/apps/communications/ai",
+          "/apps/ai-communications/voice",
+          "/apps/ai-communications/call-centre",
+          "/apps/ai-communications/agents",
+          "/apps/ai-communications/knowledge",
+          "/apps/ai-communications/settings",
+        ],
       },
       { path: "/apps/communications/outreach", label: "Outreach" },
       { path: "/apps/communications/templates", label: "Templates" },
       { path: "/apps/communications/signatures", label: "Signatures" },
-      {
-        path: "/apps/communications/ai",
-        label: "AI",
-        children: [
-          { path: "/apps/ai-communications/voice", label: "Voice Agents" },
-          { path: "/apps/ai-communications/call-centre", label: "Call Centre" },
-          { path: "/apps/ai-communications/agents", label: "Agent Builder" },
-          { path: "/apps/ai-communications/knowledge", label: "Knowledge" },
-          { path: "/apps/ai-communications/settings", label: "AI Settings" },
-        ],
-      },
     ],
   },
   "real-estate": {

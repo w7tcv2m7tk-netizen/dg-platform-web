@@ -2,6 +2,16 @@
 
 Get the Next.js client portal live with real login (Clerk) on Vercel.
 
+## Ship workflow (locked)
+
+1. **`c & p`** — commit + push `main`.
+2. **Vercel Git integration auto-deploys production** to `app.digitalgate.com.au`.
+3. **Do not** run `vercel deploy --prod` after every push — that duplicates deploys and previously aliased **`wantd.co.nz`** (wrong).
+
+Wantd (`wantd.co.nz`) is a **separate** product. It must not be a production domain on the DigitalGate Vercel project (`dg-platform-web`).
+
+---
+
 ## 1. Clerk (auth)
 
 See also **[docs/CLERK-AUTH-SETTINGS.md](./docs/CLERK-AUTH-SETTINGS.md)** for session length, Client Trust (2FA on new devices only), and same-window login.
