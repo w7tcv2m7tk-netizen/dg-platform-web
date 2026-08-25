@@ -52,29 +52,38 @@ function CollapsibleNavSection({
       {items.map((item) => {
         const isOpen = expanded[item.id] ?? false;
         const itemActive = itemHasActiveRoute(pathname, item.routes);
+        const rowClass = `flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition ${
+          itemActive
+            ? "bg-[color-mix(in_srgb,var(--org-primary)_14%,transparent)] text-white ring-1 ring-[color-mix(in_srgb,var(--org-primary)_35%,transparent)]"
+            : "text-slate-300 hover:bg-[var(--org-bg-surface-hover)] hover:text-white"
+        }`;
 
         return (
           <div key={item.id}>
-            <button
-              type="button"
-              onClick={() => onToggle(item.id)}
-              className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition ${
-                itemActive
-                  ? "bg-[color-mix(in_srgb,var(--org-primary)_14%,transparent)] text-white ring-1 ring-[color-mix(in_srgb,var(--org-primary)_35%,transparent)]"
-                  : "text-slate-300 hover:bg-[var(--org-bg-surface-hover)] hover:text-white"
-              }`}
-            >
-              <SidebarIcon glyph={item.icon} />
-              <span className="flex-1 truncate">{item.name}</span>
-              {item.badge != null && item.badge > 0 ? (
-                <span className="rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-amber-200">
-                  {item.badge > 99 ? "99+" : item.badge}
-                </span>
-              ) : null}
-              <span className="text-xs text-slate-500" aria-hidden>
-                {isOpen ? "▾" : "▸"}
-              </span>
-            </button>
+            <div className={rowClass}>
+              <Link
+                href={item.primaryHref}
+                prefetch
+                onClick={onNavigate}
+                className="flex min-w-0 flex-1 items-center gap-2"
+              >
+                <SidebarIcon glyph={item.icon} />
+                <span className="truncate">{item.name}</span>
+                {item.badge != null && item.badge > 0 ? (
+                  <span className="rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-amber-200">
+                    {item.badge > 99 ? "99+" : item.badge}
+                  </span>
+                ) : null}
+              </Link>
+              <button
+                type="button"
+                aria-label={isOpen ? `Collapse ${item.name}` : `Expand ${item.name}`}
+                onClick={() => onToggle(item.id)}
+                className="shrink-0 px-1 text-xs text-slate-500 hover:text-slate-300"
+              >
+                <span aria-hidden>{isOpen ? "▾" : "▸"}</span>
+              </button>
+            </div>
             {isOpen ? (
               <ul className="mb-1 mt-0.5 space-y-0.5">
                 {item.routes.map((route) => {

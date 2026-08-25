@@ -160,6 +160,19 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
       { path: "/apps/commerce/reports", label: "Reports" },
     ],
   },
+  crm: {
+    routes: [
+      { path: "/apps/crm/contacts", label: "Contacts" },
+      { path: "/apps/crm/companies", label: "Companies" },
+      { path: "/apps/crm/opportunities", label: "Opportunities" },
+      { path: "/apps/crm/consultations", label: "Consultations" },
+      { path: "/apps/crm/tasks", label: "Tasks" },
+      { path: "/apps/crm/timeline", label: "Timeline" },
+      // Email UI lives in Core Communications — surfaced here so CRM users find it
+      { path: "/apps/communications/compose", label: "Email" },
+      { path: "/apps/communications/history", label: "Email history" },
+    ],
+  },
   documents: {
     name: "Documents",
     routes: [
@@ -171,9 +184,9 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   communications: {
     name: "Communications",
     routes: [
+      { path: "/apps/communications/compose", label: "Compose email" },
+      { path: "/apps/communications/history", label: "Sent & history" },
       { path: "/apps/communications", label: "Overview" },
-      { path: "/apps/communications/history", label: "History" },
-      { path: "/apps/communications/compose", label: "Compose" },
       { path: "/apps/communications/mailboxes", label: "Mailboxes" },
     ],
   },

@@ -28,7 +28,16 @@ export default async function CrmContactsPage() {
       <>
         <header className="dg-page-header">
           <h1 className="text-2xl font-bold text-white">Contacts</h1>
-          <p className="text-sm text-slate-400">CRM Core App</p>
+          <p className="mt-1 text-sm text-slate-400">
+            CRM ·{" "}
+            <Link href="/apps/communications/compose" className="text-sky-400 hover:underline">
+              Email
+            </Link>
+            {" · "}
+            <Link href="/apps/communications/history" className="text-sky-400 hover:underline">
+              Email history
+            </Link>
+          </p>
         </header>
         <main className="dg-page-main">
           <div className="dg-card max-w-2xl">
@@ -62,6 +71,14 @@ export default async function CrmContactsPage() {
         <p className="text-sm text-slate-400">
           {session.organisationName} · {meta.total} contact
           {meta.total === 1 ? "" : "s"} in Platform
+          {" · "}
+          <Link href="/apps/communications/compose" className="text-sky-400 hover:underline">
+            Email
+          </Link>
+          {" · "}
+          <Link href="/apps/communications/history" className="text-sky-400 hover:underline">
+            History
+          </Link>
         </p>
       </header>
       <main className="dg-page-main">

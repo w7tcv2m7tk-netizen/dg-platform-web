@@ -15,14 +15,14 @@ export const communicationsApp: AppManifest = {
   version: "0.1.0",
   icon: getSidebarIcon("communications"),
   routes: [
+    { path: "/apps/communications/compose", label: "Compose email" },
+    { path: "/apps/communications/history", label: "Sent & history" },
     { path: "/apps/communications", label: "Overview" },
-    { path: "/apps/communications/history", label: "History" },
-    { path: "/apps/communications/compose", label: "Compose" },
     { path: "/apps/communications/mailboxes", label: "Mailboxes" },
   ],
   navigation: [
     {
-      href: "/apps/communications",
+      href: "/apps/communications/compose",
       label: "Communications",
       icon: getSidebarIcon("communications"),
     },

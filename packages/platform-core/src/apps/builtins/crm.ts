@@ -14,6 +14,8 @@ export const crmApp: AppManifest = {
     { path: "/apps/crm/consultations", label: "Consultations" },
     { path: "/apps/crm/tasks", label: "Tasks" },
     { path: "/apps/crm/timeline", label: "Timeline" },
+    { path: "/apps/communications/compose", label: "Email" },
+    { path: "/apps/communications/history", label: "Email history" },
   ],
   navigation: [
     { href: "/apps/crm/contacts", label: "Contacts", icon: "☷" },
@@ -22,6 +24,8 @@ export const crmApp: AppManifest = {
     { href: "/apps/crm/consultations", label: "Consultations", icon: "◷" },
     { href: "/apps/crm/tasks", label: "Tasks", icon: "☑" },
     { href: "/apps/crm/timeline", label: "Timeline", icon: "▤" },
+    { href: "/apps/communications/compose", label: "Email", icon: "✉" },
+    { href: "/apps/communications/history", label: "Email history", icon: "✉" },
   ],
   permissions: [
     { id: "crm.view_contacts", label: "View contacts" },

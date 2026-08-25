@@ -24,8 +24,8 @@ const CORE_BUSINESS_APPS = [
   {
     id: "communications",
     name: "Communications",
-    href: "/apps/communications",
-    description: "Email history, compose, CRM-linked communication records",
+    href: "/apps/communications/compose",
+    description: "Compose email and communication history (also under CRM → Email)",
   },
   {
     id: "websites",
