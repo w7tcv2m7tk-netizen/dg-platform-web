@@ -74,7 +74,7 @@ export default async function CommunicationsHistoryPage({ searchParams }: PagePr
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active="history" />
+        <CommunicationsSubnav active="inbox" />
         <div className="flex flex-wrap gap-2 text-xs">
           {FILTERS.map((f) => {
             const active = filter === f.id;

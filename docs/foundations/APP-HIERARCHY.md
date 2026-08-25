@@ -61,7 +61,7 @@ Workflow logic: **Know → Communicate → Document → Transact**.
 
 **Documents** is the Core nav app; **Documents & Signing** is the capability (Document Engine + Signing Engine). Industry Apps consume it with templates; do **not** place e-sign under Infrastructure. See [DOCUMENTS-AND-SIGNING.md](./DOCUMENTS-AND-SIGNING.md).
 
-**Communications** is the Core nav app for the business communication layer (Communication Record · History · mailbox orchestration · Assist). Do **not** build a Gmail/Outlook clone; Google/Microsoft remain authoritative mailboxes. Do **not** invent a second customer “AI Communications” product that silos voice/email from Core history — voice agents may still commercialise as Growth capacity, but **history and association belong to Core Communications**. See [COMMUNICATIONS.md](./COMMUNICATIONS.md). **Live:** Communications home · Compose · Sent · Scheduled · Automations · Signature Studio · History · Gmail OAuth + sync · Inbox · Connected Services. Growth AI Communications soft-hidden from sidebar. **Next:** Microsoft · Assist drafts · Communication Health.
+**Communications** is the Core nav app for the business communication layer. **Locked Core mental model:** CRM knows who → Communications talks to them → Documents records what matters → Commerce handles the transaction → Design presents the business. Do **not** put Email under CRM. Do **not** surface Growth **AI Communications** in customer nav — Assist is Write with AI inside Communications. Nav: Inbox · Email · SMS · Calls · Outreach · Templates · Signatures. Universal history = CRM Timeline (no duplicate Activity nav). See [COMMUNICATIONS.md](./COMMUNICATIONS.md).
 
 ### Connected Services vs Connector Engine (customer vs operator)
 
@@ -105,7 +105,7 @@ Commercial honesty: not every Industry or Template is fully developed. Real Esta
 
 AI Visibility · SEO Engine · Analytics · Social Management · Reviews · Prospecting / Opportunity Engine (where appropriate)
 
-**AI Communications (legacy Growth app name):** commercial container for advanced voice agents / Call Centre / high-volume AI employees. Progressively **absorb into Core Communications → Calls / AI** for history and association; keep Growth packaging only for monetised agent capacity. Do not force customers to choose between “Email system” and “AI Communications system.”
+**AI Communications (legacy Growth app name):** soft-hidden from customer sidebar. Voice agent capacity may still deep-link from Communications → Calls; do **not** present a second customer “AI Communications” silo. Assist = Write with AI inside Core Communications.
 
 ## 5. INTELLIGENCE — understand the business
 

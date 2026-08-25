@@ -121,7 +121,7 @@ export default async function CommunicationsOverviewPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommunicationsSubnav active="overview" />
+        <CommunicationsSubnav active="" />
 
         <section className="max-w-2xl">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
@@ -182,7 +182,7 @@ export default async function CommunicationsOverviewPage() {
           </h2>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link
-              href="/apps/communications/compose"
+              href="/apps/communications/email"
               className="rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-500"
             >
               + Email
@@ -201,16 +201,16 @@ export default async function CommunicationsOverviewPage() {
               Schedule
             </Link>
             <Link
-              href="/apps/communications/mailboxes"
-              className="rounded-full border border-slate-600 px-4 py-2 text-xs font-semibold text-slate-200 hover:border-slate-400"
-            >
-              Mailboxes
-            </Link>
-            <Link
-              href="/apps/ai-communications/voice"
+              href="/apps/communications/calls"
               className="rounded-full border border-slate-600 px-4 py-2 text-xs font-semibold text-slate-200 hover:border-slate-400"
             >
               Calls
+            </Link>
+            <Link
+              href="/apps/crm/timeline"
+              className="rounded-full border border-slate-600 px-4 py-2 text-xs font-semibold text-slate-200 hover:border-slate-400"
+            >
+              Timeline
             </Link>
           </div>
         </section>
@@ -221,10 +221,10 @@ export default async function CommunicationsOverviewPage() {
               Recent activity
             </h2>
             <Link
-              href="/apps/communications/history"
+              href="/apps/crm/timeline"
               className="text-xs text-sky-400 hover:underline"
             >
-              History →
+              CRM Timeline →
             </Link>
           </div>
           {recent.length === 0 ? (
@@ -264,8 +264,9 @@ export default async function CommunicationsOverviewPage() {
         </section>
 
         <p className="max-w-2xl text-xs text-slate-500">
-          Voice agents remain available under Calls. Communication history — email, system,
-          mailbox sync — lives here in Core Communications.
+          Write with AI lives under Communications (shared AI Service) — not a separate Growth
+          product. Cross-business history stays on CRM → Timeline. Documents remain a separate Core
+          capability.
         </p>
       </main>
     </>

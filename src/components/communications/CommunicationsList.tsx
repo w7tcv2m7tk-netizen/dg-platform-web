@@ -59,15 +59,13 @@ export function CommunicationsList({
 
 export function CommunicationsSubnav({ active }: { active: string }) {
   const items = [
-    { id: "overview", href: "/apps/communications", label: "Overview" },
     { id: "inbox", href: "/apps/communications/inbox", label: "Inbox" },
-    { id: "compose", href: "/apps/communications/compose", label: "Compose" },
-    { id: "sent", href: "/apps/communications/sent", label: "Sent" },
-    { id: "scheduled", href: "/apps/communications/scheduled", label: "Scheduled" },
-    { id: "automations", href: "/apps/communications/automations", label: "Automations" },
+    { id: "email", href: "/apps/communications/email", label: "Email" },
+    { id: "sms", href: "/apps/communications/sms", label: "SMS" },
+    { id: "calls", href: "/apps/communications/calls", label: "Calls" },
+    { id: "outreach", href: "/apps/communications/outreach", label: "Outreach" },
+    { id: "templates", href: "/apps/communications/templates", label: "Templates" },
     { id: "signatures", href: "/apps/communications/signatures", label: "Signatures" },
-    { id: "history", href: "/apps/communications/history", label: "History" },
-    { id: "mailboxes", href: "/apps/communications/mailboxes", label: "Mailboxes" },
   ] as const;
 
   return (

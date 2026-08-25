@@ -52,7 +52,7 @@ export default async function CommunicationsScheduledPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active="scheduled" />
+        <CommunicationsSubnav active="email" />
         <CommunicationsList
           rows={rows}
           showScheduledAt

@@ -30,12 +30,12 @@ export default async function CrmContactsPage() {
           <h1 className="text-2xl font-bold text-white">Contacts</h1>
           <p className="mt-1 text-sm text-slate-400">
             CRM ·{" "}
-            <Link href="/apps/communications/compose" className="text-sky-400 hover:underline">
-              Email
+            <Link href="/apps/communications" className="text-sky-400 hover:underline">
+              Communications
             </Link>
             {" · "}
-            <Link href="/apps/communications/history" className="text-sky-400 hover:underline">
-              Email history
+            <Link href="/apps/crm/timeline" className="text-sky-400 hover:underline">
+              Timeline
             </Link>
           </p>
         </header>
@@ -72,12 +72,12 @@ export default async function CrmContactsPage() {
           {session.organisationName} · {meta.total} contact
           {meta.total === 1 ? "" : "s"} in Platform
           {" · "}
-          <Link href="/apps/communications/compose" className="text-sky-400 hover:underline">
-            Email
+          <Link href="/apps/communications" className="text-sky-400 hover:underline">
+            Communications
           </Link>
           {" · "}
-          <Link href="/apps/communications/history" className="text-sky-400 hover:underline">
-            History
+          <Link href="/apps/crm/timeline" className="text-sky-400 hover:underline">
+            Timeline
           </Link>
         </p>
       </header>

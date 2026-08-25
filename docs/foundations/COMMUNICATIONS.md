@@ -51,24 +51,23 @@ Primary operator question (every surface should serve this):
 
 **Home (direction):** greeting · Needs attention · Inbox preview · Quick actions (+ Email · + SMS · ✦ Write with AI · Schedule · Start outreach) · Recent activity — not SMTP/provider mechanics.
 
-Secondary nav (modules — not separate products):
+Secondary nav (modules — not separate products; **locked August 2026**):
 
 | Surface | Role |
 |---------|------|
-| Inbox | Connected Google / Microsoft mailboxes (synced, associated) |
-| Email | Compose · Sent · Drafts · Scheduled · Templates · Signatures |
-| SMS / Calls | Channels that share the same Communication Record |
-| Drafts | Human + AI Assist drafts awaiting send |
-| Scheduled | Timed sends |
-| Automations | Rule/event-triggered communications |
-| Outreach | Prospecting / campaign communications |
-| Templates | Reusable copy / structure |
-| Signatures | **Signature Studio** — identity · branding · content · behaviour · Gmail/Outlook preview |
-| AI / Assist | Draft modes — human reviews, human sends |
-| History | Global Communication History (all channels) |
-| Settings / Accounts | Connected mailbox identities (customer-facing) |
+| **Inbox** | Conversations that need attention (not synonymous with Email) |
+| **Email** | Send/manage email channel (Compose · Sent · Scheduled · Mailboxes) |
+| **SMS** | Messaging channel (same Communication Record) |
+| **Calls** | Call history / recordings — voice capacity tooling may deep-link; history is Core |
+| **Outreach** | Campaigns / sequences that emit Communication records |
+| **Templates** | Reusable copy / structure |
+| **Signatures** | **Signature Studio** |
 
-The operator does **not** need to experience these as separate systems; History + context panels + Advisor / Priorities are the primary lens.
+**Do not** put Email or Email history under CRM. CRM → Timeline is the universal cross-business history; Communications does **not** duplicate a second “Activity / Communication History” nav item.
+
+**Do not** surface Growth **AI Communications** in customer navigation. AI Assist is **Write with AI** inside Communications (shared AI Service).
+
+**Documents** stay a separate Core app (files · agreements · signing) — related to, not inside, Communications.
 
 ---
 
@@ -316,17 +315,18 @@ Communications is a primary way the business interacts with the outside world.
 | Surface | Path | Status |
 |---------|------|--------|
 | **Core Communications home** | `/apps/communications` — Needs attention · Inbox preview · Quick actions · Recent activity | **Live** |
-| **Core Communications app** | Overview · Inbox · Compose · Sent · Scheduled · Automations · Signatures · History · Mailboxes | **Live** |
+| **Core Communications nav** | Inbox · Email · SMS · Calls · Outreach · Templates · Signatures | **Live** (SMS/Calls/Outreach/Templates placeholders) |
+| **Email channel** | `/apps/communications/email` → Compose · Sent · Scheduled · Mailboxes | **Live** |
 | **Signature Studio v1** | `/apps/communications/signatures` · `organisation.settings.communications.signatures` · default appended on Compose | **Live** |
 | **Connected Services (customer)** | `/dashboard/settings/connected-services` — human cards (Gmail · GBP · Microsoft coming next · Stripe · WordPress) | **Live** |
 | **Gmail OAuth** | `/api/connectors/google-gmail/*` · Mailboxes Connect / Sync / Disconnect | **Live** (Google first; Microsoft next) |
 | **Gmail sync** | Manual Sync + post-connect → `OrgCommunication` (provider `gmail`, source `mailbox`) · Contact match by email | **Live** |
 | **Send API** | `/api/v1/communications/messages` | **Live** — Resend + OrgCommunication; optional `scheduledAt` |
 | **Scheduled flush** | `/api/cron/scheduled-emails` (daily) + flush on Scheduled page open | **Live** |
-| **CRM** | Contact → Email contact / History | **Live** |
+| **CRM** | Contact → Email contact (Compose) · Timeline (universal history) — **no Email module under CRM** | **Live** |
 | **Persistence** | Prisma `OrgCommunication` (`org_communications`, `scheduled_at`) | **Live** after `prisma db push` |
 
-**IA:** Growth **AI Communications** is soft-hidden from the sidebar (`SIDEBAR_HIDDEN_APP_IDS`); `/apps/ai-communications/*` remains for deep links (e.g. Calls → voice). Founding Mode still slims Growth via `org-apps.ts` — no new progressive-reveal engine this epic.
+**IA lock:** Growth **AI Communications** soft-hidden from sidebar (`SIDEBAR_HIDDEN_APP_IDS`); Calls deep-links to voice tooling; history association is Core + CRM Timeline. Founding Mode still slims Growth via `org-apps.ts`.
 
 **Deploy:**
 

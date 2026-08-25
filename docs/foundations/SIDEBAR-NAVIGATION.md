@@ -34,7 +34,7 @@ DigitalGate Owner/Admin may expose the full operating environment. Customer user
 
 ```
 CORE
-  Business · CRM · Commerce · Design Studio
+  Business · CRM · Communications · Documents · Commerce · Design Studio
 
 INFRASTRUCTURE
   Infrastructure (Domains, DNS, SSL, Hosting, Email, Backups, Cloudflare)
@@ -43,7 +43,8 @@ INDUSTRY
   (dynamic — activated Industry Apps / Templates only)
 
 GROWTH
-  Prospecting & Opportunity Engine ($99) · AI Visibility ($99) · SEO ($99) · Automation ($49) · Analytics ($49) · Social ($79) · AI Communications ($99) · Reputation (Free)
+  Prospecting & Opportunity Engine ($99) · AI Visibility ($99) · SEO ($99) · Automation ($49) · Analytics ($49) · Social ($79) · Reputation (Free)
+  (AI Communications is **not** customer sidebar — Assist lives under Core Communications → Write with AI / Calls)
 
 INTELLIGENCE
   AI Advisor · Digital Twin · Business Brain · Business Health · Benchmarks · Insights · Reports
@@ -70,7 +71,7 @@ PLATFORM (staff) / PLATFORM ADMIN (customers)
 
 ### CORE order
 
-**Business** (Overview · Business Profile · Goals · Team) → CRM → Commerce → Design Studio.
+**Business** (Overview · Business Profile · Goals · Team) → CRM → Communications → Documents → Commerce → Design Studio.
 
 Business leads CORE — who you are — then operating apps.
 

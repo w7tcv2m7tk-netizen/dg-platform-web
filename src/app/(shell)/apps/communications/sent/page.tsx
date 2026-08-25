@@ -43,7 +43,7 @@ export default async function CommunicationsSentPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active="sent" />
+        <CommunicationsSubnav active="email" />
         <CommunicationsList
           rows={rows}
           empty={

@@ -43,7 +43,7 @@ export default async function CommunicationsMailboxesPage({
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active="mailboxes" />
+        <CommunicationsSubnav active="email" />
         <GmailMailboxPanel flash={flash} flashMessage={flashMessage} />
         <section className="max-w-lg space-y-3 rounded-lg border border-slate-800 p-4">
           <h2 className="text-sm font-medium text-white">Microsoft 365 / Outlook</h2>

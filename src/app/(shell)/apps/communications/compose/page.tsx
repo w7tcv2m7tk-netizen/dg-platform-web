@@ -52,8 +52,8 @@ export default async function CommunicationsComposePage({ searchParams }: PagePr
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/apps/communications" className="text-sm text-sky-400 hover:underline">
-          ← Communications
+        <Link href="/apps/communications/email" className="text-sm text-sky-400 hover:underline">
+          ← Email
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Compose email</h1>
         <p className="mt-1 text-sm text-slate-400">
@@ -61,7 +61,7 @@ export default async function CommunicationsComposePage({ searchParams }: PagePr
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active="compose" />
+        <CommunicationsSubnav active="email" />
         <CommunicationsComposeForm
           defaultTo={params.to?.trim() || contact?.email || ""}
           defaultSubject={params.subject?.trim() || ""}

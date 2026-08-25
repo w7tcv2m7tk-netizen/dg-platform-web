@@ -172,9 +172,6 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
       { path: "/apps/crm/consultations", label: "Consultations" },
       { path: "/apps/crm/tasks", label: "Tasks" },
       { path: "/apps/crm/timeline", label: "Timeline" },
-      // Email UI lives in Core Communications — surfaced here so CRM users find it
-      { path: "/apps/communications/compose", label: "Email" },
-      { path: "/apps/communications/history", label: "Email history" },
     ],
   },
   documents: {
@@ -188,15 +185,23 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   communications: {
     name: "Communications",
     routes: [
-      { path: "/apps/communications", label: "Overview" },
+      // Inbox = attention; Email = channel. History stays CRM Timeline (no Activity duplicate).
       { path: "/apps/communications/inbox", label: "Inbox" },
-      { path: "/apps/communications/compose", label: "Compose" },
-      { path: "/apps/communications/sent", label: "Sent" },
-      { path: "/apps/communications/scheduled", label: "Scheduled" },
-      { path: "/apps/communications/automations", label: "Automations" },
+      {
+        path: "/apps/communications/email",
+        label: "Email",
+        matchAlso: [
+          "/apps/communications/compose",
+          "/apps/communications/sent",
+          "/apps/communications/scheduled",
+          "/apps/communications/mailboxes",
+        ],
+      },
+      { path: "/apps/communications/sms", label: "SMS" },
+      { path: "/apps/communications/calls", label: "Calls" },
+      { path: "/apps/communications/outreach", label: "Outreach" },
+      { path: "/apps/communications/templates", label: "Templates" },
       { path: "/apps/communications/signatures", label: "Signatures" },
-      { path: "/apps/communications/history", label: "History" },
-      { path: "/apps/communications/mailboxes", label: "Mailboxes" },
     ],
   },
   "real-estate": {
@@ -623,7 +628,8 @@ function toTreeItem(app: RegisteredApp, enabledIds: string[]): AppNavTreeItem {
   const { manifest } = app;
   const overlay = SIDEBAR_APP_DISPLAY[manifest.id];
   const routes = overlay?.routes ?? manifest.routes;
-  const primaryHref = routes[0]?.path ?? manifest.navigation[0]?.href ?? "/dashboard";
+  const primaryHref =
+    manifest.navigation[0]?.href ?? routes[0]?.path ?? "/dashboard";
 
   return {
     kind: "app",

@@ -4,26 +4,26 @@ import { getSidebarIcon } from "../sidebar-icons";
 /**
  * Communications — Core App (business communication layer).
  * Not a Gmail clone. Google/Microsoft remain mailbox SoT.
+ * CRM owns who; Communications talks to them; Timeline is universal history.
  * @see docs/foundations/COMMUNICATIONS.md
  */
 export const communicationsApp: AppManifest = {
   id: "communications",
   name: "Communications",
   description:
-    "Business communication layer — history, compose, and CRM-linked email (not a mailbox clone)",
+    "Business communication layer — Inbox, channels, and AI Assist (not a mailbox clone)",
   tier: "core",
-  version: "0.1.0",
+  version: "0.2.0",
   icon: getSidebarIcon("communications"),
   routes: [
-    { path: "/apps/communications", label: "Overview" },
     { path: "/apps/communications/inbox", label: "Inbox" },
-    { path: "/apps/communications/compose", label: "Compose" },
-    { path: "/apps/communications/sent", label: "Sent" },
-    { path: "/apps/communications/scheduled", label: "Scheduled" },
-    { path: "/apps/communications/automations", label: "Automations" },
+    { path: "/apps/communications/email", label: "Email" },
+    { path: "/apps/communications/sms", label: "SMS" },
+    { path: "/apps/communications/calls", label: "Calls" },
+    { path: "/apps/communications/outreach", label: "Outreach" },
+    { path: "/apps/communications/templates", label: "Templates" },
     { path: "/apps/communications/signatures", label: "Signatures" },
-    { path: "/apps/communications/history", label: "History" },
-    { path: "/apps/communications/mailboxes", label: "Mailboxes" },
+    { path: "/apps/communications", label: "Overview" },
   ],
   navigation: [
     {

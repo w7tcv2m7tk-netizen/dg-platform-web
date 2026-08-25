@@ -100,10 +100,10 @@ export default async function ContactDetailPage({ params }: PageProps) {
             </Link>
           )}
           <Link
-            href={`/apps/communications/history?contactId=${encodeURIComponent(contact.id)}`}
+            href={`/apps/crm/timeline`}
             className="text-slate-400 hover:underline"
           >
-            Communication history
+            Timeline
           </Link>
         </p>
         <p className="text-sm text-slate-400">

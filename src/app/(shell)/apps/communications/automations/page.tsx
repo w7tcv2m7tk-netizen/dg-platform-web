@@ -62,7 +62,7 @@ export default async function CommunicationsAutomationsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommunicationsSubnav active="automations" />
+        <CommunicationsSubnav active="email" />
         <ul className="space-y-3">
           {CATALOGUE.map((item) => (
             <li
