@@ -259,7 +259,7 @@ Communications is a primary way the business interacts with the outside world.
 |---------|------|--------|
 | **Core Communications app** | `/apps/communications` · Compose · Inbox · Sent · Scheduled · Automations · History · Mailboxes | **Live** |
 | **Send API** | `/api/v1/communications/messages` | **Live** — Resend + OrgCommunication; optional `scheduledAt` |
-| **Scheduled flush** | `/api/cron/scheduled-emails` | **Live** — every 15m |
+| **Scheduled flush** | `/api/cron/scheduled-emails` (daily) + flush on Scheduled page open | **Live** |
 | **CRM** | Contact → Email contact / History | **Live** |
 | **Persistence** | Prisma `OrgCommunication` (`org_communications`, `scheduled_at`) | **Live** after `prisma db push` |
 

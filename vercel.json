@@ -14,7 +14,7 @@
     },
     {
       "path": "/api/cron/scheduled-emails",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 9 * * *"
     }
   ]
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listOrgCommunications } from "@dg/platform-core";
+import { listOrgCommunications, processDueScheduledEmails } from "@dg/platform-core";
 
 import {
   CommunicationsList,
@@ -23,6 +23,14 @@ export default async function CommunicationsScheduledPage() {
     );
   }
 
+  if (process.env.DATABASE_URL) {
+    // Hobby cron is daily — flush this org's due rows when the page is opened.
+    await processDueScheduledEmails({
+      organisationId: session.organisationId,
+      limit: 25,
+    }).catch(() => null);
+  }
+
   const rows = process.env.DATABASE_URL
     ? await listOrgCommunications({
         organisationId: session.organisationId,
@@ -39,7 +47,8 @@ export default async function CommunicationsScheduledPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Scheduled</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Timed sends waiting to go out. Due items flush via the scheduled-email cron.
+          Timed sends waiting to go out. Due items flush when you open this page (and via the daily
+          cron).
         </p>
       </header>
       <main className="dg-page-main space-y-6">
