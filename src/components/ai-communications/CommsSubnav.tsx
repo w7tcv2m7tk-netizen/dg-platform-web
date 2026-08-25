@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const LINKS = [
-  { href: "/apps/communications/inbox", label: "Inbox" },
+  { href: "/apps/communications", label: "Inbox" },
   { href: "/apps/communications/ai", label: "AI" },
   { href: "/apps/ai-communications/inbox", label: "AI Conversations" },
   { href: "/apps/ai-communications/voice", label: "Voice Agents" },
@@ -17,8 +17,11 @@ export function CommsSubnav({ active }: { active: string }) {
       {LINKS.map((link) => {
         const isActive =
           link.href === active ||
+          (link.href === "/apps/communications" &&
+            (active === "/apps/communications" ||
+              active.startsWith("/apps/communications/inbox"))) ||
           (link.href !== "/apps/ai-communications/inbox" &&
-            link.href !== "/apps/communications/inbox" &&
+            link.href !== "/apps/communications" &&
             link.href !== "/apps/communications/ai" &&
             active.startsWith(link.href));
         return (

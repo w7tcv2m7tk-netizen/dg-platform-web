@@ -61,13 +61,13 @@ Primary operator question (every surface should serve this):
 
 > Who did we communicate with, what was said, why was it sent, and what happens next?
 
-**Home (direction):** greeting · Needs attention · Inbox preview · Quick actions (+ Email · + SMS · ✦ Write with AI · Schedule · Start outreach) · Recent activity — not SMTP/provider mechanics.
+**Home (direction):** three-column **Inbox** is the Communications landing (`/apps/communications`) — folders · conversation list · thread + CRM context. Overview dashboard deferred.
 
 Secondary nav (**locked August 2026**):
 
 | Surface | Role |
 |---------|------|
-| **Inbox** | Universal conversations that need attention (filters: All · Email · SMS · Calls · AI · Unread · Waiting · Assigned) |
+| **Inbox** | Universal conversations (Phase 1 folders: All · Needs reply · Email · Manual · Automated · AI · Mailbox). Starred / snoozed / assigned deferred. |
 | **Email** | Send/manage email channel (Compose · Sent · Scheduled · Mailboxes) |
 | **SMS** | Messaging channel (same Communication Record) |
 | **Calls** | Call history / recordings — AI voice tooling under **AI** |
@@ -357,7 +357,7 @@ Communications is a primary way the business interacts with the outside world.
 
 | Surface | Path | Status |
 |---------|------|--------|
-| **Core Communications home** | `/apps/communications` — Needs attention · Inbox preview · Quick actions · Recent activity | **Live** |
+| **Core Communications Inbox (Phase 1)** | `/apps/communications` (+ `/inbox` alias) — three-column workspace: folders · conversations · thread + CRM context | **Live** |
 | **Core Communications nav** | Inbox · Email · SMS · Calls · AI Conversations · Outreach · Templates · Signatures | **Live** (SMS/Calls/Outreach/Templates placeholders; AI tooling via AI Conversations) |
 | **Email channel** | `/apps/communications/email` → Compose · Sent · Scheduled · Mailboxes | **Live** |
 | **Signature Studio v1** | `/apps/communications/signatures` · `organisation.settings.communications.signatures` · default appended on Compose | **Live** |
@@ -382,9 +382,9 @@ npm run db:push
 Uploads/sends need `RESEND_API_KEY` on Vercel (existing transactional path).  
 Gmail OAuth needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and redirect URI `…/api/connectors/google-gmail/callback` registered in Google Cloud Console (`GOOGLE_GMAIL_REDIRECT_URI` optional override).
 
-**v1 scope shipped:** Organisation-scoped communication records · Communications home · manual compose · Send later / Scheduled · Sent + History · Signature Studio · Founding / referral provenance · Automations catalogue · **Gmail connect + sync into Inbox/History** · Connected Services customer page · Resend provider · Microsoft Mailboxes / Connected Services placeholder.
+**v1 scope shipped:** Organisation-scoped communication records · **three-column Inbox** (conversation grouping by `threadKey` / contact / message) · manual compose · Reply → Compose · Send later / Scheduled · Sent + History · Signature Studio · Founding / referral provenance · Automations catalogue · **Gmail connect + sync into Inbox** · Connected Services customer page · Resend provider · Microsoft Mailboxes / Connected Services placeholder.
 
-**Not yet:** Microsoft Graph OAuth · send-as-Gmail identity · AI Assist drafts · SMS/WhatsApp Live (TelephonyProvider scaffold: Twilio first · Telnyx evaluate) · Communication Health score · unsupervised agent send · multi-step drip sequencer UI · open/reply webhooks · classification → Priorities.
+**Not yet (Phases 2–6):** Microsoft Graph OAuth · send-as-Gmail identity · full mailbox body fetch-on-open · AI Assist drafts / summaries · SMS/WhatsApp Live · Outreach sequencer · starred / snoozed / assigned · Communication Health score · unsupervised agent send · open/reply webhooks · classification → Priorities.
 
 ### Core — Communications Email v1 (remaining)
 

@@ -23,6 +23,12 @@ export default function CommunicationsEmailPage() {
         <CommunicationsSubnav active="email" />
         <div className="flex flex-wrap gap-2">
           <Link
+            href="/apps/communications"
+            className="rounded-full border border-slate-600 px-4 py-2 text-xs font-semibold text-slate-200 hover:border-slate-400"
+          >
+            Open Inbox
+          </Link>
+          <Link
             href="/apps/communications/compose"
             className="rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-500"
           >

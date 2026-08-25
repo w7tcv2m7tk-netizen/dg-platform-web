@@ -5,6 +5,8 @@ import type {
   CommunicationDirection,
   CommunicationSource,
   CommunicationStatus,
+  ConversationSummary,
+  InboxFolderId,
   PlatformCommunication,
 } from "./types";
 
@@ -71,7 +73,10 @@ type OrgCommunicationRow = {
   updatedAt: Date;
 };
 
-export function toPlatformCommunication(row: OrgCommunicationRow): PlatformCommunication {
+export function toPlatformCommunication(
+  row: OrgCommunicationRow,
+  opts?: { includeBodyHtml?: boolean },
+): PlatformCommunication {
   return {
     id: row.id,
     organisationId: row.organisationId,
@@ -81,6 +86,7 @@ export function toPlatformCommunication(row: OrgCommunicationRow): PlatformCommu
     status: row.status as CommunicationStatus,
     subject: row.subject ?? undefined,
     bodyPreview: row.bodyPreview ?? undefined,
+    ...(opts?.includeBodyHtml && row.bodyHtml ? { bodyHtml: row.bodyHtml } : {}),
     fromAddress: row.fromAddress ?? undefined,
     toAddresses: row.toAddresses ?? [],
     ccAddresses: row.ccAddresses ?? [],
@@ -113,6 +119,9 @@ export type ListOrgCommunicationsInput = {
   direction?: string;
   contactId?: string;
   opportunityId?: string;
+  threadKey?: string;
+  /** Case-insensitive search across subject, from, to, preview */
+  q?: string;
   /** Convenience filters matching History UI */
   filter?:
     | "all"
@@ -125,7 +134,9 @@ export type ListOrgCommunicationsInput = {
     | "system"
     | "mailbox"
     | "sent"
-    | "scheduled";
+    | "scheduled"
+    | "needs_reply"
+    | "manual";
   limit?: number;
 };
 
@@ -153,6 +164,10 @@ export async function listOrgCommunications(
         source = "system";
       } else if (input.filter === "mailbox") {
         source = "mailbox";
+      } else if (input.filter === "manual") {
+        source = "manual";
+      } else if (input.filter === "needs_reply") {
+        direction = "inbound";
       } else if (input.filter === "sent") {
         direction = "outbound";
         channel = channel ?? "email";
@@ -162,6 +177,7 @@ export async function listOrgCommunications(
       }
     }
 
+    const q = input.q?.trim();
     const rows = await prisma.orgCommunication.findMany({
       where: {
         organisationId: input.organisationId,
@@ -173,6 +189,19 @@ export async function listOrgCommunications(
         ...(direction ? { direction } : {}),
         ...(input.contactId ? { contactId: input.contactId } : {}),
         ...(input.opportunityId ? { opportunityId: input.opportunityId } : {}),
+        ...(input.threadKey ? { threadKey: input.threadKey } : {}),
+        ...(input.filter === "needs_reply"
+          ? { status: { not: "replied" as const } }
+          : {}),
+        ...(q
+          ? {
+              OR: [
+                { subject: { contains: q, mode: "insensitive" as const } },
+                { fromAddress: { contains: q, mode: "insensitive" as const } },
+                { bodyPreview: { contains: q, mode: "insensitive" as const } },
+              ],
+            }
+          : {}),
       },
       orderBy:
         input.filter === "scheduled" || status === "scheduled"
@@ -180,6 +209,7 @@ export async function listOrgCommunications(
           : [{ sentAt: "desc" as const }, { createdAt: "desc" as const }],
       take: Math.min(input.limit ?? 100, 200),
     });
+
     return rows.map((r) => toPlatformCommunication(r as OrgCommunicationRow));
   }, []);
 }
@@ -193,8 +223,188 @@ export async function getOrgCommunication(
     const row = await prisma.orgCommunication.findFirst({
       where: { id, organisationId, deletedAt: null },
     });
-    return row ? toPlatformCommunication(row as OrgCommunicationRow) : null;
+    return row
+      ? toPlatformCommunication(row as OrgCommunicationRow, { includeBodyHtml: true })
+      : null;
   }, null);
+}
+
+export async function listOrgCommunicationsByThread(
+  organisationId: string,
+  threadKey: string,
+): Promise<PlatformCommunication[]> {
+  return emptyIfUnmigrated(async () => {
+    const { prisma } = await import("@dg/database");
+    const rows = await prisma.orgCommunication.findMany({
+      where: {
+        organisationId,
+        deletedAt: null,
+        threadKey,
+      },
+      orderBy: [{ sentAt: "asc" as const }, { createdAt: "asc" as const }],
+      take: 200,
+    });
+    return rows.map((r) =>
+      toPlatformCommunication(r as OrgCommunicationRow, { includeBodyHtml: true }),
+    );
+  }, []);
+}
+
+function conversationKey(doc: PlatformCommunication): string {
+  if (doc.threadKey?.trim()) return doc.threadKey.trim();
+  if (doc.contactId) return `contact:${doc.contactId}`;
+  return `message:${doc.id}`;
+}
+
+function statusLabelFor(doc: PlatformCommunication): string {
+  if (doc.direction === "inbound" && doc.status !== "replied") return "Needs reply";
+  if (doc.status === "scheduled") return "Scheduled";
+  if (doc.status === "failed" || doc.status === "bounced") return "Failed";
+  if (doc.aiGenerated || doc.source === "ai_assist") return "AI";
+  if (doc.source === "automation") return "Automated";
+  if (doc.source === "mailbox") return doc.direction === "inbound" ? "Mailbox" : "Sent";
+  if (doc.direction === "outbound") return "Sent";
+  return doc.status.charAt(0).toUpperCase() + doc.status.slice(1);
+}
+
+export function groupOrgCommunicationsIntoConversations(
+  docs: PlatformCommunication[],
+): ConversationSummary[] {
+  const groups = new Map<string, PlatformCommunication[]>();
+  for (const doc of docs) {
+    const key = conversationKey(doc);
+    const list = groups.get(key) ?? [];
+    list.push(doc);
+    groups.set(key, list);
+  }
+
+  const summaries: ConversationSummary[] = [];
+  for (const [key, messages] of groups) {
+    const sorted = [...messages].sort((a, b) => {
+      const ta = new Date(a.sentAt ?? a.createdAt).getTime();
+      const tb = new Date(b.sentAt ?? b.createdAt).getTime();
+      return tb - ta;
+    });
+    const latest = sorted[0]!;
+    const chronological = [...sorted].reverse();
+    const needsReply = chronological.some(
+      (m) => m.direction === "inbound" && m.status !== "replied",
+    );
+    summaries.push({
+      key,
+      subject: latest.subject?.trim() || "(no subject)",
+      preview: latest.bodyPreview?.trim() || "",
+      channel: latest.channel,
+      direction: latest.direction,
+      source: latest.source,
+      status: latest.status,
+      statusLabel: needsReply ? "Needs reply" : statusLabelFor(latest),
+      contactId: latest.contactId,
+      companyId: latest.companyId,
+      opportunityId: latest.opportunityId,
+      fromAddress: latest.fromAddress,
+      toAddresses: latest.toAddresses,
+      latestAt: latest.sentAt ?? latest.createdAt,
+      messageCount: messages.length,
+      needsReply,
+      aiGenerated: latest.aiGenerated || latest.source === "ai_assist",
+      latestMessageId: latest.id,
+    });
+  }
+
+  summaries.sort(
+    (a, b) => new Date(b.latestAt).getTime() - new Date(a.latestAt).getTime(),
+  );
+  return summaries;
+}
+
+export type ListCommunicationConversationsInput = {
+  organisationId: string;
+  folder?: InboxFolderId;
+  q?: string;
+  limit?: number;
+};
+
+export async function listCommunicationConversations(
+  input: ListCommunicationConversationsInput,
+): Promise<ConversationSummary[]> {
+  const folder = input.folder ?? "all";
+  const filterMap: Record<InboxFolderId, ListOrgCommunicationsInput["filter"]> = {
+    all: "all",
+    needs_reply: "needs_reply",
+    email: "email",
+    manual: "manual",
+    automated: "automated",
+    ai: "ai",
+    mailbox: "mailbox",
+  };
+
+  const docs = await listOrgCommunications({
+    organisationId: input.organisationId,
+    filter: filterMap[folder],
+    q: input.q,
+    limit: Math.min(input.limit ?? 150, 200),
+  });
+
+  const conversations = groupOrgCommunicationsIntoConversations(docs);
+
+  // Enrich contact names (capped)
+  const contactIds = [
+    ...new Set(conversations.map((c) => c.contactId).filter(Boolean) as string[]),
+  ].slice(0, 50);
+  if (contactIds.length === 0) return conversations;
+
+  try {
+    const { getContactsByIds } = await import("../contacts");
+    const contacts = await getContactsByIds(input.organisationId, contactIds);
+    const byId = new Map(contacts.map((c) => [c.id, c]));
+    for (const conv of conversations) {
+      if (!conv.contactId) continue;
+      const contact = byId.get(conv.contactId);
+      if (!contact) continue;
+      const name = [contact.firstName, contact.lastName].filter(Boolean).join(" ").trim();
+      conv.contactName = name || contact.email || undefined;
+      // companyName left for later company batch if needed
+    }
+  } catch {
+    /* contacts optional */
+  }
+
+  return conversations;
+}
+
+export async function getConversationMessages(
+  organisationId: string,
+  conversationKey: string,
+): Promise<PlatformCommunication[]> {
+  if (conversationKey.startsWith("message:")) {
+    const id = conversationKey.slice("message:".length);
+    const one = await getOrgCommunication(organisationId, id);
+    return one ? [one] : [];
+  }
+  if (conversationKey.startsWith("contact:")) {
+    const contactId = conversationKey.slice("contact:".length);
+    const docs = await listOrgCommunications({
+      organisationId,
+      contactId,
+      limit: 100,
+    });
+    // Include bodyHtml for each via get — for Phase 1 re-fetch by thread isn't available;
+    // reload with includeBodyHtml by querying prisma directly for contact messages.
+    return emptyIfUnmigrated(async () => {
+      const { prisma } = await import("@dg/database");
+      const rows = await prisma.orgCommunication.findMany({
+        where: { organisationId, contactId, deletedAt: null, threadKey: null },
+        orderBy: [{ sentAt: "asc" as const }, { createdAt: "asc" as const }],
+        take: 100,
+      });
+      return rows.map((r) =>
+        toPlatformCommunication(r as OrgCommunicationRow, { includeBodyHtml: true }),
+      );
+    }, docs);
+  }
+  // threadKey
+  return listOrgCommunicationsByThread(organisationId, conversationKey);
 }
 
 export type CreateOrgCommunicationInput = {

@@ -9,7 +9,7 @@ export default function CommunicationsSmsPage() {
       detail="SMS lands in Communications and on CRM Timeline. Connect SMS under Connected Services when available — DigitalGate manages the carrier connection; you do not configure provider APIs."
       primaryHref="/dashboard/settings/connected-services"
       primaryLabel="Connected Services"
-      secondaryHref="/apps/communications/inbox"
+      secondaryHref="/apps/communications"
       secondaryLabel="Open Inbox"
     />
   );

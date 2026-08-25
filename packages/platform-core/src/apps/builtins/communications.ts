@@ -17,7 +17,11 @@ export const communicationsApp: AppManifest = {
   version: "0.3.0",
   icon: getSidebarIcon("communications"),
   routes: [
-    { path: "/apps/communications/inbox", label: "Inbox" },
+    {
+      path: "/apps/communications",
+      label: "Inbox",
+      matchAlso: ["/apps/communications/inbox"],
+    },
     { path: "/apps/communications/email", label: "Email" },
     { path: "/apps/communications/sms", label: "SMS" },
     { path: "/apps/communications/calls", label: "Calls" },
@@ -36,7 +40,6 @@ export const communicationsApp: AppManifest = {
     { path: "/apps/communications/outreach", label: "Outreach" },
     { path: "/apps/communications/templates", label: "Templates" },
     { path: "/apps/communications/signatures", label: "Signatures" },
-    { path: "/apps/communications", label: "Overview" },
   ],
   navigation: [
     {

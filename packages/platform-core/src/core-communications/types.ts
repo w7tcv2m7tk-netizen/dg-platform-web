@@ -32,6 +32,8 @@ export type PlatformCommunication = {
   status: CommunicationStatus;
   subject?: string;
   bodyPreview?: string;
+  /** Full HTML body — returned on get / thread loads when stored. */
+  bodyHtml?: string;
   fromAddress?: string;
   toAddresses: string[];
   ccAddresses: string[];
@@ -52,3 +54,39 @@ export type PlatformCommunication = {
   createdAt: string;
   updatedAt: string;
 };
+
+/** Grouped conversation for Inbox list (Phase 1). */
+export type ConversationSummary = {
+  /** Stable key: threadKey, or contact:{id}, or message:{id} */
+  key: string;
+  subject: string;
+  preview: string;
+  channel: CommunicationChannel;
+  direction: CommunicationDirection;
+  source: CommunicationSource;
+  status: CommunicationStatus;
+  /** Operator-facing status label */
+  statusLabel: string;
+  contactId?: string;
+  companyId?: string;
+  opportunityId?: string;
+  contactName?: string;
+  companyName?: string;
+  fromAddress?: string;
+  toAddresses: string[];
+  latestAt: string;
+  messageCount: number;
+  /** Inbound and not replied — Phase 1 needs-reply heuristic */
+  needsReply: boolean;
+  aiGenerated: boolean;
+  latestMessageId: string;
+};
+
+export type InboxFolderId =
+  | "all"
+  | "needs_reply"
+  | "email"
+  | "manual"
+  | "automated"
+  | "ai"
+  | "mailbox";

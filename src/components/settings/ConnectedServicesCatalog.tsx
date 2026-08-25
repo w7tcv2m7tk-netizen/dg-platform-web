@@ -69,7 +69,7 @@ export function ConnectedServicesCatalog() {
               ? "/apps/communications/mailboxes"
               : "/api/connectors/google-gmail/connect",
             primaryLabel: gmailConnected ? "Manage mailbox" : "Connect",
-            secondaryHref: gmailConnected ? "/apps/communications/inbox" : undefined,
+            secondaryHref: gmailConnected ? "/apps/communications" : undefined,
             secondaryLabel: gmailConnected ? "Open Inbox" : undefined,
           },
           {

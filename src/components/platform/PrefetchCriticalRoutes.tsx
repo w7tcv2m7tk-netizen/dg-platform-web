@@ -12,6 +12,7 @@ const BASE_ROUTES = [
   "/dashboard/settings",
   "/apps/crm/contacts",
   "/apps/commerce",
+  "/apps/communications",
   "/apps/communications/inbox",
 ] as const;
 

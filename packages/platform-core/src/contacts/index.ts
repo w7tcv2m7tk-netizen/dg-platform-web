@@ -99,6 +99,18 @@ export async function getContact(organisationId: string, contactId: string) {
   return contact ? serializeContact(contact) : null;
 }
 
+/** Batch-load contacts by id (org-scoped). Caps at 50 ids. */
+export async function getContactsByIds(organisationId: string, contactIds: string[]) {
+  const ids = [...new Set(contactIds.filter(Boolean))].slice(0, 50);
+  if (ids.length === 0) return [];
+
+  const { prisma } = await import("@dg/database");
+  const contacts = await prisma.contact.findMany({
+    where: { organisationId, id: { in: ids }, deletedAt: null },
+  });
+  return contacts.map(serializeContact);
+}
+
 /**
  * Find-or-create Contact from lead form fields so manual create mirrors WP sync.
  * Requires at least a name, email, or phone — otherwise returns null.

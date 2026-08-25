@@ -59,7 +59,7 @@ export function CommunicationsList({
 
 export function CommunicationsSubnav({ active }: { active: string }) {
   const items = [
-    { id: "inbox", href: "/apps/communications/inbox", label: "Inbox" },
+    { id: "inbox", href: "/apps/communications", label: "Inbox" },
     { id: "email", href: "/apps/communications/email", label: "Email" },
     { id: "sms", href: "/apps/communications/sms", label: "SMS" },
     { id: "calls", href: "/apps/communications/calls", label: "Calls" },

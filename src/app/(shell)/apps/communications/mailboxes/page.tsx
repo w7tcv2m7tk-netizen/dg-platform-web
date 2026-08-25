@@ -55,7 +55,7 @@ export default async function CommunicationsMailboxesPage({
         <p className="max-w-lg text-xs text-slate-500">
           Infrastructure → Email remains domain / DNS / mailbox provisioning. This screen is Core
           Communications — business mail orchestration. After Gmail connect, open{" "}
-          <Link href="/apps/communications/inbox" className="text-sky-400 hover:underline">
+          <Link href="/apps/communications" className="text-sky-400 hover:underline">
             Inbox
           </Link>{" "}
           for synced inbound messages.

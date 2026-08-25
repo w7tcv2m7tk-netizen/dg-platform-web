@@ -186,7 +186,7 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
     name: "Communications",
     routes: [
       // Channels first · AI Conversations hub · no separate Growth AI Communications silo.
-      { path: "/apps/communications/inbox", label: "Inbox" },
+      { path: "/apps/communications", label: "Inbox", matchAlso: ["/apps/communications/inbox"] },
       {
         path: "/apps/communications/email",
         label: "Email",

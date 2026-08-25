@@ -3,6 +3,8 @@ export type {
   CommunicationDirection as OrgCommunicationDirection,
   CommunicationSource,
   CommunicationStatus,
+  ConversationSummary,
+  InboxFolderId,
   PlatformCommunication,
 } from "./types";
 export {
@@ -14,9 +16,14 @@ export {
   scheduleOutboundEmail,
   processDueScheduledEmails,
   toPlatformCommunication,
+  groupOrgCommunicationsIntoConversations,
+  listCommunicationConversations,
+  listOrgCommunicationsByThread,
+  getConversationMessages,
 } from "./service";
 export type {
   ListOrgCommunicationsInput,
+  ListCommunicationConversationsInput,
   CreateOrgCommunicationInput,
 } from "./service";
 export type {
