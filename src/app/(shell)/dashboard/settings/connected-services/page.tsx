@@ -25,20 +25,20 @@ export default async function ConnectedServicesPage() {
         <Link href="/dashboard/settings" className="text-sm text-sky-400 hover:underline">
           ← Settings
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Connected Services</h1>
+        <h1 className="mt-2 text-2xl font-bold text-white">Connect your business</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Connect the services your business already uses. DigitalGate manages the connection and
-          keeps your business data synchronised.
+          Connect the systems you already use. DigitalGate brings them together so{" "}
+          {session.organisationName} can operate as one connected system.
         </p>
       </header>
       <main className="dg-page-main max-w-2xl space-y-6">
         <ConnectedServicesCatalog />
         <p className="text-xs text-slate-500">
-          Need provider diagnostics or OAuth scopes?{" "}
+          Platform diagnostics and OAuth scopes stay under{" "}
           <Link href="/dashboard/settings/connectors" className="text-sky-400 hover:underline">
-            Open advanced Connectors
-          </Link>
-          .
+            advanced Connectors
+          </Link>{" "}
+          (operator view) — customers connect the business here, not APIs.
         </p>
       </main>
     </>

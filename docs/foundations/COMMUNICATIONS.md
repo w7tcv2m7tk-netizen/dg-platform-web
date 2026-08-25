@@ -89,10 +89,11 @@ Secondary nav (**locked August 2026**):
 | Capability | Layer | Owns |
 |------------|-------|------|
 | **Communication Engine** | Core | Message, Thread, Channel, Participant, Activity link, delivery status, audit |
-| **Connected Services (customer)** | Settings | Human “Connect Google Workspace / Microsoft 365 / …” — no OAuth jargon |
-| **Connector Engine (operator)** | Platform / Command | Scopes, probes, credentials, platform-ready health |
-| **Mailbox / Workspace connectors** | Core / Connectors | OAuth to Google / Microsoft (Gmail·Outlook · Calendar · Contacts over time); never store passwords |
-| **Infrastructure Email** | Infrastructure | Domains / hosting / DNS / mailbox *provisioning* — **not** business CRM email UX |
+| **Connected Services (customer)** | Settings | “Connect your business” — org mailboxes / GBP / presence / commerce. Not platform API setup |
+| **Connector Engine (operator)** | Platform / Command | Platform vs organisation scope · probes · credentials · platform-ready health |
+| **Mailbox / Workspace connectors** | Organisation | OAuth to Google / Microsoft — business owns the mailbox; DigitalGate owns sync into Communications |
+| **Email infrastructure** | Platform | Resend (and similar) — DigitalGate-owned delivery; not the customer’s “Connect Resend” |
+| **Telephony infrastructure** | Platform | Twilio (etc.) as CPaaS adapter; customer connects **business phone / SMS**, not the carrier brand |
 | **Automation** | Automation App | Triggers that *create* Communication records (source = Automation) |
 | **AI Assist** | Core + AI Service | Draft / classify with Brain context; human review before send |
 | **Voice agents (Growth packaging)** | Growth add-on | Monetised agent capacity / Call Centre — history still Core |

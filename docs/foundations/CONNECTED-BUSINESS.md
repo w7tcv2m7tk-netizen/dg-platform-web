@@ -208,12 +208,45 @@ That abstraction is intentional ([OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.
 
 ---
 
+## Platform infrastructure vs business connections (locked)
+
+> **Platform-wide infrastructure powers DigitalGate. Organisation connectors connect a specific business to its own external systems and data.**
+
+Body analogy: DigitalGate owns the **nervous system and infrastructure**. The customer’s connectors are the **sensory organs and external interfaces** for that particular business.
+
+| Scope | Who configures | What it is |
+|-------|----------------|------------|
+| **Platform** | DigitalGate once | Shared AI, email delivery, telephony CPaaS, hosting, DNS, observability, DG billing |
+| **Organisation** | Each business | Their Gmail/M365, GBP, Meta, LinkedIn, WordPress, Shopify, Xero, Domain, REA, Cotality, OTAs… |
+| **Business identity** | Each business | Mailboxes, SMS sender/number, business phone, WhatsApp Business, social pages, commerce accounts — may sit on top of platform infrastructure |
+
+**Communications example**
+
+| Owner | System | Role |
+|-------|--------|------|
+| DigitalGate | Resend | Transactional / outbound email **infrastructure** |
+| Business | Google Workspace / Microsoft 365 | Their mailbox identity (`ben@business.com`) |
+| DigitalGate | Twilio (etc.) | SMS/voice **provider relationship** |
+| Business | Business phone / SMS number | Their numbers and routing on top of platform telephony |
+
+**Credential rule:** never duplicate platform credentials per organisation unless the provider requires customer-owned credentials or BYOK is an explicit commercial product.
+
+Customer UX: Settings → **Connected Services** = “Connect your business” (capability groups), not “which APIs do I configure?”  
+Operator UX: **Connector Engine** = scopes, probes, credentials, platform health.
+
+Detail + lifecycle: [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) · [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md).
+
+**Direction (not all live yet):** Brain-recommended connections · Connection Health on Business Health · onboarding “Connect your business” step — connectors as a growth mechanism, not an admin chore.
+
+---
+
 ## Relationship to other locks
 
 | Lock | Relationship |
 |------|----------------|
 | [BUSINESS-BODY.md](./BUSINESS-BODY.md) | Human-readable organs/functions — how to teach the parts |
 | This document | **Why** the parts must be connected — philosophy and positioning |
+| [CONNECTOR-ENGINE.md](./CONNECTOR-ENGINE.md) | **How** platform vs organisation connectors are built and shown |
 | [INTELLIGENT-LAYER.md](./INTELLIGENT-LAYER.md) | Technical north-star loop the flywheel explains |
 | [OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.md) | UX contract so philosophy doesn’t become organ sidebar gimmicks |
 
@@ -222,4 +255,5 @@ Philosophy: coherence of a living business.
 Body: how humans understand the parts.
 Brain: how the connected business becomes smart.
 Platform: how we build it without making operators feel the machinery.
+Connectors: platform infrastructure is shared; business connections are personal.
 ```

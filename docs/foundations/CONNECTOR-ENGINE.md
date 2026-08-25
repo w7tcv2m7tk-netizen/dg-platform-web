@@ -6,18 +6,41 @@
 
 **Do not** ship one-off “REA integration / Domain integration / Google integration” as disconnected features. Ship **connectors** that plug into this engine.
 
+### Clean rule (lock)
+
+> **Platform-wide infrastructure powers DigitalGate. Organisation connectors connect a specific business to its own external systems and data.**
+
+| Scope | Configured by | Examples |
+|-------|---------------|----------|
+| **Platform** | DigitalGate once | Vercel / AI Gateway · OpenAI · Anthropic · ElevenLabs · Resend · Cloudflare · Stripe (DG billing) · Dreamscape · Twilio (CPaaS) · Sentry · Vercel hosting |
+| **Organisation** | Each business | Google Business Profile · Google Workspace / Gmail · Microsoft 365 · LinkedIn · Meta · WordPress · Shopify · Xero · Domain.com.au · REA · Cotality · ABR/ASIC (data context) · OTAs |
+| **Business identity** | Each business | Mailboxes · SMS sender/number · business phone · WhatsApp Business · social pages · Stripe/Shopify/Xero **customer** accounts |
+
+**Twilio / Resend / ElevenLabs:** DigitalGate owns the provider relationship; organisations own numbers, mailboxes, messaging identities, and routing layered on top.
+
+**Credential rule:** Never duplicate platform credentials at organisation level unless the provider requires customer-owned credentials or BYOK is an explicit commercial product.
+
+```
+External system → Connector → DigitalGate Core → Business Brain → Intelligence → Advisor → Action
+```
+
 ### Customer vs operator naming (lock)
 
 | Audience | Label | UX |
 |----------|-------|-----|
-| **Customer** | **Connected Services** | Settings → Connected Services — human cards (Google Workspace · Microsoft 365 · Stripe · REA · Domain · WordPress…). Connect / Connected · last sync. No OAuth / api_key / client_credentials jargon. |
-| **DigitalGate operator** | **Connector Engine** | Command / internal Settings — scopes, probes, auth kinds, platform-ready, credentials, health. |
+| **Customer** | **Connected Services** | Settings → Connected Services — “Connect your business.” Capability groups (Communications · Web · Social · Finance · Industry). Connect / Connected · last sync · what it enables. No OAuth / api_key jargon. |
+| **DigitalGate operator** | **Connector Engine** | Command / Settings → Connectors — scopes, probes, auth kinds, **platform vs organisation**, credentials, health. |
 
-Google Workspace and Microsoft 365 are **first-class Connected Services** (mail · calendar · contacts over time). Provider mechanics stay invisible; Universal Objects are the abstraction (Outlook email → Communication, Gmail contact → Contact, calendar → Consultation/Task).
+Google Workspace and Microsoft 365 are **first-class business connections** (mail · calendar · contacts over time). Provider mechanics stay invisible; Universal Objects are the abstraction (Outlook email → Communication, Gmail contact → Contact, calendar → Consultation/Task).
+
+**Platform strip (customer):** show that DigitalGate manages AI, email delivery, telephony infrastructure, hosting, and monitoring — not “configure OpenAI.”  
+**Business connections:** only connectors relevant to enabled apps / industry (Brain-recommended list is the direction).
 
 **Priority stack (tiers, DigitalGate 15, immediate programme):** [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md) — read that before adding integrations.
 
 Supersedes the narrow sketch in [../connectors/CONNECTOR-SPECIFICATION.md](../connectors/CONNECTOR-SPECIFICATION.md) (that file now points here).
+
+Philosophy: [CONNECTED-BUSINESS.md](./CONNECTED-BUSINESS.md).
 
 ---
 
@@ -28,12 +51,12 @@ APIs are not the product — DigitalGate is the intelligent layer:
 ```
 DIGITALGATE
     │
-PLATFORM CORE
+PLATFORM CORE  ← shared infrastructure credentials (AI, Resend, Twilio, …)
     │
 CONNECTOR LAYER
-    ├── Business   (identity, registries, presence, infra)
-    ├── Growth     (ads, social, reviews, communications, AI providers)
-    └── Industry   (RE portals, property intelligence, vertical PMS/OTAs)
+    ├── Platform infrastructure   (managed by DigitalGate)
+    ├── Business connections      (per organisation — identity & external systems)
+    └── Industry                  (RE portals, property intelligence, vertical PMS/OTAs)
     │
 UNIVERSAL OBJECTS
     │

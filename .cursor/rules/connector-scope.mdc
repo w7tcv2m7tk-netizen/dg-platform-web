@@ -1,0 +1,40 @@
+---
+description: Platform infrastructure vs organisation business connections — never duplicate platform credentials per org
+globs: "**/connectors/**,**/connected-services/**,**/ConnectedServices*,**/ConnectorEngine*,**/COMMUNICATIONS.md,**/CONNECTOR*.md,**/CONNECTED-BUSINESS*"
+alwaysApply: true
+---
+
+# Connector scope lock
+
+Canonical: `docs/foundations/CONNECTOR-ENGINE.md` · philosophy: `docs/foundations/CONNECTED-BUSINESS.md`
+
+## Clean rule
+
+**Platform-wide infrastructure powers DigitalGate.**  
+**Organisation connectors connect a specific business to its own external systems and data.**
+
+| Scope | Who configures | Examples |
+|-------|----------------|----------|
+| **Platform** | DigitalGate once | AI Gateway, OpenAI, Anthropic, ElevenLabs, Resend, Twilio (CPaaS), Cloudflare, Stripe (DG billing), Vercel, Sentry, Dreamscape |
+| **Organisation** | Each business | Gmail / Microsoft 365, GBP, Meta, LinkedIn, WordPress, Shopify, Xero, Domain, REA, Cotality, OTAs |
+| **Business identity** (org) | Each business | Mailbox, SMS sender/number, business phone, WhatsApp Business, social pages, commerce accounts |
+
+Twilio / Resend / ElevenLabs: DigitalGate owns the **provider relationship**; the org may own **numbers, mailboxes, messaging identities, routing**.
+
+## Credential rule
+
+**Never duplicate platform credentials at organisation level** unless the external provider genuinely requires customer-owned credentials, or BYOK is an explicit commercial product.
+
+- Good: DigitalGate → one OpenAI key → Model Router → orgs  
+- Bad: every org brings its own OpenAI / ElevenLabs key by default
+
+## Customer UX
+
+- Settings → **Connected Services** = “Connect your business” — by **capability** (Communications, Web, Social, Finance, Industry), not API catalogs.
+- Do **not** ask customers to configure platform APIs.
+- Operator **Connector Engine** = scopes, probes, credentials, platform-ready health.
+- Telephony customer copy: “Connect business phone / SMS” — never “Connect Twilio”.
+
+## Flow
+
+`External system → Connector → DigitalGate Core → Business Brain → Intelligence → Advisor → Action`

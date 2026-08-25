@@ -17,6 +17,8 @@ const PLATFORM_SHARED_CONNECTOR_IDS = new Set([
   "elevenlabs",
   "abr",
   "dreamscape",
+  "twilio",
+  "telnyx",
 ]);
 
 export type ConnectorCatalogItem = {

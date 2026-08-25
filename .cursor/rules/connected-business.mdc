@@ -14,6 +14,8 @@ A healthy business, like a healthy body, depends on its systems being **connecte
 **Proposition:** Connect your business. Give it a brain.  
 **Tagline stays:** The Gateway to Your Digital World™
 
+**Connector scope:** Platform infrastructure is shared (DigitalGate-managed). Business connections are personal (per organisation). Never duplicate platform API keys per org by default. See `connector-scope.mdc` · `docs/foundations/CONNECTOR-ENGINE.md`.
+
 ## Evolution
 
 Disconnected → Connected → Intelligent → Autonomous (See → Understand → Decide → Act → Learn).

@@ -77,15 +77,13 @@ export default async function PlatformSettingsPage() {
             <p className="text-xs font-medium uppercase tracking-wide text-sky-400">
               Connected Services
             </p>
-            <h2 className="mt-2 text-lg font-semibold text-white">
-              Google, Microsoft, Stripe, and more
-            </h2>
+            <h2 className="mt-2 text-lg font-semibold text-white">Connect your business</h2>
             <p className="mt-2 text-sm text-slate-400">
-              Connect the services your business already uses. DigitalGate keeps data synchronised —
-              without OAuth jargon.
+              Link the systems you already use. DigitalGate manages platform infrastructure —
+              you connect your mailbox, presence, and industry tools.
             </p>
             <span className="mt-4 inline-block text-sm font-medium text-sky-400">
-              Manage connected services →
+              Connect your business →
             </span>
           </Link>
 
