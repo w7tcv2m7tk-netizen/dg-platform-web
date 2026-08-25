@@ -129,8 +129,12 @@ const GROW_APP_ORDER = [
   "reviews",
 ] as const;
 
-/** Hidden from sidebar IA — marketing undecided; opportunities live in CRM */
-const SIDEBAR_HIDDEN_APP_IDS = new Set(["marketing", "opportunities"]);
+/** Hidden from sidebar IA — marketing undecided; opportunities live in CRM; AI Communications absorbed into Core Communications */
+const SIDEBAR_HIDDEN_APP_IDS = new Set([
+  "marketing",
+  "opportunities",
+  "ai-communications",
+]);
 
 const CORE_APP_IDS = new Set<string>(CORE_APP_ORDER);
 const INDUSTRY_APP_IDS = new Set<string>(INDUSTRY_APP_ORDER);
@@ -184,14 +188,15 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   communications: {
     name: "Communications",
     routes: [
-      { path: "/apps/communications/compose", label: "Compose email" },
+      { path: "/apps/communications", label: "Overview" },
       { path: "/apps/communications/inbox", label: "Inbox" },
+      { path: "/apps/communications/compose", label: "Compose" },
       { path: "/apps/communications/sent", label: "Sent" },
       { path: "/apps/communications/scheduled", label: "Scheduled" },
       { path: "/apps/communications/automations", label: "Automations" },
+      { path: "/apps/communications/signatures", label: "Signatures" },
       { path: "/apps/communications/history", label: "History" },
       { path: "/apps/communications/mailboxes", label: "Mailboxes" },
-      { path: "/apps/communications", label: "Overview" },
     ],
   },
   "real-estate": {
@@ -377,6 +382,7 @@ function getPlatformAdminSection(options?: {
     routes: [
       { path: "/dashboard/settings", label: "Overview" },
       { path: "/dashboard/settings/billing", label: "Billing" },
+      { path: "/dashboard/settings/connected-services", label: "Connected Services" },
       { path: "/dashboard/settings/connectors", label: "Connectors" },
       { path: "/dashboard/settings/api", label: "API" },
       { path: "/dashboard/settings/audit", label: "Audit Log" },

@@ -59,11 +59,13 @@ export function CommunicationsList({
 
 export function CommunicationsSubnav({ active }: { active: string }) {
   const items = [
-    { id: "compose", href: "/apps/communications/compose", label: "Compose" },
+    { id: "overview", href: "/apps/communications", label: "Overview" },
     { id: "inbox", href: "/apps/communications/inbox", label: "Inbox" },
+    { id: "compose", href: "/apps/communications/compose", label: "Compose" },
     { id: "sent", href: "/apps/communications/sent", label: "Sent" },
     { id: "scheduled", href: "/apps/communications/scheduled", label: "Scheduled" },
     { id: "automations", href: "/apps/communications/automations", label: "Automations" },
+    { id: "signatures", href: "/apps/communications/signatures", label: "Signatures" },
     { id: "history", href: "/apps/communications/history", label: "History" },
     { id: "mailboxes", href: "/apps/communications/mailboxes", label: "Mailboxes" },
   ] as const;

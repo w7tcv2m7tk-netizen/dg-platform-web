@@ -61,7 +61,7 @@ Workflow logic: **Know → Communicate → Document → Transact**.
 
 **Documents** is the Core nav app; **Documents & Signing** is the capability (Document Engine + Signing Engine). Industry Apps consume it with templates; do **not** place e-sign under Infrastructure. See [DOCUMENTS-AND-SIGNING.md](./DOCUMENTS-AND-SIGNING.md).
 
-**Communications** is the Core nav app for the business communication layer (Communication Record · History · mailbox orchestration · Assist). Do **not** build a Gmail/Outlook clone; Google/Microsoft remain authoritative mailboxes. Do **not** invent a second customer “AI Communications” product that silos voice/email from Core history — voice agents may still commercialise as Growth capacity, but **history and association belong to Core Communications**. See [COMMUNICATIONS.md](./COMMUNICATIONS.md). **Live:** Compose · Sent · Scheduled · Automations · History · Gmail OAuth + sync · Inbox. **Next:** Microsoft · Connected Services UX · operator home · Signature Studio · Assist drafts.
+**Communications** is the Core nav app for the business communication layer (Communication Record · History · mailbox orchestration · Assist). Do **not** build a Gmail/Outlook clone; Google/Microsoft remain authoritative mailboxes. Do **not** invent a second customer “AI Communications” product that silos voice/email from Core history — voice agents may still commercialise as Growth capacity, but **history and association belong to Core Communications**. See [COMMUNICATIONS.md](./COMMUNICATIONS.md). **Live:** Communications home · Compose · Sent · Scheduled · Automations · Signature Studio · History · Gmail OAuth + sync · Inbox · Connected Services. Growth AI Communications soft-hidden from sidebar. **Next:** Microsoft · Assist drafts · Communication Health.
 
 ### Connected Services vs Connector Engine (customer vs operator)
 
@@ -74,7 +74,7 @@ Google Workspace / Microsoft 365 are **first-class Connected Services** (Gmail/O
 
 ### Founding Mode / progressive disclosure
 
-Day one emphasises **Core + Intelligence** (Advisor · Business Health). Growth apps (Prospecting, SEO, Social, Reputation, Automation depth, AI Visibility…) are **progressively revealed** by goals, plan, and industry — not dumped in the sidebar as a flat catalogue.
+Day one emphasises **Core + Intelligence** (Advisor · Business Health). Growth apps (Prospecting, SEO, Social, Reputation, Automation depth, AI Visibility…) are **progressively revealed** by goals, plan, and industry — not dumped in the sidebar as a flat catalogue. Implemented via `isFoundingCustomerMode` / `FOUNDING_MODE_CORE_APP_IDS` in `org-apps.ts`. **Connected Services** + **Communications home** are the day-one customer surfaces for mailbox connect and communication history — no separate progressive-reveal engine was added for the Core UX epic.
 ## 2. INFRASTRUCTURE — operate digitally
 
 Websites / Website Builder · Domains · DNS · Hosting · Email · SSL · Website Management · Backups · Cloudflare · Connectors · Data · Identity

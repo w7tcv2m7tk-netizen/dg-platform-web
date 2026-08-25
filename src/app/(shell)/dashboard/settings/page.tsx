@@ -35,7 +35,7 @@ export default async function PlatformSettingsPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="text-sm text-slate-400">
-          Organisation, connectors, and platform configuration
+          Organisation, connected services, and platform configuration
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -51,6 +51,25 @@ export default async function PlatformSettingsPage() {
         </p>
 
         <div className="grid gap-4 lg:grid-cols-2">
+          <Link
+            href="/dashboard/settings/connected-services"
+            className="dg-card block border-sky-500/20 bg-gradient-to-br from-slate-900 to-sky-950/20 hover:border-sky-500/40 lg:col-span-2"
+          >
+            <p className="text-xs font-medium uppercase tracking-wide text-sky-400">
+              Connected Services
+            </p>
+            <h2 className="mt-2 text-lg font-semibold text-white">
+              Google, Microsoft, Stripe, and more
+            </h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Connect the services your business already uses. DigitalGate keeps data synchronised —
+              without OAuth jargon.
+            </p>
+            <span className="mt-4 inline-block text-sm font-medium text-sky-400">
+              Manage connected services →
+            </span>
+          </Link>
+
           <Link
             href="/dashboard/settings/api"
             className="dg-card block border-blue-500/20 bg-gradient-to-br from-slate-900 to-blue-950/20 hover:border-blue-500/40 lg:col-span-2"
@@ -124,8 +143,16 @@ export default async function PlatformSettingsPage() {
                 </Link>
               </li>
               <li>
+                <Link
+                  href="/dashboard/settings/connected-services"
+                  className="text-blue-400 hover:underline"
+                >
+                  Connected Services →
+                </Link>
+              </li>
+              <li>
                 <Link href="/dashboard/settings/connectors" className="text-blue-400 hover:underline">
-                  Connectors →
+                  Advanced Connectors →
                 </Link>
               </li>
               <li>

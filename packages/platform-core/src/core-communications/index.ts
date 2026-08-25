@@ -19,3 +19,18 @@ export type {
   ListOrgCommunicationsInput,
   CreateOrgCommunicationInput,
 } from "./service";
+export type {
+  CommunicationSignature,
+  CommunicationSignatureDraft,
+  CommunicationSignaturePatch,
+} from "./signatures";
+export {
+  listCommunicationSignatures,
+  getDefaultCommunicationSignature,
+  createCommunicationSignature,
+  updateCommunicationSignature,
+  deleteCommunicationSignature,
+  appendSignatureToBody,
+  htmlToPlainSignature,
+  normaliseCommunicationSignatures,
+} from "./signatures";

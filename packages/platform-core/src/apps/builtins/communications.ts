@@ -15,18 +15,19 @@ export const communicationsApp: AppManifest = {
   version: "0.1.0",
   icon: getSidebarIcon("communications"),
   routes: [
-    { path: "/apps/communications/compose", label: "Compose email" },
+    { path: "/apps/communications", label: "Overview" },
     { path: "/apps/communications/inbox", label: "Inbox" },
+    { path: "/apps/communications/compose", label: "Compose" },
     { path: "/apps/communications/sent", label: "Sent" },
     { path: "/apps/communications/scheduled", label: "Scheduled" },
     { path: "/apps/communications/automations", label: "Automations" },
+    { path: "/apps/communications/signatures", label: "Signatures" },
     { path: "/apps/communications/history", label: "History" },
     { path: "/apps/communications/mailboxes", label: "Mailboxes" },
-    { path: "/apps/communications", label: "Overview" },
   ],
   navigation: [
     {
-      href: "/apps/communications/compose",
+      href: "/apps/communications",
       label: "Communications",
       icon: getSidebarIcon("communications"),
     },

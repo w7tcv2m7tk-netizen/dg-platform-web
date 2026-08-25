@@ -315,13 +315,18 @@ Communications is a primary way the business interacts with the outside world.
 
 | Surface | Path | Status |
 |---------|------|--------|
-| **Core Communications app** | `/apps/communications` · Compose · Inbox · Sent · Scheduled · Automations · History · Mailboxes | **Live** |
+| **Core Communications home** | `/apps/communications` — Needs attention · Inbox preview · Quick actions · Recent activity | **Live** |
+| **Core Communications app** | Overview · Inbox · Compose · Sent · Scheduled · Automations · Signatures · History · Mailboxes | **Live** |
+| **Signature Studio v1** | `/apps/communications/signatures` · `organisation.settings.communications.signatures` · default appended on Compose | **Live** |
+| **Connected Services (customer)** | `/dashboard/settings/connected-services` — human cards (Gmail · GBP · Microsoft coming next · Stripe · WordPress) | **Live** |
 | **Gmail OAuth** | `/api/connectors/google-gmail/*` · Mailboxes Connect / Sync / Disconnect | **Live** (Google first; Microsoft next) |
 | **Gmail sync** | Manual Sync + post-connect → `OrgCommunication` (provider `gmail`, source `mailbox`) · Contact match by email | **Live** |
 | **Send API** | `/api/v1/communications/messages` | **Live** — Resend + OrgCommunication; optional `scheduledAt` |
 | **Scheduled flush** | `/api/cron/scheduled-emails` (daily) + flush on Scheduled page open | **Live** |
 | **CRM** | Contact → Email contact / History | **Live** |
 | **Persistence** | Prisma `OrgCommunication` (`org_communications`, `scheduled_at`) | **Live** after `prisma db push` |
+
+**IA:** Growth **AI Communications** is soft-hidden from the sidebar (`SIDEBAR_HIDDEN_APP_IDS`); `/apps/ai-communications/*` remains for deep links (e.g. Calls → voice). Founding Mode still slims Growth via `org-apps.ts` — no new progressive-reveal engine this epic.
 
 **Deploy:**
 
@@ -334,9 +339,9 @@ npm run db:push
 Uploads/sends need `RESEND_API_KEY` on Vercel (existing transactional path).  
 Gmail OAuth needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and redirect URI `…/api/connectors/google-gmail/callback` registered in Google Cloud Console (`GOOGLE_GMAIL_REDIRECT_URI` optional override).
 
-**v1 scope shipped:** Organisation-scoped communication records · manual compose · Send later / Scheduled · Sent + History · Founding / referral provenance · Automations catalogue · **Gmail connect + sync into Inbox/History** · Resend provider · Microsoft Mailboxes placeholder.
+**v1 scope shipped:** Organisation-scoped communication records · Communications home · manual compose · Send later / Scheduled · Sent + History · Signature Studio · Founding / referral provenance · Automations catalogue · **Gmail connect + sync into Inbox/History** · Connected Services customer page · Resend provider · Microsoft Mailboxes / Connected Services placeholder.
 
-**Not yet:** Microsoft Graph OAuth · send-as-Gmail identity · AI Assist drafts · SMS/WhatsApp · unsupervised agent send · multi-step drip sequencer UI · open/reply webhooks · classification → Priorities.
+**Not yet:** Microsoft Graph OAuth · send-as-Gmail identity · AI Assist drafts · SMS/WhatsApp · Communication Health score · unsupervised agent send · multi-step drip sequencer UI · open/reply webhooks · classification → Priorities.
 
 ### Core — Communications Email v1 (remaining)
 

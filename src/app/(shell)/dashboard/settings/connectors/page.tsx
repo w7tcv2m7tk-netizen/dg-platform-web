@@ -107,7 +107,15 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Connectors</h1>
         <p className="text-sm text-slate-400">
-          Connector Engine · Domain · REA · Google Business Profile · WordPress · payments
+          Operator view — Connector Engine, probes, and provider diagnostics.
+        </p>
+        <p className="mt-2 rounded-lg border border-amber-700/40 bg-amber-950/20 px-3 py-2 text-sm text-amber-100/90">
+          Customers should use{" "}
+          <Link href="/dashboard/settings/connected-services" className="text-sky-300 hover:underline">
+            Connected Services
+          </Link>{" "}
+          for everyday connect / disconnect. This page is for DigitalGate operator and advanced
+          setup.
         </p>
       </header>
       <main className="dg-page-main space-y-6">

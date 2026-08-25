@@ -230,4 +230,4 @@ Accommodation OTAs follow the same engine via [ACC-CHANNEL-CONNECTIVITY.md](./AC
 - [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) · [BUSINESS-SETUP.md](./BUSINESS-SETUP.md) (Business Services) · [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md)  
 - [OBSERVABILITY.md](./OBSERVABILITY.md) — connector health  
 - [GLOBAL-READINESS.md](./GLOBAL-READINESS.md) — Country Packs on manifests  
-- Live code today: `connectors/wordpress/`, `commerce/connectors/stripe/`, `connectors/abr/` · Google GBP OAuth + locations sync · scaffolds: Domain, Cotality · stubs: `connectors/asic/`
+- Live code today: `connectors/wordpress/`, `commerce/connectors/stripe/`, `connectors/abr/` · Google GBP OAuth + locations sync · **Gmail** (`google-gmail`) OAuth + Communications sync · **Connected Services** UI `/dashboard/settings/connected-services` (customer) vs Connectors Engine page (operator) · scaffolds: Domain, Cotality · stubs: `connectors/asic/`

@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { getContact } from "@dg/platform-core";
+import {
+  getContact,
+  getDefaultCommunicationSignature,
+  htmlToPlainSignature,
+} from "@dg/platform-core";
 
 import { CommunicationsComposeForm } from "@/components/communications/CommunicationsComposeForm";
 import { CommunicationsSubnav } from "@/components/communications/CommunicationsList";
@@ -32,12 +36,17 @@ export default async function CommunicationsComposePage({ searchParams }: PagePr
   }
 
   const contactId = params.contactId?.trim();
-  const contact =
-    contactId && process.env.DATABASE_URL
-      ? await getContact(session.organisationId, contactId)
-      : null;
+  const [contact, defaultSignature] = process.env.DATABASE_URL
+    ? await Promise.all([
+        contactId ? getContact(session.organisationId, contactId) : Promise.resolve(null),
+        getDefaultCommunicationSignature(session.organisationId),
+      ])
+    : [null, null];
   const contactName = contact
     ? [contact.firstName, contact.lastName].filter(Boolean).join(" ")
+    : undefined;
+  const defaultSignaturePlain = defaultSignature
+    ? htmlToPlainSignature(defaultSignature.html)
     : undefined;
 
   return (
@@ -60,6 +69,8 @@ export default async function CommunicationsComposePage({ searchParams }: PagePr
           opportunityId={params.opportunityId?.trim()}
           companyId={contact?.companyId ?? undefined}
           contactName={contactName}
+          defaultSignaturePlain={defaultSignaturePlain}
+          defaultSignatureName={defaultSignature?.name}
         />
       </main>
     </>

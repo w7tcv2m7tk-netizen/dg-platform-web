@@ -3,6 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+function appendPlainSignature(body: string, signaturePlain: string | undefined) {
+  const plain = signaturePlain?.trim();
+  if (!plain) return body.trim();
+  const trimmed = body.trimEnd();
+  if (trimmed.includes(plain)) return trimmed;
+  return `${trimmed}\n\n--\n${plain}`;
+}
+
 export function CommunicationsComposeForm({
   defaultTo = "",
   defaultSubject = "",
@@ -10,6 +18,8 @@ export function CommunicationsComposeForm({
   opportunityId,
   companyId,
   contactName,
+  defaultSignaturePlain,
+  defaultSignatureName,
 }: {
   defaultTo?: string;
   defaultSubject?: string;
@@ -17,11 +27,15 @@ export function CommunicationsComposeForm({
   opportunityId?: string;
   companyId?: string;
   contactName?: string;
+  /** Plain-text default signature from Signature Studio — appended on send. */
+  defaultSignaturePlain?: string;
+  defaultSignatureName?: string;
 }) {
   const router = useRouter();
   const [to, setTo] = useState(defaultTo);
   const [subject, setSubject] = useState(defaultSubject);
   const [body, setBody] = useState("");
+  const [includeSignature, setIncludeSignature] = useState(Boolean(defaultSignaturePlain));
   const [sendLater, setSendLater] = useState(false);
   const [scheduledAt, setScheduledAt] = useState("");
   const [pending, setPending] = useState(false);
@@ -34,11 +48,16 @@ export function CommunicationsComposeForm({
     setError(null);
     setOk(null);
 
+    const messageBody =
+      includeSignature && defaultSignaturePlain
+        ? appendPlainSignature(body, defaultSignaturePlain)
+        : body.trim();
+
     const payload: Record<string, unknown> = {
       channel: "email",
       to: to.trim(),
       subject: subject.trim() || undefined,
-      body: body.trim(),
+      body: messageBody,
       contactId: contactId || undefined,
       metadata: {
         source: "manual",
@@ -47,6 +66,8 @@ export function CommunicationsComposeForm({
           : "Manual email from Communications",
         opportunityId: opportunityId || undefined,
         companyId: companyId || undefined,
+        signatureApplied: Boolean(includeSignature && defaultSignaturePlain),
+        signatureName: includeSignature ? defaultSignatureName : undefined,
       },
     };
 
@@ -127,6 +148,28 @@ export function CommunicationsComposeForm({
           placeholder="Write the email…"
         />
       </label>
+      {defaultSignaturePlain ? (
+        <label className="flex items-center gap-2 text-sm text-slate-300">
+          <input
+            type="checkbox"
+            checked={includeSignature}
+            onChange={(e) => setIncludeSignature(e.target.checked)}
+            className="rounded border-slate-600"
+          />
+          Append signature
+          {defaultSignatureName ? (
+            <span className="text-slate-500">({defaultSignatureName})</span>
+          ) : null}
+        </label>
+      ) : (
+        <p className="text-xs text-slate-500">
+          No default signature —{" "}
+          <a href="/apps/communications/signatures" className="text-sky-400 hover:underline">
+            create one in Signature Studio
+          </a>
+          .
+        </p>
+      )}
       <label className="flex items-center gap-2 text-sm text-slate-300">
         <input
           type="checkbox"
