@@ -70,8 +70,15 @@ export default async function PartnerCommissionsPage() {
 
         {commissions.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-700 px-6 py-10 text-center text-sm text-slate-400">
-            No commission entries yet. Commission accrues when referred customers make qualifying
-            payments.
+            <p>
+              No commission entries yet. Lines appear when a referred customer (linked on the
+              referral record) pays a qualifying Platform + App invoice — usually after conversion
+              and within your commission window.
+            </p>
+            <p className="mt-2 text-xs text-slate-500">
+              Payouts remain manual (staff approve / pay in Command). Empty history before your first
+              converted paying customer is expected.
+            </p>
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border border-slate-700/60 bg-slate-800/40">

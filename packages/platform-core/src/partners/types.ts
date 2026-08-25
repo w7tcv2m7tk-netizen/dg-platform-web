@@ -213,6 +213,10 @@ export type SerializedPartner = {
   /** Delivery division role — lead (manager) or member */
   deliveryRole: "lead" | "member" | null;
   notes: string | null;
+  /** ISO timestamp when programme terms were accepted in-product */
+  termsAcceptedAt: string | null;
+  /** Version string of accepted terms */
+  termsVersion: string | null;
   joinedAt: string | null;
   createdAt: string;
   updatedAt: string;

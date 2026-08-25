@@ -281,3 +281,6 @@ export const PARTNER_REFERRAL_STATUS_LABELS: Record<string, string> = {
 
 export const SOLICITOR_REVIEW_NOTE =
   "These programme rules are DigitalGate's commercial definitions for product and approved copy. They are not published as binding legal terms until reviewed by DigitalGate's solicitor and accountant (GST, payment timing, attribution, and agency).";
+
+/** Bump when programme rules on /partner/terms change in a material way. */
+export const FOUNDING_RESELLER_TERMS_VERSION = "2026-08-founding-reseller-v1";

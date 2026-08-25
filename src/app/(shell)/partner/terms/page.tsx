@@ -1,6 +1,11 @@
+import { redirect } from "next/navigation";
+
+import { PartnerTermsAcceptForm } from "@/components/partners/PartnerTermsAcceptForm";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 import {
   APPROVED_PARTNER_MESSAGING,
   FOUNDING_RESELLER_PROGRAMME_NAME,
+  FOUNDING_RESELLER_TERMS_VERSION,
   QUALIFYING_COMMISSION_FEES,
   RESELLER_MAY,
   RESELLER_MODEL,
@@ -8,9 +13,20 @@ import {
   RESELLER_MUST_NOT_CLAIM,
   RESELLER_NEED_NOT,
   SOLICITOR_REVIEW_NOTE,
+  getPartnerByClerkUserId,
 } from "@dg/platform-core";
 
-export default function PartnerTermsPage() {
+export default async function PartnerTermsPage() {
+  const { clerkUserId } = await getPlatformPageContext();
+  if (!clerkUserId) redirect("/login");
+
+  const partner = await getPartnerByClerkUserId(clerkUserId);
+  if (!partner) redirect("/partner");
+
+  if (partner.partnerType === "IMPLEMENTATION_PARTNER") {
+    redirect("/partner/delivery");
+  }
+
   return (
     <div className="max-w-3xl space-y-8 text-sm text-slate-300">
       <div>
@@ -19,6 +35,12 @@ export default function PartnerTermsPage() {
         <p className="mt-2 text-sm text-slate-400">{RESELLER_MODEL_LEGACY}</p>
         <p className="mt-2 text-slate-400">{APPROVED_PARTNER_MESSAGING.notAffiliate}</p>
       </div>
+
+      <PartnerTermsAcceptForm
+        termsAcceptedAt={partner.termsAcceptedAt}
+        termsVersion={partner.termsVersion}
+        currentTermsVersion={FOUNDING_RESELLER_TERMS_VERSION}
+      />
 
       <section>
         <h3 className="mb-2 font-semibold text-white">What you do</h3>

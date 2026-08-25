@@ -80,6 +80,8 @@ function serializePartner(
     deliveryRole:
       row.deliveryRole === "lead" || row.deliveryRole === "member" ? row.deliveryRole : null,
     notes: row.notes ?? null,
+    termsAcceptedAt: row.termsAcceptedAt?.toISOString() ?? null,
+    termsVersion: row.termsVersion ?? null,
     joinedAt: row.joinedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -353,9 +355,25 @@ export async function updatePartner(
     organisationId: string;
     clerkUserId: string;
     deliveryRole: "lead" | "member" | null;
+    termsAcceptedAt: Date | null;
+    termsVersion: string | null;
   }>,
 ): Promise<SerializedPartner> {
   const row = await prisma.partner.update({ where: { id }, data });
+  return serializePartner(row);
+}
+
+export async function acceptPartnerProgrammeTerms(
+  partnerId: string,
+  termsVersion: string,
+): Promise<SerializedPartner> {
+  const row = await prisma.partner.update({
+    where: { id: partnerId },
+    data: {
+      termsAcceptedAt: new Date(),
+      termsVersion,
+    },
+  });
   return serializePartner(row);
 }
 
@@ -705,6 +723,106 @@ export async function logPartnerCommissionEvent(input: {
       metadata: (input.metadata as object | null | undefined) ?? undefined,
     },
   });
+}
+
+/**
+ * Accrue Founding Reseller commission from a paid Stripe invoice for a referred org.
+ * Idempotent on stripe invoice id (PartnerCommissionEvent.invoiceId).
+ * Qualifying amount = invoice amount paid as billed — staff can adjust later.
+ */
+export async function accruePartnerCommissionFromInvoice(input: {
+  referredOrganisationId?: string | null;
+  stripeInvoiceId?: string | null;
+  subscriptionId?: string | null;
+  amountPaidCents?: number | null;
+  currency?: string;
+  periodStart?: Date | null;
+  periodEnd?: Date | null;
+}): Promise<
+  | { ok: true; alreadyAccrued?: boolean; commissionId?: string }
+  | { ok: false; reason: string }
+> {
+  if (!input.referredOrganisationId) {
+    return { ok: false, reason: "missing_organisation" };
+  }
+  const amountPaidCents = input.amountPaidCents ?? 0;
+  if (amountPaidCents <= 0) {
+    return { ok: false, reason: "zero_amount" };
+  }
+
+  return emptyIfUnmigrated(async () => {
+    if (input.stripeInvoiceId) {
+      const existing = await prisma.partnerCommissionEvent.findFirst({
+        where: { invoiceId: input.stripeInvoiceId, eventType: "invoice_paid" },
+        select: { commissionId: true },
+      });
+      if (existing) {
+        return {
+          ok: true as const,
+          alreadyAccrued: true,
+          commissionId: existing.commissionId ?? undefined,
+        };
+      }
+    }
+
+    const referral = await prisma.partnerReferral.findFirst({
+      where: {
+        referredOrganisationId: input.referredOrganisationId!,
+        status: { in: ["CUSTOMER", "ACTIVE", "COMMISSIONING", "ACCEPTED"] },
+      },
+      include: { partner: true },
+      orderBy: { convertedAt: "desc" },
+    });
+
+    if (!referral) {
+      return { ok: false as const, reason: "no_partner_referral" };
+    }
+
+    const partner = referral.partner;
+    if (partner.status !== "active") {
+      return { ok: false as const, reason: "partner_not_active" };
+    }
+
+    const windowStart = referral.convertedAt ?? referral.acceptedAt ?? referral.referredAt;
+    const durationMonths = partner.commissionDurationMonths;
+    const windowEnd = new Date(windowStart);
+    windowEnd.setMonth(windowEnd.getMonth() + durationMonths);
+    if (new Date() > windowEnd) {
+      return { ok: false as const, reason: "outside_commission_window" };
+    }
+
+    const commissionBps = partner.commissionBps;
+    const { commissionFromRevenue } = await import("./types");
+    const commissionAmountCents = commissionFromRevenue(amountPaidCents, commissionBps);
+
+    const commission = await createPartnerCommission({
+      partnerId: partner.id,
+      referralId: referral.id,
+      customerOrganisationId: input.referredOrganisationId!,
+      subscriptionId: input.subscriptionId ?? undefined,
+      commissionBps,
+      qualifyingRevenueCents: amountPaidCents,
+      currency: input.currency ?? "AUD",
+      periodStart: input.periodStart ?? undefined,
+      periodEnd: input.periodEnd ?? undefined,
+    });
+
+    await logPartnerCommissionEvent({
+      partnerId: partner.id,
+      referralId: referral.id,
+      commissionId: commission.id,
+      subscriptionId: input.subscriptionId ?? undefined,
+      invoiceId: input.stripeInvoiceId ?? undefined,
+      eventType: "invoice_paid",
+      qualifyingAmountCents: amountPaidCents,
+      commissionBps,
+      commissionAmountCents,
+      currency: input.currency ?? "AUD",
+      metadata: { source: "stripe.invoice.paid" },
+    });
+
+    return { ok: true as const, commissionId: commission.id };
+  }, { ok: false as const, reason: "unmigrated" });
 }
 
 // ─── Partner Dashboard Metrics ────────────────────────────────────────────────

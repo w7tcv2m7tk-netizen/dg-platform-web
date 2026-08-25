@@ -1,5 +1,6 @@
 import {
   accrueMonthlyReferralCreditFromInvoice,
+  accruePartnerCommissionFromInvoice,
   bootPaymentConnectors,
   handleConnectAccountUpdated,
   handleConnectTransferFailure,
@@ -173,9 +174,27 @@ export async function POST(req: Request) {
         console.warn("[stripe webhook] referral monthly accrual failed", err);
       }
 
+      let partnerCommission: unknown = null;
+      try {
+        partnerCommission = await accruePartnerCommissionFromInvoice({
+          referredOrganisationId: organisationId,
+          stripeInvoiceId:
+            event.stripeInvoiceId || event.providerPaymentId || event.providerEventId,
+          subscriptionId: event.stripeSubscriptionId,
+          amountPaidCents: event.amountCents,
+          currency: invoice?.currency?.toUpperCase() ?? "AUD",
+          periodStart,
+          periodEnd,
+        });
+        console.info("[stripe webhook] partner commission invoice.paid:", partnerCommission);
+      } catch (err) {
+        console.warn("[stripe webhook] partner commission accrual failed", err);
+      }
+
       return NextResponse.json({
         received: true,
         referralReward,
+        partnerCommission,
       });
     }
 

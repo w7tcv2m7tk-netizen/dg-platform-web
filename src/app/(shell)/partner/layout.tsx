@@ -2,7 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getPlatformPageContext } from "@/lib/platform-page-context";
-import { claimPartnerInvitation, getPartnerByClerkUserId, getPartnerWorkspaceShellLinks } from "@dg/platform-core";
+import {
+  claimPartnerInvitation,
+  FOUNDING_RESELLER_TERMS_VERSION,
+  getPartnerByClerkUserId,
+  getPartnerWorkspaceShellLinks,
+} from "@dg/platform-core";
 export default async function PartnerLayout({
   children,
 }: {
@@ -124,6 +129,16 @@ export default async function PartnerLayout({
           ))}
         </nav>
       </header>
+      {partner.partnerType !== "IMPLEMENTATION_PARTNER" &&
+      (!partner.termsAcceptedAt || partner.termsVersion !== FOUNDING_RESELLER_TERMS_VERSION) ? (
+        <div className="border-b border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-100 sm:px-6 lg:px-8">
+          Please{" "}
+          <Link href="/partner/terms" className="font-medium text-sky-300 hover:underline">
+            review and accept programme terms
+          </Link>{" "}
+          so we have a record of your participation rules.
+        </div>
+      ) : null}
       <main className="dg-page-main">{children}</main>
     </>
   );

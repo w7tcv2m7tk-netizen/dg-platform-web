@@ -1,30 +1,48 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { DeliveryPlaceholderPage } from "@/components/delivery/DeliveryPlaceholderPage";
+import { CustomerOnboardingWorkflow } from "@/components/command/PartnerEcosystemContent";
+import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
 import { DeliveryWorkspaceNav, type DeliveryNavId } from "@/components/delivery/DeliveryWorkspaceNav";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
-import { canAccessDeliveryPartnerWorkspace, getPartnerByClerkUserId } from "@dg/platform-core";
+import {
+  canAccessDeliveryPartnerWorkspace,
+  getDeliveryDashboardMetrics,
+  getPartnerByClerkUserId,
+  isDeliveryManager,
+  listDeliveryProjects,
+  listDeliveryTasks,
+  type DeliveryProjectRecord,
+} from "@dg/platform-core";
 
-const PAGES: Record<string, { nav: DeliveryNavId; title: string; description: string }> = {
+const STATUS_FILTERS: Record<string, string[]> = {
+  training: ["training"],
+  qa: ["qa", "go_live", "testing"],
+};
+
+const SECTION_META: Record<
+  string,
+  { nav: DeliveryNavId; title: string; description: string }
+> = {
   onboarding: {
     nav: "onboarding",
     title: "Onboarding SOP",
-    description: "Standard implementation methodology — your assigned customers follow this framework.",
+    description: "Standard implementation methodology — assigned customers follow this framework.",
   },
   tasks: {
     nav: "tasks",
     title: "My Tasks",
-    description: "Tasks assigned to you across implementation projects.",
+    description: "Open implementation tasks on your projects.",
   },
   customers: {
     nav: "customers",
     title: "Customers",
-    description: "Customers assigned to your delivery portfolio.",
+    description: "Customers in your delivery portfolio.",
   },
   plans: {
     nav: "plans",
     title: "Implementation Plans",
-    description: "Launch, Growth and Enterprise scope for your assigned customers.",
+    description: "Launch, Growth and Enterprise scope — live on each project record.",
   },
   activity: {
     nav: "activity",
@@ -34,17 +52,17 @@ const PAGES: Record<string, { nav: DeliveryNavId; title: string; description: st
   documents: {
     nav: "documents",
     title: "Documents",
-    description: "Approved implementation documents and customer materials.",
+    description: "SOPs and materials live on projects and Platform Docs — no separate vault yet.",
   },
   training: {
     nav: "training",
     title: "Training",
-    description: "Training requirements and schedules for your customers.",
+    description: "Projects currently in training.",
   },
   qa: {
     nav: "qa",
     title: "QA & Go-Live",
-    description: "Quality assurance and go-live readiness for your projects.",
+    description: "Projects in QA, testing or go-live.",
   },
   reports: {
     nav: "reports",
@@ -52,6 +70,68 @@ const PAGES: Record<string, { nav: DeliveryNavId; title: string; description: st
     description: "Your delivery performance and project progress.",
   },
 };
+
+function ProjectList({
+  projects,
+  empty,
+}: {
+  projects: DeliveryProjectRecord[];
+  empty: string;
+}) {
+  if (projects.length === 0) {
+    return <p className="text-sm text-slate-500">{empty}</p>;
+  }
+  return (
+    <ul className="divide-y divide-slate-800 rounded-xl border border-slate-700/80">
+      {projects.map((p) => (
+        <li key={p.id} className="flex flex-wrap items-start justify-between gap-3 px-4 py-3">
+          <div>
+            <Link
+              href={`/partner/delivery/projects/${p.id}`}
+              className="font-medium text-white hover:text-sky-300"
+            >
+              {p.customerName}
+            </Link>
+            <p className="mt-0.5 text-xs text-slate-500">
+              {p.referenceCode} · {p.statusLabel} · {p.progressPercent}% · {p.health}
+            </p>
+            {p.nextAction ? (
+              <p className="mt-1 text-sm text-slate-400">{p.nextAction}</p>
+            ) : null}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function HonestHub({
+  title,
+  description,
+  links,
+}: {
+  title: string;
+  description: string;
+  links: Array<{ href: string; label: string }>;
+}) {
+  return (
+    <div className="max-w-2xl space-y-4 rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5">
+      <p className="text-sm text-slate-400">{description}</p>
+      <ul className="space-y-2 text-sm">
+        {links.map((l) => (
+          <li key={l.href}>
+            <Link href={l.href} className="text-sky-400 hover:underline">
+              {l.label} →
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <p className="text-xs text-slate-500">
+        No separate {title.toLowerCase()} store yet — work lives on implementation projects.
+      </p>
+    </div>
+  );
+}
 
 export default async function PartnerDeliverySectionPage({
   params,
@@ -64,14 +144,238 @@ export default async function PartnerDeliverySectionPage({
   if (!partner || !canAccessDeliveryPartnerWorkspace(partner)) redirect("/partner/dashboard");
 
   const { section } = await params;
-  const page = PAGES[section];
+  const page = SECTION_META[section];
   if (!page) redirect("/partner/delivery");
+
+  const managerView = isDeliveryManager(partner);
+
+  let projects: DeliveryProjectRecord[] = [];
+  let metrics: Awaited<ReturnType<typeof getDeliveryDashboardMetrics>> | null = null;
+  let tasks: Awaited<ReturnType<typeof listDeliveryTasks>> = [];
+
+  try {
+    [projects, metrics, tasks] = await Promise.all([
+      listDeliveryProjects({ partnerId: partner.id, managerView, limit: 100 }),
+      getDeliveryDashboardMetrics({ partnerId: partner.id, managerView }),
+      listDeliveryTasks({ partnerId: partner.id, managerView }),
+    ]);
+  } catch {
+    /* tables not migrated */
+  }
 
   return (
     <div className="max-w-5xl space-y-6">
-      <h1 className="text-2xl font-bold text-white">{page.title}</h1>
+      <div>
+        <h1 className="text-2xl font-bold text-white">{page.title}</h1>
+        <p className="mt-1 text-sm text-slate-400">{page.description}</p>
+      </div>
       <DeliveryWorkspaceNav active={page.nav} scope="partner" />
-      <DeliveryPlaceholderPage title={page.title} description={page.description} />
+
+      {section === "onboarding" ? <CustomerOnboardingWorkflow /> : null}
+
+      {section === "tasks" ? (
+        tasks.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-slate-700 px-6 py-14 text-center text-sm text-slate-400">
+            No open delivery tasks assigned to you.
+            {projects.length > 0 ? (
+              <>
+                {" "}
+                <Link href="/partner/delivery/projects" className="text-sky-400 hover:underline">
+                  View your projects
+                </Link>
+                .
+              </>
+            ) : null}
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {tasks.map((task) => (
+              <li
+                key={task.id}
+                className={`rounded-xl border px-4 py-3 text-sm ${
+                  task.overdue
+                    ? "border-rose-700/40 bg-rose-900/10"
+                    : "border-slate-700/60 bg-slate-800/40"
+                }`}
+              >
+                <Link
+                  href={`/partner/delivery/projects/${task.projectId}`}
+                  className="font-medium text-white hover:underline"
+                >
+                  {task.title}
+                </Link>
+                <p className="mt-1 text-slate-400">
+                  {task.customerName} · {task.projectReference}
+                  {task.dueAt ? ` · due ${new Date(task.dueAt).toLocaleDateString("en-AU")}` : ""}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )
+      ) : null}
+
+      {section === "customers" ? (
+        <>
+          <OperatorMetricStrip
+            metrics={[
+              { label: "Active projects", value: projects.length, tone: "sky" },
+              {
+                label: "Blocked",
+                value: projects.filter((p) => p.health === "blocked").length,
+                tone: "amber",
+              },
+            ]}
+          />
+          <ProjectList
+            projects={projects}
+            empty="No customers assigned yet — DigitalGate will allocate projects to you."
+          />
+        </>
+      ) : null}
+
+      {section === "training" || section === "qa" ? (
+        <>
+          <OperatorMetricStrip
+            metrics={[
+              {
+                label: section === "training" ? "In training" : "QA / go-live",
+                value: projects.filter((p) =>
+                  (STATUS_FILTERS[section] ?? []).includes(p.status),
+                ).length,
+                tone: "sky",
+              },
+              { label: "All projects", value: projects.length },
+            ]}
+          />
+          <ProjectList
+            projects={projects.filter((p) =>
+              (STATUS_FILTERS[section] ?? []).includes(p.status),
+            )}
+            empty={`No projects currently in ${section === "training" ? "training" : "QA / go-live"}.`}
+          />
+          <p className="text-sm text-slate-500">
+            All projects:{" "}
+            <Link href="/partner/delivery/projects" className="text-sky-400 hover:underline">
+              Active projects
+            </Link>
+          </p>
+        </>
+      ) : null}
+
+      {section === "reports" && metrics ? (
+        <>
+          <OperatorMetricStrip
+            columnsClassName="sm:grid-cols-2 lg:grid-cols-4"
+            metrics={[
+              { label: "Active implementations", value: metrics.activeImplementations },
+              { label: "On track", value: metrics.onTrack, tone: "emerald" },
+              { label: "At risk", value: metrics.atRisk, tone: "amber" },
+              { label: "Blocked", value: metrics.blocked, tone: "amber" },
+              { label: "Go-lives this month", value: metrics.goLivesThisMonth },
+              { label: "Overdue tasks", value: metrics.overdueTasks },
+              {
+                label: "Awaiting customer info",
+                value: metrics.customersAwaitingInformation,
+              },
+              {
+                label: "Avg impl. days",
+                value: metrics.averageImplementationDays ?? "—",
+              },
+            ]}
+          />
+          <p className="text-sm text-slate-500">
+            Live dashboard:{" "}
+            <Link href="/partner/delivery" className="text-sky-400 hover:underline">
+              Delivery home
+            </Link>
+          </p>
+        </>
+      ) : null}
+
+      {section === "reports" && !metrics ? (
+        <p className="text-sm text-slate-500">
+          Delivery metrics unavailable — database or migrations may be missing.
+        </p>
+      ) : null}
+
+      {section === "activity" ? (
+        <>
+          <OperatorMetricStrip
+            metrics={[
+              { label: "Open tasks", value: tasks.length },
+              {
+                label: "Recently updated projects",
+                value: Math.min(projects.length, 10),
+              },
+              {
+                label: "Overdue tasks",
+                value: tasks.filter((t) => t.overdue).length,
+                tone: tasks.some((t) => t.overdue) ? "amber" : "default",
+              },
+            ]}
+          />
+          {tasks.filter((t) => t.overdue).length > 0 ? (
+            <section className="space-y-2">
+              <h2 className="text-sm font-semibold text-white">Overdue tasks</h2>
+              <ul className="divide-y divide-slate-800 rounded-xl border border-rose-900/40">
+                {tasks
+                  .filter((t) => t.overdue)
+                  .slice(0, 10)
+                  .map((task) => (
+                    <li key={task.id} className="px-4 py-3 text-sm">
+                      <Link
+                        href={`/partner/delivery/projects/${task.projectId}`}
+                        className="text-sky-400 hover:underline"
+                      >
+                        {task.title}
+                      </Link>
+                      <p className="mt-0.5 text-slate-500">
+                        {task.customerName}
+                        {task.dueAt
+                          ? ` · was due ${new Date(task.dueAt).toLocaleDateString("en-AU")}`
+                          : ""}
+                      </p>
+                    </li>
+                  ))}
+              </ul>
+            </section>
+          ) : null}
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold text-white">Recently updated</h2>
+            <ProjectList
+              projects={[...projects]
+                .sort(
+                  (a, b) =>
+                    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+                )
+                .slice(0, 15)}
+              empty="No project activity yet."
+            />
+          </section>
+        </>
+      ) : null}
+
+      {section === "plans" ? (
+        <HonestHub
+          title="Plans"
+          description="Launch, Growth and Enterprise scoping lives on each implementation project (plan field). Open a project to see scope — there is no separate plan CMS."
+          links={[
+            { href: "/partner/delivery/projects", label: "Active projects" },
+            { href: "/partner/delivery/onboarding", label: "Onboarding SOP" },
+          ]}
+        />
+      ) : null}
+
+      {section === "documents" ? (
+        <HonestHub
+          title="Documents"
+          description="Implementation SOPs and customer materials live on project records and the onboarding workflow. A shared document vault is not available yet."
+          links={[
+            { href: "/partner/delivery/onboarding", label: "Onboarding SOP" },
+            { href: "/partner/delivery/projects", label: "Projects" },
+          ]}
+        />
+      ) : null}
     </div>
   );
 }
