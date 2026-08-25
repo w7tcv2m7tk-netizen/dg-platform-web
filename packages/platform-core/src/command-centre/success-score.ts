@@ -107,20 +107,24 @@ function clamp(n: number, min = 0, max = 100) {
 }
 
 function scoreConnectors(input: SuccessScoreInput): number {
-  let score = 35;
-  if (input.wordpressConfigured) score += 30;
-  if (input.lastSyncAt) {
-    const ageMs = Date.now() - Date.parse(input.lastSyncAt);
-    if (Number.isFinite(ageMs)) {
-      if (ageMs < 2 * 24 * 60 * 60 * 1000) score += 25;
-      else if (ageMs < 7 * 24 * 60 * 60 * 1000) score += 15;
-      else if (ageMs < 30 * 24 * 60 * 60 * 1000) score += 5;
+  // WordPress is optional legacy. Bonus if still healthy; no penalty when absent.
+  let score = 70;
+  if (input.wordpressConfigured) {
+    score = 55;
+    if (input.lastSyncAt) {
+      const ageMs = Date.now() - Date.parse(input.lastSyncAt);
+      if (Number.isFinite(ageMs)) {
+        if (ageMs < 2 * 24 * 60 * 60 * 1000) score += 35;
+        else if (ageMs < 7 * 24 * 60 * 60 * 1000) score += 25;
+        else if (ageMs < 30 * 24 * 60 * 60 * 1000) score += 15;
+        else score += 5;
+      } else {
+        score += 10;
+      }
+    } else {
+      score += 10;
     }
   }
-  const needsWp = input.installedApps.some((a) =>
-    ["real-estate", "accommodation"].includes(a),
-  );
-  if (needsWp && !input.wordpressConfigured) score -= 25;
   return clamp(score);
 }
 
@@ -261,12 +265,7 @@ export function computeSuccessScore(input: SuccessScoreInput): SuccessScoreResul
   }
 
   // Observed problems only — do not invent gaps from empty CRM / trial / no apps.
-  if (
-    !input.wordpressConfigured &&
-    input.installedApps.some((a) => ["real-estate", "accommodation"].includes(a))
-  ) {
-    concerns.push("WordPress connector missing");
-  }
+  // WordPress is optional legacy (WP detach); missing WP is not an attention reason.
   if (input.overdueLeadResponses > 0) {
     concerns.push(
       `${input.overdueLeadResponses} overdue lead response${input.overdueLeadResponses === 1 ? "" : "s"}`,

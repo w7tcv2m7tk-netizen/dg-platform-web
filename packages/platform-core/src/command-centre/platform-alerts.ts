@@ -40,27 +40,26 @@ function alertActions(href: string): PlatformAlert["actions"] {
 }
 
 function buildConnectorHealth(orgs: CommandConnectorOrgStatus[]): ConnectorHealthSummary {
+  // WordPress is a legacy optional connector (WP detach). Only score orgs that still
+  // have it configured — missing WP is not a failure in the Gen 2 SoT world.
+  const configured = orgs.filter((org) => org.wordpressConfigured);
   let healthy = 0;
-  let attention = 0;
-  let failed = 0;
+  let idle = 0;
 
-  for (const org of orgs) {
-    if (!org.wordpressConfigured) {
-      failed += 1;
-      continue;
-    }
+  for (const org of configured) {
     const syncedRecently =
       org.lastSyncAt &&
       Date.now() - Date.parse(org.lastSyncAt) < 7 * 24 * 60 * 60 * 1000;
     if (syncedRecently) healthy += 1;
-    else attention += 1;
+    else idle += 1;
   }
 
   return {
-    connectedOrganisations: orgs.filter((o) => o.wordpressConfigured).length,
+    connectedOrganisations: configured.length,
     healthy,
-    attention,
-    failed,
+    /** Idle / legacy WP configs — not treated as Attention-required ops incidents. */
+    attention: idle,
+    failed: 0,
   };
 }
 
@@ -204,15 +203,18 @@ function buildAlertsFromOpsHome(
   }
 
   const connectorSummary = buildConnectorHealth(home.connectors.orgs);
+  // Stale WordPress connectors are legacy detach residue — notice only, not Attention.
   if (connectorSummary.attention > 0) {
-    attention.push({
-      id: "connectors-stale",
-      severity: "attention",
-      title: `${connectorSummary.attention} connector${connectorSummary.attention === 1 ? "" : "s"} haven't synced`,
-      message: "WordPress connectors are configured but have not synced in the last 7 days.",
+    notices.push({
+      id: "connectors-legacy-wp",
+      severity: "notice",
+      title: `${connectorSummary.attention} legacy WordPress connector${connectorSummary.attention === 1 ? "" : "s"} idle`,
+      message:
+        "Gen 2 owns CRM, bookings, and apex sites. Remaining WordPress connectors are optional bridges — idle sync is expected while detach completes.",
       detectedAt: now,
-      impact: "Lead, booking and property data may be stale for affected organisations.",
-      recommendedAction: "Review connector health and re-run sync for affected organisations.",
+      impact: "No customer ops impact unless an org still relies on a WP mirror you have not retired.",
+      recommendedAction:
+        "Leave idle unless a specific org still needs WP sync; otherwise disconnect the connector in Settings.",
       href: "/command/clients",
       actions: alertActions("/command/clients"),
       category: "connectors",

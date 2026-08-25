@@ -202,19 +202,20 @@ export function PlatformAlertsDashboard({ data }: { data: PlatformAlertsCentre }
       <section>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-white">Connector health</h2>
+            <h2 className="text-lg font-semibold text-white">Legacy WordPress connectors</h2>
             <p className="mt-1 text-sm text-slate-400">
               {connectors.connectedOrganisations} organisation
-              {connectors.connectedOrganisations === 1 ? "" : "s"} connected
+              {connectors.connectedOrganisations === 1 ? "" : "s"} still have a WP bridge
+              configured — Gen 2 is SoT; idle sync is expected during detach.
             </p>
           </div>
           <Link href="/command/clients" className="text-sm text-sky-400 hover:underline">
-            View all connectors →
+            View orgs →
           </Link>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <ConnectorStat label="Healthy" value={connectors.healthy} tone="emerald" />
-          <ConnectorStat label="Attention" value={connectors.attention} tone="amber" />
+          <ConnectorStat label="Synced recently" value={connectors.healthy} tone="emerald" />
+          <ConnectorStat label="Idle (legacy)" value={connectors.attention} tone="amber" />
           <ConnectorStat label="Failed" value={connectors.failed} tone="rose" />
         </div>
       </section>

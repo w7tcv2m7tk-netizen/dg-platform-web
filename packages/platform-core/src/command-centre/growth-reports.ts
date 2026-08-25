@@ -80,15 +80,6 @@ function nextStepFor(client: {
   healthTier: string;
   scoreBreakdown: { crm: number; billing: number; connectors: number };
 }): RecommendedAction {
-  if (client.attentionReasons.some((c) => /WordPress/i.test(c))) {
-    return {
-      id: "connect-wp",
-      label: "Connect WordPress this week",
-      description: "Unlock live RE/Acc sync and improve Success Score connectors.",
-      href: "/dashboard/settings/connectors",
-      priority: 1,
-    };
-  }
   if (client.attentionReasons.some((c) => /overdue/i.test(c))) {
     return {
       id: "clear-leads",

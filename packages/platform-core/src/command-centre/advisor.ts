@@ -86,15 +86,6 @@ function templateInsight(ctx: AdvisorContext): ClientAdvisorInsight {
   const recommendations: RecommendedAction[] = [];
   let priority = 1;
 
-  if (ctx.concerns.some((c) => /WordPress/i.test(c))) {
-    recommendations.push({
-      id: "fix-wp",
-      label: "Connect WordPress",
-      description: "Restore connector sync for RE/Acc data freshness.",
-      href: "/dashboard/settings/connectors",
-      priority: priority++,
-    });
-  }
   if (ctx.concerns.some((c) => /overdue lead/i.test(c))) {
     recommendations.push({
       id: "clear-sla",

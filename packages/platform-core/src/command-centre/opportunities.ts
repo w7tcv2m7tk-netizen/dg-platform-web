@@ -109,12 +109,6 @@ export async function getClientExpansionOpportunities(): Promise<OpportunitiesBu
       if (client.scoreBreakdown.connectors < 60 && item.appId === "ai-visibility") {
         rationale += " Connectors are weak — visibility wins often unlock after sync.";
       }
-      if (
-        client.attentionReasons.some((c) => /WordPress/i.test(c)) &&
-        (item.appId === "real-estate" || item.appId === "accommodation")
-      ) {
-        continue;
-      }
 
       opportunities.push({
         organisationId: client.organisationId,
@@ -123,22 +117,6 @@ export async function getClientExpansionOpportunities(): Promise<OpportunitiesBu
         label: item.label,
         rationale,
         estimatedAdditionalMrrCents: item.estimatedAdditionalMrrCents,
-      });
-    }
-
-    if (
-      client.attentionReasons.some((c) => /WordPress/i.test(c)) ||
-      (client.installedApps.some((a) => ["real-estate", "accommodation"].includes(a)) &&
-        client.scoreBreakdown.connectors < 50)
-    ) {
-      opportunities.unshift({
-        organisationId: client.organisationId,
-        appId: "connectors.wordpress",
-        appName: "WordPress connector",
-        label: "Fix WordPress connector",
-        rationale:
-          "Sync gap blocking live RE/Acc data — unblock before pitching new Apps.",
-        estimatedAdditionalMrrCents: 0,
       });
     }
 

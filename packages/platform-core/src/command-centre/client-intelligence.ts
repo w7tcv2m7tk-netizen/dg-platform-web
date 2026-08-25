@@ -227,13 +227,8 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
 
     const result = computeSuccessScore(scoreInput);
     // Observed problems only — do not invent "no leads yet" / empty CRM gaps.
+    // WP is optional legacy; RE/Acc Gen 2 SoT no longer requires a live WP connector.
     const attentionReasons = [...result.concerns];
-    if (reBeta && !connectorOk) {
-      attentionReasons.unshift("RE beta — WordPress connector down");
-    }
-    if (accBeta && !connectorOk) {
-      attentionReasons.unshift("Acc beta — WordPress connector down");
-    }
 
     const row: Omit<EnrichedCommandClient, "rank"> = {
       organisationId: org.id,
