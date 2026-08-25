@@ -18,7 +18,7 @@ Industry Apps, Prospecting, Automation, Advisor and Command Centre may create, s
 
 **Google Workspace / Microsoft 365 remain the authoritative mailboxes.** DigitalGate is the **business intelligence and orchestration layer** around the mailbox — association, history, automation, AI draft, next action — not the mailbox provider.
 
-**AI Communications (Growth)** remains the commercial container for advanced AI voice / agents / high-volume AI generation. Over time, voice / SMS / WhatsApp should **plug into the same Communication model** as channels — the operator should not think they own four separate “comms systems.”
+**Do not ship a second customer “AI Communications” silo.** Voice agents / Call Centre may stay a **Growth commercial add-on** (capacity / monetisation), but Calls and AI Assist live under **Core Communications** IA, and every voice/SMS/email row must land in the same Communication History.
 
 ---
 
@@ -27,41 +27,48 @@ Industry Apps, Prospecting, Automation, Advisor and Command Centre may create, s
 ```
 CORE
   CRM
+  Communications          ← nav (before Documents — Know → Communicate → Document → Transact)
+  Documents
   Commerce
   Design Studio
-  Documents
-  Communications          ← nav
         │
         └── DigitalGate Communications   ← capability
               │
+              ├── Inbox · Email · SMS · Calls · Outreach · Automations
+              ├── Templates · Signatures (Signature Studio) · AI (Assist)
               ├── Channels: Email · SMS · Voice · WhatsApp · …
-              ├── Sources: Manual · Automation · AI Assist · Prospecting · Agent · System
-              └── Linked to: Contact · Company · Opportunity · Task · Campaign ·
-                             Document · Property · User/agent · Automation
+              ├── Sources: Manual · Automation · AI Assist · Prospecting · Agent · System · Mailbox
+              └── Linked to: Organisation · Contact · Company · Opportunity · Task ·
+                             Customer · Property · Document · Campaign · Automation · Agent
 ```
 
 **Do not** build an “Email App.”  
-**Do** build a **Communication Record** inside Core.
+**Do** build a **Communication Record** inside Core — a Universal Object activity source.
 
 Primary operator question (every surface should serve this):
 
 > Who did we communicate with, what was said, why was it sent, and what happens next?
+
+**Home (direction):** greeting · Needs attention · Inbox preview · Quick actions (+ Email · + SMS · ✦ Write with AI · Schedule · Start outreach) · Recent activity — not SMTP/provider mechanics.
 
 Secondary nav (modules — not separate products):
 
 | Surface | Role |
 |---------|------|
 | Inbox | Connected Google / Microsoft mailboxes (synced, associated) |
-| Sent | Everything sent through / recorded by DigitalGate |
+| Email | Compose · Sent · Drafts · Scheduled · Templates · Signatures |
+| SMS / Calls | Channels that share the same Communication Record |
 | Drafts | Human + AI Assist drafts awaiting send |
 | Scheduled | Timed sends |
 | Automations | Rule/event-triggered communications |
 | Outreach | Prospecting / campaign communications |
 | Templates | Reusable copy / structure |
-| AI Writer / Assist | Draft modes (see below) — human reviews, human sends |
+| Signatures | **Signature Studio** — identity · branding · content · behaviour · Gmail/Outlook preview |
+| AI / Assist | Draft modes — human reviews, human sends |
 | History | Global Communication History (all channels) |
+| Settings / Accounts | Connected mailbox identities (customer-facing) |
 
-The operator does **not** need to experience these as separate systems; History + context panels + Command Centre priorities are the primary lens.
+The operator does **not** need to experience these as separate systems; History + context panels + Advisor / Priorities are the primary lens.
 
 ---
 
@@ -70,15 +77,20 @@ The operator does **not** need to experience these as separate systems; History 
 | Capability | Layer | Owns |
 |------------|-------|------|
 | **Communication Engine** | Core | Message, Thread, Channel, Participant, Activity link, delivery status, audit |
-| **Mailbox connectors** | Core / Connectors | OAuth to Google / Microsoft; sync inbox/sent; never store customer passwords |
+| **Connected Services (customer)** | Settings | Human “Connect Google Workspace / Microsoft 365 / …” — no OAuth jargon |
+| **Connector Engine (operator)** | Platform / Command | Scopes, probes, credentials, platform-ready health |
+| **Mailbox / Workspace connectors** | Core / Connectors | OAuth to Google / Microsoft (Gmail·Outlook · Calendar · Contacts over time); never store passwords |
 | **Infrastructure Email** | Infrastructure | Domains / hosting / DNS / mailbox *provisioning* — **not** business CRM email UX |
 | **Automation** | Automation App | Triggers that *create* Communication records (source = Automation) |
 | **AI Assist** | Core + AI Service | Draft / classify with Brain context; human review before send |
-| **AI Communications** | Growth | Voice agents, Call Centre, advanced AI employees, usage monetisation |
+| **Voice agents (Growth packaging)** | Growth add-on | Monetised agent capacity / Call Centre — history still Core |
 | **Prospecting / Outreach** | Growth (Prospecting) | Campaign loops that emit Communication records into Core |
 
 Industry Apps **consume** Communications. They do not each invent inbox sync or activity timelines.
 
+Advisor loop (product): Advisor surfaces gaps → Assist drafts → human Approve → Communications sends → Timeline + Brain update. Not “here is an AI email writer.”
+
+**Communication Health (direction):** response rate · response time · unanswered · follow-up gaps · deliverability · automated vs AI-assisted counts — feeds Business Health / Advisor.
 ---
 
 ## Canonical object model (lock)
@@ -239,7 +251,7 @@ COMMUNICATIONS
 │   ├── Templates
 │   └── Signatures
 ├── SMS          (later channel)
-├── Voice        (shared model with Growth AI Communications over time)
+├── Calls        (voice history in Core; Growth packages agent capacity)
 ├── Outreach
 ├── Automations
 ├── AI
@@ -248,17 +260,18 @@ COMMUNICATIONS
 │   └── Agents   (governance-gated; not Email v1)
 ├── History      (global Communication History — primary lens)
 └── Settings
-    ├── Accounts (Google / Microsoft OAuth)
+    ├── Accounts / Connected mailboxes
+    ├── Signatures (Signature Studio)
     ├── Sending
-    ├── Signatures
     └── Preferences
 ```
 
-**Primary experience** remains History + context (who / what / why / next) — not six competing inboxes.
+**Primary experience** remains Needs attention + Inbox + Quick actions + Recent activity — not SMTP/provider mechanics.
+
+**Signature Studio (direction):** identity · branding · content · behaviour (default / reply / new / internal) · Gmail + Outlook preview — under Communications → Settings → Signatures.
 
 **Infrastructure → Email** stays hosting/DNS/mailbox provisioning.  
-**Growth → AI Communications** stays advanced AI voice / agents / monetised AI volume — progressively sharing this Core model as channels.
-
+**Growth voice packaging** stays monetised agent capacity — history still Core.
 ---
 
 ## Communication Service (runtime stack)

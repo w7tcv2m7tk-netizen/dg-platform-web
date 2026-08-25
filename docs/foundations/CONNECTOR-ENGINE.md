@@ -6,6 +6,15 @@
 
 **Do not** ship one-off “REA integration / Domain integration / Google integration” as disconnected features. Ship **connectors** that plug into this engine.
 
+### Customer vs operator naming (lock)
+
+| Audience | Label | UX |
+|----------|-------|-----|
+| **Customer** | **Connected Services** | Settings → Connected Services — human cards (Google Workspace · Microsoft 365 · Stripe · REA · Domain · WordPress…). Connect / Connected · last sync. No OAuth / api_key / client_credentials jargon. |
+| **DigitalGate operator** | **Connector Engine** | Command / internal Settings — scopes, probes, auth kinds, platform-ready, credentials, health. |
+
+Google Workspace and Microsoft 365 are **first-class Connected Services** (mail · calendar · contacts over time). Provider mechanics stay invisible; Universal Objects are the abstraction (Outlook email → Communication, Gmail contact → Contact, calendar → Consultation/Task).
+
 **Priority stack (tiers, DigitalGate 15, immediate programme):** [CONNECTOR-PRIORITY.md](./CONNECTOR-PRIORITY.md) — read that before adding integrations.
 
 Supersedes the narrow sketch in [../connectors/CONNECTOR-SPECIFICATION.md](../connectors/CONNECTOR-SPECIFICATION.md) (that file now points here).

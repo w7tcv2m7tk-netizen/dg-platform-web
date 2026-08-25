@@ -93,7 +93,7 @@ export interface NavIaSection {
  * Core — universal operating layer (profile + CRM / Commerce / Design Studio).
  * Infrastructure is its own top-level section.
  */
-const CORE_APP_ORDER = ["crm", "commerce", "documents", "communications", "websites"] as const;
+const CORE_APP_ORDER = ["crm", "communications", "documents", "commerce", "websites"] as const;
 
 /**
  * Industry — Industry Apps (activate Templates). Module ids map into Industry Platforms.
