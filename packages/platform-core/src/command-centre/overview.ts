@@ -550,9 +550,9 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     actions.push({
       id: "tasks-due",
       severity: "today",
-      title: `${openTasksDue} open task${openTasksDue === 1 ? "" : "s"} due today`,
-      detail: "Platform-wide tasks with due dates on or before today.",
-      href: "/command/delivery/tasks",
+      title: `${openTasksDue} open CRM task${openTasksDue === 1 ? "" : "s"} due today or overdue`,
+      detail: "Customer org follow-up tasks (CRM) with due dates on or before today — not Delivery implementation tasks.",
+      href: "/command/tasks",
     });
   }
 

@@ -114,6 +114,53 @@ export async function listTasks(options: ListTasksOptions) {
   };
 }
 
+/** Command Centre — CRM tasks open with due date on or before end of today (platform-wide). */
+export type CommandCentreOpenTaskDue = ReturnType<typeof serializeTask> & {
+  organisationName: string;
+  organisationSlug: string;
+  overdue: boolean;
+};
+
+export async function listCommandCentreOpenTasksDue(options?: {
+  limit?: number;
+}): Promise<{ items: CommandCentreOpenTaskDue[]; total: number }> {
+  const { prisma } = await import("@dg/database");
+  const limit = Math.min(options?.limit ?? 100, 200);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+  const now = Date.now();
+
+  const where: Prisma.TaskWhereInput = {
+    status: "open",
+    dueAt: { lte: todayEnd },
+  };
+
+  const [rows, total] = await Promise.all([
+    prisma.task.findMany({
+      where,
+      orderBy: [{ dueAt: "asc" }, { updatedAt: "desc" }],
+      take: limit,
+      include: {
+        organisation: { select: { name: true, slug: true } },
+      },
+    }),
+    prisma.task.count({ where }),
+  ]);
+
+  return {
+    total,
+    items: rows.map((row) => {
+      const base = serializeTask(row);
+      return {
+        ...base,
+        organisationName: row.organisation.name,
+        organisationSlug: row.organisation.slug,
+        overdue: Boolean(row.dueAt && row.dueAt.getTime() < now),
+      };
+    }),
+  };
+}
+
 export async function getTask(organisationId: string, taskId: string) {
   const { prisma } = await import("@dg/database");
   const row = await prisma.task.findFirst({

@@ -58,6 +58,8 @@ export const COMMAND_CENTRE_ROUTES = {
   partnerDelivery: `${COMMAND_CENTRE_BASE_PATH}/partners/delivery`,
   deliveryWorkspace: `${COMMAND_CENTRE_BASE_PATH}/delivery`,
   deliveryInvitations: `${COMMAND_CENTRE_BASE_PATH}/delivery/invitations`,
+  /** Platform-wide CRM tasks due today / overdue (not DeliveryTask) */
+  tasks: `${COMMAND_CENTRE_BASE_PATH}/tasks`,
   partnerPayouts: `${COMMAND_CENTRE_BASE_PATH}/partners/payouts`,
   partnerReferrals: `${COMMAND_CENTRE_BASE_PATH}/referrals`,
   partnerCommissions: `${COMMAND_CENTRE_BASE_PATH}/commissions`,
