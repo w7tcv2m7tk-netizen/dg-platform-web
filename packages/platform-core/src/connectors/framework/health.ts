@@ -44,6 +44,8 @@ export function isConnectorPlatformConfigured(connectorId: string): boolean {
       return Boolean(envTrim("DOMAIN_CLIENT_ID") && envTrim("DOMAIN_CLIENT_SECRET"));
     case "google-gbp":
       return Boolean(envTrim("GOOGLE_CLIENT_ID") && envTrim("GOOGLE_CLIENT_SECRET"));
+    case "google-gmail":
+      return Boolean(envTrim("GOOGLE_CLIENT_ID") && envTrim("GOOGLE_CLIENT_SECRET"));
     case "linkedin":
       return Boolean(envTrim("LINKEDIN_CLIENT_ID") && envTrim("LINKEDIN_CLIENT_SECRET"));
     case "stripe":
@@ -172,6 +174,7 @@ function statusFromBlob(
 
   if (
     connectorId === "google-gbp" ||
+    connectorId === "google-gmail" ||
     connectorId === "linkedin" ||
     connectorId === "domain"
   ) {

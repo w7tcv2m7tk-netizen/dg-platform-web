@@ -133,6 +133,17 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
     dg15Rank: 4,
   },
   {
+    id: "google-gmail",
+    name: "Google Gmail / Workspace",
+    category: "ops",
+    auth: "oauth",
+    syncObjects: ["OrgCommunication", "Contact"],
+    capabilities: ["mail.read", "mail.send", "mail.sync"],
+    appIds: ["communications", "crm"],
+    priorityTier: 1,
+    dg15Rank: 5,
+  },
+  {
     id: "abr",
     name: "Australian Business Register (ABR)",
     category: "business",

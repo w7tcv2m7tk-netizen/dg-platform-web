@@ -21,6 +21,7 @@ const FILTERS = [
   { id: "voice", label: "Voice" },
   { id: "automated", label: "Automated" },
   { id: "system", label: "System" },
+  { id: "mailbox", label: "Mailbox" },
   { id: "ai", label: "AI" },
   { id: "outreach", label: "Outreach" },
 ] as const;
@@ -35,6 +36,7 @@ export default async function CommunicationsHistoryPage({ searchParams }: PagePr
     | "voice"
     | "automated"
     | "system"
+    | "mailbox"
     | "ai"
     | "outreach";
 

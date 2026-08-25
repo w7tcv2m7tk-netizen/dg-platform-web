@@ -123,6 +123,7 @@ export type ListOrgCommunicationsInput = {
     | "ai"
     | "outreach"
     | "system"
+    | "mailbox"
     | "sent"
     | "scheduled";
   limit?: number;
@@ -150,6 +151,8 @@ export async function listOrgCommunications(
         source = "prospecting";
       } else if (input.filter === "system") {
         source = "system";
+      } else if (input.filter === "mailbox") {
+        source = "mailbox";
       } else if (input.filter === "sent") {
         direction = "outbound";
         channel = channel ?? "email";

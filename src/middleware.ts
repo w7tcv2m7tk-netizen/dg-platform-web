@@ -53,6 +53,7 @@ const isPublicRoute = createRouteMatcher([
   // OAuth provider returns here without a guaranteed Clerk session cookie —
   // must stay public or protect() → login → /dashboard drops the auth code.
   "/api/connectors/google/callback(.*)",
+  "/api/connectors/google-gmail/callback(.*)",
   "/api/connectors/linkedin/callback(.*)",
   "/api/connectors/domain/callback(.*)",
   "/api/connectors/rea/callback(.*)",

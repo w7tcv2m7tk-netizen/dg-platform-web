@@ -10,7 +10,8 @@ export type CommunicationSource =
   | "ai_assist"
   | "prospecting"
   | "agent"
-  | "system";
+  | "system"
+  | "mailbox";
 
 export type CommunicationStatus =
   | "draft"

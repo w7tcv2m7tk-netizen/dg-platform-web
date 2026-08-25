@@ -226,12 +226,57 @@ Same bus as Automation → Advisor → Brain → Timeline → Notifications.
 
 ## Sidebar direction
 
-Prefer **Communications** (not “Email”):
+Prefer **Communications** (not “Email”). Operator-facing IA (modules under one Core app — not separate products):
 
-Inbox · Sent · Drafts · Scheduled · Templates · Automations · Outreach · History
+```
+COMMUNICATIONS
+├── Inbox
+├── Email
+│   ├── Compose
+│   ├── Sent
+│   ├── Drafts
+│   ├── Scheduled
+│   ├── Templates
+│   └── Signatures
+├── SMS          (later channel)
+├── Voice        (shared model with Growth AI Communications over time)
+├── Outreach
+├── Automations
+├── AI
+│   ├── Drafts / Assist
+│   ├── Suggestions
+│   └── Agents   (governance-gated; not Email v1)
+├── History      (global Communication History — primary lens)
+└── Settings
+    ├── Accounts (Google / Microsoft OAuth)
+    ├── Sending
+    ├── Signatures
+    └── Preferences
+```
+
+**Primary experience** remains History + context (who / what / why / next) — not six competing inboxes.
 
 **Infrastructure → Email** stays hosting/DNS/mailbox provisioning.  
 **Growth → AI Communications** stays advanced AI voice / agents / monetised AI volume — progressively sharing this Core model as channels.
+
+---
+
+## Communication Service (runtime stack)
+
+```
+Communication Service
+  → Gmail (OAuth)
+  → Microsoft 365 (OAuth)
+  → DigitalGate Email (Resend / transactional until mailbox send)
+  → SMS / Voice / WhatsApp (later)
+  → Automation Engine
+  → AI Service (Assist + classification)
+  → Universal Objects (Contact · Company · Opportunity · …)
+  → Timeline / Activity
+  → Audit Log / provenance
+```
+
+Design the connectors and `OrgCommunication` (→ richer Communication model) for Gmail + Microsoft **now**, even while shipping history / composer / schedule / provenance first.
 
 ---
 
@@ -258,6 +303,8 @@ Communications is a primary way the business interacts with the outside world.
 | Surface | Path | Status |
 |---------|------|--------|
 | **Core Communications app** | `/apps/communications` · Compose · Inbox · Sent · Scheduled · Automations · History · Mailboxes | **Live** |
+| **Gmail OAuth** | `/api/connectors/google-gmail/*` · Mailboxes Connect / Sync / Disconnect | **Live** (Google first; Microsoft next) |
+| **Gmail sync** | Manual Sync + post-connect → `OrgCommunication` (provider `gmail`, source `mailbox`) · Contact match by email | **Live** |
 | **Send API** | `/api/v1/communications/messages` | **Live** — Resend + OrgCommunication; optional `scheduledAt` |
 | **Scheduled flush** | `/api/cron/scheduled-emails` (daily) + flush on Scheduled page open | **Live** |
 | **CRM** | Contact → Email contact / History | **Live** |
@@ -271,15 +318,17 @@ cd packages/database && npx prisma db push
 npm run db:push
 ```
 
-Uploads/sends need `RESEND_API_KEY` on Vercel (existing transactional path).
+Uploads/sends need `RESEND_API_KEY` on Vercel (existing transactional path).  
+Gmail OAuth needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and redirect URI `…/api/connectors/google-gmail/callback` registered in Google Cloud Console (`GOOGLE_GMAIL_REDIRECT_URI` optional override).
 
-**v1 scope shipped:** Organisation-scoped communication records · manual compose · Send later / Scheduled · Sent + History filters (incl. System) · Founding / referral invite provenance · Automations catalogue · Inbox placeholder (mailbox OAuth not connected) · Resend provider · Mailboxes UI placeholder for Google/Microsoft.
+**v1 scope shipped:** Organisation-scoped communication records · manual compose · Send later / Scheduled · Sent + History · Founding / referral provenance · Automations catalogue · **Gmail connect + sync into Inbox/History** · Resend provider · Microsoft Mailboxes placeholder.
 
-**Not yet:** Gmail/Outlook OAuth sync · real inbox pull · AI Assist drafts · SMS/WhatsApp · unsupervised agent send · multi-step drip sequencer UI.
+**Not yet:** Microsoft Graph OAuth · send-as-Gmail identity · AI Assist drafts · SMS/WhatsApp · unsupervised agent send · multi-step drip sequencer UI · open/reply webhooks · classification → Priorities.
 
 ### Core — Communications Email v1 (remaining)
 
-- OAuth Google + Microsoft (connect, sync, send as mailbox identity)  
+- OAuth Microsoft 365  
+- Send as connected mailbox identity  
 - AI Assist **draft-only** behind governance  
 
 ### Later
@@ -305,4 +354,4 @@ Uploads/sends need `RESEND_API_KEY` on Vercel (existing transactional path).
 - **Core Communications** — foundation of the BOS (included with platform Core).  
 - **AI Communications (Growth, ~$99)** — advanced AI employees / voice / high-volume generation.  
 Do not double-charge for “having email history”; charge for AI depth and agent capacity.
-`
+

@@ -25,6 +25,7 @@ export function CommunicationsList({
             {row.aiGenerated ? " · AI-assisted" : ""}
             {row.source === "automation" ? " · automated" : ""}
             {row.source === "system" ? " · system" : ""}
+            {row.source === "mailbox" ? " · mailbox" : ""}
             {" · "}
             <span className="text-slate-400">{row.status}</span>
           </p>

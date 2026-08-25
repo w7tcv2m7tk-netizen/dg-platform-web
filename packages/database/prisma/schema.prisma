@@ -428,7 +428,7 @@ model OrgCommunication {
   channel          String    @default("email")
   /** outbound | inbound */
   direction        String    @default("outbound")
-  /** manual | automation | ai_assist | prospecting | agent | system */
+  /** manual | automation | ai_assist | prospecting | agent | system | mailbox */
   source           String    @default("manual")
   /** draft | scheduled | sent | delivered | bounced | opened | replied | failed */
   status           String    @default("draft")
@@ -466,6 +466,7 @@ model OrgCommunication {
   @@index([organisationId, contactId])
   @@index([organisationId, status])
   @@index([organisationId, source])
+  @@index([organisationId, provider, externalId])
   @@map("org_communications")
 }
 

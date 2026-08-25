@@ -57,7 +57,7 @@ CRM · Contacts · Opportunities · Tasks · Calendar · **Documents** (Document
 
 **Documents** is the Core nav app; **Documents & Signing** is the capability (Document Engine + Signing Engine). Industry Apps consume it with templates; do **not** place e-sign under Infrastructure. See [DOCUMENTS-AND-SIGNING.md](./DOCUMENTS-AND-SIGNING.md).
 
-**Communications** is the Core nav app for the business communication layer (Communication Record · History · mailbox orchestration). Do **not** build a Gmail/Outlook clone; Google/Microsoft remain authoritative mailboxes. Do **not** confuse Core Communications with Infrastructure Email (hosting/DNS/mailbox provisioning) or Growth **AI Communications** (voice / AI employees). See [COMMUNICATIONS.md](./COMMUNICATIONS.md). **Email v1 live:** History + Compose + CRM email action (Resend); mailbox OAuth next.
+**Communications** is the Core nav app for the business communication layer (Communication Record · History · mailbox orchestration). Do **not** build a Gmail/Outlook clone; Google/Microsoft remain authoritative mailboxes. Do **not** confuse Core Communications with Infrastructure Email (hosting/DNS/mailbox provisioning) or Growth **AI Communications** (voice / AI employees). See [COMMUNICATIONS.md](./COMMUNICATIONS.md). **Live:** Compose · Sent · Scheduled · Automations · History · **Gmail OAuth + sync** · Inbox from synced mailbox · Microsoft placeholder. **Next:** Microsoft Graph · send-as-mailbox · AI Assist drafts.
 
 ## 2. INFRASTRUCTURE — operate digitally
 
