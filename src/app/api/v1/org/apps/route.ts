@@ -5,6 +5,7 @@ import {
   getDefaultEnabledAppIds,
   industryBetaFlagForAppId,
   isIndustryBetaGatedApp,
+  isPlatformOperatorOrgSlug,
   resolveEnabledAppIds,
 } from "@dg/platform-core";
 
@@ -18,16 +19,25 @@ type OrgSettings = {
   featureFlags?: Record<string, boolean>;
 };
 
-/** Enrol industry closed-beta flags when Apps toggles those floors on (dev / Founding). */
+/** App id → feature flag to enrol when Apps turns the floor on (testing / demo). */
+const APP_ENABLE_BETA_FLAGS: Record<string, string> = {
+  "real-estate": "re.beta",
+  accommodation: "acc.beta",
+};
+
+/** Enrol industry closed-beta flags when Apps toggles those floors on. */
 function enrolIndustryBetasForEnabled(
   featureFlags: Record<string, boolean> | undefined,
   enabled: string[],
 ): Record<string, boolean> {
   const next = { ...(featureFlags ?? {}) };
   for (const appId of enabled) {
-    if (!isIndustryBetaGatedApp(appId)) continue;
-    const flag = industryBetaFlagForAppId(appId);
-    if (flag) next[flag] = true;
+    if (isIndustryBetaGatedApp(appId)) {
+      const flag = industryBetaFlagForAppId(appId);
+      if (flag) next[flag] = true;
+    }
+    const extra = APP_ENABLE_BETA_FLAGS[appId];
+    if (extra) next[extra] = true;
   }
   return next;
 }
@@ -86,11 +96,16 @@ export async function PATCH(req: Request) {
   const settings = (org?.settings as OrgSettings | null) ?? {};
   let enabled = resolveEnabledAppIds(settings);
 
+  const staffOrOperator =
+    session.role === "dg:staff" ||
+    isPlatformOperatorOrgSlug(session.organisationSlug);
+
   const paidActivation =
     body.action === "apply_plan" ||
     (body.action === "toggle" && body.enabled !== false) ||
     body.action === "set";
-  if (paidActivation) {
+  // DigitalGate operator org + staff: always allow Industry toggles for testing/demo.
+  if (paidActivation && !staffOrOperator) {
     const gate = await assertEntitlement(session.organisationId, "activatePaidApps");
     if (!gate.ok) {
       return NextResponse.json(
@@ -114,7 +129,6 @@ export async function PATCH(req: Request) {
     });
     if (denied && session.role !== "owner" && session.role !== "admin" && session.role !== "dg:staff")
       return denied;
-    // Industry floors are toggled independently — no shared beta gate on install.
     enabled = appIdsFromPlanSelection(body.plan);
   } else if (body.action === "toggle" && typeof body.appId === "string") {
     const denied = requirePermission(session, {

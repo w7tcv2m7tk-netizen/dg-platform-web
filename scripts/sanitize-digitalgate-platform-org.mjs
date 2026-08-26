@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /**
- * Strip Industry App pollution from the DigitalGate Command Centre org.
+ * Clean Industry sample pollution from the DigitalGate Command Centre org
+ * (Services template brand voice, properties). Does not remove intentional
+ * Industry App toggles used for staff testing/demo.
  *
  * Usage: node --import tsx scripts/sanitize-digitalgate-platform-org.mjs
  *    or: npx tsx scripts/sanitize-digitalgate-platform-org.mjs

@@ -2,7 +2,6 @@ import { after } from "next/server";
 import {
   canAccessCommandCentre,
   canAccessPartnerPortal,
-  filterEnabledAppsForOperatorOrg,
   getPartnerByClerkUserId,
   isDemoOrganisationId,
   isDigitalGateStaffEmail,
@@ -86,10 +85,8 @@ export async function PlatformShellLoader({
     }
   }
 
-  const navEnabledIds = filterEnabledAppsForOperatorOrg(
-    enabledIds,
-    showCommandCentreNav,
-  );
+  // Industry floors stay on DigitalGate when staff toggle them for testing/demo.
+  // Do not strip via filterEnabledAppsForOperatorOrg.
 
   let billingBanner = null;
   if (session?.organisationId && process.env.DATABASE_URL && !isDemo) {
@@ -103,7 +100,7 @@ export async function PlatformShellLoader({
 
   return (
     <PlatformShell
-      enabledIds={navEnabledIds}
+      enabledIds={enabledIds}
       industrySelectionIds={industrySelectionIds}
       userName={userName ?? undefined}
       showFloatingChat={showFloatingChat && !isDemo}

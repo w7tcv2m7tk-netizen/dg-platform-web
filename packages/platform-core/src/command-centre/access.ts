@@ -38,7 +38,7 @@ export function canAccessCommandCentre(input: CommandCentreAccessInput): boolean
   return false;
 }
 
-/** Industry apps hidden from DigitalGate operator org navigation. */
+/** Industry app ids (kept for docs / optional tooling). */
 export const OPERATOR_ORG_HIDDEN_APP_IDS = [
   "real-estate",
   "accommodation",
@@ -51,11 +51,15 @@ export const OPERATOR_ORG_HIDDEN_APP_IDS = [
   "creator",
 ] as const;
 
+/**
+ * Previously stripped Industry apps from the DigitalGate operator org nav.
+ * No longer filters — staff must activate/deactivate Industry floors on DG for
+ * testing and demo. Kept as a pass-through for callers.
+ */
 export function filterEnabledAppsForOperatorOrg(
   enabledIds: string[],
-  isOperatorOrg: boolean,
+  _isOperatorOrg: boolean,
 ): string[] {
-  if (!isOperatorOrg) return enabledIds;
-  const hidden = new Set<string>(OPERATOR_ORG_HIDDEN_APP_IDS);
-  return enabledIds.filter((id) => !hidden.has(id));
+  return enabledIds;
 }
+

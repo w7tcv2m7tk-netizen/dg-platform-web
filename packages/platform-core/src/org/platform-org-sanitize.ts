@@ -1,12 +1,13 @@
 /**
- * DigitalGate (Command Centre) is the platform operator org — not a customer
- * Industry tenant. Strip Industry App installs and Industry-shaped demo profile
- * fields so Services/Real Estate sample data never lives on DigitalGate itself.
+ * DigitalGate (Command Centre) is the platform operator org.
+ * This cleanup removes Industry *sample pollution* (Services template brand voice,
+ * RE/Acc properties) — not intentional Industry App toggles used for staff testing
+ * and demo on the DigitalGate workspace.
  */
 
 export const PLATFORM_OPERATOR_ORG_SLUGS = ["digitalgate"] as const;
 
-/** Industry / vertical app ids that customers install — never default on the operator org. */
+/** Industry / vertical app ids customers install (reference; not auto-stripped from DG). */
 export const INDUSTRY_APP_IDS = [
   "real-estate",
   "accommodation",
@@ -49,7 +50,9 @@ export type SanitizePlatformOrgResult = {
 };
 
 /**
- * Remove Industry App pollution from the DigitalGate operator organisation.
+ * Clean Industry *sample pollution* from DigitalGate — brand voice / Services
+ * template / properties. Preserves intentional Industry App toggles and installs
+ * so staff can demo floors on the operator org.
  */
 export async function sanitizePlatformOperatorOrg(input?: {
   slug?: string;
@@ -71,9 +74,6 @@ export async function sanitizePlatformOperatorOrg(input?: {
   const settings = (org.settings as Record<string, unknown> | null) ?? {};
   const apps = (settings.apps as Record<string, unknown> | undefined) ?? {};
   const enabledRaw = Array.isArray(apps.enabled) ? (apps.enabled as string[]) : [];
-  const enabled = enabledRaw.filter(
-    (id) => !(INDUSTRY_APP_IDS as readonly string[]).includes(id),
-  );
 
   const planPreview = (apps.planPreview as Record<string, unknown> | undefined) ?? {};
   const hadIndustryPreview =
@@ -119,9 +119,11 @@ export async function sanitizePlatformOperatorOrg(input?: {
     ...settings,
     apps: {
       ...apps,
-      enabled,
+      // Keep enabled Industry apps — staff toggle these for testing/demo.
+      enabled: enabledRaw,
       planPreview: {
         ...planPreview,
+        // Clear mistaken plan-preview Industry picks; toggles live in apps.enabled.
         industryApps: [],
         appliedAt: new Date().toISOString(),
       },
@@ -140,24 +142,6 @@ export async function sanitizePlatformOperatorOrg(input?: {
   };
   delete nextSettings.services;
 
-  const industryInstalls = await prisma.appInstallation.findMany({
-    where: {
-      organisationId: org.id,
-      appId: { in: [...INDUSTRY_APP_IDS] },
-    },
-    select: { appId: true },
-  });
-  const removedAppIds = industryInstalls.map((r) => r.appId);
-
-  if (removedAppIds.length) {
-    await prisma.appInstallation.deleteMany({
-      where: {
-        organisationId: org.id,
-        appId: { in: removedAppIds },
-      },
-    });
-  }
-
   const deletedProperties = await prisma.property.deleteMany({
     where: { organisationId: org.id },
   });
@@ -173,7 +157,7 @@ export async function sanitizePlatformOperatorOrg(input?: {
   return {
     organisationId: org.id,
     slug: org.slug,
-    removedAppInstalls: removedAppIds,
+    removedAppInstalls: [],
     clearedServicesTemplate: Boolean(settings.services),
     clearedIndustryPlanPreview: hadIndustryPreview,
     brandVoiceUpdated: looksLikeCleanerTemplate || industryVertical === "services",
