@@ -18,6 +18,7 @@ import { PropertyReportCapture } from "@/components/websites/PropertyReportCaptu
 import { RoeBookingCapture } from "@/components/websites/RoeBookingCapture";
 import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
 import { HtmlWithDgForms } from "@/components/websites/HtmlWithDgForms";
+import { DgMarketingMotion } from "@/components/websites/DgMarketingMotion";
 import { ChromeHeaderHtml } from "@/components/websites/ChromeHeaderHtml";
 import { ChromeFooterHtml } from "@/components/websites/ChromeFooterHtml";
 import { extractStyleBlocks } from "@/lib/public-chrome";
@@ -737,16 +738,24 @@ export function WebsiteComponentView({
           <HtmlWithGallery html={html} siteSlug={siteSlug} pageSlug={pageSlug} />
         );
       }
+      const needsDgMotion =
+        /data-dg-motion-root|dg-journey|dg-layers|dg-reveal/i.test(html);
       if (hasForm) {
         return (
-          <HtmlWithDgForms html={html} siteSlug={siteSlug} pageSlug={pageSlug} />
+          <>
+            <HtmlWithDgForms html={html} siteSlug={siteSlug} pageSlug={pageSlug} />
+            {needsDgMotion ? <DgMarketingMotion /> : null}
+          </>
         );
       }
       return (
-        <section
-          className="wb-section wb-html-block"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
+        <>
+          <section
+            className="wb-section wb-html-block"
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+          {needsDgMotion ? <DgMarketingMotion /> : null}
+        </>
       );
     }
     case "post_grid": {

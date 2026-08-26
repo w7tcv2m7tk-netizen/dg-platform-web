@@ -210,7 +210,7 @@ function htmlToComponents(html) {
       html: chunk,
       note:
         i === 0
-          ? "Imported from dg-platform/marketing/pages (Gen 2 marketing SoT). Scripts stripped; body CSS remapped to .wb-html-island."
+          ? "Imported from dg-platform/marketing/pages (Gen 2 marketing SoT). Scripts stripped; body CSS remapped to .wb-html-island. Homepage motion via DgMarketingMotion client island."
           : `Continued HTML chunk ${i + 1}`,
     },
   }));
