@@ -50,7 +50,8 @@ function wpNetworkErrorMessage(baseUrl: string, path: string, envVar?: string): 
 }
 
 export function getApiBase(): string | null {
-  const base = process.env.DG_API_BASE_URL?.replace(/\/$/, "") ?? DEFAULT_API_BASE || null;
+  const base =
+    (process.env.DG_API_BASE_URL?.replace(/\/$/, "") ?? DEFAULT_API_BASE) || null;
   if (!base) return null;
   if (isGen2MarketingApexBaseUrl(base)) return null;
   return base;
@@ -153,6 +154,15 @@ export async function fetchPortalMe(
   clerkUserId?: string,
 ): Promise<PortalProfile> {
   const fallback = DEFAULT_UNLINKED_PROFILE(email);
+
+  if (process.env.DATABASE_URL) {
+    const { resolvePortalProfileFromNeon } = await import("@dg/platform-core");
+    const neon = await resolvePortalProfileFromNeon({ email, clerkUserId });
+    if (neon) {
+      return neon as PortalProfile;
+    }
+  }
+
   const headers = apiHeaders(clerkUserId, email);
   const base = getApiBase();
   if (!base || !headers) {
@@ -238,12 +248,9 @@ export type WpConnectorOverride = {
   label?: string;
 };
 
-/** WordPress connector — vendor leads from Gen 1 RE module */
+/** WordPress connector — optional legacy host; unset when Gen 2 apex only. */
 export function getWpConnectorBase(): string {
-  return (
-    process.env.DG_WP_CONNECTOR_BASE_URL?.replace(/\/$/, "") ??
-    "https://roerealty.com.au/wp-json/digitalgate/v1"
-  );
+  return process.env.DG_WP_CONNECTOR_BASE_URL?.replace(/\/$/, "") ?? "";
 }
 
 export type WpConnectorProbeResult =

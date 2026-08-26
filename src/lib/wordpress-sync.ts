@@ -404,6 +404,18 @@ async function autoSyncIfNeeded(
     }
   }
 
+  const accKeys = new Set(["lastAccBookingSyncAt", "lastAccUnitSyncAt"]);
+  if (accKeys.has(lastAtKey)) {
+    const { organisationHasFlag } = await import("@dg/platform-core");
+    const allowed = await organisationHasFlag(
+      session.organisationId,
+      "acc.wp_auto_sync",
+    );
+    if (!allowed) {
+      return { ran: false, reason: "disabled" };
+    }
+  }
+
   if (!(await shouldRunSync(session.organisationId, lastAtKey, intervalMs))) {
     return { ran: false, reason: "too_soon" };
   }

@@ -9,6 +9,7 @@ import { PrismaClient } from "@prisma/client";
 config({ path: ".env.local" });
 
 const force = process.argv.includes("--force");
+const clearWpApex = process.argv.includes("--clear-wp-apex");
 const prisma = new PrismaClient();
 
 const PRESETS = {
@@ -18,8 +19,7 @@ const PRESETS = {
     logoUrl: "https://app.digitalgate.com.au/brand/logo-on-dark.png",
     websiteUrl: "https://digitalgate.com.au",
     wp: {
-      baseUrl: "https://digitalgate.com.au/wp-json/digitalgate/v1",
-      label: "DigitalGate",
+      label: "DigitalGate (Gen 2)",
     },
   },
   "roe-realty": {
@@ -28,8 +28,7 @@ const PRESETS = {
     logoUrl: "https://roerealty.com.au/wp-content/uploads/2026/05/R-Main.png",
     websiteUrl: "https://roerealty.com.au",
     wp: {
-      baseUrl: "https://roerealty.com.au/wp-json/digitalgate/v1",
-      label: "Roe Realty",
+      label: "Roe Realty (Gen 2)",
     },
   },
   cvh: {
@@ -39,8 +38,7 @@ const PRESETS = {
       "https://currumbinvalleyhideaway.com.au/wp-content/uploads/2026/06/CVH-Logo-and-Icon.png",
     websiteUrl: "https://currumbinvalleyhideaway.com.au",
     wp: {
-      baseUrl: "https://currumbinvalleyhideaway.com.au/wp-json/digitalgate/v1",
-      label: "Currumbin Valley Hideaway",
+      label: "Currumbin Valley Hideaway (Gen 2)",
     },
   },
   aetherra: {
@@ -50,8 +48,7 @@ const PRESETS = {
     logoUrl: "https://aetherra.com.au/wp-content/uploads/2026/06/Aetherra-White.png",
     websiteUrl: "https://aetherra.com.au",
     wp: {
-      baseUrl: "https://aetherra.com.au/wp-json/digitalgate/v1",
-      label: "Aëtherra",
+      label: "Aëtherra (Gen 2)",
     },
   },
 };
@@ -111,12 +108,18 @@ async function main() {
     const nextSettings = { ...settings, profile: nextProfile };
 
     if (preset.wp) {
+      const prevWp = settings.connectors?.wordpress ?? {};
+      const nextWp = {
+        ...prevWp,
+        label: preset.wp.label ?? prevWp.label,
+      };
+      if (clearWpApex && prevWp.baseUrl) {
+        delete nextWp.baseUrl;
+        delete nextWp.apiKey;
+      }
       nextSettings.connectors = {
         ...(settings.connectors ?? {}),
-        wordpress: {
-          ...(settings.connectors?.wordpress ?? {}),
-          ...preset.wp,
-        },
+        wordpress: nextWp,
       };
     }
 

@@ -66,10 +66,7 @@ const BRAND_PRESET_TO_WP: Record<string, keyof typeof WP_CONNECTOR_PRESETS> = {
 };
 
 function envWpBaseUrl(): string {
-  return (
-    process.env.DG_WP_CONNECTOR_BASE_URL?.replace(/\/$/, "") ||
-    WP_CONNECTOR_PRESETS.digitalgate.baseUrl
-  );
+  return process.env.DG_WP_CONNECTOR_BASE_URL?.replace(/\/$/, "") || "";
 }
 
 function envWpApiKey(): string | undefined {
@@ -197,6 +194,15 @@ export function resolveWordPressConnector(
     options?.source ??
     (orgSettings?.baseUrl || orgSettings?.apiKey ? "org" : "env");
 
+  if (!rawBase) {
+    return {
+      baseUrl: "",
+      apiKey: undefined,
+      label: "WordPress (not configured)",
+      source,
+    };
+  }
+
   if (isGen2MarketingApexBaseUrl(rawBase)) {
     return {
       baseUrl: "",
@@ -253,10 +259,17 @@ export async function resolveOrgWordPressConnector(
   }
 
   if (wpKey && WP_CONNECTOR_PRESETS[wpKey]) {
+    const preset = WP_CONNECTOR_PRESETS[wpKey];
+    if (isGen2MarketingApexBaseUrl(preset.baseUrl)) {
+      return resolveWordPressConnector(
+        { ...wordpress, label: preset.label },
+        { source: "preset" },
+      );
+    }
     return resolveWordPressConnector(
       {
         ...wordpress,
-        ...WP_CONNECTOR_PRESETS[wpKey],
+        ...preset,
       },
       { source: "preset" },
     );

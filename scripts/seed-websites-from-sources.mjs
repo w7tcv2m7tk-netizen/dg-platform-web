@@ -694,6 +694,23 @@ async function extractLiveChrome(wpRoot) {
 }
 
 async function seedFromWordPress(org, brand) {
+  const refreshWp = process.argv.includes("--refresh-wp");
+  const existingSite = await prisma.website.findFirst({
+    where: { organisationId: org.id, slug: brand.siteSlug },
+    select: { id: true },
+  });
+  if (existingSite && !refreshWp) {
+    const pageCount = await prisma.websitePage.count({
+      where: { websiteId: existingSite.id },
+    });
+    if (pageCount > 0) {
+      console.log(
+        `  ${pageCount} pages already in Studio — skip live WP import (pass --refresh-wp to re-pull)`,
+      );
+      return pageCount;
+    }
+  }
+
   const liveChrome = await extractLiveChrome(brand.wpRoot);
   if (liveChrome?.headerHtml || liveChrome?.footerHtml) {
     console.log(
