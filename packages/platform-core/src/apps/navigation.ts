@@ -411,9 +411,8 @@ function platformMarketplaceNavItem(): AppNavTreeItem {
       {
         path: "/dashboard/marketplace/apps",
         label: "Apps",
-        matchAlso: ["/dashboard/marketplace?category=software"],
+        matchAlso: ["/dashboard/marketplace?category=apps", "/dashboard/marketplace?category=software"],
       },
-      { path: "/dashboard/marketplace/templates", label: "Templates" },
       {
         path: "/dashboard/marketplace/integrations",
         label: "Integrations",
@@ -421,7 +420,7 @@ function platformMarketplaceNavItem(): AppNavTreeItem {
       },
       {
         path: "/dashboard/marketplace/partner-services",
-        label: "Partner Services",
+        label: "Partners",
         matchAlso: ["/dashboard/marketplace?category=partners"],
       },
     ],

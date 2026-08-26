@@ -1,14 +1,14 @@
 /**
- * DigitalGate Marketplace discovery — Network layer (Phase 5 foundations).
- * Extends App install marketplace into Software · Services · Professionals · Partners · Integrations.
- * See docs/foundations/NETWORK-LAYER.md §3 and APP-MARKETPLACE.md.
+ * DigitalGate Marketplace — discover what a business can add.
+ * Apps (installed) ≠ Marketplace (discover) ≠ Network (relationships).
+ * Core capabilities are not listed — they already ship with the platform.
  */
 
 import { platformApps } from "../apps/registry";
 import type { AppTier } from "../apps/manifest";
 
 export const MARKETPLACE_CATEGORIES = [
-  "software",
+  "apps",
   "services",
   "professionals",
   "partners",
@@ -21,25 +21,25 @@ export const MARKETPLACE_CATEGORY_META: Record<
   MarketplaceCategory,
   { label: string; description: string }
 > = {
-  software: {
-    label: "Software",
-    description: "Installable Apps, templates, and automations on DigitalGate",
+  apps: {
+    label: "Apps",
+    description: "Industry and Growth capabilities you can add to your platform",
   },
   services: {
     label: "Services",
-    description: "Operators who deliver work — agencies, consultants, field services",
+    description: "Operators who deliver work — design, bookkeeping, photography and more",
   },
   professionals: {
     label: "Professionals",
-    description: "People and practices in your CRM network (Contact = person)",
+    description: "Trusted people and practices you can work with through your network",
   },
   partners: {
     label: "Partners",
-    description: "Verified DigitalGate partners and recommended specialists",
+    description: "Verified DigitalGate partners for implementation and growth support",
   },
   integrations: {
     label: "Integrations",
-    description: "Connectors that sync your digital world into the platform",
+    description: "Connect the systems you already use into DigitalGate",
   },
 };
 
@@ -50,10 +50,15 @@ export type MarketplaceListing = {
   summary: string;
   href?: string;
   badge?: string;
+  /** Human-facing pill (e.g. Growth, Industry) — never permission IDs */
+  layer?: string;
+  ctaLabel?: string;
   tags?: string[];
   source: "app_registry" | "connector_catalog" | "org_company" | "curated";
   tier?: AppTier;
   industry?: string | null;
+  /** Sort / section helpers */
+  section?: "recommended" | "growth" | "industry" | "integrations" | "services" | "partners" | "coming_soon";
 };
 
 const CURATED_PARTNERS: MarketplaceListing[] = [
@@ -61,21 +66,14 @@ const CURATED_PARTNERS: MarketplaceListing[] = [
     id: "partner:dg-agency",
     category: "partners",
     name: "DigitalGate Agency Partners",
-    summary: "Implementation, onboarding, and growth support for new organisations",
+    summary: "Implementation, onboarding and growth support from official DigitalGate partners.",
     badge: "Official",
+    layer: "Partners",
+    ctaLabel: "Explore",
     tags: ["onboarding", "agency"],
     source: "curated",
-    href: "/dashboard/apps",
-  },
-  {
-    id: "partner:wp-hosting",
-    category: "partners",
-    name: "WordPress hosting specialists",
-    summary: "Partners who run Gen 1 sites as Connectors into Platform Gen 2",
-    badge: "Recommended",
-    tags: ["wordpress", "hosting"],
-    source: "curated",
-    href: "/dashboard/settings/connectors",
+    section: "partners",
+    href: "/dashboard/network",
   },
 ];
 
@@ -84,27 +82,52 @@ const CURATED_SERVICES: MarketplaceListing[] = [
     id: "service:web-design",
     category: "services",
     name: "Web design & conversion",
-    summary: "Landing pages, funnels, and site health improvements",
+    summary: "Landing pages, funnels and website improvements for your DigitalGate presence.",
+    layer: "Services",
+    ctaLabel: "Explore",
     tags: ["websites", "design"],
     source: "curated",
+    section: "services",
     href: "/apps/websites",
   },
   {
     id: "service:accounting",
     category: "services",
     name: "Bookkeeping & accounting",
-    summary: "AU GST-aware operators — connect later via Xero / MYOB",
-    tags: ["finance", "au"],
+    summary: "GST-aware operators for Australian businesses — connect accounting tools when ready.",
+    layer: "Services",
+    ctaLabel: "Explore",
+    tags: ["finance"],
     source: "curated",
+    section: "services",
   },
   {
     id: "service:photography",
     category: "services",
     name: "Property photography & staging",
-    summary: "Common Real Estate referral partners in the B2B network",
+    summary: "Common referral partners for Real Estate and Accommodation businesses.",
+    layer: "Services",
+    ctaLabel: "Explore",
     tags: ["real-estate"],
     source: "curated",
-    href: "/dashboard/network",
+    section: "services",
+    href: "/dashboard/network/referrals",
+  },
+];
+
+const CURATED_PROFESSIONALS: MarketplaceListing[] = [
+  {
+    id: "pro:coming-soon",
+    category: "professionals",
+    name: "Professionals directory",
+    summary:
+      "Trusted professionals from your network will appear here. Use Connections and Referrals to grow who you work with.",
+    badge: "Coming soon",
+    layer: "Professionals",
+    ctaLabel: "View Connections",
+    source: "curated",
+    section: "coming_soon",
+    href: "/dashboard/network/connections",
   },
 ];
 
@@ -113,68 +136,102 @@ const INTEGRATION_CATALOG: MarketplaceListing[] = [
     id: "int:wordpress",
     category: "integrations",
     name: "WordPress",
-    summary: "Forms, accommodation, RE, and site health via connector API keys",
-    badge: "Live",
-    tags: ["connector"],
+    summary: "Connect forms, websites and legacy sites into DigitalGate.",
+    badge: "Available",
+    layer: "Integrations",
+    ctaLabel: "Connect",
     source: "connector_catalog",
+    section: "integrations",
     href: "/dashboard/settings/connectors",
   },
   {
     id: "int:stripe",
     category: "integrations",
     name: "Stripe",
-    summary: "Billing, Commerce checkout, and Refer & Earn invoice.paid credits",
-    badge: "Live",
-    tags: ["billing", "commerce"],
+    summary: "Billing, Commerce checkout and referral payouts.",
+    badge: "Available",
+    layer: "Integrations",
+    ctaLabel: "Connect",
     source: "connector_catalog",
+    section: "integrations",
     href: "/dashboard/settings/billing",
   },
   {
     id: "int:google",
     category: "integrations",
-    name: "Google (GBP / Analytics)",
-    summary: "GBP locations + profile sync; reviews feed Reputation when API allows",
-    badge: "Planned",
-    tags: ["reviews", "reputation", "analytics"],
+    name: "Google Business Profile",
+    summary: "Connect locations, business information and available review data.",
+    badge: "Coming soon",
+    layer: "Integrations",
+    ctaLabel: "Explore",
     source: "connector_catalog",
+    section: "coming_soon",
   },
   {
     id: "int:meta",
     category: "integrations",
     name: "Meta",
-    summary: "Ads and page insights for Growth Apps",
-    badge: "Planned",
-    tags: ["marketing"],
+    summary: "Ads and page insights for Growth.",
+    badge: "Coming soon",
+    layer: "Integrations",
+    ctaLabel: "Explore",
     source: "connector_catalog",
+    section: "coming_soon",
   },
   {
     id: "int:xero",
     category: "integrations",
     name: "Xero",
-    summary: "Accounting sync for Commerce — later Connectors phase",
-    badge: "Planned",
-    tags: ["finance"],
+    summary: "Accounting sync for Commerce and Finance.",
+    badge: "Coming soon",
+    layer: "Integrations",
+    ctaLabel: "Explore",
     source: "connector_catalog",
+    section: "coming_soon",
   },
 ];
 
-function softwareListingsFromRegistry(): MarketplaceListing[] {
+function tierLayer(tier: AppTier): string {
+  if (tier === "business") return "Industry";
+  if (tier === "growth") return "Growth";
+  return "Apps";
+}
+
+function appListingsFromRegistry(enabledIds: string[]): MarketplaceListing[] {
+  const enabled = new Set(enabledIds);
   return platformApps
     .list()
     .filter((a) => (a.manifest.visibility ?? "customer") === "customer")
+    // Core already ships with the platform — Marketplace is for what you can add.
+    .filter((a) => a.manifest.tier === "business" || a.manifest.tier === "growth")
     .map((a) => {
       const m = a.manifest;
       const href = m.routes[0]?.path ?? m.navigation[0]?.href;
+      const isEnabled = enabled.has(m.id) || a.enabled;
+      const isLive = a.enabled;
+      const badge = !isLive
+        ? "Coming soon"
+        : isEnabled
+          ? "Installed"
+          : "Available";
+      const section =
+        !isLive
+          ? ("coming_soon" as const)
+          : m.tier === "growth"
+            ? ("growth" as const)
+            : ("industry" as const);
       return {
         id: `app:${m.id}`,
-        category: "software" as const,
+        category: "apps" as const,
         name: m.name,
         summary: m.description,
-        href,
-        badge: a.enabled ? "Available" : "Coming soon",
-        tags: [m.tier, ...(m.features?.slice(0, 2) ?? [])],
+        href: isLive ? href : undefined,
+        badge,
+        layer: tierLayer(m.tier),
+        ctaLabel: !isLive ? undefined : isEnabled ? "Open" : "Explore",
         source: "app_registry" as const,
         tier: m.tier,
+        section,
       };
     });
 }
@@ -186,33 +243,39 @@ export type OrgCompanyListingInput = {
   website?: string | null;
 };
 
+export type MarketplaceRecommendation = {
+  title: string;
+  reason: string;
+  listing: MarketplaceListing;
+};
+
 export function buildMarketplaceCatalog(input?: {
+  /** @deprecated CRM companies belong in Network → Connections, not Marketplace */
   companies?: OrgCompanyListingInput[];
   category?: MarketplaceCategory | "all";
   query?: string;
+  enabledAppIds?: string[];
 }): {
   categories: typeof MARKETPLACE_CATEGORY_META;
   listings: MarketplaceListing[];
   totals: Record<MarketplaceCategory | "all", number>;
+  recommended: MarketplaceRecommendation[];
+  sections: {
+    growth: MarketplaceListing[];
+    industry: MarketplaceListing[];
+    integrations: MarketplaceListing[];
+    services: MarketplaceListing[];
+    partners: MarketplaceListing[];
+    comingSoon: MarketplaceListing[];
+  };
 } {
-  const professionals: MarketplaceListing[] = (input?.companies ?? []).map((c) => ({
-    id: `company:${c.id}`,
-    category: "professionals",
-    name: c.name,
-    summary: c.industry
-      ? `${c.industry} · from your CRM companies`
-      : "Company in your organisation CRM — Contact remains the person",
-    href: `/apps/crm/companies/${c.id}`,
-    badge: "Your network",
-    tags: c.industry ? [c.industry] : ["crm"],
-    source: "org_company",
-    industry: c.industry,
-  }));
+  const enabledIds = input?.enabledAppIds ?? [];
+  const appListings = appListingsFromRegistry(enabledIds);
 
   const all: MarketplaceListing[] = [
-    ...softwareListingsFromRegistry(),
+    ...appListings,
     ...CURATED_SERVICES,
-    ...professionals,
+    ...CURATED_PROFESSIONALS,
     ...CURATED_PARTNERS,
     ...INTEGRATION_CATALOG,
   ];
@@ -224,23 +287,65 @@ export function buildMarketplaceCatalog(input?: {
   if (category) listings = listings.filter((l) => l.category === category);
   if (q) {
     listings = listings.filter((l) => {
-      const hay = [l.name, l.summary, ...(l.tags ?? [])].join(" ").toLowerCase();
+      const hay = [l.name, l.summary, l.layer ?? "", ...(l.tags ?? [])].join(" ").toLowerCase();
       return hay.includes(q);
     });
   }
 
   const totals = {
     all: all.length,
-    software: all.filter((l) => l.category === "software").length,
+    apps: all.filter((l) => l.category === "apps").length,
     services: all.filter((l) => l.category === "services").length,
     professionals: all.filter((l) => l.category === "professionals").length,
     partners: all.filter((l) => l.category === "partners").length,
     integrations: all.filter((l) => l.category === "integrations").length,
   };
 
+  // Prefer an available Growth app the org has not enabled yet.
+  const recommended: MarketplaceRecommendation[] = [];
+  const prospecting = appListings.find(
+    (l) => l.id === "app:prospecting" && l.badge === "Available",
+  );
+  const growthCandidate =
+    prospecting ??
+    appListings.find((l) => l.section === "growth" && l.badge === "Available");
+  if (growthCandidate) {
+    recommended.push({
+      title: "DigitalGate recommends",
+      reason:
+        "Grow through acquisition — find and prioritise businesses that fit your ideal customer profile.",
+      listing: growthCandidate,
+    });
+  } else {
+    const industryCandidate = appListings.find(
+      (l) => l.section === "industry" && l.badge === "Available",
+    );
+    if (industryCandidate) {
+      recommended.push({
+        title: "Recommended for your business",
+        reason: "Specialise your operating environment for your industry.",
+        listing: industryCandidate,
+      });
+    }
+  }
+
+  const inView = (l: MarketplaceListing) => listings.some((x) => x.id === l.id);
+
   return {
     categories: MARKETPLACE_CATEGORY_META,
     listings,
     totals,
+    recommended: recommended.filter((r) => inView(r.listing) || !category),
+    sections: {
+      growth: listings.filter((l) => l.section === "growth"),
+      industry: listings.filter((l) => l.section === "industry"),
+      integrations: listings.filter((l) => l.section === "integrations"),
+      services: listings.filter((l) => l.section === "services"),
+      partners: listings.filter((l) => l.section === "partners"),
+      comingSoon: listings.filter((l) => l.section === "coming_soon"),
+    },
   };
 }
+
+/** @deprecated Use category id `apps` */
+export const MARKETPLACE_SOFTWARE_ALIAS = "software" as const;

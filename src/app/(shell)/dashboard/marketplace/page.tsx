@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { buildMarketplaceCatalog, listCompanies, MARKETPLACE_CATEGORIES } from "@dg/platform-core";
+import { buildMarketplaceCatalog, MARKETPLACE_CATEGORIES } from "@dg/platform-core";
 import type { MarketplaceCategory } from "@dg/platform-core";
 import { currentUser } from "@clerk/nextjs/server";
 
 import { MarketplaceBrowser } from "@/components/marketplace/MarketplaceBrowser";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
+import { getOrgEnabledAppIds } from "@/lib/org-apps";
 
 interface PageProps {
   searchParams: Promise<{ category?: string; q?: string }>;
@@ -13,6 +14,8 @@ interface PageProps {
 
 function parseCategory(raw?: string): MarketplaceCategory | "all" {
   if (!raw) return "all";
+  // Legacy bookmark: software → apps
+  if (raw === "software") return "apps";
   return (MARKETPLACE_CATEGORIES as readonly string[]).includes(raw)
     ? (raw as MarketplaceCategory)
     : "all";
@@ -39,44 +42,32 @@ export default async function MarketplacePage({ searchParams }: PageProps) {
       })
     : null;
 
-  const companies = session
-    ? (
-        await listCompanies({
-          organisationId: session.organisationId,
-          limit: 50,
-        })
-      ).items
-    : [];
+  const enabledAppIds = session ? await getOrgEnabledAppIds() : [];
 
   const catalog = buildMarketplaceCatalog({
-    companies: companies.map((c) => ({
-      id: c.id,
-      name: c.name,
-      industry: c.industry,
-      website: c.website,
-    })),
     category,
     query,
+    enabledAppIds,
   });
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Marketplace</h1>
-        <p className="text-sm text-slate-400">
-          Discover Software · Services · Professionals · Partners · Integrations
-          {session ? ` · ${session.organisationName}` : ""}
+        <p className="mt-2 max-w-2xl text-sm text-slate-400">
+          Extend your business platform. Discover DigitalGate apps, industry capabilities, services,
+          professionals, partners and integrations.
         </p>
         <p className="mt-2 text-xs text-slate-500">
-          Discover what you can add — distinct from{" "}
-          <Link href="/dashboard/apps" className="text-blue-400 hover:underline">
+          Distinct from{" "}
+          <Link href="/dashboard/apps" className="text-sky-400 hover:underline">
             Apps
           </Link>{" "}
-          (installed capabilities) and{" "}
-          <Link href="/dashboard/network/refer-earn" className="text-blue-400 hover:underline">
-            Refer &amp; Earn
+          (what you have installed) and{" "}
+          <Link href="/dashboard/network" className="text-sky-400 hover:underline">
+            Network
           </Link>{" "}
-          (network growth).
+          (who you connect with).
         </p>
       </header>
       <main className="dg-page-main">
@@ -85,6 +76,8 @@ export default async function MarketplacePage({ searchParams }: PageProps) {
           totals={catalog.totals}
           category={category}
           query={query}
+          recommended={catalog.recommended}
+          sections={catalog.sections}
         />
       </main>
     </>

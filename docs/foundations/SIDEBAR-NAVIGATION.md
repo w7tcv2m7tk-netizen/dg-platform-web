@@ -71,8 +71,10 @@ PLATFORM — Manage DigitalGate for this organisation
   Apps · Marketplace · Network · Settings (+ Support trailing for customers)
 
   Apps — what is installed / enabled (Installed Apps · App Catalogue · Beta Programmes)
-  Marketplace — what can be discovered / purchased (Explore · Apps · Templates · Integrations · Partner Services)
-
+  Marketplace — what can be discovered / added (Industry · Growth · Integrations · Services · Partners)
+    Do **not** list Core apps as Marketplace products — Core is already included.
+    Do **not** show permission IDs or API capability strings on Marketplace cards.
+    Distinct from Apps (installed) and Network (relationships).
   Network (customer) — relationships for *their* business:
     Overview · Referrals (B2B) · Refer & Earn (refer DigitalGate) · Connections
     Do **not** expose Resellers, Commissions, Ecosystem, or Programme Settings to ordinary customers.

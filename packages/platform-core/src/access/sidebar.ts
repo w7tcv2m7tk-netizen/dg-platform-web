@@ -43,7 +43,7 @@ export const CUSTOMER_SIDE_PANEL_SECTIONS = [
     label: "Platform",
     items: [
       "Apps (Installed · Catalogue · Beta)",
-      "Marketplace (Explore · Templates · Integrations · Partner Services)",
+      "Marketplace (discover Industry · Growth · Integrations · Services · Partners — not Core)",
       "Network — customers: Overview · Referrals · Refer & Earn · Connections",
       "Network — DigitalGate staff: Overview · Organisations · Partners · Resellers · Referrals · Commissions · Ecosystem · Programme Settings",
       "Settings",
