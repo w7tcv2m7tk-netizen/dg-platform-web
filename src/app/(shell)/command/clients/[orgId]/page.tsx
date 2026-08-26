@@ -22,7 +22,7 @@ export default async function CommandClientDetailPage({ params }: Ctx) {
       <>
         <header className="dg-page-header">
           <Link href="/command/clients" className="text-sm text-sky-400 hover:underline">
-            ← Clients
+            ← Portfolio
           </Link>
           <h1 className="mt-2 text-2xl font-bold text-white">Client detail</h1>
         </header>
@@ -43,7 +43,7 @@ export default async function CommandClientDetailPage({ params }: Ctx) {
     <>
       <header className="dg-page-header">
         <Link href="/command/clients" className="text-sm text-sky-400 hover:underline">
-          ← Clients
+          ← Portfolio
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">
           {client.organisationName}
@@ -174,7 +174,7 @@ export default async function CommandClientDetailPage({ params }: Ctx) {
             href={`/command/advisor?org=${client.organisationId}`}
             className="rounded-md bg-sky-700 px-3 py-1.5 font-medium text-white hover:bg-sky-600"
           >
-            AI Advisor
+            Advise
           </Link>
           <Link
             href={`/command/opportunities?org=${client.organisationId}`}

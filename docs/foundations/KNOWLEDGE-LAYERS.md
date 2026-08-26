@@ -110,8 +110,9 @@ PLATFORM
 ### Customer
 
 ```
-INTELLIGENCE
-  AI Advisor · Digital Twin · Business Brain · Business Health · Benchmarks · Insights · Reports
+CORE · Intelligence
+  Overview · AI Advisor · Business Health · Insights · Reports
+  (Digital Twin · Business Brain · Benchmarks = supporting layers, not sidebar items)
 ```
 
 Business Knowledge is **inside** Business Brain — not a top-level “Platform Docs” entry.

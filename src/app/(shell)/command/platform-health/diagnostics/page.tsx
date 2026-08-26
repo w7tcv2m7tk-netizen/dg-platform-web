@@ -10,7 +10,7 @@ export default async function PlatformSystemDiagnosticsPage() {
     <>
       <header className="dg-page-header">
         <Link href="/command/platform-health" className="text-sm text-sky-400 hover:underline">
-          ← Platform Alerts
+          ← Alerts
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">System diagnostics</h1>
         <p className="mt-1 text-sm text-slate-400">

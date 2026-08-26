@@ -59,7 +59,7 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
           Platform pulse
         </p>
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
-          <PulseChip label="Organisations" value={pulse.organisations} href="/command/clients" />
+          <PulseChip label="Customers" value={pulse.organisations} href="/command/clients" />
           <PulseChip label="New leads" value={pulse.leadsThisWeek} href="/command/opportunities" />
           <PulseChip
             label="Open opportunities"
@@ -156,7 +156,7 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
               </h2>
             </div>
             <Link href="/command/clients" className="text-sm text-sky-400 hover:underline">
-              View Client Intelligence →
+              Customer Portfolio →
             </Link>
           </div>
           <ul className="mt-4 space-y-3">

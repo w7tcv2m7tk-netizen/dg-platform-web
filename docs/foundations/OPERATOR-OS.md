@@ -112,12 +112,11 @@ Operator OS — not a customer tenant. Industry Apps are **never** shown here.
 
 | Section | Question it answers |
 |---------|---------------------|
-| **Command Centre** | What should DigitalGate do today? (Priorities · Alerts) |
-| **Organisations** | Who are our customers? |
+| **Command Centre** | What should DigitalGate do today? (Priorities · AI Advisor · Alerts) |
 | **Sales** | How is acquisition performing? (Prospecting & Opportunity Engine · Founding 10 · Sales Week · Opportunities) |
 | **Partners** | How are resellers performing? |
 | **Delivery** | How are implementations progressing? (full Delivery OS — live project hubs, not placeholders) |
-| **Customer Intelligence** | How are our **customers** doing? (health · adoption · engagement · at-risk — Success Score™) |
+| **Customer Intelligence** | Which customers need attention? (Portfolio · Client Health · Client Activity · Opportunities · Attention Required — Success Score™) |
 | **Platform Intelligence** | How is **DigitalGate** performing? (activity · service status · alerts; AI usage honest until telemetry) |
 | **Commercial** | Revenue, subscriptions, expansion (live Commerce attribution) |
 | **Product** | Flags, roadmap, releases (docs + flags), feedback |
@@ -125,7 +124,7 @@ Operator OS — not a customer tenant. Industry Apps are **never** shown here.
 
 **Founding Customer Day 1** (code): Intelligence is **experienced on Overview** (Business Health, priorities, Advisor, opportunities) — not navigated via a large Intelligence sidebar. Core apps in sidebar: CRM · Commerce · Design Studio; **Apps** catalogue for progressive reveal; Marketplace/Network hidden until Industry/Growth/Infra apps are added. Deep Intelligence (Advisor → Twin → Brain → Health → Benchmarks → Insights → Reports) remains available via links from Overview for operators who go deeper. See `isFoundingCustomerMode` in `org-apps.ts`.
 
-**Command Centre surfaces Advisor recommendations — it does not duplicate the Advisor nav item.** AI Advisor lives under **Intelligence** only.
+**Organisations is not a standalone Operator app.** Customer Portfolio (`/command/clients`) is the Customer Intelligence surface. **AI Advisor** lives under **Command Centre**; Portfolio **Advise** opens that Advisor with the organisation as context — one intelligence layer, not a second Advisor product.
 
 ### CORE · INFRASTRUCTURE · GROWTH · INTELLIGENCE
 

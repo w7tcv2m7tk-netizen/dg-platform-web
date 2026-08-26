@@ -358,3 +358,15 @@ export async function getPlatformAlertsCentre(): Promise<PlatformAlertsCentre> {
     diagnostics: buildDiagnostics(),
   };
 }
+
+/** Sidebar badge — actionable alerts only (critical + attention; notices excluded). */
+export async function getPlatformAlertsBadgeCount(): Promise<{
+  alertCount: number;
+  generatedAt: string;
+}> {
+  const data = await getPlatformAlertsCentre();
+  return {
+    alertCount: data.critical.length + data.attention.length,
+    generatedAt: data.generatedAt,
+  };
+}

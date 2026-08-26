@@ -338,53 +338,38 @@ const CORE_LINKS: PlatformShellNavItem[] = BUSINESS_NAV_ITEM.routes.map((route) 
 }));
 
 /**
- * INTELLIGENCE — decision surfaces (not a shop of apps).
- * Command Centre (staff) is injected as a collapsible app at the top of this section.
+ * CORE · Intelligence — one capability, not an architecture map.
+ * Twin / Brain / Benchmarks remain reachable as supporting layers (hub + matchAlso).
  */
-const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [
-  {
-    kind: "shell",
-    href: "/dashboard/advisor",
-    label: "AI Advisor",
-    icon: getSidebarIcon("advisor"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/twin",
-    label: "Digital Twin",
-    icon: getSidebarIcon("twin"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/brain",
-    label: "Business Brain",
-    icon: getSidebarIcon("brain"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/health",
-    label: "Business Health",
-    icon: getSidebarIcon("health"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/benchmarks",
-    label: "Benchmarks",
-    icon: getSidebarIcon("benchmarks"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/insights",
-    label: "Insights",
-    icon: getSidebarIcon("analytics"),
-  },
-  {
-    kind: "shell",
-    href: "/dashboard/reports",
-    label: "Reports",
-    icon: getSidebarIcon("reports"),
-  },
-];
+function intelligenceNavItem(): AppNavTreeItem {
+  return {
+    kind: "app",
+    id: "intelligence",
+    name: "Intelligence",
+    icon: getSidebarIcon("intelligence"),
+    tier: "core",
+    enabled: true,
+    primaryHref: "/dashboard/intelligence",
+    routes: [
+      {
+        path: "/dashboard/intelligence",
+        label: "Overview",
+        matchAlso: ["/dashboard/twin", "/dashboard/brain", "/dashboard/benchmarks"],
+      },
+      { path: "/dashboard/advisor", label: "AI Advisor" },
+      { path: "/dashboard/health", label: "Business Health" },
+      { path: "/dashboard/insights", label: "Insights" },
+      {
+        path: "/dashboard/reports",
+        label: "Reports",
+        matchAlso: ["/dashboard/reports/business-performance"],
+      },
+    ],
+  };
+}
+
+/** @deprecated Intelligence is a single Core app — section kept empty for IA shape. */
+const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [];
 
 /** PLATFORM ADMIN — customer org config. Staff use PLATFORM_CONFIG + DIGITALGATE operator sections. */
 function getPlatformAdminSection(options?: {
@@ -499,9 +484,6 @@ function getDigitalGateOperatorSection(): NavIaSection {
         routes: commandCentre.routes,
         primaryHref: commandCentre.primaryHref,
       },
-      operatorApp("dg-organisations", "Organisations", "team", "/command/clients", [
-        { path: "/command/clients", label: "All organisations" },
-      ]),
       operatorApp("dg-sales", "Sales", "prospecting", "/apps/prospecting", [
         { path: "/apps/prospecting", label: "Overview" },
         { path: "/apps/prospecting/discovery", label: "Discovery" },
@@ -565,14 +547,35 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/command/delivery/documents", label: "Documents" },
         { path: "/command/delivery/reports", label: "Reports" },
       ]),
-      operatorApp("dg-customer-intelligence", "Customer Intelligence", "brain", "/command/customer-intelligence/overview", [
-        { path: "/command/customer-intelligence/overview", label: "Overview" },
-        { path: "/command/customer-intelligence/health", label: "Customer health" },
-        { path: "/command/customer-intelligence/adoption", label: "Adoption" },
-        { path: "/command/customer-intelligence/engagement", label: "Engagement" },
-        { path: "/command/customer-intelligence/at-risk", label: "At risk" },
-        { path: "/command/customer-intelligence/expansion", label: "Expansion signals" },
-      ]),
+      operatorApp(
+        "dg-customer-intelligence",
+        "Customer Intelligence",
+        "brain",
+        "/command/clients",
+        [
+          {
+            path: "/command/clients",
+            label: "Portfolio",
+            matchAlso: [
+              "/command/customer-intelligence/overview",
+              "/command/customer-intelligence/adoption",
+            ],
+          },
+          { path: "/command/customer-intelligence/health", label: "Client Health" },
+          {
+            path: "/command/customer-intelligence/engagement",
+            label: "Client Activity",
+          },
+          {
+            path: "/command/customer-intelligence/expansion",
+            label: "Opportunities",
+          },
+          {
+            path: "/command/customer-intelligence/at-risk",
+            label: "Attention Required",
+          },
+        ],
+      ),
       operatorApp("dg-platform-intelligence", "Platform Intelligence", "advisor", "/command/platform-intelligence/overview", [
         { path: "/command/platform-intelligence/overview", label: "Overview" },
         { path: "/command/platform-intelligence/health", label: "Platform health" },
@@ -909,6 +912,7 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
     primaryHref: "/command",
     routes: [
       { path: "/command", label: "Priorities" },
+      { path: "/command/advisor", label: "AI Advisor" },
       {
         path: "/command/platform-health",
         label: "Alerts",
@@ -952,6 +956,7 @@ export function getCategorizedPlatformNavigation(
       enabledApps.filter((a) => CORE_APP_IDS.has(a.id)),
       CORE_APP_ORDER,
     ),
+    ...(foundingCustomerMode ? [] : [intelligenceNavItem()]),
   ];
   const infrastructureApps = sortByOrder(
     enabledApps.filter((a) => INFRASTRUCTURE_APP_IDS.has(a.id)),
@@ -997,9 +1002,9 @@ export function getCategorizedPlatformNavigation(
     : { id: "digitalgate" as const, label: DIGITALGATE_OPERATOR_NAV_SECTION_LABEL, links: [], apps: [] };
 
   /** Founding customers experience Intelligence on Overview — not via sidebar navigation. */
-  const intelligenceLinks = foundingCustomerMode ? [] : INTELLIGENCE_LINKS;
+  const intelligenceLinks = INTELLIGENCE_LINKS;
 
-  /** Staff: Command Centre lives in DigitalGate operator section, not Intelligence. */
+  /** Intelligence is a Core app; this section stays empty so the sidebar does not duplicate it. */
   const intelligenceApps: AppNavTreeItem[] = [];
 
   const settingsNav: PlatformShellNavItem = {

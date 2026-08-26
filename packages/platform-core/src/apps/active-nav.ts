@@ -75,6 +75,7 @@ export type ResolvedActiveNav = {
 };
 
 const INTELLIGENCE_PATH_PREFIXES = [
+  "/dashboard/intelligence",
   "/dashboard/advisor",
   "/dashboard/twin",
   "/dashboard/brain",

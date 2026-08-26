@@ -135,11 +135,11 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       return;
     }
     let cancelled = false;
-    fetch("/api/v1/command/opportunities/summary")
+    fetch("/api/v1/command/alerts/summary")
       .then((r) => (r.ok ? r.json() : null))
-      .then((data: { attentionCount?: number } | null) => {
-        if (!cancelled && typeof data?.attentionCount === "number") {
-          setCcBadge(data.attentionCount);
+      .then((data: { alertCount?: number } | null) => {
+        if (!cancelled && typeof data?.alertCount === "number") {
+          setCcBadge(data.alertCount);
         }
       })
       .catch(() => {

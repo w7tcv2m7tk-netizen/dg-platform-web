@@ -22,20 +22,10 @@ export default async function CommandAdvisorPage({ searchParams }: PageProps) {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/command" className="text-sm text-sky-400 hover:underline">
-          ← Command Centre
-        </Link>
-        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-violet-400">
-          DigitalGate · Operator OS
-        </p>
-        <h1 className="mt-2 text-2xl font-bold text-white">AI Advisor</h1>
-        <p className="mt-1 text-base font-medium text-violet-100/90">
-          Turn Customer Intelligence and live platform signals into decisions.
-        </p>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          DigitalGate&apos;s Advisor understands each organisation through Organisation Health,
-          connectors, billing and live activity — then helps the team determine what matters, why it
-          matters and what to do next.
+        <h1 className="text-2xl font-bold text-white">AI Advisor</h1>
+        <p className="mt-1 max-w-2xl text-sm text-slate-400">
+          Turn Customer Intelligence and live platform signals into decisions. From Portfolio, use
+          Advise to open this Advisor with a customer already selected.
         </p>
       </header>
       <main className="dg-page-main space-y-8">

@@ -18,7 +18,7 @@ const SIDEBAR_ICONS: Record<string, string> = {
   advisor: "✦",
   benchmarks: "▥",
   reports: "▤",
-  intelligence: "✦",
+  intelligence: "◈",
   // Apps
   crm: "◎",
   commerce: "▤",
