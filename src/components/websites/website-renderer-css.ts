@@ -2945,6 +2945,16 @@ a.wb-brand-chrome-cta:hover {
   width: 100%;
 }
 
+/* DigitalGate: header must stay on screen — sticky on the chrome section scrolls away */
+.wb-site-chrome-header:has(.dg-header) {
+  position: relative;
+  min-height: 72px;
+}
+
+body.dg-has-fixed-header {
+  padding-top: 72px;
+}
+
 /* Aëtherra WP-style centered header — match site charcoal #0F1419 */
 .wb-site-chrome-header .wb-aetherra-header {
   width: 100%;
@@ -3153,11 +3163,12 @@ a.wb-brand-chrome-cta:hover {
   object-fit: contain;
 }
 
-  /* Keep drawer above page content; header element required for mobile layout */
+  /* Keep drawer above page content; fixed so nav stays visible while scrolling */
   .wb-site-chrome .dg-header {
-    position: sticky !important;
+    position: fixed !important;
     top: 0 !important;
-    left: auto !important;
+    left: 0 !important;
+    right: 0 !important;
     width: 100% !important;
     z-index: 120 !important;
     overflow: visible !important;
