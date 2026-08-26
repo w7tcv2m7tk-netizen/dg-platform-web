@@ -6,6 +6,11 @@
 
 import { platformApps } from "../apps/registry";
 import type { AppTier } from "../apps/manifest";
+import {
+  getIndustryPrimaryHref,
+  listIndustries,
+  type IndustryCatalogueStatus,
+} from "../industry/catalogue";
 
 export const MARKETPLACE_CATEGORIES = [
   "apps",
@@ -191,6 +196,55 @@ const INTEGRATION_CATALOG: MarketplaceListing[] = [
   },
 ];
 
+function catalogueBadge(status: IndustryCatalogueStatus): string {
+  switch (status) {
+    case "AVAILABLE":
+    case "FOUNDING":
+      return "Available";
+    case "EARLY_ACCESS":
+      return "Early access";
+    case "ARCHITECTURE_RESERVED":
+      return "Architecture reserved";
+    case "COMING_SOON":
+    default:
+      return "Coming soon";
+  }
+}
+
+/** Industry Apps from catalogue — one card per Industry (not per Gen 2 module). */
+function industryListingsFromCatalogue(enabledIds: string[]): MarketplaceListing[] {
+  const enabled = new Set(enabledIds);
+  return listIndustries().map((industry) => {
+    const anyEnabled = industry.templates.some(
+      (t) => t.appId != null && enabled.has(t.appId),
+    );
+    const badge = anyEnabled ? "Installed" : catalogueBadge(industry.status);
+    const isSellable =
+      industry.status === "AVAILABLE" ||
+      industry.status === "EARLY_ACCESS" ||
+      industry.status === "FOUNDING";
+    const section =
+      isSellable || anyEnabled ? ("industry" as const) : ("coming_soon" as const);
+    const href = getIndustryPrimaryHref(industry.id) ?? `/apps/industry/${industry.slug}`;
+
+    return {
+      id: `industry:${industry.id}`,
+      category: "apps" as const,
+      name: industry.name,
+      summary: industry.description,
+      href: isSellable || anyEnabled ? href : undefined,
+      badge,
+      layer: "Industry",
+      ctaLabel: anyEnabled ? "Open" : isSellable ? "Explore" : undefined,
+      source: "app_registry" as const,
+      tier: "business" as const,
+      industry: industry.id,
+      section,
+      tags: industry.templates.map((t) => t.name),
+    };
+  });
+}
+
 function tierLayer(tier: AppTier): string {
   if (tier === "business") return "Industry";
   if (tier === "growth") return "Growth";
@@ -203,7 +257,8 @@ function appListingsFromRegistry(enabledIds: string[]): MarketplaceListing[] {
     .list()
     .filter((a) => (a.manifest.visibility ?? "customer") === "customer")
     // Core already ships with the platform — Marketplace is for what you can add.
-    .filter((a) => a.manifest.tier === "business" || a.manifest.tier === "growth")
+    // Industry cards come from catalogue; registry here is Growth (and non-industry) only.
+    .filter((a) => a.manifest.tier === "growth")
     .map((a) => {
       const m = a.manifest;
       const href = m.routes[0]?.path ?? m.navigation[0]?.href;
@@ -214,12 +269,7 @@ function appListingsFromRegistry(enabledIds: string[]): MarketplaceListing[] {
         : isEnabled
           ? "Installed"
           : "Available";
-      const section =
-        !isLive
-          ? ("coming_soon" as const)
-          : m.tier === "growth"
-            ? ("growth" as const)
-            : ("industry" as const);
+      const section = !isLive ? ("coming_soon" as const) : ("growth" as const);
       return {
         id: `app:${m.id}`,
         category: "apps" as const,
@@ -270,7 +320,9 @@ export function buildMarketplaceCatalog(input?: {
   };
 } {
   const enabledIds = input?.enabledAppIds ?? [];
-  const appListings = appListingsFromRegistry(enabledIds);
+  const growthListings = appListingsFromRegistry(enabledIds);
+  const industryListings = industryListingsFromCatalogue(enabledIds);
+  const appListings = [...industryListings, ...growthListings];
 
   const all: MarketplaceListing[] = [
     ...appListings,
@@ -317,7 +369,7 @@ export function buildMarketplaceCatalog(input?: {
       listing: growthCandidate,
     });
   } else {
-    const industryCandidate = appListings.find(
+    const industryCandidate = industryListings.find(
       (l) => l.section === "industry" && l.badge === "Available",
     );
     if (industryCandidate) {

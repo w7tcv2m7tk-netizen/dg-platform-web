@@ -10,12 +10,12 @@ import {
 import { platformApps } from "./registry";
 import { getSidebarIcon } from "./sidebar-icons";
 import {
-  INDUSTRY_PLATFORMS,
-  resolveIndustryFromAppId,
-  resolveIndustrySpecialisation,
-  type IndustryPlatform,
-  type IndustrySpecialisation,
-} from "../industry/platform";
+  getIndustry,
+  getIndustryPrimaryHref,
+  getTemplate,
+  listIndustries,
+  resolveIndustryEntitlements,
+} from "../industry";
 
 export interface PlatformShellNavItem extends AppNavItem {
   kind: "shell";
@@ -815,84 +815,100 @@ function sortByOrder(apps: AppNavTreeItem[], order: readonly string[]): AppNavTr
   });
 }
 
-function countIndustryTemplatesForAppId(appId: string): number {
-  let count = 0;
-  for (const platform of INDUSTRY_PLATFORMS) {
-    count += platform.specialisations.filter((s) => s.appId === appId).length;
+function pathWithoutQuery(href: string): string {
+  return href.split("?")[0] ?? href;
+}
+
+function unionAppRoutes(routes: AppRoute[]): AppRoute[] {
+  const out: AppRoute[] = [];
+  const seen = new Set<string>();
+  for (const route of routes) {
+    if (seen.has(route.path)) continue;
+    seen.add(route.path);
+    out.push(route);
   }
-  return count;
-}
-
-function withTemplateQuery(path: string, templateId?: string): string {
-  if (!templateId) return path;
-  const separator = path.includes("?") ? "&" : "?";
-  return `${path}${separator}template=${encodeURIComponent(templateId)}`;
-}
-
-function industryTemplateNavItem(
-  base: AppNavTreeItem,
-  spec: IndustrySpecialisation,
-  platform?: IndustryPlatform,
-): AppNavTreeItem {
-  const primaryHref = withTemplateQuery(base.primaryHref, spec.templateId);
-  return {
-    ...base,
-    id: `${base.id}--${spec.id}`,
-    name: spec.label,
-    icon: platform?.icon || base.icon,
-    primaryHref,
-    routes: base.routes.map((route) => ({
-      ...route,
-      path: withTemplateQuery(route.path, spec.templateId),
-    })),
-  };
+  return out;
 }
 
 /**
- * One sidebar app per Industry module or purchased Template add-on.
- * RE and PM are separate apps; Services Electrician and Cleaning are separate apps.
+ * One sidebar row per entitled Industry App (Property, Services, …).
+ * Templates are switched in-context — not separate sidebar apps.
  */
 function buildIndustryNavApps(
   enabledIndustryApps: AppNavTreeItem[],
   industrySelectionIds: string[] = [],
 ): AppNavTreeItem[] {
-  const selectedSpecs: IndustrySpecialisation[] = [];
-  const seenSpecIds = new Set<string>();
-
-  for (const rawId of industrySelectionIds) {
-    const resolved = resolveIndustrySpecialisation(rawId);
-    if (!resolved || seenSpecIds.has(resolved.specialisation.id)) continue;
-    seenSpecIds.add(resolved.specialisation.id);
-    selectedSpecs.push(resolved.specialisation);
-  }
+  const enabledAppIds = enabledIndustryApps.map((a) => a.id);
+  const byAppId = new Map(enabledIndustryApps.map((a) => [a.id, a]));
+  const { industries } = resolveIndustryEntitlements({
+    enabledAppIds,
+    purchasedApps: industrySelectionIds,
+    planPreviewIndustryApps: industrySelectionIds,
+  });
 
   const items: AppNavTreeItem[] = [];
+  const consumedAppIds = new Set<string>();
 
-  for (const app of sortByOrder(enabledIndustryApps, INDUSTRY_APP_ORDER)) {
-    const resolved = resolveIndustryFromAppId(app.id);
-    const templateCount = countIndustryTemplatesForAppId(app.id);
-    const specsForApp = selectedSpecs.filter((spec) => spec.appId === app.id);
+  // Catalogue order matches INDUSTRY_PLATFORMS
+  for (const industry of listIndustries()) {
+    const entitlement = industries.find((e) => e.industryId === industry.id);
+    if (!entitlement?.entitled) continue;
 
-    if (templateCount > 1) {
-      if (specsForApp.length > 0) {
-        for (const spec of specsForApp) {
-          items.push(industryTemplateNavItem(app, spec, resolved?.platform));
+    const activeTemplateIds = entitlement.activeTemplateIds;
+    const primaryHref =
+      getIndustryPrimaryHref(industry.id, activeTemplateIds) ??
+      `/apps/industry/${industry.slug}`;
+
+    const collected: AppRoute[] = [];
+    for (const templateId of activeTemplateIds) {
+      const template = getTemplate(templateId);
+      if (!template) continue;
+      if (template.appId) {
+        consumedAppIds.add(template.appId);
+        const app = byAppId.get(template.appId);
+        if (app?.routes.length) {
+          collected.push(...app.routes);
         }
-      } else {
-        items.push({
-          ...app,
-          name: resolved?.platform.label ?? app.name,
-          icon: resolved?.platform.icon || app.icon,
-        });
       }
-      continue;
+      const href = pathWithoutQuery(template.primaryHref);
+      collected.push({ path: href, label: template.name });
+    }
+
+    if (collected.length === 0) {
+      const fallback = getIndustry(industry.id);
+      const included = fallback?.templates.find((t) => t.isDefaultIncluded) ?? fallback?.templates[0];
+      if (included?.appId) {
+        consumedAppIds.add(included.appId);
+        const app = byAppId.get(included.appId);
+        if (app?.routes.length) collected.push(...app.routes);
+      }
+      collected.push({
+        path: pathWithoutQuery(primaryHref),
+        label: industry.name,
+      });
     }
 
     items.push({
-      ...app,
-      name: resolved?.specialisation.label ?? app.name,
-      icon: resolved?.platform.icon || app.icon,
+      kind: "app",
+      id: `industry--${industry.id}`,
+      name: industry.name,
+      icon: industry.icon,
+      tier: "business",
+      enabled: true,
+      primaryHref: pathWithoutQuery(primaryHref),
+      routes: unionAppRoutes(collected),
     });
+  }
+
+  // Preserve unexpected enabled apps that did not fold into an Industry row
+  for (const app of sortByOrder(enabledIndustryApps, INDUSTRY_APP_ORDER)) {
+    if (consumedAppIds.has(app.id)) continue;
+    // Skip Gen 2 modules that belong to an entitled industry we already emitted
+    const template = getTemplate(app.id);
+    if (template && items.some((i) => i.id === `industry--${template.industryId}`)) {
+      continue;
+    }
+    items.push(app);
   }
 
   return items;
@@ -1046,7 +1062,7 @@ export function getCategorizedPlatformNavigation(
     showPartnerPortal?: boolean;
     showResellerAdmin?: boolean;
     partnerType?: PartnerType | null;
-    /** Purchased / applied Industry template ids — separate sidebar app per add-on */
+    /** Purchased / applied Industry template ids — entitlements for Industry sidebar rows */
     industrySelectionIds?: string[];
   },
 ): CategorizedPlatformNavigation {

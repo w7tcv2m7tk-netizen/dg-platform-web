@@ -185,7 +185,7 @@ export function isAppEnabled(appId: string, enabledIds: string[]): boolean {
   return enabledIds.includes(appId);
 }
 
-/** Purchased / applied Industry templates — drives separate sidebar apps per add-on. */
+/** Purchased / applied Industry template ids — drives Industry entitlements (sidebar = one Industry). */
 export function collectIndustrySelectionIds(
   settings?: {
     apps?: { planPreview?: { industryApps?: string[] } };

@@ -227,8 +227,9 @@ export function resolveActiveAppNavigation(
     for (const app of section.apps) {
       const match = matchAppItem(pathname, section, app);
       if (!match) continue;
-      // Single-route apps: no horizontal subnav (sidebar is enough).
-      if (match.routes.length <= 1) continue;
+      // Single-route apps: no horizontal subnav (sidebar is enough) —
+      // except Industry, where Template switcher still needs context.
+      if (match.routes.length <= 1 && section.id !== "industry") continue;
       const score = matchSpecificity(pathname, match.routes);
       if (score > bestScore) {
         best = match;

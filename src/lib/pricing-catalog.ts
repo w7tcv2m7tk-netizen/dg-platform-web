@@ -175,7 +175,9 @@ function mapSpecStatus(
 }
 
 /**
- * Industry Platforms — derived from platform-core lock.
+ * Industry Platforms — derived from platform-core lock (`INDUSTRY_PLATFORMS`).
+ * Prefer `listIndustries()` / `INDUSTRY_CATALOGUE` for UX status + Template hrefs;
+ * this catalog keeps AppsPlanCatalog pricing cards aligned with platform truth.
  * Public pricing groups: Available · Early Access · Coming Soon · Architecture Reserved.
  */
 export const INDUSTRY_PLATFORM_CATALOG: IndustryPlatformCatalogItem[] =
@@ -209,7 +211,7 @@ export const INDUSTRY_PLATFORM_CATALOG: IndustryPlatformCatalogItem[] =
 
 export { INDUSTRY_PUBLIC_GROUPS };
 
-/** @deprecated Prefer INDUSTRY_PLATFORM_CATALOG — flat module list for toggles */
+/** @deprecated Prefer INDUSTRY_PLATFORM_CATALOG or listIndustries() — flat Gen 2 module toggles only */
 export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
   {
     appId: "real-estate",

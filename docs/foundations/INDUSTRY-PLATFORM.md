@@ -21,6 +21,20 @@ CORE → INFRASTRUCTURE → INDUSTRY → TEMPLATE → GROWTH → INTELLIGENCE
 **Internal name:** Industry → Template  
 **Customer-facing name:** Industry Apps (simpler commercially)
 
+### Navigation vocabulary
+
+| Surface | What the operator sees |
+|---------|------------------------|
+| **Sidebar (INDUSTRY)** | One row per entitled **Industry App** (e.g. Property) — never one row per Template |
+| **Industry Template switcher** | Horizontal cards under App context nav — activate / deactivate Templates, jump to `primaryHref` |
+| **Coming soon scaffold** | `/apps/industry/[industry]/templates/[template]` — honest status, not a live floor |
+
+Pricing lock (code: `INDUSTRY_COMMERCIAL_LOCK`):
+
+- Industry App **$99/mo**
+- One primary Template **included**
+- Additional Templates **+$29/mo** each
+
 New business types become **Templates**, not new top-level Industry Apps.
 
 Templates configure: objects · fields · pipelines · workflows · automations · forms · documents · dashboards · AI context · terminology · permissions · reporting.
@@ -122,7 +136,11 @@ Code lock: `INDUSTRY_COMMERCIAL_LOCK` · `industryCheckoutLines()` in `packages/
 | Export | Role |
 |--------|------|
 | `INDUSTRY_PLATFORMS` | Canonical twelve |
+| `INDUSTRY_CATALOGUE` / `listIndustries()` | UX catalogue (statuses, hrefs, prices) |
+| `resolveIndustryEntitlements` / `buildTemplateActivationPatch` | Org Template activation |
+| `buildIndustryNavApps` | Sidebar: one Industry per entitled platform |
 | `INDUSTRY_PUBLIC_GROUPS` | Available / Early Access / Coming / Reserved |
-| `INDUSTRY_COMMERCIAL_LOCK` | Price + terminology + founding example lock |
+| `INDUSTRY_COMMERCIAL_LOCK` | Price + terminology + founding example lock ($99 / +$29) |
 | `industryCheckoutLines()` | Billing: $99 Industry + +$29 extra Templates |
 | `INDUSTRY_CLASSIFICATION_RULES` | Classification helpers |
+| API `GET/PATCH /api/v1/org/industry/templates` | Read entitlements · activate / deactivate Templates |
