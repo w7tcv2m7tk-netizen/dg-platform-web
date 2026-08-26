@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getCommandCentreOpsHome, getCommandMrrAttribution } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 
 function formatAudCents(cents: number) {
   return new Intl.NumberFormat("en-AU", {
@@ -30,8 +29,6 @@ export default async function CommandRevenuePage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="revenue" />
-
         {!data || !attribution ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
             Database not configured — revenue snapshot unavailable.

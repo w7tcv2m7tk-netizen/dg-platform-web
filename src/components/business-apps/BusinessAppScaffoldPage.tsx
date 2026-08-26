@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { canAccessCommandCentre, getAppSetupHref } from "@dg/platform-core";
 
-import { BusinessAppSubnav } from "@/components/business-apps/BusinessAppSubnav";
 import {
   getBusinessAppRoute,
   getBusinessAppScaffold,
@@ -23,7 +22,6 @@ export async function BusinessAppScaffoldPage({
 
   const { session: platformSession } = await getPlatformPageContext();
   const isOverview = segment === "";
-  const activeHref = isOverview ? `/apps/${app.id}` : `/apps/${app.id}/${segment}`;
 
   const showStaffDoc =
     platformSession &&
@@ -47,7 +45,6 @@ export async function BusinessAppScaffoldPage({
         <p className="text-sm text-slate-400">
           {platformSession?.organisationName ?? "DigitalGate"} · {route.summary}
         </p>
-        <BusinessAppSubnav links={app.nav} active={activeHref} />
       </header>
       <main className="dg-page-main space-y-6">
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-slate-300">

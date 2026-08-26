@@ -140,6 +140,14 @@ Page top:  CORE / CRM / Contacts
 
 **Code:** `src/components/navigation/AppContextNav.tsx` · `AppHorizontalSubnav.tsx` · `src/components/SidebarNav.tsx` (flat app links)
 
+**Uniformity rules (locked)**
+
+- One horizontal subnav only — never paste page-level pill bars (`CommandCentreNav`, `PartnersAdminNav`, `GrowthEngineNav`, `InfrastructureNav`, etc.).
+- Subnav routes belong to exactly one sidebar app. Do not list Sales Opportunities under Commercial, or Command Centre Priorities/Alerts under Organisations / Platform Docs / Intelligence.
+- Single-route apps (e.g. Organisations, Platform Docs) show **no** horizontal subnav.
+- Context title = sidebar app name (e.g. Commercial, Sales, Product).
+- Product Roadmap lives at `/command/product/roadmap` so Product tabs stay mounted.
+
 ## Sidebar principle
 
 The sidebar is **navigation**, not the product. The workspace answers “What matters to me?” The sidebar answers “Where can I go?”

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getCommandBenchmarks } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { ScoreCell } from "@/components/command/tier-badge";
 
 const METRIC_LABELS: Record<string, string> = {
@@ -26,8 +25,6 @@ export default async function CommandBenchmarksPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="benchmarks" />
-
         {!data ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
             Database not configured — benchmarks unavailable.

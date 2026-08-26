@@ -1,7 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 
 import { DomainsConsole } from "@/components/infrastructure/DomainsConsole";
-import { InfrastructureNav } from "@/components/infrastructure/InfrastructureNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
 
@@ -34,7 +33,6 @@ export default async function Page() {
         </p>
       </header>
       <main className="dg-page-main">
-        <InfrastructureNav active="domains" />
         <DomainsConsole />
       </main>
     </>

@@ -6,7 +6,6 @@ import {
   resolveSalesWeekPrompt,
 } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { SalesWeekNowBanner } from "@/components/command/SalesWeekNowBanner";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +31,6 @@ export default async function CommandSalesWeekPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="sales" />
         <SalesWeekNowBanner prompt={prompt} />
 
         <div className="grid gap-4 lg:grid-cols-2">

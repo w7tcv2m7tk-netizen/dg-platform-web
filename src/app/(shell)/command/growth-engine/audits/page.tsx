@@ -5,12 +5,10 @@ import {
   listProspectsNeedingAudit,
 } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import {
   GenerateProspectReportButton,
   RunProspectAuditButton,
 } from "@/components/command/GrowthEngineActions";
-import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 
 function findingCount(findings: unknown) {
   if (!findings || typeof findings !== "object") return 0;
@@ -36,9 +34,6 @@ export default async function GrowthAuditsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="growth" />
-        <GrowthEngineNav active="/command/growth-engine/audits" />
-
         {!db ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
             Configure DATABASE_URL to run prospect audits.

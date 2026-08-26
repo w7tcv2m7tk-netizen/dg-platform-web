@@ -1,7 +1,6 @@
 import { getEmailInfrastructureOverview } from "@dg/platform-core";
 
 import { EmailInfrastructureConsole } from "@/components/infrastructure/EmailInfrastructureConsole";
-import { InfrastructureNav } from "@/components/infrastructure/InfrastructureNav";
 
 /**
  * Email Infrastructure — prepare sending domain, apply auth DNS, verify.
@@ -19,7 +18,6 @@ export default async function EmailInfrastructurePage() {
         </p>
       </header>
       <main className="dg-page-main max-w-2xl">
-        <InfrastructureNav active="email" />
         <EmailInfrastructureConsole initialOverview={overview} />
       </main>
     </>

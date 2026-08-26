@@ -1,7 +1,6 @@
 import { getCloudflareInfrastructureOverview } from "@dg/platform-core";
 
 import { CloudflareConsole } from "@/components/infrastructure/CloudflareConsole";
-import { InfrastructureNav } from "@/components/infrastructure/InfrastructureNav";
 
 export default async function InfrastructureCloudflarePage() {
   const overview = await getCloudflareInfrastructureOverview();
@@ -16,7 +15,6 @@ export default async function InfrastructureCloudflarePage() {
         </p>
       </header>
       <main className="dg-page-main max-w-2xl">
-        <InfrastructureNav active="cloudflare" />
         <CloudflareConsole initialOverview={overview} />
       </main>
     </>

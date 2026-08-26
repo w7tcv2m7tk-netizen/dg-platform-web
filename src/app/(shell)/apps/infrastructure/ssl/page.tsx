@@ -1,7 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { listOrganisationDomains } from "@dg/platform-core";
 
-import { InfrastructureNav } from "@/components/infrastructure/InfrastructureNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
 
@@ -37,7 +36,6 @@ export default async function InfrastructureSslPage() {
         </p>
       </header>
       <main className="dg-page-main max-w-3xl space-y-6">
-        <InfrastructureNav active="ssl" />
         {!session ? (
           <p className="text-sm text-slate-400">Sign in to see SSL status.</p>
         ) : (

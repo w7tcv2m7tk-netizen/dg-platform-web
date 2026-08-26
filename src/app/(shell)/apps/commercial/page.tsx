@@ -2,7 +2,6 @@ import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { getCommercialOverviewCounts } from "@dg/platform-core";
 
-import { CommercialNav } from "@/components/commercial/CommercialNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
 export default async function CommercialOverviewPage() {
@@ -41,7 +40,6 @@ export default async function CommercialOverviewPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommercialNav active="overview" />
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="dg-card">
             <p className="text-xs uppercase tracking-wide text-slate-500">Properties</p>

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getClientIntelligence, getCommandCentreOpsHome } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { ProvisionAccBetaButton } from "@/components/command/ProvisionAccBetaButton";
 import { ProvisionInfraDomainsBetaButton } from "@/components/command/ProvisionInfraDomainsBetaButton";
 import { ProvisionReBetaButton } from "@/components/command/ProvisionReBetaButton";
@@ -35,8 +34,6 @@ export default async function CommandClientsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="clients" />
-
         <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-3 text-sm text-slate-400">
           <span className="font-medium text-slate-200">Success Score™ / Twin:</span> scores use
           live connectors, usage, and commerce signals available today. Full Twin history and

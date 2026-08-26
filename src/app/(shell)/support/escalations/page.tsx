@@ -49,14 +49,17 @@ export default async function SupportEscalationsPage() {
   ].filter((a) => a.category === "customer");
 
   return (
-    <div className="space-y-6">
-      <OperatorCategoryHeader
-        eyebrow="Support"
-        title="Escalations"
-        question="AI-paused conversations and customer-category platform alerts — no invented SLA queue."
-        backHref="/support"
-        backLabel="Support centre"
-      />
+    <>
+      <header className="dg-page-header">
+        <OperatorCategoryHeader
+          eyebrow="Support"
+          title="Escalations"
+          question="AI-paused conversations and customer-category platform alerts — no invented SLA queue."
+          backHref="/support"
+          backLabel="Support centre"
+        />
+      </header>
+      <main className="dg-page-main space-y-6">
       <OperatorMetricStrip
         metrics={[
           { label: "AI paused chats", value: paused.length, tone: "amber" },
@@ -130,6 +133,7 @@ export default async function SupportEscalationsPage() {
           All open tickets
         </Link>
       </p>
-    </div>
+      </main>
+    </>
   );
 }

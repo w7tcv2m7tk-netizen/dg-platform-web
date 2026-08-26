@@ -2,7 +2,6 @@ import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { getPmOverviewCounts } from "@dg/platform-core";
 
-import { PmNav } from "@/components/property-management/PmNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
 export default async function PropertyManagementOverviewPage() {
@@ -40,7 +39,6 @@ export default async function PropertyManagementOverviewPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <PmNav active="overview" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="dg-card">
             <p className="text-xs uppercase tracking-wide text-slate-500">Properties</p>

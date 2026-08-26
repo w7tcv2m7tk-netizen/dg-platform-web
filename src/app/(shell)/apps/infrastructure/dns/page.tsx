@@ -1,5 +1,4 @@
 import { DnsConsole } from "@/components/infrastructure/DnsConsole";
-import { InfrastructureNav } from "@/components/infrastructure/InfrastructureNav";
 
 /**
  * DNS Infrastructure — zone inspect, suggested hosting records, Apply website DNS.
@@ -15,7 +14,6 @@ export default function DnsInfrastructurePage() {
         </p>
       </header>
       <main className="dg-page-main">
-        <InfrastructureNav active="dns" />
         <DnsConsole />
       </main>
     </>

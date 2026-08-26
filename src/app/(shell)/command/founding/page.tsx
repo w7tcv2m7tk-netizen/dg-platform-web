@@ -10,7 +10,6 @@ import {
   normaliseFoundingStage,
 } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { InviteToFounding10Form } from "@/components/founding/InviteToFounding10Form";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
@@ -63,8 +62,6 @@ export default async function CommandFoundingPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommandCentreNav active="founding" />
-
         <section className="grid gap-3 sm:grid-cols-3">
           <div className="dg-card">
             <p className="text-xs uppercase tracking-widest text-slate-500">Invited</p>

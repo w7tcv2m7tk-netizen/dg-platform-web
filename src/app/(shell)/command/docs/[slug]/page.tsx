@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PLATFORM_DOC_GROUP_LABELS, getPlatformDocBySlug } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { SafeMarkdown } from "@/components/command/SafeMarkdown";
 import { loadPlatformDocBySlug } from "@/lib/load-platform-doc";
 
@@ -33,8 +32,6 @@ export default async function CommandPlatformDocReaderPage({ params }: PageProps
         <p className="mt-2 text-xs text-slate-500">docs/{catalogEntry.relativePath}</p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommandCentreNav active="docs" />
-
         {!result.ok ? (
           <div className="dg-card border-amber-500/30">
             <p className="font-medium text-white">

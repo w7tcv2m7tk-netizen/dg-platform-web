@@ -6,7 +6,6 @@ import {
   resolvePrimaryLinkedDomain,
 } from "@dg/platform-core";
 
-import { InfrastructureNav } from "@/components/infrastructure/InfrastructureNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
 
@@ -47,7 +46,6 @@ export default async function HostingStatusPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <InfrastructureNav active="hosting" />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl">
           <Stat label="Published sites" value={String(published.length)} />
           <Stat label="Linked domains" value={String(linkedDomains.length)} />

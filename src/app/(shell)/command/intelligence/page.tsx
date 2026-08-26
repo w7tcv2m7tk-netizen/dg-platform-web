@@ -2,7 +2,6 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { llmConfigured } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { PlatformIntelligencePanel } from "@/components/command/PlatformIntelligencePanel";
 
 export const dynamic = "force-dynamic";
@@ -29,8 +28,6 @@ export default async function CommandIntelligencePage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="intelligence" />
-
         <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3 text-sm text-slate-400">
           Retrieval is keyword + chunk similarity over allowlisted markdown (no vector DB).
           Synthesis uses Model Router when keyed.

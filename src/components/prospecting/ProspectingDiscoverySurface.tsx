@@ -6,14 +6,12 @@ import {
 } from "@dg/platform-core";
 
 import { BusinessDiscoverySearch } from "@/components/command/BusinessDiscoverySearch";
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { CreateProspectForm } from "@/components/command/CreateProspectForm";
 import { EditProspectForm } from "@/components/command/EditProspectForm";
 import {
   ArchiveProspectButton,
   RunProspectAuditButton,
 } from "@/components/command/GrowthEngineActions";
-import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 
 export type ProspectingDiscoverySearchParams = {
   q?: string;
@@ -201,13 +199,6 @@ export async function ProspectingDiscoverySurface({
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        {variant === "command" ? (
-          <>
-            <CommandCentreNav active="growth" />
-            <GrowthEngineNav active="/apps/prospecting/discovery" />
-          </>
-        ) : null}
-
         <div className="flex flex-wrap gap-2">
           {modeChips.map((chip) => {
             const active = chip.id === "daily" ? false : mode === chip.id;

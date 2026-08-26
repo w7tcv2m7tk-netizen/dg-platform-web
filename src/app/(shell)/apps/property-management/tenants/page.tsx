@@ -2,7 +2,6 @@ import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { listPmPartyContacts } from "@dg/platform-core";
 
-import { PmNav } from "@/components/property-management/PmNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
 export default async function PmTenantsPage() {
@@ -40,7 +39,6 @@ export default async function PmTenantsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-4">
-        <PmNav active="tenants" />
         {items.length === 0 ? (
           <div className="dg-card border-dashed border-slate-700">
             <p className="text-slate-400">

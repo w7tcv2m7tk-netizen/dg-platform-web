@@ -40,14 +40,17 @@ export default async function SupportTicketsPage() {
     : [];
 
   return (
-    <div className="space-y-6">
-      <OperatorCategoryHeader
-        eyebrow="Support"
-        title="Tickets"
-        question="Open support conversations across organisations — conversation queue, not a full ITSM."
-        backHref="/support"
-        backLabel="Support centre"
-      />
+    <>
+      <header className="dg-page-header">
+        <OperatorCategoryHeader
+          eyebrow="Support"
+          title="Tickets"
+          question="Open support conversations across organisations — conversation queue, not a full ITSM."
+          backHref="/support"
+          backLabel="Support centre"
+        />
+      </header>
+      <main className="dg-page-main space-y-6">
       <OperatorMetricStrip
         metrics={[
           { label: "Open conversations", value: conversations.length, tone: "sky" },
@@ -108,6 +111,7 @@ export default async function SupportTicketsPage() {
           Support centre
         </Link>
       </p>
-    </div>
+      </main>
+    </>
   );
 }

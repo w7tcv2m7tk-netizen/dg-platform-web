@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { getCommandCentreOpsHome, resolveSalesWeekPrompt } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
 import { CommandOpsHome } from "@/components/command/CommandOpsHome";
 import { SalesWeekNowBanner } from "@/components/command/SalesWeekNowBanner";
@@ -59,8 +58,6 @@ async function CommandOverviewPage() {
         </div>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="overview" />
-
         <SalesWeekNowBanner prompt={salesPrompt} compact />
 
         <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-50">

@@ -91,10 +91,32 @@ function isIntelligencePath(pathname: string): boolean {
 }
 
 function resolveActiveRoute(pathname: string, routes: AppRoute[]): AppRoute | null {
+  let best: AppRoute | null = null;
+  let bestLen = -1;
   for (const route of flattenAppRoutes(routes)) {
-    if (routeIsActive(pathname, route.path, routes)) return route;
+    if (!routeIsActive(pathname, route.path, routes)) continue;
+    const len = route.path.length;
+    if (len > bestLen) {
+      best = route;
+      bestLen = len;
+    }
   }
-  return null;
+  return best;
+}
+
+/** Specificity score — longer matching route paths win (avoids /command stealing child apps). */
+function matchSpecificity(pathname: string, routes: AppRoute[]): number {
+  let best = -1;
+  for (const route of flattenAppRoutes(routes)) {
+    if (!routeIsActive(pathname, route.path, routes)) continue;
+    best = Math.max(best, route.path.length);
+    for (const also of route.matchAlso ?? []) {
+      if (pathname === also || pathname.startsWith(`${also}/`)) {
+        best = Math.max(best, also.length);
+      }
+    }
+  }
+  return best;
 }
 
 function matchAppItem(
@@ -122,7 +144,9 @@ function matchShellLink(
   if (!shellLinkActive(pathname, link.href, link.routes)) return null;
   const routes =
     link.routes ??
-    (link.href.startsWith("/dashboard/") || link.href.startsWith("/command/")
+    (link.href.startsWith("/dashboard/") ||
+    link.href.startsWith("/command/") ||
+    link.href.startsWith("/partner/")
       ? [{ path: link.href, label: link.label }]
       : []);
   if (routes.length <= 1) return null;
@@ -172,33 +196,50 @@ const IA_SECTION_ORDER: (keyof CategorizedPlatformNavigation["ia"])[] = [
 /**
  * Resolve the active sidebar application and its horizontal sub-navigation
  * for the current pathname. Returns null when no multi-route context applies.
+ * Prefers the most specific matching app (longest route path) so shared prefixes
+ * like `/command` never steal Organisations / Commercial / Product / etc.
  */
 export function resolveActiveAppNavigation(
   pathname: string,
   ia: CategorizedPlatformNavigation["ia"],
 ): ResolvedActiveNav | null {
+  let best: ResolvedActiveNav | null = null;
+  let bestScore = -1;
+
   for (const key of IA_SECTION_ORDER) {
     const section = ia[key];
 
     const intelligenceMatch = resolveIntelligenceGroup(pathname, section);
-    if (intelligenceMatch) return intelligenceMatch;
+    if (intelligenceMatch) {
+      const score = matchSpecificity(pathname, intelligenceMatch.routes);
+      if (score > bestScore) {
+        best = intelligenceMatch;
+        bestScore = score;
+      }
+    }
 
     for (const app of section.apps) {
       const match = matchAppItem(pathname, section, app);
-      if (match && match.routes.length > 1) return match;
-      if (match && match.routes.length === 1) continue;
+      if (!match) continue;
+      // Single-route apps: no horizontal subnav (sidebar is enough).
+      if (match.routes.length <= 1) continue;
+      const score = matchSpecificity(pathname, match.routes);
+      if (score > bestScore) {
+        best = match;
+        bestScore = score;
+      }
     }
 
-    for (const link of section.links) {
+    for (const link of [...section.links, ...(section.trailingLinks ?? [])]) {
       const match = matchShellLink(pathname, section, link);
-      if (match) return match;
-    }
-
-    for (const link of section.trailingLinks ?? []) {
-      const match = matchShellLink(pathname, section, link);
-      if (match) return match;
+      if (!match) continue;
+      const score = matchSpecificity(pathname, match.routes);
+      if (score > bestScore) {
+        best = match;
+        bestScore = score;
+      }
     }
   }
 
-  return null;
+  return best;
 }

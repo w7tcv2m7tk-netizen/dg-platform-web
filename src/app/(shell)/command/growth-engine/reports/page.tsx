@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { listGrowthProspectReports } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import {
   ConvertProspectToOrgButton,
   CopyShareLinkButton,
   MarkReportSentButton,
 } from "@/components/command/GrowthEngineActions";
-import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 
 const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding"]);
 
@@ -28,9 +26,6 @@ export default async function GrowthReportsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="growth" />
-        <GrowthEngineNav active="/command/growth-engine/reports" />
-
         {!db ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
             Configure DATABASE_URL to generate opportunity reports.

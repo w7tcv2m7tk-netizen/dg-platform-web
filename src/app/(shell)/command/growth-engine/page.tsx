@@ -5,7 +5,6 @@ import {
   getGrowthEngineSummary,
 } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import {
   ConvertProspectToOrgButton,
   CreateProposalQuoteButton,
@@ -14,7 +13,6 @@ import {
 import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
 import {
   GrowthEngineModuleGrid,
-  GrowthEngineNav,
 } from "@/components/command/GrowthEngineNav";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
@@ -61,9 +59,6 @@ export default async function GrowthEngineHubPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="growth" />
-        <GrowthEngineNav active="hub" />
-
         <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-4 text-sm text-sky-50">
           <p className="font-medium text-white">Closed beta — what pilots get</p>
           <p className="mt-1 text-sky-100/90">

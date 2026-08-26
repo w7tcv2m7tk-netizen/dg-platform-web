@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getPlatformAlertsCentre } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 
 export default async function PlatformSystemDiagnosticsPage() {
   const data = process.env.DATABASE_URL ? await getPlatformAlertsCentre() : null;
@@ -19,7 +18,6 @@ export default async function PlatformSystemDiagnosticsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="health" />
         {!diagnostics ? (
           <p className="text-sm text-slate-500">Diagnostics unavailable.</p>
         ) : (

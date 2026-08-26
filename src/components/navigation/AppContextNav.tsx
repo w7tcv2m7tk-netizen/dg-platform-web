@@ -9,6 +9,10 @@ import { resolveActiveAppNavigation } from "@dg/platform-core";
 
 const SKIP_PREFIXES = ["/onboarding", "/signup", "/login"];
 
+/**
+ * Global second-level nav — title matches the sidebar app name.
+ * Only renders when the active app has more than one route.
+ */
 export function AppContextNav() {
   const pathname = usePathname();
   const { nav } = useEnabledApps();

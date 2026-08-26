@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getClientIntelligence } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { ProvisionAccBetaButton } from "@/components/command/ProvisionAccBetaButton";
 import { ProvisionInfraDomainsBetaButton } from "@/components/command/ProvisionInfraDomainsBetaButton";
 import { ProvisionReBetaButton } from "@/components/command/ProvisionReBetaButton";
@@ -55,8 +54,6 @@ export default async function CommandClientDetailPage({ params }: Ctx) {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="clients" />
-
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
             <p className="text-xs uppercase tracking-wide text-slate-500">

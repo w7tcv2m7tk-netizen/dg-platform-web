@@ -3,7 +3,6 @@ import { currentUser } from "@clerk/nextjs/server";
 import { listContacts, listPmLeases, listPmProperties } from "@dg/platform-core";
 
 import { CreatePmLeaseForm } from "@/components/property-management/CreatePmLeaseForm";
-import { PmNav } from "@/components/property-management/PmNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
 export default async function PmLeasesPage() {
@@ -69,7 +68,6 @@ export default async function PmLeasesPage() {
         </div>
       </header>
       <main className="dg-page-main space-y-4">
-        <PmNav active="leases" />
         {items.length === 0 ? (
           <div className="dg-card border-dashed border-slate-700">
             <p className="text-slate-400">No leases yet. Create the first PM lease.</p>

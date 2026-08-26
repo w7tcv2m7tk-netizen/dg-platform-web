@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getPlatformAlertsCentre } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { PlatformAlertsDashboard } from "@/components/command/PlatformAlertsDashboard";
 
 export default async function CommandPlatformAlertsPage() {
@@ -23,7 +22,6 @@ export default async function CommandPlatformAlertsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="health" />
         {!data ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
             Database not configured — platform alerts unavailable.

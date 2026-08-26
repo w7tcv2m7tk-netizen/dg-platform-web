@@ -4,12 +4,8 @@ import { PLATFORM_DOCS_CATALOG } from "@dg/platform-core";
 
 import { OperatorCategoryHeader } from "@/components/command/OperatorCategoryHeader";
 import { ProductOverviewDashboard } from "@/components/command/ProductOverviewDashboard";
+import { PlatformRoadmapPanel } from "@/components/platform/PlatformRoadmapPanel";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
-
-const REDIRECTS: Record<string, string> = {
-  roadmap: "/dashboard/settings/roadmap",
-  feedback: "/support",
-};
 
 const RELEASE_SLUGS = new Set([
   "commercially-ready-v1",
@@ -33,8 +29,6 @@ export default async function ProductSectionPage({
   if (!clerkUserId) redirect("/login");
 
   const { section } = await params;
-  const redirectTo = REDIRECTS[section];
-  if (redirectTo) redirect(redirectTo);
 
   if (section === "overview") {
     return (
@@ -44,10 +38,59 @@ export default async function ProductSectionPage({
             eyebrow="Product"
             title="Overview"
             question="Flags, roadmap, releases and feedback across the DigitalGate product surface."
+            backHref="/command"
+            backLabel="Command Centre"
           />
         </header>
         <main className="dg-page-main space-y-6">
           <ProductOverviewDashboard />
+        </main>
+      </>
+    );
+  }
+
+  if (section === "roadmap") {
+    return (
+      <>
+        <header className="dg-page-header">
+          <OperatorCategoryHeader
+            eyebrow="Product"
+            title="Roadmap"
+            question="Commercially Ready v1 first — full Gen 2 backlog second."
+            backHref="/command/product/overview"
+            backLabel="Product"
+          />
+        </header>
+        <main className="dg-page-main">
+          <PlatformRoadmapPanel />
+        </main>
+      </>
+    );
+  }
+
+  if (section === "feedback") {
+    return (
+      <>
+        <header className="dg-page-header">
+          <OperatorCategoryHeader
+            eyebrow="Product"
+            title="Feedback"
+            question="Customer and staff product feedback — Support is the intake surface today."
+            backHref="/command/product/overview"
+            backLabel="Product"
+          />
+        </header>
+        <main className="dg-page-main space-y-4">
+          <p className="max-w-2xl text-sm text-slate-400">
+            There is no separate feedback database yet. Capture product requests in Support so
+            they stay actionable and attributed.
+          </p>
+          <Link
+            href="/support"
+            className="inline-flex rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+          >
+            Open Support
+          </Link>
         </main>
       </>
     );
@@ -68,6 +111,8 @@ export default async function ProductSectionPage({
             eyebrow="Product"
             title="Releases"
             question="Curated Platform Docs for rollout and launch — not a separate changelog database."
+            backHref="/command/product/overview"
+            backLabel="Product"
           />
         </header>
         <main className="dg-page-main space-y-6">

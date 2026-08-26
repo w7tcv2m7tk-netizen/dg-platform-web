@@ -5,7 +5,6 @@ import {
   type GrowthReportPeriod,
 } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { ScoreCell, TierBadge } from "@/components/command/tier-badge";
 
 interface PageProps {
@@ -41,8 +40,6 @@ export default async function CommandReportsPage({ searchParams }: PageProps) {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="reports" />
-
         <div className="flex flex-wrap gap-2">
           {PERIODS.map((p) => (
             <Link

@@ -6,7 +6,6 @@ import {
   listContacts,
 } from "@dg/platform-core";
 
-import { CommercialNav } from "@/components/commercial/CommercialNav";
 import { CreateCommercialLeaseForm } from "@/components/commercial/CreateCommercialLeaseForm";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
@@ -71,7 +70,6 @@ export default async function CommercialLeasesPage() {
         </div>
       </header>
       <main className="dg-page-main space-y-4">
-        <CommercialNav active="leases" />
         {items.length === 0 ? (
           <div className="dg-card border-dashed border-slate-700">
             <p className="text-slate-400">No commercial leases yet.</p>

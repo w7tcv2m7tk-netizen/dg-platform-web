@@ -3,7 +3,6 @@ import { currentUser } from "@clerk/nextjs/server";
 import { listPmProperties } from "@dg/platform-core";
 
 import { CreatePmPropertyForm } from "@/components/property-management/CreatePmPropertyForm";
-import { PmNav } from "@/components/property-management/PmNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
 export default async function PmPropertiesPage() {
@@ -50,7 +49,6 @@ export default async function PmPropertiesPage() {
         </div>
       </header>
       <main className="dg-page-main space-y-4">
-        <PmNav active="properties" />
         {items.length === 0 ? (
           <div className="dg-card border-dashed border-slate-700">
             <p className="text-slate-400">No properties yet. Add the first rental property.</p>

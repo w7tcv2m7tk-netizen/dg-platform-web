@@ -7,7 +7,6 @@ import {
 } from "@dg/platform-core";
 
 import { CreatePmMaintenanceForm } from "@/components/property-management/CreatePmMaintenanceForm";
-import { PmNav } from "@/components/property-management/PmNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
 export default async function PmMaintenancePage() {
@@ -74,7 +73,6 @@ export default async function PmMaintenancePage() {
         </div>
       </header>
       <main className="dg-page-main space-y-4">
-        <PmNav active="maintenance" />
         {items.length === 0 ? (
           <div className="dg-card border-dashed border-slate-700">
             <p className="text-slate-400">No maintenance requests yet.</p>

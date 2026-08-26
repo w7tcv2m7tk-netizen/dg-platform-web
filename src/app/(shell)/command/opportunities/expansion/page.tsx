@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getClientExpansionOpportunities } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
 
 function formatAud(cents: number) {
@@ -30,7 +29,6 @@ export default async function CommandExpansionPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="opportunities" />
         <CommandHonestyBanner compact />
 
         {!data ? (

@@ -5,13 +5,11 @@ import {
   listGrowthProspects,
 } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { EditProspectForm } from "@/components/command/EditProspectForm";
 import {
   ArchiveProspectButton,
   ConvertProspectToOrgButton,
 } from "@/components/command/GrowthEngineActions";
-import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 import { ProspectStageSelect } from "@/components/command/ProspectStageSelect";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
@@ -87,9 +85,6 @@ export default async function GrowthPipelinePage({ searchParams }: PageProps) {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommandCentreNav active="growth" />
-        <GrowthEngineNav active="/command/growth-engine/pipeline" />
-
         {!process.env.DATABASE_URL ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
             Configure DATABASE_URL to use the prospect pipeline.

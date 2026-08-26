@@ -2,7 +2,6 @@ import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { getInfrastructureBackupOverview } from "@dg/platform-core";
 
-import { InfrastructureNav } from "@/components/infrastructure/InfrastructureNav";
 import { WebsiteBackupExportButton } from "@/components/infrastructure/WebsiteBackupExportButton";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -44,8 +43,6 @@ export default async function InfrastructureBackupPage() {
         </p>
       </header>
       <main className="dg-page-main max-w-3xl space-y-6">
-        <InfrastructureNav active="backup" />
-
         {!session || !overview ? (
           <p className="text-sm text-slate-400">Sign in to see backup status for this organisation.</p>
         ) : (

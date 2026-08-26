@@ -4,10 +4,8 @@ import {
   getGrowthConversionSnapshot,
 } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
 import { ConvertProspectToOrgButton } from "@/components/command/GrowthEngineActions";
-import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 
 export default async function GrowthConversionsPage() {
   const db = Boolean(process.env.DATABASE_URL);
@@ -25,8 +23,6 @@ export default async function GrowthConversionsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="growth" />
-        <GrowthEngineNav active="/command/growth-engine/conversions" />
         <CommandHonestyBanner compact />
 
         {!snap ? (

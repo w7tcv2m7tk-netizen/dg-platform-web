@@ -1,12 +1,10 @@
 import Link from "next/link";
 import { listGrowthProposalDrafts } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import {
   ConvertProspectToOrgButton,
   CreateProposalQuoteButton,
 } from "@/components/command/GrowthEngineActions";
-import { GrowthEngineNav } from "@/components/command/GrowthEngineNav";
 
 function formatAud(cents: number) {
   return new Intl.NumberFormat("en-AU", {
@@ -35,9 +33,6 @@ export default async function GrowthProposalsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="growth" />
-        <GrowthEngineNav active="/command/growth-engine/proposals" />
-
         {!db ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
             Configure DATABASE_URL to draft proposals.

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { listPlatformOpportunities } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { OpportunityCreateTaskButton } from "@/components/command/OpportunityCreateTaskButton";
 
 function severityClass(severity: string) {
@@ -46,8 +45,6 @@ export default async function CommandOpportunitiesPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="opportunities" />
-
         {!data ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
             Database not configured — opportunities unavailable.

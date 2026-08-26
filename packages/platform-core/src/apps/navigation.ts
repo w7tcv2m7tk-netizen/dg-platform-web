@@ -503,13 +503,29 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/command/clients", label: "All organisations" },
       ]),
       operatorApp("dg-sales", "Sales", "prospecting", "/apps/prospecting", [
-        { path: "/apps/prospecting", label: "Prospecting & Opportunity Engine" },
-        { path: "/apps/prospecting/discovery", label: "Business Discovery" },
+        { path: "/apps/prospecting", label: "Overview" },
+        { path: "/apps/prospecting/discovery", label: "Discovery" },
         { path: "/apps/prospecting/pipeline", label: "Pipeline" },
         { path: "/apps/prospecting/activity", label: "Activity" },
+        {
+          path: "/command/growth-engine",
+          label: "Growth Engine",
+          matchAlso: [
+            "/command/growth-engine/pipeline",
+            "/command/growth-engine/audits",
+            "/command/growth-engine/reports",
+            "/command/growth-engine/follow-ups",
+            "/command/growth-engine/proposals",
+            "/command/growth-engine/conversions",
+          ],
+        },
         { path: "/command/founding", label: "Founding 10" },
         { path: "/command/sales-week", label: "Sales Week" },
-        { path: "/command/opportunities", label: "Opportunities" },
+        {
+          path: "/command/opportunities",
+          label: "Opportunities",
+          matchAlso: ["/command/opportunities/expansion"],
+        },
       ]),
       operatorApp("dg-partners", "Partners", "partner-portal", "/command/partners", [
         { path: "/command/partners", label: "Dashboard" },
@@ -570,7 +586,6 @@ function getDigitalGateOperatorSection(): NavIaSection {
       operatorApp("dg-commercial", "Commercial", "commerce", "/command/revenue", [
         { path: "/command/revenue", label: "Revenue / MRR" },
         { path: "/command/commercial/subscriptions", label: "Subscriptions" },
-        { path: "/command/opportunities/expansion", label: "Expansion opportunities" },
       ]),
       operatorApp("dg-product", "Product", "flags", "/command/product/overview", [
         { path: "/command/product/overview", label: "Overview" },
@@ -894,7 +909,11 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
     primaryHref: "/command",
     routes: [
       { path: "/command", label: "Priorities" },
-      { path: "/command/platform-health", label: "Alerts" },
+      {
+        path: "/command/platform-health",
+        label: "Alerts",
+        matchAlso: ["/command/platform-health/diagnostics"],
+      },
     ],
   };
 }

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { listCommandCentreOpenTasksDue } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +27,6 @@ export default async function CommandCentreTasksPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <CommandCentreNav active="overview" />
-
         <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
           <p className="text-xs uppercase tracking-wide text-slate-500">
             DigitalGate operator org · open &amp; due

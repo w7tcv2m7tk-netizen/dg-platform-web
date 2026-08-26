@@ -4,7 +4,6 @@ import {
   PLATFORM_DOC_GROUP_LABELS,
 } from "@dg/platform-core";
 
-import { CommandCentreNav } from "@/components/command/CommandCentreNav";
 import { listPlatformDocAvailability } from "@/lib/load-platform-doc";
 
 export default async function CommandPlatformDocsPage() {
@@ -39,8 +38,6 @@ export default async function CommandPlatformDocsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        <CommandCentreNav active="docs" />
-
         <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3 text-sm text-slate-400">
           Staff / DigitalGate org only. Loaded from allowlisted paths under{" "}
           <code className="text-slate-300">docs/</code>
