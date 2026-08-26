@@ -1,7 +1,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Business Brain™ | DigitalGate</title>
-<meta name="description" content="Connect the systems that run your business, give AI the context to understand them, and turn disconnected information into intelligent action.">
+<title>What Is Business Brain™? | DigitalGate Insights</title>
+<meta name="description" content="Business Brain™ is DigitalGate's intelligence layer — authorised business context, knowledge, goals and live connected signals so AI understands what is happening and what should happen next.">
+<link rel="canonical" href="https://digitalgate.com.au/business-brain/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is Business Brain™?","acceptedAnswer":{"@type":"Answer","text":"Business Brain™ is DigitalGate's intelligence layer that combines authorised business context, knowledge, goals, documents and live connected signals to help AI understand what is happening in a business and what should happen next."}},{"@type":"Question","name":"How is Business Brain different from a CRM?","acceptedAnswer":{"@type":"Answer","text":"A CRM stores relationships and pipeline records. Business Brain combines CRM data with goals, documents, website signals, analytics and other connected context so AI can reason across the whole business — not just contacts."}},{"@type":"Question","name":"Does Business Brain replace human decision-making?","acceptedAnswer":{"@type":"Answer","text":"No. Business Brain assists understanding and recommends actions. Consequential decisions remain human-approved through DigitalGate's governance and automation layers."}}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&amp;family=Inter:wght@400;600;700;800&amp;display=swap" onload="this.onload=null;this.rel='stylesheet'">
@@ -77,6 +79,66 @@
   .map-table th { color: #93C5FD; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; }
   .map-table td { color: #CBD5E1; }
   .map-table td:nth-child(2) { color: #94A3B8; }
+  .dg-ed-meta {
+    display: flex; flex-wrap: wrap; gap: 0.65rem 1.25rem; align-items: center;
+    font-size: 0.82rem; color: #64748B; margin: 1.25rem auto 0; padding-top: 1rem;
+    border-top: 1px solid #1E293B; max-width: 720px; justify-content: center;
+  }
+  .dg-ed-meta strong { color: #94A3B8; font-weight: 600; }
+  .dg-ed-def {
+    margin: 1.75rem 0; padding: 1.25rem 1.35rem; border-radius: 14px;
+    border: 1px solid rgba(59,130,246,0.35); background: rgba(59,130,246,0.06);
+  }
+  .dg-ed-def .k {
+    font-size: 0.65rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #93C5FD; margin-bottom: 0.35rem;
+  }
+  .dg-ed-def h3 { font-size: 1rem !important; font-weight: 800; margin: 0 0 0.5rem !important; }
+  .dg-ed-def p { font-size: 0.95rem; color: #CBD5E1; line-height: 1.6; margin: 0; }
+  .dg-ed-author {
+    display: grid; grid-template-columns: auto 1fr; gap: 0.85rem 1rem; align-items: start;
+    margin: 2rem 0 0; padding: 1.25rem 1.35rem; border-radius: 16px;
+    border: 1px solid #334155; background: #111827;
+  }
+  .dg-ed-author .avatar {
+    width: 2.75rem; height: 2.75rem; border-radius: 999px;
+    background: rgba(59,130,246,0.2); display: grid; place-items: center;
+    font-weight: 800; font-size: 0.75rem; color: #BFDBFE;
+  }
+  .dg-ed-author .name { font-weight: 800; color: #F9FAFB; font-size: 0.95rem; }
+  .dg-ed-author .role { font-size: 0.78rem; color: #93C5FD; margin-bottom: 0.35rem; }
+  .dg-ed-author .bio { font-size: 0.88rem; color: #94A3B8; line-height: 1.55; margin: 0; }
+  .dg-ed-related { padding: 3rem 0; border-top: 1px solid #1E293B; }
+  .dg-ed-related h2 { font-size: 1.15rem; font-weight: 800; margin-bottom: 0.35rem; }
+  .dg-ed-related .sub { font-size: 0.88rem; color: #64748B; margin-bottom: 1.1rem; }
+  .dg-ed-related-grid { display: grid; gap: 0.65rem; }
+  .dg-ed-related a {
+    display: block; padding: 1rem 1.1rem; border-radius: 14px;
+    border: 1px solid #334155; background: #0A0E17;
+  }
+  .dg-ed-related a:hover { border-color: #3B82F6; }
+  .dg-ed-related .k { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #64748B; }
+  .dg-ed-related .t { font-weight: 700; color: #E2E8F0; margin: 0.2rem 0; font-size: 0.95rem; }
+  .dg-ed-related .d { font-size: 0.84rem; color: #94A3B8; line-height: 1.45; margin: 0; }
+  .dg-ed-explore {
+    margin: 1.5rem 0; padding: 1.15rem 1.25rem; border-radius: 14px;
+    border: 1px solid rgba(16,185,129,0.25); background: rgba(16,185,129,0.06);
+  }
+  .dg-ed-explore .k { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #6EE7B7; }
+  .dg-ed-explore h3 { font-size: 0.98rem !important; font-weight: 800; margin: 0.35rem 0 !important; }
+  .dg-ed-explore p { font-size: 0.88rem; color: #94A3B8; margin: 0 0 0.65rem; line-height: 1.5; }
+  .dg-ed-faq-item {
+    border: 1px solid #334155; border-radius: 12px; padding: 1rem 1.15rem; margin-bottom: 0.6rem; background: #111827;
+  }
+  .dg-ed-faq-item h3 { font-size: 0.92rem !important; font-weight: 700; margin: 0 0 0.4rem !important; color: #E2E8F0 !important; }
+  .dg-ed-faq-item p { font-size: 0.88rem; color: #94A3B8; line-height: 1.55; margin: 0; }
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin: 1.25rem 0; }
+  .compare-card { padding: 1rem 1.1rem; border-radius: 12px; border: 1px solid #334155; background: #0A0E17; }
+  .compare-card h3 { font-size: 0.88rem !important; font-weight: 800; margin-bottom: 0.5rem !important; color: #93C5FD !important; }
+  .compare-card ul { list-style: none; }
+  .compare-card li { font-size: 0.86rem; color: #94A3B8; padding: 0.25rem 0 0.25rem 1rem; position: relative; }
+  .compare-card li::before { content: ""; position: absolute; left: 0; top: 0.65rem; width: 5px; height: 5px; border-radius: 999px; background: #3B82F6; }
+  @media (max-width: 640px) { .compare-grid { grid-template-columns: 1fr; } }
   .cta-band {
     text-align: center; padding: 4.5rem 0;
     background: linear-gradient(180deg, #111827, #05070A);
@@ -93,9 +155,14 @@
 
   <section class="hero">
     <div class="container">
-      <span class="sub-label">Business Brain™</span>
-      <h1>Give your business a brain.</h1>
-      <p class="lead">Connect the systems that run your business, give AI the context to understand them, and turn disconnected information into intelligent action.</p>
+      <span class="sub-label">Intelligence · DigitalGate Insights</span>
+      <h1>What is Business Brain™?</h1>
+      <p class="lead">Business Brain™ is DigitalGate's intelligence layer — authorised business context, knowledge, goals and live connected signals so AI can understand what is happening and what should happen next.</p>
+      <div class="dg-ed-meta">
+        <span><strong>Published</strong> June 2026</span>
+        <span><strong>Updated</strong> August 2026</span>
+        <span><strong>Reading time</strong> 6 min</span>
+      </div>
       <div class="actions">
         <a href="https://app.digitalgate.com.au" class="btn-primary">Explore DigitalGate →</a>
         <a href="/#connected-business" class="btn-secondary">See Connected Business</a>
@@ -103,7 +170,21 @@
     </div>
   </section>
 
-  <section id="disconnected">
+  <section id="definition">
+    <div class="container">
+      <aside class="dg-ed-def" aria-label="Definition">
+        <p class="k">Definition</p>
+        <h3>Business Brain™</h3>
+        <p>Business Brain™ is DigitalGate's intelligence layer that combines authorised business context, knowledge, goals, documents and live connected signals to help AI understand what is happening in a business and what should happen next. It is not a chatbot. It is the reasoning substrate that sits on top of a connected business and a Digital Twin™.</p>
+      </aside>
+      <div class="prose">
+        <p>Most businesses hear "give your business a brain" and think chatbot. DigitalGate means something different: <strong>a structured intelligence layer that only works when the business is connected first.</strong></p>
+        <p>Without connection, AI has language but no operational context. With connection and governance, Business Brain can help answer what matters, why it matters, and what a human or approved automation should do next.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt" id="problem">
     <div class="container">
       <div class="section-header">
         <span class="sub-label">01 — The disconnected business</span>
@@ -239,6 +320,74 @@
         </tbody>
       </table>
       <p class="prose"><strong>A business doesn’t become powerful because it has more parts. It becomes powerful when those parts work together.</strong></p>
+    </div>
+  </section>
+
+  <section id="not-crm">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">Clarification</span>
+        <h2>Business Brain is not a CRM — and not a chatbot</h2>
+      </div>
+      <div class="compare-grid">
+        <div class="compare-card">
+          <h3>CRM alone</h3>
+          <ul>
+            <li>Stores contacts and pipeline</li>
+            <li>Tracks tasks and history</li>
+            <li>Does not reason across website, goals, documents and live signals by default</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <h3>Website chatbot</h3>
+          <ul>
+            <li>Knows the current conversation</li>
+            <li>Cannot see open opportunities, promises or business goals</li>
+            <li>Improves chat — not the operating system</li>
+          </ul>
+        </div>
+      </div>
+      <p class="prose" style="margin-top:1rem;"><strong>Business Brain</strong> combines CRM and other connected context — Digital Twin state, Business Knowledge, goals, analytics where connected — so AI Advisor and approved automations can reason with business specificity. <a href="/from-dumb-businesses-to-smart-businesses/" style="color:#93C5FD;">Read the Connected Business foundation →</a></p>
+    </div>
+  </section>
+
+  <section class="alt" id="faq">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">FAQ</span>
+        <h2>Common questions</h2>
+      </div>
+      <div class="dg-ed-faq-item"><h3>Does Business Brain need every system connected on day one?</h3><p>No. Intelligence improves as more authorised context is connected. DigitalGate distinguishes live connected data from areas that require connectors — we do not claim universal data availability.</p></div>
+      <div class="dg-ed-faq-item"><h3>Can Business Brain act autonomously?</h3><p>Recommendations yes; consequential actions go through human approval and controlled platform tools where required. DigitalGate does not sell unbounded autonomous agents.</p></div>
+      <div class="dg-ed-faq-item"><h3>How does Business Brain relate to Digital Twin?</h3><p>Digital Twin represents what is happening now across connected signals. Business Brain adds knowledge, goals and reasoning so AI can interpret those signals and suggest what should happen next.</p></div>
+    </div>
+  </section>
+
+  <section id="related-wrap">
+    <div class="container">
+      <aside class="dg-ed-explore" aria-label="Explore DigitalGate">
+        <p class="k">See this in action</p>
+        <h3>DigitalGate Intelligence</h3>
+        <p>Business Brain works alongside Digital Twin, AI Advisor, Business Health and Command Centre on the connected platform.</p>
+        <a href="https://app.digitalgate.com.au" style="color:#93C5FD;font-weight:700;">Explore the platform →</a>
+      </aside>
+      <aside class="dg-ed-author" aria-label="Author">
+        <div class="avatar" aria-hidden="true">BR</div>
+        <div>
+          <p class="name">Ben Roe</p>
+          <p class="role">Founder &amp; Platform Architect, DigitalGate</p>
+          <p class="bio">Ben Roe builds DigitalGate — the Business Operating Platform for connected, intelligent businesses. These Insights explain the philosophy behind the product.</p>
+        </div>
+      </aside>
+      <section class="dg-ed-related" aria-label="Related insights">
+        <h2>Continue exploring</h2>
+        <p class="sub">Relevant reading — not just the latest posts.</p>
+        <div class="dg-ed-related-grid">
+          <a href="/from-dumb-businesses-to-smart-businesses/"><span class="k">Connected Business</span><p class="t">From fragmented businesses to intelligent ones</p><p class="d">Why AI needs connection before intelligence.</p></a>
+          <a href="/intelligent-business-more-than-a-brain/"><span class="k">Business Operating System</span><p class="t">The intelligent business is more than a brain</p><p class="d">Body, nervous system, brain and action — the living system model.</p></a>
+          <a href="/ai-search-vs-traditional-seo/"><span class="k">Growth</span><p class="t">AI Search vs Traditional SEO</p><p class="d">How discovery is changing — and why context matters for visibility.</p></a>
+        </div>
+      </section>
     </div>
   </section>
 

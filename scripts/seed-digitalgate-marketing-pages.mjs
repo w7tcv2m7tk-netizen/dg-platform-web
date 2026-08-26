@@ -12,6 +12,7 @@
  */
 import { config } from "dotenv";
 import { readFileSync, existsSync } from "node:fs";
+import { execSync } from "node:child_process";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { PrismaClient } from "@prisma/client";
@@ -384,6 +385,47 @@ async function main() {
     console.log(
       `${result.action.padEnd(7)} /${def.slug}  (${result.bytes} chars HTML)`,
     );
+  }
+
+  // Migrated Insight articles (Gen 2 SoT — insights/html/)
+  const insightsDir = join(MARKETING_DIR, "insights");
+  const insightsHtmlDir = join(insightsDir, "html");
+  if (existsSync(join(insightsDir, "build.mjs"))) {
+    try {
+      execSync("node build.mjs", { cwd: insightsDir, stdio: "inherit" });
+    } catch (e) {
+      console.warn("insights build failed — skip migrated articles", e.message);
+    }
+  }
+  if (existsSync(insightsHtmlDir)) {
+    const { readdirSync } = await import("node:fs");
+    const { pathToFileURL } = await import("node:url");
+    let insightMeta = [];
+    try {
+      const mod = await import(
+        pathToFileURL(join(insightsDir, "articles.mjs")).href
+      );
+      insightMeta = mod.MIGRATED_ARTICLES || [];
+    } catch {
+      /* optional */
+    }
+    let sortInsight = 200;
+    for (const file of readdirSync(insightsHtmlDir).filter((f) => f.endsWith(".html"))) {
+      const slug = file.replace(/\.html$/, "");
+      const meta = insightMeta.find((a) => a.slug === slug);
+      const raw = readFileSync(join(insightsHtmlDir, file), "utf8");
+      const result = await upsertPage(site.id, {
+        file: `insights/html/${file}`,
+        title: meta?.h1 || extractTitle(raw) || slug,
+        slug,
+        intent: "custom",
+        sortOrder: sortInsight++,
+      }, raw);
+      results.push({ slug, ...result });
+      console.log(
+        `${result.action.padEnd(7)} /${slug}  (insight, ${result.bytes} chars)`,
+      );
+    }
   }
 
   // Soft-archive leftover starter pages that collide with marketing IA
