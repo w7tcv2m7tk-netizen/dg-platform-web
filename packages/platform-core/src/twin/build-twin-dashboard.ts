@@ -1,4 +1,5 @@
 import type { BusinessBrainSnapshot } from "../brain/types";
+import { hasAdvancedCommsEntitlement } from "../communications/entitlements";
 import type { BusinessContext } from "../org/business-context";
 import type { OverviewConnectorProbes } from "../overview/connector-probes";
 import type { OverviewLiveMetrics } from "../overview/gather-live-metrics";
@@ -26,7 +27,8 @@ const SYSTEM_LABELS: Record<string, string> = {
   commerce: "Commerce",
   automation: "Automation",
   reviews: "Reviews",
-  "ai-communications": "AI Communications",
+  "ai-communications": "Communications",
+  communications: "Communications",
 };
 
 const APP_LABELS: Record<string, string> = {
@@ -368,8 +370,13 @@ function buildConnectedSystems(input: BuildDigitalTwinDashboardInput): TwinConne
 
   if (connectors?.wordpress?.ok) add("wordpress", "WordPress", "live");
   if (connectors?.stripeOk) add("stripe", "Stripe", "live");
-  if (connectors?.comms?.ok) add("ai-communications", "AI Communications", "live");
-  else if (enabled.has("ai-communications")) add("ai-communications", "AI Communications", "partial");
+  if (connectors?.comms?.ok) add("communications", "Communications", "live");
+  else if (
+    hasAdvancedCommsEntitlement({ enabledAppIds: [...enabled] }) ||
+    enabled.has("communications")
+  ) {
+    add("communications", "Communications", "partial");
+  }
 
   if (enabled.has("crm")) add("crm", "CRM", input.metrics?.hasContacts ? "live" : "partial");
   if (enabled.has("commerce")) add("commerce", "Commerce", (input.metrics?.revenueMtdCents ?? 0) > 0 ? "live" : "partial");

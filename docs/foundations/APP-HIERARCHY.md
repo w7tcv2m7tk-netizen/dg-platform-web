@@ -61,7 +61,7 @@ Workflow logic: **Know → Communicate → Document → Transact**.
 
 **Documents** is the Core nav app; **Documents & Signing** is the capability (Document Engine + Signing Engine). Industry Apps consume it with templates; do **not** place e-sign under Infrastructure. See [DOCUMENTS-AND-SIGNING.md](./DOCUMENTS-AND-SIGNING.md).
 
-**Communications** is the Core nav app for the business communication layer. **Locked Core mental model:** CRM knows who → Communications talks to them → Documents records what matters → Commerce handles the transaction → Design presents the business. Do **not** put Email under CRM. Do **not** surface Growth **AI Communications** in customer nav — Assist is Write with AI inside Communications. Nav: Inbox · Email · SMS · Calls · Outreach · Templates · Signatures. Universal history = CRM Timeline (no duplicate Activity nav). See [COMMUNICATIONS.md](./COMMUNICATIONS.md).
+**Communications** is the Core nav app for the business communication layer. **Locked Core mental model:** CRM knows who → Communications talks to them → Documents records what matters → Commerce handles the transaction → Design presents the business. Do **not** put Email under CRM. Advanced Voice Agents / Call Centre are a Core Communications add-on (`voice_ai`) — do **not** present a separate Growth App silo. Assist is Write with AI inside Communications. Nav: Inbox · Email · SMS · Calls · Outreach · Templates · Signatures. Universal history = CRM Timeline (no duplicate Activity nav). See [COMMUNICATIONS.md](./COMMUNICATIONS.md).
 
 ### Connected Services vs Connector Engine (customer vs operator)
 
@@ -105,7 +105,7 @@ Commercial honesty: not every Industry or Template is fully developed. Real Esta
 
 AI Visibility · SEO Engine · Analytics · Social Management · Reviews · Prospecting / Opportunity Engine (where appropriate)
 
-**AI Communications (legacy Growth app name):** soft-hidden from customer sidebar. Voice agent capacity may still deep-link from Communications → Calls; do **not** present a second customer “AI Communications” silo. Assist = Write with AI inside Core Communications.
+**Advanced AI Communications / AI Voice Agents** are a **Core Communications add-on** (`voice_ai`) — not a Growth App. Legacy routes may deep-link under `/apps/ai-communications/*`; do **not** list AI Communications as a Growth App. Assist = Write with AI inside Core Communications.
 
 ## 5. INTELLIGENCE — understand the business
 

@@ -1,13 +1,14 @@
 import { communicationsHealthCheck } from "../communications";
 import { listCommunicationAgents } from "../communications/agents";
+import { hasAdvancedCommsEntitlement } from "../communications/entitlements";
 import type { CommsProbe } from "./connector-probes";
 
-/** Probe AI Communications for Business Overview / Digital Twin. */
+/** Probe Communications (advanced voice) for Business Overview / Digital Twin. */
 export async function probeCommsConnector(
   organisationId: string,
   enabledAppIds: string[],
 ): Promise<CommsProbe> {
-  const appEnabled = enabledAppIds.includes("ai-communications");
+  const appEnabled = hasAdvancedCommsEntitlement({ enabledAppIds });
   const health = await communicationsHealthCheck(organisationId);
   const voiceLive = health.providers.voice === "elevenlabs";
   const emailLive = health.providers.email === "resend";

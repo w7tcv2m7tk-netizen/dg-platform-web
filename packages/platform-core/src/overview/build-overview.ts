@@ -194,7 +194,7 @@ function buildCommsSystem(connectors: OverviewConnectorProbes): OverviewConnecte
             : "Live";
     return {
       id: "ai-communications",
-      label: "AI Communications",
+      label: "Communications",
       status: (comms.publishedAgentCount ?? 0) > 0 ? "healthy" : "connected",
       detail,
     };
@@ -203,15 +203,15 @@ function buildCommsSystem(connectors: OverviewConnectorProbes): OverviewConnecte
   if (comms?.appEnabled) {
     return {
       id: "ai-communications",
-      label: "AI Communications",
+      label: "Communications",
       status: "warning",
-      detail: "Configure voice provider",
+      detail: "Configure advanced voice",
     };
   }
 
   return {
     id: "ai-communications",
-    label: "AI Communications",
+    label: "Communications",
     status: "offline",
     detail: "Coming soon",
   };

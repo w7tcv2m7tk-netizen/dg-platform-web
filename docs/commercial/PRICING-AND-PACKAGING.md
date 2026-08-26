@@ -16,7 +16,8 @@ This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI
 | **Platform** | Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** · Enterprise custom |
 | **Industry App** | **$99/mo** — major vertical capability and infrastructure |
 | **Industry Template** | **1 included** with each Industry App (primary business model); **+$29/mo** each additional |
-| **Growth Apps** | Optional · billed separately. **Prospecting & Opportunity Engine $99** · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · AI Communications $99 · **Reputation Free** |
+| **Growth Apps** | Optional · billed separately. **Prospecting & Opportunity Engine $99** · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · **Reputation Free** |
+| **Platform / Core add-ons** | Extra Users · White Label · **Advanced AI Communications / AI Voice Agents (`voice_ai`) $99** — under Core Communications, not a Growth App |
 | **Professional Services** | Optional people work — never required. Includes **Website Migration & DigitalGate Setup** (From $1,497) and **Website Build** (From $1,997). One-off charges, separate from recurring Platform / Apps / Templates / Success |
 | **Customer Success plans** | Standard included; Priority / Success Partner optional |
 | **AI / Twin / Intelligence** | Across the platform — not sold as separate Apps |
@@ -31,8 +32,15 @@ This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI
 | Automation | **$49/mo** |
 | Analytics | **$49/mo** |
 | Social | **$79/mo** |
-| AI Communications | **$99/mo** |
 | Reputation | **Free** |
+
+### Advanced Communications add-on (Core · not a Growth App)
+
+| Capability | Price | SKU |
+|------------|-------|-----|
+| AI Voice Agents / Advanced AI Communications | **$99/mo** | `voice_ai` |
+
+Voice Agents, AI Outreach, and Advanced Call Centre share one commercial key — they are capabilities under Core Communications, not a separate Growth App.
 
 Not included in platform tier pricing unless an agreement says otherwise. Prospecting & Opportunity Engine is one App (Discovery / scoring / pipeline are capabilities inside it — not separate SKUs).
 

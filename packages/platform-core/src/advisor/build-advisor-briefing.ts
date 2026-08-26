@@ -1,6 +1,7 @@
 import type { BusinessBrainSnapshot } from "../brain/types";
 import type { BusinessBenchmarksBundle } from "../benchmarks/types";
 import type { BusinessHealthBundle } from "../business-health/types";
+import { hasAdvancedCommsEntitlement } from "../communications/entitlements";
 import type { GeneratedIntelligence } from "../intelligence/generate-intelligence";
 import type { OverviewLiveMetrics } from "../overview/gather-live-metrics";
 import type { OrgScoresResult } from "../scoring/calculate-scores";
@@ -98,7 +99,10 @@ export function buildAdvisorContexts(enabledAppIds: string[]): AdvisorContextOpt
   if (enabled.has("commerce")) {
     contexts.push({ id: "finance", label: "Finance" });
   }
-  if (enabled.has("automation") || enabled.has("ai-communications")) {
+  if (
+    enabled.has("automation") ||
+    hasAdvancedCommsEntitlement({ enabledAppIds: [...enabled] })
+  ) {
     contexts.push({ id: "automation", label: "Automation" });
   }
 
@@ -153,8 +157,8 @@ function buildRecommendations(input: BuildAdvisorBriefingInput): AdvisorRecommen
           ? "Enquiry volume is rising while response capacity is falling behind — a real risk of losing qualified opportunities."
           : "Unresolved follow-up usually precedes conversion drop-off.",
         whatIRecommend: "Contact overdue prospects today, then automate first-response for new enquiries.",
-        whatDigitalGateCanDo: enabled.includes("ai-communications")
-          ? "Create a follow-up task now, then configure an AI Communications agent for first-response."
+        whatDigitalGateCanDo: hasAdvancedCommsEntitlement({ enabledAppIds: enabled })
+          ? "Create a follow-up task now, then configure a Communications voice agent for first-response."
           : "Create a follow-up task now so the work is tracked — DigitalGate executes the tool after you confirm.",
         actionLabel: "Open Opportunities →",
         href: "/apps/crm/opportunities",

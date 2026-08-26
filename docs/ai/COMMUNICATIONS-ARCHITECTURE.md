@@ -2,6 +2,8 @@
 
 **DigitalGate as the orchestration layer for AI voice, chat, email, and messaging**
 
+**Core vs Advanced:** Customer-facing **Core Communications** owns the communication operating system (history, email, SMS, calls, outreach). **Advanced AI Communications** (Voice Agents, Call Centre, Agent Builder, Knowledge — entitlement `voice_ai` / legacy `ai-communications`) are add-on capabilities under that Core app — **not** a separate Growth App product. Routes may remain under `/apps/ai-communications/*` for compatibility.
+
 **Version:** 0.2  
 **Status:** Live slice — ElevenLabs as initial Voice Provider + Agent Builder + Call Centre  
 **Architecture lock:** [VOICE-AGENT-ARCHITECTURE.md](./VOICE-AGENT-ARCHITECTURE.md) — *Voice is a replaceable provider; DigitalGate owns intelligence and is the system of record.*  

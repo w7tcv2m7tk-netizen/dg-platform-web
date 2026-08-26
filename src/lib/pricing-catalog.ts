@@ -340,14 +340,6 @@ export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
     description: "Publish to LinkedIn, Facebook, Instagram, X & Pinterest",
   },
   {
-    appId: "ai-communications",
-    premiumKey: "voice_ai",
-    label: "AI Communications",
-    icon: "🎙️",
-    price: "+$99/mo",
-    description: "AI-assisted communications — Voice Agents still in development",
-  },
-  {
     appId: "reviews",
     label: "Reputation",
     icon: "★",
@@ -356,6 +348,55 @@ export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
     status: "rolling-out",
     description:
       "Unified review inbox, connector sources, timeline requests & Reputation Score™ when real data exists — no Growth App charge",
+  },
+];
+
+/**
+ * Advanced Communications add-ons under Core Communications (SKU: voice_ai).
+ * Not Growth Apps — one commercial key can back multiple capability cards.
+ */
+export type CommunicationsAddonCatalogItem = {
+  id: string;
+  premiumKey: PremiumApp;
+  label: string;
+  icon: string;
+  price: string;
+  description: string;
+  href?: string;
+  status?: CatalogStatus;
+};
+
+export const COMMUNICATIONS_ADDON_CATALOG: CommunicationsAddonCatalogItem[] = [
+  {
+    id: "voice-agents",
+    premiumKey: "voice_ai",
+    label: "AI Voice Agents",
+    icon: "🎙️",
+    price: "+$99/mo",
+    description:
+      "Advanced AI voice agents under Core Communications — Voice Agents still in development",
+    href: "/apps/ai-communications/voice",
+    status: "rolling-out",
+  },
+  {
+    id: "ai-outreach",
+    premiumKey: "voice_ai",
+    label: "AI Outreach",
+    icon: "📡",
+    price: "+$99/mo",
+    description: "AI-assisted outreach under Core Communications — same Advanced AI add-on SKU",
+    href: "/apps/communications/outreach",
+    status: "rolling-out",
+  },
+  {
+    id: "call-centre",
+    premiumKey: "voice_ai",
+    label: "Advanced Call Centre",
+    icon: "📞",
+    price: "+$99/mo",
+    description: "Call Centre under Core Communications — Advanced AI Communications add-on",
+    href: "/apps/ai-communications/call-centre",
+    status: "rolling-out",
   },
 ];
 

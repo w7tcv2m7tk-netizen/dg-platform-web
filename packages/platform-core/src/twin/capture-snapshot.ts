@@ -1,5 +1,6 @@
 import type { OverviewConnectorProbes } from "../overview/connector-probes";
 import type { OverviewLiveMetrics } from "../overview/gather-live-metrics";
+import { hasAdvancedCommsEntitlement } from "../communications/entitlements";
 import type { DigitalTwinSnapshot } from "./types";
 
 export interface CaptureTwinSnapshotInput {
@@ -44,8 +45,8 @@ export function captureDigitalTwinSnapshot(
   if (enabledAppIds.includes("accommodation")) connected.push("accommodation");
   if (enabledAppIds.includes("commerce")) connected.push("commerce");
   if (enabledAppIds.includes("automation")) connected.push("automation");
-  if (connectors.comms?.ok || enabledAppIds.includes("ai-communications")) {
-    connected.push("ai-communications");
+  if (connectors.comms?.ok || hasAdvancedCommsEntitlement({ enabledAppIds })) {
+    connected.push("communications");
   }
 
   const websiteScore = connectors.website?.score;

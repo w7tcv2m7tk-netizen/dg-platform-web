@@ -120,7 +120,8 @@ const INDUSTRY_APP_ORDER = [
 /**
  * Growth — optional paid Apps (except Reputation = Free).
  * Order matches public pricing: Prospecting $99 · AI Visibility $99 · SEO $99 ·
- * Automation $49 · Analytics $49 · Social $79 · AI Communications $99 · Reputation Free.
+ * Automation $49 · Analytics $49 · Social $79 · Reputation Free.
+ * Advanced AI Communications is a Core add-on (voice_ai), not a Growth App.
  * Prospecting & Opportunity Engine is one $99 SKU (not separate Prospecting/Discovery/OE charges).
  * CRM Opportunities remains the canonical deal object; Core Opportunities App is
  * operating-intelligence rankings (not a second pipeline).
@@ -132,11 +133,10 @@ const GROW_APP_ORDER = [
   "automation",
   "analytics",
   "social",
-  "ai-communications",
   "reviews",
 ] as const;
 
-/** Hidden from sidebar IA — marketing undecided; opportunities live in CRM; AI Communications nests under Core Communications → AI */
+/** Hidden from sidebar IA — marketing undecided; opportunities live in CRM; advanced comms nests under Core Communications */
 const SIDEBAR_HIDDEN_APP_IDS = new Set([
   "marketing",
   "opportunities",
@@ -193,7 +193,7 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   communications: {
     name: "Communications",
     routes: [
-      // Channels first · AI Conversations hub · no separate Growth AI Communications silo.
+      // Core channels · advanced AI surfaces · Outreach / Templates / Signatures.
       { path: "/apps/communications", label: "Inbox", matchAlso: ["/apps/communications/inbox"] },
       {
         path: "/apps/communications/email",
@@ -207,21 +207,23 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
       },
       { path: "/apps/communications/sms", label: "SMS" },
       { path: "/apps/communications/calls", label: "Calls" },
+      { path: "/apps/ai-communications/voice", label: "Voice Agents" },
+      {
+        path: "/apps/ai-communications/call-centre",
+        label: "Call Centre",
+        matchAlso: ["/apps/ai-communications/call-centre/"],
+      },
+      { path: "/apps/ai-communications/agents", label: "Agent Builder" },
+      { path: "/apps/ai-communications/knowledge", label: "Knowledge" },
       {
         path: "/apps/ai-communications/inbox",
-        label: "AI Conversations",
-        matchAlso: [
-          "/apps/communications/ai",
-          "/apps/ai-communications/voice",
-          "/apps/ai-communications/call-centre",
-          "/apps/ai-communications/agents",
-          "/apps/ai-communications/knowledge",
-          "/apps/ai-communications/settings",
-        ],
+        label: "AI Inbox",
+        matchAlso: ["/apps/communications/ai"],
       },
       { path: "/apps/communications/outreach", label: "Outreach" },
       { path: "/apps/communications/templates", label: "Templates" },
       { path: "/apps/communications/signatures", label: "Signatures" },
+      { path: "/apps/ai-communications/settings", label: "AI Settings" },
     ],
   },
   "real-estate": {

@@ -21,7 +21,6 @@ const GROWTH_APP_IDS_FOR_MODE = [
   "automation",
   "analytics",
   "social",
-  "ai-communications",
   "reviews",
 ] as const;
 

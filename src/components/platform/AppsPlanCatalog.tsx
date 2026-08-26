@@ -12,6 +12,7 @@ import { AppInstallToggle } from "@/components/platform/AppInstallToggle";
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import type { PlatformTier } from "@/lib/plans";
 import {
+  COMMUNICATIONS_ADDON_CATALOG,
   GROWTH_APP_CATALOG,
   INDUSTRY_APP_CATALOG,
   INDUSTRY_PLATFORM_CATALOG,
@@ -465,7 +466,7 @@ export function AppsPlanCatalog() {
         <SectionHeader
           label="📈 4 · Growth Apps"
           title="Visibility, acquisition and conversion"
-          description="Reputation, SEO, AI visibility, automation, analytics, social, and communications — on top of the core platform."
+          description="Reputation, SEO, AI visibility, automation, analytics, and social — on top of the core platform."
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {GROWTH_APP_CATALOG.map((item) => (
@@ -489,7 +490,7 @@ export function AppsPlanCatalog() {
         <SectionHeader
           label="➕ 5 · Platform add-ons"
           title="Extend your platform"
-          description="Extra users and white label — add to any tier. Purchase on the website; toggles here control sidebar apps only."
+          description="Extra users, white label, and Advanced AI Communications under Core — purchase on the website; toggles here control sidebar apps only."
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PLATFORM_ADDON_CATALOG.map((addon) => (
@@ -511,6 +512,33 @@ export function AppsPlanCatalog() {
               >
                 Add on ↗
               </a>
+            </div>
+          ))}
+          {COMMUNICATIONS_ADDON_CATALOG.map((item) => (
+            <div key={item.id} className="dg-plan-card text-left">
+              <div className="text-2xl" aria-hidden>
+                {item.icon}
+              </div>
+              <h3 className="mt-2 font-semibold text-white">{item.label}</h3>
+              <p className="mt-1 text-sm font-semibold text-blue-400">{item.price}</p>
+              <p className="mt-2 text-xs text-slate-400">{item.description}</p>
+              {item.href ? (
+                <Link
+                  href={item.href}
+                  className="mt-4 inline-block rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-300 hover:border-blue-500 hover:text-white"
+                >
+                  Open →
+                </Link>
+              ) : (
+                <a
+                  href={`${PRICING_PAGE_URL}#addons`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-block rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-300 hover:border-blue-500 hover:text-white"
+                >
+                  Add on ↗
+                </a>
+              )}
             </div>
           ))}
         </div>

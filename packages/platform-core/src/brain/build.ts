@@ -1,5 +1,6 @@
 import type { BusinessContext } from "../org/business-context";
 import type { PlatformSetupStatus } from "../org/setup-status";
+import { hasAdvancedCommsEntitlement } from "../communications/entitlements";
 import type {
   BusinessBrainDimension,
   BusinessBrainField,
@@ -87,9 +88,9 @@ const SURFACES: BusinessBrainSnapshot["surfaces"] = [
     uses: "Priorities and actions from Brain-backed intelligence",
   },
   {
-    label: "AI Communications",
-    href: "/apps/ai-communications",
-    uses: "Authorised knowledge, tone and business context",
+    label: "Communications",
+    href: "/apps/communications",
+    uses: "Authorised knowledge, tone and advanced voice context",
   },
 ];
 
@@ -104,7 +105,9 @@ export function buildBusinessBrain(input: {
   const voice = context.brandVoice;
   const profile = context.profile;
   const connectorCount = input.connectorCount ?? context.twin.connectedSystems.length;
-  const commsEnabled = context.enabledAppIds.includes("ai-communications");
+  const commsEnabled = hasAdvancedCommsEntitlement({
+    enabledAppIds: context.enabledAppIds,
+  });
   const automationEnabled = context.enabledAppIds.includes("automation");
   const crmEnabled = context.enabledAppIds.includes("crm");
 
@@ -180,7 +183,7 @@ export function buildBusinessBrain(input: {
       "Context, permissions, approved tools and business-specific instructions.",
       [
         field("context", "Business context", Boolean(identity.businessName && (voice.services || voice.tone)), "/dashboard/brain", "Context builder live"),
-        field("comms", "AI Communications", commsEnabled, "/apps/ai-communications", commsEnabled ? "Agents authorised from Brain" : undefined),
+        field("comms", "Communications", commsEnabled, "/apps/communications", commsEnabled ? "Advanced voice authorised from Brain" : undefined),
         field("advisor", "Advisor", true, "/dashboard/advisor", "Reads Twin + Brain"),
         field("instructions", "Business instructions", Boolean(voice.tone || profile?.brandVoice?.services), "/dashboard/business", voice.tone),
       ],

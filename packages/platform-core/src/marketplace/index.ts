@@ -136,6 +136,52 @@ const CURATED_PROFESSIONALS: MarketplaceListing[] = [
   },
 ];
 
+/** Advanced Communications add-ons — Core Communications capabilities, not Growth Apps */
+const CURATED_COMMS_ADDONS: MarketplaceListing[] = [
+  {
+    id: "capability:ai-voice-agents",
+    category: "apps",
+    name: "AI Voice Agents",
+    summary:
+      "Advanced AI voice agents under Core Communications — not a separate Growth App.",
+    badge: "Add-on",
+    layer: "Communications",
+    ctaLabel: "Explore",
+    tags: ["voice", "communications", "voice_ai"],
+    source: "curated",
+    section: "growth",
+    href: "/apps/ai-communications/voice",
+  },
+  {
+    id: "capability:ai-outreach",
+    category: "apps",
+    name: "AI Outreach",
+    summary:
+      "AI-assisted outreach under Core Communications — advanced add-on, not a Growth App silo.",
+    badge: "Add-on",
+    layer: "Communications",
+    ctaLabel: "Explore",
+    tags: ["outreach", "communications", "voice_ai"],
+    source: "curated",
+    section: "growth",
+    href: "/apps/communications/outreach",
+  },
+  {
+    id: "capability:advanced-call-centre",
+    category: "apps",
+    name: "Advanced Call Centre",
+    summary:
+      "Call Centre and agent orchestration under Core Communications — advanced AI add-on.",
+    badge: "Add-on",
+    layer: "Communications",
+    ctaLabel: "Explore",
+    tags: ["call-centre", "communications", "voice_ai"],
+    source: "curated",
+    section: "growth",
+    href: "/apps/ai-communications/call-centre",
+  },
+];
+
 const INTEGRATION_CATALOG: MarketplaceListing[] = [
   {
     id: "int:wordpress",
@@ -256,6 +302,9 @@ function appListingsFromRegistry(enabledIds: string[]): MarketplaceListing[] {
   return platformApps
     .list()
     .filter((a) => (a.manifest.visibility ?? "customer") === "customer")
+    .filter((a) => (a.manifest.tier ?? "core") !== "internal")
+    // Legacy AI Communications silo — advanced capabilities are curated add-ons under Core.
+    .filter((a) => a.manifest.id !== "ai-communications")
     // Core already ships with the platform — Marketplace is for what you can add.
     // Industry cards come from catalogue; registry here is Growth (and non-industry) only.
     .filter((a) => a.manifest.tier === "growth")
@@ -322,7 +371,7 @@ export function buildMarketplaceCatalog(input?: {
   const enabledIds = input?.enabledAppIds ?? [];
   const growthListings = appListingsFromRegistry(enabledIds);
   const industryListings = industryListingsFromCatalogue(enabledIds);
-  const appListings = [...industryListings, ...growthListings];
+  const appListings = [...industryListings, ...growthListings, ...CURATED_COMMS_ADDONS];
 
   const all: MarketplaceListing[] = [
     ...appListings,

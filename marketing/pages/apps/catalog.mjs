@@ -34,7 +34,7 @@ export const LAYERS = [
     verb: "grow",
     tagline: "visibility, acquisition, conversion",
     intro:
-      "Optional Growth Apps, billed separately: Prospecting & Opportunity Engine $99 · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · AI Communications $99 · Reputation Free.",
+      "Optional Growth Apps, billed separately: Prospecting & Opportunity Engine $99 · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · Reputation Free. Advanced AI Communications / AI Voice Agents $99 is a Core Communications add-on (not a Growth App).",
   },
 ];
 
@@ -228,7 +228,7 @@ export const APPS = [
     subhead:
       "If the email lives only in someone’s inbox, the platform cannot Understand or Learn.",
     what: "Email and message history attached to Contacts and Opportunities.",
-    connects: "CRM, Automation, AI Communications (Early Access) and Industry follow-up.",
+    connects: "CRM, Automation, Advanced AI Communications (Voice Agents add-on) and Industry follow-up.",
     who: "Operators who need a shared history, not a personal mailbox as the system of record.",
     highlight: ["Connect", "Act"],
     related: ["crm", "ai-communications", "automation"],
@@ -878,14 +878,15 @@ export const APPS = [
   app({
     slug: "ai-communications",
     layer: "growth",
-    name: "AI Communications",
+    name: "AI Voice Agents",
     depth: "lite",
     badge: "Early Access",
-    status: "Early Access — AI-assisted communications. Voice Agents still in development — not a live call-centre product.",
-    headline: "Assist the conversation. Do not fake a voice agent.",
-    what: "AI-assisted messaging on Core Communications. Voice remains in development.",
+    status:
+      "Early Access — Advanced AI Communications under Core Communications. Voice Agents still in development — not a live call-centre product. Not a separate Growth App.",
+    headline: "Advanced communications under Core — not a Growth App silo.",
+    what: "AI Voice Agents, Call Centre and related capabilities as a Core Communications add-on (voice_ai).",
     connects: "Communications, Contacts, Automation and Knowledge.",
-    who: "Founding teams who want assistance now and voice later — without overclaiming.",
+    who: "Founding teams who want advanced AI assistance now and voice later — without overclaiming.",
     highlight: ["Act"],
     related: ["communications", "automation", "crm"],
   }),

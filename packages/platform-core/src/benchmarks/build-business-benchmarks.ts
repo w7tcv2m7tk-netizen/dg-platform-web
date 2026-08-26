@@ -1,4 +1,5 @@
 import type { BusinessBrainSnapshot } from "../brain/types";
+import { hasAdvancedCommsEntitlement } from "../communications/entitlements";
 import type { OrganisationBusinessProfile } from "../org/business-profile-types";
 import type { PlatformSetupStatus } from "../org/setup-status";
 import type { OverviewConnectorProbes } from "../overview/connector-probes";
@@ -104,7 +105,9 @@ function aiMaturityScore(input: BuildBusinessBenchmarksInput): number {
   const connectors = input.snapshot?.metrics.connectedConnectors ?? 0;
   const aiVis = getScoreValue(input.scores?.scores ?? [], "ai_visibility");
   const automation = getScoreValue(input.scores?.scores ?? [], "automation");
-  const comms = input.enabledAppIds.includes("ai-communications") ? 12 : 0;
+  const comms = hasAdvancedCommsEntitlement({ enabledAppIds: input.enabledAppIds })
+    ? 12
+    : 0;
   const apps = Math.min(10, input.enabledAppIds.filter((id) => id.startsWith("ai")).length * 4);
   return clamp(brain * 0.35 + aiVis * 0.25 + automation * 0.2 + connectors * 4 + comms + apps);
 }

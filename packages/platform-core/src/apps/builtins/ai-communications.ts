@@ -1,20 +1,26 @@
 import type { AppManifest } from "../manifest";
 
+/**
+ * Advanced Communications — internal module (not a customer Growth App).
+ * Routes stay under /apps/ai-communications/*; operator IA nests under Core Communications.
+ * Entitlement: voice_ai premium / legacy ai-communications enable — see hasAdvancedCommsEntitlement.
+ */
 export const aiCommunicationsApp: AppManifest = {
   id: "ai-communications",
   name: "AI Communications",
   description:
-    "Unified AI voice, chat, email, and SMS — orchestrated through Platform Core with CRM-native context",
-  tier: "growth",
+    "Internal advanced Communications module — Voice Agents, Call Centre, Agent Builder, Knowledge, and AI Inbox. Not a customer Growth App; commercialised as Advanced AI Communications (voice_ai).",
+  tier: "internal",
+  visibility: "internal",
   version: "0.1.0",
   icon: "📡",
   routes: [
-    { path: "/apps/ai-communications/inbox", label: "Inbox" },
-    { path: "/apps/ai-communications/voice", label: "Voice agents" },
-    { path: "/apps/ai-communications/call-centre", label: "Call centre" },
-    { path: "/apps/ai-communications/agents", label: "Agent builder" },
-    { path: "/apps/ai-communications/knowledge", label: "Knowledge base" },
-    { path: "/apps/ai-communications/settings", label: "Settings" },
+    { path: "/apps/ai-communications/voice", label: "Voice Agents" },
+    { path: "/apps/ai-communications/call-centre", label: "Call Centre" },
+    { path: "/apps/ai-communications/agents", label: "Agent Builder" },
+    { path: "/apps/ai-communications/knowledge", label: "Knowledge" },
+    { path: "/apps/ai-communications/inbox", label: "AI Inbox" },
+    { path: "/apps/ai-communications/settings", label: "AI Settings" },
   ],
   navigation: [
     {

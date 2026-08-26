@@ -18,7 +18,7 @@ Industry Apps, Prospecting, Automation, Advisor and Command Centre may create, s
 
 **Google Workspace / Microsoft 365 remain the authoritative mailboxes.** DigitalGate is the **business intelligence and orchestration layer** around the mailbox — association, history, automation, AI draft, next action — not the mailbox provider.
 
-**Do not ship a second customer “AI Communications” silo.** Voice agents / Call Centre remain a **Growth commercial add-on** for capacity / monetisation where needed, but operator IA lives under **Core Communications → AI**. Every voice/SMS/email row must land in the same Communication History / Universal Objects graph.
+**Do not ship a second customer “AI Communications” silo.** Advanced Voice Agents / Call Centre / Outreach are a **Core Communications add-on** (`voice_ai` — Advanced AI Communications), not a Growth App. Operator IA lives under **Core Communications**. Every voice/SMS/email row must land in the same Communication History / Universal Objects graph.
 
 ---
 
@@ -78,7 +78,7 @@ Secondary nav (**locked August 2026**):
 
 **Do not** put Email or Email history under CRM. CRM → Timeline is the universal cross-business history; Communications does **not** duplicate a second “Activity / Communication History” nav item.
 
-**Do not** surface Growth **AI Communications** as a separate customer sidebar app. Soft-hidden (`SIDEBAR_HIDDEN_APP_IDS`). Do **not** nest Voice Agents / Call Centre / Agent Builder / Knowledge / AI Settings as sidebar children — they appear on AI Conversations.
+**Do not** surface a separate customer **AI Communications** Growth App. Advanced capabilities (`voice_ai`) nest under **Core Communications**. Soft-hidden legacy module (`SIDEBAR_HIDDEN_APP_IDS`). Voice Agents / Call Centre / Agent Builder / Knowledge / AI Settings appear under Communications — not a second silo.
 
 **Documents** stay a separate Core app (Library · Signing · Templates) — related to, not inside, Communications.
 
@@ -378,7 +378,7 @@ Communications is a primary way the business interacts with the outside world.
 | **CRM** | Contact → Email contact (Compose) · Timeline (universal history) — **no Email module under CRM** | **Live** |
 | **Persistence** | Prisma `OrgCommunication` (`org_communications`, `scheduled_at`) | **Live** after `prisma db push` |
 
-**IA lock:** Growth **AI Communications** soft-hidden from sidebar (`SIDEBAR_HIDDEN_APP_IDS`); AI tooling is reached from **AI Conversations**, not a nested sidebar group. History association is Core + CRM Timeline + Universal Objects. Founding Mode still slims Growth via `org-apps.ts`.
+**IA lock:** Advanced AI Communications is a Core add-on (`voice_ai`), not a Growth App. Legacy `ai-communications` module soft-hidden from sidebar (`SIDEBAR_HIDDEN_APP_IDS`); AI tooling is reached from Core Communications. History association is Core + CRM Timeline + Universal Objects. Founding Mode still slims Growth via `org-apps.ts`.
 
 **Deploy:**
 
@@ -414,13 +414,13 @@ Gmail OAuth needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and redirect URI `
 - Building a full mail client competitor (folders, labels UX wars, offline MUA)  
 - Replacing Google/Microsoft as mailbox SoT  
 - Unsupervised AI auto-send to customers  
-- Replacing Growth AI Communications voice product overnight  
+- Replacing Advanced AI Communications / Voice Agents overnight 
 
 ---
 
 ## Commercial note
 
 - **Core Communications** — foundation of the BOS (included with platform Core).  
-- **AI Communications (Growth, ~$99)** — advanced AI employees / voice / high-volume generation.  
+- **Advanced AI Communications / AI Voice Agents (`voice_ai`, ~$99)** — advanced AI employees / voice / high-volume generation under Core Communications — **not** a Growth App silo.  
 Do not double-charge for “having email history”; charge for AI depth and agent capacity.
 

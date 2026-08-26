@@ -175,6 +175,8 @@ export function featureIdToPermissionCheck(featureId: string): PermissionCheck |
     commerce: "commerce",
     documents: "documents",
     communications: "communications",
+    /** Feature ids use `comms.*`; map to Core Communications module */
+    comms: "communications",
     websites: "websites",
     infrastructure: "infrastructure",
     services: "industry",
@@ -189,7 +191,8 @@ export function featureIdToPermissionCheck(featureId: string): PermissionCheck |
     analytics: "growth",
     social: "growth",
     reviews: "growth",
-    "ai-communications": "growth",
+    /** Legacy key — advanced comms live under Core Communications (voice_ai) */
+    "ai-communications": "communications",
     command: "intelligence",
     twin: "intelligence",
     advisor: "intelligence",

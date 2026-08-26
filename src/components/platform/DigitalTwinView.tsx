@@ -17,8 +17,9 @@ const SYSTEM_LABELS: Record<string, string> = {
   commerce: "Commerce",
   automation: "Automation",
   reviews: "Reviews",
-  "ai-communications": "AI Communications",
-  voice: "AI Communications",
+  "ai-communications": "Communications",
+  communications: "Communications",
+  voice: "Communications",
 };
 
 const SOCIAL_LABELS: Record<string, string> = {

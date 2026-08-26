@@ -190,7 +190,7 @@ export const PREMIUM_APPS: { key: PremiumApp; label: string; price: string }[] =
   { key: "automation_pro", label: "Automation", price: "+$49/mo" },
   { key: "analytics_pro", label: "Analytics", price: "+$49/mo" },
   { key: "social_pro", label: "Social", price: "+$79/mo" },
-  { key: "voice_ai", label: "AI Communications", price: "+$99/mo" },
+  { key: "voice_ai", label: "AI Voice Agents", price: "+$99/mo" },
 ];
 
 export const ADDONS: { key: Addon; label: string; price: string }[] = [
