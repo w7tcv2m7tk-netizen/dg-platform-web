@@ -48,9 +48,8 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
     loaded.syncError && loaded.bookings.length === 0 ? loaded.syncError : undefined;
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Bookings</h1>
+    <main className="dg-page-main space-y-6">
+      <div>
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · {siteLabel} · StayBooking (Neon)
           {loaded.total != null ? ` · ${loaded.total} bookings` : ""}
@@ -60,8 +59,7 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
             <AccommodationSitePicker sites={sites} />
           </div>
         </Suspense>
-      </header>
-      <main className="dg-page-main">
+      </div>
         <AccommodationBookingsPanel
           bookings={loaded.bookings}
           total={loaded.total}
@@ -71,6 +69,5 @@ export default async function AccommodationBookingsPage({ searchParams }: PagePr
           wpSyncAvailable={wpSyncAvailable}
         />
       </main>
-    </>
   );
 }

@@ -9,7 +9,6 @@ import {
 
 import { CreateServiceJobForm } from "@/components/services/CreateServiceJobForm";
 import { JobsListFilters } from "@/components/services/JobsListFilters";
-import { ServicesNav } from "@/components/services/ServicesNav";
 import { UpdateJobStageForm } from "@/components/services/UpdateJobStageForm";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
@@ -56,14 +55,9 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
 
   if (!session) {
     return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Jobs</h1>
-        </header>
-        <main className="dg-page-main">
-          <p className="text-slate-400">Sign in required.</p>
-        </main>
-      </>
+      <main className="dg-page-main">
+        <p className="text-slate-400">Sign in required.</p>
+      </main>
     );
   }
 
@@ -130,32 +124,25 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
     Boolean(filters.to);
 
   return (
-    <>
-      <header className="dg-page-header">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white">{template.terminology.job}s</h1>
-            <p className="mt-1 text-sm text-slate-400">
-              {meta.total} result{meta.total === 1 ? "" : "s"} · {template.label} workflow
-            </p>
-          </div>
-          <CreateServiceJobForm
-            jobTypes={template.jobTypes}
-            stages={template.workflow}
-            contacts={contacts.items.map((c) => ({
-              id: c.id,
-              label: [c.firstName, c.lastName].filter(Boolean).join(" "),
-            }))}
-            jobFields={template.jobFields}
-            members={memberOptions}
-            templateKey={template.key}
-            jobLabel={template.terminology.job}
-          />
-        </div>
-      </header>
-      <main className="dg-page-main space-y-6">
-        <ServicesNav active="jobs" />
-        <JobsListFilters
+    <main className="dg-page-main space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <p className="text-sm text-slate-400">
+          {meta.total} result{meta.total === 1 ? "" : "s"} · {template.label} workflow
+        </p>
+        <CreateServiceJobForm
+          jobTypes={template.jobTypes}
+          stages={template.workflow}
+          contacts={contacts.items.map((c) => ({
+            id: c.id,
+            label: [c.firstName, c.lastName].filter(Boolean).join(" "),
+          }))}
+          jobFields={template.jobFields}
+          members={memberOptions}
+          templateKey={template.key}
+          jobLabel={template.terminology.job}
+        />
+      </div>
+      <JobsListFilters
           filters={filters}
           stages={template.workflow}
           members={memberOptions}
@@ -213,8 +200,7 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
               ))}
             </ul>
           )}
-        </div>
-      </main>
-    </>
+      </div>
+    </main>
   );
 }

@@ -6,7 +6,6 @@ import {
   listServiceJobs,
 } from "@dg/platform-core";
 
-import { ServicesNav } from "@/components/services/ServicesNav";
 import { ScheduleJobQuickForm } from "@/components/services/ScheduleJobQuickForm";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
@@ -44,14 +43,9 @@ export default async function ServicesSchedulingPage() {
 
   if (!session) {
     return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Scheduling</h1>
-        </header>
-        <main className="dg-page-main">
-          <p className="text-slate-400">Sign in required.</p>
-        </main>
-      </>
+      <main className="dg-page-main">
+        <p className="text-slate-400">Sign in required.</p>
+      </main>
     );
   }
 
@@ -112,20 +106,17 @@ export default async function ServicesSchedulingPage() {
   const jobWord = template.terminology.job.toLowerCase();
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Scheduling</h1>
-        <p className="mt-1 text-sm text-slate-400">
+    <main className="dg-page-main space-y-6">
+      <div>
+        <p className="text-sm text-slate-400">
           Next 14 days · {timeZone.replace(/_/g, " ")} · day board for {jobWord}s
         </p>
         <p className="mt-1 text-xs text-slate-500">
           Drag-and-drop calendar is not in closed beta — edit start/end on each {jobWord}.
         </p>
-      </header>
-      <main className="dg-page-main space-y-6">
-        <ServicesNav active="scheduling" />
+      </div>
 
-        {unscheduledOpen.length > 0 ? (
+      {unscheduledOpen.length > 0 ? (
           <section className="dg-card space-y-3">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-amber-200/90">
               Needs scheduling ({unscheduledOpen.length})
@@ -235,8 +226,7 @@ export default async function ServicesSchedulingPage() {
               </section>
             );
           })}
-        </div>
-      </main>
-    </>
+      </div>
+    </main>
   );
 }

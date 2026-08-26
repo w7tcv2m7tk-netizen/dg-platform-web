@@ -7,7 +7,6 @@ import {
 } from "@dg/platform-core";
 
 import { ApplyServiceTemplateForm } from "@/components/services/ApplyServiceTemplateForm";
-import { ServicesNav } from "@/components/services/ServicesNav";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { formatDateTime, SERVICES_DEFAULT_TZ } from "@/lib/services-dates";
 
@@ -29,14 +28,9 @@ export default async function ServicesOverviewPage() {
 
   if (!session) {
     return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Services</h1>
-        </header>
-        <main className="dg-page-main">
-          <p className="text-slate-400">Sign in to manage services for your business.</p>
-        </main>
-      </>
+      <main className="dg-page-main">
+        <p className="text-slate-400">Sign in required.</p>
+      </main>
     );
   }
 
@@ -59,20 +53,15 @@ export default async function ServicesOverviewPage() {
   });
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Services</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          {session.organisationName} · {overview.templateLabel} template
-          {overview.templateKey
-            ? ` (${overview.templateKey})`
-            : " — pick a template to specialise"}
-        </p>
-      </header>
-      <main className="dg-page-main space-y-6">
-        <ServicesNav active="overview" />
+    <main className="dg-page-main space-y-6">
+      <p className="text-sm text-slate-400">
+        {session.organisationName} · {overview.templateLabel} template
+        {overview.templateKey
+          ? ` (${overview.templateKey})`
+          : " — pick a template to specialise"}
+      </p>
 
-        {showStaffLaunchLink ? (
+      {showStaffLaunchLink ? (
           <p className="text-xs text-slate-500">
             Staff:{" "}
             <Link
@@ -262,7 +251,6 @@ export default async function ServicesOverviewPage() {
             )}
           </section>
         </div>
-      </main>
-    </>
+    </main>
   );
 }

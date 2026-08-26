@@ -46,9 +46,8 @@ export default async function AccommodationPaymentsPage({ searchParams }: PagePr
   const paid = bookings.filter((b) => b.paid === "yes");
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Payments</h1>
+    <main className="dg-page-main space-y-6">
+      <div>
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · {siteLabel} · StayBooking (Neon)
           {site.baseUrl ? " · paid status can mirror to WordPress when connected" : ""}
@@ -58,8 +57,7 @@ export default async function AccommodationPaymentsPage({ searchParams }: PagePr
             <AccommodationSitePicker sites={sites} />
           </div>
         </Suspense>
-      </header>
-      <main className="dg-page-main space-y-6">
+      </div>
         {loaded.syncError && bookings.length === 0 ? (
           <div className="dg-card border-amber-500/30">
             <p className="text-amber-300">{loaded.syncError}</p>
@@ -86,6 +84,5 @@ export default async function AccommodationPaymentsPage({ searchParams }: PagePr
           </>
         )}
       </main>
-    </>
   );
 }

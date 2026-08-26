@@ -92,9 +92,8 @@ export default async function AccommodationReviewsPage({ searchParams }: PagePro
     .join(" · ");
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Reviews</h1>
+    <main className="dg-page-main space-y-6">
+      <div>
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · {siteLabel} · guest feedback from
           WordPress (Airbnb / Booking.com / imported)
@@ -104,8 +103,7 @@ export default async function AccommodationReviewsPage({ searchParams }: PagePro
             <AccommodationSitePicker sites={sites} />
           </div>
         </Suspense>
-      </header>
-      <main className="dg-page-main space-y-6">
+      </div>
         {!result.ok ? (
           <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/30 px-6 py-10 text-center">
             <p className="text-lg font-medium text-white">Reviews API unavailable</p>
@@ -161,6 +159,5 @@ export default async function AccommodationReviewsPage({ searchParams }: PagePro
           </>
         )}
       </main>
-    </>
   );
 }

@@ -147,9 +147,8 @@ export default async function AccommodationCheckInsPage({ searchParams }: PagePr
     .sort((a, b) => (a.checkin ?? "").localeCompare(b.checkin ?? ""));
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Check-ins</h1>
+    <main className="dg-page-main space-y-8">
+      <div>
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · {siteLabel} · StayBooking (Neon) ·{" "}
           {today} Brisbane · {todayList.length} today, {tomorrowList.length} tomorrow
@@ -159,8 +158,7 @@ export default async function AccommodationCheckInsPage({ searchParams }: PagePr
             <AccommodationSitePicker sites={sites} />
           </div>
         </Suspense>
-      </header>
-      <main className="dg-page-main space-y-8">
+      </div>
         {loaded.syncError && bookings.length === 0 ? (
           <div className="dg-card border-amber-500/30">
             <p className="text-amber-300">{loaded.syncError}</p>
@@ -170,6 +168,5 @@ export default async function AccommodationCheckInsPage({ searchParams }: PagePr
         <Board title="Tomorrow" hint={tomorrow} bookings={tomorrowList} />
         <Board title="Upcoming" hint={`Through ${upcomingEnd}`} bookings={upcoming} />
       </main>
-    </>
   );
 }

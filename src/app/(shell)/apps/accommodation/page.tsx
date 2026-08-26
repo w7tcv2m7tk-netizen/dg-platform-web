@@ -49,9 +49,8 @@ export default async function AccommodationOverviewPage({ searchParams }: PagePr
   const siteLabel = connector?.label ?? site.label;
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Accommodation</h1>
+    <main className="dg-page-main space-y-6">
+      <div>
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · {siteLabel} · Ops beta
         </p>
@@ -60,15 +59,13 @@ export default async function AccommodationOverviewPage({ searchParams }: PagePr
             <AccommodationSitePicker sites={sites} />
           </div>
         </Suspense>
-      </header>
-      <main className="dg-page-main">
-        <AccommodationDashboard
-          summary={summaryResult.ok ? summaryResult.data : undefined}
-          error={summaryResult.ok ? undefined : summaryResult.message}
-          siteLabel={siteLabel}
-          showWordPress={showWordPress}
-        />
-      </main>
-    </>
+      </div>
+      <AccommodationDashboard
+        summary={summaryResult.ok ? summaryResult.data : undefined}
+        error={summaryResult.ok ? undefined : summaryResult.message}
+        siteLabel={siteLabel}
+        showWordPress={showWordPress}
+      />
+    </main>
   );
 }

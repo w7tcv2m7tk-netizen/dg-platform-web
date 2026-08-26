@@ -17,54 +17,44 @@ export default async function PropertyManagementOverviewPage() {
 
   if (!session) {
     return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Property Management</h1>
-        </header>
-        <main className="dg-page-main">
-          <p className="text-slate-400">Sign in required.</p>
-        </main>
-      </>
+      <main className="dg-page-main">
+        <p className="text-slate-400">Sign in required.</p>
+      </main>
     );
   }
 
   const counts = await getPmOverviewCounts(session.organisationId);
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Property Management</h1>
-        <p className="text-sm text-slate-400">
-          {session.organisationName} · Long-term rentals floor (not sales or Acc)
-        </p>
-      </header>
-      <main className="dg-page-main space-y-6">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="dg-card">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Properties</p>
-            <p className="mt-1 text-2xl font-semibold text-white">{counts.properties}</p>
-          </div>
-          <div className="dg-card">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Leases</p>
-            <p className="mt-1 text-2xl font-semibold text-white">{counts.leases}</p>
-          </div>
-          <div className="dg-card">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Active leases</p>
-            <p className="mt-1 text-2xl font-semibold text-white">{counts.activeLeases}</p>
-          </div>
-          <div className="dg-card">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Open maintenance</p>
-            <p className="mt-1 text-2xl font-semibold text-white">{counts.openMaintenance}</p>
-          </div>
+    <main className="dg-page-main space-y-6">
+      <p className="text-sm text-slate-400">
+        {session.organisationName} · Long-term rentals floor (not sales or Acc)
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="dg-card">
+          <p className="text-xs uppercase tracking-wide text-slate-500">Properties</p>
+          <p className="mt-1 text-2xl font-semibold text-white">{counts.properties}</p>
         </div>
-        <p className="text-sm text-slate-500">
-          Owners and tenants are Core CRM Contacts linked from leases — not a separate people
-          database.{" "}
-          <Link href="/apps/property-management/properties" className="text-sky-400 hover:underline">
-            Add a property →
-          </Link>
-        </p>
-      </main>
-    </>
+        <div className="dg-card">
+          <p className="text-xs uppercase tracking-wide text-slate-500">Leases</p>
+          <p className="mt-1 text-2xl font-semibold text-white">{counts.leases}</p>
+        </div>
+        <div className="dg-card">
+          <p className="text-xs uppercase tracking-wide text-slate-500">Active leases</p>
+          <p className="mt-1 text-2xl font-semibold text-white">{counts.activeLeases}</p>
+        </div>
+        <div className="dg-card">
+          <p className="text-xs uppercase tracking-wide text-slate-500">Open maintenance</p>
+          <p className="mt-1 text-2xl font-semibold text-white">{counts.openMaintenance}</p>
+        </div>
+      </div>
+      <p className="text-sm text-slate-500">
+        Owners and tenants are Core CRM Contacts linked from leases — not a separate people
+        database.{" "}
+        <Link href="/apps/property-management/properties" className="text-sky-400 hover:underline">
+          Add a property →
+        </Link>
+      </p>
+    </main>
   );
 }

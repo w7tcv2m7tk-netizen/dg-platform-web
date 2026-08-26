@@ -43,9 +43,8 @@ export default async function AccommodationUnitsPage({ searchParams }: PageProps
   const sourceLabel = loaded.sot ? "AccommodationUnit (Neon)" : "WordPress";
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Units</h1>
+    <main className="dg-page-main space-y-6">
+      <div>
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · {siteLabel} · {sourceLabel} · all
           listings including coming soon
@@ -55,8 +54,7 @@ export default async function AccommodationUnitsPage({ searchParams }: PageProps
             <AccommodationSitePicker sites={sites} />
           </div>
         </Suspense>
-      </header>
-      <main className="dg-page-main">
+      </div>
         <AccommodationUnitsTable
           units={loaded.units as unknown as WpAccUnitProp[]}
           error={loaded.error}
@@ -65,6 +63,5 @@ export default async function AccommodationUnitsPage({ searchParams }: PageProps
           source={loaded.source}
         />
       </main>
-    </>
   );
 }

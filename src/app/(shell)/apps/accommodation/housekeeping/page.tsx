@@ -89,9 +89,8 @@ export default async function AccommodationHousekeepingPage({ searchParams }: Pa
   const siteLabel = connector?.label ?? site.label;
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Housekeeping</h1>
+    <main className="dg-page-main space-y-6">
+      <div>
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · {siteLabel} · {sotLabel} · turnover
           status
@@ -101,8 +100,7 @@ export default async function AccommodationHousekeepingPage({ searchParams }: Pa
             <AccommodationSitePicker sites={sites} />
           </div>
         </Suspense>
-      </header>
-      <main className="dg-page-main">
+      </div>
         <AccommodationHousekeepingBoard
           items={items}
           statuses={statuses}
@@ -113,6 +111,5 @@ export default async function AccommodationHousekeepingPage({ searchParams }: Pa
           today={today}
         />
       </main>
-    </>
   );
 }

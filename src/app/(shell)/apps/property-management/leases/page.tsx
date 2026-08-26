@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { listContacts, listPmLeases, listPmProperties } from "@dg/platform-core";
 
@@ -18,14 +17,9 @@ export default async function PmLeasesPage() {
 
   if (!session) {
     return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Leases</h1>
-        </header>
-        <main className="dg-page-main">
-          <p className="text-slate-400">Sign in required.</p>
-        </main>
-      </>
+      <main className="dg-page-main">
+        <p className="text-slate-400">Sign in required.</p>
+      </main>
     );
   }
 
@@ -49,46 +43,33 @@ export default async function PmLeasesPage() {
   }));
 
   return (
-    <>
-      <header className="dg-page-header">
-        <Link
-          href="/apps/property-management"
-          className="text-sm text-sky-400 hover:underline"
-        >
-          ← Property Management
-        </Link>
-        <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Leases</h1>
-            <p className="text-sm text-slate-400">
-              Long-term rentals — owners &amp; tenants on Core CRM
-            </p>
-          </div>
-          <CreatePmLeaseForm contacts={contactOptions} properties={propertyOptions} />
+    <main className="dg-page-main space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <p className="text-sm text-slate-400">
+          Long-term rentals — owners &amp; tenants on Core CRM
+        </p>
+        <CreatePmLeaseForm contacts={contactOptions} properties={propertyOptions} />
+      </div>
+      {items.length === 0 ? (
+        <div className="dg-card border-dashed border-slate-700">
+          <p className="text-slate-400">No leases yet. Create the first PM lease.</p>
         </div>
-      </header>
-      <main className="dg-page-main space-y-4">
-        {items.length === 0 ? (
-          <div className="dg-card border-dashed border-slate-700">
-            <p className="text-slate-400">No leases yet. Create the first PM lease.</p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-slate-800 rounded-xl border border-slate-800">
-            {items.map((lease) => (
-              <li key={lease.id} className="px-4 py-3">
-                <p className="font-medium text-white">{lease.title}</p>
-                <p className="text-xs text-slate-500">
-                  {lease.stage} · {lease.status}
-                  {lease.suburb ? ` · ${lease.suburb}` : ""}
-                  {lease.rentCents != null
-                    ? ` · $${(lease.rentCents / 100).toLocaleString("en-AU")}/wk`
-                    : ""}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </main>
-    </>
+      ) : (
+        <ul className="divide-y divide-slate-800 rounded-xl border border-slate-800">
+          {items.map((lease) => (
+            <li key={lease.id} className="px-4 py-3">
+              <p className="font-medium text-white">{lease.title}</p>
+              <p className="text-xs text-slate-500">
+                {lease.stage} · {lease.status}
+                {lease.suburb ? ` · ${lease.suburb}` : ""}
+                {lease.rentCents != null
+                  ? ` · $${(lease.rentCents / 100).toLocaleString("en-AU")}/wk`
+                  : ""}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </main>
   );
 }

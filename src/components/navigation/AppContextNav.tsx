@@ -11,7 +11,7 @@ import { resolveActiveAppNavigation } from "@dg/platform-core";
 const SKIP_PREFIXES = ["/onboarding", "/signup", "/login"];
 
 /**
- * Global second-level nav — title matches the sidebar app name.
+ * Global second-level nav — large title is the active route (or app name).
  * Only renders when the active app has more than one visible route.
  */
 export function AppContextNav() {
@@ -35,7 +35,7 @@ export function AppContextNav() {
     return null;
   }
 
-  const breadcrumbTail = active.activeRoute?.label;
+  const pageTitle = active.activeRoute?.label ?? active.itemName;
 
   return (
     <div className="dg-context-nav shrink-0 border-b border-[var(--org-border-subtle,rgb(30_41_59))] bg-[color-mix(in_srgb,var(--org-bg-elevated,rgb(2_6_23))_55%,transparent)] px-4 py-3 sm:px-6 md:px-8">
@@ -46,18 +46,10 @@ export function AppContextNav() {
             /
           </span>
           <span className="truncate text-slate-300">{active.itemName}</span>
-          {breadcrumbTail && breadcrumbTail !== active.itemName ? (
-            <>
-              <span aria-hidden className="text-slate-600">
-                /
-              </span>
-              <span className="truncate text-slate-400">{breadcrumbTail}</span>
-            </>
-          ) : null}
         </div>
 
         <div className="min-w-0">
-          <p className="text-lg font-semibold tracking-tight text-white">{active.itemName}</p>
+          <p className="text-lg font-semibold tracking-tight text-white">{pageTitle}</p>
           <div className="mt-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <AppHorizontalSubnav routes={routes} ariaLabel={`${active.itemName} sections`} />
           </div>

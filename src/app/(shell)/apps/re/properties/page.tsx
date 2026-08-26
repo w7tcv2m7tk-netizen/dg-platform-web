@@ -29,16 +29,9 @@ export default async function PropertiesPage() {
 
   if (!session) {
     return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Properties</h1>
-        </header>
-        <main className="dg-page-main">
-          <div className="dg-card">
-            <p className="text-slate-300">Database not configured.</p>
-          </div>
-        </main>
-      </>
+      <main className="dg-page-main">
+        <p className="text-slate-400">Sign in required.</p>
+      </main>
     );
   }
 
@@ -50,30 +43,25 @@ export default async function PropertiesPage() {
   const listedCount = items.filter((p) => p.status === "listed").length;
 
   return (
-    <>
-      <header className="dg-page-header">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Properties</h1>
-            <p className="text-sm text-slate-400">
-              {session.organisationName} · Appraisals & listings
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              {appraisalCount} in appraisal · {listedCount} listed · {items.length} total
-            </p>
-            <p className="mt-2 max-w-xl text-xs text-emerald-400/90">
-              Neon is the source of truth for properties. WordPress is a public mirror —
-              use Publish to website. Auto-pull from WP is off unless{" "}
-              <code className="text-slate-400">re.wp_auto_sync</code> is enabled.
-            </p>
-          </div>
-          <SyncListingsButton />
+    <main className="dg-page-main space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-sm text-slate-400">
+            {session.organisationName} · Appraisals & listings
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            {appraisalCount} in appraisal · {listedCount} listed · {items.length} total
+          </p>
+          <p className="mt-2 max-w-xl text-xs text-emerald-400/90">
+            Neon is the source of truth for properties. WordPress is a public mirror —
+            use Publish to website. Auto-pull from WP is off unless{" "}
+            <code className="text-slate-400">re.wp_auto_sync</code> is enabled.
+          </p>
         </div>
-      </header>
-      <main className="dg-page-main space-y-6">
-        <CreatePropertyForm />
-        <PropertyList properties={items} />
-      </main>
-    </>
+        <SyncListingsButton />
+      </div>
+      <CreatePropertyForm />
+      <PropertyList properties={items} />
+    </main>
   );
 }

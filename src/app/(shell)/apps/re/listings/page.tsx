@@ -28,16 +28,9 @@ export default async function ListingsPage() {
 
   if (!session) {
     return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Listings</h1>
-        </header>
-        <main className="dg-page-main">
-          <div className="dg-card">
-            <p className="text-slate-300">Database not configured.</p>
-          </div>
-        </main>
-      </>
+      <main className="dg-page-main">
+        <p className="text-slate-400">Sign in required.</p>
+      </main>
     );
   }
 
@@ -55,36 +48,31 @@ export default async function ListingsPage() {
   );
 
   return (
-    <>
-      <header className="dg-page-header">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Listings</h1>
-            <p className="text-sm text-slate-400">
-              {session.organisationName} · Synced from website + platform listings
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              {listings.filter((p) => p.status === "listed").length} listed ·{" "}
-              {
-                listings.filter(
-                  (p) =>
-                    p.status === "under_offer" ||
-                    p.status === "contract_signed" ||
-                    p.status === "unconditional",
-                ).length
-              }{" "}
-              under offer / contract
-              {autoSync.ran
-                ? ` · Synced ${autoSync.result?.created ?? 0} new / ${autoSync.result?.updated ?? 0} updated`
-                : ""}
-            </p>
-          </div>
-          <SyncListingsButton />
+    <main className="dg-page-main space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-sm text-slate-400">
+            {session.organisationName} · Synced from website + platform listings
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            {listings.filter((p) => p.status === "listed").length} listed ·{" "}
+            {
+              listings.filter(
+                (p) =>
+                  p.status === "under_offer" ||
+                  p.status === "contract_signed" ||
+                  p.status === "unconditional",
+              ).length
+            }{" "}
+            under offer / contract
+            {autoSync.ran
+              ? ` · Synced ${autoSync.result?.created ?? 0} new / ${autoSync.result?.updated ?? 0} updated`
+              : ""}
+          </p>
         </div>
-      </header>
-      <main className="dg-page-main">
-        <ListingList properties={listings} />
-      </main>
-    </>
+        <SyncListingsButton />
+      </div>
+      <ListingList properties={listings} />
+    </main>
   );
 }

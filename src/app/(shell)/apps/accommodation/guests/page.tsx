@@ -77,9 +77,8 @@ export default async function AccommodationGuestsPage({ searchParams }: PageProp
   }
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Guests</h1>
+    <main className="dg-page-main space-y-6">
+      <div>
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · {siteLabel} · Contacts with Accommodation
           guest context
@@ -89,8 +88,7 @@ export default async function AccommodationGuestsPage({ searchParams }: PageProp
             <AccommodationSitePicker sites={sites} />
           </div>
         </Suspense>
-      </header>
-      <main className="dg-page-main">
+      </div>
         <AccommodationGuestsTable
           guests={guests}
           total={total}
@@ -99,6 +97,5 @@ export default async function AccommodationGuestsPage({ searchParams }: PageProp
           sourceLabel={sourceLabel}
         />
       </main>
-    </>
   );
 }

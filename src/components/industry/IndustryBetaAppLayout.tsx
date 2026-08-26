@@ -45,23 +45,18 @@ export async function IndustryBetaAppLayout({
   if (allowed) return children;
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">{title}</h1>
-        <p className="text-sm text-slate-400">{session.organisationName}</p>
-      </header>
-      <main className="dg-page-main">
-        <div className="dg-card space-y-3">
-          <p className="font-medium text-white">Closed beta</p>
-          <p className="text-sm text-slate-400">
-            {title} is enrolled per organisation via feature flags — not open to every customer by
-            default. Ask DigitalGate to enable the beta for this workspace.
-          </p>
-          <Link href="/dashboard" className="text-sm text-sky-400 hover:underline">
-            ← Back to Priorities
-          </Link>
-        </div>
-      </main>
-    </>
+    <main className="dg-page-main">
+      <div className="dg-card space-y-3">
+        <p className="font-medium text-white">Closed beta</p>
+        <p className="text-sm text-slate-400">
+          {title} is enrolled per organisation via feature flags — not open to every customer by
+          default. Ask DigitalGate to enable the beta for this workspace.
+        </p>
+        <p className="text-xs text-slate-500">{session.organisationName}</p>
+        <Link href="/dashboard" className="text-sm text-sky-400 hover:underline">
+          ← Back to Priorities
+        </Link>
+      </div>
+    </main>
   );
 }

@@ -33,16 +33,11 @@ export default async function ReBookingsPage() {
     session ? await listReBookings(session.organisationId, 50) : [];
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Bookings</h1>
-        <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "Real Estate"} · Auto-syncs from WordPress every 4 hours
-        </p>
-      </header>
-      <main className="dg-page-main">
-        <ReBookingsPanel bookings={bookings} />
-      </main>
-    </>
+    <main className="dg-page-main space-y-6">
+      <p className="text-sm text-slate-400">
+        {session?.organisationName ?? "Real Estate"} · Auto-syncs from WordPress every 4 hours
+      </p>
+      <ReBookingsPanel bookings={bookings} />
+    </main>
   );
 }

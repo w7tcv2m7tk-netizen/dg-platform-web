@@ -38,14 +38,8 @@ export default async function ReAppLayout({
   if (allowed) return children;
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Real Estate</h1>
-        <p className="text-sm text-slate-400">{session.organisationName}</p>
-      </header>
-      <main className="dg-page-main">
-        <ReBetaGateMessage />
-      </main>
-    </>
+    <main className="dg-page-main">
+      <ReBetaGateMessage />
+    </main>
   );
 }

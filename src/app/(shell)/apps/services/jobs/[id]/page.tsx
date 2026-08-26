@@ -13,7 +13,6 @@ import {
 import { AddServiceJobNoteForm } from "@/components/services/AddServiceJobNoteForm";
 import { EditServiceJobForm } from "@/components/services/EditServiceJobForm";
 import { JobChecklistPhotosPanel } from "@/components/services/JobChecklistPhotosPanel";
-import { ServicesNav } from "@/components/services/ServicesNav";
 import { UpdateJobStageForm } from "@/components/services/UpdateJobStageForm";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { formatDateTime, SERVICES_DEFAULT_TZ } from "@/lib/services-dates";
@@ -135,7 +134,6 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <ServicesNav active="jobs" />
         <div className="dg-card">
           <p className="mb-2 text-xs uppercase tracking-wide text-slate-500">Stage</p>
           <UpdateJobStageForm

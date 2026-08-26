@@ -32,16 +32,9 @@ export default async function RealEstateOverviewPage() {
 
   if (!session) {
     return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Real Estate</h1>
-        </header>
-        <main className="dg-page-main">
-          <div className="dg-card">
-            <p className="text-slate-300">Sign in to open Real Estate.</p>
-          </div>
-        </main>
-      </>
+      <main className="dg-page-main">
+        <p className="text-slate-400">Sign in required.</p>
+      </main>
     );
   }
 
@@ -60,21 +53,16 @@ export default async function RealEstateOverviewPage() {
   ]);
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Real Estate</h1>
-        <p className="text-sm text-slate-400">
-          {session.organisationName} · Vendor & buyer pipelines · Beta
-        </p>
-      </header>
-      <main className="dg-page-main">
-        <ReDashboard
-          stats={stats}
-          wpSummary={wpSummary.ok ? wpSummary.data : undefined}
-          wpError={wpSummary.ok ? undefined : wpSummary.message}
-          showWordPress={wpConfigured}
-        />
-      </main>
-    </>
+    <main className="dg-page-main space-y-6">
+      <p className="text-sm text-slate-400">
+        {session.organisationName} · Vendor & buyer pipelines · Beta
+      </p>
+      <ReDashboard
+        stats={stats}
+        wpSummary={wpSummary.ok ? wpSummary.data : undefined}
+        wpError={wpSummary.ok ? undefined : wpSummary.message}
+        showWordPress={wpConfigured}
+      />
+    </main>
   );
 }

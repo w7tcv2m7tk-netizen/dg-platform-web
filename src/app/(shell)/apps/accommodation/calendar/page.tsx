@@ -103,9 +103,8 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
   const siteLabel = connector?.label ?? site.label;
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Availability</h1>
+    <main className="dg-page-main space-y-6">
+      <div>
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · {siteLabel} · {sotLabel} · inventory,
           week, month & list · Airbnb / Booking.com iCal
@@ -115,8 +114,7 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
             <AccommodationSitePicker sites={sites} />
           </div>
         </Suspense>
-      </header>
-      <main className="dg-page-main">
+      </div>
         <AccommodationAvailabilityBoard
           from={availFrom}
           to={availTo}
@@ -126,6 +124,5 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
           horizonDays={ACC_CALENDAR_HORIZON_DAYS}
         />
       </main>
-    </>
   );
 }

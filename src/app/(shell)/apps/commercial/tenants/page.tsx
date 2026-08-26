@@ -17,73 +17,63 @@ export default async function CommercialTenantsPage() {
 
   if (!session) {
     return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Tenants</h1>
-        </header>
-        <main className="dg-page-main">
-          <p className="text-slate-400">Sign in required.</p>
-        </main>
-      </>
+      <main className="dg-page-main">
+        <p className="text-slate-400">Sign in required.</p>
+      </main>
     );
   }
 
   const { items } = await listCommercialTenantContacts(session.organisationId);
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Tenants</h1>
-        <p className="text-sm text-slate-400">
-          CRM Contacts linked as tenants on commercial leases
-        </p>
-      </header>
-      <main className="dg-page-main space-y-4">
-        {items.length === 0 ? (
-          <div className="dg-card border-dashed border-slate-700">
-            <p className="text-slate-400">
-              No tenants yet.{" "}
-              <Link href="/apps/commercial/leases" className="text-sky-400 hover:underline">
-                Create a lease
-              </Link>{" "}
-              and attach a tenant Contact.
-            </p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-slate-800 rounded-xl border border-slate-800">
-            {items.map((c) => {
-              const label =
-                [c.firstName, c.lastName].filter(Boolean).join(" ").trim() ||
-                c.email ||
-                c.contactId.slice(0, 8);
-              return (
-                <li key={c.contactId} className="px-4 py-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className="font-medium text-white">{label}</p>
-                      <p className="text-xs text-slate-500">
-                        {c.email || "No email"}
-                        {c.phone ? ` · ${c.phone}` : ""}
-                      </p>
-                    </div>
-                    <span className="text-xs text-slate-400">
-                      {c.leaseCount} lease{c.leaseCount === 1 ? "" : "s"}
-                    </span>
+    <main className="dg-page-main space-y-4">
+      <p className="text-sm text-slate-400">
+        CRM Contacts linked as tenants on commercial leases
+      </p>
+      {items.length === 0 ? (
+        <div className="dg-card border-dashed border-slate-700">
+          <p className="text-slate-400">
+            No tenants yet.{" "}
+            <Link href="/apps/commercial/leases" className="text-sky-400 hover:underline">
+              Create a lease
+            </Link>{" "}
+            and attach a tenant Contact.
+          </p>
+        </div>
+      ) : (
+        <ul className="divide-y divide-slate-800 rounded-xl border border-slate-800">
+          {items.map((c) => {
+            const label =
+              [c.firstName, c.lastName].filter(Boolean).join(" ").trim() ||
+              c.email ||
+              c.contactId.slice(0, 8);
+            return (
+              <li key={c.contactId} className="px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="font-medium text-white">{label}</p>
+                    <p className="text-xs text-slate-500">
+                      {c.email || "No email"}
+                      {c.phone ? ` · ${c.phone}` : ""}
+                    </p>
                   </div>
-                  <p className="mt-1 text-xs text-slate-600">
-                    {c.leases.map((l) => l.title).join(" · ")}
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        <p className="text-sm text-slate-500">
-          <Link href="/apps/crm/contacts" className="text-sky-400 hover:underline">
-            Open CRM Contacts →
-          </Link>
-        </p>
-      </main>
-    </>
+                  <span className="text-xs text-slate-400">
+                    {c.leaseCount} lease{c.leaseCount === 1 ? "" : "s"}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-slate-600">
+                  {c.leases.map((l) => l.title).join(" · ")}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <p className="text-sm text-slate-500">
+        <Link href="/apps/crm/contacts" className="text-sky-400 hover:underline">
+          Open CRM Contacts →
+        </Link>
+      </p>
+    </main>
   );
 }

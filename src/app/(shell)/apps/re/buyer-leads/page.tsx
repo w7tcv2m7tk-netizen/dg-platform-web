@@ -30,16 +30,9 @@ export default async function BuyerLeadsPage() {
 
   if (!session) {
     return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Buyer Leads</h1>
-        </header>
-        <main className="dg-page-main">
-          <div className="dg-card">
-            <p className="text-slate-300">Database not configured.</p>
-          </div>
-        </main>
-      </>
+      <main className="dg-page-main">
+        <p className="text-slate-400">Sign in required.</p>
+      </main>
     );
   }
 
@@ -51,9 +44,8 @@ export default async function BuyerLeadsPage() {
   });
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Buyer Leads</h1>
+    <main className="dg-page-main space-y-6">
+      <div>
         <p className="text-sm text-slate-400">
           {session.organisationName} · Property enquiry pipeline · sync from WordPress
         </p>
@@ -76,10 +68,8 @@ export default async function BuyerLeadsPage() {
               : ""}
           </p>
         ) : null}
-      </header>
-      <main className="dg-page-main">
-        <BuyerLeadPipeline leads={items} />
-      </main>
-    </>
+      </div>
+      <BuyerLeadPipeline leads={items} />
+    </main>
   );
 }

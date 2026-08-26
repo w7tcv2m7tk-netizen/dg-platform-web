@@ -26,33 +26,23 @@ export default async function SettlementsPage() {
 
   if (!session) {
     return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Settlements</h1>
-        </header>
-        <main className="dg-page-main">
-          <div className="dg-card">
-            <p className="text-slate-300">Database not configured.</p>
-          </div>
-        </main>
-      </>
+      <main className="dg-page-main">
+        <p className="text-slate-400">Sign in required.</p>
+      </main>
     );
   }
 
   const items = await listSettlementProperties(session.organisationId);
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Settlements</h1>
+    <main className="dg-page-main space-y-6">
+      <div>
         <p className="text-sm text-slate-400">
           {session.organisationName} · Conveyancing checklist for under-offer and sold properties
         </p>
         <p className="mt-1 text-xs text-slate-500">{items.length} in settlement workflow</p>
-      </header>
-      <main className="dg-page-main">
-        <SettlementList items={items} />
-      </main>
-    </>
+      </div>
+      <SettlementList items={items} />
+    </main>
   );
 }

@@ -30,16 +30,9 @@ export default async function VendorLeadsPage() {
 
   if (!session) {
     return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Vendor Leads</h1>
-        </header>
-        <main className="dg-page-main">
-          <div className="dg-card">
-            <p className="text-slate-300">Database not configured.</p>
-          </div>
-        </main>
-      </>
+      <main className="dg-page-main">
+        <p className="text-slate-400">Sign in required.</p>
+      </main>
     );
   }
 
@@ -66,9 +59,8 @@ export default async function VendorLeadsPage() {
   }
 
   return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Vendor Leads</h1>
+    <main className="dg-page-main space-y-6">
+      <div>
         <p className="text-sm text-slate-400">
           {session.organisationName} · Vendor pipeline on Platform
         </p>
@@ -88,10 +80,8 @@ export default async function VendorLeadsPage() {
               : ""}
           </p>
         ) : null}
-      </header>
-      <main className="dg-page-main">
-        <VendorLeadPipeline leads={items} />
-      </main>
-    </>
+      </div>
+      <VendorLeadPipeline leads={items} />
+    </main>
   );
 }
