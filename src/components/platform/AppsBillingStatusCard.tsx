@@ -12,7 +12,12 @@ export async function AppsBillingStatusCard({
 }: {
   organisationId: string;
 }) {
-  const status = await getOrganisationBillingStatus(organisationId);
+  let status: Awaited<ReturnType<typeof getOrganisationBillingStatus>> = null;
+  try {
+    status = await getOrganisationBillingStatus(organisationId);
+  } catch {
+    return null;
+  }
   if (!status) return null;
 
   return (

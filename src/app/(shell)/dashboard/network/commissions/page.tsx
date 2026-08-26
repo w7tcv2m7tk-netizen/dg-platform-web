@@ -1,15 +1,22 @@
-import { PlatformHubPage } from "@/components/platform/PlatformHubPage";
+import { redirectUnlessStaffNetwork, PlatformHubPage } from "@/lib/network-staff-gate";
 
-export default function NetworkCommissionsPage() {
+export default async function NetworkCommissionsPage() {
+  await redirectUnlessStaffNetwork("/dashboard/network/refer-earn");
+
   return (
     <PlatformHubPage
       title="Commissions"
-      description="Commission tracking for referral and reseller relationships — Platform Refer & Earn ledger, Connect payouts, and future partner commission models."
+      description="Commission ledger and payout administration for DigitalGate’s partner and reseller programmes. Customer earnings live inside Refer & Earn."
       links={[
         {
-          href: "/dashboard/network/refer-earn",
-          label: "Refer & Earn ledger",
-          detail: "View referral metrics, credits, and Stripe Connect cash payouts.",
+          href: "/command/commissions",
+          label: "Commission queue",
+          detail: "Pending · approved · paid.",
+        },
+        {
+          href: "/command/partners/payouts",
+          label: "Partner payouts",
+          detail: "Payout runs and status.",
         },
       ]}
     />

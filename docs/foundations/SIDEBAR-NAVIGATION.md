@@ -72,13 +72,22 @@ PLATFORM — Manage DigitalGate for this organisation
 
   Apps — what is installed / enabled (Installed Apps · App Catalogue · Beta Programmes)
   Marketplace — what can be discovered / purchased (Explore · Apps · Templates · Integrations · Partner Services)
-  Network — ecosystem layer (Overview · Partners · Resellers · Referrals · Refer & Earn · Commissions · Ecosystem)
-    Refer & Earn is **not** under Settings — it is a network relationship mechanism.
+
+  Network (customer) — relationships for *their* business:
+    Overview · Referrals (B2B) · Refer & Earn (refer DigitalGate) · Connections
+    Do **not** expose Resellers, Commissions, Ecosystem, or Programme Settings to ordinary customers.
+    Earnings from Refer & Earn live inside Refer & Earn — not a generic Commissions area.
+
+  Network (DigitalGate staff, Platform pillar) — administer the ecosystem:
+    Overview · Organisations · Partners · Resellers · Referrals · Commissions · Ecosystem · Programme Settings
+    Distinct from DIGITALGATE → Partners (day-to-day relationship ops). Do not merge.
+
   Settings — administrative home (Overview · Organisation · Users & Permissions · Billing · Connectors · API · Security · Notifications · Audit Log)
 
   Staff DigitalGate org also uses Platform for tenant config. **Roadmap stays under Product** — not Platform.
-  DigitalGate staff **Partners** (Operator OS) ≠ customer **Network** (ecosystem). Do not merge.
   Business Knowledge lives inside Business Brain — not Platform Docs
+
+Rule: customers see what they need to operate their business; DigitalGate staff see what they need to operate DigitalGate.
 ```
 
 ### CORE order

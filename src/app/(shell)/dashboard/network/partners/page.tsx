@@ -1,20 +1,27 @@
-import { PlatformHubPage } from "@/components/platform/PlatformHubPage";
+import { redirectUnlessStaffNetwork, PlatformHubPage } from "@/lib/network-staff-gate";
 
-export default function NetworkPartnersPage() {
+export default async function NetworkPartnersPage() {
+  await redirectUnlessStaffNetwork("/dashboard/network/connections");
+
   return (
     <PlatformHubPage
       title="Partners"
-      description="Referral partners, implementation partners, and technology alliances in the DigitalGate ecosystem — distinct from DigitalGate staff Partner operations."
+      description="DigitalGate partner relationships — referral partners, implementation partners, and technology alliances. Day-to-day operating lives under DigitalGate → Partners."
       links={[
         {
-          href: "/dashboard/network/refer-earn",
-          label: "Refer & Earn",
-          detail: "Refer DigitalGate subscriptions and earn platform credit or cash.",
+          href: "/command/partners",
+          label: "Partners dashboard",
+          detail: "Operate reseller and partner relationships.",
         },
         {
-          href: "/dashboard/marketplace/partner-services",
-          label: "Partner services",
-          detail: "Discover partner-delivered services in Marketplace.",
+          href: "/command/partners/ecosystem",
+          label: "Partner ecosystem",
+          detail: "Ecosystem map and programme health.",
+        },
+        {
+          href: "/dashboard/network/programme",
+          label: "Programme Settings",
+          detail: "Refer & Earn and network programme configuration.",
         },
       ]}
     />

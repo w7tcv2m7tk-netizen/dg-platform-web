@@ -25,9 +25,10 @@ export function routeIsActive(pathname: string, routePath: string, routes: AppRo
 
   const route = findRoute(routes, routePath);
   if (
-    route?.matchAlso?.some(
-      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-    )
+    route?.matchAlso?.some((prefix) => {
+      const base = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
+      return pathname === base || pathname === prefix || pathname.startsWith(`${base}/`);
+    })
   ) {
     return true;
   }
@@ -37,10 +38,14 @@ export function routeIsActive(pathname: string, routePath: string, routes: AppRo
   }
 
   const leafRoutes = flattenAppRoutes(routes).filter((r) => !r.children?.length);
-  const hasSiblingUnderPrefix = leafRoutes.some(
-    (r) => r.path !== routePath && r.path.startsWith(`${routePath}/`),
+  // Only yield to siblings that actually own this pathname (e.g. /apps/catalogue),
+  // not merely because other routes share the parent prefix.
+  const siblingOwnsPath = leafRoutes.some(
+    (r) =>
+      r.path !== routePath &&
+      (pathname === r.path || pathname.startsWith(`${r.path}/`)),
   );
-  if (hasSiblingUnderPrefix) return false;
+  if (siblingOwnsPath) return false;
 
   return pathname.startsWith(`${routePath}/`);
 }

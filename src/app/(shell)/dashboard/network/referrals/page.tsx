@@ -36,12 +36,14 @@ export default async function NetworkReferralsPage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/dashboard/network" className="text-sm text-blue-400 hover:underline">
-          ← Network
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Business referrals</h1>
-        <p className="text-sm text-slate-400">
-          Create and advance referrals from a Contact detail page — funnel tracked here
+        <h1 className="text-2xl font-bold text-white">Referrals</h1>
+        <p className="mt-2 max-w-2xl text-sm text-slate-400">
+          Business-to-business referrals — introductions between trusted businesses. To refer a
+          business to DigitalGate, use{" "}
+          <Link href="/dashboard/network/refer-earn" className="text-sky-400 hover:underline">
+            Refer &amp; Earn
+          </Link>
+          . Create and advance referrals from a Contact detail page.
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -93,9 +95,9 @@ export default async function NetworkReferralsPage() {
         )}
 
         <p className="text-xs text-slate-500">
-          Separate from{" "}
+          Earnings from referring DigitalGate subscriptions live in{" "}
           <Link href="/dashboard/network/refer-earn" className="text-blue-400 hover:underline">
-            Platform Refer &amp; Earn
+            Refer &amp; Earn
           </Link>
           .
         </p>

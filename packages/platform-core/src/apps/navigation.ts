@@ -388,9 +388,9 @@ function platformAppsNavItem(foundingCustomerMode: boolean): AppNavTreeItem {
     enabled: true,
     primaryHref: "/dashboard/apps",
     routes: foundingCustomerMode
-      ? [{ path: "/dashboard/apps", label: "Installed Apps", matchAlso: ["/dashboard/apps/"] }]
+      ? [{ path: "/dashboard/apps", label: "Installed Apps" }]
       : [
-          { path: "/dashboard/apps", label: "Installed Apps", matchAlso: ["/dashboard/apps/"] },
+          { path: "/dashboard/apps", label: "Installed Apps" },
           { path: "/dashboard/apps/catalogue", label: "App Catalogue" },
           { path: "/dashboard/apps/beta", label: "Beta Programmes" },
         ],
@@ -428,7 +428,8 @@ function platformMarketplaceNavItem(): AppNavTreeItem {
   };
 }
 
-function platformNetworkNavItem(): AppNavTreeItem {
+/** Customer Network — operate their relationships, not DigitalGate’s ecosystem machinery. */
+function customerNetworkNavItem(): AppNavTreeItem {
   return {
     kind: "app",
     id: "platform-network",
@@ -439,18 +440,70 @@ function platformNetworkNavItem(): AppNavTreeItem {
     primaryHref: "/dashboard/network",
     routes: [
       { path: "/dashboard/network", label: "Overview" },
-      { path: "/dashboard/network/partners", label: "Partners" },
-      { path: "/dashboard/network/resellers", label: "Resellers" },
       { path: "/dashboard/network/referrals", label: "Referrals" },
       {
         path: "/dashboard/network/refer-earn",
         label: "Refer & Earn",
         matchAlso: ["/dashboard/settings/referrals"],
       },
-      { path: "/dashboard/network/commissions", label: "Commissions" },
-      { path: "/dashboard/network/ecosystem", label: "Ecosystem" },
+      {
+        path: "/dashboard/network/connections",
+        label: "Connections",
+        matchAlso: ["/dashboard/network/partners"],
+      },
     ],
   };
+}
+
+/**
+ * Staff Network (Platform pillar on DigitalGate tenant) — administer the ecosystem.
+ * Distinct from DIGITALGATE → Partners (relationship operating function).
+ */
+function staffNetworkNavItem(): AppNavTreeItem {
+  return {
+    kind: "app",
+    id: "platform-network",
+    name: "Network",
+    icon: getSidebarIcon("network"),
+    tier: "internal",
+    enabled: true,
+    primaryHref: "/dashboard/network",
+    routes: [
+      { path: "/dashboard/network", label: "Overview" },
+      {
+        path: "/dashboard/network/organisations",
+        label: "Organisations",
+        matchAlso: ["/command/clients"],
+      },
+      { path: "/dashboard/network/partners", label: "Partners" },
+      { path: "/dashboard/network/resellers", label: "Resellers" },
+      {
+        path: "/dashboard/network/referrals",
+        label: "Referrals",
+        matchAlso: ["/command/referrals", "/command/referrals/pending", "/command/referrals/converted"],
+      },
+      {
+        path: "/dashboard/network/commissions",
+        label: "Commissions",
+        matchAlso: [
+          "/command/commissions",
+          "/command/commissions/pending",
+          "/command/commissions/approved",
+          "/command/commissions/paid",
+        ],
+      },
+      { path: "/dashboard/network/ecosystem", label: "Ecosystem" },
+      {
+        path: "/dashboard/network/programme",
+        label: "Programme Settings",
+        matchAlso: ["/dashboard/network/refer-earn", "/dashboard/settings/referrals"],
+      },
+    ],
+  };
+}
+
+function platformNetworkNavItem(showCommandCentre: boolean): AppNavTreeItem {
+  return showCommandCentre ? staffNetworkNavItem() : customerNetworkNavItem();
 }
 
 function platformSettingsNavItem(): AppNavTreeItem {
@@ -472,13 +525,14 @@ function getPlatformAdminSection(options?: {
   foundingCustomerMode?: boolean;
 }): NavIaSection {
   const foundingCustomerMode = options?.foundingCustomerMode ?? false;
+  const showCommandCentre = options?.showCommandCentre ?? false;
 
   const apps = foundingCustomerMode
     ? [platformAppsNavItem(true)]
     : [
         platformAppsNavItem(false),
         platformMarketplaceNavItem(),
-        platformNetworkNavItem(),
+        platformNetworkNavItem(showCommandCentre),
         platformSettingsNavItem(),
       ];
 

@@ -71,11 +71,16 @@ export async function getPlatformSubscription(
   organisationId: string,
 ): Promise<PlatformSubscriptionRow | null> {
   if (!process.env.DATABASE_URL) return null;
-  const { prisma } = await import("@dg/database");
-  const row = await prisma.platformSubscription.findUnique({
-    where: { organisationId },
-  });
-  return row ? mapRow(row) : null;
+  try {
+    const { prisma } = await import("@dg/database");
+    const row = await prisma.platformSubscription.findUnique({
+      where: { organisationId },
+    });
+    return row ? mapRow(row) : null;
+  } catch {
+    // Table may not exist until migration is applied — never take down Apps / Settings.
+    return null;
+  }
 }
 
 export async function getPlatformSubscriptionByStripeCustomer(
