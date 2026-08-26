@@ -7,8 +7,8 @@
  *   node scripts/seed-websites-from-sources.mjs --only=digitalgate
  *   node scripts/seed-websites-from-sources.mjs --only=roe,cvh,aetherra
  *
- * DigitalGate → local Oxygen HTML in ../dg-platform/marketing/pages/
- * Roe / CVH / Aëtherra → public WP REST pages (content → html blocks)
+ * DigitalGate → Gen 2 marketing seed (../dg-platform/marketing/pages/ via seed-digitalgate-marketing-pages.mjs)
+ * Roe / CVH / Aëtherra → public WP REST pages (content → html blocks) until migrated
  */
 import { config } from "dotenv";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
@@ -448,143 +448,12 @@ async function upsertPage(siteId, def, components, seo) {
 }
 
 async function seedDigitalGate(org) {
-  const brand = BRANDS.digitalgate;
-  if (!existsSync(MARKETING_DIR)) {
-    throw new Error(`Marketing dir missing: ${MARKETING_DIR}`);
-  }
-
-  const headerPath = join(MARKETING_DIR, "header.html");
-  const footerPath = join(MARKETING_DIR, "footer.html");
-  const chrome = {
-    headerHtml: existsSync(headerPath)
-      ? prepareChromeHtml(readFileSync(headerPath, "utf8"))
-      : null,
-    footerHtml: existsSync(footerPath)
-      ? prepareChromeHtml(readFileSync(footerPath, "utf8"))
-      : null,
-    stylesheets: [
-      "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
-      "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css",
-    ],
-  };
   console.log(
-    `  chrome header=${chrome.headerHtml ? `${chrome.headerHtml.length}c` : "no"} footer=${chrome.footerHtml ? `${chrome.footerHtml.length}c` : "no"}`,
+    "  DigitalGate marketing is Gen 2 SoT — run:\n" +
+      "    node --env-file=.env.local scripts/seed-digitalgate-marketing-pages.mjs --publish\n" +
+      "    npm run sync:dg-growth && npm run sync:dg-insights",
   );
-
-  const site = await ensureWebsite(org, brand, chrome);
-
-  let n = 0;
-  const postCards = [];
-  const usedSlugs = new Set();
-
-  for (const def of DG_PAGES) {
-    // Insights built after posts are fetched
-    if (def.slug === "insights") continue;
-    const path = join(MARKETING_DIR, def.file);
-    if (!existsSync(path)) {
-      console.log(`  ! missing ${def.file}`);
-      continue;
-    }
-    const raw = readFileSync(path, "utf8");
-    const prepared = prepareMarketingHtml(raw);
-    const components = [
-      htmlComponent(
-        prepared,
-        "Imported from dg-platform/marketing/pages (Oxygen paste source).",
-      ),
-    ];
-    const seo = {
-      title: extractTitle(raw) || def.title,
-      description: extractMeta(raw, "description"),
-    };
-    const action = await upsertPage(site.id, def, components, seo);
-    usedSlugs.add(def.slug);
-    console.log(`  ${action.padEnd(7)} /${def.slug}`);
-    n += 1;
-  }
-
-  // Blog posts from live WP
-  const posts = await fetchWpPosts("https://digitalgate.com.au");
-  console.log(`  fetched ${posts.length} posts`);
-  let sortBase = 100;
-  for (const post of posts) {
-    const title = stripTags(post.title?.rendered || post.slug || "Post");
-    const slug = uniqueSlug(post.slug || title, usedSlugs);
-    const excerpt = stripTags(post.excerpt?.rendered || "").slice(0, 180);
-    const image = await featuredImageForPost(post, "https://digitalgate.com.au");
-    const prepared = prepareWpHtml(
-      post.content?.rendered || "",
-      brand.theme.backgroundColor,
-    );
-    const action = await upsertPage(
-      site.id,
-      {
-        title,
-        slug,
-        intent: "custom",
-        sortOrder: sortBase++,
-      },
-      [
-        htmlComponent(prepared, "Imported DigitalGate blog post via WP REST"),
-      ],
-      {
-        title,
-        description: excerpt,
-        ogImage: image || undefined,
-      },
-    );
-    postCards.push({
-      title,
-      href: `/sites/${site.slug}/${slug}?preview=1`,
-      excerpt,
-      image: image || "",
-      date: (post.date || "").slice(0, 10),
-    });
-    console.log(`  ${action.padEnd(7)} /${slug} (post)`);
-    n += 1;
-  }
-
-  // Insights archive: hero chrome + article cards
-  {
-    const action = await upsertPage(
-      site.id,
-      {
-        title: "Insights",
-        slug: "insights",
-        intent: "custom",
-        sortOrder: 9,
-      },
-      [postGridComponent(postCards, "Latest articles")],
-      {
-        title: "Insights | DigitalGate",
-        description:
-          "Practical strategies on AI, search, automation and connected business.",
-      },
-    );
-    usedSlugs.add("insights");
-    console.log(`  ${action.padEnd(7)} /insights (grid ${postCards.length})`);
-    n += 1;
-  }
-
-  const keep = new Set([...usedSlugs]);
-  const extras = await prisma.websitePage.findMany({
-    where: { websiteId: site.id, slug: { notIn: [...keep] } },
-    select: { id: true, slug: true, title: true },
-  });
-  for (const extra of extras) {
-    if (
-      extra.slug === "services" ||
-      extra.slug.endsWith("-copy") ||
-      /copy/i.test(extra.title)
-    ) {
-      await prisma.websitePage.delete({ where: { id: extra.id } });
-      console.log(`  deleted /${extra.slug}`);
-    }
-  }
-
-  console.log(`  → Studio /apps/websites/studio/${site.id}`);
-  console.log(`  → Preview /sites/${site.slug}?preview=1`);
-  return n;
+  return 0;
 }
 
 async function fetchWpPages(wpRoot) {

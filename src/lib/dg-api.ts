@@ -3,7 +3,7 @@ import {
   isGen2MarketingApexBaseUrl as isGen2MarketingApexBaseUrlCore,
 } from "@dg/platform-core";
 
-const DEFAULT_API_BASE = "https://digitalgate.com.au/wp-json/digitalgate/v1";
+const DEFAULT_API_BASE = "";
 
 /** @deprecated Live CVH /wp-json is retired — migration hint only. */
 export const CVH_WP_REST_BASE =
@@ -49,8 +49,11 @@ function wpNetworkErrorMessage(baseUrl: string, path: string, envVar?: string): 
   return `Could not reach ${baseUrl}${path} — ${wpSiteConfigHint(baseUrl, varName)}`;
 }
 
-export function getApiBase(): string {
-  return process.env.DG_API_BASE_URL?.replace(/\/$/, "") ?? DEFAULT_API_BASE;
+export function getApiBase(): string | null {
+  const base = process.env.DG_API_BASE_URL?.replace(/\/$/, "") ?? DEFAULT_API_BASE || null;
+  if (!base) return null;
+  if (isGen2MarketingApexBaseUrl(base)) return null;
+  return base;
 }
 
 export function getOnboardingUrl(): string {
@@ -151,12 +154,13 @@ export async function fetchPortalMe(
 ): Promise<PortalProfile> {
   const fallback = DEFAULT_UNLINKED_PROFILE(email);
   const headers = apiHeaders(clerkUserId, email);
-  if (!headers) {
+  const base = getApiBase();
+  if (!base || !headers) {
     return fallback;
   }
 
   try {
-    const url = `${getApiBase()}/portal/me?email=${encodeURIComponent(email)}`;
+    const url = `${base}/portal/me?email=${encodeURIComponent(email)}`;
     // Short SWR — shell remounts / soft navs should not block on a fresh WP round-trip every time.
     // Org switch and onboarding still force fresh reads via revalidateTag("portal-me").
     const res = await fetch(url, {
@@ -190,41 +194,41 @@ export type OnboardingPayload = {
 };
 
 export async function submitOnboarding(payload: OnboardingPayload) {
-  const apiKey = process.env.DG_API_KEY;
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
-  if (apiKey) {
-    headers["X-API-Key"] = apiKey;
-  }
-
-  const res = await fetch(`${getApiBase()}/onboarding`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      ...payload,
-      source: payload.source ?? "dg-platform-web",
-    }),
+  const { capturePublicOnboardingIntent } = await import("@dg/platform-core");
+  const result = await capturePublicOnboardingIntent({
+    business_name: payload.business_name,
+    contact_name: payload.contact_name,
+    contact_email: payload.contact_email,
+    contact_phone: payload.contact_phone,
+    abn: payload.abn,
+    gst_number: payload.gst_number,
+    industry_license_number: payload.industry_license_number,
+    industry_vertical: payload.industry_vertical,
+    platform_tier: payload.platform_tier,
+    purchased_apps: payload.purchased_apps,
+    purchased_premium: payload.purchased_premium,
+    purchased_addons: payload.purchased_addons,
+    source: payload.source ?? "dg-platform-web",
   });
-
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error(
-      (data as { message?: string }).message ?? `API error ${res.status}`,
-    );
+  if (!result.ok) {
+    throw new Error(result.message);
   }
-  return data;
+  return { contactId: result.contactId, leadId: result.leadId };
 }
 
-export async function pingApi(): Promise<{ ok: boolean; base: string }> {
+export async function pingApi(): Promise<{ ok: boolean; base: string | null }> {
+  const base = getApiBase();
+  if (!base) {
+    return { ok: true, base: null };
+  }
   try {
-    const res = await fetch(`${getApiBase()}/onboarding`, {
+    const res = await fetch(`${base}/onboarding`, {
       method: "OPTIONS",
       cache: "no-store",
     });
-    return { ok: res.ok || res.status === 204 || res.status === 405, base: getApiBase() };
+    return { ok: res.ok || res.status === 204 || res.status === 405, base };
   } catch {
-    return { ok: false, base: getApiBase() };
+    return { ok: false, base };
   }
 }
 

@@ -24,6 +24,6 @@ export async function GET() {
   return NextResponse.json({
     endpoint: "/api/onboarding",
     method: "POST",
-    forwardsTo: `${process.env.DG_API_BASE_URL ?? "https://digitalgate.com.au/wp-json/digitalgate/v1"}/onboarding`,
+    backend: "gen2_neon",
   });
 }

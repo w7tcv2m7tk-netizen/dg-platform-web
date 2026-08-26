@@ -225,12 +225,13 @@ export function hydratePublicHtmlForms(
       cleanups.push(() => bookingForm.removeEventListener("submit", handler));
     }
 
-    // ----- DigitalGate /discover (was WP admin-ajax / dg_submit_discovery) -----
+    // ----- DigitalGate /discover (Gen 2 — /api/public/discovery) -----
     const discoveryForm = root.querySelector<HTMLFormElement>("#dgDiscoveryForm");
     if (discoveryForm) {
       disarmLegacyAction(discoveryForm);
       cleanups.push(bindDiscoveryWizard(discoveryForm));
       const status = getOrCreateStatus(discoveryForm, "dgDiscoveryStatusMsg");
+      const resultsEl = root.querySelector<HTMLElement>("#discoveryResults");
       const handler = async (e: Event) => {
         e.preventDefault();
         const hp = val(discoveryForm, "[name='website']");
@@ -243,33 +244,23 @@ export function hydratePublicHtmlForms(
           discoveryForm.querySelector<HTMLButtonElement>("#discoverySubmit") ||
           discoveryForm.querySelector<HTMLButtonElement>("[type='submit']");
         const prevLabel = btn?.textContent ?? "Get My Recommendations →";
-        setSubmitting(btn, status, "Sending…");
+        setSubmitting(btn, status, "Analysing your business…");
 
-        const result = await postEnquiry(siteSlug, pageSlug || "discover", {
-          type: "contact",
-          form_type: "platform_discovery",
-          page_slug: pageSlug || "discover",
+        const payload = collectFormFields(discoveryForm);
+        const result = await post("/api/public/discovery", {
+          ...payload,
           siteSlug,
-          name: val(discoveryForm, "[name='full_name']") || val(discoveryForm, "#full_name"),
-          email: val(discoveryForm, "[name='email']") || val(discoveryForm, "#email"),
-          phone: val(discoveryForm, "[name='phone']") || val(discoveryForm, "#phone"),
-          business_name:
-            val(discoveryForm, "[name='business_name']") ||
-            val(discoveryForm, "#business_name"),
-          industry: val(discoveryForm, "[name='industry']") || val(discoveryForm, "#industry"),
-          team_size:
-            val(discoveryForm, "[name='team_size']") || val(discoveryForm, "#team_size"),
-          message: [
-            val(discoveryForm, "[name='goals_message']"),
-            val(discoveryForm, "[name='business_type']")
-              ? `Business type: ${val(discoveryForm, "[name='business_type']")}`
-              : "",
-          ]
-            .filter(Boolean)
-            .join("\n\n"),
         });
 
-        if (result.ok) {
+        if (result.ok && result.data?.success !== false) {
+          renderDiscoveryResults(resultsEl, result.data as Record<string, unknown>);
+          discoveryForm.style.display = "none";
+          const progress = root.querySelector<HTMLElement>(".discovery-progress");
+          if (progress) progress.style.display = "none";
+          const nav = root.querySelector<HTMLElement>(".discovery-nav");
+          if (nav) nav.style.display = "none";
+          status.style.display = "none";
+        } else if (result.ok) {
           setSuccess(
             status,
             "Thanks — we'll review your details and send recommendations shortly.",
@@ -706,7 +697,10 @@ function bindDiscoveryWizard(form: HTMLFormElement): () => void {
 async function post(
   url: string,
   body: Record<string, unknown>,
-): Promise<{ ok: true } | { ok: false; message: string; status?: number }> {
+): Promise<
+  | { ok: true; data?: Record<string, unknown> }
+  | { ok: false; message: string; status?: number }
+> {
   try {
     const res = await fetch(url, {
       method: "POST",
@@ -715,16 +709,57 @@ async function post(
     });
     const json = (await res.json().catch(() => ({}))) as {
       error?: { message?: string };
+      message?: string;
+      success?: boolean;
     };
     if (!res.ok) {
       return {
         ok: false,
         status: res.status,
-        message: json.error?.message || `Error ${res.status}`,
+        message: json.error?.message || json.message || `Error ${res.status}`,
       };
     }
-    return { ok: true };
+    return { ok: true, data: json as Record<string, unknown> };
   } catch {
     return { ok: false, message: "Network error — please check your connection and try again." };
   }
+}
+
+function renderDiscoveryResults(
+  container: HTMLElement | null,
+  data: Record<string, unknown>,
+) {
+  if (!container) return;
+  const rec = (data.recommendation as Record<string, unknown> | undefined) ?? {};
+  const grade = String(data.maturity_grade ?? rec.maturity_grade ?? "—");
+  const score = String(data.maturity_score ?? rec.maturity_score ?? "—");
+  const tier = String(rec.platform_tier_label ?? "Growth");
+  const apps = Array.isArray(rec.recommended_apps)
+    ? (rec.recommended_apps as string[]).join(", ")
+    : "Core Platform";
+  const priorities = Array.isArray(data.priorities)
+    ? (data.priorities as string[])
+        .map((p) => `<li>${p}</li>`)
+        .join("")
+    : "";
+  const reportUrl = String(data.audit_report_url ?? "");
+  container.innerHTML =
+    '<div class="discovery-results-inner">' +
+    '<span class="sub-label">Your Digital Maturity Snapshot</span>' +
+    `<h2>Grade ${grade} · ${score}/100</h2>` +
+    `<p class="results-lead">${String(data.summary ?? "We've received your discovery and calculated an initial maturity score.")}</p>` +
+    '<div class="results-grid">' +
+    `<div class="results-card"><h3>Recommended Platform</h3><p class="results-value">${tier}</p></div>` +
+    `<div class="results-card"><h3>Suggested Apps</h3><p class="results-value-sm">${apps}</p></div>` +
+    "</div>" +
+    (priorities ? `<h3>Priority opportunities</h3><ul class="results-list">${priorities}</ul>` : "") +
+    '<p class="results-note">A confirmation email is on its way. Our team will review your discovery before your consultation.</p>' +
+    (reportUrl
+      ? `<a href="${reportUrl}" class="btn-secondary" target="_blank" rel="noopener">View Digital Maturity Report</a>`
+      : "") +
+    '<a href="/contact/" class="btn-primary">Book Your Free Consultation →</a>' +
+    '<a href="https://app.digitalgate.com.au/onboarding" class="btn-secondary">Start Free Trial</a>' +
+    "</div>";
+  container.style.display = "block";
+  container.scrollIntoView({ behavior: "smooth", block: "start" });
 }

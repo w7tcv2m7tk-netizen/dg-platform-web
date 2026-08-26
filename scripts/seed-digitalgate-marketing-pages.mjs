@@ -34,8 +34,9 @@ const PAGES = [
   { file: "founding-customer-terms.html", title: "Founding Customer Terms & Conditions", slug: "founding-customer-terms", intent: "custom", sortOrder: 3 },
   { file: "about-page.html", title: "About", slug: "about", intent: "about", sortOrder: 4 },
   { file: "contact-page.html", title: "Contact", slug: "contact", intent: "contact", sortOrder: 5 },
-  { file: "strategy-session-page.html", title: "Platform Consultation", slug: "strategy-session", intent: "custom", sortOrder: 6 },
-  { file: "insights-page.html", title: "Insights", slug: "insights", intent: "custom", sortOrder: 7 },
+  { file: "discovery-form.html", title: "AI Platform Discovery", slug: "discover", intent: "custom", sortOrder: 6 },
+  { file: "strategy-session-page.html", title: "Platform Consultation", slug: "strategy-session", intent: "custom", sortOrder: 7 },
+  { file: "insights-page.html", title: "Insights", slug: "insights", intent: "custom", sortOrder: 8 },
   { file: "digital-business-card.html", title: "Digital Business Card", slug: "card", intent: "custom", sortOrder: 8 },
   { file: "privacy-policy.html", title: "Privacy Policy", slug: "privacy-policy", intent: "custom", sortOrder: 9 },
   { file: "terms-page.html", title: "Terms & Conditions", slug: "terms-conditions", intent: "custom", sortOrder: 10 },
@@ -424,6 +425,47 @@ async function main() {
       results.push({ slug, ...result });
       console.log(
         `${result.action.padEnd(7)} /${slug}  (insight, ${result.bytes} chars)`,
+      );
+    }
+  }
+
+  // Growth SEO landings (Gen 2 — growth-landings/html/)
+  const growthDir = join(MARKETING_DIR, "growth-landings");
+  const growthHtmlDir = join(growthDir, "html");
+  if (existsSync(join(growthDir, "build.mjs"))) {
+    try {
+      execSync("node build.mjs", { cwd: growthDir, stdio: "inherit" });
+    } catch (e) {
+      console.warn("growth build failed — skip growth landings", e.message);
+    }
+  }
+  if (existsSync(growthHtmlDir)) {
+    const { readdirSync } = await import("node:fs");
+    const { pathToFileURL } = await import("node:url");
+    let growthMeta = [];
+    try {
+      const mod = await import(
+        pathToFileURL(join(growthDir, "catalog.mjs")).href
+      );
+      growthMeta = mod.GROWTH_PAGES || mod.PAGES || [];
+    } catch {
+      /* optional */
+    }
+    let sortGrowth = 300;
+    for (const file of readdirSync(growthHtmlDir).filter((f) => f.endsWith(".html"))) {
+      const slug = file.replace(/\.html$/, "");
+      const meta = growthMeta.find((a) => a.slug === slug);
+      const raw = readFileSync(join(growthHtmlDir, file), "utf8");
+      const result = await upsertPage(site.id, {
+        file: `growth-landings/html/${file}`,
+        title: meta?.title || meta?.h1 || extractTitle(raw) || slug,
+        slug,
+        intent: "custom",
+        sortOrder: sortGrowth++,
+      }, raw);
+      results.push({ slug, ...result });
+      console.log(
+        `${result.action.padEnd(7)} /${slug}  (growth, ${result.bytes} chars)`,
       );
     }
   }

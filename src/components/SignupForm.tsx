@@ -153,8 +153,7 @@ export function SignupForm() {
           </button>
         </div>
         <p className="text-xs text-slate-500">
-          Posts to WordPress via <code className="text-slate-400">/api/onboarding</code>.
-          Create an account after submitting to access your dashboard.
+          Saved to DigitalGate CRM. Create an account after submitting to access your dashboard.
         </p>
       </div>
     );
