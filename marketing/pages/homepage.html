@@ -340,6 +340,7 @@
       0 1px 0 rgba(255,255,255,0.04) inset,
       0 18px 40px rgba(2,6,23,0.4);
     padding: 1.35rem 1.4rem 1.5rem;
+    text-align: center;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
   .dg-layer:nth-child(1) { z-index: 1; top: 5.5rem; }
@@ -353,7 +354,7 @@
       0 22px 48px rgba(2,6,23,0.5);
   }
   .dg-layer-kicker {
-    display: inline-flex; align-items: center; gap: 0.5rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
     font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
     color: #93C5FD; margin-bottom: 0.55rem;
   }
@@ -367,10 +368,10 @@
     margin: 0 0 0.45rem; color: #F8FAFC !important;
   }
   .dg-layer > p {
-    margin: 0 0 1rem; font-size: 0.92rem; line-height: 1.55; color: #94A3B8; max-width: 52ch;
+    margin: 0 auto 1rem; font-size: 0.92rem; line-height: 1.55; color: #94A3B8; max-width: 52ch;
   }
   .dg-layer-chips {
-    display: flex; flex-wrap: wrap; gap: 0.45rem;
+    display: flex; flex-wrap: wrap; gap: 0.45rem; justify-content: center;
   }
   .dg-layer-chips span {
     font-size: 0.75rem; font-weight: 600; color: #E2E8F0;
@@ -383,93 +384,79 @@
     }
   }
 
-  /* SYSTEM C — Scroll-scrubbed product journey */
+  /* SYSTEM C — Product journey (horizontal scroll, no dead scroll space) */
   #platform-overview.dg-journey-section {
-    padding: 0 0 3rem;
+    padding: 0 0 2.5rem;
     border-top: 1px solid #1E293B;
     background:
       radial-gradient(50% 60% at 0% 40%, rgba(37,99,235,0.18), transparent 65%),
       #0A0E17;
   }
   .dg-journey-section > .container { padding-top: 5rem; }
-  .dg-journey {
-    --dg-journey-top: 5.25rem;
-    --dg-journey-h: calc(100svh - 6.5rem);
-  }
   .dg-journey-track {
     position: relative;
-    height: 360vh;
+    height: auto;
+    padding: 0;
   }
   .dg-journey-sticky {
-    position: sticky;
-    top: var(--dg-journey-top);
-    height: var(--dg-journey-h);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    overflow: hidden;
-    padding: 0 0 1rem;
+    position: relative;
+    top: auto;
+    height: auto;
+    display: block;
+    overflow: visible;
+    padding: 0;
   }
   .dg-journey-progress {
-    max-width: 1200px; margin: 0 auto 1.1rem; padding: 0 1.5rem;
+    max-width: 1200px; margin: 0 auto 1rem; padding: 0 1.5rem;
     height: 2px; border-radius: 999px; background: rgba(51,65,85,0.7); overflow: hidden;
   }
   .dg-journey-progress span {
     display: block; height: 100%; width: 100%; transform-origin: left center; transform: scaleX(0);
     background: linear-gradient(90deg, #3B82F6, #2DD4BF);
+    transition: transform 0.15s ease-out;
   }
   .dg-journey-viewport {
-    max-width: 1200px; margin: 0 auto; padding: 0 1.25rem;
-    overflow: hidden;
+    max-width: 1200px; margin: 0 auto;
+    padding: 0 1.25rem 0.35rem;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 1.25rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(59,130,246,0.45) rgba(51,65,85,0.35);
+  }
+  .dg-journey-viewport::-webkit-scrollbar { height: 5px; }
+  .dg-journey-viewport::-webkit-scrollbar-thumb {
+    background: rgba(59,130,246,0.45); border-radius: 999px;
   }
   .dg-journey-rail {
     display: flex; align-items: stretch; gap: 1.25rem;
     width: max-content;
-    will-change: transform;
+    padding: 0.15rem 0 0.85rem;
+    transform: none !important;
   }
-  @keyframes dg-journey-pan {
-    from { transform: translate3d(0, 0, 0); }
-    to { transform: translate3d(calc(-100% + 100vw - 3rem), 0, 0); }
-  }
-  /* CSS scrub fallback when React island is not yet deployed */
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
-      .dg-journey:not(.dg-journey--js) .dg-journey-rail {
-        animation: dg-journey-pan linear both;
-        animation-timeline: view();
-        animation-range: contain 0% contain 100%;
-      }
-      .dg-journey:not(.dg-journey--js) .dg-journey-progress span {
-        animation: dg-journey-progress linear both;
-        animation-timeline: view();
-        animation-range: contain 0% contain 100%;
-      }
-    }
-  }
-  @keyframes dg-journey-progress {
-    from { transform: scaleX(0); }
-    to { transform: scaleX(1); }
+  .dg-journey-hint {
+    max-width: 1200px; margin: 0.35rem auto 0; padding: 0 1.5rem;
+    font-size: 0.72rem; color: #64748B; text-align: center; letter-spacing: 0.02em;
   }
   .dg-journey-panel {
-    width: min(78vw, 340px);
+    width: min(78vw, 320px);
     flex: 0 0 auto;
+    scroll-snap-align: start;
     border-radius: 1.1rem;
     border: 1px solid rgba(71,85,105,0.55);
     background: linear-gradient(160deg, #111827 0%, #0B1220 100%);
     box-shadow: 0 16px 40px rgba(2,6,23,0.35);
     padding: 1.2rem 1.2rem 1.3rem;
-    opacity: 0.55;
-    transform: scale(0.96);
-    transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    opacity: 1;
+    transform: none;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
   }
   .dg-journey-panel.is-active {
-    opacity: 1;
-    transform: scale(1);
     border-color: rgba(96,165,250,0.45);
     box-shadow: 0 20px 48px rgba(15,23,42,0.55);
   }
-  .dg-journey-panel.is-passed { opacity: 0.72; transform: scale(0.975); }
-  .dg-journey-panel.is-ahead { opacity: 0.48; }
   .dg-journey-step {
     display: inline-flex; align-items: center; gap: 0.45rem;
     font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
@@ -532,34 +519,20 @@
     position: absolute; pointer-events: none; /* reserved for future connectors */
   }
   .dg-journey-end {
-    max-width: 720px; margin: 0 auto; padding: 1.5rem 1.5rem 0; text-align: center;
+    max-width: 720px; margin: 0 auto; padding: 1.25rem 1.5rem 0; text-align: center;
   }
   .dg-journey-end p {
     font-size: 1.05rem; font-weight: 700; color: #CBD5E1; line-height: 1.5;
   }
-  .dg-journey--static .dg-journey-track { height: auto; }
-  .dg-journey--static .dg-journey-sticky {
-    position: relative; top: auto; height: auto; overflow: visible;
-  }
-  .dg-journey--static .dg-journey-viewport { overflow: visible; }
-  .dg-journey--static .dg-journey-rail {
-    width: 100%; max-width: 900px; margin: 0 auto;
-    flex-direction: column; transform: none !important;
-  }
-  .dg-journey--static .dg-journey-panel {
-    width: 100%; opacity: 1; transform: none;
-  }
-  .dg-journey--static .dg-journey-progress { display: none; }
   @media (max-width: 767px) {
-    .dg-journey-track { height: auto; }
-    .dg-journey-sticky { position: relative; top: auto; height: auto; overflow: visible; }
-    .dg-journey-viewport { overflow: visible; }
+    .dg-journey-hint { display: none; }
+    .dg-journey-viewport {
+      overflow-x: visible; scroll-snap-type: none; padding: 0 1.25rem;
+    }
     .dg-journey-rail {
-      width: 100%; flex-direction: column; transform: none !important; gap: 0.9rem;
+      width: 100%; flex-direction: column; gap: 0.9rem; padding-bottom: 0;
     }
-    .dg-journey-panel {
-      width: 100%; opacity: 1; transform: none;
-    }
+    .dg-journey-panel { width: 100%; scroll-snap-align: none; }
     .dg-journey-progress { display: none; }
   }
 
