@@ -27,9 +27,9 @@ STRIPE_SECRET_KEY=sk_test_... node scripts/setup-stripe-webhook.mjs
 The script creates **or updates** the endpoint:
 
 - **URL:** `https://app.digitalgate.com.au/api/webhooks/stripe`
-- **Events:** `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`, `payment_intent.payment_failed`, **`invoice.paid`**, **`customer.subscription.deleted`**, **`customer.subscription.updated`**, **`account.updated`**, **`transfer.failed`**, **`transfer.reversed`**
+- **Events:** `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`, `payment_intent.succeeded`, `payment_intent.payment_failed`, **`invoice.paid`**, **`invoice.payment_failed`**, **`invoice.payment_action_required`**, **`customer.subscription.created`**, **`customer.subscription.deleted`**, **`customer.subscription.updated`**, **`customer.updated`**, **`account.updated`**, **`transfer.failed`**, **`transfer.reversed`**
 
-`invoice.paid` is required for Platform **Refer & Earn** months 2–12 (subscription renewals). Subscription deleted/updated keep org status and entitlements honest (suspend / past_due — no invented MRR). Connect events power cash payouts. Re-run the script on an existing endpoint to add any missing events (signing secret unchanged).
+`invoice.paid` is required for Platform **Refer & Earn** months 2–12 (subscription renewals) and payment-failure recovery. `invoice.payment_failed` starts the dunning ladder without immediate hard suspend. Subscription lifecycle updates `PlatformSubscription` commercial state + entitlement. See [SUBSCRIPTION-LIFECYCLE.md](./SUBSCRIPTION-LIFECYCLE.md). Connect events power cash payouts. Re-run the script on an existing endpoint to add any missing events (signing secret unchanged).
 
 Optional env Price IDs (`STRIPE_PRICE_STARTER`, `STRIPE_PRICE_PROFESSIONAL` / `STRIPE_PRICE_GROWTH`, `STRIPE_PRICE_BUSINESS` / `STRIPE_PRICE_SCALE`) — when unset, platform checkout uses inline `price_data`.
 

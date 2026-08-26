@@ -22,12 +22,16 @@ function statusBadgeClass(kind: OrganisationBillingStatus["kind"]): string {
     case "founding_trial":
       return "bg-blue-500/15 text-blue-300";
     case "trial":
+    case "cancel_at_period_end":
       return "bg-amber-500/15 text-amber-200";
     case "platform_exempt":
       return "bg-slate-700/80 text-slate-300";
+    case "payment_failed":
     case "past_due":
+    case "restricted":
       return "bg-amber-500/15 text-amber-200";
     case "suspended":
+    case "cancelled":
       return "bg-rose-500/15 text-rose-300";
     case "active":
     case "needs_checkout":
@@ -92,7 +96,45 @@ export function BillingStatusPanel({
             <dt className="text-slate-500">Subscription (Stripe)</dt>
             <dd className="capitalize text-white">
               {status.subscriptionStatus.replace(/_/g, " ")}
-              {status.entitlementsSuspended ? " · entitlements suspended" : ""}
+              {status.entitlementsSuspended ? " · limited access" : ""}
+            </dd>
+          </div>
+        ) : null}
+        {status.commercialStatus ? (
+          <div>
+            <dt className="text-slate-500">Commercial state</dt>
+            <dd className="text-white">{status.commercialStatus.replace(/_/g, " ")}</dd>
+          </div>
+        ) : null}
+        {status.entitlementLevel ? (
+          <div>
+            <dt className="text-slate-500">Entitlement</dt>
+            <dd className="text-white">{status.entitlementLevel.replace(/_/g, " ")}</dd>
+          </div>
+        ) : null}
+        {status.trialEnd ? (
+          <div>
+            <dt className="text-slate-500">Trial ends</dt>
+            <dd className="text-white">
+              {new Date(status.trialEnd).toLocaleDateString("en-AU", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </dd>
+          </div>
+        ) : null}
+        {status.currentPeriodEnd ? (
+          <div>
+            <dt className="text-slate-500">
+              {status.cancelAtPeriodEnd ? "Access ends" : "Next billing date"}
+            </dt>
+            <dd className="text-white">
+              {new Date(status.currentPeriodEnd).toLocaleDateString("en-AU", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
             </dd>
           </div>
         ) : null}

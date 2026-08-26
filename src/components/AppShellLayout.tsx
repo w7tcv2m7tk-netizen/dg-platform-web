@@ -11,6 +11,7 @@ import {
 import { usePathname } from "next/navigation";
 
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
+import { BillingLifecycleBanner } from "@/components/billing/BillingLifecycleBanner";
 import { MobileHeader } from "@/components/MobileHeader";
 import { AppContextNav } from "@/components/navigation/AppContextNav";
 import { OrgBrandHead } from "@/components/brand/OrgBrandHead";
@@ -19,7 +20,7 @@ import { ChatWidgetProvider } from "@/components/platform/ChatWidgetProvider";
 import { PrefetchCriticalRoutes } from "@/components/platform/PrefetchCriticalRoutes";
 import { Sidebar } from "@/components/Sidebar";
 import { useIsDesktopShell } from "@/hooks/useIsDesktopShell";
-import type { OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
+import type { BillingBannerModel, OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
 import { DEFAULT_ORG_BRAND_THEME, orgBrandCssVariables } from "@/lib/brand-client";
 
 type MobileNavContextValue = {
@@ -43,6 +44,7 @@ export function AppShellLayout({
   chatUserName,
   showFloatingChat = true,
   isDemo = false,
+  billingBanner,
 }: {
   children: ReactNode;
   activeOrganisationId?: string;
@@ -52,6 +54,7 @@ export function AppShellLayout({
   chatUserName?: string;
   showFloatingChat?: boolean;
   isDemo?: boolean;
+  billingBanner?: BillingBannerModel | null;
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -146,6 +149,7 @@ export function AppShellLayout({
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <div className="shrink-0 print:hidden">
                 {isDemo ? <DemoModeBanner canReset /> : null}
+                {billingBanner ? <BillingLifecycleBanner banner={billingBanner} /> : null}
                 {!isDesktop ? <MobileHeader onMenuClick={() => setOpen(true)} /> : null}
               </div>
 

@@ -72,7 +72,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
   const { prisma } = await import("@dg/database");
   const org = await prisma.organisation.findUnique({
     where: { id: input.organisationId },
-    select: { billingCustomerId: true },
+    select: { billingCustomerId: true, settings: true },
   });
 
   const priceId = stripePriceIdForTier(tier);
@@ -111,6 +111,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     line_items: lineItems,
     success_url: `${base}/dashboard/apps?sync=1&checkout=success`,
     cancel_url: `${base}/dashboard/settings/billing?checkout=cancelled`,
+    payment_method_collection: "always",
     metadata: {
       dg_platform_checkout: "true",
       dg_platform_tier: tier,
@@ -124,6 +125,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
       metadata: {
         dg_platform_tier: tier,
         organisation_id: input.organisationId,
+        dg_platform_subscription: "true",
       },
     },
   };
@@ -134,6 +136,31 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     sessionParams.customer = org.billingCustomerId;
   } else {
     sessionParams.customer_email = input.email;
+  }
+
+  // Card-required 14-day trial for non-Founding / non-exempt orgs.
+  const { getPlatformSubscription } = await import("./subscription-store");
+  const existingSub = await getPlatformSubscription(input.organisationId);
+  const settingsBilling =
+    ((org?.settings as { billing?: {
+      foundingCustomer?: boolean;
+      platformExempt?: boolean;
+      programme?: string;
+    } } | null)?.billing) ?? {};
+  const founding =
+    existingSub?.foundingCustomer === true ||
+    settingsBilling.foundingCustomer === true ||
+    ["founding", "founding_customer"].includes(
+      (settingsBilling.programme ?? "").toLowerCase(),
+    );
+  const exempt =
+    existingSub?.platformExempt === true || settingsBilling.platformExempt === true;
+
+  if (!founding && !exempt) {
+    sessionParams.subscription_data = {
+      ...sessionParams.subscription_data,
+      trial_period_days: 14,
+    };
   }
 
   const session = await stripe.checkout.sessions.create(sessionParams);
@@ -258,21 +285,31 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
   };
   const enabled = appIdsFromPlanSelection(selection);
   const billing = (settings.billing as Record<string, unknown> | undefined) ?? {};
+  const founding =
+    billing.foundingCustomer === true ||
+    ["founding", "founding_customer"].includes(
+      String(billing.programme ?? "").toLowerCase(),
+    );
+  const exempt = billing.platformExempt === true;
 
   await prisma.organisation.update({
     where: { id: org.id },
     data: {
-      status: "active",
+      status: founding || exempt ? "active" : "trial",
       // Always persist the Stripe customer from checkout — never invent one.
       billingCustomerId: customerId,
       settings: {
         ...settings,
         billing: {
           ...billing,
-          subscriptionStatus: "active",
+          subscriptionStatus: founding || exempt ? "active" : "trialing",
           entitlementsSuspended: false,
           lastCheckoutSessionId: session.id,
           lastCheckoutAt: new Date().toISOString(),
+          stripeSubscriptionId:
+            typeof session.subscription === "string"
+              ? session.subscription
+              : session.subscription?.id ?? billing.stripeSubscriptionId,
         },
         profile: {
           ...profile,
@@ -297,6 +334,26 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
       } as unknown as InputJsonValue,
     },
   });
+
+  const stripeSubscriptionId =
+    typeof session.subscription === "string"
+      ? session.subscription
+      : session.subscription?.id ?? null;
+
+  try {
+    const { syncPlatformSubscriptionFromCheckout } = await import("./billing-service");
+    await syncPlatformSubscriptionFromCheckout({
+      organisationId: org.id,
+      stripeCustomerId: customerId,
+      stripeSubscriptionId,
+      planTier: platformTier,
+      foundingCustomer: founding,
+      platformExempt: exempt,
+      stripeEventId: session.id,
+    });
+  } catch (err) {
+    console.warn("[billing] platform subscription sync failed", err);
+  }
 
   // Platform Refer & Earn — first-paid credit (months 2–12 via invoice.paid)
   let referralReward: unknown = null;
@@ -325,11 +382,12 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
 
 /**
  * Honest subscription lifecycle for platform SaaS seats.
- * Does not invent MRR or customers — only updates org status / entitlement flags.
+ * Stripe → Billing Service → commercial state + entitlement (never wipe org on past_due).
  */
 export async function handlePlatformSubscriptionLifecycle(
   subscription: Stripe.Subscription,
-  eventKind: "deleted" | "updated",
+  eventKind: "deleted" | "updated" | "created",
+  stripeEventId?: string | null,
 ) {
   const metadata = subscription.metadata ?? {};
   const customerId = stripeCustomerId(subscription.customer);
@@ -358,93 +416,36 @@ export async function handlePlatformSubscriptionLifecycle(
     };
   }
 
-  const settings = (org.settings as Record<string, unknown> | null) ?? {};
-  const billing = (settings.billing as Record<string, unknown> | undefined) ?? {};
-  const apps = (settings.apps as Record<string, unknown> | undefined) ?? {};
-  const stripeStatus = subscription.status;
-  const nowIso = new Date().toISOString();
+  const billing =
+    ((org.settings as { billing?: {
+      foundingCustomer?: boolean;
+      platformExempt?: boolean;
+      programme?: string;
+    } } | null)?.billing) ?? {};
+  const founding =
+    billing.foundingCustomer === true ||
+    ["founding", "founding_customer"].includes((billing.programme ?? "").toLowerCase());
+  const exempt = billing.platformExempt === true;
 
-  const cancelled =
-    eventKind === "deleted" ||
-    stripeStatus === "canceled" ||
-    stripeStatus === "unpaid" ||
-    stripeStatus === "incomplete_expired";
-  const pastDue = !cancelled && stripeStatus === "past_due";
-  const entitlementsSuspended = cancelled || pastDue;
-
-  const reactivate =
-    !entitlementsSuspended &&
-    (stripeStatus === "active" || stripeStatus === "trialing") &&
-    (org.status === "suspended" || billing.entitlementsSuspended === true);
-
-  if (!cancelled && !pastDue && !reactivate && eventKind === "updated") {
-    // No org-status change needed (e.g. incomplete → still collecting payment).
-    await prisma.organisation.update({
-      where: { id: org.id },
-      data: {
-        billingCustomerId: customerId ?? org.billingCustomerId,
-        settings: {
-          ...settings,
-          billing: {
-            ...billing,
-            subscriptionStatus: stripeStatus,
-            stripeSubscriptionId: subscription.id,
-            lastSubscriptionEventAt: nowIso,
-          },
-        } as unknown as InputJsonValue,
-      },
-    });
-    return {
-      handled: true as const,
-      ok: true,
-      organisationId: org.id,
-      action: "status_recorded" as const,
-      stripeStatus,
-    };
-  }
-
-  // past_due: keep org active but mark entitlements suspended (portal can fix payment).
-  // cancelled/unpaid/deleted: org status suspended. Never clear billingCustomerId.
-  const nextOrgStatus = cancelled ? "suspended" : "active";
-  const subscriptionStatus = eventKind === "deleted" ? "cancelled" : stripeStatus;
-
-  await prisma.organisation.update({
-    where: { id: org.id },
-    data: {
-      status: nextOrgStatus,
-      billingCustomerId: customerId ?? org.billingCustomerId,
-      settings: {
-        ...settings,
-        billing: {
-          ...billing,
-          subscriptionStatus,
-          entitlementsSuspended,
-          stripeSubscriptionId: subscription.id,
-          lastSubscriptionEventAt: nowIso,
-          ...(entitlementsSuspended
-            ? { suspendedAt: nowIso, suspendReason: subscriptionStatus }
-            : { suspendedAt: null, suspendReason: null }),
-        },
-        apps: {
-          ...apps,
-          // Mark suspended; do not invent a new enabled list or wipe preview data.
-          entitlementsSuspended,
-          ...(entitlementsSuspended ? { suspendedAt: nowIso } : { suspendedAt: null }),
-        },
-      } as unknown as InputJsonValue,
-    },
+  const { applyStripeSubscriptionProjection } = await import("./billing-service");
+  const row = await applyStripeSubscriptionProjection({
+    organisationId: org.id,
+    subscription,
+    eventKind,
+    stripeEventId,
+    foundingCustomer: founding,
+    platformExempt: exempt,
+    planTier: metadata.dg_platform_tier ?? null,
   });
 
   return {
     handled: true as const,
     ok: true,
     organisationId: org.id,
-    action: cancelled
-      ? ("suspended" as const)
-      : pastDue
-        ? ("past_due" as const)
-        : ("reactivated" as const),
-    stripeStatus: subscriptionStatus,
+    action: row.status.toLowerCase() as string,
+    stripeStatus: row.stripeStatus,
+    commercialStatus: row.status,
+    entitlement: row.entitlement,
     billingCustomerId: customerId ?? org.billingCustomerId ?? undefined,
   };
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { executeAiTool, getAiTool } from "@dg/platform-core";
+import { assertEntitlement, executeAiTool, getAiTool } from "@dg/platform-core";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
@@ -10,6 +10,20 @@ import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const gate = await assertEntitlement(session.organisationId, "useAi");
+  if (!gate.ok) {
+    return NextResponse.json(
+      {
+        error: {
+          code: gate.code,
+          message: gate.message,
+          entitlement: gate.entitlement.level,
+        },
+      },
+      { status: 403 },
+    );
+  }
 
   let body: {
     toolId?: string;

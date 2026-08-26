@@ -1,4 +1,6 @@
 import { organisationExpectsPlatformBilling } from "../command-centre/success-score";
+import { getPlatformSubscription } from "./subscription-store";
+import type { PlatformCommercialStatus } from "./subscription-types";
 
 export type OrgBillingSettings = {
   platformExempt?: boolean;
@@ -25,6 +27,12 @@ export type OrganisationBillingStatus = {
   purchaseLabel: string | null;
   subscriptionStatus: string | null;
   entitlementsSuspended: boolean;
+  /** First-class commercial projection when PlatformSubscription exists */
+  commercialStatus: PlatformCommercialStatus | null;
+  entitlementLevel: string | null;
+  trialEnd: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
   /**
    * Honest UI state — never treat a plan preview / WP portal link alone as a Stripe customer.
    */
@@ -34,8 +42,12 @@ export type OrganisationBillingStatus = {
     | "trial"
     | "active"
     | "subscribed"
+    | "payment_failed"
     | "past_due"
+    | "restricted"
     | "suspended"
+    | "cancel_at_period_end"
+    | "cancelled"
     | "needs_checkout";
 };
 
@@ -64,6 +76,29 @@ function isFoundingCustomer(billing: OrgBillingSettings): boolean {
   return programme === "founding" || programme === "founding_customer";
 }
 
+function kindFromCommercial(
+  status: PlatformCommercialStatus,
+): OrganisationBillingStatus["kind"] {
+  switch (status) {
+    case "TRIALING":
+      return "trial";
+    case "ACTIVE":
+      return "subscribed";
+    case "PAYMENT_FAILED":
+      return "payment_failed";
+    case "PAST_DUE":
+      return "past_due";
+    case "RESTRICTED":
+      return "restricted";
+    case "SUSPENDED":
+      return "suspended";
+    case "CANCEL_AT_PERIOD_END":
+      return "cancel_at_period_end";
+    case "CANCELLED":
+      return "cancelled";
+  }
+}
+
 function resolveKind(input: {
   expectsPlatformBilling: boolean;
   hasStripeCustomer: boolean;
@@ -71,11 +106,12 @@ function resolveKind(input: {
   status: string;
   subscriptionStatus: string | null;
   entitlementsSuspended: boolean;
+  commercialStatus: PlatformCommercialStatus | null;
 }): OrganisationBillingStatus["kind"] {
   if (!input.expectsPlatformBilling) return "platform_exempt";
+  if (input.commercialStatus) return kindFromCommercial(input.commercialStatus);
 
   const sub = (input.subscriptionStatus ?? "").toLowerCase();
-  // Prefer Stripe's past_due signal over generic suspended (payment can still recover).
   if (sub === "past_due") return "past_due";
   if (
     input.status === "suspended" ||
@@ -98,7 +134,7 @@ function resolveKind(input: {
 
 /**
  * Tenant-facing billing snapshot for Apps & Platform / settings.
- * Does not invent MRR or create Stripe customers.
+ * Prefers PlatformSubscription projection; does not invent MRR.
  */
 export async function getOrganisationBillingStatus(
   organisationId: string,
@@ -130,8 +166,15 @@ export async function getOrganisationBillingStatus(
   });
   const hasStripeCustomer = Boolean(org.billingCustomerId);
   const foundingCustomer = isFoundingCustomer(billing);
-  const subscriptionStatus = billing.subscriptionStatus?.trim() || null;
-  const entitlementsSuspended = billing.entitlementsSuspended === true;
+  const platformSub = await getPlatformSubscription(organisationId);
+  const subscriptionStatus =
+    platformSub?.stripeStatus?.trim() ||
+    billing.subscriptionStatus?.trim() ||
+    null;
+  const entitlementsSuspended =
+    platformSub?.entitlement === "READ_ONLY" ||
+    platformSub?.entitlement === "NONE" ||
+    billing.entitlementsSuspended === true;
 
   return {
     organisationId: org.id,
@@ -140,19 +183,25 @@ export async function getOrganisationBillingStatus(
     status: org.status,
     hasStripeCustomer,
     expectsPlatformBilling,
-    platformExempt: !expectsPlatformBilling,
-    foundingCustomer,
-    platformTier: profile.platformTier,
+    platformExempt: !expectsPlatformBilling || platformSub?.platformExempt === true,
+    foundingCustomer: foundingCustomer || platformSub?.foundingCustomer === true,
+    platformTier: platformSub?.planTier ?? profile.platformTier,
     purchaseLabel: profile.purchaseLabel,
     subscriptionStatus,
     entitlementsSuspended,
+    commercialStatus: platformSub?.status ?? null,
+    entitlementLevel: platformSub?.entitlement ?? null,
+    trialEnd: platformSub?.trialEnd?.toISOString() ?? null,
+    currentPeriodEnd: platformSub?.currentPeriodEnd?.toISOString() ?? null,
+    cancelAtPeriodEnd: platformSub?.cancelAtPeriodEnd ?? false,
     kind: resolveKind({
       expectsPlatformBilling,
       hasStripeCustomer,
-      foundingCustomer,
+      foundingCustomer: foundingCustomer || platformSub?.foundingCustomer === true,
       status: org.status,
       subscriptionStatus,
       entitlementsSuspended,
+      commercialStatus: platformSub?.status ?? null,
     }),
   };
 }
@@ -167,10 +216,18 @@ export function billingStatusHeadline(status: OrganisationBillingStatus): string
       return status.hasStripeCustomer ? "Trial (Stripe linked)" : "Trial";
     case "subscribed":
       return "Active subscription";
+    case "payment_failed":
+      return "Payment unsuccessful";
     case "past_due":
       return "Payment past due";
+    case "restricted":
+      return "Account restricted";
     case "suspended":
       return "Subscription suspended";
+    case "cancel_at_period_end":
+      return "Cancels at period end";
+    case "cancelled":
+      return "Subscription cancelled";
     case "active":
       return "Active — Stripe checkout needed";
     case "needs_checkout":
@@ -186,16 +243,26 @@ export function billingStatusDetail(status: OrganisationBillingStatus): string {
       return "You’re on the Founding Customer programme (preferential pricing toward Starter / Pro / Business — not a beta seat). Subscribe when ready, or open the Customer Portal once Stripe is linked.";
     case "trial":
       return status.hasStripeCustomer
-        ? "Your organisation is on trial with a Stripe customer on file. Manage invoices and payment method in the Customer Portal."
+        ? "Your organisation is on a card-required trial with a Stripe customer on file. Manage invoices and payment method in the Customer Portal."
         : "Your organisation is on trial. Sidebar plan previews do not create a Stripe customer — subscribe when you are ready to bill.";
     case "subscribed":
       return "Stripe customer on file. Use the Customer Portal for invoices, payment method, and subscription changes.";
+    case "payment_failed":
+      return "We couldn’t process your latest payment. Your account remains fully operational while you update your payment method.";
     case "past_due":
-      return "Stripe reports the subscription as past due. Update payment method in the Customer Portal — we do not invent a paid seat while payment is failing.";
+      return "Payment is still outstanding. Update your payment method — new premium apps and AI usage may be limited.";
+    case "restricted":
+      return "Billing restrictions are active. Existing CRM, documents, and exports remain available; resolve payment to restore full access.";
     case "suspended":
       return status.hasStripeCustomer
-        ? "Subscription ended or unpaid. Entitlements are marked suspended. Re-subscribe or fix payment in Stripe — the Customer Portal still works with the linked customer."
+        ? "Account is read-only until payment is resolved. View, export, and billing remain available."
         : "Organisation is suspended and no Stripe customer is linked.";
+    case "cancel_at_period_end":
+      return status.currentPeriodEnd
+        ? `Subscription is scheduled to end on ${new Date(status.currentPeriodEnd).toLocaleDateString("en-AU")}. You can reactivate in the Customer Portal.`
+        : "Subscription is scheduled to cancel at period end.";
+    case "cancelled":
+      return "Subscription ended. Data is retained per policy; resolve billing to restore operational access.";
     case "active":
       return "Organisation is active but no Stripe customer is linked yet. Complete in-app checkout or sync a purchase so invoices and the portal work.";
     case "needs_checkout":

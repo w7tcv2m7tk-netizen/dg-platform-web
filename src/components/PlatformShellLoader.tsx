@@ -6,6 +6,7 @@ import {
   getPartnerByClerkUserId,
   isDemoOrganisationId,
   isDigitalGateStaffEmail,
+  resolveEntitlement,
   type PartnerType,
 } from "@dg/platform-core";
 
@@ -90,6 +91,16 @@ export async function PlatformShellLoader({
     showCommandCentreNav,
   );
 
+  let billingBanner = null;
+  if (session?.organisationId && process.env.DATABASE_URL && !isDemo) {
+    try {
+      const entitlement = await resolveEntitlement(session.organisationId);
+      billingBanner = entitlement.banner.kind === "none" ? null : entitlement.banner;
+    } catch {
+      billingBanner = null;
+    }
+  }
+
   return (
     <PlatformShell
       enabledIds={navEnabledIds}
@@ -109,6 +120,7 @@ export async function PlatformShellLoader({
       organisations={session?.organisations ?? []}
       brandTheme={brandTheme}
       isDemo={isDemo}
+      billingBanner={billingBanner}
     >
       {children}
     </PlatformShell>

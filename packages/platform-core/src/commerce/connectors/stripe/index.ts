@@ -219,6 +219,59 @@ export class StripePaymentConnector implements PaymentConnector {
       };
     }
 
+    if (
+      event.type === "invoice.payment_failed" ||
+      event.type === "invoice.payment_action_required"
+    ) {
+      const invoice = event.data.object as Stripe.Invoice;
+      const sub =
+        typeof invoice.subscription === "string"
+          ? invoice.subscription
+          : invoice.subscription?.id;
+      const meta = (invoice.subscription_details?.metadata ??
+        invoice.metadata ??
+        {}) as Record<string, string>;
+      const customerId =
+        typeof invoice.customer === "string"
+          ? invoice.customer
+          : invoice.customer?.id;
+      return {
+        type:
+          event.type === "invoice.payment_failed"
+            ? "invoice.payment_failed"
+            : "invoice.payment_action_required",
+        providerId: "stripe",
+        providerEventId: event.id,
+        organisationId: meta.organisation_id || meta.organisationId || undefined,
+        providerCustomerId: customerId,
+        providerPaymentId: invoice.id,
+        amountCents: invoice.amount_due ?? undefined,
+        currency: invoice.currency?.toUpperCase() as PaymentWebhookEvent["currency"],
+        billingReason: invoice.billing_reason ?? undefined,
+        stripeInvoiceId: invoice.id,
+        stripeSubscriptionId: sub,
+        platformTier: meta.dg_platform_tier,
+        occurredAt: new Date(event.created * 1000),
+        raw: invoice,
+      };
+    }
+
+    if (event.type === "customer.updated") {
+      const customer = event.data.object as Stripe.Customer;
+      return {
+        type: "customer.updated",
+        providerId: "stripe",
+        providerEventId: event.id,
+        organisationId:
+          customer.metadata?.organisation_id ||
+          customer.metadata?.organisationId ||
+          undefined,
+        providerCustomerId: customer.id,
+        occurredAt: new Date(event.created * 1000),
+        raw: customer,
+      };
+    }
+
     if (event.type === "customer.subscription.created") {
       const subscription = event.data.object as Stripe.Subscription;
       const customerId =

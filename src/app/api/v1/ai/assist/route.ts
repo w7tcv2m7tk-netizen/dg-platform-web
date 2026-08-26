@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  assertEntitlement,
   buildAiSystemPrompt,
   buildListingDescriptionAssistEntity,
   buildLiveTwinWithScores,
@@ -187,6 +188,20 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const gate = await assertEntitlement(session.organisationId, "useAi");
+  if (!gate.ok) {
+    return NextResponse.json(
+      {
+        error: {
+          code: gate.code,
+          message: gate.message,
+          entitlement: gate.entitlement.level,
+        },
+      },
+      { status: 403 },
+    );
+  }
 
   let body: {
     action?: AiGenerateAction;

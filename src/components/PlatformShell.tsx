@@ -1,6 +1,6 @@
 import { EnabledAppsProvider } from "@/components/platform/EnabledAppsProvider";
 import { AppShellLayout } from "@/components/AppShellLayout";
-import type { OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
+import type { BillingBannerModel, OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
 import { DEFAULT_ORG_BRAND_THEME } from "@/lib/brand-client";
 
 export function PlatformShell({
@@ -22,6 +22,7 @@ export function PlatformShell({
   organisations = [],
   brandTheme = DEFAULT_ORG_BRAND_THEME,
   isDemo = false,
+  billingBanner = null,
 }: {
   children: React.ReactNode;
   showFloatingChat?: boolean;
@@ -41,6 +42,7 @@ export function PlatformShell({
   organisations?: UserOrganisationSummary[];
   brandTheme?: OrgBrandTheme;
   isDemo?: boolean;
+  billingBanner?: BillingBannerModel | null;
 }) {
   return (
     <EnabledAppsProvider
@@ -63,6 +65,7 @@ export function PlatformShell({
         chatUserName={userName}
         showFloatingChat={showFloatingChat}
         isDemo={isDemo}
+        billingBanner={billingBanner}
       >
         {children}
       </AppShellLayout>

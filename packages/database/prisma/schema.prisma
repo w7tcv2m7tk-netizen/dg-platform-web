@@ -85,6 +85,9 @@ model Organisation {
   platformReferralsAsReferrer PlatformReferral[] @relation("ReferralReferrer")
   platformReferralsAsReferred PlatformReferral[] @relation("ReferralReferred")
   referralLedgerEntries       PlatformReferralLedger[]
+  platformSubscription        PlatformSubscription?
+  platformSubscriptionEvents  PlatformSubscriptionEvent[]
+  stripeWebhookReceipts       StripeWebhookReceipt[]
 
   @@index([stripeConnectAccountId])
   @@map("organisations")
@@ -878,6 +881,84 @@ model CommerceSubscription {
   @@unique([organisationId, providerSubscriptionId])
   @@index([organisationId, status])
   @@map("commerce_subscriptions")
+}
+
+/**
+ * DigitalGate platform SaaS seat — commercial state separate from entitlement access.
+ * @see docs/commerce/SUBSCRIPTION-LIFECYCLE.md
+ */
+model PlatformSubscription {
+  id                   String    @id @default(cuid())
+  organisationId       String    @unique @map("organisation_id")
+  /** TRIALING | ACTIVE | PAYMENT_FAILED | PAST_DUE | RESTRICTED | SUSPENDED | CANCEL_AT_PERIOD_END | CANCELLED */
+  status               String    @default("TRIALING")
+  /** FULL | FULL_WITH_WARNING | MOSTLY_FULL | READ_ONLY | NONE — derived; stored for query speed */
+  entitlement          String    @default("FULL")
+  planTier             String?   @map("plan_tier")
+  stripeCustomerId     String?   @map("stripe_customer_id")
+  stripeSubscriptionId String?   @map("stripe_subscription_id")
+  /** Raw Stripe subscription.status when known */
+  stripeStatus         String?   @map("stripe_status")
+  trialStart           DateTime? @map("trial_start")
+  trialEnd             DateTime? @map("trial_end")
+  currentPeriodStart   DateTime? @map("current_period_start")
+  currentPeriodEnd     DateTime? @map("current_period_end")
+  cancelAtPeriodEnd    Boolean   @default(false) @map("cancel_at_period_end")
+  paymentFailedAt      DateTime? @map("payment_failed_at")
+  gracePeriodEndsAt    DateTime? @map("grace_period_ends_at")
+  restrictedAt         DateTime? @map("restricted_at")
+  suspendedAt          DateTime? @map("suspended_at")
+  cancelledAt          DateTime? @map("cancelled_at")
+  retentionEndsAt      DateTime? @map("retention_ends_at")
+  foundingCustomer     Boolean   @default(false) @map("founding_customer")
+  platformExempt       Boolean   @default(false) @map("platform_exempt")
+  /** Reminder flags for email follow-up (no send in foundation pass) */
+  day3ReminderAt       DateTime? @map("day3_reminder_at")
+  day7ReminderAt       DateTime? @map("day7_reminder_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  events       PlatformSubscriptionEvent[]
+
+  @@index([status])
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
+  @@map("platform_subscriptions")
+}
+
+model PlatformSubscriptionEvent {
+  id             String   @id @default(cuid())
+  organisationId String   @map("organisation_id")
+  subscriptionId String   @map("subscription_id")
+  /** e.g. payment_failed, dunning_restricted, trial_started */
+  type           String
+  /** stripe | system | staff */
+  source         String   @default("system")
+  stripeEventId  String?  @unique @map("stripe_event_id")
+  payload        Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organisation Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  subscription PlatformSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, createdAt])
+  @@index([subscriptionId, createdAt])
+  @@map("platform_subscription_events")
+}
+
+/** Idempotent Stripe webhook receipts (platform SaaS + shared endpoint). */
+model StripeWebhookReceipt {
+  id             String   @id @default(cuid())
+  eventId        String   @unique @map("event_id")
+  eventType      String   @map("event_type")
+  organisationId String?  @map("organisation_id")
+  processedAt    DateTime @default(now()) @map("processed_at")
+
+  organisation Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+
+  @@index([processedAt])
+  @@map("stripe_webhook_receipts")
 }
 
 model CommerceRefund {

@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/scheduled-emails",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/billing-dunning",
+      "schedule": "0 7 * * *"
     }
   ]
 }

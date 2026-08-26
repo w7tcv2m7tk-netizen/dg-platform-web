@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   appIdsFromPlanSelection,
+  assertEntitlement,
   getDefaultEnabledAppIds,
   isIndustryBetaGatedApp,
   organisationHasIndustryAppBeta,
@@ -69,6 +70,26 @@ export async function PATCH(req: Request) {
 
   const settings = (org?.settings as OrgSettings | null) ?? {};
   let enabled = resolveEnabledAppIds(settings);
+
+  const paidActivation =
+    body.action === "apply_plan" ||
+    (body.action === "toggle" && body.enabled !== false) ||
+    body.action === "set";
+  if (paidActivation) {
+    const gate = await assertEntitlement(session.organisationId, "activatePaidApps");
+    if (!gate.ok) {
+      return NextResponse.json(
+        {
+          error: {
+            code: gate.code,
+            message: gate.message,
+            entitlement: gate.entitlement.level,
+          },
+        },
+        { status: 403 },
+      );
+    }
+  }
 
   if (body.action === "apply_plan" && body.plan) {
     const denied = requirePermission(session, {

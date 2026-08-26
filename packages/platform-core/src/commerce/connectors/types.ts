@@ -13,6 +13,8 @@ export type PaymentWebhookEventType =
   | "payment.failed"
   | "payment.disputed"
   | "invoice.paid"
+  | "invoice.payment_failed"
+  | "invoice.payment_action_required"
   | "subscription.created"
   | "subscription.updated"
   | "subscription.cancelled"
@@ -23,6 +25,7 @@ export type PaymentWebhookEventType =
   /** Stripe Connect — transfer to referrer failed / reversed */
   | "connect.transfer.failed"
   | "connect.transfer.reversed"
+  | "customer.updated"
   /** Stripe sent an event we do not process — acknowledge without error */
   | "ignored";
 

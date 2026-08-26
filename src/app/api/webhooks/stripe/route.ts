@@ -1,7 +1,11 @@
 import {
   accrueMonthlyReferralCreditFromInvoice,
   accruePartnerCommissionFromInvoice,
+  applyInvoicePaidRecovery,
+  applyInvoicePaymentFailed,
   bootPaymentConnectors,
+  claimStripeWebhookReceipt,
+  getPlatformSubscriptionByStripeCustomer,
   handleConnectAccountUpdated,
   handleConnectTransferFailure,
   handlePlatformSubscriptionLifecycle,
@@ -18,6 +22,20 @@ import { NextResponse } from "next/server";
 
 bootPaymentConnectors();
 
+async function resolveOrgIdFromStripeCustomer(
+  customerId: string | undefined,
+): Promise<string | undefined> {
+  if (!customerId) return undefined;
+  const sub = await getPlatformSubscriptionByStripeCustomer(customerId);
+  if (sub) return sub.organisationId;
+  const { prisma } = await import("@dg/database");
+  const org = await prisma.organisation.findFirst({
+    where: { billingCustomerId: customerId },
+    select: { id: true },
+  });
+  return org?.id;
+}
+
 export async function POST(req: Request) {
   const rawBody = await req.text();
   const headers = Object.fromEntries(req.headers.entries());
@@ -25,6 +43,15 @@ export async function POST(req: Request) {
   try {
     const connector = requirePaymentConnector("stripe");
     const event = await connector.parseWebhook(rawBody, headers);
+
+    const receipt = await claimStripeWebhookReceipt({
+      eventId: event.providerEventId,
+      eventType: event.type,
+      organisationId: event.organisationId ?? null,
+    });
+    if (!receipt.claimed) {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
 
     if (event.type === "ignored") {
       const ignoredType =
@@ -82,7 +109,12 @@ export async function POST(req: Request) {
       ) {
         const lifecycle = await handlePlatformSubscriptionLifecycle(
           subscription,
-          event.type === "subscription.cancelled" ? "deleted" : "updated",
+          event.type === "subscription.cancelled"
+            ? "deleted"
+            : event.type === "subscription.created"
+              ? "created"
+              : "updated",
+          event.providerEventId,
         );
         result.platform = lifecycle;
         console.info("[stripe webhook] platform subscription:", event.type, lifecycle);
@@ -100,6 +132,34 @@ export async function POST(req: Request) {
       if (Object.keys(result).length > 0) {
         return NextResponse.json({ received: true, subscription: result });
       }
+    }
+
+    if (
+      event.type === "invoice.payment_failed" ||
+      event.type === "invoice.payment_action_required"
+    ) {
+      let organisationId = event.organisationId;
+      if (!organisationId) {
+        organisationId = await resolveOrgIdFromStripeCustomer(event.providerCustomerId);
+      }
+      if (organisationId) {
+        const failed = await applyInvoicePaymentFailed({
+          organisationId,
+          stripeSubscriptionId: event.stripeSubscriptionId,
+          stripeCustomerId: event.providerCustomerId,
+          stripeEventId: event.providerEventId,
+          stripeInvoiceId: event.stripeInvoiceId,
+        });
+        console.info("[stripe webhook] invoice payment failed:", failed?.status);
+        return NextResponse.json({
+          received: true,
+          platform: {
+            commercialStatus: failed?.status,
+            entitlement: failed?.entitlement,
+          },
+        });
+      }
+      return NextResponse.json({ received: true, skipped: "no_organisation" });
     }
 
     if (event.type === "connect.account.updated" && event.raw) {
@@ -138,7 +198,6 @@ export async function POST(req: Request) {
       let organisationId = event.organisationId;
       let platformTier = event.platformTier;
 
-      // Resolve org / tier from subscription metadata when invoice payload omits them
       if ((!organisationId || !platformTier) && event.stripeSubscriptionId) {
         try {
           const stripe = new (await import("stripe")).default(
@@ -153,6 +212,21 @@ export async function POST(req: Request) {
           platformTier = platformTier || sub.metadata?.dg_platform_tier || undefined;
         } catch (err) {
           console.warn("[stripe webhook] subscription lookup failed", err);
+        }
+      }
+
+      if (!organisationId) {
+        organisationId = await resolveOrgIdFromStripeCustomer(event.providerCustomerId);
+      }
+
+      if (organisationId) {
+        try {
+          await applyInvoicePaidRecovery({
+            organisationId,
+            stripeEventId: event.providerEventId,
+          });
+        } catch (err) {
+          console.warn("[stripe webhook] invoice paid recovery failed", err);
         }
       }
 
@@ -196,6 +270,10 @@ export async function POST(req: Request) {
         referralReward,
         partnerCommission,
       });
+    }
+
+    if (event.type === "customer.updated") {
+      return NextResponse.json({ received: true, customer: "ack" });
     }
 
     const result = await processPaymentWebhookEvent(event);
