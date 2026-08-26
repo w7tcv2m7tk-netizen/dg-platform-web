@@ -1,0 +1,1913 @@
+<meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Pricing | DigitalGate Business Platform</title>
+  <meta name="description" content="Platform from $99/mo. Industry Apps $99 with 1 Template included; extra Templates +$29. Website Build from $1,997.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap"></noscript>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0A0E17; color: #FFFFFF; line-height: 1.5; }
+
+    /* Heading contrast — beats Oxygen / theme overrides on dark backgrounds */
+    .hero-pricing h1,
+    .section-header h2,
+    .twin-card h3,
+    .ai-card h4,
+    .plan-name,
+    .dg-app-card .app-name,
+    .compare-col h4,
+    .why-item h4,
+    .faq-section .section-header h2,
+    .faq-question,
+    .cta-section h2,
+    .value-section .section-header h2,
+    .value-industry-card h3,
+    .value-includes-col h4,
+    .how-buy-card h3,
+    .roadmap-col h4,
+    .apps-subsection-header h3,
+    .pro-service-card h4,
+    .support-card .support-tier,
+    .shot-frame .shot-title {
+      color: #F9FAFB !important;
+    }
+    .dg-ic { display: inline-flex; align-items: center; justify-content: center; width: 1em; flex-shrink: 0; font-style: normal; line-height: 1; }
+    .dg-ic-check::before { content: "✓"; color: #10B981; font-weight: 700; font-size: 0.85em; }
+    .dg-ic-x::before { content: "×"; color: #EF4444; font-weight: 700; font-size: 1em; }
+    .dg-ic-plus::before { content: "+"; font-weight: 700; }
+    .dg-ic-card::before { content: "💳"; font-size: 0.9em; }
+    .dg-ic-mail::before { content: "✉"; font-size: 0.9em; }
+    .dg-ic-chevron::before { content: "▾"; font-size: 0.85em; opacity: 0.7; }
+    .dg-ic-chevron.is-open::before { content: "▴"; }
+    .platform-section, .apps-section, .services-section, .value-section, .why-section, .compare-section, .cta-section, .faq-section {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 520px;
+    }
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
+
+    /* ===== HERO — compact (aligned with inner pages; home only is fullscreen) ===== */
+    .hero-pricing {
+      position: relative;
+      width: 100%;
+      min-height: 0;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: #05070A;
+      padding: 7rem 0 4.5rem;
+      text-align: center;
+    }
+
+    .hero-pricing .hero-bg-glow {
+      position: absolute;
+      top: -20%;
+      right: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      animation: dgPulseGlow 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .hero-pricing .hero-bg-glow-2 {
+      position: absolute;
+      bottom: -20%;
+      left: -10%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(45, 212, 191, 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      animation: dgPulseGlow 5s ease-in-out infinite reverse;
+      pointer-events: none;
+    }
+
+    @keyframes dgPulseGlow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.1); }
+    }
+
+    .hero-pricing .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      animation: dgGridPulse 8s ease-in-out infinite;
+    }
+
+    @keyframes dgGridPulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.6; }
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(40px);
+      opacity: 0.3;
+    }
+    .orb-1 {
+      width: 200px;
+      height: 200px;
+      background: #3B82F6;
+      top: 15%;
+      left: 5%;
+      animation: dgFloatOrb 6s ease-in-out infinite;
+    }
+    .orb-2 {
+      width: 150px;
+      height: 150px;
+      background: #2DD4BF;
+      bottom: 25%;
+      right: 8%;
+      animation: dgFloatOrb 8s ease-in-out infinite reverse;
+    }
+
+    @keyframes dgFloatOrb {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+
+    .constellation {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.5;
+    }
+    .constellation-node {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #3B82F6;
+      border-radius: 50%;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+      animation: dgNodePulse 3s ease-in-out infinite;
+    }
+    @keyframes dgNodePulse {
+      0%, 100% { opacity: 0.2; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.5); }
+    }
+
+    .hero-pricing .hero-container {
+      position: relative;
+      z-index: 10;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      width: 100%;
+      text-align: center;
+    }
+
+    .hero-pricing .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 60px;
+      padding: 0.5rem 1.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #93C5FD;
+      margin-bottom: 1.5rem;
+      letter-spacing: 1px;
+      opacity: 0;
+      animation: dgFadeUp 0.8s ease forwards;
+      animation-delay: 0.1s;
+    }
+    .hero-pricing .hero-badge i { font-size: 0.85rem; }
+    .hero-pricing .hero-cta i { display: none; }
+
+    .hero-pricing h1 {
+      font-family: Inter, system-ui, sans-serif;
+      font-size: clamp(42px, 5.5vw, 68px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: #F9FAFB;
+      margin-bottom: 0.5rem;
+      opacity: 0;
+      animation: dgFadeUp 0.8s ease forwards;
+      animation-delay: 0.2s;
+    }
+    .hero-pricing h1 .highlight {
+      color: #BFDBFE;
+      position: relative;
+      display: inline-block;
+    }
+    .hero-pricing h1 .highlight::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #3B82F6, #2DD4BF);
+      border-radius: 2px;
+      animation: dgLineGrow 1.2s ease forwards;
+      transform: scaleX(0);
+      transform-origin: left;
+    }
+    @keyframes dgLineGrow {
+      to { transform: scaleX(1); }
+    }
+
+    .hero-pricing .hero-subtitle {
+      font-size: 1.2rem;
+      color: #94A3B8;
+      margin: 1rem 0 1.5rem;
+      line-height: 1.6;
+      opacity: 0;
+      animation: dgFadeUp 0.8s ease forwards;
+      animation-delay: 0.4s;
+    }
+
+    .hero-pricing .hero-text {
+      font-size: 1rem;
+      color: #94A3B8;
+      max-width: 700px;
+      line-height: 1.8;
+      margin: 0 auto 2rem;
+      opacity: 0;
+      animation: dgFadeUp 0.8s ease forwards;
+      animation-delay: 0.5s;
+    }
+    .hero-pricing .hero-text strong { color: #E2E8F0; }
+
+    .hero-pricing .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(105deg, #3B82F6, #2563EB);
+      color: #FFFFFF !important;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.9rem 2.2rem;
+      border-radius: 56px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+      opacity: 0;
+      animation: dgFadeUp 0.8s ease forwards;
+      animation-delay: 0.6s;
+    }
+    .hero-pricing .hero-cta i { font-size: 0.85rem; transition: transform 0.2s ease; }
+    .hero-pricing .hero-cta:hover {
+      background: linear-gradient(105deg, #5695ff, #3B82F6);
+      transform: translateY(-3px);
+      color: #FFFFFF !important;
+      box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+    }
+    .hero-pricing .hero-cta:hover i { transform: translateX(5px); }
+
+    @keyframes dgFadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================ */
+    /* ===== SECTION HEADERS ===== */
+    /* ============================================================ */
+    .section-header { text-align: center; margin: 60px 0 40px; }
+    .section-header h2 { font-family: Inter, system-ui, sans-serif; font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: #F9FAFB; }
+    .section-header p { color: #CBD5E1; }
+    .section-header .sub-label {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #93C5FD;
+      background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.15);
+      border-radius: 40px;
+      padding: 0.3rem 1.2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ============================================================ */
+    /* ===== PLATFORM PRICING ===== */
+    /* ============================================================ */
+    .platform-section {
+      padding: 60px 0;
+      background: #0A0E17;
+    }
+
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-bottom: 40px; }
+
+    .pricing-card { 
+      background: #1E293B; 
+      border-radius: 24px; 
+      padding: 2rem; 
+      border: 1px solid #334155; 
+      transition: all 0.3s ease; 
+      position: relative; 
+      display: flex; 
+      flex-direction: column; 
+    }
+    .pricing-card:hover { transform: translateY(-6px); border-color: #3B82F6; box-shadow: 0 20px 35px -12px rgba(59,130,246,0.15); }
+    .pricing-card.popular { border: 2px solid #3B82F6; background: #1a2a3a; }
+    .popular-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #3B82F6; color: white; font-size: 0.7rem; font-weight: 700; padding: 0.25rem 1rem; border-radius: 30px; letter-spacing: 1px; }
+    .plan-name { font-family: Inter, system-ui, sans-serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .plan-name .plan-icon { font-size: 1.2rem; margin-right: 6px; }
+    .plan-price { font-size: 2.5rem; font-weight: 800; color: #3B82F6; margin: 0.75rem 0 0.25rem; }
+    .plan-price span { font-size: 0.9rem; font-weight: 400; color: #94A3B8; }
+    .plan-users { font-size: 0.8rem; color: #94A3B8; margin-bottom: 1rem; }
+    .plan-description { color: #94A3B8; font-size: 0.85rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #334155; }
+    .feature-list { list-style: none; margin-bottom: 1.5rem; flex-grow: 1; }
+    .feature-list li { margin-bottom: 0.6rem; font-size: 0.85rem; display: flex; align-items: flex-start; gap: 8px; }
+    .feature-list li .dg-ic-check { margin-top: 2px; }
+    .feature-list li i { color: #10B981; font-size: 0.75rem; margin-top: 3px; flex-shrink: 0; }
+    .feature-list li .feature-icon { color: #3B82F6; }
+
+    .btn-primary {
+      display: block;
+      text-align: center;
+      background: linear-gradient(105deg, #3B82F6, #2563EB);
+      color: #FFFFFF !important;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 12px 20px;
+      border-radius: 40px;
+      text-decoration: none;
+      margin-top: auto;
+      transition: all 0.25s ease;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-primary .dg-ic { margin-right: 8px; font-size: 0.85rem; }
+    .btn-primary:hover { background: linear-gradient(105deg, #5695ff, #3B82F6); transform: translateY(-2px); }
+    .btn-secondary {
+      display: block;
+      text-align: center;
+      background: transparent;
+      border: 1.5px solid #334155;
+      color: #94A3B8;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 12px 20px;
+      border-radius: 40px;
+      text-decoration: none;
+      margin-top: 0.75rem;
+      transition: all 0.25s ease;
+      width: 100%;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-secondary:hover { border-color: #3B82F6; color: #FFFFFF; background: rgba(59,130,246,0.05); }
+
+    /* ============================================================ */
+    /* ===== APPS SECTION ===== */
+    /* ============================================================ */
+    .apps-section {
+      padding: 40px 0 60px;
+      background: #111827;
+    }
+
+    .apps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+
+    .dg-app-card {
+      background: #1E293B !important;
+      border: 1px solid #334155 !important;
+      border-radius: 16px !important;
+      padding: 1.25rem !important;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .dg-app-card:hover {
+      border-color: #3B82F6 !important;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(59, 130, 246, 0.18);
+    }
+    .dg-app-card .app-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .dg-app-card .app-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.25rem; color: #F9FAFB !important; }
+    .dg-app-card .app-price { color: #3B82F6 !important; font-weight: 700; font-size: 1.1rem; }
+    .dg-app-card .app-price span { font-size: 0.8rem; font-weight: 400; color: #94A3B8; }
+    .dg-app-card .btn-app { margin-top: auto; width: 100%; }
+
+    /* ============================================================ */
+    /* ===== GROWTH SERVICES ===== */
+    /* ============================================================ */
+    .services-section {
+      padding: 60px 0;
+      background: #0A0E17;
+    }
+
+    .services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+
+    .service-card {
+      background: #1E293B;
+      border-radius: 20px;
+      padding: 1.5rem;
+      border: 1px solid #334155;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .service-card:hover { border-color: #3B82F6; transform: translateY(-4px); }
+    .service-card .plan-name { font-size: 1.2rem; }
+    .service-card .plan-price { font-size: 2rem; }
+    .service-list { list-style: none; margin: 0.75rem 0 1.5rem; flex-grow: 1; }
+    .service-list li { font-size: 0.8rem; margin-bottom: 0.5rem; display: flex; align-items: flex-start; gap: 8px; }
+    .service-list li i { color: #3B82F6; font-size: 0.7rem; margin-top: 3px; flex-shrink: 0; }
+    .service-badge {
+      display: inline-block;
+      background: rgba(59,130,246,0.1);
+      color: #60A5FA;
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 0.2rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.5rem;
+    }
+    .service-card .btn-primary { margin-top: auto; }
+
+    /* ============================================================ */
+    /* ===== WHY DIGITALGATE SECTION ===== */
+    /* ============================================================ */
+    .why-section {
+      background: #111827;
+      padding: 60px 0;
+      border-top: 1px solid #1E293B;
+      border-bottom: 1px solid #1E293B;
+    }
+
+    .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+    .why-item { text-align: center; }
+    .why-item .why-icon { font-size: 2.5rem; color: #3B82F6; margin-bottom: 0.75rem; }
+    .why-item h4 { font-family: Inter, system-ui, sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .why-item p { color: #94A3B8; font-size: 0.9rem; line-height: 1.6; }
+
+    /* ============================================================ */
+    /* ===== COMPARE SECTION ===== */
+    /* ============================================================ */
+    .compare-section {
+      background: #0A0E17;
+      padding: 60px 0;
+    }
+
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; max-width: 900px; margin: 0 auto; }
+    .compare-col h4 { font-family: Inter, system-ui, sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
+    .compare-col ul { list-style: none; }
+    .compare-col ul li { padding: 0.5rem 0; border-bottom: 1px solid #1E293B; font-size: 0.9rem; color: #94A3B8; display: flex; align-items: center; gap: 10px; }
+    .compare-col ul li i { color: #10B981; font-size: 0.8rem; }
+    .compare-col ul li .cross { color: #EF4444; }
+
+    /* ===== VALUE COMPARISON SECTION ===== */
+    .value-section {
+      background: #0A0E17;
+      padding: 72px 0;
+      border-top: 1px solid #1E293B;
+    }
+    .value-section .section-header { text-align: center; max-width: 760px; margin: 0 auto 2.5rem; }
+    .value-section .sub-label {
+      display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+      color: #93C5FD; margin-bottom: 0.75rem;
+    }
+    .value-section .section-header h2 {
+      font-family: Inter, system-ui, sans-serif; font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 800; margin-bottom: 0.75rem; color: #F9FAFB;
+    }
+    .value-section .section-header p { color: #CBD5E1; font-size: 1rem; line-height: 1.6; }
+    .value-stats {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+      max-width: 960px; margin: 0 auto 2.5rem;
+    }
+    .value-stat {
+      background: #111827; border: 1px solid #1E293B; border-radius: 16px;
+      padding: 1.25rem; text-align: center;
+    }
+    .value-stat .num {
+      font-family: Inter, system-ui, sans-serif; font-size: 1.75rem; font-weight: 800;
+      color: #FFFFFF; line-height: 1.1;
+    }
+    .value-stat .num.accent { color: #34D399; }
+    .value-stat .lbl { color: #94A3B8; font-size: 0.78rem; margin-top: 0.35rem; line-height: 1.4; }
+    .value-table-wrap {
+      max-width: 960px; margin: 0 auto 2.5rem; overflow-x: auto;
+      border: 1px solid #1E293B; border-radius: 16px; background: #111827;
+    }
+    .value-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .value-table th, .value-table td { padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid #1E293B; }
+    .value-table th { color: #94A3B8; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .value-table td { color: #CBD5E1; }
+    .value-table tr:last-child td { border-bottom: none; }
+    .value-table .price-dg { color: #34D399; font-weight: 700; }
+    .value-table .price-market { color: #F87171; text-decoration: line-through; opacity: 0.85; }
+    .value-table .save { color: #60A5FA; font-weight: 700; }
+    .value-industry-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
+      max-width: 1100px; margin: 0 auto 2rem;
+    }
+    .value-industry-card {
+      background: #111827; border: 1px solid #1E293B; border-radius: 16px; padding: 1.35rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .value-industry-card .ind-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .value-industry-card .ind-icon { font-size: 1.4rem; }
+    .value-industry-card h3 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .value-industry-card .badge {
+      display: inline-block; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 999px;
+    }
+    .badge-ga { background: rgba(16,185,129,0.15); color: #34D399; border: 1px solid rgba(16,185,129,0.25); }
+    .badge-soon { background: rgba(251,191,36,0.12); color: #FBBF24; border: 1px solid rgba(251,191,36,0.25); }
+    .value-industry-card p { color: #94A3B8; font-size: 0.82rem; line-height: 1.55; margin: 0; flex: 1; }
+    .value-industry-card .ind-pricing { margin-top: 0.5rem; font-size: 0.85rem; }
+    .value-industry-card .ind-pricing strong { color: #FFFFFF; }
+    .value-industry-card .ind-pricing span { color: #64748B; font-size: 0.78rem; display: block; margin-top: 0.15rem; }
+    .value-includes {
+      max-width: 960px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+    }
+    .value-includes-col {
+      background: #111827; border: 1px solid #1E293B; border-radius: 16px; padding: 1.35rem;
+    }
+    .value-includes-col h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.85rem; }
+    .value-includes-col ul { list-style: none; margin: 0; padding: 0; }
+    .value-includes-col li {
+      padding: 0.45rem 0; border-bottom: 1px solid #1E293B; font-size: 0.85rem; color: #94A3B8;
+      display: flex; align-items: flex-start; gap: 8px;
+    }
+    .value-includes-col li:last-child { border-bottom: none; }
+    .value-includes-col li .check { color: #10B981; font-weight: 700; flex-shrink: 0; }
+    .value-footnote {
+      max-width: 760px; margin: 2rem auto 0; text-align: center;
+      color: #64748B; font-size: 0.78rem; line-height: 1.6;
+    }
+
+    /* ============================================================ */
+    /* ===== CTA SECTION ===== */
+    /* ============================================================ */
+    .cta-section { 
+      text-align: center; 
+      padding: 60px 0; 
+      background: #0A0E17;
+    }
+    .cta-section h2 { font-family: Inter, system-ui, sans-serif; font-size: 2rem; margin-bottom: 1rem; color: #F9FAFB; }
+    .cta-button { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 12px; 
+      background: linear-gradient(105deg, #3B82F6, #2563EB); 
+      color: white; 
+      font-weight: 700; 
+      padding: 1rem 2rem; 
+      border-radius: 60px; 
+      text-decoration: none; 
+      margin-top: 1.5rem; 
+      transition: all 0.2s; 
+    }
+    .cta-button:hover { background: linear-gradient(105deg, #5695ff, #3B82F6); transform: translateY(-2px); gap: 16px; }
+    .cta-section .hero-cta-row { margin-top: 0.25rem; }
+
+    /* ============================================================ */
+    /* ===== FAQ SECTION ===== */
+    /* ============================================================ */
+    .faq-section { max-width: 800px; margin: 60px auto; padding: 0 2rem; }
+    .faq-item { background: #1E293B; border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid #334155; }
+    .faq-question { font-weight: 700; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .faq-answer { color: #94A3B8; font-size: 0.85rem; margin-top: 0.75rem; display: none; }
+    .faq-answer.show { display: block; }
+
+
+    .pricing-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 40px; }
+    .how-buy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin: 2rem 0 0; }
+    .how-buy-card { background: rgba(30,41,59,0.8); border: 1px solid #334155; border-radius: 16px; padding: 1.25rem; text-align: center; }
+    .how-buy-card h3 { font-size: 1rem; margin-bottom: 0.35rem; }
+    .how-buy-card p { color: #94A3B8; font-size: 0.85rem; }
+    .founding-banner { background: linear-gradient(105deg, rgba(59,130,246,0.15), rgba(45,212,191,0.08)); border: 1px solid rgba(59,130,246,0.25); border-radius: 16px; padding: 1.25rem 1.5rem; margin: 2rem auto 0; max-width: 720px; text-align: center; }
+    .founding-banner strong { color: #60A5FA; }
+    .founding-banner p { color: #94A3B8; font-size: 0.9rem; margin-top: 0.35rem; }
+    .savings-callout { display: inline-block; margin-top: 1rem; padding: 0.5rem 1rem; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); border-radius: 40px; color: #34D399; font-size: 0.85rem; font-weight: 600; }
+    .section-spacer { margin-top: 2.5rem; }
+    .apps-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.25rem; }
+    .apps-grid-6 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+    .apps-grid-7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1.25rem; }
+    .apps-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+    .apps-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; max-width: 960px; margin: 0 auto; }
+    .apps-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; max-width: 560px; margin: 0 auto; }
+    .dg-app-card .app-desc { color: #94A3B8; font-size: 0.75rem; margin: 0.35rem 0 0.75rem; line-height: 1.4; min-height: 2.5em; }
+    .dg-app-card .btn-app {
+      display: block; text-align: center; background: transparent; border: 1.5px solid #334155;
+      color: #94A3B8; font-weight: 600; font-size: 0.8rem; padding: 8px 12px; border-radius: 40px;
+      text-decoration: none; transition: all 0.25s ease; font-family: 'Inter', sans-serif;
+    }
+    .dg-app-card .btn-app:hover { border-color: #3B82F6; color: #FFFFFF; background: rgba(59,130,246,0.08); }
+    .dg-app-card .app-name a { color: inherit; text-decoration: none; }
+    .dg-app-card .app-name a:hover { color: #93C5FD; }
+    @media (max-width: 1200px) { .apps-grid-6 { grid-template-columns: repeat(3, 1fr); } .apps-grid-7 { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 1024px) { .pricing-grid-4 { grid-template-columns: repeat(2, 1fr); } .how-buy { grid-template-columns: 1fr; } .apps-grid-5 { grid-template-columns: repeat(3, 1fr); } .apps-grid-6 { grid-template-columns: repeat(2, 1fr); } .apps-grid-7 { grid-template-columns: repeat(3, 1fr); } .apps-grid-4 { grid-template-columns: repeat(2, 1fr); } .apps-grid-3 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 768px) { .pricing-grid-4 { grid-template-columns: 1fr; } .apps-grid-5 { grid-template-columns: repeat(2, 1fr); } .apps-grid-6 { grid-template-columns: 1fr; } .apps-grid-7 { grid-template-columns: repeat(2, 1fr); } .apps-grid-4 { grid-template-columns: repeat(2, 1fr); } .apps-grid-3 { grid-template-columns: 1fr; } .apps-grid-2 { grid-template-columns: 1fr; max-width: 320px; } }
+
+    /* ============================================================ */
+    /* ===== RESPONSIVE ===== */
+    /* ============================================================ */
+    @media (max-width: 1024px) {
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+      .services-grid { grid-template-columns: repeat(2, 1fr); }
+      .apps-grid { grid-template-columns: repeat(2, 1fr); }
+      .why-grid { grid-template-columns: repeat(2, 1fr); }
+      .compare-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .value-stats { grid-template-columns: repeat(2, 1fr); }
+      .value-industry-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .hero-pricing { padding: 6rem 0 3.5rem; }
+      .hero-pricing h1 { font-size: clamp(28px, 6vw, 38px); }
+      .hero-pricing .hero-subtitle { font-size: 1rem; }
+      .hero-pricing .hero-text { font-size: 0.95rem; }
+      .section-header h2 { font-size: 1.6rem; }
+      .container { padding: 0 1.25rem; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .services-grid { grid-template-columns: 1fr; }
+      .apps-grid { grid-template-columns: 1fr 1fr; }
+      .why-grid { grid-template-columns: 1fr; }
+      .orb-1 { width: 80px; height: 80px; filter: blur(40px); }
+      .orb-2 { width: 70px; height: 70px; filter: blur(40px); }
+      .compare-grid { grid-template-columns: 1fr; }
+      .value-stats { grid-template-columns: 1fr 1fr; }
+      .value-industry-grid { grid-template-columns: 1fr; }
+      .value-includes { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .hero-pricing h1 { font-size: clamp(24px, 7vw, 32px); }
+      .hero-pricing .hero-subtitle { font-size: 0.9rem; }
+      .hero-pricing .hero-text { font-size: 0.85rem; }
+      .hero-pricing .hero-cta { width: 100%; justify-content: center; padding: 0.8rem 1.5rem; }
+      .section-header h2 { font-size: 1.3rem; }
+      .container { padding: 0 1rem; }
+      .apps-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+      .dg-app-card { padding: 1rem; }
+      .dg-app-card .app-icon { font-size: 1.5rem; }
+      .plan-price { font-size: 2rem; }
+    }
+
+    footer { text-align: center; padding: 20px 0; font-size: 0.8rem; color: #64748B; }
+
+    .hero-cta-row { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 1.75rem; }
+    .hero-cta-row a {
+      display: inline-flex; align-items: center; gap: 8px; padding: 0.85rem 1.5rem; border-radius: 60px;
+      font-weight: 700; font-size: 0.9rem; text-decoration: none; transition: all 0.2s;
+    }
+    .hero-cta-primary { background: linear-gradient(105deg, #3B82F6, #2563EB); color: #fff; }
+    .hero-cta-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,0.35); }
+    .hero-cta-secondary { background: rgba(30,41,59,0.9); border: 1px solid #334155; color: #E2E8F0; }
+    .hero-cta-secondary:hover { border-color: #3B82F6; color: #fff; }
+    .hero-cta-ghost { background: transparent; border: 1px solid #475569; color: #94A3B8; }
+    .hero-cta-ghost:hover { border-color: #64748B; color: #E2E8F0; }
+    .hero-tagline { font-size: 1.15rem; color: #CBD5E1; max-width: 680px; margin: 0 auto 0.5rem; line-height: 1.65; }
+    .hero-lede { font-size: 1rem; color: #94A3B8; max-width: 620px; margin: 0 auto; line-height: 1.6; }
+    .commercial-callout {
+      max-width: 820px; margin: 0 auto 2rem; padding: 1.25rem 1.35rem;
+      background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.22);
+      border-radius: 14px; text-align: center;
+    }
+    .commercial-callout h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.45rem; color: #F9FAFB !important; }
+    .commercial-callout p { color: #94A3B8; font-size: 0.92rem; line-height: 1.65; margin: 0; }
+    .commercial-callout a { color: #93C5FD; }
+
+    .narrative-section, .twin-section, .stack-section, .journey-section, .core-section, .ai-section, .screenshots-section, .trust-section, .infra-section {
+      padding: 72px 0; border-top: 1px solid #1E293B;
+    }
+    .twin-section { background: linear-gradient(180deg, #0A0E17 0%, #111827 100%); }
+    .stack-section { background: #111827; }
+    .journey-section { background: #0A0E17; }
+    .core-section { background: #111827; }
+    .ai-section { background: #0A0E17; }
+    .screenshots-section { background: #111827; }
+    .trust-section { background: linear-gradient(180deg, #111827 0%, #0A0E17 100%); }
+
+    .stack-funnel { display: flex; flex-direction: column; align-items: center; gap: 0; max-width: 440px; margin: 2rem auto 0; }
+    .stack-step {
+      width: 100%; padding: 0.85rem 1.25rem; background: #0A0E17; border: 1px solid #334155;
+      border-radius: 12px; text-align: center; font-weight: 600; font-size: 0.92rem; color: #CBD5E1;
+    }
+    .stack-arrow { color: #3B82F6; font-size: 1.1rem; padding: 0.4rem 0; line-height: 1; }
+    .stack-result {
+      background: linear-gradient(105deg, rgba(59,130,246,0.18), rgba(45,212,191,0.1));
+      border-color: rgba(59,130,246,0.45); color: #93C5FD; font-size: 1rem; font-weight: 700;
+    }
+
+    .journey-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 900px; margin: 2rem auto 0; }
+    .journey-node {
+      background: #111827; border: 1px solid #334155; border-radius: 12px; padding: 1rem 0.75rem;
+      text-align: center; font-size: 0.78rem; font-weight: 600; color: #94A3B8;
+    }
+    .journey-gate {
+      grid-column: 1 / -1; margin: 1rem 0; padding: 1.25rem; border-radius: 16px;
+      background: linear-gradient(105deg, rgba(59,130,246,0.15), rgba(45,212,191,0.08));
+      border: 1px solid rgba(59,130,246,0.3); text-align: center;
+    }
+    .journey-gate strong { display: block; font-size: 1.35rem; color: #F9FAFB; margin-bottom: 0.35rem; }
+    .journey-gate span { color: #94A3B8; font-size: 0.9rem; }
+
+    .core-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; max-width: 960px; margin: 2rem auto 0; }
+    .core-item {
+      background: #0A0E17; border: 1px solid #334155; border-radius: 12px; padding: 1rem 1.25rem;
+      font-size: 0.9rem; color: #CBD5E1; display: flex; align-items: center; gap: 10px;
+    }
+    .core-item .ic { color: #10B981; font-weight: 700; }
+
+    .ai-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; max-width: 1000px; margin: 2rem auto 0; }
+    .ai-card {
+      background: #111827; border: 1px solid #334155; border-radius: 14px; padding: 1.25rem;
+      text-align: center;
+    }
+    .ai-card .ai-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+    .ai-card h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .ai-card p { font-size: 0.78rem; color: #64748B; line-height: 1.45; margin: 0; }
+
+    .twin-card {
+      max-width: 820px; margin: 2rem auto 0; padding: 2rem; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(16,185,129,0.06));
+      border: 1px solid rgba(59,130,246,0.25); text-align: center;
+    }
+    .twin-card h3 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.75rem; }
+    .twin-card p { color: #94A3B8; line-height: 1.65; max-width: 640px; margin: 0 auto 1.25rem; }
+    .twin-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+    .twin-pills span {
+      font-size: 0.75rem; padding: 0.35rem 0.85rem; border-radius: 999px;
+      background: rgba(15,23,42,0.8); border: 1px solid #334155; color: #CBD5E1;
+    }
+
+    .shot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; max-width: 1100px; margin: 2rem auto 0; }
+    .shot-frame {
+      position: relative; aspect-ratio: 16/10; border-radius: 14px; border: 1px solid #334155; overflow: hidden;
+      background: #0F172A;
+    }
+    .shot-frame img {
+      width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block;
+    }
+    .shot-frame .shot-caption {
+      position: absolute; inset: auto 0 0 0; padding: 0.85rem 1rem;
+      background: linear-gradient(180deg, transparent, rgba(2, 6, 23, 0.92) 35%);
+      text-align: left;
+    }
+    .shot-frame .shot-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #93C5FD; display: block; }
+    .shot-frame .shot-title { font-size: 0.95rem; font-weight: 700; color: #F1F5F9; display: block; }
+    .shot-frame .shot-sub { font-size: 0.72rem; color: #94A3B8; display: block; margin-top: 0.15rem; }
+
+    .trust-logos { display: flex; flex-wrap: wrap; gap: 1.25rem; justify-content: center; margin-top: 2rem; }
+    .trust-logo {
+      background: #111827; border: 1px solid #334155; border-radius: 14px; padding: 1.25rem 2rem;
+      text-align: center; min-width: 180px;
+    }
+    .trust-logo strong { display: block; font-size: 1rem; color: #F9FAFB; }
+    .trust-logo span { font-size: 0.78rem; color: #64748B; margin-top: 0.25rem; display: block; }
+
+    .roadmap-split { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 900px; margin: 2rem auto 0; }
+    .roadmap-col h4 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #93C5FD; margin-bottom: 1rem; }
+    .roadmap-col.soon h4 { color: #FBBF24; }
+    .roadmap-col ul { list-style: none; margin: 0; padding: 0; }
+    .roadmap-col li {
+      padding: 0.65rem 0; border-bottom: 1px solid #1E293B; font-size: 0.9rem; color: #CBD5E1;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .roadmap-col li:last-child { border-bottom: none; }
+
+    .plan-outcome { font-style: italic; color: #BFDBFE; font-size: 0.88rem; margin-bottom: 0.75rem; min-height: 2.5em; }
+    .trial-note { margin-top: 0.75rem; font-size: 0.72rem; color: #64748B; line-height: 1.4; text-align: center; }
+    .how-buy { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; }
+    .how-buy-card { background:#1E293B; border:1px solid #334155; border-radius:12px; padding:1rem 0.85rem; text-align:center; }
+    .how-buy-card strong { display:block; color:#F9FAFB; font-size:0.88rem; margin-bottom:0.35rem; }
+    .how-buy-card span { color:#94A3B8; font-size:0.75rem; line-height:1.4; }
+    @media (max-width: 1024px) { .how-buy { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { .how-buy { grid-template-columns: 1fr; } }
+
+    /* Pricing structure jump nav */
+    .pricing-nav {
+      padding: 2.5rem 0; background: #0A0E17; border-top: 1px solid #1E293B; border-bottom: 1px solid #1E293B;
+    }
+    .pricing-nav-inner {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; max-width: 1100px; margin: 0 auto;
+    }
+    .pricing-nav a {
+      display: inline-flex; align-items: center; gap: 8px; padding: 0.65rem 1.25rem; border-radius: 999px;
+      border: 1px solid #334155; background: #111827; color: #E2E8F0; font-size: 0.85rem; font-weight: 600;
+      text-decoration: none; transition: all 0.2s;
+    }
+    .pricing-nav a:hover { border-color: #3B82F6; color: #fff; background: rgba(59,130,246,0.1); }
+    .pricing-nav a .num {
+      display: inline-flex; align-items: center; justify-content: center; width: 1.35rem; height: 1.35rem;
+      border-radius: 999px; background: rgba(59,130,246,0.2); color: #93C5FD; font-size: 0.72rem; font-weight: 800;
+    }
+
+    /* Apps subsections */
+    .apps-subsection { margin-top: 2.5rem; }
+    .apps-subsection:first-of-type { margin-top: 0; }
+    .apps-subsection-header { margin-bottom: 1.25rem; text-align: center; }
+    .apps-subsection-header h3 { font-size: 1.15rem; font-weight: 700; color: #F9FAFB; margin-bottom: 0.35rem; }
+    .apps-subsection-header p { color: #94A3B8; font-size: 0.88rem; max-width: 560px; margin: 0 auto; }
+    .dg-app-card.soon { opacity: 0.85; }
+    .dg-app-card .app-badge {
+      display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 0.15rem 0.5rem; border-radius: 999px; margin-bottom: 0.35rem;
+    }
+    .app-badge-live { background: rgba(16,185,129,0.15); color: #34D399; border: 1px solid rgba(16,185,129,0.25); }
+    .app-badge-soon { background: rgba(251,191,36,0.12); color: #FBBF24; border: 1px solid rgba(251,191,36,0.25); }
+    .app-badge-core { background: rgba(59,130,246,0.12); color: #93C5FD; border: 1px solid rgba(59,130,246,0.25); }
+
+    /* Professional services */
+    .pro-services-section { padding: 60px 0; background: #111827; border-top: 1px solid #1E293B; }
+    .pro-services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+    .pro-service-card {
+      background: #1E293B; border: 1px solid #334155; border-radius: 16px; padding: 1.35rem;
+      display: flex; flex-direction: column; transition: all 0.25s;
+    }
+    .pro-service-card:hover { border-color: #3B82F6; transform: translateY(-3px); }
+    .pro-service-card .pro-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+    .pro-service-card h4 { font-size: 1rem; font-weight: 700; color: #F9FAFB; margin-bottom: 0.35rem; }
+    .pro-service-card p { color: #94A3B8; font-size: 0.82rem; line-height: 1.5; margin-bottom: 0.75rem; }
+    .pro-service-card .pro-features {
+      list-style: none; margin: 0 0 0.85rem; padding: 0; flex: 1;
+      display: flex; flex-direction: column; gap: 0.28rem;
+    }
+    .pro-service-card .pro-features li {
+      color: #94A3B8; font-size: 0.78rem; line-height: 1.4;
+      padding-left: 0.9rem; position: relative;
+    }
+    .pro-service-card .pro-features li::before {
+      content: ""; position: absolute; left: 0; top: 0.45em;
+      width: 0.35rem; height: 0.35rem; border-radius: 50%; background: #3B82F6;
+    }
+    .pro-service-card .pro-price { color: #93C5FD; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.75rem; }
+    .pro-service-card .pro-price span { color: #64748B; font-weight: 400; font-size: 0.78rem; }
+    .pro-service-card .pro-note { color: #64748B; font-size: 0.72rem; line-height: 1.45; margin: -0.35rem 0 0.75rem; }
+
+    /* Support plans */
+    .support-section { padding: 60px 0; background: #0A0E17; border-top: 1px solid #1E293B; }
+    .support-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; }
+    .support-card {
+      background: #1E293B; border: 1px solid #334155; border-radius: 20px; padding: 1.5rem;
+      display: flex; flex-direction: column; position: relative; min-width: 0; max-width: 100%;
+    }
+    .support-card.popular { border: 2px solid #3B82F6; background: #1a2a3a; }
+    .support-card.included { border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.04); }
+    .support-card .support-tier { font-size: 1.2rem; font-weight: 700; color: #F9FAFB; margin-bottom: 0.25rem; }
+    .support-card .support-price { font-size: 2rem; font-weight: 800; color: #3B82F6; margin: 0.5rem 0; }
+    .support-card .support-price.included-price { color: #34D399; font-size: 1.5rem; }
+    .support-card .support-price span { font-size: 0.85rem; font-weight: 400; color: #94A3B8; }
+    .support-card .support-tagline { font-size: 0.82rem; color: #94A3B8; font-style: italic; margin-bottom: 1rem; min-height: 2.5em; }
+
+    @media (max-width: 1024px) {
+      .pro-services-grid, .support-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    }
+
+    @media (max-width: 768px) {
+      .pro-services-grid, .support-grid { grid-template-columns: 1fr !important; gap: 1rem; }
+      .support-section .container { padding-left: 1rem; padding-right: 1rem; }
+      .support-card .support-tagline { min-height: 0; }
+      .support-card { padding: 1.25rem; }
+      .support-card .support-price { font-size: 1.65rem; }
+      .support-card .btn-primary { width: 100%; justify-content: center; text-align: center; box-sizing: border-box; }
+      .journey-grid { grid-template-columns: repeat(2, 1fr); }
+      .core-grid { grid-template-columns: 1fr 1fr; }
+      .ai-grid { grid-template-columns: repeat(2, 1fr); }
+      .shot-grid { grid-template-columns: 1fr; }
+      .roadmap-split { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .orb, .hero-bg-glow, .hero-bg-glow-2, .constellation { display: none; }
+    }
+  </style>
+
+
+
+  <!-- ===== HERO ===== -->
+  <section class="hero-pricing">
+
+    <!-- Background Glows -->
+    <div class="hero-bg-glow"></div>
+    <div class="hero-bg-glow-2"></div>
+
+    <!-- Grid Overlay -->
+    <div class="hero-grid"></div>
+
+    <!-- Floating Orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <!-- Data Constellation -->
+    <div class="constellation" id="pricingConstellation" aria-hidden="true"></div>
+
+    <div class="hero-container">
+      <div class="hero-badge">DIGITALGATE BUSINESS PLATFORM</div>
+      <h1>Build your business on <span class="highlight">DigitalGate</span>.</h1>
+      <p class="hero-tagline">
+        AI-powered Business Operating Platform — one foundation for your operations, digital presence, industry workflows and growth.
+      </p>
+      <p class="hero-lede">One platform. One login. One source of truth.</p>
+      <div class="hero-cta-row">
+        <a href="https://digitalgate.com.au/founding-customers/#application" class="hero-cta-primary">Apply for Founding 10 →</a>
+        <a href="https://audit.digitalgate.com.au" class="hero-cta-secondary">Get My Free Business Audit →</a>
+        <a href="#platform" class="hero-cta-ghost">View pricing</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== DIGITAL TWIN ===== -->
+  <section class="twin-section" id="digital-twin">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">HERO FEATURE</span>
+        <h2>Your Business Digital Twin™</h2>
+        <p>Business context that helps you understand what matters — and what to do next.</p>
+      </div>
+      <div class="twin-card">
+        <h3>One connected business context</h3>
+        <p>
+          As you connect CRM, website, marketing, reviews and revenue, your Digital Twin builds a clearer picture of customers, opportunities and performance — so recommendations stay grounded in how your business actually operates.
+        </p>
+        <div class="twin-pills">
+          <span>Customers</span><span>Marketing</span><span>Website</span><span>SEO</span>
+          <span>AI Visibility</span><span>Revenue</span><span>Opportunities</span><span>Automation</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== STACK PHILOSOPHY ===== -->
+  <section class="stack-section" id="stack">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">PHILOSOPHY</span>
+        <h2>From scattered tools to one operating system</h2>
+        <p>Every capability you add feeds the same connected platform — and your Digital Twin.</p>
+      </div>
+      <div class="stack-funnel">
+        <div class="stack-step">Website</div><div class="stack-arrow">↓</div>
+        <div class="stack-step">CRM</div><div class="stack-arrow">↓</div>
+        <div class="stack-step">Marketing</div><div class="stack-arrow">↓</div>
+        <div class="stack-step">AI</div><div class="stack-arrow">↓</div>
+        <div class="stack-step">Automation</div><div class="stack-arrow">↓</div>
+        <div class="stack-step">Payments</div><div class="stack-arrow">↓</div>
+        <div class="stack-step">Analytics</div><div class="stack-arrow">↓</div>
+        <div class="stack-step stack-result">One Business Operating Platform</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== BRAND JOURNEY ===== -->
+  <section class="journey-section" id="journey">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">THE DIGITALGATE STORY</span>
+        <h2>Outside your gate → one connected platform</h2>
+        <p>DigitalGate is the gateway to your digital world. Everything outside flows in. Everything inside connects.</p>
+      </div>
+      <div class="journey-grid">
+        <div class="journey-node">Website</div>
+        <div class="journey-node">Google</div>
+        <div class="journey-node">AI Search</div>
+        <div class="journey-node">Social</div>
+        <div class="journey-node">CRM</div>
+        <div class="journey-node">Email</div>
+        <div class="journey-node">Reputation</div>
+        <div class="journey-node">Analytics</div>
+        <div class="journey-gate">
+          <strong>DigitalGate</strong>
+          <span>One connected business platform — your Digital Twin, Apps, AI, and optional success support</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PLATFORM CORE ===== -->
+  <section class="core-section" id="platform-core">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">PLATFORM CORE</span>
+        <h2>Every platform includes</h2>
+        <p>The foundation every business gets on day one. Everything else builds on this.</p>
+      </div>
+      <div class="core-grid">
+        <div class="core-item"><span class="ic">✓</span> CRM &amp; Contacts</div>
+        <div class="core-item"><span class="ic">✓</span> Tasks &amp; Calendar</div>
+        <div class="core-item"><span class="ic">✓</span> Documents</div>
+        <div class="core-item"><span class="ic">✓</span> Business Dashboard</div>
+        <div class="core-item"><span class="ic">✓</span> AI Assistant</div>
+        <div class="core-item"><span class="ic">✓</span> Universal Timeline</div>
+        <div class="core-item"><span class="ic">✓</span> Reporting</div>
+        <div class="core-item"><span class="ic">✓</span> Companies</div>
+        <div class="core-item"><span class="ic">✓</span> Digital Twin snapshot</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== WEBSITE AS PLATFORM CAPABILITY ===== -->
+  <section class="stack-section" id="website-capability" style="background:#0A0E17;">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">PLATFORM CAPABILITY</span>
+        <h2>Your website isn&apos;t a separate service — it&apos;s part of the operating system</h2>
+        <p>Three different concepts: connect what you have, build something new, or create and manage in-product.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;max-width:960px;margin:0 auto 1.75rem;">
+        <div style="background:#111827;border:1px solid #1E293B;border-radius:14px;padding:1.25rem;">
+          <p style="margin:0 0 0.4rem;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#93C5FD;">Existing website</p>
+          <p style="margin:0 0 0.5rem;color:#F9FAFB;font-weight:700;font-size:0.95rem;">Website Migration &amp; DigitalGate Setup</p>
+          <p style="margin:0;color:#94A3B8;font-size:0.82rem;line-height:1.5;">Move your current site into DigitalGate Infrastructure so it runs and is managed on the platform. Not a redesign.</p>
+        </div>
+        <div style="background:#111827;border:1px solid #1E293B;border-radius:14px;padding:1.25rem;">
+          <p style="margin:0 0 0.4rem;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#93C5FD;">New website</p>
+          <p style="margin:0 0 0.5rem;color:#F9FAFB;font-weight:700;font-size:0.95rem;">Website Build</p>
+          <p style="margin:0;color:#94A3B8;font-size:0.82rem;line-height:1.5;">Optional Professional Service — a new site designed, configured and launched on DigitalGate.</p>
+        </div>
+        <div style="background:#111827;border:1px solid #1E293B;border-radius:14px;padding:1.25rem;">
+          <p style="margin:0 0 0.4rem;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#93C5FD;">Self-serve</p>
+          <p style="margin:0 0 0.5rem;color:#F9FAFB;font-weight:700;font-size:0.95rem;">Website Builder</p>
+          <p style="margin:0;color:#94A3B8;font-size:0.82rem;line-height:1.5;">Platform software capability — create and manage websites in DigitalGate, progressively by platform tier.</p>
+        </div>
+      </div>
+      <div class="stack-funnel">
+        <div class="stack-step">Existing site → Migration</div><div class="stack-arrow">or</div>
+        <div class="stack-step">New site → Website Build</div><div class="stack-arrow">↓</div>
+        <div class="stack-step">DigitalGate Infrastructure</div><div class="stack-arrow">↓</div>
+        <div class="stack-step">Website Builder (manage by tier)</div><div class="stack-arrow">↓</div>
+        <div class="stack-step stack-result">One connected digital presence</div>
+      </div>
+      <p style="text-align:center;margin-top:1.5rem;color:#94A3B8;font-size:0.88rem;max-width:720px;margin-left:auto;margin-right:auto;"><strong style="color:#CBD5E1;">Platform Core</strong> includes website connection &amp; management. Migration and Build are optional Professional Services. Continuous improvement after launch sits under Professional Services, Success Plans or Growth Apps — not the migration fee.</p>
+    </div>
+  </section>
+
+  <!-- ===== AI NARRATIVE ===== -->
+  <section class="ai-section" id="ai">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">AI-POWERED</span>
+        <h2>AI isn&apos;t a feature — it&apos;s the intelligence layer</h2>
+        <p>Connected business data makes AI useful — available capabilities today; deeper AI evolving on the same foundation.</p>
+      </div>
+      <div class="commercial-callout" style="margin-bottom:2rem;">
+        <p>AI is built into DigitalGate&apos;s intelligence layer. Core AI capabilities are included according to your platform tier. Specialist AI capabilities, such as AI Visibility and AI Communications, are licensed separately where applicable.</p>
+      </div>
+      <div class="ai-grid">
+        <div class="ai-card"><div class="ai-icon">🧠</div><h4>AI Business Advisor</h4><p>Daily briefing and strategic priorities</p></div>
+        <div class="ai-card"><div class="ai-icon">✍️</div><h4>AI Content</h4><p>Emails, pages, and campaign copy</p></div>
+        <div class="ai-card"><div class="ai-icon">📊</div><h4>AI Reports</h4><p>Executive summaries from connected data</p></div>
+        <div class="ai-card"><div class="ai-icon">💡</div><h4>AI Recommendations</h4><p>Opportunities ranked by impact</p></div>
+        <div class="ai-card"><div class="ai-icon">⚡</div><h4>Workflow automation</h4><p>Platform workflows across Core and Apps</p></div>
+        <div class="ai-card"><div class="ai-icon">🔍</div><h4>AI Visibility</h4><p>Readiness for Google and AI search</p></div>
+        <div class="ai-card"><div class="ai-icon">📈</div><h4>Business Health</h4><p>Signals from your Digital Twin context</p></div>
+        <div class="ai-card" style="opacity:0.75;border-style:dashed;"><div class="ai-icon">🎙️</div><h4>AI Voice Agents</h4><p>In development — inbound calls and qualification</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SCREENSHOTS ===== -->
+  <section class="screenshots-section" id="screenshots">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">SEE THE PLATFORM</span>
+        <h2>Built for how you actually work</h2>
+        <p>Polished software — proven in production on real businesses.</p>
+      </div>
+      <div class="shot-grid">
+        <div class="shot-frame">
+          <img src="https://app.digitalgate.com.au/marketing/screenshots/dashboard-overview.png" alt="DigitalGate Business Overview dashboard with Business Health score and AI briefing" loading="lazy" width="640" height="400">
+          <div class="shot-caption"><span class="shot-label">Dashboard</span><span class="shot-title">Business Overview</span><span class="shot-sub">Health score, priorities, AI briefing</span></div>
+        </div>
+        <div class="shot-frame">
+          <img src="https://app.digitalgate.com.au/marketing/screenshots/crm-contacts.png" alt="DigitalGate CRM contacts and universal timeline" loading="lazy" width="640" height="400">
+          <div class="shot-caption"><span class="shot-label">CRM</span><span class="shot-title">Contacts &amp; Timeline</span><span class="shot-sub">Unified activity across your business</span></div>
+        </div>
+        <div class="shot-frame">
+          <img src="https://app.digitalgate.com.au/marketing/screenshots/ai-assistant.png" alt="DigitalGate AI Studio business advisor" loading="lazy" width="640" height="400">
+          <div class="shot-caption"><span class="shot-label">AI</span><span class="shot-title">AI Assistant</span><span class="shot-sub">Context-aware support and actions</span></div>
+        </div>
+        <div class="shot-frame">
+          <img src="https://app.digitalgate.com.au/marketing/screenshots/vendor-pipeline.png" alt="DigitalGate real estate vendor lead pipeline" loading="lazy" width="640" height="400">
+          <div class="shot-caption"><span class="shot-label">Real Estate</span><span class="shot-title">Vendor Pipeline</span><span class="shot-sub">Live on Roe Realty</span></div>
+        </div>
+        <div class="shot-frame">
+          <img src="https://app.digitalgate.com.au/marketing/screenshots/website-health.png" alt="DigitalGate Website Health Centre audit scores" loading="lazy" width="640" height="400">
+          <div class="shot-caption"><span class="shot-label">SEO</span><span class="shot-title">Website Health</span><span class="shot-sub">Audits, schema, performance</span></div>
+        </div>
+        <div class="shot-frame">
+          <img src="https://app.digitalgate.com.au/marketing/screenshots/ai-visibility.png" alt="DigitalGate AI Visibility Score dashboard" loading="lazy" width="640" height="400">
+          <div class="shot-caption"><span class="shot-label">AI Visibility</span><span class="shot-title">Visibility Score™</span><span class="shot-sub">AI search and recommendation readiness</span></div>
+        </div>
+      </div>
+      <p class="shot-grid-hint">Click any screenshot to enlarge</p>
+      <p style="text-align:center;margin-top:1.5rem;"><a href="https://app.digitalgate.com.au" class="hero-cta-secondary" style="display:inline-flex;">Explore the live platform ↗</a></p>
+    </div>
+  </section>
+
+  <!-- ===== TRUST ===== -->
+  <section class="trust-section" id="trust">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">PROVEN IN PRODUCTION</span>
+        <h2>Built in real businesses. Opening to founding customers.</h2>
+        <p>DigitalGate, Currumbin Valley Hideaway and Roe Realty run on the platform today — the Founding Customer Programme opens that foundation to more businesses.</p>
+      </div>
+      <div class="trust-logos">
+        <div class="trust-logo"><strong>Roe Realty</strong><span>Real Estate · Founding reference</span></div>
+        <div class="trust-logo"><strong>Currumbin Valley Hideaway</strong><span>Hospitality &amp; Accommodation · Founding reference</span></div>
+        <div class="trust-logo"><strong>DigitalGate</strong><span>Platform · Command Centre</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRICING NAV ===== -->
+  <nav class="pricing-nav" aria-label="Pricing sections">
+    <div class="container">
+      <div class="pricing-nav-inner">
+        <a href="#platform"><span class="num">1</span> Platform</a>
+        <a href="#apps"><span class="num">2</span> Apps</a>
+        <a href="#professional-services"><span class="num">3</span> Professional Services</a>
+        <a href="#customer-success"><span class="num">4</span> Customer Success</a>
+        <a href="#founding"><span class="num">★</span> Founding</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== COMMERCIAL MODEL LOCK ===== -->
+  <section class="stack-section" id="commercial-model" style="padding:2.5rem 0;background:#111827;">
+    <div class="container">
+      <div class="section-header" style="margin:0 auto 1.5rem;">
+        <span class="sub-label">HOW DIGITALGATE IS SOLD</span>
+        <h2>Platform · Apps · Services · Success · Intelligence</h2>
+        <p>Clear commercial layers — so you always know what you&apos;re buying.</p>
+      </div>
+      <div class="how-buy" style="max-width:960px;margin:0 auto;">
+        <div class="how-buy-card"><strong>Platform</strong><span>The operating system</span></div>
+        <div class="how-buy-card"><strong>Apps</strong><span>Add-ons — Core · Infra · Industry · Growth</span></div>
+        <div class="how-buy-card"><strong>Professional Services</strong><span>People — optional; never required</span></div>
+        <div class="how-buy-card"><strong>Customer Success</strong><span>Ongoing support plans</span></div>
+        <div class="how-buy-card"><strong>Intelligence layer</strong><span>AI · Twin · Automation · Intelligence — across everything</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 01 PLATFORM ===== -->
+  <section class="platform-section" id="platform">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">01 · PLATFORM</span>
+        <h2>The platform is the product</h2>
+        <p>Start with the core operating system. Add Apps and services only when you need them.</p>
+      </div>
+      <div class="commercial-callout founding-benefit">
+        <span class="sub-label" style="display:block;margin-bottom:0.5rem;">FOUNDING CUSTOMER BENEFIT</span>
+        <p>Founding customers receive early access to selected Apps and capabilities as they become commercially ready.</p>
+      </div>
+      <div class="pricing-grid pricing-grid-4">
+
+        <div class="pricing-card" data-dg-plan="platform-starter">
+          <div class="plan-name"><span class="plan-icon">🚀</span>Starter</div>
+          <p class="plan-outcome">&ldquo;Platform Core essentials for one operator.&rdquo;</p>
+          <div class="plan-price">$99<span>/mo</span></div>
+          <div class="plan-users">1 User</div>
+          <ul class="feature-list">
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Platform Core essentials</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> AI Assistant</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Standard support</li>
+          </ul>
+          <a href="https://digitalgate.com.au/founding-customers/#application" class="btn-primary"><span class="dg-ic dg-ic-card" aria-hidden="true"></span> Apply for Founding 10 →</a>
+        </div>
+
+        <div class="pricing-card popular" data-dg-plan="platform-professional">
+          <div class="popular-badge">MOST POPULAR</div>
+          <div class="plan-name"><span class="plan-icon">📈</span>Growth</div>
+          <p class="plan-outcome">&ldquo;Automate, report, and run Growth-tier platform capabilities.&rdquo;</p>
+          <div class="plan-price">$249<span>/mo</span></div>
+          <div class="plan-users">Up to 5 Users</div>
+          <ul class="feature-list">
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> <strong>Everything in Starter</strong></li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Workflow automation</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Website connection &amp; management</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Advanced AI</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Reporting</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Growth capabilities</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Email / communications</li>
+          </ul>
+          <a href="https://digitalgate.com.au/founding-customers/#application" class="btn-primary"><span class="dg-ic dg-ic-card" aria-hidden="true"></span> Apply for Founding 10 →</a>
+        </div>
+
+        <div class="pricing-card" data-dg-plan="platform-business">
+          <div class="plan-name"><span class="plan-icon">🏢</span>Scale</div>
+          <p class="plan-outcome">&ldquo;Unlimited seats and advanced controls — Apps remain add-ons.&rdquo;</p>
+          <div class="plan-price">$499<span>/mo</span></div>
+          <div class="plan-users">Unlimited Users</div>
+          <ul class="feature-list">
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> <strong>Everything in Growth</strong></li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Multiple pipelines</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Advanced workflow automation &amp; AI</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> API access</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Advanced reporting, permissions &amp; BI</li>
+          </ul>
+          <a href="https://digitalgate.com.au/founding-customers/#application" class="btn-primary"><span class="dg-ic dg-ic-card" aria-hidden="true"></span> Apply for Founding 10 →</a>
+        </div>
+
+        <div class="pricing-card">
+          <div class="plan-name"><span class="plan-icon">🏛️</span>Enterprise</div>
+          <p class="plan-outcome">&ldquo;Custom integrations, deployment, and partnership.&rdquo;</p>
+          <div class="plan-price">Custom</div>
+          <div class="plan-users">Unlimited Users</div>
+          <ul class="feature-list">
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> <strong>Everything in Scale</strong></li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Custom integrations</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Advanced permissions</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Dedicated support &amp; SLA</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Custom deployment</li>
+          </ul>
+          <a href="/contact/" class="btn-primary"><span class="dg-ic dg-ic-mail" aria-hidden="true"></span> Talk to Sales</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 02 APPS ===== -->
+  <section class="apps-section" id="apps">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">02 · APPS</span>
+        <h2>Core → Infrastructure → Industry → Growth</h2>
+        <p>An operating platform with Apps — not an App marketplace. Add only what you need. <a href="/apps/" style="color:#93C5FD;font-weight:600;">Explore the Apps hub →</a></p>
+      </div>
+      <div class="commercial-callout apps-addon">
+        <h3>Apps are optional add-ons</h3>
+        <p>Your Platform subscription gives you the operating foundation. Add Industry, Infrastructure and Growth Apps as your business needs them.</p>
+      </div>
+
+      <div class="apps-subsection" id="core-apps">
+        <div class="apps-subsection-header">
+          <h3>Core — Included with platform</h3>
+          <p>run — every business operates here</p>
+        </div>
+        <div class="apps-grid apps-grid-4">
+          <div class="dg-app-card"><span class="app-badge app-badge-core">Included</span><div class="app-icon">👥</div><div class="app-name"><a href="/apps/core/crm/">CRM</a></div><div class="app-price">Included</div><div class="app-desc">Contacts, companies and customer records</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-core">Included</span><div class="app-icon">📇</div><div class="app-name"><a href="/apps/core/contacts/">Contacts</a></div><div class="app-price">Included</div><div class="app-desc">One person record across every App</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-core">Included</span><div class="app-icon">🎯</div><div class="app-name"><a href="/apps/core/opportunities/">Opportunities</a></div><div class="app-price">Included</div><div class="app-desc">Pipeline opportunities on Core</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-core">Included</span><div class="app-icon">✅</div><div class="app-name"><a href="/apps/core/tasks/">Tasks</a></div><div class="app-price">Included</div><div class="app-desc">Activities and follow-ups</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-core">Included</span><div class="app-icon">📅</div><div class="app-name"><a href="/apps/core/calendar/">Calendar</a></div><div class="app-price">Included</div><div class="app-desc">Bookings and schedule</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-core">Included</span><div class="app-icon">📄</div><div class="app-name"><a href="/apps/core/documents/">Documents</a></div><div class="app-price">Included</div><div class="app-desc">Files attached to business records</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-core">Included</span><div class="app-icon">💬</div><div class="app-name"><a href="/apps/core/communications/">Communications</a></div><div class="app-price">Included</div><div class="app-desc">Email and message history in context</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-soon">Early Access</span><div class="app-icon">💳</div><div class="app-name"><a href="/apps/core/commerce/">Commerce</a></div><div class="app-price">Included with Core when available</div><div class="app-desc">Quotes, invoices and payments — progressively rolling out</div></div>
+        </div>
+      </div>
+
+      <div class="apps-subsection section-spacer" id="infrastructure-apps">
+        <div class="apps-subsection-header">
+          <h3>Infrastructure — Connect &amp; manage digital presence</h3>
+          <p>power — priced progressively as capabilities become commercially ready</p>
+        </div>
+        <div class="apps-grid apps-grid-3">
+          <div class="dg-app-card"><span class="app-badge app-badge-core">Available</span><div class="app-icon">🛠️</div><div class="app-name"><a href="/apps/infrastructure/website/">Website connection &amp; management</a></div><div class="app-price">Platform Core</div><div class="app-desc">Connect and manage your website with CRM, SEO and platform context — expands with platform tier</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-soon">Growth+</span><div class="app-icon">🌐</div><div class="app-name"><a href="/apps/infrastructure/website-builder/">Website Builder</a></div><div class="app-price">Progressive</div><div class="app-desc">Advanced creation, AI generation, publishing and management — not included in every plan</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-soon">Early Access</span><div class="app-icon">🔗</div><div class="app-name"><a href="/apps/infrastructure/domains/">Domains</a></div><div class="app-price">Progressive</div><div class="app-desc">Connect and manage domains from the platform</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-soon">Early Access</span><div class="app-icon">🧭</div><div class="app-name"><a href="/apps/infrastructure/dns/">DNS</a></div><div class="app-price">Progressive</div><div class="app-desc">DNS records alongside your digital identity</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-soon">Coming Soon</span><div class="app-icon">☁️</div><div class="app-name"><a href="/apps/infrastructure/hosting/">Hosting</a></div><div class="app-price">Progressive</div><div class="app-desc">Hosting abstraction as commercially ready</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-soon">Early Access</span><div class="app-icon">✉️</div><div class="app-name"><a href="/apps/infrastructure/email/">Email</a></div><div class="app-price">Progressive</div><div class="app-desc">Mailbox and transactional email infrastructure</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-soon">Coming Soon</span><div class="app-icon">🔒</div><div class="app-name"><a href="/apps/infrastructure/ssl/">SSL</a></div><div class="app-price">Progressive</div><div class="app-desc">Certificates managed with your site</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-soon">Coming Soon</span><div class="app-icon">💾</div><div class="app-name"><a href="/apps/infrastructure/backups/">Backups</a></div><div class="app-price">Progressive</div><div class="app-desc">Backup and restore for managed presence</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-soon">Coming Soon</span><div class="app-icon">🛡️</div><div class="app-name"><a href="/apps/infrastructure/cloudflare/">Cloudflare</a></div><div class="app-price">Progressive</div><div class="app-desc">CDN and edge controls when ready</div></div>
+        </div>
+        <p style="text-align:center;margin-top:1.25rem;color:#94A3B8;font-size:0.85rem;">Infrastructure pricing is introduced as each capability is commercially ready — progressive readiness, not placeholder pricing.</p>
+      </div>
+
+      <div class="apps-subsection section-spacer" id="industry-apps">
+        <div class="apps-subsection-header">
+          <h3>Industry — Specialise your workflows</h3>
+          <p>Industry Apps are vertical operating platforms ($99/mo · 1 Template included · +$29/mo each additional). Architecture spans twelve Industries — public pricing stays honest about readiness.</p>
+        </div>
+        <p style="text-align:center;color:#94A3B8;font-size:0.85rem;margin:0 0 1rem;">Available · Early Access · Coming Soon · Architecture Reserved</p>
+        <div class="apps-grid apps-grid-4">
+          <div class="dg-app-card" data-dg-stripe="app-property">
+            <span class="app-badge app-badge-live">Available</span>
+            <div class="app-icon">🏠</div>
+            <div class="app-name"><a href="/apps/industry/property/">Property</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Real Estate, PM, Commercial, Development, Buyers Agency — Real Estate Template live</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add Industry</a>
+          </div>
+          <div class="dg-app-card" data-dg-stripe="app-services">
+            <span class="app-badge app-badge-live">Available</span>
+            <div class="app-icon">🔧</div>
+            <div class="app-name"><a href="/apps/industry/services/">Services</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Jobs, quotes and scheduling — one App with trade Templates</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add Industry</a>
+          </div>
+          <div class="dg-app-card" data-dg-stripe="app-hospitality-accommodation">
+            <span class="app-badge app-badge-live">Early Access</span>
+            <div class="app-icon">🏨</div>
+            <div class="app-name"><a href="/apps/industry/hospitality-accommodation/">Hospitality &amp; Accommodation</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Short-stay, holiday rentals, hotels, F&amp;B and venues — Accommodation early access</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add Industry</a>
+          </div>
+          <div class="dg-app-card soon">
+            <span class="app-badge app-badge-soon">Early Access</span>
+            <div class="app-icon">💰</div>
+            <div class="app-name"><a href="/apps/industry/finance/">Finance</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Accounting first — broking, planning, insurance and advisory Templates</div>
+            <a href="/contact/" class="btn-app">Enquire</a>
+          </div>
+          <div class="dg-app-card soon">
+            <span class="app-badge app-badge-soon">Early Access</span>
+            <div class="app-icon">✨</div>
+            <div class="app-name"><a href="/apps/industry/creator/">Creator &amp; Media</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Audience, content and studio — founding interest welcome</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app">Founding interest</a>
+          </div>
+          <div class="dg-app-card soon">
+            <span class="app-badge app-badge-soon">Coming Soon</span>
+            <div class="app-icon">⚖️</div>
+            <div class="app-name">Professional</div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Legal, Surveying, Engineering, Architecture, Consulting — Templates, not separate Apps</div>
+            <a href="/contact/" class="btn-app">Enquire</a>
+          </div>
+          <div class="dg-app-card soon">
+            <span class="app-badge app-badge-soon">Coming Soon</span>
+            <div class="app-icon">🚗</div>
+            <div class="app-name"><a href="/apps/industry/automotive/">Automotive</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Dealerships, mechanical and auto services</div>
+            <a href="/contact/" class="btn-app">Enquire</a>
+          </div>
+          <div class="dg-app-card soon">
+            <span class="app-badge app-badge-soon">Coming Soon</span>
+            <div class="app-icon">🛒</div>
+            <div class="app-name">Retail &amp; Commerce</div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Retail, e-commerce, wholesale and distribution Templates</div>
+            <a href="/contact/" class="btn-app">Enquire</a>
+          </div>
+          <div class="dg-app-card soon">
+            <span class="app-badge app-badge-soon">Coming Soon</span>
+            <div class="app-icon">💚</div>
+            <div class="app-name">Health &amp; Wellness</div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Medical, allied, dental and vet — privacy-first roadmap</div>
+            <a href="/contact/" class="btn-app">Enquire</a>
+          </div>
+          <div class="dg-app-card soon">
+            <span class="app-badge app-badge-soon">Coming Soon</span>
+            <div class="app-icon">🚚</div>
+            <div class="app-name">Transport &amp; Logistics</div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Transport, logistics and courier operators</div>
+            <a href="/contact/" class="btn-app">Enquire</a>
+          </div>
+          <div class="dg-app-card soon">
+            <span class="app-badge app-badge-soon">Coming Soon</span>
+            <div class="app-icon">🎓</div>
+            <div class="app-name">Education &amp; Organisations</div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Education, training and associations</div>
+            <a href="/contact/" class="btn-app">Enquire</a>
+          </div>
+          <div class="dg-app-card soon">
+            <span class="app-badge app-badge-soon">Reserved</span>
+            <div class="app-icon">🌾</div>
+            <div class="app-name">Agriculture &amp; Primary</div>
+            <div class="app-price">Architecture</div>
+            <div class="app-desc">Architecture reserved — not an active sell</div>
+            <a href="/contact/" class="btn-app">Enquire</a>
+          </div>
+        </div>
+        <p style="text-align:center;margin-top:1rem;color:#64748B;font-size:0.8rem;">Accommodation belongs under Hospitality &amp; Accommodation — not Property. Do not market twelve finished products.</p>
+        <div style="max-width:720px;margin:1.5rem auto 0;padding:1.25rem 1.5rem;border:1px solid #1E293B;border-radius:12px;background:#0F172A;">
+          <p style="margin:0 0 0.5rem;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#93C5FD;">Canonical pricing</p>
+          <p style="margin:0 0 0.75rem;color:#E2E8F0;font-size:0.95rem;"><strong>Industry App $99/mo</strong> includes <strong>1 Industry Template</strong>. Additional Templates <strong>+$29/mo</strong> each. The Industry App is the commercial boundary; Templates are the expansion layer.</p>
+          <p style="margin:0;color:#94A3B8;font-size:0.85rem;">Example: Property + Real Estate = $99. Add Property Management → $128/mo. Founding 10: Starter + Property + PM = $227 → 30% = $158.90/mo.</p>
+        </div>
+      </div>
+
+      <div class="apps-subsection section-spacer" id="growth-apps">
+        <div class="apps-subsection-header">
+          <h3>Growth — Visibility, acquisition, conversion</h3>
+          <p>grow — optional · billed separately. Prospecting $99 · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · AI Communications $99 · Reputation Free.</p>
+        </div>
+        <div class="apps-grid apps-grid-3">
+          <div class="dg-app-card" data-dg-stripe="premium-prospecting">
+            <div class="app-icon">◎</div>
+            <div class="app-name"><a href="/prospecting/">Prospecting &amp; Opportunity Engine</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Find businesses → discovery → opportunity score → pipeline → CRM — one Growth App</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
+          </div>
+          <div class="dg-app-card" data-dg-stripe="premium-ai-visibility">
+            <div class="app-icon">🤖</div>
+            <div class="app-name"><a href="/ai-visibility/">AI Visibility</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Readiness for Google and AI search</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
+          </div>
+          <div class="dg-app-card" data-dg-stripe="premium-seo">
+            <div class="app-icon">🔍</div>
+            <div class="app-name"><a href="/seo/">SEO</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Audits, rankings and technical optimisation</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
+          </div>
+          <div class="dg-app-card" data-dg-stripe="premium-automation">
+            <div class="app-icon">⚡</div>
+            <div class="app-name"><a href="/automation/">Automation</a></div>
+            <div class="app-price">+$49<span>/mo</span></div>
+            <div class="app-desc">Advanced multi-step workflows, triggers, webhooks and cross-App automation</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
+          </div>
+          <div class="dg-app-card" data-dg-stripe="premium-analytics">
+            <div class="app-icon">📊</div>
+            <div class="app-name"><a href="/analytics/">Analytics</a></div>
+            <div class="app-price">+$49<span>/mo</span></div>
+            <div class="app-desc">KPI snapshots, trends and reporting</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
+          </div>
+          <div class="dg-app-card" data-dg-stripe="premium-social">
+            <div class="app-icon">📱</div>
+            <div class="app-name"><a href="/social/">Social</a></div>
+            <div class="app-price">+$79<span>/mo</span></div>
+            <div class="app-desc">Publish and manage social from the platform</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
+          </div>
+          <div class="dg-app-card" data-dg-stripe="addon-voice-ai">
+            <span class="app-badge app-badge-soon">Early Access</span>
+            <div class="app-icon">🎙️</div>
+            <div class="app-name"><a href="/ai-communications/">AI Communications</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">AI-assisted communications — Voice Agents still in development</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
+          </div>
+          <div class="dg-app-card">
+            <span class="app-badge app-badge-live">Free</span>
+            <div class="app-icon">★</div>
+            <div class="app-name"><a href="/reputation/">Reputation</a></div>
+            <div class="app-price">Free</div>
+            <div class="app-desc">Review inbox and reputation surface — no Growth App charge</div>
+            <a href="https://app.digitalgate.com.au/apps/reviews" class="btn-app">Open in platform</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 03 PROFESSIONAL SERVICES ===== -->
+  <section class="pro-services-section" id="professional-services">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">03 · PROFESSIONAL SERVICES</span>
+        <h2>Expert help when you want it — never required</h2>
+        <p>Optional people work on top of the platform — setup, migration, training, advice and website builds. DigitalGate remains Platform → Apps → Professional Services → Customer Success. One-off services are separate from your subscription.</p>
+      </div>
+      <div class="pro-services-grid">
+        <div class="pro-service-card" id="website-migration">
+          <div class="pro-icon">🔄</div>
+          <h4>Website Migration &amp; DigitalGate Setup</h4>
+          <p>Move your existing website, DNS and content into DigitalGate Infrastructure — so it runs and is managed on the platform.</p>
+          <ul class="pro-features">
+            <li>Website files and content migration</li>
+            <li>Page structure, images and media</li>
+            <li>DNS migration and domain connection</li>
+            <li>Hosting configuration and SSL</li>
+            <li>Forms and basic integrations</li>
+            <li>Redirects where required</li>
+            <li>Testing and launch</li>
+          </ul>
+          <div class="pro-price">From $1,497 <span>one-time</span></div>
+          <p class="pro-note">Includes migration of an existing website into DigitalGate Infrastructure. This service does <strong style="color:#94A3B8;">not</strong> include a redesign or redevelopment of the website. Need a new site? See Website Build.</p>
+          <a href="/contact/" class="btn-app">Get a quote</a>
+        </div>
+        <div class="pro-service-card" id="website-build">
+          <div class="pro-icon">🌐</div>
+          <h4>Website Build</h4>
+          <p>Create a new professional website on DigitalGate — design, structure, conversion and CRM connection.</p>
+          <ul class="pro-features">
+            <li>Conversion-focused website design</li>
+            <li>DigitalGate CRM integration</li>
+            <li>Lead capture and forms</li>
+            <li>SEO foundations</li>
+            <li>Analytics</li>
+            <li>Mobile optimisation</li>
+            <li>Launch and configuration</li>
+          </ul>
+          <div class="pro-price">From $1,997 <span>one-time</span></div>
+          <p class="pro-note">Website pricing depends on project scope, number of pages, integrations and content requirements. This is a new build — not migration of an existing site.</p>
+          <a href="/contact/" class="btn-app">Get a quote</a>
+        </div>
+        <div class="pro-service-card"><div class="pro-icon">⚙️</div><h4>Setup</h4><p>Initial org setup, users, CRM structure and first automations.</p><div class="pro-price">From $997 <span>one-time</span></div><a href="/contact/" class="btn-app">Get a quote</a></div>
+        <div class="pro-service-card"><div class="pro-icon">🚀</div><h4>Implementation</h4><p>Full platform rollout — configuration, Apps, connectors and go-live support.</p><div class="pro-price">From $2,497 <span>one-time</span></div><a href="/contact/" class="btn-app">Get a quote</a></div>
+        <div class="pro-service-card"><div class="pro-icon">📦</div><h4>Migration</h4><p>Import contacts, deals and history from your existing CRM or spreadsheets (data migration — not website hosting).</p><div class="pro-price">From $997 <span>one-time</span></div><a href="/contact/" class="btn-app">Get a quote</a></div>
+        <div class="pro-service-card"><div class="pro-icon">🎓</div><h4>Training</h4><p>Team onboarding, role-based walkthroughs and platform best practices.</p><div class="pro-price">From $497 <span>one-time</span></div><a href="/contact/" class="btn-app">Get a quote</a></div>
+        <div class="pro-service-card"><div class="pro-icon">🧠</div><h4>AI Strategy</h4><p>AI visibility roadmap, automation design and Twin optimisation.</p><div class="pro-price">From $1,497 <span>one-time</span></div><a href="/contact/" class="btn-app">Get a quote</a></div>
+        <div class="pro-service-card"><div class="pro-icon">📋</div><h4>Consulting</h4><p>Business process review, architecture and optimisation strategy.</p><div class="pro-price">From $297 <span>/hour</span></div><a href="/contact/" class="btn-app">Book a call</a></div>
+        <div class="pro-service-card"><div class="pro-icon">💻</div><h4>Custom Development</h4><p>Bespoke integrations, workflows and features on the platform API.</p><div class="pro-price">Custom</div><a href="/contact/" class="btn-app">Contact sales</a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 04 SUPPORT & SUCCESS ===== -->
+  <section class="support-section" id="customer-success">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">04 · SUPPORT &amp; SUCCESS</span>
+        <h2>Support &amp; Success Plans</h2>
+        <p>Help your team adopt the platform and stay ahead. All platform tiers include Standard support.</p>
+      </div>
+      <div class="support-grid">
+        <div class="support-card included">
+          <div class="support-tier">Standard</div>
+          <p class="support-tagline">&ldquo;Included with every platform.&rdquo;</p>
+          <div class="support-price included-price">Included</div>
+          <ul class="feature-list">
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Email support</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Knowledge base</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Community access</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Platform updates</li>
+          </ul>
+        </div>
+        <div class="support-card" data-dg-plan="support-priority">
+          <div class="support-tier">Priority</div>
+          <p class="support-tagline">&ldquo;Faster response when you need it.&rdquo;</p>
+          <div class="support-price">$199<span>/mo</span></div>
+          <ul class="feature-list">
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> <strong>Everything in Standard</strong></li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Priority support queue</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Quarterly strategy session</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Business Health review</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Performance optimisation</li>
+          </ul>
+          <a href="/contact/" class="btn-primary"><span class="dg-ic dg-ic-mail" aria-hidden="true"></span> Add Priority</a>
+        </div>
+        <div class="support-card popular" data-dg-plan="support-success-partner">
+          <div class="popular-badge">RECOMMENDED</div>
+          <div class="support-tier">Success Partner</div>
+          <p class="support-tagline">&ldquo;Maximum value from the platform.&rdquo;</p>
+          <div class="support-price">$499<span>/mo</span></div>
+          <ul class="feature-list">
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> <strong>Everything in Priority</strong></li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Dedicated success manager</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Monthly strategy session</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> AI optimisation review</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Team training sessions</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Quarterly roadmap planning</li>
+          </ul>
+          <a href="/contact/" class="btn-primary"><span class="dg-ic dg-ic-mail" aria-hidden="true"></span> Add Success Partner</a>
+        </div>
+        <div class="support-card">
+          <div class="support-tier">Enterprise Success</div>
+          <p class="support-tagline">&ldquo;Custom partnership for scale.&rdquo;</p>
+          <div class="support-price">Custom</div>
+          <ul class="feature-list">
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> <strong>Everything in Success Partner</strong></li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Dedicated account team</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Custom SLA &amp; escalation</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Enterprise roadmap alignment</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Multi-org deployment support</li>
+          </ul>
+          <a href="/contact/" class="btn-primary"><span class="dg-ic dg-ic-mail" aria-hidden="true"></span> Talk to Sales</a>
+        </div>
+      </div>
+      <p id="support-plans" style="position:absolute;left:-9999px;" aria-hidden="true">support-plans</p>
+    </div>
+  </section>
+
+  <!-- ===== WHY DIGITALGATE ===== -->
+  <section class="value-section" id="why-digitalgate">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">WHY DIGITALGATE</span>
+        <h2>One business context. One platform. One source of truth.</h2>
+        <p>DigitalGate is the intelligent layer that grows with you — not a pile of disconnected tools.</p>
+      </div>
+      <div class="why-points" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;max-width:960px;margin:0 auto 2.5rem;">
+        <div class="value-stat"><div class="num" style="font-size:1.1rem;color:#93C5FD;">Context</div><div class="lbl">One business Digital Twin™ — customers, opportunities, presence and performance</div></div>
+        <div class="value-stat"><div class="num" style="font-size:1.1rem;color:#93C5FD;">Platform</div><div class="lbl">One operating system — Core, Infrastructure, Industry and Growth Apps</div></div>
+        <div class="value-stat"><div class="num" style="font-size:1.1rem;color:#93C5FD;">Source of truth</div><div class="lbl">One login, one record, one timeline across your digital world</div></div>
+        <div class="value-stat"><div class="num" style="font-size:1.1rem;color:#93C5FD;">Intelligence</div><div class="lbl">AI, Automation, Twin and Intelligence across everything — not bolted-on Apps</div></div>
+        <div class="value-stat"><div class="num" style="font-size:1.1rem;color:#93C5FD;">Grows with you</div><div class="lbl">Start with the platform. Add Apps as you need them — honestly, as they&apos;re ready</div></div>
+      </div>
+
+      <div class="section-header" style="margin-top:2rem;">
+        <span class="sub-label">BY INDUSTRY</span>
+        <h2>Industry Apps · Templates underneath</h2>
+        <p>Buy the Industry (+$99/mo · 1 Template included). Categories like Real Estate or Short-Stay are Templates — not separate Industry SKUs.</p>
+      </div>
+      <div class="value-industry-grid">
+        <div class="value-industry-card">
+          <div class="ind-head"><span class="ind-icon" aria-hidden="true">🏠</span><h3>Property</h3><span class="badge badge-ga">Available</span></div>
+          <p>One Industry App (+$99/mo · 1 Template included). Templates: <strong>Real Estate</strong> (Available) · Property Management · Commercial · Development · Buyers Agency.</p>
+          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry App · Templates +$29/mo each extra</span></div>
+        </div>
+        <div class="value-industry-card">
+          <div class="ind-head"><span class="ind-icon" aria-hidden="true">🔧</span><h3>Services</h3><span class="badge badge-ga">Available</span></div>
+          <p>Jobs, quotes and scheduling — one Industry App with trade Templates (not separate Industry products).</p>
+          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry App · Templates +$29/mo each extra</span></div>
+        </div>
+        <div class="value-industry-card">
+          <div class="ind-head"><span class="ind-icon" aria-hidden="true">🏨</span><h3>Hospitality &amp; Accommodation</h3><span class="badge badge-ga">Early Access</span></div>
+          <p>One Industry App. Templates: Short-Stay / Accommodation · Holiday Rentals · Hotels · F&amp;B · Venues. Accommodation is not under Property.</p>
+          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry App · Early Access</span></div>
+        </div>
+        <div class="value-industry-card">
+          <div class="ind-head"><span class="ind-icon" aria-hidden="true">💰</span><h3>Finance</h3><span class="badge badge-ga">Early Access</span></div>
+          <p>Accounting first — broking, planning and insurance as Templates under Finance (not “Accounting” as a separate Industry).</p>
+          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry App · Early Access</span></div>
+        </div>
+        <div class="value-industry-card">
+          <div class="ind-head"><span class="ind-icon" aria-hidden="true">✨</span><h3>Creator &amp; Media</h3><span class="badge badge-ga">Early Access</span></div>
+          <p>Audience, content and studio — founding interest welcome. Templates specialise creator workflows.</p>
+          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry App · Early Access</span></div>
+        </div>
+        <div class="value-industry-card">
+          <div class="ind-head"><span class="ind-icon" aria-hidden="true">🚗</span><h3>Automotive</h3><span class="badge badge-soon">Coming Soon</span></div>
+          <p>Dealerships and workshops as Templates under one Automotive Industry App.</p>
+          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry App · Coming Soon</span></div>
+        </div>
+        <div class="value-industry-card">
+          <div class="ind-head"><span class="ind-icon" aria-hidden="true">⚖️</span><h3>Professional · Retail · Health · Transport · Education</h3><span class="badge badge-soon">Coming Soon</span></div>
+          <p>Each is an Industry App with Templates underneath — not twelve finished products today.</p>
+          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry Apps · Coming Soon</span></div>
+        </div>
+        <div class="value-industry-card">
+          <div class="ind-head"><span class="ind-icon" aria-hidden="true">🌾</span><h3>Agriculture &amp; Primary</h3><span class="badge badge-soon">Reserved</span></div>
+          <p>Architecture reserved — not an active sell.</p>
+          <div class="ind-pricing"><strong>Architecture</strong> <span>Reserved</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOUNDING CUSTOMER PROGRAMME ===== -->
+  <section class="cta-section" id="founding">
+    <div class="container">
+      <h2>Founding Customer Programme</h2>
+      <p style="color:#CBD5E1; max-width:720px; margin:0 auto 1rem;">Founding customers receive preferred commercial terms. <strong style="color:#E2E8F0;">Founding 10 is open now</strong> — 30% off qualifying Platform + Industry Apps + additional Templates at onboarding for 24 months, plus Founding Reseller Referral Tier (30% commission × 12 months per referral). Your own discount and referral earnings are completely separate.</p>
+      <p style="color:#94A3B8; max-width:720px; margin:0 auto 1.5rem; font-size:0.92rem;">Apps or Platform upgrades added after initial onboarding are charged at the published price applicable when purchased. Full cohort rules: <a href="/founding-customer-terms/" style="color:#93C5FD;">Founding Terms</a>.</p>
+      <div class="hero-cta-row">
+        <a href="https://digitalgate.com.au/founding-customers/#application" class="hero-cta-primary">Apply for Founding 10 →</a>
+        <a href="https://audit.digitalgate.com.au" class="hero-cta-secondary">Get My Free Business Audit →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section class="faq-section">
+    <div class="section-header">
+      <h2>Frequently Asked Questions</h2>
+      <p>Everything you need to know</p>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">What&apos;s the difference between Platform, Apps, Services and Success? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer">Platform is the operating system (Starter / Growth / Scale / Enterprise). Apps are add-ons in Core → Infrastructure → Industry → Growth order. Professional Services are optional people (implementation, migration, training). Customer Success is ongoing support (Standard included; Priority and Success Partner optional). AI is built into the intelligence layer by platform tier. <strong>Growth Apps are optional and billed separately:</strong> Prospecting &amp; Opportunity Engine $99 · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · AI Communications $99 · Reputation Free. Prospecting &amp; Opportunity Engine is one App (Prospecting, Discovery and scoring included — not separate SKUs).</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">Do I need Professional Services or Customer Success? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer">No. The platform is self-service from day one with Standard support included. Add Professional Services for setup, migration or custom work. Add Priority or Success Partner if you want dedicated success management and strategy sessions.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">What is the App hierarchy? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer">Canonical order is Core (run) → Infrastructure (power) → Industry (specialise) → Growth (grow). Core is included with the platform. Infrastructure is priced progressively as commercially ready. Industry and Growth Apps are optional add-ons billed separately — Growth: Prospecting &amp; Opportunity Engine $99 · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · AI Communications $99 · Reputation Free. AI is an intelligence layer included by tier; specialist AI Apps are licensed as Growth Apps where applicable.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">Is Website Builder fully included? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer">No. Platform Core includes website connection &amp; management. <strong>Website Builder</strong> is software capability — create and manage websites in DigitalGate, progressively by platform tier. It is not a done-for-you agency build.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">Website Migration vs Website Build — which do I need? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer"><strong>Website Migration &amp; DigitalGate Setup (From $1,497)</strong> moves your <em>existing</em> website into DigitalGate Infrastructure so it runs and is managed on the platform (files, DNS, hosting, SSL, forms, redirects, testing and launch). It does <strong>not</strong> include redesign or redevelopment. <strong>Website Build (From $1,997)</strong> creates a <em>new</em> professional website on DigitalGate. After either path, you manage ongoing changes via Website Builder (by tier) or optional Professional Services / Success / Growth Apps.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">What is a Website Build? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer">An optional Professional Service — a new website designed, configured and launched on DigitalGate. Public pricing is <strong>From $1,997 one-time</strong>; project price depends on scope, pages, integrations and content. Separate from Platform subscription and from Website Builder. Founding discounts on Platform + Apps do not automatically apply unless expressly included in your Founding offer.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">What is Success Partner? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer">Success Partner ($499/mo) is a Customer Success plan — not marketing execution. You get a dedicated success manager, monthly strategy sessions, AI optimisation reviews, team training and quarterly roadmap planning.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">Are there lock-in contracts? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer">No. All plans are month-to-month. You can upgrade, downgrade, or cancel at any time.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">What is the Founding Customer Programme? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer">The early commercial path for businesses operating on DigitalGate. <strong>Founding 10 is open now</strong> — 30% off qualifying Platform + Industry Apps + additional Templates at onboarding for 24 months, plus referral tier benefits. Your own founding discount and referral commission are completely separate. Apps added after onboarding are at published pricing. Full rules: <a href="/founding-customer-terms/">Founding Customer Terms</a>.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">Do I need an Industry App? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer">No. Industry Apps are optional. The core platform works standalone. Add an Industry App (Property, Services, Hospitality &amp; Accommodation, …) when you need specialised workflows — and only when that Industry is ready for your stage (Available, Early Access or Coming Soon).</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">How do Industry Apps and Templates price? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer"><strong>Industry App = $99/mo</strong> — the major vertical capability. <strong>1 Industry Template is included</strong> (your primary business model). <strong>Additional Templates = +$29/mo each</strong>. Example: Property with Real Estate = $99; add Property Management = $128. Templates are not separate Industry products.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">Does the Founding discount cover Templates? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer">Yes — for Founding 10, the 30% acquisition discount applies to qualifying Platform + Industry Apps + any additional Industry Templates purchased as part of the Founding subscription at initial onboarding (24 months). Items added later are at published pricing. Full rules: <a href="/founding-customer-terms/">Founding Customer Terms</a>.</div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ===== FOOTER ===== -->
+  <!-- ============================================================ -->
+  <footer>
+    <div class="container">
+      <p style="color:#64748B;">© 2026 DigitalGate. All rights reserved.</p>
+    </div>
+  </footer>
+
+
+  <!-- ============================================================ -->
+  <!-- ===== STRIPE PAYMENT LINKS — paste URLs from Stripe ===== -->
+  <!-- See marketing/pages/STRIPE-PAYMENT-LINKS.md -->
+  <!-- ============================================================ -->
+  <script defer>
+    const STRIPE_PAYMENT_LINKS = {
+      // Platform (SaaS)
+      'platform-starter':      'https://buy.stripe.com/28EcN427Zd963J2h0fb7y0b',
+      'platform-professional': 'https://buy.stripe.com/9B65kCbIzfhe1AU25lb7y0c',
+      'platform-business':     'https://buy.stripe.com/9B66oGcMDglidjCh0fb7y0d',
+      // Legacy Growth Systems — retained for existing Stripe links; no longer on pricing page
+      'growth-foundation':     'https://buy.stripe.com/4gM00icMDb0YbbucJZb7y00',
+      'growth-growth':         'https://buy.stripe.com/bJeaEW7sj7OMcfy5hxb7y01',
+      'growth-authority':      'https://buy.stripe.com/5kQcN45kb7OM7ZicJZb7y02',
+      'growth-partner':        'https://buy.stripe.com/eVq5kC7sj0mk2EYdO3b7y07',
+      // Support Plans
+      'support-priority':        'https://buy.stripe.com/6oU6oGeUL6KIfrKcJZb7y0u',
+      'support-success-partner': 'https://buy.stripe.com/dRmeVceULfhe2EYaBRb7y0v',
+      // Industry Apps (+$99/mo) — Property / Hospitality are Industry SKUs; legacy RE/Accommodation links alias until Stripe products are remapped
+      'app-property':         'https://buy.stripe.com/5kQ7sKh2T8SQenGdO3b7y0i',
+      'app-hospitality-accommodation': 'https://buy.stripe.com/cNiaEWaEv2uscfycJZb7y0g',
+      'app-real-estate':       'https://buy.stripe.com/5kQ7sKh2T8SQenGdO3b7y0i',
+      'app-finance':           'https://buy.stripe.com/dRm00iaEvb0YdjC7pFb7y0h',
+      'app-accommodation':     'https://buy.stripe.com/cNiaEWaEv2uscfycJZb7y0g',
+      'app-services':          'https://buy.stripe.com/4gM5kCcMDedadjC6lBb7y0f',
+      'app-automotive':        'https://buy.stripe.com/00w5kCbIz0mkdjCfWbb7y0e',
+      'app-commercial':        'https://buy.stripe.com/4gMeVcfYP2us2EY4dtb7y0j',
+      'app-creator':           'https://buy.stripe.com/28E8wO5kb3yw4N611hb7y0t',
+      // Growth Apps
+      'premium-ai-visibility': 'https://buy.stripe.com/dRm4gy9Argli2EYeS7b7y0k',
+      'premium-seo':           'https://buy.stripe.com/4gM5kCcMD9WU93m11hb7y0l',
+      'premium-automation':    'https://buy.stripe.com/eVqcN4cMDc524N66lBb7y0m',
+      'premium-analytics':     'https://buy.stripe.com/00w28qh2T1qogvOcJZb7y0n',
+      'premium-social':        'https://buy.stripe.com/aFaaEWh2T4CAa7q11hb7y0s',
+      // Add-ons
+      'addon-voice-ai':        'https://buy.stripe.com/fZu14m7sjeda3J2eS7b7y0o',
+      'addon-extra-users':     'https://buy.stripe.com/3cIaEWdQH0mk5Ra11hb7y0p',
+      'addon-white-label':     'https://buy.stripe.com/eVq5kCbIz8SQ6Ve6lBb7y0q',
+      'addon-training':        'https://buy.stripe.com/3cI5kCbIz8SQ5RaaBRb7y0r',
+      // Website builds (one-time) — not on pricing page; use on /website-projects/ or sales calls
+      'website-launch':        'https://buy.stripe.com/8x24gy4g74CA0wQ39pb7y03',
+      'website-growth':        'https://buy.stripe.com/8x2aEWbIz9WU5Ra8tJb7y04',
+      'website-authority':     'https://buy.stripe.com/14AfZgfYPedabbu7pFb7y05',
+      hero_trial: 'https://digitalgate.com.au/founding-customers/',
+      cta_trial: 'https://digitalgate.com.au/founding-customers/',
+    };
+
+    document.querySelectorAll('[data-dg-plan]').forEach(function(card) {
+      var key = card.getAttribute('data-dg-plan');
+      var url = STRIPE_PAYMENT_LINKS[key];
+      var btn = card.querySelector('.btn-primary');
+      if (!btn || !url || url === 'REPLACE_ME') return;
+      // Founding-phase CTAs stay on /founding-customers/ — do not overwrite with Stripe
+      var label = (btn.textContent || '').toLowerCase();
+      if (label.indexOf('founding') !== -1) return;
+      btn.href = url;
+      if (url.indexOf('buy.stripe.com') !== -1) {
+        btn.setAttribute('target', '_blank');
+        btn.setAttribute('rel', 'noopener');
+      }
+    });
+
+    document.querySelectorAll('[data-dg-stripe]').forEach(function(card) {
+      var key = card.getAttribute('data-dg-stripe');
+      var url = STRIPE_PAYMENT_LINKS[key];
+      var btn = card.querySelector('.btn-app');
+      if (btn && url && url !== 'REPLACE_ME') {
+        btn.href = url;
+        btn.setAttribute('target', '_blank');
+        btn.setAttribute('rel', 'noopener');
+      }
+    });
+
+    var heroCta = document.querySelector('.hero-cta');
+    if (heroCta && STRIPE_PAYMENT_LINKS.hero_trial) heroCta.href = STRIPE_PAYMENT_LINKS.hero_trial;
+    // Founding CTAs stay on /founding-customers/ — do not overwrite with trial link
+  </script>
+
+  <!-- ============================================================ -->
+  <!-- ===== FAQ SCRIPT ===== -->
+  <!-- ============================================================ -->
+  <script defer>
+    const faqItems = document.querySelectorAll('.faq-item');
+    faqItems.forEach(item => {
+      const question = item.querySelector('.faq-question');
+      const answer = item.querySelector('.faq-answer');
+      question.addEventListener('click', () => {
+        answer.classList.toggle('show');
+        const icon = question.querySelector('.dg-ic-chevron');
+        if (icon) {
+          icon.classList.toggle('is-open');
+        }
+      });
+    });
+  </script>
+
+  <!-- ============================================================ -->
+  <!-- ===== CONSTELLATION SCRIPT ===== -->
+  <!-- ============================================================ -->
+  <script defer>
+    (function() {
+      function createConstellation() {
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          return;
+        }
+
+        var container = document.getElementById('pricingConstellation');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        var nodes = [
+          { x: 8, y: 12 }, { x: 20, y: 8 }, { x: 12, y: 30 },
+          { x: 85, y: 18 }, { x: 78, y: 38 }, { x: 92, y: 50 },
+          { x: 15, y: 60 }, { x: 45, y: 78 }, { x: 55, y: 65 },
+          { x: 80, y: 75 }, { x: 30, y: 48 }, { x: 70, y: 10 }
+        ];
+
+        var nodeElements = [];
+        nodes.forEach(function(node, i) {
+          var div = document.createElement('div');
+          div.className = 'constellation-node';
+          div.style.left = node.x + '%';
+          div.style.top = node.y + '%';
+          div.style.animationDelay = (i * 0.3) + 's';
+          container.appendChild(div);
+          nodeElements.push({ x: node.x, y: node.y });
+        });
+
+        for (var i = 0; i < nodeElements.length; i++) {
+          for (var j = i + 1; j < nodeElements.length; j++) {
+            var dx = nodeElements[i].x - nodeElements[j].x;
+            var dy = nodeElements[i].y - nodeElements[j].y;
+            var distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 28) {
+              var line = document.createElement('div');
+              line.style.cssText = 'position:absolute;height:1px;background:linear-gradient(90deg,rgba(59,130,246,0.2),rgba(45,212,191,0.4),rgba(59,130,246,0.2));transform-origin:left center;opacity:0.4;';
+              var angle = Math.atan2(dy, dx) * 180 / Math.PI;
+              line.style.left = nodeElements[i].x + '%';
+              line.style.top = nodeElements[i].y + '%';
+              line.style.width = distance + '%';
+              line.style.transform = 'rotate(' + angle + 'deg)';
+              container.appendChild(line);
+            }
+          }
+        }
+      }
+
+      function scheduleConstellation() {
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(createConstellation, { timeout: 2000 });
+        } else {
+          setTimeout(createConstellation, 300);
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', scheduleConstellation);
+      } else {
+        scheduleConstellation();
+      }
+    })();
+  </script>
+
+
+
+

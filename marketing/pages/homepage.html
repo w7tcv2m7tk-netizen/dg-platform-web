@@ -913,7 +913,7 @@
     .hero-home { --hx: 0 !important; --hy: 0 !important; }
   }
   @media (max-width: 640px) {
-    .hero-home { padding: 5.5rem 0 4rem; min-height: 100svh; min-height: 100dvh; height: 100svh; height: 100dvh; }
+    .hero-home { padding: clamp(5rem, 14vw, 5.5rem) 0 3.5rem; min-height: 100svh; min-height: 100dvh; }
     .hero-home .hero-network { opacity: 0.4; }
     .hero-home .hero-orb-c { display: none; }
   }
@@ -1218,12 +1218,12 @@
       <div class="dg-core-band dg-reveal">
         <h3>Growth</h3>
         <div class="apps-row">
-          <span class="app-chip">Prospecting</span>
-          <span class="app-chip">SEO</span>
-          <span class="app-chip">AI Visibility</span>
-          <span class="app-chip">Automation</span>
-          <span class="app-chip">Analytics</span>
-          <span class="app-chip">Reputation</span>
+          <a class="app-chip" href="/prospecting/">Prospecting</a>
+          <a class="app-chip" href="/seo/">SEO</a>
+          <a class="app-chip" href="/ai-visibility/">AI Visibility</a>
+          <a class="app-chip" href="/automation/">Automation</a>
+          <a class="app-chip" href="/analytics/">Analytics</a>
+          <a class="app-chip" href="/reputation/">Reputation</a>
         </div>
       </div>
     </div>
@@ -1273,11 +1273,14 @@
       <h3>Growth</h3>
       <p class="logic">Grow visibility, acquisition and conversion</p>
       <div class="apps-row">
-        <a class="app-chip" href="/apps/growth/prospecting/">Prospecting &amp; Opportunity Engine</a>
-        <a class="app-chip" href="/apps/growth/ai-visibility/">AI Visibility</a>
-        <a class="app-chip" href="/apps/growth/seo/">SEO</a>
-        <a class="app-chip" href="/apps/growth/automation/">Automation</a>
+        <a class="app-chip" href="/prospecting/">Prospecting &amp; Opportunity Engine</a>
+        <a class="app-chip" href="/ai-visibility/">AI Visibility</a>
+        <a class="app-chip" href="/seo/">SEO</a>
+        <a class="app-chip" href="/automation/">Automation</a>
+        <a class="app-chip" href="/analytics/">Analytics</a>
+        <a class="app-chip" href="/social/">Social</a>
       </div>
+      <p style="margin-top:0.75rem;font-size:0.88rem;"><a href="/growth/" style="color:#93C5FD;font-weight:600;">Explore Growth capabilities →</a></p>
     </div>
 
     <p style="text-align:center;margin-top:2rem;"><a href="/apps/" class="btn-secondary">Explore the Apps hub →</a></p>

@@ -16,6 +16,7 @@
     "abr:smoke": "node scripts/abr-smoke.mjs",
     "capture:screenshots": "node scripts/capture-marketing-screenshots.mjs",
     "sync:dg-apps": "dotenv -e .env.local -- node scripts/sync-digitalgate-apps-pages.mjs",
+    "sync:dg-growth": "dotenv -e .env.local -- node scripts/sync-digitalgate-growth-landings.mjs",
     "postinstall": "npm run db:generate"
   },
   "dependencies": {

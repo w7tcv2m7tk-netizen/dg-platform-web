@@ -171,37 +171,72 @@ function patchHomepageAppsSection(html) {
     ],
     [
       /<span class="app-chip">AI Visibility<\/span>/g,
-      `<a class="app-chip" href="/apps/growth/ai-visibility/">AI Visibility</a>`,
+      `<a class="app-chip" href="/ai-visibility/">AI Visibility</a>`,
     ],
-    [/<span class="app-chip">SEO<\/span>/g, `<a class="app-chip" href="/apps/growth/seo/">SEO</a>`],
+    [/<span class="app-chip">SEO<\/span>/g, `<a class="app-chip" href="/seo/">SEO</a>`],
     [
       /<span class="app-chip">Automation<\/span>/g,
-      `<a class="app-chip" href="/apps/growth/automation/">Automation</a>`,
+      `<a class="app-chip" href="/automation/">Automation</a>`,
     ],
     [
       /<span class="app-chip">Analytics<\/span>/g,
-      `<a class="app-chip" href="/apps/growth/analytics/">Analytics</a>`,
+      `<a class="app-chip" href="/analytics/">Analytics</a>`,
     ],
-    [/<span class="app-chip">Social<\/span>/g, `<a class="app-chip" href="/apps/growth/social/">Social</a>`],
+    [/<span class="app-chip">Social<\/span>/g, `<a class="app-chip" href="/social/">Social</a>`],
     [
       /<span class="app-chip soon">Reputation — Early Access<\/span>/g,
-      `<a class="app-chip soon" href="/apps/growth/reputation/">Reputation — Early Access</a>`,
+      `<a class="app-chip soon" href="/reputation/">Reputation — Early Access</a>`,
     ],
     [
       /<span class="app-chip soon">AI Communications — Early Access<\/span>/g,
-      `<a class="app-chip soon" href="/apps/growth/ai-communications/">AI Communications — Early Access</a>`,
+      `<a class="app-chip soon" href="/ai-communications/">AI Communications — Early Access</a>`,
     ],
     [
       /<span class="app-chip soon">Prospecting \/ Opportunity Engine — Early Access<\/span>/g,
-      `<a class="app-chip" href="/apps/growth/prospecting/">Prospecting &amp; Opportunity Engine</a>`,
+      `<a class="app-chip" href="/prospecting/">Prospecting &amp; Opportunity Engine</a>`,
     ],
     [
       /<a class="app-chip soon" href="\/apps\/growth\/prospecting\/">Prospecting &amp; Opportunity Engine — Early Access<\/a>/g,
-      `<a class="app-chip" href="/apps/growth/prospecting/">Prospecting &amp; Opportunity Engine</a>`,
+      `<a class="app-chip" href="/prospecting/">Prospecting &amp; Opportunity Engine</a>`,
     ],
     [
       /<span class="app-chip">Prospecting &amp; Opportunity Engine<\/span>/g,
-      `<a class="app-chip" href="/apps/growth/prospecting/">Prospecting &amp; Opportunity Engine</a>`,
+      `<a class="app-chip" href="/prospecting/">Prospecting &amp; Opportunity Engine</a>`,
+    ],
+    [
+      /<span class="app-chip">Prospecting<\/span>/g,
+      `<a class="app-chip" href="/prospecting/">Prospecting</a>`,
+    ],
+    [
+      /<span class="app-chip">Reputation<\/span>/g,
+      `<a class="app-chip soon" href="/reputation/">Reputation</a>`,
+    ],
+    // Legacy /apps/growth/* → canonical Growth landing URLs
+    [
+      /<a class="app-chip" href="\/apps\/growth\/ai-visibility\/">AI Visibility<\/a>/g,
+      `<a class="app-chip" href="/ai-visibility/">AI Visibility</a>`,
+    ],
+    [/<a class="app-chip" href="\/apps\/growth\/seo\/">SEO<\/a>/g, `<a class="app-chip" href="/seo/">SEO</a>`],
+    [
+      /<a class="app-chip" href="\/apps\/growth\/automation\/">Automation<\/a>/g,
+      `<a class="app-chip" href="/automation/">Automation</a>`,
+    ],
+    [
+      /<a class="app-chip" href="\/apps\/growth\/analytics\/">Analytics<\/a>/g,
+      `<a class="app-chip" href="/analytics/">Analytics</a>`,
+    ],
+    [/<a class="app-chip" href="\/apps\/growth\/social\/">Social<\/a>/g, `<a class="app-chip" href="/social/">Social</a>`],
+    [
+      /<a class="app-chip soon" href="\/apps\/growth\/reputation\/">Reputation — Early Access<\/a>/g,
+      `<a class="app-chip soon" href="/reputation/">Reputation — Early Access</a>`,
+    ],
+    [
+      /<a class="app-chip soon" href="\/apps\/growth\/ai-communications\/">AI Communications — Early Access<\/a>/g,
+      `<a class="app-chip soon" href="/ai-communications/">AI Communications — Early Access</a>`,
+    ],
+    [
+      /<a class="app-chip" href="\/apps\/growth\/prospecting\/">Prospecting &amp; Opportunity Engine<\/a>/g,
+      `<a class="app-chip" href="/prospecting/">Prospecting &amp; Opportunity Engine</a>`,
     ],
   ];
   if (!out.includes('href="/apps/core/crm/"')) {
@@ -225,7 +260,7 @@ function patchPricingAppsSection(html) {
 
   const prospectingReplacement = `<div class="dg-app-card" data-dg-stripe="premium-prospecting">
             <div class="app-icon">◎</div>
-            <div class="app-name"><a href="/apps/growth/prospecting/">Prospecting &amp; Opportunity Engine</a></div>
+            <div class="app-name"><a href="/prospecting/">Prospecting &amp; Opportunity Engine</a></div>
             <div class="app-price">+$99<span>/mo</span></div>
             <div class="app-desc">Find businesses → discovery → opportunity score → pipeline → CRM — one Growth App</div>
             <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
@@ -286,14 +321,14 @@ function patchPricingAppsSection(html) {
     ["Automotive", "/apps/industry/automotive/"],
     ["Creator &amp; Media", "/apps/industry/creator/"],
     ["Creator", "/apps/industry/creator/"],
-    ["Prospecting &amp; Opportunity Engine", "/apps/growth/prospecting/"],
-    ["AI Visibility", "/apps/growth/ai-visibility/"],
-    ["SEO", "/apps/growth/seo/"],
-    ["Automation", "/apps/growth/automation/"],
-    ["Analytics", "/apps/growth/analytics/"],
-    ["Social", "/apps/growth/social/"],
-    ["Reputation", "/apps/growth/reputation/"],
-    ["AI Communications", "/apps/growth/ai-communications/"],
+    ["Prospecting &amp; Opportunity Engine", "/prospecting/"],
+    ["AI Visibility", "/ai-visibility/"],
+    ["SEO", "/seo/"],
+    ["Automation", "/automation/"],
+    ["Analytics", "/analytics/"],
+    ["Social", "/social/"],
+    ["Reputation", "/reputation/"],
+    ["AI Communications", "/ai-communications/"],
   ];
   for (const [name, href] of links) out = nameLink(name, href);
   if (!out.includes(".dg-app-card .app-name a")) {
