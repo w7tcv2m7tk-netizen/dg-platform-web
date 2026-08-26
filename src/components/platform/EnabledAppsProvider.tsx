@@ -29,7 +29,12 @@ type EnabledAppsContextValue = {
   applyPlan: (plan: PlanSelectionInput) => Promise<void>;
   resetApps: () => Promise<void>;
   nav: ReturnType<typeof getCategorizedPlatformNavigation>;
+  /** True while any persist is in flight (plan apply / reset). */
   syncing: boolean;
+  /** App id currently being toggled — other toggles stay interactive. */
+  syncingAppId: string | null;
+  lastError: string | null;
+  clearError: () => void;
 };
 
 const EnabledAppsContext = createContext<EnabledAppsContextValue | null>(null);
@@ -77,6 +82,8 @@ export function EnabledAppsProvider({
   const router = useRouter();
   const [enabledIds, setEnabledIdsState] = useState(initialEnabledIds);
   const [syncing, setSyncing] = useState(false);
+  const [syncingAppId, setSyncingAppId] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<string | null>(null);
 
   useEffect(() => {
     setEnabledIdsState(initialEnabledIds);
@@ -97,9 +104,12 @@ export function EnabledAppsProvider({
     window.dispatchEvent(new CustomEvent("dg-enabled-apps-changed", { detail: ids }));
   }, []);
 
+  const clearError = useCallback(() => setLastError(null), []);
+
   const toggleApp = useCallback(
     async (appId: string, enabled?: boolean) => {
-      setSyncing(true);
+      setSyncingAppId(appId);
+      setLastError(null);
       const previous = enabledIds;
       const next = new Set(enabledIds);
       const turnOn = enabled ?? !next.has(appId);
@@ -110,10 +120,11 @@ export function EnabledAppsProvider({
       try {
         await persistOrgApps({ action: "toggle", appId, enabled: turnOn });
         router.refresh();
-      } catch {
+      } catch (err) {
         setEnabledIds(previous);
+        setLastError(err instanceof Error ? err.message : "Failed to update app");
       }
-      setSyncing(false);
+      setSyncingAppId(null);
     },
     [enabledIds, router, setEnabledIds],
   );
@@ -121,14 +132,16 @@ export function EnabledAppsProvider({
   const applyPlan = useCallback(
     async (plan: PlanSelectionInput) => {
       setSyncing(true);
+      setLastError(null);
       const previous = enabledIds;
       const ids = appIdsFromPlanSelection(plan);
       setEnabledIds(ids);
       try {
         await persistOrgApps({ action: "apply_plan", plan });
         router.refresh();
-      } catch {
+      } catch (err) {
         setEnabledIds(previous);
+        setLastError(err instanceof Error ? err.message : "Failed to apply plan");
       }
       setSyncing(false);
     },
@@ -137,14 +150,16 @@ export function EnabledAppsProvider({
 
   const resetApps = useCallback(async () => {
     setSyncing(true);
+    setLastError(null);
     const previous = enabledIds;
     const ids = getDefaultEnabledAppIds();
     setEnabledIds(ids);
     try {
       await persistOrgApps({ action: "reset" });
       router.refresh();
-    } catch {
+    } catch (err) {
       setEnabledIds(previous);
+      setLastError(err instanceof Error ? err.message : "Failed to reset apps");
     }
     setSyncing(false);
   }, [enabledIds, router, setEnabledIds]);
@@ -187,8 +202,22 @@ export function EnabledAppsProvider({
       resetApps,
       nav,
       syncing,
+      syncingAppId,
+      lastError,
+      clearError,
     }),
-    [enabledIds, setEnabledIds, toggleApp, applyPlan, resetApps, nav, syncing],
+    [
+      enabledIds,
+      setEnabledIds,
+      toggleApp,
+      applyPlan,
+      resetApps,
+      nav,
+      syncing,
+      syncingAppId,
+      lastError,
+      clearError,
+    ],
   );
 
   return (

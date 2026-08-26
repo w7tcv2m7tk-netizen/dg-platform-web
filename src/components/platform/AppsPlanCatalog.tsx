@@ -144,7 +144,8 @@ function CatalogAppCard({
 }
 
 export function AppsPlanCatalog() {
-  const { enabledIds, applyPlan, resetApps, syncing } = useEnabledApps();
+  const { enabledIds, applyPlan, resetApps, syncing, lastError, clearError } =
+    useEnabledApps();
   const [activeTier, setActiveTier] = useState<PlatformTier>("professional");
 
   const selectionFromEnabled = useMemo(
@@ -181,6 +182,21 @@ export function AppsPlanCatalog() {
 
   return (
     <div className="space-y-12">
+      {lastError ? (
+        <div
+          role="alert"
+          className="flex items-start justify-between gap-3 rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+        >
+          <p>{lastError}</p>
+          <button
+            type="button"
+            onClick={clearError}
+            className="shrink-0 text-rose-300/80 hover:text-rose-100"
+          >
+            Dismiss
+          </button>
+        </div>
+      ) : null}
       <nav
         className="sticky top-0 z-10 -mx-1 rounded-xl border border-slate-800 bg-slate-950/95 px-2 py-2 backdrop-blur"
         aria-label="Plan sections"
@@ -350,7 +366,7 @@ export function AppsPlanCatalog() {
         <SectionHeader
           label="🧩 3 · Industry Apps"
           title="Built around how your business operates"
-          description="Choose an Industry App ($99/mo), activate one Template included, then add more as you grow (+$29/mo each). Templates configure objects, pipelines, workflows and AI — not just the dashboard label. One platform. One source of truth."
+          description="Choose an Industry App ($99/mo), activate one Template included, then add more as you grow (+$29/mo each). Each specialisation turns on and off independently — Property Management does not enable Commercial Property. Templates configure objects, pipelines, workflows and AI — not just the dashboard label."
         />
         <div id="industry-apps" className="scroll-mt-24 space-y-6">
           {INDUSTRY_PLATFORM_CATALOG.map((platform) => (

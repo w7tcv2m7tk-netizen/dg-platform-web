@@ -3,8 +3,8 @@ import {
   appIdsFromPlanSelection,
   assertEntitlement,
   getDefaultEnabledAppIds,
+  industryBetaFlagForAppId,
   isIndustryBetaGatedApp,
-  organisationHasIndustryAppBeta,
   resolveEnabledAppIds,
 } from "@dg/platform-core";
 
@@ -15,7 +15,22 @@ type OrgSettings = {
     enabled?: string[];
     planPreview?: Record<string, unknown>;
   };
+  featureFlags?: Record<string, boolean>;
 };
+
+/** Enrol industry closed-beta flags when Apps toggles those floors on (dev / Founding). */
+function enrolIndustryBetasForEnabled(
+  featureFlags: Record<string, boolean> | undefined,
+  enabled: string[],
+): Record<string, boolean> {
+  const next = { ...(featureFlags ?? {}) };
+  for (const appId of enabled) {
+    if (!isIndustryBetaGatedApp(appId)) continue;
+    const flag = industryBetaFlagForAppId(appId);
+    if (flag) next[flag] = true;
+  }
+  return next;
+}
 
 export async function GET() {
   const session = await requirePlatformSession();
@@ -97,81 +112,26 @@ export async function PATCH(req: Request) {
       action: "manage",
       scope: "organisation",
     });
-    if (denied && session.role !== "owner" && session.role !== "admin" && session.role !== "dg:staff") return denied;
-    const next = appIdsFromPlanSelection(body.plan);
-    for (const appId of next) {
-      if (!isIndustryBetaGatedApp(appId)) continue;
-      const enrolled = await organisationHasIndustryAppBeta(
-        session.organisationId,
-        appId,
-      );
-      if (!enrolled) {
-        return NextResponse.json(
-          {
-            error: {
-              code: "beta_required",
-              message: `${appId} requires beta enrolment before it can be enabled`,
-            },
-          },
-          { status: 403 },
-        );
-      }
-    }
-    enabled = next;
+    if (denied && session.role !== "owner" && session.role !== "admin" && session.role !== "dg:staff")
+      return denied;
+    // Industry floors are toggled independently — no shared beta gate on install.
+    enabled = appIdsFromPlanSelection(body.plan);
   } else if (body.action === "toggle" && typeof body.appId === "string") {
     const denied = requirePermission(session, {
       module: "settings",
       action: "manage",
       scope: "organisation",
     });
-    if (denied && session.role !== "owner" && session.role !== "admin" && session.role !== "dg:staff") return denied;
+    if (denied && session.role !== "owner" && session.role !== "admin" && session.role !== "dg:staff")
+      return denied;
     const set = new Set(enabled);
-    const enabling =
-      body.enabled === true ||
-      (body.enabled !== false && !set.has(body.appId));
-    if (enabling && isIndustryBetaGatedApp(body.appId)) {
-      const enrolled = await organisationHasIndustryAppBeta(
-        session.organisationId,
-        body.appId,
-      );
-      if (!enrolled) {
-        return NextResponse.json(
-          {
-            error: {
-              code: "beta_required",
-              message: `${body.appId} requires beta enrolment before it can be enabled`,
-            },
-          },
-          { status: 403 },
-        );
-      }
-    }
     if (body.enabled === true) set.add(body.appId);
     else if (body.enabled === false) set.delete(body.appId);
     else if (set.has(body.appId)) set.delete(body.appId);
     else set.add(body.appId);
     enabled = [...set];
   } else if (body.action === "set" && Array.isArray(body.enabled)) {
-    const next = body.enabled.filter((id: unknown) => typeof id === "string") as string[];
-    for (const appId of next) {
-      if (!isIndustryBetaGatedApp(appId)) continue;
-      const enrolled = await organisationHasIndustryAppBeta(
-        session.organisationId,
-        appId,
-      );
-      if (!enrolled) {
-        return NextResponse.json(
-          {
-            error: {
-              code: "beta_required",
-              message: `${appId} requires beta enrolment before it can be enabled`,
-            },
-          },
-          { status: 403 },
-        );
-      }
-    }
-    enabled = next;
+    enabled = body.enabled.filter((id: unknown) => typeof id === "string") as string[];
   } else if (body.action === "reset") {
     enabled = getDefaultEnabledAppIds();
   } else {
@@ -186,11 +146,14 @@ export async function PATCH(req: Request) {
       ? { ...body.plan, appliedAt: new Date().toISOString() }
       : settings.apps?.planPreview;
 
+  const featureFlags = enrolIndustryBetasForEnabled(settings.featureFlags, enabled);
+
   await prisma.organisation.update({
     where: { id: session.organisationId },
     data: {
       settings: {
         ...settings,
+        featureFlags,
         apps: {
           ...settings.apps,
           enabled,

@@ -53,22 +53,15 @@ export const getOrgEnabledAppIdsCached = cache(async (): Promise<string[]> => {
   }
 
   const { prisma } = await import("@dg/database");
-  const { filterAppsForAccBeta, filterAppsForReBeta, filterAppsForIndustryBetas } =
-    await import("@dg/platform-core");
   const org = await prisma.organisation.findUnique({
     where: { id: session.organisationId },
     select: { settings: true },
   });
 
   const settings = org?.settings as OrgNavSettings | null;
-  const enabled = resolveEnabledAppIds(settings ?? undefined);
-  return filterAppsForIndustryBetas(
-    filterAppsForAccBeta(
-      filterAppsForReBeta(enabled, settings?.featureFlags),
-      settings?.featureFlags,
-    ),
-    settings?.featureFlags,
-  );
+  // Persist Apps toggles as-is. Closed-beta flags still gate deep routes / mutations;
+  // do not strip Industry apps from the enabled list on read (they must toggle independently).
+  return resolveEnabledAppIds(settings ?? undefined);
 });
 
 export type OrgNavSettings = {

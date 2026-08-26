@@ -24,8 +24,9 @@ export function isIndustryBetaGatedApp(appId: string): boolean {
 }
 
 /**
- * Filter enabled app IDs so Industry floors only appear when their beta flag is on.
- * Call after Acc / RE beta filters.
+ * Optional filter: Industry floors only when their beta flag is on.
+ * Do not use for Apps install / sidebar enabled list — those toggle independently;
+ * enrol flags when enabling via PATCH /api/v1/org/apps instead.
  */
 export function filterAppsForIndustryBetas(
   enabledAppIds: string[],
