@@ -36,7 +36,8 @@ export default async function NetworkHomePage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Network</h1>
         <p className="text-sm text-slate-400">
-          Business-to-business introductions and discovery — Phase 5 foundations
+          Business-to-business introductions and your DigitalGate ecosystem — resellers, referrals,
+          commissions, and Refer &amp; Earn.
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -55,28 +56,28 @@ export default async function NetworkHomePage() {
             </Link>
           </div>
           <div className="dg-card">
-            <h2 className="font-semibold text-white">Marketplace</h2>
+            <h2 className="font-semibold text-white">Refer &amp; Earn</h2>
             <p className="mt-2 text-sm text-slate-400">
-              Browse Software, Services, Professionals, Partners, and Integrations.
+              Refer DigitalGate subscriptions — earn platform credit or cash (Customer 20% · Partner
+              25% · Reseller 30%).
             </p>
             <Link
-              href="/dashboard/marketplace"
+              href="/dashboard/network/refer-earn"
               className="mt-4 inline-block text-sm text-blue-400 hover:underline"
             >
-              Browse marketplace →
+              Open Refer &amp; Earn →
             </Link>
           </div>
           <div className="dg-card">
-            <h2 className="font-semibold text-white">Reputation</h2>
+            <h2 className="font-semibold text-white">Ecosystem</h2>
             <p className="mt-2 text-sm text-slate-400">
-              Growth App — unified review feed via Connectors, timeline requests, Reputation
-              Score™ when real data exists. Network Refer &amp; Earn stays separate.
+              Partners, resellers, commissions, and the broader DigitalGate network layer.
             </p>
             <Link
-              href="/apps/reviews"
-              className="mt-4 inline-block text-sm text-sky-400 hover:underline"
+              href="/dashboard/network/ecosystem"
+              className="mt-4 inline-block text-sm text-blue-400 hover:underline"
             >
-              Open Reputation →
+              View ecosystem →
             </Link>
           </div>
         </div>
@@ -114,13 +115,17 @@ export default async function NetworkHomePage() {
         </div>
 
         <div className="dg-card border-dashed">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Separation</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Discover</p>
           <p className="mt-2 text-sm text-slate-300">
-            Platform Refer &amp; Earn (customers refer DigitalGate subscriptions) lives in{" "}
-            <Link href="/dashboard/settings/referrals" className="text-blue-400 hover:underline">
-              Settings → Refer &amp; Earn
+            Marketplace is for discovering capabilities —{" "}
+            <Link href="/dashboard/marketplace" className="text-blue-400 hover:underline">
+              browse Marketplace
             </Link>
-            . This Network surface is B2B introductions only.
+            . Apps is for what is installed on this organisation —{" "}
+            <Link href="/dashboard/apps" className="text-blue-400 hover:underline">
+              manage Apps
+            </Link>
+            .
           </p>
         </div>
       </main>

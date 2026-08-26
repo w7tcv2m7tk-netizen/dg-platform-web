@@ -378,58 +378,108 @@ function intelligenceNavItem(): AppNavTreeItem {
 /** @deprecated Intelligence is a single Core app — section kept empty for IA shape. */
 const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [];
 
-/** PLATFORM ADMIN — customer org config. Staff use PLATFORM_CONFIG + DIGITALGATE operator sections. */
-function getPlatformAdminSection(options?: {
-  showCommandCentre?: boolean;
-  foundingCustomerMode?: boolean;
-}): NavIaSection {
-  const settingsItem: AppNavTreeItem = {
+function platformAppsNavItem(foundingCustomerMode: boolean): AppNavTreeItem {
+  return {
+    kind: "app",
+    id: "platform-apps",
+    name: "Apps",
+    icon: getSidebarIcon("apps"),
+    tier: "internal",
+    enabled: true,
+    primaryHref: "/dashboard/apps",
+    routes: foundingCustomerMode
+      ? [{ path: "/dashboard/apps", label: "Installed Apps", matchAlso: ["/dashboard/apps/"] }]
+      : [
+          { path: "/dashboard/apps", label: "Installed Apps", matchAlso: ["/dashboard/apps/"] },
+          { path: "/dashboard/apps/catalogue", label: "App Catalogue" },
+          { path: "/dashboard/apps/beta", label: "Beta Programmes" },
+        ],
+  };
+}
+
+function platformMarketplaceNavItem(): AppNavTreeItem {
+  return {
+    kind: "app",
+    id: "platform-marketplace",
+    name: "Marketplace",
+    icon: getSidebarIcon("marketplace"),
+    tier: "internal",
+    enabled: true,
+    primaryHref: "/dashboard/marketplace",
+    routes: [
+      { path: "/dashboard/marketplace", label: "Explore" },
+      {
+        path: "/dashboard/marketplace/apps",
+        label: "Apps",
+        matchAlso: ["/dashboard/marketplace?category=software"],
+      },
+      { path: "/dashboard/marketplace/templates", label: "Templates" },
+      {
+        path: "/dashboard/marketplace/integrations",
+        label: "Integrations",
+        matchAlso: ["/dashboard/marketplace?category=integrations"],
+      },
+      {
+        path: "/dashboard/marketplace/partner-services",
+        label: "Partner Services",
+        matchAlso: ["/dashboard/marketplace?category=partners"],
+      },
+    ],
+  };
+}
+
+function platformNetworkNavItem(): AppNavTreeItem {
+  return {
+    kind: "app",
+    id: "platform-network",
+    name: "Network",
+    icon: getSidebarIcon("network"),
+    tier: "internal",
+    enabled: true,
+    primaryHref: "/dashboard/network",
+    routes: [
+      { path: "/dashboard/network", label: "Overview" },
+      { path: "/dashboard/network/partners", label: "Partners" },
+      { path: "/dashboard/network/resellers", label: "Resellers" },
+      { path: "/dashboard/network/referrals", label: "Referrals" },
+      {
+        path: "/dashboard/network/refer-earn",
+        label: "Refer & Earn",
+        matchAlso: ["/dashboard/settings/referrals"],
+      },
+      { path: "/dashboard/network/commissions", label: "Commissions" },
+      { path: "/dashboard/network/ecosystem", label: "Ecosystem" },
+    ],
+  };
+}
+
+function platformSettingsNavItem(): AppNavTreeItem {
+  return {
     kind: "app",
     id: "platform-settings",
     name: "Settings",
     icon: getSidebarIcon("settings"),
     tier: "internal",
     enabled: true,
-    routes: [
-      { path: "/dashboard/settings", label: "Overview" },
-      { path: "/dashboard/settings/billing", label: "Billing" },
-      { path: "/dashboard/settings/connected-services", label: "Connected Services" },
-      { path: "/dashboard/settings/connectors", label: "Connectors" },
-      { path: "/dashboard/settings/api", label: "API" },
-      { path: "/dashboard/settings/audit", label: "Audit Log" },
-      { path: "/dashboard/settings/referrals", label: "Refer & Earn" },
-    ],
     primaryHref: "/dashboard/settings",
+    routes: SETTINGS_NAV_ROUTES,
   };
+}
 
-  const links: PlatformShellNavItem[] = options?.foundingCustomerMode
-    ? [
-        {
-          kind: "shell",
-          href: "/dashboard/apps",
-          label: "Apps",
-          icon: getSidebarIcon("apps"),
-        },
-      ]
+/** PLATFORM — Apps · Marketplace · Network · Settings (ecosystem admin, not product features). */
+function getPlatformAdminSection(options?: {
+  showCommandCentre?: boolean;
+  foundingCustomerMode?: boolean;
+}): NavIaSection {
+  const foundingCustomerMode = options?.foundingCustomerMode ?? false;
+
+  const apps = foundingCustomerMode
+    ? [platformAppsNavItem(true)]
     : [
-        {
-          kind: "shell",
-          href: "/dashboard/apps",
-          label: "Apps",
-          icon: getSidebarIcon("apps"),
-        },
-        {
-          kind: "shell",
-          href: "/dashboard/marketplace",
-          label: "Marketplace",
-          icon: getSidebarIcon("marketplace"),
-        },
-        {
-          kind: "shell",
-          href: "/dashboard/network",
-          label: "Network",
-          icon: getSidebarIcon("network"),
-        },
+        platformAppsNavItem(false),
+        platformMarketplaceNavItem(),
+        platformNetworkNavItem(),
+        platformSettingsNavItem(),
       ];
 
   const trailingLinks: PlatformShellNavItem[] = options?.showCommandCentre
@@ -448,8 +498,8 @@ function getPlatformAdminSection(options?: {
     label: options?.showCommandCentre
       ? PLATFORM_CONFIG_NAV_SECTION_LABEL
       : PLATFORM_ADMIN_NAV_SECTION_LABEL,
-    links,
-    apps: [settingsItem],
+    links: [],
+    apps,
     trailingLinks,
   };
 }

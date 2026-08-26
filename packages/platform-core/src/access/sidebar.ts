@@ -41,7 +41,13 @@ export const CUSTOMER_SIDE_PANEL_SECTIONS = [
   {
     id: "platformAdmin",
     label: "Platform",
-    items: ["Apps", "Marketplace", "Network", "Settings", "Support"],
+    items: [
+      "Apps (Installed · Catalogue · Beta)",
+      "Marketplace (Explore · Templates · Integrations · Partner Services)",
+      "Network (Overview · Partners · Resellers · Referrals · Refer & Earn · Commissions · Ecosystem)",
+      "Settings",
+      "Support (trailing)",
+    ],
   },
 ] as const;
 

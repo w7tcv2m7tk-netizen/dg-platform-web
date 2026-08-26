@@ -11,17 +11,28 @@ export interface PlatformToolGroup {
 }
 
 /**
- * Settings sub-pages only — Team lives under Business; Refer & Earn under Ecosystem
- * so the sidebar does not list the same destinations twice.
- * Roadmap lives under Product (staff) / product surfaces — not Settings.
- * Support lives under DigitalGate → Support for staff; customers use /support deep links.
+ * Settings sub-pages — Platform → Settings horizontal subnav.
+ * Refer & Earn lives under Network. Roadmap lives under Product (staff).
+ * Team / organisation profile also reachable from Business in Core.
  */
 export const SETTINGS_NAV_ROUTES: AppRoute[] = [
   { path: "/dashboard/settings", label: "Overview" },
+  {
+    path: "/dashboard/settings/organisation",
+    label: "Organisation",
+    matchAlso: ["/dashboard/business"],
+  },
+  { path: "/dashboard/settings/team", label: "Users & Permissions" },
   { path: "/dashboard/settings/billing", label: "Billing" },
-  { path: "/dashboard/settings/connectors", label: "Connectors" },
+  {
+    path: "/dashboard/settings/connectors",
+    label: "Connectors",
+    matchAlso: ["/dashboard/settings/connected-services"],
+  },
   { path: "/dashboard/settings/api", label: "API" },
-  { path: "/dashboard/settings/audit", label: "Audit log" },
+  { path: "/dashboard/settings/security", label: "Security" },
+  { path: "/dashboard/settings/notifications", label: "Notifications" },
+  { path: "/dashboard/settings/audit", label: "Audit Log" },
 ];
 
 /** @deprecated Tools section merged into Settings — kept for type compatibility. */

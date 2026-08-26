@@ -1,5 +1,6 @@
 "use client";
 
+import { REFER_AND_EARN_HREF } from "@dg/platform-core";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -125,7 +126,7 @@ export function ReferAndEarnPanel({
             ? "Stripe Connect status updated."
             : "Onboarding link expired — start Connect again if needed.",
         );
-        router.replace("/dashboard/settings/referrals");
+        router.replace(REFER_AND_EARN_HREF);
         router.refresh();
       } catch {
         setError("Could not refresh Connect status");

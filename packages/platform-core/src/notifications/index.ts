@@ -70,7 +70,7 @@ function hrefForEvent(event: PlatformEvent): string | null {
     case "Opportunity":
       return `/apps/crm/opportunities/${id}`;
     case "PlatformReferral":
-      return `/dashboard/settings/referrals`;
+      return `/dashboard/network/refer-earn`;
     default:
       return null;
   }

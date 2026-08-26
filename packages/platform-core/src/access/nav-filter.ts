@@ -160,18 +160,44 @@ function filterSectionApps(apps: AppNavTreeItem[], ctx: AccessContext): AppNavTr
     .filter((app): app is AppNavTreeItem => Boolean(app));
 }
 
+function canManagePlatformCatalog(ctx: AccessContext): boolean {
+  const canBilling = hasPermission(ctx, {
+    module: "billing",
+    action: "view",
+    scope: "organisation",
+  });
+  const canTeamManage = hasPermission(ctx, {
+    module: "team",
+    action: "manage",
+    scope: "organisation",
+  });
+  const canSettings = canView(ctx, "settings");
+  const staff = isPlatformStaff(ctx);
+  if (isOrgMemberOnly(ctx)) return false;
+  return canTeamManage || canBilling || canSettings || staff;
+}
+
+function filterPlatformAdminApp(app: AppNavTreeItem, ctx: AccessContext): AppNavTreeItem | null {
+  if (app.id === "platform-settings") {
+    const routes = filterSettingsRoutes(app.routes, ctx);
+    if (!routes.length) return null;
+    return { ...app, routes, primaryHref: routes[0]?.path ?? app.primaryHref };
+  }
+  if (
+    app.id === "platform-apps" ||
+    app.id === "platform-marketplace" ||
+    app.id === "platform-network"
+  ) {
+    if (!canManagePlatformCatalog(ctx)) return null;
+  }
+  return filterAppRoutesForMember(app, ctx);
+}
+
 function filterPlatformAdminSection(section: NavIaSection, ctx: AccessContext): NavIaSection {
   const links = filterPlatformAdminLinks(section.links, ctx);
   const trailingLinks = filterPlatformAdminLinks(section.trailingLinks ?? [], ctx);
   const apps = section.apps
-    .map((app) => {
-      if (app.id === "platform-settings") {
-        const routes = filterSettingsRoutes(app.routes, ctx);
-        if (!routes.length) return null;
-        return { ...app, routes, primaryHref: routes[0]?.path ?? app.primaryHref };
-      }
-      return filterAppRoutesForMember(app, ctx);
-    })
+    .map((app) => filterPlatformAdminApp(app, ctx))
     .filter((app): app is AppNavTreeItem => Boolean(app));
 
   // Members with no remaining platform admin surface: hide section

@@ -68,8 +68,16 @@ GROWTH — Grow your business
   (AI Communications is **not** customer sidebar — Assist lives under Core Communications → Write with AI / Calls)
 
 PLATFORM — Manage DigitalGate for this organisation
-  Apps · Marketplace · Network · Settings
-  (Staff DigitalGate org also uses Platform for tenant config; Roadmap stays under Product)
+  Apps · Marketplace · Network · Settings (+ Support trailing for customers)
+
+  Apps — what is installed / enabled (Installed Apps · App Catalogue · Beta Programmes)
+  Marketplace — what can be discovered / purchased (Explore · Apps · Templates · Integrations · Partner Services)
+  Network — ecosystem layer (Overview · Partners · Resellers · Referrals · Refer & Earn · Commissions · Ecosystem)
+    Refer & Earn is **not** under Settings — it is a network relationship mechanism.
+  Settings — administrative home (Overview · Organisation · Users & Permissions · Billing · Connectors · API · Security · Notifications · Audit Log)
+
+  Staff DigitalGate org also uses Platform for tenant config. **Roadmap stays under Product** — not Platform.
+  DigitalGate staff **Partners** (Operator OS) ≠ customer **Network** (ecosystem). Do not merge.
   Business Knowledge lives inside Business Brain — not Platform Docs
 ```
 
@@ -91,6 +99,8 @@ Business leads CORE — who you are — then operating apps — then foundation 
 Module trees follow the product surfaces already registered in App manifests (Inbox, Voice Agents, Builder, Run Log, Reputation Score™, etc.). **Prospecting & Opportunity Engine** is the $99 Growth App (`/apps/prospecting`) for customers. DigitalGate staff GTM uses **Sales** under Operator OS (`/command/growth-engine`) — not a second Growth inject.
 
 **Intelligence** is one CORE destination. Overview is primary; other surfaces reveal progressively — not seven sidebar links and not a separate Intelligence IA section.
+
+**Platform** is four sidebar apps with horizontal subnav — not shell links plus Settings. Apps (install) and Marketplace (discover) stay distinct.
 
 ---
 

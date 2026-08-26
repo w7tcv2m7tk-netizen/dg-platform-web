@@ -68,15 +68,15 @@ export default async function MarketplacePage({ searchParams }: PageProps) {
           {session ? ` · ${session.organisationName}` : ""}
         </p>
         <p className="mt-2 text-xs text-slate-500">
-          Network discovery surface — distinct from{" "}
+          Discover what you can add — distinct from{" "}
           <Link href="/dashboard/apps" className="text-blue-400 hover:underline">
-            Apps &amp; plan
+            Apps
           </Link>{" "}
-          (install/licensing) and{" "}
-          <Link href="/dashboard/settings/referrals" className="text-blue-400 hover:underline">
+          (installed capabilities) and{" "}
+          <Link href="/dashboard/network/refer-earn" className="text-blue-400 hover:underline">
             Refer &amp; Earn
           </Link>{" "}
-          (SaaS growth).
+          (network growth).
         </p>
       </header>
       <main className="dg-page-main">

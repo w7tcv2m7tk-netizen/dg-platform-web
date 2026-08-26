@@ -268,7 +268,7 @@ export async function createStripeConnectOnboardingLink(input: {
   const base = appBaseUrl();
   const returnPath = input.returnPath?.startsWith("/")
     ? input.returnPath
-    : "/dashboard/settings/referrals";
+    : "/dashboard/network/refer-earn";
   const accountLink = await stripe.accountLinks.create({
     account: accountId,
     refresh_url: `${base}${returnPath}?connect=refresh`,

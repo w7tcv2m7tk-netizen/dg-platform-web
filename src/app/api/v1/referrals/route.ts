@@ -3,6 +3,7 @@ import {
   createStripeConnectOnboardingLink,
   getReferAndEarnDashboard,
   normalizeReferralTier,
+  REFER_AND_EARN_HREF,
   requestCashPayout,
   syncStripeConnectAccount,
   updateOrganisationReferralProgramme,
@@ -90,7 +91,7 @@ export async function POST(req: Request) {
         organisationId: session.organisationId,
         actorId: session.clerkUserId,
         email: typeof body.email === "string" ? body.email : undefined,
-        returnPath: "/dashboard/settings/referrals",
+        returnPath: REFER_AND_EARN_HREF,
       });
       if (!result.ok) {
         return NextResponse.json(

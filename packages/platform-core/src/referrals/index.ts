@@ -35,6 +35,8 @@ export {
 } from "./stripe-connect";
 
 export const REFERRAL_COOKIE = "dg_ref";
+/** Canonical Platform Refer & Earn surface — lives under Network, not Settings. */
+export const REFER_AND_EARN_HREF = "/dashboard/network/refer-earn";
 export const REFERRAL_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 30; // 30 days
 export const CUSTOMER_COMMISSION_BPS = 2000; // 20%
 export const PARTNER_COMMISSION_BPS = 2500; // 25%

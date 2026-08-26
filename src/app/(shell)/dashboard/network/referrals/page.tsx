@@ -94,7 +94,7 @@ export default async function NetworkReferralsPage() {
 
         <p className="text-xs text-slate-500">
           Separate from{" "}
-          <Link href="/dashboard/settings/referrals" className="text-blue-400 hover:underline">
+          <Link href="/dashboard/network/refer-earn" className="text-blue-400 hover:underline">
             Platform Refer &amp; Earn
           </Link>
           .

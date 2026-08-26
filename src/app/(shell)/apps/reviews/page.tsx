@@ -175,7 +175,7 @@ export default async function ReputationOverviewPage() {
                 </ul>
                 <p className="mt-4 text-xs text-slate-500">
                   Not SaaS Refer &amp; Earn — that stays in{" "}
-                  <Link href="/dashboard/settings/referrals" className="text-sky-400 hover:underline">
+                  <Link href="/dashboard/network/refer-earn" className="text-sky-400 hover:underline">
                     Settings → Refer &amp; Earn
                   </Link>
                   .

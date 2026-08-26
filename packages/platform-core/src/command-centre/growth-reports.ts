@@ -110,7 +110,7 @@ function nextStepFor(client: {
       id: "ask-referral",
       label: "Ask for a referral",
       description: "Top performer — good time for Refer & Earn.",
-      href: "/dashboard/settings/referrals",
+      href: "/dashboard/network/refer-earn",
       priority: 1,
     };
   }

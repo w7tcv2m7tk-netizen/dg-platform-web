@@ -1,24 +1,39 @@
-import Link from "next/link";
+import { canAccessCommandCentre } from "@dg/platform-core";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
-import { PlatformRoadmapBar } from "@/components/platform/PlatformRoadmapBar";
-import { PlatformRoadmapPanel } from "@/components/platform/PlatformRoadmapPanel";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { fetchPortalMe } from "@/lib/dg-api";
 
-export default function PlatformRoadmapSettingsPage() {
-  return (
-    <>
-      <PlatformRoadmapBar />
-      <header className="dg-page-header">
-        <Link href="/dashboard/settings" className="text-sm text-blue-400 hover:underline">
-          ← Settings
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Roadmap</h1>
-        <p className="text-sm text-slate-400">
-          Commercially Ready v1 first — full Gen 2 backlog second
-        </p>
-      </header>
-      <main className="dg-page-main">
-        <PlatformRoadmapPanel />
-      </main>
-    </>
-  );
+/** Roadmap lives under Product (staff) — not customer Platform Settings. */
+export default async function SettingsRoadmapRedirectPage() {
+  const user = await currentUser();
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
+  const name =
+    user?.fullName ??
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
+    email;
+  const portal = email ? await fetchPortalMe(email, user?.id) : null;
+  const session = user?.id
+    ? await resolveActivePlatformSession({
+        clerkUserId: user.id,
+        email,
+        name,
+        orgName: portal?.org_name,
+      })
+    : null;
+
+  if (
+    session &&
+    canAccessCommandCentre({
+      organisationId: session.organisationId,
+      organisationName: session.organisationName,
+      organisationSlug: session.organisationSlug,
+      role: session.role,
+    })
+  ) {
+    redirect("/command/product/roadmap");
+  }
+
+  redirect("/dashboard/settings");
 }
