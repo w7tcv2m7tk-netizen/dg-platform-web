@@ -43,7 +43,7 @@ May include:
 
 **Used by:** Platform Intelligence, DigitalGate staff AI, Support, Resellers, Delivery partners — and customer-facing AI only where appropriate (e.g. explaining a platform capability).
 
-**Not shown** as the customer’s primary knowledge area. Customers do not see Platform Docs in normal Platform Admin navigation.
+**Not shown** as the customer’s primary knowledge area. Customers do not see Platform Docs in normal Platform navigation.
 
 **Navigation:** DIGITALGATE → Platform Docs (staff operator OS only).
 
@@ -110,9 +110,10 @@ PLATFORM
 ### Customer
 
 ```
-CORE · Intelligence
-  Overview · AI Advisor · Business Health · Insights · Reports
-  (Digital Twin · Business Brain · Benchmarks = supporting layers, not sidebar items)
+CORE
+  … · Infrastructure · Intelligence (Overview primary; Health / Insights / Advisor / Reports unlock from hub)
+PLATFORM
+  Apps · Marketplace · Network · Settings
 ```
 
 Business Knowledge is **inside** Business Brain — not a top-level “Platform Docs” entry.

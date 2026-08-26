@@ -5,13 +5,14 @@ import { useMemo } from "react";
 
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { AppHorizontalSubnav } from "@/components/navigation/AppHorizontalSubnav";
+import { progressiveIntelligenceRoutes } from "@/lib/intelligence-progressive-nav";
 import { resolveActiveAppNavigation } from "@dg/platform-core";
 
 const SKIP_PREFIXES = ["/onboarding", "/signup", "/login"];
 
 /**
  * Global second-level nav — title matches the sidebar app name.
- * Only renders when the active app has more than one route.
+ * Only renders when the active app has more than one visible route.
  */
 export function AppContextNav() {
   const pathname = usePathname();
@@ -21,6 +22,14 @@ export function AppContextNav() {
     () => resolveActiveAppNavigation(pathname, nav.ia),
     [pathname, nav.ia],
   );
+
+  const routes = useMemo(() => {
+    if (!active) return [];
+    if (active.itemId === "intelligence") {
+      return progressiveIntelligenceRoutes(active.routes, pathname);
+    }
+    return active.routes;
+  }, [active, pathname]);
 
   if (!active || SKIP_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     return null;
@@ -50,7 +59,7 @@ export function AppContextNav() {
         <div className="min-w-0">
           <p className="text-lg font-semibold tracking-tight text-white">{active.itemName}</p>
           <div className="mt-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <AppHorizontalSubnav routes={active.routes} ariaLabel={`${active.itemName} sections`} />
+            <AppHorizontalSubnav routes={routes} ariaLabel={`${active.itemName} sections`} />
           </div>
         </div>
       </div>

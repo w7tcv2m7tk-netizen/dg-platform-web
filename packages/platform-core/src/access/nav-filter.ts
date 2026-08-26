@@ -196,7 +196,7 @@ export function filterNavigationByAccess(
   // Partners section is DigitalGate internal — not customer org partners portal
   const canPartners = staff;
   const canIntelligence = canView(ctx, "intelligence");
-  const canCore =
+  const canCoreApps =
     canView(ctx, "crm") ||
     canView(ctx, "commerce") ||
     canView(ctx, "websites") ||
@@ -206,14 +206,22 @@ export function filterNavigationByAccess(
   const canInfrastructure =
     canView(ctx, "infrastructure") ||
     hasPermission(ctx, { module: "infrastructure", action: "manage", scope: "organisation" }) ||
-    (!isOrgMemberOnly(ctx) && (canView(ctx, "websites") || canCore));
+    (!isOrgMemberOnly(ctx) && (canView(ctx, "websites") || canCoreApps));
   const canIndustry = canView(ctx, "industry");
   const canGrowth = canView(ctx, "growth");
+  const canCoreSection = canCoreApps || canIntelligence || canInfrastructure;
 
   const settingsRoutes = filterSettingsRoutes(nav.platform.routes, ctx);
   const platformAdminSection = filterPlatformAdminSection(nav.ia.platformAdmin, ctx);
 
-  const coreApps = canCore ? filterSectionApps(nav.ia.core.apps, ctx) : [];
+  const coreApps = (canCoreSection ? filterSectionApps(nav.ia.core.apps, ctx) : []).filter(
+    (app) => {
+      if (app.id === "intelligence") return canIntelligence;
+      if (app.id === "infrastructure") return canInfrastructure;
+      if (app.id === "business") return canCoreApps || canIntelligence || canInfrastructure;
+      return canCoreApps;
+    },
+  );
   const coreSection: NavIaSection = {
     ...nav.ia.core,
     links: [],
@@ -235,10 +243,11 @@ export function filterNavigationByAccess(
         apps: [],
         links: [],
       },
+      /** Empty pillar — Infrastructure apps live under CORE */
       infrastructure: {
         ...nav.ia.infrastructure,
-        apps: canInfrastructure ? filterSectionApps(nav.ia.infrastructure.apps, ctx) : [],
-        links: canInfrastructure ? nav.ia.infrastructure.links : [],
+        apps: [],
+        links: [],
       },
       industry: {
         ...nav.ia.industry,
@@ -253,7 +262,6 @@ export function filterNavigationByAccess(
       intelligence: {
         ...nav.ia.intelligence,
         apps: canIntelligence ? nav.ia.intelligence.apps : [],
-        // Members: Twin + Advisor + Health + Brain; Insights needs analytics
         links: canIntelligence
           ? nav.ia.intelligence.links.filter((link) => {
               if (isOrgMemberOnly(ctx) && link.href === "/apps/analytics") return false;

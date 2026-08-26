@@ -23,8 +23,8 @@ export default async function IntelligenceOverviewPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Intelligence</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Your business intelligence centre — understand what&apos;s happening, why it matters, and
-          what DigitalGate recommends doing next.
+          Your business intelligence centre — start here to see what&apos;s happening, why it
+          matters, and what DigitalGate recommends next. Other surfaces open from these cards.
         </p>
       </header>
       <main className="dg-page-main space-y-8">
@@ -34,9 +34,10 @@ export default async function IntelligenceOverviewPage() {
             className="block rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-5 py-5 transition hover:border-emerald-400/40"
           >
             <p className="text-xs font-semibold uppercase tracking-wider text-emerald-300/90">
-              Business Health
+              What&apos;s happening
             </p>
-            <p className="mt-2 text-3xl font-semibold text-white">
+            <p className="mt-2 text-lg font-semibold text-white">Business Health</p>
+            <p className="mt-1 text-3xl font-semibold text-white">
               {healthScore != null ? `${healthScore}/100` : "—"}
             </p>
             <p className="mt-2 text-sm text-slate-400">
@@ -45,28 +46,14 @@ export default async function IntelligenceOverviewPage() {
           </Link>
 
           <Link
-            href="/dashboard/advisor"
-            className="block rounded-xl border border-sky-500/25 bg-sky-500/5 px-5 py-5 transition hover:border-sky-400/40"
-          >
-            <p className="text-xs font-semibold uppercase tracking-wider text-sky-300/90">
-              AI Advisor
-            </p>
-            <p className="mt-2 text-3xl font-semibold text-white">
-              {actionCount > 0 ? `${actionCount} recommended` : "Ask DigitalGate"}
-            </p>
-            <p className="mt-2 text-sm text-slate-400">
-              What you should do next — one intelligence layer, not a separate AI product.
-            </p>
-          </Link>
-
-          <Link
             href="/dashboard/insights"
             className="block rounded-xl border border-violet-500/25 bg-violet-500/5 px-5 py-5 transition hover:border-violet-400/40"
           >
             <p className="text-xs font-semibold uppercase tracking-wider text-violet-300/90">
-              Insights
+              Why it matters
             </p>
-            <p className="mt-2 text-3xl font-semibold text-white">
+            <p className="mt-2 text-lg font-semibold text-white">Insights</p>
+            <p className="mt-1 text-3xl font-semibold text-white">
               {insightCount > 0 ? `${insightCount} observations` : "What DigitalGate notices"}
             </p>
             <p className="mt-2 text-sm text-slate-400">
@@ -75,14 +62,32 @@ export default async function IntelligenceOverviewPage() {
           </Link>
 
           <Link
+            href="/dashboard/advisor"
+            className="block rounded-xl border border-sky-500/25 bg-sky-500/5 px-5 py-5 transition hover:border-sky-400/40"
+          >
+            <p className="text-xs font-semibold uppercase tracking-wider text-sky-300/90">
+              What to do next
+            </p>
+            <p className="mt-2 text-lg font-semibold text-white">AI Advisor</p>
+            <p className="mt-1 text-3xl font-semibold text-white">
+              {actionCount > 0 ? `${actionCount} recommended` : "Ask DigitalGate"}
+            </p>
+            <p className="mt-2 text-sm text-slate-400">
+              Recommended actions from your live business state — one intelligence layer.
+            </p>
+          </Link>
+
+          <Link
             href="/dashboard/reports"
             className="block rounded-xl border border-slate-600/80 bg-slate-950/50 px-5 py-5 transition hover:border-slate-500"
           >
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Reports
+              Show me the report
             </p>
-            <p className="mt-2 text-lg font-semibold text-white">Business performance</p>
-            <p className="mt-2 text-sm text-slate-400">View, export or share what has happened.</p>
+            <p className="mt-2 text-lg font-semibold text-white">Reports</p>
+            <p className="mt-2 text-sm text-slate-400">
+              View, export or share what has happened across the business.
+            </p>
           </Link>
         </div>
 

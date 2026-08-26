@@ -78,43 +78,31 @@ Custom job titles (Salesperson, Sales Manager, Accountant, …) are **permission
 Order (locked):
 
 ```
-DIGITALGATE
-├── CORE
-│   ├── CRM
-│   ├── Commerce
-│   ├── Design Studio
-│   └── Business
-├── INFRASTRUCTURE
-├── INDUSTRY          ← activated Apps/Templates only
-├── GROWTH
-├── INTELLIGENCE
-├── PARTNERS          ← DigitalGate staff
-└── PLATFORM ADMIN
+DIGITALGATE (staff only — Platform Operator)
+├── Command Centre · Sales · Partners · Delivery · …
+CORE — run the business
+│   Business · CRM · Communications · Documents · Commerce · Design Studio · Infrastructure · Intelligence
+INDUSTRY          ← activated Apps/Templates only
+GROWTH
+PLATFORM          ← Apps · Marketplace · Network · Settings
 ```
 
 ### CORE
-Business · CRM · Commerce · Design Studio (Overview · Business Profile · Goals · Team)
-
-### INFRASTRUCTURE
-Domains · DNS · SSL · Hosting · Email · Backups · Cloudflare
+Business · CRM · Communications · Documents · Commerce · Design Studio · Infrastructure · Intelligence  
+(Intelligence → Overview is primary; Health / Insights / Advisor / Reports unlock from the hub.)
 
 ### INDUSTRY
 Only when an Industry App is activated. **Industry App ≠ Template.** One Industry App ($99) → one Template included; additional Templates +$29.  
 Do not show the full Industry catalogue to every customer.
 
 ### GROWTH
-Prospecting · AI Visibility · SEO · Automation · Analytics · Social · Reputation · AI Communications
+Prospecting · AI Visibility · SEO · Automation · Analytics · Social · Reputation  
+(AI Communications nests under Core Communications — not a Growth sidebar app.)
 
-### INTELLIGENCE
-Command Centre · Digital Twin · AI Advisor · Business Health · Insights · Benchmarks · Business Brain
-
-### PARTNERS (DigitalGate staff)
-Resellers · Referrals · Commissions · Delivery / Implementation
-
-### PLATFORM ADMIN
+### PLATFORM
 Apps · Marketplace · Network · Settings (Overview · Billing · Connectors · API · Audit Log) · Support  
 
-Platform Docs = DIGITALGATE staff only (trailing link under Platform Operator), not customer Platform Admin. Roadmap = Product (staff). See [KNOWLEDGE-LAYERS.md](./KNOWLEDGE-LAYERS.md).
+Platform Docs = DIGITALGATE staff only (trailing link under Platform Operator), not customer Platform. Roadmap = Product (staff). See [KNOWLEDGE-LAYERS.md](./KNOWLEDGE-LAYERS.md).
 
 ---
 

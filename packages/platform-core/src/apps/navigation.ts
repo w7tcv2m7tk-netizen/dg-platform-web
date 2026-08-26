@@ -90,10 +90,17 @@ export interface NavIaSection {
 }
 
 /**
- * Core — universal operating layer (profile + CRM / Commerce / Design Studio).
- * Infrastructure is its own top-level section.
+ * Core — run the business (profile + operate apps + infrastructure + intelligence).
+ * Infrastructure is a Core capability, not a separate IA pillar.
  */
-const CORE_APP_ORDER = ["crm", "communications", "documents", "commerce", "websites"] as const;
+const CORE_APP_ORDER = [
+  "crm",
+  "communications",
+  "documents",
+  "commerce",
+  "websites",
+  "infrastructure",
+] as const;
 
 /**
  * Industry — Industry Apps (activate Templates). Module ids map into Industry Platforms.
@@ -139,7 +146,6 @@ const SIDEBAR_HIDDEN_APP_IDS = new Set([
 const CORE_APP_IDS = new Set<string>(CORE_APP_ORDER);
 const INDUSTRY_APP_IDS = new Set<string>(INDUSTRY_APP_ORDER);
 const GROW_APP_IDS = new Set<string>(GROW_APP_ORDER);
-const INFRASTRUCTURE_APP_IDS = new Set<string>(["infrastructure"]);
 
 /** Sidebar display overlays — canonical homes without inventing new routes. */
 const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }> = {
@@ -338,8 +344,9 @@ const CORE_LINKS: PlatformShellNavItem[] = BUSINESS_NAV_ITEM.routes.map((route) 
 }));
 
 /**
- * CORE · Intelligence — one capability, not an architecture map.
- * Twin / Brain / Benchmarks remain reachable as supporting layers (hub + matchAlso).
+ * CORE · Intelligence — Overview is the customer entry; other surfaces unlock
+ * progressively in AppContextNav after the customer visits them from the hub.
+ * Twin / Brain / Benchmarks remain supporting layers (hub + matchAlso), not tabs.
  */
 function intelligenceNavItem(): AppNavTreeItem {
   return {
@@ -356,9 +363,9 @@ function intelligenceNavItem(): AppNavTreeItem {
         label: "Overview",
         matchAlso: ["/dashboard/twin", "/dashboard/brain", "/dashboard/benchmarks"],
       },
-      { path: "/dashboard/advisor", label: "AI Advisor" },
       { path: "/dashboard/health", label: "Business Health" },
       { path: "/dashboard/insights", label: "Insights" },
+      { path: "/dashboard/advisor", label: "AI Advisor" },
       {
         path: "/dashboard/reports",
         label: "Reports",
@@ -644,11 +651,12 @@ export const INFRASTRUCTURE_NAV_SECTION_LABEL = "Infrastructure";
 export const GROW_NAV_SECTION_LABEL = "Growth";
 export const INTELLIGENCE_NAV_SECTION_LABEL = "Intelligence";
 export const INDUSTRY_NAV_SECTION_LABEL = "Industry";
-export const PLATFORM_ADMIN_NAV_SECTION_LABEL = "Platform Admin";
+/** Customer + staff tenant config pillar — Apps · Marketplace · Network · Settings */
+export const PLATFORM_ADMIN_NAV_SECTION_LABEL = "Platform";
 /** Staff operator OS — DigitalGate runs DigitalGate (not a customer tenant). */
 export const DIGITALGATE_OPERATOR_NAV_SECTION_LABEL = "DigitalGate";
 export const DIGITALGATE_OPERATOR_SUBLABEL = "Platform Operator";
-/** Staff tenant platform config — Apps, Settings, Billing, etc. */
+/** Staff tenant platform config — same label as customer Platform pillar */
 export const PLATFORM_CONFIG_NAV_SECTION_LABEL = "Platform";
 export const PARTNERS_NAV_SECTION_LABEL = "Partners";
 export const PARTNER_NAV_SECTION_LABEL = "Partner";
@@ -800,8 +808,9 @@ export interface CategorizedPlatformNavigation {
   /** DigitalGate staff only — rendered under DigitalGate operator section */
   commandCentre: PlatformToolNavItem | null;
   /**
-   * Advisor IA —
-   * CORE · INFRASTRUCTURE · INDUSTRY · GROWTH · INTELLIGENCE · DIGITALGATE · PARTNER · PLATFORM
+   * Customer pillars: CORE · INDUSTRY · GROWTH · PLATFORM
+   * Staff also: DIGITALGATE (operator) · PARTNER
+   * `infrastructure` / `intelligence` IA slots remain for compatibility (usually empty).
    */
   ia: {
     core: NavIaSection;
@@ -956,12 +965,11 @@ export function getCategorizedPlatformNavigation(
       enabledApps.filter((a) => CORE_APP_IDS.has(a.id)),
       CORE_APP_ORDER,
     ),
+    // Intelligence last in Core — Overview is the brain entry (hidden in founding slim mode).
     ...(foundingCustomerMode ? [] : [intelligenceNavItem()]),
   ];
-  const infrastructureApps = sortByOrder(
-    enabledApps.filter((a) => INFRASTRUCTURE_APP_IDS.has(a.id)),
-    ["infrastructure"],
-  );
+  /** Empty — Infrastructure is listed under CORE */
+  const infrastructureApps: AppNavTreeItem[] = [];
   const industryModuleApps = sortByOrder(
     enabledApps.filter((a) => INDUSTRY_APP_IDS.has(a.id)),
     INDUSTRY_APP_ORDER,
@@ -973,7 +981,6 @@ export function getCategorizedPlatformNavigation(
 
   const mapped = new Set([
     ...CORE_APP_IDS,
-    ...INFRASTRUCTURE_APP_IDS,
     ...INDUSTRY_APP_IDS,
     ...GROW_APP_IDS,
     ...SIDEBAR_HIDDEN_APP_IDS,

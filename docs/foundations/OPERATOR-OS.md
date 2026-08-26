@@ -126,9 +126,9 @@ Operator OS — not a customer tenant. Industry Apps are **never** shown here.
 
 **Organisations is not a standalone Operator app.** Customer Portfolio (`/command/clients`) is the Customer Intelligence surface. **AI Advisor** lives under **Command Centre**; Portfolio **Advise** opens that Advisor with the organisation as context — one intelligence layer, not a second Advisor product.
 
-### CORE · INFRASTRUCTURE · GROWTH · INTELLIGENCE
+### CORE · INDUSTRY · GROWTH · PLATFORM
 
-DigitalGate’s own business capabilities (same Core/Growth/Intelligence stack customers use — without Industry Apps).
+DigitalGate’s own business capabilities use the same customer pillars (Core includes Infrastructure + Intelligence; no Industry Apps on the operator tenant).
 
 ### PLATFORM
 
