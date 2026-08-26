@@ -55,22 +55,6 @@ export default async function PlatformSettingsPage() {
 
         <div className="grid gap-4 lg:grid-cols-2">
           <Link
-            href="/dashboard/settings/appearance"
-            className="dg-card block border-sky-500/20 bg-gradient-to-br from-slate-900 to-sky-950/20 hover:border-sky-500/40 lg:col-span-2"
-          >
-            <p className="text-xs font-medium uppercase tracking-wide text-sky-400">
-              Appearance
-            </p>
-            <h2 className="mt-2 text-lg font-semibold text-white">Light or dark mode</h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Switch the platform shell for this device — Light, Dark, or match your system.
-            </p>
-            <span className="mt-4 inline-block text-sm font-medium text-sky-400">
-              Open appearance →
-            </span>
-          </Link>
-
-          <Link
             href="/dashboard/settings/connected-services"
             className="dg-card block border-sky-500/20 bg-gradient-to-br from-slate-900 to-sky-950/20 hover:border-sky-500/40 lg:col-span-2"
           >
