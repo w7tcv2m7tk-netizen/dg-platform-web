@@ -46,7 +46,7 @@ const PAGES = [
   { file: "business-brain-page.html", title: "Business Brain", slug: "business-brain", intent: "custom", sortOrder: 16 },
   {
     file: "from-dumb-businesses-to-smart-businesses.html",
-    title: "From Dumb Businesses to Smart Businesses",
+    title: "From fragmented businesses to intelligent ones",
     slug: "from-dumb-businesses-to-smart-businesses",
     intent: "custom",
     sortOrder: 17,

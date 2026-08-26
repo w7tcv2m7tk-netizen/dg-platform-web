@@ -1,0 +1,553 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>From Dumb Businesses to Smart Businesses | DigitalGate Insights</title>
+<meta name="description" content="Most businesses aren’t dumb — they’re fragmented. DigitalGate’s foundational insight: AI is not the starting point. Connection is. Intelligence comes from context. Action comes from intelligence.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&amp;family=Inter:wght@400;600;700;800&amp;display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&amp;family=Inter:wght@400;600;700;800&amp;display=swap"></noscript>
+<style>
+  .dg-insight * { margin: 0; padding: 0; box-sizing: border-box; }
+  .dg-insight {
+    font-family: Inter, system-ui, sans-serif;
+    background: #0A0E17;
+    color: #F9FAFB;
+    line-height: 1.75;
+  }
+  .dg-insight .container { max-width: 780px; margin: 0 auto; padding: 0 2rem; }
+  .dg-insight .container-wide { max-width: 980px; margin: 0 auto; padding: 0 2rem; }
+  .dg-insight h1, .dg-insight h2, .dg-insight h3 { font-family: Sora, Inter, sans-serif; color: #F9FAFB; }
+  .dg-insight a { color: #93C5FD; }
+  .dg-insight section { padding: 4rem 0; border-top: 1px solid #1E293B; }
+  .dg-insight section.alt { background: #111827; }
+
+  /* Hero */
+  .dg-insight .hero {
+    padding: 7.5rem 0 4rem;
+    background:
+      radial-gradient(ellipse 80% 55% at 50% -10%, rgba(59,130,246,0.14), transparent 55%),
+      linear-gradient(180deg, #05070A 0%, #0A0E17 100%);
+    border-top: none;
+  }
+  .dg-insight .kicker {
+    display: inline-block; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #93C5FD; margin-bottom: 0.85rem;
+  }
+  .dg-insight h1 {
+    font-size: clamp(2rem, 4.5vw, 3rem); font-weight: 800; line-height: 1.1;
+    letter-spacing: -0.03em; margin-bottom: 1.25rem; max-width: 18ch;
+  }
+  .dg-insight .hero-thesis {
+    font-size: clamp(1.15rem, 2.2vw, 1.35rem); color: #CBD5E1; font-weight: 600;
+    line-height: 1.55; max-width: 42rem; margin-bottom: 1.5rem;
+  }
+  .dg-insight .hero-sub {
+    color: #94A3B8; font-size: 1.02rem; max-width: 40rem; line-height: 1.7;
+  }
+  .dg-insight .pillars-line {
+    display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.75rem;
+  }
+  .dg-insight .pillars-line span {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.4rem 0.85rem; border-radius: 999px;
+    background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.28); color: #BFDBFE;
+  }
+
+  /* Prose */
+  .dg-insight .prose p { color: #94A3B8; margin-bottom: 1.15rem; font-size: 1.02rem; }
+  .dg-insight .prose p.lead { color: #CBD5E1; font-size: 1.12rem; line-height: 1.65; }
+  .dg-insight .prose strong { color: #E2E8F0; font-weight: 700; }
+  .dg-insight .prose h2 {
+    font-size: clamp(1.35rem, 2.5vw, 1.75rem); font-weight: 800;
+    margin: 0 0 1rem; line-height: 1.25; letter-spacing: -0.02em;
+  }
+  .dg-insight .prose h3 {
+    font-size: 1.05rem; font-weight: 800; margin: 1.75rem 0 0.65rem; color: #93C5FD;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .dg-insight .prose ul {
+    list-style: none; margin: 0 0 1.25rem; padding: 0;
+  }
+  .dg-insight .prose ul li {
+    position: relative; padding: 0.35rem 0 0.35rem 1.35rem; color: #94A3B8; font-size: 0.98rem;
+  }
+  .dg-insight .prose ul li::before {
+    content: ""; position: absolute; left: 0; top: 0.85rem; width: 6px; height: 6px;
+    border-radius: 999px; background: #3B82F6;
+  }
+  .dg-insight .pull-quote {
+    margin: 2rem 0; padding: 1.35rem 1.5rem; border-left: 3px solid #3B82F6;
+    background: rgba(59,130,246,0.06); border-radius: 0 12px 12px 0;
+  }
+  .dg-insight .pull-quote p {
+    color: #E2E8F0 !important; font-size: 1.08rem; font-weight: 600; line-height: 1.55; margin: 0 !important;
+  }
+  .dg-insight .memorable {
+    text-align: center; padding: 2rem 1.5rem; margin: 2rem 0;
+    border-radius: 16px; border: 1px solid rgba(59,130,246,0.3);
+    background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(16,185,129,0.05));
+  }
+  .dg-insight .memorable p {
+    color: #E2E8F0 !important; font-size: clamp(1.05rem, 2vw, 1.2rem); font-weight: 700;
+    line-height: 1.5; margin: 0.35rem 0 !important;
+  }
+  .dg-insight .memorable p span { color: #93C5FD; }
+
+  /* Evolution grid */
+  .dg-evolution {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.65rem; margin-top: 1.75rem;
+  }
+  .dg-evolution-step {
+    border-radius: 12px; border: 1px solid #334155; background: #111827;
+    padding: 1rem 0.85rem; text-align: center;
+  }
+  .dg-evolution-step .gen {
+    font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #64748B; margin-bottom: 0.35rem;
+  }
+  .dg-evolution-step h3 {
+    font-size: 0.82rem !important; font-weight: 800; color: #F9FAFB !important;
+    text-transform: none !important; letter-spacing: -0.01em !important; margin: 0 0 0.45rem !important;
+  }
+  .dg-evolution-step p {
+    font-size: 0.72rem; color: #94A3B8; line-height: 1.45; margin: 0 !important;
+  }
+  @media (max-width: 900px) {
+    .dg-evolution { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 520px) {
+    .dg-evolution { grid-template-columns: 1fr; }
+  }
+
+  /* Human integration flow */
+  .dg-flow-steps {
+    display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 1.25rem 0 1.5rem;
+  }
+  .dg-flow-steps span {
+    font-size: 0.75rem; font-weight: 700; padding: 0.4rem 0.75rem; border-radius: 999px;
+    background: #0A0E17; border: 1px solid #334155; color: #CBD5E1;
+  }
+  .dg-flow-steps .arrow { border: none; background: none; color: #3B82F6; padding: 0 0.15rem; }
+
+  /* Connected example timeline */
+  .dg-connected-flow {
+    display: flex; flex-direction: column; gap: 0.55rem; margin: 1.5rem 0;
+  }
+  .dg-connected-step {
+    display: grid; grid-template-columns: auto 1fr; gap: 0.85rem; align-items: start;
+    padding: 0.85rem 1rem; border-radius: 12px;
+    border: 1px solid rgba(51,65,85,0.8); background: #111827;
+  }
+  .dg-connected-step .num {
+    width: 1.65rem; height: 1.65rem; border-radius: 999px; display: grid; place-items: center;
+    font-size: 0.65rem; font-weight: 800; color: #BFDBFE;
+    background: rgba(59,130,246,0.18); border: 1px solid rgba(59,130,246,0.35);
+  }
+  .dg-connected-step p { margin: 0 !important; font-size: 0.92rem !important; color: #CBD5E1 !important; }
+  .dg-connected-step p em { color: #93C5FD; font-style: normal; font-weight: 700; }
+
+  /* Intelligence model cards */
+  .dg-model-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin: 1.5rem 0;
+  }
+  .dg-model-card {
+    border-radius: 14px; border: 1px solid #334155; background: #111827;
+    padding: 1.15rem 1.2rem;
+  }
+  .dg-model-card h3 {
+    font-size: 0.95rem !important; font-weight: 800; color: #F9FAFB !important;
+    text-transform: none !important; letter-spacing: -0.01em !important; margin: 0 0 0.25rem !important;
+  }
+  .dg-model-card .q {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: #60A5FA; margin-bottom: 0.45rem;
+  }
+  .dg-model-card p { font-size: 0.88rem !important; color: #94A3B8 !important; margin: 0 !important; line-height: 1.5 !important; }
+  @media (max-width: 640px) {
+    .dg-model-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Manifesto stack — sticky sequence */
+  .dg-insight-manifesto { padding-bottom: 2rem; }
+  .dg-manifesto-stack {
+    max-width: 720px; margin: 2rem auto 0; padding: 0 1.25rem 2rem;
+    display: flex; flex-direction: column; gap: 1.25rem;
+  }
+  .dg-manifesto-layer {
+    position: sticky;
+    top: 5.5rem;
+    border-radius: 1.15rem;
+    border: 1px solid rgba(71, 85, 105, 0.55);
+    background: linear-gradient(165deg, rgba(17,24,39,0.98), rgba(15,23,42,0.96));
+    box-shadow: 0 18px 40px rgba(2,6,23,0.4);
+    padding: 1.35rem 1.4rem 1.45rem;
+    text-align: center;
+  }
+  .dg-manifesto-layer:nth-child(1) { z-index: 1; top: 5.25rem; }
+  .dg-manifesto-layer:nth-child(2) { z-index: 2; top: 5.85rem; }
+  .dg-manifesto-layer:nth-child(3) { z-index: 3; top: 6.45rem; }
+  .dg-manifesto-layer:nth-child(4) { z-index: 4; top: 7.05rem; }
+  .dg-manifesto-layer:nth-child(5) { z-index: 5; top: 7.65rem; }
+  .dg-manifesto-layer:nth-child(6) { z-index: 6; top: 8.25rem; }
+  .dg-manifesto-layer:nth-child(7) { z-index: 7; top: 8.85rem; }
+  .dg-manifesto-layer .label {
+    font-size: 0.68rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #93C5FD; margin-bottom: 0.45rem;
+  }
+  .dg-manifesto-layer h3 {
+    font-size: clamp(1.15rem, 2.2vw, 1.4rem); font-weight: 800; margin: 0 0 0.5rem;
+    color: #F8FAFC !important; text-transform: none !important; letter-spacing: -0.02em !important;
+  }
+  .dg-manifesto-layer p { color: #94A3B8; font-size: 0.9rem; margin: 0; line-height: 1.55; }
+  .dg-manifesto-layer .chips {
+    display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-top: 0.75rem;
+  }
+  .dg-manifesto-layer .chips span {
+    font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.65rem; border-radius: 999px;
+    background: rgba(15,23,42,0.9); border: 1px solid #334155; color: #CBD5E1;
+  }
+  .dg-manifesto-loop {
+    text-align: center; margin-top: 1.5rem; font-size: 0.78rem; font-weight: 800;
+    letter-spacing: 0.12em; text-transform: uppercase; color: #60A5FA;
+  }
+  @media (max-width: 720px) {
+    .dg-manifesto-layer, .dg-manifesto-layer:nth-child(n) {
+      position: relative; top: auto !important;
+    }
+  }
+
+  /* Motion reveals */
+  .dg-reveal { opacity: 1; transform: none; }
+  @keyframes dg-reveal-in {
+    from { opacity: 0; transform: translate3d(0, 20px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .dg-reveal:not(.is-in) {
+        animation: dg-reveal-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 35%;
+      }
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .dg-reveal.js-motion {
+      opacity: 0; transform: translate3d(0, 20px, 0);
+      transition: opacity 0.5s ease, transform 0.5s ease; animation: none;
+    }
+    .dg-reveal.js-motion.is-in { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dg-reveal { opacity: 1 !important; transform: none !important; animation: none !important; }
+  }
+
+  /* Close / vision */
+  .dg-insight .close {
+    margin-top: 2rem; padding: 2rem 1.75rem; border-radius: 20px;
+    border: 1px solid rgba(59,130,246,0.35);
+    background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(16,185,129,0.06));
+    text-align: center;
+  }
+  .dg-insight .close .vision {
+    color: #CBD5E1; font-size: 1rem; line-height: 1.65; max-width: 36rem; margin: 0 auto 1.25rem;
+  }
+  .dg-insight .close .tagline {
+    color: #F9FAFB; font-weight: 800; font-size: clamp(1.25rem, 2.5vw, 1.55rem);
+    margin-bottom: 1.25rem; letter-spacing: -0.02em;
+  }
+  .btn-primary {
+    display: inline-flex; align-items: center; padding: 0.85rem 1.6rem;
+    border-radius: 999px; font-weight: 700; font-size: 0.9rem;
+    background: linear-gradient(105deg, #3B82F6, #2563EB); color: #fff !important; text-decoration: none;
+  }
+  .btn-secondary {
+    display: inline-flex; align-items: center; margin-left: 0.65rem;
+    padding: 0.85rem 1.35rem; border-radius: 999px; font-weight: 700; font-size: 0.88rem;
+    border: 1px solid #334155; color: #E2E8F0 !important; text-decoration: none;
+  }
+  @media (max-width: 520px) {
+    .btn-secondary { margin: 0.75rem 0 0; }
+    .dg-insight .close .actions { display: flex; flex-direction: column; align-items: center; }
+  }
+</style>
+
+<div class="dg-insight" data-dg-motion-root>
+  <header class="hero">
+    <div class="container">
+      <span class="kicker">Featured Insight · DigitalGate Philosophy</span>
+      <h1>From fragmented businesses to intelligent ones</h1>
+      <p class="hero-thesis">AI is not the starting point. Connection is. Intelligence comes from context. Action comes from intelligence.</p>
+      <p class="hero-sub">This is DigitalGate’s foundational thought-leadership piece — the canonical explanation of why connected business context matters, and how intelligence, trust and action fit together.</p>
+      <div class="pillars-line" aria-hidden="true">
+        <span>Connect</span>
+        <span>Understand</span>
+        <span>Advise</span>
+        <span>Act</span>
+        <span>Learn</span>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <div class="container prose">
+      <h2>Most businesses aren’t dumb. They’re fragmented.</h2>
+      <p class="lead">They have CRMs, websites, accounting systems, inboxes, marketing platforms, spreadsheets, calendars, payment systems and analytics. Each one holds a piece of the truth. None of them truly understands the business as a whole.</p>
+      <p>The problem isn’t that they lack information. The problem is that <strong>none of it travels together</strong>. Context gets lost between systems. Decisions get made from partial pictures. And the person running the business becomes the glue holding it all together.</p>
+      <p>AI doesn’t fix that by itself. A chatbot on a disconnected website doesn’t make a business intelligent. It makes a chatbot slightly more convenient. Intelligence requires something deeper: a connected operating context the platform can reason across — with permission, purpose and accountability.</p>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="container-wide prose">
+      <h2>The evolution of business software</h2>
+      <p>DigitalGate sits at the intersection of a long arc in how businesses use technology. Understanding that arc explains why “add AI” is not enough — and why connection is the prerequisite.</p>
+      <div class="dg-evolution dg-reveal">
+        <div class="dg-evolution-step">
+          <p class="gen">Generation 1</p>
+          <h3>Digitise</h3>
+          <p>Businesses moved from paper to computers. Records became digital. Filing cabinets became databases.</p>
+        </div>
+        <div class="dg-evolution-step">
+          <p class="gen">Generation 2</p>
+          <h3>Specialise</h3>
+          <p>Every business function got its own software — CRM, accounting, marketing, websites, payments, communication.</p>
+        </div>
+        <div class="dg-evolution-step">
+          <p class="gen">Generation 3</p>
+          <h3>Connect</h3>
+          <p>APIs and integrations began joining those systems together — but often as brittle pipes, not unified context.</p>
+        </div>
+        <div class="dg-evolution-step">
+          <p class="gen">Generation 4</p>
+          <h3>Understand</h3>
+          <p>AI can finally reason across connected business context — if that context exists, is authorised and kept current.</p>
+        </div>
+        <div class="dg-evolution-step">
+          <p class="gen">Generation 5</p>
+          <h3>Act</h3>
+          <p>The platform doesn’t just tell you what is happening. It helps execute the next step — with human approval where it matters.</p>
+        </div>
+      </div>
+      <p style="margin-top:1.5rem;">DigitalGate is building for Generations 4 and 5 — but it does not skip Generation 3. <strong>Connection remains the foundation.</strong> Without it, AI is impressive noise.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="container prose">
+      <h2>The hidden human integration layer</h2>
+      <p class="lead">For decades, the business owner or office manager has been the integration layer — doing in their head what software should do as a system.</p>
+      <div class="dg-flow-steps" aria-label="Human integration steps">
+        <span>Data integration</span><span class="arrow">→</span>
+        <span>Interpretation</span><span class="arrow">→</span>
+        <span>Prioritisation</span><span class="arrow">→</span>
+        <span>Decision</span><span class="arrow">→</span>
+        <span>Execution</span>
+      </div>
+      <p>Consider a lead that comes through the website. In a fragmented business, someone has to notice it. Someone has to qualify it. Someone has to remember the previous conversation. Someone has to check whether they were already contacted. Someone has to determine whether the opportunity is valuable. Someone has to decide what happens next. Someone has to make sure it actually happens.</p>
+      <p>That is not a CRM problem. It is not a marketing problem. It is an <strong>operating coherence problem</strong> — and it carries a hidden cost every day: cognitive load, dropped balls, slow response, inconsistent follow-up and decisions made without full context.</p>
+      <div class="pull-quote dg-reveal">
+        <p>The owner isn’t failing. The architecture is. They’ve been asked to be the API between systems that were never designed to think together.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="container-wide prose">
+      <h2>What “connected” actually means</h2>
+      <p>“Connected business” can sound abstract until you see it in motion. Here is a real estate example — not as a vertical pitch, but as proof of what connection enables.</p>
+      <div class="dg-connected-flow">
+        <div class="dg-connected-step dg-reveal">
+          <span class="num">1</span>
+          <p>A vendor submits a property appraisal request on the <em>website</em>.</p>
+        </div>
+        <div class="dg-connected-step dg-reveal">
+          <span class="num">2</span>
+          <p><em>CRM</em> creates the contact and opportunity — linked to the enquiry, not re-keyed.</p>
+        </div>
+        <div class="dg-connected-step dg-reveal">
+          <span class="num">3</span>
+          <p><em>Communications</em> records the conversation and any follow-up across channels.</p>
+        </div>
+        <div class="dg-connected-step dg-reveal">
+          <span class="num">4</span>
+          <p><em>Prospecting</em> identifies relevant buyer demand in the same market.</p>
+        </div>
+        <div class="dg-connected-step dg-reveal">
+          <span class="num">5</span>
+          <p><em>Property records</em> capture the asset; <em>Business Health</em> sees the agency’s current activity.</p>
+        </div>
+        <div class="dg-connected-step dg-reveal">
+          <span class="num">6</span>
+          <p><em>Business Brain</em> understands the context. <em>AI Advisor</em> identifies the next action.</p>
+        </div>
+        <div class="dg-connected-step dg-reveal">
+          <span class="num">7</span>
+          <p>The agent approves. <em>CRM and Communications</em> execute it. The outcome becomes another business signal.</p>
+        </div>
+      </div>
+      <p>That is not “another CRM.” That is an operating layer where information, intelligence and action share one business context. DigitalGate is built to make that loop repeatable — across industries, not only real estate.</p>
+    </div>
+  </section>
+
+  <section class="dg-insight-manifesto">
+    <div class="container prose" style="text-align:center;max-width:680px;">
+      <h2>The path from disconnected to intelligent</h2>
+      <p>Scroll through the sequence — the same journey every connected business follows on DigitalGate.</p>
+    </div>
+    <div class="dg-manifesto-stack dg-layers" aria-label="Connected business manifesto sequence">
+      <article class="dg-manifesto-layer dg-layer dg-reveal">
+        <p class="label">Disconnected</p>
+        <h3>Systems that don’t share context</h3>
+        <div class="chips">
+          <span>Website</span><span>CRM</span><span>Email</span><span>Accounting</span><span>Marketing</span><span>Payments</span>
+        </div>
+        <p style="margin-top:0.75rem;">Each tool works. Together they don’t.</p>
+      </article>
+      <article class="dg-manifesto-layer dg-layer dg-reveal">
+        <p class="label">Connected</p>
+        <h3>One business context</h3>
+        <p>Records, relationships, activity and goals in a single operating layer — not another dashboard to check.</p>
+      </article>
+      <article class="dg-manifesto-layer dg-layer dg-reveal">
+        <p class="label">Digital Twin™</p>
+        <h3>What is happening?</h3>
+        <p>The current state of the business — customers, opportunities, website, revenue, goals and performance — continuously updated.</p>
+      </article>
+      <article class="dg-manifesto-layer dg-layer dg-reveal">
+        <p class="label">Business Brain™</p>
+        <h3>What does it mean?</h3>
+        <p>Context, knowledge, history, goals and authorised data — so intelligence is grounded in how the business actually works.</p>
+      </article>
+      <article class="dg-manifesto-layer dg-layer dg-reveal">
+        <p class="label">AI Advisor</p>
+        <h3>What should we do?</h3>
+        <p>Recommendations and reasoning across live signals — not generic advice divorced from your operations.</p>
+      </article>
+      <article class="dg-manifesto-layer dg-layer dg-reveal">
+        <p class="label">Act</p>
+        <h3>Human-approved execution</h3>
+        <p>Automation and platform tools execute the next step — with humans accountable for consequential decisions.</p>
+      </article>
+      <article class="dg-manifesto-layer dg-layer dg-reveal">
+        <p class="label">Learn</p>
+        <h3>Outcome returns to the system</h3>
+        <p>Results feed the Twin. The next cycle is sharper. The business gets more coherent over time.</p>
+      </article>
+    </div>
+    <p class="dg-manifesto-loop">Connect → Understand → Advise → Act → Learn</p>
+  </section>
+
+  <section class="alt">
+    <div class="container-wide prose">
+      <h2>The intelligence model</h2>
+      <p>DigitalGate’s architecture is deliberate. These are not marketing labels — they are distinct layers with distinct jobs.</p>
+      <div class="dg-model-grid">
+        <div class="dg-model-card dg-reveal">
+          <p class="q">What is happening?</p>
+          <h3>Digital Twin™</h3>
+          <p>The current state of the business — live, connected, continuously updated as systems share context.</p>
+        </div>
+        <div class="dg-model-card dg-reveal">
+          <p class="q">What does it mean?</p>
+          <h3>Business Brain™</h3>
+          <p>Context, knowledge, history, goals and authorised data — the layer that makes AI reasoning business-specific.</p>
+        </div>
+        <div class="dg-model-card dg-reveal">
+          <p class="q">What should we do?</p>
+          <h3>AI Advisor</h3>
+          <p>Recommendations and reasoning grounded in Twin and Brain — prioritised for action, not amusement.</p>
+        </div>
+        <div class="dg-model-card dg-reveal">
+          <p class="q">What matters now?</p>
+          <h3>Command Centre</h3>
+          <p>Prioritised business attention — what needs focus today across operations, growth and intelligence.</p>
+        </div>
+        <div class="dg-model-card dg-reveal">
+          <p class="q">Let’s do it.</p>
+          <h3>Automation &amp; Tools</h3>
+          <p>Human-approved execution through controlled platform capabilities — not unbounded AI autonomy.</p>
+        </div>
+        <div class="dg-model-card dg-reveal">
+          <p class="q">What happened?</p>
+          <h3>Learning</h3>
+          <p>Outcomes feed the next cycle. Signals improve. The operating layer gets smarter with use.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container prose">
+      <h2>Chatbot AI vs business AI</h2>
+      <p class="lead">There is a major distinction between a chatbot on your website and a connected business intelligence layer. Conflating them is how businesses waste money on AI that never changes operations.</p>
+      <h3>Chatbot AI</h3>
+      <ul>
+        <li>Knows what you tell it in the conversation</li>
+        <li>Cannot see your pipeline, promises, overdue tasks or goals</li>
+        <li>Improves the chat experience — not the operating system</li>
+      </ul>
+      <h3>Business AI</h3>
+      <ul>
+        <li>Can potentially know who your customers are and what opportunities are open</li>
+        <li>Can see what you’ve promised, sold, and what’s overdue</li>
+        <li>Can understand website activity, team actions, communications and connected systems</li>
+        <li>Can reason against goals and authorised context — and propose actions through controlled tools</li>
+      </ul>
+      <p>That is why DigitalGate does not position itself as “add a chatbot.” It positions itself as <strong>connect the business, then intelligence becomes possible.</strong></p>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="container prose">
+      <h2>AI without context</h2>
+      <div class="memorable dg-reveal">
+        <p><span>AI without context</span> is impressive.</p>
+        <p><span>AI with context</span> is useful.</p>
+        <p><span>AI with context, permissions and tools</span> can become operational.</p>
+      </div>
+      <p>That is DigitalGate’s AI strategy in three lines. Generic models can generate language. Operational AI needs authorised business context, clear permissions and platform tools it is allowed to use — with humans remaining accountable where consequences matter.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="container prose">
+      <h2>Why DigitalGate AI can be trusted</h2>
+      <p class="lead">Trust is not a footnote. It is architecture.</p>
+      <p>DigitalGate does not give AI ownership of the business. <strong>DigitalGate owns the records, permissions, relationships and actions.</strong> AI interprets authorised context and proposes or executes actions through controlled platform tools. Humans remain accountable for consequential decisions.</p>
+      <p>This is not “AI that guesses about your business from the public internet.” It is AI that reasons across context the business has explicitly connected — with governance, auditability and permission boundaries built into the platform layer.</p>
+      <div class="pull-quote dg-reveal">
+        <p>Intelligence without accountability is a liability. DigitalGate is built so AI assists the operating layer — it does not replace responsibility for it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="container prose">
+      <h2>DigitalGate is not trying to replace every tool</h2>
+      <p>Businesses already depend on accounting packages, email providers, payment processors, property portals, social networks, telephony and cloud infrastructure. DigitalGate does not need to rebuild all of them — and should not pretend to.</p>
+      <p>Instead, DigitalGate <strong>connects the systems businesses already use</strong>, brings their important information into one operating context, and adds intelligence and action on top. That is the connector strategy: meet the business where it is, unify what matters, then make the whole more capable than the sum of its parts.</p>
+      <p>Some capabilities DigitalGate builds natively — CRM, communications, websites, documents, growth apps — because they are core to the operating layer. Others arrive through connectors. The principle is coherence, not catalogue completeness for its own sake.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="container prose">
+      <h2>The vision: software → systems → intelligence</h2>
+      <p><strong>Software gave businesses tools.</strong> Spreadsheets, inboxes, specialised apps — each solving a local problem.</p>
+      <p><strong>Connected software gave businesses systems.</strong> Integrations and APIs joined the parts — imperfectly, but meaningfully.</p>
+      <p><strong>AI can give connected systems intelligence</strong> — if connection, context and governance exist first.</p>
+      <p>DigitalGate is building the operating layer that brings those things together: connect the parts of your business, represent it as a living Twin, give it a Business Brain, surface what matters, advise on what’s next, act with approval, and learn from outcomes.</p>
+      <p>The smartest businesses won’t necessarily have the most software. They’ll have the most <strong>connected, intelligible, actionable</strong> operating context — and a platform that can reason across it with purpose.</p>
+
+      <div class="close dg-reveal">
+        <p class="vision">Everything else on the DigitalGate website — Business Brain, Connected Business, the platform journey, industry apps — links back to this idea. Connection first. Context second. Intelligence third. Action last, with humans in the loop.</p>
+        <p class="tagline">Connect your business. Give it a brain.</p>
+        <div class="actions">
+          <a class="btn-primary" href="https://digitalgate.com.au/">Explore DigitalGate →</a>
+          <a class="btn-secondary" href="/business-brain/">Business Brain™ →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
