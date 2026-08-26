@@ -11,7 +11,6 @@ import {
 } from "@dg/platform-core";
 
 import { DeliveryDashboardContent } from "@/components/delivery/DeliveryDashboardContent";
-import { DeliveryWorkspaceNav } from "@/components/delivery/DeliveryWorkspaceNav";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function PartnerDeliveryDashboardPage() {
@@ -60,7 +59,6 @@ export default async function PartnerDeliveryDashboardPage() {
             : "Your assigned implementations, tasks and milestones."}
         </p>
       </div>
-      <DeliveryWorkspaceNav active="dashboard" scope="partner" />
       <DeliveryDashboardContent metrics={metrics} projects={projects} tasks={tasks} scope="partner" />
     </div>
   );

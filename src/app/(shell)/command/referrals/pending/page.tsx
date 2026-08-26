@@ -1,5 +1,4 @@
 import { listAllReferrals, PARTNER_REFERRAL_STATUS_LABELS } from "@dg/platform-core";
-import { PartnersAdminNav } from "@/components/command/PartnersAdminNav";
 
 const CONVERTED = new Set(["ACCEPTED", "CUSTOMER", "ACTIVE", "ONBOARDING", "COMMISSIONING"]);
 
@@ -15,7 +14,6 @@ export default async function PendingReferralsPage() {
       </header>
       <main className="dg-page-main">
         <div className="max-w-5xl space-y-6">
-          <PartnersAdminNav active="referrals" />
           <ReferralTable referrals={pending} />
         </div>
       </main>

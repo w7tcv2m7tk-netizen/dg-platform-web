@@ -1,5 +1,4 @@
 import { listAllReferrals, PARTNER_REFERRAL_STATUS_LABELS } from "@dg/platform-core";
-import { PartnersAdminNav } from "@/components/command/PartnersAdminNav";
 
 const CONVERTED = new Set(["ACCEPTED", "CUSTOMER", "ACTIVE", "ONBOARDING", "COMMISSIONING"]);
 
@@ -15,7 +14,6 @@ export default async function ConvertedReferralsPage() {
       </header>
       <main className="dg-page-main">
         <div className="max-w-5xl space-y-6">
-          <PartnersAdminNav active="referrals" />
           {converted.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-700 px-6 py-14 text-center text-sm text-slate-400">
               No converted referrals yet.

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { CustomerOnboardingWorkflow } from "@/components/command/PartnerEcosystemContent";
 import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
-import { DeliveryWorkspaceNav, type DeliveryNavId } from "@/components/delivery/DeliveryWorkspaceNav";
+import type { DeliveryNavId } from "@/components/delivery/DeliveryWorkspaceNav";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 import {
   canAccessDeliveryPartnerWorkspace,
@@ -169,8 +169,6 @@ export default async function PartnerDeliverySectionPage({
         <h1 className="text-2xl font-bold text-white">{page.title}</h1>
         <p className="mt-1 text-sm text-slate-400">{page.description}</p>
       </div>
-      <DeliveryWorkspaceNav active={page.nav} scope="partner" />
-
       {section === "onboarding" ? <CustomerOnboardingWorkflow /> : null}
 
       {section === "tasks" ? (

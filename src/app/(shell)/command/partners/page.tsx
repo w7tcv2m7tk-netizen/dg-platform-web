@@ -6,7 +6,6 @@ import {
   listPartners,
   PARTNER_COMMISSION_CONFIG,
 } from "@dg/platform-core";
-import { PartnersAdminNav } from "@/components/command/PartnersAdminNav";
 import { InviteFoundingResellerForm } from "@/components/founding/InviteFoundingResellerForm";
 
 function centsToDisplay(cents: number): string {
@@ -78,7 +77,6 @@ export default async function PartnerProgrammeDashboardPage() {
 
       <main className="dg-page-main">
         <div className="max-w-5xl space-y-6">
-          <PartnersAdminNav active="dashboard" />
           <InviteFoundingResellerForm />
 
           <div className="grid gap-3 sm:grid-cols-2">

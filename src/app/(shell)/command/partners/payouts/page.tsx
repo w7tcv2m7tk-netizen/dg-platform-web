@@ -1,5 +1,4 @@
 import { listAllCommissions } from "@dg/platform-core";
-import { PartnersAdminNav } from "@/components/command/PartnersAdminNav";
 
 function centsToDisplay(cents: number): string {
   return (cents / 100).toLocaleString("en-AU", {
@@ -35,8 +34,6 @@ export default async function PartnerPayoutsPage() {
 
       <main className="dg-page-main">
         <div className="max-w-5xl space-y-6">
-          <PartnersAdminNav active="payouts" />
-
           <div className="rounded-xl border border-slate-700/60 bg-slate-800/40 px-5 py-4">
             <p className="text-xs text-slate-400">Paid to date</p>
             <p className="mt-1 text-2xl font-bold text-white">{centsToDisplay(paidCents)}</p>

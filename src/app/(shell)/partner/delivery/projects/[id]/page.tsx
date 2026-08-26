@@ -8,7 +8,6 @@ import {
 } from "@dg/platform-core";
 
 import { DeliveryProjectRecordView } from "@/components/delivery/DeliveryProjectRecordView";
-import { DeliveryWorkspaceNav } from "@/components/delivery/DeliveryWorkspaceNav";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function PartnerDeliveryProjectPage({
@@ -41,7 +40,6 @@ export default async function PartnerDeliveryProjectPage({
 
   return (
     <div className="max-w-5xl space-y-6">
-      <DeliveryWorkspaceNav active="projects" scope="partner" />
       <DeliveryProjectRecordView project={project} scope="partner" />
     </div>
   );

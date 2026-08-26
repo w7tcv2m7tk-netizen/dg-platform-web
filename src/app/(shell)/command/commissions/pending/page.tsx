@@ -1,6 +1,5 @@
 import { listAllCommissions } from "@dg/platform-core";
 import { CommissionAdminTable } from "@/components/partner/CommissionAdminTable";
-import { PartnersAdminNav } from "@/components/command/PartnersAdminNav";
 
 export default async function PendingCommissionsPage() {
   const { commissions, total } = await listAllCommissions({ limit: 200 });
@@ -14,7 +13,6 @@ export default async function PendingCommissionsPage() {
       </header>
       <main className="dg-page-main">
         <div className="max-w-5xl space-y-8">
-          <PartnersAdminNav active="commissions" />
           <CommissionAdminTable commissions={filtered} />
         </div>
       </main>

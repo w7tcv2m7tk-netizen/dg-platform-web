@@ -512,9 +512,27 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/command/opportunities", label: "Opportunities" },
       ]),
       operatorApp("dg-partners", "Partners", "partner-portal", "/command/partners", [
-        { path: "/command/partners", label: "Resellers" },
-        { path: "/command/referrals", label: "Referrals" },
-        { path: "/command/commissions", label: "Commissions" },
+        { path: "/command/partners", label: "Dashboard" },
+        { path: "/command/partners/ecosystem", label: "Ecosystem" },
+        { path: "/command/partners/briefing", label: "Briefing" },
+        { path: "/command/partners/resellers", label: "Resellers" },
+        { path: "/command/partners/onboarding", label: "Onboarding" },
+        { path: "/command/partners/delivery", label: "Operating Model" },
+        {
+          path: "/command/referrals",
+          label: "Referrals",
+          matchAlso: ["/command/referrals/pending", "/command/referrals/converted"],
+        },
+        {
+          path: "/command/commissions",
+          label: "Commissions",
+          matchAlso: [
+            "/command/commissions/pending",
+            "/command/commissions/approved",
+            "/command/commissions/paid",
+          ],
+        },
+        { path: "/command/partners/payouts", label: "Payouts" },
       ]),
       operatorApp("dg-delivery", "Delivery", "partner-portal", "/command/delivery", [
         { path: "/command/delivery", label: "Dashboard" },
@@ -790,7 +808,6 @@ export interface CategorizedPlatformNavigation {
 import type { PartnerType } from "../partners/types";
 import {
   DELIVERY_PARTNER_NAV,
-  RESELLER_PARTNER_NAV,
   STAFF_PARTNERS_NAV,
 } from "../partners/delivery-workspace";
 
@@ -815,28 +832,56 @@ function getStaffPartnersNavItems(): AppNavTreeItem[] {
 }
 
 export function getPartnerWorkspaceShellLinks(partnerType?: PartnerType | null): PlatformShellNavItem[] {
-  if (partnerType === "IMPLEMENTATION_PARTNER") {
-    return DELIVERY_PARTNER_NAV.delivery.routes.map((route) => ({
+  return getPartnerWorkspaceApps(partnerType).flatMap((app) =>
+    app.routes.map((route) => ({
       kind: "shell" as const,
       href: route.path,
       label: route.label,
-      icon: getSidebarIcon("partner-portal"),
-    }));
+      icon: app.icon,
+    })),
+  );
+}
+
+/** Partner portal as apps so AppContextNav matches staff Core/CRM pattern. */
+export function getPartnerWorkspaceApps(partnerType?: PartnerType | null): AppNavTreeItem[] {
+  if (partnerType === "IMPLEMENTATION_PARTNER") {
+    return [
+      {
+        kind: "app",
+        id: "partner-delivery",
+        name: "Delivery",
+        icon: getSidebarIcon("partner-portal"),
+        tier: "internal",
+        enabled: true,
+        routes: [
+          ...DELIVERY_PARTNER_NAV.delivery.routes,
+          { path: "/partner/profile", label: "Profile" },
+        ],
+        primaryHref: DELIVERY_PARTNER_NAV.delivery.primaryHref,
+      },
+    ];
   }
 
   return [
-    ...RESELLER_PARTNER_NAV.resellers.routes.map((route) => ({
-      kind: "shell" as const,
-      href: route.path,
-      label: route.label,
-      icon: getSidebarIcon(
-        route.path.includes("referral")
-          ? "referrals"
-          : route.path.includes("commission")
-            ? "commerce"
-            : "partner-portal",
-      ),
-    })),
+    {
+      kind: "app",
+      id: "partner-portal",
+      name: "Partner",
+      icon: getSidebarIcon("partner-portal"),
+      tier: "internal",
+      enabled: true,
+      routes: [
+        { path: "/partner/dashboard", label: "Dashboard" },
+        { path: "/partner/referrals", label: "Referrals" },
+        { path: "/partner/commissions", label: "Commissions" },
+        { path: "/partner/playbook", label: "Playbook" },
+        { path: "/partner/demo", label: "Demo" },
+        { path: "/partner/resources", label: "Resources" },
+        { path: "/partner/terms", label: "Terms" },
+        { path: "/partner/profile", label: "Profile" },
+      ],
+      primaryHref: "/partner/dashboard",
+    },
   ];
 }
 
@@ -1005,10 +1050,10 @@ export function getCategorizedPlatformNavigation(
       partner: {
         id: "partner",
         label: PARTNER_NAV_SECTION_LABEL,
-        links: options?.showPartnerPortal
-          ? getPartnerWorkspaceShellLinks(options.partnerType)
+        links: [],
+        apps: options?.showPartnerPortal
+          ? getPartnerWorkspaceApps(options.partnerType)
           : [],
-        apps: [],
       },
       platformAdmin: platformAdminSection,
       business: coreSection,

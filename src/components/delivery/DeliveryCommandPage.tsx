@@ -1,13 +1,13 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { DeliveryWorkspaceNav, type DeliveryNavId } from "@/components/delivery/DeliveryWorkspaceNav";
+import type { DeliveryNavId } from "@/components/delivery/DeliveryWorkspaceNav";
 
 export function DeliveryCommandPage({
   title,
   description,
   children,
-  navActive,
+  navActive: _navActive,
   eyebrow = "Partners · Delivery",
   backHref = "/command",
   backLabel = "Command Centre",
@@ -37,10 +37,7 @@ export function DeliveryCommandPage({
         ) : null}
         {headerActions ? <div className="mt-4">{headerActions}</div> : null}
       </header>
-      <main className="dg-page-main space-y-6">
-        <DeliveryWorkspaceNav active={navActive} scope="staff" />
-        {children}
-      </main>
+      <main className="dg-page-main space-y-6">{children}</main>
     </>
   );
 }

@@ -6,8 +6,12 @@ import {
   claimPartnerInvitation,
   FOUNDING_RESELLER_TERMS_VERSION,
   getPartnerByClerkUserId,
-  getPartnerWorkspaceShellLinks,
 } from "@dg/platform-core";
+
+/**
+ * Partner portal auth + status gates only.
+ * Section nav is owned by AppContextNav (sidebar app + horizontal subnav).
+ */
 export default async function PartnerLayout({
   children,
 }: {
@@ -45,7 +49,8 @@ export default async function PartnerLayout({
               If you believe this is an error or you would like to become a partner,{" "}
               <a href="mailto:hello@digitalgate.com.au" className="text-sky-400 hover:underline">
                 contact Ben Roe
-              </a>.
+              </a>
+              .
             </p>
           </div>
         </main>
@@ -77,61 +82,9 @@ export default async function PartnerLayout({
 
   return (
     <>
-      <header className="dg-page-header">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">
-              DigitalGate Partner Programme
-            </p>
-            <h1 className="mt-1 text-2xl font-bold text-white">
-              Welcome, {partner.displayName?.split(" ")[0] ?? "Partner"}
-            </h1>
-            <p className="mt-1 text-sm text-slate-400">
-              {partner.partnerType === "IMPLEMENTATION_PARTNER" ? (
-                <>
-                  {partner.programme} · {partner.partnerTypeLabel}
-                  {partner.deliveryRole === "lead" ? " · Delivery Manager" : ""}
-                </>
-              ) : (
-                <>
-                  {partner.programme} · {partner.partnerTypeLabel} · {partner.commissionPercent}%
-                  commission on qualifying Platform + App fees · first{" "}
-                  {partner.commissionDurationMonths} months per referred customer
-                </>
-              )}
-            </p>
-          </div>
-          {partner.status === "pending" && (
-            <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-300">
-              Pending approval
-            </span>
-          )}
-        </div>
-        <nav className="mt-5 flex flex-wrap gap-1 border-t border-slate-700/60 pt-4">
-          {[
-            ...getPartnerWorkspaceShellLinks(partner.partnerType),
-            ...(partner.partnerType === "IMPLEMENTATION_PARTNER"
-              ? []
-              : [
-                  { href: "/partner/demo", label: "Demo" },
-                  { href: "/partner/resources", label: "Resources" },
-                  { href: "/partner/terms", label: "Terms" },
-                ]),
-            { href: "/partner/profile", label: "Profile" },
-          ].map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-slate-700/50 hover:text-white"
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
-      </header>
       {partner.partnerType !== "IMPLEMENTATION_PARTNER" &&
       (!partner.termsAcceptedAt || partner.termsVersion !== FOUNDING_RESELLER_TERMS_VERSION) ? (
-        <div className="border-b border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-100 sm:px-6 lg:px-8">
+        <div className="border-b border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-100 sm:px-6 md:px-8">
           Please{" "}
           <Link href="/partner/terms" className="font-medium text-sky-300 hover:underline">
             review and accept programme terms

@@ -1,6 +1,5 @@
 import { listAllCommissions } from "@dg/platform-core";
 import { CommissionAdminTable } from "@/components/partner/CommissionAdminTable";
-import { PartnersAdminNav } from "@/components/command/PartnersAdminNav";
 
 function centsToDisplay(cents: number): string {
   return (cents / 100).toLocaleString("en-AU", {
@@ -32,7 +31,6 @@ export default async function AdminCommissionsPage() {
 
       <main className="dg-page-main">
         <div className="max-w-5xl space-y-8">
-          <PartnersAdminNav active="commissions" />
           <div className="grid grid-cols-3 gap-4">
             {[
               { label: "Total Earned", value: centsToDisplay(totalEarned) },
