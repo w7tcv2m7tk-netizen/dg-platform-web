@@ -2951,8 +2951,35 @@ a.wb-brand-chrome-cta:hover {
   min-height: 72px;
 }
 
+/* Single offset for fixed DG nav — not body padding + chrome spacer */
 body.dg-has-fixed-header {
-  padding-top: 72px;
+  padding-top: 0 !important;
+}
+
+/* Homepage / full-bleed hero: edge-to-edge under fixed header */
+body.dg-has-fixed-header:has(.hero-home) .wb-site-chrome-header:has(.dg-header) {
+  min-height: 0;
+  height: 0;
+  overflow: visible;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+body.dg-has-fixed-header:has(.hero-home) .wb-chrome-html:has(.dg-header) {
+  margin: 0;
+  padding: 0;
+}
+
+body.dg-has-fixed-header:has(.hero-home) .wb-html-island .hero-home {
+  min-height: 100svh !important;
+  min-height: 100dvh !important;
+  height: 100svh !important;
+  height: 100dvh !important;
+  max-height: 100svh !important;
+  max-height: 100dvh !important;
+  margin-top: 0 !important;
+  box-sizing: border-box !important;
 }
 
 /* Aëtherra WP-style centered header — match site charcoal #0F1419 */

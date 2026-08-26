@@ -19,12 +19,13 @@
     color: #F9FAFB !important;
   }
 
-  /* Hero — full-bleed atmospheric composition */
+  /* Hero — full-bleed atmospheric composition (extends under fixed site header) */
   .hero-home {
     --hx: 0; --hy: 0;
-    position: relative; min-height: 100svh; min-height: 100dvh; height: 100svh; height: 100dvh; display: flex; align-items: center;
+    position: relative; min-height: 100svh; min-height: 100dvh; display: flex; align-items: center;
     justify-content: center; overflow: hidden; background: #03050A; text-align: center;
-    padding: 7rem 0 5rem; isolation: isolate;
+    padding: clamp(5.5rem, 10vw, 7rem) 0 clamp(3rem, 6vw, 4rem); isolation: isolate;
+    box-sizing: border-box;
   }
   .hero-atmosphere {
     position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;

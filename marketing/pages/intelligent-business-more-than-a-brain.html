@@ -1,0 +1,455 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>The Intelligent Business Is More Than a Brain | DigitalGate Insights</title>
+<meta name="description" content="Why the future of business software looks more like a living system than a collection of apps — and how DigitalGate maps body, nervous system, brain, and action into one operating platform.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&amp;family=Inter:wght@400;600;700;800&amp;display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&amp;family=Inter:wght@400;600;700;800&amp;display=swap"></noscript>
+<style>
+  .dg-insight * { margin: 0; padding: 0; box-sizing: border-box; }
+  .dg-insight {
+    font-family: Inter, system-ui, sans-serif;
+    background: #0A0E17; color: #F9FAFB; line-height: 1.75;
+  }
+  .dg-insight .container { max-width: 780px; margin: 0 auto; padding: 0 2rem; }
+  .dg-insight .container-wide { max-width: 980px; margin: 0 auto; padding: 0 2rem; }
+  .dg-insight h1, .dg-insight h2, .dg-insight h3 { font-family: Sora, Inter, sans-serif; color: #F9FAFB; }
+  .dg-insight a { color: #93C5FD; }
+  .dg-insight section { padding: 4rem 0; border-top: 1px solid #1E293B; }
+  .dg-insight section.alt { background: #111827; }
+
+  .dg-insight .hero {
+    padding: 7.5rem 0 3.5rem;
+    background:
+      radial-gradient(ellipse 75% 50% at 80% -5%, rgba(16,185,129,0.1), transparent 50%),
+      radial-gradient(ellipse 80% 55% at 20% -10%, rgba(59,130,246,0.12), transparent 55%),
+      linear-gradient(180deg, #05070A 0%, #0A0E17 100%);
+    border-top: none;
+  }
+  .dg-insight .kicker {
+    display: inline-block; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #93C5FD; margin-bottom: 0.85rem;
+  }
+  .dg-insight h1 {
+    font-size: clamp(1.85rem, 4.2vw, 2.85rem); font-weight: 800; line-height: 1.12;
+    letter-spacing: -0.03em; margin-bottom: 1.25rem; max-width: 22ch;
+  }
+  .dg-insight .hero-thesis {
+    font-size: clamp(1.12rem, 2.1vw, 1.32rem); color: #CBD5E1; font-weight: 600;
+    line-height: 1.55; max-width: 42rem; margin-bottom: 1.25rem;
+  }
+  .dg-insight .hero-sub { color: #94A3B8; font-size: 1.02rem; max-width: 40rem; line-height: 1.7; }
+
+  /* Series nav */
+  .dg-series-nav {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.65rem;
+    margin-top: 2rem; max-width: 52rem;
+  }
+  .dg-series-nav a, .dg-series-nav span {
+    display: block; border-radius: 14px; padding: 0.85rem 1rem;
+    border: 1px solid #334155; background: rgba(17,24,39,0.85); text-decoration: none;
+  }
+  .dg-series-nav a:hover { border-color: #3B82F6; }
+  .dg-series-nav .num {
+    font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #64748B; margin-bottom: 0.3rem;
+  }
+  .dg-series-nav .title { font-size: 0.82rem; font-weight: 700; color: #E2E8F0; line-height: 1.35; }
+  .dg-series-nav .current {
+    border-color: rgba(59,130,246,0.45);
+    background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(16,185,129,0.06));
+  }
+  .dg-series-nav .current .num { color: #93C5FD; }
+  .dg-series-nav .soon { opacity: 0.65; border-style: dashed; }
+  @media (max-width: 720px) {
+    .dg-series-nav { grid-template-columns: 1fr; }
+  }
+
+  .dg-insight .prose p { color: #94A3B8; margin-bottom: 1.15rem; font-size: 1.02rem; }
+  .dg-insight .prose p.lead { color: #CBD5E1; font-size: 1.12rem; line-height: 1.65; }
+  .dg-insight .prose strong { color: #E2E8F0; font-weight: 700; }
+  .dg-insight .prose h2 {
+    font-size: clamp(1.35rem, 2.5vw, 1.75rem); font-weight: 800;
+    margin: 0 0 1rem; line-height: 1.25; letter-spacing: -0.02em;
+  }
+  .dg-insight .pull-quote {
+    margin: 2rem 0; padding: 1.35rem 1.5rem; border-left: 3px solid #10B981;
+    background: rgba(16,185,129,0.06); border-radius: 0 12px 12px 0;
+  }
+  .dg-insight .pull-quote p {
+    color: #E2E8F0 !important; font-size: 1.08rem; font-weight: 600; line-height: 1.55; margin: 0 !important;
+  }
+
+  /* Body map table */
+  .dg-body-map {
+    margin: 1.75rem 0; border-radius: 16px; overflow: hidden;
+    border: 1px solid rgba(59,130,246,0.25);
+  }
+  .dg-body-map-head, .dg-body-map-row {
+    display: grid; grid-template-columns: 1.1fr 1.2fr 1.4fr; gap: 0;
+  }
+  .dg-body-map-head {
+    background: rgba(59,130,246,0.14); font-size: 0.68rem; font-weight: 800;
+    letter-spacing: 0.1em; text-transform: uppercase; color: #93C5FD;
+  }
+  .dg-body-map-head span, .dg-body-map-row span {
+    padding: 0.75rem 1rem; border-bottom: 1px solid rgba(51,65,85,0.8);
+  }
+  .dg-body-map-row { background: #111827; }
+  .dg-body-map-row:nth-child(even) { background: #0f1623; }
+  .dg-body-map-row span:first-child { font-weight: 700; color: #E2E8F0; font-size: 0.88rem; }
+  .dg-body-map-row span:nth-child(2) { color: #93C5FD; font-size: 0.85rem; font-weight: 600; }
+  .dg-body-map-row span:nth-child(3) { color: #94A3B8; font-size: 0.84rem; line-height: 1.45; }
+  @media (max-width: 720px) {
+    .dg-body-map-head { display: none; }
+    .dg-body-map-row {
+      grid-template-columns: 1fr; gap: 0.15rem; padding: 0.85rem 1rem;
+    }
+    .dg-body-map-row span { border: none; padding: 0.15rem 0; }
+    .dg-body-map-row span:first-child::before { content: "Human · "; color: #64748B; font-weight: 600; }
+    .dg-body-map-row span:nth-child(2)::before { content: "DigitalGate · "; color: #64748B; font-weight: 600; }
+  }
+
+  /* Organ cards */
+  .dg-organ {
+    border-radius: 16px; border: 1px solid #334155; background: #111827;
+    padding: 1.35rem 1.4rem; margin: 1.25rem 0;
+  }
+  .dg-organ .organ-label {
+    font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+    color: #60A5FA; margin-bottom: 0.35rem;
+  }
+  .dg-organ h3 {
+    font-size: 1.15rem !important; font-weight: 800; margin: 0 0 0.65rem !important;
+    color: #F9FAFB !important; letter-spacing: -0.02em;
+  }
+  .dg-organ .maps-to {
+    font-size: 0.78rem; font-weight: 700; color: #34D399; margin-bottom: 0.75rem;
+  }
+  .dg-organ p { margin: 0 0 0.75rem !important; font-size: 0.98rem !important; color: #94A3B8 !important; }
+  .dg-organ p:last-child { margin-bottom: 0 !important; }
+  .dg-organ ul {
+    list-style: none; margin: 0.5rem 0 0; padding: 0;
+  }
+  .dg-organ ul li {
+    position: relative; padding: 0.25rem 0 0.25rem 1.1rem; color: #94A3B8; font-size: 0.92rem;
+  }
+  .dg-organ ul li::before {
+    content: ""; position: absolute; left: 0; top: 0.72rem; width: 5px; height: 5px;
+    border-radius: 999px; background: #3B82F6;
+  }
+
+  /* Body stack summary */
+  .dg-body-stack {
+    max-width: 680px; margin: 2rem auto 0; padding: 0 1.25rem 1rem;
+    display: flex; flex-direction: column; gap: 0.85rem;
+  }
+  .dg-body-layer {
+    position: sticky; top: 5.5rem;
+    border-radius: 1rem; border: 1px solid rgba(71,85,105,0.55);
+    background: linear-gradient(165deg, rgba(17,24,39,0.98), rgba(15,23,42,0.96));
+    box-shadow: 0 14px 32px rgba(2,6,23,0.35);
+    padding: 1rem 1.2rem; text-align: center;
+  }
+  .dg-body-layer:nth-child(1) { z-index: 1; top: 5.1rem; }
+  .dg-body-layer:nth-child(2) { z-index: 2; top: 5.55rem; }
+  .dg-body-layer:nth-child(3) { z-index: 3; top: 6rem; }
+  .dg-body-layer:nth-child(4) { z-index: 4; top: 6.45rem; }
+  .dg-body-layer:nth-child(5) { z-index: 5; top: 6.9rem; }
+  .dg-body-layer:nth-child(6) { z-index: 6; top: 7.35rem; }
+  .dg-body-layer:nth-child(7) { z-index: 7; top: 7.8rem; }
+  .dg-body-layer:nth-child(8) { z-index: 8; top: 8.25rem; }
+  .dg-body-layer:nth-child(9) { z-index: 9; top: 8.7rem; }
+  .dg-body-layer:nth-child(10) { z-index: 10; top: 9.15rem; }
+  .dg-body-layer:nth-child(11) { z-index: 11; top: 9.6rem; }
+  .dg-body-layer:nth-child(12) { z-index: 12; top: 10.05rem; }
+  .dg-body-layer .verb { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #64748B; }
+  .dg-body-layer .part { font-size: 0.95rem; font-weight: 800; color: #93C5FD; margin: 0.15rem 0; }
+  .dg-body-layer .does { font-size: 0.85rem; color: #94A3B8; margin: 0; }
+  @media (max-width: 720px) {
+    .dg-body-layer, .dg-body-layer:nth-child(n) { position: relative; top: auto !important; }
+  }
+
+  .dg-reveal { opacity: 1; transform: none; }
+  @keyframes dg-reveal-in {
+    from { opacity: 0; transform: translate3d(0, 20px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .dg-reveal:not(.is-in) {
+        animation: dg-reveal-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+        animation-timeline: view(); animation-range: entry 5% cover 35%;
+      }
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .dg-reveal.js-motion {
+      opacity: 0; transform: translate3d(0, 20px, 0);
+      transition: opacity 0.5s ease, transform 0.5s ease; animation: none;
+    }
+    .dg-reveal.js-motion.is-in { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dg-reveal { opacity: 1 !important; transform: none !important; animation: none !important; }
+  }
+
+  .dg-insight .close {
+    margin-top: 2rem; padding: 2rem 1.75rem; border-radius: 20px;
+    border: 1px solid rgba(16,185,129,0.35);
+    background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(59,130,246,0.08));
+    text-align: center;
+  }
+  .dg-insight .close .vision { color: #CBD5E1; font-size: 1rem; line-height: 1.65; max-width: 38rem; margin: 0 auto 1.25rem; }
+  .dg-insight .close .tagline {
+    color: #F9FAFB; font-weight: 800; font-size: clamp(1.2rem, 2.4vw, 1.5rem);
+    margin-bottom: 1.25rem; letter-spacing: -0.02em;
+  }
+  .btn-primary {
+    display: inline-flex; align-items: center; padding: 0.85rem 1.6rem;
+    border-radius: 999px; font-weight: 700; font-size: 0.9rem;
+    background: linear-gradient(105deg, #3B82F6, #2563EB); color: #fff !important; text-decoration: none;
+  }
+  .btn-secondary {
+    display: inline-flex; align-items: center; margin-left: 0.65rem;
+    padding: 0.85rem 1.35rem; border-radius: 999px; font-weight: 700; font-size: 0.88rem;
+    border: 1px solid #334155; color: #E2E8F0 !important; text-decoration: none;
+  }
+  @media (max-width: 520px) {
+    .btn-secondary { margin: 0.75rem 0 0; }
+    .dg-insight .close .actions { display: flex; flex-direction: column; align-items: center; }
+  }
+</style>
+
+<div class="dg-insight" data-dg-motion-root>
+  <header class="hero">
+    <div class="container">
+      <span class="kicker">Foundational Series · Part 2 of 3 · Business Operating System</span>
+      <h1>The intelligent business is more than a brain</h1>
+      <p class="hero-thesis">A connected business behaves like a living system — with a body, nervous system, brain and decision-making layer.</p>
+      <p class="hero-sub">Part 1 explained why connection must come before intelligence. This piece explains how DigitalGate thinks about the platform — not as a collection of apps, but as an operating system with anatomy.</p>
+      <nav class="dg-series-nav" aria-label="Foundational insight series">
+        <a href="/from-dumb-businesses-to-smart-businesses/">
+          <span class="num">01 · Connected Business</span>
+          <span class="title">Why AI needs a connected business</span>
+        </a>
+        <span class="current" aria-current="page">
+          <span class="num">02 · Operating System</span>
+          <span class="title">The business as a living system</span>
+        </span>
+        <span class="soon">
+          <span class="num">03 · Coming soon</span>
+          <span class="title">From Signal to Action — the AI loop</span>
+        </span>
+      </nav>
+    </div>
+  </header>
+
+  <section>
+    <div class="container prose">
+      <h2>We talk about AI as though the goal is to give a business a brain</h2>
+      <p class="lead">But a brain on its own isn’t enough. A human brain is extraordinary because it is connected to a body.</p>
+      <p>It receives information through the senses. It has memory. It communicates. It understands its environment. It makes decisions. It controls actions. It learns from outcomes.</p>
+      <p>A business works in much the same way. It has customers, people, processes, money, communications, websites, opportunities, documents, systems and goals.</p>
+      <p>For decades, however, business software has treated these things as <strong>separate organs</strong> — a CRM here, accounting there, a website somewhere else, an inbox, a marketing platform, a booking system, a spreadsheet, an analytics dashboard. Each can be useful on its own. The business itself remains fragmented.</p>
+      <div class="pull-quote dg-reveal">
+        <p>DigitalGate’s body analogy is deliberate: it explains a sophisticated architecture without drowning people in SaaS terminology.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="container-wide prose">
+      <h2>The DigitalGate body map</h2>
+      <p>Every part of a living business system has a role. Here is how human anatomy maps to the DigitalGate platform — the reference model for everything else on the website.</p>
+      <div class="dg-body-map dg-reveal" role="table" aria-label="Human body to DigitalGate mapping">
+        <div class="dg-body-map-head" role="row">
+          <span role="columnheader">Human body</span>
+          <span role="columnheader">DigitalGate</span>
+          <span role="columnheader">Purpose</span>
+        </div>
+        <div class="dg-body-map-row" role="row"><span>Body</span><span>Core + Industry Apps</span><span>Where the business operates</span></div>
+        <div class="dg-body-map-row" role="row"><span>Nervous system</span><span>Connectors + Events</span><span>Moves information between systems</span></div>
+        <div class="dg-body-map-row" role="row"><span>Senses</span><span>Data + Signals + Analytics</span><span>Detects what is happening</span></div>
+        <div class="dg-body-map-row" role="row"><span>Memory</span><span>CRM + Business Knowledge</span><span>Remembers relationships, history and knowledge</span></div>
+        <div class="dg-body-map-row" role="row"><span>Brain</span><span>Business Brain™</span><span>Understands context</span></div>
+        <div class="dg-body-map-row" role="row"><span>Mind / Reasoning</span><span>AI Advisor</span><span>Determines what matters and recommends action</span></div>
+        <div class="dg-body-map-row" role="row"><span>Hands</span><span>Tools + Automation</span><span>Executes approved actions</span></div>
+        <div class="dg-body-map-row" role="row"><span>Voice</span><span>Communications</span><span>Communicates with customers and the market</span></div>
+        <div class="dg-body-map-row" role="row"><span>Immune system</span><span>Security + Governance</span><span>Protects the business</span></div>
+        <div class="dg-body-map-row" role="row"><span>Health</span><span>Business Health</span><span>Measures whether the business is functioning well</span></div>
+        <div class="dg-body-map-row" role="row"><span>Goals / direction</span><span>Goals + Strategy</span><span>Determines where the business is going</span></div>
+        <div class="dg-body-map-row" role="row"><span>Learning</span><span>Outcomes + Twin updates</span><span>Makes the system smarter over time</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container prose">
+      <h2>The body</h2>
+      <div class="dg-organ dg-reveal">
+        <p class="organ-label">Human · Body</p>
+        <h3>Where life happens</h3>
+        <p class="maps-to">→ Core + Industry Apps</p>
+        <p>The Core of DigitalGate is the operating body of the business. CRM, Commerce, Communications, Documents, Design Studio and Infrastructure provide the fundamental capabilities a business needs to operate.</p>
+        <p>Industry Apps give that body specialised capabilities. A real estate agency operates differently from an accommodation business. A finance broker operates differently from a cleaning company. The underlying body is connected — the workflows adapt to the business.</p>
+      </div>
+
+      <h2>The nervous system</h2>
+      <div class="dg-organ dg-reveal">
+        <p class="organ-label">Human · Nervous system</p>
+        <h3>Connection without which nothing coheres</h3>
+        <p class="maps-to">→ Connectors + Events</p>
+        <p>A body is useless if its parts cannot communicate. DigitalGate’s Connectors and event infrastructure form the nervous system. Information moves between the systems a business relies upon.</p>
+        <ul>
+          <li>A lead enters through the website</li>
+          <li>A payment updates Commerce</li>
+          <li>A customer interaction updates CRM</li>
+          <li>A listing connects with a property workflow</li>
+          <li>A communication becomes part of the customer’s history</li>
+        </ul>
+        <p>The objective isn’t integration for integration’s sake. It is to make the business <strong>increasingly aware of itself</strong>.</p>
+      </div>
+
+      <h2>The senses</h2>
+      <div class="dg-organ dg-reveal">
+        <p class="organ-label">Human · Senses</p>
+        <h3>Detecting what is happening</h3>
+        <p class="maps-to">→ Data + Signals + Analytics</p>
+        <p>A business needs to know what is happening — website activity, customer activity, sales activity, communications, payments, marketing performance, operational activity. These become signals. Analytics and business intelligence turn those signals into visibility. The business can begin to see.</p>
+      </div>
+
+      <h2>Memory</h2>
+      <div class="dg-organ dg-reveal">
+        <p class="organ-label">Human · Memory</p>
+        <h3>What intelligence reasons over</h3>
+        <p class="maps-to">→ CRM + Business Knowledge</p>
+        <p>A business also needs memory. Who are our customers? What have we promised them? What happened last time? What opportunities are open? What documents exist? What are our goals? What processes do we follow?</p>
+        <p>The CRM and Business Knowledge layers provide that memory. <strong>Without memory, intelligence has nothing meaningful to reason over.</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="container prose">
+      <h2>The Brain</h2>
+      <div class="dg-organ dg-reveal">
+        <p class="organ-label">Human · Brain</p>
+        <h3>Understanding context</h3>
+        <p class="maps-to">→ Business Brain™</p>
+        <p>The Brain doesn’t replace the business’s underlying systems. It brings authorised context together — business knowledge, goals, customer relationships, opportunities, activity, documents, Twin state and connected signals.</p>
+        <p>Instead of looking at one isolated piece of information, it can begin to understand the <strong>relationship between them</strong>.</p>
+      </div>
+
+      <h2>The Advisor</h2>
+      <div class="dg-organ dg-reveal">
+        <p class="organ-label">Human · Mind / Reasoning</p>
+        <h3>From understanding to decision</h3>
+        <p class="maps-to">→ AI Advisor</p>
+        <p>Understanding is not the same as deciding. The Advisor helps answer questions such as:</p>
+        <ul>
+          <li>What matters today?</li>
+          <li>Why is this important?</li>
+          <li>What should we do next?</li>
+          <li>Which opportunity deserves attention?</li>
+        </ul>
+        <p>The objective isn’t another chatbot. It is an intelligence layer that understands the business it is operating within.</p>
+      </div>
+
+      <h2>The hands</h2>
+      <div class="dg-organ dg-reveal">
+        <p class="organ-label">Human · Hands</p>
+        <h3>Intelligence that can act</h3>
+        <p class="maps-to">→ Tools + Automation</p>
+        <p>A brain that cannot act is limited. DigitalGate connects intelligence to authorised tools — create a task, assign a lead, update an opportunity, prepare a communication, start an automation, generate a document.</p>
+        <p>Consequential actions remain controlled. The AI can recommend. The human can approve. The platform executes. The outcome is recorded.</p>
+      </div>
+
+      <h2>The voice</h2>
+      <div class="dg-organ dg-reveal">
+        <p class="organ-label">Human · Voice</p>
+        <h3>How the business speaks</h3>
+        <p class="maps-to">→ Communications</p>
+        <p>Businesses communicate constantly — email, SMS, phone, social, documents, customer conversations. DigitalGate’s Communications layer is the voice of the business, connected to the same customer and business context rather than operating as another isolated inbox.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container prose">
+      <h2>The immune system</h2>
+      <div class="dg-organ dg-reveal">
+        <p class="organ-label">Human · Immune system</p>
+        <h3>Protection as capability grows</h3>
+        <p class="maps-to">→ Security + Governance</p>
+        <p>Permissions. Organisation boundaries. Audit logs. AI governance. Connector controls. Data governance. Approval rules. These aren’t optional extras — they are the immune system of an intelligent business. The more capable the system becomes, the more important these controls become.</p>
+      </div>
+
+      <h2>Health</h2>
+      <div class="dg-organ dg-reveal">
+        <p class="organ-label">Human · Health</p>
+        <h3>Operating vs functioning well</h3>
+        <p class="maps-to">→ Business Health</p>
+        <p>A business can be operating without being healthy. Revenue might grow while customer response times deteriorate. Leads might increase while conversion falls. Marketing might generate traffic while opportunities remain untouched. Business Health turns signals into a broader view of the organisation’s condition.</p>
+      </div>
+
+      <h2>Goals and direction</h2>
+      <div class="dg-organ dg-reveal">
+        <p class="organ-label">Human · Purpose</p>
+        <h3>Where the business is going</h3>
+        <p class="maps-to">→ Goals + Strategy</p>
+        <p>Intelligence without direction drifts. Goals and strategy give the system something to optimise toward — so recommendations aren’t generic productivity, but progress against what the business actually cares about.</p>
+      </div>
+
+      <h2>Learning</h2>
+      <div class="dg-organ dg-reveal">
+        <p class="organ-label">Human · Learning</p>
+        <h3>The system gets smarter over time</h3>
+        <p class="maps-to">→ Outcomes + Digital Twin™</p>
+        <p>A recommendation is made. An action occurs. An outcome follows. That outcome becomes another business signal. Over time, the platform develops a richer understanding of the organisation.</p>
+        <p>The Digital Twin™ represents the evolving state of the business — not as a fictional copy, but as a structured representation derived from the business data DigitalGate actually has access to.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt dg-insight-manifesto">
+    <div class="container prose" style="text-align:center;max-width:680px;">
+      <h2>A business operating system</h2>
+      <p>Scroll the living system — each layer depends on the ones below it.</p>
+    </div>
+    <div class="dg-body-stack dg-layers" aria-label="Business operating system layers">
+      <article class="dg-body-layer dg-layer dg-reveal"><p class="verb">The body</p><p class="part">Core + Industry Apps</p><p class="does">operates</p></article>
+      <article class="dg-body-layer dg-layer dg-reveal"><p class="verb">The nervous system</p><p class="part">Connectors + Events</p><p class="does">connects</p></article>
+      <article class="dg-body-layer dg-layer dg-reveal"><p class="verb">The senses</p><p class="part">Signals + Analytics</p><p class="does">observe</p></article>
+      <article class="dg-body-layer dg-layer dg-reveal"><p class="verb">Memory</p><p class="part">CRM + Knowledge</p><p class="does">remembers</p></article>
+      <article class="dg-body-layer dg-layer dg-reveal"><p class="verb">The Brain</p><p class="part">Business Brain™</p><p class="does">understands</p></article>
+      <article class="dg-body-layer dg-layer dg-reveal"><p class="verb">The Advisor</p><p class="part">AI Advisor</p><p class="does">reasons</p></article>
+      <article class="dg-body-layer dg-layer dg-reveal"><p class="verb">The hands</p><p class="part">Tools + Automation</p><p class="does">act</p></article>
+      <article class="dg-body-layer dg-layer dg-reveal"><p class="verb">The voice</p><p class="part">Communications</p><p class="does">speaks</p></article>
+      <article class="dg-body-layer dg-layer dg-reveal"><p class="verb">Governance</p><p class="part">Security + Permissions</p><p class="does">protects</p></article>
+      <article class="dg-body-layer dg-layer dg-reveal"><p class="verb">Health</p><p class="part">Business Health</p><p class="does">measures</p></article>
+      <article class="dg-body-layer dg-layer dg-reveal"><p class="verb">The Twin</p><p class="part">Digital Twin™</p><p class="does">reflects</p></article>
+      <article class="dg-body-layer dg-layer dg-reveal"><p class="verb">Learning</p><p class="part">Outcomes</p><p class="does">makes the system smarter</p></article>
+    </div>
+  </section>
+
+  <section>
+    <div class="container prose">
+      <h2>The bigger idea</h2>
+      <p class="lead">We aren’t trying to build another CRM. We aren’t trying to build another chatbot. We aren’t trying to replace every piece of software a business already uses.</p>
+      <p>We are building the <strong>operating layer that connects the pieces</strong> — so a business can understand itself, help people make better decisions, and turn those decisions into action.</p>
+      <p>Not more software. Not more dashboards. Not another chatbot. A connected system that learns from what happens next.</p>
+      <p>That is the foundation of the intelligent business — and the architectural lens DigitalGate uses for every product decision.</p>
+
+      <div class="close dg-reveal">
+        <p class="vision">Part 3 — <em>From Signal to Action</em> — will go deeper on Connect → Understand → Advise → Act → Learn: how the DigitalGate AI loop actually works in practice.</p>
+        <p class="tagline">DigitalGate — the Business Operating Platform for the intelligent business.</p>
+        <div class="actions">
+          <a class="btn-primary" href="https://digitalgate.com.au/">Explore DigitalGate →</a>
+          <a class="btn-secondary" href="/from-dumb-businesses-to-smart-businesses/">← Part 1: Connected Business</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

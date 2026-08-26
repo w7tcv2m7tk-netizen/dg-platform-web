@@ -270,22 +270,54 @@
     .btn-secondary { margin: 0.75rem 0 0; }
     .dg-insight .close .actions { display: flex; flex-direction: column; align-items: center; }
   }
+
+  /* Series nav */
+  .dg-series-nav {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.65rem;
+    margin-top: 2rem; max-width: 52rem;
+  }
+  .dg-series-nav a, .dg-series-nav span {
+    display: block; border-radius: 14px; padding: 0.85rem 1rem;
+    border: 1px solid #334155; background: rgba(17,24,39,0.85); text-decoration: none;
+  }
+  .dg-series-nav a:hover { border-color: #3B82F6; }
+  .dg-series-nav .num {
+    font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #64748B; margin-bottom: 0.3rem; display: block;
+  }
+  .dg-series-nav .title { font-size: 0.82rem; font-weight: 700; color: #E2E8F0; line-height: 1.35; }
+  .dg-series-nav .current {
+    border-color: rgba(59,130,246,0.45);
+    background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(16,185,129,0.06));
+  }
+  .dg-series-nav .current .num { color: #93C5FD; }
+  .dg-series-nav .soon { opacity: 0.65; border-style: dashed; }
+  @media (max-width: 720px) {
+    .dg-series-nav { grid-template-columns: 1fr; }
+  }
 </style>
 
 <div class="dg-insight" data-dg-motion-root>
   <header class="hero">
     <div class="container">
-      <span class="kicker">Featured Insight · DigitalGate Philosophy</span>
+      <span class="kicker">Foundational Series · Part 1 of 3 · Connected Business</span>
       <h1>From fragmented businesses to intelligent ones</h1>
       <p class="hero-thesis">AI is not the starting point. Connection is. Intelligence comes from context. Action comes from intelligence.</p>
-      <p class="hero-sub">This is DigitalGate’s foundational thought-leadership piece — the canonical explanation of why connected business context matters, and how intelligence, trust and action fit together.</p>
-      <div class="pillars-line" aria-hidden="true">
-        <span>Connect</span>
-        <span>Understand</span>
-        <span>Advise</span>
-        <span>Act</span>
-        <span>Learn</span>
-      </div>
+      <p class="hero-sub">Part 1 of DigitalGate’s foundational series — why a business cannot become genuinely intelligent if its systems remain disconnected, and why DigitalGate exists.</p>
+      <nav class="dg-series-nav" aria-label="Foundational insight series">
+        <span class="current" aria-current="page">
+          <span class="num">01 · Connected Business</span>
+          <span class="title">Why AI needs a connected business</span>
+        </span>
+        <a href="/intelligent-business-more-than-a-brain/">
+          <span class="num">02 · Operating System</span>
+          <span class="title">The business as a living system</span>
+        </a>
+        <span class="soon">
+          <span class="num">03 · Coming soon</span>
+          <span class="title">From Signal to Action — the AI loop</span>
+        </span>
+      </nav>
     </div>
   </header>
 
@@ -541,11 +573,11 @@
       <p>The smartest businesses won’t necessarily have the most software. They’ll have the most <strong>connected, intelligible, actionable</strong> operating context — and a platform that can reason across it with purpose.</p>
 
       <div class="close dg-reveal">
-        <p class="vision">Everything else on the DigitalGate website — Business Brain, Connected Business, the platform journey, industry apps — links back to this idea. Connection first. Context second. Intelligence third. Action last, with humans in the loop.</p>
+        <p class="vision">Everything else on the DigitalGate website links back to this idea. Part 2 — <a href="/intelligent-business-more-than-a-brain/">The intelligent business is more than a brain</a> — explains how the platform maps to a living system: body, nervous system, brain, and action.</p>
         <p class="tagline">Connect your business. Give it a brain.</p>
         <div class="actions">
-          <a class="btn-primary" href="https://digitalgate.com.au/">Explore DigitalGate →</a>
-          <a class="btn-secondary" href="/business-brain/">Business Brain™ →</a>
+          <a class="btn-primary" href="/intelligent-business-more-than-a-brain/">Continue to Part 2 →</a>
+          <a class="btn-secondary" href="https://digitalgate.com.au/">Explore DigitalGate</a>
         </div>
       </div>
     </div>

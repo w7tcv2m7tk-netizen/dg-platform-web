@@ -80,6 +80,37 @@
   }
   .featured-card p { color: #94A3B8; font-size: 1.02rem; line-height: 1.65; max-width: 46rem; margin-bottom: 1.1rem; }
 
+  .series-grid {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem;
+  }
+  .series-card {
+    display: flex; flex-direction: column; gap: 0.65rem;
+    background: #0A0E17; border: 1px solid #334155; border-radius: 18px;
+    padding: 1.25rem 1.2rem 1.15rem; min-height: 100%;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  a.series-card:hover {
+    border-color: #3B82F6; transform: translateY(-2px); text-decoration: none;
+  }
+  .series-card.featured {
+    border-color: rgba(59,130,246,0.45);
+    background: linear-gradient(165deg, rgba(17,24,39,0.98), rgba(15,23,42,0.96));
+  }
+  .series-card.soon { border-style: dashed; opacity: 0.72; }
+  .series-num {
+    font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #93C5FD;
+  }
+  .series-card h3 { font-size: 1.05rem; font-weight: 800; line-height: 1.3; margin: 0; }
+  .series-card p { color: #94A3B8; font-size: 0.88rem; line-height: 1.55; margin: 0; flex: 1; }
+  .series-more { font-size: 0.82rem; font-weight: 700; color: #93C5FD; margin-top: auto; }
+  .series-arrow {
+    text-align: center; color: #3B82F6; font-size: 1.1rem; font-weight: 700; padding: 0.25rem 0;
+  }
+  @media (max-width: 900px) {
+    .series-grid { grid-template-columns: 1fr; }
+    .series-arrow { display: none; }
+  }
+
   .insight-grid {
     display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.1rem;
   }
@@ -182,15 +213,31 @@
   <section class="alt" id="featured">
     <div class="container">
       <div class="section-header">
-        <span class="sub-label">Featured Insight</span>
-        <h2>Start here</h2>
+        <span class="sub-label">Foundational Series</span>
+        <h2>Start here — the DigitalGate philosophy</h2>
+        <p>Three connected insights that explain why DigitalGate exists, how the platform thinks, and how the AI loop works in practice.</p>
       </div>
-      <a class="featured-card" href="/from-dumb-businesses-to-smart-businesses/">
-        <span class="insight-kicker">Featured · DigitalGate Philosophy</span>
-        <h2>From fragmented businesses to intelligent ones</h2>
-        <p>The canonical DigitalGate manifesto — why connection comes before AI, how Twin, Brain and Advisor fit together, and the Connect → Understand → Advise → Act → Learn loop every customer operates on.</p>
-        <span class="btn-primary" style="justify-self:start;">Read the manifesto →</span>
-      </a>
+      <div class="series-grid">
+        <a class="series-card featured" href="/from-dumb-businesses-to-smart-businesses/">
+          <span class="series-num">01 · Connected Business</span>
+          <h3>From fragmented businesses to intelligent ones</h3>
+          <p>Why AI needs a connected business — connection before intelligence, context before action, and the Connect → Understand → Advise → Act → Learn loop.</p>
+          <span class="series-more">Read Part 1 →</span>
+        </a>
+        <a class="series-card featured" href="/intelligent-business-more-than-a-brain/">
+          <span class="series-num">02 · Business Operating System</span>
+          <h3>The intelligent business is more than a brain</h3>
+          <p>Why business software should behave like a living system — body, nervous system, memory, brain, advisor, hands, voice, governance and learning.</p>
+          <span class="series-more">Read Part 2 →</span>
+        </a>
+        <div class="series-card soon">
+          <span class="series-num">03 · Coming soon</span>
+          <h3>From Signal to Action</h3>
+          <p>How the DigitalGate AI loop actually works — Connect, Understand, Advise, Act and Learn in depth.</p>
+          <span class="series-more">In build</span>
+        </div>
+      </div>
+      <p class="series-arrow" aria-hidden="true">↓</p>
       <a class="featured-card" href="https://digitalgate.com.au/how-chatgpt-chooses-which-businesses-to-recommend" style="margin-top:1rem;opacity:0.95;">
         <span class="insight-kicker">AI Visibility</span>
         <h2>How ChatGPT Chooses Which Businesses To Recommend in 2026</h2>

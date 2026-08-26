@@ -51,6 +51,13 @@ const PAGES = [
     intent: "custom",
     sortOrder: 17,
   },
+  {
+    file: "intelligent-business-more-than-a-brain.html",
+    title: "The Intelligent Business Is More Than a Brain",
+    slug: "intelligent-business-more-than-a-brain",
+    intent: "custom",
+    sortOrder: 18,
+  },
 ];
 
 const ICON =
