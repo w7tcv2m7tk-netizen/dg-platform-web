@@ -47,13 +47,15 @@ export function InviteDeliveryPartnerForm({ compact }: { compact?: boolean }) {
   }
 
   return (
-    <div className={compact ? "space-y-3" : "dg-card space-y-3"}>
-      <h2 className="font-semibold text-white">Invite Delivery Partner</h2>
-      <p className="text-sm text-slate-400">
-        Personal invitation into DigitalGate Delivery. Delivery Partners onboard customers —
-        they are not Founding Resellers. Sending an invite does not approve them into the
-        programme.
-      </p>
+    <div id="invite-delivery" className={compact ? "space-y-3" : "dg-card space-y-4"}>
+      <div>
+        <h2 className="font-semibold text-white">Invite to Delivery</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Personal invitation into the DigitalGate Delivery workspace. This is the implementation
+          function — not the Founding Reseller programme. Sending an invite does not approve them
+          into Delivery.
+        </p>
+      </div>
       <input
         className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
         placeholder="Name"
@@ -73,20 +75,40 @@ export function InviteDeliveryPartnerForm({ compact }: { compact?: boolean }) {
         onChange={(e) => setBusinessName(e.target.value)}
       />
       <label className="block text-xs font-medium text-slate-400">
-        Role
+        Invite as
         <select
           className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
           value={deliveryRole}
           onChange={(e) => setDeliveryRole(e.target.value === "lead" ? "lead" : "member")}
         >
-          <option value="member">Delivery Partner (member)</option>
-          <option value="lead">Delivery Manager (lead)</option>
+          <option value="member">Delivery Partner</option>
+          <option value="lead">Delivery Manager</option>
         </select>
       </label>
+      <div className="space-y-3 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-3 text-xs text-slate-400">
+        <div>
+          <p className="font-medium text-slate-200">Delivery Partners</p>
+          <p className="mt-0.5">
+            Certified external implementation specialists who can configure, migrate, train and
+            deliver DigitalGate implementations.
+          </p>
+        </div>
+        <div>
+          <p className="font-medium text-slate-200">Delivery Managers</p>
+          <p className="mt-0.5">
+            People responsible for coordinating implementation projects, delivery tasks, timelines
+            and customer handover.
+          </p>
+        </div>
+        <p className="border-t border-slate-800 pt-3 text-slate-500">
+          A person can only operate as a Founding Reseller if they are separately enrolled in the
+          Founding Reseller programme.
+        </p>
+      </div>
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white"
+          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-60"
           disabled={status === "saving"}
           onClick={() => void create(true)}
         >
@@ -94,7 +116,7 @@ export function InviteDeliveryPartnerForm({ compact }: { compact?: boolean }) {
         </button>
         <button
           type="button"
-          className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-200"
+          className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-60"
           disabled={status === "saving"}
           onClick={() => void create(false)}
         >

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Legacy path — Delivery Partner invitations live under Partners → Delivery. */
+/** Legacy path — Delivery invitations live under DigitalGate → Delivery. */
 export default function ImplementationPartnersRedirectPage() {
   redirect("/command/delivery/invitations");
 }

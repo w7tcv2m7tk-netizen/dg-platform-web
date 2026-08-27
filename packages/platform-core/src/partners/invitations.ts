@@ -248,7 +248,7 @@ export async function createDeliveryPartnerInvitation(input: {
       partnerId: "",
       inviteToken: "",
       inviteUrl: "",
-      error: "A name or email is required to create a Delivery Partner invitation.",
+      error: "A name or email is required to create a Delivery invitation.",
     };
   }
 
