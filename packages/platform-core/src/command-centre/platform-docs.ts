@@ -515,6 +515,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "WEBSITE-STRATEGIC-ROADMAP.md",
   },
   {
+    slug: "category-positioning",
+    title: "Category Positioning",
+    summary:
+      "Intelligent Business Operating Platform — Run/Understand/Grow, Twin→Brain, honest vs Rex/MRI, entity authority copy rules.",
+    group: "operations",
+    relativePath: "CATEGORY-POSITIONING.md",
+  },
+  {
     slug: "connector-priority",
     title: "Connector Priority",
     summary: "Which connectors matter first and why.",
