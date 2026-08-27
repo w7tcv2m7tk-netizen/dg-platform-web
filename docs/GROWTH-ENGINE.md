@@ -19,14 +19,14 @@ It is the **experience / orchestration layer** that brings discovery, audit, sco
 
 ```
 Sales
-→ Growth Engine™          The intelligent growth workspace
+→ Growth Engine™          The commercial machine (Acquire → Qualify → Convert)
   → Daily Briefing        What should I do today?
   → Growth Pipeline       Where are my opportunities?
-  → Growth capabilities   Discovery · Audit · Reports · Follow-Up · Proposals · Conversion
-  → CRM                   The underlying customer relationship record
+  → Capabilities          Discovery · Audit · Opportunity Engine · Pipeline · Follow-Up · Proposals · Conversion
+  → CRM                   Genuine relationships after convert
 ```
 
-Capabilities underneath (Discovery, AI Audit, Opportunity Scoring, Reports, Pipeline, Activity, Smart Follow-Up, Proposals, Analytics) remain part of the Prospecting & Opportunity Engine / Growth **ecosystem** — Growth Engine does not duplicate them as a second product.
+Capabilities underneath remain part of the Growth ecosystem — Growth Engine does not duplicate them as a second product. Do not label the Growth Engine header “Prospecting”; Discovery is the prospect database/input.
 
 ---
 
@@ -45,13 +45,13 @@ Same UX pattern on both surfaces. Operator hub also collapses beta honesty const
 
 ## Hub UX (locked direction)
 
-1. **Headline** — Turn business discovery into qualified opportunities and customers.
-2. **The Growth Loop** — Discover → Understand → Score → Engage → Pipeline → Convert
+1. **Headline** — Growth Engine™ · Acquire → Qualify → Convert
+2. **Commercial machine** — Acquire → Qualify → Convert (not a “Prospecting” synonym)
 3. **Daily Briefing** — intelligence heart: who to speak to today (Opportunity Score™ + why now + recommended action)
 4. **Metrics** — Recommended · Contacted today · Conversations · Meetings booked · **Action queue** · Pipeline value (only when real proposal $ exist)
 5. **Growth Pipeline snapshot** — Prospects · Engaged 7d · Qualified · Opportunities · Meetings · Converted
 6. **Daily recommended** — ranked list; disclaimer in supporting text (not autonomous AI SDR)
-7. **Capability cards** — navigation, journey-grouped (Find / Understand / Engage / Convert)
+7. **Capability cards** — journey-grouped under Acquire / Qualify / Convert
 
 ---
 

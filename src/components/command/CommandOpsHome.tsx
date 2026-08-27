@@ -46,7 +46,7 @@ function activityCategory(item: {
 
 /**
  * Priorities home — Act first.
- * Flow: Priorities (this page) → Alerts → AI Advisor.
+ * Nav flow: Priorities → AI Advisor → Alerts (Act → Understand → Monitor).
  */
 export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
   const [showTechnicalActivity, setShowTechnicalActivity] = useState(false);
@@ -284,7 +284,7 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
         )}
       </section>
 
-      {/* 6. AI Advisor — understand / decide (after Priorities + Alerts in the nav) */}
+      {/* AI Advisor — understand / decide (nav: after Priorities, before Alerts) */}
       <section className="rounded-xl border border-violet-500/25 bg-violet-500/5 px-5 py-5">
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-400">
           AI Advisor

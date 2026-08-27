@@ -123,7 +123,7 @@ Property · Hospitality & Accommodation · Services · Finance · Professional �
 | Partner | Responsibility | Default customer admin access |
 |---------|----------------|-------------------------------|
 | **Reseller** | Introduce / refer / commercial assist | **No** — no CRM, billing, Brain, documents |
-| **Delivery / Implementation Partner** | Configure & onboard | Assigned customers/projects only |
+| **Delivery Partner** | Configure & onboard | Assigned customers/projects only |
 | **Success / Support Partner** | Adoption after go-live | Separately granted |
 
 A party may hold multiple partner capabilities — each independently permissioned.

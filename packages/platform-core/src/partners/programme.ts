@@ -291,7 +291,7 @@ export const RESELLER_MAY = [
 export const RESELLER_NEED_NOT = [
   "Conduct technical demonstrations",
   "Configure, implement, or support DigitalGate",
-  "Onboard customers (unless separately certified as an Implementation Partner)",
+  "Onboard customers (unless separately certified as a Certified Delivery Partner)",
   "Negotiate contracts or collect subscription payments",
   "Make product or performance guarantees",
 ] as const;

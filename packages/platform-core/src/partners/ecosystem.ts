@@ -257,7 +257,31 @@ export const IMPLEMENTATION_CERT_MODULES = [
   "Handover",
 ] as const;
 
-export const IMPLEMENTATION_CERT_STATUS = ["certified", "approved", "active"] as const;
+/**
+ * Delivery Partner terminology (locked):
+ * - Delivery Partner — authorised to perform implementation
+ * - Certified Delivery Partner — completed DigitalGate certification
+ * - Active Delivery Partner — certified and currently authorised/operating
+ *
+ * Lifecycle: Applicant → Approved → Certified → Active
+ */
+export const DELIVERY_PARTNER_LIFECYCLE = [
+  { id: "applicant", label: "Applicant", meaning: "Applied; not yet approved" },
+  { id: "approved", label: "Approved", meaning: "Authorised as a Delivery Partner" },
+  { id: "certified", label: "Certified", meaning: "Completed DigitalGate certification" },
+  {
+    id: "active",
+    label: "Active",
+    meaning: "Certified and currently authorised to deliver",
+  },
+] as const;
+
+export const IMPLEMENTATION_CERT_STATUS = [
+  "applicant",
+  "approved",
+  "certified",
+  "active",
+] as const;
 export type ImplementationCertStatus = (typeof IMPLEMENTATION_CERT_STATUS)[number];
 
 const ONBOARDING_STAGE_IDS = [
@@ -353,7 +377,7 @@ export const PARTNER_ECOSYSTEM_PHASES = [
   {
     phase: 3,
     title: "Certification",
-    body: "Document the onboarding methodology. Certified → Approved → Active.",
+    body: "Document the onboarding methodology. Applicant → Approved → Certified → Active.",
     now: false,
   },
   {

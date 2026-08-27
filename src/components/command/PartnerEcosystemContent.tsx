@@ -13,6 +13,7 @@ import {
   DIGITALGATE_TEAM_STRUCTURE,
   IMPLEMENTATION_CERT_MODULES,
   IMPLEMENTATION_CERTIFICATION_NAME,
+  DELIVERY_PARTNER_LIFECYCLE,
   IMPLEMENTATION_FEE_BANDS,
   IMPLEMENTATION_FEE_DISCLAIMER,
   IMPLEMENTATION_LEAD_FIRST_MANDATE,
@@ -228,7 +229,7 @@ export function ImplementationPartnerProgramme() {
         <p className="mt-2 text-lg font-semibold text-white">{IMPLEMENTATION_PARTNER_PROPOSITION}</p>
         <p className="mt-2 text-sm text-slate-400">
           Recruit {FOUNDING_IMPLEMENTATION_TARGET} excellent people — not 20. Certification is
-          meaningful: Certified → Approved → Active.
+          meaningful: Applicant → Approved → Certified → Active.
         </p>
         <p className="mt-3 rounded-lg border border-amber-700/40 bg-amber-900/15 px-4 py-3 text-sm text-amber-100/90">
           {IMPLEMENTATION_LEAD_FIRST_MANDATE}
@@ -256,6 +257,23 @@ export function ImplementationPartnerProgramme() {
 
       <section>
         <h2 className="text-base font-semibold text-white">{IMPLEMENTATION_CERTIFICATION_NAME}</h2>
+        <ol className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+          {DELIVERY_PARTNER_LIFECYCLE.map((step, i) => (
+            <li key={step.id} className="flex items-center gap-2">
+              {i > 0 ? <span className="text-slate-600" aria-hidden>→</span> : null}
+              <span
+                className="rounded-md border border-slate-700/80 bg-slate-950/50 px-2 py-1 text-slate-300"
+                title={step.meaning}
+              >
+                {step.label}
+              </span>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-3 text-sm text-slate-400">
+          Delivery Partner (authorised) → Certified Delivery Partner (completed cert) → Active
+          Delivery Partner (currently operating).
+        </p>
         <ol className="mt-4 grid gap-1 sm:grid-cols-2">
           {IMPLEMENTATION_CERT_MODULES.map((mod, i) => (
             <li key={mod} className="flex gap-2 text-sm text-slate-300">

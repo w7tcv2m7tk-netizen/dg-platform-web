@@ -58,12 +58,12 @@ Examples: test mode Stripe, infrastructure in setup/sandbox.
 | Page | Question | Role in the loop |
 |------|----------|------------------|
 | **Priorities** (`/command`) | What should I do? | **Act** — default Command Centre landing |
-| **Alerts** | What needs attention? | **Investigate** — exceptions, blockers, platform issues |
-| **AI Advisor** | Help me understand what to do | **Understand / Decide** — intelligence over Priorities + Alerts |
+| **AI Advisor** | Help me understand and decide | **Understand / Decide** — intelligence over Priorities + Alerts |
+| **Alerts** | What has gone wrong / needs intervention? | **Monitor** — exceptions, blockers, platform issues |
 
-Flow: **Priorities → Alerts → AI Advisor** (Act → Investigate → Understand/Decide).
+Flow: **Priorities → AI Advisor → Alerts** (Act → Understand → Monitor).
 
-Do not put AI Advisor before Alerts. Alerts are operational; AI Advisor sits above that data.
+Priorities remains the default landing. Do not bury Alerts ahead of AI Advisor in the nav — the mental sequence is act first, then understand, then monitor exceptions.
 
 Customer alerts stay in Client Intelligence / the organisation workspace.
 

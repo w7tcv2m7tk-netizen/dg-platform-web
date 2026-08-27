@@ -47,15 +47,15 @@ DigitalGate staff only. **Primary cockpit order:**
 | Module | Purpose | Loop |
 |--------|---------|------|
 | **Priorities** (`/command`) | Ranked actions + today’s operating plan — **default landing** | Act |
-| **Alerts** | Exceptions, blockers, failures, customer risks, platform issues | Investigate |
-| **AI Advisor** | Intelligence over Priorities + Alerts — what to do about it | Understand / Decide |
+| **AI Advisor** | Help me understand and decide — intelligence over Priorities + Alerts | Understand |
+| **Alerts** | What has gone wrong / needs intervention — exceptions, blockers, platform issues | Monitor |
 
 Supporting modules:
 
 | Module | Purpose |
 |--------|---------|
 | **Client Intelligence** | Per-tenant scores, growth, conversion, ROI, usage, satisfaction |
-| **Growth Engine™** | **Acquisition OS** — discover → audit → report → pipeline → proposal → client ([spec](./GROWTH-ENGINE.md)) |
+| **Growth Engine™** | **Acquisition OS** — Acquire → Qualify → Convert ([spec](./GROWTH-ENGINE.md)) |
 | **Revenue Intelligence** | Stripe MRR, ARR, churn, trial conversion |
 | **Client Expansion** | Upsell apps/services on **live tenants** (estimated additional MRR) |
 | **Benchmarking** | Anonymous cohort comparison (customer + prospect reports) |

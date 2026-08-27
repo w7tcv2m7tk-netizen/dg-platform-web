@@ -56,7 +56,7 @@ export const DIGITALGATE_TEAM_STRUCTURE = [
     ],
   },
   {
-    role: "Head of Implementation (Implementation Partner Lead)",
+    role: "Head of Implementation (Delivery Partner Lead)",
     responsibilities: [
       "Heads the DigitalGate Implementation function",
       "Owns onboarding methodology",

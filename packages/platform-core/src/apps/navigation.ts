@@ -598,6 +598,13 @@ function getDigitalGateOperatorSection(): NavIaSection {
       },
       operatorApp("dg-sales", "Sales", "prospecting", "/apps/prospecting", [
         { path: "/apps/prospecting", label: "Overview" },
+        { path: "/apps/prospecting/discovery", label: "Discovery" },
+        {
+          path: "/apps/prospecting/pipeline",
+          label: "Pipeline",
+          matchAlso: ["/command/opportunities", "/command/opportunities/expansion"],
+        },
+        { path: "/apps/prospecting/activity", label: "Activity" },
         {
           path: "/command/growth-engine",
           label: "Growth Engine™",
@@ -610,16 +617,9 @@ function getDigitalGateOperatorSection(): NavIaSection {
             "/command/growth-engine/conversions",
           ],
         },
-        { path: "/apps/prospecting/discovery", label: "Discovery" },
-        { path: "/apps/prospecting/scores", label: "Opportunity Scoring" },
-        {
-          path: "/apps/prospecting/pipeline",
-          label: "Pipeline",
-          matchAlso: ["/command/opportunities", "/command/opportunities/expansion"],
-        },
-        { path: "/apps/prospecting/activity", label: "Activity" },
         { path: "/command/founding", label: "Founding 10" },
         { path: "/command/sales-week", label: "Sales Week" },
+        { path: "/apps/prospecting/scores", label: "Opportunities" },
       ]),
       operatorApp("dg-partners", "Partners", "partner-portal", "/command/partners", [
         { path: "/command/partners", label: "Dashboard" },
@@ -1042,12 +1042,12 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
     primaryHref: "/command",
     routes: [
       { path: "/command", label: "Priorities" },
+      { path: "/command/advisor", label: "AI Advisor" },
       {
         path: "/command/platform-health",
         label: "Alerts",
         matchAlso: ["/command/platform-health/diagnostics"],
       },
-      { path: "/command/advisor", label: "AI Advisor" },
     ],
   };
 }

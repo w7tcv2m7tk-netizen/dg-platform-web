@@ -10,7 +10,7 @@ export const commandCentreApp: AppManifest = {
   id: "command-centre",
   name: "Command Centre",
   description:
-    "DigitalGate cockpit — priorities, Opportunities, Prospecting, and recommended actions",
+    "DigitalGate cockpit — Priorities, AI Advisor, Alerts, and recommended actions",
   tier: "internal",
   visibility: "internal",
   version: "0.9.0",
@@ -49,8 +49,8 @@ export const commandCentreApp: AppManifest = {
    */
   navigation: [
     { href: "/command", label: "Priorities", icon: "◈" },
-    { href: "/command/platform-health", label: "Alerts", icon: "◉" },
     { href: "/command/advisor", label: "AI Advisor", icon: "◎" },
+    { href: "/command/platform-health", label: "Alerts", icon: "◉" },
   ],
   permissions: [
     { id: "command.view", label: "View Command Centre" },

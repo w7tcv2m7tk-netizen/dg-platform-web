@@ -11,17 +11,17 @@ export type GrowthCapabilityGroup = {
   cards: GrowthCapabilityCard[];
 };
 
-/** Journey-ordered navigation into growth capabilities — not marketing blurbs. */
+/** Journey-ordered navigation into growth capabilities — commercial machine, not CRM screens. */
 export function GrowthEngineCapabilityGrid({ groups }: { groups: GrowthCapabilityGroup[] }) {
   return (
     <section className="space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
-          Growth capabilities
+          Growth Engine™
         </p>
-        <h2 className="mt-1 text-lg font-semibold text-white">Work the loop</h2>
+        <h2 className="mt-1 text-lg font-semibold text-white">Acquire → Qualify → Convert</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Discovery, audit, scoring, follow-up and conversion — one connected system.
+          One commercial machine. Capabilities below — not a second CRM.
         </p>
       </div>
       {groups.map((group) => (
@@ -48,44 +48,30 @@ export function GrowthEngineCapabilityGrid({ groups }: { groups: GrowthCapabilit
   );
 }
 
+/** Command / DigitalGate GTM — full commercial machine. */
 export const OPERATOR_CAPABILITY_GROUPS: GrowthCapabilityGroup[] = [
   {
-    phase: "Find",
+    phase: "Acquire",
     cards: [
       {
-        title: "Business Discovery",
-        description: "Find and organise potential customers.",
+        title: "Discovery",
+        description: "Find potential businesses.",
         href: "/apps/prospecting/discovery",
       },
     ],
   },
   {
-    phase: "Understand",
+    phase: "Qualify",
     cards: [
       {
         title: "AI Audit Engine™",
-        description: "Analyse their digital presence and business signals.",
+        description: "Understand their digital position.",
         href: "/command/growth-engine/audits",
       },
       {
-        title: "Opportunity Reports",
-        description: "Turn analysis into a clear commercial opportunity.",
+        title: "Opportunity Engine™",
+        description: "Determine whether there is a genuine opportunity.",
         href: "/command/growth-engine/reports",
-      },
-    ],
-  },
-  {
-    phase: "Engage",
-    cards: [
-      {
-        title: "Smart Follow-Up",
-        description: "Know who needs attention and what to do next.",
-        href: "/command/growth-engine/follow-ups",
-      },
-      {
-        title: "Proposal Generator",
-        description: "Turn qualified opportunities into proposals.",
-        href: "/command/growth-engine/proposals",
       },
     ],
   },
@@ -93,52 +79,48 @@ export const OPERATOR_CAPABILITY_GROUPS: GrowthCapabilityGroup[] = [
     phase: "Convert",
     cards: [
       {
-        title: "Prospect Pipeline",
-        description: "Move prospects through qualification and conversion.",
+        title: "Pipeline",
+        description: "Manage the commercial process.",
         href: "/command/growth-engine/pipeline",
       },
       {
+        title: "Smart Follow-Up",
+        description: "Make sure opportunities don't go cold.",
+        href: "/command/growth-engine/follow-ups",
+      },
+      {
+        title: "Proposal Generator",
+        description: "Turn qualified opportunities into offers.",
+        href: "/command/growth-engine/proposals",
+      },
+      {
         title: "Conversion Dashboard",
-        description: "Understand the funnel and what's producing results.",
+        description: "Measure the funnel.",
         href: "/command/growth-engine/conversions",
       },
     ],
   },
 ];
 
+/** Tenant Sales — same machine; CRM is where relationships land after convert. */
 export const TENANT_CAPABILITY_GROUPS: GrowthCapabilityGroup[] = [
   {
-    phase: "Find",
+    phase: "Acquire",
     cards: [
       {
-        title: "Business Discovery",
-        description: "Find and organise potential customers.",
+        title: "Discovery",
+        description: "Find potential businesses.",
         href: "/apps/prospecting/discovery",
       },
     ],
   },
   {
-    phase: "Understand",
+    phase: "Qualify",
     cards: [
       {
         title: "Opportunity Scoring™",
-        description: "Analyse fit, need, reachability and commercial potential.",
+        description: "Determine whether there is a genuine opportunity.",
         href: "/apps/prospecting/scores",
-      },
-      {
-        title: "Activity",
-        description: "Calls, messages, notes and follow-ups across the pipeline.",
-        href: "/apps/prospecting/activity",
-      },
-    ],
-  },
-  {
-    phase: "Engage",
-    cards: [
-      {
-        title: "Smart Follow-Up",
-        description: "Know who needs attention and what to do next.",
-        href: "/apps/prospecting/activity",
       },
     ],
   },
@@ -146,13 +128,18 @@ export const TENANT_CAPABILITY_GROUPS: GrowthCapabilityGroup[] = [
     phase: "Convert",
     cards: [
       {
-        title: "Prospect Pipeline",
-        description: "Move prospects through qualification and conversion.",
+        title: "Pipeline",
+        description: "Manage the commercial process.",
         href: "/apps/prospecting/pipeline",
       },
       {
+        title: "Activity",
+        description: "Calls, notes, tasks and follow-ups — carries into CRM on convert.",
+        href: "/apps/prospecting/activity",
+      },
+      {
         title: "CRM",
-        description: "The underlying customer relationship record.",
+        description: "Genuine business relationships after conversion.",
         href: "/apps/crm",
       },
     ],

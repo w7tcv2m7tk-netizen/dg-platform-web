@@ -12,14 +12,8 @@ import {
 } from "@/components/growth-engine/GrowthEngineCapabilityGrid";
 import { GrowthEngineBetaStatus } from "@/components/growth-engine/GrowthEngineBetaStatus";
 
-const GROWTH_LOOP = [
-  "Discover",
-  "Understand",
-  "Score",
-  "Engage",
-  "Pipeline",
-  "Convert",
-] as const;
+/** Commercial machine phases — not Discovery/Prospecting synonyms. */
+const GROWTH_LOOP = ["Acquire", "Qualify", "Convert"] as const;
 
 export type GrowthEngineSummaryLite = {
   totalProspects: number;
@@ -101,19 +95,22 @@ export function GrowthEngineWorkspace({
           </Link>
         )}
         <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Growth Engine™</h1>
+        <p className="mt-1 text-sm font-medium tracking-wide text-sky-400/90">
+          Acquire → Qualify → Convert
+        </p>
         <p className="mt-3 max-w-2xl text-base text-slate-200">
-          Turn business discovery into qualified opportunities and customers.
+          The commercial machine — not another CRM screen.
         </p>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          DigitalGate finds potential customers, understands their business, identifies
-          opportunities, recommends who to contact and helps move them through your pipeline.
+          Discovery finds businesses. Audits and scoring qualify them. Pipeline, follow-up and
+          proposals convert them. Activity stays on the prospect and carries into CRM on convert.
         </p>
       </header>
 
       <main className="dg-page-main space-y-8">
         <section className="rounded-xl border border-slate-700/80 bg-gradient-to-br from-slate-950/80 to-slate-900/40 px-5 py-5">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">
-            The Growth Loop
+            Commercial machine
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-2 text-sm font-medium text-slate-200">
             {GROWTH_LOOP.map((step, i) => (
@@ -300,13 +297,14 @@ export function GrowthEngineWorkspace({
 
         {variant === "sales" ? (
           <p className="text-xs text-slate-500">
-            Growth Engine™ is the orchestration layer for discovery, scoring, pipeline and
-            activity. CRM remains the underlying customer relationship record.
+            Growth Engine™ orchestrates Acquire → Qualify → Convert. Discovery is the input;
+            Pipeline is progression; Activity is execution history; CRM is the relationship after
+            convert.
           </p>
         ) : (
           <p className="text-xs text-slate-500">
-            DigitalGate GTM acquisition — feeds Opportunity Engine™. Tenant Sales uses the same
-            Growth Engine experience under Sales.
+            DigitalGate GTM acquisition machine. Tenant Sales uses the same Growth Engine™ under
+            Sales — Partners never replace this loop.
           </p>
         )}
       </main>

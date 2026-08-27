@@ -129,9 +129,9 @@ export function PartnerPlaybookContent() {
           {RESELLER_DOES_NOT_ONBOARD}
         </p>
         <p className="mt-2 text-sm text-slate-400">
-          Some partners later become Certified Implementation Partners — a separate role, training
-          and commercial arrangement. Until then, Ben / DigitalGate delivers setup, migration and
-          training.
+          Some partners later become a Certified Delivery Partner — a separate certification,
+          training and commercial arrangement. Until then, Ben / DigitalGate delivers setup,
+          migration and training.
         </p>
       </section>
 

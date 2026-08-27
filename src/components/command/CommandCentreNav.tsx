@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { COMMAND_CENTRE_ROUTES } from "@dg/platform-core";
 
-/** Act → Investigate → Understand/Decide */
+/** Act → Understand → Monitor */
 const NAV = [
   { href: COMMAND_CENTRE_ROUTES.overview, label: "Priorities", id: "overview" },
-  { href: COMMAND_CENTRE_ROUTES.platformHealth, label: "Alerts", id: "health" },
   { href: COMMAND_CENTRE_ROUTES.advisor, label: "AI Advisor", id: "advisor" },
+  { href: COMMAND_CENTRE_ROUTES.platformHealth, label: "Alerts", id: "health" },
 ] as const;
 
 export type CommandCentreNavId =

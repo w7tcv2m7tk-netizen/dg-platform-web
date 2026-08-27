@@ -34,8 +34,8 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
           Build and manage DigitalGate&apos;s reseller, referral and delivery ecosystem.
         </p>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Channel performance for DigitalGate introducers — not DigitalGate&apos;s own Prospecting
-          pipeline.
+          Channel performance for DigitalGate introducers — not DigitalGate&apos;s own Growth
+          Engine / Sales acquisition.
         </p>
       </header>
 

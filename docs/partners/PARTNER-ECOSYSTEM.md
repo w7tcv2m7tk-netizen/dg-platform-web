@@ -11,6 +11,20 @@ Do **not** make Founding Resellers responsible for onboarding unless they separa
 
 ---
 
+## Delivery Partner terminology (locked)
+
+| Term | Meaning |
+|------|---------|
+| **Delivery Partner** | Partner authorised to perform implementation |
+| **Certified Delivery Partner** | Delivery Partner that completed DigitalGate certification |
+| **Active Delivery Partner** | Certified partner currently authorised/operating |
+
+**Lifecycle:** Applicant → Approved → Certified → Active
+
+Do **not** alternate casually between Delivery Partner, Certified Delivery Partner, Implementation Partner, Partner, or Certified Partner unless the distinction above is intentional.
+
+---
+
 ## Ecosystem hierarchy (centrepiece)
 
 | Actor | Role |

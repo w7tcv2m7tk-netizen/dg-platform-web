@@ -21,7 +21,7 @@ export const DIGITALGATE_USER_TYPES = {
   ],
   partners: [
     "Reseller",
-    "Delivery / Implementation Partner",
+    "Delivery Partner",
     "Success / Support Partner",
   ],
   customer: [
@@ -142,7 +142,7 @@ export const STAFF_PARTNERS_NAV = {
     primaryHref: "/command/commissions",
   },
   delivery: {
-    label: "Delivery / Implementation",
+    label: "Delivery",
     routes: [
       { path: "/command/delivery", label: "Dashboard" },
       { path: "/command/delivery/invitations", label: "Invitations" },

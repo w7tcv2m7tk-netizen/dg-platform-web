@@ -7,6 +7,7 @@ Before committing to implementation, these documents define the decisions that a
 **Gen 2 north-star (constraints):** [../architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md)  
 **App hierarchy (canonical):** [APP-HIERARCHY.md](./APP-HIERARCHY.md) — **Core → Infrastructure → Industry → Growth**  
 **Operator experience (locked):** [OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.md) — *Simple for the operator. Powerful for the business. Intelligent underneath.*  
+**Platform IA & terminology (locked):** [PLATFORM-IA.md](./PLATFORM-IA.md) — Command / Sales / Partners / Customer Workspaces; prevent semantic drift  
 **Sidebar / nav (locked):** [SIDEBAR-NAVIGATION.md](./SIDEBAR-NAVIGATION.md) — capability-aware CORE → … → PLATFORM ADMIN  
 **Connected Business (locked):** [CONNECTED-BUSINESS.md](./CONNECTED-BUSINESS.md) — *Connect your business. Give it a brain.* Philosophy & positioning  
 **Connected Business implementation:** [CONNECTED-BUSINESS-IMPLEMENTATION.md](./CONNECTED-BUSINESS-IMPLEMENTATION.md) — P0–P2 ship brief · marketing · knowledge layers  
