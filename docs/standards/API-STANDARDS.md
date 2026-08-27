@@ -16,7 +16,7 @@ See [PLATFORM-PRINCIPLES.md](../PLATFORM-PRINCIPLES.md): **API First**, **API Ve
 |-------------|------|
 | Production | `https://app.digitalgate.com.au/api` |
 | Platform REST (future) | `https://api.digitalgate.com.au/v1` |
-| Gen 1 bridge (transition) | `https://digitalgate.com.au/wp-json/digitalgate/v1` |
+| Gen 1 bridge (legacy — **retired** on brand apex) | ~~`https://digitalgate.com.au/wp-json/digitalgate/v1`~~ — use `/api` above |
 
 ---
 
