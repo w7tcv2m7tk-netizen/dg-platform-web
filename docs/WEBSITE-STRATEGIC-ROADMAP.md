@@ -82,7 +82,7 @@ Reject pages that only exist to rank for a keyword without that chain.
 
 | # | Priority | Intent | Status |
 |---|----------|--------|--------|
-| **1** | **Consolidate** | Remove / redirect / noindex legacy DigitalGate (agency, utilities, conflicting entity) | **Done** — [ENTITY-CONSOLIDATION.md](./ENTITY-CONSOLIDATION.md) |
+| **1** | **Consolidate** | Remove / redirect / noindex legacy DigitalGate (agency, utilities, conflicting entity) | **Done** (live) — SERP cleanup ongoing via GSC/IndexNow · [ENTITY-CONSOLIDATION.md](./ENTITY-CONSOLIDATION.md) |
 | **2** | **Clarify** | Ownable category language + Platform → Core → Industry → Growth unmistakable | Next |
 | **3** | **Prove** | Show real platform UI, Twin, Brain, Roe / CVH — honest vs incumbents | Queued |
 | **4** | **Convert** | Audit → Score → Diagnosis → Platform | Queued |

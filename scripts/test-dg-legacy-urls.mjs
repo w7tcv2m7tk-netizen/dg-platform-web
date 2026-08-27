@@ -52,6 +52,10 @@ assert.equal(redirects["/solutions"], "/pricing");
 assert.equal(redirects["/services"], "/pricing");
 assert.equal(redirects["/growth-systems"], "/pricing");
 assert.equal(redirects["/strategy-session"], "/contact");
+assert.equal(redirects["/calendar-page"], "/contact");
+assert.equal(redirects["/calendar"], "/contact");
+assert.equal(redirects["/disclaimer"], "/legal-notice");
+assert.equal(redirects["/terms"], "/terms-conditions");
 assert.equal(redirects["/platform"], "/");
 
 assert.match(

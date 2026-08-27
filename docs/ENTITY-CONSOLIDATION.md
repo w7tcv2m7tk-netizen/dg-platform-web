@@ -74,10 +74,13 @@ digitalgate.com.au/
 
 | Old | New | Notes |
 |-----|-----|-------|
-| `/solutions` | `/pricing` | Old agency “solutions” hub |
-| `/services`, `/services/*` | `/pricing` | Old agency services tree |
+| `/solutions` | `/pricing` | Old agency “solutions” hub — **live 308**; SERP may still show stale snippets until GSC/Bing refresh |
+| `/services`, `/services/*` | `/pricing` | Old agency services tree — same |
 | `/growth-systems`, `/growth-systems/*` | `/pricing` | Legacy retainer category |
 | `/strategy-session` | `/contact` | Public consultation → contact |
+| `/calendar-page`, `/calendar`, `/book`, `/booking` | `/contact` | Old marketing calendar / booking pages |
+| `/disclaimer`, `/disclaimers` | `/legal-notice` | CapitalGate / utility disclaimer retired |
+| `/terms`, `/terms-of-service`, `/terms-and-conditions` | `/terms-conditions` | Canonical Gen 2 Terms |
 | `/platform` | `/` | Homepage is platform story |
 | `/free-agency-audit`, `/free-digital-audit`, `/business-audit` | audit host | Acquisition |
 | `/beta`, `/founding`, `/founding-application` | `/founding-customers` | Programme |
@@ -85,6 +88,8 @@ digitalgate.com.au/
 | Portal leftovers (`/client-portal`, …) | app login | |
 
 **Critical:** Do **not** put Growth product slugs (`/automation`, `/seo`, …) in `DG_LEGACY_REDIRECTS`. Assertions: `node scripts/test-dg-legacy-urls.mjs`.
+
+**Do not redirect** `/apps/core/calendar` — that is a live Apps page; only exact `/calendar` is legacy.
 
 ### NOINDEX (must exist, not in search)
 
@@ -104,19 +109,22 @@ WP junk, `/*.php`, `/wp-*`, `/system-pages/*`, `/__static`, etc. — see `resolv
 
 ## 4. Operator checklist (entity / SERP cleanup)
 
-1. **GSC** — Domain property for `digitalgate.com.au`; submit sitemap; request indexing for `/`, `/apps`, `/automation`, `/pricing`; Removals / inspect for stale `/solutions` snippets if cache lingers.
+**Live Gen 2 vs Google cache:** `/solutions` and `/services` already **308 → `/pricing`**. Canonical `/terms-conditions` and `/legal-notice` already serve Platform copy (no CapitalGate / utility brokering). Stale Google snippets for those URLs are an **index lag** problem — force refresh below.
+
+1. **GSC** — Domain property for `digitalgate.com.au`; submit sitemap; **URL Inspection → Request indexing** for `/`, `/pricing`, `/terms-conditions`, `/legal-notice`, `/automation`, `/apps`. For obsolete URLs still showing old titles/snippets (`/solutions`, `/services`, `/disclaimer`, `/calendar-page`): Removals → Temporary removals *and* Inspect → confirm 308 → Request indexing of the **redirect target**.
 2. **Bing** — Webmaster Tools + sitemap; IndexNow after redirect/content ships.
 3. **IndexNow** — after deploy:
 
 ```bash
 curl -X POST https://app.digitalgate.com.au/api/indexnow \
   -H "Content-Type: application/json" \
-  -d '{"host":"digitalgate.com.au","urlList":["https://digitalgate.com.au/","https://digitalgate.com.au/automation/","https://digitalgate.com.au/solutions/","https://digitalgate.com.au/legal-notice/","https://digitalgate.com.au/pricing/"]}'
+  -d '{"host":"digitalgate.com.au","urlList":["https://digitalgate.com.au/","https://digitalgate.com.au/automation/","https://digitalgate.com.au/solutions/","https://digitalgate.com.au/services/","https://digitalgate.com.au/disclaimer/","https://digitalgate.com.au/calendar-page/","https://digitalgate.com.au/legal-notice/","https://digitalgate.com.au/terms-conditions/","https://digitalgate.com.au/pricing/","https://digitalgate.com.au/contact/"]}'
 ```
 
-4. **Verify live** — `/automation` → **200** Growth landing; `/solutions` → **308** `/pricing`; `/growth-systems` → **308** `/pricing`.
+4. **Verify live** — `/automation` → **200**; `/solutions` `/services` → **308** `/pricing`; `/disclaimer` → **308** `/legal-notice`; `/calendar-page` → **308** `/contact`; `/terms` → **308** `/terms-conditions`.
 5. Re-seed marketing after HTML SoT edits:  
    `node --env-file=.env.local scripts/seed-digitalgate-marketing-pages.mjs --publish`
+6. Periodically run `site:digitalgate.com.au` in Google/Bing and classify any unexpected URL (redirect / 410 / rewrite).
 
 ---
 
