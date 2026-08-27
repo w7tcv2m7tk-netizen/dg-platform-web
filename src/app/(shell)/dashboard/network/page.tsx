@@ -8,8 +8,63 @@ import { currentUser } from "@clerk/nextjs/server";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
+import { requireStaffNetwork } from "@/lib/network-staff-gate";
 
 export default async function NetworkHomePage() {
+  const { staff } = await requireStaffNetwork();
+
+  if (staff) {
+    return (
+      <>
+        <header className="dg-page-header">
+          <h1 className="text-2xl font-bold text-white">Network</h1>
+          <p className="mt-2 max-w-2xl text-base text-slate-200">
+            Commercial network transactions — referrals, commissions and payouts.
+          </p>
+          <p className="mt-2 max-w-2xl text-sm text-slate-400">
+            Partners are people and organisations (DigitalGate → Partners). Network is the
+            infrastructure between them. Do not manage partner relationships here.
+          </p>
+        </header>
+        <main className="dg-page-main space-y-4">
+          {(
+            [
+              {
+                href: "/command/referrals",
+                title: "Referrals",
+                body: "What referral activity is flowing through the network?",
+              },
+              {
+                href: "/command/commissions",
+                title: "Commissions",
+                body: "What financial obligations has the network generated?",
+              },
+              {
+                href: "/command/partners/payouts",
+                title: "Payouts",
+                body: "Payment runs and history for network obligations.",
+              },
+              {
+                href: "/command/partners",
+                title: "Partners",
+                body: "Relationship management — roster, status, certification.",
+              },
+            ] as const
+          ).map((card) => (
+            <Link
+              key={card.href}
+              href={card.href}
+              className="block rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4 transition-colors hover:border-sky-500/40"
+            >
+              <h2 className="font-semibold text-white">{card.title}</h2>
+              <p className="mt-1 text-sm text-slate-400">{card.body}</p>
+            </Link>
+          ))}
+        </main>
+      </>
+    );
+  }
+
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const name =
