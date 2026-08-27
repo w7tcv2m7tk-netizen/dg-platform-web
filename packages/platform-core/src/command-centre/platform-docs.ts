@@ -137,6 +137,54 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "foundations/CONNECTED-BUSINESS-IMPLEMENTATION.md",
   },
   {
+    slug: "knowledge-layers",
+    title: "Knowledge Layers",
+    summary:
+      "Platform knowledge vs customer business knowledge — how Brain, Advisor and Platform Docs stay separated.",
+    group: "architecture",
+    relativePath: "foundations/KNOWLEDGE-LAYERS.md",
+  },
+  {
+    slug: "operator-os",
+    title: "Operator OS",
+    summary:
+      "Command Centre as DigitalGate’s internal operating system — how staff run the platform.",
+    group: "architecture",
+    relativePath: "foundations/OPERATOR-OS.md",
+  },
+  {
+    slug: "platform-alerts",
+    title: "Platform Alerts",
+    summary:
+      "Operator alert model — what surfaces in Command Centre when the platform needs attention.",
+    group: "architecture",
+    relativePath: "foundations/PLATFORM-ALERTS.md",
+  },
+  {
+    slug: "documents-and-signing",
+    title: "Documents & Signing",
+    summary:
+      "Core Documents + e-sign — object model, flows, and what is in vs out of Founding scope.",
+    group: "architecture",
+    relativePath: "foundations/DOCUMENTS-AND-SIGNING.md",
+  },
+  {
+    slug: "api-standards",
+    title: "API Standards",
+    summary:
+      "Platform API conventions — versioning, auth, multi-tenant defaults. Gen 1 WP bridge retired on brand apex.",
+    group: "architecture",
+    relativePath: "standards/API-STANDARDS.md",
+  },
+  {
+    slug: "wp-detach-backlog",
+    title: "WordPress Detach Backlog",
+    summary:
+      "Sequenced Gen 2 ↔ WordPress detach tickets (P0–P5) — what still may use WP as a connector vs SoT.",
+    group: "architecture",
+    relativePath: "WP-DETACH-BACKLOG.md",
+  },
+  {
     slug: "business-body",
     title: "Business Body™",
     summary:
@@ -278,6 +326,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "commercial/SALES-PROCESS.md",
   },
   {
+    slug: "subscription-lifecycle",
+    title: "Subscription Lifecycle",
+    summary:
+      "Platform SaaS seats on Stripe — checkout, renewals, cancellations, entitlement resolution.",
+    group: "commercial",
+    relativePath: "commerce/SUBSCRIPTION-LIFECYCLE.md",
+  },
+  {
     slug: "commercially-ready-v1",
     title: "Customer Acceptance Criteria",
     summary:
@@ -362,6 +418,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "partners/PARTNER-RESOURCES.md",
   },
   {
+    slug: "invite-briefing",
+    title: "Invite Briefing",
+    summary:
+      "What to say when inviting Founding Resellers and customers — approved framing for first contact.",
+    group: "partners",
+    relativePath: "partners/INVITE-BRIEFING.md",
+  },
+  {
     slug: "business-setup",
     title: "Business Setup",
     summary: "Identify and configure a business on the platform (Core Business Services, not a Growth App).",
@@ -411,6 +475,30 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "operations/INTERNAL-SOPS.md",
   },
   {
+    slug: "founding-10-release-gate",
+    title: "Founding 10 Release Gate",
+    summary:
+      "Go / no-go checklist before treating Founding 10 seats as live — product, commercial, and ops readiness.",
+    group: "operations",
+    relativePath: "operations/FOUNDING-10-RELEASE-GATE.md",
+  },
+  {
+    slug: "founding-10-verification",
+    title: "Founding 10 Verification",
+    summary:
+      "Verification matrix for Founding 10 — what must be proven in product before a customer is counted live.",
+    group: "operations",
+    relativePath: "operations/FOUNDING-10-VERIFICATION.md",
+  },
+  {
+    slug: "search-indexing",
+    title: "Search Indexing & AI Discoverability",
+    summary:
+      "Public digitalgate.com.au crawlability — robots, sitemap, IndexNow, structured data, AI crawler policy, GSC/Bing setup.",
+    group: "operations",
+    relativePath: "SEARCH-INDEXING.md",
+  },
+  {
     slug: "connector-priority",
     title: "Connector Priority",
     summary: "Which connectors matter first and why.",
@@ -425,6 +513,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "ai/PLATFORM-INTELLIGENCE.md",
   },
   {
+    slug: "intelligence-architecture",
+    title: "Intelligence Architecture",
+    summary:
+      "Canonical Intelligence surfaces — Twin, Brain, Advisor, Health, Benchmarks — one question per surface.",
+    group: "ai",
+    relativePath: "foundations/INTELLIGENCE-ARCHITECTURE.md",
+  },
+  {
     slug: "voice-agent-architecture",
     title: "Voice Agent Architecture",
     summary:
@@ -433,12 +529,28 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "ai/VOICE-AGENT-ARCHITECTURE.md",
   },
   {
+    slug: "voice-agent-runbook",
+    title: "Voice Agent Runbook",
+    summary:
+      "Operate and troubleshoot the Inbound Receptionist — env, health checks, common failures.",
+    group: "ai",
+    relativePath: "ai/VOICE-AGENT-RUNBOOK.md",
+  },
+  {
     slug: "opportunity-engine",
     title: "Opportunity Engine",
     summary:
       "Core detection + scoring + next-best-action — including Sales Intelligence from voice conversations.",
     group: "architecture",
     relativePath: "foundations/OPPORTUNITY-ENGINE.md",
+  },
+  {
+    slug: "prospecting-engine",
+    title: "Prospecting Engine",
+    summary:
+      "Property / B2B prospecting — opportunity scoring, providers, and how it feeds Opportunity Engine.",
+    group: "architecture",
+    relativePath: "foundations/PROSPECTING-ENGINE.md",
   },
   {
     slug: "industry-intelligence",
@@ -484,6 +596,38 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     summary: "Wantd as a Business/Organisation on DigitalGate — not a dedicated App.",
     group: "apps",
     relativePath: "WANTD.md",
+  },
+  {
+    slug: "website-builder",
+    title: "Website Builder",
+    summary:
+      "AI Website Studio — Gen 2 structured site model, publish, Health Centre, chrome.",
+    group: "apps",
+    relativePath: "foundations/WEBSITE-BUILDER.md",
+  },
+  {
+    slug: "websites-architecture",
+    title: "Websites Architecture",
+    summary:
+      "Studio, public host rendering, funnels, SEO surfaces — how marketing sites run on Gen 2.",
+    group: "apps",
+    relativePath: "websites/WEBSITES-ARCHITECTURE.md",
+  },
+  {
+    slug: "seo-and-ai-visibility",
+    title: "SEO Engine & AI Visibility",
+    summary:
+      "Shared presence-audit SoT for Growth Apps SEO + AI Visibility — honest scores, no fake citations.",
+    group: "apps",
+    relativePath: "foundations/SEO-AND-AI-VISIBILITY.md",
+  },
+  {
+    slug: "acc-channel-connectivity",
+    title: "Accommodation Channel Connectivity",
+    summary:
+      "CVH / Acc channel model — platform iCal, OTA sync posture, Gen 2 StayBooking as SoT.",
+    group: "apps",
+    relativePath: "foundations/ACC-CHANNEL-CONNECTIVITY.md",
   },
   {
     slug: "adr-0010-opportunity-engine",

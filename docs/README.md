@@ -27,6 +27,7 @@ These documents capture **why** the platform is built the way it is. They are as
 | [foundations/EMAIL-INFRASTRUCTURE.md](./foundations/EMAIL-INFRASTRUCTURE.md) | Core — Email Service (Resend + Dreamscape mailbox; deliverability) |
 | [ROADMAP.md](./ROADMAP.md) | Execution phases and priorities |
 | [WP-DETACH-BACKLOG.md](./WP-DETACH-BACKLOG.md) | Sequenced Gen 2 ↔ WordPress detach tickets (P0–P5) |
+| **[SEARCH-INDEXING.md](./SEARCH-INDEXING.md)** | **Public site crawlability** — robots, sitemap, IndexNow, structured data, AI crawler policy, GSC/Bing |
 | [COMMAND-CENTRE.md](./COMMAND-CENTRE.md) | Internal intelligence App — how DG runs DG |
 | [RE-BETA-LAUNCH.md](./RE-BETA-LAUNCH.md) | Real Estate agency closed beta — in/out, provision, smoke test |
 | [ACC-BETA-LAUNCH.md](./ACC-BETA-LAUNCH.md) | Accommodation property closed beta — CVH path, in/out, provision |
