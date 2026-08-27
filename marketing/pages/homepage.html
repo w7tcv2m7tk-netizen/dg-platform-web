@@ -385,7 +385,7 @@
     }
   }
 
-  /* SYSTEM C — Product journey (horizontal scroll, no dead scroll space) */
+  /* SYSTEM C — Product journey (responsive grid, no side scroll) */
   #platform-overview.dg-journey-section {
     padding: 0 0 2.5rem;
     border-top: 1px solid #1E293B;
@@ -408,48 +408,34 @@
     padding: 0;
   }
   .dg-journey-progress {
-    max-width: 1200px; margin: 0 auto 1rem; padding: 0 1.5rem;
-    height: 2px; border-radius: 999px; background: rgba(51,65,85,0.7); overflow: hidden;
-  }
-  .dg-journey-progress span {
-    display: block; height: 100%; width: 100%; transform-origin: left center; transform: scaleX(0);
-    background: linear-gradient(90deg, #3B82F6, #2DD4BF);
-    transition: transform 0.15s ease-out;
+    display: none;
   }
   .dg-journey-viewport {
     max-width: 1200px; margin: 0 auto;
     padding: 0 1.25rem 0.35rem;
-    overflow-x: auto;
-    overflow-y: visible;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: 1.25rem;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(59,130,246,0.45) rgba(51,65,85,0.35);
-  }
-  .dg-journey-viewport::-webkit-scrollbar { height: 5px; }
-  .dg-journey-viewport::-webkit-scrollbar-thumb {
-    background: rgba(59,130,246,0.45); border-radius: 999px;
+    overflow: visible;
   }
   .dg-journey-rail {
-    display: flex; align-items: stretch; gap: 1.25rem;
-    width: max-content;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1rem;
+    width: 100%;
     padding: 0.15rem 0 0.85rem;
     transform: none !important;
   }
   .dg-journey-hint {
-    max-width: 1200px; margin: 0.35rem auto 0; padding: 0 1.5rem;
-    font-size: 0.72rem; color: #64748B; text-align: center; letter-spacing: 0.02em;
+    display: none;
   }
   .dg-journey-panel {
-    width: min(78vw, 320px);
-    flex: 0 0 auto;
-    scroll-snap-align: start;
+    width: auto;
+    min-width: 0;
+    flex: none;
+    scroll-snap-align: none;
     border-radius: 1.1rem;
     border: 1px solid rgba(71,85,105,0.55);
     background: linear-gradient(160deg, #111827 0%, #0B1220 100%);
     box-shadow: 0 16px 40px rgba(2,6,23,0.35);
-    padding: 1.2rem 1.2rem 1.3rem;
+    padding: 1.2rem 1.15rem 1.3rem;
     opacity: 1;
     transform: none;
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
@@ -469,11 +455,11 @@
     background: linear-gradient(135deg, #3B82F6, #0EA5E9);
   }
   .dg-journey-panel h3 {
-    font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em;
+    font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em;
     margin: 0 0 0.4rem; color: #F8FAFC !important;
   }
   .dg-journey-panel > p {
-    margin: 0 0 1rem; font-size: 0.86rem; line-height: 1.5; color: #94A3B8;
+    margin: 0 0 1rem; font-size: 0.84rem; line-height: 1.5; color: #94A3B8;
   }
   .dg-ui {
     border-radius: 0.85rem;
@@ -525,16 +511,18 @@
   .dg-journey-end p {
     font-size: 1.05rem; font-weight: 700; color: #CBD5E1; line-height: 1.5;
   }
-  @media (max-width: 767px) {
-    .dg-journey-hint { display: none; }
-    .dg-journey-viewport {
-      overflow-x: visible; scroll-snap-type: none; padding: 0 1.25rem;
-    }
+  @media (max-width: 1100px) {
     .dg-journey-rail {
-      width: 100%; flex-direction: column; gap: 0.9rem; padding-bottom: 0;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-    .dg-journey-panel { width: 100%; scroll-snap-align: none; }
-    .dg-journey-progress { display: none; }
+  }
+  @media (max-width: 767px) {
+    .dg-journey-rail {
+      grid-template-columns: 1fr;
+      gap: 0.9rem;
+      padding-bottom: 0;
+    }
+    .dg-journey-panel { width: 100%; }
   }
 
   /* Industry workflow cards */
@@ -1108,7 +1096,6 @@
   <div class="dg-journey" aria-label="Product journey">
     <div class="dg-journey-track">
       <div class="dg-journey-sticky">
-        <div class="dg-journey-progress" aria-hidden="true"><span></span></div>
         <div class="dg-journey-viewport">
           <div class="dg-journey-rail">
             <article class="dg-journey-panel is-active">
@@ -1121,7 +1108,7 @@
                 <div class="dg-ui-row"><span>Need follow-up</span><strong>2</strong></div>
               </div>
             </article>
-            <article class="dg-journey-panel">
+            <article class="dg-journey-panel is-active">
               <div class="dg-journey-step"><b>02</b> Understand</div>
               <h3>Context forms</h3>
               <p>Business Brain™ and Digital Twin™ interpret what’s happening across the business.</p>
@@ -1132,7 +1119,7 @@
                 <div class="dg-ui-row"><span>Open loops</span><strong>3</strong></div>
               </div>
             </article>
-            <article class="dg-journey-panel">
+            <article class="dg-journey-panel is-active">
               <div class="dg-journey-step"><b>03</b> Advise</div>
               <h3>What matters next</h3>
               <p>AI Advisor prioritises work from live context — not generic tips.</p>
@@ -1142,7 +1129,7 @@
                 <div class="dg-ui-row"><span>Why</span><strong>No contact in 5 days</strong></div>
               </div>
             </article>
-            <article class="dg-journey-panel">
+            <article class="dg-journey-panel is-active">
               <div class="dg-journey-step"><b>04</b> Act</div>
               <h3>Human-approved action</h3>
               <p>Create a task, send a draft, update an opportunity or launch automation — with oversight.</p>
@@ -1152,7 +1139,7 @@
                 <span class="dg-ui-cta">Approve &amp; send <em>→</em></span>
               </div>
             </article>
-            <article class="dg-journey-panel">
+            <article class="dg-journey-panel is-active">
               <div class="dg-journey-step"><b>05</b> Learn</div>
               <h3>Outcome returns</h3>
               <p>Results flow back into Twin, Brain and signals — so the next decision is sharper.</p>

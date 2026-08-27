@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 
 /**
- * DigitalGate marketing motion — card reveals + horizontal journey progress.
- * CSS handles layout/fallback; this island enhances reveals and journey highlighting.
+ * DigitalGate marketing motion — card reveals + journey panel highlight.
+ * CSS handles layout/fallback; this island enhances reveals and in-view highlighting.
  */
 export function DgMarketingMotion() {
   useEffect(() => {
@@ -35,44 +35,30 @@ export function DgMarketingMotion() {
     const journeys = Array.from(document.querySelectorAll<HTMLElement>(".dg-journey"));
 
     for (const journey of journeys) {
-      const viewport = journey.querySelector<HTMLElement>(".dg-journey-viewport");
       const panels = Array.from(journey.querySelectorAll<HTMLElement>(".dg-journey-panel"));
-      const progress = journey.querySelector<HTMLElement>(".dg-journey-progress span");
-      if (!viewport || panels.length === 0) continue;
+      if (panels.length === 0) continue;
 
-      if (reduce || window.matchMedia("(max-width: 767px)").matches) {
+      // Grid layout — highlight all panels, or the one in view.
+      if (reduce) {
         panels.forEach((p) => p.classList.add("is-active"));
         continue;
       }
 
-      const syncJourney = () => {
-        const maxScroll = Math.max(1, viewport.scrollWidth - viewport.clientWidth);
-        const raw = viewport.scrollLeft / maxScroll;
-        if (progress) progress.style.transform = `scaleX(${raw})`;
+      panels.forEach((p) => p.classList.add("is-active"));
 
-        const center = viewport.scrollLeft + viewport.clientWidth * 0.42;
-        let bestIdx = 0;
-        let bestDist = Infinity;
-        panels.forEach((panel, i) => {
-          const mid = panel.offsetLeft + panel.offsetWidth / 2;
-          const dist = Math.abs(mid - center);
-          if (dist < bestDist) {
-            bestDist = dist;
-            bestIdx = i;
+      const panelObserver = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            const panel = entry.target as HTMLElement;
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.45) {
+              panel.classList.add("is-active");
+            }
           }
-        });
-        panels.forEach((panel, i) => {
-          panel.classList.toggle("is-active", i === bestIdx);
-        });
-      };
-
-      syncJourney();
-      viewport.addEventListener("scroll", syncJourney, { passive: true });
-      window.addEventListener("resize", syncJourney, { passive: true });
-      cleanups.push(() => {
-        viewport.removeEventListener("scroll", syncJourney);
-        window.removeEventListener("resize", syncJourney);
-      });
+        },
+        { root: null, threshold: [0.45, 0.7] },
+      );
+      for (const panel of panels) panelObserver.observe(panel);
+      cleanups.push(() => panelObserver.disconnect());
     }
 
     return () => {
