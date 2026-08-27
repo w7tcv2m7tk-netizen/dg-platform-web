@@ -11,12 +11,10 @@ function severityClass(severity: string) {
   return "border-slate-600 text-slate-300";
 }
 
-function formatAudCents(cents: number) {
-  return new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
+function severityEmoji(severity: string) {
+  if (severity === "urgent") return "🔴";
+  if (severity === "today") return "🟠";
+  return "🟡";
 }
 
 function relativeTime(iso: string) {
@@ -30,35 +28,55 @@ function relativeTime(iso: string) {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
+function activityCategory(item: {
+  sourceApp: string | null;
+  humanTitle: string;
+}): string {
+  const app = (item.sourceApp ?? "").toLowerCase();
+  const title = item.humanTitle.toLowerCase();
+  if (app.includes("crm") || title.includes("contact") || title.includes("opportunity")) {
+    return "CRM";
+  }
+  if (app.includes("commerce") || title.includes("subscription")) return "Commerce";
+  if (app.includes("seo") || title.includes("seo") || title.includes("audit")) return "SEO";
+  if (app.includes("automation") || title.includes("automation")) return "Automation";
+  if (app.includes("founding")) return "Founding";
+  return "Platform";
+}
+
 export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
   const [showTechnicalActivity, setShowTechnicalActivity] = useState(false);
   const {
     pulse,
-    today,
     organisationHealth,
     actions,
     billing,
-    referEarn,
     connectors,
     clients,
-    platformOperations,
     recentActivity,
     delivery,
     partnerPulse,
     growthEngine,
   } = data;
 
-  const intelligencePreview = clients.slice(0, 4);
-  const deliveryAlerts = data.deliveryAlerts ?? [];
+  const needsAttentionClients = clients.filter((c) => c.needsAttention).slice(0, 5);
+  const foundingPhaseQuiet =
+    growthEngine.prospects === 0 &&
+    growthEngine.engagementsThisWeek === 0 &&
+    growthEngine.activePipeline === 0;
+  const revenueNote =
+    billing.estimatedMrrCents === 0 && pulse.organisations > 0
+      ? "Founding customers may not yet be on paid platform subscriptions."
+      : null;
 
   return (
-    <div className="space-y-10">
-      {/* Platform Pulse */}
+    <div className="space-y-8">
+      {/* Platform pulse */}
       <section className="rounded-xl border border-sky-500/20 bg-slate-950/50 px-5 py-5">
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">
           Platform pulse
         </p>
-        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <PulseChip label="Customers" value={pulse.organisations} href="/command/clients" />
           <PulseChip label="New leads" value={pulse.leadsThisWeek} href="/command/opportunities" />
           <PulseChip
@@ -67,278 +85,189 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
             href="/command/opportunities"
           />
           <PulseChip
-            label="Growth Engine prospects"
+            label="Growth prospects"
             value={pulse.growthProspects}
             href="/command/growth-engine"
           />
-          <PulseChip
-            label="MRR"
-            value={billing.estimatedMrrLabel}
-            href="/command/revenue"
-            isText
-          />
+          <PulseChip label="MRR" value={billing.estimatedMrrLabel} href="/command/revenue" isText />
         </div>
         <p className="mt-4 text-xs text-slate-500">
-          {organisationHealth.organisationsWithSufficientData}/{organisationHealth.totalOrganisations}{" "}
-          organisations with sufficient data · Average health:{" "}
-          {organisationHealth.averageHealthLabel}
+          {organisationHealth.organisationsWithSufficientData}/
+          {organisationHealth.totalOrganisations} organisations with sufficient data · Average
+          organisation health {organisationHealth.averageHealthLabel}
         </p>
-      </section>
-
-      {/* Today */}
-      <section>
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-amber-400">Today</p>
-        {today.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">No platform priorities flagged for today.</p>
-        ) : (
-          <div className="mt-4 flex flex-wrap gap-3">
-            {today.map((item) => (
-              <Link
-                key={item.id}
-                href={item.href}
-                className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-2 text-sm font-medium text-amber-50 transition hover:bg-amber-500/10"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        )}
       </section>
 
       {/* What needs attention */}
       <section>
-        <div className="flex items-end justify-between gap-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-white">What needs your attention now</h2>
+            <h2 className="text-lg font-semibold text-white">What needs your attention</h2>
             <p className="mt-1 text-sm text-slate-400">
-              AI-ranked actions for the DigitalGate team — platform operations only.
+              Ranked platform actions — not customer industry operations.
             </p>
           </div>
+          {actions.length > 0 ? (
+            <Link href="#command-attention" className="text-sm text-sky-400 hover:underline">
+              Open priorities →
+            </Link>
+          ) : null}
         </div>
-        {actions.length === 0 ? (
-          <div className="mt-4 rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-4 py-5 text-sm text-emerald-100">
-            No urgent actions — platform looks quiet. Check Growth Engine for pipeline work.
+        <div id="command-attention" className="mt-4">
+          {actions.length === 0 ? (
+            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-4 py-4 text-sm text-emerald-100">
+              No urgent platform actions — cockpit is quiet.
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {actions.slice(0, 6).map((action) => (
+                <li key={action.id}>
+                  <Link
+                    href={action.href}
+                    className={`flex items-start justify-between gap-4 rounded-xl border bg-slate-950/50 px-4 py-3 transition-colors hover:bg-slate-900 ${severityClass(action.severity)}`}
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-white">
+                        {severityEmoji(action.severity)} {action.title}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-400">{action.detail}</p>
+                    </div>
+                    <span className="shrink-0 text-sm text-sky-400">Open →</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+
+      {/* Customer intelligence */}
+      <section className="rounded-xl border border-violet-500/20 bg-slate-950/40 px-5 py-5">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-400">
+              Customer intelligence
+            </p>
+            <h2 className="mt-2 text-lg font-semibold text-white">
+              {organisationHealth.needsAttentionCount} organisation
+              {organisationHealth.needsAttentionCount === 1 ? "" : "s"} need attention
+            </h2>
           </div>
+          <Link href="/command/clients" className="text-sm text-sky-400 hover:underline">
+            Open Client Intelligence →
+          </Link>
+        </div>
+        {needsAttentionClients.length === 0 ? (
+          <p className="mt-4 text-sm text-slate-500">All tracked organisations look stable.</p>
         ) : (
-          <ul className="mt-4 space-y-2">
-            {actions.map((action) => (
-              <li key={action.id}>
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {needsAttentionClients.map((client) => (
+              <li key={client.organisationId}>
                 <Link
-                  href={action.href}
-                  className={`flex items-start justify-between gap-4 rounded-xl border bg-slate-950/50 px-4 py-3 transition-colors hover:bg-slate-900 ${severityClass(action.severity)}`}
+                  href={`/command/clients/${client.organisationId}`}
+                  className="inline-flex rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1.5 text-sm text-slate-200 hover:border-violet-500/40 hover:text-white"
                 >
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">
-                      {action.severity}
-                    </p>
-                    <p className="mt-0.5 font-medium text-white">{action.title}</p>
-                    <p className="mt-1 text-sm text-slate-400">{action.detail}</p>
-                  </div>
-                  <span className="shrink-0 text-sm text-sky-400">Open →</span>
+                  {client.organisationName}
                 </Link>
               </li>
             ))}
           </ul>
         )}
-      </section>
-
-      <div className="grid gap-8 lg:grid-cols-2">
-        {/* Client Intelligence */}
-        <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-400">
-                Client Intelligence
-              </p>
-              <h2 className="mt-2 text-lg font-semibold text-white">
-                {organisationHealth.needsAttentionCount} organisation
-                {organisationHealth.needsAttentionCount === 1 ? "" : "s"} need attention
-              </h2>
-            </div>
-            <Link href="/command/clients" className="text-sm text-sky-400 hover:underline">
-              Customer Portfolio →
-            </Link>
-          </div>
-          <ul className="mt-4 space-y-3">
-            {intelligencePreview.map((client) => {
+        {needsAttentionClients.length > 0 ? (
+          <ul className="mt-4 space-y-2 border-t border-slate-800 pt-4">
+            {needsAttentionClients.slice(0, 3).map((client) => {
               const presentation = clientIntelligencePresentation(client);
               return (
-                <li
-                  key={client.organisationId}
-                  className="rounded-lg border border-slate-700/60 bg-slate-950/50 px-4 py-3"
-                >
-                  <div className="flex items-start gap-2">
-                    <span aria-hidden>{presentation.statusEmoji}</span>
-                    <div>
-                      <p className="font-medium text-white">{client.organisationName}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">{presentation.category}</p>
-                      <p className="mt-1 text-sm text-slate-300">{presentation.summary}</p>
-                    </div>
-                  </div>
+                <li key={`detail-${client.organisationId}`} className="text-sm text-slate-400">
+                  <span className="font-medium text-slate-200">{client.organisationName}</span>
+                  {" — "}
+                  {presentation.summary}
                 </li>
               );
             })}
           </ul>
-        </section>
+        ) : null}
+      </section>
 
-        {/* Delivery */}
-        <section className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-5 py-5">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-400">
-                Delivery
-              </p>
-              <h2 className="mt-2 text-lg font-semibold text-white">
-                {delivery.activeImplementations} active implementation
-                {delivery.activeImplementations === 1 ? "" : "s"}
-              </h2>
-            </div>
-            <Link href="/command/delivery" className="text-sm text-emerald-300 hover:underline">
-              Open Delivery →
-            </Link>
-          </div>
-          <ul className="mt-4 space-y-1 text-sm text-slate-300">
-            {delivery.awaitingCustomerInfo > 0 ? (
-              <li>{delivery.awaitingCustomerInfo} awaiting customer information</li>
-            ) : null}
-            {delivery.blocked > 0 ? <li>{delivery.blocked} blocked</li> : null}
-            {delivery.inTraining > 0 ? <li>{delivery.inTraining} in training</li> : null}
-            {delivery.inQa > 0 ? <li>{delivery.inQa} in QA</li> : null}
-            {delivery.readyForGoLive > 0 ? (
-              <li>{delivery.readyForGoLive} ready for go-live</li>
-            ) : null}
-            {delivery.activeImplementations === 0 ? (
-              <li className="text-slate-500">No active implementations yet.</li>
-            ) : null}
-          </ul>
-          {deliveryAlerts.length > 0 ? (
-            <ul className="mt-4 space-y-2 border-t border-emerald-500/15 pt-4">
-              {deliveryAlerts.slice(0, 3).map((alert) => (
-                <li key={alert.id}>
-                  <Link href={alert.href} className="text-sm text-emerald-100 hover:underline">
-                    {alert.message}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </section>
-      </div>
-
-      <div className="grid gap-8 lg:grid-cols-2">
-        {/* Partner Pulse */}
-        <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-fuchsia-400">
-                Partner pulse
-              </p>
-              <h2 className="mt-2 text-lg font-semibold text-white">
-                {partnerPulse.foundingResellers} founding reseller
-                {partnerPulse.foundingResellers === 1 ? "" : "s"}
-              </h2>
-            </div>
-            <Link href="/command/partners" className="text-sm text-sky-400 hover:underline">
-              Open Resellers →
-            </Link>
-          </div>
-          <ul className="mt-4 space-y-1 text-sm text-slate-300">
-            <li>{partnerPulse.activeProspects} active prospects</li>
-            <li>{partnerPulse.referredCustomers} referred customers</li>
-            {partnerPulse.onboardingCount > 0 ? (
-              <li>{partnerPulse.onboardingCount} onboarding</li>
-            ) : null}
-            {partnerPulse.pendingCommissionsCents > 0 ? (
-              <li>{formatAudCents(partnerPulse.pendingCommissionsCents)} expected commissions</li>
-            ) : null}
-          </ul>
-        </section>
-
-        {/* Platform Alerts */}
-        <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
-            Platform alerts
-          </p>
-          <div className="mt-4 space-y-3 text-sm text-slate-300">
-            <p>
-              {connectors.wordpressConfiguredCount} connector
-              {connectors.wordpressConfiguredCount === 1 ? "" : "s"} configured · Stripe{" "}
-              {connectors.stripeMode}
-              {connectors.stripeOk ? " · ok" : " · needs setup"}
-            </p>
-            <p>
-              {billing.activeSubscriptions} subscription
-              {billing.activeSubscriptions === 1 ? "" : "s"} · {billing.estimatedMrrLabel} MRR
-            </p>
-            <p>
-              {referEarn.totalReferrals} referral{referEarn.totalReferrals === 1 ? "" : "s"} ·{" "}
-              {referEarn.paid} paid
-            </p>
-          </div>
-          <Link
+      {/* Operating pulse — compact cockpit strip */}
+      <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+          Operating pulse
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <OperatingCell
+            label="Delivery"
+            value={`${delivery.activeImplementations} active`}
+            href="/command/delivery"
+            detail={
+              delivery.activeImplementations === 0
+                ? "No implementations in flight"
+                : undefined
+            }
+          />
+          <OperatingCell
+            label="Partners"
+            value={`${partnerPulse.foundingResellers} active · ${partnerPulse.referredCustomers} referred`}
+            href="/command/partners"
+          />
+          <OperatingCell
+            label="Revenue"
+            value={`${billing.estimatedMrrLabel} MRR`}
+            href="/command/revenue"
+            detail={`${billing.activeSubscriptions} active subscriptions · Stripe ${connectors.stripeMode}${connectors.stripeOk ? "" : " · needs setup"}`}
+          />
+          <OperatingCell
+            label="Platform"
+            value={`${connectors.wordpressConfiguredCount} connectors`}
             href="/command/platform-health"
-            className="mt-4 inline-block text-sm text-sky-400 hover:underline"
-          >
-            Open Platform Alerts →
-          </Link>
-        </section>
-      </div>
+            detail={`${connectors.orgsWithBillingCustomer} orgs with billing customer`}
+          />
+        </div>
+        {revenueNote ? (
+          <p className="mt-3 text-xs text-slate-500">{revenueNote}</p>
+        ) : null}
+      </section>
 
       {/* Growth Engine */}
-      <section className="overflow-hidden rounded-2xl border border-sky-500/25 bg-gradient-to-br from-slate-950 via-slate-950 to-sky-950/40 px-6 py-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+      <section className="rounded-xl border border-sky-500/20 bg-slate-950/40 px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">
               Growth Engine™
             </p>
-            <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-300">
-              <span>{growthEngine.prospects} prospects</span>
-              <span>{growthEngine.engagementsThisWeek} engagements this week</span>
-              <span>{growthEngine.activePipeline} active opportunities</span>
-            </div>
-            {growthEngine.topPriorityLabel ? (
-              <p className="mt-3 text-sm text-sky-100">
-                Today&apos;s priority: {growthEngine.topPriorityLabel}
-                {growthEngine.topPriorityScore != null
-                  ? ` — ${growthEngine.topPriorityScore}/100`
-                  : ""}
+            <p className="mt-1 text-lg font-semibold text-white">
+              {growthEngine.prospects} active prospect
+              {growthEngine.prospects === 1 ? "" : "s"}
+            </p>
+            {foundingPhaseQuiet ? (
+              <p className="mt-1 text-sm text-slate-400">
+                Founding pipeline currently managed manually — zero in-engine activity is expected
+                during closed beta.
               </p>
-            ) : null}
+            ) : (
+              <p className="mt-1 text-sm text-slate-400">
+                {growthEngine.engagementsThisWeek} engagements this week ·{" "}
+                {growthEngine.activePipeline} in pipeline
+              </p>
+            )}
           </div>
           <Link
             href={growthEngine.href}
-            className="inline-flex rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+            className="text-sm font-medium text-sky-400 hover:underline"
           >
-            Open Growth Engine
+            Open Growth Engine →
           </Link>
         </div>
       </section>
 
-      {/* Revenue */}
-      <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
-        <div className="flex items-end justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">Revenue</p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-white">
-              {billing.estimatedMrrLabel}
-              <span className="ml-2 text-sm font-normal text-slate-500">est. MRR</span>
-            </p>
-            <p className="mt-1 text-sm text-slate-400">
-              {billing.activeSubscriptions} subscriptions · {billing.invoicePaidMtdLabel} paid MTD
-            </p>
-          </div>
-          <Link href="/command/revenue" className="text-sm text-sky-400 hover:underline">
-            Open Revenue →
-          </Link>
-        </div>
-      </section>
-
-      {/* Recent Activity */}
+      {/* Recent platform activity */}
       <section>
-        <div className="flex items-end justify-between gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-white">Recent activity</h2>
-            <p className="mt-1 text-sm text-slate-400">Human-readable platform events.</p>
+            <h2 className="text-lg font-semibold text-white">Recent platform activity</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Live events across customer organisations.
+            </p>
           </div>
           <button
             type="button"
@@ -355,55 +284,24 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
             {recentActivity.map((item) => (
               <li
                 key={item.id}
-                className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3"
+                className="flex items-start justify-between gap-3 rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm text-white">
-                      {showTechnicalActivity ? item.technicalTitle : item.humanTitle}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">{item.organisationName}</p>
-                  </div>
-                  <span className="shrink-0 text-xs text-slate-500">
-                    {relativeTime(item.createdAt)}
-                  </span>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                    {activityCategory(item)}
+                  </p>
+                  <p className="mt-0.5 text-sm text-white">
+                    {showTechnicalActivity ? item.technicalTitle : item.humanTitle}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">{item.organisationName}</p>
                 </div>
+                <span className="shrink-0 text-xs text-slate-500">
+                  {relativeTime(item.createdAt)}
+                </span>
               </li>
             ))}
           </ul>
         )}
-      </section>
-
-      {/* Platform Operations */}
-      <section>
-        <h2 className="text-lg font-semibold text-white">Platform operations</h2>
-        <p className="mt-1 text-sm text-slate-400">
-          Orchestrate the platform — not a duplicate of the side panel.
-        </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {platformOperations.map((group) => (
-            <div
-              key={group.id}
-              className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-4"
-            >
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                {group.label}
-              </p>
-              <ul className="mt-3 space-y-2">
-                {group.links.map((link) => (
-                  <li key={link.id}>
-                    <Link href={link.href} className="group block">
-                      <p className="text-sm font-medium text-white group-hover:text-sky-300">
-                        {link.label} →
-                      </p>
-                      <p className="mt-0.5 text-xs text-slate-500">{link.description}</p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
       </section>
 
       {/* AI Advisor */}
@@ -412,8 +310,11 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
           AI Advisor
         </p>
         <h2 className="mt-2 text-lg font-semibold text-white">
-          What should the DigitalGate team focus on today?
+          What should DigitalGate focus on today?
         </h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Turn live signals into assessment, priorities and recommended actions.
+        </p>
         <Link
           href="/command/advisor"
           className="mt-4 inline-flex rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500"
@@ -437,7 +338,7 @@ function PulseChip({
   isText?: boolean;
 }) {
   return (
-    <Link href={href} className="group min-w-[7rem]">
+    <Link href={href} className="group">
       <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
       <p
         className={`mt-0.5 font-semibold tracking-tight text-white group-hover:text-sky-300 ${
@@ -446,6 +347,26 @@ function PulseChip({
       >
         {value}
       </p>
+    </Link>
+  );
+}
+
+function OperatingCell({
+  label,
+  value,
+  href,
+  detail,
+}: {
+  label: string;
+  value: string;
+  href: string;
+  detail?: string;
+}) {
+  return (
+    <Link href={href} className="group block rounded-lg border border-slate-800/80 px-3 py-3 hover:border-slate-600">
+      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-white group-hover:text-sky-300">{value}</p>
+      {detail ? <p className="mt-1 text-xs text-slate-500">{detail}</p> : null}
     </Link>
   );
 }

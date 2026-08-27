@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { getCommandCentreOpsHome, resolveSalesWeekPrompt } from "@dg/platform-core";
 
-import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
+import { CommandBetaStatus } from "@/components/command/CommandBetaStatus";
 import { CommandOpsHome } from "@/components/command/CommandOpsHome";
 import { SalesWeekNowBanner } from "@/components/command/SalesWeekNowBanner";
 import { AppFeaturePlaceholder } from "@/components/platform/AppFeaturePlaceholder";
@@ -60,32 +60,6 @@ async function CommandOverviewPage() {
       <main className="dg-page-main space-y-8">
         <SalesWeekNowBanner prompt={salesPrompt} compact />
 
-        <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-50">
-          <span className="font-medium text-white">Staff closed beta.</span> Core loop lives in{" "}
-          <Link href="/command/growth-engine" className="text-sky-300 hover:underline">
-            Growth Engine
-          </Link>
-          {" "}
-          (send → follow-ups → convert). Playbook:{" "}
-          <code className="text-sky-200">docs/COMMAND-CENTRE-BETA.md</code>.
-        </div>
-
-        <CommandHonestyBanner />
-
-        <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3 text-xs text-slate-400">
-          Deferred Command modules (redirect only):{" "}
-          <code className="text-slate-300">/command/support</code> →{" "}
-          <Link href="/support" className="text-sky-400 hover:underline">
-            /support
-          </Link>
-          {" · "}
-          <code className="text-slate-300">/command/audit</code> →{" "}
-          <Link href="/dashboard/settings/audit" className="text-sky-400 hover:underline">
-            tenant audit settings
-          </Link>
-          . No fake Support Centre / Audit Centre UI.
-        </div>
-
         {!data ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
             Set <code className="text-amber-200">DATABASE_URL</code> and run{" "}
@@ -95,6 +69,8 @@ async function CommandOverviewPage() {
         ) : (
           <CommandOpsHome data={data} />
         )}
+
+        <CommandBetaStatus />
       </main>
     </>
   );

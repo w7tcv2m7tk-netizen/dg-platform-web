@@ -12,8 +12,20 @@ export function humanizePlatformActivity(item: CommandRecentActivity): {
   const type = item.activityType?.toLowerCase() ?? "";
   const title = item.title?.trim() || "Platform activity recorded";
 
+  if (type.includes("opportunity") && type.includes("deleted")) {
+    return { humanTitle: "Opportunity deleted", technicalTitle: title };
+  }
+  if (type.includes("opportunity") && type.includes("updated")) {
+    return { humanTitle: "Opportunity updated", technicalTitle: title };
+  }
   if (type.includes("opportunity") && type.includes("created")) {
     return { humanTitle: "New opportunity created", technicalTitle: title };
+  }
+  if (type.includes("company") && type.includes("created")) {
+    return { humanTitle: "Company created", technicalTitle: title };
+  }
+  if (type.includes("contact") && type.includes("updated")) {
+    return { humanTitle: "Contact updated", technicalTitle: title };
   }
   if (type.includes("converted")) {
     return { humanTitle: "Lead converted to opportunity", technicalTitle: title };
@@ -31,7 +43,10 @@ export function humanizePlatformActivity(item: CommandRecentActivity): {
     return { humanTitle: "Founding programme activity", technicalTitle: title };
   }
   if (type.includes("automation")) {
-    return { humanTitle: "Automation ran on the platform", technicalTitle: title };
+    return { humanTitle: "Automation workflow executed", technicalTitle: title };
+  }
+  if (type.includes("seo") || type.includes("audit")) {
+    return { humanTitle: "SEO audit completed", technicalTitle: title };
   }
   if (type.includes("ai_call") || type.includes("voice")) {
     return { humanTitle: "AI communications activity", technicalTitle: title };
