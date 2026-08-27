@@ -34,7 +34,7 @@ export const PROSPECTING_DISCOVERY_MODES: ProspectingDiscoveryModeMeta[] = [
     prospectKind: "B2B businesses",
     primarySurface: "growth_app",
     routeHint: "/apps/prospecting/discovery",
-    summary: "Find businesses that may need your product or service.",
+    summary: "Find businesses that could become your next customers.",
   },
   {
     id: "vendor",

@@ -171,26 +171,33 @@ export function BusinessDiscoverySearch({
       <div>
         <h2 className="font-semibold text-white">Business Discovery Engine</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Search providers → select → import to Growth prospects (not CRM). Industry packs
-          tune the query; Places + ABN when configured.
+          Search across connected business-data providers, select the businesses worth pursuing, and
+          import them into your Growth prospect book — not CRM.
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2 text-xs">
-        {providers.map((p) => (
-          <span
-            key={p.id}
-            className={`rounded-md px-2 py-1 ${
-              p.available
-                ? "bg-emerald-950/60 text-emerald-300"
-                : "bg-slate-900 text-slate-500"
-            }`}
-            title={p.reason}
-          >
-            {p.label}
-            {p.available ? " · ready" : " · not configured"}
-          </span>
-        ))}
+      <div>
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Sources</p>
+        <div className="mt-2 flex flex-wrap gap-2 text-xs">
+          {providers.map((p) => (
+            <span
+              key={p.id}
+              className={`rounded-md px-2.5 py-1 ${
+                p.available
+                  ? "bg-emerald-950/60 text-emerald-300"
+                  : "bg-slate-900 text-slate-500"
+              }`}
+              title={p.reason}
+            >
+              {p.label}
+              {p.available ? " · Ready" : " · Not configured"}
+            </span>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Google Places for discovery · ABN Lookup for Australian business identity — building toward
+          a full Business Intelligence Profile (website, reviews, SEO, AI Visibility, contacts).
+        </p>
       </div>
 
       <form onSubmit={onSearch} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -243,11 +250,11 @@ export function BusinessDiscoverySearch({
           </select>
         </label>
         <label className="block text-sm sm:col-span-2">
-          <span className="text-slate-400">Optional name / keywords</span>
+          <span className="text-slate-400">Name / keywords</span>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Overrides industry phrasing when set"
+            placeholder="Optional — overrides industry phrasing when set"
             className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
           />
         </label>
@@ -299,7 +306,7 @@ export function BusinessDiscoverySearch({
               >
                 {importing
                   ? "Importing…"
-                  : `Import selected (${selected.size}) → Discovery`}
+                  : `Import selected (${selected.size}) → Prospect book`}
               </button>
             </div>
           </div>

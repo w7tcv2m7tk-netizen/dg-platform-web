@@ -12,6 +12,25 @@ DigitalGate’s intelligent prospecting and opportunity engine turns business di
 
 ---
 
+## Discovery UX (locked direction)
+
+| Layer | Job |
+|-------|-----|
+| **Discovery** | Finds them |
+| **Intelligence** | Understands them (Business Intelligence Profile) |
+| **Scoring** | Ranks them (Opportunity Score™ + Why this prospect?) |
+| **CRM** | Manages the qualified relationship |
+| **Pipeline** | Manages the opportunity |
+| **Automation** | Drives follow-up |
+
+**Prospect ≠ CRM Company.** Discovery builds the prospect book; CRM stays clean until convert.
+
+**Terminology:** Tenant Growth App = **Prospecting & Opportunity Engine**. Staff GTM = **Growth Engine** (Command Centre). Do not use those names interchangeably for customers.
+
+**ABN + Places:** Australian differentiator — Places for discovery, ABN for identity; enrich toward full Business Intelligence Profile.
+
+---
+
 ## Dual product lock (firm)
 
 You effectively have **two products** on the same underlying engine:

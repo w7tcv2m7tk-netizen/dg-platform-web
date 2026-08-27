@@ -21,6 +21,14 @@ export type ProspectingDiscoverySearchParams = {
   mode?: string;
 };
 
+type ModeCard = {
+  id: string;
+  label: string;
+  href: string;
+  body: string;
+  group: "discover" | "ranked";
+};
+
 export async function ProspectingDiscoverySurface({
   organisationId,
   searchParams,
@@ -33,8 +41,8 @@ export async function ProspectingDiscoverySurface({
   const basePath = "/apps/prospecting/discovery";
   const pipelineHref =
     variant === "apps" ? "/apps/prospecting/pipeline" : "/command/growth-engine/pipeline";
-  const hubHref =
-    variant === "apps" ? "/apps/prospecting" : "/command/growth-engine";
+  const hubHref = variant === "apps" ? "/apps/prospecting" : "/command/growth-engine";
+  const scoresHref = "/apps/prospecting/scores";
 
   const q = (searchParams.q ?? "").trim().toLowerCase();
   const industry = (searchParams.industry ?? "").trim().toLowerCase();
@@ -112,48 +120,55 @@ export async function ProspectingDiscoverySurface({
     initialQ: searchParams.q?.trim() || "",
   };
 
-  const modeChips: Array<{ id: string; label: string; href: string; hint: string }> = [
+  const modeCards: ModeCard[] = [
     {
       id: "daily",
       label: "Daily Recommended",
       href: hubHref,
-      hint: "Opportunity Engine briefing",
+      body: "AI-selected businesses worth investigating today.",
+      group: "discover",
     },
     {
       id: "location",
-      label: "Location Search",
+      label: "Location",
       href: `${basePath}?mode=location&location=Burleigh+Waters%2C+QLD&industry=Real+Estate`,
-      hint: "Agencies near Burleigh Waters",
+      body: "Find businesses in a specific area.",
+      group: "discover",
     },
     {
       id: "industry",
-      label: "Industry Search",
+      label: "Industry",
       href: `${basePath}?mode=industry&industry=Finance&location=Brisbane%2C+QLD&type=Mortgage+Broker`,
-      hint: "Mortgage brokers in Brisbane",
+      body: "Find businesses within an industry or category.",
+      group: "discover",
     },
     {
       id: "problem",
-      label: "Problem Search",
+      label: "Problem",
       href: `${basePath}?mode=problem`,
-      hint: "Audited book · weak SEO",
+      body: "Find businesses showing a particular business problem.",
+      group: "discover",
     },
     {
       id: "ai",
-      label: "AI Visibility Search",
+      label: "AI Visibility",
       href: `${basePath}?mode=ai`,
-      hint: "Audited book · weak AI visibility",
+      body: "Find businesses with weak AI/search visibility.",
+      group: "discover",
     },
     {
       id: "highvalue",
-      label: "High-Value Prospects",
+      label: "High-Value",
       href: `${basePath}?mode=highvalue`,
-      hint: "Proposal-sent pipeline",
+      body: "Highest commercial potential.",
+      group: "ranked",
     },
     {
       id: "hot",
-      label: "Hot Prospects",
+      label: "Hot",
       href: `${basePath}?mode=hot`,
-      hint: "Coming when buying signals ship",
+      body: "Strongest immediate opportunities.",
+      group: "ranked",
     },
   ];
 
@@ -168,20 +183,32 @@ export async function ProspectingDiscoverySurface({
     return `${basePath}${qs ? `?${qs}` : ""}`;
   };
 
+  const discoverCards = modeCards.filter((c) => c.group === "discover");
+  const rankedCards = modeCards.filter((c) => c.group === "ranked");
+
   return (
     <>
       <header className="dg-page-header">
         {variant === "command" ? (
           <Link href={hubHref} className="text-sm text-sky-400 hover:underline">
-            ← Prospecting
+            ← Growth Engine (GTM)
           </Link>
-        ) : null}
-        <h1 className={`${variant === "command" ? "mt-2 " : ""}text-2xl font-bold text-white`}>
-          Business Discovery
-        </h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Find businesses that may need your product or service. Residential vendors live in Real
-          Estate → Vendor Prospecting — not this prospect book.
+        ) : (
+          <Link href="/apps/prospecting" className="text-sm text-sky-400 hover:underline">
+            ← Prospecting & Opportunity Engine
+          </Link>
+        )}
+        <h1 className="mt-2 text-2xl font-bold text-white">Business Discovery</h1>
+        <p className="mt-2 max-w-2xl text-base text-slate-200">
+          Find businesses that could become your next customers.
+        </p>
+        <p className="mt-2 max-w-2xl text-sm text-slate-400">
+          Discover, research and qualify businesses before they enter your CRM. DigitalGate
+          combines location, industry, business data and digital signals to build a ranked prospect
+          book.
+        </p>
+        <p className="mt-2 text-xs text-slate-500">
+          Residential vendors live in Real Estate → Vendor Prospecting — not this prospect book.
         </p>
         <p className="mt-2 text-xs">
           {showArchived ? (
@@ -198,30 +225,101 @@ export async function ProspectingDiscoverySurface({
           )}
         </p>
       </header>
+
       <main className="dg-page-main space-y-8">
-        <div className="flex flex-wrap gap-2">
-          {modeChips.map((chip) => {
-            const active = chip.id === "daily" ? false : mode === chip.id;
-            return (
-              <Link
-                key={chip.id}
-                href={chip.href}
-                title={chip.hint}
-                className={`rounded-md px-3 py-1.5 text-xs ${
-                  active
-                    ? "bg-sky-600 text-white"
-                    : "bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
-                }`}
-              >
-                {chip.label}
-              </Link>
-            );
-          })}
-        </div>
+        {/* Lifecycle architecture */}
+        <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+            Prospect ≠ CRM Company
+          </p>
+          <p className="mt-2 text-sm text-slate-300">
+            A <span className="text-white">prospect</span> is a potential business. A{" "}
+            <span className="text-white">CRM Company</span> is a qualified relationship. Discovery
+            builds your prospect book — CRM stays clean until you convert.
+          </p>
+          <p className="mt-3 text-xs text-slate-500">
+            Discovery → Prospect → Qualified → Convert → CRM Company + Contact + Opportunity →
+            Pipeline → Customer
+          </p>
+        </section>
+
+        {/* Discover modes */}
+        <section>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">Discover</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {discoverCards.map((card) => {
+              const active = card.id === "daily" ? false : mode === card.id;
+              return (
+                <Link
+                  key={card.id}
+                  href={card.href}
+                  className={`rounded-xl border px-4 py-4 transition ${
+                    active
+                      ? "border-sky-500/50 bg-sky-500/10"
+                      : "border-slate-700/80 bg-slate-950/50 hover:border-sky-500/40"
+                  }`}
+                >
+                  <p className="font-medium text-white">{card.label}</p>
+                  <p className="mt-1.5 text-sm text-slate-400">{card.body}</p>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Ranked modes */}
+        <section>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-400">Ranked</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {rankedCards.map((card) => {
+              const active = mode === card.id;
+              return (
+                <Link
+                  key={card.id}
+                  href={card.href}
+                  className={`rounded-xl border px-4 py-4 transition ${
+                    active
+                      ? "border-violet-500/50 bg-violet-500/10"
+                      : "border-slate-700/80 bg-slate-950/50 hover:border-violet-500/40"
+                  }`}
+                >
+                  <p className="font-medium text-white">{card.label}</p>
+                  <p className="mt-1.5 text-sm text-slate-400">{card.body}</p>
+                </Link>
+              );
+            })}
+          </div>
+          <p className="mt-3 text-sm text-slate-500">
+            See how Opportunity Score™ and{" "}
+            <Link href={scoresHref} className="text-sky-400 hover:underline">
+              Why this prospect?
+            </Link>{" "}
+            explain ranked opportunities.
+          </p>
+        </section>
+
+        {/* Future: AI Discovery */}
+        <section className="rounded-xl border border-dashed border-sky-500/30 bg-sky-500/5 px-5 py-5">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">
+            ✦ AI Discovery · Coming soon
+          </p>
+          <h2 className="mt-2 text-lg font-semibold text-white">
+            Tell DigitalGate who you&apos;re looking for
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm text-slate-400">
+            “Find boutique real estate agencies on the southern Gold Coast with 5–20 staff, strong
+            Google reviews but weak AI visibility.”
+          </p>
+          <p className="mt-3 text-xs text-slate-500">
+            Natural language → search criteria → enrich → score. Use Location, Industry or AI
+            Visibility cards above for now.
+          </p>
+        </section>
+
         {mode === "hot" ? (
           <p className="text-sm text-amber-200/90">
-            Hot Prospects need buying-signal sources — not wired yet. Use Daily Recommended or
-            Location / Industry search.
+            Hot prospects need buying-signal sources — not wired yet. Use Daily Recommended or
+            Location / Industry discovery.
           </p>
         ) : null}
         {mode === "problem" || mode === "ai" || mode === "highvalue" ? (
@@ -235,9 +333,10 @@ export async function ProspectingDiscoverySurface({
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
-            <h2 className="font-semibold text-white">Add prospect manually</h2>
+            <h2 className="font-semibold text-white">Add prospect</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Creates a pipeline record automatically — no CRM Company until you convert.
+              Creates a pipeline record automatically —{" "}
+              <span className="text-slate-200">no CRM Company until you convert</span>.
             </p>
             <div className="mt-4">
               <CreateProspectForm pipelineHref={pipelineHref} />
@@ -245,6 +344,12 @@ export async function ProspectingDiscoverySurface({
           </div>
 
           <div className="space-y-4">
+            <div>
+              <h2 className="font-semibold text-white">Prospect book</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Research and scoring live here — not in CRM.
+              </p>
+            </div>
             <form className="grid gap-3 sm:grid-cols-3" method="get">
               {showArchived ? <input type="hidden" name="archived" value="1" /> : null}
               {mode ? <input type="hidden" name="mode" value={mode} /> : null}
@@ -288,13 +393,27 @@ export async function ProspectingDiscoverySurface({
             {!process.env.DATABASE_URL ? (
               <p className="text-sm text-amber-200">DATABASE_URL required to list prospects.</p>
             ) : filtered.length === 0 ? (
-              <p className="text-sm text-slate-500">
-                {all.length === 0
-                  ? showArchived
-                    ? "No archived prospects."
-                    : "No prospects yet — discover above or add manually."
-                  : "No prospects match these filters."}
-              </p>
+              <div className="rounded-xl border border-dashed border-slate-700 px-5 py-8">
+                {all.length === 0 ? (
+                  showArchived ? (
+                    <p className="text-sm text-slate-500">No archived prospects.</p>
+                  ) : (
+                    <div className="space-y-2 text-sm text-slate-400">
+                      <p className="font-medium text-slate-200">Your prospect book is empty.</p>
+                      <p>
+                        Discover businesses using Location, Industry or AI Visibility search, or add
+                        a prospect.
+                      </p>
+                      <p className="text-slate-500">
+                        Qualified prospects can later be converted into CRM Companies and
+                        Opportunities.
+                      </p>
+                    </div>
+                  )
+                ) : (
+                  <p className="text-sm text-slate-500">No prospects match these filters.</p>
+                )}
+              </div>
             ) : (
               <ul className="space-y-2">
                 {filtered.map((prospect) => (

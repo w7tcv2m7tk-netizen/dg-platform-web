@@ -599,11 +599,12 @@ function getDigitalGateOperatorSection(): NavIaSection {
       operatorApp("dg-sales", "Sales", "prospecting", "/apps/prospecting", [
         { path: "/apps/prospecting", label: "Overview" },
         { path: "/apps/prospecting/discovery", label: "Discovery" },
+        { path: "/apps/prospecting/scores", label: "Opportunity Scoring" },
         { path: "/apps/prospecting/pipeline", label: "Pipeline" },
         { path: "/apps/prospecting/activity", label: "Activity" },
         {
           path: "/command/growth-engine",
-          label: "Growth Engine",
+          label: "Growth Engine (GTM)",
           matchAlso: [
             "/command/growth-engine/pipeline",
             "/command/growth-engine/audits",
@@ -617,7 +618,7 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/command/sales-week", label: "Sales Week" },
         {
           path: "/command/opportunities",
-          label: "Opportunities",
+          label: "Platform Opportunities",
           matchAlso: ["/command/opportunities/expansion"],
         },
       ]),
