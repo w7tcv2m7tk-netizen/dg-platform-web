@@ -120,16 +120,13 @@ curl -X POST https://app.digitalgate.com.au/api/indexnow \
 
 ---
 
-## 5. Roadmap (not this ship)
+## 5. Strategic roadmap
 
-| Priority | Work |
-|----------|------|
-| 2 | Canonical IA nav/content polish everywhere |
-| 3 | Real Estate funnel — Agency Growth Score™ |
-| 4 | AI Visibility topic cluster |
-| 5 | Roe / CVH proof case studies |
-| 6 | Apps pages commercial storytelling |
-| 7 | Glossary / trademark entity pages |
+Full developer roadmap (Clarify → Prove → Convert → Expand → Index → Measure), content architecture rule, and OS mirror thesis:
+
+→ **[WEBSITE-STRATEGIC-ROADMAP.md](./WEBSITE-STRATEGIC-ROADMAP.md)**
+
+Priority **1 Consolidate** is this document. Next: **Clarify** (Platform → Core → Industry → Growth unmistakable).
 
 ---
 

@@ -507,6 +507,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "ENTITY-CONSOLIDATION.md",
   },
   {
+    slug: "website-strategic-roadmap",
+    title: "Website Strategic Roadmap",
+    summary:
+      "Consolidate → Clarify → Prove → Convert → Expand → Index → Measure. Site mirrors OS; content must follow Insight→Concept→Product→Industry→CTA.",
+    group: "operations",
+    relativePath: "WEBSITE-STRATEGIC-ROADMAP.md",
+  },
+  {
     slug: "connector-priority",
     title: "Connector Priority",
     summary: "Which connectors matter first and why.",
