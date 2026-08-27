@@ -360,7 +360,7 @@ export default async function PartnerDeliverySectionPage({
           description="Launch, Growth and Enterprise scoping lives on each implementation project (plan field). Open a project to see scope — there is no separate plan CMS."
           links={[
             { href: "/partner/delivery/projects", label: "Active projects" },
-            { href: "/partner/delivery/onboarding", label: "Onboarding SOP" },
+            { href: "/partner/delivery/onboarding", label: "Onboarding" },
           ]}
         />
       ) : null}
@@ -370,7 +370,7 @@ export default async function PartnerDeliverySectionPage({
           title="Documents"
           description="Implementation SOPs and customer materials live on project records and the onboarding workflow. A shared document vault is not available yet."
           links={[
-            { href: "/partner/delivery/onboarding", label: "Onboarding SOP" },
+            { href: "/partner/delivery/onboarding", label: "Onboarding" },
             { href: "/partner/delivery/projects", label: "Projects" },
           ]}
         />
