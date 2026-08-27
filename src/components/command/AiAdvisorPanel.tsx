@@ -11,6 +11,21 @@ type OrgOption = {
   needsAttention?: boolean;
 };
 
+type AdvisorPriority = {
+  id: string;
+  label: string;
+  score: number;
+  summary: string;
+  href?: string;
+};
+
+type AdvisorEvidence = {
+  id: string;
+  label: string;
+  score: number;
+  detail: string;
+};
+
 type AdvisorResult = {
   organisationId: string;
   organisationName: string;
@@ -26,6 +41,26 @@ type AdvisorResult = {
     href?: string;
     priority: number;
   }>;
+  assessmentTitle?: string;
+  priorities?: AdvisorPriority[];
+  evidence?: AdvisorEvidence[];
+  confidence?: "high" | "limited" | "sparse";
+  confidenceRationale?: string;
+  breakdown?: {
+    connectors: number;
+    crm: number;
+    usage: number;
+    billing: number;
+  };
+  dataCoverage?: "sparse" | "partial" | "rich";
+  scoreProvisional?: boolean;
+  cohortDelta?: number;
+  billingFooting?: {
+    state: string;
+    label: string;
+    detail: string;
+    needsIntervention: boolean;
+  };
   source: "llm" | "template";
   provider?: string;
   model?: string;
@@ -38,6 +73,19 @@ const STAFF_EXAMPLES = [
   "Give me a summary for the account owner.",
   "What should we intervene on this week?",
 ];
+
+function confidenceLabel(level: AdvisorResult["confidence"]): string {
+  if (level === "high") return "High";
+  if (level === "limited") return "Limited";
+  if (level === "sparse") return "Sparse";
+  return "Unknown";
+}
+
+function priorityBadge(index: number): string {
+  if (index === 0) return "High priority";
+  if (index === 1) return "Medium priority";
+  return "Priority";
+}
 
 export function AiAdvisorPanel({
   orgs,
@@ -166,20 +214,67 @@ export function AiAdvisorPanel({
       {result ? (
         <div className="space-y-4">
           <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-wide text-slate-500">
                   {result.organisationName}
                 </p>
-                <h2 className="mt-1 text-lg font-semibold text-white">Advisor insight</h2>
+                <h2 className="mt-1 text-lg font-semibold text-white">
+                  {result.assessmentTitle ?? "AI Advisor Assessment"}
+                </h2>
               </div>
-              <p className="text-xs text-slate-500">
-                Organisation health {result.successScore}/100
-                {result.healthTier ? ` · ${result.healthTier.replace(/_/g, " ")}` : ""}
-              </p>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-white">{result.successScore}</p>
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  Success Score™
+                  {result.healthTier ? ` · ${result.healthTier.replace(/_/g, " ")}` : ""}
+                </p>
+                {typeof result.cohortDelta === "number" && result.cohortDelta !== 0 ? (
+                  <p
+                    className={`mt-1 text-xs ${result.cohortDelta < 0 ? "text-amber-400" : "text-emerald-400"}`}
+                  >
+                    {result.cohortDelta > 0 ? "+" : ""}
+                    {result.cohortDelta} vs cohort average
+                  </p>
+                ) : null}
+              </div>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-slate-200">{result.summary}</p>
+            {result.scoreProvisional ? (
+              <p className="mt-3 text-xs text-amber-300/90">
+                Score is provisional — limited live data. Recommendations are early signals only.
+              </p>
+            ) : null}
           </div>
+
+          {result.priorities && result.priorities.length > 0 ? (
+            <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-4">
+              <h3 className="text-sm font-semibold text-white">What matters now</h3>
+              <ul className="mt-3 space-y-3">
+                {result.priorities.map((item, index) => (
+                  <li
+                    key={item.id}
+                    className="flex items-start justify-between gap-4 border-b border-slate-800/80 pb-3 last:border-0 last:pb-0"
+                  >
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-slate-500">
+                        {index + 1} · {item.label} · {item.score}/100
+                      </p>
+                      <p className="mt-1 text-sm text-slate-300">{item.summary}</p>
+                    </div>
+                    {item.href ? (
+                      <Link
+                        href={item.href}
+                        className="shrink-0 text-sm text-sky-400 hover:underline"
+                      >
+                        Review →
+                      </Link>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-4">
@@ -203,7 +298,7 @@ export function AiAdvisorPanel({
           </div>
 
           <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-4">
-            <h3 className="text-sm font-semibold text-white">Recommended Actions</h3>
+            <h3 className="text-sm font-semibold text-white">Recommended actions</h3>
             <p className="mt-1 text-sm text-slate-500">
               What DigitalGate thinks the team should do next for this organisation.
             </p>
@@ -214,7 +309,10 @@ export function AiAdvisorPanel({
                   className="flex items-start justify-between gap-4 border-b border-slate-800/80 pb-3 last:border-0 last:pb-0"
                 >
                   <div>
-                    <p className="font-medium text-white">
+                    <p className="text-xs uppercase tracking-wide text-slate-500">
+                      {priorityBadge(index)}
+                    </p>
+                    <p className="mt-1 font-medium text-white">
                       {index + 1}. {rec.label}
                     </p>
                     {rec.description ? (
@@ -231,6 +329,33 @@ export function AiAdvisorPanel({
             </ul>
           </div>
 
+          {result.evidence && result.evidence.length > 0 ? (
+            <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-4">
+              <h3 className="text-sm font-semibold text-white">Evidence</h3>
+              <ul className="mt-3 space-y-3">
+                {result.evidence.map((item) => (
+                  <li key={item.id} className="text-sm">
+                    <p className="font-medium text-slate-200">
+                      {item.label} · {item.score}/100
+                    </p>
+                    <p className="mt-1 text-slate-400">{item.detail}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {result.confidence ? (
+            <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 px-4 py-4">
+              <h3 className="text-sm font-semibold text-violet-200">
+                Advisor confidence · {confidenceLabel(result.confidence)}
+              </h3>
+              {result.confidenceRationale ? (
+                <p className="mt-2 text-sm text-slate-400">{result.confidenceRationale}</p>
+              ) : null}
+            </div>
+          ) : null}
+
           <button
             type="button"
             onClick={() => setShowTechnical((v) => !v)}
@@ -239,12 +364,27 @@ export function AiAdvisorPanel({
             {showTechnical ? "Hide technical details" : "View technical details →"}
           </button>
           {showTechnical ? (
-            <p className="text-xs text-slate-600">
-              Generated {new Date(result.generatedAt).toLocaleString("en-AU")}
-              {result.source ? ` · ${result.source}` : ""}
-              {result.provider ? ` · ${result.provider}` : ""}
-              {result.model ? ` · ${result.model}` : ""}
-            </p>
+            <div className="space-y-1 text-xs text-slate-600">
+              <p>
+                Generated {new Date(result.generatedAt).toLocaleString("en-AU")}
+                {result.source ? ` · ${result.source}` : ""}
+                {result.provider ? ` · ${result.provider}` : ""}
+                {result.model ? ` · ${result.model}` : ""}
+              </p>
+              {result.dataCoverage ? <p>Data coverage · {result.dataCoverage}</p> : null}
+              {result.billingFooting ? (
+                <p>
+                  Billing state · {result.billingFooting.state} ·{" "}
+                  {result.billingFooting.label}
+                </p>
+              ) : null}
+              {result.breakdown ? (
+                <p>
+                  Breakdown · CRM {result.breakdown.crm} · Usage {result.breakdown.usage} ·
+                  Billing {result.breakdown.billing} · Connectors {result.breakdown.connectors}
+                </p>
+              ) : null}
+            </div>
           ) : null}
         </div>
       ) : null}

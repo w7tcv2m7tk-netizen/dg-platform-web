@@ -328,6 +328,23 @@ export interface PlatformHealthMetrics {
 }
 
 /** AI Business Advisor response shape */
+export type AdvisorConfidenceLevel = "high" | "limited" | "sparse";
+
+export interface AdvisorEvidenceItem {
+  id: string;
+  label: string;
+  score: number;
+  detail: string;
+}
+
+export interface AdvisorPriorityItem {
+  id: string;
+  label: string;
+  score: number;
+  summary: string;
+  href?: string;
+}
+
 export interface ClientAdvisorInsight {
   organisationId: string;
   summary: string;
@@ -335,4 +352,25 @@ export interface ClientAdvisorInsight {
   concerns: string[];
   recommendations: RecommendedAction[];
   generatedAt: Date;
+  /** Extended assessment (template + enriched responses) */
+  assessmentTitle?: string;
+  priorities?: AdvisorPriorityItem[];
+  evidence?: AdvisorEvidenceItem[];
+  confidence?: AdvisorConfidenceLevel;
+  confidenceRationale?: string;
+  breakdown?: {
+    connectors: number;
+    crm: number;
+    usage: number;
+    billing: number;
+  };
+  dataCoverage?: "sparse" | "partial" | "rich";
+  scoreProvisional?: boolean;
+  cohortDelta?: number;
+  billingFooting?: {
+    state: string;
+    label: string;
+    detail: string;
+    needsIntervention: boolean;
+  };
 }

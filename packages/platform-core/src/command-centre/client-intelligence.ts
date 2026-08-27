@@ -55,6 +55,12 @@ export type EnrichedCommandClient = CommandClientRow & {
   leadsThisMonth: number;
   activitiesThisMonth: number;
   openOpportunities: number;
+  hasBillingCustomer: boolean;
+  expectsPlatformBilling: boolean;
+  activeSubscriptionCount: number;
+  subscriptionMrrCents: number;
+  invoicePaidMtdCents: number;
+  daysSinceUpdate: number;
 };
 
 export type ClientIntelligenceBundle = {
@@ -261,6 +267,12 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       leadsThisMonth: scoreInput.leadsThisMonth,
       activitiesThisMonth: scoreInput.activitiesThisMonth,
       openOpportunities: scoreInput.openOpportunities,
+      hasBillingCustomer: scoreInput.hasBillingCustomer,
+      expectsPlatformBilling: scoreInput.expectsPlatformBilling !== false,
+      activeSubscriptionCount: scoreInput.activeSubscriptionCount,
+      subscriptionMrrCents: scoreInput.subscriptionMrrCents,
+      invoicePaidMtdCents: scoreInput.invoicePaidMtdCents,
+      daysSinceUpdate: scoreInput.daysSinceUpdate,
     };
     return row;
   });

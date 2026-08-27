@@ -6,9 +6,15 @@
 
 import { llmChat, llmConfigured } from "../ai/llm";
 import type { RecommendedAction } from "../intelligence/types";
+import { assessBillingFooting } from "./advisor-billing";
 import { getClientIntelligence } from "./client-intelligence";
 import { tierLabel } from "./success-score";
-import type { ClientAdvisorInsight } from "./types";
+import type {
+  AdvisorConfidenceLevel,
+  AdvisorEvidenceItem,
+  AdvisorPriorityItem,
+  ClientAdvisorInsight,
+} from "./types";
 
 export type AdvisorContext = {
   organisationId: string;
@@ -34,6 +40,18 @@ export type AdvisorContext = {
   industry: string | null;
   rank: number;
   cohortAverage: number;
+  leadsThisMonth: number;
+  activitiesThisMonth: number;
+  openOpportunities: number;
+  hasBillingCustomer: boolean;
+  expectsPlatformBilling: boolean;
+  activeSubscriptionCount: number;
+  subscriptionMrrCents: number;
+  invoicePaidMtdCents: number;
+  daysSinceUpdate: number;
+  scoreProvisional: boolean;
+  dataCoverage: "sparse" | "partial" | "rich";
+  billingFooting: ReturnType<typeof assessBillingFooting>;
 };
 
 export async function buildAdvisorContext(
@@ -42,6 +60,15 @@ export async function buildAdvisorContext(
   const bundle = await getClientIntelligence();
   const client = bundle.clients.find((c) => c.organisationId === organisationId);
   if (!client) return null;
+
+  const billingFooting = assessBillingFooting({
+    status: client.status,
+    expectsPlatformBilling: client.expectsPlatformBilling,
+    hasBillingCustomer: client.hasBillingCustomer,
+    activeSubscriptionCount: client.activeSubscriptionCount,
+    invoicePaidMtdCents: client.invoicePaidMtdCents,
+    subscriptionMrrCents: client.subscriptionMrrCents,
+  });
 
   return {
     organisationId: client.organisationId,
@@ -62,27 +89,200 @@ export async function buildAdvisorContext(
     industry: client.industry,
     rank: client.rank,
     cohortAverage: bundle.averageSuccessScore,
+    leadsThisMonth: client.leadsThisMonth,
+    activitiesThisMonth: client.activitiesThisMonth,
+    openOpportunities: client.openOpportunities,
+    hasBillingCustomer: client.hasBillingCustomer,
+    expectsPlatformBilling: client.expectsPlatformBilling,
+    activeSubscriptionCount: client.activeSubscriptionCount,
+    subscriptionMrrCents: client.subscriptionMrrCents,
+    invoicePaidMtdCents: client.invoicePaidMtdCents,
+    daysSinceUpdate: client.daysSinceUpdate,
+    scoreProvisional: client.scoreProvisional,
+    dataCoverage: client.dataCoverage,
+    billingFooting,
   };
 }
 
-function templateInsight(ctx: AdvisorContext): ClientAdvisorInsight {
-  const positives = [...ctx.highlights];
-  if (ctx.successScore >= ctx.cohortAverage) {
-    positives.push(
-      `Success Score ${ctx.successScore} is at or above cohort average (${ctx.cohortAverage})`,
-    );
+function assessConfidence(ctx: AdvisorContext): {
+  level: AdvisorConfidenceLevel;
+  rationale: string;
+} {
+  if (ctx.dataCoverage === "rich") {
+    return {
+      level: "high",
+      rationale: "Based on live platform signals available today.",
+    };
   }
-  if (positives.length === 0) {
-    positives.push("Organisation is provisioned on the platform");
+  if (ctx.dataCoverage === "partial") {
+    return {
+      level: "limited",
+      rationale:
+        "Partial data — recommendations may change as more connectors and activity are established.",
+    };
+  }
+  return {
+    level: "sparse",
+    rationale:
+      "Limited live data — early signals only. DigitalGate will not invent gaps from empty records.",
+  };
+}
+
+function buildEvidence(ctx: AdvisorContext): AdvisorEvidenceItem[] {
+  const daysQuiet =
+    ctx.daysSinceUpdate >= 1
+      ? `${Math.round(ctx.daysSinceUpdate)} day${ctx.daysSinceUpdate >= 1.9 ? "s" : ""} since org update`
+      : "Updated recently";
+
+  return [
+    {
+      id: "crm",
+      label: "CRM activity",
+      score: ctx.breakdown.crm,
+      detail: `${ctx.contactCount} contacts · ${ctx.openOpportunities} open opportunities · ${ctx.activitiesThisMonth} activities this month · ${ctx.leadsThisMonth} leads this month`,
+    },
+    {
+      id: "usage",
+      label: "Platform usage",
+      score: ctx.breakdown.usage,
+      detail: `${ctx.memberCount} members · ${ctx.installedApps.length} apps installed · ${daysQuiet}`,
+    },
+    {
+      id: "billing",
+      label: "Billing footing",
+      score: ctx.breakdown.billing,
+      detail: ctx.billingFooting.detail,
+    },
+    {
+      id: "connectors",
+      label: "Connectors",
+      score: ctx.breakdown.connectors,
+      detail: `${ctx.installedApps.slice(0, 6).join(", ") || "No apps installed yet"}`,
+    },
+  ];
+}
+
+function buildPriorities(ctx: AdvisorContext): AdvisorPriorityItem[] {
+  const items: AdvisorPriorityItem[] = [];
+
+  if (ctx.breakdown.crm < 70) {
+    const lowActivity =
+      ctx.contactCount > 0 &&
+      ctx.activitiesThisMonth < 3 &&
+      ctx.leadsThisMonth === 0;
+    items.push({
+      id: "crm",
+      label: "CRM engagement",
+      score: ctx.breakdown.crm,
+      summary: lowActivity
+        ? "Low recent activity relative to contacts on file."
+        : "CRM activity is below the level expected for this organisation stage.",
+      href:
+        ctx.openOpportunities > 0
+          ? "/apps/crm/opportunities"
+          : "/apps/crm/contacts",
+    });
   }
 
-  const concerns = [...ctx.concerns];
-  if (ctx.successScore < ctx.cohortAverage) {
-    concerns.push(
-      `Success Score ${ctx.successScore} trails cohort average (${ctx.cohortAverage})`,
+  if (ctx.billingFooting.needsIntervention) {
+    items.push({
+      id: "billing",
+      label: "Billing readiness",
+      score: ctx.breakdown.billing,
+      summary: ctx.billingFooting.detail,
+      href: `/command/clients/${ctx.organisationId}`,
+    });
+  } else if (ctx.billingFooting.state === "healthy_trial") {
+    items.push({
+      id: "billing",
+      label: "Billing readiness",
+      score: ctx.breakdown.billing,
+      summary: ctx.billingFooting.detail,
+      href: `/command/clients/${ctx.organisationId}`,
+    });
+  }
+
+  if (ctx.breakdown.usage < 70) {
+    items.push({
+      id: "usage",
+      label: "Platform engagement",
+      score: ctx.breakdown.usage,
+      summary: "Usage is reasonable but has room to improve — more apps and activity strengthen the Twin.",
+      href: "/dashboard/apps",
+    });
+  }
+
+  if (ctx.breakdown.connectors < 60 && ctx.dataCoverage !== "sparse") {
+    items.push({
+      id: "connectors",
+      label: "Connectors",
+      score: ctx.breakdown.connectors,
+      summary: "Connector or integration health could be strengthened.",
+      href: `/command/clients/${ctx.organisationId}`,
+    });
+  }
+
+  return items.slice(0, 4);
+}
+
+function buildExecutiveSummary(ctx: AdvisorContext): string {
+  const tier =
+    ctx.healthTier === "top_performer" ||
+    ctx.healthTier === "healthy" ||
+    ctx.healthTier === "needs_attention"
+      ? tierLabel(ctx.healthTier)
+      : ctx.healthTier;
+
+  const parts: string[] = [];
+
+  if (ctx.scoreProvisional || ctx.dataCoverage === "sparse") {
+    parts.push(
+      `${ctx.organisationName} has limited live platform data so far — treat the Success Score as provisional.`,
+    );
+  } else {
+    parts.push(
+      `${ctx.organisationName} is ranked #${ctx.rank} with Success Score™ ${ctx.successScore}/100 (${tier}).`,
     );
   }
 
+  const dimensions = [
+    { key: "crm", score: ctx.breakdown.crm, label: "CRM engagement" },
+    { key: "usage", score: ctx.breakdown.usage, label: "platform engagement" },
+    { key: "billing", score: ctx.breakdown.billing, label: "billing readiness" },
+    { key: "connectors", score: ctx.breakdown.connectors, label: "connectors" },
+  ].sort((a, b) => a.score - b.score);
+
+  const weakest = dimensions[0];
+  if (!ctx.scoreProvisional && weakest.score < 60) {
+    parts.push(
+      `${weakest.label.charAt(0).toUpperCase()}${weakest.label.slice(1)} is the primary operational weakness (${weakest.score}/100).`,
+    );
+  }
+
+  if (ctx.billingFooting.state === "healthy_trial") {
+    parts.push(
+      "The organisation is on trial — no billing intervention is required today.",
+    );
+  } else if (ctx.billingFooting.needsIntervention) {
+    parts.push(`${ctx.billingFooting.label}: ${ctx.billingFooting.detail}`);
+  }
+
+  if (
+    !ctx.scoreProvisional &&
+    ctx.successScore < ctx.cohortAverage &&
+    ctx.cohortAverage > 0
+  ) {
+    parts.push(
+      `Success Score trails the cohort average (${ctx.cohortAverage}) by ${ctx.cohortAverage - ctx.successScore} points.`,
+    );
+  } else if (!ctx.scoreProvisional && ctx.concerns.length === 0) {
+    parts.push("No major operational concerns — maintain momentum.");
+  }
+
+  return parts.join(" ");
+}
+
+function buildRecommendations(ctx: AdvisorContext): RecommendedAction[] {
   const recommendations: RecommendedAction[] = [];
   let priority = 1;
 
@@ -90,30 +290,69 @@ function templateInsight(ctx: AdvisorContext): ClientAdvisorInsight {
     recommendations.push({
       id: "clear-sla",
       label: "Clear overdue lead responses",
-      description: "Protect conversion and Agency Health ranking.",
+      description: "Protect conversion and organisation health ranking.",
       href: "/apps/re/vendor-leads",
       priority: priority++,
     });
   }
+
   if (ctx.breakdown.crm < 60) {
     recommendations.push({
       id: "crm-activity",
-      label: "Drive CRM activity this week",
-      description: "Log contacts, chase open opportunities, keep the timeline warm.",
-      href: "/apps/crm/contacts",
+      label: "Increase CRM activity",
+      description:
+        ctx.openOpportunities > 0
+          ? `Review ${ctx.openOpportunities} open opportunit${ctx.openOpportunities === 1 ? "y" : "ies"} and inactive contacts.`
+          : "Log contacts, chase open opportunities, keep the timeline warm.",
+      href:
+        ctx.openOpportunities > 0
+          ? "/apps/crm/opportunities"
+          : "/apps/crm/contacts",
       priority: priority++,
     });
   }
-  if (ctx.breakdown.billing < 60) {
+
+  if (ctx.billingFooting.needsIntervention) {
+    if (ctx.billingFooting.state === "no_customer") {
+      recommendations.push({
+        id: "billing-customer",
+        label: "Create Stripe customer record",
+        description: ctx.billingFooting.detail,
+        href: `/command/clients/${ctx.organisationId}`,
+        priority: priority++,
+      });
+    } else if (ctx.billingFooting.state === "subscription_inactive") {
+      recommendations.push({
+        id: "billing-subscription",
+        label: "Review subscription status",
+        description: ctx.billingFooting.detail,
+        href: `/command/clients/${ctx.organisationId}`,
+        priority: priority++,
+      });
+    } else {
+      recommendations.push({
+        id: "billing",
+        label: "Review billing footing",
+        description: ctx.billingFooting.detail,
+        href: `/command/clients/${ctx.organisationId}`,
+        priority: priority++,
+      });
+    }
+  } else if (ctx.billingFooting.state === "healthy_trial") {
     recommendations.push({
-      id: "billing",
-      label: "Review billing footing",
-      description: "Confirm Stripe customer and active subscription.",
-      href: "/dashboard/settings/billing",
+      id: "trial-conversion",
+      label: "Prepare trial conversion",
+      description:
+        "Review onboarding progress and platform adoption before trial ends.",
+      href: `/command/clients/${ctx.organisationId}`,
       priority: priority++,
     });
   }
-  if (!ctx.installedApps.includes("ai-visibility")) {
+
+  if (
+    !ctx.installedApps.includes("ai-visibility") &&
+    ctx.dataCoverage !== "sparse"
+  ) {
     recommendations.push({
       id: "upsell-ai-vis",
       label: "Recommend AI Visibility Pro",
@@ -122,6 +361,7 @@ function templateInsight(ctx: AdvisorContext): ClientAdvisorInsight {
       priority: priority++,
     });
   }
+
   if (recommendations.length === 0) {
     recommendations.push({
       id: "keep-momentum",
@@ -132,29 +372,64 @@ function templateInsight(ctx: AdvisorContext): ClientAdvisorInsight {
     });
   }
 
-  const tier =
-    ctx.healthTier === "top_performer" ||
-    ctx.healthTier === "healthy" ||
-    ctx.healthTier === "needs_attention"
-      ? tierLabel(ctx.healthTier)
-      : ctx.healthTier;
+  return recommendations.slice(0, 5);
+}
 
-  const summary = [
-    `${ctx.organisationName} is ranked #${ctx.rank} with Success Score™ ${ctx.successScore}/100 (${tier}).`,
-    `Breakdown — connectors ${ctx.breakdown.connectors}, CRM ${ctx.breakdown.crm}, usage ${ctx.breakdown.usage}, billing ${ctx.breakdown.billing}.`,
-    concerns.length
-      ? `Focus: ${concerns.slice(0, 2).join("; ")}.`
-      : "No major concerns — maintain momentum and send the Growth Report.",
-  ].join(" ");
-
+function enrichInsight(
+  ctx: AdvisorContext,
+  insight: ClientAdvisorInsight,
+): ClientAdvisorInsight {
+  const confidence = assessConfidence(ctx);
   return {
+    ...insight,
+    assessmentTitle: "AI Advisor Assessment",
+    summary: insight.summary || buildExecutiveSummary(ctx),
+    priorities: buildPriorities(ctx),
+    evidence: buildEvidence(ctx),
+    confidence: confidence.level,
+    confidenceRationale: confidence.rationale,
+    breakdown: ctx.breakdown,
+    dataCoverage: ctx.dataCoverage,
+    scoreProvisional: ctx.scoreProvisional,
+    cohortDelta: ctx.successScore - ctx.cohortAverage,
+    billingFooting: ctx.billingFooting,
+  };
+}
+
+function templateInsight(ctx: AdvisorContext): ClientAdvisorInsight {
+  const positives = [...ctx.highlights];
+  if (
+    !ctx.scoreProvisional &&
+    ctx.successScore >= ctx.cohortAverage &&
+    ctx.cohortAverage > 0
+  ) {
+    positives.push(
+      `Success Score ${ctx.successScore} is at or above cohort average (${ctx.cohortAverage})`,
+    );
+  }
+  if (positives.length === 0) {
+    positives.push("Organisation is provisioned on the platform");
+  }
+
+  const concerns = [...ctx.concerns];
+  if (
+    !ctx.scoreProvisional &&
+    ctx.successScore < ctx.cohortAverage &&
+    ctx.cohortAverage > 0
+  ) {
+    concerns.push(
+      `Success Score ${ctx.successScore} trails cohort average (${ctx.cohortAverage})`,
+    );
+  }
+
+  return enrichInsight(ctx, {
     organisationId: ctx.organisationId,
-    summary,
+    summary: buildExecutiveSummary(ctx),
     positives: positives.slice(0, 5),
     concerns: concerns.slice(0, 5),
-    recommendations: recommendations.slice(0, 5),
+    recommendations: buildRecommendations(ctx),
     generatedAt: new Date(),
-  };
+  });
 }
 
 function parseAdvisorJson(text: string, organisationId: string): ClientAdvisorInsight | null {
@@ -235,6 +510,7 @@ export async function generateClientAdvisorInsight(input: {
       "You are the DigitalGate Command Centre AI Business Advisor.",
       "Staff-only. Analyse client performance from the provided platform metrics.",
       "Never invent metrics. Australian English. Be concrete and actionable.",
+      "Do NOT recommend billing intervention for healthy trial organisations.",
       "Respond with JSON only:",
       '{"summary":"...","positives":["..."],"concerns":["..."],"recommendations":[{"id":"...","label":"...","description":"...","href":"/path","priority":1}]}',
     ].join("\n");
@@ -254,11 +530,17 @@ export async function generateClientAdvisorInsight(input: {
           rank: ctx.rank,
           cohortAverage: ctx.cohortAverage,
           breakdown: ctx.breakdown,
+          billingFooting: ctx.billingFooting,
           highlights: ctx.highlights,
           concerns: ctx.concerns,
+          dataCoverage: ctx.dataCoverage,
+          scoreProvisional: ctx.scoreProvisional,
           members: ctx.memberCount,
           contacts: ctx.contactCount,
           leads: ctx.leadCount,
+          leadsThisMonth: ctx.leadsThisMonth,
+          activitiesThisMonth: ctx.activitiesThisMonth,
+          openOpportunities: ctx.openOpportunities,
           properties: ctx.propertyCount,
           stayBookings: ctx.stayBookingCount,
           apps: ctx.installedApps,
@@ -291,7 +573,7 @@ export async function generateClientAdvisorInsight(input: {
     }
 
     return {
-      ...parsed,
+      ...enrichInsight(ctx, parsed),
       source: "llm",
       organisationName: ctx.organisationName,
       successScore: ctx.successScore,

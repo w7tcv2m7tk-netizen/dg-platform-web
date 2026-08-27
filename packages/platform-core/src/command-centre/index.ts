@@ -8,6 +8,7 @@ export * from "./platform-alerts";
 export * from "./success-score";
 export * from "./client-intelligence";
 export * from "./advisor";
+export * from "./advisor-billing";
 export * from "./growth-reports";
 export * from "./opportunities";
 export * from "./benchmarks";
