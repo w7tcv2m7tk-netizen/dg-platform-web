@@ -200,16 +200,17 @@ export function resolveEmailBrandAssets(input: {
 
   // Roe profiles historically stored the R mark as both logo and icon — emails need the wordmark in the header.
   if (presetKey === "roe-realty") {
-    const wordmark =
-      absoluteBrandAssetUrl("/brand/roe-logo.png") ||
-      "https://roerealty.com.au/wp-content/uploads/2026/05/ROE-Realty-Web-Main.png";
-    const mark =
-      absoluteBrandAssetUrl("/brand/roe-icon.png") ||
-      "https://roerealty.com.au/wp-content/uploads/2026/05/R-Main.png";
+    const wordmark = absoluteBrandAssetUrl("/brand/roe-logo.png");
+    const mark = absoluteBrandAssetUrl("/brand/roe-icon.png");
     if (/R-Main/i.test(logoUrl || "") || logoUrl === iconUrl) {
-      logoUrl = wordmark;
+      logoUrl = wordmark || logoUrl;
     }
-    iconUrl = mark;
+    iconUrl = mark || iconUrl;
+  }
+
+  if (presetKey === "aetherra") {
+    logoUrl = absoluteBrandAssetUrl("/brand/aetherra-logo.png") || logoUrl;
+    iconUrl = absoluteBrandAssetUrl("/brand/aetherra-icon.png") || iconUrl;
   }
 
   return {

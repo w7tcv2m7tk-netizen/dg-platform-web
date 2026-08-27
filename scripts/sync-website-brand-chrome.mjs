@@ -67,8 +67,8 @@ const HEADER_CTAS = {
   },
 };
 
-const AETHERRA_LOGO_FALLBACK =
-  "https://dhcfjdm3qhtlfaul.public.blob.vercel-storage.com/org-assets/cmsi9968q0000l104t8x1rabm/7a0dd8791fadcb42-mZ6bZoLlAGLMEHRIXKcmLjlgH6ar6u.png";
+const AETHERRA_LOGO_FALLBACK = "https://app.digitalgate.com.au/brand/aetherra-logo.png";
+const AETHERRA_ICON_FALLBACK = "https://app.digitalgate.com.au/brand/aetherra-icon.png";
 
 /** WP-style centered Aëtherra header (logo over nav + socials). */
 function buildAetherraHeaderHtml(logoUrl) {
@@ -131,7 +131,7 @@ async function main() {
     }
     if (siteSlug === "aetheriel-com-au" && !logoUrl && !iconUrl) {
       logoUrl = AETHERRA_LOGO_FALLBACK;
-      iconUrl = AETHERRA_LOGO_FALLBACK;
+      iconUrl = AETHERRA_ICON_FALLBACK;
     }
 
     if (!logoUrl && !iconUrl) {

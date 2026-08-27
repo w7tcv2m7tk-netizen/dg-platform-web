@@ -3,7 +3,6 @@ import type {
   OrganisationBusinessProfile,
 } from "./business-profile-types";
 import { serializeBrandColours } from "./brand-theme";
-import { WP_CONNECTOR_PRESETS } from "../connectors/wordpress/org-connector";
 
 export type OrgBrandPresetKey =
   | "digitalgate"
@@ -56,9 +55,8 @@ export const ORG_BRAND_PRESETS: Record<OrgBrandPresetKey, OrgBrandPreset> = {
     label: "Aëtherra",
     patch: {
       brandColours: serializeBrandColours("#B88952", "#C9B38C", "#1A1510"),
-      iconUrl:
-        "https://aetherra.com.au/wp-content/uploads/2026/07/cropped-Aetherra-Icon-Dark-scaled-1.png",
-      logoUrl: "https://aetherra.com.au/wp-content/uploads/2026/06/Aetherra-White.png",
+      iconUrl: "/brand/aetherra-icon.png",
+      logoUrl: "/brand/aetherra-logo.png",
       websiteUrl: "https://aetherra.com.au",
     },
   },
@@ -87,15 +85,29 @@ function wpBaseUrl(settings: unknown): string {
   return typeof wp === "string" ? wp.toLowerCase() : "";
 }
 
+function normalizeBrandHaystack(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase();
+}
+
 /** Match an organisation to a known brand preset. */
 export function resolveOrgBrandPresetKey(org: OrgLike): OrgBrandPresetKey | null {
-  const hay = `${org.name} ${org.slug} ${org.industry ?? ""}`.toLowerCase();
-  const wp = wpBaseUrl(org.settings);
+  const hay = normalizeBrandHaystack(`${org.name} ${org.slug} ${org.industry ?? ""}`);
+  const wp = normalizeBrandHaystack(wpBaseUrl(org.settings));
 
   if (hay.includes("wantd") || hay.includes("want d") || wp.includes("wantdproperty")) {
     return "wantd";
   }
-  if (hay.includes("aetherra") || hay.includes("aether")) return "aetherra";
+  if (
+    hay.includes("aetherra") ||
+    hay.includes("aetheriel") ||
+    hay.includes("aether") ||
+    wp.includes("aetherra")
+  ) {
+    return "aetherra";
+  }
   if (
     hay.includes("currumbin") ||
     hay.includes("hideaway") ||
@@ -153,6 +165,7 @@ export type SeedOrgBrandProfilesResult = {
 /** Apply brand preset patches to all organisations that match a known business. */
 export async function seedOrgBrandProfiles(options?: {
   force?: boolean;
+  clearWpApex?: boolean;
   organisationIds?: string[];
 }): Promise<SeedOrgBrandProfilesResult[]> {
   if (!process.env.DATABASE_URL) return [];
@@ -211,30 +224,20 @@ export async function seedOrgBrandProfiles(options?: {
 
     const nextSettings = { ...settings, profile: nextProfile } as Record<string, unknown>;
 
-    if (
-      presetKey === "digitalgate" ||
-      presetKey === "cvh" ||
-      presetKey === "roe-realty" ||
-      presetKey === "aetherra"
-    ) {
-      const template =
-        presetKey === "digitalgate"
-          ? "digitalgate"
-          : presetKey === "cvh"
-            ? "accommodation"
-            : presetKey === "roe-realty"
-              ? "real-estate"
-              : "creator";
-      const wpPreset = WP_CONNECTOR_PRESETS[template];
-      const connectors = (nextSettings.connectors as Record<string, unknown> | undefined) ?? {};
-      const wordpress = (connectors.wordpress as Record<string, unknown> | undefined) ?? {};
+    const connectors = (nextSettings.connectors as Record<string, unknown> | undefined) ?? {};
+    const wordpress = (connectors.wordpress as Record<string, unknown> | undefined) ?? {};
+    if (presetKey === "digitalgate" || presetKey === "cvh" || presetKey === "roe-realty" || presetKey === "aetherra") {
+      const nextWp: Record<string, unknown> = {
+        ...wordpress,
+        label: `${preset.label} (Gen 2)`,
+      };
+      if (options?.clearWpApex) {
+        delete nextWp.baseUrl;
+        delete nextWp.apiKey;
+      }
       nextSettings.connectors = {
         ...connectors,
-        wordpress: {
-          ...wordpress,
-          baseUrl: wpPreset.baseUrl,
-          label: wpPreset.label,
-        },
+        wordpress: nextWp,
       };
     }
 
