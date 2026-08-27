@@ -208,6 +208,8 @@ Keep name, category, website URL, and description aligned with `digitalgate.com.
 ## Key Files
 
 ```
+docs/ENTITY-CONSOLIDATION.md         — entity IA + legacy URL disposition
+src/lib/dg-legacy-urls.ts            — apex 308/410 legacy map
 src/lib/public-website-seo.ts      — metadata + JSON-LD builders
 src/lib/digitalgate-seo-catalog.ts — page taxonomy, breadcrumbs, index rules
 src/app/sites/by-host/page.tsx     — runtime metadata + schema injection
@@ -217,4 +219,5 @@ src/app/robots.ts                    — platform app disallow
 src/lib/indexnow.ts
 src/middleware.ts                    — canonical, noindex, IndexNow key
 scripts/seed-digitalgate-marketing-pages.mjs — SEO metadata persistence
+scripts/test-dg-legacy-urls.mjs      — assert Growth slugs not redirected
 ```

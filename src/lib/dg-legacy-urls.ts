@@ -14,7 +14,13 @@ function normalizePublicPath(pathname: string): string {
 export const DG_AUDIT_URL = "https://audit.digitalgate.com.au/";
 export const DG_APP_LOGIN_URL = "https://app.digitalgate.com.au/login";
 
-/** Exact path (no trailing slash) → same-host path or absolute URL. */
+/**
+ * Exact path (no trailing slash) → same-host path or absolute URL.
+ *
+ * Do NOT map live Gen 2 product URLs here (Growth landings / Apps), e.g.:
+ * /automation, /seo, /ai-visibility, /prospecting, /analytics, /social,
+ * /reputation, /ai-communications, /growth — those must render Studio pages.
+ */
 export const DG_LEGACY_REDIRECTS: Record<string, string> = {
   "/real-estate-marketing-automation": "/insights",
   "/real-estate-facebook-ads": "/insights",
@@ -31,7 +37,6 @@ export const DG_LEGACY_REDIRECTS: Record<string, string> = {
   "/free-agency-audit": DG_AUDIT_URL,
   "/business-audit": DG_AUDIT_URL,
   "/solutions": "/pricing",
-  "/automation": "/pricing",
   "/privacy": "/privacy-policy",
   "/privacy-and-cookies-policy": "/privacy-policy",
   "/contact-us": "/contact",
@@ -39,6 +44,9 @@ export const DG_LEGACY_REDIRECTS: Record<string, string> = {
   "/services": "/pricing",
   "/services/visibility-systems/real-estate-seo": "/ai-visibility-framework",
   "/services/advertising-systems/google-ads-for-real-estate-agents": "/insights",
+  "/growth-systems": "/pricing",
+  "/strategy-session": "/contact",
+  "/platform": "/",
   "/beta": "/founding-customers",
   "/founding": "/founding-customers",
   "/founding-application": "/founding-customers",
@@ -103,6 +111,10 @@ export function resolveDgLegacyRequest(
   if (mapped) return { kind: "redirect", location: mapped, status: 308 };
 
   if (path.startsWith("/services/")) {
+    return { kind: "redirect", location: "/pricing", status: 308 };
+  }
+
+  if (path.startsWith("/growth-systems/")) {
     return { kind: "redirect", location: "/pricing", status: 308 };
   }
 

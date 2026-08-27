@@ -499,6 +499,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "SEARCH-INDEXING.md",
   },
   {
+    slug: "entity-consolidation",
+    title: "Entity Consolidation",
+    summary:
+      "One DigitalGate entity — Platform vs retired agency positioning, canonical IA, KEEP/REWRITE/REDIRECT/NOINDEX matrix, SERP cleanup.",
+    group: "operations",
+    relativePath: "ENTITY-CONSOLIDATION.md",
+  },
+  {
     slug: "connector-priority",
     title: "Connector Priority",
     summary: "Which connectors matter first and why.",
