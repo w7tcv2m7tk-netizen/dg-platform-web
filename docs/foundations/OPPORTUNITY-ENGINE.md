@@ -19,20 +19,32 @@
 
 One **Growth App**, one price. Do **not** bill Prospecting, Discovery or Opportunity Engine as separate SKUs.
 
-| Capability | In the App |
-|------------|------------|
-| Prospecting | Find and organise target businesses |
-| Discovery | Structured discovery of current situation |
-| Opportunity scoring | Fit × Need × Reachability × Commercial × Weakness |
-| Pipeline | Track prospects through the sales process |
-| Activity | Calls, notes, tasks, follow-ups |
-| AI recommendations | Who to contact and what to do next |
-| Digital Presence | Website, SEO, AI Visibility and related signals |
-| CRM integration | Qualified prospects → Contacts, Companies, Opportunities |
+Applications are capabilities within an operating system — not a collection of micro-subscriptions.
 
-**Demo journey:** Prospect → Discovery → Opportunity Score → CRM → Pipeline → AI Recommendation → Follow-up → Conversion
+| Module | In the App |
+|--------|------------|
+| Discovery | Business information, digital presence and market signals |
+| Opportunity Scoring™ | Fit × Need × Reachability × Commercial × Weakness |
+| Prospect Pipeline | Track prospects before they become customers |
+| AI Recommendations | Who to contact and what to do next (+ Why this prospect?) |
+| CRM | Promote qualified prospects into Core CRM (Activate step) |
+| Follow-up | Calls, messages, notes, tasks and automation |
+| Digital Presence Signals | Website, SEO, AI Visibility and related signals |
 
-**Distinction:** The Core Opportunities surface ranks *operating* opportunities inside a connected tenant. The Growth App is the *acquisition* OS that finds and qualifies external prospects, then hands them into CRM.
+**Journey:** Find → Discover → Score → Qualify → **Activate** → Pipeline → Recommend → Convert  
+
+CRM is not a mid-journey detour after scoring — **Activate** promotes Contact / Company / Opportunity into the same business context as everything else.
+
+**Dual product lock (firm):**
+
+| Surface | Who | Job |
+|---------|-----|-----|
+| **Command Centre → Prospecting** | DigitalGate staff | Acquire DigitalGate customers (GTM) |
+| **Growth → Prospecting & Opportunity Engine** | Tenant customers | Find and convert *their* prospects |
+
+Staff operating surface for DigitalGate GTM remains under Command Centre. This Growth App is the tenant-facing product.
+
+**Distinction:** The Core Opportunities surface ranks *operating* opportunities inside a connected tenant. The Growth App is the *acquisition* OS that finds and qualifies external prospects, then activates them into CRM.
 
 Manifest: `packages/platform-core/src/apps/builtins/prospecting.ts` · Premium key: `prospecting_pro`
 

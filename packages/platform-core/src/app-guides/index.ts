@@ -527,28 +527,30 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
     appId: "prospecting",
     headline: "Prospecting & Opportunity Engine",
     summary:
-      "Find businesses → discover their situation → score the opportunity → pipeline → CRM. One $99 Growth App — not separate SKUs for Prospecting, Discovery or scoring.",
+      "Find the right businesses. Understand their situation. Know which opportunities deserve your attention. One $99 Growth App — not separate SKUs for Prospecting, Discovery or scoring.",
     estimatedMinutes: 8,
     steps: [
       {
         id: "poe-1",
         title: "Walk the journey",
         description:
-          "Prospect → Discovery → Opportunity Score → CRM → Pipeline → AI Recommendation → Follow-up → Conversion.",
+          "Find → Discover → Score → Qualify → Activate → Pipeline → Recommend → Convert.",
         href: "/apps/prospecting",
         hrefLabel: "Open Prospecting",
       },
       {
         id: "poe-2",
-        title: "Score model",
-        description: "Fit × Need × Reachability × Commercial × Weakness, fed by Digital Presence signals.",
+        title: "Opportunity Score™",
+        description:
+          "Fit × Need × Reachability × Commercial × Weakness — not a simple lead score. Ask Why this prospect?",
         href: "/apps/prospecting/scores",
         hrefLabel: "Opportunity scores",
       },
       {
         id: "poe-3",
-        title: "Hand off to CRM",
-        description: "Qualified prospects become Contacts, Companies and Opportunities in the same ecosystem.",
+        title: "Activate into CRM",
+        description:
+          "Qualified prospects become Contacts, Companies and Opportunities in the same business context.",
         href: "/apps/crm/opportunities",
         hrefLabel: "CRM Opportunities",
       },

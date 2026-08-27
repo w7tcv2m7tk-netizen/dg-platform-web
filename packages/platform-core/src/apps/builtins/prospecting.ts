@@ -17,7 +17,7 @@ export const prospectingApp: AppManifest = {
   id: "prospecting",
   name: "Prospecting & Opportunity Engine",
   description:
-    "Business Discovery — find the right businesses, score opportunities, run pipeline and follow-ups, then hand qualified prospects into CRM",
+    "Find the right businesses. Understand their situation. Score the opportunity. Activate into CRM. Know what to do next — one $99/mo Growth App.",
   tier: "growth",
   version: "0.1.0",
   icon: "◎",

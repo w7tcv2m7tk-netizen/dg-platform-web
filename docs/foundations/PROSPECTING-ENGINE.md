@@ -4,6 +4,86 @@
 **Commercial:** Growth App — **$99/mo** (Discovery included; not a separate SKU)  
 **Principle:** Different front ends for different jobs. One underlying opportunity engine and one business record.
 
+**Positioning:**
+
+> Find the right businesses. Understand their situation. Know which opportunities deserve your attention.
+
+DigitalGate’s intelligent prospecting and opportunity engine turns business discovery into qualified pipeline — using business, digital presence, CRM and AI signals in one connected system.
+
+---
+
+## Dual product lock (firm)
+
+You effectively have **two products** on the same underlying engine:
+
+| Side | Surface | Who | Job |
+|------|---------|-----|-----|
+| **Operator** | Command Centre → Prospecting | DigitalGate staff | Acquire DigitalGate customers (GTM) |
+| **Customer** | Growth → Prospecting & Opportunity Engine | Tenant | Find and convert *their* prospects |
+
+Staff operating surface for DigitalGate GTM remains under Command Centre Prospecting.  
+**This Growth App is the tenant-facing product.** Do not blur the two.
+
+---
+
+## Tenant journey (locked)
+
+```
+1. PROSPECT     Find the right businesses
+2. DISCOVER     Understand business, digital presence and situation
+3. SCORE        Fit × Need × Reachability × Commercial × Weakness
+4. QUALIFY      Decide whether the opportunity is worth pursuing
+5. ACTIVATE     Create/promote Contact, Company and Opportunity in CRM
+6. PIPELINE     Manage the opportunity through the sales process
+7. AI RECOMMEND Who to contact, when, and what to do next
+8. FOLLOW-UP → CONVERSION
+```
+
+**Do not** insert CRM as a conceptual step immediately after scoring.  
+**Activate** is the moment the prospect joins the same business context as CRM, Twin and Brain.
+
+---
+
+## Opportunity Score™
+
+Not a simple lead score:
+
+```
+Opportunity Score = Fit × Need × Reachability × Commercial × Weakness
+```
+
+UI should show dimension breakdown + band (e.g. High Opportunity) + recommended action.
+
+### Why this prospect? (required UX pattern)
+
+When recommending “Contact ABC Realty today”, always surface:
+
+| Field | Example |
+|-------|---------|
+| **Why** | High-fit boutique agency · weak AI Visibility · no vendor funnel · declining engagement |
+| **What to say** | AI Visibility opportunity + complimentary Agency Growth Audit |
+| **Best contact** | John Smith — Director |
+| **Best channel** | Phone |
+| **Next action** | Call today |
+
+That is what makes the product intelligent rather than a prospect database.
+
+---
+
+## Modules (one $99 App)
+
+| Module | Purpose |
+|--------|---------|
+| Discovery | Business information, digital presence and market signals |
+| Opportunity Scoring™ | Fit × Need × Reachability × Commercial × Weakness |
+| Prospect Pipeline | Track prospects before they become customers |
+| AI Recommendations | Who to contact and what to do next |
+| CRM | Promote qualified prospects into Core CRM |
+| Follow-up | Calls, messages, notes, tasks and automation |
+| Digital Presence Signals | Website, SEO, AI Visibility and related signals |
+
+One App — not separate charges for Prospecting, Discovery or Opportunity Engine.
+
 ---
 
 ## Product lock
@@ -50,11 +130,11 @@ The **underlying engine is shared**. Each Industry App supplies its own:
 
 ### 1. Business Prospecting
 
-Used by DigitalGate, B2B services, finance, commercial property brokers (as businesses), trades, etc.
+Used by DigitalGate customers (B2B services, finance, commercial property brokers as businesses, trades, etc.) — and mirrored for staff GTM under Command Centre.
 
 **Job:** Find **businesses** that may need your product or service.
 
-**Surface:** Growth → **Prospecting & Opportunity Engine** → Business Discovery  
+**Tenant surface:** Growth → **Prospecting & Opportunity Engine** → Business Discovery  
 **Canonical routes:** `/apps/prospecting/*`
 
 ### 2. Consumer / Property Prospecting
@@ -85,24 +165,6 @@ Vendor Prospecting
 Not a giant database of random houses.  
 **“Here are the 12 property owners most worth speaking to this week, and here’s why.”**
 
-### Example signals (illustrative)
-
-- Properties approaching likely selling periods  
-- Long-term ownership  
-- Absentee owners  
-- Recent comparable sales  
-- Significant equity potential  
-- Expired / withdrawn listings where legally & commercially permissible  
-- Coming off market  
-- Development / subdivision potential  
-- Owners with multiple properties  
-- Strong local buyer demand  
-- Match to known buyer requirements  
-- Past vendor relationships  
-- CRM contacts with property ownership  
-- Appraisal / valuation campaign engagement  
-- Website and advertising responses  
-
 ### Property Opportunity Score™
 
 Differentiated RE product output, e.g.:
@@ -121,7 +183,7 @@ Feeds the same **CRM Opportunities** and **Business Brain** as other discovery m
 |----------|-----------|
 | Normal DigitalGate / B2B | Growth → Prospecting & Opportunity Engine |
 | Real Estate | Real Estate → Vendor Prospecting · Buyer Opportunities · Appraisal Pipeline · Listings |
-| Command Centre | “Who should I speak to today?” — actions & signals, not the full Discovery workspace |
+| Command Centre | Staff GTM — “Who should I speak to today?” — not the tenant Growth App |
 
 All modes ultimately feed **one Opportunity Engine** and **one business record**.
 
@@ -131,9 +193,9 @@ All modes ultimately feed **one Opportunity Engine** and **one business record**
 
 | Layer | Role |
 |-------|------|
-| **Growth App** | Capability (Business Discovery, pipeline, scores, activity) |
+| **Growth App** | Tenant capability (Business Discovery, pipeline, scores, activity) |
 | **Industry App** | Domain front end (e.g. Vendor Prospecting) |
-| **Command Centre** | Intelligence / action layer — next useful thing |
+| **Command Centre** | DigitalGate operator GTM + intelligence / action layer |
 
 Operator principle: complexity underneath; the operator sees what to do next.
 
