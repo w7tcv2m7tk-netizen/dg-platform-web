@@ -22,13 +22,15 @@ import {
   IMPLEMENTATION_SCOPE,
   IMPLEMENTATION_SOP_STAGES,
   PARTNER_DELIVERY_OWNS,
-  PARTNER_ECOSYSTEM_LAYERS,
+  PARTNER_CAPABILITIES,
+  PARTNER_ECOSYSTEM_HIERARCHY,
   PARTNER_ECOSYSTEM_PHASES,
   PARTNER_ECOSYSTEM_POSITIONING,
   PARTNER_ECOSYSTEM_ROLES,
   RESELLER_DOES_NOT_ONBOARD,
   FOUNDING_IMPLEMENTATION_TARGET,
   DELIVERY_LAYERS,
+  formatPartnerTechnicalLabel,
 } from "@dg/platform-core";
 
 export function PartnerEcosystemOverview() {
@@ -42,16 +44,47 @@ export function PartnerEcosystemOverview() {
         <p className="mt-3 text-sm text-slate-400">{RESELLER_DOES_NOT_ONBOARD}</p>
       </div>
 
+      {/* Hierarchy — visual centrepiece */}
       <section>
-        <h2 className="text-base font-semibold text-white">Four partner types</h2>
+        <h2 className="text-base font-semibold text-white">Ecosystem hierarchy</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Skillsets and economics are different — do not collapse these into one generic reseller.
+          DigitalGate owns the centre. Partners sit around it — they never own the customer.
+        </p>
+        <ol className="mt-4 space-y-2">
+          {PARTNER_ECOSYSTEM_HIERARCHY.map((layer, i) => (
+            <li
+              key={layer.id}
+              className={`flex gap-3 rounded-xl border px-4 py-4 ${
+                layer.id === "platform"
+                  ? "border-sky-500/40 bg-sky-500/10"
+                  : "border-slate-700/50 bg-slate-800/40"
+              }`}
+            >
+              <span className="font-mono text-xs text-slate-500">{String(i + 1).padStart(2, "0")}</span>
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  {layer.title}{" "}
+                  <span className="font-normal text-slate-400">= {layer.role}</span>
+                </p>
+                <p className="mt-1 text-sm text-slate-400">{layer.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section>
+        <h2 className="text-base font-semibold text-white">Partner types</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Four commercial types. Skillsets and economics differ — do not collapse into one generic
+          reseller.
         </p>
         <div className="mt-4 overflow-x-auto rounded-xl border border-slate-700/60">
           <table className="w-full min-w-[40rem] text-sm">
             <thead>
               <tr className="border-b border-slate-700/60 text-left text-xs uppercase tracking-wider text-slate-500">
                 <th className="px-3 py-2">Type</th>
+                <th className="px-3 py-2">Commercial</th>
                 <th className="px-3 py-2">Primary role</th>
                 <th className="px-3 py-2">Acquire</th>
                 <th className="px-3 py-2">Onboard</th>
@@ -63,6 +96,7 @@ export function PartnerEcosystemOverview() {
               {PARTNER_ECOSYSTEM_ROLES.map((row) => (
                 <tr key={row.type} className="text-slate-300">
                   <td className="px-3 py-2 font-medium text-white">{row.label}</td>
+                  <td className="px-3 py-2 text-slate-400">{row.commercialLabel}</td>
                   <td className="px-3 py-2">{row.primaryRole}</td>
                   <td className="px-3 py-2">{row.acquisition ? "Yes" : "Optional"}</td>
                   <td className="px-3 py-2">
@@ -72,13 +106,7 @@ export function PartnerEcosystemOverview() {
                         ? "Optional"
                         : "No"}
                   </td>
-                  <td className="px-3 py-2">
-                    {row.technical === true
-                      ? "Yes"
-                      : row.technical === "some" || row.technical === "optional"
-                        ? String(row.technical)
-                        : "No"}
-                  </td>
+                  <td className="px-3 py-2">{formatPartnerTechnicalLabel(row.technical)}</td>
                   <td className="px-3 py-2 text-slate-400">{row.economics}</td>
                 </tr>
               ))}
@@ -88,23 +116,26 @@ export function PartnerEcosystemOverview() {
       </section>
 
       <section>
-        <h2 className="text-base font-semibold text-white">Ecosystem layers</h2>
-        <ol className="mt-4 space-y-2">
-          {PARTNER_ECOSYSTEM_LAYERS.map((layer, i) => (
-            <li
-              key={layer.id}
-              className="flex gap-3 rounded-lg border border-slate-700/50 bg-slate-800/40 px-4 py-3"
+        <h2 className="text-base font-semibold text-white">Partner capabilities</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Capabilities and certifications a partner may hold — not separate commercial partner
+          types. One partner record can carry more than one capability.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {PARTNER_CAPABILITIES.map((cap) => (
+            <div
+              key={cap.id}
+              className="rounded-xl border border-slate-700/60 bg-slate-800/40 px-4 py-3"
             >
-              <span className="font-mono text-xs text-slate-500">{i + 1}</span>
-              <div>
-                <p className="text-sm font-medium text-white">
-                  {layer.title} · {layer.role}
-                </p>
-                <p className="text-sm text-slate-400">{layer.body}</p>
-              </div>
-            </li>
+              <p className="text-sm font-semibold text-white">{cap.title}</p>
+              <p className="mt-1 text-sm text-slate-400">{cap.body}</p>
+            </div>
           ))}
-        </ol>
+        </div>
+        <p className="mt-3 text-xs text-slate-500">
+          Specialist tracks (CRM, AI, Automation, Website, Industry) are certifications under the
+          Specialist capability — not additional partner types.
+        </p>
       </section>
 
       <section>
@@ -124,6 +155,10 @@ export function PartnerEcosystemOverview() {
 
       <section>
         <h2 className="text-base font-semibold text-white">Build sequence</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Founding Resellers → Delivery Partners → Certification → Partner Operations → Marketplace.
+          Do not build a marketplace before the operating model is proven.
+        </p>
         <div className="mt-4 space-y-3">
           {PARTNER_ECOSYSTEM_PHASES.map((p) => (
             <div
@@ -149,6 +184,11 @@ export function PartnerEcosystemOverview() {
           Delivery Partners → then document and certify the model.
         </p>
       </section>
+
+      <p className="text-xs text-slate-500">
+        Keep Partners completely separate from Sales / Growth Engine. Founding 10 is a customer
+        cohort; Founding Reseller is a partner cohort; Delivery Partner is implementation capacity.
+      </p>
 
       <p className="text-sm text-slate-400">
         <Link href="/command/delivery/invitations" className="text-sky-400 hover:underline">

@@ -1,68 +1,97 @@
 # DigitalGate Partner Ecosystem
 
-**Positioning:** DigitalGate owns the platform, methodology, standards and customer relationship. Certified partners extend DigitalGate's ability to deliver that platform.
+**Status:** Canonical architecture lock — August 2026  
+**Surface:** `/command/partners/ecosystem`
 
-Do **not** make Founding Resellers responsible for onboarding unless they separately become a Certified Implementation Partner.
+**Positioning:**
 
-## Partner types
+> DigitalGate owns the platform, product roadmap, methodology, standards and customer relationship. Partners extend DigitalGate's ability to acquire, implement and optimise the platform.
 
-| Type | Primary role | Acquire | Onboard | Technical | Economics |
-|------|----------------|---------|---------|-----------|-----------|
-| Founding Reseller | Introduce & refer | Yes | Optional | No | Recurring commission |
-| Implementation Partner | Setup & onboarding | Optional | Yes | Some | Project fees |
-| Technology Partner | Integrations | Optional | Yes | Yes | Service revenue |
-| Strategic Partner | Larger / industry | Yes | Optional | Optional | Negotiated |
+Do **not** make Founding Resellers responsible for onboarding unless they separately become a Certified Delivery Partner. DigitalGate (or a Delivery Partner) delivers the customer experience.
+
+---
+
+## Ecosystem hierarchy (centrepiece)
+
+| Actor | Role |
+|-------|------|
+| **DigitalGate** | Platform owner |
+| **Reseller** | Acquisition |
+| **Delivery Partner** | Implementation |
+| **Specialist** | Expertise (capability / certification) |
+| **Customer Success** | Optimisation (capability / role) |
+
+---
+
+## Partner types (commercial — four only)
+
+| Type | Commercial label | Primary role | Acquire | Onboard | Technical | Economics |
+|------|------------------|--------------|---------|---------|-----------|-----------|
+| Reseller | Founding Reseller | Introduce & refer | Yes | Optional | No | Recurring commission |
+| Delivery | Delivery Partner | Setup & onboarding | Optional | Yes | Limited | Project fees |
+| Technology | Technology Partner | Integrations | Optional | Yes | Yes | Service revenue |
+| Strategic | Strategic Partner | Larger / industry | Yes | Optional | Partial | Negotiated |
+
+Do **not** add Certified Specialists or Customer Success Partners as fifth/sixth commercial partner types.
+
+---
+
+## Partner capabilities (roles a partner may hold)
+
+1. Acquisition  
+2. Implementation  
+3. Technical  
+4. Specialist  
+5. Customer Success  
+
+A partner can hold more than one capability. The underlying partner record remains a **single entity**.
+
+Specialist tracks (CRM, AI, Automation, Website, Industry) are **certifications** under the Specialist capability.
+
+---
 
 ## Delivery layers
 
 DigitalGate = platform + architecture + support + product  
-Implementation Partner = configuration + migration + training  
+Delivery Partner = configuration + migration + training  
 Customer = business decisions + information + adoption
-
-## Build sequence
-
-1. Founding Reseller Programme (now)
-2. Founding Implementation Partners — 2–3 people (next)
-3. Certification methodology
-4. Partner operations dashboard
-5. Partner Marketplace (later)
-
-**Surfaces:** `/command/partners/ecosystem` · `/command/partners/delivery` · `/command/partners/implementation` · `/command/partners/onboarding`
-
-Lock: `packages/platform-core/src/partners/ecosystem.ts` · `packages/platform-core/src/partners/delivery-model.ts`
 
 ---
 
-## Partner Programme dashboard (operator)
-
-**Surface:** `/command/partners`
-
-### Hierarchy
-
-1. Partner Programme — build and manage reseller, referral and delivery ecosystem  
-2. Partner Pulse — active resellers · referrals · customers referred · commission  
-3. What needs attention — intervention queue  
-4. Founding Reseller Programme — seats + invite  
-5. Partner Briefing · Ecosystem  
-6. Resellers · Delivery Partners · Recent activity  
-
-### Role lock
-
-| Role | Job |
-|------|-----|
-| **Founding Resellers** | Introduce qualified businesses. Ben closes. |
-| **Delivery Partners** | Implementation, specialist services, fulfilment. |
-
-### Developer requirement
-
-> Partner Dashboard must never become a prospecting or sales pipeline. DigitalGate’s customer acquisition remains owned by Sales / Growth Engine. Partner surfaces only manage the partner relationship, partner activity, referrals, reseller performance, onboarding and commissions.
+## Build sequence
 
 ```
-SALES      DigitalGate finds customers
-PARTNERS   Partners introduce customers
-DELIVERY   Partners/teams implement customers
-CUSTOMERS  DigitalGate operates their businesses
-REVENUE    DigitalGate monetises the platform
+Founding Resellers → Delivery Partners → Certification → Partner Operations → Marketplace
 ```
 
-Implementation: `buildPartnerDashboardWorkspace` · `PartnerProgrammeDashboard`
+1. Founding Reseller Programme — first two operating; invitation only; 3–5 highly qualified introducers  
+2. Founding Delivery Partners — recruit 2–3 excellent people, not 20  
+3. Certification — document methodology  
+4. Partner operations dashboard  
+5. Partner Marketplace — only after the operating model is proven  
+
+---
+
+## Separation locks (developer requirements)
+
+> Treat the current Partner Ecosystem model as the canonical architecture for DigitalGate’s partner system. Do not collapse Resellers, Delivery Partners, Technology Partners, Strategic Partners, Specialists or Customer Success into a generic partner type. Keep DigitalGate’s own Sales/Growth Engine completely separate from the Partner ecosystem.
+
+```
+Partner → Type → Capabilities → Certification → Referrals → Customers → Implementation → Success → Revenue/Commission
+```
+
+| Surface | Job |
+|---------|-----|
+| **Sales / Growth Engine** | DigitalGate’s own acquisition |
+| **Founding 10** | Customer acquisition / cohort |
+| **Founding Reseller** | Partner acquisition / cohort |
+| **Delivery Partner** | Implementation capacity |
+| **Partners** | External channel ecosystem |
+
+DigitalGate remains the platform owner, methodology owner and customer relationship owner.
+
+Build the data model and UI so this can scale to a future Partner Marketplace without an architectural rewrite.
+
+**Surfaces:** `/command/partners` · `/command/partners/ecosystem` · `/command/partners/delivery` · `/command/partners/onboarding`
+
+**Lock:** `packages/platform-core/src/partners/ecosystem.ts` · `packages/platform-core/src/partners/delivery-model.ts`
