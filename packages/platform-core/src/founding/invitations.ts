@@ -102,13 +102,21 @@ export type FoundingCohortSummary = {
   invited: number;
   accepted: number;
   remaining: number;
+  /** Active records somewhere in the lifecycle (not lost / withdrawn). */
+  inProgress: number;
 };
 
 export async function getFoundingCohortSummary(
   organisationId: string,
 ): Promise<FoundingCohortSummary> {
   if (!process.env.DATABASE_URL) {
-    return { limit: FOUNDING_COHORT_LIMIT, invited: 0, accepted: 0, remaining: FOUNDING_COHORT_LIMIT };
+    return {
+      limit: FOUNDING_COHORT_LIMIT,
+      invited: 0,
+      accepted: 0,
+      remaining: FOUNDING_COHORT_LIMIT,
+      inProgress: 0,
+    };
   }
   const { prisma } = await import("@dg/database");
   const rows = await prisma.opportunity.findMany({
@@ -117,9 +125,11 @@ export async function getFoundingCohortSummary(
   });
   let invited = 0;
   let accepted = 0;
+  let inProgress = 0;
   for (const row of rows) {
     const meta = asMeta(row.metadata);
     if (meta.founding_invitation_status === "withdrawn" || row.status === "lost") continue;
+    inProgress += 1;
     if (isFoundingCohortSeat(row.stage, row.status)) accepted += 1;
     if (
       meta.founding_invitation_status === "sent" ||
@@ -134,6 +144,7 @@ export async function getFoundingCohortSummary(
     invited,
     accepted,
     remaining: Math.max(0, FOUNDING_COHORT_LIMIT - accepted),
+    inProgress,
   };
 }
 

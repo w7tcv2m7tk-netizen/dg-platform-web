@@ -190,3 +190,41 @@ A separate **managed-resale / white-label Reseller Programme** remains later arc
 | [REVIEWS-AND-REFERRALS.md](../foundations/REVIEWS-AND-REFERRALS.md) | Platform Refer & Earn (commission system) |
 | Founding page | Offer surface — dual benefits; links to Founding Customer Terms |
 | Founding Customer Terms | `/founding-customer-terms/` — legal/commercial rules (draft until lawyer review) |
+
+---
+
+## Founding Customer Lifecycle (operator cockpit)
+
+**Surface:** Command Centre → Founding 10 (`/command/founding`)
+
+This is the **Founding Customer Programme** lifecycle / cohort management system — not a status dump.
+
+### Operator UX (locked direction)
+
+1. Headline: Founding Customer Programme — journey from first conversation → implementation → go-live → 30-day review
+2. Metrics: Invited · Accepted X/10 · Remaining · **In progress**
+3. **What needs attention** — intervention queue at the top
+4. Lifecycle in **three phases**: Acquisition · Qualification & Acceptance · Activation & Delivery
+5. Stage cards with customers, next action, and stage rules separated from records
+6. **Cohort dashboard** table (customer · stage · health · next action)
+
+### Source of truth (developer requirement)
+
+> Do not duplicate this lifecycle into CRM, Sales, Delivery and Customer Intelligence.
+
+The **Founding Customer record** (`pipelineId: founding_10` opportunity + founding metadata) is the source of truth for cohort progression, while:
+
+| System | Job |
+|--------|-----|
+| **Founding 10** | Programme membership and lifecycle |
+| **CRM** | Relationships |
+| **Sales / Growth Engine** | Commercial pipeline (non-founding acquisition) |
+| **Delivery** | Implementation projects |
+| **Customer Intelligence** | Customer health |
+| **Billing** | Subscriptions |
+
+Those systems **link to** the Founding Customer record rather than each maintaining their own version of the truth.
+
+### Entry paths
+
+Customers can enter through public application or personal invitation. Both paths enter the same Founding 10 qualification pipeline. Sending an invite does not use a seat; they are not one of the 10 until accepted.

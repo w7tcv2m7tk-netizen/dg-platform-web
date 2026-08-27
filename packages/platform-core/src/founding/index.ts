@@ -8,3 +8,4 @@ export * from "./analysis";
 export * from "./stage-actions";
 export * from "./invitations";
 export * from "./submit";
+export * from "./lifecycle-workspace";

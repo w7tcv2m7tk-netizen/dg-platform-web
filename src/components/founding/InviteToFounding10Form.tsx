@@ -69,8 +69,8 @@ export function InviteToFounding10Form({
     <div className={compact ? "space-y-3" : "dg-card space-y-3"}>
       <h2 className="font-semibold text-white">Invite to Founding 10</h2>
       <p className="text-sm text-slate-400">
-        Personal invitation into the same Founding 10 pipeline. Sending an invite
-        does not use a seat.
+        Customers can enter through public application or personal invitation. Both paths enter
+        the same Founding 10 qualification pipeline. Sending an invite does not use a seat.
       </p>
       {!contactId ? (
         <>
