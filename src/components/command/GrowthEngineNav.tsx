@@ -5,59 +5,50 @@ const MODULES = [
   {
     href: GROWTH_ENGINE_ROUTES.discovery,
     title: "Business Discovery",
-    description: "Add and filter prospect businesses by industry and location",
-    status: "Live",
-  },
-  {
-    href: GROWTH_ENGINE_ROUTES.pipeline,
-    title: "Prospect Pipeline",
-    description: "Kanban board from audit through to client conversion",
+    description: "Find and organise potential customers",
     status: "Live",
   },
   {
     href: GROWTH_ENGINE_ROUTES.audits,
     title: "AI Audit Engine™",
-    description: "Live website presence probes with Business Health scores",
+    description: "Analyse digital presence and business signals",
     status: "Live",
   },
   {
     href: GROWTH_ENGINE_ROUTES.reports,
     title: "Opportunity Reports",
-    description: "Executive summaries generated from the latest audit",
+    description: "Turn analysis into a clear commercial opportunity",
     status: "Live",
   },
   {
     href: GROWTH_ENGINE_ROUTES.followUps,
     title: "Smart Follow-Up",
-    description: "Idle-prospect queue from real pipeline timestamps",
+    description: "Know who needs attention and what to do next",
     status: "Live",
   },
   {
     href: GROWTH_ENGINE_ROUTES.proposals,
     title: "Proposal Generator",
-    description: "Audit briefings + Commerce list-price quotes",
+    description: "Turn qualified opportunities into proposals",
+    status: "Live",
+  },
+  {
+    href: GROWTH_ENGINE_ROUTES.pipeline,
+    title: "Prospect Pipeline",
+    description: "Move prospects through qualification and conversion",
     status: "Live",
   },
   {
     href: GROWTH_ENGINE_ROUTES.conversions,
     title: "Conversion Dashboard",
-    description:
-      "Audits, open rates, meetings, wins — real funnel counts; Growth MRR won stays $0",
+    description: "Understand the funnel and what's producing results",
     status: "Live",
   },
 ] as const;
 
-const DAILY_BRIEFING_CARD = {
-  href: GROWTH_ENGINE_ROUTES.hub,
-  title: "Daily Briefing",
-  description:
-    "Prospect ranks feeding Opportunity Engine™ — who to speak to today. Not an autonomous AI SDR.",
-  status: "Live",
-} as const;
-
 export function GrowthEngineNav({ active }: { active?: string }) {
   return (
-    <nav className="flex flex-wrap gap-2 border-b border-slate-800 pb-4" aria-label="Prospecting">
+    <nav className="flex flex-wrap gap-2 border-b border-slate-800 pb-4" aria-label="Growth Engine">
       <Link
         href={GROWTH_ENGINE_ROUTES.hub}
         className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${
@@ -66,7 +57,7 @@ export function GrowthEngineNav({ active }: { active?: string }) {
             : "border border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white"
         }`}
       >
-        Daily Briefing
+        Growth Engine
       </Link>
       {MODULES.map((mod) => (
         <Link
@@ -85,11 +76,11 @@ export function GrowthEngineNav({ active }: { active?: string }) {
   );
 }
 
+/** @deprecated Prefer GrowthEngineCapabilityGrid on the hub — kept for subpages. */
 export function GrowthEngineModuleGrid() {
-  const cards = [DAILY_BRIEFING_CARD, ...MODULES];
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {cards.map((mod) => (
+      {MODULES.map((mod) => (
         <Link
           key={mod.title}
           href={mod.href}

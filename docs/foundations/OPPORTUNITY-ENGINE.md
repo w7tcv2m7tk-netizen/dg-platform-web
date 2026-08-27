@@ -40,7 +40,8 @@ CRM is not a mid-journey detour after scoring — **Activate** promotes Contact 
 | Surface | Who | Job |
 |---------|-----|-----|
 | **Command Centre → Prospecting** | DigitalGate staff | Acquire DigitalGate customers (GTM) |
-| **Growth → Prospecting & Opportunity Engine** | Tenant customers | Find and convert *their* prospects |
+| **Growth → Prospecting & Opportunity Engine** | Tenant customers | Capability suite ($99) under **Sales → Growth Engine™** |
+| **Sales → Growth Engine™** | Tenant customers | Orchestration workspace (Daily Briefing + loop) |
 
 Staff operating surface for DigitalGate GTM remains under Command Centre. This Growth App is the tenant-facing product.
 

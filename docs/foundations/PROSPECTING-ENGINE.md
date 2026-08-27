@@ -25,7 +25,12 @@ DigitalGate’s intelligent prospecting and opportunity engine turns business di
 
 **Prospect ≠ CRM Company.** Discovery builds the prospect book; CRM stays clean until convert.
 
-**Terminology:** Tenant Growth App = **Prospecting & Opportunity Engine**. Staff GTM = **Growth Engine** (Command Centre). Do not use those names interchangeably for customers.
+**Terminology:**
+- **Growth Engine™** = Sales orchestration workspace (Daily Briefing + Growth Loop + capability navigation). Not a separate Growth App.
+- **Prospecting & Opportunity Engine** = the $99/mo capability suite underneath (Discovery, Scoring, Pipeline, Activity).
+- DigitalGate staff GTM also uses Growth Engine under Command Centre (`/command/growth-engine`).
+
+Do not present Growth Engine and Prospecting & Opportunity Engine as competing peer hubs.
 
 **ABN + Places:** Australian differentiator — Places for discovery, ABN for identity; enrich toward full Business Intelligence Profile.
 
@@ -66,17 +71,16 @@ Implementation: `buildProspectingActivityWorkspace` · `preserveProspectActivity
 
 ---
 
-## Dual product lock (firm)
+## Dual surface lock (firm)
 
-You effectively have **two products** on the same underlying engine:
+Same underlying engine; two operating surfaces:
 
 | Side | Surface | Who | Job |
 |------|---------|-----|-----|
-| **Operator** | Command Centre → Prospecting | DigitalGate staff | Acquire DigitalGate customers (GTM) |
-| **Customer** | Growth → Prospecting & Opportunity Engine | Tenant | Find and convert *their* prospects |
+| **Operator** | Command Centre → Growth Engine™ | DigitalGate staff | Acquire DigitalGate customers (GTM) |
+| **Customer** | Sales → Growth Engine™ | Tenant | Orchestrate *their* growth loop |
 
-Staff operating surface for DigitalGate GTM remains under Command Centre Prospecting.  
-**This Growth App is the tenant-facing product.** Do not blur the two.
+Capabilities (Discovery, Scoring, Pipeline, Activity, …) live under Growth Engine — not as a second competing product named separately in the nav as a peer hub.
 
 ---
 
@@ -188,7 +192,7 @@ Used by DigitalGate customers (B2B services, finance, commercial property broker
 
 **Job:** Find **businesses** that may need your product or service.
 
-**Tenant surface:** Growth → **Prospecting & Opportunity Engine** → Business Discovery  
+**Tenant surface:** Sales → **Growth Engine™** → Business Discovery  
 **Canonical routes:** `/apps/prospecting/*`
 
 ### 2. Consumer / Property Prospecting

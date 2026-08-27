@@ -191,11 +191,11 @@ export async function ProspectingDiscoverySurface({
       <header className="dg-page-header">
         {variant === "command" ? (
           <Link href={hubHref} className="text-sm text-sky-400 hover:underline">
-            ← Growth Engine (GTM)
+            ← Growth Engine™
           </Link>
         ) : (
           <Link href="/apps/prospecting" className="text-sm text-sky-400 hover:underline">
-            ← Prospecting & Opportunity Engine
+            ← Growth Engine™
           </Link>
         )}
         <h1 className="mt-2 text-2xl font-bold text-white">Business Discovery</h1>

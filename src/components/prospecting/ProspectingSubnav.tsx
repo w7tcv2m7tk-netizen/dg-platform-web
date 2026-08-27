@@ -2,18 +2,18 @@
 
 import Link from "next/link";
 
-/** Tenant Growth App sections — Prospecting & Opportunity Engine */
+/** Sales → Growth Engine™ capability subnav */
 const LINKS = [
-  { href: "/apps/prospecting", label: "Overview" },
+  { href: "/apps/prospecting", label: "Growth Engine" },
   { href: "/apps/prospecting/discovery", label: "Discovery" },
-  { href: "/apps/prospecting/scores", label: "Opportunities" },
+  { href: "/apps/prospecting/scores", label: "Scoring" },
   { href: "/apps/prospecting/pipeline", label: "Pipeline" },
   { href: "/apps/prospecting/activity", label: "Activity" },
 ] as const;
 
 export function ProspectingSubnav({ active }: { active: string }) {
   return (
-    <nav className="mt-4 flex flex-wrap gap-2" aria-label="Prospecting & Opportunity Engine">
+    <nav className="mt-4 flex flex-wrap gap-2" aria-label="Growth Engine">
       {LINKS.map((link) => {
         const isActive =
           active === link.href ||

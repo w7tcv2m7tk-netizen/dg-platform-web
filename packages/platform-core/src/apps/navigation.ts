@@ -597,14 +597,14 @@ function getDigitalGateOperatorSection(): NavIaSection {
         primaryHref: commandCentre.primaryHref,
       },
       operatorApp("dg-sales", "Sales", "prospecting", "/apps/prospecting", [
-        { path: "/apps/prospecting", label: "Overview" },
+        { path: "/apps/prospecting", label: "Growth Engine™" },
         { path: "/apps/prospecting/discovery", label: "Discovery" },
         { path: "/apps/prospecting/scores", label: "Opportunity Scoring" },
         { path: "/apps/prospecting/pipeline", label: "Pipeline" },
         { path: "/apps/prospecting/activity", label: "Activity" },
         {
           path: "/command/growth-engine",
-          label: "Growth Engine (GTM)",
+          label: "GTM Acquisition",
           matchAlso: [
             "/command/growth-engine/pipeline",
             "/command/growth-engine/audits",

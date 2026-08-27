@@ -58,8 +58,7 @@ export async function ProspectingPipelineSurface({
   const pipelinePath =
     variant === "apps" ? "/apps/prospecting/pipeline" : "/command/growth-engine/pipeline";
   const hubHref = variant === "apps" ? "/apps/prospecting" : "/command/growth-engine";
-  const hubLabel =
-    variant === "apps" ? "Prospecting & Opportunity Engine" : "Growth Engine (GTM)";
+  const hubLabel = "Growth Engine™";
 
   const prospects = process.env.DATABASE_URL
     ? await listGrowthProspects({

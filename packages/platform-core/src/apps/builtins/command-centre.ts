@@ -21,7 +21,7 @@ export const commandCentreApp: AppManifest = {
     { path: "/command/founding", label: "Founding 10" },
     { path: "/command/opportunities", label: "Opportunities" },
     { path: "/command/opportunities/expansion", label: "Expansion" },
-    { path: "/command/growth-engine", label: "Prospecting" },
+    { path: "/command/growth-engine", label: "Growth Engine™" },
     { path: "/command/advisor", label: "Recommended Actions" },
     { path: "/command/platform-health", label: "Platform Alerts" },
     { path: "/command/partners", label: "Resellers" },

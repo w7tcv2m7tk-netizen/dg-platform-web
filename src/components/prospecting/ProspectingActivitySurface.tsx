@@ -112,7 +112,7 @@ export function ProspectingActivitySurface({
     <>
       <header className="dg-page-header">
         <Link href="/apps/prospecting" className="text-sm text-sky-400 hover:underline">
-          ← Prospecting & Opportunity Engine
+          ← Growth Engine™
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Activity</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">

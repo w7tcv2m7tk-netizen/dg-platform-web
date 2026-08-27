@@ -1,45 +1,71 @@
 # DigitalGate Growth Engine™
 
-**The repeatable, AI-powered acquisition system inside Command Centre**
+**The intelligent growth orchestration workspace**
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Last updated:** August 2026  
-**Status:** Architecture defined — internal-only, builds on Scoring + Twin + Connectors  
-**Parent:** [Command Centre](./COMMAND-CENTRE.md) (`command-centre` App, `/command/growth-engine/*`)
+**Status:** Hub shipped — Daily Briefing + Growth Loop + capability navigation  
+**Surfaces:**
+- **Sales (customers):** `/apps/prospecting` — breadcrumb `← Sales`
+- **Command Centre (DigitalGate GTM):** `/command/growth-engine` — breadcrumb `← Command Centre`
 
 ---
 
 ## What it is (and what it is not)
 
-The **Growth Engine** is **not** a prospecting tool or a cold-outreach spreadsheet.
+Growth Engine™ is **not** another standalone Growth App and **not** a cold-outreach spreadsheet.
 
-It is DigitalGate’s **internal acquisition operating system** — a connected pipeline that:
+It is the **experience / orchestration layer** that brings discovery, audit, scoring, activity, pipeline and conversion into one coherent growth system.
 
-1. **Discovers** businesses worth talking to  
-2. **Audits** their digital presence automatically  
-3. **Demonstrates value** through branded interactive reports  
-4. **Tracks engagement** without manual CRM entry  
-5. **Follows up** with context and timing  
-6. **Converts** accepted proposals into live platform tenants  
+```
+Sales
+→ Growth Engine™          The intelligent growth workspace
+  → Daily Briefing        What should I do today?
+  → Growth Pipeline       Where are my opportunities?
+  → Growth capabilities   Discovery · Audit · Reports · Follow-Up · Proposals · Conversion
+  → CRM                   The underlying customer relationship record
+```
 
-Customers never see the Growth Engine. DigitalGate staff use it inside **Command Centre**.
+Capabilities underneath (Discovery, AI Audit, Opportunity Scoring, Reports, Pipeline, Activity, Smart Follow-Up, Proposals, Analytics) remain part of the Prospecting & Opportunity Engine / Growth **ecosystem** — Growth Engine does not duplicate them as a second product.
 
 ---
 
-## Command Centre structure
+## Positioning lock
+
+| Side | Entry | Who | Job |
+|------|-------|-----|-----|
+| **Customer** | Sales → Growth Engine™ | Tenant | Orchestrate *their* growth loop |
+| **Operator** | Command Centre → Growth Engine™ | DigitalGate staff | Acquire DigitalGate customers (GTM) |
+
+Same UX pattern on both surfaces. Operator hub also collapses beta honesty constraints so the page sells the workflow, not the limitations.
+
+**Do not** present Growth Engine, Prospecting & Opportunity Engine, Opportunities, Discovery and Pipeline as competing peer products. Growth Engine orchestrates; the rest are capabilities.
+
+---
+
+## Hub UX (locked direction)
+
+1. **Headline** — Turn business discovery into qualified opportunities and customers.
+2. **The Growth Loop** — Discover → Understand → Score → Engage → Pipeline → Convert
+3. **Daily Briefing** — intelligence heart: who to speak to today (Opportunity Score™ + why now + recommended action)
+4. **Metrics** — Recommended · Contacted today · Conversations · Meetings booked · **Action queue** · Pipeline value (only when real proposal $ exist)
+5. **Growth Pipeline snapshot** — Prospects · Engaged 7d · Qualified · Opportunities · Meetings · Converted
+6. **Daily recommended** — ranked list; disclaimer in supporting text (not autonomous AI SDR)
+7. **Capability cards** — navigation, journey-grouped (Find / Understand / Engage / Convert)
+
+---
+
+## Command Centre GTM modules
+
+Operator routes under `/command/growth-engine/*` remain the GTM acquisition tooling:
 
 ```
-Command Centre (internal App)
-├── Platform Operations      → /command, /command/platform-health
-├── Client Success           → /command/clients
-├── Billing                  → /command/revenue
-├── Support                  → /command/support
-├── Product Analytics        → flags, audit, usage (future)
-├── Growth Engine™           → /command/growth-engine/*
-└── Executive Dashboard      → /command/reports
+Command Centre
+└── Growth Engine™           → /command/growth-engine/*
+    ├── Audits / Reports / Pipeline / Follow-ups / Proposals / Conversions
 ```
 
-**Naming note:** The existing **Client Expansion** module (`/command/opportunities`) is for **upsell on live tenants**. Growth Engine is for **new business acquisition** — different lifecycle, same Twin/scoring pipeline underneath.
+**Naming note:** **Client Expansion** (`/command/opportunities`) is upsell on live tenants. Growth Engine is **new business acquisition** — different lifecycle, same Twin/scoring pipeline underneath.
 
 ---
 
@@ -52,7 +78,7 @@ AI Audit Engine™
       ↓
 Interactive Opportunity Report
       ↓
-Prospect Pipeline (auto CRM)
+Prospect Pipeline
       ↓
 Smart Follow-Up
       ↓
@@ -63,7 +89,7 @@ Client Transition (org + subscription + onboarding)
 Customer Success → Renewal → Upsell → Referral
 ```
 
-Every stage feeds the next. **No duplicate data entry** at conversion — prospect record becomes organisation, Twin, and dashboard.
+Every stage feeds the next. **No duplicate data entry** at conversion — prospect record becomes organisation, Twin, and dashboard. Activity stays on prospect identity and is preserved into CRM.
 
 ---
 
