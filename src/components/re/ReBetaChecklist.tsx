@@ -4,7 +4,7 @@ import Link from "next/link";
 export function ReBetaGateMessage() {
   return (
     <div className="dg-card border border-amber-500/30 bg-amber-500/5">
-      <h2 className="text-lg font-semibold text-white">Real Estate beta</h2>
+      <h2 className="text-lg font-semibold text-white">Closed beta</h2>
       <p className="mt-2 text-sm text-slate-300">
         This organisation isn’t enrolled in the Real Estate beta yet. Ask DigitalGate to enable{" "}
         <code className="text-amber-200">re.beta</code> in Command Centre, or create a new business

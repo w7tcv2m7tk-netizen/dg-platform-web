@@ -8,10 +8,10 @@ export default async function CommandPlatformAlertsPage() {
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Alerts</h1>
+        <h1 className="text-2xl font-bold text-white">Platform Alerts</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Platform health and issues requiring DigitalGate staff attention — distinct from customer
-          business alerts inside each organisation.
+          What is wrong, unusual or requires intervention — DigitalGate operating DigitalGate.
+          Distinct from customer business alerts inside each organisation.
         </p>
       </header>
       <main className="dg-page-main space-y-8">

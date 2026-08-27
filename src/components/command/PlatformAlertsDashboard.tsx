@@ -2,242 +2,315 @@ import Link from "next/link";
 
 import type { PlatformAlert, PlatformAlertsCentre } from "@dg/platform-core";
 
-function severityEmoji(severity: PlatformAlert["severity"]) {
-  if (severity === "critical") return "🔴";
-  if (severity === "attention") return "🟠";
-  return "🔵";
+function actionButtonClass(id: PlatformAlert["actions"][number]["id"], primary: boolean) {
+  if (primary) {
+    return "rounded-full bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-500";
+  }
+  return "rounded-full border border-slate-600 px-3 py-1.5 text-xs text-slate-200 hover:border-slate-400 hover:text-white";
 }
 
-function AlertCard({ alert }: { alert: PlatformAlert }) {
+function AlertRow({ alert, compact }: { alert: PlatformAlert; compact?: boolean }) {
   return (
-    <article className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5">
-      <div className="flex items-start gap-3">
-        <span aria-hidden className="text-lg">
-          {severityEmoji(alert.severity)}
-        </span>
-        <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-white">{alert.title}</h3>
-          {alert.organisationName ? (
-            <p className="mt-1 text-xs text-slate-500">Organisation: {alert.organisationName}</p>
-          ) : null}
-          <p className="mt-2 text-sm text-slate-300">{alert.message}</p>
+    <article
+      className={
+        compact
+          ? "border-t border-slate-800/80 px-1 py-4 first:border-t-0 first:pt-0"
+          : "rounded-xl border border-slate-700/60 bg-slate-950/40 px-4 py-4"
+      }
+    >
+      <h3 className="font-semibold text-white">{alert.title}</h3>
+      <p className="mt-1.5 text-sm text-slate-400">{alert.message}</p>
+      {!compact ? (
+        <>
           <p className="mt-2 text-xs text-slate-500">
-            Detected: {new Date(alert.detectedAt).toLocaleString("en-AU", { dateStyle: "medium", timeStyle: "short" })}
+            Detected:{" "}
+            {new Date(alert.detectedAt).toLocaleString("en-AU", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })}
           </p>
           <p className="mt-2 text-sm text-slate-400">
             <span className="text-slate-300">Impact:</span> {alert.impact}
           </p>
-          <p className="mt-2 text-sm text-amber-100/90">
-            <span className="text-amber-200/80">Recommended action:</span> {alert.recommendedAction}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {alert.actions.map((action) => (
-              <Link
-                key={action.id}
-                href={action.href}
-                className={
-                  action.id === "investigate"
-                    ? "rounded-full bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-500"
-                    : "rounded-full border border-slate-600 px-3 py-1.5 text-xs text-slate-200 hover:border-slate-400 hover:text-white"
-                }
-              >
-                {action.label}
-              </Link>
-            ))}
-          </div>
-        </div>
+        </>
+      ) : null}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {alert.actions.map((action, index) => (
+          <Link
+            key={action.id}
+            href={action.href}
+            className={actionButtonClass(action.id, index === 0 && alert.severity === "critical")}
+          >
+            {action.label}
+          </Link>
+        ))}
       </div>
     </article>
   );
 }
 
-function AlertSection({
-  title,
-  subtitle,
-  alerts,
+function SeverityBlock({
+  emoji,
+  label,
+  count,
+  tone,
   emptyMessage,
+  alerts,
 }: {
-  title: string;
-  subtitle: string;
-  alerts: PlatformAlert[];
+  emoji: string;
+  label: string;
+  count: number;
+  tone: "critical" | "attention" | "notice";
   emptyMessage: string;
+  alerts: PlatformAlert[];
 }) {
+  const border =
+    tone === "critical"
+      ? "border-rose-500/35"
+      : tone === "attention"
+        ? "border-amber-500/35"
+        : "border-sky-500/30";
+  const titleColor =
+    tone === "critical"
+      ? "text-rose-200"
+      : tone === "attention"
+        ? "text-amber-100"
+        : "text-sky-200";
+  const countColor =
+    tone === "critical"
+      ? "text-rose-300"
+      : tone === "attention"
+        ? "text-amber-200"
+        : "text-sky-300";
+
   return (
-    <section>
-      <h2 className="text-lg font-semibold text-white">{title}</h2>
-      <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
+    <section className={`rounded-xl border ${border} bg-slate-950/50 px-5 py-5`}>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className={`text-base font-semibold tracking-wide ${titleColor}`}>
+          {emoji} {label}
+        </h2>
+        <span className={`text-2xl font-semibold tabular-nums ${countColor}`}>{count}</span>
+      </div>
       {alerts.length === 0 ? (
-        <p className="mt-4 rounded-xl border border-slate-800 bg-slate-950/30 px-4 py-4 text-sm text-slate-500">
-          {emptyMessage}
-        </p>
+        <p className="mt-3 text-sm text-slate-500">{emptyMessage}</p>
       ) : (
-        <ul className="mt-4 space-y-3">
+        <div className="mt-4">
           {alerts.map((alert) => (
-            <li key={alert.id}>
-              <AlertCard alert={alert} />
-            </li>
+            <AlertRow key={alert.id} alert={alert} compact />
           ))}
-        </ul>
+        </div>
       )}
     </section>
   );
 }
 
+function statusDot(tone: "healthy" | "degraded" | "idle" | undefined) {
+  if (tone === "degraded") return "🟠";
+  if (tone === "idle") return "⚪";
+  return "🟢";
+}
+
 export function PlatformAlertsDashboard({ data }: { data: PlatformAlertsCentre }) {
   const { operationalLoad, connectors, commercial, infrastructureServices } = data;
+  const criticalCount = data.critical.length;
+  const attentionCount = data.attention.length;
+  const noticeCount = data.notices.length;
+
+  const platformOk = criticalCount === 0;
+  const statusSummary = platformOk
+    ? attentionCount > 0
+      ? `No critical platform issues. ${operationalLoad.customersRequiringAttention} organisation${operationalLoad.customersRequiringAttention === 1 ? "" : "s"} require attention.`
+      : "No critical platform issues."
+    : `${criticalCount} critical platform issue${criticalCount === 1 ? "" : "s"} require intervention.`;
+
+  const stripeTone = commercial.stripeOk ? "healthy" : "degraded";
+  const stripeLabel = commercial.stripeOk
+    ? commercial.stripeMode === "live"
+      ? "Live"
+      : commercial.stripeMode === "test"
+        ? "Test"
+        : "Configured"
+    : "Needs setup";
+  const stripeDetail = commercial.stripeOk
+    ? commercial.checklist.find((c) => c.id === "webhooks")?.done
+      ? "Webhooks healthy"
+      : "API connected"
+    : "Billing config incomplete";
 
   return (
-    <div className="space-y-10">
-      {/* Operational Load */}
-      <section className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-5 py-5">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">
-          Operational load
+    <div className="space-y-8">
+      {/* Platform status — glance answer: Is DigitalGate OK? */}
+      <section
+        className={`rounded-xl border px-5 py-4 ${
+          platformOk
+            ? "border-emerald-500/30 bg-emerald-500/5"
+            : "border-rose-500/35 bg-rose-500/5"
+        }`}
+      >
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+          Platform status
         </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <LoadStat
-            label="DigitalGate CRM tasks due"
-            value={operationalLoad.tasksDueToday}
-            href="/command/tasks"
+        <p
+          className={`mt-2 text-xl font-semibold ${
+            platformOk ? "text-emerald-200" : "text-rose-200"
+          }`}
+        >
+          {platformOk ? "🟢 Operational" : "🔴 Intervention required"}
+        </p>
+        <p className="mt-1 text-sm text-slate-400">{statusSummary}</p>
+      </section>
+
+      {/* Operational status */}
+      <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+          Operational status
+        </p>
+        <div className="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+          <StatusMetric label="CRM tasks due" value={operationalLoad.tasksDueToday} href="/command/tasks" />
+          <StatusMetric
+            label="Overdue responses"
+            value={operationalLoad.overdueResponses}
+            href="/command/clients"
           />
-          <LoadStat label="Overdue responses" value={operationalLoad.overdueResponses} href="/command/clients" />
-          <LoadStat label="Delivery blocked" value={operationalLoad.deliveryBlocked} href="/command/delivery" />
-          <LoadStat label="Failed onboarding" value={operationalLoad.failedOnboarding} href="/command/delivery" />
-          <LoadStat
-            label="Customers requiring attention"
+          <StatusMetric
+            label="Delivery blocked"
+            value={operationalLoad.deliveryBlocked}
+            href="/command/delivery"
+          />
+          <StatusMetric
+            label="Failed onboarding"
+            value={operationalLoad.failedOnboarding}
+            href="/command/delivery"
+          />
+          <StatusMetric
+            label="Customers needing attention"
             value={operationalLoad.customersRequiringAttention}
             href="/command/clients"
           />
-          <LoadStat
-            label="Critical platform issues"
+          <StatusMetric
+            label="Critical issues"
             value={operationalLoad.criticalPlatformIssues}
-            href="/command/platform-health"
+            href="#critical"
           />
         </div>
       </section>
 
-      <AlertSection
-        title="🔴 Critical"
-        subtitle="Issues affecting customers, revenue, security or platform availability."
-        alerts={data.critical}
-        emptyMessage="No critical platform issues right now."
-      />
+      <div id="critical">
+        <SeverityBlock
+          emoji="🔴"
+          label="Critical"
+          count={criticalCount}
+          tone="critical"
+          emptyMessage="No critical platform issues right now."
+          alerts={data.critical}
+        />
+      </div>
 
-      <AlertSection
-        title="🟠 Attention required"
-        subtitle="Issues that aren't immediately critical but need staff intervention."
-        alerts={data.attention}
+      <SeverityBlock
+        emoji="🟠"
+        label="Attention required"
+        count={attentionCount}
+        tone="attention"
         emptyMessage="Nothing needs immediate staff attention."
+        alerts={data.attention}
       />
 
-      <AlertSection
-        title="🔵 Platform notices"
-        subtitle="Operational information that doesn't require immediate action."
-        alerts={data.notices}
+      <SeverityBlock
+        emoji="🔵"
+        label="Platform notices"
+        count={noticeCount}
+        tone="notice"
         emptyMessage="No platform notices at this time."
+        alerts={data.notices}
       />
 
-      {/* Infrastructure & Services */}
-      <section>
-        <h2 className="text-lg font-semibold text-white">Infrastructure &amp; Services</h2>
-        <p className="mt-1 text-sm text-slate-400">
-          Platform services health — operator view without provider internals.
+      {/* Platform services — subordinate compact grid */}
+      <section className="rounded-xl border border-slate-800 bg-slate-950/30 px-5 py-5">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+          Platform services
         </p>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-          {infrastructureServices.map((row) => (
-            <li
-              key={row.id}
-              className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium text-white">{row.label}</p>
-                  <p className="mt-1 text-sm text-emerald-300">{row.statusLabel}</p>
-                  <p className="mt-1 text-xs text-slate-500">{row.detail}</p>
-                </div>
-                {row.href ? (
-                  <Link href={row.href} className="shrink-0 text-xs text-sky-400 hover:underline">
-                    Open →
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[32rem] text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
+                <th className="pb-2 pr-4 font-medium">Service</th>
+                <th className="pb-2 pr-4 font-medium">Status</th>
+                <th className="pb-2 font-medium">Detail</th>
+              </tr>
+            </thead>
+            <tbody className="text-slate-300">
+              {infrastructureServices.map((row) => (
+                <tr key={row.id} className="border-b border-slate-800/60">
+                  <td className="py-2.5 pr-4 text-slate-200">
+                    {row.href ? (
+                      <Link href={row.href} className="hover:text-sky-300">
+                        {row.label}
+                      </Link>
+                    ) : (
+                      row.label
+                    )}
+                  </td>
+                  <td className="py-2.5 pr-4 whitespace-nowrap">
+                    {statusDot(row.tone)} {row.statusLabel}
+                  </td>
+                  <td className="py-2.5 text-slate-500">{row.detail}</td>
+                </tr>
+              ))}
+              <tr>
+                <td className="py-2.5 pr-4 text-slate-200">
+                  <Link href="/command/revenue" className="hover:text-sky-300">
+                    Stripe
                   </Link>
-                ) : null}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* Commercial Infrastructure */}
-      <section>
-        <h2 className="text-lg font-semibold text-white">Commercial infrastructure</h2>
-        <p className="mt-1 text-sm text-slate-400">Billing and payment plumbing for the platform.</p>
-        <div className="mt-4 rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="font-medium text-white">Stripe</p>
-              <p className="mt-1 text-sm text-emerald-300">
-                {commercial.stripeOk ? "Healthy" : "Needs attention"} ·{" "}
-                {commercial.stripeMode === "live" ? "Live" : commercial.stripeMode === "test" ? "Test" : "Unset"}
-              </p>
-            </div>
-            <Link href="/command/revenue" className="text-sm text-sky-400 hover:underline">
-              Billing settings →
-            </Link>
-          </div>
-          <ul className="mt-4 space-y-2">
-            {commercial.checklist.map((item) => (
-              <li key={item.id} className="flex items-center gap-2 text-sm">
-                <span className={item.done ? "text-emerald-400" : "text-slate-600"}>
-                  {item.done ? "✓" : "○"}
-                </span>
-                <span className={item.done ? "text-slate-300" : "text-slate-500"}>
-                  {item.label}
-                  {item.optional ? " · Optional" : ""}
-                </span>
-              </li>
-            ))}
-          </ul>
+                </td>
+                <td className="py-2.5 pr-4 whitespace-nowrap">
+                  {statusDot(stripeTone)} {stripeLabel}
+                </td>
+                <td className="py-2.5 text-slate-500">{stripeDetail}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
-      {/* Connector Health */}
-      <section>
+      {/* Legacy connectors — compact */}
+      <section className="rounded-xl border border-slate-800 bg-slate-950/30 px-5 py-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-white">Legacy WordPress connectors</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              {connectors.connectedOrganisations} organisation
-              {connectors.connectedOrganisations === 1 ? "" : "s"} still have a WP bridge
-              configured — Gen 2 is SoT; idle sync is expected during detach.
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+              Legacy connectors
+            </p>
+            <p className="mt-2 text-sm text-slate-300">
+              <span className="font-semibold text-white">{connectors.connectedOrganisations}</span>{" "}
+              configured ·{" "}
+              <span className="font-semibold text-white">{connectors.failed}</span> failed ·{" "}
+              <span className="font-semibold text-white">{connectors.healthy}</span> synced recently ·{" "}
+              <span className="font-semibold text-white">{connectors.attention}</span> idle
             </p>
           </div>
           <Link href="/command/clients" className="text-sm text-sky-400 hover:underline">
-            View orgs →
+            View organisations →
           </Link>
-        </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <ConnectorStat label="Synced recently" value={connectors.healthy} tone="emerald" />
-          <ConnectorStat label="Idle (legacy)" value={connectors.attention} tone="amber" />
-          <ConnectorStat label="Failed" value={connectors.failed} tone="rose" />
         </div>
       </section>
 
       {/* Developer diagnostics — de-emphasised */}
-      <section className="rounded-xl border border-dashed border-slate-700 bg-slate-950/20 px-5 py-5">
+      <section className="rounded-xl border border-dashed border-slate-700 bg-slate-950/20 px-5 py-4">
         <h2 className="text-sm font-semibold text-slate-400">Developer / System diagnostics</h2>
         <p className="mt-1 text-xs text-slate-500">
-          Implementation and observability details — not part of the primary operator experience.
+          Technical implementation and observability details.
         </p>
         <Link
           href="/command/platform-health/diagnostics"
-          className="mt-3 inline-block text-sm text-sky-400 hover:underline"
+          className="mt-2 inline-block text-sm text-sky-400 hover:underline"
         >
-          Open system diagnostics →
+          Open diagnostics →
         </Link>
       </section>
     </div>
   );
 }
 
-function LoadStat({
+function StatusMetric({
   label,
   value,
   href,
@@ -247,36 +320,17 @@ function LoadStat({
   href: string;
 }) {
   return (
-    <Link
-      href={href}
-      className="rounded-lg border border-slate-700/60 bg-slate-950/40 px-4 py-3 transition hover:border-sky-500/30"
-    >
-      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
+    <Link href={href} className="group flex items-baseline justify-between gap-3 py-0.5">
+      <span className="text-xs uppercase tracking-wide text-slate-500 group-hover:text-slate-400">
+        {label}
+      </span>
+      <span
+        className={`text-lg font-semibold tabular-nums ${
+          value > 0 ? "text-white" : "text-slate-500"
+        }`}
+      >
+        {value}
+      </span>
     </Link>
-  );
-}
-
-function ConnectorStat({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone: "emerald" | "amber" | "rose";
-}) {
-  const toneClass =
-    tone === "emerald"
-      ? "border-emerald-500/25 text-emerald-200"
-      : tone === "amber"
-        ? "border-amber-500/25 text-amber-100"
-        : "border-rose-500/25 text-rose-100";
-
-  return (
-    <div className={`rounded-xl border bg-slate-950/40 px-4 py-4 ${toneClass}`}>
-      <p className="text-xs uppercase tracking-wide opacity-80">{label}</p>
-      <p className="mt-1 text-3xl font-semibold">{value}</p>
-    </div>
   );
 }

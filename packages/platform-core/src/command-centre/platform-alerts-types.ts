@@ -5,8 +5,18 @@
 
 export type PlatformAlertSeverity = "critical" | "attention" | "notice";
 
+/** Action ids are category-aware — not every alert gets Resolve. */
 export type PlatformAlertAction = {
-  id: "investigate" | "resolve" | "assign";
+  id:
+    | "investigate"
+    | "resolve"
+    | "assign"
+    | "client-intelligence"
+    | "view-organisations"
+    | "settings"
+    | "open-delivery"
+    | "billing"
+    | "open-infrastructure";
   label: string;
   href: string;
 };
@@ -38,6 +48,8 @@ export type InfrastructureServiceRow = {
   statusLabel: string;
   detail: string;
   href?: string;
+  /** Compact grid tone — healthy | degraded | idle */
+  tone?: "healthy" | "degraded" | "idle";
 };
 
 export type ConnectorHealthSummary = {

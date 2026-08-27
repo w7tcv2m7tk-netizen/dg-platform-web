@@ -45,23 +45,38 @@ Examples: test mode Stripe, infrastructure in setup/sandbox.
 
 | Section | Purpose |
 |---------|---------|
-| **Operational load** | Morning operator dashboard — tasks, delivery, customers, critical count |
-| **Infrastructure & Services** | Production API, domains, DNS, SSL, email — no raw provider diagnostics |
-| **Commercial infrastructure** | Stripe health and billing checklist |
-| **Connector health** | Healthy / Attention / Failed summary — detail behind View all connectors |
+| **Platform status** | Glance answer — is DigitalGate OK? |
+| **Operational status** | Executive metrics — tasks, delivery, customers, critical count |
+| **Platform services** | Compact grid — API, domains, DNS, SSL, email, Stripe |
+| **Legacy connectors** | Configured / failed / synced / idle — detach residue |
 | **System diagnostics** | Sentry, env, DB — developer layer, not primary UI |
+
+---
+
+## Operator page jobs (do not blur)
+
+| Page | Question |
+|------|----------|
+| **Priorities** | What should the DigitalGate team do today? |
+| **Alerts** | What is wrong, unusual or requires intervention? |
+| **AI Advisor** | What does DigitalGate recommend we do about it? |
+
+Customer alerts stay in Client Intelligence / the organisation workspace.
 
 ---
 
 ## Actionable alerts
 
-Every alert includes:
+Every alert includes impact, recommended action, and **category-appropriate** actions.
 
-- Impact statement
-- Recommended action
-- Investigate / Resolve / Assign actions
+| Alert type | Actions |
+|------------|---------|
+| Customer attention | Investigate · Client Intelligence · Assign |
+| Legacy connectors | View organisations · Settings |
+| Delivery | Investigate · Open Delivery · Assign |
+| Billing / infra (clearable) | Investigate · Resolve · Assign |
 
-This turns Platform Alerts into an operating system, not a passive dashboard.
+Do **not** offer Resolve for alerts that acknowledging cannot clear (e.g. orgs needing attention).
 
 ---
 

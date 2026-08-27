@@ -4,7 +4,7 @@ import Link from "next/link";
 export function AccBetaGateMessage() {
   return (
     <div className="dg-card border border-amber-500/30 bg-amber-500/5">
-      <h2 className="text-lg font-semibold text-white">Accommodation beta</h2>
+      <h2 className="text-lg font-semibold text-white">Closed beta</h2>
       <p className="mt-2 text-sm text-slate-300">
         This organisation isn’t enrolled in the Accommodation beta yet. Ask DigitalGate to use{" "}
         <strong className="font-medium text-amber-100">Enable Acc beta</strong> on Command Centre →

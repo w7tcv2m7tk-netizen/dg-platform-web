@@ -31,10 +31,50 @@ function relativeMinutes(iso: string): string {
   return `${Math.floor(hours / 24)} day${Math.floor(hours / 24) === 1 ? "" : "s"} ago`;
 }
 
-function alertActions(href: string): PlatformAlert["actions"] {
+/** Only for issues an operator can actually clear (config, infra outage, delivery blocker). */
+function actionsResolvable(href: string): PlatformAlert["actions"] {
   return [
     { id: "investigate", label: "Investigate", href },
     { id: "resolve", label: "Resolve", href },
+    { id: "assign", label: "Assign", href: "/command/delivery/tasks" },
+  ];
+}
+
+function actionsForCustomer(href = "/command/clients"): PlatformAlert["actions"] {
+  return [
+    { id: "investigate", label: "Investigate", href },
+    { id: "client-intelligence", label: "Client Intelligence", href: "/command/clients" },
+    { id: "assign", label: "Assign", href: "/command/delivery/tasks" },
+  ];
+}
+
+function actionsForLegacyConnectors(): PlatformAlert["actions"] {
+  return [
+    { id: "view-organisations", label: "View organisations", href: "/command/clients" },
+    { id: "settings", label: "Settings", href: "/dashboard/settings" },
+  ];
+}
+
+function actionsForDelivery(href = "/command/delivery"): PlatformAlert["actions"] {
+  return [
+    { id: "investigate", label: "Investigate", href },
+    { id: "open-delivery", label: "Open Delivery", href: "/command/delivery" },
+    { id: "assign", label: "Assign", href: "/command/delivery/tasks" },
+  ];
+}
+
+function actionsForBilling(href = "/dashboard/settings/billing"): PlatformAlert["actions"] {
+  return [
+    { id: "investigate", label: "Investigate", href },
+    { id: "billing", label: "Billing settings", href },
+    { id: "assign", label: "Assign", href: "/command/delivery/tasks" },
+  ];
+}
+
+function actionsForInfrastructure(href = "/apps/infrastructure/domains"): PlatformAlert["actions"] {
+  return [
+    { id: "investigate", label: "Investigate", href },
+    { id: "open-infrastructure", label: "Open Infrastructure", href },
     { id: "assign", label: "Assign", href: "/command/delivery/tasks" },
   ];
 }
@@ -73,41 +113,49 @@ function buildInfrastructureServices(input: {
   const apiHealthy = input.infraStatus === "ok";
   const checked = relativeMinutes(input.checkedAt);
 
+  const dnsOk = input.domainCount > 0;
+  const sslOk = input.websiteCount > 0;
+
   return [
     {
       id: "api",
       label: "Production API",
       statusLabel: apiHealthy ? "Healthy" : input.configured ? "Degraded" : "Setup required",
-      detail: `Last checked ${checked}`,
+      detail: apiHealthy ? "Checked just now" : `Last checked ${checked}`,
       href: "/apps/infrastructure/domains",
+      tone: apiHealthy ? "healthy" : "degraded",
     },
     {
       id: "domains",
       label: "Domain Services",
       statusLabel: input.domainCount > 0 ? "Active" : "No domains",
-      detail: `${input.domainCount} domain${input.domainCount === 1 ? "" : "s"} · ${input.websiteCount} website${input.websiteCount === 1 ? "" : "s"}`,
+      detail: `${input.domainCount} domains · ${input.websiteCount} websites`,
       href: "/apps/infrastructure/domains",
+      tone: input.domainCount > 0 ? "healthy" : "idle",
     },
     {
       id: "dns",
       label: "DNS",
-      statusLabel: input.domainCount > 0 ? "Connected" : "Not configured",
-      detail: `${input.domainCount} connected · 0 issues`,
+      statusLabel: dnsOk ? "Connected" : "Not configured",
+      detail: dnsOk ? `${input.domainCount} / ${input.domainCount}` : "0 / 0",
       href: "/apps/infrastructure/domains",
+      tone: dnsOk ? "healthy" : "idle",
     },
     {
       id: "ssl",
       label: "SSL",
-      statusLabel: input.websiteCount > 0 ? "Active" : "Monitoring",
-      detail: `${input.websiteCount} active · 0 expiring`,
+      statusLabel: sslOk ? "Active" : "Monitoring",
+      detail: sslOk ? `${input.websiteCount} / ${input.websiteCount}` : "0 / 0",
       href: "/apps/infrastructure/domains",
+      tone: sslOk ? "healthy" : "idle",
     },
     {
       id: "email",
-      label: "Email Infrastructure",
+      label: "Email",
       statusLabel: input.configured ? "Healthy" : "Setup required",
-      detail: input.configured ? "Transactional email ready" : "Provider configuration pending",
+      detail: input.configured ? "Transactional ready" : "Provider pending",
       href: "/apps/infrastructure/domains",
+      tone: input.configured ? "healthy" : "idle",
     },
   ];
 }
@@ -152,7 +200,7 @@ function buildAlertsFromOpsHome(
       impact: "Billing events may not be recorded and subscriptions may not update correctly.",
       recommendedAction: "Reconnect Stripe webhook and verify API keys for the active mode.",
       href: "/dashboard/settings/billing",
-      actions: alertActions("/dashboard/settings/billing"),
+      actions: actionsResolvable("/dashboard/settings/billing"),
       category: "billing",
     });
   }
@@ -167,7 +215,7 @@ function buildAlertsFromOpsHome(
       impact: "Domain provisioning, DNS or website operations may be affected.",
       recommendedAction: "Review Infrastructure & Services and provider status.",
       href: "/command/platform-health",
-      actions: alertActions("/apps/infrastructure/domains"),
+      actions: actionsResolvable("/apps/infrastructure/domains"),
       category: "infrastructure",
     });
   }
@@ -182,7 +230,7 @@ function buildAlertsFromOpsHome(
       impact: "Customer onboarding timelines may slip.",
       recommendedAction: "Open Delivery and clear blockers with the delivery lead.",
       href: "/command/delivery",
-      actions: alertActions("/command/delivery"),
+      actions: actionsForDelivery("/command/delivery"),
       category: "delivery",
     });
   }
@@ -197,7 +245,7 @@ function buildAlertsFromOpsHome(
       impact: "Go-live dates may be delayed until customers respond.",
       recommendedAction: "Follow up with customers on outstanding onboarding tasks.",
       href: "/command/delivery",
-      actions: alertActions("/command/delivery"),
+      actions: actionsForDelivery("/command/delivery"),
       category: "delivery",
     });
   }
@@ -210,13 +258,13 @@ function buildAlertsFromOpsHome(
       severity: "notice",
       title: `${connectorSummary.attention} legacy WordPress connector${connectorSummary.attention === 1 ? "" : "s"} idle`,
       message:
-        "Gen 2 owns CRM, bookings, and apex sites. Remaining WordPress connectors are optional bridges — idle sync is expected while detach completes.",
+        "Gen 2 is the system of record. Legacy bridges remain configured during detachment.",
       detectedAt: now,
       impact: "No customer ops impact unless an org still relies on a WP mirror you have not retired.",
       recommendedAction:
         "Leave idle unless a specific org still needs WP sync; otherwise disconnect the connector in Settings.",
       href: "/command/clients",
-      actions: alertActions("/command/clients"),
+      actions: actionsForLegacyConnectors(),
       category: "connectors",
     });
   }
@@ -225,13 +273,13 @@ function buildAlertsFromOpsHome(
     attention.push({
       id: "customers-attention",
       severity: "attention",
-      title: `${home.organisationHealth.needsAttentionCount} customer${home.organisationHealth.needsAttentionCount === 1 ? "" : "s"} requiring attention`,
-      message: "Client Intelligence flagged organisations needing intervention.",
+      title: `${home.organisationHealth.needsAttentionCount} organisation${home.organisationHealth.needsAttentionCount === 1 ? "" : "s"} requiring attention`,
+      message: "Client Intelligence has flagged organisations requiring operator intervention.",
       detectedAt: now,
       impact: "At-risk customers may churn or stall without account management follow-up.",
       recommendedAction: "Open Client Intelligence and review the intervention queue.",
       href: "/command/clients",
-      actions: alertActions("/command/clients"),
+      actions: actionsForCustomer("/command/clients"),
       category: "customer",
     });
   }
@@ -246,7 +294,7 @@ function buildAlertsFromOpsHome(
       impact: "Conversion rates may drop for affected customers.",
       recommendedAction: "Review Client Intelligence and notify affected account owners.",
       href: "/command/clients",
-      actions: alertActions("/command/clients"),
+      actions: actionsForCustomer("/command/clients"),
       category: "customer",
     });
   }
@@ -262,7 +310,7 @@ function buildAlertsFromOpsHome(
       impact: "Customer delivery timeline at risk.",
       recommendedAction: "Open the implementation record and assign resolution.",
       href: deliveryAlert.href,
-      actions: alertActions(deliveryAlert.href),
+      actions: actionsResolvable(deliveryAlert.href),
       category: "delivery",
     });
   }
@@ -277,7 +325,7 @@ function buildAlertsFromOpsHome(
       impact: "No immediate customer impact — provisioning remains in sandbox/setup.",
       recommendedAction: "Complete Dreamscape sandbox configuration before production cutover.",
       href: "/apps/infrastructure/domains",
-      actions: alertActions("/apps/infrastructure/domains"),
+      actions: actionsForInfrastructure("/apps/infrastructure/domains"),
       category: "infrastructure",
     });
   }
@@ -292,7 +340,7 @@ function buildAlertsFromOpsHome(
       impact: "Production billing events will not affect live subscriptions.",
       recommendedAction: "Switch to live Stripe keys when ready for production billing.",
       href: "/dashboard/settings/billing",
-      actions: alertActions("/dashboard/settings/billing"),
+      actions: actionsForBilling("/dashboard/settings/billing"),
       category: "billing",
     });
   }
