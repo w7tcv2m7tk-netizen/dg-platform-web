@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listCommandCentreOpenTasksDue } from "@dg/platform-core";
 
+import { CompleteTaskButton } from "@/components/crm/CompleteTaskButton";
 
 export const dynamic = "force-dynamic";
 
@@ -49,23 +50,28 @@ export default async function CommandCentreTasksPage() {
                     : "border-slate-700/60 bg-slate-800/40"
                 }`}
               >
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <p className="font-medium text-white">{task.title}</p>
-                  {task.dueAt ? (
-                    <p className={task.overdue ? "text-rose-300" : "text-slate-400"}>
-                      {task.overdue ? "Overdue · " : "Due · "}
-                      {new Date(task.dueAt).toLocaleDateString("en-AU")}
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <p className="font-medium text-white">{task.title}</p>
+                      {task.dueAt ? (
+                        <p className={task.overdue ? "text-rose-300" : "text-slate-400"}>
+                          {task.overdue ? "Overdue · " : "Due · "}
+                          {new Date(task.dueAt).toLocaleDateString("en-AU")}
+                        </p>
+                      ) : null}
+                    </div>
+                    <p className="mt-1 text-slate-400">
+                      {task.entityType ? `${task.entityType}` : null}
+                      {task.priority ? ` · ${task.priority}` : null}
+                      {task.sourceApp ? ` · ${task.sourceApp}` : null}
                     </p>
-                  ) : null}
+                    {task.description ? (
+                      <p className="mt-2 text-slate-500 line-clamp-2">{task.description}</p>
+                    ) : null}
+                  </div>
+                  <CompleteTaskButton taskId={task.id} />
                 </div>
-                <p className="mt-1 text-slate-400">
-                  {task.entityType ? `${task.entityType}` : null}
-                  {task.priority ? ` · ${task.priority}` : null}
-                  {task.sourceApp ? ` · ${task.sourceApp}` : null}
-                </p>
-                {task.description ? (
-                  <p className="mt-2 text-slate-500 line-clamp-2">{task.description}</p>
-                ) : null}
               </li>
             ))}
           </ul>
