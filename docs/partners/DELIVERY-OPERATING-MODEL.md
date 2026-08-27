@@ -53,7 +53,7 @@ Build the **DigitalGate Implementation System** — not only onboard customers. 
 15. 30-Day Review  
 16. Customer Success  
 
-**Code lock:** `packages/platform-core/src/partners/delivery-model.ts` (`IMPLEMENTATION_SOP_STAGES` / `DELIVERY_PIPELINE_STAGES`). Do not maintain a parallel 15-stage SOP.
+**Code lock:** `packages/platform-core/src/partners/delivery-model.ts` (`IMPLEMENTATION_SOP_STAGES` / `DELIVERY_PIPELINE_STAGES`). Delivery → Onboarding presents this as the **16-stage implementation framework / lifecycle** (not “SOP” in the UI). Detailed operational SOP depth lives under Implementation Plans. Do not maintain a parallel 15-stage list.
 
 ## Implementation packages (internal only)
 

@@ -26,8 +26,9 @@ const SECTION_META: Record<
 > = {
   onboarding: {
     nav: "onboarding",
-    title: "Onboarding SOP",
-    description: "Standard implementation methodology — assigned customers follow this framework.",
+    title: "Onboarding",
+    description:
+      "Standard 16-stage implementation framework — every customer follows this lifecycle.",
   },
   tasks: {
     nav: "tasks",
