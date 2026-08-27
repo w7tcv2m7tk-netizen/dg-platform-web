@@ -137,7 +137,7 @@ Pick **customer** or **Founding Reseller** language before you send.
 
 ---
 
-## 90-day sales week (not “post and hope”)
+## Sales Week — 90-Day Founding Customer Sprint
 
 **Every weekday:** personally initiate **10 customer** + **5 partner** conversations. Not 15 sales calls — 15 personal conversations started. Day themes below still apply (who you contact and what else you do). Copy: [FOUNDING-10-OUTREACH.md](./FOUNDING-10-OUTREACH.md).
 
@@ -148,10 +148,19 @@ Saturday and Sunday stay out of the engine except a short Sunday CEO review.
 | **Mon** | Existing network | 9:00–10:30 contact 10–15 people (book conversations). 10:30–12:00 follow-up. 1:00–3:00 demos / consultations. 3:00–4:00 proposals / Founding offers. 4:00–5:00 CRM — every contact has a next action. |
 | **Tue** | Prospecting (RE first) | 9:00–11:00 new outbound. 11:00–12:00 follow-up. 1:00–3:00 demos. 3:00–4:00 **one useful piece** (e.g. “5 reasons agencies lose vendor opportunities after the enquiry”). 4:00–5:00 CRM + pipeline. |
 | **Wed** | Partner day | 9:00–11:00 contact 10 potential Founding Resellers. 11:00–12:00 partner follow-ups. 1:00–3:00 partner demonstrations. 3:00–5:00 partner pipeline. |
-| **Thu** | Authority | One substantial Insights piece (AI Search, visibility, systems, CRM, automation, RE lead gen, vendor acquisition). Distribute: website Insights, LinkedIn (company + personal), email, relevant contacts. Use existing IP: AI Visibility, Appraisal Magnet, Listing Pipeline, Vendor Velocity. |
-| **Fri** | Closing | 9:00–11:00 every active prospect. 11:00–12:00 everyone who said “I’ll have a look.” 1:00–3:00 demos. 3:00–4:00 applications / proposals. 4:00–5:00 weekly numbers. |
+| **Thu** | Authority | **Create → Publish → Distribute → Converse → Capture → Follow up.** One Insights piece, then put it in front of prospects/partners and log CRM next steps. |
+| **Fri** | Closing | Move pipeline; chase “I’ll have a look”; demos; applications. Weekly numbers include **next-step commitments** (concrete next actions only). |
 
-**Sunday (30–60 min) — CEO review:** leads, consultations, proposals, applications, customers, partners, revenue, pipeline, biggest bottleneck. Pick **one** commercial constraint to attack that week.
+**Sunday (30–60 min) — CEO Review:**
+1. **Numbers** — conversations, qualified prospects, consultations, demos, applications, customers, partners, MRR
+2. **Funnel** — where did prospects stop moving?
+3. **Bottleneck** — what single thing constrains growth?
+4. **Decision** — what one change will we make next week?
+5. **Commitment** — what will not be allowed to distract us?
+
+**Operating Lock:** commercial priority takes precedence over product expansion. Interrupt the sprint only to block a customer, fix a critical defect, enable an agreed commercial commitment, or protect security/compliance.
+
+**Hierarchy:** Command Centre (what matters) → Sales Week (how) → Growth Engine (who) → CRM (what happened) → Founding 10 (cohort journey).
 
 ---
 

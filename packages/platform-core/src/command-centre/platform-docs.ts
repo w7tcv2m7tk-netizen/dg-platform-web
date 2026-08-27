@@ -267,7 +267,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
   },
   {
     slug: "commercial-engine",
-    title: "Commercial Engine",
+    title: "Sales Week / Commercial Engine",
     summary:
       "18 Aug lock — freeze website redesign; fill Founding 10 via network, RE prospecting, and qualified Founding Resellers.",
     group: "commercial",

@@ -16,6 +16,7 @@ export * from "./flags-admin";
 export * from "./revenue";
 export * from "./platform-docs";
 export * from "./sales-week";
+export * from "./sales-week-scoreboard";
 
 /** Clerk role / org claim used to gate Command Centre routes */
 export const COMMAND_CENTRE_STAFF_ROLE = "dg:staff";
@@ -45,7 +46,7 @@ export const COMMAND_CENTRE_ROUTES = {
   growthEngine: `${COMMAND_CENTRE_BASE_PATH}/growth-engine`,
   /** Internal Alpha — tickable dogfood / P0–P1 close before Founding 10 */
   gate1: `${COMMAND_CENTRE_BASE_PATH}/gate-1`,
-  /** Commercial Engine 90-day sales week (Brisbane) */
+  /** Sales Week — 90-Day Founding Customer Sprint (Brisbane) */
   salesWeek: `${COMMAND_CENTRE_BASE_PATH}/sales-week`,
   /** Founding 10 customer pipeline (accept → agreement → onboard → go-live) */
   founding: `${COMMAND_CENTRE_BASE_PATH}/founding`,

@@ -147,3 +147,15 @@ Tenant platform configuration — Apps · Marketplace · Network · Settings (Bi
 > Apps do the work. Intelligence understands the work. Command Centre tells the operator what matters.
 
 Do not fragment into Support Centre, Audit Centre, Success Centre, etc. **Command Centre orchestrates** — dedicated Apps handle the work underneath.
+
+## Sales operating hierarchy (DigitalGate GTM)
+
+| Surface | Question |
+|---------|----------|
+| **Command Centre** | What matters today? |
+| **Sales Week** | How am I going to achieve it? (90-Day Founding Customer Sprint) |
+| **Growth Engine™** | Who should I talk to? |
+| **CRM** | What happened and what’s next? |
+| **Founding 10** | Where is each founding customer in the journey? |
+
+Do not invent another “Commercial Engine” product in the nav — that name is the strategy doc only.

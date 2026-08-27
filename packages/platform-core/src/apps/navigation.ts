@@ -597,14 +597,10 @@ function getDigitalGateOperatorSection(): NavIaSection {
         primaryHref: commandCentre.primaryHref,
       },
       operatorApp("dg-sales", "Sales", "prospecting", "/apps/prospecting", [
-        { path: "/apps/prospecting", label: "Growth Engine™" },
-        { path: "/apps/prospecting/discovery", label: "Discovery" },
-        { path: "/apps/prospecting/scores", label: "Opportunity Scoring" },
-        { path: "/apps/prospecting/pipeline", label: "Pipeline" },
-        { path: "/apps/prospecting/activity", label: "Activity" },
+        { path: "/apps/prospecting", label: "Overview" },
         {
           path: "/command/growth-engine",
-          label: "GTM Acquisition",
+          label: "Growth Engine™",
           matchAlso: [
             "/command/growth-engine/pipeline",
             "/command/growth-engine/audits",
@@ -614,13 +610,16 @@ function getDigitalGateOperatorSection(): NavIaSection {
             "/command/growth-engine/conversions",
           ],
         },
+        { path: "/apps/prospecting/discovery", label: "Discovery" },
+        { path: "/apps/prospecting/scores", label: "Opportunity Scoring" },
+        {
+          path: "/apps/prospecting/pipeline",
+          label: "Pipeline",
+          matchAlso: ["/command/opportunities", "/command/opportunities/expansion"],
+        },
+        { path: "/apps/prospecting/activity", label: "Activity" },
         { path: "/command/founding", label: "Founding 10" },
         { path: "/command/sales-week", label: "Sales Week" },
-        {
-          path: "/command/opportunities",
-          label: "Platform Opportunities",
-          matchAlso: ["/command/opportunities/expansion"],
-        },
       ]),
       operatorApp("dg-partners", "Partners", "partner-portal", "/command/partners", [
         { path: "/command/partners", label: "Dashboard" },

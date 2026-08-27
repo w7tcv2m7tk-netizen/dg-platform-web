@@ -1,6 +1,7 @@
 /**
- * DigitalGate Commercial Engine — 90-day sales week (Brisbane wall-clock).
+ * Sales Week — 90-Day Founding Customer Sprint (Brisbane wall-clock).
  * Canon: docs/strategy/COMMERCIAL-ENGINE.md
+ * Page name stays “Sales Week”; Commercial Engine is the strategy doc, not the nav label.
  */
 
 import {
@@ -206,24 +207,25 @@ export const SALES_WEEK_DAYS: SalesWeekDayPlan[] = [
       {
         startMin: hm(9),
         endMin: hm(12),
-        title: "One substantial Insights piece",
+        title: "Create → Publish",
         doNow:
-          "AI Search, visibility, systems, CRM, automation, RE lead gen, or vendor acquisition. Use existing IP — AI Visibility, Appraisal Magnet, Listing Pipeline, Vendor Velocity.",
+          "One substantial Insights piece (AI Search, visibility, systems, CRM, automation, RE lead gen, vendor acquisition). Use existing IP — AI Visibility, Appraisal Magnet, Listing Pipeline, Vendor Velocity. Publish it.",
       },
       {
         startMin: hm(13),
         endMin: hm(15),
-        title: "Distribute",
+        title: "Distribute → Converse",
         doNow:
-          "Website Insights, LinkedIn (company + personal), email, relevant contacts. Still hit 10 customer + 5 partner conversations today.",
+          "Authority loop: Distribute (Insights, LinkedIn company + personal, email, relevant contacts) → start conversations with people who could become customers or partners. Still hit 10 customer + 5 partner conversations.",
         href: OUTREACH,
         hrefLabel: "Copy",
       },
       {
         startMin: hm(15),
         endMin: hm(17),
-        title: "Conversations + CRM",
-        doNow: "Finish the daily 10 + 5. Every row has a next action.",
+        title: "Capture → Follow up",
+        doNow:
+          "Log CRM activity for each touch. Capture interest. Book concrete next steps — not “I’ll have a look.” Finish the daily 10 + 5.",
         href: CRM,
         hrefLabel: "CRM",
       },
@@ -270,7 +272,7 @@ export const SALES_WEEK_DAYS: SalesWeekDayPlan[] = [
         endMin: hm(17),
         title: "Weekly numbers",
         doNow:
-          "Conversations, qualified prospects, consultations, demos, applications, customers, partners. Pick one bottleneck for Sunday’s review.",
+          "Conversations, qualified prospects, consultations, demos, applications, customers, partners, revenue, pipeline, and next-step commitments. “I’ll have a look” is not a pipeline stage — only count concrete next actions.",
         href: GOALS,
         hrefLabel: "Goals",
       },
@@ -292,11 +294,11 @@ export const SALES_WEEK_DAYS: SalesWeekDayPlan[] = [
       {
         startMin: hm(16),
         endMin: hm(17),
-        title: "30–60 min CEO review",
+        title: "Sunday CEO Review",
         doNow:
-          "Leads, consultations, proposals, applications, customers, partners, revenue, pipeline, biggest bottleneck. Pick one commercial constraint to attack this week.",
+          "1) Numbers — conversations, qualified prospects, consultations, demos, applications, customers, partners, MRR. 2) Funnel — where did prospects stop? 3) Bottleneck — what single thing constrains growth? 4) Decision — one change for next week. 5) Commitment — what will not distract us?",
         href: ENGINE_DOC,
-        hrefLabel: "Commercial Engine",
+        hrefLabel: "Operating lock",
       },
     ],
   },
@@ -397,7 +399,7 @@ export function resolveSalesWeekPrompt(
       clockLabel,
       headline: before ? "CEO review later today" : "CEO review is done — rest",
       doNow: before
-        ? `Protect 30–60 minutes at ${review ? formatBlockClock(review) : "4–5pm"}: leads, consultations, proposals, applications, customers, partners, revenue, pipeline, biggest bottleneck. Pick one commercial constraint for the week.`
+        ? `Protect 30–60 minutes at ${review ? formatBlockClock(review) : "4–5pm"} for CEO Review: Numbers → Funnel → Bottleneck → Decision → Commitment.`
         : "Engine is closed. Monday is existing network — contact 10–15 people you already know.",
       baseline: null,
       currentBlock: null,
@@ -406,7 +408,7 @@ export function resolveSalesWeekPrompt(
       lockDay,
       lockDays: lockSpan,
       href: ENGINE_DOC,
-      hrefLabel: "Commercial Engine",
+      hrefLabel: "Operating lock",
     };
   }
 

@@ -17,8 +17,6 @@ export const commandCentreApp: AppManifest = {
   icon: "◈",
   routes: [
     { path: "/command", label: "Priorities" },
-    { path: "/command/sales-week", label: "Sales week" },
-    { path: "/command/founding", label: "Founding 10" },
     { path: "/command/opportunities", label: "Opportunities" },
     { path: "/command/opportunities/expansion", label: "Expansion" },
     { path: "/command/growth-engine", label: "Growth Engine™" },

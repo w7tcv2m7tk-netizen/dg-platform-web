@@ -86,7 +86,7 @@ export function SalesWeekNowBanner({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-300">
-            Sales week · {prompt.timeZone.replace("_", " ")} · {prompt.clockLabel}
+            Sales Week · {prompt.timeZone.replace("_", " ")} · {prompt.clockLabel}
           </p>
           <h2 className="mt-2 text-lg font-semibold text-white">{prompt.headline}</h2>
           <p className="mt-1 text-sm text-slate-300">
