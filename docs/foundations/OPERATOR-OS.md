@@ -70,7 +70,7 @@ Instead, DigitalGate staff get specialised operator capabilities:
 | **Commercial** | MRR, ARR, subscriptions, billing, expansion, churn, CLV, revenue forecasting |
 | **Sales** | Founding 10, Growth Engine, platform opportunities, pipeline, consultations |
 | **Partners** | Resellers, referrals, commissions, partner performance |
-| **Delivery** | Implementation, onboarding, projects, training, QA, go-live, handover |
+| **Delivery** | Implementation, onboarding, projects, training, QA, go-live, Customer Success |
 | **Customer Intelligence** | Organisation health, adoption, usage, engagement, at-risk customers, expansion |
 | **Platform Intelligence** | Connector health, automation health, API activity, errors, performance, AI usage |
 | **Product** | Apps, roadmap, feature adoption, beta programmes, releases, feedback |
