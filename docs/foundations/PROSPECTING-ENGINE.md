@@ -39,6 +39,31 @@ Customer-facing stages (map onto Growth Engine internals):
 
 Each stage surfaces count, avg Opportunity Score™, action CTA, and (when available) per-card Why / Next action / last activity. Framework ships even at zero prospects — do not leave a bare empty page.
 
+### Activity workspace (locked)
+
+**Page job:** Calls, messages, notes, tasks and follow-ups across the prospect pipeline — not a bare chronological dump.
+
+Must surface:
+
+- Today summary (calls due · follow-ups due · tasks due · overdue · recent)
+- Kind + time filters
+- Feed grouped by day with next actions
+- Intelligence strip (follow-ups needing attention · quiet prospects · high-value missing next action · recommended next action)
+
+**Developer requirement — activity identity:**
+
+> All prospect activity must be stored against the prospect’s universal identity and automatically preserved when the prospect is promoted into CRM. Never duplicate or orphan activity during conversion.
+
+```
+Prospect → calls / emails / SMS / notes / tasks / meetings / follow-ups
+    ↓ Convert
+Contact + Company + Opportunity
+    ↓
+Complete historical activity remains attached (linked via growthProspectId)
+```
+
+Implementation: `buildProspectingActivityWorkspace` · `preserveProspectActivityOnCrmConvert`
+
 ---
 
 ## Dual product lock (firm)

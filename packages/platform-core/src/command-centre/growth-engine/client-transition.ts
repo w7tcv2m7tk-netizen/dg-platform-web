@@ -211,6 +211,18 @@ export async function transitionGrowthProspectToClient(
     },
   });
 
+  // Preserve prospect activity identity — never orphan history on convert.
+  if (prospect.organisationId) {
+    const { preserveProspectActivityOnCrmConvert } = await import(
+      "../../prospecting-engine/activity-workspace"
+    );
+    await preserveProspectActivityOnCrmConvert({
+      organisationId: prospect.organisationId,
+      prospectId: prospect.id,
+      actorId: input.actorId,
+    });
+  }
+
   if (input.operatorOrganisationId) {
     await writeAuditLog({
       organisationId: input.operatorOrganisationId,

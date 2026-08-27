@@ -1,21 +1,40 @@
+import { buildProspectingActivityWorkspace } from "@dg/platform-core";
+
+import { ProspectingActivitySurface } from "@/components/prospecting/ProspectingActivitySurface";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
+
+export const dynamic = "force-dynamic";
 
 export default async function ProspectingActivityPage() {
-  return (
-    <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Activity</h1>
-        <p className="text-sm text-slate-400">
-          Calls, notes, tasks and follow-ups against each prospect.
-        </p>
-      </header>
-      <main className="dg-page-main">
-        <div className="dg-card space-y-3">
-          <p className="text-sm text-slate-300">
-            Activity stays attached to the prospect and carries into CRM when you convert — so
-            follow-up history is never trapped in a separate tool.
-          </p>
-        </div>
-      </main>
-    </>
-  );
+  const { session } = await getPlatformPageContext();
+
+  if (!session?.organisationId) {
+    return (
+      <>
+        <header className="dg-page-header">
+          <h1 className="text-2xl font-bold text-white">Activity</h1>
+        </header>
+        <main className="dg-page-main">
+          <p className="text-sm text-slate-500">Sign in with an organisation to use Activity.</p>
+        </main>
+      </>
+    );
+  }
+
+  if (!process.env.DATABASE_URL) {
+    return (
+      <>
+        <header className="dg-page-header">
+          <h1 className="text-2xl font-bold text-white">Activity</h1>
+        </header>
+        <main className="dg-page-main">
+          <p className="text-sm text-amber-200">DATABASE_URL required for Activity.</p>
+        </main>
+      </>
+    );
+  }
+
+  const data = await buildProspectingActivityWorkspace(session.organisationId);
+
+  return <ProspectingActivitySurface data={data} />;
 }

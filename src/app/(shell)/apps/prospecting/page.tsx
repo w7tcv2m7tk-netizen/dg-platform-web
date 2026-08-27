@@ -69,7 +69,7 @@ const MODULES = [
   },
   {
     title: "Follow-up",
-    body: "Calls, messages, notes, tasks and automation.",
+    body: "Calls, messages, notes, tasks and follow-ups across your prospect pipeline.",
   },
   {
     title: "Digital Presence Signals",
