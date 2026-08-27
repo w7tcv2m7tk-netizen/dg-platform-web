@@ -332,7 +332,7 @@ export async function ProspectingDiscoverySurface({
         <BusinessDiscoverySearch initialProviders={providers} {...searchDefaults} />
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-          <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
+          <div id="add-prospect" className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
             <h2 className="font-semibold text-white">Add prospect</h2>
             <p className="mt-1 text-sm text-slate-400">
               Creates a pipeline record automatically —{" "}

@@ -29,6 +29,16 @@ DigitalGate’s intelligent prospecting and opportunity engine turns business di
 
 **ABN + Places:** Australian differentiator — Places for discovery, ABN for identity; enrich toward full Business Intelligence Profile.
 
+### Prospect Pipeline workspace
+
+Discovery finds them. **Prospect Pipeline** manages and qualifies them.
+
+Customer-facing stages (map onto Growth Engine internals):
+
+`Discovered → Researching → Qualified → Contacted → Engaged → Converted → Lost`
+
+Each stage surfaces count, avg Opportunity Score™, action CTA, and (when available) per-card Why / Next action / last activity. Framework ships even at zero prospects — do not leave a bare empty page.
+
 ---
 
 ## Dual product lock (firm)
