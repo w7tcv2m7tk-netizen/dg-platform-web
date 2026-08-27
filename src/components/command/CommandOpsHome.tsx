@@ -44,6 +44,10 @@ function activityCategory(item: {
   return "Platform";
 }
 
+/**
+ * Priorities home — Act first.
+ * Flow: Priorities (this page) → Alerts → AI Advisor.
+ */
 export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
   const [showTechnicalActivity, setShowTechnicalActivity] = useState(false);
   const {
@@ -71,47 +75,15 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
 
   return (
     <div className="space-y-8">
-      {/* Platform pulse */}
-      <section className="rounded-xl border border-sky-500/20 bg-slate-950/50 px-5 py-5">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">
-          Platform pulse
-        </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <PulseChip label="Customers" value={pulse.organisations} href="/command/clients" />
-          <PulseChip label="New leads" value={pulse.leadsThisWeek} href="/command/opportunities" />
-          <PulseChip
-            label="Open opportunities"
-            value={pulse.openOpportunities}
-            href="/command/opportunities"
-          />
-          <PulseChip
-            label="Growth prospects"
-            value={pulse.growthProspects}
-            href="/command/growth-engine"
-          />
-          <PulseChip label="MRR" value={billing.estimatedMrrLabel} href="/command/revenue" isText />
-        </div>
-        <p className="mt-4 text-xs text-slate-500">
-          {organisationHealth.organisationsWithSufficientData}/
-          {organisationHealth.totalOrganisations} organisations with sufficient data · Average
-          organisation health {organisationHealth.averageHealthLabel}
-        </p>
-      </section>
-
-      {/* What needs attention */}
+      {/* 1. What needs your attention — primary act surface */}
       <section>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold text-white">What needs your attention</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Ranked platform actions — not customer industry operations.
+              Ranked actions for DigitalGate staff — not customer industry operations.
             </p>
           </div>
-          {actions.length > 0 ? (
-            <Link href="#command-attention" className="text-sm text-sky-400 hover:underline">
-              Open priorities →
-            </Link>
-          ) : null}
         </div>
         <div id="command-attention" className="mt-4">
           {actions.length === 0 ? (
@@ -141,7 +113,34 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
         </div>
       </section>
 
-      {/* Customer intelligence */}
+      {/* 2. Platform pulse */}
+      <section className="rounded-xl border border-sky-500/20 bg-slate-950/50 px-5 py-5">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">
+          Platform pulse
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <PulseChip label="Customers" value={pulse.organisations} href="/command/clients" />
+          <PulseChip label="New leads" value={pulse.leadsThisWeek} href="/command/opportunities" />
+          <PulseChip
+            label="Open opportunities"
+            value={pulse.openOpportunities}
+            href="/command/opportunities"
+          />
+          <PulseChip
+            label="Growth prospects"
+            value={pulse.growthProspects}
+            href="/command/growth-engine"
+          />
+          <PulseChip label="MRR" value={billing.estimatedMrrLabel} href="/command/revenue" isText />
+        </div>
+        <p className="mt-4 text-xs text-slate-500">
+          {organisationHealth.organisationsWithSufficientData}/
+          {organisationHealth.totalOrganisations} organisations with sufficient data · Average
+          organisation health {organisationHealth.averageHealthLabel}
+        </p>
+      </section>
+
+      {/* 3. Customer intelligence */}
       <section className="rounded-xl border border-violet-500/20 bg-slate-950/40 px-5 py-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -150,7 +149,7 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
             </p>
             <h2 className="mt-2 text-lg font-semibold text-white">
               {organisationHealth.needsAttentionCount} organisation
-              {organisationHealth.needsAttentionCount === 1 ? "" : "s"} need attention
+              {organisationHealth.needsAttentionCount === 1 ? "" : "s"} requiring attention
             </h2>
           </div>
           <Link href="/command/clients" className="text-sm text-sky-400 hover:underline">
@@ -160,41 +159,38 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
         {needsAttentionClients.length === 0 ? (
           <p className="mt-4 text-sm text-slate-500">All tracked organisations look stable.</p>
         ) : (
-          <ul className="mt-4 flex flex-wrap gap-2">
-            {needsAttentionClients.map((client) => (
-              <li key={client.organisationId}>
-                <Link
-                  href={`/command/clients/${client.organisationId}`}
-                  className="inline-flex rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1.5 text-sm text-slate-200 hover:border-violet-500/40 hover:text-white"
-                >
-                  {client.organisationName}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-        {needsAttentionClients.length > 0 ? (
-          <ul className="mt-4 space-y-2 border-t border-slate-800 pt-4">
-            {needsAttentionClients.slice(0, 3).map((client) => {
+          <ul className="mt-4 space-y-2">
+            {needsAttentionClients.map((client) => {
               const presentation = clientIntelligencePresentation(client);
               return (
-                <li key={`detail-${client.organisationId}`} className="text-sm text-slate-400">
-                  <span className="font-medium text-slate-200">{client.organisationName}</span>
-                  {" — "}
-                  {presentation.summary}
+                <li key={client.organisationId}>
+                  <Link
+                    href={`/command/clients/${client.organisationId}`}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2.5 hover:border-violet-500/40"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-white">{client.organisationName}</p>
+                      <p className="mt-0.5 text-xs text-slate-500 line-clamp-1">
+                        {presentation.summary}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-xs font-medium text-amber-200">
+                      Attention · Review →
+                    </span>
+                  </Link>
                 </li>
               );
             })}
           </ul>
-        ) : null}
+        )}
       </section>
 
-      {/* Operating pulse — compact cockpit strip */}
+      {/* 4. Operating pulse — includes Growth Engine */}
       <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
           Operating pulse
         </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <OperatingCell
             label="Delivery"
             value={`${delivery.activeImplementations} active`}
@@ -222,35 +218,21 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
             href="/command/platform-health"
             detail={`${connectors.orgsWithBillingCustomer} orgs with billing customer`}
           />
+          <OperatingCell
+            label="Growth Engine"
+            value={`${growthEngine.prospects} active prospects`}
+            href={growthEngine.href}
+            detail={
+              foundingPhaseQuiet
+                ? "Founding pipeline managed manually"
+                : `${growthEngine.engagementsThisWeek} engagements this week`
+            }
+          />
         </div>
         {revenueNote ? (
           <p className="mt-3 text-xs text-slate-500">{revenueNote}</p>
         ) : null}
-      </section>
-
-      {/* Growth Engine */}
-      <section className="rounded-xl border border-sky-500/20 bg-slate-950/40 px-5 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">
-              Growth Engine™
-            </p>
-            <p className="mt-1 text-lg font-semibold text-white">
-              {growthEngine.prospects} active prospect
-              {growthEngine.prospects === 1 ? "" : "s"}
-            </p>
-            {foundingPhaseQuiet ? (
-              <p className="mt-1 text-sm text-slate-400">
-                Founding pipeline currently managed manually — zero in-engine activity is expected
-                during closed beta.
-              </p>
-            ) : (
-              <p className="mt-1 text-sm text-slate-400">
-                {growthEngine.engagementsThisWeek} engagements this week ·{" "}
-                {growthEngine.activePipeline} in pipeline
-              </p>
-            )}
-          </div>
+        <div className="mt-3">
           <Link
             href={growthEngine.href}
             className="text-sm font-medium text-sky-400 hover:underline"
@@ -260,14 +242,12 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
         </div>
       </section>
 
-      {/* Recent platform activity */}
+      {/* 5. Recent activity */}
       <section>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-white">Recent platform activity</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Live events across customer organisations.
-            </p>
+            <h2 className="text-lg font-semibold text-white">Recent activity</h2>
+            <p className="mt-1 text-sm text-slate-400">Live events across the platform.</p>
           </div>
           <button
             type="button"
@@ -304,7 +284,7 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
         )}
       </section>
 
-      {/* AI Advisor */}
+      {/* 6. AI Advisor — understand / decide (after Priorities + Alerts in the nav) */}
       <section className="rounded-xl border border-violet-500/25 bg-violet-500/5 px-5 py-5">
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-400">
           AI Advisor
@@ -319,7 +299,7 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
           href="/command/advisor"
           className="mt-4 inline-flex rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500"
         >
-          Open AI Advisor
+          Open AI Advisor →
         </Link>
       </section>
     </div>
@@ -363,7 +343,10 @@ function OperatingCell({
   detail?: string;
 }) {
   return (
-    <Link href={href} className="group block rounded-lg border border-slate-800/80 px-3 py-3 hover:border-slate-600">
+    <Link
+      href={href}
+      className="group block rounded-lg border border-slate-800/80 px-3 py-3 hover:border-slate-600"
+    >
       <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-1 text-sm font-semibold text-white group-hover:text-sky-300">{value}</p>
       {detail ? <p className="mt-1 text-xs text-slate-500">{detail}</p> : null}

@@ -20,7 +20,7 @@ export function CommandBetaStatus() {
         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
       >
         <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-          Beta status & constraints
+          System status / Beta information
         </span>
         <span className="text-xs text-slate-500">{open ? "▾" : "▸"}</span>
       </button>

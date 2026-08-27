@@ -55,11 +55,15 @@ Examples: test mode Stripe, infrastructure in setup/sandbox.
 
 ## Operator page jobs (do not blur)
 
-| Page | Question |
-|------|----------|
-| **Priorities** | What should the DigitalGate team do today? |
-| **Alerts** | What is wrong, unusual or requires intervention? |
-| **AI Advisor** | What does DigitalGate recommend we do about it? |
+| Page | Question | Role in the loop |
+|------|----------|------------------|
+| **Priorities** (`/command`) | What should I do? | **Act** — default Command Centre landing |
+| **Alerts** | What needs attention? | **Investigate** — exceptions, blockers, platform issues |
+| **AI Advisor** | Help me understand what to do | **Understand / Decide** — intelligence over Priorities + Alerts |
+
+Flow: **Priorities → Alerts → AI Advisor** (Act → Investigate → Understand/Decide).
+
+Do not put AI Advisor before Alerts. Alerts are operational; AI Advisor sits above that data.
 
 Customer alerts stay in Client Intelligence / the organisation workspace.
 

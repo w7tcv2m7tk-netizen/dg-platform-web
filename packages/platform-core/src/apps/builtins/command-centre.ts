@@ -52,6 +52,7 @@ export const commandCentreApp: AppManifest = {
   navigation: [
     { href: "/command", label: "Priorities", icon: "◈" },
     { href: "/command/platform-health", label: "Alerts", icon: "◉" },
+    { href: "/command/advisor", label: "AI Advisor", icon: "◎" },
   ],
   permissions: [
     { id: "command.view", label: "View Command Centre" },

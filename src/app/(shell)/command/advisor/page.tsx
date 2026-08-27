@@ -24,8 +24,8 @@ export default async function CommandAdvisorPage({ searchParams }: PageProps) {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">AI Advisor</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
-          Turn Customer Intelligence and live platform signals into decisions. From Portfolio, use
-          Advise to open this Advisor with a customer already selected.
+          Help me understand what to do — intelligence over Priorities and Alerts. From Portfolio,
+          use Advise to open this Advisor with a customer already selected.
         </p>
       </header>
       <main className="dg-page-main space-y-8">

@@ -42,19 +42,24 @@ Every organisation sees their own business:
 
 ### 2. Command Centre (internal)
 
-DigitalGate staff only:
+DigitalGate staff only. **Primary cockpit order:**
+
+| Module | Purpose | Loop |
+|--------|---------|------|
+| **Priorities** (`/command`) | Ranked actions + today’s operating plan — **default landing** | Act |
+| **Alerts** | Exceptions, blockers, failures, customer risks, platform issues | Investigate |
+| **AI Advisor** | Intelligence over Priorities + Alerts — what to do about it | Understand / Decide |
+
+Supporting modules:
 
 | Module | Purpose |
 |--------|---------|
-| **Platform Overview** | Orgs, users, leads, AI actions, automations, platform health |
 | **Client Intelligence** | Per-tenant scores, growth, conversion, ROI, usage, satisfaction |
 | **Growth Engine™** | **Acquisition OS** — discover → audit → report → pipeline → proposal → client ([spec](./GROWTH-ENGINE.md)) |
-| **Platform Alerts** | Operator alerts centre — infra, billing, connectors, operational load ([spec](./foundations/PLATFORM-ALERTS.md)) |
 | **Revenue Intelligence** | Stripe MRR, ARR, churn, trial conversion |
 | **Client Expansion** | Upsell apps/services on **live tenants** (estimated additional MRR) |
 | **Benchmarking** | Anonymous cohort comparison (customer + prospect reports) |
 | **Executive Dashboard** | Auto-generated monthly DigitalGate Growth Reports |
-| **AI Business Advisor** | Natural-language client performance analysis |
 | **Feature Flags & Beta** | Rollout control (RE / Acc / Websites / Domains flags) |
 | ~~Support Centre~~ / ~~Audit~~ | **Not in beta** — `/command/support` → `/support`; `/command/audit` → tenant audit settings |
 

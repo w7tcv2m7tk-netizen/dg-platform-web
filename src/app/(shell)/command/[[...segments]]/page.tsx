@@ -24,7 +24,7 @@ const VAPOR_REDIRECTS: Record<string, string> = {
 
 async function CommandOverviewPage() {
   await connection();
-  const { session } = await getPlatformPageContext();
+  await getPlatformPageContext();
   const data = process.env.DATABASE_URL ? await getCommandCentreOpsHome() : null;
   const salesPrompt = resolveSalesWeekPrompt();
 
@@ -53,7 +53,7 @@ async function CommandOverviewPage() {
           </p>
           <p className="mt-2 max-w-2xl text-sm text-slate-400">
             {data?.briefing ??
-              `Run DigitalGate — platform business and customer ecosystem health${session ? ` · ${session.organisationName}` : ""}.`}
+              "DigitalGate Platform Operations — run DigitalGate, not customer industry ops."}
           </p>
         </div>
       </header>

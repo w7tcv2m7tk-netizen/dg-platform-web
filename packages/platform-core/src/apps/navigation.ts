@@ -1042,12 +1042,12 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
     primaryHref: "/command",
     routes: [
       { path: "/command", label: "Priorities" },
-      { path: "/command/advisor", label: "AI Advisor" },
       {
         path: "/command/platform-health",
         label: "Alerts",
         matchAlso: ["/command/platform-health/diagnostics"],
       },
+      { path: "/command/advisor", label: "AI Advisor" },
     ],
   };
 }
