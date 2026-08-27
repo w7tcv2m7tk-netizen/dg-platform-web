@@ -10,6 +10,60 @@ export const FOUNDING_RESELLER_PROGRAMME_NAME =
 export const RESELLER_MODEL =
   "Resellers introduce and qualify. Ben closes. DigitalGate delivers.";
 
+/** Explicit introducer positioning — not a traditional reseller who sells/owns/supports. */
+export const FOUNDING_RESELLER_POSITIONING = {
+  headline: "Introduce. Refer. Earn recurring revenue.",
+  body: "You introduce the opportunity. DigitalGate handles discovery, demonstration, proposal, onboarding and customer success.",
+  principle:
+    "Founding Resellers don't sell, onboard or support customers. They introduce qualified businesses to DigitalGate. Ben / DigitalGate closes the opportunity.",
+} as const;
+
+export const FOUNDING_RESELLER_HOW_IT_WORKS = [
+  {
+    n: "01",
+    title: "Introduce",
+    body: "Identify a business that could benefit from DigitalGate.",
+  },
+  {
+    n: "02",
+    title: "Refer",
+    body: "Make the introduction through DigitalGate.",
+  },
+  {
+    n: "03",
+    title: "DigitalGate qualifies",
+    body: "We run discovery, assess fit and demonstrate the platform.",
+  },
+  {
+    n: "04",
+    title: "DigitalGate closes",
+    body: "We handle proposal, commercial terms and customer onboarding.",
+  },
+  {
+    n: "05",
+    title: "Customer goes live",
+    body: "DigitalGate or a Certified Delivery Partner implements the platform.",
+  },
+  {
+    n: "06",
+    title: "You earn",
+    body: "Receive recurring commission on qualifying DigitalGate Platform and App revenue.",
+  },
+] as const;
+
+export const FOUNDING_RESELLER_WHY = [
+  "Early access to DigitalGate",
+  "Founding partner economics",
+  "Recurring commissions",
+  "Direct relationship with DigitalGate",
+  "Early influence on the partner programme",
+  "No technical implementation responsibility",
+  "DigitalGate closes and delivers the customer",
+] as const;
+
+export const FOUNDING_RESELLER_WORKFLOW_STRIP =
+  "Identify → Introduce → DigitalGate qualifies → DigitalGate closes → Customer goes live → Reseller earns recurring commission";
+
 export const RESELLER_PROCESS_FLOW = {
   reseller: [
     "Identify prospect",
