@@ -200,6 +200,14 @@ const BRAND_TO_FUNNEL_REDIRECTS: Array<{
 export default async function middleware(req: NextRequest, event: unknown) {
   const hostname = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
 
+  // Vercel preview deployments must not compete with production canonical URLs.
+  if (hostname.endsWith(".vercel.app")) {
+    const response = await clerkHandler(req, event as never);
+    const out = response ?? NextResponse.next();
+    out.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return keepAuthOnAppOrigin(req, out);
+  }
+
   // Custom domain → public site renderer (multi-tenant host header)
   if (hostname && !isPlatformHost(hostname)) {
     const path = req.nextUrl.pathname;
@@ -247,6 +255,20 @@ export default async function middleware(req: NextRequest, event: unknown) {
       const rewrite = NextResponse.rewrite(url);
       rewrite.headers.set("x-dg-custom-host", hostname);
       return rewrite;
+    }
+
+    const indexNowKey = process.env.INDEXNOW_KEY?.trim();
+    if (
+      indexNowKey &&
+      isDgPublicHost(hostname) &&
+      path === `/${indexNowKey}.txt`
+    ) {
+      return new NextResponse(`${indexNowKey}\n`, {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "public, max-age=86400",
+        },
+      });
     }
 
     if (

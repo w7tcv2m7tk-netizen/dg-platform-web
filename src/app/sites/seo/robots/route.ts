@@ -1,12 +1,28 @@
+import { DIGITALGATE_ORIGIN } from "@/lib/digitalgate-seo-catalog";
+import { isDgPublicHost } from "@/lib/dg-legacy-urls";
 import { getWebsiteBySlug } from "@dg/platform-core";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { isAetherraPublicHost } from "@/lib/aetherra-legacy-urls";
 import { isCvhPublicHost } from "@/lib/cvh-legacy-urls";
-import { isDgPublicHost } from "@/lib/dg-legacy-urls";
 import { resolvePublicHostSlug } from "@/lib/resolve-public-host-slug";
 import { isRoePublicHost } from "@/lib/roe-legacy-urls";
+
+/** AI crawlers allowed to read public marketing content (policy: docs/SEARCH-INDEXING.md). */
+const AI_CRAWLERS = [
+  "GPTBot",
+  "ChatGPT-User",
+  "OAI-SearchBot",
+  "ClaudeBot",
+  "anthropic-ai",
+  "PerplexityBot",
+  "Google-Extended",
+  "Applebot-Extended",
+  "Bytespider",
+  "CCBot",
+  "cohere-ai",
+];
 
 async function resolveHostSlug(): Promise<string | null> {
   const hdrs = await headers();
@@ -47,51 +63,90 @@ export async function GET() {
   const isDg = isDgPublicHost(host);
   const isRoe = isRoePublicHost(host);
   const isAetherra = isAetherraPublicHost(host);
-  const lines = [
-    "User-agent: *",
-    site ? "Allow: /" : "Disallow: /",
-    "User-agent: Googlebot",
-    site ? "Allow: /" : "Disallow: /",
-    ...(site && isCvh
-      ? [
-          "Disallow: /wc-api/",
-          "Disallow: /category/",
-          "Disallow: /*kinsta-monitor*",
-          "Disallow: /*ao_speedup_cachebuster*",
-        ]
-      : []),
-    ...(site && isDg
-      ? [
-          "Disallow: /wp-admin/",
-          "Disallow: /wp-content/",
-          "Disallow: /wp-includes/",
-          "Disallow: /edd-api/",
-          "Disallow: /website/",
-          "Disallow: /collection/",
-          "Disallow: /__static",
-          "Disallow: /*.php$",
-        ]
-      : []),
-    ...(site && isRoe
-      ? [
-          "Disallow: /cgi-bin",
-          "Disallow: /wp-content/themes/",
-          "Disallow: /wp-content/plugins/",
-          "Disallow: /real-estate-single-page-layout/",
-        ]
-      : []),
-    ...(site && isAetherra
-      ? [
-          "Disallow: /wp-json",
-          "Disallow: /wp-admin/",
-          "Disallow: /wp-content/",
-          "Disallow: /wp-includes/",
-          "Disallow: /*.php$",
-        ]
-      : []),
+
+  const lines: string[] = [];
+
+  if (site) {
+    lines.push("User-agent: *", "Allow: /");
+    for (const bot of AI_CRAWLERS) {
+      lines.push(`User-agent: ${bot}`, "Allow: /");
+    }
+  } else {
+    lines.push("User-agent: *", "Disallow: /");
+  }
+
+  lines.push(
     "",
-    origin ? `Sitemap: ${origin}/sitemap.xml` : "",
-  ].filter((line) => line !== undefined);
+    "# Platform / application routes (never on marketing apex — belt-and-braces)",
+    "User-agent: *",
+    "Disallow: /dashboard",
+    "Disallow: /login",
+    "Disallow: /signup",
+    "Disallow: /command",
+    "Disallow: /api/",
+    "Disallow: /apps/",
+    "Disallow: /sites/",
+    "",
+  );
+
+  if (site && isCvh) {
+    lines.push(
+      "User-agent: *",
+      "Disallow: /wc-api/",
+      "Disallow: /category/",
+      "Disallow: /*kinsta-monitor*",
+      "Disallow: /*ao_speedup_cachebuster*",
+      "",
+    );
+  }
+
+  if (site && isDg) {
+    lines.push(
+      "User-agent: *",
+      "Disallow: /wp-admin/",
+      "Disallow: /wp-content/",
+      "Disallow: /wp-includes/",
+      "Disallow: /edd-api/",
+      "Disallow: /website/",
+      "Disallow: /collection/",
+      "Disallow: /__static",
+      "Disallow: /card",
+      "Disallow: /onboarding",
+      "Disallow: /*.php$",
+      "",
+    );
+  }
+
+  if (site && isRoe) {
+    lines.push(
+      "User-agent: *",
+      "Disallow: /cgi-bin",
+      "Disallow: /wp-content/themes/",
+      "Disallow: /wp-content/plugins/",
+      "Disallow: /real-estate-single-page-layout/",
+      "Disallow: /property-report",
+      "",
+    );
+  }
+
+  if (site && isAetherra) {
+    lines.push(
+      "User-agent: *",
+      "Disallow: /wp-json",
+      "Disallow: /wp-admin/",
+      "Disallow: /wp-content/",
+      "Disallow: /wp-includes/",
+      "Disallow: /*.php$",
+      "",
+    );
+  }
+
+  if (origin) {
+    lines.push(`Sitemap: ${origin}/sitemap.xml`);
+    if (isDg) {
+      lines.push(`# IndexNow key: ${DIGITALGATE_ORIGIN}/indexnow-key.txt`);
+    }
+  }
 
   return new NextResponse(lines.join("\n") + "\n", {
     headers: {

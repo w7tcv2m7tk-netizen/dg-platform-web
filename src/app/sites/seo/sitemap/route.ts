@@ -1,9 +1,14 @@
+import { isDgPublicHost } from "@/lib/dg-legacy-urls";
+import {
+  dgPageShouldIndex,
+  dgSitemapChangefreq,
+  dgSitemapPriority,
+} from "@/lib/digitalgate-seo-catalog";
 import { getWebsiteBySlug } from "@dg/platform-core";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { isAetherraPublicHost } from "@/lib/aetherra-legacy-urls";
-import { isDgPublicHost } from "@/lib/dg-legacy-urls";
 import { resolvePublicHostSlug } from "@/lib/resolve-public-host-slug";
 import { isRoePublicHost } from "@/lib/roe-legacy-urls";
 
@@ -23,6 +28,13 @@ async function resolveHostSlug(): Promise<string | null> {
 function pagePath(slug: string, intent?: string | null): string {
   if (!slug || slug === "home" || intent === "home") return "/";
   return `/${slug.replace(/^\/+/, "")}`;
+}
+
+function parseIsoDate(value: unknown): string | undefined {
+  if (typeof value !== "string" || !value.trim()) return undefined;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d.toISOString().slice(0, 10);
 }
 
 /**
@@ -49,8 +61,11 @@ export async function GET() {
     return new NextResponse(
       `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>\n`,
       {
-        status: 404,
-        headers: { "Content-Type": "application/xml; charset=utf-8" },
+        status: 200,
+        headers: {
+          "Content-Type": "application/xml; charset=utf-8",
+          "Cache-Control": "public, max-age=3600",
+        },
       },
     );
   }
@@ -62,27 +77,37 @@ export async function GET() {
   const origin = `https://${originHost}`;
   const isDg = isDgPublicHost(host);
   const isRoe = isRoePublicHost(host);
+
   const urls = (site.pages ?? [])
-    .filter((p) => p.status !== "archived")
+    .filter((p) => p.status === "published")
     .filter((p) => (p.intent || "").toLowerCase() !== "redirect")
     .filter((p) => {
-      if (isDg) {
-        if (p.status !== "published") return false;
-        if (p.slug === "business-audit") return false;
-        return true;
-      }
+      if (isDg && p.slug === "business-audit") return false;
+      if (isDg && !dgPageShouldIndex(p.slug)) return false;
+      if (isDg && p.seo?.noindex) return false;
       if (isRoe && p.slug === "property-report") return false;
       return true;
     })
     .map((p) => {
       const loc = `${origin}${pagePath(p.slug, p.intent)}`;
-      const lastmod = p.updatedAt
-        ? new Date(p.updatedAt).toISOString().slice(0, 10)
-        : undefined;
-      return { loc, lastmod, home: pagePath(p.slug, p.intent) === "/" };
+      const seo = p.seo ?? {};
+      const lastmod =
+        parseIsoDate(seo.modifiedAt) ||
+        parseIsoDate(seo.publishedAt) ||
+        (p.updatedAt ? new Date(p.updatedAt).toISOString().slice(0, 10) : undefined);
+      const priority = isDg
+        ? dgSitemapPriority(p.slug, p.intent)
+        : pagePath(p.slug, p.intent) === "/"
+          ? 1.0
+          : 0.7;
+      const changefreq = isDg
+        ? dgSitemapChangefreq(p.slug, p.intent)
+        : pagePath(p.slug, p.intent) === "/"
+          ? "weekly"
+          : "monthly";
+      return { loc, lastmod, priority, changefreq };
     });
 
-  // Dedupe home
   const seen = new Set<string>();
   const unique = urls.filter((u) => {
     if (seen.has(u.loc)) return false;
@@ -95,9 +120,7 @@ export async function GET() {
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
     ...unique.map((u) => {
       const last = u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : "";
-      const pri = u.home
-        ? `\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>`
-        : `\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>`;
+      const pri = `\n    <changefreq>${u.changefreq}</changefreq>\n    <priority>${u.priority.toFixed(1)}</priority>`;
       return `  <url>\n    <loc>${u.loc}</loc>${last}${pri}\n  </url>`;
     }),
     `</urlset>`,

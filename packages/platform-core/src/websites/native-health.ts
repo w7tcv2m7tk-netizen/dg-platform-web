@@ -196,6 +196,21 @@ export function buildNativeWebsiteHealth(input: {
         : "Set a meta description in Studio → SEO",
     },
     {
+      id: "indexing_ready",
+      label: "Search indexing",
+      status:
+        published && hasDomain && pagesSeoTitleOk && pagesSeoDescOk
+          ? "pass"
+          : published && hasDomain
+            ? "warn"
+            : "warn",
+      detail: published
+        ? hasDomain
+          ? `Public at ${domain?.name ?? "custom domain"} · sitemap.xml + robots.txt auto-generated · ${seo.total} pages in Studio`
+          : "Publish OK — link a custom domain for search discovery"
+        : "Publish the site before expecting search indexing",
+    },
+    {
       id: "last_updated",
       label: "Last updated",
       status: "pass",

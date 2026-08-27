@@ -33,7 +33,12 @@ import {
   getPublicFoundingInvitation,
   getPublicFoundingResellerInvitation,
 } from "@dg/platform-core";
-import { publicOgImageForSlug, publicSiteIcons } from "@/lib/brand";
+import { publicOgImageForSlug } from "@/lib/brand";
+import {
+  jsonLdScriptHtml,
+  publicPageJsonLdGraph,
+  publicPageMetadata,
+} from "@/lib/public-website-seo";
 import {
   chromeFromSiteMetadata,
   decodeHtmlEntities,
@@ -169,65 +174,32 @@ export async function generateMetadata({
       };
     }
     const page = resolvePage(site, pageSlug);
-    const title = decodeHtmlEntities(
-      page?.seo?.title || site.seo?.title || site.name,
-    );
-    const description =
-      page?.seo?.description || site.seo?.description || site.name;
-    const ogTitle = decodeHtmlEntities(page?.seo?.ogTitle || title);
-    const ogDescription =
-      page?.seo?.ogDescription || description;
-    const ogImage = publicOgImageForSlug(
-      site.slug,
-      page?.seo?.ogImage || site.seo?.ogImage,
-    );
-    const keywords = page?.seo?.keywords?.length
-      ? page.seo.keywords
-      : site.seo?.keywords;
     const host = await resolveRequestHost();
     const canonicalHost =
       isDgPublicHost(host) || isRoePublicHost(host) || isAetherraPublicHost(host)
         ? host.replace(/^www\./, "")
         : host;
-    const canonical =
-      canonicalHost && page
-        ? `https://${canonicalHost}${publicPagePath(page)}`
-        : undefined;
     const theme = site.theme as { iconUrl?: string } | null | undefined;
-    const icons = publicSiteIcons(site.slug, theme?.iconUrl);
-    return {
-      title,
-      description,
-      applicationName: site.slug === "wantd" ? "Wantd" : site.name,
-      ...(site.slug === "wantd"
-        ? {
-            appleWebApp: {
-              capable: true,
-              title: "Wantd",
-              statusBarStyle: "default" as const,
-            },
-          }
-        : {}),
-      robots: { index: true, follow: true },
-      ...(keywords?.length ? { keywords } : {}),
-      ...(canonical ? { alternates: { canonical } } : {}),
-      ...(icons ? { icons } : {}),
-      openGraph: {
-        type: "website",
-        locale: site.slug === "wantd" ? "en_NZ" : "en_AU",
-        siteName: site.slug === "wantd" ? "Wantd" : site.name,
-        title: ogTitle,
-        description: ogDescription,
-        ...(canonical ? { url: canonical } : {}),
-        images: [{ url: ogImage }],
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: ogTitle,
-        description: ogDescription,
-        images: [ogImage],
-      },
-    };
+    const seo = page?.seo ?? {};
+    return publicPageMetadata({
+      siteSlug: site.slug,
+      siteName: site.slug === "wantd" ? "Wantd" : site.name,
+      pageSlug: page?.slug || "home",
+      pageTitle: page?.title,
+      title: decodeHtmlEntities(seo.title || site.seo?.title || site.name),
+      description: seo.description || site.seo?.description || site.name,
+      ogTitle: seo.ogTitle,
+      ogDescription: seo.ogDescription,
+      keywords: seo.keywords?.length ? seo.keywords : site.seo?.keywords,
+      canonicalHost,
+      iconUrl: theme?.iconUrl,
+      publishedAt: seo.publishedAt,
+      modifiedAt: seo.modifiedAt,
+      schemaType: seo.schemaType,
+      authorName: seo.authorName,
+      noindex: seo.noindex,
+      ogImage: seo.ogImage || site.seo?.ogImage,
+    });
   } catch (err) {
     unstable_rethrow(err);
     return { title: "Site temporarily unavailable" };
@@ -461,6 +433,25 @@ async function renderSite(
     ? { ...preparedChrome, chromeCss: undefined }
     : null;
   const hostname = await resolveRequestHost();
+  const canonicalHost =
+    isDgPublicHost(hostname) ||
+    isRoePublicHost(hostname) ||
+    isAetherraPublicHost(hostname)
+      ? hostname.replace(/^www\./, "")
+      : hostname;
+  const pageSeo = page.seo ?? {};
+  const jsonLdGraph = publicPageJsonLdGraph({
+    siteSlug: slug,
+    pageSlug: page.slug,
+    pageTitle: page.title || pageSeo.title || site.name,
+    description: pageSeo.description || site.seo?.description || site.name,
+    canonicalHost,
+    publishedAt: pageSeo.publishedAt,
+    modifiedAt: pageSeo.modifiedAt,
+    authorName: pageSeo.authorName,
+    schemaType: pageSeo.schemaType,
+  });
+  const jsonLdPayload = jsonLdScriptHtml(jsonLdGraph);
   const funnelTemplate =
     resolveFunnelTemplate({
       metadata: siteMeta,
@@ -509,28 +500,10 @@ async function renderSite(
       {chromeCss ? (
         <style id="wb-chrome-css" dangerouslySetInnerHTML={{ __html: chromeCss }} />
       ) : null}
-      {isDgSiteSlug(slug) ? (
+      {jsonLdPayload ? (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              name: "DigitalGate",
-              url: "https://digitalgate.com.au",
-              logo: "https://app.digitalgate.com.au/brand/logo-on-dark.png",
-              description:
-                "AI-powered Business Operating Platform for modern businesses.",
-              telephone: "0405227227",
-              email: "hello@digitalgate.com.au",
-              address: {
-                "@type": "PostalAddress",
-                addressLocality: "Gold Coast",
-                addressRegion: "QLD",
-                addressCountry: "AU",
-              },
-            }),
-          }}
+          dangerouslySetInnerHTML={{ __html: jsonLdPayload }}
         />
       ) : null}
       {allowDraft && site.status !== "published" ? (

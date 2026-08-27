@@ -139,6 +139,14 @@ export type WebsiteSeo = {
   ogTitle?: string;
   ogDescription?: string;
   ogImage?: string;
+  /** article | software | webpage — drives JSON-LD and OG type at runtime */
+  schemaType?: string;
+  /** ISO date for Article schema / OG article metadata */
+  publishedAt?: string;
+  modifiedAt?: string;
+  authorName?: string;
+  /** Force noindex for utility / funnel pages */
+  noindex?: boolean;
   /**
    * Site header/nav on this page. When omitted, auto-hides for card, legal,
    * privacy, terms, onboarding, and booking application/confirmation pages.

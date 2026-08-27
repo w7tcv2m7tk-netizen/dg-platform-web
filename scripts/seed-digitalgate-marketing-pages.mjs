@@ -148,6 +148,41 @@ function clipSeo(s, max) {
   return `${(sp > 40 ? cut.slice(0, sp) : cut).trim()}…`;
 }
 
+/** Best-effort ISO date from editorial strings like "June 2026" or "2026-08-27". */
+function parseEditorialDate(raw) {
+  if (!raw || typeof raw !== "string") return undefined;
+  const iso = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (iso) return iso[1];
+  const parsed = Date.parse(raw);
+  if (!Number.isNaN(parsed)) return new Date(parsed).toISOString().slice(0, 10);
+  const monthYear = raw.match(
+    /^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})$/i,
+  );
+  if (monthYear) {
+    const monthIndex = [
+      "january", "february", "march", "april", "may", "june",
+      "july", "august", "september", "october", "november", "december",
+    ].indexOf(monthYear[1].toLowerCase());
+    if (monthIndex >= 0) {
+      return `${monthYear[2]}-${String(monthIndex + 1).padStart(2, "0")}-01`;
+    }
+  }
+  return undefined;
+}
+
+function buildPageSeo(def, rawHtml, seoExtra = {}) {
+  const seoTitle = extractTitle(rawHtml) || def.title;
+  const seoDescription = extractMeta(rawHtml, "description");
+  const seo = {
+    title: clipSeo(seoTitle, 60),
+    description: clipSeo(seoDescription, 155),
+  };
+  for (const [k, v] of Object.entries(seoExtra)) {
+    if (v !== undefined && v !== null) seo[k] = v;
+  }
+  return seo;
+}
+
 /**
  * Keep page CSS for Studio preview fidelity; strip scripts / event handlers.
  * Rewrite body/html selectors → .wb-html-island so dark backgrounds apply
@@ -289,11 +324,9 @@ async function resolveSite() {
   return { org, site };
 }
 
-async function upsertPage(siteId, def, rawHtml) {
+async function upsertPage(siteId, def, rawHtml, seoExtra = {}) {
   const prepared = prepareMarketingHtml(rawHtml);
   const components = htmlToComponents(prepared);
-  const seoTitle = extractTitle(rawHtml) || def.title;
-  const seoDescription = extractMeta(rawHtml, "description");
   const status = publish ? "published" : "draft";
 
   const existing = await prisma.websitePage.findFirst({
@@ -305,10 +338,7 @@ async function upsertPage(siteId, def, rawHtml) {
     intent: def.intent,
     status,
     sortOrder: def.sortOrder,
-    seo: {
-      title: clipSeo(seoTitle, 60),
-      description: clipSeo(seoDescription, 155),
-    },
+    seo: buildPageSeo(def, rawHtml, seoExtra),
     components,
   };
 
@@ -373,6 +403,12 @@ async function main() {
     `Chrome header=${headerHtml ? `${headerHtml.length}c` : "no"} footer=${footerHtml ? `${footerHtml.length}c` : "no"}`,
   );
 
+  const FOUNDATIONAL_INSIGHTS = new Set([
+    "from-dumb-businesses-to-smart-businesses",
+    "intelligent-business-more-than-a-brain",
+  ]);
+  const NOINDEX_PAGES = new Set(["card", "onboarding"]);
+
   const results = [];
   for (const def of PAGES) {
     const path = join(MARKETING_DIR, def.file);
@@ -381,7 +417,17 @@ async function main() {
       continue;
     }
     const raw = readFileSync(path, "utf8");
-    const result = await upsertPage(site.id, def, raw);
+    const seoExtra = {};
+    if (FOUNDATIONAL_INSIGHTS.has(def.slug)) {
+      seoExtra.schemaType = "article";
+      seoExtra.authorName = "Ben Roe";
+      seoExtra.publishedAt = "2026-08-01";
+      seoExtra.modifiedAt = "2026-08-27";
+    }
+    if (NOINDEX_PAGES.has(def.slug)) {
+      seoExtra.noindex = true;
+    }
+    const result = await upsertPage(site.id, def, raw, seoExtra);
     results.push({ slug: def.slug, ...result });
     console.log(
       `${result.action.padEnd(7)} /${def.slug}  (${result.bytes} chars HTML)`,
@@ -421,7 +467,12 @@ async function main() {
         slug,
         intent: "custom",
         sortOrder: sortInsight++,
-      }, raw);
+      }, raw, {
+        schemaType: "article",
+        authorName: "Ben Roe",
+        publishedAt: parseEditorialDate(meta?.published),
+        modifiedAt: parseEditorialDate(meta?.updated || meta?.published),
+      });
       results.push({ slug, ...result });
       console.log(
         `${result.action.padEnd(7)} /${slug}  (insight, ${result.bytes} chars)`,
@@ -462,7 +513,10 @@ async function main() {
         slug,
         intent: "custom",
         sortOrder: sortGrowth++,
-      }, raw);
+      }, raw, {
+        schemaType: slug !== "growth" ? "software" : undefined,
+        keywords: meta?.keywords,
+      });
       results.push({ slug, ...result });
       console.log(
         `${result.action.padEnd(7)} /${slug}  (growth, ${result.bytes} chars)`,
