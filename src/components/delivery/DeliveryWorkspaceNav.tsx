@@ -1,31 +1,32 @@
 import Link from "next/link";
 
+/** Primary eight; remainder collapse under More ▾ via AppHorizontalSubnav. */
 const STAFF_NAV = [
   { href: "/command/delivery", label: "Dashboard", id: "dashboard" },
-  { href: "/command/delivery/invitations", label: "Invitations", id: "invitations" },
   { href: "/command/delivery/onboarding", label: "Onboarding", id: "onboarding" },
-  { href: "/command/delivery/projects", label: "Active Projects", id: "projects" },
-  { href: "/command/delivery/tasks", label: "My Tasks", id: "tasks" },
+  { href: "/command/delivery/invitations", label: "Invitations", id: "invitations" },
+  { href: "/command/delivery/projects", label: "Projects", id: "projects" },
+  { href: "/command/delivery/tasks", label: "Tasks", id: "tasks" },
   { href: "/command/delivery/customers", label: "Customers", id: "customers" },
   { href: "/command/delivery/plans", label: "Implementation Plans", id: "plans" },
+  { href: "/command/delivery/training", label: "Training", id: "training" },
+  { href: "/command/delivery/qa", label: "QA & Go-Live", id: "qa" },
   { href: "/command/delivery/team", label: "Team", id: "team" },
   { href: "/command/delivery/activity", label: "Activity", id: "activity" },
   { href: "/command/delivery/documents", label: "Documents", id: "documents" },
-  { href: "/command/delivery/training", label: "Training", id: "training" },
-  { href: "/command/delivery/qa", label: "QA & Go-Live", id: "qa" },
   { href: "/command/delivery/reports", label: "Reports", id: "reports" },
 ] as const;
 
 const PARTNER_NAV = [
   { href: "/partner/delivery", label: "Dashboard", id: "dashboard" },
   { href: "/partner/delivery/onboarding", label: "Onboarding", id: "onboarding" },
-  { href: "/partner/delivery/projects", label: "Active Projects", id: "projects" },
-  { href: "/partner/delivery/tasks", label: "My Tasks", id: "tasks" },
+  { href: "/partner/delivery/projects", label: "Projects", id: "projects" },
+  { href: "/partner/delivery/tasks", label: "Tasks", id: "tasks" },
   { href: "/partner/delivery/customers", label: "Customers", id: "customers" },
   { href: "/partner/delivery/plans", label: "Implementation Plans", id: "plans" },
+  { href: "/partner/delivery/training", label: "Training", id: "training" },
   { href: "/partner/delivery/activity", label: "Activity", id: "activity" },
   { href: "/partner/delivery/documents", label: "Documents", id: "documents" },
-  { href: "/partner/delivery/training", label: "Training", id: "training" },
   { href: "/partner/delivery/qa", label: "QA & Go-Live", id: "qa" },
   { href: "/partner/delivery/reports", label: "Reports", id: "reports" },
 ] as const;

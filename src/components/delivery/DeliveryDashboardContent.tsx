@@ -105,8 +105,8 @@ export function DeliveryDashboardContent({
         </div>
         {projects.length === 0 ? (
           <div className="mt-4 rounded-xl border border-dashed border-slate-700 px-6 py-10 text-center text-sm text-slate-400">
-            No implementation projects yet. Projects are created automatically when a Founding Customer is
-            accepted.
+            No implementation projects yet. Projects are created automatically when a customer
+            enters implementation.
           </div>
         ) : (
           <div className="mt-4 overflow-hidden rounded-xl border border-slate-700/60">

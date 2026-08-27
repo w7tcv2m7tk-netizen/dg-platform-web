@@ -347,8 +347,9 @@ export function CustomerOnboardingWorkflow() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <p className="text-sm text-slate-400">
-        Standard 15-stage DigitalGate implementation SOP. Resellers sit at the start of acquisition —
-        they do not run this workflow unless they are also a Certified Delivery Partner.
+        Standard 16-stage DigitalGate Implementation Lifecycle™. Resellers sit at the start of
+        acquisition — they do not run this workflow unless they are also a Certified Delivery
+        Partner.
       </p>
       <ol className="space-y-3">
         {CUSTOMER_ONBOARDING_STAGES.map((stage) => (

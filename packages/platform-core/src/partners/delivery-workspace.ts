@@ -1,6 +1,7 @@
 /**
  * DigitalGate Delivery workspace — role-based partner workspace (not a CRM menu).
- * Delivery encompasses onboarding, migrations, configuration, training, QA, handover and PS.
+ * Delivery encompasses onboarding, migrations, configuration, training, QA, go-live and Customer Success.
+ * Pipeline stages: DigitalGate Implementation Lifecycle™ — see delivery-model.ts.
  */
 
 export const DELIVERY_PARTNER_PUBLIC_LABEL = "Delivery Partner";
@@ -79,26 +80,6 @@ export const DELIVERY_PROGRESS_MILESTONES = [
   { id: "go_live", title: "Go-Live" },
 ] as const;
 
-/** Pipeline stages for delivery kanban — SOP plus explicit QA before go-live. */
-export const DELIVERY_PIPELINE_STAGES = [
-  { id: "accepted", title: "Accepted" },
-  { id: "agreement", title: "Agreement" },
-  { id: "kickoff", title: "Kick-off" },
-  { id: "discovery", title: "Discovery" },
-  { id: "business_setup", title: "Business Setup" },
-  { id: "data_migration", title: "Data Migration" },
-  { id: "connector_setup", title: "Connectors" },
-  { id: "app_config", title: "Apps & Configuration" },
-  { id: "business_brain", title: "AI / Business Brain" },
-  { id: "automation", title: "Automation" },
-  { id: "testing", title: "Testing" },
-  { id: "training", title: "Training" },
-  { id: "qa", title: "QA" },
-  { id: "go_live", title: "Go-Live" },
-  { id: "review_30", title: "30-Day Review" },
-  { id: "customer_success", title: "Customer Success" },
-] as const;
-
 export const ACCEPT_CUSTOMER_WORKFLOW = [
   "Accept Customer",
   "Create Organisation",
@@ -145,19 +126,18 @@ export const STAFF_PARTNERS_NAV = {
     label: "Delivery",
     routes: [
       { path: "/command/delivery", label: "Dashboard" },
-      { path: "/command/delivery/invitations", label: "Invitations" },
       { path: "/command/delivery/onboarding", label: "Onboarding" },
-      { path: "/command/delivery/projects", label: "Active Projects" },
-      { path: "/command/delivery/tasks", label: "My Tasks" },
+      { path: "/command/delivery/invitations", label: "Invitations" },
+      { path: "/command/delivery/projects", label: "Projects" },
+      { path: "/command/delivery/tasks", label: "Tasks" },
       { path: "/command/delivery/customers", label: "Customers" },
       { path: "/command/delivery/plans", label: "Implementation Plans" },
+      { path: "/command/delivery/training", label: "Training" },
+      { path: "/command/delivery/qa", label: "QA & Go-Live" },
       { path: "/command/delivery/team", label: "Team" },
       { path: "/command/delivery/activity", label: "Activity" },
       { path: "/command/delivery/documents", label: "Documents" },
-      { path: "/command/delivery/training", label: "Training" },
-      { path: "/command/delivery/qa", label: "QA & Go-Live" },
       { path: "/command/delivery/reports", label: "Reports" },
-      { path: "/command/partners/delivery", label: "Operating Model" },
     ],
     primaryHref: "/command/delivery",
   },
@@ -198,14 +178,14 @@ export const DELIVERY_PARTNER_NAV = {
     routes: [
       { path: "/partner/delivery", label: "Dashboard" },
       { path: "/partner/delivery/onboarding", label: "Onboarding" },
-      { path: "/partner/delivery/projects", label: "Active Projects" },
-      { path: "/partner/delivery/tasks", label: "My Tasks" },
+      { path: "/partner/delivery/projects", label: "Projects" },
+      { path: "/partner/delivery/tasks", label: "Tasks" },
       { path: "/partner/delivery/customers", label: "Customers" },
       { path: "/partner/delivery/plans", label: "Implementation Plans" },
-      { path: "/partner/delivery/activity", label: "Activity" },
-      { path: "/partner/delivery/documents", label: "Documents" },
       { path: "/partner/delivery/training", label: "Training" },
       { path: "/partner/delivery/qa", label: "QA & Go-Live" },
+      { path: "/partner/delivery/activity", label: "Activity" },
+      { path: "/partner/delivery/documents", label: "Documents" },
       { path: "/partner/delivery/reports", label: "Reports" },
     ],
     primaryHref: "/partner/delivery",

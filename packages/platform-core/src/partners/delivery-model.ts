@@ -93,23 +93,117 @@ export const DELIVERY_CHAIN_AVOID =
 export const IMPLEMENTATION_LEAD_FIRST_MANDATE =
   "Build the DigitalGate Implementation System — not only onboard customers. Create the standard operating procedure so every future customer follows the same framework.";
 
+/**
+ * DigitalGate Implementation Lifecycle™ — canonical 16-stage model.
+ * Single source for Partners Onboarding, Delivery dashboard, pipeline and plans.
+ * Do not maintain a parallel 15-stage SOP.
+ */
+export const IMPLEMENTATION_LIFECYCLE_NAME = "DigitalGate Implementation Lifecycle™";
+
 export const IMPLEMENTATION_SOP_STAGES = [
-  { n: "01", title: "Customer acceptance", body: "Customer accepted into Founding 10 / DigitalGate." },
-  { n: "02", title: "Agreement", body: "Agreement signed." },
-  { n: "03", title: "Kick-off", body: "Implementation Lead + DigitalGate + customer." },
-  { n: "04", title: "Discovery", body: "Business, team, systems, goals, pain points, data, integrations, priorities." },
-  { n: "05", title: "Business setup", body: "Organisation, Business Profile, team, permissions, foundation." },
-  { n: "06", title: "Data migration", body: "Migration, validation and reconciliation." },
-  { n: "07", title: "Connector setup", body: "Website, domains, email, Google, Stripe, Xero, social and other systems." },
-  { n: "08", title: "App configuration", body: "Activate only what the customer actually needs." },
-  { n: "09", title: "AI / Business Brain setup", body: "Knowledge, context, permissions, authorised tools, business-specific instructions." },
-  { n: "10", title: "Automation", body: "Workflows, routing, notifications, follow-up." },
-  { n: "11", title: "Testing", body: "End-to-end validation before go-live." },
-  { n: "12", title: "Staff training", body: "Administrators and staff." },
-  { n: "13", title: "Go-live", body: "Customer begins operating through DigitalGate." },
-  { n: "14", title: "30-day review", body: "Adoption, usage, problems, opportunities, additional Apps." },
-  { n: "15", title: "Handover to ongoing support", body: "Move into normal DigitalGate support and optimisation." },
+  {
+    id: "accepted",
+    n: "01",
+    title: "Customer Acceptance",
+    body: "Customer formally accepted.",
+  },
+  {
+    id: "agreement",
+    n: "02",
+    title: "Agreement",
+    body: "Commercial/legal agreement completed.",
+  },
+  {
+    id: "kickoff",
+    n: "03",
+    title: "Kick-off",
+    body: "Implementation team + customer.",
+  },
+  {
+    id: "discovery",
+    n: "04",
+    title: "Discovery",
+    body: "Business, team, systems, goals, data, integrations and priorities.",
+  },
+  {
+    id: "business_setup",
+    n: "05",
+    title: "Business Setup",
+    body: "Organisation, Business Profile, users, permissions and foundation.",
+  },
+  {
+    id: "data_migration",
+    n: "06",
+    title: "Data Migration",
+    body: "Migration, validation and reconciliation.",
+  },
+  {
+    id: "connector_setup",
+    n: "07",
+    title: "Connector Setup",
+    body: "Website, domains, Google, Stripe, Xero, email, social etc.",
+  },
+  {
+    id: "app_config",
+    n: "08",
+    title: "Apps & Configuration",
+    body: "Activate and configure required Apps.",
+  },
+  {
+    id: "business_brain",
+    n: "09",
+    title: "AI / Business Brain",
+    body: "Knowledge, context, permissions, authorised tools and business instructions.",
+  },
+  {
+    id: "automation",
+    n: "10",
+    title: "Automation",
+    body: "Workflows, routing, notifications and follow-up.",
+  },
+  {
+    id: "testing",
+    n: "11",
+    title: "Testing",
+    body: "Functional and integration testing.",
+  },
+  {
+    id: "training",
+    n: "12",
+    title: "Training",
+    body: "Administrator and staff training.",
+  },
+  {
+    id: "qa",
+    n: "13",
+    title: "QA",
+    body: "Final implementation quality assurance and customer acceptance check.",
+  },
+  {
+    id: "go_live",
+    n: "14",
+    title: "Go-Live",
+    body: "Customer begins operating through DigitalGate.",
+  },
+  {
+    id: "review_30",
+    n: "15",
+    title: "30-Day Review",
+    body: "Adoption, usage, issues, opportunities and expansion.",
+  },
+  {
+    id: "customer_success",
+    n: "16",
+    title: "Customer Success",
+    body: "Transition into ongoing optimisation and account success.",
+  },
 ] as const;
+
+/** Pipeline / kanban ids — same order as IMPLEMENTATION_SOP_STAGES. */
+export const DELIVERY_PIPELINE_STAGES = IMPLEMENTATION_SOP_STAGES.map((stage) => ({
+  id: stage.id,
+  title: stage.title,
+}));
 
 export const IMPLEMENTATION_PACKAGES = [
   {

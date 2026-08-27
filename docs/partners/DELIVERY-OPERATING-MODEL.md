@@ -34,23 +34,26 @@ Customer → DigitalGate → Head of Implementation → Delivery Team
 
 ## Head of Implementation — first mandate
 
-Build the **DigitalGate Implementation System** — not only onboard customers. Document the 15-stage SOP so every future customer follows the same framework:
+Build the **DigitalGate Implementation System** — not only onboard customers. Document the **DigitalGate Implementation Lifecycle™** (16 stages) so every future customer follows the same framework:
 
-1. Customer acceptance  
+1. Customer Acceptance  
 2. Agreement  
 3. Kick-off  
 4. Discovery  
-5. Business setup  
-6. Data migration  
-7. Connector setup  
-8. App configuration  
-9. AI / Business Brain setup  
+5. Business Setup  
+6. Data Migration  
+7. Connector Setup  
+8. Apps & Configuration  
+9. AI / Business Brain  
 10. Automation  
 11. Testing  
-12. Staff training  
-13. Go-live  
-14. 30-day review  
-15. Handover to ongoing support  
+12. Training  
+13. QA  
+14. Go-Live  
+15. 30-Day Review  
+16. Customer Success  
+
+**Code lock:** `packages/platform-core/src/partners/delivery-model.ts` (`IMPLEMENTATION_SOP_STAGES` / `DELIVERY_PIPELINE_STAGES`). Do not maintain a parallel 15-stage SOP.
 
 ## Implementation packages (internal only)
 

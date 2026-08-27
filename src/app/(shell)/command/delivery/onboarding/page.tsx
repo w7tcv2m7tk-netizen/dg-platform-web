@@ -24,7 +24,7 @@ export default async function StaffDeliveryOnboardingPage() {
 
       title="Onboarding"
 
-      description="Standard 15-stage implementation SOP — every customer follows this framework."
+      description="DigitalGate Implementation Lifecycle™ — 16 stages. Every customer follows this framework."
 
       navActive="onboarding"
 

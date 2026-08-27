@@ -632,7 +632,7 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/command/delivery/projects", label: "Projects" },
         { path: "/command/delivery/tasks", label: "Tasks" },
         { path: "/command/delivery/customers", label: "Customers" },
-        { path: "/command/delivery/plans", label: "Implementation plans" },
+        { path: "/command/delivery/plans", label: "Implementation Plans" },
         { path: "/command/delivery/training", label: "Training" },
         { path: "/command/delivery/qa", label: "QA & Go-Live" },
         { path: "/command/delivery/team", label: "Team" },

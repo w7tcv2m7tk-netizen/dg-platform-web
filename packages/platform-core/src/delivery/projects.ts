@@ -5,7 +5,7 @@ import {
   IMPLEMENTATION_PLAN_LABELS,
   type ImplementationPlan,
 } from "../partners/delivery-workspace";
-import { DELIVERY_PIPELINE_STAGES } from "../partners/delivery-workspace";
+import { DELIVERY_PIPELINE_STAGES } from "../partners/delivery-model";
 import type {
   CreateDeliveryProjectInput,
   DeliveryBlockerRecord,

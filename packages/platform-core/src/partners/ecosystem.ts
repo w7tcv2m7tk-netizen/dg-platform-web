@@ -284,27 +284,9 @@ export const IMPLEMENTATION_CERT_STATUS = [
 ] as const;
 export type ImplementationCertStatus = (typeof IMPLEMENTATION_CERT_STATUS)[number];
 
-const ONBOARDING_STAGE_IDS = [
-  "accepted",
-  "agreement",
-  "kickoff",
-  "discovery",
-  "business_setup",
-  "data_migration",
-  "connector_setup",
-  "app_config",
-  "business_brain",
-  "automation",
-  "testing",
-  "training",
-  "go_live",
-  "review_30",
-  "handover",
-] as const;
-
-/** Standard 15-stage implementation SOP — single source: delivery-model.ts */
-export const CUSTOMER_ONBOARDING_STAGES = IMPLEMENTATION_SOP_STAGES.map((stage, i) => ({
-  id: ONBOARDING_STAGE_IDS[i]!,
+/** Canonical Implementation Lifecycle™ — single source: delivery-model.ts (16 stages). */
+export const CUSTOMER_ONBOARDING_STAGES = IMPLEMENTATION_SOP_STAGES.map((stage) => ({
+  id: stage.id,
   n: stage.n,
   title: stage.title,
   body: stage.body,

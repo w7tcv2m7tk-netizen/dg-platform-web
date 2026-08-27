@@ -31,9 +31,15 @@ SALES                   Acquire DigitalGate customers
   Sales Week
   Opportunities         Scoring / opportunity surface
 
-PARTNERS                Scale distribution and delivery — people & organisations
+PARTNERS                Scale distribution — people & organisations
   Dashboard · Ecosystem · Briefing · Resellers · Onboarding · Operating Model
   (+ More ▾ when overflow)
+
+DELIVERY                Get customers live — implementation operations
+  Dashboard · Onboarding · Invitations · Projects · Tasks · Customers
+  Implementation Plans · Training
+  (+ More ▾: QA & Go-Live · Team · Activity · Documents · Reports)
+  Lifecycle: DigitalGate Implementation Lifecycle™ (16 stages)
 
 PLATFORM → Network      Commercial network transactions (not partner CRM)
   Overview · Referrals · Commissions · Payouts
@@ -49,10 +55,22 @@ CUSTOMER WORKSPACES     Run individual businesses
 | **Command Centre** | Runs DigitalGate |
 | **Sales** | Sells DigitalGate |
 | **Partners** | Extends DigitalGate — partner *relationships* |
+| **Delivery** | Gets customers live — implementation *execution* |
 | **Platform → Network** | Network *transactions* (referrals, commissions, payouts) |
 | **Customer Workspaces** | Runs the customer’s business |
 
-Do not blur these. Partners ≠ Sales. Partners ≠ Network. Command Centre ≠ customer Industry Apps.
+Do not blur these. Partners ≠ Sales ≠ Delivery. Partners ≠ Network. Command Centre ≠ customer Industry Apps.
+
+**Partners vs Delivery (locked):**
+
+| Area | Question |
+|------|----------|
+| **Partners** | Who helps DigitalGate? |
+| **Delivery** | How do we get customers live? |
+
+Breadcrumb / eyebrow for Delivery: **DigitalGate · Delivery** — not “Partners · Delivery”.
+
+**Implementation Lifecycle™:** 16 stages are canonical everywhere (Partners Onboarding, Delivery dashboard, pipeline, plans). Projects are created when a customer **enters implementation** — Founding 10 is the current acquisition programme, not the permanent trigger.
 
 **Partners vs Network (locked):**
 
