@@ -74,15 +74,20 @@ PLATFORM — Manage DigitalGate for this organisation
   Marketplace — what can be discovered / added (Industry · Growth · Integrations · Services · Partners)
     Do **not** list Core apps as Marketplace products — Core is already included.
     Do **not** show permission IDs or API capability strings on Marketplace cards.
-    Distinct from Apps (installed) and Network (relationships).
+    Distinct from Apps (installed) and Network (transactions / relationships).
   Network (customer) — relationships for *their* business:
     Overview · Referrals (B2B) · Refer & Earn (refer DigitalGate) · Connections
     Do **not** expose Resellers, Commissions, Ecosystem, or Programme Settings to ordinary customers.
     Earnings from Refer & Earn live inside Refer & Earn — not a generic Commissions area.
 
-  Network (DigitalGate staff, Platform pillar) — administer the ecosystem:
-    Overview · Organisations · Partners · Resellers · Referrals · Commissions · Ecosystem · Programme Settings
-    Distinct from DIGITALGATE → Partners (day-to-day relationship ops). Do not merge.
+  Network (DigitalGate staff, Platform pillar) — commercial network *transactions*:
+    Overview · Referrals · Commissions · Payouts
+    Partners = people & organisations (DIGITALGATE → Partners). Network = transactions between them.
+    Do **not** duplicate Referrals / Commissions under Partners. Room later: Attribution · Partner Revenue · Network Analytics · Marketplace.
+
+  DIGITALGATE → Partners — relationship management:
+    Dashboard · Ecosystem · Briefing · Resellers · Onboarding · Operating Model
+    (+ More ▾ when overflow). Who are our partners — status, tier, certification, activity.
 
   Settings — administrative home (Overview · Organisation · Users & Permissions · Billing · Connectors · API · Security · Notifications · Audit Log)
 

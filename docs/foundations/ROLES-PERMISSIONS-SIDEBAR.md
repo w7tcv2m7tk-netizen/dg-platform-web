@@ -134,7 +134,8 @@ Delivery · Customer setup · Communication · Knowledge
 ### Reseller side panel (approx.)
 Dashboard · Performance · Prospects · Referrals · Customers · Commissions · Resources · Support  
 
-DigitalGate staff **Partners** section: Resellers · Referrals · Commissions · Delivery/Implementation.
+DigitalGate staff **Partners** section: Dashboard · Ecosystem · Briefing · Resellers · Onboarding · Operating Model.  
+**Referrals · Commissions · Payouts** live under **Platform → Network** (transactions), not under Partners (relationships).
 
 ---
 

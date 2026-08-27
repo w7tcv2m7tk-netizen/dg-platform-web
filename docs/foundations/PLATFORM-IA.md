@@ -31,9 +31,13 @@ SALES                   Acquire DigitalGate customers
   Sales Week
   Opportunities         Scoring / opportunity surface
 
-PARTNERS                Scale distribution and delivery
-  Dashboard · Ecosystem · Resellers · Onboarding
-  Operating Model · Referrals · Commissions
+PARTNERS                Scale distribution and delivery — people & organisations
+  Dashboard · Ecosystem · Briefing · Resellers · Onboarding · Operating Model
+  (+ More ▾ when overflow)
+
+PLATFORM → Network      Commercial network transactions (not partner CRM)
+  Overview · Referrals · Commissions · Payouts
+  (Room later: Attribution · Partner Revenue · Network Analytics · Marketplace)
 
 CUSTOMER WORKSPACES     Run individual businesses
   CRM · Opportunities · Tasks · Calendar · Apps
@@ -44,10 +48,19 @@ CUSTOMER WORKSPACES     Run individual businesses
 |---------|-----|
 | **Command Centre** | Runs DigitalGate |
 | **Sales** | Sells DigitalGate |
-| **Partners** | Extends DigitalGate |
+| **Partners** | Extends DigitalGate — partner *relationships* |
+| **Platform → Network** | Network *transactions* (referrals, commissions, payouts) |
 | **Customer Workspaces** | Runs the customer’s business |
 
-Do not blur these four. Partners ≠ Sales. Command Centre ≠ customer Industry Apps.
+Do not blur these. Partners ≠ Sales. Partners ≠ Network. Command Centre ≠ customer Industry Apps.
+
+**Partners vs Network (locked):**
+
+| Area | Question |
+|------|----------|
+| **Partners** | Who are our partners? |
+| **Network → Referrals** | What referral activity is flowing? |
+| **Network → Commissions** | What financial obligations has the network generated? |
 
 ---
 

@@ -457,8 +457,9 @@ function customerNetworkNavItem(): AppNavTreeItem {
 }
 
 /**
- * Staff Network (Platform pillar on DigitalGate tenant) — administer the ecosystem.
- * Distinct from DIGITALGATE → Partners (relationship operating function).
+ * Staff Network (Platform pillar) — commercial network *transactions*.
+ * Partners (DIGITALGATE) = people & organisations; Network = referrals, commissions, payouts.
+ * Do not duplicate partner relationship management here.
  */
 function staffNetworkNavItem(): AppNavTreeItem {
   return {
@@ -472,32 +473,27 @@ function staffNetworkNavItem(): AppNavTreeItem {
     routes: [
       { path: "/dashboard/network", label: "Overview" },
       {
-        path: "/dashboard/network/organisations",
-        label: "Organisations",
-        matchAlso: ["/command/clients"],
-      },
-      { path: "/dashboard/network/partners", label: "Partners" },
-      { path: "/dashboard/network/resellers", label: "Resellers" },
-      {
-        path: "/dashboard/network/referrals",
+        path: "/command/referrals",
         label: "Referrals",
-        matchAlso: ["/command/referrals", "/command/referrals/pending", "/command/referrals/converted"],
+        matchAlso: [
+          "/dashboard/network/referrals",
+          "/command/referrals/pending",
+          "/command/referrals/converted",
+        ],
       },
       {
-        path: "/dashboard/network/commissions",
+        path: "/command/commissions",
         label: "Commissions",
         matchAlso: [
-          "/command/commissions",
+          "/dashboard/network/commissions",
           "/command/commissions/pending",
           "/command/commissions/approved",
           "/command/commissions/paid",
         ],
       },
-      { path: "/dashboard/network/ecosystem", label: "Ecosystem" },
       {
-        path: "/dashboard/network/programme",
-        label: "Programme Settings",
-        matchAlso: ["/dashboard/network/refer-earn", "/dashboard/settings/referrals"],
+        path: "/command/partners/payouts",
+        label: "Payouts",
       },
     ],
   };
@@ -628,21 +624,6 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/command/partners/resellers", label: "Resellers" },
         { path: "/command/partners/onboarding", label: "Onboarding" },
         { path: "/command/partners/delivery", label: "Operating Model" },
-        {
-          path: "/command/referrals",
-          label: "Referrals",
-          matchAlso: ["/command/referrals/pending", "/command/referrals/converted"],
-        },
-        {
-          path: "/command/commissions",
-          label: "Commissions",
-          matchAlso: [
-            "/command/commissions/pending",
-            "/command/commissions/approved",
-            "/command/commissions/paid",
-          ],
-        },
-        { path: "/command/partners/payouts", label: "Payouts" },
       ]),
       operatorApp("dg-delivery", "Delivery", "partner-portal", "/command/delivery", [
         { path: "/command/delivery", label: "Dashboard" },

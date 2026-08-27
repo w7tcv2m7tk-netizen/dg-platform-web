@@ -100,12 +100,13 @@ Partner → Type → Capabilities → Certification → Referrals → Customers 
 | **Founding 10** | Customer acquisition / cohort |
 | **Founding Reseller** | Partner acquisition / cohort |
 | **Delivery Partner** | Implementation capacity |
-| **Partners** | External channel ecosystem |
+| **Partners** | External channel *relationships* (people & organisations) |
+| **Platform → Network** | Network *transactions* (Referrals · Commissions · Payouts) |
 
 DigitalGate remains the platform owner, methodology owner and customer relationship owner.
 
 Build the data model and UI so this can scale to a future Partner Marketplace without an architectural rewrite.
 
-**Surfaces:** `/command/partners` · `/command/partners/ecosystem` · `/command/partners/delivery` · `/command/partners/onboarding`
+**Surfaces:** `/command/partners` · `/command/partners/ecosystem` · `/command/partners/delivery` · `/command/partners/onboarding` · Network transactions via `/command/referrals` · `/command/commissions` · `/command/partners/payouts`
 
 **Lock:** `packages/platform-core/src/partners/ecosystem.ts` · `packages/platform-core/src/partners/delivery-model.ts`
