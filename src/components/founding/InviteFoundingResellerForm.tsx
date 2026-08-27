@@ -44,7 +44,7 @@ export function InviteFoundingResellerForm({ compact }: { compact?: boolean }) {
 
   return (
     <div className={compact ? "space-y-3" : "dg-card space-y-3"}>
-      <h2 className="font-semibold text-white">Invite Founding 10 Partner</h2>
+      <h2 className="font-semibold text-white">Invite Founding Reseller</h2>
       <p className="text-sm text-slate-400">
         Personal invitation into the Founding Reseller Programme. Sending an invite
         does not use a seat — a seat is counted only after you approve them.

@@ -30,3 +30,39 @@ Customer = business decisions + information + adoption
 **Surfaces:** `/command/partners/ecosystem` · `/command/partners/delivery` · `/command/partners/implementation` · `/command/partners/onboarding`
 
 Lock: `packages/platform-core/src/partners/ecosystem.ts` · `packages/platform-core/src/partners/delivery-model.ts`
+
+---
+
+## Partner Programme dashboard (operator)
+
+**Surface:** `/command/partners`
+
+### Hierarchy
+
+1. Partner Programme — build and manage reseller, referral and delivery ecosystem  
+2. Partner Pulse — active resellers · referrals · customers referred · commission  
+3. What needs attention — intervention queue  
+4. Founding Reseller Programme — seats + invite  
+5. Partner Briefing · Ecosystem  
+6. Resellers · Delivery Partners · Recent activity  
+
+### Role lock
+
+| Role | Job |
+|------|-----|
+| **Founding Resellers** | Introduce qualified businesses. Ben closes. |
+| **Delivery Partners** | Implementation, specialist services, fulfilment. |
+
+### Developer requirement
+
+> Partner Dashboard must never become a prospecting or sales pipeline. DigitalGate’s customer acquisition remains owned by Sales / Growth Engine. Partner surfaces only manage the partner relationship, partner activity, referrals, reseller performance, onboarding and commissions.
+
+```
+SALES      DigitalGate finds customers
+PARTNERS   Partners introduce customers
+DELIVERY   Partners/teams implement customers
+CUSTOMERS  DigitalGate operates their businesses
+REVENUE    DigitalGate monetises the platform
+```
+
+Implementation: `buildPartnerDashboardWorkspace` · `PartnerProgrammeDashboard`
