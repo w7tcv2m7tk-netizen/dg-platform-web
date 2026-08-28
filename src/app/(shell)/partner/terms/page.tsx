@@ -4,8 +4,10 @@ import { PartnerTermsAcceptForm } from "@/components/partners/PartnerTermsAccept
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 import {
   APPROVED_PARTNER_MESSAGING,
+  bpsToPercentLabel,
   FOUNDING_RESELLER_PROGRAMME_NAME,
   FOUNDING_RESELLER_TERMS_VERSION,
+  PARTNER_COMMISSION_CONFIG,
   QUALIFYING_COMMISSION_FEES,
   RESELLER_MAY,
   RESELLER_MODEL,
@@ -69,8 +71,12 @@ export default async function PartnerTermsPage() {
       <section>
         <h3 className="mb-2 font-semibold text-white">Qualifying fees</h3>
         <p className="mb-2 text-slate-400">
-          30% is not 30% of the customer&apos;s entire invoice. It is 30% of qualifying recurring
-          Platform + App revenue actually received after any founding discount.
+          {bpsToPercentLabel(PARTNER_COMMISSION_CONFIG.FOUNDING_RESELLER.commissionBps)} is not{" "}
+          {bpsToPercentLabel(PARTNER_COMMISSION_CONFIG.FOUNDING_RESELLER.commissionBps)} of the
+          customer&apos;s entire invoice. It is{" "}
+          {bpsToPercentLabel(PARTNER_COMMISSION_CONFIG.FOUNDING_RESELLER.commissionBps)} of
+          qualifying recurring Platform + App revenue actually received after any founding discount,
+          for the first 12 months only.
         </p>
         <p className="font-medium text-emerald-300">Includes</p>
         <ul className="mt-1 list-disc space-y-1 pl-5">

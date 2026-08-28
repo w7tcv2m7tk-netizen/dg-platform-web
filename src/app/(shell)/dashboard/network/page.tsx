@@ -133,7 +133,7 @@ export default async function NetworkHomePage() {
           <h2 className="text-lg font-semibold text-white">Refer &amp; Earn</h2>
           <p className="mt-2 max-w-xl text-sm text-slate-400">
             Refer a business to DigitalGate and earn 20% platform credit or cash, subject to
-            programme terms. Customer 20% · Partner 25% · Reseller 30%.
+            programme terms. Customer 20% · Partner 25% · Reseller 25%.
           </p>
           <Link
             href="/dashboard/network/refer-earn"

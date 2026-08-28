@@ -98,7 +98,7 @@ export function DeliveryDashboardContent({
 
       <section>
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-semibold text-white">Active projects</h2>
+          <h2 className="text-base font-semibold text-white">Implementation projects</h2>
           <Link href={projectBase} className="text-sm text-emerald-400 hover:underline">
             View all →
           </Link>

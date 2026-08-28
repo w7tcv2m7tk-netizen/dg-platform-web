@@ -6,6 +6,7 @@ import {
   RESELLER_MAY,
 } from "./programme";
 import { PARTNER_COMMISSION_CONFIG } from "./types";
+import { acquisitionPortalUrl, deliveryPartnerPortalUrl } from "./portal-routes";
 
 const ACCENT = "#3B82F6";
 
@@ -27,7 +28,7 @@ export function foundingResellerInviteUrl(inviteToken: string): string {
 }
 
 export function foundingResellerPortalUrl(): string {
-  return `${appOrigin()}/partner`;
+  return acquisitionPortalUrl();
 }
 
 export function deliveryPartnerInviteUrl(inviteToken: string): string {
@@ -35,9 +36,7 @@ export function deliveryPartnerInviteUrl(inviteToken: string): string {
   return `${publicSiteOrigin()}/delivery-partners/invite/${token}`;
 }
 
-export function deliveryPartnerPortalUrl(): string {
-  return `${appOrigin()}/partner/delivery`;
-}
+export { deliveryPartnerPortalUrl };
 
 function signoffBlocks(): EmailBodyBlock[] {
   return [

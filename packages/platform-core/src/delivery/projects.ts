@@ -5,7 +5,10 @@ import {
   IMPLEMENTATION_PLAN_LABELS,
   type ImplementationPlan,
 } from "../partners/delivery-workspace";
-import { DELIVERY_PIPELINE_STAGES } from "../partners/delivery-model";
+import {
+  DELIVERY_PIPELINE_STAGES,
+  IMPLEMENTATION_SOP_STAGES,
+} from "../partners/delivery-model";
 import type {
   CreateDeliveryProjectInput,
   DeliveryBlockerRecord,
@@ -16,6 +19,8 @@ import type {
 } from "./types";
 
 function stageLabel(stageId: string): string {
+  const stage = IMPLEMENTATION_SOP_STAGES.find((s) => s.id === stageId);
+  if (stage) return `${stage.n} ${stage.title}`;
   return (
     DELIVERY_PIPELINE_STAGES.find((s) => s.id === stageId)?.title ??
     stageId.replace(/_/g, " ")
@@ -189,8 +194,7 @@ export async function createDeliveryProject(
           stageId: m.id,
           title: m.title,
           sortOrder: i,
-          status: m.id === "discovery" ? "complete" : m.id === "agreement" ? "complete" : "pending",
-          completedAt: m.id === "discovery" || m.id === "agreement" ? now : undefined,
+          status: m.id === "accepted" ? "in_progress" : "pending",
         })),
       },
       tasks: {

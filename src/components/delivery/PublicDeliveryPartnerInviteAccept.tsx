@@ -24,7 +24,7 @@ export function PublicDeliveryPartnerInviteAccept({
     alreadyAccepted ? "done" : "idle",
   );
   const [message, setMessage] = useState("");
-  const [portalUrl, setPortalUrl] = useState("https://app.digitalgate.com.au/partner/delivery");
+  const [portalUrl, setPortalUrl] = useState("https://app.digitalgate.com.au/delivery");
   const roleLabel = deliveryRole === "lead" ? "Delivery Manager" : "Delivery Partner";
 
   async function accept() {

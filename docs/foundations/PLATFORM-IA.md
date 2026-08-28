@@ -36,10 +36,11 @@ PARTNERS                Scale distribution — people & organisations
   (+ More ▾ when overflow)
 
 DELIVERY                Get customers live — implementation operations
-  Dashboard · Onboarding · Invitations · Projects · Tasks · Customers
-  Implementation Plans · Training
+  Dashboard · Projects · Tasks · Customers · Implementation Plans · Training · Invitations
   (+ More ▾: QA & Go-Live · Team · Activity · Documents · Reports)
-  Lifecycle: DigitalGate Implementation Lifecycle™ (16 stages)
+  Architecture: Project (container) · Plan (scope) · Tasks (work) · Training (enablement)
+  Lifecycle: DigitalGate Implementation Lifecycle™ (16 stages) on each Implementation Project
+  Note: “Onboarding” is the early phase of the lifecycle (stages 01–05), not a Delivery nav item.
 
 PLATFORM → Network      Commercial network transactions (not partner CRM)
   Overview · Referrals · Commissions · Payouts

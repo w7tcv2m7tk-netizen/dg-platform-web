@@ -1336,6 +1336,12 @@ model Partner {
   businessName             String?   @map("business_name")
   /** Delivery Partner division role: lead | member — only for IMPLEMENTATION_PARTNER */
   deliveryRole             String?   @map("delivery_role")
+  /** Channel Manager or Delivery Channel Manager who manages this partner */
+  managedByPartnerId       String?   @map("managed_by_partner_id")
+  /** Optional override of service commission bps (Delivery Partners) */
+  serviceCommissionBps     Int?      @map("service_commission_bps")
+  /** Optional override of channel override bps */
+  overrideCommissionBps    Int?      @map("override_commission_bps")
   notes                    String?   @db.Text
   /** When the partner recorded acceptance of programme terms (product record — not solicitor pack) */
   termsAcceptedAt          DateTime? @map("terms_accepted_at")
@@ -1350,10 +1356,13 @@ model Partner {
   ownedDeliveryProjects    DeliveryProject[] @relation("DeliveryProjectOwner")
   leadDeliveryProjects     DeliveryProject[] @relation("DeliveryProjectLead")
   assignedDeliveryTasks    DeliveryTask[]    @relation("DeliveryTaskAssignee")
+  managedPartners          Partner[]         @relation("PartnerManagement")
+  manager                  Partner?          @relation("PartnerManagement", fields: [managedByPartnerId], references: [id], onDelete: SetNull)
 
   @@index([clerkUserId])
   @@index([status])
   @@index([referralCode])
+  @@index([managedByPartnerId])
   @@map("partners")
 }
 
@@ -1375,6 +1384,8 @@ model PartnerReferral {
   notes                   String?   @db.Text
   /** link | warm_introduction */
   source                  String    @default("link")
+  /** founding_10_referral | reseller | channel_manager_direct | direct — snapshot at attribution */
+  acquisitionSource       String?   @map("acquisition_source")
   /**
    * INVITED | REFERRED | CONTACTED | CONSULTATION | ACCEPTED
    * | ONBOARDING | ACTIVE | COMMISSIONING | CLOSED | DECLINED
@@ -1416,6 +1427,12 @@ model PartnerCommission {
   /** Stripe subscription id if applicable */
   subscriptionId          String?   @map("subscription_id")
   commissionBps           Int       @map("commission_bps")
+  /** direct | override */
+  commissionKind          String    @default("direct") @map("commission_kind")
+  /** platform_subscription | professional_services | support_success | … */
+  revenueType             String?   @map("revenue_type")
+  /** Managed partner who generated qualifying revenue (override rows) */
+  sourcePartnerId         String?   @map("source_partner_id")
   qualifyingRevenueCents  Int       @map("qualifying_revenue_cents")
   commissionAmountCents   Int       @map("commission_amount_cents")
   currency                String    @default("AUD")
@@ -1472,6 +1489,34 @@ model PartnerCommissionEvent {
   @@index([commissionId])
   @@index([invoiceId])
   @@map("partner_commission_events")
+}
+
+/**
+ * Immutable customer commercial attribution — acquisition + delivery chain.
+ * Preserved when partner assignments change; used for commission audit.
+ */
+model CustomerPartnerAttribution {
+  id                          String    @id @default(cuid())
+  customerOrganisationId      String    @unique @map("customer_organisation_id")
+  acquisitionSource           String?   @map("acquisition_source")
+  resellerPartnerId           String?   @map("reseller_partner_id")
+  channelManagerPartnerId     String?   @map("channel_manager_partner_id")
+  deliveryPartnerId           String?   @map("delivery_partner_id")
+  deliveryChannelManagerId    String?   @map("delivery_channel_manager_id")
+  resellerCommissionBps       Int?      @map("reseller_commission_bps")
+  channelOverrideBps          Int?      @map("channel_override_bps")
+  deliveryShareBps            Int?      @map("delivery_share_bps")
+  deliveryOverrideBps         Int?      @map("delivery_override_bps")
+  commissionPeriodStart       DateTime? @map("commission_period_start")
+  commissionPeriodEnd         DateTime? @map("commission_period_end")
+  metadata                    Json?
+  createdAt                   DateTime  @default(now()) @map("created_at")
+  updatedAt                   DateTime  @updatedAt @map("updated_at")
+
+  @@index([resellerPartnerId])
+  @@index([channelManagerPartnerId])
+  @@index([deliveryPartnerId])
+  @@map("customer_partner_attributions")
 }
 
 // ─── Delivery workspace ───────────────────────────────────────────────────────

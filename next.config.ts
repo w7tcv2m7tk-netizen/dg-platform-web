@@ -13,6 +13,27 @@ const nextConfig: NextConfig = {
   },
   // Dreamscape HTTPS proxy (Fixie/QuotaGuard) uses undici ProxyAgent on Node only.
   serverExternalPackages: ["undici", "imapflow"],
+  async redirects() {
+    return [
+      { source: "/partner", destination: "/acquisition", permanent: false },
+      { source: "/partner/dashboard", destination: "/acquisition", permanent: false },
+      { source: "/partner/delivery", destination: "/delivery", permanent: false },
+      { source: "/partner/delivery/:path*", destination: "/delivery/:path*", permanent: false },
+      {
+        source: "/partner/:path((?!delivery).*)",
+        destination: "/acquisition/:path",
+        permanent: false,
+      },
+    ];
+  },
+  async rewrites() {
+    return [
+      { source: "/acquisition", destination: "/partner/dashboard" },
+      { source: "/acquisition/:path*", destination: "/partner/:path*" },
+      { source: "/delivery", destination: "/partner/delivery" },
+      { source: "/delivery/:path*", destination: "/partner/delivery/:path*" },
+    ];
+  },
   async headers() {
     return [
       {

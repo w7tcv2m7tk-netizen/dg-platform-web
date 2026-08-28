@@ -306,7 +306,7 @@ export function ReferAndEarnPanel({
               >
                 <option value="customer">Customer — 20%</option>
                 <option value="partner">Partner — 25%</option>
-                <option value="reseller">Reseller — 30%</option>
+                <option value="reseller">Reseller — 25%</option>
               </select>
             </label>
             <button

@@ -1,15 +1,24 @@
 import Link from "next/link";
 
-/** Primary eight; remainder collapse under More ▾ via AppHorizontalSubnav. */
+import {
+  ACQUISITION_PORTAL_HREF,
+  ACQUISITION_PORTAL_ROUTES,
+  DELIVERY_PARTNER_PORTAL_HREF,
+  DELIVERY_PARTNER_PORTAL_ROUTES,
+} from "@dg/platform-core";
+
+/**
+ * Delivery primary nav — execution-first order.
+ * Public URLs: /delivery (not /partner/delivery).
+ */
 const STAFF_NAV = [
   { href: "/command/delivery", label: "Dashboard", id: "dashboard" },
-  { href: "/command/delivery/onboarding", label: "Onboarding", id: "onboarding" },
-  { href: "/command/delivery/invitations", label: "Invitations", id: "invitations" },
   { href: "/command/delivery/projects", label: "Projects", id: "projects" },
   { href: "/command/delivery/tasks", label: "Tasks", id: "tasks" },
   { href: "/command/delivery/customers", label: "Customers", id: "customers" },
   { href: "/command/delivery/plans", label: "Implementation Plans", id: "plans" },
   { href: "/command/delivery/training", label: "Training", id: "training" },
+  { href: "/command/delivery/invitations", label: "Invitations", id: "invitations" },
   { href: "/command/delivery/qa", label: "QA & Go-Live", id: "qa" },
   { href: "/command/delivery/team", label: "Team", id: "team" },
   { href: "/command/delivery/activity", label: "Activity", id: "activity" },
@@ -18,20 +27,19 @@ const STAFF_NAV = [
 ] as const;
 
 const PARTNER_NAV = [
-  { href: "/partner/delivery", label: "Dashboard", id: "dashboard" },
-  { href: "/partner/delivery/onboarding", label: "Onboarding", id: "onboarding" },
-  { href: "/partner/delivery/projects", label: "Projects", id: "projects" },
-  { href: "/partner/delivery/tasks", label: "Tasks", id: "tasks" },
-  { href: "/partner/delivery/customers", label: "Customers", id: "customers" },
-  { href: "/partner/delivery/plans", label: "Implementation Plans", id: "plans" },
-  { href: "/partner/delivery/training", label: "Training", id: "training" },
-  { href: "/partner/delivery/activity", label: "Activity", id: "activity" },
-  { href: "/partner/delivery/documents", label: "Documents", id: "documents" },
-  { href: "/partner/delivery/qa", label: "QA & Go-Live", id: "qa" },
-  { href: "/partner/delivery/reports", label: "Reports", id: "reports" },
+  { href: DELIVERY_PARTNER_PORTAL_HREF, label: "Dashboard", id: "dashboard" },
+  { href: DELIVERY_PARTNER_PORTAL_ROUTES.projects, label: "Projects", id: "projects" },
+  { href: DELIVERY_PARTNER_PORTAL_ROUTES.tasks, label: "Tasks", id: "tasks" },
+  { href: DELIVERY_PARTNER_PORTAL_ROUTES.customers, label: "Customers", id: "customers" },
+  { href: DELIVERY_PARTNER_PORTAL_ROUTES.plans, label: "Implementation Plans", id: "plans" },
+  { href: DELIVERY_PARTNER_PORTAL_ROUTES.training, label: "Training", id: "training" },
+  { href: DELIVERY_PARTNER_PORTAL_ROUTES.qa, label: "QA & Go-Live", id: "qa" },
+  { href: DELIVERY_PARTNER_PORTAL_ROUTES.activity, label: "Activity", id: "activity" },
+  { href: DELIVERY_PARTNER_PORTAL_ROUTES.documents, label: "Documents", id: "documents" },
+  { href: DELIVERY_PARTNER_PORTAL_ROUTES.reports, label: "Reports", id: "reports" },
 ] as const;
 
-type NavId = (typeof STAFF_NAV)[number]["id"];
+type NavId = (typeof STAFF_NAV)[number]["id"] | (typeof PARTNER_NAV)[number]["id"];
 
 export function DeliveryWorkspaceNav({
   active,
@@ -61,3 +69,6 @@ export function DeliveryWorkspaceNav({
 }
 
 export type DeliveryNavId = NavId;
+
+// Re-export for acquisition portal links in delivery UI copy
+export { ACQUISITION_PORTAL_HREF, ACQUISITION_PORTAL_ROUTES };

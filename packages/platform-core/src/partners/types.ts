@@ -1,11 +1,31 @@
 // DigitalGate Partner Programme — shared types
 
+import {
+  BPS,
+  COMMISSION_PERIOD_MONTHS,
+  type AcquisitionSource,
+  type CommissionKind,
+  type CommissionLedgerStatus,
+  type RevenueType,
+} from "./commercial-model";
+
+export type {
+  AcquisitionSource,
+  CommissionKind,
+  CommissionLedgerStatus,
+  RevenueType,
+};
+
 export type PartnerType =
   | "FOUNDING_RESELLER"
+  | "RESELLER"
+  | "CHANNEL_MANAGER"
+  | "FOUNDING_10_REFERRAL"
   | "FOUNDING_PARTNER"
   | "FOUNDING_CUSTOMER"
   | "CUSTOMER_REFERRER"
   | "IMPLEMENTATION_PARTNER"
+  | "DELIVERY_CHANNEL_MANAGER"
   | "TECHNOLOGY_PARTNER"
   | "STRATEGIC_PARTNER"
   | "SUCCESS_PARTNER";
@@ -30,7 +50,12 @@ export type PartnerReferralStatus =
   | "COMMISSIONING"
   | "CLOSED";
 
-export type CommissionStatus = "CALCULATED" | "PENDING" | "APPROVED" | "PAID";
+export type CommissionStatus =
+  | "CALCULATED"
+  | "PENDING"
+  | "APPROVED"
+  | "PAID"
+  | CommissionLedgerStatus;
 
 export type CommissionEventType =
   | "invoice_paid"
@@ -41,51 +66,99 @@ export type CommissionEventType =
   | "manual_adjustment";
 
 export type PartnerTierConfig = {
+  /** Acquisition / platform subscription commission (basis points) */
   commissionBps: number;
+  /** Service revenue commission — Delivery Partners only */
+  serviceCommissionBps?: number;
+  /** Override on managed partners' qualifying revenue */
+  overrideCommissionBps?: number;
   durationMonths: number;
   label: string;
   /** Public programme name — Founding 10 / 100 / 1,000 */
   programme: string;
   /** Seat cap for this partner channel; null = unlimited */
   seatCap: number | null;
+  /** Whether this role earns platform subscription commission */
+  platformSubscriptionCommission?: boolean;
 };
 
 // Commission rates by partner type (basis points) — do not hard-code elsewhere
 export const PARTNER_COMMISSION_CONFIG: Record<PartnerType, PartnerTierConfig> = {
   FOUNDING_RESELLER: {
-    commissionBps: 3000,
-    durationMonths: 12,
+    commissionBps: BPS.RESELLER,
+    durationMonths: COMMISSION_PERIOD_MONTHS,
     label: "Founding Reseller",
-    programme: "Founding 10",
+    programme: "Founding Resellers",
     seatCap: 10,
+    platformSubscriptionCommission: true,
+  },
+  RESELLER: {
+    commissionBps: BPS.RESELLER,
+    durationMonths: COMMISSION_PERIOD_MONTHS,
+    label: "Reseller",
+    programme: "Reseller Programme",
+    seatCap: null,
+    platformSubscriptionCommission: true,
+  },
+  CHANNEL_MANAGER: {
+    commissionBps: BPS.CHANNEL_MANAGER_DIRECT,
+    overrideCommissionBps: BPS.CHANNEL_MANAGER_OVERRIDE,
+    durationMonths: COMMISSION_PERIOD_MONTHS,
+    label: "Channel Manager",
+    programme: "Acquisition Channel",
+    seatCap: null,
+    platformSubscriptionCommission: true,
+  },
+  FOUNDING_10_REFERRAL: {
+    commissionBps: BPS.FOUNDING_10_REFERRAL,
+    durationMonths: COMMISSION_PERIOD_MONTHS,
+    label: "Founding 10 Referral",
+    programme: "Founding 10",
+    seatCap: null,
+    platformSubscriptionCommission: true,
   },
   FOUNDING_PARTNER: {
     commissionBps: 2500,
-    durationMonths: 12,
+    durationMonths: COMMISSION_PERIOD_MONTHS,
     label: "Founding Partner",
     programme: "Founding 100",
     seatCap: 100,
+    platformSubscriptionCommission: true,
   },
   FOUNDING_CUSTOMER: {
     commissionBps: 2000,
-    durationMonths: 12,
+    durationMonths: COMMISSION_PERIOD_MONTHS,
     label: "Founding Customer",
     programme: "Founding 1,000",
     seatCap: 1000,
+    platformSubscriptionCommission: true,
   },
   CUSTOMER_REFERRER: {
     commissionBps: 1000,
-    durationMonths: 12,
+    durationMonths: COMMISSION_PERIOD_MONTHS,
     label: "Customer Referrer",
     programme: "Standard",
     seatCap: null,
+    platformSubscriptionCommission: true,
   },
   IMPLEMENTATION_PARTNER: {
     commissionBps: 0,
+    serviceCommissionBps: BPS.DELIVERY_PARTNER,
     durationMonths: 0,
     label: "Delivery Partner",
     programme: "DigitalGate Delivery",
     seatCap: 3,
+    platformSubscriptionCommission: false,
+  },
+  DELIVERY_CHANNEL_MANAGER: {
+    commissionBps: 0,
+    serviceCommissionBps: BPS.DELIVERY_CHANNEL_MANAGER_DIRECT,
+    overrideCommissionBps: BPS.DELIVERY_CHANNEL_MANAGER_OVERRIDE,
+    durationMonths: 0,
+    label: "Delivery Channel Manager",
+    programme: "DigitalGate Delivery",
+    seatCap: null,
+    platformSubscriptionCommission: false,
   },
   TECHNOLOGY_PARTNER: {
     commissionBps: 0,
@@ -93,6 +166,7 @@ export const PARTNER_COMMISSION_CONFIG: Record<PartnerType, PartnerTierConfig> =
     label: "Technology Partner",
     programme: "Partner Ecosystem",
     seatCap: null,
+    platformSubscriptionCommission: false,
   },
   STRATEGIC_PARTNER: {
     commissionBps: 0,
@@ -100,6 +174,7 @@ export const PARTNER_COMMISSION_CONFIG: Record<PartnerType, PartnerTierConfig> =
     label: "Strategic Partner",
     programme: "Partner Ecosystem",
     seatCap: null,
+    platformSubscriptionCommission: false,
   },
   SUCCESS_PARTNER: {
     commissionBps: 0,
@@ -107,6 +182,7 @@ export const PARTNER_COMMISSION_CONFIG: Record<PartnerType, PartnerTierConfig> =
     label: "Customer Success Partner",
     programme: "Partner Ecosystem",
     seatCap: null,
+    platformSubscriptionCommission: false,
   },
 };
 
@@ -139,7 +215,7 @@ export function illustratePartnerCommission(input: {
   referredMrrCents: number;
   digitalgateRetainedYearCents: number;
 } {
-  const durationMonths = input.durationMonths ?? 12;
+  const durationMonths = input.durationMonths ?? COMMISSION_PERIOD_MONTHS;
   const newPerMonth = Math.round(input.newCustomersPerWeek * 4);
   const perCustomerMonth = commissionFromRevenue(
     input.monthlySubscriptionCents,
@@ -197,7 +273,13 @@ export type SerializedPartner = {
   cohort: string | null;
   commissionBps: number;
   commissionPercent: number;
+  serviceCommissionBps: number | null;
+  serviceCommissionPercent: number | null;
+  overrideCommissionBps: number | null;
+  overrideCommissionPercent: number | null;
   commissionDurationMonths: number;
+  /** Channel Manager or Delivery Channel Manager who manages this partner */
+  managedByPartnerId: string | null;
   status: PartnerStatus;
   invitationStatus: PartnerInvitationStatus | null;
   inviteToken: string | null;
@@ -234,6 +316,8 @@ export type SerializedPartnerReferral = {
   industry: string | null;
   notes: string | null;
   source: "link" | "warm_introduction";
+  /** founding_10_referral | reseller | channel_manager_direct | direct */
+  acquisitionSource: AcquisitionSource | null;
   status: PartnerReferralStatus;
   referredAt: string;
   contactedAt: string | null;
@@ -251,6 +335,9 @@ export type SerializedPartnerCommission = {
   subscriptionId: string | null;
   commissionBps: number;
   commissionPercent: number;
+  commissionKind: CommissionKind;
+  revenueType: RevenueType | null;
+  sourcePartnerId: string | null;
   qualifyingRevenueCents: number;
   commissionAmountCents: number;
   currency: string;

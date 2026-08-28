@@ -81,15 +81,25 @@ export async function createFoundingResellerInvitation(input: {
   }
 
   const inviteToken = newInviteToken();
-  const partner = await createPartner({
-    clerkUserId: partnerInviteClerkId(inviteToken, "draft"),
-    partnerType: "FOUNDING_RESELLER",
-    cohort: "founding_10",
-    displayName: name,
-    email,
-    phone: input.phone?.trim(),
-    businessName: input.businessName?.trim(),
-  });
+  let partner: Awaited<ReturnType<typeof createPartner>>;
+  try {
+    partner = await createPartner({
+      clerkUserId: partnerInviteClerkId(inviteToken, "draft"),
+      partnerType: "FOUNDING_RESELLER",
+      cohort: "founding_10",
+      displayName: name,
+      email,
+      phone: input.phone?.trim(),
+      businessName: input.businessName?.trim(),
+    });
+  } catch (err) {
+    return {
+      partnerId: "",
+      inviteToken: "",
+      inviteUrl: "",
+      error: err instanceof Error ? err.message : "Could not create invitation.",
+    };
+  }
 
   if (input.send) {
     const sent = await sendFoundingResellerInvitation({

@@ -64,7 +64,18 @@ function serializePartner(
     cohort: row.cohort ?? null,
     commissionBps: row.commissionBps,
     commissionPercent: bpsToPercent(row.commissionBps),
+    serviceCommissionBps: config.serviceCommissionBps ?? null,
+    serviceCommissionPercent: config.serviceCommissionBps
+      ? bpsToPercent(config.serviceCommissionBps)
+      : null,
+    overrideCommissionBps:
+      row.overrideCommissionBps ?? config.overrideCommissionBps ?? null,
+    overrideCommissionPercent:
+      row.overrideCommissionBps ?? config.overrideCommissionBps
+        ? bpsToPercent(row.overrideCommissionBps ?? config.overrideCommissionBps ?? 0)
+        : null,
     commissionDurationMonths: row.commissionDurationMonths,
+    managedByPartnerId: row.managedByPartnerId ?? null,
     status: row.status as PartnerStatus,
     invitationStatus,
     inviteToken: invite.token,
@@ -103,6 +114,8 @@ function serializeReferral(
     industry: row.industry ?? null,
     notes: row.notes ?? null,
     source: (row.source as "link" | "warm_introduction") ?? "link",
+    acquisitionSource:
+      (row.acquisitionSource as SerializedPartnerReferral["acquisitionSource"]) ?? null,
     status: row.status as PartnerReferralStatus,
     referredAt: row.referredAt.toISOString(),
     contactedAt: row.contactedAt?.toISOString() ?? null,
@@ -130,6 +143,9 @@ function serializeCommission(
     subscriptionId: row.subscriptionId ?? null,
     commissionBps: row.commissionBps,
     commissionPercent: bpsToPercent(row.commissionBps),
+    commissionKind: (row.commissionKind as SerializedPartnerCommission["commissionKind"]) ?? "direct",
+    revenueType: (row.revenueType as SerializedPartnerCommission["revenueType"]) ?? null,
+    sourcePartnerId: row.sourcePartnerId ?? null,
     qualifyingRevenueCents: row.qualifyingRevenueCents,
     commissionAmountCents: row.commissionAmountCents,
     currency: row.currency,
@@ -144,6 +160,26 @@ function serializeCommission(
 }
 
 // ─── Partner CRUD ─────────────────────────────────────────────────────────────
+
+function partnerPersistenceErrorMessage(err: unknown): string {
+  if (!err || typeof err !== "object") {
+    return "Could not save the partner invitation. Please try again.";
+  }
+  const code = "code" in err ? String((err as { code?: unknown }).code ?? "") : "";
+  const message =
+    "message" in err ? String((err as { message?: unknown }).message ?? "") : "";
+
+  if (code === "P2021" || code === "42P01" || /relation ["']partners["'] does not exist/i.test(message)) {
+    return "Partner programme tables are not set up yet. Run database migrations (add_partner_programme).";
+  }
+  if (code === "P2022" || /column .* does not exist/i.test(message)) {
+    return "Partner programme database is out of date. Run the latest database migrations and redeploy.";
+  }
+  if (code === "P2002") {
+    return "A partner with this referral code or identity already exists. Refresh and try again.";
+  }
+  return message || "Could not save the partner invitation. Please try again.";
+}
 
 export async function createPartner(input: {
   clerkUserId: string;
@@ -164,28 +200,33 @@ export async function createPartner(input: {
   const config = PARTNER_COMMISSION_CONFIG[input.partnerType];
   const referralCode = generateReferralCode();
 
-  const row = await prisma.partner.create({
-    data: {
-      clerkUserId: input.clerkUserId,
-      organisationId: input.organisationId ?? null,
-      partnerType: input.partnerType,
-      cohort: input.cohort ?? null,
-      commissionBps: input.commissionBps ?? config.commissionBps,
-      commissionDurationMonths:
-        input.commissionDurationMonths ?? config.durationMonths,
-      status: "pending",
-      referralCode,
-      displayName: input.displayName ?? null,
-      email: input.email ?? null,
-      phone: input.phone ?? null,
-      businessName: input.businessName ?? null,
-      notes: input.notes ?? null,
-      deliveryRole:
-        input.partnerType === "IMPLEMENTATION_PARTNER"
-          ? (input.deliveryRole ?? "member")
-          : null,
-    },
-  });
+  let row: Awaited<ReturnType<typeof prisma.partner.create>>;
+  try {
+    row = await prisma.partner.create({
+      data: {
+        clerkUserId: input.clerkUserId,
+        organisationId: input.organisationId ?? null,
+        partnerType: input.partnerType,
+        cohort: input.cohort ?? null,
+        commissionBps: input.commissionBps ?? config.commissionBps,
+        commissionDurationMonths:
+          input.commissionDurationMonths ?? config.durationMonths,
+        status: "pending",
+        referralCode,
+        displayName: input.displayName ?? null,
+        email: input.email ?? null,
+        phone: input.phone ?? null,
+        businessName: input.businessName ?? null,
+        notes: input.notes ?? null,
+        deliveryRole:
+          input.partnerType === "IMPLEMENTATION_PARTNER"
+            ? (input.deliveryRole ?? "member")
+            : null,
+      },
+    });
+  } catch (err) {
+    throw new Error(partnerPersistenceErrorMessage(err));
+  }
 
   return serializePartner(row);
 }
@@ -585,6 +626,9 @@ export async function createPartnerCommission(input: {
   currency?: string;
   periodStart?: Date;
   periodEnd?: Date;
+  commissionKind?: SerializedPartnerCommission["commissionKind"];
+  revenueType?: SerializedPartnerCommission["revenueType"];
+  sourcePartnerId?: string;
 }): Promise<SerializedPartnerCommission> {
   const { commissionFromRevenue } = await import("./types");
   const commissionAmountCents = commissionFromRevenue(
@@ -599,6 +643,9 @@ export async function createPartnerCommission(input: {
       customerOrganisationId: input.customerOrganisationId ?? null,
       subscriptionId: input.subscriptionId ?? null,
       commissionBps: input.commissionBps,
+      commissionKind: input.commissionKind ?? "direct",
+      revenueType: input.revenueType ?? null,
+      sourcePartnerId: input.sourcePartnerId ?? null,
       qualifyingRevenueCents: input.qualifyingRevenueCents,
       commissionAmountCents,
       currency: input.currency ?? "AUD",
@@ -792,6 +839,10 @@ export async function accruePartnerCommissionFromInvoice(input: {
     }
 
     const commissionBps = partner.commissionBps;
+    if (commissionBps <= 0) {
+      return { ok: false as const, reason: "zero_commission_rate" };
+    }
+
     const { commissionFromRevenue } = await import("./types");
     const commissionAmountCents = commissionFromRevenue(amountPaidCents, commissionBps);
 
@@ -805,6 +856,8 @@ export async function accruePartnerCommissionFromInvoice(input: {
       currency: input.currency ?? "AUD",
       periodStart: input.periodStart ?? undefined,
       periodEnd: input.periodEnd ?? undefined,
+      commissionKind: "direct",
+      revenueType: "platform_subscription",
     });
 
     await logPartnerCommissionEvent({
@@ -818,8 +871,57 @@ export async function accruePartnerCommissionFromInvoice(input: {
       commissionBps,
       commissionAmountCents,
       currency: input.currency ?? "AUD",
-      metadata: { source: "stripe.invoice.paid" },
+      metadata: { source: "stripe.invoice.paid", commissionKind: "direct" },
     });
+
+    // Channel Manager override on managed Reseller's customer (5% default)
+    if (partner.managedByPartnerId) {
+      const manager = await prisma.partner.findUnique({
+        where: { id: partner.managedByPartnerId },
+      });
+      const managerConfig =
+        manager &&
+        (PARTNER_COMMISSION_CONFIG[manager.partnerType as PartnerType] ??
+          PARTNER_COMMISSION_CONFIG.CUSTOMER_REFERRER);
+      const overrideBps =
+        manager?.overrideCommissionBps ?? managerConfig?.overrideCommissionBps ?? 0;
+
+      if (manager && manager.status === "active" && overrideBps > 0) {
+        const overrideAmountCents = commissionFromRevenue(amountPaidCents, overrideBps);
+        const overrideCommission = await createPartnerCommission({
+          partnerId: manager.id,
+          referralId: referral.id,
+          customerOrganisationId: input.referredOrganisationId!,
+          subscriptionId: input.subscriptionId ?? undefined,
+          commissionBps: overrideBps,
+          qualifyingRevenueCents: amountPaidCents,
+          currency: input.currency ?? "AUD",
+          periodStart: input.periodStart ?? undefined,
+          periodEnd: input.periodEnd ?? undefined,
+          commissionKind: "override",
+          revenueType: "platform_subscription",
+          sourcePartnerId: partner.id,
+        });
+
+        await logPartnerCommissionEvent({
+          partnerId: manager.id,
+          referralId: referral.id,
+          commissionId: overrideCommission.id,
+          subscriptionId: input.subscriptionId ?? undefined,
+          invoiceId: input.stripeInvoiceId ?? undefined,
+          eventType: "invoice_paid",
+          qualifyingAmountCents: amountPaidCents,
+          commissionBps: overrideBps,
+          commissionAmountCents: overrideAmountCents,
+          currency: input.currency ?? "AUD",
+          metadata: {
+            source: "stripe.invoice.paid",
+            commissionKind: "override",
+            sourcePartnerId: partner.id,
+          },
+        });
+      }
+    }
 
     return { ok: true as const, commissionId: commission.id };
   }, { ok: false as const, reason: "unmigrated" });

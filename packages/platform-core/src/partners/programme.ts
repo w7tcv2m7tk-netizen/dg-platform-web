@@ -4,6 +4,12 @@
  * These definitions are for product + approved copy. Binding terms require solicitor review.
  */
 
+import {
+  BPS,
+  bpsToPercentLabel,
+  COMMISSION_PERIOD_MONTHS,
+} from "./commercial-model";
+
 export const FOUNDING_RESELLER_PROGRAMME_NAME =
   "DigitalGate Founding Reseller Programme";
 
@@ -235,7 +241,7 @@ export const FOUNDING_CUSTOMER_BENEFITS = [
 
 /** Customer offer — reseller is invitation only, not automatic */
 export const FOUNDING_RESELLER_INVITE_LINE =
-  "Selected Founding 10 members may be invited into the DigitalGate Founding Reseller Programme — 30% commission on qualifying Platform + App subscription fees for the first 12 months of each new customer they directly refer. Invitation only; not automatic.";
+  `Selected Founding 10 members may be invited into the DigitalGate Founding Reseller Programme — ${bpsToPercentLabel(BPS.RESELLER)} commission on qualifying Platform + App subscription fees for the first ${COMMISSION_PERIOD_MONTHS} months of each new customer they directly refer. Founding 10 simple introductions may qualify at ${bpsToPercentLabel(BPS.FOUNDING_10_REFERRAL)} instead. Invitation only; not automatic.`;
 
 export const QUALIFYING_COMMISSION_FEES = {
   includes: [
@@ -259,7 +265,7 @@ export const QUALIFYING_COMMISSION_FEES = {
   rules: [
     "Commission is a percentage of qualifying recurring Platform + App fees actually received — not list price, and not the whole invoice",
     "The customer's Founding discount does not change the commission percentage; it reduces the qualifying amount received",
-    "Example: $500 list with 30% founding discount → $350 received → 30% × $350 = $105/month",
+    `Example: $500 list with 30% founding discount → $350 received → ${bpsToPercentLabel(BPS.RESELLER)} × $350 = $87.50/month`,
     "Commission period is the first 12 months from the referred customer's first paid subscription and does not restart on upgrades",
     "Upgrades during the window may increase qualifying fees; downgrades reduce commission accordingly",
     "Cancellation stops commission when qualifying revenue stops; the 12-month clock does not continue while inactive",
@@ -299,13 +305,13 @@ export const RESELLER_NEED_NOT = [
 export const APPROVED_PARTNER_MESSAGING = {
   programmeName: FOUNDING_RESELLER_PROGRAMME_NAME,
   headline: "Build a valuable referral revenue stream",
-  body: "Selected Founding 10 members may be invited to become DigitalGate Founding Resellers. Founding Resellers can earn 30% commission on qualifying Platform + App subscription fees for the first 12 months of every new customer they directly refer.",
-  close: "DigitalGate handles qualification, demonstration, contracting, onboarding and customer billing. You make the introduction. We do the selling. They build their business on DigitalGate.",
+  body: `Selected Founding 10 members may be invited to become DigitalGate Founding Resellers. Founding Resellers earn ${bpsToPercentLabel(BPS.RESELLER)} commission on qualifying Platform + App subscription fees for the first ${COMMISSION_PERIOD_MONTHS} months of every new customer they directly refer. Simple Founding 10 introductions may qualify at ${bpsToPercentLabel(BPS.FOUNDING_10_REFERRAL)}.`,
+  close: "DigitalGate handles qualification, demonstration, contracting, implementation and customer billing. You make the introduction. We do the selling. They build their business on DigitalGate.",
   oneLiner: FOUNDING_RESELLER_ONE_LINER,
   example:
-    "Example: A customer paying an average of $500/month in qualifying subscription fees could generate up to $1,800 in referral commission during their first 12 months.",
+    `Example: A customer paying an average of $500/month in qualifying subscription fees could generate up to $${(500 * (BPS.RESELLER / 10000) * COMMISSION_PERIOD_MONTHS).toFixed(0)} in referral commission during their first ${COMMISSION_PERIOD_MONTHS} months.`,
   examplePaid:
-    "If that customer receives a 30% Founding discount, DigitalGate receives $350/month and the reseller earns 30% × $350 = $105/month.",
+    `If that customer receives a 30% Founding discount, DigitalGate receives $350/month and the reseller earns ${bpsToPercentLabel(BPS.RESELLER)} × $350 = $87.50/month.`,
   disclaimer:
     "Illustrative example only. Actual commission depends on customer subscription value, founding discounts, payment status, retention and qualifying fees. Not an earnings guarantee. Binding terms are subject to solicitor review.",
   doNotSay: "Make $180,000 a year referring DigitalGate.",
@@ -337,4 +343,4 @@ export const SOLICITOR_REVIEW_NOTE =
   "These programme rules are DigitalGate's commercial definitions for product and approved copy. They are not published as binding legal terms until reviewed by DigitalGate's solicitor and accountant (GST, payment timing, attribution, and agency).";
 
 /** Bump when programme rules on /partner/terms change in a material way. */
-export const FOUNDING_RESELLER_TERMS_VERSION = "2026-08-founding-reseller-v1";
+export const FOUNDING_RESELLER_TERMS_VERSION = "2026-08-commercial-model-v2";

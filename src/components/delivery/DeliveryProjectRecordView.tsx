@@ -1,6 +1,10 @@
 import Link from "next/link";
 
 import type { DeliveryProjectDetail } from "@dg/platform-core";
+import {
+  IMPLEMENTATION_LIFECYCLE_NAME,
+  IMPLEMENTATION_SOP_STAGES,
+} from "@dg/platform-core";
 
 const MILESTONE_ICON: Record<string, string> = {
   complete: "✅",
@@ -35,17 +39,29 @@ export function DeliveryProjectRecordView({
         ? "/command/delivery/projects"
         : "/partner/delivery/projects";
 
+  const byStageId = new Map(project.milestones.map((m) => [m.stageId, m]));
+  const lifecycleStages = IMPLEMENTATION_SOP_STAGES.map((stage) => {
+    const milestone = byStageId.get(stage.id);
+    return {
+      id: stage.id,
+      n: stage.n,
+      title: stage.title,
+      body: stage.body,
+      status: milestone?.status ?? "pending",
+    };
+  });
+
   return (
     <div className={`space-y-8${hideChrome ? "" : " mx-auto max-w-4xl"}`}>
       {scope !== "customer" && !hideChrome ? (
         <Link href={backHref} className="text-sm text-emerald-400 hover:underline">
-          ← Back to projects
+          ← Back to implementation projects
         </Link>
       ) : null}
 
       <div className="rounded-xl border border-emerald-700/40 bg-emerald-900/10 px-6 py-5">
         <p className="text-xs font-semibold uppercase tracking-widest text-emerald-300">
-          {scope === "customer" ? "Your DigitalGate Implementation" : "Implementation Record"}
+          {scope === "customer" ? "Your DigitalGate Implementation" : "Implementation Project"}
         </p>
         {!hideChrome ? (
           <>
@@ -59,7 +75,7 @@ export function DeliveryProjectRecordView({
         ) : null}
         <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
           <p className="text-slate-300">
-            <span className="text-slate-500">Status:</span> {project.statusLabel}
+            <span className="text-slate-500">Stage:</span> {project.statusLabel}
           </p>
           {scope !== "customer" && project.ownerName ? (
             <p className="text-slate-300">
@@ -95,18 +111,40 @@ export function DeliveryProjectRecordView({
       </div>
 
       <section>
-        <h2 className="text-base font-semibold text-white">Progress</h2>
-        <ul className="mt-4 space-y-2">
-          {project.milestones.map((milestone) => (
+        <h2 className="text-base font-semibold text-white">{IMPLEMENTATION_LIFECYCLE_NAME}</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          The project is the container. Stages below are the work sequence — plan packages set
+          scope; tasks are the actual work; training records enablement.
+        </p>
+        <ol className="mt-4 space-y-2">
+          {lifecycleStages.map((stage) => (
             <li
-              key={milestone.id}
-              className="flex items-center gap-3 rounded-lg border border-slate-700/50 bg-slate-800/30 px-4 py-2.5 text-sm"
+              key={stage.id}
+              className={`rounded-lg border px-4 py-2.5 text-sm ${
+                stage.status === "in_progress"
+                  ? "border-sky-700/50 bg-sky-900/20"
+                  : stage.status === "complete"
+                    ? "border-emerald-800/40 bg-emerald-950/20"
+                    : "border-slate-700/50 bg-slate-800/30"
+              }`}
             >
-              <span>{MILESTONE_ICON[milestone.status] ?? "🔲"}</span>
-              <span className="text-slate-200">{milestone.title}</span>
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 shrink-0" aria-hidden>
+                  {MILESTONE_ICON[stage.status] ?? "🔲"}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-slate-100">
+                    <span className="font-mono text-xs text-slate-500">{stage.n}</span>{" "}
+                    {stage.title}
+                  </p>
+                  {scope !== "customer" ? (
+                    <p className="mt-0.5 text-xs text-slate-500">{stage.body}</p>
+                  ) : null}
+                </div>
+              </div>
             </li>
           ))}
-        </ul>
+        </ol>
       </section>
 
       {project.blockers.length > 0 ? (

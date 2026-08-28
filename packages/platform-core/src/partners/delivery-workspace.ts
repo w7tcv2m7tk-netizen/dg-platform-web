@@ -4,6 +4,14 @@
  * Pipeline stages: DigitalGate Implementation Lifecycle™ — see delivery-model.ts.
  */
 
+import { IMPLEMENTATION_SOP_STAGES } from "./delivery-model";
+import {
+  ACQUISITION_PORTAL_HREF,
+  ACQUISITION_PORTAL_ROUTES,
+  DELIVERY_PARTNER_PORTAL_HREF,
+  DELIVERY_PARTNER_PORTAL_ROUTES,
+} from "./portal-routes";
+
 export const DELIVERY_PARTNER_PUBLIC_LABEL = "Delivery Partner";
 export const DELIVERY_MANAGER_PUBLIC_LABEL = "Delivery Manager";
 
@@ -64,28 +72,24 @@ export const DELIVERY_MANAGER_CAN_SEE = [
   "Overdue tasks across delivery",
 ] as const;
 
-/** Progress checklist on each Implementation Record (customer-facing + ops). */
-export const DELIVERY_PROGRESS_MILESTONES = [
-  { id: "discovery", title: "Discovery" },
-  { id: "agreement", title: "Agreement" },
-  { id: "business_profile", title: "Business Profile" },
-  { id: "team", title: "Team" },
-  { id: "data_migration", title: "Data Migration" },
-  { id: "connectors", title: "Connectors" },
-  { id: "crm_configuration", title: "CRM Configuration" },
-  { id: "automation", title: "Automation" },
-  { id: "business_brain", title: "AI / Business Brain" },
-  { id: "training", title: "Training" },
-  { id: "qa", title: "QA" },
-  { id: "go_live", title: "Go-Live" },
-] as const;
+/**
+ * Progress checklist on each Implementation Project — same 16 stages as
+ * DigitalGate Implementation Lifecycle™ (`IMPLEMENTATION_SOP_STAGES`).
+ * Do not maintain a shorter parallel list.
+ */
+export const DELIVERY_PROGRESS_MILESTONES = IMPLEMENTATION_SOP_STAGES.map((stage) => ({
+  id: stage.id,
+  title: `${stage.n} ${stage.title}`,
+  n: stage.n,
+  body: stage.body,
+}));
 
 export const ACCEPT_CUSTOMER_WORKFLOW = [
   "Accept Customer",
   "Create Organisation",
   "Create Implementation Project",
   "Assign Delivery Lead",
-  "Create standard onboarding milestones",
+  "Create standard implementation milestones",
   "Create tasks",
   "Invite Delivery Partner",
   "Invite Customer",
@@ -126,13 +130,12 @@ export const STAFF_PARTNERS_NAV = {
     label: "Delivery",
     routes: [
       { path: "/command/delivery", label: "Dashboard" },
-      { path: "/command/delivery/onboarding", label: "Onboarding" },
-      { path: "/command/delivery/invitations", label: "Invitations" },
       { path: "/command/delivery/projects", label: "Projects" },
       { path: "/command/delivery/tasks", label: "Tasks" },
       { path: "/command/delivery/customers", label: "Customers" },
       { path: "/command/delivery/plans", label: "Implementation Plans" },
       { path: "/command/delivery/training", label: "Training" },
+      { path: "/command/delivery/invitations", label: "Invitations" },
       { path: "/command/delivery/qa", label: "QA & Go-Live" },
       { path: "/command/delivery/team", label: "Team" },
       { path: "/command/delivery/activity", label: "Activity" },
@@ -147,28 +150,28 @@ export const RESELLER_PARTNER_NAV = {
   resellers: {
     label: "Resellers",
     routes: [
-      { path: "/partner/dashboard", label: "Reseller Dashboard" },
-      { path: "/partner/referrals", label: "Referrals" },
-      { path: "/partner/commissions", label: "Commissions" },
-      { path: "/partner/playbook", label: "Playbook" },
+      { path: ACQUISITION_PORTAL_HREF, label: "Reseller Dashboard" },
+      { path: ACQUISITION_PORTAL_ROUTES.referrals, label: "Referrals" },
+      { path: ACQUISITION_PORTAL_ROUTES.commissions, label: "Commissions" },
+      { path: ACQUISITION_PORTAL_ROUTES.playbook, label: "Playbook" },
     ],
-    primaryHref: "/partner/dashboard",
+    primaryHref: ACQUISITION_PORTAL_HREF,
   },
   referrals: {
     label: "Referrals",
     routes: [
-      { path: "/partner/referrals", label: "All Referrals" },
-      { path: "/partner/referrals?status=pending", label: "Pending" },
-      { path: "/partner/referrals?status=converted", label: "Converted" },
+      { path: ACQUISITION_PORTAL_ROUTES.referrals, label: "All Referrals" },
+      { path: `${ACQUISITION_PORTAL_ROUTES.referrals}?status=pending`, label: "Pending" },
+      { path: `${ACQUISITION_PORTAL_ROUTES.referrals}?status=converted`, label: "Converted" },
     ],
-    primaryHref: "/partner/referrals",
+    primaryHref: ACQUISITION_PORTAL_ROUTES.referrals,
   },
   commissions: {
     label: "Commissions",
     routes: [
-      { path: "/partner/commissions", label: "Overview" },
+      { path: ACQUISITION_PORTAL_ROUTES.commissions, label: "Overview" },
     ],
-    primaryHref: "/partner/commissions",
+    primaryHref: ACQUISITION_PORTAL_ROUTES.commissions,
   },
 } as const;
 
@@ -176,19 +179,18 @@ export const DELIVERY_PARTNER_NAV = {
   delivery: {
     label: "Delivery",
     routes: [
-      { path: "/partner/delivery", label: "Dashboard" },
-      { path: "/partner/delivery/onboarding", label: "Onboarding" },
-      { path: "/partner/delivery/projects", label: "Projects" },
-      { path: "/partner/delivery/tasks", label: "Tasks" },
-      { path: "/partner/delivery/customers", label: "Customers" },
-      { path: "/partner/delivery/plans", label: "Implementation Plans" },
-      { path: "/partner/delivery/training", label: "Training" },
-      { path: "/partner/delivery/qa", label: "QA & Go-Live" },
-      { path: "/partner/delivery/activity", label: "Activity" },
-      { path: "/partner/delivery/documents", label: "Documents" },
-      { path: "/partner/delivery/reports", label: "Reports" },
+      { path: DELIVERY_PARTNER_PORTAL_HREF, label: "Dashboard" },
+      { path: DELIVERY_PARTNER_PORTAL_ROUTES.projects, label: "Projects" },
+      { path: DELIVERY_PARTNER_PORTAL_ROUTES.tasks, label: "Tasks" },
+      { path: DELIVERY_PARTNER_PORTAL_ROUTES.customers, label: "Customers" },
+      { path: DELIVERY_PARTNER_PORTAL_ROUTES.plans, label: "Implementation Plans" },
+      { path: DELIVERY_PARTNER_PORTAL_ROUTES.training, label: "Training" },
+      { path: DELIVERY_PARTNER_PORTAL_ROUTES.qa, label: "QA & Go-Live" },
+      { path: DELIVERY_PARTNER_PORTAL_ROUTES.activity, label: "Activity" },
+      { path: DELIVERY_PARTNER_PORTAL_ROUTES.documents, label: "Documents" },
+      { path: DELIVERY_PARTNER_PORTAL_ROUTES.reports, label: "Reports" },
     ],
-    primaryHref: "/partner/delivery",
+    primaryHref: DELIVERY_PARTNER_PORTAL_HREF,
   },
 } as const;
 

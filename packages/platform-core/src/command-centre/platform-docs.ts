@@ -390,7 +390,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "referral-and-commission-rules",
     title: "Referral & Commission Rules",
     summary:
-      "30% of qualifying collected Platform + App fees for 12 months — not list price, not perpetual.",
+      "25% of qualifying collected Platform + App fees for 12 months — not list price, not perpetual. Founding 10 referrals: 15%.",
     group: "partners",
     relativePath: "partners/REFERRAL-AND-COMMISSION-RULES.md",
   },

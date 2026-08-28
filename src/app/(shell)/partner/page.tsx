@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 import {
+  ACQUISITION_PORTAL_HREF,
   canAccessDeliveryPartnerWorkspace,
+  DELIVERY_PARTNER_PORTAL_HREF,
   getPartnerByClerkUserId,
 } from "@dg/platform-core";
 
@@ -12,8 +14,8 @@ export default async function PartnerIndexPage() {
 
   const partner = await getPartnerByClerkUserId(clerkUserId);
   if (partner && canAccessDeliveryPartnerWorkspace(partner)) {
-    redirect("/partner/delivery");
+    redirect(DELIVERY_PARTNER_PORTAL_HREF);
   }
 
-  redirect("/partner/dashboard");
+  redirect(ACQUISITION_PORTAL_HREF);
 }

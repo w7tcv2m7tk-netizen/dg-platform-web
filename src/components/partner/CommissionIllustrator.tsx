@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   APPROVED_PARTNER_MESSAGING,
+  bpsToPercentLabel,
   illustratePartnerCommission,
   PARTNER_COMMISSION_CONFIG,
 } from "@dg/platform-core";
@@ -82,7 +83,7 @@ export function CommissionIllustrator() {
       </div>
 
       <p className="mt-4 text-sm text-slate-300">
-        Qualifying amount received: {money(paid * 100)}/month. Commission 30% ={" "}
+        Qualifying amount received: {money(paid * 100)}/month. Commission {bpsToPercentLabel(rate)} ={" "}
         <span className="text-white">{money(result.commissionPerCustomerMonthCents)}</span>
         /month, or{" "}
         <span className="text-white">{money(result.commissionPerCustomerYearCents)}</span> over

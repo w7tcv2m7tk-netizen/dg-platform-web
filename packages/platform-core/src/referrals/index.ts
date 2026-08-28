@@ -8,11 +8,15 @@
  * - First-paid credit from checkout.completed via markReferralPaidAndAccrue.
  * - Monthly renewal credit from invoice.paid (billing_reason=subscription_cycle).
  * - Cash payout at threshold via Stripe Connect Express (platform credit remains default).
- * - Partner / Reseller rates via org settings.referralProgramme.tier (customer 20%, partner 25%, reseller 30%).
+ * - Partner / Reseller rates via org settings.referralProgramme.tier (customer 20%, partner 25%, reseller 25%).
  */
 
 import type { PlatformReferral, PlatformReferralLedger, Prisma } from "@dg/database";
 
+import {
+  BPS,
+  bpsToPercentLabel,
+} from "../partners/commercial-model";
 import { writeAuditLog } from "../audit";
 import { sendMessage } from "../communications";
 import { platformEvents } from "../events";
@@ -40,7 +44,7 @@ export const REFER_AND_EARN_HREF = "/dashboard/network/refer-earn";
 export const REFERRAL_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 30; // 30 days
 export const CUSTOMER_COMMISSION_BPS = 2000; // 20%
 export const PARTNER_COMMISSION_BPS = 2500; // 25%
-export const RESELLER_COMMISSION_BPS = 3000; // 30%
+export const RESELLER_COMMISSION_BPS = BPS.RESELLER; // 25%
 export const REWARD_MONTHS = 12;
 /** Cash-out threshold (AUD cents). Platform credit remains the default reward. */
 export const CASH_PAYOUT_THRESHOLD_CENTS = 10_000;
@@ -125,9 +129,9 @@ export async function getOrganisationReferralProgramme(organisationId: string) {
     commissionBps,
     label:
       tier === "partner"
-        ? "Partner (25%)"
+        ? `Partner (${bpsToPercentLabel(BPS.RESELLER)})`
         : tier === "reseller"
-          ? "Reseller (30%)"
+          ? `Reseller (${bpsToPercentLabel(BPS.RESELLER)})`
           : "Customer (20%)",
   };
 }

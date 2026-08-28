@@ -78,7 +78,7 @@ Canonical commercial progression ([FOUNDING-COHORTS.md](../strategy/FOUNDING-COH
 
 A full **Reseller Programme** (third-party resale / managed DigitalGate) stays a separate commercial model from **Founding Reseller** status.
 
-**Shipped MVP today** still uses Customer 20% / Partner 25% / Reseller 30% labels in product settings (Customer rate historically 20%). Remap Standard Customer → **10%** and Founding 1,000 Founding Customer → **20%** when Founding 10 offers go live; do not rebuild the referral system for this lock alone.
+**Shipped MVP today** uses Customer 20% / Partner 25% / Reseller **25%** labels in product settings (Customer rate historically 20%). Partner Programme Reseller rate is **25%** (CEO lock Aug 2026). Founding 10 simple referrals: **15%**. Remap Standard Customer → **10%** when Founding 10 offers go live; do not rebuild the referral system for this lock alone.
 
 Commission is **single-level only**: the person (or partner org) whose link/code signed up the new paying org. See hard rule below.
 

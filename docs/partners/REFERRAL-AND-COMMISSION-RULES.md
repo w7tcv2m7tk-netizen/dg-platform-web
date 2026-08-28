@@ -1,35 +1,70 @@
 # Referral & Commission Rules
 
-**Status:** Commercial lock for product + approved copy · solicitor review before binding  
-**Code:** `packages/platform-core/src/partners/programme.ts`
+**Status: LOCKED** — canonical rates in `packages/platform-core/src/partners/commercial-model.ts`
 
-Commission is **30% of qualifying recurring Platform + App subscription fees actually received** for the **first 12 months** of each new customer the reseller **directly** referred. Not list price. Not the whole invoice. Not perpetual.
+See also [COMMERCIAL-MODEL-LOCK.md](./COMMERCIAL-MODEL-LOCK.md).
 
-## Includes
+## Three economic engines
 
-- Recurring Platform subscription fees actually received
-- Recurring **Industry App** subscription fees actually received ($99/mo verticals)
-- Recurring **additional Industry Template** fees actually received (+$29/mo each)
-- Other recurring App subscription fees actually received (Growth Apps, etc.)
-- Qualifying recurring upgrades during the original 12-month window
+1. **Platform Revenue** — DigitalGate (not shared with partners by default)
+2. **Acquisition Revenue** — Resellers + Channel Managers (Platform + App subscriptions, 12 months)
+3. **Service Revenue** — Delivery Partners + Delivery Channel Managers (Professional Services + Support & Success)
 
-## Excludes
+## Reseller commission
 
-GST and other taxes; refunds, chargebacks, reversals, write-offs, failed payments; processing fees; Professional Services and training; separately charged support plans; one-off fees; hardware, third-party software, ads/media; domain/hosting pass-through; the reseller's own account (unless DigitalGate approves in writing).
+**25%** of qualifying recurring **Platform + App subscription fees actually received** for the **first 12 months** of each new customer the reseller **directly** referred.
 
-## Rules that must not drift in copy
+After month 12: **$0** unless a future programme changes this.
 
-- Founding **customer** discount does not change the commission **percentage**; it reduces the amount received.
-- Example: $500 list with 30% founding discount → $350 received → 30% × $350 = $105/month.
-- 12-month clock starts at first paid subscription and does **not** restart on upgrades.
-- Cancellation stops commission when qualifying revenue stops.
-- Attribution is recorded permanently; commission is not forever.
-- Normally **one** reseller paid per customer; CRM is the primary attribution record.
-- Existing customers are not commissionable merely because a reseller later introduces another App.
-- Customer Founding Discount and reseller commission may both apply to the same customer.
+Not list price. Not the whole invoice. Not perpetual.
 
-## Approved vs forbidden messaging
+## Founding 10 referral
 
-Use `APPROVED_PARTNER_MESSAGING` in `programme.ts`. Do **not** say “Make $180,000 a year referring DigitalGate.” Large annual figures are annualised run-rate if the base stays commissionable — not year-one cash.
+**15%** of qualifying Platform + App subscription revenue for the **first 12 months** — for a simple introduction/referral, not full Reseller economics.
 
-Staff payouts: `/command/partners/payouts`. Partner view: `/partner` commissions.
+## Channel Manager
+
+- **25%** on own qualifying customer acquisition (first 12 months)
+- **5% override** on qualifying revenue from Resellers they directly manage (first 12 months)
+- Maximum combined acquisition commission: **30%** (25% + 5%)
+
+## Delivery Partner
+
+**25%** of qualifying **Professional Services + Support & Success** revenue they deliver.
+
+**No** commission on Platform subscription.
+
+## Delivery Channel Manager
+
+- **25%** on own qualifying delivery work
+- **5% override** on qualifying service revenue from Delivery Partners they directly manage
+
+## Qualifying revenue (acquisition)
+
+**Includes:** Platform subscription, Industry Apps, Growth Apps — actually collected.
+
+**Excludes:** Professional Services, Support & Success Plans, GST, refunds, chargebacks, pass-through costs, unpaid invoices.
+
+## Qualifying revenue (delivery)
+
+**Includes:** Professional Services, Support & Success Plans — actually collected.
+
+**Excludes:** Platform subscription, Industry Apps, Growth Apps, GST, refunds, pass-through costs.
+
+## Example (Reseller)
+
+$500 list with 30% founding customer discount → $350 received → **25% × $350 = $87.50/month** for up to 12 months.
+
+## Net collected revenue
+
+All commissions are calculated from qualifying revenue **actually received** by DigitalGate.
+
+Do not pay commission on proposals, unpaid invoices, refunds, chargebacks, GST, or pass-through costs.
+
+## Attribution
+
+Historical and auditable. Partner relationship changes do not rewrite past commission attribution.
+
+## Honesty rule
+
+Display **$0** when no real revenue or commission exists. Do not show invented earnings.

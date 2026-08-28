@@ -55,7 +55,7 @@ export default async function NetworkReferAndEarnPage() {
         <h1 className="text-2xl font-bold text-white">Refer &amp; Earn</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
           Share DigitalGate — earn platform credit for 12 months when they subscribe (Customer 20%
-          · Partner 25% · Reseller 30%). Part of your{" "}
+          · Partner 25% · Reseller 25%). Part of your{" "}
           <Link href="/dashboard/network" className="text-sky-400 hover:underline">
             Network
           </Link>{" "}

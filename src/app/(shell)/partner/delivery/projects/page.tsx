@@ -27,7 +27,10 @@ export default async function PartnerDeliveryProjectsPage() {
 
   return (
     <div className="max-w-5xl space-y-6">
-      <h1 className="text-2xl font-bold text-white">Active Projects</h1>
+      <h1 className="text-2xl font-bold text-white">Implementation Projects</h1>
+      <p className="text-sm text-slate-400">
+        Assigned implementation containers — each follows the 16-stage Implementation Lifecycle™.
+      </p>
       {projects.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-700 px-6 py-14 text-center text-sm text-slate-400">
           No projects assigned yet.

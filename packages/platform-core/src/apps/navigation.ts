@@ -16,6 +16,10 @@ import {
   listIndustries,
   resolveIndustryEntitlements,
 } from "../industry";
+import {
+  ACQUISITION_PORTAL_HREF,
+  ACQUISITION_PORTAL_ROUTES,
+} from "../partners/portal-routes";
 
 export interface PlatformShellNavItem extends AppNavItem {
   kind: "shell";
@@ -627,13 +631,16 @@ function getDigitalGateOperatorSection(): NavIaSection {
       ]),
       operatorApp("dg-delivery", "Delivery", "partner-portal", "/command/delivery", [
         { path: "/command/delivery", label: "Dashboard" },
-        { path: "/command/delivery/onboarding", label: "Onboarding" },
-        { path: "/command/delivery/invitations", label: "Invitations" },
         { path: "/command/delivery/projects", label: "Projects" },
         { path: "/command/delivery/tasks", label: "Tasks" },
         { path: "/command/delivery/customers", label: "Customers" },
-        { path: "/command/delivery/plans", label: "Implementation Plans" },
+        {
+          path: "/command/delivery/plans",
+          label: "Implementation Plans",
+          matchAlso: ["/command/delivery/onboarding"],
+        },
         { path: "/command/delivery/training", label: "Training" },
+        { path: "/command/delivery/invitations", label: "Invitations" },
         { path: "/command/delivery/qa", label: "QA & Go-Live" },
         { path: "/command/delivery/team", label: "Team" },
         { path: "/command/delivery/activity", label: "Activity" },
@@ -984,7 +991,7 @@ export function getPartnerWorkspaceApps(partnerType?: PartnerType | null): AppNa
         enabled: true,
         routes: [
           ...DELIVERY_PARTNER_NAV.delivery.routes,
-          { path: "/partner/profile", label: "Profile" },
+          { path: ACQUISITION_PORTAL_ROUTES.profile, label: "Profile" },
         ],
         primaryHref: DELIVERY_PARTNER_NAV.delivery.primaryHref,
       },
@@ -995,21 +1002,21 @@ export function getPartnerWorkspaceApps(partnerType?: PartnerType | null): AppNa
     {
       kind: "app",
       id: "partner-portal",
-      name: "Partner",
+      name: "Acquisition",
       icon: getSidebarIcon("partner-portal"),
       tier: "internal",
       enabled: true,
       routes: [
-        { path: "/partner/dashboard", label: "Dashboard" },
-        { path: "/partner/referrals", label: "Referrals" },
-        { path: "/partner/commissions", label: "Commissions" },
-        { path: "/partner/playbook", label: "Playbook" },
-        { path: "/partner/demo", label: "Demo" },
-        { path: "/partner/resources", label: "Resources" },
-        { path: "/partner/terms", label: "Terms" },
-        { path: "/partner/profile", label: "Profile" },
+        { path: ACQUISITION_PORTAL_HREF, label: "Dashboard" },
+        { path: ACQUISITION_PORTAL_ROUTES.referrals, label: "Referrals" },
+        { path: ACQUISITION_PORTAL_ROUTES.commissions, label: "Commissions" },
+        { path: ACQUISITION_PORTAL_ROUTES.playbook, label: "Playbook" },
+        { path: ACQUISITION_PORTAL_ROUTES.demo, label: "Demo" },
+        { path: ACQUISITION_PORTAL_ROUTES.resources, label: "Resources" },
+        { path: ACQUISITION_PORTAL_ROUTES.terms, label: "Terms" },
+        { path: ACQUISITION_PORTAL_ROUTES.profile, label: "Profile" },
       ],
-      primaryHref: "/partner/dashboard",
+      primaryHref: ACQUISITION_PORTAL_HREF,
     },
   ];
 }

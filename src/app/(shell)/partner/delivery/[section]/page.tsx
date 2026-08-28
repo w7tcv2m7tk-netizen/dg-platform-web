@@ -25,10 +25,10 @@ const SECTION_META: Record<
   { nav: DeliveryNavId; title: string; description: string }
 > = {
   onboarding: {
-    nav: "onboarding",
-    title: "Onboarding",
+    nav: "plans",
+    title: "Implementation Plans",
     description:
-      "Standard 16-stage implementation framework — every customer follows this lifecycle.",
+      "Redirected — onboarding is the early phase of the Implementation Lifecycle™.",
   },
   tasks: {
     nav: "tasks",
@@ -43,7 +43,8 @@ const SECTION_META: Record<
   plans: {
     nav: "plans",
     title: "Implementation Plans",
-    description: "Launch, Growth and Enterprise scope — live on each project record.",
+    description:
+      "Standard 16-stage implementation framework and Launch / Growth / Enterprise plan packages.",
   },
   activity: {
     nav: "activity",
@@ -145,6 +146,7 @@ export default async function PartnerDeliverySectionPage({
   if (!partner || !canAccessDeliveryPartnerWorkspace(partner)) redirect("/partner/dashboard");
 
   const { section } = await params;
+  if (section === "onboarding") redirect("/partner/delivery/plans");
   const page = SECTION_META[section];
   if (!page) redirect("/partner/delivery");
 
@@ -170,7 +172,28 @@ export default async function PartnerDeliverySectionPage({
         <h1 className="text-2xl font-bold text-white">{page.title}</h1>
         <p className="mt-1 text-sm text-slate-400">{page.description}</p>
       </div>
-      {section === "onboarding" ? <CustomerOnboardingWorkflow /> : null}
+      {section === "plans" ? (
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-base font-semibold text-white">
+              DigitalGate Implementation Lifecycle™
+            </h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Early acceptance through business setup is the onboarding phase within
+              implementation — not a separate Delivery area.
+            </p>
+          </div>
+          <CustomerOnboardingWorkflow />
+          <HonestHub
+            title="Plan packages"
+            description="Launch, Growth and Enterprise scope — live on each project record."
+            links={[
+              { href: "/partner/delivery/projects", label: "Your projects" },
+              { href: "/partner/resources", label: "Partner resources" },
+            ]}
+          />
+        </div>
+      ) : null}
 
       {section === "tasks" ? (
         tasks.length === 0 ? (
@@ -217,7 +240,7 @@ export default async function PartnerDeliverySectionPage({
         <>
           <OperatorMetricStrip
             metrics={[
-              { label: "Active projects", value: projects.length, tone: "sky" },
+              { label: "Implementation projects", value: projects.length, tone: "sky" },
               {
                 label: "Blocked",
                 value: projects.filter((p) => p.health === "blocked").length,
@@ -255,7 +278,7 @@ export default async function PartnerDeliverySectionPage({
           <p className="text-sm text-slate-500">
             All projects:{" "}
             <Link href="/partner/delivery/projects" className="text-sky-400 hover:underline">
-              Active projects
+              Implementation projects
             </Link>
           </p>
         </>
@@ -354,23 +377,12 @@ export default async function PartnerDeliverySectionPage({
         </>
       ) : null}
 
-      {section === "plans" ? (
-        <HonestHub
-          title="Plans"
-          description="Launch, Growth and Enterprise scoping lives on each implementation project (plan field). Open a project to see scope — there is no separate plan CMS."
-          links={[
-            { href: "/partner/delivery/projects", label: "Active projects" },
-            { href: "/partner/delivery/onboarding", label: "Onboarding" },
-          ]}
-        />
-      ) : null}
-
       {section === "documents" ? (
         <HonestHub
           title="Documents"
-          description="Implementation SOPs and customer materials live on project records and the onboarding workflow. A shared document vault is not available yet."
+          description="Implementation materials live on project records and under Implementation Plans. A shared document vault is not available yet."
           links={[
-            { href: "/partner/delivery/onboarding", label: "Onboarding" },
+            { href: "/partner/delivery/plans", label: "Implementation Plans" },
             { href: "/partner/delivery/projects", label: "Projects" },
           ]}
         />

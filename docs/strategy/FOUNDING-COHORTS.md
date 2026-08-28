@@ -46,7 +46,7 @@ Do **not** publicly promise “forever.” Prefer **“ongoing”** / **“while
 
 | Cohort | Own pricing discount | Period | Referral tier | Referral commission |
 |--------|----------------------|--------|---------------|---------------------|
-| **Founding 10** | **30%** off initial Platform + Industry Apps + Templates | **24 months** | **Founding Reseller** | **30%** of referred customer’s qualifying subscription for **12 months** |
+| **Founding 10** | **30%** off initial Platform + Industry Apps + Templates | **24 months** | **Founding Reseller** | **25%** reseller / **15%** simple referral · qualifying subscription · **12 months** |
 | **Founding 100** | **25%** | **24 months** | **Founding Partner** | **25%** for **12 months** |
 | **Founding 1,000** | **20%** | **24 months** | **Founding Customer** | **20%** for **12 months** |
 | **Future / Standard** | Published price | — | **Advocate** (internal: Customer) | **10%** for **12 months** |
@@ -128,7 +128,7 @@ Call it **referral commission** — never “referral discount.”
 
 | Sense | Meaning |
 |-------|---------|
-| **Referral entitlement (Founding 10 customers)** | Cohort commercial table: 30% commission × 12 months on qualifying referred subscriptions. Lives in the Founding Customer offer. |
+| **Referral entitlement (Founding 10 customers)** | Cohort commercial table: **15%** simple referral or **25%** Reseller commission × 12 months on qualifying referred subscriptions. Lives in the Founding Customer offer. |
 | **Qualified partner channel** | Invitation / acceptance only. People who already work with SME owners and **introduce** DigitalGate. Operating target: **3–5 excellent introducers**; Founding 10 cap is 10 seats. Then Founding 100 Founding Partner (25%), Founding 1,000 Founding Customer (20%). They introduce; DigitalGate qualifies, demonstrates, contracts, bills. Not an affiliate programme. |
 
 A Founding Customer primarily **uses** DigitalGate. A Founding Reseller primarily **opens doors**. Someone can be both; most customers will not be active partners.

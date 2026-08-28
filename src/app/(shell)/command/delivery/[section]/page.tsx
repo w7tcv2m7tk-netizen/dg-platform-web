@@ -10,6 +10,7 @@ import {
 
 import { DeliveryCommandPage } from "@/components/delivery/DeliveryCommandPage";
 import type { DeliveryNavId } from "@/components/delivery/DeliveryWorkspaceNav";
+import { CustomerOnboardingWorkflow } from "@/components/command/PartnerEcosystemContent";
 import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
@@ -137,7 +138,7 @@ export default async function StaffDeliverySectionPage({
           <OperatorMetricStrip
             metrics={[
               {
-                label: "Active projects",
+                label: "Implementation projects",
                 value: projects.length,
                 tone: "sky",
               },
@@ -181,7 +182,7 @@ export default async function StaffDeliverySectionPage({
           <p className="text-sm text-slate-500">
             All projects:{" "}
             <Link href="/command/delivery/projects" className="text-sky-400 hover:underline">
-              Active projects
+              Implementation projects
             </Link>
           </p>
         </>
@@ -269,15 +270,32 @@ export default async function StaffDeliverySectionPage({
       ) : null}
 
       {section === "plans" ? (
-        <HonestHub
-          title="Plans"
-          description="Launch, Growth and Enterprise scoping templates live on each implementation project (plan field). Use projects and partner docs — not a separate plan CMS."
-          links={[
-            { href: "/command/delivery/projects", label: "Active projects" },
-            { href: "/command/docs/delivery-operating-model", label: "Delivery operating model" },
-            { href: "/command/partners/delivery", label: "Partner delivery model" },
-          ]}
-        />
+        <div className="space-y-10">
+          <div>
+            <h2 className="text-base font-semibold text-white">
+              DigitalGate Implementation Lifecycle™
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm text-slate-400">
+              Standard 16-stage implementation framework — every customer follows this lifecycle.
+              Early acceptance, agreement, kick-off, discovery and business setup are the{" "}
+              <span className="text-slate-300">onboarding phase</span> within implementation — not a
+              separate Delivery product area.
+            </p>
+          </div>
+          <CustomerOnboardingWorkflow />
+          <HonestHub
+            title="Plan packages"
+            description="Launch, Growth and Enterprise scoping templates live on each implementation project (plan field). Use projects and partner docs — not a separate plan CMS."
+            links={[
+              { href: "/command/delivery/projects", label: "Implementation projects" },
+              {
+                href: "/command/docs/delivery-operating-model",
+                label: "Delivery operating model",
+              },
+              { href: "/command/partners/delivery", label: "Partner delivery model" },
+            ]}
+          />
+        </div>
       ) : null}
 
       {section === "team" ? (
@@ -299,7 +317,7 @@ export default async function StaffDeliverySectionPage({
           links={[
             { href: "/command/docs", label: "Platform Docs" },
             { href: "/command/docs/delivery-operating-model", label: "Delivery operating model" },
-            { href: "/command/delivery/onboarding", label: "Onboarding SOP" },
+            { href: "/command/delivery/plans", label: "Implementation Lifecycle" },
             { href: "/command/delivery/projects", label: "Projects" },
           ]}
         />
