@@ -4,7 +4,7 @@
  * @see docs/COMMAND-CENTRE.md
  */
 
-import type { AgencyHealthTier } from "./types";
+import type { AgencyHealthTier, SuccessScoreBand } from "./types";
 
 export type SuccessScoreBreakdown = {
   connectors: number;
@@ -76,6 +76,9 @@ export type SuccessScoreCoverage = "sparse" | "partial" | "rich";
 export type SuccessScoreResult = {
   successScore: number;
   breakdown: SuccessScoreBreakdown;
+  /** Quantified score band (Success Score™ thresholds). */
+  scoreBand: SuccessScoreBand;
+  /** Composite operational health — may differ from score band when concerns exist. */
   tier: AgencyHealthTier;
   highlights: string[];
   /** Observed problems only — never invented absence-of-data gaps. */
@@ -84,6 +87,29 @@ export type SuccessScoreResult = {
   provisional: boolean;
   dataCoverage: SuccessScoreCoverage;
 };
+
+/** Success Score™ band from numeric score only. */
+export function scoreBandFromScore(score: number): SuccessScoreBand {
+  if (score >= 80) return "excellent";
+  if (score >= 65) return "healthy";
+  if (score >= 50) return "needs_attention";
+  if (score >= 30) return "at_risk";
+  return "critical";
+}
+
+export function scoreBandLabel(band: SuccessScoreBand): string {
+  if (band === "excellent") return "Excellent";
+  if (band === "healthy") return "Healthy";
+  if (band === "needs_attention") return "Needs attention";
+  if (band === "at_risk") return "At risk";
+  return "Critical";
+}
+
+export function scoreBandEmoji(band: SuccessScoreBand): string {
+  if (band === "excellent" || band === "healthy") return "🟢";
+  if (band === "needs_attention") return "🟠";
+  return "🔴";
+}
 
 export function assessSuccessScoreCoverage(
   input: SuccessScoreInput,
@@ -285,11 +311,13 @@ export function computeSuccessScore(input: SuccessScoreInput): SuccessScoreResul
     concerns.push(`Org status: ${input.status}`);
   }
 
-  const tier = tierFromScore(successScore, concerns.length, input, provisional);
+  const scoreBand = scoreBandFromScore(successScore);
+  const tier = operationalHealthTier(successScore, concerns, input);
 
   return {
     successScore,
     breakdown,
+    scoreBand,
     tier,
     highlights,
     concerns,
@@ -298,28 +326,76 @@ export function computeSuccessScore(input: SuccessScoreInput): SuccessScoreResul
   };
 }
 
-export function tierFromScore(
+/**
+ * Operational health — composite of Success Score™ band plus observed concerns.
+ * A high score can still escalate when billing or CRM blockers are present.
+ */
+export function operationalHealthTier(
   successScore: number,
-  concernCount: number,
-  input?: Pick<SuccessScoreInput, "leadsThisMonth" | "activitiesThisMonth">,
-  provisional = false,
+  concerns: string[],
+  input?: Pick<
+    SuccessScoreInput,
+    "leadsThisMonth" | "activitiesThisMonth" | "status"
+  >,
 ): AgencyHealthTier {
-  // Sparse/partial: never invent "needs attention" from a low provisional score alone.
-  if (provisional && concernCount === 0) {
-    return "healthy";
+  const band = scoreBandFromScore(successScore);
+  const concernCount = concerns.length;
+
+  if (input?.status === "suspended" || input?.status === "cancelled") {
+    return concernCount > 0 ? "critical" : "at_risk";
   }
-  const growing =
-    (input?.leadsThisMonth ?? 0) > 0 || (input?.activitiesThisMonth ?? 0) >= 5;
-  if (successScore >= 85 && concernCount <= 1 && growing) return "top_performer";
-  if (successScore >= 85 && concernCount === 0) return "top_performer";
-  if (successScore >= 70 && concernCount <= 2) return "healthy";
-  if (successScore >= 70 && concernCount > 2) return "needs_attention";
-  if (provisional) return "healthy";
-  return "needs_attention";
+
+  const hasBillingFailure = concerns.some(
+    (c) => c.includes("Stripe") || c.toLowerCase().includes("billing"),
+  );
+  const hasOverdueLeads = concerns.some((c) => c.includes("overdue"));
+
+  let tier: AgencyHealthTier;
+  if (band === "excellent") tier = "top_performer";
+  else if (band === "healthy") tier = "healthy";
+  else if (band === "needs_attention") tier = "needs_attention";
+  else if (band === "at_risk") tier = "at_risk";
+  else tier = "critical";
+
+  if (concernCount === 0) return tier;
+
+  if (hasBillingFailure || input?.status === "suspended") return "critical";
+
+  if (tier === "top_performer" || tier === "healthy") {
+    if (concernCount >= 2 || hasOverdueLeads) return "needs_attention";
+    if (tier === "top_performer") return "healthy";
+  }
+
+  if (tier === "needs_attention" && concernCount >= 2) return "at_risk";
+
+  return tier;
 }
 
 export function tierLabel(tier: AgencyHealthTier): string {
-  if (tier === "top_performer") return "Top performer";
+  if (tier === "top_performer") return "Excellent";
   if (tier === "healthy") return "Healthy";
-  return "Needs attention";
+  if (tier === "needs_attention") return "Needs attention";
+  if (tier === "at_risk") return "At risk";
+  return "Critical";
+}
+
+export function isOperationalHealthyTier(tier: AgencyHealthTier): boolean {
+  return tier === "top_performer" || tier === "healthy";
+}
+
+export function isOperationalAttentionTier(tier: AgencyHealthTier): boolean {
+  return tier === "needs_attention" || tier === "at_risk" || tier === "critical";
+}
+
+export function healthTierDisplay(tier: string): string {
+  if (
+    tier === "top_performer" ||
+    tier === "healthy" ||
+    tier === "needs_attention" ||
+    tier === "at_risk" ||
+    tier === "critical"
+  ) {
+    return tierLabel(tier);
+  }
+  return tier;
 }

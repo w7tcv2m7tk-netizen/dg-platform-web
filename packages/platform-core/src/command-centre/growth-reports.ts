@@ -6,7 +6,7 @@
 import type { RecommendedAction } from "../intelligence/types";
 import { getClientIntelligence } from "./client-intelligence";
 import type { ExecutiveGrowthReport, ExecutiveReportHighlight } from "./types";
-import { tierLabel } from "./success-score";
+import { healthTierDisplay } from "./success-score";
 
 export type GrowthReportPeriod = "mtd" | "last_30d" | "last_7d";
 
@@ -289,9 +289,4 @@ export function toExecutiveGrowthReport(
   };
 }
 
-export function healthTierDisplay(tier: string): string {
-  if (tier === "top_performer" || tier === "healthy" || tier === "needs_attention") {
-    return tierLabel(tier);
-  }
-  return tier;
-}
+export { healthTierDisplay } from "./success-score";

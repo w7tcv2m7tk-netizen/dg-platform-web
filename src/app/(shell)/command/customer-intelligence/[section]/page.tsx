@@ -53,19 +53,19 @@ export default async function CustomerIntelligenceSectionPage({
             metrics={[
               { label: "Organisations", value: clients.length },
               {
-                label: "Avg score",
+                label: "Avg Success Score™",
                 value: intel.averageSuccessScore,
                 tone: "sky",
               },
               {
-                label: "Top performers",
+                label: "Excellent",
                 value: intel.tierCounts.top_performer,
                 tone: "emerald",
               },
-              { label: "Healthy", value: intel.tierCounts.healthy },
+              { label: "Healthy", value: intel.healthyCount },
               {
-                label: "Needs attention",
-                value: intel.tierCounts.needs_attention,
+                label: "Need attention",
+                value: intel.needAttentionCount,
                 tone: "amber",
               },
             ]}
@@ -90,11 +90,7 @@ export default async function CustomerIntelligenceSectionPage({
   }
 
   if (section === "at-risk") {
-    const atRisk = clients.filter(
-      (c) =>
-        c.needsAttention ||
-        (!c.scoreProvisional && c.healthTier === "needs_attention"),
-    );
+    const atRisk = clients.filter((c) => c.needsAttention);
     return shell(
       "Attention Required",
       "Which customers need intervention — stalled health, attention flags, or declining signal?",
@@ -232,7 +228,7 @@ function PortfolioLink() {
     <p className="text-sm text-slate-500">
       Full ranking:{" "}
       <Link href="/command/clients" className="text-sky-400 hover:underline">
-        Customer Portfolio
+        Customer Intelligence
       </Link>
     </p>
   );

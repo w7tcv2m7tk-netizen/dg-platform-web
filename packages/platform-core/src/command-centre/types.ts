@@ -100,7 +100,21 @@ export interface CommandActionItem {
   href: string;
 }
 
-export type AgencyHealthTier = "top_performer" | "healthy" | "needs_attention";
+/** Quantified Success Score™ band — score alone, not operational health. */
+export type SuccessScoreBand =
+  | "excellent"
+  | "healthy"
+  | "needs_attention"
+  | "at_risk"
+  | "critical";
+
+/** DigitalGate operational interpretation of customer health (composite). */
+export type AgencyHealthTier =
+  | "top_performer"
+  | "healthy"
+  | "needs_attention"
+  | "at_risk"
+  | "critical";
 
 export interface CommandClientRow {
   organisationId: string;

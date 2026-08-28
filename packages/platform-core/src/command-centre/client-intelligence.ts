@@ -8,9 +8,12 @@ import type {
   AgencyHealthTier,
   ClientIntelligence,
   CommandClientRow,
+  SuccessScoreBand,
 } from "./types";
 import {
   computeSuccessScore,
+  isOperationalAttentionTier,
+  isOperationalHealthyTier,
   organisationExpectsPlatformBilling,
   type SuccessScoreBreakdown,
   type SuccessScoreInput,
@@ -45,6 +48,9 @@ function startOfMonth() {
 
 export type EnrichedCommandClient = CommandClientRow & {
   successScore: number;
+  /** Quantified Success Score™ band */
+  scoreBand: SuccessScoreBand;
+  /** Composite operational health */
   healthTier: AgencyHealthTier;
   scoreBreakdown: SuccessScoreBreakdown;
   highlights: string[];
@@ -69,6 +75,10 @@ export type ClientIntelligenceBundle = {
   rankings: AgencyHealthRanking[];
   tierCounts: Record<AgencyHealthTier, number>;
   averageSuccessScore: number;
+  /** Organisations in excellent or healthy operational state */
+  healthyCount: number;
+  /** Organisations needing intervention (needs attention, at risk, or critical) */
+  needAttentionCount: number;
 };
 
 type CountRow = { organisationId: string; _count: { id: number } };
@@ -254,11 +264,12 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       infraDomainsBeta,
       needsAttention:
         attentionReasons.length > 0 ||
-        (!result.provisional && result.tier === "needs_attention"),
+        isOperationalAttentionTier(result.tier),
       attentionReasons,
       createdAt: org.createdAt.toISOString(),
       updatedAt: org.updatedAt.toISOString(),
       successScore: result.successScore,
+      scoreBand: result.scoreBand,
       healthTier: result.tier,
       scoreBreakdown: result.breakdown,
       highlights: result.highlights,
@@ -299,7 +310,15 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     healthy: clients.filter((c) => c.healthTier === "healthy").length,
     needs_attention: clients.filter((c) => c.healthTier === "needs_attention")
       .length,
+    at_risk: clients.filter((c) => c.healthTier === "at_risk").length,
+    critical: clients.filter((c) => c.healthTier === "critical").length,
   };
+
+  const healthyCount = clients.filter((c) =>
+    isOperationalHealthyTier(c.healthTier),
+  ).length;
+
+  const needAttentionCount = clients.filter((c) => c.needsAttention).length;
 
   const averageSuccessScore =
     clients.length === 0
@@ -314,6 +333,8 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     rankings,
     tierCounts,
     averageSuccessScore,
+    healthyCount,
+    needAttentionCount,
   };
 }
 

@@ -8,7 +8,7 @@ import { llmChat, llmConfigured } from "../ai/llm";
 import type { RecommendedAction } from "../intelligence/types";
 import { assessBillingFooting } from "./advisor-billing";
 import { getClientIntelligence } from "./client-intelligence";
-import { tierLabel } from "./success-score";
+import { healthTierDisplay } from "./success-score";
 import type {
   AdvisorConfidenceLevel,
   AdvisorEvidenceItem,
@@ -226,12 +226,7 @@ function buildPriorities(ctx: AdvisorContext): AdvisorPriorityItem[] {
 }
 
 function buildExecutiveSummary(ctx: AdvisorContext): string {
-  const tier =
-    ctx.healthTier === "top_performer" ||
-    ctx.healthTier === "healthy" ||
-    ctx.healthTier === "needs_attention"
-      ? tierLabel(ctx.healthTier)
-      : ctx.healthTier;
+  const tier = healthTierDisplay(ctx.healthTier);
 
   const parts: string[] = [];
 
