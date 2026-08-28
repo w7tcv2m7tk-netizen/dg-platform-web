@@ -7,6 +7,9 @@ export type OperatorOrgRow = {
   organisationId: string;
   organisationName: string;
   organisationSlug?: string;
+  /** Shown under org name — e.g. slug or "Internal" for operator org */
+  organisationMeta?: string | null;
+  isInternalOrg?: boolean;
   successScore?: number;
   scoreTier?: AgencyHealthTier | "provisional" | string;
   scoreTierEmoji?: string;
@@ -86,9 +89,17 @@ export function OperatorOrgTable({
                     className="font-medium text-white hover:text-sky-300"
                   >
                     {row.organisationName}
+                    {row.isInternalOrg ? (
+                      <span className="ml-1.5 text-xs font-normal text-sky-400/90">
+                        · Internal
+                      </span>
+                    ) : null}
                   </Link>
-                  {row.organisationSlug ? (
-                    <p className="text-xs text-slate-500">{row.organisationSlug}</p>
+                  {(row.organisationMeta ?? row.organisationSlug) &&
+                  !row.isInternalOrg ? (
+                    <p className="text-xs text-slate-500">
+                      {row.organisationMeta ?? row.organisationSlug}
+                    </p>
                   ) : null}
                 </td>
                 {showScore ? (

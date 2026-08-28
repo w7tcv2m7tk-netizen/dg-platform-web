@@ -38,6 +38,37 @@ export function canAccessCommandCentre(input: CommandCentreAccessInput): boolean
   return false;
 }
 
+/** DigitalGate operator org — exclude from customer benchmarking where noted. */
+export function isPlatformOperatorOrganisation(org: {
+  organisationId?: string;
+  organisationSlug?: string | null;
+  organisationName?: string | null;
+}): boolean {
+  const allowlist = process.env.DG_COMMAND_CENTRE_ORG_IDS?.split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+
+  if (
+    org.organisationId &&
+    allowlist?.length &&
+    allowlist.includes(org.organisationId)
+  ) {
+    return true;
+  }
+
+  const slug = org.organisationSlug?.toLowerCase() ?? "";
+  if (slug === "digitalgate" || slug.startsWith("digitalgate-")) {
+    return true;
+  }
+
+  const name = org.organisationName?.toLowerCase() ?? "";
+  if (/\bdigitalgate\b/.test(name)) {
+    return true;
+  }
+
+  return false;
+}
+
 /** Industry app ids (kept for docs / optional tooling). */
 export const OPERATOR_ORG_HIDDEN_APP_IDS = [
   "real-estate",

@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
+  clientActivityScoreTierDisplay,
+  clientActivityScoreTierEmoji,
   clientScoreTierDisplay,
   clientScoreTierEmoji,
+  formatClientActivityMonthLine,
   formatClientObservedSignal,
+  formatClientOrganisationMeta,
   getClientIntelligence,
 } from "@dg/platform-core";
 
@@ -180,27 +184,32 @@ export default async function CustomerIntelligenceSectionPage({
 
   // engagement → Client Activity
   const sorted = [...clients].sort((a, b) => {
-    const ea = a.leadsThisMonth * 2 + a.activitiesThisMonth + a.openOpportunities;
-    const eb = b.leadsThisMonth * 2 + b.activitiesThisMonth + b.openOpportunities;
-    return eb - ea;
+    if (b.activitiesThisMonth !== a.activitiesThisMonth) {
+      return b.activitiesThisMonth - a.activitiesThisMonth;
+    }
+    if (b.leadsThisMonth !== a.leadsThisMonth) {
+      return b.leadsThisMonth - a.leadsThisMonth;
+    }
+    return b.openOpportunities - a.openOpportunities;
   });
-  const active = clients.filter(
-    (c) =>
-      c.leadsThisMonth > 0 || c.activitiesThisMonth > 0 || c.openOpportunities > 0,
-  ).length;
+  const activeOrganisations = clients.filter((c) => c.activitiesThisMonth > 0).length;
 
   return shell(
     "Client Activity",
-    "Usage depth this month — leads, CRM activity, and open opportunities.",
+    "Customer engagement and commercial activity recorded across the platform this month.",
     !intel ? (
       <DbMissing />
     ) : (
       <>
         <OperatorMetricStrip
           metrics={[
-            { label: "Active this month", value: active, tone: "sky" },
             {
-              label: "Leads MTD (all)",
+              label: "Active organisations",
+              value: activeOrganisations,
+              tone: "sky",
+            },
+            {
+              label: "Leads MTD",
               value: clients.reduce((s, c) => s + c.leadsThisMonth, 0),
             },
             {
@@ -215,20 +224,23 @@ export default async function CustomerIntelligenceSectionPage({
         />
         <OperatorOrgTable
           secondaryLabel="This month"
-          secondaryHint="Leads, activities and opportunities"
+          secondaryHint="Recorded leads, activities and opportunities"
           rows={sorted.map((c) => ({
             organisationId: c.organisationId,
             organisationName: c.organisationName,
             organisationSlug: c.organisationSlug,
+            organisationMeta: formatClientOrganisationMeta(c),
+            isInternalOrg: c.isInternalOrg,
             successScore: c.successScore,
-            scoreTier: clientScoreTierDisplay(c),
-            scoreTierEmoji: clientScoreTierEmoji(c),
-            observedSignal: `${c.leadsThisMonth} leads · ${c.activitiesThisMonth} activities · ${c.openOpportunities} opps`,
+            scoreTier: clientActivityScoreTierDisplay(c),
+            scoreTierEmoji: clientActivityScoreTierEmoji(c),
+            observedSignal: formatClientActivityMonthLine(c),
           }))}
         />
         <PortfolioLink />
       </>
     ),
+    "Organisations with at least one recorded CRM activity this month count as active. Activity totals are aggregate — category breakdown is planned.",
   );
 }
 
@@ -243,7 +255,7 @@ function DbMissing() {
 function PortfolioLink() {
   return (
     <p className="text-sm text-slate-500">
-      Full ranking:{" "}
+      Full ranking →{" "}
       <Link href="/command/clients" className="text-sky-400 hover:underline">
         Customer Intelligence
       </Link>

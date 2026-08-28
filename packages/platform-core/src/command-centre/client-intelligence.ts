@@ -18,6 +18,7 @@ import {
   type SuccessScoreInput,
 } from "./success-score";
 import type { OrgWordPressConnectorSettings } from "../connectors/wordpress/org-connector";
+import { isPlatformOperatorOrganisation } from "./access";
 
 type OrgSettings = {
   connectors?: { wordpress?: OrgWordPressConnectorSettings };
@@ -68,6 +69,8 @@ export type EnrichedCommandClient = CommandClientRow & {
   subscriptionMrrCents: number;
   invoicePaidMtdCents: number;
   daysSinceUpdate: number;
+  /** Platform operator org — exclude from customer benchmark cohorts */
+  isInternalOrg: boolean;
 };
 
 export type ClientIntelligenceBundle = {
@@ -318,6 +321,11 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       subscriptionMrrCents: scoreInput.subscriptionMrrCents,
       invoicePaidMtdCents: scoreInput.invoicePaidMtdCents,
       daysSinceUpdate: scoreInput.daysSinceUpdate,
+      isInternalOrg: isPlatformOperatorOrganisation({
+        organisationId: org.id,
+        organisationSlug: org.slug,
+        organisationName: org.name,
+      }),
     };
     return row;
   });

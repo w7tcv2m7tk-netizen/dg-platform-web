@@ -111,6 +111,11 @@ export default async function CustomerPortfolioPage() {
                             className="font-medium text-white hover:text-sky-300"
                           >
                             {client.organisationName}
+                            {client.isInternalOrg ? (
+                              <span className="ml-1.5 text-xs font-normal text-sky-400/90">
+                                · Internal
+                              </span>
+                            ) : null}
                           </Link>
                         </td>
                         <td className="px-4 py-3">

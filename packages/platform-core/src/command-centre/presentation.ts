@@ -140,6 +140,27 @@ export function clientScoreTierEmoji(client: EnrichedCommandClient): string {
   return scoreBandEmoji(client.scoreBand);
 }
 
+/** Client Activity — score band tier (behaviour page, not health interpretation). */
+export function clientActivityScoreTierDisplay(
+  client: EnrichedCommandClient,
+): AgencyHealthTier {
+  return client.healthTier;
+}
+
+export function clientActivityScoreTierEmoji(client: EnrichedCommandClient): string {
+  return scoreBandEmoji(client.scoreBand);
+}
+
+/** Raw month activity — no interpretation. */
+export function formatClientActivityMonthLine(client: EnrichedCommandClient): string {
+  return `${client.leadsThisMonth} leads · ${client.activitiesThisMonth} activities · ${client.openOpportunities} opps`;
+}
+
+export function formatClientOrganisationMeta(client: EnrichedCommandClient): string | null {
+  if (client.isInternalOrg) return "Internal";
+  return client.organisationSlug ?? null;
+}
+
 /** Observed operational signals — separate from score tier classification. */
 export function formatClientObservedSignal(client: EnrichedCommandClient): string {
   if (client.scoreProvisional) {
