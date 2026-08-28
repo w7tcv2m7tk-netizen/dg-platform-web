@@ -13,4 +13,4 @@ export * from "./invite-state";
 export * from "./invitations";
 export * from "./dashboard-workspace";
 export * from "./referrals-workspace";
-export * from "./referrals-workspace";
+export * from "./commissions-workspace";
