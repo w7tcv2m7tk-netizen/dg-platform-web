@@ -16,7 +16,7 @@ const FOUNDING_BENEFITS = [
   "Direct input into product development",
   "Direct relationship with the DigitalGate team",
   "Founding recognition, with your permission",
-  "Selected members may be invited into the DigitalGate Founding Reseller Programme (invitation only)",
+  "Selected members may be invited into the DigitalGate Founding Acquisition Partner Programme (invitation only)",
 ];
 
 function appOrigin(): string {

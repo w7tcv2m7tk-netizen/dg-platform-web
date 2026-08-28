@@ -52,7 +52,7 @@ export function InviteDeliveryPartnerForm({ compact }: { compact?: boolean }) {
         <h2 className="font-semibold text-white">Invite to Delivery</h2>
         <p className="mt-1 text-sm text-slate-400">
           Personal invitation into the DigitalGate Delivery workspace. This is the implementation
-          function — not the Founding Reseller programme. Sending an invite does not approve them
+          function — not the Founding Acquisition Partner programme. Sending an invite does not approve them
           into Delivery.
         </p>
       </div>
@@ -101,8 +101,8 @@ export function InviteDeliveryPartnerForm({ compact }: { compact?: boolean }) {
           </p>
         </div>
         <p className="border-t border-slate-800 pt-3 text-slate-500">
-          A person can only operate as a Founding Reseller if they are separately enrolled in the
-          Founding Reseller programme.
+          A person can only operate as a Founding Acquisition Partner if they are separately enrolled in the
+          Founding Acquisition Partner programme.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">

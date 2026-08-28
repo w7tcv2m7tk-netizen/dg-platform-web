@@ -269,7 +269,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "commercial-engine",
     title: "Sales Week / Commercial Engine",
     summary:
-      "18 Aug lock — freeze website redesign; fill Founding 10 via network, RE prospecting, and qualified Founding Resellers.",
+      "18 Aug lock — freeze website redesign; fill Founding 10 via network, RE prospecting, and qualified Founding Acquisition Partners.",
     group: "commercial",
     relativePath: "strategy/COMMERCIAL-ENGINE.md",
   },
@@ -284,7 +284,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "founding-10-outreach",
     title: "Founding 10 Outreach",
     summary:
-      "Personal update, not a SaaS campaign — customer and Founding Reseller scripts, follow-ups, discovery questions.",
+      "Personal update, not a SaaS campaign — customer and Founding Acquisition Partner scripts, follow-ups, discovery questions.",
     group: "commercial",
     relativePath: "strategy/FOUNDING-10-OUTREACH.md",
   },
@@ -353,21 +353,21 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "delivery-operating-model",
     title: "Delivery Operating Model",
     summary:
-      "Hub-and-spoke delivery — resellers introduce, DigitalGate closes, Head of Implementation owns the SOP, Delivery Team scales capacity. Powered by DigitalGate.",
+      "Hub-and-spoke delivery — acquisition partners introduce, DigitalGate closes, Head of Implementation owns the SOP, Delivery Team scales capacity. Powered by DigitalGate.",
     group: "partners",
     relativePath: "partners/DELIVERY-OPERATING-MODEL.md",
   },
   {
     slug: "reseller-programme",
-    title: "Reseller Programme",
+    title: "Acquisition Partner Programme",
     summary:
-      "Invitation-only Founding Reseller Programme — introducer model, not an affiliate programme.",
+      "Invitation-only Founding Acquisition Partner Programme — introducer model, not an affiliate programme.",
     group: "partners",
     relativePath: "partners/RESELLER-PROGRAMME.md",
   },
   {
     slug: "reseller-terms",
-    title: "Reseller Terms",
+    title: "Acquisition Partner Terms",
     summary: "Where partners accept programme rules; solicitor review required before binding legal terms.",
     group: "partners",
     relativePath: "partners/RESELLER-TERMS.md",
@@ -375,7 +375,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
   {
     slug: "partner-qualification",
     title: "Partner Qualification",
-    summary: "Who may be invited; first-wave cap; what resellers must not claim.",
+    summary: "Who may be invited; first-wave cap; what acquisition partners must not claim.",
     group: "partners",
     relativePath: "partners/PARTNER-QUALIFICATION.md",
   },
@@ -390,23 +390,23 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "referral-and-commission-rules",
     title: "Referral & Commission Rules",
     summary:
-      "25% of qualifying collected Platform + App fees for 12 months — not list price, not perpetual. Founding 10 referrals: 15%.",
+      "25% Acquisition Partner commission on qualifying collected Platform + App fees for 12 months — not list price, not perpetual. Founding Customer direct referrals: 20% (Founding 10) / 15% (Founding 100) / 10% (Founding 1,000+).",
     group: "partners",
     relativePath: "partners/REFERRAL-AND-COMMISSION-RULES.md",
   },
   {
     slug: "founding-reseller-meeting",
-    title: "Founding Reseller Meeting",
+    title: "Founding Acquisition Partner Meeting",
     summary:
-      "Monday partner briefing run-sheet — agenda, discussion prompts, outcomes checklist for first-wave Founding Resellers.",
+      "Monday partner briefing run-sheet — agenda, discussion prompts, outcomes checklist for first-wave Founding Acquisition Partners.",
     group: "partners",
     relativePath: "partners/FOUNDING-RESELLER-MEETING.md",
   },
   {
     slug: "founding-reseller-playbook",
-    title: "Founding Reseller Playbook",
+    title: "Founding Acquisition Partner Playbook",
     summary:
-      "Introducer model — role, one-liner, journey, partner levels, good prospects, and briefing outline for first-wave resellers.",
+      "Introducer model — role, one-liner, journey, partner levels, good prospects, and briefing outline for first-wave acquisition partners.",
     group: "partners",
     relativePath: "partners/FOUNDING-RESELLER-PLAYBOOK.md",
   },
@@ -421,7 +421,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "invite-briefing",
     title: "Invite Briefing",
     summary:
-      "What to say when inviting Founding Resellers and customers — approved framing for first contact.",
+      "What to say when inviting Founding Acquisition Partners and customers — approved framing for first contact.",
     group: "partners",
     relativePath: "partners/INVITE-BRIEFING.md",
   },

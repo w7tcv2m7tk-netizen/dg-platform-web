@@ -73,7 +73,7 @@ export const SALES_WEEK_DAYS: SalesWeekDayPlan[] = [
         endMin: hm(10, 30),
         title: "Contact 10–15 people you already know",
         doNow:
-          "Personal update, not a SaaS campaign. Goal of first touch: book a conversation. Pick customer vs Founding Reseller language before you send.",
+          "Personal update, not a SaaS campaign. Goal of first touch: book a conversation. Pick customer vs Founding Acquisition Partner language before you send.",
         href: OUTREACH,
         hrefLabel: "Open scripts",
       },
@@ -161,13 +161,13 @@ export const SALES_WEEK_DAYS: SalesWeekDayPlan[] = [
   {
     weekday: 3,
     label: "Wednesday",
-    theme: "Founding Resellers",
+    theme: "Founding Acquisition Partners",
     inEngine: true,
     blocks: [
       {
         startMin: hm(9),
         endMin: hm(11),
-        title: "Contact 10 potential Founding Resellers",
+        title: "Contact 10 potential Founding Acquisition Partners",
         doNow:
           "A-list only — people who open doors. They introduce; you close. Not an affiliate programme.",
         href: OUTREACH,
@@ -192,7 +192,7 @@ export const SALES_WEEK_DAYS: SalesWeekDayPlan[] = [
         startMin: hm(15),
         endMin: hm(17),
         title: "Partner pipeline",
-        doNow: "Aim for 3–5 genuinely capable Founding Resellers. Rank A / B / C.",
+        doNow: "Aim for 3–5 genuinely capable Founding Acquisition Partners. Rank A / B / C.",
         href: CRM,
         hrefLabel: "CRM",
       },

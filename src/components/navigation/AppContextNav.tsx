@@ -91,7 +91,7 @@ export function AppContextNav() {
               <AppHorizontalSubnav
                 routes={routes}
                 ariaLabel={`${active.itemName} sections`}
-                maxVisible={active.itemId === "dg-delivery" ? 7 : undefined}
+                maxVisible={active.itemId === "dg-partners" ? 7 : undefined}
               />
             </div>
           ) : null}

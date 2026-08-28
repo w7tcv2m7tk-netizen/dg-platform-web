@@ -212,9 +212,9 @@ const PLATFORM_OPERATIONS: CommandPlatformOperationsGroup[] = [
     links: [
       {
         id: "resellers",
-        label: "Resellers / Referrals",
+        label: "Partners / Referrals",
         href: "/command/partners",
-        description: "Founding resellers, referrals and commissions",
+        description: "Founding acquisition partners, referrals and commissions",
       },
     ],
   },

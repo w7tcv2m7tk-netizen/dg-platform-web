@@ -1307,7 +1307,7 @@ model CommercialLease {
 // ─── Partner Programme ────────────────────────────────────────────────────────
 
 /**
- * A qualified DigitalGate Partner — Founding Reseller, Founding Partner, etc.
+ * A qualified DigitalGate Partner — Founding Acquisition Partner, Founding Partner, etc.
  * Separate from the Refer & Earn PlatformReferral model (self-service customer credits).
  * Partners are human-curated; commissions are cash, not SaaS credits.
  */

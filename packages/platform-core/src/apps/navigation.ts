@@ -477,27 +477,14 @@ function staffNetworkNavItem(): AppNavTreeItem {
     routes: [
       { path: "/dashboard/network", label: "Overview" },
       {
-        path: "/command/referrals",
-        label: "Referrals",
-        matchAlso: [
-          "/dashboard/network/referrals",
-          "/command/referrals/pending",
-          "/command/referrals/converted",
-        ],
+        path: "/dashboard/network/refer-earn",
+        label: "Refer & Earn",
+        matchAlso: ["/dashboard/settings/referrals"],
       },
       {
-        path: "/command/commissions",
-        label: "Commissions",
-        matchAlso: [
-          "/dashboard/network/commissions",
-          "/command/commissions/pending",
-          "/command/commissions/approved",
-          "/command/commissions/paid",
-        ],
-      },
-      {
-        path: "/command/partners/payouts",
-        label: "Payouts",
+        path: "/dashboard/network/connections",
+        label: "Connections",
+        matchAlso: ["/dashboard/network/partners"],
       },
     ],
   };
@@ -604,7 +591,6 @@ function getDigitalGateOperatorSection(): NavIaSection {
           label: "Pipeline",
           matchAlso: ["/command/opportunities", "/command/opportunities/expansion"],
         },
-        { path: "/apps/prospecting/activity", label: "Activity" },
         {
           path: "/command/growth-engine",
           label: "Growth Engine™",
@@ -619,34 +605,14 @@ function getDigitalGateOperatorSection(): NavIaSection {
         },
         { path: "/command/founding", label: "Founding 10" },
         { path: "/command/sales-week", label: "Sales Week" },
-        { path: "/apps/prospecting/scores", label: "Opportunities" },
       ]),
-      operatorApp("dg-partners", "Partners", "partner-portal", "/command/partners", [
-        { path: "/command/partners", label: "Dashboard" },
-        { path: "/command/partners/ecosystem", label: "Ecosystem" },
-        { path: "/command/partners/briefing", label: "Briefing" },
-        { path: "/command/partners/resellers", label: "Resellers" },
-        { path: "/command/partners/onboarding", label: "Onboarding" },
-        { path: "/command/partners/delivery", label: "Operating Model" },
-      ]),
-      operatorApp("dg-delivery", "Delivery", "partner-portal", "/command/delivery", [
-        { path: "/command/delivery", label: "Dashboard" },
-        { path: "/command/delivery/projects", label: "Projects" },
-        { path: "/command/delivery/tasks", label: "Tasks" },
-        { path: "/command/delivery/customers", label: "Customers" },
-        {
-          path: "/command/delivery/plans",
-          label: "Implementation Plans",
-          matchAlso: ["/command/delivery/onboarding"],
-        },
-        { path: "/command/delivery/training", label: "Training" },
-        { path: "/command/delivery/invitations", label: "Invitations" },
-        { path: "/command/delivery/qa", label: "QA & Go-Live" },
-        { path: "/command/delivery/team", label: "Team" },
-        { path: "/command/delivery/activity", label: "Activity" },
-        { path: "/command/delivery/documents", label: "Documents" },
-        { path: "/command/delivery/reports", label: "Reports" },
-      ]),
+      operatorApp(
+        "dg-partners",
+        OPERATOR_PARTNERS_NAV.label,
+        "partner-portal",
+        OPERATOR_PARTNERS_NAV.primaryHref,
+        getOperatorPartnersNavRoutes(),
+      ),
       operatorApp(
         "dg-customer-intelligence",
         "Customer Intelligence",
@@ -944,27 +910,23 @@ export interface CategorizedPlatformNavigation {
 import type { PartnerType } from "../partners/types";
 import {
   DELIVERY_PARTNER_NAV,
-  STAFF_PARTNERS_NAV,
+  getOperatorPartnersNavRoutes,
+  OPERATOR_PARTNERS_NAV,
 } from "../partners/delivery-workspace";
 
 function getStaffPartnersNavItems(): AppNavTreeItem[] {
-  const sections = [
-    { id: "partners-resellers", section: STAFF_PARTNERS_NAV.resellers, icon: "⇄" },
-    { id: "partners-referrals", section: STAFF_PARTNERS_NAV.referrals, icon: "⇄" },
-    { id: "partners-commissions", section: STAFF_PARTNERS_NAV.commissions, icon: "▤" },
-    { id: "partners-delivery", section: STAFF_PARTNERS_NAV.delivery, icon: "⚙" },
-  ] as const;
-
-  return sections.map(({ id, section, icon }) => ({
-    kind: "app" as const,
-    id,
-    name: section.label,
-    icon,
-    tier: "internal" as const,
-    enabled: true,
-    routes: [...section.routes],
-    primaryHref: section.primaryHref,
-  }));
+  return [
+    {
+      kind: "app" as const,
+      id: "partners-operator",
+      name: OPERATOR_PARTNERS_NAV.label,
+      icon: "⇄",
+      tier: "internal" as const,
+      enabled: true,
+      routes: getOperatorPartnersNavRoutes(),
+      primaryHref: OPERATOR_PARTNERS_NAV.primaryHref,
+    },
+  ];
 }
 
 export function getPartnerWorkspaceShellLinks(partnerType?: PartnerType | null): PlatformShellNavItem[] {
@@ -985,7 +947,7 @@ export function getPartnerWorkspaceApps(partnerType?: PartnerType | null): AppNa
       {
         kind: "app",
         id: "partner-delivery",
-        name: "Delivery",
+        name: "Delivery Partners",
         icon: getSidebarIcon("partner-portal"),
         tier: "internal",
         enabled: true,
@@ -1002,7 +964,7 @@ export function getPartnerWorkspaceApps(partnerType?: PartnerType | null): AppNa
     {
       kind: "app",
       id: "partner-portal",
-      name: "Acquisition",
+      name: "Acquisition Partners",
       icon: getSidebarIcon("partner-portal"),
       tier: "internal",
       enabled: true,

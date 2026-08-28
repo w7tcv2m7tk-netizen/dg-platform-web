@@ -118,7 +118,7 @@ export function FoundingResellerBriefingRunSheet() {
         </ul>
       </Section>
 
-      <Section id="why" title="3. Why DigitalGate needs resellers">
+      <Section id="why" title="3. Why DigitalGate needs acquisition partners">
         <ul className="list-disc space-y-2 pl-5 text-sm text-slate-300">
           {WHY_RESELLERS_MATTER.map((item) => (
             <li key={item}>{item}</li>
@@ -143,7 +143,7 @@ export function FoundingResellerBriefingRunSheet() {
         <p className="text-sm text-slate-300">{EARLY_RESELLER_MARKETS.join(" · ")}</p>
       </Section>
 
-      <Section id="role" title="5. The Founding Reseller role">
+      <Section id="role" title="5. The Founding Acquisition Partner role">
         <div className="space-y-3">
           {FOUNDING_RESELLER_ROLE.expectations.map((item) => (
             <div
@@ -160,7 +160,7 @@ export function FoundingResellerBriefingRunSheet() {
         </div>
       </Section>
 
-      <Section id="not" title="6. What the reseller does NOT need to do">
+      <Section id="not" title="6. What the acquisition partner does NOT need to do">
         <ul className="grid gap-1 sm:grid-cols-2">
           {RESELLER_MUST_NOT_DO.map((item) => (
             <li key={item} className="text-sm text-slate-300">
@@ -242,7 +242,7 @@ export function FoundingResellerBriefingRunSheet() {
           ))}
         </ul>
         <p className="text-xs text-slate-500">
-          Written Reseller Agreement is authoritative. Qualifying fees:{" "}
+          Written Acquisition Partner Agreement is authoritative. Qualifying fees:{" "}
           {QUALIFYING_COMMISSION_FEES.includes.length} include /{" "}
           {QUALIFYING_COMMISSION_FEES.excludes.length} exclude rules in programme lock.
         </p>
@@ -268,7 +268,7 @@ export function FoundingResellerBriefingRunSheet() {
         </ul>
         <p className="text-sm font-medium text-white">{QUALITY_OVER_VOLUME}</p>
         <p className="text-sm text-slate-400">
-          Target: 3–5 highly qualified Founding Resellers — these two are part of the initial group.
+          Target: 3–5 highly qualified Founding Acquisition Partners — these two are part of the initial group.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {FIRST_30_DAYS.map((week) => (
@@ -322,7 +322,7 @@ export function FoundingResellerBriefingRunSheet() {
           ))}
         </ul>
         <p className="text-sm text-slate-400">
-          Goal isn’t a perfect programme — two motivated Founding Resellers who understand the model
+          Goal isn’t a perfect programme — two motivated Founding Acquisition Partners who understand the model
           and are ready to open their first doors.
         </p>
       </Section>

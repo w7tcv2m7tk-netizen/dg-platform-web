@@ -18,7 +18,7 @@
 | Role | Responsibility |
 |------|----------------|
 | Ben — Founder / Platform Architect | Product, sales/close, partnerships, key relationships, commercial |
-| 2 × Founding Resellers | Prospects, introductions, qualified opportunities; Ben closes |
+| 2 × Founding Acquisition Partners | Prospects, introductions, qualified opportunities; Ben closes |
 | Head of Implementation | Methodology, QC, standards, coordinates delivery capacity |
 | DigitalGate Delivery Team (internal) | Config, migration, connectors, CRM, automation, testing, docs, training support |
 

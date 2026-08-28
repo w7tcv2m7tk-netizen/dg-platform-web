@@ -109,7 +109,7 @@ Founding 30% on Platform + Apps **does not** automatically include Website Migra
 
 ## Reseller packaging (not customer pricing)
 
-Founding Reseller is **invitation-only**. Commission rules: [REFERRAL-AND-COMMISSION-RULES.md](../partners/REFERRAL-AND-COMMISSION-RULES.md).
+Founding Acquisition Partner is **invitation-only**. Commission rules: [REFERRAL-AND-COMMISSION-RULES.md](../partners/REFERRAL-AND-COMMISSION-RULES.md).
 
 **Qualifying App fees include** Industry App subscriptions and additional Industry Template fees. Do not describe the programme as an affiliate programme or as automatic with Founding 10.
 

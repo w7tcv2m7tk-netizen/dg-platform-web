@@ -37,7 +37,7 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 | **Managed / Professional Services** | Implementation, migration, training, **Website Build (From $1,997 one-time public)**, custom — optional; one-off, not subscription | Now |
 | **Customer Success plans** | Priority $199 · Success Partner $499 (Standard included) | 1.5 |
 | **Marketplace revenue** | % of third-party App sales | 3.0 / Phase 5 |
-| **Platform Refer & Earn** | Commission system (separate from founding subscription discounts) — target tiers in [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md); shipped MVP detail in [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) §A. **Reseller Programme** is a separate commercial model — do not use “Reseller” as the Founding 10 referral tier name. | With Billing / Core |
+| **Platform Refer & Earn** | Commission system (separate from founding subscription discounts) — target tiers in [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md); shipped MVP detail in [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) §A. **Acquisition Partner Programme** is a separate commercial model — do not use “Acquisition Partner” as the Founding 10 referral tier name. | With Billing / Core |
 | **Customer Commerce (quotes/invoices)** | Core capability — customer-facing AR, not platform SaaS billing; AU tax documents + reports adjacent to Core | Core / Commerce |
 | **Business referral / transaction fees** | Disclosed Free / Reciprocal / Paid / Commission between DG businesses — [REVIEWS-AND-REFERRALS.md](./REVIEWS-AND-REFERRALS.md) §B | Phase 5+ |
 | **Enterprise licensing** | Custom features, SLA, white-label, dedicated support | 2.0 |

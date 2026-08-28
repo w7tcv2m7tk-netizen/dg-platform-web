@@ -1,8 +1,8 @@
-# Founding Reseller Playbook
+# Founding Acquisition Partner Playbook
 
-**Principle:** Resellers introduce and qualify. Ben closes. DigitalGate delivers.
+**Principle:** Acquisition Partners introduce and qualify. Ben closes. DigitalGate delivers.
 
-Founding Reseller = **Introducer + Relationship Partner** — not merely an affiliate.
+Founding Acquisition Partner = **Introducer + Relationship Partner** — not merely an affiliate.
 
 Partners see the full playbook at **`/partner/playbook`**. Staff Monday run-sheet: **`/command/partners/briefing`** (see also `FOUNDING-RESELLER-MEETING.md`).
 
@@ -25,13 +25,13 @@ Connect · Centralise · Understand · Automate · Grow
 
 ## Journey
 
-**IDENTIFY → INTRODUCE → DIGITALGATE CLOSES → DIGITALGATE DELIVERS → RESELLER EARNS**
+**IDENTIFY → INTRODUCE → DIGITALGATE CLOSES → DIGITALGATE DELIVERS → ACQUISITION PARTNER EARNS**
 
 ## Partner levels
 
 - **Level 1 — Introducer:** warm introductions (start here)
 - **Level 2 — DigitalGate Partner:** discuss proposition at business level; still no demo/config (aim here)
-- **Level 3 — Strategic Reseller:** not required for first wave
+- **Level 3 — Strategic Acquisition Partner:** not required for first wave
 
 ## First 30 days
 

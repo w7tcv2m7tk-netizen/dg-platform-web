@@ -13,6 +13,8 @@ import {
   listAllReferrals,
   listPartners,
 } from "./crud";
+import { getDeliveryDashboardMetrics } from "../delivery/metrics";
+import { listDeliveryProjects } from "../delivery/projects";
 import { PARTNER_COMMISSION_CONFIG, type PartnerType } from "./types";
 
 const CUSTOMER_STATUSES = new Set([
@@ -76,8 +78,19 @@ export type PartnerActivityRow = {
   href: string;
 };
 
+export type DeliveryPulse = {
+  activeProjects: number;
+  projectsAtRisk: number;
+  customersInImplementation: number;
+  /** Scaffold — Professional Services revenue attribution */
+  serviceRevenueCents: number | null;
+  /** Scaffold — Support & Success revenue attribution */
+  supportRevenueCents: number | null;
+};
+
 export type PartnerDashboardWorkspace = {
   pulse: PartnerPulse;
+  deliveryPulse: DeliveryPulse;
   attention: PartnerAttentionItem[];
   foundingSeats: { used: number; cap: number };
   resellers: PartnerDashboardRow[];
@@ -106,18 +119,28 @@ export async function buildPartnerDashboardWorkspace(): Promise<PartnerDashboard
   let seats = emptySeats();
   let referrals: Awaited<ReturnType<typeof listAllReferrals>>["referrals"] = [];
   let commissions: Awaited<ReturnType<typeof listAllCommissions>>["commissions"] = [];
+  let deliveryMetrics = {
+    activeImplementations: 0,
+    atRisk: 0,
+    blocked: 0,
+  };
+  let deliveryProjects: Awaited<ReturnType<typeof listDeliveryProjects>> = [];
 
   try {
-    const [listed, counted, refs, comms] = await Promise.all([
+    const [listed, counted, refs, comms, metrics, projects] = await Promise.all([
       listPartners({ limit: 100 }),
       countPartnerSeats(),
       listAllReferrals({ limit: 200 }),
       listAllCommissions({ limit: 200 }),
+      getDeliveryDashboardMetrics({ managerView: true }),
+      listDeliveryProjects({ managerView: true }),
     ]);
     partners = listed.partners;
     seats = counted;
     referrals = refs.referrals;
     commissions = comms.commissions;
+    deliveryMetrics = metrics;
+    deliveryProjects = projects;
   } catch {
     /* tables not migrated */
   }
@@ -240,6 +263,17 @@ export async function buildPartnerDashboardWorkspace(): Promise<PartnerDashboard
       mrrReferredCents,
       commissionOwingCents,
       commissionPaidCents,
+    },
+    deliveryPulse: {
+      activeProjects: deliveryMetrics.activeImplementations,
+      projectsAtRisk: deliveryMetrics.atRisk + deliveryMetrics.blocked,
+      customersInImplementation: new Set(
+        deliveryProjects
+          .filter((p) => p.status !== "customer_success")
+          .map((p) => p.customerOrganisationId),
+      ).size,
+      serviceRevenueCents: null,
+      supportRevenueCents: null,
     },
     attention,
     foundingSeats: {

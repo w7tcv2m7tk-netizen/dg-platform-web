@@ -5,18 +5,18 @@ export default async function NetworkResellersPage() {
 
   return (
     <PlatformHubPage
-      title="Resellers"
-      description="Authorised DigitalGate sellers and founding resellers — commercial programme administration for DigitalGate staff."
+      title="Acquisition Partners"
+      description="Founding Acquisition Partners and the Acquisition Partner programme — commercial administration for DigitalGate staff."
       links={[
         {
-          href: "/command/partners/resellers",
-          label: "Reseller roster",
-          detail: "Operate reseller onboarding and status.",
+          href: "/command/partners/acquisition",
+          label: "Acquisition Partner roster",
+          detail: "Operate partner onboarding and status.",
         },
         {
           href: "/command/commissions",
           label: "Commissions",
-          detail: "Approve and pay reseller commissions.",
+          detail: "Approve and pay Acquisition Partner commissions.",
         },
       ]}
     />

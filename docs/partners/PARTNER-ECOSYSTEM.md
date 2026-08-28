@@ -7,7 +7,7 @@
 
 > DigitalGate owns the platform, product roadmap, methodology, standards and customer relationship. Partners extend DigitalGate's ability to acquire, implement and optimise the platform.
 
-Do **not** make Founding Resellers responsible for onboarding unless they separately become a Certified Delivery Partner. DigitalGate (or a Delivery Partner) delivers the customer experience.
+Do **not** make Founding Acquisition Partners responsible for onboarding unless they separately become a Certified Delivery Partner. DigitalGate (or a Delivery Partner) delivers the customer experience.
 
 ---
 
@@ -41,7 +41,7 @@ Do **not** alternate casually between Delivery Partner, Certified Delivery Partn
 
 | Type | Commercial label | Primary role | Acquire | Onboard | Technical | Economics |
 |------|------------------|--------------|---------|---------|-----------|-----------|
-| Reseller | Founding Reseller | Introduce & refer | Yes | Optional | No | Recurring commission |
+| Reseller | Founding Acquisition Partner | Introduce & refer | Yes | Optional | No | Recurring commission |
 | Delivery | Delivery Partner | Setup & onboarding | Optional | Yes | Limited | Project fees |
 | Technology | Technology Partner | Integrations | Optional | Yes | Yes | Service revenue |
 | Strategic | Strategic Partner | Larger / industry | Yes | Optional | Partial | Negotiated |
@@ -75,10 +75,10 @@ Customer = business decisions + information + adoption
 ## Build sequence
 
 ```
-Founding Resellers → Delivery Partners → Certification → Partner Operations → Marketplace
+Founding Acquisition Partners → Delivery Partners → Certification → Partner Operations → Marketplace
 ```
 
-1. Founding Reseller Programme — first two operating; invitation only; 3–5 highly qualified introducers  
+1. Founding Acquisition Partner Programme — first two operating; invitation only; 3–5 highly qualified introducers  
 2. Founding Delivery Partners — recruit 2–3 excellent people, not 20  
 3. Certification — document methodology  
 4. Partner operations dashboard  
@@ -98,7 +98,7 @@ Partner → Type → Capabilities → Certification → Referrals → Customers 
 |---------|-----|
 | **Sales / Growth Engine** | DigitalGate’s own acquisition |
 | **Founding 10** | Customer acquisition / cohort |
-| **Founding Reseller** | Partner acquisition / cohort |
+| **Founding Acquisition Partner** | Partner acquisition / cohort |
 | **Delivery Partner** | Implementation capacity |
 | **Partners** | External channel *relationships* (people & organisations) |
 | **Platform → Network** | Network *transactions* (Referrals · Commissions · Payouts) |

@@ -85,19 +85,19 @@ export function renderFoundingResellerInvitationEmail(input: {
   const body = [
     `Hi ${name},`,
     ``,
-    `I'm opening a small first wave of DigitalGate Founding Resellers, and I'd like to personally invite you.`,
+    `I'm opening a small first wave of DigitalGate Founding Acquisition Partners, and I'd like to personally invite you.`,
     ``,
     APPROVED_PARTNER_MESSAGING.body,
     ``,
     APPROVED_PARTNER_MESSAGING.close,
     ``,
-    `As a Founding Reseller you can:`,
+    `As a Founding Acquisition Partner you can:`,
     ``,
     ...RESELLER_MAY.map((item) => `• ${item}`),
     ``,
     `This is not an affiliate programme, and it is not automatic. Accepting the invitation starts the conversation — DigitalGate still approves you into the programme.`,
     ``,
-    `Accept Your Founding Reseller Invitation: ${inviteUrl}`,
+    `Accept Your Founding Acquisition Partner Invitation: ${inviteUrl}`,
     ``,
     `I'd be pleased to have ${business} among the first introducers.`,
     ``,
@@ -114,11 +114,11 @@ export function renderFoundingResellerInvitationEmail(input: {
       { type: "paragraph", text: `Hi ${name},` },
       {
         type: "paragraph",
-        text: `I'm opening a small first wave of DigitalGate Founding Resellers, and I'd like to personally invite you.`,
+        text: `I'm opening a small first wave of DigitalGate Founding Acquisition Partners, and I'd like to personally invite you.`,
       },
       { type: "paragraph", text: APPROVED_PARTNER_MESSAGING.body },
       { type: "paragraph", text: APPROVED_PARTNER_MESSAGING.close },
-      { type: "heading", text: "What Founding Resellers do", level: 2 },
+      { type: "heading", text: "What Founding Acquisition Partners do", level: 2 },
       { type: "list", items: [...RESELLER_MAY] },
       { type: "heading", text: "How it works", level: 2 },
       { type: "list", items: [...FOUNDING_RESELLER_INVITE_POINTS] },
@@ -126,7 +126,7 @@ export function renderFoundingResellerInvitationEmail(input: {
         type: "paragraph",
         text: "Accepting this invitation does not activate commission. DigitalGate still approves you into the programme.",
       },
-      { type: "button", label: "Accept Founding Reseller Invitation →", href: inviteUrl },
+      { type: "button", label: "Accept Founding Acquisition Partner Invitation →", href: inviteUrl },
       {
         type: "paragraph",
         text: `I'd be pleased to have ${business} among the first introducers.`,
@@ -141,7 +141,7 @@ export function renderFoundingResellerInvitationEmail(input: {
     body,
     bodyHtml,
     footerNote:
-      "You're receiving this because Ben Roe personally invited you into the DigitalGate Founding Reseller Programme. This is not automatic acceptance, and it is not an affiliate programme.",
+      "You're receiving this because Ben Roe personally invited you into the DigitalGate Founding Acquisition Partner Programme. This is not automatic acceptance, and it is not an affiliate programme.",
   };
 }
 

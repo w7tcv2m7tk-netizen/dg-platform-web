@@ -1,17 +1,17 @@
 /**
- * Founding Reseller Partner Briefing — Monday meeting run-sheet + partner-facing copy.
+ * Founding Acquisition Partner Briefing — Monday meeting run-sheet + partner-facing copy.
  * Commercial lock lives in programme.ts; this extends the briefing narrative.
  */
 
 export const FOUNDING_RESELLER_MEETING = {
-  title: "Founding Reseller Partner Briefing",
+  title: "Founding Acquisition Partner Briefing",
   purpose:
-    "Introduce the DigitalGate Founding Reseller Programme, establish the partner model, identify initial opportunities and agree on how we will work together.",
+    "Introduce the DigitalGate Founding Acquisition Partner Programme, establish the partner model, identify initial opportunities and agree on how we will work together.",
   keyMessage:
     "I'm not looking for you to become a software salesperson. I'm looking for people who already have relationships with business owners and can recognise where DigitalGate could genuinely help.",
   relationshipModel:
     "You open doors → DigitalGate handles the sales process → DigitalGate delivers the platform → You receive recurring commissions.",
-  goldenRule: "Resellers introduce. Ben closes. DigitalGate delivers.",
+  goldenRule: "Acquisition Partners introduce. Ben closes. DigitalGate delivers.",
   closingMessage:
     "You don't need to become a technology expert. You don't need to sell software all day. Your value is the relationships and opportunities you already have. If you identify a business that could benefit from DigitalGate, open the door. I'll take responsibility for understanding the business, demonstrating the platform, closing the opportunity and delivering the solution.",
   togetherLine:
@@ -56,7 +56,7 @@ export const DIGITALGATE_POSITIONING =
 export const WHY_RESELLERS_MATTER = [
   "DigitalGate can acquire customers through advertising, SEO and outbound — but trust is one of the most valuable channels.",
   "Business owners listen when someone they already know says: “I think you should have a conversation with these guys.”",
-  "Resellers already have relationships, trust, industry knowledge, local networks and professional contacts.",
+  "Acquisition Partners already have relationships, trust, industry knowledge, local networks and professional contacts.",
   "DigitalGate provides the technology and sales infrastructure behind that relationship.",
 ] as const;
 
@@ -90,15 +90,15 @@ export const EARLY_RESELLER_MARKETS = [
 export const SALES_PROCESS_STAGES = [
   {
     stage: 1,
-    owner: "Reseller",
+    owner: "Acquisition Partner",
     title: "Prospect",
-    body: "Reseller identifies a potential business.",
+    body: "Acquisition Partner identifies a potential business.",
   },
   {
     stage: 2,
-    owner: "Reseller",
+    owner: "Acquisition Partner",
     title: "Introduction",
-    body: "Reseller introduces the business to DigitalGate.",
+    body: "Acquisition Partner introduces the business to DigitalGate.",
   },
   {
     stage: 3,
@@ -156,14 +156,14 @@ export const SALES_PROCESS_STAGES = [
   },
   {
     stage: 12,
-    owner: "Reseller",
-    title: "Reseller commission",
-    body: "Reseller receives recurring commission according to the reseller agreement.",
+    owner: "Acquisition Partner",
+    title: "Acquisition Partner commission",
+    body: "Acquisition Partner receives recurring commission according to the acquisition partner agreement.",
   },
 ] as const;
 
 export const RESELLER_JOURNEY_LINE =
-  "IDENTIFY → INTRODUCE → DIGITALGATE CLOSES → DIGITALGATE DELIVERS → RESELLER EARNS";
+  "IDENTIFY → INTRODUCE → DIGITALGATE CLOSES → DIGITALGATE DELIVERS → ACQUISITION PARTNER EARNS";
 
 export const INTRODUCTION_SCRIPT =
   "I've been working with Ben on a new platform called DigitalGate. It's designed to connect the different systems a business uses — CRM, website, marketing, AI, automation and more — into one operating platform. I've seen what they're building and thought it might be relevant to your business. Would you be open to having a conversation with him?";
@@ -206,7 +206,7 @@ export const FOUNDING_STATUS_BENEFITS = [
   "Help shape sales resources",
   "Identify gaps in the programme",
   "Suggest industry opportunities",
-  "Help refine the reseller experience",
+  "Help refine the acquisition partner experience",
   "Establish an early position in the DigitalGate partner ecosystem",
 ] as const;
 
@@ -268,20 +268,20 @@ export const MEETING_DISCUSSION_PROMPTS = {
     "What would make the partnership valuable to you?",
     "What support would you need from DigitalGate?",
     "What would make you comfortable introducing DigitalGate to your network?",
-    "What concerns do you have about the reseller model?",
+    "What concerns do you have about the acquisition partner model?",
   ],
 } as const;
 
 export const MEETING_OUTCOMES = [
   "Their understanding of DigitalGate",
-  "Their understanding of the reseller role",
+  "Their understanding of the acquisition partner role",
   "Their preferred industries",
   "Their initial target network",
   "Their first potential prospects",
   "How introductions will be made",
   "What support they need",
   "Commission structure understood",
-  "Reseller Agreement next step",
+  "Acquisition Partner Agreement next step",
   "Partner onboarding next step",
   "First introductions identified",
   "Follow-up date agreed",
@@ -290,10 +290,10 @@ export const MEETING_OUTCOMES = [
 export const MEETING_AGENDA_SECTIONS = [
   { id: "welcome", title: "Welcome & why we’re here", minutes: 5 },
   { id: "what", title: "What is DigitalGate?", minutes: 10 },
-  { id: "why", title: "Why DigitalGate needs resellers", minutes: 5 },
+  { id: "why", title: "Why DigitalGate needs acquisition partners", minutes: 5 },
   { id: "prospects", title: "What makes a good prospect", minutes: 10 },
-  { id: "role", title: "The Founding Reseller role", minutes: 8 },
-  { id: "not", title: "What the reseller does not need to do", minutes: 5 },
+  { id: "role", title: "The Founding Acquisition Partner role", minutes: 8 },
+  { id: "not", title: "What the acquisition partner does not need to do", minutes: 5 },
   { id: "process", title: "The DigitalGate sales process", minutes: 8 },
   { id: "levels", title: "Three levels of involvement", minutes: 5 },
   { id: "intro", title: "How to introduce DigitalGate", minutes: 5 },

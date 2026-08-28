@@ -13,6 +13,11 @@
  */
 
 import { IMPLEMENTATION_SOP_STAGES } from "./delivery-model";
+import {
+  BPS,
+  COMMISSION_PERIOD_MONTHS,
+  bpsToPercentLabel,
+} from "./commercial-model";
 
 /** Strengthened ownership principle — channel partners never own the customer. */
 export const PARTNER_ECOSYSTEM_POSITIONING =
@@ -76,18 +81,40 @@ export const PARTNER_ECOSYSTEM_ROLES = [
     acquisition: true,
     onboarding: false as const,
     technical: false as boolean | "limited" | "optional",
-    economics: "15% qualifying Platform + App revenue · first 12 months",
+    economics: `${bpsToPercentLabel(BPS.FOUNDING_10_REFERRAL)} direct referral · qualifying Platform + App revenue · first ${COMMISSION_PERIOD_MONTHS} months`,
+    phase: 1,
+  },
+  {
+    type: "FOUNDING_100_REFERRAL",
+    label: "Founding 100 Referral",
+    commercialLabel: "Founding 100 Referrer",
+    primaryRole: "Introduce & refer",
+    acquisition: true,
+    onboarding: false as const,
+    technical: false as boolean | "limited" | "optional",
+    economics: `${bpsToPercentLabel(BPS.FOUNDING_100_REFERRAL)} direct referral · qualifying Platform + App revenue · first ${COMMISSION_PERIOD_MONTHS} months`,
+    phase: 1,
+  },
+  {
+    type: "FOUNDING_1000_REFERRAL",
+    label: "Founding 1,000+ Referral",
+    commercialLabel: "Founding 1,000+ Referrer",
+    primaryRole: "Introduce & refer",
+    acquisition: true,
+    onboarding: false as const,
+    technical: false as boolean | "limited" | "optional",
+    economics: `${bpsToPercentLabel(BPS.FOUNDING_1000_REFERRAL)} direct referral · qualifying Platform + App revenue · first ${COMMISSION_PERIOD_MONTHS} months`,
     phase: 1,
   },
   {
     type: "FOUNDING_RESELLER",
     label: "Reseller",
-    commercialLabel: "Founding Reseller",
+    commercialLabel: "Founding Acquisition Partner",
     primaryRole: "Acquire customers",
     acquisition: true,
     onboarding: false as const,
     technical: false as boolean | "limited" | "optional",
-    economics: "25% qualifying Platform + App revenue · first 12 months",
+    economics: `${bpsToPercentLabel(BPS.RESELLER)} qualifying Platform + App revenue · first ${COMMISSION_PERIOD_MONTHS} months`,
     phase: 1,
   },
   {
@@ -98,18 +125,18 @@ export const PARTNER_ECOSYSTEM_ROLES = [
     acquisition: true,
     onboarding: false as const,
     technical: false as boolean | "limited" | "optional",
-    economics: "25% qualifying Platform + App revenue · first 12 months",
+    economics: `${bpsToPercentLabel(BPS.RESELLER)} qualifying Platform + App revenue · first ${COMMISSION_PERIOD_MONTHS} months`,
     phase: 1,
   },
   {
     type: "CHANNEL_MANAGER",
-    label: "Channel Manager",
-    commercialLabel: "Channel Manager",
+    label: "Acquisition Channel Manager",
+    commercialLabel: "Acquisition Channel Manager",
     primaryRole: "Manage acquisition channel",
     acquisition: true,
     onboarding: false as const,
     technical: false as boolean | "limited" | "optional",
-    economics: "25% own customers + 5% override on managed Resellers · first 12 months",
+    economics: `${bpsToPercentLabel(BPS.CHANNEL_MANAGER_DIRECT)} own customers + ${bpsToPercentLabel(BPS.CHANNEL_MANAGER_OVERRIDE)} override on managed Acquisition Partners · first ${COMMISSION_PERIOD_MONTHS} months`,
     phase: 1,
   },
   {
@@ -386,11 +413,11 @@ export const CERTIFIED_SPECIALIST_TRACKS = [
   },
 ] as const;
 
-/** Founding Resellers → Delivery Partners → Certification → Partner Operations → Marketplace */
+/** Founding Acquisition Partners → Delivery Partners → Certification → Partner Operations → Marketplace */
 export const PARTNER_ECOSYSTEM_PHASES = [
   {
     phase: 1,
-    title: "Founding Resellers",
+    title: "Acquisition Partners",
     body: "Get the first two partners operating. Invitation only. 3–5 highly qualified introducers.",
     now: true,
   },
@@ -423,7 +450,7 @@ export const PARTNER_ECOSYSTEM_PHASES = [
 export const FOUNDING_IMPLEMENTATION_TARGET = 3;
 
 export const RESELLER_DOES_NOT_ONBOARD =
-  "Founding Resellers are not responsible for customer onboarding unless they separately become a Certified Delivery Partner. DigitalGate (or a Delivery Partner) delivers the customer experience.";
+  "Acquisition Partners are not responsible for customer onboarding unless they separately become a Certified Delivery Partner. DigitalGate (or a Delivery Partner) delivers the customer experience.";
 
 export function formatPartnerTechnicalLabel(
   technical: boolean | "limited" | "optional" | "some",

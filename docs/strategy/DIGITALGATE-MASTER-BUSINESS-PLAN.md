@@ -327,7 +327,7 @@ DigitalGate is in **Founding Customer mode**, not open public SaaS launch.
 
 **Operating mode:** Talk → Demonstrate → Close → Learn → Repeat  
 
-**Channels:** (1) Ben’s network (2) Real estate prospecting (3) Qualified Founding Resellers  
+**Channels:** (1) Ben’s network (2) Real estate prospecting (3) Qualified Founding Acquisition Partners  
 
 Ben remains primary closer. Partners introduce; they do not independently sell without support.
 
@@ -339,11 +339,11 @@ Canon: [FOUNDING-COHORTS.md](./FOUNDING-COHORTS.md) · [DIGITALGATE-ROLLOUT.md](
 
 ---
 
-## 28–30. Founding Resellers
+## 28–30. Founding Acquisition Partners
 
 Quality over scale. Resellers understand DigitalGate, introduce suitable prospects, provide context — Ben closes early-stage deals.
 
-**Referral commission (Commitment):** 30% for 12 months per qualifying referral — separate from customer’s 30% discount. Define qualifying referral, attribution, commissionable revenue, timing, refunds, upgrades, duration, termination.
+**Referral commission (Commitment):** **Superseded Aug 2026** — see [COMMERCIAL-MODEL-LOCK.md](../partners/COMMERCIAL-MODEL-LOCK.md). Direct referral: 20% / 15% / 10% by cohort · Reseller 25% · 12 months · actually collected revenue only.
 
 **Partners nav (Direction):** Reseller Dashboard, Pipeline, Briefing, Ecosystem · Referrals · Commissions (Overview / Pending / Approved / Paid). Reseller login with prospects, status, conversions, recurring commission, resources, training.
 
@@ -377,7 +377,7 @@ Controlled demo for prospects, partners, resellers, implementers — representat
 
 ## 38–39. GTM and commercial rhythm (Live priority)
 
-Relationship-driven: network → targeted prospecting (esp. RE) → Founding Resellers → partnerships → content → paid acquisition later.
+Relationship-driven: network → targeted prospecting (esp. RE) → Founding Acquisition Partners → partnerships → content → paid acquisition later.
 
 **30-day objective:** Fill Founding 10.  
 **Weekday target:** 10 customer + 5 partner conversations. Saturday off. Sunday: 30–60 min CEO review. Every CRM record needs a next action.

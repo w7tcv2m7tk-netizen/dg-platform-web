@@ -46,7 +46,7 @@ export const DIGITALGATE_TEAM_STRUCTURE = [
     ],
   },
   {
-    role: "2 × Founding Resellers",
+    role: "2 × Founding Acquisition Partners",
     responsibilities: [
       "Identify prospects",
       "Make introductions",

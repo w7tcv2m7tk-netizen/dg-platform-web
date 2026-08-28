@@ -6,7 +6,7 @@
 
 Tone: *I’ve been building something significant, it’s now ready, and I thought of you.*
 
-Choose **customer** or **Founding Reseller** language before you send. Do not mix them in the first message.
+Choose **customer** or **Founding Acquisition Partner** language before you send. Do not mix them in the first message.
 
 Every conversation goes into the DigitalGate CRM with a **next action**.
 
@@ -158,7 +158,7 @@ Hope you’re doing well.
 
 ---
 
-## Founding Reseller
+## Founding Acquisition Partner
 
 You are not asking them to sell software. You are asking whether they want to help introduce DigitalGate into the market.
 
@@ -168,7 +168,7 @@ Hey mate, I’ve got another reason I wanted to reach out.
 
 I’m putting together a very small group of people I trust who have strong relationships with business owners and a background in sales/business development.
 
-I’m calling them DigitalGate Founding Resellers.
+I’m calling them DigitalGate Founding Acquisition Partners.
 
 The idea isn’t for you to become a software salesperson. It’s more about identifying businesses in your network where DigitalGate could genuinely solve a problem and introducing them to me.
 
@@ -190,7 +190,7 @@ DigitalGate is an AI-powered Business Operating Platform connecting CRM, website
 
 I’m initially opening the Founding 10 and, alongside the founding customer programme, I’m looking for a small number of people who I believe could help introduce DigitalGate to suitable businesses.
 
-I’m calling these Founding Resellers.
+I’m calling these Founding Acquisition Partners.
 
 I’m particularly interested in people who already have trusted relationships with business owners through sales, business development, consulting, technology, finance, property or professional services.
 
@@ -200,7 +200,7 @@ You identify the opportunity → introduce the business → I handle the consult
 
 If the business becomes a DigitalGate customer through your referral, you receive the applicable founding referral commission on qualifying Platform + App subscription revenue for the first 12 months.
 
-The first Founding 10 receive 30% referral commission.
+The first Founding 10 receive **20%** direct referral commission (separate from the 25% Acquisition Partner programme).
 
 I’m not looking to recruit hundreds of people. I’d rather have a handful of people I know and trust who genuinely understand the product and can make quality introductions.
 

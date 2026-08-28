@@ -5,7 +5,7 @@
 **Operating plan:** [CEO-PLAN-2026-08-17.md](./CEO-PLAN-2026-08-17.md)  
 **Does not change:** Gate 1 dogfood · P0/P1 · Stage 1 advisor evidence · [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)
 
-> **Do not build** Founding 100 / 1,000 systems, multi-cohort billing UI, or a full third-party Reseller Programme yet.  
+> **Do not build** Founding 100 / 1,000 systems, multi-cohort billing UI, or a full third-party Acquisition Partner Programme yet.  
 > **Do not publicly advertise Founding 100** until Founding 10 is operating — public message is Founding 10 only.  
 > **Do** keep entitlements / org settings headroom for cohort membership, cohort number, discount period, referral tier, and referral attribution.
 
@@ -35,7 +35,7 @@ The first ten hold the strongest commercial position because they take the great
 These benefits are **independent**:
 
 - After 24 months, own subscription → then-current published pricing.  
-- Referral tier / rate remains (e.g. Founding Reseller 30%) while the customer remains an eligible DigitalGate customer / referral partner.  
+- Referral tier / rate remains (e.g. Founding 10 direct referral **20%**) while the customer remains an eligible DigitalGate customer / referral partner.  
 - Each newly referred customer still earns commission for **their first 12 months** of qualifying paid subscription — even after the referrer’s own founding discount has ended.
 
 Do **not** publicly promise “forever.” Prefer **“ongoing”** / **“while you remain an eligible DigitalGate customer / referral partner.”**
@@ -44,12 +44,14 @@ Do **not** publicly promise “forever.” Prefer **“ongoing”** / **“while
 
 ## Locked commercial table
 
-| Cohort | Own pricing discount | Period | Referral tier | Referral commission |
-|--------|----------------------|--------|---------------|---------------------|
-| **Founding 10** | **30%** off initial Platform + Industry Apps + Templates | **24 months** | **Founding Reseller** | **25%** reseller / **15%** simple referral · qualifying subscription · **12 months** |
-| **Founding 100** | **25%** | **24 months** | **Founding Partner** | **25%** for **12 months** |
-| **Founding 1,000** | **20%** | **24 months** | **Founding Customer** | **20%** for **12 months** |
-| **Future / Standard** | Published price | — | **Advocate** (internal: Customer) | **10%** for **12 months** |
+| Cohort | Own pricing discount | Period | Direct referral tier | Direct referral commission |
+|--------|----------------------|--------|----------------------|----------------------------|
+| **Founding 10** | **30%** off initial Platform + Industry Apps + Templates | **24 months** | **Founding 10 Referrer** | **20%** · qualifying subscription · **12 months** |
+| **Founding 100** | **25%** | **24 months** | **Founding 100 Referrer** | **15%** · qualifying subscription · **12 months** |
+| **Founding 1,000** | **20%** | **24 months** | **Founding 1,000+ Referrer** | **10%** · qualifying subscription · **12 months** |
+| **Future / Standard** | Published price | — | **Advocate** | **10%** · qualifying subscription · **12 months** |
+
+**Separate programme:** Founding Acquisition Partners / Resellers earn **25%** (not the direct referral rate above). Acquisition Channel Managers earn **+5% override** on managed Resellers. See [COMMERCIAL-MODEL-LOCK.md](../partners/COMMERCIAL-MODEL-LOCK.md).
 
 **Why 12 months commission (not indefinite recurring):** strong acquisition reward without permanent margin drain; each referral creates a finite acquisition cycle; DigitalGate retains the referred customer thereafter.
 
@@ -124,20 +126,20 @@ Call it **referral commission** — never “referral discount.”
 | Programme change | Status is **ongoing while eligible** — not an irrevocable forever promise |
 | Payout | Platform credit by default; cash (or choice) where Connect / policy enables |
 
-**Founding Reseller** is used in two ways — keep them distinct:
+**Founding Acquisition Partner** is used in two ways — keep them distinct:
 
 | Sense | Meaning |
 |-------|---------|
-| **Referral entitlement (Founding 10 customers)** | Cohort commercial table: **15%** simple referral or **25%** Reseller commission × 12 months on qualifying referred subscriptions. Lives in the Founding Customer offer. |
+| **Referral entitlement (Founding 10 customers)** | Cohort commercial table: **20%** direct referral × 12 months on qualifying referred subscriptions. Reseller invitation (separate): **25%**. Lives in the Founding Customer offer. |
 | **Qualified partner channel** | Invitation / acceptance only. People who already work with SME owners and **introduce** DigitalGate. Operating target: **3–5 excellent introducers**; Founding 10 cap is 10 seats. Then Founding 100 Founding Partner (25%), Founding 1,000 Founding Customer (20%). They introduce; DigitalGate qualifies, demonstrates, contracts, bills. Not an affiliate programme. |
 
-A Founding Customer primarily **uses** DigitalGate. A Founding Reseller primarily **opens doors**. Someone can be both; most customers will not be active partners.
+A Founding Customer primarily **uses** DigitalGate. A Founding Acquisition Partner primarily **opens doors**. Someone can be both; most customers will not be active partners.
 
-Do **not** advertise Founding Reseller as an affiliate programme. Status is **invitation only** — not automatic with Founding 10 customer membership. Operating target is **3–5** excellent introducers. Commission is on **qualifying fees actually received** after founding discount, not list price.
+Do **not** advertise Founding Acquisition Partner as an affiliate programme. Status is **invitation only** — not automatic with Founding 10 customer membership. Operating target is **3–5** excellent introducers. Commission is on **qualifying fees actually received** after founding discount, not list price.
 
 **Qualifying fees** (partner commission): recurring Platform + App fees **actually paid**. Excludes Professional Services, refunds, chargebacks, credits, failed payments, discounts (commission on paid amount), usage/pass-through, taxes, the partner's own account, and customers already known to DigitalGate.
 
-A separate **managed-resale / white-label Reseller Programme** remains later architecture — do not collapse it into either sense above. See [REVIEWS-AND-REFERRALS.md](../foundations/REVIEWS-AND-REFERRALS.md).
+A separate **managed-resale / white-label reseller programme** remains later architecture — do not collapse it into either sense above. See [REVIEWS-AND-REFERRALS.md](../foundations/REVIEWS-AND-REFERRALS.md).
 
 ---
 
@@ -145,7 +147,7 @@ A separate **managed-resale / white-label Reseller Programme** remains later arc
 
 | Cohort | Public framing |
 |--------|----------------|
-| Founding 10 | Founding Operators · **Founding Reseller** |
+| Founding 10 | Founding Operators · **Founding Acquisition Partner** |
 | Founding 100 | Early Operators · **Founding Partner** |
 | Founding 1,000 | Early DigitalGate network · **Founding Customer** (tier) |
 | Standard | Standard DigitalGate · Customer referrer |

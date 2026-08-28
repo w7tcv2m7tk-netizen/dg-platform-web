@@ -32,7 +32,7 @@ export default async function StaffDeliveryInvitationsPage() {
       description={
         <>
           Invite Delivery Partners and Delivery Managers into the DigitalGate Delivery workspace.
-          This is separate from Founding Reseller invitations. Delivery Partners support customer
+          This is separate from Founding Acquisition Partner invitations. Delivery Partners support customer
           implementation and are assigned to implementation projects through the{" "}
           <Link href="/command/delivery" className="text-emerald-400 hover:underline">
             Delivery workspace

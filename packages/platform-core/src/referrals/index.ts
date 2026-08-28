@@ -8,14 +8,18 @@
  * - First-paid credit from checkout.completed via markReferralPaidAndAccrue.
  * - Monthly renewal credit from invoice.paid (billing_reason=subscription_cycle).
  * - Cash payout at threshold via Stripe Connect Express (platform credit remains default).
- * - Partner / Reseller rates via org settings.referralProgramme.tier (customer 20%, partner 25%, reseller 25%).
+ * - Partner / Reseller rates via org settings.referralProgramme.tier
+ * - Founding cohort direct referral rates via commercial-model.ts (20% / 15% / 10%)
  */
 
 import type { PlatformReferral, PlatformReferralLedger, Prisma } from "@dg/database";
 
 import {
   BPS,
+  COMMISSION_PERIOD_MONTHS,
   bpsToPercentLabel,
+  foundingCohortReferralBps,
+  normalizeFoundingCohortId,
 } from "../partners/commercial-model";
 import { writeAuditLog } from "../audit";
 import { sendMessage } from "../communications";
@@ -42,10 +46,10 @@ export const REFERRAL_COOKIE = "dg_ref";
 /** Canonical Platform Refer & Earn surface — lives under Network, not Settings. */
 export const REFER_AND_EARN_HREF = "/dashboard/network/refer-earn";
 export const REFERRAL_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 30; // 30 days
-export const CUSTOMER_COMMISSION_BPS = 2000; // 20%
-export const PARTNER_COMMISSION_BPS = 2500; // 25%
-export const RESELLER_COMMISSION_BPS = BPS.RESELLER; // 25%
-export const REWARD_MONTHS = 12;
+export const CUSTOMER_COMMISSION_BPS = BPS.FOUNDING_10_REFERRAL;
+export const PARTNER_COMMISSION_BPS = BPS.RESELLER;
+export const RESELLER_COMMISSION_BPS = BPS.RESELLER;
+export const REWARD_MONTHS = COMMISSION_PERIOD_MONTHS;
 /** Cash-out threshold (AUD cents). Platform credit remains the default reward. */
 export const CASH_PAYOUT_THRESHOLD_CENTS = 10_000;
 
@@ -57,11 +61,19 @@ const LEDGER_BALANCE_TYPES = new Set([
   "reversal",
 ]);
 
-export const REFERRAL_TIERS = ["customer", "partner", "reseller"] as const;
+export const REFERRAL_TIERS = [
+  "customer",
+  "founding_100",
+  "founding_1000",
+  "partner",
+  "reseller",
+] as const;
 export type ReferralTier = (typeof REFERRAL_TIERS)[number];
 
 export const REFERRAL_TIER_BPS: Record<ReferralTier, number> = {
-  customer: CUSTOMER_COMMISSION_BPS,
+  customer: BPS.FOUNDING_10_REFERRAL,
+  founding_100: BPS.FOUNDING_100_REFERRAL,
+  founding_1000: BPS.FOUNDING_1000_REFERRAL,
   partner: PARTNER_COMMISSION_BPS,
   reseller: RESELLER_COMMISSION_BPS,
 };
@@ -94,6 +106,8 @@ type ReferralProgrammeSettings = {
   tier?: ReferralTier;
   /** Optional override — when set, used instead of tier default */
   commissionBps?: number;
+  /** Founding cohort for direct referral rate — founding_10 | founding_100 | founding_1000 */
+  foundingCohort?: string;
 };
 
 type OrgSettingsWithReferral = {
@@ -102,13 +116,28 @@ type OrgSettingsWithReferral = {
 };
 
 export function normalizeReferralTier(raw: unknown): ReferralTier {
-  if (raw === "partner" || raw === "reseller" || raw === "customer") return raw;
+  if (
+    raw === "partner" ||
+    raw === "reseller" ||
+    raw === "customer" ||
+    raw === "founding_100" ||
+    raw === "founding_1000"
+  ) {
+    return raw;
+  }
   return "customer";
 }
 
-export function commissionBpsForTier(tier: ReferralTier, override?: number | null) {
+export function commissionBpsForTier(
+  tier: ReferralTier,
+  override?: number | null,
+  foundingCohort?: string | null,
+) {
   if (typeof override === "number" && override > 0 && override <= 5000) {
     return Math.round(override);
+  }
+  if (tier === "customer" && foundingCohort) {
+    return foundingCohortReferralBps(foundingCohort);
   }
   return REFERRAL_TIER_BPS[tier];
 }
@@ -123,16 +152,27 @@ export async function getOrganisationReferralProgramme(organisationId: string) {
   const settings = (org?.settings as OrgSettingsWithReferral | null) ?? {};
   const prog = settings.referralProgramme ?? {};
   const tier = normalizeReferralTier(prog.tier);
-  const commissionBps = commissionBpsForTier(tier, prog.commissionBps);
+  const foundingCohort =
+    normalizeFoundingCohortId(prog.foundingCohort) ??
+    (settings.billing &&
+    typeof settings.billing === "object" &&
+    "foundingCohort" in settings.billing
+      ? normalizeFoundingCohortId(String((settings.billing as { foundingCohort?: string }).foundingCohort))
+      : null);
+  const commissionBps = commissionBpsForTier(tier, prog.commissionBps, foundingCohort);
   return {
     tier,
     commissionBps,
     label:
       tier === "partner"
-        ? `Partner (${bpsToPercentLabel(BPS.RESELLER)})`
+        ? `Reseller (${bpsToPercentLabel(BPS.RESELLER)})`
         : tier === "reseller"
-          ? `Reseller (${bpsToPercentLabel(BPS.RESELLER)})`
-          : "Customer (20%)",
+          ? `Founding Acquisition Partner (${bpsToPercentLabel(BPS.RESELLER)})`
+          : tier === "founding_100"
+            ? `Founding 100 Referrer (${bpsToPercentLabel(BPS.FOUNDING_100_REFERRAL)})`
+            : tier === "founding_1000"
+              ? `Founding 1,000+ Referrer (${bpsToPercentLabel(BPS.FOUNDING_1000_REFERRAL)})`
+              : `Founding 10 Referrer (${bpsToPercentLabel(BPS.FOUNDING_10_REFERRAL)})`,
   };
 }
 
@@ -153,7 +193,7 @@ export async function updateOrganisationReferralProgramme(input: {
 
   const settings = (org.settings as OrgSettingsWithReferral | null) ?? {};
   const tier = normalizeReferralTier(input.tier);
-  const commissionBps = commissionBpsForTier(tier, input.commissionBps);
+  const commissionBps = commissionBpsForTier(tier, input.commissionBps, settings.referralProgramme?.foundingCohort);
 
   const next: OrgSettingsWithReferral = {
     ...settings,

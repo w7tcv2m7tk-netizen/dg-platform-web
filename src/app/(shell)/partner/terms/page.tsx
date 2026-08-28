@@ -103,7 +103,7 @@ export default async function PartnerTermsPage() {
           A referred customer is a new paying customer introduced by you who was not already a
           DigitalGate customer, not already in an active sales opportunity, and not previously
           registered as a DigitalGate prospect. DigitalGate&apos;s CRM is the primary attribution
-          record. Only one reseller is normally paid per customer. Self-referral is not
+          record. Only one acquisition partner is normally paid per customer. Self-referral is not
           commissionable.
         </p>
       </section>
@@ -111,7 +111,7 @@ export default async function PartnerTermsPage() {
       <section>
         <h3 className="mb-2 font-semibold text-white">Status</h3>
         <p>
-          Founding Reseller status is by invitation or acceptance only. It is not a franchise,
+          Founding Acquisition Partner status is by invitation or acceptance only. It is not a franchise,
           employment, partnership, agency, exclusive territory, or a licence to represent
           DigitalGate legally. You are an independent referral partner. DigitalGate may decline,
           suspend, or terminate participation.

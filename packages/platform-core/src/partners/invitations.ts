@@ -1,6 +1,6 @@
 /**
- * Personal Founding Reseller invitations — invitation / acceptance only.
- * Sending an invitation does not consume a Founding Reseller seat.
+ * Personal Founding Acquisition Partner invitations — invitation / acceptance only.
+ * Sending an invitation does not consume a Founding Acquisition Partner seat.
  */
 
 import { sendMessage } from "../communications";
@@ -76,7 +76,7 @@ export async function createFoundingResellerInvitation(input: {
       partnerId: "",
       inviteToken: "",
       inviteUrl: "",
-      error: "A name or email is required to create a Founding Reseller invitation.",
+      error: "A name or email is required to create a Founding Acquisition Partner invitation.",
     };
   }
 
@@ -377,7 +377,7 @@ export async function acceptDeliveryPartnerInvitationByToken(token: string): Pro
   return { ok: true, portalUrl };
 }
 
-/** Accept either Founding Reseller or Delivery Partner invite by token. */
+/** Accept either Founding Acquisition Partner or Delivery Partner invite by token. */
 export async function acceptPartnerInvitationByToken(token: string): Promise<{
   ok: boolean;
   withdrawn?: boolean;

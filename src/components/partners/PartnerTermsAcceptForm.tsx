@@ -83,7 +83,7 @@ export function PartnerTermsAcceptForm({
           onChange={(e) => setChecked(e.target.checked)}
         />
         <span>
-          I understand the Founding Reseller model (introduce / Ben closes / DigitalGate delivers),
+          I understand the Founding Acquisition Partner model (introduce / Ben closes / DigitalGate delivers),
           qualifying commission fees, and that these are not yet solicitor-binding legal terms.
         </span>
       </label>

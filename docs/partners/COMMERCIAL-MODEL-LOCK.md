@@ -1,6 +1,6 @@
 # DigitalGate — Partner & Delivery Commercial Model
 
-**Status: LOCKED / CEO DECISION**
+**Status: LOCKED / CEO DECISION (Aug 2026)**
 
 Canonical implementation: `packages/platform-core/src/partners/commercial-model.ts`
 
@@ -9,7 +9,7 @@ Canonical implementation: `packages/platform-core/src/partners/commercial-model.
 | Engine | Owner | Partners earn from |
 |--------|-------|-------------------|
 | **Platform Revenue** | DigitalGate | — (not shared with partners by default) |
-| **Acquisition Revenue** | Resellers, Channel Managers | Qualifying Platform + App subscriptions (12 months) |
+| **Acquisition Revenue** | Direct referrers, Resellers, Acquisition Channel Managers | Qualifying Platform + App subscriptions (12 months) |
 | **Service Revenue** | Delivery Partners, Delivery Channel Managers | Professional Services + Support & Success |
 
 ## Non-negotiable rule
@@ -18,14 +18,32 @@ Partners do **not** automatically receive a percentage of Platform subscription 
 
 Delivery Partners earn from **services only**, not platform subscriptions.
 
-## Rates (first 12 months)
+**Direct Founding Customer referrals and Reseller commission are separate programmes.** Do not describe the Reseller rate as the Founding 10 referral rate.
+
+## Founding Customer direct referral (by cohort)
+
+| Cohort | Direct referral rate | Period | Qualifying revenue |
+|--------|---------------------|--------|-------------------|
+| **Founding 10** | **20%** | First 12 months | Platform + Apps actually collected |
+| **Founding 100** | **15%** | First 12 months | Platform + Apps actually collected |
+| **Founding 1,000+** | **10%** | First 12 months | Platform + Apps actually collected |
+
+Decreasing percentage reflects increasing maturity and scale of the programme. Cohort membership is fixed at acceptance — customers do not automatically move between tiers.
+
+## Acquisition channel (separate from direct referral)
+
+| Role | Rate | Period | Qualifying revenue |
+|------|------|--------|-------------------|
+| **Reseller / Founding Acquisition Partner** | **25%** | First 12 months | Platform + Apps actually collected |
+| **Acquisition Channel Manager** (own) | **25%** | First 12 months | Platform + Apps actually collected |
+| **Acquisition Channel Manager** (override) | **5%** | First 12 months | Platform + Apps from managed Resellers |
+
+Combined acquisition channel economics when both apply: **25% + 5% = 30%** — not a single “30% Reseller commission”.
+
+## Delivery channel (separate from acquisition)
 
 | Role | Rate | Qualifying revenue |
 |------|------|-------------------|
-| **Founding 10 Referral** | **15%** | Platform + Apps (simple introduction) |
-| **Reseller** | **25%** | Platform + Apps |
-| **Channel Manager** (own) | **25%** | Platform + Apps |
-| **Channel Manager** (override) | **5%** | Platform + Apps from managed Resellers |
 | **Delivery Partner** | **25%** | Professional Services + Support & Success |
 | **Delivery Channel Manager** (own) | **25%** | Service revenue they deliver |
 | **Delivery Channel Manager** (override) | **5%** | Service revenue from managed Delivery Partners |
@@ -34,7 +52,9 @@ After month 12: acquisition commission = **$0** unless a future programme change
 
 ## Net collected revenue
 
-All commissions are calculated from **qualifying revenue actually received** by DigitalGate — not quotes, unpaid invoices, GST, pass-through costs, or refunds.
+All commissions are calculated from **qualifying revenue actually received** by DigitalGate — not catalogue pricing, forecast MRR, quotes, unpaid invoices, GST, pass-through costs, or refunds.
+
+If Stripe/payment attribution is unavailable, show commission as **pending/unattributed** — do not invent values.
 
 ## Architecture objects
 
@@ -44,8 +64,8 @@ All commissions are calculated from **qualifying revenue actually received** by 
 | **Implementation Plan** | Scope (Launch / Growth / Enterprise + lifecycle) |
 | **Tasks** | Work items |
 | **Training** | Enablement |
-| **Commission Event / Ledger** | Auditable financial subsystem (Phase 2+) |
-| **Customer Commercial Attribution** | Historical acquisition + delivery chain |
+| **Commission Event / Ledger** | Auditable financial subsystem |
+| **Customer Commercial Attribution** | Programme, role, rate snapshot, period |
 
 ## Partner role combinations
 
@@ -62,6 +82,13 @@ DigitalGate owns the platform, product, methodology, customer account, billing a
 3. **Platform** — dashboards, admin, customer commercial record
 4. **Website** — audit copy, ecosystem page, SEO pages
 5. **Legal** — Partner / Reseller / Delivery / Channel Manager terms
-6. **QA** — scenarios in CEO doc §30
+6. **QA** — commission scenarios
 
 Do not display invented commissions — show **$0** when no real revenue exists.
+
+## Flagged for CEO / legal (not invented here)
+
+- Multiple referrers / attribution disputes resolution process
+- Chargeback handling beyond “no commission on reversed revenue”
+- Programme changes for existing vs future customers
+- Whether Founding 100 / 1,000+ Reseller invitation rules differ from Founding 10

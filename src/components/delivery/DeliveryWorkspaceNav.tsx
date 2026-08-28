@@ -50,7 +50,10 @@ export function DeliveryWorkspaceNav({
 }) {
   const nav = scope === "staff" ? STAFF_NAV : PARTNER_NAV;
   return (
-    <nav className="flex flex-wrap gap-2 border-b border-slate-800 pb-4" aria-label="Delivery">
+    <nav
+      className="flex flex-wrap gap-2 border-b border-slate-800 pb-4"
+      aria-label="Delivery Partners"
+    >
       {nav.map((item) => (
         <Link
           key={item.id}

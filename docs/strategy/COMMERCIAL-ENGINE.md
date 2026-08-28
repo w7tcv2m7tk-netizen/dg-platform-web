@@ -33,7 +33,7 @@ Talk to businesses → Demonstrate DigitalGate → Close customers → Learn →
 ```
 Ben → Existing network → Founding 10
 Ben → Direct prospecting (RE first) → Founding 10
-Ben → Founding Resellers → Their network → Founding 10   (Ben remains the closer)
+Ben → Founding Acquisition Partners → Their network → Founding 10   (Ben remains the closer)
 ```
 
 After the first 10 are operating:
@@ -60,24 +60,24 @@ Founding 10 is the legitimate reason to contact people personally. Goal of the f
 
 Strongest product-market credibility. Target boutique and independent agencies, sales teams, agency principals. Use the four RE frameworks as the content hook, not generic SaaS copy.
 
-### 3. Founding Resellers — Wednesday (qualified partners, not affiliates)
+### 3. Founding Acquisition Partners — Wednesday (qualified partners, not affiliates)
 
 Do **not** position this as a generic affiliate programme. Recruit people who can **open doors**.
 
 ---
 
-## Founding Customer vs Founding Reseller
+## Founding Customer vs Founding Acquisition Partner
 
 These are **different roles**. Do not collapse them.
 
 | Role | Who | What they do | What they get |
 |------|-----|--------------|---------------|
 | **Founding Customer** | A business that primarily **uses** DigitalGate | Applies, consults, onboards, operates | Cohort acquisition discount (24 months) + the referral *entitlement* in their offer |
-| **Founding Reseller** | A person/business that **actively introduces** DigitalGate | Identifies and introduces suitable businesses | Partner status, attribution, assets, commission on qualifying referred subscriptions |
+| **Founding Acquisition Partner** | A person/business that **actively introduces** DigitalGate | Identifies and introduces suitable businesses | Partner status, attribution, assets, commission on qualifying referred subscriptions |
 
-A Founding 10 customer’s offer may include Founding Reseller **referral terms**. That does **not** make every customer an active partner.
+A Founding 10 customer’s offer may include Founding Acquisition Partner **referral terms**. That does **not** make every customer an active partner.
 
-**Founding Reseller (partner channel):**
+**Founding Acquisition Partner (partner channel):**
 
 - Application / approval based — not open signup
 - Does **not** need to be a software person; sales / BD people are ideal
@@ -115,7 +115,7 @@ Ideal partner:
 1. List ~30 people from the career network who have sales/business relationships.
 2. Rank: **A** — trust to represent DigitalGate · **B** — potential · **C** — introduction source only.
 3. Personally approach the **A list**.
-4. Aim for **up to 10 selected Founding Resellers** (Founding 10 seats). After those: Founding Partner 25% (Founding 100), then Founding Customer 20% (Founding 1,000). Do not give 30% away broadly.
+4. Aim for **up to 10 selected Founding Acquisition Partners** (Founding 10 seats). Direct referral rates by cohort: 20% / 15% / 10%. Acquisition Partner programme: **25%**. Do not conflate direct referral with Reseller commission.
 
 ### Partner assets
 
@@ -131,7 +131,7 @@ Full scripts (SMS, email, voice, replies, old contacts, discovery questions): [F
 
 **Rule:** people you already know must not hear a SaaS sales campaign. It is a personal update: I’ve been building something significant, it’s now ready, and I thought of you.
 
-Pick **customer** or **Founding Reseller** language before you send.
+Pick **customer** or **Founding Acquisition Partner** language before you send.
 
 **Partner demo (60 min)** — what DigitalGate is · who it’s for · problems it solves · how the platform works · pricing · Founding programme · how they make money · how referrals work. They introduce; Ben closes.
 
@@ -147,7 +147,7 @@ Saturday and Sunday stay out of the engine except a short Sunday CEO review.
 |-----|--------|--------|
 | **Mon** | Existing network | 9:00–10:30 contact 10–15 people (book conversations). 10:30–12:00 follow-up. 1:00–3:00 demos / consultations. 3:00–4:00 proposals / Founding offers. 4:00–5:00 CRM — every contact has a next action. |
 | **Tue** | Prospecting (RE first) | 9:00–11:00 new outbound. 11:00–12:00 follow-up. 1:00–3:00 demos. 3:00–4:00 **one useful piece** (e.g. “5 reasons agencies lose vendor opportunities after the enquiry”). 4:00–5:00 CRM + pipeline. |
-| **Wed** | Partner day | 9:00–11:00 contact 10 potential Founding Resellers. 11:00–12:00 partner follow-ups. 1:00–3:00 partner demonstrations. 3:00–5:00 partner pipeline. |
+| **Wed** | Partner day | 9:00–11:00 contact 10 potential Founding Acquisition Partners. 11:00–12:00 partner follow-ups. 1:00–3:00 partner demonstrations. 3:00–5:00 partner pipeline. |
 | **Thu** | Authority | **Create → Publish → Distribute → Converse → Capture → Follow up.** One Insights piece, then put it in front of prospects/partners and log CRM next steps. |
 | **Fri** | Closing | Move pipeline; chase “I’ll have a look”; demos; applications. Weekly numbers include **next-step commitments** (concrete next actions only). |
 
@@ -196,12 +196,14 @@ The market now tells DigitalGate what to build next.
 
 Customer discount ≠ referral commission. Keep saying that.
 
-| Cohort | Own discount (24 months) | Referral commission (12 months / referred customer) |
-|--------|--------------------------|-----------------------------------------------------|
-| Founding 10 | 30% | 30% — Founding Reseller **entitlement** (customers) / **status** (approved partners) |
-| Founding 100 | 25% | 25% |
-| Founding 1,000 | 20% | 20% |
-| Standard | Published | 10% |
+| Cohort | Own discount (24 months) | Direct referral commission (12 months / referred customer) |
+|--------|--------------------------|-------------------------------------------------------------|
+| Founding 10 | 30% | **20%** — Founding Customer direct referral |
+| Founding 100 | 25% | **15%** |
+| Founding 1,000 | 20% | **10%** |
+| Standard | Published | **10%** |
+
+**Separate programme:** Founding Acquisition Partners / Resellers earn **25%** (not the direct referral rate). Acquisition Channel Manager: **+5% override** on managed Resellers.
 
 This is the reason to act now rather than in six months. Binding terms stay in the Founding offer / agreement — not a new website pass.
 

@@ -773,7 +773,7 @@ export async function logPartnerCommissionEvent(input: {
 }
 
 /**
- * Accrue Founding Reseller commission from a paid Stripe invoice for a referred org.
+ * Accrue Founding Acquisition Partner commission from a paid Stripe invoice for a referred org.
  * Idempotent on stripe invoice id (PartnerCommissionEvent.invoiceId).
  * Qualifying amount = invoice amount paid as billed — staff can adjust later.
  */

@@ -1,13 +1,13 @@
 # Partner invite briefing
 
-**Audience:** Ben / DigitalGate staff before sending Founding Reseller or Delivery Partner invites.  
+**Audience:** Ben / DigitalGate staff before sending Founding Acquisition Partner or Delivery Partner invites.  
 **Status:** Operational briefing — not legal terms.
 
 Use this so the first login matches what you promised. Both programmes are **invitation only**.
 
 ---
 
-## Founding Reseller
+## Founding Acquisition Partner
 
 ### What they get on day one
 

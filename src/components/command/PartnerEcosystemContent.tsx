@@ -157,7 +157,7 @@ export function PartnerEcosystemOverview() {
       <section>
         <h2 className="text-base font-semibold text-white">Build sequence</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Founding Resellers → Delivery Partners → Certification → Partner Operations → Marketplace.
+          Founding Acquisition Partners → Delivery Partners → Certification → Partner Operations → Marketplace.
           Do not build a marketplace before the operating model is proven.
         </p>
         <div className="mt-4 space-y-3">
@@ -181,14 +181,14 @@ export function PartnerEcosystemOverview() {
           ))}
         </div>
         <p className="mt-3 text-sm text-slate-400">
-          Next recruitment: 2 Founding Resellers → {FOUNDING_IMPLEMENTATION_TARGET} Founding
+          Next recruitment: 2 Founding Acquisition Partners → {FOUNDING_IMPLEMENTATION_TARGET} Founding
           Delivery Partners → then document and certify the model.
         </p>
       </section>
 
       <p className="text-xs text-slate-500">
         Keep Partners completely separate from Sales / Growth Engine. Founding 10 is a customer
-        cohort; Founding Reseller is a partner cohort; Delivery Partner is implementation capacity.
+        cohort; Founding Acquisition Partner is a partner cohort; Delivery Partner is implementation capacity.
       </p>
 
       <p className="text-sm text-slate-400">

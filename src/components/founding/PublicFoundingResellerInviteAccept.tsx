@@ -48,11 +48,11 @@ export function PublicFoundingResellerInviteAccept({
   return (
     <div className="mx-auto max-w-2xl px-6 py-16 text-slate-200">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-300">
-        Founding Reseller invitation
+        Founding Acquisition Partner invitation
       </p>
       <h1 className="mt-3 text-3xl font-bold text-white">
         You&apos;ve been personally invited by {invitedByName}{" "}
-        to join DigitalGate&apos;s Founding Reseller Programme.
+        to join DigitalGate&apos;s Founding Acquisition Partner Programme.
       </h1>
       {withdrawn ? (
         <p className="mt-4 text-amber-200">This invitation is no longer active.</p>
@@ -66,10 +66,10 @@ export function PublicFoundingResellerInviteAccept({
           <p className="mt-4 text-slate-300">
             Hi {firstName}. After our conversation, {businessName} looks like a strong
             fit for the first wave of introducers. Accepting this invitation starts
-            partner setup — it does not yet count as one of the 10 reseller seats.
+            partner setup — it does not yet count as one of the 10 Acquisition Partner seats.
           </p>
           <h2 className="mt-8 text-lg font-semibold text-white">
-            Founding Reseller terms
+            Founding Acquisition Partner terms
           </h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-300">
             {FOUNDING_RESELLER_INVITE_POINTS.map((item) => (
@@ -86,7 +86,7 @@ export function PublicFoundingResellerInviteAccept({
             disabled={status === "saving"}
             className="rounded-full bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-60"
           >
-            {status === "saving" ? "Accepting…" : "Accept Founding Reseller Invitation →"}
+            {status === "saving" ? "Accepting…" : "Accept Founding Acquisition Partner Invitation →"}
           </button>
         ) : (
           <a

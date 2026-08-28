@@ -4,6 +4,7 @@
  * Pipeline stages: DigitalGate Implementation Lifecycle™ — see delivery-model.ts.
  */
 
+import type { AppRoute } from "../apps/manifest";
 import { IMPLEMENTATION_SOP_STAGES } from "./delivery-model";
 import {
   ACQUISITION_PORTAL_HREF,
@@ -96,16 +97,97 @@ export const ACCEPT_CUSTOMER_WORKFLOW = [
   "Track progress",
 ] as const;
 
+/** All Delivery Partner workspace routes — used for nav matchAlso and breadcrumbs */
+export const DELIVERY_PARTNER_OPERATOR_ROUTES = [
+  { path: "/command/delivery", label: "Dashboard" },
+  { path: "/command/delivery/projects", label: "Implementation Projects" },
+  { path: "/command/delivery/tasks", label: "Tasks" },
+  { path: "/command/delivery/customers", label: "Customers" },
+  {
+    path: "/command/delivery/plans",
+    label: "Implementation Plans",
+    matchAlso: ["/command/delivery/onboarding"],
+  },
+  { path: "/command/delivery/training", label: "Training" },
+  { path: "/command/delivery/invitations", label: "Invitations" },
+  { path: "/command/delivery/qa", label: "QA & Go-Live" },
+  { path: "/command/delivery/team", label: "Team" },
+  { path: "/command/delivery/activity", label: "Activity" },
+  { path: "/command/delivery/documents", label: "Documents" },
+  { path: "/command/delivery/reports", label: "Reports" },
+] as const;
+
+const DELIVERY_MATCH_ALSO = DELIVERY_PARTNER_OPERATOR_ROUTES.flatMap((route) => [
+  route.path,
+  ...("matchAlso" in route && route.matchAlso ? route.matchAlso : []),
+]);
+
+/** Staff operator Partners pillar — Acquisition + Delivery divisions under one parent */
+export const OPERATOR_PARTNERS_NAV = {
+  label: "Partners",
+  primaryHref: "/command/partners",
+  routes: [
+    { path: "/command/partners", label: "Overview" },
+    {
+      path: "/command/partners/acquisition",
+      label: "Acquisition Partners",
+      matchAlso: [
+        "/command/partners/resellers",
+        "/command/partners/briefing",
+        "/command/partners/onboarding",
+      ],
+    },
+    {
+      path: "/command/delivery",
+      label: "Delivery Partners",
+      matchAlso: DELIVERY_MATCH_ALSO,
+    },
+    {
+      path: "/command/partners/ecosystem",
+      label: "Ecosystem",
+      matchAlso: ["/command/partners/delivery"],
+    },
+    {
+      path: "/command/referrals",
+      label: "Referrals",
+      matchAlso: [
+        "/command/referrals/pending",
+        "/command/referrals/converted",
+      ],
+    },
+    {
+      path: "/command/commissions",
+      label: "Commissions",
+      matchAlso: [
+        "/command/commissions/pending",
+        "/command/commissions/approved",
+        "/command/commissions/paid",
+        "/command/partners/payouts",
+      ],
+    },
+  ],
+} as const;
+
+/** Mutable copy for AppRoute consumers (sidebar / operator nav). */
+export function getOperatorPartnersNavRoutes(): AppRoute[] {
+  return OPERATOR_PARTNERS_NAV.routes.map((route) => ({
+    path: route.path,
+    label: route.label,
+    matchAlso: "matchAlso" in route && route.matchAlso ? [...route.matchAlso] : undefined,
+  }));
+}
+
+/** @deprecated Use OPERATOR_PARTNERS_NAV — kept for partner-portal section splits */
 export const STAFF_PARTNERS_NAV = {
   resellers: {
-    label: "Resellers",
+    label: "Acquisition Partners",
     routes: [
-      { path: "/command/partners", label: "Reseller Dashboard" },
-      { path: "/command/partners/resellers", label: "Reseller Pipeline" },
+      { path: "/command/partners", label: "Overview" },
+      { path: "/command/partners/acquisition", label: "Acquisition Partners" },
       { path: "/command/partners/briefing", label: "Briefing" },
       { path: "/command/partners/ecosystem", label: "Ecosystem" },
     ],
-    primaryHref: "/command/partners",
+    primaryHref: "/command/partners/acquisition",
   },
   referrals: {
     label: "Referrals",
@@ -127,30 +209,17 @@ export const STAFF_PARTNERS_NAV = {
     primaryHref: "/command/commissions",
   },
   delivery: {
-    label: "Delivery",
-    routes: [
-      { path: "/command/delivery", label: "Dashboard" },
-      { path: "/command/delivery/projects", label: "Projects" },
-      { path: "/command/delivery/tasks", label: "Tasks" },
-      { path: "/command/delivery/customers", label: "Customers" },
-      { path: "/command/delivery/plans", label: "Implementation Plans" },
-      { path: "/command/delivery/training", label: "Training" },
-      { path: "/command/delivery/invitations", label: "Invitations" },
-      { path: "/command/delivery/qa", label: "QA & Go-Live" },
-      { path: "/command/delivery/team", label: "Team" },
-      { path: "/command/delivery/activity", label: "Activity" },
-      { path: "/command/delivery/documents", label: "Documents" },
-      { path: "/command/delivery/reports", label: "Reports" },
-    ],
+    label: "Delivery Partners",
+    routes: [...DELIVERY_PARTNER_OPERATOR_ROUTES],
     primaryHref: "/command/delivery",
   },
 } as const;
 
 export const RESELLER_PARTNER_NAV = {
   resellers: {
-    label: "Resellers",
+    label: "Acquisition Partners",
     routes: [
-      { path: ACQUISITION_PORTAL_HREF, label: "Reseller Dashboard" },
+      { path: ACQUISITION_PORTAL_HREF, label: "Dashboard" },
       { path: ACQUISITION_PORTAL_ROUTES.referrals, label: "Referrals" },
       { path: ACQUISITION_PORTAL_ROUTES.commissions, label: "Commissions" },
       { path: ACQUISITION_PORTAL_ROUTES.playbook, label: "Playbook" },
@@ -177,7 +246,7 @@ export const RESELLER_PARTNER_NAV = {
 
 export const DELIVERY_PARTNER_NAV = {
   delivery: {
-    label: "Delivery",
+    label: "Delivery Partners",
     routes: [
       { path: DELIVERY_PARTNER_PORTAL_HREF, label: "Dashboard" },
       { path: DELIVERY_PARTNER_PORTAL_ROUTES.projects, label: "Projects" },

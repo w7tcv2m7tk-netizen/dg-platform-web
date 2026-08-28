@@ -18,7 +18,20 @@ function severityIcon(severity: "amber" | "yellow" | "none") {
 }
 
 export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWorkspace }) {
-  const { pulse, attention, foundingSeats, resellers, deliveryPartners, recentActivity } = data;
+  const {
+    pulse,
+    attention,
+    foundingSeats,
+    resellers,
+    deliveryPartners,
+    recentActivity,
+    deliveryPulse,
+  } = data;
+
+  const activeAcquisition = resellers.filter((r) => r.status === "active").length;
+  const activeDelivery = deliveryPartners.filter((r) => r.status === "active").length;
+  const acquisitionProspects = resellers.filter((r) => r.status === "pending").length;
+  const deliveryOnboarding = deliveryPartners.filter((r) => r.status === "pending").length;
 
   return (
     <>
@@ -29,44 +42,18 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
         <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400">
           Partners
         </p>
-        <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Partner Programme</h1>
+        <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Partner Network</h1>
         <p className="mt-3 max-w-2xl text-base text-slate-200">
-          Build and manage DigitalGate&apos;s reseller, referral and delivery ecosystem.
+          Operating layer for Acquisition Partners, Delivery Partners, ecosystem relationships,
+          referrals and commissions.
         </p>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Partner relationships and programme health. Referral and commission transactions live
-          under Platform → Network.
+          Acquisition Partners bring customers in. Delivery Partners implement and onboard them.
+          Founding 10 remains the customer programme — separate from partner status.
         </p>
       </header>
 
       <main className="dg-page-main space-y-8">
-        {/* Partner Pulse */}
-        <section className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
-            Partner Pulse
-          </p>
-          <h2 className="mt-1 text-lg font-semibold text-white">Who&apos;s producing</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <PulseTile label="Active resellers" value={String(pulse.activeResellers)} />
-            <PulseTile label="Pending applications" value={String(pulse.pendingApplications)} />
-            <PulseTile label="Referrals this month" value={String(pulse.referralsThisMonth)} />
-            <PulseTile label="Customers referred" value={String(pulse.customersReferred)} />
-            <PulseTile
-              label="Conversion rate"
-              value={pulse.conversionRate == null ? "—" : `${pulse.conversionRate}%`}
-            />
-            <PulseTile
-              label="MRR referred"
-              value={
-                pulse.mrrReferredCents == null ? "—" : formatAud(pulse.mrrReferredCents)
-              }
-              hint={pulse.mrrReferredCents == null ? "Scaffold — billing attribution next" : undefined}
-            />
-            <PulseTile label="Commission owing" value={formatAud(pulse.commissionOwingCents)} />
-            <PulseTile label="Commission paid" value={formatAud(pulse.commissionPaidCents)} />
-          </div>
-        </section>
-
         {/* What needs attention */}
         <section className="rounded-xl border border-amber-500/25 bg-amber-500/5 px-5 py-5">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-amber-200/90">
@@ -99,23 +86,93 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
           )}
         </section>
 
-        {/* Founding Reseller Programme */}
+        {/* Division command centres */}
+        <div className="grid gap-6 xl:grid-cols-2">
+          <DivisionPanel
+            title="Acquisition Partners"
+            subtitle="Bring customers into DigitalGate"
+            href="/command/partners/acquisition"
+            hrefLabel="Open Acquisition Partners"
+            metrics={[
+              { label: "Active partners", value: String(activeAcquisition) },
+              { label: "Prospects / pending", value: String(acquisitionProspects) },
+              { label: "Referrals this month", value: String(pulse.referralsThisMonth) },
+              { label: "Customers acquired", value: String(pulse.customersReferred) },
+              {
+                label: "Platform revenue referred",
+                value:
+                  pulse.mrrReferredCents == null ? "—" : formatAud(pulse.mrrReferredCents),
+                hint:
+                  pulse.mrrReferredCents == null
+                    ? "Billing attribution lands with subscription linkage"
+                    : undefined,
+              },
+              { label: "Commissions owing", value: formatAud(pulse.commissionOwingCents) },
+              {
+                label: "Channel conversion",
+                value: pulse.conversionRate == null ? "—" : `${pulse.conversionRate}%`,
+              },
+            ]}
+          />
+          <DivisionPanel
+            title="Delivery Partners"
+            subtitle="Implement and onboard customers"
+            href="/command/delivery"
+            hrefLabel="Open Delivery Partners"
+            metrics={[
+              { label: "Active partners", value: String(activeDelivery) },
+              { label: "Onboarding / pending", value: String(deliveryOnboarding) },
+              {
+                label: "Customers in implementation",
+                value: String(deliveryPulse.customersInImplementation),
+              },
+              {
+                label: "Active projects",
+                value: String(deliveryPulse.activeProjects),
+              },
+              {
+                label: "Projects at risk",
+                value: String(deliveryPulse.projectsAtRisk),
+                tone: deliveryPulse.projectsAtRisk > 0 ? "amber" : undefined,
+              },
+              {
+                label: "Service revenue",
+                value:
+                  deliveryPulse.serviceRevenueCents == null
+                    ? "—"
+                    : formatAud(deliveryPulse.serviceRevenueCents),
+                hint: "Professional Services — scaffold until billing split",
+              },
+              {
+                label: "Support & Success revenue",
+                value:
+                  deliveryPulse.supportRevenueCents == null
+                    ? "—"
+                    : formatAud(deliveryPulse.supportRevenueCents),
+                hint: "Scaffold — Support & Success attribution next",
+              },
+            ]}
+          />
+        </div>
+
+        {/* Founding Acquisition Partner seats */}
         <section className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-5 py-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-300">
-                Founding Reseller Programme
+                Founding Acquisition Partner Programme
               </p>
               <p className="mt-2 text-3xl font-bold text-white">
                 {foundingSeats.used} / {foundingSeats.cap}{" "}
                 <span className="text-lg font-medium text-slate-400">seats filled</span>
               </p>
               <p className="mt-2 max-w-xl text-sm text-slate-300">
-                Invitation only · Founding partners receive the founding commercial terms.
+                Invitation only · First-wave Acquisition Partners receive founding commercial
+                terms.
               </p>
               <p className="mt-2 text-sm text-slate-400">
-                <span className="text-slate-200">Founding Resellers</span> introduce qualified
-                businesses to DigitalGate. Ben closes the opportunity.
+                <span className="text-slate-200">Founding Acquisition Partners</span> introduce
+                qualified businesses to DigitalGate. Ben closes the opportunity.
               </p>
             </div>
           </div>
@@ -131,7 +188,8 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
               Partner Briefing
             </p>
             <p className="mt-2 text-sm text-slate-300">
-              Run-sheet for Founding Reseller briefings — agenda, discussion prompts and outcomes.
+              Run-sheet for Acquisition Partner briefings — agenda, discussion prompts and
+              outcomes.
             </p>
             <Link
               href="/command/partners/briefing"
@@ -145,7 +203,7 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
               Ecosystem
             </p>
             <p className="mt-2 text-sm text-slate-300">
-              Resellers · Delivery Partners · Referral Partners — roles that must stay distinct.
+              Acquisition · Delivery · Technology · Strategic — roles that must stay distinct.
             </p>
             <Link
               href="/command/partners/ecosystem"
@@ -159,7 +217,7 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
         {/* Role definitions */}
         <section className="grid gap-4 md:grid-cols-2">
           <article className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4">
-            <h3 className="font-semibold text-white">Founding Resellers</h3>
+            <h3 className="font-semibold text-white">Acquisition Partners</h3>
             <p className="mt-2 text-sm text-slate-400">
               Introduce qualified businesses to DigitalGate. Ben closes the opportunity.
             </p>
@@ -168,31 +226,28 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
           <article className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4">
             <h3 className="font-semibold text-white">Delivery Partners</h3>
             <p className="mt-2 text-sm text-slate-400">
-              Provide implementation, specialist services or customer fulfilment.
+              Provide implementation, specialist services and customer fulfilment.
             </p>
             <p className="mt-2 text-xs text-violet-300/90">Delivery Partners deliver.</p>
           </article>
         </section>
 
-        {/* Resellers table */}
         <PartnerTable
-          title="Resellers"
-          empty="No resellers on file yet. Invite a Founding Reseller to start the channel."
-          href="/command/partners/resellers"
-          hrefLabel="All resellers"
+          title="Acquisition Partners"
+          empty="No Acquisition Partners on file yet. Invite a Founding Acquisition Partner to start the channel."
+          href="/command/partners/acquisition"
+          hrefLabel="All Acquisition Partners"
           rows={resellers}
         />
 
-        {/* Delivery Partners table */}
         <PartnerTable
           title="Delivery Partners"
-          empty="No Delivery Partners yet. Delivery is separate from the reseller channel."
-          href="/command/partners/delivery"
-          hrefLabel="Delivery operating model"
+          empty="No Delivery Partners yet. Delivery Partners implement and onboard customers."
+          href="/command/delivery"
+          hrefLabel="Delivery Partners workspace"
           rows={deliveryPartners}
         />
 
-        {/* Recent activity */}
         <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
             Recent activity
@@ -225,30 +280,60 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
         </section>
 
         <p className="text-xs text-slate-500">
-          Architectural rule: Partner Dashboard must never become a prospecting or sales pipeline.
-          Sales / Growth Engine own DigitalGate customer acquisition. Partners introduce; Delivery
-          implements; Customers operate; Revenue monetises.
+          Architectural rule: Partner Overview must never become a prospecting or sales pipeline.
+          Sales / Growth Engine own DigitalGate customer acquisition. Acquisition Partners
+          introduce; Delivery Partners implement; Customers operate; Revenue monetises.
         </p>
       </main>
     </>
   );
 }
 
-function PulseTile({
-  label,
-  value,
-  hint,
+function DivisionPanel({
+  title,
+  subtitle,
+  href,
+  hrefLabel,
+  metrics,
 }: {
-  label: string;
-  value: string;
-  hint?: string;
+  title: string;
+  subtitle: string;
+  href: string;
+  hrefLabel: string;
+  metrics: Array<{ label: string; value: string; hint?: string; tone?: "amber" }>;
 }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-3">
-      <p className="text-[10px] uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-xl font-bold text-white">{value}</p>
-      {hint ? <p className="mt-1 text-[10px] text-slate-600">{hint}</p> : null}
-    </div>
+    <section className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">{title}</p>
+          <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
+        </div>
+        <Link href={href} className="text-xs text-sky-400 hover:underline shrink-0">
+          {hrefLabel} →
+        </Link>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {metrics.map((metric) => (
+          <div
+            key={metric.label}
+            className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-3"
+          >
+            <p className="text-[10px] uppercase tracking-wide text-slate-500">{metric.label}</p>
+            <p
+              className={`mt-1 text-xl font-bold ${
+                metric.tone === "amber" ? "text-amber-300" : "text-white"
+              }`}
+            >
+              {metric.value}
+            </p>
+            {metric.hint ? (
+              <p className="mt-1 text-[10px] text-slate-600">{metric.hint}</p>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 

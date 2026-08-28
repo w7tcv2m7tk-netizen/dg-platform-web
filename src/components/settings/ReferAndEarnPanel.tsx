@@ -11,7 +11,7 @@ function formatAud(cents: number) {
   }).format(cents / 100);
 }
 
-type ReferralTier = "customer" | "partner" | "reseller";
+type ReferralTier = "customer" | "founding_100" | "founding_1000" | "partner" | "reseller";
 
 type ConnectSnapshot = {
   configured: boolean;

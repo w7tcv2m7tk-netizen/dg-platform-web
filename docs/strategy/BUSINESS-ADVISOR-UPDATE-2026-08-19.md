@@ -30,11 +30,11 @@ Canon: [COMMERCIAL-ENGINE.md](./COMMERCIAL-ENGINE.md) · copy: [FOUNDING-10-OUTR
 
 **30-day objective:** Fill Founding 10.
 
-**Channels (in order):** Ben’s existing network → RE prospecting → 3–5 qualified Founding Resellers who **open doors**. Ben remains the closer. Partners introduce; they do not get a login and a brief to sell the platform.
+**Channels (in order):** Ben’s existing network → RE prospecting → 3–5 qualified Founding Acquisition Partners who **open doors**. Ben remains the closer. Partners introduce; they do not get a login and a brief to sell the platform.
 
 **Daily (weekdays):** initiate **10 customer + 5 partner** conversations. Saturday off. Sunday 30–60 min CEO review. Every CRM row needs a next action.
 
-**Tone:** personal update to people Ben already knows — not a SaaS campaign. “I’ve been building something significant, it’s now ready, and I thought of you.” Customer vs Founding Reseller are different first messages.
+**Tone:** personal update to people Ben already knows — not a SaaS campaign. “I’ve been building something significant, it’s now ready, and I thought of you.” Customer vs Founding Acquisition Partner are different first messages.
 
 **Freeze until Founding 10 is filling:** public website redesign, partner portal / commission dashboard, ads, new Industry Apps, seven-day hustle.
 
@@ -138,4 +138,4 @@ This was not sprawl for its own sake. It was the conversion path and the Intelli
 
 ## One-paragraph summary (pasteable)
 
-Since 17 August the architecture and Intelligent Layer thesis are unchanged. What changed is operating mode: as of 18 August DigitalGate is under a commercial lock — freeze the public website, stop speculative product, and spend 30 days filling Founding 10 through Ben’s network, then RE prospecting, then a handful of Founding Resellers who introduce while Ben closes. The conversion path is now live (Founding application vs contact vs consultation, dedicated acks, CRM without the RE beta gate). Twin and Goals shipped as in-app Intelligent Layer surfaces. Outreach is cleared to start; zero Founding customers are in yet. The risk is no longer “is the site good enough?” — it is whether Ben actually runs 10+5 conversations a weekday instead of building. Stage 1 demo recordings for advisor assessment are still outstanding and should not delay those conversations.
+Since 17 August the architecture and Intelligent Layer thesis are unchanged. What changed is operating mode: as of 18 August DigitalGate is under a commercial lock — freeze the public website, stop speculative product, and spend 30 days filling Founding 10 through Ben’s network, then RE prospecting, then a handful of Founding Acquisition Partners who introduce while Ben closes. The conversion path is now live (Founding application vs contact vs consultation, dedicated acks, CRM without the RE beta gate). Twin and Goals shipped as in-app Intelligent Layer surfaces. Outreach is cleared to start; zero Founding customers are in yet. The risk is no longer “is the site good enough?” — it is whether Ben actually runs 10+5 conversations a weekday instead of building. Stage 1 demo recordings for advisor assessment are still outstanding and should not delay those conversations.

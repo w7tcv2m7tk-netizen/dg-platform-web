@@ -57,9 +57,9 @@ Core → Universal Objects → CRM → Connectors → AI → Industry Apps → I
 
 | Rule | Detail |
 |------|--------|
-| **Customer referrer** | **10%** of referred org’s qualifying subscription for **12 months** (standard / future customers). Founding 1,000 **Founding Customer** tier = **20%** for 12 months — see founding lock |
-| **Founding Partner** | **25%** for **12 months** (Founding 100) |
-| **Founding Reseller** | **30%** for **12 months** (Founding 10) |
+| **Direct referrer (by cohort)** | Founding 10 **20%** · Founding 100 **15%** · Founding 1,000+ **10%** · Standard **10%** — qualifying subscription, **12 months**, actually collected |
+| **Founding Acquisition Partner / Reseller** | **25%** for **12 months** — separate Acquisition Partner programme, not the direct referral rate |
+| **Acquisition Channel Manager** | **+5% override** on managed Resellers' qualifying revenue (first 12 months) |
 | **Payout form** | **Platform credit by default**; **cash** once accrued balance reaches ~**$100** (threshold configurable); choice of both where policy enables |
 | **What earns** | Qualifying **paid** recurring Platform + App subscription only — excludes Professional Services, Customer Success, usage, taxes, refunds, chargebacks, one-offs, Marketplace / B2B fees, and the referrer’s **own** account |
 
@@ -67,18 +67,20 @@ Core → Universal Objects → CRM → Connectors → AI → Industry Apps → I
 
 Canonical commercial progression ([FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md)):
 
-| Cohort | Referrer tier | Commission |
-|--------|---------------|------------|
-| Founding 10 | **Founding Reseller** | **30%** of referred qualifying subscription for **12 months** |
-| Founding 100 | **Founding Partner** | **25%** for **12 months** |
-| Founding 1,000 | **Founding Customer** | **20%** for **12 months** |
-| Standard / future | **Customer** | **10%** for **12 months** |
+| Cohort | Referrer tier | Direct referral commission |
+|--------|---------------|----------------------------|
+| Founding 10 | **Founding 10 Referrer** | **20%** for **12 months** |
+| Founding 100 | **Founding 100 Referrer** | **15%** for **12 months** |
+| Founding 1,000+ | **Founding 1,000+ Referrer** | **10%** for **12 months** |
+| Standard / future | **Customer / Advocate** | **10%** for **12 months** |
+
+**Acquisition Partner programme (separate):** Founding Acquisition Partner / Reseller **25%** · Acquisition Channel Manager **+5% override**.
 
 **Two benefits, independent:** own founding acquisition discount (24 months) ≠ referral commission (12 months per referred customer). Referral **status** is **ongoing while eligible** — not “forever.” Do not call commission a “referral discount.”
 
-A full **Reseller Programme** (third-party resale / managed DigitalGate) stays a separate commercial model from **Founding Reseller** status.
+A full **managed-resale programme** (third-party resale / managed DigitalGate) stays a separate commercial model from **Founding Acquisition Partner** status.
 
-**Shipped MVP today** uses Customer 20% / Partner 25% / Reseller **25%** labels in product settings (Customer rate historically 20%). Partner Programme Reseller rate is **25%** (CEO lock Aug 2026). Founding 10 simple referrals: **15%**. Remap Standard Customer → **10%** when Founding 10 offers go live; do not rebuild the referral system for this lock alone.
+**Shipped MVP today** uses cohort-based direct referral rates from `commercial-model.ts` (Founding 10 **20%** / Founding 100 **15%** / Founding 1,000+ **10%**). Reseller / Founding Acquisition Partner programme: **25%**. Acquisition Channel Manager override: **5%**. Org `settings.referralProgramme.tier` selects acquisition partner vs customer referrer mode.
 
 Commission is **single-level only**: the person (or partner org) whose link/code signed up the new paying org. See hard rule below.
 
@@ -134,7 +136,7 @@ Prefer billing + Organisation fields over premature Network tables.
 | First-paid 20% credit on Stripe checkout | ✅ |
 | Monthly accrual on `invoice.paid` | ✅ (subscription_cycle renewals; idempotent on invoice id) |
 | Cash payout at ~$100 | ✅ Stripe Connect Express + transfer; platform credit remains default. Graceful UI when `STRIPE_CONNECT_ENABLED` unset |
-| Partner 25–30% / Reseller rates | ✅ Org `settings.referralProgramme.tier` (customer 20% / partner 25% / reseller 30%) |
+| Partner / Reseller rates | ✅ Org `settings.referralProgramme.tier` + `commercial-model.ts` (direct 20/15/10% · Reseller 25% · CM override 5%) |
 
 **Ops (Ben):** Stripe webhook for `https://app.digitalgate.com.au/api/webhooks/stripe` must include **`invoice.paid`** plus Connect events (`account.updated`, `transfer.failed`, `transfer.reversed`). Re-run `STRIPE_SECRET_KEY=… node scripts/setup-stripe-webhook.mjs`. Vercel: `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` (same mode) and `STRIPE_CONNECT_ENABLED=true` for cash payouts. Details: [STRIPE-SETUP.md](../commerce/STRIPE-SETUP.md) § Refer & Earn / Connect.
 

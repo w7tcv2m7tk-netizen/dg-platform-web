@@ -203,7 +203,7 @@ Growth hub should answer:
 
 ## Related docs
 
-- [COMMERCIAL-ENGINE.md](./COMMERCIAL-ENGINE.md) — Weekly sales engine + Founding Reseller qualification
+- [COMMERCIAL-ENGINE.md](./COMMERCIAL-ENGINE.md) — Weekly sales engine + Founding Acquisition Partner qualification
 - [CEO-PLAN-2026-08-17.md](./CEO-PLAN-2026-08-17.md) — Email P0 → Stage 1 gates
 - [FOUNDING-COHORTS.md](./FOUNDING-COHORTS.md) — Commercial architecture
 - [DISCOVERY-SCORING-SPEC.md](./DISCOVERY-SCORING-SPEC.md) — Scoring model

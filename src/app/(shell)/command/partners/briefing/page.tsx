@@ -14,7 +14,7 @@ export default function PartnerBriefingPage() {
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Monday Partner Briefing</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Founding Reseller meeting run-sheet — for Ben. Partners see the playbook at
+          Founding Acquisition Partner meeting run-sheet — for Ben. Partners see the playbook at
           /partner/playbook.
         </p>
       </header>

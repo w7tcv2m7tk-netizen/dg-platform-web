@@ -45,12 +45,12 @@ export async function ResellersProgrammeSurface() {
     <>
       <header className="dg-page-header">
         <Link href="/command/partners" className="text-sm text-sky-400 hover:underline">
-          ← Partner Programme
+          ← Partner Network
         </Link>
         <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400">
-          Partners
+          Partners · Acquisition
         </p>
-        <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Founding Resellers</h1>
+        <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Acquisition Partners</h1>
         <p className="mt-3 max-w-2xl text-base text-slate-200">
           Trusted introducers who open doors to businesses that DigitalGate can help.
         </p>
@@ -74,10 +74,10 @@ export async function ResellersProgrammeSurface() {
       </header>
 
       <main className="dg-page-main space-y-8">
-        {/* Founding Reseller Programme */}
+        {/* Founding Acquisition Partner Programme */}
         <section className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-5 py-5">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-300">
-            Founding Reseller Programme
+            Founding Acquisition Partner Programme
           </p>
           <p className="mt-2 text-3xl font-bold text-white">
             {foundingSeats.used} / {foundingSeats.cap}{" "}
@@ -90,7 +90,7 @@ export async function ResellersProgrammeSurface() {
           <div className="mt-5 grid gap-6 lg:grid-cols-2">
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                Why become a Founding Reseller?
+                Why become a Founding Acquisition Partner?
               </p>
               <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-300">
                 {FOUNDING_RESELLER_WHY.map((item) => (
@@ -128,7 +128,7 @@ export async function ResellersProgrammeSurface() {
         {/* How it works */}
         <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
-            How Founding Reselling works
+            How Acquisition Partnering works
           </p>
           <h2 className="mt-1 text-lg font-semibold text-white">
             Introduce → Qualify → Close → Go Live → Earn
@@ -150,7 +150,7 @@ export async function ResellersProgrammeSurface() {
         {/* Reseller pipeline strip */}
         <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
-            Reseller pipeline
+            Acquisition Partner pipeline
           </p>
           <div className="mt-3 flex flex-wrap gap-3">
             {pipelineCounts.map((s) => (
@@ -167,16 +167,16 @@ export async function ResellersProgrammeSurface() {
         {/* Your resellers table */}
         <section className="overflow-hidden rounded-xl border border-slate-700/60 bg-slate-950/40">
           <div className="flex items-center justify-between border-b border-slate-700/60 px-4 py-3">
-            <h2 className="text-sm font-semibold text-white">Your resellers</h2>
+            <h2 className="text-sm font-semibold text-white">Acquisition Partners</h2>
             <Link href="/command/partners" className="text-xs text-sky-400 hover:underline">
-              Partner dashboard →
+              Partner Network →
             </Link>
           </div>
           {resellers.length === 0 ? (
             <div className="px-6 py-12 text-center">
               <p className="text-sm text-slate-300">No partners registered yet.</p>
               <p className="mt-2 text-sm text-slate-500">
-                Founding Reseller is invitation only — recruit 3–5 excellent introducers first.
+                Founding Acquisition Partner status is invitation only — recruit 3–5 excellent introducers first.
                 The workflow that matters now: Invitation → acceptance → referral → opportunity →
                 customer → commission.
               </p>

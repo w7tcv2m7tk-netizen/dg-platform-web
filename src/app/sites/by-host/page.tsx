@@ -167,9 +167,9 @@ export async function generateMetadata({
       : null;
     if (resellerInviteToken) {
       return {
-        title: "Founding Reseller invitation | DigitalGate",
+        title: "Founding Acquisition Partner invitation | DigitalGate",
         description:
-          "You've been personally invited to join DigitalGate's Founding Reseller Programme.",
+          "You've been personally invited to join DigitalGate's Founding Acquisition Partner Programme.",
         robots: { index: false, follow: false },
       };
     }
@@ -323,7 +323,7 @@ async function renderSite(
           <div className="mx-auto max-w-2xl px-6 py-16 text-slate-200">
             <h1 className="text-3xl font-bold text-white">Invitation not found</h1>
             <p className="mt-4 text-slate-300">
-              This Founding Reseller invitation link is invalid or has expired. If you
+              This Founding Acquisition Partner invitation link is invalid or has expired. If you
               were expecting an invitation, contact Ben Roe at hello@digitalgate.com.au.
             </p>
           </div>

@@ -1,5 +1,5 @@
 /**
- * DigitalGate Founding Reseller Programme™ — commercial lock.
+ * DigitalGate Founding Acquisition Partner Programme — commercial lock.
  * Not an affiliate programme. Invitation / acceptance only.
  * These definitions are for product + approved copy. Binding terms require solicitor review.
  */
@@ -8,20 +8,22 @@ import {
   BPS,
   bpsToPercentLabel,
   COMMISSION_PERIOD_MONTHS,
+  COMMERCIAL_PROGRAMMES,
+  FOUNDING_COHORT_REFERRAL,
 } from "./commercial-model";
 
 export const FOUNDING_RESELLER_PROGRAMME_NAME =
-  "DigitalGate Founding Reseller Programme";
+  "DigitalGate Founding Acquisition Partner Programme";
 
 export const RESELLER_MODEL =
-  "Resellers introduce and qualify. Ben closes. DigitalGate delivers.";
+  "Acquisition Partners introduce and qualify. Ben closes. DigitalGate delivers.";
 
 /** Explicit introducer positioning — not a traditional reseller who sells/owns/supports. */
 export const FOUNDING_RESELLER_POSITIONING = {
   headline: "Introduce. Refer. Earn recurring revenue.",
   body: "You introduce the opportunity. DigitalGate handles discovery, demonstration, proposal, onboarding and customer success.",
   principle:
-    "Founding Resellers don't sell, onboard or support customers. They introduce qualified businesses to DigitalGate. Ben / DigitalGate closes the opportunity.",
+    "Founding Acquisition Partners don't sell, onboard or support customers. They introduce qualified businesses to DigitalGate. Ben / DigitalGate closes the opportunity.",
 } as const;
 
 export const FOUNDING_RESELLER_HOW_IT_WORKS = [
@@ -98,7 +100,7 @@ export const FOUNDING_RESELLER_ONE_LINER =
 
 export const FOUNDING_RESELLER_ROLE = {
   principle:
-    "Founding Reseller = Introducer + Relationship Partner — not merely an affiliate.",
+    "Founding Acquisition Partner = Introducer + Relationship Partner — not merely an affiliate.",
   expectations: [
     {
       title: "Identify potential businesses",
@@ -140,7 +142,7 @@ export const RESELLER_PARTNER_LEVELS = [
   {
     level: "Level 3 — Strategic Reseller",
     summary:
-      "Selected partners may eventually conduct initial discovery, run basic demonstrations, identify platform opportunities, and specialise in an industry. First Founding Resellers start at Level 1/2 — not Level 3.",
+      "Selected partners may eventually conduct initial discovery, run basic demonstrations, identify platform opportunities, and specialise in an industry. First Founding Acquisition Partners start at Level 1/2 — not Level 3.",
     startHere: false,
   },
 ] as const;
@@ -241,7 +243,7 @@ export const FOUNDING_CUSTOMER_BENEFITS = [
 
 /** Customer offer — reseller is invitation only, not automatic */
 export const FOUNDING_RESELLER_INVITE_LINE =
-  `Selected Founding 10 members may be invited into the DigitalGate Founding Reseller Programme — ${bpsToPercentLabel(BPS.RESELLER)} commission on qualifying Platform + App subscription fees for the first ${COMMISSION_PERIOD_MONTHS} months of each new customer they directly refer. Founding 10 simple introductions may qualify at ${bpsToPercentLabel(BPS.FOUNDING_10_REFERRAL)} instead. Invitation only; not automatic.`;
+  `Selected Founding 10 members may be invited into the DigitalGate Founding Acquisition Partner Programme — ${bpsToPercentLabel(BPS.RESELLER)} Acquisition Partner commission on qualifying Platform + App subscription fees for the first ${COMMISSION_PERIOD_MONTHS} months of each new customer they directly refer. Founding 10 direct customer introductions (non-partner) qualify at ${bpsToPercentLabel(BPS.FOUNDING_10_REFERRAL)}. These are separate programmes. Invitation only; not automatic.`;
 
 export const QUALIFYING_COMMISSION_FEES = {
   includes: [
@@ -305,7 +307,7 @@ export const RESELLER_NEED_NOT = [
 export const APPROVED_PARTNER_MESSAGING = {
   programmeName: FOUNDING_RESELLER_PROGRAMME_NAME,
   headline: "Build a valuable referral revenue stream",
-  body: `Selected Founding 10 members may be invited to become DigitalGate Founding Resellers. Founding Resellers earn ${bpsToPercentLabel(BPS.RESELLER)} commission on qualifying Platform + App subscription fees for the first ${COMMISSION_PERIOD_MONTHS} months of every new customer they directly refer. Simple Founding 10 introductions may qualify at ${bpsToPercentLabel(BPS.FOUNDING_10_REFERRAL)}.`,
+  body: `Selected Founding 10 members may be invited to become DigitalGate Founding Acquisition Partners. Founding Acquisition Partners earn ${bpsToPercentLabel(BPS.RESELLER)} commission on qualifying Platform + App subscription fees for the first ${COMMISSION_PERIOD_MONTHS} months of every new customer they directly refer. Founding 10 direct customer referrals (non-partner) earn ${bpsToPercentLabel(BPS.FOUNDING_10_REFERRAL)} — a separate programme.`,
   close: "DigitalGate handles qualification, demonstration, contracting, implementation and customer billing. You make the introduction. We do the selling. They build their business on DigitalGate.",
   oneLiner: FOUNDING_RESELLER_ONE_LINER,
   example:
@@ -343,4 +345,27 @@ export const SOLICITOR_REVIEW_NOTE =
   "These programme rules are DigitalGate's commercial definitions for product and approved copy. They are not published as binding legal terms until reviewed by DigitalGate's solicitor and accountant (GST, payment timing, attribution, and agency).";
 
 /** Bump when programme rules on /partner/terms change in a material way. */
-export const FOUNDING_RESELLER_TERMS_VERSION = "2026-08-commercial-model-v2";
+export const FOUNDING_CUSTOMER_REFERRAL_PROGRAMME = {
+  name: COMMERCIAL_PROGRAMMES.foundingCustomerReferral,
+  periodMonths: COMMISSION_PERIOD_MONTHS,
+  tiers: [
+    {
+      cohort: FOUNDING_COHORT_REFERRAL.founding_10.label,
+      rateLabel: FOUNDING_COHORT_REFERRAL.founding_10.referralRateLabel,
+      summary: FOUNDING_COHORT_REFERRAL.founding_10.summary,
+    },
+    {
+      cohort: FOUNDING_COHORT_REFERRAL.founding_100.label,
+      rateLabel: FOUNDING_COHORT_REFERRAL.founding_100.referralRateLabel,
+      summary: FOUNDING_COHORT_REFERRAL.founding_100.summary,
+    },
+    {
+      cohort: FOUNDING_COHORT_REFERRAL.founding_1000.label,
+      rateLabel: FOUNDING_COHORT_REFERRAL.founding_1000.referralRateLabel,
+      summary: FOUNDING_COHORT_REFERRAL.founding_1000.summary,
+    },
+  ],
+  note: "Direct customer referral — separate from the 25% Acquisition Partner programme.",
+} as const;
+
+export const FOUNDING_RESELLER_TERMS_VERSION = "2026-08-commercial-model-v3";

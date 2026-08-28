@@ -32,13 +32,11 @@ SALES                   Acquire DigitalGate customers
   Opportunities         Scoring / opportunity surface
 
 PARTNERS                Scale distribution — people & organisations
-  Dashboard · Ecosystem · Briefing · Resellers · Onboarding · Operating Model
+  Dashboard · Ecosystem · Briefing · Onboarding · Operating Model
+  Acquisition Partners    Introduce & refer (25% channel) — /command/partners/acquisition
+  Delivery Partners       Implement & go-live — /command/delivery
   (+ More ▾ when overflow)
-
-DELIVERY                Get customers live — implementation operations
-  Dashboard · Projects · Tasks · Customers · Implementation Plans · Training · Invitations
-  (+ More ▾: QA & Go-Live · Team · Activity · Documents · Reports)
-  Architecture: Project (container) · Plan (scope) · Tasks (work) · Training (enablement)
+  Architecture (Delivery): Project (container) · Plan (scope) · Tasks (work) · Training (enablement)
   Lifecycle: DigitalGate Implementation Lifecycle™ (16 stages) on each Implementation Project
   Note: “Onboarding” is the early phase of the lifecycle (stages 01–05), not a Delivery nav item.
 
@@ -55,21 +53,20 @@ CUSTOMER WORKSPACES     Run individual businesses
 |---------|-----|
 | **Command Centre** | Runs DigitalGate |
 | **Sales** | Sells DigitalGate |
-| **Partners** | Extends DigitalGate — partner *relationships* |
-| **Delivery** | Gets customers live — implementation *execution* |
+| **Partners** | Extends DigitalGate — partner *relationships* (Acquisition + Delivery divisions) |
 | **Platform → Network** | Network *transactions* (referrals, commissions, payouts) |
 | **Customer Workspaces** | Runs the customer’s business |
 
-Do not blur these. Partners ≠ Sales ≠ Delivery. Partners ≠ Network. Command Centre ≠ customer Industry Apps.
+Do not blur these. Partners ≠ Sales. Partners ≠ Network. Command Centre ≠ customer Industry Apps.
 
-**Partners vs Delivery (locked):**
+**Partners divisions (locked):**
 
-| Area | Question |
-|------|----------|
-| **Partners** | Who helps DigitalGate? |
-| **Delivery** | How do we get customers live? |
+| Division | Question | Surface |
+|----------|----------|---------|
+| **Acquisition Partners** | Who introduces customers? | `/command/partners/acquisition` |
+| **Delivery Partners** | How do we get customers live? | `/command/delivery` |
 
-Breadcrumb / eyebrow for Delivery: **DigitalGate · Delivery** — not “Partners · Delivery”.
+Breadcrumb / eyebrow for Delivery Partners: **DigitalGate · Delivery** — not “Partners · Delivery” as a confused synonym; Delivery Partners is a division under Partners.
 
 **Implementation Lifecycle™:** 16 stages are canonical everywhere (Partners Onboarding, Delivery dashboard, pipeline, plans). Projects are created when a customer **enters implementation** — Founding 10 is the current acquisition programme, not the permanent trigger.
 
@@ -115,13 +112,15 @@ Do **not** put “Prospecting” as the Growth Engine header synonym for Discove
 
 | Term | Meaning |
 |------|---------|
+| **Founding Acquisition Partner** | Invitation-only introducer in the 25% acquisition channel |
+| **Acquisition Partner** | Division / channel for introduce-and-refer partners |
 | **Delivery Partner** | Authorised to implement |
 | **Certified Delivery Partner** | Completed DigitalGate certification |
 | **Active Delivery Partner** | Certified and currently operating |
 
-**Lifecycle:** Applicant → Approved → Certified → Active
+**Lifecycle (Delivery):** Applicant → Approved → Certified → Active
 
-Commercial types remain: Founding Reseller · Delivery Partner · Technology Partner · Strategic Partner.
+Commercial types remain: Founding Acquisition Partner · Delivery Partner · Technology Partner · Strategic Partner.
 
 ---
 

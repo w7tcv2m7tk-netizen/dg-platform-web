@@ -41,8 +41,8 @@ export default async function StaffDeliveryDashboardPage() {
 
   return (
     <DeliveryCommandPage
-      title="Delivery"
-      description="Implementation projects, tasks and go-live — the DigitalGate delivery function."
+      title="Delivery Partners"
+      description="Implementation projects, onboarding and go-live — the Delivery Partner division."
       navActive="dashboard"
       headerActions={
         <div className="flex flex-wrap gap-3">

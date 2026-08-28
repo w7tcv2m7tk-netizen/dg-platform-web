@@ -53,7 +53,7 @@ function FlowColumn({
 }
 
 export function PartnerPlaybookContent() {
-  const resellerStages = SALES_PROCESS_STAGES.filter((s) => s.owner === "Reseller").map(
+  const resellerStages = SALES_PROCESS_STAGES.filter((s) => s.owner === "Acquisition Partner").map(
     (s) => s.title,
   );
   const dgStages = SALES_PROCESS_STAGES.filter((s) => s.owner === "DigitalGate").map(
@@ -64,7 +64,7 @@ export function PartnerPlaybookContent() {
     <div className="max-w-3xl space-y-10">
       <div className="rounded-xl border border-sky-700/30 bg-sky-900/10 px-6 py-5">
         <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">
-          Founding Reseller playbook
+          Founding Acquisition Partner playbook
         </p>
         <p className="mt-2 text-lg font-semibold text-white">{RESELLER_MODEL}</p>
         <p className="mt-2 text-sm text-slate-300">{FOUNDING_RESELLER_ROLE.principle}</p>
@@ -173,7 +173,7 @@ export function PartnerPlaybookContent() {
         <h2 className="text-base font-semibold text-white">The journey</h2>
         <p className="mt-1 font-mono text-sm text-sky-300">{RESELLER_JOURNEY_LINE}</p>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <FlowColumn title="You (Reseller)" steps={resellerStages} accent="text-sky-400" />
+          <FlowColumn title="You (Acquisition Partner)" steps={resellerStages} accent="text-sky-400" />
           <FlowColumn title="DigitalGate" steps={dgStages} accent="text-violet-400" />
         </div>
       </section>
@@ -232,7 +232,7 @@ export function PartnerPlaybookContent() {
       </section>
 
       <section>
-        <h2 className="text-base font-semibold text-white">Founding Reseller status</h2>
+        <h2 className="text-base font-semibold text-white">Founding Acquisition Partner status</h2>
         <p className="mt-1 text-sm text-slate-400">
           You&apos;re helping establish the channel — not just another referral affiliate.
         </p>

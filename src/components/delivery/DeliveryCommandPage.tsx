@@ -8,9 +8,9 @@ export function DeliveryCommandPage({
   description,
   children,
   navActive: _navActive,
-  eyebrow = "DigitalGate · Delivery",
-  backHref = "/command",
-  backLabel = "Command Centre",
+  eyebrow = "DigitalGate · Partners · Delivery Partners",
+  backHref = "/command/partners",
+  backLabel = "Partners",
   headerActions,
 }: {
   title: string;

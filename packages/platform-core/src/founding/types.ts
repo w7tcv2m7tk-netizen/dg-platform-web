@@ -204,7 +204,7 @@ export const FOUNDING_PERSONAL_INVITE_BENEFITS = [
   "Direct access to me as the founder",
   "Input into product and roadmap priorities",
   "Preferential Professional Services terms where applicable",
-  "Selected members may be invited into the DigitalGate Founding Reseller Programme (not automatic)",
+  "Selected members may be invited into the DigitalGate Founding Acquisition Partner Programme (not automatic)",
 ];
 
 export type FoundingOpportunityMeta = {

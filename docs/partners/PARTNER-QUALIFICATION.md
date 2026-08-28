@@ -3,14 +3,14 @@
 **Status:** Invitation / acceptance only  
 **Related:** [RESELLER-PROGRAMME.md](./RESELLER-PROGRAMME.md)
 
-Selected Founding 10 members **may** be invited. Membership of Founding 10 does **not** create a reseller.
+Selected Founding 10 members **may** be invited. Membership of Founding 10 does **not** create an acquisition partner.
 
 ## Invite only if
 
 - They can introduce Australian owner/operators DigitalGate actually wants.
 - They will not need to demo, implement, or support the product.
 - They will use approved copy (no earnings guarantees, no “make $180k/year”).
-- DigitalGate still has first-wave / Founding reseller capacity.
+- DigitalGate still has first-wave / Founding Acquisition Partner capacity.
 
 ## Must not claim (staff + partners)
 
@@ -18,4 +18,4 @@ Guaranteed leads, rankings, AI recommendations, revenue, or results; unreleased 
 
 ## Product
 
-Staff: `/command/partners` and `/command/partners/resellers`. Qualification notes belong in CRM on the partner / referral records — not in this doc per prospect.
+Staff: `/command/partners` and `/command/partners/acquisition`. Qualification notes belong in CRM on the partner / referral records — not in this doc per prospect.

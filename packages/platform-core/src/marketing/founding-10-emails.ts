@@ -32,7 +32,7 @@ const FOUNDING_ADVANTAGES = [
   "Early access to selected Apps",
   "Direct roadmap input",
   "Founding recognition",
-  "Selected members may be invited into the Founding Reseller Programme (not automatic)",
+  "Selected members may be invited into the Founding Acquisition Partner Programme (not automatic)",
 ];
 
 function metaString(

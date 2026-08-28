@@ -6,7 +6,10 @@ import {
   getPartnerByClerkUserId,
   getPartnerDashboardMetrics,
   listPartnerReferrals,
+  PARTNER_COMMISSION_CONFIG,
   PARTNER_REFERRAL_STATUS_LABELS,
+  bpsToPercent,
+  COMMISSION_PERIOD_MONTHS,
 } from "@dg/platform-core";
 
 function centsToDisplay(cents: number): string {
@@ -43,9 +46,26 @@ export default async function PartnerDashboardPage() {
   ]);
 
   const recentReferrals = referrals.slice(0, 10);
+  const config = PARTNER_COMMISSION_CONFIG[partner.partnerType];
+  const commissionLabel =
+    config.overrideCommissionBps != null && config.commissionBps > 0
+      ? `${bpsToPercent(config.commissionBps)}% own + ${bpsToPercent(config.overrideCommissionBps)}% override`
+      : config.serviceCommissionBps && !config.platformSubscriptionCommission
+        ? `${bpsToPercent(config.serviceCommissionBps)}% service revenue`
+        : `${bpsToPercent(config.commissionBps)}%`;
 
   return (
     <div className="max-w-4xl space-y-8">
+      <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 px-5 py-4">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-300">
+          Your programme
+        </p>
+        <p className="mt-1 text-lg font-semibold text-white">{config.label}</p>
+        <p className="mt-1 text-sm text-slate-300">
+          {config.programme} · {commissionLabel} · first {COMMISSION_PERIOD_MONTHS} months of
+          qualifying revenue actually collected
+        </p>
+      </div>
       {/* Metrics */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <MetricCard label="Businesses Referred" value={metrics.businessesReferred.toString()} />

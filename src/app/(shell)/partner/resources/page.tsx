@@ -20,7 +20,7 @@ export default function PartnerResourcesPage() {
           href="/partner/playbook"
           className="mt-4 inline-block text-sm font-medium text-sky-400 hover:underline"
         >
-          Full Founding Reseller playbook →
+          Full Founding Acquisition Partner playbook →
         </Link>
         <p className="mt-2 text-sm text-slate-400">{APPROVED_PARTNER_MESSAGING.example}</p>
         <p className="mt-2 text-sm text-slate-400">{APPROVED_PARTNER_MESSAGING.examplePaid}</p>
@@ -79,7 +79,7 @@ export default function PartnerResourcesPage() {
             href="/partner/playbook"
             className="block rounded-xl border border-sky-700/40 bg-sky-900/10 px-5 py-4 hover:border-sky-500/50"
           >
-            <p className="font-medium text-white">Founding Reseller playbook</p>
+            <p className="font-medium text-white">Founding Acquisition Partner playbook</p>
             <p className="mt-0.5 text-sm text-slate-400">
               Your role, one-liner, journey, partner levels, good prospects, and role-play scenarios.
             </p>
