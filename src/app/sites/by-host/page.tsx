@@ -14,7 +14,6 @@ import { BusinessAuditCapture } from "@/components/websites/BusinessAuditCapture
 import { HideawayCircleCapture } from "@/components/websites/HideawayCircleCapture";
 import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
 import { WebsitePageRenderer } from "@/components/websites/WebsiteRenderer";
-import { FoundingResellerPublicCopy } from "@/components/founding/FoundingResellerPublicCopy";
 import { websiteRendererCss } from "@/components/websites/website-renderer-css";
 import {
   isRetiredPublicOnboarding,
@@ -607,9 +606,6 @@ async function renderSite(
             showFooter={showFooter}
             funnelTemplate={funnelTemplate}
           />
-          {isDgSiteSlug(slug) && page.slug === "founding-customers" ? (
-            <FoundingResellerPublicCopy />
-          ) : null}
         </>
       )}
     </>
