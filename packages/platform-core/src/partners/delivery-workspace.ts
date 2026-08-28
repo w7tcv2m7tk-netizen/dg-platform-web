@@ -74,9 +74,10 @@ export const DELIVERY_MANAGER_CAN_SEE = [
 ] as const;
 
 /**
- * Progress checklist on each Implementation Project — same 16 stages as
+ * Progress checklist on each Implementation Project — same 15 stages as
  * DigitalGate Implementation Lifecycle™ (`IMPLEMENTATION_SOP_STAGES`).
- * Do not maintain a shorter parallel list.
+ * Customer Success is a post-implementation operating status, not a milestone.
+ * Do not maintain a parallel milestone list.
  */
 export const DELIVERY_PROGRESS_MILESTONES = IMPLEMENTATION_SOP_STAGES.map((stage) => ({
   id: stage.id,

@@ -115,7 +115,7 @@ Operator OS — not a customer tenant. Industry Apps are **never** shown here.
 | **Command Centre** | What should DigitalGate do today? (**Priorities → AI Advisor → Alerts**) |
 | **Sales** | How is acquisition performing? (**Sales → Growth Engine™** for tenant growth · **Command Centre → Growth Engine™** for DigitalGate GTM · Founding 10 · Sales Week · Opportunities) |
 | **Partners** | Who are our partners? (**Dashboard · Ecosystem · Briefing · Resellers · Onboarding · Operating Model**) — relationships only; Referrals/Commissions live under Platform → Network |
-| **Delivery** | How do we get customers live? (**Dashboard · Projects · Tasks · Customers · Implementation Plans · Training · Invitations** + More) — Project / Plan / Tasks / Training; 16-stage Implementation Lifecycle™ on each project; onboarding is an early phase, not a top-level nav item |
+| **Delivery** | How do we get customers live? (**Dashboard · Projects · Tasks · Customers · Implementation Plans · Training · Invitations** + More) — Project / Plan / Tasks / Training; 15-stage Implementation Lifecycle™ on each project; onboarding is an early phase, not a top-level nav item |
 | **Customer Intelligence** | Which customers need attention? (Portfolio · Client Health · Client Activity · Opportunities · Attention Required — Success Score™) |
 | **Platform Intelligence** | How is **DigitalGate** performing? (activity · service status · alerts; AI usage honest until telemetry) |
 | **Commercial** | Revenue, subscriptions, expansion (live Commerce attribution) |

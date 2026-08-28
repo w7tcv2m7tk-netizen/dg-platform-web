@@ -44,7 +44,7 @@ const SECTION_META: Record<
     nav: "plans",
     title: "Implementation Plans",
     description:
-      "Standard 16-stage implementation framework and Launch / Growth / Enterprise plan packages.",
+      "Standard 15-stage implementation framework and Launch / Growth / Enterprise plan packages.",
   },
   activity: {
     nav: "activity",

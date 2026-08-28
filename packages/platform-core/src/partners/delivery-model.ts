@@ -1,15 +1,101 @@
 /**
  * DigitalGate Delivery Operating Model — lean formal lock.
- * Hub-and-spoke: Ben closes, resellers introduce, Implementation Lead owns delivery standard,
- * Delivery Team provides scalable capacity. Customer relationship stays with DigitalGate.
+ * Hub-and-spoke: Acquisition Partners introduce, Ben closes, Implementation Lead owns
+ * delivery standard, Delivery Partners provide scalable capacity.
+ * Customer relationship stays with DigitalGate.
  */
 
 export const DELIVERY_MODEL_POSITIONING =
   "Powered by DigitalGate — not the customer's de facto software provider. DigitalGate owns account, subscription, platform, data, product, support and AI infrastructure.";
 
+/** Division hero — Delivery Partners page */
+export const DELIVERY_PARTNER_POSITIONING = {
+  headline: "Implement DigitalGate. Build a recurring services business.",
+  body: "Delivery Partners configure, migrate, implement and optimise DigitalGate for customers. DigitalGate owns the platform, product, methodology and customer relationship; Delivery Partners earn from Professional Services and Support & Success.",
+  principle: "DigitalGate wins the customer. You make the customer successful.",
+} as const;
+
+export const DELIVERY_PARTNER_WORKFLOW_STRIP =
+  "Customer accepted → Assigned → Discovery → Implement → Train → Go live → Support → Optimise";
+
+export const DELIVERY_PARTNER_ROLE_SPLIT = [
+  {
+    title: "DigitalGate",
+    body: "Platform, architecture, methodology, product, support and customer relationship.",
+  },
+  {
+    title: "Delivery Partner",
+    body: "Implementation, configuration, migration, training and approved professional services.",
+  },
+  {
+    title: "Customer",
+    body: "Business decisions, information, adoption and outcomes.",
+  },
+] as const;
+
+export const DELIVERY_PARTNER_ECONOMICS = {
+  intro:
+    "Delivery Partners do not earn commission from DigitalGate Platform subscriptions. Their economics are based on the services they deliver.",
+  streams: [
+    {
+      title: "Professional Services",
+      body: "Earn revenue from approved implementation, configuration, migration, training and specialist projects.",
+    },
+    {
+      title: "Support & Success",
+      body: "Build recurring service revenue through approved Support & Success Plans.",
+    },
+    {
+      title: "Expansion",
+      body: "Additional implementation and optimisation work as customers adopt more of DigitalGate.",
+    },
+  ],
+  detailHrefLabel: "Partners → Commissions",
+} as const;
+
+export const DELIVERY_PARTNER_RESPONSIBILITIES = [
+  "Customer discovery",
+  "DigitalGate configuration",
+  "Data migration",
+  "Connector setup",
+  "App configuration",
+  "Workflow implementation",
+  "AI / Business Brain configuration",
+  "Testing and QA",
+  "Staff training",
+  "Go-live support",
+  "Post-launch optimisation",
+  "Approved Support & Success services",
+] as const;
+
+export const DIGITALGATE_RETAINS = [
+  "Platform ownership",
+  "Product roadmap",
+  "Core infrastructure",
+  "Platform security",
+  "Core support",
+  "Customer relationship",
+  "Commercial platform subscription",
+  "Methodology and standards",
+] as const;
+
+/** Scaffold labels for future capacity dashboard */
+export const DELIVERY_CAPACITY_STATUSES = [
+  { id: "available", label: "Available" },
+  { id: "assigned", label: "Assigned" },
+  { id: "at_capacity", label: "At capacity" },
+  { id: "over_capacity", label: "Over capacity" },
+] as const;
+
+export const DELIVERY_PROJECT_HEALTH = [
+  { id: "on_track", label: "On Track", emoji: "🟢" },
+  { id: "at_risk", label: "At Risk", emoji: "🟠" },
+  { id: "blocked", label: "Blocked", emoji: "🔴" },
+] as const;
+
 export const COMMERCIAL_ENGINE = [
   {
-    stage: "Resellers",
+    stage: "Acquisition Partners",
     body: "Create opportunities through trusted introductions.",
   },
   {
@@ -94,9 +180,9 @@ export const IMPLEMENTATION_LEAD_FIRST_MANDATE =
   "Build the DigitalGate Implementation System — not only onboard customers. Create the standard operating procedure so every future customer follows the same framework.";
 
 /**
- * DigitalGate Implementation Lifecycle™ — canonical 16-stage model.
+ * DigitalGate Implementation Lifecycle™ — canonical 15-stage implementation SOP.
+ * Customer Success is a post-implementation operating layer — not stage 16.
  * Single source for Partners Onboarding, Delivery dashboard, pipeline and plans.
- * Do not maintain a parallel 15-stage SOP.
  */
 export const IMPLEMENTATION_LIFECYCLE_NAME = "DigitalGate Implementation Lifecycle™";
 
@@ -191,19 +277,38 @@ export const IMPLEMENTATION_SOP_STAGES = [
     title: "30-Day Review",
     body: "Review adoption, usage, goals, issues, opportunities, feature requirements and potential App expansion.",
   },
-  {
-    id: "customer_success",
-    n: "16",
-    title: "Customer Success",
-    body: "Transition the customer into ongoing DigitalGate support, optimisation, account management and continuous improvement.",
-  },
 ] as const;
 
-/** Pipeline / kanban ids — same order as IMPLEMENTATION_SOP_STAGES. */
-export const DELIVERY_PIPELINE_STAGES = IMPLEMENTATION_SOP_STAGES.map((stage) => ({
-  id: stage.id,
-  title: stage.title,
-}));
+/**
+ * Post-implementation operating layer — not a numbered Implementation Lifecycle stage.
+ * Projects may still carry `customer_success` as a pipeline status after stage 15.
+ */
+export const CUSTOMER_SUCCESS_OPERATING = {
+  id: "customer_success",
+  title: "Ongoing Customer Success",
+  body: "After the 15-stage implementation SOP, the account moves into ongoing support, optimisation and expansion — not a sixteenth implementation stage.",
+  activities: [
+    "Support",
+    "Optimisation",
+    "Reviews",
+    "Expansion",
+    "Additional Apps",
+    "Training",
+    "Continuous improvement",
+  ],
+} as const;
+
+/** Pipeline / kanban — 15 implementation stages + Customer Success operating state. */
+export const DELIVERY_PIPELINE_STAGES = [
+  ...IMPLEMENTATION_SOP_STAGES.map((stage) => ({
+    id: stage.id,
+    title: stage.title,
+  })),
+  {
+    id: CUSTOMER_SUCCESS_OPERATING.id,
+    title: "Customer Success",
+  },
+] as const;
 
 export const IMPLEMENTATION_PACKAGES = [
   {

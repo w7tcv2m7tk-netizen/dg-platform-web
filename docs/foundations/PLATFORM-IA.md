@@ -37,7 +37,7 @@ PARTNERS                Scale distribution — people & organisations
   Delivery Partners       Implement & go-live — /command/delivery
   (+ More ▾ when overflow)
   Architecture (Delivery): Project (container) · Plan (scope) · Tasks (work) · Training (enablement)
-  Lifecycle: DigitalGate Implementation Lifecycle™ (16 stages) on each Implementation Project
+  Lifecycle: DigitalGate Implementation Lifecycle™ (15 stages) on each Implementation Project
   Note: “Onboarding” is the early phase of the lifecycle (stages 01–05), not a Delivery nav item.
 
 PLATFORM → Network      Commercial network transactions (not partner CRM)
@@ -68,7 +68,7 @@ Do not blur these. Partners ≠ Sales. Partners ≠ Network. Command Centre ≠ 
 
 Breadcrumb / eyebrow for Delivery Partners: **DigitalGate · Delivery** — not “Partners · Delivery” as a confused synonym; Delivery Partners is a division under Partners.
 
-**Implementation Lifecycle™:** 16 stages are canonical everywhere (Partners Onboarding, Delivery dashboard, pipeline, plans). Projects are created when a customer **enters implementation** — Founding 10 is the current acquisition programme, not the permanent trigger.
+**Implementation Lifecycle™:** 15 stages are canonical everywhere (Partners Onboarding, Delivery dashboard, pipeline, plans). Projects are created when a customer **enters implementation** — Founding 10 is the current acquisition programme, not the permanent trigger.
 
 **Partners vs Network (locked):**
 

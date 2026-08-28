@@ -355,7 +355,7 @@ export const IMPLEMENTATION_CERT_STATUS = [
 ] as const;
 export type ImplementationCertStatus = (typeof IMPLEMENTATION_CERT_STATUS)[number];
 
-/** Canonical Implementation Lifecycle™ — single source: delivery-model.ts (16 stages). */
+/** Canonical Implementation Lifecycle™ — single source: delivery-model.ts (15 stages). */
 export const CUSTOMER_ONBOARDING_STAGES = IMPLEMENTATION_SOP_STAGES.map((stage) => ({
   id: stage.id,
   n: stage.n,
@@ -382,7 +382,7 @@ export const IMPLEMENTATION_FEE_BANDS = [
 ] as const;
 
 export const IMPLEMENTATION_FEE_DISCLAIMER =
-  "Illustrative bands only — not published pricing. Implementation is a separate commercial activity from reseller commission. Customers may self-implement or pay for implementation.";
+  "Illustrative bands only — not published pricing. Implementation is a separate commercial activity from Acquisition Partner commission. Customers may self-implement or pay for implementation.";
 
 /** Specialist tracks = certifications / capabilities — not separate partner types. */
 export const CERTIFIED_SPECIALIST_TRACKS = [
