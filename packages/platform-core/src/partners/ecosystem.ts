@@ -1,9 +1,11 @@
 /**
  * DigitalGate Partner Ecosystem — canonical architecture lock.
  *
- * Do not collapse Resellers, Delivery Partners, Technology Partners, Strategic Partners,
+ * Do not collapse Acquisition Partners, Delivery Partners, Technology Partners, Strategic Partners,
  * Specialists or Customer Success into a generic partner type.
  * Keep DigitalGate’s own Sales / Growth Engine completely separate from the Partner ecosystem.
+ *
+ * Internal name: DigitalGate Partner Operating System (Partner OS).
  *
  * Model: Partner → Type → Capabilities → Certification → Referrals → Customers →
  * Implementation → Success → Revenue/Commission
@@ -19,9 +21,48 @@ import {
   bpsToPercentLabel,
 } from "./commercial-model";
 
+/** Internal product name — Partners area is the Partner Operating System, not a generic CRM. */
+export const PARTNER_OS_NAME = "DigitalGate Partner Operating System";
+
+/** Commercial engine — acquisition through expansion. */
+export const PARTNER_COMMERCIAL_ENGINE =
+  "DigitalGate Sales → Acquisition Partners → Customers → Delivery Partners → Customer Success → Expansion";
+
 /** Strengthened ownership principle — channel partners never own the customer. */
 export const PARTNER_ECOSYSTEM_POSITIONING =
   "DigitalGate owns the platform, product roadmap, methodology, standards and customer relationship. Partners extend DigitalGate's ability to acquire, implement and optimise the platform.";
+
+/**
+ * Fundamental Partner OS ownership — architectural lock for scale.
+ * Nobody owns the DigitalGate customer relationship independently of DigitalGate.
+ */
+export const PARTNER_OS_OWNERSHIP = {
+  digitalgateOwns: [
+    "Platform",
+    "Customer relationship",
+    "Customer data",
+    "Product",
+    "Pricing",
+    "Methodology",
+    "Standards",
+    "Billing",
+    "Customer success framework",
+    "Support framework",
+    "Partner programme",
+  ],
+  acquisitionPartnersOwn: [
+    "Relationships they introduce",
+    "Their channel activity",
+    "Their partner earnings",
+  ],
+  deliveryPartnersOwn: [
+    "Delivery work assigned to them",
+    "Their service revenue",
+    "Their delivery capability",
+  ],
+  principle:
+    "DigitalGate owns the centre. Partners sit around it — they never own the customer relationship independently of DigitalGate.",
+} as const;
 
 /**
  * Visual centrepiece — who does what in the ecosystem.
@@ -75,8 +116,8 @@ export const PARTNER_ECOSYSTEM_LAYERS = PARTNER_ECOSYSTEM_HIERARCHY.map((h) => (
 export const PARTNER_ECOSYSTEM_ROLES = [
   {
     type: "FOUNDING_10_REFERRAL",
-    label: "Founding 10 Referral",
-    commercialLabel: "Founding 10 Referral",
+    label: "Founding 10 Referrer",
+    commercialLabel: "Founding 10 Referrer",
     primaryRole: "Introduce & refer",
     acquisition: true,
     onboarding: false as const,
@@ -86,7 +127,7 @@ export const PARTNER_ECOSYSTEM_ROLES = [
   },
   {
     type: "FOUNDING_100_REFERRAL",
-    label: "Founding 100 Referral",
+    label: "Founding 100 Referrer",
     commercialLabel: "Founding 100 Referrer",
     primaryRole: "Introduce & refer",
     acquisition: true,
@@ -97,7 +138,7 @@ export const PARTNER_ECOSYSTEM_ROLES = [
   },
   {
     type: "FOUNDING_1000_REFERRAL",
-    label: "Founding 1,000+ Referral",
+    label: "Founding 1,000+ Referrer",
     commercialLabel: "Founding 1,000+ Referrer",
     primaryRole: "Introduce & refer",
     acquisition: true,
@@ -136,14 +177,14 @@ export const PARTNER_ECOSYSTEM_ROLES = [
     acquisition: true,
     onboarding: false as const,
     technical: false as boolean | "limited" | "optional",
-    economics: `${bpsToPercentLabel(BPS.CHANNEL_MANAGER_DIRECT)} own customers + ${bpsToPercentLabel(BPS.CHANNEL_MANAGER_OVERRIDE)} override on managed Acquisition Partners · first ${COMMISSION_PERIOD_MONTHS} months`,
+    economics: `${bpsToPercentLabel(BPS.CHANNEL_MANAGER_DIRECT)} own customers + ${bpsToPercentLabel(BPS.CHANNEL_MANAGER_OVERRIDE)} override on qualifying Platform + App revenue from Acquisition Partners they directly manage · first ${COMMISSION_PERIOD_MONTHS} months`,
     phase: 1,
   },
   {
     type: "IMPLEMENTATION_PARTNER",
-    label: "Delivery",
+    label: "Delivery Partner",
     commercialLabel: "Delivery Partner",
-    primaryRole: "Implement & support",
+    primaryRole: "Implement & onboard",
     acquisition: false,
     onboarding: true as const,
     technical: "limited" as boolean | "limited" | "optional",
@@ -158,7 +199,7 @@ export const PARTNER_ECOSYSTEM_ROLES = [
     acquisition: false,
     onboarding: true as const,
     technical: "limited" as boolean | "limited" | "optional",
-    economics: "25% own delivery + 5% override on managed Delivery Partners' service revenue",
+    economics: `25% own delivery + ${bpsToPercentLabel(BPS.DELIVERY_CHANNEL_MANAGER_OVERRIDE)} override on qualifying Professional Services + Support & Success revenue from Delivery Partners they directly manage`,
     phase: 2,
   },
   {
@@ -212,8 +253,8 @@ export const PARTNER_CAPABILITIES = [
   },
   {
     id: "customer_success",
-    title: "Customer Success",
-    body: "Post go-live reviews, optimisation and ongoing value.",
+    title: "Customer Success capability",
+    body: "Optimisation, reviews and ongoing value after go-live — a service capability, not automatic Delivery Partner ownership.",
   },
 ] as const;
 

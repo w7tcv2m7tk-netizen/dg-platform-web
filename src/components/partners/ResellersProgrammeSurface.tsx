@@ -55,8 +55,7 @@ export async function ResellersProgrammeSurface() {
           Trusted acquisition partners who open doors to businesses that DigitalGate can help.
         </p>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          You open the door. DigitalGate does the selling and delivery. You build recurring income
-          from the customers you introduce.
+          {FOUNDING_RESELLER_POSITIONING.body}
         </p>
         <p className="mt-3 max-w-2xl rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-100/90">
           <span className="font-semibold text-white">

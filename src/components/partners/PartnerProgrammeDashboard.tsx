@@ -1,5 +1,10 @@
 import Link from "next/link";
 import type { PartnerDashboardWorkspace } from "@dg/platform-core";
+import {
+  PARTNER_COMMERCIAL_ENGINE,
+  PARTNER_OS_NAME,
+  PARTNER_OS_OWNERSHIP,
+} from "@dg/platform-core";
 
 function formatAud(cents: number) {
   return (cents / 100).toLocaleString("en-AU", {
@@ -75,7 +80,7 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
           ← Command Centre
         </Link>
         <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400">
-          Partners
+          Partners · {PARTNER_OS_NAME}
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Partner Network</h1>
         <p className="mt-3 max-w-2xl text-base text-slate-200">
@@ -84,8 +89,9 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
         </p>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
           Acquisition Partners bring customers in. Delivery Partners implement and onboard them.
-          Founding 10 remains the customer programme — separate from partner status.
+          Founding 10 / 100 / 1,000+ are customer referral cohorts — not partner divisions.
         </p>
+        <p className="mt-2 max-w-2xl text-xs text-slate-500">{PARTNER_COMMERCIAL_ENGINE}</p>
       </header>
 
       <main className="dg-page-main space-y-8">
@@ -419,6 +425,24 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
 
         <section className="rounded-xl border border-slate-800 bg-slate-950/30 px-5 py-5">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+            Partner OS ownership
+          </p>
+          <p className="mt-2 text-sm text-slate-400">{PARTNER_OS_OWNERSHIP.principle}</p>
+          <div className="mt-4 grid gap-4 lg:grid-cols-3">
+            <OwnershipList title="DigitalGate owns" items={PARTNER_OS_OWNERSHIP.digitalgateOwns} />
+            <OwnershipList
+              title="Acquisition Partners own"
+              items={PARTNER_OS_OWNERSHIP.acquisitionPartnersOwn}
+            />
+            <OwnershipList
+              title="Delivery Partners own"
+              items={PARTNER_OS_OWNERSHIP.deliveryPartnersOwn}
+            />
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-slate-800 bg-slate-950/30 px-5 py-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
             DigitalGate commercial architecture
           </p>
           <dl className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -449,6 +473,19 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
         </section>
       </main>
     </>
+  );
+}
+
+function OwnershipList({ title, items }: { title: string; items: readonly string[] }) {
+  return (
+    <div>
+      <p className="text-sm font-medium text-slate-200">{title}</p>
+      <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-500">
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

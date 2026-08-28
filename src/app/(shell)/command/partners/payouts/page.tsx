@@ -49,7 +49,7 @@ export default async function PartnerPayoutsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-700/60 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                    <th className="px-4 py-3">Reseller</th>
+                    <th className="px-4 py-3">Acquisition Partner</th>
                     <th className="px-4 py-3">Customer</th>
                     <th className="px-4 py-3">Period</th>
                     <th className="px-4 py-3">Amount</th>

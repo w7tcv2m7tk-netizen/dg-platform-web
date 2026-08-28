@@ -1,4 +1,4 @@
-// DigitalGate Partner Programme — shared types
+// DigitalGate Partner Operating System — shared types
 
 import {
   BPS,

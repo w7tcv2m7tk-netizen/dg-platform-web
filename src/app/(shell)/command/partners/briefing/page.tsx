@@ -7,7 +7,7 @@ export default function PartnerBriefingPage() {
     <>
       <header className="dg-page-header">
         <Link href="/command/partners" className="text-sm text-sky-400 hover:underline">
-          ← Partner Programme
+          ← Partner Operating System
         </Link>
         <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-sky-400">
           Partner Briefing

@@ -1,5 +1,5 @@
 /**
- * Partner Programme dashboard workspace — operator pulse + attention queue.
+ * Partner Operating System dashboard workspace — operator pulse + attention queue.
  *
  * Developer rule: Partner Dashboard must never become a prospecting or sales pipeline.
  * DigitalGate’s customer acquisition remains owned by Sales / Growth Engine.

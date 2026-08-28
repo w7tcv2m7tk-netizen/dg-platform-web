@@ -28,6 +28,7 @@ import {
   PARTNER_ECOSYSTEM_PHASES,
   PARTNER_ECOSYSTEM_POSITIONING,
   PARTNER_ECOSYSTEM_ROLES,
+  PARTNER_OS_OWNERSHIP,
   RESELLER_DOES_NOT_ONBOARD,
   FOUNDING_IMPLEMENTATION_TARGET,
   DELIVERY_LAYERS,
@@ -44,6 +45,32 @@ export function PartnerEcosystemOverview() {
         <p className="mt-2 text-lg font-semibold text-white">{PARTNER_ECOSYSTEM_POSITIONING}</p>
         <p className="mt-3 text-sm text-slate-400">{RESELLER_DOES_NOT_ONBOARD}</p>
       </div>
+
+      <section>
+        <h2 className="text-base font-semibold text-white">Partner OS ownership</h2>
+        <p className="mt-1 text-sm text-slate-400">{PARTNER_OS_OWNERSHIP.principle}</p>
+        <div className="mt-4 grid gap-4 lg:grid-cols-3">
+          {(
+            [
+              ["DigitalGate owns", PARTNER_OS_OWNERSHIP.digitalgateOwns],
+              ["Acquisition Partners own", PARTNER_OS_OWNERSHIP.acquisitionPartnersOwn],
+              ["Delivery Partners own", PARTNER_OS_OWNERSHIP.deliveryPartnersOwn],
+            ] as const
+          ).map(([title, items]) => (
+            <div
+              key={title}
+              className="rounded-xl border border-slate-700/60 bg-slate-800/40 px-4 py-4"
+            >
+              <p className="text-sm font-semibold text-white">{title}</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-400">
+                {items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Hierarchy — visual centrepiece */}
       <section>

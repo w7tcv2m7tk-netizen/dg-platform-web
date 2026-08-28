@@ -18,10 +18,10 @@ export const FOUNDING_RESELLER_PROGRAMME_NAME =
 export const RESELLER_MODEL =
   "Acquisition Partners introduce and qualify. Ben closes. DigitalGate delivers.";
 
-/** Explicit introducer positioning — not a traditional software reseller. */
+/** Explicit introducer positioning — channel model, not a traditional software reseller. */
 export const FOUNDING_RESELLER_POSITIONING = {
-  headline: "Introduce. Refer. Earn recurring revenue.",
-  body: "You open the door. DigitalGate does the selling and delivery. You build recurring income from the customers you introduce.",
+  headline: "Introduce. DigitalGate closes. You earn.",
+  body: "You open the door to a business that could benefit from DigitalGate. We handle discovery, demonstration, proposal, contracting, onboarding and customer success. You earn qualifying recurring commission when the customer becomes a paying DigitalGate customer.",
   principle:
     "Founding Acquisition Partners are not responsible for selling, implementing or supporting customers unless separately authorised or appointed to another DigitalGate partner role. They introduce qualified businesses to DigitalGate. Ben / DigitalGate closes the opportunity.",
 } as const;
