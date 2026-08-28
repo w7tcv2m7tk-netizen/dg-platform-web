@@ -119,7 +119,17 @@ const clerkHandler = clerkMiddleware(
     const authState = await auth();
 
     if (authState.userId && isAuthEntryRoute(req)) {
-      return NextResponse.redirect(new URL(AUTH_AFTER_SIGN_IN_URL, req.url));
+      const redirectParam =
+        req.nextUrl.searchParams.get("redirect_url") ??
+        req.nextUrl.searchParams.get("next");
+      const destination =
+        redirectParam &&
+        redirectParam.startsWith("/") &&
+        !redirectParam.startsWith("//") &&
+        !redirectParam.startsWith("/login")
+          ? redirectParam
+          : AUTH_AFTER_SIGN_IN_URL;
+      return NextResponse.redirect(new URL(destination, req.url));
     }
 
     if (!isPublicRoute(req)) {

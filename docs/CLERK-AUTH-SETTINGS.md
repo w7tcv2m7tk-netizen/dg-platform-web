@@ -110,7 +110,7 @@ curl -s "https://app.digitalgate.com.au/__clerk/v1/environment" | head
 ### Verify in installed app
 
 1. Open the installed DigitalGate app; tap **Update available → Refresh** if shown (`dg-v5`).
-2. Sign out if needed, then open **Client login** — you should see **email + password**.
+2. Sign out if needed, then open **Client login**, **Acquisition Partner login**, or **Delivery Partner login** — you should see **email + password**. Audience is set from the return path (`/acquisition`, `/delivery`) or `?audience=`.
 3. Sign in **inside** the installed app (not only in a browser tab).
 4. On next session handshake, URL should stay on `app.digitalgate.com.au/__clerk/...` (with proxy) or `/login` (without) — **never** spawn Safari/Chrome on `clerk.digitalgate.com.au`.
 

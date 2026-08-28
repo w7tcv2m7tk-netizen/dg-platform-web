@@ -313,7 +313,7 @@ export const APPROVED_PARTNER_MESSAGING = {
   example:
     `Example: A customer paying an average of $500/month in qualifying subscription fees could generate up to $${(500 * (BPS.RESELLER / 10000) * COMMISSION_PERIOD_MONTHS).toFixed(0)} in referral commission during their first ${COMMISSION_PERIOD_MONTHS} months.`,
   examplePaid:
-    `If that customer receives a 30% Founding discount, DigitalGate receives $350/month and the reseller earns ${bpsToPercentLabel(BPS.RESELLER)} × $350 = $87.50/month.`,
+    `If that customer receives a 30% Founding discount, DigitalGate receives $350/month and the Acquisition Partner earns ${bpsToPercentLabel(BPS.RESELLER)} × $350 = $87.50/month.`,
   disclaimer:
     "Illustrative example only. Actual commission depends on customer subscription value, founding discounts, payment status, retention and qualifying fees. Not an earnings guarantee. Binding terms are subject to solicitor review.",
   doNotSay: "Make $180,000 a year referring DigitalGate.",

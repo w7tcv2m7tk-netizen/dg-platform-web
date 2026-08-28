@@ -93,7 +93,7 @@ export function PublicFoundingResellerInviteAccept({
             href={portalUrl}
             className="rounded-full bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-500"
           >
-            Open partner portal →
+            Open Acquisition Partner portal →
           </a>
         )}
         <a
