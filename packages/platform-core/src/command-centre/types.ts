@@ -145,6 +145,8 @@ export interface CommandClientRow {
   /** Display as Organisation Health in platform-owner UI */
   organisationHealth?: number;
   healthTier?: AgencyHealthTier;
+  /** Concern-driven intervention level when loaded from Client Intelligence */
+  operationalHealth?: AgencyHealthTier | null;
   rank?: number;
   /** True when score is early — don't invent gaps from it */
   scoreProvisional?: boolean;

@@ -1,16 +1,15 @@
 import Link from "next/link";
 import {
   attentionSummary,
-  clientSignalsLabel,
-  formatClientOrgSubtitle,
-  formatClientSignalLine,
+  clientScoreTierDisplay,
+  clientScoreTierEmoji,
+  clientScoreTierLabel,
+  formatClientObservedSignal,
   getClientIntelligence,
-  healthExplanation,
   recommendIntervention,
-  tierLabel,
 } from "@dg/platform-core";
 
-import { ScoreCell, TierBadge } from "@/components/command/tier-badge";
+import { ScoreCell, ScoreTierBadge } from "@/components/command/tier-badge";
 
 export default async function CustomerPortfolioPage() {
   const intel = process.env.DATABASE_URL ? await getClientIntelligence() : null;
@@ -25,6 +24,10 @@ export default async function CustomerPortfolioPage() {
           Understand customer health, adoption, activity, opportunities and risks across
           the DigitalGate customer base.
         </p>
+        <p className="mt-2 max-w-2xl text-xs text-slate-500">
+          Success Score™ measures overall customer/platform health. Operational signals may
+          require intervention regardless of score.
+        </p>
       </header>
       <main className="dg-page-main space-y-8">
         {!intel ? (
@@ -33,29 +36,35 @@ export default async function CustomerPortfolioPage() {
           </div>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Organisations</p>
                 <p className="mt-1 text-3xl font-semibold text-white">{clients.length}</p>
               </div>
               <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-                <p className="text-xs uppercase tracking-wide text-slate-500">Need attention</p>
-                <p className="mt-1 text-3xl font-semibold text-amber-300">
-                  {intel.needAttentionCount}
+                <p className="text-xs uppercase tracking-wide text-slate-500">Avg score</p>
+                <p className="mt-1 text-3xl font-semibold text-white">
+                  {intel.averageSuccessScore}
                 </p>
               </div>
               <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-                <p className="text-xs uppercase tracking-wide text-slate-500">
-                  Avg Success Score™
-                </p>
-                <p className="mt-1 text-3xl font-semibold text-white">
-                  {intel.averageSuccessScore}
+                <p className="text-xs uppercase tracking-wide text-slate-500">Excellent</p>
+                <p className="mt-1 text-3xl font-semibold text-emerald-300">
+                  {intel.excellentCount}
                 </p>
               </div>
               <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Healthy</p>
                 <p className="mt-1 text-3xl font-semibold text-emerald-300">
                   {intel.healthyCount}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  Needs attention
+                </p>
+                <p className="mt-1 text-3xl font-semibold text-amber-300">
+                  {intel.needsAttentionBandCount}
                 </p>
               </div>
             </div>
@@ -69,82 +78,70 @@ export default async function CustomerPortfolioPage() {
                 <table className="min-w-full text-left text-sm">
                   <thead className="border-b border-slate-800 bg-slate-950/80 text-xs uppercase tracking-wide text-slate-500">
                     <tr>
+                      <th className="px-4 py-3 font-medium">#</th>
                       <th className="px-4 py-3 font-medium">Organisation</th>
-                      <th className="px-4 py-3 font-medium">Health</th>
-                      <th className="px-4 py-3 font-medium">Score</th>
-                      <th className="px-4 py-3 font-medium">Status</th>
-                      <th className="px-4 py-3 font-medium">Signals</th>
+                      <th className="px-4 py-3 font-medium">
+                        <span className="block">Score</span>
+                        <span className="mt-0.5 block text-[10px] font-normal normal-case tracking-normal text-slate-600">
+                          Quantitative Success Score™
+                        </span>
+                      </th>
+                      <th className="px-4 py-3 font-medium">
+                        <span className="block">Tier</span>
+                        <span className="mt-0.5 block text-[10px] font-normal normal-case tracking-normal text-slate-600">
+                          Score classification
+                        </span>
+                      </th>
+                      <th className="px-4 py-3 font-medium">
+                        <span className="block">Signal</span>
+                        <span className="mt-0.5 block text-[10px] font-normal normal-case tracking-normal text-slate-600">
+                          What DigitalGate has observed
+                        </span>
+                      </th>
                       <th className="px-4 py-3 font-medium">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/80">
-                    {clients.map((client) => {
-                      const explanation = healthExplanation(client);
-                      const signals = clientSignalsLabel(client);
-                      return (
-                        <tr key={client.organisationId} className="bg-slate-950/30">
-                          <td className="px-4 py-3">
-                            <Link
-                              href={`/command/clients/${client.organisationId}`}
-                              className="font-medium text-white hover:text-sky-300"
-                            >
-                              {client.organisationName}
-                            </Link>
-                            <p className="mt-0.5 text-xs text-slate-500">
-                              {formatClientOrgSubtitle(client)}
-                            </p>
-                            <p className="text-xs text-slate-600">
-                              {formatClientSignalLine(client)}
-                            </p>
-                          </td>
-                          <td className="px-4 py-3">
-                            <TierBadge tier={client.healthTier} />
-                            {explanation ? (
-                              <p className="mt-1 max-w-xs text-[11px] leading-snug text-slate-500">
-                                {explanation}
-                              </p>
-                            ) : null}
-                          </td>
-                          <td className="px-4 py-3">
-                            <ScoreCell score={client.successScore} />
-                            {client.scoreProvisional ? (
-                              <p className="mt-0.5 text-[10px] uppercase tracking-wide text-slate-500">
-                                Provisional
-                              </p>
-                            ) : null}
-                          </td>
-                          <td className="px-4 py-3 capitalize text-slate-300">
-                            {client.status.replace(/_/g, " ")}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span
-                              className={
-                                signals === "Attention"
-                                  ? "text-xs font-medium text-amber-300"
-                                  : "text-xs font-medium text-emerald-400/90"
-                              }
-                            >
-                              {signals}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <Link
-                              href={`/command/clients/${client.organisationId}`}
-                              className="text-sm text-sky-400 hover:underline"
-                            >
-                              Open
-                            </Link>
-                            <span className="mx-1.5 text-slate-600">·</span>
-                            <Link
-                              href={`/command/advisor?org=${client.organisationId}`}
-                              className="text-sm text-sky-400 hover:underline"
-                            >
-                              Advise
-                            </Link>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {clients.map((client) => (
+                      <tr key={client.organisationId} className="bg-slate-950/30">
+                        <td className="px-4 py-3 tabular-nums text-slate-500">{client.rank}</td>
+                        <td className="px-4 py-3">
+                          <Link
+                            href={`/command/clients/${client.organisationId}`}
+                            className="font-medium text-white hover:text-sky-300"
+                          >
+                            {client.organisationName}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-3">
+                          <ScoreCell score={client.successScore} />
+                        </td>
+                        <td className="px-4 py-3">
+                          <ScoreTierBadge
+                            tier={clientScoreTierDisplay(client)}
+                            emoji={clientScoreTierEmoji(client)}
+                          />
+                        </td>
+                        <td className="max-w-md px-4 py-3 text-slate-400">
+                          {formatClientObservedSignal(client)}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <Link
+                            href={`/command/clients/${client.organisationId}`}
+                            className="text-sm text-sky-400 hover:underline"
+                          >
+                            Open
+                          </Link>
+                          <span className="mx-1.5 text-slate-600">·</span>
+                          <Link
+                            href={`/command/advisor?org=${client.organisationId}`}
+                            className="text-sm text-sky-400 hover:underline"
+                          >
+                            Advise
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -158,7 +155,8 @@ export default async function CustomerPortfolioPage() {
                 <h2 className="text-lg font-semibold text-white">Attention Required</h2>
                 <p className="mt-1 text-sm text-slate-400">
                   {attentionClients.length} organisation
-                  {attentionClients.length === 1 ? "" : "s"} currently require intervention.
+                  {attentionClients.length === 1 ? "" : "s"} require intervention based on
+                  operational signals — not score tier alone.
                 </p>
                 <div className="mt-4 space-y-3">
                   {attentionClients.map((client) => (
@@ -175,7 +173,7 @@ export default async function CustomerPortfolioPage() {
                             {client.organisationName}
                           </Link>
                           <p className="mt-0.5 text-sm text-slate-400">
-                            {client.successScore} · {tierLabel(client.healthTier)}
+                            {client.successScore} · {clientScoreTierLabel(client)}
                           </p>
                           <p className="mt-2 text-sm text-slate-300">
                             {attentionSummary(client)}

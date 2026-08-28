@@ -80,6 +80,8 @@ export type SuccessScoreResult = {
   scoreBand: SuccessScoreBand;
   /** Composite operational health — may differ from score band when concerns exist. */
   tier: AgencyHealthTier;
+  /** Intervention level from observed blockers — null when score tier alone applies. */
+  operationalHealth: AgencyHealthTier | null;
   highlights: string[];
   /** Observed problems only — never invented absence-of-data gaps. */
   concerns: string[];
@@ -89,6 +91,14 @@ export type SuccessScoreResult = {
 };
 
 /** Success Score™ band from numeric score only. */
+export function scoreBandToAgencyTier(band: SuccessScoreBand): AgencyHealthTier {
+  if (band === "excellent") return "top_performer";
+  if (band === "healthy") return "healthy";
+  if (band === "needs_attention") return "needs_attention";
+  if (band === "at_risk") return "at_risk";
+  return "critical";
+}
+
 export function scoreBandFromScore(score: number): SuccessScoreBand {
   if (score >= 80) return "excellent";
   if (score >= 65) return "healthy";
@@ -312,13 +322,14 @@ export function computeSuccessScore(input: SuccessScoreInput): SuccessScoreResul
   }
 
   const scoreBand = scoreBandFromScore(successScore);
-  const tier = operationalHealthTier(successScore, concerns, input);
+  const operationalHealth = operationalHealthTier(successScore, concerns, input, provisional);
 
   return {
     successScore,
     breakdown,
     scoreBand,
-    tier,
+    tier: scoreBandToAgencyTier(scoreBand),
+    operationalHealth,
     highlights,
     concerns,
     provisional,
@@ -327,8 +338,8 @@ export function computeSuccessScore(input: SuccessScoreInput): SuccessScoreResul
 }
 
 /**
- * Operational health — composite of Success Score™ band plus observed concerns.
- * A high score can still escalate when billing or CRM blockers are present.
+ * Operational health — concern-driven intervention level only.
+ * Does not mirror score bands; high scores stay healthy unless a blocker exists.
  */
 export function operationalHealthTier(
   successScore: number,
@@ -337,7 +348,10 @@ export function operationalHealthTier(
     SuccessScoreInput,
     "leadsThisMonth" | "activitiesThisMonth" | "status"
   >,
-): AgencyHealthTier {
+  provisional = false,
+): AgencyHealthTier | null {
+  if (provisional) return null;
+
   const band = scoreBandFromScore(successScore);
   const concernCount = concerns.length;
 
@@ -345,30 +359,20 @@ export function operationalHealthTier(
     return concernCount > 0 ? "critical" : "at_risk";
   }
 
+  if (concernCount === 0) {
+    if (band === "critical") return "critical";
+    if (band === "at_risk") return "at_risk";
+    return null;
+  }
+
   const hasBillingFailure = concerns.some(
     (c) => c.includes("Stripe") || c.toLowerCase().includes("billing"),
   );
   const hasOverdueLeads = concerns.some((c) => c.includes("overdue"));
 
-  let tier: AgencyHealthTier;
-  if (band === "excellent") tier = "top_performer";
-  else if (band === "healthy") tier = "healthy";
-  else if (band === "needs_attention") tier = "needs_attention";
-  else if (band === "at_risk") tier = "at_risk";
-  else tier = "critical";
-
-  if (concernCount === 0) return tier;
-
   if (hasBillingFailure || input?.status === "suspended") return "critical";
-
-  if (tier === "top_performer" || tier === "healthy") {
-    if (concernCount >= 2 || hasOverdueLeads) return "needs_attention";
-    if (tier === "top_performer") return "healthy";
-  }
-
-  if (tier === "needs_attention" && concernCount >= 2) return "at_risk";
-
-  return tier;
+  if (hasOverdueLeads || concernCount >= 2) return "needs_attention";
+  return "needs_attention";
 }
 
 export function tierLabel(tier: AgencyHealthTier): string {

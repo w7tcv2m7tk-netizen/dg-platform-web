@@ -1,19 +1,35 @@
 import Link from "next/link";
 import type { AgencyHealthTier } from "@dg/platform-core";
 
-import { ScoreCell, TierBadge } from "@/components/command/tier-badge";
+import { ScoreCell, ScoreTierBadge } from "@/components/command/tier-badge";
 
 export type OperatorOrgRow = {
   organisationId: string;
   organisationName: string;
   organisationSlug?: string;
   successScore?: number;
-  healthTier?: AgencyHealthTier | string;
+  scoreTier?: AgencyHealthTier | "provisional" | string;
+  scoreTierEmoji?: string;
   rank?: number;
+  observedSignal?: string;
+  /** @deprecated use observedSignal */
   highlights?: string[];
+  /** @deprecated use observedSignal */
   attentionReasons?: string[];
+  /** @deprecated use observedSignal */
   detail?: string;
 };
+
+function headerHint(label: string, hint: string) {
+  return (
+    <th className="px-4 py-3 font-medium">
+      <span className="block">{label}</span>
+      <span className="mt-0.5 block text-[10px] font-normal normal-case tracking-normal text-slate-600">
+        {hint}
+      </span>
+    </th>
+  );
+}
 
 export function OperatorOrgTable({
   rows,
@@ -22,6 +38,7 @@ export function OperatorOrgTable({
   showTier = true,
   showRank = false,
   secondaryLabel = "Signal",
+  secondaryHint = "What DigitalGate has observed",
 }: {
   rows: OperatorOrgRow[];
   emptyMessage?: string;
@@ -29,6 +46,7 @@ export function OperatorOrgTable({
   showTier?: boolean;
   showRank?: boolean;
   secondaryLabel?: string;
+  secondaryHint?: string;
 }) {
   if (rows.length === 0) {
     return <p className="text-sm text-slate-500">{emptyMessage}</p>;
@@ -41,14 +59,17 @@ export function OperatorOrgTable({
           <tr>
             {showRank ? <th className="px-4 py-3 font-medium">#</th> : null}
             <th className="px-4 py-3 font-medium">Organisation</th>
-            {showScore ? <th className="px-4 py-3 font-medium">Score</th> : null}
-            {showTier ? <th className="px-4 py-3 font-medium">Tier</th> : null}
-            <th className="px-4 py-3 font-medium">{secondaryLabel}</th>
+            {showScore
+              ? headerHint("Score", "Quantitative Success Score™")
+              : null}
+            {showTier ? headerHint("Tier", "Score classification") : null}
+            {headerHint(secondaryLabel, secondaryHint)}
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-800">
           {rows.map((row) => {
             const signal =
+              row.observedSignal ??
               row.detail ??
               (row.attentionReasons?.length
                 ? row.attentionReasons.slice(0, 2).join(" · ")
@@ -81,7 +102,11 @@ export function OperatorOrgTable({
                 ) : null}
                 {showTier ? (
                   <td className="px-4 py-3">
-                    {row.healthTier ? <TierBadge tier={row.healthTier} /> : "—"}
+                    {row.scoreTier ? (
+                      <ScoreTierBadge tier={row.scoreTier} emoji={row.scoreTierEmoji} />
+                    ) : (
+                      "—"
+                    )}
                   </td>
                 ) : null}
                 <td className="max-w-md px-4 py-3 text-slate-400">{signal}</td>

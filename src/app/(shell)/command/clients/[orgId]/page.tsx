@@ -6,7 +6,12 @@ import { ProvisionAccBetaButton } from "@/components/command/ProvisionAccBetaBut
 import { ProvisionInfraDomainsBetaButton } from "@/components/command/ProvisionInfraDomainsBetaButton";
 import { ProvisionReBetaButton } from "@/components/command/ProvisionReBetaButton";
 import { ProvisionWebsitesBetaButton } from "@/components/command/ProvisionWebsitesBetaButton";
-import { ScoreCell, TierBadge } from "@/components/command/tier-badge";
+import { ScoreCell, ScoreTierBadge } from "@/components/command/tier-badge";
+import {
+  clientScoreTierDisplay,
+  clientScoreTierEmoji,
+  formatClientObservedSignal,
+} from "@dg/platform-core";
 
 type Ctx = { params: Promise<{ orgId: string }> };
 
@@ -69,29 +74,18 @@ export default async function CommandClientDetailPage({ params }: Ctx) {
             ) : null}
           </div>
           <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Health tier</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">Score tier</p>
             <div className="mt-2">
-              <TierBadge tier={client.healthTier} />
+              <ScoreTierBadge
+                tier={clientScoreTierDisplay(client)}
+                emoji={clientScoreTierEmoji(client)}
+              />
             </div>
           </div>
           <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">CRM / Acc·RE</p>
-            <p className="mt-1 text-2xl font-semibold text-white">
-              {client.leadCount} / {client.propertyCount}/{client.stayBookingCount}
-            </p>
-          </div>
-          <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Status</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">Signal</p>
             <p className="mt-1 text-sm text-slate-300">
-              {client.needsAttention ? (
-                <span className="text-amber-300">
-                  {client.attentionReasons[0] ?? "Needs attention"}
-                </span>
-              ) : (
-                <span className="text-emerald-300">
-                  {client.highlights[0] ?? "Healthy"}
-                </span>
-              )}
+              {formatClientObservedSignal(client)}
             </p>
           </div>
         </div>

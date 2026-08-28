@@ -7,6 +7,7 @@ const TIER_STYLES: Record<string, string> = {
   needs_attention: "bg-amber-500/15 text-amber-200",
   at_risk: "bg-red-500/15 text-red-300",
   critical: "bg-red-500/20 text-red-200",
+  provisional: "bg-slate-500/15 text-slate-300",
 };
 
 const KNOWN_TIERS = new Set([
@@ -18,11 +19,31 @@ const KNOWN_TIERS = new Set([
 ]);
 
 export function TierBadge({ tier }: { tier: AgencyHealthTier | string }) {
-  const label = KNOWN_TIERS.has(tier) ? tierLabel(tier as AgencyHealthTier) : tier;
+  const label =
+    tier === "provisional"
+      ? "Provisional"
+      : KNOWN_TIERS.has(tier)
+        ? tierLabel(tier as AgencyHealthTier)
+        : tier;
   const cls = TIER_STYLES[tier] ?? "bg-slate-500/15 text-slate-300";
   return (
     <span className={`inline-flex rounded-md px-2 py-0.5 text-xs font-medium ${cls}`}>
       {label}
+    </span>
+  );
+}
+
+export function ScoreTierBadge({
+  tier,
+  emoji,
+}: {
+  tier: AgencyHealthTier | "provisional" | string;
+  emoji?: string;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      {emoji ? <span aria-hidden>{emoji}</span> : null}
+      <TierBadge tier={tier} />
     </span>
   );
 }

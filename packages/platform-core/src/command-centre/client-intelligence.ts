@@ -13,7 +13,6 @@ import type {
 import {
   computeSuccessScore,
   isOperationalAttentionTier,
-  isOperationalHealthyTier,
   organisationExpectsPlatformBilling,
   type SuccessScoreBreakdown,
   type SuccessScoreInput,
@@ -50,8 +49,10 @@ export type EnrichedCommandClient = CommandClientRow & {
   successScore: number;
   /** Quantified Success Score™ band */
   scoreBand: SuccessScoreBand;
-  /** Composite operational health */
+  /** Score classification tier (from Success Score™ band) */
   healthTier: AgencyHealthTier;
+  /** Concern-driven intervention level — separate from score tier */
+  operationalHealth: AgencyHealthTier | null;
   scoreBreakdown: SuccessScoreBreakdown;
   highlights: string[];
   rank: number;
@@ -75,9 +76,15 @@ export type ClientIntelligenceBundle = {
   rankings: AgencyHealthRanking[];
   tierCounts: Record<AgencyHealthTier, number>;
   averageSuccessScore: number;
-  /** Organisations in excellent or healthy operational state */
+  /** Score band counts — includes provisional orgs by raw score */
+  scoreBandCounts: Record<SuccessScoreBand, number>;
+  /** Organisations with score band 65–79 */
   healthyCount: number;
-  /** Organisations needing intervention (needs attention, at risk, or critical) */
+  /** Organisations with score band 80+ */
+  excellentCount: number;
+  /** Organisations with score band 50–64 */
+  needsAttentionBandCount: number;
+  /** Organisations requiring operational intervention */
   needAttentionCount: number;
 };
 
@@ -87,6 +94,34 @@ type SumRow = {
   _sum: { amountCents: number | null; totalCents?: number | null };
   _count?: { id: number };
 };
+
+function needsOperationalIntervention(
+  result: ReturnType<typeof computeSuccessScore>,
+  input: SuccessScoreInput,
+): boolean {
+  if (result.concerns.length > 0) return true;
+  if (result.operationalHealth && isOperationalAttentionTier(result.operationalHealth)) {
+    return true;
+  }
+  if (result.provisional) return false;
+  if (result.scoreBand === "at_risk" || result.scoreBand === "critical") return true;
+  if (
+    result.scoreBand === "needs_attention" &&
+    input.leadsThisMonth === 0 &&
+    input.activitiesThisMonth === 0
+  ) {
+    return true;
+  }
+  if (
+    input.status === "trial" &&
+    input.leadsThisMonth === 0 &&
+    input.activitiesThisMonth === 0 &&
+    input.openOpportunities === 0
+  ) {
+    return true;
+  }
+  return false;
+}
 
 function countMap(rows: CountRow[]): Map<string, number> {
   return new Map(rows.map((r) => [r.organisationId, r._count.id]));
@@ -262,15 +297,14 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       accBeta,
       websitesBeta,
       infraDomainsBeta,
-      needsAttention:
-        attentionReasons.length > 0 ||
-        isOperationalAttentionTier(result.tier),
+      needsAttention: needsOperationalIntervention(result, scoreInput),
       attentionReasons,
       createdAt: org.createdAt.toISOString(),
       updatedAt: org.updatedAt.toISOString(),
       successScore: result.successScore,
       scoreBand: result.scoreBand,
       healthTier: result.tier,
+      operationalHealth: result.operationalHealth,
       scoreBreakdown: result.breakdown,
       highlights: result.highlights,
       scoreProvisional: result.provisional,
@@ -314,10 +348,17 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     critical: clients.filter((c) => c.healthTier === "critical").length,
   };
 
-  const healthyCount = clients.filter((c) =>
-    isOperationalHealthyTier(c.healthTier),
-  ).length;
+  const scoreBandCounts: Record<SuccessScoreBand, number> = {
+    excellent: clients.filter((c) => c.scoreBand === "excellent").length,
+    healthy: clients.filter((c) => c.scoreBand === "healthy").length,
+    needs_attention: clients.filter((c) => c.scoreBand === "needs_attention").length,
+    at_risk: clients.filter((c) => c.scoreBand === "at_risk").length,
+    critical: clients.filter((c) => c.scoreBand === "critical").length,
+  };
 
+  const excellentCount = scoreBandCounts.excellent;
+  const healthyCount = scoreBandCounts.healthy;
+  const needsAttentionBandCount = scoreBandCounts.needs_attention;
   const needAttentionCount = clients.filter((c) => c.needsAttention).length;
 
   const averageSuccessScore =
@@ -333,7 +374,10 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     rankings,
     tierCounts,
     averageSuccessScore,
+    scoreBandCounts,
     healthyCount,
+    excellentCount,
+    needsAttentionBandCount,
     needAttentionCount,
   };
 }

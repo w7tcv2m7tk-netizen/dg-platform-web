@@ -1,12 +1,11 @@
 import type {
+  AgencyHealthTier,
   CommandClientRow,
   CommandRecentActivity,
   CommandTodayItem,
 } from "./types";
 import {
-  isOperationalAttentionTier,
-  isOperationalHealthyTier,
-  scoreBandFromScore,
+  scoreBandEmoji,
   tierLabel,
 } from "./success-score";
 import type { EnrichedCommandClient } from "./client-intelligence";
@@ -81,7 +80,7 @@ export function clientIntelligencePresentation(client: CommandClientRow): {
     };
   }
 
-  if (!client.needsAttention && !isOperationalAttentionTier(client.healthTier ?? "healthy")) {
+  if (!client.needsAttention && !client.operationalHealth) {
     return {
       statusEmoji: "🟢",
       statusLabel: "Healthy",
@@ -90,7 +89,7 @@ export function clientIntelligencePresentation(client: CommandClientRow): {
     };
   }
 
-  const tier = client.healthTier ?? "needs_attention";
+  const tier = client.operationalHealth ?? client.healthTier ?? "needs_attention";
   const reasons = client.attentionReasons.join(" ").toLowerCase();
   let category = "Growth";
   if (reasons.includes("billing") || reasons.includes("stripe")) category = "Revenue";
@@ -120,74 +119,83 @@ export function clientIntelligencePresentation(client: CommandClientRow): {
   };
 }
 
-function formatStatusLabel(status: string): string {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+export type ClientScoreTierDisplay = AgencyHealthTier | "provisional";
+
+/** Score tier for display — provisional scores are never classified Healthy/Needs attention. */
+export function clientScoreTierDisplay(
+  client: EnrichedCommandClient,
+): ClientScoreTierDisplay {
+  if (client.scoreProvisional) return "provisional";
+  return client.healthTier;
 }
 
-/** First line under organisation name — status, leads, opportunities. */
-export function formatClientOrgSubtitle(client: EnrichedCommandClient): string {
-  const parts: string[] = [formatStatusLabel(client.status)];
-  if (client.leadCount > 0) {
-    parts.push(`${client.leadCount} lead${client.leadCount === 1 ? "" : "s"}`);
-  }
-  if (client.openOpportunities > 0) {
-    parts.push(
-      `${client.openOpportunities} opportunit${client.openOpportunities === 1 ? "y" : "ies"}`,
-    );
-  }
-  return parts.join(" · ");
+export function clientScoreTierLabel(client: EnrichedCommandClient): string {
+  const tier = clientScoreTierDisplay(client);
+  if (tier === "provisional") return "Provisional";
+  return tierLabel(tier);
 }
 
-/** Second line — adoption and blocker summary. */
-export function formatClientSignalLine(client: EnrichedCommandClient): string {
+export function clientScoreTierEmoji(client: EnrichedCommandClient): string {
+  if (client.scoreProvisional) return "⚪";
+  return scoreBandEmoji(client.scoreBand);
+}
+
+/** Observed operational signals — separate from score tier classification. */
+export function formatClientObservedSignal(client: EnrichedCommandClient): string {
+  if (client.scoreProvisional) {
+    const parts = ["Partial data · score still maturing"];
+    if (client.status === "trial") parts.push("On trial");
+    return parts.join(" · ");
+  }
+
   const parts: string[] = [];
+  const scoreTierHealthy =
+    client.healthTier === "top_performer" || client.healthTier === "healthy";
 
-  if (isOperationalHealthyTier(client.healthTier) && client.attentionReasons.length === 0) {
-    parts.push("Strong adoption");
-    parts.push("No blockers");
+  if (client.attentionReasons.length > 0 && scoreTierHealthy) {
+    parts.push(`🟠 ${client.attentionReasons[0]}`);
   } else if (client.attentionReasons.length > 0) {
     parts.push(client.attentionReasons.slice(0, 2).join(" · "));
+  } else if (
+    scoreTierHealthy &&
+    (client.scoreBreakdown.crm >= 80 || client.leadsThisMonth > 0)
+  ) {
+    if (client.scoreBreakdown.crm >= 80) parts.push("Strong CRM activity");
+    if (client.leadsThisMonth > 0) {
+      parts.push(
+        `${client.leadsThisMonth} lead${client.leadsThisMonth === 1 ? "" : "s"} this month`,
+      );
+    }
+  } else if (
+    scoreTierHealthy &&
+    client.scoreBreakdown.crm < 70 &&
+    client.activitiesThisMonth < 5
+  ) {
+    parts.push("🟠 Review CRM adoption");
+    if (client.leadsThisMonth > 0) {
+      parts.push(
+        `${client.leadsThisMonth} lead${client.leadsThisMonth === 1 ? "" : "s"} this month`,
+      );
+    }
   } else if (client.leadsThisMonth === 0 && client.activitiesThisMonth === 0) {
-    parts.push("Low CRM activity");
-    if (client.openOpportunities === 0) parts.push("No opportunities recorded");
-  } else if (client.status === "trial") {
-    parts.push("Trial conversion risk");
+    parts.push("Limited activity");
+    if (client.status === "trial") parts.push("On trial · limited CRM activity");
+  } else if (client.highlights.length > 0) {
+    parts.push(
+      client.highlights
+        .filter(
+          (h) =>
+            !h.toLowerCase().includes("provisional") &&
+            !h.toLowerCase().includes("partial data"),
+        )
+        .slice(0, 2)
+        .join(" · "),
+    );
   } else {
-    parts.push("Review adoption signals");
+    parts.push("Monitoring");
   }
 
   return parts.join(" · ");
-}
-
-export type ClientSignalsLabel = "Strong" | "Attention";
-
-export function clientSignalsLabel(client: EnrichedCommandClient): ClientSignalsLabel {
-  if (client.needsAttention || isOperationalAttentionTier(client.healthTier)) {
-    return "Attention";
-  }
-  return "Strong";
-}
-
-/** When operational health diverges from score band — e.g. high score + CRM concern. */
-export function healthExplanation(client: EnrichedCommandClient): string | null {
-  const band = scoreBandFromScore(client.successScore);
-  const tier = client.healthTier;
-
-  if (
-    isOperationalAttentionTier(tier) &&
-    (band === "excellent" || band === "healthy")
-  ) {
-    const reason =
-      client.attentionReasons[0] ??
-      "operational signals require review";
-    return `Success Score™ ${client.successScore} — overall strong, but ${reason.charAt(0).toLowerCase()}${reason.slice(1)}.`;
-  }
-
-  if (isOperationalHealthyTier(tier) && band === "needs_attention") {
-    return `Score ${client.successScore} is maturing — early data, no blockers observed yet.`;
-  }
-
-  return null;
 }
 
 export function attentionSummary(client: EnrichedCommandClient): string {
@@ -200,8 +208,11 @@ export function attentionSummary(client: EnrichedCommandClient): string {
   if (client.status === "trial" && client.openOpportunities === 0) {
     return "Trial in progress with limited commercial workflow recorded.";
   }
-  if (client.healthTier === "at_risk" || client.healthTier === "critical") {
+  if (client.operationalHealth === "at_risk" || client.operationalHealth === "critical") {
     return "Customer health is below acceptable thresholds.";
+  }
+  if (!client.scoreProvisional && client.scoreBand === "at_risk") {
+    return "Success Score™ is in the at-risk band.";
   }
   return "Operational signals suggest a platform review.";
 }
@@ -228,7 +239,12 @@ export function recommendIntervention(client: EnrichedCommandClient): string {
   if (client.status === "trial") {
     return "Review trial progress and schedule platform review before conversion.";
   }
-  if (client.healthTier === "critical" || client.healthTier === "at_risk") {
+  if (
+    client.operationalHealth === "critical" ||
+    client.operationalHealth === "at_risk" ||
+    client.scoreBand === "critical" ||
+    client.scoreBand === "at_risk"
+  ) {
     return "Urgent intervention — contact customer and stabilise platform usage.";
   }
   if (client.openOpportunities === 0 && client.leadCount > 0) {

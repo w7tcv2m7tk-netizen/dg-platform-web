@@ -1,17 +1,30 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getClientIntelligence } from "@dg/platform-core";
+import {
+  clientScoreTierDisplay,
+  clientScoreTierEmoji,
+  formatClientObservedSignal,
+  getClientIntelligence,
+} from "@dg/platform-core";
 
 import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
 import { OperatorOrgTable } from "@/components/command/OperatorOrgTable";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
-function shell(title: string, question: string, body: React.ReactNode) {
+function shell(
+  title: string,
+  question: string,
+  body: React.ReactNode,
+  footnote?: string,
+) {
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">{title}</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">{question}</p>
+        {footnote ? (
+          <p className="mt-2 max-w-2xl text-xs text-slate-500">{footnote}</p>
+        ) : null}
       </header>
       <main className="dg-page-main space-y-6">{body}</main>
     </>
@@ -53,19 +66,19 @@ export default async function CustomerIntelligenceSectionPage({
             metrics={[
               { label: "Organisations", value: clients.length },
               {
-                label: "Avg Success Score™",
+                label: "Avg score",
                 value: intel.averageSuccessScore,
                 tone: "sky",
               },
               {
                 label: "Excellent",
-                value: intel.tierCounts.top_performer,
+                value: intel.excellentCount,
                 tone: "emerald",
               },
-              { label: "Healthy", value: intel.healthyCount },
+              { label: "Healthy", value: intel.healthyCount, tone: "emerald" },
               {
-                label: "Need attention",
-                value: intel.needAttentionCount,
+                label: "Needs attention",
+                value: intel.needsAttentionBandCount,
                 tone: "amber",
               },
             ]}
@@ -77,15 +90,16 @@ export default async function CustomerIntelligenceSectionPage({
               organisationName: c.organisationName,
               organisationSlug: c.organisationSlug,
               successScore: c.successScore,
-              healthTier: c.healthTier,
+              scoreTier: clientScoreTierDisplay(c),
+              scoreTierEmoji: clientScoreTierEmoji(c),
               rank: c.rank,
-              highlights: c.highlights,
-              attentionReasons: c.attentionReasons,
+              observedSignal: formatClientObservedSignal(c),
             }))}
           />
           <PortfolioLink />
         </>
       ),
+      "Success Score™ measures overall customer/platform health. Operational signals may require intervention regardless of score.",
     );
   }
 
@@ -106,15 +120,15 @@ export default async function CustomerIntelligenceSectionPage({
           />
           <OperatorOrgTable
             emptyMessage="No organisations currently flagged for attention."
-            secondaryLabel="Attention"
+            secondaryLabel="Signal"
             rows={atRisk.map((c) => ({
               organisationId: c.organisationId,
               organisationName: c.organisationName,
               organisationSlug: c.organisationSlug,
               successScore: c.successScore,
-              healthTier: c.healthTier,
-              attentionReasons: c.attentionReasons,
-              highlights: c.highlights,
+              scoreTier: clientScoreTierDisplay(c),
+              scoreTierEmoji: clientScoreTierEmoji(c),
+              observedSignal: formatClientObservedSignal(c),
             }))}
           />
           <PortfolioLink />
@@ -153,8 +167,9 @@ export default async function CustomerIntelligenceSectionPage({
               organisationName: c.organisationName,
               organisationSlug: c.organisationSlug,
               successScore: c.successScore,
-              healthTier: c.healthTier,
-              detail: `${c.openOpportunities} open opps · ${c.installedApps.length} apps`,
+              scoreTier: clientScoreTierDisplay(c),
+              scoreTierEmoji: clientScoreTierEmoji(c),
+              observedSignal: `${c.openOpportunities} open opps · ${c.installedApps.length} apps`,
             }))}
           />
           <PortfolioLink />
@@ -200,13 +215,15 @@ export default async function CustomerIntelligenceSectionPage({
         />
         <OperatorOrgTable
           secondaryLabel="This month"
+          secondaryHint="Leads, activities and opportunities"
           rows={sorted.map((c) => ({
             organisationId: c.organisationId,
             organisationName: c.organisationName,
             organisationSlug: c.organisationSlug,
             successScore: c.successScore,
-            healthTier: c.healthTier,
-            detail: `${c.leadsThisMonth} leads · ${c.activitiesThisMonth} activities · ${c.openOpportunities} opps`,
+            scoreTier: clientScoreTierDisplay(c),
+            scoreTierEmoji: clientScoreTierEmoji(c),
+            observedSignal: `${c.leadsThisMonth} leads · ${c.activitiesThisMonth} activities · ${c.openOpportunities} opps`,
           }))}
         />
         <PortfolioLink />
