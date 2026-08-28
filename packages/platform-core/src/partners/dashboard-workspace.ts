@@ -52,6 +52,13 @@ export type PartnerPulse = {
   pendingApplications: number;
   referralsThisMonth: number;
   customersReferred: number;
+  /**
+   * Referred customers still generating commissionable subscription revenue.
+   * Scaffold until retention / billing linkage distinguishes acquired vs active.
+   */
+  activeReferredCustomers: number | null;
+  /** Scaffold — open referred opportunity value in Sales, attributed to partners */
+  pipelineValueCents: number | null;
   /** 0–100, or null when no referrals yet */
   conversionRate: number | null;
   /** Scaffold — recurring MRR attribution lands with billing linkage */
@@ -86,13 +93,28 @@ export type DeliveryPulse = {
   serviceRevenueCents: number | null;
   /** Scaffold — Support & Success revenue attribution */
   supportRevenueCents: number | null;
+  /** Scaffold — partner share of qualifying service revenue */
+  partnerShareCents: number | null;
+};
+
+export type PartnerOnboardingPerson = {
+  id: string;
+  name: string;
+  href: string;
+};
+
+/** Pending partners awaiting onboarding — grouped by commercial channel. */
+export type PartnerOnboardingQueue = {
+  acquisition: PartnerOnboardingPerson[];
+  delivery: PartnerOnboardingPerson[];
 };
 
 export type PartnerDashboardWorkspace = {
   pulse: PartnerPulse;
   deliveryPulse: DeliveryPulse;
   attention: PartnerAttentionItem[];
-  foundingSeats: { used: number; cap: number };
+  onboardingQueue: PartnerOnboardingQueue;
+  foundingSeats: { used: number; cap: number; invited: number };
   resellers: PartnerDashboardRow[];
   deliveryPartners: PartnerDashboardRow[];
   recentActivity: PartnerActivityRow[];
@@ -150,7 +172,7 @@ export async function buildPartnerDashboardWorkspace(): Promise<PartnerDashboard
   const deliveryPartners = partners.filter((p) => p.partnerType === "IMPLEMENTATION_PARTNER");
 
   const activeResellers = resellerPartners.filter((p) => p.status === "active").length;
-  const pendingApplications = partners.filter((p) => p.status === "pending").length;
+  const pendingApplications = resellerPartners.filter((p) => p.status === "pending").length;
   const referralsThisMonth = referrals.filter(
     (r) => r.referredAt && new Date(r.referredAt) >= monthStart,
   ).length;
@@ -169,31 +191,36 @@ export async function buildPartnerDashboardWorkspace(): Promise<PartnerDashboard
 
   /** Scaffold until subscription attribution is linked to partner referrals. */
   const mrrReferredCents: number | null = customersReferred > 0 ? null : 0;
+  /** Until retention linkage exists, do not invent a second headcount. */
+  const activeReferredCustomers: number | null = customersReferred > 0 ? null : 0;
+  const pipelineValueCents: number | null = null;
 
-  const pendingOnboarding = partners.filter(
-    (p) =>
-      (p.partnerType === "FOUNDING_RESELLER" || p.partnerType === "IMPLEMENTATION_PARTNER") &&
-      p.status === "pending",
-  );
+  const personName = (p: (typeof partners)[number]) =>
+    p.displayName ?? p.businessName ?? p.email ?? "Partner";
+
+  const onboardingQueue: PartnerOnboardingQueue = {
+    acquisition: resellerPartners
+      .filter((p) => p.status === "pending")
+      .map((p) => ({
+        id: p.id,
+        name: personName(p),
+        href: `/command/partners/${p.id}`,
+      })),
+    delivery: deliveryPartners
+      .filter((p) => p.status === "pending")
+      .map((p) => ({
+        id: p.id,
+        name: personName(p),
+        href: `/command/partners/${p.id}`,
+      })),
+  };
+
   const uncontacted = referrals.filter((r) => UNCONTACTED_REFERRAL.has(r.status));
   const commissionsAwaiting = commissions.filter((c) =>
     ["CALCULATED", "PENDING"].includes(c.status),
   );
 
   const attention: PartnerAttentionItem[] = [];
-  if (pendingOnboarding.length > 0) {
-    attention.push({
-      id: "onboarding",
-      severity: "amber",
-      title: `${pendingOnboarding.length} partner${pendingOnboarding.length === 1 ? "" : "s"} haven't completed onboarding`,
-      detail: pendingOnboarding
-        .slice(0, 2)
-        .map((p) => p.displayName ?? p.businessName ?? p.email ?? "Partner")
-        .join(" · "),
-      href: "/command/partners/onboarding",
-      cta: "Review onboarding",
-    });
-  }
   if (uncontacted.length > 0) {
     attention.push({
       id: "referrals",
@@ -252,6 +279,11 @@ export async function buildPartnerDashboardWorkspace(): Promise<PartnerDashboard
     .slice(0, 8);
 
   const founding = seats.FOUNDING_RESELLER;
+  const foundingPartnersInvited = resellerPartners.filter(
+    (p) =>
+      (p.partnerType === "FOUNDING_RESELLER" || p.partnerType === "FOUNDING_PARTNER") &&
+      (p.status === "pending" || p.status === "active"),
+  ).length;
 
   return {
     pulse: {
@@ -259,6 +291,8 @@ export async function buildPartnerDashboardWorkspace(): Promise<PartnerDashboard
       pendingApplications,
       referralsThisMonth,
       customersReferred,
+      activeReferredCustomers,
+      pipelineValueCents,
       conversionRate,
       mrrReferredCents,
       commissionOwingCents,
@@ -274,11 +308,14 @@ export async function buildPartnerDashboardWorkspace(): Promise<PartnerDashboard
       ).size,
       serviceRevenueCents: null,
       supportRevenueCents: null,
+      partnerShareCents: null,
     },
     attention,
+    onboardingQueue,
     foundingSeats: {
       used: founding.used,
       cap: founding.cap ?? 10,
+      invited: foundingPartnersInvited,
     },
     resellers: resellerPartners.slice(0, 12).map(toRow),
     deliveryPartners: deliveryPartners.slice(0, 12).map(toRow),

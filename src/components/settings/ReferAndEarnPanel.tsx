@@ -306,7 +306,7 @@ export function ReferAndEarnPanel({
               >
                 <option value="customer">Customer — 20%</option>
                 <option value="partner">Partner — 25%</option>
-                <option value="reseller">Reseller — 25%</option>
+                <option value="reseller">Acquisition Partner — 25%</option>
               </select>
             </label>
             <button
@@ -320,7 +320,7 @@ export function ReferAndEarnPanel({
           </div>
         ) : (
           <p className="mt-3 text-xs text-slate-500">
-            Ask an org owner/admin to change Partner or Reseller rates.
+            Ask an org owner/admin to change Partner or Acquisition Partner rates.
           </p>
         )}
       </div>

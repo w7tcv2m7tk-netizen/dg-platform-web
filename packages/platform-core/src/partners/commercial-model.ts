@@ -220,7 +220,7 @@ export const COMMERCIAL_ROLES = {
 
   founding1000Referrer: "Founding 1,000+ Referrer",
 
-  reseller: "Reseller",
+  reseller: "Acquisition Partner",
 
   foundingReseller: "Founding Acquisition Partner",
 
@@ -246,7 +246,7 @@ export const PARTNER_ROLE_LABELS = {
 
   founding1000Referral: "Founding 1,000+ Referral",
 
-  reseller: "Reseller",
+  reseller: "Acquisition Partner",
 
   foundingReseller: "Founding Acquisition Partner",
 

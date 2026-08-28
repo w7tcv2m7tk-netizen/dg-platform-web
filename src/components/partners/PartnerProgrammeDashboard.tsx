@@ -1,14 +1,17 @@
 import Link from "next/link";
 import type { PartnerDashboardWorkspace } from "@dg/platform-core";
 
-import { InviteFoundingResellerForm } from "@/components/founding/InviteFoundingResellerForm";
-
 function formatAud(cents: number) {
   return (cents / 100).toLocaleString("en-AU", {
     style: "currency",
     currency: "AUD",
     maximumFractionDigits: 0,
   });
+}
+
+function formatAudOrDash(cents: number | null, emptyHint?: string) {
+  if (cents == null) return { value: "—", hint: emptyHint };
+  return { value: formatAud(cents), hint: undefined as string | undefined };
 }
 
 function severityIcon(severity: "amber" | "yellow" | "none") {
@@ -21,6 +24,7 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
   const {
     pulse,
     attention,
+    onboardingQueue,
     foundingSeats,
     resellers,
     deliveryPartners,
@@ -30,8 +34,39 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
 
   const activeAcquisition = resellers.filter((r) => r.status === "active").length;
   const activeDelivery = deliveryPartners.filter((r) => r.status === "active").length;
-  const acquisitionProspects = resellers.filter((r) => r.status === "pending").length;
-  const deliveryOnboarding = deliveryPartners.filter((r) => r.status === "pending").length;
+  const pendingAcquisition = resellers.filter((r) => r.status === "pending").length;
+  const pendingDelivery = deliveryPartners.filter((r) => r.status === "pending").length;
+  const onboardingTotal =
+    onboardingQueue.acquisition.length + onboardingQueue.delivery.length;
+
+  const platformRevenue = formatAudOrDash(
+    pulse.mrrReferredCents,
+    "Billing attribution lands with subscription linkage",
+  );
+  const pipelineValue = formatAudOrDash(
+    pulse.pipelineValueCents,
+    "Partner-attributed pipeline value — scaffold until Sales linkage",
+  );
+  const serviceRevenue = formatAudOrDash(
+    deliveryPulse.serviceRevenueCents,
+    "Professional Services — scaffold until billing split",
+  );
+  const supportRevenue = formatAudOrDash(
+    deliveryPulse.supportRevenueCents,
+    "Support & Success — scaffold until attribution",
+  );
+  const partnerShare = formatAudOrDash(
+    deliveryPulse.partnerShareCents,
+    "Partner share of qualifying service revenue — scaffold",
+  );
+  const totalServiceCents =
+    deliveryPulse.serviceRevenueCents != null && deliveryPulse.supportRevenueCents != null
+      ? deliveryPulse.serviceRevenueCents + deliveryPulse.supportRevenueCents
+      : null;
+  const totalService = formatAudOrDash(
+    totalServiceCents,
+    "Total partner service revenue when Professional Services + Support are attributed",
+  );
 
   return (
     <>
@@ -54,15 +89,79 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
       </header>
 
       <main className="dg-page-main space-y-8">
-        {/* What needs attention */}
+        {/* Partner onboarding + other attention */}
         <section className="rounded-xl border border-amber-500/25 bg-amber-500/5 px-5 py-5">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-amber-200/90">
             What needs your attention
           </p>
-          {attention.length === 0 ? (
+
+          {onboardingTotal > 0 ? (
+            <div className="mt-4 border-b border-amber-500/10 pb-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-200/80">
+                    Partner onboarding
+                  </p>
+                  <p className="mt-2 text-sm text-slate-200">
+                    <span aria-hidden>🟠 </span>
+                    {onboardingTotal} partner{onboardingTotal === 1 ? "" : "s"} awaiting
+                    onboarding completion
+                  </p>
+                </div>
+                <Link
+                  href="/command/partners/onboarding"
+                  className="text-xs text-sky-400 hover:underline shrink-0"
+                >
+                  Review onboarding →
+                </Link>
+              </div>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                {onboardingQueue.acquisition.length > 0 ? (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                      Acquisition
+                    </p>
+                    <ul className="mt-2 space-y-1">
+                      {onboardingQueue.acquisition.map((p) => (
+                        <li key={p.id}>
+                          <Link
+                            href={p.href}
+                            className="text-sm text-slate-300 hover:text-sky-300"
+                          >
+                            {p.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                {onboardingQueue.delivery.length > 0 ? (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                      Delivery
+                    </p>
+                    <ul className="mt-2 space-y-1">
+                      {onboardingQueue.delivery.map((p) => (
+                        <li key={p.id}>
+                          <Link
+                            href={p.href}
+                            className="text-sm text-slate-300 hover:text-sky-300"
+                          >
+                            {p.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {attention.length === 0 && onboardingTotal === 0 ? (
             <p className="mt-3 text-sm text-slate-300">No partner interventions required.</p>
-          ) : (
-            <ul className="mt-4 space-y-3">
+          ) : attention.length > 0 ? (
+            <ul className={`space-y-3 ${onboardingTotal > 0 ? "mt-4" : "mt-4"}`}>
               {attention.map((item) => (
                 <li
                   key={item.id}
@@ -83,7 +182,7 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
                 </li>
               ))}
             </ul>
-          )}
+          ) : null}
         </section>
 
         {/* Division command centres */}
@@ -95,17 +194,29 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
             hrefLabel="Open Acquisition Partners"
             metrics={[
               { label: "Active partners", value: String(activeAcquisition) },
-              { label: "Prospects / pending", value: String(acquisitionProspects) },
+              { label: "Pending partners", value: String(pendingAcquisition) },
               { label: "Referrals this month", value: String(pulse.referralsThisMonth) },
               { label: "Customers acquired", value: String(pulse.customersReferred) },
               {
-                label: "Platform revenue referred",
+                label: "Active referred customers",
                 value:
-                  pulse.mrrReferredCents == null ? "—" : formatAud(pulse.mrrReferredCents),
+                  pulse.activeReferredCustomers == null
+                    ? "—"
+                    : String(pulse.activeReferredCustomers),
                 hint:
-                  pulse.mrrReferredCents == null
-                    ? "Billing attribution lands with subscription linkage"
+                  pulse.activeReferredCustomers == null
+                    ? "Still generating commission — scaffold until retention linkage"
                     : undefined,
+              },
+              {
+                label: "Pipeline value",
+                value: pipelineValue.value,
+                hint: pipelineValue.hint,
+              },
+              {
+                label: "Platform revenue referred",
+                value: platformRevenue.value,
+                hint: platformRevenue.hint,
               },
               { label: "Commissions owing", value: formatAud(pulse.commissionOwingCents) },
               {
@@ -114,70 +225,97 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
               },
             ]}
           />
-          <DivisionPanel
-            title="Delivery Partners"
-            subtitle="Implement and onboard customers"
-            href="/command/delivery"
-            hrefLabel="Open Delivery Partners"
-            metrics={[
-              { label: "Active partners", value: String(activeDelivery) },
-              { label: "Onboarding / pending", value: String(deliveryOnboarding) },
-              {
-                label: "Customers in implementation",
-                value: String(deliveryPulse.customersInImplementation),
-              },
-              {
-                label: "Active projects",
-                value: String(deliveryPulse.activeProjects),
-              },
-              {
-                label: "Projects at risk",
-                value: String(deliveryPulse.projectsAtRisk),
-                tone: deliveryPulse.projectsAtRisk > 0 ? "amber" : undefined,
-              },
-              {
-                label: "Service revenue",
-                value:
-                  deliveryPulse.serviceRevenueCents == null
-                    ? "—"
-                    : formatAud(deliveryPulse.serviceRevenueCents),
-                hint: "Professional Services — scaffold until billing split",
-              },
-              {
-                label: "Support & Success revenue",
-                value:
-                  deliveryPulse.supportRevenueCents == null
-                    ? "—"
-                    : formatAud(deliveryPulse.supportRevenueCents),
-                hint: "Scaffold — Support & Success attribution next",
-              },
-            ]}
-          />
+          <section className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                  Delivery Partners
+                </p>
+                <p className="mt-1 text-sm text-slate-400">Implement and onboard customers</p>
+              </div>
+              <Link
+                href="/command/delivery"
+                className="text-xs text-sky-400 hover:underline shrink-0"
+              >
+                Open Delivery Partners →
+              </Link>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <MetricTile label="Active partners" value={String(activeDelivery)} />
+              <MetricTile label="Pending partners" value={String(pendingDelivery)} />
+              <MetricTile
+                label="Customers in implementation"
+                value={String(deliveryPulse.customersInImplementation)}
+              />
+              <MetricTile
+                label="Active projects"
+                value={String(deliveryPulse.activeProjects)}
+              />
+              <MetricTile
+                label="Projects at risk"
+                value={String(deliveryPulse.projectsAtRisk)}
+                tone={deliveryPulse.projectsAtRisk > 0 ? "amber" : undefined}
+              />
+            </div>
+            <div className="mt-5 border-t border-slate-800 pt-4">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                Delivery revenue
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <MetricTile
+                  label="Professional Services"
+                  value={serviceRevenue.value}
+                  hint={serviceRevenue.hint}
+                />
+                <MetricTile
+                  label="Support & Success"
+                  value={supportRevenue.value}
+                  hint={supportRevenue.hint}
+                />
+                <MetricTile
+                  label="Total partner service revenue"
+                  value={totalService.value}
+                  hint={totalService.hint}
+                />
+                <MetricTile
+                  label="Partner share"
+                  value={partnerShare.value}
+                  hint={partnerShare.hint}
+                />
+              </div>
+            </div>
+          </section>
         </div>
 
-        {/* Founding Acquisition Partner seats */}
-        <section className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-5 py-5">
+        {/* Acquisition Partner Programme — not another Founding 10 */}
+        <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-300">
-                Founding Acquisition Partner Programme
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">
+                Acquisition Partner Programme
               </p>
-              <p className="mt-2 text-3xl font-bold text-white">
-                {foundingSeats.used} / {foundingSeats.cap}{" "}
-                <span className="text-lg font-medium text-slate-400">seats filled</span>
-              </p>
+              <h2 className="mt-2 text-xl font-semibold text-white">
+                Build a recurring revenue channel with DigitalGate
+              </h2>
               <p className="mt-2 max-w-xl text-sm text-slate-300">
-                Invitation only · First-wave Acquisition Partners receive founding commercial
-                terms.
+                First-wave Acquisition Partners receive founding commercial terms and work
+                directly with DigitalGate to introduce qualified businesses.
               </p>
-              <p className="mt-2 text-sm text-slate-400">
-                <span className="text-slate-200">Founding Acquisition Partners</span> introduce
-                qualified businesses to DigitalGate. Ben closes the opportunity.
+              <p className="mt-3 text-sm text-slate-400">
+                <span className="font-medium text-slate-200">
+                  {foundingSeats.invited} founding partner
+                  {foundingSeats.invited === 1 ? "" : "s"} currently invited
+                </span>
+                <span className="text-slate-600"> · </span>
+                invitation only
               </p>
             </div>
-          </div>
-          <div className="mt-5">
-            <InviteFoundingResellerForm compact />
+            <Link
+              href="/command/partners/acquisition"
+              className="shrink-0 rounded-lg border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-sm font-medium text-sky-300 hover:bg-sky-500/20"
+            >
+              View Acquisition Partners →
+            </Link>
           </div>
         </section>
 
@@ -234,7 +372,7 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
 
         <PartnerTable
           title="Acquisition Partners"
-          empty="No Acquisition Partners on file yet. Invite a Founding Acquisition Partner to start the channel."
+          empty="No Acquisition Partners on file yet. Invite from Acquisition Partners to start the channel."
           href="/command/partners/acquisition"
           hrefLabel="All Acquisition Partners"
           rows={resellers}
@@ -279,13 +417,73 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
           )}
         </section>
 
-        <p className="text-xs text-slate-500">
-          Architectural rule: Partner Overview must never become a prospecting or sales pipeline.
-          Sales / Growth Engine own DigitalGate customer acquisition. Acquisition Partners
-          introduce; Delivery Partners implement; Customers operate; Revenue monetises.
-        </p>
+        <section className="rounded-xl border border-slate-800 bg-slate-950/30 px-5 py-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+            DigitalGate commercial architecture
+          </p>
+          <dl className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ArchItem
+              title="Sales / Growth Engine"
+              body="DigitalGate’s own acquisition operation."
+            />
+            <ArchItem
+              title="Acquisition Partners"
+              body="External channel for qualified introductions."
+            />
+            <ArchItem
+              title="Delivery Partners"
+              body="Implementation, professional services and customer fulfilment."
+            />
+            <ArchItem title="Customer" body="Runs their business on DigitalGate." />
+            <ArchItem
+              title="Revenue"
+              body="Platform subscriptions + Apps + services."
+            />
+          </dl>
+          <p className="mt-5 text-xs text-slate-500">
+            Architectural rule: Partner Overview must never become a prospecting or sales
+            pipeline. Sales / Growth Engine own DigitalGate customer acquisition. Acquisition
+            Partners introduce; Delivery Partners implement; Customers operate; Revenue
+            monetises.
+          </p>
+        </section>
       </main>
     </>
+  );
+}
+
+function ArchItem({ title, body }: { title: string; body: string }) {
+  return (
+    <div>
+      <dt className="text-sm font-medium text-slate-200">{title}</dt>
+      <dd className="mt-1 text-xs text-slate-500">{body}</dd>
+    </div>
+  );
+}
+
+function MetricTile({
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  tone?: "amber";
+}) {
+  return (
+    <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-3">
+      <p className="text-[10px] uppercase tracking-wide text-slate-500">{label}</p>
+      <p
+        className={`mt-1 text-xl font-bold ${
+          tone === "amber" ? "text-amber-300" : "text-white"
+        }`}
+      >
+        {value}
+      </p>
+      {hint ? <p className="mt-1 text-[10px] text-slate-600">{hint}</p> : null}
+    </div>
   );
 }
 
@@ -315,22 +513,7 @@ function DivisionPanel({
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {metrics.map((metric) => (
-          <div
-            key={metric.label}
-            className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-3"
-          >
-            <p className="text-[10px] uppercase tracking-wide text-slate-500">{metric.label}</p>
-            <p
-              className={`mt-1 text-xl font-bold ${
-                metric.tone === "amber" ? "text-amber-300" : "text-white"
-              }`}
-            >
-              {metric.value}
-            </p>
-            {metric.hint ? (
-              <p className="mt-1 text-[10px] text-slate-600">{metric.hint}</p>
-            ) : null}
-          </div>
+          <MetricTile key={metric.label} {...metric} />
         ))}
       </div>
     </section>

@@ -36,7 +36,7 @@ export const PARTNER_ECOSYSTEM_HIERARCHY = [
   },
   {
     id: "acquisition",
-    title: "Reseller",
+    title: "Acquisition Partner",
     role: "Acquisition",
     body: "Bring customers through trusted introductions. They introduce; Ben closes.",
   },
@@ -108,7 +108,7 @@ export const PARTNER_ECOSYSTEM_ROLES = [
   },
   {
     type: "FOUNDING_RESELLER",
-    label: "Reseller",
+    label: "Founding Acquisition Partner",
     commercialLabel: "Founding Acquisition Partner",
     primaryRole: "Acquire customers",
     acquisition: true,
@@ -119,8 +119,8 @@ export const PARTNER_ECOSYSTEM_ROLES = [
   },
   {
     type: "RESELLER",
-    label: "Reseller",
-    commercialLabel: "Reseller",
+    label: "Acquisition Partner",
+    commercialLabel: "Acquisition Partner",
     primaryRole: "Acquire customers",
     acquisition: true,
     onboarding: false as const,

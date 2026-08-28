@@ -30,7 +30,7 @@ export const DIGITALGATE_USER_TYPES = {
     "DigitalGate Member",
   ],
   partners: [
-    "Reseller",
+    "Acquisition Partner",
     "Delivery Partner",
     "Success / Support Partner",
   ],
@@ -55,7 +55,7 @@ export const DELIVERY_PARTNER_CAN_SEE = [
 
 export const DELIVERY_PARTNER_CANNOT_SEE = [
   "Other customers (unless assigned)",
-  "Reseller commissions",
+  "Acquisition Partner commissions",
   "DigitalGate financial information",
   "Other partners",
   "Internal strategy",

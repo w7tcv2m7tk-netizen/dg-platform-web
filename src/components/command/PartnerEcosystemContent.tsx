@@ -78,7 +78,7 @@ export function PartnerEcosystemOverview() {
         <h2 className="text-base font-semibold text-white">Partner types</h2>
         <p className="mt-1 text-sm text-slate-400">
           Four commercial types. Skillsets and economics differ — do not collapse into one generic
-          reseller.
+          partner role.
         </p>
         <div className="mt-4 overflow-x-auto rounded-xl border border-slate-700/60">
           <table className="w-full min-w-[40rem] text-sm">
@@ -287,7 +287,7 @@ export function ImplementationPartnerProgramme() {
       <section>
         <h2 className="text-base font-semibold text-white">Implementation fees (illustrative)</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Separate from reseller commission. Customer can self-implement or pay for implementation.
+          Separate from Acquisition Partner commission. Customer can self-implement or pay for implementation.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           {IMPLEMENTATION_FEE_BANDS.map((band) => (
@@ -348,7 +348,7 @@ export function CustomerOnboardingWorkflow() {
     <div className="mx-auto max-w-3xl space-y-8">
       <p className="text-sm text-slate-300">
         DigitalGate manages the implementation directly or through a Certified Delivery Partner.
-        Resellers introduce customers but do not run implementation unless separately certified as
+        Acquisition Partners introduce customers but do not run implementation unless separately certified as
         Delivery Partners.
       </p>
       <ol className="space-y-3">

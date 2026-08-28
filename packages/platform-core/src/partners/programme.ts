@@ -18,12 +18,12 @@ export const FOUNDING_RESELLER_PROGRAMME_NAME =
 export const RESELLER_MODEL =
   "Acquisition Partners introduce and qualify. Ben closes. DigitalGate delivers.";
 
-/** Explicit introducer positioning — not a traditional reseller who sells/owns/supports. */
+/** Explicit introducer positioning — not a traditional software reseller. */
 export const FOUNDING_RESELLER_POSITIONING = {
   headline: "Introduce. Refer. Earn recurring revenue.",
-  body: "You introduce the opportunity. DigitalGate handles discovery, demonstration, proposal, onboarding and customer success.",
+  body: "You open the door. DigitalGate does the selling and delivery. You build recurring income from the customers you introduce.",
   principle:
-    "Founding Acquisition Partners don't sell, onboard or support customers. They introduce qualified businesses to DigitalGate. Ben / DigitalGate closes the opportunity.",
+    "Founding Acquisition Partners are not responsible for selling, implementing or supporting customers unless separately authorised or appointed to another DigitalGate partner role. They introduce qualified businesses to DigitalGate. Ben / DigitalGate closes the opportunity.",
 } as const;
 
 export const FOUNDING_RESELLER_HOW_IT_WORKS = [
@@ -60,6 +60,7 @@ export const FOUNDING_RESELLER_HOW_IT_WORKS = [
 ] as const;
 
 export const FOUNDING_RESELLER_WHY = [
+  "Build a recurring income portfolio",
   "Early access to DigitalGate",
   "Founding partner economics",
   "Recurring commissions",
@@ -70,9 +71,16 @@ export const FOUNDING_RESELLER_WHY = [
 ] as const;
 
 export const FOUNDING_RESELLER_WORKFLOW_STRIP =
-  "Identify → Introduce → DigitalGate qualifies → DigitalGate closes → Customer goes live → Reseller earns recurring commission";
+  "Identify → Introduce → DigitalGate qualifies → DigitalGate closes → Customer goes live → Acquisition Partner earns recurring commission";
 
 export const RESELLER_PROCESS_FLOW = {
+  partner: [
+    "Identify prospect",
+    "Initial conversation",
+    "Qualify basic fit",
+    "Warm introduction",
+  ],
+  /** @deprecated Use `partner` — kept for older briefings */
   reseller: [
     "Identify prospect",
     "Initial conversation",
@@ -92,6 +100,8 @@ export const RESELLER_PROCESS_FLOW = {
     "Go-live",
     "Ongoing customer relationship",
   ],
+  partnerAfter: ["Receives commission", "Continues introducing opportunities"],
+  /** @deprecated Use `partnerAfter` */
   resellerAfter: ["Receives commission", "Continues introducing opportunities"],
 } as const;
 
@@ -140,7 +150,7 @@ export const RESELLER_PARTNER_LEVELS = [
     startHere: true,
   },
   {
-    level: "Level 3 — Strategic Reseller",
+    level: "Level 3 — Strategic Acquisition Partner",
     summary:
       "Selected partners may eventually conduct initial discovery, run basic demonstrations, identify platform opportunities, and specialise in an industry. First Founding Acquisition Partners start at Level 1/2 — not Level 3.",
     startHere: false,
@@ -188,7 +198,7 @@ export const PARTNER_BRIEFING_OUTLINE = [
   },
   {
     minutes: 10,
-    title: "How the reseller process works",
+    title: "How the Acquisition Partner process works",
     body: "Prospect → introduction → Ben → consultation → close → onboarding → commission.",
   },
   {
@@ -223,12 +233,12 @@ export const PARTNER_ROLE_PLAY_SCENARIOS = [
 
 /** Legacy model string for terms / backward-compatible copy */
 export const RESELLER_MODEL_LEGACY =
-  "Reseller introduces → DigitalGate qualifies → Ben / DigitalGate demonstrates → Customer applies → DigitalGate accepts → Customer subscribes → Reseller earns commission";
+  "Acquisition Partner introduces → DigitalGate qualifies → Ben / DigitalGate demonstrates → Customer applies → DigitalGate accepts → Customer subscribes → Acquisition Partner earns commission";
 
 export const RESELLER_OPERATING_TARGET = {
   /** Recruit 3–5 excellent introducers first */
   firstWave: 5,
-  /** Founding 10 reseller seat cap */
+  /** Founding Acquisition Partner seat cap */
   founding10Cap: 10,
 } as const;
 
@@ -241,7 +251,7 @@ export const FOUNDING_CUSTOMER_BENEFITS = [
   "Preferential Professional Services terms where applicable",
 ] as const;
 
-/** Customer offer — reseller is invitation only, not automatic */
+/** Customer offer — Acquisition Partner invitation is not automatic */
 export const FOUNDING_RESELLER_INVITE_LINE =
   `Selected Founding 10 members may be invited into the DigitalGate Founding Acquisition Partner Programme — ${bpsToPercentLabel(BPS.RESELLER)} Acquisition Partner commission on qualifying Platform + App subscription fees for the first ${COMMISSION_PERIOD_MONTHS} months of each new customer they directly refer. Founding 10 direct customer introductions (non-partner) qualify at ${bpsToPercentLabel(BPS.FOUNDING_10_REFERRAL)}. These are separate programmes. Invitation only; not automatic.`;
 
@@ -262,7 +272,7 @@ export const QUALIFYING_COMMISSION_FEES = {
     "One-off fees",
     "Hardware, third-party software, advertising spend, media spend",
     "Domain registration, third-party hosting, and other pass-through costs",
-    "The reseller's own account, or a business they own or control, unless DigitalGate approves in writing",
+    "The Acquisition Partner's own account, or a business they own or control, unless DigitalGate approves in writing",
   ],
   rules: [
     "Commission is a percentage of qualifying recurring Platform + App fees actually received — not list price, and not the whole invoice",
@@ -272,9 +282,9 @@ export const QUALIFYING_COMMISSION_FEES = {
     "Upgrades during the window may increase qualifying fees; downgrades reduce commission accordingly",
     "Cancellation stops commission when qualifying revenue stops; the 12-month clock does not continue while inactive",
     "Attribution is recorded permanently; commission is not perpetual",
-    "Only one reseller is normally paid per customer; DigitalGate CRM is the primary attribution record",
-    "Existing DigitalGate customers are not commissionable merely because a reseller later introduces another App",
-    "Customer Founding Discount and reseller commission are separate benefits and may both apply to the same customer",
+    "Only one Acquisition Partner is normally paid per customer; DigitalGate CRM is the primary attribution record",
+    "Existing DigitalGate customers are not commissionable merely because an Acquisition Partner later introduces another App",
+    "Customer Founding Discount and Acquisition Partner commission are separate benefits and may both apply to the same customer",
   ],
 } as const;
 

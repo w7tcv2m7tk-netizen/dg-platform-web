@@ -52,11 +52,11 @@ export async function ResellersProgrammeSurface() {
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Acquisition Partners</h1>
         <p className="mt-3 max-w-2xl text-base text-slate-200">
-          Trusted introducers who open doors to businesses that DigitalGate can help.
+          Trusted acquisition partners who open doors to businesses that DigitalGate can help.
         </p>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Manage DigitalGate&apos;s trusted introducer network — partner status, referrals,
-          customers, activity and commissions.
+          You open the door. DigitalGate does the selling and delivery. You build recurring income
+          from the customers you introduce.
         </p>
         <p className="mt-3 max-w-2xl rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-100/90">
           <span className="font-semibold text-white">
@@ -74,7 +74,6 @@ export async function ResellersProgrammeSurface() {
       </header>
 
       <main className="dg-page-main space-y-8">
-        {/* Founding Acquisition Partner Programme */}
         <section className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-5 py-5">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-300">
             Founding Acquisition Partner Programme
@@ -86,6 +85,13 @@ export async function ResellersProgrammeSurface() {
           <p className="mt-2 max-w-xl text-sm text-slate-300">
             We&apos;re deliberately limiting the first cohort to 10 highly capable introducers.
             3–5 excellent partners are the immediate target.
+          </p>
+          <p className="mt-2 max-w-xl text-xs text-slate-500">
+            Detailed commission rates, qualification rules and payment terms live under{" "}
+            <Link href="/command/commissions" className="text-sky-400 hover:underline">
+              Partners → Commissions
+            </Link>
+            .
           </p>
           <div className="mt-5 grid gap-6 lg:grid-cols-2">
             <div>
@@ -102,7 +108,6 @@ export async function ResellersProgrammeSurface() {
           </div>
         </section>
 
-        {/* Partner Pulse (reseller-focused, light) */}
         <section className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
             Partner Pulse
@@ -120,12 +125,11 @@ export async function ResellersProgrammeSurface() {
             <PulseTile label="Commission paid" value={formatAud(pulse.commissionPaidCents)} />
           </div>
           <p className="mt-3 text-xs text-slate-500">
-            Full Partner OS (referral stages, MRR, next actions) waits until 3–5 partners are live —
-            don&apos;t overbuild the empty channel.
+            Active referred customers and referred MRR land once the channel has volume — keep
+            Partner Pulse light while the first partners come online.
           </p>
         </section>
 
-        {/* How it works */}
         <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
             How Acquisition Partnering works
@@ -147,7 +151,6 @@ export async function ResellersProgrammeSurface() {
           </ol>
         </section>
 
-        {/* Reseller pipeline strip */}
         <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
             Acquisition Partner pipeline
@@ -162,9 +165,11 @@ export async function ResellersProgrammeSurface() {
               </div>
             ))}
           </div>
+          <p className="mt-3 text-xs text-slate-500">
+            Partner status only — DigitalGate customer prospects live in Sales / Growth Engine.
+          </p>
         </section>
 
-        {/* Your resellers table */}
         <section className="overflow-hidden rounded-xl border border-slate-700/60 bg-slate-950/40">
           <div className="flex items-center justify-between border-b border-slate-700/60 px-4 py-3">
             <h2 className="text-sm font-semibold text-white">Acquisition Partners</h2>
@@ -176,17 +181,16 @@ export async function ResellersProgrammeSurface() {
             <div className="px-6 py-12 text-center">
               <p className="text-sm text-slate-300">No partners registered yet.</p>
               <p className="mt-2 text-sm text-slate-500">
-                Founding Acquisition Partner status is invitation only — recruit 3–5 excellent introducers first.
-                The workflow that matters now: Invitation → acceptance → referral → opportunity →
-                customer → commission.
+                Founding Acquisition Partner status is invitation only — recruit 3–5 excellent
+                introducers first. The workflow that matters now: Invitation → acceptance →
+                referral → opportunity → customer → commission.
               </p>
             </div>
           ) : (
-            <ResellerTable rows={resellers} />
+            <AcquisitionPartnerTable rows={resellers} />
           )}
         </section>
 
-        {/* Recent activity */}
         <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
             Recent activity
@@ -221,8 +225,10 @@ export async function ResellersProgrammeSurface() {
         </section>
 
         <p className="text-xs text-slate-500">
-          Introducer model — not a traditional reseller who sells, owns or supports the customer.
-          DigitalGate closes and delivers. Partners open doors and earn recurring commission.
+          Acquisition Partners introduce qualified businesses; DigitalGate owns discovery, sales,
+          contracting, implementation coordination and the customer relationship. Sales / Growth
+          Engine owns DigitalGate prospects. This page manages partners and their referrals — not
+          a second prospecting CRM.
         </p>
       </main>
     </>
@@ -238,7 +244,7 @@ function PulseTile({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ResellerTable({ rows }: { rows: PartnerDashboardRow[] }) {
+function AcquisitionPartnerTable({ rows }: { rows: PartnerDashboardRow[] }) {
   return (
     <table className="w-full text-sm">
       <thead>

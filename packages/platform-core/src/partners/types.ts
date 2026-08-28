@@ -95,7 +95,7 @@ export const PARTNER_COMMISSION_CONFIG: Record<PartnerType, PartnerTierConfig> =
   RESELLER: {
     commissionBps: BPS.RESELLER,
     durationMonths: COMMISSION_PERIOD_MONTHS,
-    label: "Reseller",
+    label: "Acquisition Partner",
     programme: "Acquisition Partner Programme",
     seatCap: null,
     platformSubscriptionCommission: true,
