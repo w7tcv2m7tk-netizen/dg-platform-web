@@ -161,6 +161,16 @@ export function formatClientOrganisationMeta(client: EnrichedCommandClient): str
   return client.organisationSlug ?? null;
 }
 
+/** Customer Intelligence / Opportunities — app footprint and open opps, no interpretation. */
+export function formatClientExpansionSignal(client: EnrichedCommandClient): string {
+  const appCount = client.installedApps.length;
+  const appsLabel = appCount === 1 ? "App" : "Apps";
+  if (client.openOpportunities > 0) {
+    return `${client.openOpportunities} open · ${appCount} ${appsLabel}`;
+  }
+  return `No open opps · ${appCount} ${appsLabel}`;
+}
+
 /** Observed operational signals — separate from score tier classification. */
 export function formatClientObservedSignal(client: EnrichedCommandClient): string {
   if (client.scoreProvisional) {
@@ -219,9 +229,20 @@ export function formatClientObservedSignal(client: EnrichedCommandClient): strin
   return parts.join(" · ");
 }
 
+export function clientInterventionTierLabel(client: EnrichedCommandClient): string {
+  return tierLabel(client.healthTier);
+}
+
+export function interventionWhy(client: EnrichedCommandClient): string {
+  const reasons = client.interventionReasons ?? client.attentionReasons;
+  if (reasons.length > 0) return reasons[0] ?? "";
+  return attentionSummary(client);
+}
+
 export function attentionSummary(client: EnrichedCommandClient): string {
-  if (client.attentionReasons.length > 0) {
-    return client.attentionReasons.slice(0, 2).join(". ");
+  const reasons = client.interventionReasons ?? client.attentionReasons;
+  if (reasons.length > 0) {
+    return reasons.slice(0, 2).join(". ");
   }
   if (client.leadsThisMonth === 0 && client.activitiesThisMonth === 0) {
     return "Low CRM activity and limited opportunity activity.";
@@ -239,8 +260,19 @@ export function attentionSummary(client: EnrichedCommandClient): string {
 }
 
 export function recommendIntervention(client: EnrichedCommandClient): string {
-  const reasons = client.attentionReasons.join(" ").toLowerCase();
+  const reasons = (client.interventionReasons ?? client.attentionReasons)
+    .join(" ")
+    .toLowerCase();
 
+  if (reasons.includes("despite high crm activity")) {
+    return "Review CRM usage and identify whether activity is translating into commercial outcomes.";
+  }
+  if (reasons.includes("very low activity")) {
+    return "Review adoption and identify the first meaningful workflow to activate.";
+  }
+  if (reasons.includes("adoption signal requires review")) {
+    return "Review CRM activity and platform utilisation.";
+  }
   if (reasons.includes("stripe") || reasons.includes("billing")) {
     return "Review billing setup and subscription status with the customer.";
   }

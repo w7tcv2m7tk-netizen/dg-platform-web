@@ -1,14 +1,12 @@
 import Link from "next/link";
 import {
-  attentionSummary,
   clientScoreTierDisplay,
   clientScoreTierEmoji,
-  clientScoreTierLabel,
   formatClientObservedSignal,
   getClientIntelligence,
-  recommendIntervention,
 } from "@dg/platform-core";
 
+import { AttentionInterventionCards } from "@/components/command/AttentionInterventionCards";
 import { ScoreCell, ScoreTierBadge } from "@/components/command/tier-badge";
 
 export default async function CustomerPortfolioPage() {
@@ -161,51 +159,10 @@ export default async function CustomerPortfolioPage() {
                 <p className="mt-1 text-sm text-slate-400">
                   {attentionClients.length} organisation
                   {attentionClients.length === 1 ? "" : "s"} require intervention based on
-                  operational signals — not score tier alone.
+                  verified signals — not score tier alone.
                 </p>
-                <div className="mt-4 space-y-3">
-                  {attentionClients.map((client) => (
-                    <div
-                      key={client.organisationId}
-                      className="rounded-xl border border-amber-500/20 bg-slate-950/50 px-4 py-4"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <Link
-                            href={`/command/clients/${client.organisationId}`}
-                            className="font-medium text-white hover:text-sky-300"
-                          >
-                            {client.organisationName}
-                          </Link>
-                          <p className="mt-0.5 text-sm text-slate-400">
-                            {client.successScore} · {clientScoreTierLabel(client)}
-                          </p>
-                          <p className="mt-2 text-sm text-slate-300">
-                            {attentionSummary(client)}
-                          </p>
-                          <p className="mt-2 text-sm text-sky-200/90">
-                            <span className="text-slate-500">Recommended: </span>
-                            {recommendIntervention(client)}
-                          </p>
-                        </div>
-                        <div className="shrink-0 whitespace-nowrap text-sm">
-                          <Link
-                            href={`/command/clients/${client.organisationId}`}
-                            className="text-sky-400 hover:underline"
-                          >
-                            Open
-                          </Link>
-                          <span className="mx-1.5 text-slate-600">·</span>
-                          <Link
-                            href={`/command/advisor?org=${client.organisationId}`}
-                            className="text-sky-400 hover:underline"
-                          >
-                            Advise
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="mt-4">
+                  <AttentionInterventionCards clients={attentionClients} />
                 </div>
               </section>
             ) : null}

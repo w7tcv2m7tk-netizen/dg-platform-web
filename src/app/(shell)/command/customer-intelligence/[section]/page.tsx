@@ -6,11 +6,13 @@ import {
   clientScoreTierDisplay,
   clientScoreTierEmoji,
   formatClientActivityMonthLine,
+  formatClientExpansionSignal,
   formatClientObservedSignal,
   formatClientOrganisationMeta,
   getClientIntelligence,
 } from "@dg/platform-core";
 
+import { AttentionInterventionCards } from "@/components/command/AttentionInterventionCards";
 import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
 import { OperatorOrgTable } from "@/components/command/OperatorOrgTable";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
@@ -108,47 +110,41 @@ export default async function CustomerIntelligenceSectionPage({
   }
 
   if (section === "at-risk") {
-    const atRisk = clients.filter((c) => c.needsAttention);
+    const flagged = clients.filter((c) => c.needsAttention);
     return shell(
       "Attention Required",
-      "Which customers need intervention — stalled health, attention flags, or declining signal?",
+      "Customers requiring DigitalGate intervention based on verified health, adoption, operational or commercial signals.",
       !intel ? (
         <DbMissing />
       ) : (
         <>
           <OperatorMetricStrip
             metrics={[
-              { label: "Need attention", value: atRisk.length, tone: "amber" },
-              { label: "All orgs", value: clients.length },
+              { label: "Need attention", value: flagged.length, tone: "amber" },
+              { label: "All organisations", value: clients.length },
             ]}
           />
-          <OperatorOrgTable
-            emptyMessage="No organisations currently flagged for attention."
-            secondaryLabel="Signal"
-            rows={atRisk.map((c) => ({
-              organisationId: c.organisationId,
-              organisationName: c.organisationName,
-              organisationSlug: c.organisationSlug,
-              successScore: c.successScore,
-              scoreTier: clientScoreTierDisplay(c),
-              scoreTierEmoji: clientScoreTierEmoji(c),
-              observedSignal: formatClientObservedSignal(c),
-            }))}
-          />
+          <AttentionInterventionCards clients={flagged} />
           <PortfolioLink />
         </>
       ),
+      "Score tier alone does not create an alert — intervention requires a verified signal.",
     );
   }
 
   if (section === "expansion") {
-    const candidates = [...clients]
-      .filter((c) => c.installedApps.length > 0 || c.openOpportunities > 0)
-      .sort((a, b) => b.openOpportunities - a.openOpportunities);
+    const sorted = [...clients].sort((a, b) => {
+      if (b.openOpportunities !== a.openOpportunities) {
+        return b.openOpportunities - a.openOpportunities;
+      }
+      return b.installedApps.length - a.installedApps.length;
+    });
+    const customersWithApps = clients.filter((c) => c.installedApps.length > 0).length;
+    const openOpportunitiesTotal = clients.reduce((s, c) => s + c.openOpportunities, 0);
 
     return shell(
       "Opportunities",
-      "Where customers may grow — open opportunities and app footprint. Sales acquisition pipeline lives under Sales.",
+      "Identify expansion opportunities across existing customers. New-customer acquisition remains under Sales.",
       !intel ? (
         <DbMissing />
       ) : (
@@ -157,28 +153,35 @@ export default async function CustomerIntelligenceSectionPage({
             metrics={[
               {
                 label: "Open opportunities",
-                value: clients.reduce((s, c) => s + c.openOpportunities, 0),
+                value: openOpportunitiesTotal,
                 tone: "sky",
               },
-              { label: "With apps installed", value: candidates.length },
+              {
+                label: "Customers with apps",
+                value: customersWithApps,
+              },
             ]}
           />
           <OperatorOrgTable
-            emptyMessage="No expansion signals yet."
-            secondaryLabel="Signal"
-            rows={candidates.map((c) => ({
+            emptyMessage="No customer organisations yet."
+            secondaryLabel="Expansion signal"
+            secondaryHint="Open customer opportunities and app footprint"
+            rows={sorted.map((c) => ({
               organisationId: c.organisationId,
               organisationName: c.organisationName,
               organisationSlug: c.organisationSlug,
+              organisationMeta: formatClientOrganisationMeta(c),
+              isInternalOrg: c.isInternalOrg,
               successScore: c.successScore,
               scoreTier: clientScoreTierDisplay(c),
               scoreTierEmoji: clientScoreTierEmoji(c),
-              observedSignal: `${c.openOpportunities} open opps · ${c.installedApps.length} apps`,
+              observedSignal: formatClientExpansionSignal(c),
             }))}
           />
           <PortfolioLink />
         </>
       ),
+      "Open opportunities are expansion signals within each customer organisation — not new-customer acquisition in Sales.",
     );
   }
 

@@ -12,7 +12,6 @@ import type {
 } from "./types";
 import {
   computeSuccessScore,
-  isOperationalAttentionTier,
   organisationExpectsPlatformBilling,
   type SuccessScoreBreakdown,
   type SuccessScoreInput,
@@ -71,6 +70,8 @@ export type EnrichedCommandClient = CommandClientRow & {
   daysSinceUpdate: number;
   /** Platform operator org — exclude from customer benchmark cohorts */
   isInternalOrg: boolean;
+  /** Verified signals warranting operator intervention — not score tier alone */
+  interventionReasons: string[];
 };
 
 export type ClientIntelligenceBundle = {
@@ -98,32 +99,61 @@ type SumRow = {
   _count?: { id: number };
 };
 
-function needsOperationalIntervention(
+function evaluateIntervention(
   result: ReturnType<typeof computeSuccessScore>,
   input: SuccessScoreInput,
-): boolean {
-  if (result.concerns.length > 0) return true;
-  if (result.operationalHealth && isOperationalAttentionTier(result.operationalHealth)) {
-    return true;
+  breakdown: SuccessScoreBreakdown,
+  isInternalOrg: boolean,
+): { required: boolean; reasons: string[] } {
+  const reasons: string[] = [...result.concerns];
+
+  if (isInternalOrg) {
+    return { required: reasons.length > 0, reasons };
   }
-  if (result.provisional) return false;
-  if (result.scoreBand === "at_risk" || result.scoreBand === "critical") return true;
-  if (
+
+  if (result.provisional) {
+    return { required: reasons.length > 0, reasons };
+  }
+
+  if (result.scoreBand === "at_risk" || result.scoreBand === "critical") {
+    reasons.push(
+      `Success Score™ in the ${result.scoreBand === "at_risk" ? "at-risk" : "critical"} band`,
+    );
+  }
+
+  const highActivityNoCommercial =
+    input.activitiesThisMonth >= 15 &&
+    input.leadsThisMonth === 0 &&
+    input.openOpportunities === 0;
+  if (highActivityNoCommercial) {
+    reasons.push(
+      "No leads or opportunities this month despite high CRM activity",
+    );
+  }
+
+  const stalledCommercial =
     result.scoreBand === "needs_attention" &&
+    input.activitiesThisMonth <= 5 &&
     input.leadsThisMonth === 0 &&
-    input.activitiesThisMonth === 0
-  ) {
-    return true;
+    input.openOpportunities === 0;
+  if (stalledCommercial && !highActivityNoCommercial) {
+    reasons.push("Very low activity and no current opportunities");
   }
-  if (
-    input.status === "trial" &&
-    input.leadsThisMonth === 0 &&
-    input.activitiesThisMonth === 0 &&
-    input.openOpportunities === 0
-  ) {
-    return true;
+
+  const scoreTierHealthy =
+    result.scoreBand === "excellent" || result.scoreBand === "healthy";
+  const adoptionReview =
+    scoreTierHealthy &&
+    breakdown.crm < 72 &&
+    !highActivityNoCommercial &&
+    !stalledCommercial;
+  if (adoptionReview) {
+    reasons.push(
+      "Customer health is acceptable, but an adoption signal requires review",
+    );
   }
-  return false;
+
+  return { required: reasons.length > 0, reasons };
 }
 
 function countMap(rows: CountRow[]): Map<string, number> {
@@ -283,6 +313,17 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     // Observed problems only — do not invent "no leads yet" / empty CRM gaps.
     // WP is optional legacy; RE/Acc Gen 2 SoT no longer requires a live WP connector.
     const attentionReasons = [...result.concerns];
+    const internalOrg = isPlatformOperatorOrganisation({
+      organisationId: org.id,
+      organisationSlug: org.slug,
+      organisationName: org.name,
+    });
+    const intervention = evaluateIntervention(
+      result,
+      scoreInput,
+      result.breakdown,
+      internalOrg,
+    );
 
     const row: Omit<EnrichedCommandClient, "rank"> = {
       organisationId: org.id,
@@ -300,8 +341,9 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       accBeta,
       websitesBeta,
       infraDomainsBeta,
-      needsAttention: needsOperationalIntervention(result, scoreInput),
+      needsAttention: intervention.required,
       attentionReasons,
+      interventionReasons: intervention.reasons,
       createdAt: org.createdAt.toISOString(),
       updatedAt: org.updatedAt.toISOString(),
       successScore: result.successScore,
@@ -321,11 +363,7 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       subscriptionMrrCents: scoreInput.subscriptionMrrCents,
       invoicePaidMtdCents: scoreInput.invoicePaidMtdCents,
       daysSinceUpdate: scoreInput.daysSinceUpdate,
-      isInternalOrg: isPlatformOperatorOrganisation({
-        organisationId: org.id,
-        organisationSlug: org.slug,
-        organisationName: org.name,
-      }),
+      isInternalOrg: internalOrg,
     };
     return row;
   });

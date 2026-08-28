@@ -137,7 +137,10 @@ export interface CommandClientRow {
   /** Domains beta (`infra.domains_beta`) */
   infraDomainsBeta: boolean;
   needsAttention: boolean;
+  /** Observed problem flags from Success Score™ computation */
   attentionReasons: string[];
+  /** Verified signals warranting operator intervention */
+  interventionReasons?: string[];
   createdAt: string;
   updatedAt: string;
   /** Success Score™ 0–100 when Client Intelligence has computed it */
