@@ -1,6 +1,6 @@
 "use client";
 
-import { REFER_AND_EARN_HREF } from "@dg/platform-core";
+import { CUSTOMER_COMMISSION_BPS, REFER_AND_EARN_HREF } from "@dg/platform-core";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -104,7 +104,7 @@ export function ReferAndEarnPanel({
     connect.canRequestPayout &&
     cashAvailable >= metrics.cashPayoutThresholdCents;
   const commissionBps =
-    programme?.commissionBps ?? metrics.commissionBps ?? 2000;
+    programme?.commissionBps ?? metrics.commissionBps ?? CUSTOMER_COMMISSION_BPS;
   const commissionPct = (commissionBps / 100).toFixed(0);
 
   useEffect(() => {
@@ -304,9 +304,11 @@ export function ReferAndEarnPanel({
                 onChange={(e) => setTier(e.target.value as ReferralTier)}
                 className="mt-1 block rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
               >
-                <option value="customer">Customer — 20%</option>
-                <option value="partner">Partner — 25%</option>
-                <option value="reseller">Acquisition Partner — 25%</option>
+                <option value="customer">Founding 10 Referrer — 20%</option>
+                <option value="founding_100">Founding 100 Referrer — 15%</option>
+                <option value="founding_1000">Founding 1,000+ Referrer — 10%</option>
+                <option value="partner">Acquisition Partner — 25%</option>
+                <option value="reseller">Founding Acquisition Partner — 25%</option>
               </select>
             </label>
             <button
@@ -320,7 +322,7 @@ export function ReferAndEarnPanel({
           </div>
         ) : (
           <p className="mt-3 text-xs text-slate-500">
-            Ask an org owner/admin to change Partner or Acquisition Partner rates.
+            Ask an org owner/admin to change Acquisition Partner rates.
           </p>
         )}
       </div>

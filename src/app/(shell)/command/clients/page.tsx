@@ -23,8 +23,10 @@ export default async function CustomerPortfolioPage() {
           the DigitalGate customer base.
         </p>
         <p className="mt-2 max-w-2xl text-xs text-slate-500">
-          Success Score™ measures overall customer/platform health. Operational signals may
-          require intervention regardless of score.
+          Success Score™ measures overall customer/platform health. “Needs Attention” is a
+          score-band classification. Attention Required is a separate intervention queue for
+          customers needing active DigitalGate action — zero interventions can coexist with
+          Needs Attention score-band customers.
         </p>
       </header>
       <main className="dg-page-main space-y-8">
@@ -59,7 +61,7 @@ export default async function CustomerPortfolioPage() {
               </div>
               <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">
-                  Needs attention
+                  Needs Attention (score)
                 </p>
                 <p className="mt-1 text-3xl font-semibold text-amber-300">
                   {intel.needsAttentionBandCount}
@@ -157,15 +159,22 @@ export default async function CustomerPortfolioPage() {
               <section>
                 <h2 className="text-lg font-semibold text-white">Attention Required</h2>
                 <p className="mt-1 text-sm text-slate-400">
-                  {attentionClients.length} organisation
-                  {attentionClients.length === 1 ? "" : "s"} require intervention based on
-                  verified signals — not score tier alone.
+                  Customers requiring active DigitalGate intervention based on observed
+                  blockers, declining signals or unresolved issues — not score tier alone.
                 </p>
                 <div className="mt-4">
                   <AttentionInterventionCards clients={attentionClients} />
                 </div>
               </section>
-            ) : null}
+            ) : (
+              <section>
+                <h2 className="text-lg font-semibold text-white">Attention Required</h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  No organisations currently require intervention. Score-band “Needs Attention”
+                  ({intel.needsAttentionBandCount}) is not the same as this intervention queue.
+                </p>
+              </section>
+            )}
           </>
         )}
       </main>

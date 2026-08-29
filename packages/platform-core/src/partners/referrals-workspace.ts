@@ -58,7 +58,7 @@ export const REFERRAL_ATTRIBUTION_RULES = [
       "Service revenue attribution",
       "Professional Services",
       "Support & Success",
-      "25% partner share where applicable",
+      `${bpsToPercentLabel(BPS.DELIVERY_PARTNER)} partner share where applicable`,
       "Channel Manager override calculated separately where applicable",
     ],
   },

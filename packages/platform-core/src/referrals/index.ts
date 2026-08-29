@@ -8,7 +8,7 @@
  * - First-paid credit from checkout.completed via markReferralPaidAndAccrue.
  * - Monthly renewal credit from invoice.paid (billing_reason=subscription_cycle).
  * - Cash payout at threshold via Stripe Connect Express (platform credit remains default).
- * - Partner / Reseller rates via org settings.referralProgramme.tier
+ * - Partner / Acquisition Partner rates via org settings.referralProgramme.tier
  * - Founding cohort direct referral rates via commercial-model.ts (20% / 15% / 10%)
  */
 
@@ -165,7 +165,7 @@ export async function getOrganisationReferralProgramme(organisationId: string) {
     commissionBps,
     label:
       tier === "partner"
-        ? `Reseller (${bpsToPercentLabel(BPS.RESELLER)})`
+        ? `Acquisition Partner (${bpsToPercentLabel(BPS.RESELLER)})`
         : tier === "reseller"
           ? `Founding Acquisition Partner (${bpsToPercentLabel(BPS.RESELLER)})`
           : tier === "founding_100"
@@ -666,7 +666,7 @@ export async function attributeOrganisationReferral(input: {
 }
 
 /**
- * Mark referral paid and accrue first month of platform credit (20%).
+ * Mark referral paid and accrue first month of platform credit.
  * Called from Stripe platform checkout provision.
  * Months 2–12 accrue via accrueMonthlyReferralCreditFromInvoice on invoice.paid.
  */
@@ -701,8 +701,9 @@ export async function markReferralPaidAndAccrue(input: {
     input.subscriptionAmountCents ??
     TIER_AMOUNTS_CENTS[input.platformTier ?? ""] ??
     TIER_AMOUNTS_CENTS.professional;
+  const rateBps = referral.commissionBps || CUSTOMER_COMMISSION_BPS;
   const creditCents = Math.round(
-    (amountCents * (referral.commissionBps || CUSTOMER_COMMISSION_BPS)) / 10_000,
+    (amountCents * rateBps) / 10_000,
   );
 
   const now = new Date();
@@ -726,13 +727,14 @@ export async function markReferralPaidAndAccrue(input: {
       entryType: "credit",
       amountCents: creditCents,
       currency: "AUD",
-      description: `First-month referral credit (20%) — ${org.name}`,
+      description: `First-month referral credit (${bpsToPercentLabel(rateBps)}) — ${org.name}`,
       stripeRef: input.stripeSessionId ?? null,
       periodStart: now,
       metadata: {
         platformTier: input.platformTier,
         subscriptionAmountCents: amountCents,
         monthIndex: 1,
+        commissionBps: rateBps,
         source: "checkout.completed",
       } as Prisma.InputJsonValue,
     },
@@ -859,8 +861,9 @@ export async function accrueMonthlyReferralCreditFromInvoice(input: {
       ? input.amountPaidCents
       : TIER_AMOUNTS_CENTS[input.platformTier ?? ""] ??
         TIER_AMOUNTS_CENTS.professional;
+  const rateBps = referral.commissionBps || CUSTOMER_COMMISSION_BPS;
   const creditCents = Math.round(
-    (amountCents * (referral.commissionBps || CUSTOMER_COMMISSION_BPS)) / 10_000,
+    (amountCents * rateBps) / 10_000,
   );
   const nextRemaining = remaining - 1;
   const monthIndex = REWARD_MONTHS - remaining + 1;
@@ -881,7 +884,7 @@ export async function accrueMonthlyReferralCreditFromInvoice(input: {
       entryType: "credit",
       amountCents: creditCents,
       currency: "AUD",
-      description: `Month ${monthIndex} referral credit (20%) — ${org.name}`,
+      description: `Month ${monthIndex} referral credit (${bpsToPercentLabel(rateBps)}) — ${org.name}`,
       stripeRef: input.stripeInvoiceId,
       periodStart: input.periodStart ?? now,
       periodEnd: input.periodEnd ?? null,
@@ -889,6 +892,7 @@ export async function accrueMonthlyReferralCreditFromInvoice(input: {
         platformTier: input.platformTier,
         subscriptionAmountCents: amountCents,
         monthIndex,
+        commissionBps: rateBps,
         source: "invoice.paid",
         billingReason: input.billingReason ?? "subscription_cycle",
       } as Prisma.InputJsonValue,

@@ -78,7 +78,7 @@ export const ORGANISATION_ROLE_LABELS: Record<OrganisationRole, string> = {
 };
 
 export const PARTNER_CAPABILITY_LABELS: Record<PartnerCapability, string> = {
-  reseller: "Reseller",
+  reseller: "Acquisition Partner",
   delivery_partner: "Delivery Partner",
   success_partner: "Success / Support Partner",
 };

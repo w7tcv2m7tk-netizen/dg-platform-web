@@ -83,7 +83,7 @@ export default async function CustomerIntelligenceSectionPage({
               },
               { label: "Healthy", value: intel.healthyCount, tone: "emerald" },
               {
-                label: "Needs attention",
+                label: "Needs Attention (score)",
                 value: intel.needsAttentionBandCount,
                 tone: "amber",
               },
@@ -105,7 +105,7 @@ export default async function CustomerIntelligenceSectionPage({
           <PortfolioLink />
         </>
       ),
-      "Success Score™ measures overall customer/platform health. Operational signals may require intervention regardless of score.",
+      "Success Score™ measures overall customer/platform health. “Needs Attention” is a score band — not the Attention Required intervention queue.",
     );
   }
 
@@ -113,22 +113,33 @@ export default async function CustomerIntelligenceSectionPage({
     const flagged = clients.filter((c) => c.needsAttention);
     return shell(
       "Attention Required",
-      "Customers requiring DigitalGate intervention based on verified health, adoption, operational or commercial signals.",
+      "Customers requiring active DigitalGate intervention based on observed blockers, declining signals or unresolved issues.",
       !intel ? (
         <DbMissing />
       ) : (
         <>
           <OperatorMetricStrip
             metrics={[
-              { label: "Need attention", value: flagged.length, tone: "amber" },
+              {
+                label: "Attention Required",
+                value: flagged.length,
+                tone: "amber",
+              },
+              {
+                label: "Needs Attention (score)",
+                value: intel.needsAttentionBandCount,
+              },
               { label: "All organisations", value: clients.length },
             ]}
           />
-          <AttentionInterventionCards clients={flagged} />
+          <AttentionInterventionCards
+            clients={flagged}
+            emptyMessage="No organisations currently require intervention. Score-band “Needs Attention” customers can exist without an active intervention queue."
+          />
           <PortfolioLink />
         </>
       ),
-      "Score tier alone does not create an alert — intervention requires a verified signal.",
+      "Needs Attention is a Success Score™ band. Attention Required is the intervention queue — they are not the same. Zero interventions can coexist with customers in the Needs Attention score band.",
     );
   }
 

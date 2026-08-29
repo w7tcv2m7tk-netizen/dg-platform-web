@@ -188,7 +188,7 @@ export const PARTNER_ECOSYSTEM_ROLES = [
     acquisition: false,
     onboarding: true as const,
     technical: "limited" as boolean | "limited" | "optional",
-    economics: "25% qualifying Professional Services + Support & Success — no Platform commission",
+    economics: `${bpsToPercentLabel(BPS.DELIVERY_PARTNER)} qualifying Professional Services + Support & Success — no Platform commission`,
     phase: 2,
   },
   {

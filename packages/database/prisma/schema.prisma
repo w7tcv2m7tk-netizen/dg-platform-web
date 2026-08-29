@@ -1321,8 +1321,8 @@ model Partner {
   partnerType              String    @map("partner_type")
   /** Programme cohort label e.g. "founding_10" */
   cohort                   String?
-  /** Commission rate in basis points (3000 = 30%) */
-  commissionBps            Int       @default(2000) @map("commission_bps")
+  /** Commission rate in basis points (2500 = 25% Acquisition Partner default) */
+  commissionBps            Int       @default(2500) @map("commission_bps")
   /** Number of months commission is payable per referred customer */
   commissionDurationMonths Int       @default(12) @map("commission_duration_months")
   /** active | pending | suspended | inactive */

@@ -44,6 +44,10 @@ export const BPS = {
 
   RESELLER: 2500,
 
+  /** Canonical alias — prefer over RESELLER in new code */
+
+  ACQUISITION_PARTNER: 2500,
+
   /** Channel Manager direct acquisition (when they refer a customer themselves) */
 
   CHANNEL_MANAGER_DIRECT: 2500,

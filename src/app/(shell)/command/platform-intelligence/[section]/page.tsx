@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   getCommandCentreOpsHome,
@@ -7,6 +6,7 @@ import {
 
 import { OperatorCategoryHeader } from "@/components/command/OperatorCategoryHeader";
 import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
+import { PlatformIntelligenceOverview } from "@/components/command/PlatformIntelligenceOverview";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 function shell(title: string, question: string, body: React.ReactNode) {
@@ -53,40 +53,23 @@ export default async function PlatformIntelligenceSectionPage({
   if (section === "overview") {
     const ops = db ? await getCommandCentreOpsHome() : null;
     const alerts = db ? await getPlatformAlertsCentre() : null;
-    return shell(
-      "Overview",
-      "DigitalGate platform ecosystem health — distinct from customer alerts and Command Centre priorities.",
-      !ops || !alerts ? (
-        <DbMissing />
-      ) : (
-        <>
-          <OperatorMetricStrip
-            metrics={[
-              { label: "Organisations", value: ops.pulse.organisations, tone: "sky" },
-              {
-                label: "Critical alerts",
-                value: alerts.critical.length,
-                tone: alerts.critical.length ? "amber" : "emerald",
-              },
-              { label: "Open tasks due", value: ops.pulse.openTasksDue },
-              {
-                label: "Services tracked",
-                value: alerts.infrastructureServices.length,
-              },
-            ]}
-          />
-          <p className="text-sm text-slate-400">
-            Dig deeper via the Platform Intelligence tabs above. Command Centre Priorities remain
-            the daily ops home — this surface is platform ecosystem health.
+    return (
+      <>
+        <header className="dg-page-header">
+          <h1 className="text-2xl font-bold text-white">Platform Intelligence</h1>
+          <p className="mt-1 max-w-2xl text-sm text-slate-400">
+            Platform ecosystem health — infrastructure, connectors, automation, AI usage and
+            system activity. Customer business health lives in Customer Intelligence.
           </p>
-          <p className="text-sm text-slate-500">
-            Docs-backed answers:{" "}
-            <Link href="/command/intelligence" className="text-sky-400 hover:underline">
-              Platform Intelligence chat
-            </Link>
-          </p>
-        </>
-      ),
+        </header>
+        <main className="dg-page-main space-y-6">
+          {!ops || !alerts ? (
+            <DbMissing />
+          ) : (
+            <PlatformIntelligenceOverview ops={ops} alerts={alerts} />
+          )}
+        </main>
+      </>
     );
   }
 
