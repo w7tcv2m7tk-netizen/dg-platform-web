@@ -24,6 +24,9 @@ export type CommandCentreNavId =
   | "docs"
   | "intelligence";
 
+/**
+ * @deprecated AppContextNav owns Command Centre tabs. Do not mount on section hubs.
+ */
 export function CommandCentreNav({ active }: { active: CommandCentreNavId }) {
   return (
     <nav className="flex flex-wrap gap-2 border-b border-slate-800 pb-4" aria-label="Command Centre">

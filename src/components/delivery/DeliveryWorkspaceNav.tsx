@@ -42,6 +42,9 @@ const PARTNER_NAV = [
 
 type NavId = (typeof STAFF_NAV)[number]["id"] | (typeof PARTNER_NAV)[number]["id"];
 
+/**
+ * @deprecated AppContextNav owns Delivery tabs. Prefer DeliveryCommandPage chrome only for entity detail.
+ */
 export function DeliveryWorkspaceNav({
   active,
   scope,

@@ -122,7 +122,7 @@ export default async function BusinessProfilePage({
               </li>
               <li>
                 <Link
-                  href="/dashboard/settings/team"
+                  href="/dashboard/team"
                   className="text-sky-400 hover:underline"
                 >
                   Invite teammates

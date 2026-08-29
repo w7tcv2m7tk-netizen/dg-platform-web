@@ -46,6 +46,9 @@ const MODULES = [
   },
 ] as const;
 
+/**
+ * @deprecated AppContextNav owns Sales / Growth Engine tabs. Do not mount on section hubs.
+ */
 export function GrowthEngineNav({ active }: { active?: string }) {
   return (
     <nav className="flex flex-wrap gap-2 border-b border-slate-800 pb-4" aria-label="Growth Engine">

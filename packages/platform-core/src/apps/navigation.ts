@@ -324,7 +324,8 @@ function businessNavItem(foundingCustomerMode: boolean): AppNavTreeItem {
       { path: "/dashboard", label: "Overview" },
       { path: "/dashboard/business", label: "Business Profile" },
       { path: "/dashboard/goals", label: "Goals" },
-      { path: "/dashboard/settings/team", label: "Team" },
+      // Business-owned Team path — Settings keeps Users & Permissions at /dashboard/settings/team
+      { path: "/dashboard/team", label: "Team" },
     ],
     primaryHref: "/dashboard",
   };

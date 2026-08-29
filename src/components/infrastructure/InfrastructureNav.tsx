@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { INFRASTRUCTURE_NAV, type InfrastructureNavId } from "@dg/platform-core";
 
+/**
+ * @deprecated AppContextNav owns Infrastructure tabs. Do not mount on section hubs.
+ */
 export function InfrastructureNav({ active }: { active: InfrastructureNavId }) {
   return (
     <nav className="mb-6 flex flex-wrap gap-2" aria-label="Infrastructure">

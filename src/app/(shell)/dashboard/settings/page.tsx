@@ -36,7 +36,7 @@ export default async function PlatformSettingsPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="text-sm text-slate-400">
-          Organisation, connected services, and platform configuration
+          Connected services and platform configuration
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -85,7 +85,7 @@ export default async function PlatformSettingsPage() {
           </Link>
 
           <div className="dg-card">
-            <h2 className="font-semibold text-white">Organisation</h2>
+            <h2 className="font-semibold text-white">This organisation</h2>
             {session ? (
               <dl className="mt-4 space-y-3 text-sm">
                 <div>
@@ -106,6 +106,12 @@ export default async function PlatformSettingsPage() {
                 Sign in to view organisation details.
               </p>
             )}
+            <Link
+              href="/dashboard/business"
+              className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
+            >
+              Edit Business Profile →
+            </Link>
           </div>
 
           <div className="dg-card">

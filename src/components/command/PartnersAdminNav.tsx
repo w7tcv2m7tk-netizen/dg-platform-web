@@ -15,6 +15,9 @@ const NAV = [
   { href: COMMAND_CENTRE_ROUTES.partnerDelivery, label: "Operating Model", id: "operating-model" },
 ] as const;
 
+/**
+ * @deprecated AppContextNav owns section tabs. Do not mount this bar on section hubs.
+ */
 export function PartnersAdminNav({ active }: { active: (typeof NAV)[number]["id"] }) {
   return (
     <nav className="flex flex-wrap gap-2 border-b border-slate-800 pb-4" aria-label="Partners">

@@ -13,15 +13,11 @@ export interface PlatformToolGroup {
 /**
  * Settings sub-pages — Platform → Settings horizontal subnav.
  * Refer & Earn lives under Network. Roadmap lives under Product (staff).
- * Team / organisation profile also reachable from Business in Core.
+ * Business Profile lives under Core → Business (`/dashboard/business`) only —
+ * not a Settings “Organisation” tab.
  */
 export const SETTINGS_NAV_ROUTES: AppRoute[] = [
   { path: "/dashboard/settings", label: "Overview" },
-  {
-    path: "/dashboard/settings/organisation",
-    label: "Organisation",
-    matchAlso: ["/dashboard/business"],
-  },
   { path: "/dashboard/settings/team", label: "Users & Permissions" },
   { path: "/dashboard/settings/billing", label: "Billing" },
   {

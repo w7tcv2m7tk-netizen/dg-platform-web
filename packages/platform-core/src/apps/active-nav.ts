@@ -110,19 +110,39 @@ function resolveActiveRoute(pathname: string, routes: AppRoute[]): AppRoute | nu
   return best;
 }
 
-/** Specificity score — longer matching route paths win (avoids /command stealing child apps). */
+/**
+ * How strongly this route set owns the pathname.
+ *
+ * Primary ownership (pathname equals / is under a declared route.path) always
+ * outranks matchAlso-only aliases so cross-section aliases cannot steal chrome.
+ * When scoring matchAlso, use the matched alias length — never the longer
+ * declared alien path.
+ */
 function matchSpecificity(pathname: string, routes: AppRoute[]): number {
-  let best = -1;
+  let bestPrimary = -1;
+  let bestAlias = -1;
+
   for (const route of flattenAppRoutes(routes)) {
-    if (!routeIsActive(pathname, route.path, routes)) continue;
-    best = Math.max(best, route.path.length);
+    const primaryExact =
+      pathname === route.path || pathname.startsWith(`${route.path}/`);
+    if (primaryExact) {
+      // Prefer leaf ownership: exact path beats parent prefix among peers via length.
+      bestPrimary = Math.max(bestPrimary, route.path.length);
+    }
+
     for (const also of route.matchAlso ?? []) {
-      if (pathname === also || pathname.startsWith(`${also}/`)) {
-        best = Math.max(best, also.length);
+      const base = also.endsWith("/") ? also.slice(0, -1) : also;
+      if (pathname === base || pathname === also || pathname.startsWith(`${base}/`)) {
+        bestAlias = Math.max(bestAlias, base.length);
       }
     }
   }
-  return best;
+
+  if (bestPrimary >= 0) {
+    // Primary owners always beat alias-only matches (alias scores stay < 1e6).
+    return 1_000_000 + bestPrimary;
+  }
+  return bestAlias;
 }
 
 function matchAppItem(

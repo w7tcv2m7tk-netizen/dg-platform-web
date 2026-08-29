@@ -89,7 +89,10 @@ PLATFORM — Manage DigitalGate for this organisation
     Dashboard · Ecosystem · Briefing · Resellers · Onboarding · Operating Model
     (+ More ▾ when overflow). Who are our partners — status, tier, certification, activity.
 
-  Settings — administrative home (Overview · Organisation · Users & Permissions · Billing · Connectors · API · Security · Notifications · Audit Log)
+  Settings — administrative home (Overview · Users & Permissions · Billing · Connectors · API · Security · Notifications · Audit Log)
+
+  **Business Profile** lives under **CORE → Business** (`/dashboard/business`) — not under Settings.
+  Do not add a Settings “Organisation” tab that steals Business chrome.
 
   Staff DigitalGate org also uses Platform for tenant config. **Roadmap stays under Product** — not Platform.
   Business Knowledge lives inside Business Brain — not Platform Docs
@@ -174,6 +177,9 @@ Page top:  CORE / CRM / Contacts
 
 **Uniformity rules (locked)**
 
+- **Canonical ownership:** each URL has one category / section owner. Shared editors are fine; they must not change chrome.
+- **`matchAlso`:** same-app deep links only (e.g. `/apps/websites/studio` under Websites). Never alias a Core URL under Platform Settings (or any other category).
+- **Business Profile** = Core → Business → `/dashboard/business`. Settings has no Organisation tab.
 - One horizontal subnav only — never paste page-level pill bars (`CommandCentreNav`, `PartnersAdminNav`, `GrowthEngineNav`, `InfrastructureNav`, etc.).
 - Subnav routes belong to exactly one sidebar app. Do not list Sales Opportunities under Commercial, or Command Centre Priorities/Alerts under Organisations / Platform Docs / Intelligence.
 - Customer Portfolio (`/command/clients`) belongs to **Customer Intelligence**, not a standalone Organisations app.
@@ -181,6 +187,8 @@ Page top:  CORE / CRM / Contacts
 - Context title = sidebar app name (e.g. Commercial, Sales, Product).
 - Product Roadmap lives at `/command/product/roadmap` so Product tabs stay mounted.
 - Staff **AI Advisor** lives under **Command Centre**. Customer **AI Advisor** lives under **CORE → Intelligence**. Portfolio **Advise** opens Advisor with that organisation as context — do not add a third Advisor tab under Customer Intelligence.
+
+**Smoke test:** enter each major section overview, click every horizontal tab, confirm category label, section name, active sidebar item, subnav set, and page title stay in that section.
 
 ## Sidebar principle
 
