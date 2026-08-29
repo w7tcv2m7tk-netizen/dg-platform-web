@@ -13,27 +13,28 @@ export default function SupportHelpIndexPage() {
     <>
       <header className="dg-page-header">
         <Link href="/support" className="text-sm text-sky-400 hover:underline">
-          ← Support
+          ← Support centre
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Knowledge base</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Short stubs for Gate 1 dogfood — escalate via chat or email when you need a human.
+        <p className="mt-1 max-w-2xl text-sm text-slate-400">
+          Short stubs for customers and DigitalGate Assist — Gate 1 dogfood scope. Deepen from
+          real pilot questions; this is not a full help centre or CMS.
         </p>
       </header>
       <main className="dg-page-main space-y-8">
         <div className="dg-card max-w-2xl border-slate-700/80">
           <h2 className="font-semibold text-white">Need a person?</h2>
           <p className="mt-2 text-sm text-slate-400">
-            In-app chat on{" "}
+            Chat with Assist on{" "}
             <Link href="/support" className="text-sky-400 hover:underline">
-              Support
+              Support centre
             </Link>{" "}
             or email{" "}
             <a href={SUPPORT_MAILTO} className="text-sky-400 hover:underline">
               {SUPPORT_EMAIL}
             </a>
-            . Team replies on <span className="text-slate-300">business days</span> (Australia).
-            This is not a 24/7 ticket portal.
+            . Team replies on <span className="text-slate-300">business days</span> (Australia) —
+            not a 24/7 ticket portal.
           </p>
         </div>
 
@@ -69,7 +70,8 @@ export default function SupportHelpIndexPage() {
         ))}
 
         <p className="text-xs text-slate-500">
-          {HELP_ARTICLES.length} articles · stubs ship first; deepen from real pilot questions.
+          {HELP_ARTICLES.length} stub articles · shared by customers and Assist · expand from real
+          questions, not invented coverage.
         </p>
       </main>
     </>

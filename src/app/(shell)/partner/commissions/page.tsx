@@ -135,8 +135,9 @@ export default async function PartnerCommissionsPage() {
           months of each referred customer.
         </p>
         <p>
-          The customer&apos;s Founding discount (if any) is a separate benefit and is never combined
-          with partner commission. See Resources for the full qualifying-fees definition.
+          Founding Customer programme benefits (access and influence at published pricing) are
+          separate from partner commission and are never combined into a higher partner rate. See
+          Resources for the full qualifying-fees definition.
         </p>
         <p>
           Payments are issued manually by DigitalGate. Contact{" "}

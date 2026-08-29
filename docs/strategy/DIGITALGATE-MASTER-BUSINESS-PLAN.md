@@ -323,7 +323,7 @@ DigitalGate is in **Founding Customer mode**, not open public SaaS launch.
 
 **Immediate milestone:** **Founding 10** — early customers, validation, feedback, case studies, implementation learning, commercial proof.
 
-**Offer:** 30% off qualifying Platform + Apps at onboarding for **24 months**. Customer discount and reseller commissions are **separate**. Apps/upgrades after onboarding charged at published price then applicable.
+**Offer:** Founding customers pay **standard published** Platform + Apps pricing. Benefits are exclusivity, early access, priority onboarding and influence — **not** a recurring % discount. Founding referral commissions (20/15/10) are **separate**. Try DigitalGate free for 14 days; annual ≈ 10 months of monthly pricing.
 
 **Operating mode:** Talk → Demonstrate → Close → Learn → Repeat  
 

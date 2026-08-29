@@ -72,7 +72,7 @@ These are **different roles**. Do not collapse them.
 
 | Role | Who | What they do | What they get |
 |------|-----|--------------|---------------|
-| **Founding Customer** | A business that primarily **uses** DigitalGate | Applies, consults, onboards, operates | Cohort acquisition discount (24 months) + the referral *entitlement* in their offer |
+| **Founding Customer** | A business that primarily **uses** DigitalGate | Applies, consults, onboards, operates | Founding programme benefits (access/influence at published pricing) + the referral *entitlement* in their offer |
 | **Founding Acquisition Partner** | A person/business that **actively introduces** DigitalGate | Identifies and introduces suitable businesses | Partner status, attribution, assets, commission on qualifying referred subscriptions |
 
 A Founding 10 customer’s offer may include Founding Acquisition Partner **referral terms**. That does **not** make every customer an active partner.
@@ -194,13 +194,13 @@ The market now tells DigitalGate what to build next.
 
 ## Cohort progression (already locked)
 
-Customer discount ≠ referral commission. Keep saying that.
+Customer founding benefits ≠ referral commission. Keep saying that.
 
-| Cohort | Own discount (24 months) | Direct referral commission (12 months / referred customer) |
-|--------|--------------------------|-------------------------------------------------------------|
-| Founding 10 | 30% | **20%** — Founding Customer direct referral |
-| Founding 100 | 25% | **15%** |
-| Founding 1,000 | 20% | **10%** |
+| Cohort | Own pricing | Direct referral commission (12 months / referred customer) |
+|--------|-------------|------------------------------------------------------------|
+| Founding 10 | **Published pricing** (access/influence benefits) | **20%** — Founding Customer direct referral |
+| Founding 100 | Published pricing | **15%** |
+| Founding 1,000 | Published pricing | **10%** |
 | Standard | Published | **10%** |
 
 **Separate programme:** Founding Acquisition Partners / Resellers earn **25%** (not the direct referral rate). Acquisition Channel Manager: **+5% override** on managed Resellers.

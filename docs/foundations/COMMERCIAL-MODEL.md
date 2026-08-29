@@ -136,8 +136,8 @@ Command Centre Revenue Intelligence module.
 1. **One Stripe customer per Organisation**  
 2. **Plan changes prorated** via Stripe  
 3. **Feature checks at API layer** — not UI-only gating  
-4. **Grandfathering** — founding discounts apply to **initial Platform + App line items only** for 24 months; later additions bill at then-current published pricing ([FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md))  
-5. **Founding status** persists after the discount window; pricing reverts to then-current standard unless a separate agreement applies  
+4. **Published pricing for Founding** — Founding customers pay standard published Platform + App pricing; benefits are access/influence, not a recurring % discount ([FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md))  
+5. **Founding status** persists as programme membership; subscription billing follows published monthly / annual / trial terms unless a separate agreement applies  
 
 ---
 

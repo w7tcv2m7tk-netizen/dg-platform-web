@@ -37,7 +37,7 @@ export default async function ProductSectionPage({
           <OperatorCategoryHeader
             eyebrow="Product"
             title="Overview"
-            question="Flags, roadmap, releases and feedback across the DigitalGate product surface."
+            question="What exists, what is being built, what is planned, what has changed, and what feedback needs a decision?"
             backHref="/command"
             backLabel="Command Centre"
           />
@@ -56,7 +56,7 @@ export default async function ProductSectionPage({
           <OperatorCategoryHeader
             eyebrow="Product"
             title="Roadmap"
-            question="Commercially Ready v1 first — full Gen 2 backlog second."
+            question="Commercial readiness first (Now / Next), then Later Gen 2 backlog — not a Jira clone."
             backHref="/command/product/overview"
             backLabel="Product"
           />
@@ -75,22 +75,31 @@ export default async function ProductSectionPage({
           <OperatorCategoryHeader
             eyebrow="Product"
             title="Feedback"
-            question="Customer and staff product feedback — Support is the intake surface today."
+            question="Product feedback that needs a decision — Support is the intake surface today."
             backHref="/command/product/overview"
             backLabel="Product"
           />
         </header>
         <main className="dg-page-main space-y-4">
           <p className="max-w-2xl text-sm text-slate-400">
-            There is no separate feedback database yet. Capture product requests in Support so
-            they stay actionable and attributed.
+            There is no separate feedback database yet. Capture product requests via Support
+            conversations so they stay actionable and attributed. This page is the Product lens;
+            Support owns intake.
           </p>
-          <Link
-            href="/support"
-            className="inline-flex rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
-          >
-            Open Support
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/support"
+              className="inline-flex rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+            >
+              Open Support centre
+            </Link>
+            <Link
+              href="/support/tickets"
+              className="inline-flex rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 hover:border-slate-500"
+            >
+              Support conversations
+            </Link>
+          </div>
         </main>
       </>
     );
@@ -117,8 +126,8 @@ export default async function ProductSectionPage({
         </header>
         <main className="dg-page-main space-y-6">
           <p className="max-w-2xl text-sm text-slate-400">
-            Release communication lives in Platform Docs and feature flags until a dedicated
-            changelog exists. Prefer honesty over inventing a release CMS.
+            No dedicated release CMS yet. This list is curated from Platform Docs (launch gates,
+            dogfood, beta checklists). Rollout switches live under Feature Flags.
           </p>
           {docs.length === 0 ? (
             <p className="text-sm text-slate-500">

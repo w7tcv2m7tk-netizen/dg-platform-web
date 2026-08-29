@@ -27,11 +27,12 @@ const FOUNDING_STEPS: Array<{ title: string; body: string }> = [
 ];
 
 const FOUNDING_ADVANTAGES = [
-  "30% off initial Platform + Apps for 24 months",
+  "Founding Customer status — limited places, not discounted access",
   "Priority onboarding",
   "Early access to selected Apps",
   "Direct roadmap input",
   "Founding recognition",
+  "Standard published Platform + Apps pricing (14-day trial; annual ≈ 10 months)",
   "Selected members may be invited into the Founding Acquisition Partner Programme (not automatic)",
 ];
 
@@ -110,7 +111,7 @@ export function renderDgFounding10ApplicationAck(input: {
     ...(summaryLines.length
       ? [`Your Founding 10 application`, ``, ...summaryLines, ``]
       : []),
-    `The Founding 10 is limited to the first 10 accepted businesses and provides the highest founding commercial advantage:`,
+    `The Founding 10 is limited to the first 10 accepted businesses. Benefits are exclusivity, access and influence — not a recurring percentage discount:`,
     ``,
     ...FOUNDING_ADVANTAGES.map((item) => `• ${item}`),
     ``,
@@ -166,7 +167,7 @@ export function renderDgFounding10ApplicationAck(input: {
   blocks.push(
     {
       type: "paragraph",
-      text: "The Founding 10 is limited to the first 10 accepted businesses and provides the highest founding commercial advantage:",
+      text: "The Founding 10 is limited to the first 10 accepted businesses. Benefits are exclusivity, access and influence — not a recurring percentage discount:",
     },
     { type: "list", items: FOUNDING_ADVANTAGES },
     {

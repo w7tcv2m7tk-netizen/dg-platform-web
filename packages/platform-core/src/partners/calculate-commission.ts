@@ -2,12 +2,18 @@
  * DigitalGate commission calculation engine — single source of truth for amounts.
  *
  * Rates live in commercial-model.ts (BPS). Callers must not hard-code percentages.
- * Attribution fields (customer, partner, channel manager, period, invoice) are
- * recorded by crud.ts / attribution.ts; this module computes payable amounts.
  *
- * Locked model (CEO):
- * - Founding referral ladder: 20% / 15% / 10% × 12 months (Platform + Apps)
- * - Acquisition Partner: 25% × 12 months
+ * CORE RULE (CEO lock):
+ * Commission = % of qualifying DigitalGate revenue actually received.
+ * Calculated immediately when that payment is received — not as MRR accrual,
+ * not as theoretical contract value, not as a 12-month payout schedule.
+ *
+ * The 12-month acquisition window is eligibility only: further qualifying
+ * payments inside the window also earn commission; payments after it do not.
+ *
+ * Locked rates:
+ * - Founding referral ladder: 20% / 15% / 10% (Platform + Apps, eligibility window)
+ * - Acquisition Partner: 25%
  * - Channel Manager override: +5% additive (not deducted from partner 25%)
  * - Delivery Partner: 25% of qualifying services (no Platform commission)
  * - Delivery Channel Manager: 25% own + 5% override on managed delivery
@@ -31,16 +37,16 @@ export type CommissionLine = {
   commissionBps: number;
   commissionAmountCents: number;
   kind: "direct" | "override";
+  /** Eligibility window in months (0 = not time-windowed, e.g. delivery services) */
   periodMonths: number;
 };
 
 export type AcquisitionCommissionResult = {
+  /** Qualifying revenue this calculation is based on (the payment received) */
   qualifyingRevenueCents: number;
   periodMonths: number;
   lines: CommissionLine[];
-  /** Total partner + manager outgoings for the period */
   totalCommissionCents: number;
-  /** DigitalGate retained after commissions */
   digitalgateRetainedCents: number;
 };
 
@@ -51,22 +57,34 @@ export type DeliveryCommissionResult = {
   digitalgateRetainedCents: number;
 };
 
-/** Monthly qualifying revenue × rate × months (acquisition clock). */
+/**
+ * Immediate commission on a single qualifying payment received.
+ * This is the production path — use for Stripe invoice.paid / annual / monthly.
+ */
+export function commissionOnQualifyingPayment(
+  qualifyingRevenueReceivedCents: number,
+  commissionBps: number,
+): number {
+  return commissionFromNetCollected(qualifyingRevenueReceivedCents, commissionBps);
+}
+
+/**
+ * @deprecated Prefer commissionOnQualifyingPayment — name kept for callers illustrating
+ * monthly × months eligibility totals (not a payout schedule).
+ */
 export function acquisitionPeriodCommissionCents(
   monthlyQualifyingCents: number,
   commissionBps: number,
   periodMonths: number = COMMISSION_PERIOD_MONTHS,
 ): number {
-  const monthly = commissionFromNetCollected(monthlyQualifyingCents, commissionBps);
-  return monthly * periodMonths;
+  return commissionOnQualifyingPayment(monthlyQualifyingCents * periodMonths, commissionBps);
 }
 
 /**
- * Founding Customer Referral Programme — direct referral only.
- * Not Acquisition Partner economics.
+ * Founding Customer Referral — commission on one qualifying payment received.
  */
-export function calculateFoundingReferralCommission(input: {
-  monthlyQualifyingCents: number;
+export function calculateFoundingReferralOnPayment(input: {
+  qualifyingRevenueReceivedCents: number;
   cohort: "founding_10" | "founding_100" | "founding_1000";
 }): AcquisitionCommissionResult {
   const source: AcquisitionSource =
@@ -76,45 +94,36 @@ export function calculateFoundingReferralCommission(input: {
         ? "founding_100_referral"
         : "founding_1000_referral";
   const bps = acquisitionCommissionBps(source);
-  const periodMonths = COMMISSION_PERIOD_MONTHS;
-  const amount = acquisitionPeriodCommissionCents(
-    input.monthlyQualifyingCents,
-    bps,
-    periodMonths,
-  );
-  const totalRevenue = input.monthlyQualifyingCents * periodMonths;
+  const amount = commissionOnQualifyingPayment(input.qualifyingRevenueReceivedCents, bps);
   return {
-    qualifyingRevenueCents: totalRevenue,
-    periodMonths,
+    qualifyingRevenueCents: input.qualifyingRevenueReceivedCents,
+    periodMonths: COMMISSION_PERIOD_MONTHS,
     lines: [
       {
         role: "founding_referrer",
         commissionBps: bps,
         commissionAmountCents: amount,
         kind: "direct",
-        periodMonths,
+        periodMonths: COMMISSION_PERIOD_MONTHS,
       },
     ],
     totalCommissionCents: amount,
-    digitalgateRetainedCents: totalRevenue - amount,
+    digitalgateRetainedCents: input.qualifyingRevenueReceivedCents - amount,
   };
 }
 
 /**
- * Acquisition Partner commission for one referred customer over the 12-month clock.
- * Optional Channel Manager receives an additive 5% override (not deducted from 25%).
+ * Acquisition Partner (+ optional CM override) on one qualifying payment received.
+ * Annual example: $5,000 received → partner $1,250 immediately (not spread over 12 months).
  */
-export function calculateAcquisitionPartnerCommission(input: {
-  monthlyQualifyingCents: number;
-  /** When true, also accrue Acquisition Channel Manager override */
+export function calculateAcquisitionPartnerOnPayment(input: {
+  qualifyingRevenueReceivedCents: number;
   withChannelManagerOverride?: boolean;
 }): AcquisitionCommissionResult {
-  const periodMonths = COMMISSION_PERIOD_MONTHS;
   const partnerBps = BPS.ACQUISITION_PARTNER;
-  const partnerAmount = acquisitionPeriodCommissionCents(
-    input.monthlyQualifyingCents,
+  const partnerAmount = commissionOnQualifyingPayment(
+    input.qualifyingRevenueReceivedCents,
     partnerBps,
-    periodMonths,
   );
   const lines: CommissionLine[] = [
     {
@@ -122,78 +131,102 @@ export function calculateAcquisitionPartnerCommission(input: {
       commissionBps: partnerBps,
       commissionAmountCents: partnerAmount,
       kind: "direct",
-      periodMonths,
+      periodMonths: COMMISSION_PERIOD_MONTHS,
     },
   ];
 
   if (input.withChannelManagerOverride) {
     const overrideBps = BPS.CHANNEL_MANAGER_OVERRIDE;
-    const overrideAmount = acquisitionPeriodCommissionCents(
-      input.monthlyQualifyingCents,
+    const overrideAmount = commissionOnQualifyingPayment(
+      input.qualifyingRevenueReceivedCents,
       overrideBps,
-      periodMonths,
     );
     lines.push({
       role: "acquisition_channel_manager",
       commissionBps: overrideBps,
       commissionAmountCents: overrideAmount,
       kind: "override",
-      periodMonths,
+      periodMonths: COMMISSION_PERIOD_MONTHS,
     });
   }
 
   const totalCommissionCents = lines.reduce((s, l) => s + l.commissionAmountCents, 0);
-  const totalRevenue = input.monthlyQualifyingCents * periodMonths;
   return {
-    qualifyingRevenueCents: totalRevenue,
-    periodMonths,
+    qualifyingRevenueCents: input.qualifyingRevenueReceivedCents,
+    periodMonths: COMMISSION_PERIOD_MONTHS,
     lines,
     totalCommissionCents,
-    digitalgateRetainedCents: totalRevenue - totalCommissionCents,
+    digitalgateRetainedCents: input.qualifyingRevenueReceivedCents - totalCommissionCents,
   };
 }
 
 /**
- * Channel Manager referring a customer directly (own book) — 25%, no partner split.
+ * Illustrative eligibility total if the same monthly qualifying amount recurs for 12 months.
+ * Not a payment schedule — production uses calculateAcquisitionPartnerOnPayment per receipt.
  */
+export function calculateFoundingReferralCommission(input: {
+  monthlyQualifyingCents: number;
+  cohort: "founding_10" | "founding_100" | "founding_1000";
+}): AcquisitionCommissionResult {
+  return calculateFoundingReferralOnPayment({
+    qualifyingRevenueReceivedCents:
+      input.monthlyQualifyingCents * COMMISSION_PERIOD_MONTHS,
+    cohort: input.cohort,
+  });
+}
+
+export function calculateAcquisitionPartnerCommission(input: {
+  monthlyQualifyingCents: number;
+  withChannelManagerOverride?: boolean;
+}): AcquisitionCommissionResult {
+  return calculateAcquisitionPartnerOnPayment({
+    qualifyingRevenueReceivedCents:
+      input.monthlyQualifyingCents * COMMISSION_PERIOD_MONTHS,
+    withChannelManagerOverride: input.withChannelManagerOverride,
+  });
+}
+
 export function calculateChannelManagerDirectCommission(input: {
   monthlyQualifyingCents: number;
 }): AcquisitionCommissionResult {
-  const periodMonths = COMMISSION_PERIOD_MONTHS;
+  return calculateChannelManagerDirectOnPayment({
+    qualifyingRevenueReceivedCents:
+      input.monthlyQualifyingCents * COMMISSION_PERIOD_MONTHS,
+  });
+}
+
+export function calculateChannelManagerDirectOnPayment(input: {
+  qualifyingRevenueReceivedCents: number;
+}): AcquisitionCommissionResult {
   const bps = BPS.CHANNEL_MANAGER_DIRECT;
-  const amount = acquisitionPeriodCommissionCents(
-    input.monthlyQualifyingCents,
-    bps,
-    periodMonths,
-  );
-  const totalRevenue = input.monthlyQualifyingCents * periodMonths;
+  const amount = commissionOnQualifyingPayment(input.qualifyingRevenueReceivedCents, bps);
   return {
-    qualifyingRevenueCents: totalRevenue,
-    periodMonths,
+    qualifyingRevenueCents: input.qualifyingRevenueReceivedCents,
+    periodMonths: COMMISSION_PERIOD_MONTHS,
     lines: [
       {
         role: "acquisition_channel_manager",
         commissionBps: bps,
         commissionAmountCents: amount,
         kind: "direct",
-        periodMonths,
+        periodMonths: COMMISSION_PERIOD_MONTHS,
       },
     ],
     totalCommissionCents: amount,
-    digitalgateRetainedCents: totalRevenue - amount,
+    digitalgateRetainedCents: input.qualifyingRevenueReceivedCents - amount,
   };
 }
 
 /**
- * Delivery Partner — one-shot (or period) on qualifying Professional Services /
- * Support & Success. No Platform + App subscription commission.
+ * Delivery Partner — on qualifying Professional Services / Support & Success received.
+ * No Platform + App subscription commission.
  */
 export function calculateDeliveryPartnerCommission(input: {
   qualifyingServiceRevenueCents: number;
   withChannelManagerOverride?: boolean;
 }): DeliveryCommissionResult {
   const partnerBps = BPS.DELIVERY_PARTNER;
-  const partnerAmount = commissionFromNetCollected(
+  const partnerAmount = commissionOnQualifyingPayment(
     input.qualifyingServiceRevenueCents,
     partnerBps,
   );
@@ -209,7 +242,7 @@ export function calculateDeliveryPartnerCommission(input: {
 
   if (input.withChannelManagerOverride) {
     const overrideBps = BPS.DELIVERY_CHANNEL_MANAGER_OVERRIDE;
-    const overrideAmount = commissionFromNetCollected(
+    const overrideAmount = commissionOnQualifyingPayment(
       input.qualifyingServiceRevenueCents,
       overrideBps,
     );
@@ -227,42 +260,47 @@ export function calculateDeliveryPartnerCommission(input: {
     qualifyingServiceRevenueCents: input.qualifyingServiceRevenueCents,
     lines,
     totalCommissionCents,
-    digitalgateRetainedCents:
-      input.qualifyingServiceRevenueCents - totalCommissionCents,
+    digitalgateRetainedCents: input.qualifyingServiceRevenueCents - totalCommissionCents,
   };
 }
 
 /**
- * Locked CEO examples — used by unit verification. Do not change rates here;
- * change BPS in commercial-model.ts if the model changes.
+ * Locked CEO examples — unit verification.
  *
+ * Eligibility illustrations (monthly × 12 if same amount recurs):
  * Founding 10: $500 × 20% × 12 = $1,200
  * Founding 100: $500 × 15% × 12 = $900
  * Founding 1,000+: $500 × 10% × 12 = $600
  * Acquisition Partner: $500 × 25% × 12 = $1,500
  * + Channel Manager: $500 × 5% × 12 = $300
- * Delivery Partner: $2,000 × 25% = $500
- * + Delivery CM: $2,000 × 5% = $100
+ *
+ * Immediate payment examples:
+ * Annual $5,000 → AP $1,250; + CM $250; DG $3,500
+ * Delivery $2,000 → DP $500; + CM $100; DG $1,400
  */
 export const LOCKED_COMMISSION_EXAMPLES = {
   monthlyQualifyingCents: 50_000,
+  annualPaymentCents: 500_000,
   deliveryServiceCents: 200_000,
   founding10YearCents: 120_000,
   founding100YearCents: 90_000,
   founding1000YearCents: 60_000,
   acquisitionPartnerYearCents: 150_000,
   acquisitionChannelManagerOverrideYearCents: 30_000,
+  acquisitionPartnerOnAnnualCents: 125_000,
+  acquisitionChannelManagerOverrideOnAnnualCents: 25_000,
+  acquisitionDigitalgateOnAnnualRetainedCents: 350_000,
   deliveryPartnerCents: 50_000,
   deliveryChannelManagerOverrideCents: 10_000,
-  /** $500/mo with partner + CM: DG keeps $350/mo → $4,200/year */
   acquisitionDigitalgateMonthlyRetainedCents: 35_000,
-  /** $2,000 service with partner + CM: DG keeps $1,400 */
   deliveryDigitalgateRetainedCents: 140_000,
 } as const;
 
 /** Throws if any locked example fails — run from scripts or CI. */
 export function assertLockedCommissionExamples(): void {
   const m = LOCKED_COMMISSION_EXAMPLES.monthlyQualifyingCents;
+  const annual = LOCKED_COMMISSION_EXAMPLES.annualPaymentCents;
+
   const f10 = calculateFoundingReferralCommission({
     monthlyQualifyingCents: m,
     cohort: "founding_10",
@@ -278,6 +316,10 @@ export function assertLockedCommissionExamples(): void {
   const acq = calculateAcquisitionPartnerCommission({ monthlyQualifyingCents: m });
   const acqCm = calculateAcquisitionPartnerCommission({
     monthlyQualifyingCents: m,
+    withChannelManagerOverride: true,
+  });
+  const annualPay = calculateAcquisitionPartnerOnPayment({
+    qualifyingRevenueReceivedCents: annual,
     withChannelManagerOverride: true,
   });
   const del = calculateDeliveryPartnerCommission({
@@ -304,14 +346,29 @@ export function assertLockedCommissionExamples(): void {
         LOCKED_COMMISSION_EXAMPLES.acquisitionChannelManagerOverrideYearCents,
     ],
     [
-      "CM override alone",
+      "CM override alone (year)",
       acqCm.lines.find((l) => l.kind === "override")?.commissionAmountCents ?? -1,
       LOCKED_COMMISSION_EXAMPLES.acquisitionChannelManagerOverrideYearCents,
     ],
     [
+      "Annual payment AP immediate",
+      annualPay.lines.find((l) => l.role === "acquisition_partner")?.commissionAmountCents ?? -1,
+      LOCKED_COMMISSION_EXAMPLES.acquisitionPartnerOnAnnualCents,
+    ],
+    [
+      "Annual payment CM override immediate",
+      annualPay.lines.find((l) => l.kind === "override")?.commissionAmountCents ?? -1,
+      LOCKED_COMMISSION_EXAMPLES.acquisitionChannelManagerOverrideOnAnnualCents,
+    ],
+    [
+      "Annual payment DG retained",
+      annualPay.digitalgateRetainedCents,
+      LOCKED_COMMISSION_EXAMPLES.acquisitionDigitalgateOnAnnualRetainedCents,
+    ],
+    [
       "Acquisition monthly DG retained ($350)",
       commissionFromNetCollected(m, 10000) -
-        commissionFromNetCollected(m, BPS.RESELLER) -
+        commissionFromNetCollected(m, BPS.ACQUISITION_PARTNER) -
         commissionFromNetCollected(m, BPS.CHANNEL_MANAGER_OVERRIDE),
       LOCKED_COMMISSION_EXAMPLES.acquisitionDigitalgateMonthlyRetainedCents,
     ],

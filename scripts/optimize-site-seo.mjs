@@ -522,7 +522,7 @@ const PLANS = {
       ),
       "founding-customers": seo(
         "Founding 10 Programme | DigitalGate",
-        "30% off qualifying Platform + Industry Apps + Templates for 24 months. Founding 10 is open now.",
+        "Founding 10 — limited access for the first 10 businesses at standard published pricing. Early access, priority onboarding and influence. Open now.",
         ["digitalgate founding customers", "founding 10"],
       ),
       apps: seo(

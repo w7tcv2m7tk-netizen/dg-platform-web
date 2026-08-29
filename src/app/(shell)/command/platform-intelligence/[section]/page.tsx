@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  getCommandCentreOpsHome,
   getPlatformAlertsCentre,
+  getCommandCentreOpsHome,
 } from "@dg/platform-core";
 
+import { ConnectorHealthPanel } from "@/components/command/ConnectorHealthPanel";
 import { OperatorCategoryHeader } from "@/components/command/OperatorCategoryHeader";
 import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
 import { PlatformIntelligenceOverview } from "@/components/command/PlatformIntelligenceOverview";
@@ -73,13 +75,11 @@ export default async function PlatformIntelligenceSectionPage({
     );
   }
 
-  if (section === "health" || section === "connectors") {
+  if (section === "health") {
     const alerts = db ? await getPlatformAlertsCentre() : null;
     return shell(
-      section === "connectors" ? "Connector health" : "Platform health",
-      section === "connectors"
-        ? "Organisation and platform connector readiness signals."
-        : "Operator infrastructure checklist — not Command Centre Alerts.",
+      "Platform Health",
+      "Operator infrastructure checklist — API, DNS, SSL. Not Command Centre Alerts.",
       !alerts ? (
         <DbMissing />
       ) : (
@@ -111,7 +111,41 @@ export default async function PlatformIntelligenceSectionPage({
               </li>
             ))}
           </ul>
+          <p className="text-sm text-slate-500">
+            External system connectivity lives under{" "}
+            <Link
+              href="/command/platform-intelligence/connectors"
+              className="text-sky-400 hover:underline"
+            >
+              Connector Health
+            </Link>
+            .
+          </p>
         </>
+      ),
+    );
+  }
+
+  if (section === "connectors") {
+    const [alerts, ops] = db
+      ? await Promise.all([getPlatformAlertsCentre(), getCommandCentreOpsHome()])
+      : [null, null];
+    const connectorAlerts = alerts
+      ? [...alerts.critical, ...alerts.attention, ...alerts.notices].filter(
+          (a) => a.category === "connectors",
+        )
+      : [];
+    return shell(
+      "Connector Health",
+      "Are DigitalGate’s external systems connected and working?",
+      !alerts || !ops ? (
+        <DbMissing />
+      ) : (
+        <ConnectorHealthPanel
+          summary={alerts.connectors}
+          orgs={ops.connectors.orgs}
+          connectorAlerts={connectorAlerts}
+        />
       ),
     );
   }

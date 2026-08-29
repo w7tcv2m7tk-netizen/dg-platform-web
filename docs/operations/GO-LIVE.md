@@ -10,7 +10,7 @@ A customer is **live** when they can run the agreed journey in product — not w
 - Agreement signed; organisation active.
 - Onboarding steps that unblock their industry path are done or explicitly deferred in CRM.
 - Implementation plan items for week-one are done or dated.
-- Billing / founding discount is recorded correctly (Commerce), not only in email.
+- Billing / Founding programme membership is recorded correctly (Commerce), not only in email.
 - Staff know who owns first-week success (see [CUSTOMER-SUCCESS.md](../foundations/CUSTOMER-SUCCESS.md)).
 
 ## Not go-live

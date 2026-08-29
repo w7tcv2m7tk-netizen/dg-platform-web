@@ -3,6 +3,7 @@ import Stripe from "stripe";
 
 import { appIdsFromPlanSelection } from "../apps/org-apps";
 import type { PlanSelectionInput } from "../apps/org-apps";
+import { BILLING_COMMERCIAL_CONFIG } from "./subscription-types";
 import { industryCheckoutLines } from "../industry/platform";
 import { applyBrandPresetToProfile } from "../org/brand-presets";
 import type { OrganisationBusinessProfile } from "../org/business-profile-types";
@@ -159,7 +160,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
   if (!founding && !exempt) {
     sessionParams.subscription_data = {
       ...sessionParams.subscription_data,
-      trial_period_days: 14,
+      trial_period_days: BILLING_COMMERCIAL_CONFIG.trialDays,
     };
   }
 

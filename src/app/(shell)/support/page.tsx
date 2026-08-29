@@ -29,18 +29,42 @@ export default async function SupportPage() {
         <Link href="/dashboard" className="text-sm text-blue-400 hover:underline">
           ← Dashboard
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Support</h1>
-        <p className="text-sm text-slate-400">
-          Knowledge base stubs, then escalate via chat or email on business days
+        <h1 className="mt-2 text-2xl font-bold text-white">Support Centre</h1>
+        <p className="mt-1 max-w-2xl text-sm text-slate-400">
+          Simple customer support — browse the knowledge base, chat with DigitalGate Assist, or
+          email the team on business days. No SLA dashboard; humans follow up when Assist needs
+          them.
         </p>
       </header>
       <main className="dg-page-main space-y-6">
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="#assist"
+            className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+          >
+            Chat with Assist
+          </a>
+          <Link
+            href="/support/help"
+            className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 hover:border-slate-500"
+          >
+            Knowledge base
+          </Link>
+          <a
+            href="#email"
+            className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 hover:border-slate-500"
+          >
+            Email the team
+          </a>
+        </div>
+
         <div className="dg-card max-w-2xl">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="font-semibold text-white">Knowledge base</h2>
               <p className="mt-2 text-sm text-slate-400">
-                Short articles for signup, billing, connectors, CRM, and honest scope notes.
+                Short stubs for customers and Assist — signup, billing, connectors, CRM, and honest
+                scope notes. Not a full help centre yet.
               </p>
             </div>
             <Link
@@ -65,14 +89,24 @@ export default async function SupportPage() {
           </ul>
         </div>
 
-        <SupportChatPanel embedded userName={userName ?? undefined} />
+        <div id="assist" className="max-w-2xl scroll-mt-6">
+          <div className="mb-2">
+            <h2 className="font-semibold text-white">DigitalGate Assist</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Instant AI replies for common questions. When Assist cannot help, it pauses and a
+              human picks up here or by email — business days (Australia). Your conversation below
+              is real for your account; empty means no messages yet.
+            </p>
+          </div>
+          <SupportChatPanel embedded userName={userName ?? undefined} />
+        </div>
 
-        <div className="dg-card max-w-xl">
-          <h2 className="font-semibold text-white">Email escalate</h2>
+        <div id="email" className="dg-card max-w-xl scroll-mt-6">
+          <h2 className="font-semibold text-white">Email the team</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Prefer email? Write to {SUPPORT_EMAIL} — the team replies on business days
-            (Australia). Chat above is the same escalate path; this is not a separate
-            self-serve ticket inbox.
+            Prefer email? Write to {SUPPORT_EMAIL}. Replies are on business days (Australia) —
+            same human path as escalated chat, not a separate self-serve ticket inbox or SLA
+            queue.
           </p>
           <SupportActions />
         </div>

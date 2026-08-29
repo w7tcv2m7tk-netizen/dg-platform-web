@@ -10,12 +10,13 @@ import { FOUNDING_PERSONAL_INVITE_BENEFITS } from "./types";
 const ACCENT = "#3B82F6";
 
 const FOUNDING_BENEFITS = [
-  "30% off your initial Platform + Apps for 24 months",
+  "Founding Customer status — limited access, not discounted access",
   "Priority onboarding",
   "Early access to selected Apps",
   "Direct input into product development",
   "Direct relationship with the DigitalGate team",
   "Founding recognition, with your permission",
+  "Standard published Platform + Apps pricing (14-day trial; annual ≈ 10 months)",
   "Selected members may be invited into the DigitalGate Founding Acquisition Partner Programme (invitation only)",
 ];
 
@@ -363,7 +364,7 @@ export function renderFoundingPersonalInvitationEmail(input: {
     ``,
     ...FOUNDING_PERSONAL_INVITE_BENEFITS.map((item) => `• ${item}`),
     ``,
-    `The idea isn't simply to give you discounted software. I'm looking for a small group of businesses who are prepared to actually operate on DigitalGate and help shape the platform through real-world use.`,
+    `The idea isn't a discount programme. I'm looking for a small group of businesses who are prepared to actually operate on DigitalGate and help shape the platform through real-world use.`,
     ``,
     `If you're interested, the next step is a short Platform Consultation where we'll look at your current systems, how the business operates and where DigitalGate could fit.`,
     ``,
@@ -398,7 +399,7 @@ export function renderFoundingPersonalInvitationEmail(input: {
       { type: "list", items: FOUNDING_PERSONAL_INVITE_BENEFITS },
       {
         type: "paragraph",
-        text: `The idea isn't simply to give you discounted software. I'm looking for a small group of businesses who are prepared to actually operate on DigitalGate and help shape the platform through real-world use.`,
+        text: `The idea isn't a discount programme. I'm looking for a small group of businesses who are prepared to actually operate on DigitalGate and help shape the platform through real-world use.`,
       },
       {
         type: "paragraph",

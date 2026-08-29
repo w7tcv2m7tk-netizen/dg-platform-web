@@ -61,7 +61,6 @@ A customer has **one primary Template included** with each Industry App. Additio
 | Property + Real Estate + PM | **$128/mo** | $99 + $29 |
 | Services + Cleaning + Maintenance | **$128/mo** | Same expansion math |
 | Starter + Property + RE + PM | **$227/mo** | Platform + Industry + extra Template |
-| Same stack · Founding 10 (30%) | **$158.90/mo** | 24 months at onboarding |
 
 Do not publish “1 Industry App included” in the **platform** tier, “Unlimited Industry Apps,” “all Property apps for $99,” or Real Estate / Accommodation as separate Industry SKUs.
 
@@ -97,15 +96,17 @@ Software capability inside DigitalGate (create/manage by platform tier) — not 
 | Business | $5,497+ | Larger conversion architecture, more content / integrations |
 | Custom | $7,500+ | Complex builds, migrations of content into a new design, bespoke requirements |
 
-Founding 30% on Platform + Apps **does not** automatically include Website Migration or Website Build unless expressly written into the Founding offer.
+Founding programme benefits (access / influence) **do not** automatically include Website Migration or Website Build unless expressly written into the Founding offer.
 
 ## Founding 10 (active cohort)
 
-- **30% off** qualifying **Platform + Industry Apps + additional Industry Templates** purchased as part of the Founding subscription at **initial onboarding**, for **24 months**.
-- Growth Apps and other add-ons follow the same “qualifying Apps at onboarding” rule when included in the recorded offer.
-- Apps / Templates / Platform upgrades added **after** onboarding are at **published price** (unless written otherwise).
-- Exact % in the offer/agreement — not a second public price list.
-- Customer discount and reseller commission are **separate**. Discount reduces collected fees; commission is a % of **qualifying collected** Platform + App (+ Template) fees.
+- Founding customers pay **standard published** Platform + Industry Apps + Template pricing.
+- Benefits are **exclusivity, early access, priority onboarding, founder relationship and roadmap influence** — **not** a recurring percentage discount.
+- **Try DigitalGate free for 14 days** (see `BILLING_COMMERCIAL_CONFIG.trialDays`).
+- **Annual billing** ≈ **10 months** of monthly pricing (save ~2 months) — see `BILLING_COMMERCIAL_CONFIG.annualMonthsEquivalent`.
+- **Founding referral commissions** remain separate: Founding 10 **20%** · Founding 100 **15%** · Founding 1,000+ **10%** on qualifying fees actually received for 12 months per referred customer.
+- Exact programme terms in the offer/agreement — not a second public price list.
+- Customer founding benefits and reseller commission are **separate**. Commission is a % of **qualifying collected** Platform + App (+ Template) fees.
 
 ## Reseller packaging (not customer pricing)
 

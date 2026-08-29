@@ -109,7 +109,7 @@ Terminology:
 
 Example — Property: $99 includes Real Estate; add Property Management → **$128/mo**.  
 Example — Services: $99 includes Cleaning; add Maintenance → **$128/mo**.  
-Example — Founding 10: Starter $99 + Property $99 + PM Template $29 = **$227** → 30% = **$158.90/mo**.
+Example — Starter + Property + PM Template: **$227/mo** at published pricing (Founding customers pay the same stack price; benefits are access/influence, not a % discount).
 
 Code lock: `INDUSTRY_COMMERCIAL_LOCK` · `industryCheckoutLines()` in `packages/platform-core/src/industry/platform.ts`.
 

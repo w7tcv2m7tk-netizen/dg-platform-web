@@ -75,7 +75,7 @@ export default async function PartnerTermsPage() {
           {bpsToPercentLabel(PARTNER_COMMISSION_CONFIG.FOUNDING_RESELLER.commissionBps)} of the
           customer&apos;s entire invoice. It is{" "}
           {bpsToPercentLabel(PARTNER_COMMISSION_CONFIG.FOUNDING_RESELLER.commissionBps)} of
-          qualifying recurring Platform + App revenue actually received after any founding discount,
+          qualifying recurring Platform + App revenue actually received,
           for the first 12 months only.
         </p>
         <p className="font-medium text-emerald-300">Includes</p>

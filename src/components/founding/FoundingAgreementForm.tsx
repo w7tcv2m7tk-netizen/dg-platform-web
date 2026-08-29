@@ -70,9 +70,9 @@ export function FoundingAgreementForm({
           checked={agreed}
           onChange={(e) => setAgreed(e.target.checked)}
         />
-        I confirm the Founding 10 commercial terms (30% off Platform + Apps for 24 months, Founding
-        Acquisition Partner referral terms, and programme participation) and want DigitalGate to proceed to
-        onboarding.
+        I confirm the Founding 10 commercial terms (standard published Platform + Apps pricing,
+        Founding programme benefits, Founding Acquisition Partner referral terms where invited, and
+        programme participation) and want DigitalGate to proceed to onboarding.
       </label>
       {message ? <p className="text-sm text-amber-300">{message}</p> : null}
       <button

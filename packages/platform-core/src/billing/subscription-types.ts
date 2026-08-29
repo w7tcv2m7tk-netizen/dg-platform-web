@@ -48,8 +48,40 @@ export const DUNNING_DAYS = {
   reminderDay7: 7,
 } as const;
 
-export const TRIAL_PERIOD_DAYS = 14;
+/**
+ * Configurable trial / annual commercial settings.
+ * Change trial length (14 / 21 / 28) and annual months-equivalent here —
+ * do not hard-code elsewhere. Stripe checkout should read these values.
+ */
+export const BILLING_COMMERCIAL_CONFIG = {
+  /** Free trial length in days — initially 14; may become 21 or 28. */
+  trialDays: 14 as 14 | 21 | 28,
+  /** Annual price ≈ this many months of monthly pricing (10 = ~16.7% effective saving). */
+  annualMonthsEquivalent: 10,
+  /** Effective annual discount vs 12× monthly — derived from annualMonthsEquivalent. */
+  annualDiscountPercent: Math.round((1 - 10 / 12) * 10000) / 100,
+  /** Settlement/clearing days before partner commission becomes withdrawable. */
+  commissionSettlementDays: 7,
+  /** Whether payment method is required to start a trial. */
+  trialRequiresPaymentMethod: true,
+  /** Whether trial converts automatically to paid at trial end. */
+  trialAutoConvert: true,
+} as const;
+
+/** @deprecated Prefer BILLING_COMMERCIAL_CONFIG.trialDays */
+export const TRIAL_PERIOD_DAYS = BILLING_COMMERCIAL_CONFIG.trialDays;
+
 export const RETENTION_DAYS_AFTER_CANCEL = 90;
+
+/** Annual list price in cents from a monthly list price (SoT annual = N months). */
+export function annualPriceFromMonthlyCents(monthlyCents: number): number {
+  return monthlyCents * BILLING_COMMERCIAL_CONFIG.annualMonthsEquivalent;
+}
+
+/** MRR equivalent of an annual subscription payment (for reporting only). */
+export function mrrEquivalentFromAnnualCents(annualCents: number): number {
+  return Math.round(annualCents / 12);
+}
 
 export type PlatformSubscriptionCapabilities = {
   canWrite: boolean;

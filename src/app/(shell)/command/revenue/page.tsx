@@ -1,16 +1,27 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getCommandCentreOpsHome, getCommandMrrAttribution } from "@dg/platform-core";
 
+import { OperatorCategoryHeader } from "@/components/command/OperatorCategoryHeader";
+import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
-function formatAudCents(cents: number) {
-  return new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
+function billingLabel(interval: string): string {
+  if (interval === "month") return "Monthly";
+  if (interval === "year") return "Annual";
+  return interval;
+}
+
+function statusLabel(status: string): string {
+  if (status === "trialing") return "Trial";
+  if (status === "active") return "Active";
+  return status;
 }
 
 export default async function CommandRevenuePage() {
+  const { clerkUserId } = await getPlatformPageContext();
+  if (!clerkUserId) redirect("/login");
+
   const db = Boolean(process.env.DATABASE_URL);
   const [data, attribution] = db
     ? await Promise.all([getCommandCentreOpsHome(), getCommandMrrAttribution()])
@@ -19,14 +30,13 @@ export default async function CommandRevenuePage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/command" className="text-sm text-sky-400 hover:underline">
-          ← Command Centre
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Revenue intelligence</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Neon commerce subscription MRR per organisation — separate from Growth Engine “MRR won”
-          (still $0). ARR/churn after fuller Stripe sync.
-        </p>
+        <OperatorCategoryHeader
+          eyebrow="Commercial"
+          title="Revenue / MRR"
+          question="DigitalGate revenue, recurring revenue, subscriptions and commercial performance."
+          backHref="/command"
+          backLabel="Command Centre"
+        />
       </header>
       <main className="dg-page-main space-y-8">
         {!data || !attribution ? (
@@ -35,38 +45,64 @@ export default async function CommandRevenuePage() {
           </div>
         ) : (
           <>
-            <section>
-              <h2 className="text-lg font-semibold text-white">Commercial snapshot</h2>
-              <p className="mt-1 text-sm text-slate-400">
-                Estimated MRR from active monthly commerce subscriptions.
-              </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">Est. MRR</p>
-                  <p className="mt-1 text-3xl font-semibold text-white">
-                    {data.billing.estimatedMrrLabel}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">Invoices paid MTD</p>
-                  <p className="mt-1 text-3xl font-semibold text-white">
-                    {data.billing.invoicePaidMtdLabel}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">Active subscriptions</p>
-                  <p className="mt-1 text-3xl font-semibold text-white">
-                    {data.billing.activeSubscriptions}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">Stripe customers</p>
-                  <p className="mt-1 text-3xl font-semibold text-white">
-                    {data.billing.orgsWithBillingCustomer}
-                  </p>
-                </div>
+            {!data.billing.stripeOk ? (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100">
+                Stripe setup incomplete ({data.billing.stripeMode}). Billing figures may be
+                incomplete until configuration is finished.{" "}
+                <Link
+                  href="/dashboard/settings/billing"
+                  className="text-sky-300 hover:underline"
+                >
+                  Billing settings →
+                </Link>
               </div>
-              <p className="mt-3 text-xs text-slate-500">
+            ) : null}
+
+            <section className="space-y-3">
+              <h2 className="text-lg font-semibold text-white">Snapshot</h2>
+              <OperatorMetricStrip
+                metrics={[
+                  {
+                    label: "MRR",
+                    value: attribution.monthlyMrrLabel,
+                    tone: "sky",
+                  },
+                  {
+                    label: "ARR",
+                    value: attribution.arrLabel,
+                  },
+                  {
+                    label: "Revenue MTD",
+                    value: data.billing.invoicePaidMtdLabel,
+                  },
+                  {
+                    label: "Active subscriptions",
+                    value: data.billing.activeSubscriptions,
+                  },
+                  {
+                    label: "Trials",
+                    value: attribution.trialCount,
+                  },
+                  {
+                    label: "Annual subscriptions",
+                    value: attribution.annualCount,
+                  },
+                  {
+                    label: "Stripe customers",
+                    value: data.billing.orgsWithBillingCustomer,
+                  },
+                ]}
+                columnsClassName="sm:grid-cols-2 lg:grid-cols-4"
+              />
+              <p className="text-sm text-slate-400">
+                <span className="font-medium text-slate-300">MRR</span> is recurring subscription
+                value (monthly interval only in the MRR figure; annual contributes via ARR). It is
+                not the same as{" "}
+                <span className="font-medium text-slate-300">revenue received</span> (invoices paid
+                MTD) or Growth Engine{" "}
+                <span className="font-medium text-slate-300">MRR Won</span>.
+              </p>
+              <p className="text-xs text-slate-500">
                 Stripe mode: {data.billing.stripeMode}
                 {data.billing.stripeOk ? " · configured" : " · setup incomplete"}
               </p>
@@ -75,10 +111,9 @@ export default async function CommandRevenuePage() {
             <section>
               <h2 className="text-lg font-semibold text-white">MRR by organisation</h2>
               <p className="mt-1 text-sm text-slate-400">
-                {attribution.monthlyMrrLabel} monthly from{" "}
-                {attribution.rows.filter((r) => r.interval === "month").length} monthly
-                subscription
-                {attribution.rows.filter((r) => r.interval === "month").length === 1 ? "" : "s"}.
+                {attribution.monthlyMrrLabel} monthly MRR · {attribution.arrLabel} ARR from{" "}
+                {attribution.activeSubscriptionCount} active/trialing subscription
+                {attribution.activeSubscriptionCount === 1 ? "" : "s"}.
               </p>
               {attribution.rows.length === 0 ? (
                 <p className="mt-4 text-sm text-slate-500">
@@ -92,9 +127,10 @@ export default async function CommandRevenuePage() {
                       <tr>
                         <th className="px-4 py-3 font-medium">Organisation</th>
                         <th className="px-4 py-3 font-medium">Status</th>
-                        <th className="px-4 py-3 font-medium">Interval</th>
-                        <th className="px-4 py-3 font-medium">Provider</th>
+                        <th className="px-4 py-3 font-medium">Billing</th>
                         <th className="px-4 py-3 font-medium text-right">Amount</th>
+                        <th className="px-4 py-3 font-medium text-right">MRR equiv.</th>
+                        <th className="px-4 py-3 font-medium text-right">ARR equiv.</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -105,18 +141,31 @@ export default async function CommandRevenuePage() {
                         >
                           <td className="px-4 py-3">
                             <Link
-                              href={`/command/advisor?org=${row.organisationId}`}
+                              href={`/command/clients/${row.organisationId}`}
                               className="font-medium text-white hover:text-sky-400"
                             >
                               {row.organisationName}
                             </Link>
                             <p className="text-xs text-slate-500">{row.organisationSlug}</p>
                           </td>
-                          <td className="px-4 py-3 capitalize text-slate-300">{row.status}</td>
-                          <td className="px-4 py-3 text-slate-400">{row.interval}</td>
-                          <td className="px-4 py-3 text-slate-400">{row.providerId}</td>
+                          <td className="px-4 py-3 text-slate-300">
+                            {statusLabel(row.status)}
+                          </td>
+                          <td className="px-4 py-3 text-slate-400">
+                            {billingLabel(row.interval)}
+                          </td>
                           <td className="px-4 py-3 text-right tabular-nums text-slate-200">
                             {row.amountLabel}
+                          </td>
+                          <td className="px-4 py-3 text-right tabular-nums text-slate-300">
+                            {row.interval === "year"
+                              ? (row.mrrEquivalentLabel ?? "—")
+                              : row.interval === "month"
+                                ? row.amountLabel
+                                : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-right tabular-nums text-slate-300">
+                            {row.arrEquivalentLabel ?? "—"}
                           </td>
                         </tr>
                       ))}
@@ -127,53 +176,31 @@ export default async function CommandRevenuePage() {
               <p className="mt-3 text-xs text-slate-500">{attribution.note}</p>
             </section>
 
-            <section>
-              <h2 className="text-lg font-semibold text-white">Refer &amp; Earn</h2>
-              <p className="mt-1 text-sm text-slate-400">
-                Platform SaaS referrals — not the Business Referral Network.
-              </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">Total referrals</p>
-                  <p className="mt-1 text-3xl font-semibold text-white">
-                    {data.referEarn.totalReferrals}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">Signed up+</p>
-                  <p className="mt-1 text-3xl font-semibold text-white">{data.referEarn.signedUp}</p>
-                </div>
-                <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">Paid</p>
-                  <p className="mt-1 text-3xl font-semibold text-white">{data.referEarn.paid}</p>
-                </div>
-                <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">Credits MTD</p>
-                  <p className="mt-1 text-3xl font-semibold text-white">
-                    {formatAudCents(data.referEarn.creditsMtdCents)}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <Link
-                  href="/dashboard/network/refer-earn"
-                  className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500"
-                >
-                  Refer &amp; Earn dashboard
-                </Link>
-                <Link
-                  href="/apps/commerce/reports"
-                  className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500"
-                >
-                  Commerce reports
-                </Link>
-                <Link
-                  href="/dashboard/settings/billing"
-                  className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
-                >
-                  Billing settings
-                </Link>
-              </div>
+            <section className="space-y-2 rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4">
+              <h2 className="text-sm font-semibold text-white">Related — not on this page</h2>
+              <ul className="space-y-1 text-sm text-slate-400">
+                <li>
+                  Partner commission ledger:{" "}
+                  <Link href="/command/commissions" className="text-sky-400 hover:underline">
+                    Partners → Commissions
+                  </Link>
+                </li>
+                <li>
+                  Pipeline MRR Won:{" "}
+                  <Link href="/command/growth-engine" className="text-sky-400 hover:underline">
+                    Sales / Growth Engine
+                  </Link>
+                </li>
+                <li>
+                  Subscription ledger:{" "}
+                  <Link
+                    href="/command/commercial/subscriptions"
+                    className="text-sky-400 hover:underline"
+                  >
+                    Commercial → Subscriptions
+                  </Link>
+                </li>
+              </ul>
             </section>
           </>
         )}

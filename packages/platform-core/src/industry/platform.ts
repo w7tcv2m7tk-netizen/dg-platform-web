@@ -74,13 +74,21 @@ export const INDUSTRY_COMMERCIAL_LOCK = {
     primaryTemplateRule:
       "Each Industry App includes exactly one primary Template. Additional Templates are optional paid expansions.",
   },
+  foundingCommercial: {
+    rule:
+      "Founding customers pay standard published Platform + Industry App + Template pricing. Benefits are exclusivity, early access, priority onboarding and influence — not a recurring percentage discount.",
+    exampleListCents: 99_00 + 99_00 + 29_00, // Starter + Property + PM Template
+    exampleNarrative:
+      "Starter $99 + Property $99 (Real Estate included) + Property Management $29 = $227/mo at published pricing. Try DigitalGate free for 14 days. Annual billing ≈ 10 months of monthly pricing.",
+  },
+  /** @deprecated Prefer foundingCommercial — Founding % discount removed. */
   foundingDiscount: {
     rule:
-      "Founding acquisition discount applies to qualifying Platform + Industry App subscription fees and any additional Industry Templates purchased as part of the qualifying Founding subscription at initial onboarding.",
-    exampleListCents: 99_00 + 99_00 + 29_00, // Starter + Property + PM Template
-    exampleFounding10Cents: Math.round((99_00 + 99_00 + 29_00) * 0.7), // $158.90
+      "Founding customers pay standard published pricing. No recurring founding percentage discount.",
+    exampleListCents: 99_00 + 99_00 + 29_00,
+    exampleFounding10Cents: 99_00 + 99_00 + 29_00,
     exampleNarrative:
-      "Starter $99 + Property $99 (Real Estate included) + Property Management $29 = $227 → Founding 10 30% = $158.90/mo for 24 months.",
+      "Starter $99 + Property $99 (Real Estate included) + Property Management $29 = $227/mo at published pricing.",
   },
   avoidWording: [
     "Get Real Estate, Property Management, Accommodation… for $99",

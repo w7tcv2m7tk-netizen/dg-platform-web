@@ -17,20 +17,18 @@ function money(cents: number): string {
 }
 
 export function CommissionIllustrator() {
-  const [listPrice, setListPrice] = useState(500);
-  const [discountPct, setDiscountPct] = useState(30);
+  const [monthlyReceived, setMonthlyReceived] = useState(500);
   const [perWeek, setPerWeek] = useState(2);
   const rate = PARTNER_COMMISSION_CONFIG.FOUNDING_RESELLER.commissionBps;
-  const paid = Math.round(listPrice * (1 - discountPct / 100));
 
   const result = useMemo(
     () =>
       illustratePartnerCommission({
-        monthlySubscriptionCents: paid * 100,
+        monthlySubscriptionCents: monthlyReceived * 100,
         newCustomersPerWeek: perWeek,
         commissionBps: rate,
       }),
-    [paid, perWeek, rate],
+    [monthlyReceived, perWeek, rate],
   );
 
   const snapshotMonths = [1, 3, 6, 9, 12];
@@ -45,27 +43,15 @@ export function CommissionIllustrator() {
       <p className="mt-2 text-sm text-slate-400">{APPROVED_PARTNER_MESSAGING.examplePaid}</p>
       <p className="mt-2 text-xs text-amber-200/80">{APPROVED_PARTNER_MESSAGING.disclaimer}</p>
 
-      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className="text-xs text-slate-400">
-          Published monthly subscription (AUD)
+          Qualifying monthly revenue received (AUD)
           <input
             type="number"
             min={99}
             step={50}
-            value={listPrice}
-            onChange={(e) => setListPrice(Number(e.target.value) || 0)}
-            className="mt-1.5 w-full rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-2 text-sm text-white"
-          />
-        </label>
-        <label className="text-xs text-slate-400">
-          Customer founding discount (%)
-          <input
-            type="number"
-            min={0}
-            max={50}
-            step={5}
-            value={discountPct}
-            onChange={(e) => setDiscountPct(Number(e.target.value) || 0)}
+            value={monthlyReceived}
+            onChange={(e) => setMonthlyReceived(Number(e.target.value) || 0)}
             className="mt-1.5 w-full rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-2 text-sm text-white"
           />
         </label>
@@ -83,7 +69,8 @@ export function CommissionIllustrator() {
       </div>
 
       <p className="mt-4 text-sm text-slate-300">
-        Qualifying amount received: {money(paid * 100)}/month. Commission {bpsToPercentLabel(rate)} ={" "}
+        Qualifying amount received: {money(monthlyReceived * 100)}/month. Commission{" "}
+        {bpsToPercentLabel(rate)} ={" "}
         <span className="text-white">{money(result.commissionPerCustomerMonthCents)}</span>
         /month, or{" "}
         <span className="text-white">{money(result.commissionPerCustomerYearCents)}</span> over
@@ -125,8 +112,8 @@ export function CommissionIllustrator() {
       </dl>
       <p className="mt-3 text-xs text-slate-500">
         Assumes 4 weeks per month, customers stay active, commission is on qualifying fees actually
-        received after founding discount (not list price), and DigitalGate closes every
-        introduction. Not a guarantee.
+        received (not catalogue list alone), and DigitalGate closes every introduction. Not a
+        guarantee.
       </p>
     </div>
   );

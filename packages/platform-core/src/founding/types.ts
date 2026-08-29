@@ -198,12 +198,13 @@ export const FOUNDING_ENTRY_TYPE_LABELS: Record<FoundingEntryType, string> = {
 };
 
 export const FOUNDING_PERSONAL_INVITE_BENEFITS = [
-  "30% off your initial DigitalGate Platform + Apps for 24 months",
+  "Founding Customer status — limited places, not discounted access",
   "Priority onboarding",
-  "Early access to selected Apps",
+  "Early access to selected Apps and capabilities",
   "Direct access to me as the founder",
   "Input into product and roadmap priorities",
   "Preferential Professional Services terms where applicable",
+  "Standard published Platform + Apps pricing (14-day trial; annual ≈ 10 months)",
   "Selected members may be invited into the DigitalGate Founding Acquisition Partner Programme (not automatic)",
 ];
 

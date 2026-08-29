@@ -63,11 +63,12 @@ Separate from acquisition channel economics.
 
 ## Example (Reseller)
 
-$500 list with 30% founding customer discount → $350 received → **25% × $350 = $87.50/month** for up to 12 months.
+$500 qualifying revenue received → **25% × $500 = $125/month** for up to 12 months.  
+Annual example: $5,000 received → **25% × $5,000 = $1,250** recognised when that payment is received.
 
 ## Example (Founding 10 direct referral)
 
-$500 list with 30% founding customer discount → $350 received → **20% × $350 = $70/month** for up to 12 months.
+$500 qualifying revenue received → **20% × $500 = $100/month** for up to 12 months.
 
 ## Net collected revenue
 

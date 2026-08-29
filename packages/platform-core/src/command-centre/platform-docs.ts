@@ -292,7 +292,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "founding-cohorts",
     title: "Founding Cohorts",
     summary:
-      "Founding 10 / 100 / 1,000 commercial architecture — customer discount ≠ referral commission.",
+      "Founding 10 / 100 / 1,000 commercial architecture — founding benefits (access/influence) ≠ referral commission.",
     group: "commercial",
     relativePath: "strategy/FOUNDING-COHORTS.md",
   },
@@ -314,7 +314,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
   {
     slug: "pricing-and-packaging",
     title: "Pricing & Packaging",
-    summary: "Platform tiers, Apps, founding discount vs reseller commission, public pricing lock.",
+    summary: "Platform tiers, Apps, founding benefits vs reseller commission, public pricing lock.",
     group: "commercial",
     relativePath: "commercial/PRICING-AND-PACKAGING.md",
   },

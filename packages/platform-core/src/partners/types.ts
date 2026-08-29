@@ -194,7 +194,8 @@ export function commissionFromRevenue(
   qualifyingRevenueCents: number,
   commissionBps: number,
 ): number {
-  return Math.round((qualifyingRevenueCents * commissionBps) / 10000);
+  // Delegate to commercial-model SoT — % of revenue actually received.
+  return commissionFromNetCollected(qualifyingRevenueCents, commissionBps);
 }
 
 /**

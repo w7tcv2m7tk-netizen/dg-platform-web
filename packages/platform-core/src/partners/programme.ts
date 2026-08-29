@@ -242,13 +242,15 @@ export const RESELLER_OPERATING_TARGET = {
   founding10Cap: 10,
 } as const;
 
-export const FOUNDING_CUSTOMER_BENEFITS = [
-  "30% off initial Platform + Apps for 24 months",
+/** Founding 10 customer offer lines — exclusivity/access, not a % discount. */
+export const FOUNDING_10_CUSTOMER_OFFER_BENEFITS = [
+  "Founding Customer status — limited access, not discounted access",
   "Priority onboarding",
   "Early access to selected Apps",
   "Founding recognition",
   "Roadmap feedback",
   "Preferential Professional Services terms where applicable",
+  "Standard published Platform + Apps pricing",
 ] as const;
 
 /** Customer offer — Acquisition Partner invitation is not automatic */
@@ -275,16 +277,16 @@ export const QUALIFYING_COMMISSION_FEES = {
     "The Acquisition Partner's own account, or a business they own or control, unless DigitalGate approves in writing",
   ],
   rules: [
-    "Commission is a percentage of qualifying recurring Platform + App fees actually received — not list price, and not the whole invoice",
-    "The customer's Founding discount does not change the commission percentage; it reduces the qualifying amount received",
-    `Example: $500 list with 30% founding discount → $350 received → ${bpsToPercentLabel(BPS.RESELLER)} × $350 = $87.50/month`,
+    "Commission is a percentage of qualifying recurring Platform + App fees actually received — not list price alone, and not the whole invoice",
+    `Example (monthly): $500 revenue received → ${bpsToPercentLabel(BPS.RESELLER)} × $500 = $125/month`,
+    `Example (annual): $5,000 annual revenue received → ${bpsToPercentLabel(BPS.RESELLER)} × $5,000 = $1,250 recognised when that payment is received`,
     "Commission period is the first 12 months from the referred customer's first paid subscription and does not restart on upgrades",
     "Upgrades during the window may increase qualifying fees; downgrades reduce commission accordingly",
     "Cancellation stops commission when qualifying revenue stops; the 12-month clock does not continue while inactive",
     "Attribution is recorded permanently; commission is not perpetual",
     "Only one Acquisition Partner is normally paid per customer; DigitalGate CRM is the primary attribution record",
     "Existing DigitalGate customers are not commissionable merely because an Acquisition Partner later introduces another App",
-    "Customer Founding Discount and Acquisition Partner commission are separate benefits and may both apply to the same customer",
+    "Founding Customer programme benefits (access/influence) and Acquisition Partner commission are separate — Founding customers pay published pricing",
   ],
 } as const;
 
@@ -321,11 +323,11 @@ export const APPROVED_PARTNER_MESSAGING = {
   close: "DigitalGate handles qualification, demonstration, contracting, implementation and customer billing. You make the introduction. We do the selling. They build their business on DigitalGate.",
   oneLiner: FOUNDING_RESELLER_ONE_LINER,
   example:
-    `Example: A customer paying an average of $500/month in qualifying subscription fees could generate up to $${(500 * (BPS.RESELLER / 10000) * COMMISSION_PERIOD_MONTHS).toFixed(0)} in referral commission during their first ${COMMISSION_PERIOD_MONTHS} months.`,
+    `Example: A customer paying $500/month in qualifying subscription fees generates ${bpsToPercentLabel(BPS.RESELLER)} × $500 = $125/month in referral commission (up to $${(500 * (BPS.RESELLER / 10000) * COMMISSION_PERIOD_MONTHS).toFixed(0)} over the first ${COMMISSION_PERIOD_MONTHS} months if they stay active).`,
   examplePaid:
-    `If that customer receives a 30% Founding discount, DigitalGate receives $350/month and the Acquisition Partner earns ${bpsToPercentLabel(BPS.RESELLER)} × $350 = $87.50/month.`,
+    `Example (annual): If that customer pays $5,000 annuallyually in qualifying fees, DigitalGate receives $5,000 and the Acquisition Partner earns ${bpsToPercentLabel(BPS.RESELLER)} × $5,000 = $1,250 when that payment is received.`,
   disclaimer:
-    "Illustrative example only. Actual commission depends on customer subscription value, founding discounts, payment status, retention and qualifying fees. Not an earnings guarantee. Binding terms are subject to solicitor review.",
+    "Illustrative example only. Actual commission depends on customer subscription value, payment status, retention and qualifying fees actually received. Not an earnings guarantee. Binding terms are subject to solicitor review.",
   doNotSay: "Make $180,000 a year referring DigitalGate.",
   notAffiliate:
     "This is not an affiliate programme. It is a controlled founding channel for trusted introducers.",

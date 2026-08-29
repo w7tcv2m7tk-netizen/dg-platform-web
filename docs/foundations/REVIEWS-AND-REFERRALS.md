@@ -76,7 +76,7 @@ Canonical commercial progression ([FOUNDING-COHORTS.md](../strategy/FOUNDING-COH
 
 **Acquisition Partner programme (separate):** Founding Acquisition Partner / Reseller **25%** · Acquisition Channel Manager **+5% override**.
 
-**Two benefits, independent:** own founding acquisition discount (24 months) ≠ referral commission (12 months per referred customer). Referral **status** is **ongoing while eligible** — not “forever.” Do not call commission a “referral discount.”
+**Two benefits, independent:** founding programme benefits (access/influence at published pricing) ≠ referral commission (12 months per referred customer). Referral **status** is **ongoing while eligible** — not “forever.” Do not call commission a “referral discount.”
 
 A full **managed-resale programme** (third-party resale / managed DigitalGate) stays a separate commercial model from **Founding Acquisition Partner** status.
 
