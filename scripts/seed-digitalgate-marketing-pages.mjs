@@ -25,6 +25,16 @@ const MARKETING_DIR = join(
   "../../dg-platform/marketing/pages",
 );
 const publish = process.argv.includes("--publish");
+const onlyArg = process.argv.find((a) => a.startsWith("--only="));
+const onlySlugs = onlyArg
+  ? new Set(
+      onlyArg
+        .slice("--only=".length)
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    )
+  : null;
 const MAX_HTML_CHUNK = 80_000;
 
 const PAGES = [
@@ -411,6 +421,7 @@ async function main() {
 
   const results = [];
   for (const def of PAGES) {
+    if (onlySlugs && !onlySlugs.has(def.slug)) continue;
     const path = join(MARKETING_DIR, def.file);
     if (!existsSync(path)) {
       console.warn(`Missing file: ${def.file}`);
@@ -437,14 +448,14 @@ async function main() {
   // Migrated Insight articles (Gen 2 SoT — insights/html/)
   const insightsDir = join(MARKETING_DIR, "insights");
   const insightsHtmlDir = join(insightsDir, "html");
-  if (existsSync(join(insightsDir, "build.mjs"))) {
+  if (!onlySlugs && existsSync(join(insightsDir, "build.mjs"))) {
     try {
       execSync("node build.mjs", { cwd: insightsDir, stdio: "inherit" });
     } catch (e) {
       console.warn("insights build failed — skip migrated articles", e.message);
     }
   }
-  if (existsSync(insightsHtmlDir)) {
+  if (!onlySlugs && existsSync(insightsHtmlDir)) {
     const { readdirSync } = await import("node:fs");
     const { pathToFileURL } = await import("node:url");
     let insightMeta = [];
@@ -483,14 +494,14 @@ async function main() {
   // Growth SEO landings (Gen 2 — growth-landings/html/)
   const growthDir = join(MARKETING_DIR, "growth-landings");
   const growthHtmlDir = join(growthDir, "html");
-  if (existsSync(join(growthDir, "build.mjs"))) {
+  if (!onlySlugs && existsSync(join(growthDir, "build.mjs"))) {
     try {
       execSync("node build.mjs", { cwd: growthDir, stdio: "inherit" });
     } catch (e) {
       console.warn("growth build failed — skip growth landings", e.message);
     }
   }
-  if (existsSync(growthHtmlDir)) {
+  if (!onlySlugs && existsSync(growthHtmlDir)) {
     const { readdirSync } = await import("node:fs");
     const { pathToFileURL } = await import("node:url");
     let growthMeta = [];
@@ -525,6 +536,7 @@ async function main() {
   }
 
   // Soft-archive leftover starter pages that collide with marketing IA
+  if (!onlySlugs) {
   const leftovers = await prisma.websitePage.findMany({
     where: {
       websiteId: site.id,
@@ -540,6 +552,7 @@ async function main() {
       });
       console.log(`left    /${left.slug} (kept as draft leftover)`);
     }
+  }
   }
 
   if (publish && site.status !== "published") {

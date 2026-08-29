@@ -331,10 +331,10 @@ export function AppsPlanCatalog() {
           </a>
         </div>
         <p className="mt-3 text-xs text-slate-500">
-          Founding Customers get preferential pricing toward Starter / Pro / Business when converting
-          — not a beta seat. Apply preview (apply_plan) only updates sidebar prefs. Paid entitlements
-          and Stripe customer linking happen via Subscribe checkout or purchase sync — never invented
-          MRR.
+          Founding Customers join at standard published Platform + App pricing — benefits are limited
+          access, priority onboarding and influence (not a recurring % discount). Apply preview
+          (apply_plan) only updates sidebar prefs. Paid entitlements and Stripe customer linking happen
+          via Subscribe checkout or purchase sync — never invented MRR.
         </p>
       </section>
 
