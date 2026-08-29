@@ -17,10 +17,11 @@ export const communicationsApp: AppManifest = {
   version: "0.3.0",
   icon: getSidebarIcon("communications"),
   routes: [
+    { path: "/apps/communications", label: "Overview" },
     {
-      path: "/apps/communications",
+      path: "/apps/communications/inbox",
       label: "Inbox",
-      matchAlso: ["/apps/communications/inbox"],
+      matchAlso: ["/apps/ai-communications/inbox", "/apps/communications/ai"],
     },
     {
       path: "/apps/communications/email",
@@ -30,6 +31,9 @@ export const communicationsApp: AppManifest = {
         "/apps/communications/sent",
         "/apps/communications/scheduled",
         "/apps/communications/mailboxes",
+        "/apps/communications/outreach",
+        "/apps/communications/templates",
+        "/apps/communications/signatures",
       ],
     },
     { path: "/apps/communications/sms", label: "SMS" },
@@ -42,15 +46,7 @@ export const communicationsApp: AppManifest = {
     },
     { path: "/apps/ai-communications/agents", label: "Agent Builder" },
     { path: "/apps/ai-communications/knowledge", label: "Knowledge" },
-    {
-      path: "/apps/ai-communications/inbox",
-      label: "AI Inbox",
-      matchAlso: ["/apps/communications/ai"],
-    },
-    { path: "/apps/communications/outreach", label: "Outreach" },
-    { path: "/apps/communications/templates", label: "Templates" },
-    { path: "/apps/communications/signatures", label: "Signatures" },
-    { path: "/apps/ai-communications/settings", label: "AI Settings" },
+    { path: "/apps/ai-communications/settings", label: "Settings" },
   ],
   navigation: [
     {

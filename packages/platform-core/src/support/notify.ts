@@ -4,6 +4,9 @@ const STAFF_INBOX =
 export async function notifyStaffSupportMessage(input: {
   clientName: string;
   clientEmail: string;
+  organisationName?: string;
+  organisationSlug?: string;
+  organisationId?: string;
   body: string;
   conversationId: string;
   aiMayReply: boolean;
@@ -14,22 +17,31 @@ export async function notifyStaffSupportMessage(input: {
   const from =
     process.env.RESEND_FROM?.trim() ||
     "DigitalGate Support <support@digitalgate.com.au>";
-  const subject = `Client support message — ${input.clientName || "Client"}`;
+  const orgLabel =
+    input.organisationName?.trim() ||
+    input.organisationSlug?.trim() ||
+    input.organisationId ||
+    "Unknown organisation";
+  const subject = `Support — ${orgLabel} — ${input.clientName || "Client"}`;
   const appBase =
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
     "https://app.digitalgate.com.au";
-  const inboxHint = `${appBase}/support`;
+  const inboxHint = `${appBase}/support/tickets`;
 
   const text = [
-    "New message in the client portal:",
+    "New customer support message:",
     "",
     input.body,
     "",
+    `Organisation: ${orgLabel}`,
+    input.organisationSlug ? `Slug: ${input.organisationSlug}` : "",
+    input.organisationId ? `Organisation ID: ${input.organisationId}` : "",
     `From: ${input.clientName} <${input.clientEmail}>`,
+    `Conversation: ${input.conversationId}`,
     input.aiMayReply
       ? "Note: DigitalGate Assist may send a first-line reply in chat."
       : "",
-    `View in app: ${inboxHint}`,
+    `Operator inbox: ${inboxHint}`,
   ]
     .filter(Boolean)
     .join("\n");

@@ -6,14 +6,13 @@ import { useMemo } from "react";
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { IndustryTemplateSwitcher } from "@/components/industry/IndustryTemplateSwitcher";
 import { AppHorizontalSubnav } from "@/components/navigation/AppHorizontalSubnav";
-import { progressiveIntelligenceRoutes } from "@/lib/intelligence-progressive-nav";
 import { industryIdFromPathname, resolveActiveAppNavigation } from "@dg/platform-core";
 
 const SKIP_PREFIXES = ["/onboarding", "/signup", "/login"];
 
 /**
- * Global second-level nav — large title is the active route (or app name).
- * Industry surfaces also show the Template switcher above the title.
+ * Global second-level nav — breadcrumb stays Core / App / Active tab.
+ * Overview pages may use cards; they must not mount a second nav hierarchy.
  */
 export function AppContextNav() {
   const pathname = usePathname();
@@ -33,9 +32,6 @@ export function AppContextNav() {
 
   const routes = useMemo(() => {
     if (!active) return [];
-    if (active.itemId === "intelligence") {
-      return progressiveIntelligenceRoutes(active.routes, pathname);
-    }
     // Industry sidebar unions all active Template routes — show only the
     // current Template mount's tabs under the switcher.
     if (active.sectionId === "industry") {
@@ -50,24 +46,23 @@ export function AppContextNav() {
     return active.routes;
   }, [active, pathname]);
 
-  if (!active || SKIP_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
-    return null;
-  }
-
   const pageTitle = useMemo(() => {
     if (!active) return "";
     const activeInScoped =
       routes.find((r) => r.path === pathname) ??
-      routes.find(
-        (r) => pathname === r.path || pathname.startsWith(`${r.path}/`),
-      );
+      routes.find((r) => pathname === r.path || pathname.startsWith(`${r.path}/`));
     return activeInScoped?.label ?? active.activeRoute?.label ?? active.itemName;
   }, [active, pathname, routes]);
+
+  if (!active || SKIP_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+    return null;
+  }
 
   const showSubnav = routes.length > 1;
   const showIndustrySwitcher =
     (active.sectionId === "industry" || Boolean(industryIdFromPathname(pathname))) &&
     Boolean(industryId);
+  const showRouteCrumb = Boolean(pageTitle) && pageTitle !== active.itemName;
 
   return (
     <div className="dg-context-nav shrink-0 border-b border-[var(--org-border-subtle,rgb(30_41_59))] bg-[color-mix(in_srgb,var(--org-bg-elevated,rgb(2_6_23))_55%,transparent)] px-4 py-3 sm:px-6 md:px-8">
@@ -78,6 +73,14 @@ export function AppContextNav() {
             /
           </span>
           <span className="truncate text-slate-300">{active.itemName}</span>
+          {showRouteCrumb ? (
+            <>
+              <span aria-hidden className="text-slate-600">
+                /
+              </span>
+              <span className="truncate text-slate-400">{pageTitle}</span>
+            </>
+          ) : null}
         </div>
 
         {showIndustrySwitcher && industryId ? (

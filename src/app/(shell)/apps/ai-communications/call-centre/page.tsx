@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { listCommunicationAgents, listCommunicationSessions } from "@dg/platform-core";
 
-import { AiConversationsSubnav } from "@/components/ai-communications/AiConversationsSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 function formatDate(iso: string | null) {
@@ -49,7 +48,6 @@ export default async function CallCentrePage({
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · operational control for AI communications
         </p>
-              <AiConversationsSubnav active="/apps/ai-communications/call-centre" />
       </header>
       <main className="dg-page-main space-y-6">
         {!session ? (

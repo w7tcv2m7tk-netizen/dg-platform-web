@@ -80,16 +80,25 @@ export default async function SupportEscalationsPage() {
               {paused.map((c) => (
                 <li key={c.id} className="flex flex-wrap justify-between gap-2 px-4 py-3">
                   <div>
-                    {c.organisationId ? (
-                      <Link
-                        href={`/command/clients/${c.organisationId}`}
-                        className="font-medium text-white hover:text-sky-300"
-                      >
-                        {c.organisationName ?? c.organisationId}
-                      </Link>
-                    ) : (
-                      <span className="text-slate-400">No org linked</span>
-                    )}
+                    <Link
+                      href={`/command/clients/${c.organisationId}`}
+                      className="font-medium text-white hover:text-sky-300"
+                    >
+                      {c.organisationName ?? c.organisationId}
+                    </Link>
+                    {c.organisationSlug ? (
+                      <p className="font-mono text-xs text-slate-500">{c.organisationSlug}</p>
+                    ) : null}
+                    {c.contactName || c.contactEmail ? (
+                      <p className="text-xs text-slate-400">
+                        {[c.contactName, c.contactEmail].filter(Boolean).join(" · ")}
+                      </p>
+                    ) : null}
+                    {c.lastMessagePreview ? (
+                      <p className="mt-1 line-clamp-2 text-sm text-slate-300">
+                        {c.lastMessagePreview}
+                      </p>
+                    ) : null}
                     <p className="text-xs text-slate-500">
                       {c.messageCount} messages · last{" "}
                       {new Date(c.lastMessageAt).toLocaleString()}

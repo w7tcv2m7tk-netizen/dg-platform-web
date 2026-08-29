@@ -13,7 +13,7 @@ export default async function IntelligenceReportsPage() {
     <>
       <header className="dg-page-header">
         <p className="text-xs font-medium uppercase tracking-widest text-blue-400/90">
-          Intelligence · Reports
+          Business · Reports
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Reports</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">

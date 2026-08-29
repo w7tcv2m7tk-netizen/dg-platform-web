@@ -7,7 +7,6 @@ import {
   publicAppOrigin,
 } from "@dg/platform-core";
 
-import { AiConversationsSubnav } from "@/components/ai-communications/AiConversationsSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 function providerLabel(value: string) {
@@ -52,11 +51,35 @@ export default async function CommsSettingsPage() {
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Communications settings</h1>
+        <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · provider status, defaults, and usage
+          {session?.organisationName ?? "DigitalGate"} · providers, channels, AI configuration,
+          usage and defaults
         </p>
-              <AiConversationsSubnav active="/apps/ai-communications/settings" />
+        <nav
+          className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500"
+          aria-label="Settings sections"
+        >
+          <a href="#providers" className="hover:text-sky-400">
+            Providers
+          </a>
+          <span aria-hidden>·</span>
+          <a href="#channels" className="hover:text-sky-400">
+            Channels
+          </a>
+          <span aria-hidden>·</span>
+          <a href="#ai-configuration" className="hover:text-sky-400">
+            AI configuration
+          </a>
+          <span aria-hidden>·</span>
+          <a href="#usage" className="hover:text-sky-400">
+            Usage
+          </a>
+          <span aria-hidden>·</span>
+          <a href="#defaults" className="hover:text-sky-400">
+            Defaults
+          </a>
+        </nav>
       </header>
       <main className="dg-page-main space-y-6">
         {!session ? (
@@ -65,8 +88,8 @@ export default async function CommsSettingsPage() {
           </div>
         ) : (
           <>
-            <div className="dg-card">
-              <h2 className="font-semibold text-white">Voice provider</h2>
+            <div id="providers" className="dg-card scroll-mt-24">
+              <h2 className="font-semibold text-white">Providers</h2>
               <p className="mt-1 text-sm text-slate-400">
                 Connection uses a server-side API key. It is never stored on the organisation
                 record or sent to the browser.
@@ -95,8 +118,8 @@ export default async function CommsSettingsPage() {
               </dl>
             </div>
 
-            <div className="dg-card space-y-3">
-              <h2 className="font-semibold text-white">ElevenLabs setup checklist</h2>
+            <div id="ai-configuration" className="dg-card scroll-mt-24 space-y-3">
+              <h2 className="font-semibold text-white">AI configuration</h2>
               <p className="text-sm text-slate-400">
                 Add these server env vars in Vercel (Production + Preview) and local{" "}
                 <code className="text-slate-300">.env.local</code>. Never put them in{" "}
@@ -143,8 +166,8 @@ export default async function CommsSettingsPage() {
               </Link>
             </div>
 
-            <div className="dg-card">
-              <h2 className="font-semibold text-white">Channel matrix</h2>
+            <div id="channels" className="dg-card scroll-mt-24">
+              <h2 className="font-semibold text-white">Channels</h2>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -168,7 +191,7 @@ export default async function CommsSettingsPage() {
               </div>
             </div>
 
-            <div className="dg-card">
+            <div id="usage" className="dg-card scroll-mt-24">
               <h2 className="font-semibold text-white">Usage</h2>
               <p className="mt-2 text-sm text-slate-400">
                 Provider cost is stored per session. DigitalGate fees and markup are configured
@@ -181,8 +204,8 @@ export default async function CommsSettingsPage() {
               </p>
             </div>
 
-            <div className="dg-card">
-              <h2 className="font-semibold text-white">Compliance defaults</h2>
+            <div id="defaults" className="dg-card scroll-mt-24">
+              <h2 className="font-semibold text-white">Defaults</h2>
               <p className="mt-2 text-sm text-slate-400">
                 Recording disclosure, Australian privacy handling, and human fallback are set per
                 agent in Agent Builder.

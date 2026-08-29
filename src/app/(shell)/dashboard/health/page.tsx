@@ -13,7 +13,7 @@ export default async function BusinessHealthPage() {
       <>
         <header className="dg-page-header">
           <p className="text-xs font-medium uppercase tracking-widest text-emerald-400">
-            Intelligence · Business Health
+            Business · Health
           </p>
           <h1 className="mt-2 text-2xl font-bold text-white">Business Health</h1>
         </header>
@@ -28,7 +28,7 @@ export default async function BusinessHealthPage() {
     <>
       <header className="dg-page-header">
         <p className="text-xs font-medium uppercase tracking-widest text-emerald-400">
-          Intelligence · Business Health
+          Business · Health
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Business Health</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">

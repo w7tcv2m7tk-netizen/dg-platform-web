@@ -222,6 +222,10 @@ export function filterNavigationByAccess(
   // Partners section is DigitalGate internal — not customer org partners portal
   const canPartners = staff;
   const canIntelligence = canView(ctx, "intelligence");
+  // Intelligence operator surfaces live under Business; keep Health/Advisor accessible
+  // when the org may view the intelligence module (legacy permission id).
+  const canBusinessIntelligence = canIntelligence || canView(ctx, "business");
+
   const canCoreApps =
     canView(ctx, "crm") ||
     canView(ctx, "commerce") ||
@@ -242,9 +246,11 @@ export function filterNavigationByAccess(
 
   const coreApps = (canCoreSection ? filterSectionApps(nav.ia.core.apps, ctx) : []).filter(
     (app) => {
-      if (app.id === "intelligence") return canIntelligence;
       if (app.id === "infrastructure") return canInfrastructure;
-      if (app.id === "business") return canCoreApps || canIntelligence || canInfrastructure;
+      // Business owns operator intelligence surfaces (Health · Insights · Advisor · Reports).
+      if (app.id === "business") {
+        return canCoreApps || canBusinessIntelligence || canInfrastructure;
+      }
       return canCoreApps;
     },
   );

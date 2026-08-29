@@ -8,8 +8,6 @@ import { ShellNavLink } from "@/components/ShellNavLink";
 import { routeIsActive } from "@/lib/nav-route-match";
 import type { AppRoute } from "@dg/platform-core";
 
-const DEFAULT_MAX_VISIBLE = 8;
-
 function navLinkClass(active: boolean, pending: boolean) {
   return `shrink-0 rounded-lg px-3 py-1.5 text-sm transition ${
     active
@@ -20,12 +18,17 @@ function navLinkClass(active: boolean, pending: boolean) {
   }`;
 }
 
+/**
+ * Horizontal section tabs. Show every route by default (wrap / scroll).
+ * Pass `maxVisible` only when overflow ("More ▾") is intentional (e.g. Partners).
+ */
 export function AppHorizontalSubnav({
   routes,
-  maxVisible = DEFAULT_MAX_VISIBLE,
+  maxVisible,
   ariaLabel,
 }: {
   routes: AppRoute[];
+  /** When set, routes beyond this count collapse under More ▾. Omit to show all. */
   maxVisible?: number;
   ariaLabel: string;
 }) {
@@ -50,8 +53,9 @@ export function AppHorizontalSubnav({
 
   if (routes.length <= 1) return null;
 
-  const visible = routes.slice(0, maxVisible);
-  const overflow = routes.slice(maxVisible);
+  const useOverflow = typeof maxVisible === "number" && routes.length > maxVisible;
+  const visible = useOverflow ? routes.slice(0, maxVisible) : routes;
+  const overflow = useOverflow ? routes.slice(maxVisible) : [];
   const overflowActive = overflow.some((route) => routeIsActive(pathname, route.path, routes));
 
   return (

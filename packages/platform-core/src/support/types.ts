@@ -12,6 +12,8 @@ export type SupportConversationResult =
   | {
       ok: true;
       conversationId: string;
+      /** Immutable originating organisation for this thread. */
+      organisationId: string;
       messages: SupportChatMessage[];
     }
   | {

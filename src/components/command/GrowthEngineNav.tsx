@@ -47,7 +47,7 @@ const MODULES = [
 ] as const;
 
 /**
- * @deprecated AppContextNav owns Sales / Growth Engine tabs. Do not mount on section hubs.
+ * @deprecated AppContextNav owns Prospecting tabs. Do not mount on section hubs.
  */
 export function GrowthEngineNav({ active }: { active?: string }) {
   return (

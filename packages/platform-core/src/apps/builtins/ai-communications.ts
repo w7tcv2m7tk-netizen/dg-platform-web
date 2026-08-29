@@ -20,7 +20,7 @@ export const aiCommunicationsApp: AppManifest = {
     { path: "/apps/ai-communications/agents", label: "Agent Builder" },
     { path: "/apps/ai-communications/knowledge", label: "Knowledge" },
     { path: "/apps/ai-communications/inbox", label: "AI Inbox" },
-    { path: "/apps/ai-communications/settings", label: "AI Settings" },
+    { path: "/apps/ai-communications/settings", label: "Settings" },
   ],
   navigation: [
     {

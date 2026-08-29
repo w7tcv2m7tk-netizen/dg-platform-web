@@ -40,11 +40,11 @@ export default async function GrowthEngineHubPage() {
       summary={summary}
       showBetaStatus
       capabilityGroups={OPERATOR_CAPABILITY_GROUPS}
-      pipelineHref="/command/growth-engine/pipeline"
+      pipelineHref="/apps/prospecting/pipeline"
       discoveryHref="/apps/prospecting/discovery"
-      followUpsHref="/command/growth-engine/follow-ups"
-      auditsHref="/command/growth-engine/audits"
-      reportsHref="/command/growth-engine/reports"
+      followUpsHref="/apps/prospecting/activity"
+      auditsHref="/apps/prospecting/scores"
+      reportsHref="/apps/prospecting/reports"
       enableActions
     />
   );

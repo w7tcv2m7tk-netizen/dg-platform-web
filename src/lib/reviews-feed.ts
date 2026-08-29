@@ -37,6 +37,28 @@ export type ReviewsFeedStatus = {
 };
 
 export async function loadReviewsSessionAndFeed(siteId?: string | null) {
+  try {
+    return await loadReviewsSessionAndFeedUnsafe(siteId);
+  } catch (err) {
+    console.error("[reviews-feed] loadReviewsSessionAndFeed failed", err);
+    return {
+      session: null,
+      feed: [] as ReviewFeedItem[],
+      feedStatus: {
+        ok: false,
+        total: 0,
+        byPlatform: {},
+        message: "Could not load review sources right now",
+        emptyKind: "sync_failed" as ReviewsFeedEmptyKind,
+        hasSource: false,
+      } satisfies ReviewsFeedStatus,
+      email: "",
+      name: "",
+    };
+  }
+}
+
+async function loadReviewsSessionAndFeedUnsafe(siteId?: string | null) {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const name =

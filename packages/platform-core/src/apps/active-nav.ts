@@ -37,6 +37,9 @@ export function routeIsActive(pathname: string, routePath: string, routes: AppRo
     return itemHasActiveRoute(pathname, route.children);
   }
 
+  // Hub landings (exact: true) never claim child paths.
+  if (route?.exact) return false;
+
   const leafRoutes = flattenAppRoutes(routes).filter((r) => !r.children?.length);
   // Only yield to siblings that actually own this pathname (e.g. /apps/catalogue),
   // not merely because other routes share the parent prefix.
@@ -124,7 +127,8 @@ function matchSpecificity(pathname: string, routes: AppRoute[]): number {
 
   for (const route of flattenAppRoutes(routes)) {
     const primaryExact =
-      pathname === route.path || pathname.startsWith(`${route.path}/`);
+      pathname === route.path ||
+      (!route.exact && pathname.startsWith(`${route.path}/`));
     if (primaryExact) {
       // Prefer leaf ownership: exact path beats parent prefix among peers via length.
       bestPrimary = Math.max(bestPrimary, route.path.length);
@@ -175,7 +179,9 @@ function matchShellLink(
     link.href.startsWith("/partner/")
       ? [{ path: link.href, label: link.label }]
       : []);
-  if (routes.length <= 1) return null;
+  // Single-route shell links (e.g. Platform Docs) still own chrome — AppContextNav
+  // hides horizontal tabs when routes.length <= 1.
+  if (routes.length === 0) return null;
   return {
     sectionId: section.id,
     sectionLabel: section.label,

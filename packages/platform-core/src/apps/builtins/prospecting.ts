@@ -22,17 +22,18 @@ export const prospectingApp: AppManifest = {
   version: "0.1.0",
   icon: "◎",
   routes: [
-    { path: "/apps/prospecting", label: "Growth Engine™" },
-    { path: "/apps/prospecting/discovery", label: "Discovery" },
+    { path: "/apps/prospecting", label: "Overview" },
+    { path: "/apps/prospecting/discovery", label: "Business Discovery" },
     { path: "/apps/prospecting/scores", label: "Opportunities" },
-    { path: "/apps/prospecting/pipeline", label: "Pipeline" },
-    { path: "/apps/prospecting/activity", label: "Activity" },
     { path: "/apps/prospecting/prospects", label: "Prospects" },
+    { path: "/apps/prospecting/pipeline", label: "Pipeline" },
+    { path: "/apps/prospecting/reports", label: "Reports" },
+    { path: "/apps/prospecting/activity", label: "Follow-up" },
   ],
   navigation: [
     {
       href: "/apps/prospecting",
-      label: "Growth Engine™",
+      label: "Prospecting",
       icon: "◎",
     },
   ],

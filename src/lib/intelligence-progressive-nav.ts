@@ -40,8 +40,8 @@ function isProgressiveRoute(route: AppRoute): boolean {
 }
 
 /**
- * Customer Intelligence subnav: Overview is always visible; Advisor / Health /
- * Insights / Reports appear after the customer opens them (usually from the hub).
+ * @deprecated Intelligence operator tabs now always show under Business.
+ * Progressive unlock is no longer used by AppContextNav.
  */
 export function progressiveIntelligenceRoutes(
   routes: AppRoute[],

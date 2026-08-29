@@ -1,35 +1,24 @@
 import Link from "next/link";
 
-const LINKS = [
-  { href: "/apps/ai-communications/inbox", label: "AI Conversations" },
-  { href: "/apps/ai-communications/voice", label: "Voice Agents" },
-  { href: "/apps/ai-communications/call-centre", label: "Call Centre" },
-  { href: "/apps/ai-communications/agents", label: "Agent Builder" },
-  { href: "/apps/ai-communications/knowledge", label: "Knowledge" },
-  { href: "/apps/ai-communications/settings", label: "AI Settings" },
-] as const;
+/**
+ * @deprecated AppContextNav owns Communications tabs. Do not mount page-level AI nav.
+ * Kept as a no-op export so any stale imports fail closed without duplicate chrome.
+ */
+export function AiConversationsSubnav(_props: { active: string }) {
+  return null;
+}
 
-export function AiConversationsSubnav({ active }: { active: string }) {
+/** @deprecated Prefer AppContextNav — Communications → Settings. */
+export const AI_CONVERSATIONS_SETTINGS_HREF = "/apps/ai-communications/settings";
+
+export function AiConversationsSettingsLink({
+  className = "text-sm text-sky-400 hover:underline",
+}: {
+  className?: string;
+}) {
   return (
-    <nav className="mt-3 flex flex-wrap gap-2" aria-label="AI Conversations">
-      {LINKS.map((link) => {
-        const isActive =
-          link.href === active ||
-          (link.href !== "/apps/ai-communications/inbox" && active.startsWith(link.href));
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={
-              isActive
-                ? "rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white"
-                : "rounded-lg border border-slate-800 px-3 py-1.5 text-sm text-slate-400 hover:border-slate-700 hover:text-slate-200"
-            }
-          >
-            {link.label}
-          </Link>
-        );
-      })}
-    </nav>
+    <Link href={AI_CONVERSATIONS_SETTINGS_HREF} className={className}>
+      Communications settings →
+    </Link>
   );
 }

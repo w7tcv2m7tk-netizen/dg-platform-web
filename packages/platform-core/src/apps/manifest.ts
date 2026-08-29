@@ -13,6 +13,12 @@ export interface AppRoute {
   /** Extra prefixes that keep this nav item active (e.g. per-site studio). */
   matchAlso?: string[];
   /**
+   * When true, only `pathname === path` counts — no child-prefix ownership.
+   * Use for hub landings (e.g. Command Centre `/command`) that must not steal
+   * sibling apps under the same path prefix (e.g. `/command/docs`).
+   */
+  exact?: boolean;
+  /**
    * Nested routes under this item (e.g. Communications → AI → Voice Agents).
    * When set, the sidebar renders a nested group; `path` is the group landing href.
    */

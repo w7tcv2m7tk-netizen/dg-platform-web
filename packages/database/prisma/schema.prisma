@@ -1839,8 +1839,9 @@ model CommunicationUsage {
 
 model SupportConversation {
   id             String   @id @default(cuid())
-  clerkUserId    String   @unique @map("clerk_user_id")
-  organisationId String?  @map("organisation_id")
+  clerkUserId    String   @map("clerk_user_id")
+  /** Immutable originating customer organisation — never inferred from operator session. */
+  organisationId String   @map("organisation_id")
   contactId      String?  @map("contact_id")
   status         String   @default("open")
   aiPaused       Boolean  @default(false) @map("ai_paused")
@@ -1850,6 +1851,8 @@ model SupportConversation {
 
   messages SupportMessage[]
 
+  @@unique([clerkUserId, organisationId])
+  @@index([organisationId, lastMessageAt])
   @@index([lastMessageAt])
   @@map("support_conversations")
 }

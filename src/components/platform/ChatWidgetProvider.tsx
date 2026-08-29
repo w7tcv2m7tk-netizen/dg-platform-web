@@ -27,7 +27,14 @@ function shouldShowFloatingChat(pathname: string | null, forced?: boolean) {
 export function useChatWidget() {
   const ctx = useContext(ChatWidgetContext);
   if (!ctx) {
-    throw new Error("useChatWidget must be used within ChatWidgetProvider");
+    // Prefer a no-op over crashing Growth app surfaces if the shell provider is missing.
+    return {
+      openSupportChat: (_draft?: string) => {
+        if (typeof window !== "undefined") {
+          window.location.assign("/dashboard/advisor");
+        }
+      },
+    };
   }
   return ctx;
 }

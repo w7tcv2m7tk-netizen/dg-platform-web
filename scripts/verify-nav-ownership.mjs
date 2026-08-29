@@ -58,6 +58,42 @@ assert(
   /bestAlias/.test(activeNav) && /matched alias length|alias length/.test(activeNav),
   "matchSpecificity scores alias length separately from declared path",
 );
+assert(
+  /path:\s*"\/command",\s*label:\s*"Priorities",\s*exact:\s*true/.test(navigation),
+  "Command Centre Priorities is exact-only (does not steal /command/docs)",
+);
+assert(
+  /href:\s*"\/command\/docs"[\s\S]*?label:\s*"Platform Docs"[\s\S]*?path:\s*"\/command\/docs"/.test(
+    navigation,
+  ),
+  "Platform Docs trailing link owns /command/docs",
+);
+assert(
+  !/operatorApp\(\s*"dg-sales"/.test(navigation),
+  "DigitalGate primary nav does not include Sales (dg-sales)",
+);
+assert(
+  /name:\s*"Prospecting"/.test(navigation) &&
+    /path:\s*"\/apps\/prospecting\/discovery",\s*label:\s*"Business Discovery"/.test(navigation),
+  "Prospecting owns acquisition subnav (Business Discovery)",
+);
+assert(
+  /path:\s*"\/apps\/communications",\s*label:\s*"Overview"/.test(navigation),
+  "Communications starts with Overview",
+);
+assert(
+  /path:\s*"\/dashboard\/health",\s*label:\s*"Health"/.test(navigation),
+  "Business owns Health (Intelligence absorbed)",
+);
+assert(
+  !/id:\s*"intelligence",\s*\n\s*name:\s*"Intelligence"/.test(navigation) ||
+    /Intelligence is absorbed into Business/.test(navigation),
+  "Intelligence is not a separate CORE sidebar destination",
+);
+assert(
+  !/\.\.\.\(foundingCustomerMode \? \[\] : \[intelligenceNavItem\(\)\]\)/.test(navigation),
+  "coreApps no longer injects intelligenceNavItem()",
+);
 
 const orgPage = readFileSync(
   join(root, "src/app/(shell)/dashboard/settings/organisation/page.tsx"),

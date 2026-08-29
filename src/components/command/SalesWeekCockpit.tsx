@@ -175,7 +175,7 @@ export function SalesWeekCockpit({
             </li>
             <li>
               <Link href="/apps/prospecting" className="text-sky-400 hover:underline">
-                Growth Engine™
+                Prospecting
               </Link>{" "}
               — Who should I talk to?
             </li>

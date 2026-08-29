@@ -34,10 +34,9 @@ CORE
         │
         └── DigitalGate Communications
               │
-              ├── Inbox · Email · SMS · Calls · AI Conversations
-              ├── Outreach · Templates · Signatures
-              ├── AI tooling (Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings)
-              │     → reached from AI Conversations top nav — not duplicate sidebar items
+              ├── Overview · Inbox · Email · SMS · Calls
+              ├── Voice Agents · Call Centre · Agent Builder · Knowledge · Settings
+              ├── Outreach · Templates · Signatures (Email deep links — not duplicate top tabs)
               ├── Channels: Email · SMS · Voice · WhatsApp · …
               ├── Sources: Manual · Automation · AI Assist · Prospecting · Agent · System · Mailbox
               └── Linked to: Organisation · Contact · Company · Opportunity · Task ·
@@ -47,12 +46,11 @@ CORE
 **Mental model**
 
 - **Email · SMS · Calls** — how the business communicates (channels).
-- **AI** — how DigitalGate helps the business communicate. Tooling (Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings) lives under **AI Conversations** top buttons — not a nested sidebar group.
-- **Inbox** — universal attention surface (direction: all conversations, not a mailbox clone).
-- **AI Conversations** — AI-managed / AI-assisted conversation surface (not the same as Inbox).
-- **Outreach** — communication execution for acquisition (Prospect → Email → SMS → Call → follow-up → CRM / Opportunity) — not a siloed marketing campaign tool.
-- **Knowledge** — what DigitalGate may use when communicating; **Business Brain** is what DigitalGate understands. Knowledge is not the source of truth.
-- **Signatures** — Signature Studio; generated from Business Profile + User Profile + Brand (not free-floating HTML).
+- **AI** — how DigitalGate helps the business communicate (Voice Agents · Call Centre · Agent Builder · Knowledge) — same Communications tabs, not a second nav system.
+- **Inbox** — universal attention surface.
+- **Settings** — providers, channels, AI configuration, usage, defaults (not a separate “AI Settings” destination).
+- **Outreach / Templates / Signatures** — deep links under Email chrome; Overview cards may shortcut to them.
+- **Knowledge** — what DigitalGate may use when communicating; **Business Brain** is what DigitalGate understands.
 
 **Do not** build an “Email App.”  
 **Do** build a **Communication Record** inside Core — a Universal Object activity source. Every email, SMS and call relates to Contact → Company → Opportunity → Task → Consultation → Document → User → Campaign where known.
@@ -61,19 +59,19 @@ Primary operator question (every surface should serve this):
 
 > Who did we communicate with, what was said, why was it sent, and what happens next?
 
-**Home (direction):** three-column **Inbox** is the Communications landing (`/apps/communications`) — folders · conversation list · thread + CRM context. Overview dashboard deferred.
+**Home:** Overview (`/apps/communications`) with cards linking to canonical tabs. Inbox lives at `/apps/communications/inbox`.
 
-Secondary nav (**locked August 2026**):
+**Canonical tabs (locked):** Overview · Inbox · Email · SMS · Calls · Voice Agents · Call Centre · Agent Builder · Knowledge · Settings.
+
+**Do not** mount page-level AI Conversations / Comms pill bars — AppContextNav is the only horizontal nav.
+
+Secondary surfaces (Email chrome via matchAlso):
 
 | Surface | Role |
 |---------|------|
-| **Inbox** | Universal conversations (Phase 1 folders: All · Needs reply · Email · Manual · Automated · AI · Mailbox). Starred / snoozed / assigned deferred. |
-| **Email** | Send/manage email channel (Compose · Sent · Scheduled · Mailboxes) |
-| **SMS** | Messaging channel (same Communication Record) |
-| **Calls** | Call history / recordings — AI voice tooling under **AI** |
-| **AI Conversations** | AI-assisted conversation surface + entry to Voice Agents · Call Centre · Agent Builder · Knowledge · AI Settings |
-| **Outreach** | Sequences / acquisition execution emitting Communication records |
-| **Templates** | Reusable copy / structure |
+| **Compose / Sent / Scheduled / Mailboxes** | Email channel |
+| **Outreach** | Sequences / acquisition execution |
+| **Templates** | Reusable copy |
 | **Signatures** | Signature Studio |
 
 **Do not** put Email or Email history under CRM. CRM → Timeline is the universal cross-business history; Communications does **not** duplicate a second “Activity / Communication History” nav item.

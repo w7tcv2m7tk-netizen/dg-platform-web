@@ -214,7 +214,7 @@ export function PartnerEcosystemOverview() {
       </section>
 
       <p className="text-xs text-slate-500">
-        Keep Partners completely separate from Sales / Growth Engine. Founding 10 is a customer
+        Keep Partners completely separate from Prospecting / acquisition. Founding 10 is a customer
         cohort; Founding Acquisition Partner is a partner cohort; Delivery Partner is implementation capacity.
       </p>
 

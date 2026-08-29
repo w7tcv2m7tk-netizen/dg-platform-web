@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getOrganisationBusinessProfile } from "@dg/platform-core";
 
-import { AiConversationsSubnav } from "@/components/ai-communications/AiConversationsSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 function formatLocation(
@@ -54,7 +53,6 @@ export default async function CommsKnowledgePage() {
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · profile-sourced context for AI agents
         </p>
-              <AiConversationsSubnav active="/apps/ai-communications/knowledge" />
       </header>
       <main className="dg-page-main space-y-6">
         {!session ? (

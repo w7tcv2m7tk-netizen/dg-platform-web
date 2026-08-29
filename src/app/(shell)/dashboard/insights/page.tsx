@@ -13,7 +13,7 @@ export default async function InsightsPage() {
       <>
         <header className="dg-page-header">
           <p className="text-xs font-medium uppercase tracking-widest text-violet-400/90">
-            Intelligence · Insights
+            Business · Insights
           </p>
           <h1 className="mt-2 text-2xl font-bold text-white">Insights</h1>
         </header>
@@ -28,7 +28,7 @@ export default async function InsightsPage() {
     <>
       <header className="dg-page-header">
         <p className="text-xs font-medium uppercase tracking-widest text-violet-400/90">
-          Intelligence · Insights
+          Business · Insights
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Insights</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">

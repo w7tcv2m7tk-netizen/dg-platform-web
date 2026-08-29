@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { useChatWidget } from "@/components/platform/ChatWidgetProvider";
 import { WebsiteSignalsPanel } from "@/components/seo/WebsiteSignalsPanel";
 import type {
   WebsiteSignalFinding,
@@ -31,7 +30,6 @@ export function AiVisibilityDashboard({
 }: {
   aiVisibilityScore: number | null;
   businessHealth: number | null;
-  /** How the hero score was derived */
   scoreSource: "audit" | "provisional" | "none";
   scoreBreakdown: AiVisibilityScoreRow[];
   profileGaps: string[];
@@ -40,21 +38,23 @@ export function AiVisibilityDashboard({
   probes: WebsiteSignalProbes | null;
   findings: WebsiteSignalFinding[];
 }) {
-  const { openSupportChat } = useChatWidget();
   const [report, setReport] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function generateBrief() {
     setLoading(true);
-    const res = await fetch("/api/v1/ai/assist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "briefing" }),
-    });
-    const json = await res.json().catch(() => ({}));
-    setLoading(false);
-    if (json.data?.output) {
-      setReport(json.data.output);
+    try {
+      const res = await fetch("/api/v1/ai/assist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "briefing" }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (json.data?.output) {
+        setReport(json.data.output);
+      }
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -170,23 +170,18 @@ export function AiVisibilityDashboard({
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={generateBrief}
+            onClick={() => void generateBrief()}
             disabled={loading}
             className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
           >
             {loading ? "Generating…" : "Generate briefing"}
           </button>
-          <button
-            type="button"
-            onClick={() =>
-              openSupportChat(
-                "Analyse my AI Visibility score from website presence signals and recommend the top 3 actions to improve structured data and Open Graph readiness.",
-              )
-            }
+          <Link
+            href="/dashboard/advisor"
             className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-sky-500"
           >
             Ask AI advisor
-          </button>
+          </Link>
         </div>
         {report ? (
           <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-200">

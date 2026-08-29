@@ -68,7 +68,7 @@ Instead, DigitalGate staff get specialised operator capabilities:
 |--------|----------|
 | **Platform** | Organisations, users, tenants, subscriptions, apps, feature flags, configuration, system health |
 | **Commercial** | MRR, ARR, subscriptions, billing, expansion, churn, CLV, revenue forecasting |
-| **Sales** | Founding 10, Growth Engine, platform opportunities, pipeline, consultations |
+| **Prospecting** | Founding 10, Prospecting & Opportunity Engine™, platform opportunities, pipeline |
 | **Partners** | Resellers, referrals, commissions, partner performance |
 | **Delivery** | Implementation, onboarding, projects, training, QA, go-live, Customer Success |
 | **Customer Intelligence** | Organisation health, adoption, usage, engagement, at-risk customers, expansion |
@@ -113,7 +113,6 @@ Operator OS — not a customer tenant. Industry Apps are **never** shown here.
 | Section | Question it answers |
 |---------|---------------------|
 | **Command Centre** | What should DigitalGate do today? (**Priorities → AI Advisor → Alerts**) |
-| **Sales** | How is acquisition performing? (**Sales → Growth Engine™** for tenant growth · **Command Centre → Growth Engine™** for DigitalGate GTM · Founding 10 · Sales Week · Opportunities) |
 | **Partners** | Who are our partners? (**Dashboard · Ecosystem · Briefing · Resellers · Onboarding · Operating Model**) — relationships only; Referrals/Commissions live under Platform → Network |
 | **Delivery** | How do we get customers live? (**Dashboard · Projects · Tasks · Customers · Implementation Plans · Training · Invitations** + More) — Project / Plan / Tasks / Training; 16-stage Implementation Lifecycle™ on each project; onboarding is an early phase, not a top-level nav item |
 | **Customer Intelligence** | Which customers need attention? (Portfolio · Client Health · Client Activity · Opportunities · Attention Required — Success Score™) |
@@ -122,9 +121,11 @@ Operator OS — not a customer tenant. Industry Apps are **never** shown here.
 | **Product** | Flags, roadmap, releases (docs + flags), feedback |
 | **Support** | Operator support centre — conversation queue + escalations (staff-only; service status lives under Platform Intelligence) |
 
-**Founding Customer Day 1** (code): Intelligence is **experienced on Overview** (Business Health, priorities, Advisor, opportunities) — not navigated via a large Intelligence sidebar. Core apps in sidebar: CRM · Commerce · Design Studio; **Apps** catalogue for progressive reveal; Marketplace/Network hidden until Industry/Growth/Infra apps are added. Deep Intelligence (Advisor → Twin → Brain → Health → Benchmarks → Insights → Reports) remains available via links from Overview for operators who go deeper. See `isFoundingCustomerMode` in `org-apps.ts`.
+**Acquisition** is **Growth → Prospecting** (sidebar name) — product brand Prospecting & Opportunity Engine™. Do **not** add a DigitalGate **Sales** primary nav item. Founding 10 / Sales Week remain deep links from Command Centre / Prospecting overview cards.
 
-**Organisations is not a standalone Operator app.** Customer Portfolio (`/command/clients`) is the Customer Intelligence surface. **AI Advisor** lives under **Command Centre**; Portfolio **Advise** opens that Advisor with the organisation as context — one intelligence layer, not a second Advisor product.
+**Founding Customer Day 1** (code): Intelligence is **experienced on Business Overview** (Business Health, priorities, Advisor, opportunities) — not navigated via a separate Intelligence sidebar. Core apps in sidebar: CRM · Commerce · Design Studio; **Apps** catalogue for progressive reveal; Marketplace/Network hidden until Industry/Growth/Infra apps are added. Deep surfaces (Advisor → Twin → Brain → Health → Benchmarks → Insights → Reports) remain available via Business tabs / Overview links. See `isFoundingCustomerMode` in `org-apps.ts`.
+
+**Organisations is not a standalone Operator app.** Customer Portfolio (`/command/clients`) is the Customer Intelligence surface. **AI Advisor** (staff) lives under **Command Centre**; customer **Advisor** lives under **CORE → Business**. Portfolio **Advise** opens that Advisor with the organisation as context — one intelligence layer, not a second Advisor product.
 
 ### CORE · INDUSTRY · GROWTH · PLATFORM
 
@@ -148,14 +149,14 @@ Tenant platform configuration — Apps · Marketplace · Network · Settings (Bi
 
 Do not fragment into Support Centre, Audit Centre, Success Centre, etc. **Command Centre orchestrates** — dedicated Apps handle the work underneath.
 
-## Sales operating hierarchy (DigitalGate GTM)
+## Acquisition operating hierarchy (DigitalGate GTM)
 
 | Surface | Question |
 |---------|----------|
 | **Command Centre** | What matters today? |
 | **Sales Week** | How am I going to achieve it? (90-Day Founding Customer Sprint) |
-| **Growth Engine™** | Who should I talk to? |
+| **Prospecting** | Who should I talk to? (Prospecting & Opportunity Engine™) |
 | **CRM** | What happened and what’s next? |
 | **Founding 10** | Where is each founding customer in the journey? |
 
-Do not invent another “Commercial Engine” product in the nav — that name is the strategy doc only.
+Do not invent another “Sales” primary nav item or a second “Commercial Engine” product in the nav — those names are strategy/docs only.

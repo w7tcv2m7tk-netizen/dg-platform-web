@@ -17,7 +17,6 @@ export const CUSTOMER_SIDE_PANEL_SECTIONS = [
       "Commerce",
       "Design Studio",
       "Infrastructure",
-      "Intelligence",
     ],
   },
   {
@@ -29,7 +28,7 @@ export const CUSTOMER_SIDE_PANEL_SECTIONS = [
     id: "grow",
     label: "Growth",
     items: [
-      "Prospecting & Opportunity Engine",
+      "Prospecting",
       "AI Visibility",
       "SEO",
       "Automation",
@@ -58,7 +57,7 @@ export const PLATFORM_DOCS_NAV_POLICY =
 
 /** Business Brain is a supporting intelligence layer — reachable from Intelligence Overview, not a Core sidebar destination. */
 export const BUSINESS_BRAIN_NAV_POLICY =
-  "Business Brain powers AI context under CORE → Intelligence. Do not list Brain as its own sidebar app." as const;
+  "Business Brain powers AI context under CORE → Business. Do not list Brain as its own sidebar app." as const;
 
 export const FEATURE_LIFECYCLE_STATUSES = [
   "planned",

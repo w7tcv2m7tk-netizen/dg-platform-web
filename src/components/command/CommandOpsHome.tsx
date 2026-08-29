@@ -219,7 +219,7 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
             detail={`${connectors.orgsWithBillingCustomer} orgs with billing customer`}
           />
           <OperatingCell
-            label="Growth Engine"
+            label="Prospecting"
             value={`${growthEngine.prospects} active prospects`}
             href={growthEngine.href}
             detail={
@@ -237,7 +237,7 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
             href={growthEngine.href}
             className="text-sm font-medium text-sky-400 hover:underline"
           >
-            Open Growth Engine →
+            Open Prospecting →
           </Link>
         </div>
       </section>

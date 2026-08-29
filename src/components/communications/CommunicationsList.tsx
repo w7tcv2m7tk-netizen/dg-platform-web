@@ -57,36 +57,7 @@ export function CommunicationsList({
   );
 }
 
-export function CommunicationsSubnav({ active }: { active: string }) {
-  const items = [
-    { id: "inbox", href: "/apps/communications", label: "Inbox" },
-    { id: "email", href: "/apps/communications/email", label: "Email" },
-    { id: "sms", href: "/apps/communications/sms", label: "SMS" },
-    { id: "calls", href: "/apps/communications/calls", label: "Calls" },
-    { id: "ai-conversations", href: "/apps/ai-communications/inbox", label: "AI Conversations" },
-    { id: "outreach", href: "/apps/communications/outreach", label: "Outreach" },
-    { id: "templates", href: "/apps/communications/templates", label: "Templates" },
-    { id: "signatures", href: "/apps/communications/signatures", label: "Signatures" },
-  ] as const;
-
-  return (
-    <nav className="flex flex-wrap gap-2 text-xs" aria-label="Communications">
-      {items.map((item) => {
-        const isActive = active === item.id;
-        return (
-          <Link
-            key={item.id}
-            href={item.href}
-            className={
-              isActive
-                ? "rounded-full bg-sky-600 px-3 py-1 text-white"
-                : "rounded-full border border-slate-700 px-3 py-1 text-slate-400 hover:border-slate-500"
-            }
-          >
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
-  );
+/** @deprecated AppContextNav owns Communications tabs. Do not mount page-level pills. */
+export function CommunicationsSubnav(_props: { active: string }) {
+  return null;
 }

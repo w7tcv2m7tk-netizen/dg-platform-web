@@ -13,7 +13,7 @@ export default async function AiAdvisorPage() {
       <>
         <header className="dg-page-header">
           <p className="text-xs font-medium uppercase tracking-widest text-violet-400">
-            Intelligence · AI Advisor
+            Business · Advisor
           </p>
           <h1 className="mt-2 text-2xl font-bold text-white">AI Advisor</h1>
         </header>
@@ -28,7 +28,7 @@ export default async function AiAdvisorPage() {
     <>
       <header className="dg-page-header">
         <p className="text-xs font-medium uppercase tracking-widest text-violet-400">
-          Intelligence · AI Advisor
+          Business · Advisor
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">AI Advisor</h1>
         <p className="mt-1 text-base font-medium text-violet-100/90">

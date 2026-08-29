@@ -82,24 +82,28 @@ export function GrowthEngineWorkspace({
   const meetings = byStage.meeting_booked ?? 0;
   const converted = byStage.won ?? 0;
 
-  const spotlight = briefing?.rows.slice(0, 3) ?? [];
+  const spotlight = briefing?.rows?.slice(0, 3) ?? [];
 
   return (
     <>
       <header className="dg-page-header">
         {variant === "sales" ? (
-          <p className="text-sm text-sky-400">← Sales</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-400">
+            Prospecting & Opportunity Engine™
+          </p>
         ) : (
           <Link href="/command" className="text-sm text-sky-400 hover:underline">
             ← Command Centre
           </Link>
         )}
-        <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Growth Engine™</h1>
+        <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
+          {variant === "sales" ? "Prospecting" : "Growth Engine™"}
+        </h1>
         <p className="mt-1 text-sm font-medium tracking-wide text-sky-400/90">
-          Acquire → Qualify → Convert
+          Discover → Audit → Opportunity → Prospect → Convert
         </p>
         <p className="mt-3 max-w-2xl text-base text-slate-200">
-          The commercial machine — not another CRM screen.
+          One acquisition operating system — who to pursue, why, what stage, what next.
         </p>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
           Discovery finds businesses. Audits and scoring qualify them. Pipeline, follow-up and
@@ -366,7 +370,7 @@ function RecommendationCard({
       <div>
         <p className="text-xs uppercase tracking-wide text-slate-500">Why now</p>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-300">
-          {row.reasons.slice(0, 5).map((r) => (
+          {(row.reasons ?? []).slice(0, 5).map((r) => (
             <li key={r}>{r}</li>
           ))}
         </ul>

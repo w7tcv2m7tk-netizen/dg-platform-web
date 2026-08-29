@@ -9,32 +9,104 @@ import {
 } from "@dg/platform-core";
 
 import { WebsiteSignalsPanel } from "@/components/seo/WebsiteSignalsPanel";
+import type {
+  WebsiteSignalFinding,
+  WebsiteSignalProbes,
+} from "@/components/seo/WebsiteSignalsPanel";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { getOrgEnabledAppIds, getPlatformPageContext } from "@/lib/org-apps";
 
-export default async function SeoOverviewPage() {
-  const { session: platformSession } = await getPlatformPageContext();
-  const enabledAppIds = await getOrgEnabledAppIds();
+function toPlainFindings(
+  findings: Array<{
+    domain: string;
+    severity: string;
+    title: string;
+    detail: string;
+    recommendedAction?: string;
+  }>,
+): WebsiteSignalFinding[] {
+  return findings.map((f) => ({
+    domain: String(f.domain ?? ""),
+    severity: String(f.severity ?? "opportunity"),
+    title: String(f.title ?? ""),
+    detail: String(f.detail ?? ""),
+    ...(f.recommendedAction
+      ? { recommendedAction: String(f.recommendedAction) }
+      : {}),
+  }));
+}
 
+function toPlainProbes(
+  probes: {
+    reachable?: boolean | null;
+    https?: boolean | null;
+    title?: string | null;
+    hasMetaDescription?: boolean;
+    hasViewport?: boolean;
+    hasOpenGraph?: boolean;
+    hasJsonLd?: boolean;
+    hasH1?: boolean;
+  } | null,
+): WebsiteSignalProbes | null {
+  if (!probes) return null;
+  return {
+    reachable: typeof probes.reachable === "boolean" ? probes.reachable : null,
+    https: typeof probes.https === "boolean" ? probes.https : null,
+    title: typeof probes.title === "string" ? probes.title : null,
+    hasMetaDescription: Boolean(probes.hasMetaDescription),
+    hasViewport: Boolean(probes.hasViewport),
+    hasOpenGraph: Boolean(probes.hasOpenGraph),
+    hasJsonLd: Boolean(probes.hasJsonLd),
+    hasH1: Boolean(probes.hasH1),
+  };
+}
+
+export default async function SeoOverviewPage() {
+  let platformSession: Awaited<
+    ReturnType<typeof getPlatformPageContext>
+  >["session"] = null;
   let seoScore: number | null = null;
   let twinSeoProvisional = false;
   let aiVisibilityScore: number | null = null;
   let websiteUrl: string | null = null;
   let latestAudit: Awaited<ReturnType<typeof scoresFromLatestSeoAudit>> = null;
+  let loadError: string | null = null;
+  let probes: WebsiteSignalProbes | null = null;
+  let findings: WebsiteSignalFinding[] = [];
 
-  if (platformSession) {
-    const [metrics, connectors, profile, audit] = await Promise.all([
-      gatherOverviewLiveMetrics(platformSession.organisationId),
-      fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
-      getOrganisationBusinessProfile(platformSession.organisationId),
-      scoresFromLatestSeoAudit(platformSession.organisationId),
-    ]);
+  try {
+    const ctx = await getPlatformPageContext();
+    platformSession = ctx.session;
+    const enabledAppIds = await getOrgEnabledAppIds();
 
-    latestAudit = audit;
-    websiteUrl = audit?.websiteUrl ?? profile?.websiteUrl?.trim() ?? null;
+    if (platformSession) {
+      const [metricsResult, connectorsResult, profileResult, auditResult] =
+        await Promise.allSettled([
+          gatherOverviewLiveMetrics(platformSession.organisationId),
+          fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
+          getOrganisationBusinessProfile(platformSession.organisationId),
+          scoresFromLatestSeoAudit(platformSession.organisationId),
+        ]);
 
-    const presenceOverride =
-      audit?.fresh
+      const metrics =
+        metricsResult.status === "fulfilled" ? metricsResult.value : null;
+      const connectors =
+        connectorsResult.status === "fulfilled" ? connectorsResult.value : {};
+      const profile =
+        profileResult.status === "fulfilled" ? profileResult.value : null;
+      const audit =
+        auditResult.status === "fulfilled" ? auditResult.value : null;
+
+      if (auditResult.status === "rejected") {
+        console.error("[seo] audit failed", auditResult.reason);
+      }
+
+      latestAudit = audit;
+      websiteUrl = audit?.websiteUrl ?? profile?.websiteUrl?.trim() ?? null;
+      probes = toPlainProbes(audit?.probes ?? null);
+      findings = toPlainFindings(audit?.findings ?? []);
+
+      const presenceOverride = audit?.fresh
         ? {
             seo: audit.scores.seo,
             aiVisibility: audit.scores.aiVisibility,
@@ -42,30 +114,38 @@ export default async function SeoOverviewPage() {
           }
         : null;
 
-    if (audit) {
-      seoScore = audit.scores.seo;
-      aiVisibilityScore = audit.scores.aiVisibility;
-      twinSeoProvisional = !audit.fresh;
-    } else if (metrics) {
-      const { scores } = buildLiveTwinWithScores({
-        organisationId: platformSession.organisationId,
-        organisationName: platformSession.organisationName,
-        enabledAppIds,
-        metrics,
-        connectors,
-        profile,
-        metricsContext: metricsContextFromLiveMetrics(metrics),
-        presenceAuditOverride: presenceOverride,
-      });
-      seoScore = getScoreValue(scores.scores, "seo");
-      aiVisibilityScore = getScoreValue(scores.scores, "ai_visibility");
-      twinSeoProvisional = true;
-    }
+      if (audit) {
+        seoScore = audit.scores.seo;
+        aiVisibilityScore = audit.scores.aiVisibility;
+        twinSeoProvisional = !audit.fresh;
+      } else if (metrics) {
+        try {
+          const { scores } = buildLiveTwinWithScores({
+            organisationId: platformSession.organisationId,
+            organisationName: platformSession.organisationName,
+            enabledAppIds,
+            metrics,
+            connectors,
+            profile,
+            metricsContext: metricsContextFromLiveMetrics(metrics),
+            presenceAuditOverride: presenceOverride,
+          });
+          seoScore = getScoreValue(scores.scores, "seo");
+          aiVisibilityScore = getScoreValue(scores.scores, "ai_visibility");
+          twinSeoProvisional = true;
+        } catch (err) {
+          console.error("[seo] twin scores failed", err);
+        }
+      }
 
-    if (!websiteUrl && !audit) {
-      seoScore = null;
-      aiVisibilityScore = null;
+      if (!websiteUrl && !audit) {
+        seoScore = null;
+        aiVisibilityScore = null;
+      }
     }
+  } catch (err) {
+    console.error("[seo] page load failed", err);
+    loadError = "We could not load SEO scores right now. You can still run an audit below.";
   }
 
   return (
@@ -78,7 +158,12 @@ export default async function SeoOverviewPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        {!platformSession ? (
+        {loadError ? (
+          <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            {loadError}
+          </p>
+        ) : null}
+        {!platformSession && !loadError ? (
           <div className="dg-card">
             <p className="text-sm text-slate-400">
               Sign in to view SEO scores for your organisation.
@@ -159,8 +244,8 @@ export default async function SeoOverviewPage() {
             <WebsiteSignalsPanel
               websiteUrl={websiteUrl}
               auditedAt={latestAudit?.auditedAt ?? null}
-              probes={latestAudit?.probes ?? null}
-              findings={latestAudit?.findings ?? []}
+              probes={probes}
+              findings={findings}
               scanLabel="Run SEO audit"
             />
 

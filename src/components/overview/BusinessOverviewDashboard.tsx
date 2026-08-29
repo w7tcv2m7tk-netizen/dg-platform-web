@@ -115,6 +115,49 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
         </p>
       </section>
 
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Link
+          href="/dashboard/health"
+          className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-4 py-4 transition hover:border-emerald-400/40"
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-300/90">
+            What&apos;s happening
+          </p>
+          <p className="mt-1 font-semibold text-white">Health</p>
+          <p className="mt-1 text-2xl font-semibold text-white">{overview.businessHealth}/100</p>
+        </Link>
+        <Link
+          href="/dashboard/insights"
+          className="rounded-xl border border-violet-500/25 bg-violet-500/5 px-4 py-4 transition hover:border-violet-400/40"
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
+            Why it matters
+          </p>
+          <p className="mt-1 font-semibold text-white">Insights</p>
+          <p className="mt-1 text-sm text-slate-400">Interpreted business signals</p>
+        </Link>
+        <Link
+          href="/dashboard/advisor"
+          className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-4 transition hover:border-sky-400/40"
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-sky-300/90">
+            What to do next
+          </p>
+          <p className="mt-1 font-semibold text-white">Advisor</p>
+          <p className="mt-1 text-sm text-slate-400">Recommended actions</p>
+        </Link>
+        <Link
+          href="/dashboard/reports"
+          className="rounded-xl border border-slate-600/80 bg-slate-950/50 px-4 py-4 transition hover:border-slate-500"
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            Show me the report
+          </p>
+          <p className="mt-1 font-semibold text-white">Reports</p>
+          <p className="mt-1 text-sm text-slate-400">View, export, share</p>
+        </Link>
+      </section>
+
       {overview.goals.length ? (
         <section className="dg-card">
           <div className="flex items-center justify-between gap-3">
@@ -408,6 +451,33 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
           </section>
         ) : null}
       </div>
+
+      <section className="rounded-xl border border-slate-800 bg-slate-950/40 px-5 py-5">
+        <h2 className="text-sm font-semibold text-white">DigitalGate Intelligence</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Supporting layers that power your business view — not separate sidebar destinations.
+        </p>
+        <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          <li>
+            <Link href="/dashboard/twin" className="text-sky-400 hover:underline">
+              Digital Twin
+            </Link>
+            <span className="text-slate-500"> — live business state</span>
+          </li>
+          <li>
+            <Link href="/dashboard/brain" className="text-sky-400 hover:underline">
+              Business Brain
+            </Link>
+            <span className="text-slate-500"> — knowledge + context</span>
+          </li>
+          <li>
+            <Link href="/dashboard/benchmarks" className="text-sky-400 hover:underline">
+              Benchmarks
+            </Link>
+            <span className="text-slate-500"> — comparative performance</span>
+          </li>
+        </ul>
+      </section>
     </div>
   );
 }

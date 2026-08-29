@@ -36,10 +36,12 @@ Four customer pillars. Staff get an additional DigitalGate operator layer. Do no
 
 ```
 DIGITALGATE · Platform Operator (staff only)
-  Command Centre · Sales · Partners · Delivery · Customer Intelligence · Platform Intelligence · Commercial · Product · Support
+  Command Centre · Partners · Delivery · Customer Intelligence · Platform Intelligence · Commercial · Product · Support
   Platform Docs (trailing — how DigitalGate works; not customer Business Knowledge)
 
-  Command Centre: Priorities · AI Advisor · Alerts (Sales Week / Founding 10 live under Sales)
+  Command Centre: Priorities · AI Advisor · Alerts
+  Acquisition = Growth → Prospecting (not a DigitalGate “Sales” duplicate).
+  Founding 10 / Sales Week remain as Command Centre / Prospecting deep links — not primary nav apps.
   Customer Intelligence: Portfolio (was Organisations) · Client Health · Client Activity · Opportunities · Attention Required
   Platform Intelligence: DigitalGate ecosystem health (distinct from customer alerts)
 
@@ -47,24 +49,24 @@ DIGITALGATE · Platform Operator (staff only)
   Command Centre is operator “what next?” — never placed under customer CORE.
 
 CORE — Run your business
-  Business · CRM · Communications · Documents · Commerce · Design Studio · Infrastructure · Intelligence
+  Business · CRM · Communications · Documents · Commerce · Design Studio · Infrastructure
+
+  Business is the operator-facing intelligence centre:
+    Overview · Business Profile · Goals · Team · Health · Insights · Advisor · Reports
+    Twin / Brain / Benchmarks = supporting layers (Overview deep links), not sidebar apps.
 
   Infrastructure (Domains, DNS, SSL, Hosting, Email, Backups, Cloudflare) is a Core capability,
   not a separate IA pillar.
 
-  Intelligence (single Core app — Overview is the primary entry)
-    Hub journey: What’s happening → Why → What to do → Report
-    Capability tabs unlock progressively after the customer opens them from Overview:
-      Business Health · Insights · AI Advisor · Reports
-    Supporting layers (hub links — not sidebar / not equal tabs):
-      Digital Twin · Business Brain · Benchmarks
-    The sidebar exposes the capability, not Twin → Brain → Health architecture.
+  Intelligence is a **capability layer underneath Business** — not a CORE sidebar destination.
+  Do not add CORE → Intelligence as a competing nav item.
 
 INDUSTRY — Run your industry-specific operation
   (dynamic — activated Industry Apps / Templates only)
 
 GROWTH — Grow your business
-  Prospecting & Opportunity Engine ($99) · AI Visibility ($99) · SEO ($99) · Automation ($49) · Analytics ($49) · Social ($79) · Reputation (Free)
+  Prospecting (sidebar) · AI Visibility ($99) · SEO ($99) · Automation ($49) · Analytics ($49) · Social ($79) · Reputation (Free)
+  Prospecting product brand: Prospecting & Opportunity Engine™ ($99) — one acquisition OS
   (AI Communications is **not** customer sidebar — Assist lives under Core Communications → Write with AI / Calls)
 
 PLATFORM — Manage DigitalGate for this organisation
@@ -102,9 +104,9 @@ Rule: customers see what they need to operate their business; DigitalGate staff 
 
 ### CORE order
 
-**Business** → CRM → Communications → Documents → Commerce → Design Studio → **Infrastructure** → **Intelligence**.
+**Business** → CRM → Communications → Documents → Commerce → Design Studio → **Infrastructure**.
 
-Business leads CORE — who you are — then operating apps — then foundation infra — then the brain.
+Business leads CORE — who you are and what to do next (Health · Insights · Advisor · Reports) — then operating apps — then foundation infra.
 
 ### INDUSTRY (dynamic)
 
@@ -115,9 +117,9 @@ Business leads CORE — who you are — then operating apps — then foundation 
 
 ### GROWTH / PLATFORM
 
-Module trees follow the product surfaces already registered in App manifests (Inbox, Voice Agents, Builder, Run Log, Reputation Score™, etc.). **Prospecting & Opportunity Engine** is the $99 Growth App (`/apps/prospecting`) for customers. DigitalGate staff GTM uses **Sales** under Operator OS (`/command/growth-engine`) — not a second Growth inject.
+Module trees follow the product surfaces already registered in App manifests (Inbox, Voice Agents, Builder, Run Log, Reputation Score™, etc.). **Prospecting** (sidebar) is the single acquisition OS — product brand **Prospecting & Opportunity Engine™** (`/apps/prospecting`). Do not add a DigitalGate **Sales** sidebar app that duplicates the same workflow.
 
-**Intelligence** is one CORE destination. Overview is primary; other surfaces reveal progressively — not seven sidebar links and not a separate Intelligence IA section.
+**Intelligence** is absorbed into **CORE → Business** (Health · Insights · Advisor · Reports). Twin / Brain / Benchmarks remain supporting deep links — not sidebar apps and not a separate Intelligence IA section.
 
 **Platform** is four sidebar apps with horizontal subnav — not shell links plus Settings. Apps (install) and Marketplace (discover) stay distinct.
 
@@ -138,13 +140,13 @@ Individual module permissions **override** defaults. Nav hide ≠ security — e
 
 ## Command Centre
 
-Primary **“what matters now?”** experience — Priorities, AI Advisor, and Alerts (staff). Sales Week and Founding 10 live under **Sales**. Customer Portfolio “Advise” opens Advisor with that organisation as context — one intelligence layer, not a second Advisor product. Ideal loop: Command Centre → Recommended Action → Action → Outcome.
+Primary **“what matters now?”** experience — Priorities, AI Advisor, and Alerts (staff). Acquisition (Founding 10, Sales Week, Growth Engine surfaces) lives under **Growth → Prospecting**, with Command Centre deep links. Customer “what next” lives under **CORE → Business** (Health · Insights · Advisor · Reports). Portfolio “Advise” opens Advisor with that organisation as context — one intelligence layer, not a second Advisor product. Ideal loop: Command Centre → Recommended Action → Action → Outcome.
 
-Staff Command Centre remains gated to the DigitalGate operator org. Customer “what next” lands on **CORE → Intelligence → Overview**, then reveals Health / Insights / Advisor / Reports.
+Staff Command Centre remains gated to the DigitalGate operator org. Customer “what next” lands on **CORE → Business → Overview**, then Health / Insights / Advisor / Reports.
 
 ## Business Brain
 
-Supporting intelligence layer (reachable from the Intelligence hub Overview) — not a primary sidebar destination. Knowledge/context for AI — not a normal technical module. Powers Advisor, Command Centre, Overview, Recommended Actions, Communications, Health, Twin over time. See [BUSINESS-BRAIN.md](./BUSINESS-BRAIN.md) · [BUSINESS-BODY.md](./BUSINESS-BODY.md).
+Supporting intelligence layer (reachable from **CORE → Business → Overview**) — not a primary sidebar destination. Knowledge/context for AI — not a normal technical module. Powers Advisor, Command Centre, Overview, Recommended Actions, Communications, Health, Twin over time. See [BUSINESS-BRAIN.md](./BUSINESS-BRAIN.md) · [BUSINESS-BODY.md](./BUSINESS-BODY.md).
 
 ## Platform Docs
 
@@ -170,8 +172,8 @@ Page top:  CORE / CRM / Contacts
 **Exceptions**
 
 - **AI Conversations** (`/apps/ai-communications/*`): Communications top nav stays canonical (Inbox · Email · … · AI Conversations). Voice Agents, Call Centre, Agent Builder, Knowledge, and AI Settings render as a **secondary** hub nav on those pages only (`AiConversationsSubnav`).
-- **Command Centre** (staff) and **CORE → Intelligence** (customers) use the same horizontal pattern where multiple routes exist.
-- Overflow: when an app has more than eight top-level routes, extras collapse under **More ▾** (exception, not the default pattern).
+- **Command Centre** (staff) and **CORE → Business** (customers — including Health / Insights / Advisor / Reports) use the same horizontal pattern where multiple routes exist.
+- Overflow: when an app has more than eight top-level routes **and** overflow is intentional (e.g. Partners), extras may collapse under **More ▾**. Do not use More to hide canonical Communications (or other Core) destinations — show the full tab set.
 
 **Code:** `src/components/navigation/AppContextNav.tsx` · `AppHorizontalSubnav.tsx` · `src/components/SidebarNav.tsx` (flat app links)
 
@@ -181,12 +183,12 @@ Page top:  CORE / CRM / Contacts
 - **`matchAlso`:** same-app deep links only (e.g. `/apps/websites/studio` under Websites). Never alias a Core URL under Platform Settings (or any other category).
 - **Business Profile** = Core → Business → `/dashboard/business`. Settings has no Organisation tab.
 - One horizontal subnav only — never paste page-level pill bars (`CommandCentreNav`, `PartnersAdminNav`, `GrowthEngineNav`, `InfrastructureNav`, etc.).
-- Subnav routes belong to exactly one sidebar app. Do not list Sales Opportunities under Commercial, or Command Centre Priorities/Alerts under Organisations / Platform Docs / Intelligence.
+- Subnav routes belong to exactly one sidebar app. Do not list Prospecting Opportunities under Commercial, or Command Centre Priorities/Alerts under Platform Docs / Intelligence.
+- Context title = sidebar app name (e.g. Commercial, Prospecting, Product).
 - Customer Portfolio (`/command/clients`) belongs to **Customer Intelligence**, not a standalone Organisations app.
 - Single-route apps (e.g. Platform Docs) show **no** horizontal subnav.
-- Context title = sidebar app name (e.g. Commercial, Sales, Product).
 - Product Roadmap lives at `/command/product/roadmap` so Product tabs stay mounted.
-- Staff **AI Advisor** lives under **Command Centre**. Customer **AI Advisor** lives under **CORE → Intelligence**. Portfolio **Advise** opens Advisor with that organisation as context — do not add a third Advisor tab under Customer Intelligence.
+- Staff **AI Advisor** lives under **Command Centre**. Customer **Advisor** lives under **CORE → Business**. Portfolio **Advise** opens Advisor with that organisation as context — do not add a third Advisor tab under Customer Intelligence.
 
 **Smoke test:** enter each major section overview, click every horizontal tab, confirm category label, section name, active sidebar item, subnav set, and page title stay in that section.
 

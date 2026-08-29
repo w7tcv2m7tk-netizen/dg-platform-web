@@ -174,17 +174,7 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
       { path: "/apps/commerce/reports", label: "Reports" },
     ],
   },
-  crm: {
-    routes: [
-      { path: "/apps/crm", label: "Overview" },
-      { path: "/apps/crm/contacts", label: "Contacts" },
-      { path: "/apps/crm/companies", label: "Companies" },
-      { path: "/apps/crm/opportunities", label: "Opportunities" },
-      { path: "/apps/crm/consultations", label: "Consultations" },
-      { path: "/apps/crm/tasks", label: "Tasks" },
-      { path: "/apps/crm/timeline", label: "Timeline" },
-    ],
-  },
+  // CRM: no Overview tab — /apps/crm only redirects to Contacts; use manifest routes.
   documents: {
     name: "Documents",
     routes: [
@@ -197,8 +187,12 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   communications: {
     name: "Communications",
     routes: [
-      // Core channels · advanced AI surfaces · Outreach / Templates / Signatures.
-      { path: "/apps/communications", label: "Inbox", matchAlso: ["/apps/communications/inbox"] },
+      { path: "/apps/communications", label: "Overview" },
+      {
+        path: "/apps/communications/inbox",
+        label: "Inbox",
+        matchAlso: ["/apps/ai-communications/inbox", "/apps/communications/ai"],
+      },
       {
         path: "/apps/communications/email",
         label: "Email",
@@ -207,6 +201,9 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
           "/apps/communications/sent",
           "/apps/communications/scheduled",
           "/apps/communications/mailboxes",
+          "/apps/communications/outreach",
+          "/apps/communications/templates",
+          "/apps/communications/signatures",
         ],
       },
       { path: "/apps/communications/sms", label: "SMS" },
@@ -219,15 +216,7 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
       },
       { path: "/apps/ai-communications/agents", label: "Agent Builder" },
       { path: "/apps/ai-communications/knowledge", label: "Knowledge" },
-      {
-        path: "/apps/ai-communications/inbox",
-        label: "AI Inbox",
-        matchAlso: ["/apps/communications/ai"],
-      },
-      { path: "/apps/communications/outreach", label: "Outreach" },
-      { path: "/apps/communications/templates", label: "Templates" },
-      { path: "/apps/communications/signatures", label: "Signatures" },
-      { path: "/apps/ai-communications/settings", label: "AI Settings" },
+      { path: "/apps/ai-communications/settings", label: "Settings" },
     ],
   },
   "real-estate": {
@@ -259,6 +248,43 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
       { path: "/apps/social/accounts", label: "Connected Accounts" },
     ],
   },
+  prospecting: {
+    // Sidebar short name; product brand remains Prospecting & Opportunity Engine™ on-page.
+    name: "Prospecting",
+    routes: [
+      {
+        path: "/apps/prospecting",
+        label: "Overview",
+        matchAlso: ["/command/growth-engine"],
+      },
+      { path: "/apps/prospecting/discovery", label: "Business Discovery" },
+      {
+        path: "/apps/prospecting/scores",
+        label: "Opportunities",
+        matchAlso: ["/command/growth-engine/audits"],
+      },
+      { path: "/apps/prospecting/prospects", label: "Prospects" },
+      {
+        path: "/apps/prospecting/pipeline",
+        label: "Pipeline",
+        matchAlso: ["/command/growth-engine/pipeline"],
+      },
+      {
+        path: "/apps/prospecting/reports",
+        label: "Reports",
+        matchAlso: [
+          "/command/growth-engine/reports",
+          "/command/growth-engine/proposals",
+          "/command/growth-engine/conversions",
+        ],
+      },
+      {
+        path: "/apps/prospecting/activity",
+        label: "Follow-up",
+        matchAlso: ["/command/growth-engine/follow-ups"],
+      },
+    ],
+  },
   automation: {
     name: "Automation",
     routes: [
@@ -287,13 +313,14 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
     ],
   },
   "ai-communications": {
+    // Hidden from sidebar — routes nest under Core Communications.
     name: "AI Communications",
     routes: [
-      { path: "/apps/ai-communications/inbox", label: "Inbox" },
       { path: "/apps/ai-communications/voice", label: "Voice Agents" },
       { path: "/apps/ai-communications/call-centre", label: "Call Centre" },
       { path: "/apps/ai-communications/agents", label: "Agent Builder" },
-      { path: "/apps/ai-communications/knowledge", label: "Knowledge Base" },
+      { path: "/apps/ai-communications/knowledge", label: "Knowledge" },
+      { path: "/apps/ai-communications/inbox", label: "AI Inbox" },
       { path: "/apps/ai-communications/settings", label: "Settings" },
     ],
   },
@@ -313,6 +340,39 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
 };
 
 function businessNavItem(foundingCustomerMode: boolean): AppNavTreeItem {
+  const identityRoutes: AppRoute[] = [
+    {
+      path: "/dashboard",
+      label: "Overview",
+      // Twin / Brain / Benchmarks / legacy Intelligence hub — supporting layers, not tabs.
+      matchAlso: [
+        "/dashboard/twin",
+        "/dashboard/brain",
+        "/dashboard/benchmarks",
+        "/dashboard/intelligence",
+      ],
+    },
+    { path: "/dashboard/business", label: "Business Profile" },
+    { path: "/dashboard/goals", label: "Goals" },
+    // Business-owned Team path — Settings keeps Users & Permissions at /dashboard/settings/team
+    { path: "/dashboard/team", label: "Team" },
+  ];
+
+  // Operator-facing intelligence lives under Business (not a separate CORE → Intelligence app).
+  // Founding Day-1 stays Overview-led — capability tabs unlock with the full Business nav later.
+  const intelligenceRoutes: AppRoute[] = foundingCustomerMode
+    ? []
+    : [
+        { path: "/dashboard/health", label: "Health" },
+        { path: "/dashboard/insights", label: "Insights" },
+        { path: "/dashboard/advisor", label: "Advisor" },
+        {
+          path: "/dashboard/reports",
+          label: "Reports",
+          matchAlso: ["/dashboard/reports/business-performance"],
+        },
+      ];
+
   return {
     kind: "app",
     id: "business",
@@ -320,18 +380,12 @@ function businessNavItem(foundingCustomerMode: boolean): AppNavTreeItem {
     icon: getSidebarIcon("business-profile"),
     tier: "core",
     enabled: true,
-    routes: [
-      { path: "/dashboard", label: "Overview" },
-      { path: "/dashboard/business", label: "Business Profile" },
-      { path: "/dashboard/goals", label: "Goals" },
-      // Business-owned Team path — Settings keeps Users & Permissions at /dashboard/settings/team
-      { path: "/dashboard/team", label: "Team" },
-    ],
+    routes: [...identityRoutes, ...intelligenceRoutes],
     primaryHref: "/dashboard",
   };
 }
 
-/** CORE · Business — who you are (Twin lives under Intelligence). */
+/** CORE · Business — identity + operator-facing intelligence centre. */
 const BUSINESS_NAV_ITEM = businessNavItem(false);
 
 /** @deprecated Prefer BUSINESS_NAV_ITEM under Core apps */
@@ -346,43 +400,23 @@ const CORE_LINKS: PlatformShellNavItem[] = BUSINESS_NAV_ITEM.routes.map((route) 
         ? "goals"
         : route.path.includes("team")
           ? "team"
-          : "overview",
+          : route.path.includes("health")
+            ? "health"
+            : route.path.includes("advisor")
+              ? "advisor"
+              : "overview",
   ),
 }));
 
 /**
- * CORE · Intelligence — Overview is the customer entry; other surfaces unlock
- * progressively in AppContextNav after the customer visits them from the hub.
- * Twin / Brain / Benchmarks remain supporting layers (hub + matchAlso), not tabs.
+ * @deprecated Intelligence operator nav is absorbed into CORE → Business.
+ * Capability layer (Twin, Brain, Health, Advisor, …) remains under Business routes.
  */
-function intelligenceNavItem(): AppNavTreeItem {
-  return {
-    kind: "app",
-    id: "intelligence",
-    name: "Intelligence",
-    icon: getSidebarIcon("intelligence"),
-    tier: "core",
-    enabled: true,
-    primaryHref: "/dashboard/intelligence",
-    routes: [
-      {
-        path: "/dashboard/intelligence",
-        label: "Overview",
-        matchAlso: ["/dashboard/twin", "/dashboard/brain", "/dashboard/benchmarks"],
-      },
-      { path: "/dashboard/health", label: "Business Health" },
-      { path: "/dashboard/insights", label: "Insights" },
-      { path: "/dashboard/advisor", label: "AI Advisor" },
-      {
-        path: "/dashboard/reports",
-        label: "Reports",
-        matchAlso: ["/dashboard/reports/business-performance"],
-      },
-    ],
-  };
+export function intelligenceNavItem(): AppNavTreeItem {
+  return businessNavItem(false);
 }
 
-/** @deprecated Intelligence is a single Core app — section kept empty for IA shape. */
+/** @deprecated Intelligence IA section kept empty — operator surfaces live under Business. */
 const INTELLIGENCE_LINKS: PlatformShellNavItem[] = [];
 
 function platformAppsNavItem(foundingCustomerMode: boolean): AppNavTreeItem {
@@ -584,34 +618,9 @@ function getDigitalGateOperatorSection(): NavIaSection {
         routes: commandCentre.routes,
         primaryHref: commandCentre.primaryHref,
       },
-      operatorApp("dg-sales", "Sales", "prospecting", "/apps/prospecting", [
-        { path: "/apps/prospecting", label: "Overview" },
-        { path: "/apps/prospecting/discovery", label: "Discovery" },
-        {
-          path: "/apps/prospecting/pipeline",
-          label: "Pipeline",
-          matchAlso: ["/command/growth-engine/pipeline"],
-        },
-        { path: "/apps/prospecting/activity", label: "Activity" },
-        {
-          path: "/command/growth-engine",
-          label: "Growth Engine™",
-          matchAlso: [
-            "/command/growth-engine/audits",
-            "/command/growth-engine/reports",
-            "/command/growth-engine/follow-ups",
-            "/command/growth-engine/proposals",
-            "/command/growth-engine/conversions",
-          ],
-        },
-        { path: "/command/founding", label: "Founding 10" },
-        { path: "/command/sales-week", label: "Sales Week" },
-        {
-          path: "/command/opportunities",
-          label: "Opportunities",
-          matchAlso: ["/command/opportunities/expansion"],
-        },
-      ]),
+      // Acquisition lives under Growth → Prospecting (not a DigitalGate “Sales” duplicate).
+      // Staff GTM surfaces (/command/growth-engine/*, Founding 10, Sales Week) stay reachable
+      // via Prospecting matchAlso + Command Centre links — routes/data are not deleted.
       operatorApp(
         "dg-partners",
         OPERATOR_PARTNERS_NAV.label,
@@ -689,6 +698,7 @@ function getDigitalGateOperatorSection(): NavIaSection {
         href: "/command/docs",
         label: "Platform Docs",
         icon: getSidebarIcon("reports"),
+        routes: [{ path: "/command/docs", label: "Platform Docs" }],
       },
     ],
   };
@@ -1006,7 +1016,8 @@ function getCommandCentreNavItem(): PlatformToolNavItem {
     icon: getSidebarIcon(commandCentreApp.id, commandCentreApp.icon),
     primaryHref: "/command",
     routes: [
-      { path: "/command", label: "Priorities" },
+      // exact: do not claim /command/docs, /command/revenue, etc.
+      { path: "/command", label: "Priorities", exact: true },
       { path: "/command/advisor", label: "AI Advisor" },
       {
         path: "/command/platform-health",
@@ -1051,8 +1062,7 @@ export function getCategorizedPlatformNavigation(
       enabledApps.filter((a) => CORE_APP_IDS.has(a.id)),
       CORE_APP_ORDER,
     ),
-    // Intelligence last in Core — Overview is the brain entry (hidden in founding slim mode).
-    ...(foundingCustomerMode ? [] : [intelligenceNavItem()]),
+    // Intelligence is absorbed into Business (Health · Insights · Advisor · Reports).
   ];
   /** Empty — Infrastructure is listed under CORE */
   const infrastructureApps: AppNavTreeItem[] = [];

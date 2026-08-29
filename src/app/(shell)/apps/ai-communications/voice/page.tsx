@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { listCommunicationAgents } from "@dg/platform-core";
 
-import { AiConversationsSubnav } from "@/components/ai-communications/AiConversationsSubnav";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 export default async function VoiceAgentsPage() {
@@ -16,7 +15,6 @@ export default async function VoiceAgentsPage() {
           {session?.organisationName ?? "DigitalGate"} · AI employees for your business — voice
           provider underneath, DigitalGate intelligence on top
         </p>
-              <AiConversationsSubnav active="/apps/ai-communications/voice" />
       </header>
       <main className="dg-page-main space-y-6">
         {!session ? (

@@ -177,20 +177,26 @@ const PLATFORM_OPERATIONS: CommandPlatformOperationsGroup[] = [
     ],
   },
   {
-    id: "sales",
-    label: "Sales",
+    id: "prospecting",
+    label: "Prospecting",
     links: [
       {
-        id: "growth-engine",
-        label: "Growth Engine",
-        href: "/command/growth-engine",
-        description: "Acquisition pipeline and daily prospecting",
+        id: "prospecting-engine",
+        label: "Prospecting & Opportunity Engine",
+        href: "/apps/prospecting",
+        description: "Acquisition pipeline — discover, score, pursue, convert",
       },
       {
         id: "founding",
         label: "Founding 10",
         href: "/command/founding",
         description: "Founding customer pipeline",
+      },
+      {
+        id: "sales-week",
+        label: "Sales Week",
+        href: "/command/sales-week",
+        description: "90-day founding sprint operating rhythm",
       },
     ],
   },
@@ -546,7 +552,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       severity: "today",
       title: `${followUpProspects} Growth Engine prospect${followUpProspects === 1 ? "" : "s"} need follow-up`,
       detail: "Reports sent or follow-up due — keep the acquisition loop moving.",
-      href: "/command/growth-engine/pipeline",
+      href: "/apps/prospecting/pipeline",
     });
   }
 
@@ -605,7 +611,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       activePipeline: pulse.growthInPipeline,
       topPriorityLabel: prospectingBriefing?.top?.businessName ?? null,
       topPriorityScore: prospectingBriefing?.top?.score ?? null,
-      href: "/command/growth-engine",
+      href: "/apps/prospecting",
     },
     delivery,
     partnerPulse,

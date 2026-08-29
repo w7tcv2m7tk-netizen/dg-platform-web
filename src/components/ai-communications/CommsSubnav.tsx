@@ -1,43 +1,17 @@
 import Link from "next/link";
 
-const LINKS = [
-  { href: "/apps/communications", label: "Inbox" },
-  { href: "/apps/communications/ai", label: "AI" },
-  { href: "/apps/ai-communications/inbox", label: "AI Conversations" },
-  { href: "/apps/ai-communications/voice", label: "Voice Agents" },
-  { href: "/apps/ai-communications/call-centre", label: "Call Centre" },
-  { href: "/apps/ai-communications/agents", label: "Agent Builder" },
-  { href: "/apps/ai-communications/knowledge", label: "Knowledge" },
-  { href: "/apps/ai-communications/settings", label: "AI Settings" },
-] as const;
+/**
+ * @deprecated AppContextNav owns Communications tabs. Do not mount.
+ */
+export function CommsSubnav(_props: { active: string }) {
+  return null;
+}
 
-export function CommsSubnav({ active }: { active: string }) {
+/** @deprecated Prefer AppContextNav. */
+export function CommunicationsLegacyLink() {
   return (
-    <nav className="mt-4 flex flex-wrap gap-2">
-      {LINKS.map((link) => {
-        const isActive =
-          link.href === active ||
-          (link.href === "/apps/communications" &&
-            (active === "/apps/communications" ||
-              active.startsWith("/apps/communications/inbox"))) ||
-          (link.href !== "/apps/ai-communications/inbox" &&
-            link.href !== "/apps/communications" &&
-            link.href !== "/apps/communications/ai" &&
-            active.startsWith(link.href));
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={
-              isActive
-                ? "rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white"
-                : "rounded-lg border border-slate-800 px-3 py-1.5 text-sm text-slate-400 hover:border-slate-700 hover:text-slate-200"
-            }
-          >
-            {link.label}
-          </Link>
-        );
-      })}
-    </nav>
+    <Link href="/apps/communications" className="text-sm text-sky-400 hover:underline">
+      Communications →
+    </Link>
   );
 }
