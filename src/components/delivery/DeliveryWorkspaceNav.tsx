@@ -8,17 +8,18 @@ import {
 } from "@dg/platform-core";
 
 /**
- * Delivery primary nav — execution-first order.
+ * Delivery primary nav — ops pillar order (not Partners → Delivery Partners).
  * Public URLs: /delivery (not /partner/delivery).
  */
 const STAFF_NAV = [
   { href: "/command/delivery", label: "Dashboard", id: "dashboard" },
+  { href: "/command/delivery/onboarding", label: "Onboarding", id: "onboarding" },
+  { href: "/command/delivery/invitations", label: "Invitations", id: "invitations" },
   { href: "/command/delivery/projects", label: "Projects", id: "projects" },
   { href: "/command/delivery/tasks", label: "Tasks", id: "tasks" },
   { href: "/command/delivery/customers", label: "Customers", id: "customers" },
   { href: "/command/delivery/plans", label: "Implementation Plans", id: "plans" },
   { href: "/command/delivery/training", label: "Training", id: "training" },
-  { href: "/command/delivery/invitations", label: "Invitations", id: "invitations" },
   { href: "/command/delivery/qa", label: "QA & Go-Live", id: "qa" },
   { href: "/command/delivery/team", label: "Team", id: "team" },
   { href: "/command/delivery/activity", label: "Activity", id: "activity" },
@@ -52,7 +53,7 @@ export function DeliveryWorkspaceNav({
   return (
     <nav
       className="flex flex-wrap gap-2 border-b border-slate-800 pb-4"
-      aria-label="Delivery Partners"
+      aria-label="Delivery"
     >
       {nav.map((item) => (
         <Link

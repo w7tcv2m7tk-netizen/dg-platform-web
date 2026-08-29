@@ -589,13 +589,13 @@ function getDigitalGateOperatorSection(): NavIaSection {
         {
           path: "/apps/prospecting/pipeline",
           label: "Pipeline",
-          matchAlso: ["/command/opportunities", "/command/opportunities/expansion"],
+          matchAlso: ["/command/growth-engine/pipeline"],
         },
+        { path: "/apps/prospecting/activity", label: "Activity" },
         {
           path: "/command/growth-engine",
           label: "Growth Engine™",
           matchAlso: [
-            "/command/growth-engine/pipeline",
             "/command/growth-engine/audits",
             "/command/growth-engine/reports",
             "/command/growth-engine/follow-ups",
@@ -605,6 +605,11 @@ function getDigitalGateOperatorSection(): NavIaSection {
         },
         { path: "/command/founding", label: "Founding 10" },
         { path: "/command/sales-week", label: "Sales Week" },
+        {
+          path: "/command/opportunities",
+          label: "Opportunities",
+          matchAlso: ["/command/opportunities/expansion"],
+        },
       ]),
       operatorApp(
         "dg-partners",
@@ -612,6 +617,13 @@ function getDigitalGateOperatorSection(): NavIaSection {
         "partner-portal",
         OPERATOR_PARTNERS_NAV.primaryHref,
         getOperatorPartnersNavRoutes(),
+      ),
+      operatorApp(
+        "dg-delivery",
+        OPERATOR_DELIVERY_NAV.label,
+        "services",
+        OPERATOR_DELIVERY_NAV.primaryHref,
+        getOperatorDeliveryNavRoutes(),
       ),
       operatorApp(
         "dg-customer-intelligence",
@@ -910,7 +922,9 @@ export interface CategorizedPlatformNavigation {
 import type { PartnerType } from "../partners/types";
 import {
   DELIVERY_PARTNER_NAV,
+  getOperatorDeliveryNavRoutes,
   getOperatorPartnersNavRoutes,
+  OPERATOR_DELIVERY_NAV,
   OPERATOR_PARTNERS_NAV,
 } from "../partners/delivery-workspace";
 

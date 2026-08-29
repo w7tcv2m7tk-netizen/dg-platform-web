@@ -240,10 +240,10 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
                 <p className="mt-1 text-sm text-slate-400">Implement and onboard customers</p>
               </div>
               <Link
-                href="/command/delivery"
+                href="/command/partners/delivery"
                 className="text-xs text-sky-400 hover:underline shrink-0"
               >
-                Open Delivery Partners →
+                Delivery Partners →
               </Link>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -387,8 +387,8 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
         <PartnerTable
           title="Delivery Partners"
           empty="No Delivery Partners yet. Delivery Partners implement and onboard customers."
-          href="/command/delivery"
-          hrefLabel="Delivery Partners workspace"
+          href="/command/partners/delivery"
+          hrefLabel="Delivery Partners"
           rows={deliveryPartners}
         />
 

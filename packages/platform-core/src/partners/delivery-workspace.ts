@@ -98,7 +98,35 @@ export const ACCEPT_CUSTOMER_WORKFLOW = [
   "Track progress",
 ] as const;
 
-/** All Delivery Partner workspace routes — used for nav matchAlso and breadcrumbs */
+/**
+ * Delivery ops workspace routes (staff Delivery pillar).
+ * Partners → Delivery Partners is the partner-type roster — not this workspace.
+ */
+export const DELIVERY_OPERATOR_NAV_ROUTES = [
+  { path: "/command/delivery", label: "Dashboard" },
+  { path: "/command/delivery/onboarding", label: "Onboarding" },
+  { path: "/command/delivery/invitations", label: "Invitations" },
+  {
+    path: "/command/delivery/projects",
+    label: "Projects",
+    matchAlso: ["/command/delivery/projects/"],
+  },
+  { path: "/command/delivery/tasks", label: "Tasks" },
+  { path: "/command/delivery/customers", label: "Customers" },
+  { path: "/command/delivery/plans", label: "Implementation Plans" },
+  { path: "/command/delivery/training", label: "Training" },
+] as const;
+
+/** Extra Delivery surfaces — keep reachable; highlight under Dashboard when active */
+const DELIVERY_SECONDARY_MATCH = [
+  "/command/delivery/qa",
+  "/command/delivery/team",
+  "/command/delivery/activity",
+  "/command/delivery/documents",
+  "/command/delivery/reports",
+] as const;
+
+/** @deprecated Prefer DELIVERY_OPERATOR_NAV_ROUTES — full workspace list for breadcrumbs */
 export const DELIVERY_PARTNER_OPERATOR_ROUTES = [
   { path: "/command/delivery", label: "Dashboard" },
   { path: "/command/delivery/projects", label: "Implementation Projects" },
@@ -118,12 +146,7 @@ export const DELIVERY_PARTNER_OPERATOR_ROUTES = [
   { path: "/command/delivery/reports", label: "Reports" },
 ] as const;
 
-const DELIVERY_MATCH_ALSO = DELIVERY_PARTNER_OPERATOR_ROUTES.flatMap((route) => [
-  route.path,
-  ...("matchAlso" in route && route.matchAlso ? route.matchAlso : []),
-]);
-
-/** Staff operator Partners pillar — Acquisition + Delivery divisions under one parent */
+/** Staff operator Partners pillar — partner types & economics (not Delivery ops) */
 export const OPERATOR_PARTNERS_NAV = {
   label: "Partners",
   primaryHref: "/command/partners",
@@ -139,15 +162,11 @@ export const OPERATOR_PARTNERS_NAV = {
       ],
     },
     {
-      path: "/command/delivery",
+      path: "/command/partners/delivery",
       label: "Delivery Partners",
-      matchAlso: DELIVERY_MATCH_ALSO,
+      matchAlso: ["/command/partners/implementation"],
     },
-    {
-      path: "/command/partners/ecosystem",
-      label: "Ecosystem",
-      matchAlso: ["/command/partners/delivery"],
-    },
+    { path: "/command/partners/ecosystem", label: "Ecosystem" },
     {
       path: "/command/referrals",
       label: "Referrals",
@@ -168,6 +187,28 @@ export const OPERATOR_PARTNERS_NAV = {
     },
   ],
 } as const;
+
+/** Staff operator Delivery pillar — implementation ops workspace */
+export const OPERATOR_DELIVERY_NAV = {
+  label: "Delivery",
+  primaryHref: "/command/delivery",
+  routes: [
+    {
+      path: "/command/delivery",
+      label: "Dashboard",
+      matchAlso: [...DELIVERY_SECONDARY_MATCH],
+    },
+    ...DELIVERY_OPERATOR_NAV_ROUTES.slice(1),
+  ],
+} as const;
+
+export function getOperatorDeliveryNavRoutes(): AppRoute[] {
+  return OPERATOR_DELIVERY_NAV.routes.map((route) => ({
+    path: route.path,
+    label: route.label,
+    matchAlso: "matchAlso" in route && route.matchAlso ? [...route.matchAlso] : undefined,
+  }));
+}
 
 /** Mutable copy for AppRoute consumers (sidebar / operator nav). */
 export function getOperatorPartnersNavRoutes(): AppRoute[] {

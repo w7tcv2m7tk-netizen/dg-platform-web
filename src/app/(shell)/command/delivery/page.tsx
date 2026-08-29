@@ -41,15 +41,16 @@ export default async function StaffDeliveryDashboardPage() {
 
   return (
     <DeliveryCommandPage
-      title="Delivery Partners"
+      title="Delivery"
       description={
         <>
           <p className="text-base text-slate-200">
-            Implement DigitalGate. Build a recurring services business.
+            Implementation ops — onboarding, projects, training and go-live.
           </p>
           <p className="mt-2">
-            DigitalGate wins the customer. Delivery Partners make the customer successful —
-            implementation, training and approved Support &amp; Success.
+            DigitalGate wins the customer. Delivery makes the customer successful —
+            implementation, training and approved Support &amp; Success. Partner types live under
+            Partners → Delivery Partners.
           </p>
         </>
       }
@@ -73,6 +74,12 @@ export default async function StaffDeliveryDashboardPage() {
             className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:border-slate-500"
           >
             Implementation Lifecycle
+          </Link>
+          <Link
+            href="/command/partners/delivery"
+            className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:border-slate-500"
+          >
+            Delivery Partners roster →
           </Link>
         </div>
       }

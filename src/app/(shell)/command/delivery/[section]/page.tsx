@@ -10,7 +10,6 @@ import {
 
 import { DeliveryCommandPage } from "@/components/delivery/DeliveryCommandPage";
 import type { DeliveryNavId } from "@/components/delivery/DeliveryWorkspaceNav";
-import { CustomerOnboardingWorkflow } from "@/components/command/PartnerEcosystemContent";
 import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
@@ -277,17 +276,19 @@ export default async function StaffDeliverySectionPage({
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-400">
               Standard 15-stage implementation framework — every customer follows this lifecycle.
-              Early acceptance, agreement, kick-off, discovery and business setup are the{" "}
-              <span className="text-slate-300">onboarding phase</span> within implementation — not a
-              separate Delivery product area.
+              Early acceptance and kick-off also live under{" "}
+              <Link href="/command/delivery/onboarding" className="text-sky-400 hover:underline">
+                Onboarding
+              </Link>
+              .
             </p>
           </div>
-          <CustomerOnboardingWorkflow />
           <HonestHub
             title="Plan packages"
             description="Launch, Growth and Enterprise scoping templates live on each implementation project (plan field). Use projects and partner docs — not a separate plan CMS."
             links={[
               { href: "/command/delivery/projects", label: "Implementation projects" },
+              { href: "/command/delivery/onboarding", label: "Customer onboarding" },
               {
                 href: "/command/docs/delivery-operating-model",
                 label: "Delivery operating model",
