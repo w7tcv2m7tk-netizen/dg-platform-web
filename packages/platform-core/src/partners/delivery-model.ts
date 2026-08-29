@@ -180,8 +180,7 @@ export const IMPLEMENTATION_LEAD_FIRST_MANDATE =
   "Build the DigitalGate Implementation System — not only onboard customers. Create the standard operating procedure so every future customer follows the same framework.";
 
 /**
- * DigitalGate Implementation Lifecycle™ — canonical 15-stage implementation SOP.
- * Customer Success is a post-implementation operating layer — not stage 16.
+ * DigitalGate Implementation Lifecycle™ — canonical 16-stage implementation SOP.
  * Single source for Partners Onboarding, Delivery dashboard, pipeline and plans.
  */
 export const IMPLEMENTATION_LIFECYCLE_NAME = "DigitalGate Implementation Lifecycle™";
@@ -262,8 +261,8 @@ export const IMPLEMENTATION_SOP_STAGES = [
   {
     id: "qa",
     n: "13",
-    title: "QA",
-    body: "Complete final implementation quality assurance, resolve outstanding issues and confirm the customer is ready for go-live.",
+    title: "QA & Go-Live Readiness",
+    body: "Complete final implementation quality assurance, resolve outstanding issues and confirm go-live readiness.",
   },
   {
     id: "go_live",
@@ -277,16 +276,22 @@ export const IMPLEMENTATION_SOP_STAGES = [
     title: "30-Day Review",
     body: "Review adoption, usage, goals, issues, opportunities, feature requirements and potential App expansion.",
   },
+  {
+    id: "customer_success",
+    n: "16",
+    title: "Customer Success / Handover",
+    body: "Handover to ongoing support, optimisation and expansion — Customer Success owns retention and growth from here.",
+  },
 ] as const;
 
 /**
- * Post-implementation operating layer — not a numbered Implementation Lifecycle stage.
- * Projects may still carry `customer_success` as a pipeline status after stage 15.
+ * @deprecated Stage 16 is now part of IMPLEMENTATION_SOP_STAGES.
+ * Kept for callers that still import Customer Success activities copy.
  */
 export const CUSTOMER_SUCCESS_OPERATING = {
   id: "customer_success",
-  title: "Ongoing Customer Success",
-  body: "After the 15-stage implementation SOP, the account moves into ongoing support, optimisation and expansion — not a sixteenth implementation stage.",
+  title: "Customer Success / Handover",
+  body: "Stage 16 of the Implementation Lifecycle™ — ongoing support, optimisation and expansion after go-live and the 30-day review.",
   activities: [
     "Support",
     "Optimisation",
@@ -298,17 +303,11 @@ export const CUSTOMER_SUCCESS_OPERATING = {
   ],
 } as const;
 
-/** Pipeline / kanban — 15 implementation stages + Customer Success operating state. */
-export const DELIVERY_PIPELINE_STAGES = [
-  ...IMPLEMENTATION_SOP_STAGES.map((stage) => ({
-    id: stage.id,
-    title: stage.title,
-  })),
-  {
-    id: CUSTOMER_SUCCESS_OPERATING.id,
-    title: "Customer Success",
-  },
-] as const;
+/** Pipeline / kanban — mirrors the 16-stage Implementation Lifecycle™. */
+export const DELIVERY_PIPELINE_STAGES = IMPLEMENTATION_SOP_STAGES.map((stage) => ({
+  id: stage.id,
+  title: stage.title,
+})) as readonly { id: string; title: string }[];
 
 export const IMPLEMENTATION_PACKAGES = [
   {

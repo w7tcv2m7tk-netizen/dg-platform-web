@@ -34,7 +34,7 @@ Customer → DigitalGate → Head of Implementation → Delivery Team
 
 ## Head of Implementation — first mandate
 
-Build the **DigitalGate Implementation System** — not only onboard customers. Document the **DigitalGate Implementation Lifecycle™** (15 stages) so every future customer follows the same framework:
+Build the **DigitalGate Implementation System** — not only onboard customers. Document the **DigitalGate Implementation Lifecycle™** (**16 stages**) so every future customer follows the same framework:
 
 1. Customer Acceptance  
 2. Agreement  
@@ -48,13 +48,12 @@ Build the **DigitalGate Implementation System** — not only onboard customers. 
 10. Automation  
 11. Testing  
 12. Training  
-13. QA  
+13. QA & Go-Live Readiness  
 14. Go-Live  
 15. 30-Day Review  
+16. Customer Success / Handover  
 
-**Ongoing Customer Success** (post-implementation operating layer — not stage 16): Support → Optimisation → Reviews → Expansion → Additional Apps → Training → Continuous improvement.
-
-**Code lock:** `packages/platform-core/src/partners/delivery-model.ts` (`IMPLEMENTATION_SOP_STAGES` / `DELIVERY_PIPELINE_STAGES` / `CUSTOMER_SUCCESS_OPERATING`). Each **Implementation Project** carries the 15 stages as milestones. `customer_success` remains a pipeline status after stage 15. Delivery → **Implementation Plans** documents the framework and plan packages. “Onboarding” names the early phase (stages 01–05), not a top-level Delivery nav item. Do not maintain a parallel milestone list.
+**Code lock:** `packages/platform-core/src/partners/delivery-model.ts` (`IMPLEMENTATION_SOP_STAGES` / `DELIVERY_PIPELINE_STAGES`). Each **Implementation Project** carries all **16** stages as milestones. Delivery → **Implementation Plans** documents the framework and plan packages. “Onboarding” names the early phase (stages 01–05). Do not maintain a parallel milestone list.
 
 **Delivery objects (locked):**
 

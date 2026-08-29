@@ -230,7 +230,8 @@ export function DeliveryDashboardContent({
                   {IMPLEMENTATION_LIFECYCLE_NAME}
                 </h2>
                 <p className="mt-1 text-sm text-slate-400">
-                  15-stage implementation SOP. Customer Success follows as an operating layer.
+                  16-stage Implementation Lifecycle™ — including QA & Go-Live Readiness and Customer
+                  Success / Handover.
                 </p>
               </div>
               <Link

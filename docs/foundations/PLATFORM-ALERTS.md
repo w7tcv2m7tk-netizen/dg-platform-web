@@ -19,6 +19,10 @@ Customer business alerts live in tenant Intelligence (Business Health predictive
 
 ---
 
+> **Platform Docs index:** This runbook is intentionally **not** listed in curated Platform Docs.
+> Operator Alerts and AI Advisor live in **Command Centre** (`/command/platform-health`, `/command/advisor`) — do not duplicate those surfaces as Platform Docs entries.
+
+
 ## Platform Alerts structure
 
 ### 🔴 Critical

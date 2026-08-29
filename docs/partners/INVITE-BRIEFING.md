@@ -43,7 +43,7 @@ Invite → accept → approve → warm intro → open referral link → demo →
 | Invite → accept → claim | Works; lands in Delivery workspace |
 | `/partner/delivery` | Dashboard, metrics, assigned projects |
 | Projects / tasks / customers / training / QA / reports / activity | Live lists scoped to their portfolio (or manager view for leads) |
-| Onboarding SOP | Same 15-stage Implementation Lifecycle™ as staff Command Delivery |
+| Onboarding SOP | Same 16-stage Implementation Lifecycle™ as staff Command Delivery |
 | Plans / documents | Honest hubs — scope and docs live on projects, not a separate CMS/vault |
 
 ### What to say
@@ -66,4 +66,4 @@ Invite → accept → assign a delivery project (owner or lead) → partner open
 - Full document vault / plan CMS  
 - Self-serve affiliate signup  
 
-See also: [PARTNER-ONBOARDING.md](./PARTNER-ONBOARDING.md), [RESELLER-TERMS.md](./RESELLER-TERMS.md), [DELIVERY-OPERATING-MODEL.md](./DELIVERY-OPERATING-MODEL.md).
+See also: [PARTNER-ONBOARDING.md](./PARTNER-ONBOARDING.md), [ACQUISITION-PARTNER-TERMS.md](./ACQUISITION-PARTNER-TERMS.md), [DELIVERY-OPERATING-MODEL.md](./DELIVERY-OPERATING-MODEL.md).

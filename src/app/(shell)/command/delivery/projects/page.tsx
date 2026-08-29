@@ -35,7 +35,7 @@ export default async function StaffDeliveryProjectsPage({
   return (
     <DeliveryCommandPage
       title="Implementation Projects"
-      description="Customer implementation containers across DigitalGate Delivery — each project follows the 15-stage Implementation Lifecycle™."
+      description="Customer implementation containers across DigitalGate Delivery — each project follows the 16-stage Implementation Lifecycle™."
       navActive="projects"
     >
       {projects.length === 0 ? (

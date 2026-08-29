@@ -275,7 +275,7 @@ export default async function StaffDeliverySectionPage({
               DigitalGate Implementation Lifecycle™
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-400">
-              Standard 15-stage implementation framework — every customer follows this lifecycle.
+              Standard 16-stage implementation framework — every customer follows this lifecycle.
               Early acceptance and kick-off also live under{" "}
               <Link href="/command/delivery/onboarding" className="text-sky-400 hover:underline">
                 Onboarding

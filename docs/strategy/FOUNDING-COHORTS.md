@@ -52,7 +52,7 @@ Do **not** market Founding as a recurring percentage off list price.
 | **Founding 1,000** | Published | **Founding 1,000+ Referrer** | **10%** · qualifying subscription · **12 months** |
 | **Future / Standard** | Published price | **Advocate** | **10%** · qualifying subscription · **12 months** |
 
-**Separate programme:** Founding Acquisition Partners / Resellers earn **25%** (not the direct referral rate above). Acquisition Channel Managers earn **+5% override** on managed Resellers. See [COMMERCIAL-MODEL-LOCK.md](../partners/COMMERCIAL-MODEL-LOCK.md).
+**Separate programme:** Founding Acquisition Partners earn **25%** (not the direct referral rate above). Acquisition Channel Managers earn **+5% override** on managed Acquisition Partners. See [COMMERCIAL-MODEL-LOCK.md](../partners/COMMERCIAL-MODEL-LOCK.md) and [REFERRAL-AND-COMMISSION-RULES.md](../partners/REFERRAL-AND-COMMISSION-RULES.md).
 
 **Why 12 months commission (not indefinite recurring):** strong acquisition reward without permanent margin drain; each referral creates a finite acquisition cycle; DigitalGate retains the referred customer thereafter.
 
@@ -116,8 +116,8 @@ Call it **referral commission** — never “referral discount.”
 
 | Sense | Meaning |
 |-------|---------|
-| **Referral entitlement (Founding 10 customers)** | Cohort commercial table: **20%** direct referral × 12 months on qualifying referred subscriptions. Reseller invitation (separate): **25%**. Lives in the Founding Customer offer. |
-| **Qualified partner channel** | Invitation / acceptance only. People who already work with SME owners and **introduce** DigitalGate. Operating target: **3–5 excellent introducers**; Founding 10 cap is 10 seats. Then Founding 100 Founding Partner (25%), Founding 1,000 Founding Customer (20%). They introduce; DigitalGate qualifies, demonstrates, contracts, bills. Not an affiliate programme. |
+| **Referral entitlement (Founding 10 customers)** | Cohort commercial table: **20%** direct referral × 12 months on qualifying referred subscriptions. Acquisition Partner invitation (separate): **25%**. Lives in the Founding Customer offer. |
+| **Qualified partner channel** | Invitation / acceptance only. People who already work with SME owners and **introduce** DigitalGate. Operating target: **3–5 excellent introducers**; Founding 10 cap is 10 seats. They introduce; DigitalGate qualifies, demonstrates, contracts, bills. Not an affiliate programme. |
 
 A Founding Customer primarily **uses** DigitalGate. A Founding Acquisition Partner primarily **opens doors**. Someone can be both; most customers will not be active partners.
 

@@ -396,7 +396,7 @@ export const IMPLEMENTATION_CERT_STATUS = [
 ] as const;
 export type ImplementationCertStatus = (typeof IMPLEMENTATION_CERT_STATUS)[number];
 
-/** Canonical Implementation Lifecycle™ — single source: delivery-model.ts (15 stages). */
+/** Canonical Implementation Lifecycle™ — single source: delivery-model.ts (16 stages). */
 export const CUSTOMER_ONBOARDING_STAGES = IMPLEMENTATION_SOP_STAGES.map((stage) => ({
   id: stage.id,
   n: stage.n,

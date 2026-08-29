@@ -1,7 +1,7 @@
 # Partner Qualification
 
 **Status:** Invitation / acceptance only  
-**Related:** [RESELLER-PROGRAMME.md](./RESELLER-PROGRAMME.md)
+**Related:** [ACQUISITION-PARTNER-PROGRAMME.md](./ACQUISITION-PARTNER-PROGRAMME.md)
 
 Selected Founding 10 members **may** be invited. Membership of Founding 10 does **not** create an acquisition partner.
 

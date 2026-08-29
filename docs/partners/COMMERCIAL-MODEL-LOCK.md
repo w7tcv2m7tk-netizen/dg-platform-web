@@ -41,23 +41,33 @@ UI pages and marketing copy must consume these modules — do not hard-code perc
 | **Founding 100** | **15%** | First 12 months | Platform + Apps actually collected |
 | **Founding 1,000+** | **10%** | First 12 months | Platform + Apps actually collected |
 
-Founding 10 is a **customer programme/cohort**, not a partner type.
+Founding 10 is a **customer programme/cohort**, not a partner type. Founding customers pay **published pricing** — there is no ongoing Founding Customer discount. Trial and annual payment options are the preferred acquisition incentives.
 
 ## Acquisition Partners
 
-| Role | Rate | Period | Qualifying revenue |
-|------|------|--------|-------------------|
-| **Acquisition Partner / Founding Acquisition Partner** | **25%** | First 12 months | Platform + Apps actually collected |
-| **Acquisition Channel Manager** (own customers) | **25%** | First 12 months | Platform + Apps actually collected |
+| Role | Rate | Eligibility | Qualifying revenue |
+|------|------|-------------|-------------------|
+| **Acquisition Partner / Founding Acquisition Partner** | **25%** | First 12 months | Platform + Apps actually received |
+| **Acquisition Channel Manager** (own customers) | **25%** | First 12 months | Platform + Apps actually received |
 | **Acquisition Channel Manager** (managed partners) | **+5% override** | First 12 months | Platform + Apps from managed Acquisition Partners |
 
-Example on **$500/month** qualifying revenue (partner + channel manager):
+**Calculation:** commission = % of qualifying revenue **actually received**. Credited when DigitalGate receives the payment. Annual subscriptions: commission on the qualifying annual amount is **immediate** — not spread across 12 months. Partners withdraw **available** balances subject to settlement rules.
+
+Example on **$500** monthly qualifying revenue received (partner + channel manager):
 
 | Party | Amount |
 |-------|--------|
-| Acquisition Partner | $125/month |
-| Channel Manager | $25/month |
-| DigitalGate | $350/month |
+| Acquisition Partner | $125 |
+| Channel Manager | $25 |
+| DigitalGate | $350 |
+
+Example on **$5,000** annual qualifying revenue received:
+
+| Party | Amount |
+|-------|--------|
+| Acquisition Partner | $1,250 (immediate) |
+| Channel Manager | $250 (immediate) |
+| DigitalGate | $3,500 |
 
 ## Delivery Partners
 

@@ -12,6 +12,7 @@ const RELEASE_SLUGS = new Set([
   "platform-releases",
   "gate-1-dogfood",
   "founding-10-release-gate",
+  "founding-10-verification",
   "acc-beta-launch",
   "re-beta-launch",
   "websites-beta-launch",
@@ -106,12 +107,7 @@ export default async function ProductSectionPage({
   }
 
   if (section === "releases") {
-    const docs = PLATFORM_DOCS_CATALOG.filter(
-      (d) =>
-        RELEASE_SLUGS.has(d.slug) ||
-        /release|launch|gate|ready|founding/i.test(d.slug) ||
-        /release|launch|gate|dogfood/i.test(d.title),
-    ).slice(0, 24);
+    const docs = PLATFORM_DOCS_CATALOG.filter((d) => RELEASE_SLUGS.has(d.slug));
 
     return (
       <>

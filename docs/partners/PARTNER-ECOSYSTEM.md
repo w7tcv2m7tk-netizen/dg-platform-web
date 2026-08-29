@@ -30,7 +30,7 @@ Do **not** alternate casually between Delivery Partner, Certified Delivery Partn
 | Actor | Role |
 |-------|------|
 | **DigitalGate** | Platform owner |
-| **Reseller** | Acquisition |
+| **Acquisition Partner** | Acquisition |
 | **Delivery Partner** | Implementation |
 | **Specialist** | Expertise (capability / certification) |
 | **Customer Success** | Optimisation (capability / role) |
@@ -41,7 +41,7 @@ Do **not** alternate casually between Delivery Partner, Certified Delivery Partn
 
 | Type | Commercial label | Primary role | Acquire | Onboard | Technical | Economics |
 |------|------------------|--------------|---------|---------|-----------|-----------|
-| Reseller | Founding Acquisition Partner | Introduce & refer | Yes | Optional | No | Recurring commission |
+| Acquisition Partner | Founding Acquisition Partner | Introduce & refer | Yes | Optional | No | Recurring commission |
 | Delivery | Delivery Partner | Setup & onboarding | Optional | Yes | Limited | Project fees |
 | Technology | Technology Partner | Integrations | Optional | Yes | Yes | Service revenue |
 | Strategic | Strategic Partner | Larger / industry | Yes | Optional | Partial | Negotiated |
@@ -88,7 +88,7 @@ Founding Acquisition Partners → Delivery Partners → Certification → Partne
 
 ## Separation locks (developer requirements)
 
-> Treat the current Partner Ecosystem model as the canonical architecture for DigitalGate’s partner system. Do not collapse Resellers, Delivery Partners, Technology Partners, Strategic Partners, Specialists or Customer Success into a generic partner type. Keep DigitalGate’s own Sales/Growth Engine completely separate from the Partner ecosystem.
+> Treat the current Partner Ecosystem model as the canonical architecture for DigitalGate’s partner system. Do not collapse Acquisition Partners, Delivery Partners, Technology Partners, Strategic Partners, Specialists or Customer Success into a generic partner type. Keep DigitalGate’s own Sales/Growth Engine completely separate from the Partner ecosystem.
 
 ```
 Partner → Type → Capabilities → Certification → Referrals → Customers → Implementation → Success → Revenue/Commission

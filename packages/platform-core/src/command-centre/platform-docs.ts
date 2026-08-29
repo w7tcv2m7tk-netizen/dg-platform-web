@@ -153,14 +153,6 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "foundations/OPERATOR-OS.md",
   },
   {
-    slug: "platform-alerts",
-    title: "Platform Alerts",
-    summary:
-      "Operator alert model — what surfaces in Command Centre when the platform needs attention.",
-    group: "architecture",
-    relativePath: "foundations/PLATFORM-ALERTS.md",
-  },
-  {
     slug: "documents-and-signing",
     title: "Documents & Signing",
     summary:
@@ -292,7 +284,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "founding-cohorts",
     title: "Founding Cohorts",
     summary:
-      "Founding 10 / 100 / 1,000 commercial architecture — founding benefits (access/influence) ≠ referral commission.",
+      "Founding 10 / 100 / 1,000 customer cohorts and their direct-referral economics. Cohort status is separate from Acquisition Partner status — published pricing applies; no founding discount.",
     group: "commercial",
     relativePath: "strategy/FOUNDING-COHORTS.md",
   },
@@ -314,7 +306,8 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
   {
     slug: "pricing-and-packaging",
     title: "Pricing & Packaging",
-    summary: "Platform tiers, Apps, founding benefits vs reseller commission, public pricing lock.",
+    summary:
+      "Platform tiers, Apps, trial and annual options — published pricing for Founding Customers; Acquisition Partner commission is separate.",
     group: "commercial",
     relativePath: "commercial/PRICING-AND-PACKAGING.md",
   },
@@ -345,7 +338,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "partner-ecosystem",
     title: "Partner Ecosystem",
     summary:
-      "Reseller vs Implementation vs Technology vs Strategic — DigitalGate owns the platform; certified partners extend delivery. Resellers do not onboard.",
+      "Acquisition Partners · Delivery Partners · Technology · Strategic — DigitalGate owns the platform; partners extend acquisition and delivery. Acquisition Partners introduce; they do not onboard.",
     group: "partners",
     relativePath: "partners/PARTNER-ECOSYSTEM.md",
   },
@@ -353,29 +346,30 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "delivery-operating-model",
     title: "Delivery Operating Model",
     summary:
-      "Hub-and-spoke delivery — acquisition partners introduce, DigitalGate closes, Head of Implementation owns the SOP, Delivery Team scales capacity. Powered by DigitalGate.",
+      "Hub-and-spoke delivery and the 16-stage Implementation Lifecycle™ — Acquisition Partners introduce, DigitalGate closes, Delivery implements.",
     group: "partners",
     relativePath: "partners/DELIVERY-OPERATING-MODEL.md",
   },
   {
-    slug: "reseller-programme",
+    slug: "acquisition-partner-programme",
     title: "Acquisition Partner Programme",
     summary:
-      "Invitation-only Founding Acquisition Partner Programme — introducer model, not an affiliate programme.",
+      "Invitation-only Acquisition Partner Programme — introducer model. Earn 25% of qualifying Platform + App revenue received for the first 12 months.",
     group: "partners",
-    relativePath: "partners/RESELLER-PROGRAMME.md",
+    relativePath: "partners/ACQUISITION-PARTNER-PROGRAMME.md",
   },
   {
-    slug: "reseller-terms",
+    slug: "acquisition-partner-terms",
     title: "Acquisition Partner Terms",
-    summary: "Where partners accept programme rules; solicitor review required before binding legal terms.",
+    summary:
+      "Where partners accept programme rules; solicitor review required before binding legal terms.",
     group: "partners",
-    relativePath: "partners/RESELLER-TERMS.md",
+    relativePath: "partners/ACQUISITION-PARTNER-TERMS.md",
   },
   {
     slug: "partner-qualification",
     title: "Partner Qualification",
-    summary: "Who may be invited; first-wave cap; what acquisition partners must not claim.",
+    summary: "Who may be invited; first-wave cap; what Acquisition Partners must not claim.",
     group: "partners",
     relativePath: "partners/PARTNER-QUALIFICATION.md",
   },
@@ -390,25 +384,25 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "referral-and-commission-rules",
     title: "Referral & Commission Rules",
     summary:
-      "25% Acquisition Partner commission on qualifying collected Platform + App fees for 12 months — not list price, not perpetual. Founding Customer direct referrals: 20% (Founding 10) / 15% (Founding 100) / 10% (Founding 1,000+).",
+      "Commission on qualifying revenue actually received — Founding referrals 20/15/10; Acquisition Partner 25%; Channel Manager +5% override; annual credited immediately; withdraw when available.",
     group: "partners",
     relativePath: "partners/REFERRAL-AND-COMMISSION-RULES.md",
   },
   {
-    slug: "founding-reseller-meeting",
+    slug: "founding-acquisition-partner-meeting",
     title: "Founding Acquisition Partner Meeting",
     summary:
       "Monday partner briefing run-sheet — agenda, discussion prompts, outcomes checklist for first-wave Founding Acquisition Partners.",
     group: "partners",
-    relativePath: "partners/FOUNDING-RESELLER-MEETING.md",
+    relativePath: "partners/FOUNDING-ACQUISITION-PARTNER-MEETING.md",
   },
   {
-    slug: "founding-reseller-playbook",
+    slug: "founding-acquisition-partner-playbook",
     title: "Founding Acquisition Partner Playbook",
     summary:
-      "Introducer model — role, one-liner, journey, partner levels, good prospects, and briefing outline for first-wave acquisition partners.",
+      "Introducer model — role, one-liner, journey, partner levels, good prospects, and briefing outline for first-wave Acquisition Partners.",
     group: "partners",
-    relativePath: "partners/FOUNDING-RESELLER-PLAYBOOK.md",
+    relativePath: "partners/FOUNDING-ACQUISITION-PARTNER-PLAYBOOK.md",
   },
   {
     slug: "partner-resources",
@@ -685,11 +679,20 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
 
 const RELATIVE_PATH_RE = /^[a-zA-Z0-9][a-zA-Z0-9_./-]*\.md$/;
 
+/** Legacy Platform Docs slugs → current slug (Acquisition Partner rename). */
+const PLATFORM_DOC_SLUG_ALIASES: Record<string, string> = {
+  "reseller-programme": "acquisition-partner-programme",
+  "reseller-terms": "acquisition-partner-terms",
+  "founding-reseller-meeting": "founding-acquisition-partner-meeting",
+  "founding-reseller-playbook": "founding-acquisition-partner-playbook",
+};
+
 export function getPlatformDocBySlug(slug: string): PlatformDocEntry | undefined {
   if (!slug || slug.includes("/") || slug.includes("..") || slug.includes("\\")) {
     return undefined;
   }
-  return PLATFORM_DOCS_CATALOG.find((d) => d.slug === slug);
+  const resolved = PLATFORM_DOC_SLUG_ALIASES[slug] ?? slug;
+  return PLATFORM_DOCS_CATALOG.find((d) => d.slug === resolved);
 }
 
 export function isAllowlistedPlatformDocPath(relativePath: string): boolean {

@@ -113,9 +113,9 @@ export function DeliveryProjectRecordView({
       <section>
         <h2 className="text-base font-semibold text-white">{IMPLEMENTATION_LIFECYCLE_NAME}</h2>
         <p className="mt-1 text-sm text-slate-400">
-          15-stage implementation SOP. The project is the container — plan packages set scope;
-          tasks are the actual work; training records enablement. Ongoing Customer Success follows
-          after the 30-Day Review as an operating layer, not a sixteenth implementation stage.
+          16-stage Implementation Lifecycle™. The project is the container — plan packages set
+          scope; tasks are the actual work; training records enablement. Stage 16 is Customer
+          Success / Handover.
         </p>
         <ol className="mt-4 space-y-2">
           {lifecycleStages.map((stage) => (
