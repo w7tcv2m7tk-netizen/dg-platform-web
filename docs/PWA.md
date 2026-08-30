@@ -82,7 +82,7 @@ After deploy **and** Clerk Dashboard proxy is enabled:
    - **Android**: uninstall PWA → Chrome → **Install app** / **Add to Home screen**.
 5. Sign in **inside** the installed app (not only in a browser tab) so Clerk cookies are first-party on the app origin via the proxy.
 6. Force a session refresh test: leave the app overnight or clear only the short-lived session cookie if you know how — on next open, handshake should navigate within the standalone window to `/__clerk/...` (same host) **or** stay on `/login`, **without** spawning Safari/Chrome.
-7. In DevTools (desktop PWA), with proxy enabled, Network should show Clerk FAPI under `app.digitalgate.com.au/__clerk`, not `clerk.digitalgate.com.au`.
+7. In DevTools (desktop PWA), with proxy enabled, Network should show Clerk FAPI under `digitalgate.com.au/__clerk`, not `clerk.digitalgate.com.au`.
 
 ## Remaining limits (still a web app)
 
