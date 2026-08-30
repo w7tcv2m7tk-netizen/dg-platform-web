@@ -695,19 +695,48 @@ export async function upsertStayBookingFromWpRow(
   }
 
   // Resolve the unit so the insert can be serialised against direct and OTA
-  // bookings for the same unit. Without a unit we cannot detect overlap, so the
-  // row is still written (WordPress remains the origin for these) but no
-  // silent double-book is possible on a known unit.
+  // bookings for the same unit.
   const unitId = await resolveUnitIdForWpBooking(organisationId, fields);
 
-  if (!unitId || !fields.checkin || !fields.checkout) {
+  // A booking whose unit is not yet in Neon can still be guarded, because
+  // `findOverlappingBookings` matches on the WordPress unit id as well as the
+  // Neon one. Unit resolution fails mainly when units have not been imported
+  // yet, which is exactly when a first WordPress pull brings in many bookings
+  // at once — previously every one of those was inserted with no lock and no
+  // overlap check at all, so two stays on the same real unit could both land.
+  //
+  // The lock key falls back to the WordPress unit id so those inserts are still
+  // serialised against each other. It is a different key from the resolved-unit
+  // one, so a unit being imported concurrently leaves a narrow window; both
+  // branches are chosen by whether the unit exists, so concurrent imports for
+  // the same unit take the same branch outside that window.
+  const lockUnitId =
+    unitId ??
+    (fields.accommodationWpId != null ? `wp-unit:${fields.accommodationWpId}` : null);
+  const canDetectOverlap =
+    Boolean(lockUnitId) && Boolean(fields.checkin) && Boolean(fields.checkout);
+
+  if (!canDetectOverlap) {
+    // Genuinely unguardable: no unit identity of either kind, or no parseable
+    // dates. Overlap cannot be evaluated, so the row is still written —
+    // WordPress remains the origin for these and dropping a committed guest
+    // reservation would be worse — but it is marked so these rows are
+    // identifiable rather than silently indistinguishable from checked ones.
     await prisma.stayBooking.create({
       data: {
         organisationId,
         externalWpId: wpId,
         ...fields,
         contactId,
-        metadata: metadataWithWpFingerprint(fields),
+        metadata: {
+          ...(metadataWithWpFingerprint(fields) as Record<string, unknown>),
+          overlap_unchecked: {
+            reason: !lockUnitId ? "no_unit_identity" : "missing_dates",
+            wp_booking_id: wpId,
+            wp_unit_id: fields.accommodationWpId ?? null,
+            imported_at: new Date().toISOString(),
+          },
+        } as Prisma.InputJsonValue,
       },
     });
     return "created";
@@ -717,7 +746,7 @@ export async function upsertStayBookingFromWpRow(
   // inbound WordPress/OTA reservation is already committed to a guest, so a
   // manual block must not silently discard it. Overlapping another booking is
   // a genuine integrity problem and is refused.
-  return withUnitBookingLock(organisationId, unitId, async (tx) => {
+  return withUnitBookingLock(organisationId, lockUnitId!, async (tx) => {
     const conflicts = await findOverlappingBookings(tx, {
       organisationId,
       accommodationUnitId: unitId,

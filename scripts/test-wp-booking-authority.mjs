@@ -259,3 +259,99 @@ describe("Implementation shape", () => {
     assert.doesNotMatch(src, /wpWins|wordpressAuthoritative|WP_SOURCE_OF_TRUTH/);
   });
 });
+
+/**
+ * Overlap protection for imports whose Neon unit is not resolvable.
+ *
+ * `resolveUnitIdForWpBooking` fails mainly when units have not been imported
+ * yet — exactly when a first WordPress pull brings in many bookings at once.
+ * Those inserts previously ran with no advisory lock and no overlap check at
+ * all, so two stays on the same real unit could both land silently.
+ */
+describe("No-unit booking imports", () => {
+  it("guards on the WordPress unit id when Neon has no unit yet", async () => {
+    const src = await readSource("packages/platform-core/src/accommodation/bookings.ts");
+
+    // The overlap query already matches on accommodationWpId, so a WP unit id is
+    // enough to both serialise and detect.
+    assert.match(src, /wp-unit:\$\{fields\.accommodationWpId\}/);
+    assert.match(src, /withUnitBookingLock\(organisationId, lockUnitId!/);
+  });
+
+  it("only skips the check when there is genuinely nothing to check against", async () => {
+    const src = await readSource("packages/platform-core/src/accommodation/bookings.ts");
+
+    assert.match(
+      src,
+      /const canDetectOverlap =\s*Boolean\(lockUnitId\) && Boolean\(fields\.checkin\) && Boolean\(fields\.checkout\)/,
+    );
+  });
+
+  it("marks unguardable rows instead of inserting them indistinguishably", async () => {
+    const src = await readSource("packages/platform-core/src/accommodation/bookings.ts");
+
+    assert.match(src, /overlap_unchecked/);
+    assert.match(src, /reason: !lockUnitId \? "no_unit_identity" : "missing_dates"/);
+  });
+
+  it("still refuses a genuine overlap rather than accepting a double-book", async () => {
+    const src = await readSource("packages/platform-core/src/accommodation/bookings.ts");
+
+    const guard = src.indexOf("if (conflicts.length) {");
+    const create = src.indexOf("await tx.stayBooking.create", guard);
+    assert.ok(guard > 0 && create > guard, "conflict must be refused before insert");
+    assert.match(src.slice(guard, create), /recordImportConflict/);
+  });
+
+  it("does not drop a committed guest reservation", async () => {
+    const src = await readSource("packages/platform-core/src/accommodation/bookings.ts");
+    // An unguardable row is written, not discarded — losing a real booking is
+    // worse than an unchecked one.
+    const at = src.indexOf("if (!canDetectOverlap) {");
+    const block = src.slice(at, at + 1400);
+    assert.match(block, /prisma\.stayBooking\.create/);
+    assert.match(block, /return "created"/);
+  });
+});
+
+/**
+ * Unit PATCH used to write the whole WordPress response row back over Neon,
+ * which contradicts Neon being source of truth and is lossy: WordPress
+ * re-expands blocked_dates to include OTA blocks and runs its iCal import
+ * before responding.
+ */
+describe("Unit PATCH writeback is limited to WordPress-authored fields", () => {
+  it("writes back only the identifiers WordPress generates", async () => {
+    const src = await readSource("src/app/api/v1/accommodation/route.ts");
+
+    assert.match(
+      src,
+      /for \(const key of \["ical_export_url", "airbnb_id", "bookingcom_id"\]\)/,
+    );
+  });
+
+  it("no longer passes the whole response row to the upsert", async () => {
+    const src = await readSource("src/app/api/v1/accommodation/route.ts");
+
+    assert.doesNotMatch(
+      src,
+      /upsertAccommodationUnitFromWpRow\(\s*session\.organisationId,\s*row as Parameters/,
+      "the full WordPress row must not overwrite Neon",
+    );
+    assert.match(src, /wpAuthored as Parameters<typeof upsertAccommodationUnitFromWpRow>\[1\]/);
+  });
+
+  it("skips the write entirely when WordPress returned none of those fields", async () => {
+    const src = await readSource("src/app/api/v1/accommodation/route.ts");
+    assert.match(src, /if \(Object\.keys\(wpAuthored\)\.length === 1\) continue;/);
+  });
+
+  it("keeps the Neon-first order and does not fail the save on mirror failure", async () => {
+    const src = await readSource("src/app/api/v1/accommodation/route.ts");
+
+    const neonWrite = src.indexOf("responseUpdated");
+    const mirror = src.indexOf("await patchWpAccommodationUnits(updates, connector)");
+    assert.ok(neonWrite > 0 && mirror > neonWrite, "Neon must be written before the mirror");
+    assert.match(src, /Neon already updated above — don't fail the save because WP mirror is gone\./);
+  });
+});

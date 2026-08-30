@@ -966,7 +966,17 @@ export async function PATCH(req: Request) {
         { status: 422 },
       );
     }
-    // Prefer WP response as SoT for OTA export URLs / confirmed meta after mirror.
+    // Capture the identifiers WordPress generates, and nothing else.
+    //
+    // This previously wrote the entire WordPress response row back over Neon,
+    // which contradicts Neon being SoT and is demonstrably lossy: WordPress
+    // re-expands blocked_dates to include OTA blocks, and runs its iCal import
+    // before responding, so the row it returns is its own combined view rather
+    // than the manual blocks and rates the operator just saved here.
+    //
+    // Only the iCal export URL and the OTA listing ids are authored by
+    // WordPress. The upsert applies defined fields only, so passing a trimmed
+    // row narrows the write to exactly those.
     if (usesUnits && Array.isArray(result.data?.updated)) {
       const { upsertAccommodationUnitFromWpRow } = await import("@dg/platform-core");
       for (const updated of result.data.updated) {
@@ -974,9 +984,16 @@ export async function PATCH(req: Request) {
         const row = updated as Record<string, unknown>;
         const id = typeof row.id === "number" ? row.id : Number(row.id);
         if (!Number.isFinite(id)) continue;
+
+        const wpAuthored: Record<string, unknown> = { id };
+        for (const key of ["ical_export_url", "airbnb_id", "bookingcom_id"]) {
+          if (row[key] !== undefined) wpAuthored[key] = row[key];
+        }
+        if (Object.keys(wpAuthored).length === 1) continue;
+
         await upsertAccommodationUnitFromWpRow(
           session.organisationId,
-          row as Parameters<typeof upsertAccommodationUnitFromWpRow>[1],
+          wpAuthored as Parameters<typeof upsertAccommodationUnitFromWpRow>[1],
         ).catch(() => null);
       }
     }
