@@ -109,8 +109,6 @@ export async function PlatformShellLoader({
       showResellerAdmin={showResellerAdmin}
       partnerType={partnerType}
       membershipRole={session?.role ?? "member"}
-      organisationSlug={session?.organisationSlug}
-      userEmail={email}
       permissionGrants={session?.permissionGrants}
       activeOrganisationId={session?.organisationId}
       activeOrganisationName={session?.organisationName}

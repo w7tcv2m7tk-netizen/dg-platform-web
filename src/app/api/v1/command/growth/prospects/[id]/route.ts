@@ -1,6 +1,7 @@
 import {
   archiveGrowthProspect,
   getGrowthProspect,
+  organisationGrowthScope,
   restoreGrowthProspect,
   updateGrowthProspect,
 } from "@dg/platform-core";
@@ -19,7 +20,7 @@ export async function GET(req: Request, { params }: RouteParams) {
   if (isNextResponse(session)) return session;
 
   const { id } = await params;
-  const prospect = await getGrowthProspect(id, session.organisationId);
+  const prospect = await getGrowthProspect(id, organisationGrowthScope(session.organisationId));
   if (!prospect) {
     return NextResponse.json(
       { error: { code: "not_found", message: "Prospect not found" } },

@@ -1,6 +1,10 @@
 import type { Prisma } from "@dg/database";
 
 import { createQuote } from "../../commerce/document-engine";
+import {
+  growthScopeWhere,
+  type GrowthScope,
+} from "./scope";
 import type { CommerceLineItem } from "../../commerce/types";
 import type { GrowthProposalServiceLine } from "./types";
 import { updateGrowthProspect } from "./prospects";
@@ -146,11 +150,15 @@ export function buildProposalServiceLines(input: {
   return lines;
 }
 
-export async function draftGrowthProposal(prospectId: string) {
+export async function draftGrowthProposal(
+  prospectId: string,
+  scope: GrowthScope,
+) {
   const { prisma } = await import("@dg/database");
 
-  const prospect = await prisma.growthProspect.findUnique({
-    where: { id: prospectId },
+  // Resolve inside the scope — never by id alone.
+  const prospect = await prisma.growthProspect.findFirst({
+    where: { id: prospectId, ...growthScopeWhere(scope) },
   });
   if (!prospect) return null;
 
@@ -205,12 +213,16 @@ export async function draftGrowthProposal(prospectId: string) {
   };
 }
 
-export async function listGrowthProposalDrafts(options?: { limit?: number }) {
+export async function listGrowthProposalDrafts(
+  scope: GrowthScope,
+  options?: { limit?: number },
+) {
   const { prisma } = await import("@dg/database");
   const limit = Math.min(options?.limit ?? 40, 80);
 
   const prospects = await prisma.growthProspect.findMany({
     where: {
+      ...growthScopeWhere(scope),
       archivedAt: null,
       stage: {
         in: [
@@ -231,7 +243,7 @@ export async function listGrowthProposalDrafts(options?: { limit?: number }) {
 
   const drafts = [];
   for (const p of prospects) {
-    const draft = await draftGrowthProposal(p.id);
+    const draft = await draftGrowthProposal(p.id, scope);
     if (draft) drafts.push(draft);
   }
   return drafts;
@@ -239,12 +251,14 @@ export async function listGrowthProposalDrafts(options?: { limit?: number }) {
 
 export async function createGrowthProposalQuote(input: {
   prospectId: string;
+  /** Tenant the commerce quote is raised under. */
   organisationId: string;
+  scope: GrowthScope;
   actorId?: string;
 }) {
   const { prisma } = await import("@dg/database");
 
-  const draft = await draftGrowthProposal(input.prospectId);
+  const draft = await draftGrowthProposal(input.prospectId, input.scope);
   if (!draft) return null;
   if (!draft.auditId || draft.services.length === 0) {
     return { error: "audit_required" as const };
