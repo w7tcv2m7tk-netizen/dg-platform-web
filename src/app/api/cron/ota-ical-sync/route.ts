@@ -8,8 +8,15 @@ import { authorizeCronRequest } from "@/lib/cron-auth";
 export const maxDuration = 120;
 
 /**
- * Every 15 minutes — pull Airbnb / Booking.com iCal feeds into Neon StayBooking.
- * Secure with CRON_SECRET (Authorization: Bearer …) or Vercel Cron header.
+ * Daily 05:00 UTC (see vercel.json) — pull Airbnb / Booking.com iCal feeds into
+ * Neon StayBooking. The cadence is a Vercel plan constraint, not a design
+ * choice; see docs/foundations/ACC-CHANNEL-CONNECTIVITY.md.
+ *
+ * Requires CRON_SECRET via `Authorization: Bearer …` or `x-cron-secret`. The
+ * x-vercel-cron header is NOT accepted — it is caller-suppliable.
+ *
+ * limitOrgs is a per-run batch size; organisations rotate least-recently-synced
+ * first, so the cap bounds one invocation rather than capping the platform.
  *
  * Note: reduces double-book risk; does not eliminate iCal export polling lag on the OTA side.
  */

@@ -586,7 +586,19 @@ export async function syncOtaCalendarsFromUnits(input: {
 }
 
 /**
- * Cron entry — sync every org that has at least one Airbnb or Booking.com iCal URL.
+ * Cron entry — sync organisations that have at least one Airbnb or Booking.com
+ * iCal URL.
+ *
+ * `limitOrgs` is a per-run batch size, not a platform capacity limit: it bounds
+ * how much work one invocation attempts inside the route's maxDuration.
+ * Organisations are selected **least-recently-synced first**, so the batch
+ * rotates and every organisation is eventually reached. Previously the query
+ * had no ORDER BY, so Postgres returned an arbitrary but typically stable set
+ * and organisations outside the first batch could go unsynced indefinitely.
+ *
+ * Concurrent invocations are safe rather than locked out: imports are
+ * idempotent on `ical_uid` and every create/update path takes a per-unit
+ * advisory lock. See docs/foundations/ACC-CHANNEL-CONNECTIVITY.md.
  */
 export async function syncAllOrganisationsOtaCalendars(options?: {
   limitOrgs?: number;
@@ -606,17 +618,41 @@ export async function syncAllOrganisationsOtaCalendars(options?: {
   const { prisma } = await import("@dg/database");
   const limit = Math.max(1, Math.min(options?.limitOrgs ?? 50, 100));
 
-  const units = await prisma.accommodationUnit.findMany({
+  // Least-recently-synced first so the batch rotates fairly. Units never
+  // synced (null) sort first. distinct+take cannot express "oldest org", so the
+  // rotation is computed here over the candidate units.
+  const candidates = await prisma.accommodationUnit.findMany({
     where: {
       OR: [
         { airbnbIcalUrl: { not: null } },
         { bookingcomIcalUrl: { not: null } },
       ],
     },
-    select: { organisationId: true },
-    distinct: ["organisationId"],
-    take: limit,
+    select: {
+      organisationId: true,
+      airbnbLastSyncAt: true,
+      bookingcomLastSyncAt: true,
+    },
   });
+
+  const oldestByOrg = new Map<string, number>();
+  for (const unit of candidates) {
+    const syncedAt = Math.min(
+      unit.airbnbLastSyncAt?.getTime() ?? 0,
+      unit.bookingcomLastSyncAt?.getTime() ?? 0,
+    );
+    const current = oldestByOrg.get(unit.organisationId);
+    if (current === undefined || syncedAt < current) {
+      oldestByOrg.set(unit.organisationId, syncedAt);
+    }
+  }
+
+  const units = [...oldestByOrg.entries()]
+    // Oldest first; organisation id as a stable tiebreak so ordering is
+    // deterministic for equal timestamps.
+    .sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+    .map(([organisationId]) => ({ organisationId }));
 
   const orgIds = units.map((u) => u.organisationId);
   const aggregate: SyncAllOrgsOtaResult = {
