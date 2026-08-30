@@ -1,5 +1,14 @@
 import type { Prisma } from "@dg/database";
 
+/** Raised when a date change would overlap another active booking. */
+export class StayBookingConflictError extends Error {
+  readonly code = "dates_unavailable";
+  constructor(message: string) {
+    super(message);
+    this.name = "StayBookingConflictError";
+  }
+}
+
 import {
   describeBookingConflict,
   findOverlappingBookings,
@@ -224,6 +233,8 @@ export async function updateStayBooking(
     guests?: number | null;
     nights?: number | null;
     message?: string | null;
+    /** Operator override — skip the overlap re-check. */
+    force?: boolean;
   },
 ): Promise<StayBookingListItem | null> {
   if (!process.env.DATABASE_URL) return null;
@@ -279,6 +290,30 @@ export async function updateStayBooking(
     if (input.checkin !== undefined) next.checkin = input.checkin;
     if (input.checkout !== undefined) next.checkout = input.checkout;
     data.metadata = next as Prisma.InputJsonValue;
+  }
+
+  // Moving dates can create an overlap just as easily as inserting one.
+  const datesMoved = input.checkin !== undefined || input.checkout !== undefined;
+  const nextCheckin = (data.checkin as Date | null | undefined) ?? existing.checkin;
+  const nextCheckout = (data.checkout as Date | null | undefined) ?? existing.checkout;
+  const unitId = existing.accommodationUnitId;
+
+  if (datesMoved && unitId && nextCheckin && nextCheckout && !input.force) {
+    const conflicts = await withUnitBookingLock(organisationId, unitId, (tx) =>
+      findOverlappingBookings(tx, {
+        organisationId,
+        accommodationUnitId: unitId,
+        accommodationWpId: existing.accommodationWpId,
+        checkin: nextCheckin,
+        checkout: nextCheckout,
+        excludeStayBookingId: existing.id,
+      }),
+    );
+    if (conflicts.length) {
+      throw new StayBookingConflictError(
+        `Dates conflict with an existing booking: ${describeBookingConflict(conflicts)}`,
+      );
+    }
   }
 
   const updated = await prisma.stayBooking.update({

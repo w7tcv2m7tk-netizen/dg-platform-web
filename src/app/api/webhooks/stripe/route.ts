@@ -116,9 +116,20 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
     const subscription = event.raw as Stripe.Subscription;
     const result: Record<string, unknown> = {};
 
+    // H-8: metadata markers alone decide this branch, so confirm the id is not
+    // a known commerce subscription before touching platform billing state.
+    const subIdentity = await classifyStripeBillingEvent({
+      organisationId: event.organisationId,
+      stripeSubscriptionId: event.stripeSubscriptionId,
+      stripeCustomerId: event.providerCustomerId,
+      platformTier: subscription.metadata?.dg_platform_tier,
+      platformSubscriptionMarker: isPlatformSubscription(subscription),
+    });
+
     if (
-      isPlatformSubscription(subscription) ||
-      (event.organisationId && subscription.metadata?.dg_platform_tier)
+      subIdentity.domain !== "commerce" &&
+      (isPlatformSubscription(subscription) ||
+        (event.organisationId && subscription.metadata?.dg_platform_tier))
     ) {
       const lifecycle = await handlePlatformSubscriptionLifecycle(
         subscription,
