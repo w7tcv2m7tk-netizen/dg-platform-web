@@ -3,12 +3,14 @@
 import { useEffect } from "react";
 
 /**
- * DigitalGate marketing motion — card reveals + journey panel highlight.
- * CSS handles layout/fallback; this island enhances reveals and in-view highlighting.
+ * DigitalGate marketing motion — card reveals, journey highlight, and (on home)
+ * a subtle fade of the fixed hero environment as content surfaces rise over it.
+ * CSS owns layout/fallback; this island only enhances behaviour.
  */
 export function DgMarketingMotion() {
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const desktop = window.matchMedia("(min-width: 960px)").matches;
 
     const revealEls = Array.from(document.querySelectorAll<HTMLElement>(".dg-reveal"));
     let revealObserver: IntersectionObserver | null = null;
@@ -38,7 +40,6 @@ export function DgMarketingMotion() {
       const panels = Array.from(journey.querySelectorAll<HTMLElement>(".dg-journey-panel"));
       if (panels.length === 0) continue;
 
-      // Grid layout — highlight all panels, or the one in view.
       if (reduce) {
         panels.forEach((p) => p.classList.add("is-active"));
         continue;
@@ -59,6 +60,32 @@ export function DgMarketingMotion() {
       );
       for (const panel of panels) panelObserver.observe(panel);
       cleanups.push(() => panelObserver.disconnect());
+    }
+
+    // Layered home: hero → environment → platform (fade fixed atmosphere).
+    const hero = document.querySelector<HTMLElement>(".hero-home");
+    if (hero && !reduce && desktop) {
+      let raf = 0;
+      const updateEnvFade = () => {
+        raf = 0;
+        const vh = Math.max(window.innerHeight, 1);
+        // Hold through first viewport, then ease out over ~1.4 viewports.
+        const progress = Math.min(1, Math.max(0, (window.scrollY - vh * 0.35) / (vh * 1.4)));
+        const fade = 1 - progress;
+        hero.style.setProperty("--env-fade", fade.toFixed(3));
+      };
+      const onScroll = () => {
+        if (!raf) raf = requestAnimationFrame(updateEnvFade);
+      };
+      updateEnvFade();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll, { passive: true });
+      cleanups.push(() => {
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onScroll);
+        if (raf) cancelAnimationFrame(raf);
+        hero.style.removeProperty("--env-fade");
+      });
     }
 
     return () => {

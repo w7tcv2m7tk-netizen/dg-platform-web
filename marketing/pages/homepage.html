@@ -906,6 +906,93 @@
     .hero-home .hero-orb-c { display: none; }
   }
 
+  /*
+   * Layered home environment (desktop) — hero atmosphere stays as a fixed visual
+   * foundation while section surfaces rise over it. Not full-page parallax.
+   * Mobile / reduced-motion keep the existing stacked layout.
+   */
+  @media (min-width: 960px) and (prefers-reduced-motion: no-preference) {
+    .hero-home {
+      --env-fade: 1;
+      background: transparent;
+    }
+    .hero-home .hero-atmosphere {
+      position: fixed;
+      inset: 0;
+      height: 100svh;
+      height: 100dvh;
+      z-index: 0;
+      opacity: var(--env-fade, 1);
+      transition: opacity 0.45s ease;
+      will-change: opacity;
+    }
+    .hero-home .hero-inner {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Content stack sits above the fixed environment */
+    [data-dg-motion-root] > section,
+    section.cta-section,
+    section.screenshots-home {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* First surfaces: translucent — environment still readable underneath */
+    #pillars {
+      background: rgba(10, 14, 23, 0.52);
+      -webkit-backdrop-filter: blur(18px) saturate(1.15);
+      backdrop-filter: blur(18px) saturate(1.15);
+      border-top: 1px solid rgba(51, 65, 85, 0.55);
+      box-shadow: 0 -24px 64px rgba(2, 6, 23, 0.35);
+    }
+    #connected.alt,
+    #apps.alt,
+    #connected-business.alt,
+    #ai.alt,
+    #why.alt,
+    #founding.alt {
+      background: rgba(17, 24, 39, 0.82);
+      -webkit-backdrop-filter: blur(22px) saturate(1.1);
+      backdrop-filter: blur(22px) saturate(1.1);
+    }
+
+    /* Mid/late sections: denser platform surfaces (environment → platform) */
+    #one-platform.dg-layers-section,
+    #platform-overview,
+    #platform-core,
+    #digital-twin,
+    #connects,
+    #industries {
+      background: rgba(10, 14, 23, 0.94);
+    }
+
+    /* Solid frames — screenshots + final CTA must stay fully readable */
+    #platform-screenshots.screenshots-home,
+    .cta-section {
+      background: #0A0E17;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .cta-section {
+      background: linear-gradient(180deg, #111827 0%, #0A0E17 100%);
+    }
+
+    /* Cards stay solid so translucency doesn’t hurt contrast */
+    #pillars .pillar,
+    .connect-panel,
+    .dg-layer,
+    .dg-core-band,
+    .dg-journey-panel,
+    .twin-card,
+    .dg-ind-card,
+    .why-item,
+    .shot-frame {
+      background-color: rgba(17, 24, 39, 0.96);
+    }
+  }
+
 </style>
 
 <!-- ===== HERO ===== -->
