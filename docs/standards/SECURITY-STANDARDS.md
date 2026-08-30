@@ -65,3 +65,28 @@ Log on every write:
 ## Gen 1 bridge
 
 `DG_API_KEY` grants server-to-server access to WP `/portal/me` — rotate via WP Admin if exposed.
+
+### Why it cannot simply be rotated or removed
+
+Confirmed against the plugin source (`dg-platform`, v10.70.0):
+
+- Each WordPress install stores **exactly one** Dev API key, `dg_dev_api_key`
+  (`includes/class-dev-api.php`). Inbound REST calls are verified against it with
+  `hash_equals`, and the accommodation, real-estate and growth sync classes all
+  fall back to the same option as their **outbound** webhook secret. The plugin
+  has no concept of a per-purpose key, so outbound keys cannot be separated by
+  purpose without a plugin change — only by host, which Gen 2 already does
+  (`DG_WP_CONNECTOR_API_KEY`, `DG_WP_ACCOMMODATION_API_KEY`, per-org keys).
+- The plugin calls Gen 2's `POST /api/v1/addresses/resolve` presenting that same
+  key (`includes/services/class-address-resolver.php`). So Gen 2 must keep
+  accepting a WordPress install's Dev API key on that route.
+  `DG_ADDRESS_RESOLVE_API_KEY` can only replace it if it is set to the calling
+  install's key value — it is not a key Gen 2 gets to choose.
+- The plugin does **not** call `POST /api/indexnow`. That route's `DG_API_KEY`
+  fallback therefore has no WordPress dependency at all: its only callers are
+  operator and cron. Dropping the fallback there needs `INDEXNOW_API_KEY` set
+  first, and nothing else.
+
+Cutover order that follows from this: IndexNow first (no external coordination),
+then the portal bridge via `DG_PORTAL_API_KEY`, and address resolve last —
+because that one is gated on what a WordPress install presents, not on us.

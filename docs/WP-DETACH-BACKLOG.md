@@ -383,7 +383,7 @@ dead; they remain live only for a tenant pointing at a non-apex WordPress host.
 | 14 | Booking DELETE WP mirror | accommodation route DELETE | **Neon first** | n/a | No | Neon only | **C** | Correct already |
 | 15 | Unit PATCH WP mirror / unit pull | accommodation route + `units.ts` | **Neon first** | n/a | Yes on pull | Neon only | **C** | Correct already |
 
-### Nothing qualified for removal this phase
+### Nothing qualified for removal (re-confirmed in Phase 8 with plugin evidence)
 
 No dependency is safely removable without external evidence. Each is either
 inbound from a WordPress install we cannot inspect (#5), or still the only path
@@ -431,7 +431,54 @@ keep getting reverted. That is a source-of-truth policy call, so it is recorded
 here rather than changed. A recency guard (`gen2_origin` plus an
 `updatedAt`/`wp_mirrored_at` comparison) is the mechanism once the policy is set.
 
-### `platform_id` round-trip — externally blocked
+### Phase 8 update — plugin source read, questions resolved
+
+The plugin (`dg-platform`, v10.70.0, 253 PHP files) is a separate public
+repository and was read directly. Three Phase 7 unknowns are now settled.
+
+**Every accommodation endpoint Gen 2 calls exists in the plugin.** All fourteen
+routes registered by `DG_Acc_Dev_API` — summary, bookings GET/POST/PATCH/DELETE,
+properties GET/PATCH, guests GET/PATCH, availability, housekeeping GET/PATCH,
+ota-sync, reviews — are implemented. There are no dead HTTP dependencies, so no
+item can be removed on the grounds that its remote endpoint is gone.
+
+**`platform_id` does not exist in the plugin.** Zero occurrences across all 253
+PHP files. Booking create reads a fixed field allowlist and writes a fixed meta
+set, so a `platform_id` in the payload is silently discarded. PATCH resolves
+identity as `(int) $row['id']` and requires the post to be a `dg_booking`; a row
+without a numeric WordPress id is skipped with no error. Neither response shape
+(`format_bookings` for pull, `format_booking_row` for the webhook) returns it.
+So all four round-trip questions are answered **no**, and the WordPress post id
+is the only booking identity that exists. Do not send `platform_id` outbound —
+nothing would store it, and Gen 2 would be populating an identifier that never
+comes back. The units pattern works only because units resolve inbound by
+`platform_id` *when Gen 2 itself supplied the row*; the plugin does not
+participate in that either.
+
+**No timestamp is emitted anywhere.** Neither booking formatter includes a
+modification time, which is why the import conflict rule cannot use one.
+
+**Guest PATCH is not the field-mismatch risk it appeared to be.** The plugin's
+`update_guests` handler accepts every field Gen 2 sends — name, email, phone,
+address, source, notes, tags, vip, contact_id — and silently drops none. The
+real gap is the reverse: the Neon-first `update_guest_profile` path does **not**
+mirror `tags`, `address` or `source` to WordPress. So converting the WP-first
+route is still blocked, but on unknown external callers plus that three-field
+gap, not on the plugin.
+
+Two plugin-side observations worth acting on outside this repository:
+
+- `DG_Acc_Platform_Sync` **is** initialised (traced from `dg-platform.php` →
+  module registry → `accommodation.php`), so the `dg-stay-booking` webhook is
+  live code rather than an orphan. It no-ops when no webhook secret is
+  configured.
+- The webhook fires on `dg_booking_created` and `dg_booking_confirmed` only.
+  `create_booking_from_data`, used by the Stripe finalize path, fires **neither**
+  — so a Stripe-paid public WordPress booking may never reach Neon by webhook and
+  would arrive only on the next pull sync. This is a plugin bug and needs fixing
+  in `dg-platform`, not here.
+
+### `platform_id` round-trip — resolved: the plugin has no such field
 
 Bookings do **not** follow the units identity pattern:
 
@@ -443,12 +490,27 @@ Bookings do **not** follow the units identity pattern:
   parser does not map it, and the Gen 2-first create does not send it — it links
   the WP id back afterwards via `linkStayBookingExternalWpId`.
 
-Whether the plugin stores or echoes `platform_id` cannot be determined here:
-this repository contains **no PHP at all** and the plugin lives in the sibling
-`dg-platform` repository, which is not present. See the Phase 7 report for the
-exact external checks required. Do not add booking `platform_id` handling until
-the plugin side is confirmed, or Gen 2 will populate an identifier nothing
-returns.
+Confirmed in Phase 8 by reading the plugin: it has no `platform_id` field, so
+the round-trip does not exist and cannot be made to exist from this side.
+Booking identity is the WordPress post id, matched in Neon via `externalWpId`.
+
+### Stale WordPress data can no longer overwrite newer Gen 2 edits
+
+Resolved in Phase 8. `upsertStayBookingFromWpRow` records a fingerprint of the
+WordPress row it last accepted, in the existing `metadata` JSON. An incoming row
+identical to that fingerprint is skipped, because WordPress has not changed and
+the row therefore cannot be newer than whatever Gen 2 has done since. A row that
+differs is applied, because that change originated in WordPress and legacy
+tenants still depend on it.
+
+This is deliberately not a timestamp comparison: the plugin emits no
+modification time, so there is nothing to compare. It is not `platform_id`
+either, which does not exist, nor `gen2_origin`, which is written once and then
+erased by the first import because `mapBookingFields` rebuilds `metadata`.
+
+Rows imported before the rule have nothing recorded, so they behave as before
+and arm themselves on the next sync — a one-cycle gap accepted in preference to
+a migration and a backfill.
 
 ---
 
