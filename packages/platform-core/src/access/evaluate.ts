@@ -53,10 +53,16 @@ export function parsePermissionGrants(raw: unknown): PermissionGrant[] {
   return out;
 }
 
+/**
+ * Build the permission-evaluation context for a session.
+ *
+ * `organisationId` is the tenant id from the authenticated session. It is the
+ * only organisation input used for platform authority; organisation name/slug
+ * is tenant-editable and is deliberately not accepted here.
+ */
 export function buildAccessContext(input: {
   role: string;
-  organisationSlug?: string | null;
-  email?: string | null;
+  organisationId?: string | null;
   enabledAppIds: string[];
   grants?: PermissionGrant[] | unknown;
   industryAppId?: string | null;
@@ -67,8 +73,7 @@ export function buildAccessContext(input: {
     organisationRole: toOrganisationRole(input.role),
     platformUserType: toPlatformUserType({
       role: input.role,
-      organisationSlug: input.organisationSlug,
-      email: input.email,
+      organisationId: input.organisationId,
     }),
     enabledAppIds: input.enabledAppIds,
     grants: parsePermissionGrants(input.grants),
@@ -143,8 +148,7 @@ export function hasPermission(
 export function sessionCan(
   session: {
     role: string;
-    organisationSlug?: string;
-    email?: string;
+    organisationId?: string;
     permissionGrants?: unknown;
   },
   check: PermissionCheck,
@@ -152,8 +156,7 @@ export function sessionCan(
 ): boolean {
   const ctx = buildAccessContext({
     role: session.role,
-    organisationSlug: session.organisationSlug,
-    email: session.email,
+    organisationId: session.organisationId,
     enabledAppIds,
     grants: session.permissionGrants,
   });

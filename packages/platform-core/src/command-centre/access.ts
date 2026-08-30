@@ -1,3 +1,8 @@
+import {
+  hasPlatformAuthority,
+  isPlatformOperatorOrganisationId,
+} from "../access/platform-authority";
+
 export type CommandCentreAccessInput = {
   organisationId: string;
   organisationName?: string;
@@ -11,62 +16,37 @@ export function isDigitalGateStaffEmail(email?: string | null): boolean {
   return normalised.endsWith("@digitalgate.com.au");
 }
 
-/** True when the *active* tenant may see Command Centre (DigitalGate operator org only). */
+/**
+ * True when the *active* tenant may see Command Centre.
+ *
+ * SECURITY BOUNDARY — delegates to the single platform-authority source
+ * (`DG_COMMAND_CENTRE_ORG_IDS` allowlist or `dg:staff` role). Organisation
+ * name and slug are tenant-editable and are intentionally ignored: any user
+ * could otherwise create an organisation called "DigitalGate …" and inherit
+ * operator privileges.
+ *
+ * `organisationName` / `organisationSlug` remain on the input type only so
+ * existing callers keep compiling; they are never read.
+ */
 export function canAccessCommandCentre(input: CommandCentreAccessInput): boolean {
-  const allowlist = process.env.DG_COMMAND_CENTRE_ORG_IDS?.split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-
-  if (allowlist?.length && allowlist.includes(input.organisationId)) {
-    return true;
-  }
-
-  if (input.role === "dg:staff") {
-    return true;
-  }
-
-  const slug = input.organisationSlug?.toLowerCase() ?? "";
-  if (slug === "digitalgate" || slug.startsWith("digitalgate-")) {
-    return true;
-  }
-
-  const name = input.organisationName?.toLowerCase() ?? "";
-  if (/\bdigitalgate\b/.test(name)) {
-    return true;
-  }
-
-  return false;
+  return hasPlatformAuthority({
+    organisationId: input.organisationId,
+    role: input.role,
+  });
 }
 
-/** DigitalGate operator org — exclude from customer benchmarking where noted. */
+/**
+ * DigitalGate operator org — exclude from customer benchmarking where noted.
+ *
+ * Presentation-only filter, but it shares the platform-authority source so a
+ * tenant cannot classify itself as the operator org by naming.
+ */
 export function isPlatformOperatorOrganisation(org: {
   organisationId?: string;
   organisationSlug?: string | null;
   organisationName?: string | null;
 }): boolean {
-  const allowlist = process.env.DG_COMMAND_CENTRE_ORG_IDS?.split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-
-  if (
-    org.organisationId &&
-    allowlist?.length &&
-    allowlist.includes(org.organisationId)
-  ) {
-    return true;
-  }
-
-  const slug = org.organisationSlug?.toLowerCase() ?? "";
-  if (slug === "digitalgate" || slug.startsWith("digitalgate-")) {
-    return true;
-  }
-
-  const name = org.organisationName?.toLowerCase() ?? "";
-  if (/\bdigitalgate\b/.test(name)) {
-    return true;
-  }
-
-  return false;
+  return isPlatformOperatorOrganisationId(org.organisationId);
 }
 
 /** Industry app ids (kept for docs / optional tooling). */
