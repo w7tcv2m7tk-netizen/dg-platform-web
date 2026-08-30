@@ -26,7 +26,7 @@ export default async function GrowthAuditsPage() {
         listGrowthProspectAudits(
           organisationGrowthScope(session.organisationId),
         ),
-        listProspectsNeedingAudit({ organisationId: session.organisationId }),
+        listProspectsNeedingAudit(organisationGrowthScope(session.organisationId)),
       ])
     : [[], []];
 

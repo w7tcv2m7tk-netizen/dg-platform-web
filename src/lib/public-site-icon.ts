@@ -2,6 +2,7 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 
 import { getPublicSiteBrand } from "@dg/platform-core";
+import { safeExternalFetch } from "@dg/platform-core/command-centre/growth-engine/ssrf-guard";
 
 const STATIC_APPLE_FALLBACK: Record<string, string> = {
   wantd: "/brand/wantd-apple-touch.png",
@@ -34,7 +35,12 @@ async function readLocalBrandFile(relativePath: string): Promise<Buffer | null> 
 
 async function fetchRemoteIcon(url: string): Promise<Buffer | null> {
   try {
-    const res = await fetch(url, { next: { revalidate: 3600 } });
+    // iconUrl comes from the tenant's business profile and this runs on a
+    // public favicon route, so an unauthenticated request can trigger it.
+    // Validate the target and every redirect hop.
+    const res = await safeExternalFetch(url, {
+      signal: AbortSignal.timeout(10_000),
+    });
     if (!res.ok) return null;
     return Buffer.from(await res.arrayBuffer());
   } catch {

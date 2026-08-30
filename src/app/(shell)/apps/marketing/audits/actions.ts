@@ -1,5 +1,6 @@
 "use server";
 
+import { assertEntitlement } from "@dg/platform-core";
 import { revalidatePath } from "next/cache";
 import { runOrgSeoAudit } from "@dg/platform-core";
 
@@ -9,6 +10,14 @@ export async function runMarketingSeoAuditAction() {
   const { session } = await getPlatformPageContext();
   if (!session) {
     return { error: "Platform session unavailable" };
+  }
+
+  // Server actions never pass through requirePlatformAuth, so the central
+  // write gate in lib/entitlement-gate does not see them. This action persists
+  // audit results, so it must assert the same entitlement itself.
+  const gate = await assertEntitlement(session.organisationId, "write");
+  if (!gate.ok) {
+    return { error: gate.message };
   }
 
   try {

@@ -15,9 +15,9 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   if (searchParams.get("needsAudit") === "1") {
-    const needs = await listProspectsNeedingAudit({
-      organisationId: session.organisationId,
-    });
+    const needs = await listProspectsNeedingAudit(
+      organisationGrowthScope(session.organisationId),
+    );
     return NextResponse.json({ data: needs });
   }
 

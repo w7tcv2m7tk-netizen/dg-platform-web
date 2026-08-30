@@ -4,7 +4,6 @@ import {
   canAccessPartnerPortal,
   getPartnerByClerkUserId,
   isDemoOrganisationId,
-  isDigitalGateStaffEmail,
   resolveEntitlement,
   type PartnerType,
 } from "@dg/platform-core";
@@ -28,7 +27,7 @@ export async function PlatformShellLoader({
     void ensureOrganisationOnboardingSync().catch(() => null);
   });
 
-  const [{ user, session, clerkUserId, email }, enabledIds, industrySelectionIds, brandTheme] =
+  const [{ user, session, clerkUserId }, enabledIds, industrySelectionIds, brandTheme] =
     await Promise.all([
     getPlatformPageContext(),
     getOrgEnabledAppIdsCached(),
@@ -50,14 +49,9 @@ export async function PlatformShellLoader({
       })
     : false;
 
-  const staffByEmail =
-    isDigitalGateStaffEmail(email) ||
-    Boolean(
-      user?.emailAddresses?.some((addr) => isDigitalGateStaffEmail(addr.emailAddress)),
-    );
-
+  // Nav must not imply authority the API will refuse. Email domain is not a
+  // platform-authority signal, so it no longer surfaces operator chrome.
   const showResellerAdmin =
-    staffByEmail ||
     (session
       ? showCommandCentre ||
         session.organisations.some((org) =>

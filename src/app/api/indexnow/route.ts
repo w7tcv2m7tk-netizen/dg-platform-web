@@ -1,5 +1,14 @@
+import { timingSafeEqual } from "node:crypto";
+
 import { submitIndexNowUrls } from "@/lib/indexnow";
 import { NextResponse } from "next/server";
+
+function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
 
 /**
  * POST /api/indexnow — submit canonical URLs to IndexNow (operator / cron).
@@ -7,11 +16,13 @@ import { NextResponse } from "next/server";
  * Requires INDEXNOW_KEY + optional INDEXNOW_HOST in env.
  */
 export async function POST(req: Request) {
-  const apiKey = req.headers.get("X-API-Key")?.trim();
+  // Prefer the dedicated key. DG_API_KEY remains accepted as a legacy
+  // fallback because it is still the configured value in some environments,
+  // but it spans unrelated trust domains and should be retired here.
+  const apiKey = req.headers.get("X-API-Key")?.trim() ?? "";
   const expected =
-    process.env.DG_API_KEY?.trim() ||
-    process.env.INDEXNOW_API_KEY?.trim();
-  if (!expected || apiKey !== expected) {
+    process.env.INDEXNOW_API_KEY?.trim() || process.env.DG_API_KEY?.trim();
+  if (!expected || !apiKey || !safeEqual(apiKey, expected)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -5,6 +5,8 @@
 
 import { updateWebsite } from "./crud";
 import { resolvePrimaryLinkedDomain } from "../infrastructure/domains/primary-linked";
+import { safeExternalFetch } from "../command-centre/growth-engine/ssrf-guard";
+
 import type { SerializedWebsite } from "./types";
 
 export type CachedPagespeed = {
@@ -47,9 +49,11 @@ export function publicHttpsUrlForDomain(name: string | null | undefined): string
 
 async function probeTtfb(url: string): Promise<{ ttfbMs: number; bytes: number; status: number }> {
   const started = Date.now();
-  const res = await fetch(url, {
+  // The probed host comes from a tenant-linked domain, so it is not trusted.
+  // safeExternalFetch validates every redirect hop — redirect:follow would let
+  // a tenant domain bounce this probe into private address space.
+  const res = await safeExternalFetch(url, {
     method: "GET",
-    redirect: "follow",
     cache: "no-store",
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     headers: { "user-agent": "DigitalGate-HealthCentre/1.0" },

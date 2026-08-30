@@ -4,6 +4,7 @@
  */
 
 import { storeOrgFile } from "../assets/org-brand-storage";
+import { safeExternalFetch } from "../command-centre/growth-engine/ssrf-guard";
 
 function isEphemeralImageUrl(url: string): boolean {
   return /images-uat\.corelogic\.asia|signature=|corelogic\.asia\/.*\?/i.test(url);
@@ -32,9 +33,11 @@ export async function persistPropertyListingImages(
     }
 
     try {
-      const res = await fetch(src, {
-        redirect: "follow",
+      // Image URLs arrive from tenant/WordPress data, so validate every hop
+      // and bound the request rather than following redirects blindly.
+      const res = await safeExternalFetch(src, {
         headers: { Accept: "image/*,*/*" },
+        signal: AbortSignal.timeout(15_000),
       });
       if (!res.ok) continue;
       const contentType = (res.headers.get("content-type") || "image/jpeg").split(";")[0].trim();

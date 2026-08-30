@@ -13,8 +13,13 @@
  * resolution happens here before the request is made.
  */
 
-import { lookup } from "node:dns/promises";
-import net from "node:net";
+/**
+ * Node built-ins are imported lazily inside the functions that need them.
+ * This module is reachable from modules that also appear in the client graph
+ * (e.g. property helpers), and a static `node:dns` / `node:net` import breaks
+ * the client bundle. The same dynamic-import idiom is used for `@dg/database`
+ * elsewhere in platform-core.
+ */
 
 export type SsrfCheckResult =
   | { allowed: true; hostname: string }
@@ -56,9 +61,19 @@ function isBlockedIpv6(ip: string): boolean {
   return false;
 }
 
+/** Minimal IP-family detection so this module needs no static node:net import. */
+function ipFamily(value: string): 4 | 6 | 0 {
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(value)) {
+    return value.split(".").every((p) => Number(p) >= 0 && Number(p) <= 255) ? 4 : 0;
+  }
+  if (value.includes(":")) return 6;
+  return 0;
+}
+
 export function isBlockedIpAddress(ip: string): boolean {
-  if (net.isIPv4(ip)) return isBlockedIpv4(ip);
-  if (net.isIPv6(ip)) return isBlockedIpv6(ip);
+  const family = ipFamily(ip);
+  if (family === 4) return isBlockedIpv4(ip);
+  if (family === 6) return isBlockedIpv6(ip);
   return true;
 }
 
@@ -92,13 +107,14 @@ export async function assertPublicHttpTarget(
   }
 
   // Literal IP in the URL — check directly, no DNS needed.
-  if (net.isIP(hostname)) {
+  if (ipFamily(hostname) !== 0) {
     return isBlockedIpAddress(hostname)
       ? { allowed: false, reason: "private_address" }
       : { allowed: true, hostname };
   }
 
   try {
+    const { lookup } = await import("node:dns/promises");
     const results = await lookup(hostname, { all: true });
     if (!results.length) return { allowed: false, reason: "unresolvable_host" };
     if (results.some((r) => isBlockedIpAddress(r.address))) {

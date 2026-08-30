@@ -179,19 +179,24 @@ export async function listGrowthProspectAudits(
   }));
 }
 
-export async function listProspectsNeedingAudit(options?: {
-  organisationId?: string;
-  limit?: number;
-}) {
+/**
+ * Prospects with no audit yet.
+ *
+ * Scope is required. This previously took an optional organisationId where
+ * omitting it returned every tenant's prospects — the same latent shape as the
+ * C-1 defect, differing only in that no caller had omitted it yet.
+ */
+export async function listProspectsNeedingAudit(
+  scope: GrowthScope,
+  options?: { limit?: number },
+) {
   const { prisma } = await import("@dg/database");
   const limit = Math.min(options?.limit ?? 40, 100);
 
   const rows = await prisma.growthProspect.findMany({
     where: {
+      ...growthScopeWhere(scope),
       archivedAt: null,
-      ...(options?.organisationId
-        ? { organisationId: options.organisationId }
-        : {}),
       stage: { in: ["prospect", "audit_created"] },
       audits: { none: {} },
     },
