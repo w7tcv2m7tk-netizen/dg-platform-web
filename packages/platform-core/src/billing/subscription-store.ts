@@ -242,26 +242,6 @@ export async function appendSubscriptionEvent(input: {
   }
 }
 
-export async function claimStripeWebhookReceipt(input: {
-  eventId: string;
-  eventType: string;
-  organisationId?: string | null;
-}): Promise<{ claimed: boolean }> {
-  const { prisma } = await import("@dg/database");
-  try {
-    await prisma.stripeWebhookReceipt.create({
-      data: {
-        eventId: input.eventId,
-        eventType: input.eventType,
-        organisationId: input.organisationId ?? null,
-      },
-    });
-    return { claimed: true };
-  } catch {
-    return { claimed: false };
-  }
-}
-
 export async function listSubscriptionsNeedingDunning(limit = 200) {
   const { prisma } = await import("@dg/database");
   const rows = await prisma.platformSubscription.findMany({

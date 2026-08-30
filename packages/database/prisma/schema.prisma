@@ -955,9 +955,22 @@ model StripeWebhookReceipt {
   organisationId String?  @map("organisation_id")
   processedAt    DateTime @default(now()) @map("processed_at")
 
+  /**
+   * H-7 crash recovery. processing | processed | failed.
+   * Existing rows were backfilled to `processed` by
+   * 20260830_stripe_webhook_receipt_state; new rows are claims, so the DB
+   * default is `processing`.
+   */
+  status      String    @default("processing")
+  attempts    Int       @default(1)
+  claimedAt   DateTime? @map("claimed_at")
+  completedAt DateTime? @map("completed_at")
+  lastError   String?   @map("last_error")
+
   organisation Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
 
   @@index([processedAt])
+  @@index([status, claimedAt])
   @@map("stripe_webhook_receipts")
 }
 
