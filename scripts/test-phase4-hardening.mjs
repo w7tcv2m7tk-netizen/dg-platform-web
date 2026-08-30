@@ -163,7 +163,6 @@ describe("Phase 4: remaining SSRF sinks are guarded", () => {
 });
 
 describe("Phase 4: IndexNow key comparison", () => {
-  const KEY = "indexnow-secret-value";
   let saved;
 
   beforeEach(() => {
