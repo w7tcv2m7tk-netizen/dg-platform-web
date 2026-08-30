@@ -334,7 +334,7 @@ describe("H-7: migration artefact safety", () => {
     const sql = await readFile(
       path.join(
         __dirname,
-        "../packages/database/prisma/baseline/proposed/stripe_webhook_receipt_state.sql",
+        "../packages/database/prisma/migrations/20260830_stripe_webhook_receipt_state/migration.sql",
       ),
       "utf8",
     );
@@ -350,6 +350,52 @@ describe("H-7: migration artefact safety", () => {
     assert.doesNotMatch(sql, /\bDROP TABLE\b/);
     assert.doesNotMatch(sql, /\bTRUNCATE\b/);
     assert.doesNotMatch(sql, /\bDELETE FROM\b/);
+    assert.doesNotMatch(sql, /\bALTER COLUMN "(?!status")[a-z_]+" (TYPE|SET NOT NULL)/);
+  });
+
+  it("is the single copy, so no second artefact can drift from it", async () => {
+    const { readdir } = await import("node:fs/promises");
+    const proposed = await readdir(
+      path.join(__dirname, "../packages/database/prisma/baseline/proposed"),
+    ).catch(() => []);
+
+    assert.ok(
+      !proposed.some((f) => f.includes("stripe_webhook_receipt")),
+      "the migration must not also exist under baseline/proposed",
+    );
+  });
+
+  it("agrees with the Prisma model it is applied for", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const [sql, schema] = await Promise.all([
+      readFile(
+        path.join(
+          __dirname,
+          "../packages/database/prisma/migrations/20260830_stripe_webhook_receipt_state/migration.sql",
+        ),
+        "utf8",
+      ),
+      readFile(path.join(__dirname, "../packages/database/prisma/schema.prisma"), "utf8"),
+    ]);
+
+    const model = schema.slice(
+      schema.indexOf("model StripeWebhookReceipt"),
+      schema.indexOf("@@map(\"stripe_webhook_receipts\")"),
+    );
+    assert.ok(model.length > 0, "StripeWebhookReceipt model not found");
+
+    // Deploying code against a migration that omits a column takes the webhook
+    // endpoint down, so every mapped column must appear in the migration.
+    for (const column of ["status", "attempts", "claimed_at", "completed_at", "last_error"]) {
+      assert.match(sql, new RegExp(`ADD COLUMN IF NOT EXISTS "${column}"`));
+    }
+    assert.match(model, /status\s+String\s+@default\("processing"\)/);
+    assert.match(model, /attempts\s+Int\s+@default\(1\)/);
+    assert.match(model, /@@index\(\[status, claimedAt\]\)/);
+
+    // Prisma generates this exact index name for that @@index, so the migration
+    // and a future `migrate diff` cannot disagree.
+    assert.match(sql, /"stripe_webhook_receipts_status_claimed_at_idx"/);
   });
 });
 

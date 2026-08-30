@@ -147,7 +147,7 @@ export async function listOrgCommunications(
     const { prisma } = await import("@dg/database");
     let channel = input.channel;
     let source = input.source;
-    let status = input.status;
+    const status = input.status;
     let statuses = input.statuses;
     let direction = input.direction;
 
