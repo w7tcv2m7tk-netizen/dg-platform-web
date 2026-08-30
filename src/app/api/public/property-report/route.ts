@@ -7,6 +7,7 @@ import {
   checkResolveBudget,
   clientIpFromHeaders,
   readResolveCache,
+  recordResolveTelemetry,
   writeResolveCache,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
@@ -74,6 +75,11 @@ export async function POST(req: Request) {
       ReturnType<typeof resolvePublicPropertyReportAddress>
     >>(raw);
     if (cached) {
+      recordResolveTelemetry({
+        event: "resolve",
+        outcome: "cache_hit",
+        providerCallAvoided: true,
+      });
       return NextResponse.json({ data: cached, cached: true });
     }
 
@@ -82,6 +88,12 @@ export async function POST(req: Request) {
     const callerKey = clientIpFromHeaders(req.headers);
     const budget = checkResolveBudget(callerKey, raw);
     if (!budget.allowed) {
+      recordResolveTelemetry({
+        event: "resolve",
+        outcome: budget.reason,
+        distinctAddresses: budget.distinctAddresses,
+        providerCallAvoided: true,
+      });
       return NextResponse.json(
         {
           error: {
@@ -109,6 +121,13 @@ export async function POST(req: Request) {
       writeResolveCache(raw, result);
     }
 
+    recordResolveTelemetry({
+      event: "resolve",
+      outcome: result.ok ? "resolved" : "resolve_failed",
+      distinctAddresses: budget.distinctAddresses,
+      providerCallAvoided: false,
+    });
+
     if (!result.ok) {
       return NextResponse.json(
         { error: { code: result.code, message: result.message } },
@@ -133,6 +152,12 @@ export async function POST(req: Request) {
       propertyType: body.propertyType,
       timeframe: body.timeframe,
       website: body.website,
+    });
+    // Submits are the conversion side of the funnel: comparing this count with
+    // rejected resolves is how we tell whether the thresholds are costing leads.
+    recordResolveTelemetry({
+      event: "submit",
+      outcome: result.ok ? "submitted" : "submit_failed",
     });
     if (!result.ok) {
       return NextResponse.json(

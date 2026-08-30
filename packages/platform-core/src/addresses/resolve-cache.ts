@@ -49,8 +49,13 @@ export const RESOLVE_DISTINCT_ADDRESS_LIMIT = 12;
 export const RESOLVE_SUSPICIOUS_LIMIT = 40;
 
 export type ResolveThrottleVerdict =
-  | { allowed: true; reason: "cached" | "within_budget" }
-  | { allowed: false; reason: "budget_exceeded" | "suspicious"; retryAfterMs: number };
+  | { allowed: true; reason: "cached" | "within_budget"; distinctAddresses: number }
+  | {
+      allowed: false;
+      reason: "budget_exceeded" | "suspicious";
+      retryAfterMs: number;
+      distinctAddresses: number;
+    };
 
 type CacheEntry<T> = { value: T; expiresAt: number };
 
@@ -104,7 +109,7 @@ export function checkResolveBudget(
   now = Date.now(),
 ): ResolveThrottleVerdict {
   const address = normaliseAddressKey(rawAddress);
-  if (!address) return { allowed: true, reason: "within_budget" };
+  if (!address) return { allowed: true, reason: "within_budget", distinctAddresses: 0 };
 
   // An unidentifiable caller must not get a free pass; bucket them together.
   const caller = callerKey?.trim() || "unknown";
@@ -117,7 +122,7 @@ export function checkResolveBudget(
   if (seen.has(address)) {
     seen.set(address, now);
     callerAddresses.set(caller, seen);
-    return { allowed: true, reason: "cached" };
+    return { allowed: true, reason: "cached", distinctAddresses: seen.size };
   }
 
   // Record the attempt even when it will be refused. Counting only accepted
@@ -131,6 +136,7 @@ export function checkResolveBudget(
       allowed: false,
       reason: "suspicious",
       retryAfterMs: RESOLVE_WINDOW_MS,
+      distinctAddresses: seen.size,
     };
   }
 
@@ -139,10 +145,11 @@ export function checkResolveBudget(
       allowed: false,
       reason: "budget_exceeded",
       retryAfterMs: RESOLVE_WINDOW_MS,
+      distinctAddresses: seen.size,
     };
   }
 
-  return { allowed: true, reason: "within_budget" };
+  return { allowed: true, reason: "within_budget", distinctAddresses: seen.size };
 }
 
 /**
@@ -156,6 +163,61 @@ export function assertCacheableResolvedPayload(value: unknown): boolean {
   if (!value || typeof value !== "object") return false;
   const serialised = JSON.stringify(value);
   return !/"organisationId"|"organisation_id"|"leadId"|"contactId"/.test(serialised);
+}
+
+/**
+ * Telemetry for tuning the thresholds above.
+ *
+ * The thresholds are initial production values, not settled policy, so we need
+ * evidence before changing them: how much genuine volume there is, how much of
+ * it is repeat lookups, how many callers hit the budget, and how many paid
+ * provider calls the cache avoided.
+ *
+ * One structured line per resolve/submit to the existing application log, which
+ * Vercel already collects and makes queryable. No new infrastructure, because a
+ * metrics backend is not warranted for tuning two numbers.
+ *
+ * Deliberately carries NO identifiers — no address, no IP, no caller hash. Every
+ * question we need answered is a counting question, and the property address a
+ * prospect types is personal data that should not be duplicated into logs. The
+ * distinct-address count is the automation signal, and it travels on the event
+ * itself, so grouping by caller is unnecessary.
+ */
+export type ResolveTelemetryEvent = {
+  event: "resolve" | "submit";
+  outcome:
+    | "cache_hit"
+    | "resolved"
+    | "resolve_failed"
+    | "budget_exceeded"
+    | "suspicious"
+    | "submitted"
+    | "submit_failed";
+  /** Distinct addresses this caller has attempted in the current window. */
+  distinctAddresses?: number;
+  /** True when a billed Google/CoreLogic call was skipped. */
+  providerCallAvoided?: boolean;
+};
+
+/**
+ * Emitted with a fixed prefix so the whole funnel can be pulled from logs with
+ * a single filter. Keep the prefix stable — queries depend on it.
+ */
+export const RESOLVE_TELEMETRY_PREFIX = "[property-report.telemetry]";
+
+export function recordResolveTelemetry(event: ResolveTelemetryEvent): void {
+  // Telemetry must never be able to fail the funnel it measures.
+  try {
+    console.log(
+      `${RESOLVE_TELEMETRY_PREFIX} ${JSON.stringify({
+        ...event,
+        cacheEntries: resultCache.size,
+        trackedCallers: callerAddresses.size,
+      })}`,
+    );
+  } catch {
+    /* ignore */
+  }
 }
 
 /** Test seam. */

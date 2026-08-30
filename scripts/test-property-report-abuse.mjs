@@ -149,3 +149,106 @@ describe("Layer 3 — per-caller budget on NEW addresses", () => {
     );
   });
 });
+
+/**
+ * The thresholds above are initial production values, so they have to be
+ * tunable from evidence. Telemetry rides on the existing application log rather
+ * than new infrastructure, and must not turn a public funnel into a PII sink.
+ */
+describe("Telemetry for threshold tuning", () => {
+  const capture = (fn) => {
+    const original = console.log;
+    const lines = [];
+    console.log = (line) => lines.push(String(line));
+    try {
+      fn();
+    } finally {
+      console.log = original;
+    }
+    return lines;
+  };
+
+  it("emits one parseable line per event under a stable prefix", () => {
+    const lines = capture(() =>
+      mod.recordResolveTelemetry({
+        event: "resolve",
+        outcome: "resolved",
+        distinctAddresses: 3,
+        providerCallAvoided: false,
+      }),
+    );
+
+    assert.equal(lines.length, 1);
+    assert.ok(lines[0].startsWith(mod.RESOLVE_TELEMETRY_PREFIX));
+
+    const payload = JSON.parse(lines[0].slice(mod.RESOLVE_TELEMETRY_PREFIX.length));
+    assert.equal(payload.event, "resolve");
+    assert.equal(payload.outcome, "resolved");
+    assert.equal(payload.distinctAddresses, 3);
+    assert.equal(typeof payload.cacheEntries, "number");
+    assert.equal(typeof payload.trackedCallers, "number");
+  });
+
+  it("carries no address, IP or tenant identifier", () => {
+    mod.checkResolveBudget("203.0.113.42", ADDRESS);
+    const lines = capture(() =>
+      mod.recordResolveTelemetry({
+        event: "resolve",
+        outcome: "cache_hit",
+        distinctAddresses: 1,
+        providerCallAvoided: true,
+      }),
+    );
+
+    const line = lines[0];
+    assert.ok(!line.includes("203.0.113.42"), "must not log the caller IP");
+    assert.ok(!line.includes("Dinjirra"), "must not log the address");
+    assert.ok(!/organisation|contactId|leadId/i.test(line));
+  });
+
+  it("distinguishes avoided provider calls so cache savings are measurable", () => {
+    const avoided = JSON.parse(
+      capture(() =>
+        mod.recordResolveTelemetry({
+          event: "resolve",
+          outcome: "cache_hit",
+          providerCallAvoided: true,
+        }),
+      )[0].slice(mod.RESOLVE_TELEMETRY_PREFIX.length),
+    );
+    const billed = JSON.parse(
+      capture(() =>
+        mod.recordResolveTelemetry({
+          event: "resolve",
+          outcome: "resolved",
+          providerCallAvoided: false,
+        }),
+      )[0].slice(mod.RESOLVE_TELEMETRY_PREFIX.length),
+    );
+
+    assert.equal(avoided.providerCallAvoided, true);
+    assert.equal(billed.providerCallAvoided, false);
+  });
+
+  it("reports the caller's distinct-address count so automation is visible", () => {
+    for (let i = 0; i < 5; i += 1) {
+      mod.checkResolveBudget("198.51.100.7", `${i} Sample St`);
+    }
+    const verdict = mod.checkResolveBudget("198.51.100.7", "6 Sample St");
+    assert.equal(verdict.distinctAddresses, 6);
+  });
+
+  it("never lets a logging failure break the funnel", () => {
+    const original = console.log;
+    console.log = () => {
+      throw new Error("log sink unavailable");
+    };
+    try {
+      assert.doesNotThrow(() =>
+        mod.recordResolveTelemetry({ event: "submit", outcome: "submitted" }),
+      );
+    } finally {
+      console.log = original;
+    }
+  });
+});
