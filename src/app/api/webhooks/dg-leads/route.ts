@@ -4,33 +4,27 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-function verifyWebhookSecret(req: Request): boolean {
-  const secrets = [
-    process.env.DG_LEADS_WEBHOOK_SECRET?.trim(),
-    process.env.DG_DISCOVERY_WEBHOOK_SECRET?.trim(),
-    process.env.DG_WP_CONNECTOR_API_KEY?.trim(),
-    process.env.DG_API_KEY?.trim(),
-  ].filter((s): s is string => Boolean(s));
+import {
+  resolveWebhookOrganisation,
+  verifyWebhookSecret,
+  webhookAllowedOrganisationIds,
+} from "@/lib/webhook-auth";
 
-  if (!secrets.length) return false;
-
-  const provided =
-    req.headers.get("X-DG-Webhook-Secret")?.trim() ||
-    req.headers.get("X-API-Key")?.trim() ||
-    "";
-
-  return secrets.includes(provided);
-}
 
 /**
  * WP → Gen 2 dual-write for Roe public capture (WP-D-103).
  * Gen 2 Lead is SoT after import; pull-sync remains backup.
  */
 export async function POST(req: Request) {
-  if (!verifyWebhookSecret(req)) {
+  const auth = verifyWebhookSecret(req, [
+    "DG_LEADS_WEBHOOK_SECRET",
+    // Legacy fallback during WP cutover — remove once WordPress is updated.
+    "DG_WP_CONNECTOR_API_KEY",
+  ] as const);
+  if (!auth.ok) {
     return NextResponse.json(
-      { error: { code: "unauthorized", message: "Invalid webhook secret" } },
-      { status: 401 },
+      { error: { code: auth.code, message: auth.message } },
+      { status: auth.code === "not_configured" ? 503 : 401 },
     );
   }
 
@@ -49,13 +43,15 @@ export async function POST(req: Request) {
     );
   }
 
-  const organisationId = await resolveOrganisationIdForReSync({
-    organisationId:
-      typeof body.organisationId === "string"
-        ? body.organisationId
-        : typeof body.organisation_id === "string"
-          ? body.organisation_id
-          : undefined,
+  const requestedOrganisationId =
+    typeof body.organisationId === "string"
+      ? body.organisationId
+      : typeof body.organisation_id === "string"
+        ? body.organisation_id
+        : undefined;
+
+  // Resolve server-side first; the body value may only confirm that answer.
+  const serverResolved = await resolveOrganisationIdForReSync({
     siteUrl:
       typeof body.siteUrl === "string"
         ? body.siteUrl
@@ -64,18 +60,21 @@ export async function POST(req: Request) {
           : undefined,
   });
 
-  if (!organisationId) {
+  const target = resolveWebhookOrganisation({
+    requested: requestedOrganisationId,
+    resolved: serverResolved,
+    allowed: webhookAllowedOrganisationIds("DG_LEADS_WEBHOOK_ORG_IDS"),
+  });
+
+  if (!target.ok) {
     return NextResponse.json(
-      {
-        error: {
-          code: "org_not_resolved",
-          message:
-            "Could not resolve RE organisation — set DG_RE_ORGANISATION_ID or Roe brand/connector on the org",
-        },
-      },
-      { status: 422 },
+      { error: { code: target.code, message: target.message } },
+      { status: target.code === "forbidden" ? 403 : 422 },
     );
   }
+
+  const organisationId = target.organisationId;
+
 
   const leadTypeRaw =
     typeof body.leadType === "string"
