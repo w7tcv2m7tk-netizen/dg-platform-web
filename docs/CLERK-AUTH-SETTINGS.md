@@ -30,7 +30,7 @@ Vercel / Clerk path env (must match app routes — **`/login`**, not `/sign-in`)
 | `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | `/signup/account` |
 | `NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL` | `/login` |
 
-If SignIn shows **no email/password fields**, the usual cause is a **broken FAPI proxy** (`host_invalid` on `/__clerk/v1/environment`). See PWA section — remove or fix `NEXT_PUBLIC_CLERK_PROXY_URL` until Dashboard proxy validates.
+If SignIn shows **no email/password fields**, the usual cause is a **broken FAPI proxy** (`host_invalid` on `/__clerk/v1/environment`). See PWA section — remove or fix `CLERK_PROXY_URL` until Dashboard proxy validates.
 
 ## Stay signed in (manual sign-out only)
 
@@ -71,7 +71,7 @@ Session refresh that redirects to `https://clerk.digitalgate.com.au/v1/client/ha
 
 ### Fix in code
 
-- Middleware can proxy FAPI on `/__clerk` **only when** `NEXT_PUBLIC_CLERK_PROXY_URL` is set
+- Middleware can proxy FAPI on `/__clerk` **only when** `CLERK_PROXY_URL` is set
 - `ClerkProvider` `proxyUrl` from that same env (no silent production default)
 - If Clerk would redirect off-origin to `clerk.*` / Account Portal, middleware rewrites to **same-window `/login`**
 - Client guard: never `window.open` Clerk; click-capture sends users to `/login`
@@ -86,7 +86,7 @@ Do **not** set the Vercel proxy env before Dashboard validates — that blanks S
 3. Proxy URL: **`https://app.digitalgate.com.au/__clerk`**
 4. Wait until Clerk reports the proxy as **valid** (not failed).
 5. Vercel **Production** env:
-   - `NEXT_PUBLIC_CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk`
+   - `CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk`
    - `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/login`
    - `NEXT_PUBLIC_CLERK_SIGN_UP_URL=/signup/account`
    - `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard`
@@ -105,7 +105,7 @@ curl -s "https://app.digitalgate.com.au/__clerk/v1/environment" | head
 ```
 
 - **Good**: JSON environment payload (instance config), not `host_invalid`
-- **Bad**: `{"errors":[{"code":"host_invalid",...}]}` → Dashboard proxy not enabled/validated; **unset** `NEXT_PUBLIC_CLERK_PROXY_URL` until fixed
+- **Bad**: `{"errors":[{"code":"host_invalid",...}]}` → Dashboard proxy not enabled/validated; **unset** `CLERK_PROXY_URL` until fixed
 
 ### Verify in installed app
 

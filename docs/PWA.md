@@ -42,14 +42,14 @@ That host is **outside** the PWA scope, so iOS/macOS/Android open Safari/Chrome 
 
 **Fix:** Proxy Clerk Frontend API through the app origin (`/__clerk`). Handshake + cookies become same-origin → stay in the PWA.
 
-**Important:** Setting `ClerkProvider` `proxyUrl` / `NEXT_PUBLIC_CLERK_PROXY_URL` **before** Dashboard proxy validates causes `host_invalid` on `/__clerk/v1/environment` and **blank SignIn** (no email/password). Code is opt-in via env only; until then, off-origin Clerk redirects are rewritten to in-app `/login`.
+**Important:** Setting `ClerkProvider` `proxyUrl` / `CLERK_PROXY_URL` **before** Dashboard proxy validates causes `host_invalid` on `/__clerk/v1/environment` and **blank SignIn** (no email/password). Code is opt-in via env only; until then, off-origin Clerk redirects are rewritten to in-app `/login`.
 
 ### Ben must do in Clerk Dashboard (exact order)
 
 1. Deploy this build (proxy route live on production).
 2. [Clerk Dashboard](https://dashboard.clerk.com) → **Configure → Domains** → **Frontend API** → **Set proxy configuration**.
 3. Proxy URL: `https://app.digitalgate.com.au/__clerk` — wait until **valid**.
-4. Vercel Production env: `NEXT_PUBLIC_CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk`
+4. Vercel Production env: `CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk`
 5. Confirm sign-in path env is **`/login`** (not Account Portal, not `/sign-in`).
 6. Redeploy once after the env var is set.
 7. Confirm **Allowed origins / redirect URLs** include `https://app.digitalgate.com.au` (and any Vercel preview hosts you use).
@@ -90,4 +90,4 @@ After deploy **and** Clerk Dashboard proxy is enabled:
 - Offline mode shows `/offline.html` for navigations — not a full offline datastore.
 - First load of a shell session still resolves auth + org (cached portal helps subsequent navigations).
 - Heavy pages can still feel slow if their own WP/DB queries are slow; skeletons cover the wait, they don’t remove it.
-- Until Dashboard proxy is validated **and** `NEXT_PUBLIC_CLERK_PROXY_URL` is set, cold handshake is rewritten to in-app `/login` (email/password) instead of opening `clerk.digitalgate.com.au`.
+- Until Dashboard proxy is validated **and** `CLERK_PROXY_URL` is set, cold handshake is rewritten to in-app `/login` (email/password) instead of opening `clerk.digitalgate.com.au`.

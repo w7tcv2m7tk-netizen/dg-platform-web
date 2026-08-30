@@ -222,9 +222,8 @@ export function filterNavigationByAccess(
   // Partners section is DigitalGate internal — not customer org partners portal
   const canPartners = staff;
   const canIntelligence = canView(ctx, "intelligence");
-  // Intelligence operator surfaces live under Business; keep Health/Advisor accessible
-  // when the org may view the intelligence module (legacy permission id).
-  const canBusinessIntelligence = canIntelligence || canView(ctx, "business");
+  // Intelligence operator surfaces live under Business (no separate "business" permission module).
+  const canBusinessIntelligence = canIntelligence;
 
   const canCoreApps =
     canView(ctx, "crm") ||

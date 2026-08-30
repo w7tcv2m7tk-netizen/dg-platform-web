@@ -141,7 +141,7 @@ const clerkHandler = clerkMiddleware(
     signInUrl: AUTH_SIGN_IN_URL,
     /**
      * Proxy Clerk FAPI through the app origin so session handshake stays inside
-     * the installed PWA window. Only when NEXT_PUBLIC_CLERK_PROXY_URL is set
+     * the installed PWA window. Only when CLERK_PROXY_URL is set
      * (Dashboard proxy must already be validated — otherwise SignIn breaks).
      */
     frontendApiProxy: {

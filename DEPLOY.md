@@ -101,7 +101,7 @@ Installed DigitalGate uses `display: standalone`. Handshake redirects to `clerk.
 
 1. Deploy the app (serves `/__clerk`).
 2. Clerk → **Domains** → Frontend API → **Set proxy** → `https://app.digitalgate.com.au/__clerk` (wait until valid).
-3. Vercel env: `NEXT_PUBLIC_CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk`
+3. Vercel env: `CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk`
 4. Keep `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/login` (embedded app page — not Account Portal).
 5. Redeploy
 6. Smoke: `curl -s https://app.digitalgate.com.au/__clerk/v1/environment` must **not** return `host_invalid`.
