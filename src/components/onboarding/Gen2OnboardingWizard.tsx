@@ -139,7 +139,31 @@ export function Gen2OnboardingWizard({
         return;
       }
       const p = json.data?.progress as Gen2OnboardingProgress | undefined;
-      const prof = json.data?.profile as Record<string, string> | null;
+      const prof = json.data?.profile as {
+        businessName?: string;
+        tradingName?: string;
+        abn?: string;
+        websiteUrl?: string;
+        industryVertical?: string;
+        businessPhone?: string;
+        contactPhone?: string;
+        businessEmail?: string;
+        contactEmail?: string;
+        contactName?: string;
+        address?: {
+          street?: string;
+          city?: string;
+          state?: string;
+          postcode?: string;
+          country?: string;
+        };
+        brandVoice?: {
+          services?: string;
+          targetAudience?: string;
+          tagline?: string;
+          competitors?: string;
+        };
+      } | null;
       if (p) {
         setProgress(p);
         setStep(p.currentStep);
