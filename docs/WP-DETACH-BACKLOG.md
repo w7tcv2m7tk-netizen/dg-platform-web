@@ -431,6 +431,46 @@ keep getting reverted. That is a source-of-truth policy call, so it is recorded
 here rather than changed. A recency guard (`gen2_origin` plus an
 `updatedAt`/`wp_mirrored_at` comparison) is the mechanism once the policy is set.
 
+### Phase 9 closure — classification against the current code
+
+Re-checked after the Phase 8/9 changes. The objective is **zero unnecessary
+WordPress authority over Gen 2 data**, not zero WordPress code, so endpoints are
+not removed merely because the four apex brands no longer reach them.
+
+| Classification | Meaning |
+|---|---|
+| **Required legacy connector** | genuinely still required |
+| **Compatibility only** | required temporarily for legacy installs |
+| **Safe to remove** | no legitimate caller remains |
+| **Source-of-truth risk** | can incorrectly overwrite Gen 2 |
+| **Unknown** | needs external evidence |
+
+| # | Dependency | Classification | Note |
+|---|---|---|---|
+| 1 | `wp_then_neon` create | Compatibility only | Only when `acc.gen2_first_booking=false` or no Neon units. WordPress is intentionally the origin here. |
+| 2 | Guest PATCH WP-first | **Unknown** | No caller in this repo; 422 on all four apex brands, so no apex tenant can be using it. Blocked on external callers, and on the Neon-first path not mirroring `tags`/`address`/`source`. |
+| 3 | Housekeeping PATCH WP-only | Compatibility only | Taken only without HK SoT. |
+| 4 | Seed-from-WP-when-empty | Compatibility only | Fails harmlessly on apex. |
+| 5 | `dg-stay-booking` webhook | Required legacy connector | Live and initialised. Inbound only; no apex gate. See the payment gap below. |
+| 6 | `syncAccommodationBookingsFromWordPress` | Compatibility only | Import primitive. **No longer a source-of-truth risk** — see the conflict rule. |
+| 7 | `syncWordPressAccBookings` | Compatibility only | As above. |
+| 8 | Legacy OTA WP availability pull | Compatibility only | Needed until every unit has an iCal URL. |
+| 9 | OTA fallback to #7 | Compatibility only | Retires with #8. |
+| 10 | GET WP availability | Compatibility only | Replaced by `buildAvailabilityFromNeon` under units SoT. |
+| 11 | Guests page WP pull | Compatibility only | Import bridge to Contacts. |
+| 12 | GET WP housekeeping | Compatibility only | Replaced by `housekeepingBoardFromUnits` under HK SoT. |
+| 13 | GET WP summary | **Unknown** | Endpoint exists and works on live WordPress, but apex gets 404 and there is no Neon equivalent. Fixing it is new Gen 2 functionality, not detachment. |
+| 14 | Booking DELETE WP mirror | Required legacy connector | Neon-first already; mirror is best-effort. |
+| 15 | Unit PATCH WP mirror / pull | Required legacy connector | Neon-first. Writeback narrowed in Phase 9 to the three WordPress-authored fields, so no longer a source-of-truth risk. |
+
+**Nothing is classified Safe to remove.** Every remaining dependency is either
+inbound from a WordPress install, or the only path for a tenant pointing at a
+non-apex host. Two are Unknown and both are blocked on evidence from outside this
+repository, not on a decision that could be taken from the code.
+
+**No dependency is now classified Source-of-truth risk.** The two that were —
+the booking import and the unit PATCH writeback — were closed in Phases 8 and 9.
+
 ### Phase 8 update — plugin source read, questions resolved
 
 The plugin (`dg-platform`, v10.70.0, 253 PHP files) is a separate public
@@ -476,7 +516,62 @@ Two plugin-side observations worth acting on outside this repository:
   `create_booking_from_data`, used by the Stripe finalize path, fires **neither**
   — so a Stripe-paid public WordPress booking may never reach Neon by webhook and
   would arrive only on the next pull sync. This is a plugin bug and needs fixing
-  in `dg-platform`, not here.
+  in `dg-platform`, not here. Traced in full in Phase 9 below.
+
+### Stripe → WordPress → Gen 2 payment path (Phase 9)
+
+Traced end to end across both repositories. This is a **material** gap, not a
+theoretical one, and the fix is one line in the plugin.
+
+PayID and Stripe are structurally different in the plugin. PayID inserts the
+`dg_booking` post immediately as unpaid and fires `dg_booking_created`, so Gen 2
+learns about it straight away. Stripe instead holds the booking in a
+`dg_temp_booking_{ref}` option until payment succeeds, then creates the post in
+one step via `create_booking_from_data` — already `paid=yes`,
+`status=confirmed` — and that function contains no `do_action` at all. Three
+handlers converge on it (the plugin's own Stripe webhook on
+`payment_intent.succeeded`, the REST confirm-booking callback, and a redirect
+stub that is empty), so none of them notify Gen 2.
+
+Consequences:
+
+- The booking does not merely have a wrong paid flag — **it is absent from Neon
+  entirely**, because the create is what would have pushed it.
+- It is therefore missing from the bookings table and both sides of the payments
+  page, and under units SoT the calendar derives availability from Neon, so
+  **those dates can appear available in Gen 2 while blocked in WordPress**. That
+  is a double-booking risk, and it is the reason this matters more than a stale
+  badge would.
+- The pull sync does repair it, and the Phase 8 fingerprint rule does **not**
+  block that repair: the row is absent, so the import takes the create path, and
+  even for an existing row a paid-state change alters the fingerprint and is
+  correctly applied.
+- But `acc.wp_auto_sync` is **off by default**, there is no cron for accommodation
+  booking pull, and page-load triggers are gated by that flag. So on a legacy
+  host with the default configuration the inconsistency lasts **until an operator
+  presses Sync** — indefinitely. With auto-sync on, up to about 15 minutes after
+  an ops page load.
+- On an **apex** connector there is no repair path at all: the webhook never
+  fires because of the plugin bug, and the pull sync is refused by
+  `refuseAccWpOnGen2Apex`.
+- Duplicate payment processing is **not** possible. The plugin's Stripe stack and
+  Gen 2's are separate: Gen 2's webhook only acts on `dg_kind: stay_booking`
+  metadata, which the plugin's payment intents do not carry.
+- The **Gen 2-native** public booking path is unaffected. It writes Neon first
+  and finalises through Gen 2's own Stripe webhook.
+
+The smallest correct fix is a one-way notification, plugin-side, at the end of
+`create_booking_from_data` in
+`modules/accommodation/includes/class-acc-payments.php`:
+
+```php
+do_action('dg_booking_created', (int) $booking_id, $booking_ref);
+```
+
+`DG_Acc_Platform_Sync` already listens on that hook, so nothing else changes: no
+new endpoint, no new secret, and Neon stays authoritative because the existing
+webhook path runs the same import rules as every other WordPress row — including
+the divergence check. Nothing in this repository needs to change for it.
 
 ### `platform_id` round-trip — resolved: the plugin has no such field
 
