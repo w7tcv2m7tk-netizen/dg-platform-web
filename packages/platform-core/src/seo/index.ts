@@ -264,3 +264,10 @@ export async function scoresFromLatestSeoAudit(
     fresh,
   };
 }
+
+export {
+  fixOrgSeoFromAudit,
+  type FixOrgSeoResult,
+  type SeoFixItem,
+  type SeoFixItemStatus,
+} from "./fix-seo";

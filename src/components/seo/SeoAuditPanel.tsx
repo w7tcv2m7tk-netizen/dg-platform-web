@@ -45,6 +45,26 @@ type HistoryItem = {
   metadata: Record<string, unknown> | null;
 };
 
+type SeoFixItem = {
+  id: string;
+  label: string;
+  status: "fixed" | "skipped" | "manual";
+  detail: string;
+};
+
+type SeoFixResult = {
+  applied: boolean;
+  source: "llm" | "heuristic" | "none";
+  items: SeoFixItem[];
+  message: string;
+  seo?: {
+    title?: string;
+    description?: string;
+    ogTitle?: string;
+    ogDescription?: string;
+  } | null;
+};
+
 function severityClass(severity: string) {
   switch (severity) {
     case "critical":
@@ -87,10 +107,15 @@ export function SeoAuditPanel({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AuditResult | null>(null);
   const [history, setHistory] = useState(initialHistory);
+  const [fixing, setFixing] = useState(false);
+  const [fixError, setFixError] = useState<string | null>(null);
+  const [fixResult, setFixResult] = useState<SeoFixResult | null>(null);
 
   async function runAudit() {
     setLoading(true);
     setError(null);
+    setFixResult(null);
+    setFixError(null);
     try {
       const res = await fetch("/api/v1/seo/audit", {
         method: "POST",
@@ -126,8 +151,48 @@ export function SeoAuditPanel({
     }
   }
 
+  async function runFixSeo() {
+    if (!result) return;
+    setFixing(true);
+    setFixError(null);
+    try {
+      const res = await fetch("/api/v1/seo/fix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          websiteUrl: result.websiteUrl ?? (url.trim() || undefined),
+          findings: result.findings,
+          probes: result.presence.probes,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setFixError(json?.error?.message ?? "Fix SEO failed");
+        return;
+      }
+      setFixResult(json.data as SeoFixResult);
+    } catch {
+      setFixError("Network error — try again");
+    } finally {
+      setFixing(false);
+    }
+  }
+
   const probes = result?.presence.probes;
   const findings = result?.findings ?? [];
+  const canFixSeo =
+    Boolean(result) &&
+    Boolean(
+      (probes && (!probes.title || !probes.hasMetaDescription || !probes.hasOpenGraph)) ||
+        findings.some((f) => {
+          const t = f.title.toLowerCase();
+          return (
+            t.includes("page title") ||
+            t.includes("meta description") ||
+            t.includes("open graph")
+          );
+        }),
+    );
 
   return (
     <div className="space-y-6">
@@ -147,13 +212,60 @@ export function SeoAuditPanel({
           <button
             type="button"
             onClick={runAudit}
-            disabled={loading}
+            disabled={loading || fixing}
             className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
           >
             {loading ? "Auditing…" : "Run audit"}
           </button>
+          {canFixSeo ? (
+            <button
+              type="button"
+              onClick={runFixSeo}
+              disabled={loading || fixing}
+              className="rounded-full border border-emerald-500/60 bg-emerald-600/20 px-4 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50"
+            >
+              {fixing ? "Fixing SEO…" : "Fix SEO"}
+            </button>
+          ) : null}
         </div>
         {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
+        {fixError ? <p className="mt-3 text-sm text-red-400">{fixError}</p> : null}
+        {fixResult ? (
+          <div className="mt-4 rounded-lg border border-emerald-800/50 bg-emerald-950/30 px-3 py-3 text-sm">
+            <p className="font-medium text-emerald-300">{fixResult.message}</p>
+            <p className="mt-1 text-xs text-slate-500">
+              Source: {fixResult.source === "llm" ? "AI" : fixResult.source}
+            </p>
+            {fixResult.items.length ? (
+              <ul className="mt-3 space-y-2">
+                {fixResult.items.map((item) => (
+                  <li key={item.id} className="rounded-md border border-slate-800 px-2 py-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={
+                          item.status === "fixed"
+                            ? "text-emerald-400"
+                            : item.status === "manual"
+                              ? "text-amber-400"
+                              : "text-slate-500"
+                        }
+                      >
+                        {item.status}
+                      </span>
+                      <span className="font-medium text-white">{item.label}</span>
+                    </div>
+                    <p className="mt-0.5 text-slate-400">{item.detail}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {fixResult.applied ? (
+              <p className="mt-3 text-xs text-slate-500">
+                Metadata written to Website Studio. Publish the site if needed, then re-run the audit.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </section>
 
       {result ? (
