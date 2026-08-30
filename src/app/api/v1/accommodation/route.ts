@@ -982,6 +982,9 @@ export async function PATCH(req: Request) {
     }
 
     // Mirror into Postgres StayBooking when present (incl. payment metadata).
+    // Failures used to be swallowed with .catch(() => null), so WordPress could
+    // hold a payment or date change that Neon never received and nobody saw.
+    const mirrorErrors: string[] = [];
     for (const row of updates) {
       if (!row || typeof row !== "object") continue;
       const patch = row as Record<string, unknown>;
@@ -1007,10 +1010,30 @@ export async function PATCH(req: Request) {
         guests: typeof patch.guests === "number" ? patch.guests : undefined,
         nights: typeof patch.nights === "number" ? patch.nights : undefined,
         message: typeof patch.message === "string" ? patch.message : undefined,
-      }).catch(() => null);
+      }).catch((err: unknown) => {
+        const id =
+          typeof patch.platform_id === "string"
+            ? patch.platform_id
+            : typeof patch.id === "number"
+              ? `wp:${patch.id}`
+              : "unknown";
+        mirrorErrors.push(
+          `${id}: ${err instanceof Error ? err.message : "Neon mirror failed"}`,
+        );
+        return null;
+      });
     }
 
-    return NextResponse.json({ data: result.data });
+    if (mirrorErrors.length) {
+      console.error("[accommodation] WordPress→Neon booking mirror failed", mirrorErrors);
+    }
+
+    return NextResponse.json({
+      data: result.data,
+      neonMirror: mirrorErrors.length
+        ? { ok: false, errors: mirrorErrors }
+        : { ok: true },
+    });
   }
 
   if (resource === "guests") {

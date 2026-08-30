@@ -118,6 +118,8 @@ function localRecommendation(pack: PresenceIndustryPack): string {
   }
 }
 
+import { assertPublicHttpTarget } from "./ssrf-guard";
+
 function normaliseUrl(raw: string | null | undefined): string | null {
   const trimmed = raw?.trim();
   if (!trimmed) return null;
@@ -241,6 +243,15 @@ export async function runPresenceAudit(
     }
 
     try {
+      // This probe is reachable unauthenticated through the public
+      // business-audit funnel, so refuse anything resolving to non-public
+      // address space before making the request. Throwing routes it through
+      // the existing unreachable-site handling below.
+      const target = await assertPublicHttpTarget(websiteUrl);
+      if (!target.allowed) {
+        throw new Error(`blocked_target:${target.reason}`);
+      }
+
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 8_000);
       const res = await fetch(websiteUrl, {
