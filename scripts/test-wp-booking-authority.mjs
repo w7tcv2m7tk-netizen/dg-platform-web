@@ -216,7 +216,7 @@ describe("Implementation shape", () => {
   it("checks the stale-mirror rule before any write path", async () => {
     const src = await readSource("packages/platform-core/src/accommodation/bookings.ts");
 
-    const ruleAt = src.indexOf("wordPressRowIsStaleMirror(fields, existing.metadata)");
+    const ruleAt = src.indexOf("classifyWpBookingImport(fields, existing)");
     const firstUpdate = src.indexOf("prisma.stayBooking.update", ruleAt > 0 ? 0 : undefined);
     assert.ok(ruleAt > 0, "the import must consult the rule");
 
@@ -353,5 +353,159 @@ describe("Unit PATCH writeback is limited to WordPress-authored fields", () => {
     const mirror = src.indexOf("await patchWpAccommodationUnits(updates, connector)");
     assert.ok(neonWrite > 0 && mirror > neonWrite, "Neon must be written before the mirror");
     assert.match(src, /Neon already updated above — don't fail the save because WP mirror is gone\./);
+  });
+});
+
+/**
+ * The four cases Phase 9 required the import to distinguish.
+ *
+ * Two fingerprints answer both halves using only Neon-controlled data:
+ *   has WordPress changed?  incoming row     vs last accepted WordPress state
+ *   has Gen 2 changed?      current Neon row vs last accepted WordPress state
+ */
+describe("Import classification: which side changed", () => {
+  const load4 = async () => {
+    const m = await load();
+    return {
+      classify: m.__classifyWpBookingImportForTests,
+      neonAfterImport: m.__neonRowAfterImportForTests,
+    };
+  };
+
+  it("case 1 — WordPress changed, Gen 2 did not: apply", async () => {
+    const { classify, neonAfterImport } = await load4();
+
+    // Neon is exactly what the last accepted import left behind.
+    const neon = neonAfterImport(wpRow());
+    // WordPress now reports a real change.
+    const incoming = wpRow({ status: "cancelled" });
+
+    assert.equal(classify(incoming, neon), "apply");
+  });
+
+  it("case 2 — WordPress unchanged, Gen 2 changed: skip, keeping the Gen 2 edit", async () => {
+    const { classify, neonAfterImport } = await load4();
+
+    const neon = neonAfterImport(wpRow());
+    // Operator renamed the guest in Gen 2; WordPress still holds the old value.
+    neon.guestName = "Dana Reid-Okafor";
+
+    assert.equal(classify(wpRow(), neon), "skip");
+  });
+
+  it("case 3 — neither side changed: skip", async () => {
+    const { classify, neonAfterImport } = await load4();
+    assert.equal(classify(wpRow(), neonAfterImport(wpRow())), "skip");
+  });
+
+  it("case 4 — both sides changed: conflict, not a silent overwrite", async () => {
+    const { classify, neonAfterImport } = await load4();
+
+    const neon = neonAfterImport(wpRow());
+    // Gen 2 moved the guest name...
+    neon.guestName = "Dana Reid-Okafor";
+    // ...and WordPress independently cancelled the stay.
+    const incoming = wpRow({ status: "cancelled" });
+
+    assert.equal(classify(incoming, neon), "conflict");
+  });
+
+  it("detects a Gen 2 change in any fingerprinted field", async () => {
+    const { classify, neonAfterImport } = await load4();
+    const incoming = wpRow({ status: "cancelled" });
+
+    const genTwoEdits = [
+      ["ref", "GEN2-0001"],
+      ["guestName", "Someone Else"],
+      ["email", "other@example.com"],
+      ["phone", "0422 222 222"],
+      ["accommodationName", "Other Cabin"],
+      ["accommodationWpId", 99],
+      ["status", "pending"],
+      ["totalCents", 999_00],
+    ];
+
+    for (const [field, value] of genTwoEdits) {
+      const neon = neonAfterImport(wpRow());
+      neon[field] = value;
+      assert.equal(
+        classify(incoming, neon),
+        "conflict",
+        `a Gen 2 change to ${field} must be treated as divergence`,
+      );
+    }
+  });
+
+  it("detects a Gen 2 change made only in booking metadata", async () => {
+    const { classify, neonAfterImport } = await load4();
+
+    const neon = neonAfterImport(wpRow());
+    // Operator marked it paid in Gen 2.
+    neon.metadata = { ...neon.metadata, paid: "no" };
+
+    assert.equal(classify(wpRow({ total: 1600 }), neon), "conflict");
+  });
+
+  it("does not treat a Gen 2 date move as unchanged", async () => {
+    const { classify, neonAfterImport } = await load4();
+
+    const neon = neonAfterImport(wpRow());
+    neon.checkout = new Date("2026-09-16T00:00:00.000Z");
+
+    assert.equal(classify(wpRow({ status: "cancelled" }), neon), "conflict");
+  });
+
+  it("applies when nothing has been recorded yet, so imports are never blocked", async () => {
+    const { classify, neonAfterImport } = await load4();
+
+    const neon = neonAfterImport(wpRow());
+    delete neon.metadata.wp_row_fingerprint;
+
+    assert.equal(classify(wpRow({ status: "cancelled" }), neon), "apply");
+  });
+
+  it("applying cannot lose a Gen 2 edit, because Gen 2 has not moved", async () => {
+    const { classify, neonAfterImport } = await load4();
+
+    // This is why no per-field authority table is needed: whenever the decision
+    // is "apply", Neon still holds exactly the WordPress state being superseded.
+    const neon = neonAfterImport(wpRow());
+    assert.equal(classify(wpRow({ guest_name: "New Name" }), neon), "apply");
+  });
+});
+
+describe("Conflicts are surfaced, not swallowed", () => {
+  it("records the divergence on the booking rather than overwriting it", async () => {
+    const src = await readSource("packages/platform-core/src/accommodation/bookings.ts");
+
+    const at = src.indexOf('if (decision === "conflict")');
+    assert.ok(at > 0, "the conflict branch must exist");
+    const block = src.slice(at, at + 900);
+    assert.match(block, /recordImportConflict/);
+    assert.match(block, /wordpress_diverged_from_gen2/);
+    assert.match(block, /return "conflict"/);
+    // Must not write the WordPress values on this path.
+    assert.doesNotMatch(block, /stayBooking\.update/);
+  });
+
+  it("is reported by every import caller, not counted as a plain skip", async () => {
+    const callers = [
+      "src/lib/wordpress-sync.ts",
+      "packages/platform-core/src/accommodation/bookings.ts",
+      "src/app/api/webhooks/dg-stay-booking/route.ts",
+      "packages/platform-core/src/accommodation/ical-import.ts",
+    ];
+
+    for (const rel of callers) {
+      const src = await readSource(rel);
+      const at = src.indexOf('outcome === "conflict"');
+      assert.ok(at > 0, `${rel} must handle the conflict outcome explicitly`);
+      // Each caller must push an error / count it, never fall into the bare else.
+      assert.match(
+        src.slice(at, at + 600),
+        /errors\.push|conflicts\+\+|result\.errors/,
+        `${rel} must report conflicts`,
+      );
+    }
   });
 });

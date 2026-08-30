@@ -490,12 +490,92 @@ function wpRowFingerprint(fields: ReturnType<typeof mapBookingFields>): string {
   });
 }
 
+/**
+ * The same fingerprint shape computed from the Neon row.
+ *
+ * This is what makes "both sides changed" detectable without a timestamp. When
+ * an import is accepted, the WordPress values are written into Neon — so
+ * immediately afterwards this fingerprint equals the stored one. If it no longer
+ * does, something other than an import changed the booking, which in practice
+ * means Gen 2.
+ *
+ * Key order must match `wpRowFingerprint` exactly: both are compared as JSON
+ * strings, and `JSON.stringify` preserves insertion order.
+ */
+function neonRowFingerprint(existing: ExistingStayBookingForImport): string {
+  return JSON.stringify({
+    ref: existing.ref,
+    guestName: existing.guestName,
+    email: existing.email,
+    phone: existing.phone,
+    accommodationName: existing.accommodationName,
+    accommodationWpId: existing.accommodationWpId,
+    checkin: existing.checkin?.toISOString() ?? null,
+    checkout: existing.checkout?.toISOString() ?? null,
+    status: existing.status,
+    totalCents: existing.totalCents,
+    meta: metadataFingerprint(existing.metadata),
+  });
+}
+
+type ExistingStayBookingForImport = {
+  ref: string | null;
+  guestName: string;
+  email: string | null;
+  phone: string | null;
+  accommodationName: string | null;
+  accommodationWpId: number | null;
+  checkin: Date | null;
+  checkout: Date | null;
+  status: string;
+  totalCents: number | null;
+  metadata: unknown;
+};
+
 const WP_FINGERPRINT_KEY = "wp_row_fingerprint";
 
 function acceptedWpFingerprint(meta: unknown): string | null {
   const m = (meta as Record<string, unknown> | null) ?? {};
   const value = m[WP_FINGERPRINT_KEY];
   return typeof value === "string" && value ? value : null;
+}
+
+/**
+ * What an incoming WordPress row is allowed to do to an existing Neon booking.
+ *
+ * Two fingerprints answer both halves of the question, using only data Neon
+ * controls:
+ *
+ *   has WordPress changed?  incoming row  vs  last accepted WordPress state
+ *   has Gen 2 changed?      current Neon row  vs  last accepted WordPress state
+ *
+ * | WordPress | Gen 2 | Outcome                                              |
+ * |-----------|-------|------------------------------------------------------|
+ * | no        | any   | `skip` — WordPress has nothing new to say            |
+ * | yes       | no    | `apply` — a clean WordPress-originated change        |
+ * | yes       | yes   | `conflict` — surface it, overwrite neither side      |
+ *
+ * `apply` cannot lose Gen 2 data: Gen 2 has not moved since the last accepted
+ * import, so Neon still holds exactly the WordPress state being superseded.
+ * That is why no per-field authority table is needed — there is no evidence for
+ * one, and inventing it would be guesswork.
+ *
+ * With nothing recorded we cannot tell either half, so behaviour is unchanged
+ * and the row arms itself on the next sync. A deliberate one-cycle gap in
+ * preference to a migration and a backfill.
+ */
+export type WpBookingImportDecision = "skip" | "apply" | "conflict";
+
+export function classifyWpBookingImport(
+  incoming: ReturnType<typeof mapBookingFields>,
+  existing: ExistingStayBookingForImport,
+): WpBookingImportDecision {
+  const accepted = acceptedWpFingerprint(existing.metadata);
+  if (!accepted) return "apply";
+
+  if (wordPressRowIsStaleMirror(incoming, existing.metadata)) return "skip";
+
+  return neonRowFingerprint(existing) === accepted ? "apply" : "conflict";
 }
 
 /**
@@ -521,6 +601,37 @@ export function wordPressRowIsStaleMirror(
 /** Exposed so the import policy is testable without a database. */
 export function __wpBookingFingerprintForTests(booking: WpAccBookingRow): string {
   return wpRowFingerprint(mapBookingFields(booking));
+}
+
+/** Exposed so the import policy is testable without a database. */
+export function __classifyWpBookingImportForTests(
+  booking: WpAccBookingRow,
+  existing: ExistingStayBookingForImport,
+): WpBookingImportDecision {
+  return classifyWpBookingImport(mapBookingFields(booking), existing);
+}
+
+/**
+ * Exposed so tests can build the Neon row that an accepted import would leave
+ * behind, without a database.
+ */
+export function __neonRowAfterImportForTests(
+  booking: WpAccBookingRow,
+): ExistingStayBookingForImport {
+  const fields = mapBookingFields(booking);
+  return {
+    ref: fields.ref,
+    guestName: fields.guestName,
+    email: fields.email,
+    phone: fields.phone,
+    accommodationName: fields.accommodationName,
+    accommodationWpId: fields.accommodationWpId,
+    checkin: fields.checkin,
+    checkout: fields.checkout,
+    status: fields.status,
+    totalCents: fields.totalCents,
+    metadata: metadataWithWpFingerprint(fields),
+  };
 }
 
 /** Exposed so the import policy is testable without a database. */
@@ -604,13 +715,40 @@ export async function upsertStayBookingFromWpRow(
   );
 
   if (existing) {
-    // Gen 2 is authoritative. If WordPress is telling us the same thing it told
-    // us last time, it has not changed and this row carries no new information —
-    // so it must not overwrite anything Gen 2 has done since. This is the case
-    // where an operator edits a booking in Gen 2 and the WordPress mirror is
-    // stale (or the mirror failed, or the field is not mirrored at all).
-    if (wordPressRowIsStaleMirror(fields, existing.metadata)) {
+    // Gen 2 is authoritative, so decide what this row is allowed to do before
+    // touching anything. See `classifyWpBookingImport`.
+    const decision = classifyWpBookingImport(fields, existing);
+
+    // WordPress is repeating itself. It has nothing new to say, so it must not
+    // overwrite whatever Gen 2 has done since — the case where an operator
+    // edits a booking and the WordPress mirror is stale, failed, or does not
+    // carry that field at all.
+    if (decision === "skip") {
       return "skipped";
+    }
+
+    // Both sides changed. Applying the row would revert the Gen 2 edit;
+    // discarding it would lose a real WordPress change. Neither is acceptable
+    // silently, so keep Neon — it is canonical — and record the divergence so
+    // the operator can reconcile it.
+    if (decision === "conflict") {
+      await recordImportConflict(prisma, {
+        conflicts: [
+          {
+            id: existing.id,
+            guestName: existing.guestName,
+            checkin: existing.checkin,
+            checkout: existing.checkout,
+            status: existing.status,
+          },
+        ],
+        detail: {
+          reason: "wordpress_diverged_from_gen2",
+          wp_booking_id: wpId,
+          detected_at: new Date().toISOString(),
+        },
+      });
+      return "conflict";
     }
 
     const unchanged =
@@ -884,7 +1022,14 @@ export async function syncAccommodationBookingsFromWordPress(
       });
       if (outcome === "created") result.created++;
       else if (outcome === "updated") result.updated++;
-      else result.skipped++;
+      else if (outcome === "conflict") {
+        // Not silently skipped: either the dates are already held, or WordPress
+        // and Gen 2 have both changed the booking. Both need an operator.
+        result.skipped++;
+        result.errors.push(
+          `Booking #${booking.id}: not imported — it conflicts with current Gen 2 state`,
+        );
+      } else result.skipped++;
     } catch (err) {
       result.errors.push(
         `Booking #${booking.id}: ${err instanceof Error ? err.message : "sync failed"}`,

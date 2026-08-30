@@ -309,7 +309,15 @@ export async function syncWordPressAccBookings(
         });
         if (outcome === "created") result.created++;
         else if (outcome === "updated") result.updated++;
-        else result.skipped++;
+        else if (outcome === "conflict") {
+          // Counting this as skipped would hide it. A conflict means either the
+          // dates are already held, or WordPress and Gen 2 have both changed the
+          // booking — both need an operator, not silence.
+          result.skipped++;
+          result.errors.push(
+            `Booking #${booking.id}: not imported — it conflicts with current Gen 2 state`,
+          );
+        } else result.skipped++;
       } catch (err) {
         result.errors.push(
           `Booking #${booking.id}: ${err instanceof Error ? err.message : "sync failed"}`,
