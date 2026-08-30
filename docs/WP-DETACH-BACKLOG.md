@@ -349,6 +349,109 @@ Then: WP-D-201 → WP-D-301 → WP-D-401 → WP-D-402 → WP-D-502.
 
 ---
 
+## Accommodation booking dependency register (Phase 7 audit)
+
+Dependency-level companion to the phase tickets above. Every remaining
+WordPress touchpoint in the accommodation booking path, classified. Verified
+against source; no database or plugin access was available.
+
+**Classification:** **A** required legacy compatibility · **B** redundant,
+removable · **C** genuine architectural dependency · **D** unknown / externally
+blocked.
+
+**Reachability** assumes the standard connector, which `resolveWordPressConnector`
+blanks for Gen 2 marketing apex hosts, and `refuseAccWpOnGen2Apex`, which makes
+every `fetchWp*` / `patchWp*` / `createWp*` / `deleteWp*` call 404 on those
+hosts. So for CVH, Roe, DigitalGate and Aëtherra the WP legs below are already
+dead; they remain live only for a tenant pointing at a non-apex WordPress host.
+
+| # | Dependency | File | Authority | Dup? | Can overwrite newer Gen 2? | Apex | Class | Action |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `wp_then_neon` create | `api/v1/accommodation/route.ts` POST `create_booking` | WP writes first | No — matched on `externalWpId` | Yes, via mirror upsert | Dead (Neon-first default) | **C** | Keep for non-apex; not reachable for apex brands |
+| 2 | Guest PATCH WP-first | same, `resource="guests"` | **WordPress** | No | Yes | Dead | **B/D** | Should be Neon-first; blocked on unknown external callers — see below |
+| 3 | Housekeeping PATCH WP-only | same + `housekeeping/route.ts` | WP when no HK SoT | n/a | No | Dead (HK SoT) | **C** | Remove once every tenant has units |
+| 4 | Seed-from-WP-when-empty | `lib/accommodation-stay-bookings.ts` | Neon reads; WP seeds | No | Yes | Attempted, fails | **C** | Skip the attempt when the connector is apex-retired |
+| 5 | `dg-stay-booking` webhook | `api/webhooks/dg-stay-booking/route.ts` | WP event → Neon | No | Yes | **Live — no apex gate** | **A/D** | Required while public book-now is WP (WP-D-403) |
+| 6 | `syncAccommodationBookingsFromWordPress` | `accommodation/bookings.ts` | WP → Neon | No | Yes | Dead | **C** | Core import primitive; keep |
+| 7 | `syncWordPressAccBookings` | `lib/wordpress-sync.ts` | WP → Neon | No | Yes | Dead | **C** | Keep; apex auto-sync already skipped |
+| 8 | Legacy OTA WP availability pull | accommodation route, `sync_ota` fallback | WP → Neon | No | Yes | Dead | **A** | Keep until every unit has an iCal URL |
+| 9 | OTA fallback to #7 | accommodation route | WP → Neon | No | Yes | Dead | **C** | Retire with #8 |
+| 10 | GET WP availability | accommodation route | WP read when no units SoT | n/a | No | Dead | **C** | Remove once all tenants on units SoT |
+| 11 | Guests page WP pull | `apps/accommodation/guests/page.tsx` | Neon displays; WP overwrites profiles | No | Yes | Dead | **C** | Drop pull once guests fully in Contacts |
+| 12 | GET WP housekeeping | accommodation route | WP read when no HK SoT | n/a | No | Dead | **C** | Retire with #3 |
+| 13 | GET WP summary | accommodation route + overview | **WordPress only** | n/a | No | **Dead → broken metric** | **D** | Needs a Neon-derived summary; apex dashboards get a 404 today |
+| 14 | Booking DELETE WP mirror | accommodation route DELETE | **Neon first** | n/a | No | Neon only | **C** | Correct already |
+| 15 | Unit PATCH WP mirror / unit pull | accommodation route + `units.ts` | **Neon first** | n/a | Yes on pull | Neon only | **C** | Correct already |
+
+### Nothing qualified for removal this phase
+
+No dependency is safely removable without external evidence. Each is either
+inbound from a WordPress install we cannot inspect (#5), or still the only path
+for a tenant whose connector points at a non-apex host (#1, #6–#12). Items #14
+and #15 are already Neon-first and correct.
+
+Two are worth Ben's decision rather than silent change:
+
+- **#2 guest PATCH** is the last WP-first write in the accommodation surface and
+  is inconsistent with the booking PATCH fix (WP-D-401 pattern). It has no UI
+  caller — the UI uses the Neon-first `POST update_guest_profile` — so its only
+  possible consumers are external. Converting it is not a pure refactor either:
+  the Neon-first path is keyed on `contactId` and does not accept the `tags`,
+  `address` or `source` fields this endpoint takes, so delegating to it would
+  silently drop writes. Removing or reshaping it needs confirmation that nothing
+  external calls it.
+- **#13 WP summary** leaves apex dashboards with a broken metric, because the
+  refuse-on-apex guard returns 404 and there is no Neon equivalent. That is new
+  functionality, not detachment.
+
+### Stale WordPress data can overwrite newer Gen 2 edits
+
+The most significant integrity finding, and a source-of-truth policy question
+rather than a bug to patch unilaterally.
+
+Every WP→Neon import path (#4, #5, #6, #7, #8, #9) funnels into
+`upsertStayBookingFromWpRow`, which matches on `organisationId + externalWpId`
+and then, if **any** field differs, writes the WordPress values over the Neon
+row. There is no recency comparison — no `updatedAt` check, and although
+`gen2_origin` is stamped on create it is never read by the upsert.
+
+So: an operator edits a booking in Gen 2 (Neon-first since WP-D-401), the
+WordPress row stays stale, and the next sync, seed or webhook carrying that WP
+row silently reverts the operator's edit. Non-date changes skip the overlap
+check entirely, so nothing surfaces the conflict. The same shape applies to
+`upsertAccommodationUnitFromWpRow` (partial patch, so narrower) and
+`upsertGuestFromWpRow`.
+
+This is latent for the four apex brands, whose WP fetches are refused, and live
+for any tenant on a non-apex host with sync enabled.
+
+Fixing it means deciding what happens when both sides changed — Neon wins and
+legitimate WordPress edits stop landing, or WordPress wins and operator edits
+keep getting reverted. That is a source-of-truth policy call, so it is recorded
+here rather than changed. A recency guard (`gen2_origin` plus an
+`updatedAt`/`wp_mirrored_at` comparison) is the mechanism once the policy is set.
+
+### `platform_id` round-trip — externally blocked
+
+Bookings do **not** follow the units identity pattern:
+
+- units resolve inbound rows by `platform_id` first and fall back to the WP id
+  (`upsertAccommodationUnitFromWpRow`), and Gen 2 puts `platform_id` on outbound
+  unit shapes and PATCH payloads;
+- bookings declare `platform_id` on `WpAccBookingRow` but
+  `upsertStayBookingFromWpRow` never reads it, the `dg-stay-booking` webhook
+  parser does not map it, and the Gen 2-first create does not send it — it links
+  the WP id back afterwards via `linkStayBookingExternalWpId`.
+
+Whether the plugin stores or echoes `platform_id` cannot be determined here:
+this repository contains **no PHP at all** and the plugin lives in the sibling
+`dg-platform` repository, which is not present. See the Phase 7 report for the
+exact external checks required. Do not add booking `platform_id` handling until
+the plugin side is confirmed, or Gen 2 will populate an identifier nothing
+returns.
+
+---
+
 ## Related docs
 
 - [ROADMAP.md](./ROADMAP.md) — execution roadmap (points here for detach)
