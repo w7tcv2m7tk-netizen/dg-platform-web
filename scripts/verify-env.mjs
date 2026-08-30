@@ -32,6 +32,24 @@ const checks = [
   { key: "STRIPE_SECRET_KEY", group: "Commerce", required: false },
   { key: "STRIPE_WEBHOOK_SECRET", group: "Commerce", required: false },
   { key: "NEXT_PUBLIC_APP_URL", group: "App", required: true },
+  {
+    key: "DG_SETTINGS_ENCRYPTION_KEY",
+    group: "Security",
+    required: true,
+    hint: "Encrypts connector OAuth tokens at rest; without it secret writes now fail closed",
+  },
+  {
+    key: "CRON_SECRET",
+    group: "Security",
+    required: true,
+    hint: "Scheduled jobs fail closed (503) when unset",
+  },
+  {
+    key: "DG_COMMAND_CENTRE_ORG_IDS",
+    group: "Security",
+    required: true,
+    hint: "Comma-separated operator organisation ids — sole source of Command Centre authority",
+  },
 ];
 
 let missingRequired = 0;
