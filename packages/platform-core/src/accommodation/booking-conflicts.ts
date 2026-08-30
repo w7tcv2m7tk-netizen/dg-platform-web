@@ -26,8 +26,19 @@
 
 import type { Prisma, PrismaClient } from "@dg/database";
 
-/** Statuses that do not occupy the unit. */
+/**
+ * Statuses that do not occupy the unit.
+ *
+ * Both spellings are recognised because historical rows and some import paths
+ * used the American form. Writers should always use "cancelled".
+ */
 export const NON_BLOCKING_STAY_STATUSES = ["cancelled", "canceled"] as const;
+
+/** True when this status frees the dates. Use everywhere instead of `=== "cancelled"`. */
+export function isCancelledStayStatus(status: string | null | undefined): boolean {
+  const s = status?.trim().toLowerCase() ?? "";
+  return (NON_BLOCKING_STAY_STATUSES as readonly string[]).includes(s);
+}
 
 export type BookingOverlapQuery = {
   organisationId: string;
@@ -125,6 +136,69 @@ export async function findOverlappingBookings(
   });
 
   return rows;
+}
+
+/** Nights in the half-open interval [checkin, checkout), as YYYY-MM-DD. */
+export function nightsBetween(checkin: Date, checkout: Date): string[] {
+  const nights: string[] = [];
+  const cursor = new Date(
+    Date.UTC(
+      checkin.getUTCFullYear(),
+      checkin.getUTCMonth(),
+      checkin.getUTCDate(),
+    ),
+  );
+  const end = Date.UTC(
+    checkout.getUTCFullYear(),
+    checkout.getUTCMonth(),
+    checkout.getUTCDate(),
+  );
+  while (cursor.getTime() < end) {
+    nights.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return nights;
+}
+
+export type BookingConflicts = {
+  bookings: OverlappingBooking[];
+  /** Nights the operator has manually blocked on the unit. */
+  blockedDates: string[];
+  hasConflict: boolean;
+};
+
+/**
+ * The single conflict definition: overlapping active bookings PLUS operator
+ * manual blocks.
+ *
+ * Availability previously had two definitions — `checkStayAvailability` counted
+ * manual blocks, while the import paths' overlap query did not. That meant an
+ * OTA or WordPress import could write straight through a manual block that a
+ * direct booking would be refused. Every write path now uses this.
+ */
+export async function findBookingConflicts(
+  db: PrismaLike,
+  query: BookingOverlapQuery & { manualBlockedDates?: unknown },
+): Promise<BookingConflicts> {
+  const bookings = await findOverlappingBookings(db, query);
+
+  const manual = new Set(normaliseBlockedDates(query.manualBlockedDates));
+  const blockedDates = manual.size
+    ? nightsBetween(query.checkin, query.checkout).filter((n) => manual.has(n))
+    : [];
+
+  return {
+    bookings,
+    blockedDates,
+    hasConflict: bookings.length > 0 || blockedDates.length > 0,
+  };
+}
+
+function normaliseBlockedDates(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => (typeof entry === "string" ? entry.trim().slice(0, 10) : ""))
+    .filter(Boolean);
 }
 
 /**

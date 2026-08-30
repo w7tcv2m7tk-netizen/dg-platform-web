@@ -9,6 +9,8 @@
 import { randomBytes } from "node:crypto";
 
 import type { Prisma } from "@dg/database";
+
+import { NON_BLOCKING_STAY_STATUSES } from "./booking-conflicts";
 import { resolveCvhUnitDisplaySlug } from "./display-order";
 
 export type IcalForChannel = "all" | "airbnb" | "bookingcom";
@@ -245,7 +247,7 @@ export async function buildUnitIcalFeed(
   const stays = await prisma.stayBooking.findMany({
     where: {
       organisationId: unit.organisationId,
-      status: { not: "cancelled" },
+      status: { notIn: [...NON_BLOCKING_STAY_STATUSES] },
       OR: [
         { accommodationUnitId: unit.id },
         ...(unit.externalWpId

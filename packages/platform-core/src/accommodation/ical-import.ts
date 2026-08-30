@@ -7,6 +7,7 @@
 import type { Prisma } from "@dg/database";
 
 import {
+  NON_BLOCKING_STAY_STATUSES,
   findOverlappingBookings,
   recordImportConflict,
   withUnitBookingLock,
@@ -231,6 +232,55 @@ async function upsertOtaStayBooking(input: {
       existing.checkout?.toISOString() === checkout.toISOString();
     if (same && (prevMeta.ical_misses ?? 0) === 0) return "skipped";
 
+    // An OTA can move an existing reservation's dates onto another booking.
+    // Re-check under the unit lock when they change; the create branch alone is
+    // not enough.
+    const datesMoved =
+      existing.checkin?.toISOString() !== checkin.toISOString() ||
+      existing.checkout?.toISOString() !== checkout.toISOString();
+
+    if (datesMoved) {
+      return withUnitBookingLock(input.organisationId, input.unitId, async (tx) => {
+        const conflicts = await findOverlappingBookings(tx, {
+          organisationId: input.organisationId,
+          accommodationUnitId: input.unitId,
+          accommodationWpId: input.accommodationWpId,
+          checkin,
+          checkout,
+          excludeStayBookingId: existing.id,
+        });
+        if (conflicts.length) {
+          await recordImportConflict(tx, {
+            conflicts,
+            detail: {
+              reason: "ota_update_overlap",
+              source: input.source,
+              ical_uid: icalUid,
+              incoming_checkin: input.event.start,
+              incoming_checkout: input.event.end,
+              detected_at: new Date().toISOString(),
+            },
+          });
+          return "conflict" as const;
+        }
+        await tx.stayBooking.update({
+          where: { id: existing.id },
+          data: {
+            guestName,
+            accommodationName: input.unitTitle,
+            accommodationWpId: input.accommodationWpId,
+            accommodationUnitId: input.unitId,
+            checkin,
+            checkout,
+            status,
+            contactId: null,
+            metadata,
+          },
+        });
+        return "updated" as const;
+      });
+    }
+
     await prisma.stayBooking.update({
       where: { id: existing.id },
       data: {
@@ -310,7 +360,7 @@ async function cancelStaleOtaBookings(input: {
     where: {
       organisationId: input.organisationId,
       accommodationUnitId: input.unitId,
-      status: { not: "cancelled" },
+      status: { notIn: [...NON_BLOCKING_STAY_STATUSES] },
       metadata: { path: ["source"], equals: input.source },
     },
     select: { id: true, metadata: true },

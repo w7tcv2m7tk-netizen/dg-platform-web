@@ -269,3 +269,78 @@ describe("H-9: per-unit serialisation key", () => {
     assert.match(text, /2026-09-10/);
   });
 });
+
+describe("H-9 (Phase 3): unified conflict definition", () => {
+  it("counts operator manual blocks as a conflict", async () => {
+    const { findBookingConflicts } = await load();
+    const db = fakeDb([]);
+
+    const result = await findBookingConflicts(db, {
+      organisationId: ORG_A,
+      accommodationUnitId: UNIT_1,
+      checkin: d("2026-09-06"),
+      checkout: d("2026-09-09"),
+      manualBlockedDates: ["2026-09-07"],
+    });
+
+    assert.equal(result.hasConflict, true);
+    assert.deepEqual(result.blockedDates, ["2026-09-07"]);
+    assert.deepEqual(result.bookings, []);
+  });
+
+  it("ignores manual blocks outside the requested nights", async () => {
+    const { findBookingConflicts } = await load();
+    const db = fakeDb([]);
+
+    const result = await findBookingConflicts(db, {
+      organisationId: ORG_A,
+      accommodationUnitId: UNIT_1,
+      checkin: d("2026-09-06"),
+      checkout: d("2026-09-09"),
+      // The checkout night itself is never occupied.
+      manualBlockedDates: ["2026-09-09", "2026-09-20"],
+    });
+
+    assert.equal(result.hasConflict, false);
+  });
+
+  it("enumerates nights as a half-open interval", async () => {
+    const { nightsBetween } = await load();
+
+    assert.deepEqual(nightsBetween(d("2026-09-05"), d("2026-09-08")), [
+      "2026-09-05",
+      "2026-09-06",
+      "2026-09-07",
+    ]);
+    // Zero-night range yields nothing.
+    assert.deepEqual(nightsBetween(d("2026-09-05"), d("2026-09-05")), []);
+  });
+
+  it("treats both cancelled spellings as freeing the dates", async () => {
+    const { isCancelledStayStatus } = await load();
+
+    assert.equal(isCancelledStayStatus("cancelled"), true);
+    assert.equal(isCancelledStayStatus("canceled"), true);
+    assert.equal(isCancelledStayStatus("CANCELLED"), true);
+    assert.equal(isCancelledStayStatus("pending"), false);
+    assert.equal(isCancelledStayStatus("airbnb"), false);
+    assert.equal(isCancelledStayStatus(null), false);
+  });
+
+  it("still reports an overlapping booking alongside a manual block", async () => {
+    const { findBookingConflicts } = await load();
+    const db = fakeDb([booking()]);
+
+    const result = await findBookingConflicts(db, {
+      organisationId: ORG_A,
+      accommodationUnitId: UNIT_1,
+      checkin: d("2026-09-06"),
+      checkout: d("2026-09-08"),
+      manualBlockedDates: ["2026-09-06"],
+    });
+
+    assert.equal(result.hasConflict, true);
+    assert.equal(result.bookings.length, 1);
+    assert.deepEqual(result.blockedDates, ["2026-09-06"]);
+  });
+});

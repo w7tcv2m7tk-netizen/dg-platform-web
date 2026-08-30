@@ -11,6 +11,7 @@ export class StayBookingConflictError extends Error {
 
 import {
   describeBookingConflict,
+  findBookingConflicts,
   findOverlappingBookings,
   recordImportConflict,
   withUnitBookingLock,
@@ -299,21 +300,35 @@ export async function updateStayBooking(
   const unitId = existing.accommodationUnitId;
 
   if (datesMoved && unitId && nextCheckin && nextCheckout && !input.force) {
-    const conflicts = await withUnitBookingLock(organisationId, unitId, (tx) =>
-      findOverlappingBookings(tx, {
+    // Check and write inside one locked transaction. Checking in a lock and
+    // then writing outside it leaves the same TOCTOU window the lock exists to
+    // close.
+    const unit = await prisma.accommodationUnit.findUnique({
+      where: { id: unitId },
+      select: { manualBlockedDates: true },
+    });
+
+    const updatedRow = await withUnitBookingLock(organisationId, unitId, async (tx) => {
+      const conflicts = await findBookingConflicts(tx, {
         organisationId,
         accommodationUnitId: unitId,
         accommodationWpId: existing.accommodationWpId,
         checkin: nextCheckin,
         checkout: nextCheckout,
         excludeStayBookingId: existing.id,
-      }),
-    );
-    if (conflicts.length) {
-      throw new StayBookingConflictError(
-        `Dates conflict with an existing booking: ${describeBookingConflict(conflicts)}`,
-      );
-    }
+        manualBlockedDates: unit?.manualBlockedDates,
+      });
+      if (conflicts.hasConflict) {
+        throw new StayBookingConflictError(
+          conflicts.bookings.length
+            ? `Dates conflict with an existing booking: ${describeBookingConflict(conflicts.bookings)}`
+            : `Dates are manually blocked: ${conflicts.blockedDates.join(", ")}`,
+        );
+      }
+      return tx.stayBooking.update({ where: { id: existing.id }, data });
+    });
+
+    return serializeStayBooking(updatedRow);
   }
 
   const updated = await prisma.stayBooking.update({
@@ -494,6 +509,50 @@ export async function upsertStayBookingFromWpRow(
 
     if (unchanged) return "skipped";
 
+    // A WordPress edit can move the dates onto another booking just as easily
+    // as a new import can. Re-check under the unit lock when they change.
+    const wpDatesMoved =
+      (existing.checkin?.getTime() ?? null) !== (fields.checkin?.getTime() ?? null) ||
+      (existing.checkout?.getTime() ?? null) !== (fields.checkout?.getTime() ?? null);
+    const existingUnitId =
+      existing.accommodationUnitId ??
+      (await resolveUnitIdForWpBooking(organisationId, fields));
+
+    if (wpDatesMoved && existingUnitId && fields.checkin && fields.checkout) {
+      return withUnitBookingLock(organisationId, existingUnitId, async (tx) => {
+        const conflicts = await findOverlappingBookings(tx, {
+          organisationId,
+          accommodationUnitId: existingUnitId,
+          accommodationWpId: fields.accommodationWpId ?? null,
+          checkin: fields.checkin!,
+          checkout: fields.checkout!,
+          excludeStayBookingId: existing.id,
+        });
+        if (conflicts.length) {
+          await recordImportConflict(tx, {
+            conflicts,
+            detail: {
+              reason: "wordpress_update_overlap",
+              wp_booking_id: wpId,
+              incoming_checkin: fields.checkin?.toISOString() ?? null,
+              incoming_checkout: fields.checkout?.toISOString() ?? null,
+              detected_at: new Date().toISOString(),
+            },
+          });
+          return "conflict" as const;
+        }
+        await tx.stayBooking.update({
+          where: { id: existing.id },
+          data: {
+            ...fields,
+            contactId,
+            metadata: fields.metadata as Prisma.InputJsonValue,
+          },
+        });
+        return "updated" as const;
+      });
+    }
+
     await prisma.stayBooking.update({
       where: { id: existing.id },
       data: {
@@ -524,6 +583,10 @@ export async function upsertStayBookingFromWpRow(
     return "created";
   }
 
+  // Imports check booking overlap only, deliberately not manual blocks: an
+  // inbound WordPress/OTA reservation is already committed to a guest, so a
+  // manual block must not silently discard it. Overlapping another booking is
+  // a genuine integrity problem and is refused.
   return withUnitBookingLock(organisationId, unitId, async (tx) => {
     const conflicts = await findOverlappingBookings(tx, {
       organisationId,
@@ -795,14 +858,18 @@ export async function createStayBookingGen2First(
   // check and both insert.
   const locked = await withUnitBookingLock(organisationId, unit.id, async (tx) => {
     if (!input.force && fields.checkin && fields.checkout) {
-      const conflicts = await findOverlappingBookings(tx, {
+      // Same definition as the checkStayAvailability pre-check, including
+      // operator manual blocks, so the fast rejection and the authoritative
+      // in-lock check cannot disagree.
+      const conflicts = await findBookingConflicts(tx, {
         organisationId,
         accommodationUnitId: unit.id,
         accommodationWpId: unit.externalWpId ?? input.accommodationWpId ?? null,
         checkin: fields.checkin,
         checkout: fields.checkout,
+        manualBlockedDates: unit.manualBlockedDates,
       });
-      if (conflicts.length) {
+      if (conflicts.hasConflict) {
         return { conflict: conflicts, created: null } as const;
       }
     }
@@ -825,13 +892,19 @@ export async function createStayBookingGen2First(
   });
 
   if (locked.conflict) {
+    const { bookings, blockedDates } = locked.conflict;
     return {
       ok: false,
       code: "dates_unavailable",
-      message: `Dates conflict with an existing booking: ${describeBookingConflict(locked.conflict)}`,
-      conflictDates: locked.conflict
-        .map((c) => c.checkin?.toISOString().slice(0, 10))
-        .filter((d): d is string => Boolean(d)),
+      message: bookings.length
+        ? `Dates conflict with an existing booking: ${describeBookingConflict(bookings)}`
+        : `Dates are manually blocked: ${blockedDates.join(", ")}`,
+      conflictDates: [
+        ...blockedDates,
+        ...bookings
+          .map((c) => c.checkin?.toISOString().slice(0, 10))
+          .filter((d): d is string => Boolean(d)),
+      ],
     };
   }
 
