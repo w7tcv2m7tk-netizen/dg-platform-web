@@ -5,6 +5,7 @@ import {
   applyInvoicePaymentFailed,
   bootPaymentConnectors,
   claimStripeWebhookReceipt,
+  releaseStripeWebhookReceipt,
   getPlatformSubscriptionByStripeCustomer,
   handleConnectAccountUpdated,
   handleConnectTransferFailure,
@@ -16,6 +17,10 @@ import {
   provisionFromPlatformCheckout,
   requirePaymentConnector,
   syncCommerceSubscriptionFromStripe,
+} from "@dg/platform-core";
+import {
+  classifyStripeBillingEvent,
+  withWebhookIdempotency,
 } from "@dg/platform-core";
 import type Stripe from "stripe";
 import { NextResponse } from "next/server";
@@ -36,190 +41,232 @@ async function resolveOrgIdFromStripeCustomer(
   return org?.id;
 }
 
-export async function POST(req: Request) {
-  const rawBody = await req.text();
-  const headers = Object.fromEntries(req.headers.entries());
+/**
+ * True when the Stripe object carries the platform markers our own checkout
+ * writes (`dg_platform_subscription` / `dg_platform_tier`). Read from the
+ * invoice's subscription_details metadata, then the invoice metadata.
+ */
+function isPlatformSubscriptionMarkerEvent(raw: unknown): boolean {
+  if (!raw || typeof raw !== "object") return false;
+  const invoice = raw as {
+    subscription_details?: { metadata?: Record<string, string> | null } | null;
+    metadata?: Record<string, string> | null;
+  };
+  const meta = invoice.subscription_details?.metadata ?? invoice.metadata ?? null;
+  if (!meta) return false;
+  return meta.dg_platform_subscription === "true" || Boolean(meta.dg_platform_tier);
+}
 
-  try {
-    const connector = requirePaymentConnector("stripe");
-    const event = await connector.parseWebhook(rawBody, headers);
+/**
+ * Event handling, separated from receipt bookkeeping so a failed handler can
+ * release its idempotency claim and remain retryable (H-7).
+ */
+type ParsedStripeEvent = Awaited<
+  ReturnType<ReturnType<typeof requirePaymentConnector>["parseWebhook"]>
+>;
 
-    const receipt = await claimStripeWebhookReceipt({
-      eventId: event.providerEventId,
-      eventType: event.type,
-      organisationId: event.organisationId ?? null,
-    });
-    if (!receipt.claimed) {
-      return NextResponse.json({ received: true, duplicate: true });
+async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse> {
+  if (event.type === "ignored") {
+    const ignoredType =
+      event.raw &&
+      typeof event.raw === "object" &&
+      "ignoredStripeType" in event.raw
+        ? String((event.raw as { ignoredStripeType?: string }).ignoredStripeType)
+        : "unknown";
+    console.info("[stripe webhook] ignored event type:", ignoredType);
+    return NextResponse.json({ received: true, ignored: ignoredType });
+  }
+
+  if (event.type === "checkout.completed" && event.raw) {
+    const session = event.raw as Stripe.Checkout.Session;
+    if (isPlatformCheckoutSession(session)) {
+      const platformResult = await provisionFromPlatformCheckout(session);
+      console.info("[stripe webhook] platform checkout:", platformResult);
+      return NextResponse.json({ received: true, platform: platformResult });
     }
 
-    if (event.type === "ignored") {
-      const ignoredType =
-        event.raw &&
-        typeof event.raw === "object" &&
-        "ignoredStripeType" in event.raw
-          ? String((event.raw as { ignoredStripeType?: string }).ignoredStripeType)
-          : "unknown";
-      console.info("[stripe webhook] ignored event type:", ignoredType);
-      return NextResponse.json({ received: true, ignored: ignoredType });
-    }
-
-    if (event.type === "checkout.completed" && event.raw) {
-      const session = event.raw as Stripe.Checkout.Session;
-      if (isPlatformCheckoutSession(session)) {
-        const platformResult = await provisionFromPlatformCheckout(session);
-        console.info("[stripe webhook] platform checkout:", platformResult);
-        return NextResponse.json({ received: true, platform: platformResult });
-      }
-
-      const meta = session.metadata ?? {};
-      if (
-        meta.dg_kind === "stay_booking" &&
-        meta.organisationId &&
-        (meta.stayBookingId || meta.paymentRequestId || event.paymentRequestId)
-      ) {
-        const { markPublicStayPaidFromStripe } = await import("@dg/platform-core");
-        const stayResult = await markPublicStayPaidFromStripe({
-          organisationId: meta.organisationId,
-          stayBookingId:
-            meta.stayBookingId ||
-            meta.paymentRequestId ||
-            event.paymentRequestId ||
-            "",
-          providerPaymentId: event.providerPaymentId,
-          amountCents: event.amountCents,
-        });
-        console.info("[stripe webhook] stay booking checkout:", stayResult);
-        return NextResponse.json({ received: true, stay: stayResult });
-      }
-    }
-
+    const meta = session.metadata ?? {};
     if (
-      (event.type === "subscription.created" ||
-        event.type === "subscription.cancelled" ||
-        event.type === "subscription.updated") &&
-      event.raw
+      meta.dg_kind === "stay_booking" &&
+      meta.organisationId &&
+      (meta.stayBookingId || meta.paymentRequestId || event.paymentRequestId)
     ) {
-      const subscription = event.raw as Stripe.Subscription;
-      const result: Record<string, unknown> = {};
-
-      if (
-        isPlatformSubscription(subscription) ||
-        (event.organisationId && subscription.metadata?.dg_platform_tier)
-      ) {
-        const lifecycle = await handlePlatformSubscriptionLifecycle(
-          subscription,
-          event.type === "subscription.cancelled"
-            ? "deleted"
-            : event.type === "subscription.created"
-              ? "created"
-              : "updated",
-          event.providerEventId,
-        );
-        result.platform = lifecycle;
-        console.info("[stripe webhook] platform subscription:", event.type, lifecycle);
-      }
-
-      if (isCommerceCustomerSubscription(subscription)) {
-        const commerce = await syncCommerceSubscriptionFromStripe({
-          subscription,
-          organisationId: event.organisationId,
-        });
-        result.commerce = commerce;
-        console.info("[stripe webhook] commerce subscription:", event.type, commerce);
-      }
-
-      if (Object.keys(result).length > 0) {
-        return NextResponse.json({ received: true, subscription: result });
-      }
-    }
-
-    if (
-      event.type === "invoice.payment_failed" ||
-      event.type === "invoice.payment_action_required"
-    ) {
-      let organisationId = event.organisationId;
-      if (!organisationId) {
-        organisationId = await resolveOrgIdFromStripeCustomer(event.providerCustomerId);
-      }
-      if (organisationId) {
-        const failed = await applyInvoicePaymentFailed({
-          organisationId,
-          stripeSubscriptionId: event.stripeSubscriptionId,
-          stripeCustomerId: event.providerCustomerId,
-          stripeEventId: event.providerEventId,
-          stripeInvoiceId: event.stripeInvoiceId,
-        });
-        console.info("[stripe webhook] invoice payment failed:", failed?.status);
-        return NextResponse.json({
-          received: true,
-          platform: {
-            commercialStatus: failed?.status,
-            entitlement: failed?.entitlement,
-          },
-        });
-      }
-      return NextResponse.json({ received: true, skipped: "no_organisation" });
-    }
-
-    if (event.type === "connect.account.updated" && event.raw) {
-      const account = event.raw as Stripe.Account;
-      const connectResult = await handleConnectAccountUpdated(account);
-      console.info("[stripe webhook] connect account.updated:", connectResult);
-      return NextResponse.json({ received: true, connect: connectResult });
-    }
-
-    if (
-      (event.type === "connect.transfer.failed" ||
-        event.type === "connect.transfer.reversed") &&
-      event.raw
-    ) {
-      const transfer = event.raw as Stripe.Transfer;
-      const kind =
-        event.type === "connect.transfer.failed" ? "failed" : "reversed";
-      const transferResult = await handleConnectTransferFailure({
-        transfer,
-        kind,
-        failureMessage: event.failureMessage,
+      const { markPublicStayPaidFromStripe } = await import("@dg/platform-core");
+      const stayResult = await markPublicStayPaidFromStripe({
+        organisationId: meta.organisationId,
+        stayBookingId:
+          meta.stayBookingId ||
+          meta.paymentRequestId ||
+          event.paymentRequestId ||
+          "",
+        providerPaymentId: event.providerPaymentId,
+        amountCents: event.amountCents,
       });
-      console.info("[stripe webhook] connect transfer:", kind, transferResult);
-      return NextResponse.json({ received: true, transfer: transferResult });
+      console.info("[stripe webhook] stay booking checkout:", stayResult);
+      return NextResponse.json({ received: true, stay: stayResult });
+    }
+  }
+
+  if (
+    (event.type === "subscription.created" ||
+      event.type === "subscription.cancelled" ||
+      event.type === "subscription.updated") &&
+    event.raw
+  ) {
+    const subscription = event.raw as Stripe.Subscription;
+    const result: Record<string, unknown> = {};
+
+    if (
+      isPlatformSubscription(subscription) ||
+      (event.organisationId && subscription.metadata?.dg_platform_tier)
+    ) {
+      const lifecycle = await handlePlatformSubscriptionLifecycle(
+        subscription,
+        event.type === "subscription.cancelled"
+          ? "deleted"
+          : event.type === "subscription.created"
+            ? "created"
+            : "updated",
+        event.providerEventId,
+      );
+      result.platform = lifecycle;
+      console.info("[stripe webhook] platform subscription:", event.type, lifecycle);
     }
 
-    if (event.type === "invoice.paid") {
-      const invoice = event.raw as Stripe.Invoice | undefined;
-      const periodStart = invoice?.period_start
-        ? new Date(invoice.period_start * 1000)
-        : null;
-      const periodEnd = invoice?.period_end
-        ? new Date(invoice.period_end * 1000)
-        : null;
+    if (isCommerceCustomerSubscription(subscription)) {
+      const commerce = await syncCommerceSubscriptionFromStripe({
+        subscription,
+        organisationId: event.organisationId,
+      });
+      result.commerce = commerce;
+      console.info("[stripe webhook] commerce subscription:", event.type, commerce);
+    }
 
-      let organisationId = event.organisationId;
-      let platformTier = event.platformTier;
+    if (Object.keys(result).length > 0) {
+      return NextResponse.json({ received: true, subscription: result });
+    }
+  }
 
-      if ((!organisationId || !platformTier) && event.stripeSubscriptionId) {
-        try {
-          const stripe = new (await import("stripe")).default(
-            process.env.STRIPE_SECRET_KEY!.trim(),
-          );
-          const sub = await stripe.subscriptions.retrieve(event.stripeSubscriptionId);
-          organisationId =
-            organisationId ||
-            sub.metadata?.organisation_id ||
-            sub.metadata?.organisationId ||
-            undefined;
-          platformTier = platformTier || sub.metadata?.dg_platform_tier || undefined;
-        } catch (err) {
-          console.warn("[stripe webhook] subscription lookup failed", err);
-        }
+  if (
+    event.type === "invoice.payment_failed" ||
+    event.type === "invoice.payment_action_required"
+  ) {
+    // H-8: organisation metadata alone does not prove this invoice belongs to
+    // the tenant's own DigitalGate subscription — commerce subscriptions carry
+    // the same organisation_id. Require a durable platform identifier.
+    const identity = await classifyStripeBillingEvent({
+      organisationId: event.organisationId,
+      stripeSubscriptionId: event.stripeSubscriptionId,
+      stripeCustomerId: event.providerCustomerId,
+      platformTier: event.platformTier,
+      platformSubscriptionMarker: isPlatformSubscriptionMarkerEvent(event.raw),
+    });
+
+    if (identity.domain !== "platform" || !identity.organisationId) {
+      console.info(
+        "[stripe webhook] invoice failure not platform billing:",
+        identity.domain,
+        identity.reason,
+      );
+      return NextResponse.json({
+        received: true,
+        skipped: "not_platform_billing",
+        domain: identity.domain,
+      });
+    }
+
+    const organisationId = identity.organisationId;
+    {
+      const failed = await applyInvoicePaymentFailed({
+        organisationId,
+        stripeSubscriptionId: event.stripeSubscriptionId,
+        stripeCustomerId: event.providerCustomerId,
+        stripeEventId: event.providerEventId,
+        stripeInvoiceId: event.stripeInvoiceId,
+      });
+      console.info("[stripe webhook] invoice payment failed:", failed?.status);
+      return NextResponse.json({
+        received: true,
+        platform: {
+          commercialStatus: failed?.status,
+          entitlement: failed?.entitlement,
+        },
+      });
+    }
+  }
+
+  if (event.type === "connect.account.updated" && event.raw) {
+    const account = event.raw as Stripe.Account;
+    const connectResult = await handleConnectAccountUpdated(account);
+    console.info("[stripe webhook] connect account.updated:", connectResult);
+    return NextResponse.json({ received: true, connect: connectResult });
+  }
+
+  if (
+    (event.type === "connect.transfer.failed" ||
+      event.type === "connect.transfer.reversed") &&
+    event.raw
+  ) {
+    const transfer = event.raw as Stripe.Transfer;
+    const kind =
+      event.type === "connect.transfer.failed" ? "failed" : "reversed";
+    const transferResult = await handleConnectTransferFailure({
+      transfer,
+      kind,
+      failureMessage: event.failureMessage,
+    });
+    console.info("[stripe webhook] connect transfer:", kind, transferResult);
+    return NextResponse.json({ received: true, transfer: transferResult });
+  }
+
+  if (event.type === "invoice.paid") {
+    const invoice = event.raw as Stripe.Invoice | undefined;
+    const periodStart = invoice?.period_start
+      ? new Date(invoice.period_start * 1000)
+      : null;
+    const periodEnd = invoice?.period_end
+      ? new Date(invoice.period_end * 1000)
+      : null;
+
+    let organisationId = event.organisationId;
+    let platformTier = event.platformTier;
+
+    if ((!organisationId || !platformTier) && event.stripeSubscriptionId) {
+      try {
+        const stripe = new (await import("stripe")).default(
+          process.env.STRIPE_SECRET_KEY!.trim(),
+        );
+        const sub = await stripe.subscriptions.retrieve(event.stripeSubscriptionId);
+        organisationId =
+          organisationId ||
+          sub.metadata?.organisation_id ||
+          sub.metadata?.organisationId ||
+          undefined;
+        platformTier = platformTier || sub.metadata?.dg_platform_tier || undefined;
+      } catch (err) {
+        console.warn("[stripe webhook] subscription lookup failed", err);
       }
+    }
 
-      if (!organisationId) {
-        organisationId = await resolveOrgIdFromStripeCustomer(event.providerCustomerId);
-      }
+    if (!organisationId) {
+      organisationId = await resolveOrgIdFromStripeCustomer(event.providerCustomerId);
+    }
 
-      if (organisationId) {
+    if (organisationId) {
+      // H-8 (reverse direction): a tenant's customer paying an invoice must
+      // not clear the tenant's own platform dunning state.
+      const paidIdentity = await classifyStripeBillingEvent({
+        organisationId,
+        stripeSubscriptionId: event.stripeSubscriptionId,
+        stripeCustomerId: event.providerCustomerId,
+        platformTier,
+        platformSubscriptionMarker: isPlatformSubscriptionMarkerEvent(event.raw),
+      });
+
+      if (
+        paidIdentity.domain === "platform" &&
+        paidIdentity.organisationId === organisationId
+      ) {
         try {
           await applyInvoicePaidRecovery({
             organisationId,
@@ -228,65 +275,97 @@ export async function POST(req: Request) {
         } catch (err) {
           console.warn("[stripe webhook] invoice paid recovery failed", err);
         }
+      } else {
+        console.info(
+          "[stripe webhook] invoice.paid not platform billing:",
+          paidIdentity.domain,
+          paidIdentity.reason,
+        );
       }
+    }
 
-      let referralReward: unknown = null;
-      try {
-        referralReward = await accrueMonthlyReferralCreditFromInvoice({
-          referredOrganisationId: organisationId,
-          stripeCustomerId: event.providerCustomerId,
-          stripeInvoiceId:
-            event.stripeInvoiceId || event.providerPaymentId || event.providerEventId,
-          billingReason: event.billingReason,
-          amountPaidCents: event.amountCents,
-          platformTier,
-          periodStart,
-          periodEnd,
-        });
-        console.info("[stripe webhook] referral invoice.paid:", referralReward);
-      } catch (err) {
-        console.warn("[stripe webhook] referral monthly accrual failed", err);
-      }
-
-      let partnerCommission: unknown = null;
-      try {
-        partnerCommission = await accruePartnerCommissionFromInvoice({
-          referredOrganisationId: organisationId,
-          stripeInvoiceId:
-            event.stripeInvoiceId || event.providerPaymentId || event.providerEventId,
-          subscriptionId: event.stripeSubscriptionId,
-          amountPaidCents: event.amountCents,
-          currency: invoice?.currency?.toUpperCase() ?? "AUD",
-          periodStart,
-          periodEnd,
-        });
-        console.info("[stripe webhook] partner commission invoice.paid:", partnerCommission);
-      } catch (err) {
-        console.warn("[stripe webhook] partner commission accrual failed", err);
-      }
-
-      return NextResponse.json({
-        received: true,
-        referralReward,
-        partnerCommission,
+    let referralReward: unknown = null;
+    try {
+      referralReward = await accrueMonthlyReferralCreditFromInvoice({
+        referredOrganisationId: organisationId,
+        stripeCustomerId: event.providerCustomerId,
+        stripeInvoiceId:
+          event.stripeInvoiceId || event.providerPaymentId || event.providerEventId,
+        billingReason: event.billingReason,
+        amountPaidCents: event.amountCents,
+        platformTier,
+        periodStart,
+        periodEnd,
       });
+      console.info("[stripe webhook] referral invoice.paid:", referralReward);
+    } catch (err) {
+      console.warn("[stripe webhook] referral monthly accrual failed", err);
     }
 
-    if (event.type === "customer.updated") {
-      return NextResponse.json({ received: true, customer: "ack" });
-    }
-
-    const result = await processPaymentWebhookEvent(event);
-
-    if (!result.ok) {
-      console.info("[stripe webhook] skipped:", result.reason, {
-        type: event.type,
-        paymentRequestId: event.paymentRequestId,
+    let partnerCommission: unknown = null;
+    try {
+      partnerCommission = await accruePartnerCommissionFromInvoice({
+        referredOrganisationId: organisationId,
+        stripeInvoiceId:
+          event.stripeInvoiceId || event.providerPaymentId || event.providerEventId,
+        subscriptionId: event.stripeSubscriptionId,
+        amountPaidCents: event.amountCents,
+        currency: invoice?.currency?.toUpperCase() ?? "AUD",
+        periodStart,
+        periodEnd,
       });
-      return NextResponse.json({ received: true, skipped: result.reason }, { status: 200 });
+      console.info("[stripe webhook] partner commission invoice.paid:", partnerCommission);
+    } catch (err) {
+      console.warn("[stripe webhook] partner commission accrual failed", err);
     }
 
-    return NextResponse.json({ received: true });
+    return NextResponse.json({
+      received: true,
+      referralReward,
+      partnerCommission,
+    });
+  }
+
+  if (event.type === "customer.updated") {
+    return NextResponse.json({ received: true, customer: "ack" });
+  }
+
+  const result = await processPaymentWebhookEvent(event);
+
+  if (!result.ok) {
+    console.info("[stripe webhook] skipped:", result.reason, {
+      type: event.type,
+      paymentRequestId: event.paymentRequestId,
+    });
+    return NextResponse.json({ received: true, skipped: result.reason }, { status: 200 });
+  }
+
+  return NextResponse.json({ received: true });
+}
+
+export async function POST(req: Request) {
+  const rawBody = await req.text();
+  const headers = Object.fromEntries(req.headers.entries());
+
+  try {
+    const connector = requirePaymentConnector("stripe");
+    const event = await connector.parseWebhook(rawBody, headers);
+
+    // Claim before handling so concurrent duplicates cannot both run, and
+    // release on failure so Stripe's retry is not rejected as a duplicate.
+    return await withWebhookIdempotency({
+      claim: () =>
+        claimStripeWebhookReceipt({
+          eventId: event.providerEventId,
+          eventType: event.type,
+          organisationId: event.organisationId ?? null,
+        }),
+      release: () => releaseStripeWebhookReceipt(event.providerEventId),
+      onDuplicate: () => NextResponse.json({ received: true, duplicate: true }),
+      handle: () => handleStripeEvent(event),
+      onReleaseFailed: (releaseErr) =>
+        console.error("[stripe webhook] failed to release receipt for retry", releaseErr),
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Webhook processing failed";
     console.error("[stripe webhook]", message);
