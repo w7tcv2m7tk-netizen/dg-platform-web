@@ -48,8 +48,8 @@ That host is **outside** the PWA scope, so iOS/macOS/Android open Safari/Chrome 
 
 1. Deploy this build (proxy route live on production).
 2. [Clerk Dashboard](https://dashboard.clerk.com) → **Configure → Domains** → **Frontend API** → **Set proxy configuration**.
-3. Proxy URL: `https://app.digitalgate.com.au/__clerk` — wait until **valid**.
-4. Vercel Production env: `CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk`
+3. Proxy URL: `https://digitalgate.com.au/__clerk` — wait until **valid**.
+4. Vercel Production env: `CLERK_PROXY_URL=https://digitalgate.com.au/__clerk`
 5. Confirm sign-in path env is **`/login`** (not Account Portal, not `/sign-in`).
 6. Redeploy once after the env var is set.
 7. Confirm **Allowed origins / redirect URLs** include `https://app.digitalgate.com.au` (and any Vercel preview hosts you use).

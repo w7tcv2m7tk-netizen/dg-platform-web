@@ -1,10 +1,12 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkFrontendApiProxy, clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { AUTH_AFTER_SIGN_IN_URL, AUTH_SIGN_IN_URL } from "@/lib/auth-routes";
 import {
   CLERK_PROXY_PATH,
+  clerkFrontendApiOrigin,
   inAppSignInUrl,
+  isClerkProxyPath,
   isOffAppClerkNavigationUrl,
   shouldEnableClerkFrontendApiProxy,
 } from "@/lib/clerk-proxy";
@@ -139,15 +141,9 @@ const clerkHandler = clerkMiddleware(
   {
     authorizedParties,
     signInUrl: AUTH_SIGN_IN_URL,
-    /**
-     * Forward /__clerk on app.digitalgate.com.au so Dashboard can validate
-     * Proxy Configuration. ClerkProvider proxyUrl stays off until CLERK_PROXY_URL
-     * is set after that validation (otherwise SignIn gets host_invalid).
-     */
-    frontendApiProxy: {
-      enabled: (url) => shouldEnableClerkFrontendApiProxy(url),
-      path: CLERK_PROXY_PATH,
-    },
+    // FAPI proxy is handled explicitly below with the instance custom FAPI host
+    // (clerk.digitalgate.com.au). Default Clerk middleware proxy targets
+    // frontend-api.clerk.dev and fails Dashboard validation with host_invalid.
   },
 );
 
@@ -209,6 +205,18 @@ const BRAND_TO_FUNNEL_REDIRECTS: Array<{
 
 export default async function middleware(req: NextRequest, event: unknown) {
   const hostname = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
+
+  // Proxy Clerk FAPI via the instance custom host so Dashboard Proxy Configuration
+  // can validate (generic frontend-api.clerk.dev returns host_invalid).
+  if (
+    shouldEnableClerkFrontendApiProxy(req.nextUrl) &&
+    isClerkProxyPath(req.nextUrl.pathname)
+  ) {
+    return clerkFrontendApiProxy(req, {
+      proxyPath: CLERK_PROXY_PATH,
+      fapiUrl: clerkFrontendApiOrigin(),
+    });
+  }
 
   // Vercel preview deployments must not compete with production canonical URLs.
   if (hostname.endsWith(".vercel.app")) {

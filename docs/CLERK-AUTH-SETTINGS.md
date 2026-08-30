@@ -71,7 +71,7 @@ Session refresh that redirects to `https://clerk.digitalgate.com.au/v1/client/ha
 
 ### Fix in code
 
-- Middleware forwards FAPI on `/__clerk` for **`app.digitalgate.com.au`** (so Dashboard can validate)
+- Middleware forwards FAPI on `/__clerk` for **`digitalgate.com.au`** (Clerk primary) and app host (so Dashboard can validate)
 - `ClerkProvider` `proxyUrl` only when `CLERK_PROXY_URL` is set (after Valid)
 - If Clerk would redirect off-origin to `clerk.*` / Account Portal, middleware rewrites to **same-window `/login`**
 - Client guard: never `window.open` Clerk; click-capture sends users to `/login`
@@ -81,14 +81,13 @@ Session refresh that redirects to `https://clerk.digitalgate.com.au/v1/client/ha
 
 Do **not** set `CLERK_PROXY_URL` before Dashboard validates — that blanks SignIn (`host_invalid`).
 
-1. Deploy a build where middleware forwards `/__clerk` on **`app.digitalgate.com.au`** (client `proxyUrl` still off).
+1. Deploy a build where middleware forwards `/__clerk` on **`digitalgate.com.au`** (client `proxyUrl` still off).
 2. [Clerk Dashboard → Domains](https://dashboard.clerk.com/~/domains) → open **`digitalgate.com.au`** → **Proxy Configuration**
-3. Proxy URL: **`https://app.digitalgate.com.au/__clerk`**  
-   (not `https://digitalgate.com.au/__clerk` — apex returns 404)
+3. Proxy URL: **`https://digitalgate.com.au/__clerk`**
 4. Wait until Clerk reports the proxy as **valid** (not failed).
-5. Vercel **Production** env: `CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk` (+ existing sign-in path envs).
+5. Vercel **Production** env: `CLERK_PROXY_URL=https://digitalgate.com.au/__clerk` (+ existing sign-in path envs).
 6. Redeploy Vercel.
-7. **Allowed redirect URLs / origins**: include `https://app.digitalgate.com.au`.
+7. **Allowed redirect URLs / origins**: include `https://app.digitalgate.com.au` and `https://digitalgate.com.au`.
 8. Confirm password strategy is enabled (see Email + password above).
 
 Proxying works on **production** Clerk instances only (not `pk_test_` / localhost).
@@ -96,7 +95,7 @@ Proxying works on **production** Clerk instances only (not `pk_test_` / localhos
 ### Verify proxy health
 
 ```bash
-curl -s "https://app.digitalgate.com.au/__clerk/v1/environment" | head
+curl -s "https://digitalgate.com.au/__clerk/v1/environment" | head
 ```
 
 - **Good**: JSON environment payload (instance config), not `host_invalid`
