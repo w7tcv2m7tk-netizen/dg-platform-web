@@ -321,6 +321,29 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     );
   const exempt = billing.platformExempt === true;
 
+  const stripeSubscriptionId =
+    typeof session.subscription === "string"
+      ? session.subscription
+      : session.subscription?.id ?? null;
+
+  // H-6: PlatformSubscription is the authoritative billing record, so it is
+  // written first and its failure is fatal. Previously the JSON was written
+  // first and this sync was wrapped in a catch that only logged — so a failed
+  // sync left the organisation looking subscribed in the UI while entitlement
+  // resolution saw no subscription at all.
+  const { syncPlatformSubscriptionFromCheckout } = await import("./billing-service");
+  await syncPlatformSubscriptionFromCheckout({
+    organisationId: org.id,
+    stripeCustomerId: customerId,
+    stripeSubscriptionId,
+    planTier: platformTier,
+    foundingCustomer: founding,
+    platformExempt: exempt,
+    stripeEventId: session.id,
+  });
+
+  // Derived projection for UI and legacy consumers — never authoritative.
+  // See docs/foundations/BILLING-SOURCE-OF-TRUTH.md.
   await prisma.organisation.update({
     where: { id: org.id },
     data: {
@@ -363,26 +386,6 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
       } as unknown as InputJsonValue,
     },
   });
-
-  const stripeSubscriptionId =
-    typeof session.subscription === "string"
-      ? session.subscription
-      : session.subscription?.id ?? null;
-
-  try {
-    const { syncPlatformSubscriptionFromCheckout } = await import("./billing-service");
-    await syncPlatformSubscriptionFromCheckout({
-      organisationId: org.id,
-      stripeCustomerId: customerId,
-      stripeSubscriptionId,
-      planTier: platformTier,
-      foundingCustomer: founding,
-      platformExempt: exempt,
-      stripeEventId: session.id,
-    });
-  } catch (err) {
-    console.warn("[billing] platform subscription sync failed", err);
-  }
 
   // Platform Refer & Earn — first-paid credit (months 2–12 via invoice.paid)
   let referralReward: unknown = null;

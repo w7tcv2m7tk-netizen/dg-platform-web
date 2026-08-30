@@ -185,3 +185,52 @@ describe("H-3: entitlement resolution does not fail open", () => {
     }
   });
 });
+
+describe("H-6: PlatformSubscription is authoritative over settings JSON", () => {
+  it("documents the projection rule in code, not just prose", async () => {
+    const fs = await import("node:fs/promises");
+    const src = await fs.readFile(
+      path.join(
+        __dirname,
+        "../packages/platform-core/src/billing/org-billing-status.ts",
+      ),
+      "utf8",
+    );
+
+    // The old defect was an OR between table and JSON, which let a stale JSON
+    // flag contradict the authoritative row.
+    assert.doesNotMatch(
+      src,
+      /platformSub\?\.entitlement === "READ_ONLY" \|\|\s*\n?\s*platformSub\?\.entitlement === "NONE" \|\|\s*\n?\s*billing\.entitlementsSuspended === true/,
+      "entitlementsSuspended must derive from the table when a row exists, not OR with JSON",
+    );
+    assert.match(src, /PlatformSubscription is authoritative/);
+  });
+
+  it("writes the authoritative subscription before the JSON projection", async () => {
+    const fs = await import("node:fs/promises");
+    const src = await fs.readFile(
+      path.join(
+        __dirname,
+        "../packages/platform-core/src/billing/platform-stripe.ts",
+      ),
+      "utf8",
+    );
+
+    const syncAt = src.indexOf("syncPlatformSubscriptionFromCheckout({");
+    const jsonAt = src.indexOf("Derived projection for UI and legacy consumers");
+    assert.ok(syncAt > 0, "checkout must sync the subscription table");
+    assert.ok(jsonAt > 0, "JSON write must be marked as a projection");
+    assert.ok(
+      syncAt < jsonAt,
+      "authoritative table write must precede the JSON projection",
+    );
+
+    // The failure must no longer be swallowed.
+    assert.doesNotMatch(
+      src,
+      /catch \(err\) \{\s*\n\s*console\.warn\("\[billing\] platform subscription sync failed"/,
+      "a failed authoritative write must not be logged and ignored",
+    );
+  });
+});
