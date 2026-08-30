@@ -192,7 +192,8 @@ export type ResolveTelemetryEvent = {
     | "budget_exceeded"
     | "suspicious"
     | "submitted"
-    | "submit_failed";
+    | "submit_failed"
+    | "submit_blocked";
   /** Distinct addresses this caller has attempted in the current window. */
   distinctAddresses?: number;
   /** True when a billed Google/CoreLogic call was skipped. */

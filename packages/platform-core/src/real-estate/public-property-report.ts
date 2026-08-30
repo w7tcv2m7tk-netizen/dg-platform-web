@@ -255,6 +255,11 @@ export async function submitPublicPropertyReport(input: {
     console.error("[public-property-report] createPropertyFromLead failed", err);
   }
 
+  // Whether Cotality details were already pulled for this property below. The
+  // report email can pull them itself, and doing both means paying twice for
+  // the same data — roughly seven section requests plus an AVM call each time.
+  let cotalityDetailsFresh = false;
+
   if (propertyId) {
     const cotalityId = getPropertyCotalityId({
       metadata: resolved.metadata,
@@ -263,14 +268,20 @@ export async function submitPublicPropertyReport(input: {
         : null,
     });
     if (!cotalityId) {
+      // Matching may attach an id without pulling detail, so the report email
+      // still needs to refresh in this branch.
       const matched = await matchPropertyWithCotality(organisationId, propertyId);
       if (!matched.ok) {
         console.info("[public-property-report] cotality match skipped", matched.message);
       }
     } else {
-      await pullCotalityPropertyDetails(organisationId, propertyId).catch((err) => {
-        console.info("[public-property-report] cotality pull failed", err);
-      });
+      await pullCotalityPropertyDetails(organisationId, propertyId)
+        .then(() => {
+          cotalityDetailsFresh = true;
+        })
+        .catch((err) => {
+          console.info("[public-property-report] cotality pull failed", err);
+        });
     }
   }
 
@@ -282,7 +293,7 @@ export async function submitPublicPropertyReport(input: {
       organisationId,
       propertyId,
       to: email,
-      refreshCotality: true,
+      refreshCotality: !cotalityDetailsFresh,
     });
     if (sent.ok) {
       reportSent = true;

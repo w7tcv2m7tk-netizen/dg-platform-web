@@ -12,6 +12,8 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
+import { spamGuardResponse } from "@/lib/public-form-spam-response";
+
 function siteSlugFrom(req: Request, bodySite?: string | null) {
   if (bodySite?.trim()) return bodySite.trim();
   try {
@@ -138,6 +140,30 @@ export async function POST(req: Request) {
   }
 
   if (action === "submit") {
+    // Submit is the expensive action, and it was the unprotected one. Option B
+    // budgets `resolve`, but a caller can skip resolve entirely — `action`
+    // defaults to submit — and each accepted submit pulls Cotality property
+    // detail and sends two emails. Only a honeypot stood in the way, which an
+    // API client bypasses by simply not sending the field.
+    //
+    // This is the same guard the other public forms use (discovery, dg-enquiry,
+    // website forms): honeypot, 6 per IP per 15 minutes per site, and content
+    // checks. No new infrastructure, and one submit is all a real prospect makes.
+    const blocked = spamGuardResponse(
+      req,
+      {
+        honeypot: body.website,
+        name: body.fullName?.trim() || body.name?.trim() || "",
+        email: body.email,
+        phone: body.phone,
+      },
+      `property-report:${siteSlug}`,
+    );
+    if (blocked) {
+      recordResolveTelemetry({ event: "submit", outcome: "submit_blocked" });
+      return blocked;
+    }
+
     const result = await submitPublicPropertyReport({
       siteSlug,
       hostname,

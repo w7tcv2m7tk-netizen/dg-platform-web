@@ -252,3 +252,110 @@ describe("Telemetry for threshold tuning", () => {
     }
   });
 });
+
+/**
+ * Option B budgets `resolve`, but `submit` is the expensive action and was
+ * unprotected: `action` defaults to submit, so a caller can skip resolve
+ * entirely, and each accepted submit pulls Cotality property detail and sends
+ * two emails. Only a honeypot stood in the way, which an API client bypasses by
+ * not sending the field.
+ */
+describe("Submit path protection", () => {
+  const readSource = async (rel) => {
+    const { readFile } = await import("node:fs/promises");
+    return readFile(path.join(__dirname, "..", rel), "utf8");
+  };
+
+  it("runs the shared public-form guard before doing any paid work", async () => {
+    const src = await readSource("src/app/api/public/property-report/route.ts");
+
+    const submitAt = src.indexOf('if (action === "submit")');
+    const guardAt = src.indexOf("spamGuardResponse(", submitAt);
+    const workAt = src.indexOf("submitPublicPropertyReport({", submitAt);
+
+    assert.ok(submitAt > 0, "submit branch not found");
+    assert.ok(guardAt > submitAt, "submit must be guarded");
+    assert.ok(guardAt < workAt, "the guard must run before the paid work");
+  });
+
+  it("buckets the rate limit per site rather than globally", async () => {
+    const src = await readSource("src/app/api/public/property-report/route.ts");
+    assert.match(src, /`property-report:\$\{siteSlug\}`/);
+  });
+
+  it("passes the honeypot and the identity fields to the guard", async () => {
+    const src = await readSource("src/app/api/public/property-report/route.ts");
+    const at = src.indexOf("spamGuardResponse(");
+    const block = src.slice(at, at + 400);
+
+    assert.match(block, /honeypot: body\.website/);
+    assert.match(block, /email: body\.email/);
+    assert.match(block, /phone: body\.phone/);
+  });
+
+  it("reuses the existing guard rather than adding new infrastructure", async () => {
+    const src = await readSource("src/app/api/public/property-report/route.ts");
+    assert.match(src, /from "@\/lib\/public-form-spam-response"/);
+    // No new store, no new dependency.
+    assert.doesNotMatch(src, /redis|Redis|upstash|Upstash/);
+  });
+
+  it("records a blocked submit so the rate can be measured", async () => {
+    const src = await readSource("src/app/api/public/property-report/route.ts");
+    const at = src.indexOf("if (blocked) {");
+    assert.ok(at > 0);
+    assert.match(src.slice(at, at + 220), /outcome: "submit_blocked"/);
+  });
+
+  it("still leaves resolve on its own distinct-address budget", async () => {
+    const src = await readSource("src/app/api/public/property-report/route.ts");
+    // The two actions have different shapes of abuse and keep separate controls.
+    const resolveAt = src.indexOf('if (action === "resolve")');
+    const budgetAt = src.indexOf("checkResolveBudget(", resolveAt);
+    assert.ok(resolveAt > 0 && budgetAt > resolveAt);
+  });
+});
+
+describe("Cotality is not paid for twice per submit", () => {
+  const readSource = async (rel) => {
+    const { readFile } = await import("node:fs/promises");
+    return readFile(path.join(__dirname, "..", rel), "utf8");
+  };
+
+  it("skips the report refresh when detail was just pulled", async () => {
+    const src = await readSource(
+      "packages/platform-core/src/real-estate/public-property-report.ts",
+    );
+
+    assert.match(src, /let cotalityDetailsFresh = false;/);
+    assert.match(src, /refreshCotality: !cotalityDetailsFresh/);
+    // Only the successful pull may mark it fresh.
+    assert.match(src, /\.then\(\(\) => \{\s*cotalityDetailsFresh = true;/);
+  });
+
+  it("still refreshes when the property was only just matched", async () => {
+    const src = await readSource(
+      "packages/platform-core/src/real-estate/public-property-report.ts",
+    );
+
+    // The match branch attaches an id without pulling detail, so the flag must
+    // stay false there and the report email must do the pull.
+    const matchAt = src.indexOf("matchPropertyWithCotality(organisationId, propertyId)");
+    const pullAt = src.indexOf("pullCotalityPropertyDetails(organisationId, propertyId)");
+    assert.ok(matchAt > 0 && pullAt > matchAt, "expected match branch before pull branch");
+    const matchBranch = src.slice(matchAt, pullAt);
+    assert.doesNotMatch(matchBranch, /cotalityDetailsFresh = true/);
+  });
+
+  it("does not refresh on a failed pull", async () => {
+    const src = await readSource(
+      "packages/platform-core/src/real-estate/public-property-report.ts",
+    );
+    const at = src.indexOf("pullCotalityPropertyDetails(organisationId, propertyId)");
+    const block = src.slice(at, at + 500);
+    // catch must not set the flag, so a failure still lets the email retry.
+    const catchAt = block.indexOf(".catch(");
+    assert.ok(catchAt > 0);
+    assert.doesNotMatch(block.slice(catchAt), /cotalityDetailsFresh = true/);
+  });
+});
