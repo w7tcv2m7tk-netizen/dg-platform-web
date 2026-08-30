@@ -275,9 +275,14 @@ export async function submitPublicPropertyReport(input: {
         console.info("[public-property-report] cotality match skipped", matched.message);
       }
     } else {
+      // This reports failure by returning { ok: false } rather than throwing, so
+      // the outcome has to be inspected — treating a fulfilled promise as
+      // success would skip the report's own refresh and send from a snapshot
+      // that was never populated.
       await pullCotalityPropertyDetails(organisationId, propertyId)
-        .then(() => {
-          cotalityDetailsFresh = true;
+        .then((pulled) => {
+          if (pulled.ok) cotalityDetailsFresh = true;
+          else console.info("[public-property-report] cotality pull skipped", pulled.reason);
         })
         .catch((err) => {
           console.info("[public-property-report] cotality pull failed", err);
@@ -448,6 +453,21 @@ export async function processPropertyReportFollowups(options?: {
           },
         });
 
+        // Only a delivered send retires the step. Marking a failed delivery as
+        // sent would strand it: the claim's sent-flag guard then blocks any
+        // retry once the claim expires, so the follow-up is never delivered and
+        // nothing indicates it is missing. The free-audit and consultation
+        // processors already behave this way.
+        if (delivery.status === "failed") {
+          failed += 1;
+          console.warn(
+            "[property-report-followups] delivery failed; leaving step for retry",
+            lead.id,
+            step,
+          );
+          continue;
+        }
+
         const nextSeq: PropertyReportSequenceMeta = {
           ...sequence,
           [`email_${step}_sent`]: true,
@@ -472,6 +492,7 @@ export async function processPropertyReportFollowups(options?: {
             activityType:
               delivery.status === "sent" ? "email_sent" : "email_queued",
             title: `Property report follow-up ${step}`,
+            // (reached only for delivered/queued sends — failures return above)
             body: `${sequence.email} · ${rendered.subject}`,
             sourceApp: "real-estate",
             metadata: {
@@ -482,8 +503,7 @@ export async function processPropertyReportFollowups(options?: {
           },
         });
 
-        if (delivery.status === "failed") failed += 1;
-        else sent += 1;
+        sent += 1;
 
         // Refresh local sequence for next step on same lead
         Object.assign(sequence, nextSeq);

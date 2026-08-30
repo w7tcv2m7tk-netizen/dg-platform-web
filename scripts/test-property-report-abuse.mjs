@@ -329,8 +329,8 @@ describe("Cotality is not paid for twice per submit", () => {
 
     assert.match(src, /let cotalityDetailsFresh = false;/);
     assert.match(src, /refreshCotality: !cotalityDetailsFresh/);
-    // Only the successful pull may mark it fresh.
-    assert.match(src, /\.then\(\(\) => \{\s*cotalityDetailsFresh = true;/);
+    // Only a successful pull may mark it fresh.
+    assert.match(src, /if \(pulled\.ok\) cotalityDetailsFresh = true;/);
   });
 
   it("still refreshes when the property was only just matched", async () => {
@@ -347,15 +347,30 @@ describe("Cotality is not paid for twice per submit", () => {
     assert.doesNotMatch(matchBranch, /cotalityDetailsFresh = true/);
   });
 
-  it("does not refresh on a failed pull", async () => {
+  it("does not treat a failed pull as fresh", async () => {
     const src = await readSource(
       "packages/platform-core/src/real-estate/public-property-report.ts",
     );
     const at = src.indexOf("pullCotalityPropertyDetails(organisationId, propertyId)");
-    const block = src.slice(at, at + 500);
-    // catch must not set the flag, so a failure still lets the email retry.
+    const block = src.slice(at, at + 700);
+
+    // This reports failure by RETURNING { ok: false }, not by throwing, so a
+    // bare .then() would mark a failed pull as fresh and the report would be
+    // sent from a snapshot that was never populated. The outcome must be read.
+    assert.match(block, /\.then\(\(pulled\) => \{/);
+    assert.match(block, /if \(pulled\.ok\) cotalityDetailsFresh = true;/);
+
+    // And a thrown error must not set it either.
     const catchAt = block.indexOf(".catch(");
     assert.ok(catchAt > 0);
     assert.doesNotMatch(block.slice(catchAt), /cotalityDetailsFresh = true/);
+  });
+
+  it("never sets the freshness flag unconditionally", async () => {
+    const src = await readSource(
+      "packages/platform-core/src/real-estate/public-property-report.ts",
+    );
+    // Guards against regressing to `.then(() => { cotalityDetailsFresh = true })`.
+    assert.doesNotMatch(src, /\.then\(\(\) => \{\s*cotalityDetailsFresh = true;/);
   });
 });

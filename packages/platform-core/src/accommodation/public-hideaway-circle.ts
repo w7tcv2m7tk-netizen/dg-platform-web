@@ -646,6 +646,20 @@ export async function processHideawayCircleFollowups(options?: {
           },
         });
 
+        // Only a delivered send retires the step. Marking a failed delivery as
+        // sent would strand it: the claim's sent-flag guard then blocks any
+        // retry once the claim expires, so the email is never delivered and
+        // nothing indicates it is missing.
+        if (delivery.status === "failed") {
+          failed += 1;
+          console.warn(
+            "[hideaway-circle-followups] delivery failed; leaving step for retry",
+            lead.id,
+            step,
+          );
+          continue;
+        }
+
         const nextSeq = {
           ...sequence,
           [flags.sent]: true,
@@ -680,8 +694,7 @@ export async function processHideawayCircleFollowups(options?: {
           },
         });
 
-        if (delivery.status === "failed") failed += 1;
-        else sent += 1;
+        sent += 1;
         Object.assign(sequence, nextSeq);
       } catch (err) {
         failed += 1;

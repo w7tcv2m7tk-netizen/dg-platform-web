@@ -333,3 +333,82 @@ describe("Follow-up claim: sent-flag path matches the sequence", () => {
     }
   });
 });
+
+/**
+ * A failed delivery must not retire its step.
+ *
+ * The claim's guard refuses to reclaim a step whose sent flag is set. So writing
+ * that flag on a FAILED delivery strands the step permanently: the claim expires
+ * after 15 minutes, the reclaim is refused by the sent-flag check, and the email
+ * is never delivered with nothing indicating it is missing. Two processors did
+ * this; the other two already returned early.
+ */
+describe("Failed deliveries stay retryable", () => {
+  const processors = [
+    "packages/platform-core/src/real-estate/public-property-report.ts",
+    "packages/platform-core/src/accommodation/public-hideaway-circle.ts",
+    "packages/platform-core/src/marketing/public-business-audit.ts",
+    "packages/platform-core/src/marketing/consultation-automation.ts",
+  ];
+
+  it("no processor writes a sent flag before checking the delivery status", async () => {
+    for (const rel of processors) {
+      const full = await readSource(rel);
+
+      // Scope to the follow-up loop: these files also contain unrelated sends
+      // (welcome / confirmation emails) earlier on.
+      const loopAt = full.indexOf("for (const step of due) {");
+      assert.ok(loopAt > 0, `${rel}: due-step loop not found`);
+      const src = full.slice(loopAt);
+
+      const sendAt = src.indexOf("await sendMessage({");
+      assert.ok(sendAt > 0, `${rel}: send not found`);
+
+      // The failure check must come before the metadata write that retires it.
+      const failCheck = src.indexOf('delivery.status === "failed"', sendAt);
+      const altCheck = src.indexOf('delivery.status !== "sent"', sendAt);
+      const guardAt = Math.min(
+        failCheck === -1 ? Number.MAX_SAFE_INTEGER : failCheck,
+        altCheck === -1 ? Number.MAX_SAFE_INTEGER : altCheck,
+      );
+      assert.ok(
+        guardAt !== Number.MAX_SAFE_INTEGER,
+        `${rel}: no delivery-status guard after the send`,
+      );
+
+      const leadUpdate = src.indexOf("prisma.lead.update({", sendAt);
+      assert.ok(leadUpdate > 0, `${rel}: sequence write not found`);
+      assert.ok(
+        guardAt < leadUpdate,
+        `${rel}: must check the delivery status before retiring the step`,
+      );
+    }
+  });
+
+  it("the two corrected processors bail out rather than marking sent", async () => {
+    for (const rel of [
+      "packages/platform-core/src/real-estate/public-property-report.ts",
+      "packages/platform-core/src/accommodation/public-hideaway-circle.ts",
+    ]) {
+      const src = await readSource(rel);
+      const at = src.indexOf('if (delivery.status === "failed") {');
+      assert.ok(at > 0, `${rel}: expected an early return on failure`);
+      const block = src.slice(at, at + 400);
+      assert.match(block, /failed \+= 1/);
+      assert.match(block, /continue;/);
+    }
+  });
+
+  it("no processor still counts a failure after retiring the step", async () => {
+    for (const rel of processors) {
+      const src = await readSource(rel);
+      // The old shape incremented `failed` at the end, after the sent flag was
+      // already written — which is what made the step unretryable.
+      assert.doesNotMatch(
+        src,
+        /if \(delivery\.status === "failed"\) failed \+= 1;\s*\n\s*else sent \+= 1;/,
+        `${rel}: failure must be handled before the sequence write`,
+      );
+    }
+  });
+});
