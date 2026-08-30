@@ -10,6 +10,7 @@ import {
   isOffAppClerkNavigationUrl,
   shouldEnableClerkFrontendApiProxy,
 } from "@/lib/clerk-proxy";
+import { PUBLIC_ROUTE_PATTERNS } from "@/lib/public-routes";
 import {
   applyPublicLegacyResponse,
   canonicalPublicHostRedirect,
@@ -18,48 +19,7 @@ import { isAetherraPublicHost } from "@/lib/aetherra-legacy-urls";
 import { isDgPublicHost } from "@/lib/dg-legacy-urls";
 import { isRoePublicHost } from "@/lib/roe-legacy-urls";
 
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/login(.*)",
-  "/signup(.*)",
-  "/r/(.*)",
-  "/opportunity/(.*)",
-  "/sites/(.*)",
-  "/founding-customers/(.*)",
-  "/founding-resellers/(.*)",
-  "/delivery-partners/(.*)",
-  "/wantd",
-  "/wantd/(.*)",
-  "/marketing/preview/(.*)",
-  "/api/health(.*)",
-  "/api/health/db",
-  "/api/onboarding(.*)",
-  "/api/v1/platform",
-  "/api/v1/addresses/resolve",
-  "/api/v1/websites/public/(.*)",
-  "/api/public/(.*)",
-  "/api/cron/property-report-followups",
-  "/api/cron/lead-followups",
-  "/api/cron/pagespeed",
-  "/api/cron/ota-ical-sync",
-  "/api/cron/scheduled-emails",
-  "/api/v1/wantd/(.*)",
-  "/api/webhooks/stripe",
-  "/api/webhooks/elevenlabs",
-  "/api/webhooks/elevenlabs/(.*)",
-  "/api/webhooks/dreamscape",
-  "/api/webhooks/dg-onboarding-sync",
-  "/api/webhooks/dg-discovery",
-  "/commerce/checkout/(.*)",
-  "/api/webhooks/clerk(.*)",
-  // OAuth provider returns here without a guaranteed Clerk session cookie —
-  // must stay public or protect() → login → /dashboard drops the auth code.
-  "/api/connectors/google/callback(.*)",
-  "/api/connectors/google-gmail/callback(.*)",
-  "/api/connectors/linkedin/callback(.*)",
-  "/api/connectors/domain/callback(.*)",
-  "/api/connectors/rea/callback(.*)",
-]);
+const isPublicRoute = createRouteMatcher(PUBLIC_ROUTE_PATTERNS);
 
 const PLATFORM_HOSTS = new Set(
   [
