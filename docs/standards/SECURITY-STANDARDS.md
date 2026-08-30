@@ -93,34 +93,53 @@ because that one is gated on what a WordPress install presents, not on us.
 
 ### Final consumer inventory
 
-Every runtime read of `DG_API_KEY`. Direction is from Gen 2's point of view:
-**in** means we verify a caller's key, **out** means we present it to WordPress.
+Every read of `DG_API_KEY` in the repository. **Dir** is from Gen 2's point of
+view: `in` = we verify a caller's key, `out` = we present it to WordPress,
+`—` = neither, the value is only tested for presence.
 
-| Consumer | Dir | Legacy | Customer-facing | WP depends | Replacement | Prerequisite to remove | Risk if removed early |
-|---|---|---|---|---|---|---|---|
-| `api/indexnow/route.ts` | in | yes | no — operator/cron | **no** | `INDEXNOW_API_KEY` (already preferred) | set the var in Vercel; update the cron caller | 401 on every submission, so search engines stop being pinged. Silent. |
-| `lib/platform-api.ts` (`isValidLegacyConnectorKey`, address resolve) | in | yes | indirectly — Roe property meta | **yes** | `DG_ADDRESS_RESOLVE_API_KEY` | the WordPress install must stop calling `/api/v1/addresses/resolve`, or the var must be set to that install's Dev API key | address resolve 401s for the plugin; Roe property records stop being enriched |
-| `lib/dg-api.ts` `apiHeaders` (portal bridge) | out | yes | yes — purchase/onboarding identity | **yes** | `DG_PORTAL_API_KEY` (already preferred) | set the var to the hub install's Dev API key | `/portal/me` 401s; unlinked profile returned. Mostly dormant while `getApiBase()` nulls apex |
-| `lib/dg-api.ts` `resolveWpApiKeyForBaseUrl` | out | yes | yes — connector reads/writes | **yes** | `DG_WP_CONNECTOR_API_KEY` (already preferred) + per-org keys | every non-apex org needs a per-org or host key | connector calls fail with `missing_api_key` for orgs relying on the hub fallback |
-| `connectors/wordpress/org-connector.ts` `envWpApiKey` | out | yes | yes | **yes** | as above | as above | as above |
-| `lib/wordpress-sync.ts` (`connectorHasKey`) | — | yes | no | no | none needed | — | diagnostic only: sync would report "missing key" incorrectly |
-| `lib/overview-connectors.ts` | — | yes | no | no | none needed | — | diagnostic only: overview shows connector unconfigured |
-| `api/v1/connectors/wordpress/status/route.ts` | — | yes | no — operator | no | none needed | — | diagnostic boolean reads false |
-| `connectors/framework/health.ts` | — | yes | no — operator | no | none needed | — | connector catalogue shows not-configured |
-| `scripts/verify-env.mjs` | — | — | no | — | — | flip `required` to false only once no runtime consumer needs it | deployment checks pass while a live integration is broken |
+The current credential is `DG_API_KEY` in every row; the replacement column names
+what should carry it instead.
 
-The four diagnostics never authenticate anything; they only report whether a key
-is present. They can keep reading `DG_API_KEY` indefinitely at no risk, and they
-are not worth touching.
+#### Runtime consumers — these authenticate something
 
-**Safest removal sequence.** IndexNow is the only one that can be finished
-without WordPress: set `INDEXNOW_API_KEY`, update the caller, then drop the
-fallback from that route. The portal bridge is next and needs only the var set to
-the existing value — no WordPress change, because the value is unchanged. The
-connector fallback needs per-org keys provisioned first. Address resolve is last
-and cannot be finished at all until the plugin stops calling it, since the key it
-presents is chosen by WordPress rather than by us.
+| # | File | Purpose | Dir | Customer-facing | Replacement | WP dependency | Safe to migrate now? | Prerequisite to remove | Risk of removing early |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `src/app/api/indexnow/route.ts` | Verifies the caller submitting URLs to IndexNow | in | No — operator/cron only | `INDEXNOW_API_KEY` (already preferred in code) | **None.** The plugin never calls this route | **Yes** — code is done, needs the var set | Set `INDEXNOW_API_KEY` in Vercel and update the cron/operator caller | 401 on every submission. Search engines silently stop being pinged; no user-visible error |
+| 2 | `src/lib/platform-api.ts` `isValidLegacyConnectorKey` | Verifies inbound callers on address-resolve and CoreLogic address-match | in | Indirectly — enriches Roe property records | `DG_ADDRESS_RESOLVE_API_KEY` (accepted in parallel, not preferred) | **Yes.** `class-address-resolver.php` presents the install's Dev API key here | **No** | Either the plugin stops calling `/api/v1/addresses/resolve`, or the var is set to that install's Dev API key value | Address resolve 401s for the plugin; Roe property meta stops being enriched |
+| 3 | `src/lib/dg-api.ts` `apiHeaders` | Presents a key to the WordPress portal bridge (`/portal/me`) | out | Yes — purchase and onboarding identity | `DG_PORTAL_API_KEY` (already preferred in code) | **Yes.** Value must match the hub install's Dev API key | **Yes, as a rename** — set the new var to the same value | Set `DG_PORTAL_API_KEY` | `/portal/me` 401s and an unlinked profile is returned. Largely dormant while `getApiBase()` returns null for apex |
+| 4 | `src/lib/dg-api.ts` `resolveWpApiKeyForBaseUrl` | Host-matched fallback key for outbound connector calls | out | Yes — connector reads and writes | `DG_WP_CONNECTOR_API_KEY` (already preferred) plus per-org keys | **Yes.** Value must match each install | **No** | Every non-apex org needs a per-org or host-specific key provisioned | Connector calls fail `missing_api_key` for any org relying on the hub fallback |
+| 5 | `packages/platform-core/src/connectors/wordpress/org-connector.ts` `envWpApiKey` | Same fallback, resolved in platform-core | out | Yes | As row 4 | **Yes** | **No** | As row 4 | As row 4 |
 
-Nothing here should be rotated for tidiness. Each outbound entry must match a
-value stored in a WordPress install, so rotating unilaterally breaks a live
-integration for no security gain.
+#### Diagnostic consumers — presence checks only, never authentication
+
+| # | File | Purpose | Customer-facing | Safe to migrate now? | Risk of removing early |
+|---|---|---|---|---|---|
+| 6 | `src/lib/wordpress-sync.ts` `connectorHasKey` | Decides whether a sync is worth attempting | No | Yes, but pointless | Sync incorrectly reports "missing key" |
+| 7 | `src/lib/overview-connectors.ts` | "Connector configured" heuristic on the overview | No | Yes, but pointless | Overview shows the connector as unconfigured |
+| 8 | `src/app/api/v1/connectors/wordpress/status/route.ts` | Reports key presence as a boolean | No — operator | Yes, but pointless | Diagnostic boolean reads false |
+| 9 | `packages/platform-core/src/connectors/framework/health.ts` | Connector catalogue "configured" flag | No — operator | Yes, but pointless | Catalogue shows not-configured |
+| 10 | `scripts/verify-env.mjs` | Deployment env validation, currently `required: true` | No | Only once rows 1–5 are done | Deployment checks pass while a live integration is broken |
+
+Rows 6–9 authenticate nothing. They can keep reading `DG_API_KEY` indefinitely at
+no risk and are not worth touching — changing them would be exactly the
+architectural tidying this inventory exists to avoid.
+
+#### Recommended migration sequence
+
+1. **IndexNow (row 1).** The only one finishable without WordPress. Set
+   `INDEXNOW_API_KEY`, update the caller, then drop the fallback from that route.
+2. **Portal bridge (row 3).** Set `DG_PORTAL_API_KEY` to the value already in use.
+   A rename, not a rotation, so no WordPress change is required.
+3. **Connector fallback (rows 4–5).** Provision per-org or host keys first, then
+   the env fallback becomes unreachable and can be dropped.
+4. **Address resolve (row 2). Last.** Cannot be completed from this side at all:
+   the key the plugin presents is chosen by WordPress. Either the plugin stops
+   calling the route, or the dedicated var is set to that install's Dev API key.
+5. **`verify-env.mjs` (row 10).** Flip `required` to false only after 1–4.
+
+Nothing here should be rotated for tidiness. Every `out` row must match a value
+stored inside a WordPress install, so rotating unilaterally breaks a live
+integration for no security gain. The genuinely dangerous property — one secret
+serving both inbound verification and outbound presentation — is mitigated by
+each consumer now preferring a dedicated variable, and is fully resolved only
+when rows 1–4 are complete.

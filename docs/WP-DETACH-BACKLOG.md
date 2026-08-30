@@ -445,31 +445,79 @@ not removed merely because the four apex brands no longer reach them.
 | **Source-of-truth risk** | can incorrectly overwrite Gen 2 |
 | **Unknown** | needs external evidence |
 
-| # | Dependency | Classification | Note |
-|---|---|---|---|
-| 1 | `wp_then_neon` create | Compatibility only | Only when `acc.gen2_first_booking=false` or no Neon units. WordPress is intentionally the origin here. |
-| 2 | Guest PATCH WP-first | **Unknown** | No caller in this repo; 422 on all four apex brands, so no apex tenant can be using it. Blocked on external callers, and on the Neon-first path not mirroring `tags`/`address`/`source`. |
-| 3 | Housekeeping PATCH WP-only | Compatibility only | Taken only without HK SoT. |
-| 4 | Seed-from-WP-when-empty | Compatibility only | Fails harmlessly on apex. |
-| 5 | `dg-stay-booking` webhook | Required legacy connector | Live and initialised. Inbound only; no apex gate. See the payment gap below. |
-| 6 | `syncAccommodationBookingsFromWordPress` | Compatibility only | Import primitive. **No longer a source-of-truth risk** — see the conflict rule. |
-| 7 | `syncWordPressAccBookings` | Compatibility only | As above. |
-| 8 | Legacy OTA WP availability pull | Compatibility only | Needed until every unit has an iCal URL. |
-| 9 | OTA fallback to #7 | Compatibility only | Retires with #8. |
-| 10 | GET WP availability | Compatibility only | Replaced by `buildAvailabilityFromNeon` under units SoT. |
-| 11 | Guests page WP pull | Compatibility only | Import bridge to Contacts. |
-| 12 | GET WP housekeeping | Compatibility only | Replaced by `housekeepingBoardFromUnits` under HK SoT. |
-| 13 | GET WP summary | **Unknown** | Endpoint exists and works on live WordPress, but apex gets 404 and there is no Neon equivalent. Fixing it is new Gen 2 functionality, not detachment. |
-| 14 | Booking DELETE WP mirror | Required legacy connector | Neon-first already; mirror is best-effort. |
-| 15 | Unit PATCH WP mirror / pull | Required legacy connector | Neon-first. Writeback narrowed in Phase 9 to the three WordPress-authored fields, so no longer a source-of-truth risk. |
+Each dependency carries exactly one classification. **Overwrite** means "can this
+path write WordPress values over Gen 2 data".
 
-**Nothing is classified Safe to remove.** Every remaining dependency is either
-inbound from a WordPress install, or the only path for a tenant pointing at a
-non-apex host. Two are Unknown and both are blocked on evidence from outside this
-repository, not on a decision that could be taken from the code.
+| # | Dependency | Current behaviour | Initiated by | Authoritative | Overwrite? | Non-apex needs it | Affects apex brands | Classification | Recommended action | Blocking prerequisite |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | `wp_then_neon` create | WordPress creates, Neon mirrors the created row | Gen 2 operator | **WordPress**, by design on this path | Only the row it just created | Yes — orgs with `acc.gen2_first_booking=false` or no Neon units | No — unreachable, Neon-first is default | Compatibility only | Keep; retires as tenants gain units | All acc tenants on units SoT |
+| 2 | Guest PATCH WP-first | WordPress written first, 422 if it fails, then Neon from the request | External API caller | **WordPress** | Guest profile fields | Unknown | No — 422 via apex refusal | **Unknown** | Leave until callers are known | Proof no external caller uses it, plus `tags`/`address`/`source` added to the Neon-first path |
+| 3 | Housekeeping PATCH WP-only | WordPress is the only write target when HK SoT is off | Gen 2 operator | **WordPress** on this branch | No — WP-only, no Neon write | Yes — orgs without Neon units | No — HK SoT active | Compatibility only | Remove the WP-only branch when every tenant has units | Universal HK SoT |
+| 4 | Seed-from-WP-when-empty | First ops load pulls bookings when Neon is empty | Gen 2 page load | **Neon** for reads; WP seeds once | Via the import, now governed by the conflict rule | Yes | Attempted, fails harmlessly | Compatibility only | Skip the attempt when the connector is apex-retired | — |
+| 5 | `dg-stay-booking` webhook | WordPress pushes a created/confirmed booking into Neon | **WordPress** | **Neon** — this is ingress, not authority | Via the import, governed by the conflict rule | Yes | **Yes — no apex gate, still live** | Required legacy connector | Keep while public book-now is WordPress | Public booking fully Gen 2-native (WP-D-403) |
+| 6 | `syncAccommodationBookingsFromWordPress` | Pull primitive, upserts each row | Gen 2 operator/page | **Neon** | Governed by the conflict rule | Yes | No — fetch refused | Compatibility only | Keep as the migration primitive | — |
+| 7 | `syncWordPressAccBookings` | Windowed pull wrapper around #6 | Gen 2 operator/page | **Neon** | Governed by the conflict rule | Yes | No — refused, auto-sync skipped | Compatibility only | Keep | — |
+| 8 | Legacy OTA WP availability pull | WordPress OTA sync then availability pull, as a fallback | Gen 2 operator | **Neon** | Governed by the conflict rule | Yes — units lacking iCal URLs | No — apex short-circuits | Compatibility only | Remove once every unit has an iCal URL | iCal URLs on all units |
+| 9 | OTA fallback to #7 | Sub-path of #8 | Gen 2 operator | **Neon** | Governed by the conflict rule | Yes | No | Compatibility only | Retire with #8 | As #8 |
+| 10 | GET WP availability | Reads availability from WordPress when units SoT is off | Gen 2 UI | **WordPress** read | No — read-only | Yes | No — `buildAvailabilityFromNeon` used | Compatibility only | Remove when all tenants on units SoT | Universal units SoT |
+| 11 | Guests page WP pull | Pulls WP guests and upserts profiles | Gen 2 page load | **Neon** displays; WP overwrites profile fields | **Yes — guest profile fields, no recency check** | Yes | No — refused | Compatibility only | Drop the pull once guests are fully in Contacts | Guest data migrated |
+| 12 | GET WP housekeeping | Reads the HK board from WordPress when HK SoT is off | Gen 2 UI | **WordPress** read | No — read-only | Yes | No | Compatibility only | Retire with #3 | Universal HK SoT |
+| 13 | GET WP summary | Only source of the accommodation summary metrics | Gen 2 UI/overview | **WordPress** read | No — read-only | Yes | **Yes — 404s, metric is broken** | **Unknown** | Build a Neon-derived summary, then drop the WP leg | New Gen 2 functionality, not detachment |
+| 14 | Booking DELETE WP mirror | Neon cancels first, WordPress soft-cancel is best-effort | Gen 2 operator | **Neon** | No | Yes | Yes — Neon-only, WP leg 404s harmlessly | Required legacy connector | Keep | — |
+| 15 | Unit PATCH WP mirror / pull | Neon written first, mirrored, then the WordPress-authored fields read back | Gen 2 operator | **Neon** | No — writeback narrowed in Phase 9 to `ical_export_url`, `airbnb_id`, `bookingcom_id` | Yes | Yes — Neon path only | Required legacy connector | Keep | — |
 
-**No dependency is now classified Source-of-truth risk.** The two that were —
-the booking import and the unit PATCH writeback — were closed in Phases 8 and 9.
+**Nothing is classified Safe to remove.** Every dependency is either ingress from
+a WordPress install, or the only path for a tenant pointing at a non-apex host.
+Two are Unknown and both are blocked on evidence from outside this repository
+rather than on a decision available from the code.
+
+**No booking dependency is classified Source-of-truth risk any more.** The two
+that were — the booking import (#4–#9) and the unit PATCH writeback (#15) — were
+closed in Phases 8 and 9. The one remaining unguarded overwrite is #11, guest
+*profile* fields, which is not booking data; it is recorded here rather than
+changed, because the same conflict rule would need porting to
+`upsertGuestFromWpRow` and no guest-side divergence has been observed.
+
+---
+
+## Booking source of truth — determination
+
+**Yes. Gen 2 / Neon is the canonical source of truth for bookings.**
+
+Operationally that means:
+
+- **Every booking mutation an operator can perform writes Neon first.** Create
+  (Gen 2-first when units SoT is on, which is the default), PATCH, cancel/delete,
+  housekeeping and unit edits all persist to Neon before WordPress is contacted,
+  and a WordPress failure never rolls back or fails the Neon write. It is
+  reported as `wpMirror: { ok: false }` instead.
+- **All four apex brands operate with WordPress unreachable.** `refuseAccWpOnGen2Apex`
+  makes outbound accommodation calls 404 for CVH, Roe, DigitalGate and Aëtherra,
+  and every operator path still works because Neon is what it reads and writes.
+- **WordPress cannot overwrite a newer Gen 2 booking.** An import that repeats
+  WordPress's last accepted state is skipped; one that genuinely changed is
+  applied only while Gen 2 has not also moved; if both moved, Neon is kept and the
+  divergence is recorded and reported.
+- **Overlap protection is Neon-side.** Advisory locks plus overlap checks on every
+  create and date-modifying update, including imports whose unit is not yet in
+  Neon, which are serialised on the WordPress unit id instead.
+- **Booking identity is `externalWpId`.** The WordPress post id, matched within an
+  organisation. There is no `platform_id` in the plugin to round-trip.
+
+The remaining WordPress booking functionality is therefore correctly described as
+**connector, mirror and legacy ingress** — never an equal source of truth:
+
+| Role | Which paths |
+|---|---|
+| **Legacy ingress** | `dg-stay-booking` webhook (#5), and the pull/seed/OTA imports (#4, #6–#9). WordPress originates the data, Neon decides whether to accept it. |
+| **Mirror** | Booking PATCH mirror, DELETE soft-cancel (#14), unit PATCH mirror (#15). Best-effort, after Neon. |
+| **Legacy authority, scoped and shrinking** | Only #1 (create when the Gen 2-first flag is off or no units exist), #2 (guest PATCH, no known caller), #3 (housekeeping without HK SoT), and the read-only #10/#12/#13. Each is reachable only for a tenant that has not yet migrated, and none is reachable for the apex brands. |
+
+The one honest qualification: WordPress remains the origin for **public
+book-now** on legacy hosts, so ingress must keep working until that funnel is
+Gen 2-native (WP-D-403). Being the origin of new bookings is not the same as
+being authoritative over existing ones, and the conflict rule is what enforces
+that distinction.
 
 ### Phase 8 update — plugin source read, questions resolved
 
