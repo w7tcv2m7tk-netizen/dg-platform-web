@@ -1,5 +1,12 @@
 import type { Prisma } from "@dg/database";
 
+import {
+  describeBookingConflict,
+  findOverlappingBookings,
+  recordImportConflict,
+  withUnitBookingLock,
+} from "./booking-conflicts";
+
 import { resolveOrgWordPressConnector } from "../connectors/wordpress/org-connector";
 import { ensureContactForStayGuest } from "./guests";
 import { shouldCreateGuestContactFromStay } from "./guest-identity";
@@ -402,7 +409,7 @@ export async function upsertStayBookingFromWpRow(
   organisationId: string,
   booking: WpAccBookingRow,
   options?: { actorId?: string },
-): Promise<"created" | "updated" | "skipped"> {
+): Promise<"created" | "updated" | "skipped" | "conflict"> {
   if (!process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL not configured");
   }
@@ -463,16 +470,80 @@ export async function upsertStayBookingFromWpRow(
     return "updated";
   }
 
-  await prisma.stayBooking.create({
-    data: {
+  // Resolve the unit so the insert can be serialised against direct and OTA
+  // bookings for the same unit. Without a unit we cannot detect overlap, so the
+  // row is still written (WordPress remains the origin for these) but no
+  // silent double-book is possible on a known unit.
+  const unitId = await resolveUnitIdForWpBooking(organisationId, fields);
+
+  if (!unitId || !fields.checkin || !fields.checkout) {
+    await prisma.stayBooking.create({
+      data: {
+        organisationId,
+        externalWpId: wpId,
+        ...fields,
+        contactId,
+        metadata: fields.metadata as Prisma.InputJsonValue,
+      },
+    });
+    return "created";
+  }
+
+  return withUnitBookingLock(organisationId, unitId, async (tx) => {
+    const conflicts = await findOverlappingBookings(tx, {
       organisationId,
-      externalWpId: wpId,
-      ...fields,
-      contactId,
-      metadata: fields.metadata as Prisma.InputJsonValue,
-    },
+      accommodationUnitId: unitId,
+      accommodationWpId: fields.accommodationWpId ?? null,
+      checkin: fields.checkin!,
+      checkout: fields.checkout!,
+    });
+
+    if (conflicts.length) {
+      await recordImportConflict(tx, {
+        conflicts,
+        detail: {
+          reason: "wordpress_import_overlap",
+          wp_booking_id: wpId,
+          incoming_checkin: fields.checkin?.toISOString() ?? null,
+          incoming_checkout: fields.checkout?.toISOString() ?? null,
+          detected_at: new Date().toISOString(),
+        },
+      });
+      return "conflict" as const;
+    }
+
+    await tx.stayBooking.create({
+      data: {
+        organisationId,
+        externalWpId: wpId,
+        ...fields,
+        contactId,
+        metadata: fields.metadata as Prisma.InputJsonValue,
+      },
+    });
+    return "created" as const;
   });
-  return "created";
+}
+
+/** Best-effort unit resolution for a WordPress booking row. */
+async function resolveUnitIdForWpBooking(
+  organisationId: string,
+  fields: { accommodationUnitId?: string | null; accommodationWpId?: number | null },
+): Promise<string | null> {
+  if (fields.accommodationUnitId) return fields.accommodationUnitId;
+  if (fields.accommodationWpId == null) return null;
+
+  const { prisma } = await import("@dg/database");
+  const unit = await prisma.accommodationUnit.findUnique({
+    where: {
+      organisationId_externalWpId: {
+        organisationId,
+        externalWpId: fields.accommodationWpId,
+      },
+    },
+    select: { id: true },
+  });
+  return unit?.id ?? null;
 }
 
 /**
@@ -683,24 +754,55 @@ export async function createStayBookingGen2First(
     input.actorId,
   );
 
-  const created = await prisma.stayBooking.create({
-    data: {
-      organisationId,
-      externalWpId: null,
-      ...fields,
-      accommodationUnitId: unit.id,
-      contactId,
-      metadata: {
-        ...fields.metadata,
-        gen2_origin: true,
-        write_path: "gen2_first",
-      } as Prisma.InputJsonValue,
-    },
+  // Re-check and insert under a per-unit advisory lock. The earlier
+  // checkStayAvailability call is a fast, friendly rejection; this is the
+  // integrity boundary. Without it two concurrent requests can both pass the
+  // check and both insert.
+  const locked = await withUnitBookingLock(organisationId, unit.id, async (tx) => {
+    if (!input.force && fields.checkin && fields.checkout) {
+      const conflicts = await findOverlappingBookings(tx, {
+        organisationId,
+        accommodationUnitId: unit.id,
+        accommodationWpId: unit.externalWpId ?? input.accommodationWpId ?? null,
+        checkin: fields.checkin,
+        checkout: fields.checkout,
+      });
+      if (conflicts.length) {
+        return { conflict: conflicts, created: null } as const;
+      }
+    }
+
+    const row = await tx.stayBooking.create({
+      data: {
+        organisationId,
+        externalWpId: null,
+        ...fields,
+        accommodationUnitId: unit.id,
+        contactId,
+        metadata: {
+          ...fields.metadata,
+          gen2_origin: true,
+          write_path: "gen2_first",
+        } as Prisma.InputJsonValue,
+      },
+    });
+    return { conflict: null, created: row } as const;
   });
+
+  if (locked.conflict) {
+    return {
+      ok: false,
+      code: "dates_unavailable",
+      message: `Dates conflict with an existing booking: ${describeBookingConflict(locked.conflict)}`,
+      conflictDates: locked.conflict
+        .map((c) => c.checkin?.toISOString().slice(0, 10))
+        .filter((d): d is string => Boolean(d)),
+    };
+  }
 
   return {
     ok: true,
-    booking: serializeStayBooking(created),
+    booking: serializeStayBooking(locked.created),
     conflictChecked: !input.force,
   };
 }

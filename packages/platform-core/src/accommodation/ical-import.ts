@@ -6,6 +6,12 @@
 
 import type { Prisma } from "@dg/database";
 
+import {
+  findOverlappingBookings,
+  recordImportConflict,
+  withUnitBookingLock,
+} from "./booking-conflicts";
+
 export type OtaIcalSource = "airbnb" | "bookingcom";
 
 export type OtaIcalEvent = {
@@ -184,7 +190,7 @@ async function upsertOtaStayBooking(input: {
   source: OtaIcalSource;
   event: OtaIcalEvent;
   actorId?: string;
-}): Promise<"created" | "updated" | "skipped"> {
+}): Promise<"created" | "updated" | "skipped" | "conflict"> {
   const { prisma } = await import("@dg/database");
   const checkin = parseStayDate(input.event.start);
   const checkout = parseStayDate(input.event.end);
@@ -242,23 +248,52 @@ async function upsertOtaStayBooking(input: {
     return "updated";
   }
 
-  await prisma.stayBooking.create({
-    data: {
+  // An inbound OTA stay must not silently land on top of an existing booking.
+  // Serialise on the unit and re-check before inserting.
+  return withUnitBookingLock(input.organisationId, input.unitId, async (tx) => {
+    const conflicts = await findOverlappingBookings(tx, {
       organisationId: input.organisationId,
-      externalWpId: null,
-      ref: `ota:${input.source}:${icalUid.slice(0, 40)}`,
-      contactId: null,
-      guestName,
-      accommodationName: input.unitTitle,
-      accommodationWpId: input.accommodationWpId,
       accommodationUnitId: input.unitId,
+      accommodationWpId: input.accommodationWpId,
       checkin,
       checkout,
-      status,
-      metadata,
-    },
+    });
+
+    if (conflicts.length) {
+      // Record the clash on the existing booking so it surfaces for review
+      // rather than disappearing into logs, and leave both rows intact.
+      await recordImportConflict(tx, {
+        conflicts,
+        detail: {
+          reason: "ota_import_overlap",
+          source: input.source,
+          ical_uid: icalUid,
+          incoming_checkin: input.event.start,
+          incoming_checkout: input.event.end,
+          detected_at: new Date().toISOString(),
+        },
+      });
+      return "conflict" as const;
+    }
+
+    await tx.stayBooking.create({
+      data: {
+        organisationId: input.organisationId,
+        externalWpId: null,
+        ref: `ota:${input.source}:${icalUid.slice(0, 40)}`,
+        contactId: null,
+        guestName,
+        accommodationName: input.unitTitle,
+        accommodationWpId: input.accommodationWpId,
+        accommodationUnitId: input.unitId,
+        checkin,
+        checkout,
+        status,
+        metadata,
+      },
+    });
+    return "created" as const;
   });
-  return "created";
 }
 
 /**
@@ -440,7 +475,14 @@ export async function syncOtaCalendarsFromUnits(input: {
           });
           if (outcome === "created") imported += 1;
           else if (outcome === "updated") updated += 1;
-          else result.skipped += 1;
+          else if (outcome === "conflict") {
+            // Surfaced to the operator via the sync response rather than
+            // silently creating an overlapping stay.
+            result.errors.push(
+              `${unit.title || unit.id}: ${feed.source} stay ${event.uid} overlaps an existing booking and was not imported`,
+            );
+            result.skipped += 1;
+          } else result.skipped += 1;
         } catch (err) {
           result.errors.push(
             `${unit.title} (${feed.source}) ${event.uid}: ${

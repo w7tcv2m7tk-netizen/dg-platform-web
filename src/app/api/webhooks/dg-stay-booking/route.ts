@@ -142,13 +142,24 @@ export async function POST(req: Request) {
     );
   }
 
-  const result = { created: 0, updated: 0, skipped: 0, errors: [] as string[] };
+  const result = {
+    created: 0,
+    updated: 0,
+    skipped: 0,
+    conflicts: 0,
+    errors: [] as string[],
+  };
   for (const row of rows) {
     try {
       const outcome = await upsertStayBookingFromWpRow(organisationId, row);
       if (outcome === "created") result.created++;
       else if (outcome === "updated") result.updated++;
-      else result.skipped++;
+      else if (outcome === "conflict") {
+        // Not imported — the dates are already held. Reported so WordPress
+        // and the operator can reconcile rather than silently double-booking.
+        result.conflicts++;
+        result.errors.push(`#${row.id}: overlaps an existing booking; not imported`);
+      } else result.skipped++;
     } catch (err) {
       result.errors.push(
         `#${row.id}: ${err instanceof Error ? err.message : "upsert failed"}`,
