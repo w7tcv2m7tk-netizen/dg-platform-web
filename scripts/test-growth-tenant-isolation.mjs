@@ -210,3 +210,60 @@ describe("C-3: platform operator capability is unforgeable", () => {
     assert.equal(operator.operatorOrganisationId, OPERATOR_ORG);
   });
 });
+
+/**
+ * The opportunity list runs its detectors and then narrows the merged result by
+ * organisationId. That is safe only because every item carries a truthful org
+ * id — except prospect rows, which carry none, so under org scope they were
+ * excluded merely as a side effect of the field being absent. Scope them at the
+ * query instead, so adding an organisationId to prospect items later cannot
+ * turn a tenant page into a cross-tenant view.
+ */
+describe("Opportunity list: org scope is enforced at the query", () => {
+  it("passes the tenant's organisationId into the prospect detector", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const src = await readFile(
+      new URL("../packages/platform-core/src/opportunity-engine/list.ts", import.meta.url),
+      "utf8",
+    );
+
+    assert.match(
+      src,
+      /detectProspectOpportunities\(\s*20,\s*input\.scope === "org" \? input\.organisationId : undefined,?\s*\)/,
+      "prospect detection must be scoped when the caller asked for one org",
+    );
+  });
+
+  it("does not rely on the post-hoc filter alone for prospects", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const [list, detect] = await Promise.all([
+      readFile(
+        new URL("../packages/platform-core/src/opportunity-engine/list.ts", import.meta.url),
+        "utf8",
+      ),
+      readFile(
+        new URL("../packages/platform-core/src/opportunity-engine/detect.ts", import.meta.url),
+        "utf8",
+      ),
+    ]);
+
+    // The filter must remain — it is what narrows the other four detectors.
+    assert.match(list, /merged\.filter\(\(o\) => o\.organisationId === input\.organisationId\)/);
+    // And the prospect detector must still accept a scope to be given one.
+    assert.match(detect, /export async function detectProspectOpportunities\(\s*limit = 15,\s*organisationId\?: string,/);
+  });
+
+  it("refuses org scope without an organisationId rather than falling back to all tenants", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const src = await readFile(
+      new URL("../packages/platform-core/src/opportunity-engine/list.ts", import.meta.url),
+      "utf8",
+    );
+
+    // An org-scoped request with no org id must return empty, never cross-tenant.
+    const guard = src.indexOf('input.scope === "org" && !input.organisationId');
+    const detectors = src.indexOf("detectOverdueLeadOpportunities()");
+    assert.ok(guard > 0, "missing the org-scope guard");
+    assert.ok(guard < detectors, "the guard must return before any detector runs");
+  });
+});

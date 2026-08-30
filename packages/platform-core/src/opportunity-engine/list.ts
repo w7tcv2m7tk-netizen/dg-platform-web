@@ -52,12 +52,21 @@ export async function listPlatformOpportunities(
     };
   }
 
+  // Prospects are scoped at the query. The other four detectors stamp a truthful
+  // organisationId on every item and are narrowed by the filter below, but
+  // prospect rows carry no organisationId — so under org scope they were being
+  // excluded only as a side effect of that field being absent. Anyone adding an
+  // organisationId to prospect items, an obvious improvement, would silently
+  // expose every tenant's prospects to every other tenant.
   const [leads, tasks, attention, expansion, prospects] = await Promise.all([
     detectOverdueLeadOpportunities(),
     detectOverdueTaskOpportunities(),
     detectClientAttentionOpportunities(),
     detectExpansionOpportunities(),
-    detectProspectOpportunities(20),
+    detectProspectOpportunities(
+      20,
+      input.scope === "org" ? input.organisationId : undefined,
+    ),
   ]);
 
   let merged = dedupe([
