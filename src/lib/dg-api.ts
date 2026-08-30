@@ -131,7 +131,12 @@ const DEFAULT_UNLINKED_PROFILE = (email: string): PortalProfile => ({
 });
 
 function apiHeaders(clerkUserId?: string, email?: string): HeadersInit | null {
-  const apiKey = process.env.DG_API_KEY;
+  // Prefer a key dedicated to this bridge. DG_API_KEY is still accepted because
+  // it is the configured value today, but it is also what we verify INBOUND
+  // callers with (IndexNow, address resolve) — so while this path is its only
+  // remaining un-named outbound use, the shared key cannot be rotated without
+  // breaking one side or the other. A dedicated var lets that be untangled.
+  const apiKey = process.env.DG_PORTAL_API_KEY?.trim() || process.env.DG_API_KEY?.trim();
   if (!apiKey) {
     return null;
   }

@@ -10,7 +10,30 @@ const checks = [
   { key: "CLERK_SECRET_KEY", group: "Auth", required: true },
   { key: "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", group: "Auth", required: true },
   { key: "CLERK_WEBHOOK_SIGNING_SECRET", group: "Auth", required: true },
-  { key: "DG_API_KEY", group: "WordPress hub", required: true, hint: "digitalgate.com.au → API Settings" },
+  {
+    key: "DG_API_KEY",
+    group: "WordPress hub",
+    required: true,
+    hint: "digitalgate.com.au → API Settings. Shared: verifies inbound callers AND is presented outbound to WP, so rotating it breaks one side unless both are updated. Set the dedicated keys below to separate them.",
+  },
+  {
+    key: "INDEXNOW_API_KEY",
+    group: "WordPress hub",
+    required: false,
+    hint: "Dedicated inbound key for POST /api/indexnow; preferred over DG_API_KEY when set",
+  },
+  {
+    key: "DG_ADDRESS_RESOLVE_API_KEY",
+    group: "WordPress hub",
+    required: false,
+    hint: "Dedicated inbound key for the address-resolve routes; accepted alongside DG_API_KEY",
+  },
+  {
+    key: "DG_PORTAL_API_KEY",
+    group: "WordPress hub",
+    required: false,
+    hint: "Dedicated outbound key for the WP portal bridge; must match that install's expected key",
+  },
   {
     key: "DG_WP_CONNECTOR_API_KEY",
     group: "Roe connector",

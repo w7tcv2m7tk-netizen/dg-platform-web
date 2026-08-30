@@ -196,3 +196,67 @@ describe("Phase 4: IndexNow key comparison", () => {
     assert.doesNotMatch(src, /apiKey !== expected/);
   });
 });
+
+/**
+ * DG_API_KEY is used in BOTH directions — we verify inbound callers with it and
+ * present it outbound to WordPress — so its value cannot be rotated to fix one
+ * side without breaking the other. Separation depends on every consumer having
+ * a dedicated variable, and on an operator being able to discover it.
+ */
+describe("DG_API_KEY separation", () => {
+  it("every consumer prefers a dedicated key, with the shared key as fallback", async () => {
+    const consumers = [
+      ["src/app/api/indexnow/route.ts", "INDEXNOW_API_KEY"],
+      ["src/lib/dg-api.ts", "DG_PORTAL_API_KEY"],
+      ["packages/platform-core/src/connectors/wordpress/org-connector.ts", "DG_WP_CONNECTOR_API_KEY"],
+    ];
+
+    for (const [rel, dedicated] of consumers) {
+      const src = await readSource(rel);
+      assert.match(
+        src,
+        new RegExp(
+          `process\\.env\\.${dedicated}\\?\\.trim\\(\\)\\s*\\|\\|\\s*process\\.env\\.DG_API_KEY\\?\\.trim\\(\\)`,
+        ),
+        `${rel} must try ${dedicated} before DG_API_KEY`,
+      );
+    }
+  });
+
+  it("keeps the shared key accepted so no active integration is broken", async () => {
+    // Separation is staged: the dedicated vars must be settable BEFORE the
+    // shared key is withdrawn, because the outbound ones must match what the
+    // remote WordPress install already expects.
+    const src = await readSource("src/lib/dg-api.ts");
+    assert.match(src, /process\.env\.DG_API_KEY/, "removal requires operator action first");
+  });
+
+  it("documents the dedicated keys so an operator can actually set them", async () => {
+    const example = await readSource(".env.example");
+    const verify = await readSource("scripts/verify-env.mjs");
+
+    for (const key of [
+      "INDEXNOW_API_KEY",
+      "DG_ADDRESS_RESOLVE_API_KEY",
+      "DG_PORTAL_API_KEY",
+    ]) {
+      assert.ok(example.includes(key), `.env.example must mention ${key}`);
+      assert.ok(verify.includes(key), `verify-env.mjs must report ${key}`);
+    }
+  });
+
+  it("does not require the dedicated keys before they are provisioned", async () => {
+    const verify = await readSource("scripts/verify-env.mjs");
+    for (const key of ["INDEXNOW_API_KEY", "DG_ADDRESS_RESOLVE_API_KEY", "DG_PORTAL_API_KEY"]) {
+      const at = verify.indexOf(key);
+      const block = verify.slice(at, at + 240);
+      assert.match(block, /required: false/, `${key} must not be required yet`);
+    }
+  });
+
+  it("no longer tells operators to authenticate IndexNow with the shared key", async () => {
+    const doc = await readSource("docs/SEARCH-INDEXING.md");
+    assert.doesNotMatch(doc, /X-API-Key: \$DG_API_KEY/);
+    assert.match(doc, /INDEXNOW_API_KEY/);
+  });
+});

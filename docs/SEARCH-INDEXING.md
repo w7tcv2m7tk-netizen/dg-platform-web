@@ -101,11 +101,16 @@ uuidgen | tr '[:upper:]' '[:lower:]'
 INDEXNOW_KEY=<uuid>
 INDEXNOW_HOST=digitalgate.com.au
 
+# Auth for this endpoint — separate from INDEXNOW_KEY, which is the public key
+# file value, not a credential. Preferred over the shared DG_API_KEY, which is
+# still accepted as a fallback but also authenticates unrelated WordPress calls.
+INDEXNOW_API_KEY=<uuid>
+
 # Key file (auto-served): https://digitalgate.com.au/<INDEXNOW_KEY>.txt
 
 # Submit after publishing
 curl -X POST https://app.digitalgate.com.au/api/indexnow \
-  -H "X-API-Key: $DG_API_KEY" \
+  -H "X-API-Key: $INDEXNOW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"urls":["https://digitalgate.com.au/new-insight-slug/"]}'
 ```
