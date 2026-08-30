@@ -150,6 +150,14 @@ export function buildConsultationSequence(input: {
   };
 }
 
+export function consultationReminderFlag(
+  step: "24h" | "1h" | "followup",
+): "reminder_24h_sent" | "reminder_1h_sent" | "followup_sent" {
+  if (step === "24h") return "reminder_24h_sent";
+  if (step === "1h") return "reminder_1h_sent";
+  return "followup_sent";
+}
+
 export function dueConsultationReminderSteps(
   sequence: ConsultationSequenceMeta,
   now = new Date(),

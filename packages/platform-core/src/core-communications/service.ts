@@ -173,7 +173,9 @@ export async function listOrgCommunications(
         channel = channel ?? "email";
         statuses = ["sent", "delivered", "failed", "opened", "bounced"];
       } else if (input.filter === "scheduled") {
-        status = "scheduled";
+        // "sending" is a transient claim state held by the flush cron; a row in
+        // that state is still pending delivery and must stay visible here.
+        statuses = ["scheduled", "sending"];
       }
     }
 
@@ -259,6 +261,7 @@ function conversationKey(doc: PlatformCommunication): string {
 function statusLabelFor(doc: PlatformCommunication): string {
   if (doc.direction === "inbound" && doc.status !== "replied") return "Needs reply";
   if (doc.status === "scheduled") return "Scheduled";
+  if (doc.status === "sending") return "Sending";
   if (doc.status === "failed" || doc.status === "bounced") return "Failed";
   if (doc.aiGenerated || doc.source === "ai_assist") return "AI";
   if (doc.source === "automation") return "Automated";

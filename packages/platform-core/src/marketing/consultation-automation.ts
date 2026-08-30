@@ -16,6 +16,7 @@ import {
   DG_CONSULT_PIPELINE,
   consultationEmailCc,
   buildConsultationSequence,
+  consultationReminderFlag,
   dueConsultationReminderSteps,
   isConsultationLead,
   parseConsultationAppointment,
@@ -246,12 +247,13 @@ export async function processConsultationReminders(options?: {
 
       // Claim this (lead, step) before sending so two concurrent cron
       // invocations cannot both deliver it.
+      const sentFlag = consultationReminderFlag(step);
       const owned = await claimLeadFollowupStep({
         leadId: lead.id,
         organisationId: lead.organisationId,
         sequenceKey: "consultation",
         step,
-        sentPath: ["consultation_sequence", `email_${step}_sent`],
+        sentPath: ["consultation_sequence", sentFlag],
       });
       if (!owned) continue;
 
@@ -279,10 +281,7 @@ export async function processConsultationReminders(options?: {
           continue;
         }
         sent += 1;
-        const next: ConsultationSequenceMeta = { ...sequence };
-        if (step === "24h") next.reminder_24h_sent = true;
-        if (step === "1h") next.reminder_1h_sent = true;
-        if (step === "followup") next.followup_sent = true;
+        const next: ConsultationSequenceMeta = { ...sequence, [sentFlag]: true };
         await prisma.lead.update({
           where: { id: lead.id },
           data: {

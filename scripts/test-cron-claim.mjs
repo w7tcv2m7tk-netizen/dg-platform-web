@@ -209,3 +209,127 @@ describe("Follow-up processors: per-lead step claim", () => {
     assert.match(src, /= false/);
   });
 });
+
+/**
+ * The claim's sent-flag guard is only defence-in-depth if it names the flag the
+ * sequence actually sets. Two processors originally passed a generic
+ * `email_${step}_sent` path while their sequences store `reminder_24h_sent` /
+ * `soft_return_sent` and similar, so the guard silently matched nothing and a
+ * completed step could be reclaimed once its claim expired.
+ *
+ * These check the contract by behaviour rather than by string: setting the flag
+ * the resolver names must remove the step from the due list.
+ */
+describe("Follow-up claim: sent-flag path matches the sequence", () => {
+  it("every consultation reminder step resolves to the flag its due-logic reads", async () => {
+    const { buildConsultationSequence, consultationReminderFlag, dueConsultationReminderSteps } =
+      await loadCore("marketing/consultation-emails.ts");
+
+    const startsAt = new Date(Date.now() + 60 * 60 * 1000);
+    const base = buildConsultationSequence({
+      email: "prospect@example.com",
+      firstName: "Sam",
+      fullName: "Sam Prospect",
+      appointment: {
+        date: startsAt.toISOString().slice(0, 10),
+        time: "10:00",
+        timeLabel: "10:00am",
+        timezone: "Australia/Brisbane",
+        meetingLink: "https://example.com/meet",
+        startsAt: startsAt.toISOString(),
+      },
+    });
+
+    for (const step of ["24h", "1h", "followup"]) {
+      const flag = consultationReminderFlag(step);
+      assert.ok(
+        Object.prototype.hasOwnProperty.call(base, flag),
+        `consultation sequence has no field "${flag}" for step ${step}`,
+      );
+
+      // Whenever the step is due, marking the resolved flag must retire it.
+      const at = step === "followup" ? new Date(startsAt.getTime() + 3 * 60 * 60 * 1000) : startsAt;
+      const probe = step === "24h" ? new Date(startsAt.getTime() - 2 * 60 * 60 * 1000) : at;
+      const before = dueConsultationReminderSteps(base, probe);
+      if (!before.includes(step)) continue;
+
+      const after = dueConsultationReminderSteps({ ...base, [flag]: true }, probe);
+      assert.ok(
+        !after.includes(step),
+        `setting "${flag}" did not retire consultation step ${step}`,
+      );
+    }
+  });
+
+  it("hideaway steps resolve to the flags their due-logic reads, legacy included", async () => {
+    const { buildHideawayCircleSequenceStamp, hideawayCircleFollowupFlag, dueHideawayCircleFollowupSteps } =
+      await loadCore("accommodation/hideaway-circle-emails.ts");
+
+    const v2 = buildHideawayCircleSequenceStamp({
+      firstName: "Sam",
+      email: "guest@example.com",
+      birthdayMonth: new Date().getMonth() + 1,
+      welcomeSent: true,
+      marketingConsent: true,
+    });
+    // Long enough ago that every delayed step has matured.
+    const aged = {
+      ...v2,
+      activatedAt: new Date(Date.now() - 400 * 24 * 60 * 60 * 1000).toISOString(),
+    };
+
+    const due = dueHideawayCircleFollowupSteps(aged);
+    assert.ok(due.length > 0, "expected matured hideaway steps to be due");
+
+    for (const step of due) {
+      const { sent } = hideawayCircleFollowupFlag(step);
+      const after = dueHideawayCircleFollowupSteps({ ...aged, [sent]: true });
+      assert.ok(
+        !after.includes(step),
+        `setting "${sent}" did not retire hideaway step ${step}`,
+      );
+    }
+
+    // Legacy (pre-v2) sequences use named steps whose flags are NOT
+    // `email_<step>_sent`; the resolver must cover them too.
+    const legacy = { ...aged };
+    delete legacy.sequenceVersion;
+    const legacyDue = dueHideawayCircleFollowupSteps(legacy);
+    for (const step of legacyDue) {
+      const { sent } = hideawayCircleFollowupFlag(step);
+      assert.ok(
+        !sent.startsWith("email_") || typeof step === "number",
+        `legacy step ${step} must not resolve to a generic email_ flag`,
+      );
+      const after = dueHideawayCircleFollowupSteps({ ...legacy, [sent]: true });
+      assert.ok(
+        !after.includes(step),
+        `setting "${sent}" did not retire legacy hideaway step ${step}`,
+      );
+    }
+  });
+
+  it("no processor hardcodes a generic email_<step>_sent claim path", async () => {
+    // The two defects were literal `email_${step}_sent` template paths passed to
+    // the claim. Sequences that genuinely use that shape must go through their
+    // own flag resolver so the claim and the write cannot drift apart.
+    const processors = [
+      "packages/platform-core/src/accommodation/public-hideaway-circle.ts",
+      "packages/platform-core/src/marketing/consultation-automation.ts",
+    ];
+
+    for (const rel of processors) {
+      const src = await readSource(rel);
+      assert.doesNotMatch(
+        src,
+        /sentPath: \[[^\]]*`email_\$\{step\}_sent`/,
+        `${rel} must resolve its sent flag, not template it`,
+      );
+      assert.match(
+        src,
+        /sentPath: \[[^\]]*(flags\.sent|sentFlag)/,
+        `${rel} must pass a resolved sent flag`,
+      );
+    }
+  });
+});

@@ -16,6 +16,8 @@ export type CommunicationSource =
 export type CommunicationStatus =
   | "draft"
   | "scheduled"
+  /** Transient claim held by the scheduled-send cron while delivery is in flight. */
+  | "sending"
   | "sent"
   | "delivered"
   | "bounced"

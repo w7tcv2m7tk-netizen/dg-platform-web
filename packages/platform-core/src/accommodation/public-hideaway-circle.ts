@@ -614,12 +614,13 @@ export async function processHideawayCircleFollowups(options?: {
 
       // Claim this (lead, step) before sending so two concurrent cron
       // invocations cannot both deliver it.
+      const flags = hideawayCircleFollowupFlag(step);
       const owned = await claimLeadFollowupStep({
         leadId: lead.id,
         organisationId: lead.organisationId,
         sequenceKey: "hideaway_circle",
         step,
-        sentPath: ["hideaway_circle_sequence", `email_${step}_sent`],
+        sentPath: ["hideaway_circle_sequence", flags.sent],
       });
       if (!owned) continue;
 
@@ -645,7 +646,6 @@ export async function processHideawayCircleFollowups(options?: {
           },
         });
 
-        const flags = hideawayCircleFollowupFlag(step);
         const nextSeq = {
           ...sequence,
           [flags.sent]: true,
