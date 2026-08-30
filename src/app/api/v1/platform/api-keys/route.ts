@@ -22,7 +22,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await requireClerkSession();
+  const session = await requireClerkSession(req);
   if (isNextResponse(session)) return session;
 
   const denied = requireOrgAdmin(session);

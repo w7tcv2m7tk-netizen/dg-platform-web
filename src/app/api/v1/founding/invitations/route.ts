@@ -13,7 +13,7 @@ function isSource(value: string | undefined): value is FoundingSource {
 }
 
 export async function POST(req: Request) {
-  const session = await requirePlatformSession();
+  const session = await requirePlatformSession(req);
   if (isNextResponse(session)) return session;
 
   const allowed = canAccessCommandCentre({

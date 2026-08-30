@@ -7,7 +7,7 @@ import {
 import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
-  const session = await requirePlatformSession();
+  const session = await requirePlatformSession(req);
   if (isNextResponse(session)) return session;
 
   const after = Number(new URL(req.url).searchParams.get("after") ?? 0);
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await requirePlatformSession();
+  const session = await requirePlatformSession(req);
   if (isNextResponse(session)) return session;
 
   const body = await req.json().catch(() => null);

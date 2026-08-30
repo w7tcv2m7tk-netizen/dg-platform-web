@@ -7,7 +7,7 @@ type Ctx = { params: Promise<{ id: string }> };
 const VALID_STATUSES: CommissionStatus[] = ["CALCULATED", "PENDING", "APPROVED", "PAID"];
 
 export async function POST(req: Request, ctx: Ctx) {
-  const session = await requirePlatformSession();
+  const session = await requirePlatformSession(req);
   if (isNextResponse(session)) return session;
 
   const allowed = canAccessCommandCentre({

@@ -27,7 +27,7 @@ export async function GET(req: Request) {
     });
   }
 
-  const session = await requireClerkSession();
+  const session = await requireClerkSession(req);
   if (!isNextResponse(session)) {
     return NextResponse.json({
       data: {

@@ -94,7 +94,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  const session = await requirePlatformSession();
+  const session = await requirePlatformSession(req);
   if (isNextResponse(session)) return session;
 
   const body = await req.json().catch(() => null);

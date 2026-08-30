@@ -11,8 +11,8 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-export async function DELETE(_req: Request, { params }: RouteParams) {
-  const session = await requireClerkSession();
+export async function DELETE(req: Request, { params }: RouteParams) {
+  const session = await requireClerkSession(req);
   if (isNextResponse(session)) return session;
 
   const denied = requireOrgAdmin(session);

@@ -9,7 +9,7 @@ import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
 
 export async function POST(req: Request) {
   try {
-    const session = await requirePlatformSession();
+    const session = await requirePlatformSession(req);
     if (isNextResponse(session)) return session;
 
     const allowed = canAccessCommandCentre({

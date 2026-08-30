@@ -17,6 +17,7 @@ import {
 import { NextResponse } from "next/server";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { enforceWriteEntitlement } from "@/lib/entitlement-gate";
 
 // Ensure in-app notification fan-out is bound in this Node isolate.
 registerNotificationEventHandlers();
@@ -44,13 +45,43 @@ function isValidLegacyConnectorKey(provided: string) {
   return keys.some((key) => key === provided);
 }
 
-/** Clerk session only — for user-specific routes (support chat, key management). */
-export async function requireClerkSession(): Promise<PlatformSession | NextResponse> {
-  return resolveClerkSession();
+/**
+ * Clerk session only — for user-specific routes (support chat, key management).
+ *
+ * Pass `req` so the subscription write gate can run; without it the route is
+ * authenticated but not entitlement-checked.
+ */
+export async function requireClerkSession(
+  req?: Request,
+): Promise<PlatformSession | NextResponse> {
+  const session = await resolveClerkSession();
+  if (isNextResponse(session)) return session;
+  if (req) {
+    const blocked = await enforceWriteEntitlement(session, req);
+    if (blocked) return blocked;
+  }
+  return session;
 }
 
-/** Clerk session or organisation API key (`dg_live_…`). */
+/**
+ * Clerk session or organisation API key (`dg_live_…`).
+ *
+ * This is the central authentication funnel for `/api/v1/*`, so it is also
+ * where the subscription write gate runs — see lib/entitlement-gate.
+ */
 export async function requirePlatformAuth(
+  req: Request,
+): Promise<PlatformSession | NextResponse> {
+  const session = await resolvePlatformAuthSession(req);
+  if (isNextResponse(session)) return session;
+
+  const blocked = await enforceWriteEntitlement(session, req);
+  if (blocked) return blocked;
+
+  return session;
+}
+
+async function resolvePlatformAuthSession(
   req: Request,
 ): Promise<PlatformSession | NextResponse> {
   const apiKey = extractApiKeyFromRequest(req);

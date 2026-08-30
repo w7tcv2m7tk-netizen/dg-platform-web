@@ -4,8 +4,8 @@ import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-export async function POST(_req: Request, ctx: Ctx) {
-  const session = await requirePlatformSession();
+export async function POST(req: Request, ctx: Ctx) {
+  const session = await requirePlatformSession(req);
   if (isNextResponse(session)) return session;
 
   const allowed = canAccessCommandCentre({

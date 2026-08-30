@@ -67,20 +67,45 @@ function mapRow(row: {
   };
 }
 
-export async function getPlatformSubscription(
+/**
+ * Subscription lookup with an explicit outcome (H-3).
+ *
+ * "No row" and "lookup failed" previously both returned null, and the
+ * entitlement resolver treated null as FULL — so a database error silently
+ * granted unrestricted access. Callers can now tell a legitimate pre-checkout
+ * organisation from an infrastructure failure.
+ */
+export type PlatformSubscriptionLookup =
+  | { ok: true; subscription: PlatformSubscriptionRow | null }
+  | { ok: false; reason: "not_configured" | "lookup_failed" };
+
+export async function getPlatformSubscriptionResult(
   organisationId: string,
-): Promise<PlatformSubscriptionRow | null> {
-  if (!process.env.DATABASE_URL) return null;
+): Promise<PlatformSubscriptionLookup> {
+  if (!process.env.DATABASE_URL) {
+    return { ok: false, reason: "not_configured" };
+  }
   try {
     const { prisma } = await import("@dg/database");
     const row = await prisma.platformSubscription.findUnique({
       where: { organisationId },
     });
-    return row ? mapRow(row) : null;
-  } catch {
-    // Table may not exist until migration is applied — never take down Apps / Settings.
-    return null;
+    return { ok: true, subscription: row ? mapRow(row) : null };
+  } catch (err) {
+    console.error("[billing] platform subscription lookup failed", err);
+    return { ok: false, reason: "lookup_failed" };
   }
+}
+
+/**
+ * Back-compatible accessor. Collapses both failure modes to null — only use
+ * where a missing subscription and a failed lookup are genuinely equivalent.
+ */
+export async function getPlatformSubscription(
+  organisationId: string,
+): Promise<PlatformSubscriptionRow | null> {
+  const result = await getPlatformSubscriptionResult(organisationId);
+  return result.ok ? result.subscription : null;
 }
 
 export async function getPlatformSubscriptionByStripeCustomer(

@@ -1,4 +1,4 @@
-import { getPlatformSubscription } from "./subscription-store";
+import { getPlatformSubscriptionResult } from "./subscription-store";
 import {
   buildBillingBanner,
   capabilitiesForEntitlement,
@@ -21,14 +21,53 @@ export type ResolvedEntitlement = {
   paymentFailedAt: Date | null;
   planTier: string | null;
   banner: ReturnType<typeof buildBillingBanner>;
+  /**
+   * Where this entitlement came from. `lookup_failed` means the subscription
+   * could not be read and the result is a fail-closed default, not a statement
+   * about the organisation's commercial standing.
+   */
+  source: "subscription" | "no_subscription" | "lookup_failed";
 };
 
 export async function resolveEntitlement(
   organisationId: string,
 ): Promise<ResolvedEntitlement> {
-  const sub = await getPlatformSubscription(organisationId);
+  const lookup = await getPlatformSubscriptionResult(organisationId);
+
+  if (!lookup.ok) {
+    // Fail closed: an unreadable subscription must not become unrestricted
+    // access. Reads, exports and billing recovery stay available so the
+    // organisation is not locked out of fixing the problem.
+    const level: PlatformEntitlementLevel = "READ_ONLY";
+    return {
+      organisationId,
+      level,
+      capabilities: capabilitiesForEntitlement(level),
+      commercialStatus: null,
+      foundingCustomer: false,
+      platformExempt: false,
+      trialEnd: null,
+      currentPeriodEnd: null,
+      cancelAtPeriodEnd: false,
+      paymentFailedAt: null,
+      planTier: null,
+      banner: {
+        kind: "none",
+        title: "",
+        body: "",
+        tone: "neutral",
+      },
+      source: "lookup_failed",
+    };
+  }
+
+  const sub = lookup.subscription;
 
   if (!sub) {
+    // Legitimate pre-checkout state: organisations exist before they subscribe
+    // (signup, trial, onboarding) and the 20260826 backfill only covers orgs
+    // that already had billing settings. This is a real free/trial state, not
+    // an error, so it keeps full capability.
     const level: PlatformEntitlementLevel = "FULL";
     return {
       organisationId,
@@ -43,6 +82,7 @@ export async function resolveEntitlement(
       paymentFailedAt: null,
       planTier: null,
       banner: { kind: "none", title: "", body: "", tone: "neutral" },
+      source: "no_subscription",
     };
   }
 
@@ -55,6 +95,7 @@ export async function resolveEntitlement(
     organisationId,
     level,
     capabilities: capabilitiesForEntitlement(level),
+    source: "subscription" as const,
     commercialStatus: sub.status,
     foundingCustomer: sub.foundingCustomer,
     platformExempt: sub.platformExempt,
