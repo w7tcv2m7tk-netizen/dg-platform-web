@@ -29,6 +29,25 @@
 -- ============================================================================
 
 -- 1. State machine columns.
+--
+-- Two-step default is deliberate and load-bearing:
+--
+--   Step 1a adds `status` with DEFAULT 'processed'. Every EXISTING row is
+--   backfilled to 'processed' in the same statement, with no separate UPDATE
+--   and no window in which history looks unprocessed. Existing rows were only
+--   ever written on a successful claim under the pre-state-machine code, so
+--   'processed' preserves today's dedup behaviour exactly and can never cause
+--   a historical event to be reprocessed.
+--
+--   Step 1b then changes the default to 'processing' for FUTURE inserts,
+--   because a new row is created at CLAIM time, not at completion. Leaving the
+--   default as 'processed' would mark every new claim as already complete and
+--   silently disable retry — the opposite of this migration's purpose.
+--
+-- Both steps are idempotent: IF NOT EXISTS on the columns, and SET DEFAULT is
+-- naturally repeatable. Running this file twice is safe.
+
+-- 1a. Add columns; existing rows land on 'processed'.
 ALTER TABLE "stripe_webhook_receipts"
   ADD COLUMN IF NOT EXISTS "status" TEXT NOT NULL DEFAULT 'processed',
   ADD COLUMN IF NOT EXISTS "attempts" INTEGER NOT NULL DEFAULT 1,
@@ -36,12 +55,16 @@ ALTER TABLE "stripe_webhook_receipts"
   ADD COLUMN IF NOT EXISTS "completed_at" TIMESTAMP(3),
   ADD COLUMN IF NOT EXISTS "last_error" TEXT;
 
--- Existing rows predate the state machine. They were only ever written on a
--- successful claim under the old code, and the vast majority completed, so
--- 'processed' is the correct and safe backfill: it preserves today's dedup
--- behaviour and never re-runs historical events.
+-- 1b. Future inserts are claims, not completions.
+ALTER TABLE "stripe_webhook_receipts"
+  ALTER COLUMN "status" SET DEFAULT 'processing';
+
+-- Historical rows keep claimed_at / completed_at NULL. That is intentional:
+-- the stale sweep only considers status='processing', so a NULL claimed_at on
+-- a 'processed' row is never examined.
+
 COMMENT ON COLUMN "stripe_webhook_receipts"."status" IS
-  'processing | processed | failed — see docs; default processed backfills pre-state-machine rows';
+  'processing | processed | failed. Existing rows backfilled to processed; new claims default to processing.';
 
 -- 2. Index for the stale-claim sweep.
 CREATE INDEX IF NOT EXISTS "stripe_webhook_receipts_status_claimed_at_idx"
