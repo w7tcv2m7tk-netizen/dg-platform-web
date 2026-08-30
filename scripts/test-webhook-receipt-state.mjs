@@ -352,3 +352,84 @@ describe("H-7: migration artefact safety", () => {
     assert.doesNotMatch(sql, /\bDELETE FROM\b/);
   });
 });
+
+/**
+ * The migration flips the `status` default to 'processing' while the previously
+ * deployed code is still running. That code inserts a receipt only AFTER a
+ * successful handler run and specifies neither `status` nor `claimed_at`, so
+ * every row written during the deployment window lands as 'processing' with a
+ * NULL claim despite having completed. Re-running those events would duplicate
+ * non-idempotent side effects (paid-stay marker, Connect account update).
+ */
+describe("Deployment window: 'processing' rows with no claim timestamp", () => {
+  it("treats a NULL claim as already processed, never as a crash", async () => {
+    const { claimWebhookEvent } = await load();
+    const store = memoryStore();
+
+    // Exactly what the pre-deployment code plus the new column default produce.
+    store.rows.set("evt_window", {
+      eventId: "evt_window",
+      status: "processing",
+      attempts: 1,
+      claimedAt: null,
+      completedAt: null,
+    });
+
+    const outcome = await claimWebhookEvent(store, {
+      eventId: "evt_window",
+      eventType: "checkout.session.completed",
+    });
+
+    assert.equal(outcome.kind, "duplicate");
+    assert.equal(outcome.reason, "already_processed");
+  });
+
+  it("stays a duplicate long after any stale threshold would have expired", async () => {
+    const { claimWebhookEvent, STALE_CLAIM_MS } = await load();
+    const store = memoryStore();
+    store.rows.set("evt_window_old", {
+      eventId: "evt_window_old",
+      status: "processing",
+      attempts: 1,
+      claimedAt: null,
+      completedAt: null,
+    });
+
+    const outcome = await claimWebhookEvent(store, {
+      eventId: "evt_window_old",
+      eventType: "invoice.paid",
+      now: new Date(Date.now() + STALE_CLAIM_MS * 100),
+    });
+
+    assert.equal(outcome.kind, "duplicate", "a NULL claim must never age into a reclaim");
+  });
+
+  it("does not rely on the store to reject a NULL claim", async () => {
+    const { claimWebhookEvent } = await load();
+    const store = memoryStore();
+    store.rows.set("evt_permissive", {
+      eventId: "evt_permissive",
+      status: "processing",
+      attempts: 1,
+      claimedAt: null,
+      completedAt: null,
+    });
+    // A store that would happily reclaim anything must still not be reached.
+    let reclaimCalled = false;
+    const permissive = {
+      ...store,
+      async reclaim() {
+        reclaimCalled = true;
+        return 2;
+      },
+    };
+
+    const outcome = await claimWebhookEvent(permissive, {
+      eventId: "evt_permissive",
+      eventType: "invoice.paid",
+    });
+
+    assert.equal(outcome.kind, "duplicate");
+    assert.equal(reclaimCalled, false, "must decide before attempting a reclaim");
+  });
+});

@@ -682,6 +682,11 @@ CREATE TABLE "stripe_webhook_receipts" (
     "event_type" TEXT NOT NULL,
     "organisation_id" TEXT,
     "processed_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "status" TEXT NOT NULL DEFAULT 'processing',
+    "attempts" INTEGER NOT NULL DEFAULT 1,
+    "claimed_at" TIMESTAMP(3),
+    "completed_at" TIMESTAMP(3),
+    "last_error" TEXT,
 
     CONSTRAINT "stripe_webhook_receipts_pkey" PRIMARY KEY ("id")
 );
@@ -1558,6 +1563,9 @@ CREATE UNIQUE INDEX "stripe_webhook_receipts_event_id_key" ON "stripe_webhook_re
 
 -- CreateIndex
 CREATE INDEX "stripe_webhook_receipts_processed_at_idx" ON "stripe_webhook_receipts"("processed_at");
+
+-- CreateIndex
+CREATE INDEX "stripe_webhook_receipts_status_claimed_at_idx" ON "stripe_webhook_receipts"("status", "claimed_at");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "commerce_refunds_organisation_id_provider_refund_id_key" ON "commerce_refunds"("organisation_id", "provider_refund_id");

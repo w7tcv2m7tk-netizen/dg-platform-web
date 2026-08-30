@@ -48,9 +48,13 @@ npx prisma migrate diff \
 
 This command reads only the schema file. It does not connect to any database.
 
-The artifact contains the full current schema: **63 `CREATE TABLE`, 163
+The artifact contains the full current schema: **63 `CREATE TABLE`, 164
 indexes, 91 foreign keys**, including the SQL-level constraints the existing
 migrations never expressed.
+
+Regenerate it whenever `schema.prisma` changes, or the baseline silently drifts
+and the step 1 verification below stops being meaningful. It has been
+regenerated once already, for the H-7 receipt-state columns.
 
 It is deliberately placed under `prisma/baseline/`, **not** under
 `prisma/migrations/`, so that `migrate deploy` cannot pick it up and attempt to
@@ -157,16 +161,18 @@ generated from the schema file alone.
 
 ## Related artifacts
 
-Two further SQL artifacts sit alongside the baseline under
-`packages/database/prisma/baseline/proposed/`. Both are **unapplied** and
-neither is referenced by application code:
-
-| Artifact | Purpose | Blocking prerequisite |
+| Artifact | Purpose | State |
 |---|---|---|
-| `stay_booking_no_overlap.sql` | Database-enforced booking overlap invariant (H-9 defence in depth) | `btree_gist` availability on Neon is unverified; the write paths must translate SQLSTATE 23P01 first; the operator force-override question must be settled |
-| `stripe_webhook_receipt_state.sql` | Receipt state machine for webhook crash recovery (H-7 residual) | Must be applied **before** any code reads the new columns |
+| `baseline/proposed/stay_booking_no_overlap.sql` | Database-enforced booking overlap invariant (H-9 defence in depth) | **Unapplied, not referenced by code.** Blocked: `btree_gist` availability on Neon is unverified, the write paths must translate SQLSTATE 23P01 first, and the operator force-override question is undecided. |
+| `migrations/20260830_stripe_webhook_receipt_state/` | Receipt state machine for webhook crash recovery (H-7) | **Unapplied, but application code now depends on it.** Must be applied before that code is deployed — see `STRIPE-RECEIPT-STATE-DEPLOYMENT.md`. |
 
-Re-verified after Phase 3: `schema.prisma` still defines 63 models,
-`baseline/0_init.sql` still contains 63 `CREATE TABLE` statements, and no
-migration has been added since `20260829_support_conversation_org_scope`. The
-baseline artifact therefore remains current and the procedure below is unchanged.
+Re-verified after Phase 7: `schema.prisma` defines 63 models and
+`baseline/0_init.sql` contains 63 `CREATE TABLE` statements. The H-7 receipt
+columns were added to the schema in Phase 6, so the baseline has been
+regenerated from the schema file to match; the only delta was those five columns
+and their index.
+
+Note that the H-7 migration is applied as **direct SQL, not
+`prisma migrate deploy`**, precisely because the problem described above is
+still open. Nothing here changes that: `migrate deploy` remains unusable until
+steps 3–4 are done.

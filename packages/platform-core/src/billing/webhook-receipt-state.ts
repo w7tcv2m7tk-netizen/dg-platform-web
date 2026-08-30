@@ -111,6 +111,23 @@ export async function claimWebhookEvent(
     return { kind: "exhausted", attempts: existing.attempts };
   }
 
+  // A 'processing' row with no claim timestamp is not a crash we may recover.
+  //
+  // The migration sets the column default to 'processing' for new inserts, but
+  // the code deployed at that moment still inserts a receipt only AFTER a
+  // successful handler run and specifies neither column. So every row written
+  // between applying the migration and deploying this code lands as
+  // 'processing' with claimed_at NULL despite having completed successfully.
+  //
+  // Those rows are indistinguishable from a crash, and the handlers are not all
+  // idempotent, so the only safe reading is "already done". Treat them as
+  // duplicates. This was previously correct only by accident — a NULL fails the
+  // `claimed_at < staleBefore` comparison in the reclaim UPDATE — which is far
+  // too subtle to leave as the sole guard against re-running a paid booking.
+  if (existing.status === "processing" && !existing.claimedAt) {
+    return { kind: "duplicate", reason: "already_processed" };
+  }
+
   // `failed` is immediately retryable. `processing` is only retryable once the
   // claim is provably abandoned.
   const staleBefore = new Date(now.getTime() - STALE_CLAIM_MS);
