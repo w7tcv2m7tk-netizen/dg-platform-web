@@ -5,7 +5,7 @@ import {
   getTemplate,
   industryBetaFlagForAppId,
   isIndustryBetaGatedApp,
-  isPlatformOperatorOrgSlug,
+  hasPlatformAuthority,
   isTemplateActivatable,
   readOrgIndustrySettings,
   resolveEnabledAppIds,
@@ -159,8 +159,11 @@ export async function PATCH(req: Request) {
     );
   }
 
-  const staffOrOperator =
-    session.role === "dg:staff" || isPlatformOperatorOrgSlug(session.organisationSlug);
+  // Platform authority only — organisation slug is tenant-editable.
+  const staffOrOperator = hasPlatformAuthority({
+    organisationId: session.organisationId,
+    role: session.role,
+  });
 
   if (action === "activate" && !staffOrOperator) {
     const gate = await assertEntitlement(session.organisationId, "activatePaidApps");

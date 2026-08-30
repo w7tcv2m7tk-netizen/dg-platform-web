@@ -5,7 +5,7 @@ import {
   getDefaultEnabledAppIds,
   industryBetaFlagForAppId,
   isIndustryBetaGatedApp,
-  isPlatformOperatorOrgSlug,
+  hasPlatformAuthority,
   resolveEnabledAppIds,
 } from "@dg/platform-core";
 
@@ -96,9 +96,12 @@ export async function PATCH(req: Request) {
   const settings = (org?.settings as OrgSettings | null) ?? {};
   let enabled = resolveEnabledAppIds(settings);
 
-  const staffOrOperator =
-    session.role === "dg:staff" ||
-    isPlatformOperatorOrgSlug(session.organisationSlug);
+  // Platform authority only — organisation slug is tenant-editable (see
+  // packages/platform-core/src/access/platform-authority.ts).
+  const staffOrOperator = hasPlatformAuthority({
+    organisationId: session.organisationId,
+    role: session.role,
+  });
 
   const paidActivation =
     body.action === "apply_plan" ||
