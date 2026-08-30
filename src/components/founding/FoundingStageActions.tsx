@@ -198,6 +198,17 @@ export function FoundingStageActions({
         >
           Invite onboarding
         </button>
+        {(current === "accepted" ||
+          current === "agreement_signed" ||
+          current === "onboarding_invited" ||
+          current === "onboarding_started") && (
+          <a
+            href="/onboarding?journey=founding"
+            className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500"
+          >
+            Start Onboarding
+          </a>
+        )}
         <select
           className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-200"
           value={current}

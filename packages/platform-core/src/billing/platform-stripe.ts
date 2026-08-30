@@ -3,7 +3,10 @@ import Stripe from "stripe";
 
 import { appIdsFromPlanSelection } from "../apps/org-apps";
 import type { PlanSelectionInput } from "../apps/org-apps";
-import { BILLING_COMMERCIAL_CONFIG } from "./subscription-types";
+import {
+  annualPriceFromMonthlyCents,
+  BILLING_COMMERCIAL_CONFIG,
+} from "./subscription-types";
 import { industryCheckoutLines } from "../industry/platform";
 import { applyBrandPresetToProfile } from "../org/brand-presets";
 import type { OrganisationBusinessProfile } from "../org/business-profile-types";
@@ -13,6 +16,8 @@ const TIER_AMOUNTS_CENTS: Record<string, number> = {
   professional: 24900,
   business: 49900,
 };
+
+export type PlatformBillingCadence = "monthly" | "annual";
 
 const TIER_LABELS: Record<string, string> = {
   starter: "DigitalGate Starter",
@@ -60,15 +65,29 @@ export interface PlatformCheckoutInput {
   industryApps?: string[];
   premiumApps?: string[];
   businessName?: string;
+  /** monthly (default) or annual — annual uses BILLING_COMMERCIAL_CONFIG months-equivalent. */
+  billingCadence?: PlatformBillingCadence;
+  /** Where Stripe returns after success (defaults to apps catalog). */
+  successPath?: string;
+  cancelPath?: string;
 }
 
 export async function createPlatformCheckoutSession(input: PlatformCheckoutInput) {
   const stripe = getStripeClient();
   const tier = input.platformTier;
-  const amount = TIER_AMOUNTS_CENTS[tier];
-  if (!amount) {
+  const monthlyAmount = TIER_AMOUNTS_CENTS[tier];
+  if (!monthlyAmount) {
     throw new Error(`Unsupported platform tier: ${tier}`);
   }
+
+  const cadence: PlatformBillingCadence =
+    input.billingCadence === "annual" ? "annual" : "monthly";
+  const annual = cadence === "annual";
+  const amount = annual
+    ? annualPriceFromMonthlyCents(monthlyAmount)
+    : monthlyAmount;
+  const recurring: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.Recurring =
+    annual ? { interval: "year" } : { interval: "month" };
 
   const { prisma } = await import("@dg/database");
   const org = await prisma.organisation.findUnique({
@@ -76,7 +95,8 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     select: { billingCustomerId: true, settings: true },
   });
 
-  const priceId = stripePriceIdForTier(tier);
+  // Dashboard Price IDs are monthly SKUs — only use for monthly cadence.
+  const priceId = annual ? null : stripePriceIdForTier(tier);
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = priceId
     ? [{ quantity: 1, price: priceId }]
     : [
@@ -85,9 +105,11 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
           price_data: {
             currency: "aud",
             unit_amount: amount,
-            recurring: { interval: "month" },
+            recurring,
             product_data: {
-              name: TIER_LABELS[tier] ?? `DigitalGate ${tier}`,
+              name: `${TIER_LABELS[tier] ?? `DigitalGate ${tier}`}${
+                annual ? " (Annual)" : ""
+              }`,
             },
           },
         },
@@ -95,27 +117,36 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
 
   // Industry App ($99) + additional Templates (+$29) — canonical commercial lock
   for (const line of industryCheckoutLines(input.industryApps ?? [])) {
+    const lineAmount = annual
+      ? annualPriceFromMonthlyCents(line.amountCents)
+      : line.amountCents;
     lineItems.push({
       quantity: 1,
       price_data: {
         currency: "aud",
-        unit_amount: line.amountCents,
-        recurring: { interval: "month" },
-        product_data: { name: line.name },
+        unit_amount: lineAmount,
+        recurring,
+        product_data: {
+          name: annual ? `${line.name} (Annual)` : line.name,
+        },
       },
     });
   }
 
   const base = appBaseUrl();
+  const successPath = input.successPath ?? "/dashboard/apps?sync=1&checkout=success";
+  const cancelPath =
+    input.cancelPath ?? "/dashboard/settings/billing?checkout=cancelled";
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
     line_items: lineItems,
-    success_url: `${base}/dashboard/apps?sync=1&checkout=success`,
-    cancel_url: `${base}/dashboard/settings/billing?checkout=cancelled`,
+    success_url: `${base}${successPath.startsWith("/") ? successPath : `/${successPath}`}`,
+    cancel_url: `${base}${cancelPath.startsWith("/") ? cancelPath : `/${cancelPath}`}`,
     payment_method_collection: "always",
     metadata: {
       dg_platform_checkout: "true",
       dg_platform_tier: tier,
+      dg_billing_cadence: cadence,
       dg_industry_apps: (input.industryApps ?? []).join(","),
       dg_premium_apps: (input.premiumApps ?? []).join(","),
       organisation_id: input.organisationId,
@@ -125,6 +156,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     subscription_data: {
       metadata: {
         dg_platform_tier: tier,
+        dg_billing_cadence: cadence,
         organisation_id: input.organisationId,
         dg_platform_subscription: "true",
       },
@@ -139,25 +171,21 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     sessionParams.customer_email = input.email;
   }
 
-  // Card-required 14-day trial for non-Founding / non-exempt orgs.
+  // Card-required trial for non-exempt orgs (Founding uses standard pricing + trial — no % discount).
   const { getPlatformSubscription } = await import("./subscription-store");
   const existingSub = await getPlatformSubscription(input.organisationId);
   const settingsBilling =
-    ((org?.settings as { billing?: {
-      foundingCustomer?: boolean;
-      platformExempt?: boolean;
-      programme?: string;
-    } } | null)?.billing) ?? {};
-  const founding =
-    existingSub?.foundingCustomer === true ||
-    settingsBilling.foundingCustomer === true ||
-    ["founding", "founding_customer"].includes(
-      (settingsBilling.programme ?? "").toLowerCase(),
-    );
+    ((org?.settings as {
+      billing?: {
+        foundingCustomer?: boolean;
+        platformExempt?: boolean;
+        programme?: string;
+      };
+    } | null)?.billing) ?? {};
   const exempt =
     existingSub?.platformExempt === true || settingsBilling.platformExempt === true;
 
-  if (!founding && !exempt) {
+  if (!exempt) {
     sessionParams.subscription_data = {
       ...sessionParams.subscription_data,
       trial_period_days: BILLING_COMMERCIAL_CONFIG.trialDays,

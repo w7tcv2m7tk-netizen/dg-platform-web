@@ -18,6 +18,8 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => ({}));
   const platformTier = (body.platformTier as string | undefined) ?? "professional";
+  const billingCadence =
+    body.billingCadence === "annual" ? ("annual" as const) : ("monthly" as const);
 
   try {
     const checkout = await createPlatformCheckoutSession({
@@ -27,6 +29,9 @@ export async function POST(req: Request) {
       industryApps: body.industryApps,
       premiumApps: body.premiumApps,
       businessName: session.organisationName,
+      billingCadence,
+      successPath: typeof body.successPath === "string" ? body.successPath : undefined,
+      cancelPath: typeof body.cancelPath === "string" ? body.cancelPath : undefined,
     });
     return NextResponse.json({ data: checkout });
   } catch (err) {

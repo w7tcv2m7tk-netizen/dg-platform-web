@@ -165,6 +165,17 @@ export function FoundingLifecycleCockpit({ data }: { data: FoundingLifecycleWork
                             >
                               Open →
                             </Link>
+                            {(bucket.stage === "accepted" ||
+                              bucket.stage === "agreement_signed" ||
+                              bucket.stage === "onboarding_invited" ||
+                              bucket.stage === "onboarding_started") && (
+                              <Link
+                                href="/onboarding?journey=founding"
+                                className="rounded-full bg-sky-600 px-2.5 py-1 font-medium text-white hover:bg-sky-500"
+                              >
+                                Start Onboarding
+                              </Link>
+                            )}
                             {bucket.stage === "invited" ? (
                               <FoundingInviteCardActions opportunityId={customer.id} />
                             ) : null}

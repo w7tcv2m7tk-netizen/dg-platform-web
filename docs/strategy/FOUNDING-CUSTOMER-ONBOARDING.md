@@ -29,11 +29,13 @@ Inviting someone does **not** count as a seat. `Founding 10: 7 / 10` only includ
 | Staff pipeline | `/command/founding` and CRM opportunity / contact |
 | Accept / emails | Opportunity → Accept & send welcome |
 | Agreement | `/founding/agreement` (signed-in) |
-| Guided onboarding | `/onboarding` (Founding journey) |
+| Guided onboarding | `/onboarding` — **Gen 2 progressive wizard** (Welcome → Identity → Profile → Goals → Plan → Apps → Monthly/Annual → Stripe 14-day trial → Connect → Checklist → Implementation) |
 | Implementation plan | `/implementation` |
-| Live platform | `/dashboard` |
+| Live platform | `/dashboard` (persistent getting-started checklist until complete) |
 
-Setup link in the acceptance email: `/founding/setup?invite=…` (agreement first, then onboarding).
+Setup link in the acceptance email: `/founding/setup?invite=…` (agreement first, then Gen 2 onboarding).
+
+**Commercial lock:** standard published pricing + annual months-equivalent saving + 14-day Stripe trial. No Founding % discount. Command Centre shows **Start Onboarding** from Accepted / Agreement signed / Onboarding stages.
 
 ## Staff actions
 

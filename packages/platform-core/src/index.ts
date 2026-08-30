@@ -116,6 +116,7 @@ export * from "./finance";
 export * from "./commercial";
 export * from "./property-management";
 export * from "./founding";
+export * from "./onboarding";
 export * from "./partners";
 export * from "./delivery";
 export * from "./brain";

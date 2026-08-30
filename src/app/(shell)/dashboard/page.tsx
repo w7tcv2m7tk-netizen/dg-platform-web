@@ -16,6 +16,7 @@ import {
 
 import { BusinessOverviewDashboard } from "@/components/overview/BusinessOverviewDashboard";
 import { FoundingOperatorHome } from "@/components/overview/FoundingOperatorHome";
+import { Gen2OnboardingChecklistBanner } from "@/components/onboarding/Gen2OnboardingChecklistBanner";
 import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { autoSyncWordPressVendorLeadsIfNeeded } from "@/lib/wordpress-sync";
@@ -141,6 +142,9 @@ export default async function DashboardPage() {
               Sign in to load your workspace overview.
             </p>
           </div>
+        ) : null}
+        {platformSession ? (
+          <Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} />
         ) : null}
         {foundingCustomerMode ? (
           <FoundingOperatorHome
