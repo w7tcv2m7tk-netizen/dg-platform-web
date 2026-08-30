@@ -608,18 +608,59 @@ Consequences:
 - The **Gen 2-native** public booking path is unaffected. It writes Neon first
   and finalises through Gen 2's own Stripe webhook.
 
-The smallest correct fix is a one-way notification, plugin-side, at the end of
-`create_booking_from_data` in
-`modules/accommodation/includes/class-acc-payments.php`:
+### The plugin patch — reviewed and ready, cannot be pushed from here
+
+The fix is a one-way notification in `dg-platform` (plugin v10.70.0). It has been
+reviewed against the plugin source and all six preconditions are confirmed, but
+this agent has **read-only** access to that repository: `git push --dry-run`
+returns `403 Permission to w7tcv2m7tk-netizen/dg-platform.git denied`. So it is
+recorded here rather than applied.
+
+**File:** `modules/accommodation/includes/class-acc-payments.php`
+**Function:** `create_booking_from_data`
+**Placement:** immediately after the `is_wp_error` guard (currently lines 155-157),
+before the `if ($email)` confirmation-email block — the earliest point at which
+the booking definitively exists with its meta fully written.
 
 ```php
-do_action('dg_booking_created', (int) $booking_id, $booking_ref);
+         if (is_wp_error($booking_id)) {
+             return $booking_id;
+         }
+ 
++        do_action('dg_booking_created', (int) $booking_id, $booking_ref);
++
+         if ($email) {
+             self::send_booking_confirmation([
 ```
 
-`DG_Acc_Platform_Sync` already listens on that hook, so nothing else changes: no
-new endpoint, no new secret, and Neon stays authoritative because the existing
-webhook path runs the same import rules as every other WordPress row — including
-the divergence check. Nothing in this repository needs to change for it.
+One line. It is not a new pattern: the PayID path in the **same file** (line 372)
+already ends with exactly `do_action('dg_booking_created', (int) $booking_id, $booking_ref);`,
+and the Dev API create uses the same call. This makes the Stripe path consistent
+with the two paths that already notify.
+
+**Preconditions, all confirmed against source:**
+
+| Requirement | Evidence |
+|---|---|
+| Listener exists | `class-acc-platform-sync.php:19` — `add_action('dg_booking_created', [__CLASS__, 'on_booking_created'], 40, 2)` |
+| Signature matches | `on_booking_created($booking_id, $ref = '')` takes 2 args; the call passes `(int)` then the ref string. The listener ignores `$ref` and calls `push_booking((int) $booking_id)` |
+| Cannot duplicate the booking | Three independent layers. (1) `create_booking_from_data` opens with a `dg_booking_ref` lookup and returns the existing id **before** any insert, so a webhook/confirm-booking race fires the hook at most once. (2) `upsertStayBookingFromWpRow` keys on `organisationId + externalWpId`, so a repeat push updates rather than inserts — and an unchanged repeat is skipped by the fingerprint rule. (3) the create path holds the unit advisory lock and refuses a genuine overlap |
+| `externalWpId` stays authoritative | The webhook parser maps the WordPress post `id` and requires it to be numeric and > 0; the upsert matches on `organisationId_externalWpId`. No `platform_id` anywhere |
+| Neon import/fingerprint/conflict logic is used | The webhook calls the same `upsertStayBookingFromWpRow` the pull sync uses, so it passes through `classifyWpBookingImport` and `recordImportConflict` |
+| One-way only | `push_booking` is a fire-and-forget `wp_remote_post` (`'blocking' => false`) to the existing Gen 2 webhook. Gen 2 decides whether to accept; nothing writes back to WordPress on that path |
+
+**Round-trip test, once applied:** take a Stripe booking on a non-apex WordPress
+host, then confirm in order — the `dg_booking` post exists with `paid=yes`; the
+Gen 2 webhook receives one request; a `StayBooking` appears in Neon with
+`externalWpId` set to the WordPress post id and `paid: "yes"` in metadata; the
+dates now show as occupied on the Gen 2 calendar; and re-firing the same event
+returns `skipped` rather than creating a second row. Apex hosts are unaffected
+either way — the webhook has no apex gate, so it works, while the pull sync that
+previously could not repair this remains refused.
+
+No change is required in this repository. Neon stays authoritative because that
+webhook path runs the same import rules as every other WordPress row, including
+the divergence check.
 
 ### `platform_id` round-trip — resolved: the plugin has no such field
 
