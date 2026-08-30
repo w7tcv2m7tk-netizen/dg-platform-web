@@ -32,8 +32,12 @@ function withExtension(basePath) {
   const candidates = [
     `${basePath}.ts`,
     `${basePath}.tsx`,
+    `${basePath}.mjs`,
+    `${basePath}.js`,
     path.join(basePath, "index.ts"),
     path.join(basePath, "index.tsx"),
+    path.join(basePath, "index.mjs"),
+    path.join(basePath, "index.js"),
   ];
   return candidates.find((candidate) => existsSync(candidate)) ?? null;
 }
