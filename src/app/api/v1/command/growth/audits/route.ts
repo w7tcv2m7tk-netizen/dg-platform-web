@@ -1,6 +1,7 @@
 import {
   listGrowthProspectAudits,
   listProspectsNeedingAudit,
+  organisationGrowthScope,
   runGrowthProspectAudit,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
@@ -20,9 +21,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ data: needs });
   }
 
-  const audits = await listGrowthProspectAudits({
-    organisationId: session.organisationId,
-  });
+  const audits = await listGrowthProspectAudits(
+    organisationGrowthScope(session.organisationId),
+  );
   return NextResponse.json({ data: audits });
 }
 
@@ -41,6 +42,7 @@ export async function POST(req: Request) {
 
   const audit = await runGrowthProspectAudit({
     prospectId,
+    scope: organisationGrowthScope(session.organisationId),
     actorId: session.clerkUserId,
     operatorOrganisationId: session.organisationId,
   });

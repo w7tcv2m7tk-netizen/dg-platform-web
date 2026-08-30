@@ -14,8 +14,6 @@ export function PlatformShell({
   showResellerAdmin = false,
   partnerType = null,
   membershipRole = "member",
-  organisationSlug,
-  userEmail,
   permissionGrants,
   activeOrganisationId,
   activeOrganisationName,
@@ -34,8 +32,6 @@ export function PlatformShell({
   showResellerAdmin?: boolean;
   partnerType?: import("@dg/platform-core").PartnerType | null;
   membershipRole?: string;
-  organisationSlug?: string;
-  userEmail?: string;
   permissionGrants?: unknown;
   activeOrganisationId?: string;
   activeOrganisationName?: string;

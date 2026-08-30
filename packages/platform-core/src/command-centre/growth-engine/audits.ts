@@ -37,6 +37,12 @@ function serializeAudit(row: {
   };
 }
 
+import {
+  growthScopeProspectWhere,
+  growthScopeWhere,
+  type GrowthScope,
+} from "./scope";
+
 export async function createGrowthProspectAudit(input: CreateGrowthProspectAuditInput) {
   const { prisma } = await import("@dg/database");
 
@@ -89,12 +95,13 @@ export async function createGrowthProspectAudit(input: CreateGrowthProspectAudit
 /** Live presence audit for a prospect — fetches website signals when a URL exists. */
 export async function runGrowthProspectAudit(input: {
   prospectId: string;
+  scope: GrowthScope;
   actorId?: string;
   operatorOrganisationId?: string;
 }) {
   const { prisma } = await import("@dg/database");
-  const prospect = await prisma.growthProspect.findUnique({
-    where: { id: input.prospectId },
+  const prospect = await prisma.growthProspect.findFirst({
+    where: { id: input.prospectId, ...growthScopeWhere(input.scope) },
   });
   if (!prospect || prospect.archivedAt) return null;
 
@@ -135,20 +142,19 @@ export async function runGrowthProspectAudit(input: {
   };
 }
 
-export async function listGrowthProspectAudits(options?: {
-  organisationId?: string;
-  limit?: number;
-}) {
+export async function listGrowthProspectAudits(
+  scope: GrowthScope,
+  options?: { limit?: number },
+) {
   const { prisma } = await import("@dg/database");
   const limit = Math.min(options?.limit ?? 50, 100);
 
+  const scoped = growthScopeProspectWhere(scope).prospect;
   const rows = await prisma.growthProspectAudit.findMany({
     where: {
       prospect: {
+        ...scoped,
         archivedAt: null,
-        ...(options?.organisationId
-          ? { organisationId: options.organisationId }
-          : {}),
       },
     },
     orderBy: { auditedAt: "desc" },

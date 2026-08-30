@@ -1,28 +1,26 @@
 import {
   createGrowthProposalQuote,
   listGrowthProposalDrafts,
+  organisationGrowthScope,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse } from "@/lib/platform-api";
+import { requireProspectingEngine } from "@/lib/prospecting-api";
 
 export async function GET(req: Request) {
-  const session = await requirePlatformAuth(req);
+  const session = await requireProspectingEngine(req, "command.growth.read");
   if (isNextResponse(session)) return session;
 
-  const denied = requireFeature(session, "command.growth.read");
-  if (denied) return denied;
-
-  const drafts = await listGrowthProposalDrafts();
+  const drafts = await listGrowthProposalDrafts(
+    organisationGrowthScope(session.organisationId),
+  );
   return NextResponse.json({ data: drafts });
 }
 
 export async function POST(req: Request) {
-  const session = await requirePlatformAuth(req);
+  const session = await requireProspectingEngine(req, "command.growth.manage");
   if (isNextResponse(session)) return session;
-
-  const denied = requireFeature(session, "command.growth.manage");
-  if (denied) return denied;
 
   const body = await req.json().catch(() => null);
   const prospectId = typeof body?.prospectId === "string" ? body.prospectId.trim() : "";
@@ -36,6 +34,7 @@ export async function POST(req: Request) {
   const result = await createGrowthProposalQuote({
     prospectId,
     organisationId: session.organisationId,
+    scope: organisationGrowthScope(session.organisationId),
     actorId: session.clerkUserId,
   });
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   GROWTH_ENGINE_STAGE_LABELS,
   listGrowthProspectAudits,
+  organisationGrowthScope,
   listProspectsNeedingAudit,
 } from "@dg/platform-core";
 
@@ -9,6 +10,7 @@ import {
   GenerateProspectReportButton,
   RunProspectAuditButton,
 } from "@/components/command/GrowthEngineActions";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 function findingCount(findings: unknown) {
   if (!findings || typeof findings !== "object") return 0;
@@ -18,8 +20,14 @@ function findingCount(findings: unknown) {
 
 export default async function GrowthAuditsPage() {
   const db = Boolean(process.env.DATABASE_URL);
-  const [audits, needsAudit] = db
-    ? await Promise.all([listGrowthProspectAudits(), listProspectsNeedingAudit()])
+  const { session } = await getPlatformPageContext();
+  const [audits, needsAudit] = db && session?.organisationId
+    ? await Promise.all([
+        listGrowthProspectAudits(
+          organisationGrowthScope(session.organisationId),
+        ),
+        listProspectsNeedingAudit({ organisationId: session.organisationId }),
+      ])
     : [[], []];
 
   return (
