@@ -71,29 +71,24 @@ Session refresh that redirects to `https://clerk.digitalgate.com.au/v1/client/ha
 
 ### Fix in code
 
-- Middleware can proxy FAPI on `/__clerk` **only when** `CLERK_PROXY_URL` is set
-- `ClerkProvider` `proxyUrl` from that same env (no silent production default)
+- Middleware forwards FAPI on `/__clerk` for **`app.digitalgate.com.au`** (so Dashboard can validate)
+- `ClerkProvider` `proxyUrl` only when `CLERK_PROXY_URL` is set (after Valid)
 - If Clerk would redirect off-origin to `clerk.*` / Account Portal, middleware rewrites to **same-window `/login`**
 - Client guard: never `window.open` Clerk; click-capture sends users to `/login`
 - Manifest stays `standalone` with same-origin `start_url`
 
 ### Ben config checklist (exact order)
 
-Do **not** set the Vercel proxy env before Dashboard validates — that blanks SignIn (`host_invalid`).
+Do **not** set `CLERK_PROXY_URL` before Dashboard validates — that blanks SignIn (`host_invalid`).
 
-1. Deploy a build that includes the `/__clerk` middleware matcher (already on `main`).
-2. [Clerk Dashboard → Domains](https://dashboard.clerk.com/~/domains) → **Frontend API** → **Set proxy configuration**
-3. Proxy URL: **`https://app.digitalgate.com.au/__clerk`**
+1. Deploy a build where middleware forwards `/__clerk` on **`app.digitalgate.com.au`** (client `proxyUrl` still off).
+2. [Clerk Dashboard → Domains](https://dashboard.clerk.com/~/domains) → open **`digitalgate.com.au`** → **Proxy Configuration**
+3. Proxy URL: **`https://app.digitalgate.com.au/__clerk`**  
+   (not `https://digitalgate.com.au/__clerk` — apex returns 404)
 4. Wait until Clerk reports the proxy as **valid** (not failed).
-5. Vercel **Production** env:
-   - `CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk`
-   - `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/login`
-   - `NEXT_PUBLIC_CLERK_SIGN_UP_URL=/signup/account`
-   - `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard`
-   - `NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL=/dashboard`
-   - `NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL=/login`
+5. Vercel **Production** env: `CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk` (+ existing sign-in path envs).
 6. Redeploy Vercel.
-7. **Allowed redirect URLs / origins**: include `https://app.digitalgate.com.au` (and previews if needed).
+7. **Allowed redirect URLs / origins**: include `https://app.digitalgate.com.au`.
 8. Confirm password strategy is enabled (see Email + password above).
 
 Proxying works on **production** Clerk instances only (not `pk_test_` / localhost).

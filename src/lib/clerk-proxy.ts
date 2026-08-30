@@ -2,15 +2,18 @@
  * Clerk Frontend API proxy — keeps handshake/session refresh on the app origin
  * so installed PWAs (display: standalone) do not open clerk.* in an external browser.
  *
- * Opt-in only via server env CLERK_PROXY_URL. Do NOT enable until Clerk Dashboard
- * → Domains → Frontend API → Set proxy has been validated, or Clerk returns
- * host_invalid and SignIn never loads email/password.
+ * Two stages (order matters):
+ * 1. Middleware forwards `/__clerk` on app.digitalgate.com.au so Clerk Dashboard
+ *    can validate the proxy URL (no CLERK_PROXY_URL required yet).
+ * 2. After Dashboard shows Valid, set Vercel
+ *    CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk and redeploy so
+ *    ClerkProvider routes the browser through the proxy.
  *
- * Order:
- * 1. Deploy app (middleware can serve /__clerk)
- * 2. Dashboard proxy → https://app.digitalgate.com.au/__clerk (must validate)
- * 3. Vercel: CLERK_PROXY_URL=https://app.digitalgate.com.au/__clerk
- * 4. Redeploy
+ * Do NOT set CLERK_PROXY_URL before Dashboard validates — that causes host_invalid.
+ *
+ * Proxy URL must be the app host, not the marketing apex:
+ *   ✓ https://app.digitalgate.com.au/__clerk
+ *   ✗ https://digitalgate.com.au/__clerk
  */
 
 import { clerkConfig } from "@/lib/clerk-config";
@@ -19,9 +22,9 @@ export const CLERK_PROXY_PATH = "/__clerk";
 
 const PRODUCTION_APP_HOST = "app.digitalgate.com.au";
 
-/** True when FAPI proxy is configured via server env. */
+/** True when ClerkProvider should use proxyUrl (Dashboard already Valid). */
 export function isClerkFrontendApiProxyConfigured(): boolean {
-  return clerkConfig.isFrontendApiProxyEnabled;
+  return clerkConfig.isClientProxyEnabled;
 }
 
 /** Absolute proxy URL for ClerkProvider (only when CLERK_PROXY_URL is set). */
@@ -29,8 +32,13 @@ export function clerkProxyUrl(): string | undefined {
   return clerkConfig.proxyUrl;
 }
 
-/** Enable middleware FAPI proxy only when Dashboard + env are ready. */
-export function shouldEnableClerkFrontendApiProxy(_url: URL): boolean {
+/**
+ * Enable middleware FAPI forwarding on the production app host so Clerk can
+ * validate Proxy Configuration. Also on when CLERK_PROXY_URL is set (client stage).
+ */
+export function shouldEnableClerkFrontendApiProxy(url: URL): boolean {
+  const host = url.hostname.toLowerCase();
+  if (host === PRODUCTION_APP_HOST) return true;
   return isClerkFrontendApiProxyConfigured();
 }
 

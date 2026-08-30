@@ -140,9 +140,9 @@ const clerkHandler = clerkMiddleware(
     authorizedParties,
     signInUrl: AUTH_SIGN_IN_URL,
     /**
-     * Proxy Clerk FAPI through the app origin so session handshake stays inside
-     * the installed PWA window. Only when CLERK_PROXY_URL is set
-     * (Dashboard proxy must already be validated — otherwise SignIn breaks).
+     * Forward /__clerk on app.digitalgate.com.au so Dashboard can validate
+     * Proxy Configuration. ClerkProvider proxyUrl stays off until CLERK_PROXY_URL
+     * is set after that validation (otherwise SignIn gets host_invalid).
      */
     frontendApiProxy: {
       enabled: (url) => shouldEnableClerkFrontendApiProxy(url),
