@@ -192,7 +192,7 @@ export async function GET(req: Request) {
         sot: true,
         emptyHint:
           stored.length === 0
-            ? "No StayBooking rows yet — POST action=sync_wordpress or wait for WP dual-write webhook"
+            ? "No StayBooking rows yet — bookings are created in Gen 2. For a legacy WordPress host, POST action=sync_wordpress to import existing stays."
             : undefined,
       },
     });
@@ -986,66 +986,88 @@ export async function PATCH(req: Request) {
   }
 
   if (resource === "bookings") {
-    const result = await patchWpAccommodationBookings(updates, connector);
-    if (!result.ok) {
+    // Gen2 is canonical for bookings, so Neon is written first and WordPress
+    // mirrors it. Previously WordPress was written first and Neon only on
+    // success — which meant apex-retired brands (CVH, Roe, DG, Aetherra) could
+    // not edit a booking at all: patchWpAccommodationBookings refuses on those
+    // hosts and returned 422 before Neon was ever touched.
+    const applied: Array<Record<string, unknown>> = [];
+    const neonErrors: string[] = [];
+
+    for (const row of updates) {
+      if (!row || typeof row !== "object") continue;
+      const patch = row as Record<string, unknown>;
+      const identity =
+        typeof patch.platform_id === "string"
+          ? patch.platform_id
+          : typeof patch.id === "number"
+            ? `wp:${patch.id}`
+            : "unknown";
+
+      try {
+        await updateStayBooking(session.organisationId, {
+          platformId: typeof patch.platform_id === "string" ? patch.platform_id : undefined,
+          externalWpId: typeof patch.id === "number" ? patch.id : undefined,
+          guestName: typeof patch.guest_name === "string" ? patch.guest_name : undefined,
+          email: typeof patch.email === "string" ? patch.email : undefined,
+          phone: typeof patch.phone === "string" ? patch.phone : undefined,
+          checkin: typeof patch.checkin === "string" ? patch.checkin : undefined,
+          checkout: typeof patch.checkout === "string" ? patch.checkout : undefined,
+          status: typeof patch.status === "string" ? patch.status : undefined,
+          total: typeof patch.total === "number" ? patch.total : undefined,
+          ref: typeof patch.ref === "string" ? patch.ref : undefined,
+          accommodationWpId:
+            typeof patch.accommodation_id === "number" ? patch.accommodation_id : undefined,
+          accommodationName:
+            typeof patch.accommodation === "string" ? patch.accommodation : undefined,
+          paid: typeof patch.paid === "string" ? patch.paid : undefined,
+          paymentMethod:
+            typeof patch.payment_method === "string" ? patch.payment_method : undefined,
+          source: typeof patch.source === "string" ? patch.source : undefined,
+          guests: typeof patch.guests === "number" ? patch.guests : undefined,
+          nights: typeof patch.nights === "number" ? patch.nights : undefined,
+          message: typeof patch.message === "string" ? patch.message : undefined,
+        });
+        applied.push(patch);
+      } catch (err) {
+        // A date change that would overlap raises StayBookingConflictError.
+        neonErrors.push(
+          `${identity}: ${err instanceof Error ? err.message : "update failed"}`,
+        );
+      }
+    }
+
+    if (!applied.length && neonErrors.length) {
       return NextResponse.json(
-        { error: { code: result.code, message: result.message } },
+        {
+          error: {
+            code: "booking_update_failed",
+            message: neonErrors.join("; "),
+          },
+        },
         { status: 422 },
       );
     }
 
-    // Mirror into Postgres StayBooking when present (incl. payment metadata).
-    // Failures used to be swallowed with .catch(() => null), so WordPress could
-    // hold a payment or date change that Neon never received and nobody saw.
-    const mirrorErrors: string[] = [];
-    for (const row of updates) {
-      if (!row || typeof row !== "object") continue;
-      const patch = row as Record<string, unknown>;
-      await updateStayBooking(session.organisationId, {
-        platformId: typeof patch.platform_id === "string" ? patch.platform_id : undefined,
-        externalWpId: typeof patch.id === "number" ? patch.id : undefined,
-        guestName: typeof patch.guest_name === "string" ? patch.guest_name : undefined,
-        email: typeof patch.email === "string" ? patch.email : undefined,
-        phone: typeof patch.phone === "string" ? patch.phone : undefined,
-        checkin: typeof patch.checkin === "string" ? patch.checkin : undefined,
-        checkout: typeof patch.checkout === "string" ? patch.checkout : undefined,
-        status: typeof patch.status === "string" ? patch.status : undefined,
-        total: typeof patch.total === "number" ? patch.total : undefined,
-        ref: typeof patch.ref === "string" ? patch.ref : undefined,
-        accommodationWpId:
-          typeof patch.accommodation_id === "number" ? patch.accommodation_id : undefined,
-        accommodationName:
-          typeof patch.accommodation === "string" ? patch.accommodation : undefined,
-        paid: typeof patch.paid === "string" ? patch.paid : undefined,
-        paymentMethod:
-          typeof patch.payment_method === "string" ? patch.payment_method : undefined,
-        source: typeof patch.source === "string" ? patch.source : undefined,
-        guests: typeof patch.guests === "number" ? patch.guests : undefined,
-        nights: typeof patch.nights === "number" ? patch.nights : undefined,
-        message: typeof patch.message === "string" ? patch.message : undefined,
-      }).catch((err: unknown) => {
-        const id =
-          typeof patch.platform_id === "string"
-            ? patch.platform_id
-            : typeof patch.id === "number"
-              ? `wp:${patch.id}`
-              : "unknown";
-        mirrorErrors.push(
-          `${id}: ${err instanceof Error ? err.message : "Neon mirror failed"}`,
+    // Mirror to WordPress only where a live legacy connector exists. On apex
+    // hosts this is skipped rather than failing the request.
+    let wpMirror: { ok: boolean; message?: string } = { ok: true };
+    if (applied.length) {
+      const mirror = await patchWpAccommodationBookings(applied, connector);
+      if (!mirror.ok) {
+        wpMirror = { ok: false, message: mirror.message };
+        console.warn(
+          "[accommodation] Neon booking update succeeded; WordPress mirror failed",
+          mirror.code,
+          mirror.message,
         );
-        return null;
-      });
-    }
-
-    if (mirrorErrors.length) {
-      console.error("[accommodation] WordPress→Neon booking mirror failed", mirrorErrors);
+      }
     }
 
     return NextResponse.json({
-      data: result.data,
-      neonMirror: mirrorErrors.length
-        ? { ok: false, errors: mirrorErrors }
-        : { ok: true },
+      data: { updated: applied.length },
+      wpMirror,
+      ...(neonErrors.length ? { errors: neonErrors } : {}),
     });
   }
 

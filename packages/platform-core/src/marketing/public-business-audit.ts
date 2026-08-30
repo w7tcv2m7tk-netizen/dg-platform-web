@@ -6,6 +6,8 @@
 
 import type { Prisma } from "@dg/database";
 
+import { claimLeadFollowupStep } from "../leads/followup-claim";
+
 import { sendMessage } from "../communications";
 import { composeEmailBody } from "../communications/email-html";
 import { runPresenceAudit } from "../command-centre/growth-engine/presence-audit";
@@ -804,6 +806,18 @@ export async function processFreeAuditFollowups(options?: {
 
     for (const step of due) {
       if (processed >= limit) break;
+
+      // Claim this (lead, step) before sending so two concurrent cron
+      // invocations cannot both deliver it.
+      const owned = await claimLeadFollowupStep({
+        leadId: lead.id,
+        organisationId: lead.organisationId,
+        sequenceKey: "free_audit",
+        step,
+        sentPath: ["free_audit_sequence", `email_${step}_sent`],
+      });
+      if (!owned) continue;
+
       processed += 1;
       const rendered = renderFreeAuditFollowup(step, {
         firstName: sequence.firstName,

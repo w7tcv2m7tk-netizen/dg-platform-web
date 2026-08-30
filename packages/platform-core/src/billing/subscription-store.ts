@@ -267,54 +267,6 @@ export async function appendSubscriptionEvent(input: {
   }
 }
 
-/**
- * Release a previously claimed receipt so a Stripe retry can process the event
- * again (H-7).
- *
- * The receipt is claimed before the handler runs, which is what makes
- * concurrent duplicate deliveries safe. But it also meant a handler that threw
- * left the claim in place: Stripe retried, the retry matched the unique
- * eventId, returned 200 `duplicate`, and the event was silently lost. Deleting
- * the row on failure returns the event to the "unseen" state.
- *
- * Row present = claimed or processed. Row absent = unseen or released.
- * Distinguishing "processing" from "processed" would need a status column on
- * StripeWebhookReceipt; see docs for the follow-up. A hard crash (rather than a
- * thrown error) can therefore still strand a claim.
- */
-export async function releaseStripeWebhookReceipt(
-  eventId: string,
-): Promise<{ released: boolean }> {
-  if (!process.env.DATABASE_URL) return { released: false };
-  const { prisma } = await import("@dg/database");
-  try {
-    await prisma.stripeWebhookReceipt.delete({ where: { eventId } });
-    return { released: true };
-  } catch {
-    // Already gone, or the table is unavailable — nothing to release.
-    return { released: false };
-  }
-}
-
-export async function claimStripeWebhookReceipt(input: {
-  eventId: string;
-  eventType: string;
-  organisationId?: string | null;
-}): Promise<{ claimed: boolean }> {
-  const { prisma } = await import("@dg/database");
-  try {
-    await prisma.stripeWebhookReceipt.create({
-      data: {
-        eventId: input.eventId,
-        eventType: input.eventType,
-        organisationId: input.organisationId ?? null,
-      },
-    });
-    return { claimed: true };
-  } catch {
-    return { claimed: false };
-  }
-}
 
 export async function listSubscriptionsNeedingDunning(limit = 200) {
   const { prisma } = await import("@dg/database");

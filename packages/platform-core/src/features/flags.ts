@@ -116,7 +116,7 @@ export const KNOWN_FEATURE_FLAGS = [
     id: "acc.gen2_first_booking",
     label: "Gen 2-first stay create",
     description:
-      "Ops create_booking conflict-checks Neon and creates StayBooking first, then dual-writes WordPress. Soft-on (default) for founding ops; set false to force WP-first. Public book-now stays WP until cutover.",
+      "Gen 2 is canonical: ops create_booking conflict-checks Neon and creates the StayBooking first, then mirrors to WordPress only where a live legacy connector exists. Soft-on by default. Setting false forces the legacy WP-first path and is retained only for organisations still on a non-apex WordPress host.",
   },
   {
     id: "re.wp_auto_sync",

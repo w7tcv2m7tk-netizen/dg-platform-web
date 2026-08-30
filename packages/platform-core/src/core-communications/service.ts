@@ -669,6 +669,13 @@ export async function scheduleOutboundEmail(input: {
  * Flush due scheduled OrgCommunication emails via sendMessage.
  * Soft-fails when the table is missing.
  */
+/**
+ * How long a `sending` claim may be held before it is treated as abandoned.
+ * Must exceed the longest possible flush; the cron has no maxDuration override
+ * so this is deliberately generous.
+ */
+const STALE_SEND_CLAIM_MS = 15 * 60 * 1000;
+
 export async function processDueScheduledEmails(input?: {
   limit?: number;
   organisationId?: string;
@@ -680,13 +687,22 @@ export async function processDueScheduledEmails(input?: {
     const { prisma } = await import("@dg/database");
     const { sendMessage } = await import("../communications");
 
+    // A worker that claims a row and then dies leaves it in `sending`.
+    // `updatedAt` is bumped by the claim, so it doubles as the claim timestamp:
+    // anything still `sending` well beyond the longest possible run is a crash
+    // and is safe to reclaim. No extra column needed.
+    const staleBefore = new Date(Date.now() - STALE_SEND_CLAIM_MS);
+
     const due = await prisma.orgCommunication.findMany({
       where: {
-        status: "scheduled",
         deletedAt: null,
         channel: "email",
         scheduledAt: { lte: new Date() },
         ...(input?.organisationId ? { organisationId: input.organisationId } : {}),
+        OR: [
+          { status: "scheduled" },
+          { status: "sending", updatedAt: { lt: staleBefore } },
+        ],
       },
       orderBy: { scheduledAt: "asc" },
       take: limit,
@@ -696,6 +712,24 @@ export async function processDueScheduledEmails(input?: {
     let failed = 0;
 
     for (const row of due) {
+      // Atomically claim before sending. Two concurrent cron invocations (or a
+      // cron overlapping the Scheduled page flush) previously both selected the
+      // same `scheduled` row and both sent it. The conditional updateMany only
+      // succeeds for the worker that flips it out of `scheduled`, so exactly one
+      // sends. `sending` is a transient state; a crash leaves it there rather
+      // than silently re-sending, and it is recoverable (see below).
+      const claim = await prisma.orgCommunication.updateMany({
+        where: {
+          id: row.id,
+          OR: [
+            { status: "scheduled" },
+            { status: "sending", updatedAt: { lt: staleBefore } },
+          ],
+        },
+        data: { status: "sending" },
+      });
+      if (claim.count === 0) continue;
+
       const meta = (row.metadata as Record<string, unknown> | null) ?? {};
       const body =
         (typeof meta.bodyFull === "string" && meta.bodyFull) ||

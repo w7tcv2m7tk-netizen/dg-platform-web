@@ -2,6 +2,13 @@ import {
   resolvePublicPropertyReportAddress,
   submitPublicPropertyReport,
 } from "@dg/platform-core";
+import {
+  assertCacheableResolvedPayload,
+  checkResolveBudget,
+  clientIpFromHeaders,
+  readResolveCache,
+  writeResolveCache,
+} from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 function siteSlugFrom(req: Request, bodySite?: string | null) {
@@ -61,11 +68,47 @@ export async function POST(req: Request) {
       body.propertyAddress?.trim() ||
       body.address?.trim() ||
       "";
+    // Layer 2 — serve a recent identical lookup without re-billing Google /
+    // CoreLogic. Address→property is stable over minutes.
+    const cached = readResolveCache<Awaited<
+      ReturnType<typeof resolvePublicPropertyReportAddress>
+    >>(raw);
+    if (cached) {
+      return NextResponse.json({ data: cached, cached: true });
+    }
+
+    // Layer 3 — budget NEW addresses per caller. Repeats are free, so a genuine
+    // prospect refining or re-submitting the form is never penalised.
+    const callerKey = clientIpFromHeaders(req.headers);
+    const budget = checkResolveBudget(callerKey, raw);
+    if (!budget.allowed) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "rate_limited",
+            message:
+              "Too many different addresses looked up recently. Please try again shortly.",
+          },
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil(budget.retryAfterMs / 1000)),
+          },
+        },
+      );
+    }
+
     const result = await resolvePublicPropertyReportAddress({
       rawAddress: raw,
       siteSlug,
       hostname,
     });
+
+    if (result.ok && assertCacheableResolvedPayload(result)) {
+      writeResolveCache(raw, result);
+    }
+
     if (!result.ok) {
       return NextResponse.json(
         { error: { code: result.code, message: result.message } },

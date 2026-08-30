@@ -5,6 +5,8 @@
 
 import type { Prisma } from "@dg/database";
 
+import { claimLeadFollowupStep } from "../leads/followup-claim";
+
 import { createActivity } from "../activities";
 import { sendMessage } from "../communications";
 import { createNotification } from "../notifications";
@@ -241,6 +243,18 @@ export async function processConsultationReminders(options?: {
 
     for (const step of due) {
       if (processed >= limit) break;
+
+      // Claim this (lead, step) before sending so two concurrent cron
+      // invocations cannot both deliver it.
+      const owned = await claimLeadFollowupStep({
+        leadId: lead.id,
+        organisationId: lead.organisationId,
+        sequenceKey: "consultation",
+        step,
+        sentPath: ["consultation_sequence", `email_${step}_sent`],
+      });
+      if (!owned) continue;
+
       processed += 1;
       const rendered = renderConsultationReminder(step, {
         firstName: sequence.firstName,

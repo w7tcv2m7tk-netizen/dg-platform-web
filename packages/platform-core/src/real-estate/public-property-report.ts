@@ -5,6 +5,8 @@
 
 import type { Prisma } from "@dg/database";
 
+import { claimLeadFollowupStep } from "../leads/followup-claim";
+
 import { resolveAddress } from "../addresses";
 import { sendMessage } from "../communications";
 import { upsertLeadFromPublicCapture } from "../leads/public-capture";
@@ -400,6 +402,18 @@ export async function processPropertyReportFollowups(options?: {
 
     for (const step of due) {
       if (processed >= limit) break;
+
+      // Claim this (lead, step) before sending so two concurrent cron
+      // invocations cannot both deliver it.
+      const owned = await claimLeadFollowupStep({
+        leadId: lead.id,
+        organisationId: lead.organisationId,
+        sequenceKey: "property_report",
+        step,
+        sentPath: ["property_report_sequence", `email_${step}_sent`],
+      });
+      if (!owned) continue;
+
       processed += 1;
       const rendered = renderPropertyReportFollowup(step, {
         firstName: sequence.firstName,

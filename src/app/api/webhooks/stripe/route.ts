@@ -4,8 +4,6 @@ import {
   applyInvoicePaidRecovery,
   applyInvoicePaymentFailed,
   bootPaymentConnectors,
-  claimStripeWebhookReceipt,
-  releaseStripeWebhookReceipt,
   getPlatformSubscriptionByStripeCustomer,
   handleConnectAccountUpdated,
   handleConnectTransferFailure,
@@ -20,7 +18,8 @@ import {
 } from "@dg/platform-core";
 import {
   classifyStripeBillingEvent,
-  withWebhookIdempotency,
+  prismaReceiptStore,
+  withWebhookReceiptState,
 } from "@dg/platform-core";
 import type Stripe from "stripe";
 import { NextResponse } from "next/server";
@@ -362,21 +361,42 @@ export async function POST(req: Request) {
     const connector = requirePaymentConnector("stripe");
     const event = await connector.parseWebhook(rawBody, headers);
 
-    // Claim before handling so concurrent duplicates cannot both run, and
-    // release on failure so Stripe's retry is not rejected as a duplicate.
-    return await withWebhookIdempotency({
-      claim: () =>
-        claimStripeWebhookReceipt({
-          eventId: event.providerEventId,
-          eventType: event.type,
-          organisationId: event.organisationId ?? null,
-        }),
-      release: () => releaseStripeWebhookReceipt(event.providerEventId),
-      onDuplicate: () => NextResponse.json({ received: true, duplicate: true }),
+    // H-7: atomic claim → processing → processed / failed, with stale-claim
+    // recovery. A handler that throws leaves the receipt `failed` and rethrows
+    // so Stripe retries; a crash leaves it `processing` until the stale
+    // threshold, after which a later delivery can reclaim it.
+    const outcome = await withWebhookReceiptState({
+      store: prismaReceiptStore(),
+      eventId: event.providerEventId,
+      eventType: event.type,
+      organisationId: event.organisationId ?? null,
       handle: () => handleStripeEvent(event),
-      onReleaseFailed: (releaseErr) =>
-        console.error("[stripe webhook] failed to release receipt for retry", releaseErr),
     });
+
+    if (outcome.status === "duplicate") {
+      return NextResponse.json({
+        received: true,
+        duplicate: true,
+        reason: outcome.reason,
+      });
+    }
+
+    if (outcome.status === "exhausted") {
+      // Poison event: acknowledged so Stripe stops retrying, and left `failed`
+      // in the receipt table for alerting rather than looping forever.
+      console.error(
+        "[stripe webhook] event exhausted retries:",
+        event.providerEventId,
+        outcome.attempts,
+      );
+      return NextResponse.json({
+        received: true,
+        skipped: "retries_exhausted",
+        attempts: outcome.attempts,
+      });
+    }
+
+    return outcome.result;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Webhook processing failed";
     console.error("[stripe webhook]", message);

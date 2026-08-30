@@ -1,34 +1,17 @@
 /**
  * Stripe webhook receipt state machine (H-7 crash recovery).
  *
- * ⚠️ MIGRATION-FIRST BOUNDARY — NOT YET ON THE PRODUCTION PATH ⚠️
+ * Requires the columns added by
+ * `prisma/migrations/20260830_stripe_webhook_receipt_state`. That migration
+ * MUST be applied before this code is deployed — see
+ * docs/infrastructure/STRIPE-RECEIPT-STATE-DEPLOYMENT.md.
  *
- * This module is complete and tested, but it is deliberately NOT wired into
- * `src/app/api/webhooks/stripe/route.ts`. The state it depends on
- * (`status`, `attempts`, `claimed_at`, `completed_at`, `last_error`) does not
- * exist in the production `stripe_webhook_receipts` table yet. Deploying code
- * that queries those columns before the migration is applied would take the
- * Stripe webhook endpoint down.
- *
- * Deployment order is therefore mandatory:
- *   1. apply packages/database/prisma/baseline/proposed/stripe_webhook_receipt_state.sql
- *   2. add the five fields to the Prisma model and regenerate
- *   3. implement `prismaReceiptStore` against them
- *   4. swap `withWebhookIdempotency` for `withWebhookReceiptState` in the route
- *
- * Until step 1 happens, the shipped behaviour remains `withWebhookIdempotency`
- * (claim → handle → release-on-failure), which is correct for handler errors
- * and only leaves a gap on a hard crash.
- *
- * ---
- *
- * Why a status column is required rather than reusing `processed_at`:
- * `processed_at` defaults to now() at INSERT, i.e. at claim time. A row that
- * crashed 20 minutes ago and a row that succeeded 20 minutes ago are byte
- * identical. A stale sweep built on it would re-run successful events, and the
- * handlers are demonstrably not all idempotent — `markPublicStayPaidFromStripe`
- * and `handleConnectAccountUpdated` have no event-id dedup — so that would be
- * strictly worse than the gap it closes.
+ * Why a status column rather than reusing `processed_at`: that column defaults
+ * to now() at INSERT, i.e. at claim time, so a row that crashed 20 minutes ago
+ * and one that succeeded 20 minutes ago are byte identical. A sweep built on it
+ * would re-run successful events, and the handlers are demonstrably not all
+ * idempotent — `markPublicStayPaidFromStripe` and `handleConnectAccountUpdated`
+ * have no event-id dedup — so that would be worse than the gap it closes.
  */
 
 /** Persisted lifecycle of one Stripe event. */
@@ -202,4 +185,101 @@ export async function withWebhookReceiptState<T>(options: {
       });
     throw error;
   }
+}
+
+/**
+ * Prisma-backed store.
+ *
+ * `insertClaim` relies on the unique constraint on `event_id`, and `reclaim` is
+ * a conditional `updateMany` whose affected-row count decides the winner. Both
+ * are single atomic statements — a read-then-write would reintroduce the
+ * double-processing race the claim exists to prevent.
+ */
+export function prismaReceiptStore(): ReceiptStore {
+  return {
+    async insertClaim(eventId, eventType, organisationId) {
+      const { prisma } = await import("@dg/database");
+      try {
+        await prisma.stripeWebhookReceipt.create({
+          data: {
+            eventId,
+            eventType,
+            organisationId,
+            status: "processing",
+            attempts: 1,
+            claimedAt: new Date(),
+          },
+        });
+        return true;
+      } catch {
+        // Unique violation — another delivery holds it, or it is already done.
+        return false;
+      }
+    },
+
+    async read(eventId) {
+      const { prisma } = await import("@dg/database");
+      const row = await prisma.stripeWebhookReceipt.findUnique({
+        where: { eventId },
+        select: {
+          eventId: true,
+          status: true,
+          attempts: true,
+          claimedAt: true,
+          completedAt: true,
+        },
+      });
+      if (!row) return null;
+      return {
+        eventId: row.eventId,
+        status: row.status as ReceiptStatus,
+        attempts: row.attempts,
+        claimedAt: row.claimedAt,
+        completedAt: row.completedAt,
+      };
+    },
+
+    async reclaim(eventId, staleBefore) {
+      const { prisma } = await import("@dg/database");
+      // Retryable failure, or a claim old enough that its owner cannot still be
+      // running. Zero affected rows means another worker won.
+      const result = await prisma.stripeWebhookReceipt.updateMany({
+        where: {
+          eventId,
+          OR: [
+            { status: "failed" },
+            { status: "processing", claimedAt: { lt: staleBefore } },
+          ],
+        },
+        data: {
+          status: "processing",
+          claimedAt: new Date(),
+          attempts: { increment: 1 },
+        },
+      });
+      if (result.count === 0) return null;
+
+      const row = await prisma.stripeWebhookReceipt.findUnique({
+        where: { eventId },
+        select: { attempts: true },
+      });
+      return row?.attempts ?? null;
+    },
+
+    async markProcessed(eventId) {
+      const { prisma } = await import("@dg/database");
+      await prisma.stripeWebhookReceipt.update({
+        where: { eventId },
+        data: { status: "processed", completedAt: new Date(), lastError: null },
+      });
+    },
+
+    async markFailed(eventId, error) {
+      const { prisma } = await import("@dg/database");
+      await prisma.stripeWebhookReceipt.update({
+        where: { eventId },
+        data: { status: "failed", lastError: error.slice(0, 2000) },
+      });
+    },
+  };
 }
