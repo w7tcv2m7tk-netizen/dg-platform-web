@@ -445,6 +445,109 @@ function mapBookingFields(booking: WpAccBookingRow) {
   };
 }
 
+/**
+ * Fingerprint of the WordPress row we last accepted for a booking.
+ *
+ * This is the mechanism that stops a stale WordPress mirror overwriting a newer
+ * Gen 2 edit, and it is deliberately the smallest one that actually works here.
+ *
+ * Why not the alternatives:
+ *
+ *   - `updatedAt` / event timestamp comparison is impossible. The plugin emits
+ *     no modification time anywhere: neither `format_bookings` (pull) nor
+ *     `format_booking_row` (webhook) includes one, so Gen 2 has nothing to
+ *     compare against. Verified in the plugin source.
+ *   - `platform_id` identity is impossible. The plugin contains no reference to
+ *     it at all; create ignores it, PATCH resolves by WordPress post id only,
+ *     and neither response shape returns it.
+ *   - `gen2_origin` is unusable. It is written once at Gen 2 create, never read,
+ *     and `mapBookingFields` rebuilds `metadata` from the WordPress row — so the
+ *     first import erases the very marker that would have to carry authority.
+ *
+ * What remains is a question Neon can answer from its own data: has WordPress
+ * changed since we last accepted its state? If not, an incoming row carries no
+ * new information and must not be allowed to overwrite whatever Gen 2 has done
+ * in the meantime. If it has changed, that change originated in WordPress and
+ * legacy tenants still need it applied.
+ *
+ * That distinction is exactly "legacy WP-originated change" versus "stale WP
+ * mirror of a Gen 2 change", and it needs no second source of truth, no
+ * bidirectional sync, no plugin change and no schema migration.
+ */
+function wpRowFingerprint(fields: ReturnType<typeof mapBookingFields>): string {
+  return JSON.stringify({
+    ref: fields.ref,
+    guestName: fields.guestName,
+    email: fields.email,
+    phone: fields.phone,
+    accommodationName: fields.accommodationName,
+    accommodationWpId: fields.accommodationWpId,
+    checkin: fields.checkin?.toISOString() ?? null,
+    checkout: fields.checkout?.toISOString() ?? null,
+    status: fields.status,
+    totalCents: fields.totalCents,
+    meta: metadataFingerprint(fields.metadata),
+  });
+}
+
+const WP_FINGERPRINT_KEY = "wp_row_fingerprint";
+
+function acceptedWpFingerprint(meta: unknown): string | null {
+  const m = (meta as Record<string, unknown> | null) ?? {};
+  const value = m[WP_FINGERPRINT_KEY];
+  return typeof value === "string" && value ? value : null;
+}
+
+/**
+ * True when an incoming WordPress row is a stale mirror rather than a change.
+ *
+ * Neon is canonical, so this is the one question that decides whether an import
+ * may write: is WordPress saying anything it has not already said?
+ *
+ * Returns false when nothing has been recorded yet — on a row imported before
+ * this rule existed we cannot tell, so behaviour is unchanged and the row arms
+ * itself on the next sync. That is a deliberate one-cycle gap rather than a
+ * migration and a backfill.
+ */
+export function wordPressRowIsStaleMirror(
+  incoming: ReturnType<typeof mapBookingFields>,
+  existingMetadata: unknown,
+): boolean {
+  const accepted = acceptedWpFingerprint(existingMetadata);
+  if (!accepted) return false;
+  return accepted === wpRowFingerprint(incoming);
+}
+
+/** Exposed so the import policy is testable without a database. */
+export function __wpBookingFingerprintForTests(booking: WpAccBookingRow): string {
+  return wpRowFingerprint(mapBookingFields(booking));
+}
+
+/** Exposed so the import policy is testable without a database. */
+export function __wpRowIsStaleMirrorForTests(
+  booking: WpAccBookingRow,
+  existingMetadata: unknown,
+): boolean {
+  return wordPressRowIsStaleMirror(mapBookingFields(booking), existingMetadata);
+}
+
+/** Exposed so the import policy is testable without a database. */
+export function __wpMetadataWithFingerprintForTests(
+  booking: WpAccBookingRow,
+): Record<string, unknown> {
+  return metadataWithWpFingerprint(mapBookingFields(booking)) as Record<string, unknown>;
+}
+
+/** Metadata to persist, carrying the WordPress state this write accepted. */
+function metadataWithWpFingerprint(
+  fields: ReturnType<typeof mapBookingFields>,
+): Prisma.InputJsonValue {
+  return {
+    ...fields.metadata,
+    [WP_FINGERPRINT_KEY]: wpRowFingerprint(fields),
+  } as Prisma.InputJsonValue;
+}
+
 function metadataFingerprint(meta: unknown): string {
   const m = (meta as Record<string, unknown> | null) ?? {};
   return JSON.stringify({
@@ -501,6 +604,15 @@ export async function upsertStayBookingFromWpRow(
   );
 
   if (existing) {
+    // Gen 2 is authoritative. If WordPress is telling us the same thing it told
+    // us last time, it has not changed and this row carries no new information —
+    // so it must not overwrite anything Gen 2 has done since. This is the case
+    // where an operator edits a booking in Gen 2 and the WordPress mirror is
+    // stale (or the mirror failed, or the field is not mirrored at all).
+    if (wordPressRowIsStaleMirror(fields, existing.metadata)) {
+      return "skipped";
+    }
+
     const unchanged =
       existing.ref === fields.ref &&
       existing.guestName === fields.guestName &&
@@ -515,7 +627,17 @@ export async function upsertStayBookingFromWpRow(
       (existing.checkout?.getTime() ?? null) === (fields.checkout?.getTime() ?? null) &&
       metadataFingerprint(existing.metadata) === metadataFingerprint(fields.metadata);
 
-    if (unchanged) return "skipped";
+    if (unchanged) {
+      // Nothing to apply, but record which WordPress state this agreed with so
+      // the check above can protect the row once Gen 2 edits it. Only writes
+      // when the recorded value is absent or stale, so a steady-state re-pull
+      // still costs nothing.
+      await prisma.stayBooking.update({
+        where: { id: existing.id },
+        data: { metadata: metadataWithWpFingerprint(fields) },
+      });
+      return "skipped";
+    }
 
     // A WordPress edit can move the dates onto another booking just as easily
     // as a new import can. Re-check under the unit lock when they change.
@@ -554,7 +676,7 @@ export async function upsertStayBookingFromWpRow(
           data: {
             ...fields,
             contactId,
-            metadata: fields.metadata as Prisma.InputJsonValue,
+            metadata: metadataWithWpFingerprint(fields),
           },
         });
         return "updated" as const;
@@ -566,7 +688,7 @@ export async function upsertStayBookingFromWpRow(
       data: {
         ...fields,
         contactId,
-        metadata: fields.metadata as Prisma.InputJsonValue,
+        metadata: metadataWithWpFingerprint(fields),
       },
     });
     return "updated";
@@ -585,7 +707,7 @@ export async function upsertStayBookingFromWpRow(
         externalWpId: wpId,
         ...fields,
         contactId,
-        metadata: fields.metadata as Prisma.InputJsonValue,
+        metadata: metadataWithWpFingerprint(fields),
       },
     });
     return "created";
@@ -624,7 +746,7 @@ export async function upsertStayBookingFromWpRow(
         externalWpId: wpId,
         ...fields,
         contactId,
-        metadata: fields.metadata as Prisma.InputJsonValue,
+        metadata: metadataWithWpFingerprint(fields),
       },
     });
     return "created" as const;
