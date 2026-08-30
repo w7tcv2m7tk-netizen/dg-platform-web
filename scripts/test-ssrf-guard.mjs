@@ -135,3 +135,76 @@ describe("SSRF guard: URL targets", () => {
     assert.equal(result.reason, "unresolvable_host");
   });
 });
+
+describe("SSRF guard: redirect hops", () => {
+  it("re-validates every hop, so a public redirector cannot reach metadata", async () => {
+    const { safeExternalFetch, BlockedTargetError } = await load();
+
+    const originalFetch = globalThis.fetch;
+    const seen = [];
+    globalThis.fetch = async (url) => {
+      seen.push(String(url));
+      // A public host that redirects into cloud metadata — the exact bypass
+      // that defeats validating only the initial URL.
+      return new Response(null, {
+        status: 302,
+        headers: { location: "http://169.254.169.254/latest/meta-data/" },
+      });
+    };
+
+    try {
+      await assert.rejects(
+        safeExternalFetch("https://example.com/"),
+        (err) => err instanceof BlockedTargetError && err.reason === "private_address",
+      );
+      assert.equal(seen.length, 1, "must not follow the redirect to the blocked host");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("follows ordinary public redirects", async () => {
+    const { safeExternalFetch } = await load();
+
+    const originalFetch = globalThis.fetch;
+    let call = 0;
+    globalThis.fetch = async () => {
+      call += 1;
+      if (call === 1) {
+        return new Response(null, {
+          status: 301,
+          headers: { location: "https://example.org/final" },
+        });
+      }
+      return new Response("ok", { status: 200 });
+    };
+
+    try {
+      const res = await safeExternalFetch("https://example.com/");
+      assert.equal(res.status, 200);
+      assert.equal(call, 2);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("stops rather than looping on a redirect cycle", async () => {
+    const { safeExternalFetch, BlockedTargetError } = await load();
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () =>
+      new Response(null, {
+        status: 302,
+        headers: { location: "https://example.com/loop" },
+      });
+
+    try {
+      await assert.rejects(
+        safeExternalFetch("https://example.com/loop"),
+        (err) => err instanceof BlockedTargetError && err.reason === "too_many_redirects",
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});

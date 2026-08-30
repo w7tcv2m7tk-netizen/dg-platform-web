@@ -109,3 +109,52 @@ export async function assertPublicHttpTarget(
     return { allowed: false, reason: "unresolvable_host" };
   }
 }
+
+export class BlockedTargetError extends Error {
+  readonly reason: string;
+
+  constructor(reason: string) {
+    super(`blocked_target:${reason}`);
+    this.name = "BlockedTargetError";
+    this.reason = reason;
+  }
+}
+
+const MAX_REDIRECTS = 5;
+
+/**
+ * Fetch a user-supplied URL with the SSRF guard applied to EVERY hop.
+ *
+ * Validating only the initial URL is not sufficient: with `redirect: "follow"`
+ * the runtime follows 3xx responses itself, so a public URL that redirects to
+ * 169.254.169.254 or an RFC1918 address defeats the check entirely. Redirects
+ * are therefore handled manually here, re-validating each Location before
+ * following it.
+ *
+ * Throws BlockedTargetError when any hop is not public, so callers can
+ * distinguish a refusal from an ordinary network failure.
+ */
+export async function safeExternalFetch(
+  rawUrl: string,
+  init: Omit<RequestInit, "redirect"> = {},
+): Promise<Response> {
+  let currentUrl = rawUrl;
+
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+    const target = await assertPublicHttpTarget(currentUrl);
+    if (!target.allowed) throw new BlockedTargetError(target.reason);
+
+    const res = await fetch(currentUrl, { ...init, redirect: "manual" });
+
+    const isRedirect = res.status >= 300 && res.status < 400;
+    if (!isRedirect) return res;
+
+    const location = res.headers.get("location");
+    if (!location) return res;
+
+    // Resolve relative redirects against the current URL before re-checking.
+    currentUrl = new URL(location, currentUrl).toString();
+  }
+
+  throw new BlockedTargetError("too_many_redirects");
+}

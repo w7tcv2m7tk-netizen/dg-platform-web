@@ -40,7 +40,7 @@ import {
   patchWpAccommodationUnits,
   syncWpAccommodationOtaCalendars,
 } from "@/lib/dg-api";
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 import { syncWordPressAccBookings, syncWordPressAccUnits } from "@/lib/wordpress-sync";
 
 export async function GET(req: Request) {
@@ -508,6 +508,19 @@ export async function POST(req: Request) {
             ? payload.name
             : "";
 
+      // Overriding the overlap check knowingly creates a double booking, so it
+      // requires manage authority rather than any authenticated member.
+      const requestedOverride =
+        payload.force === true || payload.allow_overlap === true;
+      if (requestedOverride) {
+        const denied = requirePermission(session, {
+          module: "industry",
+          action: "manage",
+          scope: "organisation",
+        });
+        if (denied) return denied;
+      }
+
       const native = await createStayBookingGen2First(session.organisationId, {
         guestName,
         email: typeof payload.email === "string" ? payload.email : undefined,
@@ -526,7 +539,7 @@ export async function POST(req: Request) {
         paymentMethod:
           typeof payload.payment_method === "string" ? payload.payment_method : undefined,
         actorId: session.clerkUserId,
-        force: payload.force === true || payload.allow_overlap === true,
+        force: requestedOverride,
       });
 
       if (!native.ok) {

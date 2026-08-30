@@ -344,3 +344,43 @@ describe("H-9 (Phase 3): unified conflict definition", () => {
     assert.deepEqual(result.blockedDates, ["2026-09-06"]);
   });
 });
+
+describe("H-9 (Phase 3): manual blocks vs existing stays", () => {
+  it("does not block an edit to a booking that already holds those nights", async () => {
+    const { findBookingConflicts, nightsBetween } = await load();
+    const db = fakeDb([]);
+
+    const result = await findBookingConflicts(db, {
+      organisationId: ORG_A,
+      accommodationUnitId: UNIT_1,
+      checkin: d("2026-09-05"),
+      checkout: d("2026-09-08"),
+      manualBlockedDates: ["2026-09-06"],
+      incumbentNights: nightsBetween(d("2026-09-05"), d("2026-09-10")),
+    });
+
+    assert.equal(
+      result.hasConflict,
+      false,
+      "shortening a stay that already sits on a blocked night must be allowed",
+    );
+  });
+
+  it("still blocks newly requested nights that are manually blocked", async () => {
+    const { findBookingConflicts, nightsBetween } = await load();
+    const db = fakeDb([]);
+
+    const result = await findBookingConflicts(db, {
+      organisationId: ORG_A,
+      accommodationUnitId: UNIT_1,
+      checkin: d("2026-09-05"),
+      checkout: d("2026-09-12"),
+      manualBlockedDates: ["2026-09-11"],
+      // Original stay ended before the blocked night, so extending onto it is new.
+      incumbentNights: nightsBetween(d("2026-09-05"), d("2026-09-08")),
+    });
+
+    assert.equal(result.hasConflict, true);
+    assert.deepEqual(result.blockedDates, ["2026-09-11"]);
+  });
+});

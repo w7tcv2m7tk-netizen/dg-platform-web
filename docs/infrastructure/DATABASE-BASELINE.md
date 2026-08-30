@@ -154,3 +154,19 @@ normal migration with its own down path.
 
 No destructive command was run. No database was contacted. The baseline was
 generated from the schema file alone.
+
+## Related artifacts
+
+Two further SQL artifacts sit alongside the baseline under
+`packages/database/prisma/baseline/proposed/`. Both are **unapplied** and
+neither is referenced by application code:
+
+| Artifact | Purpose | Blocking prerequisite |
+|---|---|---|
+| `stay_booking_no_overlap.sql` | Database-enforced booking overlap invariant (H-9 defence in depth) | `btree_gist` availability on Neon is unverified; the write paths must translate SQLSTATE 23P01 first; the operator force-override question must be settled |
+| `stripe_webhook_receipt_state.sql` | Receipt state machine for webhook crash recovery (H-7 residual) | Must be applied **before** any code reads the new columns |
+
+Re-verified after Phase 3: `schema.prisma` still defines 63 models,
+`baseline/0_init.sql` still contains 63 `CREATE TABLE` statements, and no
+migration has been added since `20260829_support_conversation_org_scope`. The
+baseline artifact therefore remains current and the procedure below is unchanged.

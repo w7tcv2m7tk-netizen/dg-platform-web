@@ -178,13 +178,24 @@ export type BookingConflicts = {
  */
 export async function findBookingConflicts(
   db: PrismaLike,
-  query: BookingOverlapQuery & { manualBlockedDates?: unknown },
+  query: BookingOverlapQuery & {
+    manualBlockedDates?: unknown;
+    /**
+     * Nights the record being edited already occupies. A manual block laid over
+     * an existing stay must not prevent that stay from being adjusted — only
+     * new nights are tested against the block.
+     */
+    incumbentNights?: readonly string[];
+  },
 ): Promise<BookingConflicts> {
   const bookings = await findOverlappingBookings(db, query);
 
   const manual = new Set(normaliseBlockedDates(query.manualBlockedDates));
+  const incumbent = new Set(query.incumbentNights ?? []);
   const blockedDates = manual.size
-    ? nightsBetween(query.checkin, query.checkout).filter((n) => manual.has(n))
+    ? nightsBetween(query.checkin, query.checkout).filter(
+        (n) => manual.has(n) && !incumbent.has(n),
+      )
     : [];
 
   return {

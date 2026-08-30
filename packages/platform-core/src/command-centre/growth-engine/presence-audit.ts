@@ -118,7 +118,7 @@ function localRecommendation(pack: PresenceIndustryPack): string {
   }
 }
 
-import { assertPublicHttpTarget } from "./ssrf-guard";
+import { safeExternalFetch } from "./ssrf-guard";
 
 function normaliseUrl(raw: string | null | undefined): string | null {
   const trimmed = raw?.trim();
@@ -244,19 +244,14 @@ export async function runPresenceAudit(
 
     try {
       // This probe is reachable unauthenticated through the public
-      // business-audit funnel, so refuse anything resolving to non-public
-      // address space before making the request. Throwing routes it through
-      // the existing unreachable-site handling below.
-      const target = await assertPublicHttpTarget(websiteUrl);
-      if (!target.allowed) {
-        throw new Error(`blocked_target:${target.reason}`);
-      }
-
+      // business-audit funnel. safeExternalFetch re-validates every redirect
+      // hop — checking only the initial URL is bypassable with a public
+      // redirector pointing at metadata or RFC1918 space. A refusal throws and
+      // is handled by the unreachable-site branch below.
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 8_000);
-      const res = await fetch(websiteUrl, {
+      const res = await safeExternalFetch(websiteUrl, {
         method: "GET",
-        redirect: "follow",
         signal: controller.signal,
         headers: {
           "user-agent": "DigitalGate-GrowthEngine-Audit/1.0 (+https://digitalgate.com.au)",

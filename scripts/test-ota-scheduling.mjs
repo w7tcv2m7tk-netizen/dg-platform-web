@@ -24,10 +24,16 @@ const readSource = (rel) => readFile(path.join(__dirname, "..", rel), "utf8");
 function selectOrganisations(units, limit) {
   const oldestByOrg = new Map();
   for (const unit of units) {
-    const syncedAt = Math.min(
-      unit.airbnbLastSyncAt?.getTime() ?? 0,
-      unit.bookingcomLastSyncAt?.getTime() ?? 0,
-    );
+    const feedTimes = [
+      unit.airbnbIcalUrl !== undefined && !unit.airbnbIcalUrl
+        ? null
+        : (unit.airbnbLastSyncAt?.getTime() ?? 0),
+      unit.bookingcomIcalUrl !== undefined && !unit.bookingcomIcalUrl
+        ? null
+        : (unit.bookingcomLastSyncAt?.getTime() ?? 0),
+    ].filter((t) => t !== null);
+    if (!feedTimes.length) continue;
+    const syncedAt = Math.min(...feedTimes);
     const current = oldestByOrg.get(unit.organisationId);
     if (current === undefined || syncedAt < current) {
       oldestByOrg.set(unit.organisationId, syncedAt);
@@ -132,5 +138,35 @@ describe("OTA scheduler: documentation matches deployment", () => {
     const entry = config.crons.find((c) => c.path === "/api/cron/ota-ical-sync");
     assert.ok(entry, "ota-ical-sync must be scheduled");
     assert.equal(entry.schedule, "0 5 * * *");
+  });
+});
+
+describe("OTA scheduler: single-feed organisations rotate correctly", () => {
+  it("ignores an unconfigured feed instead of treating it as never synced", () => {
+    // Regression: Math.min(airbnb, bookingcom) with a null bookingcom leg
+    // always produced 0, pinning every Airbnb-only organisation to the front
+    // of the queue forever and starving everyone else.
+    const units = [
+      {
+        organisationId: "org_airbnb_only",
+        airbnbIcalUrl: "https://airbnb.example/cal.ics",
+        bookingcomIcalUrl: null,
+        airbnbLastSyncAt: at("2026-08-30T00:00:00Z"),
+        bookingcomLastSyncAt: null,
+      },
+      {
+        organisationId: "org_stale_both",
+        airbnbIcalUrl: "https://airbnb.example/b.ics",
+        bookingcomIcalUrl: "https://booking.example/b.ics",
+        airbnbLastSyncAt: at("2026-08-01T00:00:00Z"),
+        bookingcomLastSyncAt: at("2026-08-01T00:00:00Z"),
+      },
+    ];
+
+    assert.deepEqual(
+      selectOrganisations(units, 1),
+      ["org_stale_both"],
+      "the genuinely stale organisation must win, not the freshly-synced single-feed one",
+    );
   });
 });

@@ -12,6 +12,7 @@ import {
   recordImportConflict,
   withUnitBookingLock,
 } from "./booking-conflicts";
+import { safeExternalFetch } from "../command-centre/growth-engine/ssrf-guard";
 
 export type OtaIcalSource = "airbnb" | "bookingcom";
 
@@ -137,9 +138,10 @@ export async function fetchIcalFeed(url: string): Promise<
   }
 
   try {
-    const res = await fetch(trimmed, {
+    // Feed URLs are tenant-supplied, so the same SSRF guard applies here as to
+    // the public audit probe — including every redirect hop.
+    const res = await safeExternalFetch(trimmed, {
       method: "GET",
-      redirect: "follow",
       headers: {
         "User-Agent":
           "Mozilla/5.0 (compatible; DigitalGate-Calendar/1.0; +https://digitalgate.com.au)",
@@ -600,6 +602,13 @@ export async function syncOtaCalendarsFromUnits(input: {
  * idempotent on `ical_uid` and every create/update path takes a per-unit
  * advisory lock. See docs/foundations/ACC-CHANNEL-CONNECTIVITY.md.
  */
+/**
+ * Upper bound on units examined when computing the rotation. Well above any
+ * realistic OTA-enabled unit count; exists so the scan cannot degrade into an
+ * unbounded table read.
+ */
+const CANDIDATE_UNIT_SCAN_LIMIT = 5_000;
+
 export async function syncAllOrganisationsOtaCalendars(options?: {
   limitOrgs?: number;
 }): Promise<SyncAllOrgsOtaResult> {
@@ -630,17 +639,30 @@ export async function syncAllOrganisationsOtaCalendars(options?: {
     },
     select: {
       organisationId: true,
+      airbnbIcalUrl: true,
+      bookingcomIcalUrl: true,
       airbnbLastSyncAt: true,
       bookingcomLastSyncAt: true,
     },
+    // Bounded so the rotation scan cannot grow without limit. Ordered by unit
+    // id purely so the bound is deterministic; the rotation itself is computed
+    // from sync timestamps below.
+    orderBy: { id: "asc" },
+    take: CANDIDATE_UNIT_SCAN_LIMIT,
   });
 
   const oldestByOrg = new Map<string, number>();
   for (const unit of candidates) {
-    const syncedAt = Math.min(
-      unit.airbnbLastSyncAt?.getTime() ?? 0,
-      unit.bookingcomLastSyncAt?.getTime() ?? 0,
-    );
+    // Only consider feeds this unit actually has. Treating an unconfigured
+    // feed as "never synced" (0) would pin every single-feed organisation to
+    // the front of the queue forever and starve the rest — the exact problem
+    // the rotation exists to solve.
+    const feedTimes = [
+      unit.airbnbIcalUrl ? (unit.airbnbLastSyncAt?.getTime() ?? 0) : null,
+      unit.bookingcomIcalUrl ? (unit.bookingcomLastSyncAt?.getTime() ?? 0) : null,
+    ].filter((t): t is number => t !== null);
+    if (!feedTimes.length) continue;
+    const syncedAt = Math.min(...feedTimes);
     const current = oldestByOrg.get(unit.organisationId);
     if (current === undefined || syncedAt < current) {
       oldestByOrg.set(unit.organisationId, syncedAt);

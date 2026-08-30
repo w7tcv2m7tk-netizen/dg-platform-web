@@ -12,6 +12,7 @@ export class StayBookingConflictError extends Error {
 import {
   describeBookingConflict,
   findBookingConflicts,
+  nightsBetween,
   findOverlappingBookings,
   recordImportConflict,
   withUnitBookingLock,
@@ -317,6 +318,13 @@ export async function updateStayBooking(
         checkout: nextCheckout,
         excludeStayBookingId: existing.id,
         manualBlockedDates: unit?.manualBlockedDates,
+        // Nights this booking already holds are not "newly blocked" — an
+        // operator must still be able to shorten or shift a stay that sits on
+        // a manually blocked date.
+        incumbentNights:
+          existing.checkin && existing.checkout
+            ? nightsBetween(existing.checkin, existing.checkout)
+            : [],
       });
       if (conflicts.hasConflict) {
         throw new StayBookingConflictError(
