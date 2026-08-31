@@ -109,6 +109,10 @@ const authorizedParties = [
   "https://app.digitalgate.com.au",
   "https://dg-platform-web.vercel.app",
   "http://localhost:3000",
+  "http://localhost:3012",
+  "http://localhost:3013",
+  "http://127.0.0.1:3012",
+  "http://127.0.0.1:3013",
   process.env.NEXT_PUBLIC_APP_URL,
 ].filter((url): url is string => Boolean(url));
 
