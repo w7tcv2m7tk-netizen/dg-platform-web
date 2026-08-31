@@ -4,7 +4,10 @@ import {
   getGen2OnboardingProgress,
   getOrganisationBusinessProfile,
   getOrganisationGoals,
+  getOrganisationSystemsInventory,
+  listOrganisationMembers,
   saveGen2OnboardingProgress,
+  saveOrganisationSystemsInventory,
   updateOrganisationBusinessProfile,
   type Gen2OnboardingStep,
   isGen2OnboardingStep,
@@ -32,10 +35,12 @@ export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
-  const [progress, profile, goals] = await Promise.all([
+  const [progress, profile, goals, systems, members] = await Promise.all([
     getGen2OnboardingProgress(session.organisationId),
     getOrganisationBusinessProfile(session.organisationId),
     getOrganisationGoals(session.organisationId).catch(() => []),
+    getOrganisationSystemsInventory(session.organisationId),
+    listOrganisationMembers(session.organisationId).catch(() => []),
   ]);
 
   return NextResponse.json({
@@ -43,7 +48,11 @@ export async function GET(req: Request) {
       progress,
       profile,
       goals,
+      systems,
+      teamMembers: members,
       organisationName: session.organisationName,
+      organisationId: session.organisationId,
+      membershipId: session.membershipId,
     },
   });
 }
@@ -91,6 +100,16 @@ export async function PATCH(req: Request) {
       }).catch(() => null);
       existingTitles.add(trimmed.toLowerCase());
     }
+  }
+
+  if (Array.isArray(body.systemsConnectors) || typeof body.systemsNotes === "string") {
+    const connectors = Array.isArray(body.systemsConnectors)
+      ? body.systemsConnectors
+      : undefined;
+    await saveOrganisationSystemsInventory(session.organisationId, {
+      connectors,
+      notes: typeof body.systemsNotes === "string" ? body.systemsNotes : undefined,
+    });
   }
 
   const progress = await saveGen2OnboardingProgress(session.organisationId, {

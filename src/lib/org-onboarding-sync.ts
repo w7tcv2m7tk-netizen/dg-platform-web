@@ -1,17 +1,7 @@
-import { syncOrganisationFromPortal } from "@dg/platform-core";
-
-import { getPlatformPageContext } from "@/lib/platform-page-context";
-
-/** Pull onboarding submission from WordPress into Postgres org settings (throttled). */
-export async function ensureOrganisationOnboardingSync(force = false) {
-  const { session, portal } = await getPlatformPageContext();
-
-  if (!session || !portal?.linked) return null;
-
-  return syncOrganisationFromPortal({
-    organisationId: session.organisationId,
-    organisationName: session.organisationName,
-    portal,
-    force,
-  });
+/**
+ * @deprecated P1 — Gen 2 onboarding no longer pulls from WordPress portal.
+ * Historical WP→Neon import uses explicit migration tooling, not live shell sync.
+ */
+export async function ensureOrganisationOnboardingSync(_force = false) {
+  return null;
 }

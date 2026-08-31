@@ -9,6 +9,8 @@ export const GEN2_ONBOARDING_STEPS = [
   "business_identity",
   "business_profile",
   "goals",
+  "team",
+  "systems",
   "plan",
   "apps",
   "billing_cadence",
@@ -26,6 +28,8 @@ export const GEN2_ONBOARDING_STEP_LABELS: Record<Gen2OnboardingStep, string> = {
   business_identity: "Business identity",
   business_profile: "Business Profile",
   goals: "Goals & priorities",
+  team: "Team",
+  systems: "Systems",
   plan: "Platform plan",
   apps: "Apps",
   billing_cadence: "Monthly or annual",
@@ -59,12 +63,19 @@ export type Gen2OnboardingProgress = {
   checklist?: Record<string, boolean>;
   /** Founding cohort path */
   founding?: boolean;
+  /** Systems inventory (also mirrored to organisation.settings.systems) */
+  systemsConnectors?: string[];
+  systemsNotes?: string;
+  /** Implementation preferences captured on final step */
+  implementationNotes?: string;
 };
 
 export const GEN2_CHECKLIST_ITEMS = [
   { id: "business_identity", label: "Business identity", step: "business_identity" as const },
   { id: "business_profile", label: "Business Profile", step: "business_profile" as const },
   { id: "goals", label: "Goals", step: "goals" as const },
+  { id: "team", label: "Team invited", step: "team" as const },
+  { id: "systems", label: "Systems mapped", step: "systems" as const },
   { id: "plan", label: "Plan selected", step: "plan" as const },
   { id: "apps", label: "Apps selected", step: "apps" as const },
   { id: "subscription", label: "Subscription activated", step: "stripe" as const },
@@ -101,6 +112,19 @@ export const GEN2_PLATFORM_PLANS: Array<{
     blurb: "Scale operations with higher capacity and priority support.",
   },
 ];
+
+/** Known connector / system IDs for onboarding inventory (OAuth happens on Connect step). */
+export const GEN2_KNOWN_SYSTEM_CONNECTORS = [
+  { id: "google_workspace", label: "Google Workspace" },
+  { id: "microsoft_365", label: "Microsoft 365" },
+  { id: "xero", label: "Xero" },
+  { id: "myob", label: "MYOB" },
+  { id: "stripe", label: "Stripe" },
+  { id: "wordpress_site", label: "WordPress website (connector)" },
+  { id: "domain_registrar", label: "Domain registrar" },
+  { id: "crm_other", label: "Other CRM" },
+  { id: "accounting_other", label: "Other accounting" },
+] as const;
 
 export const GEN2_GOAL_OPTIONS = [
   { id: "more_leads", label: "Generate more leads" },

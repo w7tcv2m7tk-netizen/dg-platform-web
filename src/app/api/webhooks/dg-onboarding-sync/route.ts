@@ -1,7 +1,11 @@
-import { NextResponse } from "next/server";
-
-import { fetchPortalMe } from "@/lib/dg-api";
+/**
+ * Legacy WordPress → Gen 2 migration webhook (push-only).
+ *
+ * P1: Must NOT fetch WordPress portal data or participate in the Gen 2 onboarding journey.
+ * WP may POST a portal payload here for one-way historical import when explicitly configured.
+ */
 import { syncOrganisationFromPortal } from "@dg/platform-core";
+import { NextResponse } from "next/server";
 
 function verifyWebhookSecret(req: Request): boolean {
   const secret = process.env.DG_DISCOVERY_WEBHOOK_SECRET?.trim()
@@ -17,7 +21,6 @@ function verifyWebhookSecret(req: Request): boolean {
   return provided === secret;
 }
 
-/** Force onboarding/purchase sync after WP form submit. */
 export async function POST(req: Request) {
   if (!verifyWebhookSecret(req)) {
     return NextResponse.json(
@@ -42,6 +45,20 @@ export async function POST(req: Request) {
     );
   }
 
+  const portalPayload = body?.portal;
+  if (!portalPayload || typeof portalPayload !== "object") {
+    return NextResponse.json(
+      {
+        error: {
+          code: "deprecated_pull",
+          message:
+            "Push-only webhook: include portal payload in body. WordPress portal pull is retired.",
+        },
+      },
+      { status: 422 },
+    );
+  }
+
   const { prisma } = await import("@dg/database");
   const membership = await prisma.membership.findFirst({
     where: { email },
@@ -51,12 +68,17 @@ export async function POST(req: Request) {
 
   if (!membership) {
     return NextResponse.json(
-      { error: { code: "not_found", message: "No platform account for this email yet — sign up at app.digitalgate.com.au first" } },
+      {
+        error: {
+          code: "not_found",
+          message:
+            "No platform account for this email yet — sign up at app.digitalgate.com.au first",
+        },
+      },
       { status: 404 },
     );
   }
 
-  /** Prefer explicit body org, then membership org (tenant), else operator env. */
   const organisationId =
     (typeof body?.organisationId === "string" && body.organisationId.trim()) ||
     membership.organisationId ||
@@ -75,7 +97,16 @@ export async function POST(req: Request) {
     );
   }
 
-  const portal = await fetchPortalMe(email, membership.clerkUserId);
+  const portal = {
+    linked: Boolean(portalPayload.linked ?? true),
+    contact_id: portalPayload.contact_id,
+    organisation_id: portalPayload.organisation_id,
+    org_name: portalPayload.org_name,
+    purchase_label: portalPayload.purchase_label,
+    onboarding: portalPayload.onboarding ?? null,
+    purchase: portalPayload.purchase ?? null,
+  };
+
   const result = await syncOrganisationFromPortal({
     organisationId,
     organisationName: membership.organisation.name,
@@ -83,5 +114,5 @@ export async function POST(req: Request) {
     force: true,
   });
 
-  return NextResponse.json({ data: result });
+  return NextResponse.json({ data: { ...result, legacy: true } });
 }

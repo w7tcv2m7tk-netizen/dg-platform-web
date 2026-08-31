@@ -11,7 +11,6 @@ import {
 import { BusinessProfileEditor } from "@/components/platform/BusinessProfileEditor";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { getOrgEnabledAppIdsCached } from "@/lib/org-apps";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 
 export default async function BusinessProfilePage({
@@ -32,7 +31,6 @@ export default async function BusinessProfilePage({
     email;
 
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  await ensureOrganisationOnboardingSync();
 
   const session = user?.id
     ? await resolveActivePlatformSession({

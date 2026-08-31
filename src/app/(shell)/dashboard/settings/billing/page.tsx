@@ -11,7 +11,6 @@ import { BillingStatusPanel } from "@/components/settings/BillingStatusPanel";
 import { BillingCheckoutBanner } from "@/components/settings/BillingCheckoutBanner";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { getOrgEnabledAppIds } from "@/lib/org-apps";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 import { PRICING_PAGE_URL } from "@/lib/pricing-catalog";
 
 export default async function BillingSettingsPage({
@@ -28,7 +27,6 @@ export default async function BillingSettingsPage({
     email;
 
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  await ensureOrganisationOnboardingSync();
   const session = user?.id
     ? await resolveActivePlatformSession({
         clerkUserId: user.id,

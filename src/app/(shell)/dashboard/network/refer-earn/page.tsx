@@ -10,7 +10,6 @@ import {
 import { ReferAndEarnPanel } from "@/components/settings/ReferAndEarnPanel";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 
 export default async function NetworkReferAndEarnPage() {
   const user = await currentUser();
@@ -21,7 +20,6 @@ export default async function NetworkReferAndEarnPage() {
     email;
 
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  await ensureOrganisationOnboardingSync();
   const session = user?.id
     ? await resolveActivePlatformSession({
         clerkUserId: user.id,

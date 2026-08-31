@@ -169,10 +169,8 @@ export function SupportChatPanel({
           <div className="m-auto max-w-xs text-center text-sm text-slate-400">
             <p>{error}</p>
             <Link
-              href="https://digitalgate.com.au/onboarding/"
+              href="/onboarding"
               className="mt-3 inline-block text-[color-mix(in_srgb,var(--org-primary,#3b82f6)_82%,white)] hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
             >
               Complete onboarding →
             </Link>

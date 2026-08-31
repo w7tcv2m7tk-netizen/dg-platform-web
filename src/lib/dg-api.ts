@@ -60,7 +60,8 @@ export function getApiBase(): string | null {
 export function getOnboardingUrl(): string {
   return (
     process.env.DG_ONBOARDING_URL ??
-    "https://digitalgate.com.au/onboarding/"
+    process.env.NEXT_PUBLIC_DG_ONBOARDING_URL ??
+    "https://app.digitalgate.com.au/onboarding"
   );
 }
 
@@ -155,36 +156,15 @@ export async function fetchPortalMe(
 ): Promise<PortalProfile> {
   const fallback = DEFAULT_UNLINKED_PROFILE(email);
 
+  // Gen 2 runtime: Neon membership + org settings are the portal source of truth.
+  // No live WordPress /portal/me fallback on the onboarding or shell path.
   if (process.env.DATABASE_URL) {
     const { resolvePortalProfileFromNeon } = await import("@dg/platform-core");
     const neon = await resolvePortalProfileFromNeon({ email, clerkUserId });
-    if (neon) {
-      return neon as PortalProfile;
-    }
+    return (neon as PortalProfile | null) ?? fallback;
   }
 
-  const headers = apiHeaders(clerkUserId, email);
-  const base = getApiBase();
-  if (!base || !headers) {
-    return fallback;
-  }
-
-  try {
-    const url = `${base}/portal/me?email=${encodeURIComponent(email)}`;
-    // Short SWR — shell remounts / soft navs should not block on a fresh WP round-trip every time.
-    // Org switch and onboarding still force fresh reads via revalidateTag("portal-me").
-    const res = await fetch(url, {
-      headers,
-      next: { revalidate: 45, tags: ["portal-me", clerkUserId ? `portal-me-${clerkUserId}` : "portal-me-anon"] },
-    });
-    const data = (await res.json().catch(() => null)) as PortalProfile | null;
-    if (!res.ok || !data || typeof data.linked !== "boolean") {
-      return fallback;
-    }
-    return data;
-  } catch {
-    return fallback;
-  }
+  return fallback;
 }
 
 export type OnboardingPayload = {
@@ -226,20 +206,14 @@ export async function submitOnboarding(payload: OnboardingPayload) {
   return { contactId: result.contactId, leadId: result.leadId };
 }
 
-export async function pingApi(): Promise<{ ok: boolean; base: string | null }> {
+export async function pingApi(): Promise<{
+  ok: boolean;
+  base: string | null;
+  wordpress: "retired" | "not_configured";
+}> {
   const base = getApiBase();
-  if (!base) {
-    return { ok: true, base: null };
-  }
-  try {
-    const res = await fetch(`${base}/onboarding`, {
-      method: "OPTIONS",
-      cache: "no-store",
-    });
-    return { ok: res.ok || res.status === 204 || res.status === 405, base };
-  } catch {
-    return { ok: false, base };
-  }
+  // Gen 2 health does not probe WordPress. WP connector hosts are optional integrations only.
+  return { ok: true, base, wordpress: base ? "retired" : "not_configured" };
 }
 
 export type WpConnectorOverride = {

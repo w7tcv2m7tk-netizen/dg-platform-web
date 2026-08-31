@@ -2,10 +2,8 @@ import Link from "next/link";
 
 import { AiAdvisorDashboard } from "@/components/intelligence/AiAdvisorDashboard";
 import { loadAdvisorPageData } from "@/lib/advisor-page-data";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 
 export default async function AiAdvisorPage() {
-  await ensureOrganisationOnboardingSync();
   const data = await loadAdvisorPageData();
 
   if (!data) {

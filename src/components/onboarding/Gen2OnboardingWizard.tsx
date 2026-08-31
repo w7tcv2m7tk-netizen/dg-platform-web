@@ -8,6 +8,7 @@ import {
   BILLING_COMMERCIAL_CONFIG,
   GEN2_CHECKLIST_ITEMS,
   GEN2_GOAL_OPTIONS,
+  GEN2_KNOWN_SYSTEM_CONNECTORS,
   GEN2_ONBOARDING_STEP_LABELS,
   GEN2_ONBOARDING_STEPS,
   GEN2_PLATFORM_PLANS,
@@ -17,6 +18,8 @@ import {
   type Gen2OnboardingStep,
   type Gen2PlatformTier,
 } from "@dg/platform-core";
+
+import { Gen2OnboardingTeamStep } from "@/components/onboarding/Gen2OnboardingTeamStep";
 
 type ProfileDraft = {
   businessName: string;
@@ -99,6 +102,9 @@ export function Gen2OnboardingWizard({
   const [step, setStep] = useState<Gen2OnboardingStep>(initial.currentStep);
   const [profile, setProfile] = useState<ProfileDraft>(emptyProfile);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
+  const [systemsConnectors, setSystemsConnectors] = useState<string[]>([]);
+  const [systemsNotes, setSystemsNotes] = useState("");
+  const [implementationNotes, setImplementationNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -167,6 +173,23 @@ export function Gen2OnboardingWizard({
       if (p) {
         setProgress(p);
         setStep(p.currentStep);
+        setSystemsConnectors(p.systemsConnectors ?? []);
+        setSystemsNotes(p.systemsNotes ?? "");
+        setImplementationNotes(p.implementationNotes ?? "");
+      }
+      const systems = json.data?.systems as { connectors?: string[]; notes?: string } | undefined;
+      if (systems?.connectors?.length) {
+        setSystemsConnectors(systems.connectors);
+      }
+      if (typeof systems?.notes === "string" && systems.notes) {
+        setSystemsNotes(systems.notes);
+      }
+      const goalRows = json.data?.goals as Array<{ title?: string }> | undefined;
+      if (goalRows?.length) {
+        const titles = new Set(goalRows.map((g) => (g.title ?? "").toLowerCase()));
+        setSelectedGoals(
+          GEN2_GOAL_OPTIONS.filter((g) => titles.has(g.label.toLowerCase())).map((g) => g.id),
+        );
       }
       if (prof) {
         setProfile({
@@ -303,6 +326,26 @@ export function Gen2OnboardingWizard({
     });
   }
 
+  async function completeTeam() {
+    await save({
+      markStepComplete: "team",
+      progress: { checklist: { team: true } },
+    });
+  }
+
+  async function completeSystems() {
+    await save({
+      markStepComplete: "systems",
+      systemsConnectors,
+      systemsNotes,
+      progress: {
+        systemsConnectors,
+        systemsNotes,
+        checklist: { systems: true },
+      },
+    });
+  }
+
   async function completePlan(tier: Gen2PlatformTier) {
     await save({
       markStepComplete: "plan",
@@ -367,7 +410,10 @@ export function Gen2OnboardingWizard({
   async function completeImplementation() {
     await save({
       markStepComplete: "implementation",
-      progress: { checklist: { implementation: true } },
+      progress: {
+        implementationNotes,
+        checklist: { implementation: true },
+      },
     });
     router.push("/implementation");
   }
@@ -566,6 +612,62 @@ export function Gen2OnboardingWizard({
               type="button"
               disabled={saving || selectedGoals.length === 0}
               onClick={() => void completeGoals()}
+              className="rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+            >
+              Continue
+            </button>
+          </section>
+        ) : null}
+
+        {step === "team" ? (
+          <Gen2OnboardingTeamStep
+            saving={saving}
+            onContinue={() => void completeTeam()}
+          />
+        ) : null}
+
+        {step === "systems" ? (
+          <section className="space-y-4 rounded-xl border border-slate-700/80 bg-slate-950/50 p-6">
+            <p className="text-sm text-slate-400">
+              Tell us what systems you use today. Connector authorisation happens on the Connect
+              step — this inventory is saved in Gen 2.
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {GEN2_KNOWN_SYSTEM_CONNECTORS.map((c) => {
+                const on = systemsConnectors.includes(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() =>
+                      setSystemsConnectors((prev) =>
+                        on ? prev.filter((x) => x !== c.id) : [...prev, c.id],
+                      )
+                    }
+                    className={`rounded-lg border px-3 py-2.5 text-left text-sm ${
+                      on
+                        ? "border-sky-500 bg-sky-500/10 text-white"
+                        : "border-slate-700 text-slate-300 hover:border-slate-500"
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+            <label className="block text-xs text-slate-500">
+              Other systems or notes
+              <textarea
+                rows={3}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+                value={systemsNotes}
+                onChange={(e) => setSystemsNotes(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => void completeSystems()}
               className="rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
             >
               Continue
@@ -816,11 +918,20 @@ export function Gen2OnboardingWizard({
 
         {step === "implementation" ? (
           <section className="space-y-4 rounded-xl border border-slate-700/80 bg-slate-950/50 p-6">
-            <h2 className="text-lg font-semibold text-white">Onboarding complete</h2>
+            <h2 className="text-lg font-semibold text-white">Implementation preferences</h2>
             <p className="text-sm text-slate-300">
               Next: DigitalGate delivery takes over — Agreement → Kick-off → Discovery → Setup →
               Go-Live → 30-Day Review.
             </p>
+            <label className="block text-xs text-slate-500">
+              Implementation notes (timeline, priorities, integrations)
+              <textarea
+                rows={4}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+                value={implementationNotes}
+                onChange={(e) => setImplementationNotes(e.target.value)}
+              />
+            </label>
             <button
               type="button"
               disabled={saving}

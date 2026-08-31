@@ -8,7 +8,6 @@ import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
 import { BusinessProfileCard } from "@/components/platform/BusinessProfileCard";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { getOrgEnabledAppIds } from "@/lib/org-apps";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 export default async function PlatformSettingsPage() {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
@@ -18,7 +17,6 @@ export default async function PlatformSettingsPage() {
     email;
 
   const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  await ensureOrganisationOnboardingSync();
   const session = user?.id    ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
