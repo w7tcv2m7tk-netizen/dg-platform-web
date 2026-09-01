@@ -96,10 +96,14 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
     const subscription = event.raw as Stripe.Subscription;
     const result: Record<string, unknown> = {};
 
-    if (
-      isPlatformSubscription(subscription) ||
-      (event.organisationId && subscription.metadata?.dg_platform_tier)
-    ) {
+    // H-8: a subscription enters the PlatformSubscription state machine only on
+    // the DigitalGate platform Stripe account (no connected account) AND with an
+    // explicit platform marker. A connected/Stripe Connect account is always a
+    // commerce/customer subscription — regardless of copied platform metadata —
+    // and a subscription with no explicit marker is never a platform subscription.
+    const onConnectedAccount = Boolean(event.connectAccountId);
+
+    if (!onConnectedAccount && isPlatformSubscription(subscription)) {
       const lifecycle = await handlePlatformSubscriptionLifecycle(
         subscription,
         event.type === "subscription.cancelled"
@@ -111,9 +115,7 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
       );
       result.platform = lifecycle;
       console.info("[stripe webhook] platform subscription:", event.type, lifecycle);
-    }
-
-    if (isCommerceCustomerSubscription(subscription)) {
+    } else if (onConnectedAccount || isCommerceCustomerSubscription(subscription)) {
       const commerce = await syncCommerceSubscriptionFromStripe({
         subscription,
         organisationId: event.organisationId,
@@ -135,7 +137,7 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
     if (!organisationId) {
       organisationId = await resolveOrgIdFromStripeCustomer(event.providerCustomerId);
     }
-    if (organisationId) {
+    if (organisationId && !event.connectAccountId) {
       const failed = await applyInvoicePaymentFailed({
         organisationId,
         stripeSubscriptionId: event.stripeSubscriptionId,
@@ -212,7 +214,7 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
       organisationId = await resolveOrgIdFromStripeCustomer(event.providerCustomerId);
     }
 
-    if (organisationId) {
+    if (organisationId && !event.connectAccountId) {
       try {
         await applyInvoicePaidRecovery({
           organisationId,
