@@ -18,7 +18,7 @@
     "capture:screenshots": "node scripts/capture-marketing-screenshots.mjs",
     "sync:dg-apps": "dotenv -e .env.local -- node scripts/sync-digitalgate-apps-pages.mjs",
     "sync:dg-growth": "dotenv -e .env.local -- node scripts/sync-digitalgate-growth-landings.mjs",
-    "sync:dg-insights": "dotenv -e .env.local -- node scripts/sync-digitalgate-insights-landings.mjs",
+    "sync:dg-insights": "dotenv -e .env.local -- node scripts/sync-digitalgate-insights-pages.mjs",
     "postinstall": "npm run db:generate"
   },
   "dependencies": {
@@ -43,6 +43,7 @@
     "eslint-config-next": "16.2.12",
     "playwright": "^1.62.1",
     "prisma": "^6.19.0",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
