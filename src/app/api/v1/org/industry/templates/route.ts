@@ -13,6 +13,10 @@ import {
 } from "@dg/platform-core";
 
 import { isNextResponse, requirePermission, requirePlatformSession } from "@/lib/platform-api";
+import {
+  tenantWriteEntitlementBlock,
+  writeEntitlementResponse,
+} from "@/lib/write-entitlement";
 
 type OrgSettings = {
   apps?: {
@@ -96,6 +100,11 @@ export async function GET() {
 export async function PATCH(req: Request) {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
+
+  // Tenant write-entitlement (H-3): block writes for read-only/suspended orgs.
+  // Independent of the activatePaidApps plan gate below  both controls apply.
+  const block = await tenantWriteEntitlementBlock(session);
+  if (block) return writeEntitlementResponse(block);
 
   const body = await req.json().catch(() => null);
   if (!body || typeof body !== "object") {

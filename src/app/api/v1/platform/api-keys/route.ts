@@ -9,6 +9,10 @@ import {
   requireClerkSession,
   requireOrgAdmin,
 } from "@/lib/platform-api";
+import {
+  tenantWriteEntitlementBlock,
+  writeEntitlementResponse,
+} from "@/lib/write-entitlement";
 
 export async function GET() {
   const session = await requireClerkSession();
@@ -27,6 +31,9 @@ export async function POST(req: Request) {
 
   const denied = requireOrgAdmin(session);
   if (denied) return denied;
+
+  const block = await tenantWriteEntitlementBlock(session);
+  if (block) return writeEntitlementResponse(block);
 
   const body = await req.json().catch(() => null);
   const name = typeof body?.name === "string" ? body.name.trim() : "";

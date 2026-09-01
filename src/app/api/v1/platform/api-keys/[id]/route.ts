@@ -6,6 +6,10 @@ import {
   requireClerkSession,
   requireOrgAdmin,
 } from "@/lib/platform-api";
+import {
+  tenantWriteEntitlementBlock,
+  writeEntitlementResponse,
+} from "@/lib/write-entitlement";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -17,6 +21,9 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
 
   const denied = requireOrgAdmin(session);
   if (denied) return denied;
+
+  const block = await tenantWriteEntitlementBlock(session);
+  if (block) return writeEntitlementResponse(block);
 
   const { id } = await params;
   const revoked = await revokePlatformApiKey({

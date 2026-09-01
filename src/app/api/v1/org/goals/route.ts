@@ -9,6 +9,10 @@ import {
 } from "@dg/platform-core";
 
 import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
+import {
+  tenantWriteEntitlementBlock,
+  writeEntitlementResponse,
+} from "@/lib/write-entitlement";
 
 export async function GET() {
   const session = await requirePlatformSession();
@@ -20,6 +24,9 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
+
+  const block = await tenantWriteEntitlementBlock(session);
+  if (block) return writeEntitlementResponse(block);
 
   const body = (await req.json().catch(() => null)) as OrganisationGoalDraft | null;
   if (!body) {
@@ -42,6 +49,9 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
+
+  const block = await tenantWriteEntitlementBlock(session);
+  if (block) return writeEntitlementResponse(block);
 
   const body = (await req.json().catch(() => null)) as
     | (OrganisationGoalPatch & { id?: string })
@@ -69,6 +79,9 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
+
+  const block = await tenantWriteEntitlementBlock(session);
+  if (block) return writeEntitlementResponse(block);
 
   const url = new URL(req.url);
   const id = url.searchParams.get("id")?.trim() || "";
