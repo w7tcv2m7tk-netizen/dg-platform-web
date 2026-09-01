@@ -186,6 +186,9 @@ export function requirePermission(
   const ctx = buildAccessContext({
     role: session.role,
     organisationId: session.organisationId,
+    // API-key sessions never resolve to a platform user type (see
+    // toPlatformUserType), so a credential cannot inherit operator grants.
+    principalId: session.clerkUserId,
     enabledAppIds: [],
     grants: session.permissionGrants,
   });

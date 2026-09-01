@@ -8,6 +8,12 @@ export type CommandCentreAccessInput = {
   organisationName?: string;
   organisationSlug?: string;
   role?: string;
+  /**
+   * Session principal id (`PlatformSession.clerkUserId`). Non-interactive
+   * API-key principals (`api_key:*`) can never reach Command Centre — see
+   * `hasPlatformAuthority` / `isApiKeyPrincipal`.
+   */
+  principalId?: string | null;
 };
 
 /** True when the signed-in user is DigitalGate staff, independent of the active tenant. */
@@ -32,6 +38,7 @@ export function canAccessCommandCentre(input: CommandCentreAccessInput): boolean
   return hasPlatformAuthority({
     organisationId: input.organisationId,
     role: input.role,
+    principalId: input.principalId,
   });
 }
 

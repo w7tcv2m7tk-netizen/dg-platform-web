@@ -70,6 +70,12 @@ export function buildAccessContext(input: {
    * authority is derived from the allowlist / dg:staff.
    */
   isPlatformOperator?: boolean;
+  /**
+   * Session principal id (`PlatformSession.clerkUserId`). API-key principals
+   * (`api_key:*`) never resolve to a platform user type, so a credential cannot
+   * inherit operator permission grants — see `toPlatformUserType`.
+   */
+  principalId?: string | null;
   enabledAppIds: string[];
   grants?: PermissionGrant[] | unknown;
   industryAppId?: string | null;
@@ -82,6 +88,7 @@ export function buildAccessContext(input: {
       role: input.role,
       organisationId: input.organisationId,
       hasAuthority: input.isPlatformOperator,
+      principalId: input.principalId,
     }),
     enabledAppIds: input.enabledAppIds,
     grants: parsePermissionGrants(input.grants),
