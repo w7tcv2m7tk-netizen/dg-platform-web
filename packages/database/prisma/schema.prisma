@@ -20,14 +20,14 @@ model Organisation {
   currency        String   @default("AUD")
   status          String   @default("trial")
   settings        Json?
-  billingCustomerId String? @map("billing_customer_id")
+  billingCustomerId String? @unique @map("billing_customer_id")
   industry        String?
   /** Share slug for Platform Refer & Earn — /r/{referralCode} */
   referralCode    String?  @unique @map("referral_code")
   /** Organisation that referred this tenant (single-level only — no MLM) */
   referredByOrganisationId String? @map("referred_by_organisation_id")
   /** Stripe Connect Express account for Refer & Earn cash payouts */
-  stripeConnectAccountId String? @map("stripe_connect_account_id")
+  stripeConnectAccountId String? @unique @map("stripe_connect_account_id")
   /**
    * Connect onboarding: not_started | pending | restricted | complete | disabled
    * Synced from account.updated webhooks / onboarding return.
@@ -89,7 +89,6 @@ model Organisation {
   platformSubscriptionEvents  PlatformSubscriptionEvent[]
   stripeWebhookReceipts       StripeWebhookReceipt[]
 
-  @@index([stripeConnectAccountId])
   @@map("organisations")
 }
 
@@ -895,8 +894,8 @@ model PlatformSubscription {
   /** FULL | FULL_WITH_WARNING | MOSTLY_FULL | READ_ONLY | NONE — derived; stored for query speed */
   entitlement          String    @default("FULL")
   planTier             String?   @map("plan_tier")
-  stripeCustomerId     String?   @map("stripe_customer_id")
-  stripeSubscriptionId String?   @map("stripe_subscription_id")
+  stripeCustomerId     String?   @unique @map("stripe_customer_id")
+  stripeSubscriptionId String?   @unique @map("stripe_subscription_id")
   /** Raw Stripe subscription.status when known */
   stripeStatus         String?   @map("stripe_status")
   trialStart           DateTime? @map("trial_start")
@@ -922,8 +921,6 @@ model PlatformSubscription {
   events       PlatformSubscriptionEvent[]
 
   @@index([status])
-  @@index([stripeCustomerId])
-  @@index([stripeSubscriptionId])
   @@map("platform_subscriptions")
 }
 

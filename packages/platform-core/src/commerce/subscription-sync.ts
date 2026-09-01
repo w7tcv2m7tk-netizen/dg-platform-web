@@ -65,11 +65,11 @@ export async function syncCommerceSubscriptionFromStripe(input: {
     return { ok: false, reason: "not_commerce_subscription" };
   }
 
-  const organisationId =
-    input.organisationId?.trim() ||
-    subscription.metadata?.organisation_id?.trim() ||
-    subscription.metadata?.organisationId?.trim() ||
-    "";
+  // Security: the owning organisation must be supplied by a trusted caller (for
+  // connected-account webhooks, resolved from event.account via the Stripe
+  // Connect → organisation mapping). Subscription metadata is tenant-controllable
+  // on a connected account, so it must NEVER select the tenant here.
+  const organisationId = input.organisationId?.trim() || "";
 
   if (!organisationId) {
     return { ok: false, reason: "missing_organisation_id" };

@@ -15,6 +15,7 @@ import {
   processPaymentWebhookEvent,
   provisionFromPlatformCheckout,
   requirePaymentConnector,
+  resolveOrganisationIdByConnectAccount,
   syncCommerceSubscriptionFromStripe,
   withWebhookReceiptState,
 } from "@dg/platform-core";
@@ -30,11 +31,13 @@ async function resolveOrgIdFromStripeCustomer(
   const sub = await getPlatformSubscriptionByStripeCustomer(customerId);
   if (sub) return sub.organisationId;
   const { prisma } = await import("@dg/database");
-  const org = await prisma.organisation.findFirst({
+  // Fail safe: a platform billing customer must map to exactly one org.
+  const orgs = await prisma.organisation.findMany({
     where: { billingCustomerId: customerId },
     select: { id: true },
+    take: 2,
   });
-  return org?.id;
+  return orgs.length === 1 ? orgs[0].id : undefined;
 }
 
 /**
@@ -115,7 +118,32 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
       );
       result.platform = lifecycle;
       console.info("[stripe webhook] platform subscription:", event.type, lifecycle);
-    } else if (onConnectedAccount || isCommerceCustomerSubscription(subscription)) {
+    } else if (onConnectedAccount) {
+      // Connected-account subscription: the owner is the organisation that owns
+      // event.account in our trusted mapping. Tenant-controlled
+      // subscription.metadata.organisation_id is NOT trusted and cannot select
+      // the tenant; an unknown/ambiguous account performs no mutation.
+      const ownerOrganisationId = await resolveOrganisationIdByConnectAccount(
+        event.connectAccountId,
+      );
+      if (!ownerOrganisationId) {
+        result.commerce = { ok: false, reason: "unknown_connect_account" };
+        console.warn(
+          "[stripe webhook] connected-account subscription for unmapped account:",
+          event.connectAccountId,
+        );
+      } else {
+        const commerce = await syncCommerceSubscriptionFromStripe({
+          subscription,
+          organisationId: ownerOrganisationId,
+        });
+        result.commerce = commerce;
+        console.info("[stripe webhook] commerce subscription:", event.type, commerce);
+      }
+    } else if (isCommerceCustomerSubscription(subscription)) {
+      // Commerce subscription on the DigitalGate platform account (not a platform
+      // seat). Platform-account metadata is server-set — a tenant cannot write it
+      // — so event.organisationId is trusted here.
       const commerce = await syncCommerceSubscriptionFromStripe({
         subscription,
         organisationId: event.organisationId,
@@ -182,6 +210,16 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
   }
 
   if (event.type === "invoice.paid") {
+    // Connected-account invoices are the tenant's own commerce billing and must
+    // never drive DigitalGate platform recovery, referral, or partner accrual
+    // (H-8: platform-account events only). Fail safe: no tenant mutation.
+    if (event.connectAccountId) {
+      return NextResponse.json({
+        received: true,
+        skipped: "connected_account_invoice",
+      });
+    }
+
     const invoice = event.raw as Stripe.Invoice | undefined;
     const periodStart = invoice?.period_start
       ? new Date(invoice.period_start * 1000)
@@ -214,7 +252,10 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
       organisationId = await resolveOrgIdFromStripeCustomer(event.providerCustomerId);
     }
 
-    if (organisationId && !event.connectAccountId) {
+    // Connected-account invoices already returned above, so this is a
+    // platform-account invoice; the H-8 !connectAccountId gate is preserved by
+    // the early return.
+    if (organisationId) {
       try {
         await applyInvoicePaidRecovery({
           organisationId,
