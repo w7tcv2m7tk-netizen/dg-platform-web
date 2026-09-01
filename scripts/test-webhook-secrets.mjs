@@ -1,10 +1,13 @@
 /**
- * H-1 regression.
+ * H-1 / H-4 regression.
  *
- * The WordPress bridges accepted any of up to five environment secrets
+ * H-1: the WordPress bridges accepted any of up to five environment secrets
  * (including the general-purpose DG_API_KEY) with a non-constant-time compare,
  * and took organisationId straight from the request body — so one low-value
  * credential could write leads, bookings and prospects into any tenant.
+ *
+ * H-4: connector secrets silently fell back to plaintext when
+ * DG_SETTINGS_ENCRYPTION_KEY was unset.
  */
 import assert from "node:assert/strict";
 import { describe, it, beforeEach, afterEach } from "node:test";
@@ -15,6 +18,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const loadWebhookAuth = () =>
   import(pathToFileURL(path.join(__dirname, "../src/lib/webhook-auth.ts")).href);
+const loadCrypto = () =>
+  import(
+    pathToFileURL(
+      path.join(__dirname, "../packages/platform-core/src/crypto/secret-field.ts"),
+    ).href
+  );
 
 const TENANT_A = "org_tenant_a";
 const TENANT_B = "org_tenant_b";
@@ -30,6 +39,8 @@ const KEYS = [
   "DG_LEADS_WEBHOOK_SECRET",
   "DG_WP_CONNECTOR_API_KEY",
   "DG_API_KEY",
+  "DG_SETTINGS_ENCRYPTION_KEY",
+  "DG_ALLOW_PLAINTEXT_SECRETS",
   "DG_LEADS_WEBHOOK_ORG_IDS",
 ];
 
@@ -143,5 +154,67 @@ describe("H-1: webhook organisation targeting", () => {
     const result = resolveWebhookOrganisation({});
     assert.equal(result.ok, false);
     assert.equal(result.code, "unresolved");
+  });
+});
+
+describe("H-4: connector secret encryption", () => {
+  it("refuses to store a secret when no encryption key is configured", async () => {
+    const { encryptSecret, SecretEncryptionUnavailableError } = await loadCrypto();
+    assert.throws(
+      () => encryptSecret("ya29.access-token"),
+      SecretEncryptionUnavailableError,
+    );
+  });
+
+  it("allows plaintext only behind an explicit local-dev opt-in", async () => {
+    process.env.DG_ALLOW_PLAINTEXT_SECRETS = "1";
+    const { encryptSecret } = await loadCrypto();
+    assert.equal(encryptSecret("ya29.access-token"), "ya29.access-token");
+  });
+
+  it("round-trips an encrypted secret when the key is set", async () => {
+    process.env.DG_SETTINGS_ENCRYPTION_KEY = "unit-test-key";
+    const { encryptSecret, decryptSecretResult, isEncryptedSecret } =
+      await loadCrypto();
+
+    const stored = encryptSecret("refresh-token-value");
+    assert.equal(isEncryptedSecret(stored), true);
+    assert.notEqual(stored, "refresh-token-value");
+
+    const result = decryptSecretResult(stored);
+    assert.equal(result.ok, true);
+    assert.equal(result.value, "refresh-token-value");
+    assert.equal(result.wasEncrypted, true);
+  });
+
+  it("reports an explicit reason when the key is missing or wrong", async () => {
+    process.env.DG_SETTINGS_ENCRYPTION_KEY = "unit-test-key";
+    const { encryptSecret } = await loadCrypto();
+    const stored = encryptSecret("refresh-token-value");
+
+    delete process.env.DG_SETTINGS_ENCRYPTION_KEY;
+    const { decryptSecretResult } = await loadCrypto();
+    assert.deepEqual(decryptSecretResult(stored), {
+      ok: false,
+      reason: "missing_key",
+    });
+
+    process.env.DG_SETTINGS_ENCRYPTION_KEY = "a-different-key";
+    const again = await loadCrypto();
+    assert.deepEqual(again.decryptSecretResult(stored), {
+      ok: false,
+      reason: "decrypt_failed",
+    });
+  });
+
+  it("still reads legacy plaintext values so existing credentials survive", async () => {
+    process.env.DG_SETTINGS_ENCRYPTION_KEY = "unit-test-key";
+    const { decryptSecretResult } = await loadCrypto();
+
+    assert.deepEqual(decryptSecretResult("legacy-plaintext-key"), {
+      ok: true,
+      value: "legacy-plaintext-key",
+      wasEncrypted: false,
+    });
   });
 });
