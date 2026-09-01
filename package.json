@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:unit": "node --experimental-strip-types --test scripts/test-dreamscape-auth.mjs scripts/test-rea-reaxml.mjs scripts/test-legacy-wp-form-post.mjs scripts/test-public-website-form-fields.mjs scripts/test-guest-identity.mjs scripts/test-public-host-slugs.mjs scripts/test-native-website-health.mjs scripts/test-team-invite.mjs scripts/test-subscription-lifecycle.mjs scripts/test-webhook-receipt-state.mjs",
+    "test:unit": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-middleware-public-routes.mjs scripts/test-cron-auth.mjs scripts/test-webhook-secrets.mjs scripts/test-platform-authority.mjs scripts/test-growth-tenant-isolation.mjs scripts/test-dreamscape-auth.mjs scripts/test-rea-reaxml.mjs scripts/test-legacy-wp-form-post.mjs scripts/test-public-website-form-fields.mjs scripts/test-guest-identity.mjs scripts/test-public-host-slugs.mjs scripts/test-native-website-health.mjs scripts/test-team-invite.mjs scripts/test-subscription-lifecycle.mjs scripts/test-webhook-receipt-state.mjs",
     "test:webhook-receipt-state": "node --experimental-strip-types --test scripts/test-webhook-receipt-state.mjs",
     "db:generate": "prisma generate --schema=packages/database/prisma/schema.prisma",
     "db:push": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma/schema.prisma",

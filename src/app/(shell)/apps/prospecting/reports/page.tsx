@@ -1,11 +1,15 @@
 import Link from "next/link";
-import { listGrowthProspectReports } from "@dg/platform-core";
+import {
+  listGrowthProspectReports,
+  organisationGrowthScope,
+} from "@dg/platform-core";
 
 import {
   ConvertProspectToOrgButton,
   CopyShareLinkButton,
   MarkReportSentButton,
 } from "@/components/command/GrowthEngineActions";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding"]);
 
@@ -15,7 +19,13 @@ const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding"]);
  */
 export default async function ProspectingReportsPage() {
   const db = Boolean(process.env.DATABASE_URL);
-  const reports = db ? await listGrowthProspectReports() : [];
+  const { session } = await getPlatformPageContext();
+  const reports =
+    db && session?.organisationId
+      ? await listGrowthProspectReports(
+          organisationGrowthScope(session.organisationId),
+        )
+      : [];
 
   return (
     <>

@@ -4,6 +4,7 @@
 
 import type { Prisma, Task } from "@dg/database";
 
+import { platformOperatorOrganisationIds } from "../access/platform-authority";
 import { createActivity } from "../activities";
 import { writeAuditLog } from "../audit";
 import { platformEvents } from "../events";
@@ -133,13 +134,10 @@ export async function resolveDigitalGateOperatorOrganisationId(): Promise<
           select: { id: true },
         })
       : null) ??
+    // Allowlisted operator orgs only. Slug lookup removed: a tenant can name
+    // itself "DigitalGate …" and would otherwise capture operator task routing.
     (await prisma.organisation.findFirst({
-      where: {
-        OR: [
-          { slug: "digitalgate" },
-          { slug: { startsWith: "digitalgate-" } },
-        ],
-      },
+      where: { id: { in: platformOperatorOrganisationIds() } },
       select: { id: true },
     }));
 

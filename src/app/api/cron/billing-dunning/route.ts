@@ -4,30 +4,19 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-function authorizeCron(req: Request): boolean {
-  const secret = process.env.CRON_SECRET?.trim();
-  const auth = req.headers.get("authorization")?.trim() || "";
-  const headerSecret = req.headers.get("x-cron-secret")?.trim() || "";
-  const isVercelCron = Boolean(req.headers.get("x-vercel-cron"));
+import { authorizeCronRequest } from "@/lib/cron-auth";
 
-  if (secret) {
-    if (auth === `Bearer ${secret}`) return true;
-    if (headerSecret === secret) return true;
-    return false;
-  }
-
-  return isVercelCron;
-}
 
 /**
  * Daily dunning ladder — PAYMENT_FAILED → PAST_DUE → RESTRICTED → SUSPENDED.
  * Sets reminder flags for email follow-up (sends not in this foundation pass).
  */
 export async function GET(req: Request) {
-  if (!authorizeCron(req)) {
+  const auth = authorizeCronRequest(req);
+  if (!auth.ok) {
     return NextResponse.json(
-      { error: { code: "unauthorized", message: "Invalid cron secret" } },
-      { status: 401 },
+      { error: { code: auth.code, message: auth.message } },
+      { status: auth.code === "cron_not_configured" ? 503 : 401 },
     );
   }
 

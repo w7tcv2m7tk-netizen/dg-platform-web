@@ -1,5 +1,6 @@
 import { createGrowthProspect, listGrowthProspects } from "../command-centre/growth-engine/prospects";
 import { runGrowthProspectAudit } from "../command-centre/growth-engine/audits";
+import { organisationGrowthScope } from "../command-centre/growth-engine/scope";
 import { resolveIndustryPack } from "./industry-packs";
 import type { DiscoveryCandidate } from "./types";
 
@@ -140,6 +141,8 @@ export async function importDiscoveryCandidates(
       try {
         const audit = await runGrowthProspectAudit({
           prospectId: prospect.id,
+          // Prospect was just created under this tenant above.
+          scope: organisationGrowthScope(organisationId),
           actorId: input.actorId,
           operatorOrganisationId: input.operatorOrganisationId,
         });

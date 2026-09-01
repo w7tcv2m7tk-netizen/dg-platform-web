@@ -24,8 +24,7 @@ export function sessionHasFeature(
     if (!check) return true;
     const ctx = buildAccessContext({
       role: session.role,
-      organisationSlug: session.organisationSlug,
-      email: session.email,
+      organisationId: session.organisationId,
       enabledAppIds: [],
       grants: session.permissionGrants,
     });
@@ -39,8 +38,7 @@ export function sessionHasFeature(
 
   const ctx = buildAccessContext({
     role: session.role,
-    organisationSlug: session.organisationSlug,
-    email: session.email,
+    organisationId: session.organisationId,
     enabledAppIds: [],
     grants: session.permissionGrants,
   });

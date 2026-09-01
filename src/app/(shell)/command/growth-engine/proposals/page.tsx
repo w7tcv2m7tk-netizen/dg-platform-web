@@ -1,5 +1,10 @@
 import Link from "next/link";
-import { listGrowthProposalDrafts } from "@dg/platform-core";
+import {
+  listGrowthProposalDrafts,
+  organisationGrowthScope,
+} from "@dg/platform-core";
+
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 import {
   ConvertProspectToOrgButton,
@@ -19,7 +24,13 @@ function formatAud(cents: number) {
  */
 export default async function GrowthProposalsPage() {
   const db = Boolean(process.env.DATABASE_URL);
-  const drafts = db ? await listGrowthProposalDrafts() : [];
+  const { session } = await getPlatformPageContext();
+  const drafts =
+    db && session?.organisationId
+      ? await listGrowthProposalDrafts(
+          organisationGrowthScope(session.organisationId),
+        )
+      : [];
 
   return (
     <>

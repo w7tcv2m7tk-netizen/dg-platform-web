@@ -168,8 +168,7 @@ export function requirePermission(
 ): NextResponse | null {
   const ctx = buildAccessContext({
     role: session.role,
-    organisationSlug: session.organisationSlug,
-    email: session.email,
+    organisationId: session.organisationId,
     enabledAppIds: [],
     grants: session.permissionGrants,
   });

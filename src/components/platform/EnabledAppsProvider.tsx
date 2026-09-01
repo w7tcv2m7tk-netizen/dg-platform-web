@@ -62,8 +62,7 @@ export function EnabledAppsProvider({
   showResellerAdmin = false,
   partnerType = null,
   membershipRole = "member",
-  organisationSlug,
-  userEmail,
+  organisationId,
   permissionGrants,
   children,
 }: {
@@ -74,8 +73,8 @@ export function EnabledAppsProvider({
   showResellerAdmin?: boolean;
   partnerType?: PartnerType | null;
   membershipRole?: string;
-  organisationSlug?: string;
-  userEmail?: string;
+  /** Active tenant id — used for platform-authority aware nav filtering. */
+  organisationId?: string;
   permissionGrants?: unknown;
   children: React.ReactNode;
 }) {
@@ -174,8 +173,7 @@ export function EnabledAppsProvider({
     });
     const ctx = buildAccessContext({
       role: membershipRole,
-      organisationSlug,
-      email: userEmail,
+      organisationId,
       enabledAppIds: enabledIds,
       grants: permissionGrants,
     });
@@ -188,8 +186,7 @@ export function EnabledAppsProvider({
     showResellerAdmin,
     partnerType,
     membershipRole,
-    organisationSlug,
-    userEmail,
+    organisationId,
     permissionGrants,
   ]);
 
