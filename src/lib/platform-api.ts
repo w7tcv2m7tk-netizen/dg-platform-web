@@ -17,6 +17,7 @@ import {
 import { NextResponse } from "next/server";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { enforceWriteEntitlement } from "@/lib/write-entitlement";
 
 // Ensure in-app notification fan-out is bound in this Node isolate.
 registerNotificationEventHandlers();
@@ -51,6 +52,22 @@ export async function requireClerkSession(): Promise<PlatformSession | NextRespo
 
 /** Clerk session or organisation API key (`dg_live_…`). */
 export async function requirePlatformAuth(
+  req: Request,
+): Promise<PlatformSession | NextResponse> {
+  const session = await resolvePlatformAuthSession(req);
+  if (isNextResponse(session)) return session;
+
+  // Central tenant write-entitlement enforcement (H-3). Blocks writes for
+  // read-only/suspended tenants and fails closed on lookup failure; reads and
+  // platform operators are unaffected and recovery/billing/onboarding paths are
+  // exempt. New authenticated /api/v1 routes inherit this via requirePlatformAuth.
+  const writeBlock = await enforceWriteEntitlement(req, session);
+  if (writeBlock) return writeBlock;
+
+  return session;
+}
+
+async function resolvePlatformAuthSession(
   req: Request,
 ): Promise<PlatformSession | NextResponse> {
   const apiKey = extractApiKeyFromRequest(req);

@@ -83,6 +83,24 @@ export async function getPlatformSubscription(
   }
 }
 
+/**
+ * Like getPlatformSubscription but PROPAGATES database errors instead of
+ * swallowing them to null. The write-entitlement guard (H-3) uses this so a
+ * lookup FAILURE can fail closed (block writes) rather than silently allowing
+ * them. Returns null only for a genuinely missing row or an unconfigured
+ * database — both mean "no subscription", not a failure.
+ */
+export async function getPlatformSubscriptionStrict(
+  organisationId: string,
+): Promise<PlatformSubscriptionRow | null> {
+  if (!process.env.DATABASE_URL) return null;
+  const { prisma } = await import("@dg/database");
+  const row = await prisma.platformSubscription.findUnique({
+    where: { organisationId },
+  });
+  return row ? mapRow(row) : null;
+}
+
 export async function getPlatformSubscriptionByStripeCustomer(
   stripeCustomerId: string,
 ): Promise<PlatformSubscriptionRow | null> {
