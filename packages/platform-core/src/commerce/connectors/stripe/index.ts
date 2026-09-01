@@ -204,6 +204,7 @@ export class StripePaymentConnector implements PaymentConnector {
       return {
         type: "invoice.paid",
         providerId: "stripe",
+        connectAccountId: event.account ?? undefined,
         providerEventId: event.id,
         organisationId,
         providerCustomerId: customerId,
@@ -241,6 +242,7 @@ export class StripePaymentConnector implements PaymentConnector {
             ? "invoice.payment_failed"
             : "invoice.payment_action_required",
         providerId: "stripe",
+        connectAccountId: event.account ?? undefined,
         providerEventId: event.id,
         organisationId: meta.organisation_id || meta.organisationId || undefined,
         providerCustomerId: customerId,
@@ -281,6 +283,7 @@ export class StripePaymentConnector implements PaymentConnector {
       return {
         type: "subscription.created",
         providerId: "stripe",
+        connectAccountId: event.account ?? undefined,
         providerEventId: event.id,
         organisationId:
           subscription.metadata?.organisation_id ||
@@ -303,6 +306,7 @@ export class StripePaymentConnector implements PaymentConnector {
       return {
         type: "subscription.cancelled",
         providerId: "stripe",
+        connectAccountId: event.account ?? undefined,
         providerEventId: event.id,
         organisationId:
           subscription.metadata?.organisation_id ||
@@ -325,6 +329,7 @@ export class StripePaymentConnector implements PaymentConnector {
       return {
         type: "subscription.updated",
         providerId: "stripe",
+        connectAccountId: event.account ?? undefined,
         providerEventId: event.id,
         organisationId:
           subscription.metadata?.organisation_id ||
