@@ -2,27 +2,20 @@ import { NextResponse } from "next/server";
 
 import { fetchPortalMe } from "@/lib/dg-api";
 import { syncOrganisationFromPortal } from "@dg/platform-core";
+import { verifyWebhookSecret } from "@/lib/webhook-auth";
 
-function verifyWebhookSecret(req: Request): boolean {
-  const secret = process.env.DG_DISCOVERY_WEBHOOK_SECRET?.trim()
-    ?? process.env.DG_API_KEY?.trim()
-    ?? process.env.DG_WP_CONNECTOR_API_KEY?.trim();
-
-  if (!secret) return false;
-
-  const provided = req.headers.get("X-DG-Webhook-Secret")?.trim()
-    ?? req.headers.get("X-API-Key")?.trim()
-    ?? "";
-
-  return provided === secret;
-}
 
 /** Force onboarding/purchase sync after WP form submit. */
 export async function POST(req: Request) {
-  if (!verifyWebhookSecret(req)) {
+  const auth = verifyWebhookSecret(req, [
+    "DG_ONBOARDING_SYNC_WEBHOOK_SECRET",
+    // Legacy fallback during WP cutover — remove once WordPress is updated.
+    "DG_DISCOVERY_WEBHOOK_SECRET",
+  ] as const);
+  if (!auth.ok) {
     return NextResponse.json(
-      { error: { code: "unauthorized", message: "Invalid webhook secret" } },
-      { status: 401 },
+      { error: { code: auth.code, message: auth.message } },
+      { status: auth.code === "not_configured" ? 503 : 401 },
     );
   }
 
@@ -56,19 +49,19 @@ export async function POST(req: Request) {
     );
   }
 
-  /** Prefer explicit body org, then membership org (tenant), else operator env. */
-  const organisationId =
-    (typeof body?.organisationId === "string" && body.organisationId.trim()) ||
-    membership.organisationId ||
-    process.env.DG_OPERATOR_ORG_ID?.trim() ||
-    null;
+  /**
+   * Tenant identity comes from the membership matched on the verified email —
+   * never from the request body. Previously an explicit body organisationId
+   * won, letting any secret holder sync arbitrary tenants.
+   */
+  const organisationId = membership.organisationId;
 
   if (!organisationId) {
     return NextResponse.json(
       {
         error: {
-          code: "validation_error",
-          message: "organisationId or DG_OPERATOR_ORG_ID is required",
+          code: "org_not_resolved",
+          message: "Membership has no organisation",
         },
       },
       { status: 422 },

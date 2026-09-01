@@ -4,33 +4,25 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-function verifyWebhookSecret(req: Request): boolean {
-  const secret = process.env.DG_DISCOVERY_WEBHOOK_SECRET?.trim()
-    ?? process.env.DG_API_KEY?.trim()
-    ?? process.env.DG_WP_CONNECTOR_API_KEY?.trim();
+import {
+  resolveWebhookOrganisation,
+  verifyWebhookSecret,
+  webhookAllowedOrganisationIds,
+} from "@/lib/webhook-auth";
 
-  if (!secret) return false;
 
-  const provided = req.headers.get("X-DG-Webhook-Secret")?.trim()
-    ?? req.headers.get("X-API-Key")?.trim()
-    ?? "";
-
-  return provided === secret;
-}
-
-function resolveOperatorOrganisationId(body: Record<string, unknown>): string | null {
-  const fromBody =
-    typeof body.organisationId === "string" ? body.organisationId.trim() : "";
-  const fromEnv = process.env.DG_OPERATOR_ORG_ID?.trim() ?? "";
-  return fromBody || fromEnv || null;
-}
 
 /** WordPress discovery form → Growth Engine prospect + audit. */
 export async function POST(req: Request) {
-  if (!verifyWebhookSecret(req)) {
+  const auth = verifyWebhookSecret(req, [
+    "DG_DISCOVERY_WEBHOOK_SECRET",
+    // Legacy fallback during WP cutover — remove once WordPress is updated.
+    "DG_WP_CONNECTOR_API_KEY",
+  ] as const);
+  if (!auth.ok) {
     return NextResponse.json(
-      { error: { code: "unauthorized", message: "Invalid webhook secret" } },
-      { status: 401 },
+      { error: { code: auth.code, message: auth.message } },
+      { status: auth.code === "not_configured" ? 503 : 401 },
     );
   }
 
@@ -42,18 +34,20 @@ export async function POST(req: Request) {
     );
   }
 
-  const organisationId = resolveOperatorOrganisationId(body as Record<string, unknown>);
-  if (!organisationId) {
+  // Server-resolved operator org; a body value may only confirm it.
+  const target = resolveWebhookOrganisation({
+    requested:
+      typeof body.organisationId === "string" ? body.organisationId : undefined,
+    resolved: process.env.DG_OPERATOR_ORG_ID,
+    allowed: webhookAllowedOrganisationIds("DG_DISCOVERY_WEBHOOK_ORG_IDS"),
+  });
+  if (!target.ok) {
     return NextResponse.json(
-      {
-        error: {
-          code: "validation_error",
-          message: "organisationId or DG_OPERATOR_ORG_ID is required",
-        },
-      },
-      { status: 422 },
+      { error: { code: target.code, message: target.message } },
+      { status: target.code === "forbidden" ? 403 : 422 },
     );
   }
+  const organisationId = target.organisationId;
 
   const prospect = await createGrowthProspect({
     organisationId,
