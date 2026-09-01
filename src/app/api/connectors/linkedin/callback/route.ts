@@ -7,6 +7,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 import { parseLinkedInOAuthState } from "@/lib/linkedin-oauth-state";
+import { tenantWriteEntitlementBlock } from "@/lib/write-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,9 @@ export async function GET(req: NextRequest) {
     return fail(parsed.message);
   }
   const organisationId = parsed.organisationId;
+
+  const writeBlock = await tenantWriteEntitlementBlock({ organisationId });
+  if (writeBlock) return fail(writeBlock.message);
 
   const exchanged = await exchangeLinkedInAuthorizationCode({ code });
   if (!exchanged.ok) {

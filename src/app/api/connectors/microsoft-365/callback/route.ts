@@ -8,6 +8,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 import { parseGoogleOAuthState } from "@/lib/google-oauth-state";
+import { tenantWriteEntitlementBlock } from "@/lib/write-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,9 @@ export async function GET(req: NextRequest) {
     return fail(parsed.message);
   }
   const organisationId = parsed.organisationId;
+
+  const writeBlock = await tenantWriteEntitlementBlock({ organisationId });
+  if (writeBlock) return fail(writeBlock.message);
 
   const exchanged = await exchangeMicrosoftAuthorizationCode({ code });
   if (!exchanged.ok) {

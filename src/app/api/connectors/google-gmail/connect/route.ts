@@ -6,6 +6,10 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import {
+  tenantWriteEntitlementBlock,
+  writeEntitlementResponse,
+} from "@/lib/write-entitlement";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { createGoogleOAuthState } from "@/lib/google-oauth-state";
 
@@ -56,6 +60,9 @@ export async function GET(req: Request) {
       { status: 400 },
     );
   }
+
+  const writeBlock = await tenantWriteEntitlementBlock(session);
+  if (writeBlock) return writeEntitlementResponse(writeBlock);
 
   let state: string;
   try {

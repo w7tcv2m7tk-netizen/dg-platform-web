@@ -8,6 +8,10 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import {
+  tenantWriteEntitlementBlock,
+  writeEntitlementResponse,
+} from "@/lib/write-entitlement";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +61,9 @@ export async function GET() {
       { status: 400 },
     );
   }
+
+  const writeBlock = await tenantWriteEntitlementBlock(session);
+  if (writeBlock) return writeEntitlementResponse(writeBlock);
 
   const state = randomBytes(24).toString("hex");
   const nonce = randomBytes(24).toString("hex");

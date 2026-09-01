@@ -5,6 +5,7 @@ import {
 import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { tenantWriteEntitlementBlock } from "@/lib/write-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,9 @@ export async function GET(req: NextRequest) {
   if (!organisationId) {
     return fail("Missing organisation context — try Connect Domain again");
   }
+
+  const writeBlock = await tenantWriteEntitlementBlock({ organisationId });
+  if (writeBlock) return fail(writeBlock.message);
 
   const exchanged = await exchangeDomainAuthorizationCode({ code });
   if (!exchanged.ok) {
