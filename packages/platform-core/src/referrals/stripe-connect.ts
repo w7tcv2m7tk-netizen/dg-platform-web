@@ -373,19 +373,77 @@ export async function createReferralCashTransfer(input: {
 }
 
 /** Webhook: account.updated → sync org Connect fields. */
+/**
+ * Trusted mapping: a Stripe Connect account id -> the owning DigitalGate
+ * organisation.
+ *
+ * `event.account` on a Stripe webhook is the Stripe-signed, authoritative
+ * identity of the connected account. The owner is whichever organisation the
+ * account was recorded against at onboarding (persistConnectAccount). This is the
+ * ONLY trusted way to resolve a tenant for a connected-account event  tenant
+ * metadata must never select the tenant.
+ *
+ * Fails safe (null) when the account is unknown or maps to more than one
+ * organisation, so a connected-account event can never mutate a tenant we cannot
+ * unambiguously identify. `finder` is injectable for tests.
+ */
+export async function resolveOrganisationIdByConnectAccount(
+  connectAccountId: string | null | undefined,
+  finder?: (accountId: string) => Promise<Array<{ id: string }>>,
+): Promise<string | null> {
+  const id = connectAccountId?.trim();
+  if (!id) return null;
+
+  const find =
+    finder ??
+    (async (accountId: string) => {
+      if (!process.env.DATABASE_URL) return [];
+      const { prisma } = await import("@dg/database");
+      return prisma.organisation.findMany({
+        where: { stripeConnectAccountId: accountId },
+        select: { id: true },
+        take: 2,
+      });
+    });
+
+  const matches = await find(id);
+  return matches.length === 1 ? matches[0].id : null;
+}
+
 export async function handleConnectAccountUpdated(account: Stripe.Account) {
-  const organisationId =
-    account.metadata?.organisation_id || account.metadata?.organisationId;
   const { prisma } = await import("@dg/database");
 
-  let orgId = organisationId;
-  if (!orgId) {
-    const org = await prisma.organisation.findFirst({
-      where: { stripeConnectAccountId: account.id },
+  // The account id (Stripe-signed) is authoritative. Resolve the owner from the
+  // trusted mapping recorded at onboarding; ambiguous ownership is refused.
+  let orgId = await resolveOrganisationIdByConnectAccount(account.id, (accountId) =>
+    prisma.organisation.findMany({
+      where: { stripeConnectAccountId: accountId },
       select: { id: true },
-    });
-    orgId = org?.id;
+      take: 2,
+    }),
+  );
+
+  // Not yet mapped (e.g. an account.updated that races the onboarding return):
+  // fall back to the server-set metadata org, but never attach this account to an
+  // organisation that already owns a *different* Connect account (no hijack).
+  if (!orgId) {
+    const metaOrgId =
+      account.metadata?.organisation_id || account.metadata?.organisationId;
+    if (metaOrgId) {
+      const target = await prisma.organisation.findUnique({
+        where: { id: metaOrgId },
+        select: { id: true, stripeConnectAccountId: true },
+      });
+      if (
+        target &&
+        (!target.stripeConnectAccountId ||
+          target.stripeConnectAccountId === account.id)
+      ) {
+        orgId = target.id;
+      }
+    }
   }
+
   if (!orgId) {
     return { ok: false as const, reason: "org_not_found" as const, accountId: account.id };
   }

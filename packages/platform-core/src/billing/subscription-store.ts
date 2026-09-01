@@ -106,10 +106,14 @@ export async function getPlatformSubscriptionByStripeCustomer(
 ): Promise<PlatformSubscriptionRow | null> {
   if (!process.env.DATABASE_URL) return null;
   const { prisma } = await import("@dg/database");
-  const row = await prisma.platformSubscription.findFirst({
+  // Fail safe: a Stripe customer id must map to exactly one platform
+  // subscription. Zero or ambiguous matches resolve to no organisation rather
+  // than selecting one arbitrarily (stripeCustomerId is @unique — see schema).
+  const rows = await prisma.platformSubscription.findMany({
     where: { stripeCustomerId },
+    take: 2,
   });
-  return row ? mapRow(row) : null;
+  return rows.length === 1 ? mapRow(rows[0]) : null;
 }
 
 export async function getPlatformSubscriptionByStripeSubscription(
@@ -117,10 +121,11 @@ export async function getPlatformSubscriptionByStripeSubscription(
 ): Promise<PlatformSubscriptionRow | null> {
   if (!process.env.DATABASE_URL) return null;
   const { prisma } = await import("@dg/database");
-  const row = await prisma.platformSubscription.findFirst({
+  const rows = await prisma.platformSubscription.findMany({
     where: { stripeSubscriptionId },
+    take: 2,
   });
-  return row ? mapRow(row) : null;
+  return rows.length === 1 ? mapRow(rows[0]) : null;
 }
 
 export type UpsertPlatformSubscriptionInput = {

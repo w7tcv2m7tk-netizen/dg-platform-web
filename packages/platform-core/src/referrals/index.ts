@@ -37,6 +37,7 @@ export {
   handleConnectAccountUpdated,
   handleConnectTransferFailure,
   isStripeConnectConfigured,
+  resolveOrganisationIdByConnectAccount,
   syncStripeConnectAccount,
   type StripeConnectSnapshot,
   type StripeConnectStatus,
@@ -801,11 +802,13 @@ export async function accrueMonthlyReferralCreditFromInvoice(input: {
 
   let orgId = input.referredOrganisationId?.trim() || null;
   if (!orgId && input.stripeCustomerId) {
-    const byCustomer = await prisma.organisation.findFirst({
+    // Fail safe: an ambiguous platform billing customer must not select a tenant.
+    const byCustomer = await prisma.organisation.findMany({
       where: { billingCustomerId: input.stripeCustomerId },
       select: { id: true },
+      take: 2,
     });
-    orgId = byCustomer?.id ?? null;
+    orgId = byCustomer.length === 1 ? byCustomer[0].id : null;
   }
   if (!orgId) {
     return { ok: false as const, reason: "org_not_found" as const };

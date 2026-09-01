@@ -430,9 +430,13 @@ export async function handlePlatformSubscriptionLifecycle(
       : null;
 
   if (!org && customerId) {
-    org = await prisma.organisation.findFirst({
+    // Fail safe: resolve the platform billing customer to exactly one org. An
+    // ambiguous billingCustomerId must not select a tenant arbitrarily.
+    const orgs = await prisma.organisation.findMany({
       where: { billingCustomerId: customerId },
+      take: 2,
     });
+    org = orgs.length === 1 ? orgs[0] : null;
   }
 
   if (!org) {
