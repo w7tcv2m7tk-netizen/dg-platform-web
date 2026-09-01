@@ -44,10 +44,20 @@ export function toOrganisationRole(role: string | null | undefined): Organisatio
 export function toPlatformUserType(input: {
   role: string | null | undefined;
   organisationId?: string | null;
+  /**
+   * Optional pre-resolved platform-authority result. Supplied on the client,
+   * where the DG_COMMAND_CENTRE_ORG_IDS allowlist is not readable, so navigation
+   * matches the server decision without re-reading server-only env. When omitted
+   * (server), authority is computed from the allowlist / dg:staff as before.
+   */
+  hasAuthority?: boolean;
 }): PlatformUserType | null {
   const r = normalizeMembershipRole(input.role);
 
-  if (!hasPlatformAuthority({ organisationId: input.organisationId, role: r })) {
+  const authorised =
+    input.hasAuthority ??
+    hasPlatformAuthority({ organisationId: input.organisationId, role: r });
+  if (!authorised) {
     return null;
   }
 

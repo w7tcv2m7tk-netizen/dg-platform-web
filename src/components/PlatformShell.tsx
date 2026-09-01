@@ -10,6 +10,7 @@ export function PlatformShell({
   industrySelectionIds = [],
   userName,
   showCommandCentre = false,
+  isPlatformOperator = false,
   showPartnerPortal = false,
   showResellerAdmin = false,
   partnerType = null,
@@ -28,6 +29,7 @@ export function PlatformShell({
   industrySelectionIds?: string[];
   userName?: string;
   showCommandCentre?: boolean;
+  isPlatformOperator?: boolean;
   showPartnerPortal?: boolean;
   showResellerAdmin?: boolean;
   partnerType?: import("@dg/platform-core").PartnerType | null;
@@ -45,6 +47,7 @@ export function PlatformShell({
       initialEnabledIds={enabledIds}
       industrySelectionIds={industrySelectionIds}
       showCommandCentre={showCommandCentre}
+      isPlatformOperator={isPlatformOperator}
       showPartnerPortal={showPartnerPortal}
       showResellerAdmin={showResellerAdmin}
       partnerType={partnerType}
