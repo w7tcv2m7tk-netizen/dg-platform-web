@@ -63,6 +63,13 @@ export function parsePermissionGrants(raw: unknown): PermissionGrant[] {
 export function buildAccessContext(input: {
   role: string;
   organisationId?: string | null;
+  /**
+   * Optional server-resolved platform-authority result. Pass on the client
+   * (where the DG_COMMAND_CENTRE_ORG_IDS allowlist is not readable) so the
+   * navigation context matches the server render. Omit on the server, where
+   * authority is derived from the allowlist / dg:staff.
+   */
+  isPlatformOperator?: boolean;
   enabledAppIds: string[];
   grants?: PermissionGrant[] | unknown;
   industryAppId?: string | null;
@@ -74,6 +81,7 @@ export function buildAccessContext(input: {
     platformUserType: toPlatformUserType({
       role: input.role,
       organisationId: input.organisationId,
+      hasAuthority: input.isPlatformOperator,
     }),
     enabledAppIds: input.enabledAppIds,
     grants: parsePermissionGrants(input.grants),

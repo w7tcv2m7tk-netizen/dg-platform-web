@@ -50,6 +50,18 @@ export async function PlatformShellLoader({
       })
     : false;
 
+  // Authoritative platform-operator result, resolved server-side via
+  // canAccessCommandCentre (DG_COMMAND_CENTRE_ORG_IDS allowlist / dg:staff).
+  // Passed to the client so navigation filtering consumes the server decision
+  // instead of re-evaluating server-only authority in the browser (which would
+  // drop Command Centre after hydration).
+  const isPlatformOperator = session
+    ? canAccessCommandCentre({
+        organisationId: session.organisationId,
+        role: session.role,
+      })
+    : false;
+
   const staffByEmail =
     isDigitalGateStaffEmail(email) ||
     Boolean(
@@ -105,6 +117,7 @@ export async function PlatformShellLoader({
       userName={userName ?? undefined}
       showFloatingChat={showFloatingChat && !isDemo}
       showCommandCentre={showCommandCentreNav}
+      isPlatformOperator={isPlatformOperator}
       showPartnerPortal={showPartnerPortal}
       showResellerAdmin={showResellerAdmin}
       partnerType={partnerType}

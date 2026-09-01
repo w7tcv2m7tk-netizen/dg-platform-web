@@ -58,6 +58,7 @@ export function EnabledAppsProvider({
   initialEnabledIds,
   industrySelectionIds = [],
   showCommandCentre = false,
+  isPlatformOperator = false,
   showPartnerPortal = false,
   showResellerAdmin = false,
   partnerType = null,
@@ -69,6 +70,7 @@ export function EnabledAppsProvider({
   initialEnabledIds: string[];
   industrySelectionIds?: string[];
   showCommandCentre?: boolean;
+  isPlatformOperator?: boolean;
   showPartnerPortal?: boolean;
   showResellerAdmin?: boolean;
   partnerType?: PartnerType | null;
@@ -174,6 +176,7 @@ export function EnabledAppsProvider({
     const ctx = buildAccessContext({
       role: membershipRole,
       organisationId,
+      isPlatformOperator,
       enabledAppIds: enabledIds,
       grants: permissionGrants,
     });
@@ -187,6 +190,7 @@ export function EnabledAppsProvider({
     partnerType,
     membershipRole,
     organisationId,
+    isPlatformOperator,
     permissionGrants,
   ]);
 
