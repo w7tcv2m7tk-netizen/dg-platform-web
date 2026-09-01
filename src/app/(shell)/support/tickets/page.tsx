@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   canAccessCommandCentre,
-  isDigitalGateStaffEmail,
   listOpenSupportConversations,
 } from "@dg/platform-core";
 
@@ -17,9 +16,7 @@ function isStaffAccess(
     organisationSlug?: string;
     role?: string;
   } | null,
-  email: string,
 ): boolean {
-  if (isDigitalGateStaffEmail(email)) return true;
   if (!session) return false;
   return canAccessCommandCentre({
     organisationId: session.organisationId,
@@ -39,9 +36,9 @@ export default async function SupportTicketsPage({
     ai?: string;
   }>;
 }) {
-  const { clerkUserId, session, email } = await getPlatformPageContext();
+  const { clerkUserId, session } = await getPlatformPageContext();
   if (!clerkUserId) redirect("/login");
-  if (!isStaffAccess(session, email)) redirect("/support");
+  if (!isStaffAccess(session)) redirect("/support");
 
   const params = searchParams ? await searchParams : {};
   const statusRaw = params.status ?? "open";
