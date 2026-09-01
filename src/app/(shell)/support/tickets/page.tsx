@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   canAccessCommandCentre,
-  isDigitalGateStaffEmail,
   listOpenSupportConversations,
 } from "@dg/platform-core";
 
@@ -17,9 +16,10 @@ function isStaffAccess(
     organisationSlug?: string;
     role?: string;
   } | null,
-  email: string,
 ): boolean {
-  if (isDigitalGateStaffEmail(email)) return true;
+  // Support access is a protected server-side boundary — authority comes only
+  // from the platform allowlist / dg:staff (canAccessCommandCentre), never from
+  // an email domain (C-2: tenant-controlled identity cannot grant authority).
   if (!session) return false;
   return canAccessCommandCentre({
     organisationId: session.organisationId,
@@ -39,9 +39,9 @@ export default async function SupportTicketsPage({
     ai?: string;
   }>;
 }) {
-  const { clerkUserId, session, email } = await getPlatformPageContext();
+  const { clerkUserId, session } = await getPlatformPageContext();
   if (!clerkUserId) redirect("/login");
-  if (!isStaffAccess(session, email)) redirect("/support");
+  if (!isStaffAccess(session)) redirect("/support");
 
   const params = searchParams ? await searchParams : {};
   const statusRaw = params.status ?? "open";
