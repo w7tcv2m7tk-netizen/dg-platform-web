@@ -3,6 +3,7 @@
  * Runtime DB values: owner | admin | member | dg:staff
  */
 
+import { hasPlatformAuthority } from "./platform-authority";
 import type { OrganisationRole, PlatformUserType } from "./roles";
 
 export const MEMBERSHIP_ROLE_DB = {
@@ -31,22 +32,25 @@ export function toOrganisationRole(role: string | null | undefined): Organisatio
 }
 
 /**
- * Platform user type when on DigitalGate operator org (or staff claim).
- * Owner of digitalgate → digitalgate_owner; dg:staff/admin → digitalgate_admin; else member.
+ * Platform user type for DigitalGate operators.
+ *
+ * Platform authority comes only from server-controlled inputs — the
+ * `DG_COMMAND_CENTRE_ORG_IDS` allowlist or a `dg:staff` membership role.
+ * Organisation name/slug is tenant-editable and must never be consulted here
+ * (see ./platform-authority).
+ *
+ * Returns null for every ordinary customer organisation.
  */
 export function toPlatformUserType(input: {
   role: string | null | undefined;
-  organisationSlug?: string | null;
-  email?: string | null;
+  organisationId?: string | null;
 }): PlatformUserType | null {
-  const slug = (input.organisationSlug ?? "").toLowerCase();
-  const isOperator =
-    slug === "digitalgate" ||
-    slug.startsWith("digitalgate-") ||
-    normalizeMembershipRole(input.role) === "dg:staff";
-  if (!isOperator) return null;
-
   const r = normalizeMembershipRole(input.role);
+
+  if (!hasPlatformAuthority({ organisationId: input.organisationId, role: r })) {
+    return null;
+  }
+
   if (r === "owner") return "digitalgate_owner";
   if (r === "admin" || r === "dg:staff") return "digitalgate_admin";
   return "digitalgate_member";

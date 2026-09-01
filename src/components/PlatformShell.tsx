@@ -53,8 +53,7 @@ export function PlatformShell({
       showResellerAdmin={showResellerAdmin}
       partnerType={partnerType}
       membershipRole={membershipRole}
-      organisationSlug={organisationSlug}
-      userEmail={userEmail}
+      organisationId={activeOrganisationId}
       permissionGrants={permissionGrants}
     >
       <AppShellLayout
