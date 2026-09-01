@@ -3,7 +3,10 @@
  * Runtime DB values: owner | admin | member | dg:staff
  */
 
-import { hasPlatformAuthority } from "./platform-authority";
+import {
+  hasPlatformAuthority,
+  isApiKeyPrincipal,
+} from "./platform-authority";
 import type { OrganisationRole, PlatformUserType } from "./roles";
 
 export const MEMBERSHIP_ROLE_DB = {
@@ -51,7 +54,16 @@ export function toPlatformUserType(input: {
    * (server), authority is computed from the allowlist / dg:staff as before.
    */
   hasAuthority?: boolean;
+  /**
+   * Session principal id (`PlatformSession.clerkUserId`). API-key principals
+   * (`api_key:*`) are non-interactive credentials and never resolve to a
+   * platform user type, even if `hasAuthority` is supplied.
+   */
+  principalId?: string | null;
 }): PlatformUserType | null {
+  // API keys must not substitute for an interactive platform operator.
+  if (isApiKeyPrincipal(input.principalId)) return null;
+
   const r = normalizeMembershipRole(input.role);
 
   const authorised =

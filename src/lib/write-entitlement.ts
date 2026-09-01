@@ -48,6 +48,9 @@ export async function enforceWriteEntitlement(
   const isPlatformOperator = hasPlatformAuthority({
     organisationId: session.organisationId,
     role: session.role,
+    // API-key sessions are tenants, not operators: they do not receive the
+    // platform-operator write-entitlement exemption.
+    principalId: session.clerkUserId,
   });
 
   if (

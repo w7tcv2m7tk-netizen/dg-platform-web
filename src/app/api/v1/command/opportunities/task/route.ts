@@ -16,6 +16,7 @@ export async function POST(req: Request) {
     organisationName: session.organisationName,
     organisationSlug: session.organisationSlug,
     role: session.role,
+    principalId: session.clerkUserId,
   });
   if (!allowed) {
     return NextResponse.json(

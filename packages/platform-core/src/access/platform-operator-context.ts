@@ -53,6 +53,9 @@ export function assertPlatformOperator(
     !hasPlatformAuthority({
       organisationId: session.organisationId,
       role: session.role,
+      // API-key sessions (`api_key:*`) can never mint an operator capability, so
+      // no credential can drive a deliberately cross-tenant operation.
+      principalId: session.clerkUserId,
     })
   ) {
     return null;

@@ -24,6 +24,7 @@ export async function requireCommandCentre(
     organisationName: session.organisationName,
     organisationSlug: session.organisationSlug,
     role: session.role,
+    principalId: session.clerkUserId,
   });
 
   if (!allowed) {

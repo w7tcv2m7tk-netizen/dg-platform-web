@@ -19,6 +19,7 @@ export async function GET(req: Request) {
     organisationName: session.organisationName,
     organisationSlug: session.organisationSlug,
     role: session.role,
+    principalId: session.clerkUserId,
   });
 
   if (!allowed) {

@@ -60,6 +60,8 @@ export async function requireProspectingEngine(
 
     role: session.role,
 
+    principalId: session.clerkUserId,
+
   });
 
 
