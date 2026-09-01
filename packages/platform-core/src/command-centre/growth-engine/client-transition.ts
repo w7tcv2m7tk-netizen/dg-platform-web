@@ -4,6 +4,10 @@
  * No Stripe subscription invented — billing stays operator-driven.
  */
 
+import {
+  isPlatformOperatorContext,
+  type PlatformOperatorContext,
+} from "../../access/platform-operator-context";
 import { writeAuditLog } from "../../audit";
 import { platformEvents } from "../../events";
 import {
@@ -14,11 +18,13 @@ import type { OrgTemplate } from "../../org/memberships";
 import type { ClientTransitionResult } from "./types";
 
 export type TransitionGrowthProspectInput = {
+  /**
+   * Proof of platform authority. This operation creates organisations and
+   * grants the actor membership in them, so it is platform-only by
+   * construction — see access/platform-operator-context.
+   */
+  operator: PlatformOperatorContext;
   prospectId: string;
-  actorId: string;
-  operatorOrganisationId?: string;
-  actorEmail?: string | null;
-  actorName?: string | null;
   /** Override inferred template from prospect industry. */
   template?: OrgTemplate;
   /** Link an existing org instead of creating one. */
@@ -29,6 +35,7 @@ export type TransitionGrowthProspectError =
   | { error: "not_found" }
   | { error: "already_converted"; organisationId: string }
   | { error: "org_not_found" }
+  | { error: "forbidden" }
   | { error: "validation"; message: string };
 
 function isError(
@@ -43,9 +50,19 @@ function isError(
 export async function transitionGrowthProspectToClient(
   input: TransitionGrowthProspectInput,
 ): Promise<ClientTransitionResult | TransitionGrowthProspectError> {
+  // Defence in depth: the brand cannot be forged in TypeScript, but refuse
+  // anything reaching here through an untyped path.
+  if (!isPlatformOperatorContext(input.operator)) {
+    return { error: "forbidden" };
+  }
+
   if (!process.env.DATABASE_URL) {
     return { error: "validation", message: "DATABASE_URL is not configured" };
   }
+
+  const actorId = input.operator.actorId;
+  const actorEmail = input.operator.actorEmail;
+  const actorName = input.operator.actorName;
 
   const { prisma } = await import("@dg/database");
   type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
@@ -90,7 +107,7 @@ export async function transitionGrowthProspectToClient(
     const membership = await prisma.membership.findFirst({
       where: {
         organisationId: existing.id,
-        clerkUserId: input.actorId,
+        clerkUserId: actorId,
         status: "active",
       },
     });
@@ -98,11 +115,11 @@ export async function transitionGrowthProspectToClient(
       await prisma.membership.create({
         data: {
           organisationId: existing.id,
-          clerkUserId: input.actorId,
+          clerkUserId: actorId,
           role: "admin",
           status: "active",
-          email: input.actorEmail?.trim() || null,
-          displayName: input.actorName?.trim() || null,
+          email: actorEmail?.trim() || null,
+          displayName: actorName?.trim() || null,
         },
       });
     }
@@ -158,9 +175,9 @@ export async function transitionGrowthProspectToClient(
     });
   } else {
     const createdOrg = await createClientOrganisation({
-      actorClerkUserId: input.actorId,
-      actorEmail: input.actorEmail,
-      actorName: input.actorName,
+      actorClerkUserId: actorId,
+      actorEmail: actorEmail,
+      actorName: actorName,
       orgName: prospect.businessName,
       template,
       sourceProspectId: prospect.id,
@@ -219,14 +236,14 @@ export async function transitionGrowthProspectToClient(
     await preserveProspectActivityOnCrmConvert({
       organisationId: prospect.organisationId,
       prospectId: prospect.id,
-      actorId: input.actorId,
+      actorId: actorId,
     });
   }
 
-  if (input.operatorOrganisationId) {
+  if (input.operator.operatorOrganisationId) {
     await writeAuditLog({
-      organisationId: input.operatorOrganisationId,
-      actorId: input.actorId,
+      organisationId: input.operator.operatorOrganisationId,
+      actorId: actorId,
       action: "update",
       entityType: "GrowthProspect",
       entityId: prospect.id,
@@ -244,7 +261,7 @@ export async function transitionGrowthProspectToClient(
   await platformEvents.publish({
     type: "prospect.proposal_accepted",
     organisationId: organisationId,
-    actorId: input.actorId,
+    actorId: actorId,
     entityType: "GrowthProspect",
     entityId: prospect.id,
     payload: {
