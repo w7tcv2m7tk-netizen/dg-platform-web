@@ -5,6 +5,12 @@ import { updateGrowthProspect } from "./prospects";
 /** Public, unauthenticated share path for opportunity reports */
 export const GROWTH_PUBLIC_REPORT_BASE = "/opportunity";
 
+import {
+  growthScopeProspectWhere,
+  growthScopeWhere,
+  type GrowthScope,
+} from "./scope";
+
 export function growthReportSharePath(shareToken: string) {
   return `${GROWTH_PUBLIC_REPORT_BASE}/${shareToken}`;
 }
@@ -51,12 +57,16 @@ function recommendedActions(findings: ProspectAuditFinding[]) {
     }));
 }
 
-export async function listGrowthProspectReports(options?: { limit?: number }) {
+export async function listGrowthProspectReports(
+  scope: GrowthScope,
+  options?: { limit?: number },
+) {
   const { prisma } = await import("@dg/database");
   const limit = Math.min(options?.limit ?? 50, 100);
 
+  const scoped = growthScopeProspectWhere(scope).prospect;
   const rows = await prisma.growthProspectReport.findMany({
-    where: { prospect: { archivedAt: null } },
+    where: { prospect: { ...scoped, archivedAt: null } },
     orderBy: { generatedAt: "desc" },
     take: limit,
     include: {
@@ -92,6 +102,7 @@ export async function listGrowthProspectReports(options?: { limit?: number }) {
 
 export async function createGrowthProspectReport(input: {
   prospectId: string;
+  scope: GrowthScope;
   auditId?: string;
   actorId?: string;
   operatorOrganisationId?: string;
@@ -99,8 +110,8 @@ export async function createGrowthProspectReport(input: {
 }) {
   const { prisma } = await import("@dg/database");
 
-  const prospect = await prisma.growthProspect.findUnique({
-    where: { id: input.prospectId },
+  const prospect = await prisma.growthProspect.findFirst({
+    where: { id: input.prospectId, ...growthScopeWhere(input.scope) },
   });
   if (!prospect || prospect.archivedAt) return null;
 
@@ -195,12 +206,16 @@ export async function createGrowthProspectReport(input: {
 
 export async function markGrowthReportSent(input: {
   reportId: string;
+  scope: GrowthScope;
   actorId?: string;
   operatorOrganisationId?: string;
 }) {
   const { prisma } = await import("@dg/database");
-  const existing = await prisma.growthProspectReport.findUnique({
-    where: { id: input.reportId },
+  const existing = await prisma.growthProspectReport.findFirst({
+    where: {
+      id: input.reportId,
+      ...growthScopeProspectWhere(input.scope),
+    },
     include: {
       prospect: { select: { stage: true, archivedAt: true, organisationId: true } },
     },

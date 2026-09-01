@@ -1,4 +1,5 @@
 export * from "./types";
+export * from "./scope";
 export * from "./prospects";
 export * from "./audits";
 export * from "./presence-audit";

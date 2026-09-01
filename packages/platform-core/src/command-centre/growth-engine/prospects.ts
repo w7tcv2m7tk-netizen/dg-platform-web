@@ -74,6 +74,11 @@ function serializeProspect(row: GrowthProspect) {
 }
 
 /** Active (non-archived) prospects — use in pipeline / discovery defaults. */
+import {
+  growthScopeWhere,
+  type GrowthScope,
+} from "./scope";
+
 export function activeProspectWhere(extra?: Record<string, unknown>) {
   return { archivedAt: null, ...extra };
 }
@@ -115,14 +120,21 @@ export async function listGrowthProspects(options: {
   return rows.map(serializeProspect);
 }
 
+/**
+ * Load a prospect within an explicit scope.
+ *
+ * The scope argument is required: it previously defaulted to "no tenant check"
+ * when omitted, which made every prospect readable by id.
+ */
 export async function getGrowthProspect(
   prospectId: string,
-  organisationId?: string,
+  scope: GrowthScope,
 ) {
   const { prisma } = await import("@dg/database");
-  const row = await prisma.growthProspect.findUnique({ where: { id: prospectId } });
+  const row = await prisma.growthProspect.findFirst({
+    where: { id: prospectId, ...growthScopeWhere(scope) },
+  });
   if (!row) return null;
-  if (organisationId && row.organisationId !== organisationId) return null;
   return serializeProspect(row);
 }
 
