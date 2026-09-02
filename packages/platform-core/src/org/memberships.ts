@@ -1,4 +1,5 @@
 import { getDefaultEnabledAppIds } from "../apps/org-apps";
+import { isPlatformOperatorOrganisationId } from "../access/platform-authority";
 import { ORG_BRAND_PRESETS } from "./brand-presets";
 import { seedWordPressConnectorForTemplate } from "../connectors/wordpress/org-connector";
 import type { ProvisionOrganisationResult } from "./provision";
@@ -82,6 +83,14 @@ function enabledAppsForTemplate(template: OrgTemplate): string[] {
   return ORG_TEMPLATE_APPS[template] ?? ORG_TEMPLATE_APPS.default;
 }
 
+function sortPlatformOperatorFirst<T extends { organisationId: string; createdAt: Date }>(memberships: T[]): T[] {
+  return memberships.sort((a, b) => {
+    const aIsOperator = isPlatformOperatorOrganisationId(a.organisationId) ? 1 : 0;
+    const bIsOperator = isPlatformOperatorOrganisationId(b.organisationId) ? 1 : 0;
+    return bIsOperator - aIsOperator || a.createdAt.getTime() - b.createdAt.getTime();
+  });
+}
+
 /** All organisations the Clerk user belongs to. */
 export async function listUserOrganisations(
   clerkUserId: string,
@@ -100,7 +109,7 @@ export async function listUserOrganisations(
     orderBy: { createdAt: "asc" },
   });
 
-  return memberships.map((m) => ({
+  return sortPlatformOperatorFirst(memberships).map((m) => ({
     organisationId: m.organisationId,
     organisationName: m.organisation.name,
     organisationSlug: m.organisation.slug,
@@ -132,7 +141,7 @@ export async function resolveUserMembership(
     if (active) return active;
   }
 
-  return prisma.membership.findFirst({
+  const memberships = await prisma.membership.findMany({
     where: {
       clerkUserId,
       status: "active",
@@ -141,6 +150,8 @@ export async function resolveUserMembership(
     include: { organisation: true },
     orderBy: { createdAt: "asc" },
   });
+
+  return sortPlatformOperatorFirst(memberships)[0] ?? null;
 }
 
 export interface CreateOrganisationInput {
