@@ -25,7 +25,7 @@ export interface ResolveSessionInput {
   referralCode?: string | null;
 }
 
-/** Resolve tenant context for the current Clerk user; provisions org if needed. */
+/** Resolve tenant context for the current Clerk user; never provisions an organisation. */
 export async function resolvePlatformSession(
   input: ResolveSessionInput,
 ): Promise<PlatformSession | null> {
@@ -33,38 +33,14 @@ export async function resolvePlatformSession(
     return null;
   }
 
-  const { provisionOrganisation } = await import("../org/provision");
   const { resolveUserMembership, listUserOrganisations } = await import("../org/memberships");
-
-  const provisioned = await provisionOrganisation({
-    clerkUserId: input.clerkUserId,
-    email: input.email,
-    name: input.name,
-    clerkOrgId: input.clerkOrgId,
-    orgName: input.orgName,
-    referralCode: input.referralCode,
-  });
-
-  // Late attribution when org already existed at signup but cookie arrived later
-  if (input.referralCode && provisioned.organisationId) {
-    try {
-      const { attributeOrganisationReferral } = await import("../referrals");
-      await attributeOrganisationReferral({
-        organisationId: provisioned.organisationId,
-        referralCode: input.referralCode,
-        inviteEmail: input.email,
-      });
-    } catch {
-      /* non-fatal */
-    }
-  }
-
   const { prisma } = await import("@dg/database");
 
+  // Session resolution is read-only with respect to organisation provisioning.
+  // Organisation creation belongs to the explicit onboarding/create flow.
   const membership = await resolveUserMembership(
     input.clerkUserId,
-    input.activeOrganisationId ||
-      (provisioned.joinedViaInvite ? provisioned.organisationId : undefined),
+    input.activeOrganisationId,
   );
 
   if (!membership) return null;
