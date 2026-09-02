@@ -83,32 +83,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ ok: true, ignored: payload.type });
 }
-
-/** Dev-only: provision org for current session */
-export async function GET() {
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "Not available" }, { status: 404 });
-  }
-
-  const { auth, currentUser } = await import("@clerk/nextjs/server");
-  const { userId } = await auth();
-  const user = await currentUser();
-  if (!userId || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const email = user.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user.fullName ??
-    [user.firstName, user.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const { provisionOrganisation } = await import("@dg/platform-core");
-  const result = await provisionOrganisation({
-    clerkUserId: userId,
-    email,
-    name,
-  });
-
-  return NextResponse.json(result);
-}
