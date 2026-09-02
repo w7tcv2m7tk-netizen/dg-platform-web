@@ -98,7 +98,7 @@ npm run db:push
 Import in app code:
 
 ```typescript
-import { platformApps, getPlatformNavigation, provisionOrganisation } from "@dg/platform-core";
+import { platformApps, getPlatformNavigation } from "@dg/platform-core";
 import { prisma } from "@dg/database";
 ```
 
