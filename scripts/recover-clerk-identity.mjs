@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { PrismaClient } from "@prisma/client";
 
 const OLD_CLERK_USER_ID = process.env.OLD_CLERK_USER_ID;
 const NEW_CLERK_USER_ID = process.env.NEW_CLERK_USER_ID;
@@ -18,7 +19,9 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is required.");
 }
 
-const { prisma } = await import("@dg/database");
+const prisma = new PrismaClient({
+  log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+});
 
 const OLD_ORGS = [
   "DigitalGate",
