@@ -6,6 +6,7 @@
  * DigitalGate Business Health Score™ pillars.
  */
 
+import { safeExternalFetch } from "./ssrf-guard";
 import type { ProspectAuditFinding, ProspectAuditScores } from "./types";
 
 export type PresenceAuditResult = {
@@ -241,11 +242,16 @@ export async function runPresenceAudit(
     }
 
     try {
+      // This probe is reachable unauthenticated through the public
+      // business-audit funnel. safeExternalFetch resolves the host, refuses
+      // private/loopback/link-local/metadata targets, and re-validates every
+      // redirect hop — checking only the initial URL is bypassable with a
+      // public redirector pointing at metadata or RFC1918 space. A refusal
+      // throws (BlockedTargetError) and is handled by the catch branch below.
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 8_000);
-      const res = await fetch(websiteUrl, {
+      const res = await safeExternalFetch(websiteUrl, {
         method: "GET",
-        redirect: "follow",
         signal: controller.signal,
         headers: {
           "user-agent": "DigitalGate-GrowthEngine-Audit/1.0 (+https://digitalgate.com.au)",
