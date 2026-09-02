@@ -1,5 +1,5 @@
 import { verifyWebhook } from "@clerk/backend/webhooks";
-import { parseTeamInviteMetadata, provisionOrganisation } from "@dg/platform-core";
+import { claimTeamInvitesForUser, parseTeamInviteMetadata } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 function userDisplayName(data: {
@@ -48,22 +48,37 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, skipped: true });
     }
 
-    const result = await provisionOrganisation({
+    // Clerk user creation must never create a tenant implicitly. Organisation
+    // creation belongs to the explicit onboarding/create flow. The only
+    // exception here is a legitimate team invitation, which activates the
+    // invited membership without creating a new organisation.
+    const claimedInvite = await claimTeamInvitesForUser({
       clerkUserId,
       email,
       name,
-      inviteOrganisationId: invite.organisationId,
-      inviteRole: invite.role,
+      organisationId: invite.organisationId,
+      role: invite.role,
     });
 
-    console.info("[Clerk webhook] user.created provisioned", {
+    console.info("[Clerk webhook] user.created handled", {
       clerkUserId,
       email,
-      organisationId: result.organisationId,
-      created: result.created,
+      claimedOrganisationId: claimedInvite?.organisationId ?? null,
+      joinedViaInvite: Boolean(claimedInvite),
     });
 
-    return NextResponse.json({ ok: true, event: payload.type, ...result });
+    return NextResponse.json({
+      ok: true,
+      event: payload.type,
+      claimedInvite: claimedInvite
+        ? {
+            organisationId: claimedInvite.organisationId,
+            membershipId: claimedInvite.membershipId,
+            slug: claimedInvite.slug,
+            role: claimedInvite.role,
+          }
+        : null,
+    });
   }
 
   return NextResponse.json({ ok: true, ignored: payload.type });
@@ -88,6 +103,7 @@ export async function GET() {
     [user.firstName, user.lastName].filter(Boolean).join(" ") ??
     email;
 
+  const { provisionOrganisation } = await import("@dg/platform-core");
   const result = await provisionOrganisation({
     clerkUserId: userId,
     email,
