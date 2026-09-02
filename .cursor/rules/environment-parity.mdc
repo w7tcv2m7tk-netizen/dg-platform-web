@@ -1,0 +1,31 @@
+---
+description: Environment parity — Local/Preview/Production run the same architecture and business logic; only config, credentials, external modes and data differ; production-only logic needs explicit justification
+globs: "**/verify-env.mjs,**/.env.example,**/ENVIRONMENT-PARITY.md,**/next.config.*,**/vercel.json,**/prisma/schema.prisma,**/database/src/**"
+alwaysApply: true
+---
+
+# Environment parity
+
+Canonical: `docs/foundations/ENVIRONMENT-PARITY.md`
+
+## Principle (locked)
+
+**Local, Preview and Production run the same application architecture and the same business logic.** Only **configuration, credentials, external-service modes, and data** differ. `main` is the source of truth.
+
+## No environment-specific business logic
+
+Do not branch business logic on `NODE_ENV` / `VERCEL_ENV`. The only acceptable environment-conditional code is non-business-logic: cookie `secure` flags, observability sampling, service-worker/PWA registration, webhook signature enforcement, and log verbosity.
+
+**Production-only behaviour requires explicit architectural justification** in the PR (and, if durable, in `ENVIRONMENT-PARITY.md`). Absent that, keep all environments identical.
+
+## Production changes flow through Git
+
+`local → typecheck/build/tests → PR → Vercel Preview → verify → merge main → Production`. Avoid manual production-only fixes; a necessary out-of-band **data** fix is not a code exception and must not add production-only code.
+
+## Database parity (Neon)
+
+Production → primary production branch · Preview → isolated branch/context · Local → isolated branch/context. Schema changes are tracked/reproducible via Prisma migrations. Credentials never live in Git.
+
+## Configuration parity
+
+Every environment has equivalent **required** configuration; only values differ. `scripts/verify-env.mjs` (`--production` for the prod gate) enforces required-present and prohibited-absent (e.g. `DG_ALLOW_PLAINTEXT_SECRETS`, test keys, sandbox modes must never be in production). Never print secret values in verifier output or docs.

@@ -7,6 +7,10 @@
 **Status:** Living document — evolves with the platform
 
 > **Engineering constitution:** [PLATFORM-PRINCIPLES.md](./PLATFORM-PRINCIPLES.md) — all decisions must align.
+>
+> **Tenancy invariant (locked):** [foundations/ORGANISATION-LIFECYCLE.md](./foundations/ORGANISATION-LIFECYCLE.md) — *authentication establishes identity; membership establishes tenant context; explicit onboarding creates a tenant.*
+>
+> **Environment parity (locked):** [foundations/ENVIRONMENT-PARITY.md](./foundations/ENVIRONMENT-PARITY.md) — Local, Preview and Production run the same architecture and business logic; only configuration, credentials, external modes and data differ.
 
 ---
 
@@ -75,7 +79,7 @@ Every database query is scoped by `organisation_id`. Workspaces add optional sub
 | Service | Responsibility | Code (scaffold) |
 |---------|----------------|-----------------|
 | Authentication | Clerk, sessions | middleware + webhooks |
-| Organisations | Tenant CRUD | `packages/database`, `org/provision` |
+| Organisations | Tenant CRUD — [explicit creation only](./foundations/ORGANISATION-LIFECYCLE.md) | `packages/database`, `org/memberships` (`createOrganisationForUser`) |
 | Workspaces | Subdivisions beneath org | `platform-core/workspace` |
 | Feature Registry | Granular permissions e.g. `crm.contacts.read` | `platform-core/features` |
 | Digital Twin™ | Complete digital state of the business | `platform-core/twin` |

@@ -1,0 +1,38 @@
+---
+description: Organisation tenancy invariant — authentication never creates a tenant; no implicit organisation provisioning; explicit creation boundaries only
+globs: "**/org/**,**/session/**,**/middleware.ts,**/webhooks/clerk/**,**/team-invites*,**/api/v1/org/**,**/onboarding/**,**/signup/**,**/active-platform-session*,**/ORGANISATION-LIFECYCLE.md,**/test-organisation-lifecycle*"
+alwaysApply: true
+---
+
+# Organisation lifecycle & tenancy invariant
+
+Canonical: `docs/foundations/ORGANISATION-LIFECYCLE.md`
+
+## The invariant (locked)
+
+**Authentication establishes identity. Membership establishes tenant context. Explicit onboarding creates a tenant.**
+
+A Clerk identity with no membership is a valid **memberless / onboarding** state. Never turn it into a tenant.
+
+## Never create an organisation during
+
+Clerk authentication · `user.created` webhook · session resolution · middleware · dashboard/page loading · sign-up · onboarding · user synchronisation · normal login/refresh · invite claiming when there is no invitation.
+
+Do **not** reintroduce `provisionOrganisation` or any implicit/fallback organisation creation to "fix" a missing membership.
+
+## Only intentional creation boundaries (allowlist)
+
+- `createOrganisationForUser` — explicit `POST /api/v1/org/create`
+- `createClientOrganisation` — operator-only prospect→client conversion (`PlatformOperatorContext`)
+- `ensureWantdOrganisation` — manual `scripts/ensure-wantd-org.mjs` (singleton Wantd marketplace)
+- demo/seed tooling
+
+Any new `prisma.organisation.create` outside these fails `scripts/test-organisation-lifecycle.mjs`.
+
+## Team invitations
+
+`claimTeamInvitesForUser` activates an **existing** invited membership in an **existing** organisation. With no pending invite and no `organisationId` it returns `null` and creates nothing. Do not break invite claiming; do not let it create an organisation.
+
+## Active org
+
+`dg_active_org` is a browser cookie, not a DB value. An active-org pointing at an org the identity is not a member of must be ignored — never resolved by creating an organisation.
