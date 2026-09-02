@@ -19,6 +19,17 @@ import {
   type FoundingStage,
 } from "@dg/platform-core";
 
+function formatAustralianDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return new Intl.DateTimeFormat("en-AU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
 export function FoundingStageActions({
   opportunityId,
   stage,
@@ -103,9 +114,7 @@ export function FoundingStageActions({
           <div>
             Invitation:{" "}
             <span className="capitalize text-slate-200">{invitationStatus}</span>
-            {invitationSentAt
-              ? ` · ${new Date(invitationSentAt).toLocaleDateString("en-AU")}`
-              : ""}
+            {invitationSentAt ? ` · ${formatAustralianDate(invitationSentAt)}` : ""}
           </div>
         ) : null}
       </dl>
