@@ -3,6 +3,7 @@ import "dotenv/config";
 const OLD_CLERK_USER_ID = process.env.OLD_CLERK_USER_ID;
 const NEW_CLERK_USER_ID = process.env.NEW_CLERK_USER_ID;
 const CONFIRM = process.env.IDENTITY_RECOVERY_CONFIRM;
+const EXECUTE = process.env.IDENTITY_RECOVERY_EXECUTE === "YES";
 
 if (!OLD_CLERK_USER_ID || !NEW_CLERK_USER_ID) {
   throw new Error("Set OLD_CLERK_USER_ID and NEW_CLERK_USER_ID before running identity recovery.");
@@ -55,9 +56,26 @@ try {
   }
 
   const originalWantd = oldMemberships.find((m) => m.organisation.name === "Wantd");
+  if (!originalWantd) {
+    throw new Error("Safety check failed: original Wantd membership was not found.");
+  }
+
   const conflictingNewWantd = newMemberships.find(
     (m) => m.organisationId === originalWantd.organisationId && m.clerkUserId === NEW_CLERK_USER_ID,
   );
+
+  console.log(EXECUTE ? "EXECUTION MODE" : "DRY-RUN MODE");
+  console.log(`Old Clerk identity: ${OLD_CLERK_USER_ID}`);
+  console.log(`New Clerk identity: ${NEW_CLERK_USER_ID}`);
+  console.log(`Memberships to remap: ${oldMemberships.map((m) => m.organisation.name).join(", ")}`);
+  console.log(`Stale original-Wantd membership for new identity: ${conflictingNewWantd ? "YES (will be deleted)" : "NO"}`);
+  console.log("Wantd-1 organisation: PRESERVED");
+
+  if (!EXECUTE) {
+    console.log("Dry run complete. No database changes were made.");
+    console.log("To execute the verified transaction, set IDENTITY_RECOVERY_EXECUTE=YES.");
+    return;
+  }
 
   await prisma.$transaction(async (tx) => {
     // The duplicate identity has a removed seat on the original Wantd organisation.
