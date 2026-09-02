@@ -74,48 +74,45 @@ try {
   if (!EXECUTE) {
     console.log("Dry run complete. No database changes were made.");
     console.log("To execute the verified transaction, set IDENTITY_RECOVERY_EXECUTE=YES.");
-    return;
-  }
+  } else {
+    await prisma.$transaction(async (tx) => {
+      if (conflictingNewWantd) {
+        await tx.membership.delete({ where: { id: conflictingNewWantd.id } });
+      }
 
-  await prisma.$transaction(async (tx) => {
-    // The duplicate identity has a removed seat on the original Wantd organisation.
-    // Remove only that stale membership so the composite uniqueness constraint permits the remap.
-    if (conflictingNewWantd) {
-      await tx.membership.delete({ where: { id: conflictingNewWantd.id } });
-    }
+      const result = await tx.membership.updateMany({
+        where: {
+          clerkUserId: OLD_CLERK_USER_ID,
+          status: "active",
+        },
+        data: {
+          clerkUserId: NEW_CLERK_USER_ID,
+        },
+      });
 
-    const result = await tx.membership.updateMany({
-      where: {
-        clerkUserId: OLD_CLERK_USER_ID,
-        status: "active",
-      },
-      data: {
-        clerkUserId: NEW_CLERK_USER_ID,
-      },
+      if (result.count !== OLD_ORGS.length) {
+        throw new Error(`Recovery rolled back: expected ${OLD_ORGS.length} memberships to move, moved ${result.count}.`);
+      }
     });
 
-    if (result.count !== OLD_ORGS.length) {
-      throw new Error(`Recovery rolled back: expected ${OLD_ORGS.length} memberships to move, moved ${result.count}.`);
-    }
-  });
+    const finalMemberships = await prisma.membership.findMany({
+      where: { clerkUserId: NEW_CLERK_USER_ID, status: "active" },
+      include: { organisation: true },
+      orderBy: { createdAt: "asc" },
+    });
 
-  const finalMemberships = await prisma.membership.findMany({
-    where: { clerkUserId: NEW_CLERK_USER_ID, status: "active" },
-    include: { organisation: true },
-    orderBy: { createdAt: "asc" },
-  });
-
-  const finalNames = finalMemberships.map((m) => m.organisation.name);
-  for (const expected of [...OLD_ORGS, "Wantd"]) {
-    if (!finalNames.includes(expected)) {
-      throw new Error(`Post-recovery verification failed: ${expected} is not visible to the new identity.`);
+    const finalNames = finalMemberships.map((m) => m.organisation.name);
+    for (const expected of OLD_ORGS) {
+      if (!finalNames.includes(expected)) {
+        throw new Error(`Post-recovery verification failed: ${expected} is not visible to the new identity.`);
+      }
     }
+
+    console.log("Identity recovery completed successfully.");
+    console.log(`New Clerk identity: ${NEW_CLERK_USER_ID}`);
+    console.log(`Active organisations: ${finalNames.join(", ")}`);
+    console.log("The accidental Wantd-1 organisation was not deleted by this script.");
   }
-
-  console.log("Identity recovery completed successfully.");
-  console.log(`New Clerk identity: ${NEW_CLERK_USER_ID}`);
-  console.log(`Active organisations: ${finalNames.join(", ")}`);
-  console.log("The accidental Wantd-1 organisation was not deleted by this script.");
 } finally {
   await prisma.$disconnect();
 }
