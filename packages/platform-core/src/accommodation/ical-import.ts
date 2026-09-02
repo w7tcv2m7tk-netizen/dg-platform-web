@@ -5,6 +5,7 @@
  */
 
 import type { Prisma } from "@dg/database";
+import { safeExternalFetch } from "../command-centre/growth-engine/ssrf-guard";
 
 export type OtaIcalSource = "airbnb" | "bookingcom";
 
@@ -130,9 +131,12 @@ export async function fetchIcalFeed(url: string): Promise<
   }
 
   try {
-    const res = await fetch(trimmed, {
+    // Feed URLs are tenant-supplied, so the same SSRF guard applies here as to
+    // the public audit probe — the host is resolved and private/loopback/
+    // link-local/metadata targets are refused on the initial URL and on every
+    // redirect hop. A refusal throws and is handled by the catch branch below.
+    const res = await safeExternalFetch(trimmed, {
       method: "GET",
-      redirect: "follow",
       headers: {
         "User-Agent":
           "Mozilla/5.0 (compatible; DigitalGate-Calendar/1.0; +https://digitalgate.com.au)",
