@@ -3,9 +3,12 @@
  * DigitalGate environment configuration guard.
  *
  * Enforces environment parity: every environment must have equivalent REQUIRED
- * configuration (only values differ), and production must NOT contain
- * development-only settings. Prints variable NAMES and presence only — never
- * secret values. See docs/foundations/ENVIRONMENT-PARITY.md.
+ * configuration (only values differ), production must NOT contain development-only
+ * settings, and Clerk ↔ Neon pairing must match the approved matrix
+ * (see scripts/env-pairing.mjs).
+ *
+ * Prints variable NAMES and presence / derived modes only — never secret values.
+ * See docs/foundations/ENVIRONMENT-PARITY.md.
  *
  * Usage:
  *   node scripts/verify-env.mjs                # checks against current env / mode
@@ -13,6 +16,7 @@
  *   dotenv -e .env.local -- node scripts/verify-env.mjs
  */
 import { pathToFileURL } from "node:url";
+import { evaluateEnvironmentPairing } from "./env-pairing.mjs";
 
 const truthy = (v) => ["1", "true", "yes", "on"].includes(String(v).trim().toLowerCase());
 
@@ -23,6 +27,7 @@ export function isProductionEnv(env = process.env) {
 // Required in EVERY environment (only the values differ).
 const BASE_REQUIRED = [
   "DATABASE_URL",
+  "DG_NEON_ENV",
   "CLERK_SECRET_KEY",
   "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
   "CLERK_WEBHOOK_SIGNING_SECRET",
@@ -55,7 +60,7 @@ const PRODUCTION_PROHIBITED = [
 
 /**
  * Pure evaluation — returns names/notes only, never secret values.
- * @returns {{ production:boolean, ok:boolean, errors:string[], warnings:string[], report:Array<{key,present,note?}> }}
+ * @returns {{ production:boolean, ok:boolean, errors:string[], warnings:string[], report:Array<{key,present,note?}>, pairing: ReturnType<typeof evaluateEnvironmentPairing> }}
  */
 export function evaluateEnv(env = process.env, opts = {}) {
   const production = opts.production ?? isProductionEnv(env);
@@ -94,7 +99,23 @@ export function evaluateEnv(env = process.env, opts = {}) {
     }
   }
 
-  return { production, ok: errors.length === 0, errors, warnings, report };
+  const pairing = evaluateEnvironmentPairing(env);
+  if (!pairing.skipped && !pairing.ok) {
+    for (const e of pairing.errors) {
+      errors.push(`Pairing: ${e}`);
+    }
+  }
+  report.push({
+    key: "Clerk↔Neon pairing",
+    present: pairing.skipped ? false : pairing.ok,
+    note: pairing.skipped
+      ? "skipped (incomplete env)"
+      : pairing.ok
+        ? `ok (Clerk ${pairing.clerk} × Neon ${pairing.neonHost})`
+        : "blocked — see errors",
+  });
+
+  return { production, ok: errors.length === 0, errors, warnings, report, pairing };
 }
 
 function runCli(env, opts) {
@@ -107,6 +128,11 @@ function runCli(env, opts) {
   // Safe, derived mode indicators (never the value).
   const stripe = env.STRIPE_SECRET_KEY?.trim() ?? "";
   if (stripe) console.log(`  STRIPE_SECRET_KEY mode: ${stripe.startsWith("sk_live_") ? "live" : stripe.startsWith("sk_test_") ? "test" : "unknown"}`);
+  if (result.pairing && !result.pairing.skipped) {
+    console.log(
+      `  Pairing: Clerk=${result.pairing.clerk ?? "?"} NeonHost=${result.pairing.neonHost ?? "?"} DG_NEON_ENV=${result.pairing.neonDeclared ?? "?"}`,
+    );
+  }
 
   if (result.warnings.length) {
     console.log("\nWarnings:");

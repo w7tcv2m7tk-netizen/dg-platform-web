@@ -405,6 +405,8 @@ Infrastructure → **Email**: Prepare sending domain (Resend) → **Apply auth D
 | Auth | Clerk |
 | Payments | Stripe |
 
+Clerk ↔ Neon environment pairing (allowlist + `DG_NEON_ENV`) is defined in [ENVIRONMENT-PARITY.md](./ENVIRONMENT-PARITY.md) and enforced by `scripts/env-pairing.mjs` — do not invent ad-hoc environment checks.
+
 ---
 
 ## Command Centre — Digital Infrastructure (vision)

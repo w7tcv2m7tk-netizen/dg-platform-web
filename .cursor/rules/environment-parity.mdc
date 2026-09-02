@@ -1,6 +1,6 @@
 ---
-description: Environment parity — Local/Preview/Production run the same architecture and business logic; only config, credentials, external modes and data differ; production-only logic needs explicit justification
-globs: "**/verify-env.mjs,**/.env.example,**/ENVIRONMENT-PARITY.md,**/next.config.*,**/vercel.json,**/prisma/schema.prisma,**/database/src/**"
+description: Environment parity — Local/Preview/Production run the same architecture and business logic; Clerk↔Neon pairing via DG_NEON_ENV + central Neon host allowlist; production-only logic needs explicit justification
+globs: "**/verify-env.mjs,**/env-pairing.mjs,**/.env.example,**/ENVIRONMENT-PARITY.md,**/instrumentation.ts,**/next.config.*,**/vercel.json,**/prisma/schema.prisma,**/database/src/**"
 alwaysApply: true
 ---
 
@@ -22,10 +22,17 @@ Do not branch business logic on `NODE_ENV` / `VERCEL_ENV`. The only acceptable e
 
 `local → typecheck/build/tests → PR → Vercel Preview → verify → merge main → Production`. Avoid manual production-only fixes; a necessary out-of-band **data** fix is not a code exception and must not add production-only code.
 
-## Database parity (Neon)
+## Database parity (Neon) & Clerk pairing
 
-Production → primary production branch · Preview → isolated branch/context · Local → isolated branch/context. Schema changes are tracked/reproducible via Prisma migrations. Credentials never live in Git.
+Production → primary production branch · Preview → isolated branch/context · Local → isolated development branch/context. Schema changes are tracked/reproducible via Prisma migrations. Credentials never live in Git.
+
+**Pairing (central only — `scripts/env-pairing.mjs`):**
+
+1. Classify Neon from `DATABASE_URL` **hostname** via `NEON_ENDPOINT_ALLOWLIST` (+ optional `DG_NEON_PREVIEW_ENDPOINTS`). Unknown host → **BLOCK**. Do not use the DB name.
+2. `DG_NEON_ENV` is a declaration that must **match** that classification; disagreement → **BLOCK**.
+3. Clerk test keys ↔ Neon development or preview only; Clerk live keys ↔ Neon production only.
+4. Wire new checks through `env-pairing.mjs` / `verify-env.mjs` / instrumentation — do not scatter pairing logic.
 
 ## Configuration parity
 
-Every environment has equivalent **required** configuration; only values differ. `scripts/verify-env.mjs` (`--production` for the prod gate) enforces required-present and prohibited-absent (e.g. `DG_ALLOW_PLAINTEXT_SECRETS`, test keys, sandbox modes must never be in production). Never print secret values in verifier output or docs.
+Every environment has equivalent **required** configuration (`DATABASE_URL`, `DG_NEON_ENV`, Clerk keys, webhook secret, `NEXT_PUBLIC_APP_URL`); only values differ. `scripts/verify-env.mjs` (`--production` for the prod gate) enforces required-present, prohibited-absent (e.g. `DG_ALLOW_PLAINTEXT_SECRETS`, test keys, sandbox modes must never be in production), and pairing. Never print secret values or connection strings.

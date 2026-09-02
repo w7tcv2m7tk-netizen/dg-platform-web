@@ -92,6 +92,7 @@ Does this strengthen **Platform Core** or the **Real Estate App**? If no, defer 
 | [BUSINESS-APPS-SCAFFOLD.md](./BUSINESS-APPS-SCAFFOLD.md) | Finance · Creator · Commercial · Automotive — honest product-map floor (not closed beta) |
 | 16 | [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) | **Core Platform Service** — Domains/DNS/SSL/hosting/email; Dreamscape V1 adapter; sandbox-first |
 | 16b | [EMAIL-INFRASTRUCTURE.md](./EMAIL-INFRASTRUCTURE.md) | **Email Service** — transactional (Resend), mailbox (Dreamscape), deliverability; no mail server |
+| — | [ENVIRONMENT-PARITY.md](./ENVIRONMENT-PARITY.md) | **Locked** — Local/Preview/Production same architecture; Clerk↔Neon pairing (`DG_NEON_ENV` + host allowlist) |
 | [PROSPECTING-ENGINE.md](./PROSPECTING-ENGINE.md) | Growth — shared Prospecting Engine · Business vs Vendor/Buyer discovery |
 | [BUSINESS-DISCOVERY.md](./BUSINESS-DISCOVERY.md) | Growth — Business (B2B) Discovery only |
 | [OPPORTUNITY-ENGINE.md](./OPPORTUNITY-ENGINE.md) | Core — Opportunity Engine Daily Briefing |
