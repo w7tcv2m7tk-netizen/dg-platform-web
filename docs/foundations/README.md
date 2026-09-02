@@ -7,6 +7,8 @@ Before committing to implementation, these documents define the decisions that a
 **Gen 2 north-star (constraints):** [../architecture/GEN-2-ARCHITECTURE-BRIEF.md](../architecture/GEN-2-ARCHITECTURE-BRIEF.md)  
 **App hierarchy (canonical):** [APP-HIERARCHY.md](./APP-HIERARCHY.md) — **Core → Infrastructure → Industry → Growth**  
 **Operator experience (locked):** [OPERATOR-EXPERIENCE.md](./OPERATOR-EXPERIENCE.md) — *Simple for the operator. Powerful for the business. Intelligent underneath.*  
+**Organisation lifecycle (locked):** [ORGANISATION-LIFECYCLE.md](./ORGANISATION-LIFECYCLE.md) — *Authentication establishes identity. Membership establishes tenant context. Explicit onboarding creates a tenant.*  
+**Environment parity (locked):** [ENVIRONMENT-PARITY.md](./ENVIRONMENT-PARITY.md) — Local/Preview/Production run the same architecture; only config, credentials, external modes and data differ.  
 **Platform IA & terminology (locked):** [PLATFORM-IA.md](./PLATFORM-IA.md) — Command / Sales / Partners / Customer Workspaces; prevent semantic drift  
 **Sidebar / nav (locked):** [SIDEBAR-NAVIGATION.md](./SIDEBAR-NAVIGATION.md) — capability-aware CORE → … → PLATFORM ADMIN  
 **Connected Business (locked):** [CONNECTED-BUSINESS.md](./CONNECTED-BUSINESS.md) — *Connect your business. Give it a brain.* Philosophy & positioning  
