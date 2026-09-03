@@ -11,12 +11,8 @@ import {
   type WebsiteProbe,
 } from "@dg/platform-core";
 
-import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
-import {
-  fetchWpAccommodationSummary,
-  fetchWpReSummary,
-  fetchWpSiteHealth,
-} from "@/lib/dg-api";
+import { buildAccommodationSummary } from "@/lib/accommodation-summary";
+import { fetchWpReSummary, fetchWpSiteHealth } from "@/lib/dg-api";
 import { wpConnectorForOrg } from "@/lib/org-wordpress-connector";
 import { getLastWordPressSync } from "@/lib/wordpress-sync";
 
@@ -65,7 +61,7 @@ async function probeNativeWebsite(
   }
 }
 
-/** Probe Design Studio, WordPress, Stripe, and site health for Business Overview. */
+/** Probe native platform health plus legacy Real Estate WordPress where configured. */
 export async function fetchOverviewConnectorProbes(
   enabledAppIds: string[],
   organisationId: string,
@@ -74,7 +70,6 @@ export async function fetchOverviewConnectorProbes(
   const wpSync = await getLastWordPressSync(organisationId);
   const wpConfigured = await organisationHasWordPressConnector(organisationId);
   const orgConnector = await wpConnectorForOrg(organisationId);
-  const accConnector = await accommodationConnectorForSession(organisationId);
 
   const [siteHealth, reSummary, accSummary, nativeWebsite, comms] = await Promise.all([
     wpConfigured ? fetchWpSiteHealth() : Promise.resolve({ ok: false as const }),
@@ -82,7 +77,7 @@ export async function fetchOverviewConnectorProbes(
       ? fetchWpReSummary(30, orgConnector)
       : Promise.resolve(null),
     enabledAppIds.includes("accommodation")
-      ? fetchWpAccommodationSummary(null, 30, accConnector)
+      ? buildAccommodationSummary(organisationId)
       : Promise.resolve(null),
     probeNativeWebsite(organisationId),
     probeCommsConnector(organisationId, enabledAppIds),
@@ -117,7 +112,6 @@ export async function fetchOverviewConnectorProbes(
   const wpConnected =
     Boolean(wpSync?.lastVendorLeadSyncAt) ||
     reSummary?.ok === true ||
-    accSummary?.ok === true ||
     (hasWpKey && siteHealth.ok);
 
   if (wpConfigured) {
@@ -142,14 +136,12 @@ export async function fetchOverviewConnectorProbes(
     };
   }
 
-  if (accSummary?.ok) {
-    const rate = accSummary.data.occupancy_rate;
+  if (accSummary) {
     probes.accommodation = {
       ok: true,
-      occupancyRate:
-        typeof rate === "number" ? Math.round(rate <= 1 ? rate * 100 : rate) : undefined,
-      revenueMtd: accSummary.data.revenue_mtd ?? accSummary.data.revenue_month,
-      checkinsTomorrow: accSummary.data.checkins_tomorrow,
+      occupancyRate: Math.round(accSummary.occupancy_rate * 100),
+      revenueMtd: accSummary.revenue_mtd,
+      checkinsTomorrow: accSummary.checkins_tomorrow,
     };
   }
 
