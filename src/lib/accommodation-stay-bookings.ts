@@ -10,6 +10,7 @@ export type StayBookingsOpsLoad = {
   total: number;
   source: "postgres";
   seededFromWp: false;
+  syncError?: string;
 };
 
 /**
