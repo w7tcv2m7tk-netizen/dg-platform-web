@@ -7,6 +7,7 @@ const bookingsPage = fs.readFileSync(
   "src/app/(shell)/apps/accommodation/bookings/page.tsx",
   "utf8",
 );
+const bookingsLoader = fs.readFileSync("src/lib/accommodation-stay-bookings.ts", "utf8");
 const migrationRoute = fs.readFileSync(
   "src/app/api/v1/migrations/wordpress/accommodation/route.ts",
   "utf8",
@@ -26,12 +27,16 @@ test("native accommodation writes do not mirror or fall back to WordPress", () =
   assert.doesNotMatch(route, /writePath:\s*["'](?:wordpress|wp_then_neon|neon_then_wp)["']/);
 });
 
-test("native bookings page never resolves or probes a WordPress runtime connector", () => {
+test("native bookings UI and loader never resolve or sync a WordPress runtime connector", () => {
   assert.doesNotMatch(bookingsPage, /accommodationConnectorForSession/);
   assert.doesNotMatch(bookingsPage, /getWpAccommodationSite/);
   assert.doesNotMatch(bookingsPage, /hasLiveAccWordPressHost/);
   assert.doesNotMatch(bookingsPage, /listWpAccommodationSites/);
   assert.doesNotMatch(bookingsPage, /AccommodationSitePicker/);
+  assert.doesNotMatch(bookingsLoader, /wordpress-sync/);
+  assert.doesNotMatch(bookingsLoader, /syncWordPressAccBookings/);
+  assert.doesNotMatch(bookingsLoader, /autoSyncWordPressAccBookingsIfNeeded/);
+  assert.match(bookingsLoader, /listStayBookings/);
 });
 
 test("WordPress import is isolated behind the dedicated migration endpoint", () => {
