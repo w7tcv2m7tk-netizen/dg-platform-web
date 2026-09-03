@@ -19,7 +19,6 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { migrateAccommodationFromWordPress } from "@/lib/wordpress-migration";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
 function day(value = new Date()) {
@@ -160,30 +159,6 @@ export async function POST(req: Request) {
   if (isNextResponse(session)) return session;
 
   const body = await req.json().catch(() => ({}));
-
-  if (body.action === "migrate_wordpress") {
-    const resource =
-      body.resource === "units" || body.resource === "bookings" ? body.resource : "all";
-    const outcome = await migrateAccommodationFromWordPress({
-      organisationId: session.organisationId,
-      actorId: session.clerkUserId,
-      resource,
-      limit: typeof body.limit === "number" ? body.limit : undefined,
-    });
-    if (!outcome.ok) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "wordpress_migration_failed",
-            message: outcome.message,
-            resource: outcome.resource,
-          },
-        },
-        { status: 422 },
-      );
-    }
-    return NextResponse.json({ data: outcome });
-  }
 
   if (body.action === "sync_ota") {
     const gen2 = await syncOtaCalendarsFromUnits({
@@ -532,12 +507,36 @@ export async function PATCH(req: Request) {
 
   if (resource === "bookings") {
     const updated = [];
+    const existingBookings = await listStayBookings(session.organisationId, 200);
     for (const row of updates) {
       if (!row || typeof row !== "object") continue;
       const patch = row as Record<string, unknown>;
+      const platformId = typeof patch.platform_id === "string" ? patch.platform_id : undefined;
+      const externalWpId = typeof patch.id === "number" ? patch.id : undefined;
+      const existing = existingBookings.find(
+        (booking) =>
+          (platformId && booking.id === platformId) ||
+          (externalWpId != null && booking.externalWpId === externalWpId),
+      );
+      if (
+        existing &&
+        typeof patch.accommodation_id === "number" &&
+        patch.accommodation_id !== existing.accommodationWpId
+      ) {
+        return NextResponse.json(
+          {
+            error: {
+              code: "booking_unit_move_requires_atomic_operation",
+              message:
+                "Moving a booking between accommodation units requires the dedicated atomic unit-move operation.",
+            },
+          },
+          { status: 422 },
+        );
+      }
       const result = await updateStayBooking(session.organisationId, {
-        platformId: typeof patch.platform_id === "string" ? patch.platform_id : undefined,
-        externalWpId: typeof patch.id === "number" ? patch.id : undefined,
+        platformId,
+        externalWpId,
         guestName: typeof patch.guest_name === "string" ? patch.guest_name : undefined,
         email: typeof patch.email === "string" ? patch.email : undefined,
         phone: typeof patch.phone === "string" ? patch.phone : undefined,
