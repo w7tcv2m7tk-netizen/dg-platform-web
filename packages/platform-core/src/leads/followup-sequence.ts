@@ -1,12 +1,14 @@
 /**
  * Shared Gen 2 lead follow-up sequence runner.
- * Dispatches to property_report, free_audit, and hideaway_circle processors.
+ * Dispatches to property_report, free_audit, hideaway_circle, and consultation processors.
  */
 
-import { processHideawayCircleFollowups } from "../accommodation/public-hideaway-circle";
-import { processConsultationReminders } from "../marketing/consultation-automation";
-import { processFreeAuditFollowups } from "../marketing/public-business-audit";
-import { processPropertyReportFollowups } from "../real-estate/public-property-report";
+import {
+  processClaimedConsultationReminders,
+  processClaimedFreeAuditFollowups,
+  processClaimedHideawayCircleFollowups,
+  processClaimedPropertyReportFollowups,
+} from "./claimed-followup-processors";
 
 export type FollowupProcessResult = {
   processed: number;
@@ -27,10 +29,10 @@ export async function processDueFollowupEmails(options?: {
   const limit = options?.limit ?? 80;
   const quarter = Math.max(1, Math.floor(limit / 4));
 
-  const property_report = await processPropertyReportFollowups({ limit: quarter });
-  const free_audit = await processFreeAuditFollowups({ limit: quarter });
-  const hideaway_circle = await processHideawayCircleFollowups({ limit: quarter });
-  const consultation = await processConsultationReminders({ limit: quarter });
+  const property_report = await processClaimedPropertyReportFollowups({ limit: quarter });
+  const free_audit = await processClaimedFreeAuditFollowups({ limit: quarter });
+  const hideaway_circle = await processClaimedHideawayCircleFollowups({ limit: quarter });
+  const consultation = await processClaimedConsultationReminders({ limit: quarter });
 
   return {
     processed:
