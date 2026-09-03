@@ -13,38 +13,44 @@ type UnitSyncState = {
   bookingcomLastSyncAt: Date | null;
 };
 
-function configuredTimestampRows(unit: UnitSyncState): Date[] | null {
-  const timestamps: Date[] = [];
-  let hasNeverSyncedConfiguredFeed = false;
-
-  if (unit.airbnbIcalUrl?.trim()) {
-    if (unit.airbnbLastSyncAt) timestamps.push(unit.airbnbLastSyncAt);
-    else hasNeverSyncedConfiguredFeed = true;
-  }
-  if (unit.bookingcomIcalUrl?.trim()) {
-    if (unit.bookingcomLastSyncAt) timestamps.push(unit.bookingcomLastSyncAt);
-    else hasNeverSyncedConfiguredFeed = true;
-  }
-
-  if (hasNeverSyncedConfiguredFeed) return null;
-  return timestamps;
+function hasConfiguredFeed(unit: UnitSyncState): boolean {
+  return Boolean(unit.airbnbIcalUrl?.trim() || unit.bookingcomIcalUrl?.trim());
 }
 
 export function buildOtaOrganisationCandidates(units: UnitSyncState[]) {
-  const byOrg = new Map<string, { lastSyncAt: Date | null; units: UnitSyncState[] }>();
+  const byOrg = new Map<
+    string,
+    {
+      oldestSyncAt: Date | null;
+      hasNeverSyncedConfiguredFeed: boolean;
+      units: UnitSyncState[];
+    }
+  >();
 
   for (const unit of units) {
-    const row = byOrg.get(unit.organisationId) ?? { lastSyncAt: null, units: [] };
+    if (!hasConfiguredFeed(unit)) continue;
+
+    const row = byOrg.get(unit.organisationId) ?? {
+      oldestSyncAt: null,
+      hasNeverSyncedConfiguredFeed: false,
+      units: [],
+    };
     row.units.push(unit);
 
-    const timestamps = configuredTimestampRows(unit);
-    if (timestamps === null) {
-      row.lastSyncAt = null;
-    } else if (row.lastSyncAt !== null || row.units.length === 1) {
-      const oldest = timestamps.length
-        ? new Date(Math.min(...timestamps.map((value) => value.getTime())))
-        : null;
-      if (oldest && (!row.lastSyncAt || oldest < row.lastSyncAt)) row.lastSyncAt = oldest;
+    const configuredFeeds: Array<{ configured: boolean; lastSyncAt: Date | null }> = [
+      { configured: Boolean(unit.airbnbIcalUrl?.trim()), lastSyncAt: unit.airbnbLastSyncAt },
+      { configured: Boolean(unit.bookingcomIcalUrl?.trim()), lastSyncAt: unit.bookingcomLastSyncAt },
+    ];
+
+    for (const feed of configuredFeeds) {
+      if (!feed.configured) continue;
+      if (!feed.lastSyncAt) {
+        row.hasNeverSyncedConfiguredFeed = true;
+        continue;
+      }
+      if (!row.oldestSyncAt || feed.lastSyncAt < row.oldestSyncAt) {
+        row.oldestSyncAt = feed.lastSyncAt;
+      }
     }
 
     byOrg.set(unit.organisationId, row);
@@ -52,7 +58,7 @@ export function buildOtaOrganisationCandidates(units: UnitSyncState[]) {
 
   return [...byOrg.entries()].map(([organisationId, value]) => ({
     organisationId,
-    lastSyncAt: value.lastSyncAt,
+    lastSyncAt: value.hasNeverSyncedConfiguredFeed ? null : value.oldestSyncAt,
     units: value.units,
   }));
 }
@@ -73,13 +79,21 @@ function oldestConfiguredSourceSync(
   return new Date(Math.min(...values.map((value) => (value as Date).getTime())));
 }
 
-export function orderConfiguredOtaSources(units: UnitSyncState[]): OtaIcalSource[] {
+export function orderConfiguredOtaSources(
+  units: UnitSyncState[],
+  options?: { organisationId?: string; now?: Date },
+): OtaIcalSource[] {
   const airbnbLastSyncAt = oldestConfiguredSourceSync(units, "airbnb");
   const bookingcomLastSyncAt = oldestConfiguredSourceSync(units, "bookingcom");
 
   if (airbnbLastSyncAt === undefined) return bookingcomLastSyncAt === undefined ? [] : ["bookingcom"];
   if (bookingcomLastSyncAt === undefined) return ["airbnb"];
-  return orderOtaSourcesByLastSync({ airbnbLastSyncAt, bookingcomLastSyncAt });
+  return orderOtaSourcesByLastSync({
+    airbnbLastSyncAt,
+    bookingcomLastSyncAt,
+    now: options?.now,
+    rotationKey: options?.organisationId,
+  });
 }
 
 /**
@@ -87,8 +101,8 @@ export function orderConfiguredOtaSources(units: UnitSyncState[]): OtaIcalSource
  *
  * The old cron selected an unordered `take: 50`, which could permanently starve
  * tenants beyond the cap. This scheduler considers every configured tenant,
- * serves never-synchronised/oldest tenants first, and also removes the fixed
- * Airbnb-before-Booking.com ordering inside each selected organisation.
+ * serves never-synchronised/oldest tenants first, and rotates near-equal OTA
+ * source priority between cron intervals instead of always privileging Airbnb.
  */
 export async function syncFairOtaCalendarsCron(options?: {
   limitOrgs?: number;
@@ -107,6 +121,7 @@ export async function syncFairOtaCalendarsCron(options?: {
 
   const { prisma } = await import("@dg/database");
   const limit = Math.max(1, Math.min(options?.limitOrgs ?? 50, 100));
+  const runStartedAt = new Date();
   const units = await prisma.accommodationUnit.findMany({
     where: {
       OR: [
@@ -139,7 +154,10 @@ export async function syncFairOtaCalendarsCron(options?: {
 
   for (const organisationId of selectedIds) {
     const organisationUnits = byOrg.get(organisationId) ?? [];
-    const sources = orderConfiguredOtaSources(organisationUnits);
+    const sources = orderConfiguredOtaSources(organisationUnits, {
+      organisationId,
+      now: runStartedAt,
+    });
 
     for (const source of sources) {
       try {
