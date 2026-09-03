@@ -41,5 +41,8 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.json({ data: outcome });
+  return NextResponse.json({
+    data: outcome,
+    boundary: "wordpress_to_platform_only",
+  });
 }
