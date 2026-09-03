@@ -9,6 +9,15 @@ export class StayBookingConflictError extends Error {
   }
 }
 
+/** Raised when an ordinary booking edit attempts to move the booking to another unit. */
+export class StayBookingUnitReassignmentError extends Error {
+  readonly code = "booking_unit_move_requires_atomic_operation";
+  constructor(message = "Booking unit reassignment requires a dedicated atomic move operation") {
+    super(message);
+    this.name = "StayBookingUnitReassignmentError";
+  }
+}
+
 /**
  * Test-only injection seam for the booking write paths. Production callers omit
  * this entirely, so the real prisma client, availability check and contact
@@ -266,6 +275,13 @@ export async function updateStayBooking(
       : null;
 
   if (!existing) return null;
+
+  if (
+    input.accommodationWpId !== undefined &&
+    input.accommodationWpId !== existing.accommodationWpId
+  ) {
+    throw new StayBookingUnitReassignmentError();
+  }
 
   const data: Prisma.StayBookingUpdateInput = {};
   if (input.guestName !== undefined) data.guestName = input.guestName.trim() || existing.guestName;

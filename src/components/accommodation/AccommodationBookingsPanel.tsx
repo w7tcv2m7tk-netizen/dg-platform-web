@@ -11,7 +11,7 @@ type NewBookingForm = {
   guest_name: string;
   email: string;
   phone: string;
-  accommodation_id: string;
+  accommodation_unit_id: string;
   checkin: string;
   checkout: string;
   guests: string;
@@ -28,7 +28,7 @@ const EMPTY_FORM: NewBookingForm = {
   guest_name: "",
   email: "",
   phone: "",
-  accommodation_id: "",
+  accommodation_unit_id: "",
   checkin: "",
   checkout: "",
   guests: "2",
@@ -41,7 +41,11 @@ const EMPTY_FORM: NewBookingForm = {
   allow_saturday: false,
 };
 
-function estimateTotal(unit: WpAccUnitProp | undefined, checkin: string, checkout: string): number | null {
+function estimateTotal(
+  unit: WpAccUnitProp | undefined,
+  checkin: string,
+  checkout: string,
+): number | null {
   if (!unit || !checkin || !checkout) return null;
   const nights = accNightsBetween(checkin, checkout);
   if (nights <= 0) return null;
@@ -66,20 +70,13 @@ export function AccommodationBookingsPanel({
   error,
   total,
   siteLabel,
-  source,
-  wpSyncAvailable = false,
 }: {
   bookings: WpAccBookingRow[];
   error?: string;
   total?: number;
   siteLabel?: string;
-  source?: "postgres" | "wordpress";
-  /** Show Sync from WordPress only when a live Acc WP host exists. */
-  wpSyncAvailable?: boolean;
 }) {
   const router = useRouter();
-  const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState<NewBookingForm>(EMPTY_FORM);
   const [units, setUnits] = useState<WpAccUnitProp[]>([]);
@@ -108,8 +105,8 @@ export function AccommodationBookingsPanel({
   }, [showNew, units.length]);
 
   const selectedUnit = useMemo(
-    () => units.find((u) => String(u.id) === form.accommodation_id),
-    [units, form.accommodation_id],
+    () => units.find((u) => u.platform_id === form.accommodation_unit_id),
+    [units, form.accommodation_unit_id],
   );
 
   const nights =
@@ -119,34 +116,19 @@ export function AccommodationBookingsPanel({
     (form.checkin && accIsSaturday(form.checkin)) ||
     (form.checkout && accIsSaturday(form.checkout));
 
-  async function syncFromWordPress() {
-    setSyncing(true);
-    setSyncMsg(null);
-    const res = await fetch("/api/v1/accommodation", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "sync_wordpress" }),
-    });
-    const json = await res.json().catch(() => null);
-    setSyncing(false);
-    if (!res.ok) {
-      setSyncMsg(json?.error?.message ?? "Sync failed");
-      return;
-    }
-    setSyncMsg(
-      `Synced: ${json.data.created} new, ${json.data.updated} updated, ${json.data.skipped} unchanged`,
-    );
-    router.refresh();
-  }
-
   async function createBooking(e: React.FormEvent) {
     e.preventDefault();
     setCreating(true);
     setCreateError(null);
     setCreateMsg(null);
 
-    const accommodationId = Number(form.accommodation_id);
-    if (!form.guest_name.trim() || !accommodationId || !form.checkin || !form.checkout) {
+    if (
+      !form.guest_name.trim() ||
+      !form.accommodation_unit_id ||
+      !selectedUnit ||
+      !form.checkin ||
+      !form.checkout
+    ) {
       setCreateError("Guest name, unit, check-in and check-out are required.");
       setCreating(false);
       return;
@@ -164,6 +146,8 @@ export function AccommodationBookingsPanel({
       return;
     }
 
+    const legacyAccommodationId =
+      typeof selectedUnit.id === "number" && selectedUnit.id > 0 ? selectedUnit.id : undefined;
     const res = await fetch("/api/v1/accommodation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -173,7 +157,8 @@ export function AccommodationBookingsPanel({
           guest_name: form.guest_name.trim(),
           email: form.email.trim() || undefined,
           phone: form.phone.trim() || undefined,
-          accommodation_id: accommodationId,
+          accommodation_unit_id: form.accommodation_unit_id,
+          accommodation_id: legacyAccommodationId,
           checkin: form.checkin,
           checkout: form.checkout,
           guests: form.guests ? Number(form.guests) : 2,
@@ -190,30 +175,12 @@ export function AccommodationBookingsPanel({
     const json = await res.json().catch(() => null);
     setCreating(false);
     if (!res.ok) {
-      const partial =
-        Array.isArray(json?.error?.errors) && json.error.errors[0]?.message
-          ? String(json.error.errors[0].message)
-          : null;
-      setCreateError(
-        partial ??
-          json?.error?.message ??
-          "Could not create booking — deploy DG Platform plugin v10.65.2+ on CVH.",
-      );
-      return;
-    }
-
-    const wpErrors = Array.isArray(json?.data?.errors) ? json.data.errors : [];
-    if (wpErrors.length && !json?.data?.created?.length) {
-      setCreateError(wpErrors[0]?.message ?? "Could not create booking");
+      setCreateError(json?.error?.message ?? "Could not create booking");
       return;
     }
 
     const ref = json?.data?.created?.[0]?.ref;
-    const warn =
-      wpErrors.length > 0
-        ? ` (with ${wpErrors.length} row warning${wpErrors.length === 1 ? "" : "s"})`
-        : "";
-    setCreateMsg(ref ? `Created booking ${ref}${warn}` : `Booking created${warn}`);
+    setCreateMsg(ref ? `Created booking ${ref}` : "Booking created");
     setForm(EMPTY_FORM);
     setShowNew(false);
     router.refresh();
@@ -232,27 +199,9 @@ export function AccommodationBookingsPanel({
         >
           {showNew ? "Close" : "New booking"}
         </button>
-        {wpSyncAvailable ? (
-          <button
-            type="button"
-            onClick={syncFromWordPress}
-            disabled={syncing}
-            className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
-          >
-            {syncing ? "Syncing…" : "Sync bookings from WordPress"}
-          </button>
-        ) : null}
-        {source ? (
-          <p className="text-sm text-slate-500">
-            Showing{" "}
-            {source === "postgres"
-              ? wpSyncAvailable
-                ? "StayBooking SoT (Neon) — optional WordPress sync available"
-                : "StayBooking SoT (Neon) — OTA iCal sync on Availability"
-              : "live WordPress (debug probe)"}
-          </p>
-        ) : null}
-        {syncMsg ? <p className="text-sm text-slate-400">{syncMsg}</p> : null}
+        <p className="text-sm text-slate-500">
+          StayBooking SoT (Neon) — OTA iCal sync on Availability
+        </p>
         {createMsg ? <p className="text-sm text-emerald-400">{createMsg}</p> : null}
       </div>
 
@@ -263,9 +212,7 @@ export function AccommodationBookingsPanel({
         >
           <h2 className="font-semibold text-white">New manual / direct booking</h2>
           <p className="text-sm text-slate-500">
-            {wpSyncAvailable
-              ? "Creates StayBooking in Neon first when units SoT is on, then mirrors to WordPress when a live Acc host is connected."
-              : "Creates StayBooking in Neon (Gen 2 source of truth). No live WordPress Acc host — calendar and OTA sync stay in Platform."}
+            Creates StayBooking directly in Gen 2, the accommodation source of truth.
           </p>
           {unitsError ? <p className="text-sm text-amber-400">{unitsError}</p> : null}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -299,13 +246,15 @@ export function AccommodationBookingsPanel({
               Unit *
               <select
                 required
-                value={form.accommodation_id}
-                onChange={(e) => setForm((f) => ({ ...f, accommodation_id: e.target.value }))}
+                value={form.accommodation_unit_id}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, accommodation_unit_id: e.target.value }))
+                }
                 className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-white"
               >
                 <option value="">Select unit…</option>
                 {units.map((u) => (
-                  <option key={u.id} value={u.id}>
+                  <option key={u.platform_id ?? String(u.id)} value={u.platform_id ?? ""}>
                     {u.title}
                   </option>
                 ))}

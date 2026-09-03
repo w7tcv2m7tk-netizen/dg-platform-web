@@ -1,95 +1,98 @@
 import {
-  ACC_CALENDAR_HORIZON_DAYS,
   buildAvailabilityFromNeon,
   cancelStayBookings,
   createStayBookingGen2First,
   deleteStayBookings,
   housekeepingBoardFromUnits,
-  linkStayBookingExternalWpId,
+  listAccommodationGuests,
   listAccommodationUnits,
   listStayBookings,
-  organisationHasFlag,
-  getOrganisationFeatureFlags,
-  organisationUsesHousekeepingSot,
-  organisationUsesUnitSot,
+  patchAccommodationUnitManualBlocks,
   sortAccommodationUnitsByDisplayOrder,
   stayBookingToWpRow,
-  syncAccommodationUnitsFromWordPress,
   unitToWpProp,
+  updateAccommodationGuestProfile,
   updateStayBooking,
   updateUnitHousekeeping,
-  upsertStayBookingFromWpRow,
+  upsertAccommodationUnitFromWpRow,
   syncOtaCalendarsFromUnits,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
-import {
-  fetchWpAccommodationAvailability,
-  fetchWpAccommodationBookings,
-  fetchWpAccommodationHousekeeping,
-  fetchWpAccommodationSummary,
-  fetchWpAccommodationUnits,
-  listWpAccommodationSites,
-  createWpAccommodationBookings,
-  deleteWpAccommodationBookings,
-  isGen2MarketingApexBaseUrl,
-  patchWpAccommodationBookings,
-  patchWpAccommodationGuests,
-  patchWpAccommodationHousekeeping,
-  patchWpAccommodationUnits,
-  syncWpAccommodationOtaCalendars,
-} from "@/lib/dg-api";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
-import { syncWordPressAccBookings, syncWordPressAccUnits } from "@/lib/wordpress-sync";
+
+function day(value = new Date()) {
+  return value.toISOString().slice(0, 10);
+}
+
+async function nativeSummary(organisationId: string) {
+  const [units, bookings, guests] = await Promise.all([
+    listAccommodationUnits(organisationId),
+    listStayBookings(organisationId, 200),
+    listAccommodationGuests(organisationId, { limit: 200 }),
+  ]);
+  const today = day();
+  const tomorrowDate = new Date(`${today}T00:00:00Z`);
+  tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1);
+  const tomorrow = day(tomorrowDate);
+  const horizonDate = new Date(`${today}T00:00:00Z`);
+  horizonDate.setUTCDate(horizonDate.getUTCDate() + 30);
+  const horizon = day(horizonDate);
+  const active = bookings.filter(
+    (booking) => booking.status !== "cancelled" && booking.status !== "canceled",
+  );
+  const upcoming = active.filter(
+    (booking) => booking.checkin && booking.checkin >= today && booking.checkin < horizon,
+  );
+  const revenueMtdCents = active
+    .filter((booking) => booking.checkin?.slice(0, 7) === today.slice(0, 7))
+    .reduce((sum, booking) => sum + (booking.totalCents ?? 0), 0);
+  const housekeeping = housekeepingBoardFromUnits(units, today);
+
+  return {
+    site: "Accommodation",
+    site_profile: "gen2_native",
+    properties: units.length,
+    guests: guests.meta.total,
+    upcoming_30d: upcoming.length,
+    checkins_today: active.filter((booking) => booking.checkin === today).length,
+    checkins_tomorrow: active.filter((booking) => booking.checkin === tomorrow).length,
+    checkouts_today: active.filter((booking) => booking.checkout === today).length,
+    revenue_mtd: revenueMtdCents / 100,
+    revenue_month: revenueMtdCents / 100,
+    today,
+    tomorrow,
+    housekeeping: housekeeping.summary,
+    recent_bookings: bookings.slice(0, 10).map(stayBookingToWpRow),
+  };
+}
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const { searchParams } = new URL(req.url);
-  const siteId = searchParams.get("siteId");
   const resource = searchParams.get("resource") ?? "summary";
-  const source = searchParams.get("source");
-  const connector = await accommodationConnectorForSession(session.organisationId);
 
   if (resource === "sites") {
-    return NextResponse.json({ data: listWpAccommodationSites() });
+    return NextResponse.json({
+      data: [{ id: "gen2", label: "Accommodation", source: "platform" }],
+    });
   }
 
   if (resource === "units" || resource === "properties") {
-    const { isGen2MarketingApexBaseUrl } = await import("@/lib/dg-api");
-    const apexRetired = isGen2MarketingApexBaseUrl(connector?.baseUrl);
-    if (
-      source !== "wp" &&
-      (apexRetired || (await organisationUsesUnitSot(session.organisationId)))
-    ) {
-      const stored = await listAccommodationUnits(session.organisationId);
-      return NextResponse.json({
-        data: stored.map(unitToWpProp),
-        meta: {
-          site: connector?.label ?? "Accommodation",
-          source: "postgres",
-          sot: true,
-          emptyHint:
-            stored.length === 0
-              ? apexRetired
-                ? "No AccommodationUnit rows — WordPress import retired on Gen 2 apex. Add units in Neon or sync from a legacy WP host."
-                : "No AccommodationUnit rows — POST action=sync_units"
-              : undefined,
-        },
-      });
-    }
-    const units = await fetchWpAccommodationUnits(siteId, connector);
-    if (!units.ok) {
-      return NextResponse.json(
-        { error: { code: units.code, message: units.message } },
-        { status: 422 },
-      );
-    }
+    const stored = await listAccommodationUnits(session.organisationId);
     return NextResponse.json({
-      data: sortAccommodationUnitsByDisplayOrder(units.units),
-      meta: { site: units.site, source: "wordpress", sot: false },
+      data: stored.map(unitToWpProp),
+      meta: {
+        site: "Accommodation",
+        source: "postgres",
+        sot: true,
+        emptyHint:
+          stored.length === 0
+            ? "No AccommodationUnit rows yet. Add a unit in Gen 2 or run an explicit WordPress migration."
+            : undefined,
+      },
     });
   }
 
@@ -101,150 +104,54 @@ export async function GET(req: Request) {
       propertyIdRaw && Number.isFinite(Number(propertyIdRaw))
         ? Number(propertyIdRaw)
         : undefined;
-
-    if (source !== "wp" && (await organisationUsesUnitSot(session.organisationId))) {
-      const avail = await buildAvailabilityFromNeon(session.organisationId, {
-        from,
-        to,
-        propertyId,
-      });
-      return NextResponse.json({
-        data: {
-          ...avail,
-          units: sortAccommodationUnitsByDisplayOrder(avail.units),
-        },
-        meta: { source: "postgres", sot: true },
-      });
-    }
-
-    const { fetchWpAccommodationAvailability, isGen2MarketingApexBaseUrl } = await import(
-      "@/lib/dg-api"
-    );
-    if (isGen2MarketingApexBaseUrl(connector?.baseUrl)) {
-      const avail = await buildAvailabilityFromNeon(session.organisationId, {
-        from,
-        to,
-        propertyId,
-      });
-      return NextResponse.json({
-        data: {
-          ...avail,
-          units: sortAccommodationUnitsByDisplayOrder(avail.units),
-        },
-        meta: { source: "postgres", sot: true, apex: true },
-      });
-    }
-    const avail = await fetchWpAccommodationAvailability({
-      siteId,
+    const avail = await buildAvailabilityFromNeon(session.organisationId, {
       from,
       to,
       propertyId,
-      connector,
     });
-    if (!avail.ok) {
-      return NextResponse.json(
-        { error: { code: avail.code, message: avail.message } },
-        { status: 422 },
-      );
-    }
-    const orderedUnits = sortAccommodationUnitsByDisplayOrder(avail.units);
     return NextResponse.json({
-      data: {
-        from: avail.from,
-        to: avail.to,
-        units: orderedUnits,
-        total: orderedUnits.length,
-      },
-      meta: { site: avail.site, source: "wordpress", sot: false },
+      data: { ...avail, units: sortAccommodationUnitsByDisplayOrder(avail.units) },
+      meta: { source: "postgres", sot: true },
     });
   }
 
   if (resource === "bookings") {
     const limit = Number(searchParams.get("limit") ?? 50);
-
-    // Debug / connector probe only — ops UI must not use this as SoT (WP-D-401).
-    if (source === "wp") {
-      const bookings = await fetchWpAccommodationBookings(siteId, limit, connector);
-      if (!bookings.ok) {
-        return NextResponse.json(
-          { error: { code: bookings.code, message: bookings.message } },
-          { status: 422 },
-        );
-      }
-      return NextResponse.json({
-        data: bookings.bookings,
-        meta: {
-          total: bookings.total,
-          site: bookings.site,
-          source: "wordpress",
-          sot: false,
-          note: "Live WordPress probe — StayBooking (postgres) is the read SoT",
-        },
-      });
-    }
-
     const stored = await listStayBookings(session.organisationId, limit);
     return NextResponse.json({
       data: stored.map(stayBookingToWpRow),
-      meta: {
-        total: stored.length,
-        source: "postgres",
-        sot: true,
-        emptyHint:
-          stored.length === 0
-            ? "No StayBooking rows yet — POST action=sync_wordpress or wait for WP dual-write webhook"
-            : undefined,
-      },
+      meta: { total: stored.length, source: "postgres", sot: true },
     });
   }
 
   if (resource === "housekeeping") {
-    if (
-      source !== "wp" &&
-      (await organisationUsesHousekeepingSot(session.organisationId))
-    ) {
-      const stored = await listAccommodationUnits(session.organisationId);
-      const board = housekeepingBoardFromUnits(stored);
-      return NextResponse.json({
-        data: {
-          items: board.items,
-          summary: board.summary,
-          statuses: board.statuses,
-        },
-        meta: {
-          site: connector?.label ?? "Accommodation",
-          source: "postgres",
-          sot: true,
-          today: board.today,
-        },
-      });
-    }
-    const board = await fetchWpAccommodationHousekeeping(siteId, connector);
-    if (!board.ok) {
-      return NextResponse.json(
-        { error: { code: board.code, message: board.message } },
-        { status: 422 },
-      );
-    }
+    const stored = await listAccommodationUnits(session.organisationId);
+    const board = housekeepingBoardFromUnits(stored);
     return NextResponse.json({
       data: {
-        items: sortAccommodationUnitsByDisplayOrder(board.items),
+        items: board.items,
         summary: board.summary,
         statuses: board.statuses,
       },
-      meta: { site: board.site, source: "wordpress", sot: false },
+      meta: { site: "Accommodation", source: "postgres", sot: true, today: board.today },
     });
   }
 
-  const summary = await fetchWpAccommodationSummary(siteId, 30, connector);
-  if (!summary.ok) {
-    return NextResponse.json(
-      { error: { code: summary.code, message: summary.message } },
-      { status: 422 },
-    );
+  if (resource === "guests") {
+    const limit = Number(searchParams.get("limit") ?? 100);
+    const search = searchParams.get("search") ?? undefined;
+    const guests = await listAccommodationGuests(session.organisationId, { limit, search });
+    return NextResponse.json({ data: guests.items, meta: guests.meta });
   }
 
-  return NextResponse.json({ data: summary.data });
+  if (resource === "summary") {
+    return NextResponse.json({ data: await nativeSummary(session.organisationId) });
+  }
+
+  return NextResponse.json(
+    { error: { code: "unsupported_resource", message: `Unsupported resource: ${resource}` } },
+    { status: 400 },
+  );
 }
 
 export async function POST(req: Request) {
@@ -253,54 +160,7 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => ({}));
 
-  if (body.action === "sync_wordpress") {
-    const outcome = await syncWordPressAccBookings(session);
-    if (!outcome.ok) {
-      return NextResponse.json(
-        { error: { code: "sync_failed", message: outcome.message } },
-        { status: 422 },
-      );
-    }
-    return NextResponse.json({ data: outcome.result });
-  }
-
-  if (body.action === "sync_units") {
-    const connector = await accommodationConnectorForSession(session.organisationId);
-    const { isGen2MarketingApexBaseUrl } = await import("@/lib/dg-api");
-    if (isGen2MarketingApexBaseUrl(connector?.baseUrl)) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "wp_import_unavailable",
-            message:
-              "WordPress import is unavailable on this public Gen 2 domain. Units live in Neon — use Refresh units, or point the connector at a legacy WP host for a one-time migration import.",
-          },
-        },
-        { status: 422 },
-      );
-    }
-    const outcome = await syncWordPressAccUnits(session);
-    if (!outcome.ok) {
-      // Fall back to direct core sync if helper missing settings write
-      const direct = await syncAccommodationUnitsFromWordPress(session.organisationId);
-      if (!direct.ok) {
-        return NextResponse.json(
-          { error: { code: "sync_failed", message: outcome.message || direct.message } },
-          { status: 422 },
-        );
-      }
-      return NextResponse.json({
-        data: { ...direct.result, writePath: "wordpress_import" },
-      });
-    }
-    return NextResponse.json({
-      data: { ...outcome.result, writePath: "wordpress_import" },
-    });
-  }
-
   if (body.action === "sync_ota") {
-    // Gen 2-native: pull Airbnb/Booking.com iCal URLs from Neon units.
-    // Apex marketing domains no longer host WordPress /wp-json.
     const gen2 = await syncOtaCalendarsFromUnits({
       organisationId: session.organisationId,
       propertyWpId: typeof body.propertyId === "number" ? body.propertyId : undefined,
@@ -309,177 +169,41 @@ export async function POST(req: Request) {
       actorId: session.clerkUserId,
     });
 
-    const noUrlsConfigured =
+    const missingConfiguration =
       /No Airbnb\/Booking\.com iCal|No accommodation units/i.test(gen2.message) ||
-      gen2.errors.some((e) =>
-        /No Airbnb\/Booking\.com iCal|No accommodation units/i.test(e),
+      gen2.errors.some((error) =>
+        /No Airbnb\/Booking\.com iCal|No accommodation units/i.test(error),
       );
-
-    // Any Gen 2 attempt with configured feeds (success or feed errors) — do not hit WP.
-    if (!noUrlsConfigured) {
-      return NextResponse.json({
-        data: {
-          ok: true,
-          imported: gen2.imported,
-          updated: gen2.updated,
-          cancelled: gen2.cancelled,
-          skipped: gen2.skipped,
-          errors: gen2.errors,
-          sources: gen2.sources,
-          writePath: "gen2_ical",
-          message: gen2.message,
-          neon: {
-            created: gen2.imported,
-            updated: gen2.updated,
-            skipped: gen2.skipped,
-            errors: gen2.errors,
-            source: "ical",
-          },
-        },
-      });
-    }
-
-    // Legacy fallback only when units lack iCal URLs and a non-apex WP connector exists.
-    const connector = await accommodationConnectorForSession(session.organisationId);
-    const wpBase = connector?.baseUrl?.replace(/\/$/, "") ?? "";
-    let apexIsGen2Host = false;
-    try {
-      const host = new URL(wpBase.includes("://") ? wpBase : `https://${wpBase}`).hostname;
-      apexIsGen2Host =
-        /currumbinvalleyhideaway\.com\.au$/i.test(host) ||
-        /roerealty\.com\.au$/i.test(host) ||
-        /^(www\.)?digitalgate\.com\.au$/i.test(host) ||
-        /aetherra\.com\.au$/i.test(host);
-    } catch {
-      apexIsGen2Host = /currumbinvalleyhideaway|roerealty|digitalgate\.com\.au|aetherra/i.test(
-        wpBase,
-      );
-    }
-
-    if (!wpBase || apexIsGen2Host) {
+    if (missingConfiguration) {
       return NextResponse.json(
         {
           error: {
             code: "ota_ical_urls_missing",
             message:
               gen2.message ||
-              "Add Airbnb/Booking.com export calendar URLs on each unit (Accommodation → Units), then Sync OTA again. WordPress /wp-json on the public site is retired.",
+              "Add Airbnb/Booking.com export calendar URLs on each unit, then sync OTA again.",
           },
         },
         { status: 422 },
       );
     }
 
-    const result = await syncWpAccommodationOtaCalendars(connector, {
-      propertyId: typeof body.propertyId === "number" ? body.propertyId : undefined,
-      source: body.source === "airbnb" || body.source === "bookingcom" ? body.source : "all",
-    });
-    if (!result.ok) {
-      return NextResponse.json(
-        {
-          error: {
-            code: result.code,
-            message:
-              result.message ??
-              "OTA sync failed. Prefer Gen 2: save iCal export URLs on units, or point the WordPress connector at a legacy WP host (not the public marketing domain).",
-          },
-        },
-        { status: 422 },
-      );
-    }
-
-    // Prefer availability-window pull (same WP query the CVH calendar uses) so OTA
-    // stays in the visible range always land in Neon StayBooking.
-    const today = new Date();
-    const iso = (d: Date) => d.toISOString().slice(0, 10);
-    const from =
-      typeof body.from === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.from)
-        ? body.from
-        : iso(today);
-    const toDate = new Date(today);
-    // Match calendar page horizon (2 years) so far OTA stays land in Neon.
-    toDate.setDate(toDate.getDate() + ACC_CALENDAR_HORIZON_DAYS);
-    const to =
-      typeof body.to === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.to)
-        ? body.to
-        : iso(toDate);
-
-    let created = 0;
-    let updated = 0;
-    let skipped = 0;
-    const errors: string[] = [];
-
-    const availability = await fetchWpAccommodationAvailability({
-      from,
-      to,
-      propertyId: typeof body.propertyId === "number" ? body.propertyId : undefined,
-      connector,
-    });
-
-    if (availability.ok) {
-      const seen = new Set<number>();
-      for (const unit of availability.units) {
-        for (const booking of unit.bookings ?? []) {
-          if (!booking?.id || seen.has(booking.id)) continue;
-          seen.add(booking.id);
-          // Ensure accommodation_id is set for calendar unit matching.
-          const row = {
-            ...booking,
-            accommodation_id: booking.accommodation_id ?? unit.id,
-            accommodation: booking.accommodation ?? unit.title,
-          };
-          try {
-            const outcome = await upsertStayBookingFromWpRow(session.organisationId, row, {
-              actorId: session.clerkUserId,
-            });
-            if (outcome === "created") created++;
-            else if (outcome === "updated") updated++;
-            else skipped++;
-          } catch (err) {
-            errors.push(
-              `Booking #${booking.id}: ${err instanceof Error ? err.message : "sync failed"}`,
-            );
-          }
-        }
-      }
-
-      return NextResponse.json({
-        data: {
-          ...result.data,
-          neon: { created, updated, skipped, errors, from, to, source: "availability" },
-          writePath: "wp_then_neon",
-          message: `${result.data?.message ?? "OTA calendars synced"} · ${created} created, ${updated} updated on platform (${from}→${to})`,
-        },
-      });
-    }
-
-    // Fallback: list bookings pull (host-safe CVH key).
-    const neonSync = await syncWordPressAccBookings(session);
-    if (neonSync.ok) {
-      const neonResult = neonSync.result;
-      return NextResponse.json({
-        data: {
-          ...result.data,
-          neon: { ...neonResult, source: "bookings_list", availabilityError: availability.message },
-          message: `${result.data?.message ?? "OTA calendars synced"} · ${neonResult.created} created, ${neonResult.updated} updated on platform`,
-        },
-      });
-    }
     return NextResponse.json({
       data: {
-        ...result.data,
-        neon: {
-          ok: false,
-          message: neonSync.message,
-          availabilityError: availability.message,
-        },
-        message: `OTA synced on WordPress — platform pull failed: ${neonSync.message}`,
+        ok: true,
+        imported: gen2.imported,
+        updated: gen2.updated,
+        cancelled: gen2.cancelled,
+        skipped: gen2.skipped,
+        errors: gen2.errors,
+        sources: gen2.sources,
+        writePath: "gen2_ical",
+        message: gen2.message,
       },
     });
   }
 
   if (body.action === "create_booking") {
-    const connector = await accommodationConnectorForSession(session.organisationId);
     const payload: Record<string, unknown> =
       body.booking && typeof body.booking === "object"
         ? (body.booking as Record<string, unknown>)
@@ -488,151 +212,64 @@ export async function POST(req: Request) {
             return rest;
           })();
 
-    // Soft-on: unset/true = Gen 2-first (founding ops). Explicit false = WP-first.
-    const flags = await getOrganisationFeatureFlags(session.organisationId);
-    const gen2First = flags["acc.gen2_first_booking"] !== false;
-    const usesUnits = await organisationUsesUnitSot(session.organisationId);
+    const accommodationWpId =
+      typeof payload.accommodation_id === "number"
+        ? payload.accommodation_id
+        : Number.isFinite(Number(payload.accommodation_id))
+          ? Number(payload.accommodation_id)
+          : undefined;
+    const accommodationUnitId =
+      typeof payload.accommodation_unit_id === "string"
+        ? payload.accommodation_unit_id
+        : undefined;
+    const guestName =
+      typeof payload.guest_name === "string"
+        ? payload.guest_name
+        : typeof payload.name === "string"
+          ? payload.name
+          : "";
 
-    // WP-D-403: when flag + units SoT, conflict-check Neon and create StayBooking first.
-    if (gen2First && usesUnits) {
-      const accommodationId =
-        typeof payload.accommodation_id === "number"
-          ? payload.accommodation_id
-          : Number(payload.accommodation_id);
-      const checkin = typeof payload.checkin === "string" ? payload.checkin : "";
-      const checkout = typeof payload.checkout === "string" ? payload.checkout : "";
-      const guestName =
-        typeof payload.guest_name === "string"
-          ? payload.guest_name
-          : typeof payload.name === "string"
-            ? payload.name
-            : "";
+    const native = await createStayBookingGen2First(session.organisationId, {
+      guestName,
+      email: typeof payload.email === "string" ? payload.email : undefined,
+      phone: typeof payload.phone === "string" ? payload.phone : undefined,
+      accommodationWpId,
+      accommodationUnitId,
+      checkin: typeof payload.checkin === "string" ? payload.checkin : "",
+      checkout: typeof payload.checkout === "string" ? payload.checkout : "",
+      guests: typeof payload.guests === "number" ? payload.guests : undefined,
+      nights: typeof payload.nights === "number" ? payload.nights : undefined,
+      total: typeof payload.total === "number" ? payload.total : undefined,
+      status: typeof payload.status === "string" ? payload.status : undefined,
+      source: typeof payload.source === "string" ? payload.source : "gen2",
+      message: typeof payload.message === "string" ? payload.message : undefined,
+      ref: typeof payload.ref === "string" ? payload.ref : undefined,
+      paid: typeof payload.paid === "string" ? payload.paid : undefined,
+      paymentMethod:
+        typeof payload.payment_method === "string" ? payload.payment_method : undefined,
+      actorId: session.clerkUserId,
+      force: payload.force === true || payload.allow_overlap === true,
+    });
 
-      const native = await createStayBookingGen2First(session.organisationId, {
-        guestName,
-        email: typeof payload.email === "string" ? payload.email : undefined,
-        phone: typeof payload.phone === "string" ? payload.phone : undefined,
-        accommodationWpId: accommodationId,
-        checkin,
-        checkout,
-        guests: typeof payload.guests === "number" ? payload.guests : undefined,
-        nights: typeof payload.nights === "number" ? payload.nights : undefined,
-        total: typeof payload.total === "number" ? payload.total : undefined,
-        status: typeof payload.status === "string" ? payload.status : undefined,
-        source: typeof payload.source === "string" ? payload.source : "gen2",
-        message: typeof payload.message === "string" ? payload.message : undefined,
-        ref: typeof payload.ref === "string" ? payload.ref : undefined,
-        paid: typeof payload.paid === "string" ? payload.paid : undefined,
-        paymentMethod:
-          typeof payload.payment_method === "string" ? payload.payment_method : undefined,
-        actorId: session.clerkUserId,
-        force: payload.force === true || payload.allow_overlap === true,
-      });
-
-      if (!native.ok) {
-        return NextResponse.json(
-          {
-            error: {
-              code: native.code,
-              message: native.message,
-              conflict_dates: native.conflictDates,
-            },
-          },
-          { status: 422 },
-        );
-      }
-
-      // Dual-write WP calendar only when a live (non–Gen 2 apex) Acc host exists.
-      const skipWpMirror =
-        !connector?.baseUrl?.trim() ||
-        isGen2MarketingApexBaseUrl(connector.baseUrl);
-
-      let wpMirror: { ok: boolean; wpId?: number; message?: string } = {
-        ok: false,
-      };
-      if (skipWpMirror) {
-        wpMirror = {
-          ok: false,
-          message: "WP Acc mirror skipped — Gen 2 Neon-only host",
-        };
-      } else {
-        const wpResult = await createWpAccommodationBookings(
-          { ...payload, force: true },
-          connector,
-        );
-        if (wpResult.ok) {
-          const createdRow = wpResult.data.created?.[0];
-          if (createdRow?.id) {
-            await linkStayBookingExternalWpId(
-              session.organisationId,
-              native.booking.id,
-              createdRow.id,
-            );
-            wpMirror = { ok: true, wpId: createdRow.id };
-          }
-        } else {
-          wpMirror = {
-            ok: false,
-            message: wpResult.message ?? "WP mirror failed — StayBooking kept in Neon",
-          };
-        }
-      }
-
-      return NextResponse.json({
-        data: {
-          created: [stayBookingToWpRow(native.booking)],
-          stayBooking: native.booking,
-          wpMirror,
-          writePath: skipWpMirror ? "neon_only" : "neon_then_wp",
-          conflictChecked: native.conflictChecked,
-        },
-      });
-    }
-
-    // Default interim: WP calendar create, then dual-write StayBooking.
-    const result = await createWpAccommodationBookings(payload, connector);
-    if (!result.ok) {
+    if (!native.ok) {
       return NextResponse.json(
         {
           error: {
-            code: result.code,
-            message:
-              result.message ??
-              "Could not create booking — deploy DG Platform plugin v10.65.2+ on CVH.",
+            code: native.code,
+            message: native.message,
+            conflict_dates: native.conflictDates,
           },
         },
         { status: 422 },
       );
     }
 
-    const { upsertStayBookingFromWpRow } = await import("@dg/platform-core");
-    const created = result.data.created ?? [];
-    const mirror = {
-      created: 0,
-      updated: 0,
-      skipped: 0,
-      errors: [] as string[],
-    };
-    for (const row of created) {
-      try {
-        const outcome = await upsertStayBookingFromWpRow(session.organisationId, row, {
-          actorId: session.clerkUserId,
-        });
-        if (outcome === "created") mirror.created++;
-        else if (outcome === "updated") mirror.updated++;
-        else mirror.skipped++;
-      } catch (err) {
-        mirror.errors.push(
-          `#${row.id}: ${err instanceof Error ? err.message : "StayBooking mirror failed"}`,
-        );
-      }
-    }
-
     return NextResponse.json({
       data: {
-        ...result.data,
-        stayBookingMirror: mirror,
-        writePath: "wp_then_neon",
+        created: [stayBookingToWpRow(native.booking)],
+        stayBooking: native.booking,
+        writePath: "neon",
+        conflictChecked: native.conflictChecked,
       },
     });
   }
@@ -651,35 +288,25 @@ export async function POST(req: Request) {
       );
     }
 
-    const connector = await accommodationConnectorForSession(session.organisationId);
-    const { updateAccommodationGuestProfile } = await import("@dg/platform-core");
-    const updated = await updateAccommodationGuestProfile(
-      session.organisationId,
-      contactId,
-      {
-        vip: typeof body.vip === "boolean" ? body.vip : undefined,
-        hideawayCircle:
-          typeof body.hideawayCircle === "boolean" ? body.hideawayCircle : undefined,
-        marketingConsent:
-          body.marketingConsent === null
-            ? null
-            : typeof body.marketingConsent === "boolean"
-              ? body.marketingConsent
-              : undefined,
-        preferences: typeof body.preferences === "string" ? body.preferences : undefined,
-        specialRequests:
-          typeof body.specialRequests === "string" ? body.specialRequests : undefined,
-        guestNotes: typeof body.guestNotes === "string" ? body.guestNotes : undefined,
-        favouriteUnit:
-          typeof body.favouriteUnit === "string" ? body.favouriteUnit : undefined,
-        displayName: typeof body.displayName === "string" ? body.displayName : undefined,
-        email: typeof body.email === "string" ? body.email : undefined,
-        phone: typeof body.phone === "string" ? body.phone : undefined,
-        syncWp: {
-          patchWp: (updates) => patchWpAccommodationGuests(updates, connector),
-        },
-      },
-    );
+    const updated = await updateAccommodationGuestProfile(session.organisationId, contactId, {
+      vip: typeof body.vip === "boolean" ? body.vip : undefined,
+      hideawayCircle:
+        typeof body.hideawayCircle === "boolean" ? body.hideawayCircle : undefined,
+      marketingConsent:
+        body.marketingConsent === null
+          ? null
+          : typeof body.marketingConsent === "boolean"
+            ? body.marketingConsent
+            : undefined,
+      preferences: typeof body.preferences === "string" ? body.preferences : undefined,
+      specialRequests:
+        typeof body.specialRequests === "string" ? body.specialRequests : undefined,
+      guestNotes: typeof body.guestNotes === "string" ? body.guestNotes : undefined,
+      favouriteUnit: typeof body.favouriteUnit === "string" ? body.favouriteUnit : undefined,
+      displayName: typeof body.displayName === "string" ? body.displayName : undefined,
+      email: typeof body.email === "string" ? body.email : undefined,
+      phone: typeof body.phone === "string" ? body.phone : undefined,
+    });
 
     if (!updated) {
       return NextResponse.json(
@@ -710,128 +337,86 @@ export async function PATCH(req: Request) {
     );
   }
 
-  const connector = await accommodationConnectorForSession(session.organisationId);
-
   if (resource === "units" || resource === "properties") {
-    const { isGen2MarketingApexBaseUrl, getWpAccommodationSite } = await import(
-      "@/lib/dg-api"
-    );
-    const resolvedBase =
-      connector?.baseUrl || getWpAccommodationSite().baseUrl;
-    const apexRetired =
-      isGen2MarketingApexBaseUrl(connector?.baseUrl) ||
-      isGen2MarketingApexBaseUrl(resolvedBase);
-    const usesUnits =
-      apexRetired || (await organisationUsesUnitSot(session.organisationId));
-    const persistedUpdates: Array<Record<string, unknown>> = [];
-    if (usesUnits) {
-      const {
-        upsertAccommodationUnitFromWpRow,
-        patchAccommodationUnitManualBlocks,
-      } = await import("@dg/platform-core");
-      // Persist full unit patches into Neon (incl. OTA URLs + listing IDs), then mirror to WP.
-      for (const row of updates) {
-        if (!row || typeof row !== "object") continue;
-        const patch = row as Record<string, unknown>;
-        const id =
-          typeof patch.id === "number"
-            ? patch.id
-            : typeof patch.property_id === "number"
-              ? patch.property_id
-              : Number(patch.id ?? patch.property_id);
-        // Allow platform_id-only patches when WP id is missing (0).
-        if (!Number.isFinite(id) && typeof patch.platform_id !== "string") continue;
+    const persisted: Array<Record<string, unknown>> = [];
+    for (const row of updates) {
+      if (!row || typeof row !== "object") continue;
+      const patch = row as Record<string, unknown>;
+      const externalId =
+        typeof patch.id === "number"
+          ? patch.id
+          : typeof patch.property_id === "number"
+            ? patch.property_id
+            : Number(patch.id ?? patch.property_id);
+      const platformId =
+        typeof patch.platform_id === "string" ? patch.platform_id.trim() : undefined;
+      if (!platformId && !Number.isFinite(externalId)) continue;
 
-        const platformId =
-          typeof patch.platform_id === "string" ? patch.platform_id : undefined;
-        const wantsBlockPatch =
-          Array.isArray(patch.block_dates) ||
-          Array.isArray(patch.unblock_dates) ||
-          Array.isArray(patch.manual_blocked_dates);
+      const wantsBlockPatch =
+        Array.isArray(patch.block_dates) ||
+        Array.isArray(patch.unblock_dates) ||
+        Array.isArray(patch.manual_blocked_dates);
+      let manualBlockedDates = Array.isArray(patch.manual_blocked_dates)
+        ? (patch.manual_blocked_dates as string[])
+        : undefined;
 
-        let manualBlockedDates: string[] | undefined = Array.isArray(
-          patch.manual_blocked_dates,
-        )
-          ? (patch.manual_blocked_dates as string[])
-          : undefined;
-
-        // Calendar day toggles send block_dates / unblock_dates — merge into Neon.
-        if (wantsBlockPatch) {
-          const blockResult = await patchAccommodationUnitManualBlocks(
-            session.organisationId,
+      if (wantsBlockPatch) {
+        const blockResult = await patchAccommodationUnitManualBlocks(session.organisationId, {
+          id: Number.isFinite(externalId) ? externalId : undefined,
+          platform_id: platformId,
+          manual_blocked_dates: manualBlockedDates,
+          block_dates: Array.isArray(patch.block_dates)
+            ? (patch.block_dates as string[])
+            : undefined,
+          unblock_dates: Array.isArray(patch.unblock_dates)
+            ? (patch.unblock_dates as string[])
+            : undefined,
+        });
+        if (!blockResult.ok) {
+          return NextResponse.json(
             {
-              id: Number.isFinite(id) ? id : undefined,
-              platform_id: platformId,
-              manual_blocked_dates: manualBlockedDates,
-              block_dates: Array.isArray(patch.block_dates)
-                ? (patch.block_dates as string[])
-                : undefined,
-              unblock_dates: Array.isArray(patch.unblock_dates)
-                ? (patch.unblock_dates as string[])
-                : undefined,
-            },
-          ).catch(() => null);
-          if (!blockResult?.ok) {
-            return NextResponse.json(
-              {
-                error: {
-                  code: "block_persist_failed",
-                  message:
-                    "Could not save blocked dates for this unit. Confirm the unit exists in Neon, then try again.",
-                },
+              error: {
+                code: "block_persist_failed",
+                message: "Could not save blocked dates for this unit.",
               },
-              { status: 422 },
-            );
-          }
-          manualBlockedDates = blockResult.manual_blocked_dates;
+            },
+            { status: 422 },
+          );
         }
+        manualBlockedDates = blockResult.manual_blocked_dates;
+      }
 
-        const hasNonBlockFields = [
-          "title",
-          "listing_status",
-          "weekday_rate",
-          "weekend_rate",
-          "cleaning_fee",
-          "housekeeping_status",
-          "housekeeping_notes",
-          "airbnb_ical_url",
-          "bookingcom_ical_url",
-          "airbnb_id",
-          "bookingcom_id",
-          "description",
-          "address",
-          "sleeps",
-          "bedrooms",
-          "bathrooms",
-          "max_guests",
-          "min_nights",
-          "checkin_time",
-          "checkout_time",
-          "features",
-          "last_minute_discount",
-          "early_bird_discount",
-          "gallery_urls",
-          "featured_image_url",
-        ].some((k) => patch[k] !== undefined);
+      const hasNonBlockFields = [
+        "title",
+        "listing_status",
+        "weekday_rate",
+        "weekend_rate",
+        "cleaning_fee",
+        "housekeeping_status",
+        "housekeeping_notes",
+        "airbnb_ical_url",
+        "bookingcom_ical_url",
+        "airbnb_id",
+        "bookingcom_id",
+        "description",
+        "address",
+        "sleeps",
+        "bedrooms",
+        "bathrooms",
+        "max_guests",
+        "min_nights",
+        "checkin_time",
+        "checkout_time",
+        "features",
+        "last_minute_discount",
+        "early_bird_discount",
+        "gallery_urls",
+        "featured_image_url",
+      ].some((key) => patch[key] !== undefined);
 
-        // Block-only on Gen 2 apex: skip upsert (already persisted above).
-        if (wantsBlockPatch && apexRetired && !hasNonBlockFields) {
-          persistedUpdates.push({
-            ...patch,
-            id: Number.isFinite(id) ? id : patch.id,
-            platform_id: platformId,
-            ...(manualBlockedDates !== undefined
-              ? {
-                  manual_blocked_dates: manualBlockedDates,
-                  blocked_dates: manualBlockedDates,
-                }
-              : {}),
-          });
-          continue;
-        }
-
-        await upsertAccommodationUnitFromWpRow(session.organisationId, {
-          id: Number.isFinite(id) ? id : 0,
+      if (hasNonBlockFields) {
+        const outcome = await upsertAccommodationUnitFromWpRow(session.organisationId, {
+          id: Number.isFinite(externalId) ? externalId : 0,
           platform_id: platformId,
           title: typeof patch.title === "string" ? patch.title : undefined,
           listing_status:
@@ -850,7 +435,6 @@ export async function PATCH(req: Request) {
             typeof patch.housekeeping_notes === "string"
               ? patch.housekeeping_notes
               : undefined,
-          // Prefer dates already merged above; still pass full list as a fallback write.
           manual_blocked_dates: manualBlockedDates,
           airbnb_ical_url:
             typeof patch.airbnb_ical_url === "string" ? patch.airbnb_ical_url : undefined,
@@ -861,16 +445,14 @@ export async function PATCH(req: Request) {
           airbnb_id: typeof patch.airbnb_id === "string" ? patch.airbnb_id : undefined,
           bookingcom_id:
             typeof patch.bookingcom_id === "string" ? patch.bookingcom_id : undefined,
-          description:
-            typeof patch.description === "string" ? patch.description : undefined,
+          description: typeof patch.description === "string" ? patch.description : undefined,
           address: typeof patch.address === "string" ? patch.address : undefined,
           sleeps: typeof patch.sleeps === "number" ? patch.sleeps : undefined,
           bedrooms: typeof patch.bedrooms === "number" ? patch.bedrooms : undefined,
           bathrooms: typeof patch.bathrooms === "number" ? patch.bathrooms : undefined,
           max_guests: typeof patch.max_guests === "number" ? patch.max_guests : undefined,
           min_nights: typeof patch.min_nights === "number" ? patch.min_nights : undefined,
-          checkin_time:
-            typeof patch.checkin_time === "string" ? patch.checkin_time : undefined,
+          checkin_time: typeof patch.checkin_time === "string" ? patch.checkin_time : undefined,
           checkout_time:
             typeof patch.checkout_time === "string" ? patch.checkout_time : undefined,
           features:
@@ -898,96 +480,66 @@ export async function PATCH(req: Request) {
               : patch.featured_image_url === null
                 ? ""
                 : undefined,
-        }).catch(() => null);
-
-        persistedUpdates.push({
-          ...patch,
-          id: Number.isFinite(id) ? id : patch.id,
-          platform_id: platformId,
-          ...(manualBlockedDates !== undefined
-            ? {
-                manual_blocked_dates: manualBlockedDates,
-                blocked_dates: manualBlockedDates,
-              }
-            : {}),
         });
+        if (outcome === "skipped" && !wantsBlockPatch) {
+          return NextResponse.json(
+            { error: { code: "unit_not_found", message: "Accommodation unit not found" } },
+            { status: 404 },
+          );
+        }
       }
-    }
 
-    const responseUpdated = persistedUpdates.length ? persistedUpdates : updates;
-
-    // Gen 2 apex: Neon is the only write path (no /wp-json mirror).
-    if (apexRetired) {
-      return NextResponse.json({
-        data: {
-          ok: true,
-          updated: responseUpdated,
-          count: responseUpdated.length,
-          sot: "neon",
-          writePath: "neon",
-        },
+      persisted.push({
+        ...patch,
+        platform_id: platformId,
+        ...(manualBlockedDates
+          ? { manual_blocked_dates: manualBlockedDates, blocked_dates: manualBlockedDates }
+          : {}),
       });
     }
 
-    const result = await patchWpAccommodationUnits(updates, connector);
-    if (!result.ok) {
-      // Neon already updated above — don't fail the save because WP mirror is gone.
-      if (usesUnits) {
-        return NextResponse.json({
-          data: {
-            ok: true,
-            updated: responseUpdated,
-            count: responseUpdated.length,
-            sot: "neon",
-            writePath: "neon",
-            wpMirror: {
-              ok: false,
-              code: result.code,
-              message: result.message,
-            },
-          },
-        });
-      }
-      return NextResponse.json(
-        { error: { code: result.code, message: result.message } },
-        { status: 422 },
-      );
-    }
-    // Prefer WP response as SoT for OTA export URLs / confirmed meta after mirror.
-    if (usesUnits && Array.isArray(result.data?.updated)) {
-      const { upsertAccommodationUnitFromWpRow } = await import("@dg/platform-core");
-      for (const updated of result.data.updated) {
-        if (!updated || typeof updated !== "object") continue;
-        const row = updated as Record<string, unknown>;
-        const id = typeof row.id === "number" ? row.id : Number(row.id);
-        if (!Number.isFinite(id)) continue;
-        await upsertAccommodationUnitFromWpRow(
-          session.organisationId,
-          row as Parameters<typeof upsertAccommodationUnitFromWpRow>[1],
-        ).catch(() => null);
-      }
-    }
     return NextResponse.json({
-      data: { ...result.data, sot: usesUnits ? "neon_then_wp" : "wordpress" },
+      data: {
+        ok: true,
+        updated: persisted,
+        count: persisted.length,
+        sot: "neon",
+        writePath: "neon",
+      },
     });
   }
 
   if (resource === "bookings") {
-    const result = await patchWpAccommodationBookings(updates, connector);
-    if (!result.ok) {
-      return NextResponse.json(
-        { error: { code: result.code, message: result.message } },
-        { status: 422 },
-      );
-    }
-
-    // Mirror into Postgres StayBooking when present (incl. payment metadata).
+    const updated = [];
+    const existingBookings = await listStayBookings(session.organisationId, 200);
     for (const row of updates) {
       if (!row || typeof row !== "object") continue;
       const patch = row as Record<string, unknown>;
-      await updateStayBooking(session.organisationId, {
-        platformId: typeof patch.platform_id === "string" ? patch.platform_id : undefined,
-        externalWpId: typeof patch.id === "number" ? patch.id : undefined,
+      const platformId = typeof patch.platform_id === "string" ? patch.platform_id : undefined;
+      const externalWpId = typeof patch.id === "number" ? patch.id : undefined;
+      const existing = existingBookings.find(
+        (booking) =>
+          (platformId && booking.id === platformId) ||
+          (externalWpId != null && booking.externalWpId === externalWpId),
+      );
+      if (
+        typeof patch.accommodation_id === "number" &&
+        (!existing || patch.accommodation_id !== existing.accommodationWpId)
+      ) {
+        return NextResponse.json(
+          {
+            error: {
+              code: "booking_unit_move_requires_atomic_operation",
+              message:
+                "Moving a booking between accommodation units requires the dedicated atomic unit-move operation.",
+            },
+          },
+          { status: 422 },
+        );
+      }
+      const result = await updateStayBooking(session.organisationId, {
+        platformId,
+        externalWpId,
         guestName: typeof patch.guest_name === "string" ? patch.guest_name : undefined,
         email: typeof patch.email === "string" ? patch.email : undefined,
         phone: typeof patch.phone === "string" ? patch.phone : undefined,
@@ -1007,102 +559,78 @@ export async function PATCH(req: Request) {
         guests: typeof patch.guests === "number" ? patch.guests : undefined,
         nights: typeof patch.nights === "number" ? patch.nights : undefined,
         message: typeof patch.message === "string" ? patch.message : undefined,
-      }).catch(() => null);
-    }
-
-    return NextResponse.json({ data: result.data });
-  }
-
-  if (resource === "guests") {
-    const result = await patchWpAccommodationGuests(updates, connector);
-    if (!result.ok) {
-      return NextResponse.json(
-        { error: { code: result.code, message: result.message } },
-        { status: 422 },
-      );
-    }
-    // Keep Gen 2 Contact + AccommodationGuestProfile aligned with connector edits.
-    const { upsertGuestFromWpRow } = await import("@dg/platform-core");
-    for (const row of updates) {
-      if (!row || typeof row !== "object") continue;
-      const patch = row as Record<string, unknown>;
-      const id = typeof patch.id === "number" ? patch.id : Number(patch.id);
-      if (!Number.isFinite(id)) continue;
-      await upsertGuestFromWpRow(
-        session.organisationId,
-        {
-          id,
-          name: typeof patch.name === "string" ? patch.name : undefined,
-          email: typeof patch.email === "string" ? patch.email : undefined,
-          phone: typeof patch.phone === "string" ? patch.phone : undefined,
-          vip: typeof patch.vip === "boolean" ? patch.vip : undefined,
-          notes: typeof patch.notes === "string" ? patch.notes : undefined,
-          tags: typeof patch.tags === "string" ? patch.tags : undefined,
-          address: typeof patch.address === "string" ? patch.address : undefined,
-          source: typeof patch.source === "string" ? patch.source : undefined,
-          contact_id: typeof patch.contact_id === "string" ? patch.contact_id : null,
-        },
-        { actorId: session.clerkUserId },
-      ).catch(() => null);
-    }
-    return NextResponse.json({ data: result.data });
-  }
-
-  // Default: housekeeping — Neon SoT when units/HK flag on (WP-D-404).
-  const hkSot = await organisationUsesHousekeepingSot(session.organisationId);
-  if (hkSot) {
-    type HkPatch = {
-      property_id?: number;
-      id?: number;
-      platform_id?: string;
-      status: string;
-      notes?: string;
-    };
-    const typed: HkPatch[] = [];
-    for (const raw of updates) {
-      if (!raw || typeof raw !== "object") continue;
-      const u = raw as Record<string, unknown>;
-      if (typeof u.status !== "string") continue;
-      typed.push({
-        property_id: typeof u.property_id === "number" ? u.property_id : undefined,
-        id: typeof u.id === "number" ? u.id : undefined,
-        platform_id: typeof u.platform_id === "string" ? u.platform_id : undefined,
-        status: u.status,
-        notes: typeof u.notes === "string" ? u.notes : undefined,
       });
+      if (!result) {
+        return NextResponse.json(
+          { error: { code: "booking_not_found", message: "StayBooking not found" } },
+          { status: 404 },
+        );
+      }
+      updated.push(stayBookingToWpRow(result));
     }
-    const neon = await updateUnitHousekeeping(session.organisationId, typed);
-    const mirror = await patchWpAccommodationHousekeeping(
-      typed.map((u: HkPatch) => ({
-        property_id: u.property_id ?? u.id ?? 0,
-        status: u.status,
-        notes: u.notes,
-      })),
-      connector,
-    ).catch(() => ({ ok: false as const, code: "mirror_failed", message: "WP mirror failed" }));
-
     return NextResponse.json({
-      data: {
-        ok: true,
-        updated: neon.updated,
-        count: neon.count,
-        writePath: "neon_then_wp",
-        wpMirror: mirror.ok
-          ? { ok: true, ...(typeof mirror.data === "object" ? mirror.data : {}) }
-          : { ok: false, message: "message" in mirror ? mirror.message : "WP mirror failed" },
-      },
+      data: { ok: true, updated, count: updated.length, writePath: "neon" },
     });
   }
 
-  const result = await patchWpAccommodationHousekeeping(updates, connector);
-  if (!result.ok) {
-    return NextResponse.json(
-      { error: { code: result.code, message: result.message } },
-      { status: 422 },
-    );
+  if (resource === "guests") {
+    const updated = [];
+    for (const row of updates) {
+      if (!row || typeof row !== "object") continue;
+      const patch = row as Record<string, unknown>;
+      const contactId =
+        typeof patch.contact_id === "string"
+          ? patch.contact_id
+          : typeof patch.contactId === "string"
+            ? patch.contactId
+            : "";
+      if (!contactId) {
+        return NextResponse.json(
+          { error: { code: "missing_contact", message: "contact_id is required" } },
+          { status: 400 },
+        );
+      }
+      const result = await updateAccommodationGuestProfile(session.organisationId, contactId, {
+        vip: typeof patch.vip === "boolean" ? patch.vip : undefined,
+        guestNotes: typeof patch.notes === "string" ? patch.notes : undefined,
+        preferences: typeof patch.preferences === "string" ? patch.preferences : undefined,
+        specialRequests:
+          typeof patch.special_requests === "string" ? patch.special_requests : undefined,
+        displayName: typeof patch.name === "string" ? patch.name : undefined,
+        email: typeof patch.email === "string" ? patch.email : undefined,
+        phone: typeof patch.phone === "string" ? patch.phone : undefined,
+      });
+      if (result) updated.push(result);
+    }
+    return NextResponse.json({
+      data: { ok: true, updated, count: updated.length, writePath: "neon" },
+    });
   }
 
-  return NextResponse.json({ data: { ...result.data, writePath: "wordpress" } });
+  type HkPatch = {
+    property_id?: number;
+    id?: number;
+    platform_id?: string;
+    status: string;
+    notes?: string;
+  };
+  const typed: HkPatch[] = [];
+  for (const raw of updates) {
+    if (!raw || typeof raw !== "object") continue;
+    const patch = raw as Record<string, unknown>;
+    if (typeof patch.status !== "string") continue;
+    typed.push({
+      property_id: typeof patch.property_id === "number" ? patch.property_id : undefined,
+      id: typeof patch.id === "number" ? patch.id : undefined,
+      platform_id: typeof patch.platform_id === "string" ? patch.platform_id : undefined,
+      status: patch.status,
+      notes: typeof patch.notes === "string" ? patch.notes : undefined,
+    });
+  }
+  const neon = await updateUnitHousekeeping(session.organisationId, typed);
+  return NextResponse.json({
+    data: { ok: true, updated: neon.updated, count: neon.count, writePath: "neon" },
+  });
 }
 
 export async function DELETE(req: Request) {
@@ -1111,7 +639,6 @@ export async function DELETE(req: Request) {
 
   const body = await req.json().catch(() => ({}));
   const resource = (body.resource as string | undefined) ?? "bookings";
-
   if (resource !== "bookings") {
     return NextResponse.json(
       { error: { code: "unsupported_resource", message: "DELETE only supports resource=bookings" } },
@@ -1120,15 +647,14 @@ export async function DELETE(req: Request) {
   }
 
   const hard = body.hard === true || body.mode === "hard";
-
-  const wpIds: number[] = [];
+  const externalIds: number[] = [];
   if (Array.isArray(body.ids)) {
     for (const raw of body.ids) {
       const id = typeof raw === "number" ? raw : Number(raw);
-      if (Number.isFinite(id) && id > 0) wpIds.push(id);
+      if (Number.isFinite(id) && id > 0) externalIds.push(id);
     }
   } else if (typeof body.id === "number" && body.id > 0) {
-    wpIds.push(body.id);
+    externalIds.push(body.id);
   }
 
   const platformIds: string[] = [];
@@ -1140,67 +666,37 @@ export async function DELETE(req: Request) {
     platformIds.push(body.platform_id.trim());
   }
 
-  if (!wpIds.length && !platformIds.length) {
+  if (!externalIds.length && !platformIds.length) {
     return NextResponse.json(
       {
         error: {
           code: "missing_ids",
-          message: "Provide platform_id / platform_ids[] and/or WordPress ids[]",
+          message: "Provide platform_id / platform_ids[] or legacy external ids[]",
         },
       },
       { status: 400 },
     );
   }
 
-  // Gen 2 Neon first — works for native rows (no WP id) and mirrored rows.
-  let neonIds: string[] = [];
-  let neonCount = 0;
-  if (hard) {
-    const neon = await deleteStayBookings(session.organisationId, {
-      platformIds,
-      externalWpIds: wpIds,
-    });
-    neonIds = neon.deleted;
-    neonCount = neon.count;
-  } else {
-    const neon = await cancelStayBookings(session.organisationId, {
-      platformIds,
-      externalWpIds: wpIds,
-    });
-    neonIds = neon.cancelled;
-    neonCount = neon.count;
-  }
-
-  // Also soft-cancel on WordPress when we have WP ids (plugin v10.60.0+).
-  let wordpress: { ok: boolean; count?: number; message?: string } | null = null;
-  if (wpIds.length) {
-    const connector = await accommodationConnectorForSession(session.organisationId);
-    const result = await deleteWpAccommodationBookings(wpIds, connector);
-    if (!result.ok) {
-      // Neon already updated — report WP failure without failing the whole request
-      // when Gen 2-native cancel succeeded.
-      if (!neonCount) {
-        return NextResponse.json(
-          { error: { code: result.code, message: result.message } },
-          { status: 422 },
-        );
-      }
-      wordpress = { ok: false, message: result.message };
-    } else {
-      wordpress = { ok: true, count: result.data?.count ?? wpIds.length };
-      // Ensure any WP-only ids also land as cancelled in Neon
-      if (!hard) {
-        await cancelStayBookings(session.organisationId, { externalWpIds: wpIds });
-      }
-    }
-  }
+  const result = hard
+    ? await deleteStayBookings(session.organisationId, {
+        platformIds,
+        externalWpIds: externalIds,
+      })
+    : await cancelStayBookings(session.organisationId, {
+        platformIds,
+        externalWpIds: externalIds,
+      });
 
   return NextResponse.json({
     data: {
       ok: true,
       mode: hard ? "hard" : "cancel",
-      neon: { count: neonCount, ids: neonIds },
-      wordpress,
+      neon: {
+        count: result.count,
+        ids: "deleted" in result ? result.deleted : result.cancelled,
+      },
+      writePath: "neon",
     },
   });
 }
