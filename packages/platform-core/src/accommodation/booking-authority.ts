@@ -7,7 +7,7 @@ import {
 } from "./bookings";
 
 export type BookingAuthoritySyncResult = {
-  outcome: "created" | "updated" | "skipped" | "conflict";
+  outcome: "created" | "updated" | "skipped";
   platformId: string | null;
 };
 
@@ -88,6 +88,9 @@ export async function syncWpBookingWithPlatformAuthority(
   // Legacy WP identity fallback: bootstrap only. Once a platform id is returned,
   // the connector must persist and use that canonical identity on later writes.
   const outcome = await upsertStayBookingFromWpRow(organisationId, row);
+  if (outcome === "conflict") {
+    throw new Error("WordPress booking projection conflicts with an existing StayBooking");
+  }
   if (typeof row.id !== "number" || row.id <= 0) {
     return { outcome, platformId: null };
   }
