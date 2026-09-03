@@ -1,18 +1,8 @@
 import {
   listAccommodationUnits,
-  organisationUsesUnitSot,
-  sortAccommodationUnitsByDisplayOrder,
-  syncAccommodationUnitsFromWordPress,
   unitToWpProp,
   type PlatformSession,
 } from "@dg/platform-core";
-
-import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
-import {
-  fetchWpAccommodationUnits,
-  isGen2MarketingApexBaseUrl,
-} from "@/lib/dg-api";
-import { autoSyncWordPressAccUnitsIfNeeded } from "@/lib/wordpress-sync";
 
 export type AccUnitsOpsLoad = {
   units: Record<string, unknown>[];
@@ -21,94 +11,40 @@ export type AccUnitsOpsLoad = {
   seeded: boolean;
   siteLabel?: string;
   error?: string;
-  /** True when org connector points at a live WordPress Acc host (not a Gen 2 marketing apex). */
+  /** Legacy compatibility field. Native runtime never imports from WordPress. */
   wpImportAvailable: boolean;
 };
 
 /**
- * WP-D-402: Prefer Neon AccommodationUnit when SoT; seed from WP when empty.
- * Gen 2 marketing apexes no longer host `/wp-json` — Neon only.
+ * Native Gen 2 accommodation operations always read units from Platform Core / Neon.
+ * WordPress unit import is available only through the explicit migration endpoint.
  */
 export async function loadUnitsForOps(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId"> | null,
-  siteId?: string | null,
+  _siteId?: string | null,
 ): Promise<AccUnitsOpsLoad> {
   if (!session) {
     return {
       units: [],
-      source: "wordpress",
-      sot: false,
-      seeded: false,
-      wpImportAvailable: false,
-    };
-  }
-
-  const connector = await accommodationConnectorForSession(session.organisationId);
-  const apexRetired = isGen2MarketingApexBaseUrl(connector?.baseUrl);
-  const wpImportAvailable = Boolean(connector?.baseUrl && !apexRetired);
-
-  if (wpImportAvailable) {
-    await autoSyncWordPressAccUnitsIfNeeded(session).catch(() => null);
-  }
-
-  let stored = await listAccommodationUnits(session.organisationId);
-  let seeded = false;
-
-  if (wpImportAvailable && stored.length === 0) {
-    const sync = await syncAccommodationUnitsFromWordPress(session.organisationId);
-    if (sync.ok) {
-      stored = await listAccommodationUnits(session.organisationId);
-      seeded = stored.length > 0;
-    }
-  }
-
-  if (apexRetired || (await organisationUsesUnitSot(session.organisationId))) {
-    return {
-      units: stored.map(unitToWpProp),
       source: "postgres",
       sot: true,
-      seeded,
-      siteLabel: connector?.label,
-      wpImportAvailable,
-      error:
-        apexRetired && stored.length === 0
-          ? "No units in Neon yet. WordPress import is unavailable on the public Gen 2 site — add units in the platform or point the connector at a legacy WP host for a one-time sync."
-          : undefined,
+      seeded: false,
+      wpImportAvailable: false,
+      error: "Platform session unavailable.",
     };
   }
 
-  const live = await fetchWpAccommodationUnits(siteId, connector);
-  if (!live.ok) {
-    if (stored.length) {
-      return {
-        units: stored.map(unitToWpProp),
-        source: "postgres",
-        sot: true,
-        seeded,
-        siteLabel: connector?.label,
-        wpImportAvailable,
-      };
-    }
-    return {
-      units: [],
-      source: "wordpress",
-      sot: false,
-      seeded,
-      error: live.message,
-      siteLabel: connector?.label,
-      wpImportAvailable,
-    };
-  }
+  const stored = await listAccommodationUnits(session.organisationId);
 
   return {
-    units: sortAccommodationUnitsByDisplayOrder(live.units) as unknown as Record<
-      string,
-      unknown
-    >[],
-    source: "wordpress",
-    sot: false,
-    seeded,
-    siteLabel: live.site,
-    wpImportAvailable,
+    units: stored.map(unitToWpProp),
+    source: "postgres",
+    sot: true,
+    seeded: false,
+    wpImportAvailable: false,
+    error:
+      stored.length === 0
+        ? "No accommodation units are configured in Platform Core."
+        : undefined,
   };
 }

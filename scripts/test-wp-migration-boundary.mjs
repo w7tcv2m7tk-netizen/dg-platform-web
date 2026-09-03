@@ -7,16 +7,37 @@ const bookingsPage = fs.readFileSync(
   "src/app/(shell)/apps/accommodation/bookings/page.tsx",
   "utf8",
 );
+const calendarPage = fs.readFileSync(
+  "src/app/(shell)/apps/accommodation/calendar/page.tsx",
+  "utf8",
+);
+const housekeepingPage = fs.readFileSync(
+  "src/app/(shell)/apps/accommodation/housekeeping/page.tsx",
+  "utf8",
+);
+const housekeepingRoute = fs.readFileSync(
+  "src/app/api/v1/accommodation/housekeeping/route.ts",
+  "utf8",
+);
 const bookingsPanel = fs.readFileSync(
   "src/components/accommodation/AccommodationBookingsPanel.tsx",
   "utf8",
 );
 const bookingsLoader = fs.readFileSync("src/lib/accommodation-stay-bookings.ts", "utf8");
+const unitOpsLoader = fs.readFileSync("src/lib/accommodation-units.ts", "utf8");
 const migrationRoute = fs.readFileSync(
   "src/app/api/v1/migrations/wordpress/accommodation/route.ts",
   "utf8",
 );
 const migration = fs.readFileSync("src/lib/wordpress-migration.ts", "utf8");
+const nativeUnits = fs.readFileSync(
+  "packages/platform-core/src/accommodation/units.ts",
+  "utf8",
+);
+const unitMigration = fs.readFileSync(
+  "packages/platform-core/src/accommodation/wordpress-migration.ts",
+  "utf8",
+);
 
 test("native accommodation reads cannot select WordPress as a runtime source", () => {
   assert.doesNotMatch(route, /source\s*===\s*["']wp["']/);
@@ -45,6 +66,33 @@ test("native bookings UI and loader never resolve or sync a WordPress runtime co
   assert.doesNotMatch(bookingsLoader, /syncWordPressAccBookings/);
   assert.doesNotMatch(bookingsLoader, /autoSyncWordPressAccBookingsIfNeeded/);
   assert.match(bookingsLoader, /listStayBookings/);
+});
+
+test("native calendar, housekeeping and unit ops paths are Neon-only", () => {
+  for (const source of [calendarPage, housekeepingPage, housekeepingRoute, unitOpsLoader]) {
+    assert.doesNotMatch(source, /organisationUses(?:Unit|Housekeeping)Sot/);
+    assert.doesNotMatch(source, /accommodationConnectorForSession/);
+    assert.doesNotMatch(source, /fetchWpAccommodation/);
+    assert.doesNotMatch(source, /wordpress-sync/);
+  }
+  assert.doesNotMatch(housekeepingRoute, /patchWpAccommodationHousekeeping/);
+  assert.doesNotMatch(housekeepingRoute, /neon_then_wp|writePath:\s*["']wordpress["']/);
+  assert.match(housekeepingRoute, /writePath:\s*["']neon["']/);
+  assert.doesNotMatch(unitOpsLoader, /syncAccommodationUnitsFromWordPress/);
+  assert.doesNotMatch(unitOpsLoader, /autoSyncWordPressAccUnitsIfNeeded/);
+  assert.match(calendarPage, /buildAvailabilityFromNeon/);
+  assert.match(housekeepingPage, /listAccommodationUnits/);
+  assert.match(unitOpsLoader, /listAccommodationUnits/);
+});
+
+test("native Platform Core units module has no WordPress runtime connector or fallback SoT switch", () => {
+  assert.doesNotMatch(nativeUnits, /resolveOrgWordPressConnector/);
+  assert.doesNotMatch(nativeUnits, /organisationUsesUnitSot/);
+  assert.doesNotMatch(nativeUnits, /organisationUsesHousekeepingSot/);
+  assert.doesNotMatch(nativeUnits, /syncAccommodationUnitsFromWordPress/);
+  assert.match(unitMigration, /resolveOrgWordPressConnector/);
+  assert.match(unitMigration, /syncAccommodationUnitsFromWordPress/);
+  assert.match(unitMigration, /WordPress\s+→\s+Gen 2/);
 });
 
 test("native booking creation uses canonical Gen 2 unit identity", () => {

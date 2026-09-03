@@ -1,31 +1,15 @@
 import {
   ACC_CALENDAR_HORIZON_DAYS,
   buildAvailabilityFromNeon,
-  organisationUsesUnitSot,
   sortAccommodationUnitsByDisplayOrder,
 } from "@dg/platform-core";
 import { currentUser } from "@clerk/nextjs/server";
-import { Suspense } from "react";
 
 import { AccommodationAvailabilityBoard } from "@/components/accommodation/AccommodationAvailabilityBoard";
-import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
-import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
-import { loadUnitsForOps } from "@/lib/accommodation-units";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import {
-  fetchPortalMe,
-  fetchWpAccommodationAvailability,
-  getWpAccommodationSite,
-  listWpAccommodationSites,
-  type WpAccAvailabilityUnit,
-} from "@/lib/dg-api";
+import { fetchPortalMe, type WpAccAvailabilityUnit } from "@/lib/dg-api";
 
-interface PageProps {
-  searchParams: Promise<{ siteId?: string }>;
-}
-
-export default async function AccommodationCalendarPage({ searchParams }: PageProps) {
-  const { siteId } = await searchParams;
+export default async function AccommodationCalendarPage() {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const name =
@@ -44,10 +28,6 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
       })
     : null;
 
-  const sites = listWpAccommodationSites();
-  const site = getWpAccommodationSite(siteId);
-  const connector = await accommodationConnectorForSession(session?.organisationId);
-
   const today = new Date();
   const localISO = (d: Date) => {
     const y = d.getFullYear();
@@ -61,7 +41,7 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
     d.setDate(d.getDate() - d.getDay());
     return d;
   })();
-  // 2-year horizon so far-dated OTA blocks (Booking.com CLOSED windows, etc.) paint in month/list.
+  // 2-year horizon so far-dated OTA blocks paint in month/list.
   const toDate = new Date(today);
   toDate.setDate(toDate.getDate() + ACC_CALENDAR_HORIZON_DAYS);
   const from = localISO(weekStartFetch);
@@ -71,58 +51,35 @@ export default async function AccommodationCalendarPage({ searchParams }: PagePr
   let availTo = to;
   let units: WpAccAvailabilityUnit[] = [];
   let error: string | undefined;
-  let sotLabel = "WordPress";
 
-  if (session && (await organisationUsesUnitSot(session.organisationId))) {
-    await loadUnitsForOps(session, site.id);
-    const { autoSyncWordPressAccBookingsIfNeeded } = await import("@/lib/wordpress-sync");
-    await autoSyncWordPressAccBookingsIfNeeded(session).catch(() => null);
+  if (session) {
     const neon = await buildAvailabilityFromNeon(session.organisationId, { from, to });
     availFrom = neon.from;
     availTo = neon.to;
     units = sortAccommodationUnitsByDisplayOrder(
       neon.units as unknown as WpAccAvailabilityUnit[],
     );
-    sotLabel = "Neon (units + StayBooking)";
   } else {
-    const availability = await fetchWpAccommodationAvailability({
-      siteId: site.id,
-      from,
-      to,
-      connector,
-    });
-    if (availability.ok) {
-      availFrom = availability.from ?? from;
-      availTo = availability.to ?? to;
-      units = sortAccommodationUnitsByDisplayOrder(availability.units);
-    } else {
-      error = availability.message;
-    }
+    error = "Platform session unavailable.";
   }
 
-  const siteLabel = connector?.label ?? site.label;
+  const siteLabel = session?.organisationName ?? "Accommodation";
 
   return (
     <main className="dg-page-main space-y-6">
       <div>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · {sotLabel} · inventory,
-          week, month & list · Airbnb / Booking.com iCal
+          {siteLabel} · Platform Core / Neon · inventory, week, month & list · Airbnb / Booking.com iCal
         </p>
-        <Suspense fallback={null}>
-          <div className="mt-3">
-            <AccommodationSitePicker sites={sites} />
-          </div>
-        </Suspense>
       </div>
-        <AccommodationAvailabilityBoard
-          from={availFrom}
-          to={availTo}
-          units={units}
-          error={error}
-          siteLabel={siteLabel}
-          horizonDays={ACC_CALENDAR_HORIZON_DAYS}
-        />
-      </main>
+      <AccommodationAvailabilityBoard
+        from={availFrom}
+        to={availTo}
+        units={units}
+        error={error}
+        siteLabel={siteLabel}
+        horizonDays={ACC_CALENDAR_HORIZON_DAYS}
+      />
+    </main>
   );
 }
