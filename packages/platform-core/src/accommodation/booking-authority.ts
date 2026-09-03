@@ -33,7 +33,7 @@ export async function syncWpBookingWithPlatformAuthority(
   if (platformId) {
     const existing = await prisma.stayBooking.findFirst({
       where: { id: platformId, organisationId },
-      select: { id: true, externalWpId: true },
+      select: { id: true, externalWpId: true, accommodationWpId: true },
     });
 
     if (!existing) {
@@ -48,6 +48,20 @@ export async function syncWpBookingWithPlatformAuthority(
     ) {
       throw new Error(
         `Canonical StayBooking ${platformId} is linked to WordPress booking ${existing.externalWpId}, not ${row.id}`,
+      );
+    }
+
+    // The legacy updateStayBooking path does not atomically remap
+    // accommodationUnitId when a WP accommodation_id changes. Reject that
+    // authority inversion rather than validate dates against the wrong unit.
+    if (
+      typeof row.accommodation_id === "number" &&
+      row.accommodation_id > 0 &&
+      existing.accommodationWpId != null &&
+      existing.accommodationWpId !== row.accommodation_id
+    ) {
+      throw new Error(
+        "WordPress cannot reassign a canonical StayBooking to another accommodation unit",
       );
     }
 
