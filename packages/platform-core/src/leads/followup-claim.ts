@@ -1,4 +1,4 @@
-import type { Prisma, PrismaClient } from "@dg/database";
+import { Prisma, type PrismaClient } from "@dg/database";
 import { randomUUID } from "node:crypto";
 
 export const FOLLOWUP_CLAIM_LEASE_MS = 15 * 60 * 1000;
