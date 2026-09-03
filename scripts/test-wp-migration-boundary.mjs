@@ -3,7 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 
 const route = fs.readFileSync("src/app/api/v1/accommodation/route.ts", "utf8");
-const units = fs.readFileSync("packages/platform-core/src/accommodation/units.ts", "utf8");
+const migration = fs.readFileSync("src/lib/wordpress-migration.ts", "utf8");
 
 test("native accommodation reads cannot select WordPress as a runtime source", () => {
   assert.doesNotMatch(route, /source\s*===\s*["']wp["']/);
@@ -22,10 +22,12 @@ test("WordPress import is explicit migration-only, never an implicit native fall
   assert.match(route, /action\s*===\s*["']migrate_wordpress["']/);
   assert.doesNotMatch(route, /action\s*===\s*["']sync_wordpress["']/);
   assert.doesNotMatch(route, /action\s*===\s*["']sync_units["']/);
-  assert.doesNotMatch(units, /Soft SoT: Neon when rows exist \(or flag on\); else live WP/);
+  assert.match(migration, /mode:\s*["']migration_only["']/);
 });
 
-test("native unit and housekeeping authority is unconditional Neon", () => {
-  assert.match(units, /organisationUsesUnitSot[\s\S]*return true;/);
-  assert.match(units, /organisationUsesHousekeepingSot[\s\S]*return true;/);
+test("native booking and OTA writes are explicitly Neon paths", () => {
+  assert.match(route, /writePath:\s*["']neon["']/);
+  assert.match(route, /writePath:\s*["']gen2_ical["']/);
+  assert.match(route, /createStayBookingGen2First/);
+  assert.match(route, /syncOtaCalendarsFromUnits/);
 });
