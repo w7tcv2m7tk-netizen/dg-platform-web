@@ -17,6 +17,14 @@ const migrationRoute = fs.readFileSync(
   "utf8",
 );
 const migration = fs.readFileSync("src/lib/wordpress-migration.ts", "utf8");
+const nativeUnits = fs.readFileSync(
+  "packages/platform-core/src/accommodation/units.ts",
+  "utf8",
+);
+const unitMigration = fs.readFileSync(
+  "packages/platform-core/src/accommodation/wordpress-migration.ts",
+  "utf8",
+);
 
 test("native accommodation reads cannot select WordPress as a runtime source", () => {
   assert.doesNotMatch(route, /source\s*===\s*["']wp["']/);
@@ -45,6 +53,16 @@ test("native bookings UI and loader never resolve or sync a WordPress runtime co
   assert.doesNotMatch(bookingsLoader, /syncWordPressAccBookings/);
   assert.doesNotMatch(bookingsLoader, /autoSyncWordPressAccBookingsIfNeeded/);
   assert.match(bookingsLoader, /listStayBookings/);
+});
+
+test("native Platform Core units module has no WordPress runtime connector or fallback SoT switch", () => {
+  assert.doesNotMatch(nativeUnits, /resolveOrgWordPressConnector/);
+  assert.doesNotMatch(nativeUnits, /organisationUsesUnitSot/);
+  assert.doesNotMatch(nativeUnits, /organisationUsesHousekeepingSot/);
+  assert.doesNotMatch(nativeUnits, /syncAccommodationUnitsFromWordPress/);
+  assert.match(unitMigration, /resolveOrgWordPressConnector/);
+  assert.match(unitMigration, /syncAccommodationUnitsFromWordPress/);
+  assert.match(unitMigration, /WordPress\s+→\s+Gen 2/);
 });
 
 test("native booking creation uses canonical Gen 2 unit identity", () => {
