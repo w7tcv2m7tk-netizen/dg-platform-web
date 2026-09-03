@@ -7,6 +7,10 @@ const bookingsPage = fs.readFileSync(
   "src/app/(shell)/apps/accommodation/bookings/page.tsx",
   "utf8",
 );
+const bookingsPanel = fs.readFileSync(
+  "src/components/accommodation/AccommodationBookingsPanel.tsx",
+  "utf8",
+);
 const bookingsLoader = fs.readFileSync("src/lib/accommodation-stay-bookings.ts", "utf8");
 const migrationRoute = fs.readFileSync(
   "src/app/api/v1/migrations/wordpress/accommodation/route.ts",
@@ -33,6 +37,10 @@ test("native bookings UI and loader never resolve or sync a WordPress runtime co
   assert.doesNotMatch(bookingsPage, /hasLiveAccWordPressHost/);
   assert.doesNotMatch(bookingsPage, /listWpAccommodationSites/);
   assert.doesNotMatch(bookingsPage, /AccommodationSitePicker/);
+  assert.doesNotMatch(bookingsPanel, /sync_wordpress/);
+  assert.doesNotMatch(bookingsPanel, /syncFromWordPress/);
+  assert.doesNotMatch(bookingsPanel, /Sync bookings from WordPress/);
+  assert.doesNotMatch(bookingsPanel, /DG Platform plugin/);
   assert.doesNotMatch(bookingsLoader, /wordpress-sync/);
   assert.doesNotMatch(bookingsLoader, /syncWordPressAccBookings/);
   assert.doesNotMatch(bookingsLoader, /autoSyncWordPressAccBookingsIfNeeded/);
