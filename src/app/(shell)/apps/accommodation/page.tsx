@@ -2,7 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 
 import { AccommodationDashboard } from "@/components/accommodation/AccommodationDashboard";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { buildAccommodationSummary } from "@/lib/accommodation-summary";
+import { buildAccommodationSummary, type AccommodationSummary } from "@/lib/accommodation-summary";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 export default async function AccommodationOverviewPage() {
@@ -24,7 +24,16 @@ export default async function AccommodationOverviewPage() {
       })
     : null;
 
-  const summary = session ? await buildAccommodationSummary(session.organisationId) : undefined;
+  let summary: AccommodationSummary | undefined;
+  let summaryError: string | undefined;
+  if (session) {
+    try {
+      summary = await buildAccommodationSummary(session.organisationId);
+    } catch (error) {
+      console.error("[accommodation] native summary failed", error);
+      summaryError = "Could not load Accommodation summary right now.";
+    }
+  }
   const siteLabel = session?.organisationName ?? "Accommodation";
 
   return (
@@ -36,7 +45,7 @@ export default async function AccommodationOverviewPage() {
       </div>
       <AccommodationDashboard
         summary={summary}
-        error={session ? undefined : "Platform session unavailable."}
+        error={session ? summaryError : "Platform session unavailable."}
         siteLabel={siteLabel}
       />
     </main>
