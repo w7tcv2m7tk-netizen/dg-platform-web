@@ -51,3 +51,8 @@ test("org app mutation blocks paid app activation without a recorded purchase", 
   assert.match(orgApps, /settings\.profile\?\.purchasedPremium/);
   assert.match(orgApps, /paid_app_purchase_required/);
 });
+
+test("app mutation authenticates the request and API keys cannot inherit operator authority", () => {
+  assert.match(orgApps, /requirePlatformSession\(req\)/);
+  assert.match(orgApps, /principalId:\s*session\.clerkUserId/);
+});
