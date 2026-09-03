@@ -5,6 +5,8 @@ export type OtaSyncCandidate = {
   lastSyncAt: Date | null;
 };
 
+const OTA_SYNC_INTERVAL_MS = 15 * 60 * 1000;
+
 /**
  * Select the organisations most overdue for an OTA calendar sync.
  *
@@ -27,24 +29,41 @@ export function selectDueOtaOrganisations(
     .map((candidate) => candidate.organisationId);
 }
 
+function stableParity(value: string): number {
+  let total = 0;
+  for (let index = 0; index < value.length; index += 1) total += value.charCodeAt(index);
+  return total % 2;
+}
+
 /**
- * Prefer the OTA feed that has waited longest for this unit. This removes the
- * previous hard-coded Airbnb-first bias while retaining deterministic ordering.
+ * Prefer a materially stale source, but rotate near-equal feeds each cron slot.
+ *
+ * Sequential feed processing naturally leaves the first feed a few seconds older
+ * than the second. Treating that tiny delta as priority would make the same source
+ * win forever, so timestamps within one 15-minute cron interval are considered a
+ * tie and use a time-slot + organisation-key rotation instead.
  */
 export function orderOtaSourcesByLastSync(input: {
   airbnbLastSyncAt: Date | null;
   bookingcomLastSyncAt: Date | null;
+  now?: Date;
+  rotationKey?: string;
 }): OtaIcalSource[] {
-  const rows: Array<{ source: OtaIcalSource; lastSyncAt: Date | null }> = [
-    { source: "airbnb", lastSyncAt: input.airbnbLastSyncAt },
-    { source: "bookingcom", lastSyncAt: input.bookingcomLastSyncAt },
-  ];
-  return rows
-    .sort((a, b) => {
-      if (a.lastSyncAt == null && b.lastSyncAt != null) return -1;
-      if (a.lastSyncAt != null && b.lastSyncAt == null) return 1;
-      const bySync = (a.lastSyncAt?.getTime() ?? 0) - (b.lastSyncAt?.getTime() ?? 0);
-      return bySync || a.source.localeCompare(b.source);
-    })
-    .map((row) => row.source);
+  if (input.airbnbLastSyncAt == null && input.bookingcomLastSyncAt != null) {
+    return ["airbnb", "bookingcom"];
+  }
+  if (input.airbnbLastSyncAt != null && input.bookingcomLastSyncAt == null) {
+    return ["bookingcom", "airbnb"];
+  }
+
+  if (input.airbnbLastSyncAt && input.bookingcomLastSyncAt) {
+    const delta = input.airbnbLastSyncAt.getTime() - input.bookingcomLastSyncAt.getTime();
+    if (Math.abs(delta) >= OTA_SYNC_INTERVAL_MS) {
+      return delta < 0 ? ["airbnb", "bookingcom"] : ["bookingcom", "airbnb"];
+    }
+  }
+
+  const slot = Math.floor((input.now ?? new Date()).getTime() / OTA_SYNC_INTERVAL_MS);
+  const parity = (slot + stableParity(input.rotationKey ?? "")) % 2;
+  return parity === 0 ? ["airbnb", "bookingcom"] : ["bookingcom", "airbnb"];
 }
