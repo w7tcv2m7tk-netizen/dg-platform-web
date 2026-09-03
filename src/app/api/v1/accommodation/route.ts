@@ -221,9 +221,7 @@ export async function POST(req: Request) {
     const accommodationUnitId =
       typeof payload.accommodation_unit_id === "string"
         ? payload.accommodation_unit_id
-        : typeof payload.platform_id === "string"
-          ? payload.platform_id
-          : undefined;
+        : undefined;
     const guestName =
       typeof payload.guest_name === "string"
         ? payload.guest_name
