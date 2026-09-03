@@ -3,9 +3,9 @@
  * Dispatches to property_report, free_audit, hideaway_circle, and consultation processors.
  */
 
-import { processConsultationReminders } from "../marketing/consultation-automation";
 import { processPropertyReportFollowups } from "../real-estate/public-property-report";
 import {
+  processClaimedConsultationReminders,
   processClaimedFreeAuditFollowups,
   processClaimedHideawayCircleFollowups,
 } from "./cron-claimed-followups";
@@ -32,7 +32,7 @@ export async function processDueFollowupEmails(options?: {
   const property_report = await processPropertyReportFollowups({ limit: quarter });
   const free_audit = await processClaimedFreeAuditFollowups({ limit: quarter });
   const hideaway_circle = await processClaimedHideawayCircleFollowups({ limit: quarter });
-  const consultation = await processConsultationReminders({ limit: quarter });
+  const consultation = await processClaimedConsultationReminders({ limit: quarter });
 
   return {
     processed:
