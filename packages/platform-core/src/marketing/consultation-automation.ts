@@ -6,7 +6,6 @@
 import type { Prisma } from "@dg/database";
 
 import { createActivity } from "../activities";
-import { runClaimedLeadFollowup } from "../automation/followup-claim";
 import { sendMessage } from "../communications";
 import { createNotification } from "../notifications";
 import { convertLeadToOpportunity } from "../opportunities";
@@ -205,12 +204,6 @@ export async function handlePlatformConsultationIntake(input: {
   return true;
 }
 
-function consultationReminderSentKey(step: "24h" | "1h" | "followup") {
-  if (step === "24h") return "reminder_24h_sent";
-  if (step === "1h") return "reminder_1h_sent";
-  return "followup_sent";
-}
-
 export async function processConsultationReminders(options?: {
   limit?: number;
 }): Promise<{ processed: number; sent: number; failed: number }> {
@@ -248,49 +241,51 @@ export async function processConsultationReminders(options?: {
 
     for (const step of due) {
       if (processed >= limit) break;
+      processed += 1;
       const rendered = renderConsultationReminder(step, {
         firstName: sequence.firstName,
         appointment,
       });
-      const result = await runClaimedLeadFollowup({
-        spec: {
+      try {
+        const delivery = await sendMessage({
           organisationId: lead.organisationId,
-          leadId: lead.id,
-          sequenceKey: "consultation_sequence",
-          sentKey: consultationReminderSentKey(step),
-        },
-        deliver: () =>
-          sendMessage({
-            organisationId: lead.organisationId,
-            channel: "email",
-            to: sequence.email,
-            cc: consultationEmailCc(sequence.email),
-            subject: rendered.subject,
-            body: rendered.body,
-            bodyHtml: rendered.bodyHtml,
-            metadata: {
-              purpose: `consultation_reminder_${step}`,
-              leadId: lead.id,
-            },
-          }),
-        delivered: (delivery) => delivery.status === "sent",
-      });
-
-      if (result.status === "not_claimed") continue;
-      processed += 1;
-      if (result.status === "delivered") {
+          channel: "email",
+          to: sequence.email,
+          cc: consultationEmailCc(sequence.email),
+          subject: rendered.subject,
+          body: rendered.body,
+          bodyHtml: rendered.bodyHtml,
+          metadata: {
+            purpose: `consultation_reminder_${step}`,
+            leadId: lead.id,
+          },
+        });
+        if (delivery.status !== "sent") {
+          failed += 1;
+          continue;
+        }
         sent += 1;
-        continue;
+        const next: ConsultationSequenceMeta = { ...sequence };
+        if (step === "24h") next.reminder_24h_sent = true;
+        if (step === "1h") next.reminder_1h_sent = true;
+        if (step === "followup") next.followup_sent = true;
+        await prisma.lead.update({
+          where: { id: lead.id },
+          data: {
+            metadata: {
+              ...meta,
+              consultation_sequence: next,
+            } as Prisma.InputJsonValue,
+          },
+        });
+      } catch (err) {
+        failed += 1;
+        console.warn("[consultation-reminders] failed", {
+          leadId: lead.id,
+          step,
+          err,
+        });
       }
-
-      failed += 1;
-      console.warn("[consultation-reminders] failed", {
-        leadId: lead.id,
-        step,
-        status: result.status,
-        error:
-          result.status === "delivery_failed" ? result.error : undefined,
-      });
     }
   }
 
