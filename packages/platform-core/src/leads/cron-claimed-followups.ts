@@ -13,6 +13,13 @@ import {
   renderFreeAuditFollowup,
   type FreeAuditSequenceMeta,
 } from "../marketing/business-audit-emails";
+import {
+  consultationEmailCc,
+  dueConsultationReminderSteps,
+  parseConsultationAppointment,
+  renderConsultationReminder,
+  type ConsultationSequenceMeta,
+} from "../marketing/consultation-emails";
 
 export type CronFollowupResult = {
   processed: number;
@@ -57,10 +64,7 @@ export async function processClaimedFreeAuditFollowups(options?: {
     const sequence = meta.free_audit_sequence as FreeAuditSequenceMeta | undefined;
     if (!sequence?.email || !sequence.email_1_sent || !sequence.activatedAt) continue;
 
-    const due = dueFreeAuditFollowupSteps(sequence, now);
-    if (!due.length) continue;
-
-    for (const step of due) {
+    for (const step of dueFreeAuditFollowupSteps(sequence, now)) {
       if (processed >= limit) break;
       const rendered = renderFreeAuditFollowup(step, {
         firstName: sequence.firstName,
@@ -96,8 +100,6 @@ export async function processClaimedFreeAuditFollowups(options?: {
               ctaLabel: "Book a free strategy session",
             },
           }),
-        // Preserve the original free-audit semantics: only provider-confirmed
-        // sent delivery completes this follow-up; queued/failed remain retryable.
         delivered: (delivery) => delivery.status === "sent",
       });
 
@@ -157,7 +159,6 @@ export async function processClaimedHideawayCircleFollowups(options?: {
 }): Promise<CronFollowupResult> {
   const { prisma } = await import("@dg/database");
   const limit = options?.limit ?? 40;
-
   const leads = await prisma.lead.findMany({
     where: {
       OR: [
@@ -201,10 +202,7 @@ export async function processClaimedHideawayCircleFollowups(options?: {
       if (upcoming) continue;
     }
 
-    const due = dueHideawayCircleFollowupSteps(sequence, now);
-    if (!due.length) continue;
-
-    for (const step of due) {
+    for (const step of dueHideawayCircleFollowupSteps(sequence, now)) {
       if (processed >= limit) break;
       const rendered = renderHideawayCircleFollowup(step, {
         firstName: sequence.firstName,
@@ -235,8 +233,6 @@ export async function processClaimedHideawayCircleFollowups(options?: {
               ctaLabel: "Book your return stay",
             },
           }),
-        // Preserve existing semantics: queued means accepted by the platform
-        // and is terminal; only explicit provider failure is retryable.
         delivered: (delivery) => delivery.status !== "failed",
       });
 
@@ -282,6 +278,96 @@ export async function processClaimedHideawayCircleFollowups(options?: {
         .catch((err) =>
           console.warn("[hideaway-circle-followups] activity failed", lead.id, step, err),
         );
+    }
+  }
+
+  return { processed, sent, failed };
+}
+
+export async function processClaimedConsultationReminders(options?: {
+  limit?: number;
+}): Promise<CronFollowupResult> {
+  const { prisma } = await import("@dg/database");
+  const limit = options?.limit ?? 40;
+  const leads = await prisma.lead.findMany({
+    where: {
+      OR: [
+        { metadata: { path: ["lead_type"], equals: "consultation" } },
+        { metadata: { path: ["page_slug"], equals: "strategy-session" } },
+      ],
+    },
+    take: 300,
+    orderBy: { updatedAt: "asc" },
+  });
+
+  let processed = 0;
+  let sent = 0;
+  let failed = 0;
+  const now = new Date();
+
+  for (const lead of leads) {
+    if (processed >= limit) break;
+    const meta = (lead.metadata as Record<string, unknown> | null) ?? {};
+    const sequence = meta.consultation_sequence as ConsultationSequenceMeta | undefined;
+    if (!sequence?.email || !sequence.startsAt || !sequence.confirmation_sent) continue;
+    const appointment = parseConsultationAppointment({
+      description: lead.description,
+      metadata: meta,
+    });
+    if (!appointment) continue;
+
+    for (const step of dueConsultationReminderSteps(sequence, now)) {
+      if (processed >= limit) break;
+      const rendered = renderConsultationReminder(step, {
+        firstName: sequence.firstName,
+        appointment,
+      });
+      const sentKey =
+        step === "24h"
+          ? "reminder_24h_sent"
+          : step === "1h"
+            ? "reminder_1h_sent"
+            : "followup_sent";
+
+      const result = await runClaimedLeadFollowup({
+        spec: {
+          organisationId: lead.organisationId,
+          leadId: lead.id,
+          sequenceKey: "consultation_sequence",
+          sentKey,
+        },
+        deliver: () =>
+          sendMessage({
+            organisationId: lead.organisationId,
+            channel: "email",
+            to: sequence.email,
+            cc: consultationEmailCc(sequence.email),
+            subject: rendered.subject,
+            body: rendered.body,
+            bodyHtml: rendered.bodyHtml,
+            metadata: {
+              purpose: `consultation_reminder_${step}`,
+              leadId: lead.id,
+            },
+          }),
+        delivered: (delivery) => delivery.status === "sent",
+      });
+
+      if (result.status === "not_claimed") continue;
+      processed += 1;
+      if (result.status === "delivered") {
+        sent += 1;
+        Object.assign(sequence, { [sentKey]: true });
+        continue;
+      }
+
+      failed += 1;
+      console.warn("[consultation-reminders] failed", {
+        leadId: lead.id,
+        step,
+        status: result.status,
+        error: result.status === "delivery_failed" ? result.error : undefined,
+      });
     }
   }
 
