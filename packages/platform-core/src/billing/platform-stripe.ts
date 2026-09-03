@@ -10,6 +10,11 @@ import {
 import { industryCheckoutLines } from "../industry/platform";
 import { applyBrandPresetToProfile } from "../org/brand-presets";
 import type { OrganisationBusinessProfile } from "../org/business-profile-types";
+import {
+  normalisePaidAppKeys,
+  paidAppCheckoutLines,
+  type PaidAppKey,
+} from "./paid-apps";
 
 const TIER_AMOUNTS_CENTS: Record<string, number> = {
   starter: 9900,
@@ -58,6 +63,13 @@ function stripeCustomerId(
   return typeof customer === "string" ? customer : customer.id;
 }
 
+function metadataList(value: string | null | undefined): string[] {
+  return (value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 export interface PlatformCheckoutInput {
   organisationId: string;
   email: string;
@@ -89,6 +101,11 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
   const recurring: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.Recurring =
     annual ? { interval: "year" } : { interval: "month" };
 
+  const industryApps = Array.isArray(input.industryApps)
+    ? input.industryApps.filter((id): id is string => typeof id === "string" && Boolean(id.trim()))
+    : [];
+  const premiumApps = normalisePaidAppKeys(input.premiumApps);
+
   const { prisma } = await import("@dg/database");
   const org = await prisma.organisation.findUnique({
     where: { id: input.organisationId },
@@ -114,7 +131,24 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
         },
       ];
 
-  for (const line of industryCheckoutLines(input.industryApps ?? [])) {
+  for (const line of industryCheckoutLines(industryApps)) {
+    const lineAmount = annual
+      ? annualPriceFromMonthlyCents(line.amountCents)
+      : line.amountCents;
+    lineItems.push({
+      quantity: 1,
+      price_data: {
+        currency: "aud",
+        unit_amount: lineAmount,
+        recurring,
+        product_data: {
+          name: annual ? `${line.name} (Annual)` : line.name,
+        },
+      },
+    });
+  }
+
+  for (const line of paidAppCheckoutLines(premiumApps)) {
     const lineAmount = annual
       ? annualPriceFromMonthlyCents(line.amountCents)
       : line.amountCents;
@@ -145,8 +179,8 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
       dg_platform_checkout: "true",
       dg_platform_tier: tier,
       dg_billing_cadence: cadence,
-      dg_industry_apps: (input.industryApps ?? []).join(","),
-      dg_premium_apps: (input.premiumApps ?? []).join(","),
+      dg_industry_apps: industryApps.join(","),
+      dg_premium_apps: premiumApps.join(","),
       organisation_id: input.organisationId,
       contact_email: input.email,
       business_name: input.businessName ?? "",
@@ -155,6 +189,8 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
       metadata: {
         dg_platform_tier: tier,
         dg_billing_cadence: cadence,
+        dg_industry_apps: industryApps.join(","),
+        dg_premium_apps: premiumApps.join(","),
         organisation_id: input.organisationId,
         dg_platform_subscription: "true",
       },
@@ -245,6 +281,29 @@ async function resolveOrganisationForCheckout(input: {
   return { org: membership.organisation, via: "email" as const, email };
 }
 
+async function paidAppsFromAuthoritativeSubscription(input: {
+  stripe: Stripe;
+  subscriptionId: string | null;
+  sessionPremiumApps: PaidAppKey[];
+}): Promise<PaidAppKey[]> {
+  if (input.sessionPremiumApps.length === 0) return [];
+  if (!input.subscriptionId) {
+    throw new Error("Paid app provisioning requires a Stripe subscription");
+  }
+
+  const subscription = await input.stripe.subscriptions.retrieve(input.subscriptionId);
+  const subscriptionPremiumApps = normalisePaidAppKeys(
+    metadataList(subscription.metadata?.dg_premium_apps),
+  );
+  const subscriptionSet = new Set(subscriptionPremiumApps);
+  for (const key of input.sessionPremiumApps) {
+    if (!subscriptionSet.has(key)) {
+      throw new Error(`Paid app entitlement missing from Stripe subscription: ${key}`);
+    }
+  }
+  return input.sessionPremiumApps;
+}
+
 export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Session) {
   const metadata = session.metadata ?? {};
   if (metadata.dg_platform_checkout !== "true") {
@@ -266,12 +325,17 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
   }
 
   const platformTier = metadata.dg_platform_tier ?? "professional";
-  const industryApps = metadata.dg_industry_apps
-    ? metadata.dg_industry_apps.split(",").filter(Boolean)
-    : [];
-  const premiumApps = metadata.dg_premium_apps
-    ? metadata.dg_premium_apps.split(",").filter(Boolean)
-    : [];
+  const industryApps = metadataList(metadata.dg_industry_apps);
+  const requestedPremiumApps = normalisePaidAppKeys(metadataList(metadata.dg_premium_apps));
+  const stripeSubscriptionId =
+    typeof session.subscription === "string"
+      ? session.subscription
+      : session.subscription?.id ?? null;
+  const premiumApps = await paidAppsFromAuthoritativeSubscription({
+    stripe: getStripeClient(),
+    subscriptionId: stripeSubscriptionId,
+    sessionPremiumApps: requestedPremiumApps,
+  });
 
   const resolved = await resolveOrganisationForCheckout({
     organisationId: metadata.organisation_id,
@@ -315,11 +379,6 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
       String(billing.programme ?? "").toLowerCase(),
     );
   const exempt = billing.platformExempt === true;
-
-  const stripeSubscriptionId =
-    typeof session.subscription === "string"
-      ? session.subscription
-      : session.subscription?.id ?? null;
 
   // H-6: PlatformSubscription is the authoritative billing record. If this
   // write fails the webhook must fail and remain retryable; derived organisation
