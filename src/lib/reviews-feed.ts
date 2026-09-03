@@ -1,18 +1,12 @@
 import {
   getOrgGbpSyncSnapshot,
   mapGbpReviewsToFeed,
-  mapWpAccReviewsToFeed,
   type ReviewFeedItem,
 } from "@dg/platform-core";
 import { currentUser } from "@clerk/nextjs/server";
 
-import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import {
-  fetchPortalMe,
-  fetchWpAccommodationReviews,
-  getWpAccommodationSite,
-} from "@/lib/dg-api";
+import { fetchPortalMe } from "@/lib/dg-api";
 
 export type ReviewsFeedEmptyKind = "no_sources" | "no_reviews" | "sync_blocked" | "sync_failed";
 
@@ -22,10 +16,9 @@ export type ReviewsFeedStatus = {
   total: number;
   byPlatform: Record<string, number>;
   siteLabel?: string;
-  /** Acc WP and/or GBP connector present for this org. */
   hasSource?: boolean;
-  /** Distinct empty-state for inbox/overview when feed has no items. */
   emptyKind?: ReviewsFeedEmptyKind | null;
+  /** Legacy compatibility field; native runtime no longer reads Accommodation reviews from WordPress. */
   accConnected?: boolean;
   gbpConnected?: boolean;
   gbpLocations?: number;
@@ -36,9 +29,9 @@ export type ReviewsFeedStatus = {
   gbpLastError?: string | null;
 };
 
-export async function loadReviewsSessionAndFeed(siteId?: string | null) {
+export async function loadReviewsSessionAndFeed(_siteId?: string | null) {
   try {
-    return await loadReviewsSessionAndFeedUnsafe(siteId);
+    return await loadReviewsSessionAndFeedUnsafe();
   } catch (err) {
     console.error("[reviews-feed] loadReviewsSessionAndFeed failed", err);
     return {
@@ -58,7 +51,7 @@ export async function loadReviewsSessionAndFeed(siteId?: string | null) {
   }
 }
 
-async function loadReviewsSessionAndFeedUnsafe(siteId?: string | null) {
+async function loadReviewsSessionAndFeedUnsafe() {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const name =
@@ -85,73 +78,53 @@ async function loadReviewsSessionAndFeedUnsafe(siteId?: string | null) {
   };
 
   if (session) {
-    const site = getWpAccommodationSite(siteId);
-    const connector = await accommodationConnectorForSession(session.organisationId);
-    const result = await fetchWpAccommodationReviews(site.id, 40, connector);
     const byPlatform: Record<string, number> = {};
-    let accConnected = false;
+    const gbp = await getOrgGbpSyncSnapshot(session.organisationId);
+    const gbpConnected = Boolean(gbp);
 
-    if (result.ok) {
-      accConnected = true;
-      const accItems = mapWpAccReviewsToFeed(result.reviews);
-      feed = accItems;
-      for (const item of accItems) {
+    if (gbp) {
+      feed = mapGbpReviewsToFeed(gbp.reviews);
+      for (const item of feed) {
         byPlatform[item.source] = (byPlatform[item.source] ?? 0) + 1;
       }
     }
 
-    const gbp = await getOrgGbpSyncSnapshot(session.organisationId);
-    let gbpConnected = false;
-    if (gbp) {
-      gbpConnected = true;
-      const gbpItems = mapGbpReviewsToFeed(gbp.reviews);
-      if (gbpItems.length) {
-        feed = [...gbpItems, ...feed];
-        for (const item of gbpItems) {
-          byPlatform[item.source] = (byPlatform[item.source] ?? 0) + 1;
-        }
-      }
-    }
-
-    const hasSource = accConnected || gbpConnected;
+    const hasSource = gbpConnected;
     const gbpBlocked = Boolean(gbp?.health.reviewsBlockedReason);
     const gbpFailed =
       gbpConnected &&
       (gbp?.health.status === "error" || Boolean(gbp?.health.lastError)) &&
-      feed.length === 0 &&
-      !accConnected;
+      feed.length === 0;
     let emptyKind: ReviewsFeedEmptyKind | null = null;
     let message: string | undefined;
+
     if (feed.length === 0) {
       if (!hasSource) {
         emptyKind = "no_sources";
-        message = (!result.ok ? result.message : undefined) || "No review source connected yet";
+        message = "No native review source connected yet";
       } else if (gbpFailed && gbp?.health.lastError) {
         emptyKind = "sync_failed";
         message = gbp.health.lastError;
-      } else if (gbpBlocked && !accConnected) {
+      } else if (gbpBlocked) {
         emptyKind = "sync_blocked";
         message =
           gbp?.health.reviewsBlockedReason ||
           "GBP connected — reviews not available from the API yet";
       } else {
         emptyKind = "no_reviews";
-        message = gbpConnected
-          ? "Sources connected — no published reviews in the Universal Review feed yet"
-          : "Acc feed reachable — no published reviews yet";
+        message = "Source connected — no published reviews in the Universal Review feed yet";
       }
     }
 
     feedStatus = {
-      // ok = review items available and/or Acc feed reachable (not merely GBP location metadata)
-      ok: feed.length > 0 || accConnected,
+      ok: feed.length > 0,
       message,
       emptyKind,
       hasSource,
       total: feed.length,
       byPlatform,
-      siteLabel: connector?.label ?? site.label,
-      accConnected,
+      siteLabel: session.organisationName,
+      accConnected: false,
       gbpConnected,
       gbpLocations: gbp?.locations.length ?? 0,
       gbpReviewsCached: gbp?.reviews.length ?? 0,
