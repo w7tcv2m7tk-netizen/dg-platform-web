@@ -24,6 +24,7 @@ test("native accommodation writes do not mirror or fall back to WordPress", () =
 
 test("WordPress import is isolated behind the dedicated migration endpoint", () => {
   assert.doesNotMatch(route, /migrate_wordpress/);
+  assert.doesNotMatch(route, /wordpress-migration/);
   assert.doesNotMatch(route, /sync_wordpress/);
   assert.doesNotMatch(route, /sync_units/);
   assert.match(migrationRoute, /migrateAccommodationFromWordPress/);
@@ -39,4 +40,9 @@ test("native booking and OTA writes are explicitly Neon paths", () => {
   assert.match(route, /writePath:\s*["']gen2_ical["']/);
   assert.match(route, /createStayBookingGen2First/);
   assert.match(route, /syncOtaCalendarsFromUnits/);
+});
+
+test("native booking edits fail closed on unit reassignment until atomic move exists", () => {
+  assert.match(route, /booking_unit_move_requires_atomic_operation/);
+  assert.match(route, /patch\.accommodation_id\s*!==\s*existing\.accommodationWpId/);
 });
