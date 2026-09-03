@@ -1,13 +1,12 @@
 /**
- * Accommodation units / properties — Neon SoT with WordPress mirror (WP-D-402).
+ * Accommodation units / properties — Platform Core / Neon source of truth.
+ * WordPress-shaped row mapping remains only for migration and compatibility at explicit boundaries.
  * Availability = unit.manualBlockedDates + non-cancelled StayBooking ranges.
- * Housekeeping status lives on the unit row (WP-D-404 when flag on).
+ * Housekeeping status lives on the unit row.
  */
 
 import type { Prisma } from "@dg/database";
 
-import { organisationHasFlag } from "../features/flags";
-import { resolveOrgWordPressConnector } from "../connectors/wordpress/org-connector";
 import { sortAccommodationUnitsByDisplayOrder } from "./display-order";
 import {
   attachPlatformIcalUrls,
@@ -324,19 +323,6 @@ export async function countAccommodationUnits(organisationId: string): Promise<n
   return prisma.accommodationUnit.count({ where: { organisationId } });
 }
 
-/** Soft SoT: Neon when rows exist (or flag on); else live WP. */
-export async function organisationUsesUnitSot(organisationId: string): Promise<boolean> {
-  if (await organisationHasFlag(organisationId, "acc.units_sot")) return true;
-  return (await countAccommodationUnits(organisationId)) > 0;
-}
-
-export async function organisationUsesHousekeepingSot(
-  organisationId: string,
-): Promise<boolean> {
-  if (await organisationHasFlag(organisationId, "acc.housekeeping_sot")) return true;
-  return organisationUsesUnitSot(organisationId);
-}
-
 export async function upsertAccommodationUnitFromWpRow(
   organisationId: string,
   unit: WpAccUnitPropRow,
@@ -582,94 +568,6 @@ export async function patchAccommodationUnitManualBlocks(
     platform_id: existing.id,
     external_wp_id: existing.externalWpId,
   };
-}
-
-async function fetchWpUnitsViaConnector(
-  organisationId: string,
-): Promise<
-  | { ok: true; units: WpAccUnitPropRow[] }
-  | { ok: false; reason: string; message: string }
-> {
-  const connector = await resolveOrgWordPressConnector(organisationId);
-  if (!connector.baseUrl) {
-    return { ok: false, reason: "no_connector", message: "WordPress connector not configured" };
-  }
-
-  // Gen 2 marketing apex — no /wp-json Acc APIs.
-  try {
-    const host = new URL(
-      connector.baseUrl.includes("://") ? connector.baseUrl : `https://${connector.baseUrl}`,
-    ).hostname.replace(/^www\./i, "");
-    if (
-      /currumbinvalleyhideaway\.com\.au$/i.test(host) ||
-      /roerealty\.com\.au$/i.test(host) ||
-      /^digitalgate\.com\.au$/i.test(host) ||
-      /aetherra\.com\.au$/i.test(host)
-    ) {
-      return {
-        ok: false,
-        reason: "gen2_apex",
-        message:
-          "WordPress unit import is unavailable on the public Gen 2 site. Units already in Neon remain the source of truth.",
-      };
-    }
-  } catch {
-    /* continue to fetch attempt */
-  }
-
-  const apiKey = connector.apiKey?.trim();
-  if (!apiKey) {
-    return { ok: false, reason: "missing_key", message: "WordPress API key missing" };
-  }
-
-  const url = `${connector.baseUrl.replace(/\/$/, "")}/accommodation/properties`;
-  const res = await fetch(url, {
-    headers: {
-      Accept: "application/json",
-      "X-API-Key": apiKey,
-    },
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    return {
-      ok: false,
-      reason: "fetch_failed",
-      message: `WordPress units fetch failed (${res.status})`,
-    };
-  }
-  const json = (await res.json()) as { properties?: WpAccUnitPropRow[] };
-  return { ok: true, units: json.properties ?? [] };
-}
-
-export async function syncAccommodationUnitsFromWordPress(
-  organisationId: string,
-): Promise<SyncAccommodationUnitsOutcome> {
-  const fetched = await fetchWpUnitsViaConnector(organisationId);
-  if (!fetched.ok) {
-    return { ok: false, reason: fetched.reason, message: fetched.message };
-  }
-
-  const result: SyncAccommodationUnitsResult = {
-    created: 0,
-    updated: 0,
-    skipped: 0,
-    errors: [],
-  };
-
-  for (const unit of fetched.units) {
-    try {
-      const outcome = await upsertAccommodationUnitFromWpRow(organisationId, unit);
-      if (outcome === "created") result.created++;
-      else if (outcome === "updated") result.updated++;
-      else result.skipped++;
-    } catch (err) {
-      result.errors.push(
-        `Unit #${unit.id}: ${err instanceof Error ? err.message : "sync failed"}`,
-      );
-    }
-  }
-
-  return { ok: true, result };
 }
 
 export async function updateUnitHousekeeping(
