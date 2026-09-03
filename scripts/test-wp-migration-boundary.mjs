@@ -25,6 +25,7 @@ const bookingsPanel = fs.readFileSync(
 );
 const bookingsLoader = fs.readFileSync("src/lib/accommodation-stay-bookings.ts", "utf8");
 const unitOpsLoader = fs.readFileSync("src/lib/accommodation-units.ts", "utf8");
+const wordpressSync = fs.readFileSync("src/lib/wordpress-sync.ts", "utf8");
 const migrationRoute = fs.readFileSync(
   "src/app/api/v1/migrations/wordpress/accommodation/route.ts",
   "utf8",
@@ -83,6 +84,18 @@ test("native calendar, housekeeping and unit ops paths are Neon-only", () => {
   assert.match(calendarPage, /buildAvailabilityFromNeon/);
   assert.match(housekeepingPage, /listAccommodationUnits/);
   assert.match(unitOpsLoader, /listAccommodationUnits/);
+});
+
+test("legacy WordPress sync module has no Accommodation runtime sync machinery", () => {
+  assert.doesNotMatch(wordpressSync, /syncWordPressAccBookings/);
+  assert.doesNotMatch(wordpressSync, /syncWordPressAccUnits/);
+  assert.doesNotMatch(wordpressSync, /autoSyncWordPressAccBookingsIfNeeded/);
+  assert.doesNotMatch(wordpressSync, /autoSyncWordPressAccUnitsIfNeeded/);
+  assert.doesNotMatch(wordpressSync, /fetchWpAccommodationBookings/);
+  assert.doesNotMatch(wordpressSync, /syncAccommodationBookingsFromWordPress/);
+  assert.doesNotMatch(wordpressSync, /syncAccommodationUnitsFromWordPress/);
+  assert.doesNotMatch(wordpressSync, /upsertStayBookingFromWpRow/);
+  assert.doesNotMatch(wordpressSync, /acc\.wp_auto_sync/);
 });
 
 test("native Platform Core units module has no WordPress runtime connector or fallback SoT switch", () => {

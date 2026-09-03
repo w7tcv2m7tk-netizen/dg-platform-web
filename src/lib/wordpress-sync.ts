@@ -2,16 +2,11 @@ import {
   syncVendorLeadsFromWordPress,
   syncBuyerLeadsFromWordPress,
   syncReBookingsFromWordPress,
-  syncAccommodationBookingsFromWordPress,
-  syncAccommodationUnitsFromWordPress,
   syncPropertiesFromWordPress,
-  upsertStayBookingFromWpRow,
   type PlatformSession,
 } from "@dg/platform-core";
 
-import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
 import {
-  fetchWpAccommodationBookings,
   fetchWpBuyerLeads,
   fetchWpProperties,
   fetchWpRecentBookings,
@@ -19,12 +14,8 @@ import {
 } from "@/lib/dg-api";
 import { wpConnectorForOrg } from "@/lib/org-wordpress-connector";
 
-/** Minimum interval between automatic WordPress syncs */
-export const WP_SYNC_INTERVAL_MS = 4 * 60 * 60 * 1000; // 4 hours
-
-/** StayBooking pull cadence — tighter while WP still originates public/OTA stays. */
-export const WP_ACC_SYNC_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
-
+/** Minimum interval between automatic WordPress syncs. */
+export const WP_SYNC_INTERVAL_MS = 4 * 60 * 60 * 1000;
 export const WP_VENDOR_SYNC_INTERVAL_MS = WP_SYNC_INTERVAL_MS;
 
 export interface WordPressSyncResult {
@@ -49,10 +40,6 @@ type OrgWordPressSettings = {
   lastBuyerLeadSync?: WordPressSyncResult;
   lastBookingSyncAt?: string;
   lastBookingSync?: WordPressSyncResult;
-  lastAccBookingSyncAt?: string;
-  lastAccBookingSync?: WordPressSyncResult;
-  lastAccUnitSyncAt?: string;
-  lastAccUnitSync?: WordPressSyncResult;
   lastPropertySyncAt?: string;
   lastPropertySync?: WordPressSyncResult;
 };
@@ -122,108 +109,69 @@ async function shouldRunSync(
 
 export async function syncWordPressVendorLeads(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-): Promise<
-  | { ok: true; result: WordPressSyncResult }
-  | { ok: false; message: string }
-> {
+): Promise<{ ok: true; result: WordPressSyncResult } | { ok: false; message: string }> {
   const connector = await wpConnectorForOrg(session.organisationId);
   const wp = await fetchWpVendorLeads(100, connector);
-  if (!wp.ok) {
-    return { ok: false, message: wp.message };
-  }
+  if (!wp.ok) return { ok: false, message: wp.message };
 
   const syncResult = await syncVendorLeadsFromWordPress({
     organisationId: session.organisationId,
     actorId: session.clerkUserId,
     leads: wp.leads,
   });
-
-  const result: WordPressSyncResult = {
-    ...syncResult,
-    ranAt: new Date().toISOString(),
-  };
-
+  const result: WordPressSyncResult = { ...syncResult, ranAt: new Date().toISOString() };
   await patchOrgWordPressSettings(session.organisationId, {
     lastVendorLeadSyncAt: result.ranAt,
     lastVendorLeadSync: result,
   });
-
   return { ok: true, result };
 }
 
 export async function syncWordPressBuyerLeads(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-): Promise<
-  | { ok: true; result: WordPressSyncResult }
-  | { ok: false; message: string }
-> {
+): Promise<{ ok: true; result: WordPressSyncResult } | { ok: false; message: string }> {
   const connector = await wpConnectorForOrg(session.organisationId);
   const wp = await fetchWpBuyerLeads(100, connector);
-  if (!wp.ok) {
-    return { ok: false, message: wp.message };
-  }
+  if (!wp.ok) return { ok: false, message: wp.message };
 
   const syncResult = await syncBuyerLeadsFromWordPress({
     organisationId: session.organisationId,
     actorId: session.clerkUserId,
     leads: wp.leads,
   });
-
-  const result: WordPressSyncResult = {
-    ...syncResult,
-    ranAt: new Date().toISOString(),
-  };
-
+  const result: WordPressSyncResult = { ...syncResult, ranAt: new Date().toISOString() };
   await patchOrgWordPressSettings(session.organisationId, {
     lastBuyerLeadSyncAt: result.ranAt,
     lastBuyerLeadSync: result,
   });
-
   return { ok: true, result };
 }
 
 export async function syncWordPressBookings(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-): Promise<
-  | { ok: true; result: WordPressSyncResult }
-  | { ok: false; message: string }
-> {
+): Promise<{ ok: true; result: WordPressSyncResult } | { ok: false; message: string }> {
   const connector = await wpConnectorForOrg(session.organisationId);
   const wp = await fetchWpRecentBookings(100, connector);
-  if (!wp.ok) {
-    return { ok: false, message: wp.message };
-  }
+  if (!wp.ok) return { ok: false, message: wp.message };
 
   const syncResult = await syncReBookingsFromWordPress({
     organisationId: session.organisationId,
     actorId: session.clerkUserId,
     bookings: wp.bookings,
   });
-
-  const result: WordPressSyncResult = {
-    ...syncResult,
-    ranAt: new Date().toISOString(),
-  };
-
+  const result: WordPressSyncResult = { ...syncResult, ranAt: new Date().toISOString() };
   await patchOrgWordPressSettings(session.organisationId, {
     lastBookingSyncAt: result.ranAt,
     lastBookingSync: result,
   });
-
   return { ok: true, result };
 }
 
 export async function syncWordPressProperties(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-): Promise<
-  | { ok: true; result: WordPressSyncResult }
-  | { ok: false; message: string }
-> {
+): Promise<{ ok: true; result: WordPressSyncResult } | { ok: false; message: string }> {
   const { prisma } = await import("@dg/database");
   const lockKey = `wp-property-sync:${session.organisationId}`;
-
-  // Session advisory lock — blocks concurrent Properties/Listings auto-syncs
-  // on the same org (the race that duplicated 11 Kianga Court).
   const lockRows = await prisma.$queryRaw<Array<{ ok: boolean }>>`
     SELECT pg_try_advisory_lock(hashtext(${lockKey})) AS ok
   `;
@@ -243,132 +191,22 @@ export async function syncWordPressProperties(
   try {
     const connector = await wpConnectorForOrg(session.organisationId);
     const wp = await fetchWpProperties(100, connector);
-    if (!wp.ok) {
-      return { ok: false, message: wp.message };
-    }
+    if (!wp.ok) return { ok: false, message: wp.message };
 
     const syncResult = await syncPropertiesFromWordPress({
       organisationId: session.organisationId,
       actorId: session.clerkUserId,
       properties: wp.properties,
     });
-
-    const result: WordPressSyncResult = {
-      ...syncResult,
-      ranAt: new Date().toISOString(),
-    };
-
+    const result: WordPressSyncResult = { ...syncResult, ranAt: new Date().toISOString() };
     await patchOrgWordPressSettings(session.organisationId, {
       lastPropertySyncAt: result.ranAt,
       lastPropertySync: result,
     });
-
     return { ok: true, result };
   } finally {
     await prisma.$queryRaw`SELECT pg_advisory_unlock(hashtext(${lockKey}))`;
   }
-}
-
-export async function syncWordPressAccBookings(
-  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-): Promise<
-  | { ok: true; result: WordPressSyncResult }
-  | { ok: false; message: string }
-> {
-  // Prefer the same host-safe CVH key resolution used by OTA sync / calendar.
-  // Core resolveOrgWordPressConnector alone often lacks DG_WP_ACCOMMODATION_* keys.
-  const connector = await accommodationConnectorForSession(session.organisationId);
-  if (connector?.baseUrl && connector.apiKey) {
-    const today = new Date();
-    const from = new Date(today);
-    from.setDate(from.getDate() - 30);
-    const to = new Date(today);
-    to.setDate(to.getDate() + 365);
-    const iso = (d: Date) => d.toISOString().slice(0, 10);
-
-    const fetched = await fetchWpAccommodationBookings(null, 200, connector, {
-      from: iso(from),
-      to: iso(to),
-    });
-    if (!fetched.ok) {
-      return { ok: false, message: fetched.message };
-    }
-
-    const result: WordPressSyncResult = {
-      created: 0,
-      updated: 0,
-      skipped: 0,
-      errors: [],
-      ranAt: new Date().toISOString(),
-    };
-
-    for (const booking of fetched.bookings) {
-      try {
-        const outcome = await upsertStayBookingFromWpRow(session.organisationId, booking, {
-          actorId: session.clerkUserId,
-        });
-        if (outcome === "created") result.created++;
-        else if (outcome === "updated") result.updated++;
-        else result.skipped++;
-      } catch (err) {
-        result.errors.push(
-          `Booking #${booking.id}: ${err instanceof Error ? err.message : "sync failed"}`,
-        );
-      }
-    }
-
-    await patchOrgWordPressSettings(session.organisationId, {
-      lastAccBookingSyncAt: result.ranAt,
-      lastAccBookingSync: result,
-    });
-
-    return { ok: true, result };
-  }
-
-  const outcome = await syncAccommodationBookingsFromWordPress(session.organisationId, {
-    actorId: session.clerkUserId,
-    limit: 200,
-  });
-
-  if (!outcome.ok) {
-    return { ok: false, message: outcome.message };
-  }
-
-  const result: WordPressSyncResult = {
-    ...outcome.result,
-    ranAt: new Date().toISOString(),
-  };
-
-  await patchOrgWordPressSettings(session.organisationId, {
-    lastAccBookingSyncAt: result.ranAt,
-    lastAccBookingSync: result,
-  });
-
-  return { ok: true, result };
-}
-
-export async function syncWordPressAccUnits(
-  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-): Promise<
-  | { ok: true; result: WordPressSyncResult }
-  | { ok: false; message: string }
-> {
-  const outcome = await syncAccommodationUnitsFromWordPress(session.organisationId);
-  if (!outcome.ok) {
-    return { ok: false, message: outcome.message };
-  }
-
-  const result: WordPressSyncResult = {
-    ...outcome.result,
-    ranAt: new Date().toISOString(),
-  };
-
-  await patchOrgWordPressSettings(session.organisationId, {
-    lastAccUnitSyncAt: result.ranAt,
-    lastAccUnitSync: result,
-  });
-
-  return { ok: true, result };
 }
 
 async function autoSyncIfNeeded(
@@ -377,125 +215,50 @@ async function autoSyncIfNeeded(
     | "lastVendorLeadSyncAt"
     | "lastBuyerLeadSyncAt"
     | "lastBookingSyncAt"
-    | "lastAccBookingSyncAt"
-    | "lastAccUnitSyncAt"
     | "lastPropertySyncAt",
-  run: () => Promise<
-    | { ok: true; result: WordPressSyncResult }
-    | { ok: false; message: string }
-  >,
+  run: () => Promise<{ ok: true; result: WordPressSyncResult } | { ok: false; message: string }>,
   intervalMs: number = WP_SYNC_INTERVAL_MS,
 ): Promise<AutoSyncOutcome> {
-  // WP-D-107: RE auto-pull is opt-in. Gen 2 create/list is SoT; manual Sync buttons remain.
-  const reKeys = new Set([
-    "lastVendorLeadSyncAt",
-    "lastBuyerLeadSyncAt",
-    "lastBookingSyncAt",
-    "lastPropertySyncAt",
-  ]);
-  if (reKeys.has(lastAtKey)) {
-    const { organisationHasFlag } = await import("@dg/platform-core");
-    const allowed = await organisationHasFlag(
-      session.organisationId,
-      "re.wp_auto_sync",
-    );
-    if (!allowed) {
-      return { ran: false, reason: "disabled" };
-    }
-  }
-
-  const accKeys = new Set(["lastAccBookingSyncAt", "lastAccUnitSyncAt"]);
-  if (accKeys.has(lastAtKey)) {
-    const { organisationHasFlag } = await import("@dg/platform-core");
-    const allowed = await organisationHasFlag(
-      session.organisationId,
-      "acc.wp_auto_sync",
-    );
-    if (!allowed) {
-      return { ran: false, reason: "disabled" };
-    }
-  }
+  const { organisationHasFlag } = await import("@dg/platform-core");
+  const allowed = await organisationHasFlag(session.organisationId, "re.wp_auto_sync");
+  if (!allowed) return { ran: false, reason: "disabled" };
 
   if (!(await shouldRunSync(session.organisationId, lastAtKey, intervalMs))) {
     return { ran: false, reason: "too_soon" };
   }
 
   const connector = await wpConnectorForOrg(session.organisationId);
-  if (!connectorHasKey(connector)) {
-    return { ran: false, reason: "missing_key" };
-  }
-
-  // Acc unit/booking auto-pull against Gen 2 marketing apexes will 404 — skip.
-  if (
-    (lastAtKey === "lastAccUnitSyncAt" || lastAtKey === "lastAccBookingSyncAt") &&
-    connector.baseUrl
-  ) {
-    const { isGen2MarketingApexBaseUrl } = await import("@/lib/dg-api");
-    if (isGen2MarketingApexBaseUrl(connector.baseUrl)) {
-      return { ran: false, reason: "disabled" };
-    }
-  }
+  if (!connectorHasKey(connector)) return { ran: false, reason: "missing_key" };
 
   const outcome = await run();
   if (!outcome.ok) {
     return { ran: false, reason: "fetch_failed", message: outcome.message };
   }
-
   return { ran: true, result: outcome.result };
 }
 
 export async function autoSyncWordPressVendorLeadsIfNeeded(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
 ): Promise<AutoSyncOutcome> {
-  return autoSyncIfNeeded(session, "lastVendorLeadSyncAt", () =>
-    syncWordPressVendorLeads(session),
-  );
+  return autoSyncIfNeeded(session, "lastVendorLeadSyncAt", () => syncWordPressVendorLeads(session));
 }
 
 export async function autoSyncWordPressBuyerLeadsIfNeeded(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
 ): Promise<AutoSyncOutcome> {
-  return autoSyncIfNeeded(session, "lastBuyerLeadSyncAt", () =>
-    syncWordPressBuyerLeads(session),
-  );
+  return autoSyncIfNeeded(session, "lastBuyerLeadSyncAt", () => syncWordPressBuyerLeads(session));
 }
 
 export async function autoSyncWordPressBookingsIfNeeded(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
 ): Promise<AutoSyncOutcome> {
-  return autoSyncIfNeeded(session, "lastBookingSyncAt", () =>
-    syncWordPressBookings(session),
-  );
+  return autoSyncIfNeeded(session, "lastBookingSyncAt", () => syncWordPressBookings(session));
 }
 
 export async function autoSyncWordPressPropertiesIfNeeded(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
 ): Promise<AutoSyncOutcome> {
-  return autoSyncIfNeeded(session, "lastPropertySyncAt", () =>
-    syncWordPressProperties(session),
-  );
-}
-
-export async function autoSyncWordPressAccBookingsIfNeeded(
-  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-): Promise<AutoSyncOutcome> {
-  return autoSyncIfNeeded(
-    session,
-    "lastAccBookingSyncAt",
-    () => syncWordPressAccBookings(session),
-    WP_ACC_SYNC_INTERVAL_MS,
-  );
-}
-
-export async function autoSyncWordPressAccUnitsIfNeeded(
-  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-): Promise<AutoSyncOutcome> {
-  return autoSyncIfNeeded(
-    session,
-    "lastAccUnitSyncAt",
-    () => syncWordPressAccUnits(session),
-    WP_ACC_SYNC_INTERVAL_MS,
-  );
+  return autoSyncIfNeeded(session, "lastPropertySyncAt", () => syncWordPressProperties(session));
 }
 
 export async function getLastWordPressSync(organisationId: string) {
