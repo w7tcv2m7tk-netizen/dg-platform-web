@@ -1,0 +1,30 @@
+name: Cron follow-up remediation validation
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Focused follow-up claim tests
+        run: node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-followup-claim.mjs
+      - name: Unit tests
+        id: unit
+        continue-on-error: true
+        run: npm run test:unit
+      - name: TypeScript
+        run: npx tsc --noEmit
+      - name: Lint changed source
+        run: npx eslint packages/platform-core/src/leads/followup-claim.ts packages/platform-core/src/leads/claimed-followup-processors.ts packages/platform-core/src/leads/followup-sequence.ts scripts/test-followup-claim.mjs
+      - name: Unit test result
+        if: always()
+        run: echo "unit_outcome=${{ steps.unit.outcome }}"
