@@ -225,13 +225,6 @@ test("database claim SQL is tenant-scoped, conditional, token-owned and lease-aw
 });
 
 test("all four cron funnels use claimed follow-up orchestration", async () => {
-  const consultation = await readFile(
-    new URL(
-      "../packages/platform-core/src/marketing/consultation-automation.ts",
-      import.meta.url,
-    ),
-    "utf8",
-  );
   const propertyReport = await readFile(
     new URL(
       "../packages/platform-core/src/real-estate/public-property-report.ts",
@@ -254,14 +247,15 @@ test("all four cron funnels use claimed follow-up orchestration", async () => {
     "utf8",
   );
 
-  assert.match(consultation, /runClaimedLeadFollowup/);
-  assert.match(consultation, /sequenceKey:\s*"consultation_sequence"/);
   assert.match(propertyReport, /runClaimedLeadFollowup/);
   assert.match(propertyReport, /sequenceKey:\s*"property_report_sequence"/);
   assert.match(claimedCron, /sequenceKey:\s*"free_audit_sequence"/);
   assert.match(claimedCron, /sequenceKey:\s*"hideaway_circle_sequence"/);
+  assert.match(claimedCron, /sequenceKey:\s*"consultation_sequence"/);
   assert.match(dispatcher, /processClaimedFreeAuditFollowups/);
   assert.match(dispatcher, /processClaimedHideawayCircleFollowups/);
+  assert.match(dispatcher, /processClaimedConsultationReminders/);
   assert.doesNotMatch(dispatcher, /processFreeAuditFollowups/);
   assert.doesNotMatch(dispatcher, /processHideawayCircleFollowups/);
+  assert.doesNotMatch(dispatcher, /processConsultationReminders/);
 });
