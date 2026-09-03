@@ -501,7 +501,13 @@ export async function PATCH(req: Request) {
     }
 
     return NextResponse.json({
-      data: { ok: true, updated: persisted, count: persisted.length, sot: "neon", writePath: "neon" },
+      data: {
+        ok: true,
+        updated: persisted,
+        count: persisted.length,
+        sot: "neon",
+        writePath: "neon",
+      },
     });
   }
 
@@ -519,9 +525,8 @@ export async function PATCH(req: Request) {
           (externalWpId != null && booking.externalWpId === externalWpId),
       );
       if (
-        existing &&
         typeof patch.accommodation_id === "number" &&
-        patch.accommodation_id !== existing.accommodationWpId
+        (!existing || patch.accommodation_id !== existing.accommodationWpId)
       ) {
         return NextResponse.json(
           {
@@ -565,7 +570,9 @@ export async function PATCH(req: Request) {
       }
       updated.push(stayBookingToWpRow(result));
     }
-    return NextResponse.json({ data: { ok: true, updated, count: updated.length, writePath: "neon" } });
+    return NextResponse.json({
+      data: { ok: true, updated, count: updated.length, writePath: "neon" },
+    });
   }
 
   if (resource === "guests") {
@@ -597,7 +604,9 @@ export async function PATCH(req: Request) {
       });
       if (result) updated.push(result);
     }
-    return NextResponse.json({ data: { ok: true, updated, count: updated.length, writePath: "neon" } });
+    return NextResponse.json({
+      data: { ok: true, updated, count: updated.length, writePath: "neon" },
+    });
   }
 
   type HkPatch = {
