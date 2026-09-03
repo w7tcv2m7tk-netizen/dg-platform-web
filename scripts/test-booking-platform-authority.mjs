@@ -26,6 +26,11 @@ test("canonical identity mismatch fails closed", () => {
   assert.match(authority, /Canonical StayBooking .* was not found/);
 });
 
+test("WordPress cannot silently reassign a canonical booking to another unit", () => {
+  assert.match(authority, /existing\.accommodationWpId !== row\.accommodation_id/);
+  assert.match(authority, /cannot reassign a canonical StayBooking/);
+});
+
 test("legacy overlap conflict is rejected rather than acknowledged", () => {
   assert.match(authority, /if \(outcome === "conflict"\)/);
   assert.match(authority, /projection conflicts with an existing StayBooking/);
