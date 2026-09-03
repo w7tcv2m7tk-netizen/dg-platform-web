@@ -3,6 +3,10 @@ import fs from "node:fs";
 import test from "node:test";
 
 const route = fs.readFileSync("src/app/api/v1/accommodation/route.ts", "utf8");
+const migrationRoute = fs.readFileSync(
+  "src/app/api/v1/migrations/wordpress/accommodation/route.ts",
+  "utf8",
+);
 const migration = fs.readFileSync("src/lib/wordpress-migration.ts", "utf8");
 
 test("native accommodation reads cannot select WordPress as a runtime source", () => {
@@ -18,10 +22,15 @@ test("native accommodation writes do not mirror or fall back to WordPress", () =
   assert.doesNotMatch(route, /writePath:\s*["'](?:wordpress|wp_then_neon|neon_then_wp)["']/);
 });
 
-test("WordPress import is explicit migration-only, never an implicit native fallback", () => {
-  assert.match(route, /action\s*===\s*["']migrate_wordpress["']/);
-  assert.doesNotMatch(route, /action\s*===\s*["']sync_wordpress["']/);
-  assert.doesNotMatch(route, /action\s*===\s*["']sync_units["']/);
+test("WordPress import is isolated behind the dedicated migration endpoint", () => {
+  assert.doesNotMatch(route, /migrate_wordpress/);
+  assert.doesNotMatch(route, /sync_wordpress/);
+  assert.doesNotMatch(route, /sync_units/);
+  assert.match(migrationRoute, /migrateAccommodationFromWordPress/);
+  assert.match(migrationRoute, /["']owner["']/);
+  assert.match(migrationRoute, /["']admin["']/);
+  assert.match(migrationRoute, /["']dg:staff["']/);
+  assert.match(migrationRoute, /boundary:\s*["']wordpress_to_platform_only["']/);
   assert.match(migration, /mode:\s*["']migration_only["']/);
 });
 
