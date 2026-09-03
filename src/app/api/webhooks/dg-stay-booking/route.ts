@@ -148,7 +148,6 @@ export async function POST(req: Request) {
     created: 0,
     updated: 0,
     skipped: 0,
-    errors: [] as string[],
     identities: [] as Array<{ wp_id: number; platform_id: string }>,
   };
 
@@ -163,8 +162,15 @@ export async function POST(req: Request) {
         result.identities.push({ wp_id: row.id, platform_id: synced.platformId });
       }
     } catch (err) {
-      result.errors.push(
-        `#${row.id}: ${err instanceof Error ? err.message : "upsert failed"}`,
+      return NextResponse.json(
+        {
+          error: {
+            code: "booking_authority_rejected",
+            message: err instanceof Error ? err.message : "StayBooking authority sync failed",
+            wp_id: row.id ?? null,
+          },
+        },
+        { status: 409 },
       );
     }
   }
