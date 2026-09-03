@@ -37,16 +37,27 @@ export function unitBookingLockKey(
 }
 
 /**
- * Hold a transaction-scoped advisory lock while checking and writing a booking.
- * Keep network calls outside the callback because the lock remains held until
- * the transaction finishes.
+ * Hold a transaction-scoped advisory lock while checking AND writing a booking.
+ *
+ * The overlap check and the create/update it guards must both run inside the
+ * callback so they share this transaction: the advisory lock is released only
+ * when the transaction commits, so a concurrent writer cannot slip an
+ * overlapping row in between the check and the write.
+ *
+ * Keep network calls, email and other unrelated work OUTSIDE the callback —
+ * the lock is held for the whole transaction, so anything slow in here
+ * serialises every other writer for the same unit.
+ *
+ * `client` is a test-only injection seam; production uses the real prisma
+ * client so behaviour is unchanged when it is omitted.
  */
 export async function withUnitBookingLock<T>(
   organisationId: string,
   unitId: string,
   fn: (tx: Prisma.TransactionClient) => Promise<T>,
+  client?: PrismaClient,
 ): Promise<T> {
-  const { prisma } = await import("@dg/database");
+  const prisma = client ?? (await import("@dg/database")).prisma;
   const key = unitBookingLockKey(organisationId, unitId);
 
   return prisma.$transaction(async (tx) => {

@@ -4,8 +4,13 @@
  * these rows must not create CRM Guests until an OTA API is integrated.
  */
 
-import type { Prisma } from "@dg/database";
+import type { Prisma, PrismaClient } from "@dg/database";
 import { safeExternalFetch } from "../command-centre/growth-engine/ssrf-guard";
+import {
+  findOverlappingBookings,
+  recordImportConflict,
+  withUnitBookingLock,
+} from "./booking-conflicts";
 
 export type OtaIcalSource = "airbnb" | "bookingcom";
 
@@ -180,16 +185,19 @@ function guestNameFromSummary(summary: string, source: OtaIcalSource): string {
   return s.slice(0, 120);
 }
 
-async function upsertOtaStayBooking(input: {
-  organisationId: string;
-  unitId: string;
-  unitTitle: string;
-  accommodationWpId: number | null;
-  source: OtaIcalSource;
-  event: OtaIcalEvent;
-  actorId?: string;
-}): Promise<"created" | "updated" | "skipped"> {
-  const { prisma } = await import("@dg/database");
+export async function upsertOtaStayBooking(
+  input: {
+    organisationId: string;
+    unitId: string;
+    unitTitle: string;
+    accommodationWpId: number | null;
+    source: OtaIcalSource;
+    event: OtaIcalEvent;
+    actorId?: string;
+  },
+  deps?: { client?: PrismaClient },
+): Promise<"created" | "updated" | "skipped" | "conflict"> {
+  const prisma = deps?.client ?? (await import("@dg/database")).prisma;
   const checkin = parseStayDate(input.event.start);
   const checkout = parseStayDate(input.event.end);
   if (!checkin || !checkout) return "skipped";
@@ -229,40 +237,103 @@ async function upsertOtaStayBooking(input: {
       existing.checkout?.toISOString() === checkout.toISOString();
     if (same && (prevMeta.ical_misses ?? 0) === 0) return "skipped";
 
-    await prisma.stayBooking.update({
-      where: { id: existing.id },
-      data: {
-        guestName,
-        accommodationName: input.unitTitle,
-        accommodationWpId: input.accommodationWpId,
-        accommodationUnitId: input.unitId,
-        checkin,
-        checkout,
-        status,
-        contactId: null,
-        metadata,
+    // Overlap re-check + update share one advisory-locked transaction. A feed
+    // that moves this event onto another active booking must not silently
+    // create an overlap — record an import conflict instead.
+    return withUnitBookingLock(
+      input.organisationId,
+      input.unitId,
+      async (tx) => {
+        const conflicts = await findOverlappingBookings(tx, {
+          organisationId: input.organisationId,
+          accommodationUnitId: input.unitId,
+          accommodationWpId: input.accommodationWpId,
+          checkin,
+          checkout,
+          excludeStayBookingId: existing.id,
+        });
+        if (conflicts.length) {
+          await recordImportConflict(tx, {
+            conflicts,
+            detail: {
+              reason: "ota_import_overlap",
+              source: input.source,
+              ical_uid: icalUid,
+              stay_booking_id: existing.id,
+              incoming_checkin: checkin.toISOString(),
+              incoming_checkout: checkout.toISOString(),
+              detected_at: new Date().toISOString(),
+            },
+          });
+          return "conflict" as const;
+        }
+        await tx.stayBooking.update({
+          where: { id: existing.id },
+          data: {
+            guestName,
+            accommodationName: input.unitTitle,
+            accommodationWpId: input.accommodationWpId,
+            accommodationUnitId: input.unitId,
+            checkin,
+            checkout,
+            status,
+            contactId: null,
+            metadata,
+          },
+        });
+        return "updated" as const;
       },
-    });
-    return "updated";
+      deps?.client,
+    );
   }
 
-  await prisma.stayBooking.create({
-    data: {
-      organisationId: input.organisationId,
-      externalWpId: null,
-      ref: `ota:${input.source}:${icalUid.slice(0, 40)}`,
-      contactId: null,
-      guestName,
-      accommodationName: input.unitTitle,
-      accommodationWpId: input.accommodationWpId,
-      accommodationUnitId: input.unitId,
-      checkin,
-      checkout,
-      status,
-      metadata,
+  // Conflict check + create share one advisory-locked transaction so a
+  // concurrent import cannot create an overlapping OTA stay.
+  return withUnitBookingLock(
+    input.organisationId,
+    input.unitId,
+    async (tx) => {
+      const conflicts = await findOverlappingBookings(tx, {
+        organisationId: input.organisationId,
+        accommodationUnitId: input.unitId,
+        accommodationWpId: input.accommodationWpId,
+        checkin,
+        checkout,
+      });
+      if (conflicts.length) {
+        await recordImportConflict(tx, {
+          conflicts,
+          detail: {
+            reason: "ota_import_overlap",
+            source: input.source,
+            ical_uid: icalUid,
+            incoming_checkin: checkin.toISOString(),
+            incoming_checkout: checkout.toISOString(),
+            detected_at: new Date().toISOString(),
+          },
+        });
+        return "conflict" as const;
+      }
+      await tx.stayBooking.create({
+        data: {
+          organisationId: input.organisationId,
+          externalWpId: null,
+          ref: `ota:${input.source}:${icalUid.slice(0, 40)}`,
+          contactId: null,
+          guestName,
+          accommodationName: input.unitTitle,
+          accommodationWpId: input.accommodationWpId,
+          accommodationUnitId: input.unitId,
+          checkin,
+          checkout,
+          status,
+          metadata,
+        },
+      });
+      return "created" as const;
     },
-  });
-  return "created";
+    deps?.client,
+  );
 }
 
 /**
@@ -444,7 +515,12 @@ export async function syncOtaCalendarsFromUnits(input: {
           });
           if (outcome === "created") imported += 1;
           else if (outcome === "updated") updated += 1;
-          else result.skipped += 1;
+          else if (outcome === "conflict") {
+            result.skipped += 1;
+            result.errors.push(
+              `${unit.title} (${feed.source}) ${event.uid}: overlaps an existing active booking — import skipped`,
+            );
+          } else result.skipped += 1;
         } catch (err) {
           result.errors.push(
             `${unit.title} (${feed.source}) ${event.uid}: ${
