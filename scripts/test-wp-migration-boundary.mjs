@@ -3,8 +3,25 @@ import fs from "node:fs";
 import test from "node:test";
 
 const route = fs.readFileSync("src/app/api/v1/accommodation/route.ts", "utf8");
+const overviewPage = fs.readFileSync("src/app/(shell)/apps/accommodation/page.tsx", "utf8");
 const bookingsPage = fs.readFileSync(
   "src/app/(shell)/apps/accommodation/bookings/page.tsx",
+  "utf8",
+);
+const checkinsPage = fs.readFileSync(
+  "src/app/(shell)/apps/accommodation/check-ins/page.tsx",
+  "utf8",
+);
+const guestsPage = fs.readFileSync(
+  "src/app/(shell)/apps/accommodation/guests/page.tsx",
+  "utf8",
+);
+const paymentsPage = fs.readFileSync(
+  "src/app/(shell)/apps/accommodation/payments/page.tsx",
+  "utf8",
+);
+const reviewsPage = fs.readFileSync(
+  "src/app/(shell)/apps/accommodation/reviews/page.tsx",
   "utf8",
 );
 const calendarPage = fs.readFileSync(
@@ -23,8 +40,15 @@ const bookingsPanel = fs.readFileSync(
   "src/components/accommodation/AccommodationBookingsPanel.tsx",
   "utf8",
 );
+const dashboard = fs.readFileSync(
+  "src/components/accommodation/AccommodationDashboard.tsx",
+  "utf8",
+);
 const bookingsLoader = fs.readFileSync("src/lib/accommodation-stay-bookings.ts", "utf8");
 const unitOpsLoader = fs.readFileSync("src/lib/accommodation-units.ts", "utf8");
+const summaryLoader = fs.readFileSync("src/lib/accommodation-summary.ts", "utf8");
+const overviewConnectors = fs.readFileSync("src/lib/overview-connectors.ts", "utf8");
+const reviewsFeed = fs.readFileSync("src/lib/reviews-feed.ts", "utf8");
 const wordpressSync = fs.readFileSync("src/lib/wordpress-sync.ts", "utf8");
 const migrationRoute = fs.readFileSync(
   "src/app/api/v1/migrations/wordpress/accommodation/route.ts",
@@ -51,6 +75,41 @@ test("native accommodation writes do not mirror or fall back to WordPress", () =
   assert.doesNotMatch(route, /deleteWpAccommodationBookings/);
   assert.doesNotMatch(route, /syncWpAccommodationOtaCalendars/);
   assert.doesNotMatch(route, /writePath:\s*["'](?:wordpress|wp_then_neon|neon_then_wp)["']/);
+});
+
+test("native accommodation pages have no live WordPress read connector", () => {
+  for (const source of [
+    overviewPage,
+    bookingsPage,
+    checkinsPage,
+    guestsPage,
+    paymentsPage,
+    reviewsPage,
+    calendarPage,
+    housekeepingPage,
+  ]) {
+    assert.doesNotMatch(source, /accommodationConnectorForSession/);
+    assert.doesNotMatch(source, /fetchWpAccommodation/);
+    assert.doesNotMatch(source, /getWpAccommodationSite/);
+    assert.doesNotMatch(source, /listWpAccommodationSites/);
+    assert.doesNotMatch(source, /AccommodationSitePicker/);
+  }
+  assert.equal(fs.existsSync("src/lib/accommodation-connector.ts"), false);
+  assert.match(summaryLoader, /listStayBookings/);
+  assert.match(summaryLoader, /listAccommodationUnits/);
+  assert.match(summaryLoader, /listAccommodationGuests/);
+  assert.doesNotMatch(summaryLoader, /WordPress|fetchWp|accommodationConnectorForSession/);
+  assert.doesNotMatch(dashboard, /WpAccommodationSummary|showWordPress/);
+});
+
+test("native reviews and overview metrics do not pull Accommodation data from WordPress", () => {
+  assert.doesNotMatch(reviewsFeed, /fetchWpAccommodationReviews/);
+  assert.doesNotMatch(reviewsFeed, /mapWpAccReviewsToFeed/);
+  assert.doesNotMatch(reviewsFeed, /accommodationConnectorForSession/);
+  assert.match(reviewsFeed, /getOrgGbpSyncSnapshot/);
+  assert.doesNotMatch(overviewConnectors, /fetchWpAccommodationSummary/);
+  assert.doesNotMatch(overviewConnectors, /accommodationConnectorForSession/);
+  assert.match(overviewConnectors, /buildAccommodationSummary/);
 });
 
 test("native bookings UI and loader never resolve or sync a WordPress runtime connector", () => {
