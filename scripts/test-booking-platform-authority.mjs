@@ -26,6 +26,17 @@ test("canonical identity mismatch fails closed", () => {
   assert.match(authority, /Canonical StayBooking .* was not found/);
 });
 
+test("legacy overlap conflict is rejected rather than acknowledged", () => {
+  assert.match(authority, /if \(outcome === "conflict"\)/);
+  assert.match(authority, /projection conflicts with an existing StayBooking/);
+});
+
+test("webhook fails closed when authority sync throws", () => {
+  assert.match(webhook, /booking_authority_rejected/);
+  assert.match(webhook, /\{ status: 409 \}/);
+  assert.doesNotMatch(webhook, /errors:\s*\[\]\s*as string\[\]/);
+});
+
 test("webhook returns canonical identity for connector persistence", () => {
   assert.match(webhook, /identities:/);
   assert.match(webhook, /platform_id:\s*synced\.platformId/);
