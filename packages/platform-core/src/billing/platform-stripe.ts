@@ -95,6 +95,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     select: { billingCustomerId: true, settings: true },
   });
 
+  // Dashboard Price IDs are monthly SKUs — only use for monthly cadence.
   const priceId = annual ? null : stripePriceIdForTier(tier);
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = priceId
     ? [{ quantity: 1, price: priceId }]
@@ -114,6 +115,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
         },
       ];
 
+  // Industry App ($99) + additional Templates (+$29) — canonical commercial lock
   for (const line of industryCheckoutLines(input.industryApps ?? [])) {
     const lineAmount = annual
       ? annualPriceFromMonthlyCents(line.amountCents)
@@ -161,12 +163,15 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     },
   };
 
+  // Prefer existing Stripe customer so portal / renewals stay on one cus_ id.
+  // Do not pass both customer and customer_email.
   if (org?.billingCustomerId) {
     sessionParams.customer = org.billingCustomerId;
   } else {
     sessionParams.customer_email = input.email;
   }
 
+  // Card-required trial for non-exempt orgs (Founding uses standard pricing + trial — no % discount).
   const { getPlatformSubscription } = await import("./subscription-store");
   const existingSub = await getPlatformSubscription(input.organisationId);
   const settingsBilling =
@@ -316,31 +321,11 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     );
   const exempt = billing.platformExempt === true;
 
-  const stripeSubscriptionId =
-    typeof session.subscription === "string"
-      ? session.subscription
-      : session.subscription?.id ?? null;
-
-  // H-6: PlatformSubscription is the authoritative billing record. If this
-  // write fails the webhook must fail and remain retryable; derived organisation
-  // JSON must never be allowed to advertise a subscription that does not exist.
-  const { syncPlatformSubscriptionFromCheckout } = await import("./billing-service");
-  await syncPlatformSubscriptionFromCheckout({
-    organisationId: org.id,
-    stripeCustomerId: customerId,
-    stripeSubscriptionId,
-    planTier: platformTier,
-    foundingCustomer: founding,
-    platformExempt: exempt,
-    stripeEventId: session.id,
-  });
-
-  // Derived projection for UI and legacy consumers. PlatformSubscription above
-  // remains authoritative for commercial state and entitlement.
   await prisma.organisation.update({
     where: { id: org.id },
     data: {
       status: founding || exempt ? "active" : "trial",
+      // Always persist the Stripe customer from checkout — never invent one.
       billingCustomerId: customerId,
       settings: {
         ...settings,
@@ -351,7 +336,9 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
           lastCheckoutSessionId: session.id,
           lastCheckoutAt: new Date().toISOString(),
           stripeSubscriptionId:
-            stripeSubscriptionId ?? billing.stripeSubscriptionId,
+            typeof session.subscription === "string"
+              ? session.subscription
+              : session.subscription?.id ?? billing.stripeSubscriptionId,
         },
         profile: {
           ...profile,
@@ -377,6 +364,27 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     },
   });
 
+  const stripeSubscriptionId =
+    typeof session.subscription === "string"
+      ? session.subscription
+      : session.subscription?.id ?? null;
+
+  try {
+    const { syncPlatformSubscriptionFromCheckout } = await import("./billing-service");
+    await syncPlatformSubscriptionFromCheckout({
+      organisationId: org.id,
+      stripeCustomerId: customerId,
+      stripeSubscriptionId,
+      planTier: platformTier,
+      foundingCustomer: founding,
+      platformExempt: exempt,
+      stripeEventId: session.id,
+    });
+  } catch (err) {
+    console.warn("[billing] platform subscription sync failed", err);
+  }
+
+  // Platform Refer & Earn — first-paid credit (months 2–12 via invoice.paid)
   let referralReward: unknown = null;
   try {
     const { markReferralPaidAndAccrue } = await import("../referrals");
@@ -401,6 +409,10 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
   };
 }
 
+/**
+ * Honest subscription lifecycle for platform SaaS seats.
+ * Stripe → Billing Service → commercial state + entitlement (never wipe org on past_due).
+ */
 export async function handlePlatformSubscriptionLifecycle(
   subscription: Stripe.Subscription,
   eventKind: "deleted" | "updated" | "created",
@@ -418,6 +430,8 @@ export async function handlePlatformSubscriptionLifecycle(
       : null;
 
   if (!org && customerId) {
+    // Fail safe: resolve the platform billing customer to exactly one org. An
+    // ambiguous billingCustomerId must not select a tenant arbitrarily.
     const orgs = await prisma.organisation.findMany({
       where: { billingCustomerId: customerId },
       take: 2,
@@ -473,6 +487,7 @@ export function isPlatformCheckoutSession(session: Stripe.Checkout.Session): boo
   return session.metadata?.dg_platform_checkout === "true";
 }
 
+/** True when subscription metadata marks a DigitalGate platform seat (SaaS). */
 export function isPlatformSubscription(subscription: Stripe.Subscription): boolean {
   const meta = subscription.metadata ?? {};
   return Boolean(meta.dg_platform_tier || meta.dg_platform_subscription === "true");
