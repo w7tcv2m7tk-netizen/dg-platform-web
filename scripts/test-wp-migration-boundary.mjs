@@ -47,6 +47,16 @@ test("native bookings UI and loader never resolve or sync a WordPress runtime co
   assert.match(bookingsLoader, /listStayBookings/);
 });
 
+test("native booking creation uses canonical Gen 2 unit identity", () => {
+  assert.match(bookingsPanel, /accommodation_unit_id:\s*form\.accommodation_unit_id/);
+  assert.match(bookingsPanel, /value=\{u\.platform_id\s*\?\?\s*["']{2}\}/);
+  assert.doesNotMatch(bookingsPanel, /const\s+accommodationId\s*=\s*Number\(form\.accommodation_id\)/);
+  assert.doesNotMatch(
+    route,
+    /typeof\s+payload\.platform_id\s*===\s*["']string["'][\s\S]{0,80}accommodationUnitId/,
+  );
+});
+
 test("WordPress import is isolated behind the dedicated migration endpoint", () => {
   assert.doesNotMatch(route, /migrate_wordpress/);
   assert.doesNotMatch(route, /wordpress-migration/);
