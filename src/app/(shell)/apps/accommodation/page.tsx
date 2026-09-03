@@ -1,24 +1,11 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { Suspense } from "react";
-import { organisationHasWordPressConnector } from "@dg/platform-core";
 
 import { AccommodationDashboard } from "@/components/accommodation/AccommodationDashboard";
-import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
-import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import {
-  fetchPortalMe,
-  fetchWpAccommodationSummary,
-  getWpAccommodationSite,
-  listWpAccommodationSites,
-} from "@/lib/dg-api";
+import { buildAccommodationSummary } from "@/lib/accommodation-summary";
+import { fetchPortalMe } from "@/lib/dg-api";
 
-interface PageProps {
-  searchParams: Promise<{ siteId?: string }>;
-}
-
-export default async function AccommodationOverviewPage({ searchParams }: PageProps) {
-  const { siteId } = await searchParams;
+export default async function AccommodationOverviewPage() {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const name =
@@ -37,34 +24,20 @@ export default async function AccommodationOverviewPage({ searchParams }: PagePr
       })
     : null;
 
-  const sites = listWpAccommodationSites();
-  const site = getWpAccommodationSite(siteId);
-  const connector = await accommodationConnectorForSession(session?.organisationId);
-  const [summaryResult, showWordPress] = await Promise.all([
-    fetchWpAccommodationSummary(site.id, 30, connector),
-    session?.organisationId
-      ? organisationHasWordPressConnector(session.organisationId)
-      : Promise.resolve(false),
-  ]);
-  const siteLabel = connector?.label ?? site.label;
+  const summary = session ? await buildAccommodationSummary(session.organisationId) : undefined;
+  const siteLabel = session?.organisationName ?? "Accommodation";
 
   return (
     <main className="dg-page-main space-y-6">
       <div>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · Ops beta
+          {siteLabel} · Platform Core / Neon · Ops
         </p>
-        <Suspense fallback={null}>
-          <div className="mt-3">
-            <AccommodationSitePicker sites={sites} />
-          </div>
-        </Suspense>
       </div>
       <AccommodationDashboard
-        summary={summaryResult.ok ? summaryResult.data : undefined}
-        error={summaryResult.ok ? undefined : summaryResult.message}
+        summary={summary}
+        error={session ? undefined : "Platform session unavailable."}
         siteLabel={siteLabel}
-        showWordPress={showWordPress}
       />
     </main>
   );
