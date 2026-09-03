@@ -70,6 +70,8 @@ export * from "./accommodation/public-stay";
 export * from "./accommodation/stay-enquiry-emails";
 export * from "./accommodation/ical-export";
 export * from "./accommodation/ical-import";
+export * from "./accommodation/ota-fairness";
+export * from "./accommodation/ota-cron-fairness";
 export * from "./accommodation/beta";
 export * from "./accommodation/hideaway-circle-emails";
 export * from "./accommodation/guest-journey-emails";
@@ -127,4 +129,3 @@ export * from "./roadmap";
 export * from "./app-guides";
 export * from "./help";
 export * from "./time/display";
-
