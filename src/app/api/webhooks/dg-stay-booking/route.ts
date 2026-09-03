@@ -1,6 +1,6 @@
 import {
   resolveOrganisationIdForStaySync,
-  upsertStayBookingFromWpRow,
+  syncWpBookingWithPlatformAuthority,
   type WpAccBookingRow,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
@@ -11,7 +11,6 @@ import {
   webhookAllowedOrganisationIds,
 } from "@/lib/webhook-auth";
 
-
 function asBookingRow(raw: unknown): WpAccBookingRow | null {
   if (!raw || typeof raw !== "object") return null;
   const row = raw as Record<string, unknown>;
@@ -19,6 +18,10 @@ function asBookingRow(raw: unknown): WpAccBookingRow | null {
   if (!Number.isFinite(id) || id <= 0) return null;
   return {
     id,
+    platform_id:
+      typeof row.platform_id === "string" && row.platform_id.trim()
+        ? row.platform_id.trim()
+        : undefined,
     ref: typeof row.ref === "string" ? row.ref : undefined,
     guest_name:
       typeof row.guest_name === "string"
@@ -55,8 +58,8 @@ function asBookingRow(raw: unknown): WpAccBookingRow | null {
 }
 
 /**
- * WP → Gen 2 dual-write for public book-now / PayID / Stripe finalize (WP-D-403 interim).
- * Availability calendar remains WordPress until WP-D-402; StayBooking is Gen 2 read SoT.
+ * WP → Gen 2 booking projection. StayBooking is the canonical identity and
+ * commercial record; WordPress remains a connector and migration source.
  */
 export async function POST(req: Request) {
   const auth = verifyWebhookSecret(req, [
@@ -118,7 +121,6 @@ export async function POST(req: Request) {
 
   const organisationId = target.organisationId;
 
-
   const rows: WpAccBookingRow[] = [];
   if (Array.isArray(body.bookings)) {
     for (const raw of body.bookings) {
@@ -142,13 +144,24 @@ export async function POST(req: Request) {
     );
   }
 
-  const result = { created: 0, updated: 0, skipped: 0, errors: [] as string[] };
+  const result = {
+    created: 0,
+    updated: 0,
+    skipped: 0,
+    errors: [] as string[],
+    identities: [] as Array<{ wp_id: number; platform_id: string }>,
+  };
+
   for (const row of rows) {
     try {
-      const outcome = await upsertStayBookingFromWpRow(organisationId, row);
-      if (outcome === "created") result.created++;
-      else if (outcome === "updated") result.updated++;
+      const synced = await syncWpBookingWithPlatformAuthority(organisationId, row);
+      if (synced.outcome === "created") result.created++;
+      else if (synced.outcome === "updated") result.updated++;
       else result.skipped++;
+
+      if (row.id && synced.platformId) {
+        result.identities.push({ wp_id: row.id, platform_id: synced.platformId });
+      }
     } catch (err) {
       result.errors.push(
         `#${row.id}: ${err instanceof Error ? err.message : "upsert failed"}`,
