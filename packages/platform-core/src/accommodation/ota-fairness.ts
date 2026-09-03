@@ -1,32 +1,31 @@
 import type { OtaIcalSource } from "./ical-import";
 
-export type OtaSyncCandidate = {
-  organisationId: string;
-  lastSyncAt: Date | null;
-};
-
 const OTA_SYNC_INTERVAL_MS = 15 * 60 * 1000;
 
 /**
- * Select the organisations most overdue for an OTA calendar sync.
+ * Rotate the capped cron window across every configured organisation.
  *
- * Never-synchronised organisations are served first, then the least recently
- * synchronised. The organisation id is the stable tie-breaker so pagination is
- * deterministic without permanently privileging one tenant.
+ * Selection must not depend on successful feed timestamps: a permanently broken
+ * tenant URL would otherwise remain "oldest" forever and could starve healthy
+ * tenants. Sorting first makes the batch stable; each cron interval advances the
+ * circular window by one full batch.
  */
-export function selectDueOtaOrganisations(
-  candidates: OtaSyncCandidate[],
+export function selectRotatingOtaOrganisations(
+  organisationIds: string[],
   limit: number,
+  now = new Date(),
 ): string[] {
-  return [...candidates]
-    .sort((a, b) => {
-      if (a.lastSyncAt == null && b.lastSyncAt != null) return -1;
-      if (a.lastSyncAt != null && b.lastSyncAt == null) return 1;
-      const bySync = (a.lastSyncAt?.getTime() ?? 0) - (b.lastSyncAt?.getTime() ?? 0);
-      return bySync || a.organisationId.localeCompare(b.organisationId);
-    })
-    .slice(0, limit)
-    .map((candidate) => candidate.organisationId);
+  const ids = [...new Set(organisationIds)].sort((a, b) => a.localeCompare(b));
+  if (!ids.length || limit <= 0) return [];
+  if (ids.length <= limit) return ids;
+
+  const slot = Math.floor(now.getTime() / OTA_SYNC_INTERVAL_MS);
+  const start = (slot * limit) % ids.length;
+  const selected: string[] = [];
+  for (let offset = 0; offset < Math.min(limit, ids.length); offset += 1) {
+    selected.push(ids[(start + offset) % ids.length]);
+  }
+  return selected;
 }
 
 function stableParity(value: string): number {
