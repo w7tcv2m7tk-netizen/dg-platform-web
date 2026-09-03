@@ -95,7 +95,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  const session = await requirePlatformSession();
+  const session = await requirePlatformSession(req);
   if (isNextResponse(session)) return session;
 
   // Tenant write-entitlement (H-3): block writes for read-only/suspended orgs.
@@ -130,17 +130,19 @@ export async function PATCH(req: Request) {
   let enabled = resolveEnabledAppIds(settings);
 
   // Platform authority only — organisation slug is tenant-editable (see
-  // packages/platform-core/src/access/platform-authority.ts).
+  // packages/platform-core/src/access/platform-authority.ts). API-key sessions
+  // are explicitly excluded by principalId even for an allowlisted operator org.
   const staffOrOperator = hasPlatformAuthority({
     organisationId: session.organisationId,
     role: session.role,
+    principalId: session.clerkUserId,
   });
 
   const paidActivation =
     body.action === "apply_plan" ||
     (body.action === "toggle" && body.enabled !== false) ||
     body.action === "set";
-  // DigitalGate operator org + staff: always allow Industry toggles for testing/demo.
+  // DigitalGate interactive operator/staff sessions may toggle paid apps for testing/demo.
   if (paidActivation && !staffOrOperator) {
     const gate = await assertEntitlement(session.organisationId, "activatePaidApps");
     if (!gate.ok) {
