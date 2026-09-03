@@ -224,7 +224,7 @@ test("database claim SQL is tenant-scoped, conditional, token-owned and lease-aw
   assert.match(source, /#- ARRAY\[\$\{claim\.sequenceKey\}, \$\{tokenKey\}\]/);
 });
 
-test("both cron send paths use claimed follow-up orchestration", async () => {
+test("all four cron funnels use claimed follow-up orchestration", async () => {
   const consultation = await readFile(
     new URL(
       "../packages/platform-core/src/marketing/consultation-automation.ts",
@@ -239,9 +239,29 @@ test("both cron send paths use claimed follow-up orchestration", async () => {
     ),
     "utf8",
   );
+  const claimedCron = await readFile(
+    new URL(
+      "../packages/platform-core/src/leads/cron-claimed-followups.ts",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  const dispatcher = await readFile(
+    new URL(
+      "../packages/platform-core/src/leads/followup-sequence.ts",
+      import.meta.url,
+    ),
+    "utf8",
+  );
 
   assert.match(consultation, /runClaimedLeadFollowup/);
   assert.match(consultation, /sequenceKey:\s*"consultation_sequence"/);
   assert.match(propertyReport, /runClaimedLeadFollowup/);
   assert.match(propertyReport, /sequenceKey:\s*"property_report_sequence"/);
+  assert.match(claimedCron, /sequenceKey:\s*"free_audit_sequence"/);
+  assert.match(claimedCron, /sequenceKey:\s*"hideaway_circle_sequence"/);
+  assert.match(dispatcher, /processClaimedFreeAuditFollowups/);
+  assert.match(dispatcher, /processClaimedHideawayCircleFollowups/);
+  assert.doesNotMatch(dispatcher, /processFreeAuditFollowups/);
+  assert.doesNotMatch(dispatcher, /processHideawayCircleFollowups/);
 });
