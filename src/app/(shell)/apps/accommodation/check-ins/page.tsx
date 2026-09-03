@@ -1,23 +1,10 @@
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
-import { Suspense } from "react";
 
-import { AccommodationSitePicker } from "@/components/accommodation/AccommodationSitePicker";
-import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
 import { loadStayBookingsForOps } from "@/lib/accommodation-stay-bookings";
 import { accAddDays, accDayKey, accToday } from "@/lib/acc-dates";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import {
-  fetchPortalMe,
-  fetchWpAccommodationSummary,
-  getWpAccommodationSite,
-  listWpAccommodationSites,
-  type WpAccBookingRow,
-} from "@/lib/dg-api";
-
-interface PageProps {
-  searchParams: Promise<{ siteId?: string }>;
-}
+import { fetchPortalMe, type WpAccBookingRow } from "@/lib/dg-api";
 
 function Board({
   title,
@@ -96,8 +83,7 @@ function Board({
   );
 }
 
-export default async function AccommodationCheckInsPage({ searchParams }: PageProps) {
-  const { siteId } = await searchParams;
+export default async function AccommodationCheckInsPage() {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const name =
@@ -115,21 +101,10 @@ export default async function AccommodationCheckInsPage({ searchParams }: PagePr
       })
     : null;
 
-  const sites = listWpAccommodationSites();
-  const site = getWpAccommodationSite(siteId);
-  const connector = await accommodationConnectorForSession(session?.organisationId);
-  const siteLabel = connector?.label ?? site.label;
-
-  // Lists from StayBooking SoT; summary probe still WP until units/availability land (WP-D-402).
-  const [summary, loaded] = await Promise.all([
-    fetchWpAccommodationSummary(site.id, 30, connector),
-    loadStayBookingsForOps(session, 150),
-  ]);
-
+  const loaded = await loadStayBookingsForOps(session, 150);
   const bookings: WpAccBookingRow[] = loaded.bookings;
-  const today = summary.ok && summary.data.today ? summary.data.today : accToday();
-  const tomorrow =
-    summary.ok && summary.data.tomorrow ? summary.data.tomorrow : accAddDays(today, 1);
+  const today = accToday();
+  const tomorrow = accAddDays(today, 1);
   const upcomingEnd = accAddDays(today, 14);
 
   const active = bookings.filter((b) => {
@@ -146,27 +121,24 @@ export default async function AccommodationCheckInsPage({ searchParams }: PagePr
     })
     .sort((a, b) => (a.checkin ?? "").localeCompare(b.checkin ?? ""));
 
+  const siteLabel = session?.organisationName ?? "Accommodation";
+
   return (
     <main className="dg-page-main space-y-8">
       <div>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · {siteLabel} · StayBooking (Neon) ·{" "}
-          {today} Brisbane · {todayList.length} today, {tomorrowList.length} tomorrow
+          {siteLabel} · StayBooking (Neon) · {today} Brisbane · {todayList.length} today,{" "}
+          {tomorrowList.length} tomorrow
         </p>
-        <Suspense fallback={null}>
-          <div className="mt-3">
-            <AccommodationSitePicker sites={sites} />
-          </div>
-        </Suspense>
       </div>
-        {loaded.syncError && bookings.length === 0 ? (
-          <div className="dg-card border-amber-500/30">
-            <p className="text-amber-300">{loaded.syncError}</p>
-          </div>
-        ) : null}
-        <Board title="Today" hint={today} bookings={todayList} />
-        <Board title="Tomorrow" hint={tomorrow} bookings={tomorrowList} />
-        <Board title="Upcoming" hint={`Through ${upcomingEnd}`} bookings={upcoming} />
-      </main>
+      {loaded.syncError && bookings.length === 0 ? (
+        <div className="dg-card border-amber-500/30">
+          <p className="text-amber-300">{loaded.syncError}</p>
+        </div>
+      ) : null}
+      <Board title="Today" hint={today} bookings={todayList} />
+      <Board title="Tomorrow" hint={tomorrow} bookings={tomorrowList} />
+      <Board title="Upcoming" hint={`Through ${upcomingEnd}`} bookings={upcoming} />
+    </main>
   );
 }
