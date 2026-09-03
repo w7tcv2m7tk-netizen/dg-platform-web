@@ -4,6 +4,8 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
+import { spamGuardResponse } from "@/lib/public-form-spam-response";
+
 function siteSlugFrom(req: Request, bodySite?: string | null) {
   if (bodySite?.trim()) return bodySite.trim();
   try {
@@ -76,6 +78,18 @@ export async function POST(req: Request) {
   }
 
   if (action === "submit") {
+    const blocked = spamGuardResponse(
+      req,
+      {
+        honeypot: body.website,
+        name: body.fullName || body.name,
+        email: body.email,
+        phone: body.phone,
+      },
+      `property-report:${siteSlug}`,
+    );
+    if (blocked) return blocked;
+
     const result = await submitPublicPropertyReport({
       siteSlug,
       hostname,
