@@ -11,7 +11,7 @@ type NewBookingForm = {
   guest_name: string;
   email: string;
   phone: string;
-  accommodation_id: string;
+  accommodation_unit_id: string;
   checkin: string;
   checkout: string;
   guests: string;
@@ -28,7 +28,7 @@ const EMPTY_FORM: NewBookingForm = {
   guest_name: "",
   email: "",
   phone: "",
-  accommodation_id: "",
+  accommodation_unit_id: "",
   checkin: "",
   checkout: "",
   guests: "2",
@@ -105,8 +105,8 @@ export function AccommodationBookingsPanel({
   }, [showNew, units.length]);
 
   const selectedUnit = useMemo(
-    () => units.find((u) => String(u.id) === form.accommodation_id),
-    [units, form.accommodation_id],
+    () => units.find((u) => u.platform_id === form.accommodation_unit_id),
+    [units, form.accommodation_unit_id],
   );
 
   const nights =
@@ -122,8 +122,13 @@ export function AccommodationBookingsPanel({
     setCreateError(null);
     setCreateMsg(null);
 
-    const accommodationId = Number(form.accommodation_id);
-    if (!form.guest_name.trim() || !accommodationId || !form.checkin || !form.checkout) {
+    if (
+      !form.guest_name.trim() ||
+      !form.accommodation_unit_id ||
+      !selectedUnit ||
+      !form.checkin ||
+      !form.checkout
+    ) {
       setCreateError("Guest name, unit, check-in and check-out are required.");
       setCreating(false);
       return;
@@ -141,6 +146,8 @@ export function AccommodationBookingsPanel({
       return;
     }
 
+    const legacyAccommodationId =
+      typeof selectedUnit.id === "number" && selectedUnit.id > 0 ? selectedUnit.id : undefined;
     const res = await fetch("/api/v1/accommodation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -150,7 +157,8 @@ export function AccommodationBookingsPanel({
           guest_name: form.guest_name.trim(),
           email: form.email.trim() || undefined,
           phone: form.phone.trim() || undefined,
-          accommodation_id: accommodationId,
+          accommodation_unit_id: form.accommodation_unit_id,
+          accommodation_id: legacyAccommodationId,
           checkin: form.checkin,
           checkout: form.checkout,
           guests: form.guests ? Number(form.guests) : 2,
@@ -238,13 +246,15 @@ export function AccommodationBookingsPanel({
               Unit *
               <select
                 required
-                value={form.accommodation_id}
-                onChange={(e) => setForm((f) => ({ ...f, accommodation_id: e.target.value }))}
+                value={form.accommodation_unit_id}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, accommodation_unit_id: e.target.value }))
+                }
                 className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-white"
               >
                 <option value="">Select unit…</option>
                 {units.map((u) => (
-                  <option key={u.id} value={u.id}>
+                  <option key={u.platform_id ?? String(u.id)} value={u.platform_id ?? ""}>
                     {u.title}
                   </option>
                 ))}
