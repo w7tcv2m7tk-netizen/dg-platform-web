@@ -6,6 +6,7 @@
 import type { Prisma } from "@dg/database";
 
 import { resolveAddress } from "../addresses";
+import { runClaimedLeadFollowup } from "../automation/followup-claim";
 import { sendMessage } from "../communications";
 import { upsertLeadFromPublicCapture } from "../leads/public-capture";
 import {
@@ -99,10 +100,7 @@ export async function resolvePublicPropertyReportAddress(input: {
   });
 
   const cotalityId = resolved.metadata.corelogic_property_id;
-  const matched =
-    cotalityId != null && cotalityId !== ""
-      ? true
-      : false;
+  const matched = cotalityId != null && cotalityId !== "" ? true : false;
 
   return {
     ok: true,
@@ -183,8 +181,7 @@ export async function submitPublicPropertyReport(input: {
     corelogic: true,
     regionBias: "Gold Coast, QLD, Australia",
   });
-  const formatted =
-    resolved.formatted || propertyAddress;
+  const formatted = resolved.formatted || propertyAddress;
 
   const leadResult = await upsertLeadFromPublicCapture({
     organisationId,
@@ -400,7 +397,6 @@ export async function processPropertyReportFollowups(options?: {
 
     for (const step of due) {
       if (processed >= limit) break;
-      processed += 1;
       const rendered = renderPropertyReportFollowup(step, {
         firstName: sequence.firstName,
         fullName: sequence.fullName,
@@ -408,37 +404,39 @@ export async function processPropertyReportFollowups(options?: {
         email: sequence.email,
       });
 
-      try {
-        const delivery = await sendMessage({
+      const result = await runClaimedLeadFollowup({
+        spec: {
           organisationId: lead.organisationId,
-          channel: "email",
-          to: sequence.email,
-          subject: rendered.subject,
-          body: rendered.body,
-          bodyHtml: rendered.bodyHtml,
-          metadata: {
-            purpose: `property_report_followup_${step}`,
-            leadId: lead.id,
-            ctaLabel: "Book a free appraisal",
-          },
-        });
-
-        const nextSeq: PropertyReportSequenceMeta = {
-          ...sequence,
-          [`email_${step}_sent`]: true,
-          [`email_${step}_sent_at`]: new Date().toISOString(),
-        } as PropertyReportSequenceMeta;
-
-        await prisma.lead.update({
-          where: { id: lead.id },
-          data: {
+          leadId: lead.id,
+          sequenceKey: "property_report_sequence",
+          sentKey: `email_${step}_sent`,
+          sentAtKey: `email_${step}_sent_at`,
+        },
+        deliver: () =>
+          sendMessage({
+            organisationId: lead.organisationId,
+            channel: "email",
+            to: sequence.email,
+            subject: rendered.subject,
+            body: rendered.body,
+            bodyHtml: rendered.bodyHtml,
             metadata: {
-              ...meta,
-              property_report_sequence: nextSeq,
-            } as Prisma.InputJsonValue,
-          },
-        });
+              purpose: `property_report_followup_${step}`,
+              leadId: lead.id,
+              ctaLabel: "Book a free appraisal",
+            },
+          }),
+        // Preserve the existing communications contract: a queued result means
+        // the message has been accepted by the platform queue and is terminal
+        // for this follow-up step; only an explicit failed result is retryable.
+        delivered: (delivery) => delivery.status !== "failed",
+      });
 
+      if (result.status === "not_claimed") continue;
+      processed += 1;
+
+      if (result.status === "delivered") {
+        const delivery = result.delivery;
         await prisma.activity.create({
           data: {
             organisationId: lead.organisationId,
@@ -457,15 +455,23 @@ export async function processPropertyReportFollowups(options?: {
           },
         });
 
-        if (delivery.status === "failed") failed += 1;
-        else sent += 1;
-
-        // Refresh local sequence for next step on same lead
-        Object.assign(sequence, nextSeq);
-      } catch (err) {
-        failed += 1;
-        console.error("[property-report-followups] send failed", lead.id, step, err);
+        sent += 1;
+        const sentAt = new Date().toISOString();
+        Object.assign(sequence, {
+          [`email_${step}_sent`]: true,
+          [`email_${step}_sent_at`]: sentAt,
+        });
+        continue;
       }
+
+      failed += 1;
+      console.error("[property-report-followups] send failed", {
+        leadId: lead.id,
+        step,
+        status: result.status,
+        error:
+          result.status === "delivery_failed" ? result.error : undefined,
+      });
     }
   }
 
