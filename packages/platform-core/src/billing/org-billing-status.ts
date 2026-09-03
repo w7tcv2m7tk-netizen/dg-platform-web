@@ -165,16 +165,22 @@ export async function getOrganisationBillingStatus(
     settings: org.settings,
   });
   const hasStripeCustomer = Boolean(org.billingCustomerId);
-  const foundingCustomer = isFoundingCustomer(billing);
   const platformSub = await getPlatformSubscription(organisationId);
-  const subscriptionStatus =
-    platformSub?.stripeStatus?.trim() ||
-    billing.subscriptionStatus?.trim() ||
-    null;
-  const entitlementsSuspended =
-    platformSub?.entitlement === "READ_ONLY" ||
-    platformSub?.entitlement === "NONE" ||
-    billing.entitlementsSuspended === true;
+
+  // H-6: once PlatformSubscription exists it is authoritative. Organisation
+  // settings are only a legacy/pre-checkout projection and must not override it.
+  const subscriptionStatus = platformSub
+    ? platformSub.stripeStatus?.trim() || null
+    : billing.subscriptionStatus?.trim() || null;
+  const entitlementsSuspended = platformSub
+    ? platformSub.entitlement === "READ_ONLY" || platformSub.entitlement === "NONE"
+    : billing.entitlementsSuspended === true;
+  const foundingCustomer = platformSub
+    ? platformSub.foundingCustomer === true
+    : isFoundingCustomer(billing);
+  const platformExempt = !expectsPlatformBilling || (platformSub
+    ? platformSub.platformExempt === true
+    : billing.platformExempt === true);
 
   return {
     organisationId: org.id,
@@ -183,8 +189,8 @@ export async function getOrganisationBillingStatus(
     status: org.status,
     hasStripeCustomer,
     expectsPlatformBilling,
-    platformExempt: !expectsPlatformBilling || platformSub?.platformExempt === true,
-    foundingCustomer: foundingCustomer || platformSub?.foundingCustomer === true,
+    platformExempt,
+    foundingCustomer,
     platformTier: platformSub?.planTier ?? profile.platformTier,
     purchaseLabel: profile.purchaseLabel,
     subscriptionStatus,
@@ -197,7 +203,7 @@ export async function getOrganisationBillingStatus(
     kind: resolveKind({
       expectsPlatformBilling,
       hasStripeCustomer,
-      foundingCustomer: foundingCustomer || platformSub?.foundingCustomer === true,
+      foundingCustomer,
       status: org.status,
       subscriptionStatus,
       entitlementsSuspended,
