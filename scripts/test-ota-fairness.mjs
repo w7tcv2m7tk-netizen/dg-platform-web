@@ -7,24 +7,23 @@ import {
 } from "../packages/platform-core/src/accommodation/ota-cron-fairness.ts";
 import {
   orderOtaSourcesByLastSync,
-  selectDueOtaOrganisations,
+  selectRotatingOtaOrganisations,
 } from "../packages/platform-core/src/accommodation/ota-fairness.ts";
 
 const old = new Date("2026-09-01T00:00:00.000Z");
 const recent = new Date("2026-09-03T00:00:00.000Z");
 
-assert.deepEqual(
-  selectDueOtaOrganisations(
-    [
-      { organisationId: "recent", lastSyncAt: recent },
-      { organisationId: "never-b", lastSyncAt: null },
-      { organisationId: "old", lastSyncAt: old },
-      { organisationId: "never-a", lastSyncAt: null },
-    ],
-    3,
-  ),
-  ["never-a", "never-b", "old"],
-);
+const organisationIds = Array.from({ length: 120 }, (_, index) => `org-${String(index).padStart(3, "0")}`);
+const batchOne = selectRotatingOtaOrganisations(organisationIds, 50, new Date(0));
+const batchTwo = selectRotatingOtaOrganisations(organisationIds, 50, new Date(15 * 60 * 1000));
+const batchThree = selectRotatingOtaOrganisations(organisationIds, 50, new Date(30 * 60 * 1000));
+assert.equal(batchOne.length, 50);
+assert.equal(batchTwo.length, 50);
+assert.equal(batchThree.length, 50);
+assert.equal(new Set([...batchOne, ...batchTwo, ...batchThree]).size, 120);
+assert.deepEqual(batchOne.slice(0, 2), ["org-000", "org-001"]);
+assert.deepEqual(batchTwo.slice(0, 2), ["org-050", "org-051"]);
+assert.deepEqual(batchThree.slice(0, 2), ["org-100", "org-101"]);
 
 assert.deepEqual(
   orderOtaSourcesByLastSync({
@@ -89,14 +88,6 @@ const singleFeedCandidates = buildOtaOrganisationCandidates([
   },
 ]);
 assert.equal(singleFeedCandidates.length, 2, "blank OTA URLs must not consume a cron organisation slot");
-assert.equal(
-  singleFeedCandidates.find((row) => row.organisationId === "airbnb-only")?.lastSyncAt?.toISOString(),
-  recent.toISOString(),
-);
-assert.equal(
-  singleFeedCandidates.find((row) => row.organisationId === "booking-only")?.lastSyncAt?.toISOString(),
-  old.toISOString(),
-);
 assert.deepEqual(orderConfiguredOtaSources(singleFeedCandidates[0].units), ["airbnb"]);
 assert.deepEqual(orderConfiguredOtaSources(singleFeedCandidates[1].units), ["bookingcom"]);
 
@@ -114,7 +105,7 @@ assert.deepEqual(
   ["bookingcom", "airbnb"],
 );
 
-const neverSyncedConfiguredFeed = buildOtaOrganisationCandidates([
+const neverSyncedSource = [
   {
     organisationId: "needs-first-sync",
     airbnbIcalUrl: "https://example.com/a.ics",
@@ -122,8 +113,14 @@ const neverSyncedConfiguredFeed = buildOtaOrganisationCandidates([
     airbnbLastSyncAt: recent,
     bookingcomLastSyncAt: null,
   },
-]);
-assert.equal(neverSyncedConfiguredFeed[0].lastSyncAt, null);
+];
+assert.deepEqual(
+  orderConfiguredOtaSources(neverSyncedSource, {
+    organisationId: "needs-first-sync",
+    now: recent,
+  }),
+  ["bookingcom", "airbnb"],
+);
 
 const source = fs.readFileSync(
   new URL("../packages/platform-core/src/accommodation/ota-cron-fairness.ts", import.meta.url),
@@ -133,7 +130,7 @@ const route = fs.readFileSync(
   new URL("../src/app/api/cron/ota-ical-sync/route.ts", import.meta.url),
   "utf8",
 );
-assert.match(source, /selectDueOtaOrganisations\(candidates, limit\)/);
+assert.match(source, /selectRotatingOtaOrganisations\(/);
 assert.match(source, /organisationId,/);
 assert.doesNotMatch(source, /take:\s*limit/);
 assert.match(route, /syncFairOtaCalendarsCron\(\{ limitOrgs: 50 \}\)/);
