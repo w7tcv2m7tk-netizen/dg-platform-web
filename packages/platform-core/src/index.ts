@@ -102,6 +102,7 @@ export * from "./marketing/public-onboarding-intent";
 export * from "./real-estate/beta";
 export * from "./real-estate/syndication";
 export * from "./billing/platform-stripe";
+export * from "./billing/paid-apps";
 export * from "./billing/webhook-receipt-state";
 export * from "./billing/org-billing-status";
 export * from "./billing/subscription-types";

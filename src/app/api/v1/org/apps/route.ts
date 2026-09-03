@@ -6,6 +6,8 @@ import {
   industryBetaFlagForAppId,
   isIndustryBetaGatedApp,
   hasPlatformAuthority,
+  normalisePaidAppKeys,
+  paidAppKeyForAppId,
   resolveEnabledAppIds,
 } from "@dg/platform-core";
 
@@ -19,6 +21,9 @@ type OrgSettings = {
   apps?: {
     enabled?: string[];
     planPreview?: Record<string, unknown>;
+  };
+  profile?: {
+    purchasedPremium?: unknown;
   };
   featureFlags?: Record<string, boolean>;
 };
@@ -46,6 +51,25 @@ function enrolIndustryBetasForEnabled(
   return next;
 }
 
+function paidAppActivationAllowed(
+  appId: string,
+  settings: OrgSettings,
+  staffOrOperator: boolean,
+): boolean {
+  if (staffOrOperator) return true;
+  const paidKey = paidAppKeyForAppId(appId);
+  if (!paidKey) return true;
+  return normalisePaidAppKeys(settings.profile?.purchasedPremium).includes(paidKey);
+}
+
+function unpaidPaidApps(
+  appIds: string[],
+  settings: OrgSettings,
+  staffOrOperator: boolean,
+): string[] {
+  return appIds.filter((appId) => !paidAppActivationAllowed(appId, settings, staffOrOperator));
+}
+
 export async function GET() {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
@@ -71,7 +95,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  const session = await requirePlatformSession();
+  const session = await requirePlatformSession(req);
   if (isNextResponse(session)) return session;
 
   // Tenant write-entitlement (H-3): block writes for read-only/suspended orgs.
@@ -106,17 +130,19 @@ export async function PATCH(req: Request) {
   let enabled = resolveEnabledAppIds(settings);
 
   // Platform authority only — organisation slug is tenant-editable (see
-  // packages/platform-core/src/access/platform-authority.ts).
+  // packages/platform-core/src/access/platform-authority.ts). API-key sessions
+  // are explicitly excluded by principalId even for an allowlisted operator org.
   const staffOrOperator = hasPlatformAuthority({
     organisationId: session.organisationId,
     role: session.role,
+    principalId: session.clerkUserId,
   });
 
   const paidActivation =
     body.action === "apply_plan" ||
     (body.action === "toggle" && body.enabled !== false) ||
     body.action === "set";
-  // DigitalGate operator org + staff: always allow Industry toggles for testing/demo.
+  // DigitalGate interactive operator/staff sessions may toggle paid apps for testing/demo.
   if (paidActivation && !staffOrOperator) {
     const gate = await assertEntitlement(session.organisationId, "activatePaidApps");
     if (!gate.ok) {
@@ -141,7 +167,20 @@ export async function PATCH(req: Request) {
     });
     if (denied && session.role !== "owner" && session.role !== "admin" && session.role !== "dg:staff")
       return denied;
-    enabled = appIdsFromPlanSelection(body.plan);
+    const requested = appIdsFromPlanSelection(body.plan);
+    const unpaid = unpaidPaidApps(requested, settings, staffOrOperator);
+    if (unpaid.length) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "paid_app_purchase_required",
+            message: `Purchase required before activating paid app${unpaid.length === 1 ? "" : "s"}: ${unpaid.join(", ")}`,
+          },
+        },
+        { status: 403 },
+      );
+    }
+    enabled = requested;
   } else if (body.action === "toggle" && typeof body.appId === "string") {
     const denied = requirePermission(session, {
       module: "settings",
@@ -151,13 +190,38 @@ export async function PATCH(req: Request) {
     if (denied && session.role !== "owner" && session.role !== "admin" && session.role !== "dg:staff")
       return denied;
     const set = new Set(enabled);
+    const turningOn = body.enabled === true || (body.enabled !== false && !set.has(body.appId));
+    if (turningOn && !paidAppActivationAllowed(body.appId, settings, staffOrOperator)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "paid_app_purchase_required",
+            message: `Purchase required before activating paid app: ${body.appId}`,
+          },
+        },
+        { status: 403 },
+      );
+    }
     if (body.enabled === true) set.add(body.appId);
     else if (body.enabled === false) set.delete(body.appId);
     else if (set.has(body.appId)) set.delete(body.appId);
     else set.add(body.appId);
     enabled = [...set];
   } else if (body.action === "set" && Array.isArray(body.enabled)) {
-    enabled = body.enabled.filter((id: unknown) => typeof id === "string") as string[];
+    const requested = body.enabled.filter((id: unknown) => typeof id === "string") as string[];
+    const unpaid = unpaidPaidApps(requested, settings, staffOrOperator);
+    if (unpaid.length) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "paid_app_purchase_required",
+            message: `Purchase required before activating paid app${unpaid.length === 1 ? "" : "s"}: ${unpaid.join(", ")}`,
+          },
+        },
+        { status: 403 },
+      );
+    }
+    enabled = requested;
   } else if (body.action === "reset") {
     enabled = getDefaultEnabledAppIds();
   } else {
