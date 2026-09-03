@@ -1,4 +1,4 @@
-import { syncAllOrganisationsOtaCalendars } from "@dg/platform-core";
+import { syncFairOtaCalendarsCron } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { authorizeCronRequest } from "@/lib/cron-auth";
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
     );
   }
 
-  const result = await syncAllOrganisationsOtaCalendars({ limitOrgs: 50 });
+  const result = await syncFairOtaCalendarsCron({ limitOrgs: 50 });
   return NextResponse.json({ data: result });
 }
 
