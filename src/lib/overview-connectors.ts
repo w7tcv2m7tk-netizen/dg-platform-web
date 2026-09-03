@@ -61,6 +61,15 @@ async function probeNativeWebsite(
   }
 }
 
+async function probeNativeAccommodation(organisationId: string) {
+  try {
+    return await buildAccommodationSummary(organisationId);
+  } catch (error) {
+    console.error("[overview-connectors] native Accommodation probe failed", error);
+    return null;
+  }
+}
+
 /** Probe native platform health plus legacy Real Estate WordPress where configured. */
 export async function fetchOverviewConnectorProbes(
   enabledAppIds: string[],
@@ -77,7 +86,7 @@ export async function fetchOverviewConnectorProbes(
       ? fetchWpReSummary(30, orgConnector)
       : Promise.resolve(null),
     enabledAppIds.includes("accommodation")
-      ? buildAccommodationSummary(organisationId)
+      ? probeNativeAccommodation(organisationId)
       : Promise.resolve(null),
     probeNativeWebsite(organisationId),
     probeCommsConnector(organisationId, enabledAppIds),
