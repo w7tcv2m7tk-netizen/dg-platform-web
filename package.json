@@ -20,7 +20,7 @@
     "test:booking-unit-reassignment": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-booking-unit-reassignment.mjs",
     "db:generate": "prisma generate --schema=packages/database/prisma/schema.prisma",
     "db:push": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma/schema.prisma",
-    "db:studio": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma/schema.prisma",
+    "db:studio": "dotenv -e .env.local -- prisma studio --schema=packages/database/prisma/schema.prisma",
     "setup:stripe-webhook": "node scripts/setup-stripe-webhook.mjs",
     "commerce:smoke": "node scripts/commerce-smoke-test.mjs",
     "abr:smoke": "node scripts/abr-smoke.mjs",
