@@ -41,8 +41,6 @@ export default async function AccommodationBookingsPage() {
         total={loaded.total}
         error={error}
         siteLabel="Accommodation"
-        source="postgres"
-        wpSyncAvailable={false}
       />
     </main>
   );
