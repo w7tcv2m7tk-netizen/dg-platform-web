@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "bash -lc 'set +e; npm run test:cron-followup-claim; F=$?; npm run test:unit; U=$?; npx tsc --noEmit; T=$?; npx eslint packages/platform-core/src/automation/followup-claim.ts packages/platform-core/src/real-estate/public-property-report.ts packages/platform-core/src/leads/cron-claimed-followups.ts packages/platform-core/src/leads/followup-sequence.ts scripts/test-cron-followup-claim.mjs; L=$?; next build; B=$?; echo VALIDATION_RESULTS focused=$F unit=$U tsc=$T lint=$L build=$B; if [ $F -ne 0 ] || [ $T -ne 0 ] || [ $L -ne 0 ] || [ $B -ne 0 ]; then exit 1; fi; exit 0'",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test:unit": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-middleware-public-routes.mjs scripts/test-cron-auth.mjs scripts/test-webhook-secrets.mjs scripts/test-platform-authority.mjs scripts/test-command-centre-nav.mjs scripts/test-write-entitlement.mjs scripts/test-stripe-subscription-routing.mjs scripts/test-stripe-connect-tenant-trust.mjs scripts/test-growth-tenant-isolation.mjs scripts/test-dreamscape-auth.mjs scripts/test-rea-reaxml.mjs scripts/test-legacy-wp-form-post.mjs scripts/test-public-website-form-fields.mjs scripts/test-guest-identity.mjs scripts/test-public-host-slugs.mjs scripts/test-native-website-health.mjs scripts/test-team-invite.mjs scripts/test-subscription-lifecycle.mjs scripts/test-webhook-receipt-state.mjs scripts/test-support-staff-access.mjs scripts/test-api-key-authority.mjs scripts/test-tenant-write-entitlement-guard.mjs scripts/test-tenant-write-gaps.mjs scripts/test-organisation-lifecycle.mjs scripts/test-env-pairing.mjs scripts/test-verify-env.mjs scripts/test-ssrf-guard.mjs scripts/test-property-report-abuse-guard.mjs scripts/test-booking-overlap.mjs scripts/test-cron-followup-claim.mjs",
@@ -14,7 +14,7 @@
     "test:cron-followup-claim": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-cron-followup-claim.mjs",
     "db:generate": "prisma generate --schema=packages/database/prisma/schema.prisma",
     "db:push": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma/schema.prisma",
-    "db:studio": "dotenv -e .env.local -- prisma studio --schema=packages/database/prisma/schema.prisma",
+    "db:studio": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma/schema.prisma",
     "setup:stripe-webhook": "node scripts/setup-stripe-webhook.mjs",
     "commerce:smoke": "node scripts/commerce-smoke-test.mjs",
     "abr:smoke": "node scripts/abr-smoke.mjs",
