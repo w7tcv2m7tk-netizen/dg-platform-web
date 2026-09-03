@@ -44,5 +44,8 @@ test("native booking and OTA writes are explicitly Neon paths", () => {
 
 test("native booking edits fail closed on unit reassignment until atomic move exists", () => {
   assert.match(route, /booking_unit_move_requires_atomic_operation/);
-  assert.match(route, /patch\.accommodation_id\s*!==\s*existing\.accommodationWpId/);
+  assert.match(
+    route,
+    /\(!existing\s*\|\|\s*patch\.accommodation_id\s*!==\s*existing\.accommodationWpId\)/,
+  );
 });
