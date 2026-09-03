@@ -18,6 +18,18 @@ export type LeadFollowupClaim = LeadFollowupClaimSpec & {
   token: string;
 };
 
+export type LeadFollowupClaimOps = {
+  claim: (spec: LeadFollowupClaimSpec) => Promise<LeadFollowupClaim | null>;
+  complete: (claim: LeadFollowupClaim) => Promise<boolean>;
+  release: (claim: LeadFollowupClaim) => Promise<boolean>;
+};
+
+export type ClaimedFollowupResult<T> =
+  | { status: "not_claimed" }
+  | { status: "delivered"; delivery: T }
+  | { status: "delivery_failed"; delivery?: T; error?: unknown }
+  | { status: "finalize_failed"; delivery: T };
+
 function claimTokenKey(sentKey: string): string {
   return `${sentKey}_claim_token`;
 }
@@ -142,4 +154,60 @@ export async function releaseLeadFollowup(
   `);
 
   return updated === 1;
+}
+
+export const databaseLeadFollowupClaimOps: LeadFollowupClaimOps = {
+  claim: (spec) => claimLeadFollowup(spec),
+  complete: (claim) => completeLeadFollowup(claim),
+  release: (claim) => releaseLeadFollowup(claim),
+};
+
+/**
+ * Claim → deliver → finalise. Failed deliveries release ownership for an
+ * immediate retry. If delivery succeeds but finalisation fails, ownership is
+ * deliberately left in place until the lease expires rather than creating an
+ * immediate duplicate-send window.
+ */
+export async function runClaimedLeadFollowup<T>(input: {
+  spec: LeadFollowupClaimSpec;
+  deliver: () => Promise<T>;
+  delivered: (delivery: T) => boolean;
+  ops?: LeadFollowupClaimOps;
+}): Promise<ClaimedFollowupResult<T>> {
+  const ops = input.ops ?? databaseLeadFollowupClaimOps;
+  const claim = await ops.claim(input.spec);
+  if (!claim) return { status: "not_claimed" };
+
+  let delivery: T;
+  try {
+    delivery = await input.deliver();
+  } catch (error) {
+    try {
+      await ops.release(claim);
+    } catch (releaseError) {
+      console.warn("[followup-claim] release after delivery error failed", {
+        leadId: claim.leadId,
+        sentKey: claim.sentKey,
+        releaseError,
+      });
+    }
+    return { status: "delivery_failed", error };
+  }
+
+  if (!input.delivered(delivery)) {
+    try {
+      await ops.release(claim);
+    } catch (releaseError) {
+      console.warn("[followup-claim] release after unsuccessful delivery failed", {
+        leadId: claim.leadId,
+        sentKey: claim.sentKey,
+        releaseError,
+      });
+    }
+    return { status: "delivery_failed", delivery };
+  }
+
+  const completed = await ops.complete(claim);
+  if (!completed) return { status: "finalize_failed", delivery };
+  return { status: "delivered", delivery };
 }
