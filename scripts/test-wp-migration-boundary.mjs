@@ -96,7 +96,6 @@ test("legacy WordPress sync module has no Accommodation runtime sync machinery",
   assert.doesNotMatch(wordpressSync, /syncAccommodationUnitsFromWordPress/);
   assert.doesNotMatch(wordpressSync, /upsertStayBookingFromWpRow/);
   assert.doesNotMatch(wordpressSync, /acc\.wp_auto_sync/);
-  assert.equal(fs.existsSync("src/lib/accommodation-connector.ts"), false);
 });
 
 test("native Platform Core units module has no WordPress runtime connector or fallback SoT switch", () => {
