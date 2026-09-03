@@ -1,4 +1,4 @@
-import { orderOtaSourcesByLastSync, selectDueOtaOrganisations } from "./ota-fairness";
+import { orderOtaSourcesByLastSync, selectRotatingOtaOrganisations } from "./ota-fairness";
 import {
   syncOtaCalendarsFromUnits,
   type OtaIcalSource,
@@ -18,48 +18,16 @@ function hasConfiguredFeed(unit: UnitSyncState): boolean {
 }
 
 export function buildOtaOrganisationCandidates(units: UnitSyncState[]) {
-  const byOrg = new Map<
-    string,
-    {
-      oldestSyncAt: Date | null;
-      hasNeverSyncedConfiguredFeed: boolean;
-      units: UnitSyncState[];
-    }
-  >();
-
+  const byOrg = new Map<string, UnitSyncState[]>();
   for (const unit of units) {
     if (!hasConfiguredFeed(unit)) continue;
-
-    const row = byOrg.get(unit.organisationId) ?? {
-      oldestSyncAt: null,
-      hasNeverSyncedConfiguredFeed: false,
-      units: [],
-    };
-    row.units.push(unit);
-
-    const configuredFeeds: Array<{ configured: boolean; lastSyncAt: Date | null }> = [
-      { configured: Boolean(unit.airbnbIcalUrl?.trim()), lastSyncAt: unit.airbnbLastSyncAt },
-      { configured: Boolean(unit.bookingcomIcalUrl?.trim()), lastSyncAt: unit.bookingcomLastSyncAt },
-    ];
-
-    for (const feed of configuredFeeds) {
-      if (!feed.configured) continue;
-      if (!feed.lastSyncAt) {
-        row.hasNeverSyncedConfiguredFeed = true;
-        continue;
-      }
-      if (!row.oldestSyncAt || feed.lastSyncAt < row.oldestSyncAt) {
-        row.oldestSyncAt = feed.lastSyncAt;
-      }
-    }
-
-    byOrg.set(unit.organisationId, row);
+    const rows = byOrg.get(unit.organisationId) ?? [];
+    rows.push(unit);
+    byOrg.set(unit.organisationId, rows);
   }
-
-  return [...byOrg.entries()].map(([organisationId, value]) => ({
+  return [...byOrg.entries()].map(([organisationId, organisationUnits]) => ({
     organisationId,
-    lastSyncAt: value.hasNeverSyncedConfiguredFeed ? null : value.oldestSyncAt,
-    units: value.units,
+    units: organisationUnits,
   }));
 }
 
@@ -100,9 +68,9 @@ export function orderConfiguredOtaSources(
  * Fair cron entry-point for OTA calendar imports.
  *
  * The old cron selected an unordered `take: 50`, which could permanently starve
- * tenants beyond the cap. This scheduler considers every configured tenant,
- * serves never-synchronised/oldest tenants first, and rotates near-equal OTA
- * source priority between cron intervals instead of always privileging Airbnb.
+ * tenants beyond the cap. This scheduler rotates the capped batch across every
+ * configured tenant independently of feed success/failure, then rotates near-
+ * equal OTA source priority instead of always privileging Airbnb.
  */
 export async function syncFairOtaCalendarsCron(options?: {
   limitOrgs?: number;
@@ -139,7 +107,11 @@ export async function syncFairOtaCalendarsCron(options?: {
   });
 
   const candidates = buildOtaOrganisationCandidates(units);
-  const selectedIds = selectDueOtaOrganisations(candidates, limit);
+  const selectedIds = selectRotatingOtaOrganisations(
+    candidates.map((candidate) => candidate.organisationId),
+    limit,
+    runStartedAt,
+  );
   const byOrg = new Map(candidates.map((candidate) => [candidate.organisationId, candidate.units]));
 
   const aggregate: SyncAllOrgsOtaResult = {
