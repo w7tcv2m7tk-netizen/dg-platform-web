@@ -11,6 +11,7 @@ import { getCommandFeatureFlagsOverview } from "./flags-admin";
 import { getGrowthReports, type GrowthReportPeriod } from "./growth-reports";
 import { getClientExpansionOpportunities } from "./opportunities";
 import { getCommandCentreOpsHome } from "./overview";
+import { getPlatformAlertsBadgeCount, getPlatformAlertsCentre } from "./platform-alerts";
 import { getCommandMrrAttribution } from "./revenue";
 
 function requireOperator(operator: PlatformOperatorContext): void {
@@ -80,6 +81,22 @@ export async function listOperatorPlatformOpportunities(
     scope: "staff",
     limit: input?.limit,
   });
+}
+
+/** Capability-gated platform-wide alerts centre. */
+export async function getOperatorPlatformAlertsCentre(
+  operator: PlatformOperatorContext,
+) {
+  requireOperator(operator);
+  return getPlatformAlertsCentre();
+}
+
+/** Capability-gated lightweight platform alert badge. */
+export async function getOperatorPlatformAlertsBadgeCount(
+  operator: PlatformOperatorContext,
+) {
+  requireOperator(operator);
+  return getPlatformAlertsBadgeCount();
 }
 
 /** Capability-gated cross-tenant feature flag overview. */
