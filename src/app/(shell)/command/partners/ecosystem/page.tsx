@@ -1,8 +1,10 @@
 import Link from "next/link";
 
 import { PartnerEcosystemOverview } from "@/components/command/PartnerEcosystemContent";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
-export default function PartnerEcosystemPage() {
+export default async function PartnerEcosystemPage() {
+  await requirePlatformOperatorContext();
   return (
     <>
       <header className="dg-page-header">
