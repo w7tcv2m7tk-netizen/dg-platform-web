@@ -83,7 +83,7 @@ const SURFACES: BusinessBrainSnapshot["surfaces"] = [
     uses: "Underlying numbers and evidence behind interpretation",
   },
   {
-    label: "Command Centre",
+    label: "Overview",
     href: "/dashboard",
     uses: "Priorities and actions from Brain-backed intelligence",
   },
