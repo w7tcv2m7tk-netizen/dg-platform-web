@@ -2,8 +2,14 @@ import {
   isPlatformOperatorContext,
   type PlatformOperatorContext,
 } from "../access/platform-operator-context";
+import {
+  getDeliveryDashboardMetrics,
+  listDeliveryProjects,
+  listDeliveryTasks,
+} from "../delivery";
 import { updateOrganisationFeatureFlags } from "../features/flags";
 import { listPlatformOpportunities } from "../opportunity-engine";
+import { buildCommissionsWorkspace } from "../partners/commissions-workspace";
 import { generateClientAdvisorInsight } from "./advisor";
 import { getCommandBenchmarks } from "./benchmarks";
 import { getClientIntelligence } from "./client-intelligence";
@@ -128,4 +134,25 @@ export async function getOperatorCommandMrrAttribution(
 ) {
   requireOperator(operator);
   return getCommandMrrAttribution();
+}
+
+/** Capability-gated Partner Network commission ledger across organisations. */
+export async function getOperatorCommissionsWorkspace(
+  operator: PlatformOperatorContext,
+) {
+  requireOperator(operator);
+  return buildCommissionsWorkspace();
+}
+
+/** Capability-gated staff Delivery dashboard across customer implementations. */
+export async function getOperatorDeliveryDashboard(
+  operator: PlatformOperatorContext,
+) {
+  requireOperator(operator);
+  const [metrics, projects, tasks] = await Promise.all([
+    getDeliveryDashboardMetrics({ managerView: true }),
+    listDeliveryProjects({ managerView: true }),
+    listDeliveryTasks({ managerView: true }),
+  ]);
+  return { metrics, projects, tasks };
 }
