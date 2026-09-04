@@ -1,4 +1,3 @@
-import { after } from "next/server";
 import {
   canAccessCommandCentre,
   canAccessPartnerPortal,
@@ -12,7 +11,6 @@ import {
 import { PlatformShell } from "@/components/PlatformShell";
 import { getOrgEnabledAppIdsCached, getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
 import { getOrgBrandThemeCached } from "@/lib/org-brand-theme";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 /** Server wrapper — dedupes session + enabled apps once per request. */
@@ -23,11 +21,6 @@ export async function PlatformShellLoader({
   children: React.ReactNode;
   showFloatingChat?: boolean;
 }) {
-  // Don't block first paint on WordPress→Postgres onboarding sync.
-  after(() => {
-    void ensureOrganisationOnboardingSync().catch(() => null);
-  });
-
   const [{ user, session, clerkUserId, email }, enabledIds, industrySelectionIds, brandTheme] =
     await Promise.all([
     getPlatformPageContext(),
