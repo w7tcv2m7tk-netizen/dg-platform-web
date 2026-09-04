@@ -2,22 +2,14 @@ import { connection } from "next/server";
 import { buildFoundingLifecycleWorkspace } from "@dg/platform-core";
 
 import { FoundingLifecycleCockpit } from "@/components/founding/FoundingLifecycleCockpit";
-import { getPlatformPageContext } from "@/lib/org-apps";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function CommandFoundingPage() {
   await connection();
-  const { session } = await getPlatformPageContext();
-
-  if (!session?.organisationId) {
-    return (
-      <main className="dg-page-main">
-        <p className="text-sm text-slate-500">Sign in to manage the Founding Customer Programme.</p>
-      </main>
-    );
-  }
+  const operator = await requirePlatformOperatorContext();
 
   if (!process.env.DATABASE_URL) {
     return (
@@ -27,6 +19,6 @@ export default async function CommandFoundingPage() {
     );
   }
 
-  const data = await buildFoundingLifecycleWorkspace(session.organisationId);
+  const data = await buildFoundingLifecycleWorkspace(operator.operatorOrganisationId);
   return <FoundingLifecycleCockpit data={data} />;
 }
