@@ -1,11 +1,12 @@
 import Link from "next/link";
 import {
-  getGrowthReports,
+  getOperatorGrowthReports,
   healthTierDisplay,
   type GrowthReportPeriod,
 } from "@dg/platform-core";
 
 import { ScoreCell, TierBadge } from "@/components/command/tier-badge";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 interface PageProps {
   searchParams: Promise<{ period?: string }>;
@@ -18,6 +19,7 @@ const PERIODS: Array<{ id: GrowthReportPeriod; label: string }> = [
 ];
 
 export default async function CommandReportsPage({ searchParams }: PageProps) {
+  const operator = await requirePlatformOperatorContext();
   const params = await searchParams;
   const periodRaw = params.period ?? "mtd";
   const period = (["mtd", "last_30d", "last_7d"].includes(periodRaw)
@@ -25,7 +27,7 @@ export default async function CommandReportsPage({ searchParams }: PageProps) {
     : "mtd") as GrowthReportPeriod;
 
   const data = process.env.DATABASE_URL
-    ? await getGrowthReports({ period })
+    ? await getOperatorGrowthReports(operator, { period })
     : null;
 
   return (
