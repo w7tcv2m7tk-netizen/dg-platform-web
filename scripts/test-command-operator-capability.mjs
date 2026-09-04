@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -69,6 +70,10 @@ describe("Command Centre operator capability", () => {
       () => services.getOperatorCommandMrrAttribution(forged),
       () => services.getOperatorCommissionsWorkspace(forged),
       () => services.getOperatorDeliveryDashboard(forged),
+      () => services.listOperatorDeliveryProjects(forged, { limit: 1 }),
+      () => services.listOperatorDeliveryTasks(forged),
+      () => services.getOperatorDeliveryProject(forged, "project_victim"),
+      () => services.listOperatorDeliveryPartners(forged, { limit: 1 }),
       () =>
         services.updateOperatorOrganisationFeatureFlags(forged, {
           organisationId: "org_victim",
@@ -79,5 +84,15 @@ describe("Command Centre operator capability", () => {
     for (const call of calls) {
       await assert.rejects(call, /Platform operator capability required/);
     }
+  });
+
+  it("requires platform operator authority for staff partner invitation writes", () => {
+    const route = fs.readFileSync(
+      "src/app/api/v1/partners/invitations/route.ts",
+      "utf8",
+    );
+    assert.match(route, /requirePlatformOperator\(req\)/);
+    assert.doesNotMatch(route, /canAccessCommandCentre/);
+    assert.doesNotMatch(route, /requirePlatformSession/);
   });
 });
