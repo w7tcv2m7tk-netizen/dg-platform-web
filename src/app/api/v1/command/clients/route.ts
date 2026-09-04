@@ -1,13 +1,13 @@
-import { getClientIntelligence } from "@dg/platform-core";
+import { getOperatorClientIntelligence } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { requireCommandCentre } from "@/lib/command-api";
+import { requirePlatformOperator } from "@/lib/command-api";
 import { isNextResponse } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
-  const session = await requireCommandCentre(req, "command.clients.read");
-  if (isNextResponse(session)) return session;
+  const auth = await requirePlatformOperator(req, "command.clients.read");
+  if (isNextResponse(auth)) return auth;
 
-  const data = await getClientIntelligence();
+  const data = await getOperatorClientIntelligence(auth.operator);
   return NextResponse.json({ data });
 }
