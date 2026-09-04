@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  getCommandCentreDeliveryAlerts,
-  getOperatorDeliveryDashboard,
+  getOperatorDeliverySectionWorkspace,
   type DeliveryProjectRecord,
 } from "@dg/platform-core";
 
@@ -54,23 +53,17 @@ export default async function StaffDeliverySectionPage({ params }: { params: Pro
   const navId = (["customers", "plans", "team", "activity", "documents", "training", "qa", "reports"].includes(section) ? section : null) as DeliveryNavId | null;
   if (!navId) redirect("/command/delivery");
 
-  let projects: DeliveryProjectRecord[] = [];
-  let metrics = null as Awaited<ReturnType<typeof getOperatorDeliveryDashboard>>["metrics"] | null;
-  let alerts = null as Awaited<ReturnType<typeof getCommandCentreDeliveryAlerts>> | null;
-  let tasks = null as Awaited<ReturnType<typeof getOperatorDeliveryDashboard>>["tasks"] | null;
+  let workspace: Awaited<ReturnType<typeof getOperatorDeliverySectionWorkspace>> | null = null;
   try {
-    const [dashboard, deliveryAlerts] = await Promise.all([
-      getOperatorDeliveryDashboard(operator),
-      getCommandCentreDeliveryAlerts(),
-    ]);
-    projects = dashboard.projects;
-    metrics = dashboard.metrics;
-    tasks = dashboard.tasks;
-    alerts = deliveryAlerts;
+    workspace = await getOperatorDeliverySectionWorkspace(operator);
   } catch {
     /* tables not migrated */
   }
 
+  const projects = workspace?.projects ?? [];
+  const metrics = workspace?.metrics ?? null;
+  const alerts = workspace?.alerts ?? null;
+  const tasks = workspace?.tasks ?? null;
   const titles: Record<string, string> = { customers: "Delivery Customers", plans: "Implementation Plans", team: "Delivery Team", activity: "Delivery Activity", documents: "Implementation Documents", training: "Training", qa: "QA & Go-Live", reports: "Delivery Reports" };
 
   return (
