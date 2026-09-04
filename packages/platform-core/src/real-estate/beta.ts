@@ -17,7 +17,6 @@ export type ReBetaChecklistItemId =
   | "flag"
   | "profile_abn"
   | "profile_logo"
-  | "wordpress"
   | "team"
   | "vendor_lead"
   | "appraisal";
@@ -38,6 +37,7 @@ export type ReBetaReadiness = {
   totalCount: number;
   readyForPilot: boolean;
   items: ReBetaChecklistItem[];
+  /** Legacy migration connector state; informational only, never a native readiness requirement. */
   connectorConfigured: boolean;
   connectorLastSyncAt: string | null;
 };
@@ -168,13 +168,6 @@ export async function getReBetaReadiness(
       hint: "Upload logo for letterheads and the workspace brand",
     },
     {
-      id: "wordpress",
-      label: "WordPress connector",
-      done: connectorConfigured,
-      href: "/dashboard/settings/connectors",
-      hint: "Connect your agency site so leads and listings sync",
-    },
-    {
       id: "team",
       label: "Invite a teammate",
       done: hasTeam,
@@ -186,7 +179,7 @@ export async function getReBetaReadiness(
       label: "First vendor lead",
       done: hasVendorLead,
       href: "/apps/re/vendor-leads",
-      hint: "Add a vendor lead manually or sync from WordPress",
+      hint: "Add a vendor lead natively or import legacy data during migration",
     },
     {
       id: "appraisal",
@@ -198,9 +191,11 @@ export async function getReBetaReadiness(
   ];
 
   const completedCount = items.filter((i) => i.done).length;
-  /** Pilot-ready: flag + connector + identity + at least one vendor lead in the system. */
-  const readyForPilot =
-    betaEnabled && connectorConfigured && hasAbn && hasVendorLead;
+  /**
+   * Native pilot readiness must not depend on WordPress. A configured WP connector
+   * is legacy migration metadata only and can be disconnected after cutover.
+   */
+  const readyForPilot = betaEnabled && hasAbn && hasVendorLead;
 
   return {
     organisationId,
@@ -268,7 +263,6 @@ export async function provisionReBetaOrganisation(input: {
       data: {
         organisationId: org.id,
         appId: "real-estate",
-        version: "1.0.0",
         enabled: true,
       },
     });
@@ -280,9 +274,5 @@ export async function provisionReBetaOrganisation(input: {
     flags: { [RE_BETA_FLAG]: true },
   });
 
-  return {
-    organisationId: org.id,
-    flags,
-    appInstalled: true,
-  };
+  return { organisationId: org.id, flags, appInstalled: true };
 }
