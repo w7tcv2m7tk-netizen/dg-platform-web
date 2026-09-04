@@ -1,4 +1,3 @@
-import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { Suspense } from "react";
 import {
@@ -11,13 +10,12 @@ import {
   resolvePrimaryLinkedDomain,
 } from "@dg/platform-core";
 
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
-  fetchPortalMe,
   fetchWpSiteHealth,
   getWpHealthSite,
   listWpHealthSites,
 } from "@/lib/dg-api";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 import {
   HealthCentreDashboard,
   HealthCentreError,
@@ -86,23 +84,7 @@ function healthActionHref(
 
 export default async function WebsiteHealthPage({ searchParams }: PageProps) {
   const { site: siteId, view } = await searchParams;
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   const allowed = session
     ? await organisationHasWebsitesBuilder(session.organisationId)
@@ -116,6 +98,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
     ? await listOrganisationDomains(session.organisationId)
     : [];
 
+  // WordPress health is an explicit legacy migration/connector diagnostic view only.
   const showWpConnector =
     session && (await organisationHasWordPressConnector(session.organisationId));
   const showWp = view === "wordpress" && Boolean(showWpConnector);
@@ -130,7 +113,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} ·{" "}
           {showWp
-            ? "WordPress connector health"
+            ? "Legacy WordPress migration connector health"
             : "Live Gen 2 checklist (publish, domain, DNS, SSL, forms, SEO)"}
         </p>
       </header>
@@ -143,12 +126,12 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
           </p>
         ) : showWpConnector ? (
           <p className="text-xs text-slate-500">
-            Still running a WordPress site?{" "}
+            Migrating a legacy WordPress site?{" "}
             <Link
               href="/apps/websites/health?view=wordpress"
               className="text-slate-400 hover:text-slate-200 underline"
             >
-              Connector health
+              Migration connector health
             </Link>
           </p>
         ) : null}
@@ -302,7 +285,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
               <HealthCentreError
                 code={healthResult?.code ?? "network_error"}
                 message={
-                  healthResult?.message ?? "Could not load WordPress health"
+                  healthResult?.message ?? "Could not load WordPress migration connector health"
                 }
                 connectorBaseUrl={wpSite.baseUrl}
               />
