@@ -1,13 +1,13 @@
 import { provisionWebsitesBetaOrganisation } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { requireCommandCentre } from "@/lib/command-api";
+import { requirePlatformOperator } from "@/lib/command-api";
 import { isNextResponse } from "@/lib/platform-api";
 
-/** Staff: enable websites.builder + install Websites/Infrastructure. POST { organisationId } */
+/** Platform-operator provisioning: enable websites.builder + install Websites/Infrastructure. */
 export async function POST(req: Request) {
-  const session = await requireCommandCentre(req, "command.flags.manage");
-  if (isNextResponse(session)) return session;
+  const auth = await requirePlatformOperator(req, "command.flags.manage");
+  if (isNextResponse(auth)) return auth;
 
   const body = await req.json().catch(() => ({}));
   const organisationId =
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   try {
     const result = await provisionWebsitesBetaOrganisation({
       organisationId,
-      actorId: session.clerkUserId,
+      actorId: auth.operator.actorId,
     });
     return NextResponse.json({ data: result });
   } catch (err) {
