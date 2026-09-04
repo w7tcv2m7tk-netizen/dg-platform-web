@@ -119,18 +119,6 @@ export const KNOWN_FEATURE_FLAGS = [
       "StayBooking is created and conflict-checked natively in Neon. Public checkout and authenticated booking operations use Platform Core; WordPress booking sync is retained only for explicit legacy migration/catch-up.",
   },
   {
-    id: "re.wp_auto_sync",
-    label: "RE WordPress auto-sync",
-    description:
-      "When on, RE pages auto-pull WP leads/properties/bookings every 4h. Default off (WP-D-107) — Gen 2 is SoT; use manual Sync. Legacy catch-up only.",
-  },
-  {
-    id: "re.stage_writeback",
-    label: "RE stage write-back to WordPress",
-    description:
-      "When on, Gen 2 stage changes PATCH WordPress pipeline (plugin v10.68+). Gen 2 remains SoT either way.",
-  },
-  {
     id: "websites.builder",
     label: "Website Builder beta",
     description:
