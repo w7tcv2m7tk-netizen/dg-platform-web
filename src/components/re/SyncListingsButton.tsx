@@ -8,22 +8,24 @@ export function SyncListingsButton() {
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  async function syncNow() {
+  async function importLegacyProperties() {
     if (pending) return;
     setPending(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/v1/re/listings/sync", { method: "POST" });
+      const res = await fetch("/api/v1/migrations/wordpress/real-estate/properties", {
+        method: "POST",
+      });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setMessage(json.error?.message ?? "Sync failed");
+        setMessage(json.error?.message ?? "Legacy import failed");
         return;
       }
       const r = json.data?.result;
       setMessage(
         r
-          ? `Synced — ${r.created} new, ${r.updated} updated, ${r.skipped} skipped`
-          : "Synced",
+          ? `Imported — ${r.created} new, ${r.updated} updated, ${r.skipped} skipped`
+          : "Import complete",
       );
       router.refresh();
     } finally {
@@ -36,10 +38,10 @@ export function SyncListingsButton() {
       <button
         type="button"
         disabled={pending}
-        onClick={syncNow}
+        onClick={importLegacyProperties}
         className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-blue-500 disabled:opacity-50"
       >
-        {pending ? "Syncing…" : "Sync from website"}
+        {pending ? "Importing…" : "Import legacy website"}
       </button>
       {message ? <p className="mt-1 text-xs text-slate-400">{message}</p> : null}
     </div>
