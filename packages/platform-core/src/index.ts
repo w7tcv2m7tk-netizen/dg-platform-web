@@ -37,6 +37,7 @@ export * from "./connectors/microsoft";
 export * from "./connectors/linkedin";
 export * from "./connectors/corelogic";
 export * from "./connectors/abr";
+export * from "./connectors/asic";
 export * from "./contacts";
 export * from "./companies";
 export * from "./leads";
