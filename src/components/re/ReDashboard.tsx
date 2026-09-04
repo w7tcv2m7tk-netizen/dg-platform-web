@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import type { ReDashboardStats } from "@dg/platform-core";
-import type { WpRePipelineSummary } from "@/lib/dg-api";
 
 function StatCard({
   label,
@@ -42,17 +41,7 @@ const BUYER_STAGE_LABELS: Record<string, string> = {
   purchased: "Purchased",
 };
 
-export function ReDashboard({
-  stats,
-  wpSummary,
-  wpError,
-  showWordPress = false,
-}: {
-  stats: ReDashboardStats;
-  wpSummary?: WpRePipelineSummary;
-  wpError?: string;
-  showWordPress?: boolean;
-}) {
+export function ReDashboard({ stats }: { stats: ReDashboardStats }) {
   const isEmpty =
     stats.vendorLeads === 0 && stats.buyerLeads === 0 && stats.properties === 0;
 
@@ -65,10 +54,7 @@ export function ReDashboard({
           </h2>
           <p className="mt-2 max-w-xl text-sm text-slate-400">
             Start with a vendor lead, book an appraisal, then progress through listing → offer →
-            settlement.
-            {showWordPress
-              ? " Or sync leads from WordPress once the connector is live."
-              : " Add contacts and pipeline stages directly in DigitalGate."}
+            settlement. Add contacts and pipeline stages directly in DigitalGate.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
@@ -77,14 +63,6 @@ export function ReDashboard({
             >
               Add vendor lead
             </Link>
-            {showWordPress ? (
-              <Link
-                href="/dashboard/settings/connectors"
-                className="rounded-full border border-slate-600 px-5 py-2 text-sm text-slate-300 hover:bg-slate-900"
-              >
-                Connect WordPress
-              </Link>
-            ) : null}
           </div>
         </div>
       ) : null}
@@ -147,10 +125,7 @@ export function ReDashboard({
               </li>
             ))}
             {!Object.keys(stats.buyerByStage).length ? (
-              <li className="text-slate-500">
-                No buyer leads yet
-                {showWordPress ? " — sync from WordPress or add manually" : " — add manually"}
-              </li>
+              <li className="text-slate-500">No buyer leads yet — add manually</li>
             ) : null}
           </ul>
           <Link
@@ -161,30 +136,6 @@ export function ReDashboard({
           </Link>
         </div>
       </div>
-
-      {showWordPress && wpError ? (
-        <div className="dg-card border-amber-500/30">
-          <p className="text-sm text-amber-300">WordPress summary unavailable: {wpError}</p>
-          <Link
-            href="/dashboard/settings/connectors"
-            className="mt-2 inline-block text-sm text-sky-400 hover:underline"
-          >
-            Fix WordPress connector →
-          </Link>
-        </div>
-      ) : showWordPress && wpSummary ? (
-        <div className="dg-card">
-          <h2 className="font-semibold text-white">WordPress site — last 30 days</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <StatCard
-              label="Property reports"
-              value={wpSummary.property_reports_this_month ?? "—"}
-            />
-            <StatCard label="Bookings" value={wpSummary.bookings_this_month ?? "—"} />
-            <StatCard label="Site" value={wpSummary.site ?? "Connected"} />
-          </div>
-        </div>
-      ) : null}
 
       <div className="flex flex-wrap gap-3">
         <Link
