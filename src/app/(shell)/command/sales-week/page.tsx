@@ -5,18 +5,16 @@ import {
 } from "@dg/platform-core";
 
 import { SalesWeekCockpit } from "@/components/command/SalesWeekCockpit";
-import { getPlatformPageContext } from "@/lib/org-apps";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function CommandSalesWeekPage() {
   await connection();
-  const { session } = await getPlatformPageContext();
+  const operator = await requirePlatformOperatorContext();
   const prompt = resolveSalesWeekPrompt();
-  const scoreboard = session?.organisationId
-    ? await getSalesWeekScoreboard(session.organisationId)
-    : await getSalesWeekScoreboard("");
+  const scoreboard = await getSalesWeekScoreboard(operator.operatorOrganisationId);
 
   return <SalesWeekCockpit prompt={prompt} scoreboard={scoreboard} />;
 }
