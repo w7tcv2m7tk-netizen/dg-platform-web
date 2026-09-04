@@ -30,28 +30,6 @@ export function BuyerLeadPipeline({
 }) {
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
-  const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState<string | null>(null);
-
-  async function syncFromWordPress() {
-    setSyncing(true);
-    setSyncMsg(null);
-    const res = await fetch("/api/v1/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "sync_wordpress_buyers" }),
-    });
-    const json = await res.json().catch(() => null);
-    setSyncing(false);
-    if (!res.ok) {
-      setSyncMsg(json?.error?.message ?? "Sync failed");
-      return;
-    }
-    setSyncMsg(
-      `Synced: ${json.data.created} new, ${json.data.updated} updated, ${json.data.skipped} unchanged`,
-    );
-    router.refresh();
-  }
 
   async function moveStage(leadId: string, stage: string) {
     setPending(leadId);
@@ -73,27 +51,18 @@ export function BuyerLeadPipeline({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <CreateLeadForm leadType="buyer" />
-        <button
-          type="button"
-          onClick={syncFromWordPress}
-          disabled={syncing}
-          className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
-        >
-          {syncing ? "Syncing…" : "Sync buyers from WordPress"}
-        </button>
-        {syncMsg ? <p className="text-sm text-slate-400">{syncMsg}</p> : null}
       </div>
 
       {leads.length === 0 ? (
         <div className="dg-card border-dashed border-slate-700">
           <h2 className="text-lg font-semibold text-white">Add your first buyer lead</h2>
           <p className="mt-2 max-w-xl text-sm text-slate-400">
-            Create a buyer enquiry here, or sync property enquiry forms from your WordPress site.
-            Contacts are tagged as Buyer automatically.
+            Create a buyer enquiry here. Contacts are tagged as Buyer automatically and remain
+            managed natively in DigitalGate.
           </p>
           <p className="mt-3 text-xs text-slate-500">
-            Tip: use <span className="text-slate-400">Add buyer lead</span> above, or Sync buyers
-            from WordPress when the connector is live.
+            Tip: use <span className="text-slate-400">Add buyer lead</span> above to start the
+            pipeline.
           </p>
         </div>
       ) : (
