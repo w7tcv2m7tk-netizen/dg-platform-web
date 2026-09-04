@@ -8,6 +8,7 @@ import { generateClientAdvisorInsight } from "./advisor";
 import { getCommandBenchmarks } from "./benchmarks";
 import { getClientIntelligence } from "./client-intelligence";
 import { getCommandFeatureFlagsOverview } from "./flags-admin";
+import { getGrowthReports, type GrowthReportPeriod } from "./growth-reports";
 import { getClientExpansionOpportunities } from "./opportunities";
 import { getCommandCentreOpsHome } from "./overview";
 import { getCommandMrrAttribution } from "./revenue";
@@ -50,6 +51,15 @@ export async function getOperatorCommandBenchmarks(
 ) {
   requireOperator(operator);
   return getCommandBenchmarks(input);
+}
+
+/** Capability-gated period Growth Reports across customer organisations. */
+export async function getOperatorGrowthReports(
+  operator: PlatformOperatorContext,
+  input?: { period?: GrowthReportPeriod; organisationId?: string },
+) {
+  requireOperator(operator);
+  return getGrowthReports(input);
 }
 
 /** Capability-gated client expansion opportunities. */
