@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
 import {
   bootConnectorEngine,
   getOrgWordPressConnectorSettings,
@@ -16,7 +14,7 @@ import { GoogleGbpConnectorPanel } from "@/components/settings/GoogleGbpConnecto
 import { LinkedInConnectorPanel } from "@/components/settings/LinkedInConnectorPanel";
 import { ReaConnectorPanel } from "@/components/settings/ReaConnectorPanel";
 import { WordPressConnectorPanel } from "@/components/settings/WordPressConnectorPanel";
-import { fetchPortalMe } from "@/lib/dg-api";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 import { getLastWordPressSync } from "@/lib/wordpress-sync";
 
 bootConnectorEngine();
@@ -50,22 +48,7 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
     rea: reaFlash,
     message: flashMessage,
   } = await searchParams;
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   const lastSync = session ? await getLastWordPressSync(session.organisationId) : null;
   const [wpSettings, wpResolved] = session
@@ -175,50 +158,43 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
         ) : null}
 
         <div className="dg-card">
-          <h2 className="font-semibold text-white">Multi-site WordPress</h2>
+          <h2 className="font-semibold text-white">Legacy WordPress migration connector</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Each organisation stores <strong className="text-slate-200">one</strong>{" "}
-            primary WordPress host + site API key (above). Env keys are only reused when
-            the host matches — never send Roe/DigitalGate keys to CVH. Website Health and
-            Accommodation multi-site lists use{" "}
-            <code className="text-slate-300">DG_WP_HEALTH_SITES</code> /{" "}
-            <code className="text-slate-300">DG_WP_ACCOMMODATION_SITES</code> on Vercel for
-            portfolio probes; per-tenant sync still uses the org connector.
+            Each migrating organisation may store one legacy WordPress host + site API key.
+            The connector is a one-way onboarding source into Gen 2 and can be disconnected after
+            cutover. Environment keys are only reused when the host matches. Portfolio health
+            probes use <code className="text-slate-300">DG_WP_HEALTH_SITES</code> /{" "}
+            <code className="text-slate-300">DG_WP_ACCOMMODATION_SITES</code>; normal native
+            runtime does not depend on either list.
           </p>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="dg-card">
-            <h2 className="font-semibold text-white">WordPress sync status</h2>
+            <h2 className="font-semibold text-white">WordPress migration import history</h2>
             {lastSync?.lastVendorLeadSyncAt ? (
               <p className="mt-2 text-sm text-slate-400">
-                Last vendor sync:{" "}
+                Last vendor import:{" "}
                 {new Date(lastSync.lastVendorLeadSyncAt).toLocaleString("en-AU")}
                 {lastSync.lastVendorLeadSync
                   ? ` · ${lastSync.lastVendorLeadSync.created} imported`
                   : ""}
               </p>
             ) : (
-              <p className="mt-2 text-sm text-slate-400">No vendor lead sync recorded yet.</p>
+              <p className="mt-2 text-sm text-slate-400">No vendor lead migration import recorded yet.</p>
             )}
             {lastSync?.lastBuyerLeadSyncAt ? (
               <p className="mt-1 text-sm text-slate-400">
-                Last buyer sync:{" "}
+                Last buyer import:{" "}
                 {new Date(lastSync.lastBuyerLeadSyncAt).toLocaleString("en-AU")}
               </p>
             ) : null}
             {lastSync?.lastBookingSyncAt ? (
               <p className="mt-1 text-sm text-slate-400">
-                Last RE appraisal booking sync:{" "}
+                Last RE appraisal booking import:{" "}
                 {new Date(lastSync.lastBookingSyncAt).toLocaleString("en-AU")}
               </p>
             ) : null}
-            <Link
-              href="/apps/re/vendor-leads"
-              className="mt-4 inline-block text-sm text-blue-400 hover:underline"
-            >
-              Open vendor leads →
-            </Link>
           </div>
 
           <div className="dg-card">

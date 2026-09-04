@@ -16,7 +16,6 @@ import {
   requireFeature,
   requirePlatformAuth,
 } from "@/lib/platform-api";
-import { syncWordPressBuyerLeads, syncWordPressVendorLeads } from "@/lib/wordpress-sync";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -44,28 +43,6 @@ export async function POST(req: Request) {
   if (denied) return denied;
 
   const body = await req.json().catch(() => ({}));
-
-  if (body.action === "sync_wordpress") {
-    const outcome = await syncWordPressVendorLeads(session);
-    if (!outcome.ok) {
-      return NextResponse.json(
-        { error: { code: "sync_failed", message: outcome.message } },
-        { status: 422 },
-      );
-    }
-    return NextResponse.json({ data: outcome.result });
-  }
-
-  if (body.action === "sync_wordpress_buyers") {
-    const outcome = await syncWordPressBuyerLeads(session);
-    if (!outcome.ok) {
-      return NextResponse.json(
-        { error: { code: "sync_failed", message: outcome.message } },
-        { status: 422 },
-      );
-    }
-    return NextResponse.json({ data: outcome.result });
-  }
 
   if (body.action === "convert_to_opportunity") {
     const leadId = typeof body.id === "string" ? body.id : "";
@@ -138,7 +115,7 @@ export async function POST(req: Request) {
   const phone = typeof body.phone === "string" ? body.phone.trim() : "";
   const notes = typeof body.notes === "string" ? body.notes.trim() : "";
 
-  // Mirror WP sync: upsert Contact so CRM + convert/opportunity stay linked
+  // Canonical native CRM contact linkage keeps lead conversion/opportunity flows connected.
   let contactId: string | undefined;
   if (name || email || phone) {
     const contact = await ensureContactForLeadFields({

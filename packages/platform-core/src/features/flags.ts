@@ -104,31 +104,19 @@ export const KNOWN_FEATURE_FLAGS = [
     id: "acc.units_sot",
     label: "Accommodation units SoT (Neon)",
     description:
-      "Force Gen 2 AccommodationUnit as SoT for units/availability (WP becomes mirror). Soft-on when Neon already has units.",
+      "Gen 2 AccommodationUnit is the native system of record for units and availability. Legacy WordPress unit import is migration-only; normal runtime does not mirror writes to WordPress.",
   },
   {
     id: "acc.housekeeping_sot",
     label: "Accommodation housekeeping SoT (Neon)",
     description:
-      "Housekeeping PATCH writes Neon first; WordPress mirror optional. Soft-on with units SoT.",
+      "Housekeeping reads and writes the native AccommodationUnit state in Neon. Legacy WordPress housekeeping data may be imported during migration only; normal runtime does not mirror writes.",
   },
   {
     id: "acc.gen2_first_booking",
-    label: "Gen 2-first stay create",
+    label: "Gen 2 native stay booking",
     description:
-      "Ops create_booking conflict-checks Neon and creates StayBooking first, then dual-writes WordPress. Soft-on (default) for founding ops; set false to force WP-first. Public book-now stays WP until cutover.",
-  },
-  {
-    id: "re.wp_auto_sync",
-    label: "RE WordPress auto-sync",
-    description:
-      "When on, RE pages auto-pull WP leads/properties/bookings every 4h. Default off (WP-D-107) — Gen 2 is SoT; use manual Sync. Legacy catch-up only.",
-  },
-  {
-    id: "re.stage_writeback",
-    label: "RE stage write-back to WordPress",
-    description:
-      "When on, Gen 2 stage changes PATCH WordPress pipeline (plugin v10.68+). Gen 2 remains SoT either way.",
+      "StayBooking is created and conflict-checked natively in Neon. Public checkout and authenticated booking operations use Platform Core; WordPress booking sync is retained only for explicit legacy migration/catch-up.",
   },
   {
     id: "websites.builder",

@@ -4,16 +4,28 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import {
+  isNextResponse,
+  requirePermission,
+  requirePlatformAuth,
+} from "@/lib/platform-api";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 /**
- * POST — import WordPress pages into this Gen 2 Website (replaces pages, keeps draft).
+ * Explicit legacy migration action: WordPress → Gen 2 only.
+ * Replaces this Gen 2 website's pages and leaves the website as draft.
  */
 export async function POST(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const denied = requirePermission(session, {
+    module: "settings",
+    action: "manage",
+    scope: "organisation",
+  });
+  if (denied) return denied;
 
   const { id } = await ctx.params;
   const allowed = await organisationHasWebsitesBuilder(session.organisationId);
@@ -44,5 +56,11 @@ export async function POST(req: Request, ctx: Ctx) {
     );
   }
 
-  return NextResponse.json({ data: result.result });
+  return NextResponse.json({
+    data: {
+      ...result.result,
+      direction: "wordpress_to_gen2",
+      migrationOnly: true,
+    },
+  });
 }
