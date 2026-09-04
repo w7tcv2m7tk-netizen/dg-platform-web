@@ -1,16 +1,16 @@
 import { provisionReBetaOrganisation } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { requireCommandCentre } from "@/lib/command-api";
+import { requirePlatformOperator } from "@/lib/command-api";
 import { isNextResponse } from "@/lib/platform-api";
 
 /**
- * Staff provisioning: enable re.beta + install Real Estate app for a tenant.
+ * Platform-operator provisioning: enable re.beta + install Real Estate app for a tenant.
  * POST { organisationId }
  */
 export async function POST(req: Request) {
-  const session = await requireCommandCentre(req, "command.flags.manage");
-  if (isNextResponse(session)) return session;
+  const auth = await requirePlatformOperator(req, "command.flags.manage");
+  if (isNextResponse(auth)) return auth;
 
   const body = await req.json().catch(() => ({}));
   const organisationId =
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   try {
     const result = await provisionReBetaOrganisation({
       organisationId,
-      actorId: session.clerkUserId,
+      actorId: auth.operator.actorId,
     });
     return NextResponse.json({ data: result });
   } catch (err) {
