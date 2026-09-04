@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "organisationSlug": "digitalgate",
+  "generatedAt": "2026-09-04T17:00:00+10:00",
+  "purpose": "Second governed backfill containing durable DigitalGate business context recoverable from authorised project conversation context. These records are review candidates, not automatically approved truth.",
+  "limitations": "Historical conversations are not exposed as a complete transcript archive by the available tooling. This seed captures recoverable durable context only. Time-sensitive or potentially superseded commercial facts must be reviewed before approval.",
+  "defaultStatus": "proposed",
+  "items": [
+    {
+      "key": "DG-BIZ001",
+      "type": "strategy",
+      "title": "DigitalGate business focus",
+      "statement": "DigitalGate is a web-based marketing and business platform business with a strong focus on lead generation, websites, SEO, AI, automation and connected business operations for SMEs.",
+      "importance": "critical",
+      "scope": ["business", "positioning", "marketing"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:digitalgate-business"
+    },
+    {
+      "key": "DG-BIZ002",
+      "type": "strategy",
+      "title": "Platform vision",
+      "statement": "DigitalGate aims to become an intelligent business platform that helps owners run their businesses better and smarter by connecting operational context, understanding what matters and proactively helping them act.",
+      "importance": "critical",
+      "scope": ["business", "product", "vision"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:digitalgate-business"
+    },
+    {
+      "key": "DG-BIZ003",
+      "type": "fact",
+      "title": "DigitalGate-owned dogfood businesses",
+      "statement": "DigitalGate dogfoods the platform across DigitalGate itself and related operating businesses including Roe Realty, Currumbin Valley Hideaway and Aëtherra, each represented as a separate organisation/tenant rather than merged into one business record.",
+      "importance": "high",
+      "scope": ["business", "dogfood", "organisations"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:organisations"
+    },
+    {
+      "key": "DG-BIZ004",
+      "type": "strategy",
+      "title": "Real Estate as an early proving ground",
+      "statement": "Roe Realty is an important DigitalGate dogfood and proving-ground organisation for CRM, vendor lead generation, appraisals, listings and Real Estate industry workflows.",
+      "importance": "high",
+      "scope": ["real-estate", "dogfood", "crm"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:roe-realty"
+    },
+    {
+      "key": "DG-BIZ005",
+      "type": "strategy",
+      "title": "Accommodation as an early proving ground",
+      "statement": "Currumbin Valley Hideaway is an important DigitalGate dogfood organisation for native Gen 2 accommodation, bookings, guests, calendars, housekeeping, OTA/iCal workflows and direct-booking growth.",
+      "importance": "high",
+      "scope": ["accommodation", "dogfood", "bookings"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:cvh"
+    },
+    {
+      "key": "DG-BIZ006",
+      "type": "decision",
+      "title": "CVH is native Gen 2",
+      "statement": "Currumbin Valley Hideaway has completed its architectural cutover to native Gen 2 and must not depend on WordPress for normal production runtime.",
+      "importance": "critical",
+      "scope": ["accommodation", "architecture", "cvh"],
+      "sourceType": "project_decision",
+      "sourceRef": "historical-project-context:gen2-cutover"
+    },
+    {
+      "key": "DG-MKT002",
+      "type": "strategy",
+      "title": "SME owner outcome orientation",
+      "statement": "DigitalGate should be positioned around business outcomes — finding customers, converting opportunities, operating efficiently, getting paid, retaining customers and making better decisions — rather than exposing a list of disconnected software features.",
+      "importance": "critical",
+      "scope": ["positioning", "sales", "product"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:positioning"
+    },
+    {
+      "key": "DG-MKT003",
+      "type": "strategy",
+      "title": "Real Estate initial outbound market",
+      "statement": "A previous DigitalGate go-to-market focus has been boutique Real Estate agencies in the Southern Gold Coast, using lead generation and visibility systems as an entry point. Treat this as a reviewable market strategy rather than permanent platform scope.",
+      "importance": "medium",
+      "scope": ["marketing", "sales", "real-estate"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:go-to-market"
+    },
+    {
+      "key": "DG-MKT004",
+      "type": "fact",
+      "title": "Named Real Estate marketing frameworks",
+      "statement": "DigitalGate has developed or discussed branded Real Estate growth frameworks including AI Visibility Framework™, Appraisal Magnet System™, Listing Pipeline Framework™ and Vendor Velocity System™.",
+      "importance": "medium",
+      "scope": ["marketing", "real-estate", "intellectual-property"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:marketing-frameworks"
+    },
+    {
+      "key": "DG-TECH001",
+      "type": "architecture_decision",
+      "title": "Gen 2 web platform stack",
+      "statement": "DigitalGate Gen 2 is a Next.js multi-tenant platform using Clerk for identity/authentication, PostgreSQL on Neon for Platform Core data and Stripe for platform billing/payments where applicable.",
+      "importance": "critical",
+      "scope": ["technology", "architecture", "platform-core"],
+      "sourceType": "repo-and-conversation",
+      "sourceRef": "historical-project-context:technology-stack"
+    },
+    {
+      "key": "DG-TECH002",
+      "type": "strategy",
+      "title": "Connector strategy",
+      "statement": "DigitalGate should connect specialist business systems such as payments, accounting, Google/Microsoft communications, advertising, ecommerce, telephony and industry software so their context can improve Business Brain reasoning and automation.",
+      "importance": "high",
+      "scope": ["integrations", "business-brain", "architecture"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:integrations"
+    },
+    {
+      "key": "DG-TECH003",
+      "type": "integration_decision",
+      "title": "Accounting should generally be integrated, not rebuilt",
+      "statement": "DigitalGate should generally integrate and understand mature accounting systems rather than rebuilding a full general ledger, BAS, payroll and bank-reconciliation product; DigitalGate's differentiation is interpreting financial signals in the wider business context and helping the owner act.",
+      "importance": "high",
+      "scope": ["finance", "integrations", "business-brain"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:build-vs-integrate"
+    },
+    {
+      "key": "DG-PROD001",
+      "type": "strategy",
+      "title": "Platform pillars",
+      "statement": "DigitalGate's core platform story is Connect, Centralise, Understand, Automate and Grow, with Core services and Apps sharing a common intelligence and automation foundation.",
+      "importance": "high",
+      "scope": ["product", "positioning", "platform"],
+      "sourceType": "website-and-project-context",
+      "sourceRef": "historical-project-context:platform-pillars"
+    },
+    {
+      "key": "DG-PROD002",
+      "type": "architecture_decision",
+      "title": "Shared AI Service",
+      "statement": "The platform architecture includes a shared AI Service with reusable prompt/context/tool/model-routing capabilities so Apps do not each build isolated AI stacks.",
+      "importance": "high",
+      "scope": ["ai", "architecture", "platform-core"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:ai-service"
+    },
+    {
+      "key": "DG-PROD003",
+      "type": "architecture_decision",
+      "title": "Shared Scoring Engine",
+      "statement": "DigitalGate uses a shared scoring model for capabilities such as AI Visibility Score™, SEO Score™, Website Health Score™ and Business Health/Growth signals rather than isolated app-specific scoring logic where a shared foundation is appropriate.",
+      "importance": "high",
+      "scope": ["scoring", "analytics", "business-brain"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:scoring"
+    },
+    {
+      "key": "DG-PROD004",
+      "type": "decision",
+      "title": "Industry apps extend Platform Core",
+      "statement": "Industry Apps such as Real Estate, Accommodation, Finance and Services add specialised context and workflows while reusing canonical Platform Core contacts, companies, opportunities, tasks, communications, payments, documents and events.",
+      "importance": "critical",
+      "scope": ["industry-apps", "platform-core", "architecture"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:industry-apps"
+    },
+    {
+      "key": "DG-PROD005",
+      "type": "strategy",
+      "title": "Business Brain compounds across connected objects",
+      "statement": "Business Brain should compound knowledge across Contacts, Companies, Opportunities, Tasks, Communications, Documents, Websites, Payments, Bookings, Activities, integrations, automation outcomes and approved organisational knowledge rather than reason from isolated app data.",
+      "importance": "critical",
+      "scope": ["business-brain", "platform-core", "data-model"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:business-brain"
+    },
+    {
+      "key": "DG-PROD006",
+      "type": "strategy",
+      "title": "DigitalGate should learn from outcomes",
+      "statement": "Recommendations and automations should eventually be measured against resulting business outcomes so DigitalGate can learn which interventions actually help each organisation rather than repeatedly offering generic advice.",
+      "importance": "high",
+      "scope": ["business-brain", "learning", "automation", "analytics"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:closed-loop-intelligence"
+    },
+    {
+      "key": "DG-OPS001",
+      "type": "process",
+      "title": "Production changes are controlled",
+      "statement": "DigitalGate production remediation should inspect/read-only first, use branches and pull requests, run appropriate tests and migrations, and verify production after changes rather than performing uncontrolled production mutations.",
+      "importance": "critical",
+      "scope": ["engineering", "production", "security"],
+      "sourceType": "project_decision",
+      "sourceRef": "historical-project-context:remediation-discipline"
+    },
+    {
+      "key": "DG-OPS002",
+      "type": "principle",
+      "title": "Architecture boundary matters more than string counts",
+      "statement": "Legacy WordPress migration capability should not be deleted merely to achieve a zero-string-count audit result. The requirement is that normal native Gen 2 operation has no WordPress dependency while useful migration capability remains isolated at the connector boundary.",
+      "importance": "high",
+      "scope": ["architecture", "migration", "engineering"],
+      "sourceType": "project_decision",
+      "sourceRef": "historical-project-context:gen2-native-architecture"
+    },
+    {
+      "key": "DG-CUST001",
+      "type": "fact",
+      "title": "My Venue Clean opportunity",
+      "statement": "My Venue Clean has been discussed as a DigitalGate customer opportunity involving website improvement, platform onboarding and potentially a later second website/business line for venue services or maintenance. This should be reconciled with current CRM status before approval.",
+      "importance": "medium",
+      "scope": ["customer", "sales", "services"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:my-venue-clean"
+    },
+    {
+      "key": "DG-CUST002",
+      "type": "fact",
+      "title": "AIM Financial opportunity",
+      "statement": "AIM Financial has been discussed as a significant DigitalGate opportunity for a managed platform/website/CRM solution, with interest in reducing fragmented manual work and integrating specialist finance systems. Current commercial status must be checked in CRM before approval.",
+      "importance": "high",
+      "scope": ["customer", "sales", "finance"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "historical-project-context:aim-financial"
+    },
+    {
+      "key": "DG-CONTENT005",
+      "type": "process",
+      "title": "Turn strong product thinking into Insights",
+      "statement": "When platform work produces a genuinely differentiated business/product insight, DigitalGate should capture it as an Insight candidate for the public website rather than allowing the idea to disappear inside development conversations.",
+      "importance": "high",
+      "scope": ["content", "insights", "marketing", "business-brain"],
+      "sourceType": "conversation",
+      "sourceRef": "project-context:2026-09-04"
+    }
+  ]
+}

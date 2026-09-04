@@ -126,6 +126,7 @@ export * from "./onboarding";
 export * from "./partners";
 export * from "./delivery";
 export * from "./brain";
+export * from "./knowledge";
 export * from "./industry";
 export * from "./demo";
 export * from "./roadmap";

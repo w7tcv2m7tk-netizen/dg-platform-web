@@ -1,0 +1,450 @@
+{
+  "schemaVersion": 1,
+  "organisationSlug": "digitalgate",
+  "generatedAt": "2026-09-04T11:08:00+10:00",
+  "purpose": "Initial governed knowledge backfill from currently available DigitalGate project conversation context and canonical platform decisions.",
+  "limitations": "This seed is not claimed to contain every historical ChatGPT transcript. It contains durable knowledge recoverable from context available to the current project and should be augmented as additional authorised source conversations are made available.",
+  "defaultStatus": "proposed",
+  "items": [
+    {
+      "key": "DG-P001",
+      "type": "principle",
+      "title": "Complex underneath. Simple on top.",
+      "statement": "DigitalGate may be technically sophisticated underneath, but the customer experience should remain simple, clear and easy to operate.",
+      "importance": "critical",
+      "scope": ["platform", "ux", "product"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-P002",
+      "type": "ux_principle",
+      "title": "Business Owner Simplicity Gate",
+      "statement": "Every feature and page must ask: Could this be dramatically easier for the business owner? V1 is not finished unless a normal business owner can understand it without training and reach the outcome in the minimum reasonable steps.",
+      "importance": "critical",
+      "scope": ["platform", "ux", "definition-of-done"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-P003",
+      "type": "principle",
+      "title": "Machine thinks, human decides",
+      "statement": "Make the machine do the thinking wherever appropriate; make the human make the decisions that matter.",
+      "importance": "critical",
+      "scope": ["ai", "ux", "automation", "governance"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-P004",
+      "type": "principle",
+      "title": "AI should reduce work",
+      "statement": "AI should reduce UI and operational work rather than merely add a chatbot. It should make sensible defaults, identify what matters, recommend actions and automate complexity where appropriate.",
+      "importance": "critical",
+      "scope": ["ai", "product", "ux"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-P005",
+      "type": "ux_principle",
+      "title": "Default decision hierarchy",
+      "statement": "Default DigitalGate interfaces should answer: What is happening? Does it matter? What should I do?",
+      "importance": "high",
+      "scope": ["ux", "advisor", "analytics"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-P006",
+      "type": "ux_principle",
+      "title": "Progressive complexity",
+      "statement": "Use progressive complexity throughout DigitalGate: Simple → Explain → Advanced.",
+      "importance": "high",
+      "scope": ["ux", "platform"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-S001",
+      "type": "strategy",
+      "title": "Build differentiation, integrate specialists",
+      "statement": "Connect what already works. Build what makes DigitalGate unique. Intelligence ties everything together. Specialist systems should be integrated or orchestrated when rebuilding their mature capability would not create strategic advantage.",
+      "importance": "critical",
+      "scope": ["strategy", "integrations", "architecture"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-S002",
+      "type": "strategy",
+      "title": "More connection must create more intelligence",
+      "statement": "If a business connects more of its operations to DigitalGate, DigitalGate must become meaningfully more useful through better context, recommendations, automation, decisions and outcomes.",
+      "importance": "critical",
+      "scope": ["business-brain", "integrations", "product"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-S003",
+      "type": "strategy",
+      "title": "Platform prompts the user",
+      "statement": "DigitalGate should increasingly identify what needs attention and prompt the business owner with recommended actions instead of waiting for the owner to know what to ask or configure.",
+      "importance": "critical",
+      "scope": ["business-brain", "advisor", "automation", "ux"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-AI001",
+      "type": "architecture_decision",
+      "title": "Closed-loop intelligence pattern",
+      "statement": "The shared intelligence pattern is Signal → Insight → Recommendation → Action → Outcome → Learning.",
+      "importance": "critical",
+      "scope": ["business-brain", "advisor", "automation", "analytics"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-AI002",
+      "type": "strategy",
+      "title": "Connect → Understand → Advise → Act → Learn",
+      "statement": "DigitalGate intelligence should follow the Connect → Understand → Advise → Act → Learn loop, with authorised business context preceding intelligent action.",
+      "importance": "critical",
+      "scope": ["business-brain", "platform", "content"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-AI003",
+      "type": "opportunity",
+      "title": "Knowledge Inbox",
+      "statement": "After authorised conversations, meetings, emails or documents, DigitalGate should extract candidate decisions, principles, insights, ideas, actions and facts and present them for review, approval, editing, rejection or merge.",
+      "importance": "high",
+      "scope": ["business-brain", "knowledge", "ux"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-AI004",
+      "type": "architecture_decision",
+      "title": "Knowledge is governed organisational memory",
+      "statement": "Raw sources such as chats and documents are evidence. Durable organisational truth should be stored as structured, provenance-linked knowledge with lifecycle states Proposed, Approved, Superseded and Archived.",
+      "importance": "critical",
+      "scope": ["business-brain", "knowledge", "governance"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-AI005",
+      "type": "architecture_decision",
+      "title": "Documents and knowledge remain distinct",
+      "statement": "Platform Documents remain the canonical document/storage capability. Business Brain Knowledge may reference and extract from documents but must not overload org_documents or create a parallel document store.",
+      "importance": "high",
+      "scope": ["business-brain", "documents", "platform-core"],
+      "sourceType": "repo-and-conversation",
+      "sourceRef": "docs/foundations/BUSINESS-BRAIN-KNOWLEDGE.md"
+    },
+    {
+      "key": "DG-AI006",
+      "type": "opportunity",
+      "title": "Contradiction detection",
+      "statement": "Business Brain should detect likely conflicts between newer decisions and older approved knowledge or documents, present the evidence and support explicit supersession rather than silently selecting a truth.",
+      "importance": "high",
+      "scope": ["business-brain", "knowledge", "governance"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-ARCH001",
+      "type": "architecture_decision",
+      "title": "Platform Core / Neon is system of record",
+      "statement": "DigitalGate Gen 2 uses Platform Core backed by Neon as the system of record for normal production operation.",
+      "importance": "critical",
+      "scope": ["architecture", "platform-core", "database"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:gen2-native-architecture"
+    },
+    {
+      "key": "DG-ARCH002",
+      "type": "architecture_decision",
+      "title": "WordPress is migration-only",
+      "statement": "Normal Gen 2 production runtime has zero WordPress dependency. WordPress is retained only as a temporary migration connector for legacy client onboarding; migration direction is WordPress → Gen 2 and WordPress is disconnected after validated cutover.",
+      "importance": "critical",
+      "scope": ["architecture", "wordpress", "migration"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:gen2-native-architecture"
+    },
+    {
+      "key": "DG-ARCH003",
+      "type": "architecture_decision",
+      "title": "Command Centre is operator-only",
+      "statement": "Command Centre is the privileged DigitalGate operator control plane, not a customer section. Customer Business Brain, Advisor and business workspace capabilities belong in organisation context.",
+      "importance": "critical",
+      "scope": ["command-centre", "rbac", "information-architecture"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:platform-completion-programme"
+    },
+    {
+      "key": "DG-ARCH004",
+      "type": "architecture_decision",
+      "title": "One concept, one canonical object",
+      "statement": "One business concept should map to one canonical Platform Core object and one canonical primary UI. Industry apps extend canonical objects rather than reimplementing Contacts, Opportunities, Tasks, Activities, Communications, Documents, Payments or similar foundations.",
+      "importance": "critical",
+      "scope": ["platform-core", "industry-apps", "data-model"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:platform-completion-programme"
+    },
+    {
+      "key": "DG-ARCH005",
+      "type": "architecture_decision",
+      "title": "Shared event architecture",
+      "statement": "Automation, Analytics, Business Brain, notifications and Industry Apps should consume shared platform events such as contact.created, opportunity.stage_changed, task.completed, booking.created and payment.completed rather than app-specific spaghetti integrations.",
+      "importance": "high",
+      "scope": ["events", "automation", "business-brain", "architecture"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:platform-completion-programme"
+    },
+    {
+      "key": "DG-ARCH006",
+      "type": "architecture_decision",
+      "title": "RBAC is server-side",
+      "statement": "DigitalGate Operator, Organisation Owner, Organisation Admin and Member are distinct roles. Hiding navigation is not authorisation; server-side access controls and tenant boundaries are mandatory.",
+      "importance": "critical",
+      "scope": ["security", "rbac", "multi-tenancy"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:platform-completion-programme"
+    },
+    {
+      "key": "DG-ARCH007",
+      "type": "architecture_decision",
+      "title": "Tenant isolation is an acceptance criterion",
+      "statement": "Org A must never be able to read or mutate Org B data. Multi-tenancy isolation is a formal acceptance criterion for completed platform features.",
+      "importance": "critical",
+      "scope": ["security", "multi-tenancy", "definition-of-done"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:platform-completion-programme"
+    },
+    {
+      "key": "DG-ROAD001",
+      "type": "roadmap_item",
+      "title": "Finish horizontal platform before broad industry expansion",
+      "statement": "Complete Command Centre, Core, Growth, Platform and platform-wide UX foundations before broadly expanding unfinished Industry Apps.",
+      "importance": "critical",
+      "scope": ["roadmap", "platform-completion"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:platform-completion-programme"
+    },
+    {
+      "key": "DG-ROAD002",
+      "type": "roadmap_item",
+      "title": "Industry priority",
+      "statement": "Accommodation and Real Estate are the first Industry App priorities because they already have meaningful usage. Finance and Services follow; Automotive, Creator and new verticals come later.",
+      "importance": "high",
+      "scope": ["roadmap", "industry-apps"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:platform-completion-programme"
+    },
+    {
+      "key": "DG-PROC001",
+      "type": "process",
+      "title": "Audit → Remediate → Verify",
+      "statement": "Platform completion is performed as Audit → Remediate → Verify, with production truth and actual workflow testing rather than equating the existence of a route or component with a working feature.",
+      "importance": "high",
+      "scope": ["engineering", "quality", "platform-completion"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:platform-completion-programme"
+    },
+    {
+      "key": "DG-PROC002",
+      "type": "process",
+      "title": "Incremental completion rhythm",
+      "statement": "Preferred work rhythm is Inspect → determine intended V1 → fix small/medium gaps → test → production verify → mark LIVE → continue, rather than producing a giant theoretical audit before making progress.",
+      "importance": "high",
+      "scope": ["engineering", "product", "platform-completion"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:platform-completion-programme"
+    },
+    {
+      "key": "DG-PROC003",
+      "type": "decision",
+      "title": "Feature truth taxonomy",
+      "statement": "Feature status uses LIVE, MAIN, PARTIAL, SHELL, BROKEN and PLANNED, with DRAFT where relevant. Functional means more than a page existing; production end-to-end verification is required for LIVE.",
+      "importance": "high",
+      "scope": ["product", "website", "audit"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:platform-completion-programme"
+    },
+    {
+      "key": "DG-PROC004",
+      "type": "decision",
+      "title": "Build / consolidate / integrate test",
+      "statement": "Gaps should be classified as BUILD, CONSOLIDATE, DEFER, REMOVE or INTEGRATE to prevent completion work turning into an endless rewrite.",
+      "importance": "high",
+      "scope": ["product", "roadmap", "architecture"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:platform-completion-programme"
+    },
+    {
+      "key": "DG-STRAT001",
+      "type": "strategy",
+      "title": "Business Success Model",
+      "statement": "DigitalGate should evaluate business success across Attract → Capture → Convert → Deliver → Get Paid → Retain → Understand → Improve → Protect, with People, Finance and Operations running through the system.",
+      "importance": "critical",
+      "scope": ["strategy", "capability-model", "business-brain"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-STRAT002",
+      "type": "strategy",
+      "title": "Capability ownership framework",
+      "statement": "For important business capabilities, DigitalGate should decide whether to OWN, BUILD, INTEGRATE, ORCHESTRATE, UNDERSTAND, REFER or IGNORE the capability.",
+      "importance": "critical",
+      "scope": ["strategy", "integrations", "roadmap"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-STRAT003",
+      "type": "strategy",
+      "title": "Marketplace as connected technology stack",
+      "statement": "Marketplace should evolve beyond a catalogue of DigitalGate apps into the place where a business discovers, activates and connects DigitalGate apps, specialist integrations and services recommended for its needs.",
+      "importance": "high",
+      "scope": ["marketplace", "integrations", "platform"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-UX001",
+      "type": "ux_principle",
+      "title": "Native application feel",
+      "statement": "DigitalGate should feel like one coherent application, not a collection of unrelated webpages: persistent shell, consistent headers/actions, data grids, drawers/modals where appropriate, preserved state, immediate feedback and complete loading/empty/error behaviour.",
+      "importance": "high",
+      "scope": ["ux", "design-system", "platform"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:platform-completion-programme"
+    },
+    {
+      "key": "DG-UX002",
+      "type": "ux_principle",
+      "title": "Settings is configuration, not a dumping ground",
+      "statement": "Settings should contain organisation, users/team, roles/permissions, profile, billing, integrations, notifications, security and relevant app configuration. Marketplace is discovery/activation and Support is assistance.",
+      "importance": "high",
+      "scope": ["information-architecture", "settings", "marketplace", "support"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:platform-completion-programme"
+    },
+    {
+      "key": "DG-FEAT001",
+      "type": "opportunity",
+      "title": "Proactive enquiry acknowledgement",
+      "statement": "When DigitalGate detects that new enquiries are not being acknowledged, it should prompt the owner to enable an immediate response and create a follow-up task when the prospect does not reply.",
+      "importance": "high",
+      "scope": ["crm", "automation", "advisor", "lead-management"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-FEAT002",
+      "type": "opportunity",
+      "title": "Proactive follow-up prioritisation",
+      "statement": "DigitalGate should identify uncontacted or stale high-value opportunities, prioritise likely converters, prepare follow-ups or call lists and ask the owner to proceed rather than merely displaying counts.",
+      "importance": "high",
+      "scope": ["opportunities", "advisor", "automation", "growth"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-FEAT003",
+      "type": "opportunity",
+      "title": "Review opportunity detection",
+      "statement": "DigitalGate should identify recently completed customers who have not been asked for a review and offer to configure automated review requests.",
+      "importance": "medium",
+      "scope": ["reputation", "automation", "advisor"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-FEAT004",
+      "type": "opportunity",
+      "title": "Cash-flow action prompts",
+      "statement": "Where accounting/payment data is connected, DigitalGate should identify overdue receivables and cash-flow concerns and offer to prepare or automate appropriate reminders rather than rebuilding a full accounting system.",
+      "importance": "high",
+      "scope": ["finance", "integrations", "advisor", "automation"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-FEAT005",
+      "type": "opportunity",
+      "title": "Website conversion recommendations",
+      "statement": "DigitalGate should identify pages or services receiving traffic but converting poorly, explain likely causes and offer to implement safe improvements or guided recommendations.",
+      "importance": "high",
+      "scope": ["websites", "analytics", "growth", "advisor"],
+      "sourceType": "conversation_summary",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-CONTENT001",
+      "type": "content_idea",
+      "title": "Insights series — Part 1: Connected Business",
+      "statement": "Published/defined Insight: From fragmented businesses to intelligent ones — why AI needs a connected business, connection before intelligence, context before action, and the Connect → Understand → Advise → Act → Learn loop.",
+      "importance": "medium",
+      "scope": ["website", "insights", "content"],
+      "sourceType": "conversation",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-CONTENT002",
+      "type": "content_idea",
+      "title": "Insights series — Part 2: Business Operating System",
+      "statement": "Published/defined Insight: The intelligent business is more than a brain — business software as a living system with body, nervous system, memory, brain, advisor, hands, voice, governance and learning.",
+      "importance": "medium",
+      "scope": ["website", "insights", "content"],
+      "sourceType": "conversation",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-CONTENT003",
+      "type": "roadmap_item",
+      "title": "Insights series — Part 3: From Signal to Action",
+      "statement": "Part 3 should explain the DigitalGate AI loop — Connect, Understand, Advise, Act and Learn in depth — and should be completed/published before the next Insight.",
+      "importance": "high",
+      "scope": ["website", "insights", "content"],
+      "sourceType": "conversation",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-CONTENT004",
+      "type": "content_idea",
+      "title": "Insight: software that tells you what needs doing",
+      "statement": "A future Insight should explain why the next generation of business software should not wait for instructions: it should observe signals, identify opportunities/problems, recommend actions, help execute them, measure outcomes and learn.",
+      "importance": "high",
+      "scope": ["website", "insights", "thought-leadership"],
+      "sourceType": "conversation",
+      "sourceRef": "project-context:2026-09-04"
+    },
+    {
+      "key": "DG-MKT001",
+      "type": "strategy",
+      "title": "DigitalGate category position",
+      "statement": "DigitalGate is positioned as an AI-powered business operating platform that connects, centralises, understands, automates and helps businesses grow rather than as a collection of disconnected marketing tools.",
+      "importance": "critical",
+      "scope": ["positioning", "marketing", "product"],
+      "sourceType": "website-and-project-context",
+      "sourceRef": "docs/CATEGORY-POSITIONING.md"
+    },
+    {
+      "key": "DG-QUAL001",
+      "type": "principle",
+      "title": "Public website claims must match product truth",
+      "statement": "Marketing status and feature claims must be reconciled with main-branch implementation and production end-to-end behaviour. Do not label a feature Available/LIVE merely because a page or partial implementation exists.",
+      "importance": "high",
+      "scope": ["website", "product", "audit"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:feature-truth-audit"
+    }
+  ]
+}
