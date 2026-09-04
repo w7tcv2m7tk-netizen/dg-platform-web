@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { getCommandCentreOpsHome, resolveSalesWeekPrompt } from "@dg/platform-core";
+import { getOperatorCommandCentreOpsHome, resolveSalesWeekPrompt } from "@dg/platform-core";
 
 import { CommandBetaStatus } from "@/components/command/CommandBetaStatus";
 import { CommandOpsHome } from "@/components/command/CommandOpsHome";
 import { SalesWeekNowBanner } from "@/components/command/SalesWeekNowBanner";
 import { AppFeaturePlaceholder } from "@/components/platform/AppFeaturePlaceholder";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 interface PageProps {
   params: Promise<{ segments?: string[] }>;
@@ -24,8 +24,8 @@ const VAPOR_REDIRECTS: Record<string, string> = {
 
 async function CommandOverviewPage() {
   await connection();
-  await getPlatformPageContext();
-  const data = process.env.DATABASE_URL ? await getCommandCentreOpsHome() : null;
+  const operator = await requirePlatformOperatorContext();
+  const data = process.env.DATABASE_URL ? await getOperatorCommandCentreOpsHome(operator) : null;
   const salesPrompt = resolveSalesWeekPrompt();
 
   return (

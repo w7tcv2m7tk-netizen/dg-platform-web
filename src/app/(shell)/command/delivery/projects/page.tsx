@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { listOperatorDeliveryProjects } from "@dg/platform-core";
 
 import { DeliveryCommandPage } from "@/components/delivery/DeliveryCommandPage";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
-import { listDeliveryProjects } from "@dg/platform-core";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 function healthLabel(health: string): string {
   if (health === "on_track") return "🟢 On track";
@@ -17,13 +16,12 @@ export default async function StaffDeliveryProjectsPage({
 }: {
   searchParams: Promise<{ health?: string }>;
 }) {
-  const { clerkUserId } = await getPlatformPageContext();
-  if (!clerkUserId) redirect("/login");
+  const operator = await requirePlatformOperatorContext();
   const { health } = await searchParams;
 
-  let projects: Awaited<ReturnType<typeof listDeliveryProjects>> = [];
+  let projects: Awaited<ReturnType<typeof listOperatorDeliveryProjects>> = [];
   try {
-    projects = await listDeliveryProjects({ managerView: true, limit: 100 });
+    projects = await listOperatorDeliveryProjects(operator, { limit: 100 });
   } catch {
     /* not migrated */
   }

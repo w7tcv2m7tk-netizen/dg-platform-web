@@ -1,33 +1,13 @@
-import {
-  canAccessCommandCentre,
-  getCommandCentreOpsHome,
-} from "@dg/platform-core";
+import { getOperatorCommandCentreOpsHome } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { requirePlatformOperator } from "@/lib/command-api";
+import { isNextResponse } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
-  const session = await requirePlatformAuth(req);
-  if (isNextResponse(session)) return session;
+  const auth = await requirePlatformOperator(req, "command.overview.read");
+  if (isNextResponse(auth)) return auth;
 
-  const denied = requireFeature(session, "command.overview.read");
-  if (denied) return denied;
-
-  const allowed = canAccessCommandCentre({
-    organisationId: session.organisationId,
-    organisationName: session.organisationName,
-    organisationSlug: session.organisationSlug,
-    role: session.role,
-    principalId: session.clerkUserId,
-  });
-
-  if (!allowed) {
-    return NextResponse.json(
-      { error: { code: "forbidden", message: "Command Centre is internal only" } },
-      { status: 403 },
-    );
-  }
-
-  const data = await getCommandCentreOpsHome();
+  const data = await getOperatorCommandCentreOpsHome(auth.operator);
   return NextResponse.json({ data });
 }

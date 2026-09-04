@@ -1,19 +1,15 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-
-import { DeliveryCommandPage } from "@/components/delivery/DeliveryCommandPage";
-import { DeliveryDashboardContent } from "@/components/delivery/DeliveryDashboardContent";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
 import {
-  getDeliveryDashboardMetrics,
-  listDeliveryProjects,
-  listDeliveryTasks,
+  getOperatorDeliveryDashboard,
   type DeliveryDashboardMetrics,
 } from "@dg/platform-core";
 
+import { DeliveryCommandPage } from "@/components/delivery/DeliveryCommandPage";
+import { DeliveryDashboardContent } from "@/components/delivery/DeliveryDashboardContent";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
+
 export default async function StaffDeliveryDashboardPage() {
-  const { clerkUserId } = await getPlatformPageContext();
-  if (!clerkUserId) redirect("/login");
+  const operator = await requirePlatformOperatorContext();
 
   let metrics: DeliveryDashboardMetrics = {
     activeImplementations: 0,
@@ -26,15 +22,11 @@ export default async function StaffDeliveryDashboardPage() {
     customersAwaitingInformation: 0,
     tasksDueToday: 0,
   };
-  let projects: Awaited<ReturnType<typeof listDeliveryProjects>> = [];
-  let tasks: Awaited<ReturnType<typeof listDeliveryTasks>> = [];
+  let projects: Awaited<ReturnType<typeof getOperatorDeliveryDashboard>>["projects"] = [];
+  let tasks: Awaited<ReturnType<typeof getOperatorDeliveryDashboard>>["tasks"] = [];
 
   try {
-    [metrics, projects, tasks] = await Promise.all([
-      getDeliveryDashboardMetrics({ managerView: true }),
-      listDeliveryProjects({ managerView: true }),
-      listDeliveryTasks({ managerView: true }),
-    ]);
+    ({ metrics, projects, tasks } = await getOperatorDeliveryDashboard(operator));
   } catch {
     /* tables not migrated yet */
   }

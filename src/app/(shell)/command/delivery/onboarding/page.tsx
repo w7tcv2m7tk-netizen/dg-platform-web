@@ -1,16 +1,13 @@
-import { redirect } from "next/navigation";
-
 import { CustomerOnboardingWorkflow } from "@/components/command/PartnerEcosystemContent";
 import { DeliveryCommandPage } from "@/components/delivery/DeliveryCommandPage";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 /**
  * Delivery → Onboarding — customer kick-off / acceptance workflow.
  * Implementation Lifecycle stages still live under Implementation Plans.
  */
 export default async function StaffDeliveryOnboardingPage() {
-  const { clerkUserId } = await getPlatformPageContext();
-  if (!clerkUserId) redirect("/login");
+  await requirePlatformOperatorContext();
 
   return (
     <DeliveryCommandPage

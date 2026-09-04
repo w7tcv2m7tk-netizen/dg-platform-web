@@ -9,13 +9,13 @@ import {
   formatClientExpansionSignal,
   formatClientObservedSignal,
   formatClientOrganisationMeta,
-  getClientIntelligence,
+  getOperatorClientIntelligence,
 } from "@dg/platform-core";
 
 import { AttentionInterventionCards } from "@/components/command/AttentionInterventionCards";
 import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
 import { OperatorOrgTable } from "@/components/command/OperatorOrgTable";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 function shell(
   title: string,
@@ -42,8 +42,7 @@ export default async function CustomerIntelligenceSectionPage({
 }: {
   params: Promise<{ section: string }>;
 }) {
-  const { clerkUserId } = await getPlatformPageContext();
-  if (!clerkUserId) redirect("/login");
+  const operator = await requirePlatformOperatorContext();
 
   const { section } = await params;
   const allowed = ["overview", "health", "adoption", "engagement", "at-risk", "expansion"];
@@ -56,7 +55,9 @@ export default async function CustomerIntelligenceSectionPage({
     redirect("/command/clients");
   }
 
-  const intel = process.env.DATABASE_URL ? await getClientIntelligence() : null;
+  const intel = process.env.DATABASE_URL
+    ? await getOperatorClientIntelligence(operator)
+    : null;
   const clients = intel?.clients ?? [];
 
   if (section === "health") {

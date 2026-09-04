@@ -1,12 +1,12 @@
-import { generateClientAdvisorInsight } from "@dg/platform-core";
+import { generateOperatorClientAdvisorInsight } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { requireCommandCentre } from "@/lib/command-api";
+import { requirePlatformOperator } from "@/lib/command-api";
 import { isNextResponse } from "@/lib/platform-api";
 
 export async function POST(req: Request) {
-  const session = await requireCommandCentre(req, "command.clients.read");
-  if (isNextResponse(session)) return session;
+  const auth = await requirePlatformOperator(req, "command.clients.read");
+  if (isNextResponse(auth)) return auth;
 
   const body = await req.json().catch(() => ({}));
   const organisationId =
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const insight = await generateClientAdvisorInsight({
+  const insight = await generateOperatorClientAdvisorInsight(auth.operator, {
     organisationId,
     question,
   });

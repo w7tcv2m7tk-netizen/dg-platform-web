@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { getClientExpansionOpportunities } from "@dg/platform-core";
+import { getOperatorClientExpansionOpportunities } from "@dg/platform-core";
 
 import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 function formatAud(cents: number) {
   return new Intl.NumberFormat("en-AU", {
@@ -12,8 +13,9 @@ function formatAud(cents: number) {
 }
 
 export default async function CommandExpansionPage() {
+  const operator = await requirePlatformOperatorContext();
   const data = process.env.DATABASE_URL
-    ? await getClientExpansionOpportunities()
+    ? await getOperatorClientExpansionOpportunities(operator)
     : null;
 
   return (

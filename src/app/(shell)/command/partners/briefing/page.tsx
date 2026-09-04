@@ -1,8 +1,10 @@
 import Link from "next/link";
 
 import { FoundingResellerBriefingRunSheet } from "@/components/command/FoundingResellerBriefingRunSheet";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
-export default function PartnerBriefingPage() {
+export default async function PartnerBriefingPage() {
+  await requirePlatformOperatorContext();
   return (
     <>
       <header className="dg-page-header">

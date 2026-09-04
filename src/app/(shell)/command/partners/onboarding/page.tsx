@@ -1,6 +1,8 @@
 import { CustomerOnboardingWorkflow } from "@/components/command/PartnerEcosystemContent";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
-export default function PartnerOnboardingPage() {
+export default async function PartnerOnboardingPage() {
+  await requirePlatformOperatorContext();
   return (
     <>
       <header className="dg-page-header">

@@ -1,29 +1,13 @@
-import { canAccessCommandCentre, createTask } from "@dg/platform-core";
+import { createTask } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { requirePlatformOperator } from "@/lib/command-api";
+import { isNextResponse } from "@/lib/platform-api";
 
-/** Create a CRM task on the opportunity's organisation (Command staff). */
+/** Create a CRM task on the opportunity's organisation (platform operator only). */
 export async function POST(req: Request) {
-  const session = await requirePlatformAuth(req);
-  if (isNextResponse(session)) return session;
-
-  const denied = requireFeature(session, "command.opportunities.read");
-  if (denied) return denied;
-
-  const allowed = canAccessCommandCentre({
-    organisationId: session.organisationId,
-    organisationName: session.organisationName,
-    organisationSlug: session.organisationSlug,
-    role: session.role,
-    principalId: session.clerkUserId,
-  });
-  if (!allowed) {
-    return NextResponse.json(
-      { error: { code: "forbidden", message: "Command Centre is internal only" } },
-      { status: 403 },
-    );
-  }
+  const auth = await requirePlatformOperator(req, "command.opportunities.read");
+  if (isNextResponse(auth)) return auth;
 
   const body = await req.json().catch(() => null);
   const organisationId =
@@ -46,7 +30,7 @@ export async function POST(req: Request) {
 
   const task = await createTask({
     organisationId,
-    actorId: session.clerkUserId,
+    actorId: auth.operator.actorId,
     title,
     description:
       typeof body?.description === "string" ? body.description : undefined,

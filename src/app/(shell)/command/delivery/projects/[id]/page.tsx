@@ -1,22 +1,21 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { getOperatorDeliveryProject } from "@dg/platform-core";
 
 import { DeliveryCommandPage } from "@/components/delivery/DeliveryCommandPage";
 import { DeliveryProjectRecordView } from "@/components/delivery/DeliveryProjectRecordView";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
-import { getDeliveryProject } from "@dg/platform-core";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 export default async function StaffDeliveryProjectPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { clerkUserId } = await getPlatformPageContext();
-  if (!clerkUserId) redirect("/login");
+  const operator = await requirePlatformOperatorContext();
   const { id } = await params;
 
   let project = null;
   try {
-    project = await getDeliveryProject(id);
+    project = await getOperatorDeliveryProject(operator, id);
   } catch {
     /* not migrated */
   }

@@ -8,6 +8,7 @@ import {
   PARTNER_REFERRAL_STATUS_LABELS,
 } from "@dg/platform-core";
 import { PartnerAdminActions } from "@/components/partner/PartnerAdminActions";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 function centsToDisplay(cents: number): string {
   return (cents / 100).toLocaleString("en-AU", {
@@ -29,6 +30,7 @@ export default async function AdminPartnerDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requirePlatformOperatorContext();
   const { id } = await params;
 
   const [partner, referrals, commissions, commissionSummary] = await Promise.all([
@@ -66,7 +68,6 @@ export default async function AdminPartnerDetailPage({
 
       <main className="dg-page-main">
         <div className="max-w-4xl space-y-10">
-          {/* Profile */}
           <Section title="Profile">
             <dl className="divide-y divide-slate-700/40">
               {[
@@ -97,7 +98,6 @@ export default async function AdminPartnerDetailPage({
             )}
           </Section>
 
-          {/* Commission summary */}
           <Section title="Commission Summary">
             <div className="grid grid-cols-3 divide-x divide-slate-700/40">
               <SummaryCell label="Total Earned" value={centsToDisplay(commissionSummary.totalEarnedCents)} />
@@ -106,7 +106,6 @@ export default async function AdminPartnerDetailPage({
             </div>
           </Section>
 
-          {/* Referrals */}
           <Section title={`Referrals (${referrals.length})`}>
             {referrals.length === 0 ? (
               <p className="px-5 py-4 text-sm text-slate-400">No referrals yet.</p>
@@ -142,7 +141,6 @@ export default async function AdminPartnerDetailPage({
             )}
           </Section>
 
-          {/* Commissions */}
           <Section title={`Commissions (${commissions.length})`}>
             {commissions.length === 0 ? (
               <p className="px-5 py-4 text-sm text-slate-400">No commission entries yet.</p>

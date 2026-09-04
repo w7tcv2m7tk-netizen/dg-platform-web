@@ -1,15 +1,17 @@
 import Link from "next/link";
-import { getClientIntelligence } from "@dg/platform-core";
+import { getOperatorClientIntelligence } from "@dg/platform-core";
 
 import { AiAdvisorPanel } from "@/components/command/AiAdvisorPanel";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 interface PageProps {
   searchParams: Promise<{ org?: string }>;
 }
 
 export default async function CommandAdvisorPage({ searchParams }: PageProps) {
+  const operator = await requirePlatformOperatorContext();
   const { org } = await searchParams;
-  const data = process.env.DATABASE_URL ? await getClientIntelligence() : null;
+  const data = process.env.DATABASE_URL ? await getOperatorClientIntelligence(operator) : null;
   const orgs =
     data?.clients.map((c) => ({
       organisationId: c.organisationId,

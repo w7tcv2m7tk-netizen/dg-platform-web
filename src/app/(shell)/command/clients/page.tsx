@@ -3,14 +3,18 @@ import {
   clientScoreTierDisplay,
   clientScoreTierEmoji,
   formatClientObservedSignal,
-  getClientIntelligence,
+  getOperatorClientIntelligence,
 } from "@dg/platform-core";
 
 import { AttentionInterventionCards } from "@/components/command/AttentionInterventionCards";
 import { ScoreCell, ScoreTierBadge } from "@/components/command/tier-badge";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 export default async function CustomerPortfolioPage() {
-  const intel = process.env.DATABASE_URL ? await getClientIntelligence() : null;
+  const operator = await requirePlatformOperatorContext();
+  const intel = process.env.DATABASE_URL
+    ? await getOperatorClientIntelligence(operator)
+    : null;
   const clients = intel?.clients ?? [];
   const attentionClients = clients.filter((c) => c.needsAttention);
 

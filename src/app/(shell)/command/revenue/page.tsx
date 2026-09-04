@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getCommandCentreOpsHome, getCommandMrrAttribution } from "@dg/platform-core";
+import {
+  getOperatorCommandCentreOpsHome,
+  getOperatorCommandMrrAttribution,
+} from "@dg/platform-core";
 
 import { OperatorCategoryHeader } from "@/components/command/OperatorCategoryHeader";
 import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 function billingLabel(interval: string): string {
   if (interval === "month") return "Monthly";
@@ -19,12 +21,14 @@ function statusLabel(status: string): string {
 }
 
 export default async function CommandRevenuePage() {
-  const { clerkUserId } = await getPlatformPageContext();
-  if (!clerkUserId) redirect("/login");
+  const operator = await requirePlatformOperatorContext();
 
   const db = Boolean(process.env.DATABASE_URL);
   const [data, attribution] = db
-    ? await Promise.all([getCommandCentreOpsHome(), getCommandMrrAttribution()])
+    ? await Promise.all([
+        getOperatorCommandCentreOpsHome(operator),
+        getOperatorCommandMrrAttribution(operator),
+      ])
     : [null, null];
 
   return (

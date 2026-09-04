@@ -1,8 +1,10 @@
 import Link from "next/link";
 
 import { DeliveryOperatingModel } from "@/components/command/PartnerEcosystemContent";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
-export default function PartnerDeliveryPage() {
+export default async function PartnerDeliveryPage() {
+  await requirePlatformOperatorContext();
   return (
     <>
       <header className="dg-page-header">
