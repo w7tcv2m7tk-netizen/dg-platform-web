@@ -70,6 +70,7 @@ describe("Command Centre operator capability", () => {
       () => services.getOperatorCommandMrrAttribution(forged),
       () => services.getOperatorCommissionsWorkspace(forged),
       () => services.getOperatorPartnerDashboardWorkspace(forged),
+      () => services.getOperatorPartnerReferralsWorkspace(forged),
       () => services.listOperatorPaidCommissions(forged, { limit: 1 }),
       () => services.getOperatorDeliveryDashboard(forged),
       () => services.listOperatorDeliveryProjects(forged, { limit: 1 }),
