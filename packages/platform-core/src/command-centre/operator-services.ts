@@ -3,6 +3,7 @@ import {
   type PlatformOperatorContext,
 } from "../access/platform-operator-context";
 import { updateOrganisationFeatureFlags } from "../features/flags";
+import { listPlatformOpportunities } from "../opportunity-engine";
 import { getCommandBenchmarks } from "./benchmarks";
 import { getClientIntelligence } from "./client-intelligence";
 import { getCommandFeatureFlagsOverview } from "./flags-admin";
@@ -47,6 +48,18 @@ export async function getOperatorClientExpansionOpportunities(
 ) {
   requireOperator(operator);
   return getClientExpansionOpportunities();
+}
+
+/** Capability-gated ranked Opportunity Engine feed across organisations. */
+export async function listOperatorPlatformOpportunities(
+  operator: PlatformOperatorContext,
+  input?: { limit?: number },
+) {
+  requireOperator(operator);
+  return listPlatformOpportunities({
+    scope: "staff",
+    limit: input?.limit,
+  });
 }
 
 /** Capability-gated cross-tenant feature flag overview. */
