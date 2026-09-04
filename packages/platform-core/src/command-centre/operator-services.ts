@@ -13,6 +13,7 @@ import { listPlatformOpportunities } from "../opportunity-engine";
 import { buildCommissionsWorkspace } from "../partners/commissions-workspace";
 import { listAllCommissions, listPartners } from "../partners/crud";
 import { buildPartnerDashboardWorkspace } from "../partners/dashboard-workspace";
+import { buildReferralsWorkspace } from "../partners/referrals-workspace";
 import { generateClientAdvisorInsight } from "./advisor";
 import { getCommandBenchmarks } from "./benchmarks";
 import { getClientIntelligence } from "./client-intelligence";
@@ -29,23 +30,16 @@ function requireOperator(operator: PlatformOperatorContext): void {
   }
 }
 
-/** Capability-gated Command Centre home aggregate. */
-export async function getOperatorCommandCentreOpsHome(
-  operator: PlatformOperatorContext,
-) {
+export async function getOperatorCommandCentreOpsHome(operator: PlatformOperatorContext) {
   requireOperator(operator);
   return getCommandCentreOpsHome();
 }
 
-/** Capability-gated cross-tenant customer intelligence. */
-export async function getOperatorClientIntelligence(
-  operator: PlatformOperatorContext,
-) {
+export async function getOperatorClientIntelligence(operator: PlatformOperatorContext) {
   requireOperator(operator);
   return getClientIntelligence();
 }
 
-/** Capability-gated customer-specific Advisor insight. */
 export async function generateOperatorClientAdvisorInsight(
   operator: PlatformOperatorContext,
   input: { organisationId: string; question?: string },
@@ -54,7 +48,6 @@ export async function generateOperatorClientAdvisorInsight(
   return generateClientAdvisorInsight(input);
 }
 
-/** Capability-gated cohort benchmarks. */
 export async function getOperatorCommandBenchmarks(
   operator: PlatformOperatorContext,
   input?: { organisationId?: string },
@@ -63,7 +56,6 @@ export async function getOperatorCommandBenchmarks(
   return getCommandBenchmarks(input);
 }
 
-/** Capability-gated period Growth Reports across customer organisations. */
 export async function getOperatorGrowthReports(
   operator: PlatformOperatorContext,
   input?: { period?: GrowthReportPeriod; organisationId?: string },
@@ -72,90 +64,62 @@ export async function getOperatorGrowthReports(
   return getGrowthReports(input);
 }
 
-/** Capability-gated client expansion opportunities. */
-export async function getOperatorClientExpansionOpportunities(
-  operator: PlatformOperatorContext,
-) {
+export async function getOperatorClientExpansionOpportunities(operator: PlatformOperatorContext) {
   requireOperator(operator);
   return getClientExpansionOpportunities();
 }
 
-/** Capability-gated ranked Opportunity Engine feed across organisations. */
 export async function listOperatorPlatformOpportunities(
   operator: PlatformOperatorContext,
   input?: { limit?: number },
 ) {
   requireOperator(operator);
-  return listPlatformOpportunities({
-    scope: "staff",
-    limit: input?.limit,
-  });
+  return listPlatformOpportunities({ scope: "staff", limit: input?.limit });
 }
 
-/** Capability-gated platform-wide alerts centre. */
-export async function getOperatorPlatformAlertsCentre(
-  operator: PlatformOperatorContext,
-) {
+export async function getOperatorPlatformAlertsCentre(operator: PlatformOperatorContext) {
   requireOperator(operator);
   return getPlatformAlertsCentre();
 }
 
-/** Capability-gated lightweight platform alert badge. */
-export async function getOperatorPlatformAlertsBadgeCount(
-  operator: PlatformOperatorContext,
-) {
+export async function getOperatorPlatformAlertsBadgeCount(operator: PlatformOperatorContext) {
   requireOperator(operator);
   return getPlatformAlertsBadgeCount();
 }
 
-/** Capability-gated cross-tenant feature flag overview. */
-export async function getOperatorCommandFeatureFlagsOverview(
-  operator: PlatformOperatorContext,
-) {
+export async function getOperatorCommandFeatureFlagsOverview(operator: PlatformOperatorContext) {
   requireOperator(operator);
   return getCommandFeatureFlagsOverview();
 }
 
-/** Capability-gated cross-tenant feature flag mutation. */
 export async function updateOperatorOrganisationFeatureFlags(
   operator: PlatformOperatorContext,
-  input: {
-    organisationId: string;
-    flags: Record<string, boolean>;
-  },
+  input: { organisationId: string; flags: Record<string, boolean> },
 ) {
   requireOperator(operator);
-  return updateOrganisationFeatureFlags({
-    ...input,
-    actorId: operator.actorId,
-  });
+  return updateOrganisationFeatureFlags({ ...input, actorId: operator.actorId });
 }
 
-/** Capability-gated subscription attribution across organisations. */
-export async function getOperatorCommandMrrAttribution(
-  operator: PlatformOperatorContext,
-) {
+export async function getOperatorCommandMrrAttribution(operator: PlatformOperatorContext) {
   requireOperator(operator);
   return getCommandMrrAttribution();
 }
 
-/** Capability-gated Partner Network commission ledger across organisations. */
-export async function getOperatorCommissionsWorkspace(
-  operator: PlatformOperatorContext,
-) {
+export async function getOperatorCommissionsWorkspace(operator: PlatformOperatorContext) {
   requireOperator(operator);
   return buildCommissionsWorkspace();
 }
 
-/** Capability-gated Partner Network dashboard across partner and delivery records. */
-export async function getOperatorPartnerDashboardWorkspace(
-  operator: PlatformOperatorContext,
-) {
+export async function getOperatorPartnerDashboardWorkspace(operator: PlatformOperatorContext) {
   requireOperator(operator);
   return buildPartnerDashboardWorkspace();
 }
 
-/** Capability-gated paid commission history across the Partner Network. */
+export async function getOperatorPartnerReferralsWorkspace(operator: PlatformOperatorContext) {
+  requireOperator(operator);
+  return buildReferralsWorkspace();
+}
+
 export async function listOperatorPaidCommissions(
   operator: PlatformOperatorContext,
   input?: { limit?: number },
@@ -164,10 +128,7 @@ export async function listOperatorPaidCommissions(
   return listAllCommissions({ status: "PAID", limit: input?.limit ?? 100 });
 }
 
-/** Capability-gated staff Delivery dashboard across customer implementations. */
-export async function getOperatorDeliveryDashboard(
-  operator: PlatformOperatorContext,
-) {
+export async function getOperatorDeliveryDashboard(operator: PlatformOperatorContext) {
   requireOperator(operator);
   const [metrics, projects, tasks] = await Promise.all([
     getDeliveryDashboardMetrics({ managerView: true }),
@@ -177,7 +138,6 @@ export async function getOperatorDeliveryDashboard(
   return { metrics, projects, tasks };
 }
 
-/** Capability-gated Delivery project list across customer implementations. */
 export async function listOperatorDeliveryProjects(
   operator: PlatformOperatorContext,
   input?: { limit?: number },
@@ -186,15 +146,11 @@ export async function listOperatorDeliveryProjects(
   return listDeliveryProjects({ managerView: true, limit: input?.limit });
 }
 
-/** Capability-gated Delivery task list across customer implementations. */
-export async function listOperatorDeliveryTasks(
-  operator: PlatformOperatorContext,
-) {
+export async function listOperatorDeliveryTasks(operator: PlatformOperatorContext) {
   requireOperator(operator);
   return listDeliveryTasks({ managerView: true });
 }
 
-/** Capability-gated Delivery project detail across customer organisations. */
 export async function getOperatorDeliveryProject(
   operator: PlatformOperatorContext,
   projectId: string,
@@ -203,14 +159,10 @@ export async function getOperatorDeliveryProject(
   return getDeliveryProject(projectId);
 }
 
-/** Capability-gated Delivery Partner invitation/roster view. */
 export async function listOperatorDeliveryPartners(
   operator: PlatformOperatorContext,
   input?: { limit?: number },
 ) {
   requireOperator(operator);
-  return listPartners({
-    partnerType: "IMPLEMENTATION_PARTNER",
-    limit: input?.limit ?? 100,
-  });
+  return listPartners({ partnerType: "IMPLEMENTATION_PARTNER", limit: input?.limit ?? 100 });
 }
