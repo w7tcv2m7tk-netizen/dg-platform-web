@@ -84,7 +84,7 @@ const INTELLIGENCE_SURFACES: BusinessBrainIntelligenceSurface[] = [
     description: "The underlying numbers and evidence behind Brain interpretation",
   },
   {
-    label: "Overview",
+    label: "Command Centre",
     href: "/dashboard",
     description: "What needs to happen next — Brain-backed priorities",
   },
