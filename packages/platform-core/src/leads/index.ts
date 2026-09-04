@@ -92,7 +92,6 @@ export async function listLeads(options: ListLeadsOptions) {
   if (options.leadType === "buyer") {
     where.source = "buyer_enquiry";
   } else if (options.leadType === "vendor") {
-    // Exclude buyer enquiries and appraisal bookings (bookings live under /apps/re/bookings)
     where.NOT = { source: { in: ["buyer_enquiry", "re_booking"] } };
   }
 
@@ -254,9 +253,6 @@ export async function updateLeadStage(
     }
   }
 
-  // WP-D-104: optional Gen 2 → WP stage mirror (Gen 2 remains SoT).
-  void maybeWriteBackLeadStageToWordPress(organisationId, updated, stage, "vendor");
-
   return serializeLead(updated);
 }
 
@@ -310,50 +306,7 @@ export async function updateBuyerLeadStage(
     occurredAt: new Date(),
   });
 
-  void maybeWriteBackLeadStageToWordPress(organisationId, updated, stage, "buyer");
-
   return serializeLead(updated);
-}
-
-/** Optional Gen 2 → WP stage PATCH when `re.stage_writeback` is on (WP-D-104). */
-async function maybeWriteBackLeadStageToWordPress(
-  organisationId: string,
-  lead: Lead,
-  stage: string,
-  leadType: "vendor" | "buyer",
-): Promise<void> {
-  try {
-    const { organisationHasFlag } = await import("../features/flags");
-    if (!(await organisationHasFlag(organisationId, "re.stage_writeback"))) return;
-
-    const refs = (lead.externalRefs as Record<string, unknown> | null) ?? {};
-    const wpIdRaw = leadType === "buyer" ? refs.wp_buyer_lead_id : refs.wp_vendor_lead_id;
-    const wpId = typeof wpIdRaw === "number" ? wpIdRaw : Number(wpIdRaw);
-    if (!Number.isFinite(wpId) || wpId <= 0) return;
-
-    const { resolveOrgWordPressConnector } = await import(
-      "../connectors/wordpress/org-connector"
-    );
-    const connector = await resolveOrgWordPressConnector(organisationId);
-    if (!connector.apiKey?.trim()) return;
-
-    const path =
-      leadType === "buyer"
-        ? `/leads/buyer/${wpId}`
-        : `/leads/vendor/${wpId}`;
-    await fetch(`${connector.baseUrl.replace(/\/$/, "")}${path}`, {
-      method: "PATCH",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "X-API-Key": connector.apiKey,
-      },
-      body: JSON.stringify({ stage }),
-      cache: "no-store",
-    }).catch(() => null);
-  } catch {
-    /* non-blocking mirror */
-  }
 }
 
 export async function listLeadActivities(organisationId: string, leadId: string) {
