@@ -1,14 +1,14 @@
-import { getGrowthReports, type GrowthReportPeriod } from "@dg/platform-core";
+import { getOperatorGrowthReports, type GrowthReportPeriod } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { requireCommandCentre } from "@/lib/command-api";
+import { requirePlatformOperator } from "@/lib/command-api";
 import { isNextResponse } from "@/lib/platform-api";
 
 const PERIODS = new Set<GrowthReportPeriod>(["mtd", "last_30d", "last_7d"]);
 
 export async function GET(req: Request) {
-  const session = await requireCommandCentre(req, "command.clients.read");
-  if (isNextResponse(session)) return session;
+  const auth = await requirePlatformOperator(req, "command.clients.read");
+  if (isNextResponse(auth)) return auth;
 
   const url = new URL(req.url);
   const periodRaw = url.searchParams.get("period") ?? "mtd";
@@ -17,6 +17,6 @@ export async function GET(req: Request) {
     : "mtd";
   const organisationId = url.searchParams.get("organisationId") ?? undefined;
 
-  const data = await getGrowthReports({ period, organisationId });
+  const data = await getOperatorGrowthReports(auth.operator, { period, organisationId });
   return NextResponse.json({ data });
 }
