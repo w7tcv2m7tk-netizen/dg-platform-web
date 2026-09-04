@@ -67,6 +67,8 @@ describe("Command Centre operator capability", () => {
       () => services.getOperatorPlatformAlertsBadgeCount(forged),
       () => services.getOperatorCommandFeatureFlagsOverview(forged),
       () => services.getOperatorCommandMrrAttribution(forged),
+      () => services.getOperatorCommissionsWorkspace(forged),
+      () => services.getOperatorDeliveryDashboard(forged),
       () =>
         services.updateOperatorOrganisationFeatureFlags(forged, {
           organisationId: "org_victim",
