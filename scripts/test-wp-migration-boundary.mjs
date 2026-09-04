@@ -39,6 +39,9 @@ const unitMigration = fs.readFileSync(
   "packages/platform-core/src/accommodation/wordpress-migration.ts",
   "utf8",
 );
+const platformPageContext = fs.readFileSync("src/lib/platform-page-context.ts", "utf8");
+const platformShellLoader = fs.readFileSync("src/components/PlatformShellLoader.tsx", "utf8");
+const nativePortalProfile = fs.readFileSync("src/lib/native-portal-profile.ts", "utf8");
 
 test("native accommodation reads cannot select WordPress as a runtime source", () => {
   assert.doesNotMatch(route, /source\s*===\s*["']wp["']/);
@@ -144,4 +147,19 @@ test("native booking edits fail closed on unit reassignment until atomic move ex
     route,
     /\(!existing\s*\|\|\s*patch\.accommodation_id\s*!==\s*existing\.accommodationWpId\)/,
   );
+});
+
+test("authenticated platform context resolves profile from Neon without WordPress portal fallback", () => {
+  assert.match(platformPageContext, /resolveNativePortalProfile/);
+  assert.doesNotMatch(platformPageContext, /fetchPortalMe/);
+  assert.doesNotMatch(platformPageContext, /\/portal\/me/);
+  assert.match(nativePortalProfile, /resolvePortalProfileFromNeon/);
+  assert.doesNotMatch(nativePortalProfile, /fetchPortalMe/);
+  assert.doesNotMatch(nativePortalProfile, /wpConnectorForOrg|fetchWp/);
+});
+
+test("authenticated platform shell never triggers background WordPress onboarding sync", () => {
+  assert.doesNotMatch(platformShellLoader, /ensureOrganisationOnboardingSync/);
+  assert.doesNotMatch(platformShellLoader, /org-onboarding-sync/);
+  assert.doesNotMatch(platformShellLoader, /WordPress→Postgres onboarding sync/);
 });
