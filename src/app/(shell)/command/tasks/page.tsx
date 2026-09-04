@@ -2,10 +2,12 @@ import Link from "next/link";
 import { listCommandCentreOpenTasksDue } from "@dg/platform-core";
 
 import { CompleteTaskButton } from "@/components/crm/CompleteTaskButton";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 export const dynamic = "force-dynamic";
 
 export default async function CommandCentreTasksPage() {
+  await requirePlatformOperatorContext();
   const data = process.env.DATABASE_URL
     ? await listCommandCentreOpenTasksDue({ limit: 100 })
     : { items: [], total: 0 };
