@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { getCommandFeatureFlagsOverview } from "@dg/platform-core";
+import { getOperatorCommandFeatureFlagsOverview } from "@dg/platform-core";
 
 import { FeatureFlagsAdmin } from "@/components/command/FeatureFlagsAdmin";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 export default async function CommandFlagsPage() {
+  const operator = await requirePlatformOperatorContext();
   const data = process.env.DATABASE_URL
-    ? await getCommandFeatureFlagsOverview()
+    ? await getOperatorCommandFeatureFlagsOverview(operator)
     : null;
 
   return (
@@ -25,10 +27,7 @@ export default async function CommandFlagsPage() {
             Database not configured — flags unavailable.
           </div>
         ) : (
-          <FeatureFlagsAdmin
-            known={data.known}
-            initialOrgs={data.orgs}
-          />
+          <FeatureFlagsAdmin known={data.known} initialOrgs={data.orgs} />
         )}
       </main>
     </>
