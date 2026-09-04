@@ -39,6 +39,47 @@ const unitMigration = fs.readFileSync(
   "packages/platform-core/src/accommodation/wordpress-migration.ts",
   "utf8",
 );
+const nativeLeadsRoute = fs.readFileSync("src/app/api/v1/leads/route.ts", "utf8");
+const reLeadCore = fs.readFileSync("packages/platform-core/src/leads/index.ts", "utf8");
+const reOverview = fs.readFileSync("src/app/(shell)/apps/re/page.tsx", "utf8");
+const reVendorPage = fs.readFileSync(
+  "src/app/(shell)/apps/re/vendor-leads/page.tsx",
+  "utf8",
+);
+const reBuyerPage = fs.readFileSync(
+  "src/app/(shell)/apps/re/buyer-leads/page.tsx",
+  "utf8",
+);
+const vendorPipeline = fs.readFileSync("src/components/re/VendorLeadPipeline.tsx", "utf8");
+const buyerPipeline = fs.readFileSync("src/components/re/BuyerLeadPipeline.tsx", "utf8");
+const reImportRoute = fs.readFileSync(
+  "src/app/api/v1/connectors/wordpress/import/route.ts",
+  "utf8",
+);
+const websitesHome = fs.readFileSync(
+  "src/app/(shell)/apps/websites/page.tsx",
+  "utf8",
+);
+const websitesContent = fs.readFileSync(
+  "src/app/(shell)/apps/websites/content/page.tsx",
+  "utf8",
+);
+const websitesHealth = fs.readFileSync(
+  "src/app/(shell)/apps/websites/health/page.tsx",
+  "utf8",
+);
+const websiteStudio = fs.readFileSync(
+  "src/app/(shell)/apps/websites/studio/[id]/page.tsx",
+  "utf8",
+);
+const websiteImportRoute = fs.readFileSync(
+  "src/app/api/v1/websites/[id]/import-wordpress/route.ts",
+  "utf8",
+);
+const connectorSettings = fs.readFileSync(
+  "src/app/(shell)/dashboard/settings/connectors/page.tsx",
+  "utf8",
+);
 
 test("native accommodation reads cannot select WordPress as a runtime source", () => {
   assert.doesNotMatch(route, /source\s*===\s*["']wp["']/);
@@ -118,7 +159,7 @@ test("native booking creation uses canonical Gen 2 unit identity", () => {
   );
 });
 
-test("WordPress import is isolated behind the dedicated migration endpoint", () => {
+test("WordPress accommodation import is isolated behind the dedicated migration endpoint", () => {
   assert.doesNotMatch(route, /migrate_wordpress/);
   assert.doesNotMatch(route, /wordpress-migration/);
   assert.doesNotMatch(route, /sync_wordpress/);
@@ -144,4 +185,52 @@ test("native booking edits fail closed on unit reassignment until atomic move ex
     route,
     /\(!existing\s*\|\|\s*patch\.accommodation_id\s*!==\s*existing\.accommodationWpId\)/,
   );
+});
+
+test("native Real Estate pages never auto-read WordPress", () => {
+  for (const source of [reOverview, reVendorPage, reBuyerPage]) {
+    assert.match(source, /getPlatformPageContext/);
+    assert.doesNotMatch(source, /fetchPortalMe/);
+    assert.doesNotMatch(source, /autoSyncWordPress/);
+    assert.doesNotMatch(source, /fetchWpReSummary/);
+  }
+  assert.doesNotMatch(vendorPipeline, /sync_wordpress|Sync from WordPress|Test connection/);
+  assert.doesNotMatch(buyerPipeline, /sync_wordpress|Sync buyers from WordPress/);
+});
+
+test("native Real Estate stage changes never mirror back to WordPress", () => {
+  assert.doesNotMatch(reLeadCore, /maybeWriteBackLeadStageToWordPress/);
+  assert.doesNotMatch(reLeadCore, /re\.stage_writeback/);
+  assert.doesNotMatch(reLeadCore, /resolveOrgWordPressConnector/);
+  assert.doesNotMatch(reLeadCore, /X-API-Key[\s\S]{0,300}PATCH/);
+});
+
+test("native Leads API contains no WordPress migration command", () => {
+  assert.doesNotMatch(nativeLeadsRoute, /wordpress-sync/);
+  assert.doesNotMatch(nativeLeadsRoute, /sync_wordpress/);
+  assert.doesNotMatch(nativeLeadsRoute, /syncWordPress/);
+});
+
+test("Real Estate WordPress imports are explicit one-way migration actions", () => {
+  assert.match(reImportRoute, /connectors\/wordpress\/import|Explicit legacy migration endpoint/);
+  assert.match(reImportRoute, /module:\s*["']settings["']/);
+  assert.match(reImportRoute, /action:\s*["']manage["']/);
+  assert.match(reImportRoute, /direction:\s*["']wordpress_to_gen2["']/);
+  assert.match(reImportRoute, /migrationOnly:\s*true/);
+});
+
+test("normal Websites surfaces resolve the organisation through the native platform context", () => {
+  for (const source of [websitesHome, websitesContent, websitesHealth, websiteStudio, connectorSettings]) {
+    assert.match(source, /getPlatformPageContext/);
+    assert.doesNotMatch(source, /fetchPortalMe/);
+    assert.doesNotMatch(source, /resolveActivePlatformSession/);
+  }
+});
+
+test("website WordPress import is permissioned and one-way migration only", () => {
+  assert.match(websiteImportRoute, /module:\s*["']settings["']/);
+  assert.match(websiteImportRoute, /action:\s*["']manage["']/);
+  assert.match(websiteImportRoute, /direction:\s*["']wordpress_to_gen2["']/);
+  assert.match(websiteImportRoute, /migrationOnly:\s*true/);
+  assert.doesNotMatch(websiteImportRoute, /PATCH[\s\S]{0,200}WordPress|publish.*WordPress/i);
 });
