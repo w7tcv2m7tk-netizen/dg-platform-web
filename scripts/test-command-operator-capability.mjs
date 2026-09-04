@@ -55,6 +55,10 @@ describe("Command Centre operator capability", () => {
     const calls = [
       () => services.getOperatorCommandCentreOpsHome(forged),
       () => services.getOperatorClientIntelligence(forged),
+      () =>
+        services.generateOperatorClientAdvisorInsight(forged, {
+          organisationId: "org_victim",
+        }),
       () => services.getOperatorCommandBenchmarks(forged),
       () => services.getOperatorClientExpansionOpportunities(forged),
       () => services.listOperatorPlatformOpportunities(forged, { limit: 1 }),
