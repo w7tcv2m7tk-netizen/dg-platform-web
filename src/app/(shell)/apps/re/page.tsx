@@ -1,15 +1,9 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { getReDashboardStats, organisationHasWordPressConnector } from "@dg/platform-core";
+import { getReDashboardStats } from "@dg/platform-core";
 
 import { ReDashboard } from "@/components/re/ReDashboard";
-import { fetchPortalMe, fetchWpReSummary } from "@/lib/dg-api";
-import { wpConnectorForOrg } from "@/lib/org-wordpress-connector";
-import {
-  autoSyncWordPressBuyerLeadsIfNeeded,
-  autoSyncWordPressBookingsIfNeeded,
-  autoSyncWordPressVendorLeadsIfNeeded,
-} from "@/lib/wordpress-sync";
+import { fetchPortalMe } from "@/lib/dg-api";
 
 export default async function RealEstateOverviewPage() {
   const user = await currentUser();
@@ -38,31 +32,14 @@ export default async function RealEstateOverviewPage() {
     );
   }
 
-  await Promise.all([
-    autoSyncWordPressVendorLeadsIfNeeded(session),
-    autoSyncWordPressBuyerLeadsIfNeeded(session),
-    autoSyncWordPressBookingsIfNeeded(session),
-  ]);
-
-  const [stats, wpSummary, wpConfigured] = await Promise.all([
-    getReDashboardStats(session.organisationId),
-    wpConnectorForOrg(session.organisationId).then((connector) =>
-      fetchWpReSummary(30, connector),
-    ),
-    organisationHasWordPressConnector(session.organisationId),
-  ]);
+  const stats = await getReDashboardStats(session.organisationId);
 
   return (
     <main className="dg-page-main space-y-6">
       <p className="text-sm text-slate-400">
-        {session.organisationName} · Vendor & buyer pipelines · Beta
+        {session.organisationName} · Vendor & buyer pipelines · Platform Core / Neon · Beta
       </p>
-      <ReDashboard
-        stats={stats}
-        wpSummary={wpSummary.ok ? wpSummary.data : undefined}
-        wpError={wpSummary.ok ? undefined : wpSummary.message}
-        showWordPress={wpConfigured}
-      />
+      <ReDashboard stats={stats} />
     </main>
   );
 }
