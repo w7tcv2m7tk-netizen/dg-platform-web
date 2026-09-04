@@ -1,9 +1,13 @@
-import { getPlatformAlertsCentre } from "@dg/platform-core";
+import { getOperatorPlatformAlertsCentre } from "@dg/platform-core";
 
 import { PlatformAlertsDashboard } from "@/components/command/PlatformAlertsDashboard";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 export default async function CommandPlatformAlertsPage() {
-  const data = process.env.DATABASE_URL ? await getPlatformAlertsCentre() : null;
+  const operator = await requirePlatformOperatorContext();
+  const data = process.env.DATABASE_URL
+    ? await getOperatorPlatformAlertsCentre(operator)
+    : null;
 
   return (
     <>
