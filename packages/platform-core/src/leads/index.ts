@@ -70,7 +70,7 @@ function serializeLead(lead: Lead) {
     description: lead.description,
     contactId: lead.contactId,
     stage: (metadata.stage as string | undefined) ?? defaultStage,
-    propertyAddress: metada.property_address as string | undefined,
+    propertyAddress: metadata.property_address as string | undefined,
     metadata,
     externalRefs: lead.externalRefs as Record<string, unknown> | null,
     createdAt: lead.createdAt.toISOString(),
@@ -92,7 +92,6 @@ export async function listLeads(options: ListLeadsOptions) {
   if (options.leadType === "buyer") {
     where.source = "buyer_enquiry";
   } else if (options.leadType === "vendor") {
-    // Exclude buyer enquiries and appraisal bookings (bookings live under /apps/re/bookings)
     where.NOT = { source: { in: ["buyer_enquiry", "re_booking"] } };
   }
 
@@ -168,7 +167,7 @@ export async function createLead(input: CreateLeadInput) {
       source: lead.source,
       title: lead.title,
       leadType: typeof meta.lead_type === "string" ? meta.lead_type : undefined,
-      contactId: input.contactId,
+      contactId: lead.contactId,
     },
     occurredAt: new Date(),
   });
