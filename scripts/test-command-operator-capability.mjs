@@ -90,6 +90,38 @@ describe("Command Centre operator capability", () => {
     }
   });
 
+  it("routes cross-tenant Command pages through operator capability services", () => {
+    const pageContracts = [
+      {
+        path: "src/app/(shell)/command/advisor/page.tsx",
+        wrapper: /getOperatorClientIntelligence\(operator\)/,
+        banned: /\bgetClientIntelligence\(/,
+      },
+      {
+        path: "src/app/(shell)/command/reports/page.tsx",
+        wrapper: /getOperatorGrowthReports\(operator,/,
+        banned: /\bgetGrowthReports\(/,
+      },
+      {
+        path: "src/app/(shell)/command/delivery/[section]/page.tsx",
+        wrapper: /getOperatorDeliverySectionWorkspace\(operator\)/,
+        banned: /\b(getCommandCentreDeliveryAlerts|listDeliveryProjects|listDeliveryTasks|getDeliveryDashboardMetrics)\(/,
+      },
+      {
+        path: "src/app/(shell)/command/delivery/onboarding/page.tsx",
+        wrapper: /requirePlatformOperatorContext\(\)/,
+        banned: /\bgetPlatformPageContext\(/,
+      },
+    ];
+
+    for (const contract of pageContracts) {
+      const page = fs.readFileSync(contract.path, "utf8");
+      assert.match(page, /requirePlatformOperatorContext\(\)/);
+      assert.match(page, contract.wrapper);
+      assert.doesNotMatch(page, contract.banned);
+    }
+  });
+
   it("requires platform operator authority for staff partner writes", () => {
     const routes = [
       "src/app/api/v1/partners/invitations/route.ts",
