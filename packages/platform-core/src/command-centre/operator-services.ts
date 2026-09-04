@@ -2,6 +2,7 @@ import {
   isPlatformOperatorContext,
   type PlatformOperatorContext,
 } from "../access/platform-operator-context";
+import { updateOrganisationFeatureFlags } from "../features/flags";
 import { getCommandBenchmarks } from "./benchmarks";
 import { getClientIntelligence } from "./client-intelligence";
 import { getCommandFeatureFlagsOverview } from "./flags-admin";
@@ -54,6 +55,21 @@ export async function getOperatorCommandFeatureFlagsOverview(
 ) {
   requireOperator(operator);
   return getCommandFeatureFlagsOverview();
+}
+
+/** Capability-gated cross-tenant feature flag mutation. */
+export async function updateOperatorOrganisationFeatureFlags(
+  operator: PlatformOperatorContext,
+  input: {
+    organisationId: string;
+    flags: Record<string, boolean>;
+  },
+) {
+  requireOperator(operator);
+  return updateOrganisationFeatureFlags({
+    ...input,
+    actorId: operator.actorId,
+  });
 }
 
 /** Capability-gated subscription attribution across organisations. */
