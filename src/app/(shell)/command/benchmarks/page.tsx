@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { getCommandBenchmarks } from "@dg/platform-core";
+import { getOperatorCommandBenchmarks } from "@dg/platform-core";
 
 import { ScoreCell } from "@/components/command/tier-badge";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 const METRIC_LABELS: Record<string, string> = {
   success_score: "Success Score™",
@@ -11,7 +12,10 @@ const METRIC_LABELS: Record<string, string> = {
 };
 
 export default async function CommandBenchmarksPage() {
-  const data = process.env.DATABASE_URL ? await getCommandBenchmarks() : null;
+  const operator = await requirePlatformOperatorContext();
+  const data = process.env.DATABASE_URL
+    ? await getOperatorCommandBenchmarks(operator)
+    : null;
 
   return (
     <>
