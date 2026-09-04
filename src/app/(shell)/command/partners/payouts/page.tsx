@@ -1,4 +1,6 @@
-import { listAllCommissions } from "@dg/platform-core";
+import { listOperatorPaidCommissions } from "@dg/platform-core";
+
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 function centsToDisplay(cents: number): string {
   return (cents / 100).toLocaleString("en-AU", {
@@ -9,10 +11,11 @@ function centsToDisplay(cents: number): string {
 }
 
 export default async function PartnerPayoutsPage() {
-  let paid: Awaited<ReturnType<typeof listAllCommissions>>["commissions"] = [];
+  const operator = await requirePlatformOperatorContext();
+  let paid: Awaited<ReturnType<typeof listOperatorPaidCommissions>>["commissions"] = [];
   let total = 0;
   try {
-    const listed = await listAllCommissions({ status: "PAID", limit: 100 });
+    const listed = await listOperatorPaidCommissions(operator, { limit: 100 });
     paid = listed.commissions;
     total = listed.total;
   } catch {
