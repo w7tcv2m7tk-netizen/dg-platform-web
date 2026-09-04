@@ -60,8 +60,11 @@ describe("Command Centre operator capability", () => {
           organisationId: "org_victim",
         }),
       () => services.getOperatorCommandBenchmarks(forged),
+      () => services.getOperatorGrowthReports(forged, { period: "mtd" }),
       () => services.getOperatorClientExpansionOpportunities(forged),
       () => services.listOperatorPlatformOpportunities(forged, { limit: 1 }),
+      () => services.getOperatorPlatformAlertsCentre(forged),
+      () => services.getOperatorPlatformAlertsBadgeCount(forged),
       () => services.getOperatorCommandFeatureFlagsOverview(forged),
       () => services.getOperatorCommandMrrAttribution(forged),
       () =>
