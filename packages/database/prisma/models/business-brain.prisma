@@ -1,0 +1,79 @@
+// DigitalGate Business Brain — governed organisation-scoped knowledge.
+// Database constraints and indexes are created by
+// migrations/20260904_business_brain_knowledge/migration.sql.
+
+model BusinessKnowledgeSource {
+  id                   String   @id
+  organisationId       String   @map("organisation_id")
+  sourceType           String   @map("source_type")
+  title                String?
+  sourceApp            String?  @map("source_app")
+  sourceRef            String?  @map("source_ref")
+  capturedAt           DateTime? @map("captured_at")
+  contentHash          String?  @map("content_hash")
+  accessClassification String   @default("internal") @map("access_classification")
+  metadata             Json?
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  items BusinessKnowledgeItem[]
+
+  @@index([organisationId, sourceType])
+  @@index([organisationId, capturedAt])
+  @@map("business_knowledge_sources")
+}
+
+model BusinessKnowledgeItem {
+  id             String    @id
+  organisationId String    @map("organisation_id")
+  knowledgeKey   String?   @map("knowledge_key")
+  type           String
+  title          String
+  statement      String    @db.Text
+  status         String    @default("proposed")
+  confidence     Float?
+  importance     String    @default("medium")
+  scope          String[]  @default([])
+  sourceId       String?   @map("source_id")
+  sourceRef      String?   @map("source_ref")
+  sourceExcerpt  String?   @map("source_excerpt") @db.Text
+  createdBy      String?   @map("created_by")
+  approvedBy     String?   @map("approved_by")
+  approvedAt     DateTime? @map("approved_at")
+  supersedesId   String?   @map("supersedes_id")
+  effectiveFrom  DateTime? @map("effective_from")
+  reviewAt       DateTime? @map("review_at")
+  metadata       Json?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  source       BusinessKnowledgeSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  supersedes   BusinessKnowledgeItem?    @relation("KnowledgeSupersession", fields: [supersedesId], references: [id], onDelete: SetNull)
+  supersededBy BusinessKnowledgeItem[]   @relation("KnowledgeSupersession")
+  links        BusinessKnowledgeLink[]
+
+  @@index([organisationId, status])
+  @@index([organisationId, type, status])
+  @@index([organisationId, importance, status])
+  @@index([sourceId])
+  @@index([supersedesId])
+  @@map("business_knowledge_items")
+}
+
+model BusinessKnowledgeLink {
+  id              String   @id
+  organisationId  String   @map("organisation_id")
+  knowledgeItemId String   @map("knowledge_item_id")
+  targetType      String   @map("target_type")
+  targetId        String   @map("target_id")
+  relationType    String   @default("related_to") @map("relation_type")
+  metadata        Json?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  knowledgeItem BusinessKnowledgeItem @relation(fields: [knowledgeItemId], references: [id], onDelete: Cascade)
+
+  @@unique([knowledgeItemId, targetType, targetId, relationType])
+  @@index([organisationId, targetType, targetId])
+  @@index([knowledgeItemId])
+  @@map("business_knowledge_links")
+}
