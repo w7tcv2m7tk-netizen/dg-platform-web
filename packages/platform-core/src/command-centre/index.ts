@@ -17,6 +17,7 @@ export * from "./revenue";
 export * from "./platform-docs";
 export * from "./sales-week";
 export * from "./sales-week-scoreboard";
+export * from "./operator-services";
 
 /** Clerk role / org claim used to gate Command Centre routes */
 export const COMMAND_CENTRE_STAFF_ROLE = "dg:staff";
