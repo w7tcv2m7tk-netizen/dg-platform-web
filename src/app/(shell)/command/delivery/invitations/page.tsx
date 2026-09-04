@@ -1,26 +1,21 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-
-import { DeliveryCommandPage } from "@/components/delivery/DeliveryCommandPage";
-import { InviteDeliveryPartnerForm } from "@/components/delivery/InviteDeliveryPartnerForm";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
 import {
   DELIVERY_MANAGER_PUBLIC_LABEL,
   DELIVERY_PARTNER_PUBLIC_LABEL,
   FOUNDING_IMPLEMENTATION_TARGET,
-  listPartners,
+  listOperatorDeliveryPartners,
 } from "@dg/platform-core";
 
-export default async function StaffDeliveryInvitationsPage() {
-  const { clerkUserId } = await getPlatformPageContext();
-  if (!clerkUserId) redirect("/login");
+import { DeliveryCommandPage } from "@/components/delivery/DeliveryCommandPage";
+import { InviteDeliveryPartnerForm } from "@/components/delivery/InviteDeliveryPartnerForm";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
-  let partners: Awaited<ReturnType<typeof listPartners>>["partners"] = [];
+export default async function StaffDeliveryInvitationsPage() {
+  const operator = await requirePlatformOperatorContext();
+
+  let partners: Awaited<ReturnType<typeof listOperatorDeliveryPartners>>["partners"] = [];
   try {
-    const listed = await listPartners({
-      partnerType: "IMPLEMENTATION_PARTNER",
-      limit: 100,
-    });
+    const listed = await listOperatorDeliveryPartners(operator, { limit: 100 });
     partners = listed.partners;
   } catch {
     /* tables not migrated yet */
