@@ -1,15 +1,16 @@
 import { askPlatformIntelligence } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { requireCommandCentre } from "@/lib/command-api";
+import { requirePlatformOperator } from "@/lib/command-api";
 import { loadPlatformDocCorpus } from "@/lib/load-platform-doc";
 import { isNextResponse } from "@/lib/platform-api";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
 export async function POST(req: Request) {
-  const session = await requireCommandCentre(req, "command.platform.read");
-  if (isNextResponse(session)) return session;
+  const auth = await requirePlatformOperator(req, "command.platform.read");
+  if (isNextResponse(auth)) return auth;
 
   const body = await req.json().catch(() => ({}));
   const question = typeof body.question === "string" ? body.question.trim() : "";
