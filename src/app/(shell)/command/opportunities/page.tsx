@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { listPlatformOpportunities } from "@dg/platform-core";
+import { listOperatorPlatformOpportunities } from "@dg/platform-core";
 
 import { OpportunityCreateTaskButton } from "@/components/command/OpportunityCreateTaskButton";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 function severityClass(severity: string) {
   switch (severity) {
@@ -17,8 +18,9 @@ function severityClass(severity: string) {
 }
 
 export default async function CommandOpportunitiesPage() {
+  const operator = await requirePlatformOperatorContext();
   const data = process.env.DATABASE_URL
-    ? await listPlatformOpportunities({ scope: "staff", limit: 40 })
+    ? await listOperatorPlatformOpportunities(operator, { limit: 40 })
     : null;
 
   const attention =
