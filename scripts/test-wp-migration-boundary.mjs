@@ -3,8 +3,28 @@ import fs from "node:fs";
 import test from "node:test";
 
 const route = fs.readFileSync("src/app/api/v1/accommodation/route.ts", "utf8");
+const accommodationOverview = fs.readFileSync(
+  "src/app/(shell)/apps/accommodation/page.tsx",
+  "utf8",
+);
 const bookingsPage = fs.readFileSync(
   "src/app/(shell)/apps/accommodation/bookings/page.tsx",
+  "utf8",
+);
+const checkInsPage = fs.readFileSync(
+  "src/app/(shell)/apps/accommodation/check-ins/page.tsx",
+  "utf8",
+);
+const guestsPage = fs.readFileSync(
+  "src/app/(shell)/apps/accommodation/guests/page.tsx",
+  "utf8",
+);
+const paymentsPage = fs.readFileSync(
+  "src/app/(shell)/apps/accommodation/payments/page.tsx",
+  "utf8",
+);
+const reviewsPage = fs.readFileSync(
+  "src/app/(shell)/apps/accommodation/reviews/page.tsx",
   "utf8",
 );
 const calendarPage = fs.readFileSync(
@@ -23,8 +43,15 @@ const bookingsPanel = fs.readFileSync(
   "src/components/accommodation/AccommodationBookingsPanel.tsx",
   "utf8",
 );
+const dashboard = fs.readFileSync(
+  "src/components/accommodation/AccommodationDashboard.tsx",
+  "utf8",
+);
 const bookingsLoader = fs.readFileSync("src/lib/accommodation-stay-bookings.ts", "utf8");
+const accommodationSummary = fs.readFileSync("src/lib/accommodation-summary.ts", "utf8");
 const unitOpsLoader = fs.readFileSync("src/lib/accommodation-units.ts", "utf8");
+const overviewConnectors = fs.readFileSync("src/lib/overview-connectors.ts", "utf8");
+const reviewsFeed = fs.readFileSync("src/lib/reviews-feed.ts", "utf8");
 const wordpressSync = fs.readFileSync("src/lib/wordpress-sync.ts", "utf8");
 const migrationRoute = fs.readFileSync(
   "src/app/api/v1/migrations/wordpress/accommodation/route.ts",
@@ -67,6 +94,52 @@ test("native bookings UI and loader never resolve or sync a WordPress runtime co
   assert.doesNotMatch(bookingsLoader, /syncWordPressAccBookings/);
   assert.doesNotMatch(bookingsLoader, /autoSyncWordPressAccBookingsIfNeeded/);
   assert.match(bookingsLoader, /listStayBookings/);
+});
+
+test("Accommodation overview and ops read surfaces are native-only", () => {
+  for (const source of [
+    accommodationOverview,
+    checkInsPage,
+    guestsPage,
+    paymentsPage,
+    reviewsPage,
+    dashboard,
+  ]) {
+    assert.doesNotMatch(source, /accommodationConnectorForSession/);
+    assert.doesNotMatch(source, /fetchWpAccommodation/);
+    assert.doesNotMatch(source, /getWpAccommodationSite/);
+    assert.doesNotMatch(source, /listWpAccommodationSites/);
+    assert.doesNotMatch(source, /AccommodationSitePicker/);
+  }
+  assert.match(accommodationOverview, /buildAccommodationSummary/);
+  assert.doesNotMatch(guestsPage, /upsertGuestFromWpRow/);
+  assert.doesNotMatch(dashboard, /WpAccommodationSummary/);
+  assert.doesNotMatch(dashboard, /showWordPress/);
+});
+
+test("native Accommodation summary is derived only from Platform Core data", () => {
+  assert.match(accommodationSummary, /listAccommodationUnits/);
+  assert.match(accommodationSummary, /listStayBookings/);
+  assert.match(accommodationSummary, /listAccommodationGuests/);
+  assert.doesNotMatch(accommodationSummary, /fetchWp/);
+  assert.doesNotMatch(accommodationSummary, /accommodationConnectorForSession/);
+});
+
+test("native reviews feed does not use the Accommodation WordPress source", () => {
+  assert.match(reviewsFeed, /getOrgGbpSyncSnapshot/);
+  assert.doesNotMatch(reviewsFeed, /fetchWpAccommodationReviews/);
+  assert.doesNotMatch(reviewsFeed, /mapWpAccReviewsToFeed/);
+  assert.doesNotMatch(reviewsFeed, /accommodationConnectorForSession/);
+});
+
+test("Business Overview uses the native Accommodation probe", () => {
+  assert.match(overviewConnectors, /buildAccommodationSummary/);
+  assert.doesNotMatch(overviewConnectors, /fetchWpAccommodationSummary/);
+  assert.doesNotMatch(overviewConnectors, /accommodationConnectorForSession/);
+});
+
+test("runtime Accommodation WordPress connector helper is absent", () => {
+  assert.equal(fs.existsSync("src/lib/accommodation-connector.ts"), false);
 });
 
 test("native calendar, housekeeping and unit ops paths are Neon-only", () => {
