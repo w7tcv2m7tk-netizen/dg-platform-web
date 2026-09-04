@@ -4,6 +4,7 @@ import {
 } from "../access/platform-operator-context";
 import {
   getDeliveryDashboardMetrics,
+  getDeliveryProject,
   listDeliveryProjects,
   listDeliveryTasks,
 } from "../delivery";
@@ -155,4 +156,30 @@ export async function getOperatorDeliveryDashboard(
     listDeliveryTasks({ managerView: true }),
   ]);
   return { metrics, projects, tasks };
+}
+
+/** Capability-gated Delivery project list across customer implementations. */
+export async function listOperatorDeliveryProjects(
+  operator: PlatformOperatorContext,
+  input?: { limit?: number },
+) {
+  requireOperator(operator);
+  return listDeliveryProjects({ managerView: true, limit: input?.limit });
+}
+
+/** Capability-gated Delivery task list across customer implementations. */
+export async function listOperatorDeliveryTasks(
+  operator: PlatformOperatorContext,
+) {
+  requireOperator(operator);
+  return listDeliveryTasks({ managerView: true });
+}
+
+/** Capability-gated Delivery project detail across customer organisations. */
+export async function getOperatorDeliveryProject(
+  operator: PlatformOperatorContext,
+  projectId: string,
+) {
+  requireOperator(operator);
+  return getDeliveryProject(projectId);
 }
