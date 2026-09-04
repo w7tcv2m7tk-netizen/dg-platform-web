@@ -1,26 +1,18 @@
 import { NextResponse } from "next/server";
-import { canAccessCommandCentre, sendFoundingResellerInvitation } from "@dg/platform-core";
-import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
+import { sendFoundingResellerInvitation } from "@dg/platform-core";
+
+import { requirePlatformOperator } from "@/lib/command-api";
+import { isNextResponse } from "@/lib/platform-api";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-export async function POST(_req: Request, ctx: Ctx) {
-  const session = await requirePlatformSession();
-  if (isNextResponse(session)) return session;
-
-  const allowed = canAccessCommandCentre({
-    organisationId: session.organisationId,
-    organisationName: session.organisationName,
-    organisationSlug: session.organisationSlug,
-    role: session.role,
-  });
-  if (!allowed) {
-    return NextResponse.json({ error: { code: "forbidden" } }, { status: 403 });
-  }
+export async function POST(req: Request, ctx: Ctx) {
+  const auth = await requirePlatformOperator(req);
+  if (isNextResponse(auth)) return auth;
 
   const { id } = await ctx.params;
   const result = await sendFoundingResellerInvitation({
-    organisationId: session.organisationId,
+    organisationId: auth.operator.operatorOrganisationId,
     partnerId: id,
   });
   if (result.error && !result.emailSent) {
