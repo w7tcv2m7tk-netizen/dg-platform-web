@@ -1,10 +1,9 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { listReBookings,} from "@dg/platform-core";
+import { listReBookings } from "@dg/platform-core";
 
 import { ReBookingsPanel } from "@/components/re/ReBookingsPanel";
 import { fetchPortalMe } from "@/lib/dg-api";
-import { autoSyncWordPressBookingsIfNeeded } from "@/lib/wordpress-sync";
 
 export default async function ReBookingsPage() {
   const user = await currentUser();
@@ -25,17 +24,12 @@ export default async function ReBookingsPage() {
       })
     : null;
 
-  if (session) {
-    await autoSyncWordPressBookingsIfNeeded(session);
-  }
-
-  const bookings =
-    session ? await listReBookings(session.organisationId, 50) : [];
+  const bookings = session ? await listReBookings(session.organisationId, 50) : [];
 
   return (
     <main className="dg-page-main space-y-6">
       <p className="text-sm text-slate-400">
-        {session?.organisationName ?? "Real Estate"} · Auto-syncs from WordPress every 4 hours
+        {session?.organisationName ?? "Real Estate"} · Platform Core / Neon bookings
       </p>
       <ReBookingsPanel bookings={bookings} />
     </main>

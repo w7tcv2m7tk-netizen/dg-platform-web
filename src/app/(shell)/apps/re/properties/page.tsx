@@ -1,12 +1,11 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { listProperties,} from "@dg/platform-core";
+import { listProperties } from "@dg/platform-core";
 
 import { PropertyList } from "@/components/re/PropertyList";
 import { CreatePropertyForm } from "@/components/re/CreatePropertyForm";
 import { SyncListingsButton } from "@/components/re/SyncListingsButton";
 import { fetchPortalMe } from "@/lib/dg-api";
-import { autoSyncWordPressPropertiesIfNeeded } from "@/lib/wordpress-sync";
 
 export default async function PropertiesPage() {
   const user = await currentUser();
@@ -35,8 +34,6 @@ export default async function PropertiesPage() {
     );
   }
 
-  await autoSyncWordPressPropertiesIfNeeded(session);
-
   const { items } = await listProperties({ organisationId: session.organisationId });
 
   const appraisalCount = items.filter((p) => p.status === "appraisal").length;
@@ -47,15 +44,14 @@ export default async function PropertiesPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm text-slate-400">
-            {session.organisationName} · Appraisals & listings
+            {session.organisationName} · Appraisals & listings · Platform Core / Neon
           </p>
           <p className="mt-1 text-xs text-slate-500">
             {appraisalCount} in appraisal · {listedCount} listed · {items.length} total
           </p>
           <p className="mt-2 max-w-xl text-xs text-emerald-400/90">
-            Neon is the source of truth for properties. WordPress is a public mirror —
-            use Publish to website. Auto-pull from WP is off unless{" "}
-            <code className="text-slate-400">re.wp_auto_sync</code> is enabled.
+            DigitalGate is the source of truth for properties. Legacy website import is an explicit
+            migration action only.
           </p>
         </div>
         <SyncListingsButton />

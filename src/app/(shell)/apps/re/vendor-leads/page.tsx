@@ -1,13 +1,9 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { listLeads,} from "@dg/platform-core";
+import { listLeads } from "@dg/platform-core";
 
 import { VendorLeadPipeline } from "@/components/re/VendorLeadPipeline";
 import { fetchPortalMe } from "@/lib/dg-api";
-import {
-  autoSyncWordPressVendorLeadsIfNeeded,
-  getLastWordPressSync,
-} from "@/lib/wordpress-sync";
 
 export default async function VendorLeadsPage() {
   const user = await currentUser();
@@ -36,50 +32,17 @@ export default async function VendorLeadsPage() {
     );
   }
 
-  const autoSync = await autoSyncWordPressVendorLeadsIfNeeded(session);
-  const lastSync = await getLastWordPressSync(session.organisationId);
   const { items } = await listLeads({
     organisationId: session.organisationId,
     leadType: "vendor",
   });
 
-  let autoSyncNote: string | undefined;
-  if (autoSync.ran && autoSync.result) {
-    const parts: string[] = [];
-    if (autoSync.result.created) {
-      parts.push(`${autoSync.result.created} new`);
-    }
-    if (autoSync.result.updated) {
-      parts.push(`${autoSync.result.updated} updated`);
-    }
-    autoSyncNote =
-      parts.length > 0
-        ? `Auto-synced ${parts.join(", ")} lead(s) from WordPress`
-        : "Auto-sync checked WordPress — no changes";
-  }
-
   return (
     <main className="dg-page-main space-y-6">
       <div>
         <p className="text-sm text-slate-400">
-          {session.organisationName} · Vendor pipeline on Platform
+          {session.organisationName} · Vendor pipeline · Platform Core / Neon
         </p>
-        {autoSyncNote ? (
-          <p className="mt-1 text-xs text-emerald-400/90">{autoSyncNote}</p>
-        ) : null}
-        {lastSync?.lastVendorLeadSyncAt ? (
-          <p className="mt-1 text-xs text-slate-500">
-            Last sync:{" "}
-            {new Date(lastSync.lastVendorLeadSyncAt).toLocaleString("en-AU")}
-            {lastSync.lastVendorLeadSync
-              ? ` · ${lastSync.lastVendorLeadSync.created} imported${
-                  lastSync.lastVendorLeadSync.updated
-                    ? `, ${lastSync.lastVendorLeadSync.updated} updated`
-                    : ""
-                }`
-              : ""}
-          </p>
-        ) : null}
       </div>
       <VendorLeadPipeline leads={items} />
     </main>
