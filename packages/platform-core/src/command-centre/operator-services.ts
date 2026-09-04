@@ -12,6 +12,7 @@ import { updateOrganisationFeatureFlags } from "../features/flags";
 import { listPlatformOpportunities } from "../opportunity-engine";
 import { buildCommissionsWorkspace } from "../partners/commissions-workspace";
 import { listPartners } from "../partners/crud";
+import { buildPartnerDashboardWorkspace } from "../partners/dashboard-workspace";
 import { generateClientAdvisorInsight } from "./advisor";
 import { getCommandBenchmarks } from "./benchmarks";
 import { getClientIntelligence } from "./client-intelligence";
@@ -144,6 +145,14 @@ export async function getOperatorCommissionsWorkspace(
 ) {
   requireOperator(operator);
   return buildCommissionsWorkspace();
+}
+
+/** Capability-gated Partner Network dashboard across partner and delivery records. */
+export async function getOperatorPartnerDashboardWorkspace(
+  operator: PlatformOperatorContext,
+) {
+  requireOperator(operator);
+  return buildPartnerDashboardWorkspace();
 }
 
 /** Capability-gated staff Delivery dashboard across customer implementations. */
