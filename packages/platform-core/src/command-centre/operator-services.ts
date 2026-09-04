@@ -11,7 +11,7 @@ import {
 import { updateOrganisationFeatureFlags } from "../features/flags";
 import { listPlatformOpportunities } from "../opportunity-engine";
 import { buildCommissionsWorkspace } from "../partners/commissions-workspace";
-import { listPartners } from "../partners/crud";
+import { listAllCommissions, listPartners } from "../partners/crud";
 import { buildPartnerDashboardWorkspace } from "../partners/dashboard-workspace";
 import { generateClientAdvisorInsight } from "./advisor";
 import { getCommandBenchmarks } from "./benchmarks";
@@ -153,6 +153,15 @@ export async function getOperatorPartnerDashboardWorkspace(
 ) {
   requireOperator(operator);
   return buildPartnerDashboardWorkspace();
+}
+
+/** Capability-gated paid commission history across the Partner Network. */
+export async function listOperatorPaidCommissions(
+  operator: PlatformOperatorContext,
+  input?: { limit?: number },
+) {
+  requireOperator(operator);
+  return listAllCommissions({ status: "PAID", limit: input?.limit ?? 100 });
 }
 
 /** Capability-gated staff Delivery dashboard across customer implementations. */
