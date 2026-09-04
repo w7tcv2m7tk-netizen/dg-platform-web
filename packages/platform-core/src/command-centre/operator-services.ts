@@ -3,6 +3,7 @@ import {
   type PlatformOperatorContext,
 } from "../access/platform-operator-context";
 import {
+  getCommandCentreDeliveryAlerts,
   getDeliveryDashboardMetrics,
   getDeliveryProject,
   listDeliveryProjects,
@@ -136,6 +137,17 @@ export async function getOperatorDeliveryDashboard(operator: PlatformOperatorCon
     listDeliveryTasks({ managerView: true }),
   ]);
   return { metrics, projects, tasks };
+}
+
+export async function getOperatorDeliverySectionWorkspace(operator: PlatformOperatorContext) {
+  requireOperator(operator);
+  const [projects, metrics, alerts, tasks] = await Promise.all([
+    listDeliveryProjects({ managerView: true, limit: 100 }),
+    getDeliveryDashboardMetrics({ managerView: true }),
+    getCommandCentreDeliveryAlerts(),
+    listDeliveryTasks({ managerView: true }),
+  ]);
+  return { projects, metrics, alerts, tasks };
 }
 
 export async function listOperatorDeliveryProjects(
