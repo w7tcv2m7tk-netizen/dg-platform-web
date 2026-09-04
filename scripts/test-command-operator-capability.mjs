@@ -69,6 +69,8 @@ describe("Command Centre operator capability", () => {
       () => services.getOperatorCommandFeatureFlagsOverview(forged),
       () => services.getOperatorCommandMrrAttribution(forged),
       () => services.getOperatorCommissionsWorkspace(forged),
+      () => services.getOperatorPartnerDashboardWorkspace(forged),
+      () => services.listOperatorPaidCommissions(forged, { limit: 1 }),
       () => services.getOperatorDeliveryDashboard(forged),
       () => services.listOperatorDeliveryProjects(forged, { limit: 1 }),
       () => services.listOperatorDeliveryTasks(forged),
@@ -86,13 +88,19 @@ describe("Command Centre operator capability", () => {
     }
   });
 
-  it("requires platform operator authority for staff partner invitation writes", () => {
-    const route = fs.readFileSync(
+  it("requires platform operator authority for staff partner writes", () => {
+    const routes = [
       "src/app/api/v1/partners/invitations/route.ts",
-      "utf8",
-    );
-    assert.match(route, /requirePlatformOperator\(req\)/);
-    assert.doesNotMatch(route, /canAccessCommandCentre/);
-    assert.doesNotMatch(route, /requirePlatformSession/);
+      "src/app/api/v1/admin/partners/[id]/approve/route.ts",
+      "src/app/api/v1/admin/partners/[id]/suspend/route.ts",
+      "src/app/api/v1/admin/partners/[id]/invite/route.ts",
+    ];
+
+    for (const routePath of routes) {
+      const route = fs.readFileSync(routePath, "utf8");
+      assert.match(route, /requirePlatformOperator\(req\)/);
+      assert.doesNotMatch(route, /canAccessCommandCentre/);
+      assert.doesNotMatch(route, /requirePlatformSession/);
+    }
   });
 });
