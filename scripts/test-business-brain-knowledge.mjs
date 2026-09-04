@@ -51,6 +51,21 @@ describe("Business Brain governed knowledge contract", () => {
     assert.match(importer, /ON CONFLICT DO NOTHING/);
   });
 
+  it("maps the production knowledge schema into the generated Prisma client", async () => {
+    const models = await text("packages/database/prisma/models/business-brain.prisma");
+    assert.match(models, /model BusinessKnowledgeSource/);
+    assert.match(models, /model BusinessKnowledgeItem/);
+    assert.match(models, /model BusinessKnowledgeLink/);
+    assert.match(models, /@@map\("business_knowledge_sources"\)/);
+    assert.match(models, /@@map\("business_knowledge_items"\)/);
+    assert.match(models, /@@map\("business_knowledge_links"\)/);
+
+    const pkg = await json("package.json");
+    assert.match(pkg.scripts["db:generate"], /--schema=packages\/database\/prisma$/);
+    assert.match(pkg.scripts["db:push"], /--schema=packages\/database\/prisma$/);
+    assert.match(pkg.scripts["db:studio"], /--schema=packages\/database\/prisma$/);
+  });
+
   for (const seedPath of [
     "docs/business-brain/digitalgate-knowledge-seed.json",
     "docs/business-brain/digitalgate-historical-context-seed.json",
