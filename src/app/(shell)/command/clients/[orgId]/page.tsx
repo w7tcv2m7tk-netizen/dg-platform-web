@@ -1,24 +1,26 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getClientIntelligence } from "@dg/platform-core";
+import {
+  clientScoreTierDisplay,
+  clientScoreTierEmoji,
+  formatClientObservedSignal,
+  getOperatorClientIntelligence,
+} from "@dg/platform-core";
 
 import { ProvisionAccBetaButton } from "@/components/command/ProvisionAccBetaButton";
 import { ProvisionInfraDomainsBetaButton } from "@/components/command/ProvisionInfraDomainsBetaButton";
 import { ProvisionReBetaButton } from "@/components/command/ProvisionReBetaButton";
 import { ProvisionWebsitesBetaButton } from "@/components/command/ProvisionWebsitesBetaButton";
 import { ScoreCell, ScoreTierBadge } from "@/components/command/tier-badge";
-import {
-  clientScoreTierDisplay,
-  clientScoreTierEmoji,
-  formatClientObservedSignal,
-} from "@dg/platform-core";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 type Ctx = { params: Promise<{ orgId: string }> };
 
 export default async function CommandClientDetailPage({ params }: Ctx) {
+  const operator = await requirePlatformOperatorContext();
   const { orgId } = await params;
   const intel = process.env.DATABASE_URL
-    ? await getClientIntelligence()
+    ? await getOperatorClientIntelligence(operator)
     : null;
   const client = intel?.clients.find((c) => c.organisationId === orgId);
 
