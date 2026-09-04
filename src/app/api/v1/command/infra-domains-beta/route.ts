@@ -1,17 +1,17 @@
 import { provisionInfraDomainsBetaOrganisation } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { requireCommandCentre } from "@/lib/command-api";
+import { requirePlatformOperator } from "@/lib/command-api";
 import { isNextResponse } from "@/lib/platform-api";
 
 /**
- * Staff: enrol Domains beta + install Infrastructure.
+ * Platform-operator provisioning: enrol Domains beta + install Infrastructure.
  * Does not enable infra.domain_register (paid).
  * POST { organisationId }
  */
 export async function POST(req: Request) {
-  const session = await requireCommandCentre(req, "command.flags.manage");
-  if (isNextResponse(session)) return session;
+  const auth = await requirePlatformOperator(req, "command.flags.manage");
+  if (isNextResponse(auth)) return auth;
 
   const body = await req.json().catch(() => ({}));
   const organisationId =
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
   try {
     const result = await provisionInfraDomainsBetaOrganisation({
       organisationId,
-      actorId: session.clerkUserId,
+      actorId: auth.operator.actorId,
     });
     return NextResponse.json({ data: result });
   } catch (err) {
