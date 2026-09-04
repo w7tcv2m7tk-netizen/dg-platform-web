@@ -4,6 +4,7 @@ import {
 } from "../access/platform-operator-context";
 import { updateOrganisationFeatureFlags } from "../features/flags";
 import { listPlatformOpportunities } from "../opportunity-engine";
+import { generateClientAdvisorInsight } from "./advisor";
 import { getCommandBenchmarks } from "./benchmarks";
 import { getClientIntelligence } from "./client-intelligence";
 import { getCommandFeatureFlagsOverview } from "./flags-admin";
@@ -31,6 +32,15 @@ export async function getOperatorClientIntelligence(
 ) {
   requireOperator(operator);
   return getClientIntelligence();
+}
+
+/** Capability-gated customer-specific Advisor insight. */
+export async function generateOperatorClientAdvisorInsight(
+  operator: PlatformOperatorContext,
+  input: { organisationId: string; question?: string },
+) {
+  requireOperator(operator);
+  return generateClientAdvisorInsight(input);
 }
 
 /** Capability-gated cohort benchmarks. */
