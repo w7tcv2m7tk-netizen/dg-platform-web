@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { after } from "next/server";
 import {
   buildBusinessOverview,
   gatherOverviewLiveMetrics,
@@ -18,8 +17,6 @@ import { BusinessOverviewDashboard } from "@/components/overview/BusinessOvervie
 import { FoundingOperatorHome } from "@/components/overview/FoundingOperatorHome";
 import { Gen2OnboardingChecklistBanner } from "@/components/onboarding/Gen2OnboardingChecklistBanner";
 import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
-import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
-import { autoSyncWordPressVendorLeadsIfNeeded } from "@/lib/wordpress-sync";
 
 export default async function DashboardPage() {
   const { user, name, portal, session: platformSession } = await getPlatformPageContext();
@@ -28,19 +25,13 @@ export default async function DashboardPage() {
     Boolean(platformSession) && isFoundingCustomerMode(enabledAppIds);
 
   let liveMetrics = null;
-  let connectorProbes = {};
   let activities = null;
   let healthHistory: Awaited<ReturnType<typeof loadHealthHistory>> = [];
   let setupStatus = null;
 
   if (platformSession) {
-    after(async () => {
-      await autoSyncWordPressVendorLeadsIfNeeded(platformSession).catch(() => null);
-    });
-
-    [liveMetrics, connectorProbes, activities, healthHistory, setupStatus] = await Promise.all([
+    [liveMetrics, activities, healthHistory, setupStatus] = await Promise.all([
       gatherOverviewLiveMetrics(platformSession.organisationId),
-      fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
       listOrganisationActivities({
         organisationId: platformSession.organisationId,
         limit: 10,
@@ -68,7 +59,7 @@ export default async function DashboardPage() {
     setupStatus,
     activities: activities?.items,
     liveMetrics,
-    connectorProbes,
+    connectorProbes: {},
     healthHistory,
     goals,
   });
