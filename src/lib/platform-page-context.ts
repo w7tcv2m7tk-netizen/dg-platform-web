@@ -8,7 +8,8 @@ import {
 import { cache } from "react";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { fetchPortalMe, type PortalProfile } from "@/lib/dg-api";
+import type { PortalProfile } from "@/lib/dg-api";
+import { resolveNativePortalProfile } from "@/lib/native-portal-profile";
 
 export type PlatformPageContext = {
   user: Awaited<ReturnType<typeof currentUser>>;
@@ -19,7 +20,7 @@ export type PlatformPageContext = {
   session: PlatformSession | null;
 };
 
-/** Dedupe Clerk + portal + session resolution within a single request. */
+/** Dedupe Clerk + native Neon profile + session resolution within a single request. */
 export const getPlatformPageContext = cache(async (): Promise<PlatformPageContext> => {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
@@ -33,7 +34,9 @@ export const getPlatformPageContext = cache(async (): Promise<PlatformPageContex
     return { user, email, name, clerkUserId, portal: null, session: null };
   }
 
-  const portal = await fetchPortalMe(email, clerkUserId);
+  // Native Gen 2 runtime is Neon-only. Legacy WordPress profile reads belong to
+  // explicit migration/onboarding connector flows, never implicit shell fallback.
+  const portal = await resolveNativePortalProfile(email, clerkUserId);
   const session = await resolveActivePlatformSession({
     clerkUserId,
     email,
@@ -44,7 +47,7 @@ export const getPlatformPageContext = cache(async (): Promise<PlatformPageContex
   return { user, email, name, clerkUserId, portal, session };
 });
 
-/** Org enabled apps — uses cached session (avoids triple fetchPortalMe per page). */
+/** Org enabled apps — uses cached native session. */
 export const getOrgEnabledAppIdsCached = cache(async (): Promise<string[]> => {
   const { session } = await getPlatformPageContext();
 
