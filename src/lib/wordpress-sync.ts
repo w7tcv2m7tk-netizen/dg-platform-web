@@ -14,23 +14,12 @@ import {
 } from "@/lib/dg-api";
 import { wpConnectorForOrg } from "@/lib/org-wordpress-connector";
 
-/** Minimum interval between automatic WordPress syncs. */
-export const WP_SYNC_INTERVAL_MS = 4 * 60 * 60 * 1000;
-export const WP_VENDOR_SYNC_INTERVAL_MS = WP_SYNC_INTERVAL_MS;
-
 export interface WordPressSyncResult {
   created: number;
   updated: number;
   skipped: number;
   errors: string[];
   ranAt: string;
-}
-
-export interface AutoSyncOutcome {
-  ran: boolean;
-  reason?: "disabled" | "too_soon" | "missing_key" | "fetch_failed";
-  result?: WordPressSyncResult;
-  message?: string;
 }
 
 type OrgWordPressSettings = {
@@ -88,25 +77,11 @@ async function patchOrgWordPressSettings(
   });
 }
 
-function connectorHasKey(connector: Awaited<ReturnType<typeof wpConnectorForOrg>>) {
-  return Boolean(
-    connector.apiKey?.trim() ||
-      process.env.DG_WP_CONNECTOR_API_KEY?.trim() ||
-      process.env.DG_API_KEY?.trim(),
-  );
-}
-
-async function shouldRunSync(
-  organisationId: string,
-  lastAtKey: keyof OrgWordPressSettings,
-  intervalMs: number = WP_SYNC_INTERVAL_MS,
-): Promise<boolean> {
-  const wp = await loadOrgWordPressSettings(organisationId);
-  const lastAt = wp[lastAtKey];
-  if (typeof lastAt !== "string") return true;
-  return Date.now() - new Date(lastAt).getTime() >= intervalMs;
-}
-
+/**
+ * Explicit legacy migration import. These functions are intentionally one-way:
+ * WordPress → Gen 2. They must only be invoked from deliberate migration/onboarding
+ * workflows, never from normal Real Estate page loads or background runtime fallback.
+ */
 export async function syncWordPressVendorLeads(
   session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
 ): Promise<{ ok: true; result: WordPressSyncResult } | { ok: false; message: string }> {
@@ -207,58 +182,6 @@ export async function syncWordPressProperties(
   } finally {
     await prisma.$queryRaw`SELECT pg_advisory_unlock(hashtext(${lockKey}))`;
   }
-}
-
-async function autoSyncIfNeeded(
-  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-  lastAtKey:
-    | "lastVendorLeadSyncAt"
-    | "lastBuyerLeadSyncAt"
-    | "lastBookingSyncAt"
-    | "lastPropertySyncAt",
-  run: () => Promise<{ ok: true; result: WordPressSyncResult } | { ok: false; message: string }>,
-  intervalMs: number = WP_SYNC_INTERVAL_MS,
-): Promise<AutoSyncOutcome> {
-  const { organisationHasFlag } = await import("@dg/platform-core");
-  const allowed = await organisationHasFlag(session.organisationId, "re.wp_auto_sync");
-  if (!allowed) return { ran: false, reason: "disabled" };
-
-  if (!(await shouldRunSync(session.organisationId, lastAtKey, intervalMs))) {
-    return { ran: false, reason: "too_soon" };
-  }
-
-  const connector = await wpConnectorForOrg(session.organisationId);
-  if (!connectorHasKey(connector)) return { ran: false, reason: "missing_key" };
-
-  const outcome = await run();
-  if (!outcome.ok) {
-    return { ran: false, reason: "fetch_failed", message: outcome.message };
-  }
-  return { ran: true, result: outcome.result };
-}
-
-export async function autoSyncWordPressVendorLeadsIfNeeded(
-  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-): Promise<AutoSyncOutcome> {
-  return autoSyncIfNeeded(session, "lastVendorLeadSyncAt", () => syncWordPressVendorLeads(session));
-}
-
-export async function autoSyncWordPressBuyerLeadsIfNeeded(
-  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-): Promise<AutoSyncOutcome> {
-  return autoSyncIfNeeded(session, "lastBuyerLeadSyncAt", () => syncWordPressBuyerLeads(session));
-}
-
-export async function autoSyncWordPressBookingsIfNeeded(
-  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-): Promise<AutoSyncOutcome> {
-  return autoSyncIfNeeded(session, "lastBookingSyncAt", () => syncWordPressBookings(session));
-}
-
-export async function autoSyncWordPressPropertiesIfNeeded(
-  session: Pick<PlatformSession, "organisationId" | "clerkUserId">,
-): Promise<AutoSyncOutcome> {
-  return autoSyncIfNeeded(session, "lastPropertySyncAt", () => syncWordPressProperties(session));
 }
 
 export async function getLastWordPressSync(organisationId: string) {
