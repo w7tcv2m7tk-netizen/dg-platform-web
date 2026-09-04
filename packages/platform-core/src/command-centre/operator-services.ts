@@ -11,6 +11,7 @@ import {
 import { updateOrganisationFeatureFlags } from "../features/flags";
 import { listPlatformOpportunities } from "../opportunity-engine";
 import { buildCommissionsWorkspace } from "../partners/commissions-workspace";
+import { listPartners } from "../partners/crud";
 import { generateClientAdvisorInsight } from "./advisor";
 import { getCommandBenchmarks } from "./benchmarks";
 import { getClientIntelligence } from "./client-intelligence";
@@ -182,4 +183,16 @@ export async function getOperatorDeliveryProject(
 ) {
   requireOperator(operator);
   return getDeliveryProject(projectId);
+}
+
+/** Capability-gated Delivery Partner invitation/roster view. */
+export async function listOperatorDeliveryPartners(
+  operator: PlatformOperatorContext,
+  input?: { limit?: number },
+) {
+  requireOperator(operator);
+  return listPartners({
+    partnerType: "IMPLEMENTATION_PARTNER",
+    limit: input?.limit ?? 100,
+  });
 }
