@@ -21,8 +21,8 @@ export function ReBookingsPanel({
   error?: string;
 }) {
   const router = useRouter();
-  const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [contactName, setContactName] = useState("");
@@ -32,22 +32,25 @@ export function ReBookingsPanel({
   const [scheduledAt, setScheduledAt] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
 
-  async function syncFromWordPress() {
-    setSyncing(true);
-    setSyncMsg(null);
-    const res = await fetch("/api/v1/re/bookings", {
+  async function importLegacyBookings() {
+    setImporting(true);
+    setImportMsg(null);
+    const res = await fetch("/api/v1/migrations/wordpress/real-estate/bookings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "sync_wordpress" }),
+      body: JSON.stringify({ limit: 100 }),
     });
     const json = await res.json().catch(() => null);
-    setSyncing(false);
+    setImporting(false);
     if (!res.ok) {
-      setSyncMsg(json?.error?.message ?? "Sync failed");
+      setImportMsg(json?.error?.message ?? "Legacy import failed");
       return;
     }
-    setSyncMsg(
-      `Synced: ${json.data.created} new, ${json.data.updated} updated, ${json.data.skipped} unchanged`,
+    const result = json?.data?.result;
+    setImportMsg(
+      result
+        ? `Imported: ${result.created} new, ${result.updated} updated, ${result.skipped} unchanged`
+        : "Import complete",
     );
     router.refresh();
   }
@@ -86,9 +89,7 @@ export function ReBookingsPanel({
     return (
       <div className="dg-card border-amber-500/30">
         <p className="text-amber-300">{error}</p>
-        <p className="mt-2 text-sm text-slate-500">
-          Check WordPress connector settings — or create bookings directly in Gen 2 below.
-        </p>
+        <p className="mt-2 text-sm text-slate-500">Could not load bookings right now.</p>
       </div>
     );
   }
@@ -105,20 +106,20 @@ export function ReBookingsPanel({
         </button>
         <button
           type="button"
-          onClick={syncFromWordPress}
-          disabled={syncing}
+          onClick={importLegacyBookings}
+          disabled={importing}
           className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
         >
-          {syncing ? "Syncing…" : "Sync bookings from WordPress"}
+          {importing ? "Importing…" : "Import legacy bookings"}
         </button>
-        {syncMsg ? <p className="text-sm text-slate-400">{syncMsg}</p> : null}
+        {importMsg ? <p className="text-sm text-slate-400">{importMsg}</p> : null}
       </div>
 
       {showCreate ? (
         <form onSubmit={createBooking} className="dg-card max-w-lg space-y-3 border border-slate-700">
           <h3 className="font-semibold text-white">New appraisal booking</h3>
           <p className="text-xs text-slate-500">
-            Stored in Platform — links to a vendor Contact (role badge). WordPress sync optional.
+            Stored directly in Platform Core / Neon and linked to the Real Estate workflow.
           </p>
           <label className="block text-sm">
             <span className="text-slate-400">Name</span>
@@ -183,8 +184,8 @@ export function ReBookingsPanel({
         <div className="dg-card border-dashed border-slate-700">
           <h2 className="text-lg font-semibold text-white">Add your first appraisal booking</h2>
           <p className="mt-2 max-w-xl text-sm text-slate-400">
-            Create a booking above, or sync inspection times from your WordPress site when the
-            connector is live.
+            Create a booking above. If you are migrating from a legacy WordPress site, use the
+            explicit legacy import action once during onboarding.
           </p>
         </div>
       ) : (
