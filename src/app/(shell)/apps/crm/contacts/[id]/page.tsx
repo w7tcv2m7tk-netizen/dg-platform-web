@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { notFound } from "next/navigation";
-import { currentUser } from "@clerk/nextjs/server";
 import {
   BUSINESS_REFERRAL_COMPLIANCE_NOTE,
   canAccessCommandCentre,
@@ -21,6 +19,7 @@ import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
 import { EditContactForm } from "@/components/crm/EditContactForm";
 import { BusinessReferralPanel } from "@/components/network/BusinessReferralPanel";
 import { InviteToFounding10Form } from "@/components/founding/InviteToFounding10Form";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -28,16 +27,7 @@ interface PageProps {
 
 export default async function ContactDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const session = await getAuthorisedPlatformPageSession("crm.contacts.read");
 
   if (!session) {
     notFound();
