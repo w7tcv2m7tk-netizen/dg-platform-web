@@ -40,10 +40,10 @@ export function WordPressConnectorPanel({
 
   const sourceLabel =
     initial.source === "org"
-      ? "org override active"
+      ? "organisation migration override active"
       : initial.source === "preset"
-        ? "using brand preset"
-        : "currently using env";
+        ? "using migration preset"
+        : "using legacy environment fallback";
 
   const effectiveUrl = (baseUrl || initial.resolvedBaseUrl).trim();
   const host = useMemo(() => hostFromUrl(effectiveUrl), [effectiveUrl]);
@@ -54,12 +54,12 @@ export function WordPressConnectorPanel({
   const keyHint = useMemo(() => {
     if (!host) return null;
     if (isCvh) {
-      return "This host is CVH — paste the Currumbin Valley Hideaway Dev API key only. Roe/DigitalGate keys are never sent here.";
+      return "This migration source is CVH — paste the Currumbin Valley Hideaway Dev API key only. Roe/DigitalGate keys are never sent here.";
     }
     if (initial.source === "env" && !initial.hasApiKey) {
-      return `Using deployment env key only when env base URL host matches ${host}. For multi-site orgs, paste this site's own key.`;
+      return `The legacy environment key is used only when its base URL host matches ${host}. For multi-site migrations, paste this source site's own key.`;
     }
-    return `API key must match the WordPress site at ${host} (DG Platform → API Settings).`;
+    return `API key must match the legacy WordPress source at ${host} (DG Platform → API Settings).`;
   }, [host, isCvh, initial.hasApiKey, initial.source]);
 
   async function save(
@@ -89,7 +89,7 @@ export function WordPressConnectorPanel({
     if (needsSiteKey && !apiKey.trim() && !initial.hasApiKey) {
       setPending(false);
       setError(
-        "Paste this site's Dev API key before saving. Settings → Connectors stores keys per business — never reuse Roe/DigitalGate keys on CVH or other hosts.",
+        "Paste this source site's Dev API key before saving. Settings → Connectors stores migration keys per business — never reuse Roe/DigitalGate keys on CVH or other hosts.",
       );
       return null;
     }
@@ -116,7 +116,7 @@ export function WordPressConnectorPanel({
     const json = await res.json().catch(() => ({}));
     setPending(false);
     if (!res.ok) {
-      setError(json.error?.message ?? "Could not save connector");
+      setError(json.error?.message ?? "Could not save migration connector");
       return null;
     }
 
@@ -128,16 +128,16 @@ export function WordPressConnectorPanel({
     setApiKey("");
     const probe = json.data?.probe;
     if (probe?.ok) {
-      setMessage(probe.detail ?? "WordPress connector saved and connected.");
+      setMessage(probe.detail ?? "Legacy WordPress migration connector saved and connected.");
     } else if (probe && !probe.ok) {
-      setError(probe.message ?? "Saved, but connection test failed");
+      setError(probe.message ?? "Saved, but migration source test failed");
       setMessage(
         json.data?.hasApiKey
-          ? "Connector saved — fix the API key for this site and Test again."
-          : "Connector URL saved — paste this site's API key and Save again.",
+          ? "Migration connector saved — fix the API key for this source and Test again."
+          : "Migration source URL saved — paste this site's API key and Save again.",
       );
     } else {
-      setMessage("WordPress connector saved for this business.");
+      setMessage("Legacy WordPress migration connector saved for this business.");
     }
     router.refresh();
     return json.data;
@@ -167,19 +167,19 @@ export function WordPressConnectorPanel({
     const json = await res.json().catch(() => ({}));
     setTesting(false);
     if (!res.ok) {
-      setError(json.error?.message ?? "Connection test failed");
+      setError(json.error?.message ?? "Migration source test failed");
       return;
     }
     const probe = json.data?.probe;
     const resolvedHost = hostFromUrl(json.data?.resolved?.baseUrl || effectiveUrl);
     if (probe?.ok) {
       setMessage(
-        `${probe.detail ?? "Connected"}${resolvedHost ? ` · ${resolvedHost}` : ""}`,
+        `${probe.detail ?? "Migration source connected"}${resolvedHost ? ` · ${resolvedHost}` : ""}`,
       );
     } else {
       setError(
         probe?.message ??
-          `Could not reach WordPress${resolvedHost ? ` at ${resolvedHost}` : ""}.`,
+          `Could not reach legacy WordPress source${resolvedHost ? ` at ${resolvedHost}` : ""}.`,
       );
     }
     router.refresh();
@@ -187,17 +187,18 @@ export function WordPressConnectorPanel({
 
   return (
     <div className="dg-card">
-      <h2 className="font-semibold text-white">WordPress connector (this business)</h2>
+      <h2 className="font-semibold text-white">Legacy WordPress migration connector</h2>
       <p className="mt-2 text-sm text-slate-400">
-        Each organisation points at its own WordPress site. Keys are stored per business
-        ({sourceLabel}). Multi-site tip: the env fallback key only applies when the env
-        base URL host matches this org&apos;s host — paste a site-specific key otherwise.
+        Use this only to import legacy WordPress data into DigitalGate Gen 2. WordPress is
+        not part of normal production runtime. After migration is validated and the site is
+        cut over, disconnect this connector. Keys are stored per business ({sourceLabel}).
+        Multi-site migrations should always use the source site&apos;s own key.
         {isCvh ? (
           <>
             {" "}
             <span className="text-amber-300/90">
-              CVH requires its own key from currumbinvalleyhideaway.com.au — never reuse Roe
-              or DigitalGate.
+              CVH requires its own migration key from currumbinvalleyhideaway.com.au — never
+              reuse Roe or DigitalGate.
             </span>
           </>
         ) : null}
@@ -205,7 +206,7 @@ export function WordPressConnectorPanel({
 
       {host ? (
         <p className="mt-3 rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 font-mono text-xs text-slate-300">
-          Target host: <span className="text-white">{host}</span>
+          Migration source host: <span className="text-white">{host}</span>
           {initial.hasApiKey ? " · org key saved" : " · no org key yet"}
         </p>
       ) : null}
@@ -217,7 +218,7 @@ export function WordPressConnectorPanel({
           onClick={() => void save("digitalgate")}
           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
         >
-          DigitalGate preset
+          DigitalGate migration preset
         </button>
         <button
           type="button"
@@ -225,7 +226,7 @@ export function WordPressConnectorPanel({
           onClick={() => void save("real-estate")}
           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
         >
-          Roe Realty preset
+          Roe Realty migration preset
         </button>
         <button
           type="button"
@@ -233,7 +234,7 @@ export function WordPressConnectorPanel({
           onClick={() => void save("accommodation", { requireKey: true })}
           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
         >
-          CVH preset
+          CVH migration preset
         </button>
         <button
           type="button"
@@ -241,7 +242,7 @@ export function WordPressConnectorPanel({
           onClick={() => void save("creator")}
           className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-200 hover:border-blue-500"
         >
-          Aëtherra preset
+          Aëtherra migration preset
         </button>
       </div>
 
@@ -255,7 +256,7 @@ export function WordPressConnectorPanel({
           />
         </label>
         <label className="block text-sm">
-          <span className="text-slate-400">REST base URL</span>
+          <span className="text-slate-400">Legacy REST base URL</span>
           <input
             value={baseUrl}
             onChange={(e) => setBaseUrl(e.target.value)}
@@ -265,7 +266,7 @@ export function WordPressConnectorPanel({
         </label>
         <label className="block text-sm">
           <span className="text-slate-400">
-            Site Dev API key{" "}
+            Source site Dev API key{" "}
             {initial.hasApiKey ? "(saved — enter to replace)" : "(required per site)"}
           </span>
           <input
@@ -288,7 +289,7 @@ export function WordPressConnectorPanel({
           onClick={() => void save()}
           className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
         >
-          {pending ? "Saving…" : "Save connector"}
+          {pending ? "Saving…" : "Save migration connector"}
         </button>
         <button
           type="button"
@@ -296,7 +297,7 @@ export function WordPressConnectorPanel({
           onClick={() => void testConnection()}
           className="rounded-full border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-blue-500 disabled:opacity-50"
         >
-          {testing ? "Testing…" : "Test connection"}
+          {testing ? "Testing…" : "Test migration source"}
         </button>
       </div>
 
