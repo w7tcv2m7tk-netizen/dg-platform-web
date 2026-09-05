@@ -2,10 +2,8 @@ import Link from "next/link";
 
 import { BusinessBrainDashboard } from "@/components/intelligence/BusinessBrainDashboard";
 import { loadBusinessBrainPageData } from "@/lib/brain-page-data";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 
 export default async function BusinessBrainPage() {
-  await ensureOrganisationOnboardingSync();
   const data = await loadBusinessBrainPageData();
 
   if (!data) {

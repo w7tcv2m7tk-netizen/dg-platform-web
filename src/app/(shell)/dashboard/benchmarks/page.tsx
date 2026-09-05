@@ -3,14 +3,12 @@ import { Suspense } from "react";
 
 import { BusinessBenchmarksDashboard } from "@/components/intelligence/BusinessBenchmarksDashboard";
 import { loadBusinessBenchmarksPageData } from "@/lib/benchmarks-page-data";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 
 export default async function BenchmarksPage({
   searchParams,
 }: {
   searchParams: Promise<{ group?: string }>;
 }) {
-  await ensureOrganisationOnboardingSync();
   const { group } = await searchParams;
   const data = await loadBusinessBenchmarksPageData(group);
 
