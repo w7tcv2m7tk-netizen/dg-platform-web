@@ -71,19 +71,19 @@ export async function updateOrganisationFeatureFlags(input: {
   return nextFlags;
 }
 
-/** Documented Core flags (defaults off unless set). */
+/** Documented active Core flags (defaults off unless set). */
 export const KNOWN_FEATURE_FLAGS = [
   {
     id: "re.beta",
     label: "Real Estate beta",
     description:
-      "Gates the Real Estate app for pilot agencies. Enable via Command Centre → Flags or Provision RE beta.",
+      "Gates the native Gen 2 Real Estate app for pilot agencies. Enable via Command Centre → Flags or Provision RE beta.",
   },
   {
     id: "acc.beta",
     label: "Accommodation beta",
     description:
-      "Gates the Accommodation app for pilot properties (e.g. CVH). Enable via Command Centre → Flags or Enable Acc beta.",
+      "Gates the native Gen 2 Accommodation app for pilot properties (e.g. CVH). Enable via Command Centre → Flags or Enable Acc beta.",
   },
   {
     id: "ai.auto_execute",
@@ -101,40 +101,10 @@ export const KNOWN_FEATURE_FLAGS = [
     description: "Queue daily digest of in-app notifications (requires Resend)",
   },
   {
-    id: "acc.units_sot",
-    label: "Accommodation units SoT (Neon)",
-    description:
-      "Force Gen 2 AccommodationUnit as SoT for units/availability (WP becomes mirror). Soft-on when Neon already has units.",
-  },
-  {
-    id: "acc.housekeeping_sot",
-    label: "Accommodation housekeeping SoT (Neon)",
-    description:
-      "Housekeeping PATCH writes Neon first; WordPress mirror optional. Soft-on with units SoT.",
-  },
-  {
-    id: "acc.gen2_first_booking",
-    label: "Gen 2-first stay create",
-    description:
-      "Ops create_booking conflict-checks Neon and creates StayBooking first, then dual-writes WordPress. Soft-on (default) for founding ops; set false to force WP-first. Public book-now stays WP until cutover.",
-  },
-  {
-    id: "re.wp_auto_sync",
-    label: "RE WordPress auto-sync",
-    description:
-      "When on, RE pages auto-pull WP leads/properties/bookings every 4h. Default off (WP-D-107) — Gen 2 is SoT; use manual Sync. Legacy catch-up only.",
-  },
-  {
-    id: "re.stage_writeback",
-    label: "RE stage write-back to WordPress",
-    description:
-      "When on, Gen 2 stage changes PATCH WordPress pipeline (plugin v10.68+). Gen 2 remains SoT either way.",
-  },
-  {
     id: "websites.builder",
     label: "Website Builder beta",
     description:
-      "Enrols Website Builder closed beta — Studio, Sites, generate, WP content import. Soft-on when unset; Enable Websites beta sets this true. Health Centre stays available without it. See docs/WEBSITES-BETA-LAUNCH.md.",
+      "Enrols Website Builder closed beta — Studio, Sites, generate, publish, and optional one-way legacy WordPress content import. Soft-on when unset; Enable Websites beta sets this true. See docs/WEBSITES-BETA-LAUNCH.md.",
   },
   {
     id: "infra.domains_beta",
