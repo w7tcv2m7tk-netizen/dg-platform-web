@@ -11,12 +11,10 @@ import {
 
 import { GoalsBoard } from "@/components/platform/GoalsBoard";
 import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 
 export default async function GoalsPage() {
   const { session } = await getPlatformPageContext();
-  await ensureOrganisationOnboardingSync();
 
   const enabledAppIds = await getOrgEnabledAppIdsCached();
   const profile = session
