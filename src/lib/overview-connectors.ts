@@ -1,9 +1,10 @@
 import {
   buildNativeWebsiteHealth,
   getStripeSetupStatus,
+  listLeads,
   listOrganisationDomains,
+  listReBookings,
   listWebsitesWithPages,
-  organisationHasWordPressConnector,
   pickWebsiteForHealthProbe,
   probeCommsConnector,
   resolvePrimaryLinkedDomain,
@@ -11,22 +12,7 @@ import {
   type WebsiteProbe,
 } from "@dg/platform-core";
 
-import { accommodationConnectorForSession } from "@/lib/accommodation-connector";
-import {
-  fetchWpAccommodationSummary,
-  fetchWpReSummary,
-  fetchWpSiteHealth,
-} from "@/lib/dg-api";
-import { wpConnectorForOrg } from "@/lib/org-wordpress-connector";
-import { getLastWordPressSync } from "@/lib/wordpress-sync";
-
-function sumPipelineCounts(
-  pipeline?: Record<string, { count?: number }>,
-): number | undefined {
-  if (!pipeline) return undefined;
-  const total = Object.values(pipeline).reduce((sum, stage) => sum + (stage.count ?? 0), 0);
-  return total > 0 ? total : undefined;
-}
+import { buildAccommodationSummary } from "@/lib/accommodation-summary";
 
 async function probeNativeWebsite(
   organisationId: string,
@@ -65,93 +51,71 @@ async function probeNativeWebsite(
   }
 }
 
-/** Probe Design Studio, WordPress, Stripe, and site health for Business Overview. */
+async function probeNativeRealEstate(
+  organisationId: string,
+): Promise<OverviewConnectorProbes["reSummary"]> {
+  try {
+    const [vendorLeads, buyerLeads, bookings] = await Promise.all([
+      listLeads({ organisationId, leadType: "vendor", limit: 1 }),
+      listLeads({ organisationId, leadType: "buyer", limit: 1 }),
+      listReBookings(organisationId, 100),
+    ]);
+    const monthPrefix = new Date().toISOString().slice(0, 7);
+    return {
+      ok: true,
+      vendorPipelineTotal: vendorLeads.meta.total,
+      buyerPipelineTotal: buyerLeads.meta.total,
+      bookingsThisMonth: bookings.filter((booking) =>
+        booking.scheduledAt?.startsWith(monthPrefix),
+      ).length,
+    };
+  } catch {
+    return { ok: false };
+  }
+}
+
+async function probeNativeAccommodation(
+  organisationId: string,
+): Promise<OverviewConnectorProbes["accommodation"]> {
+  try {
+    const summary = await buildAccommodationSummary(organisationId);
+    return {
+      ok: true,
+      occupancyRate: Math.round(summary.occupancy_rate * 100),
+      revenueMtd: summary.revenue_mtd,
+      checkinsTomorrow: summary.checkins_tomorrow,
+    };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/** Probe native Gen 2 systems for Business intelligence surfaces. */
 export async function fetchOverviewConnectorProbes(
   enabledAppIds: string[],
   organisationId: string,
 ): Promise<OverviewConnectorProbes> {
   const stripe = getStripeSetupStatus();
-  const wpSync = await getLastWordPressSync(organisationId);
-  const wpConfigured = await organisationHasWordPressConnector(organisationId);
-  const orgConnector = await wpConnectorForOrg(organisationId);
-  const accConnector = await accommodationConnectorForSession(organisationId);
-
-  const [siteHealth, reSummary, accSummary, nativeWebsite, comms] = await Promise.all([
-    wpConfigured ? fetchWpSiteHealth() : Promise.resolve({ ok: false as const }),
-    enabledAppIds.includes("real-estate")
-      ? fetchWpReSummary(30, orgConnector)
-      : Promise.resolve(null),
-    enabledAppIds.includes("accommodation")
-      ? fetchWpAccommodationSummary(null, 30, accConnector)
-      : Promise.resolve(null),
+  const [nativeWebsite, reSummary, accommodation, comms] = await Promise.all([
     probeNativeWebsite(organisationId),
+    enabledAppIds.includes("real-estate")
+      ? probeNativeRealEstate(organisationId)
+      : Promise.resolve(undefined),
+    enabledAppIds.includes("accommodation")
+      ? probeNativeAccommodation(organisationId)
+      : Promise.resolve(undefined),
     probeCommsConnector(organisationId, enabledAppIds),
   ]);
-
-  const hasWpKey =
-    Boolean(orgConnector.apiKey?.trim()) ||
-    Boolean(process.env.DG_WP_CONNECTOR_API_KEY?.trim()) ||
-    Boolean(process.env.DG_API_KEY?.trim());
 
   const probes: OverviewConnectorProbes = {
     stripeOk: stripe.ok,
     stripeMode: stripe.mode,
     comms,
+    website: nativeWebsite ?? { ok: false },
   };
 
-  if (nativeWebsite) {
-    probes.website = nativeWebsite;
-  } else if (siteHealth.ok) {
-    probes.website = {
-      ok: true,
-      score: siteHealth.payload.score,
-      pass: siteHealth.payload.pass,
-      warn: siteHealth.payload.warn,
-      fail: siteHealth.payload.fail,
-      siteLabel: siteHealth.payload.site,
-    };
-  } else {
-    probes.website = { ok: false };
-  }
-
-  const wpConnected =
-    Boolean(wpSync?.lastVendorLeadSyncAt) ||
-    reSummary?.ok === true ||
-    accSummary?.ok === true ||
-    (hasWpKey && siteHealth.ok);
-
-  if (wpConfigured) {
-    probes.wordpress = {
-      ok: wpConnected,
-      configured: true,
-      lastSyncAt: wpSync?.lastVendorLeadSyncAt,
-      vendorLeadCount: reSummary?.ok
-        ? sumPipelineCounts(reSummary.data.vendor_pipeline)
-        : undefined,
-    };
-  }
-
-  if (reSummary?.ok) {
-    const data = reSummary.data;
-    probes.reSummary = {
-      ok: true,
-      vendorPipelineTotal: sumPipelineCounts(data.vendor_pipeline),
-      buyerPipelineTotal: sumPipelineCounts(data.buyer_pipeline),
-      bookingsThisMonth: data.bookings_this_month,
-      newVendorLeads: data.vendor_pipeline?.new?.count,
-    };
-  }
-
-  if (accSummary?.ok) {
-    const rate = accSummary.data.occupancy_rate;
-    probes.accommodation = {
-      ok: true,
-      occupancyRate:
-        typeof rate === "number" ? Math.round(rate <= 1 ? rate * 100 : rate) : undefined,
-      revenueMtd: accSummary.data.revenue_mtd ?? accSummary.data.revenue_month,
-      checkinsTomorrow: accSummary.data.checkins_tomorrow,
-    };
-  }
+  if (reSummary) probes.reSummary = reSummary;
+  if (accommodation) probes.accommodation = accommodation;
 
   return probes;
 }
