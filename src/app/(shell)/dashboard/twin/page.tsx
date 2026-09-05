@@ -2,10 +2,8 @@ import Link from "next/link";
 
 import { DigitalTwinDashboard } from "@/components/intelligence/DigitalTwinDashboard";
 import { loadDigitalTwinPageData } from "@/lib/twin-page-data";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 
 export default async function DigitalTwinPage() {
-  await ensureOrganisationOnboardingSync();
   const data = await loadDigitalTwinPageData();
 
   if (!data) {
