@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
 import {
   bootConnectorEngine,
   getOrgWordPressConnectorSettings,
@@ -16,7 +14,7 @@ import { GoogleGbpConnectorPanel } from "@/components/settings/GoogleGbpConnecto
 import { LinkedInConnectorPanel } from "@/components/settings/LinkedInConnectorPanel";
 import { ReaConnectorPanel } from "@/components/settings/ReaConnectorPanel";
 import { WordPressConnectorPanel } from "@/components/settings/WordPressConnectorPanel";
-import { fetchPortalMe } from "@/lib/dg-api";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 import { getLastWordPressSync } from "@/lib/wordpress-sync";
 
 bootConnectorEngine();
@@ -50,22 +48,8 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
     rea: reaFlash,
     message: flashMessage,
   } = await searchParams;
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
+  const context = await getPlatformPageContext();
+  const session = context?.session ?? null;
 
   const lastSync = session ? await getLastWordPressSync(session.organisationId) : null;
   const [wpSettings, wpResolved] = session
@@ -102,139 +86,46 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/dashboard/settings" className="text-sm text-blue-400 hover:underline">
-          ← Settings
-        </Link>
+        <Link href="/dashboard/settings" className="text-sm text-blue-400 hover:underline">← Settings</Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Connectors</h1>
-        <p className="text-sm text-slate-400">
-          Operator view — Connector Engine, probes, and provider diagnostics.
-        </p>
+        <p className="text-sm text-slate-400">Operator view — Connector Engine, migration tooling, and provider diagnostics.</p>
         <p className="mt-2 rounded-lg border border-amber-700/40 bg-amber-950/20 px-3 py-2 text-sm text-amber-100/90">
-          Customers should use{" "}
-          <Link href="/dashboard/settings/connected-services" className="text-sky-300 hover:underline">
-            Connected Services
-          </Link>{" "}
-          for everyday connect / disconnect. This page is for DigitalGate operator and advanced
-          setup.
+          Customers should use <Link href="/dashboard/settings/connected-services" className="text-sky-300 hover:underline">Connected Services</Link> for everyday connect / disconnect. This page is for DigitalGate operator and advanced setup.
         </p>
       </header>
       <main className="dg-page-main space-y-6">
         <ConnectorEngineCatalog />
-
-        <DomainConnectorPanel
-          flash={
-            domainFlash === "connected"
-              ? "connected"
-              : domainFlash === "error"
-                ? "error"
-                : null
-          }
-          flashMessage={domainFlash ? flashMessage ?? null : null}
-        />
-
-        <ReaConnectorPanel
-          flash={
-            reaFlash === "connected" ? "connected" : reaFlash === "error" ? "error" : null
-          }
-          flashMessage={reaFlash ? flashMessage ?? null : null}
-        />
-
-        <GoogleGbpConnectorPanel
-          flash={
-            googleFlash === "connected"
-              ? "connected"
-              : googleFlash === "error"
-                ? "error"
-                : null
-          }
-          flashMessage={googleFlash ? flashMessage ?? null : null}
-        />
-
-        <LinkedInConnectorPanel
-          flash={
-            linkedinFlash === "connected"
-              ? "connected"
-              : linkedinFlash === "error"
-                ? "error"
-                : null
-          }
-          flashMessage={linkedinFlash ? flashMessage ?? null : null}
-        />
+        <DomainConnectorPanel flash={domainFlash === "connected" ? "connected" : domainFlash === "error" ? "error" : null} flashMessage={domainFlash ? flashMessage ?? null : null} />
+        <ReaConnectorPanel flash={reaFlash === "connected" ? "connected" : reaFlash === "error" ? "error" : null} flashMessage={reaFlash ? flashMessage ?? null : null} />
+        <GoogleGbpConnectorPanel flash={googleFlash === "connected" ? "connected" : googleFlash === "error" ? "error" : null} flashMessage={googleFlash ? flashMessage ?? null : null} />
+        <LinkedInConnectorPanel flash={linkedinFlash === "connected" ? "connected" : linkedinFlash === "error" ? "error" : null} flashMessage={linkedinFlash ? flashMessage ?? null : null} />
 
         {session && wpResolved ? (
-          <WordPressConnectorPanel
-            initial={{
-              baseUrl: wpSettings?.baseUrl ?? "",
-              label: wpSettings?.label ?? "",
-              hasApiKey: Boolean(wpSettings?.apiKey?.trim()),
-              resolvedLabel: wpResolved.label,
-              resolvedBaseUrl: wpResolved.baseUrl,
-              source: wpResolved.source,
-            }}
-          />
+          <WordPressConnectorPanel initial={{ baseUrl: wpSettings?.baseUrl ?? "", label: wpSettings?.label ?? "", hasApiKey: Boolean(wpSettings?.apiKey?.trim()), resolvedLabel: wpResolved.label, resolvedBaseUrl: wpResolved.baseUrl, source: wpResolved.source }} />
         ) : null}
 
-        <div className="dg-card">
-          <h2 className="font-semibold text-white">Multi-site WordPress</h2>
-          <p className="mt-2 text-sm text-slate-400">
-            Each organisation stores <strong className="text-slate-200">one</strong>{" "}
-            primary WordPress host + site API key (above). Env keys are only reused when
-            the host matches — never send Roe/DigitalGate keys to CVH. Website Health and
-            Accommodation multi-site lists use{" "}
-            <code className="text-slate-300">DG_WP_HEALTH_SITES</code> /{" "}
-            <code className="text-slate-300">DG_WP_ACCOMMODATION_SITES</code> on Vercel for
-            portfolio probes; per-tenant sync still uses the org connector.
-          </p>
+        <div className="dg-card border-amber-700/30">
+          <h2 className="font-semibold text-white">Legacy WordPress migration connector</h2>
+          <p className="mt-2 text-sm text-slate-400">WordPress is not a normal Gen 2 runtime dependency. These settings are retained only to connect a legacy client temporarily while data is migrated WordPress → Gen 2 and the cutover is validated. Disconnect WordPress after migration.</p>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="dg-card">
-            <h2 className="font-semibold text-white">WordPress sync status</h2>
-            {lastSync?.lastVendorLeadSyncAt ? (
-              <p className="mt-2 text-sm text-slate-400">
-                Last vendor sync:{" "}
-                {new Date(lastSync.lastVendorLeadSyncAt).toLocaleString("en-AU")}
-                {lastSync.lastVendorLeadSync
-                  ? ` · ${lastSync.lastVendorLeadSync.created} imported`
-                  : ""}
-              </p>
-            ) : (
-              <p className="mt-2 text-sm text-slate-400">No vendor lead sync recorded yet.</p>
-            )}
-            {lastSync?.lastBuyerLeadSyncAt ? (
-              <p className="mt-1 text-sm text-slate-400">
-                Last buyer sync:{" "}
-                {new Date(lastSync.lastBuyerLeadSyncAt).toLocaleString("en-AU")}
-              </p>
-            ) : null}
-            {lastSync?.lastBookingSyncAt ? (
-              <p className="mt-1 text-sm text-slate-400">
-                Last RE appraisal booking sync:{" "}
-                {new Date(lastSync.lastBookingSyncAt).toLocaleString("en-AU")}
-              </p>
-            ) : null}
-            <Link
-              href="/apps/re/vendor-leads"
-              className="mt-4 inline-block text-sm text-blue-400 hover:underline"
-            >
-              Open vendor leads →
-            </Link>
+            <h2 className="font-semibold text-white">Legacy migration history</h2>
+            {lastSync?.lastVendorLeadSyncAt ? <p className="mt-2 text-sm text-slate-400">Last vendor import: {new Date(lastSync.lastVendorLeadSyncAt).toLocaleString("en-AU")}{lastSync.lastVendorLeadSync ? ` · ${lastSync.lastVendorLeadSync.created} imported` : ""}</p> : <p className="mt-2 text-sm text-slate-400">No legacy vendor import recorded.</p>}
+            {lastSync?.lastBuyerLeadSyncAt ? <p className="mt-1 text-sm text-slate-400">Last buyer import: {new Date(lastSync.lastBuyerLeadSyncAt).toLocaleString("en-AU")}</p> : null}
+            {lastSync?.lastBookingSyncAt ? <p className="mt-1 text-sm text-slate-400">Last RE booking import: {new Date(lastSync.lastBookingSyncAt).toLocaleString("en-AU")}</p> : null}
           </div>
 
           <div className="dg-card">
             <h2 className="font-semibold text-white">Environment (Vercel)</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Status only — values are never shown here.
-            </p>
+            <p className="mt-1 text-sm text-slate-500">Status only — values are never shown here.</p>
             <ul className="mt-3 divide-y divide-slate-800">
               <EnvStatus name="DATABASE_URL" configured={envFlags.database} />
-              <EnvStatus name="DG_WP_CONNECTOR_API_KEY" configured={envFlags.wpConnectorKey} />
-              <EnvStatus name="DG_WP_CONNECTOR_BASE_URL" configured={envFlags.wpConnectorBase} />
-              <EnvStatus name="DG_WP_HEALTH_SITES" configured={envFlags.wpHealthSites} />
-              <EnvStatus
-                name="DG_WP_ACCOMMODATION_SITES"
-                configured={envFlags.wpAccommodationSites}
-              />
+              <EnvStatus name="DG_WP_CONNECTOR_API_KEY (legacy migration)" configured={envFlags.wpConnectorKey} />
+              <EnvStatus name="DG_WP_CONNECTOR_BASE_URL (legacy migration)" configured={envFlags.wpConnectorBase} />
+              <EnvStatus name="DG_WP_HEALTH_SITES (legacy diagnostics)" configured={envFlags.wpHealthSites} />
+              <EnvStatus name="DG_WP_ACCOMMODATION_SITES (legacy diagnostics)" configured={envFlags.wpAccommodationSites} />
               <EnvStatus name="STRIPE_SECRET_KEY" configured={envFlags.stripe} />
               <EnvStatus name="DOMAIN_CLIENT_ID" configured={envFlags.domainClient} />
               <EnvStatus name="DOMAIN_CLIENT_SECRET" configured={envFlags.domainSecret} />
@@ -247,10 +138,7 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
               <EnvStatus name="CLOUDFLARE_API_TOKEN + ZONE_ID" configured={envFlags.cloudflare} />
               <EnvStatus name="ELEVENLABS_API_KEY" configured={envFlags.elevenlabs} />
               <EnvStatus name="RESEND_API_KEY" configured={envFlags.resend} />
-              <EnvStatus
-                name="AI_GATEWAY_API_KEY / VERCEL_OIDC_TOKEN"
-                configured={envFlags.gateway}
-              />
+              <EnvStatus name="AI_GATEWAY_API_KEY / VERCEL_OIDC_TOKEN" configured={envFlags.gateway} />
               <EnvStatus name="OPENAI_API_KEY" configured={envFlags.openai} />
               <EnvStatus name="ANTHROPIC_API_KEY" configured={envFlags.anthropic} />
             </ul>
@@ -259,22 +147,12 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
 
         <div className="dg-card">
           <h2 className="font-semibold text-white">Setup guides</h2>
-          <p className="mt-2 text-sm text-slate-400">
-            Per-app connector walkthroughs with env vars and verification steps.
-          </p>
+          <p className="mt-2 text-sm text-slate-400">Per-app connector walkthroughs with env vars and verification steps.</p>
           <div className="mt-4 flex flex-wrap gap-4 text-sm">
-            <Link href="/dashboard/apps/real-estate/setup" className="text-blue-400 hover:underline">
-              Real Estate →
-            </Link>
-            <Link href="/dashboard/apps/accommodation/setup" className="text-blue-400 hover:underline">
-              Accommodation →
-            </Link>
-            <Link href="/dashboard/apps/websites/setup" className="text-blue-400 hover:underline">
-              Websites →
-            </Link>
-            <Link href="/dashboard/apps/commerce/setup" className="text-blue-400 hover:underline">
-              Commerce →
-            </Link>
+            <Link href="/dashboard/apps/real-estate/setup" className="text-blue-400 hover:underline">Real Estate →</Link>
+            <Link href="/dashboard/apps/accommodation/setup" className="text-blue-400 hover:underline">Accommodation →</Link>
+            <Link href="/dashboard/apps/websites/setup" className="text-blue-400 hover:underline">Websites →</Link>
+            <Link href="/dashboard/apps/commerce/setup" className="text-blue-400 hover:underline">Commerce →</Link>
           </div>
         </div>
       </main>
