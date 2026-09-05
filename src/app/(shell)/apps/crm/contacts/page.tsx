@@ -1,27 +1,13 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
 import { listContacts, listCompanies,} from "@dg/platform-core";
 
 import { CreateContactForm } from "@/components/crm/CreateContactForm";
 import { ContactImportExport } from "@/components/crm/ContactImportExport";
 import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function CrmContactsPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-      })
-    : null;
+  const session = await getAuthorisedPlatformPageSession("crm.contacts.read");
 
   if (!session) {
     return (
