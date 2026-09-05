@@ -2,10 +2,8 @@ import Link from "next/link";
 
 import { BusinessHealthDashboard } from "@/components/intelligence/BusinessHealthDashboard";
 import { loadBusinessHealthPageData } from "@/lib/business-health-page-data";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 
 export default async function BusinessHealthPage() {
-  await ensureOrganisationOnboardingSync();
   const data = await loadBusinessHealthPageData();
 
   if (!data) {

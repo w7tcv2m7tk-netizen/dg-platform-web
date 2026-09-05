@@ -2,10 +2,8 @@ import Link from "next/link";
 
 import { InsightsDashboard } from "@/components/intelligence/InsightsDashboard";
 import { loadInsightsPageData } from "@/lib/insights-page-data";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
 
 export default async function InsightsPage() {
-  await ensureOrganisationOnboardingSync();
   const data = await loadInsightsPageData();
 
   if (!data) {
