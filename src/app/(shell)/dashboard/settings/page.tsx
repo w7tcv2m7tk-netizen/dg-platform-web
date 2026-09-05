@@ -1,38 +1,20 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
-import {
-  getOrganisationBusinessProfile,} from "@dg/platform-core";
+import { getOrganisationBusinessProfile } from "@dg/platform-core";
 
 import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
 import { BusinessProfileCard } from "@/components/platform/BusinessProfileCard";
-import { fetchPortalMe } from "@/lib/dg-api";
-import { getOrgEnabledAppIds } from "@/lib/org-apps";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
-export default async function PlatformSettingsPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
+import { getOrgEnabledAppIds, getPlatformPageContext } from "@/lib/org-apps";
 
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  await ensureOrganisationOnboardingSync();
-  const session = user?.id    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
+export default async function PlatformSettingsPage() {
+  const { email, portal, session } = await getPlatformPageContext();
 
   const enabledIds = await getOrgEnabledAppIds();
   const profile = session
     ? await getOrganisationBusinessProfile(session.organisationId)
     : null;
 
-  return (    <>
+  return (
+    <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="text-sm text-slate-400">
