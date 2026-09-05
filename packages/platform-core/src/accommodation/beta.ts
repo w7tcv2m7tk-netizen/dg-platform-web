@@ -18,7 +18,6 @@ export type AccBetaChecklistItemId =
   | "app"
   | "profile_abn"
   | "profile_logo"
-  | "wordpress"
   | "team"
   | "unit"
   | "booking";
@@ -147,13 +146,6 @@ export async function getAccBetaReadiness(
       hint: "Upload logo for letterheads and the workspace brand",
     },
     {
-      id: "wordpress",
-      label: "WordPress connector",
-      done: connectorConfigured,
-      href: "/dashboard/settings/connectors",
-      hint: "Paste the property site Dev API key (base URL alone from a template preset is not enough)",
-    },
-    {
       id: "team",
       label: "Invite a teammate",
       done: hasTeam,
@@ -162,24 +154,23 @@ export async function getAccBetaReadiness(
     },
     {
       id: "unit",
-      label: "First unit synced",
+      label: "First unit added",
       done: hasUnit,
       href: "/apps/accommodation/units",
-      hint: "Sync units from WordPress (plugin 10.63.0+), then confirm OTA iCal fields",
+      hint: "Add your first unit in DigitalGate, then confirm OTA iCal fields as needed",
     },
     {
       id: "booking",
       label: "First stay booking",
       done: hasBooking,
       href: "/apps/accommodation/bookings",
-      hint: "Sync StayBookings from WordPress or create an ops booking on Availability",
+      hint: "Create the first stay booking in DigitalGate Availability or Bookings",
     },
   ];
 
   const completedCount = items.filter((i) => i.done).length;
-  /** Pilot-ready: flag + app + connector + identity + at least one unit in Neon. */
-  const readyForPilot =
-    betaEnabled && appInstalled && connectorConfigured && hasAbn && hasUnit;
+  /** Pilot-ready: native beta + app + identity + at least one unit in Platform Core. */
+  const readyForPilot = betaEnabled && appInstalled && hasAbn && hasUnit;
 
   return {
     organisationId,
