@@ -2,12 +2,18 @@ import { resolveOrgWordPressConnector } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { fetchWpVendorLeads } from "@/lib/dg-api";
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 
-/** Debug WordPress connector config — does not expose API keys */
+/** Explicit legacy migration diagnostic. Never used by normal Gen 2 runtime. */
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requirePermission(session, {
+    module: "settings",
+    action: "manage",
+    scope: "organisation",
+  });
+  if (denied) return denied;
 
   const resolved = await resolveOrgWordPressConnector(session.organisationId);
   const probe = await fetchWpVendorLeads(5, {
@@ -18,6 +24,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     data: {
+      migrationOnly: true,
       connectorBaseUrl: resolved.baseUrl,
       label: resolved.label,
       source: resolved.source,
@@ -28,12 +35,7 @@ export async function GET(req: Request) {
       },
       probe: probe.ok
         ? { ok: true, leadCount: probe.leads.length }
-        : {
-            ok: false,
-            code: probe.code,
-            message: probe.message,
-            httpStatus: probe.status,
-          },
+        : { ok: false, code: probe.code, message: probe.message, httpStatus: probe.status },
     },
   });
 }
