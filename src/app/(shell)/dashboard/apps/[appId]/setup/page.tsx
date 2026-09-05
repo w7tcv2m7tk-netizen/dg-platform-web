@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { getAppSetupGuide } from "@dg/platform-core";
 
 import { AppSetupGuideView } from "@/components/platform/AppSetupGuideView";
+import { getNativeAppSetupGuide } from "@/lib/native-app-setup-guides";
 
 interface PageProps {
   params: Promise<{ appId: string }>;
@@ -9,7 +9,7 @@ interface PageProps {
 
 export default async function AppSetupPage({ params }: PageProps) {
   const { appId } = await params;
-  const guide = getAppSetupGuide(appId);
+  const guide = getNativeAppSetupGuide(appId);
 
   if (!guide) notFound();
 
