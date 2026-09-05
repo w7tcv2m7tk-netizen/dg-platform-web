@@ -17,7 +17,6 @@ export type ReBetaChecklistItemId =
   | "flag"
   | "profile_abn"
   | "profile_logo"
-  | "wordpress"
   | "team"
   | "vendor_lead"
   | "appraisal";
@@ -168,13 +167,6 @@ export async function getReBetaReadiness(
       hint: "Upload logo for letterheads and the workspace brand",
     },
     {
-      id: "wordpress",
-      label: "WordPress connector",
-      done: connectorConfigured,
-      href: "/dashboard/settings/connectors",
-      hint: "Connect your agency site so leads and listings sync",
-    },
-    {
       id: "team",
       label: "Invite a teammate",
       done: hasTeam,
@@ -186,7 +178,7 @@ export async function getReBetaReadiness(
       label: "First vendor lead",
       done: hasVendorLead,
       href: "/apps/re/vendor-leads",
-      hint: "Add a vendor lead manually or sync from WordPress",
+      hint: "Add your first vendor lead directly in DigitalGate",
     },
     {
       id: "appraisal",
@@ -198,9 +190,9 @@ export async function getReBetaReadiness(
   ];
 
   const completedCount = items.filter((i) => i.done).length;
-  /** Pilot-ready: flag + connector + identity + at least one vendor lead in the system. */
+  /** Pilot-ready: native beta + app + identity + at least one vendor lead in Platform Core. */
   const readyForPilot =
-    betaEnabled && connectorConfigured && hasAbn && hasVendorLead;
+    betaEnabled && appInstalled && hasAbn && hasVendorLead;
 
   return {
     organisationId,
