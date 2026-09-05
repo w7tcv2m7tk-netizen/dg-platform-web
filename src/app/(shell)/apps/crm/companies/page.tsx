@@ -1,22 +1,12 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
 import { listCompanies,} from "@dg/platform-core";
 
 import { CreateCompanyForm } from "@/components/crm/CreateCompanyForm";
 import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function CrmCompaniesPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const session = await getAuthorisedPlatformPageSession("crm.companies.read");
 
   if (!session) {
     return (
