@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
 import {
   getOrganisationBillingStatus,
   getOrganisationBusinessProfile,
@@ -9,9 +7,7 @@ import {
 import { BillingActions } from "@/components/settings/BillingActions";
 import { BillingStatusPanel } from "@/components/settings/BillingStatusPanel";
 import { BillingCheckoutBanner } from "@/components/settings/BillingCheckoutBanner";
-import { fetchPortalMe } from "@/lib/dg-api";
-import { getOrgEnabledAppIds } from "@/lib/org-apps";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
+import { getOrgEnabledAppIds, getPlatformPageContext } from "@/lib/org-apps";
 import { PRICING_PAGE_URL } from "@/lib/pricing-catalog";
 
 export default async function BillingSettingsPage({
@@ -20,23 +16,7 @@ export default async function BillingSettingsPage({
   searchParams?: Promise<{ checkout?: string }>;
 }) {
   const params = searchParams ? await searchParams : {};
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  await ensureOrganisationOnboardingSync();
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
+  const { portal, session } = await getPlatformPageContext();
 
   const enabledIds = await getOrgEnabledAppIds();
   const [profile, billingStatus] = session

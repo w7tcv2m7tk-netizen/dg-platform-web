@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import {
   captureDigitalTwinSnapshot,
   gatherOverviewLiveMetrics,
@@ -9,9 +7,7 @@ import {
 } from "@dg/platform-core";
 
 import { BusinessProfileEditor } from "@/components/platform/BusinessProfileEditor";
-import { fetchPortalMe } from "@/lib/dg-api";
-import { getOrgEnabledAppIdsCached } from "@/lib/org-apps";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
+import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 
 export default async function BusinessProfilePage({
@@ -24,24 +20,7 @@ export default async function BusinessProfilePage({
     from?: string;
   }>;
 }) {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  await ensureOrganisationOnboardingSync();
-
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
+  const { portal, session } = await getPlatformPageContext();
 
   const enabledAppIds = await getOrgEnabledAppIdsCached();
   const profile = session
@@ -112,13 +91,10 @@ export default async function BusinessProfilePage({
                 on Start Your Business, then confirm logo on this profile
               </li>
               <li>
-                <Link
-                  href="/dashboard/settings/connectors"
-                  className="text-sky-400 hover:underline"
-                >
-                  Connect WordPress
+                <Link href="/dashboard/websites" className="text-sky-400 hover:underline">
+                  Set up your agency website
                 </Link>{" "}
-                for your agency site
+                natively in DigitalGate
               </li>
               <li>
                 <Link

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import {
   attributeOrganisationReferral,
@@ -8,28 +7,10 @@ import {
 } from "@dg/platform-core";
 
 import { ReferAndEarnPanel } from "@/components/settings/ReferAndEarnPanel";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { fetchPortalMe } from "@/lib/dg-api";
-import { ensureOrganisationOnboardingSync } from "@/lib/org-onboarding-sync";
+import { getPlatformPageContext } from "@/lib/org-apps";
 
 export default async function NetworkReferAndEarnPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  await ensureOrganisationOnboardingSync();
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
+  const { email, session } = await getPlatformPageContext();
 
   if (session) {
     const jar = await cookies();
