@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { notFound } from "next/navigation";
-import { currentUser } from "@clerk/nextjs/server";
 import {
   canAccessCommandCentre,
   formatWantBudget,
@@ -11,6 +9,7 @@ import {
   isFoundingPipeline,
   isWantOpportunityMetadata,
   organisationHasReBeta,
+  sessionHasFeature,
   sourceLeadHref,
   type FoundingEntryType,
   type FoundingInvitationStatus,
@@ -21,6 +20,7 @@ import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
 import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
 import { FoundingStageActions } from "@/components/founding/FoundingStageActions";
 import { InviteToFounding10Form } from "@/components/founding/InviteToFounding10Form";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -28,38 +28,28 @@ interface PageProps {
 
 export default async function CrmOpportunityDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-      })
-    : null;
-
+  const session = await getAuthorisedPlatformPageSession("crm.opportunities.read");
   if (!session) notFound();
 
   const opportunity = await getOpportunity(session.organisationId, id);
   if (!opportunity) notFound();
+
+  const canWrite = sessionHasFeature(session, "crm.opportunities.write");
+  const canReadContacts = sessionHasFeature(session, "crm.contacts.read");
+  const canReadLeads = sessionHasFeature(session, "crm.leads.read");
 
   const want = isWantOpportunityMetadata(opportunity.metadata)
     ? opportunity.metadata
     : null;
 
   const [contact, lead, hasReBeta] = await Promise.all([
-    opportunity.contactId
+    canReadContacts && opportunity.contactId
       ? getContact(session.organisationId, opportunity.contactId)
       : Promise.resolve(null),
-    opportunity.leadId
+    canReadLeads && opportunity.leadId
       ? getLead(session.organisationId, opportunity.leadId)
       : Promise.resolve(null),
-    organisationHasReBeta(session.organisationId),
+    canReadLeads ? organisationHasReBeta(session.organisationId) : Promise.resolve(false),
   ]);
 
   const leadType =
@@ -128,12 +118,14 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
                 : ""}
           {opportunity.stage.replace(/_/g, " ")} · {opportunity.status}
         </p>
-        <CrmDeleteButton
-          resource="opportunities"
-          id={opportunity.id}
-          name={opportunity.title}
-          redirectTo="/apps/crm/opportunities"
-        />
+        {canWrite ? (
+          <CrmDeleteButton
+            resource="opportunities"
+            id={opportunity.id}
+            name={opportunity.title}
+            redirectTo="/apps/crm/opportunities"
+          />
+        ) : null}
       </header>
       <main className="dg-page-main">
         <div className="grid gap-6 lg:grid-cols-2">
@@ -169,23 +161,24 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
           <div className="dg-card">
             <h2 className="font-semibold text-white">Links</h2>
             <ul className="mt-4 space-y-2 text-sm">
-              {contact ? (
-                <li>
-                  <Link
-                    href={`/apps/crm/contacts/${contact.id}`}
-                    className="text-blue-400 hover:underline"
-                  >
-                    {[contact.firstName, contact.lastName].filter(Boolean).join(" ")}{" "}
-                    →
-                  </Link>
-                  <p className="text-slate-500">
-                    {[contact.email, contact.phone].filter(Boolean).join(" · ")}
-                  </p>
-                </li>
-              ) : (
-                <li className="text-slate-500">No linked contact</li>
-              )}
-              {leadHref && lead ? (
+              {canReadContacts ? (
+                contact ? (
+                  <li>
+                    <Link
+                      href={`/apps/crm/contacts/${contact.id}`}
+                      className="text-blue-400 hover:underline"
+                    >
+                      {[contact.firstName, contact.lastName].filter(Boolean).join(" ")} →
+                    </Link>
+                    <p className="text-slate-500">
+                      {[contact.email, contact.phone].filter(Boolean).join(" · ")}
+                    </p>
+                  </li>
+                ) : (
+                  <li className="text-slate-500">No linked contact</li>
+                )
+              ) : null}
+              {canReadLeads && leadHref && lead ? (
                 <li>
                   <Link href={leadHref} className="text-blue-400 hover:underline">
                     Source lead →
@@ -195,7 +188,7 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
             </ul>
           </div>
 
-          {founding ? (
+          {founding && canWrite ? (
             <FoundingStageActions
               opportunityId={opportunity.id}
               stage={opportunity.stage}
@@ -205,20 +198,16 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
               invitationStatus={invitationStatus}
               invitationSentAt={invitationSentAt}
             />
-          ) : staff && opportunity.contactId ? (
+          ) : staff && canWrite && canReadContacts && contact && opportunity.contactId ? (
             <InviteToFounding10Form
               contactId={opportunity.contactId}
-              defaultName={
-                contact
-                  ? [contact.firstName, contact.lastName].filter(Boolean).join(" ")
-                  : opportunity.title
-              }
-              defaultEmail={contact?.email ?? undefined}
-              defaultPhone={contact?.phone ?? undefined}
+              defaultName={[contact.firstName, contact.lastName].filter(Boolean).join(" ")}
+              defaultEmail={contact.email ?? undefined}
+              defaultPhone={contact.phone ?? undefined}
             />
           ) : null}
 
-          {lead ? (
+          {canReadLeads && lead ? (
             <div className="dg-card lg:col-span-2">
               <h2 className="font-semibold text-white">Enquiry</h2>
               <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
@@ -322,8 +311,8 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
           <div className="lg:col-span-2">
             <CrmAiAssistPanel
               opportunityId={opportunity.id}
-              leadId={opportunity.leadId ?? undefined}
-              contactId={opportunity.contactId ?? undefined}
+              leadId={canReadLeads ? opportunity.leadId ?? undefined : undefined}
+              contactId={canReadContacts ? opportunity.contactId ?? undefined : undefined}
               variant="opportunity"
             />
           </div>
