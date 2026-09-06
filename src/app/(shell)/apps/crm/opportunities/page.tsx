@@ -1,29 +1,16 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
 import {
   canAccessCommandCentre,
   isWantOpportunityMetadata,
   listOpportunities,
+  sessionHasFeature,
 } from "@dg/platform-core";
 
 import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function CrmOpportunitiesPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-      })
-    : null;
+  const session = await getAuthorisedPlatformPageSession("crm.opportunities.read");
 
   if (!session) {
     return (
@@ -41,6 +28,7 @@ export default async function CrmOpportunitiesPage() {
     );
   }
 
+  const canWrite = sessionHasFeature(session, "crm.opportunities.write");
   const { items, meta } = await listOpportunities({
     organisationId: session.organisationId,
   });
@@ -131,12 +119,14 @@ export default async function CrmOpportunitiesPage() {
                         {opp.leadId ? " · from lead" : ""}
                       </p>
                     </Link>
-                    <CrmDeleteButton
-                      resource="opportunities"
-                      id={opp.id}
-                      name={opp.title}
-                      compact
-                    />
+                    {canWrite ? (
+                      <CrmDeleteButton
+                        resource="opportunities"
+                        id={opp.id}
+                        name={opp.title}
+                        compact
+                      />
+                    ) : null}
                   </li>
                 );
               })}
