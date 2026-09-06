@@ -7,7 +7,7 @@ import {
   publicAppOrigin,
 } from "@dg/platform-core";
 
-import { getPlatformPageContext } from "@/lib/org-apps";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 function providerLabel(value: string) {
   switch (value) {
@@ -25,7 +25,7 @@ function providerLabel(value: string) {
 }
 
 export default async function CommsSettingsPage() {
-  const { session } = await getPlatformPageContext();
+  const session = await getAuthorisedPlatformPageSession("comms.agents.configure");
 
   const health = session ? await communicationsHealthCheck(session.organisationId) : null;
   const voice = session ? await getVoiceProviderStatus() : null;
