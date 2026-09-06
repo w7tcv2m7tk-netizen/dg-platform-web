@@ -59,6 +59,7 @@ export const DG_LEGACY_REDIRECTS: Record<string, string> = {
   "/beta": "/founding-customers",
   "/founding": "/founding-customers",
   "/founding-application": "/founding-customers",
+  "/software-that-tells-you-what-needs-doing": "/business-software-should-tell-you-what-needs-doing",
   "/sso": DG_APP_LOGIN_URL,
   "/account": DG_APP_LOGIN_URL,
   "/client-portal": DG_APP_LOGIN_URL,
