@@ -13,7 +13,7 @@ const TARGETS = [
   "from-dumb-businesses-to-smart-businesses",
   "intelligent-business-more-than-a-brain",
   "from-signal-to-action",
-  "business-software-should-tell-you-what-needs-doing",
+  "software-that-tells-you-what-needs-doing",
 ];
 
 const prisma = new PrismaClient();
