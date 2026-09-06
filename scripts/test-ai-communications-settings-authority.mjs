@@ -8,28 +8,29 @@ const page = fs.readFileSync(
 );
 
 test("AI Communications settings require existing agent configuration authority", () => {
-  assert.match(
-    page,
-    /getAuthorisedPlatformPageSession\("comms\.agents\.configure"\)/,
-  );
+  assert.match(page, /getAuthorisedPlatformPageSession\("comms\.agents\.configure"\)/);
   assert.doesNotMatch(page, /getPlatformPageContext\(/);
 });
 
-test("settings authority resolves before provider and tenant usage reads", () => {
+test("settings authority resolves before provider reads", () => {
   const authority = page.indexOf(
     'getAuthorisedPlatformPageSession("comms.agents.configure")',
   );
   const health = page.indexOf("communicationsHealthCheck(session.organisationId)");
   const voice = page.indexOf("getVoiceProviderStatus()");
-  const overview = page.indexOf("getCommunicationsOverview(session.organisationId)");
 
   assert.ok(authority >= 0);
   assert.ok(health > authority);
   assert.ok(voice > authority);
-  assert.ok(overview > authority);
 });
 
-test("settings continue to scope organisation reads to the authorised session", () => {
+test("usage data requires billing read authority and remains tenant scoped", () => {
+  assert.match(page, /sessionHasFeature\(session, "comms\.billing\.read"\)/);
+  assert.match(
+    page,
+    /canViewBilling \? getCommunicationsOverview\(session\.organisationId\) : Promise\.resolve\(null\)/,
+  );
+  assert.match(page, /\{canViewBilling \? \(/);
   assert.match(page, /communicationsHealthCheck\(session\.organisationId\)/);
   assert.match(page, /getCommunicationsOverview\(session\.organisationId\)/);
 });
