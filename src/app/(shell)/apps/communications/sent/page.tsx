@@ -1,24 +1,13 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { listOrgCommunications } from "@dg/platform-core";
 
 import { CommunicationsList } from "@/components/communications/CommunicationsList";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function CommunicationsSentPage() {
-  const { session } = await getPlatformPageContext();
-
-  if (!session?.organisationId) {
-    return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Sent</h1>
-        </header>
-        <main className="dg-page-main">
-          <p className="text-sm text-slate-500">Sign in to continue.</p>
-        </main>
-      </>
-    );
-  }
+  const session = await getAuthorisedPlatformPageSession("communications.read");
+  if (!session) notFound();
 
   const rows = process.env.DATABASE_URL
     ? await listOrgCommunications({

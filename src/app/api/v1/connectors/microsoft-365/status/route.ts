@@ -6,7 +6,11 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import {
+  isNextResponse,
+  requireFeature,
+  requirePlatformAuth,
+} from "@/lib/platform-api";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +18,8 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "communications.read");
+  if (denied) return denied;
 
   const configured = microsoftCredentialsConfigured();
   const orgTokens = await getOrgMicrosoft365ConnectorTokens(session.organisationId);
