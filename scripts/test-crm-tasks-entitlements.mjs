@@ -22,18 +22,31 @@ test("Task mutation controls require crm.tasks.write", () => {
 
 test("linked Task targets are tenant-validated and object-authorised", () => {
   for (const feature of [
-    "crm.contacts",
-    "crm.companies",
-    "crm.opportunities",
-    "services.jobs",
+    "crm.contacts.read",
+    "crm.contacts.write",
+    "crm.companies.read",
+    "crm.companies.write",
+    "crm.opportunities.read",
+    "crm.opportunities.write",
+    "services.jobs.read",
+    "services.jobs.write",
   ]) {
-    assert.match(route, new RegExp(feature.replace(".", "\\.") + "\\.\\$\\{suffix\\}"));
+    assert.ok(route.includes(`"${feature}"`), `missing explicit ${feature} authority`);
   }
+
+  assert.doesNotMatch(route, /\$\{suffix\}/);
   assert.match(route, /getContact\(session\.organisationId, entityId\)/);
   assert.match(route, /getCompany\(session\.organisationId, entityId\)/);
   assert.match(route, /getOpportunity\(session\.organisationId, entityId\)/);
   assert.match(route, /getServiceJob\(session\.organisationId, entityId\)/);
   assert.match(route, /unsupported_entity_type/);
+});
+
+test("creating linked activity requires target write authority", () => {
+  assert.match(
+    route,
+    /requireTargetWrite: body\.createRelatedActivity !== false/,
+  );
 });
 
 test("Task relationships require entityType and entityId as a pair", () => {
