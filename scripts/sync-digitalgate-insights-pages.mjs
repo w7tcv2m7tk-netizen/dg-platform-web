@@ -18,6 +18,7 @@ const MARKETING = existsSync(join(MARKETING_IN_REPO, "articles.mjs"))
   : MARKETING_SIBLING;
 const HTML_ROOT = join(MARKETING, "html");
 const SITE_SLUG = "digitalgate";
+const PROACTIVE_INSIGHT_SLUG = "software-that-tells-you-what-needs-doing";
 
 function readHtml(slug) {
   const path = join(HTML_ROOT, `${slug}.html`);
@@ -74,7 +75,7 @@ function patchInsightsIndex(html) {
   );
   out = out.replace(
     `<div class="insight-card" id="automation-ai" style="border-style:dashed;">\n          <span class="insight-kicker">Automation &amp; AI</span>\n          <h3>Practical automation in everyday operations</h3>\n          <p>This cluster is next: workflows, communications and the manual work that disconnected systems create.</p>\n        </div>`,
-    `<a class="insight-card" id="automation-ai" href="/business-software-should-tell-you-what-needs-doing/">\n          <span class="insight-kicker">Automation &amp; AI</span>\n          <h3>The Best Business Software Should Tell You What Needs Doing</h3>\n          <p>Why intelligent software should notice what matters, recommend the next action and help execute it — instead of waiting for prompts.</p>\n          <span class="insight-more">Read article →</span>\n        </a>`,
+    `<a class="insight-card" id="automation-ai" href="/${PROACTIVE_INSIGHT_SLUG}/">\n          <span class="insight-kicker">Automation &amp; AI</span>\n          <h3>The Best Business Software Should Tell You What Needs Doing</h3>\n          <p>Why intelligent software should notice what matters, recommend the next action and help execute it — instead of waiting for prompts.</p>\n          <span class="insight-more">Read article →</span>\n        </a>`,
   );
   return out;
 }
@@ -161,9 +162,15 @@ async function main() {
   }
 
   for (const article of EDITORIAL_INSIGHTS) {
-    const html = renderEditorialInsight(article);
+    const canonicalSlug = article.id === "proactive-business-software"
+      ? PROACTIVE_INSIGHT_SLUG
+      : article.slug;
+    const canonicalArticle = canonicalSlug === article.slug
+      ? article
+      : { ...article, slug: canonicalSlug };
+    const html = renderEditorialInsight(canonicalArticle);
     await upsertPage({
-      slug: article.slug,
+      slug: canonicalSlug,
       title: article.title,
       html,
       seo: {
@@ -171,7 +178,7 @@ async function main() {
         description: clipSeo(article.metaDescription, 155),
         ogTitle: clipSeo(article.seoTitle, 60),
         ogDescription: clipSeo(article.metaDescription, 155),
-        canonical: `https://digitalgate.com.au/${article.slug}/`,
+        canonical: `https://digitalgate.com.au/${canonicalSlug}/`,
         authorName: "Ben Roe",
         schemaType: "article",
         showHeader: true,
@@ -216,7 +223,7 @@ async function main() {
     updated,
     previews: [
       "https://digitalgate.com.au/from-signal-to-action/",
-      "https://digitalgate.com.au/business-software-should-tell-you-what-needs-doing/",
+      `https://digitalgate.com.au/${PROACTIVE_INSIGHT_SLUG}/`,
     ],
   }, null, 2));
 
