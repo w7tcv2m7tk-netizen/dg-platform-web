@@ -1,0 +1,11 @@
+{
+  "name": "dg-platform-web",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": "npm run dev",
+      "description": "Next.js dev server on http://localhost:3000. Runs Clerk in keyless mode when no Clerk keys are set. Add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY / CLERK_SECRET_KEY and DATABASE_URL to .env.local for full auth + Postgres flows."
+    }
+  ]
+}
