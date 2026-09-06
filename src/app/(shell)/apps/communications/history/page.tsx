@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { listOrgCommunications } from "@dg/platform-core";
+import { notFound } from "next/navigation";
+import { getContact, listOrgCommunications, sessionHasFeature } from "@dg/platform-core";
 
 import { CommunicationsList } from "@/components/communications/CommunicationsList";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 interface PageProps {
   searchParams: Promise<{
@@ -25,7 +26,9 @@ const FILTERS = [
 
 export default async function CommunicationsHistoryPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const { session } = await getPlatformPageContext();
+  const session = await getAuthorisedPlatformPageSession("communications.read");
+  if (!session) notFound();
+
   const filter = (params.filter?.trim() || "all") as
     | "all"
     | "email"
@@ -37,24 +40,18 @@ export default async function CommunicationsHistoryPage({ searchParams }: PagePr
     | "ai"
     | "outreach";
 
-  if (!session?.organisationId) {
-    return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Communication History</h1>
-        </header>
-        <main className="dg-page-main">
-          <p className="text-sm text-slate-500">Sign in to continue.</p>
-        </main>
-      </>
-    );
+  const requestedContactId = params.contactId?.trim();
+  let contactId: string | undefined;
+  if (requestedContactId && sessionHasFeature(session, "crm.contacts.read")) {
+    const contact = await getContact(session.organisationId, requestedContactId);
+    contactId = contact?.id;
   }
 
   const rows = process.env.DATABASE_URL
     ? await listOrgCommunications({
         organisationId: session.organisationId,
         filter,
-        contactId: params.contactId?.trim() || undefined,
+        contactId,
         limit: 100,
       })
     : [];

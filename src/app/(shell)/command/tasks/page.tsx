@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { listCommandCentreOpenTasksDue } from "@dg/platform-core";
 
-import { CompleteTaskButton } from "@/components/crm/CompleteTaskButton";
+import { CompleteCommandTaskButton } from "@/components/command/CompleteCommandTaskButton";
 import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 export const dynamic = "force-dynamic";
@@ -72,7 +72,7 @@ export default async function CommandCentreTasksPage() {
                       <p className="mt-2 text-slate-500 line-clamp-2">{task.description}</p>
                     ) : null}
                   </div>
-                  <CompleteTaskButton taskId={task.id} />
+                  <CompleteCommandTaskButton taskId={task.id} />
                 </div>
               </li>
             ))}
