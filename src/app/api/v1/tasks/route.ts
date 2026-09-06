@@ -28,10 +28,11 @@ async function validateTaskTarget(options: {
   const { session, entityType, entityId, requireTargetWrite = false } = options;
   if (isNextResponse(session)) return session;
 
-  const suffix = requireTargetWrite ? "write" : "read";
-
   if (entityType === "Contact") {
-    const denied = requireFeature(session, `crm.contacts.${suffix}` as "crm.contacts.read");
+    const denied = requireFeature(
+      session,
+      requireTargetWrite ? "crm.contacts.write" : "crm.contacts.read",
+    );
     if (denied) return denied;
     const record = await getContact(session.organisationId, entityId);
     return record
@@ -43,7 +44,10 @@ async function validateTaskTarget(options: {
   }
 
   if (entityType === "Company") {
-    const denied = requireFeature(session, `crm.companies.${suffix}` as "crm.companies.read");
+    const denied = requireFeature(
+      session,
+      requireTargetWrite ? "crm.companies.write" : "crm.companies.read",
+    );
     if (denied) return denied;
     const record = await getCompany(session.organisationId, entityId);
     return record
@@ -57,7 +61,7 @@ async function validateTaskTarget(options: {
   if (entityType === "Opportunity") {
     const denied = requireFeature(
       session,
-      `crm.opportunities.${suffix}` as "crm.opportunities.read",
+      requireTargetWrite ? "crm.opportunities.write" : "crm.opportunities.read",
     );
     if (denied) return denied;
     const record = await getOpportunity(session.organisationId, entityId);
@@ -75,7 +79,10 @@ async function validateTaskTarget(options: {
   }
 
   if (entityType === "ServiceJob") {
-    const denied = requireFeature(session, `services.jobs.${suffix}` as "services.jobs.read");
+    const denied = requireFeature(
+      session,
+      requireTargetWrite ? "services.jobs.write" : "services.jobs.read",
+    );
     if (denied) return denied;
     const record = await getServiceJob(session.organisationId, entityId);
     return record
