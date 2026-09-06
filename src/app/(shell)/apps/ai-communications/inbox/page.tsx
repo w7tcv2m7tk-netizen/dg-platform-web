@@ -4,6 +4,7 @@ import {
   getCommunicationsOverview,
   listCommunicationAgents,
   listCommunicationSessions,
+  sessionHasFeature,
 } from "@dg/platform-core";
 
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
@@ -14,23 +15,35 @@ function formatDate(iso: string | null) {
 }
 
 export default async function CommsInboxPage() {
-  const session = await getAuthorisedPlatformPageSession("comms.call_centre.read");
+  const session = await getAuthorisedPlatformPageSession("comms.inbox.read");
   if (!session) notFound();
 
+  const canViewCallCentre = sessionHasFeature(session, "comms.call_centre.read");
+  const canViewVoice = sessionHasFeature(session, "comms.voice.read");
+  const canConfigureAgents = sessionHasFeature(session, "comms.agents.configure");
+  const canViewAnalytics = sessionHasFeature(session, "comms.analytics.read");
+  const canViewBilling = sessionHasFeature(session, "comms.billing.read");
+
   const [overview, recent, agents] = await Promise.all([
-    getCommunicationsOverview(session.organisationId),
-    listCommunicationSessions({ organisationId: session.organisationId, limit: 8 }),
-    listCommunicationAgents(session.organisationId),
+    canViewAnalytics ? getCommunicationsOverview(session.organisationId) : Promise.resolve(null),
+    canViewCallCentre
+      ? listCommunicationSessions({ organisationId: session.organisationId, limit: 8 })
+      : Promise.resolve(null),
+    canViewVoice ? listCommunicationAgents(session.organisationId) : Promise.resolve(null),
   ]);
 
-  const cards = [
-    ["Calls today", String(overview.callsToday)],
-    ["Conversations", String(overview.conversations)],
-    ["Leads generated", String(overview.leadsGenerated)],
-    ["Appointments booked", String(overview.appointmentsBooked)],
-    ["AI resolution", `${overview.aiResolutionRate}%`],
-    ["Est. cost", `$${((overview.estimatedCostCents || 0) / 100).toFixed(2)}`],
-  ];
+  const cards = overview
+    ? [
+        ["Calls today", String(overview.callsToday)],
+        ["Conversations", String(overview.conversations)],
+        ["Leads generated", String(overview.leadsGenerated)],
+        ["Appointments booked", String(overview.appointmentsBooked)],
+        ["AI resolution", `${overview.aiResolutionRate}%`],
+        ...(canViewBilling
+          ? [["Est. cost", `$${((overview.estimatedCostCents || 0) / 100).toFixed(2)}`]]
+          : []),
+      ]
+    : [];
 
   return (
     <>
@@ -41,32 +54,44 @@ export default async function CommsInboxPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map(([label, value]) => (
-            <div key={label} className="dg-card">
-              <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
-              <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
+        {overview ? (
+          <>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {cards.map(([label, value]) => (
+                <div key={label} className="dg-card">
+                  <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+                  <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {overview.alerts.length ? (
-          <div className="dg-card border-amber-500/30">
-            <h2 className="font-semibold text-amber-200">Alerts</h2>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-300">
-              {overview.alerts.map((alert) => <li key={alert}>{alert}</li>)}
-            </ul>
+            {overview.alerts.length ? (
+              <div className="dg-card border-amber-500/30">
+                <h2 className="font-semibold text-amber-200">Alerts</h2>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-300">
+                  {overview.alerts.map((alert) => <li key={alert}>{alert}</li>)}
+                </ul>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <div className="dg-card">
+            <p className="text-sm text-slate-500">Analytics are not available for your current access.</p>
           </div>
-        ) : null}
+        )}
 
         <div className="dg-card">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-semibold text-white">Agents</h2>
-            <Link href="/apps/ai-communications/agents" className="text-sm text-sky-400 hover:underline">
-              Agent builder →
-            </Link>
+            {canConfigureAgents ? (
+              <Link href="/apps/ai-communications/agents" className="text-sm text-sky-400 hover:underline">
+                Agent builder →
+              </Link>
+            ) : null}
           </div>
-          {!agents.length ? (
+          {!canViewVoice ? (
+            <p className="mt-3 text-sm text-slate-500">Voice agent details are not available for your current access.</p>
+          ) : !agents?.length ? (
             <p className="mt-3 text-sm text-slate-500">No voice agents yet.</p>
           ) : (
             <ul className="mt-3 space-y-2 text-sm">
@@ -83,11 +108,15 @@ export default async function CommsInboxPage() {
         <div className="dg-card">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-semibold text-white">Recent activity</h2>
-            <Link href="/apps/ai-communications/call-centre" className="text-sm text-sky-400 hover:underline">
-              Call centre →
-            </Link>
+            {canViewCallCentre ? (
+              <Link href="/apps/ai-communications/call-centre" className="text-sm text-sky-400 hover:underline">
+                Call centre →
+              </Link>
+            ) : null}
           </div>
-          {!recent.items.length ? (
+          {!canViewCallCentre ? (
+            <p className="mt-3 text-sm text-slate-500">Conversation activity is not available for your current access.</p>
+          ) : !recent?.items.length ? (
             <p className="mt-3 text-sm text-slate-500">
               Calls and messages appear here after the first conversation is recorded.
             </p>
