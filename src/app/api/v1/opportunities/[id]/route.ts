@@ -30,10 +30,25 @@ export async function DELETE(req: Request, { params }: RouteParams) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
-  const denied = requireFeature(session, "crm.opportunities.write");
-  if (denied) return denied;
+  const writeDenied = requireFeature(session, "crm.opportunities.write");
+  if (writeDenied) return writeDenied;
 
   const { id } = await params;
+  const existing = await getOpportunity(session.organisationId, id);
+  if (!existing) {
+    return NextResponse.json(
+      { error: { code: "not_found", message: "Opportunity not found" } },
+      { status: 404 },
+    );
+  }
+
+  // deleteOpportunity currently removes its linked source Lead as a lifecycle
+  // side-effect. Do not permit that cross-object mutation without Lead write authority.
+  if (existing.leadId) {
+    const leadWriteDenied = requireFeature(session, "crm.leads.write");
+    if (leadWriteDenied) return leadWriteDenied;
+  }
+
   const deleted = await deleteOpportunity({
     organisationId: session.organisationId,
     opportunityId: id,
