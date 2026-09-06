@@ -12,23 +12,14 @@ const livingSystem = `<div class="dg-story-visual"><span class="dg-story-label">
 
 const proactiveCompare = `<div class="dg-story-visual"><span class="dg-story-label">Passive software vs proactive software</span><div class="dg-story-compare"><div class="dg-story-panel"><h3>Traditional software</h3><p>Stores the record.</p><p>Waits for you to open the right screen.</p><p>Shows the dashboard.</p><p>Leaves the next move to you.</p></div><div class="dg-story-panel is-dg"><h3>DigitalGate</h3><p>Notices the signal.</p><p>Understands why it matters.</p><p>Recommends the next sensible move.</p><p>Helps act — with the human in control.</p></div></div></div><div class="dg-story-visual"><span class="dg-story-label">What proactive intelligence feels like</span><div class="dg-story-recommendation"><div class="dg-story-signal">!</div><div><strong>Three high-value opportunities have gone quiet.</strong><p>Two are strong candidates for follow-up today based on value, recency and previous engagement.</p></div><span class="dg-story-action">Prepare follow-ups →</span></div></div>`;
 
-function injectAfter(html, needle, visual) {
-  const i = html.indexOf(needle);
-  if (i < 0) return html;
-  const end = i + needle.length;
-  return `${html.slice(0, end)}${visual}${html.slice(end)}`;
-}
-
 export function enhanceFoundationalInsight(html, slug) {
   let out = html.includes("data-dg-visual-storytelling") ? html : `${STYLE}${html}`;
-  if (slug === "from-dumb-businesses-to-smart-businesses") {
-    out = injectAfter(out, '<div class="pillars-line">', `<div style="display:none"></div>`);
-    const heroEnd = out.indexOf("</section>");
-    if (heroEnd >= 0 && !out.includes("The DigitalGate intelligence loop</span>")) out = `${out.slice(0, heroEnd + 10)}${intelligenceRail}${out.slice(heroEnd + 10)}`;
+  const heroEnd = out.indexOf("</section>");
+  if (slug === "from-dumb-businesses-to-smart-businesses" && heroEnd >= 0 && !out.includes("The DigitalGate intelligence loop</span>")) {
+    out = `${out.slice(0, heroEnd + 10)}${intelligenceRail}${out.slice(heroEnd + 10)}`;
   }
-  if (slug === "intelligent-business-more-than-a-brain") {
-    const heroEnd = out.indexOf("</section>");
-    if (heroEnd >= 0 && !out.includes("A business as a living system</span>")) out = `${out.slice(0, heroEnd + 10)}${livingSystem}${out.slice(heroEnd + 10)}`;
+  if (slug === "intelligent-business-more-than-a-brain" && heroEnd >= 0 && !out.includes("A business as a living system</span>")) {
+    out = `${out.slice(0, heroEnd + 10)}${livingSystem}${out.slice(heroEnd + 10)}`;
   }
   return out;
 }
