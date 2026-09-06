@@ -1,9 +1,13 @@
 import Link from "next/link";
-import { listContacts, listCompanies,} from "@dg/platform-core";
+import {
+  listCompanies,
+  listContacts,
+  sessionHasFeature,
+} from "@dg/platform-core";
 
-import { CreateContactForm } from "@/components/crm/CreateContactForm";
 import { ContactImportExport } from "@/components/crm/ContactImportExport";
 import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
+import { UnifiedContactCompanyForm } from "@/components/crm/UnifiedContactCompanyForm";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function CrmContactsPage() {
@@ -42,13 +46,21 @@ export default async function CrmContactsPage() {
     );
   }
 
+  const canWriteContacts = sessionHasFeature(session, "crm.contacts.write");
+  const canReadCompanies = sessionHasFeature(session, "crm.companies.read");
+  const canWriteCompanies = sessionHasFeature(session, "crm.companies.write");
+
   const { items, meta } = await listContacts({
     organisationId: session.organisationId,
   });
-  const { items: companies } = await listCompanies({
-    organisationId: session.organisationId,
-    limit: 100,
-  });
+  const companies = canReadCompanies
+    ? (
+        await listCompanies({
+          organisationId: session.organisationId,
+          limit: 100,
+        })
+      ).items
+    : [];
 
   return (
     <>
@@ -75,10 +87,21 @@ export default async function CrmContactsPage() {
           <div className="dg-card">
             <h2 className="font-semibold text-white">Add contact</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Stored in Postgres — audit logged, timeline event emitted.
+              Add the person and their company in one workflow. Stored in Platform Core with audit
+              and timeline events.
             </p>
             <div className="mt-4">
-              <CreateContactForm companies={companies} />
+              {canWriteContacts ? (
+                <UnifiedContactCompanyForm
+                  companies={companies}
+                  canCreateCompany={canWriteCompanies}
+                  canSelectCompany={canReadCompanies}
+                />
+              ) : (
+                <p className="text-sm text-slate-400">
+                  You have read-only access to Contacts.
+                </p>
+              )}
             </div>
           </div>
 
@@ -95,32 +118,35 @@ export default async function CrmContactsPage() {
                     .filter(Boolean)
                     .join(" ");
                   return (
-                  <li key={contact.id} className="flex items-start justify-between gap-3 py-3">
-                    <Link
-                      href={`/apps/crm/contacts/${contact.id}`}
-                      className="dg-list-row min-w-0 flex-1 block hover:opacity-90"
-                      prefetch
+                    <li
+                      key={contact.id}
+                      className="flex items-start justify-between gap-3 py-3"
                     >
-                      <p className="dg-break-anywhere font-medium text-white">
-                        {displayName}
-                      </p>
-                      <p className="dg-break-anywhere text-sm text-slate-400">
-                        {[contact.email, contact.phone, contact.source]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        Updated{" "}
-                        {new Date(contact.updatedAt).toLocaleDateString("en-AU")}
-                      </p>
-                    </Link>
-                    <CrmDeleteButton
-                      resource="contacts"
-                      id={contact.id}
-                      name={displayName || contact.email || "this contact"}
-                      compact
-                    />
-                  </li>
+                      <Link
+                        href={`/apps/crm/contacts/${contact.id}`}
+                        className="dg-list-row min-w-0 flex-1 block hover:opacity-90"
+                        prefetch
+                      >
+                        <p className="dg-break-anywhere font-medium text-white">
+                          {displayName}
+                        </p>
+                        <p className="dg-break-anywhere text-sm text-slate-400">
+                          {[contact.email, contact.phone, contact.source]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Updated{" "}
+                          {new Date(contact.updatedAt).toLocaleDateString("en-AU")}
+                        </p>
+                      </Link>
+                      <CrmDeleteButton
+                        resource="contacts"
+                        id={contact.id}
+                        name={displayName || contact.email || "this contact"}
+                        compact
+                      />
+                    </li>
                   );
                 })}
               </ul>
