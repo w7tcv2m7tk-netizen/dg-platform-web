@@ -15,6 +15,7 @@ import { buildCommissionsWorkspace } from "../partners/commissions-workspace";
 import { listAllCommissions, listPartners } from "../partners/crud";
 import { buildPartnerDashboardWorkspace } from "../partners/dashboard-workspace";
 import { buildReferralsWorkspace } from "../partners/referrals-workspace";
+import { completeTask, resolveDigitalGateOperatorOrganisationId } from "../tasks";
 import { generateClientAdvisorInsight } from "./advisor";
 import { getCommandBenchmarks } from "./benchmarks";
 import { getClientIntelligence } from "./client-intelligence";
@@ -127,6 +128,21 @@ export async function listOperatorPaidCommissions(
 ) {
   requireOperator(operator);
   return listAllCommissions({ status: "PAID", limit: input?.limit ?? 100 });
+}
+
+/**
+ * Complete a DigitalGate operator-organisation CRM task from Command Centre.
+ * The target organisation is resolved server-side so the mutation cannot drift
+ * to whichever customer organisation happens to be active in the shell.
+ */
+export async function completeOperatorCommandTask(
+  operator: PlatformOperatorContext,
+  taskId: string,
+) {
+  requireOperator(operator);
+  const organisationId = await resolveDigitalGateOperatorOrganisationId();
+  if (!organisationId) return null;
+  return completeTask(organisationId, taskId, operator.actorId);
 }
 
 export async function getOperatorDeliveryDashboard(operator: PlatformOperatorContext) {
