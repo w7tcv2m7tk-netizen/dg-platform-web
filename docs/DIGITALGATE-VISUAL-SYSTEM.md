@@ -1,6 +1,6 @@
 # DigitalGate Visual Storytelling System
 
-Status: Approved foundation · 2026-09-04
+Status: Approved foundation · first Insights rollout implemented · 2026-09-06
 
 ## Core direction
 
@@ -72,6 +72,17 @@ Real DigitalGate UI inside a restrained browser/app frame. Prefer actual product
 
 ### Recommendation card
 Shows Signal → Why it matters → Recommended action → owner control. Useful across public website and product.
+
+## First implementation — Connected Insights
+
+The first implementation applies the system to the four connected philosophy Insights:
+
+1. **Connected Business** — an intelligence rail makes connection-before-intelligence visible.
+2. **Business Operating System** — a living-system map makes the body/nervous-system/memory/brain/hands/voice/learning metaphor scannable.
+3. **Intelligence Loop** — the Connect → Understand → Advise → Act → Learn rail becomes the visual anchor for Signal to Action.
+4. **Proactive Business Software** — a passive-vs-proactive comparison and contextual recommendation card show what the product principle means in practice.
+
+The implementation is deliberately lightweight, responsive and native to Website Studio HTML content. It does not introduce a second rendering system or external visual dependency.
 
 ## Page review gate
 
