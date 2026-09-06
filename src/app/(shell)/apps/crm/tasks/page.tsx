@@ -1,26 +1,12 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
-import { listTasks } from "@dg/platform-core";
+import { listTasks, sessionHasFeature } from "@dg/platform-core";
 
 import { CreateTaskForm } from "@/components/crm/CreateTaskForm";
 import { TasksList } from "@/components/crm/TasksList";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function CrmTasksPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-      })
-    : null;
+  const session = await getAuthorisedPlatformPageSession("crm.tasks.read");
 
   if (!session) {
     return (
@@ -38,6 +24,7 @@ export default async function CrmTasksPage() {
     );
   }
 
+  const canWrite = sessionHasFeature(session, "crm.tasks.write");
   const [openResult, completedResult] = await Promise.all([
     listTasks({
       organisationId: session.organisationId,
@@ -65,21 +52,24 @@ export default async function CrmTasksPage() {
       </header>
       <main className="dg-page-main">
         <div className="grid gap-8 lg:grid-cols-2">
-          <div className="dg-card">
-            <h2 className="font-semibold text-white">Create task</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Follow-ups and reminders. Link to a contact from the contact page for timeline
-              activity.
-            </p>
-            <div className="mt-4">
-              <CreateTaskForm />
+          {canWrite ? (
+            <div className="dg-card">
+              <h2 className="font-semibold text-white">Create task</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Follow-ups and reminders. Link to a contact from the contact page for timeline
+                activity.
+              </p>
+              <div className="mt-4">
+                <CreateTaskForm />
+              </div>
             </div>
-          </div>
+          ) : null}
 
           <div className="dg-card">
             <h2 className="font-semibold text-white">Open</h2>
             <TasksList
               tasks={openResult.items}
+              canWrite={canWrite}
               emptyLabel="No open tasks. Create one to track follow-through."
             />
           </div>
@@ -88,6 +78,7 @@ export default async function CrmTasksPage() {
             <h2 className="font-semibold text-white">Completed</h2>
             <TasksList
               tasks={completedResult.items}
+              canWrite={canWrite}
               emptyLabel="No completed tasks yet."
             />
           </div>

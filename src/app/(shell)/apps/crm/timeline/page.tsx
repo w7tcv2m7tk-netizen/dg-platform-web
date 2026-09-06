@@ -1,25 +1,27 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
-import { formatTimelineDateTime, listOrganisationActivities } from "@dg/platform-core";
+import {
+  formatTimelineDateTime,
+  listOrganisationActivities,
+  sessionHasFeature,
+} from "@dg/platform-core";
 
-function entityHref(entityType: string, entityId: string) {
-  if (entityType === "Contact") return `/apps/crm/contacts/${entityId}`;
-  if (entityType === "Company") return `/apps/crm/companies/${entityId}`;
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+
+function entityHref(
+  entityType: string,
+  entityId: string,
+  access: { contacts: boolean; companies: boolean; opportunities: boolean },
+) {
+  if (entityType === "Contact" && access.contacts) return `/apps/crm/contacts/${entityId}`;
+  if (entityType === "Company" && access.companies) return `/apps/crm/companies/${entityId}`;
+  if (entityType === "Opportunity" && access.opportunities) {
+    return `/apps/crm/opportunities/${entityId}`;
+  }
   return null;
 }
 
 export default async function CrmTimelinePage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const session = await getAuthorisedPlatformPageSession("crm.timeline.read");
 
   if (!session) {
     return (
@@ -35,6 +37,12 @@ export default async function CrmTimelinePage() {
       </>
     );
   }
+
+  const recordAccess = {
+    contacts: sessionHasFeature(session, "crm.contacts.read"),
+    companies: sessionHasFeature(session, "crm.companies.read"),
+    opportunities: sessionHasFeature(session, "crm.opportunities.read"),
+  };
 
   const { items, meta } = await listOrganisationActivities({
     organisationId: session.organisationId,
@@ -61,12 +69,13 @@ export default async function CrmTimelinePage() {
           ) : (
             <ul className="space-y-4">
               {items.map((activity) => {
-                const href = entityHref(activity.entityType, activity.entityId);
+                const href = entityHref(
+                  activity.entityType,
+                  activity.entityId,
+                  recordAccess,
+                );
                 return (
-                  <li
-                    key={activity.id}
-                    className="border-l-2 border-slate-700 pl-4"
-                  >
+                  <li key={activity.id} className="border-l-2 border-slate-700 pl-4">
                     <div className="flex flex-wrap items-baseline gap-2">
                       <span className="font-medium text-white">{activity.title}</span>
                       <span className="text-xs uppercase tracking-wide text-slate-500">
