@@ -27,9 +27,11 @@ function isOverdue(task: TaskListItem) {
 
 export function TasksList({
   tasks,
+  canWrite = false,
   emptyLabel = "No tasks.",
 }: {
   tasks: TaskListItem[];
+  canWrite?: boolean;
   emptyLabel?: string;
 }) {
   if (tasks.length === 0) {
@@ -60,7 +62,7 @@ export function TasksList({
                 {task.status !== "open" ? ` · ${task.status}` : ""}
               </p>
             </div>
-            {task.status === "open" ? (
+            {canWrite && task.status === "open" ? (
               <CompleteTaskButton taskId={task.id} />
             ) : null}
           </li>
