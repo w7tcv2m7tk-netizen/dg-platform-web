@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Sync migrated Insight articles into Gen 2 Website Studio (Neon).
+ * Sync DigitalGate Insight articles into Gen 2 Website Studio (Neon).
  * Run: npm run sync:dg-insights  (from dg-platform-web)
  */
 import { execSync } from "node:child_process";
@@ -17,7 +17,6 @@ const MARKETING = existsSync(join(MARKETING_IN_REPO, "articles.mjs"))
   ? MARKETING_IN_REPO
   : MARKETING_SIBLING;
 const HTML_ROOT = join(MARKETING, "html");
-
 const SITE_SLUG = "digitalgate";
 
 function readHtml(slug) {
@@ -27,27 +26,11 @@ function readHtml(slug) {
 }
 
 function htmlComponent(html) {
-  return [
-    {
-      id: `insight-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`,
-      type: "html",
-      props: { html },
-    },
-  ];
-}
-
-function extractMeta(html, attr) {
-  const re = new RegExp(
-    `<meta[^>]+name=["']${attr}["'][^>]+content=["']([^"']*)["']`,
-    "i",
-  );
-  const m = html.match(re);
-  if (m) return m[1];
-  const re2 = new RegExp(
-    `<meta[^>]+content=["']([^"']*)["'][^>]+name=["']${attr}["']`,
-    "i",
-  );
-  return html.match(re2)?.[1] ?? null;
+  return [{
+    id: `insight-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`,
+    type: "html",
+    props: { html },
+  }];
 }
 
 function extractTitle(html) {
@@ -62,7 +45,7 @@ function clipSeo(s, max) {
   return `${(sp > 40 ? cut.slice(0, sp) : cut).trim()}…`;
 }
 
-function patchInsightsIndexLinks(html) {
+function patchMigratedInsightLinks(html) {
   let out = html;
   const replacements = [
     ["https://digitalgate.com.au/how-chatgpt-chooses-which-businesses-to-recommend", "/how-chatgpt-chooses-which-businesses-to-recommend/"],
@@ -77,9 +60,35 @@ function patchInsightsIndexLinks(html) {
     ["https://digitalgate.com.au/local-seo-in-the-age-of-ai-search", "/local-seo-in-the-age-of-ai-search/"],
   ];
   for (const [from, to] of replacements) {
-    out = out.split(from).join(to);
     out = out.split(`${from}/`).join(to);
+    out = out.split(from).join(to);
   }
+  return out;
+}
+
+function patchInsightsIndex(html) {
+  let out = patchMigratedInsightLinks(html);
+  out = out.replace(
+    `<div class="series-card soon">\n          <span class="series-num">03 · Coming soon</span>\n          <h3>From Signal to Action</h3>\n          <p>How the DigitalGate AI loop actually works — Connect, Understand, Advise, Act and Learn in depth.</p>\n          <span class="series-more">In build</span>\n        </div>`,
+    `<a class="series-card featured" href="/from-signal-to-action/">\n          <span class="series-num">03 · Intelligence Loop</span>\n          <h3>From Signal to Action</h3>\n          <p>How the DigitalGate intelligence loop works — Connect, Understand, Advise, Act and Learn in depth.</p>\n          <span class="series-more">Read Part 3 →</span>\n        </a>`,
+  );
+  out = out.replace(
+    `<div class="insight-card" id="automation-ai" style="border-style:dashed;">\n          <span class="insight-kicker">Automation &amp; AI</span>\n          <h3>Practical automation in everyday operations</h3>\n          <p>This cluster is next: workflows, communications and the manual work that disconnected systems create.</p>\n        </div>`,
+    `<a class="insight-card" id="automation-ai" href="/business-software-should-tell-you-what-needs-doing/">\n          <span class="insight-kicker">Automation &amp; AI</span>\n          <h3>The Best Business Software Should Tell You What Needs Doing</h3>\n          <p>Why intelligent software should notice what matters, recommend the next action and help execute it — instead of waiting for prompts.</p>\n          <span class="insight-more">Read article →</span>\n        </a>`,
+  );
+  return out;
+}
+
+function patchFoundationalPart3Links(html) {
+  let out = html;
+  out = out.replace(
+    /<span class="soon">\s*<span class="num">Part 3<\/span>\s*<span class="title">From Signal to Action<\/span>\s*<\/span>/g,
+    `<a href="/from-signal-to-action/"><span class="num">Part 3</span><span class="title">From Signal to Action</span></a>`,
+  );
+  out = out.replace(
+    /Part 3 — <em>From Signal to Action<\/em> — will go deeper on Connect → Understand → Advise → Act → Learn: how the DigitalGate AI loop actually works in practice\./g,
+    `Part 3 — <a href="/from-signal-to-action/"><em>From Signal to Action</em></a> — goes deeper on Connect → Understand → Advise → Act → Learn: how the DigitalGate intelligence loop works in practice.`,
+  );
   return out;
 }
 
@@ -87,7 +96,9 @@ async function main() {
   execSync("node build.mjs", { cwd: MARKETING, stdio: "inherit" });
 
   const articlesUrl = pathToFileURL(join(MARKETING, "articles.mjs")).href;
+  const editorialUrl = pathToFileURL(join(MARKETING, "editorial-series.mjs")).href;
   const { MIGRATED_ARTICLES } = await import(articlesUrl);
+  const { EDITORIAL_INSIGHTS, renderEditorialInsight } = await import(editorialUrl);
 
   const prisma = new PrismaClient();
   const site = await prisma.website.findFirst({
@@ -105,10 +116,11 @@ async function main() {
     const components = htmlComponent(html);
     const existing = pageBySlug.get(slug);
     if (existing) {
-      await prisma.websitePage.update({
+      const page = await prisma.websitePage.update({
         where: { id: existing.id },
         data: { title, status: "published", sortOrder: sort++, seo, components },
       });
+      pageBySlug.set(slug, page);
       updated++;
       return;
     }
@@ -128,54 +140,85 @@ async function main() {
     created++;
   }
 
-  for (const A of MIGRATED_ARTICLES) {
-    const html = readHtml(A.slug);
-    const seoTitle = extractTitle(html) || A.seoTitle;
+  for (const article of MIGRATED_ARTICLES) {
+    const html = readHtml(article.slug);
+    const seoTitle = extractTitle(html) || article.seoTitle;
     await upsertPage({
-      slug: A.slug,
-      title: A.h1,
+      slug: article.slug,
+      title: article.h1,
       html,
       seo: {
         title: clipSeo(seoTitle, 60),
-        description: clipSeo(A.metaDescription, 155),
+        description: clipSeo(article.metaDescription, 155),
         ogTitle: clipSeo(seoTitle, 60),
-        ogDescription: clipSeo(A.metaDescription, 155),
-        canonical: `https://digitalgate.com.au/${A.slug}/`,
-        keywords: A.primaryKeyword ? [A.primaryKeyword] : [],
+        ogDescription: clipSeo(article.metaDescription, 155),
+        canonical: `https://digitalgate.com.au/${article.slug}/`,
+        keywords: article.primaryKeyword ? [article.primaryKeyword] : [],
         showHeader: true,
         showFooter: true,
       },
     });
   }
 
-  const insights = pageBySlug.get("insights");
-  if (insights) {
-    const comps = Array.isArray(insights.components) ? [...insights.components] : [];
+  for (const article of EDITORIAL_INSIGHTS) {
+    const html = renderEditorialInsight(article);
+    await upsertPage({
+      slug: article.slug,
+      title: article.title,
+      html,
+      seo: {
+        title: clipSeo(article.seoTitle, 60),
+        description: clipSeo(article.metaDescription, 155),
+        ogTitle: clipSeo(article.seoTitle, 60),
+        ogDescription: clipSeo(article.metaDescription, 155),
+        canonical: `https://digitalgate.com.au/${article.slug}/`,
+        authorName: "Ben Roe",
+        schemaType: "article",
+        showHeader: true,
+        showFooter: true,
+      },
+    });
+  }
+
+  const index = pageBySlug.get("insights");
+  if (index) {
+    const comps = Array.isArray(index.components) ? [...index.components] : [];
     const htmlIdx = comps.findIndex((c) => c.type === "html");
     if (htmlIdx >= 0 && typeof comps[htmlIdx].props?.html === "string") {
       comps[htmlIdx] = {
         ...comps[htmlIdx],
-        props: { html: patchInsightsIndexLinks(comps[htmlIdx].props.html) },
+        props: { html: patchInsightsIndex(comps[htmlIdx].props.html) },
       };
-      await prisma.websitePage.update({ where: { id: insights.id }, data: { components: comps } });
+      await prisma.websitePage.update({ where: { id: index.id }, data: { components: comps } });
       updated++;
     }
   }
 
-  console.log(
-    JSON.stringify(
-      {
-        ok: true,
-        websiteId: site.id,
-        insightArticles: MIGRATED_ARTICLES.length,
-        created,
-        updated,
-        preview: "https://digitalgate.com.au/ai-search-vs-traditional-seo/",
-      },
-      null,
-      2,
-    ),
-  );
+  for (const slug of ["from-dumb-businesses-to-smart-businesses", "intelligent-business-more-than-a-brain"]) {
+    const page = pageBySlug.get(slug);
+    if (!page) continue;
+    const comps = Array.isArray(page.components) ? [...page.components] : [];
+    const htmlIdx = comps.findIndex((c) => c.type === "html");
+    if (htmlIdx < 0 || typeof comps[htmlIdx].props?.html !== "string") continue;
+    const patched = patchFoundationalPart3Links(comps[htmlIdx].props.html);
+    if (patched === comps[htmlIdx].props.html) continue;
+    comps[htmlIdx] = { ...comps[htmlIdx], props: { html: patched } };
+    await prisma.websitePage.update({ where: { id: page.id }, data: { components: comps } });
+    updated++;
+  }
+
+  console.log(JSON.stringify({
+    ok: true,
+    websiteId: site.id,
+    migratedArticles: MIGRATED_ARTICLES.length,
+    editorialInsights: EDITORIAL_INSIGHTS.length,
+    created,
+    updated,
+    previews: [
+      "https://digitalgate.com.au/from-signal-to-action/",
+      "https://digitalgate.com.au/business-software-should-tell-you-what-needs-doing/",
+    ],
+  }, null, 2));
 
   await prisma.$disconnect();
 }
