@@ -1,12 +1,15 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import {
   getContact,
   getDefaultCommunicationSignature,
+  getOpportunity,
   htmlToPlainSignature,
+  sessionHasFeature,
 } from "@dg/platform-core";
 
 import { CommunicationsComposeForm } from "@/components/communications/CommunicationsComposeForm";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 interface PageProps {
   searchParams: Promise<{
@@ -19,28 +22,27 @@ interface PageProps {
 
 export default async function CommunicationsComposePage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const { session } = await getPlatformPageContext();
-
-  if (!session?.organisationId) {
-    return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Compose</h1>
-        </header>
-        <main className="dg-page-main">
-          <p className="text-sm text-slate-500">Sign in to continue.</p>
-        </main>
-      </>
-    );
-  }
+  const session = await getAuthorisedPlatformPageSession("communications.email.send");
+  if (!session) notFound();
 
   const contactId = params.contactId?.trim();
-  const [contact, defaultSignature] = process.env.DATABASE_URL
+  const opportunityId = params.opportunityId?.trim();
+  const canReadContacts = sessionHasFeature(session, "crm.contacts.read");
+  const canReadCompanies = sessionHasFeature(session, "crm.companies.read");
+  const canReadOpportunities = sessionHasFeature(session, "crm.opportunities.read");
+
+  const [contact, opportunity, defaultSignature] = process.env.DATABASE_URL
     ? await Promise.all([
-        contactId ? getContact(session.organisationId, contactId) : Promise.resolve(null),
+        contactId && canReadContacts
+          ? getContact(session.organisationId, contactId)
+          : Promise.resolve(null),
+        opportunityId && canReadOpportunities
+          ? getOpportunity(session.organisationId, opportunityId)
+          : Promise.resolve(null),
         getDefaultCommunicationSignature(session.organisationId),
       ])
-    : [null, null];
+    : [null, null, null];
+
   const contactName = contact
     ? [contact.firstName, contact.lastName].filter(Boolean).join(" ")
     : undefined;
@@ -64,8 +66,8 @@ export default async function CommunicationsComposePage({ searchParams }: PagePr
           defaultTo={params.to?.trim() || contact?.email || ""}
           defaultSubject={params.subject?.trim() || ""}
           contactId={contact?.id}
-          opportunityId={params.opportunityId?.trim()}
-          companyId={contact?.companyId ?? undefined}
+          opportunityId={opportunity?.id}
+          companyId={canReadCompanies ? (contact?.companyId ?? undefined) : undefined}
           contactName={contactName}
           defaultSignaturePlain={defaultSignaturePlain}
           defaultSignatureName={defaultSignature?.name}
