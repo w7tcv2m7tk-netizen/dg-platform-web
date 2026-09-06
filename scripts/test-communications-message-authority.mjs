@@ -18,6 +18,14 @@ const scheduled = fs.readFileSync(
   "src/app/(shell)/apps/communications/scheduled/page.tsx",
   "utf8",
 );
+const history = fs.readFileSync(
+  "src/app/(shell)/apps/communications/history/page.tsx",
+  "utf8",
+);
+const inbox = fs.readFileSync(
+  "src/components/communications/inbox/CommunicationsInboxView.tsx",
+  "utf8",
+);
 
 test("communications health requires read authority", () => {
   assert.match(route, /requireFeature\(session, "communications\.read"\)/);
@@ -71,9 +79,10 @@ test("Compose requires email-send authority before CRM and signature reads", () 
   assert.doesNotMatch(compose, /opportunityId=\{params\.opportunityId/);
 });
 
-test("Sent and Scheduled reads require communications.read", () => {
-  assert.match(sent, /getAuthorisedPlatformPageSession\("communications\.read"\)/);
-  assert.match(scheduled, /getAuthorisedPlatformPageSession\("communications\.read"\)/);
+test("Sent, Scheduled and History reads require communications.read", () => {
+  for (const source of [sent, scheduled, history]) {
+    assert.match(source, /getAuthorisedPlatformPageSession\("communications\.read"\)/);
+  }
 });
 
 test("opening Scheduled can flush email only for authorised senders", () => {
@@ -85,4 +94,23 @@ test("opening Scheduled can flush email only for authorised senders", () => {
   assert.ok(
     scheduled.indexOf("const canSendEmail") < scheduled.indexOf("processDueScheduledEmails({"),
   );
+});
+
+test("History contact filtering cannot bypass CRM contact authority", () => {
+  assert.match(history, /sessionHasFeature\(session, "crm\.contacts\.read"\)/);
+  assert.match(history, /getContact\(session\.organisationId, requestedContactId\)/);
+  assert.ok(
+    history.indexOf("getContact(session.organisationId, requestedContactId)") <
+      history.indexOf("listOrgCommunications({"),
+  );
+});
+
+test("Inbox requires communications.read and gates CRM contact enrichment", () => {
+  assert.match(inbox, /getAuthorisedPlatformPageSession\("communications\.read"\)/);
+  assert.match(inbox, /sessionHasFeature\(session, "crm\.contacts\.read"\)/);
+  assert.ok(
+    inbox.indexOf('getAuthorisedPlatformPageSession("communications.read")') <
+      inbox.indexOf("listCommunicationConversations({"),
+  );
+  assert.match(inbox, /selected\?\.contactId && canReadContacts/);
 });
