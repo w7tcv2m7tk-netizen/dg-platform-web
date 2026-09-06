@@ -1,36 +1,31 @@
 # DigitalGate marketing visual assets
 
-DigitalGate's visual storytelling rollout should use lightweight, accessible HTML/CSS/SVG primitives inside the native Website Studio content path. This preserves the established dark identity, avoids unnecessary media dependencies and lets motion respect `prefers-reduced-motion`.
+DigitalGate's visual storytelling rollout uses lightweight, accessible HTML/CSS primitives inside the native Website Studio content path. This preserves the established dark identity, avoids unnecessary media dependencies and lets motion respect `prefers-reduced-motion`.
 
-## Planned visual primitives
+## First rollout — foundational Insights
 
-### Insight 2 — Living system map
-Visual target: a human silhouette / anatomical network mapping Business, Events, Data & Knowledge, Business Brain, Advisor, Automation, Communications, Governance and Outcomes & Learning.
+The first four connected Insights now have a shared visual storytelling layer ready for Website Studio application:
 
-### Insight 3 — Intelligence rail
-Target implementation in the current editorial Insights renderer after the Part 3 publishing work is merged.
-
-- Connect → Understand → Advise → Act → Learn
-- animated travelling signal on capable devices
+### Part 1 — Connected Business
+- Connect → Understand → Advise → Act → Learn intelligence rail
+- animated signal emphasis on capable devices
 - vertical mobile fallback
 - reduced-motion fallback
 
-### Insight 3 — Learning loop
-Target implementation in the current editorial Insights renderer.
+### Part 2 — Business Operating System
+- living-system map covering Body, Nervous System, Memory, Business Brain, Hands & Voice and Learning
+- compact responsive structure designed to explain the operating-system metaphor visually
 
-- Signal → Insight → Recommendation → Action → Outcome → Learning
-- return path makes the closed loop explicit
+### Part 3 — Intelligence Loop
+- Connect → Understand → Advise → Act → Learn intelligence rail
+- supports the article's signal-to-outcome narrative without adding another static illustration dependency
 
-### Insight 3 — Traditional vs DigitalGate
-Use a compact comparison visual to replace explanatory prose where it improves comprehension.
+### Part 4 — Proactive Business Software
+- traditional software vs DigitalGate comparison
+- contextual recommendation-card example
+- makes the difference between passive dashboards and proactive software visible before the long-form explanation
 
-### Proactive software Insight
-Target implementation after the current editorial publishing path is merged:
-
-- passive dashboard vs proactive recommendation
-- recommendation card anatomy
-- contextual Business Signals
-- subtle humour around 'another chatbot in the bottom-right corner'
+Implementation lives in `marketing/pages/insights/visual-storytelling.mjs` and `visual-storytelling.css`. The explicit Website Studio rollout script is `scripts/apply-digitalgate-insights-visual-storytelling.mjs`.
 
 ## Illustration direction
 
