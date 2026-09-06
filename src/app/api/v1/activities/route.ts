@@ -1,6 +1,8 @@
 import {
   createActivity,
+  getCompany,
   getContact,
+  getOpportunity,
   getServiceJob,
   listOrganisationActivities,
 } from "@dg/platform-core";
@@ -57,12 +59,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const feature =
-    entityType === "ServiceJob" ? "services.jobs.write" : "crm.contacts.write";
-  const denied = requireFeature(session, feature);
-  if (denied) return denied;
-
   if (entityType === "Contact") {
+    const denied = requireFeature(session, "crm.contacts.write");
+    if (denied) return denied;
     const contact = await getContact(session.organisationId, entityId);
     if (!contact) {
       return NextResponse.json(
@@ -70,9 +69,29 @@ export async function POST(req: Request) {
         { status: 404 },
       );
     }
-  }
-
-  if (entityType === "ServiceJob") {
+  } else if (entityType === "Company") {
+    const denied = requireFeature(session, "crm.companies.write");
+    if (denied) return denied;
+    const company = await getCompany(session.organisationId, entityId);
+    if (!company) {
+      return NextResponse.json(
+        { error: { code: "company_not_found", message: "Company not found" } },
+        { status: 404 },
+      );
+    }
+  } else if (entityType === "Opportunity") {
+    const denied = requireFeature(session, "crm.opportunities.write");
+    if (denied) return denied;
+    const opportunity = await getOpportunity(session.organisationId, entityId);
+    if (!opportunity) {
+      return NextResponse.json(
+        { error: { code: "opportunity_not_found", message: "Opportunity not found" } },
+        { status: 404 },
+      );
+    }
+  } else if (entityType === "ServiceJob") {
+    const denied = requireFeature(session, "services.jobs.write");
+    if (denied) return denied;
     const job = await getServiceJob(session.organisationId, entityId);
     if (!job) {
       return NextResponse.json(
@@ -80,6 +99,16 @@ export async function POST(req: Request) {
         { status: 404 },
       );
     }
+  } else {
+    return NextResponse.json(
+      {
+        error: {
+          code: "unsupported_entity_type",
+          message: "Activity writes are not supported for this entity type",
+        },
+      },
+      { status: 422 },
+    );
   }
 
   const activity = await createActivity({
