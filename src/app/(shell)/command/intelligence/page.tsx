@@ -3,12 +3,14 @@ import { connection } from "next/server";
 import { llmConfigured } from "@dg/platform-core";
 
 import { PlatformIntelligencePanel } from "@/components/command/PlatformIntelligencePanel";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function CommandIntelligencePage() {
   await connection();
+  await requirePlatformOperatorContext();
   const modelReady = llmConfigured();
   return (
     <>

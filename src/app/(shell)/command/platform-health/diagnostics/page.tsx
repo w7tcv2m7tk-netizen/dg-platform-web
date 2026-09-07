@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { getPlatformAlertsCentre } from "@dg/platform-core";
+import { getOperatorPlatformAlertsCentre } from "@dg/platform-core";
 
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 export default async function PlatformSystemDiagnosticsPage() {
-  const data = process.env.DATABASE_URL ? await getPlatformAlertsCentre() : null;
+  const operator = await requirePlatformOperatorContext();
+  const data = process.env.DATABASE_URL ? await getOperatorPlatformAlertsCentre(operator) : null;
   const diagnostics = data?.diagnostics;
 
   return (

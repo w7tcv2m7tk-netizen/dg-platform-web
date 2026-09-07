@@ -5,7 +5,7 @@ import { PLATFORM_DOCS_CATALOG } from "@dg/platform-core";
 import { OperatorCategoryHeader } from "@/components/command/OperatorCategoryHeader";
 import { ProductOverviewDashboard } from "@/components/command/ProductOverviewDashboard";
 import { PlatformRoadmapPanel } from "@/components/platform/PlatformRoadmapPanel";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 const RELEASE_SLUGS = new Set([
   "commercially-ready-v1",
@@ -26,8 +26,7 @@ export default async function ProductSectionPage({
 }: {
   params: Promise<{ section: string }>;
 }) {
-  const { clerkUserId } = await getPlatformPageContext();
-  if (!clerkUserId) redirect("/login");
+  await requirePlatformOperatorContext();
 
   const { section } = await params;
 

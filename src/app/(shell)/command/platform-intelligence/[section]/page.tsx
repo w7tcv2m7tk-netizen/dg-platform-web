@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  getPlatformAlertsCentre,
-  getCommandCentreOpsHome,
+  getOperatorCommandCentreOpsHome,
+  getOperatorPlatformAlertsCentre,
 } from "@dg/platform-core";
 
 import { ConnectorHealthPanel } from "@/components/command/ConnectorHealthPanel";
 import { OperatorCategoryHeader } from "@/components/command/OperatorCategoryHeader";
 import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
 import { PlatformIntelligenceOverview } from "@/components/command/PlatformIntelligenceOverview";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 function shell(title: string, question: string, body: React.ReactNode) {
   return (
@@ -33,8 +33,7 @@ export default async function PlatformIntelligenceSectionPage({
 }: {
   params: Promise<{ section: string }>;
 }) {
-  const { clerkUserId } = await getPlatformPageContext();
-  if (!clerkUserId) redirect("/login");
+  const operator = await requirePlatformOperatorContext();
 
   const { section } = await params;
   const db = Boolean(process.env.DATABASE_URL);
@@ -53,8 +52,8 @@ export default async function PlatformIntelligenceSectionPage({
   }
 
   if (section === "overview") {
-    const ops = db ? await getCommandCentreOpsHome() : null;
-    const alerts = db ? await getPlatformAlertsCentre() : null;
+    const ops = db ? await getOperatorCommandCentreOpsHome(operator) : null;
+    const alerts = db ? await getOperatorPlatformAlertsCentre(operator) : null;
     return (
       <>
         <header className="dg-page-header">
@@ -76,7 +75,7 @@ export default async function PlatformIntelligenceSectionPage({
   }
 
   if (section === "health") {
-    const alerts = db ? await getPlatformAlertsCentre() : null;
+    const alerts = db ? await getOperatorPlatformAlertsCentre(operator) : null;
     return shell(
       "Platform Health",
       "Operator infrastructure checklist — API, DNS, SSL. Not Command Centre Alerts.",
@@ -128,7 +127,7 @@ export default async function PlatformIntelligenceSectionPage({
 
   if (section === "connectors") {
     const [alerts, ops] = db
-      ? await Promise.all([getPlatformAlertsCentre(), getCommandCentreOpsHome()])
+      ? await Promise.all([getOperatorPlatformAlertsCentre(operator), getOperatorCommandCentreOpsHome(operator)])
       : [null, null];
     const connectorAlerts = alerts
       ? [...alerts.critical, ...alerts.attention, ...alerts.notices].filter(
@@ -178,7 +177,7 @@ export default async function PlatformIntelligenceSectionPage({
   }
 
   if (section === "activity") {
-    const ops = db ? await getCommandCentreOpsHome() : null;
+    const ops = db ? await getOperatorCommandCentreOpsHome(operator) : null;
     const activity = ops?.recentActivity ?? [];
     return shell(
       "System activity",
@@ -230,7 +229,7 @@ export default async function PlatformIntelligenceSectionPage({
   }
 
   // service-status
-  const alerts = db ? await getPlatformAlertsCentre() : null;
+  const alerts = db ? await getOperatorPlatformAlertsCentre(operator) : null;
   return shell(
     "Service status",
     "Operator-facing infrastructure and commercial checklist.",

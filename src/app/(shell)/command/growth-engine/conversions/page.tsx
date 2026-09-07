@@ -1,15 +1,17 @@
 import Link from "next/link";
 import {
   GROWTH_ENGINE_STAGE_LABELS,
-  getGrowthConversionSnapshot,
+  getOperatorGrowthConversionSnapshot,
 } from "@dg/platform-core";
 
 import { CommandHonestyBanner } from "@/components/command/CommandHonestyBanner";
 import { ConvertProspectToOrgButton } from "@/components/command/GrowthEngineActions";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 export default async function GrowthConversionsPage() {
+  const operator = await requirePlatformOperatorContext();
   const db = Boolean(process.env.DATABASE_URL);
-  const snap = db ? await getGrowthConversionSnapshot({ days: 30 }) : null;
+  const snap = db ? await getOperatorGrowthConversionSnapshot(operator, { days: 30 }) : null;
 
   return (
     <>
