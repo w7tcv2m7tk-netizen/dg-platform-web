@@ -38,6 +38,19 @@ describe("Command Centre operator capability", () => {
     assert.ok(operator);
     assert.equal(isPlatformOperatorContext(operator), true);
 
+    for (const role of ["admin", "member"]) {
+      const ordinaryOperatorOrgMember = assertPlatformOperator({
+        clerkUserId: `user_operator_org_${role}`,
+        organisationId: "org_operator",
+        role,
+      });
+      assert.equal(
+        ordinaryOperatorOrgMember,
+        null,
+        `${role} membership in the allowlisted operator organisation must not mint platform authority`,
+      );
+    }
+
     const ordinary = assertPlatformOperator({
       clerkUserId: "user_member",
       organisationId: "org_customer",
