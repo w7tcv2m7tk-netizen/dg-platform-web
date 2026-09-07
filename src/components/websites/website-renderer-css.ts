@@ -1,5 +1,7 @@
+import { digitalgateVisualStorytellingCss } from "./digitalgate-visual-storytelling-css";
+
 /** Public site renderer styles — brand-driven, not purple AI defaults */
-export const websiteRendererCss = `
+const websiteRendererCssBase = `
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Source+Sans+3:wght@400;600;700&display=swap");
 
 .wb-root {
@@ -4791,4 +4793,8 @@ body.dg-has-fixed-header:has(.hero-home) .wb-html-island .hero-home {
     font-size: 0.9rem !important;
   }
 }
+`;
+
+export const websiteRendererCss = `${websiteRendererCssBase}
+${digitalgateVisualStorytellingCss}
 `;
