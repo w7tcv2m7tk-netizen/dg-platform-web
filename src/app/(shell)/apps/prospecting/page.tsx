@@ -67,7 +67,7 @@ export default async function ProspectingOverviewPage() {
         pipelineHref="/apps/prospecting/pipeline"
         discoveryHref="/apps/prospecting/discovery"
         followUpsHref="/apps/prospecting/activity"
-        auditsHref="/apps/prospecting/scores"
+        auditsHref="/apps/prospecting/audits"
         reportsHref="/apps/prospecting/reports"
         enableActions={false}
       />
