@@ -7,7 +7,7 @@ import {
   sessionHasFeature,
 } from "@dg/platform-core";
 
-import { getPlatformPageContext } from "@/lib/org-apps";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 function formatDate(iso: string | null) {
   if (!iso) return "—";
@@ -19,14 +19,14 @@ export default async function CallDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { session } = await getPlatformPageContext();
+  const session = await getAuthorisedPlatformPageSession("comms.call_centre.read");
   const { id } = await params;
   if (!session) {
     return (
       <>
         <header className="dg-page-header">
           <h1 className="text-2xl font-bold text-white">Conversation</h1>
-      </header>
+        </header>
         <main className="dg-page-main">
           <div className="dg-card">
             <p className="text-sm text-slate-400">Sign in to view this conversation.</p>
@@ -40,8 +40,10 @@ export default async function CallDetailPage({
   if (!row) notFound();
 
   const canHear = sessionHasFeature(session, "comms.voice.recording");
+  const canViewContacts = sessionHasFeature(session, "crm.contacts.read");
+  const canViewOpportunities = sessionHasFeature(session, "crm.opportunities.read");
   const [messages, actions] = await Promise.all([
-    listSessionMessages(session.organisationId, id),
+    canHear ? listSessionMessages(session.organisationId, id) : Promise.resolve([]),
     listSessionActions(session.organisationId, id),
   ]);
 
@@ -55,24 +57,46 @@ export default async function CallDetailPage({
       </header>
       <main className="dg-page-main space-y-6">
         <div className="dg-card grid gap-3 text-sm sm:grid-cols-2">
-          <p><span className="text-slate-500">When: </span><span className="text-white">{formatDate(row.startedAt)}</span></p>
-          <p><span className="text-slate-500">Status: </span><span className="text-white">{row.status}</span></p>
-          <p><span className="text-slate-500">Duration: </span><span className="text-white">{row.durationSeconds ? `${row.durationSeconds}s` : "—"}</span></p>
-          <p><span className="text-slate-500">Outcome: </span><span className="text-white">{(row.outcome ?? "—").replace(/_/g, " ")}</span></p>
+          <p>
+            <span className="text-slate-500">When: </span>
+            <span className="text-white">{formatDate(row.startedAt)}</span>
+          </p>
+          <p>
+            <span className="text-slate-500">Status: </span>
+            <span className="text-white">{row.status}</span>
+          </p>
+          <p>
+            <span className="text-slate-500">Duration: </span>
+            <span className="text-white">
+              {row.durationSeconds ? `${row.durationSeconds}s` : "—"}
+            </span>
+          </p>
+          <p>
+            <span className="text-slate-500">Outcome: </span>
+            <span className="text-white">{(row.outcome ?? "—").replace(/_/g, " ")}</span>
+          </p>
           <p>
             <span className="text-slate-500">Contact: </span>
-            {row.contactId ? (
-              <Link href={`/apps/crm/contacts/${row.contactId}`} className="text-sky-400 hover:underline">
+            {row.contactId && canViewContacts ? (
+              <Link
+                href={`/apps/crm/contacts/${row.contactId}`}
+                className="text-sky-400 hover:underline"
+              >
                 Open CRM contact
               </Link>
             ) : (
-              <span className="text-white">{row.callerPhone ?? "Unknown"}</span>
+              <span className="text-white">
+                {row.callerPhone ?? (row.contactId ? "Linked contact" : "Unknown")}
+              </span>
             )}
           </p>
-          {row.opportunityId ? (
+          {row.opportunityId && canViewOpportunities ? (
             <p>
               <span className="text-slate-500">Opportunity: </span>
-              <Link href={`/apps/crm/opportunities/${row.opportunityId}`} className="text-sky-400 hover:underline">
+              <Link
+                href={`/apps/crm/opportunities/${row.opportunityId}`}
+                className="text-sky-400 hover:underline"
+              >
                 Open opportunity
               </Link>
             </p>
