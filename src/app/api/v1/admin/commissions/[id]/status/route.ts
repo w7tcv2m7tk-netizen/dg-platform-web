@@ -1,24 +1,16 @@
 import { NextResponse } from "next/server";
-import { updateCommissionStatus, canAccessCommandCentre, type CommissionStatus } from "@dg/platform-core";
-import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
+import { updateCommissionStatus, type CommissionStatus } from "@dg/platform-core";
+
+import { requirePlatformOperator } from "@/lib/command-api";
+import { isNextResponse } from "@/lib/platform-api";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 const VALID_STATUSES: CommissionStatus[] = ["CALCULATED", "PENDING", "APPROVED", "PAID"];
 
 export async function POST(req: Request, ctx: Ctx) {
-  const session = await requirePlatformSession();
-  if (isNextResponse(session)) return session;
-
-  const allowed = canAccessCommandCentre({
-    organisationId: session.organisationId,
-    organisationName: session.organisationName,
-    organisationSlug: session.organisationSlug,
-    role: session.role,
-  });
-  if (!allowed) {
-    return NextResponse.json({ error: { code: "forbidden" } }, { status: 403 });
-  }
+  const auth = await requirePlatformOperator(req);
+  if (isNextResponse(auth)) return auth;
 
   const { id } = await ctx.params;
   const body = (await req.json().catch(() => null)) as { status?: string } | null;
