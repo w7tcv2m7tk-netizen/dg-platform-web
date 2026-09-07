@@ -13,7 +13,8 @@
  * Enforcement: `hasPlatformAuthority` (the single source of truth) returns false
  * for any `api_key:*` principal, and every session→authority path threads the
  * principal id through. These tests prove a non-interactive credential is denied
- * operator authority while interactive humans in the same org keep it.
+ * operator authority while the legitimate interactive owner in the same org
+ * keeps it.
  */
 import assert from "node:assert/strict";
 import { describe, it, beforeEach, afterEach } from "node:test";
@@ -42,7 +43,7 @@ let originalEnv;
 
 beforeEach(() => {
   originalEnv = process.env.DG_COMMAND_CENTRE_ORG_IDS;
-  // Designate the operator org as an allowlisted platform operator.
+  // Designate the DigitalGate organisation as the server-allowlisted operator org.
   process.env.DG_COMMAND_CENTRE_ORG_IDS = OPERATOR_ORG;
 });
 
@@ -67,17 +68,17 @@ describe("API keys never hold platform authority", () => {
   it("hasPlatformAuthority denies an api-key session in an allowlisted org", async () => {
     const { hasPlatformAuthority } = await load("access/platform-authority.ts");
 
-    // Interactive human admin in the operator org keeps authority (allowlist).
+    // The legitimate interactive owner in the allowlisted operator org keeps authority.
     assert.equal(
       hasPlatformAuthority({
         organisationId: OPERATOR_ORG,
-        role: "admin",
+        role: "owner",
         principalId: HUMAN_PRINCIPAL,
       }),
       true,
     );
 
-    // Same org, same role, but a non-interactive API-key principal → denied.
+    // An API key is minted as admin; being in the same allowlisted org never grants authority.
     assert.equal(
       hasPlatformAuthority({
         organisationId: OPERATOR_ORG,
@@ -118,7 +119,7 @@ describe("API keys never hold platform authority", () => {
     assert.equal(
       canAccessCommandCentre({
         organisationId: OPERATOR_ORG,
-        role: "admin",
+        role: "owner",
         principalId: HUMAN_PRINCIPAL,
       }),
       true,
@@ -136,14 +137,14 @@ describe("API keys never hold platform authority", () => {
   it("toPlatformUserType returns null for an api-key principal, even if hasAuthority is forced", async () => {
     const { toPlatformUserType } = await load("access/membership-role.ts");
 
-    // Interactive operator resolves to an operator user type.
+    // Interactive platform owner resolves to the owner user type.
     assert.equal(
       toPlatformUserType({
-        role: "admin",
+        role: "owner",
         organisationId: OPERATOR_ORG,
         principalId: HUMAN_PRINCIPAL,
       }),
-      "digitalgate_admin",
+      "digitalgate_owner",
     );
 
     // API-key principal never resolves — not even when a caller passes a
@@ -173,12 +174,12 @@ describe("API keys never hold platform authority", () => {
     );
 
     const humanCtx = buildAccessContext({
-      role: "admin",
+      role: "owner",
       organisationId: OPERATOR_ORG,
       enabledAppIds: [],
       principalId: HUMAN_PRINCIPAL,
     });
-    assert.equal(humanCtx.platformUserType, "digitalgate_admin");
+    assert.equal(humanCtx.platformUserType, "digitalgate_owner");
 
     const keyCtx = buildAccessContext({
       role: "admin",
@@ -201,9 +202,9 @@ describe("API keys never hold platform authority", () => {
     const human = assertPlatformOperator({
       clerkUserId: HUMAN_PRINCIPAL,
       organisationId: OPERATOR_ORG,
-      role: "admin",
+      role: "owner",
     });
-    assert.ok(human, "interactive operator must receive a capability");
+    assert.ok(human, "interactive platform owner must receive a capability");
 
     const key = assertPlatformOperator({
       clerkUserId: API_KEY_PRINCIPAL,
