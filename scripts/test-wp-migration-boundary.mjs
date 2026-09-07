@@ -42,6 +42,18 @@ const unitMigration = fs.readFileSync(
 const platformPageContext = fs.readFileSync("src/lib/platform-page-context.ts", "utf8");
 const platformShellLoader = fs.readFileSync("src/components/PlatformShellLoader.tsx", "utf8");
 const nativePortalProfile = fs.readFileSync("src/lib/native-portal-profile.ts", "utf8");
+const propertyPublish = fs.readFileSync(
+  "packages/platform-core/src/connectors/wordpress/sync-property-publish.ts",
+  "utf8",
+);
+const agentPublish = fs.readFileSync(
+  "packages/platform-core/src/connectors/wordpress/sync-agent-publish.ts",
+  "utf8",
+);
+const propertyImport = fs.readFileSync(
+  "packages/platform-core/src/connectors/wordpress/sync-properties-from-wordpress.ts",
+  "utf8",
+);
 
 test("native accommodation reads cannot select WordPress as a runtime source", () => {
   assert.doesNotMatch(route, /source\s*===\s*["']wp["']/);
@@ -162,4 +174,28 @@ test("authenticated platform shell never triggers background WordPress onboardin
   assert.doesNotMatch(platformShellLoader, /ensureOrganisationOnboardingSync/);
   assert.doesNotMatch(platformShellLoader, /org-onboarding-sync/);
   assert.doesNotMatch(platformShellLoader, /WordPress→Postgres onboarding sync/);
+});
+
+test("outbound property publishing is an inert compatibility shim", () => {
+  assert.doesNotMatch(propertyPublish, /resolveOrgWordPressConnector/);
+  assert.doesNotMatch(propertyPublish, /@dg\/database/);
+  assert.doesNotMatch(propertyPublish, /fetch\s*\(/);
+  assert.doesNotMatch(propertyPublish, /publishMembershipToWordPressAgent/);
+  assert.match(propertyPublish, /WordPress is supported only as an inbound migration source/);
+  assert.match(propertyPublish, /return WORDPRESS_PUBLISH_DISABLED/);
+  assert.match(propertyPublish, /maybeAutoPublishPropertyToWordPress[\s\S]*return null/);
+});
+
+test("outbound agent publishing is an inert compatibility shim", () => {
+  assert.doesNotMatch(agentPublish, /resolveOrgWordPressConnector/);
+  assert.doesNotMatch(agentPublish, /setMembershipExternalRefs/);
+  assert.doesNotMatch(agentPublish, /fetch\s*\(/);
+  assert.match(agentPublish, /WordPress is supported only as an inbound migration source/);
+  assert.match(agentPublish, /return WORDPRESS_AGENT_PUBLISH_DISABLED/);
+});
+
+test("property WordPress capability remains inbound migration only", () => {
+  assert.match(propertyImport, /SyncPropertiesFromWordPressInput/);
+  assert.match(propertyImport, /properties:\s*WpPropertyListing\[\]/);
+  assert.doesNotMatch(propertyImport, /fetch\s*\([^)]*\/properties/);
 });
