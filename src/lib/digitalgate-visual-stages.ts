@@ -20,6 +20,8 @@
  *   dg-flow    — a signal path travelling through the system
  */
 
+import { part4 } from "./digitalgate-visual-stages-part4";
+
 export type DigitalgateStageKind =
   | "insights-part-1"
   | "insights-part-2"
@@ -1027,119 +1029,8 @@ function part3(kind: DigitalgateStageKind): StageDef[] {
 }
 
 /* —————————————————————————————————————————————————————————————————————————
- * PART 4 — Proactive / self-driving business (maturity, comparison, governance)
+ * PART 4 — approved prototype port (isolated module; dgp4-* namespace)
  * ————————————————————————————————————————————————————————————————————————— */
-
-const MATURITY: Array<[string, string]> = [
-  ["Passive software", "Waits to be asked"],
-  ["Assistive", "Suggests when opened"],
-  ["Proactive", "Surfaces what needs doing"],
-  ["Governed automation", "Acts on approved rules"],
-  ["Learning system", "Improves with every outcome"],
-];
-
-function part4(kind: DigitalgateStageKind): StageDef[] {
-  return [
-    {
-      name: "maturity",
-      anchors: [
-        "software should tell you",
-        "the problem with passive",
-        "passive software",
-        "business software should",
-      ],
-      html: stage({
-        kind,
-        name: "maturity",
-        index: "01",
-        eyebrow: "The progression",
-        title: "Software should tell you what needs doing",
-        lede: "Five steps from software that waits, to a system that thinks ahead — each meaningfully more capable than the last.",
-        ariaLabel:
-          "A five-step maturity rail: passive software, assistive, proactive, governed automation, and learning system — each step more capable.",
-        variant: "dg-stage--rail",
-        scene: `<ol class="dg-rail">
-  ${MATURITY.map(
-    ([k, v], i) =>
-      `<li class="dg-rail__step${i >= 2 ? " is-live" : ""}${i === 4 ? " is-peak" : ""}"><span class="dg-rail__num" aria-hidden="true">${i + 1}</span><strong>${k}</strong><small>${v}</small></li>`,
-  ).join("")}
-</ol>`,
-        caption: "Capability climbs — DigitalGate operates at the top of this rail, with governance built in.",
-      }),
-    },
-    {
-      name: "passive-vs-intelligent",
-      anchors: ["the problem with dashboards", "dashboards"],
-      html: stage({
-        kind,
-        name: "passive-vs-intelligent",
-        index: "02",
-        eyebrow: "The difference, felt",
-        title: "A number vs an operating decision",
-        lede: "Passive software reports. Operating intelligence interprets, prioritises and prepares — as a product experience, not a statistic.",
-        ariaLabel:
-          "A comparison. Passive software shows the number 47 opportunities. DigitalGate shows a prepared briefing: seven opportunities need attention, three high-value prospects have gone quiet, and the priority follow-up list is ready.",
-        variant: "dg-stage--compare",
-        scene: `<div class="dg-compare">
-  <div class="dg-compare__side dg-compare__side--passive">
-    <span class="dg-compare__tag">Passive software</span>
-    <div class="dg-compare__stat"><strong>47</strong><small>opportunities</small></div>
-    <p class="dg-compare__note">A count. You still have to work out what it means.</p>
-  </div>
-  <div class="dg-compare__side dg-compare__side--dg">
-    <span class="dg-compare__tag">DigitalGate</span>
-    <div class="dg-frame" role="group" aria-label="AI Advisor briefing">
-      <div class="dg-frame__bar" aria-hidden="true"><span></span><span></span><span></span><em>AI Advisor</em></div>
-      <div class="dg-frame__body">
-        <p class="dg-frame__line"><span class="dg-frame__pill">Priority</span> Seven opportunities need attention.</p>
-        <p class="dg-frame__line">Three high-value prospects have gone quiet.</p>
-        <p class="dg-frame__line dg-frame__line--done">I've prepared the priority follow-up list.</p>
-        <span class="dg-frame__cta" aria-hidden="true">Review &amp; approve →</span>
-      </div>
-    </div>
-    <p class="dg-compare__note">Interpreted, prioritised, prepared — ready for your decision.</p>
-  </div>
-</div>`,
-        caption: "Same data. One tells you a number; the other tells you what to do — and waits for you.",
-      }),
-    },
-    {
-      name: "governance",
-      anchors: [
-        "human control is part of the intelligence",
-        "human control is part",
-        "human control",
-      ],
-      html: stage({
-        kind,
-        name: "governance",
-        index: "03",
-        eyebrow: "Who does what",
-        title: "The machine thinks. The human decides.",
-        lede: "Make the machine do the thinking wherever appropriate. Keep the decisions that matter with people. This is not the AI taking over.",
-        ariaLabel:
-          "A governance split in three columns. Machine: detects, correlates, prioritises, recommends, prepares. Human: reviews, approves, decides where judgement matters. System: executes approved actions, records the outcome, learns.",
-        variant: "dg-stage--governance",
-        scene: `<div class="dg-govern">
-  <div class="dg-govern__col dg-govern__col--machine">
-    <span class="dg-govern__role">Machine</span>
-    <ul>${["Detects", "Correlates", "Prioritises", "Recommends", "Prepares"].map((x) => `<li>${x}</li>`).join("")}</ul>
-  </div>
-  <div class="dg-govern__col dg-govern__col--human">
-    <span class="dg-govern__role">Human</span>
-    <ul>${["Reviews", "Approves", "Decides where judgement matters"].map((x) => `<li>${x}</li>`).join("")}</ul>
-    <span class="dg-gate__badge">Decision stays here</span>
-  </div>
-  <div class="dg-govern__col dg-govern__col--system">
-    <span class="dg-govern__role">System</span>
-    <ul>${["Executes approved actions", "Records the outcome", "Learns"].map((x) => `<li>${x}</li>`).join("")}</ul>
-  </div>
-</div>`,
-        caption: "Thinking is delegated. Judgement is not.",
-      }),
-    },
-  ];
-}
 
 const STAGE_BUILDERS: Record<DigitalgateStageKind, (kind: DigitalgateStageKind) => StageDef[]> = {
   "insights-part-1": part1,

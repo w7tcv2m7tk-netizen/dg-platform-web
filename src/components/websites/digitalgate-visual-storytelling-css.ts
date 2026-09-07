@@ -763,6 +763,194 @@ export const digitalgateVisualStorytellingCss = `
 .dg-govern__col--human li::before { background: #fbbf24; }
 .dg-govern__col--system li::before { background: #34d399; }
 
+/* —— Part 4 · approved prototype port (dgp4-* namespace; #48) —— */
+.dg-stage--wide { min-height: clamp(420px, 48vw, 620px); }
+.dg-stage--p4.dgp4-stage--learning,
+.dg-stage--p4.dgp4-stage--recap { min-height: 0; }
+.dgp4-scene { position: relative; width: 100%; }
+.dgp4-svg { display: block; width: 100%; height: auto; max-width: 100%; }
+.dgp4-desktop { display: block; }
+.dgp4-mobile { display: none; }
+.dgp4-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.dgp4-scene--maturity .dgp4-desktop,
+.dgp4-scene--compare .dgp4-desktop,
+.dgp4-scene--responsibility .dgp4-desktop {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.dgp4-scene--maturity .dgp4-desktop { max-width: 1200px; }
+.dgp4-scene--compare .dgp4-desktop,
+.dgp4-scene--responsibility .dgp4-desktop { max-width: 1100px; }
+
+/* Learning loop — semantic HTML sequence (not SVG-only) */
+.dgp4-scene--learning { display: grid; gap: 0.85rem; max-width: 46rem; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp4-learning-kicker,
+.dgp4-learning-kicker {
+  margin: 0 !important;
+  color: #a7f3d0 !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+.dgp4-learning-loop {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0 0.25rem 0.9rem;
+  display: grid;
+  gap: 0.45rem;
+  border-left: 2px solid rgba(52, 211, 153, 0.35);
+}
+.dgp4-learning-loop li {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, auto) 1fr;
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
+}
+.wb-html-island--page:not(.wb-html-island--light) .dgp4-learning-loop strong,
+.dgp4-learning-loop strong {
+  color: #e2e8f0 !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.wb-html-island--page:not(.wb-html-island--light) .dgp4-learning-loop small,
+.dgp4-learning-loop small {
+  color: #94a3b8 !important;
+  font-size: 0.74rem !important;
+  line-height: 1.35 !important;
+}
+.dgp4-learning-loop li.is-return strong { color: #34d399 !important; }
+.dgp4-learning-loop li.is-return small { color: #6ee7b7 !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp4-learning-note,
+.dgp4-learning-note {
+  margin: 0 !important;
+  color: #94a3b8 !important;
+  font-size: 0.84rem !important;
+  line-height: 1.5 !important;
+}
+
+/* Series recap — restrained timeline (not four cards) */
+.dgp4-scene--recap {
+  display: grid;
+  gap: 1rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.wb-html-island--page:not(.wb-html-island--light) .dgp4-recap-label,
+.dgp4-recap-label {
+  margin: 0 !important;
+  text-align: center;
+  color: #64748b !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+.dgp4-recap-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem 0 0.25rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  position: relative;
+}
+.dgp4-recap-timeline::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: calc(0.75rem + 1.55rem);
+  height: 1px;
+  background: linear-gradient(90deg, rgba(124, 58, 237, 0.2), rgba(167, 139, 250, 0.35), rgba(124, 58, 237, 0.2));
+  pointer-events: none;
+}
+.dgp4-recap-timeline li {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+.wb-html-island--page:not(.wb-html-island--light) .dgp4-recap-num,
+.dgp4-recap-num {
+  color: rgba(167, 139, 250, 0.55) !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+}
+.wb-html-island--page:not(.wb-html-island--light) .dgp4-recap-text,
+.dgp4-recap-text {
+  color: #94a3b8 !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  font-size: 0.62rem !important;
+  line-height: 1.35 !important;
+}
+.dgp4-recap-timeline li::after {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.35);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
+}
+.dgp4-recap-timeline li.is-current .dgp4-recap-num {
+  color: #c4b5fd !important;
+  font-weight: 800 !important;
+}
+.dgp4-recap-timeline li.is-current .dgp4-recap-text {
+  color: #ddd6fe !important;
+}
+.dgp4-recap-timeline li.is-current::after {
+  background: rgba(167, 139, 250, 0.7);
+  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.16);
+}
+
+@media (max-width: 767px) {
+  .dgp4-desktop { display: none !important; }
+  .dgp4-mobile { display: block !important; width: 100%; max-width: 390px; margin: 0 auto; }
+  .dgp4-recap-timeline {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+    gap: 0.85rem;
+    padding-left: 0.5rem;
+  }
+  .dgp4-recap-timeline::before {
+    left: 0.15rem;
+    right: auto;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 1px;
+    height: auto;
+    background: linear-gradient(180deg, rgba(124, 58, 237, 0.2), rgba(167, 139, 250, 0.35), rgba(124, 58, 237, 0.2));
+  }
+  .dgp4-recap-timeline li {
+    grid-template-columns: auto 1fr auto;
+    justify-items: start;
+    align-items: center;
+    gap: 0.65rem;
+    text-align: left;
+    padding-left: 1rem;
+  }
+  .dgp4-recap-timeline li::after { order: 3; }
+}
+
 /* —— Responsive: reflow, never shrink into microscopic labels —— */
 @media (max-width: 900px) {
   .dg-anatomy { grid-template-columns: 1fr; }
@@ -795,10 +983,52 @@ export const digitalgateVisualStorytellingCss = `
   .dg-brain__spark { animation: dgBrainSpark 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
   .dg-flow__loop { stroke-dasharray: 7 12; animation: dgFlowMove 2.6s linear infinite; }
   .dg-frame__line--done { animation: dgFrameReveal 0.6s ease-out 0.2s both; }
+  /* Part 4 — emerging priority, information flow, governed progression, learning feedback */
+  .dgp4-priority-pulse {
+    animation: dgp4PriorityPulse 2s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .dgp4-learn-path { animation: dgp4LearnPath 4s ease-in-out infinite; }
+  .dgp4-learn-particle {
+    animation: dgp4LearnParticle 3.2s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .dgp4-resp-flow {
+    animation: dgp4RespFlow 3s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .dgp4-mobile-resp-flow {
+    animation: dgp4MobileRespFlow 3s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
   @keyframes dgBrainSpark { 0%, 100% { opacity: 0.6; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.15); } }
   @keyframes dgFlowMove { to { stroke-dashoffset: -28; } }
   @keyframes dgStagePulse { 0%, 100% { box-shadow: inset 0 0 0 rgba(59,130,246,0); } 50% { box-shadow: inset 0 0 34px rgba(59,130,246,0.14); } }
   @keyframes dgFrameReveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @keyframes dgp4PriorityPulse {
+    0%, 100% { opacity: 0.65; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.35); }
+  }
+  @keyframes dgp4LearnPath {
+    0%, 100% { opacity: 0.4; stroke-dashoffset: 0; }
+    50% { opacity: 0.85; stroke-dashoffset: -12; }
+  }
+  @keyframes dgp4LearnParticle {
+    0%, 100% { opacity: 0.4; transform: translate(0, 0); }
+    50% { opacity: 0.9; transform: translate(4px, -4px); }
+  }
+  @keyframes dgp4RespFlow {
+    0%, 100% { opacity: 0.35; transform: translateX(0); }
+    50% { opacity: 0.85; transform: translateX(8px); }
+  }
+  @keyframes dgp4MobileRespFlow {
+    0%, 100% { opacity: 0.35; transform: translateY(0); }
+    50% { opacity: 0.85; transform: translateY(5px); }
+  }
 }
 
 /* ===========================================================================
