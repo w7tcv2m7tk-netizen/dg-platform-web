@@ -24,7 +24,12 @@ export function spamGuardResponse(
     return NextResponse.json({ data: { ok: true } }, { status: 201 });
   }
 
-  const status = verdict.code === "rate_limited" ? 429 : 422;
+  const status =
+    verdict.code === "rate_limited"
+      ? 429
+      : verdict.code === "spam_content"
+        ? 422
+        : 422;
   return NextResponse.json(
     { error: { code: verdict.code, message: verdict.message } },
     { status },
