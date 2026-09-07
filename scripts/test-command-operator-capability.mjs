@@ -46,6 +46,40 @@ describe("Command Centre operator capability", () => {
     assert.equal(ordinary, null);
   });
 
+  it("denies direct Command Centre routes to a signed-in non-operator", async () => {
+    const { assertPlatformOperator } = await load(
+      "access/platform-operator-context.ts",
+    );
+
+    const signedInNonOperator = assertPlatformOperator({
+      clerkUserId: "user_customer_member",
+      organisationId: "org_customer",
+      role: "member",
+    });
+    assert.equal(signedInNonOperator, null);
+
+    const authorisedOperator = assertPlatformOperator({
+      clerkUserId: "user_operator",
+      organisationId: "org_operator",
+      role: "owner",
+    });
+    assert.ok(authorisedOperator);
+
+    const layout = fs.readFileSync(
+      "src/app/(shell)/command/layout.tsx",
+      "utf8",
+    );
+    assert.match(layout, /getPlatformOperatorContext\(\)/);
+    assert.match(layout, /if\s*\(!operator\)/);
+    assert.match(layout, /Platform operator access required/);
+    assert.match(layout, /return children;/);
+
+    const resolver = fs.readFileSync("src/lib/platform-operator.ts", "utf8");
+    assert.match(resolver, /return assertPlatformOperator\(/);
+    assert.match(resolver, /organisationId:\s*session\.organisationId/);
+    assert.match(resolver, /role:\s*session\.role/);
+  });
+
   it("rejects an unbranded object at every cross-tenant operator wrapper", async () => {
     const services = await load("command-centre/operator-services.ts");
     const forged = {
