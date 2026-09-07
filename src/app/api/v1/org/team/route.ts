@@ -1,7 +1,6 @@
 import {
   getMembershipProfile,
   listOrganisationMembers,
-  publishMembershipToWordPressAgent,
   removeOrganisationMember,
   updateMembershipProfile,
   updateMembershipRole,
@@ -107,14 +106,7 @@ export async function PATCH(req: Request) {
     });
   }
 
-  let websiteSync: Awaited<ReturnType<typeof publishMembershipToWordPressAgent>> | null =
-    null;
-  if (body.syncToWebsite !== false) {
-    websiteSync = await publishMembershipToWordPressAgent({
-      organisationId: session.organisationId,
-      membership: updated,
-    });
-  }
+  const websiteSync = null;
 
   const refreshed =
     (await getMembershipProfile(session.organisationId, membershipId)) ?? updated;
