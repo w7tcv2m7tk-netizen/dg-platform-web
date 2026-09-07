@@ -2,33 +2,40 @@
 
 DigitalGate's visual storytelling rollout uses lightweight, accessible HTML/CSS primitives inside the native Website Studio content path. This preserves the established dark identity, avoids unnecessary media dependencies and lets motion respect `prefers-reduced-motion`.
 
-## First rollout — foundational Insights
+## Runtime source of truth
 
-The first four connected Insights now have a shared visual storytelling layer ready for Website Studio application:
+Public rendering owns the visual layer:
+
+- `src/lib/digitalgate-visual-storytelling.ts` — HTML primitives + idempotent enhance
+- `src/components/websites/digitalgate-visual-storytelling-css.ts` — styles shipped with `websiteRendererCss`
+- `WebsiteRenderer` calls `enhanceDigitalgateVisualHtml(html, pageSlug)` on HTML components
+
+Optional Neon persistence remains available via `scripts/apply-digitalgate-insights-visual-storytelling.mjs`, but is **not required** for public visibility.
+
+## First rollout — foundational Insights + Brain + Automation
 
 ### Part 1 — Connected Business
 - Connect → Understand → Advise → Act → Learn intelligence rail
-- animated signal emphasis on capable devices
-- vertical mobile fallback
-- reduced-motion fallback
 
 ### Part 2 — Business Operating System
-- living-system map covering Body, Nervous System, Memory, Business Brain, Hands & Voice and Learning
-- compact responsive structure designed to explain the operating-system metaphor visually
+- Architectural hub map (Business Brain at centre) with Operations / Signals / Memory / Intelligence / Action / Learning
+- Not cartoon anatomy
 
 ### Part 3 — Intelligence Loop
-- Connect → Understand → Advise → Act → Learn intelligence rail
-- supports the article's signal-to-outcome narrative without adding another static illustration dependency
+- Closed Signal → Insight → Advise → Action → Outcome → Learn diagram
+- Intelligence rail retained as secondary scannable path
 
 ### Part 4 — Proactive Business Software
-- traditional software vs DigitalGate comparison
-- contextual recommendation-card example
-- makes the difference between passive dashboards and proactive software visible before the long-form explanation
+- Traditional: human asks → software responds
+- DigitalGate: business signals → understands → recommends/acts → learns
+- Recommendation card example
 
-Implementation lives in `marketing/pages/insights/visual-storytelling.mjs` and `visual-storytelling.css`. The explicit Website Studio rollout script is `scripts/apply-digitalgate-insights-visual-storytelling.mjs`.
+### Business Brain
+- Connected knowledge network feeding a governed context layer
+
+### Automation
+- Trigger → context → decision → action → outcome timeline with SME examples
 
 ## Illustration direction
 
-Concept art generated during design exploration should be treated as art direction, not a replacement for the existing DigitalGate website. Final illustrations must use the current DigitalGate dark palette and be optimised for web delivery.
-
-Do not introduce generic white SaaS layouts or unrelated stock imagery.
+Final illustrations must use the current DigitalGate dark palette and be optimised for web delivery. Prefer renderer-owned SVG/HTML primitives over heavy image assets.
