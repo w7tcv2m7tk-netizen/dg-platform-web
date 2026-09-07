@@ -17,3 +17,14 @@ for (const route of ROUTES) {
     assert.doesNotMatch(source, /canAccessCommandCentre\(/);
   });
 }
+
+test("opportunity task writes use neutral branded operator authority, not a read feature", () => {
+  const source = fs.readFileSync(
+    "src/app/api/v1/command/opportunities/task/route.ts",
+    "utf8",
+  );
+
+  assert.match(source, /requirePlatformOperator\(req\)/);
+  assert.doesNotMatch(source, /command\.opportunities\.read/);
+  assert.match(source, /createTask\(/);
+});
