@@ -542,6 +542,7 @@ export const digitalgateVisualStorytellingCss = `
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  margin: clamp(2rem, 5vw, 3.25rem) 0;
   padding: clamp(1.5rem, 3vw, 2.75rem);
   min-height: clamp(380px, 46vw, 560px);
   display: grid;

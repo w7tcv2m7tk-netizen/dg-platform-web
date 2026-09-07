@@ -8,9 +8,10 @@
  */
 
 import {
-  STAGE_SUITE_MARKER,
-  stageSuiteForKind,
+  hasStagesForKind,
+  stagesForKind,
   type DigitalgateStageKind,
+  type StageDef,
 } from "./digitalgate-visual-stages";
 
 export type DigitalgateVisualPageKind =
@@ -400,6 +401,191 @@ function refreshStaleSeriesChrome(html: string): string {
     .replace(/Part 3[^.]*Coming soon/gi, "Part 3 — From Signal to Action — is live");
 }
 
+/* ——— Narrowly-scoped legacy #48 PRESENTATION removal (Insights slugs only) ———
+ * Production Website Studio records for the four Insights pages still carry the
+ * previous #48 presentation layer: <style data-dg48-uplift="…"> and complete
+ * blocks marked data-dg48-visual="…". These are presentation-only and would
+ * otherwise coexist with the new renderer-owned scenes. We remove ONLY those
+ * artefacts — never prose, headings, section structure, series navigation,
+ * CTAs, or unrelated article CSS. */
+
+/** Index just after the balanced close of the element opening at `openLt`. */
+function balancedElementEnd(html: string, openLt: number, tag: string): number {
+  const closeTag = `</${tag}>`;
+  const lower = html.toLowerCase();
+  let depth = 0;
+  let i = openLt;
+  while (i < html.length) {
+    const nextOpen = lower.indexOf(`<${tag}`, i);
+    const nextClose = lower.indexOf(closeTag, i);
+    if (nextClose < 0) return -1;
+    if (nextOpen >= 0 && nextOpen < nextClose) {
+      const after = html[nextOpen + tag.length + 1];
+      if (
+        after === " " ||
+        after === ">" ||
+        after === "\n" ||
+        after === "\r" ||
+        after === "\t" ||
+        after === "/"
+      ) {
+        depth += 1;
+      }
+      i = nextOpen + tag.length + 1;
+      continue;
+    }
+    depth -= 1;
+    i = nextClose + closeTag.length;
+    if (depth <= 0) return i;
+  }
+  return -1;
+}
+
+/** Remove complete elements carrying a specific attribute substring. */
+function removeElementsWithAttr(html: string, attrNeedle: string): string {
+  let out = html;
+  let guard = 0;
+  while (guard < 16 && out.includes(attrNeedle)) {
+    guard += 1;
+    const at = out.indexOf(attrNeedle);
+    const openLt = out.lastIndexOf("<", at);
+    if (openLt < 0) break;
+    const tagMatch = out.slice(openLt + 1).match(/^([a-zA-Z][a-zA-Z0-9-]*)/);
+    if (!tagMatch) break;
+    const end = balancedElementEnd(out, openLt, tagMatch[1].toLowerCase());
+    if (end < 0) break;
+    out = `${out.slice(0, openLt)}${out.slice(end)}`;
+  }
+  return out;
+}
+
+function stripLegacyDg48Presentation(html: string): string {
+  // 1) Presentation-only style blocks flagged data-dg48-uplift.
+  let out = html.replace(
+    /<style\b[^>]*\bdata-dg48-uplift\b[^>]*>[\s\S]*?<\/style>/gi,
+    "",
+  );
+  // 2) Complete legacy visual blocks flagged data-dg48-visual.
+  out = removeElementsWithAttr(out, "data-dg48-visual");
+  return out;
+}
+
+/* ——— Deterministic, renderer-owned placement of individual stages ———
+ * Each stage is woven at the end of the article section whose heading matches
+ * its anchors (READ → SEE → READ). Missing anchors fall back to even
+ * distribution across the remaining sections; a heading-less document falls
+ * back to inserting the stages, in order, after the hero. Idempotent. */
+
+const HEADING_RE = /<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi;
+
+function normaliseHeading(fragment: string): string {
+  return fragment
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&[a-z]+;/gi, " ")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+type HeadingHit = { start: number; text: string };
+
+function collectHeadings(html: string): HeadingHit[] {
+  const hits: HeadingHit[] = [];
+  HEADING_RE.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = HEADING_RE.exec(html)) !== null) {
+    hits.push({ start: m.index, text: normaliseHeading(m[0]) });
+  }
+  return hits;
+}
+
+function articleEndIndex(html: string): number {
+  for (const tag of ["</article>", "</main>"]) {
+    const idx = html.lastIndexOf(tag);
+    if (idx >= 0) return idx;
+  }
+  return html.length;
+}
+
+function placeInsightsStages(html: string, stages: StageDef[]): string {
+  const headings = collectHeadings(html);
+  const endIdx = articleEndIndex(html);
+
+  if (headings.length === 0) {
+    const at = findInsertIndex(html);
+    const joined = stages.map((s) => s.html).join("\n");
+    return at < 0
+      ? `${joined}\n${html}`
+      : `${html.slice(0, at)}\n${joined}\n${html.slice(at)}`;
+  }
+
+  const used = new Set<number>();
+  const stageHeading: Array<number | null> = stages.map(() => null);
+  const pending: number[] = [];
+
+  // 1) Anchor-based assignment (in stage order, first free matching heading).
+  stages.forEach((stage, si) => {
+    let found = -1;
+    for (let hi = 0; hi < headings.length; hi += 1) {
+      if (used.has(hi)) continue;
+      if (stage.anchors.some((a) => headings[hi].text.includes(a))) {
+        found = hi;
+        break;
+      }
+    }
+    if (found >= 0) {
+      stageHeading[si] = found;
+      used.add(found);
+    } else {
+      pending.push(si);
+    }
+  });
+
+  // 2) Distribute unanchored stages evenly across remaining sections.
+  const remaining = headings.map((_, i) => i).filter((i) => !used.has(i));
+  pending.forEach((si, k) => {
+    let hi: number;
+    if (remaining.length) {
+      const pos = Math.min(
+        remaining.length - 1,
+        Math.floor(((k + 1) / (pending.length + 1)) * remaining.length),
+      );
+      hi = remaining[pos];
+      if (used.has(hi)) hi = remaining.find((x) => !used.has(x)) ?? hi;
+    } else {
+      hi = headings.length - 1;
+    }
+    stageHeading[si] = hi;
+    used.add(hi);
+  });
+
+  // 3) Insertion index = start of the next heading (end of chosen section).
+  const placements = stages.map((stage, si) => {
+    const hi = stageHeading[si];
+    const index =
+      hi == null
+        ? endIdx
+        : hi + 1 < headings.length
+          ? Math.min(headings[hi + 1].start, endIdx)
+          : endIdx;
+    return { index, order: si, html: stage.html };
+  });
+
+  // 4) Insert from the highest index down so earlier offsets stay valid;
+  //    equal indices preserve stage order.
+  let out = html;
+  placements
+    .slice()
+    .sort((a, b) => b.index - a.index || b.order - a.order)
+    .forEach((p) => {
+      out = `${out.slice(0, p.index)}\n${p.html}\n${out.slice(p.index)}`;
+    });
+  return out;
+}
+
 /**
  * Idempotently inject / upgrade visual storytelling blocks for known DigitalGate
  * marketing pages. Safe to call on every public render.
@@ -414,20 +600,19 @@ export function enhanceDigitalgateVisualHtml(
 
   let out = refreshStaleSeriesChrome(html);
 
-  // Insights Parts 1–4 use the recomposed, article-expanded visual stage suites.
+  // Insights Parts 1–4: recomposed scenes woven through the article.
   const stageKind = insightsStageKind(kind);
   if (stageKind) {
-    if (out.includes(STAGE_SUITE_MARKER[stageKind])) {
-      return out; // idempotent — new suite already present
+    if (hasStagesForKind(out, stageKind)) {
+      return out; // idempotent — new stages already present
     }
-    // Remove older small dg-story-visual cards for this kind so visuals never
-    // double-render; article copy and structure are preserved.
-    out = stripLegacyStoryBlocks(out, kind);
-    const suiteHtml = stageSuiteForKind(stageKind);
-    const at = findInsertIndex(out);
-    return at < 0
-      ? `${suiteHtml}${out}`
-      : `${out.slice(0, at)}${suiteHtml}${out.slice(at)}`;
+    // Remove presentation-only legacy layers so visuals never double-render:
+    //  - ALL old renderer-owned dg-story-visual cards (any marker), and
+    //  - the previous production #48 presentation (data-dg48-uplift styles and
+    //    data-dg48-visual blocks). Prose/headings/structure/nav are preserved.
+    out = removeElementsWithAttr(out, "dg-story-visual");
+    out = stripLegacyDg48Presentation(out);
+    return placeInsightsStages(out, stagesForKind(stageKind));
   }
 
   // Business Brain / Automation retain the existing primitives (redesigned in
