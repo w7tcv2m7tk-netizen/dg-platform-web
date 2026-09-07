@@ -945,6 +945,30 @@ export const digitalgateVisualStorytellingCss = `
     radial-gradient(40% 52% at 6% 4%, rgba(56, 189, 248, 0.09), transparent 62%);
 }
 .wb-html-island--page:has([data-dg-stage-of="insights-part-1"]) .hero > * { position: relative; z-index: 1; }
+/* Reference hero: the title dominates the first viewport; restrained eyebrow;
+   concise lede; generous negative space. Scoped to the Part-1 page only. */
+.wb-html-island--page:has([data-dg-stage-of="insights-part-1"]) .hero h1 {
+  font-size: clamp(2.9rem, 6vw, 4.9rem) !important;
+  line-height: 1.03 !important;
+  letter-spacing: -0.035em !important;
+  max-width: 20ch;
+  margin: 0.7rem 0 1.15rem !important;
+}
+.wb-html-island--page:has([data-dg-stage-of="insights-part-1"]) .hero .kicker {
+  display: inline-block !important;
+  color: #93c5fd !important;
+  font-family: Sora, Inter, sans-serif !important;
+  font-weight: 800 !important;
+  font-size: 0.74rem !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+}
+.wb-html-island--page:has([data-dg-stage-of="insights-part-1"]) .hero .hero-thesis {
+  font-size: clamp(1.1rem, 1.7vw, 1.45rem) !important;
+  line-height: 1.5 !important;
+  color: #cbd5e1 !important;
+  max-width: 44ch;
+}
 
 /* —— Part 1 · mobile: real vertical recompositions, not shrunk desktop —— */
 @media (max-width: 680px) {

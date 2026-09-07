@@ -131,22 +131,45 @@ function p1BrainGrad(id: string): string {
   </radialGradient>`;
 }
 
-function p1FragNode(
-  label: string,
-  x: number,
-  y: number,
-  s: number,
-  o: number,
-  colour: string,
-): string {
-  return `<g transform="translate(${x},${y}) scale(${s})" opacity="${o}">
-    <rect width="122" height="42" rx="9" fill="rgba(14,20,32,0.92)" stroke="rgba(122,140,170,0.28)"/>
-    <rect x="10" y="11" width="20" height="20" rx="5" fill="${colour}" fill-opacity="0.14" stroke="${colour}" stroke-opacity="0.55"/>
-    <circle cx="20" cy="21" r="2.6" fill="${colour}" fill-opacity="0.85"/>
-    <text x="40" y="26" fill="#c3cede" font-family="Sora,Inter,sans-serif" font-size="13.5" font-weight="700">${label}</text>
-    <path d="M122 20 l24 -8" stroke="rgba(122,140,170,0.4)" stroke-width="1.3" stroke-dasharray="3 4"/>
-    <circle cx="149" cy="11" r="2.7" fill="none" stroke="rgba(122,140,170,0.4)" stroke-width="1.1"/>
+/** Recognisable, colourful business-app icons (the scattered disconnected tools). */
+const P1_GLYPHS: Record<string, string> = {
+  globe: "M12 3a9 9 0 100 18 9 9 0 000-18 M3 12h18 M12 3c-3.4 4-3.4 14 0 18 M12 3c3.4 4 3.4 14 0 18",
+  people: "M8.5 11a3 3 0 100-6 3 3 0 000 6 M3 20c0-3.2 2.5-5 5.5-5s5.5 1.8 5.5 5 M16 5.6a3 3 0 010 5.8 M17 15c2.3.5 4 2.1 4 4.4",
+  envelope: "M3 6h18v12H3z M3 7l9 6 9-6",
+  chart: "M5 20V11 M10 20V5 M15 20V13 M20 20V8",
+  megaphone: "M4 10v4l11 4V6z M15 8.5a3.5 3.5 0 010 7 M6.5 14.5V19H10",
+  calendar: "M4 6h16v14H4z M4 10.5h16 M8.5 3v4 M15.5 3v4",
+  dollar: "M12 3v18 M16 6.5C15 5 13.5 4.3 12 4.3 9.8 4.3 8 5.5 8 7.6c0 4.4 8 2 8 6.4 0 2.1-1.8 3.4-4 3.4-1.6 0-3-.7-4-2.2",
+  chat: "M4 5.5h16v9h-9l-4 3v-3H4z",
+};
+
+type P1App = { g: string; x: number; y: number; s: number; c: string };
+
+function p1AppIcon(a: P1App, sfx: string): string {
+  const inner = a.s * 0.52;
+  const pad = (a.s - inner) / 2;
+  const r = (a.s * 0.26).toFixed(1);
+  return `<g transform="translate(${a.x},${a.y})" filter="url(#dgp1IconShadow${sfx})">
+    <rect width="${a.s}" height="${a.s}" rx="${r}" fill="${a.c}"/>
+    <rect width="${a.s}" height="${a.s}" rx="${r}" fill="url(#dgp1IconShine${sfx})"/>
+    <g transform="translate(${pad.toFixed(1)},${pad.toFixed(1)}) scale(${(inner / 24).toFixed(3)})" fill="none" stroke="#ffffff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" opacity="0.96"><path d="${P1_GLYPHS[a.g]}"/></g>
   </g>`;
+}
+
+/** The owner — "you in the middle" of the disconnected tools. */
+function p1You(cx: number, cy: number, r: number): string {
+  return `<g transform="translate(${cx},${cy})">
+    <circle r="${r}" fill="rgba(9,13,22,0.92)" stroke="rgba(148,163,184,0.5)"/>
+    <g transform="scale(${(r / 24).toFixed(3)})" fill="none" stroke="#cbd5e1" stroke-width="2.2" stroke-linecap="round"><circle cx="0" cy="-6" r="6.5"/><path d="M-12 15c0-7.5 5.5-11 12-11s12 3.5 12 11"/></g>
+    <text y="${(r + 15).toFixed(0)}" text-anchor="middle" fill="#94a3b8" font-family="Sora,Inter,sans-serif" font-size="11.5" font-weight="800">You</text>
+  </g>`;
+}
+
+/** Shared defs for app icons (shine + soft shadow). Suffix keeps ids unique per
+ * SVG so the visible variant never references a hidden SVG's filter. */
+function p1IconDefs(sfx: string): string {
+  return `<linearGradient id="dgp1IconShine${sfx}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.26"/><stop offset="55%" stop-color="#ffffff" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.12"/></linearGradient>
+    <filter id="dgp1IconShadow${sfx}" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#000000" flood-opacity="0.45"/></filter>`;
 }
 
 /** Luminous DigitalGate system core — an isometric cube (the connected system). */
@@ -174,124 +197,83 @@ function p1Cube(cx: number, cy: number, s: number, id: string): string {
 
 /* ——— Scene A · Fragmentation → Convergence → Intelligence (signature) ——— */
 
-const P1_FRAG_DESKTOP: Array<[string, number, number, number, number, string]> = [
-  ["Website", 34, 40, 1, 1, "#60a5fa"],
-  ["CRM", 250, 24, 0.94, 0.9, "#818cf8"],
-  ["Email", 24, 168, 0.9, 0.82, "#f87171"],
-  ["Analytics", 236, 150, 1, 1, "#fbbf24"],
-  ["Advertising", 108, 268, 0.86, 0.72, "#34d399"],
-  ["Bookings", 300, 250, 0.94, 0.9, "#22d3ee"],
-  ["Accounting", 40, 376, 0.9, 0.82, "#4ade80"],
-  ["Comms", 262, 372, 0.86, 0.72, "#a78bfa"],
-  ["Spreadsheets", 424, 92, 0.8, 0.62, "#a3e635"],
+const P1_APPS_DESKTOP: P1App[] = [
+  { g: "envelope", x: 70, y: 52, s: 62, c: "#ef4444" },
+  { g: "chat", x: 240, y: 34, s: 54, c: "#22c55e" },
+  { g: "globe", x: 40, y: 216, s: 58, c: "#3b82f6" },
+  { g: "chart", x: 240, y: 198, s: 60, c: "#f59e0b" },
+  { g: "people", x: 372, y: 110, s: 52, c: "#8b5cf6" },
+  { g: "calendar", x: 120, y: 362, s: 54, c: "#06b6d4" },
+  { g: "dollar", x: 330, y: 332, s: 56, c: "#10b981" },
+  { g: "megaphone", x: 470, y: 246, s: 50, c: "#ec4899" },
 ];
 
-function p1SatsDesktop(): string {
-  // 5 ordered satellites on r=94 around the core (1000,260).
-  const pts = [
-    [1000, 166],
-    [1089.4, 231],
-    [1055.3, 336],
-    [944.7, 336],
-    [910.6, 231],
-  ];
-  return pts
-    .map(
-      ([x, y]) =>
-        `<circle cx="${x}" cy="${y}" r="3.2" fill="#7dd3fc"/><line x1="${x}" y1="${y}" x2="${(x + (1000 - x) * 0.28).toFixed(1)}" y2="${(y + (260 - y) * 0.28).toFixed(1)}" stroke="rgba(125,211,252,0.4)" stroke-width="1"/>`,
-    )
+function p1Streams(sources: Array<[number, number]>, tx: number, ty: number, vertical = false): string {
+  return sources
+    .map(([sx, sy]) => {
+      const d = vertical
+        ? `M${sx} ${sy} C ${sx} ${(sy + ty) / 2}, ${tx} ${(sy + ty) / 2}, ${tx} ${ty}`
+        : `M${sx} ${sy} C ${(sx + tx) / 2} ${sy}, ${(sx + tx) / 2 + 60} ${ty}, ${tx} ${ty}`;
+      return `<path class="dgp1-stream" d="${d}" fill="none" stroke="url(#${vertical ? "dgp1StreamV" : "dgp1Stream"})" stroke-width="1.6"/><path class="dgp1-flow" d="${d}" fill="none" stroke="#8fd6ff" stroke-width="1.4" stroke-opacity="0.8"/>`;
+    })
     .join("");
 }
 
+function p1CubeGlow(cx: number, cy: number, s: number, id: string): string {
+  return `<circle cx="${cx}" cy="${cy}" r="${(s * 2).toFixed(0)}" fill="url(#dgp1Glow${id})"/>
+  <circle cx="${cx}" cy="${cy}" r="${(s * 1.25).toFixed(0)}" fill="url(#dgp1Glow${id})"/>
+  <circle cx="${cx}" cy="${cy}" r="${(s * 1.12).toFixed(0)}" fill="none" stroke="rgba(96,165,250,0.4)" stroke-width="1.3" stroke-dasharray="2 8"/>
+  ${p1Cube(cx, cy - s * 0.06, s, id)}`;
+}
+
 function p1SignatureScene(): string {
-  const nodes = P1_FRAG_DESKTOP.map((n) => p1FragNode(...n)).join("");
-  const streamSources: Array<[number, number]> = [
-    [156, 61],
-    [365, 47],
-    [358, 171],
-    [415, 270],
-    [150, 393],
-    [524, 108],
-  ];
-  const streams = streamSources
-    .map(([sx, sy]) => {
-      const d = `M${sx} ${sy} C ${sx + 190} ${sy}, 730 260, 906 260`;
-      return `<path class="dgp1-stream" d="${d}" fill="none" stroke="url(#dgp1Stream)" stroke-width="1.7"/><path class="dgp1-flow" d="${d}" fill="none" stroke="#8fd6ff" stroke-width="1.5" stroke-opacity="0.85"/>`;
-    })
-    .join("");
-  const tangles = [
-    "M156 61 L236 171",
-    "M146 190 L172 279",
-    "M262 44 L300 260",
-  ]
-    .map((d) => `<path d="${d}" stroke="rgba(120,140,170,0.14)" stroke-width="1" fill="none"/>`)
-    .join("");
+  const dApps = P1_APPS_DESKTOP.map((a) => p1AppIcon(a, "A")).join("");
+  const dCenters: Array<[number, number]> = P1_APPS_DESKTOP.map((a) => [
+    a.x + a.s / 2,
+    a.y + a.s / 2,
+  ]);
+  const dStreams = p1Streams([...dCenters, [215, 250]], 902, 250);
 
   const desktop = `<svg class="dgp1-svg dgp1-svg--desktop" viewBox="0 0 1200 520" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
   <defs>
     ${p1CubeGrads("A")}
-    <radialGradient id="dgp1Glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(59,130,246,0.3)"/>
-      <stop offset="42%" stop-color="rgba(124,58,237,0.15)"/>
-      <stop offset="100%" stop-color="rgba(124,58,237,0)"/>
-    </radialGradient>
-    <linearGradient id="dgp1Stream" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="rgba(96,116,146,0.12)"/>
-      <stop offset="55%" stop-color="rgba(56,189,248,0.5)"/>
-      <stop offset="100%" stop-color="rgba(125,211,252,0.95)"/>
-    </linearGradient>
+    ${p1IconDefs("A")}
+    <radialGradient id="dgp1GlowA" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(96,165,250,0.34)"/><stop offset="42%" stop-color="rgba(124,58,237,0.16)"/><stop offset="100%" stop-color="rgba(124,58,237,0)"/></radialGradient>
+    <linearGradient id="dgp1Stream" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="rgba(96,116,146,0.1)"/><stop offset="55%" stop-color="rgba(56,189,248,0.5)"/><stop offset="100%" stop-color="rgba(125,211,252,0.95)"/></linearGradient>
   </defs>
-  <text x="30" y="24" fill="rgba(148,163,184,0.7)" font-family="Sora,Inter,sans-serif" font-size="11" font-weight="800" letter-spacing="2.5">DISCONNECTED TOOLS</text>
-  ${tangles}
-  ${nodes}
-  ${streams}
-  <circle cx="1000" cy="260" r="150" fill="url(#dgp1Glow)"/>
-  <circle cx="1000" cy="260" r="94" fill="none" stroke="rgba(96,165,250,0.5)" stroke-width="1.4" stroke-dasharray="2 7"/>
-  <circle cx="1000" cy="260" r="72" fill="none" stroke="rgba(167,139,250,0.4)" stroke-width="1"/>
-  ${p1SatsDesktop()}
-  ${p1Cube(1000, 250, 62, "A")}
-  <text x="1000" y="382" text-anchor="middle" fill="#eaf1ff" font-family="Sora,Inter,sans-serif" font-size="19" font-weight="800">DigitalGate</text>
-  <text x="1000" y="404" text-anchor="middle" fill="#9db4d8" font-family="Inter,sans-serif" font-size="12.5">One connected system</text>
+  <text x="30" y="26" fill="rgba(148,163,184,0.72)" font-family="Sora,Inter,sans-serif" font-size="11" font-weight="800" letter-spacing="2.5">DIFFERENT TOOLS · DISCONNECTED DATA</text>
+  ${dStreams}
+  ${p1You(215, 250, 26)}
+  ${dApps}
+  ${p1CubeGlow(1002, 250, 96, "A")}
+  <text x="1002" y="392" text-anchor="middle" fill="#eaf1ff" font-family="Sora,Inter,sans-serif" font-size="21" font-weight="800">DigitalGate</text>
+  <text x="1002" y="415" text-anchor="middle" fill="#9db4d8" font-family="Inter,sans-serif" font-size="13">One connected system</text>
 </svg>`;
 
-  const mNodes = (
-    [
-      ["Website", 20, 26, 0.9, 1, "#60a5fa"],
-      ["CRM", 206, 20, 0.86, 0.9, "#818cf8"],
-      ["Email", 16, 118, 0.86, 0.82, "#f87171"],
-      ["Analytics", 200, 116, 0.9, 1, "#fbbf24"],
-      ["Advertising", 58, 212, 0.8, 0.74, "#34d399"],
-      ["Bookings", 198, 214, 0.82, 0.86, "#22d3ee"],
-    ] as Array<[string, number, number, number, number, string]>
-  )
-    .map((n) => p1FragNode(...n))
-    .join("");
-  const mStreams = [
-    [70, 250],
-    [255, 246],
-    [70, 158],
-    [250, 156],
-    [150, 300],
-  ]
-    .map(([sx, sy]) => {
-      const d = `M${sx} ${sy} C ${sx} ${sy + 90}, 195 400, 195 452`;
-      return `<path class="dgp1-stream" d="${d}" fill="none" stroke="url(#dgp1StreamV)" stroke-width="1.6"/><path class="dgp1-flow" d="${d}" fill="none" stroke="#8fd6ff" stroke-width="1.4" stroke-opacity="0.85"/>`;
-    })
-    .join("");
-  const mobile = `<svg class="dgp1-svg dgp1-svg--mobile" viewBox="0 0 390 640" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+  const mApps: P1App[] = [
+    { g: "envelope", x: 28, y: 30, s: 58, c: "#ef4444" },
+    { g: "chat", x: 196, y: 22, s: 54, c: "#22c55e" },
+    { g: "globe", x: 20, y: 150, s: 54, c: "#3b82f6" },
+    { g: "chart", x: 210, y: 140, s: 56, c: "#f59e0b" },
+    { g: "people", x: 300, y: 66, s: 48, c: "#8b5cf6" },
+    { g: "dollar", x: 108, y: 250, s: 52, c: "#10b981" },
+  ];
+  const mCenters: Array<[number, number]> = mApps.map((a) => [a.x + a.s / 2, a.y + a.s / 2]);
+  const mStreams = p1Streams(mCenters, 195, 470, true);
+  const mobile = `<svg class="dgp1-svg dgp1-svg--mobile" viewBox="0 0 390 660" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
   <defs>
     ${p1CubeGrads("Am")}
-    <radialGradient id="dgp1GlowV" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(59,130,246,0.3)"/><stop offset="45%" stop-color="rgba(124,58,237,0.14)"/><stop offset="100%" stop-color="rgba(124,58,237,0)"/></radialGradient>
-    <linearGradient id="dgp1StreamV" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(96,116,146,0.12)"/><stop offset="55%" stop-color="rgba(56,189,248,0.5)"/><stop offset="100%" stop-color="rgba(125,211,252,0.95)"/></linearGradient>
+    ${p1IconDefs("Am")}
+    <radialGradient id="dgp1GlowAm" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(96,165,250,0.32)"/><stop offset="45%" stop-color="rgba(124,58,237,0.15)"/><stop offset="100%" stop-color="rgba(124,58,237,0)"/></radialGradient>
+    <linearGradient id="dgp1StreamV" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(96,116,146,0.1)"/><stop offset="55%" stop-color="rgba(56,189,248,0.5)"/><stop offset="100%" stop-color="rgba(125,211,252,0.95)"/></linearGradient>
   </defs>
-  <text x="16" y="16" fill="rgba(148,163,184,0.7)" font-family="Sora,Inter,sans-serif" font-size="10" font-weight="800" letter-spacing="2">DISCONNECTED TOOLS</text>
-  ${mNodes}
+  <text x="16" y="16" fill="rgba(148,163,184,0.72)" font-family="Sora,Inter,sans-serif" font-size="10" font-weight="800" letter-spacing="1.5">DIFFERENT TOOLS · DISCONNECTED DATA</text>
   ${mStreams}
-  <circle cx="195" cy="512" r="120" fill="url(#dgp1GlowV)"/>
-  <circle cx="195" cy="512" r="72" fill="none" stroke="rgba(96,165,250,0.5)" stroke-width="1.3" stroke-dasharray="2 7"/>
-  ${p1Cube(195, 504, 48, "Am")}
-  <text x="195" y="604" text-anchor="middle" fill="#eaf1ff" font-family="Sora,Inter,sans-serif" font-size="16" font-weight="800">DigitalGate</text>
-  <text x="195" y="623" text-anchor="middle" fill="#9db4d8" font-family="Inter,sans-serif" font-size="11">One connected system</text>
+  ${p1You(300, 200, 22)}
+  ${mApps.map((a) => p1AppIcon(a, "Am")).join("")}
+  ${p1CubeGlow(195, 528, 66, "Am")}
+  <text x="195" y="624" text-anchor="middle" fill="#eaf1ff" font-family="Sora,Inter,sans-serif" font-size="17" font-weight="800">DigitalGate</text>
+  <text x="195" y="645" text-anchor="middle" fill="#9db4d8" font-family="Inter,sans-serif" font-size="11.5">One connected system</text>
 </svg>`;
 
   return `<div class="dgp1-scene dgp1-scene--signature">${desktop}${mobile}</div>`;
@@ -318,57 +300,74 @@ function p1MarkersScene(): string {
 
 /* ——— Scene B · Intelligence architecture (Signals → Twin → Brain → Advisor → Action) ——— */
 
+const P1_ARCH_GLYPHS: Record<string, string> = {
+  data: "M4 6c0-1.6 3.6-2.8 8-2.8s8 1.2 8 2.8-3.6 2.8-8 2.8-8-1.2-8-2.8z M4 6v12c0 1.6 3.6 2.8 8 2.8s8-1.2 8-2.8V6 M4 12c0 1.6 3.6 2.8 8 2.8s8-1.2 8-2.8",
+  twin: "M12 3l8 4.5-8 4.5-8-4.5z M4 12l8 4.5 8-4.5 M4 16.5l8 4.5 8-4.5",
+  advisor: "M12 3l1.7 5.5 5.5 1.7-5.5 1.7L12 21l-1.7-5.5L4.8 12l5.5-1.7z",
+  action: "M13 3L5 14h5l-1 7 8-11h-5z",
+};
+
+function p1ArchNode(
+  cx: number,
+  cy: number,
+  r: number,
+  tint: string,
+  glyph: string,
+  label: string,
+  sub: string,
+): string {
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(11,17,29,0.94)" stroke="${tint}" stroke-opacity="0.55"/>
+  <g transform="translate(${(cx - r * 0.5).toFixed(1)},${(cy - r * 0.5).toFixed(1)}) scale(${(r / 24).toFixed(3)})" fill="none" stroke="${tint}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${glyph}"/></g>
+  <text x="${cx}" y="${cy + r + 30}" text-anchor="middle" fill="#eef4ff" font-family="Sora,Inter,sans-serif" font-size="15" font-weight="800">${label}</text>
+  <text x="${cx}" y="${cy + r + 50}" text-anchor="middle" fill="#9db4d8" font-family="Inter,sans-serif" font-size="12">${sub}</text>`;
+}
+
 function p1ArchScene(): string {
-  const flow = (d: string) =>
-    `<path class="dgp1-stream" d="${d}" fill="none" stroke="url(#dgp1ArchFlow)" stroke-width="1.8"/><path class="dgp1-flow" d="${d}" fill="none" stroke="#8fd6ff" stroke-width="1.5" stroke-opacity="0.8"/>`;
-  const desktop = `<svg class="dgp1-svg dgp1-svg--desktop" viewBox="0 0 1200 470" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+  const beam = (x1: number, x2: number) => {
+    const d = `M${x1} 200 L${x2} 200`;
+    return `<path d="${d}" fill="none" stroke="url(#dgp1ArchFlow)" stroke-width="2.4" marker-end="url(#dgp1Arrow)"/><path class="dgp1-flow" d="${d}" fill="none" stroke="#bfe4ff" stroke-width="1.5" stroke-opacity="0.9"/>`;
+  };
+  const desktop = `<svg class="dgp1-svg dgp1-svg--desktop" viewBox="0 0 1200 380" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
   <defs>
     ${p1BrainGrad("B")}
-    <radialGradient id="dgp1BrainGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(96,165,250,0.32)"/><stop offset="45%" stop-color="rgba(124,58,237,0.16)"/><stop offset="100%" stop-color="rgba(124,58,237,0)"/></radialGradient>
-    <linearGradient id="dgp1ArchFlow" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="rgba(96,116,146,0.35)"/><stop offset="50%" stop-color="rgba(96,165,250,0.75)"/><stop offset="100%" stop-color="rgba(125,211,252,0.9)"/></linearGradient>
-    <linearGradient id="dgp1Twin" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="rgba(56,189,248,0.16)"/><stop offset="100%" stop-color="rgba(37,99,235,0.05)"/></linearGradient>
+    <radialGradient id="dgp1BrainGlowB" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(96,165,250,0.36)"/><stop offset="42%" stop-color="rgba(124,58,237,0.18)"/><stop offset="100%" stop-color="rgba(124,58,237,0)"/></radialGradient>
+    <linearGradient id="dgp1ArchFlow" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="rgba(96,116,146,0.4)"/><stop offset="50%" stop-color="rgba(96,165,250,0.85)"/><stop offset="100%" stop-color="rgba(125,211,252,0.95)"/></linearGradient>
+    <marker id="dgp1Arrow" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#9fd8ff"/></marker>
   </defs>
-  ${flow("M196 235 C 280 235, 300 235, 344 235")}
-  ${flow("M500 235 C 545 235, 560 235, 566 235")}
-  ${flow("M700 235 C 760 235, 780 235, 820 235")}
-  ${flow("M980 235 C 1010 235, 1020 235, 1024 235")}
-  <text x="118" y="86" text-anchor="middle" fill="rgba(148,163,184,0.72)" font-family="Sora,Inter,sans-serif" font-size="11" font-weight="800" letter-spacing="1.5">BUSINESS SIGNALS</text>
-  ${[["Website", 150], ["CRM & Finance", 190], ["Comms & Bookings", 230], ["Analytics", 270], ["Reviews & Ops", 310]]
-    .map(([t, y]) => `<g transform="translate(40,${y})"><rect width="156" height="30" rx="8" fill="rgba(13,19,31,0.9)" stroke="rgba(96,116,146,0.35)"/><circle cx="16" cy="15" r="3" fill="#60a5fa"/><text x="30" y="19" fill="#b9c6d8" font-family="Inter,sans-serif" font-size="12" font-weight="600">${t}</text></g>`) 
-    .join("")}
-  <g transform="translate(344,150)"><rect width="156" height="170" rx="16" fill="url(#dgp1Twin)" stroke="rgba(56,189,248,0.4)"/>
-    <path d="M20 40 L136 40 M20 70 L136 70 M20 100 L136 100 M20 130 L136 130 M52 20 L20 150 M92 20 L60 150 M132 20 L100 150" stroke="rgba(125,211,252,0.28)" stroke-width="0.8" fill="none"/>
-    <text x="78" y="26" text-anchor="middle" fill="#dbeafe" font-family="Sora,Inter,sans-serif" font-size="13" font-weight="800">Digital Twin</text>
-  </g>
-  <text x="422" y="342" text-anchor="middle" fill="#9db4d8" font-family="Inter,sans-serif" font-size="12">A live model of the business</text>
-  <circle cx="632" cy="235" r="150" fill="url(#dgp1BrainGlow)"/>
-  <circle cx="632" cy="235" r="96" fill="none" stroke="rgba(96,165,250,0.45)" stroke-width="1.3" stroke-dasharray="2 8"/>
-  ${p1Brain(632, 232, 2.15, "B")}
-  <text x="632" y="368" text-anchor="middle" fill="#f2f6ff" font-family="Sora,Inter,sans-serif" font-size="18" font-weight="800">Business Brain™</text>
-  <text x="632" y="389" text-anchor="middle" fill="#9db4d8" font-family="Inter,sans-serif" font-size="12">Understands the whole business</text>
-  <g transform="translate(820,168)"><rect width="160" height="134" rx="16" fill="rgba(13,19,31,0.92)" stroke="rgba(96,165,250,0.4)"/>
-    <text x="80" y="30" text-anchor="middle" fill="#dbeafe" font-family="Sora,Inter,sans-serif" font-size="13" font-weight="800">AI Advisor</text>
-    <path d="M22 52 h116 M22 74 h96 M22 96 h108" stroke="rgba(148,163,184,0.4)" stroke-width="3" stroke-linecap="round"/>
-    <rect x="22" y="108" width="70" height="16" rx="8" fill="rgba(96,165,250,0.18)" stroke="rgba(96,165,250,0.5)"/><text x="57" y="120" text-anchor="middle" fill="#bfdbfe" font-family="Inter,sans-serif" font-size="9" font-weight="800">Recommends</text>
-  </g>
-  <text x="900" y="330" text-anchor="middle" fill="#9db4d8" font-family="Inter,sans-serif" font-size="12">The next sensible move</text>
-  <text x="1088" y="150" text-anchor="middle" fill="rgba(148,163,184,0.72)" font-family="Sora,Inter,sans-serif" font-size="11" font-weight="800" letter-spacing="1.5">ACTION</text>
-  ${[["Tasks", 178], ["Messages", 218], ["Automation", 258]]
-    .map(([t, y]) => `<g transform="translate(1024,${y})"><rect width="150" height="30" rx="8" fill="rgba(13,19,31,0.9)" stroke="rgba(52,211,153,0.35)"/><circle cx="16" cy="15" r="3" fill="#34d399"/><text x="30" y="19" fill="#c7e6d6" font-family="Inter,sans-serif" font-size="12" font-weight="600">${t}</text></g>`)
-    .join("")}
-  <text x="1099" y="312" text-anchor="middle" fill="#9db4d8" font-family="Inter,sans-serif" font-size="12">People stay in control</text>
+  ${beam(156, 312)}
+  ${beam(406, 540)}
+  ${beam(680, 809)}
+  ${beam(903, 1044)}
+  ${p1ArchNode(110, 200, 44, "#60a5fa", P1_ARCH_GLYPHS.data, "Your business data", "Live connected activity")}
+  ${p1ArchNode(360, 200, 44, "#38bdf8", P1_ARCH_GLYPHS.twin, "Digital Twin", "A live model of the business")}
+  <circle cx="610" cy="200" r="150" fill="url(#dgp1BrainGlowB)"/>
+  <circle cx="610" cy="200" r="90" fill="none" stroke="rgba(96,165,250,0.4)" stroke-width="1.2" stroke-dasharray="2 9"/>
+  <circle cx="610" cy="200" r="66" fill="rgba(11,17,29,0.88)" stroke="rgba(147,197,253,0.6)" stroke-width="1.3"/>
+  ${p1Brain(610, 198, 1.32, "B")}
+  <text x="610" y="300" text-anchor="middle" fill="#f4f8ff" font-family="Sora,Inter,sans-serif" font-size="17" font-weight="800">Business Brain™</text>
+  <text x="610" y="321" text-anchor="middle" fill="#a7c0e0" font-family="Inter,sans-serif" font-size="12.5">Understands the whole business</text>
+  ${p1ArchNode(855, 200, 44, "#a78bfa", P1_ARCH_GLYPHS.advisor, "AI Advisor", "Recommends the next move")}
+  ${p1ArchNode(1090, 200, 44, "#34d399", P1_ARCH_GLYPHS.action, "Action", "Governed follow-through")}
 </svg>`;
 
-  const vflow = (d: string) =>
-    `<path class="dgp1-stream" d="${d}" fill="none" stroke="url(#dgp1ArchFlowV)" stroke-width="1.8"/><path class="dgp1-flow" d="${d}" fill="none" stroke="#8fd6ff" stroke-width="1.5" stroke-opacity="0.8"/>`;
-  const mobile = `<svg class="dgp1-svg dgp1-svg--mobile" viewBox="0 0 390 760" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
-  <defs>${p1BrainGrad("Bm")}<radialGradient id="dgp1BrainGlowV" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(96,165,250,0.3)"/><stop offset="45%" stop-color="rgba(124,58,237,0.15)"/><stop offset="100%" stop-color="rgba(124,58,237,0)"/></radialGradient><linearGradient id="dgp1ArchFlowV" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(96,116,146,0.35)"/><stop offset="50%" stop-color="rgba(96,165,250,0.75)"/><stop offset="100%" stop-color="rgba(125,211,252,0.9)"/></linearGradient></defs>
-  ${vflow("M195 96 L195 150")}${vflow("M195 250 L195 300")}${vflow("M195 470 L195 520")}${vflow("M195 610 L195 660")}
-  <g transform="translate(107,48)"><rect width="176" height="48" rx="12" fill="rgba(13,19,31,0.9)" stroke="rgba(96,116,146,0.4)"/><text x="88" y="22" text-anchor="middle" fill="#dbeafe" font-family="Sora,Inter,sans-serif" font-size="13" font-weight="800">Business signals</text><text x="88" y="38" text-anchor="middle" fill="#9db4d8" font-family="Inter,sans-serif" font-size="10.5">Website · CRM · comms · finance</text></g>
-  <g transform="translate(115,150)"><rect width="160" height="100" rx="14" fill="url(#dgp1Twin)" stroke="rgba(56,189,248,0.4)"/><path d="M20 40 H140 M20 66 H140 M60 20 L36 90 M100 20 L76 90" stroke="rgba(125,211,252,0.28)" stroke-width="0.8" fill="none"/><text x="80" y="26" text-anchor="middle" fill="#dbeafe" font-family="Sora,Inter,sans-serif" font-size="12.5" font-weight="800">Digital Twin</text></g>
-  <circle cx="195" cy="385" r="118" fill="url(#dgp1BrainGlowV)"/><circle cx="195" cy="385" r="78" fill="none" stroke="rgba(96,165,250,0.45)" stroke-width="1.2" stroke-dasharray="2 8"/>${p1Brain(195, 382, 1.7, "Bm")}<text x="195" y="486" text-anchor="middle" fill="#f2f6ff" font-family="Sora,Inter,sans-serif" font-size="15" font-weight="800">Business Brain™</text>
-  <g transform="translate(115,520)"><rect width="160" height="90" rx="14" fill="rgba(13,19,31,0.92)" stroke="rgba(96,165,250,0.4)"/><text x="80" y="26" text-anchor="middle" fill="#dbeafe" font-family="Sora,Inter,sans-serif" font-size="12.5" font-weight="800">AI Advisor</text><path d="M24 46 h112 M24 64 h84" stroke="rgba(148,163,184,0.4)" stroke-width="3" stroke-linecap="round"/></g>
-  <g transform="translate(107,660)"><rect width="176" height="48" rx="12" fill="rgba(13,19,31,0.9)" stroke="rgba(52,211,153,0.4)"/><text x="88" y="22" text-anchor="middle" fill="#c7e6d6" font-family="Sora,Inter,sans-serif" font-size="13" font-weight="800">Action</text><text x="88" y="38" text-anchor="middle" fill="#9db4d8" font-family="Inter,sans-serif" font-size="10.5">Tasks · messages · automation</text></g>
+  const NX = 74;
+  const vbeam = (y1: number, y2: number) => {
+    const d = `M${NX} ${y1} L${NX} ${y2}`;
+    return `<path d="${d}" fill="none" stroke="url(#dgp1ArchFlowV)" stroke-width="2.4" marker-end="url(#dgp1ArrowV)"/><path class="dgp1-flow" d="${d}" fill="none" stroke="#bfe4ff" stroke-width="1.5" stroke-opacity="0.9"/>`;
+  };
+  const vnode = (cy: number, r: number, tint: string, glyph: string, label: string, sub: string) =>
+    `<circle cx="${NX}" cy="${cy}" r="${r}" fill="rgba(11,17,29,0.94)" stroke="${tint}" stroke-opacity="0.55"/>
+    <g transform="translate(${(NX - r * 0.5).toFixed(1)},${(cy - r * 0.5).toFixed(1)}) scale(${(r / 24).toFixed(3)})" fill="none" stroke="${tint}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${glyph}"/></g>
+    <text x="${NX + r + 18}" y="${cy - 3}" fill="#eef4ff" font-family="Sora,Inter,sans-serif" font-size="15" font-weight="800">${label}</text>
+    <text x="${NX + r + 18}" y="${cy + 16}" fill="#9db4d8" font-family="Inter,sans-serif" font-size="11.5">${sub}</text>`;
+  const mobile = `<svg class="dgp1-svg dgp1-svg--mobile" viewBox="0 0 390 780" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+  <defs>${p1BrainGrad("Bm")}<radialGradient id="dgp1BrainGlowBm" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(96,165,250,0.34)"/><stop offset="45%" stop-color="rgba(124,58,237,0.16)"/><stop offset="100%" stop-color="rgba(124,58,237,0)"/></radialGradient><linearGradient id="dgp1ArchFlowV" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(96,116,146,0.4)"/><stop offset="50%" stop-color="rgba(96,165,250,0.85)"/><stop offset="100%" stop-color="rgba(125,211,252,0.95)"/></linearGradient><marker id="dgp1ArrowV" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#9fd8ff"/></marker></defs>
+  ${vbeam(78, 152)}${vbeam(216, 320)}${vbeam(452, 556)}${vbeam(620, 694)}
+  ${vnode(46, 30, "#60a5fa", P1_ARCH_GLYPHS.data, "Your business data", "Live connected activity")}
+  ${vnode(184, 30, "#38bdf8", P1_ARCH_GLYPHS.twin, "Digital Twin", "A live model")}
+  <circle cx="${NX}" cy="392" r="112" fill="url(#dgp1BrainGlowBm)"/><circle cx="${NX}" cy="392" r="56" fill="rgba(11,17,29,0.88)" stroke="rgba(147,197,253,0.6)" stroke-width="1.2"/>${p1Brain(NX, 390, 1.08, "Bm")}<text x="${NX + 74}" y="386" fill="#f4f8ff" font-family="Sora,Inter,sans-serif" font-size="15" font-weight="800">Business Brain™</text><text x="${NX + 74}" y="406" fill="#a7c0e0" font-family="Inter,sans-serif" font-size="11.5">Understands the whole</text>
+  ${vnode(588, 30, "#a78bfa", P1_ARCH_GLYPHS.advisor, "AI Advisor", "Recommends next move")}
+  ${vnode(726, 30, "#34d399", P1_ARCH_GLYPHS.action, "Action", "Governed follow-through")}
 </svg>`;
 
   return `<div class="dgp1-scene dgp1-scene--arch">${desktop}${mobile}</div>`;
