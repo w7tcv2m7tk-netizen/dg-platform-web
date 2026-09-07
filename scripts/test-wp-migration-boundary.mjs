@@ -46,10 +46,8 @@ const propertyPublish = fs.readFileSync(
   "packages/platform-core/src/connectors/wordpress/sync-property-publish.ts",
   "utf8",
 );
-const agentPublish = fs.readFileSync(
-  "packages/platform-core/src/connectors/wordpress/sync-agent-publish.ts",
-  "utf8",
-);
+const agentPublishPath =
+  "packages/platform-core/src/connectors/wordpress/sync-agent-publish.ts";
 const propertyImport = fs.readFileSync(
   "packages/platform-core/src/connectors/wordpress/sync-properties-from-wordpress.ts",
   "utf8",
@@ -186,12 +184,8 @@ test("outbound property publishing is an inert compatibility shim", () => {
   assert.match(propertyPublish, /maybeAutoPublishPropertyToWordPress[\s\S]*return null/);
 });
 
-test("outbound agent publishing is an inert compatibility shim", () => {
-  assert.doesNotMatch(agentPublish, /resolveOrgWordPressConnector/);
-  assert.doesNotMatch(agentPublish, /setMembershipExternalRefs/);
-  assert.doesNotMatch(agentPublish, /fetch\s*\(/);
-  assert.match(agentPublish, /WordPress is supported only as an inbound migration source/);
-  assert.match(agentPublish, /return WORDPRESS_AGENT_PUBLISH_DISABLED/);
+test("dead outbound agent publishing module stays removed", () => {
+  assert.equal(fs.existsSync(agentPublishPath), false);
 });
 
 test("property WordPress capability remains inbound migration only", () => {
