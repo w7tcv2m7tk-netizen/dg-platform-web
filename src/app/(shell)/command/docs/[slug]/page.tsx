@@ -4,12 +4,14 @@ import { PLATFORM_DOC_GROUP_LABELS, getPlatformDocBySlug } from "@dg/platform-co
 
 import { SafeMarkdown } from "@/components/command/SafeMarkdown";
 import { loadPlatformDocBySlug } from "@/lib/load-platform-doc";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
 export default async function CommandPlatformDocReaderPage({ params }: PageProps) {
+  await requirePlatformOperatorContext();
   const { slug } = await params;
   const catalogEntry = getPlatformDocBySlug(slug);
   if (!catalogEntry) {

@@ -5,8 +5,10 @@ import {
 } from "@dg/platform-core";
 
 import { listPlatformDocAvailability } from "@/lib/load-platform-doc";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 export default async function CommandPlatformDocsPage() {
+  await requirePlatformOperatorContext();
   const availability = await listPlatformDocAvailability();
   const byGroup = PLATFORM_DOC_GROUP_ORDER.map((group) => ({
     group,

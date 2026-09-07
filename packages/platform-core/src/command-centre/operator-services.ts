@@ -20,6 +20,7 @@ import { generateClientAdvisorInsight } from "./advisor";
 import { getCommandBenchmarks } from "./benchmarks";
 import { getClientIntelligence } from "./client-intelligence";
 import { getCommandFeatureFlagsOverview } from "./flags-admin";
+import { getGrowthConversionSnapshot, getGrowthFollowUpQueue } from "./growth-engine";
 import { getGrowthReports, type GrowthReportPeriod } from "./growth-reports";
 import { getClientExpansionOpportunities } from "./opportunities";
 import { getCommandCentreOpsHome } from "./overview";
@@ -69,6 +70,28 @@ export async function getOperatorGrowthReports(
 export async function getOperatorClientExpansionOpportunities(operator: PlatformOperatorContext) {
   requireOperator(operator);
   return getClientExpansionOpportunities();
+}
+
+/**
+ * Cross-organisation Growth Engine aggregates. These read the idle-prospect
+ * queue / conversion funnel across ALL organisations, so they are operator-only
+ * platform views and must be reached through the branded operator capability —
+ * never directly from a route relying on layout gating alone.
+ */
+export async function getOperatorGrowthFollowUpQueue(
+  operator: PlatformOperatorContext,
+  input?: { idleDays?: number; limit?: number },
+) {
+  requireOperator(operator);
+  return getGrowthFollowUpQueue(input);
+}
+
+export async function getOperatorGrowthConversionSnapshot(
+  operator: PlatformOperatorContext,
+  input?: { days?: number },
+) {
+  requireOperator(operator);
+  return getGrowthConversionSnapshot(input);
 }
 
 export async function listOperatorPlatformOpportunities(

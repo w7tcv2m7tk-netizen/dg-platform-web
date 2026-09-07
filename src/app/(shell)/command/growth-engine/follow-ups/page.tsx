@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   GROWTH_ENGINE_STAGE_LABELS,
-  getGrowthFollowUpQueue,
+  getOperatorGrowthFollowUpQueue,
   growthPipelineStages,
 } from "@dg/platform-core";
 
@@ -14,12 +14,14 @@ import {
   RunProspectAuditButton,
 } from "@/components/command/GrowthEngineActions";
 import { ProspectStageSelect } from "@/components/command/ProspectStageSelect";
+import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding", "report_viewed"]);
 
 export default async function GrowthFollowUpsPage() {
+  const operator = await requirePlatformOperatorContext();
   const db = Boolean(process.env.DATABASE_URL);
-  const queue = db ? await getGrowthFollowUpQueue({ idleDays: 5 }) : [];
+  const queue = db ? await getOperatorGrowthFollowUpQueue(operator, { idleDays: 5 }) : [];
   const stages = growthPipelineStages();
 
   return (
