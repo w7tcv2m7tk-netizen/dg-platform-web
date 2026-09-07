@@ -1,16 +1,19 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { GmailMailboxPanel } from "@/components/communications/GmailMailboxPanel";
 import { IcloudMailboxPanel } from "@/components/communications/IcloudMailboxPanel";
 import { MicrosoftMailboxPanel } from "@/components/communications/MicrosoftMailboxPanel";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function CommunicationsMailboxesPage({
   searchParams,
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { session } = await getPlatformPageContext();
+  const session = await getAuthorisedPlatformPageSession("communications.read");
+  if (!session) notFound();
+
   const params = (await searchParams) ?? {};
   const gmailRaw = typeof params.gmail === "string" ? params.gmail : null;
   const microsoftRaw = typeof params.microsoft === "string" ? params.microsoft : null;
@@ -24,19 +27,6 @@ export default async function CommunicationsMailboxesPage({
         : null;
   const flashMessage =
     typeof params.message === "string" ? params.message : null;
-
-  if (!session?.organisationId) {
-    return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Mailboxes</h1>
-        </header>
-        <main className="dg-page-main">
-          <p className="text-sm text-slate-500">Sign in to continue.</p>
-        </main>
-      </>
-    );
-  }
 
   return (
     <>

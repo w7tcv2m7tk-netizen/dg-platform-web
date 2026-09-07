@@ -5,6 +5,7 @@ import {
   getConversationMessages,
   getOrgGoogleGmailConnectorTokens,
   listCommunicationConversations,
+  sessionHasFeature,
   type ConversationSummary,
   type InboxFolderId,
 } from "@dg/platform-core";
@@ -14,7 +15,7 @@ import {
   type InboxContactContext,
   type InboxFolderCounts,
 } from "@/components/communications/inbox/CommunicationsInboxWorkspace";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 const FOLDER_IDS: InboxFolderId[] = [
   "all",
@@ -57,8 +58,8 @@ export async function loadCommunicationsInbox(searchParams: {
   folder?: string;
   q?: string;
 }) {
-  const { session } = await getPlatformPageContext();
-  if (!session?.organisationId) {
+  const session = await getAuthorisedPlatformPageSession("communications.read");
+  if (!session) {
     return { session: null as null };
   }
 
@@ -93,12 +94,13 @@ export async function loadCommunicationsInbox(searchParams: {
   }
 
   const selected = conversations.find((c) => c.key === resolvedKey) ?? null;
+  const canReadContacts = sessionHasFeature(session, "crm.contacts.read");
 
   const [messages, contactRow] =
     process.env.DATABASE_URL && resolvedKey
       ? await Promise.all([
           getConversationMessages(session.organisationId, resolvedKey),
-          selected?.contactId
+          selected?.contactId && canReadContacts
             ? getContact(session.organisationId, selected.contactId)
             : Promise.resolve(null),
         ])
