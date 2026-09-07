@@ -29,6 +29,7 @@ import {
   rewriteProductFunnelHtml,
 } from "@/lib/product-funnel-links";
 import { stripImportedDocumentChrome } from "@/lib/public-html";
+import { enhanceDigitalgateVisualHtml } from "@/lib/digitalgate-visual-storytelling";
 import { WantdPropertyWantForm } from "@/components/wantd/WantdPropertyWantForm";
 import { WantdSiteFooter, WantdSiteHeader } from "@/components/websites/WantdSiteChrome";
 import { WantdWantInput } from "@/components/websites/WantdWantInput";
@@ -50,7 +51,7 @@ const CREAM_PAGE_BG_RE =
  */
 function ensureCreamHtmlIsland(html: string): string {
   if (!html || /\bwb-html-island--light\b/.test(html)) return html;
-  if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app|dg-insights|dg-aiv|dg-ams|dg-lpf|dg-vvs|dg-dbc)\b/.test(html)) return html;
+  if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app|dg-insights|dg-aiv|dg-ams|dg-lpf|dg-vvs|dg-dbc|dg-bb)\b/.test(html)) return html;
   if (!CREAM_PAGE_BG_RE.test(html)) return html;
   return html.replace(
     /class="([^"]*\bwb-html-island\b[^"]*)"/g,
@@ -726,11 +727,13 @@ export function WebsiteComponentView({
       let html = stripImportedDocumentChrome(asString(component.props.html));
       if (!html) return null;
       // Navy DigitalGate shells must not keep cream-island class from import.
-      if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app|dg-insights|dg-aiv|dg-ams|dg-lpf|dg-vvs|dg-dbc)\b/.test(html)) {
+      if (/\b(?:dg-fc|dg-about|dg-contact|dg-legal|dg-app|dg-insights|dg-aiv|dg-ams|dg-lpf|dg-vvs|dg-dbc|dg-bb)\b/.test(html)) {
         html = html.replace(/\bwb-html-island--light\b/g, "").replace(/\s{2,}/g, " ");
       } else {
         html = ensureCreamHtmlIsland(html);
       }
+      // Issue #48: render-time visual storytelling — does not require Neon writes.
+      html = enhanceDigitalgateVisualHtml(html, pageSlug);
       html = rewriteProductFunnelHtml(html);
       const hasForm = /<form[\s>]/i.test(html);
       if (/gallery-grid|gallery-item/i.test(html)) {
