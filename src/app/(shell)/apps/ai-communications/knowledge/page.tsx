@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { getOrganisationBusinessProfile } from "@dg/platform-core";
 
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
@@ -30,6 +31,8 @@ const SOCIAL_LABELS: Record<string, string> = {
 
 export default async function CommsKnowledgePage() {
   const session = await getAuthorisedPlatformPageSession("comms.knowledge.read");
+  if (!session) notFound();
+
   const profile = await getOrganisationBusinessProfile(session.organisationId);
 
   const businessName =
