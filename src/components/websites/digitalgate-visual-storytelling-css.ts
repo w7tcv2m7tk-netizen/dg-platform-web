@@ -1070,4 +1070,81 @@ export const digitalgateVisualStorytellingCss = `
   .dgp2-health { animation: dgp2Health 2.4s ease-in-out infinite; }
   @keyframes dgp2Health { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
 }
+
+/* ===========================================================================
+   PART 3 — “From signal to action” (ported prototype).
+   dgp3- namespaced and :has() scoped so Parts 1, 2 and 4 are untouched.
+   Shares the dgp1- motion utilities (flow / spin / corepulse) as behaviours.
+   =========================================================================== */
+.dgp3-stage--loop .dg-stage__intro,
+.dgp3-stage--journey .dg-stage__intro { text-align: center; justify-items: center; max-width: 48rem; }
+.dgp3-stage--loop .dg-stage__kicker,
+.dgp3-stage--journey .dg-stage__kicker { justify-content: center; }
+.dgp3-stage--loop .dg-stage__caption,
+.dgp3-stage--journey .dg-stage__caption { text-align: center; max-width: 46rem; }
+.dgp3-stage--loop.dg-stage--wide { width: min(1120px, calc(100vw - 2rem)); }
+.dgp3-stage--journey.dg-stage--wide { width: min(1080px, calc(100vw - 2rem)); }
+
+.dgp3-scene { position: relative; z-index: 0; }
+.dgp3-svg { display: block; width: 100%; height: auto; }
+.dgp3-svg--mobile { display: none; }
+.dgp3-scene--loop::before {
+  content: "";
+  position: absolute;
+  inset: -4% 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 34% at 52% 32%, rgba(124, 58, 237, 0.14), transparent 62%),
+    radial-gradient(26% 30% at 80% 32%, rgba(59, 130, 246, 0.08), transparent 64%);
+}
+.dgp3-scene--journey::before {
+  content: "";
+  position: absolute;
+  inset: -10% 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(60% 70% at 50% 50%, rgba(124, 58, 237, 0.06), transparent 66%);
+}
+
+/* Part-3 hero: the title dominates, restrained eyebrow — scoped to the Part-3 page. */
+.wb-html-island--page:has([data-dg-stage-of="insights-part-3"]) .hero { position: relative; overflow: hidden; }
+.wb-html-island--page:has([data-dg-stage-of="insights-part-3"]) .hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 60% at 84% 0%, rgba(124, 58, 237, 0.14), transparent 60%),
+    radial-gradient(40% 52% at 6% 4%, rgba(56, 189, 248, 0.09), transparent 62%);
+}
+.wb-html-island--page:has([data-dg-stage-of="insights-part-3"]) .hero > * { position: relative; z-index: 1; }
+.wb-html-island--page:has([data-dg-stage-of="insights-part-3"]) .hero h1 {
+  font-size: clamp(2.9rem, 6vw, 4.9rem) !important;
+  line-height: 1.03 !important;
+  letter-spacing: -0.035em !important;
+  max-width: 18ch;
+  margin: 0.7rem 0 1.15rem !important;
+}
+.wb-html-island--page:has([data-dg-stage-of="insights-part-3"]) .hero .kicker {
+  display: inline-block !important;
+  color: #93c5fd !important;
+  font-family: Sora, Inter, sans-serif !important;
+  font-weight: 800 !important;
+  font-size: 0.74rem !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+}
+.wb-html-island--page:has([data-dg-stage-of="insights-part-3"]) .hero .hero-thesis {
+  font-size: clamp(1.1rem, 1.7vw, 1.45rem) !important;
+  line-height: 1.5 !important;
+  color: #cbd5e1 !important;
+  max-width: 44ch;
+}
+
+@media (max-width: 680px) {
+  .dgp3-svg--desktop { display: none; }
+  .dgp3-svg--mobile { display: block; }
+}
 `;

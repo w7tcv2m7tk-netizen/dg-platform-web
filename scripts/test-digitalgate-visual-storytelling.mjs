@@ -171,9 +171,17 @@ describe("digitalgate insights visual stages (#48)", () => {
     );
     assert.match(p3, /data-dg-stage="intelligence-loop"/);
     assert.match(p3, /data-dg-stage="scenario"/);
+    // ported loop: dominant Business Brain, distinct AI Advisor, amber human
+    // authority gate, green learning return; the signal journey changes state.
+    assert.match(p3, /BUSINESS BRAIN/);
+    assert.match(p3, /AI Advisor/);
+    assert.match(p3, /HUMAN AUTHORITY/);
     assert.match(p3, /Human approval/);
-    assert.match(p3, /dg-journey__gate/);
-    // scenario should land around Act (after the loop), not stacked at the top
+    assert.match(p3, /OUTCOMES → DIGITAL TWIN → BETTER CONTEXT/);
+    assert.match(p3, /AUTHORISED/);
+    assert.match(p3, /dgp3-scene--loop/);
+    assert.match(p3, /dgp3-scene--journey/);
+    // scenario should land after the loop, not stacked at the top
     assert.ok(p3.indexOf('data-dg-stage="intelligence-loop"') < p3.indexOf('data-dg-stage="scenario"'));
     assert.ok(p3.indexOf("P3_CONNECT") < p3.indexOf('data-dg-stage="scenario"'));
     assert.equal(enhanceDigitalgateVisualHtml(p3, SLUGS["insights-part-3"]), p3);

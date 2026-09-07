@@ -777,68 +777,250 @@ function part2(kind: DigitalgateStageKind): StageDef[] {
 }
 
 /* —————————————————————————————————————————————————————————————————————————
- * PART 3 — Signal → Action (the loop is dominant; explicit human approval)
+ * PART 3 — “From signal to action”
+ *
+ * A faithful PORT of the approved concept prototype into renderer-owned
+ * SVG/HTML (no client JS). Two visual moments woven through the real article:
+ *   1. The DigitalGate intelligence loop (signature): CONNECT → UNDERSTAND
+ *      (Digital Twin) → the dominant BUSINESS BRAIN → ADVISE (AI Advisor) →
+ *      an amber HUMAN AUTHORITY governance gate → ACT → LEARN, with a major
+ *      green learning-return pathway (outcomes → Digital Twin → better context).
+ *   2. The signal journey: one enquiry changing state as it moves through the
+ *      system — RAW → CONTEXTUALISED → UNDERSTOOD → REASONED → AUTHORISED →
+ *      EXECUTED → LEARNED.
+ * All presentation classes are namespaced `dgp3-`; Parts 1, 2 and 4 untouched.
+ * Motion reuses the dgp1- utilities (flow / spin / corepulse) so causality is
+ * shown by path-following dash-flow, not by fragile drifting particles.
  * ————————————————————————————————————————————————————————————————————————— */
+
+/* ——— Scene 1 · The intelligence loop (signature) ——— */
+function p3LoopScene(): string {
+  const src = (cx: number, cy: number) =>
+    `<circle cx="${cx}" cy="${cy}" r="14" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="1" opacity="0.6"/><rect x="${cx - 6}" y="${cy - 4}" width="12" height="8" rx="1" stroke="#818cf8" stroke-width="0.6" fill="none"/>`;
+
+  const desktop = `<svg class="dgp3-svg dgp3-svg--desktop" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+  <defs>
+    <radialGradient id="dgp3BrainGlow"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.25"/><stop offset="50%" stop-color="#7c3aed" stop-opacity="0.08"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+    <radialGradient id="dgp3AdvisorGlow"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>
+    <filter id="dgp3Glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+
+  <text x="600" y="30" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="2" opacity="0.6">THE DIGITALGATE INTELLIGENCE LOOP</text>
+
+  <!-- CONNECT -->
+  <text x="150" y="70" text-anchor="middle" fill="#818cf8" font-size="13" font-family="Sora,Inter,sans-serif" font-weight="600" letter-spacing="2">CONNECT</text>
+  ${src(120, 140)}${src(170, 140)}${src(120, 200)}${src(170, 200)}
+  ${p2Dash("M184 140 C 220 140, 260 180, 290 220", "#6366f1")}
+  ${p2Dash("M184 200 C 220 200, 260 240, 290 270", "#6366f1")}
+
+  <!-- UNDERSTAND / Digital Twin -->
+  <text x="310" y="70" text-anchor="middle" fill="#818cf8" font-size="13" font-family="Sora,Inter,sans-serif" font-weight="600" letter-spacing="2">UNDERSTAND</text>
+  <circle cx="310" cy="250" r="55" fill="rgba(124,58,237,0.03)" stroke="#7c3aed" stroke-width="1" opacity="0.6"/>
+  <circle cx="310" cy="250" r="40" fill="rgba(124,58,237,0.05)" stroke="#7c3aed" stroke-width="0.5" stroke-dasharray="4 6" opacity="0.4"/>
+  <circle cx="310" cy="250" r="25" fill="rgba(124,58,237,0.03)" stroke="#7c3aed" stroke-width="0.5" opacity="0.2"/>
+  <rect x="300" y="242" width="20" height="12" rx="1.5" stroke="#a78bfa" stroke-width="0.8" fill="none" opacity="0.6"/><rect x="304" y="246" width="12" height="4" rx="0.5" fill="#a78bfa" opacity="0.2"/>
+  <text x="310" y="286" text-anchor="middle" fill="#c7d2fe" font-size="11" font-family="Sora,Inter,sans-serif" font-weight="600">Digital Twin</text>
+  <text x="310" y="301" text-anchor="middle" fill="#6b7280" font-size="9" font-family="ui-monospace,monospace">Context + Relationships</text>
+
+  <!-- Flow to Brain -->
+  <path d="M365 240 C 420 240, 470 240, 520 240" stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.25"/>
+  <path d="M365 260 C 420 260, 470 260, 520 260" stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.25"/>
+  ${p2Dash("M365 250 C 420 250, 470 250, 520 250", "#7c3aed", 2.5)}
+
+  <!-- BUSINESS BRAIN (dominant) -->
+  <text x="620" y="70" text-anchor="middle" fill="#c4b5fd" font-size="14" font-family="Sora,Inter,sans-serif" font-weight="700" letter-spacing="2">BUSINESS BRAIN</text>
+  <circle cx="620" cy="250" r="110" fill="url(#dgp3BrainGlow)"/>
+  <g class="dgp1-spin-slow" style="transform-origin:620px 250px"><circle cx="620" cy="250" r="85" fill="rgba(124,58,237,0.03)" stroke="#7c3aed" stroke-width="1" stroke-dasharray="8 8" opacity="0.3"/></g>
+  <circle cx="620" cy="250" r="70" fill="rgba(124,58,237,0.05)" stroke="#7c3aed" stroke-width="1.5" opacity="0.4"/>
+  <circle cx="620" cy="250" r="55" fill="url(#dgp3BrainGlow)" stroke="#7c3aed" stroke-width="2" opacity="0.6" filter="url(#dgp3Glow)"/>
+  <g class="dgp1-spin-slow" style="transform-origin:620px 250px"><circle cx="620" cy="250" r="80" fill="none" stroke="#7c3aed" stroke-width="0.5" opacity="0.25" stroke-dasharray="4 8"/></g>
+  <g class="dgp1-spin-rev" style="transform-origin:620px 250px"><circle cx="620" cy="250" r="90" fill="none" stroke="#3b82f6" stroke-width="0.5" opacity="0.2" stroke-dasharray="3 6"/></g>
+  <circle cx="620" cy="165" r="7" fill="#7c3aed" opacity="0.5"/><circle cx="620" cy="335" r="7" fill="#7c3aed" opacity="0.5"/><circle cx="535" cy="250" r="7" fill="#3b82f6" opacity="0.5"/><circle cx="705" cy="250" r="7" fill="#3b82f6" opacity="0.5"/>
+  <circle cx="620" cy="250" r="35" fill="rgba(124,58,237,0.08)" stroke="#7c3aed" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="620" cy="250" r="25" fill="rgba(124,58,237,0.12)" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
+  <circle cx="620" cy="250" r="15" fill="rgba(124,58,237,0.15)" stroke="#7c3aed" stroke-width="0.8" opacity="0.4"/>
+  <circle cx="620" cy="250" r="7" fill="#7c3aed" opacity="0.25"/>
+  <circle class="dgp1-corepulse" cx="620" cy="250" r="3" fill="#a78bfa"/>
+  <path d="M620 215v70 M585 250h70 M592 222l56 56 M648 222l-56 56" stroke="#7c3aed" stroke-width="0.5" opacity="0.4"/>
+  <text x="620" y="310" text-anchor="middle" fill="#fff" font-size="15" font-family="Sora,Inter,sans-serif" font-weight="700">Structured Intelligence</text>
+  <text x="620" y="328" text-anchor="middle" fill="#a78bfa" font-size="10" font-family="ui-monospace,monospace">Context + Understanding</text>
+
+  <!-- Flow to Advisor -->
+  <path d="M675 240 C 740 240, 800 235, 850 235" stroke="#3b82f6" stroke-width="1" fill="none" opacity="0.25"/>
+  <path d="M675 260 C 740 260, 800 265, 850 265" stroke="#3b82f6" stroke-width="1" fill="none" opacity="0.25"/>
+  ${p2Dash("M675 250 C 740 250, 800 250, 850 250", "#3b82f6", 2.5)}
+
+  <!-- ADVISE / AI Advisor -->
+  <text x="950" y="70" text-anchor="middle" fill="#60a5fa" font-size="13" font-family="Sora,Inter,sans-serif" font-weight="600" letter-spacing="2">ADVISE</text>
+  <circle cx="950" cy="250" r="75" fill="url(#dgp3AdvisorGlow)"/>
+  <circle cx="950" cy="250" r="50" fill="rgba(59,130,246,0.05)" stroke="#3b82f6" stroke-width="1.5" opacity="0.8"/>
+  <circle cx="950" cy="250" r="38" fill="rgba(59,130,246,0.08)" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3 5" opacity="0.5"/>
+  <circle cx="950" cy="250" r="25" fill="rgba(59,130,246,0.05)" stroke="#3b82f6" stroke-width="0.5" opacity="0.3"/>
+  <circle cx="950" cy="250" r="14" stroke="#60a5fa" stroke-width="1" fill="none" opacity="0.5"/><circle cx="950" cy="250" r="6" stroke="#60a5fa" stroke-width="0.8" fill="none" opacity="0.4"/>
+  <circle class="dgp1-corepulse" cx="950" cy="250" r="2.5" fill="#60a5fa"/>
+  <path d="M950 236v28 M936 250h28 M940 240l20 20 M960 240l-20 20" stroke="#60a5fa" stroke-width="0.4" opacity="0.35"/>
+  <text x="950" y="282" text-anchor="middle" fill="#bfdbfe" font-size="13" font-family="Sora,Inter,sans-serif" font-weight="600">AI Advisor</text>
+  <text x="950" y="299" text-anchor="middle" fill="#6b7280" font-size="9" font-family="ui-monospace,monospace">Reasoning Layer</text>
+
+  <!-- Flow to Governance -->
+  ${p2Dash("M950 325 C 950 370, 950 420, 950 452", "#fbbf24", 2)}
+
+  <!-- HUMAN AUTHORITY (amber governance gate) -->
+  <text x="950" y="500" text-anchor="middle" fill="#fbbf24" font-size="12" font-family="Sora,Inter,sans-serif" font-weight="600" letter-spacing="1">HUMAN AUTHORITY</text>
+  <circle cx="950" cy="540" r="30" fill="rgba(251,191,36,0.05)" stroke="#fbbf24" stroke-width="1.5" opacity="0.7"/>
+  <circle cx="950" cy="540" r="20" fill="rgba(251,191,36,0.08)" stroke="#fbbf24" stroke-width="0.8" stroke-dasharray="3 5" opacity="0.5"/>
+  <circle cx="950" cy="540" r="10" fill="rgba(251,191,36,0.05)" stroke="#fbbf24" stroke-width="0.5" opacity="0.3"/>
+  <circle cx="950" cy="540" r="5" stroke="#fbbf24" stroke-width="0.9" fill="none"/><path d="M947 540l2 2 4-4" stroke="#fbbf24" stroke-width="0.9" fill="none"/>
+  <text x="950" y="590" text-anchor="middle" fill="#6b7280" font-size="9" font-family="ui-monospace,monospace">Approval gate</text>
+
+  <!-- Flow to Act -->
+  ${p2Dash("M950 570 C 950 620, 950 668, 950 692", "#34d399", 2)}
+
+  <!-- ACT -->
+  <text x="950" y="732" text-anchor="middle" fill="#34d399" font-size="13" font-family="Sora,Inter,sans-serif" font-weight="600" letter-spacing="2">ACT</text>
+  <circle cx="950" cy="762" r="35" fill="rgba(16,185,129,0.03)" stroke="#10b981" stroke-width="1" opacity="0.6"/>
+  <circle cx="950" cy="762" r="22" fill="rgba(16,185,129,0.05)" stroke="#10b981" stroke-width="0.5" stroke-dasharray="4 6" opacity="0.4"/>
+  <rect x="942" y="756" width="16" height="10" rx="1.5" stroke="#34d399" stroke-width="0.8" fill="none" opacity="0.7"/><circle cx="950" cy="761" r="3" stroke="#34d399" stroke-width="0.5" fill="none"/>
+
+  <!-- LEARN -->
+  <text x="1082" y="500" text-anchor="middle" fill="#34d399" font-size="12" font-family="Sora,Inter,sans-serif" font-weight="600" letter-spacing="2">LEARN</text>
+  <circle cx="1082" cy="540" r="35" fill="rgba(52,211,153,0.03)" stroke="#34d399" stroke-width="1" opacity="0.6"/>
+  <circle cx="1082" cy="540" r="22" fill="rgba(52,211,153,0.05)" stroke="#34d399" stroke-width="0.5" stroke-dasharray="4 6" opacity="0.4"/>
+  <circle cx="1082" cy="540" r="10" stroke="#34d399" stroke-width="0.8" fill="none" opacity="0.5"/><circle cx="1082" cy="540" r="4" fill="#34d399" opacity="0.2"/>
+  <path d="M1078 540l3 3 5-6" stroke="#34d399" stroke-width="0.9" fill="none" opacity="0.8"/>
+
+  <!-- Act → Learn -->
+  ${p2Dash("M985 762 C 1035 762, 1055 720, 1055 578", "#34d399", 1.5)}
+
+  <!-- LEARNING RETURN (major architectural return to context) -->
+  ${p2Dash("M1050 545 C 900 560, 750 560, 620 560 C 490 560, 400 555, 365 545 C 335 537, 315 528, 300 508", "#34d399", 2.5)}
+  <text x="700" y="600" text-anchor="middle" fill="#34d399" font-size="10" font-family="ui-monospace,monospace" opacity="0.85">↺ OUTCOMES → DIGITAL TWIN → BETTER CONTEXT</text>
+</svg>`;
+
+  const mobile = `<svg class="dgp3-svg dgp3-svg--mobile" viewBox="0 0 390 760" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+  <defs>
+    <radialGradient id="dgp3BrainGlowV"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.2"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+    <radialGradient id="dgp3AdvisorGlowV"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.12"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>
+  </defs>
+
+  <text x="175" y="30" text-anchor="middle" fill="#818cf8" font-size="12" font-family="Sora,Inter,sans-serif" font-weight="600" letter-spacing="2">CONNECT</text>
+  <circle cx="150" cy="65" r="10" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="0.8"/><circle cx="200" cy="65" r="10" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="0.8"/><circle cx="150" cy="95" r="10" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="0.8"/><circle cx="200" cy="95" r="10" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="0.8"/>
+  ${p2Dash("M175 116 L175 140", "#6366f1")}
+
+  <text x="175" y="160" text-anchor="middle" fill="#818cf8" font-size="12" font-family="Sora,Inter,sans-serif" font-weight="600" letter-spacing="2">UNDERSTAND</text>
+  <circle cx="175" cy="188" r="30" fill="rgba(124,58,237,0.03)" stroke="#7c3aed" stroke-width="0.8"/><circle cx="175" cy="188" r="18" fill="rgba(124,58,237,0.05)" stroke="#7c3aed" stroke-width="0.5" stroke-dasharray="3 4"/><rect x="167" y="182" width="16" height="10" rx="1.5" stroke="#a78bfa" stroke-width="0.7" fill="none" opacity="0.6"/>
+  <text x="175" y="232" text-anchor="middle" fill="#c7d2fe" font-size="9" font-family="Sora,Inter,sans-serif" font-weight="600">Digital Twin</text>
+  ${p2Dash("M175 240 L175 264", "#7c3aed", 2)}
+
+  <text x="175" y="286" text-anchor="middle" fill="#c4b5fd" font-size="13" font-family="Sora,Inter,sans-serif" font-weight="700" letter-spacing="2">BUSINESS BRAIN</text>
+  <circle cx="175" cy="330" r="46" fill="url(#dgp3BrainGlowV)"/>
+  <g class="dgp1-spin-slow" style="transform-origin:175px 330px"><circle cx="175" cy="330" r="34" fill="rgba(124,58,237,0.03)" stroke="#7c3aed" stroke-width="1" stroke-dasharray="4 4"/></g>
+  <circle cx="175" cy="330" r="24" fill="rgba(124,58,237,0.05)" stroke="#7c3aed" stroke-width="0.8"/><circle cx="175" cy="330" r="13" fill="rgba(124,58,237,0.1)" stroke="#7c3aed" stroke-width="0.5"/>
+  <circle class="dgp1-corepulse" cx="175" cy="330" r="4" fill="#a78bfa"/>
+  <path d="M175 306v48 M151 330h48 M158 313l34 34 M192 313l-34 34" stroke="#7c3aed" stroke-width="0.4" opacity="0.35"/>
+  <text x="175" y="392" text-anchor="middle" fill="#fff" font-size="10" font-family="Sora,Inter,sans-serif" font-weight="600">Structured Intelligence</text>
+  ${p2Dash("M175 402 L175 426", "#3b82f6", 2)}
+
+  <text x="175" y="448" text-anchor="middle" fill="#60a5fa" font-size="12" font-family="Sora,Inter,sans-serif" font-weight="600" letter-spacing="2">ADVISE</text>
+  <circle cx="175" cy="476" r="28" fill="url(#dgp3AdvisorGlowV)"/><circle cx="175" cy="476" r="18" fill="rgba(59,130,246,0.05)" stroke="#3b82f6" stroke-width="0.8"/><circle cx="175" cy="476" r="9" stroke="#60a5fa" stroke-width="0.6" fill="none"/><circle class="dgp1-corepulse" cx="175" cy="476" r="2.5" fill="#60a5fa"/>
+  <text x="175" y="518" text-anchor="middle" fill="#bfdbfe" font-size="10" font-family="Sora,Inter,sans-serif" font-weight="600">AI Advisor</text>
+  ${p2Dash("M175 524 L175 548", "#fbbf24", 1.5)}
+
+  <text x="175" y="570" text-anchor="middle" fill="#fbbf24" font-size="11" font-family="Sora,Inter,sans-serif" font-weight="600" letter-spacing="1">HUMAN AUTHORITY</text>
+  <circle cx="175" cy="596" r="17" fill="rgba(251,191,36,0.05)" stroke="#fbbf24" stroke-width="1"/><circle cx="175" cy="596" r="9" fill="rgba(251,191,36,0.08)" stroke="#fbbf24" stroke-width="0.5" stroke-dasharray="2 3"/><path d="M171 596l3 3 5-5" stroke="#fbbf24" stroke-width="0.9" fill="none"/>
+  ${p2Dash("M175 613 L175 636", "#34d399", 1.5)}
+
+  <text x="175" y="658" text-anchor="middle" fill="#34d399" font-size="12" font-family="Sora,Inter,sans-serif" font-weight="600" letter-spacing="2">ACT</text>
+  <circle cx="175" cy="682" r="18" fill="rgba(16,185,129,0.03)" stroke="#10b981" stroke-width="0.8"/><rect x="169" y="678" width="12" height="8" rx="1" stroke="#34d399" stroke-width="0.6" fill="none"/>
+  ${p2Dash("M175 700 L175 722", "#34d399", 1.5)}
+
+  <text x="175" y="744" text-anchor="middle" fill="#34d399" font-size="12" font-family="Sora,Inter,sans-serif" font-weight="600" letter-spacing="2">LEARN</text>
+
+  <!-- Learning return to context/intelligence -->
+  ${p2Dash("M200 740 C 300 736, 320 560, 320 470 C 320 340, 260 336, 210 332", "#34d399", 1.5)}
+  <text x="352" y="540" text-anchor="middle" fill="#34d399" font-size="8" font-family="ui-monospace,monospace" opacity="0.8" transform="rotate(90 352 540)">↺ LEARNING → CONTEXT</text>
+</svg>`;
+
+  return `<div class="dgp3-scene dgp3-scene--loop">${desktop}${mobile}</div>`;
+}
+
+/* ——— Scene 2 · The signal journey (one enquiry changing state) ——— */
+const P3_JOURNEY: Array<{ label: string; sub: string; tint: string; dim: string }> = [
+  { label: "RAW", sub: "Website enquiry", tint: "#6366f1", dim: "#6b7280" },
+  { label: "CONTEXTUALISED", sub: "CRM + history", tint: "#6366f1", dim: "#9ca3af" },
+  { label: "UNDERSTOOD", sub: "Business Brain", tint: "#7c3aed", dim: "#c4b5fd" },
+  { label: "REASONED", sub: "AI Advisor", tint: "#3b82f6", dim: "#93c5fd" },
+  { label: "AUTHORISED", sub: "Human approval", tint: "#fbbf24", dim: "#fbbf24" },
+  { label: "EXECUTED", sub: "Action sent", tint: "#10b981", dim: "#6ee7b7" },
+  { label: "LEARNED", sub: "↺ returns", tint: "#34d399", dim: "#34d399" },
+];
+
+function p3JourneyScene(): string {
+  const desktop = `<svg class="dgp3-svg dgp3-svg--desktop" viewBox="0 0 1100 300" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+  <defs>
+    <linearGradient id="dgp3SignalGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6366f1" stop-opacity="0.2"/><stop offset="30%" stop-color="#7c3aed" stop-opacity="0.4"/><stop offset="55%" stop-color="#3b82f6" stop-opacity="0.4"/><stop offset="75%" stop-color="#fbbf24" stop-opacity="0.3"/><stop offset="100%" stop-color="#34d399" stop-opacity="0.2"/></linearGradient>
+  </defs>
+  <path d="M50 150 H1060" stroke="url(#dgp3SignalGrad)" stroke-width="2" fill="none" opacity="0.6"/>
+  <path class="dgp1-flow" d="M50 150 H1060" stroke="#a78bfa" stroke-width="2" fill="none" opacity="0.7"/>
+  ${P3_JOURNEY.map((s, i) => {
+    const x = 100 + i * 160;
+    const r = i === 2 ? 26 : i === 4 ? 24 : i === 6 ? 18 : 22;
+    return `<g><circle cx="${x}" cy="150" r="${r}" fill="rgba(255,255,255,0.02)" stroke="${s.tint}" stroke-width="1.3" opacity="${0.5 + i * 0.05}"/><circle cx="${x}" cy="150" r="${(r * 0.4).toFixed(0)}" stroke="${s.tint}" stroke-width="0.7" fill="none" opacity="0.45"/><text x="${x}" y="200" text-anchor="middle" fill="${s.dim}" font-size="10" font-family="Sora,Inter,sans-serif" font-weight="600">${s.label}</text><text x="${x}" y="214" text-anchor="middle" fill="#6b7280" font-size="7.5" font-family="ui-monospace,monospace">${s.sub}</text></g>`;
+  }).join("")}
+</svg>`;
+
+  const mobile = `<svg class="dgp3-svg dgp3-svg--mobile" viewBox="0 0 390 520" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+  <defs>
+    <linearGradient id="dgp3SignalGradV" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#6366f1" stop-opacity="0.2"/><stop offset="30%" stop-color="#7c3aed" stop-opacity="0.4"/><stop offset="55%" stop-color="#3b82f6" stop-opacity="0.4"/><stop offset="75%" stop-color="#fbbf24" stop-opacity="0.3"/><stop offset="100%" stop-color="#34d399" stop-opacity="0.2"/></linearGradient>
+  </defs>
+  <path d="M120 30 V490" stroke="url(#dgp3SignalGradV)" stroke-width="2" fill="none" opacity="0.5"/>
+  <path class="dgp1-flow" d="M120 30 V490" stroke="#a78bfa" stroke-width="2" fill="none" opacity="0.6"/>
+  ${P3_JOURNEY.map((s, i) => {
+    const y = 45 + i * 70;
+    const r = i === 2 ? 18 : 16;
+    return `<g><circle cx="120" cy="${y}" r="${r}" fill="rgba(255,255,255,0.02)" stroke="${s.tint}" stroke-width="1" opacity="${0.55 + i * 0.04}"/><text x="152" y="${y - 3}" fill="${s.dim}" font-size="11" font-family="Sora,Inter,sans-serif" font-weight="600">${s.label}</text><text x="152" y="${y + 12}" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">${s.sub}</text></g>`;
+  }).join("")}
+</svg>`;
+
+  return `<div class="dgp3-scene dgp3-scene--journey">${desktop}${mobile}</div>`;
+}
 
 function part3(kind: DigitalgateStageKind): StageDef[] {
   return [
     {
       name: "intelligence-loop",
-      anchors: ["1. connect", "connect →", "connect \u2192", "understand \u2192 advise"],
+      anchors: ["1. connect", "connect \u2192 understand", "establish the truth"],
       html: stage({
         kind,
         name: "intelligence-loop",
         index: "01",
-        eyebrow: "The operating model",
+        eyebrow: "The intelligence loop",
         title: "Connect → Understand → Advise → Act → Learn",
-        lede: "The whole platform is one loop. It gets more useful every time it goes round.",
+        lede: "Signals become context in the Digital Twin, the Business Brain turns context into understanding, the AI Advisor reasons over it — and where a decision is consequential, a human holds authority before anything acts. Every outcome learns its way back.",
         ariaLabel:
-          "A dominant circular intelligence loop with five stages — Connect, Understand, Advise, Act, Learn — orbiting the Business Brain at the centre.",
-        variant: "dg-stage--loop dg-stage--wide",
-        scene: `<div class="dgs-loop">
-  <svg class="dgs-loop__ring" viewBox="0 0 320 320" aria-hidden="true">
-    <defs>
-      <marker id="dgLoopHead" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#60a5fa"/></marker>
-    </defs>
-    <circle cx="160" cy="160" r="120" fill="none" stroke="rgba(51,65,85,0.8)" stroke-width="1.5"/>
-    <circle class="dg-flow__loop" cx="160" cy="160" r="120" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-opacity="0.6" marker-end="url(#dgLoopHead)"/>
-  </svg>
-  <div class="dgs-loop__center">${brainCore({ idSuffix: "P3" })}<strong>Business Brain™</strong></div>
-  <ul class="dgs-loop__stops">
-    <li class="dgs-loop__stop dgs-loop__stop--1"><span>1</span><strong>Connect</strong><small>Authorised signals arrive</small></li>
-    <li class="dgs-loop__stop dgs-loop__stop--2"><span>2</span><strong>Understand</strong><small>Context interprets the signal</small></li>
-    <li class="dgs-loop__stop dgs-loop__stop--3"><span>3</span><strong>Advise</strong><small>The next sensible move appears</small></li>
-    <li class="dgs-loop__stop dgs-loop__stop--4"><span>4</span><strong>Act</strong><small>People approve; the platform follows through</small></li>
-    <li class="dgs-loop__stop dgs-loop__stop--5"><span>5</span><strong>Learn</strong><small>Outcomes improve the next decision</small></li>
-  </ul>
-</div>`,
-        caption: "Alive by design — each turn of the loop compounds the last.",
+          "The DigitalGate intelligence loop. Connected signals arrive and become context in the Digital Twin. Context flows into the dominant Business Brain, which holds structured intelligence and understanding. The Business Brain feeds a distinct AI Advisor reasoning layer. Consequential recommendations pass through an amber human-authority governance gate before an action is executed. Outcomes are learned and returned along a major green pathway — outcomes to Digital Twin to better context — so the next decision starts richer.",
+        variant: "dg-stage--wide dg-stage--p3 dgp3-stage--loop",
+        scene: p3LoopScene(),
+        caption:
+          "The Business Brain understands; the AI Advisor reasons; humans retain authority over consequential decisions; learning closes the loop.",
       }),
     },
     {
       name: "scenario",
-      anchors: ["3. advise", "4. act", "2. understand"],
+      anchors: ["3. advise", "4. act", "5. learn"],
       html: stage({
         kind,
         name: "scenario",
         index: "02",
-        eyebrow: "A signal travels",
-        title: "One enquiry, all the way through",
-        lede: "Follow a single website enquiry across the system. Nothing is sent to a customer until a human approves.",
+        eyebrow: "One signal, changing state",
+        title: "A single enquiry, all the way through",
+        lede: "Watch one website enquiry travel through the architecture — raw, then contextualised, understood, reasoned, authorised by a human, executed, and finally learned back into the system.",
         ariaLabel:
-          "A worked scenario: a website enquiry gains CRM context, the Business Brain interprets it, the AI Advisor recommends a reply, a human approves at an explicit gate, a follow-up is sent, the outcome is captured, and the system learns.",
-        variant: "dg-stage--journey",
-        scene: `<ol class="dg-journey">
-  <li class="dg-journey__step is-signal"><span class="dg-journey__dot" aria-hidden="true"></span><div><strong>Website enquiry</strong><p>A prospect asks a question on the site.</p></div></li>
-  <li class="dg-journey__step"><span class="dg-journey__dot" aria-hidden="true"></span><div><strong>Context attached</strong><p>CRM adds who they are and what's already happened.</p></div></li>
-  <li class="dg-journey__step is-brain"><span class="dg-journey__dot" aria-hidden="true"></span><div>${brainCore({ idSuffix: "P3j" })}<strong>Business Brain interprets</strong><p>Reads intent, value and history together.</p></div></li>
-  <li class="dg-journey__step"><span class="dg-journey__dot" aria-hidden="true"></span><div><strong>AI Advisor recommends</strong><p>Drafts the sensible next reply and follow-up.</p></div></li>
-  <li class="dg-journey__step dg-journey__gate"><span class="dg-journey__dot" aria-hidden="true"></span><div><strong>Human approval</strong><p>A person reviews and decides. Nothing goes out without this.</p><span class="dg-gate__badge">You approve</span></div></li>
-  <li class="dg-journey__step"><span class="dg-journey__dot" aria-hidden="true"></span><div><strong>Follow-up sent</strong><p>The approved action is carried out.</p></div></li>
-  <li class="dg-journey__step is-positive"><span class="dg-journey__dot" aria-hidden="true"></span><div><strong>Outcome captured → learns</strong><p>The result feeds the next decision.</p></div></li>
-</ol>`,
+          "A signal journey: one website enquiry changes state as it moves through the system — RAW, then CONTEXTUALISED with CRM history, UNDERSTOOD by the Business Brain, REASONED by the AI Advisor, AUTHORISED at a human-approval gate, EXECUTED as an action, and LEARNED as the outcome returns to context.",
+        variant: "dg-stage--wide dg-stage--p3 dgp3-stage--journey",
+        scene: p3JourneyScene(),
         caption:
-          "Understand the model from the picture alone: signal in, judgement in the middle, a human decision before anything leaves.",
+          "One signal, changing state as it moves: nothing consequential is executed until a human authorises it — and the outcome returns as learning.",
       }),
     },
   ];
