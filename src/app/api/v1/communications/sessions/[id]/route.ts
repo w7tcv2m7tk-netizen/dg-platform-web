@@ -27,7 +27,7 @@ export async function GET(req: Request, ctx: Ctx) {
 
   const canHear = sessionHasFeature(session, "comms.voice.recording");
   const [messages, actions] = await Promise.all([
-    listSessionMessages(session.organisationId, id),
+    canHear ? listSessionMessages(session.organisationId, id) : Promise.resolve([]),
     listSessionActions(session.organisationId, id),
   ]);
 
@@ -37,9 +37,7 @@ export async function GET(req: Request, ctx: Ctx) {
       transcript: canHear ? row.transcript : null,
       recordingUrl: canHear ? row.recordingUrl : null,
       recordingRestricted: !canHear && Boolean(row.recordingUrl || row.transcript),
-      messages: canHear
-        ? messages
-        : messages.map((msg) => ({ ...msg, content: "[restricted]" })),
+      messages,
       actions,
     },
   });
