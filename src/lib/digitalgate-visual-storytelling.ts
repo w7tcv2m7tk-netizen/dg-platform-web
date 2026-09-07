@@ -7,6 +7,12 @@
  * even when Studio content is plain or carries an older story block.
  */
 
+import {
+  STAGE_SUITE_MARKER,
+  stageSuiteForKind,
+  type DigitalgateStageKind,
+} from "./digitalgate-visual-stages";
+
 export type DigitalgateVisualPageKind =
   | "insights-part-1"
   | "insights-part-2"
@@ -15,6 +21,21 @@ export type DigitalgateVisualPageKind =
   | "business-brain"
   | "automation"
   | null;
+
+const INSIGHTS_STAGE_KINDS: readonly DigitalgateStageKind[] = [
+  "insights-part-1",
+  "insights-part-2",
+  "insights-part-3",
+  "insights-part-4",
+];
+
+function insightsStageKind(
+  kind: Exclude<DigitalgateVisualPageKind, null>,
+): DigitalgateStageKind | null {
+  return (INSIGHTS_STAGE_KINDS as readonly string[]).includes(kind)
+    ? (kind as DigitalgateStageKind)
+    : null;
+}
 
 const SLUG_KIND: Record<string, Exclude<DigitalgateVisualPageKind, null>> = {
   "from-dumb-businesses-to-smart-businesses": "insights-part-1",
@@ -393,8 +414,25 @@ export function enhanceDigitalgateVisualHtml(
 
   let out = refreshStaleSeriesChrome(html);
 
+  // Insights Parts 1–4 use the recomposed, article-expanded visual stage suites.
+  const stageKind = insightsStageKind(kind);
+  if (stageKind) {
+    if (out.includes(STAGE_SUITE_MARKER[stageKind])) {
+      return out; // idempotent — new suite already present
+    }
+    // Remove older small dg-story-visual cards for this kind so visuals never
+    // double-render; article copy and structure are preserved.
+    out = stripLegacyStoryBlocks(out, kind);
+    const suiteHtml = stageSuiteForKind(stageKind);
+    const at = findInsertIndex(out);
+    return at < 0
+      ? `${suiteHtml}${out}`
+      : `${out.slice(0, at)}${suiteHtml}${out.slice(at)}`;
+  }
+
+  // Business Brain / Automation retain the existing primitives (redesigned in
+  // later, separately verified #48 PRs).
   if (hasCurrentVisual(out, kind)) {
-    // Part 3 should also keep the rail; if only closed-loop exists that's enough.
     return out;
   }
 
