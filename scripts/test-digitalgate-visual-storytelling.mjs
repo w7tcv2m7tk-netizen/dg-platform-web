@@ -156,7 +156,12 @@ describe("digitalgate insights visual stages (#48)", () => {
     );
     assert.match(p2, /data-dg-stage="living-system"/);
     assert.match(p2, /data-dg-stage="living-flow"/);
-    assert.match(p2, /Immune system/);
+    // Ported living-system keeps Business Brain and AI Advisor distinct, a
+    // governance perimeter, and the learning sequence rail.
+    assert.match(p2, /Business Brain/);
+    assert.match(p2, /AI Advisor/);
+    assert.match(p2, /IMMUNE SYSTEM/);
+    assert.match(p2, /INTELLIGENCE/);
     assert.equal(count(p2, /data-dg-stage-of="insights-part-2"/g), 2);
     assert.equal(enhanceDigitalgateVisualHtml(p2, SLUGS["insights-part-2"]), p2);
 

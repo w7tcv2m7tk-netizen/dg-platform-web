@@ -980,4 +980,94 @@ export const digitalgateVisualStorytellingCss = `
 @media (prefers-reduced-motion: reduce) {
   .dgp1-flow { display: none; }
 }
+
+/* ===========================================================================
+   PART 2 — “An intelligent business is more than a brain” (ported prototype).
+   dgp2- namespaced and :has() scoped so Part 1 and Parts 3–4 are untouched.
+   Shares the dgp1- motion utilities (flow / spin / corepulse) as behaviours.
+   =========================================================================== */
+.dgp2-stage--anatomy .dg-stage__intro,
+.dgp2-stage--learn .dg-stage__intro { text-align: center; justify-items: center; max-width: 46rem; }
+.dgp2-stage--anatomy .dg-stage__kicker,
+.dgp2-stage--learn .dg-stage__kicker { justify-content: center; }
+.dgp2-stage--anatomy .dg-stage__caption,
+.dgp2-stage--learn .dg-stage__caption { text-align: center; max-width: 44rem; }
+.dgp2-stage--anatomy.dg-stage--wide { width: min(1180px, calc(100vw - 2rem)); }
+.dgp2-stage--learn.dg-stage--wide { width: min(1040px, calc(100vw - 3rem)); }
+
+.dgp2-scene { position: relative; z-index: 0; }
+.dgp2-svg { display: block; width: 100%; height: auto; }
+.dgp2-svg--mobile { display: none; }
+.dgp2-scene--anatomy::before {
+  content: "";
+  position: absolute;
+  inset: -6% -3%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(46% 58% at 48% 38%, rgba(124, 58, 237, 0.12), transparent 60%);
+}
+
+/* Learning sequence rail: SIGNALS → CONTEXT → INTELLIGENCE → REASONING → ACTION → OUTCOME → LEARNING ↺ */
+.dgp2-learn { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.3rem; padding: 1rem 3.5rem 0; }
+.dgp2-learn__track { position: absolute; top: 40px; left: 11%; right: 11%; height: 1px; z-index: 0; background: linear-gradient(90deg, rgba(124, 58, 237, 0.1), rgba(124, 58, 237, 0.25) 50%, rgba(124, 58, 237, 0.1)); }
+.dgp2-learn__stop { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
+.dgp2-learn__ic { width: 40px; height: 40px; border-radius: 999px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #9ca3af; }
+.dgp2-learn__ic svg { width: 18px; height: 18px; }
+.dgp2-learn__stop--intelligence .dgp2-learn__ic { background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.2); color: #c084fc; }
+.dgp2-learn__stop--learning .dgp2-learn__ic { background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.2); color: #34d399; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp2-learn__label,
+.dgp2-learn__label { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.62rem !important; letter-spacing: 0.08em; color: #6b7280 !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp2-learn__stop--intelligence .dgp2-learn__label { color: #c084fc !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp2-learn__stop--learning .dgp2-learn__label { color: #34d399 !important; }
+.dgp2-learn__arrow { align-self: flex-start; margin-top: 10px; display: grid; place-items: center; color: rgba(167, 139, 250, 0.4); }
+.dgp2-learn__arrow svg { width: 18px; height: 18px; }
+.dgp2-learn__loop { align-self: flex-start; margin-top: 6px; margin-left: 0.2rem; color: #34d399; font-size: 1.15rem; }
+
+/* Part-2 hero: the title dominates, restrained eyebrow — scoped to the Part-2 page. */
+.wb-html-island--page:has([data-dg-stage-of="insights-part-2"]) .hero { position: relative; overflow: hidden; }
+.wb-html-island--page:has([data-dg-stage-of="insights-part-2"]) .hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 60% at 84% 0%, rgba(124, 58, 237, 0.14), transparent 60%),
+    radial-gradient(40% 52% at 6% 4%, rgba(56, 189, 248, 0.09), transparent 62%);
+}
+.wb-html-island--page:has([data-dg-stage-of="insights-part-2"]) .hero > * { position: relative; z-index: 1; }
+.wb-html-island--page:has([data-dg-stage-of="insights-part-2"]) .hero h1 {
+  font-size: clamp(2.9rem, 6vw, 4.9rem) !important;
+  line-height: 1.03 !important;
+  letter-spacing: -0.035em !important;
+  max-width: 20ch;
+  margin: 0.7rem 0 1.15rem !important;
+}
+.wb-html-island--page:has([data-dg-stage-of="insights-part-2"]) .hero .kicker {
+  display: inline-block !important;
+  color: #93c5fd !important;
+  font-family: Sora, Inter, sans-serif !important;
+  font-weight: 800 !important;
+  font-size: 0.74rem !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+}
+.wb-html-island--page:has([data-dg-stage-of="insights-part-2"]) .hero .hero-thesis {
+  font-size: clamp(1.1rem, 1.7vw, 1.45rem) !important;
+  line-height: 1.5 !important;
+  color: #cbd5e1 !important;
+  max-width: 44ch;
+}
+
+@media (max-width: 680px) {
+  .dgp2-svg--desktop { display: none; }
+  .dgp2-svg--mobile { display: block; }
+  .dgp2-learn { flex-wrap: wrap; justify-content: center; gap: 0.7rem 0.5rem; padding: 0.5rem 0 0; }
+  .dgp2-learn__track { display: none; }
+  .dgp2-learn__arrow { margin-top: 10px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dgp2-health { animation: dgp2Health 2.4s ease-in-out infinite; }
+  @keyframes dgp2Health { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
+}
 `;

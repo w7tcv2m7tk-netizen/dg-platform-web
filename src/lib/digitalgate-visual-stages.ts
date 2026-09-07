@@ -93,11 +93,6 @@ function stage(input: {
 </section>`;
 }
 
-function node(title: string, detail: string, cls = ""): string {
-  const c = cls ? ` ${cls}` : "";
-  return `<div class="dg-node${c}"><strong>${title}</strong><small>${detail}</small></div>`;
-}
-
 /* —————————————————————————————————————————————————————————————————————————
  * PART 1 — “From dumb businesses to smart businesses”
  *
@@ -132,6 +127,10 @@ const ICON: Record<string, string> = {
   signal: "M2 20h.01 M7 20v-4 M12 20v-8 M17 20V8 M22 20V4",
   network: "M9 2h6v6H9z M2 16h6v6H2z M16 16h6v6h-6z M6 16v-2a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v2 M12 13V8",
   target: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
+  contextbox: "M2 2h20v20H2z M8 2v20 M16 2v20",
+  reason: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z M12 4v2 M12 18v2 M4 12h2 M18 12h2",
+  clock: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z M12 6v6l4 2",
+  refresh: "M21 12a9 9 0 1 1-6.2-8.56 M21 3v6h-6",
 };
 
 function iconG(key: string, cx: number, cy: number, size: number, color: string, opacity = 0.6): string {
@@ -521,33 +520,224 @@ function part1(kind: DigitalgateStageKind): StageDef[] {
 }
 
 /* —————————————————————————————————————————————————————————————————————————
- * PART 2 — Business as a living system (architecture map, not a table)
+ * PART 2 — “An intelligent business is more than a brain”
+ *
+ * A faithful PORT of the approved concept prototype into renderer-owned SVG/HTML.
+ * Two visual moments woven through the real article:
+ *   1. The living-system signature — Senses feed the system through a visible
+ *      Nervous System; Memory/context; the dominant Business Brain; a distinct
+ *      AI Advisor; Direction influencing; Hands / Voice / Body acting; Health
+ *      telemetry; a Security/Governance perimeter; and a Learning feedback loop
+ *      returning outcomes to the Brain.
+ *   2. The learning sequence rail: SIGNALS → CONTEXT → INTELLIGENCE → REASONING
+ *      → ACTION → OUTCOME → LEARNING ↺.
+ * All presentation classes are namespaced `dgp2-`; Part 1 and Parts 3–4 untouched.
  * ————————————————————————————————————————————————————————————————————————— */
 
-const LIVING_SYSTEM: Array<{ ring: 1 | 2 | 3; k: string; v: string; cls?: string }> = [
-  { ring: 1, k: "Brain", v: "Business Brain", cls: "is-brain" },
-  { ring: 2, k: "Mind", v: "AI Advisor — reasoning" },
-  { ring: 2, k: "Memory", v: "CRM + Business Knowledge" },
-  { ring: 2, k: "Senses", v: "Signals + Analytics" },
-  { ring: 2, k: "Nervous system", v: "Connectors + Events" },
-  { ring: 3, k: "Body", v: "Core + Industry Apps" },
-  { ring: 3, k: "Hands", v: "Tools + Automation" },
-  { ring: 3, k: "Voice", v: "Communications" },
-  { ring: 3, k: "Immune system", v: "Security + Governance", cls: "is-guard" },
-  { ring: 3, k: "Health", v: "Business Health" },
-  { ring: 3, k: "Direction", v: "Goals + Strategy" },
-  { ring: 3, k: "Learning", v: "Outcomes + Digital Twin", cls: "is-learn" },
+/** Animated flow path (base + dashed signal overlay following the same path). */
+function p2Dash(d: string, c: string, w = 1.5): string {
+  return `<path d="${d}" stroke="${c}" stroke-width="${w}" fill="none" stroke-dasharray="4 6" opacity="0.4"/><path class="dgp1-flow" d="${d}" stroke="${c}" stroke-width="${w}" fill="none" opacity="0.7"/>`;
+}
+function p2Flow(d: string, c: string, w = 2): string {
+  return `<path d="${d}" stroke="${c}" stroke-width="${w}" fill="none" opacity="0.55"/><path class="dgp1-flow" d="${d}" stroke="#cbe6ff" stroke-width="1.3" fill="none" opacity="0.75"/>`;
+}
+
+function p2AnatomyScene(): string {
+  const senseNode = (cy: number, label: string) =>
+    `<circle cx="60" cy="${cy}" r="14" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="1" opacity="0.6"/><rect x="54" y="${cy - 4}" width="12" height="8" rx="1" stroke="#818cf8" stroke-width="0.8" fill="none"/><text x="60" y="${cy + 28}" text-anchor="middle" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">${label}</text>`;
+
+  const desktop = `<svg class="dgp2-svg dgp2-svg--desktop" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+  <defs>
+    <radialGradient id="dgp2BrainGlow"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.25"/><stop offset="50%" stop-color="#7c3aed" stop-opacity="0.08"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+    <radialGradient id="dgp2AdvisorGlow"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>
+    <filter id="dgp2Glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+
+  <!-- Governance / immune perimeter -->
+  <rect x="180" y="105" width="900" height="540" rx="30" fill="none" stroke="#6366f1" stroke-width="0.5" opacity="0.12" stroke-dasharray="8 8"/>
+  <rect x="190" y="115" width="880" height="520" rx="24" fill="none" stroke="#6366f1" stroke-width="0.5" opacity="0.08" stroke-dasharray="4 12"/>
+  <rect x="200" y="125" width="860" height="500" rx="18" fill="none" stroke="#6366f1" stroke-width="0.3" opacity="0.06" stroke-dasharray="2 16"/>
+  <circle cx="210" cy="135" r="6" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="0.5" opacity="0.4"/><circle cx="1050" cy="135" r="6" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="0.5" opacity="0.4"/><circle cx="210" cy="615" r="6" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="0.5" opacity="0.4"/><circle cx="1050" cy="615" r="6" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="0.5" opacity="0.4"/>
+  <text x="1140" y="462" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">IMMUNE SYSTEM</text>
+  <text x="1140" y="476" text-anchor="middle" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">Security + Governance</text>
+
+  <!-- Nervous system pathways -->
+  <g opacity="0.3">
+    <path d="M300 100 C 300 200, 300 300, 560 300" stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.4"/>
+    <path d="M300 150 C 300 250, 300 350, 560 350" stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.3"/>
+    <path d="M300 200 C 300 300, 300 400, 560 400" stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.3"/>
+    <path d="M560 300 C 700 300, 760 300, 850 300" stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.4"/>
+    <path d="M560 500 C 700 500, 760 500, 850 500" stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.3"/>
+    <text x="560" y="95" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">NERVOUS SYSTEM</text>
+    <text x="560" y="110" text-anchor="middle" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">Connectors + Events</text>
+  </g>
+
+  <!-- Senses -->
+  <text x="80" y="70" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">SENSES</text>
+  <text x="80" y="85" text-anchor="middle" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">Signals + Analytics</text>
+  ${senseNode(140, "Web")}${senseNode(210, "Leads")}${senseNode(280, "Customers")}${senseNode(350, "Revenue")}
+  ${p2Dash("M74 140 C 120 140, 160 180, 200 220", "#6366f1")}
+  ${p2Dash("M74 210 C 120 210, 160 240, 200 270", "#6366f1")}
+  ${p2Dash("M74 280 C 120 280, 160 300, 200 320", "#6366f1")}
+  ${p2Dash("M74 350 C 120 350, 160 360, 200 370", "#6366f1")}
+
+  <!-- Direction -->
+  <text x="100" y="470" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">DIRECTION</text>
+  <text x="100" y="485" text-anchor="middle" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">Goals + Strategy</text>
+  <circle cx="80" cy="530" r="20" fill="rgba(251,191,36,0.05)" stroke="#fbbf24" stroke-width="1" opacity="0.6"/><circle cx="80" cy="530" r="10" stroke="#fbbf24" stroke-width="0.8" fill="none" opacity="0.5"/><path d="M80 520v20 M70 530h20 M75 525l10 10 M85 525l-10 10" stroke="#fbbf24" stroke-width="0.5" opacity="0.35"/>
+  ${p2Dash("M100 530 C 200 530, 300 480, 400 430", "#fbbf24", 1)}
+  ${p2Dash("M100 530 C 200 530, 300 530, 400 530", "#fbbf24", 1)}
+
+  <!-- Memory / context -->
+  <text x="260" y="195" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">MEMORY</text>
+  <text x="260" y="210" text-anchor="middle" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">CRM + Knowledge</text>
+  <circle cx="260" cy="300" r="55" fill="rgba(99,102,241,0.03)" stroke="#6366f1" stroke-width="1" opacity="0.6"/>
+  <circle cx="260" cy="300" r="42" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="0.5" stroke-dasharray="4 6" opacity="0.4"/>
+  <circle cx="260" cy="300" r="28" fill="rgba(99,102,241,0.03)" stroke="#6366f1" stroke-width="0.5" opacity="0.2"/>
+  <rect x="250" y="292" width="20" height="12" rx="1.5" stroke="#818cf8" stroke-width="0.8" fill="none" opacity="0.6"/><rect x="254" y="296" width="12" height="3" rx="0.5" fill="#818cf8" opacity="0.2"/>
+  <text x="260" y="338" text-anchor="middle" fill="#c7d2fe" font-family="Sora,Inter,sans-serif" font-size="10" font-weight="600">Memory</text>
+  <text x="260" y="352" text-anchor="middle" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">Context Layer</text>
+
+  <!-- Flow into the Brain -->
+  ${p2Flow("M315 300 C 380 300, 440 300, 490 300", "#7c3aed")}
+
+  <!-- BUSINESS BRAIN (dominant) -->
+  <circle cx="580" cy="300" r="120" fill="url(#dgp2BrainGlow)"/>
+  <g class="dgp1-spin-slow" style="transform-origin:580px 300px"><circle cx="580" cy="300" r="90" fill="none" stroke="#7c3aed" stroke-width="1" stroke-dasharray="8 8" opacity="0.3"/></g>
+  <circle cx="580" cy="300" r="75" fill="rgba(124,58,237,0.05)" stroke="#7c3aed" stroke-width="1.5" opacity="0.4"/>
+  <circle cx="580" cy="300" r="60" fill="url(#dgp2BrainGlow)" stroke="#7c3aed" stroke-width="2" opacity="0.6" filter="url(#dgp2Glow)"/>
+  <g class="dgp1-spin-rev" style="transform-origin:580px 300px"><circle cx="580" cy="300" r="95" fill="none" stroke="#3b82f6" stroke-width="0.5" stroke-dasharray="3 6" opacity="0.2"/></g>
+  <circle cx="580" cy="215" r="8" fill="#7c3aed" opacity="0.5"/><circle cx="580" cy="385" r="8" fill="#7c3aed" opacity="0.5"/><circle cx="495" cy="300" r="8" fill="#3b82f6" opacity="0.5"/><circle cx="665" cy="300" r="8" fill="#3b82f6" opacity="0.5"/>
+  <circle cx="580" cy="300" r="38" fill="rgba(124,58,237,0.08)" stroke="#7c3aed" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="580" cy="300" r="28" fill="rgba(124,58,237,0.12)" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
+  <circle cx="580" cy="300" r="18" fill="rgba(124,58,237,0.15)" stroke="#7c3aed" stroke-width="0.8" opacity="0.4"/>
+  <circle cx="580" cy="300" r="10" fill="#7c3aed" opacity="0.25"/>
+  <circle class="dgp1-corepulse" cx="580" cy="300" r="4" fill="#a78bfa"/>
+  <path d="M580 262v76 M542 300h76 M550 270l60 60 M610 270l-60 60 M565 265l30 70 M595 265l-30 70" stroke="#7c3aed" stroke-width="0.5" opacity="0.32"/>
+  <text x="580" y="360" text-anchor="middle" fill="#fff" font-family="Sora,Inter,sans-serif" font-size="16" font-weight="700">Business Brain</text>
+  <text x="580" y="380" text-anchor="middle" fill="#a78bfa" font-size="10" font-family="ui-monospace,monospace">Structured Intelligence</text>
+  <text x="580" y="395" text-anchor="middle" fill="#6b7280" font-size="9" font-family="ui-monospace,monospace">Context + Understanding</text>
+
+  <!-- Flow to AI Advisor -->
+  ${p2Flow("M640 300 C 710 300, 770 300, 820 300", "#3b82f6")}
+
+  <!-- AI ADVISOR (distinct) -->
+  <circle cx="870" cy="300" r="80" fill="url(#dgp2AdvisorGlow)"/>
+  <circle cx="870" cy="300" r="55" fill="rgba(59,130,246,0.05)" stroke="#3b82f6" stroke-width="1.5" opacity="0.8"/>
+  <circle cx="870" cy="300" r="42" fill="rgba(59,130,246,0.08)" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3 5" opacity="0.5"/>
+  <circle cx="870" cy="300" r="16" stroke="#60a5fa" stroke-width="1" fill="none" opacity="0.5"/><circle cx="870" cy="300" r="8" stroke="#60a5fa" stroke-width="0.8" fill="none" opacity="0.4"/>
+  <circle class="dgp1-corepulse" cx="870" cy="300" r="3" fill="#60a5fa"/>
+  <path d="M870 284v32 M854 300h32 M858 288l24 24 M882 288l-24 24" stroke="#60a5fa" stroke-width="0.4" opacity="0.35"/>
+  <text x="870" y="330" text-anchor="middle" fill="#bfdbfe" font-family="Sora,Inter,sans-serif" font-size="13" font-weight="600">AI Advisor</text>
+  <text x="870" y="348" text-anchor="middle" fill="#6b7280" font-size="9" font-family="ui-monospace,monospace">Reasoning Layer</text>
+  <text x="870" y="362" text-anchor="middle" fill="#4b5563" font-size="8" font-family="ui-monospace,monospace">Recommends actions</text>
+
+  <!-- Flow to Hands / Voice / Body -->
+  ${p2Flow("M925 300 C 965 300, 990 300, 1010 300", "#f59e0b", 1.5)}
+  ${p2Flow("M925 300 C 965 300, 990 400, 1010 400", "#10b981", 1.5)}
+  ${p2Flow("M925 300 C 965 300, 990 200, 1010 200", "#8b5cf6", 1.5)}
+
+  <!-- Hands -->
+  <text x="1050" y="180" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">HANDS</text>
+  <text x="1050" y="194" text-anchor="middle" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">Tools + Automation</text>
+  <circle cx="1050" cy="230" r="25" fill="rgba(139,92,246,0.05)" stroke="#8b5cf6" stroke-width="1" opacity="0.8"/><rect x="1042" y="226" width="16" height="8" rx="1" stroke="#a78bfa" stroke-width="0.8" fill="none"/>
+  <text x="1050" y="270" text-anchor="middle" fill="#c4b5fd" font-family="Sora,Inter,sans-serif" font-size="9" font-weight="600">Workflows</text>
+  <circle cx="1050" cy="320" r="25" fill="rgba(16,185,129,0.05)" stroke="#10b981" stroke-width="1" opacity="0.8"/><rect x="1042" y="316" width="16" height="8" rx="1" stroke="#34d399" stroke-width="0.8" fill="none"/><circle cx="1050" cy="320" r="3" stroke="#34d399" stroke-width="0.5" fill="none"/>
+  <text x="1050" y="360" text-anchor="middle" fill="#6ee7b7" font-family="Sora,Inter,sans-serif" font-size="9" font-weight="600">Automation</text>
+
+  <!-- Voice -->
+  <text x="1050" y="412" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">VOICE</text>
+  <text x="1050" y="426" text-anchor="middle" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">Communications</text>
+  <circle cx="1050" cy="462" r="25" fill="rgba(236,72,153,0.05)" stroke="#ec4899" stroke-width="1" opacity="0.8"/><rect x="1042" y="458" width="16" height="8" rx="1" stroke="#f472b6" stroke-width="0.8" fill="none"/>
+  <text x="1050" y="502" text-anchor="middle" fill="#f472b6" font-family="Sora,Inter,sans-serif" font-size="9" font-weight="600">Comms</text>
+
+  <!-- Body -->
+  <text x="800" y="552" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">BODY</text>
+  <text x="800" y="566" text-anchor="middle" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">Core + Industry Apps</text>
+  <rect x="750" y="580" width="100" height="30" rx="6" fill="rgba(139,92,246,0.03)" stroke="#8b5cf6" stroke-width="0.5" opacity="0.4"/>
+  ${[755, 770, 785, 800, 815, 830].map((x) => `<rect x="${x}" y="588" width="12" height="6" rx="1" fill="#8b5cf6" opacity="0.2"/>`).join("")}
+
+  <!-- Health -->
+  <text x="1140" y="72" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">HEALTH</text>
+  <text x="1140" y="86" text-anchor="middle" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">Business Health</text>
+  <circle cx="1140" cy="130" r="25" fill="rgba(52,211,153,0.03)" stroke="#34d399" stroke-width="1" opacity="0.6"/><circle cx="1140" cy="130" r="15" stroke="#34d399" stroke-width="0.5" fill="none" opacity="0.4"/>
+  <path class="dgp2-health" d="M1128 130h4l3-6 3 12 4-8 3 2h7" stroke="#34d399" stroke-width="1.2" fill="none"/>
+  <text x="1140" y="170" text-anchor="middle" fill="#6ee7b7" font-family="Sora,Inter,sans-serif" font-size="9" font-weight="500">Diagnostic</text>
+
+  <!-- Learning feedback loop -->
+  ${p2Dash("M1050 232 C 950 160, 850 160, 750 220", "#34d399", 1.5)}
+  ${p2Dash("M1050 320 C 950 380, 850 420, 750 420", "#34d399", 1.5)}
+  ${p2Dash("M750 220 C 700 220, 670 260, 640 300", "#34d399", 1.5)}
+  ${p2Dash("M750 420 C 700 420, 670 380, 640 340", "#34d399", 1.5)}
+  <text x="850" y="562" text-anchor="middle" fill="#34d399" font-size="9" font-family="ui-monospace,monospace" opacity="0.75">↺ Learning Feedback Loop</text>
+  <text x="850" y="576" text-anchor="middle" fill="#4b5563" font-size="7.5" font-family="ui-monospace,monospace">Outcomes → Digital Twin → Business Brain</text>
+
+  <!-- Legend -->
+  <text x="600" y="712" text-anchor="middle" fill="#4b5563" font-size="8" font-family="ui-monospace,monospace" letter-spacing="1" opacity="0.6">SYSTEM ANATOMY</text>
+  <text x="600" y="726" text-anchor="middle" fill="#6b7280" font-size="7.5" font-family="ui-monospace,monospace" opacity="0.6">SENSES · MEMORY · BRAIN · ADVISOR · HANDS · VOICE · BODY · HEALTH · DIRECTION · IMMUNE · LEARNING</text>
+</svg>`;
+
+  const mBrain = (cx: number, cy: number) => `
+    <circle cx="${cx}" cy="${cy}" r="90" fill="url(#dgp2BrainGlowV)"/>
+    <g class="dgp1-spin-slow" style="transform-origin:${cx}px ${cy}px"><circle cx="${cx}" cy="${cy}" r="72" fill="none" stroke="#7c3aed" stroke-width="1" stroke-dasharray="8 8" opacity="0.3"/></g>
+    <circle cx="${cx}" cy="${cy}" r="56" fill="url(#dgp2BrainGlowV)" stroke="#7c3aed" stroke-width="2" opacity="0.6"/>
+    <circle cx="${cx}" cy="${cy}" r="34" fill="rgba(124,58,237,0.1)" stroke="#7c3aed" stroke-width="1.4"/>
+    <circle cx="${cx}" cy="${cy}" r="20" fill="rgba(124,58,237,0.15)" stroke="#7c3aed" stroke-width="0.8"/>
+    <circle class="dgp1-corepulse" cx="${cx}" cy="${cy}" r="4" fill="#a78bfa"/>
+    <path d="M${cx} ${cy - 34}v68 M${cx - 34} ${cy}h68 M${cx - 24} ${cy - 24}l48 48 M${cx + 24} ${cy - 24}l-48 48" stroke="#7c3aed" stroke-width="0.5" opacity="0.3"/>`;
+  const mBlock = (cy: number, tint: string, bg: string, key: string, kicker: string, label: string) =>
+    `<rect x="70" y="${cy}" width="250" height="60" rx="14" fill="${bg}" stroke="${tint}" stroke-opacity="0.4"/>${iconG(key, 104, cy + 30, 22, tint, 0.8)}<text x="132" y="${cy + 25}" fill="#6b7280" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">${kicker}</text><text x="132" y="${cy + 44}" fill="#eef4ff" font-family="Sora,Inter,sans-serif" font-size="14" font-weight="700">${label}</text>`;
+  const mobile = `<svg class="dgp2-svg dgp2-svg--mobile" viewBox="0 0 390 1080" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+  <defs>
+    <radialGradient id="dgp2BrainGlowV"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.25"/><stop offset="55%" stop-color="#7c3aed" stop-opacity="0.07"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+    <radialGradient id="dgp2AdvisorGlowV"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect x="18" y="18" width="354" height="1044" rx="26" fill="none" stroke="#6366f1" stroke-width="0.5" opacity="0.12" stroke-dasharray="8 8"/>
+  <text x="195" y="46" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">IMMUNE SYSTEM · SECURITY + GOVERNANCE</text>
+  ${mBlock(74, "#6366f1", "rgba(99,102,241,0.06)", "signal", "SENSES", "Signals + Analytics")}
+  ${p2Flow("M195 134 L195 176", "#7c3aed")}
+  ${mBlock(176, "#6366f1", "rgba(99,102,241,0.06)", "contextbox", "MEMORY", "CRM + Knowledge")}
+  ${p2Flow("M195 236 L195 300", "#7c3aed")}
+  <text x="195" y="300" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">BUSINESS BRAIN</text>
+  ${mBrain(195, 400)}
+  <text x="195" y="512" text-anchor="middle" fill="#fff" font-family="Sora,Inter,sans-serif" font-size="15" font-weight="700">Business Brain</text>
+  <text x="195" y="530" text-anchor="middle" fill="#a78bfa" font-size="9" font-family="ui-monospace,monospace">Structured Intelligence</text>
+  ${p2Flow("M195 548 L195 600", "#3b82f6")}
+  <circle cx="195" cy="656" r="46" fill="url(#dgp2AdvisorGlowV)" stroke="#3b82f6" stroke-width="1.5" opacity="0.8"/><circle cx="195" cy="656" r="16" stroke="#60a5fa" stroke-width="1" fill="none"/><circle class="dgp1-corepulse" cx="195" cy="656" r="3" fill="#60a5fa"/><text x="195" y="722" text-anchor="middle" fill="#bfdbfe" font-family="Sora,Inter,sans-serif" font-size="13" font-weight="600">AI Advisor</text><text x="195" y="738" text-anchor="middle" fill="#6b7280" font-size="9" font-family="ui-monospace,monospace">Reasoning Layer</text>
+  ${p2Flow("M195 702 L195 770", "#f59e0b")}
+  ${mBlock(770, "#f59e0b", "rgba(245,158,11,0.06)", "gear", "HANDS · VOICE · BODY", "Act — automation, comms, apps")}
+  ${p2Dash("M320 800 C 370 780, 372 620, 300 470", "#34d399", 1.5)}
+  <text x="316" y="612" text-anchor="middle" fill="#34d399" font-size="8" font-family="ui-monospace,monospace" opacity="0.75" transform="rotate(90 316 612)">↺ LEARNING → BRAIN</text>
+  ${mBlock(880, "#fbbf24", "rgba(251,191,36,0.05)", "target", "DIRECTION", "Goals influence decisions")}
+  ${mBlock(970, "#34d399", "rgba(52,211,153,0.05)", "activity", "HEALTH", "System diagnostics")}
+</svg>`;
+
+  return `<div class="dgp2-scene dgp2-scene--anatomy">${desktop}${mobile}</div>`;
+}
+
+/* Learning sequence rail. */
+const P2_LEARN: Array<[string, string, string]> = [
+  ["layers", "", "SIGNALS"],
+  ["contextbox", "", "CONTEXT"],
+  ["crosshair", "intelligence", "INTELLIGENCE"],
+  ["reason", "", "REASONING"],
+  ["network", "", "ACTION"],
+  ["clock", "", "OUTCOME"],
+  ["refresh", "learning", "LEARNING"],
 ];
 
-function part2(kind: DigitalgateStageKind): StageDef[] {
-  const rings = (r: 1 | 2 | 3) =>
-    LIVING_SYSTEM.filter((x) => x.ring === r)
-      .map(
-        (x) =>
-          `<li class="dg-anatomy__node${x.cls ? ` ${x.cls}` : ""}"><strong>${x.k}</strong><small>${x.v}</small></li>`,
-      )
-      .join("");
+function p2LearnScene(): string {
+  const stops = P2_LEARN.map(
+    ([key, mod, label], i) =>
+      `${i > 0 ? `<span class="dgp2-learn__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14 M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>` : ""}<div class="dgp2-learn__stop${mod ? ` dgp2-learn__stop--${mod}` : ""}">
+    <span class="dgp2-learn__ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON[key]}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="dgp2-learn__label">${label}</span>
+  </div>`,
+  ).join("");
+  return `<div class="dgp2-scene dgp2-scene--learn"><div class="dgp2-learn"><span class="dgp2-learn__track" aria-hidden="true"></span>${stops}<span class="dgp2-learn__loop" aria-hidden="true">↺</span></div></div>`;
+}
 
+function part2(kind: DigitalgateStageKind): StageDef[] {
   return [
     {
       name: "living-system",
@@ -556,29 +746,14 @@ function part2(kind: DigitalgateStageKind): StageDef[] {
         kind,
         name: "living-system",
         index: "01",
-        eyebrow: "The architecture",
-        title: "An intelligent business is more than a brain",
-        lede: "A brain without a body senses nothing and does nothing. DigitalGate is the whole system — organised as connected rings around one shared intelligence.",
+        eyebrow: "The living system",
+        title: "Your business, working as a system",
+        lede: "Senses feed the system through a nervous system of connectors and events; memory holds context; the Business Brain understands; the AI Advisor reasons; direction steers; hands, voice and body act; governance protects — and every outcome learns its way back to the Brain.",
         ariaLabel:
-          "A living-system map. Inner ring: Business Brain. Middle ring: mind (AI Advisor), memory (CRM and knowledge), senses (signals and analytics) and nervous system (connectors and events). Outer ring: body (Core and industry apps), hands (tools and automation), voice (communications), immune system (security and governance), health, direction (goals) and learning (outcomes and Digital Twin).",
-        variant: "dg-stage--map dg-stage--wide",
-        scene: `<div class="dg-anatomy">
-  <div class="dg-anatomy__diagram" aria-hidden="true">
-    <span class="dg-anatomy__ring dg-anatomy__ring--3"></span>
-    <span class="dg-anatomy__ring dg-anatomy__ring--2"></span>
-    <span class="dg-anatomy__core">${brainCore({ idSuffix: "P2" })}<strong>Business Brain™</strong></span>
-  </div>
-  <div class="dg-anatomy__legend">
-    <p class="dg-anatomy__ring-label">Intelligence</p>
-    <ul class="dg-anatomy__group is-inner">${rings(1)}</ul>
-    <p class="dg-anatomy__ring-label">Perception &amp; memory</p>
-    <ul class="dg-anatomy__group is-mid">${rings(2)}</ul>
-    <p class="dg-anatomy__ring-label">Body, action &amp; governance</p>
-    <ul class="dg-anatomy__group is-outer">${rings(3)}</ul>
-  </div>
-</div>`,
-        caption:
-          "The sophistication is the connection: senses inform memory, memory informs the Brain, the Brain informs action — all governed.",
+          "A living-system architecture. On the left, Senses (web, leads, customers, revenue) feed the system through a visible Nervous System of pathways; a Memory context layer holds knowledge; Direction (goals and strategy) influences it. At the centre, the dominant Business Brain holds structured intelligence, feeding a distinct AI Advisor reasoning layer. On the right, Hands (tools and automation), Voice (communications) and the operational Body act; Business Health provides telemetry; a Security and Governance perimeter protects the whole; and a Learning feedback loop returns outcomes through the Digital Twin back to the Business Brain.",
+        variant: "dg-stage--wide dg-stage--p2 dgp2-stage--anatomy",
+        scene: p2AnatomyScene(),
+        caption: "Intelligence is a property of the whole system — senses, memory, brain, advisor, action, governance and learning, connected.",
       }),
     },
     {
@@ -588,20 +763,14 @@ function part2(kind: DigitalgateStageKind): StageDef[] {
         kind,
         name: "living-flow",
         index: "02",
-        eyebrow: "How it lives",
-        title: "Perceive → remember → understand → act → govern",
-        lede: "The parts are not a checklist. They form a pathway the business runs on, continuously.",
+        eyebrow: "How intelligence emerges",
+        title: "Signals → Context → Intelligence → Reasoning → Action → Outcome → Learning",
+        lede: "The parts are not a checklist. They form one continuous loop the business runs on — and every outcome feeds the next decision.",
         ariaLabel:
-          "A pathway across the living system: senses perceive, memory retains, the Business Brain understands, hands and voice act, and the immune system governs throughout.",
-        scene: `<ol class="dg-path">
-  ${node("Senses", "Signals + Analytics perceive activity", "is-signal")}
-  ${node("Memory", "CRM + Knowledge retain the context", "")}
-  ${node("Brain", "Business Brain understands the whole", "is-live")}
-  ${node("Hands & Voice", "Automation + Communications act", "")}
-  ${node("Immune system", "Security + Governance keep it safe", "is-guard")}
-  ${node("Learning", "Outcomes + Digital Twin improve it", "is-positive")}
-</ol>`,
-        caption: "One connected organism — every capability strengthens the next.",
+          "A learning sequence rail: signals become context, context becomes intelligence, intelligence becomes reasoning, reasoning becomes action, action produces an outcome, and the outcome feeds learning back into the system.",
+        variant: "dg-stage--wide dg-stage--p2 dgp2-stage--learn",
+        scene: p2LearnScene(),
+        caption: "Intelligence is not a feature. It is a system property — and the loop compounds every time it runs.",
       }),
     },
   ];
