@@ -108,7 +108,7 @@ describe("C-2: platform authority is server-controlled only", () => {
 });
 
 describe("C-2: genuine operators retain access", () => {
-  it("grants platform authority via the DG_COMMAND_CENTRE_ORG_IDS allowlist", async () => {
+  it("allows only the owner fallback inside an allowlisted operator organisation", async () => {
     process.env.DG_COMMAND_CENTRE_ORG_IDS = `${OPERATOR_ORG}, other_org`;
     const { hasPlatformAuthority } = await load("access/platform-authority.ts");
     const { canAccessCommandCentre } = await load("command-centre/access.ts");
@@ -121,6 +121,19 @@ describe("C-2: genuine operators retain access", () => {
       canAccessCommandCentre({ organisationId: OPERATOR_ORG, role: "owner" }),
       true,
     );
+
+    for (const role of ["admin", "member"]) {
+      assert.equal(
+        hasPlatformAuthority({ organisationId: OPERATOR_ORG, role }),
+        false,
+        `${role} membership in the operator organisation must not imply platform authority`,
+      );
+      assert.equal(
+        canAccessCommandCentre({ organisationId: OPERATOR_ORG, role }),
+        false,
+      );
+    }
+
     assert.equal(
       canAccessCommandCentre({ organisationId: VICTIM_ORG, role: "owner" }),
       false,

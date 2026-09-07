@@ -4,7 +4,9 @@
  *
  * SECURITY BOUNDARY. Only server-controlled inputs may appear here:
  *
- *   1. `DG_COMMAND_CENTRE_ORG_IDS` — deployment-time environment allowlist.
+ *   1. `DG_COMMAND_CENTRE_ORG_IDS` — deployment-time operator-organisation allowlist.
+ *      Membership in an allowlisted organisation alone is NOT platform authority;
+ *      the interactive member must also hold the organisation `owner` role.
  *   2. `membership.role === "dg:staff"` — writable only directly in the
  *      database; the Team UI/API can only assign `admin` | `member`
  *      (see ASSIGNABLE_MEMBERSHIP_ROLES in ./membership-role).
@@ -18,8 +20,8 @@
  * authority regardless of allowlist/role: a credential must not substitute for
  * an interactive platform-operator identity (see `isApiKeyPrincipal`).
  *
- * Fails closed: with no allowlist configured and no `dg:staff` membership,
- * nobody holds platform authority.
+ * Fails closed: with no owner session for an allowlisted operator organisation
+ * and no `dg:staff` membership, nobody holds platform authority.
  */
 
 export const PLATFORM_STAFF_ROLE = "dg:staff";
@@ -49,7 +51,7 @@ export function isApiKeyPrincipal(principalId?: string | null): boolean {
   );
 }
 
-/** Organisation ids explicitly designated as platform operators at deploy time. */
+/** Organisation ids explicitly designated as platform operator organisations. */
 export function platformOperatorOrganisationIds(): string[] {
   return (
     process.env[PLATFORM_OPERATOR_ORG_IDS_ENV]?.split(",")
@@ -84,11 +86,21 @@ export type PlatformAuthorityInput = {
 /**
  * True when the caller acts with DigitalGate platform authority.
  *
+ * Authority is deliberately narrower than ordinary membership in the
+ * allowlisted DigitalGate organisation. An interactive `admin` or `member`
+ * cannot inherit Command Centre access just by belonging to that organisation.
+ *
  * Never derived from organisation name/slug — see module header.
  */
 export function hasPlatformAuthority(input: PlatformAuthorityInput): boolean {
   // A non-interactive credential never substitutes for an interactive operator.
   if (isApiKeyPrincipal(input.principalId)) return false;
-  if (input.role?.trim().toLowerCase() === PLATFORM_STAFF_ROLE) return true;
-  return isPlatformOperatorOrganisationId(input.organisationId);
+
+  const role = input.role?.trim().toLowerCase();
+  if (role === PLATFORM_STAFF_ROLE) return true;
+
+  return (
+    role === "owner" &&
+    isPlatformOperatorOrganisationId(input.organisationId)
+  );
 }

@@ -25,11 +25,13 @@ export function isDigitalGateStaffEmail(email?: string | null): boolean {
 /**
  * True when the *active* tenant may see Command Centre.
  *
- * SECURITY BOUNDARY — delegates to the single platform-authority source
- * (`DG_COMMAND_CENTRE_ORG_IDS` allowlist or `dg:staff` role). Organisation
- * name and slug are tenant-editable and are intentionally ignored: any user
- * could otherwise create an organisation called "DigitalGate …" and inherit
- * operator privileges.
+ * SECURITY BOUNDARY — delegates to the single platform-authority source.
+ * Platform authority requires either the explicit `dg:staff` role or the
+ * `owner` role while operating inside a server-allowlisted operator organisation.
+ * Ordinary `admin` / `member` membership in that organisation is insufficient.
+ * Organisation name and slug are tenant-editable and are intentionally ignored:
+ * any user could otherwise create an organisation called "DigitalGate …" and
+ * inherit operator privileges.
  *
  * `organisationName` / `organisationSlug` remain on the input type only so
  * existing callers keep compiling; they are never read.
