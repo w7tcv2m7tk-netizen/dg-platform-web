@@ -5,12 +5,14 @@ const CF_API = "https://api.cloudflare.com/client/v4";
 
 export class CloudflareApiError extends Error {
   readonly code = "cloudflare_api_error" as const;
+  readonly status?: number;
 
   constructor(
     message: string,
-    readonly status?: number,
+    status?: number,
   ) {
     super(message);
+    this.status = status;
     this.name = "CloudflareApiError";
   }
 }
