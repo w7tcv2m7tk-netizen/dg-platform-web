@@ -118,6 +118,11 @@ export const TENANT_CAPABILITY_GROUPS: GrowthCapabilityGroup[] = [
     phase: "Qualify",
     cards: [
       {
+        title: "AI Audit Engine™",
+        description: "Run tenant-scoped digital presence audits and generate opportunity reports.",
+        href: "/apps/prospecting/audits",
+      },
+      {
         title: "Opportunity Scoring™",
         description: "Determine whether there is a genuine opportunity.",
         href: "/apps/prospecting/scores",
@@ -136,6 +141,11 @@ export const TENANT_CAPABILITY_GROUPS: GrowthCapabilityGroup[] = [
         title: "Activity",
         description: "Calls, notes, tasks and follow-ups — carries into CRM on convert.",
         href: "/apps/prospecting/activity",
+      },
+      {
+        title: "Proposal Generator",
+        description: "Turn qualified opportunities into tenant-owned offers and Commerce quotes.",
+        href: "/apps/prospecting/proposals",
       },
       {
         title: "CRM",
