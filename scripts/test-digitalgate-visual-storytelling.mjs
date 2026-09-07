@@ -157,18 +157,42 @@ describe("digitalgate insights visual stages (#48)", () => {
     assert.equal(enhanceDigitalgateVisualHtml(p3, SLUGS["insights-part-3"]), p3);
 
     const p4 = enhanceDigitalgateVisualHtml(
-      `<header class="hero"><h1>Part 4</h1></header><section><h2>Business software should tell you what needs doing</h2><p>P4_OPEN</p></section><section><h2>The problem with dashboards</h2><p>P4_DASH</p></section><section><h2>Human control is part of the intelligence</h2><p>P4_HUMAN</p></section>`,
+      `<header class="hero"><h1>Part 4</h1></header><section><h2>Business software should tell you what needs doing</h2><p>P4_OPEN</p></section><section><h2>The problem with dashboards</h2><p>P4_DASH</p></section><section><h2>Human control is part of the intelligence</h2><p>P4_HUMAN</p></section><section><h2>The business should get smarter as more happens</h2><p>P4_LEARN</p></section><section><h2>From tools to an operating partner</h2><p>P4_CLOSE</p></section>`,
       SLUGS["insights-part-4"],
     );
     assert.match(p4, /data-dg-stage="maturity"/);
     assert.match(p4, /data-dg-stage="passive-vs-intelligent"/);
     assert.match(p4, /data-dg-stage="governance"/);
+    assert.match(p4, /data-dg-stage="learning-loop"/);
+    assert.match(p4, /data-dg-stage="series-recap"/);
+    assert.match(p4, /dgp4-scene--maturity/);
+    assert.match(p4, /dgp4-desktop/);
+    assert.match(p4, /dgp4-mobile/);
+    assert.match(p4, /PASSIVE/);
+    assert.match(p4, /LEARNING SYSTEM/);
+    assert.match(p4, /GOVERNED AUTOMATION/);
     assert.match(p4, />47</);
     assert.match(p4, /prepared the priority follow-up list/i);
-    assert.match(p4, /Decision stays here/);
+    assert.match(p4, /HUMAN AUTHORITY/);
+    assert.match(p4, /Digital Twin/);
+    assert.match(p4, /AI Advisor/);
+    assert.match(p4, /Business Brain/);
+    assert.match(p4, /Fragmented → Connected/);
+    assert.match(p4, /Passive → Learning System/);
+    assert.equal(count(p4, /data-dg-stage-of="insights-part-4"/g), 5);
     // governance lands around the human-control section
     assert.ok(p4.indexOf("P4_HUMAN") < p4.indexOf('data-dg-stage="governance"'));
+    assert.ok(p4.indexOf('data-dg-stage="maturity"') < p4.indexOf('data-dg-stage="passive-vs-intelligent"'));
+    assert.ok(p4.indexOf('data-dg-stage="governance"') < p4.indexOf('data-dg-stage="learning-loop"'));
     assert.equal(enhanceDigitalgateVisualHtml(p4, SLUGS["insights-part-4"]), p4);
+
+    // Parts 1–3 contracts unchanged by Part 4 isolation
+    const p1still = enhanceDigitalgateVisualHtml(
+      `<header class="hero"><h1>Part 1</h1></header><section><h2>Your tools don't talk to each other</h2><p>A</p></section>`,
+      SLUGS["insights-part-1"],
+    );
+    assert.match(p1still, /data-dg-stage-of="insights-part-1"/);
+    assert.doesNotMatch(p1still, /dgp4-/);
   });
 
   it("falls back gracefully when semantic anchors are absent (no drop, no dup)", async () => {
