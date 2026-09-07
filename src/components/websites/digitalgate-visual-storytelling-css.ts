@@ -837,98 +837,81 @@ export const digitalgateVisualStorytellingCss = `
 }
 
 /* Editorial intros sit centred above the expansive visuals. */
-.dgp1-stage--signature .dg-stage__intro,
+.dgp1-stage--frag .dg-stage__intro,
 .dgp1-stage--arch .dg-stage__intro,
 .dgp1-stage--rail .dg-stage__intro {
   text-align: center;
   justify-items: center;
-  max-width: 44rem;
+  max-width: 46rem;
 }
-.dgp1-stage--signature .dg-stage__kicker,
+.dgp1-stage--frag .dg-stage__kicker,
 .dgp1-stage--arch .dg-stage__kicker,
 .dgp1-stage--rail .dg-stage__kicker { justify-content: center; }
-.dgp1-stage--signature .dg-stage__caption,
+.dgp1-stage--frag .dg-stage__caption,
 .dgp1-stage--arch .dg-stage__caption,
 .dgp1-stage--rail .dg-stage__caption { text-align: center; max-width: 40rem; }
 
-/* Expansive breakouts: architecture visuals ~1000–1160px; rail a touch tighter
-   so it reinforces rather than competes with the signature/architecture. */
-.dgp1-stage--signature.dg-stage--wide,
-.dgp1-stage--arch.dg-stage--wide { width: min(1160px, calc(100vw - 2.5rem)); }
-.dgp1-stage--rail.dg-stage--wide { width: min(980px, calc(100vw - 3rem)); }
+/* Expansive breakouts: the fragmentation and architecture scenes are the memorable
+   moments and run wide; the rail is tighter so it supports rather than competes. */
+.dgp1-stage--frag.dg-stage--wide,
+.dgp1-stage--arch.dg-stage--wide { width: min(1180px, calc(100vw - 2rem)); }
+.dgp1-stage--rail.dg-stage--wide { width: min(940px, calc(100vw - 3rem)); }
 
 /* Scenes are open — no boxed rectangle. Depth comes from light: a soft,
-   feathered glow behind the signature/architecture, never a bordered panel. */
+   feathered glow behind the fragmentation/architecture, never a bordered panel. */
 .dgp1-scene { position: relative; z-index: 0; }
 .dgp1-svg { display: block; width: 100%; height: auto; }
 .dgp1-svg--mobile { display: none; }
-.dgp1-scene--signature::before,
+.dgp1-scene--frag::before,
 .dgp1-scene--arch::before {
   content: "";
   position: absolute;
-  inset: -8% -4%;
+  inset: -8% -3%;
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(58% 74% at 82% 50%, rgba(124, 58, 237, 0.12), transparent 62%),
-    radial-gradient(50% 66% at 12% 42%, rgba(56, 189, 248, 0.07), transparent 62%);
+    radial-gradient(56% 72% at 84% 50%, rgba(124, 58, 237, 0.14), transparent 62%),
+    radial-gradient(46% 62% at 10% 44%, rgba(56, 189, 248, 0.06), transparent 62%);
 }
 
-/* Restrained editorial problem markers — never four feature cards. */
-.dgp1-markers {
+/* Problem indicators — icon + label + sublabel; never four feature cards. */
+.dgp1-problems {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1.2rem 1.6rem;
-  padding-top: 1.15rem;
-  border-top: 1px solid var(--p1-hair);
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem 2.5rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
-.dgp1-marker { display: grid; grid-template-columns: auto 1fr; gap: 0.7rem; align-items: start; }
-.dgp1-marker__glyph { width: 22px; height: 22px; color: var(--p1-electric); margin-top: 0.15rem; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-marker__body strong,
-.dgp1-marker__body strong { display: block; color: var(--p1-ink) !important; font-family: Sora, Inter, sans-serif !important; font-size: 0.92rem !important; font-weight: 800 !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-marker__body small,
-.dgp1-marker__body small { display: block; margin-top: 0.2rem !important; color: var(--p1-muted) !important; font-size: 0.8rem !important; line-height: 1.45 !important; }
+.dgp1-problem { display: flex; gap: 1rem; align-items: flex-start; }
+.dgp1-problem__ic { flex: none; width: 40px; height: 40px; border-radius: 999px; display: grid; place-items: center; }
+.dgp1-problem__ic svg { width: 20px; height: 20px; }
+.dgp1-problem__ic--red { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; }
+.dgp1-problem__ic--yellow { background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.2); color: #facc15; }
+.dgp1-problem__ic--orange { background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.2); color: #fb923c; }
+.dgp1-problem__ic--purple { background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.2); color: #c084fc; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-problem__b strong,
+.dgp1-problem__b strong { display: block; color: #ffffff !important; font-family: Sora, Inter, sans-serif !important; font-size: 0.9rem !important; font-weight: 600 !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-problem__b small,
+.dgp1-problem__b small { display: block; margin-top: 0.18rem !important; color: #6b7280 !important; font-size: 0.78rem !important; line-height: 1.4 !important; }
 
-/* Transformation rail — grows more organised left → right. */
-.dgp1-rail {
-  list-style: none;
-  margin: 0;
-  padding: 0.3rem 0 0;
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
-  align-items: start;
-}
-.dgp1-rail__track {
-  position: absolute;
-  top: 34px;
-  left: 12%;
-  right: 12%;
-  height: 2px;
-  z-index: 0;
-  background: linear-gradient(90deg, rgba(148, 163, 184, 0.22), rgba(96, 165, 250, 0.45) 55%, rgba(167, 139, 250, 0.6));
-}
-.dgp1-rail__stop { position: relative; z-index: 1; display: grid; justify-items: center; text-align: center; gap: 0.4rem; }
-.dgp1-rail__marker {
-  width: 68px;
-  height: 68px;
-  display: grid;
-  place-items: center;
-  border-radius: 16px;
-  background: rgba(10, 15, 25, 0.92);
-  border: 1px solid rgba(96, 116, 146, 0.3);
-  color: rgba(148, 163, 184, 0.85);
-}
-.dgp1-rail__marker svg { width: 54px; height: 34px; fill: currentColor; }
-.dgp1-rail__stop--linked .dgp1-rail__marker { border-color: rgba(96, 165, 250, 0.4); color: var(--p1-blue); }
-.dgp1-rail__stop--intelligent .dgp1-rail__marker { border-color: rgba(96, 165, 250, 0.55); color: var(--p1-electric); }
-.dgp1-rail__stop--coordinated .dgp1-rail__marker { border-color: rgba(167, 139, 250, 0.55); color: var(--p1-purple); box-shadow: inset 0 0 26px rgba(124, 58, 237, 0.16); }
-.dgp1-rail__step { color: #6b7a90 !important; font-family: Sora, Inter, sans-serif; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.16em; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop strong,
-.dgp1-rail__stop strong { color: var(--p1-ink) !important; font-family: Sora, Inter, sans-serif !important; font-size: 0.98rem !important; font-weight: 800 !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop small,
-.dgp1-rail__stop small { color: var(--p1-muted) !important; font-size: 0.76rem !important; }
+/* Transformation rail — icon nodes + connecting track + arrows. */
+.dgp1-rail { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.4rem; padding: 1rem 2.75rem 0; }
+.dgp1-rail__track { position: absolute; top: 40px; left: 15%; right: 15%; height: 1px; z-index: 0; background: linear-gradient(90deg, #1f2937, rgba(124, 58, 237, 0.22) 50%, #1f2937); }
+.dgp1-rail__stop { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+.dgp1-rail__ic { width: 48px; height: 48px; border-radius: 999px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #6b7280; }
+.dgp1-rail__ic svg { width: 20px; height: 20px; }
+.dgp1-rail__stop--connected .dgp1-rail__ic { color: #d1d5db; }
+.dgp1-rail__stop--intelligent .dgp1-rail__ic { background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.2); color: #c084fc; }
+.dgp1-rail__stop--coordinated .dgp1-rail__ic { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__label,
+.dgp1-rail__label { font-family: Sora, Inter, sans-serif; font-size: 0.72rem !important; font-weight: 600; letter-spacing: 0.09em; color: #6b7280 !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop--connected .dgp1-rail__label { color: #d1d5db !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop--intelligent .dgp1-rail__label { color: #c084fc !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop--coordinated .dgp1-rail__label { color: #60a5fa !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__sub,
+.dgp1-rail__sub { font-size: 0.62rem !important; color: #4b5563 !important; }
+.dgp1-rail__arrow { align-self: flex-start; margin-top: 12px; display: grid; place-items: center; color: rgba(167, 139, 250, 0.4); }
+.dgp1-rail__arrow svg { width: 22px; height: 22px; }
 
 /* Part-1 hero: extremely restrained architectural illumination behind the copy.
    Scoped with :has() to the page that actually carries a Part-1 stage, so Parts
@@ -974,21 +957,25 @@ export const digitalgateVisualStorytellingCss = `
 @media (max-width: 680px) {
   .dgp1-svg--desktop { display: none; }
   .dgp1-svg--mobile { display: block; }
-  .dgp1-markers { grid-template-columns: 1fr 1fr; gap: 1.1rem 1.25rem; }
-  .dgp1-rail { grid-template-columns: 1fr 1fr; gap: 1.4rem 1rem; }
+  .dgp1-problems { grid-template-columns: 1fr; gap: 1.4rem; }
+  .dgp1-rail { flex-direction: column; align-items: center; gap: 0.35rem; padding: 0.5rem 0 0; }
   .dgp1-rail__track { display: none; }
-}
-@media (max-width: 430px) {
-  .dgp1-markers { grid-template-columns: 1fr; }
+  .dgp1-rail__arrow { align-self: center; margin: 0; transform: rotate(90deg); }
 }
 
 /* —— Part 1 · motion: only communicates system behaviour; static tells the
    whole story; respects prefers-reduced-motion. —— */
 @media (prefers-reduced-motion: no-preference) {
   .dgp1-flow { stroke-dasharray: 4 10; animation: dgp1Flow 2.8s linear infinite; }
-  .dgp1-spark { animation: dgp1Spark 3.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  .dgp1-pulse { animation: dgp1Pulse 2.4s ease-in-out infinite; }
+  .dgp1-corepulse { animation: dgp1Core 2s ease-in-out infinite; }
+  .dgp1-orbit-slow, .dgp1-spin-slow { animation: dgp1Spin 26s linear infinite; }
+  .dgp1-orbit-rev, .dgp1-spin-rev { animation: dgp1SpinRev 32s linear infinite; }
   @keyframes dgp1Flow { to { stroke-dashoffset: -28; } }
-  @keyframes dgp1Spark { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+  @keyframes dgp1Pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.85; } }
+  @keyframes dgp1Core { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+  @keyframes dgp1Spin { to { transform: rotate(360deg); } }
+  @keyframes dgp1SpinRev { to { transform: rotate(-360deg); } }
 }
 @media (prefers-reduced-motion: reduce) {
   .dgp1-flow { display: none; }

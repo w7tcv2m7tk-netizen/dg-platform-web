@@ -122,20 +122,20 @@ describe("digitalgate insights visual stages (#48)", () => {
       "markers precede the connected prose",
     );
     assert.ok(
-      out.indexOf("PROSE_CONNECTED") < out.indexOf('data-dg-stage="intelligence-stack"'),
-      "architecture follows the connected prose",
+      out.indexOf("PROSE_CONNECTED") < out.indexOf('data-dg-stage="operating-system"'),
+      "transformation rail follows the connected prose",
     );
     assert.ok(
-      out.indexOf('data-dg-stage="intelligence-stack"') < out.indexOf("PROSE_REPLACE"),
-      "architecture precedes the replace prose",
+      out.indexOf('data-dg-stage="operating-system"') < out.indexOf("PROSE_REPLACE"),
+      "rail precedes the replace prose",
     );
     assert.ok(
-      out.indexOf("PROSE_REPLACE") < out.indexOf('data-dg-stage="operating-system"'),
-      "rail lands late, before the synthesis",
+      out.indexOf("PROSE_REPLACE") < out.indexOf('data-dg-stage="intelligence-stack"'),
+      "architecture lands late, before the synthesis",
     );
     assert.ok(
-      out.indexOf('data-dg-stage="operating-system"') < out.indexOf("PROSE_VISION"),
-      "rail precedes the vision prose (final resolution before CTA)",
+      out.indexOf('data-dg-stage="intelligence-stack"') < out.indexOf("PROSE_VISION"),
+      "architecture precedes the vision prose (final resolution before CTA)",
     );
 
     // (10) each scene exactly once
