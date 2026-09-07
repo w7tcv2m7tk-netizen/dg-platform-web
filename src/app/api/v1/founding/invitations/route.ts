@@ -1,33 +1,21 @@
 import { NextResponse } from "next/server";
 import {
-  canAccessCommandCentre,
   createFoundingInvitation,
   FOUNDING_SOURCES,
   type FoundingSource,
 } from "@dg/platform-core";
 
-import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
+import { requirePlatformOperator } from "@/lib/command-api";
+import { isNextResponse } from "@/lib/platform-api";
 
 function isSource(value: string | undefined): value is FoundingSource {
   return Boolean(value && (FOUNDING_SOURCES as readonly string[]).includes(value));
 }
 
 export async function POST(req: Request) {
-  const session = await requirePlatformSession();
-  if (isNextResponse(session)) return session;
-
-  const allowed = canAccessCommandCentre({
-    organisationId: session.organisationId,
-    organisationName: session.organisationName,
-    organisationSlug: session.organisationSlug,
-    role: session.role,
-  });
-  if (!allowed) {
-    return NextResponse.json(
-      { error: { code: "forbidden", message: "Founding invitations are staff-only." } },
-      { status: 403 },
-    );
-  }
+  const auth = await requirePlatformOperator(req);
+  if (isNextResponse(auth)) return auth;
+  const session = auth.session;
 
   const body = (await req.json().catch(() => null)) as {
     contactId?: string;
