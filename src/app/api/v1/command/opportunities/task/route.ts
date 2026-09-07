@@ -6,7 +6,10 @@ import { isNextResponse } from "@/lib/platform-api";
 
 /** Create a CRM task on the opportunity's organisation (platform operator only). */
 export async function POST(req: Request) {
-  const auth = await requirePlatformOperator(req, "command.opportunities.read");
+  // This route mutates a tenant task cross-organisation, so do not authorise it
+  // with the read-only opportunities feature. The neutral Command operator gate
+  // proves existing command.view access and mints the branded operator capability.
+  const auth = await requirePlatformOperator(req);
   if (isNextResponse(auth)) return auth;
 
   const body = await req.json().catch(() => null);
