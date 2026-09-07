@@ -503,9 +503,17 @@ function collectHeadings(html: string): HeadingHit[] {
 }
 
 function articleEndIndex(html: string): number {
-  for (const tag of ["</article>", "</main>"]) {
+  // The end must sit AFTER the final heading. Some articles use <article> for
+  // inner components (e.g. stacked "manifesto" layers), so a naive
+  // lastIndexOf("</article>") can point mid-document and wrongly clamp late
+  // insertions. Only accept an end marker that comes after the last heading.
+  const headings = collectHeadings(html);
+  const lastHeadingStart = headings.length
+    ? headings[headings.length - 1].start
+    : 0;
+  for (const tag of ["</main>", "</article>", "</section>"]) {
     const idx = html.lastIndexOf(tag);
-    if (idx >= 0) return idx;
+    if (idx >= lastHeadingStart) return idx;
   }
   return html.length;
 }

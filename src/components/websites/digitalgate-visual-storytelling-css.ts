@@ -626,7 +626,13 @@ export const digitalgateVisualStorytellingCss = `
 .dg-stage--wide {
   max-width: none;
   width: min(1040px, calc(100vw - 3rem));
-  margin-inline: auto !important;
+  /* Centre on the page from ANY page-centred parent — including narrow
+     (max-width) containers where auto margins collapse. margin-left:50% lands
+     the box origin on the parent's centre (= page centre) and translateX pulls
+     it back by half its own width. */
+  margin-left: 50% !important;
+  margin-right: 0 !important;
+  transform: translateX(-50%);
 }
 .dg-stage--wide .dg-stage__intro { margin-inline: auto !important; }
 .dg-stage--wide .dg-stage__caption { margin-inline: auto !important; }
@@ -654,117 +660,6 @@ export const digitalgateVisualStorytellingCss = `
 .dg-node.is-positive { border-color: rgba(52, 211, 153, 0.45); }
 .dg-node.is-attention { border-color: rgba(251, 191, 36, 0.42); }
 .dg-node.is-guard { border-color: rgba(167, 139, 250, 0.45); }
-
-/* —— Part 1 · Scene 1: fragmented (owner at the centre of chaos) —— */
-.dg-scatter { position: relative; min-height: clamp(240px, 32vw, 360px); }
-.dg-scatter__field { position: absolute; inset: 0; }
-.dg-scatter__chip {
-  position: absolute;
-  display: grid;
-  gap: 0.1rem;
-  padding: 0.55rem 0.7rem;
-  border: 1px solid rgba(248, 113, 113, 0.28);
-  border-radius: 12px;
-  background: rgba(12, 16, 26, 0.82);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-}
-.dg-scatter__chip strong { color: #fecaca !important; font-size: 0.76rem !important; font-weight: 700 !important; }
-.dg-scatter__chip small { color: #94a3b8 !important; font-size: 0.62rem !important; }
-.dg-scatter__chip--p1 { top: 2%; left: 4%; }
-.dg-scatter__chip--p2 { top: 6%; right: 6%; }
-.dg-scatter__chip--p3 { top: 28%; left: 0%; }
-.dg-scatter__chip--p4 { top: 26%; right: 2%; }
-.dg-scatter__chip--p5 { bottom: 30%; left: 3%; }
-.dg-scatter__chip--p6 { bottom: 24%; right: 4%; }
-.dg-scatter__chip--p7 { top: 46%; left: 16%; }
-.dg-scatter__chip--p8 { top: 44%; right: 18%; }
-.dg-scatter__chip--p9 { bottom: 4%; left: 22%; }
-.dg-scatter__chip--p10 { bottom: 2%; right: 24%; }
-.dg-scatter__owner {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  display: grid; place-items: center; gap: 0.25rem;
-  width: clamp(120px, 22vw, 168px); height: clamp(120px, 22vw, 168px);
-  border-radius: 50%;
-  border: 1px solid rgba(248, 113, 113, 0.5);
-  background: radial-gradient(circle, rgba(127, 29, 29, 0.35), rgba(9, 13, 22, 0.92));
-  text-align: center;
-}
-.dg-scatter__owner-glyph svg { width: clamp(36px, 7vw, 52px); height: auto; }
-.dg-scatter__owner strong { color: #fee2e2 !important; font-size: 0.86rem !important; }
-.dg-scatter__owner small { color: #fca5a5 !important; font-size: 0.64rem !important; }
-
-/* —— Part 1 · Scene 2: convergence —— */
-.dg-converge {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  align-items: center;
-  gap: 1rem;
-  min-height: clamp(190px, 24vw, 280px);
-}
-.dg-converge__sources { display: grid; gap: 0.5rem; z-index: 2; }
-.dg-converge__src {
-  padding: 0.5rem 0.7rem;
-  border: 1px solid rgba(51, 65, 85, 0.9);
-  border-radius: 10px;
-  background: rgba(9, 13, 22, 0.85);
-  color: #cbd5e1 !important;
-  font-size: 0.74rem; font-weight: 700;
-}
-.dg-converge__paths { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
-.dg-converge__hub {
-  position: relative; z-index: 2;
-  display: grid; place-items: center; gap: 0.3rem;
-  padding: 1.4rem;
-  border: 1px solid rgba(96, 165, 250, 0.5);
-  border-radius: 20px;
-  background: linear-gradient(150deg, rgba(30, 64, 175, 0.24), rgba(9, 13, 22, 0.9));
-  text-align: center;
-}
-.dg-converge__hub strong { color: #f8fafc !important; font-size: 1rem !important; font-family: Sora, Inter, sans-serif !important; }
-.dg-converge__hub small { color: #93c5fd !important; font-size: 0.72rem !important; }
-
-/* —— Part 1 · Scene 3: intelligence stack —— */
-.dgs-stack { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.25rem; align-items: center; }
-.dgs-stack__col { display: grid; gap: 0.35rem; justify-items: stretch; }
-.dgs-stack__layer {
-  display: grid; gap: 0.15rem;
-  padding: 0.95rem 1.1rem;
-  border: 1px solid rgba(51, 65, 85, 0.95);
-  border-radius: 14px;
-  background: rgba(9, 13, 22, 0.8);
-}
-.dgs-stack__layer--brain { grid-template-columns: auto 1fr; align-items: center; gap: 0.5rem 0.9rem; border-color: rgba(96, 165, 250, 0.55); background: linear-gradient(150deg, rgba(30, 64, 175, 0.2), rgba(9, 13, 22, 0.85)); }
-.dgs-stack__layer--brain .dgs-stack__k, .dgs-stack__layer--brain .dgs-stack__v { grid-column: 2; }
-.dgs-stack__layer--brain .dg-brain { grid-row: span 2; }
-.dgs-stack__layer--act { border-color: rgba(52, 211, 153, 0.4); }
-.dgs-stack__k { color: #f8fafc !important; font-weight: 800; font-size: 0.9rem; font-family: Sora, Inter, sans-serif; }
-.dgs-stack__v { color: #94a3b8 !important; font-size: 0.74rem; }
-.dgs-stack__down { justify-self: center; width: 2px; height: 0.85rem; background: linear-gradient(#60a5fa, transparent); position: relative; }
-.dgs-stack__down::after { content: "▾"; position: absolute; left: 50%; bottom: -0.35rem; transform: translateX(-50%); color: #60a5fa; font-size: 0.6rem; }
-.dgs-stack__context { display: grid; gap: 0.4rem; align-content: center; }
-.dgs-stack__ctx {
-  padding: 0.45rem 0.7rem;
-  border: 1px dashed rgba(96, 165, 250, 0.3);
-  border-radius: 999px;
-  color: #93c5fd !important;
-  font-size: 0.68rem; font-weight: 700; text-align: center;
-}
-
-/* —— Part 1 · Scene 4 + shared orbit (operating system) —— */
-.dg-orbit { position: relative; display: grid; gap: 1.25rem; place-items: center; }
-.dg-orbit__core { display: grid; place-items: center; gap: 0.3rem; text-align: center; z-index: 2; }
-.dg-orbit__core strong { color: #f8fafc !important; font-size: 0.92rem !important; font-family: Sora, Inter, sans-serif !important; }
-.dg-orbit__ring { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.6rem; width: 100%; }
-.dg-orbit__sat { display: grid; gap: 0.15rem; padding: 0.8rem 0.7rem; border: 1px solid rgba(51, 65, 85, 0.9); border-radius: 14px; background: rgba(9, 13, 22, 0.78); text-align: center; }
-.dg-orbit__sat strong { color: #e2e8f0 !important; font-size: 0.78rem !important; font-family: Sora, Inter, sans-serif !important; }
-.dg-orbit__sat small { color: #94a3b8 !important; font-size: 0.66rem !important; }
-.dg-orbit__sat--learn { border-color: rgba(52, 211, 153, 0.4); }
-.dg-orbit__movement { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin: 0 !important; }
-.dg-orbit__movement span { position: relative; padding: 0.3rem 0.7rem; border-radius: 999px; background: rgba(30, 64, 175, 0.16); color: #bfdbfe !important; font-size: 0.68rem; font-weight: 800; }
-.dg-orbit__movement span:not(:last-child)::after { content: "→"; margin-left: 0.55rem; color: #60a5fa; }
 
 /* —— Part 2 · living-system architecture map —— */
 .dg-anatomy { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 1.5rem; align-items: center; }
@@ -870,8 +765,6 @@ export const digitalgateVisualStorytellingCss = `
 
 /* —— Responsive: reflow, never shrink into microscopic labels —— */
 @media (max-width: 900px) {
-  .dgs-stack { grid-template-columns: 1fr; }
-  .dgs-stack__context { grid-auto-flow: column; justify-content: center; }
   .dg-anatomy { grid-template-columns: 1fr; }
   .dg-compare { grid-template-columns: 1fr; }
   .dg-path { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -879,10 +772,9 @@ export const digitalgateVisualStorytellingCss = `
 }
 @media (max-width: 680px) {
   .dg-stage { margin: clamp(2.5rem, 8vw, 3rem) auto !important; gap: 1.4rem; }
-  .dg-stage--wide { width: calc(100vw - 2rem); }
-  .dg-converge { grid-template-columns: 1fr; }
-  .dg-converge__paths { display: none; }
-  .dg-converge__sources { grid-auto-flow: row; }
+  /* Mobile containers are full-width and page-centred, so simple auto centring
+     works — drop the desktop 50%/translate breakout to avoid a double shift. */
+  .dg-stage--wide { width: calc(100vw - 2rem); transform: none; margin-inline: auto !important; }
   /* Loop and rail become vertical sequences on mobile (relationships preserved) */
   .dgs-loop { min-height: 0; }
   .dgs-loop__ring, .dgs-loop__center { display: none; }
@@ -893,23 +785,15 @@ export const digitalgateVisualStorytellingCss = `
   .dgs-loop__stop small { grid-column: 2; }
   .dg-rail { grid-template-columns: 1fr; }
   .dg-rail__step:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -0.55rem; transform: translateX(50%); }
-  .dg-orbit__ring { grid-template-columns: 1fr 1fr; }
   .dg-govern { grid-template-columns: 1fr; }
   .dg-path { grid-template-columns: 1fr; }
   .dg-anatomy__group { grid-template-columns: 1fr; }
-  .dg-scatter__owner { position: static; transform: none; margin: 0 auto 1rem; }
-  .dg-scatter { min-height: 0; display: grid; gap: 0.5rem; }
-  .dg-scatter__field { position: static; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-  .dg-scatter__chip { position: static; }
-  [class*="dg-scatter__chip--p"] { top: auto; bottom: auto; left: auto; right: auto; }
 }
 
 /* —— Motion: explains state/change; excellent static fallback by default —— */
 @media (prefers-reduced-motion: no-preference) {
   .dg-brain__spark { animation: dgBrainSpark 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-  .dg-flow__line { stroke-dasharray: 5 9; animation: dgFlowMove 2.4s linear infinite; }
   .dg-flow__loop { stroke-dasharray: 7 12; animation: dgFlowMove 2.6s linear infinite; }
-  .dgs-stack__layer--brain { animation: dgStagePulse 3.6s ease-in-out infinite; }
   .dg-frame__line--done { animation: dgFrameReveal 0.6s ease-out 0.2s both; }
   @keyframes dgBrainSpark { 0%, 100% { opacity: 0.6; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.15); } }
   @keyframes dgFlowMove { to { stroke-dashoffset: -28; } }
@@ -935,5 +819,154 @@ export const digitalgateVisualStorytellingCss = `
 .dg-stage .dgs-govern__col li { padding: 0 0 0 1rem; }
 @media (max-width: 680px) {
   .dg-stage .dgs-loop__stop { position: static; padding: 0.7rem 0.85rem; }
+}
+
+/* ===========================================================================
+   PART 1 — “From dumb businesses to smart businesses” (redesigned, #48 Phase 1).
+   A premium technology-editorial / product-architecture experience. All classes
+   are namespaced dgp1- and Part-1 wrappers carry .dg-stage--p1, so Parts 2–4 are
+   untouched. Foundational tokens here are reusable for later Parts 2–4 passes.
+   =========================================================================== */
+.dg-stage--p1 {
+  --p1-ink: #eef4ff;
+  --p1-muted: #9db0c8;
+  --p1-blue: #60a5fa;
+  --p1-electric: #7dd3fc;
+  --p1-purple: #a78bfa;
+  --p1-hair: rgba(148, 163, 184, 0.16);
+}
+
+/* Editorial intros sit centred above the expansive visuals. */
+.dgp1-stage--signature .dg-stage__intro,
+.dgp1-stage--arch .dg-stage__intro,
+.dgp1-stage--rail .dg-stage__intro {
+  text-align: center;
+  justify-items: center;
+  max-width: 44rem;
+}
+.dgp1-stage--signature .dg-stage__kicker,
+.dgp1-stage--arch .dg-stage__kicker,
+.dgp1-stage--rail .dg-stage__kicker { justify-content: center; }
+.dgp1-stage--signature .dg-stage__caption,
+.dgp1-stage--arch .dg-stage__caption,
+.dgp1-stage--rail .dg-stage__caption { text-align: center; max-width: 40rem; }
+
+/* Expansive breakouts: architecture visuals ~1000–1160px; rail a touch tighter
+   so it reinforces rather than competes with the signature/architecture. */
+.dgp1-stage--signature.dg-stage--wide,
+.dgp1-stage--arch.dg-stage--wide { width: min(1160px, calc(100vw - 2.5rem)); }
+.dgp1-stage--rail.dg-stage--wide { width: min(980px, calc(100vw - 3rem)); }
+
+/* Scenes are open — no boxed rectangle. Depth comes from light: a soft,
+   feathered glow behind the signature/architecture, never a bordered panel. */
+.dgp1-scene { position: relative; z-index: 0; }
+.dgp1-svg { display: block; width: 100%; height: auto; }
+.dgp1-svg--mobile { display: none; }
+.dgp1-scene--signature::before,
+.dgp1-scene--arch::before {
+  content: "";
+  position: absolute;
+  inset: -8% -4%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 74% at 82% 50%, rgba(124, 58, 237, 0.12), transparent 62%),
+    radial-gradient(50% 66% at 12% 42%, rgba(56, 189, 248, 0.07), transparent 62%);
+}
+
+/* Restrained editorial problem markers — never four feature cards. */
+.dgp1-markers {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.2rem 1.6rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid var(--p1-hair);
+}
+.dgp1-marker { display: grid; grid-template-columns: auto 1fr; gap: 0.7rem; align-items: start; }
+.dgp1-marker__glyph { width: 22px; height: 22px; color: var(--p1-electric); margin-top: 0.15rem; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-marker__body strong,
+.dgp1-marker__body strong { display: block; color: var(--p1-ink) !important; font-family: Sora, Inter, sans-serif !important; font-size: 0.92rem !important; font-weight: 800 !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-marker__body small,
+.dgp1-marker__body small { display: block; margin-top: 0.2rem !important; color: var(--p1-muted) !important; font-size: 0.8rem !important; line-height: 1.45 !important; }
+
+/* Transformation rail — grows more organised left → right. */
+.dgp1-rail {
+  list-style: none;
+  margin: 0;
+  padding: 0.3rem 0 0;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+.dgp1-rail__track {
+  position: absolute;
+  top: 34px;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  z-index: 0;
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.22), rgba(96, 165, 250, 0.45) 55%, rgba(167, 139, 250, 0.6));
+}
+.dgp1-rail__stop { position: relative; z-index: 1; display: grid; justify-items: center; text-align: center; gap: 0.4rem; }
+.dgp1-rail__marker {
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: rgba(10, 15, 25, 0.92);
+  border: 1px solid rgba(96, 116, 146, 0.3);
+  color: rgba(148, 163, 184, 0.85);
+}
+.dgp1-rail__marker svg { width: 54px; height: 34px; fill: currentColor; }
+.dgp1-rail__stop--linked .dgp1-rail__marker { border-color: rgba(96, 165, 250, 0.4); color: var(--p1-blue); }
+.dgp1-rail__stop--intelligent .dgp1-rail__marker { border-color: rgba(96, 165, 250, 0.55); color: var(--p1-electric); }
+.dgp1-rail__stop--coordinated .dgp1-rail__marker { border-color: rgba(167, 139, 250, 0.55); color: var(--p1-purple); box-shadow: inset 0 0 26px rgba(124, 58, 237, 0.16); }
+.dgp1-rail__step { color: #6b7a90 !important; font-family: Sora, Inter, sans-serif; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.16em; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop strong,
+.dgp1-rail__stop strong { color: var(--p1-ink) !important; font-family: Sora, Inter, sans-serif !important; font-size: 0.98rem !important; font-weight: 800 !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop small,
+.dgp1-rail__stop small { color: var(--p1-muted) !important; font-size: 0.76rem !important; }
+
+/* Part-1 hero: extremely restrained architectural illumination behind the copy.
+   Scoped with :has() to the page that actually carries a Part-1 stage, so Parts
+   3/4 (which share .dg-insight .hero) are never touched. */
+.wb-html-island--page:has([data-dg-stage-of="insights-part-1"]) .hero { position: relative; overflow: hidden; }
+.wb-html-island--page:has([data-dg-stage-of="insights-part-1"]) .hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 60% at 84% 0%, rgba(124, 58, 237, 0.14), transparent 60%),
+    radial-gradient(40% 52% at 6% 4%, rgba(56, 189, 248, 0.09), transparent 62%);
+}
+.wb-html-island--page:has([data-dg-stage-of="insights-part-1"]) .hero > * { position: relative; z-index: 1; }
+
+/* —— Part 1 · mobile: real vertical recompositions, not shrunk desktop —— */
+@media (max-width: 680px) {
+  .dgp1-svg--desktop { display: none; }
+  .dgp1-svg--mobile { display: block; }
+  .dgp1-markers { grid-template-columns: 1fr 1fr; gap: 1.1rem 1.25rem; }
+  .dgp1-rail { grid-template-columns: 1fr 1fr; gap: 1.4rem 1rem; }
+  .dgp1-rail__track { display: none; }
+}
+@media (max-width: 430px) {
+  .dgp1-markers { grid-template-columns: 1fr; }
+}
+
+/* —— Part 1 · motion: only communicates system behaviour; static tells the
+   whole story; respects prefers-reduced-motion. —— */
+@media (prefers-reduced-motion: no-preference) {
+  .dgp1-flow { stroke-dasharray: 4 10; animation: dgp1Flow 2.8s linear infinite; }
+  .dgp1-spark { animation: dgp1Spark 3.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes dgp1Flow { to { stroke-dashoffset: -28; } }
+  @keyframes dgp1Spark { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dgp1-flow { display: none; }
 }
 `;

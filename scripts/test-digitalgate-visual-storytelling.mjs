@@ -32,7 +32,11 @@ const SLUGS = {
 
 const count = (s, re) => (s.match(re) || []).length;
 
-/** Production-shaped Part 1 article carrying both legacy #48 layers. */
+/** Production-shaped Part 1 article carrying both legacy #48 layers. Headings
+ * mirror the real article so the redesigned anchors weave scenes at:
+ * fragmented→after the "fragmented" section, convergence(markers)→after the
+ * "hidden human" section, intelligence-stack(architecture)→after "connected",
+ * operating-system(rail)→after "not trying to replace". */
 const PROD_PART1 = `<article>
   <header class="hero"><p class="eyebrow">DigitalGate Insights · 01</p><h1>From dumb businesses to smart businesses</h1>
     <nav class="series"><a href="/insights/from-dumb-businesses-to-smart-businesses">Part 1</a><a href="/insights/intelligent-business-more-than-a-brain">Part 2</a><a href="/insights/from-signal-to-action">Part 3</a><a href="/insights/business-software-should-tell-you-what-needs-doing">Part 4</a></nav>
@@ -42,10 +46,11 @@ const PROD_PART1 = `<article>
   <section><h2>Most businesses aren’t dumb. They’re fragmented.</h2><p>PROSE_FRAGMENTED must survive.</p></section>
   <section data-dg48-visual="fragmented-business"><div class="dg48-frag">LEGACY_VISUAL_FRAG</div></section>
   <section><h2>The evolution of business software</h2><p>PROSE_EVOLUTION must survive.</p></section>
-  <section><h2>What “connected” actually means</h2><p>PROSE_CONNECTED must survive.</p></section>
+  <section><h2>The hidden human integration layer</h2><p>PROSE_HUMAN must survive.</p></section>
   <aside class="dg-story-visual" data-dg-story="intelligence-rail"><span class="dg-story-label">The DigitalGate intelligence loop</span></aside>
-  <section><h2>The intelligence model</h2><p>PROSE_MODEL must survive.</p></section>
+  <section><h2>What “connected” actually means</h2><p>PROSE_CONNECTED must survive.</p></section>
   <section data-dg48-visual="operating-layers"><div>LEGACY_OPERATING_LAYERS</div></section>
+  <section><h2>DigitalGate is not trying to replace every tool</h2><p>PROSE_REPLACE must survive.</p></section>
   <section><h2>The vision: software → systems → intelligence</h2><p>PROSE_VISION must survive.</p><a class="cta" href="/demo">Book a Demo</a></section>
 </article>`;
 
@@ -80,12 +85,12 @@ describe("digitalgate insights visual stages (#48)", () => {
     // (4) unrelated CSS preserved
     assert.ok(out.includes(".article-callout"), "unrelated article CSS preserved");
     // (5) prose preserved
-    for (const p of ["PROSE_FRAGMENTED", "PROSE_EVOLUTION", "PROSE_CONNECTED", "PROSE_MODEL", "PROSE_VISION"]) {
+    for (const p of ["PROSE_FRAGMENTED", "PROSE_EVOLUTION", "PROSE_HUMAN", "PROSE_CONNECTED", "PROSE_REPLACE", "PROSE_VISION"]) {
       assert.ok(out.includes(p), `${p} preserved`);
     }
     // (6) headings preserved
     assert.ok(out.includes("The evolution of business software"));
-    assert.ok(out.includes("The intelligence model"));
+    assert.ok(out.includes("The hidden human integration layer"));
     // (7) series navigation preserved
     assert.ok(out.includes('class="series"'));
     assert.ok(out.includes("/insights/from-signal-to-action"));
@@ -98,27 +103,39 @@ describe("digitalgate insights visual stages (#48)", () => {
     assert.equal(count(out, /data-dg-stage-of="insights-part-1"/g), 4);
     assert.ok(!out.includes("data-dg-stage-suite"), "no monolithic suite wrapper");
 
-    // (9) scenes are distributed across the article (READ -> SEE -> READ)
+    // (9) scenes are distributed across the article (READ -> SEE -> READ),
+    // in the redesigned Part-1 order: signature, markers, architecture, rail.
     assert.ok(
-      out.indexOf("PROSE_FRAGMENTED") <
-        out.indexOf('data-dg-stage="fragmented"'),
-      "fragmented scene follows its section prose",
+      out.indexOf("PROSE_FRAGMENTED") < out.indexOf('data-dg-stage="fragmented"'),
+      "signature follows the fragmented prose",
     );
     assert.ok(
       out.indexOf('data-dg-stage="fragmented"') < out.indexOf("PROSE_EVOLUTION"),
-      "fragmented scene precedes the next section (woven, not stacked)",
+      "signature precedes the next section (woven, not stacked)",
     );
     assert.ok(
-      out.indexOf('data-dg-stage="convergence"') < out.indexOf("PROSE_MODEL"),
-      "convergence scene appears before the intelligence-model prose",
+      out.indexOf("PROSE_HUMAN") < out.indexOf('data-dg-stage="convergence"'),
+      "markers follow the hidden-human prose",
     );
     assert.ok(
-      out.indexOf("PROSE_MODEL") < out.indexOf('data-dg-stage="intelligence-stack"'),
-      "intelligence-stack scene appears after the model prose",
+      out.indexOf('data-dg-stage="convergence"') < out.indexOf("PROSE_CONNECTED"),
+      "markers precede the connected prose",
     );
     assert.ok(
-      out.indexOf("PROSE_VISION") < out.indexOf('data-dg-stage="operating-system"'),
-      "operating-system scene lands late, near the synthesis",
+      out.indexOf("PROSE_CONNECTED") < out.indexOf('data-dg-stage="intelligence-stack"'),
+      "architecture follows the connected prose",
+    );
+    assert.ok(
+      out.indexOf('data-dg-stage="intelligence-stack"') < out.indexOf("PROSE_REPLACE"),
+      "architecture precedes the replace prose",
+    );
+    assert.ok(
+      out.indexOf("PROSE_REPLACE") < out.indexOf('data-dg-stage="operating-system"'),
+      "rail lands late, before the synthesis",
+    );
+    assert.ok(
+      out.indexOf('data-dg-stage="operating-system"') < out.indexOf("PROSE_VISION"),
+      "rail precedes the vision prose (final resolution before CTA)",
     );
 
     // (10) each scene exactly once
