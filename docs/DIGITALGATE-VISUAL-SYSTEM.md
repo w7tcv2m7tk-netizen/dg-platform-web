@@ -78,11 +78,13 @@ Shows Signal → Why it matters → Recommended action → owner control. Useful
 The first implementation applies the system to the four connected philosophy Insights:
 
 1. **Connected Business** — an intelligence rail makes connection-before-intelligence visible.
-2. **Business Operating System** — a living-system map makes the body/nervous-system/memory/brain/hands/voice/learning metaphor scannable.
-3. **Intelligence Loop** — the Connect → Understand → Advise → Act → Learn rail becomes the visual anchor for Signal to Action.
-4. **Proactive Business Software** — a passive-vs-proactive comparison and contextual recommendation card show what the product principle means in practice.
+2. **Business Operating System** — an architectural living-system map (hub + connected layers; not cartoon anatomy).
+3. **Intelligence Loop** — closed Signal → Insight → Recommendation → Action → Outcome → Learning loop, plus the Connect → Understand → Advise → Act → Learn rail.
+4. **Proactive Business Software** — traditional “human asks → software responds” vs DigitalGate “signals → understand → recommend/act → learn”, plus a recommendation card.
 
-The implementation is deliberately lightweight, responsive and native to Website Studio HTML content. It does not introduce a second rendering system or external visual dependency.
+**Runtime ownership (2026-09):** visual storytelling CSS and HTML enhance run in the public website renderer (`WebsiteRenderer` + `digitalgate-visual-storytelling*`). Neon/Website Studio HTML is no longer the only carrier — so a content sync cannot silently erase the visual layer from the public experience.
+
+The implementation remains lightweight, responsive and native to the Website Studio HTML content path. It does not introduce a second page system or external visual dependency.
 
 ## Page review gate
 
