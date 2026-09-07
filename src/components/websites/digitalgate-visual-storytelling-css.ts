@@ -530,58 +530,58 @@ export const digitalgateVisualStorytellingCss = `
 }
 
 /* ===========================================================================
-   DigitalGate visual STAGES (#48) — substantial article-expanded scenes.
-   Reusable across Insights Parts 1–4 (and later Business Brain / Automation).
+   DigitalGate visual STAGES (#48) — editorial scenes woven through the article.
+
+   Stages are SECTIONS, not cards. The outer .dg-stage provides only rhythm,
+   alignment and semantic grouping — no enclosing panel, border, radius, shadow
+   or fixed height. Visual surfaces live INSIDE a scene, and only where a surface
+   genuinely belongs (a real interface, a single contained object). Depth is
+   used selectively: the Business Brain can glow and important interfaces can
+   have glass, but the page around them stays calm. Reusable across Parts 1–4.
    =========================================================================== */
 .dg-stage-suite {
   display: grid;
-  gap: 2rem;
-  margin: 2.75rem 0;
+  gap: clamp(3rem, 5.5vw, 4.5rem);
+  margin: clamp(3rem, 5.5vw, 4.5rem) 0;
 }
 .dg-stage {
   position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  margin: clamp(2rem, 5vw, 3.25rem) 0;
-  padding: clamp(1.5rem, 3vw, 2.75rem);
-  min-height: clamp(380px, 46vw, 560px);
   display: grid;
-  align-content: start;
-  gap: 1.4rem;
-  border: 1px solid rgba(96, 165, 250, 0.2);
-  border-radius: 26px;
-  background:
-    radial-gradient(120% 90% at 8% 0%, rgba(59, 130, 246, 0.16), transparent 46%),
-    radial-gradient(120% 120% at 100% 100%, rgba(124, 58, 237, 0.12), transparent 48%),
-    linear-gradient(160deg, rgba(16, 24, 40, 0.98), rgba(6, 10, 18, 0.99));
-  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  gap: clamp(1.5rem, 2.4vw, 2.25rem);
+  /* !important beats the imported editorial resets: their section padding +
+     border-top and universal margin:0 would otherwise give every scene an
+     identical divider, a tall empty band, and kill centring. A stage is a
+     section for rhythm only — no inherited chrome. */
+  margin: clamp(3rem, 5.5vw, 4.5rem) auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+  max-width: 46rem;
 }
-.dg-stage::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
-  background-size: 40px 40px;
-  mask-image: radial-gradient(120% 80% at 50% 0%, #000 30%, transparent 78%);
+/* Intro: a compact step marker + eyebrow on one line, then title and lede. */
+.dg-stage__intro { display: grid; gap: 0.55rem; max-width: 42rem; }
+.dg-stage__kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 !important;
 }
-.dg-stage--chaos { border-color: rgba(248, 113, 113, 0.24); }
-.dg-stage--os,
-.dg-stage--loop { min-height: clamp(440px, 52vw, 620px); }
-.dg-stage__intro { display: grid; gap: 0.45rem; max-width: 46rem; }
-.dg-stage__index {
+.dg-stage__step {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
   font-family: Sora, Inter, sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.66rem !important;
   font-weight: 800;
-  letter-spacing: 0.28em;
-  color: rgba(96, 165, 250, 0.7) !important;
+  letter-spacing: 0.1em;
+  color: #93c5fd !important;
+  padding: 0.16rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(96, 165, 250, 0.28);
+  background: rgba(59, 130, 246, 0.1);
 }
 .wb-html-island--page:not(.wb-html-island--light) .dg-stage__eyebrow,
 .dg-stage__eyebrow {
-  display: block !important;
   font-size: 0.7rem !important;
   font-weight: 800 !important;
   letter-spacing: 0.14em !important;
@@ -590,31 +590,46 @@ export const digitalgateVisualStorytellingCss = `
 }
 .wb-html-island--page:not(.wb-html-island--light) .dg-stage__title,
 .dg-stage__title {
-  margin: 0.1rem 0 0 !important;
+  margin: 0 !important;
   font-family: Sora, Inter, sans-serif !important;
-  font-size: clamp(1.35rem, 2.4vw, 2rem) !important;
+  font-size: clamp(1.7rem, 2.3vw, 2.35rem) !important;
   font-weight: 800 !important;
-  line-height: 1.12 !important;
+  line-height: 1.16 !important;
   color: #f8fafc !important;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 .wb-html-island--page:not(.wb-html-island--light) .dg-stage__lede,
 .dg-stage__lede {
   margin: 0 !important;
-  font-size: clamp(0.92rem, 1.25vw, 1.05rem) !important;
-  line-height: 1.55 !important;
+  font-size: clamp(1rem, 1.2vw, 1.14rem) !important;
+  line-height: 1.6 !important;
   color: #cbd5e1 !important;
+  max-width: 44rem;
 }
 .wb-html-island--page:not(.wb-html-island--light) .dg-stage__caption,
 .dg-stage__caption {
   margin: 0 !important;
-  padding-top: 0.4rem;
-  font-size: 0.78rem !important;
+  padding-top: 0.5rem;
+  font-size: 0.8rem !important;
   line-height: 1.5 !important;
   color: #94a3b8 !important;
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  max-width: 44rem;
 }
 .dg-stage__scene { position: relative; }
+
+/* —— Selective width: a few dominant architecture visuals break out wider than
+   the reading measure; every other scene stays in the prose column. The stage's
+   containing column is page-centred, so auto inline margins centre the breakout
+   on the page. Width is capped to the viewport so it never adds horizontal
+   scroll. —— */
+.dg-stage--wide {
+  max-width: none;
+  width: min(1040px, calc(100vw - 3rem));
+  margin-inline: auto !important;
+}
+.dg-stage--wide .dg-stage__intro { margin-inline: auto !important; }
+.dg-stage--wide .dg-stage__caption { margin-inline: auto !important; }
 
 /* Reusable Business Brain™ object */
 .dg-brain { display: inline-grid; place-items: center; }
@@ -641,7 +656,7 @@ export const digitalgateVisualStorytellingCss = `
 .dg-node.is-guard { border-color: rgba(167, 139, 250, 0.45); }
 
 /* —— Part 1 · Scene 1: fragmented (owner at the centre of chaos) —— */
-.dg-scatter { position: relative; min-height: clamp(300px, 40vw, 460px); }
+.dg-scatter { position: relative; min-height: clamp(240px, 32vw, 360px); }
 .dg-scatter__field { position: absolute; inset: 0; }
 .dg-scatter__chip {
   position: absolute;
@@ -687,7 +702,7 @@ export const digitalgateVisualStorytellingCss = `
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   align-items: center;
   gap: 1rem;
-  min-height: clamp(220px, 30vw, 320px);
+  min-height: clamp(190px, 24vw, 280px);
 }
 .dg-converge__sources { display: grid; gap: 0.5rem; z-index: 2; }
 .dg-converge__src {
@@ -712,25 +727,25 @@ export const digitalgateVisualStorytellingCss = `
 .dg-converge__hub small { color: #93c5fd !important; font-size: 0.72rem !important; }
 
 /* —— Part 1 · Scene 3: intelligence stack —— */
-.dg-stack { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.25rem; align-items: center; }
-.dg-stack__col { display: grid; gap: 0.35rem; justify-items: stretch; }
-.dg-stack__layer {
+.dgs-stack { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.25rem; align-items: center; }
+.dgs-stack__col { display: grid; gap: 0.35rem; justify-items: stretch; }
+.dgs-stack__layer {
   display: grid; gap: 0.15rem;
   padding: 0.95rem 1.1rem;
   border: 1px solid rgba(51, 65, 85, 0.95);
   border-radius: 14px;
   background: rgba(9, 13, 22, 0.8);
 }
-.dg-stack__layer--brain { grid-template-columns: auto 1fr; align-items: center; gap: 0.5rem 0.9rem; border-color: rgba(96, 165, 250, 0.55); background: linear-gradient(150deg, rgba(30, 64, 175, 0.2), rgba(9, 13, 22, 0.85)); }
-.dg-stack__layer--brain .dg-stack__k, .dg-stack__layer--brain .dg-stack__v { grid-column: 2; }
-.dg-stack__layer--brain .dg-brain { grid-row: span 2; }
-.dg-stack__layer--act { border-color: rgba(52, 211, 153, 0.4); }
-.dg-stack__k { color: #f8fafc !important; font-weight: 800; font-size: 0.9rem; font-family: Sora, Inter, sans-serif; }
-.dg-stack__v { color: #94a3b8 !important; font-size: 0.74rem; }
-.dg-stack__down { justify-self: center; width: 2px; height: 0.85rem; background: linear-gradient(#60a5fa, transparent); position: relative; }
-.dg-stack__down::after { content: "▾"; position: absolute; left: 50%; bottom: -0.35rem; transform: translateX(-50%); color: #60a5fa; font-size: 0.6rem; }
-.dg-stack__context { display: grid; gap: 0.4rem; align-content: center; }
-.dg-stack__ctx {
+.dgs-stack__layer--brain { grid-template-columns: auto 1fr; align-items: center; gap: 0.5rem 0.9rem; border-color: rgba(96, 165, 250, 0.55); background: linear-gradient(150deg, rgba(30, 64, 175, 0.2), rgba(9, 13, 22, 0.85)); }
+.dgs-stack__layer--brain .dgs-stack__k, .dgs-stack__layer--brain .dgs-stack__v { grid-column: 2; }
+.dgs-stack__layer--brain .dg-brain { grid-row: span 2; }
+.dgs-stack__layer--act { border-color: rgba(52, 211, 153, 0.4); }
+.dgs-stack__k { color: #f8fafc !important; font-weight: 800; font-size: 0.9rem; font-family: Sora, Inter, sans-serif; }
+.dgs-stack__v { color: #94a3b8 !important; font-size: 0.74rem; }
+.dgs-stack__down { justify-self: center; width: 2px; height: 0.85rem; background: linear-gradient(#60a5fa, transparent); position: relative; }
+.dgs-stack__down::after { content: "▾"; position: absolute; left: 50%; bottom: -0.35rem; transform: translateX(-50%); color: #60a5fa; font-size: 0.6rem; }
+.dgs-stack__context { display: grid; gap: 0.4rem; align-content: center; }
+.dgs-stack__ctx {
   padding: 0.45rem 0.7rem;
   border: 1px dashed rgba(96, 165, 250, 0.3);
   border-radius: 999px;
@@ -753,7 +768,7 @@ export const digitalgateVisualStorytellingCss = `
 
 /* —— Part 2 · living-system architecture map —— */
 .dg-anatomy { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 1.5rem; align-items: center; }
-.dg-anatomy__diagram { position: relative; display: grid; place-items: center; min-height: clamp(240px, 34vw, 360px); }
+.dg-anatomy__diagram { position: relative; display: grid; place-items: center; min-height: clamp(260px, 28vw, 380px); }
 .dg-anatomy__ring { position: absolute; border-radius: 50%; border: 1px solid rgba(96, 165, 250, 0.22); }
 .dg-anatomy__ring--2 { width: 62%; height: 62%; border-style: dashed; border-color: rgba(96, 165, 250, 0.3); }
 .dg-anatomy__ring--3 { width: 96%; height: 96%; }
@@ -775,20 +790,20 @@ export const digitalgateVisualStorytellingCss = `
 .dg-path .dg-node:not(:last-child)::after { content: "→"; position: absolute; right: -0.55rem; top: 50%; transform: translateY(-50%); color: #60a5fa; font-weight: 800; z-index: 2; }
 
 /* —— Part 3 · dominant loop —— */
-.dg-loop { position: relative; min-height: clamp(340px, 44vw, 520px); display: grid; place-items: center; }
-.dg-loop__ring { position: absolute; inset: 0; margin: auto; width: min(100%, 520px); height: auto; }
-.dg-loop__center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; gap: 0.25rem; text-align: center; z-index: 2; }
-.dg-loop__center strong { color: #f8fafc !important; font-size: 0.82rem !important; font-family: Sora, Inter, sans-serif !important; }
-.dg-loop__stops { list-style: none; margin: 0; padding: 0; position: relative; width: min(100%, 540px); aspect-ratio: 1 / 1; }
-.dg-loop__stop { position: absolute; width: clamp(112px, 20vw, 150px); display: grid; gap: 0.05rem; padding: 0.6rem 0.7rem; border: 1px solid rgba(96, 165, 250, 0.4); border-radius: 14px; background: rgba(9, 13, 22, 0.88); text-align: center; transform: translate(-50%, -50%); }
-.dg-loop__stop span { display: inline-grid; place-items: center; width: 1.3rem; height: 1.3rem; margin: 0 auto 0.15rem; border-radius: 999px; background: rgba(59, 130, 246, 0.2); color: #bfdbfe !important; font-size: 0.66rem; font-weight: 800; }
-.dg-loop__stop strong { color: #f1f5f9 !important; font-size: 0.78rem !important; font-family: Sora, Inter, sans-serif !important; }
-.dg-loop__stop small { color: #94a3b8 !important; font-size: 0.62rem !important; }
-.dg-loop__stop--1 { top: 3%; left: 50%; }
-.dg-loop__stop--2 { top: 36%; left: 96%; }
-.dg-loop__stop--3 { top: 92%; left: 74%; }
-.dg-loop__stop--4 { top: 92%; left: 26%; }
-.dg-loop__stop--5 { top: 36%; left: 4%; }
+.dgs-loop { position: relative; min-height: clamp(380px, 40vw, 560px); display: grid; place-items: center; }
+.dgs-loop__ring { position: absolute; inset: 0; margin: auto; width: min(100%, 520px); height: auto; }
+.dgs-loop__center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; gap: 0.25rem; text-align: center; z-index: 2; }
+.dgs-loop__center strong { color: #f8fafc !important; font-size: 0.82rem !important; font-family: Sora, Inter, sans-serif !important; }
+.dgs-loop__stops { list-style: none; margin: 0; padding: 0; position: relative; width: min(100%, 540px); aspect-ratio: 1 / 1; }
+.dgs-loop__stop { position: absolute; width: clamp(112px, 20vw, 150px); display: grid; gap: 0.05rem; padding: 0.6rem 0.7rem; border: 1px solid rgba(96, 165, 250, 0.4); border-radius: 14px; background: rgba(9, 13, 22, 0.88); text-align: center; transform: translate(-50%, -50%); }
+.dgs-loop__stop span { display: inline-grid; place-items: center; width: 1.3rem; height: 1.3rem; margin: 0 auto 0.15rem; border-radius: 999px; background: rgba(59, 130, 246, 0.2); color: #bfdbfe !important; font-size: 0.66rem; font-weight: 800; }
+.dgs-loop__stop strong { color: #f1f5f9 !important; font-size: 0.78rem !important; font-family: Sora, Inter, sans-serif !important; }
+.dgs-loop__stop small { color: #94a3b8 !important; font-size: 0.62rem !important; }
+.dgs-loop__stop--1 { top: 3%; left: 50%; }
+.dgs-loop__stop--2 { top: 36%; left: 96%; }
+.dgs-loop__stop--3 { top: 92%; left: 74%; }
+.dgs-loop__stop--4 { top: 92%; left: 26%; }
+.dgs-loop__stop--5 { top: 36%; left: 4%; }
 
 /* —— Part 3 · scenario journey (explicit human gate) —— */
 .dg-journey { list-style: none; margin: 0; padding: 0 0 0 0.4rem; display: grid; gap: 0.55rem; }
@@ -855,26 +870,27 @@ export const digitalgateVisualStorytellingCss = `
 
 /* —— Responsive: reflow, never shrink into microscopic labels —— */
 @media (max-width: 900px) {
-  .dg-stack { grid-template-columns: 1fr; }
-  .dg-stack__context { grid-auto-flow: column; justify-content: center; }
+  .dgs-stack { grid-template-columns: 1fr; }
+  .dgs-stack__context { grid-auto-flow: column; justify-content: center; }
   .dg-anatomy { grid-template-columns: 1fr; }
   .dg-compare { grid-template-columns: 1fr; }
   .dg-path { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .dg-path .dg-node:not(:last-child)::after { content: ""; }
 }
 @media (max-width: 680px) {
-  .dg-stage { min-height: 0; padding: 1.35rem; border-radius: 20px; }
+  .dg-stage { margin: clamp(2.5rem, 8vw, 3rem) auto !important; gap: 1.4rem; }
+  .dg-stage--wide { width: calc(100vw - 2rem); }
   .dg-converge { grid-template-columns: 1fr; }
   .dg-converge__paths { display: none; }
   .dg-converge__sources { grid-auto-flow: row; }
   /* Loop and rail become vertical sequences on mobile (relationships preserved) */
-  .dg-loop { min-height: 0; }
-  .dg-loop__ring, .dg-loop__center { display: none; }
-  .dg-loop__stops { position: static; width: 100%; aspect-ratio: auto; display: grid; gap: 0.55rem; }
-  .dg-loop__stop { position: static; width: auto; transform: none; text-align: left; grid-template-columns: auto 1fr; align-items: center; gap: 0.1rem 0.7rem; }
-  .dg-loop__stop span { margin: 0; }
-  .dg-loop__stop strong { grid-column: 2; }
-  .dg-loop__stop small { grid-column: 2; }
+  .dgs-loop { min-height: 0; }
+  .dgs-loop__ring, .dgs-loop__center { display: none; }
+  .dgs-loop__stops { position: static; width: 100%; aspect-ratio: auto; display: grid; gap: 0.55rem; }
+  .dgs-loop__stop { position: static; width: auto; transform: none; text-align: left; grid-template-columns: auto 1fr; align-items: center; gap: 0.1rem 0.7rem; }
+  .dgs-loop__stop span { margin: 0; }
+  .dgs-loop__stop strong { grid-column: 2; }
+  .dgs-loop__stop small { grid-column: 2; }
   .dg-rail { grid-template-columns: 1fr; }
   .dg-rail__step:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -0.55rem; transform: translateX(50%); }
   .dg-orbit__ring { grid-template-columns: 1fr 1fr; }
@@ -893,11 +909,31 @@ export const digitalgateVisualStorytellingCss = `
   .dg-brain__spark { animation: dgBrainSpark 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
   .dg-flow__line { stroke-dasharray: 5 9; animation: dgFlowMove 2.4s linear infinite; }
   .dg-flow__loop { stroke-dasharray: 7 12; animation: dgFlowMove 2.6s linear infinite; }
-  .dg-stack__layer--brain { animation: dgStagePulse 3.6s ease-in-out infinite; }
+  .dgs-stack__layer--brain { animation: dgStagePulse 3.6s ease-in-out infinite; }
   .dg-frame__line--done { animation: dgFrameReveal 0.6s ease-out 0.2s both; }
   @keyframes dgBrainSpark { 0%, 100% { opacity: 0.6; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.15); } }
   @keyframes dgFlowMove { to { stroke-dashoffset: -28; } }
   @keyframes dgStagePulse { 0%, 100% { box-shadow: inset 0 0 0 rgba(59,130,246,0); } 50% { box-shadow: inset 0 0 34px rgba(59,130,246,0.14); } }
   @keyframes dgFrameReveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+}
+
+/* ===========================================================================
+   Scene isolation from imported article stylesheets.
+   Some Insights pages ship editorial resets like
+     .dg-insight li { position: relative; padding: .3rem 0 .3rem 1.2rem }
+     .dg-insight ul { margin: 0 0 1.2rem }
+   which match our list-based scenes at (0,1,1) and would otherwise disturb the
+   diagrams. Re-assert the geometry under .dg-stage (0,2,0) so scenes render the
+   same regardless of the surrounding article CSS. The intelligence loop is the
+   critical case: its stops must stay absolutely positioned around the Brain.
+   =========================================================================== */
+.dg-stage .dgs-loop__stops { position: relative; margin: 0; }
+.dg-stage .dgs-loop__stop { position: absolute; padding: 0.6rem 0.7rem; }
+.dg-stage .dgs-journey__step { padding: 0.85rem 1rem 0.85rem 0.9rem; }
+.dg-stage .dgs-rail__step { padding: 1rem 0.8rem; }
+.dg-stage .dgs-govern__col ul { margin: 0; }
+.dg-stage .dgs-govern__col li { padding: 0 0 0 1rem; }
+@media (max-width: 680px) {
+  .dg-stage .dgs-loop__stop { position: static; padding: 0.7rem 0.85rem; }
 }
 `;

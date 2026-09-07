@@ -84,8 +84,7 @@ function stage(input: {
   const variant = input.variant ? ` ${input.variant}` : "";
   return `<section class="dg-stage${variant}" data-dg-stage="${input.name}" ${STAGE_OF_ATTR}="${input.kind}" role="figure" aria-label="${input.ariaLabel}">
   <div class="dg-stage__intro">
-    <span class="dg-stage__index" aria-hidden="true">${input.index}</span>
-    <span class="dg-stage__eyebrow">${input.eyebrow}</span>
+    <p class="dg-stage__kicker"><span class="dg-stage__step" aria-hidden="true">${input.index}</span><span class="dg-stage__eyebrow">${input.eyebrow}</span></p>
     <h3 class="dg-stage__title">${input.title}</h3>
     <p class="dg-stage__lede">${input.lede}</p>
   </div>
@@ -197,18 +196,18 @@ function part1(kind: DigitalgateStageKind): StageDef[] {
         ariaLabel:
           "A vertical intelligence stack: Digital Twin feeds the Business Brain, which feeds the AI Advisor, which proposes governed Action.",
         variant: "dg-stage--stack",
-        scene: `<div class="dg-stack">
-  <div class="dg-stack__col">
-    <div class="dg-stack__layer"><span class="dg-stack__k">Digital Twin</span><span class="dg-stack__v">A live model of the connected business</span></div>
-    <span class="dg-stack__down" aria-hidden="true"></span>
-    <div class="dg-stack__layer dg-stack__layer--brain">${brainCore({ idSuffix: "P1s" })}<span class="dg-stack__k">Business Brain™</span><span class="dg-stack__v">Shared context, memory and judgement</span></div>
-    <span class="dg-stack__down" aria-hidden="true"></span>
-    <div class="dg-stack__layer"><span class="dg-stack__k">AI Advisor</span><span class="dg-stack__v">Decides what matters and what to do next</span></div>
-    <span class="dg-stack__down" aria-hidden="true"></span>
-    <div class="dg-stack__layer dg-stack__layer--act"><span class="dg-stack__k">Action</span><span class="dg-stack__v">Governed follow-through — people stay in control</span></div>
+        scene: `<div class="dgs-stack">
+  <div class="dgs-stack__col">
+    <div class="dgs-stack__layer"><span class="dgs-stack__k">Digital Twin</span><span class="dgs-stack__v">A live model of the connected business</span></div>
+    <span class="dgs-stack__down" aria-hidden="true"></span>
+    <div class="dgs-stack__layer dgs-stack__layer--brain">${brainCore({ idSuffix: "P1s" })}<span class="dgs-stack__k">Business Brain™</span><span class="dgs-stack__v">Shared context, memory and judgement</span></div>
+    <span class="dgs-stack__down" aria-hidden="true"></span>
+    <div class="dgs-stack__layer"><span class="dgs-stack__k">AI Advisor</span><span class="dgs-stack__v">Decides what matters and what to do next</span></div>
+    <span class="dgs-stack__down" aria-hidden="true"></span>
+    <div class="dgs-stack__layer dgs-stack__layer--act"><span class="dgs-stack__k">Action</span><span class="dgs-stack__v">Governed follow-through — people stay in control</span></div>
   </div>
-  <div class="dg-stack__context" aria-hidden="true">
-    ${["Core", "Connectors", "Events", "Signals", "Knowledge"].map((c) => `<span class="dg-stack__ctx">${c}</span>`).join("")}
+  <div class="dgs-stack__context" aria-hidden="true">
+    ${["Core", "Connectors", "Events", "Signals", "Knowledge"].map((c) => `<span class="dgs-stack__ctx">${c}</span>`).join("")}
   </div>
 </div>`,
         caption: "Digital Twin → Business Brain → AI Advisor → Action. The Brain is the centre of gravity.",
@@ -290,7 +289,7 @@ function part2(kind: DigitalgateStageKind): StageDef[] {
         lede: "A brain without a body senses nothing and does nothing. DigitalGate is the whole system — organised as connected rings around one shared intelligence.",
         ariaLabel:
           "A living-system map. Inner ring: Business Brain. Middle ring: mind (AI Advisor), memory (CRM and knowledge), senses (signals and analytics) and nervous system (connectors and events). Outer ring: body (Core and industry apps), hands (tools and automation), voice (communications), immune system (security and governance), health, direction (goals) and learning (outcomes and Digital Twin).",
-        variant: "dg-stage--map",
+        variant: "dg-stage--map dg-stage--wide",
         scene: `<div class="dg-anatomy">
   <div class="dg-anatomy__diagram" aria-hidden="true">
     <span class="dg-anatomy__ring dg-anatomy__ring--3"></span>
@@ -354,22 +353,22 @@ function part3(kind: DigitalgateStageKind): StageDef[] {
         lede: "The whole platform is one loop. It gets more useful every time it goes round.",
         ariaLabel:
           "A dominant circular intelligence loop with five stages — Connect, Understand, Advise, Act, Learn — orbiting the Business Brain at the centre.",
-        variant: "dg-stage--loop",
-        scene: `<div class="dg-loop">
-  <svg class="dg-loop__ring" viewBox="0 0 320 320" aria-hidden="true">
+        variant: "dg-stage--loop dg-stage--wide",
+        scene: `<div class="dgs-loop">
+  <svg class="dgs-loop__ring" viewBox="0 0 320 320" aria-hidden="true">
     <defs>
       <marker id="dgLoopHead" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#60a5fa"/></marker>
     </defs>
     <circle cx="160" cy="160" r="120" fill="none" stroke="rgba(51,65,85,0.8)" stroke-width="1.5"/>
     <circle class="dg-flow__loop" cx="160" cy="160" r="120" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-opacity="0.6" marker-end="url(#dgLoopHead)"/>
   </svg>
-  <div class="dg-loop__center">${brainCore({ idSuffix: "P3" })}<strong>Business Brain™</strong></div>
-  <ul class="dg-loop__stops">
-    <li class="dg-loop__stop dg-loop__stop--1"><span>1</span><strong>Connect</strong><small>Authorised signals arrive</small></li>
-    <li class="dg-loop__stop dg-loop__stop--2"><span>2</span><strong>Understand</strong><small>Context interprets the signal</small></li>
-    <li class="dg-loop__stop dg-loop__stop--3"><span>3</span><strong>Advise</strong><small>The next sensible move appears</small></li>
-    <li class="dg-loop__stop dg-loop__stop--4"><span>4</span><strong>Act</strong><small>People approve; the platform follows through</small></li>
-    <li class="dg-loop__stop dg-loop__stop--5"><span>5</span><strong>Learn</strong><small>Outcomes improve the next decision</small></li>
+  <div class="dgs-loop__center">${brainCore({ idSuffix: "P3" })}<strong>Business Brain™</strong></div>
+  <ul class="dgs-loop__stops">
+    <li class="dgs-loop__stop dgs-loop__stop--1"><span>1</span><strong>Connect</strong><small>Authorised signals arrive</small></li>
+    <li class="dgs-loop__stop dgs-loop__stop--2"><span>2</span><strong>Understand</strong><small>Context interprets the signal</small></li>
+    <li class="dgs-loop__stop dgs-loop__stop--3"><span>3</span><strong>Advise</strong><small>The next sensible move appears</small></li>
+    <li class="dgs-loop__stop dgs-loop__stop--4"><span>4</span><strong>Act</strong><small>People approve; the platform follows through</small></li>
+    <li class="dgs-loop__stop dgs-loop__stop--5"><span>5</span><strong>Learn</strong><small>Outcomes improve the next decision</small></li>
   </ul>
 </div>`,
         caption: "Alive by design — each turn of the loop compounds the last.",
