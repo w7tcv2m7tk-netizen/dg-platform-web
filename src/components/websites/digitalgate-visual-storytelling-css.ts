@@ -764,7 +764,11 @@ export const digitalgateVisualStorytellingCss = `
 .dg-govern__col--system li::before { background: #34d399; }
 
 /* —— Part 4 · approved prototype port (dgp4-* namespace; #48) —— */
-.dg-stage--wide { min-height: clamp(420px, 48vw, 620px); }
+/* Scoped to .dg-stage--p4 so Parts 1–3 wide stages keep their content-driven
+   height. Part 4 breaks out to the approved width and centres on the page from
+   ANY parent (incl. the article's padded .container), matching the dgp1-/dgp3-
+   robust-centring mechanism so there is never horizontal overflow on mobile. */
+.dg-stage--p4.dg-stage--wide { min-height: clamp(420px, 48vw, 620px); width: min(1200px, calc(100vw - 2rem)); }
 .dg-stage--p4.dgp4-stage--learning,
 .dg-stage--p4.dgp4-stage--recap { min-height: 0; }
 .dgp4-scene { position: relative; width: 100%; }
@@ -961,8 +965,12 @@ export const digitalgateVisualStorytellingCss = `
 @media (max-width: 680px) {
   .dg-stage { margin: clamp(2.5rem, 8vw, 3rem) auto !important; gap: 1.4rem; }
   /* Mobile containers are full-width and page-centred, so simple auto centring
-     works — drop the desktop 50%/translate breakout to avoid a double shift. */
-  .dg-stage--wide { width: calc(100vw - 2rem); transform: none; margin-inline: auto !important; }
+     works — drop the desktop 50%/translate breakout to avoid a double shift.
+     Part 4 stages land inside the article's padded .container. On mobile they
+     do not break out — they fit the reading column so there is never any
+     horizontal overflow; the dgp4 mobile SVGs are genuine mobile compositions. */
+  .dg-stage--wide:not(.dg-stage--p4) { width: calc(100vw - 2rem); transform: none; margin-inline: auto !important; }
+  .dg-stage--p4.dg-stage--wide { width: 100%; transform: none; margin-inline: auto !important; }
   /* Loop and rail become vertical sequences on mobile (relationships preserved) */
   .dgs-loop { min-height: 0; }
   .dgs-loop__ring, .dgs-loop__center { display: none; }
