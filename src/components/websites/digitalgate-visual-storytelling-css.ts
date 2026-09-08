@@ -1410,4 +1410,145 @@ export const digitalgateVisualStorytellingCss = `
   .dgp3-svg--desktop { display: none; }
   .dgp3-svg--mobile { display: block; }
 }
+
+/* ===========================================================================
+   DigitalGate INSIGHTS — shared four-part SERIES SHELL (renderer-owned).
+   One canvas, one hero system, one typographic scale, one margin system across
+   Parts 1–4. The renderer normalises every article into .dg-insights-hero /
+   .dg-insights-series-nav, so the older per-article/per-part hero CSS no
+   longer matches anything. Signature scenes stay distinct; the shell does not.
+   =========================================================================== */
+.dg-insight {
+  --dgi-prose-max: 720px;
+  --dgi-stage-max: 1120px;
+  --dgi-gutter: clamp(1.25rem, 5vw, 2rem);
+  --dgi-section-gap: clamp(2.75rem, 6vw, 4.5rem);
+}
+
+/* (14) ONE shared reading column: breadcrumb, badge, title, lede, metadata and
+   body prose all start/end on the same horizontal guides across all four. */
+.wb-html-island--page .dg-insight .dg-insights-shell,
+.wb-html-island--page .dg-insight .container,
+.wb-html-island--page .dg-insight .prose {
+  max-width: var(--dgi-prose-max) !important;
+  width: 100% !important;
+  margin-inline: auto !important;
+  padding-inline: var(--dgi-gutter) !important;
+}
+.wb-html-island--page .dg-insight .container-wide,
+.wb-html-island--page .dg-insight .wide {
+  max-width: var(--dgi-stage-max) !important;
+  width: 100% !important;
+  margin-inline: auto !important;
+  padding-inline: var(--dgi-gutter) !important;
+}
+/* (9) ONE signature-visual breakout: identical width + page-centred from any
+   parent (incl. the padded prose .container) across all four parts. */
+.wb-html-island--page .dg-insight .dg-stage--wide {
+  width: min(var(--dgi-stage-max), calc(100vw - 2 * var(--dgi-gutter))) !important;
+  max-width: none !important;
+  margin-left: 50% !important;
+  margin-right: 0 !important;
+  transform: translateX(-50%) !important;
+}
+@media (max-width: 680px) {
+  /* On mobile the stage fits the reading column — no breakout, no overflow. */
+  .wb-html-island--page .dg-insight .dg-stage--wide {
+    width: 100% !important;
+    margin-inline: auto !important;
+    transform: none !important;
+  }
+}
+/* One shared section rhythm. */
+.wb-html-island--page .dg-insight section {
+  padding-block: var(--dgi-section-gap) !important;
+}
+
+/* (4)(5)(6)(10) Shared hero shell — restrained editorial architecture. */
+.dg-insights-hero {
+  position: relative;
+  overflow: hidden;
+  border-top: 0 !important;
+  padding: clamp(1.75rem, 4vw, 3rem) 0 clamp(1.5rem, 3vw, 2.25rem) !important;
+  background:
+    radial-gradient(42% 60% at 84% 0%, rgba(124, 58, 237, 0.14), transparent 60%),
+    radial-gradient(40% 52% at 6% 4%, rgba(56, 189, 248, 0.09), transparent 62%),
+    linear-gradient(180deg, #070b13, #0a0e17);
+}
+.dg-insights-hero > .dg-insights-shell { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.95rem; }
+.dg-insights-breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin: 0 !important; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.72rem; color: #64748b; }
+.wb-html-island--page:not(.wb-html-island--light) .dg-insights-breadcrumb a,
+.dg-insights-breadcrumb a { color: #64748b !important; text-decoration: none; }
+.dg-insights-breadcrumb a:hover { color: #93c5fd !important; }
+.dg-insights-breadcrumb__current { color: #94a3b8; }
+
+/* (5)(6) Series badge + Part X of 4 + four-position progress. */
+.dg-insights-eyebrow { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem 1rem; }
+.dg-insights-badge {
+  display: inline-block; font-family: Sora, Inter, sans-serif; font-weight: 800; font-size: 0.7rem;
+  letter-spacing: 0.16em; text-transform: uppercase; color: #c4b5fd;
+  padding: 0.34rem 0.72rem !important; border: 1px solid rgba(124, 58, 237, 0.34); border-radius: 999px;
+  background: rgba(124, 58, 237, 0.08);
+}
+.dg-insights-part { font-family: Sora, Inter, sans-serif; font-weight: 700; font-size: 0.74rem; letter-spacing: 0.12em; text-transform: uppercase; color: #64748b; }
+/* margin-left:auto is authoritative — some article stylesheets ship a
+   universal .dg-insight reset (margin:0) that would otherwise clobber it. */
+.dg-insights-progress { display: inline-flex; align-items: center; gap: 0.42rem; margin-left: auto !important; }
+.dg-insights-progress i { width: 7px; height: 7px; border-radius: 999px; background: rgba(148, 163, 184, 0.28); display: block; transition: width 0.3s ease; }
+.dg-insights-progress i.is-on { width: 22px; background: linear-gradient(90deg, #a78bfa, #60a5fa); box-shadow: 0 0 10px rgba(124, 58, 237, 0.5); }
+
+/* (7) One typographic system: title / lede / metadata. */
+.wb-html-island--page:not(.wb-html-island--light) .dg-insights-title,
+.dg-insights-title {
+  margin: 0.25rem 0 0.3rem !important; font-family: Sora, Inter, sans-serif !important; font-weight: 800 !important;
+  font-size: clamp(2.6rem, 5.6vw, 4.6rem) !important; line-height: 1.04 !important; letter-spacing: -0.035em !important;
+  color: #f8fafc !important; max-width: 20ch;
+}
+.wb-html-island--page:not(.wb-html-island--light) .dg-insights-lede,
+.dg-insights-lede {
+  margin: 0 !important; font-size: clamp(1.08rem, 1.7vw, 1.42rem) !important; line-height: 1.5 !important;
+  color: #cbd5e1 !important; max-width: 46ch;
+}
+.dg-insights-meta { display: flex; align-items: center; gap: 0.55rem; margin: 0.4rem 0 0 !important; font-size: 0.85rem; color: #94a3b8; }
+.dg-insights-avatar { display: inline-grid; place-items: center; width: 1.9rem; height: 1.9rem; border-radius: 999px; font-family: Sora, Inter, sans-serif; font-weight: 800; font-size: 0.66rem; color: #ede9fe; background: linear-gradient(135deg, #7c3aed, #3b82f6); }
+.dg-insights-meta__sep { color: #475569; margin: 0 0.1rem; }
+
+/* (7) Shared body heading scale (one system, not four personalities). */
+.wb-html-island--page:not(.wb-html-island--light) .dg-insight h2,
+.dg-insight h2 { font-family: Sora, Inter, sans-serif !important; font-weight: 700 !important; font-size: clamp(1.5rem, 2.6vw, 2rem) !important; line-height: 1.2 !important; letter-spacing: -0.02em !important; color: #f1f5f9 !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dg-insight h3,
+.dg-insight h3 { font-family: Sora, Inter, sans-serif !important; font-weight: 700 !important; font-size: 1.08rem !important; line-height: 1.35 !important; color: #bfdbfe !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dg-insight .lead,
+.dg-insight .lead { font-size: clamp(1.02rem, 1.4vw, 1.15rem) !important; line-height: 1.65 !important; color: #cbd5e1 !important; }
+
+/* (11)(12) Shared four-part series progression + next-article. */
+.dg-insights-series-nav { border-top: 1px solid rgba(148, 163, 184, 0.12); margin-top: clamp(2.5rem, 6vw, 4rem); padding: clamp(2.5rem, 5vw, 3.5rem) 0 clamp(3rem, 6vw, 4.5rem) !important; }
+.dg-insights-series-nav__eyebrow { margin: 0 0 1.15rem !important; font-family: Sora, Inter, sans-serif; font-weight: 800; font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: #64748b; }
+.dg-insights-series-nav__list { list-style: none; margin: 0 0 1.4rem !important; padding: 0 !important; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.7rem; }
+.dg-insights-chapter { position: relative; margin: 0 !important; padding: 0 !important; }
+.dg-insights-chapter::before { display: none !important; }
+.dg-insights-chapter a, .dg-insights-chapter.is-current { display: flex; gap: 0.6rem; padding: 0.85rem !important; border-radius: 13px; border: 1px solid rgba(148, 163, 184, 0.14); background: rgba(255, 255, 255, 0.02); text-decoration: none; height: 100%; }
+.dg-insights-chapter a:hover { border-color: rgba(124, 58, 237, 0.4); background: rgba(124, 58, 237, 0.06); }
+.dg-insights-chapter.is-current { border-color: rgba(124, 58, 237, 0.5); background: linear-gradient(160deg, rgba(124, 58, 237, 0.12), rgba(59, 130, 246, 0.05)); }
+.dg-insights-chapter__num { font-family: ui-monospace, monospace; font-size: 0.72rem; font-weight: 700; color: #7c3aed; }
+.dg-insights-chapter.is-current .dg-insights-chapter__num { color: #c4b5fd; }
+.dg-insights-chapter__kicker { display: block; font-family: Sora, Inter, sans-serif; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #64748b; margin-bottom: 0.25rem; }
+.wb-html-island--page:not(.wb-html-island--light) .dg-insights-chapter__title,
+.dg-insights-chapter__title { display: block; font-size: 0.8rem; line-height: 1.3; color: #cbd5e1 !important; }
+.dg-insights-chapter.is-current .dg-insights-chapter__title { color: #f1f5f9 !important; }
+.dg-insights-next { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem !important; border-radius: 14px; border: 1px solid rgba(124, 58, 237, 0.3); background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(16, 185, 129, 0.04)); text-decoration: none; }
+.dg-insights-next:hover { border-color: rgba(124, 58, 237, 0.55); }
+.dg-insights-next__k { font-family: ui-monospace, monospace; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b; }
+.wb-html-island--page:not(.wb-html-island--light) .dg-insights-next__t,
+.dg-insights-next__t { flex: 1; font-family: Sora, Inter, sans-serif; font-weight: 700; font-size: 0.98rem; color: #f1f5f9 !important; }
+.dg-insights-next__a { color: #a78bfa; font-size: 1.1rem; }
+
+/* (15) Responsive shell — same series identity, deliberate recomposition. */
+@media (max-width: 760px) {
+  .dg-insights-eyebrow { gap: 0.5rem 0.7rem; }
+  .dg-insights-progress { margin-left: 0; width: 100%; order: 3; }
+  .dg-insights-title { font-size: clamp(2.1rem, 8vw, 2.9rem) !important; }
+  .dg-insights-series-nav__list { grid-template-columns: 1fr; }
+  .dg-insights-next { flex-wrap: wrap; }
+}
 `;

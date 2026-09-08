@@ -13,6 +13,23 @@ import {
   type DigitalgateStageKind,
   type StageDef,
 } from "./digitalgate-visual-stages";
+import {
+  applyInsightsSeriesShell,
+  type InsightsPart,
+} from "./digitalgate-insights-series";
+
+function insightsPartNumber(kind: DigitalgateStageKind): InsightsPart {
+  switch (kind) {
+    case "insights-part-1":
+      return 1;
+    case "insights-part-2":
+      return 2;
+    case "insights-part-3":
+      return 3;
+    case "insights-part-4":
+      return 4;
+  }
+}
 
 export type DigitalgateVisualPageKind =
   | "insights-part-1"
@@ -497,6 +514,17 @@ function collectHeadings(html: string): HeadingHit[] {
   HEADING_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
   while ((m = HEADING_RE.exec(html)) !== null) {
+    // Skip headings that are the first child of a constrained card/stack cell
+    // (e.g. `<div class="dg-card"><h3>…`). Weaving a wide signature stage before
+    // such a heading would trap it inside a grid cell and blow the column out.
+    const before = html.slice(Math.max(0, m.index - 120), m.index);
+    if (
+      /<div\b[^>]*\bclass="[^"]*\b(?:dg-card|dg-stack)\b[^"]*"[^>]*>\s*$/.test(
+        before,
+      )
+    ) {
+      continue;
+    }
     hits.push({ start: m.index, text: normaliseHeading(m[0]) });
   }
   return hits;
@@ -608,11 +636,14 @@ export function enhanceDigitalgateVisualHtml(
 
   let out = refreshStaleSeriesChrome(html);
 
-  // Insights Parts 1–4: recomposed scenes woven through the article.
+  // Insights Parts 1–4: one shared editorial series shell (hero, badge, Part X
+  // of 4, progress, metadata, series navigation) + recomposed signature scenes
+  // woven through the article. The shell is idempotent (its own marker guard).
   const stageKind = insightsStageKind(kind);
   if (stageKind) {
+    const part = insightsPartNumber(stageKind);
     if (hasStagesForKind(out, stageKind)) {
-      return out; // idempotent — new stages already present
+      return applyInsightsSeriesShell(out, part); // idempotent
     }
     // Remove presentation-only legacy layers so visuals never double-render:
     //  - ALL old renderer-owned dg-story-visual cards (any marker), and
@@ -620,7 +651,8 @@ export function enhanceDigitalgateVisualHtml(
     //    data-dg48-visual blocks). Prose/headings/structure/nav are preserved.
     out = removeElementsWithAttr(out, "dg-story-visual");
     out = stripLegacyDg48Presentation(out);
-    return placeInsightsStages(out, stagesForKind(stageKind));
+    out = placeInsightsStages(out, stagesForKind(stageKind));
+    return applyInsightsSeriesShell(out, part);
   }
 
   // Business Brain / Automation retain the existing primitives (redesigned in

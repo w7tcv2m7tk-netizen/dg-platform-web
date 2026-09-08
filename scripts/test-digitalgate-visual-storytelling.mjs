@@ -91,9 +91,14 @@ describe("digitalgate insights visual stages (#48)", () => {
     // (6) headings preserved
     assert.ok(out.includes("The evolution of business software"));
     assert.ok(out.includes("The hidden human integration layer"));
-    // (7) series navigation preserved
-    assert.ok(out.includes('class="series"'));
-    assert.ok(out.includes("/insights/from-signal-to-action"));
+    // (7) renderer-owned shared series shell: canonical breadcrumb, series badge,
+    //     Part X of 4 and a four-part series navigation replace the divergent
+    //     per-article series chrome so all four read as one series.
+    assert.ok(out.includes('data-dg-insights-shell="v1"'), "series shell applied");
+    assert.ok(out.includes("Part 1 of 4"), "Part X of 4 exposed in HTML (not SVG only)");
+    assert.ok(out.includes("dg-insights-series-nav"), "shared four-part series nav present");
+    assert.ok(out.includes("DigitalGate Insights"), "series badge present");
+    assert.ok(out.includes("/from-signal-to-action/"), "links to sibling chapter via real route");
     assert.ok(out.includes(">Book a Demo<"), "CTA preserved");
 
     // (8) correct individual new stages inserted, each tagged for this kind
@@ -253,6 +258,37 @@ describe("digitalgate insights visual stages (#48)", () => {
     const html = `<header class="hero"></header><p>Pricing details</p>`;
     assert.equal(enhanceDigitalgateVisualHtml(html, "pricing"), html);
     assert.equal(enhanceDigitalgateVisualHtml("", SLUGS["insights-part-1"]), "");
+  });
+
+  it("applies ONE shared series shell to all four parts (badge, Part X of 4, progress, nav)", async () => {
+    const { enhanceDigitalgateVisualHtml } = await load();
+    const heroFor = (n, title, kicker) =>
+      `<div class="dg-insight" data-dg-motion-root><header class="hero"><div class="container"><span class="kicker">${kicker}</span><h1>${title}</h1><p class="hero-thesis">Lede ${n}.</p></div></header><section><div class="container"><h2>Section ${n}</h2><p>PROSE_${n}</p></div></section></div>`;
+    const fixtures = {
+      1: heroFor(1, "From fragmented businesses to intelligent ones", "Foundational Series · Part 1 of 3 · Connected Business"),
+      2: heroFor(2, "The intelligent business is more than a brain", "Foundational Series · Part 2 of 3"),
+      3: heroFor(3, "From signal to action", "03 · Intelligence Loop"),
+      4: heroFor(4, "The software that tells you what needs doing", "04 · Proactive"),
+    };
+    for (const [n, slug] of Object.entries(SLUGS)) {
+      const part = Number(n.split("-").pop());
+      const out = enhanceDigitalgateVisualHtml(fixtures[part], slug);
+      // Shared shell chrome present, identical construction across parts.
+      assert.ok(out.includes('data-dg-insights-shell="v1"'), `part ${part} shell`);
+      assert.ok(out.includes('class="dg-insights-hero"'), `part ${part} shared hero`);
+      assert.ok(out.includes("DigitalGate Insights"), `part ${part} badge`);
+      assert.match(out, new RegExp(`Part ${part} of 4`), `part ${part} indicator`);
+      assert.ok(out.includes('class="dg-insights-progress"'), `part ${part} progress`);
+      assert.ok(out.includes("dg-insights-breadcrumb"), `part ${part} breadcrumb`);
+      assert.ok(out.includes("dg-insights-meta"), `part ${part} metadata`);
+      assert.ok(out.includes("dg-insights-series-nav"), `part ${part} series nav`);
+      // Content authority preserved: the real title + prose survive.
+      assert.ok(out.includes(`PROSE_${part}`), `part ${part} prose preserved`);
+      // Stale per-article numbering ("Part X of 3") is gone from the hero.
+      assert.ok(!/Part \d of 3/.test(out.split("dg-insights-series-nav")[0]), `part ${part} stale numbering removed`);
+      // Idempotent.
+      assert.equal(enhanceDigitalgateVisualHtml(out, slug), out, `part ${part} idempotent`);
+    }
   });
 
   it("(14) keeps Business Brain / Automation on existing primitives", async () => {
