@@ -182,6 +182,54 @@ describe("DigitalGate Insights — dedicated four-chapter renderer (#48)", () =>
     }
   });
 
+  it("(13) obsolete legacy presentation structures do NOT survive into output", async () => {
+    // Website Studio supplies content, not presentation architecture. None of
+    // the legacy visual-only wrappers (whose CSS was removed) may leak through.
+    const LEGACY = [
+      "dg-evolution", "dg-evolution-step", "dg-flow-steps", "dg-connected-flow",
+      "dg-connected-step", "dg-model-grid", "dg-model-card", "dg-manifesto-stack",
+      "dg-manifesto-layer", "dg-manifesto-loop", "dg-insight-manifesto",
+      "dg-body-map", "dg-body-map-row", "dg-body-layer", "dg-organ", "dg-body-stack",
+      "dg-loop", "dg-grid", "dg-card", "dg-callout", "dg-example", "dg-stack",
+      "dg-prompt", "dg-principle", "dg-next", "dg-series-nav", "dg-insight",
+      "dg-reveal", "pull-quote", "container-wide",
+    ];
+    for (const part of [1, 2, 3, 4]) {
+      const out = await renderPart(part); // rendered from the REAL Studio source
+      for (const cls of LEGACY) {
+        assert.ok(
+          !new RegExp(`class="[^"]*\\b${cls}\\b`).test(out),
+          `part ${part} leaks legacy structure: ${cls}`,
+        );
+      }
+      // No leftover inline <style>/<script> from the source either.
+      assert.ok(!/<style\b/i.test(out), `part ${part} carries no article <style>`);
+      assert.ok(!/<script\b/i.test(out), `part ${part} carries no article <script>`);
+    }
+  });
+
+  it("(14) composes deliberate editorial rhythm (sections + supporting rail + definitions)", async () => {
+    for (const part of [1, 2, 3, 4]) {
+      const out = await renderPart(part);
+      // Not one uninterrupted prose block: multiple editorial sections.
+      assert.ok(count(out, /class="insights-section"/g) >= 3, `part ${part} multiple sections`);
+      // A signature stage AND a supporting transformation rail.
+      assert.match(out, /class="insights-figure insights-figure-stage"/, `part ${part} signature`);
+      assert.match(out, /class="insights-figure insights-figure-rail"/, `part ${part} rail`);
+      // Canonical definitions present as an editorial <dl> (machine-readable).
+      assert.match(out, /<dl class="insights-definitions">/, `part ${part} definitions`);
+      for (const def of ["Digital Twin", "Business Brain", "AI Advisor"]) {
+        assert.ok(out.includes(`<dt>${def}</dt>`), `part ${part} defines ${def}`);
+      }
+    }
+    // Part-3 rail keeps green after amber authority (no action before governance).
+    const p3 = await renderPart(3);
+    const railHtml = p3.slice(p3.indexOf("insights-figure-rail"));
+    const iAmber = railHtml.indexOf("Human Authority");
+    const iGreen = railHtml.search(/is-green/);
+    assert.ok(iAmber >= 0 && iGreen >= 0 && iAmber < iGreen, "rail: authority precedes green action");
+  });
+
   it("is idempotent — a second render pass is byte-identical", async () => {
     const { enhanceDigitalgateVisualHtml } = await load();
     const once = await renderPart(2);

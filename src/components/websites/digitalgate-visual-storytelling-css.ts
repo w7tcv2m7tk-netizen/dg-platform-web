@@ -569,7 +569,16 @@ export const digitalgateVisualStorytellingCss = `
 .insights-article *::before,
 .insights-article *::after { box-sizing: border-box; }
 
-/* One shared reading column + one signature breakout, at one gutter. */
+/* Width model: an OUTER gutter shell (max 1440) carries the horizontal gutter;
+   INNER blocks carry only their max-width so the real reading measure is a true
+   760px and the signature stage is a true 1100px (no gutter double-counting). */
+.insights-shell {
+  max-width: var(--insights-shell-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--insights-gutter);
+  padding-right: var(--insights-gutter);
+}
 .insights-hero-inner,
 .insights-prose,
 .insights-series-nav,
@@ -577,15 +586,11 @@ export const digitalgateVisualStorytellingCss = `
   max-width: var(--insights-prose-max);
   margin-left: auto;
   margin-right: auto;
-  padding-left: var(--insights-gutter);
-  padding-right: var(--insights-gutter);
 }
 .insights-figure {
   max-width: var(--insights-stage-max);
   margin-left: auto;
   margin-right: auto;
-  padding-left: var(--insights-gutter);
-  padding-right: var(--insights-gutter);
 }
 
 /* —— Hero —— */
@@ -643,8 +648,11 @@ export const digitalgateVisualStorytellingCss = `
 .insights-author { font-weight: 500; color: #9ca3af; }
 .insights-divider { color: #6b7280; opacity: 0.4; }
 
-/* —— Body / prose —— */
-.insights-body { padding: 0 0 var(--insights-section-gap); }
+/* —— Body: deliberate editorial rhythm with generous negative space —— */
+.insights-body { padding: 40px 0 var(--insights-section-gap); }
+.insights-body .insights-shell > * { margin-top: var(--insights-section-gap); }
+.insights-body .insights-shell > *:first-child { margin-top: 0; }
+.insights-section { margin: 0; }
 .insights-prose { display: flex; flex-direction: column; gap: var(--insights-prose-gap); }
 .wb-html-island--page:not(.wb-html-island--light) .insights-prose h2,
 .insights-prose h2 {
@@ -671,27 +679,56 @@ export const digitalgateVisualStorytellingCss = `
 .insights-prose .container-wide,
 .insights-prose .wide,
 .insights-prose .prose { max-width: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-.insights-prose ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.insights-prose li { position: relative; padding-left: 20px; color: #9ca3af; font-size: 17px; line-height: 1.6; }
+.insights-prose ul,
+.insights-prose ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.insights-prose li { position: relative; padding-left: 22px; color: #9ca3af; font-size: 17px; line-height: 1.65; }
 .insights-prose li::before { content: ""; position: absolute; left: 0; top: 11px; width: 6px; height: 6px; border-radius: 50%; background: var(--insights-blue); }
-/* Retained Website Studio content components, styled to the shell (not repair). */
-.insights-prose .dg-callout,
-.insights-prose .dg-principle,
-.insights-prose .dg-prompt,
-.insights-prose .dg-frame { margin: 0; padding: 20px 22px; border: 1px solid var(--insights-border); border-radius: 14px; background: var(--insights-surface); color: #cbd5e1; }
-.insights-prose .dg-callout { border-left: 3px solid var(--insights-blue); }
-.insights-prose .dg-grid,
-.insights-prose .dg-example,
-.insights-prose .dg-stack { display: grid; gap: 12px; margin: 0; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-.insights-prose .dg-card,
-.insights-prose .dg-stack > div,
-.insights-prose .dg-example > div { border: 1px solid var(--insights-border); border-radius: 12px; background: var(--insights-surface); padding: 16px 18px; }
-.insights-prose .dg-card h3,
-.insights-prose .dg-card p { margin: 0 !important; }
-.insights-prose .dg-card p { font-size: 15px !important; }
+.insights-prose li em { color: #bfdbfe; font-style: normal; font-weight: 600; }
+
+/* Pull-quote — an editorial moment, not a card. */
+.insights-pullquote { margin: 8px 0; padding: 4px 0 4px 24px; border-left: 2px solid rgba(124, 58, 237, 0.5); }
+.wb-html-island--page:not(.wb-html-island--light) .insights-pullquote p,
+.insights-pullquote p {
+  margin: 0 !important; font-size: clamp(20px, 2vw, 26px) !important; line-height: 1.4 !important;
+  font-weight: 500; color: #e2e8f0 !important; letter-spacing: -0.01em;
+}
+
+/* Canonical definitions — editorial <dl>, not tiles. */
+.insights-definitions-section .insights-prose { gap: 0; }
+.insights-definitions { display: grid; gap: 0; margin: 0; padding: 8px 0 0; }
+.insights-definitions > div { display: grid; grid-template-columns: minmax(140px, 200px) 1fr; gap: 8px 32px; padding: 20px 0; border-top: 1px solid var(--insights-border); }
+.insights-definitions > div:last-child { border-bottom: 1px solid var(--insights-border); }
+.wb-html-island--page:not(.wb-html-island--light) .insights-definitions dt,
+.insights-definitions dt { font-family: var(--insights-font-sans); font-size: 18px !important; font-weight: 700; color: #ffffff !important; }
+.wb-html-island--page:not(.wb-html-island--light) .insights-definitions dd,
+.insights-definitions dd { margin: 0 !important; font-size: 17px !important; line-height: 1.6; color: #9ca3af !important; }
+
+/* —— Supporting transformation rail: responsive, legible, one visual family —— */
+.insights-figure-rail .insights-rail {
+  list-style: none; margin: 0; padding: 28px 8px; display: flex; align-items: flex-start; gap: 0;
+  background: var(--insights-surface); border: 1px solid var(--insights-border); border-radius: 16px;
+}
+.insights-rail-step { position: relative; flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 0 6px; text-align: center; }
+.insights-rail-step::before { display: none; }
+.insights-rail-line { position: absolute; top: 8px; left: -50%; width: 100%; height: 1px; background: rgba(148, 163, 184, 0.22); z-index: 0; }
+.insights-rail-node { position: relative; z-index: 1; width: 16px; height: 16px; border-radius: 50%; background: #0f0f1a; border: 2px solid #64748b; box-shadow: 0 0 0 4px rgba(15, 15, 26, 1); }
+.insights-rail-text { display: flex; flex-direction: column; gap: 3px; }
+.wb-html-island--page:not(.wb-html-island--light) .insights-rail-label,
+.insights-rail-label { font-family: var(--insights-font-sans); font-size: 14px !important; font-weight: 700; color: #e2e8f0 !important; letter-spacing: -0.01em; }
+.wb-html-island--page:not(.wb-html-island--light) .insights-rail-sub,
+.insights-rail-sub { font-family: var(--insights-font-mono); font-size: 11px !important; line-height: 1.4; color: #6b7280 !important; }
+.insights-rail-step.is-muted .insights-rail-node { border-color: #475569; }
+.insights-rail-step.is-cyan .insights-rail-node { border-color: #22d3ee; box-shadow: 0 0 0 4px rgba(15, 15, 26, 1), 0 0 12px rgba(34, 211, 238, 0.35); }
+.insights-rail-step.is-purple .insights-rail-node { border-color: var(--insights-purple); box-shadow: 0 0 0 4px rgba(15, 15, 26, 1), 0 0 12px rgba(124, 58, 237, 0.35); }
+.insights-rail-step.is-violet .insights-rail-node { border-color: var(--insights-purple-light); box-shadow: 0 0 0 4px rgba(15, 15, 26, 1), 0 0 12px rgba(167, 139, 250, 0.35); }
+.insights-rail-step.is-blue .insights-rail-node { border-color: var(--insights-blue); box-shadow: 0 0 0 4px rgba(15, 15, 26, 1), 0 0 12px rgba(59, 130, 246, 0.35); }
+.insights-rail-step.is-amber .insights-rail-node { border-color: var(--insights-amber); box-shadow: 0 0 0 4px rgba(15, 15, 26, 1), 0 0 12px rgba(251, 191, 36, 0.4); }
+.insights-rail-step.is-amber .insights-rail-label { color: var(--insights-amber) !important; }
+.insights-rail-step.is-green .insights-rail-node { border-color: var(--insights-green); box-shadow: 0 0 0 4px rgba(15, 15, 26, 1), 0 0 12px rgba(52, 211, 153, 0.35); }
+.insights-rail-step.is-green .insights-rail-label { color: #6ee7b7 !important; }
 
 /* —— Figures —— */
-.insights-figure { margin: 0 auto 48px; }
+.insights-figure { margin: 0 auto; }
 .insights-diagram {
   width: 100%; background: var(--insights-surface); border: 1px solid var(--insights-border);
   border-radius: 16px; overflow: hidden;
@@ -754,23 +791,29 @@ export const digitalgateVisualStorytellingCss = `
 @media (max-width: 1024px) {
   .insights-article { --insights-gutter: var(--insights-gutter-tablet); }
   .insights-title { font-size: clamp(36px, 5vw, 48px) !important; }
-  .insights-figure { margin-bottom: 36px; }
   .insights-prose p { font-size: 17px !important; }
 }
 @media (max-width: 768px) {
   .insights-article { --insights-gutter: var(--insights-gutter-mobile); }
   .insights-hero { padding: 24px 0 40px; }
-  .insights-body { padding-bottom: 40px; }
+  .insights-body { padding: 32px 0 40px; }
+  .insights-body .insights-shell > * { margin-top: 56px; }
+  .insights-body .insights-shell > *:first-child { margin-top: 0; }
   .insights-title { font-size: clamp(30px, 8vw, 40px) !important; }
   .insights-lede { font-size: 17px !important; }
   .insights-prose h2 { font-size: 26px !important; }
   .insights-prose h3 { font-size: 20px !important; }
   .insights-prose p { font-size: 16px !important; }
-  .insights-figure { margin-bottom: 28px; }
   .insights-diagram { border-radius: 12px; }
   .insights-figcaption { font-size: 13px !important; }
   .insights-series-nav-links { flex-wrap: wrap; justify-content: center; gap: 12px; }
   .insights-progress-dot { width: 8px; height: 8px; }
+  /* Rail recomposes to a legible vertical spine (labels stay full size). */
+  .insights-figure-rail .insights-rail { flex-direction: column; align-items: flex-start; gap: 20px; padding: 24px 22px; }
+  .insights-rail-step { flex-direction: row; align-items: center; gap: 14px; text-align: left; padding: 0; width: 100%; }
+  .insights-rail-line { top: 50%; left: 7px; width: 1px; height: 20px; transform: translateY(-100%); }
+  .insights-rail-step:first-child .insights-rail-line { display: none; }
+  .insights-definitions > div { grid-template-columns: 1fr; gap: 4px; padding: 16px 0; }
 }
 @media (max-width: 390px) {
   .insights-title { font-size: 30px !important; }

@@ -95,77 +95,172 @@ function extractReadMinutes(full: string): number {
   return m ? Number(m[1]) : 8;
 }
 
-/** Remove one element (and its subtree) identified by a class, balancing tags. */
-function removeByClass(html: string, className: string): string {
-  const re = new RegExp(
-    `<([a-zA-Z][\\w-]*)\\b[^>]*\\bclass="[^"]*\\b${className}\\b[^"]*"[^>]*>`,
-    "i",
-  );
-  let out = html;
-  for (let guard = 0; guard < 12; guard += 1) {
-    const m = out.match(re);
-    if (!m || m.index === undefined) break;
-    const tag = m[1].toLowerCase();
-    const open = m.index;
-    const end = balancedEnd(out, open, tag);
-    if (end < 0) break;
-    out = out.slice(0, open) + out.slice(end);
-  }
-  return out;
+
+function stripTags(html: string): string {
+  return html.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
 }
 
-/** Index just past the matching close tag for the element opening at `open`. */
-function balancedEnd(html: string, open: number, tag: string): number {
-  const openRe = new RegExp(`<${tag}\\b`, "gi");
-  const closeRe = new RegExp(`</${tag}\\s*>`, "gi");
-  openRe.lastIndex = open + 1;
-  closeRe.lastIndex = open + 1;
-  let depth = 1;
-  for (let guard = 0; guard < 5000; guard += 1) {
-    const nextClose = closeRe.exec(html);
-    if (!nextClose) return -1;
-    let nextOpen = openRe.exec(html);
-    while (nextOpen && nextOpen.index < nextClose.index) {
-      depth += 1;
-      nextOpen = openRe.exec(html);
-    }
-    depth -= 1;
-    if (depth === 0) return nextClose.index + nextClose[0].length;
-    openRe.lastIndex = nextClose.index + nextClose[0].length;
-  }
-  return -1;
+/** A normalised editorial section: an optional H2 + its editorial blocks. */
+type Section = { heading: string | null; blocks: string[] };
+
+/** Presentation-only paragraph roles that carry no standalone editorial value. */
+const DROP_P_CLASS = /\b(?:gen|num|meta|label|chips|kicker|thesis|hero-thesis|hero-sub|dg-[\w-]+)\b/i;
+
+/** Strip presentation wrappers/attributes from a kept semantic fragment. */
+function cleanFragment(frag: string): string {
+  return frag
+    .replace(/<span\b[^>]*>/gi, "")
+    .replace(/<\/span>/gi, "")
+    .replace(/\s(?:class|style|id|aria-label|aria-hidden|role|data-[\w-]+)="[^"]*"/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 /**
- * Extract the article BODY prose from the Website Studio HTML: drop the article
- * stylesheet + hero + any in-article series/next chrome + previously rendered
- * shells, and unwrap the outer container. The remaining semantic content
- * (headings, paragraphs, lists, links, examples) is preserved verbatim.
+ * NORMALISATION / COMPOSITION LAYER.
+ *
+ * Website Studio is the content authority but must not inject obsolete
+ * presentation architecture into the Insights shell. This collects ONLY the
+ * semantic editorial stream — H2/H3, paragraphs, lists, pull-quotes — from the
+ * article body, in document order, and DISCARDS every legacy presentation-only
+ * wrapper (dg-evolution, dg-flow-steps, dg-connected-flow, dg-model-grid,
+ * dg-manifesto-*, dg-body-map/dg-organ, dg-loop, dg-grid/dg-card, dg-callout,
+ * dg-stack, dg-prompt, dg-principle, dg-next, dg-series-nav …). Meaning that
+ * lives inside those wrappers as real H3/P survives as clean editorial; the
+ * decorative scaffolding (and any diagram that a renderer-owned visual already
+ * expresses) is dropped. The result is grouped into H2 sections for composition.
  */
-function extractProse(html: string): string {
-  let out = html;
-  out = out.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "");
-  const hero = findHero(out);
-  if (hero) out = out.replace(hero.block, "");
-  for (const cls of [
-    "dg-series-nav",
-    "dg-next",
-    "insights-article",
-    "insights-hero",
-    "insights-footer",
-    "dg-insights-hero",
-    "dg-insights-series-nav",
-    "dg-story-visual",
-  ]) {
-    out = removeByClass(out, cls);
+function normaliseArticle(html: string): Section[] {
+  let body = html
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+  const hero = findHero(body);
+  if (hero) body = body.replace(hero.block, "");
+
+  const BLOCK =
+    /<h2\b[^>]*>[\s\S]*?<\/h2>|<h3\b[^>]*>[\s\S]*?<\/h3>|<ul\b[^>]*>[\s\S]*?<\/ul>|<ol\b[^>]*>[\s\S]*?<\/ol>|<blockquote\b[^>]*>[\s\S]*?<\/blockquote>|<div\b[^>]*\bpull-quote\b[^>]*>[\s\S]*?<\/div>|<p\b[^>]*>[\s\S]*?<\/p>/gi;
+
+  const sections: Section[] = [{ heading: null, blocks: [] }];
+  let m: RegExpExecArray | null;
+  while ((m = BLOCK.exec(body)) !== null) {
+    const raw = m[0];
+    if (/^<h2/i.test(raw)) {
+      sections.push({ heading: cleanFragment(raw), blocks: [] });
+      continue;
+    }
+    let out = "";
+    if (/^<h3/i.test(raw) || /^<ul/i.test(raw) || /^<ol/i.test(raw)) {
+      out = cleanFragment(raw);
+    } else if (/^<blockquote/i.test(raw) || /pull-quote/i.test(raw)) {
+      const inner = raw.replace(/^<[^>]+>/, "").replace(/<\/(?:div|blockquote)>\s*$/i, "");
+      const text = cleanFragment(inner);
+      if (stripTags(text).length > 3) {
+        out = `<blockquote class="insights-pullquote">${text.includes("<p") ? text : `<p>${text}</p>`}</blockquote>`;
+      }
+    } else if (/^<p/i.test(raw)) {
+      const cls = raw.match(/class="([^"]*)"/i)?.[1] ?? "";
+      if (DROP_P_CLASS.test(cls)) continue;
+      const cleaned = cleanFragment(raw);
+      if (stripTags(cleaned).length < 3) continue;
+      out = cleaned;
+    }
+    if (out) sections[sections.length - 1].blocks.push(out);
   }
-  // Unwrap the outer article container so the body flows inside the shell prose.
-  out = out.replace(
-    /^\s*<div\b[^>]*\bclass="[^"]*\bdg-insight\b[^"]*"[^>]*>/i,
-    "",
-  );
-  out = out.replace(/<\/div>\s*$/i, "");
-  return out.trim();
+  return sections.filter((s) => s.heading || s.blocks.length);
+}
+
+function renderSection(s: Section): string {
+  const inner = [s.heading, ...s.blocks].filter(Boolean).join("\n      ");
+  return `<section class="insights-section">
+    <div class="insights-prose">
+      ${inner}
+    </div>
+  </section>`;
+}
+
+/* —— Supporting visual: a responsive editorial rail (HTML, not a tiny SVG) so
+ * every label stays legible and machine-readable at any width. Colour semantics:
+ * purple/blue = context/reasoning, cyan = signal, amber = governance/authority,
+ * green ONLY after authority (authorised action / outcome / learning). —— */
+type Step = { label: string; sub: string; tone: string };
+
+const RAILS: Record<
+  InsightsPart,
+  { aria: string; caption: string; steps: Step[] }
+> = {
+  1: {
+    aria: "Transformation: fragmented tools become connected, then intelligent, then coordinated.",
+    caption: "The transformation — from fragmented tools to one coordinated system.",
+    steps: [
+      { label: "Fragmented", sub: "Disconnected tools", tone: "muted" },
+      { label: "Connected", sub: "One shared business context", tone: "purple" },
+      { label: "Intelligent", sub: "Context becomes understanding", tone: "violet" },
+      { label: "Coordinated", sub: "Governed action and learning", tone: "blue" },
+    ],
+  },
+  2: {
+    aria: "The living-system flow: sense, remember, understand, reason, act, then learn back into the system.",
+    caption: "One living system — sensing, remembering, understanding, reasoning, acting and learning.",
+    steps: [
+      { label: "Sense", sub: "Signals + analytics", tone: "cyan" },
+      { label: "Remember", sub: "CRM + knowledge", tone: "purple" },
+      { label: "Understand", sub: "Business Brain", tone: "violet" },
+      { label: "Reason", sub: "AI Advisor", tone: "blue" },
+      { label: "Act", sub: "Automation + comms", tone: "green" },
+      { label: "Learn", sub: "Outcomes return", tone: "green" },
+    ],
+  },
+  3: {
+    aria: "One enquiry through the system: website enquiry, CRM context, Digital Twin, Business Brain, AI Advisor, then human authority before an authorised follow-up, outcome and learning.",
+    caption: "One enquiry through the system — governed by human authority before any action.",
+    steps: [
+      { label: "Website enquiry", sub: "Signal in", tone: "cyan" },
+      { label: "CRM · context", sub: "Digital Twin updates", tone: "purple" },
+      { label: "Business Brain", sub: "Understanding", tone: "violet" },
+      { label: "AI Advisor", sub: "Recommendation", tone: "blue" },
+      { label: "Human Authority", sub: "Consequential decision", tone: "amber" },
+      { label: "Authorised follow-up", sub: "Outcome → learning", tone: "green" },
+    ],
+  },
+  4: {
+    aria: "The maturity progression: passive software, assistive, proactive, governed automation, then a learning system.",
+    caption: "The maturity curve — from passive software to a governed learning system.",
+    steps: [
+      { label: "Passive", sub: "Dashboards", tone: "muted" },
+      { label: "Assistive", sub: "Answers", tone: "purple" },
+      { label: "Proactive", sub: "Priorities", tone: "violet" },
+      { label: "Governed automation", sub: "Permissions + oversight", tone: "amber" },
+      { label: "Learning system", sub: "Outcomes → context", tone: "green" },
+    ],
+  },
+};
+
+function railFigure(part: InsightsPart): string {
+  const r = RAILS[part];
+  const items = r.steps
+    .map(
+      (s, i) =>
+        `<li class="insights-rail-step is-${s.tone}">${i > 0 ? '<span class="insights-rail-line" aria-hidden="true"></span>' : ""}<span class="insights-rail-node" aria-hidden="true"></span><span class="insights-rail-text"><span class="insights-rail-label">${s.label}</span><span class="insights-rail-sub">${s.sub}</span></span></li>`,
+    )
+    .join("");
+  return `<figure class="insights-figure insights-figure-rail" role="figure" aria-label="${r.aria}">
+    <ol class="insights-rail">${items}</ol>
+    <figcaption class="insights-figcaption">${r.caption}</figcaption>
+  </figure>`;
+}
+
+/* —— Canonical definitions, treated editorially (a semantic <dl>, not cards) so
+ * the key concepts stay machine-readable in HTML, never only inside an SVG. —— */
+function definitionsSection(): string {
+  return `<section class="insights-section insights-definitions-section">
+    <div class="insights-prose">
+      <dl class="insights-definitions">
+        <div><dt>Digital Twin</dt><dd>The evolving representation of the business's current operating state.</dd></div>
+        <div><dt>Business Brain</dt><dd>DigitalGate's structured business knowledge and context.</dd></div>
+        <div><dt>AI Advisor</dt><dd>The reasoning layer that uses Business Brain context to identify priorities and recommend actions.</dd></div>
+      </dl>
+    </div>
+  </section>`;
 }
 
 /* ————————————————————————————————— shell ————————————————————————————————— */
@@ -191,6 +286,7 @@ function hero(
   readMin: number,
 ): string {
   return `<div class="insights-hero">
+    <div class="insights-shell">
     <div class="insights-hero-inner">
       <div class="insights-meta">
         <span class="insights-badge">Insights Series</span>
@@ -205,6 +301,7 @@ function hero(
         <span class="insights-divider" aria-hidden="true">·</span>
         <span class="insights-read-time">${readMin} min read</span>
       </div>
+    </div>
     </div>
   </div>`;
 }
@@ -261,23 +358,39 @@ export function renderInsightsArticle(html: string, part: InsightsPart): string 
   if (!title) return html; // not an insights article we can recompose safely
   const lede = heroBlock ? extractLede(heroBlock.inner) : "";
   const readMin = extractReadMinutes(html);
-  const prose = extractProse(html);
   const visual = signatureVisual(part);
+
+  // Deliberate editorial rhythm: hero → signature visual → short editorial →
+  // supporting transformation visual → editorial → definitions → synthesis.
+  const sections = normaliseArticle(html);
+  const n = sections.length;
+  const a = Math.min(n, Math.max(1, Math.round(n / 3)));
+  const b = Math.min(n, Math.max(a + 1, Math.round((2 * n) / 3)));
+  const group = (from: number, to: number) =>
+    sections.slice(from, to).map(renderSection).join("\n");
+
+  const primary = `<figure class="insights-figure insights-figure-stage" role="figure" aria-label="${visual.aria}">
+      <div class="insights-diagram">${visual.svg}</div>
+      <figcaption class="insights-figcaption">${visual.caption}</figcaption>
+    </figure>`;
 
   return `<article class="insights-article" data-part="${part}" ${INSIGHTS_ARTICLE_MARKER}>
   ${hero(part, title, lede, readMin)}
   <div class="insights-body">
-    <figure class="insights-figure insights-figure-wide" role="figure" aria-label="${visual.aria}">
-      <div class="insights-diagram">${visual.svg}</div>
-      <figcaption class="insights-figcaption">${visual.caption}</figcaption>
-    </figure>
-    <div class="insights-prose">
-${prose}
+    <div class="insights-shell">
+      ${primary}
+      ${group(0, a)}
+      ${railFigure(part)}
+      ${group(a, b)}
+      ${definitionsSection()}
+      ${group(b, n)}
     </div>
   </div>
   <footer class="insights-footer">
-    ${seriesNav(part)}
-    ${cta()}
+    <div class="insights-shell">
+      ${seriesNav(part)}
+      ${cta()}
+    </div>
   </footer>
 </article>`;
 }
