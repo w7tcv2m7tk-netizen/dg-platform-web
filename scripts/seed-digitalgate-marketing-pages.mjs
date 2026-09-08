@@ -74,6 +74,13 @@ const PAGES = [
     intent: "custom",
     sortOrder: 18,
   },
+  {
+    file: "platform-overview.html",
+    title: "The DigitalGate Platform",
+    slug: "platform-overview",
+    intent: "custom",
+    sortOrder: 19,
+  },
 ];
 
 const ICON =

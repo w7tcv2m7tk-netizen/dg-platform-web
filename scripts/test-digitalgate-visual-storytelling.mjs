@@ -188,3 +188,72 @@ describe("DigitalGate Insights — dedicated four-chapter renderer (#48)", () =>
     assert.equal(enhanceDigitalgateVisualHtml(once, ARTICLES[2].slug), once);
   });
 });
+
+describe("DigitalGate Platform Overview visual stages", () => {
+  it("weaves Platform Overview architecture scenes at section anchors, idempotently", async () => {
+    const { enhanceDigitalgateVisualHtml, digitalgateVisualPageKind } = await load();
+    // slug mapping (both aliases)
+    assert.equal(digitalgateVisualPageKind("platform-overview"), "platform-overview");
+    assert.equal(digitalgateVisualPageKind("platform"), "platform-overview");
+
+    const src = `<div class="dg-platform" data-dg-motion-root>
+      <section class="hero"><div class="container"><h1>One operating system for your business.</h1><p>POV_HERO</p></div></section>
+      <section><div class="container"><h2>The core everything shares.</h2><p>POV_CORE</p></div></section>
+      <section><div class="container"><h2>The important part is what the software shares.</h2><p>POV_SHARED</p></div></section>
+      <section><div class="container"><h2>A living representation of the business.</h2><p>POV_TWIN</p></div></section>
+      <section><div class="container"><h2>Context becomes understanding.</h2><p>POV_BRAIN</p></div></section>
+      <section><div class="container"><h2>Reasoning on top of real business context.</h2><p>POV_ADVISOR</p></div></section>
+      <section><div class="container"><h2>Automation with context and boundaries.</h2><p>POV_AUTO</p></div></section>
+      <section><div class="container"><h2>Apps specialise the platform. They do not fragment it.</h2><p>POV_APPS</p></div></section>
+      <section><div class="container"><h2>Same platform. Different operating models.</h2><p>POV_INDUSTRY</p></div></section>
+      <section><div class="container"><h2>The platform does not stop at your internal operations.</h2><p>POV_PRESENCE</p></div></section>
+      <section><div class="container"><h2>One platform. One business context.</h2><p>POV_RECAP</p></div></section>
+    </div>`;
+    const out = enhanceDigitalgateVisualHtml(src, "platform-overview");
+
+    // All eleven architecture scenes present, exactly once each.
+    for (const name of [
+      "hero-architecture", "platform-core", "shared-context", "digital-twin",
+      "business-brain", "ai-advisor", "governed-automation", "apps",
+      "industry", "digital-presence", "architecture-recap",
+    ]) {
+      assert.equal(
+        count(out, new RegExp(`data-dg-stage="${name}"`, "g")),
+        1,
+        `expected one ${name} scene`,
+      );
+    }
+    assert.equal(count(out, /data-dg-stage-of="platform-overview"/g), 11);
+
+    // SEO-critical prose is preserved (content authority stays in the HTML).
+    for (const p of ["POV_HERO", "POV_CORE", "POV_BRAIN", "POV_RECAP"]) {
+      assert.ok(out.includes(p), `expected ${p} preserved`);
+    }
+    // Non-negotiable terminology + colour semantics carried in the visuals.
+    assert.match(out, /Business Brain/);
+    assert.match(out, /AI Advisor/);
+    assert.match(out, /Digital Twin/);
+    assert.match(out, /PLATFORM CORE/);
+    assert.match(out, /AUTHORITY/);
+    assert.match(out, /Auto-approved within policy/);
+
+    // Narrative order: hero first, recap last.
+    assert.ok(
+      out.indexOf('data-dg-stage="hero-architecture"') <
+        out.indexOf('data-dg-stage="platform-core"'),
+    );
+    assert.ok(
+      out.indexOf('data-dg-stage="platform-core"') <
+        out.indexOf('data-dg-stage="architecture-recap"'),
+    );
+    // Idempotent — a second pass is byte-identical.
+    assert.equal(enhanceDigitalgateVisualHtml(out, "platform-overview"), out);
+  });
+
+  it("does not alter Insights presentation when Platform wiring is present", async () => {
+    const out = await renderPart(3);
+    assert.ok(out.includes('data-dg-insights-article="v2"'));
+    assert.ok(!out.includes("dgpov-scene"));
+    assert.ok(!out.includes('data-dg-stage-of="platform-overview"'));
+  });
+});

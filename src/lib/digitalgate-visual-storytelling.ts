@@ -11,12 +11,14 @@ import {
   insightsPartForSlug,
   renderInsightsArticle,
 } from "./digitalgate-insights-article";
+import { enhancePlatformOverviewHtml } from "./digitalgate-platform-visual";
 
 export type DigitalgateVisualPageKind =
   | "insights-part-1"
   | "insights-part-2"
   | "insights-part-3"
   | "insights-part-4"
+  | "platform-overview"
   | "business-brain"
   | "automation"
   | null;
@@ -27,6 +29,8 @@ const SLUG_KIND: Record<string, Exclude<DigitalgateVisualPageKind, null>> = {
   "from-signal-to-action": "insights-part-3",
   "business-software-should-tell-you-what-needs-doing": "insights-part-4",
   "software-that-tells-you-what-needs-doing": "insights-part-4",
+  "platform-overview": "platform-overview",
+  platform: "platform-overview",
   "business-brain": "business-brain",
   automation: "automation",
 };
@@ -243,6 +247,10 @@ function visualForKind(kind: Exclude<DigitalgateVisualPageKind, null>): string {
       return businessBrainNetwork;
     case "automation":
       return automationTimelineFixed;
+    case "platform-overview":
+      // Handled earlier in enhanceDigitalgateVisualHtml (woven stages, not a
+      // single legacy dg-story-visual block); never reaches this switch.
+      return "";
   }
 }
 
@@ -254,6 +262,9 @@ const CURRENT_STORY_MARKER: Record<Exclude<DigitalgateVisualPageKind, null>, str
   "insights-part-4": 'data-dg-story="proactive-compare"',
   "business-brain": 'data-dg-story="business-brain-network"',
   automation: 'data-dg-story="automation-timeline"',
+  // Platform Overview uses woven dgpov- stages (handled earlier); this marker is
+  // never consulted for it, but the map must cover every page kind.
+  "platform-overview": 'data-dg-stage-of="platform-overview"',
 };
 
 function hasCurrentVisual(html: string, kind: Exclude<DigitalgateVisualPageKind, null>): boolean {
@@ -397,6 +408,13 @@ export function enhanceDigitalgateVisualHtml(
   if (!kind) return html;
 
   let out = refreshStaleSeriesChrome(html);
+
+  // Platform Overview: weave approved architecture figures at section anchors.
+  // Content authority stays in Website Studio HTML; visuals are renderer-owned.
+  // Isolated from the Insights presentation rewrite on main.
+  if (kind === "platform-overview") {
+    return enhancePlatformOverviewHtml(out);
+  }
 
   // Insights Parts 1–4: recompose the Website Studio article into the dedicated
   // four-chapter Insights presentation (one shared shell, frozen tokens). The
